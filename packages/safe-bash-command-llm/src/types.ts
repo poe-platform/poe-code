@@ -50,6 +50,7 @@ export interface LlmRequest {
   attachments: readonly { mimeType: string; bytes: Uint8Array }[];
   options: Readonly<Record<string, LlmOption>>;
   signal: AbortSignal;
+  stream?: boolean;
 }
 export interface LlmLimits {
   readonly maxInputBytes: number;

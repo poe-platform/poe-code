@@ -48,7 +48,7 @@ export async function createLlmSpool(fs: FileSystem, directory: string, signal: 
     written += chunk.byteLength;
    }
   },
-  async *replay(): AsyncIterable<Uint8Array> {
+  async *replay(select?: (reader: { size: number; read(position: number, maxBytes: number): Promise<Uint8Array> }) => Promise<{ start: number; end: number } | undefined>): AsyncIterable<Uint8Array> {
    signal.throwIfAborted();
    if (sealed || closing) throw new FsError("EBADF", { message: "LLM spool is closed" });
    sealed = await writer.finish({ signal });
@@ -63,11 +63,23 @@ export async function createLlmSpool(fs: FileSystem, directory: string, signal: 
    }
    reader = opened;
    verifyRetainedFile(await reader.stat({ signal }), sealed);
-   let position = 0;
-   while (position < written) {
-    const bytes = await reader.read(position, Math.min(16384, written - position), { signal });
-    if (!bytes.byteLength || bytes.byteLength > Math.min(16384, written - position)) throw new FsError("EIO", { message: "Invalid LLM spool read" });
-    verifyRetainedFile(await reader.stat({ signal }), sealed);
+   const read = async (position: number, maxBytes: number): Promise<Uint8Array> => {
+    signal.throwIfAborted();
+    if (closing || !reader) throw new FsError("EBADF", { message: "LLM spool is closed" });
+    if (!Number.isSafeInteger(position) || position < 0 || position >= written || !Number.isSafeInteger(maxBytes) || maxBytes <= 0 || maxBytes > 16384) throw new FsError("EINVAL", { message: "Invalid LLM spool range" });
+    const count = Math.min(maxBytes, written - position);
+    verifyRetainedFile(await reader.stat({ signal }), sealed!);
+    const bytes = await reader.read(position, count, { signal });
+    if (!bytes.byteLength || bytes.byteLength > count) throw new FsError("EIO", { message: "Invalid LLM spool read" });
+    verifyRetainedFile(await reader.stat({ signal }), sealed!);
+    return bytes;
+   };
+   const range = await select?.({ size: written, read });
+   if (range && (!Number.isSafeInteger(range.start) || !Number.isSafeInteger(range.end) || range.start < 0 || range.end < range.start || range.end > written)) throw new FsError("EINVAL", { message: "Invalid LLM spool selection" });
+   let position = range?.start ?? 0;
+   const end = range?.end ?? written;
+   while (position < end) {
+    const bytes = await read(position, Math.min(16384, end - position));
     position += bytes.byteLength;
     yield bytes;
    }

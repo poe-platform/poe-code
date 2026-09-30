@@ -42,7 +42,7 @@ export function chatJson(request: Omit<LlmSourceRequest, "options"> & { readonly
       yield text("]");
     }
     request.signal.throwIfAborted();
-    yield text('}],"stream":true}');
+    yield text(`}],"stream":${request.stream !== false}}`);
   }
   async function* limited(): AsyncIterable<Uint8Array> {
     let size = 0;

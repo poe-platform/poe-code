@@ -8,6 +8,7 @@ import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters, type TemplateLoaderOptions } from "./templates.js";
 import { createLlmSpool } from "./retained-spool.js";
+import { findExtractedRange } from "./extract-range.js";
 import { fileSource } from "./file-source.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { configurationCommand } from "./configuration-command.js";
@@ -20,6 +21,7 @@ interface Arguments {
   template?: string;
   save?: string;
   noStream?: boolean;
+  extract?: "first" | "last";
   params: Record<string, string>;
   options: Record<string, string>;
   attachments: { path: string; mimeType?: string }[];
@@ -33,6 +35,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
     await step();
     const argument = text(index);
     if (!ended && ["--no-log", "-n"].includes(argument)) continue;
+    if (!ended && ["-x", "--extract", "--xl", "--extract-last"].includes(argument)) { parsed.extract = argument === "--xl" || argument === "--extract-last" ? "last" : parsed.extract ?? "first"; parsed.noStream = true; continue; }
     if (!ended && argument === "--no-stream") { parsed.noStream = true; continue; }
     if (ended || !argument.startsWith("-") || argument === "-") { operands.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
@@ -257,6 +260,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       const saved = {
         ...(args.model === undefined ? {} : { model: entry!.model.id }),
         ...(prompt ? { prompt } : {}), ...(args.system === undefined ? {} : { system: args.system }),
+        ...(args.extract === "last" ? { extract_last: true } : args.extract === "first" ? { extract: true } : {}),
         ...(Object.keys(args.params).length ? { defaults: args.params } : {}),
         ...(Object.keys(args.options).length ? { options: args.options } : {}),
         ...(attachments.length ? { attachments } : {}),
@@ -266,6 +270,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     if (stored) {
       try {
+        if (!args.extract && (stored.extract_last || stored.extract)) {
+          args.extract = stored.extract_last ? "last" : "first";
+          args.noStream = true;
+        }
         const evaluated = evaluateLlmTemplate(stored, templateUsesInput ? prompt : "", args.params);
         if (evaluated.prompt) prompt = !templateUsesInput && args.prompt ? `${evaluated.prompt}\n${args.prompt}` : evaluated.prompt;
         if (args.system === undefined && evaluated.system !== undefined) args.system = evaluated.system;
@@ -339,12 +347,12 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     const request: LlmRequest = {
       model: entry.model.id, prompt,
-      ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal,
+      ...(args.system === undefined ? {} : { system: args.system }), attachments, options: args.options, signal, stream: !args.noStream,
     };
     signal.throwIfAborted();
     if (args.noStream) outputSpool = await operation.acquire(() => createLlmSpool(context.fs, context.cwd, signal), spool => spool.close());
     if (streamed) {
-      const events = service.streamSources!({ model: request.model, options: request.options, signal, prompt: promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt),
+      const events = service.streamSources!({ model: request.model, options: request.options, signal, stream: request.stream, prompt: promptSpool ? { bytes: promptSpool.replay(), dispose: promptSpool.close } : textSource(prompt),
         ...(args.system === undefined ? {} : { system: textSource(args.system) }), attachments: sourceAttachments });
       iterator = (async function* () {
         for await (const event of events) {
@@ -371,9 +379,13 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     if (text) {
       if (pendingSurrogate) await emitText(pendingSurrogate);
-      await write(Uint8Array.of(10));
+      if (!args.extract) await write(Uint8Array.of(10));
     }
-    if (outputSpool) for await (const chunk of outputSpool.replay()) { writing = true; await operation.output.write(chunk); writing = false; }
+    if (outputSpool) for await (const chunk of outputSpool.replay(args.extract && text ? async reader => {
+      const range = await findExtractedRange(reader, args.extract === "last", signal);
+      return range && range.end > range.start ? range : undefined;
+    } : undefined)) { writing = true; await operation.output.write(chunk); writing = false; }
+    if (args.extract && text) await operation.output.write(Uint8Array.of(10));
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();

@@ -106,6 +106,25 @@ function job(value: Record<string, unknown>, expectedId?: string): { id: string;
   return { id: value.id, status: value.status };
 }
 
+function openAiChatJsonResult(value: Record<string, unknown>, signal: AbortSignal): { content?: string; details?: LlmResponseMetadata } {
+  signal.throwIfAborted();
+  if (value.error != null) throw new Error(`OpenAI: ${openAiError(value.error) ?? "chat completion failed"}`);
+  if (!Array.isArray(value.choices) || value.choices.length === 0) throw new Error("OpenAI chat response has no choices");
+  const first = value.choices[0];
+  if (!openAiRecord(first) || !openAiRecord(first.message)) throw new Error("OpenAI chat response has a malformed choice");
+  const content = first.message.content;
+  if (content !== undefined && content !== null && typeof content !== "string") throw new Error("OpenAI chat response content must be a string");
+  const metadata: Record<string, unknown> = {};
+  if (typeof value.id === "string") metadata.id = value.id;
+  if (typeof value.model === "string") metadata.model = value.model;
+  if (typeof first.finish_reason === "string") metadata.finish_reason = first.finish_reason;
+  const details: LlmResponseMetadata = {
+    ...(openAiRecord(value.usage) ? { usage: value.usage } : {}),
+    ...(Object.keys(metadata).length ? { metadata } : {}),
+  };
+  return { ...(typeof content === "string" && content.length > 0 ? { content } : {}), details };
+}
+
 export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvider {
   const { transport, apiKey } = options;
   const limits = providerLimits(options.limits);
@@ -175,7 +194,13 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         url: `${baseUrl}/chat/completions`, method: "POST", signal: request.signal,
         headers: [["authorization", `Bearer ${apiKey}`], ["content-type", "application/json"]], body,
       }, limits.maxResponseBytes)) {
-        details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
+        if (request.stream === false) {
+          const parsed = openAiChatJsonResult(await openAiJson(response, request.signal, limits.maxResponseBytes), request.signal);
+          if (parsed.content !== undefined) yield parsed.content;
+          details = parsed.details;
+        } else {
+          details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
+        }
       }
       return details;
     },
@@ -210,8 +235,15 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
           ...request.attachments.map(attachment => ({ type: "image_url", image_url: { url: `data:${attachment.mimeType};base64,${base64(attachment.bytes)}` } })),
         ] });
         let details: LlmResponseMetadata | undefined;
-        for await (const response of send("/chat/completions", "POST", jsonBody({ ...openAiChatOptions(jsonOptions(request.options, "chat")), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream: true }, limits.maxRequestBytes))) {
-          details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
+        const stream = request.stream !== false;
+        for await (const response of send("/chat/completions", "POST", jsonBody({ ...openAiChatOptions(jsonOptions(request.options, "chat")), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream }, limits.maxRequestBytes))) {
+          if (!stream) {
+            const parsed = openAiChatJsonResult(await openAiJson(response, request.signal, limits.maxResponseBytes), request.signal);
+            if (parsed.content !== undefined) yield parsed.content;
+            details = parsed.details;
+          } else {
+            details = yield* openAiChat(response.body, request.signal, limits.maxEventBytes, limits.maxResponseBytes);
+          }
         }
         return details;
       } else if (model.endpoint === "images") {

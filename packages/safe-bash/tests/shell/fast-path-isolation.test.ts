@@ -352,3 +352,16 @@ test('replacement tilde follows modern Bash quoting rules', async context => {
   assert.equal(result.stdout, 'he/home/ulo he/home/ulo he~lo\n');
   assert.equal(result.stderr, '');
 });
+
+test('byte-locale substring preserves a split UTF-8 byte without Buffer', async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const original = globalThis.Buffer;
+  try {
+    assert.equal(Reflect.deleteProperty(globalThis, "Buffer"), true);
+    const result = await shell.exec('LC_ALL=C; x="éabcd"; echo "${x:1:3}:$(echo ok)"');
+    assert.deepEqual(result.stdoutBytes, Uint8Array.of(0xa9, 0x61, 0x62, 0x3a, 0x6f, 0x6b, 0x0a));
+    assert.equal(result.stderr, '');
+    assert.equal(result.exitCode, 0);
+  } finally { globalThis.Buffer = original; }
+});

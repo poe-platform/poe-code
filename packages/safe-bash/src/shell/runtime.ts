@@ -21207,7 +21207,7 @@ export class Runtime {
       }
       this.requireParameter(value === undefined ? undefined : shellValueText(value), part.name, state, io, part.line);
       if (part.length) return this.valueLength(value ?? "", state, io);
-      if (part.substring) return this.substring(part, value === undefined ? undefined : shellValueText(value), state, io);
+      if (part.substring) return this.substring(part, value, state, io);
       if (part.transform) return part.transform === "a" || part.transform === "A" || part.transform === "K" || part.transform === "k" ? this.variableMetaTransform(part, state, io) : value === undefined ? "" : this.transformValue(value, part.transform, state, io);
       if (part.operator) return this.parameterPattern(part, value ?? "", state, io, hereString);
       return value ?? "";
@@ -21595,7 +21595,7 @@ export class Runtime {
     }
     if (part.substring) {
       this.requireParameter(value, part.name, state, io, part.line);
-      return this.substring(part, value, state, io);
+      return this.substring(part, retained, state, io);
     }
     if (part.operator) {
       if (["#", "##", "%", "%%", "^", "^^", ",", ",,"].includes(part.operator) || part.operator.startsWith("/")) {
@@ -21654,7 +21654,7 @@ export class Runtime {
     const bytes = shellValueBytes(value, io[valueScope]);
     return bytes.length ? shellValueFromBytes(bytes.subarray(0, shellCharacterWidth(bytes, 0, byteCount)), io[valueScope]) : "";
   }
-  async substring(part: Extract<WordPart, { kind: "variable" }>, value: string | undefined, state: State, io: IO): Promise<string> {
+  async substring(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue | undefined, state: State, io: IO): Promise<ShellValue> {
     const owner = arrayStore(state)?.get(part.name) ? requireArrays(state).owner : undefined;
     const expression = part.substring!;
     const line = io.diagnosticLine ?? part.line;
@@ -21699,10 +21699,10 @@ export class Runtime {
     const offsetExpression = await arithmetic(expression.offset);
     let bytes: Uint8Array | undefined;
     if (byteLocale(state.variables)) {
-      scratch.reserve(shellValueByteLength(value), 0);
-      bytes = fastSharedTextEncoder.encode(value);
+      bytes = shellValueBytes(value, scratch);
     }
-    const size = BigInt(bytes?.byteLength ?? (await scanString(value, work)).count);
+    const text = shellValueText(value);
+    const size = BigInt(bytes?.byteLength ?? (await scanString(text, work)).count);
     const offset = offsetExpression.value < 0n ? size + offsetExpression.value : offsetExpression.value;
     if (offset < 0n || offset > size) return "";
     let end = size;
@@ -21714,14 +21714,12 @@ export class Runtime {
     }
     this.signal.throwIfAborted();
     if (!bytes) {
-      const start = (await scanString(value, work, 0, value.length, Number(offset))).end;
-      const finish = (await scanString(value, work, start, value.length, Number(end - offset))).end;
+      const start = (await scanString(text, work, 0, text.length, Number(offset))).end;
+      const finish = (await scanString(text, work, start, text.length, Number(end - offset))).end;
       if (finish > start) scratch.reserve((finish - start) * 2, 0);
-      return value.slice(start, finish);
+      return text.slice(start, finish);
     }
-    scratch.reserve(Number(end - offset) * 2, 0);
-    try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes.subarray(Number(offset), Number(end))); }
-    catch { throw new ExpansionFailure("substring expansion splits a UTF-8 character in a byte locale", line); }
+    return shellValueFromBytes(bytes.subarray(Number(offset), Number(end)), io[valueScope]);
     } finally { scratch.close(); }
   }
   private tryFastParameterPatternSync(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO): string | undefined {

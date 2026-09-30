@@ -8826,7 +8826,7 @@ export class Runtime {
     if (scope.hasFailures || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
     // Caller cancellation needs the async loop path. Refuse before redirects
     // spend admission budgets or create effects that fallback would repeat.
-    if (this.budget._hasExternalSignal && (command.kind === "for" || command.kind === "arithmetic-for")) return undefined;
+    if (this.budget._hasExternalSignal && (command.kind === "for" || command.kind === "arithmetic-for" || command.kind === "while" || command.kind === "until")) return undefined;
     const monitor = stateMonitor(state) ?? stateMonitor(trackState(state, this.budget, scope));
     if (!monitor) return undefined;
     const rawState = monitor.raw;
@@ -13451,6 +13451,8 @@ export class Runtime {
     return 0;
   }
   private trySyncLoop( command: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>, pipeline: Pipeline, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, canMutatePipeStatus: boolean, io: IO, diagnosticLine: number, syncReadInputText?: string, ): number | undefined {
+    // A signal needs event-loop turns even when a loop has a finite work bound.
+    if (this.budget._hasExternalSignal) return undefined;
     if (!syncSinks.get(io.stderr)) return undefined;
     // Substitution callers also need to refuse before effects when status
     // publication requires array admission. Cleanup cannot start async fallback.

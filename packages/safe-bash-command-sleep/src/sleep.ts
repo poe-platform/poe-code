@@ -6,16 +6,16 @@ function duration(arguments_: readonly string[]): number {
   const base = 1000000000n;
   const maximum = BigInt(Number.MAX_SAFE_INTEGER);
   const columns = new Map<bigint, bigint>();
-  for (const rawValue of arguments_) {
-    const value = /^[ \t\n\r\v\f]*-0[smhd]?$/.test(rawValue) ? rawValue.replace("-", "+") : rawValue;
-    const match = /^[ \t\n\r\v\f]*\+?((?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?|0[xX](?:[\da-fA-F]+(?:\.[\da-fA-F]*)?|\.[\da-fA-F]+)(?:[pP][+-]?\d+)?)([smhd]?)$/.exec(value);
+  for (const value of arguments_) {
+    const match = /^[ \t\n\r\v\f]*([+-]?)((?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?|0[xX](?:[\da-fA-F]+(?:\.[\da-fA-F]*)?|\.[\da-fA-F]+)(?:[pP][+-]?\d+)?)([smhd]?)$/.exec(value);
     if (!match) throw new CommandFailure(`invalid time interval: ${value}`);
-    const hexadecimal = /^0[xX]([\da-fA-F]*)(?:\.([\da-fA-F]*))?(?:[pP]([+-]?\d+))?$/.exec(match[1]!);
+    const hexadecimal = /^0[xX]([\da-fA-F]*)(?:\.([\da-fA-F]*))?(?:[pP]([+-]?\d+))?$/.exec(match[2]!);
     let digits: string, scale: bigint;
     if (hexadecimal) {
       const fraction = hexadecimal[2] ?? "";
       let coefficient = BigInt(`0x${hexadecimal[1]}${fraction}`);
       if (!coefficient) continue;
+      if (match[1] === "-") throw new CommandFailure(`invalid time interval: ${value}`);
       const exponent = BigInt(hexadecimal[3] ?? "0") - 4n * BigInt(fraction.length);
       const bits = BigInt(coefficient.toString(2).length);
       if (bits + exponent > 44n) throw new CommandFailure("time interval exceeds supported finite range");
@@ -25,13 +25,14 @@ function duration(arguments_: readonly string[]): number {
       else { coefficient *= 5n ** -exponent; scale = exponent + 3n; }
       digits = coefficient.toString();
     } else {
-      const parts = /^(\d*)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$/.exec(match[1]!)!;
+      const parts = /^(\d*)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$/.exec(match[2]!)!;
       const fraction = parts[2] ?? "";
       digits = `${parts[1]}${fraction}`.replace(/^0+/, "");
       scale = BigInt(parts[3] ?? "0") - BigInt(fraction.length) + 3n;
     }
     if (!digits) continue;
-    const multiplier = match[2] === "d" ? 86400n : match[2] === "h" ? 3600n : match[2] === "m" ? 60n : 1n;
+    if (match[1] === "-") throw new CommandFailure(`invalid time interval: ${value}`);
+    const multiplier = match[3] === "d" ? 86400n : match[3] === "h" ? 3600n : match[3] === "m" ? 60n : 1n;
     const coefficient = (BigInt(digits) * multiplier).toString();
     if (BigInt(coefficient.length) + scale > 16n) throw new CommandFailure("time interval exceeds supported finite range");
     const shift = (scale % 9n + 9n) % 9n;

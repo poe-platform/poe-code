@@ -3,6 +3,56 @@ import { getEventListeners } from "node:events";
 import test from "node:test";
 import { run, Timers } from "./helpers.js";
 
+// GNU sleep accepts exact negative zero when it is parsed as an operand.
+for (const zero of ["-0", "-00", "-0.0", "-0.", "-.0", "-0e5", "-0E-5", "-0x0p0", "-0X0.P-2", "-0x0.0p100"]) {
+  for (const suffix of ["", "s", "m", "h", "d"]) {
+    test(`sleep exact negative zero ${zero}${suffix} never schedules a timer`, async () => {
+      const scheduler = new Timers();
+      const result = await run("sleep", ["--", zero + suffix], { scheduler });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(scheduler.scheduled, []);
+      assert.equal(scheduler.pending.size, 0);
+    });
+  }
+}
+
+for (const whitespace of [" ", "\t", "\r", "\n", "\v", "\f"]) {
+  for (const zero of ["-0.0", "-0x0p0"]) {
+    test(`sleep accepts leading ASCII whitespace before ${JSON.stringify(whitespace + zero)}`, async () => {
+      const scheduler = new Timers();
+      const result = await run("sleep", [whitespace + zero], { scheduler });
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "");
+      assert.equal(result.stderr, "");
+      assert.deepEqual(scheduler.scheduled, []);
+    });
+  }
+}
+
+for (const zero of ["-0x0", "-0x.0", "-0e999999999999999999999", "-0x0p-999999999999999999999"]) {
+  test(`sleep exact zero keeps hexadecimal and exponent grammar ${zero}`, async () => {
+    const scheduler = new Timers();
+    const result = await run("sleep", ["--", zero], { scheduler });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(scheduler.scheduled, []);
+  });
+}
+
+for (const value of ["-0.001", "-0x1p-10", "-0junk", "-0e", "-0x0p", "-0 ", "-0x0d", "-1e-999999", "-0x1p-999999"]) {
+  test(`sleep rejects malformed or nonzero negative operand ${JSON.stringify(value)}`, async () => {
+    const scheduler = new Timers();
+    const result = await run("sleep", ["--", value], { scheduler });
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, `sleep: invalid time interval: ${value}\n`);
+    assert.deepEqual(scheduler.scheduled, []);
+  });
+}
+
 for (const [args, duration] of [
   [["0.125"], 125], [[".001s", "0.002"], 3], [["1e-3m"], 60], [["+0.0001h"], 360],
   [["0.00001d"], 864], [["0.02"], 20], [["1.", "0.5s"], 1500],

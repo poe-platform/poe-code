@@ -1231,10 +1231,13 @@
         },
         "safe-bash-command-sha512sum": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "@noble/hashes": "2.4.0"
+          },
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
+            "@poe-code/safe-fs": "*",
+            "safe-bash-checksum-engine": "*"
           },
           "portable": true
         },

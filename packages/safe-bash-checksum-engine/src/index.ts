@@ -6,7 +6,7 @@ import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
-import { FsError, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, getCommandArguments, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError, value } from "safe-bash-io-engine/internal";
 import { ByteInputBudget } from "safe-bash-byte-input-engine/index";
 
@@ -323,8 +323,17 @@ async function verify(context: CommandContext, manifest: string, algorithm: Algo
   return valid && matched && !failures && !mismatched && (!settings.strict || !malformed);
 }
 
-export function command(name: string, algorithm: Algorithm, maxInputBytes: number): CommandDefinition {
+export function command(name: string, algorithm: Algorithm, maxInputBytes: number, maxArgumentBytes = Infinity): CommandDefinition {
   return define(name, async context => {
+    if (maxArgumentBytes !== Infinity) {
+      const arguments_ = getCommandArguments(context);
+      let argumentBytes = 0;
+      for (let index = 0; index < arguments_.args.length; index++) {
+        const bytes = arguments_.bytes(index)!.byteLength;
+        if (bytes > maxArgumentBytes - argumentBytes) throw new FsError("EFBIG", { message: "checksum argument limit exceeded" });
+        argumentBytes += bytes;
+      }
+    }
     const selected = name === "cksum" ? parseCksum(context.args) : { algorithm, settings: parse(context.args, algorithm) };
     const selectedAlgorithm = selected.algorithm;
     const settings = selected.settings;

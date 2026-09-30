@@ -1,3 +1,4 @@
+import { runSynchronously, runCooperatively, stepMap, stepFlatMap, stepFilter, stepSort, stepReduce, type SqlSteps, type StepResult } from "./execution.js";
 import {
   type SqlValue,
   type StoredTableMeta,
@@ -1525,6 +1526,19 @@ function sqlPrintf(format: string, args: SqlValue[]): string {
 
 // --- SQLite Engine Class ---
 export class SqliteDatabase {
+  constructor(private readonly maxRows = Infinity) {}
+
+  private checkRowCount(count: number): void {
+    if (count > this.maxRows) throw new RangeError("maxRows limit exceeded");
+  }
+
+  public async executeStatementAsync(
+    sql: string,
+    signal: AbortSignal
+  ): Promise<QueryResultSet | null> {
+    return runCooperatively(this.executeStatementSteps(sql), signal);
+  }
+
   public tables = new Map<string, TableDef>();
   public indexes = new Map<string, IndexDef>();
   public views = new Map<string, ViewDef>();
@@ -1546,9 +1560,10 @@ export class SqliteDatabase {
   private txSnapshot: SnapshotState | null = null;
   private savepoints = new Map<string, SnapshotState>();
 
-  private captureSnapshot(): SnapshotState {
+  private *captureSnapshot(): SqlSteps<SnapshotState> {
     const tables = new Map<string, TableDef>();
     for (const [k, v] of this.tables) {
+      yield;
       tables.set(k, cloneTableDef(v));
     }
     return {
@@ -1562,9 +1577,10 @@ export class SqliteDatabase {
     };
   }
 
-  private restoreSnapshot(snap: SnapshotState): void {
+  private *restoreSnapshot(snap: SnapshotState): SqlSteps<void> {
     this.tables = new Map();
     for (const [k, v] of snap.tables) {
+      yield;
       this.tables.set(k, cloneTableDef(v));
     }
     this.indexes = new Map(snap.indexes);
@@ -1576,6 +1592,10 @@ export class SqliteDatabase {
   }
 
   public loadFromBytes(bytes: Uint8Array): void {
+    return runSynchronously(this.loadFromBytesSteps(bytes));
+  }
+
+  private *loadFromBytesSteps(bytes: Uint8Array): SqlSteps<void> {
     if (bytes.byteLength === 0) {
       return;
     }
@@ -1584,7 +1604,7 @@ export class SqliteDatabase {
       // Check if it's plain SQL dump text
       const text = textDecoder.decode(bytes);
       if (/^\s*(CREATE|INSERT|BEGIN|PRAGMA|--)/i.test(text)) {
-        this.exec(text);
+        yield* this.execSteps(text);
         return;
       }
       throw new Error("file is not a database");
@@ -1592,16 +1612,21 @@ export class SqliteDatabase {
     this.userVersion = image.userVersion;
     this.applicationId = image.applicationId;
     this.schemaCookie = image.schemaCookie;
-    this.loadedMaster = image.master.map((m) => ({ ...m }));
+    this.loadedMaster = image.master.map((m) => {
+      return { ...m };
+    });
 
-    const preservedMaster = image.master.map((m) => ({ ...m }));
+    const preservedMaster = image.master.map((m) => {
+      return { ...m };
+    });
     for (const m of image.master) {
+      yield;
       if (m.name.startsWith("sqlite_autoindex_") || m.name.toLowerCase() === "sqlite_sequence") {
         continue;
       }
       if (m.sql) {
         try {
-          this.exec(m.sql);
+          yield* this.execSteps(m.sql);
         } catch {
           // Ignore malformed legacy DDL if any
         }
@@ -1610,6 +1635,7 @@ export class SqliteDatabase {
     this.loadedMaster = preservedMaster;
 
     for (const [tblName, rawRows] of image.tableRows.entries()) {
+      yield;
       const tbl = this.findTable(tblName);
       if (!tbl) {
         continue;
@@ -1617,15 +1643,26 @@ export class SqliteDatabase {
       tbl.rows = [];
       let maxRowid = 0;
       for (const r of rawRows) {
+        yield;
         const data: Record<string, SqlValue> = {};
         let valIdx = 0;
         for (const col of tbl.columns) {
-          if (col.primaryKey && col.type.toUpperCase() === "INTEGER" && !tbl.withoutRowId && tbl.primaryKeyCols.length === 1) {
+          yield;
+          if (
+            col.primaryKey &&
+            col.type.toUpperCase() === "INTEGER" &&
+            !tbl.withoutRowId &&
+            tbl.primaryKeyCols.length === 1
+          ) {
             const cellVal = r.values[valIdx];
             data[col.name] = cellVal === null || cellVal === undefined ? r.rowid : cellVal;
           } else {
             let cellVal = r.values[valIdx] ?? null;
-            if (typeof cellVal === "number" && Number.isInteger(cellVal) && /(REAL|FLOA|DOUB)/i.test(col.type)) {
+            if (
+              typeof cellVal === "number" &&
+              Number.isInteger(cellVal) &&
+              /(REAL|FLOA|DOUB)/i.test(col.type)
+            ) {
               cellVal = new Number(cellVal);
             }
             data[col.name] = cellVal;
@@ -1644,6 +1681,7 @@ export class SqliteDatabase {
     const seqRows = image.tableRows.get("sqlite_sequence");
     if (seqRows) {
       for (const r of seqRows) {
+        yield;
         const tName = String(r.values[0] ?? "");
         const seqVal = Number(r.values[1] ?? 0);
         const tbl = this.findTable(tName);
@@ -1661,6 +1699,7 @@ export class SqliteDatabase {
         };
         if (meta.autoInc) {
           for (const [k, v] of Object.entries(meta.autoInc)) {
+            yield;
             const tbl = this.findTable(k);
             if (tbl) {
               tbl.maxAutoInc = Math.max(tbl.maxAutoInc, v);
@@ -1675,6 +1714,10 @@ export class SqliteDatabase {
   }
 
   public serializeToBytes(): Uint8Array {
+    return runSynchronously(this.serializeToBytesSteps());
+  }
+
+  private *serializeToBytesSteps(): SqlSteps<Uint8Array> {
     const master: StoredTableMeta[] = [];
     const tableRows = new Map<string, { rowid: number; values: SqlValue[] }[]>();
     const indexRows = new Map<string, SqlValue[][]>();
@@ -1683,6 +1726,7 @@ export class SqliteDatabase {
 
     let rootPageCounter = 2;
     for (const tbl of this.tables.values()) {
+      yield;
       master.push({
         type: "table",
         name: tbl.name,
@@ -1690,8 +1734,17 @@ export class SqliteDatabase {
         rootpage: rootPageCounter++,
         sql: tbl.sql
       });
-      if (tbl.columns.some((c) => c.autoIncrement) || tbl.maxAutoInc > 0) {
-        if (tbl.columns.some((c) => c.autoIncrement)) {
+      if (
+        tbl.columns.some((c) => {
+          return c.autoIncrement;
+        }) ||
+        tbl.maxAutoInc > 0
+      ) {
+        if (
+          tbl.columns.some((c) => {
+            return c.autoIncrement;
+          })
+        ) {
           hasAutoIncTable = true;
         }
         if (tbl.maxAutoInc > 0) {
@@ -1701,17 +1754,19 @@ export class SqliteDatabase {
           });
         }
       }
-      const rows = tbl.rows.map((r) => ({
-        rowid: r.rowid,
-        values: tbl.columns.map((c) => {
-          const isRowidAlias =
-            c.primaryKey &&
-            c.type.toUpperCase() === "INTEGER" &&
-            !tbl.withoutRowId &&
-            tbl.primaryKeyCols.length === 1;
-          return isRowidAlias ? null : (r.data[c.name] ?? null);
-        })
-      }));
+      const rows = yield* stepMap(tbl.rows, function* (r) { yield;
+        return {
+          rowid: r.rowid,
+          values: tbl.columns.map((c) => {
+            const isRowidAlias =
+              c.primaryKey &&
+              c.type.toUpperCase() === "INTEGER" &&
+              !tbl.withoutRowId &&
+              tbl.primaryKeyCols.length === 1;
+            return isRowidAlias ? null : (r.data[c.name] ?? null);
+          })
+        };
+      }, this);
       tableRows.set(tbl.name, rows);
     }
 
@@ -1727,6 +1782,7 @@ export class SqliteDatabase {
     }
 
     for (const idx of this.indexes.values()) {
+      yield;
       master.push({
         type: "index",
         name: idx.name,
@@ -1736,18 +1792,23 @@ export class SqliteDatabase {
       });
       const tbl = this.findTable(idx.tableName);
       if (tbl) {
-        const entries: SqlValue[][] = tbl.rows.map((r) => [
-          ...idx.columns.map((colName) => {
-            const cleaned = colName.replace(/\s+(ASC|DESC)$/i, "").trim();
-            const matchCol = tbl.columns.find((c) => c.name.toLowerCase() === cleaned.toLowerCase());
-            return matchCol ? (r.data[matchCol.name] ?? null) : null;
-          }),
-          r.rowid
-        ]);
+        const entries: SqlValue[][] = yield* stepMap(tbl.rows, function* (r) { yield;
+          return [
+            ...idx.columns.map((colName) => {
+              const cleaned = colName.replace(/\s+(ASC|DESC)$/i, "").trim();
+              const matchCol = tbl.columns.find((c) => {
+                return c.name.toLowerCase() === cleaned.toLowerCase();
+              });
+              return matchCol ? (r.data[matchCol.name] ?? null) : null;
+            }),
+            r.rowid
+          ];
+        }, this);
         indexRows.set(idx.name, entries);
       }
     }
     for (const v of this.views.values()) {
+      yield;
       master.push({
         type: "view",
         name: v.name,
@@ -1757,6 +1818,7 @@ export class SqliteDatabase {
       });
     }
     for (const tr of this.triggers.values()) {
+      yield;
       master.push({
         type: "trigger",
         name: tr.name,
@@ -1797,10 +1859,15 @@ export class SqliteDatabase {
   }
 
   public exec(sql: string, positionalParams: SqlValue[] = []): QueryResultSet[] {
+    return runSynchronously(this.execSteps(sql, positionalParams));
+  }
+
+  private *execSteps(sql: string, positionalParams: SqlValue[] = []): SqlSteps<QueryResultSet[]> {
     const stmts = splitSqlStatements(sql);
     const results: QueryResultSet[] = [];
     for (const stmt of stmts) {
-      const res = this.executeStatement(stmt, positionalParams);
+      yield;
+      const res = yield* this.executeStatementSteps(stmt, positionalParams);
       if (res) {
         results.push(res);
       }
@@ -1813,6 +1880,14 @@ export class SqliteDatabase {
     positionalParams: SqlValue[] = [],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
   ): QueryResultSet | null {
+    return runSynchronously(this.executeStatementSteps(rawSql, positionalParams, cteScope));
+  }
+
+  private *executeStatementSteps(
+    rawSql: string,
+    positionalParams: SqlValue[] = [],
+    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
+  ): SqlSteps<QueryResultSet | null> {
     const sql = rawSql.trim().replace(/;+\s*$/, "");
     if (!sql) {
       return null;
@@ -1833,7 +1908,7 @@ export class SqliteDatabase {
 
     if (first === "BEGIN") {
       if (!this.inTransaction) {
-        this.txSnapshot = this.captureSnapshot();
+        this.txSnapshot = yield* this.captureSnapshot();
         this.inTransaction = true;
       }
       return null;
@@ -1847,7 +1922,9 @@ export class SqliteDatabase {
     }
 
     if (first === "ROLLBACK") {
-      const toIdx = tokens.findIndex((t) => t.value.toUpperCase() === "TO");
+      const toIdx = tokens.findIndex((t) => {
+        return t.value.toUpperCase() === "TO";
+      });
       if (toIdx !== -1) {
         let spIdx = toIdx + 1;
         if (tokens[spIdx]?.value.toUpperCase() === "SAVEPOINT") {
@@ -1858,11 +1935,11 @@ export class SqliteDatabase {
         if (!snap) {
           throw new Error(`no such savepoint: ${spName}`);
         }
-        this.restoreSnapshot(snap);
+        yield* this.restoreSnapshot(snap);
         return null;
       }
       if (this.txSnapshot) {
-        this.restoreSnapshot(this.txSnapshot);
+        yield* this.restoreSnapshot(this.txSnapshot);
       }
       this.inTransaction = false;
       this.txSnapshot = null;
@@ -1872,7 +1949,7 @@ export class SqliteDatabase {
 
     if (first === "SAVEPOINT") {
       const spName = (tokens[1]?.value ?? "").toLowerCase();
-      this.savepoints.set(spName, this.captureSnapshot());
+      this.savepoints.set(spName, yield* this.captureSnapshot());
       return null;
     }
 
@@ -1883,16 +1960,22 @@ export class SqliteDatabase {
       return null;
     }
 
-    if (first === "VACUUM" || first === "ANALYZE" || first === "REINDEX" || first === "ATTACH" || first === "DETACH") {
+    if (
+      first === "VACUUM" ||
+      first === "ANALYZE" ||
+      first === "REINDEX" ||
+      first === "ATTACH" ||
+      first === "DETACH"
+    ) {
       return null;
     }
 
     if (first === "PRAGMA") {
-      return this.executePragma(tokens);
+      return yield* this.executePragma(tokens);
     }
 
     if (first === "CREATE") {
-      this.executeCreate(sql, tokens, positionalParams);
+      yield* this.executeCreate(sql, tokens, positionalParams);
       this.schemaCookie += 1;
       return null;
     }
@@ -1904,35 +1987,35 @@ export class SqliteDatabase {
     }
 
     if (first === "ALTER") {
-      this.executeAlter(tokens);
+      yield* this.executeAlter(tokens);
       this.schemaCookie += 1;
       return null;
     }
 
     if (first === "INSERT" || first === "REPLACE") {
-      return this.executeInsert(sql, tokens, positionalParams, cteScope);
+      return yield* this.executeInsert(sql, tokens, positionalParams, cteScope);
     }
 
     if (first === "UPDATE") {
-      return this.executeUpdate(tokens, positionalParams, cteScope);
+      return yield* this.executeUpdate(tokens, positionalParams, cteScope);
     }
 
     if (first === "DELETE") {
-      return this.executeDelete(tokens, positionalParams, cteScope);
+      return yield* this.executeDelete(tokens, positionalParams, cteScope);
     }
 
     if (first === "WITH") {
-      return this.executeWith(tokens, positionalParams, cteScope);
+      return yield* this.executeWith(tokens, positionalParams, cteScope);
     }
 
     if (first === "SELECT" || first === "VALUES") {
-      return this.executeSelectCompound(tokens, positionalParams, cteScope);
+      return yield* this.executeSelectCompound(tokens, positionalParams, cteScope);
     }
 
     throw new Error(`near "${tokens[0]!.raw}": syntax error`);
   }
 
-  private executePragma(tokens: Token[]): QueryResultSet | null {
+  private *executePragma(tokens: Token[]): SqlSteps<QueryResultSet | null> {
     // PRAGMA [schema.]name [= value | (value)]
     let idx = 1;
     if (tokens[idx + 1]?.value === ".") {
@@ -2014,7 +2097,9 @@ export class SqliteDatabase {
         return { columns: ["cid", "name", "type", "notnull", "dflt_value", "pk"], rows: [] };
       }
       const rows: SqlValue[][] = tbl.columns.map((c, i) => {
-        const pkIdx = tbl.primaryKeyCols.findIndex((p) => p.toLowerCase() === c.name.toLowerCase());
+        const pkIdx = tbl.primaryKeyCols.findIndex((p) => {
+          return p.toLowerCase() === c.name.toLowerCase();
+        });
         const base: SqlValue[] = [
           i,
           c.name,
@@ -2039,6 +2124,7 @@ export class SqliteDatabase {
       const rows: SqlValue[][] = [];
       let seq = 0;
       for (const idxDef of this.indexes.values()) {
+        yield;
         if (idxDef.tableName.toLowerCase() === tName) {
           rows.push([seq++, idxDef.name, idxDef.unique ? 1 : 0, "c", 0]);
         }
@@ -2048,10 +2134,12 @@ export class SqliteDatabase {
     if (name === "index_info") {
       const iName = (arg ?? "").toLowerCase();
       for (const idxDef of this.indexes.values()) {
+        yield;
         if (idxDef.name.toLowerCase() === iName) {
           const tbl = this.findTable(idxDef.tableName);
           const rows: SqlValue[][] = idxDef.columns.map((colName, seqno) => {
-            const cid = tbl?.columns.findIndex((c) => c.name.toLowerCase() === colName.toLowerCase()) ?? 0;
+            const cid =
+              tbl?.columns.findIndex((c) => c.name.toLowerCase() === colName.toLowerCase()) ?? 0;
             return [seqno, cid, colName];
           });
           return { columns: ["seqno", "cid", "name"], rows };
@@ -2060,21 +2148,37 @@ export class SqliteDatabase {
       return { columns: ["seqno", "cid", "name"], rows: [] };
     }
     if (name === "foreign_key_list") {
-      return { columns: ["id", "seq", "table", "from", "to", "on_update", "on_delete", "match"], rows: [] };
+      return {
+        columns: ["id", "seq", "table", "from", "to", "on_update", "on_delete", "match"],
+        rows: []
+      };
     }
     if (name === "compile_options") {
       return {
         columns: ["compile_options"],
-        rows: [["ENABLE_FTS5"], ["ENABLE_JSON1"], ["ENABLE_MATH_FUNCTIONS"], ["ENABLE_RTREE"], ["THREADSAFE=1"]]
+        rows: [
+          ["ENABLE_FTS5"],
+          ["ENABLE_JSON1"],
+          ["ENABLE_MATH_FUNCTIONS"],
+          ["ENABLE_RTREE"],
+          ["THREADSAFE=1"]
+        ]
       };
     }
     return null;
   }
 
-  private executeCreate(sql: string, tokens: Token[], positionalParams: SqlValue[]): void {
+  private *executeCreate(
+    sql: string,
+    tokens: Token[],
+    positionalParams: SqlValue[]
+  ): SqlSteps<void> {
     let idx = 1;
     let unique = false;
-    if (tokens[idx]?.value.toUpperCase() === "TEMP" || tokens[idx]?.value.toUpperCase() === "TEMPORARY") {
+    if (
+      tokens[idx]?.value.toUpperCase() === "TEMP" ||
+      tokens[idx]?.value.toUpperCase() === "TEMPORARY"
+    ) {
       idx += 1;
     }
     if (tokens[idx]?.value.toUpperCase() === "UNIQUE") {
@@ -2107,28 +2211,40 @@ export class SqliteDatabase {
       }
 
       // Check CREATE TABLE ... AS SELECT
-      const asIdx = tokens.findIndex((t, i) => i >= idx && t.value.toUpperCase() === "AS");
+      const asIdx = tokens.findIndex((t, i) => {
+        return i >= idx && t.value.toUpperCase() === "AS";
+      });
       if (asIdx !== -1 && tokens[idx]?.value !== "(") {
         const selectTokens = tokens.slice(asIdx + 1);
-        const res = this.executeSelectCompound(selectTokens, positionalParams, new Map());
-        const columns: ColumnDef[] = res.columns.map((c) => ({
-          name: c,
-          type: "TEXT",
-          notNull: false,
-          primaryKey: false,
-          autoIncrement: false,
-          unique: false
-        }));
-        const rows: TableRow[] = res.rows.map((r, rIdx) => {
+        const res = yield* this.executeSelectCompound(
+          selectTokens,
+          positionalParams,
+          new Map()
+        );
+        const columns: ColumnDef[] = res.columns.map((c) => {
+          return {
+            name: c,
+            type: "TEXT",
+            notNull: false,
+            primaryKey: false,
+            autoIncrement: false,
+            unique: false
+          };
+        });
+        const rows: TableRow[] = yield* stepMap(res.rows, function* (r, rIdx) { yield;
           const data: Record<string, SqlValue> = {};
           res.columns.forEach((c, cIdx) => {
             data[c] = r[cIdx] ?? null;
           });
           return { rowid: rIdx + 1, data };
-        });
+        }, this);
         this.tables.set(objName, {
           name: objName,
-          sql: `CREATE TABLE ${objName}(${columns.map((c) => `"${c.name}"`).join(",")})`,
+          sql: `CREATE TABLE ${objName}(${columns
+            .map((c) => {
+              return `"${c.name}"`;
+            })
+            .join(",")})`,
           columns,
           rows,
           nextRowId: rows.length + 1,
@@ -2144,6 +2260,7 @@ export class SqliteDatabase {
       // Parse column definitions inside (...)
       let openParen = idx;
       while (openParen < tokens.length && tokens[openParen]?.value !== "(") {
+        yield;
         openParen += 1;
       }
       let depth = 1;
@@ -2151,6 +2268,7 @@ export class SqliteDatabase {
       const bodyParts: Token[][] = [];
       let curPart: Token[] = [];
       while (closeParen < tokens.length && depth > 0) {
+        yield;
         const t = tokens[closeParen]!;
         if (t.value === "(") {
           depth += 1;
@@ -2173,7 +2291,9 @@ export class SqliteDatabase {
         closeParen += 1;
       }
 
-      const trailingTokens = tokens.slice(closeParen + 1).map((t) => t.value.toUpperCase());
+      const trailingTokens = tokens.slice(closeParen + 1).map((t) => {
+        return t.value.toUpperCase();
+      });
       const withoutRowId = trailingTokens.includes("WITHOUT") && trailingTokens.includes("ROWID");
       const strict = trailingTokens.includes("STRICT");
 
@@ -2182,6 +2302,7 @@ export class SqliteDatabase {
       const uniqueColSets: string[][] = [];
 
       for (const part of bodyParts) {
+        yield;
         if (part.length === 0) {
           continue;
         }
@@ -2195,8 +2316,13 @@ export class SqliteDatabase {
           if (part[pIdx]?.value === "(") {
             pIdx += 1;
             while (pIdx < part.length && part[pIdx]?.value !== ")") {
+              yield;
               const colName = part[pIdx]!.value;
-              if (colName !== "," && colName.toUpperCase() !== "ASC" && colName.toUpperCase() !== "DESC") {
+              if (
+                colName !== "," &&
+                colName.toUpperCase() !== "ASC" &&
+                colName.toUpperCase() !== "DESC"
+              ) {
                 primaryKeyCols.push(colName);
               }
               pIdx += 1;
@@ -2210,8 +2336,13 @@ export class SqliteDatabase {
           if (part[pIdx]?.value === "(") {
             pIdx += 1;
             while (pIdx < part.length && part[pIdx]?.value !== ")") {
+              yield;
               const colName = part[pIdx]!.value;
-              if (colName !== "," && colName.toUpperCase() !== "ASC" && colName.toUpperCase() !== "DESC") {
+              if (
+                colName !== "," &&
+                colName.toUpperCase() !== "ASC" &&
+                colName.toUpperCase() !== "DESC"
+              ) {
                 uCols.push(colName);
               }
               pIdx += 1;
@@ -2237,7 +2368,9 @@ export class SqliteDatabase {
       }
 
       if (primaryKeyCols.length === 1) {
-        const pkCol = columns.find((c) => c.name.toLowerCase() === primaryKeyCols[0]!.toLowerCase());
+        const pkCol = columns.find((c) => {
+          return c.name.toLowerCase() === primaryKeyCols[0]!.toLowerCase();
+        });
         if (pkCol) {
           pkCol.primaryKey = true;
         }
@@ -2266,15 +2399,23 @@ export class SqliteDatabase {
         throw new Error(`index ${objName} already exists`);
       }
       // ON table_name (col1, col2...)
-      const onIdx = tokens.findIndex((t, i) => i >= idx && t.value.toUpperCase() === "ON");
+      const onIdx = tokens.findIndex((t, i) => {
+        return i >= idx && t.value.toUpperCase() === "ON";
+      });
       const tableName = tokens[onIdx + 1]?.value ?? "";
       const cols: string[] = [];
       let p = onIdx + 2;
       if (tokens[p]?.value === "(") {
         p += 1;
         while (p < tokens.length && tokens[p]?.value !== ")") {
+          yield;
           const v = tokens[p]!.value;
-          if (v !== "," && v.toUpperCase() !== "ASC" && v.toUpperCase() !== "DESC" && v.toUpperCase() !== "COLLATE") {
+          if (
+            v !== "," &&
+            v.toUpperCase() !== "ASC" &&
+            v.toUpperCase() !== "DESC" &&
+            v.toUpperCase() !== "COLLATE"
+          ) {
             cols.push(v);
           }
           p += 1;
@@ -2308,6 +2449,7 @@ export class SqliteDatabase {
         viewCols = [];
         idx += 1;
         while (idx < tokens.length && tokens[idx]?.value !== ")") {
+          yield;
           if (tokens[idx]!.value !== ",") {
             viewCols.push(tokens[idx]!.value);
           }
@@ -2315,7 +2457,9 @@ export class SqliteDatabase {
         }
         idx += 1;
       }
-      const asIdx = tokens.findIndex((t, i) => i >= idx && t.value.toUpperCase() === "AS");
+      const asIdx = tokens.findIndex((t, i) => {
+        return i >= idx && t.value.toUpperCase() === "AS";
+      });
       const selectSql = reconstructTokensSql(tokens.slice(asIdx + 1));
       this.views.set(objName, {
         name: objName,
@@ -2354,6 +2498,7 @@ export class SqliteDatabase {
       if (tokens[idx]?.value.toUpperCase() === "OF") {
         idx += 1;
         while (idx < tokens.length && tokens[idx]?.value.toUpperCase() !== "ON") {
+          yield;
           idx += 1;
         }
       }
@@ -2374,6 +2519,7 @@ export class SqliteDatabase {
         idx += 1;
         const whenToks: Token[] = [];
         while (idx < tokens.length && tokens[idx]?.value.toUpperCase() !== "BEGIN") {
+          yield;
           whenToks.push(tokens[idx]!);
           idx += 1;
         }
@@ -2625,7 +2771,7 @@ export class SqliteDatabase {
     }
   }
 
-  private executeAlter(tokens: Token[]): void {
+  private *executeAlter(tokens: Token[]): SqlSteps<void> {
     this.loadedMaster = null;
     // ALTER TABLE name RENAME TO new_name | RENAME [COLUMN] old TO new | ADD [COLUMN] col_def | DROP [COLUMN] col
     let idx = 2;
@@ -2655,13 +2801,16 @@ export class SqliteDatabase {
       }
       const oldCol = tokens[idx]?.value ?? "";
       const newCol = tokens[idx + 2]?.value ?? "";
-      const colObj = tbl.columns.find((c) => c.name.toLowerCase() === oldCol.toLowerCase());
+      const colObj = tbl.columns.find((c) => {
+        return c.name.toLowerCase() === oldCol.toLowerCase();
+      });
       if (!colObj) {
         throw new Error(`in prepare, no such column: "${oldCol}"`);
       }
       const realOld = colObj.name;
       colObj.name = newCol;
       for (const r of tbl.rows) {
+        yield;
         r.data[newCol] = r.data[realOld] ?? null;
         delete r.data[realOld];
       }
@@ -2674,8 +2823,11 @@ export class SqliteDatabase {
       }
       const colDef = this.parseColumnDefTokens(tokens.slice(idx));
       tbl.columns.push(colDef);
-      const defVal = colDef.defaultExpr ? this.evalScalarSql(colDef.defaultExpr, {}, []) : null;
+      const defVal = colDef.defaultExpr
+        ? yield* this.evalScalarSql(colDef.defaultExpr, {}, [])
+        : null;
       for (const r of tbl.rows) {
+        yield;
         r.data[colDef.name] = defVal;
       }
       tbl.sql = tbl.sql.replace(/\)\s*$/, `, ${colDef.name} ${colDef.type})`);
@@ -2687,26 +2839,30 @@ export class SqliteDatabase {
         idx += 1;
       }
       const dropCol = tokens[idx]?.value ?? "";
-      const colIdx = tbl.columns.findIndex((c) => c.name.toLowerCase() === dropCol.toLowerCase());
+      const colIdx = tbl.columns.findIndex((c) => {
+        return c.name.toLowerCase() === dropCol.toLowerCase();
+      });
       if (colIdx === -1) {
         throw new Error(`in prepare, no such column: "${dropCol}"`);
       }
       const realName = tbl.columns[colIdx]!.name;
       tbl.columns.splice(colIdx, 1);
       for (const r of tbl.rows) {
+        yield;
         delete r.data[realName];
       }
     }
   }
 
-  private fireTriggers(
+  private *fireTriggers(
     tableName: string,
     timing: TriggerDef["timing"],
     event: TriggerDef["event"],
     oldRow?: Record<string, SqlValue>,
     newRow?: Record<string, SqlValue>
-  ): void {
+  ): SqlSteps<void> {
     for (const tr of this.triggers.values()) {
+      yield;
       if (
         tr.tableName.toLowerCase() === tableName.toLowerCase() &&
         tr.timing === timing &&
@@ -2715,34 +2871,39 @@ export class SqliteDatabase {
         const ctx: Record<string, SqlValue> = {};
         if (oldRow) {
           for (const [k, v] of Object.entries(oldRow)) {
+            yield;
             ctx[`OLD.${k}`] = v;
             ctx[`old.${k}`] = v;
           }
         }
         if (newRow) {
           for (const [k, v] of Object.entries(newRow)) {
+            yield;
             ctx[`NEW.${k}`] = v;
             ctx[`new.${k}`] = v;
           }
         }
         if (tr.whenExpr) {
-          const cond = this.evalExpr(parseExprSql(tr.whenExpr), ctx, []);
+          const cond = yield* this.evalExprSteps(parseExprSql(tr.whenExpr), ctx, []);
           if (!isTruthy(cond)) {
             continue;
           }
         }
         let body = tr.bodySql;
         // Substitute NEW.col and OLD.col references with SQL literals in trigger body
-        body = body.replace(/\b(NEW|OLD)\.([A-Za-z0-9_]+)\b/gi, (_, prefix: string, col: string) => {
-          const source = prefix.toUpperCase() === "NEW" ? newRow : oldRow;
-          if (!source) {
-            return "NULL";
+        body = body.replace(
+          /\b(NEW|OLD)\.([A-Za-z0-9_]+)\b/gi,
+          (_, prefix: string, col: string) => {
+            const source = prefix.toUpperCase() === "NEW" ? newRow : oldRow;
+            if (!source) {
+              return "NULL";
+            }
+            const matchKey = Object.keys(source).find((k) => k.toLowerCase() === col.toLowerCase());
+            const val = matchKey ? source[matchKey] : null;
+            return this.toSqlLiteral(val ?? null);
           }
-          const matchKey = Object.keys(source).find((k) => k.toLowerCase() === col.toLowerCase());
-          const val = matchKey ? source[matchKey] : null;
-          return this.toSqlLiteral(val ?? null);
-        });
-        this.exec(body);
+        );
+        yield* this.execSteps(body);
       }
     }
   }
@@ -2771,13 +2932,14 @@ export class SqliteDatabase {
     return `X'${hex}'`;
   }
 
-  private checkConstraintsAndConflicts(
+  private *checkConstraintsAndConflicts(
     tbl: TableDef,
     candidate: TableRow,
     excludeRowid?: number
-  ): TableRow | null {
+  ): SqlSteps<TableRow | null> {
     // NOT NULL and CHECK constraints
     for (const col of tbl.columns) {
+      yield;
       const val = candidate.data[col.name] ?? null;
       if (col.notNull && val === null) {
         if (col.primaryKey && col.type.toUpperCase() === "INTEGER" && !tbl.withoutRowId) {
@@ -2787,7 +2949,7 @@ export class SqliteDatabase {
         }
       }
       if (col.checkExpr && val !== null) {
-        const ok = this.evalExpr(parseExprSql(col.checkExpr), candidate.data, []);
+        const ok = yield* this.evalExprSteps(parseExprSql(col.checkExpr), candidate.data, []);
         if (ok !== null && !isTruthy(ok)) {
           throw new Error(`CHECK constraint failed: ${col.checkExpr}`);
         }
@@ -2800,19 +2962,23 @@ export class SqliteDatabase {
       keySets.push(tbl.primaryKeyCols);
     }
     for (const u of tbl.uniqueColSets) {
+      yield;
       keySets.push(u);
     }
     if (keySets.length === 0 && candidate.rowid >= tbl.nextRowId) {
       return null;
     }
-    const resolvedKeySets = keySets.map((kSet) =>
-      kSet.map((colName) => {
-        const realCol = tbl.columns.find((c) => c.name.toLowerCase() === colName.toLowerCase());
+    const resolvedKeySets = yield* stepMap(keySets, function* (kSet) { yield;
+      return kSet.map((colName) => {
+        const realCol = tbl.columns.find((c) => {
+          return c.name.toLowerCase() === colName.toLowerCase();
+        });
         return { cKey: realCol ? realCol.name : colName, collate: realCol?.collate ?? "BINARY" };
-      })
-    );
+      });
+    }, this);
 
     for (const existing of tbl.rows) {
+      yield;
       if (excludeRowid !== undefined && existing.rowid === excludeRowid) {
         continue;
       }
@@ -2820,8 +2986,10 @@ export class SqliteDatabase {
         return existing;
       }
       for (const kSet of resolvedKeySets) {
+        yield;
         let allEqual = true;
         for (const { cKey, collate } of kSet) {
+          yield;
           const v1 = candidate.data[cKey] ?? null;
           const v2 = existing.data[cKey] ?? null;
           if (v1 === null || v2 === null || !sqlEquals(v1, v2, collate)) {
@@ -2837,12 +3005,12 @@ export class SqliteDatabase {
     return null;
   }
 
-  private executeInsert(
+  private *executeInsert(
     _sql: string,
     tokens: Token[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): QueryResultSet | null {
+  ): SqlSteps<QueryResultSet | null> {
     let idx = 0;
     let conflictAction: "ABORT" | "REPLACE" | "IGNORE" = "ABORT";
     if (tokens[idx]?.value.toUpperCase() === "REPLACE") {
@@ -2881,14 +3049,19 @@ export class SqliteDatabase {
       idx += 2;
     }
 
-    let targetCols = tbl.columns.map((c) => c.name);
+    let targetCols = tbl.columns.map((c) => {
+      return c.name;
+    });
     if (tokens[idx]?.value === "(") {
       targetCols = [];
       idx += 1;
       while (idx < tokens.length && tokens[idx]?.value !== ")") {
+        yield;
         if (tokens[idx]!.value !== ",") {
           const cName = tokens[idx]!.value;
-          const colMatch = tbl.columns.find((c) => c.name.toLowerCase() === cName.toLowerCase());
+          const colMatch = tbl.columns.find((c) => {
+            return c.name.toLowerCase() === cName.toLowerCase();
+          });
           targetCols.push(colMatch ? colMatch.name : cName);
         }
         idx += 1;
@@ -2901,6 +3074,7 @@ export class SqliteDatabase {
     let onConflictIdx = -1;
     let pDepth = 0;
     for (let i = idx; i < tokens.length; i += 1) {
+      yield;
       if (tokens[i]!.value === "(") {
         pDepth += 1;
       } else if (tokens[i]!.value === ")") {
@@ -2915,7 +3089,8 @@ export class SqliteDatabase {
       }
     }
 
-    const endValuesIdx = onConflictIdx !== -1 ? onConflictIdx : returningIdx !== -1 ? returningIdx : tokens.length;
+    const endValuesIdx =
+      onConflictIdx !== -1 ? onConflictIdx : returningIdx !== -1 ? returningIdx : tokens.length;
     const valueRows: SqlValue[][] = [];
 
     if (
@@ -2927,12 +3102,14 @@ export class SqliteDatabase {
     } else if (tokens[idx]?.value.toUpperCase() === "VALUES") {
       idx += 1;
       while (idx < endValuesIdx) {
+        yield;
         if (tokens[idx]?.value === "(") {
           idx += 1;
           const rowToks: Token[][] = [];
           let cur: Token[] = [];
           let d = 1;
           while (idx < endValuesIdx && d > 0) {
+            yield;
             const t = tokens[idx++]!;
             if (t.value === "(") {
               d += 1;
@@ -2951,9 +3128,13 @@ export class SqliteDatabase {
               cur.push(t);
             }
           }
-          const evaledRow = rowToks.map((rt) =>
-            this.evalExpr(new ExprParser(rt).parseExpression(), {}, positionalParams)
-          );
+          const evaledRow = yield* stepMap(rowToks, function* (rt) {
+            return yield* this.evalExprSteps(
+              new ExprParser(rt).parseExpression(),
+              {},
+              positionalParams
+            );
+          }, this);
           valueRows.push(evaledRow);
         } else {
           idx += 1;
@@ -2961,8 +3142,13 @@ export class SqliteDatabase {
       }
     } else {
       // INSERT INTO ... SELECT ...
-      const selectRes = this.executeSelectCompound(tokens.slice(idx, endValuesIdx), positionalParams, cteScope);
+      const selectRes = yield* this.executeSelectCompound(
+        tokens.slice(idx, endValuesIdx),
+        positionalParams,
+        cteScope
+      );
       for (const r of selectRes.rows) {
+        yield;
         valueRows.push(r);
       }
     }
@@ -2975,12 +3161,14 @@ export class SqliteDatabase {
       let uIdx = onConflictIdx + 2;
       if (tokens[uIdx]?.value === "(") {
         while (uIdx < tokens.length && tokens[uIdx]?.value !== ")") {
+          yield;
           uIdx += 1;
         }
         uIdx += 1;
       }
       if (tokens[uIdx]?.value.toUpperCase() === "WHERE") {
         while (uIdx < tokens.length && tokens[uIdx]?.value.toUpperCase() !== "DO") {
+          yield;
           uIdx += 1;
         }
       }
@@ -3000,41 +3188,60 @@ export class SqliteDatabase {
 
     const targetBindings = this.tableBindings(tbl, undefined, alias);
     const upsertBindings = { ...targetBindings };
-    for (const column of tbl.columns) upsertBindings[`excluded.${column.name}`] = null;
-    for (const assignment of upsertSetPairs) {
-      this.validateColumns({ kind: "column", name: assignment.col }, targetBindings, positionalParams, cteScope);
-      this.validateColumns(assignment.expr, upsertBindings, positionalParams, cteScope);
+    for (const column of tbl.columns) {
+      yield;
+      upsertBindings[`excluded.${column.name}`] = null;
     }
-    this.validateColumns(upsertWhere, upsertBindings, positionalParams, cteScope);
+    for (const assignment of upsertSetPairs) {
+      yield;
+      yield* this.validateColumns(
+        { kind: "column", name: assignment.col },
+        targetBindings,
+        positionalParams,
+        cteScope
+      );
+      yield* this.validateColumns(assignment.expr, upsertBindings, positionalParams, cteScope);
+    }
+    yield* this.validateColumns(upsertWhere, upsertBindings, positionalParams, cteScope);
 
     let insertedCount = 0;
     const affectedRows: TableRow[] = [];
 
     for (const vRow of valueRows) {
+      yield;
       const data: Record<string, SqlValue> = {};
       for (const col of tbl.columns) {
+        yield;
         if (col.defaultExpr !== undefined) {
-          data[col.name] = this.evalScalarSql(col.defaultExpr, {}, positionalParams);
+          data[col.name] = yield* this.evalScalarSql(col.defaultExpr, {}, positionalParams);
         } else {
           data[col.name] = null;
         }
       }
 
       for (let c = 0; c < targetCols.length; c += 1) {
+        yield;
         data[targetCols[c]!] = vRow[c] ?? null;
       }
 
       for (const col of tbl.columns) {
+        yield;
         data[col.name] = applyColumnAffinity(data[col.name] ?? null, col.type);
       }
 
       // Determine rowid
       let rowid = tbl.nextRowId;
       for (const col of tbl.columns) {
+        yield;
         if (col.autoIncrement) {
           rowid = Math.max(rowid, tbl.maxAutoInc + 1);
         }
-        if (col.primaryKey && col.type.toUpperCase() === "INTEGER" && !tbl.withoutRowId && tbl.primaryKeyCols.length === 1) {
+        if (
+          col.primaryKey &&
+          col.type.toUpperCase() === "INTEGER" &&
+          !tbl.withoutRowId &&
+          tbl.primaryKeyCols.length === 1
+        ) {
           const explicit = data[col.name];
           if (typeof explicit === "number" && Number.isInteger(explicit)) {
             rowid = explicit;
@@ -3045,15 +3252,19 @@ export class SqliteDatabase {
       }
 
       for (const col of tbl.columns) {
+        yield;
         if (col.generatedExpr) {
-          data[col.name] = applyColumnAffinity(this.evalScalarSql(col.generatedExpr, data, positionalParams), col.type);
+          data[col.name] = applyColumnAffinity(
+            yield* this.evalScalarSql(col.generatedExpr, data, positionalParams),
+            col.type
+          );
         }
       }
 
       const candidate: TableRow = { rowid, data };
-      this.fireTriggers(tbl.name, "BEFORE", "INSERT", undefined, candidate.data);
+      yield* this.fireTriggers(tbl.name, "BEFORE", "INSERT", undefined, candidate.data);
 
-      const conflictRow = this.checkConstraintsAndConflicts(tbl, candidate);
+      const conflictRow = yield* this.checkConstraintsAndConflicts(tbl, candidate);
       if (conflictRow) {
         if (upsertDoNothing || conflictAction === "IGNORE") {
           continue;
@@ -3061,22 +3272,30 @@ export class SqliteDatabase {
         if (upsertSetPairs.length > 0) {
           const ctx = this.tableBindings(tbl, conflictRow, alias);
           for (const [k, v] of Object.entries(conflictRow.data)) {
+            yield;
             ctx[`${tbl.name}.${k}`] = v;
           }
           for (const [k, v] of Object.entries(candidate.data)) {
+            yield;
             ctx[`excluded.${k}`] = v;
             ctx[`EXCLUDED.${k}`] = v;
           }
           if (upsertWhere) {
-            const cond = this.evalExpr(upsertWhere, ctx, positionalParams);
+            const cond = yield* this.evalExprSteps(upsertWhere, ctx, positionalParams);
             if (!isTruthy(cond)) {
               continue;
             }
           }
           for (const assign of upsertSetPairs) {
-            const realCol = tbl.columns.find((c) => c.name.toLowerCase() === assign.col.toLowerCase());
+            yield;
+            const realCol = tbl.columns.find((c) => {
+              return c.name.toLowerCase() === assign.col.toLowerCase();
+            });
             const colKey = realCol ? realCol.name : assign.col;
-            conflictRow.data[colKey] = applyColumnAffinity(this.evalExpr(assign.expr, ctx, positionalParams), realCol?.type ?? "");
+            conflictRow.data[colKey] = applyColumnAffinity(
+              yield* this.evalExprSteps(assign.expr, ctx, positionalParams),
+              realCol?.type ?? ""
+            );
           }
           insertedCount += 1;
           affectedRows.push(conflictRow);
@@ -3102,14 +3321,20 @@ export class SqliteDatabase {
       this.lastInsertRowid = rowid;
       insertedCount += 1;
       affectedRows.push(candidate);
-      this.fireTriggers(tbl.name, "AFTER", "INSERT", undefined, candidate.data);
+      yield* this.fireTriggers(tbl.name, "AFTER", "INSERT", undefined, candidate.data);
     }
 
     this.lastChanges = insertedCount;
     this.totalChanges += insertedCount;
 
     if (returningIdx !== -1) {
-      return this.evaluateReturning(tbl, affectedRows, tokens.slice(returningIdx + 1), positionalParams, cteScope);
+      return yield* this.evaluateReturning(
+        tbl,
+        affectedRows,
+        tokens.slice(returningIdx + 1),
+        positionalParams,
+        cteScope
+      );
     }
     return null;
   }
@@ -3210,11 +3435,11 @@ export class SqliteDatabase {
     return bindings;
   }
 
-  private executeUpdate(
+  private *executeUpdate(
     tokens: Token[],
     positionalParams: SqlValue[],
     _cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): QueryResultSet | null {
+  ): SqlSteps<QueryResultSet | null> {
     let idx = 1;
     if (tokens[idx]?.value.toUpperCase() === "OR") {
       idx += 2;
@@ -3237,6 +3462,7 @@ export class SqliteDatabase {
     let returningIdx = -1;
     let pDepth = 0;
     for (let i = idx; i < tokens.length; i += 1) {
+      yield;
       if (tokens[i]!.value === "(") {
         pDepth += 1;
       } else if (tokens[i]!.value === ")") {
@@ -3252,83 +3478,129 @@ export class SqliteDatabase {
     let whereIdx = sliceEnd;
     let depth = 0;
     for (let i = idx; i < sliceEnd; i += 1) {
+      yield;
       const token = tokens[i]!.value.toUpperCase();
       if (token === "(") depth += 1;
       else if (token === ")") depth -= 1;
       else if (depth === 0 && token === "FROM") fromIdx = i;
       else if (depth === 0 && token === "WHERE") whereIdx = i;
     }
-    const setTokens = fromIdx === -1 ? tokens.slice(idx, sliceEnd)
-      : [...tokens.slice(idx, fromIdx), ...tokens.slice(whereIdx, sliceEnd)];
+    const setTokens =
+      fromIdx === -1
+        ? tokens.slice(idx, sliceEnd)
+        : [...tokens.slice(idx, fromIdx), ...tokens.slice(whereIdx, sliceEnd)];
     const { assignments, whereExpr } = this.parseSetAssignments(setTokens);
-    const source = fromIdx === -1 ? { rows: [{}], schema: [] }
-      : this.evaluateFromClause(tokens.slice(fromIdx + 1, whereIdx), positionalParams, _cteScope);
+    const source =
+      fromIdx === -1
+        ? { rows: [{}], schema: [] }
+        : yield* this.evaluateFromClause(
+            tokens.slice(fromIdx + 1, whereIdx),
+            positionalParams,
+            _cteScope
+          );
     const targetBindings = this.tableBindings(tbl, undefined, alias);
     const bindings = { ...targetBindings };
     for (const table of source.schema) {
+      yield;
       for (const column of table.columns) {
+        yield;
         bindings[column] = null;
         bindings[`${table.tableAlias}.${column}`] = null;
       }
     }
     for (const assignment of assignments) {
-      this.validateColumns({ kind: "column", name: assignment.col }, targetBindings, positionalParams, _cteScope);
-      this.validateColumns(assignment.expr, bindings, positionalParams, _cteScope);
+      yield;
+      yield* this.validateColumns(
+        { kind: "column", name: assignment.col },
+        targetBindings,
+        positionalParams,
+        _cteScope
+      );
+      yield* this.validateColumns(assignment.expr, bindings, positionalParams, _cteScope);
     }
-    this.validateColumns(whereExpr, bindings, positionalParams, _cteScope);
-    if (returningIdx !== -1) this.evaluateReturning(tbl, [], tokens.slice(returningIdx + 1), positionalParams, _cteScope);
+    yield* this.validateColumns(whereExpr, bindings, positionalParams, _cteScope);
+    if (returningIdx !== -1)
+      yield* this.evaluateReturning(
+        tbl,
+        [],
+        tokens.slice(returningIdx + 1),
+        positionalParams,
+        _cteScope
+      );
 
     let updated = 0;
     const affectedRows: TableRow[] = [];
 
     // Materialize matching contexts before writes, including self-joins.
-    const matches = tbl.rows.flatMap((row) => {
+    const matches = yield* stepFlatMap(tbl.rows, function* (row) {
       const target = this.tableBindings(tbl, row, alias);
       for (const other of source.rows) {
+        yield;
         const ctx = { ...other, ...target };
-        if (!whereExpr || isTruthy(this.evalExpr(whereExpr, ctx, positionalParams, _cteScope))) return [{ row, ctx }];
+        if (
+          !whereExpr ||
+          isTruthy(yield* this.evalExprSteps(whereExpr, ctx, positionalParams, _cteScope))
+        )
+          return [{ row, ctx }];
       }
       return [];
-    });
+    }, this);
     for (const { row, ctx } of matches) {
+      yield;
       const oldData = { ...row.data };
       const newData = { ...row.data };
       for (const assign of assignments) {
-        const realCol = tbl.columns.find((c) => c.name.toLowerCase() === assign.col.toLowerCase());
+        yield;
+        const realCol = tbl.columns.find((c) => {
+          return c.name.toLowerCase() === assign.col.toLowerCase();
+        });
         const colKey = realCol ? realCol.name : assign.col;
-        newData[colKey] = applyColumnAffinity(this.evalExpr(assign.expr, ctx, positionalParams, _cteScope), realCol?.type ?? "");
+        newData[colKey] = applyColumnAffinity(
+          yield* this.evalExprSteps(assign.expr, ctx, positionalParams, _cteScope),
+          realCol?.type ?? ""
+        );
       }
       for (const col of tbl.columns) {
+        yield;
         if (col.generatedExpr) {
-          newData[col.name] = applyColumnAffinity(this.evalScalarSql(col.generatedExpr, newData, positionalParams), col.type);
+          newData[col.name] = applyColumnAffinity(
+            yield* this.evalScalarSql(col.generatedExpr, newData, positionalParams),
+            col.type
+          );
         }
       }
-      this.fireTriggers(tbl.name, "BEFORE", "UPDATE", oldData, newData);
+      yield* this.fireTriggers(tbl.name, "BEFORE", "UPDATE", oldData, newData);
       const candidate: TableRow = { rowid: row.rowid, data: newData };
-      const conflict = this.checkConstraintsAndConflicts(tbl, candidate, row.rowid);
+      const conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate, row.rowid);
       if (conflict) {
         throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
       }
       row.data = newData;
       updated += 1;
       affectedRows.push(row);
-      this.fireTriggers(tbl.name, "AFTER", "UPDATE", oldData, newData);
+      yield* this.fireTriggers(tbl.name, "AFTER", "UPDATE", oldData, newData);
     }
 
     this.lastChanges = updated;
     this.totalChanges += updated;
 
     if (returningIdx !== -1) {
-      return this.evaluateReturning(tbl, affectedRows, tokens.slice(returningIdx + 1), positionalParams, _cteScope);
+      return yield* this.evaluateReturning(
+        tbl,
+        affectedRows,
+        tokens.slice(returningIdx + 1),
+        positionalParams,
+        _cteScope
+      );
     }
     return null;
   }
 
-  private executeDelete(
+  private *executeDelete(
     tokens: Token[],
     positionalParams: SqlValue[],
     _cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): QueryResultSet | null {
+  ): SqlSteps<QueryResultSet | null> {
     let idx = 1;
     if (tokens[idx]?.value.toUpperCase() === "FROM") {
       idx += 1;
@@ -3358,6 +3630,7 @@ export class SqliteDatabase {
     let returningIdx = -1;
     let pDepth = 0;
     for (let i = idx; i < tokens.length; i += 1) {
+      yield;
       if (tokens[i]!.value === "(") {
         pDepth += 1;
       } else if (tokens[i]!.value === ")") {
@@ -3374,24 +3647,37 @@ export class SqliteDatabase {
       whereExpr = new ExprParser(tokens.slice(idx + 1, sliceEnd)).parseExpression();
     }
 
-    this.validateColumns(whereExpr, this.tableBindings(tbl, undefined, alias), positionalParams, _cteScope);
-    if (returningIdx !== -1) this.evaluateReturning(tbl, [], tokens.slice(returningIdx + 1), positionalParams, _cteScope);
+    yield* this.validateColumns(
+      whereExpr,
+      this.tableBindings(tbl, undefined, alias),
+      positionalParams,
+      _cteScope
+    );
+    if (returningIdx !== -1)
+      yield* this.evaluateReturning(
+        tbl,
+        [],
+        tokens.slice(returningIdx + 1),
+        positionalParams,
+        _cteScope
+      );
 
     const kept: TableRow[] = [];
     const deletedRows: TableRow[] = [];
 
     for (const row of tbl.rows) {
+      yield;
       const ctx = this.tableBindings(tbl, row, alias);
       if (whereExpr) {
-        const cond = this.evalExpr(whereExpr, ctx, positionalParams, _cteScope);
+        const cond = yield* this.evalExprSteps(whereExpr, ctx, positionalParams, _cteScope);
         if (!isTruthy(cond)) {
           kept.push(row);
           continue;
         }
       }
-      this.fireTriggers(tbl.name, "BEFORE", "DELETE", row.data, undefined);
+      yield* this.fireTriggers(tbl.name, "BEFORE", "DELETE", row.data, undefined);
       deletedRows.push(row);
-      this.fireTriggers(tbl.name, "AFTER", "DELETE", row.data, undefined);
+      yield* this.fireTriggers(tbl.name, "AFTER", "DELETE", row.data, undefined);
     }
 
     tbl.rows = kept;
@@ -3399,24 +3685,32 @@ export class SqliteDatabase {
     this.totalChanges += deletedRows.length;
 
     if (returningIdx !== -1) {
-      return this.evaluateReturning(tbl, deletedRows, tokens.slice(returningIdx + 1), positionalParams, _cteScope);
+      return yield* this.evaluateReturning(
+        tbl,
+        deletedRows,
+        tokens.slice(returningIdx + 1),
+        positionalParams,
+        _cteScope
+      );
     }
     return null;
   }
 
-  private evaluateReturning(
+  private *evaluateReturning(
     tbl: TableDef,
     rows: TableRow[],
     returningTokens: Token[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
-  ): QueryResultSet {
+  ): SqlSteps<QueryResultSet> {
     const items = this.splitTopLevelComma(returningTokens);
     const outCols: string[] = [];
     const exprs: ExprNode[] = [];
     for (const itemToks of items) {
+      yield;
       if (itemToks.length === 1 && itemToks[0]!.value === "*") {
         for (const c of tbl.columns) {
+          yield;
           outCols.push(c.name);
           exprs.push({ kind: "column", name: c.name });
         }
@@ -3427,19 +3721,24 @@ export class SqliteDatabase {
       }
     }
     const bindings = this.tableBindings(tbl);
-    for (const expr of exprs) this.validateColumns(expr, bindings, positionalParams, cteScope);
-    const outRows: SqlValue[][] = rows.map((r) => {
+    for (const expr of exprs) {
+      yield;
+      yield* this.validateColumns(expr, bindings, positionalParams, cteScope);
+    }
+    const outRows: SqlValue[][] = yield* stepMap(rows, function* (r) {
       const ctx = this.tableBindings(tbl, r);
-      return exprs.map((e) => this.evalExpr(e, ctx, positionalParams, cteScope));
-    });
+      return yield* stepMap(exprs, function* (e) {
+        return yield* this.evalExprSteps(e, ctx, positionalParams, cteScope);
+      }, this);
+    }, this);
     return { columns: outCols, rows: outRows };
   }
 
-  private executeWith(
+  private *executeWith(
     tokens: Token[],
     positionalParams: SqlValue[],
     outerCtes: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): QueryResultSet | null {
+  ): SqlSteps<QueryResultSet | null> {
     const cteMap = new Map(outerCtes);
     let idx = 1;
     let isRecursive = false;
@@ -3449,6 +3748,7 @@ export class SqliteDatabase {
     }
 
     while (idx < tokens.length) {
+      yield;
       const cteName = tokens[idx]!.value;
       idx += 1;
       let explicitCols: string[] | undefined;
@@ -3456,6 +3756,7 @@ export class SqliteDatabase {
         explicitCols = [];
         idx += 1;
         while (idx < tokens.length && tokens[idx]?.value !== ")") {
+          yield;
           if (tokens[idx]!.value !== ",") {
             explicitCols.push(tokens[idx]!.value);
           }
@@ -3466,7 +3767,10 @@ export class SqliteDatabase {
       if (tokens[idx]?.value.toUpperCase() === "AS") {
         idx += 1;
       }
-      if (tokens[idx]?.value.toUpperCase() === "NOT" && tokens[idx + 1]?.value.toUpperCase() === "MATERIALIZED") {
+      if (
+        tokens[idx]?.value.toUpperCase() === "NOT" &&
+        tokens[idx + 1]?.value.toUpperCase() === "MATERIALIZED"
+      ) {
         idx += 2;
       } else if (tokens[idx]?.value.toUpperCase() === "MATERIALIZED") {
         idx += 1;
@@ -3479,6 +3783,7 @@ export class SqliteDatabase {
       let depth = 1;
       const bodyTokens: Token[] = [];
       while (idx < tokens.length && depth > 0) {
+        yield;
         const t = tokens[idx++]!;
         if (t.value === "(") {
           depth += 1;
@@ -3492,10 +3797,16 @@ export class SqliteDatabase {
       }
 
       if (isRecursive && this.containsTokenWord(bodyTokens, cteName)) {
-        const evaluated = this.evalRecursiveCte(cteName, explicitCols, bodyTokens, positionalParams, cteMap);
+        const evaluated = yield* this.evalRecursiveCte(
+          cteName,
+          explicitCols,
+          bodyTokens,
+          positionalParams,
+          cteMap
+        );
         cteMap.set(cteName.toLowerCase(), evaluated);
       } else {
-        const res = this.executeSelectCompound(bodyTokens, positionalParams, cteMap);
+        const res = yield* this.executeSelectCompound(bodyTokens, positionalParams, cteMap);
         const cols = explicitCols && explicitCols.length > 0 ? explicitCols : res.columns;
         cteMap.set(cteName.toLowerCase(), { columns: cols, rows: res.rows });
       }
@@ -3509,7 +3820,7 @@ export class SqliteDatabase {
 
     const mainTokens = tokens.slice(idx);
     const mainSql = reconstructTokensSql(mainTokens);
-    return this.executeStatement(mainSql, positionalParams, cteMap);
+    return yield* this.executeStatementSteps(mainSql, positionalParams, cteMap);
   }
 
   private containsTokenWord(tokens: Token[], word: string): boolean {
@@ -3517,18 +3828,19 @@ export class SqliteDatabase {
     return tokens.some((t) => t.value.toLowerCase() === lower);
   }
 
-  private evalRecursiveCte(
+  private *evalRecursiveCte(
     cteName: string,
     explicitCols: string[] | undefined,
     bodyTokens: Token[],
     positionalParams: SqlValue[],
     cteMap: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): { columns: string[]; rows: SqlValue[][] } {
+  ): SqlSteps<{ columns: string[]; rows: SqlValue[][] }> {
     // Split at top-level UNION / UNION ALL
     let d = 0;
     let unionIdx = -1;
     let unionAll = false;
     for (let i = 0; i < bodyTokens.length; i += 1) {
+      yield;
       const t = bodyTokens[i]!;
       if (t.value === "(") {
         d += 1;
@@ -3542,30 +3854,32 @@ export class SqliteDatabase {
     }
 
     if (unionIdx === -1) {
-      const res = this.executeSelectCompound(bodyTokens, positionalParams, cteMap);
+      const res = yield* this.executeSelectCompound(bodyTokens, positionalParams, cteMap);
       return { columns: explicitCols ?? res.columns, rows: res.rows };
     }
 
     const anchorTokens = bodyTokens.slice(0, unionIdx);
     const recTokens = bodyTokens.slice(unionIdx + (unionAll ? 2 : 1));
 
-    const anchorRes = this.executeSelectCompound(anchorTokens, positionalParams, cteMap);
+    const anchorRes = yield* this.executeSelectCompound(anchorTokens, positionalParams, cteMap);
     const cols = explicitCols && explicitCols.length > 0 ? explicitCols : anchorRes.columns;
     const scope = new Map(cteMap);
     scope.set(cteName.toLowerCase(), { columns: cols, rows: [] });
     const preparing = this.preparing;
     this.preparing = true;
     try {
-      this.executeSelectCompound(recTokens, positionalParams, scope);
+      yield* this.executeSelectCompound(recTokens, positionalParams, scope);
     } finally {
       this.preparing = preparing;
     }
     if (this.preparing) return { columns: cols, rows: [] };
+    this.checkRowCount(anchorRes.rows.length);
     const allRows: SqlValue[][] = [...anchorRes.rows];
     let workingRows: SqlValue[][] = [...anchorRes.rows];
     const seenKeys = new Set<string>();
     if (!unionAll) {
       for (const r of allRows) {
+        yield;
         seenKeys.add(serializeSqlJson(r, false));
       }
     }
@@ -3573,10 +3887,12 @@ export class SqliteDatabase {
     const stepMap = new Map(cteMap);
     const cteKey = cteName.toLowerCase();
     while (workingRows.length > 0) {
+      yield;
       stepMap.set(cteKey, { columns: cols, rows: workingRows });
-      const nextRes = this.executeSelectCompound(recTokens, positionalParams, stepMap);
+      const nextRes = yield* this.executeSelectCompound(recTokens, positionalParams, stepMap);
       const nextWorking: SqlValue[][] = [];
       for (const r of nextRes.rows) {
+        yield;
         if (!unionAll) {
           const k = serializeSqlJson(r, false);
           if (seenKeys.has(k)) {
@@ -3584,6 +3900,7 @@ export class SqliteDatabase {
           }
           seenKeys.add(k);
         }
+        this.checkRowCount(allRows.length + 1);
         allRows.push(r);
         nextWorking.push(r);
       }
@@ -3608,22 +3925,31 @@ export class SqliteDatabase {
     }
   >();
 
-  private executeSelectCompound(
+  private *executeSelectCompound(
     tokens: Token[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): QueryResultSet {
+  ): SqlSteps<QueryResultSet> {
     if (tokens[0]?.value.toUpperCase() === "WITH") {
-      return this.executeWith(tokens, positionalParams, cteScope) ?? { columns: [], rows: [] };
+      return (
+        (yield* this.executeWith(tokens, positionalParams, cteScope)) ?? {
+          columns: [],
+          rows: []
+        }
+      );
     }
     // Split by top-level UNION / UNION ALL / INTERSECT / EXCEPT
     // Note: ORDER BY and LIMIT at the very end apply to the entire compound query
-    const segments: { op: "NONE" | "UNION" | "UNION ALL" | "INTERSECT" | "EXCEPT"; tokens: Token[] }[] = [];
+    const segments: {
+      op: "NONE" | "UNION" | "UNION ALL" | "INTERSECT" | "EXCEPT";
+      tokens: Token[];
+    }[] = [];
     let d = 0;
     let start = 0;
     let pendingOp: "NONE" | "UNION" | "UNION ALL" | "INTERSECT" | "EXCEPT" = "NONE";
 
     for (let i = 0; i < tokens.length; i += 1) {
+      yield;
       const t = tokens[i]!;
       if (t.value === "(") {
         d += 1;
@@ -3645,7 +3971,7 @@ export class SqliteDatabase {
     }
 
     if (segments.length === 0) {
-      return this.executeSingleSelect(tokens, positionalParams, cteScope);
+      return yield* this.executeSingleSelect(tokens, positionalParams, cteScope);
     }
 
     // Check if the last segment has top-level ORDER BY / LIMIT
@@ -3653,6 +3979,7 @@ export class SqliteDatabase {
     let orderLimitStart = -1;
     d = 0;
     for (let i = 0; i < lastSegTokens.length; i += 1) {
+      yield;
       const t = lastSegTokens[i]!;
       if (t.value === "(") {
         d += 1;
@@ -3660,7 +3987,10 @@ export class SqliteDatabase {
         d -= 1;
       } else if (d === 0) {
         const u = t.value.toUpperCase();
-        if ((u === "ORDER" && lastSegTokens[i + 1]?.value.toUpperCase() === "BY") || u === "LIMIT") {
+        if (
+          (u === "ORDER" && lastSegTokens[i + 1]?.value.toUpperCase() === "BY") ||
+          u === "LIMIT"
+        ) {
           orderLimitStart = i;
           break;
         }
@@ -3668,25 +3998,44 @@ export class SqliteDatabase {
     }
 
     const tailClauses = orderLimitStart !== -1 ? lastSegTokens.slice(orderLimitStart) : [];
-    const cleanLastTokens = orderLimitStart !== -1 ? lastSegTokens.slice(0, orderLimitStart) : lastSegTokens;
+    const cleanLastTokens =
+      orderLimitStart !== -1 ? lastSegTokens.slice(0, orderLimitStart) : lastSegTokens;
     segments.push({ op: pendingOp, tokens: cleanLastTokens });
 
     let acc: QueryResultSet = { columns: [], rows: [] };
     for (const seg of segments) {
-      const res = this.executeSingleSelect(seg.tokens, positionalParams, cteScope);
+      yield;
+      const res = yield* this.executeSingleSelect(seg.tokens, positionalParams, cteScope);
       if (seg.op === "NONE") {
         acc = res;
       } else if (seg.op === "UNION ALL") {
+        this.checkRowCount(acc.rows.length + res.rows.length);
         acc.rows.push(...res.rows);
       } else if (seg.op === "UNION") {
         const combined = [...acc.rows, ...res.rows];
-        acc.rows = this.deduplicateResultRows(combined);
+        acc.rows = yield* this.deduplicateResultRows(combined);
       } else if (seg.op === "INTERSECT") {
-        const rightSet = new Set(res.rows.map((r) => serializeSqlJson(r, false)));
-        acc.rows = this.deduplicateResultRows(acc.rows.filter((r) => rightSet.has(serializeSqlJson(r, false))));
+        const rightSet = new Set(
+          yield* stepMap(res.rows, function* (r) { yield;
+            return serializeSqlJson(r, false);
+          }, this)
+        );
+        acc.rows = yield* this.deduplicateResultRows(
+          yield* stepFilter(acc.rows, function* (r) { yield;
+            return rightSet.has(serializeSqlJson(r, false));
+          }, this)
+        );
       } else if (seg.op === "EXCEPT") {
-        const rightSet = new Set(res.rows.map((r) => serializeSqlJson(r, false)));
-        acc.rows = this.deduplicateResultRows(acc.rows.filter((r) => !rightSet.has(serializeSqlJson(r, false))));
+        const rightSet = new Set(
+          yield* stepMap(res.rows, function* (r) { yield;
+            return serializeSqlJson(r, false);
+          }, this)
+        );
+        acc.rows = yield* this.deduplicateResultRows(
+          yield* stepFilter(acc.rows, function* (r) { yield;
+            return !rightSet.has(serializeSqlJson(r, false));
+          }, this)
+        );
       }
     }
 
@@ -3694,17 +4043,20 @@ export class SqliteDatabase {
       // Apply ORDER BY / LIMIT on `acc` by wrapping in a temp CTE
       const tmpScope = new Map(cteScope);
       tmpScope.set("__compound_res__", acc);
-      const wrapToks = tokenizeSql(`SELECT * FROM __compound_res__ ${reconstructTokensSql(tailClauses)}`);
-      return this.executeSingleSelect(wrapToks, positionalParams, tmpScope);
+      const wrapToks = tokenizeSql(
+        `SELECT * FROM __compound_res__ ${reconstructTokensSql(tailClauses)}`
+      );
+      return yield* this.executeSingleSelect(wrapToks, positionalParams, tmpScope);
     }
 
     return acc;
   }
 
-  private deduplicateResultRows(rows: SqlValue[][]): SqlValue[][] {
+  private *deduplicateResultRows(rows: SqlValue[][]): SqlSteps<SqlValue[][]> {
     const out: SqlValue[][] = [];
     const seen = new Set<string>();
     for (const r of rows) {
+      yield;
       const k = serializeSqlJson(r, false);
       if (!seen.has(k)) {
         seen.add(k);
@@ -3714,22 +4066,24 @@ export class SqliteDatabase {
     return out;
   }
 
-  private executeSingleSelect(
+  private *executeSingleSelect(
     tokens: Token[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): QueryResultSet {
+  ): SqlSteps<QueryResultSet> {
     if (tokens[0]?.value.toUpperCase() === "VALUES") {
       let idx = 1;
       const rows: SqlValue[][] = [];
       let maxCols = 0;
       while (idx < tokens.length) {
+        yield;
         if (tokens[idx]?.value === "(") {
           idx += 1;
           const exprs: Token[][] = [];
           let cur: Token[] = [];
           let d = 1;
           while (idx < tokens.length && d > 0) {
+            yield;
             const t = tokens[idx++]!;
             if (t.value === "(") {
               d += 1;
@@ -3748,7 +4102,13 @@ export class SqliteDatabase {
               cur.push(t);
             }
           }
-          const r = exprs.map((et) => this.evalExpr(new ExprParser(et).parseExpression(), {}, positionalParams));
+          const r = yield* stepMap(exprs, function* (et) {
+            return yield* this.evalExprSteps(
+              new ExprParser(et).parseExpression(),
+              {},
+              positionalParams
+            );
+          }, this);
           maxCols = Math.max(maxCols, r.length);
           rows.push(r);
         } else {
@@ -3774,6 +4134,7 @@ export class SqliteDatabase {
       const clausePositions: { name: string; pos: number }[] = [];
       let d = 0;
       for (let i = idx; i < tokens.length; i += 1) {
+        yield;
         const t = tokens[i]!;
         if (t.value === "(") {
           d += 1;
@@ -3812,14 +4173,22 @@ export class SqliteDatabase {
       const havingTokens = getClauseTokens("HAVING");
       const orderByTokens = getClauseTokens("ORDER BY");
       const limitTokens = getClauseTokens("LIMIT");
-      const whereExpr = whereTokens && whereTokens.length > 0 ? new ExprParser(whereTokens).parseExpression() : undefined;
+      const whereExpr =
+        whereTokens && whereTokens.length > 0
+          ? new ExprParser(whereTokens).parseExpression()
+          : undefined;
       const targetItems = this.splitTopLevelComma(selectListTokens);
-      const hasWildcard = targetItems.some(
-        (itemToks) =>
+      const hasWildcard = targetItems.some((itemToks) => {
+        return (
           (itemToks.length === 1 && itemToks[0]!.value === "*") ||
           (itemToks.length === 3 && itemToks[1]!.value === "." && itemToks[2]!.value === "*")
-      );
-      const staticTargets = hasWildcard ? undefined : targetItems.map((itemToks) => this.parseSelectTarget(itemToks));
+        );
+      });
+      const staticTargets = hasWildcard
+        ? undefined
+        : targetItems.map((itemToks) => {
+            return this.parseSelectTarget(itemToks);
+          });
       plan = {
         distinct,
         fromTokens,
@@ -3851,7 +4220,7 @@ export class SqliteDatabase {
     let sourceSchema: { tableAlias: string; columns: string[] }[] = [];
 
     if (fromTokens && fromTokens.length > 0) {
-      const built = this.evaluateFromClause(fromTokens, positionalParams, cteScope);
+      const built = yield* this.evaluateFromClause(fromTokens, positionalParams, cteScope);
       workingRows = built.rows;
       sourceSchema = built.schema;
     }
@@ -3863,20 +4232,30 @@ export class SqliteDatabase {
     } else {
       selectTargets = [];
       for (const itemToks of targetItems) {
+        yield;
         if (itemToks.length === 1 && itemToks[0]!.value === "*") {
           for (const src of sourceSchema) {
+            yield;
             for (const col of src.columns) {
+              yield;
               selectTargets.push({
                 expr: { kind: "column", table: src.tableAlias || undefined, name: col },
                 alias: col
               });
             }
           }
-        } else if (itemToks.length === 3 && itemToks[1]!.value === "." && itemToks[2]!.value === "*") {
+        } else if (
+          itemToks.length === 3 &&
+          itemToks[1]!.value === "." &&
+          itemToks[2]!.value === "*"
+        ) {
           const tblAlias = itemToks[0]!.value;
-          const src = sourceSchema.find((s) => s.tableAlias.toLowerCase() === tblAlias.toLowerCase());
+          const src = sourceSchema.find((s) => {
+            return s.tableAlias.toLowerCase() === tblAlias.toLowerCase();
+          });
           if (src) {
             for (const col of src.columns) {
+              yield;
               selectTargets.push({
                 expr: { kind: "column", table: src.tableAlias, name: col },
                 alias: col
@@ -3893,19 +4272,34 @@ export class SqliteDatabase {
     // catches errors in empty tables and branches that evaluation never visits.
     const bindings: Record<string, SqlValue> = {};
     for (const source of sourceSchema) {
+      yield;
       for (const column of [...source.columns, "rowid", "_rowid_", "oid"]) {
+        yield;
         bindings[column] = null;
         bindings[`${source.tableAlias}.${column}`] = null;
       }
     }
-    for (const target of selectTargets) this.validateColumns(target.expr, bindings, positionalParams, cteScope);
+    for (const target of selectTargets) {
+      yield;
+      yield* this.validateColumns(target.expr, bindings, positionalParams, cteScope);
+    }
     const aliasBindings = { ...bindings };
-    for (const target of selectTargets) aliasBindings[target.alias] = null;
-    this.validateColumns(whereExpr, aliasBindings, positionalParams, cteScope);
+    for (const target of selectTargets) {
+      yield;
+      aliasBindings[target.alias] = null;
+    }
+    yield* this.validateColumns(whereExpr, aliasBindings, positionalParams, cteScope);
     for (const clause of [groupByTokens, havingTokens, orderByTokens]) {
+      yield;
       if (clause) {
         for (const expression of this.splitTopLevelComma(clause)) {
-          this.validateColumns(new ExprParser(expression).parseExpression(), aliasBindings, positionalParams, cteScope);
+          yield;
+          yield* this.validateColumns(
+            new ExprParser(expression).parseExpression(),
+            aliasBindings,
+            positionalParams,
+            cteScope
+          );
         }
       }
     }
@@ -3914,50 +4308,90 @@ export class SqliteDatabase {
       let depth = 0;
       let start = 0;
       for (let i = 0; i <= limitTokens.length; i += 1) {
+        yield;
         const token = limitTokens[i]?.value;
         if (token === "(") depth += 1;
         if (token === ")") depth -= 1;
-        if (i === limitTokens.length || (depth === 0 && (token === "," || token?.toUpperCase() === "OFFSET"))) {
-          this.validateColumns(new ExprParser(limitTokens.slice(start, i)).parseExpression(), {}, positionalParams, cteScope);
+        if (
+          i === limitTokens.length ||
+          (depth === 0 && (token === "," || token?.toUpperCase() === "OFFSET"))
+        ) {
+          yield* this.validateColumns(
+            new ExprParser(limitTokens.slice(start, i)).parseExpression(),
+            {},
+            positionalParams,
+            cteScope
+          );
           start = i + 1;
         }
       }
     }
 
-    if (this.preparing) return { columns: selectTargets.map((target) => target.alias), rows: [] };
+    if (this.preparing)
+      return {
+        columns: selectTargets.map((target) => {
+          return target.alias;
+        }),
+        rows: []
+      };
 
     // Evaluate WHERE after resolving identifiers
     if (whereExpr) {
-      workingRows = workingRows.filter((row) => isTruthy(this.evalExpr(whereExpr, row, positionalParams, cteScope)));
+      workingRows = yield* stepFilter(workingRows, function* (row) {
+        return isTruthy(yield* this.evalExprSteps(whereExpr, row, positionalParams, cteScope));
+      }, this);
     }
 
     // Check if query has aggregates or GROUP BY
     const hasGroupBy = Boolean(groupByTokens && groupByTokens.length > 0);
-    const hasAggregateInSelect = selectTargets.some((t) => this.containsAggregate(t.expr));
+    const hasAggregateInSelect = selectTargets.some((t) => {
+      return this.containsAggregate(t.expr);
+    });
     const hasAggregateInHaving = havingTokens
       ? this.containsAggregate(new ExprParser(havingTokens).parseExpression())
       : false;
     const isAggregatedQuery = hasGroupBy || hasAggregateInSelect || hasAggregateInHaving;
 
-    let groupedRows: { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }[] = [];
+    let groupedRows: {
+      representative: Record<string, SqlValue>;
+      group: Record<string, SqlValue>[];
+    }[] = [];
 
     if (isAggregatedQuery) {
       if (hasGroupBy) {
-        const groupExprs = this.splitTopLevelComma(groupByTokens!).map((gt) =>
-          new ExprParser(gt).parseExpression()
-        );
-        const groups = new Map<string, { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }>();
+        const groupExprs = this.splitTopLevelComma(groupByTokens!).map((gt) => {
+          return new ExprParser(gt).parseExpression();
+        });
+        const groups = new Map<
+          string,
+          { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }
+        >();
         for (const row of workingRows) {
-          const keyVals = groupExprs.map((ge) => {
-            if (ge.kind === "literal" && typeof ge.value === "number" && Number.isInteger(ge.value)) {
+          yield;
+          const keyVals = yield* stepMap(groupExprs, function* (ge) {
+            if (
+              ge.kind === "literal" &&
+              typeof ge.value === "number" &&
+              Number.isInteger(ge.value)
+            ) {
               const idx1 = ge.value - 1;
               if (selectTargets[idx1]) {
-                return this.evalExpr(selectTargets[idx1]!.expr, row, positionalParams, cteScope);
+                return yield* this.evalExprSteps(
+                  selectTargets[idx1]!.expr,
+                  row,
+                  positionalParams,
+                  cteScope
+                );
               }
             }
-            return this.evalExpr(ge, row, positionalParams, cteScope);
-          });
-          const keyStr = serializeSqlJson(keyVals.map((v) => [typeof v, v]), false);
+            return yield* this.evalExprSteps(ge, row, positionalParams, cteScope);
+          }, this);
+          const keyStr = serializeSqlJson(
+            keyVals.map((v) => {
+              return [typeof v, v];
+            }),
+            false
+          );
           const existing = groups.get(keyStr);
           if (existing) {
             existing.group.push(row);
@@ -3972,61 +4406,82 @@ export class SqliteDatabase {
 
       if (havingTokens && havingTokens.length > 0) {
         const havingExpr = new ExprParser(havingTokens).parseExpression();
-        groupedRows = groupedRows.filter((g) => {
+        groupedRows = yield* stepFilter(groupedRows, function* (g) {
           // Provide select aliases in representative context
           const repCtx = { ...g.representative };
           for (const st of selectTargets) {
+            yield;
             if (!(st.alias in repCtx)) {
-              repCtx[st.alias] = this.evalExprWithAgg(st.expr, g.representative, g.group, positionalParams, cteScope);
+              repCtx[st.alias] = yield* this.evalExprWithAgg(
+                st.expr,
+                g.representative,
+                g.group,
+                positionalParams,
+                cteScope
+              );
             }
           }
-          return isTruthy(this.evalExprWithAgg(havingExpr, repCtx, g.group, positionalParams, cteScope));
-        });
+          return isTruthy(
+            yield* this.evalExprWithAgg(havingExpr, repCtx, g.group, positionalParams, cteScope)
+          );
+        }, this);
       }
     } else {
-      groupedRows = workingRows.map((r) => ({ representative: r, group: [r] }));
+      groupedRows = yield* stepMap(workingRows, function* (r) { yield;
+        return { representative: r, group: [r] };
+      }, this);
     }
 
     // Evaluate window functions if any target has OVER (...)
     const windowResults = new Map<ExprNode, SqlValue[]>();
     for (const st of selectTargets) {
-      this.collectWindowExprs(st.expr, groupedRows, positionalParams, cteScope, windowResults);
+      yield;
+      yield* this.collectWindowExprs(
+        st.expr,
+        groupedRows,
+        positionalParams,
+        cteScope,
+        windowResults
+      );
     }
 
     // Build projection rows + augmented sort contexts
-    const projected: { values: SqlValue[]; ctx: Record<string, SqlValue>; group: Record<string, SqlValue>[] }[] =
-      groupedRows.map((g, rowIdx) => {
-        const repCtx = { ...g.representative };
-        const values = selectTargets.map((st) => {
-          const val = this.evalExprWithAggAndWindow(
-            st.expr,
-            repCtx,
-            g.group,
-            rowIdx,
-            windowResults,
-            positionalParams,
-            cteScope
-          );
-          if (!(st.alias in repCtx)) {
-            repCtx[st.alias] = val;
-          }
-          return val;
-        });
-        return { values, ctx: repCtx, group: g.group };
-      });
+    const projected: {
+      values: SqlValue[];
+      ctx: Record<string, SqlValue>;
+      group: Record<string, SqlValue>[];
+    }[] = yield* stepMap(groupedRows, function* (g, rowIdx) {
+      const repCtx = { ...g.representative };
+      const values = yield* stepMap(selectTargets, function* (st) {
+        const val = yield* this.evalExprWithAggAndWindow(
+          st.expr,
+          repCtx,
+          g.group,
+          rowIdx,
+          windowResults,
+          positionalParams,
+          cteScope
+        );
+        if (!(st.alias in repCtx)) {
+          repCtx[st.alias] = val;
+        }
+        return val;
+      }, this);
+      return { values, ctx: repCtx, group: g.group };
+    }, this);
 
     // 4. Deduplicate if SELECT DISTINCT
     let finalProjected = projected;
     if (distinct) {
       const seen = new Set<string>();
-      finalProjected = projected.filter((p) => {
+      finalProjected = yield* stepFilter(projected, function* (p) { yield;
         const k = serializeSqlJson(p.values, false);
         if (seen.has(k)) {
           return false;
         }
         seen.add(k);
         return true;
-      });
+      }, this);
     }
 
     // 5. Evaluate ORDER BY
@@ -4055,17 +4510,34 @@ export class SqliteDatabase {
         return { expr, desc, nulls, collation };
       });
 
-      finalProjected.sort((a, b) => {
+      yield* stepSort(finalProjected, function* (a, b) {
         for (const spec of orderSpecs) {
+          yield;
           let vA: SqlValue;
           let vB: SqlValue;
-          if (spec.expr.kind === "literal" && typeof spec.expr.value === "number" && Number.isInteger(spec.expr.value)) {
+          if (
+            spec.expr.kind === "literal" &&
+            typeof spec.expr.value === "number" &&
+            Number.isInteger(spec.expr.value)
+          ) {
             const colIdx = spec.expr.value - 1;
             vA = a.values[colIdx] ?? null;
             vB = b.values[colIdx] ?? null;
           } else {
-            vA = this.evalExprWithAgg(spec.expr, a.ctx, a.group, positionalParams, cteScope);
-            vB = this.evalExprWithAgg(spec.expr, b.ctx, b.group, positionalParams, cteScope);
+            vA = yield* this.evalExprWithAgg(
+              spec.expr,
+              a.ctx,
+              a.group,
+              positionalParams,
+              cteScope
+            );
+            vB = yield* this.evalExprWithAgg(
+              spec.expr,
+              b.ctx,
+              b.group,
+              positionalParams,
+              cteScope
+            );
           }
 
           if (vA === null && vB === null) {
@@ -4096,34 +4568,68 @@ export class SqliteDatabase {
           }
         }
         return 0;
-      });
+      }, this);
     }
 
     // 6. Evaluate LIMIT / OFFSET
     if (limitTokens && limitTokens.length > 0) {
-      const offsetIdx = limitTokens.findIndex((t) => t.value.toUpperCase() === "OFFSET");
-      const commaIdx = limitTokens.findIndex((t) => t.value === ",");
+      const offsetIdx = limitTokens.findIndex((t) => {
+        return t.value.toUpperCase() === "OFFSET";
+      });
+      const commaIdx = limitTokens.findIndex((t) => {
+        return t.value === ",";
+      });
       let limitVal = -1;
       let offsetVal = 0;
 
       if (offsetIdx !== -1) {
         limitVal = Math.trunc(
-          toSqlNumber(this.evalExpr(new ExprParser(limitTokens.slice(0, offsetIdx)).parseExpression(), {}, positionalParams))
+          toSqlNumber(
+            yield* this.evalExprSteps(
+              new ExprParser(limitTokens.slice(0, offsetIdx)).parseExpression(),
+              {},
+              positionalParams
+            )
+          )
         );
         offsetVal = Math.trunc(
-          toSqlNumber(this.evalExpr(new ExprParser(limitTokens.slice(offsetIdx + 1)).parseExpression(), {}, positionalParams))
+          toSqlNumber(
+            yield* this.evalExprSteps(
+              new ExprParser(limitTokens.slice(offsetIdx + 1)).parseExpression(),
+              {},
+              positionalParams
+            )
+          )
         );
       } else if (commaIdx !== -1) {
         // LIMIT offset, count
         offsetVal = Math.trunc(
-          toSqlNumber(this.evalExpr(new ExprParser(limitTokens.slice(0, commaIdx)).parseExpression(), {}, positionalParams))
+          toSqlNumber(
+            yield* this.evalExprSteps(
+              new ExprParser(limitTokens.slice(0, commaIdx)).parseExpression(),
+              {},
+              positionalParams
+            )
+          )
         );
         limitVal = Math.trunc(
-          toSqlNumber(this.evalExpr(new ExprParser(limitTokens.slice(commaIdx + 1)).parseExpression(), {}, positionalParams))
+          toSqlNumber(
+            yield* this.evalExprSteps(
+              new ExprParser(limitTokens.slice(commaIdx + 1)).parseExpression(),
+              {},
+              positionalParams
+            )
+          )
         );
       } else {
         limitVal = Math.trunc(
-          toSqlNumber(this.evalExpr(new ExprParser(limitTokens).parseExpression(), {}, positionalParams))
+          toSqlNumber(
+            yield* this.evalExprSteps(
+              new ExprParser(limitTokens).parseExpression(),
+              {},
+              positionalParams
+            )
+          )
         );
       }
 
@@ -4136,16 +4642,23 @@ export class SqliteDatabase {
     }
 
     return {
-      columns: selectTargets.map((t) => t.alias),
-      rows: finalProjected.map((p) => p.values)
+      columns: selectTargets.map((t) => {
+        return t.alias;
+      }),
+      rows: finalProjected.map((p) => {
+        return p.values;
+      })
     };
   }
 
-  private evaluateFromClause(
+  private *evaluateFromClause(
     fromTokens: Token[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): { rows: Record<string, SqlValue>[]; schema: { tableAlias: string; columns: string[] }[] } {
+  ): SqlSteps<{
+    rows: Record<string, SqlValue>[];
+    schema: { tableAlias: string; columns: string[] }[];
+  }> {
     // Parse sequence of table sources and JOIN operators
     interface JoinItem {
       joinType: "INNER" | "LEFT" | "RIGHT" | "FULL" | "CROSS";
@@ -4243,6 +4756,7 @@ export class SqliteDatabase {
     items.push({ joinType: "INNER", natural: false, sourceTokens: firstSrc });
 
     while (i < fromTokens.length) {
+      yield;
       let joinType: JoinItem["joinType"] = "INNER";
       let natural = false;
       if (fromTokens[i]?.value === ",") {
@@ -4250,6 +4764,7 @@ export class SqliteDatabase {
         i += 1;
       } else {
         while (i < fromTokens.length) {
+          yield;
           const u = fromTokens[i]!.value.toUpperCase();
           if (u === "NATURAL") {
             natural = true;
@@ -4292,24 +4807,33 @@ export class SqliteDatabase {
     const schema: { tableAlias: string; columns: string[] }[] = [];
 
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
+      yield;
       const item = items[itemIdx]!;
       const preparationScope: Record<string, SqlValue> = {};
       if (this.preparing || currentRows.length === 0) {
         for (const source of schema) {
+          yield;
           for (const column of [...source.columns, "rowid", "_rowid_", "oid"]) {
+            yield;
             preparationScope[column] = null;
             preparationScope[`${source.tableAlias}.${column}`] = null;
           }
         }
       }
-      const resolved = this.resolveSingleTableSource(
+      const resolved = yield* this.resolveSingleTableSource(
         item.sourceTokens,
         this.preparing || currentRows.length === 0 ? [preparationScope] : currentRows,
         positionalParams,
         cteScope,
         itemIdx > 0 && currentRows.length === 0
       );
-      const prevCols = new Set(schema.flatMap((s) => s.columns.map((c) => c.toLowerCase())));
+      const prevCols = new Set(
+        yield* stepFlatMap(schema, function* (s) { yield;
+          return s.columns.map((c) => {
+            return c.toLowerCase();
+          });
+        }, this)
+      );
       schema.push({ tableAlias: resolved.alias, columns: resolved.columns });
 
       if (itemIdx === 0) {
@@ -4322,28 +4846,40 @@ export class SqliteDatabase {
       const onExpr = item.onTokens ? new ExprParser(item.onTokens).parseExpression() : undefined;
       const joinBindings: Record<string, SqlValue> = {};
       for (const source of schema) {
+        yield;
         for (const column of [...source.columns, "rowid", "_rowid_", "oid"]) {
+          yield;
           joinBindings[column] = null;
           joinBindings[`${source.tableAlias}.${column}`] = null;
         }
       }
-      this.validateColumns(onExpr, joinBindings, positionalParams, cteScope);
+      yield* this.validateColumns(onExpr, joinBindings, positionalParams, cteScope);
       const usingList = item.natural
-        ? resolved.columns.filter((c) => prevCols.has(c.toLowerCase()))
+        ? yield* stepFilter(resolved.columns, function* (c) { yield;
+            return prevCols.has(c.toLowerCase());
+          }, this)
         : item.usingCols;
 
       const rightMatched = new Set<number>();
 
       for (const leftRow of currentRows) {
+        yield;
         const candidateRightRows = resolved.isCorrelated
-          ? this.resolveSingleTableSource(item.sourceTokens, [leftRow], positionalParams, cteScope).rows
+          ? (yield* this.resolveSingleTableSource(
+              item.sourceTokens,
+              [leftRow],
+              positionalParams,
+              cteScope
+            )).rows
           : resolved.rows;
 
         let matchedLeft = false;
         for (let rIdx = 0; rIdx < candidateRightRows.length; rIdx += 1) {
+          yield;
           const rightRow = candidateRightRows[rIdx]!;
           const merged: Record<string, SqlValue> = { ...leftRow };
           for (const [k, v] of Object.entries(rightRow)) {
+            yield;
             if (k.includes(".") || !(k in merged) || merged[k] === null) {
               merged[k] = v;
             }
@@ -4351,9 +4887,12 @@ export class SqliteDatabase {
 
           let matches = true;
           if (onExpr) {
-            matches = isTruthy(this.evalExpr(onExpr, merged, positionalParams, cteScope));
+            matches = isTruthy(
+              yield* this.evalExprSteps(onExpr, merged, positionalParams, cteScope)
+            );
           } else if (usingList && usingList.length > 0) {
             for (const uCol of usingList) {
+              yield;
               const lVal = this.lookupColInRow(leftRow, undefined, uCol);
               const rVal = this.lookupColInRow(rightRow, resolved.alias, uCol);
               if (lVal === null || rVal === null || !sqlEquals(lVal, rVal)) {
@@ -4366,6 +4905,7 @@ export class SqliteDatabase {
           if (matches) {
             matchedLeft = true;
             rightMatched.add(rIdx);
+            this.checkRowCount(nextRows.length + 1);
             nextRows.push(merged);
           }
         }
@@ -4373,27 +4913,33 @@ export class SqliteDatabase {
         if (!matchedLeft && (item.joinType === "LEFT" || item.joinType === "FULL")) {
           const nullPadded: Record<string, SqlValue> = { ...leftRow };
           for (const col of resolved.columns) {
+            yield;
             nullPadded[`${resolved.alias}.${col}`] = null;
             if (!(col in nullPadded)) {
               nullPadded[col] = null;
             }
           }
+          this.checkRowCount(nextRows.length + 1);
           nextRows.push(nullPadded);
         }
       }
 
       if (item.joinType === "RIGHT" || item.joinType === "FULL") {
         for (let rIdx = 0; rIdx < resolved.rows.length; rIdx += 1) {
+          yield;
           if (!rightMatched.has(rIdx)) {
             const rightRow = resolved.rows[rIdx]!;
             const nullPadded: Record<string, SqlValue> = {};
             for (const s of schema.slice(0, -1)) {
+              yield;
               for (const col of s.columns) {
+                yield;
                 nullPadded[`${s.tableAlias}.${col}`] = null;
                 nullPadded[col] = null;
               }
             }
             Object.assign(nullPadded, rightRow);
+            this.checkRowCount(nextRows.length + 1);
             nextRows.push(nullPadded);
           }
         }
@@ -4405,13 +4951,18 @@ export class SqliteDatabase {
     return { rows: currentRows, schema };
   }
 
-  private resolveSingleTableSource(
+  private *resolveSingleTableSource(
     srcTokens: Token[],
     outerRows: Record<string, SqlValue>[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>,
     prepareTvf = false
-  ): { alias: string; columns: string[]; rows: Record<string, SqlValue>[]; isCorrelated?: boolean } {
+  ): SqlSteps<{
+    alias: string;
+    columns: string[];
+    rows: Record<string, SqlValue>[];
+    isCorrelated?: boolean;
+  }> {
     if (srcTokens.length === 0) {
       return { alias: "", columns: [], rows: [{}] };
     }
@@ -4422,6 +4973,7 @@ export class SqliteDatabase {
       let p = 1;
       const inner: Token[] = [];
       while (p < srcTokens.length && d > 0) {
+        yield;
         const t = srcTokens[p++]!;
         if (t.value === "(") {
           d += 1;
@@ -4437,18 +4989,22 @@ export class SqliteDatabase {
         p += 1;
       }
       const alias = srcTokens[p]?.value ?? "subquery";
-      const res = this.executeStatement(reconstructTokensSql(inner), positionalParams, cteScope) ?? {
+      const res = (yield* this.executeStatementSteps(
+        reconstructTokensSql(inner),
+        positionalParams,
+        cteScope
+      )) ?? {
         columns: [],
         rows: []
       };
-      const rows = res.rows.map((r) => {
+      const rows = yield* stepMap(res.rows, function* (r) { yield;
         const obj: Record<string, SqlValue> = {};
         res.columns.forEach((c, idx) => {
           obj[c] = r[idx] ?? null;
           obj[`${alias}.${c}`] = r[idx] ?? null;
         });
         return obj;
-      });
+      }, this);
       return { alias, columns: res.columns, rows };
     }
 
@@ -4466,6 +5022,7 @@ export class SqliteDatabase {
       let cur: Token[] = [];
       let d = 1;
       while (idx < srcTokens.length && d > 0) {
+        yield;
         const t = srcTokens[idx++]!;
         if (t.value === "(") {
           d += 1;
@@ -4491,25 +5048,29 @@ export class SqliteDatabase {
       }
       const alias = srcTokens[idx]?.value ?? name;
       const outerCtx = outerRows[0] ?? {};
-      const isCorrelated = argToks.some((at) => at.some((t) => t.type === "word" || t.type === "ident"));
+      const isCorrelated = argToks.some((at) => {
+        return at.some((t) => {
+          return t.type === "word" || t.type === "ident";
+        });
+      });
       const prepare = this.preparing || (prepareTvf && isCorrelated);
-      const args = argToks.map((at) => {
+      const args = yield* stepMap(argToks, function* (at) {
         const expression = new ExprParser(at).parseExpression();
         if (prepare) {
-          this.validateColumns(expression, outerCtx, positionalParams, cteScope);
+          yield* this.validateColumns(expression, outerCtx, positionalParams, cteScope);
           return null;
         }
-        return this.evalExpr(expression, outerCtx, positionalParams, cteScope);
-      });
+        return yield* this.evalExprSteps(expression, outerCtx, positionalParams, cteScope);
+      }, this);
       const preparing = this.preparing;
       this.preparing = prepare;
-      let tvf: ReturnType<SqliteDatabase["evaluateTableValuedFunction"]>;
+      let tvf: StepResult<ReturnType<SqliteDatabase["evaluateTableValuedFunction"]>>;
       try {
-        tvf = this.evaluateTableValuedFunction(name, args);
+        tvf = yield* this.evaluateTableValuedFunction(name, args);
       } finally {
         this.preparing = preparing;
       }
-      const rows = tvf.rows.map((r) => {
+      const rows = yield* stepMap(tvf.rows, function* (r) { yield;
         const obj: Record<string, SqlValue> = {};
         tvf.columns.forEach((c, cIdx) => {
           obj[c] = r[cIdx] ?? null;
@@ -4517,7 +5078,7 @@ export class SqliteDatabase {
           obj[`${name}.${c}`] = r[cIdx] ?? null;
         });
         return obj;
-      });
+      }, this);
       return { alias, columns: tvf.columns, rows, isCorrelated };
     }
 
@@ -4529,7 +5090,7 @@ export class SqliteDatabase {
     // Check CTE scope first
     const cte = cteScope.get(name.toLowerCase());
     if (cte) {
-      const rows = cte.rows.map((r) => {
+      const rows = yield* stepMap(cte.rows, function* (r) { yield;
         const obj: Record<string, SqlValue> = {};
         cte.columns.forEach((c, cIdx) => {
           obj[c] = r[cIdx] ?? null;
@@ -4537,7 +5098,7 @@ export class SqliteDatabase {
           obj[`${name}.${c}`] = r[cIdx] ?? null;
         });
         return obj;
-      });
+      }, this);
       return { alias, columns: cte.columns, rows };
     }
 
@@ -4547,7 +5108,14 @@ export class SqliteDatabase {
       const cols = ["name", "seq"];
       const seqResultRows: Record<string, SqlValue>[] = [];
       for (const tbl of this.tables.values()) {
-        if ((tbl.columns.some((c) => c.autoIncrement) || tbl.maxAutoInc > 0) && tbl.maxAutoInc > 0) {
+        yield;
+        if (
+          (tbl.columns.some((c) => {
+            return c.autoIncrement;
+          }) ||
+            tbl.maxAutoInc > 0) &&
+          tbl.maxAutoInc > 0
+        ) {
           const entry: Record<string, SqlValue> = {
             name: tbl.name,
             seq: tbl.maxAutoInc,
@@ -4569,6 +5137,7 @@ export class SqliteDatabase {
       const masterRows: Record<string, SqlValue>[] = [];
       if (this.loadedMaster) {
         for (const m of this.loadedMaster) {
+          yield;
           const entry: Record<string, SqlValue> = {
             type: m.type,
             name: m.name,
@@ -4577,6 +5146,7 @@ export class SqliteDatabase {
             sql: m.sql || null
           };
           for (const c of cols) {
+            yield;
             entry[`${alias}.${c}`] = entry[c]!;
           }
           masterRows.push(entry);
@@ -4585,6 +5155,7 @@ export class SqliteDatabase {
       }
       let rp = 2;
       for (const tbl of this.tables.values()) {
+        yield;
         const entry: Record<string, SqlValue> = {
           type: "table",
           name: tbl.name,
@@ -4593,11 +5164,13 @@ export class SqliteDatabase {
           sql: tbl.sql
         };
         for (const c of cols) {
+          yield;
           entry[`${alias}.${c}`] = entry[c]!;
         }
         masterRows.push(entry);
       }
       for (const idxDef of this.indexes.values()) {
+        yield;
         const entry: Record<string, SqlValue> = {
           type: "index",
           name: idxDef.name,
@@ -4606,11 +5179,13 @@ export class SqliteDatabase {
           sql: idxDef.sql
         };
         for (const c of cols) {
+          yield;
           entry[`${alias}.${c}`] = entry[c]!;
         }
         masterRows.push(entry);
       }
       for (const vDef of this.views.values()) {
+        yield;
         const entry: Record<string, SqlValue> = {
           type: "view",
           name: vDef.name,
@@ -4619,11 +5194,13 @@ export class SqliteDatabase {
           sql: vDef.sql
         };
         for (const c of cols) {
+          yield;
           entry[`${alias}.${c}`] = entry[c]!;
         }
         masterRows.push(entry);
       }
       for (const trDef of this.triggers.values()) {
+        yield;
         const entry: Record<string, SqlValue> = {
           type: "trigger",
           name: trDef.name,
@@ -4632,6 +5209,7 @@ export class SqliteDatabase {
           sql: trDef.sql
         };
         for (const c of cols) {
+          yield;
           entry[`${alias}.${c}`] = entry[c]!;
         }
         masterRows.push(entry);
@@ -4642,9 +5220,13 @@ export class SqliteDatabase {
     // Check Views
     const view = this.findView(name);
     if (view) {
-      const res = this.executeStatement(view.selectSql, positionalParams, cteScope) ?? { columns: [], rows: [] };
+      const res = (yield* this.executeStatementSteps(
+        view.selectSql,
+        positionalParams,
+        cteScope
+      )) ?? { columns: [], rows: [] };
       const cols = view.columns && view.columns.length > 0 ? view.columns : res.columns;
-      const rows = res.rows.map((r) => {
+      const rows = yield* stepMap(res.rows, function* (r) { yield;
         const obj: Record<string, SqlValue> = {};
         cols.forEach((c, cIdx) => {
           obj[c] = r[cIdx] ?? null;
@@ -4652,7 +5234,7 @@ export class SqliteDatabase {
           obj[`${name}.${c}`] = r[cIdx] ?? null;
         });
         return obj;
-      });
+      }, this);
       return { alias, columns: cols, rows };
     }
 
@@ -4661,8 +5243,10 @@ export class SqliteDatabase {
     if (!tbl) {
       throw new Error(`no such table: ${name}`);
     }
-    const cols = tbl.columns.map((c) => c.name);
-    const rows = (this.preparing ? [] : tbl.rows).map((r) => {
+    const cols = tbl.columns.map((c) => {
+      return c.name;
+    });
+    const rows = yield* stepMap(this.preparing ? [] : tbl.rows, function* (r) {
       const obj: Record<string, SqlValue> = {
         rowid: r.rowid,
         _rowid_: r.rowid,
@@ -4671,20 +5255,21 @@ export class SqliteDatabase {
         [`${name}.rowid`]: r.rowid
       };
       for (const c of cols) {
+        yield;
         const val = r.data[c] ?? null;
         obj[c] = val;
         obj[`${alias}.${c}`] = val;
         obj[`${name}.${c}`] = val;
       }
       return obj;
-    });
+    }, this);
     return { alias, columns: cols, rows };
   }
 
-  private evaluateTableValuedFunction(
+  private *evaluateTableValuedFunction(
     fnName: string,
     args: SqlValue[]
-  ): { columns: string[]; rows: SqlValue[][] } {
+  ): SqlSteps<{ columns: string[]; rows: SqlValue[][] }> {
     const lower = fnName.toLowerCase();
     if (lower === "generate_series") {
       if (this.preparing) return { columns: ["value"], rows: [] };
@@ -4694,10 +5279,14 @@ export class SqliteDatabase {
       const rows: SqlValue[][] = [];
       if (step > 0) {
         for (let v = start; v <= stop; v += step) {
+          yield;
+          this.checkRowCount(rows.length + 1);
           rows.push([v]);
         }
       } else if (step < 0) {
         for (let v = start; v >= stop; v += step) {
+          yield;
+          this.checkRowCount(rows.length + 1);
           rows.push([v]);
         }
       }
@@ -4741,7 +5330,13 @@ export class SqliteDatabase {
         return "object";
       };
 
-      const toRow = (key: SqlValue, val: unknown, parentId: SqlValue, fullkey: string, pathStr: string): number => {
+      const toRow = (
+        key: SqlValue,
+        val: unknown,
+        parentId: SqlValue,
+        fullkey: string,
+        pathStr: string
+      ): number => {
         const myId = idCounter++;
         const tStr = getTypeStr(val);
         const isContainer = tStr === "array" || tStr === "object";
@@ -4750,9 +5345,12 @@ export class SqliteDatabase {
           : val === null
             ? null
             : typeof val === "boolean"
-              ? val ? 1 : 0
+              ? val
+                ? 1
+                : 0
               : (val as string | number);
         const atom: SqlValue = isContainer ? null : sqlVal;
+        this.checkRowCount(rows.length + 1);
         rows.push([key, sqlVal, tStr, atom, myId, parentId, fullkey, pathStr]);
         return myId;
       };
@@ -4764,13 +5362,20 @@ export class SqliteDatabase {
           });
         } else if (target && typeof target === "object") {
           for (const [k, item] of Object.entries(target)) {
+            yield;
             toRow(k, item, null, `${rootPath}.${k}`, rootPath);
           }
         } else if (target !== undefined) {
           toRow(null, target, null, rootPath, rootPath);
         }
       } else {
-        const walk = (node: unknown, key: SqlValue, parentId: SqlValue, fullkey: string, pathStr: string) => {
+        const walk = (
+          node: unknown,
+          key: SqlValue,
+          parentId: SqlValue,
+          fullkey: string,
+          pathStr: string
+        ) => {
           const myId = toRow(key, node, parentId, fullkey, pathStr);
           if (Array.isArray(node)) {
             node.forEach((child, idx) => {
@@ -4886,57 +5491,80 @@ export class SqliteDatabase {
     return false;
   }
 
-  private collectWindowExprs(
+  private *collectWindowExprs(
     expr: ExprNode,
     groupedRows: { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>,
     out: Map<ExprNode, SqlValue[]>
-  ): void {
+  ): SqlSteps<void> {
     if (expr.kind === "func" && expr.over) {
-      const values = this.evaluateWindowFunc(expr, groupedRows, positionalParams, cteScope);
+      const values = yield* this.evaluateWindowFunc(
+        expr,
+        groupedRows,
+        positionalParams,
+        cteScope
+      );
       out.set(expr, values);
       return;
     }
     if (expr.kind === "unary") {
-      this.collectWindowExprs(expr.expr, groupedRows, positionalParams, cteScope, out);
+      yield* this.collectWindowExprs(expr.expr, groupedRows, positionalParams, cteScope, out);
     } else if (expr.kind === "binary") {
-      this.collectWindowExprs(expr.left, groupedRows, positionalParams, cteScope, out);
-      this.collectWindowExprs(expr.right, groupedRows, positionalParams, cteScope, out);
+      yield* this.collectWindowExprs(expr.left, groupedRows, positionalParams, cteScope, out);
+      yield* this.collectWindowExprs(expr.right, groupedRows, positionalParams, cteScope, out);
     } else if (expr.kind === "func") {
       for (const a of expr.args) {
-        this.collectWindowExprs(a, groupedRows, positionalParams, cteScope, out);
+        yield;
+        yield* this.collectWindowExprs(a, groupedRows, positionalParams, cteScope, out);
       }
     } else if (expr.kind === "case") {
       if (expr.base) {
-        this.collectWindowExprs(expr.base, groupedRows, positionalParams, cteScope, out);
+        yield* this.collectWindowExprs(expr.base, groupedRows, positionalParams, cteScope, out);
       }
       for (const b of expr.branches) {
-        this.collectWindowExprs(b.when, groupedRows, positionalParams, cteScope, out);
-        this.collectWindowExprs(b.then, groupedRows, positionalParams, cteScope, out);
+        yield;
+        yield* this.collectWindowExprs(b.when, groupedRows, positionalParams, cteScope, out);
+        yield* this.collectWindowExprs(b.then, groupedRows, positionalParams, cteScope, out);
       }
       if (expr.elseExpr) {
-        this.collectWindowExprs(expr.elseExpr, groupedRows, positionalParams, cteScope, out);
+        yield* this.collectWindowExprs(
+          expr.elseExpr,
+          groupedRows,
+          positionalParams,
+          cteScope,
+          out
+        );
       }
     } else if (expr.kind === "cast") {
-      this.collectWindowExprs(expr.expr, groupedRows, positionalParams, cteScope, out);
+      yield* this.collectWindowExprs(expr.expr, groupedRows, positionalParams, cteScope, out);
     }
   }
 
-  private evaluateWindowFunc(
+  private *evaluateWindowFunc(
     fnExpr: Extract<ExprNode, { kind: "func" }>,
     groupedRows: { representative: Record<string, SqlValue>; group: Record<string, SqlValue>[] }[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): SqlValue[] {
+  ): SqlSteps<SqlValue[]> {
     const result: SqlValue[] = new Array(groupedRows.length).fill(null);
     const over = fnExpr.over!;
     const partitions = new Map<string, number[]>();
 
     for (let i = 0; i < groupedRows.length; i += 1) {
+      yield;
       const g = groupedRows[i]!;
       const pKey = serializeSqlJson(
-        over.partitionBy.map((pe) => this.evalExprWithAgg(pe, g.representative, g.group, positionalParams, cteScope)), false
+        yield* stepMap(over.partitionBy, function* (pe) {
+          return yield* this.evalExprWithAgg(
+            pe,
+            g.representative,
+            g.group,
+            positionalParams,
+            cteScope
+          );
+        }, this),
+        false
       );
       const arr = partitions.get(pKey);
       if (arr) {
@@ -4949,33 +5577,57 @@ export class SqliteDatabase {
     const fnUpper = fnExpr.name.toUpperCase();
 
     for (const indices of partitions.values()) {
+      yield;
       if (over.orderBy.length > 0) {
-        indices.sort((iA, iB) => {
+        yield* stepSort(indices, function* (iA, iB) {
           const gA = groupedRows[iA]!;
           const gB = groupedRows[iB]!;
           for (const ob of over.orderBy) {
-            const vA = this.evalExprWithAgg(ob.expr, gA.representative, gA.group, positionalParams, cteScope);
-            const vB = this.evalExprWithAgg(ob.expr, gB.representative, gB.group, positionalParams, cteScope);
+            yield;
+            const vA = yield* this.evalExprWithAgg(
+              ob.expr,
+              gA.representative,
+              gA.group,
+              positionalParams,
+              cteScope
+            );
+            const vB = yield* this.evalExprWithAgg(
+              ob.expr,
+              gB.representative,
+              gB.group,
+              positionalParams,
+              cteScope
+            );
             const cmp = compareSqlValues(vA, vB);
             if (cmp !== 0) {
               return ob.desc ? -cmp : cmp;
             }
           }
           return iA - iB;
-        });
+        }, this);
       }
 
-      const orderPeerKeys = indices.map((idx) => {
+      const orderPeerKeys = yield* stepMap(indices, function* (idx) {
         const g = groupedRows[idx]!;
         return serializeSqlJson(
-          over.orderBy.map((ob) => this.evalExprWithAgg(ob.expr, g.representative, g.group, positionalParams, cteScope)), false
+          yield* stepMap(over.orderBy, function* (ob) {
+            return yield* this.evalExprWithAgg(
+              ob.expr,
+              g.representative,
+              g.group,
+              positionalParams,
+              cteScope
+            );
+          }, this),
+          false
         );
-      });
+      }, this);
 
       let currentRank = 1;
       let currentDenseRank = 1;
 
       for (let pPos = 0; pPos < indices.length; pPos += 1) {
+        yield;
         const rowIdx = indices[pPos]!;
         const g = groupedRows[rowIdx]!;
         if (pPos > 0 && orderPeerKeys[pPos] !== orderPeerKeys[pPos - 1]) {
@@ -4990,57 +5642,141 @@ export class SqliteDatabase {
         } else if (fnUpper === "DENSE_RANK") {
           result[rowIdx] = currentDenseRank;
         } else if (fnUpper === "NTILE") {
-          const buckets = Math.max(1, Math.trunc(toSqlNumber(this.evalExprWithAgg(fnExpr.args[0]!, g.representative, g.group, positionalParams, cteScope))));
+          const buckets = Math.max(
+            1,
+            Math.trunc(
+              toSqlNumber(
+                yield* this.evalExprWithAgg(
+                  fnExpr.args[0]!,
+                  g.representative,
+                  g.group,
+                  positionalParams,
+                  cteScope
+                )
+              )
+            )
+          );
           result[rowIdx] = Math.floor((pPos * buckets) / indices.length) + 1;
         } else if (fnUpper === "PERCENT_RANK") {
           result[rowIdx] = indices.length <= 1 ? 0 : (currentRank - 1) / (indices.length - 1);
         } else if (fnUpper === "CUME_DIST") {
           let peerEnd = pPos;
-          while (peerEnd + 1 < indices.length && orderPeerKeys[peerEnd + 1] === orderPeerKeys[pPos]) {
+          while (
+            peerEnd + 1 < indices.length &&
+            orderPeerKeys[peerEnd + 1] === orderPeerKeys[pPos]
+          ) {
+            yield;
             peerEnd += 1;
           }
           result[rowIdx] = (peerEnd + 1) / indices.length;
         } else if (fnUpper === "LAG" || fnUpper === "LEAD") {
           const offset = fnExpr.args[1]
-            ? Math.trunc(toSqlNumber(this.evalExprWithAgg(fnExpr.args[1], g.representative, g.group, positionalParams, cteScope)))
+            ? Math.trunc(
+                toSqlNumber(
+                  yield* this.evalExprWithAgg(
+                    fnExpr.args[1],
+                    g.representative,
+                    g.group,
+                    positionalParams,
+                    cteScope
+                  )
+                )
+              )
             : 1;
           const defVal = fnExpr.args[2]
-            ? this.evalExprWithAgg(fnExpr.args[2], g.representative, g.group, positionalParams, cteScope)
+            ? yield* this.evalExprWithAgg(
+                fnExpr.args[2],
+                g.representative,
+                g.group,
+                positionalParams,
+                cteScope
+              )
             : null;
           const targetPos = fnUpper === "LAG" ? pPos - offset : pPos + offset;
           if (targetPos < 0 || targetPos >= indices.length) {
             result[rowIdx] = defVal;
           } else {
             const targetG = groupedRows[indices[targetPos]!]!;
-            result[rowIdx] = this.evalExprWithAgg(fnExpr.args[0]!, targetG.representative, targetG.group, positionalParams, cteScope);
+            result[rowIdx] = yield* this.evalExprWithAgg(
+              fnExpr.args[0]!,
+              targetG.representative,
+              targetG.group,
+              positionalParams,
+              cteScope
+            );
           }
         } else if (fnUpper === "FIRST_VALUE") {
           const firstG = groupedRows[indices[0]!]!;
-          result[rowIdx] = this.evalExprWithAgg(fnExpr.args[0]!, firstG.representative, firstG.group, positionalParams, cteScope);
+          result[rowIdx] = yield* this.evalExprWithAgg(
+            fnExpr.args[0]!,
+            firstG.representative,
+            firstG.group,
+            positionalParams,
+            cteScope
+          );
         } else if (fnUpper === "LAST_VALUE") {
           let peerEnd = over.orderBy.length > 0 ? pPos : indices.length - 1;
-          while (over.orderBy.length > 0 && peerEnd + 1 < indices.length && orderPeerKeys[peerEnd + 1] === orderPeerKeys[pPos]) {
+          while (
+            over.orderBy.length > 0 &&
+            peerEnd + 1 < indices.length &&
+            orderPeerKeys[peerEnd + 1] === orderPeerKeys[pPos]
+          ) {
+            yield;
             peerEnd += 1;
           }
           const lastG = groupedRows[indices[peerEnd]!]!;
-          result[rowIdx] = this.evalExprWithAgg(fnExpr.args[0]!, lastG.representative, lastG.group, positionalParams, cteScope);
+          result[rowIdx] = yield* this.evalExprWithAgg(
+            fnExpr.args[0]!,
+            lastG.representative,
+            lastG.group,
+            positionalParams,
+            cteScope
+          );
         } else if (fnUpper === "NTH_VALUE") {
-          const n = Math.trunc(toSqlNumber(this.evalExprWithAgg(fnExpr.args[1]!, g.representative, g.group, positionalParams, cteScope)));
+          const n = Math.trunc(
+            toSqlNumber(
+              yield* this.evalExprWithAgg(
+                fnExpr.args[1]!,
+                g.representative,
+                g.group,
+                positionalParams,
+                cteScope
+              )
+            )
+          );
           if (n >= 1 && n <= indices.length) {
             const nthG = groupedRows[indices[n - 1]!]!;
-            result[rowIdx] = this.evalExprWithAgg(fnExpr.args[0]!, nthG.representative, nthG.group, positionalParams, cteScope);
+            result[rowIdx] = yield* this.evalExprWithAgg(
+              fnExpr.args[0]!,
+              nthG.representative,
+              nthG.group,
+              positionalParams,
+              cteScope
+            );
           } else {
             result[rowIdx] = null;
           }
         } else {
           // Aggregate window function (SUM, COUNT, AVG, MIN, MAX, etc.)
           let frameEnd = over.orderBy.length > 0 ? pPos : indices.length - 1;
-          while (over.orderBy.length > 0 && frameEnd + 1 < indices.length && orderPeerKeys[frameEnd + 1] === orderPeerKeys[pPos]) {
+          while (
+            over.orderBy.length > 0 &&
+            frameEnd + 1 < indices.length &&
+            orderPeerKeys[frameEnd + 1] === orderPeerKeys[pPos]
+          ) {
+            yield;
             frameEnd += 1;
           }
-          const frameRows = indices.slice(0, frameEnd + 1).flatMap((idx) => groupedRows[idx]!.group);
+          const frameRows = yield* stepFlatMap(indices.slice(0, frameEnd + 1), function* (idx) { yield;
+            return groupedRows[idx]!.group;
+          }, this);
           const strippedFn: Extract<ExprNode, { kind: "func" }> = { ...fnExpr, over: undefined };
-          result[rowIdx] = this.evalAggregateFunction(strippedFn, frameRows, positionalParams, cteScope);
+          result[rowIdx] = yield* this.evalAggregateFunction(
+            strippedFn,
+            frameRows,
+            positionalParams,
+            cteScope
+          );
         }
       }
     }
@@ -5048,7 +5784,7 @@ export class SqliteDatabase {
     return result;
   }
 
-  private evalExprWithAggAndWindow(
+  private *evalExprWithAggAndWindow(
     expr: ExprNode,
     rep: Record<string, SqlValue>,
     group: Record<string, SqlValue>[],
@@ -5056,35 +5792,67 @@ export class SqliteDatabase {
     windowResults: Map<ExprNode, SqlValue[]>,
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): SqlValue {
+  ): SqlSteps<SqlValue> {
     if (windowResults.has(expr)) {
       return windowResults.get(expr)![rowIdx] ?? null;
     }
     if (expr.kind === "unary") {
-      const v = this.evalExprWithAggAndWindow(expr.expr, rep, group, rowIdx, windowResults, positionalParams, cteScope);
+      const v = yield* this.evalExprWithAggAndWindow(
+        expr.expr,
+        rep,
+        group,
+        rowIdx,
+        windowResults,
+        positionalParams,
+        cteScope
+      );
       return this.applyUnary(expr.op, v);
     }
     if (expr.kind === "binary") {
-      const l = this.evalExprWithAggAndWindow(expr.left, rep, group, rowIdx, windowResults, positionalParams, cteScope);
-      const r = this.evalExprWithAggAndWindow(expr.right, rep, group, rowIdx, windowResults, positionalParams, cteScope);
+      const l = yield* this.evalExprWithAggAndWindow(
+        expr.left,
+        rep,
+        group,
+        rowIdx,
+        windowResults,
+        positionalParams,
+        cteScope
+      );
+      const r = yield* this.evalExprWithAggAndWindow(
+        expr.right,
+        rep,
+        group,
+        rowIdx,
+        windowResults,
+        positionalParams,
+        cteScope
+      );
       return this.applyBinary(expr.op, l, r);
     }
     if (expr.kind === "func" && !this.containsAggregate(expr) && !expr.over) {
-      const args = expr.args.map((a) =>
-        this.evalExprWithAggAndWindow(a, rep, group, rowIdx, windowResults, positionalParams, cteScope)
-      );
-      return this.evalScalarFunction(expr.name, args);
+      const args = yield* stepMap(expr.args, function* (a) {
+        return yield* this.evalExprWithAggAndWindow(
+          a,
+          rep,
+          group,
+          rowIdx,
+          windowResults,
+          positionalParams,
+          cteScope
+        );
+      }, this);
+      return yield* this.evalScalarFunction(expr.name, args);
     }
-    return this.evalExprWithAgg(expr, rep, group, positionalParams, cteScope);
+    return yield* this.evalExprWithAgg(expr, rep, group, positionalParams, cteScope);
   }
 
-  private evalExprWithAgg(
+  private *evalExprWithAgg(
     expr: ExprNode,
     rep: Record<string, SqlValue>,
     group: Record<string, SqlValue>[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): SqlValue {
+  ): SqlSteps<SqlValue> {
     if (expr.kind === "func") {
       const u = expr.name.toUpperCase();
       if (
@@ -5102,11 +5870,12 @@ export class SqliteDatabase {
         ].includes(u) &&
         !((u === "MIN" || u === "MAX") && expr.args.length > 1)
       ) {
-        return this.evalAggregateFunction(expr, group, positionalParams, cteScope);
+        return yield* this.evalAggregateFunction(expr, group, positionalParams, cteScope);
       }
       if (u === "COALESCE" || u === "IFNULL") {
         for (const a of expr.args) {
-          const v = this.evalExprWithAgg(a, rep, group, positionalParams, cteScope);
+          yield;
+          const v = yield* this.evalExprWithAgg(a, rep, group, positionalParams, cteScope);
           if (v !== null && v !== undefined) {
             return v;
           }
@@ -5114,32 +5883,43 @@ export class SqliteDatabase {
         return null;
       }
       if (u === "IIF") {
-        const cond = this.evalExprWithAgg(expr.args[0]!, rep, group, positionalParams, cteScope);
+        const cond = yield* this.evalExprWithAgg(
+          expr.args[0]!,
+          rep,
+          group,
+          positionalParams,
+          cteScope
+        );
         return isTruthy(cond)
-          ? this.evalExprWithAgg(expr.args[1]!, rep, group, positionalParams, cteScope)
+          ? yield* this.evalExprWithAgg(expr.args[1]!, rep, group, positionalParams, cteScope)
           : expr.args[2]
-            ? this.evalExprWithAgg(expr.args[2], rep, group, positionalParams, cteScope)
+            ? yield* this.evalExprWithAgg(expr.args[2], rep, group, positionalParams, cteScope)
             : null;
       }
-      const args = expr.args.map((a) => this.evalExprWithAgg(a, rep, group, positionalParams, cteScope));
-      return this.evalScalarFunction(expr.name, args);
+      const args = yield* stepMap(expr.args, function* (a) {
+        return yield* this.evalExprWithAgg(a, rep, group, positionalParams, cteScope);
+      }, this);
+      return yield* this.evalScalarFunction(expr.name, args);
     }
     if (expr.kind === "unary") {
-      return this.applyUnary(expr.op, this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope));
+      return this.applyUnary(
+        expr.op,
+        yield* this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope)
+      );
     }
     if (expr.kind === "binary") {
-      const l = this.evalExprWithAgg(expr.left, rep, group, positionalParams, cteScope);
-      const r = this.evalExprWithAgg(expr.right, rep, group, positionalParams, cteScope);
+      const l = yield* this.evalExprWithAgg(expr.left, rep, group, positionalParams, cteScope);
+      const r = yield* this.evalExprWithAgg(expr.right, rep, group, positionalParams, cteScope);
       return this.applyBinary(expr.op, l, r);
     }
     if (expr.kind === "is_null") {
-      const v = this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
+      const v = yield* this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
       return (expr.not ? v !== null : v === null) ? 1 : 0;
     }
     if (expr.kind === "between") {
-      const v = this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
-      const lo = this.evalExprWithAgg(expr.low, rep, group, positionalParams, cteScope);
-      const hi = this.evalExprWithAgg(expr.high, rep, group, positionalParams, cteScope);
+      const v = yield* this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
+      const lo = yield* this.evalExprWithAgg(expr.low, rep, group, positionalParams, cteScope);
+      const hi = yield* this.evalExprWithAgg(expr.high, rep, group, positionalParams, cteScope);
       if (v === null || lo === null || hi === null) {
         return null;
       }
@@ -5147,44 +5927,68 @@ export class SqliteDatabase {
       return (expr.not ? !inside : inside) ? 1 : 0;
     }
     if (expr.kind === "case") {
-      const baseVal = expr.base ? this.evalExprWithAgg(expr.base, rep, group, positionalParams, cteScope) : undefined;
+      const baseVal = expr.base
+        ? yield* this.evalExprWithAgg(expr.base, rep, group, positionalParams, cteScope)
+        : undefined;
       for (const b of expr.branches) {
-        const wVal = this.evalExprWithAgg(b.when, rep, group, positionalParams, cteScope);
+        yield;
+        const wVal = yield* this.evalExprWithAgg(
+          b.when,
+          rep,
+          group,
+          positionalParams,
+          cteScope
+        );
         const matched = expr.base ? sqlEquals(baseVal ?? null, wVal) === true : isTruthy(wVal);
         if (matched) {
-          return this.evalExprWithAgg(b.then, rep, group, positionalParams, cteScope);
+          return yield* this.evalExprWithAgg(b.then, rep, group, positionalParams, cteScope);
         }
       }
-      return expr.elseExpr ? this.evalExprWithAgg(expr.elseExpr, rep, group, positionalParams, cteScope) : null;
+      return expr.elseExpr
+        ? yield* this.evalExprWithAgg(expr.elseExpr, rep, group, positionalParams, cteScope)
+        : null;
     }
     if (expr.kind === "cast") {
-      const v = this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
+      const v = yield* this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
       return this.applyCast(v, expr.targetType);
     }
-    return this.evalExpr(expr, rep, positionalParams, cteScope);
+    return yield* this.evalExprSteps(expr, rep, positionalParams, cteScope);
   }
 
-  private evalAggregateFunction(
+  private *evalAggregateFunction(
     expr: Extract<ExprNode, { kind: "func" }>,
     group: Record<string, SqlValue>[],
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): SqlValue {
+  ): SqlSteps<SqlValue> {
     const u = expr.name.toUpperCase();
     let filteredGroup = group;
     if (expr.filterWhere) {
-      filteredGroup = group.filter((r) => isTruthy(this.evalExpr(expr.filterWhere!, r, positionalParams, cteScope)));
+      filteredGroup = yield* stepFilter(group, function* (r) {
+        return isTruthy(
+          yield* this.evalExprSteps(expr.filterWhere!, r, positionalParams, cteScope)
+        );
+      }, this);
     }
 
     if (u === "COUNT") {
       if (expr.star || expr.args.length === 0) {
         return filteredGroup.length;
       }
-      const vals = filteredGroup
-        .map((r) => this.evalExpr(expr.args[0]!, r, positionalParams, cteScope))
-        .filter((v) => v !== null && v !== undefined);
+      const vals = yield* stepFilter(
+        yield* stepMap(filteredGroup, function* (r) {
+          return yield* this.evalExprSteps(expr.args[0]!, r, positionalParams, cteScope);
+        }, this),
+        function* (v) { yield;
+          return v !== null && v !== undefined;
+        }
+      , this);
       if (expr.distinct) {
-        return new Set(vals.map((v) => serializeSqlJson(v, false))).size;
+        return new Set(
+          vals.map((v) => {
+            return serializeSqlJson(v, false);
+          })
+        ).size;
       }
       return vals.length;
     }
@@ -5192,8 +5996,9 @@ export class SqliteDatabase {
     if (u === "JSON_GROUP_OBJECT") {
       const obj: Record<string, unknown> = {};
       for (const r of filteredGroup) {
-        const k = this.evalExpr(expr.args[0]!, r, positionalParams, cteScope);
-        const v = this.evalExpr(expr.args[1]!, r, positionalParams, cteScope);
+        yield;
+        const k = yield* this.evalExprSteps(expr.args[0]!, r, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.args[1]!, r, positionalParams, cteScope);
         if (k !== null && k !== undefined) {
           obj[toSqlString(k)] = this.sqlValToJsJson(v);
         }
@@ -5201,37 +6006,43 @@ export class SqliteDatabase {
       return serializeSqlJson(obj);
     }
 
-    let vals = filteredGroup.map((r) =>
-      expr.args[0] ? this.evalExpr(expr.args[0], r, positionalParams, cteScope) : null
-    );
+    let vals = yield* stepMap(filteredGroup, function* (r) {
+      return expr.args[0]
+        ? yield* this.evalExprSteps(expr.args[0], r, positionalParams, cteScope)
+        : null;
+    }, this);
 
     if (u === "JSON_GROUP_ARRAY") {
       if (expr.distinct) {
         const seen = new Set<string>();
-        vals = vals.filter((v) => {
+        vals = yield* stepFilter(vals, function* (v) { yield;
           const k = serializeSqlJson(v, false);
           if (seen.has(k)) {
             return false;
           }
           seen.add(k);
           return true;
-        });
+        }, this);
       }
-      return serializeSqlJson(vals.map((v) => this.sqlValToJsJson(v)));
+      return serializeSqlJson(
+        vals.map((v) => {
+          return this.sqlValToJsJson(v);
+        })
+      );
     }
 
     const nonNull = vals.filter((v): v is Exclude<SqlValue, null> => v !== null && v !== undefined);
     let activeVals: SqlValue[] = nonNull;
     if (expr.distinct) {
       const seen = new Set<string>();
-      activeVals = nonNull.filter((v) => {
+      activeVals = yield* stepFilter(nonNull, function* (v) { yield;
         const k = serializeSqlJson(v, false);
         if (seen.has(k)) {
           return false;
         }
         seen.add(k);
         return true;
-      });
+      }, this);
     }
 
     if (u === "SUM") {
@@ -5241,6 +6052,7 @@ export class SqliteDatabase {
       let exact = 0n;
       let realSum: number | undefined;
       for (const value of activeVals) {
+        yield;
         const numeric = arithmeticNumber(value);
         if (realSum !== undefined) {
           realSum += Number(numeric);
@@ -5254,35 +6066,72 @@ export class SqliteDatabase {
       return realSum === undefined ? integerResult(exact) : new Number(realSum);
     }
     if (u === "TOTAL") {
-      return new Number(activeVals.reduce<number>((sum, v) => sum + toSqlNumber(v), 0.0));
+      return new Number(
+        yield* stepReduce(
+          activeVals,
+          function* (sum, v) { yield;
+            return sum + toSqlNumber(v);
+          },
+          0.0
+        , this)
+      );
     }
     if (u === "AVG") {
       if (activeVals.length === 0) {
         return null;
       }
-      const sum = activeVals.reduce<number>((s, v) => s + toSqlNumber(v), 0);
+      const sum = yield* stepReduce(
+        activeVals,
+        function* (s, v) { yield;
+          return s + toSqlNumber(v);
+        },
+        0
+      , this);
       return new Number(sum / activeVals.length);
     }
     if (u === "MIN") {
       if (activeVals.length === 0) {
         return null;
       }
-      return activeVals.reduce((min, v) => (compareSqlValues(v, min) < 0 ? v : min), activeVals[0]!);
+      return yield* stepReduce<SqlValue, SqlValue>(
+        activeVals,
+        function* (min, v) { yield;
+          return compareSqlValues(v, min) < 0 ? v : min;
+        },
+        activeVals[0]!
+      , this);
     }
     if (u === "MAX") {
       if (activeVals.length === 0) {
         return null;
       }
-      return activeVals.reduce((max, v) => (compareSqlValues(v, max) > 0 ? v : max), activeVals[0]!);
+      return yield* stepReduce<SqlValue, SqlValue>(
+        activeVals,
+        function* (max, v) { yield;
+          return compareSqlValues(v, max) > 0 ? v : max;
+        },
+        activeVals[0]!
+      , this);
     }
     if (u === "GROUP_CONCAT" || u === "STRING_AGG") {
       if (activeVals.length === 0) {
         return null;
       }
       const sep = expr.args[1]
-        ? toSqlString(this.evalExpr(expr.args[1], filteredGroup[0] ?? {}, positionalParams, cteScope))
+        ? toSqlString(
+            yield* this.evalExprSteps(
+              expr.args[1],
+              filteredGroup[0] ?? {},
+              positionalParams,
+              cteScope
+            )
+          )
         : ",";
-      return activeVals.map((v) => toSqlString(v)).join(sep);
+      return activeVals
+        .map((v) => {
+          return toSqlString(v);
+        })
+        .join(sep);
     }
 
     return null;
@@ -5306,12 +6155,12 @@ export class SqliteDatabase {
     return v;
   }
 
-  private validateColumns(
+  private *validateColumns(
     node: unknown,
     scope: Record<string, SqlValue>,
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): void {
+  ): SqlSteps<void> {
     if (!node || typeof node !== "object") return;
     if ("kind" in node && node.kind === "column") {
       const column = node as Extract<ExprNode, { kind: "column" }>;
@@ -5324,8 +6173,16 @@ export class SqliteDatabase {
       this.preparing = true;
       this.outerRows.push(scope);
       try {
-        const result = this.executeStatement(subquery.kind === "subquery" ? subquery.sql : subquery.subquerySql, positionalParams, cteScope);
-        if (!(subquery.kind === "subquery" && subquery.exists) && result && result.columns.length !== 1) {
+        const result = yield* this.executeStatementSteps(
+          subquery.kind === "subquery" ? subquery.sql : subquery.subquerySql,
+          positionalParams,
+          cteScope
+        );
+        if (
+          !(subquery.kind === "subquery" && subquery.exists) &&
+          result &&
+          result.columns.length !== 1
+        ) {
           throw new Error(`sub-select returns ${result.columns.length} columns - expected 1`);
         }
       } finally {
@@ -5333,11 +6190,18 @@ export class SqliteDatabase {
         this.preparing = preparing;
       }
     }
-    for (const child of Object.values(node)) this.validateColumns(child, scope, positionalParams, cteScope);
+    for (const child of Object.values(node)) {
+      yield;
+      yield* this.validateColumns(child, scope, positionalParams, cteScope);
+    }
   }
 
-
-  private lookupColInRow(row: Record<string, SqlValue>, table: string | undefined, name: string, doubleQuoted = false): SqlValue {
+  private lookupColInRow(
+    row: Record<string, SqlValue>,
+    table: string | undefined,
+    name: string,
+    doubleQuoted = false
+  ): SqlValue {
     if (table) {
       const exact = `${table}.${name}`;
       if (exact in row) {
@@ -5361,17 +6225,23 @@ export class SqliteDatabase {
     }
     for (let i = this.outerRows.length - 1; i >= 0; i -= 1) {
       const outer = this.outerRows[i]!;
-      const key = Object.keys(outer).find((key) => table
-        ? key.toLowerCase() === `${table}.${name}`.toLowerCase()
-        : key.toLowerCase() === lowerName);
+      const key = Object.keys(outer).find((key) =>
+        table
+          ? key.toLowerCase() === `${table}.${name}`.toLowerCase()
+          : key.toLowerCase() === lowerName
+      );
       if (key !== undefined) return outer[key]!;
     }
     if (doubleQuoted && !table) return name;
     throw new Error(`in prepare, no such column: ${table ? `${table}.` : ""}${name}`);
   }
 
-  private evalScalarSql(sql: string, row: Record<string, SqlValue>, positionalParams: SqlValue[]): SqlValue {
-    return this.evalExpr(parseExprSql(sql), row, positionalParams);
+  private *evalScalarSql(
+    sql: string,
+    row: Record<string, SqlValue>,
+    positionalParams: SqlValue[]
+  ): SqlSteps<SqlValue> {
+    return yield* this.evalExprSteps(parseExprSql(sql), row, positionalParams);
   }
 
   public evalExpr(
@@ -5380,6 +6250,15 @@ export class SqliteDatabase {
     positionalParams: SqlValue[],
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
   ): SqlValue {
+    return runSynchronously(this.evalExprSteps(expr, row, positionalParams, cteScope));
+  }
+
+  private *evalExprSteps(
+    expr: ExprNode,
+    row: Record<string, SqlValue>,
+    positionalParams: SqlValue[],
+    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
+  ): SqlSteps<SqlValue> {
     switch (expr.kind) {
       case "literal":
         return expr.value;
@@ -5389,7 +6268,9 @@ export class SqliteDatabase {
         return null;
       case "param": {
         if (expr.name === "?") {
-          return positionalParams[expr.index - 1] ?? this.parameters.get(String(expr.index)) ?? null;
+          return (
+            positionalParams[expr.index - 1] ?? this.parameters.get(String(expr.index)) ?? null
+          );
         }
         if (/^\?\d+$/.test(expr.name)) {
           const n = Number(expr.name.slice(1));
@@ -5403,16 +6284,19 @@ export class SqliteDatabase {
         );
       }
       case "collate":
-        return this.evalExpr(expr.expr, row, positionalParams, cteScope);
+        return yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
       case "unary":
-        return this.applyUnary(expr.op, this.evalExpr(expr.expr, row, positionalParams, cteScope));
+        return this.applyUnary(
+          expr.op,
+          yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope)
+        );
       case "binary": {
         if (expr.op === "AND") {
-          const l = this.evalExpr(expr.left, row, positionalParams, cteScope);
+          const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope);
           if (l !== null && !isTruthy(l)) {
             return 0;
           }
-          const r = this.evalExpr(expr.right, row, positionalParams, cteScope);
+          const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope);
           if (r !== null && !isTruthy(r)) {
             return 0;
           }
@@ -5422,11 +6306,11 @@ export class SqliteDatabase {
           return 1;
         }
         if (expr.op === "OR") {
-          const l = this.evalExpr(expr.left, row, positionalParams, cteScope);
+          const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope);
           if (l !== null && isTruthy(l)) {
             return 1;
           }
-          const r = this.evalExpr(expr.right, row, positionalParams, cteScope);
+          const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope);
           if (r !== null && isTruthy(r)) {
             return 1;
           }
@@ -5441,26 +6325,38 @@ export class SqliteDatabase {
             : expr.right.kind === "collate"
               ? expr.right.collation
               : "BINARY";
-        const l = this.evalExpr(expr.left, row, positionalParams, cteScope);
+        const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope);
         if (
           (expr.op === "LIKE" || expr.op === "GLOB") &&
           expr.right.kind === "func" &&
           expr.right.name === "__like_escape__"
         ) {
-          const pat = this.evalExpr(expr.right.args[0]!, row, positionalParams, cteScope);
-          const esc = this.evalExpr(expr.right.args[1]!, row, positionalParams, cteScope);
+          const pat = yield* this.evalExprSteps(
+            expr.right.args[0]!,
+            row,
+            positionalParams,
+            cteScope
+          );
+          const esc = yield* this.evalExprSteps(
+            expr.right.args[1]!,
+            row,
+            positionalParams,
+            cteScope
+          );
           if (l === null || pat === null || esc === null) {
             return null;
           }
-          return matchLike(toSqlString(l), toSqlString(pat), expr.op === "LIKE", toSqlString(esc)) ? 1 : 0;
+          return matchLike(toSqlString(l), toSqlString(pat), expr.op === "LIKE", toSqlString(esc))
+            ? 1
+            : 0;
         }
-        const r = this.evalExpr(expr.right, row, positionalParams, cteScope);
+        const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope);
         return this.applyBinary(expr.op, l, r, collation);
       }
       case "between": {
-        const v = this.evalExpr(expr.expr, row, positionalParams, cteScope);
-        const lo = this.evalExpr(expr.low, row, positionalParams, cteScope);
-        const hi = this.evalExpr(expr.high, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
+        const lo = yield* this.evalExprSteps(expr.low, row, positionalParams, cteScope);
+        const hi = yield* this.evalExprSteps(expr.high, row, positionalParams, cteScope);
         if (v === null || lo === null || hi === null) {
           return null;
         }
@@ -5468,13 +6364,14 @@ export class SqliteDatabase {
         return (expr.not ? !inside : inside) ? 1 : 0;
       }
       case "in_list": {
-        const v = this.evalExpr(expr.expr, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
         if (v === null) {
           return expr.list.length === 0 ? (expr.not ? 1 : 0) : null;
         }
         let sawNull = false;
         for (const item of expr.list) {
-          const iv = this.evalExpr(item, row, positionalParams, cteScope);
+          yield;
+          const iv = yield* this.evalExprSteps(item, row, positionalParams, cteScope);
           if (iv === null) {
             sawNull = true;
           } else if (sqlEquals(v, iv) === true) {
@@ -5487,20 +6384,26 @@ export class SqliteDatabase {
         return expr.not ? 1 : 0;
       }
       case "in_subquery": {
-        const v = this.evalExpr(expr.expr, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
         this.outerRows.push(row);
         let res: QueryResultSet;
         try {
-          res = this.executeStatement(expr.subquerySql, positionalParams, cteScope) ?? { columns: [], rows: [] };
+          res = (yield* this.executeStatementSteps(
+            expr.subquerySql,
+            positionalParams,
+            cteScope
+          )) ?? { columns: [], rows: [] };
         } finally {
           this.outerRows.pop();
         }
-        if (res.columns.length !== 1) throw new Error(`sub-select returns ${res.columns.length} columns - expected 1`);
+        if (res.columns.length !== 1)
+          throw new Error(`sub-select returns ${res.columns.length} columns - expected 1`);
         if (v === null) {
           return res.rows.length === 0 ? (expr.not ? 1 : 0) : null;
         }
         let sawNull = false;
         for (const r of res.rows) {
+          yield;
           const iv = r[0] ?? null;
           if (iv === null) {
             sawNull = true;
@@ -5514,29 +6417,37 @@ export class SqliteDatabase {
         return expr.not ? 1 : 0;
       }
       case "is_null": {
-        const v = this.evalExpr(expr.expr, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
         return (expr.not ? v !== null : v === null) ? 1 : 0;
       }
       case "case": {
-        const baseVal = expr.base ? this.evalExpr(expr.base, row, positionalParams, cteScope) : undefined;
+        const baseVal = expr.base
+          ? yield* this.evalExprSteps(expr.base, row, positionalParams, cteScope)
+          : undefined;
         for (const b of expr.branches) {
-          const wVal = this.evalExpr(b.when, row, positionalParams, cteScope);
+          yield;
+          const wVal = yield* this.evalExprSteps(b.when, row, positionalParams, cteScope);
           const matched = expr.base ? sqlEquals(baseVal ?? null, wVal) === true : isTruthy(wVal);
           if (matched) {
-            return this.evalExpr(b.then, row, positionalParams, cteScope);
+            return yield* this.evalExprSteps(b.then, row, positionalParams, cteScope);
           }
         }
-        return expr.elseExpr ? this.evalExpr(expr.elseExpr, row, positionalParams, cteScope) : null;
+        return expr.elseExpr
+          ? yield* this.evalExprSteps(expr.elseExpr, row, positionalParams, cteScope)
+          : null;
       }
       case "cast": {
-        const v = this.evalExpr(expr.expr, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
         return this.applyCast(v, expr.targetType);
       }
       case "subquery": {
         this.outerRows.push(row);
         let res: QueryResultSet;
         try {
-          res = this.executeStatement(expr.sql, positionalParams, cteScope) ?? { columns: [], rows: [] };
+          res = (yield* this.executeStatementSteps(expr.sql, positionalParams, cteScope)) ?? {
+            columns: [],
+            rows: []
+          };
         } finally {
           this.outerRows.pop();
         }
@@ -5544,14 +6455,16 @@ export class SqliteDatabase {
           const has = res.rows.length > 0;
           return (expr.notExists ? !has : has) ? 1 : 0;
         }
-        if (res.columns.length !== 1) throw new Error(`sub-select returns ${res.columns.length} columns - expected 1`);
+        if (res.columns.length !== 1)
+          throw new Error(`sub-select returns ${res.columns.length} columns - expected 1`);
         return res.rows[0]?.[0] ?? null;
       }
       case "func": {
         const u = expr.name.toUpperCase();
         if (u === "COALESCE" || u === "IFNULL") {
           for (const a of expr.args) {
-            const v = this.evalExpr(a, row, positionalParams, cteScope);
+            yield;
+            const v = yield* this.evalExprSteps(a, row, positionalParams, cteScope);
             if (v !== null && v !== undefined) {
               return v;
             }
@@ -5559,15 +6472,22 @@ export class SqliteDatabase {
           return null;
         }
         if (u === "IIF") {
-          const cond = this.evalExpr(expr.args[0]!, row, positionalParams, cteScope);
+          const cond = yield* this.evalExprSteps(
+            expr.args[0]!,
+            row,
+            positionalParams,
+            cteScope
+          );
           return isTruthy(cond)
-            ? this.evalExpr(expr.args[1]!, row, positionalParams, cteScope)
+            ? yield* this.evalExprSteps(expr.args[1]!, row, positionalParams, cteScope)
             : expr.args[2]
-              ? this.evalExpr(expr.args[2], row, positionalParams, cteScope)
+              ? yield* this.evalExprSteps(expr.args[2], row, positionalParams, cteScope)
               : null;
         }
-        const args = expr.args.map((a) => this.evalExpr(a, row, positionalParams, cteScope));
-        return this.evalScalarFunction(expr.name, args);
+        const args = yield* stepMap(expr.args, function* (a) {
+          return yield* this.evalExprSteps(a, row, positionalParams, cteScope);
+        }, this);
+        return yield* this.evalScalarFunction(expr.name, args);
       }
     }
   }
@@ -5607,7 +6527,12 @@ export class SqliteDatabase {
       }
       try {
         const parsed = JSON.parse(toSqlString(l));
-        const path = typeof r === "number" ? `$[${r}]` : toSqlString(r).startsWith("$") ? toSqlString(r) : `$.${toSqlString(r)}`;
+        const path =
+          typeof r === "number"
+            ? `$[${r}]`
+            : toSqlString(r).startsWith("$")
+              ? toSqlString(r)
+              : `$.${toSqlString(r)}`;
         const extracted = extractByJsonPath(parsed, path);
         return jsonValueToSql(extracted, op === "->>");
       } catch {
@@ -5627,13 +6552,26 @@ export class SqliteDatabase {
       case "%": {
         const left = arithmeticNumber(l);
         const right = arithmeticNumber(r);
-        const real = left instanceof Number || right instanceof Number || !Number.isInteger(Number(left)) || !Number.isInteger(Number(right));
+        const real =
+          left instanceof Number ||
+          right instanceof Number ||
+          !Number.isInteger(Number(left)) ||
+          !Number.isInteger(Number(right));
         if ((op === "/" || op === "%") && Number(right) === 0) return null;
         if (!real || op === "%") {
           const a = integerPrefix(left);
           const b = integerPrefix(right);
           if ((op === "/" || op === "%") && b === 0n) return null;
-          const result = op === "+" ? a + b : op === "-" ? a - b : op === "*" ? a * b : op === "/" ? a / b : a % b;
+          const result =
+            op === "+"
+              ? a + b
+              : op === "-"
+                ? a - b
+                : op === "*"
+                  ? a * b
+                  : op === "/"
+                    ? a / b
+                    : a % b;
           return real ? new Number(Number(result)) : integerResult(result);
         }
         const a = Number(left);
@@ -5645,7 +6583,10 @@ export class SqliteDatabase {
         const value = BigInt.asIntN(64, integerPrefix(l));
         let count = integerPrefix(r);
         let left = op === "<<";
-        if (count < 0n) { left = !left; count = -count; }
+        if (count < 0n) {
+          left = !left;
+          count = -count;
+        }
         if (count >= 64n) return !left && value < 0n ? -1 : 0;
         return integerResult(BigInt.asIntN(64, left ? value << count : value >> count));
       }
@@ -5704,7 +6645,7 @@ export class SqliteDatabase {
     return Number.isInteger(n) ? n : n;
   }
 
-  private evalScalarFunction(name: string, args: SqlValue[]): SqlValue {
+  private *evalScalarFunction(name: string, args: SqlValue[]): SqlSteps<SqlValue> {
     const u = name.toUpperCase();
     const a0 = args[0] ?? null;
     const a1 = args[1] ?? null;
@@ -5715,6 +6656,7 @@ export class SqliteDatabase {
       case "COALESCE":
       case "IFNULL": {
         for (const a of args) {
+          yield;
           if (a !== null && a !== undefined) {
             return a;
           }
@@ -5773,11 +6715,13 @@ export class SqliteDatabase {
         let end = s.length;
         if (u === "TRIM" || u === "LTRIM") {
           while (start < end && set.has(s[start]!)) {
+            yield;
             start += 1;
           }
         }
         if (u === "TRIM" || u === "RTRIM") {
           while (end > start && set.has(s[end - 1]!)) {
+            yield;
             end -= 1;
           }
         }
@@ -5791,7 +6735,10 @@ export class SqliteDatabase {
         const s = toSqlString(a0);
         const chars = Array.from(s);
         const pos = Math.trunc(toSqlNumber(a1));
-        const len = args[2] !== undefined && args[2] !== null ? Math.trunc(toSqlNumber(args[2])) : chars.length;
+        const len =
+          args[2] !== undefined && args[2] !== null
+            ? Math.trunc(toSqlNumber(args[2]))
+            : chars.length;
         let startIdx: number;
         if (pos > 0) {
           startIdx = pos - 1;
@@ -5831,32 +6778,50 @@ export class SqliteDatabase {
         }
         return sqlPrintf(toSqlString(a0), args.slice(1));
       case "CONCAT":
-        return args.map((x) => (x === null || x === undefined ? "" : toSqlString(x))).join("");
+        return args
+          .map((x) => {
+            return x === null || x === undefined ? "" : toSqlString(x);
+          })
+          .join("");
       case "CONCAT_WS": {
         if (a0 === null) {
           return null;
         }
         const sep = toSqlString(a0);
-        return args
-          .slice(1)
-          .filter((x) => x !== null && x !== undefined)
-          .map((x) => toSqlString(x))
+        return (yield* stepFilter(args.slice(1), function* (x) { yield;
+          return x !== null && x !== undefined;
+        }, this))
+          .map((x) => {
+            return toSqlString(x);
+          })
           .join(sep);
       }
       case "REVERSE":
         return a0 === null ? null : Array.from(toSqlString(a0)).reverse().join("");
       case "REPEAT":
-        return a0 === null || a1 === null ? null : toSqlString(a0).repeat(Math.max(0, Math.trunc(toSqlNumber(a1))));
+        return a0 === null || a1 === null
+          ? null
+          : toSqlString(a0).repeat(Math.max(0, Math.trunc(toSqlNumber(a1))));
       case "LPAD":
         return a0 === null || a1 === null
           ? null
-          : toSqlString(a0).padStart(Math.trunc(toSqlNumber(a1)), args[2] ? toSqlString(args[2]) : " ");
+          : toSqlString(a0).padStart(
+              Math.trunc(toSqlNumber(a1)),
+              args[2] ? toSqlString(args[2]) : " "
+            );
       case "RPAD":
         return a0 === null || a1 === null
           ? null
-          : toSqlString(a0).padEnd(Math.trunc(toSqlNumber(a1)), args[2] ? toSqlString(args[2]) : " ");
+          : toSqlString(a0).padEnd(
+              Math.trunc(toSqlNumber(a1)),
+              args[2] ? toSqlString(args[2]) : " "
+            );
       case "CHAR":
-        return args.map((x) => String.fromCodePoint(Math.max(0, Math.trunc(toSqlNumber(x))))).join("");
+        return args
+          .map((x) => {
+            return String.fromCodePoint(Math.max(0, Math.trunc(toSqlNumber(x))));
+          })
+          .join("");
       case "UNICODE":
         if (a0 === null) {
           return null;
@@ -5869,6 +6834,7 @@ export class SqliteDatabase {
         const bytes = a0 instanceof Uint8Array ? a0 : textEncoder.encode(toSqlString(a0));
         let out = "";
         for (const b of bytes) {
+          yield;
           out += b.toString(16).toUpperCase().padStart(2, "0");
         }
         return out;
@@ -5883,6 +6849,7 @@ export class SqliteDatabase {
         }
         const out = new Uint8Array(h.length / 2);
         for (let i = 0; i < out.length; i += 1) {
+          yield;
           out[i] = Number.parseInt(h.slice(i * 2, i * 2 + 2), 16);
         }
         return out;
@@ -5894,7 +6861,11 @@ export class SqliteDatabase {
           if (a0 === INT64_MIN) throw new Error("integer overflow");
           return integerResult(a0 < 0n ? -a0 : a0);
         }
-        return a0 === null ? null : a0 instanceof Number ? new Number(Math.abs(a0.valueOf())) : Math.abs(toSqlNumber(a0));
+        return a0 === null
+          ? null
+          : a0 instanceof Number
+            ? new Number(Math.abs(a0.valueOf()))
+            : Math.abs(toSqlNumber(a0));
       case "ROUND": {
         if (a0 === null) {
           return null;
@@ -5959,23 +6930,46 @@ export class SqliteDatabase {
       case "RADIANS":
         return a0 === null ? null : (toSqlNumber(a0) * Math.PI) / 180;
       case "MOD":
-        return a0 === null || a1 === null || toSqlNumber(a1) === 0 ? null : toSqlNumber(a0) % toSqlNumber(a1);
+        return a0 === null || a1 === null || toSqlNumber(a1) === 0
+          ? null
+          : toSqlNumber(a0) % toSqlNumber(a1);
       case "MIN":
-        if (args.some((x) => x === null || x === undefined)) {
+        if (
+          args.some((x) => {
+            return x === null || x === undefined;
+          })
+        ) {
           return null;
         }
-        return args.reduce((m, x) => (compareSqlValues(x, m) < 0 ? x : m), args[0] ?? null);
+        return yield* stepReduce(
+          args,
+          function* (m, x) { yield;
+            return compareSqlValues(x, m) < 0 ? x : m;
+          },
+          args[0] ?? null
+        , this);
       case "MAX":
-        if (args.some((x) => x === null || x === undefined)) {
+        if (
+          args.some((x) => {
+            return x === null || x === undefined;
+          })
+        ) {
           return null;
         }
-        return args.reduce((m, x) => (compareSqlValues(x, m) > 0 ? x : m), args[0] ?? null);
+        return yield* stepReduce(
+          args,
+          function* (m, x) { yield;
+            return compareSqlValues(x, m) > 0 ? x : m;
+          },
+          args[0] ?? null
+        , this);
       case "RANDOM":
         return Math.floor((Math.random() - 0.5) * 2 * Number.MAX_SAFE_INTEGER);
       case "RANDOMBLOB": {
         const n = Math.max(0, Math.trunc(toSqlNumber(a0 ?? 0)));
         const b = new Uint8Array(n);
         for (let i = 0; i < n; i += 1) {
+          yield;
           b[i] = Math.floor(Math.random() * 256);
         }
         return b;
@@ -5999,7 +6993,11 @@ export class SqliteDatabase {
       case "UNLIKELY":
         return a0;
       case "GLOB":
-        return a0 === null || a1 === null ? null : matchGlob(toSqlString(a1), toSqlString(a0)) ? 1 : 0;
+        return a0 === null || a1 === null
+          ? null
+          : matchGlob(toSqlString(a1), toSqlString(a0))
+            ? 1
+            : 0;
       case "LIKE":
         return a0 === null || a1 === null
           ? null
@@ -6053,10 +7051,15 @@ export class SqliteDatabase {
       case "JSON_QUOTE":
         return a0 === null ? "null" : serializeSqlJson(this.sqlValToJsJson(a0));
       case "JSON_ARRAY":
-        return serializeSqlJson(args.map((x) => this.sqlValToJsJson(x)));
+        return serializeSqlJson(
+          args.map((x) => {
+            return this.sqlValToJsJson(x);
+          })
+        );
       case "JSON_OBJECT": {
         const obj: Record<string, unknown> = {};
         for (let i = 0; i + 1 < args.length; i += 2) {
+          yield;
           if (args[i] !== null && args[i] !== undefined) {
             obj[toSqlString(args[i]!)] = this.sqlValToJsJson(args[i + 1] ?? null);
           }
@@ -6088,7 +7091,8 @@ export class SqliteDatabase {
         }
         try {
           const parsed = JSON.parse(toSqlString(a0));
-          const target = a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
+          const target =
+            a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
           if (target === undefined) {
             return null;
           }
@@ -6118,7 +7122,8 @@ export class SqliteDatabase {
         }
         try {
           const parsed = JSON.parse(toSqlString(a0));
-          const target = a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
+          const target =
+            a1 !== null && a1 !== undefined ? extractByJsonPath(parsed, toSqlString(a1)) : parsed;
           return Array.isArray(target) ? target.length : 0;
         } catch {
           return null;
@@ -6134,6 +7139,7 @@ export class SqliteDatabase {
           let cur = JSON.parse(toSqlString(a0));
           const mode = u === "JSON_SET" ? "set" : u === "JSON_INSERT" ? "insert" : "replace";
           for (let i = 1; i + 1 < args.length; i += 2) {
+            yield;
             const p = toSqlString(args[i] ?? "$");
             const v = this.sqlValToJsJson(args[i + 1] ?? null);
             cur = setByJsonPath(cur, p, v, mode);
@@ -6150,6 +7156,7 @@ export class SqliteDatabase {
         try {
           let cur = JSON.parse(toSqlString(a0));
           for (let i = 1; i < args.length; i += 1) {
+            yield;
             cur = removeByJsonPath(cur, toSqlString(args[i] ?? "$"));
           }
           return serializeSqlJson(cur);

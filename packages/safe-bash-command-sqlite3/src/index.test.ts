@@ -17,7 +17,8 @@ async function runSqlite3(
   fs: FileSystem,
   args: string[],
   stdinText = "",
-  options: Sqlite3CommandsOptions = {}
+  options: Sqlite3CommandsOptions = {},
+  signal = new AbortController().signal
 ): Promise<{ code: number; stdout: string; stderr: string }> {
   const stdin = createBytePipe();
   if (stdinText) {
@@ -37,7 +38,7 @@ async function runSqlite3(
     fs,
     cwd: "/",
     env: {},
-    signal: new AbortController().signal
+    signal
   });
   await stdout.close();
   await stderr.close();
@@ -609,4 +610,85 @@ test("dot-command CSV uses CRLF and returning to list restores separators", asyn
 test("CLI CSV flag retains LF row separators", async () => {
   const result = await runSqlite3(createMemoryFileSystem(), ["-csv", ":memory:", "SELECT 1,2;"]);
   assert.equal(result.stdout, "1,2\n");
+});
+
+for (const sql of [
+  "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x<50000) SELECT count(*) FROM c;",
+  "SELECT count(*) FROM generate_series(1,150000);",
+  "SELECT count(*) FROM t a CROSS JOIN t b;",
+  "SELECT sum(x) FROM t;",
+  Array.from({ length: 1000 }, () => "SELECT 1;").join("")
+]) {
+  test(`cooperatively yields and cancels with a frozen Workers clock: ${sql.slice(0, 80)}`, async () => {
+    const fs = createMemoryFileSystem();
+    if (sql.includes("FROM t")) {
+      const setup = await runSqlite3(fs, [
+        "/db",
+        "CREATE TABLE t(x); INSERT INTO t SELECT value FROM generate_series(1,5000);"
+      ]);
+      assert.equal(setup.code, 0, setup.stderr);
+    }
+    const host = globalThis as typeof globalThis & { setImmediate?: typeof setImmediate };
+    const immediate = host.setImmediate;
+    const timeout = host.setTimeout;
+    const now = Date.now;
+    const performanceNow = Object.getOwnPropertyDescriptor(performance, "now");
+    let turns = 0;
+    const controller = new AbortController();
+    try {
+      Reflect.deleteProperty(host, "setImmediate");
+      Date.now = () => 0;
+      Object.defineProperty(performance, "now", { configurable: true, value: () => 0 });
+      host.setTimeout = ((
+        callback: (...args: unknown[]) => void,
+        ms?: number,
+        ...args: unknown[]
+      ) => {
+        if (ms === 0) {
+          turns++;
+          if (turns === 3)
+            return timeout(() => controller.abort(new Error("cancel SQLite workload")), 0);
+        }
+        return timeout(callback, ms, ...args);
+      }) as typeof setTimeout;
+      const pending = runSqlite3(
+        fs,
+        [sql.includes("FROM t") ? "/db" : ":memory:", sql],
+        "",
+        {},
+        controller.signal
+      );
+      await assert.rejects(pending, /cancel SQLite workload/);
+      assert.ok(turns >= 3);
+    } finally {
+      host.setImmediate = immediate;
+      host.setTimeout = timeout;
+      Date.now = now;
+      if (performanceNow) Object.defineProperty(performance, "now", performanceNow);
+      else Reflect.deleteProperty(performance, "now");
+    }
+  });
+}
+
+for (const sql of [
+  "SELECT count(*) FROM generate_series(1,1000);",
+  "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x<1000) SELECT count(*) FROM c;"
+]) {
+  test(`maxRows bounds generated rows before aggregation: ${sql}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", sql], "", {
+      limits: { maxRows: 10 }
+    });
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /maxRows/);
+    assert.equal(result.stdout, "");
+  });
+}
+
+test("maxRows bounds joins before aggregation and prevents saving earlier writes", async () => {
+  const fs = createMemoryFileSystem();
+  const result = await runSqlite3(fs, ["/db", "CREATE TABLE t(x); INSERT INTO t VALUES (1),(2); SELECT count(*) FROM t a CROSS JOIN t b;"], "", { limits: { maxRows: 2 } });
+  assert.equal(result.code, 1);
+  assert.match(result.stderr, /maxRows/);
+  assert.equal(result.stdout, "");
+  await assert.rejects(fs.readFile("/db"));
 });

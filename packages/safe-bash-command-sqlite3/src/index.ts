@@ -1,3 +1,4 @@
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
   collectBytes,
@@ -24,6 +25,7 @@ export interface Sqlite3Limits {
 }
 
 export interface SqliteEngineInstance {
+  executeStatementAsync?(sql: string, signal: AbortSignal): Promise<QueryResultSet | null>;
   executeStatement?(sql: string, positionalParams?: SqlValue[]): Promise<QueryResultSet | null> | QueryResultSet | null;
   exec?(sql: string, positionalParams?: SqlValue[]): Promise<QueryResultSet[]> | QueryResultSet[];
   loadFromBytes?(bytes: Uint8Array): Promise<void> | void;
@@ -789,18 +791,27 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           : options.engine;
         return normalizeInjectedEngine(raw);
       }
-      return new SqliteDatabase();
+      return new SqliteDatabase(limits.maxRows);
     };
 
     const db: SqliteEngineInstance = await createDbInstance(state.dbPath, state.readonly);
 
     const execSingleStmt = async (stmt: string): Promise<QueryResultSet | null> => {
+      await yieldTurn(context.signal);
       let sets: QueryResultSet[] = [];
-      if (typeof db.executeStatement === "function") {
-        const result = await db.executeStatement(stmt);
-        if (result) sets = [result];
-      } else if (typeof db.exec === "function") {
-        sets = await db.exec(stmt);
+      try {
+        if (typeof db.executeStatement === "function") {
+          const result = await (db.executeStatementAsync
+            ? db.executeStatementAsync(stmt, context.signal)
+            : db.executeStatement(stmt));
+          if (result) sets = [result];
+        } else if (typeof db.exec === "function") {
+          sets = await db.exec(stmt);
+        }
+      } catch (error) {
+        context.signal.throwIfAborted();
+        if (error instanceof RangeError && error.message === "maxRows limit exceeded") enforceLimit("maxRows", Infinity);
+        throw error;
       }
       for (const result of sets) enforceLimit("maxRows", result.rows.length);
       checkTableRows(db);
@@ -863,6 +874,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           }
         }
       } catch (err) {
+        context.signal.throwIfAborted();
         const msg = err instanceof Error ? err.message : String(err);
         throw new Error(`Error: in prepare, ${msg}`);
       }
@@ -910,6 +922,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
     try {
       await loadDbFromDisk(state.dbPath);
     } catch (err) {
+      context.signal.throwIfAborted();
       await writeText(context.stderr, `${err instanceof Error ? err.message : String(err)}\n`);
       return { exitCode: 1 };
     }
@@ -1427,6 +1440,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           try {
             await runSqlStatement(st);
           } catch (err) {
+            context.signal.throwIfAborted();
             const msg = err instanceof Error ? err.message : String(err);
             await writeText(context.stderr, `Error: ${msg}\n`);
             if (state.bail || positional.length >= 2) {
@@ -1448,6 +1462,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           try {
             await executeDotCommand(trimmed);
           } catch (err) {
+            context.signal.throwIfAborted();
             const msg = err instanceof Error ? err.message : String(err);
             await writeText(context.stderr, `Error: ${msg}\n`);
             state.exitCode = 1;
@@ -1477,6 +1492,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         const initContent = textDecoder.decode(await readInputFile(resolveVfsPath(context.cwd, initFile)));
         await processScript(initContent, false);
       } catch (err) {
+        context.signal.throwIfAborted();
         await writeText(context.stderr, `Error: cannot read init file "${initFile}": ${err instanceof Error ? err.message : String(err)}\n`);
         return { exitCode: 1 };
       }
@@ -1503,6 +1519,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         try {
           stdinBytes = await collectBytes(context.stdin, { signal: context.signal, maxBytes: limits.maxInputBytes - inputBytes });
         } catch (error) {
+          context.signal.throwIfAborted();
           if (error instanceof Error && "code" in error && error.code === "EFBIG") {
             enforceLimit("maxInputBytes", Infinity);
           }
@@ -1522,6 +1539,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
 
     return { exitCode: limitExceeded ? 1 : state.exitCode };
     } catch (error) {
+      context.signal.throwIfAborted();
       await writeText(context.stderr, `Error: ${error instanceof Error ? error.message : String(error)}\n`);
       return { exitCode: 1 };
     }

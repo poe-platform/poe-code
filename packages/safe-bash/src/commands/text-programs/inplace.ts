@@ -1,6 +1,6 @@
 import { decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import { dirname, FsError, type ByteSource, type CommandContext, type FileStat, type FileSystem, type FileStaging, type FileStagingEntry } from "../../contracts/index.js";
+import { dirname, joinPath, FsError, type ByteSource, type CommandContext, type FileStat, type FileSystem, type FileStaging, type FileStagingEntry } from "../../contracts/index.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
 import { compareCopyIdentity } from "../copy-identity.js";
 import { Budget, bytes, virtualPath } from "./shared.js";
@@ -77,7 +77,7 @@ async function replaceBackup(context: CommandContext, target: Target, suffix: st
       if (closed) throw new FsError("EPIPE", { message: "in-place backup publication is closed" });
       // Creation binds the private stage to this parent; publication below
       // additionally verifies every retained ancestor of the destination.
-      staging = await context.fs.createStagedFile!(`${dirname(target.path)}/.sed-${globalThis.crypto.randomUUID()}`, "backup", {
+      staging = await context.fs.createStagedFile!(joinPath(dirname(target.path), `.sed-${globalThis.crypto.randomUUID()}`), "backup", {
         type: "file", data,
       }, { parent: target.parent, mode: target.original.mode & 0o7777, signal: context.signal });
       context.signal.throwIfAborted();

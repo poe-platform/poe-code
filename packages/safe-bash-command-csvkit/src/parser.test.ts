@@ -21,14 +21,14 @@ test("CPython 3.14 choice diagnostics quote converted values and print choices a
   }
 });
 
-test("frozen CPython integer digit limit includes zeroes and excludes separators", async () => {
+test("integer options accept digits beyond the former ceiling, including Unicode and separators", async () => {
   for (const value of ["1".repeat(4301), "0".repeat(4301), "١".repeat(4301)]) {
     const result = await parseArguments("csvcut", bytes(["-K", value]), { limits });
-    assert.deepEqual(result, { kind: "exit", status: 2, stdout: "", stderr:
-      commands.find(command => command.name === "csvcut")!.usage +
-      `csvcut: error: argument -K/--skip-lines: invalid int value: '${value}'\n` });
+    if (result.kind !== "parsed") assert.fail(result.stderr);
+    assert.equal(result.options.skip_lines, value[0] === "0" ? 0 : BigInt("1".repeat(4301)));
+    await result.dispose();
   }
-  const result = await parseArguments("csvcut", bytes(["-K", "+" + "0_".repeat(4299) + "0"]), { limits });
+  const result = await parseArguments("csvcut", bytes(["-K", "+" + "0_".repeat(4301) + "0"]), { limits });
   if (result.kind !== "parsed") assert.fail(result.stderr);
   assert.equal(result.options.skip_lines, 0);
   await result.dispose();

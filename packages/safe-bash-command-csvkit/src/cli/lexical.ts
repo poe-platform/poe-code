@@ -19,7 +19,7 @@ export function repr(value: string): string {
   return text + quote;
 }
 
-export function integer(text: string, maxDigits = 4300): number | bigint | undefined {
+export function integer(text: string, maxDigits = Infinity): number | bigint | undefined {
   const characters = Array.from(text);
   let start = 0;
   let end = characters.length;
@@ -38,7 +38,7 @@ export function integer(text: string, maxDigits = 4300): number | bigint | undef
     else if (char === "_" && previousDigit && offset + 1 < payload.length) previousDigit = false;
     else return undefined;
   }
-  // Frozen CPython sys.int_info.default_max_str_digits, including leading zeroes.
+  // Explicit digit limits include leading zeroes.
   if (!digits || !previousDigit || digits.length > maxDigits) return undefined;
   const big = BigInt((value[0] === "-" ? "-" : "") + digits);
   const number = Number(big);

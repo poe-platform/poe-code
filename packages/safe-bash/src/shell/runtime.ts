@@ -3552,7 +3552,6 @@ export class Runtime {
         const method = Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name)?.value;
         return typeof method !== "function" || Reflect.get(this.backingFs, name) === method;
       });
-    if (this._isMemoryBackingFs) (this.backingFs as { _activeRuntimeBudget?: Budget })._activeRuntimeBudget = budget;
     registerInternalYieldCheckpoint(signal, budget.yieldCheckpoint);
     if (commandSignal !== signal) {
       inheritYieldCheckpoint(signal, commandSignal);
@@ -3574,6 +3573,7 @@ export class Runtime {
       const reusableEntry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
       if (reusableEntry && reusableEntry.inUseBy === this) {
         retargetScopedFileSystem(reusableEntry.scoped, noopFsCharge, NEVER_ABORTED_SIGNAL, noopFsCharge, 256);
+        registerRuntimeBackingFileSystem(reusableEntry.scoped, this.backingFs);
         reusableEntry.inUseBy = undefined;
       }
     }
@@ -3592,7 +3592,7 @@ export class Runtime {
     if (!this._fs) {
       this._fs = scopeFileSystem(this._rawFs, this.budget.chargeFs, this.signal, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents });
       runtimeFileSystems.set(this._fs, this.sourceFs);
-      registerRuntimeBackingFileSystem(this._fs, this.backingFs);
+      registerRuntimeBackingFileSystem(this._fs, this.backingFs, this.budget.chargeFs);
     }
     return this._fs;
   }
@@ -3605,6 +3605,7 @@ export class Runtime {
       const entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
       if (entry && (entry.inUseBy === undefined || entry.inUseBy === this)) {
         if (retargetScopedFileSystem(entry.scoped, this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, this.budget.limits.maxPathnameComponents)) {
+          registerRuntimeBackingFileSystem(entry.scoped, this.backingFs, this.budget.chargeFs);
           entry.inUseBy = this;
           this._contextFsMask = umask;
           this._contextFsSignal = sig;
@@ -3615,7 +3616,7 @@ export class Runtime {
     }
     const created = scopeFileSystem( creationFileSystem(this.sourceFs, umask), this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents }, );
     runtimeFileSystems.set(created, this.sourceFs);
-    registerRuntimeBackingFileSystem(created, this.backingFs);
+    registerRuntimeBackingFileSystem(created, this.backingFs, this.budget.chargeFs);
     this._contextFsMask = umask;
     this._contextFsSignal = sig;
     this._contextFs = created;

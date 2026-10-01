@@ -5,10 +5,38 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { Budget, resolveLimits } from "../../src/shell/runtime.js";
 import { cloudflareWorkerLimits } from "../../src/shell/worker-limits.js";
+import { chargeRuntimeFileSystemOperation } from "safe-bash-contracts/runtime-control";
 import { MockS3Client, S3FileSystem, ReadOnlyFileSystem, scopeFileSystem } from "@poe-code/safe-fs";
 
 const encoder = new TextEncoder();
 const operationLimit = (error: unknown): boolean => error instanceof ShellLimitError && error.limit === "maxFileSystemOperations";
+
+test("completed executions do not retain budgets on the shared memory filesystem", async context => {
+  const { shell, fs } = fixture(context, 10);
+  await shell.exec("probe");
+  assert.equal(Object.hasOwn(fs, "_activeRuntimeBudget"), false);
+});
+
+test("optimized filesystem charges remain owned by overlapping executions", async context => {
+  const fs = new MemoryFileSystem();
+  const entered = deferred<void>();
+  const resume = deferred<void>();
+  const commands = new CommandRegistry([{ name: "charge", async execute(context) {
+    entered.resolve();
+    await resume.promise;
+    chargeRuntimeFileSystemOperation(context.fs);
+    return { exitCode: 0 };
+  } }]);
+  const first = new Shell({ fs, commands, limits: { maxFileSystemOperations: 0 } });
+  const second = new Shell({ fs, limits: { maxFileSystemOperations: 10 } });
+  context.after(async () => { await first.dispose(); await second.dispose(); });
+  const result = first.exec("charge");
+  const rejected = assert.rejects(result, operationLimit);
+  await entered.promise;
+  await second.exec(":");
+  resume.resolve();
+  await rejected;
+});
 
 function deferred<Value>() {
   let resolve!: (value: Value) => void;

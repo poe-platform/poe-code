@@ -78,9 +78,12 @@ export const syncCommandEvaluators: SyncCommandEvaluators = {};
 export const creationUmask = Symbol("creationUmask");
 
 const runtimeBackingFileSystems = new WeakMap<FileSystem, FileSystem>();
+const runtimeFileSystemCharges = new WeakMap<FileSystem, () => void>();
 
-export function registerRuntimeBackingFileSystem(wrapper: FileSystem, backing: FileSystem): void {
+export function registerRuntimeBackingFileSystem(wrapper: FileSystem, backing: FileSystem, charge?: () => void): void {
   runtimeBackingFileSystems.set(wrapper, backing);
+  if (charge) runtimeFileSystemCharges.set(wrapper, charge);
+  else runtimeFileSystemCharges.delete(wrapper);
 }
 
 export function getRuntimeBackingFileSystem(fs: FileSystem): FileSystem | undefined {
@@ -88,8 +91,7 @@ export function getRuntimeBackingFileSystem(fs: FileSystem): FileSystem | undefi
 }
 
 export function chargeRuntimeFileSystemOperation(fs: FileSystem): void {
-  const backing = runtimeBackingFileSystems.get(fs) ?? fs;
-  (backing as { _activeRuntimeBudget?: { fileSystemOperation(): void } })._activeRuntimeBudget?.fileSystemOperation();
+  runtimeFileSystemCharges.get(fs)?.();
 }
 
 const syncResolved = Symbol.for("safe-bash.syncResolved");

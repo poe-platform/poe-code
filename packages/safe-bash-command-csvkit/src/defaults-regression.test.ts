@@ -3,12 +3,12 @@ import type { CommandContext } from "safe-bash-contracts";
 import { createCsvkitCommand, type CsvkitCommandsOptions } from "./command.js";
 import { portableLocale } from "./portable-locale.js";
 
-async function invoke(name: string, input: string, args: string[], files: Record<string, string> = {}, options: CsvkitCommandsOptions = {}) {
+async function invoke(name: string, input: string | Uint8Array, args: string[], files: Record<string, string> = {}, options: CsvkitCommandsOptions = {}) {
   let stdout = "", stderr = "";
   const encoder = new TextEncoder();
   const context = {
     command: name, args, cwd: "/", env: {}, signal: new AbortController().signal,
-    stdin: (async function* () { yield encoder.encode(input); })(),
+    stdin: (async function* () { yield typeof input === "string" ? encoder.encode(input) : input; })(),
     stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
     fs: { capabilities: { read: true, streamingRead: true },
@@ -73,4 +73,26 @@ test("match files and CSV input share the configured byte budget", async () => {
   const result = await invoke("csvgrep", "name\nfoo\n", ["-c", "1", "-f", "/patterns"], { "/patterns": "foo\n" }, { limits: { maxInputBytes: 10 } });
   expect(result.exitCode).toBe(78);
   expect(result.stderr).toContain("input byte budget exceeded");
+});
+
+
+test.each(["csvlook", "csvstat", "csvjson", "csvsort", "csvjoin", "csvsql"])("%s accepts a numeric single-column CSV with portable defaults", async name => {
+  const result = await invoke(name, "x\n2\n4\n", []);
+  expect(result.exitCode).toBe(0);
+  expect(result.stdout.length).toBeGreaterThan(0);
+  expect(result.stderr).toBe("");
+});
+
+
+test.each([
+  ["latin1", new Uint8Array([120, 10, 233, 10]), "x\né\n"],
+  ["ascii", new TextEncoder().encode("x\nvalue\n"), "x\nvalue\n"],
+  ["utf-16", new Uint8Array([255, 254, 120, 0, 10, 0, 233, 0, 10, 0]), "x\né\n"]
+] as const)("portable csvcut includes the %s codec", async (encoding, bytes, expected) => {
+  const result = await invoke("csvcut", bytes, ["-e", encoding]);
+  expect(result.exitCode).toBe(0);
+  // csvkit uses the selected encoding for stdout too.
+  expect(result.stderr).toBe("");
+  expect(result.stdout.length).toBeGreaterThan(0);
+  if (encoding === "ascii") expect(result.stdout).toBe(expected);
 });

@@ -32,7 +32,7 @@ it("publishes portable SafeJS root and subpaths despite legacy SDK browser prohi
   const { volume, options } = optionalLeftovers();
   const source = JSON.parse(readFileSync(new URL("../packages/safe-js/package.json", import.meta.url), "utf8"));
   delete source.bin;
-  volume.writeFileSync("/repo/packages/safe-js/dist/workerd.d.ts", "export * from \"./core.js\";\n");
+  volume.writeFileSync("/repo/packages/safe-js/dist/workerd.d.ts", "export * from \"./core.js\";\nexport interface WorkerBinding { readonly name: string; }\n");
   source.exports = Object.fromEntries(Object.entries(source.exports).filter(([key]) => [".", "./core", "./modules/fs"].includes(key)));
   volume.writeFileSync("/repo/packages/safe-js/package.json", JSON.stringify(source));
   const root = JSON.parse(volume.readFileSync("/repo/package.json", "utf8") as string);
@@ -53,7 +53,9 @@ it("publishes portable SafeJS root and subpaths despite legacy SDK browser prohi
     const target = published.exports[route];
     for (const condition of ["workerd", "browser"]) {
       expect(target[condition]).toBe(`./dist/safe-js/portable/${entry}.js`);
-      expect(target.types[condition]).toBe(`./dist/safe-js/${route === "." && condition === "workerd" ? "workerd" : entry}.d.ts`);
+      const declaration = route === "." && condition === "workerd" ? "workerd" : entry;
+      expect(target.types[condition]).toBe(`./dist/safe-js/${declaration}.d.ts`);
+      if (declaration === "workerd") expect(volume.readFileSync(`/output/safe-js/${target.types[condition].slice(2)}`, "utf8")).toContain("interface WorkerBinding");
       expect(volume.readFileSync(`/output/safe-js/${target[condition].slice(2)}`, "utf8")).toContain("portable = true");
       expect(Object.keys(target).indexOf(condition)).toBeLessThan(Object.keys(target).indexOf("import"));
     }

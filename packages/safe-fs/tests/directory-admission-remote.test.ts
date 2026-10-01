@@ -89,7 +89,7 @@ for (const adapter of ["S3", "WebDAV"] as const) test(`${adapter} validates limi
   const list = vi.spyOn(transport, "listObjectsV2");
   const fetch = vi.fn(async () => xmlResponse(multistatus(resource("/dav/", true))));
   const fs = adapter === "S3" ? new S3FileSystem({ transport, bucket: "bucket" }) : new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch });
-  for (const value of [-1, 0.5, Infinity, NaN]) await assert.rejects(fs.readdir("/", bounded(value)), { code: "EINVAL" });
+  for (const value of [-1, 0.5, -Infinity, NaN]) await assert.rejects(fs.readdir("/", bounded(value)), { code: "EINVAL" });
   const caller = new AbortController(); caller.abort(false);
   await assert.rejects(fs.readdir("/", bounded(-1, caller.signal)), { code: "ECANCELED" });
   assert.equal(list.mock.calls.length, 0); assert.equal(fetch.mock.calls.length, 0);

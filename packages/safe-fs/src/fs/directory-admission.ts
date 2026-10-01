@@ -3,9 +3,9 @@ import type { ReadDirectoryOptions } from "../contracts/filesystem.js";
 
 export function directoryEntryLimit(options: ReadDirectoryOptions, path: string): number | undefined {
   options.signal?.throwIfAborted();
-  const limit = options.maxEntries;
+  const limit = options.maxEntries === Infinity ? undefined : options.maxEntries;
   if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 0)) {
-    throw new FsError("EINVAL", { syscall: "readdir", path, message: "directory entry limit must be a nonnegative safe integer" });
+    throw new FsError("EINVAL", { syscall: "readdir", path, message: "directory entry limit must be a nonnegative safe integer or Infinity" });
   }
   return limit;
 }

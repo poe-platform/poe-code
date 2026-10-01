@@ -61,7 +61,7 @@ describe("bounded directory admission", () => {
   });
 
   for (const adapter of ["Memory", "Real"] as const) {
-    it.each([-1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1])(`${adapter} rejects invalid maxEntries %s`, async maxEntries => {
+    it.each([-1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1])(`${adapter} rejects invalid maxEntries %s`, async maxEntries => {
       const filesystem = adapter === "Memory" ? new MemoryFileSystem() : new RealFileSystem("/machine");
       const options: DirectoryOptions = { maxEntries };
       await expect(filesystem.readdir("/", options)).rejects.toMatchObject({ code: "EINVAL", syscall: "readdir", path: "/" });
@@ -244,4 +244,13 @@ describe("bounded directory admission", () => {
     await expect(new RealFileSystem("/machine").readdir("/", { maxEntries: 0, signal: controller.signal })).rejects.toBe(0);
     expect(close).toHaveBeenCalledOnce();
   });
+});
+
+it("Real accepts explicitly unlimited listings and reads", async () => {
+  const fs = new RealFileSystem("/machine");
+  expect((await fs.readdir("/", { maxEntries: Infinity })).map(entry => entry.name)).toEqual(["a", "b", "c"]);
+  expect(native.opendir).not.toHaveBeenCalled();
+  expect(native.readdir).toHaveBeenCalledOnce();
+  expect(await fs.readFile("/a", { maxBytes: Infinity })).toEqual(new TextEncoder().encode("a"));
+  await expect(fs.readFile("/a", { maxBytes: 0 })).rejects.toMatchObject({ code: "EFBIG" });
 });

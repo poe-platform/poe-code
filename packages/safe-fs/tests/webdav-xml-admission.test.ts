@@ -93,7 +93,7 @@ describe("direct DAV response admission", () => {
       .toThrow(XmlResponseLimitError);
   });
 
-  it.each([0, -1, 1.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1])("rejects invalid response limit %s", maxResponses => {
+  it.each([0, -1, 1.5, -Infinity, NaN, Number.MAX_SAFE_INTEGER + 1])("rejects invalid response limit %s", maxResponses => {
     expect(() => parseXml("<root/>", { maxResponses })).toThrow(RangeError);
   });
 

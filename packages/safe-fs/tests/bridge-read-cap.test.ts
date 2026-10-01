@@ -20,11 +20,17 @@ it("refuses an adapter result larger than the cap before copy or decode", async 
 
 it("validates trusted caps and admits empty and small files", async () => {
   const adapter = createMemoryFileSystem();
-  for (const maximum of [-1, 0.5, Infinity, NaN]) {
+  for (const maximum of [-1, 0.5, -Infinity, NaN]) {
     expect(() => createNodeFsBridge(adapter, { readFileMaxBytes: maximum })).toThrow(TypeError);
   }
   await adapter.writeFile("/empty", new Uint8Array());
   expect(await createNodeFsBridge(adapter, { readFileMaxBytes: 0 }).readFile("/empty", "utf8")).toBe("");
   await adapter.writeFile("/small", new Uint8Array([65]));
   expect(await createNodeFsBridge(adapter, { readFileMaxBytes: 1 }).readFile("/small", "hex")).toBe("41");
+});
+
+it("accepts an explicitly unlimited trusted read cap", async () => {
+  const adapter = createMemoryFileSystem();
+  await adapter.writeFile("/f", Uint8Array.of(65));
+  expect(await createNodeFsBridge(adapter, { readFileMaxBytes: Infinity }).readFile("/f", "utf8")).toBe("A");
 });

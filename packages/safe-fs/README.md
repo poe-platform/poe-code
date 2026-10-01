@@ -282,7 +282,8 @@ Every raw filesystem operation accepts an optional `signal`. Additional fields a
 
 | Operation | Options |
 | --- | --- |
-| `readFile` | `maxBytes`: upper bound on collected bytes |
+| `readFile` | `maxBytes`: nonnegative safe-integer byte cap; `Infinity` adds no per-read cap |
+| `readdir` | `maxEntries`: nonnegative safe-integer entry cap; omission or `Infinity` preserves backend limits and ordering |
 | `writeFile`, `writeStream` | `flag`: `w` (default, replace), `wx` (exclusive create), `a` (append), or `ax` (exclusive append/create); optional `mode` |
 | `appendFile` | Optional `mode` |
 | `mkdir` | `recursive` (default false); optional `mode` |

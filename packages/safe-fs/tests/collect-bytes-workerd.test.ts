@@ -3,10 +3,10 @@ import { build } from "esbuild";
 import { fileURLToPath } from "node:url";
 import { createContext, runInContext } from "node:vm";
 
-it("selects the portable collector with opt-in limits using the workerd condition alone", async () => {
+it.each(["workerd", "browser"])("selects the portable collector with opt-in limits using %s", async condition => {
   const output = await build({
     entryPoints: [fileURLToPath(new URL("../src/contracts/io.ts", import.meta.url))],
-    bundle: true, platform: "neutral", conditions: ["workerd"],
+    bundle: true, platform: "neutral", conditions: [condition],
     format: "iife", globalName: "collector", write: false, metafile: true,
     logLevel: "silent"
   });
@@ -14,10 +14,10 @@ it("selects the portable collector with opt-in limits using the workerd conditio
   expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("platform/node.ts"))).toBe(false);
   const context = createContext({ Uint8Array });
   runInContext(output.outputFiles[0]!.text, context);
-  for (const size of [15, 17]) {
+  for (const size of [15, 18]) {
     const result = await runInContext(`collector.collectBytes((async function* () {
       yield new Uint8Array(${size} * 1024 * 1024);
-    })(), {})`, context) as Uint8Array;
+    })(), { maxBytes: Infinity, maxMemoryBytes: Infinity })`, context) as Uint8Array;
     expect(result.length).toBe(size * 1024 * 1024);
   }
   await expect(runInContext(`collector.collectBytes((async function* () {

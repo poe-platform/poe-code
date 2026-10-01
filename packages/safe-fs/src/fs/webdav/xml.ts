@@ -20,8 +20,8 @@ export function parseXml(input: string, limits: XmlLimits = {}): XmlElement {
 
 export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator<number, XmlElement, void> {
   const { maxResponses, ...documentLimits } = limits;
-  if (maxResponses !== undefined && (!Number.isSafeInteger(maxResponses) || maxResponses < 1)) {
-    throw new RangeError("XML limits must be positive integers");
+  if (maxResponses !== undefined && maxResponses !== Infinity && (!Number.isSafeInteger(maxResponses) || maxResponses < 1)) {
+    throw new RangeError("XML limits must be positive integers or Infinity");
   }
   let responses = 0;
   try {

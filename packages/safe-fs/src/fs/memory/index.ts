@@ -2053,7 +2053,7 @@ export class MemoryFileSystem implements FileSystem {
 
   async readFile(path: string, options: ReadFileOptions = {}): Promise<Uint8Array> {
     options.signal?.throwIfAborted();
-    if (options.maxBytes !== undefined) this.integer(options.maxBytes, "readFile", path);
+    if (options.maxBytes !== undefined && options.maxBytes !== Infinity) this.integer(options.maxBytes, "readFile", path);
     const node = this.file(path, "readFile");
     this.permission(node, 4, "readFile", path);
     if (options.maxBytes !== undefined && node.data.byteLength > options.maxBytes) this.fail("EFBIG", "readFile", path);
@@ -3381,7 +3381,7 @@ export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, 
   if (mem._owner === undefined || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
   signal?.throwIfAborted();
   beforeRead?.();
-  if (maxBytes !== undefined) (mem as unknown as { integer: (v: number, s: string, p: string) => void }).integer(maxBytes, "readFile", path);
+  if (maxBytes !== undefined && maxBytes !== Infinity) (mem as unknown as { integer: (v: number, s: string, p: string) => void }).integer(maxBytes, "readFile", path);
   const node = (mem as unknown as { file: (p: string, s: string) => FileNode }).file(path, "readFile");
   (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 4, "readFile", path);
   const data = node.data;

@@ -291,7 +291,10 @@ export class DeviceFileSystem implements FileSystem {
 
   async #readFileSlow(path: string, options: ReadFileOptions): Promise<Uint8Array> {
     const resolved = await this.#resolve(path, options);
-    if (resolved === nullPath) { nonnegative(options.maxBytes, path); return new Uint8Array(); }
+    if (resolved === nullPath) {
+      if (options.maxBytes !== Infinity) nonnegative(options.maxBytes, path);
+      return new Uint8Array();
+    }
     if (resolved === deviceDirectory) throw new FsError("EISDIR", { path });
     return this.#filesystem.readFile(path, options);
   }

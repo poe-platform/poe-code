@@ -50,10 +50,10 @@ types and path resolution retain their existing meanings.
 
 | Input | Required interpretation |
 | --- | --- |
-| `maxEntries` absent or `undefined` | Preserve the adapter's existing admission limits and ordering. |
+| `maxEntries` absent, `undefined`, or `Infinity` | Preserve the adapter's existing admission limits and ordering. |
 | `0` | Permit an empty listing only. |
 | Nonnegative safe integer `N` | Admit no more than `N` entries under the adapter profile below. |
-| Negative, fractional, nonfinite, or unsafe integer | Reject with `FsError` code `EINVAL`. |
+| Negative, fractional, `NaN`, `-Infinity`, or unsafe integer | Reject with `FsError` code `EINVAL`. |
 
 Adapters MUST validate a supplied limit before directory enumeration. An
 already-aborted signal MUST take precedence over invalid-limit validation and
@@ -78,7 +78,7 @@ before materialization. Reading the next candidate to detect overflow is allowed
 This requirement does not make an underlying operating-system read, transport
 response, or third-party callback allocation entry-bounded.
 
-For a listing with a defined `maxEntries`, adapters and wrappers MUST forward
+For a listing with a finite `maxEntries`, adapters and wrappers MUST forward
 the supplied signal and limit when delegating the requested listing. After a
 delegated listing resolves, a wrapper that
 copies, sorts, merges, or otherwise processes the returned array MUST check

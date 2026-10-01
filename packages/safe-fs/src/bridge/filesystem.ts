@@ -86,7 +86,7 @@ export class FileSystemBridge<Binary extends Uint8Array> {
     assertBridgePath(this.#root, this.#cwd);
     this.#signal = options.signal;
     const maximum = options.readFileMaxBytes;
-    if (maximum !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new TypeError("Invalid readFileMaxBytes");
+    if (maximum !== undefined && maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new TypeError("Invalid readFileMaxBytes");
     this.#readFileMaxBytes = maximum;
     if (options.reserveReadFile !== undefined && typeof options.reserveReadFile !== "function") throw new TypeError("Invalid reserveReadFile");
     this.#reserveReadFile = options.reserveReadFile;

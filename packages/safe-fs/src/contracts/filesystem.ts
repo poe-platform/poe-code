@@ -186,14 +186,15 @@ export interface RenameOptions extends FsOptions {
 }
 
 export interface ReadFileOptions extends FsOptions {
+  /** Nonnegative safe-integer byte cap; Infinity adds no per-read cap. */
   readonly maxBytes?: number;
 }
 
 export interface ReadDirectoryOptions extends FsOptions {
   /**
-   * Optional per-listing entry admission limit, a nonnegative safe integer.
+   * Optional per-listing entry admission limit, a nonnegative safe integer or Infinity.
    * Zero permits an empty listing; overflow rejects with EFBIG, never truncates.
-   * Omission preserves the adapter's existing limits and ordering. Composed
+   * Omission or Infinity preserves the adapter's existing limits and ordering. Composed
    * adapters may conservatively count distinct candidates before visibility
    * filtering. This is not a global traversal, host-allocation or work quota.
    */

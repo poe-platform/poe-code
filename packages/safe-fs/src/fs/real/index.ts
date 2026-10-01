@@ -568,8 +568,8 @@ export class RealFileSystem implements FileSystem {
 
   async readFile(path: string, options: ReadFileOptions = {}): Promise<Uint8Array> {
     return this.operation("readFile", path, options, async () => {
-      const maxBytes = options.maxBytes ?? Number.MAX_SAFE_INTEGER;
-      integer(maxBytes);
+      const maxBytes = options.maxBytes ?? Infinity;
+      if (maxBytes !== Infinity) integer(maxBytes);
       return collectBytes(this.readStream(path, options), { maxBytes, ...options });
     });
   }

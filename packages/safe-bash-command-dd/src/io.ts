@@ -182,6 +182,28 @@ export async function openDdFile(context: CommandContext, request: DdFileRequest
   }
   if (request.synchronization) throw new DdError(`${request.synchronization === "all" ? "fsync" : "fdatasync"}: Operation not supported by the filesystem stream adapter`);
   if (request.direction === "output" && request.flags.has("append") && request.truncate) throw new DdError("append with truncation: Operation not supported by the filesystem stream adapter");
+  if (path === undefined && request.direction === "input" && context.stdinInput) {
+    const input = context.stdinInput;
+    const start = input.position;
+    let closed = false;
+    return {
+      ...(input.stat ? { size: BigInt(Math.max(0, input.stat.size - start)), type: input.stat.type } : {}),
+      async read(size, options) {
+        signal.throwIfAborted();
+        if (closed) throw new FsError("EBADF");
+        const result = await input.read(size, options.signal ?? signal);
+        return result.done ? new Uint8Array() : result.value;
+      },
+      ...(input.seek ? { async seek(offset: bigint, options: FsOptions) {
+        signal.throwIfAborted();
+        if (closed) throw new FsError("EBADF");
+        const position = BigInt(start) + offset;
+        if (position < 0n || position > BigInt(Number.MAX_SAFE_INTEGER)) throw new DdError("input offset limit exceeded");
+        await input.seek!(Number(position), options.signal ?? signal);
+      } } : {}),
+      async close() { closed = true; },
+    };
+  }
   if (request.direction === "input") {
     const stat = path === undefined ? undefined : await context.fs.stat(path, { signal });
     if (path !== undefined) await context.fs.access(path, 4, { signal });
@@ -240,13 +262,33 @@ export async function openDdFile(context: CommandContext, request: DdFileRequest
     };
   }
 
-  if (request.seek !== 0n || path !== undefined && (!request.truncate && !request.flags.has("append") || request.creation === "never")) {
+  if (path === undefined) {
+    let position = 0n;
+    return {
+      async write(chunk) {
+        await writeBytes(context.stdout, chunk, signal);
+        position += BigInt(chunk.length);
+        return chunk.length;
+      },
+      async seek(offset) {
+        signal.throwIfAborted();
+        if (!context.stdoutFile) throw new FsError("ESPIPE");
+        if (offset < position || offset > BigInt(Number.MAX_SAFE_INTEGER)) throw new DdError("output offset limit exceeded");
+        const capacity = BigInt(Math.min(65536, request.maxBufferBytes));
+        const zeros = new Uint8Array(Number(offset - position < capacity ? offset - position : capacity));
+        while (position < offset) {
+          const count = Number(offset - position < BigInt(zeros.length) ? offset - position : BigInt(zeros.length));
+          await writeBytes(context.stdout, zeros.subarray(0, count), signal);
+          position += BigInt(count);
+          await yieldTurn(signal);
+        }
+      },
+      async close() {},
+    };
+  }
+  if (request.seek !== 0n || !request.truncate && !request.flags.has("append") || request.creation === "never") {
     throw new DdError("positioned or existing-only output: Operation not supported by the filesystem stream adapter");
   }
-  if (path === undefined) return {
-    async write(chunk) { await writeBytes(context.stdout, chunk, signal); return chunk.length; },
-    async close() {},
-  };
   const capabilities = await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities;
   const flag = request.creation === "exclusive" ? request.flags.has("append") ? "ax" : "wx" : request.flags.has("append") ? "a" : "w";
   if (!context.fs.writeStream || capabilities.streamingWrite === false) throw new DdError("streaming output: Operation not supported by the filesystem");

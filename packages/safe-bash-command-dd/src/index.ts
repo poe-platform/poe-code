@@ -150,7 +150,7 @@ export function createDdCommand(options: DdCommandsOptions = {}): CommandDefinit
       return { exitCode: 1 };
     }
     const operation = plan.output === undefined ? createOutputOperation(context, context.stdout) : undefined;
-    if (operation) context = { ...context, signal: operation.signal, stdout: operation.output };
+    if (operation) context = { ...context, ...(context.stdinInput ? { stdinInput: context.stdinInput } : {}), ...(context.stdoutFile ? { stdoutFile: context.stdoutFile } : {}), signal: operation.signal, stdout: operation.output };
     const handles: { opening: Promise<DdFileHandle>; request: DdFileRequest }[] = [];
     let cleanup: Promise<void> | undefined;
     let closeFailure: { reason: unknown; request: DdFileRequest; handle: DdFileHandle } | undefined;

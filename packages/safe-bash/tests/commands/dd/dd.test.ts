@@ -5,6 +5,7 @@ import { createDdCommand, createDdCommands, ddCommands } from "../../../src/comm
 import { createDeviceFileSystem } from "../../../src/fs/devices/index.js";
 import { Shell, ShellLimitError } from "../../../src/shell/index.js";
 import { streamCommands } from "../../../src/commands/streams.js";
+import { printfCommand } from "../../../src/commands/basic.js";
 import { bytes, run } from "./helpers.js";
 
 test("dd remains opt-in and executes through a real Shell", async () => {
@@ -248,5 +249,55 @@ test("downstream closure cancels named-file reads, without waiting for a stalled
     assert.equal(result.stdout, "A");
     assert.equal(result.stderr, "");
     assert.equal(returned, 1);
+  } finally { await shell.dispose(); }
+});
+
+for (const [script, expected] of [
+  ["(dd bs=5 count=1 status=none; printf :; dd bs=5 count=1 status=none) < /input", "01234:56789"],
+  ["(dd bs=5 count=1 status=none; dd bs=2 skip=1 count=1 status=none; dd bs=2 count=1 status=none) < /input", "01234789a"],
+] as const) {
+  test(`dd preserves shared redirected input: ${script}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", bytes("0123456789abcdef\n"));
+    const shell = new Shell({ fs }).use(ddCommands());
+    shell.register(printfCommand);
+    try {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("dd seeks redirected stdout and leaves it usable by the next command", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", bytes("0123456789abcdef\n"));
+  const shell = new Shell({ fs }).use(ddCommands());
+  shell.register(printfCommand);
+  try {
+    const result = await shell.exec("(dd bs=5 seek=1 count=1 status=none; printf tail) < /input > /output");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(await fs.readFile("/output"), bytes("\0".repeat(5) + "01234tail"));
+  } finally { await shell.dispose(); }
+});
+
+test("dd reports Illegal seek on stdout without a file descriptor", async () => {
+  const result = await run(["bs=5", "seek=1", "count=1", "status=none"], bytes("01234"));
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /Illegal seek/);
+});
+
+test("dd rejects seeking a pipeline and charges redirected padding to the output budget", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs }).use(ddCommands());
+  for (const command of streamCommands()) shell.register(command);
+  try {
+    const piped = await shell.exec("dd seek=1 count=0 status=none | cat");
+    assert.match(piped.stderr, /Illegal seek/);
+    const bounded = new Shell({ fs, limits: { maxOutputBytes: 8 } }).use(ddCommands());
+    try {
+      await assert.rejects(bounded.exec("dd bs=1 seek=9 count=0 status=none > /output"), ShellLimitError);
+    } finally { await bounded.dispose(); }
   } finally { await shell.dispose(); }
 });

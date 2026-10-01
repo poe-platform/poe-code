@@ -2005,7 +2005,7 @@ function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
   }
   return true;
 }
-const fastShellCommandAccessors = ["signal", "env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
+const fastShellCommandAccessors = ["signal", "env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
 function cloneRawState(raw: State, hasLocals: boolean): State {
   const variables = Object.assign(Object.create(null) as Record<string, string>, raw.variables);
   const exported = raw.exported.size ? new Set(raw.exported) : new Set<string>();

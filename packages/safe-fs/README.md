@@ -252,7 +252,7 @@ There are no package environment variables, implicit credentials, or automatic `
 
 | API | Options and defaults |
 | --- | --- |
-| `createFileSystem(config, { registry })` | Required `config.type`; `config.options` defaults to an empty record. `registry` is required. Built-in `memory` accepts optional file, retained-byte, metadata and total-byte quotas (omitted, `undefined`, or `Infinity` disables each quota); built-in `real` requires `root`. |
+| `createFileSystem(config, { registry })` | Required `config.type`; `config.options` defaults to an empty record. `registry` is required. Built-in `memory` accepts optional file, retained-byte, metadata, total-byte, `maxPathBytes` and `maxPathComponents` quotas (omitted, `undefined`, or `Infinity` disables each quota); built-in `real` requires `root`. |
 | `createNodeFileSystemAdapterRegistry(extensions?)` | Optional map of additional adapter descriptors; defaults to only `memory` and `real`. |
 | Memory / read-only | Memory accepts independent optional `maxFileBytes`, `maxRetainedBytes`, `maxMetadataUnits` and `maxBytes` quotas, all unlimited by default. Read-only takes the backing filesystem, without an options object. |
 | Real | Required `root`: existing absolute host directory; the constructor/factory also accepts the root string directly. |
@@ -276,6 +276,8 @@ Every raw filesystem operation accepts an optional `signal`. Additional fields a
 | `rm` | `recursive` and `force` (default false) |
 | `copyFile` | `exclusive` (default false) |
 | `readStream` | `start` (default 0), `endExclusive` (default end of file), `chunkSize` (built-in default 64 KiB) |
+
+`validatePath(path, { maxPathBytes, maxPathComponents })` accepts optional UTF-8 byte and component quotas; both default to `Infinity`. Memory accepts the same constructor options and counts cumulative symlink expansion. Device operations accept these quotas under `pathLimits`. WebDAV accepts `maxTimestampPropertyBytes` for timestamp metadata, also unlimited by default.
 
 `access` takes a separate mode bitmask from `ACCESS_MODES`. `chmod` takes a mode, `utimes` takes millisecond timestamps, and `truncate` takes a byte length (default 0). For conditional chmod, check `capabilitiesFor(path, { conditionalChmod: true })` (or `capabilities`) and require `conditionalChmod: true`; supply `parent`, `expected`, and complete root-to-parent `ancestors` together. An optional mutation-free `commitGuard` must return literal `true` synchronously. Memory validates at its metadata commit; mount and supported Memory overlays preserve wrapper ancestry. Real uses its existing externally isolated host-tree boundary and does not prevent races with other processes. Backend limits still apply. Node-shaped bridge methods translate their own options rather than accepting these raw option objects; see the [bridge signatures](src/bridge/filesystem.ts).
 

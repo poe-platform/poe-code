@@ -7,7 +7,7 @@ import type {
   ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingCleanup, FileStagingEntry, FileResolutionStep, FileStagingResolution, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
-import { normalizePath } from "../../contracts/virtual-path.js";
+import { normalizePath, validatePath, pathByteLength } from "../../contracts/virtual-path.js";
 import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import type { EntryAuthority } from "../mount/comparison.js";
 import { getOwnedS3Entry } from "../s3/registry.js";
@@ -839,7 +839,7 @@ export class MemoryFileSystem implements FileSystem {
     if (!isStockMemoryMethods(this, missingTargetMethodNames)) return undefined;
     const owner = ownedStores.get(this)!;
     if (path !== "") this.validatePath(path, "realpath");
-    return resolveMissingTarget(owner.root, path || ".", options.signal);
+    return resolveMissingTarget(owner.root, path || ".", options.signal, this.ledger.limits);
   }
 
   async confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
@@ -1075,6 +1075,7 @@ export class MemoryFileSystem implements FileSystem {
   private validatePath(path: string, syscall: string): void {
     if (typeof path !== "string" || path.includes("\0")) this.fail("EINVAL", syscall, path);
     if (path.length === 0) this.fail("ENOENT", syscall, path);
+    if (this.ledger.limits.maxPathBytes !== Infinity || this.ledger.limits.maxPathComponents !== Infinity) validatePath(path, this.ledger.limits);
   }
 
   private permission(node: MemoryNode, mask: number, syscall: string, path: string): void {
@@ -1098,6 +1099,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private resolveNode(path: string, syscall: string, followFinal = true): MemoryNode {
+    if (this.ledger.limits.maxPathBytes !== Infinity || this.ledger.limits.maxPathComponents !== Infinity) validatePath(path, this.ledger.limits);
     const cache = memoryCaches.get(this.ledger)!;
     if (this.symlinkCount === 0 && isCleanAbsolutePath(path)) {
       const fastDir = cache.lastFastDirNode;
@@ -1173,7 +1175,7 @@ export class MemoryFileSystem implements FileSystem {
       }
     }
     // Bound all component arrays allocated by this resolution, including cycles.
-    let remainingPathUnits = 65_536 - path.length;
+    let remainingPathUnits = this.ledger.limits.maxPathBytes - pathByteLength(path);
     if (remainingPathUnits < 0) this.fail("ENAMETOOLONG", syscall, path);
     let initialComponents = 0;
     let inComp = false;
@@ -1181,11 +1183,11 @@ export class MemoryFileSystem implements FileSystem {
       if (path.charCodeAt(i) === 47) inComp = false;
       else if (!inComp) {
         inComp = true;
-        if (++initialComponents > 256) this.fail("ENAMETOOLONG", syscall, path);
+        if (++initialComponents > this.ledger.limits.maxPathComponents) this.fail("ENAMETOOLONG", syscall, path);
       }
     }
-    const pending = path.split("/").filter(Boolean);
-    let remainingComponents = 256 - pending.length;
+    let pending = path.split("/").filter(Boolean);
+    let remainingComponents = this.ledger.limits.maxPathComponents - pending.length;
     if (path.endsWith("/")) pending.push("");
     const stack: { node: MemoryNode; name: string }[] = [{ node: this.root, name: "" }];
     let recordedUnits = 0;
@@ -1224,14 +1226,14 @@ export class MemoryFileSystem implements FileSystem {
       if (options.resolutionSteps) observe(node, [...stack.map(entry => entry.name), component].join("/"));
       if (node.type === "symlink" && (options.followFinal !== false || pending.length > 0)) {
         if (++links > 40) this.fail("ELOOP", syscall, path);
-        if (node.target.length > remainingPathUnits) this.fail("ENAMETOOLONG", syscall, path);
-        remainingPathUnits -= node.target.length;
+        if (pathByteLength(node.target) > remainingPathUnits) this.fail("ENAMETOOLONG", syscall, path);
+        remainingPathUnits -= pathByteLength(node.target);
         const target = node.target.split("/").filter(Boolean);
         if (target.length > remainingComponents) this.fail("ENAMETOOLONG", syscall, path);
         remainingComponents -= target.length;
         if (node.target.endsWith("/")) target.push("");
         if (options.resizeCreate !== undefined && target.at(-1) === "" && pending[0] === "") target.pop();
-        pending.unshift(...target);
+        pending = target.concat(pending);
         if (node.target.startsWith("/")) stack.splice(1);
         continue;
       }
@@ -1247,6 +1249,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private file(path: string, syscall: string): FileNode {
+    if (this.ledger.limits.maxPathBytes !== Infinity || this.ledger.limits.maxPathComponents !== Infinity) validatePath(path, this.ledger.limits);
     if (this.symlinkCount === 0 && path.charCodeAt(0) === 47 && path.length > 1 && path.indexOf("/", 1) === -1 && !path.includes("\0")) {
       const name = path === _lastFileSlice1Path ? _lastFileSlice1Name : (_lastFileSlice1Path = path, _lastFileSlice1Name = path.slice(1));
       if (name !== "." && name !== "..") {
@@ -1504,6 +1507,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   private writeData(path: string, data: Uint8Array, options: WriteFileOptions, syscall: string): FileNode {
+    if (this.ledger.limits.maxPathBytes !== Infinity || this.ledger.limits.maxPathComponents !== Infinity) validatePath(path, this.ledger.limits);
     if (!(data instanceof Uint8Array)) throw new TypeError("Memory files require Uint8Array data");
     const target = this.prepareWrite(path, options, syscall);
     const current = target.location.node as FileNode | undefined;
@@ -1627,6 +1631,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   writeMemoryFileFast(path: string, data: Uint8Array, append: boolean, mode: number): void {
+    if (this.ledger.limits.maxPathBytes !== Infinity || this.ledger.limits.maxPathComponents !== Infinity) validatePath(path, this.ledger.limits);
     const cache = memoryCaches.get(this.ledger)!;
     const syscall = append ? "appendFile" : "writeFile";
     if (
@@ -1858,6 +1863,7 @@ export class MemoryFileSystem implements FileSystem {
   }
 
   writeMemoryFileInDirFast(dirPrefix: string, name: string, data: Uint8Array, append: boolean, mode: number, nameHash?: number): void {
+    if (this.ledger.limits.maxPathBytes !== Infinity || this.ledger.limits.maxPathComponents !== Infinity) validatePath(dirPrefix + name, this.ledger.limits);
     const cache = this._cache;
     if (
       !append &&
@@ -3141,6 +3147,7 @@ export function tryOpenMemoryRedirectHandleSync(
     return undefined;
   }
   signal?.throwIfAborted();
+  validatePath(path, owner.ledger.limits);
   const validMode = (mode & 0o777) === mode
     ? mode
     : (mem as unknown as { mode: (m: number | undefined, f: number, s: string, p: string) => number }).mode(mode, 0o666, "open", path);
@@ -3309,6 +3316,7 @@ export function isCleanAbsolutePath(path: string): boolean {
 export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string, resizeCreate?: boolean): string | undefined {
   const mem = filesystem as MemoryFileSystem;
   if (!ownedStores.has(mem) || mem.symlinkCount !== 0 || !isStockMemoryMethods(mem, deviceFastMethodNames, false)) return undefined;
+  validatePath(path, ownedStores.get(mem)!.ledger.limits);
   if (!isCleanAbsolutePath(path) || path === "/dev" || path.startsWith("/dev/")) return undefined;
   let current: DirectoryNode = (mem as unknown as { root: DirectoryNode }).root;
   let start = 1;
@@ -3452,6 +3460,7 @@ export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path
   const mem = filesystem as MemoryFileSystem;
   const owner = ownedStores.get(mem);
   if (!owner || mem.symlinkCount !== 0 || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
+  validatePath(path, owner.ledger.limits);
   const root: DirectoryNode = (mem as unknown as { root: DirectoryNode }).root;
   if (path === "/") {
     if (((root.mode >> 6) & 4) !== 4) return undefined;
@@ -3535,6 +3544,7 @@ export function tryMkdirMemorySync(
     return false;
   }
   signal?.throwIfAborted();
+  validatePath(path, owner.ledger.limits);
   const validMode = (mem as unknown as { mode: (m: number | undefined, f: number, s: string, p: string) => number }).mode(mode, 0o777, "mkdir", path);
   if (recursive) {
     let current: DirectoryNode = owner.root;
@@ -3590,6 +3600,7 @@ export function tryRmRfMemorySync(
     return false;
   }
   signal?.throwIfAborted();
+  validatePath(path, owner.ledger.limits);
   let current: DirectoryNode = owner.root;
   let start = 1;
   let targetNode: MemoryNode | undefined;

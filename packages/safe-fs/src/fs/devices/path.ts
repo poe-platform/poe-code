@@ -1,6 +1,6 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
-import { MAX_PATH_COMPONENTS, validatePath } from "../../contracts/virtual-path.js";
+import { pathByteLength, validatePath } from "../../contracts/virtual-path.js";
 import { capturePathNamespace, pathNamespace } from "../path-namespace.js";
 import { isCleanAbsolutePath, tryResolveMemoryDevicePath } from "../memory/index.js";
 
@@ -24,18 +24,18 @@ export function lexicalDevicePath(path: string): string {
 }
 
 async function resolveResizeDevicePath(filesystem: FileSystem, path: string, options: FsOptions, create: boolean, namespace: ((path: string) => string) | undefined, traversal?: { virtual: boolean }): Promise<string> {
-  validatePath(path);
+  validatePath(path, options.pathLimits);
   const components = (value: string) => {
     const result = value.split("/").filter(Boolean);
     if (value.endsWith("/")) result.push("");
     return result;
   };
-  const pending = components(path);
-  let remainingComponents = MAX_PATH_COMPONENTS - pending.length;
+  let pending = components(path);
+  let remainingComponents = (options.pathLimits?.maxPathComponents ?? Infinity) - pending.length;
   if (remainingComponents < 0) throw new FsError("ENAMETOOLONG", { path });
   const parts: string[] = [];
   let links = 0;
-  let expanded = path.length;
+  let expanded = pathByteLength(path);
   let boundary: string | undefined;
   while (pending.length) {
     options.signal?.throwIfAborted();
@@ -85,15 +85,15 @@ async function resolveResizeDevicePath(filesystem: FileSystem, path: string, opt
         if (++links > 40) throw new FsError("ELOOP", { path });
         const target = await Reflect.apply(readlink, filesystem, [candidate, options]);
         options.signal?.throwIfAborted();
-        validatePath(target);
-        expanded += target.length;
-        if (expanded > 65536) throw new FsError("ENAMETOOLONG", { path });
+        validatePath(target, options.pathLimits);
+        expanded += pathByteLength(target);
+        if (expanded > (options.pathLimits?.maxPathBytes ?? Infinity)) throw new FsError("ENAMETOOLONG", { path });
         if (target.startsWith("/")) parts.splice(0, parts.length, ...(boundary ?? "/").split("/").filter(Boolean));
         const targetParts = components(target);
         if (targetParts.at(-1) === "" && pending[0] === "") targetParts.pop();
         if (targetParts.length > remainingComponents) throw new FsError("ENAMETOOLONG", { path });
         remainingComponents -= targetParts.length;
-        pending.unshift(...targetParts);
+        pending = targetParts.concat(pending);
         continue;
       }
     }
@@ -122,7 +122,8 @@ function exceedsComponentByteLimit(value: string): boolean {
 
 export async function resolveDevicePath(filesystem: FileSystem, path: string, options: FsOptions, followFinal = true, resizeCreate?: boolean, traversal?: { virtual: boolean }): Promise<string> {
   options.signal?.throwIfAborted();
-  if (Reflect.get(filesystem, pathNamespace) === undefined) {
+  validatePath(path, options.pathLimits);
+  if (options.pathLimits === undefined && Reflect.get(filesystem, pathNamespace) === undefined) {
     const fast = tryResolveMemoryDevicePath(filesystem, path, resizeCreate);
     if (fast !== undefined) return fast;
   }
@@ -133,12 +134,12 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
   options.signal?.throwIfAborted();
   const aliases = typeof lstat === "function";
   if (!aliases && lexical !== nullPath && lexical !== deviceDirectory && lexical !== "/") return lexical;
-  const pending = path.split("/");
-  let remainingComponents = MAX_PATH_COMPONENTS - pending.filter(Boolean).length;
+  let pending = path.split("/");
+  let remainingComponents = (options.pathLimits?.maxPathComponents ?? Infinity) - pending.filter(Boolean).length;
   if (remainingComponents < 0) throw new FsError("ENAMETOOLONG", { path });
   const parts: string[] = [];
   let links = 0;
-  let expanded = path.length;
+  let expanded = pathByteLength(path);
   let absolute = path.startsWith("/");
   let traversalFailure: FsError | undefined;
   let failedDepth = Infinity;
@@ -184,9 +185,9 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
         if (++links > 40) throw new FsError("ELOOP", { path });
         const target = await Reflect.apply(readlink, filesystem, [lookup, options]);
         options.signal?.throwIfAborted();
-        validatePath(target);
-        expanded += target.length;
-        if (expanded > 65536) throw new FsError("ENAMETOOLONG", { path });
+        validatePath(target, options.pathLimits);
+        expanded += pathByteLength(target);
+        if (expanded > (options.pathLimits?.maxPathBytes ?? Infinity)) throw new FsError("ENAMETOOLONG", { path });
         const targetSplit = target.split("/");
         const nonEmptyCount = targetSplit.filter(Boolean).length;
         if (nonEmptyCount > remainingComponents) throw new FsError("ENAMETOOLONG", { path });
@@ -196,7 +197,7 @@ export async function resolveDevicePath(filesystem: FileSystem, path: string, op
           absolute = true;
           failedDepth = Infinity;
         }
-        pending.unshift(...targetSplit);
+        pending = targetSplit.concat(pending);
         continue;
       }
       if (stat && pending.length && stat.type !== "directory") {

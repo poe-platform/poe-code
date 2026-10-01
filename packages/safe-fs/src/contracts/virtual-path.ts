@@ -1,16 +1,38 @@
 import { FsError } from "./errors.js";
 
-export const MAX_PATH_BYTES = 65_536;
-export const MAX_PATH_COMPONENTS = 2048;
+export const MAX_PATH_BYTES = Infinity;
+export const MAX_PATH_COMPONENTS = Infinity;
 
-export function validatePath(path: string, maxComponents = MAX_PATH_COMPONENTS): void {
+export interface PathLimits {
+  readonly maxPathBytes?: number | undefined;
+  readonly maxPathComponents?: number | undefined;
+}
+
+export function pathByteLength(path: string): number {
+  let bytes = 0;
+  for (const point of path) {
+    const code = point.codePointAt(0)!;
+    bytes += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4;
+  }
+  return bytes;
+}
+
+export function validatePath(path: string, limits: PathLimits | number = {}): void {
+  const maxBytes = typeof limits === "number" ? Infinity : limits.maxPathBytes ?? Infinity;
+  const maxComponents = typeof limits === "number" ? limits : limits.maxPathComponents ?? Infinity;
+  for (const value of [maxBytes, maxComponents]) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) {
+      throw new RangeError("Path limits must be nonnegative safe integers or Infinity");
+    }
+  }
   if (typeof path !== "string" || path.includes("\0")) {
     throw new FsError("EINVAL", { syscall: "resolve", message: "paths must be strings without NUL bytes" });
   }
-  if (path.length > MAX_PATH_BYTES) {
+  if (maxBytes !== Infinity && pathByteLength(path) > maxBytes) {
     throw new FsError("ENAMETOOLONG", { syscall: "resolve", path });
   }
-  const limit = Math.min(maxComponents, MAX_PATH_COMPONENTS);
+  if (maxComponents === Infinity) return;
+  const limit = maxComponents;
   let components = 0;
   let inComponent = false;
   for (let i = 0; i < path.length; i++) {

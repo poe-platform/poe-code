@@ -111,6 +111,8 @@ export interface FileSystemCapabilities {
 }
 
 export interface FsOptions {
+  /** Optional virtual device path traversal quotas; disabled by default. */
+  readonly pathLimits?: import("./virtual-path.js").PathLimits;
   readonly signal?: AbortSignal;
 }
 

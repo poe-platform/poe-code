@@ -13,6 +13,8 @@ validation rather than maintaining separate numeric policies.
 
 | Option | Default | Meaning |
 | --- | --- | --- |
+| `maxPathBytes` | Unlimited | UTF-8 bytes admitted by path resolution, including cumulative symlink expansion. |
+| `maxPathComponents` | Unlimited | Path components admitted by resolution, including cumulative symlink expansion. |
 | `maxFileBytes` | Unlimited | Maximum logical size of a file. |
 | `maxRetainedBytes` | Unlimited | Accounted owned buffer capacity and retained strings. |
 | `maxMetadataUnits` | Unlimited | Accounted inodes, names and active handle/stream reservations. |

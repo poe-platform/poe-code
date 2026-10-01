@@ -4,3 +4,5 @@ export {
 export {
   posixPath, basename, dirname, extname, joinPath, isAbsolutePath
 } from "./portable-path.js";
+
+export type { PathLimits } from "./virtual-path.js";

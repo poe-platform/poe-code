@@ -15,6 +15,7 @@ function storage(filesystem: memory.MemoryFileSystem, name: string): Uint8Array 
 
 test("Memory defaults are unlimited, frozen, and shared by constructor and factory", () => {
   assert.deepEqual(memory.defaultMemoryFileSystemLimits, {
+    maxPathBytes: Infinity, maxPathComponents: Infinity,
     maxFileBytes: Infinity, maxRetainedBytes: Infinity, maxMetadataUnits: Infinity,
   });
   assert.ok(Object.isFrozen(memory.defaultMemoryFileSystemLimits));

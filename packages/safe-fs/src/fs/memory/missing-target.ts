@@ -1,3 +1,4 @@
+import { pathByteLength, validatePath, type PathLimits } from "../../contracts/virtual-path.js";
 import { FsError } from "../../contracts/errors.js";
 import type { ErrnoCode } from "../../contracts/errors.js";
 
@@ -46,11 +47,14 @@ function components(path: string, signal?: AbortSignal): Component[] {
   return result;
 }
 
-export function resolveMissingTarget(root: Node, path: string, signal?: AbortSignal): string {
+export function resolveMissingTarget(root: Node, path: string, signal?: AbortSignal, limits: PathLimits = {}): string {
+  validatePath(path, limits);
   const fail = (code: ErrnoCode, failedPath = path): never => {
     throw new FsError(code, { syscall: "realpath", path: failedPath });
   };
   const origin = components(path, signal);
+  let remainingBytes = (limits.maxPathBytes ?? Infinity) - pathByteLength(path);
+  let remainingComponents = (limits.maxPathComponents ?? Infinity) - origin.length;
   const initial: Position = { node: root, name: "" };
   let position = initial;
   let links = 0;
@@ -83,7 +87,10 @@ export function resolveMissingTarget(root: Node, path: string, signal?: AbortSig
       first = false;
       if (node.type === "symlink") {
         if (++links > 40) return fail("ELOOP");
+        validatePath(node.target, { maxPathBytes: remainingBytes, maxPathComponents: remainingComponents });
         const names = components(node.target, signal);
+        remainingBytes -= pathByteLength(node.target);
+        remainingComponents -= names.length;
         if (node.target.endsWith("/")) names.push({ name: ".", start: node.target.length });
         if (node.target.startsWith("/")) position = initial;
         frames.push({ names, next: 0 });

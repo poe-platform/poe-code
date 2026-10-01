@@ -2,6 +2,8 @@ import { readConfigRecord } from "../../config.js";
 
 export interface MemoryFileSystemLimits {
   readonly maxBytes?: number;
+  readonly maxPathBytes: number;
+  readonly maxPathComponents: number;
   readonly maxFileBytes: number;
   readonly maxRetainedBytes: number;
   readonly maxMetadataUnits: number;
@@ -12,13 +14,15 @@ export type MemoryFileSystemOptions = {
 };
 
 export const defaultMemoryFileSystemLimits: Readonly<MemoryFileSystemLimits> = Object.freeze({
+  maxPathBytes: Infinity,
+  maxPathComponents: Infinity,
   maxFileBytes: Infinity,
   maxRetainedBytes: Infinity,
   maxMetadataUnits: Infinity,
 });
 
 export function normalizeMemoryFileSystemLimits(options: unknown): Readonly<MemoryFileSystemLimits> {
-  const keys = ["maxFileBytes", "maxRetainedBytes", "maxMetadataUnits"] as const;
+  const keys = ["maxPathBytes", "maxPathComponents", "maxFileBytes", "maxRetainedBytes", "maxMetadataUnits"] as const;
   const record = readConfigRecord(options, "memory option", [...keys, "maxBytes"]);
   const limits: { -readonly [Key in keyof MemoryFileSystemLimits]: MemoryFileSystemLimits[Key] } = { ...defaultMemoryFileSystemLimits };
   for (const key of [...keys, "maxBytes"] as const) {

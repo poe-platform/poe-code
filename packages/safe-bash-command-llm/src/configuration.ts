@@ -31,7 +31,7 @@ export interface LlmConfiguration {
   resolveKey(keyOrAlias: string): Promise<string>;
 }
 
-export function createLlmConfiguration(context: Context, maxConfigurationBytes = Infinity): LlmConfiguration {
+export function createLlmConfiguration(context: Context, maxConfigurationBytes = Infinity, admission?: { readonly maxBytes?: number; readonly admitBytes?: (size: number) => void }): LlmConfiguration {
   if (maxConfigurationBytes !== Infinity && (!Number.isSafeInteger(maxConfigurationBytes) || maxConfigurationBytes < 0)) throw new TypeError("Invalid llm configuration byte limit");
   const { fs, signal } = context;
   const base = context.env.XDG_CONFIG_HOME ?? `${context.env.HOME ?? "/"}/.config`;
@@ -55,13 +55,17 @@ export function createLlmConfiguration(context: Context, maxConfigurationBytes =
   };
   const read = async (name: string): Promise<string | undefined> => {
     const path = filename(name);
-    if (!await stat(path)) return undefined;
+    const stored = await stat(path);
+    if (!stored) return undefined;
+    const limit = Math.min(maxConfigurationBytes, admission?.maxBytes ?? Infinity);
+    if (stored.size > limit) throw new FsError("EFBIG", {path,message:"LLM configuration byte limit exceeded"});
     const decoder = new TextDecoder("utf-8", { fatal: true });
     let bytes = 0, text = "";
-    const source = fs.readStream?.(path, { signal, chunkSize: 16_384 }) ?? toByteSource(await fs.readFile(path, { signal, ...(maxConfigurationBytes === Infinity ? {} : { maxBytes: maxConfigurationBytes }) }));
+    const source = fs.readStream?.(path, { signal, chunkSize: 16_384 }) ?? toByteSource(await fs.readFile(path, { signal, maxBytes: limit }));
     for await (const chunk of source) {
       signal.throwIfAborted();
-      if (chunk.byteLength > maxConfigurationBytes - bytes) throw new FsError("EFBIG", { path, message: "LLM configuration byte limit exceeded" });
+      if (chunk.byteLength > limit - bytes) throw new FsError("EFBIG", { path, message: "LLM configuration byte limit exceeded" });
+      admission?.admitBytes?.(chunk.byteLength);
       bytes += chunk.byteLength;
       text += decoder.decode(chunk, { stream: true });
     }

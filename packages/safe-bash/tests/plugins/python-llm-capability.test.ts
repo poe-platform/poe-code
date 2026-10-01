@@ -195,7 +195,7 @@ test('large canonical attachments stream bounded chunks with exact bytes and rel
   await partial.return!();
   assert.equal(observed,content.length + 16384);
   assert.equal(closed,2);
-  await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:8,check() {}}},service).call!({operation:'complete',payload},{signal}),/input byte limit/);
+  await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:8 + Buffer.byteLength(JSON.stringify(payload)),check() {}}},service).call!({operation:'complete',payload},{signal}),/input byte limit/);
   assert.equal(closed,3);
 });
 
@@ -245,7 +245,8 @@ test('streamed attachment admission also checks actual read bytes against the ho
   const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['text/plain']}],async *complete() {yield 'wrong path';},async *completeSources(request) {
     for await (const ignoredChunk of request.attachments[0]!.source.bytes) yield 'unexpected';
   }}]});
-  await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:4,check() {}}},service).call!({operation:'complete',payload:{attachments:[{path:'/changed.txt',mimeType:'text/plain'}]}},{signal}),/input byte limit/);
+  const payload = {attachments:[{path:'/changed.txt',mimeType:'text/plain'}]};
+  await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:4 + Buffer.byteLength(JSON.stringify(payload)),check() {}}},service).call!({operation:'complete',payload},{signal}),/input byte limit/);
   assert.equal(closed,1);
 });
 

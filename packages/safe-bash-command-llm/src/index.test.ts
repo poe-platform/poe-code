@@ -48,6 +48,7 @@ test("command limits reject unsafe, fractional and negative values at constructi
   for (const value of [-1, 0.5, -Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createLlmCommand({ providers: [], limits: { maxInputBytes: value } }), /Invalid llm limit/);
     assert.throws(() => createLlmCommand({ providers: [], limits: { maxOutputBytes: value } }), /Invalid llm limit/);
+    assert.throws(() => createLlmCommand({ providers: [], limits: { maxBufferedInputBytes: value } }), /Invalid llm limit/);
   }
 });
 

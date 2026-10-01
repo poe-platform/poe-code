@@ -57,6 +57,8 @@ export interface LlmRequest {
 export interface LlmLimits {
   readonly maxConfigurationBytes?: number;
   readonly maxInputBytes: number;
+  /** Maximum aggregate materialized input bytes; streamed sources use maxInputBytes. */
+  readonly maxBufferedInputBytes?: number;
   readonly maxOutputBytes: number;
 }
 export interface LlmCommandsOptions {

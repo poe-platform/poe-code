@@ -1,3 +1,4 @@
+import { jsonValue } from "./json-value.js";
 import { FsError, type CommandContext } from "safe-bash-contracts";
 import { pathOf } from "safe-bash-contracts/path";
 import { createLlmConfiguration } from "./configuration.js";
@@ -54,13 +55,14 @@ function template(value: unknown, name: string): LlmTemplate {
   }
   return { ...fields, name } as LlmTemplate;
 }
-function interpolate(text: string | undefined, params: Record<string, string>, validateOnly = false): string | undefined {
+function interpolate(text: string | undefined, params: Record<string, string>, validateOnly = false, admitText?: (text: string) => void): string | undefined {
   if (!text) return text;
   let result = "";
+  const append = (value: string): void => { if (!validateOnly) { admitText?.(value); result += value; } };
   const missing: string[] = [];
   for (let index = 0; index < text.length; index++) {
-    if (text[index] !== "$") { if (!validateOnly) result += text[index]; continue; }
-    if (text[index + 1] === "$") { if (!validateOnly) result += "$"; index++; continue; }
+    if (text[index] !== "$") { const point = text.codePointAt(index)!; const literal = String.fromCodePoint(point); append(literal); if (point > 65535) index++; continue; }
+    if (text[index + 1] === "$") { append("$"); index++; continue; }
     const start = index, braced = text[index + 1] === "{";
     if (braced) index++;
     let name = "";
@@ -68,7 +70,7 @@ function interpolate(text: string | undefined, params: Record<string, string>, v
     if (!name || "0123456789".includes(name[0]!) || braced && text[index + 1] !== "}") throw new Error(`Invalid placeholder in template at position ${start}`);
     if (braced) index++;
     if (!Object.hasOwn(params, name)) { if (!missing.includes(name)) missing.push(name); }
-    else if (!validateOnly) result += String(params[name]);
+    else if (!validateOnly) append(String(params[name]));
   }
   if (missing.length) throw new Error(`Missing variables: ${missing.join(", ")}`);
   return result;
@@ -91,13 +93,16 @@ export function llmTemplateUsesInput(value: LlmTemplate): boolean {
   }
   return false;
 }
-export function evaluateLlmTemplate(value: LlmTemplate, input: string, params: Record<string, string>): { prompt: string; system?: string } {
+export function evaluateLlmTemplate(value: LlmTemplate, input: string, params: Record<string, string>, admitText?: (text: string) => void): { prompt: string; system?: string } {
   const variables = { ...value.defaults, ...params, input };
-  return { prompt: value.prompt ? interpolate(value.prompt, variables)! : input, ...(value.system === undefined ? {} : { system: interpolate(value.system, variables)! }) };
+  if (!value.prompt) admitText?.(input);
+  return { prompt: value.prompt ? interpolate(value.prompt, variables, false, admitText)! : input, ...(value.system === undefined ? {} : { system: interpolate(value.system, variables, false, admitText)! }) };
 }
 export type LlmTemplateLoader = ((remainder: string, signal: AbortSignal) => Promise<LlmTemplate> | LlmTemplate) & { readonly description?: string };
 export interface TemplateLoaderOptions {
   readonly maxRemoteBytes: number;
+  readonly maxBytes?: number;
+  readonly admitBytes?: (size: number) => void;
   readonly loaders?: ReadonlyMap<string, LlmTemplateLoader>;
 }
 /** Cancellation settles independently of an injected host operation. */
@@ -136,6 +141,7 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
         const fetch = context.fetch ?? context.capabilities?.fetch;
         if (!fetch) throw new Error("Template URL loading is not configured");
         if (!loaders || loaders.maxRemoteBytes !== Infinity && (!Number.isSafeInteger(loaders.maxRemoteBytes) || loaders.maxRemoteBytes < 1)) throw new Error("Template URL byte limit is not configured");
+        const materializedLimit = loaders.maxBytes ?? Infinity;
         let response: Response | undefined, failed = false;
         let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
         const abort = () => { void reader?.cancel().catch(() => {}); };
@@ -158,6 +164,8 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
             if (next.done) break;
             total += next.value.byteLength;
             if (total > loaders.maxRemoteBytes) throw new RangeError("Template URL exceeds byte limit");
+            if (total > materializedLimit) throw new FsError("EFBIG", {message:"llm buffered input byte limit exceeded"});
+            loaders.admitBytes?.(next.value.byteLength);
             chunks.push(decoder.decode(next.value, { stream: true }));
           }
           chunks.push(decoder.decode());
@@ -198,6 +206,13 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
             try {
               const loaded = await abortLoader(() => loader(name.slice(colon + 1), context.signal), context.signal);
               context.signal.throwIfAborted();
+              const materializedLimit = loaders?.maxBytes ?? Infinity;
+              let loadedBytes = 0;
+              if (loaders?.admitBytes || materializedLimit !== Infinity) for await (const bytes of jsonValue(loaded, context.signal)) {
+                loadedBytes += bytes.byteLength;
+                if (loadedBytes > materializedLimit) throw new FsError("EFBIG", {message:"llm buffered input byte limit exceeded"});
+                loaders?.admitBytes?.(bytes.byteLength);
+              }
               const value = template(loaded, loaded.name);
               Object.defineProperty(value, "functionsTrusted", { value: false });
               return value;
@@ -209,7 +224,10 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
         }
         path = filename(name);
       }
-      const bytes = await context.fs.readFile(path, { signal: context.signal });
+      const size = (await context.fs.stat(path, {signal:context.signal})).size;
+      if (size > (loaders?.maxBytes ?? Infinity)) throw new FsError("EFBIG", {message:"llm buffered input byte limit exceeded"});
+      const bytes = await context.fs.readFile(path, { signal: context.signal, ...(loaders?.maxBytes === undefined || loaders.maxBytes === Infinity ? {} : {maxBytes:loaders.maxBytes}) });
+      loaders?.admitBytes?.(bytes.byteLength);
       return template(parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)), name);
     } catch (error) {
       if (error instanceof FsError && error.code === "ENOENT") throw new Error(`Invalid template: ${name}`);

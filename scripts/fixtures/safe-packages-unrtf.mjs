@@ -32,6 +32,7 @@ try {
   assert.deepEqual(await shell.exec('sdk-unrtf'),cli);
   await fs.writeFile('/--text',new TextEncoder().encode('{\\rtf1 literal}'));
   assert.equal((await shell.exec('unrtf --text -- /--text')).stdout,'literal');
-  assert.equal((await shell.exec('unrtf --latex /document')).exitCode,1);
+  assert.equal((await shell.exec('unrtf --latex /document')).exitCode,0);
+  assert.equal((await shell.exec('unrtf --vt /document')).exitCode,1);
 } finally { await shell.dispose(); }
 console.log('Installed unrtf command identity and CLI/SDK parity passed');

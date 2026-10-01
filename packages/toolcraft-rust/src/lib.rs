@@ -6,6 +6,7 @@ pub mod definitions;
 pub mod host;
 pub mod package_metadata;
 pub mod redaction;
+pub mod runtime_policy;
 pub mod schema_members;
 pub mod schema_scope;
 pub mod sdk_casing;

@@ -264,6 +264,19 @@ Rust, declarations and lint. The existing 128-entry/16,384-wrapper guards remain
 unqualified for engine-specific resource parity. Runtime I/O, assembly, invocation
 and public SDK exports still require porting.
 
+Runtime service admission and approval wiring now use native policies. The
+reserved-name list originates in Rust; the exported mutable Set and original
+diagnostic-list snapshot retain JavaScript behavior. Gated-command traversal,
+strict approval flags and missing-runtime decisions run in Rust, with Node
+preserving iterator closure, changing getters and callback receivers. Filesystem
+promises and environment property access remain host capabilities; injected
+objects retain exact identity. Memfs checks exercise filesystem reads, writes,
+encoding, stat, rename, removal and rejection behavior without writing test files.
+The original runtime-I/O and SDK suites use these adapters. The checkpoint passes
+1,353 reference/parity tests and 74 native Node tests, Rust, declarations and lint.
+Approval providers, persistence and invocation are not yet ported. Native callback
+traversals retain the 128-entry guard pending resource-limit qualification.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

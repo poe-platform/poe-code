@@ -1,5 +1,6 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
 import ts from "typescript";
 
 const path = (value) => fileURLToPath(new URL(value, import.meta.url));
@@ -11,6 +12,11 @@ export default defineConfig({
       name: "toolcraft-rust-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (importer?.startsWith(path("../toolcraft/src/")) && name.startsWith(".")) {
+          const resolved = resolve(dirname(importer), name);
+          if (resolved === path("../toolcraft/src/runtime/io.js")) return path("dist/runtime-io.js");
+          if (resolved === path("../toolcraft/src/human-in-loop/wiring.js")) return path("dist/approval-wiring.js");
+        }
         if (importer?.startsWith(path("../toolcraft/src/")) && name === "toolcraft-schema")
           return path("../toolcraft-schema-rust/dist/index.js");
         if (
@@ -55,6 +61,8 @@ export default defineConfig({
       path("tests/package-metadata-parity.test.ts"),
       path("tests/mcp-result-parity.test.ts"),
       path("tests/source-snippet-parity.test.ts"),
+      path("tests/runtime-io-parity.test.ts"),
+      path("../toolcraft/src/runtime/io.test.ts"),
       ...[...suites, "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "sdk-validation", "sdk-runtime-options"].map((suite) =>
         path(`../toolcraft/src/${suite}.test.ts`)
       )

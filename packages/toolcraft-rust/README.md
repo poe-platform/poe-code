@@ -23,6 +23,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Branch validation | Discriminator selection, exclusive-union matching and branch diagnostics         |
 | Applied defaults | Canonical cloned defaults, original-schema validation and ordered diagnostics     |
 | SDK arguments    | Native casing, nested validation, defaults, aliases and JSON-schema normalization |
+| Runtime wiring   | Reserved service names, injected I/O and approval runtime admission              |
 | Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts
@@ -92,6 +93,8 @@ hidden by scope projection and avoids inserting unused nested defaults.
 The internal SDK argument engine now handles camel-case mapping, all canonical
 schema kinds and native JSON-schema input normalization. Node retains property
 descriptors, getter order, Unicode casing, array methods and diagnostic formatting.
+Runtime service admission and approval wiring use Rust policies. Filesystem
+promises, environment access and supplied runtime callbacks retain Node identity.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The SDK, CLI, transports, approval runtime and

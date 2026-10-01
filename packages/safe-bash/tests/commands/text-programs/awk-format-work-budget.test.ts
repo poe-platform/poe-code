@@ -92,10 +92,10 @@ test("awk implicit formatting preserves numeric and no-argument print fast paths
   assert.equal(result.stdout, "12\n12\n1\nraw\n");
 });
 
-test("awk conversions observe format assignments in later evaluated arguments", async () => {
+test("awk print formats each argument immediately while printf converts after evaluation", async () => {
   const result = await run('BEGIN { print 1.5, (OFMT="%.2f"); printf "%s|%s", 1.5, (CONVFMT="%.3f"); printf "|%s", sprintf("%s", 1.5) }');
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "1.50 %.2f\n1.500|%.3f|1.500");
+  assert.equal(result.stdout, "1.5 %.2f\n1.500|%.3f|1.500");
 });
 
 for (const [program, error] of [

@@ -1492,23 +1492,20 @@ export class AwkRuntime {
     if (statement.kind === "print" && !statement.redirect && !statement.formatted) {
       this.budget.step();
       const args = statement.args;
-      const ofs = args.length ? this.varText("OFS") : "";
-      const ors = this.varText("ORS");
+      const ors = args.length === 0 ? this.varText("ORS") : "";
       if (args.length === 0) {
         const output = this.budget.check(this.record + ors);
         this.stdoutBuffer += output;
         if (this.stdoutBuffer.length >= 16384) return this.flushStdout();
         return undefined;
       }
-      const ofmt = this.varText("OFMT");
-      let acc = "";
+      const parts: string[] = [];
       for (let i = 0; i < args.length; i++) {
         const v = this.scalarExpression(args[i]!);
-        if (v instanceof Promise) return this.executePrintRemainder(args, i, v, acc, ofs, ors, ofmt);
-        const t = text(v, ofmt, this.budget);
-        acc = i === 0 ? t : acc + ofs + t;
+        if (v instanceof Promise) return this.executePrintRemainder(args, i, v, parts);
+        parts.push(text(v, this.varText("OFMT"), this.budget));
       }
-      const output = this.budget.check(acc + ors);
+      const output = this.join(parts, this.varText("OFS"), this.varText("ORS"));
       this.stdoutBuffer += output;
       if (this.stdoutBuffer.length >= 16384) return this.flushStdout();
       return undefined;
@@ -1516,13 +1513,12 @@ export class AwkRuntime {
     return this.execute(statement);
   }
 
-  private async executePrintRemainder(args: readonly Expression[], index: number, pending: Promise<Scalar>, acc: string, ofs: string, ors: string, ofmt: string): Promise<void> {
-    const first = text(await pending, ofmt, this.budget);
-    acc = index === 0 ? first : acc + ofs + first;
+  private async executePrintRemainder(args: readonly Expression[], index: number, pending: Promise<Scalar>, parts: string[]): Promise<void> {
+    parts.push(text(await pending, this.varText("OFMT"), this.budget));
     for (let i = index + 1; i < args.length; i++) {
-      acc += ofs + text(await this.scalarExpression(args[i]!), ofmt, this.budget);
+      parts.push(text(await this.scalarExpression(args[i]!), this.varText("OFMT"), this.budget));
     }
-    this.stdoutBuffer += this.budget.check(acc + ors);
+    this.stdoutBuffer += this.join(parts, this.varText("OFS"), this.varText("ORS"));
     if (this.stdoutBuffer.length >= 16384) await this.flushStdout();
   }
 
@@ -1563,10 +1559,15 @@ export class AwkRuntime {
       case "expression": await this.evaluate(statement.expression); return;
       case "print": {
         const values: Scalar[] = [];
-        for (const argument of statement.args) values.push(await this.scalarExpression(argument));
+        const parts: string[] = [];
+        for (const argument of statement.args) {
+          const value = await this.scalarExpression(argument);
+          if (statement.formatted) values.push(value);
+          else parts.push(text(value, this.varText("OFMT"), this.budget));
+        }
         const output = statement.formatted
           ? this.budget.check(formatted(this.asText(values[0]!), values.slice(1), value => this.asText(value), this.budget))
-          : this.join(values.length ? values.map(value => text(value, this.varText("OFMT"), this.budget)) : [this.record], values.length ? this.varText("OFS") : "", this.varText("ORS"));
+          : this.join(parts.length ? parts : [this.record], parts.length ? this.varText("OFS") : "", this.varText("ORS"));
         if (!statement.redirect) {
           this.stdoutBuffer += output;
           if (this.stdoutBuffer.length >= 16384) await this.flushStdout();

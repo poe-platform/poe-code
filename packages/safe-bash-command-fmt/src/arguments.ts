@@ -13,7 +13,7 @@ function widthValue(text: string, maximum: number, unicode: boolean, profile: Fm
   const start = offset;
   let number = 0;
   while (text.charCodeAt(offset) >= 48 && text.charCodeAt(offset) <= 57) {
-    number = Math.min(1073741824, number * 10 + text.charCodeAt(offset++) - 48);
+    number = number * 10 + text.charCodeAt(offset++) - 48;
   }
   if (offset === start || offset !== text.length || number > maximum) {
     const range = offset === text.length && offset !== start && number > maximum;

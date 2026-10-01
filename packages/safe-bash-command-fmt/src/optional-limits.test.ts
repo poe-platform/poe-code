@@ -9,3 +9,15 @@ test('fmt omitted quotas are unlimited and individual quotas remain independent'
   assert.throws(() => parseFmtArguments([path], { limits: { ...defaultFmtLimits, argumentBytes: 65536 } }), /limit/i);
   validateFmtLimits({ ...defaultFmtLimits, outputBytes: 0 });
 });
+
+test('fmt rejects oversized widths with GNU profile diagnostics without saturating numeric input', () => {
+  const encoder = new TextEncoder();
+  for (const profile of ['gnu-coreutils-9.10-C-bytes', 'gnu-coreutils-8.30-C-bytes'] as const) {
+    for (const width of ['2501', '1073741824', '9007199254740992', '9'.repeat(400)]) {
+      const suffix = profile === 'gnu-coreutils-8.30-C-bytes' && width !== '2501'
+        ? 'Value too large for defined data type' : 'Numerical result out of range';
+      assert.throws(() => parseFmtArguments([encoder.encode(`--width=${width}`)], { profile }),
+        { code: 'WIDTH', message: `invalid width: '${width}': ${suffix}` });
+    }
+  }
+});

@@ -2256,19 +2256,16 @@ async function executePopplerFileTool(
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
     if (res.stdoutBytes) {
-      chargeBytes(res.stdoutBytes.byteLength);
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, res.stdoutBytes, invocation.signal);
     } else if (res.stdout) {
       const outBytes = new TextEncoder().encode(res.stdout);
-      chargeBytes(outBytes.byteLength);
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, outBytes, invocation.signal);
     }
     for (const [key, val] of vfsFiles.entries()) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (key !== "-" && existingSnap.get(key) !== val) {
-        chargeBytes(val.byteLength);
         const abs = resolvePath(context.cwd, key);
         try {
           await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));

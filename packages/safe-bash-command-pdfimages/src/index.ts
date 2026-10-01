@@ -387,7 +387,7 @@ async function executePdfimages(context: CommandContext): Promise<{ exitCode: nu
 
     context.inputBudget?.check(0);
     const existingSnap = new Map(vfsFiles);
-    const res = await runPdfimagesCli(argv, vfsFiles, { onAllocateBytes: chargeBytes, signal: invocation.signal });
+    const res = await runPdfimagesCli(argv, vfsFiles, { signal: invocation.signal });
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }

@@ -964,7 +964,6 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       : parsed.encoding === "UCS-2"
         ? encodeUcs2(res.output)
         : new TextEncoder().encode(res.output);
-    chargeBytes(outBytes.byteLength);
     if (res.outputPath === "-") {
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, outBytes, invocation.signal);
@@ -1475,14 +1474,12 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
     }
     if (res.stdout) {
       const outBytes = new TextEncoder().encode(res.stdout);
-      chargeBytes(outBytes.byteLength);
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, outBytes, invocation.signal);
     }
     for (const [key, val] of vfsFiles.entries()) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (existingSnap.get(key) !== val) {
-        chargeBytes(val.byteLength);
         const abs = resolvePath(context.cwd, key);
         try {
           await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));

@@ -561,7 +561,7 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
 
     context.inputBudget?.check(0);
     const existingSnap = new Map(vfsFiles);
-    const res = await runPdftoppmCli(argv, vfsFiles, { onAllocateBytes: chargeBytes, signal: invocation.signal });
+    const res = await runPdftoppmCli(argv, vfsFiles, { signal: invocation.signal });
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -1043,7 +1043,7 @@ try {
         }
         context.inputBudget?.check(0);
     const existingSnap = new Map(vfsFiles);
-        const res = await runPdftocairoCli(argv, vfsFiles, { onAllocateBytes: chargeBytes, signal: invocation.signal });
+        const res = await runPdftocairoCli(argv, vfsFiles, { signal: invocation.signal });
         if (res.stderr) {
           await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
         }

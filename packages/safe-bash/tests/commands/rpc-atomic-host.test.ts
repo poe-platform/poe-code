@@ -90,7 +90,7 @@ test("RPC retained readers preserve serialized identity and bytes across pathnam
   await assert.rejects(reader.read(0, 1), error => error instanceof FsError && error.code === "EBADF");
 });
 
-test("RPC ZIP input without a retained reader is refused before publication", async context => {
+test("RPC ZIP input without a retained reader uses checked pathname reads", async context => {
   const backend = createMemoryFileSystem();
   await backend.writeFile("/input", Buffer.from("one\ntwo\n"));
   const { fs, calls } = await rpcAdapter(backend);
@@ -102,15 +102,17 @@ test("RPC ZIP input without a retained reader is refused before publication", as
   const shell = new Shell({ fs: limited }).use(archiveCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec("zip /bundle.zip /input");
-  assert.equal(result.exitCode, 2);
-  assert.equal(result.stderr, "zip: ZIP source requires retained reads\n");
-  assert.equal(calls.includes("createStagedFile"), false);
-  assert.equal(calls.includes("publishStagedFile"), false);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(calls.includes("createStagedFile"), true);
+  assert.equal(calls.includes("publishStagedFile"), true);
+  const extracted = await shell.exec("unzip -p /bundle.zip input");
+  assert.equal(extracted.exitCode, 0, extracted.stderr);
+  assert.equal(extracted.stdout, "one\ntwo\n");
   assert.deepEqual(await backend.readFile("/input"), Uint8Array.from(Buffer.from("one\ntwo\n")));
-  assert.deepEqual((await backend.readdir("/")).map(entry => entry.name), ["input"]);
+  assert.deepEqual((await backend.readdir("/")).map(entry => entry.name).sort(), ["bundle.zip", "input"]);
 });
 
-for (const retained of [false, true]) test(`bounded RPC writes and atomic rename alone safely refuse ZIP and csplit, retained=${retained}`, async context => {
+for (const retained of [false, true]) test(`exclusive RPC writes create ZIP but refuse ZIP replacement and csplit, retained=${retained}`, async context => {
   const backend = createMemoryFileSystem();
   await backend.writeFile("/input", Buffer.from("one\ntwo\n"));
   const { fs, readers } = await rpcAdapter(backend);
@@ -125,12 +127,19 @@ for (const retained of [false, true]) test(`bounded RPC writes and atomic rename
   const shell = new Shell({ fs: limited }).use(archiveCommands()).use(csplitCommands());
   context.after(() => shell.dispose());
   const zip = await shell.exec("zip /bundle.zip /input");
-  assert.notEqual(zip.exitCode, 0);
-  assert.match(zip.stderr, retained ? /ZIP publication requires atomic owned file staging/ : /ZIP source requires retained reads/);
+  assert.equal(zip.exitCode, 0, zip.stderr);
+  const original = await backend.readFile("/bundle.zip");
+  const extracted = await shell.exec("unzip -p /bundle.zip input");
+  assert.equal(extracted.exitCode, 0, extracted.stderr);
+  assert.equal(extracted.stdout, "one\ntwo\n");
+  const replacement = await shell.exec("zip /bundle.zip /input");
+  assert.notEqual(replacement.exitCode, 0);
+  assert.match(replacement.stderr, /ZIP publication requires atomic owned file staging/);
+  assert.deepEqual(await backend.readFile("/bundle.zip"), original);
   const split = await shell.exec("csplit /input 2");
   assert.notEqual(split.exitCode, 0);
   assert.match(split.stderr, /atomic output mutations are not supported/);
-  assert.deepEqual((await backend.readdir("/")).map(entry => entry.name), ["input"]);
+  assert.deepEqual((await backend.readdir("/")).map(entry => entry.name).sort(), ["bundle.zip", "input"]);
   assert.equal(readers.size, 0);
 });
 

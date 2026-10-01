@@ -14,20 +14,21 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { collectBytes, toByteSource } from "../../src/contracts/index.js";
 
-test("zip refuses regular source reads without retained-read support", async () => {
+test("zip uses checked pathname reads without retained-read support", async () => {
   const fs = await fixture();
   let pathnameReads = 0;
   const view = new Proxy(fs, { get(target, property) {
     if (property === "capabilitiesFor") return async () => ({ ...fs.capabilities, retainedRead: false });
-    if (property === "readFile" || property === "readStream") return () => { pathnameReads++; throw new Error("unbound source read"); };
+    if (property === "readStream") return (...args: Parameters<NonNullable<FileSystem["readStream"]>>) => { pathnameReads++; return fs.readStream!(...args); };
     const value: unknown = Reflect.get(target, property);
     return typeof value === "function" ? value.bind(target) : value;
   } });
   const result = await execute("zip", view, ["bundle", "binary"]);
-  assert.equal(result.exitCode, 2);
-  assert.match(result.stderr, /ZIP source requires retained reads/);
-  assert.equal(pathnameReads, 0);
-  await assert.rejects(fs.stat("/work/bundle.zip"), { code: "ENOENT" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(pathnameReads, 1);
+  const extracted = await execute("unzip", fs, ["-p", "bundle.zip", "binary"]);
+  assert.equal(extracted.exitCode, 0, extracted.stderr);
+  assert.deepEqual(extracted.stdout, binary);
 });
 
 for (const args of [["bundle", "sub/a"], ["-0", "bundle", "sub/a"], ["-", "sub/a"]]) {

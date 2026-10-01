@@ -1,5 +1,5 @@
 import { retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import { readBytes,type ByteSource,type CommandContext,type FileReadHandle,type FileStaging,type FileStat } from "safe-bash-contracts";
+import { collectBytes,readBytes,type ByteSource,type CommandContext,type FileReadHandle,type FileStaging,type FileStat } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { checkPath,fail,hasIdentity as hasPosixIdentity,sameIdentity as samePosixIdentity,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
 
@@ -112,7 +112,23 @@ export class ZipScope {
   async *input(path: string, fifo = false, expected?: FileStat): ByteSource {
     const { fs } = this.context;
     if (expected) {
-      if (!hasZipIdentity(expected)) fail("ZIP source requires known backing identity");
+      const capabilities = await this.operation(() => fs.capabilitiesFor?.(path, { signal: this.context.signal }) ?? fs.capabilities);
+      if (!hasZipIdentity(expected) || !fs.openReadFile || capabilities.retainedRead !== true) {
+        const { signal } = this.context;
+        const canonical = await this.operation(() => fs.realpath(path, { signal }));
+        const before = await this.operation(() => fs.stat(path, { signal }));
+        if (!unchangedZipSource(expected, before)) fail(`source changed while opening: ${path}`);
+        let size = 0;
+        for await (const bytes of this.input(path)) {
+          if (bytes.length > expected.size - size) fail(`source changed while reading: ${path}`);
+          size += bytes.length;
+          yield bytes;
+        }
+        const current = await this.operation(() => fs.stat(path, { signal }));
+        if (size !== expected.size || !unchangedZipSource(expected, current)
+          || canonical !== await this.operation(() => fs.realpath(path, { signal }))) fail(`source changed while reading: ${path}`);
+        return;
+      }
       const controller = new AbortController();
       const signal = AbortSignal.any([this.context.signal, controller.signal]);
       let handle: FileReadHandle | undefined;
@@ -294,7 +310,20 @@ export async function publishZip(scope: ZipScope, prepared: ZipPublication): Pro
     }
     return;
   }
-  if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.publishStagedFile) fail("ZIP publication requires atomic owned file staging");
+  if ((capabilities.atomicFileStaging !== true && capabilities.trustedOwnedStaging !== true) || !fs.publishStagedFile) {
+    if (prepared.existing || capabilities.exclusiveCreate !== true || prepared.validate || prepared.stagingName !== undefined || prepared.mtimeMs !== undefined) fail("ZIP publication requires atomic owned file staging");
+    // Complete and verify every source before creating a new remote archive.
+    // Exclusive creation preserves a destination that appeared during encoding.
+    const maxBytes = Math.min(scope.limits.maxArchiveBytes, scope.limits.maxBufferedFileBytes);
+    const bytes = prepared.bytes ?? await collectBytes(prepared.source!, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
+    if (bytes.length > maxBytes) fail("buffered archive byte limit exceeded");
+    const parent = await scope.operation(() => fs.realpath(prepared.parentName, { signal }));
+    if (parent !== prepared.parent) fail("archive parent changed before publication");
+    const write = (data: Uint8Array) => scope.operation(() => fs.writeFile(prepared.output, data, { signal, flag: "wx" }));
+    if (prepared.source) await writeFileOutput(scope.context, bytes, write);
+    else await write(bytes);
+    return;
+  }
   await stageZip(scope, {
     ...prepared, reservedPath: prepared.output, parent: prepared.stagingParent ?? prepared.parent, parentStat: prepared.stagingParentStat ?? prepared.parentStat,
   }, async staging => {

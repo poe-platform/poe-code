@@ -1,4 +1,5 @@
 import { utf8ByteLength, utf8Encoder } from "safe-bash-query-engine/bytes";
+import { escapeText } from "safe-bash-contracts/escaping";
 import { decodeFormat, encodeFormat } from "./formats.js";
 import { commandRuntimeIdentity, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { mikeCommandMode, mikeFormat, mikeHelp, mikeUsage, mikeEvalHelp, mikeAllHelp, parseMikeArguments } from "./arguments.js";
@@ -189,12 +190,13 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     if (error instanceof MikeError) {
       const selected = commandMode === "eval-all" ? mikeAllHelp : commandMode === "eval" ? mikeEvalHelp : undefined;
       const usage = selected ? selected.slice(selected.indexOf("Usage:")) + "\n" : mikeUsage;
-      const message = `Error: ${error.message}\n${error.usage ? usage : ""}`;
+      const message = escapeText(`Error: ${error.message}\n${error.usage ? usage : ""}`, "diagnostic");
       await work.write(utf8Encoder.encode(message), true);
       return { exitCode: 1 };
     }
     if (error instanceof FsError) {
-      await work.write(utf8Encoder.encode(utf8ByteLength(error.message) < 65520 ? `Error: ${error.message}\n` : "Error: yq diagnostic exceeds safety limit\n"), true);
+      const message = escapeText(error.message, "diagnostic");
+      await work.write(utf8Encoder.encode(utf8ByteLength(message) < 65520 ? `Error: ${message}\n` : "Error: yq diagnostic exceeds safety limit\n"), true);
       return { exitCode: 1 };
     }
     throw error;

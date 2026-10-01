@@ -5,6 +5,7 @@ import { agentCommands } from "../../src/plugins/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import type { CommandDefinition } from "../../src/contracts/index.js";
 import { createYqCommand } from "safe-bash-command-yq/query";
+import { createYqCommand as createFullYqCommand } from "../../src/commands/yq/index.js";
 import { createXanCommand } from "../../src/commands/xan/index.js";
 import { contractRuntime, execute as runSafeJs, operation } from "./safejs/helpers.js";
 import { run as runCurl } from "./network/helpers.js";
@@ -141,6 +142,16 @@ test("yq renders the full filename without doubling existing diagnostic quoting"
   const display = actual.stderr.slice(actual.stderr.indexOf('"'), actual.stderr.lastIndexOf('"') + 1);
   assert.equal(display, `"/missing-${"\\302\\233".repeat(200)}"`);
 });
+
+for (const [control, display] of [["\u001b", "\\033"], ["\u009b", "\\302\\233"]] as const) {
+  test(`full yq escapes filename control ${display} in diagnostics`, async () => {
+    const name = `/missing-${control}file`;
+    const actual = await run(`yq . ${quote(name)}`, undefined, createFullYqCommand());
+    assert.equal(actual.exitCode, 1);
+    assert.equal(actual.stderr.includes(control), false);
+    assert.equal(actual.stderr.includes(`/missing-${display}file`), true, JSON.stringify(actual.stderr));
+  });
+}
 
 test("program stderr and redirected bytes are not diagnostic display", async () => {
   const actual = await run("printf '\\033\\233\\000' >&2");

@@ -3,7 +3,8 @@ import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { setup } from "./helpers.js";
-import { ShellLimitError } from "../../src/shell/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import { Shell, ShellLimitError } from "../../src/shell/index.js";
 
 for (const ordinary of [false, true]) {
   for (const [body, expected] of [
@@ -60,5 +61,25 @@ for (const ordinary of [false, true]) {
     t.after(() => shell.dispose());
     await assert.rejects(shell.exec(':; f() { :; }; f 1; f 2'),
       error => error instanceof ShellLimitError && error.limit === "maxCommands");
+  });
+}
+
+for (const ordinary of [false, true]) {
+  test(`pure substitution respects the independent function ceiling (${ordinary})`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxFunctionDepth: 1 } });
+    shell.use(standardCommands());
+    if (ordinary) shell.use(async (_context, next) => next());
+    t.after(() => shell.dispose());
+    await assert.rejects(shell.exec('inner() { echo inside; }; outer() { local x=$(inner); echo "$x"; }; outer'),
+      error => error instanceof ShellLimitError && error.limit === 'maxFunctionDepth');
+  });
+}
+
+for (const limit of ['maxFunctionDepth', 'maxSubstitutionDepth'] as const) {
+  test(`pure function bodies respect nested ${limit}`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), limits: { [limit]: limit === 'maxFunctionDepth' ? 1 : 3 } }).use(standardCommands());
+    t.after(() => shell.dispose());
+    await assert.rejects(shell.exec('g() { echo nested; }; f() { echo "${missing:-$(g)}"; }; value=$(f)'),
+      error => error instanceof ShellLimitError && error.limit === limit);
   });
 }

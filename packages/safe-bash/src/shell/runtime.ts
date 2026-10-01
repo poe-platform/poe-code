@@ -31337,6 +31337,7 @@ export class Runtime {
     }
     let fnPositional: string[] | undefined;
     if (rawState.functions.has(w0Plain)) {
+      if (rawState.functionDepth >= this.budget.limits.maxFunctionDepth) return undefined;
       if (rawState.depth + 1 >= this.budget.limits.maxSubstitutionDepth) return undefined;
       const fnBody = rawState.functions.get(w0Plain)!;
       if (fnBody.kind !== "group" || fnBody.redirects.length !== 0) return undefined;

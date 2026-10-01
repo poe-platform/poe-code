@@ -27,7 +27,7 @@ describe("interpreter retained-root accounting", () => {
     "function value(){return 7}return value()",
     "async function value(){return 7}return await value()"
   ])("counts registered roots once when a public run completes: %s", async (source) => {
-    const baseline = new Budget();
+    const baseline = new Budget({ dataSize: Number.MAX_SAFE_INTEGER });
     await run(`retain();${source}`, { budget: baseline, bindings: { retain: () => undefined } });
     const limit = baseline.peakDataSize + 2000;
     const budget = new Budget({ dataSize: limit });
@@ -73,7 +73,8 @@ describe("interpreter retained-root accounting", () => {
     "function value(){return 7}return value()",
     "async function value(){return 7}return await value()"
   ])("counts registered roots once when a guest closure completes: %s", async (source) => {
-    const baseline = new Budget();
+    // Unlimited execution skips AST data checkpoints; calibrate the bounded profile.
+    const baseline = new Budget({ dataSize: Number.MAX_SAFE_INTEGER });
     const baselineRealm = createRealm({ budget: baseline });
     const owner = {};
     baseline.setRetainedValues(owner, () => ["x".repeat(300)]);
@@ -109,7 +110,7 @@ describe("interpreter retained-root accounting", () => {
 
   it("counts registered roots once during object literal coercion", async () => {
     const source = "return Number({valueOf(){return 7}})";
-    const baseline = new Budget();
+    const baseline = new Budget({ dataSize: Number.MAX_SAFE_INTEGER });
     const baselineRealm = createRealm({ budget: baseline });
     const owner = {};
     baseline.setRetainedValues(owner, () => [""]);

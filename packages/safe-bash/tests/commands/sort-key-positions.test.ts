@@ -3,6 +3,28 @@ import test from "node:test";
 import { agentCommands } from "../../src/plugins/index.js";
 import { Shell } from "../../src/shell/shell.js";
 import { chunks, fixture, run } from "./helpers.js";
+import { textCommands } from "../../src/commands/text.js";
+
+test("sort bounds numeric key storage across many requested keys", async context => {
+  const rows = Array.from({ length: 128 }, (_, index) => `${127 - index} value`);
+  let numericEntries = 0;
+  const NativeFloat64Array = globalThis.Float64Array;
+  context.mock.method(globalThis, "Float64Array", new Proxy(NativeFloat64Array, {
+    construct(target, args) {
+      const array = Reflect.construct(target, args) as Float64Array;
+      numericEntries += array.length;
+      return array;
+    },
+  }));
+  const result = await run("sort", Array.from({ length: 129 }, () => "-k1,1n"), {
+    stdin: rows.join("\n") + "\n",
+    commands: textCommands(),
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, rows.reverse().join("\n") + "\n");
+  assert.ok(numericEntries <= 16_384, `retained ${numericEntries} numeric key entries`);
+});
 
 for (const delimiter of ["\n", "\0"]) {
   for (const mode of ["-s", "-u", "-rs", "-ru"]) {

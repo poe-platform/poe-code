@@ -100,25 +100,25 @@ export function requiredFileInput(
     const fastMemFs = (context as {
       _fastMemoryBackingFs?: FileSystem;
       _chargeFastFsOp?: () => void;
-      _cachedInputBudget?: unknown;
     })._fastMemoryBackingFs;
     if (
       fastMemFs !== undefined &&
       fastMemFs.capabilitiesFor === undefined &&
-      (context as { _cachedInputBudget?: unknown })._cachedInputBudget === undefined &&
       !Object.prototype.hasOwnProperty.call(fastMemFs, "readStream") &&
       !Object.prototype.hasOwnProperty.call(fastMemFs, "readFile")
     ) {
       const path = pathOf(context, file);
       if (path !== "/dev" && !path.startsWith("/dev/")) {
+        let bytes: Uint8Array | undefined;
         try {
-          const bytes = tryReadMemoryFileViewSync(fastMemFs, path, undefined, context.signal);
-          if (bytes !== undefined) {
-            (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
-            return createSyncSingleChunkByteSource(bytes, context.signal);
-          }
+          bytes = tryReadMemoryFileViewSync(fastMemFs, path, undefined, context.signal);
         } catch {
           // Fall through to normal path so errors are reported via the stream consumer.
+        }
+        if (bytes !== undefined) {
+          context.inputBudget?.check(bytes.byteLength);
+          (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+          return createSyncSingleChunkByteSource(bytes, context.signal);
         }
       }
     }
@@ -161,9 +161,9 @@ async function* requiredFileInputSlow(
     try {
       for await (const chunk of readBytes(context.fs.readStream(path, { signal: context.signal }), context.signal)) {
         reading = false;
+        context.inputBudget?.check(bytes + chunk.byteLength);
         if (chunk.byteLength > maxBytes - bytes) throw new FsError("EFBIG", { syscall: "read", path, message: "input file byte limit exceeded" });
         bytes += chunk.byteLength;
-        context.inputBudget?.check(bytes);
         if (chunk.byteLength) emitted = true;
         yield chunk;
         reading = true;

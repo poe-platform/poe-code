@@ -1151,6 +1151,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/plugins/qualified-native-peer.test.ts"));
   assert.ok(files.includes("tests/plugins/qualified-native-required-peer.test.ts"));
   assert.ok(files.includes("tests/shell/redirect-limits.test.ts"));
+  assert.ok(files.includes("tests/shell/memory-command-input-limits.test.ts"));
   assert.ok(files.includes("tests/shell/sync-completion-regressions.test.ts"));
   assert.ok(files.includes("tests/shell/opaque-errors.test.ts"));
   assert.ok(files.includes("tests/shell/filesystem-budget.test.ts"));

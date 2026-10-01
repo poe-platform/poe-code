@@ -164,12 +164,10 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   const fastMemFs = (context as {
     _fastMemoryBackingFs?: FileSystem;
     _chargeFastFsOp?: () => void;
-    _cachedInputBudget?: unknown;
   })._fastMemoryBackingFs;
   if (
     !fastMemFs ||
     fastMemFs.capabilitiesFor !== undefined ||
-    (context as { _cachedInputBudget?: unknown })._cachedInputBudget !== undefined ||
     Object.prototype.hasOwnProperty.call(fastMemFs, "readStream") ||
     Object.prototype.hasOwnProperty.call(fastMemFs, "readFile")
   ) {
@@ -183,6 +181,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   } catch {
     return undefined;
   }
+  if (rawBytes !== undefined) context.inputBudget?.check(rawBytes.byteLength);
   if (!rawBytes || rawBytes.byteLength === 0 || rawBytes[0] !== 123 || rawBytes[rawBytes.byteLength - 1] !== 10) {
     return undefined;
   }
@@ -637,33 +636,33 @@ function inputs(
     const fastMemFs = (context as {
       _fastMemoryBackingFs?: FileSystem;
       _chargeFastFsOp?: () => void;
-      _cachedInputBudget?: unknown;
     })._fastMemoryBackingFs;
     if (
       fastMemFs !== undefined &&
       fastMemFs.capabilitiesFor === undefined &&
-      (context as { _cachedInputBudget?: unknown })._cachedInputBudget === undefined &&
       absolute !== "/dev" &&
       !absolute.startsWith("/dev/") &&
       !Object.prototype.hasOwnProperty.call(fastMemFs, "readStream") &&
       !Object.prototype.hasOwnProperty.call(fastMemFs, "readFile")
     ) {
+      let rawBytes: Uint8Array | undefined;
       try {
-        const rawBytes = tryReadMemoryFileViewSync(fastMemFs, absolute, undefined, context.signal);
-        if (rawBytes !== undefined) {
-          const tickPromise = budget.tickSync();
-          if (tickPromise) {
-            return (async function* () {
-              await tickPromise;
-              yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics, retainValues);
-            })();
-          }
-          (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
-          budget.inputLocation = { name: file, line: 0, complete: false };
-          source = createSyncSingleChunkByteSource(rawBytes, context.signal);
-        }
+        rawBytes = tryReadMemoryFileViewSync(fastMemFs, absolute, undefined, context.signal);
       } catch {
         // Fall through to normal path so errors are reported via the stream consumer.
+      }
+      if (rawBytes !== undefined) {
+        context.inputBudget?.check(rawBytes.byteLength);
+        const tickPromise = budget.tickSync();
+        if (tickPromise) {
+          return (async function* () {
+            await tickPromise;
+            yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics, retainValues);
+          })();
+        }
+        (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+        budget.inputLocation = { name: file, line: 0, complete: false };
+        source = createSyncSingleChunkByteSource(rawBytes, context.signal);
       }
     }
     if (source === undefined) {

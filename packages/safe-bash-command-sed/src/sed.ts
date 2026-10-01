@@ -1024,12 +1024,10 @@ function tryExecutePairFastSync(
   const fastMem = (context as {
     _fastMemoryBackingFs?: FileSystem;
     _chargeFastFsOp?: () => void;
-    _cachedInputBudget?: unknown;
   })._fastMemoryBackingFs;
   if (
     !fastMem ||
     fastMem.capabilitiesFor !== undefined ||
-    (context as { _cachedInputBudget?: unknown })._cachedInputBudget !== undefined ||
     Object.prototype.hasOwnProperty.call(fastMem, "readStream") ||
     Object.prototype.hasOwnProperty.call(fastMem, "readFile")
   ) {
@@ -1044,6 +1042,7 @@ function tryExecutePairFastSync(
     console.error('SED_SYNC_ERR:', e);
     return undefined;
   }
+  if (rawBytes !== undefined) context.inputBudget?.check(rawBytes.byteLength);
   if (!rawBytes || rawBytes.byteLength < 256) return undefined;
   const cachedBatch = getCachedLatin1Batch(rawBytes);
   if (!cachedBatch || cachedBatch.lastLineStart !== cachedBatch.text.length || cachedBatch.maxLineLen > budget.maxBufferBytes) {

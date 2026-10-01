@@ -108,11 +108,10 @@ const defaultDateNow = Date.now;
 let fastWriteCachedNow: number = Date.now();
 let fastWriteNowTick = 0;
 
-const lastFastMapMiss: { map: FastDirectoryEntriesMap | undefined; key: string; slot: number } = {
-  map: undefined, key: "", slot: -1,
-};
-
 class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
+  // Keep speculative slots local so a failed write cannot pin a tenant globally.
+  _missKey = "";
+  _missSlot = -1;
   _table: Int16Array | Int32Array = new Int16Array(128).fill(-1);
   _mask = 127;
   _keys: string[] = new Array<string>(64).fill("");
@@ -150,9 +149,8 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   getForWriteWithHash(k: string, h: number): MemoryNode | undefined {
     let slot = h & this._mask;
     if (this.size === 0) {
-      lastFastMapMiss.map = this;
-      lastFastMapMiss.key = k;
-      lastFastMapMiss.slot = slot;
+      this._missKey = k;
+      this._missSlot = slot;
       return undefined;
     }
     const mask = this._mask;
@@ -162,9 +160,8 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
     while (true) {
       const idx = table[slot]!;
       if (idx === -1) {
-        lastFastMapMiss.map = this;
-        lastFastMapMiss.key = k;
-        lastFastMapMiss.slot = firstDeleted !== -1 ? firstDeleted : slot;
+        this._missKey = k;
+        this._missSlot = firstDeleted !== -1 ? firstDeleted : slot;
         return undefined;
       }
       if (idx === -2) {
@@ -212,7 +209,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   private _rebuild(newCap: number): void {
-    if (lastFastMapMiss.map === this) lastFastMapMiss.map = undefined;
+    this._missKey = "";
     const newTableLen = newCap * 2;
     const newMask = newTableLen - 1;
     const newTable = newCap <= 16384 ? new Int16Array(newTableLen).fill(-1) : new Int32Array(newTableLen).fill(-1);
@@ -252,16 +249,16 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   set(k: string, v: MemoryNode): this {
-    if (this === lastFastMapMiss.map && k === lastFastMapMiss.key && this._next < this._keys.length) {
+    if (k === this._missKey && this._next < this._keys.length) {
       const entryIdx = this._next++;
-      this._table[lastFastMapMiss.slot] = entryIdx;
+      this._table[this._missSlot] = entryIdx;
       this._keys[entryIdx] = k;
       this._vals[entryIdx] = v;
       this.size++;
-      lastFastMapMiss.map = undefined;
+      this._missKey = "";
       return this;
     }
-    if (lastFastMapMiss.map === this) lastFastMapMiss.map = undefined;
+    this._missKey = "";
     if (this._next >= this._keys.length) {
       this._rebuild(this.size * 2 <= this._keys.length ? this._keys.length : this._keys.length * 2);
     }
@@ -292,7 +289,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   delete(k: string): boolean {
-    if (lastFastMapMiss.map === this) lastFastMapMiss.map = undefined;
+    this._missKey = "";
     if (this.size === 0) return false;
     let slot = this._hash(k);
     const mask = this._mask;
@@ -319,7 +316,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   clear(): void {
-    if (lastFastMapMiss.map === this) lastFastMapMiss.map = undefined;
+    this._missKey = "";
     if (this._next > 0) {
       this._table.fill(-1);
       for (let i = 0; i < this._next; i++) {
@@ -1816,7 +1813,7 @@ export class MemoryFileSystem implements FileSystem {
         let ino = this.nextInode;
         this.nextInode = ino + batchCount;
         let nextIdx = 1;
-        if (lastFastMapMiss.map === entries) lastFastMapMiss.map = undefined;
+        entries._missKey = "";
         entries._next = 1 + batchCount;
         entries.size = 1 + batchCount;
         const table = entries._table;
@@ -1899,12 +1896,11 @@ export class MemoryFileSystem implements FileSystem {
         node.allocation = DUMMY_POOL_ALLOCATION;
         node.sourceRef = node.data.subarray(0);
         const entryIdx = entries._next++;
-        entries._table[lastFastMapMiss.slot] = entryIdx;
+        entries._table[entries._missSlot] = entryIdx;
         entries._keys[entryIdx] = name;
         entries._vals[entryIdx] = node;
         entries.size++;
-        lastFastMapMiss.map = undefined;
-        lastFastMapMiss.key = "";
+        entries._missKey = "";
         this.ledger.reserve(name.length * 2, 2, "writeFile", name);
         this.totalBytes += length;
         this.mutationTick = (this.mutationTick + 1) | 0;
@@ -2034,11 +2030,7 @@ export class MemoryFileSystem implements FileSystem {
             cache.lastFastFilePath = "";
             cache.lastFastFileName = name;
             cache.lastFastFileNode = node;
-            lastFastMapMiss.map = undefined;
-            lastFastMapMiss.key = "";
           } catch (error) {
-            lastFastMapMiss.map = undefined;
-            lastFastMapMiss.key = "";
             this.ledger.release(nameBytes, 2);
             throw error;
           }
@@ -3243,14 +3235,13 @@ export function tryOpenMemoryRedirectHandleSync(
     }
     const prevNlink = parent.cachedNlinkRev === parent.revision ? parent.cachedNlink : (parent.entries.size === 0 ? 2 : undefined);
     const entries = parent.entries as FastDirectoryEntriesMap;
-    if (lastFastMapMiss.map === entries && lastFastMapMiss.key === name && entries._next < entries._keys.length) {
+    if (entries._missKey === name && entries._next < entries._keys.length) {
       const entryIdx = entries._next++;
-      entries._table[lastFastMapMiss.slot] = entryIdx;
+      entries._table[entries._missSlot] = entryIdx;
       entries._keys[entryIdx] = name;
       entries._vals[entryIdx] = newNode;
       entries.size++;
-      lastFastMapMiss.map = undefined;
-      lastFastMapMiss.key = "";
+      entries._missKey = "";
     } else {
       entries.set(name, newNode);
     }

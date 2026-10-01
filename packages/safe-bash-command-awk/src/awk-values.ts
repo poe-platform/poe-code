@@ -1,4 +1,3 @@
-import { latin1Bytes,latin1Text } from "safe-bash-io-engine/byte-encoding";
 import { ProgramError,type Budget } from "safe-bash-io-engine/commands/text-programs/shared";
 
 export type Scalar = { readonly kind: "number"; readonly number: number }
@@ -13,28 +12,15 @@ const SMALL_NUMERIC_STRINGS: readonly { readonly kind: "numeric"; readonly text:
 const EMPTY_STRING_SCALAR: Scalar = Object.freeze({ kind: "string", text: "" });
 export const SCALAR_ZERO: Scalar = SMALL_NUMERICS[1]!;
 export const SCALAR_ONE: Scalar = SMALL_NUMERICS[2]!;
-const INPUT_STRING_CACHE_KEYS = new Array<string>(64);
-const INPUT_STRING_CACHE_VALS = new Array<Scalar>(64);
-const STRING_SCALAR_CACHE_KEYS = new Array<string>(64);
-const STRING_SCALAR_CACHE_VALS = new Array<Scalar>(64);
 
 export const numeric = (n: number): Scalar =>
   (n | 0) === n && n >= -1 && n <= 4096 && (n !== 0 || !Object.is(n, -0))
     ? SMALL_NUMERICS[n + 1]!
     : { kind: "number", number: n };
 export const string = (text: string): Scalar => {
-  const len = text.length;
-  if (len === 0) return EMPTY_STRING_SCALAR;
-  if (len <= 16) {
-    const slot = ((text.charCodeAt(0) * 31 + text.charCodeAt(len - 1) * 17 + len) & 63);
-    if (STRING_SCALAR_CACHE_KEYS[slot] === text) return STRING_SCALAR_CACHE_VALS[slot]!;
-    // A short substring can otherwise keep its entire input record alive.
-    const flat = text.split("").join("");
-    const val: Scalar = Object.freeze({ kind: "string", text: flat });
-    STRING_SCALAR_CACHE_KEYS[slot] = flat;
-    STRING_SCALAR_CACHE_VALS[slot] = val;
-    return val;
-  }
+  if (text.length === 0) return EMPTY_STRING_SCALAR;
+  // Detach short slices from their input record without retaining tenant data.
+  if (text.length <= 16) text = String.fromCharCode(...Array.from({ length: text.length }, (_, i) => text.charCodeAt(i)));
   return { kind: "string", text };
 };
 
@@ -59,16 +45,7 @@ export function inputValue(text: string): Scalar {
     }
   }
   if (first > 57 || (first < 48 && first !== 32 && first !== 9 && first !== 10 && first !== 13 && first !== 43 && first !== 45 && first !== 46)) {
-    if (len <= 12) {
-      const slot = ((first * 31 + text.charCodeAt(len - 1) * 17 + len) & 63);
-      if (INPUT_STRING_CACHE_KEYS[slot] === text) return INPUT_STRING_CACHE_VALS[slot]!;
-      const flat = latin1Text(latin1Bytes(text));
-      const val: Scalar = Object.freeze({ kind: "string", text: flat });
-      INPUT_STRING_CACHE_KEYS[slot] = flat;
-      INPUT_STRING_CACHE_VALS[slot] = val;
-      return val;
-    }
-    return { kind: "string", text };
+    return string(text);
   }
   return /^[ \t\r\n]*[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?[ \t\r\n]*$/u.test(text)
     ? { kind: "numeric", text, number: Number(text) } : string(text);
@@ -95,19 +72,7 @@ export function inputValueFromSlice(record: string, start: number, end: number):
     }
   }
   if (first > 57 || (first < 48 && first !== 32 && first !== 9 && first !== 10 && first !== 13 && first !== 43 && first !== 45 && first !== 46)) {
-    if (len <= 12) {
-      const slot = ((first * 31 + record.charCodeAt(end - 1) * 17 + len) & 63);
-      const cachedKey = INPUT_STRING_CACHE_KEYS[slot];
-      if (cachedKey !== undefined && cachedKey.length === len && record.startsWith(cachedKey, start)) {
-        return INPUT_STRING_CACHE_VALS[slot]!;
-      }
-      const flat = latin1Text(latin1Bytes(record.slice(start, end)));
-      const val: Scalar = Object.freeze({ kind: "string", text: flat });
-      INPUT_STRING_CACHE_KEYS[slot] = flat;
-      INPUT_STRING_CACHE_VALS[slot] = val;
-      return val;
-    }
-    return { kind: "string", text: record.slice(start, end) };
+    return string(record.slice(start, end));
   }
   return inputValue(record.slice(start, end));
 }

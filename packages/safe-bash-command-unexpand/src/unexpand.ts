@@ -64,12 +64,15 @@ export function createUnexpandWithSettings(limits: StreamFormatLimits): CommandD
     const output = new ByteOutput(session);
     let column = 0, initial = true, active = true;
     let pendingStart = 0, pendingCount = 0, pendingTab = false;
-    const flushBlanksSlow = async (startPos: number, convertSingle: boolean, firstWait: Promise<void>): Promise<void> => {
+    const flushBlanksSlow = async (startPos: number, convertSingle: boolean, firstWait: Promise<void>, stepCharged = false): Promise<void> => {
       await firstWait;
       let position = startPos;
       while (position < column) {
-        const s = session.step();
-        if (s) await s;
+        if (!stepCharged) {
+          const s = session.step();
+          if (s) await s;
+        }
+        stepCharged = false;
         const stop = nextTab(position);
         if (stop !== undefined && stop <= column && (stop - position > 1 || convertSingle)) {
           const b = output.byte(9);
@@ -89,7 +92,7 @@ export function createUnexpandWithSettings(limits: StreamFormatLimits): CommandD
       const convertSingle = initial || pendingCount > 1 || pendingTab;
       while (position < column) {
         const s = session.step();
-        if (s) return flushBlanksSlow(position, convertSingle, s);
+        if (s) return flushBlanksSlow(position, convertSingle, s, true);
         const stop = nextTab(position);
         if (stop !== undefined && stop <= column && (stop - position > 1 || convertSingle)) {
           position = stop;

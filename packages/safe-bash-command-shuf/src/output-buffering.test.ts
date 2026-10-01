@@ -12,7 +12,7 @@ test("public shuf coalesces output and preserves every record", async () => {
     command: "shuf", args: [], cwd: "/", env: { LC_ALL: "C" },
     fs: createMemoryFileSystem(), signal: new AbortController().signal,
     stdin: (async function* () { yield Buffer.from(input); })(),
-    stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+    stdout: { async write(bytes) { chunks.push(bytes); } },
     stderr: { async write(bytes) { stderr += Buffer.from(bytes).toString(); } },
   });
   assert.equal(result.exitCode, 0, stderr);

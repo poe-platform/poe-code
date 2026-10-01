@@ -218,27 +218,37 @@ export function abortManagedController(controller: { readonly signal: AbortSigna
   notifyAbortSignalWaiters(signal, signal.reason);
 }
 
+const externalWaiters = new WeakMap<AbortSignal, {
+  set: Set<AbortSignalWaiter>;
+  listener: () => void;
+}>();
+
 export function addAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignalWaiter): void {
+  if (!isManagedAbortSignal(signal)) {
+    let entry = externalWaiters.get(signal);
+    if (!entry) {
+      const set = new Set<AbortSignalWaiter>();
+      const listener = (): void => {
+        externalWaiters.delete(signal);
+        signal.removeEventListener("abort", listener);
+        const pending = [...set];
+        set.clear();
+        for (const waiter of pending) {
+          if (typeof waiter === "function") waiter(signal.reason);
+          else waiter.onAbort(signal.reason);
+        }
+      };
+      entry = { set, listener };
+      externalWaiters.set(signal, entry);
+      signal.addEventListener("abort", listener, { once: true });
+    }
+    entry.set.add(waiter);
+    return;
+  }
   const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
   const current = record[managedWaitersSymbol];
   if (!current) {
-    if (record[managedSignalSymbol]) {
-      record[managedWaitersSymbol] = waiter;
-      return;
-    }
-    const set = new Set<AbortSignalWaiter>();
-    set.add(waiter);
-    record[managedWaitersSymbol] = set;
-    signal.addEventListener("abort", () => {
-      const reason = signal.reason;
-      const pending = [...set];
-      set.clear();
-      for (let i = 0; i < pending.length; i++) {
-        const w = pending[i]!;
-        if (typeof w === "function") w(reason);
-        else w.onAbort(reason);
-      }
-    }, { once: true });
+    record[managedWaitersSymbol] = waiter;
     return;
   }
   if (typeof current === "function" || "onAbort" in current) {
@@ -254,6 +264,14 @@ export function addAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignalWai
 }
 
 export function removeAbortSignalWaiter(signal: AbortSignal, waiter: AbortSignalWaiter): void {
+  if (!isManagedAbortSignal(signal)) {
+    const entry = externalWaiters.get(signal);
+    if (entry && entry.set.delete(waiter) && entry.set.size === 0) {
+      signal.removeEventListener("abort", entry.listener);
+      externalWaiters.delete(signal);
+    }
+    return;
+  }
   const record = signal as unknown as Record<symbol, AbortSignalWaiterStore>;
   const current = record[managedWaitersSymbol];
   if (!current) return;

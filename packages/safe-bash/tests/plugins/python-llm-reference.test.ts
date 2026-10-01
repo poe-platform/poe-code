@@ -38,6 +38,20 @@ async def check_async():
  assert [chunk async for chunk in response] == ["hel", "lo"]
  assert len(calls) == 3
 asyncio.run(check_async())
+histories.clear()
+conversation = model.conversation()
+first = conversation.prompt("first")
+assert conversation.responses == []
+assert first.conversation is conversation
+assert len(first.id) == 26 and len(conversation.id) == 26
+assert first.text() == "hello"
+assert conversation.responses == [first]
+assert first.text() == "hello"
+assert conversation.responses == [first]
+second = conversation.prompt("second")
+assert second.text() == "hello"
+assert conversation.responses == [first, second]
+assert histories == [[], [("first", "hello")]]
 embedding = llm.get_embedding_model("embed-alias")
 assert embedding.model_id == "embedding"
 assert embedding.embed("one") == [3.0, 1.0]
@@ -56,15 +70,20 @@ print("reference response contract passed")
 const referenceSetup = `
 import asyncio, llm
 calls = []
+histories = []
 class Model(llm.Model):
  model_id = "test-model"
  def execute(self, prompt, stream, response, conversation):
+  if conversation is not None:
+   histories.append([(r.prompt.prompt, r.text()) for r in conversation.responses])
   calls.append(prompt.prompt)
   yield "hel"
   yield "lo"
 class AsyncModel(llm.AsyncModel):
  model_id = "test-model"
  async def execute(self, prompt, stream, response, conversation):
+  if conversation is not None:
+   histories.append([(r.prompt.prompt, r.text()) for r in conversation.responses])
   calls.append(prompt.prompt)
   yield "hel"
   yield "lo"
@@ -91,6 +110,7 @@ exec(bundle["registration"])
 del _safe_llm_source
 assert "llm" not in sys.modules
 calls = []
+histories = []
 embedding_calls = []
 class Bridge:
  async def call(self, operation, payload):
@@ -107,6 +127,8 @@ class Bridge:
   return {"model": "test-model", "text": "hello"}
  def stream(self, payload):
   async def generate():
+   messages = payload["messages"]
+   histories.append([(messages[i]["content"], messages[i+1]["content"]) for i in range(0, len(messages), 2)])
    calls.append(payload["prompt"])
    yield {"type": "text", "text": "hel"}
    yield {"type": "text", "text": "lo"}

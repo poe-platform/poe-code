@@ -3,7 +3,9 @@ export const pythonLlmReferenceModule = /* @__PURE__ */ (() => String.raw`
 """Lazy synchronous and asynchronous model responses backed by JavaScript."""
 import asyncio
 import inspect
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import os
+import time
 import poe_llm as _core
 
 Error = _core.LlmError
@@ -46,8 +48,19 @@ class Prompt:
         self.options = options or {}
 
 
+_last_id = 0
+
+
+def _new_id():
+    global _last_id
+    _last_id = max((int(time.time() * 1000) << 80) | int.from_bytes(os.urandom(10), "big"), _last_id + 1)
+    alphabet = "0123456789abcdefghjkmnpqrstvwxyz"
+    return "".join(alphabet[(_last_id >> shift) & 31] for shift in range(125, -1, -5))
+
+
 class _Response:
     def __init__(self, prompt, model, stream, conversation=None, key=None):
+        self.id = _new_id()
         self.prompt = prompt
         self.model = model
         self.stream = stream
@@ -66,6 +79,8 @@ class _Response:
 
     async def _finish(self):
         self._done = True
+        if self.conversation is not None:
+            self.conversation.responses.append(self)
         await self._close()
         callbacks, self.done_callbacks = self.done_callbacks, []
         for callback in callbacks:
@@ -92,6 +107,14 @@ class _Response:
                 self._client = _core.Client(model=self.model.model_id, key=self._key)
                 values = dict(system=self.prompt.system, options=self.prompt.options,
                               attachments=self.prompt.attachments, schema=self.prompt.schema)
+                if self.conversation is not None:
+                    messages = []
+                    for response in self.conversation.responses:
+                        if response.prompt.system:
+                            messages.append(_core.Message("system", response.prompt.system))
+                        messages.extend((_core.Message("user", response.prompt.prompt or ""),
+                                         _core.Message("assistant", "".join(response._chunks))))
+                    values.update(messages=messages)
                 if not self.stream:
                     response = await self._client.complete(self.prompt.prompt or "", **values)
                     self._metadata(response)
@@ -218,6 +241,10 @@ class Model:
                                schema=schema, options=options), self, stream, key=key)
 
 
+    def conversation(self, tools=None, before_call=None, after_call=None, chain_limit=None):
+        return Conversation(self, tools=tools, before_call=before_call, after_call=after_call, chain_limit=chain_limit)
+
+
 class AsyncModel(Model):
     def prompt(self, prompt=None, *, fragments=None, attachments=None, system=None,
                schema=None, tools=None, tool_results=None, system_fragments=None,
@@ -227,6 +254,36 @@ class AsyncModel(Model):
                                   tool_results=tool_results, system_fragments=system_fragments,
                                   stream=stream, **options)
         return AsyncResponse(response.prompt, self, stream, key=response._key)
+
+
+    def conversation(self, tools=None, before_call=None, after_call=None, chain_limit=None):
+        return AsyncConversation(self, tools=tools, before_call=before_call, after_call=after_call, chain_limit=chain_limit)
+
+
+@dataclass
+class Conversation:
+    model: object
+    id: str = field(default_factory=_new_id)
+    name: object = None
+    responses: list = field(default_factory=list)
+    tools: object = None
+    chain_limit: object = None
+    before_call: object = None
+    after_call: object = None
+
+    def prompt(self, prompt=None, *, fragments=None, attachments=None, system=None,
+               schema=None, tools=None, tool_results=None, system_fragments=None,
+               stream=True, key=None, **options):
+        response = self.model.prompt(prompt, fragments=fragments, attachments=attachments,
+                                     system=system, schema=schema, tools=tools or self.tools,
+                                     tool_results=tool_results, system_fragments=system_fragments,
+                                     stream=stream, key=key, **options)
+        response.conversation = self
+        return response
+
+
+class AsyncConversation(Conversation):
+    pass
 
 
 class UnknownModelError(KeyError):

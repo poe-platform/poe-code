@@ -188,6 +188,7 @@ async function qualifyHostServices(backend, createExecutor) {
       return {metadata:{id:'large-image'}};
     }
     if (request.prompt === 'error-call') throw new Error('private-host-error');
+    if (request.prompt === 'reference-second' && (request.messages.length !== 2 || request.messages[0].content !== 'reference-first' || request.messages[1].content !== 'reference-first')) throw new Error('Reference conversation history changed');
     if (request.prompt === 'library' && (request.options.enabled !== true || request.options.count !== 2 || request.options.nullable !== null)) throw new Error('Typed options were changed');
     if (request.prompt === 'Guest native' && (request.system !== 'guest' || request.options.mode !== 'guest' || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'guest-canonical')) throw new Error('Guest template configuration or canonical path changed');
     if (request.prompt === 'configured' && (request.model !== 'fake' || request.options.mode !== 'override')) throw new Error('Canonical configuration or typed precedence changed');
@@ -290,6 +291,12 @@ except CalledProcessError as error:
  assert error.returncode == 127
 assert call('identity', 'still-live') == 'still-live'
 import llm
+conversation = llm.get_model('fake').conversation()
+first_response = conversation.prompt('reference-first')
+assert conversation.responses == []
+assert first_response.text() == 'reference-first'
+assert conversation.prompt('reference-second').text() == 'reference-second'
+assert len(conversation.responses) == 2
 embedding_model = llm.get_embedding_model('fake')
 assert embedding_model.embed('ordinary') == [1.0, 2.0]
 assert list(embedding_model.embed_multi(iter(['one', 'two', 'three']), batch_size=2)) == [[1.0, 2.0]] * 3
@@ -306,6 +313,10 @@ async def qualify_libraries():
  reference_response = llm.get_async_model('fake').prompt('reference-async')
  assert await reference_response.text() == 'reference-async'
  assert [chunk async for chunk in reference_response] == ['reference-async']
+ async_conversation = llm.get_async_model('fake').conversation()
+ assert await async_conversation.prompt('reference-first').text() == 'reference-first'
+ assert await async_conversation.prompt('reference-second').text() == 'reference-second'
+ assert len(async_conversation.responses) == 2
  async with LlmClient() as client:
   stored_schema = await client.load_schema('unicode')
   assert stored_schema == {'type':'object','properties':{'☃':{'type':'string','description':'🙂'}}}

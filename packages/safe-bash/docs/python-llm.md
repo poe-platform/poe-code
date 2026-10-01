@@ -32,8 +32,15 @@ iterable lazily in batches and yields one vector per input. Binary embedding
 inputs are explicitly unsupported by the shared transport. Embedding catalog
 lookups and calls retain the same host authorization and limits as prompts.
 
+Create an in-memory conversation with `model.conversation()`, then call
+`conversation.prompt(...).text()` for each turn (await the text for async
+models). Completed responses appear in `conversation.responses` once and
+supply structured text history to later turns. Unconsumed prompts and failed
+turns do not enter history. This does not yet qualify persisted conversation
+loading or attachment history.
+
 This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
-attachments, conversations, embedding collections,
+attachments, persisted conversations, embedding collections,
 fragments, tools, persistence and the complete response interface still require
 qualification. The existing `poe_llm` workflow API below remains available during
 that implementation.

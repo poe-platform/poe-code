@@ -27,9 +27,18 @@ test("empty input chunks are bounded work and yield cancellation", async () => {
   const result = await convert(source, { limits: { maxWorkUnits: 20 } });
   assert.equal(result.exitCode, 1); assert.equal(reads, 21); assert.equal(returned, 1);
 });
-test("large parser token and deep nesting refuse without output", async () => {
-  for (const html of ['<a title="' + "x".repeat(100) + '">x</a>', "<!--" + "x".repeat(100) + "-->", "<div>".repeat(10) + "x"]) {
+test("large retained parser token and deep nesting refuse without output", async () => {
+  for (const html of ['<a title="' + "x".repeat(100) + '">x</a>', "<div>".repeat(10) + "x"]) {
     const result = await convert(html, { limits: { maxTokenBytes: 64, maxDepth: 4 } });
+    assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
+  }
+});
+test("discarded comments obey input and work budgets without retaining token bytes", async () => {
+  const html = "<!--" + "x".repeat(100) + "-->";
+  const accepted = await convert(html, { limits: { maxTokenBytes: 64 } });
+  assert.equal(accepted.exitCode, 0); assert.equal(accepted.stdout, "");
+  for (const limits of [{ maxTokenBytes: 64, maxInputBytes: 64 }, { maxTokenBytes: 64, maxWorkUnits: 64 }]) {
+    const result = await convert(html, { limits });
     assert.equal(result.exitCode, 1); assert.equal(result.stdout, "");
   }
 });

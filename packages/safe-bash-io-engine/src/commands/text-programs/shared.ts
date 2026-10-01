@@ -39,11 +39,7 @@ export function write(context: CommandContext, text: string): Promise<void> {
   };
   if (!stdoutSink.isPipeStage) {
     if (len <= 256 && typeof stdoutSink.writeRangeSync === "function") {
-      const buffer = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        buffer[i] = text.charCodeAt(i) & 0xff;
-      }
-      if (stdoutSink.writeRangeSync(buffer, len) !== false) {
+      if (stdoutSink.writeRangeSync(bytes(text), len) !== false) {
         return RESOLVED_VOID_SYNC;
       }
     } else if (typeof stdoutSink.writeSync === "function") {

@@ -365,6 +365,10 @@
     "node": ">=18.18"
   },
   "devDependencies": {
+    "safe-bash-metadata-engine": "*",
+    "safe-bash-command-chmod": "*",
+    "safe-bash-command-stat": "*",
+    "safe-bash-command-mktemp": "*",
     "safe-bash-command-imagemagick": "*",
     "mcp-oauth-server": "*",
     "safe-bash-command-printenv": "*",

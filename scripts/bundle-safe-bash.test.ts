@@ -383,6 +383,12 @@ it("preserves explicitly external private owners before applying browser source 
 it("bundles the complete portable preset with one owned-argument identity", async () => {
   const options = resolveBrowserShellBuild(root);
   expect(options.entryPoints).toEqual({
+    "search.browser": path.join(root, "packages/safe-bash/src/search.ts"),
+    "commands/grep-aliases/index.browser": path.join(root, "packages/safe-bash/src/commands/grep-aliases/index.ts"),
+    ...Object.fromEntries([
+      "metadata", "archive", "table-text", "stream-inspection", "stream-format", "split", "time-env",
+      "tree", "file", "column", "html-to-markdown", "du", "expr", "apply-patch", "chmod", "stat", "mktemp",
+    ].map(name => [`commands/${name}/index.browser`, path.join(root, `packages/safe-bash/src/commands/${name}/index.ts`)])),
     "commands/media/index.browser": path.join(root, "packages/safe-bash/src/commands/media/index.ts"),
     "commands/docx/index.browser": path.join(root, "packages/safe-bash/src/commands/docx/index.ts"),
     "commands/python/index.browser": path.join(root, "packages/safe-bash/src/commands/python/index.ts"),
@@ -718,7 +724,7 @@ it("cancels active custom commands and disposes the shell", async () => {
 });
 
 
-it("portable network factories require transport injection and preserve HTTP header validation", async () => {
+it("portable network factories require an available Fetch or injected transport and validate headers", async () => {
   const consumer = createBrowserProbes();
   expect(await consumer.probeNetwork()).toEqual({ refused: true, valid: 0, invalid: 2, value: 2, multipart: 0, requests: 2, output: [111, 107, 111, 107] });
 });

@@ -7,6 +7,49 @@
         "developmentVersion": "13.0.0"
       },
       "privateWorkspaces": {
+        "safe-bash-metadata-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-chmod": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-metadata-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-stat": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-metadata-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-mktemp": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-metadata-engine": "*"
+          },
+          "portable": true
+        },
         "safe-bash-command-seq": {
           "version": "0.0.1",
           "dependencies": {},
@@ -1743,6 +1786,24 @@
       "browser": "./dist/commands/node/index.browser.js",
       "import": "./dist/commands/node/index.js"
     },
+    "./commands/chmod": {
+      "types": "./dist/commands/chmod/index.d.ts",
+      "workerd": "./dist/commands/chmod/index.browser.js",
+      "browser": "./dist/commands/chmod/index.browser.js",
+      "import": "./dist/commands/chmod/index.js"
+    },
+    "./commands/stat": {
+      "types": "./dist/commands/stat/index.d.ts",
+      "workerd": "./dist/commands/stat/index.browser.js",
+      "browser": "./dist/commands/stat/index.browser.js",
+      "import": "./dist/commands/stat/index.js"
+    },
+    "./commands/mktemp": {
+      "types": "./dist/commands/mktemp/index.d.ts",
+      "workerd": "./dist/commands/mktemp/index.browser.js",
+      "browser": "./dist/commands/mktemp/index.browser.js",
+      "import": "./dist/commands/mktemp/index.js"
+    },
     "./commands/metadata": {
       "types": "./dist/commands/metadata/index.d.ts",
       "workerd": "./dist/commands/metadata/index.browser.js",
@@ -2568,6 +2629,10 @@
     "yaml": "2.9.0"
   },
   "devDependencies": {
+    "safe-bash-metadata-engine": "*",
+    "safe-bash-command-chmod": "*",
+    "safe-bash-command-stat": "*",
+    "safe-bash-command-mktemp": "*",
     "safe-bash-command-imagemagick": "*",
     "safe-bash-command-printenv": "*",
     "@poe-code/media-cli": "*",

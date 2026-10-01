@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { Interpreter } from "safe-bash-query-engine/interpreter";
+import { Budget } from "safe-bash-query-engine/limits";
+import { registerRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { createJqCommand } from "./index.js";
 
 test("jq behavior works through the standalone portable factory", async () => {
@@ -42,3 +45,41 @@ for (const [filter, input, expected] of [
   assert.equal(stdout, expected);
  });
 }
+
+for (const scenario of ["slurp", "fallback", "async output"] as const) test(`jq ${scenario} preserves values and releases reusable state`, async t => {
+ const fs = createMemoryFileSystem();
+ registerRuntimeBackingFileSystem(fs, fs);
+ // Disable the direct byte-view path while retaining the real streaming reader.
+ fs.readFile = fs.readFile.bind(fs);
+ await fs.writeFile("/data.jsonl", new TextEncoder().encode('{"id":1}\n{"id":2}\n{"id":3}\n'));
+ let yielded = false;
+ const tick = Budget.prototype.tickSync;
+ if (scenario === "slurp") t.mock.method(Budget.prototype, "tickSync", function (this: Budget, ...args: Parameters<Budget["tickSync"]>) {
+  if (!yielded) { yielded = true; return Promise.resolve(); }
+  return tick.apply(this, args);
+ });
+ const scratchResults: boolean[] = [];
+ const tryRunSync = Interpreter.prototype.tryRunSync;
+ const attempts = t.mock.method(Interpreter.prototype, "tryRunSync", function (this: Interpreter, ...args: Parameters<Interpreter["tryRunSync"]>) {
+  const result = tryRunSync.apply(this, args);
+  if (result) scratchResults.push(this.getScratchKeys(result[0]!) !== undefined);
+  return result;
+ });
+ const values = createCommandArguments(scenario === "slurp" ? ["-cs", ".", "/data.jsonl"] : scenario === "fallback" ? ["-c", "[.id]"] : ["-cS", "{id: .id}"]);
+ let stdout = "", stderr = "";
+ const result = await createJqCommand().execute({
+  command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+  stdin: toByteSource('{"id":1}\n{"id":2}\n{"id":3}\n'),
+  stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+  stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  signal: new AbortController().signal,
+ });
+ assert.equal(result.exitCode, 0, stderr);
+ assert.equal(stderr, "");
+ assert.equal(stdout, scenario === "slurp" ? '[{"id":1},{"id":2},{"id":3}]\n' : scenario === "fallback" ? '[1]\n[2]\n[3]\n' : '{"id":1}\n{"id":2}\n{"id":3}\n');
+ if (scenario === "slurp") assert.equal(yielded, true);
+ if (scenario === "fallback") assert.equal(attempts.mock.callCount(), 3);
+ if (scenario === "async output") {
+  assert.deepEqual(scratchResults, [true, true, true]);
+ }
+});

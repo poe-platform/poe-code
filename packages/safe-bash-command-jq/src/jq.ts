@@ -687,7 +687,7 @@ function inputs(
       if (tickPromise) {
         return (async function* () {
           await tickPromise;
-          yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics);
+          yield* inputs(context, options, budget, convert, onValue, onChunkEnd, hasPendingDiagnostics, retainValues);
         })();
       }
       context.signal.throwIfAborted();
@@ -874,15 +874,17 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       catch (error) { stdoutWriteFailed = true; throw error; }
     };
     const emitRemainingAsync = async (syncResults: Json[], startIdx: number, initialLast: Json | undefined): Promise<void> => {
-      let invocationLast = initialLast;
-      for (let idx = startIdx; idx < syncResults.length; idx++) {
-        const r = syncResults[idx]!;
-        await publishResult(r);
-        invocationLast = r;
-        status = options.exitStatus ? truth(r) ? 0 : 1 : 0;
-      }
-      if (status < 2 && invocationLast !== undefined) lastTruth = truth(invocationLast);
-      if (diagnostics.length) await flush();
+      try {
+        let invocationLast = initialLast;
+        for (let idx = startIdx; idx < syncResults.length; idx++) {
+          const r = syncResults[idx]!;
+          await publishResult(r);
+          invocationLast = r;
+          status = options.exitStatus ? truth(r) ? 0 : 1 : 0;
+        }
+        if (status < 2 && invocationLast !== undefined) lastTruth = truth(invocationLast);
+        if (diagnostics.length) await flush();
+      } finally { interpreter.releaseScratch(); }
     };
     const emitSyncOrAsync = (input: Json): Promise<void> | void => {
       if (!diagnostics.length && !options.rawOutput0 && interpreter.run === DEFAULT_INTERPRETER_RUN) {
@@ -911,20 +913,6 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
       if (diagnostics.length) await flush();
       status = options.exitStatus ? lastTruth === undefined ? 4 : lastTruth ? 0 : 1 : 0;
       let invocationLast: Json | undefined;
-      if (!options.rawOutput0 && interpreter.run === DEFAULT_INTERPRETER_RUN) {
-        const syncResults = interpreter.tryRunSync(ast, input);
-        if (syncResults !== undefined) {
-          for (let i = 0; i < syncResults.length; i++) {
-            const result = syncResults[i]!;
-            if (!tryPublishSync(result)) await publishResult(result);
-            invocationLast = result;
-            status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
-          }
-          if (status < 2 && invocationLast !== undefined) lastTruth = truth(invocationLast);
-          if (diagnostics.length) await flush();
-          return;
-        }
-      }
       const iterator = interpreter.run(ast, input);
       try {
         while (true) {
@@ -956,12 +944,15 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
           invocationLast = result;
           status = options.exitStatus ? truth(result) ? 0 : 1 : 0;
         }
-      } finally { await iterator.return(undefined); }
+      } finally {
+        try { await iterator.return(undefined); }
+        finally { interpreter.releaseScratch(); }
+      }
       if (status < 2 && invocationLast !== undefined) lastTruth = truth(invocationLast);
       if (diagnostics.length) await flush();
     };
     if (options.nullInput) {
-      await emit(null);
+      await emitSyncOrAsync(null);
       // XML frontends still parse their documents when jq receives null.
       if (convert) for await (const value of inputs(context, options, budget, convert)) budget.value(value);
     }

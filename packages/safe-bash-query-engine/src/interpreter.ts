@@ -86,7 +86,10 @@ export class Interpreter {
   tryRunSync(ast: Ast, input: Json): Json[] | undefined {
     const savedSteps = this.budget.currentSteps;
     const res = this.tryRunSyncInternal(ast, input, true);
-    if (res === undefined) this.budget.restoreSteps(savedSteps);
+    if (res === undefined) {
+      this.budget.restoreSteps(savedSteps);
+      this.releaseScratch();
+    }
     return res;
   }
   tryRunSyncNoScratch(ast: Ast, input: Json): Json[] | undefined {
@@ -118,7 +121,7 @@ export class Interpreter {
         if (!truth(cond)) return EMPTY_RESULTS;
         return this.tryRunSyncInternal(ast.right, input, allowScratch);
       }
-      const leftResults = this.tryRunSyncInternal(ast.left, input, allowScratch);
+      const leftResults = this.tryRunSyncInternal(ast.left, input, false);
       if (!leftResults) return undefined;
       if (leftResults.length === 0) return EMPTY_RESULTS;
       if (leftResults.length === 1) return this.tryRunSyncInternal(ast.right, leftResults[0]!, allowScratch);

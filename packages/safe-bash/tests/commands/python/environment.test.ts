@@ -119,6 +119,121 @@ test('manifest stores own bytes, enforce CAS revisions and reject writes beyond 
   await assert.rejects(store.get('tenant', host), /disposed/);
 });
 
+for (const options of [{}, { maxBytes: Infinity, maxEntries: Infinity }]) {
+  const mode = Object.keys(options).length ? 'explicit Infinity' : 'default limits';
+
+  test(`manifest stores accept more than 1 MiB with ${mode}`, async () => {
+    const store = python.createPythonPackageManifestStore(options);
+    const host = { signal: new AbortController().signal };
+    const manifest = new Uint8Array(1024 * 1024 + 1).fill(42);
+    try {
+      assert.equal(await store.compareAndSet('large', undefined, manifest, host), true);
+      assert.deepEqual((await store.get('large', host))!.bytes, manifest);
+    } finally {
+      store.dispose();
+    }
+  });
+
+  test(`manifest stores retain more than 1,024 scopes with ${mode}`, async () => {
+    const store = python.createPythonPackageManifestStore(options);
+    const host = { signal: new AbortController().signal };
+    const manifest = bytes('[]');
+    try {
+      for (let index = 0; index < 1025; index++) {
+        assert.equal(await store.compareAndSet(String(index), undefined, manifest, host), true);
+      }
+      assert.deepEqual((await store.get('0', host))!.bytes, manifest);
+      assert.deepEqual((await store.get('1024', host))!.bytes, manifest);
+    } finally {
+      store.dispose();
+    }
+  });
+}
+
+test('manifest byte limits account for all scopes and reclaim replaced payloads', async () => {
+  const store = python.createPythonPackageManifestStore({ maxBytes: 4 });
+  const host = { signal: new AbortController().signal };
+  try {
+    assert.equal(await store.compareAndSet('first', undefined, bytes('abc'), host), true);
+    const first = (await store.get('first', host))!;
+    await assert.rejects(store.compareAndSet('second', undefined, bytes('de'), host), /budget/);
+    assert.equal(await store.get('second', host), undefined);
+    assert.deepEqual(await store.get('first', host), first);
+    assert.equal(await store.compareAndSet('first', first.revision, bytes('a'), host), true);
+    assert.equal(await store.compareAndSet('second', undefined, bytes('bcd'), host), true);
+    await assert.rejects(store.compareAndSet('third', undefined, bytes('e'), host), /budget/);
+  } finally {
+    store.dispose();
+  }
+});
+
+test('manifest stores preserve distinct scopes longer than 1,024 characters', async () => {
+  const store = python.createPythonPackageManifestStore();
+  const host = { signal: new AbortController().signal };
+  const prefix = 'x'.repeat(1024);
+  try {
+    for (const suffix of ['a', 'b']) {
+      assert.equal(await store.compareAndSet(prefix + suffix, undefined, bytes(suffix), host), true);
+    }
+    for (const suffix of ['a', 'b']) {
+      assert.deepEqual((await store.get(prefix + suffix, host))!.bytes, bytes(suffix));
+    }
+    await assert.rejects(store.compareAndSet('', undefined, bytes('invalid'), host), TypeError);
+  } finally {
+    store.dispose();
+  }
+});
+
+test('package environments accept long host scope identities without aliasing', async () => {
+  const manifestStore = python.createPythonPackageManifestStore();
+  const scope = 'x'.repeat(1024);
+  const first = python.createPythonPackageEnvironment({ manifestStore, scope: scope + 'a' });
+  const second = python.createPythonPackageEnvironment({ manifestStore, scope: scope + 'b' });
+  const host = context();
+  try {
+    const initial = await first.prepare(host);
+    await first.dispatch('package-commit', [initial.session, ['demo==1']], host);
+    first.finish(initial);
+    const saved = await first.prepare(host);
+    assert.deepEqual(saved.requirements, ['demo==1']);
+    first.finish(saved);
+    const distinct = await second.prepare(host);
+    assert.deepEqual(distinct.requirements, []);
+    second.finish(distinct);
+  } finally {
+    await first.dispose();
+    await second.dispose();
+    manifestStore.dispose();
+  }
+});
+
+test('manifest entry limits reject new scopes without preventing updates or changing revisions', async () => {
+  const store = python.createPythonPackageManifestStore({ maxEntries: 1 });
+  const host = { signal: new AbortController().signal };
+  try {
+    assert.equal(await store.compareAndSet('first', undefined, bytes('a'), host), true);
+    const first = (await store.get('first', host))!;
+    await assert.rejects(store.compareAndSet('second', undefined, bytes('b'), host), /budget/);
+    assert.equal(await store.get('second', host), undefined);
+    assert.deepEqual(await store.get('first', host), first);
+    assert.equal(await store.compareAndSet('first', undefined, bytes('stale'), host), false);
+    assert.equal(await store.compareAndSet('first', first.revision, bytes('updated'), host), true);
+    const updated = (await store.get('first', host))!;
+    assert.notEqual(updated.revision, first.revision);
+    assert.deepEqual(updated.bytes, bytes('updated'));
+  } finally {
+    store.dispose();
+  }
+});
+
+test('manifest limits reject invalid finite values', () => {
+  for (const name of ['maxBytes', 'maxEntries'] as const) {
+    for (const value of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+      assert.throws(() => python.createPythonPackageManifestStore({ [name]: value }), RangeError);
+    }
+  }
+});
+
 test('shared artifact cache owns bytes, enforces its payload budget and has an explicit lifetime', async () => {
   const cache = python.createPythonPackageCache({ maxBytes: 8 });
   const first = bytes('first');

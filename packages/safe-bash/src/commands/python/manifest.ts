@@ -17,9 +17,14 @@ export class PythonPackageConflictError extends Error {
   }
 }
 
-export function createPythonPackageManifestStore(options: { readonly maxBytes?: number } = {}): PythonPackageManifestStore & { dispose(): void } {
-  const maxBytes = options.maxBytes ?? 1048576;
-  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new RangeError('Python manifest maxBytes must be a positive integer');
+export function createPythonPackageManifestStore(options: { readonly maxBytes?: number; readonly maxEntries?: number } = {}): PythonPackageManifestStore & { dispose(): void } {
+  const maxBytes = options.maxBytes ?? Infinity;
+  const maxEntries = options.maxEntries ?? Infinity;
+  for (const [name, value] of Object.entries({ maxBytes, maxEntries })) {
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) {
+      throw new RangeError(`Python manifest ${name} must be a positive safe integer or Infinity`);
+    }
+  }
   const manifests = new Map<string, PythonPackageManifest>();
   let retainedBytes = 0;
   let revision = 0;
@@ -27,7 +32,7 @@ export function createPythonPackageManifestStore(options: { readonly maxBytes?: 
   const check = (scope: string, signal: AbortSignal): void => {
     signal.throwIfAborted();
     if (disposed) throw new Error('Python manifest store is disposed');
-    if (typeof scope !== 'string' || !scope || scope.length > 1024) throw new TypeError('Invalid Python manifest scope');
+    if (typeof scope !== 'string' || !scope) throw new TypeError('Invalid Python manifest scope');
   };
   return {
     async get(scope, { signal }) {
@@ -41,7 +46,7 @@ export function createPythonPackageManifestStore(options: { readonly maxBytes?: 
       if (current?.revision !== expected) return false;
       if (!(bytes instanceof Uint8Array)) throw new TypeError('Python manifest must contain bytes');
       const nextBytes = retainedBytes - (current?.bytes.length ?? 0) + bytes.length;
-      if (nextBytes > maxBytes || (!current && manifests.size >= 1024) || revision >= Number.MAX_SAFE_INTEGER) {
+      if (nextBytes > maxBytes || (!current && manifests.size >= maxEntries) || revision >= Number.MAX_SAFE_INTEGER) {
         throw new RangeError('Python manifest store budget exhausted');
       }
       manifests.set(scope, { revision: String(++revision), bytes: Uint8Array.from(bytes) });

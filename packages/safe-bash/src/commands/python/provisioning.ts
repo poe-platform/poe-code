@@ -83,7 +83,7 @@ function checkSession(session: Session): void {
 /** Trusted host cache; content is rehashed on every read. No runtime or network work at construction. */
 export function createPythonPackageEnvironment(options: PythonPackageOptions = {}): PythonPackageEnvironment {
  if (options.cache && options.cacheDirectory) throw new TypeError('Choose package cache or cacheDirectory, not both');
- if (options.manifestStore && (typeof options.scope !== 'string' || !options.scope.trim() || options.scope.length > 1024)) throw new TypeError('Shared Python manifests require an explicit nonempty scope');
+ if (options.manifestStore && (typeof options.scope !== 'string' || !options.scope.trim())) throw new TypeError('Shared Python manifests require an explicit nonempty scope');
  if (options.scope !== undefined && !options.manifestStore) throw new TypeError('Python scope requires a manifestStore');
  const manifestKey = options.manifestStore ? runtimeKey+'-environment-'+digest(encoder.encode(JSON.stringify(options.scope))) : runtimeKey+'-environment';
  if (options.profile !== undefined && options.profile !== 'documents') throw new TypeError('Unknown Python package profile');

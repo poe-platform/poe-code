@@ -166,6 +166,13 @@ store survives environment/shell disposal, but not process restart; supply a
 durable implementation for persistence across host restarts. No module-global
 interpreter or implicit global tenant registry is created by these helpers.
 
+`createPythonPackageManifestStore()` defaults to unlimited retained payload bytes
+and scope entries. Set `maxBytes` and `maxEntries` to positive safe integers to
+limit the shared store, or explicitly use `Infinity` to disable either quota.
+Replacing a scope reclaims its previous payload bytes and does not consume
+another entry. Rejected writes preserve the stored bytes and revision. Scope
+identities have no length cap; they must still be explicit nonempty strings.
+
 ### Conditional manifest contract
 
 `PythonPackageManifestStore.get(key, { signal })` returns either `undefined` or

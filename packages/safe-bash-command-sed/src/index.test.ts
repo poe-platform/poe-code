@@ -189,3 +189,22 @@ test("sed preserves retained synchronous chunks across multiple flushes", async 
   assert.ok(chunks.length > 1);
   assert.equal(Buffer.concat(chunks).toString(), "first ROW\n".repeat(7000) + "last ROW\n".repeat(7000));
 });
+
+for (const [script, input, expected] of [
+  ["s/(hello) (world)/\\U\\1 \\E\\2/", "hello world\n", "HELLO world\n"],
+  ["s/(HELLO) (WORLD)/\\L\\1 \\E\\2/", "HELLO WORLD\n", "hello WORLD\n"],
+  ["s/(hello) (world)/\\u\\1 \\u\\2/", "hello world\n", "Hello World\n"],
+  ["s/(HELLO) (WORLD)/\\l\\1 \\l\\2/", "HELLO WORLD\n", "hELLO wORLD\n"],
+  ["s/.*/\\U&/", "café\n", "CAFÉ\n"],
+  ["s/a/\\uécole/", "a\n", "École\n"],
+  ["s/a/\\u🦊abc/", "a\n", "🦊abc\n"],
+  ["s/^foo/\\U&/;s/bar/\\u&/", "foo bar\nfoo bar\n", "FOO Bar\nFOO Bar\n"],
+] as const) test(`sed converts replacement case: ${script}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode(input));
+  for (const args of [["-E", script], ["-E", script, "/input"]]) {
+    const result = await run(createSedCommand(), args, input, fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+});

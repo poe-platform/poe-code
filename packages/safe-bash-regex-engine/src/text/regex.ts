@@ -1444,9 +1444,65 @@ export class Pattern {
 
 type ReplacementSyntax = "sed" | "awk";
 
-async function replacementLength(replacement: string, match: Match, budget: Budget, available: number, syntax: ReplacementSyntax): Promise<number> {
+function hasCaseConversion(replacement: string): boolean {
+  return replacement.includes("\\U") || replacement.includes("\\L") || replacement.includes("\\u") || replacement.includes("\\l") || replacement.includes("\\E");
+}
+
+// Stream individual code points so conversion never allocates an unbounded
+// expanded capture, and empty captures preserve a pending one-character mode.
+function* caseReplacement(replacement: string, match: Match, encoding?: "utf8" | "byte"): Generator<string> {
+  const characterAt = (text: string, index: number): string => {
+    if (encoding !== "utf8" || text.charCodeAt(index) < 128) return String.fromCodePoint(text.codePointAt(index)!);
+    const decoded = decodeByteText(text.slice(index, index + 4)).text;
+    return encodeByteText(String.fromCodePoint(decoded.codePointAt(0)!));
+  };
+  let mode = "";
+  let once = "";
+  for (let index = 0; index < replacement.length;) {
+    let piece = characterAt(replacement, index);
+    index += piece.length;
+    if (piece === "&") piece = match.groups[0] ?? "";
+    else if (piece === "\\" && index < replacement.length) {
+      const next = replacement[index++]!;
+      if (next === "U" || next === "L" || next === "E") {
+        mode = next === "E" ? "" : next;
+        once = "";
+        yield "";
+        continue;
+      }
+      if (next === "u" || next === "l") {
+        once = next.toUpperCase();
+        yield "";
+        continue;
+      }
+      piece = next >= "0" && next <= "9" ? match.groups[Number(next)] ?? "" : next === "n" ? "\n" : next === "t" ? "\t" : next;
+    }
+    if (!piece) yield "";
+    for (let offset = 0; offset < piece.length;) {
+      const raw = characterAt(piece, offset);
+      offset += raw.length;
+      const character = encoding === "utf8" ? decodeByteText(raw).text : raw;
+      const conversion = once || mode;
+      once = "";
+      const converted = encoding === "byte" && character.charCodeAt(0) >= 128 ? character
+        : conversion === "U" ? character.toUpperCase() : conversion === "L" ? character.toLowerCase() : character;
+      yield encoding === "utf8" ? encodeByteText(converted) : converted;
+    }
+  }
+}
+
+async function replacementLength(replacement: string, match: Match, budget: Budget, available: number, syntax: ReplacementSyntax, encoding?: "utf8" | "byte"): Promise<number> {
   let length = 0;
   let tokens = 0;
+  if (syntax === "sed" && hasCaseConversion(replacement)) {
+    for (const piece of caseReplacement(replacement, match, encoding)) {
+      if (tokens++ % 256 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      budget.step();
+      if (piece.length > available - length) throw new ProgramError("text buffer limit exceeded");
+      length += piece.length;
+    }
+    return length;
+  }
   for (let index = 0; index < replacement.length; index++) {
     if (tokens++ % 256 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     budget.step();
@@ -1471,9 +1527,20 @@ async function replacementLength(replacement: string, match: Match, budget: Budg
   return length;
 }
 
-async function replacementText(replacement: string, match: Match, buffer: ReplacementBuffer, budget: Budget, syntax: ReplacementSyntax): Promise<void> {
+async function replacementText(replacement: string, match: Match, buffer: ReplacementBuffer, budget: Budget, syntax: ReplacementSyntax, encoding?: "utf8" | "byte"): Promise<void> {
   let literal = 0;
   let tokens = 0;
+  if (syntax === "sed" && hasCaseConversion(replacement)) {
+    let chunk = "";
+    for (const piece of caseReplacement(replacement, match, encoding)) {
+      if (tokens++ % 256 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
+      budget.step();
+      chunk += piece;
+      if (chunk.length >= 1024) { await buffer.append(chunk); chunk = ""; }
+    }
+    await buffer.append(chunk);
+    return;
+  }
   for (let index = 0; index < replacement.length; index++) {
     if (tokens++ % 256 === 0) await (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     budget.step();
@@ -1524,6 +1591,7 @@ function getSimpleReplacement(replacement: string, syntax: ReplacementSyntax): S
     SIMPLE_REPLACEMENT_CACHE.set(key, res);
     return res;
   }
+  if (syntax === "sed" && hasCaseConversion(replacement)) { SIMPLE_REPLACEMENT_CACHE.set(key, null); return null; }
   if (syntax === "sed") {
     let prefix = "";
     let mid = "";
@@ -1713,7 +1781,7 @@ export function trySubstituteSync(
   occurrence = 1,
   syntax: ReplacementSyntax = "sed",
 ): { text: string; count: number } | Promise<{ text: string; count: number }> {
-  if (pattern.canFindSync() && text.length <= 4096 && replacement.length <= 256) {
+  if (pattern.canFindSync() && text.length <= 4096 && replacement.length <= 256 && !(syntax === "sed" && hasCaseConversion(replacement))) {
     let search = 0;
     let consumed = 0;
     let previousEnd = -1;
@@ -1822,6 +1890,7 @@ export async function substitute(text: string, pattern: Pattern, replacement: st
   let previousEnd = -1;
   let encountered = 0;
   let count = 0;
+  const encoding = pattern instanceof BytePattern ? pattern.usesUnicode(budget) ? "utf8" : "byte" : undefined;
   const result = new ReplacementBuffer(budget);
   try {
     while (search <= text.length) {
@@ -1834,10 +1903,10 @@ export async function substitute(text: string, pattern: Pattern, replacement: st
       if (encountered >= occurrence) {
         const prefix = match.start - consumed;
         result.admit(prefix);
-        const length = await replacementLength(replacement, match, budget, result.remaining - prefix, syntax);
+        const length = await replacementLength(replacement, match, budget, result.remaining - prefix, syntax, encoding);
         result.admit(prefix + length);
         await result.append(text, consumed, match.start);
-        await replacementText(replacement, match, result, budget, syntax);
+        await replacementText(replacement, match, result, budget, syntax, encoding);
         consumed = match.end; count++;
         if (!global) break;
       }
@@ -2238,7 +2307,7 @@ export class BytePattern extends Pattern {
     this.unicode = new Pattern(decodeByteText(source).text, ...settings);
   }
 
-  private usesUnicode(budget: object): boolean {
+  usesUnicode(budget: object): boolean {
     const owner = budget as { regexByteMode?: boolean; context?: { env?: Readonly<Record<string, string | undefined>> } };
     if (owner.regexByteMode) return false;
     const env = owner.context?.env;

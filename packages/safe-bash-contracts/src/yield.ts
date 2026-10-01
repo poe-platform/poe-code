@@ -9,10 +9,13 @@ export type TurnHandle =
   | { kind: "immediate"; value: unknown }
   | { kind: "timeout"; value: ReturnType<typeof setTimeout> };
 const checkpointSymbol = Symbol("safe-bash.yieldCheckpoint");
-const externalCheckpointSymbol = Symbol("safe-bash.externalYieldCheckpoint");
 const signalYieldStateSymbol = Symbol("safe-bash.signalYieldState");
-const checkpoints = new WeakMap<AbortSignal, () => void>();
-const externalCheckpoints = new WeakSet<AbortSignal>();
+interface Checkpoints {
+  internal?: () => void;
+  external?: () => void;
+}
+
+const checkpoints = new WeakMap<AbortSignal, Checkpoints>();
 let checkpointCount = 0;
 let externalCheckpointCount = 0;
 
@@ -23,28 +26,21 @@ interface SignalYieldState {
 
 const signalYieldStates = new WeakMap<AbortSignal, SignalYieldState>();
 
-function getCheckpoint(signal: AbortSignal): (() => void) | undefined {
-  return (signal as unknown as Record<symbol, (() => void) | undefined>)[checkpointSymbol] ?? checkpoints.get(signal);
+function getCheckpoints(signal: AbortSignal): Checkpoints | undefined {
+  return (signal as unknown as Record<symbol, Checkpoints | undefined>)[checkpointSymbol] ?? checkpoints.get(signal);
 }
 
-function setCheckpoint(signal: AbortSignal, fn: () => void): void {
+function ensureCheckpoints(signal: AbortSignal): Checkpoints {
+  const existing = getCheckpoints(signal);
+  if (existing) return existing;
+  const state: Checkpoints = {};
   if (Object.isExtensible(signal)) {
-    (signal as unknown as Record<symbol, () => void>)[checkpointSymbol] = fn;
+    (signal as unknown as Record<symbol, Checkpoints>)[checkpointSymbol] = state;
   } else {
-    checkpoints.set(signal, fn);
+    checkpoints.set(signal, state);
   }
-}
-
-function isExternalCheckpoint(signal: AbortSignal): boolean {
-  return Boolean((signal as unknown as Record<symbol, unknown>)[externalCheckpointSymbol]) || externalCheckpoints.has(signal);
-}
-
-function markExternalCheckpoint(signal: AbortSignal): void {
-  if (Object.isExtensible(signal)) {
-    (signal as unknown as Record<symbol, boolean>)[externalCheckpointSymbol] = true;
-  } else {
-    externalCheckpoints.add(signal);
-  }
+  checkpointCount++;
+  return state;
 }
 
 function getSignalYieldState(signal: AbortSignal): SignalYieldState {
@@ -80,50 +76,44 @@ export function monotonicNow(): number {
 }
 
 export function registerYieldCheckpoint(signal: AbortSignal, checkpoint: () => void): void {
-  setCheckpoint(signal, checkpoint);
-  markExternalCheckpoint(signal);
-  checkpointCount++;
+  ensureCheckpoints(signal).external = checkpoint;
   externalCheckpointCount++;
 }
 
 export function registerInternalYieldCheckpoint(signal: AbortSignal, checkpoint: () => void): void {
-  const existing = getCheckpoint(signal);
-  if (existing && isExternalCheckpoint(signal)) {
-    setCheckpoint(signal, () => {
-      checkpoint();
-      existing();
-    });
-  } else if (!existing) {
-    setCheckpoint(signal, checkpoint);
-    checkpointCount++;
-  }
+  ensureCheckpoints(signal).internal = checkpoint;
 }
 
 export function runYieldCheckpoint(signal?: AbortSignal): void | Promise<void> {
   if (!signal) return;
   if (signal.aborted) throw signal.reason;
-  if (checkpointCount > 0) getCheckpoint(signal)?.();
+  if (checkpointCount === 0) return;
+  const state = getCheckpoints(signal);
+  state?.internal?.();
+  state?.external?.();
 }
 
 export function hasYieldCheckpoint(signal?: AbortSignal): boolean {
-  return externalCheckpointCount > 0 && signal !== undefined && isExternalCheckpoint(signal);
+  return externalCheckpointCount > 0 && signal !== undefined && getCheckpoints(signal)?.external !== undefined;
 }
 
 export function hasRegisteredYieldCheckpoint(signal?: AbortSignal): boolean {
-  return checkpointCount > 0 && signal !== undefined && getCheckpoint(signal) !== undefined;
+  return checkpointCount > 0 && signal !== undefined && getCheckpoints(signal) !== undefined;
 }
 
 export function inheritYieldCheckpoint(parent: AbortSignal, child: AbortSignal): void {
   if (checkpointCount === 0) return;
-  const checkpoint = getCheckpoint(parent);
-  if (checkpoint && getCheckpoint(child) !== checkpoint) {
-    setCheckpoint(child, checkpoint);
-    checkpointCount++;
-  }
-  if (externalCheckpointCount > 0 && isExternalCheckpoint(parent)) {
-    markExternalCheckpoint(child);
+  const state = getCheckpoints(parent);
+  if (!state || parent === child) return;
+  // Copy callbacks, not mutable state: replacing a child's budget must not
+  // replace its parent's active budget.
+  const inherited = ensureCheckpoints(child);
+  if (state.internal) inherited.internal = state.internal;
+  else delete inherited.internal;
+  if (state.external) {
+    inherited.external = state.external;
     externalCheckpointCount++;
-  }
+  } else delete inherited.external;
 }
 
 export function scheduleTurn(callback: () => void): TurnHandle {
@@ -140,7 +130,7 @@ export function cancelTurn(handle: TurnHandle | undefined): void {
 
 export function yieldTurn(signal?: AbortSignal): Promise<void> {
   signal?.throwIfAborted();
-  if (signal) getCheckpoint(signal)?.();
+  runYieldCheckpoint(signal);
   return new Promise<void>((resolve, reject) => {
     const host = globalThis as ImmediateHost;
     let immediateHandle: unknown;

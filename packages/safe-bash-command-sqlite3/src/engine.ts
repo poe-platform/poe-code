@@ -410,6 +410,45 @@ export type ExprNode =
     }
   | { kind: "subquery"; sql: string; exists?: boolean; notExists?: boolean };
 
+interface ExprEvaluation {
+  group: Record<string, SqlValue>[];
+  window?: { rowIdx: number; results: Map<ExprNode, SqlValue[]> };
+}
+
+function isAggregateFunction(expr: ExprNode): boolean {
+  if (expr.kind !== "func" || expr.over) return false;
+  const name = expr.name.toUpperCase();
+  return ["COUNT", "SUM", "TOTAL", "AVG", "MIN", "MAX", "GROUP_CONCAT", "STRING_AGG", "JSON_GROUP_ARRAY", "JSON_GROUP_OBJECT"].includes(name)
+    && !((name === "MIN" || name === "MAX") && expr.args.length > 1);
+}
+
+function expressionChildren(expr: ExprNode): ExprNode[] {
+  switch (expr.kind) {
+    case "unary":
+    case "collate":
+    case "is_null":
+    case "cast":
+    case "in_subquery":
+      return [expr.expr];
+    case "binary":
+      return [expr.left, expr.right];
+    case "between":
+      return [expr.expr, expr.low, expr.high];
+    case "in_list":
+      return [expr.expr, ...expr.list];
+    case "func":
+      return expr.args;
+    case "case":
+      return [
+        ...(expr.base ? [expr.base] : []),
+        ...expr.branches.flatMap((branch) => [branch.when, branch.then]),
+        ...(expr.elseExpr ? [expr.elseExpr] : [])
+      ];
+    default:
+      return [];
+  }
+}
+
 function reconstructTokensSql(tokens: Token[]): string {
   let out = "";
   for (let i = 0; i < tokens.length; i += 1) {
@@ -4420,17 +4459,11 @@ export class SqliteDatabase {
           for (const st of selectTargets) {
             yield;
             if (!(st.alias in repCtx)) {
-              repCtx[st.alias] = yield* this.evalExprWithAgg(
-                st.expr,
-                g.representative,
-                g.group,
-                positionalParams,
-                cteScope
-              );
+              repCtx[st.alias] = yield* this.evalExprSteps(st.expr, g.representative, positionalParams, cteScope, { group: g.group });
             }
           }
           return isTruthy(
-            yield* this.evalExprWithAgg(havingExpr, repCtx, g.group, positionalParams, cteScope)
+            yield* this.evalExprSteps(havingExpr, repCtx, positionalParams, cteScope, { group: g.group })
           );
         }, this);
       }
@@ -4461,14 +4494,9 @@ export class SqliteDatabase {
     }[] = yield* stepMap(groupedRows, function* (g, rowIdx) {
       const repCtx = { ...g.representative };
       const values = yield* stepMap(selectTargets, function* (st) {
-        const val = yield* this.evalExprWithAggAndWindow(
-          st.expr,
-          repCtx,
-          g.group,
-          rowIdx,
-          windowResults,
-          positionalParams,
-          cteScope
+        const val = yield* this.evalExprSteps(
+          st.expr, repCtx, positionalParams, cteScope,
+          { group: g.group, window: { rowIdx: rowIdx, results: windowResults } }
         );
         if (!(st.alias in repCtx)) {
           repCtx[st.alias] = val;
@@ -4532,20 +4560,8 @@ export class SqliteDatabase {
             vA = a.values[colIdx] ?? null;
             vB = b.values[colIdx] ?? null;
           } else {
-            vA = yield* this.evalExprWithAgg(
-              spec.expr,
-              a.ctx,
-              a.group,
-              positionalParams,
-              cteScope
-            );
-            vB = yield* this.evalExprWithAgg(
-              spec.expr,
-              b.ctx,
-              b.group,
-              positionalParams,
-              cteScope
-            );
+            vA = yield* this.evalExprSteps(spec.expr, a.ctx, positionalParams, cteScope, { group: a.group });
+            vB = yield* this.evalExprSteps(spec.expr, b.ctx, positionalParams, cteScope, { group: b.group });
           }
 
           if (vA === null && vB === null) {
@@ -5450,49 +5466,8 @@ export class SqliteDatabase {
   }
 
   private containsAggregate(expr: ExprNode): boolean {
-    if (expr.kind === "func") {
-      if (expr.over) {
-        return false; // Window functions are evaluated after grouping
-      }
-      const u = expr.name.toUpperCase();
-      if (
-        [
-          "COUNT",
-          "SUM",
-          "TOTAL",
-          "AVG",
-          "MIN",
-          "MAX",
-          "GROUP_CONCAT",
-          "STRING_AGG",
-          "JSON_GROUP_ARRAY",
-          "JSON_GROUP_OBJECT"
-        ].includes(u)
-      ) {
-        if ((u === "MIN" || u === "MAX") && expr.args.length > 1) {
-          return expr.args.some((a) => this.containsAggregate(a));
-        }
-        return true;
-      }
-      return expr.args.some((a) => this.containsAggregate(a));
-    }
-    if (expr.kind === "unary") {
-      return this.containsAggregate(expr.expr);
-    }
-    if (expr.kind === "binary") {
-      return this.containsAggregate(expr.left) || this.containsAggregate(expr.right);
-    }
-    if (expr.kind === "case") {
-      return (
-        (expr.base ? this.containsAggregate(expr.base) : false) ||
-        expr.branches.some((b) => this.containsAggregate(b.when) || this.containsAggregate(b.then)) ||
-        (expr.elseExpr ? this.containsAggregate(expr.elseExpr) : false)
-      );
-    }
-    if (expr.kind === "cast") {
-      return this.containsAggregate(expr.expr);
-    }
-    return false;
+    if (expr.kind === "func" && expr.over) return false;
+    return isAggregateFunction(expr) || expressionChildren(expr).some((child) => this.containsAggregate(child));
   }
 
   private *collectWindowExprs(
@@ -5503,45 +5478,12 @@ export class SqliteDatabase {
     out: Map<ExprNode, SqlValue[]>
   ): SqlSteps<void> {
     if (expr.kind === "func" && expr.over) {
-      const values = yield* this.evaluateWindowFunc(
-        expr,
-        groupedRows,
-        positionalParams,
-        cteScope
-      );
-      out.set(expr, values);
+      out.set(expr, yield* this.evaluateWindowFunc(expr, groupedRows, positionalParams, cteScope));
       return;
     }
-    if (expr.kind === "unary") {
-      yield* this.collectWindowExprs(expr.expr, groupedRows, positionalParams, cteScope, out);
-    } else if (expr.kind === "binary") {
-      yield* this.collectWindowExprs(expr.left, groupedRows, positionalParams, cteScope, out);
-      yield* this.collectWindowExprs(expr.right, groupedRows, positionalParams, cteScope, out);
-    } else if (expr.kind === "func") {
-      for (const a of expr.args) {
-        yield;
-        yield* this.collectWindowExprs(a, groupedRows, positionalParams, cteScope, out);
-      }
-    } else if (expr.kind === "case") {
-      if (expr.base) {
-        yield* this.collectWindowExprs(expr.base, groupedRows, positionalParams, cteScope, out);
-      }
-      for (const b of expr.branches) {
-        yield;
-        yield* this.collectWindowExprs(b.when, groupedRows, positionalParams, cteScope, out);
-        yield* this.collectWindowExprs(b.then, groupedRows, positionalParams, cteScope, out);
-      }
-      if (expr.elseExpr) {
-        yield* this.collectWindowExprs(
-          expr.elseExpr,
-          groupedRows,
-          positionalParams,
-          cteScope,
-          out
-        );
-      }
-    } else if (expr.kind === "cast") {
-      yield* this.collectWindowExprs(expr.expr, groupedRows, positionalParams, cteScope, out);
+    for (const child of expressionChildren(expr)) {
+      yield;
+      yield* this.collectWindowExprs(child, groupedRows, positionalParams, cteScope, out);
     }
   }
 
@@ -5560,13 +5502,7 @@ export class SqliteDatabase {
       const g = groupedRows[i]!;
       const pKey = serializeSqlJson(
         yield* stepMap(over.partitionBy, function* (pe) {
-          return yield* this.evalExprWithAgg(
-            pe,
-            g.representative,
-            g.group,
-            positionalParams,
-            cteScope
-          );
+          return yield* this.evalExprSteps(pe, g.representative, positionalParams, cteScope, { group: g.group });
         }, this),
         false
       );
@@ -5588,20 +5524,8 @@ export class SqliteDatabase {
           const gB = groupedRows[iB]!;
           for (const ob of over.orderBy) {
             yield;
-            const vA = yield* this.evalExprWithAgg(
-              ob.expr,
-              gA.representative,
-              gA.group,
-              positionalParams,
-              cteScope
-            );
-            const vB = yield* this.evalExprWithAgg(
-              ob.expr,
-              gB.representative,
-              gB.group,
-              positionalParams,
-              cteScope
-            );
+            const vA = yield* this.evalExprSteps(ob.expr, gA.representative, positionalParams, cteScope, { group: gA.group });
+            const vB = yield* this.evalExprSteps(ob.expr, gB.representative, positionalParams, cteScope, { group: gB.group });
             const cmp = compareSqlValues(vA, vB);
             if (cmp !== 0) {
               return ob.desc ? -cmp : cmp;
@@ -5615,13 +5539,7 @@ export class SqliteDatabase {
         const g = groupedRows[idx]!;
         return serializeSqlJson(
           yield* stepMap(over.orderBy, function* (ob) {
-            return yield* this.evalExprWithAgg(
-              ob.expr,
-              g.representative,
-              g.group,
-              positionalParams,
-              cteScope
-            );
+            return yield* this.evalExprSteps(ob.expr, g.representative, positionalParams, cteScope, { group: g.group });
           }, this),
           false
         );
@@ -5650,13 +5568,7 @@ export class SqliteDatabase {
             1,
             Math.trunc(
               toSqlNumber(
-                yield* this.evalExprWithAgg(
-                  fnExpr.args[0]!,
-                  g.representative,
-                  g.group,
-                  positionalParams,
-                  cteScope
-                )
+                yield* this.evalExprSteps(fnExpr.args[0]!, g.representative, positionalParams, cteScope, { group: g.group })
               )
             )
           );
@@ -5677,47 +5589,23 @@ export class SqliteDatabase {
           const offset = fnExpr.args[1]
             ? Math.trunc(
                 toSqlNumber(
-                  yield* this.evalExprWithAgg(
-                    fnExpr.args[1],
-                    g.representative,
-                    g.group,
-                    positionalParams,
-                    cteScope
-                  )
+                  yield* this.evalExprSteps(fnExpr.args[1], g.representative, positionalParams, cteScope, { group: g.group })
                 )
               )
             : 1;
           const defVal = fnExpr.args[2]
-            ? yield* this.evalExprWithAgg(
-                fnExpr.args[2],
-                g.representative,
-                g.group,
-                positionalParams,
-                cteScope
-              )
+            ? yield* this.evalExprSteps(fnExpr.args[2], g.representative, positionalParams, cteScope, { group: g.group })
             : null;
           const targetPos = fnUpper === "LAG" ? pPos - offset : pPos + offset;
           if (targetPos < 0 || targetPos >= indices.length) {
             result[rowIdx] = defVal;
           } else {
             const targetG = groupedRows[indices[targetPos]!]!;
-            result[rowIdx] = yield* this.evalExprWithAgg(
-              fnExpr.args[0]!,
-              targetG.representative,
-              targetG.group,
-              positionalParams,
-              cteScope
-            );
+            result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, targetG.representative, positionalParams, cteScope, { group: targetG.group });
           }
         } else if (fnUpper === "FIRST_VALUE") {
           const firstG = groupedRows[indices[0]!]!;
-          result[rowIdx] = yield* this.evalExprWithAgg(
-            fnExpr.args[0]!,
-            firstG.representative,
-            firstG.group,
-            positionalParams,
-            cteScope
-          );
+          result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, firstG.representative, positionalParams, cteScope, { group: firstG.group });
         } else if (fnUpper === "LAST_VALUE") {
           let peerEnd = over.orderBy.length > 0 ? pPos : indices.length - 1;
           while (
@@ -5729,34 +5617,16 @@ export class SqliteDatabase {
             peerEnd += 1;
           }
           const lastG = groupedRows[indices[peerEnd]!]!;
-          result[rowIdx] = yield* this.evalExprWithAgg(
-            fnExpr.args[0]!,
-            lastG.representative,
-            lastG.group,
-            positionalParams,
-            cteScope
-          );
+          result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, lastG.representative, positionalParams, cteScope, { group: lastG.group });
         } else if (fnUpper === "NTH_VALUE") {
           const n = Math.trunc(
             toSqlNumber(
-              yield* this.evalExprWithAgg(
-                fnExpr.args[1]!,
-                g.representative,
-                g.group,
-                positionalParams,
-                cteScope
-              )
+              yield* this.evalExprSteps(fnExpr.args[1]!, g.representative, positionalParams, cteScope, { group: g.group })
             )
           );
           if (n >= 1 && n <= indices.length) {
             const nthG = groupedRows[indices[n - 1]!]!;
-            result[rowIdx] = yield* this.evalExprWithAgg(
-              fnExpr.args[0]!,
-              nthG.representative,
-              nthG.group,
-              positionalParams,
-              cteScope
-            );
+            result[rowIdx] = yield* this.evalExprSteps(fnExpr.args[0]!, nthG.representative, positionalParams, cteScope, { group: nthG.group });
           } else {
             result[rowIdx] = null;
           }
@@ -5786,177 +5656,6 @@ export class SqliteDatabase {
     }
 
     return result;
-  }
-
-  private *evalExprWithAggAndWindow(
-    expr: ExprNode,
-    rep: Record<string, SqlValue>,
-    group: Record<string, SqlValue>[],
-    rowIdx: number,
-    windowResults: Map<ExprNode, SqlValue[]>,
-    positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): SqlSteps<SqlValue> {
-    if (windowResults.has(expr)) {
-      return windowResults.get(expr)![rowIdx] ?? null;
-    }
-    if (expr.kind === "unary") {
-      const v = yield* this.evalExprWithAggAndWindow(
-        expr.expr,
-        rep,
-        group,
-        rowIdx,
-        windowResults,
-        positionalParams,
-        cteScope
-      );
-      return this.applyUnary(expr.op, v);
-    }
-    if (expr.kind === "binary") {
-      const l = yield* this.evalExprWithAggAndWindow(
-        expr.left,
-        rep,
-        group,
-        rowIdx,
-        windowResults,
-        positionalParams,
-        cteScope
-      );
-      const r = yield* this.evalExprWithAggAndWindow(
-        expr.right,
-        rep,
-        group,
-        rowIdx,
-        windowResults,
-        positionalParams,
-        cteScope
-      );
-      return this.applyBinary(expr.op, l, r);
-    }
-    if (expr.kind === "func" && !this.containsAggregate(expr) && !expr.over) {
-      const args = yield* stepMap(expr.args, function* (a) {
-        return yield* this.evalExprWithAggAndWindow(
-          a,
-          rep,
-          group,
-          rowIdx,
-          windowResults,
-          positionalParams,
-          cteScope
-        );
-      }, this);
-      return yield* this.evalScalarFunction(expr.name, args);
-    }
-    return yield* this.evalExprWithAgg(expr, rep, group, positionalParams, cteScope);
-  }
-
-  private *evalExprWithAgg(
-    expr: ExprNode,
-    rep: Record<string, SqlValue>,
-    group: Record<string, SqlValue>[],
-    positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
-  ): SqlSteps<SqlValue> {
-    if (expr.kind === "func") {
-      const u = expr.name.toUpperCase();
-      if (
-        [
-          "COUNT",
-          "SUM",
-          "TOTAL",
-          "AVG",
-          "MIN",
-          "MAX",
-          "GROUP_CONCAT",
-          "STRING_AGG",
-          "JSON_GROUP_ARRAY",
-          "JSON_GROUP_OBJECT"
-        ].includes(u) &&
-        !((u === "MIN" || u === "MAX") && expr.args.length > 1)
-      ) {
-        return yield* this.evalAggregateFunction(expr, group, positionalParams, cteScope);
-      }
-      if (u === "COALESCE" || u === "IFNULL") {
-        for (const a of expr.args) {
-          yield;
-          const v = yield* this.evalExprWithAgg(a, rep, group, positionalParams, cteScope);
-          if (v !== null && v !== undefined) {
-            return v;
-          }
-        }
-        return null;
-      }
-      if (u === "IIF") {
-        const cond = yield* this.evalExprWithAgg(
-          expr.args[0]!,
-          rep,
-          group,
-          positionalParams,
-          cteScope
-        );
-        return isTruthy(cond)
-          ? yield* this.evalExprWithAgg(expr.args[1]!, rep, group, positionalParams, cteScope)
-          : expr.args[2]
-            ? yield* this.evalExprWithAgg(expr.args[2], rep, group, positionalParams, cteScope)
-            : null;
-      }
-      const args = yield* stepMap(expr.args, function* (a) {
-        return yield* this.evalExprWithAgg(a, rep, group, positionalParams, cteScope);
-      }, this);
-      return yield* this.evalScalarFunction(expr.name, args);
-    }
-    if (expr.kind === "unary") {
-      return this.applyUnary(
-        expr.op,
-        yield* this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope)
-      );
-    }
-    if (expr.kind === "binary") {
-      const l = yield* this.evalExprWithAgg(expr.left, rep, group, positionalParams, cteScope);
-      const r = yield* this.evalExprWithAgg(expr.right, rep, group, positionalParams, cteScope);
-      return this.applyBinary(expr.op, l, r);
-    }
-    if (expr.kind === "is_null") {
-      const v = yield* this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
-      return (expr.not ? v !== null : v === null) ? 1 : 0;
-    }
-    if (expr.kind === "between") {
-      const v = yield* this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
-      const lo = yield* this.evalExprWithAgg(expr.low, rep, group, positionalParams, cteScope);
-      const hi = yield* this.evalExprWithAgg(expr.high, rep, group, positionalParams, cteScope);
-      if (v === null || lo === null || hi === null) {
-        return null;
-      }
-      const inside = compareSqlValues(v, lo) >= 0 && compareSqlValues(v, hi) <= 0;
-      return (expr.not ? !inside : inside) ? 1 : 0;
-    }
-    if (expr.kind === "case") {
-      const baseVal = expr.base
-        ? yield* this.evalExprWithAgg(expr.base, rep, group, positionalParams, cteScope)
-        : undefined;
-      for (const b of expr.branches) {
-        yield;
-        const wVal = yield* this.evalExprWithAgg(
-          b.when,
-          rep,
-          group,
-          positionalParams,
-          cteScope
-        );
-        const matched = expr.base ? sqlEquals(baseVal ?? null, wVal) === true : isTruthy(wVal);
-        if (matched) {
-          return yield* this.evalExprWithAgg(b.then, rep, group, positionalParams, cteScope);
-        }
-      }
-      return expr.elseExpr
-        ? yield* this.evalExprWithAgg(expr.elseExpr, rep, group, positionalParams, cteScope)
-        : null;
-    }
-    if (expr.kind === "cast") {
-      const v = yield* this.evalExprWithAgg(expr.expr, rep, group, positionalParams, cteScope);
-      return this.applyCast(v, expr.targetType);
-    }
-    return yield* this.evalExprSteps(expr, rep, positionalParams, cteScope);
   }
 
   private *evalAggregateFunction(
@@ -6239,8 +5938,12 @@ export class SqliteDatabase {
     expr: ExprNode,
     row: Record<string, SqlValue>,
     positionalParams: SqlValue[],
-    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map()
+    cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }> = new Map(),
+    evaluation?: ExprEvaluation
   ): SqlSteps<SqlValue> {
+    if (evaluation?.window?.results.has(expr)) {
+      return evaluation.window.results.get(expr)![evaluation.window.rowIdx] ?? null;
+    }
     switch (expr.kind) {
       case "literal":
         return expr.value;
@@ -6266,19 +5969,19 @@ export class SqliteDatabase {
         );
       }
       case "collate":
-        return yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
+        return yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
       case "unary":
         return this.applyUnary(
           expr.op,
-          yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope)
+          yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation)
         );
       case "binary": {
         if (expr.op === "AND") {
-          const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope);
+          const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
           if (l !== null && !isTruthy(l)) {
             return 0;
           }
-          const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope);
+          const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
           if (r !== null && !isTruthy(r)) {
             return 0;
           }
@@ -6288,11 +5991,11 @@ export class SqliteDatabase {
           return 1;
         }
         if (expr.op === "OR") {
-          const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope);
+          const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
           if (l !== null && isTruthy(l)) {
             return 1;
           }
-          const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope);
+          const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
           if (r !== null && isTruthy(r)) {
             return 1;
           }
@@ -6307,7 +6010,7 @@ export class SqliteDatabase {
             : expr.right.kind === "collate"
               ? expr.right.collation
               : "BINARY";
-        const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope);
+        const l = yield* this.evalExprSteps(expr.left, row, positionalParams, cteScope, evaluation);
         if (
           (expr.op === "LIKE" || expr.op === "GLOB") &&
           expr.right.kind === "func" &&
@@ -6317,13 +6020,15 @@ export class SqliteDatabase {
             expr.right.args[0]!,
             row,
             positionalParams,
-            cteScope
+            cteScope,
+            evaluation
           );
           const esc = yield* this.evalExprSteps(
             expr.right.args[1]!,
             row,
             positionalParams,
-            cteScope
+            cteScope,
+            evaluation
           );
           if (l === null || pat === null || esc === null) {
             return null;
@@ -6332,13 +6037,13 @@ export class SqliteDatabase {
             ? 1
             : 0;
         }
-        const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope);
+        const r = yield* this.evalExprSteps(expr.right, row, positionalParams, cteScope, evaluation);
         return this.applyBinary(expr.op, l, r, collation);
       }
       case "between": {
-        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
-        const lo = yield* this.evalExprSteps(expr.low, row, positionalParams, cteScope);
-        const hi = yield* this.evalExprSteps(expr.high, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
+        const lo = yield* this.evalExprSteps(expr.low, row, positionalParams, cteScope, evaluation);
+        const hi = yield* this.evalExprSteps(expr.high, row, positionalParams, cteScope, evaluation);
         if (v === null || lo === null || hi === null) {
           return null;
         }
@@ -6346,14 +6051,14 @@ export class SqliteDatabase {
         return (expr.not ? !inside : inside) ? 1 : 0;
       }
       case "in_list": {
-        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
         if (v === null) {
           return expr.list.length === 0 ? (expr.not ? 1 : 0) : null;
         }
         let sawNull = false;
         for (const item of expr.list) {
           yield;
-          const iv = yield* this.evalExprSteps(item, row, positionalParams, cteScope);
+          const iv = yield* this.evalExprSteps(item, row, positionalParams, cteScope, evaluation);
           if (iv === null) {
             sawNull = true;
           } else if (sqlEquals(v, iv) === true) {
@@ -6366,7 +6071,7 @@ export class SqliteDatabase {
         return expr.not ? 1 : 0;
       }
       case "in_subquery": {
-        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
         this.outerRows.push(row);
         let res: QueryResultSet;
         try {
@@ -6399,27 +6104,27 @@ export class SqliteDatabase {
         return expr.not ? 1 : 0;
       }
       case "is_null": {
-        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
         return (expr.not ? v !== null : v === null) ? 1 : 0;
       }
       case "case": {
         const baseVal = expr.base
-          ? yield* this.evalExprSteps(expr.base, row, positionalParams, cteScope)
+          ? yield* this.evalExprSteps(expr.base, row, positionalParams, cteScope, evaluation)
           : undefined;
         for (const b of expr.branches) {
           yield;
-          const wVal = yield* this.evalExprSteps(b.when, row, positionalParams, cteScope);
+          const wVal = yield* this.evalExprSteps(b.when, row, positionalParams, cteScope, evaluation);
           const matched = expr.base ? sqlEquals(baseVal ?? null, wVal) === true : isTruthy(wVal);
           if (matched) {
-            return yield* this.evalExprSteps(b.then, row, positionalParams, cteScope);
+            return yield* this.evalExprSteps(b.then, row, positionalParams, cteScope, evaluation);
           }
         }
         return expr.elseExpr
-          ? yield* this.evalExprSteps(expr.elseExpr, row, positionalParams, cteScope)
+          ? yield* this.evalExprSteps(expr.elseExpr, row, positionalParams, cteScope, evaluation)
           : null;
       }
       case "cast": {
-        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope);
+        const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
         return this.applyCast(v, expr.targetType);
       }
       case "subquery": {
@@ -6442,11 +6147,14 @@ export class SqliteDatabase {
         return res.rows[0]?.[0] ?? null;
       }
       case "func": {
+        if (evaluation && isAggregateFunction(expr)) {
+          return yield* this.evalAggregateFunction(expr, evaluation.group, positionalParams, cteScope);
+        }
         const u = expr.name.toUpperCase();
         if (u === "COALESCE" || u === "IFNULL") {
           for (const a of expr.args) {
             yield;
-            const v = yield* this.evalExprSteps(a, row, positionalParams, cteScope);
+            const v = yield* this.evalExprSteps(a, row, positionalParams, cteScope, evaluation);
             if (v !== null && v !== undefined) {
               return v;
             }
@@ -6458,16 +6166,17 @@ export class SqliteDatabase {
             expr.args[0]!,
             row,
             positionalParams,
-            cteScope
+            cteScope,
+            evaluation
           );
           return isTruthy(cond)
-            ? yield* this.evalExprSteps(expr.args[1]!, row, positionalParams, cteScope)
+            ? yield* this.evalExprSteps(expr.args[1]!, row, positionalParams, cteScope, evaluation)
             : expr.args[2]
-              ? yield* this.evalExprSteps(expr.args[2], row, positionalParams, cteScope)
+              ? yield* this.evalExprSteps(expr.args[2], row, positionalParams, cteScope, evaluation)
               : null;
         }
         const args = yield* stepMap(expr.args, function* (a) {
-          return yield* this.evalExprSteps(a, row, positionalParams, cteScope);
+          return yield* this.evalExprSteps(a, row, positionalParams, cteScope, evaluation);
         }, this);
         return yield* this.evalScalarFunction(expr.name, args);
       }
@@ -6643,18 +6352,6 @@ export class SqliteDatabase {
     switch (u) {
       case "NULLIF":
         return sqlEquals(a0, a1) === true ? null : a0;
-      case "COALESCE":
-      case "IFNULL": {
-        for (const a of args) {
-          yield;
-          if (a !== null && a !== undefined) {
-            return a;
-          }
-        }
-        return null;
-      }
-      case "IIF":
-        return isTruthy(a0) ? (a1 ?? null) : (args[2] ?? null);
       case "TYPEOF":
         if (a0 === null || a0 === undefined) {
           return "null";

@@ -2,6 +2,99 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { SqliteDatabase } from "./engine.js";
 
+for (const expression of [
+  "COALESCE(NULL, 7, ABS(-9223372036854775808))",
+  "IFNULL(7, ABS(-9223372036854775808))",
+  "IIF(1, 7, ABS(-9223372036854775808))",
+  "IIF(0, ABS(-9223372036854775808), 7)",
+  "IIF(NULL, ABS(-9223372036854775808), 7)"
+]) {
+  test(`conditional functions skip unused branches: ${expression}`, () => {
+    const db = new SqliteDatabase();
+    db.exec("CREATE TABLE t(id INT); INSERT INTO t VALUES (1), (2)");
+    for (const sql of [
+      `SELECT ${expression}`,
+      `SELECT ${expression} FROM t GROUP BY id HAVING id = 1`,
+      `SELECT ${expression} FROM t WHERE id = 1`,
+      `SELECT 7 FROM t GROUP BY id HAVING id = 1 AND ${expression} = 7`,
+      `SELECT FIRST_VALUE(${expression}) OVER (ORDER BY id) FROM t LIMIT 1`
+    ]) {
+      assert.deepEqual(db.exec(sql)[0]!.rows, [[7]], sql);
+    }
+  });
+}
+
+test("conditional functions still evaluate selected branches", () => {
+  const db = new SqliteDatabase();
+  for (const expression of [
+    "COALESCE(NULL, ABS(-9223372036854775808))",
+    "IFNULL(NULL, ABS(-9223372036854775808))",
+    "IIF(1, ABS(-9223372036854775808), 7)",
+    "IIF(0, 7, ABS(-9223372036854775808))"
+  ]) {
+    assert.throws(() => db.exec(`SELECT ${expression}`), { message: "integer overflow" });
+  }
+  assert.deepEqual(db.exec("SELECT COALESCE(NULL, NULL), IFNULL(NULL, NULL), IIF(NULL, 1, NULL), COALESCE(0, 1), IFNULL('', 1), IIF('0', 1, 2)")[0]!.rows,
+    [[null, null, null, 0, "", 2]]);
+  assert.deepEqual(db.exec("SELECT typeof(COALESCE(NULL, 88.0)), typeof(IFNULL(NULL, 88.0)), typeof(IIF(1, 88.0, 0)), COALESCE(NULL, 9007199254740993)")[0]!.rows,
+    [["real", "real", "real", 9007199254740993n]]);
+});
+
+test("conditional functions evaluate aggregate arguments and HAVING lazily", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(g TEXT, score INT); INSERT INTO t VALUES ('a', 10), ('a', 20), ('b', NULL)");
+  const result = db.exec(`SELECT g,
+    COALESCE(SUM(score), 0, ABS(-9223372036854775808)),
+    IFNULL(SUM(score), 0), IIF(COUNT(score) > 0, SUM(score), 0)
+    FROM t GROUP BY g
+    HAVING COALESCE(SUM(score), 0) >= 0 AND IFNULL(SUM(score), 0) >= 0
+      AND IIF(COUNT(score) > 0, SUM(score) > 0, 1)
+    ORDER BY g`)[0]!;
+  assert.deepEqual(result.rows, [["a", 30, 30, 30], ["b", 0, 0, 0]]);
+});
+
+test("conditional functions resolve window ORDER BY and PARTITION BY expressions", () => {
+  const db = new SqliteDatabase();
+  db.exec(`CREATE TABLE t(id INT, name TEXT, score REAL);
+    INSERT INTO t VALUES (1, 'Alice', 95.5), (2, 'Bob, Jr.', NULL), (3, 'Carol "C"', 88.0), (4, 'Dan', NULL)`);
+  const result = db.exec(`SELECT name,
+    RANK() OVER (ORDER BY COALESCE(score, 0) DESC),
+    RANK() OVER (ORDER BY IFNULL(score, 0) DESC),
+    RANK() OVER (ORDER BY IIF(score IS NULL, 0, score) DESC),
+    COUNT(*) OVER (PARTITION BY COALESCE(score, 0)),
+    COUNT(*) OVER (PARTITION BY IFNULL(score, 0)),
+    COUNT(*) OVER (PARTITION BY IIF(score IS NULL, 0, score))
+    FROM t ORDER BY id`)[0]!;
+  assert.deepEqual(result.rows, [
+    ["Alice", 1, 1, 1, 1, 1, 1], ["Bob, Jr.", 3, 3, 3, 2, 2, 2],
+    ['Carol "C"', 2, 2, 2, 1, 1, 1], ["Dan", 3, 3, 3, 2, 2, 2]
+  ]);
+});
+
+test("conditional functions retain both aggregate and window evaluation contexts", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(id INT, score INT); INSERT INTO t VALUES (1, 10), (2, NULL), (3, 20), (4, NULL)");
+  const result = db.exec(`SELECT
+    COALESCE(SUM(score), ROW_NUMBER() OVER (ORDER BY id)),
+    IFNULL(SUM(score), LAG(id) OVER (ORDER BY id)),
+    IIF(SUM(score) > 0, SUM(score), ROW_NUMBER() OVER (ORDER BY id))
+    FROM t GROUP BY id ORDER BY id`)[0]!;
+  assert.deepEqual(result.rows, [[10, 10, 10], [2, 1, 2], [20, 20, 20], [4, 3, 4]]);
+});
+
+test("conditional functions preserve windows nested inside casts, CASE and predicates", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(id INT); INSERT INTO t VALUES (1), (2), (3)");
+  const result = db.exec(`SELECT
+    COALESCE(CAST(LAG(id) OVER (ORDER BY id) AS INTEGER), 0),
+    IFNULL(CASE WHEN id > 1 THEN LAG(id) OVER (ORDER BY id) END, 0),
+    IIF(LAG(id) OVER (ORDER BY id) IS NULL, 0, id),
+    IIF(ROW_NUMBER() OVER (ORDER BY id) BETWEEN 2 AND 3, id, 0),
+    IIF(ROW_NUMBER() OVER (ORDER BY id) IN (2, 3), id, 0)
+    FROM t ORDER BY id`)[0]!;
+  assert.deepEqual(result.rows, [[0, 0, 0, 0, 0], [1, 1, 2, 2, 2], [2, 2, 3, 3, 3]]);
+});
+
 for (const functionName of ["json_each", "json_tree"]) {
   test(`empty correlated ${functionName} join retains its schema`, () => {
     const db = new SqliteDatabase();

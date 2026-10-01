@@ -2215,8 +2215,15 @@ async function executePopplerFileTool(
       }
     };
 
-    const positionals = extractPopplerFileToolPositionals(argv);
-    if (positionals.length === 0 || positionals[0] === "-") {
+    let informational = false;
+    for (let i = 0; i < argv.length; i++) {
+      const arg = argv[i]!;
+      if (arg === "--") break;
+      if (POPPLER_FILE_TOOL_VALUE_FLAGS.has(arg)) { i++; continue; }
+      if (["-h", "-help", "--help", "-?", "-v", "--version"].includes(arg)) { informational = true; break; }
+    }
+    const positionals = informational ? [] : extractPopplerFileToolPositionals(argv);
+    if (!informational && (positionals.length === 0 || positionals[0] === "-")) {
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {

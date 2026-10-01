@@ -63,7 +63,7 @@ modules; do not treat a matching export name as behavior parity.
 | `./process-runner`                                                               | process-runner-rust                                                      | Spawn, injection, streams, cancellation                                     |
 | `./tiny-mcp-client`                                                              | tiny-mcp-client-rust                                                     | Transport/auth/lifecycle parity                                             |
 | `./safe-bash`                                                                    | existing injected safe-bash capability                                   | Same command/schema capabilities; assess any runtime dependency before swap |
-| `./source-snippet`                                                               | toolcraft-rust                                                           | Locations, text and diagnostics                                             |
+| `./source-snippet`                                                               | toolcraft-rust, toolcraft-design-rust                                     | Locations, text and diagnostics                                             |
 | `./testing`                                                                      | toolcraft-rust test hosts, Rust transport test servers                   | Existing testing API and lifecycle suites                                   |
 | `./composition`                                                                  | deterministic native package inventory                                   | Exact shipped dependency/license inventory                                  |
 
@@ -117,6 +117,10 @@ spread and symbol operations. Original MCP-result tests run with native definiti
 and markers through the JavaScript SDK/MCP consumers; differential tests cover
 getters, inherited properties, cross-realm arrays, descriptors and arbitrary throws.
 The SDK/MCP consumers themselves still require porting.
+The `./source-snippet` subpath now has a Rust window/rendering core with native
+design styling. The original renderer tests and differential coverage exercise
+line endings, UTF-16, numeric edge cases, changing accessors, styling scopes and
+exception identity. Its subpath declaration is included in build and type checks.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

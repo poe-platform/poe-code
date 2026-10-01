@@ -16,6 +16,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Cloning          | Detached command trees, scope overrides, source locations and MCP proxy metadata |
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
+| Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 
 ```ts
 import { suggest, createRuntimeLogger, createHttpError } from "toolcraft-rust";
@@ -39,6 +40,19 @@ const greet = defineCommand({
 const app = defineGroup({ name: "app", children: [greet], default: greet });
 ```
 
+Show a source location with surrounding lines:
+
+```ts
+import { renderSourceSnippet } from "toolcraft-rust/source-snippet";
+
+console.error(renderSourceSnippet({
+  source: "first line\nsecond line",
+  filePath: "example.ts",
+  line: 2,
+  column: 4
+}));
+```
+
 Rust computes edit distances, API version validation, log filtering, HTTP status
 classification, metadata inheritance, secret precedence, rename/default checks
 and source-frame parsing.
@@ -49,6 +63,9 @@ Package lookup runs in Rust with Node filesystem and path capabilities, preservi
 symlink resolution, missing-path fallbacks and the nearest package's parse errors.
 MCP result validation and marker recognition run in Rust; Node performs property
 access, object spread and symbol definition to retain getter order and descriptors.
+Source windows, gutter alignment and row assembly run in Rust, preserving UTF-16
+text and numeric edge cases. Styling uses `toolcraft-design-rust`; the Node adapter
+retains option accessors, string operations and caller exceptions.
 Node retains locale sorting, callback receivers, original event values, error
 causes, subclass identity, symbol metadata and stack traces. Cloning preserves
 schema and handler identity and supports trees from another Toolcraft bundle.

@@ -11,11 +11,15 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./source-snippet": {
+      "types": "./dist/source-snippet.d.ts",
+      "import": "./dist/source-snippet.js"
     }
   },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/definitions.d.ts dist/definitions.d.ts",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/definitions.d.ts dist/definitions.d.ts && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json",
+    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/definitions.d.ts src/source-snippet.d.ts dist/",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/definitions.d.ts src/source-snippet.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -45,5 +49,8 @@
     "type": "git",
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/toolcraft-rust"
+  },
+  "dependencies": {
+    "toolcraft-design-rust": "*"
   }
 }

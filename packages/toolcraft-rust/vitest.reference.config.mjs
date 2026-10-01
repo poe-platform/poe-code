@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 const path = (value) => fileURLToPath(new URL(value, import.meta.url));
-const suites = ["suggest", "runtime-logging", "redaction", "package-metadata"];
+const suites = ["suggest", "runtime-logging", "redaction", "package-metadata", "source-snippet"];
 
 export default defineConfig({
   plugins: [
@@ -23,8 +23,8 @@ export default defineConfig({
               importer === path(`../toolcraft/src/${suite}.test.ts`) && name === `./${suite}.js`
           )
         )
-          return name === "./package-metadata.js"
-            ? path("dist/package-metadata.js")
+          return ["./package-metadata.js", "./source-snippet.js"].includes(name)
+            ? path(`dist/${name.slice(2)}`)
             : path("dist/index.js");
       }
     }
@@ -33,6 +33,7 @@ export default defineConfig({
     include: [
       path("tests/package-metadata-parity.test.ts"),
       path("tests/mcp-result-parity.test.ts"),
+      path("tests/source-snippet-parity.test.ts"),
       ...[...suites, "clone-command-node", "toolcraft", "mcp-result"].map((suite) =>
         path(`../toolcraft/src/${suite}.test.ts`)
       )

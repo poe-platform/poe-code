@@ -6,18 +6,19 @@ import {harfbuzzBase64} from "./harfbuzz/data.js";
 // Loading DOM libraries here changes Node consumers' global fetch declarations.
 // Keep exports unknown until the function/Memory checks below admit them.
 export interface FontShapingWebAssembly {
+  readonly CompileError: abstract new (...args: never[]) => Error;
   readonly Memory: abstract new (...args: never[]) => { readonly buffer: ArrayBuffer; grow(pages: number): number };
   compile(bytes: Uint8Array<ArrayBuffer>): Promise<object>;
   instantiate(module: object, imports: Record<string, Record<string, (...args: number[]) => number | void>>): Promise<{ readonly exports: Readonly<Record<string, unknown>> }>;
 }
-const wasm = (globalThis as unknown as { readonly WebAssembly: FontShapingWebAssembly }).WebAssembly;
+const wasm = (globalThis as unknown as { readonly WebAssembly?: FontShapingWebAssembly }).WebAssembly;
 
 // Only immutable compiled code is shared. Font data, native handles and failure
 // state belong to one conversion and are discarded together on any failure.
 let compiled: ReturnType<FontShapingWebAssembly["compile"]> | undefined;
 export function createFontShaper(context: CapabilityContext, tick: (amount?: number) => void) {
-  let exports: Awaited<ReturnType<FontShapingWebAssembly["instantiate"]>>["exports"] | undefined, disposed = false;
-  const fonts = new Map<Font, {font: number; data: number}>();
+  let exports: Awaited<ReturnType<FontShapingWebAssembly["instantiate"]>>["exports"] | undefined, disposed = false, fallback = false;
+  const fonts = new Map<Font, {font: number; data: number} | null>();
   const dispose = () => { disposed = true; exports = undefined; fonts.clear(); };
   context.own(dispose); // Register before asynchronous compilation or acquisition.
   const fail = (): never => { dispose(); throw new SsconvertError("resource-limit", "ssconvert PDF font shaping could not complete"); };
@@ -28,7 +29,7 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
   };
   const memory = () => {
     const value = exports?.memory;
-    if (disposed || !(value instanceof wasm.Memory)) return fail();
+    if (disposed || !wasm || !(value instanceof wasm.Memory)) return fail();
     return value;
   };
   const view = (pointer: number, length: number, alignment = 1) => {
@@ -45,14 +46,27 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
     async addFont(bytes: Uint8Array, metrics: Font) {
       tick(bytes.length);
       if (disposed || bytes.length > context.limits.inputBytes) fail();
+      if (fallback) {fonts.set(metrics, null); return;}
       if (!exports) {
-        compiled ??= wasm.compile(Uint8Array.from(atob(harfbuzzBase64), character => character.charCodeAt(0))).catch(error => {
-          compiled = undefined;
-          throw error;
-        });
-        const module = await compiled;
+        let module: object | undefined;
+        try {
+          if (typeof wasm?.compile === "function") {
+            compiled ??= wasm.compile(Uint8Array.from(atob(harfbuzzBase64), character => character.charCodeAt(0))).catch(error => {
+              compiled = undefined;
+              throw error;
+            });
+            module = await compiled;
+          }
+        } catch (error) {
+          if (!wasm || !(error instanceof wasm.CompileError)) throw error;
+        }
         tick();
         if (disposed) fail();
+        if (!module || !wasm) {
+          fallback = true;
+          fonts.set(metrics, null);
+          return;
+        }
         const unexpected = () => fail();
         const instance = await wasm.instantiate(module, {
           wasi_snapshot_preview1: {proc_exit: unexpected},
@@ -87,9 +101,18 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
     shape(metrics: Font, text: string): GlyphRun {
       tick(text.length);
       const selected = fonts.get(metrics);
-      if (!selected || disposed || text.length > context.limits.inputBytes / 2) return fail();
+      if (!fonts.has(metrics) || disposed || text.length > context.limits.inputBytes / 2) return fail();
       let buffer = 0, input = 0;
       try {
+        if (!selected) {
+          const run = metrics.layout(text);
+          if (run.glyphs.length > (context.limits.workbookWork ?? context.limits.inputBytes)) fail();
+          tick(run.glyphs.length * 20);
+          // Preserve GlyphRun getters and own glyph mappings without modifying
+          // fontkit's cached glyph instances or their code point arrays.
+          return Object.create(run, {glyphs: {value: run.glyphs.map(glyph =>
+            Object.create(glyph, {codePoints: {value: [...glyph.codePoints]}}))}}) as GlyphRun;
+        }
         buffer = call("hb_buffer_create");
         input = call("malloc", Math.max(2, text.length * 2));
         const utf16 = view(input, Math.max(2, text.length * 2), 2);

@@ -77,7 +77,8 @@ uses a native spreadsheet converter as a fallback. PDF exports can use an explic
 `fonts.resolve({ family, bold, italic, maxBytes, signal })` host binding returning
 TrueType font bytes, which the engine copies. The default request is Sans, regular; missing supplied
 fonts refuse without substitution. With no binding, the packaged JetBrains Mono
-font remains the default. Font bytes and character-map work are bounded before parsing.
+font remains the default. PDF export uses JavaScript fontkit shaping when the runtime
+cannot compile WebAssembly (including Cloudflare Workers). Font bytes and character-map work are bounded before parsing.
 PDF export retains styled cells' logical text for copying and extraction,
 including combining marks whose glyph positions differ from their text order.
 Styled Latin, Greek and Cyrillic text uses font-supported canonical composition;

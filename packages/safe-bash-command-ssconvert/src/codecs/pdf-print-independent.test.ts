@@ -146,3 +146,18 @@ it.each(["titles", "grid", "draft", "monochrome"])("refuses enabled %s without a
   const ctx = context();
   await expect(writePdf(await fixture(`<g:${name} value="1"/>`, ctx), [], ctx)).rejects.toMatchObject({ code: "unsupported-feature", exitCode: 1 });
 });
+
+it("exports a complete PDF when the runtime disallows Wasm compilation", async () => {
+  vi.resetModules();
+  const compile = vi.spyOn(WebAssembly, "compile").mockRejectedValue(new WebAssembly.CompileError("Wasm code generation disallowed by embedder"));
+  try {
+    const {writePdf: writeFallbackPdf} = await import("./pdf.js");
+    const ctx = context(), book = await fixture("", ctx);
+    for (let conversion = 0; conversion < 2; conversion++) {
+      const pdf = await PDFDocument.load(await writeFallbackPdf(book, [], ctx));
+      expect(pdf.getPageCount()).toBe(1);
+      expect(stream(pdf)).toContain(" Tj");
+    }
+    expect(compile).toHaveBeenCalledTimes(2);
+  } finally {compile.mockRestore();}
+});

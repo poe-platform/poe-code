@@ -12,11 +12,11 @@ function fixture() {
     limits: {inputBytes: 1000000, outputBytes: 4000000, workbookWork: 6000000, cells: 100, sheets: 4, operations: 100}};
   return {controller, context, cleanups, tick: () => controller.signal.throwIfAborted()};
 }
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {vi.restoreAllMocks(); vi.unstubAllGlobals();});
 it("retries compilation after a shared failure without retaining rejected code", async () => {
   vi.resetModules();
   const {createFontShaper: createFreshShaper} = await import("./font-shaping.js");
-  const failure = new WebAssembly.CompileError("temporary compilation denial");
+  const failure = new Error("temporary compilation failure");
   const compile = vi.spyOn(WebAssembly, "compile").mockRejectedValueOnce(failure);
   const f = fixture(), metrics = fontkit.create(bytes);
   const first = createFreshShaper(f.context, f.tick), second = createFreshShaper(f.context, f.tick);
@@ -29,6 +29,48 @@ it("retries compilation after a shared failure without retaining rejected code",
     expect(compile).toHaveBeenCalledTimes(2);
     expect(retry.shape(metrics, "AB").glyphs.flatMap(glyph => glyph.codePoints)).toEqual([65, 66]);
   } finally {first.dispose(); second.dispose(); retry.dispose();}
+});
+it.each(["rejected", "thrown", "missing compile", "missing WebAssembly"])("uses owned fontkit glyphs when Wasm is %s", async mode => {
+  vi.resetModules();
+  const compile = vi.spyOn(WebAssembly, "compile");
+  const instantiate = vi.spyOn(WebAssembly, "instantiate");
+  const denial = new WebAssembly.CompileError("Wasm code generation disallowed by embedder");
+  if (mode === "rejected") compile.mockRejectedValue(denial);
+  if (mode === "thrown") compile.mockImplementation(() => {throw denial;});
+  if (mode === "missing compile") vi.stubGlobal("WebAssembly", {...WebAssembly, compile: undefined});
+  if (mode === "missing WebAssembly") vi.stubGlobal("WebAssembly", undefined);
+  const {createFontShaper: createFreshShaper} = await import("./font-shaping.js");
+  const f = fixture(), metrics = fontkit.create(bytes), expected = metrics.layout("AB");
+  const shaper = createFreshShaper(f.context, f.tick);
+  await shaper.addFont(bytes, metrics);
+  const run = shaper.shape(metrics, "AB");
+  expect(run.positions).toEqual(expected.positions);
+  expect(run.advanceWidth).toBe(expected.advanceWidth);
+  expect(run.bbox).toEqual(expected.bbox);
+  expect(run.glyphs.map(glyph => glyph.id)).toEqual(expected.glyphs.map(glyph => glyph.id));
+  expect(run.glyphs[0]).not.toBe(expected.glyphs[0]);
+  const points = [...expected.glyphs[0]!.codePoints];
+  run.glyphs[0]!.codePoints.push(123);
+  expect(expected.glyphs[0]!.codePoints).toEqual(points);
+  expect(shaper.shape(metrics, "AB").glyphs[0]!.codePoints).toEqual(points);
+  expect(instantiate).not.toHaveBeenCalled();
+  shaper.dispose();
+  expect(() => shaper.shape(metrics, "AB")).toThrow("font shaping could not complete");
+  await expect(shaper.addFont(bytes, metrics)).rejects.toThrow("font shaping could not complete");
+});
+it("retries native compilation after a fallback conversion", async () => {
+  vi.resetModules();
+  const compile = vi.spyOn(WebAssembly, "compile").mockRejectedValueOnce(new WebAssembly.CompileError("denied"));
+  const {createFontShaper: createFreshShaper} = await import("./font-shaping.js");
+  const f = fixture(), metrics = fontkit.create(bytes);
+  const first = createFreshShaper(f.context, f.tick), retry = createFreshShaper(f.context, f.tick);
+  try {
+    await Promise.all([first.addFont(bytes, metrics), first.addFont(bytes, metrics)]);
+    expect(first.shape(metrics, "AB").glyphs).toHaveLength(2);
+    await retry.addFont(bytes, metrics);
+    expect(compile).toHaveBeenCalledTimes(2);
+    expect(retry.shape(metrics, "AB").glyphs).toHaveLength(2);
+  } finally {first.dispose(); retry.dispose();}
 });
 it("registers ownership before acquisition and refuses a released conversion", async () => {
   const f = fixture(), instantiate = vi.spyOn(WebAssembly satisfies FontShapingWebAssembly, "instantiate");

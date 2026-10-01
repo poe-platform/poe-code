@@ -5,6 +5,39 @@ import { standardCommands } from "../../src/commands/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { fixture } from "./helpers.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
+import { ShellInput } from "../../src/shell/input.js";
+
+test("pipeline closes its writer when input cleanup settles asynchronously", async t => {
+  const close = ShellInput.prototype.close;
+  t.mock.method(ShellInput.prototype, "close", async function (this: ShellInput) {
+    await close.call(this);
+  });
+  const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(standardCommands());
+  t.after(() => shell.dispose());
+  const result = await shell.exec("uniq | uniq -c", {
+    stdin: "a\na\nb\n", signal: AbortSignal.timeout(1000),
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "      1 a\n      1 b\n");
+  assert.equal(result.stderr, "");
+});
+
+for (const [command, stdin, expected] of [
+  ["sort | uniq", "b\na\na\n", "a\nb\n"],
+  ["uniq | uniq -c", "a\na\nb\n", "      1 a\n      1 b\n"],
+  ["sort | wc -l", "hello\nworld\n", "2\n"],
+  ["uniq | wc -l", "hello\nworld\n", "2\n"],
+  ["uniq | uniq -i | uniq -c", "a\na\nA\nb\nb\nB\n", "      1 a\n      1 b\n"],
+] as const) {
+  test(`explicit stdin closes every stage of ${command}`, async t => {
+    const shell = new Shell({ fs: await fixture(), cwd: "/work" }).use(standardCommands());
+    t.after(() => shell.dispose());
+    const result = await shell.exec(command, { stdin, signal: AbortSignal.timeout(1000) });
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, expected);
+  });
+}
 
 test("standard tools compose in a filtering, transforming, sorting and tee pipeline", async () => {
   const fs = await fixture();

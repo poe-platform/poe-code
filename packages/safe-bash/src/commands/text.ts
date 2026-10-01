@@ -2356,6 +2356,7 @@ export function textCommands(): CommandDefinition[] {
               })());
             }
           }
+          return executeUniqGeneral(context, { [Symbol.asyncIterator]: () => srcIter });
         }
       }
       return executeUniqGeneral(context);

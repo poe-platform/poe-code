@@ -17,6 +17,35 @@ function sortProbe(args: readonly string[], stdin: string, signal: AbortSignal, 
   return { context, stdout, stderr };
 }
 
+test("uniq keeps the original iterator when synchronous input is unavailable", async () => {
+  for (const synchronousProbe of [false, true]) {
+    const probe = sortProbe([], "", new AbortController().signal, await fixture());
+    let readers = 0;
+    const records = ["a\na\n", "b\nb\n"];
+    const stdin = {
+      abortSignal: probe.context.signal,
+      [Symbol.asyncIterator]() {
+        readers++;
+        assert.equal(readers, 1, "stdin must only acquire one reader");
+        let index = 0;
+        return {
+          ...(synchronousProbe ? { tryNextSync: () => undefined } : {}),
+          async next() {
+            await Promise.resolve();
+            return index < records.length
+              ? { done: false as const, value: new TextEncoder().encode(records[index++]!) }
+              : { done: true as const, value: undefined };
+          },
+        };
+      },
+    };
+    const result = await textCommands().find(command => command.name === "uniq")!.execute({ ...probe.context, command: "uniq", stdin });
+    assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+    assert.equal(Buffer.concat(probe.stdout).toString(), "a\nb\n");
+    assert.equal(readers, 1);
+  }
+});
+
 test("sort batches both comparisons and record moves without publishing during checkpoints", async () => {
   const controller = new AbortController();
   const probe = sortProbe([], "\n".repeat(1024), controller.signal, await fixture());

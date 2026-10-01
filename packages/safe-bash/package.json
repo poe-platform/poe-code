@@ -1674,6 +1674,22 @@
             "safe-bash-io-engine": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-alias": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-unalias": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -2575,6 +2591,14 @@
     "./commands/gzip": {
       "types": "./dist/commands/gzip/index.d.ts",
       "import": "./dist/commands/gzip/index.js"
+    },
+    "./commands/alias": {
+      "types": "./dist/commands/alias/index.d.ts",
+      "import": "./dist/commands/alias/index.js"
+    },
+    "./commands/unalias": {
+      "types": "./dist/commands/unalias/index.d.ts",
+      "import": "./dist/commands/unalias/index.js"
     }
   },
   "sideEffects": [
@@ -2802,7 +2826,9 @@
     "safe-bash-command-curl": "*",
     "safe-bash-command-wget": "*",
     "safe-bash-command-find": "*",
-    "safe-bash-command-gzip": "*"
+    "safe-bash-command-gzip": "*",
+    "safe-bash-command-alias": "*",
+    "safe-bash-command-unalias": "*"
   },
   "main": "./dist/index.js",
   "imports": {

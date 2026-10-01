@@ -628,7 +628,9 @@
     "safe-bash-command-curl": "*",
     "safe-bash-command-wget": "*",
     "safe-bash-command-find": "*",
-    "safe-bash-command-gzip": "*"
+    "safe-bash-command-gzip": "*",
+    "safe-bash-command-alias": "*",
+    "safe-bash-command-unalias": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

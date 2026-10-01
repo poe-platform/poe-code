@@ -66,6 +66,10 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
     dotglob: Boolean(state.dotglob),
     globstar: Boolean(state.globstar),
     nullglob: Boolean(state.nullglob),
+    failglob: Boolean(state.failglob),
+    lastpipe: Boolean(state.lastpipe),
+    inherit_errexit: Boolean(state.inherit_errexit),
+    expand_aliases: Boolean(state.expand_aliases),
     nocaseglob: Boolean(state.nocaseglob),
     nocasematch: Boolean(state.nocasematch),
     extglob: Boolean((state as { extglob?: boolean }).extglob),
@@ -80,6 +84,7 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
   };
 
   const snapshot: ShellSessionState = {
+    aliases: Object.fromEntries(state.aliases ?? []),
     cwd: state.cwd,
     umask: state.umask ?? 0o022,
     variables,
@@ -110,6 +115,17 @@ export async function restoreShellSessionState(
     ? resolvePath("/", explicitOptions.cwd)
     : resolvePath("/", snapshot.cwd || "/");
   state.cwd = resolvedCwd;
+  if (snapshot.aliases) {
+    let bytes = 0;
+    const aliases = new Map<string, string>();
+    for (const [name, value] of Object.entries(snapshot.aliases)) {
+      budget.signal.throwIfAborted();
+      bytes += shellValueByteLength(name) + shellValueByteLength(value);
+      if (bytes > budget.limits.maxExpansionBytes) budget.fail("maxExpansionBytes");
+      aliases.set(name, value);
+    }
+    state.aliases = aliases;
+  }
   if (typeof snapshot.umask === "number") {
     state.umask = snapshot.umask & 0o777;
   }
@@ -196,6 +212,10 @@ export async function restoreShellSessionState(
     if (opts.dotglob !== undefined) state.dotglob = opts.dotglob;
     if (opts.globstar !== undefined) state.globstar = opts.globstar;
     if (opts.nullglob !== undefined) state.nullglob = opts.nullglob;
+    if (opts.failglob !== undefined) state.failglob = opts.failglob;
+    if (opts.lastpipe !== undefined) state.lastpipe = opts.lastpipe;
+    if (opts.inherit_errexit !== undefined) state.inherit_errexit = opts.inherit_errexit;
+    if (opts.expand_aliases !== undefined) state.expand_aliases = opts.expand_aliases;
     if (opts.nocaseglob !== undefined) state.nocaseglob = opts.nocaseglob;
     if (opts.nocasematch !== undefined) state.nocasematch = opts.nocasematch;
     if (opts.extglob !== undefined) (state as { extglob?: boolean }).extglob = opts.extglob;

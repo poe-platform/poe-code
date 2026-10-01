@@ -104,6 +104,10 @@ export interface ShellSessionOptionsSnapshot {
   readonly dotglob?: boolean | undefined;
   readonly globstar?: boolean | undefined;
   readonly nullglob?: boolean | undefined;
+  readonly failglob?: boolean | undefined;
+  readonly lastpipe?: boolean | undefined;
+  readonly inherit_errexit?: boolean | undefined;
+  readonly expand_aliases?: boolean | undefined;
   readonly nocaseglob?: boolean | undefined;
   readonly nocasematch?: boolean | undefined;
   readonly extglob?: boolean | undefined;
@@ -118,6 +122,7 @@ export interface ShellSessionOptionsSnapshot {
 }
 
 export interface ShellSessionState {
+  readonly aliases?: Readonly<Record<string, string>> | undefined;
   readonly cwd: string;
   readonly umask?: number | undefined;
   readonly variables?: Readonly<Record<string, string>> | undefined;

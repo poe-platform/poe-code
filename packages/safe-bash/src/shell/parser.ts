@@ -343,7 +343,7 @@ class Lexer {
   conditionalPattern: "pattern" | "regex" | undefined;
   braceReplay?: ReadonlyMap<number, ShellValue>;
   readonly documents: HereDocument[] = [];
-  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>, readonly byteSource = false, readonly syntax: CapturedShellSyntax = defaultSyntax) {
+  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>, readonly byteSource = false, readonly syntax: CapturedShellSyntax = defaultSyntax, readonly aliases?: ReadonlyMap<string, string>) {
     if (depth > this.budget.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.maxSyntaxDepth}`, 0);
   }
 
@@ -659,7 +659,7 @@ class Lexer {
         let script: Script;
         try {
           this.budget.admit();
-          nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start, false, this.sourceValues, this.byteSource, this.syntax);
+          nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start, false, this.sourceValues, this.byteSource, this.syntax, this.aliases);
           script = nested.script(new Set([")"]));
         } catch (error) {
           if (this.documentLine !== undefined && error instanceof ShellSyntaxError && !/nesting|exceeds/u.test(error.reason)) throw this.documentSubstitutionError(this.source.slice(start), error);
@@ -891,7 +891,7 @@ class Lexer {
       }
       if (this.source[this.position] !== "`") this.error("Unterminated command substitution");
       this.position++;
-      try { parts.push({ kind: "substitution", form: "backtick", script: parseSource(source, this.depth + this.operandDepth + 1, this.warnings, line - 1, this.byteLocale, this.budget, this.documentLine === undefined, sourceValues, this.byteSource, this.syntax), line, quoted }); }
+      try { parts.push({ kind: "substitution", form: "backtick", script: parseSource(source, this.depth + this.operandDepth + 1, this.warnings, line - 1, this.byteLocale, this.budget, this.documentLine === undefined, sourceValues, this.byteSource, this.syntax, this.aliases), line, quoted }); }
       catch (error) {
         if (this.documentLine === undefined || !(error instanceof ShellSyntaxError) || /nesting|exceeds/u.test(error.reason)) throw error;
         this.budget.admit();
@@ -918,7 +918,7 @@ class Lexer {
       let script: Script;
       try {
         this.budget.admit();
-        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start, false, this.sourceValues, this.byteSource, this.syntax);
+        nested = new Parser(this.budget, this.source.slice(start), this.depth + this.operandDepth + 1, this.warnings, this.lineAt(start) - 1, undefined, this.byteLocale, false, this.lineIndex, this.sourceOffset + start, false, this.sourceValues, this.byteSource, this.syntax, this.aliases);
         script = nested.script(new Set([")"]));
       }
       catch (error) {
@@ -1044,17 +1044,21 @@ class Lexer {
 }
 
 class Parser {
-  readonly lexer: Lexer;
+  lexer: Lexer;
+  private readonly aliasFrames: { lexer: Lexer; next: Token; name: string; trailing: boolean }[] = [];
+  private readonly aliasNextWords = new WeakSet<Token>();
+  private readonly tokenAliases = new WeakMap<Token, readonly string[]>();
+  private readonly tokenLexers = new WeakMap<Token, Lexer>();
   current: Token;
   lookahead: Token | undefined;
   nesting = 0;
   readonly openCommands: { name: string; line: number }[] = [];
   completedInput?: { lists: AndOr[]; count: number; line: number };
 
-  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex = new SourceLineIndex(source, budget), sourceOffset = 0, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax) {
+  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex = new SourceLineIndex(source, budget), sourceOffset = 0, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax, private readonly aliases?: ReadonlyMap<string, string>) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
     budget.admit();
-    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial, lineIndex, sourceOffset, ordinaryBacktick, sourceValues, byteSource, syntax);
+    this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial, lineIndex, sourceOffset, ordinaryBacktick, sourceValues, byteSource, syntax, aliases);
     this.lexer.position = position ?? 0;
     this.current = this.lexer.next();
   }
@@ -1067,13 +1071,53 @@ class Parser {
 
   advance(): Token {
     const previous = this.current;
-    this.current = this.lookahead ?? this.lexer.next();
+    this.current = this.lookahead ?? this.nextToken();
+    this.lexer = this.tokenLexers.get(this.current) ?? this.lexer;
     this.lookahead = undefined;
     return previous;
   }
 
   peek(): Token {
-    return this.lookahead ??= this.lexer.next();
+    if (!this.lookahead) {
+      const lexer = this.lexer;
+      this.lookahead = this.nextToken();
+      this.lexer = lexer;
+    }
+    return this.lookahead;
+  }
+
+  private nextToken(): Token {
+    let token = this.lexer.next();
+    if (!this.aliases?.size) return token;
+    this.tokenLexers.set(token, this.lexer);
+    this.tokenAliases.set(token, this.aliasFrames.map(frame => frame.name));
+    let trailing = false;
+    while (token.kind === "end" && this.aliasFrames.length) {
+      const frame = this.aliasFrames.pop()!;
+      this.lexer = frame.lexer;
+      trailing ||= frame.trailing;
+      token = frame.next;
+    }
+    if (trailing) this.aliasNextWords.add(token);
+    return token;
+  }
+
+  private expandAlias(): void {
+    while (this.current.kind === "word") {
+      const name = this.current.word?.plain;
+      if (name === undefined || this.current.word!.parts.some(part => part.quoted) || this.tokenAliases.get(this.current)?.includes(name)) return;
+      const value = this.aliases?.get(name);
+      if (value === undefined) return;
+      this.budget.admit(value.length + 1);
+      const lexer = this.lexer;
+      const line = lexer.lineAt(this.current.offset);
+      const next = this.lookahead ?? lexer.next();
+      this.tokenLexers.set(next, this.tokenLexers.get(next) ?? lexer);
+      this.lookahead = undefined;
+      this.aliasFrames.push({ lexer, next, name, trailing: value.endsWith(" ") || value.endsWith("\t") });
+      this.lexer = new Lexer(this.budget, value, lexer.depth, lexer.warnings, line - 1, lexer.byteLocale, undefined, false, undefined, 0, false, undefined, lexer.byteSource, lexer.syntax, this.aliases);
+      this.current = this.nextToken();
+    }
   }
 
   private assignmentWord(compound = false): Word {
@@ -1121,6 +1165,8 @@ class Parser {
     const line = this.lexer.lineAt(this.current.offset);
     if (captureInputUnits) this.completedInput = { lists, count: 0, line };
     while (this.current.kind !== "end" && !stops.has(this.current.value)) {
+      this.expandAlias();
+      if (this.isEnd() || stops.has(this.current.value)) break;
       this.budget.admit();
       const pipelines = [this.pipeline()];
       const operators: ("&&" | "||")[] = [];
@@ -1133,11 +1179,11 @@ class Parser {
       lists.push({ pipelines, operators, ...(terminator ? { terminator } : {}) });
       separators.push(this.is("\n"));
       if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
-      if (inputUnit && this.is("\n")) break;
+      if (inputUnit && !this.aliasFrames.length && this.is("\n")) break;
       if (terminator || this.is(";") || this.is("\n")) {
         this.advance();
         if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
-        if (inputUnit && this.is("\n")) break;
+        if (inputUnit && !this.aliasFrames.length && this.is("\n")) break;
         this.newlines();
       } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
     }
@@ -1167,6 +1213,7 @@ class Parser {
   }
 
   command(): Command {
+    this.expandAlias();
     if (++this.nesting + this.lexer.depth > this.lexer.budget.maxSyntaxDepth) this.error(`Syntax nesting exceeds ${this.lexer.budget.maxSyntaxDepth}`);
     this.budget.admit();
     const line = this.lexer.lineAt(this.current.offset);
@@ -1387,6 +1434,10 @@ class Parser {
       };
       let line: number | undefined;
       while (true) {
+        if (this.aliasNextWords.has(this.current) || words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous))) {
+          this.aliasNextWords.delete(this.current);
+          this.expandAlias();
+        }
         const wordLine = this.lexer.lineAt(Math.max(this.current.offset, this.current.end - 1));
         const redirect = this.redirect();
         if (redirect) { line ??= redirect.line; redirects.push(redirect); }
@@ -1511,7 +1562,7 @@ export function hereDocumentWords(document: HereDocument, line: number, byteLoca
   })();
 }
 
-export function parseShellUnit(source: string, position = 0, byteLocale = false, budgetOrByteSource: ParseBudget | boolean = new ParseBudget(), lineIndexOrSyntax?: SourceLineIndex | ShellSyntaxDeclarations, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax?: ShellSyntaxDeclarations): { script: Script; next: number } {
+export function parseShellUnit(source: string, position = 0, byteLocale = false, budgetOrByteSource: ParseBudget | boolean = new ParseBudget(), lineIndexOrSyntax?: SourceLineIndex | ShellSyntaxDeclarations, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax?: ShellSyntaxDeclarations, aliases?: ReadonlyMap<string, string>): { script: Script; next: number } {
   const budget = budgetOrByteSource instanceof ParseBudget ? budgetOrByteSource : new ParseBudget();
   const lineIndex = lineIndexOrSyntax instanceof SourceLineIndex ? lineIndexOrSyntax : new SourceLineIndex(source, budget);
   const captured = captureShellSyntax(syntax === undefined ? (lineIndexOrSyntax instanceof SourceLineIndex ? undefined : lineIndexOrSyntax) : syntax);
@@ -1519,7 +1570,7 @@ export function parseShellUnit(source: string, position = 0, byteLocale = false,
   const warnings: string[] = [];
   budget.admit();
   if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
-  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale, false, lineIndex, 0, false, sourceValues, raw, captured);
+  const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale, false, lineIndex, 0, false, sourceValues, raw, captured, aliases);
   const script = parser.script(new Set(), true);
   const next = parser.current.end;
   const nul = source.indexOf("\0", position);
@@ -1528,7 +1579,7 @@ export function parseShellUnit(source: string, position = 0, byteLocale = false,
   return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next };
 }
 
-export function parseShellInputUnit(source: string, byteLocale = false, budgetOrSyntax: ParseBudget | ShellSyntaxDeclarations = new ParseBudget(), suppliedLineIndex?: SourceLineIndex, syntax?: ShellSyntaxDeclarations): { script: Script; next: number } | undefined {
+export function parseShellInputUnit(source: string, byteLocale = false, budgetOrSyntax: ParseBudget | ShellSyntaxDeclarations = new ParseBudget(), suppliedLineIndex?: SourceLineIndex, syntax?: ShellSyntaxDeclarations, aliases?: ReadonlyMap<string, string>): { script: Script; next: number } | undefined {
   const budget = budgetOrSyntax instanceof ParseBudget ? budgetOrSyntax : new ParseBudget();
   const lineIndex = suppliedLineIndex ?? new SourceLineIndex(source, budget);
   const captured = captureShellSyntax(syntax === undefined ? (budgetOrSyntax instanceof ParseBudget ? undefined : budgetOrSyntax) : syntax);
@@ -1536,7 +1587,7 @@ export function parseShellInputUnit(source: string, byteLocale = false, budgetOr
   try {
     budget.admit();
     if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
-    const parser = new Parser(budget, source, 0, warnings, 0, 0, byteLocale, true, lineIndex, 0, false, undefined, false, captured);
+    const parser = new Parser(budget, source, 0, warnings, 0, 0, byteLocale, true, lineIndex, 0, false, undefined, false, captured, aliases);
     const script = parser.script(new Set(), true);
     budget.admit(2);
     return { script: { ...script, ...(warnings.length ? { warnings } : {}) }, next: parser.current.end };
@@ -1547,10 +1598,10 @@ export function parseShellInputUnit(source: string, byteLocale = false, budgetOr
   }
 }
 
-function parseSource(source: string, depth: number, warnings: string[], lineOffset: number, byteLocale: boolean, budget: ParseBudget, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax): Script {
+function parseSource(source: string, depth: number, warnings: string[], lineOffset: number, byteLocale: boolean, budget: ParseBudget, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax, aliases?: ReadonlyMap<string, string>): Script {
   budget.admit();
   const warningCount = warnings.length;
-  const parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale, false, undefined, 0, ordinaryBacktick, sourceValues, byteSource, syntax);
+  const parser = new Parser(budget, source, depth, warnings, lineOffset, undefined, byteLocale, false, undefined, 0, ordinaryBacktick, sourceValues, byteSource, syntax, aliases);
   try {
     const script = parser.script(new Set(), false, ordinaryBacktick);
     if (parser.current.kind !== "end") parser.error("Unexpected token");

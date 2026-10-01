@@ -38,6 +38,8 @@ import { MemoryFileSystem, isCleanAbsolutePath, retargetScopedFileSystem, scopeF
 import { collectPureReadOnlySmiNames, compilePureSmiProgram, evaluateArithmetic, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type Arithmetic, type ArithmeticProgram, type ArithmeticReferences, type CompiledSmiExpr } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { BraceExpansionFailure, expandBraces, tryFastExpandBraceRange } from "./brace-expansion.js";
+import { createAliasCommand } from "safe-bash-command-alias";
+import { createUnaliasCommand } from "safe-bash-command-unalias";
 import { expandTildes } from "./tilde-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import { compilePattern, compilePatternBoundaries, matchesPattern, tryMatchesPatternSync } from "./pattern.js";
@@ -192,7 +194,7 @@ export const defaultLimits: ResolvedShellLimits = {
 };
 
 const shellBuiltinNames = new Set([
-  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", ]);
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", "alias", "unalias", ]);
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
@@ -1020,6 +1022,12 @@ export interface State extends DynamicVariableState {
   extglob?: boolean;
   globstar?: boolean;
   nullglob?: boolean;
+  failglob?: boolean;
+  lastpipe?: boolean;
+  inherit_errexit?: boolean;
+  expand_aliases?: boolean;
+  aliases?: Map<string, string>;
+  processSubstitutionIds?: { next: number };
   nocaseglob?: boolean;
   nocasematch?: boolean;
   braceexpand?: boolean;
@@ -1267,6 +1275,7 @@ class ExecutionFailure extends Error {
 class ExpansionFailure extends Error {
   constructor(message: string, readonly line?: number) { super(message); }
 }
+class FailglobFailure extends ExpansionFailure {}
 class CommandFailure extends Error {
   constructor(message: string, readonly status: number) { super(message); }
 }
@@ -1996,6 +2005,7 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.variableAttributes) cloned.variableAttributes = new Map(raw.variableAttributes);
   if (raw.getopts) cloned.getopts = cloneGetoptsBinding(raw);
   if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
+  if (raw.aliases) cloned.aliases = new Map(raw.aliases);
   return cloned;
 }
 function tryCloneStateSync(state: State, scope?: InvocationScope, inheritLocals = true): State | undefined {
@@ -2794,7 +2804,6 @@ function hasGlobOrEscape(text: string, extglob = false): boolean {
   }
   return false;
 }
-let nextProcessSubstitutionId = 0;
 
 const fastSubScratchArgs: string[] = [];
 const defaultValueScopeReserve = ValueScope.prototype.reserve;
@@ -7669,7 +7678,7 @@ export class Runtime {
               const uArg = wu.plain ?? (wu.parts.length === 1 && wu.parts[0]!.kind === "text" ? wu.parts[0]!.value : undefined);
               if (uArg !== undefined) {
                 const br = uArg.indexOf("[");
-                if (br > 0 && uArg.endsWith("]") && (wu.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0))) {
+                if (br > 0 && uArg.endsWith("]") && (wu.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0))) {
                   const arrName = uArg.slice(0, br);
                   const subStr = uArg.slice(br + 1, -1);
                   const b = isShellIdentifier(arrName) ? st?.get(arrName) : undefined;
@@ -7886,7 +7895,7 @@ export class Runtime {
             let targetOk = false;
             if (w2Plain !== undefined) {
               const br = w2Plain.indexOf("[");
-              if (br > 0 && w2Plain.endsWith("]") && (w2?.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0))) {
+              if (br > 0 && w2Plain.endsWith("]") && (w2?.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0))) {
                 const arrName = w2Plain.slice(0, br);
                 const subStr = w2Plain.slice(br + 1, -1);
                 const b = isShellIdentifier(arrName) ? st?.get(arrName) : undefined;
@@ -9422,7 +9431,7 @@ export class Runtime {
       if ( this.budget.limits.maxExpansionFields === Infinity && command.words.length >= 4 && w0Plain === "printf" && command.words[1]?.plain === "-v" && command.redirects.length === 0 && canMutatePipeStatus && (!pipeline.negate || ignored || !rawState.errexit) && !hasShellFunction(rawState, "printf") && !rawState.extensions?.builtins.has("printf")) {
         const def = this.commands.get("printf");
         if (def && def.execute === printfCommand.execute && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.arePureArgWords(command.words, rawState) || command.words.every((w, idx) => idx < 4 ? this.isPureArgWord(w, rawState) : (this.isPureArgWord(w, rawState) || this.canSyncArrayMembersWord(w, rawState))))) {
-          let targetSpec: ShellValue | undefined = command.words[2]?.plain !== undefined && (rawState.noglob || !hasGlobOrEscape(command.words[2]!.plain, !!rawState.extglob) || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0)) ? command.words[2]!.plain : undefined;
+          let targetSpec: ShellValue | undefined = command.words[2]?.plain !== undefined && (rawState.noglob || !hasGlobOrEscape(command.words[2]!.plain, !!rawState.extglob) || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0)) ? command.words[2]!.plain : undefined;
           if (targetSpec === undefined) {
             try {
               targetSpec = this.fastValueWord(command.words[2]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
@@ -10468,7 +10477,7 @@ export class Runtime {
           const ops: Array<{ kind: "assoc"; arrName: string; binding: IndexedBinding; subStr: string; rawArg: string } | { kind: "indexed"; arrName: string; binding: IndexedBinding; unsetIdx: number; rawArg: string } | { kind: "scalar"; targetName: string }> = [];
           for (let ui = uStart; ui < command.words.length; ui++) {
             const wu = command.words[ui]!;
-            const canSkipGlobUnset = Boolean(wu.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0));
+            const canSkipGlobUnset = Boolean(wu.parts[0]?.quoted || rawState.noglob || (!rawState.nullglob && !rawState.failglob && this._isMemoryBackingFs && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, rawState.cwd)?.size === 0));
             let tExpanded: string | undefined;
             try {
               const fv = this.fastValueWord(wu, rawState, io, !canSkipGlobUnset, false, false, true, undefined, diagnosticLine);
@@ -11138,6 +11147,7 @@ export class Runtime {
       }
       if (
         w0Plain === "eval" &&
+        !rawState.expand_aliases &&
         canMutatePipeStatus &&
         !pipeline.negate &&
         !hasShellFunction(rawState, "eval") &&
@@ -15815,6 +15825,7 @@ export class Runtime {
           void installation.catch(() => undefined);
         }
         const tasks = pipeline.commands.map(async (command, index) => {
+          const inCurrentShell = !!state.lastpipe && index === pipeline.commands.length - 1;
           let admitted = false;
           const admit = (): void => {
             if (admitted) return;
@@ -15841,7 +15852,7 @@ export class Runtime {
           let stageOwnsCleanup = false;
           try {
           const rawStateForChild = stateMonitor(state)?.raw ?? state;
-          const isPureStage = !terminal && !(io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) && runtime.isPureExternalStageCommand(command, rawStateForChild);
+          const isPureStage = !inCurrentShell && !terminal && !(io.descriptors && (io.descriptors.size > 3 || io.descriptors.get(0)?.closed || io.descriptors.get(1)?.closed || io.descriptors.get(2)?.closed)) && runtime.isPureExternalStageCommand(command, rawStateForChild);
           const references = isPureStage ? undefined : (cleanupRefs = new PipeDescriptorFrame(io[invocationScope]));
           const descriptorFrame = isPureStage ? undefined : (cleanupDescFrame = new PreparedDescriptorFrame(references!, this.budget));
           const reading = incoming?.endpoints?.read;
@@ -15865,13 +15876,13 @@ export class Runtime {
               try {
                 const isFastPure = isPureStage || runtime.isPureExternalStageCommand(command, rawStateForChild);
                 const forkedExt = isFastPure ? forkExtensions(state.extensions, "pipeline") : undefined;
-                const child: State = isFastPure
+                const child: State = inCurrentShell ? state : isFastPure
                   ? Object.assign(cloneRawState(rawStateForChild, false), {
                         extensions: forkedExt, isolated: true, _readOnlyStage: true, }, )
                   : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
-                preparedChild = child;
-                child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
-                if (!child._readOnlyStage) {
+                preparedChild = inCurrentShell ? undefined : child;
+                if (!inCurrentShell) child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
+                if (!inCurrentShell && !child._readOnlyStage) {
                   child.extensions = undefined;
                   child.extensions = forkExtensions(state.extensions, "pipeline");
                   child.isolated = true;
@@ -15898,7 +15909,9 @@ export class Runtime {
                   await installation;
                   signal.throwIfAborted();
                 }
-                const work = runtime.runPipelineStageWork(command, child, childIO, io, reason => { checkpointFailure = reason; });
+                const work = inCurrentShell
+                  ? runtime.command(command, child, { ...childIO, terminal: undefined })
+                  : runtime.runPipelineStageWork(command, child, childIO, io, reason => { checkpointFailure = reason; });
                 preparedChild = undefined;
                 started = true;
                 retain(work);
@@ -16913,6 +16926,7 @@ export class Runtime {
         }
         catch (failure) { this.signal.throwIfAborted(); publicDiagnosticMessage(failure, this.budget.onInternalError); }
       }
+      if (error instanceof FailglobFailure) throw completedExit(1, state.errexit ? "exit" : "discard");
       if (error instanceof ExpansionFailure || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw completedExit(error.status);
       if (error instanceof DiscardCommandFailure) throw completedExit(error.status, "discard");
@@ -18559,7 +18573,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax);
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined);
         for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           const result = await this.runUnit(unit.script, state, io);
@@ -18596,7 +18610,7 @@ export class Runtime {
       }
       const unitIO = { ...io, diagnosticOffset: offset };
       try {
-        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing, lineIndex, state.extensions?.syntax);
+        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing, lineIndex, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined);
         if (unit) {
           for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
           if (unit.script.lists.length) {
@@ -18865,7 +18879,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       let unit;
       try {
-        unit = parseShellUnit(source, position, byteLocale(child.variables), this.budget.parsing, lineIndex, undefined, false, child.extensions?.syntax);
+        unit = parseShellUnit(source, position, byteLocale(child.variables), this.budget.parsing, lineIndex, undefined, false, child.extensions?.syntax, child.expand_aliases ? child.aliases : undefined);
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;
         await writeDiagnostic(context.stderr, `${target}: line ${lineIndex.lineAt(error.offset)}: syntax error: ${error.reason}\n`);
@@ -18884,7 +18898,7 @@ export class Runtime {
     } finally { await references.close(); }
   }
   async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string, byteSource = false, includeSyntaxContext = true, sourceValues?: OwnedShellSource["values"]): Promise<number> {
-    if (!sourceValues && !byteSource && isDefaultShellSyntax(state.extensions?.syntax) && source.length <= 4096) {
+    if (!state.expand_aliases && !sourceValues && !byteSource && isDefaultShellSyntax(state.extensions?.syntax) && source.length <= 4096) {
       try {
         const cachedUnit = getOrParseSingleEvalUnit(source, byteLocale(state.variables), this.budget.parsing);
         if (cachedUnit) {
@@ -18911,7 +18925,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, sourceValues, byteSource, state.extensions?.syntax);
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, sourceValues, byteSource, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined);
         for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           status = await this.inputUnit(unit.script, state, io);
@@ -19546,7 +19560,7 @@ export class Runtime {
       return 1;
     }
     const options = new Map<string, { enabled: boolean }>();
-    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "extglob", "globstar", "nocaseglob", "nocasematch", "nullglob"] as const) {
+    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "expand_aliases", "extglob", "failglob", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob"] as const) {
       options.set(name, {
         get enabled() { return name === "braceexpand" ? state.braceexpand !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
     }
@@ -19890,6 +19904,12 @@ export class Runtime {
       return status;
     }
     if (command === "shopt") return this.shoptBuiltin(context, state);
+    if (command === "alias" || command === "unalias") {
+      const aliases = state.aliases ??= new Map<string, string>();
+      const limits = { maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxAliasBytes: this.budget.limits.maxExpansionBytes };
+      const definition = command === "alias" ? createAliasCommand({ aliases, limits }) : createUnaliasCommand({ aliases, limits });
+      return (await definition.execute(context)).exitCode;
+    }
     if (command === "let") return this.letBuiltin(context, state);
     if (command === "mapfile" || command === "readarray") return this.mapfileBuiltin(context, state);
     if (command === "getopts") return this.getoptsBuiltin(context, state);
@@ -21046,9 +21066,25 @@ export class Runtime {
     if (part.kind === "process-substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
       this.signal.throwIfAborted();
-      const tempPath = `/.procsub-${++nextProcessSubstitutionId}`;
+      const ids = state.processSubstitutionIds ??= { next: 0 };
+      const requestedDirectory = pathOf(state, state.variables.TMPDIR || "/tmp");
+      const directory = requestedDirectory === "/" ? "/tmp" : requestedDirectory;
+      await this.sourceFs.mkdir(directory, { recursive: true, signal: this.signal });
+      let tempPath = "";
+      let owned = false;
       io[invocationScope].register(async () => {
-        try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}});
+        if (owned) try { await this.sourceFs.rm(tempPath, { force: true }); } catch {}});
+      while (!owned) {
+        this.budget.tick();
+        tempPath = pathOf(state, `${directory}/.procsub-${++ids.next}`);
+        try {
+          await this.sourceFs.writeFile(tempPath, new Uint8Array(0), { flag: "wx", signal: this.signal });
+          owned = true;
+        } catch (error) {
+          this.signal.throwIfAborted();
+          if (!(error instanceof FsError) || error.code !== "EEXIST") throw error;
+        }
+      }
       if (part.direction === "<") {
         const capture = new Capture();
         const child = await cloneState(state, this.signal);
@@ -21132,7 +21168,7 @@ export class Runtime {
       child.isolated = true;
       child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
       child.extensions = forkExtensions(state.extensions, "substitution");
-      if (state.profile !== "sh") child.errexit = false;
+      if (state.profile !== "sh" && !state.inherit_errexit) child.errexit = false;
       for (const [name, value] of state.redirectAssignments ?? []) {
         await this.writeVariable(child, name, value, io);
         child.exported.add(name);
@@ -31913,6 +31949,7 @@ export class Runtime {
         } catch (error) { if (!ignored(error)) throw error; }
       }
       await sortExpansionStrings(found, work, true);
+      if (!found.length && state.failglob) throw new FailglobFailure(`no match: ${value}`);
       return found.length ? found : state.nullglob ? [] : [value];
     } finally { scratch.close(); }
   }
@@ -31986,6 +32023,7 @@ export class Runtime {
     const sortingWork: StringWork = {
       remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 * (Math.ceil(Math.log2(found.length + 1)) + 1) + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes"), };
     await sortExpansionStrings(found, sortingWork, true);
+    if (!found.length && state.failglob) throw new FailglobFailure(`no match: ${value}`);
     return found.length ? found : state.nullglob ? [] : [value];
   }
 }
@@ -32003,6 +32041,7 @@ export class RootShellState implements State {
   declare directoryStack: { entries: string[]; bytes: number } | undefined;
   declare dotglob: boolean;
   declare globstar: boolean;
+  declare processSubstitutionIds: { next: number };
   declare status: number;
   declare substitutionStatus: number;
   declare lastArgument: string;
@@ -32024,6 +32063,7 @@ export class RootShellState implements State {
     this.substitutionStatus = 0;
     this.lastArgument = "";
     this.secondsOrigin = Date.now();
+    this.processSubstitutionIds = { next: 0 };
   }
   get exported(): Set<string> {
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;

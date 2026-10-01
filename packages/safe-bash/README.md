@@ -166,12 +166,17 @@ All private command plugins are available from `@poe-platform/safe-bash/core` in
   Bash-profile `set -f` / `set -o noglob` disables pathname
   expansion, and `set +f` restores it. `set -C` (or `set -o noclobber`) protects existing output
   files from `>` redirection; `>|` overrides it and `>>` still appends.
-  `shopt -s dotglob` includes dotfiles in globs.
+  `shopt -s dotglob` includes dotfiles in globs. `failglob` rejects unmatched
+  patterns; `lastpipe` retains the final foreground pipeline stage's shell changes;
+  `inherit_errexit` carries `set -e` into command substitutions. Enable
+  `expand_aliases` to expand aliases on subsequently read command lines.
 
 Shell builtins beyond the tools below: `:`, `cd`, `pushd`, `popd`, `dirs`, `set`,
 `shift`, `export`, `local`, `declare`, `readonly`, `unset`, `read`, `getopts`, `let`, `shopt`, `umask`,
 `exit`, `return`, `break`, `continue`, `command`, `builtin`, `type`, `.`, `source`,
-`eval`. `pwd`, `true`, and `false` also work without a command bundle.
+`eval`, `alias`, `unalias`. `alias name='command args'` defines an alias;
+`alias -p` lists definitions, and `unalias name` or `unalias -a` removes them.
+`pwd`, `true`, and `false` also work without a command bundle.
 `command -p` bypasses functions and searches `/bin:/usr/bin` in the supplied
 filesystem while preserving `PATH`; registered commands remain available.
 Combine it with `-v` or `-V` for discovery, including `command -pV printf`.
@@ -818,10 +823,14 @@ and credential protections remain in effect.
 ## Limitations
 
 - This is a Bash-like interpreter, not full Bash or POSIX certification. No
-  background jobs/job control, `exec`, process substitution,
+  background jobs/job control, `exec`,
   associative arrays, or C-style `for ((…))` loops. `shopt` supports `dotglob`,
-  `globstar`, `nullglob`, `nocaseglob`, and `nocasematch`, plus `-o` for supported
+  `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
+  `inherit_errexit`, and `expand_aliases`, plus `-o` for supported
   `set` options. `shopt -s extglob` enables extended patterns, including parameter trimming.
+  Process substitutions use temporary files in virtual `TMPDIR` (default `/tmp`),
+  requiring a writable temporary directory. They buffer data rather than running
+  as concurrent OS processes, and remove their temporary files after use.
 - Utilities implement subsets of their native counterparts' flags and behavior.
   There is no `git`, `npm`, `npx`, or fallback to installed host programs.
   The opt-in `node` command is not a general Node.js runtime.

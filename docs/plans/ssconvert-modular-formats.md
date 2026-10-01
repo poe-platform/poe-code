@@ -353,3 +353,33 @@ at `524b1d3106` is queued. Its source contains all architecture, command and
 packaging repairs. The earlier unstarted `b00b184630` pin was retired by its
 owner. Root publication remains unverified; the supplemental encoding question
 and local native deadline remain unresolved as described above.
+
+
+## Current-main acceptance reconciliation
+
+On 2026-10-01, the user clarified that completion requires verified remote-main
+delivery and does not require waiting for the full root release. This supersedes
+the publication wait in the earlier checkpoints; it does not assert that a root
+release succeeded.
+
+Fresh main at `c5c122b4ce` contains the ODF rich-text integration `42102a5893`,
+modular implementation through `9b6eec47ed`, selected-command isolation
+`e765e7c23d`, and scoped publication repair `9badb683a5`. Git ancestry verified
+those deliveries. The architecture and command requirements are already
+implemented; this reconciliation requires no additional runtime changes.
+
+In a fresh dedicated checkout, the maintained ssconvert workspace build closure
+passed (18 builds, 17 shared-cache hits). All 124 focused tests across seven
+files then passed: AST ownership, neutral engine behavior, explicit selections,
+SDK/command integration, ten real browser bundle checks, ODF rich text and ODF
+annotation rich text. The first bundle attempt lacked compiled workspace
+exports; building the declared dependency closure resolved all nine failures.
+The passing bundle checks include CSV and CSV/XLSX commands and independent
+AST, CSV, XLSX, ODS, SpreadsheetML, HTML and DBF consumers. Earlier installed
+Node/Bun/Workerd, public-type and exact scoped-publication evidence remains
+recorded above; those historical checks were not rerun in this reconciliation.
+
+The time-bounded implementation and modular composition acceptance are complete.
+Full root publication, broader format fidelity, the supplemental formula/name
+encoding question and the separately recorded native timing investigation are
+not claimed as resolved by this architecture acceptance.

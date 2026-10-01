@@ -66,6 +66,30 @@ test("default locale remains stable across successive units and cached execution
   }
 });
 
+for (const [source, exitCode] of [
+  ["mark >output; true |", 2],
+  ["mark; value=$(true |); : >after", 127],
+] as const) {
+  test(`initial syntax failure leaves caller input and commands untouched: ${source}`, async context => {
+    const { shell, fs, commands } = setup();
+    context.after(() => shell.dispose());
+    let acquired = 0;
+    let invoked = 0;
+    commands.register({ name: "mark", execute() { invoked++; return { exitCode: 0 }; } });
+    const stdin = { [Symbol.asyncIterator](): AsyncIterator<Uint8Array> {
+      acquired++;
+      throw new Error("invalid source acquired caller input");
+    } };
+    const result = await shell.exec(source, { stdin });
+    assert.equal(result.exitCode, exitCode);
+    assert.equal(result.stdout, "");
+    assert.notEqual(result.stderr, "");
+    assert.equal(acquired, 0);
+    assert.equal(invoked, 0);
+    assert.deepEqual(await fs.readdir("/"), []);
+  });
+}
+
 test("#614 successive units retain locale changes and earlier effects", async context => {
   const { shell, fs } = setup();
   context.after(() => shell.dispose());

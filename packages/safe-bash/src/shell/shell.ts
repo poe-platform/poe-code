@@ -1140,6 +1140,7 @@ export class Shell implements PluginHost {
           unit = getOrParseUnitFromCache(source, 0, byteLocale(currentState.variables), sourceCache, parseState, budget, extensions.syntax, aliases);
           currentCachedUnit = parseState.currentCachedUnit;
         }
+        // Caller iterators may acquire resources; admit the initial syntax first.
         if (!stdin) {
           stdin = new ShellInput(options.stdin as ConstructorParameters<typeof ShellInput>[0], budget);
           io.stdin = stdin;

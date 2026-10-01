@@ -660,7 +660,8 @@
     "safe-bash-command-media": "*",
     "safe-bash-command-node": "*",
     "safe-bash-command-caller": "*",
-    "@poe-code/terminal-text": "*"
+    "@poe-code/terminal-text": "*",
+    "safe-bash-sqlite-engine": "*"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -852,6 +853,8 @@
     "packages/spreadsheet-format-html/LICENSE",
     "packages/spreadsheet-format-html/src/html-NOTICE.md",
     "packages/spreadsheet-format-dbf/LICENSE",
+    "packages/safe-bash-sqlite-engine/dist",
+    "packages/safe-bash-sqlite-engine/LICENSE",
     "!packages/*/dist/**/*.d.ts",
     "!packages/*/dist/**/*.d.mts",
     "!packages/*/dist/**/*.d.cts",

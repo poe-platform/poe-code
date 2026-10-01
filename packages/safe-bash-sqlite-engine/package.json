@@ -1,0 +1,42 @@
+{
+  "name": "safe-bash-sqlite-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json && tsc -p tsconfig.scripts.json",
+    "lint": "eslint 'src/**/*.ts' scripts && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts scripts/*.test.mjs scripts/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts scripts/*.test.mjs scripts/*.test.ts",
+    "pretest": "npm run build",
+    "pretest:unit": "npm run build",
+    "prepare:native": "node --import tsx scripts/prepare-native.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "memfs": "4.56.10",
+    "esbuild": "0.28.1"
+  },
+  "imports": {
+    "#sqlite-assets": {
+      "workerd": "./dist/worker-assets.js",
+      "worker": "./dist/worker-assets.js",
+      "browser": "./dist/worker-assets.js",
+      "default": "./dist/native/node-assets.mjs"
+    }
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "package": "@journeyapps/wa-sqlite",
+  "version": "2.0.6",
+  "sqlite": "3.53.0",
+  "sources": {
+    "package.json": "c5796209f1b6581964d82f047e8c2b233fa00fe0752b7762a3ff6f0de78dc857",
+    "LICENSE": "547f9e97e461bd369cc64b6fc12d724e8b02764b8db7812691f29f0ec572be79",
+    "dist/wa-sqlite-async.mjs": "1376b2dc6edebbdded8074eaf166e927d46bd8bfd809e355dd90af2b804a3bb9",
+    "dist/wa-sqlite-async.wasm": "97152829526d5e4714ae5dcfa85dfc1e48a17f8b08f2681f46220cfb58926bff",
+    "src/FacadeVFS.js": "537a1f34dfda12571c4fa7a0b85346ca9ea16faa953d9ecb190a6dadd0a5acbf",
+    "src/VFS.js": "55e7455e2ec0000cc4ba7a8bf7882f414a40f2a0ba6eb4c4ac847f379f54d92f",
+    "src/sqlite-constants.js": "f7b570f0c39e4b54c99f2598b6ad42018d4d8bf791861ede20d295628ae49f8f"
+  },
+  "tools": {
+    "esbuild": "0.28.1"
+  },
+  "artifacts": {
+    "native.mjs": {
+      "bytes": 111863,
+      "sha256": "1376b2dc6edebbdded8074eaf166e927d46bd8bfd809e355dd90af2b804a3bb9"
+    },
+    "native.wasm": {
+      "bytes": 2256849,
+      "sha256": "f4f223b1221908e192409412c9d5f45c3de182dfc5301679568a37c0710a9309"
+    },
+    "callback.wasm": {
+      "bytes": 37,
+      "sha256": "09a91b011745b995ee5d501df42259e2e137cbbc37bc4c144acecec0a9b883d6"
+    },
+    "vfs.mjs": {
+      "bytes": 6255,
+      "sha256": "49ef17e0ec677e2def15ab1b99f66e3482c8081f1d8f7d8ba069663f40baccfc"
+    },
+    "LICENSE": {
+      "bytes": 1073,
+      "sha256": "547f9e97e461bd369cc64b6fc12d724e8b02764b8db7812691f29f0ec572be79"
+    },
+    "node-assets.mjs": {
+      "bytes": 3009359,
+      "sha256": "2f7918ce6c3e811d3a2ab2e17c639261dbaae6135d9b6d455e4996c4f05a3ab0"
+    }
+  }
+}

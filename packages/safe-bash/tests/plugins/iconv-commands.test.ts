@@ -4,10 +4,10 @@ import * as entry from "../../src/index.js";
 
 test("the default public preset appends iconv and exposes its factories", () => {
   const names = entry.createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 116);
-  assert.equal(new Set(names).size, 116);
+  assert.equal(names.length, 188);
+  assert.equal(new Set(names).size, 188);
   for (const name of ["lzma", "unlzma", "lzcat"]) assert.ok(names.includes(name));
-  assert.deepEqual(names.slice(-7), ["hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan"]);
+  assert.deepEqual(names.slice(-79), ["hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "dd", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"]);
   for (const name of ["createIconvCommand", "createIconvCommands", "iconvCommands"]) assert.ok(name in entry, `Missing public export: ${name}`);
 });
 

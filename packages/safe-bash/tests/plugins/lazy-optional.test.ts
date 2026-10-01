@@ -81,8 +81,8 @@ test("explicit command and family selection; full profile retains the optional i
 
 test("full profile composes with agent commands and preserves fallback precedence", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
-  shell.register(createCsvcutCommand());
   await shell.exec("true");
+  shell.register(createCsvcutCommand(), { replace: true });
   const csvcut = shell.commands.get("csvcut");
   const gh = shell.commands.get("gh");
   shell.use(lazy.optionalCommands({ profile: "full" }));
@@ -155,7 +155,7 @@ test("static discovery metadata stays compatible with the maintained command fac
 
 test("default ssconvert keeps its existing CSV and XLSX formats", async () => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(lazy.ssconvertCommands());
+  const shell = new Shell({ fs }).use(agentCommands());
   try {
     const result = await shell.exec(
       "printf 'Name,Value\\nAda,2\\n' > /input.csv; ssconvert /input.csv /output.xlsx; ssconvert /output.xlsx /roundtrip.csv; cat /roundtrip.csv"

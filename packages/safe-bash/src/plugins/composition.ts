@@ -94,6 +94,7 @@ export interface AgentCommandsOptions {
   readonly fd?: Omit<FdCommandsOptions, "replace">;
   readonly less?: Omit<LessCommandsOptions, "replace">;
   readonly sqlite3?: Omit<Sqlite3CommandsOptions, "replace">;
+  /** Include convenience commands by default; false disables this family. */
   readonly muscleMemory?: boolean;
   readonly mdq?: Omit<MdqCommandOptions, "replace">;
   readonly xan?: Omit<XanCommandsOptions, "replace">;
@@ -229,7 +230,7 @@ function hasCustomFamilyOptions(options: AgentCommandsOptions): boolean {
   );
 }
 
-export function composeRawAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors, additionalCommands: readonly CommandDefinition[] = []): readonly CommandDefinition[] {
+export function composeRawAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors, additionalCommands: readonly CommandDefinition[] = [], trailingCommands: readonly CommandDefinition[] = []): readonly CommandDefinition[] {
   const commands: CommandDefinition[] = [...additionalCommands];
   const useErgonomicGrep = options.regexExecutor === undefined;
   const grep = createGrepCommands(executors.grep, { ergonomicRegex: useErgonomicGrep });
@@ -249,6 +250,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
       createCsplitCommandWithExecutor(executors.csplit, csplitLimits === undefined ? {} : { limits: csplitLimits }),
       ...defaults.afterCsplit,
     );
+    commands.push(...createExtraAgentCommands(options).filter(command => command.name !== "shuf" && command.name !== "numfmt"), ...trailingCommands);
     return commands;
   }
   const prOptions = options.pr;
@@ -301,13 +303,14 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     ...createHexdumpCommands({ ...(hexdumpLimits === undefined ? {} : { limits: hexdumpLimits }), ...(hexdumpDialect === undefined ? {} : { dialect: hexdumpDialect }) }),
     ...createIconvCommands(iconvLimits === undefined ? {} : { limits: iconvLimits }),
     ...createLineEndingCommands(lineEndingLimits === undefined ? {} : { limits: lineEndingLimits }),
-    ...(options.muscleMemory ? createExtraAgentCommands(options) : options.sqlite3 ? createSqlite3Commands(options.sqlite3) : []),
     createMdqCommand(options.mdq),
     ...createXanCommands(options.xan),
+    ...(options.muscleMemory !== false ? createExtraAgentCommands(options).filter(command => options.muscleMemory === true || (command.name !== "shuf" && command.name !== "numfmt")) : options.sqlite3 ? createSqlite3Commands(options.sqlite3) : []),
+    ...trailingCommands,
   );
   return commands;
 }
 
-export function composeAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors, additionalCommands: readonly CommandDefinition[] = []): readonly CommandDefinition[] {
-  return new CommandRegistry(composeRawAgentCommands(options, executors, additionalCommands)).list();
+export function composeAgentCommands(options: AgentCommandsOptions, executors: AgentRegexExecutors, additionalCommands: readonly CommandDefinition[] = [], trailingCommands: readonly CommandDefinition[] = []): readonly CommandDefinition[] {
+  return new CommandRegistry(composeRawAgentCommands(options, executors, additionalCommands, trailingCommands)).list();
 }

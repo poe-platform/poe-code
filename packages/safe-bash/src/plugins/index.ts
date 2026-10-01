@@ -1,3 +1,4 @@
+import { createPortableAgentCommands } from "./portable-commands.js";
 import { createAgentCommandPlugin, createRegexExecutors } from "./base.js";
 import { createGhCommands } from "../lazy-gh.js";
 import type { CommandDefinition } from "../contracts/index.js";
@@ -9,7 +10,7 @@ export type { AgentCommandsOptions } from "./composition.js";
 export { baseAgentCommands, type BaseAgentCommandsOptions } from "./base.js";
 
 export function createAgentCommands(options: AgentCommandsOptions = {}): readonly CommandDefinition[] {
-  const commands = composeAgentCommands(options, createRegexExecutors(options), createGhCommands(options.gh));
+  const commands = composeAgentCommands(options, createRegexExecutors(options), createGhCommands(options.gh), createPortableAgentCommands());
   const recipe = captureAgentWorkerRecipe(options);
   for (const command of commands) {
     if (recipe) agentWorkerRecipes.set(command.execute, recipe);
@@ -19,7 +20,7 @@ export function createAgentCommands(options: AgentCommandsOptions = {}): readonl
 
 export function agentCommands(options: AgentCommandsOptions = {}): VirtualShellPlugin {
   const regex = Object.freeze({ ...options.regex });
-  const base = createAgentCommandPlugin({ ...options, regex }, createRegexExecutors({ ...options, regex }), createGhCommands(options.gh));
+  const base = createAgentCommandPlugin({ ...options, regex }, createRegexExecutors({ ...options, regex }), createGhCommands(options.gh), createPortableAgentCommands());
   const recipe = captureAgentWorkerRecipe(options);
   const plugin: VirtualShellPlugin = {
     name: "agent-commands",

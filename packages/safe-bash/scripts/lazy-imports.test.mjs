@@ -50,10 +50,10 @@ test("root import cannot statically evaluate optional spreadsheet, PDF, media or
   }
 });
 
-test("default command registration does not link unrelated optional families", async () => {
+test("base command registration does not link unrelated optional families", async () => {
   const result = await build({
     absWorkingDir: root,
-    entryPoints: ["packages/safe-bash/src/plugins/index.ts"],
+    entryPoints: ["packages/safe-bash/src/registry-entry.ts"],
     tsconfig: "packages/safe-bash/tsconfig.json",
     bundle: true,
     splitting: true,

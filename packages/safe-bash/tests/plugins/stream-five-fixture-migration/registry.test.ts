@@ -14,9 +14,9 @@ test("current registry is frozen60 plus fifty-two independently declared deliver
   assert.equal(baseline60.length, 60);
   assert.equal(new Set(baseline60).size, 60);
   assert.deepEqual(baseline60.slice(-4), ["tac", "expand", "fold", "strings"]);
-  const expected = ["gh", ...baseline60.filter(name => name !== "rg").flatMap(name => name === "[" ? ["[", "cmp", "fmt", "shuf", "numfmt"] : name === "sha256sum" ? ["sha512sum", "sha384sum", "sha256sum", "sha224sum"] : name === "zcat" ? ["zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat"] : name === "mktemp" ? ["mktemp", "truncate"] : name === "tar" ? ["tar", "zip", "unzip"] : [name]), ...approved, "date", "sleep", "printenv", "tree", "file", "rg", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan"];
-  assert.equal(expected.length, 116);
-  assert.equal(new Set(expected).size, 116);
+  const expected = ["gh", ...baseline60.filter(name => name !== "rg").flatMap(name => name === "[" ? ["[", "cmp", "fmt", "shuf", "numfmt"] : name === "sha256sum" ? ["sha512sum", "sha384sum", "sha256sum", "sha224sum"] : name === "zcat" ? ["zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat"] : name === "mktemp" ? ["mktemp", "truncate"] : name === "tar" ? ["tar", "zip", "unzip"] : [name]), ...approved, "date", "sleep", "printenv", "tree", "file", "rg", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "dd", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"];
+  assert.equal(expected.length, 188);
+  assert.equal(new Set(expected).size, 188);
   assert.deepEqual(createAgentCommands().map(command => command.name), expected);
   const target = host();
   await agentCommands().setup(target);
@@ -32,7 +32,7 @@ for (const name of approved) test(`${name} aggregate collision is atomic and rep
   assert.throws(() => agentCommands().setup(target), new RegExp(`already registered: ${name}`, "u"));
   assert.deepEqual(target.commands.list(), [original, custom]);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 117);
+  assert.equal(target.commands.list().length, 189);
   assert.equal(target.commands.get("custom"), before[1]);
   assert.notEqual(target.commands.get(name), before[0]);
 });

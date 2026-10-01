@@ -140,17 +140,17 @@ test("aggregate definitions are exactly the delivered families, each registered 
     "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
     "paste", "comm", "join", "tac", "expand", "fold", "strings",
     "seq", "nl", "rev", "unexpand", "split",
-    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "gh",
+    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "dd", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv", "gh",
   ].sort();
-  assert.equal(expected.length, 116);
-  assert.equal(new Set(expected).size, 116);
+  assert.equal(expected.length, 188);
+  assert.equal(new Set(expected).size, 188);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
   const target = host();
   await agentCommands().setup(target);
   assert.deepEqual(target.commands.list().map(command => command.name).sort(), expected);
 });
 
-for (const conflict of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "paste", "comm", "join", "date", "sleep", "printenv", "tree", "file"]) {
+for (const conflict of ["yq", "bc", "csvcut", "ffmpeg", "op", "pdfinfo", "printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "paste", "comm", "join", "date", "sleep", "printenv", "tree", "file"]) {
   test(`collision with ${conflict} leaves the entire host registry untouched`, () => {
     const commands = new CommandRegistry([{ name: conflict, execute: () => ({ exitCode: 23 }) }]);
     const before = commands.list();
@@ -166,7 +166,7 @@ test("explicit replacement affects all families once and preserves unrelated com
   assert.throws(() => agentCommands().setup(target), /already registered/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 117);
+  assert.equal(target.commands.list().length, 189);
   assert.equal(target.commands.get("custom"), original[0]);
   for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "paste", "comm", "join"]) {
     assert.notEqual(target.commands.get(name), original.find(command => command.name === name));
@@ -292,16 +292,17 @@ for (const [name, plugin, source, expected] of [
   ["exiftool", exiftoolCommands({ replace: true }), "exiftool -s3 -Title /image.png", "packed\n"],
   ["wkhtmltopdf", wkhtmltopdfCommands({ limits: wkhtmltopdfLimits, replace: true }), "wkhtmltopdf --help", "Usage: wkhtmltopdf [options] [page|cover input|toc]... output\nBuilt-in PDF AST static renderer; trusted overrides are optional. Input/output '-' use stdin/stdout.\n"],
 ] as const) {
-  test(`${name} opt-in dispatch preserves middleware through pipes and VFS scripts`, async () => {
+  test(`${name} default and replacement dispatch preserve middleware through pipes and VFS scripts`, async () => {
     const fs = createMemoryFileSystem();
     const shell = new Shell({ fs }).use(agentCommands());
     await fs.writeFile("/image.png", Uint8Array.of(137,80,78,71,13,10,26,10,0,0,0,13,73,72,68,82,0,0,0,1,0,0,0,1,8,4,0,0,0,181,28,12,2,0,0,0,12,116,69,88,116,84,105,116,108,101,0,112,97,99,107,101,100,41,161,151,116,0,0,0,11,73,68,65,84,120,218,99,252,255,31,0,3,3,2,0,239,162,167,91,0,0,0,0,73,69,78,68,174,66,96,130));
     const seen: string[] = [];
     shell.use(async (context, next) => { seen.push(context.command); return next(); });
     try {
-      assert.equal(shell.commands.has(name), false);
-      assert.equal((await shell.exec(source)).exitCode, 127);
-      shell.register({ name, execute: () => ({ exitCode: 23 }) });
+      const initial = await shell.exec(source);
+      assert.equal(initial.exitCode, 0, initial.stderr);
+      assert.equal(initial.stdout, expected);
+      shell.register({ name, execute: () => ({ exitCode: 23 }) }, { replace: true });
       assert.throws(() => (name === "exiftool" ? exiftoolCommands() : wkhtmltopdfCommands()).setup(host(shell.commands)), /already registered/u);
       assert.equal((await shell.exec(source)).exitCode, 23);
       shell.use(plugin);
@@ -321,3 +322,26 @@ for (const [name, plugin, source, expected] of [
     } finally { await shell.dispose(); }
   });
 }
+
+for (const options of [{}, { text: {} }, { muscleMemory: true }]) {
+  test(`portable command suite is available by default: ${JSON.stringify(options)}`, async t => {
+    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands(options));
+    t.after(() => shell.dispose());
+    const names = "yq bc sponge fd less more csvcut csvgrep csvlook csvstat csvjson csvsql in2csv sql2csv diff3 exiftool ffprobe ffmpeg htmlq magick convert identify mogrify montage composite mmdc op pandoc pdfimages pdfinfo pdftk pdftoppm pdftotext qpdf sips soffice libreoffice ssconvert unrtf wkhtmltopdf".split(" ");
+    await shell.exec("true");
+    const definitions = createAgentCommands(options);
+    for (const name of names) {
+      assert.equal(definitions.filter(command => command.name === name).length, 1, name);
+      assert.ok(shell.commands.has(name), name);
+    }
+    const result = await shell.exec("printf 'a: 2\\n' | yq '.a'");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.trim(), "2");
+  });
+}
+
+test("muscleMemory false preserves explicit opt-out and standard commands", () => {
+  const names = createAgentCommands({ muscleMemory: false }).map(command => command.name);
+  for (const name of ["bc", "fd", "sponge", "less", "more"]) assert.ok(!names.includes(name), name);
+  for (const name of ["shuf", "numfmt", "yq", "pdfinfo"]) assert.ok(names.includes(name), name);
+});

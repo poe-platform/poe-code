@@ -15,13 +15,14 @@ export function createRegexExecutors(options: AgentCommandsOptions): AgentRegexE
 
 export function baseAgentCommands(options: BaseAgentCommandsOptions = {}): VirtualShellPlugin {
   const regex = Object.freeze({ ...options.regex });
-  return createAgentCommandPlugin({ ...options, regex }, createRegexExecutors({ ...options, regex }));
+  return createAgentCommandPlugin({ muscleMemory: false, ...options, regex }, createRegexExecutors({ ...options, regex }));
 }
 
 export function createAgentCommandPlugin(
   options: BaseAgentCommandsOptions,
   executors: AgentRegexExecutors,
   additionalCommands: readonly CommandDefinition[] = [],
+  trailingCommands: readonly CommandDefinition[] = [],
 ): VirtualShellPlugin {
   const regex = options.regex ?? {};
   let disposal: Promise<void> | undefined;
@@ -30,7 +31,7 @@ export function createAgentCommandPlugin(
     setup(host) {
       if (disposal) throw new Error("Agent commands are disposed");
       host.provideCapabilities?.({ regex: { executor: executors.grep.provider, limits: regex } });
-      const definitions = composeRawAgentCommands({ ...options, execute: options.execute ?? commandExecutor(name => host.commands.get(name)) }, executors, additionalCommands);
+      const definitions = composeRawAgentCommands({ ...options, execute: options.execute ?? commandExecutor(name => host.commands.get(name)) }, executors, additionalCommands, trailingCommands);
       if (!options.replace) for (const definition of definitions) {
         if (host.commands.has(definition.name)) throw new Error(`Command already registered: ${definition.name}`);
       }

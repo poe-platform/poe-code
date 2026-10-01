@@ -1722,6 +1722,26 @@
             "safe-bash-contracts": "*"
           },
           "portable": true
+        },
+        "safe-bash-sqlite-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "memfs": "4.56.10",
+            "esbuild": "0.28.1"
+          },
+          "assets": [
+            "./dist/native/sources.json",
+            "./dist/native/native.mjs",
+            "./dist/native/native.wasm",
+            "./dist/native/callback.wasm",
+            "./dist/native/vfs.mjs",
+            "./dist/native/LICENSE",
+            "./dist/native/node-assets.mjs",
+            "./dist/native/native.d.mts",
+            "./dist/native/vfs.d.mts"
+          ],
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3106,7 +3126,8 @@
     "safe-bash-command-unalias": "*",
     "safe-bash-command-media": "*",
     "safe-bash-command-node": "*",
-    "safe-bash-command-caller": "*"
+    "safe-bash-command-caller": "*",
+    "safe-bash-sqlite-engine": "*"
   },
   "main": "./dist/index.js",
   "imports": {

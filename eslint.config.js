@@ -357,6 +357,27 @@ function policyConfig(safeBashInputs, compatibility = []) {
     },
   },
   {
+    // Pinned Emscripten output includes alternate browser and Asyncify branches.
+    // Asset-copy checks authenticate these bytes before every package build.
+    name: 'safe-bash/generated-sqlite-runtime',
+    files: ['packages/safe-bash-sqlite-engine/src/native/native.mjs'],
+    rules: {
+      'no-unused-vars': 'off',
+      'no-undef': 'off',
+      'no-empty': 'off',
+      'no-redeclare': 'off',
+      'no-useless-escape': 'off',
+      'no-fallthrough': 'off',
+      'no-useless-catch': 'off',
+      'no-constant-condition': 'off',
+    },
+  },
+  {
+    name: 'safe-bash/generated-sqlite-vfs',
+    files: ['packages/safe-bash-sqlite-engine/src/native/vfs.mjs'],
+    rules: { 'no-unused-vars': 'off' },
+  },
+  {
     // Compiler output retains ABI bindings and intentional switch fallthrough.
     // Keep the authenticated artifacts parsed and all other rules enabled.
     name: 'safe-bash/generated-compression-codecs',

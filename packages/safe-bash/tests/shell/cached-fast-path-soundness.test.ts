@@ -6,6 +6,83 @@ import { ShellLimitError } from "../../src/shell/types.js";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
+import { Runtime } from "../../src/shell/runtime.js";
+
+test("parsed scripts are reused only within their owning shell", async context => {
+  const first = new Shell({ fs: new MemoryFileSystem() });
+  const second = new Shell({ fs: new MemoryFileSystem() });
+  context.after(() => first.dispose());
+  context.after(() => second.dispose());
+  const run = context.mock.method(Runtime.prototype, "runUnit");
+  const source = "tenant_private_value=3494";
+  await first.exec(source);
+  await first.exec(source);
+  await second.exec(source);
+  const scripts = run.mock.calls.map(call => call.arguments[0]);
+  assert.equal(scripts[0], scripts[1]);
+  assert.notEqual(scripts[0], scripts[2]);
+});
+
+test("default locale reaches speculative warm parsing", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  await shell.exec("");
+  const snapshot = context.mock.method(ParseBudget.prototype, "snapshot");
+  const result = await shell.exec("echo warm-byte-locale");
+  assert.equal(result.stdout, "warm-byte-locale\n");
+  assert.ok(snapshot.mock.callCount() > 0);
+});
+
+for (const source of [
+  "echo cached-warm",
+  "LC_ALL=C\necho $'\\u00e9'\nunset LC_ALL\necho $'\\u00e9'",
+  "LC_ALL=C.UTF-8\necho $'\\u00e9'\nLC_ALL=POSIX\necho $'\\u00e9'",
+  "echo before\necho 'unterminated",
+]) {
+  test(`warm and ordinary execution agree across cached runs: ${source}`, async context => {
+    const ordinary = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    ordinary.use(async (_context, next) => next());
+    const warm = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    context.after(() => ordinary.dispose());
+    context.after(() => warm.dispose());
+    const expected = await ordinary.exec(source);
+    for (let run = 0; run < 2; run++) {
+      await warm.exec("");
+      const actual = await warm.exec(source);
+      assert.deepEqual(actual.stdoutBytes, expected.stdoutBytes);
+      assert.deepEqual(actual.stderrBytes, expected.stderrBytes);
+      assert.equal(actual.exitCode, expected.exitCode);
+    }
+  });
+}
+
+test("each shell bounds its parsed source cache", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  context.after(() => shell.dispose());
+  const run = context.mock.method(Runtime.prototype, "runUnit");
+  await shell.exec("bounded=first");
+  const first = run.mock.calls[0]!.arguments[0];
+  for (let index = 0; index < 64; index++) await shell.exec(`bounded=${index}`);
+  await shell.exec("bounded=first");
+  assert.notEqual(run.mock.calls.at(-1)!.arguments[0], first);
+});
+
+test("warm invocations own their promises and mutable result bytes", async context => {
+  const shells = [new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()),
+    new Shell({ fs: new MemoryFileSystem() }).use(standardCommands())];
+  for (const shell of shells) context.after(() => shell.dispose());
+  for (const shell of shells) await shell.exec("");
+  const first = shells[0]!.exec("echo isolated");
+  const second = shells[1]!.exec("echo isolated");
+  assert.notEqual(first, second);
+  const [a, b] = await Promise.all([first, second]);
+  assert.notEqual(a, b);
+  a.stdoutBytes.fill(120);
+  assert.equal(new TextDecoder().decode(b.stdoutBytes), "isolated\n");
+  await shells[0]!.exec("");
+  const next = await shells[0]!.exec("echo isolated");
+  assert.equal(new TextDecoder().decode(next.stdoutBytes), "isolated\n");
+});
 
 for (const [name, source, env, expected] of [
   ["negative echo", "a=0; for i in {1..5}; do y=$((y - i)); done; echo $y", { y: "0" }, "-15\n"],

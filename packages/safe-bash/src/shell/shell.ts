@@ -121,29 +121,27 @@ interface SourceParseCache {
   byOffset0?: Map<number, CachedParsedUnit> | undefined;
   byOffset1?: Map<number, CachedParsedUnit> | undefined;
 }
-const parsedSourceCache = new Map<string, SourceParseCache>();
-let lastSourceCacheKey = "";
-let lastSourceCacheVal: SourceParseCache | undefined;
-function getSourceParseCache(source: string): SourceParseCache {
-  if (source === lastSourceCacheKey && lastSourceCacheVal !== undefined) return lastSourceCacheVal;
-  let entry = parsedSourceCache.get(source);
-  if (!entry) {
-    if (parsedSourceCache.size >= 64) {
-      const oldest = parsedSourceCache.keys().next().value;
-      if (oldest !== undefined) parsedSourceCache.delete(oldest);
-    }
-    entry = { byteLength: utf8ByteLength(source) };
-    parsedSourceCache.set(source, entry);
-  }
-  lastSourceCacheKey = source;
-  lastSourceCacheVal = entry;
-  return entry;
-}
 
 interface ParseUnitState {
   lineIndex: SourceLineIndex | undefined;
   lineIndexUnits: number;
   currentCachedUnit: CachedParsedUnit | undefined;
+}
+
+function syntaxDiagnostic(source: string, error: ShellSyntaxError): string {
+  const line = source.slice(0, error.offset).split("\n").length;
+  if (error.unclosedQuote) {
+    return `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`;
+  }
+  if (error.exitCode === 127) {
+    const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
+    return `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`;
+  }
+  if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
+    const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${error.incompleteCommand.line}` : "";
+    return `shell: -c: line ${source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`;
+  }
+  return `shell: ${error.message}\n`;
 }
 
 function getOrParseUnitFromCache(
@@ -382,6 +380,20 @@ export class Shell implements PluginHost {
   #singleActiveOwner: RootInvocationCancellationOwner | undefined;
   #active: Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }> | undefined;
   #warmedInvocation: WarmedInvocation | undefined;
+  readonly #parsedSourceCache = new Map<string, SourceParseCache>();
+
+  #getSourceParseCache(source: string): SourceParseCache {
+    let entry = this.#parsedSourceCache.get(source);
+    if (!entry) {
+      if (this.#parsedSourceCache.size >= 64) {
+        const oldest = this.#parsedSourceCache.keys().next().value;
+        if (oldest !== undefined) this.#parsedSourceCache.delete(oldest);
+      }
+      entry = { byteLength: utf8ByteLength(source) };
+      this.#parsedSourceCache.set(source, entry);
+    }
+    return entry;
+  }
 
   constructor(options?: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
@@ -540,7 +552,7 @@ export class Shell implements PluginHost {
       source.length <= 16384 &&
       (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options))
     ) {
-      const sourceCache = getSourceParseCache(source);
+      const sourceCache = this.#getSourceParseCache(source);
       const firstCached = sourceCache?.first0;
       if (firstCached && (!firstCached.unit.script.warnings || firstCached.unit.script.warnings.length === 0)) {
         return this.#execWarmSyncOrFallback(source, options, sourceCache!, firstCached);
@@ -718,7 +730,7 @@ export class Shell implements PluginHost {
           }
         } catch (error) {
           if (error instanceof ShellSyntaxError) {
-            await writeDiagnostic(io.stderr, `shell: ${error.message}\n`);
+            await writeDiagnostic(io.stderr, syntaxDiagnostic(source, error));
             exitCode = error.exitCode;
           } else {
             failed = true;
@@ -912,7 +924,7 @@ export class Shell implements PluginHost {
           ? this.#initialLocale
           : (!this.#hasInitialEnv ? byteLocale(options.env) : byteLocale({ ...this.#options.env, ...options.env }));
         const canCacheParse = extensions === EMPTY_CAPTURED_EXTENSIONS && source.length <= 16384;
-        const sourceCache = canCacheParse ? getSourceParseCache(source) : undefined;
+        const sourceCache = canCacheParse ? this.#getSourceParseCache(source) : undefined;
         let parseState: ParseUnitState | undefined;
         let currentCachedUnit: CachedParsedUnit | undefined = sourceCache !== undefined
           ? (locale ? sourceCache.first1 : sourceCache.first0)
@@ -1059,16 +1071,7 @@ export class Shell implements PluginHost {
         }
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;
-        const line = source.slice(0, error.offset).split("\n").length;
-        if (error.unclosedQuote) {
-          await writeDiagnostic(io.stderr, `shell: -c: line ${error.unclosedQuote.line}: unexpected EOF while looking for matching \`${error.unclosedQuote.quote}'\n`);
-        } else if (error.exitCode === 127) {
-          const token = /^[;&|()<>]|^[^\s;&|()<>]+/u.exec(source.slice(error.offset))?.[0] ?? "newline";
-          await writeDiagnostic(io.stderr, `shell: -c: line ${line}: syntax error near unexpected token \`${token}'\nshell: -c: line ${line}: \`${source.split("\n")[line - 1] ?? ""}'\n`);
-        } else if (error.offset >= source.length && !/Unterminated|nesting|Unsupported/u.test(error.reason)) {
-          const context = error.incompleteCommand ? ` from \`${error.incompleteCommand.name}' command on line ${error.incompleteCommand.line}` : "";
-          await writeDiagnostic(io.stderr, `shell: -c: line ${source.split("\n").length + Number(!source.endsWith("\n"))}: syntax error: unexpected end of file${context}\n`);
-        } else await writeDiagnostic(io.stderr, `shell: ${error.message}\n`);
+        await writeDiagnostic(io.stderr, syntaxDiagnostic(source, error));
         exitCode = error.exitCode;
       }
       if (runtime && state && !runtime.tryFinishShellSync(state)) {
@@ -1183,6 +1186,7 @@ export class Shell implements PluginHost {
   dispose(): Promise<void> {
     if (this.#disposal) return this.#disposal;
     this.#disposed = true;
+    this.#parsedSourceCache.clear();
     Runtime.clearStaticPools();
     clearAwkReaderPool();
     clearRgFastRunnerPool();

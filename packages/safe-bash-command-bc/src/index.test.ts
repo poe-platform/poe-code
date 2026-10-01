@@ -115,3 +115,13 @@ test("bc enforces exponent magnitude for powers and compound assignment", async 
   assert.deepEqual(await evaluate("2^4; scale=4; 2^-4", { maxExponent: 4 }), { exitCode: 0, stdout: "16\n.0625\n", stderr: "" });
   assert.equal((await evaluate("2^10001", { maxExponent: Infinity })).exitCode, 0);
 });
+
+for (const [program, stdout] of [
+  ["A; F; AA; 1A; .A; A.A", "10\n15\n99\n19\n.9\n9.9\n"],
+  ["ibase=8; A; F; AA; 1A; .A", "10\n15\n63\n15\n.8\n"],
+  ["ibase=16; A; AA; A.A", "10\n170\n10.6\n"],
+] as const) {
+  test(`bc accepts hexadecimal digits: ${program}`, async () => {
+    assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
+  });
+}

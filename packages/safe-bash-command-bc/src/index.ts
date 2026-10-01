@@ -227,10 +227,8 @@ function parseLiteralInBase(raw: string, ibase: number): DecimalValue {
     if (code >= 65 && code <= 70) return BigInt(code - 55);
     return 0n;
   };
-  if (ibase === 10) {
-    const combined = (intPart + fracPart) || "0";
-    return { coeff: BigInt(combined), scale };
-  }
+  // POSIX single-digit integers retain their value regardless of ibase.
+  if (raw.length === 1 && dot < 0) return { coeff: digitVal(raw), scale: 0 };
   let intVal = 0n;
   for (const ch of intPart) {
     const d = digitVal(ch);

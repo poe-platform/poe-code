@@ -990,6 +990,104 @@
       "safe-bash-command-llm/*": [
         "../safe-bash-command-llm/src/*.ts",
         "../safe-bash-command-llm/src/*"
+      ],
+      "safe-bash-zip-engine": [
+        "../safe-bash-zip-engine/src/index.ts"
+      ],
+      "safe-bash-zip-engine/*": [
+        "../safe-bash-zip-engine/src/*.ts",
+        "../safe-bash-zip-engine/src/*"
+      ],
+      "safe-bash-network-engine": [
+        "../safe-bash-network-engine/src/index.ts"
+      ],
+      "safe-bash-network-engine/*": [
+        "../safe-bash-network-engine/src/*.ts",
+        "../safe-bash-network-engine/src/*"
+      ],
+      "safe-bash-diff-engine": [
+        "../safe-bash-diff-engine/src/index.ts"
+      ],
+      "safe-bash-diff-engine/*": [
+        "../safe-bash-diff-engine/src/*.ts",
+        "../safe-bash-diff-engine/src/*"
+      ],
+      "safe-bash-command-zip": [
+        "../safe-bash-command-zip/src/index.ts"
+      ],
+      "safe-bash-command-zip/*": [
+        "../safe-bash-command-zip/src/*.ts",
+        "../safe-bash-command-zip/src/*"
+      ],
+      "safe-bash-command-wget": [
+        "../safe-bash-command-wget/src/index.ts"
+      ],
+      "safe-bash-command-wget/*": [
+        "../safe-bash-command-wget/src/*.ts",
+        "../safe-bash-command-wget/src/*"
+      ],
+      "safe-bash-command-unzip": [
+        "../safe-bash-command-unzip/src/index.ts"
+      ],
+      "safe-bash-command-unzip/*": [
+        "../safe-bash-command-unzip/src/*.ts",
+        "../safe-bash-command-unzip/src/*"
+      ],
+      "safe-bash-command-tar": [
+        "../safe-bash-command-tar/src/index.ts"
+      ],
+      "safe-bash-command-tar/*": [
+        "../safe-bash-command-tar/src/*.ts",
+        "../safe-bash-command-tar/src/*"
+      ],
+      "safe-bash-command-sed": [
+        "../safe-bash-command-sed/src/index.ts"
+      ],
+      "safe-bash-command-sed/*": [
+        "../safe-bash-command-sed/src/*.ts",
+        "../safe-bash-command-sed/src/*"
+      ],
+      "safe-bash-command-patch": [
+        "../safe-bash-command-patch/src/index.ts"
+      ],
+      "safe-bash-command-patch/*": [
+        "../safe-bash-command-patch/src/*.ts",
+        "../safe-bash-command-patch/src/*"
+      ],
+      "safe-bash-command-gzip": [
+        "../safe-bash-command-gzip/src/index.ts"
+      ],
+      "safe-bash-command-gzip/*": [
+        "../safe-bash-command-gzip/src/*.ts",
+        "../safe-bash-command-gzip/src/*"
+      ],
+      "safe-bash-command-find": [
+        "../safe-bash-command-find/src/index.ts"
+      ],
+      "safe-bash-command-find/*": [
+        "../safe-bash-command-find/src/*.ts",
+        "../safe-bash-command-find/src/*"
+      ],
+      "safe-bash-command-diff": [
+        "../safe-bash-command-diff/src/index.ts"
+      ],
+      "safe-bash-command-diff/*": [
+        "../safe-bash-command-diff/src/*.ts",
+        "../safe-bash-command-diff/src/*"
+      ],
+      "safe-bash-command-curl": [
+        "../safe-bash-command-curl/src/index.ts"
+      ],
+      "safe-bash-command-curl/*": [
+        "../safe-bash-command-curl/src/*.ts",
+        "../safe-bash-command-curl/src/*"
+      ],
+      "safe-bash-command-awk": [
+        "../safe-bash-command-awk/src/index.ts"
+      ],
+      "safe-bash-command-awk/*": [
+        "../safe-bash-command-awk/src/*.ts",
+        "../safe-bash-command-awk/src/*"
       ]
     },
     "baseUrl": "."

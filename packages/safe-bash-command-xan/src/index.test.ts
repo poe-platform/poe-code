@@ -190,3 +190,10 @@ test('from charges only emitted CSV bytes to the output limit', async () => {
 test('cat rows emits the first available header after an empty input', async () => {
  assert.deepEqual(await run(['cat', 'rows', '-', '/right.csv'], ''), { exitCode: 0, stdout: 'name,city\nalice,Paris\nbob,Rome\nbob,Oslo\n', stderr: '' });
 });
+
+test('groupby sums salary columns without requiring an alias', async () => {
+ assert.deepEqual(await run(['groupby', 'dept', 'sum(salary)'],
+  'dept,salary\nengineering,110\nsales,100\nengineering,120\n'), {
+  exitCode: 0, stderr: '', stdout: 'dept,sum(salary)\nengineering,230\nsales,100\n'
+ });
+});

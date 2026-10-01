@@ -26,9 +26,9 @@ const bytes = (text: string) => new TextEncoder().encode(text);
 
 for (const nested of [false, true]) for (const condition of [".active == true", ".active"]) test(`select preserves ${condition} semantics across repeated file runs (nested=${nested})`, async () => {
   const fs = createMemoryFileSystem();
-  const active = nested ? [true, [], {}, false, null, undefined] : [true, 1, 0, "yes", false, null];
+  const active = nested ? [true, [], {}, false, null, undefined] : [true, 1, 0, "true", "", false, null, undefined];
   await fs.writeFile("/items", bytes(active.map((value, id) => JSON.stringify({ id, active: value, padding: "x".repeat(80) })).join("\n") + "\n"));
-  const expected = (condition.includes("==") ? [0] : nested ? [0, 1, 2] : [0, 1, 2, 3]).map(id => JSON.stringify({ id }) + "\n").join("");
+  const expected = (condition.includes("==") ? [0] : nested ? [0, 1, 2] : [0, 1, 2, 3, 4]).map(id => JSON.stringify({ id }) + "\n").join("");
   const command = createJqCommand();
   for (let i = 0; i < 3; i++) {
     const result = await run(command, fs, ["-c", `select(${condition}) | {id}`, "/items"]);

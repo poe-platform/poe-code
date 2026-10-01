@@ -22,6 +22,7 @@ test("select/project checks all bytes when a source identity is reused", () => {
 
 for (const next of [
   { val: "second", active: true, id: 2 },
+  { extra: "new field", id: 4, active: true, val: "fourth" },
   { active: true, id: 3 },
 ]) test(`select/project refreshes a reused plan for ${JSON.stringify(next)}`, () => {
   const holder = {};

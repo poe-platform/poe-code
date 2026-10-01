@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it, vi } from "vitest";
-import { Budget, declareHostOperation, dump, restore, run } from "../src/index.js";
+import { Budget, HostCallResumabilityError, declareHostOperation, dump, restore, run } from "../src/index.js";
 import type { RunSnapshot } from "../src/run.js";
 import legacyCaptures from "./fixtures/public-promise-v6.json" with { type: "json" };
 import { fullSource, singleSource } from "./fixtures/public-promise-inputs.js";
@@ -45,7 +45,7 @@ describe("independent preserved v6 history, never relabelled", () => {
       (["saved", "completed"] as const).map((kind) => ({ ...record, kind }))
     )
   )(
-    "original ordered raw $name/$kind is accepted but retains its original TypeError",
+    "original ordered raw $name/$kind is rejected without host effects",
     async (record) => {
       const source = record.name === "single" ? singleSource : fullSource;
       expect(createHash("sha256").update(source).digest("hex")).toBe(record.sourceSha256);
@@ -55,17 +55,27 @@ describe("independent preserved v6 history, never relabelled", () => {
       expect(restore(snapshot, { source })).toBe(snapshot);
       const boundary = vi.fn(async (label: unknown) => ({ boundary: label }));
       const provider = vi.fn();
-      await expect(
-        run(source, {
-          snapshot,
-          bindings: { boundary: declareHostOperation(boundary, "re-issue") },
-          hostCallResumeProvider: provider,
-          budget: new Budget({ maxSteps: 150_000 })
-        })
-      ).rejects.toMatchObject({
-        name: "TypeError",
-        message: "Promise replay references work not created at this position."
+      const execution = run(source, {
+        snapshot,
+        bindings: { boundary: declareHostOperation(boundary, "re-issue") },
+        hostCallResumeProvider: provider,
+        budget: new Budget({ maxSteps: 150_000 })
       });
+      // These frozen raw captures record failed replay, not valid checkpoints.
+      // Full captures now fail earlier while admitting initial host-call identities.
+      if (record.name === "full") {
+        await expect(execution).rejects.toBeInstanceOf(HostCallResumabilityError);
+        await expect(execution).rejects.toMatchObject({
+          action: "reset",
+          lifecycle: "settled",
+          message: expect.stringContaining("does not match the next restored invocation; reset is required.")
+        });
+      } else {
+        await expect(execution).rejects.toMatchObject({
+          name: "TypeError",
+          message: "Promise replay references work not created at this position."
+        });
+      }
       expect(boundary).not.toHaveBeenCalled();
       expect(provider).not.toHaveBeenCalled();
       expect(JSON.stringify(snapshot)).toBe(original);

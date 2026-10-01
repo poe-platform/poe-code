@@ -34,6 +34,15 @@ it("enforces configured memory path limits even on clean fast paths", async () =
   await expect(fs.stat("/".repeat(11))).rejects.toMatchObject({ code: "ENAMETOOLONG" });
 });
 
+it("resolves memory files beyond 256 real directory components", async () => {
+  const fs = new MemoryFileSystem();
+  const directory = "/a".repeat(257);
+  await fs.mkdir(directory, { recursive: true });
+  await fs.writeFile(`${directory}/file`, new Uint8Array([42]));
+  expect(await fs.readFile(`${directory}/file`)).toEqual(new Uint8Array([42]));
+  expect((await fs.stat(directory)).type).toBe("directory");
+});
+
 it("enforces per-operation device traversal limits", async () => {
   const device = createDeviceFileSystem(new MemoryFileSystem());
   await expect(device.stat("/././", { pathLimits: { maxPathComponents: 1 } }))

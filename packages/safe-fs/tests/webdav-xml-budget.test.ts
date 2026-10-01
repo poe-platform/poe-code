@@ -64,6 +64,13 @@ it("passes unlimited XML text and structure budgets by default", async () => {
   expect(parser).toHaveBeenCalledWith(expect.any(String), { maxTextLength: Infinity });
 });
 
+it("accepts more than 100000 XML nodes by default", async () => {
+  const body = multistatus(resource("/dav/", true), "<x/>".repeat(100_001));
+  const fs = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/",
+    fetch: async () => xmlResponse(body) });
+  await expect(fs.readdir("/")).resolves.toEqual([]);
+});
+
 it("enforces an explicitly configured XML attribute limit", async () => {
   const fs = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", xmlLimits: { maxAttributes: 1 },
     fetch: async () => xmlResponse(multistatus(resource("/dav/", true), '<x a="1" b="2"/>')) });

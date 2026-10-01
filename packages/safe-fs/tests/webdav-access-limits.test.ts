@@ -20,7 +20,7 @@ describe("WebDAV access path-limit compatibility", () => {
     expect(mock.requests.map(request => request.headers.get("Depth"))).toEqual(["0"]);
   });
 
-  it.each([0, 4])("keeps mode %s independent of stat and execute path limits", async mode => {
+  it.each([0, 4])("admits long paths by default and honors optional limits for mode %s", async mode => {
     const mock = new MockDav();
     const remote = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch: mock.fetch });
     const deep = "/d".repeat(257);
@@ -29,10 +29,13 @@ describe("WebDAV access path-limit compatibility", () => {
     mock.files.set(long, new Uint8Array([1]));
     for (const path of ["/".repeat(65_537), "/.".repeat(257), deep, long]) {
       await expect(remote.access(path, mode)).resolves.toBeUndefined();
+      await expect(remote.stat(path)).resolves.toBeDefined();
       const requests = mock.requests.length;
-      await expect(remote.stat(path)).rejects.toMatchObject({ code: "ENAMETOOLONG" });
-      await expect(remote.access(path, 1)).rejects.toMatchObject({ code: "ENAMETOOLONG" });
-      await expect(remote.access(path, 5)).rejects.toMatchObject({ code: "ENAMETOOLONG" });
+      const options = { pathLimits: { maxPathBytes: 65_536, maxPathComponents: 256 } };
+      await expect(remote.stat(path, options)).rejects.toMatchObject({ code: "ENAMETOOLONG" });
+      for (const accessMode of [mode, 1, 5]) {
+        await expect(remote.access(path, accessMode, options)).rejects.toMatchObject({ code: "ENAMETOOLONG" });
+      }
       expect(mock.requests).toHaveLength(requests);
     }
   });

@@ -43,15 +43,16 @@ describe("WebDAV ancestor-walk deadlines", () => {
     }
   );
 
-  it.each(["stat", "writeFile", "writeStream"] as const)("bounds %s path depth and UTF-8 bytes before fetching", async operation => {
+  it.each(["stat", "writeFile", "writeStream"] as const)("bounds %s path depth and UTF-8 bytes when configured before fetching", async operation => {
     vi.useFakeTimers();
     const fetch = vi.fn();
     const acquire = vi.fn(async function* () { yield new Uint8Array([1]); });
     const remote = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch, requestStreamSupport: true });
+    const options = { pathLimits: { maxPathComponents: 256, maxPathBytes: 65_536 } };
     for (const path of ["/directory".repeat(257), "/" + "é".repeat(32_768)]) {
-      const pending = operation === "stat" ? remote.stat(path)
-        : operation === "writeFile" ? remote.writeFile(path, new Uint8Array([1]))
-          : remote.writeStream(path, { [Symbol.asyncIterator]: acquire });
+      const pending = operation === "stat" ? remote.stat(path, options)
+        : operation === "writeFile" ? remote.writeFile(path, new Uint8Array([1]), options)
+          : remote.writeStream(path, { [Symbol.asyncIterator]: acquire }, options);
       await expect(pending).rejects.toMatchObject({ code: "ENAMETOOLONG" });
     }
     expect(fetch).not.toHaveBeenCalled();
@@ -59,11 +60,11 @@ describe("WebDAV ancestor-walk deadlines", () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
-  it("admits paths exactly at the existing component and byte boundaries", async () => {
+  it("admits paths exactly at configured component and byte boundaries", async () => {
     const fetch = vi.fn(async () => new Response(null, { status: 404 }));
     const remote = new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch });
     for (const path of ["/d".repeat(256), "/" + "x".repeat(65_535)]) {
-      await expect(remote.stat(path)).rejects.toMatchObject({ code: "ENOENT" });
+      await expect(remote.stat(path, { pathLimits: { maxPathComponents: 256, maxPathBytes: 65_536 } })).rejects.toMatchObject({ code: "ENOENT" });
     }
     expect(fetch).toHaveBeenCalledTimes(3);
   });

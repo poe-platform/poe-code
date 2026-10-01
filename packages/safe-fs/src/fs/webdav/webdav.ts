@@ -4,6 +4,7 @@ import type { AbortSignalScope } from "../../contracts/abort.js";
 import type { PlatformComparisonCallback } from "#safe-fs-platform";
 import type { ErrnoCode } from "../../contracts/errors.js";
 import { readBytes } from "../../contracts/io.js";
+import { validatePath } from "../../contracts/virtual-path.js";
 import type { ByteSource } from "../../contracts/io.js";
 import type {
   AppendFileOptions, CopyFileOptions, DirectoryEntry, EntryComparison, FileStat, FileSystem, FileSystemCapabilities,
@@ -196,26 +197,6 @@ function normalize(path: string): string {
     } else segments.push(segment);
   }
   return `/${segments.join("/")}`;
-}
-
-function validateDirectoryWalkPath(path: string, syscall = "access"): void {
-  if (typeof path !== "string") fail("EINVAL", "resolve", String(path), "invalid WebDAV path");
-  let bytes = 0;
-  let components = 0;
-  let inComponent = false;
-  for (let offset = 0; offset < path.length; offset++) {
-    const point = path.codePointAt(offset)!;
-    if (point === 47) inComponent = false;
-    else if (!inComponent) {
-      components++;
-      inComponent = true;
-    }
-    bytes += point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4;
-    if (point > 0xffff) offset++;
-    if (bytes > 65_536 || components > 256) {
-      fail("ENAMETOOLONG", syscall, path, "directory access exceeds the 64KiB path or 256 component limit");
-    }
-  }
 }
 
 function requiresCollection(path: string): boolean {
@@ -796,7 +777,7 @@ export class WebDavFileSystem implements FileSystem {
   }
 
   async stat(path: string, options: FsOptions = {}): Promise<FileStat> {
-    validateDirectoryWalkPath(path, "stat");
+    validatePath(path, options.pathLimits);
     return this.statWithAncestors(path, options);
   }
 
@@ -875,7 +856,7 @@ export class WebDavFileSystem implements FileSystem {
   private async prepareWrite(path: string, options: WriteFileOptions): Promise<{
     normalized: string; headers: Record<string, string>; prefix: Uint8Array;
   }> {
-    validateDirectoryWalkPath(path, "writeFile");
+    validatePath(path, options.pathLimits);
     const normalized = normalize(path);
     if (options.mode !== undefined) this.unsupported("writeFile mode", path);
     if (options.flag !== undefined && !["w", "wx", "a", "ax"].includes(options.flag)) fail("EINVAL", "writeFile", path);
@@ -1225,9 +1206,7 @@ export class WebDavFileSystem implements FileSystem {
     if (!Number.isInteger(mode) || mode < 0 || mode > 7) fail("EINVAL", "access", path);
     if (options.signal?.aborted) fail("ECANCELED", "access", path);
     if (mode & 2) this.unsupported("access write/execute permission checks", path);
-    if (mode & 1) validateDirectoryWalkPath(path);
-    // Non-execute probes do not inherit stat's raw-path limits.
-    const stat = await (mode & 1 ? this.stat(path, options) : this.statWithAncestors(path, options));
+    const stat = await this.stat(path, options);
     if (options.signal?.aborted) fail("ECANCELED", "access", path);
     if ((mode & 1) && stat.type !== "directory") this.unsupported("access execute permission checks", path);
     if (mode & 4) {

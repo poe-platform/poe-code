@@ -139,7 +139,8 @@ On Node, network byte, buffer, count and time quotas are unlimited by default. E
 `options.limits` setting enables only that quota. Curl and wget values have no
 implicit ceiling; an explicitly configured host quota can restrict them. Zero
 `--max-time`, `--timeout` or `--tries` removes that command limit while preserving
-explicit host quotas. Curl still defaults to no retries; wget defaults to 20 attempts.
+explicit host quotas. Curl defaults to no retries; wget retries without a fixed
+attempt limit unless `--tries` or the host's `maxRetries` limits it.
 Portable browser/Worker registration requires positive finite `maxUrls` and
 `maxBufferBytes` quotas, including with an injected transport. URL ranges and
 repeated prefix/capture copies are admitted against those budgets before allocation.

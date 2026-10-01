@@ -18,6 +18,28 @@ async function fixture(options: Partial<NetworkCommandsOptions> = {}) {
   return { shell, fs, requests };
 }
 
+for (const maxRetries of [undefined, 25, 2]) {
+  test(`wget default retries respect the host limit ${maxRetries}`, async context => {
+    const timer = globalThis.setTimeout;
+    context.mock.method(globalThis, 'setTimeout', (callback: () => void) => timer(callback, 0));
+    let attempts = 0;
+    const { shell } = await fixture({
+      ...(maxRetries === undefined ? {} : { limits: { maxRetries } }),
+      transport: async () => {
+        attempts++;
+        return { status: attempts <= 21 ? 503 : 200, statusText: '', headers: [],
+          body: toByteSource('ready'), async dispose() {} };
+      },
+    });
+    try {
+      const result = await shell.exec('wget -q -O - https://example.test/resource');
+      assert.equal(attempts, maxRetries === 2 ? 3 : 22);
+      assert.equal(result.exitCode, maxRetries === 2 ? 8 : 0, result.stderr);
+      if (maxRetries !== 2) assert.ok(result.stdout.endsWith('ready'));
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const method of ['--method HEAD', '--method=head', '--method GET']) {
   for (const output of ['-O -', '--output-document="changed response"']) {
     test(`wget representation length without a HEAD body: ${method} ${output}`, async () => {

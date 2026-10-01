@@ -42,7 +42,7 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
     urls: [], data: [], headers: [], include: false, head: false, get: false, location: true,
     remoteName: true, fail: true, failWithBody: false, silent: false, showError: false,
     verbose: false, globoff: true, help: false, version: false,
-    retries: Math.min(19, limits.maxRetries), retryDelayMs: 0,
+    retries: limits.maxRetries, retryDelayMs: 0,
     maxTimeMs: limits.maxTimeMs, maxRedirects: limits.maxRedirects, maxFileSize: limits.maxDownloadBytes,
     agent: "virtual-bash-wget/0.0", retryTransport: true, directoryIndex: "index.html",
     download: { spider: false, resume: false, noClobber: false, contentDisposition: false },

@@ -14,7 +14,7 @@ test("walk reproducer through the public shell", async () => {
   } finally { await shell.dispose(); }
 });
 
-const cases = [
+const cases: readonly [input: string, filter: string, readsInput?: boolean][] = [
   ['{"a":[1,2]}\n', 'walk(if type == "number" then .+1 else . end)'],
   ['[3,[2,1],{"a":[4,1]}]', 'walk(if type == "array" then sort else . end)'],
   ['{"a":1,"b":[2,3]}', 'walk(if type == "number" then (.,.+10) else . end)'],
@@ -23,18 +23,19 @@ const cases = [
   ['1', 'walk((.,.+1))'],
   ['{"__proto__":1,"constructor":2}', 'walk(.)'],
   ['[1]', 'walk(error("bad"))'],
-  ['[1]', 'walk'],
-  ['[1]', 'walk(.;.)'],
+  ['[1]', 'walk', false],
+  ['[1]', 'walk(.;.)', false],
   ['[1]', 'walk(if type == "number" then (1,error("later")) else . end)'],
   ['{"a":1}', 'walk(if type == "number" then (1,error("later")) else . end)'],
   ['{"a":[1]}', 'walk(if type == "array" then {count:length} else . end)'],
 ];
 
-for (const [input, filter] of cases) test(`walk native parity: ${filter} on ${input}`, async () => {
-  const native = spawnSync("/usr/bin/jq", ["-c", filter!], { input, encoding: "utf8" });
+for (const [input, filter, readsInput = true] of cases) test(`walk native parity: ${filter} on ${input}`, async () => {
+  // Compile errors exit before reading stdin; writing to that pipe can race with exit.
+  const native = spawnSync("/usr/bin/jq", ["-c", filter], { input: readsInput ? input : undefined, encoding: "utf8" });
   assert.equal(native.error, undefined);
   assert.equal(native.signal, null);
-  const actual = await run(["-c", filter!], input!);
+  const actual = await run(["-c", filter], input);
   assert.equal(actual.exitCode, native.status);
   assert.equal(actual.stdout, native.stdout);
   assert.equal(actual.stderr, native.stderr);

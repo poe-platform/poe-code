@@ -4,7 +4,7 @@ type ByteSource,type CommandContext,type CommandDefinition,type FileStat,
 } from "safe-bash-contracts";
 import { PublicDiagnostic,publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
-import { yieldTurn } from "safe-bash-contracts/yield";
+import { monotonicNow, yieldTurn } from "safe-bash-contracts/yield";
 import { byteLength,concatBytes,decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { pathOf } from "safe-bash-io-engine/internal";
 
@@ -33,6 +33,8 @@ export class Budget {
   private lines = 0;
   private work = 0;
   private nextYield = 4096;
+  private lastCheckpointTime: number | undefined;
+  private nextYieldTime = 0;
   private files = 0;
   private hunks = 0;
 
@@ -66,7 +68,16 @@ export class Budget {
     this.context.signal.throwIfAborted();
     if (this.work >= this.nextYield) {
       this.nextYield = this.work + 4096;
-      return yieldTurn(this.context.signal);
+      const now = monotonicNow();
+      const previous = this.lastCheckpointTime;
+      this.lastCheckpointTime = now;
+      // Always admit the first turn; stalled clocks must not starve cancellation.
+      if (previous === undefined || now <= previous || now >= this.nextYieldTime) {
+        return yieldTurn(this.context.signal).then(() => {
+          this.lastCheckpointTime = monotonicNow();
+          this.nextYieldTime = this.lastCheckpointTime + 16;
+        });
+      }
     }
   }
 

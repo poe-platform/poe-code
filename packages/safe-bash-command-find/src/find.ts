@@ -169,14 +169,14 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
                       if (v.type !== "file") { allFiles = false; break; }
                       if (match(k)) {
                         matchCount++;
-                        totalBytes += pLen + k.length + 2;
+                        totalBytes += pLen + escapeText(k, "display").length + 2;
                       }
                     }
                   }
                   if (allFiles) {
                     assertCommandRequirements(context, filesystemCommandRequirements.ls, FIND_DIR_REQUIREMENTS, backing.capabilities);
-                    if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
                     if (stdoutPipe.writeLineCountSync(matchCount, totalBytes)) {
+                      if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
                       return RESOLVED_EXIT_ZERO;
                     }
                   }

@@ -70,3 +70,58 @@ test("find -exec preserves raw argument bytes through host invocation", async ()
   assert.equal(result.exitCode, 0);
   assert.deepEqual(received, raw);
 });
+
+for (const rejectCount of [false, true]) {
+  test(`count-only find preserves escaped byte accounting with fallback=${rejectCount}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir('/é');
+    await fs.writeFile('/é/é\n\\', new Uint8Array());
+    let charges = 0;
+    let offeredBytes = 0;
+    let stdout = '';
+    const result = await createFindCommand().execute({
+      ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true, _chargeFastFsOp() { charges++; } },
+      command: 'find', args: ['/é', '-name', '*'], cwd: '/', env: {}, fs,
+      stdin: toByteSource(''), signal: new AbortController().signal,
+      stdout: {
+        ...{ lineCountOnly: 0,
+        writeLineCountSync(count: number, bytes: number) {
+          assert.equal(count, 2);
+          offeredBytes = bytes;
+          return !rejectCount;
+        } },
+        async write(bytes) { stdout += new TextDecoder().decode(bytes); },
+      },
+      stderr: { async write() {} },
+    });
+    assert.equal(result.exitCode, 0);
+    const expected = '/\\303\\251\n/\\303\\251/\\303\\251\\n\\\\\n';
+    assert.equal(offeredBytes, new TextEncoder().encode(expected).length);
+    assert.equal(charges, 1);
+    if (rejectCount) assert.equal(stdout, expected);
+  });
+}
+
+test("find charges one filesystem operation when a full count-only pipe declines", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir('/d');
+  for (let i = 0; i < 280; i++) await fs.writeFile(`/d/${i}${'x'.repeat(240)}`, new Uint8Array());
+  let charges = 0;
+  let offered = 0;
+  let written = 0;
+  const result = await createFindCommand().execute({
+    ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true, _chargeFastFsOp() { charges++; } },
+    command: 'find', args: ['/d', '-name', '*'], cwd: '/', env: {}, fs,
+    stdin: toByteSource(''), signal: new AbortController().signal,
+    stdout: {
+      ...{ lineCountOnly: 0,
+      writeLineCountSync(_count: number, bytes: number) { offered = bytes; return bytes <= 65536; } },
+      async write(bytes) { written += bytes.length; },
+    },
+    stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.ok(offered > 65536);
+  assert.equal(written, offered);
+  assert.equal(charges, 1);
+});

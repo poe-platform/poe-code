@@ -4,12 +4,13 @@ import { escapeXml, multistatus, resource, xmlResponse } from "./migration/fs/we
 
 afterEach(() => vi.restoreAllMocks());
 
-function remote(text: string) {
+function remote(text: string, maxTimestampPropertyBytes?: number) {
   const extra = '<z:propstat><z:prop><v:timestamps xmlns:v="urn:virtual-bash:metadata">'
     + escapeXml(text) + '</v:timestamps></z:prop><z:status>HTTP/1.1 200 OK</z:status></z:propstat>';
   const xml = multistatus(resource("/dav/", true, 0, extra, '"version"'));
   return new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/",
     maxXmlBytes: Buffer.byteLength(xml),
+    ...(maxTimestampPropertyBytes === undefined ? {} : { maxTimestampPropertyBytes }),
     fetch: async () => xmlResponse(xml) });
 }
 
@@ -22,7 +23,6 @@ it.each([
   JSON.stringify({ ...valid, atimeMs: { nested: {} } }),
   JSON.stringify(valid).slice(0, -1) + ',"version":1}',
   '[' + JSON.stringify(valid) + ']',
-  ' '.repeat(4097) + JSON.stringify(valid),
 ])("rejects untrusted metadata before parsing its full JSON graph (%#)", async text => {
   const parse = vi.spyOn(JSON, "parse");
   await expect(remote(text).stat("/")).rejects.toMatchObject({ code: "EIO" });
@@ -35,4 +35,17 @@ it("retains scalar timestamps and escaped strings", async () => {
 
 it("ignores valid metadata for a stale entity tag", async () => {
   await expect(remote(JSON.stringify({ ...valid, etag: '"old"' })).stat("/")).resolves.toMatchObject({ atimeMs: 0 });
+});
+
+it("allows timestamp properties beyond the former byte ceiling by default", async () => {
+  await expect(remote(" ".repeat(4097) + JSON.stringify(valid)).stat("/"))
+    .resolves.toMatchObject({ atimeMs: -2000.5, mtimeMs: 3000 });
+});
+
+it("enforces an explicit timestamp byte ceiling at the boundary", async () => {
+  const text = JSON.stringify(valid);
+  await expect(remote(text, Buffer.byteLength(text)).stat("/"))
+    .resolves.toMatchObject({ mtimeMs: 3000 });
+  await expect(remote(text, Buffer.byteLength(text) - 1).stat("/"))
+    .rejects.toMatchObject({ code: "EIO" });
 });

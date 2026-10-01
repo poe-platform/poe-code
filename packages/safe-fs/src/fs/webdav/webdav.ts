@@ -46,6 +46,8 @@ export interface WebDavFileSystemOptions {
   readonly maxResponseBytes?: number;
   /** Metadata response ceiling before decoding/parsing; unlimited unless configured. */
   readonly maxXmlBytes?: number;
+  /** Timestamp property UTF-8 byte ceiling; unlimited unless configured. */
+  readonly maxTimestampPropertyBytes?: number;
   readonly maxEntries?: number;
   /** XML structure ceilings; unlimited unless configured. */
   readonly xmlLimits?: Pick<XmlLimits, "maxNodes" | "maxContentNodes" | "maxDepth" | "maxAttributes">;
@@ -58,16 +60,15 @@ export interface WebDavFileSystemOptions {
 }
 
 const timestampNamespace = "urn:virtual-bash:metadata";
-const maxTimestampPropertyBytes = 4096;
 
 /** Admit only five scalar members before native JSON parsing can allocate a graph. */
-function preflightTimestamps(property: XmlElement): string {
+function preflightTimestamps(property: XmlElement, maxTimestampPropertyBytes: number): string {
   // Check the untrimmed text first; counting UTF-8 bytes does not allocate an encoded copy.
   let bytes = 0;
   for (const point of property.text) {
     const code = point.codePointAt(0)!;
     bytes += code <= 0x7f ? 1 : code <= 0x7ff ? 2 : code <= 0xffff ? 3 : 4;
-    if (bytes > maxTimestampPropertyBytes) throw new Error("timestamp property exceeds 4KiB limit");
+    if (bytes > maxTimestampPropertyBytes) throw new Error("timestamp property exceeds byte limit");
   }
   const text = scalar(property);
   let offset = 0;
@@ -269,6 +270,7 @@ export class WebDavFileSystem implements FileSystem {
   private readonly headers: Headers;
   private readonly maxResponseBytes: number;
   private readonly maxXmlBytes: number;
+  private readonly maxTimestampPropertyBytes: number;
   private readonly maxEntries: number;
   private readonly xmlLimits: NonNullable<WebDavFileSystemOptions["xmlLimits"]>;
   private readonly timeoutMs: number | undefined;
@@ -323,6 +325,7 @@ export class WebDavFileSystem implements FileSystem {
       streamingAppend: this.requestStreamSupport !== false,
     });
     this.maxResponseBytes = options.maxResponseBytes === undefined ? Infinity : positive(options.maxResponseBytes, "maxResponseBytes", false, true);
+    this.maxTimestampPropertyBytes = positive(options.maxTimestampPropertyBytes ?? Infinity, "maxTimestampPropertyBytes", true, true);
     this.maxXmlBytes = options.maxXmlBytes === undefined ? Infinity : positive(options.maxXmlBytes, "maxXmlBytes", false, true);
     this.xmlLimits = Object.freeze({ ...options.xmlLimits });
     for (const [name, value] of Object.entries(this.xmlLimits)) positive(value, name, false, true);
@@ -695,7 +698,7 @@ export class WebDavFileSystem implements FileSystem {
     let mtimeMs = date("getlastmodified") ?? 0;
     let atimeMs = 0;
     if (timestampProperty) {
-      const timestamps: unknown = JSON.parse(preflightTimestamps(timestampProperty));
+      const timestamps: unknown = JSON.parse(preflightTimestamps(timestampProperty, this.maxTimestampPropertyBytes));
       if (typeof timestamps !== "object" || timestamps === null
         || !("version" in timestamps) || timestamps.version !== 1
         || !("etag" in timestamps) || typeof timestamps.etag !== "string" || !/^"[\x21\x23-\x7e\x80-\xff]*"$/.test(timestamps.etag)

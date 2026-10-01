@@ -3371,11 +3371,11 @@ function isStockMemoryMethods(mem: MemoryFileSystem, names: readonly string[], c
   return true;
 }
 
-let lastReadViewData: Uint8Array | undefined;
-let lastReadViewSourceRef: Uint8Array | undefined;
+let lastReadViewData: WeakRef<Uint8Array> | undefined;
+let lastReadViewSourceRef: WeakRef<Uint8Array> | undefined;
 
 export function getLastReadMemoryFileSourceRef(view: Uint8Array): Uint8Array | undefined {
-  const ref = view === lastReadViewData ? lastReadViewSourceRef : undefined;
+  const ref = view === lastReadViewData?.deref() ? lastReadViewSourceRef?.deref() : undefined;
   lastReadViewData = undefined;
   lastReadViewSourceRef = undefined;
   return ref;
@@ -3393,8 +3393,8 @@ export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, 
   if (Date.now !== defaultDateNow) node.atimeMs = Date.now();
   else if ((++fastWriteNowTick & 63) === 0) node.atimeMs = fastWriteCachedNow = Date.now();
   if (captureSourceRef && node.revision === 0) {
-    lastReadViewData = data;
-    lastReadViewSourceRef = node.sourceRef;
+    lastReadViewData = new WeakRef(data);
+    lastReadViewSourceRef = node.sourceRef === undefined ? undefined : new WeakRef(node.sourceRef);
   }
   return data;
 }

@@ -1,4 +1,4 @@
-import { utf8ByteLength, utf8Encoder, decodeLatin1, encodeLatin1, compareBytes } from "./bytes.js";
+import { utf8ByteLength, utf8Encoder, decodeLatin1, encodeLatin1 } from "./bytes.js";
 import { readBytes, type ByteSource } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { Budget, hasCustomKeyOrder, invalidateCachedValueMetrics, JqError, JqLimitError, object, objectKeyIterator, objectSize, put, scalarJson, type Json } from "./limits.js";
@@ -834,24 +834,6 @@ function stepFlatSelectProjectLine(
   return true;
 }
 
-let lastSpPlan: FlatSchemaPlan | undefined;
-let lastSpInBuf: Uint8Array | undefined;
-let lastSpSourceRefs = new WeakSet<Uint8Array>();
-let lastSpB0 = 0;
-let lastSpBMid = 0;
-let lastSpBEnd = 0;
-let lastSpSavedOutBuf: Uint8Array | undefined;
-let lastSpDirectOutBuf: Uint8Array | undefined;
-let lastSpOutBufIntact = false;
-let lastSpOutPos = 0;
-let lastSpLineCount = 0;
-let lastSpResultCount = 0;
-let lastSpSteps = 0;
-
-export function getLastFastSelectProjectSavedOutBuf(len: number): Uint8Array | undefined {
-  return lastSpOutBufIntact && lastSpSavedOutBuf !== undefined && lastSpSavedOutBuf.byteLength === len ? lastSpSavedOutBuf : undefined;
-}
-
 export function tryProcessFlatSelectProjectChunkSync(
   rawChunk: Uint8Array,
   budget: Budget,
@@ -860,7 +842,7 @@ export function tryProcessFlatSelectProjectChunkSync(
   srcKeys: readonly string[],
   outBuf: Uint8Array,
   planHolder?: { cachedSchemaPlan?: FlatSchemaPlan | undefined },
-  sourceRef?: Uint8Array,
+  _sourceRef?: Uint8Array,
 ): number {
   if (sharedFlatParserInUse || budget.tickSync()) return -1;
   const len = rawChunk.byteLength;
@@ -877,36 +859,6 @@ export function tryProcessFlatSelectProjectChunkSync(
     if (planHolder) planHolder.cachedSchemaPlan = plan;
   }
 
-  if (
-    plan === lastSpPlan &&
-    lastSpInBuf !== undefined &&
-    lastSpInBuf.byteLength === len &&
-    rawChunk[0] === lastSpB0 &&
-    rawChunk[len >> 1] === lastSpBMid &&
-    rawChunk[len - 1] === lastSpBEnd &&
-    outBuf.byteLength >= lastSpOutPos &&
-    ((sourceRef !== undefined && lastSpSourceRefs.has(sourceRef) && sourceRef[0] === lastSpB0 && sourceRef[len >> 1] === lastSpBMid && sourceRef[len - 1] === lastSpBEnd) || compareBytes(lastSpInBuf, rawChunk) === 0)
-  ) {
-    if (sourceRef !== undefined) lastSpSourceRefs.add(sourceRef);
-    budget.step(lastSpSteps);
-    if (budget.tickSync() || budget.needsYield()) return -1;
-    if (lastSpResultCount > budget.maxResultsSmi && lastSpResultCount > budget.limits.maxResults) return -1;
-    if (lastSpOutPos > budget.maxOutputBytesSmi && lastSpOutPos > budget.limits.maxOutputBytes) return -1;
-    if (!(lastSpOutBufIntact && lastSpDirectOutBuf === outBuf)) {
-      if (!lastSpSavedOutBuf) return -1;
-      outBuf.set(lastSpSavedOutBuf, 0);
-      lastSpDirectOutBuf = outBuf;
-      lastSpOutBufIntact = true;
-    }
-    budget.inputBytes = totalAfter;
-    budget.inputLocation.line = lastSpLineCount;
-    budget.inputLocation.complete = true;
-    budget.results = lastSpResultCount;
-    budget.outputBytes = lastSpOutPos;
-    return lastSpOutPos;
-  }
-
-  lastSpOutBufIntact = false;
   let pos = 0;
   let outPos = 0;
   let lineCount = 0;
@@ -924,22 +876,6 @@ export function tryProcessFlatSelectProjectChunkSync(
   if (budget.tickSync() || budget.needsYield()) return -1;
   if (resultCount > budget.maxResultsSmi && resultCount > budget.limits.maxResults) return -1;
   if (outPos > budget.maxOutputBytesSmi && outPos > budget.limits.maxOutputBytes) return -1;
-  if (len >= 512 && len <= 262144 && outPos <= 65536) {
-    lastSpPlan = plan;
-    lastSpInBuf = new Uint8Array(rawChunk);
-    lastSpSourceRefs = new WeakSet<Uint8Array>();
-    if (sourceRef !== undefined) lastSpSourceRefs.add(sourceRef);
-    lastSpB0 = rawChunk[0]!;
-    lastSpBMid = rawChunk[len >> 1]!;
-    lastSpBEnd = rawChunk[len - 1]!;
-    lastSpSavedOutBuf = new Uint8Array(outBuf.subarray(0, outPos));
-    lastSpDirectOutBuf = outBuf;
-    lastSpOutBufIntact = true;
-    lastSpOutPos = outPos;
-    lastSpLineCount = lineCount;
-    lastSpResultCount = resultCount;
-    lastSpSteps = steps;
-  }
   budget.inputBytes = totalAfter;
   budget.inputLocation.line = lineCount;
   budget.inputLocation.complete = true;

@@ -1,14 +1,14 @@
 import { utf8ByteLength, filledBytes, concatBytes, bytesFrom } from "safe-bash-byte-engine";
 import type { FileSystem } from "@poe-code/safe-fs";
 import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
-import { getLastReadMemoryFileSourceRef, tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
+import { tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "safe-bash-io-engine/internal";
 import { createSyncSingleChunkByteSource } from "safe-bash-io-engine/commands/search/requirements";
 import { joinPath } from "safe-bash-contracts/path";
 import { escapeText, writeDiagnostic } from "safe-bash-contracts/escaping";
 import { Budget, copyObject, interruptible, JqHalt, JqError, JqLimitError, object, put, resolveJqLimits, truth, wellFormed, type InputLocation, type JqLimits, type Json, type StructuredCommandsOptions } from "safe-bash-query-engine/limits";
-import { getLastFastSelectProjectSavedOutBuf, jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryProcessFlatSelectProjectChunkSync, tryWriteCompactSync, type FlatSchemaPlan, type JsonFormat } from "safe-bash-query-engine/input";
+import { jsonValues, parseJson, rawValues, stringify, tryProcessFlatJsonChunkSync, tryProcessFlatSelectProjectChunkSync, tryWriteCompactSync, type FlatSchemaPlan, type JsonFormat } from "safe-bash-query-engine/input";
 import { Interpreter } from "safe-bash-query-engine/interpreter";
 import { moduleProgram, parse, type Ast } from "safe-bash-query-engine/parser";
 import { sortObjectKeys } from "safe-bash-query-engine/values";
@@ -190,7 +190,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   if (absolute === "/dev" || absolute.startsWith("/dev/")) return undefined;
   let rawBytes: Uint8Array | undefined;
   try {
-    rawBytes = tryReadMemoryFileViewSync(fastMemFs, absolute, undefined, context.signal, true);
+    rawBytes = tryReadMemoryFileViewSync(fastMemFs, absolute, undefined, context.signal);
   } catch {
     return undefined;
   }
@@ -198,7 +198,6 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     return undefined;
   }
   let budget = sharedFastBudget;
-  const rawSourceRef = getLastReadMemoryFileSourceRef(rawBytes);
   if (!budget || budget.limits !== limits) {
     budget = sharedFastBudget = new Budget(limits, context.signal);
   } else {
@@ -234,7 +233,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     budget.inputLocation.complete = false;
     const spPlan = getFastSelectProjectPlan(cachedAst);
     const fastPos = spPlan
-      ? tryProcessFlatSelectProjectChunkSync(rawBytes, budget, spPlan.condKey, spPlan.outKeys, spPlan.srcKeys, outBuf, spPlan, rawSourceRef)
+      ? tryProcessFlatSelectProjectChunkSync(rawBytes, budget, spPlan.condKey, spPlan.outKeys, spPlan.srcKeys, outBuf, spPlan)
       : -1;
     if (fastPos >= 0) {
       sharedFastJqOutPos = fastPos;
@@ -255,10 +254,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
       sharedFastJqOutPos = 0;
       context.signal.throwIfAborted();
       committing = true;
-      const savedOut = fastPos >= 0 ? getLastFastSelectProjectSavedOutBuf(len) : undefined;
-      const wrote = savedOut !== undefined && typeof syncSink.writeImmutableSync === "function"
-        ? syncSink.writeImmutableSync(savedOut)
-        : typeof syncSink.writeRangeSync === "function"
+      const wrote = typeof syncSink.writeRangeSync === "function"
         ? syncSink.writeRangeSync(outBuf, len)
         : syncSink.writeSync(outBuf.subarray(0, len));
       if (!wrote) return undefined;

@@ -162,4 +162,40 @@ describe("safe-bash CLI and workspace backend", () => {
     expect(exitCode).toBe(0);
     expect(stdout).toBe("bash\nsafe-bash (poe-code)\nsafe-bash (poe-code)\nsubshell-ok\n");
   });
+
+  it("supports data (jq, yq, csvcut, sqlite3), image (magick, sips, exiftool), and video (ffmpeg, ffprobe) manipulation pipelines", async () => {
+    const workspaceBackend = new MemoryFileSystem();
+    const outChunks: Uint8Array[] = [];
+
+    const exitCode = await runSafeBashCli(
+      [
+        "-lc",
+        [
+          "printf 'region,amount\\nEU,120.5\\nNA,80.0\\nEU,79.5\\n' > sales.csv",
+          "csvgrep -c region -m EU sales.csv | csvcut -c amount",
+          "jq -n '[{region:\"EU\",total:200}]' | yq -P '.'",
+          "magick -size 64x48 xc:#38bdf8 sample.png && identify sample.png",
+          "sips -g pixelWidth sample.png",
+          "ffmpeg -y -f lavfi -i testsrc=duration=1:size=64x48:rate=5 -c:v libx264 -pix_fmt yuv420p clip.mp4 && ffprobe -v quiet -print_format json -show_streams clip.mp4 | jq -r '.streams[0].codec_name'"
+        ].join(" && ")
+      ],
+      {
+        workspaceRoot: "/workspace/media",
+        cwd: "/workspace/media",
+        homeDir: "/Users/test",
+        workspaceBackend,
+        stdout: (bytes) => {
+          outChunks.push(bytes);
+        }
+      }
+    );
+
+    const stdout = Buffer.concat(outChunks.map((b) => Buffer.from(b))).toString("utf8");
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("120.5");
+    expect(stdout).toContain("region: EU");
+    expect(stdout).toContain("PNG 64x48");
+    expect(stdout).toContain("pixelWidth: 64");
+    expect(stdout).toContain("h264");
+  });
 });

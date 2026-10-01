@@ -11,9 +11,21 @@ import {
   Shell,
   agentCommands,
   gitCommands,
+  optionalCommands,
+  csvcutCommands,
+  csvgrepCommands,
+  exiftoolCommands,
+  htmlqCommands,
+  mdqCommands,
+  yqCommands,
+  opensslCommands,
+  sshCommands,
+  gpgCommands,
   type CommandContext,
   type FileSystem
 } from "@poe-platform/safe-bash";
+import { xanCommands } from "safe-bash-command-xan";
+import { mikeYqCommands } from "safe-bash-command-yq/mike";
 
 export interface WorkspaceFileSystemOptions {
   workspaceRoot: string;
@@ -80,6 +92,15 @@ function createWorkspaceRealFileSystem(rootPath: string): FileSystem {
   const origReadlink = base.readlink.bind(base);
   return new Proxy(base, {
     get(target, prop, receiver) {
+      if (prop === "capabilities") {
+        return {
+          ...target.capabilities,
+          atomicFileStaging: true,
+          atomicFileMutation: true,
+          atomicDirectoryMetadata: true,
+          retainedStagingCleanup: true
+        };
+      }
       if (prop === "readlink") {
         return async (relPath: string, options?: { signal?: AbortSignal }) => {
           try {
@@ -504,7 +525,40 @@ export async function runSafeBashCli(
     fs: workspaceFs,
     cwd,
     env,
-  }).use(agentCommands());
+  })
+    .use(agentCommands())
+    .use(
+      optionalCommands({
+        replace: true,
+        families: [
+          "ffmpeg",
+          "imagemagick",
+          "sips",
+          "csvkit",
+          "ssconvert",
+          "soffice",
+          "pandoc",
+          "pdfinfo",
+          "pdftotext",
+          "pdfimages",
+          "pdftoppm",
+          "pdftk",
+          "qpdf",
+          "wkhtmltopdf",
+          "gh"
+        ]
+      })
+    )
+    .use(csvcutCommands({ replace: true }))
+    .use(csvgrepCommands({ replace: true }))
+    .use(xanCommands({ replace: true }))
+    .use(mikeYqCommands({ replace: true }))
+    .use(exiftoolCommands({ replace: true }))
+    .use(htmlqCommands({ replace: true }))
+    .use(mdqCommands({ replace: true }))
+    .use(opensslCommands({ replace: true }))
+    .use(sshCommands({ replace: true }))
+    .use(gpgCommands({ replace: true }));
   if (!nativeGitRust) {
     shell.use(gitCommands());
   }

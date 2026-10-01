@@ -41,12 +41,12 @@ export class Publication {
     const parent = await this.track(() => fs.stat(directory, { signal }));
     const capabilities = fs.capabilitiesFor ? await this.track(() => fs.capabilitiesFor!(path, { signal })) : fs.capabilities;
     if (inPlace) {
-      if (!expected || !fs.writeFileConditional || !capabilities.atomicFileMutation) throw new Error("VFS atomic in-place publication not supported");
+      if (!expected || !fs.writeFileConditional || (!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging)) throw new Error("VFS atomic in-place publication not supported");
       await this.track(() => fs.writeFileConditional!(path, bytes, { expected, parent, signal }));
       return;
     }
     if (expected && expected.nlink !== 1) throw new Error("VFS hardlink replacement is not yet supported");
-    if (!fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile || !capabilities.atomicFileStaging) throw new Error("VFS atomic replacement publication not supported");
+    if (!fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile || (!capabilities.atomicFileStaging && !capabilities.trustedOwnedStaging)) throw new Error("VFS atomic replacement publication not supported");
     let stage: FileStaging | undefined;
     for (let attempt = 0; attempt < this.maxStagingAttempts; attempt++) {
       try {

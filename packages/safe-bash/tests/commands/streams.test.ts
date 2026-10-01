@@ -110,6 +110,7 @@ for (const command of ["find", "tr"] as const) {
           : streamCommands().find(entry => entry.name === "tr")!;
         const context = {
           command, args: command === "find" ? ["/work", "-name", "*"] : ["a", "b"], cwd: "/work", env: {}, fs,
+          _hasInfiniteFsOpsLimit: true,
           signal: controller.signal,
           stdin: { [Symbol.asyncIterator]() {
             let read = false;
@@ -133,12 +134,14 @@ for (const command of ["find", "tr"] as const) {
         if (failure === "abort") await assert.rejects(Promise.resolve(execution), error => error === controller.signal.reason);
         else assert.equal((await execution).exitCode, 1);
         assert.ok(borrowed);
+        assert.equal(Buffer.from(borrowed).toString(), command === "find" ? "/work\n/work/alpha\n" : "bbb");
         assert.equal(borrowed.buffer.byteLength, command === "find" ? 8192 : 65536, "failure must exercise a shared-buffer write");
         const before = borrowed.slice();
         let recovered: Uint8Array | undefined;
+        let recoveredText: string | undefined;
         const stdout = {
-          writeSync(bytes: Uint8Array) { recovered = bytes; return true; },
-          async write(bytes: Uint8Array) { recovered = bytes; },
+          writeSync(bytes: Uint8Array) { recovered = bytes; recoveredText = Buffer.from(bytes).toString(); return true; },
+          async write(bytes: Uint8Array) { recovered = bytes; recoveredText = Buffer.from(bytes).toString(); },
         };
         const second = await definition.execute({ ...context, signal: new AbortController().signal,
           args: command === "find" ? ["/work", "-name", "alpha"] : ["a", "c"],
@@ -146,6 +149,7 @@ for (const command of ["find", "tr"] as const) {
         });
         assert.equal(second.exitCode, 0);
         assert.ok(recovered);
+        assert.equal(recoveredText, command === "find" ? "/work/alpha\n" : "ccc");
         assert.equal(recovered.buffer.byteLength, command === "find" ? 8192 : 65536, "subsequent invocation reuses the fast shared buffer");
         assert.notEqual(recovered.buffer, borrowed.buffer);
         assert.deepEqual(borrowed, before);

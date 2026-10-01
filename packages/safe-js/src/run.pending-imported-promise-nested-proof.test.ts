@@ -34,12 +34,13 @@ it.each(["pending", "completed"] as const)("replays a %s checkpoint containing a
   const controller = new AbortController();
   const resumed = run(source, { bindings: { boundary },
     snapshot: restore(JSON.parse(saved), { source }), hostCallResumeProvider: provider, signal: controller.signal });
-  void resumed.then(() => reachedInner(), () => reachedInner());
   let pending: string;
   let didReach = false;
-  void innerReady.then(() => { didReach = true; });
   try {
-    await vi.waitFor(() => expect(didReach, "Guest must reach the inner checkpoint before its nested proof Promise settles").toBe(true), { interval: 1, timeout: 1000 });
+    await Promise.race([
+      innerReady.then(() => { didReach = true; }),
+      resumed.then(() => { throw new Error("Guest completed before reaching the inner checkpoint"); })
+    ]);
     pending = await dump(resumed, { mode: "replay" });
   }
   finally {

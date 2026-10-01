@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
+import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/shell.js";
 import { standardCommands } from "../../src/commands/index.js";
+import { seqCommands } from "../../src/commands/seq/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { createStructuredCommands } from "../../src/commands/structured/index.js";
 
@@ -17,7 +19,7 @@ const loops = [
 ] as const;
 
 async function assertBashMatch(shell: Shell, source: string, env: Record<string, string> = {}): Promise<void> {
-  const expected = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], {
+  const expected = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], {
     encoding: "utf8", env: { PATH: process.env.PATH, ...env },
   });
   assert.equal(expected.error, undefined);
@@ -30,7 +32,7 @@ async function assertBashMatch(shell: Shell, source: string, env: Record<string,
 
 for (const [name, header, prefix] of loops) {
   test(`${name} preserves echo stdout and the final argument`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     await assertBashMatch(shell, `${header}; do ${prefix}echo "hello_$i"; done; echo "last=$_"`);
   });
@@ -51,7 +53,7 @@ for (const [name, header, prefix] of loops) {
     "for ((j=0; j<2; j++)); do ((0)); done",
   ]) {
     test(`${name} preserves the exit status of ${body}`, async context => {
-      const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+      const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
       context.after(() => shell.dispose());
       const source = `${header}; do ${prefix}${body}; done`;
       await assertBashMatch(shell, source);
@@ -70,7 +72,7 @@ for (const [name, header, prefix] of loops) {
   ]) {
     test(`${name} preserves redirected list effects: ${body}`, async context => {
       const fs = new MemoryFileSystem();
-      const shell = new Shell({ fs }).use(standardCommands());
+      const shell = new Shell({ fs }).use(standardCommands()).use(seqCommands());
       context.after(() => shell.dispose());
       const result = await shell.exec(`${header}; do ${prefix}${body}; done`);
       assert.equal(result.stderr, "");
@@ -82,7 +84,7 @@ for (const [name, header, prefix] of loops) {
 
   test(`${name} expands redirected output after the preceding command completes`, async context => {
     const fs = new MemoryFileSystem();
-    const shell = new Shell({ fs }).use(standardCommands());
+    const shell = new Shell({ fs }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(`${header}; do ${prefix}((0)); echo "before_$?" > /result; echo "after_$?" >> /result; done`);
     assert.equal(result.stderr, "");
@@ -92,7 +94,7 @@ for (const [name, header, prefix] of loops) {
 
   test(`${name} re-expands each redirect target with the preceding status`, async context => {
     const fs = new MemoryFileSystem();
-    const shell = new Shell({ fs }).use(standardCommands());
+    const shell = new Shell({ fs }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(`${header}; do ${prefix}((0)); echo a > "/result_$?"; echo b >> "/result_$?"; done`);
     assert.equal(result.stderr, "");
@@ -104,7 +106,7 @@ for (const [name, header, prefix] of loops) {
 
 for (const header of ["for i in", "for ((i=0; i<0; i++))"]) {
   test(`empty loop returns success without evaluating its body: ${header}`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     await assertBashMatch(shell, `value=before; false; ${header}; do value=after; ((0)); done; echo "$?:\${PIPESTATUS[*]}:$value"`);
   });
@@ -116,7 +118,7 @@ for (const body of [
   "for ((j=0; j<0; j++)); do ((1)); done",
 ]) {
   test(`an empty compound body preserves the previous pipeline vector: ${body}`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     await assertBashMatch(shell, `false | true; for i in {1..2}; do ${body}; done; echo "$?:\${PIPESTATUS[*]}"`);
   });
@@ -131,15 +133,15 @@ for (const body of [
   "if ((i==2)); then break; fi",
 ]) {
   test(`pipeline completion preserves the last argument: ${body}`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     await assertBashMatch(shell, `for i in {1..2}; do echo marker; ${body}; done; echo "arg=$_ status=$? pipe=\${PIPESTATUS[*]}"`);
   });
 }
 
 for (const header of ["while [[ -v \"$ref\" ]]", "until [[ ! -v \"$ref\" ]]"]) {
-  test(`a variable-presence condition can require full evaluation after an iteration: ${header}`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  test(`a variable-presence condition can require full evaluation after an iteration: ${header}`, { skip: modernBashSkip }, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     await assertBashMatch(shell, `value=defined; ref=value; count=0; ${header}; do
       ((count+=1)); if ((count==2)); then break; fi; ref='value[0+0]'
@@ -148,7 +150,7 @@ for (const header of ["while [[ -v \"$ref\" ]]", "until [[ ! -v \"$ref\" ]]"]) {
 }
 
 test("a function call publishes its aggregate status after the inner loop condition", async context => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
   context.after(() => shell.dispose());
   await assertBashMatch(shell, 'f() { j=0; until ((j>=1)); do ((j+=1)); ((0)); done; }; for i in {1..2}; do f argument; done; echo "$?:${PIPESTATUS[*]}:$_"');
 });
@@ -156,7 +158,7 @@ test("a function call publishes its aggregate status after the inner loop condit
 for (const env of [{ LANG: "en_US.UTF-8" }, { LC_ALL: "C" }, { LC_ALL: "C.UTF-8" }] as const) {
   for (const operand of ["a", "é"]) {
     test(`loop comparisons preserve positive and negative results: ${JSON.stringify(env)}, ${operand}`, async context => {
-      const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+      const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
       context.after(() => shell.dispose());
       await assertBashMatch(shell, `x=${operand}; for i in {1..2}; do
         if [[ $x < b ]]; then r1=yes; else r1=no; fi
@@ -168,8 +170,8 @@ for (const env of [{ LANG: "en_US.UTF-8" }, { LC_ALL: "C" }, { LC_ALL: "C.UTF-8"
 }
 
 for (const [name, header, prefix] of loops) {
-  test(`${name} fully evaluates variable-presence subscripts`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  test(`${name} fully evaluates variable-presence subscripts`, { skip: modernBashSkip }, async context => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     await assertBashMatch(shell, `value=defined; ${header}; do ${prefix}
       if [[ -v "value[0+0]" ]]; then result=yes; else result=no; fi
@@ -180,7 +182,7 @@ for (const [name, header, prefix] of loops) {
   });
 
   test(`${name} evaluates arithmetic conditional operands fully`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands());
     context.after(() => shell.dispose());
     await assertBashMatch(shell, `value=1; ${header}; do ${prefix}
       if [[ $value -eq 7 ]]; then result=yes; else result=no; fi
@@ -190,7 +192,7 @@ for (const [name, header, prefix] of loops) {
   });
 
   test(`${name} preserves here-string substitution output and prior effects`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(seqCommands()).use(textProgramCommands());
     context.after(() => shell.dispose());
     for (const command of createStructuredCommands()) shell.commands.register(command);
     const source = `s='hello world'; ${header}; do ${prefix}
@@ -213,7 +215,7 @@ hello again'
 test("loop file predicates preserve results when synchronous filesystem admission is unavailable", async context => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/present", new TextEncoder().encode("data"));
-  const shell = new Shell({ fs, limits: { maxFileSystemOperations: 20 } }).use(standardCommands());
+  const shell = new Shell({ fs, limits: { maxFileSystemOperations: 20 } }).use(standardCommands()).use(seqCommands());
   context.after(() => shell.dispose());
   const result = await shell.exec(`for i in {1..2}; do
     if [[ -f /present ]]; then a=yes; else a=no; fi

@@ -49,3 +49,22 @@ for (const flag of ["-o", "--output"]) {
     assert.equal(new TextDecoder().decode(await result.fs.readFile("/out.xml")), "<root><item>B</item></root>");
   });
 }
+
+for (const [flag, expected] of [
+  ["--noout", ""],
+  ["--format", '<?xml version="1.0"?>\n<root>\n  <item>A</item>\n</root>\n<?xml version="1.0"?>\n<root>\n  <item>B</item>\n</root>\n'],
+] as const) {
+  test(`multiple XML files support standalone ${flag} in operand order`, async () => {
+    const result = await run([flag, "/a.xml", "/b.xml"]);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.errors, "");
+    assert.equal(result.output, expected);
+  });
+}
+
+test("multi-file validation checks later operands", async () => {
+  const result = await run(["--noout", "/a.xml", "/bad.xml"]);
+  assert.equal(result.exitCode, 1);
+  assert.notEqual(result.errors, "");
+  assert.equal(result.output, "");
+});

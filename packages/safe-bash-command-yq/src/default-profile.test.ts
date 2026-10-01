@@ -24,6 +24,7 @@ for (const factory of [() => createYqCommand(), () => createYqCommands()[0]!, ()
       [["-p=yaml", "-o=yaml", "."], "a: 1\n", "a: 1\n", 0],
       [["-pyaml", "-oyaml", "."], "a: 1\n", "a: 1\n", 0],
       [["-e", ".missing", "/data.yaml"], "", "null\n", 1],
+      [["eval-all", ".a"], "a: 1\n---\na: 2\n", "1\n---\n2\n", 0],
       [["ea", ".a"], "a: 1\n---\na: 2\n", "1\n---\n2\n", 0],
       [["-P", "-I", "4", "."], '{"a":{"b":1}}', "a:\n    b: 1\n", 0],
     ] as const) {

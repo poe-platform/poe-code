@@ -3,6 +3,9 @@ import test from "node:test";
 import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createXmllintCommand, xmllintCommands } from "./index.js";
 for (const [args, input, expected] of [
+  [["--xpath", '//item[@id=1]/text()'], '<root><item id="01">alpha</item><item id="2">beta</item></root>', "alpha\n"],
+  [["--xpath", '//item[price=10.5]/name/text()'], '<root><item><price>10.50</price><name>alpha</name></item><item><price>11</price><name>beta</name></item></root>', "alpha\n"],
+  [["--xpath", '//item[@id="1"]/text()'], '<root><item id="01">alpha</item><item id="1">beta</item></root>', "beta\n"],
   [["--xpath", '//item[@id=1 or @id="2"]/text()'], '<root><item id="1">Alpha</item><item id="2">Beta</item></root>', "Alpha\nBeta\n"],
   [["--xpath", 'boolean(//item[@price>15])'], '<root><item price="20"/></root>', "true\n"],
   [["--c14n"], '<root z="2" a="1"><item/></root>', '<root a="1" z="2"><item></item></root>']

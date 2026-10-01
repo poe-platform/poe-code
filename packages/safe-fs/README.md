@@ -93,7 +93,9 @@ writes when the host supplies `store.createStaging`: private externally backed
 pages keep working memory bounded without publishing the growing file after
 every write. Conditional publication still occurs at sync/close, and retained
 readers keep their old versions. Without that optional backend primitive, the
-optional dirty-page budget limits unflushed output only when configured. See the
+optional dirty-page budget limits unflushed output only when configured. Descriptor
+resource limits accept `Infinity` and are unlimited when omitted; `chunkBytes`
+remains a positive finite integer. See the
 [object descriptor and spill contract](src/contracts/object-publication.md) for
 backend methods, failure semantics and qualification; no provider storage is
 configured automatically.
@@ -288,6 +290,10 @@ Every raw filesystem operation accepts an optional `signal`. Additional fields a
 <summary>S3 filesystem and HTTP transport options</summary>
 
 `S3FileSystem` requires `transport` and `bucket`. A transport supplies `headObject`, `getObject`, `putObject`, `deleteObject`, `copyObject`, and `listObjectsV2`; see the [transport interface](src/fs/s3/transport.ts).
+
+`createS3NamespaceFileSystem` resource limits (`maxBytes`, `maxEntries`,
+`maxManifestBytes`, `maxAttempts`, and inherited descriptor limits) are unlimited
+when omitted or set to `Infinity`; positive safe integers enable finite limits.
 
 `createS3Transport(client, capabilities?)` wraps a compatible client with explicit `streamingRead`, `streamingWrite`, `conditionalPut`, `conditionalCopy`, and `conditionalDelete` flags (all absent by default). Direct transport requests accept an optional `abortSignal`.
 

@@ -33,7 +33,7 @@ interface Namespace {
 }
 
 function limit(value: number | undefined): number {
-  if (value === undefined) return Infinity;
+  if (value === undefined || value === Infinity) return Infinity;
   if (!Number.isSafeInteger(value) || value < 1) throw new RangeError('Invalid S3 namespace limit');
   return value;
 }
@@ -44,7 +44,7 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
   if (![options.bucket, options.key].every(value => typeof value === 'string' && value.length > 0 && !value.includes('\0'))) throw new TypeError('An explicit S3 bucket and manifest key are required');
   const maxBytes = limit(options.maxBytes);
   const maxEntries = limit(options.maxEntries);
-  const maxManifestBytes = options.maxManifestBytes === Infinity ? Infinity : limit(options.maxManifestBytes);
+  const maxManifestBytes = limit(options.maxManifestBytes);
   const maxAttempts = limit(options.maxAttempts);
   const descriptorOptions = options;
   for (const key of ['chunkBytes', 'maxStagedBytes', 'maxStagedPages', 'maxFileBytes', 'maxOpenFiles'] as const) {

@@ -113,3 +113,27 @@ test('applies graph admission after initialization too', async () => {
   await expect(fs.stat('/')).rejects.toMatchObject({ code: 'EIO' });
   expect(source.reads()).toBe(2);
 });
+
+
+test.each(['maxBytes', 'maxEntries', 'maxManifestBytes', 'maxAttempts', 'maxStagedBytes', 'maxStagedPages', 'maxFileBytes', 'maxOpenFiles'] as const)(
+  'accepts explicit Infinity for %s', async name => {
+    const source = transport([JSON.stringify(manifest())]);
+    const fs = await createS3NamespaceFileSystem({ client: source.client, bucket: 'bucket', key: 'manifest', [name]: Infinity });
+    expect((await fs.stat('/')).type).toBe('directory');
+  },
+);
+
+test.each([0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1])(
+  'rejects invalid namespace limits %s', async value => {
+    for (const name of ['maxBytes', 'maxEntries', 'maxManifestBytes', 'maxAttempts'] as const) {
+      const source = transport([JSON.stringify(manifest())]);
+      await expect(createS3NamespaceFileSystem({ client: source.client, bucket: 'bucket', key: 'manifest', [name]: value })).rejects.toThrow(RangeError);
+      expect(source.reads()).toBe(0);
+    }
+  },
+);
+
+test('rejects infinite descriptor chunk sizes', async () => {
+  const source = transport([JSON.stringify(manifest())]);
+  await expect(createS3NamespaceFileSystem({ client: source.client, bucket: 'bucket', key: 'manifest', chunkBytes: Infinity })).rejects.toThrow();
+});

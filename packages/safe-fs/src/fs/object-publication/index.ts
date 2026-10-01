@@ -71,7 +71,8 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
   const maxStagedPages = options.maxStagedPages ?? Infinity;
   const maxFileBytes = options.maxFileBytes ?? Infinity;
   const maxOpenFiles = options.maxOpenFiles ?? Infinity;
-  if (![chunkBytes, options.maxStagedBytes, options.maxStagedPages, options.maxFileBytes, options.maxOpenFiles].every(value => value === undefined || Number.isSafeInteger(value) && value > 0)
+  if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1
+    || ![maxStagedBytes, maxStagedPages, maxFileBytes, maxOpenFiles].every(value => value === Infinity || Number.isSafeInteger(value) && value > 0)
     || typeof store.acquire !== "function"
     || store.publish !== undefined && typeof store.publish !== "function"
     || store.createStaging !== undefined && typeof store.createStaging !== "function") throw new TypeError("Invalid object descriptor configuration");

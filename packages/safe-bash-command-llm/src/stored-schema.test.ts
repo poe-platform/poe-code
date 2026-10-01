@@ -85,3 +85,14 @@ test('stored schemas decode native UTF-16 databases using their header encoding'
     assert.deepEqual(await loadLlmStoredSchema(context, 'unicode'), fixture.schemas.unicode);
   }
 });
+
+test('stored schema SDK selects a relative database on the caller filesystem', async () => {
+  const { loadLlmStoredSchema } = await import('./stored-schema.js');
+  const context = await setup();
+  await context.fs.mkdir('/other');
+  await context.fs.writeFile('/other/custom.db', Buffer.from(fixture.database, 'base64'));
+  assert.deepEqual(await loadLlmStoredSchema({ ...context, cwd: '/other' }, 'first', { database: 'custom.db' }), fixture.schemas.first);
+  assert.equal(await loadLlmStoredSchema(context, 'first', { database: '/missing.db' }), undefined);
+  await context.fs.writeFile('/other/custom.db-wal', new Uint8Array([1]));
+  await assert.rejects(loadLlmStoredSchema(context, 'first', { database: '/other/custom.db' }), /checkpointed/);
+});

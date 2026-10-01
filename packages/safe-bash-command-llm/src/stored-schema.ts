@@ -1,4 +1,5 @@
 import { FsError, type CommandContext } from 'safe-bash-contracts';
+import { pathOf } from 'safe-bash-contracts/path';
 import { createLlmConfiguration } from './configuration.js';
 import { scanSqliteRecords } from './sqlite-scan.js';
 import { readSqliteValues } from './sqlite-values.js';
@@ -6,6 +7,7 @@ import { verifySqliteSnapshot } from './sqlite-snapshot.js';
 import type { SqliteRecordValue } from './sqlite-record.js';
 
 export interface LlmStoredSchemaOptions {
+  readonly database?: string;
   readonly maxBytes?: number;
   readonly admitBytes?: (size: number) => void;
 }
@@ -22,7 +24,7 @@ export async function loadLlmStoredSchema(
   signal.throwIfAborted();
   const maxBytes = options.maxBytes ?? Infinity;
   if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 0)) throw new RangeError('Invalid schema byte limit');
-  const path = `${createLlmConfiguration(context).directory}/logs.db`;
+  const path = options.database === undefined ? `${createLlmConfiguration(context).directory}/logs.db` : pathOf(context, options.database);
   let expected;
   try { expected = await fs.stat(path, { signal }); }
   catch (error) { if (error instanceof FsError && error.code === 'ENOENT') return undefined; throw error; }

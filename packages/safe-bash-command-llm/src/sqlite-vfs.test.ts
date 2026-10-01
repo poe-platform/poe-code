@@ -123,3 +123,26 @@ test('native disposal drains all handles after cleanup errors and shares complet
   assert.equal(closed, 2);
   assert.throws(() => vfs.throwIfFailed(), /close failed/);
 });
+
+test('pending native opens reserve the file budget before acquiring descriptors', async () => {
+  const fs = new MemoryFileSystem(); await fs.mkdir('/private');
+  const open = fs.open.bind(fs);
+  let release!: () => void, acquired = 0, closed = 0;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  fs.open = async (...args) => {
+    acquired++;
+    const fd = await open(...args), close = fd.close.bind(fd);
+    fd.close = async () => { closed++; await close(); };
+    await gate; return fd;
+  };
+  const vfs = createSqliteVfs({ fs, directory: '/private', signal: new AbortController().signal, maxOpenFiles: 1, maxFileBytes: 1024 });
+  const first = vfs.jOpen('/private/first', 1, 6, new DataView(new ArrayBuffer(4)));
+  const second = vfs.jOpen('/private/second', 2, 6, new DataView(new ArrayBuffer(4)));
+  const admitted = acquired;
+  release();
+  await Promise.all([first, second]);
+  await vfs.dispose();
+  assert.equal(admitted, 1);
+  assert.equal(closed, 1);
+  assert.throws(() => vfs.throwIfFailed(), { code: 'EMFILE' });
+});

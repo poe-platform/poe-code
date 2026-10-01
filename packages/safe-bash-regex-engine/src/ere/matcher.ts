@@ -806,8 +806,25 @@ function admitSynchronousWork(ledger: EreLedger, amount: number, signal?: AbortS
   return true;
 }
 
-function compileEreLinearChain(root: EreNode, ledger: EreLedger, signal?: AbortSignal): CompiledEreLinearChain | null | undefined {
-  if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+/** Complete an admitted operation across quanta without replaying its caller. */
+function* chargeLinearWork(ledger: EreLedger, amount: number, signal?: AbortSignal): Generator<void> {
+  while (amount > 0) {
+    const allowance = ledger.workAllowanceUntilCheckpoint(signal);
+    if (allowance === 0) {
+      // A resource ceiling is an error, not a reason to keep yielding.
+      if (ledger.usage.work >= ledger.limits.work) ledger.chargeWork(1, signal);
+      yield;
+      continue;
+    }
+    const charged = Math.min(amount, allowance);
+    ledger.chargeWork(charged, signal);
+    amount -= charged;
+    if (amount > 0) yield;
+  }
+}
+
+function* compileEreLinearChain(root: EreNode, ledger: EreLedger, signal?: AbortSignal): Generator<void, CompiledEreLinearChain | null> {
+  if (!admitSynchronousWork(ledger, 1, signal)) yield* chargeLinearWork(ledger, 1, signal);
   const cached = ereLinearChainCache.get(root);
   if (cached !== undefined) return cached;
   ledger.charge("allocationUnits", 3, signal);
@@ -818,7 +835,7 @@ function compileEreLinearChain(root: EreNode, ledger: EreLedger, signal?: AbortS
   const pending: (EreNode | Extract<EreChainStep, { kind: "groupClose" }>)[] = [root];
   let supported = true;
   while (pending.length > 0 && supported) {
-    if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+    if (!admitSynchronousWork(ledger, 1, signal)) yield* chargeLinearWork(ledger, 1, signal);
     const node = pending.pop()!;
     switch (node.kind) {
       case "start":
@@ -829,7 +846,7 @@ function compileEreLinearChain(root: EreNode, ledger: EreLedger, signal?: AbortS
         anchoredEnd = true;
         break;
       case "sequence":
-        if (!admitSynchronousWork(ledger, node.children.length, signal)) return undefined;
+        if (!admitSynchronousWork(ledger, node.children.length, signal)) yield* chargeLinearWork(ledger, node.children.length, signal);
         ledger.charge("allocationUnits", node.children.length, signal);
         for (let i = node.children.length - 1; i >= 0; i--) pending.push(node.children[i]!);
         break;
@@ -865,16 +882,16 @@ function compileEreLinearChain(root: EreNode, ledger: EreLedger, signal?: AbortS
   // A reverse pass finds each repeat's next consuming atom without rescanning
   // intervening capture steps for every repeat.
   for (let i = steps.length - 1; supported && i >= 0; i--) {
-    if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+    if (!admitSynchronousWork(ledger, 1, signal)) yield* chargeLinearWork(ledger, 1, signal);
     const step = steps[i]!;
     if (step.kind !== "char" && step.kind !== "repeat") continue;
     if (step.kind === "repeat" && firstAtom) {
-      if (!admitSynchronousWork(ledger, 129, signal)) return undefined;
+      if (!admitSynchronousWork(ledger, 129, signal)) yield* chargeLinearWork(ledger, 129, signal);
       if (!ereAtomsDisjoint(step.atom, firstAtom)) supported = false;
     }
     firstAtom = step.atom;
   }
-  if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+  if (!admitSynchronousWork(ledger, 1, signal)) yield* chargeLinearWork(ledger, 1, signal);
   ledger.charge("allocationUnits", supported && seenConsuming ? 6 : 2, signal);
   if (!supported || !seenConsuming) {
     ereLinearChainCache.set(root, null);
@@ -885,17 +902,17 @@ function compileEreLinearChain(root: EreNode, ledger: EreLedger, signal?: AbortS
   return compiled;
 }
 
-function tryMatchEreLinearChainSync(
+function* matchEreLinearChain(
   program: EreProgram,
   root: EreNode,
   subject: string,
   ledger: EreLedger,
   signal?: AbortSignal,
-): EreResult | undefined {
-  const chain = compileEreLinearChain(root, ledger, signal);
+): Generator<void, EreResult | undefined> {
+  const chain = yield* compileEreLinearChain(root, ledger, signal);
   if (!chain) return undefined;
   const width = program.groups + 1;
-  if (!admitSynchronousWork(ledger, width * 2, signal)) return undefined;
+  if (!admitSynchronousWork(ledger, width * 2, signal)) yield* chargeLinearWork(ledger, width * 2, signal);
   ledger.charge("allocationUnits", width * 2 + 2, signal);
   const groupStarts = new Int32Array(width);
   const groupEnds = new Int32Array(width);
@@ -903,7 +920,7 @@ function tryMatchEreLinearChainSync(
   const steps = chain.steps;
   const stepsLen = steps.length;
   for (let start = 0; start <= maxStart; start++) {
-    if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+    if (!admitSynchronousWork(ledger, 1, signal)) yield* chargeLinearWork(ledger, 1, signal);
     ledger.charge("states", 1, signal);
     if (chain.firstAtom) {
       if (start >= subject.length) break;
@@ -911,13 +928,13 @@ function tryMatchEreLinearChainSync(
         continue;
       }
     }
-    if (!admitSynchronousWork(ledger, width * 2, signal)) return undefined;
+    if (!admitSynchronousWork(ledger, width * 2, signal)) yield* chargeLinearWork(ledger, width * 2, signal);
     groupStarts.fill(-1);
     groupEnds.fill(-1);
     let pos = start;
     let ok = true;
     for (let s = 0; s < stepsLen; s++) {
-      if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+      if (!admitSynchronousWork(ledger, 1, signal)) yield* chargeLinearWork(ledger, 1, signal);
       ledger.charge("states", 1, signal);
       const step = steps[s]!;
       if (step.kind === "groupOpen") {
@@ -933,7 +950,7 @@ function tryMatchEreLinearChainSync(
       } else {
         let count = 0;
         while (pos < subject.length) {
-          if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+          if (!admitSynchronousWork(ledger, 1, signal)) yield* chargeLinearWork(ledger, 1, signal);
           ledger.charge("states", 1, signal);
           if (!ereAtomMatchesCode(step.atom, subject.charCodeAt(pos))) break;
           pos++;
@@ -946,14 +963,14 @@ function tryMatchEreLinearChainSync(
       }
     }
     if (!ok || (chain.anchoredEnd && pos !== subject.length)) continue;
-    if (!admitSynchronousWork(ledger, width, signal)) return undefined;
+    if (!admitSynchronousWork(ledger, width, signal)) yield* chargeLinearWork(ledger, width, signal);
     let bytes = pos - start;
     for (let g = 1; g < width; g++) {
       if (groupStarts[g]! >= 0 && groupEnds[g]! >= groupStarts[g]!) {
         bytes += groupEnds[g]! - groupStarts[g]!;
       }
     }
-    if (!admitSynchronousWork(ledger, width * 3 + bytes, signal)) return undefined;
+    if (!admitSynchronousWork(ledger, width * 3 + bytes, signal)) yield* chargeLinearWork(ledger, width * 3 + bytes, signal);
     ledger.charge("captureSlots", width, signal);
     ledger.charge("captureBytes", bytes, signal);
     // Two result arrays, one span per capture, copied strings and the result.
@@ -976,34 +993,61 @@ function tryMatchEreLinearChainSync(
     ledger.check(signal);
     return Object.freeze({ matched: true, captures: Object.freeze(captures), values: Object.freeze(values) });
   }
-  if (!admitSynchronousWork(ledger, 1, signal)) return undefined;
+  if (!admitSynchronousWork(ledger, 1, signal)) yield* chargeLinearWork(ledger, 1, signal);
   ledger.charge("allocationUnits", 4, signal);
   ledger.check(signal);
   return Object.freeze({ matched: false, captures: Object.freeze([] as const), values: Object.freeze([] as const) });
 }
 
+interface LinearContinuation {
+  readonly program: EreProgram;
+  readonly subject: string;
+  readonly signal: AbortSignal | undefined;
+  readonly iterator: Generator<void, EreResult | undefined>;
+}
+
+// A declined synchronous probe hands its exact cursor to the async entrypoint.
+const linearContinuations = new WeakMap<EreLedger, LinearContinuation>();
+
 export function tryMatchEreSync(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): EreResult | undefined {
   ledger.check(signal);
   const root = resolveEreProgram(program, ledger);
-  if (subject.length > ledger.limits.subjectBytes || ledger.workAllowanceUntilCheckpoint(signal) < subject.length + 16) {
-    return undefined;
-  }
+  const pending = linearContinuations.get(ledger);
+  if (pending?.program === program && pending.subject === subject && pending.signal === signal) return undefined;
+  linearContinuations.delete(ledger);
+  if (subject.length > ledger.limits.subjectBytes || ledger.workAllowanceUntilCheckpoint(signal) < subject.length + 16) return undefined;
   ledger.admitInput("subjectBytes", subject.length, signal);
   const adm = admitAscii(subject, ledger, signal);
   if (adm) return undefined;
-  return tryMatchEreLinearChainSync(program, root, subject, ledger, signal);
+  const iterator = matchEreLinearChain(program, root, subject, ledger, signal);
+  const next = iterator.next();
+  if (next.done) return next.value;
+  linearContinuations.set(ledger, { program, subject, signal, iterator });
+  return undefined;
 }
 
 export async function matchEre(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): Promise<EreResult> {
   ledger.check(signal);
-  resolveEreProgram(program, ledger);
-  ledger.admitInput("subjectBytes", subject.length, signal);
   const root = resolveEreProgram(program, ledger);
-  const adm = admitAscii(subject, ledger, signal);
-  if (adm) await adm;
-  const fastLinear = tryMatchEreLinearChainSync(program, root, subject, ledger, signal);
-  if (fastLinear !== undefined) return fastLinear;
-  return runMatcher(program, subject, ledger, signal, 0, true);
+  const pending = linearContinuations.get(ledger);
+  linearContinuations.delete(ledger);
+  let iterator: Generator<void, EreResult | undefined>;
+  if (pending?.program === program && pending.subject === subject && pending.signal === signal) {
+    iterator = pending.iterator;
+    const checkpoint = ledger.checkpoint(signal);
+    if (checkpoint) await checkpoint;
+  } else {
+    ledger.admitInput("subjectBytes", subject.length, signal);
+    const adm = admitAscii(subject, ledger, signal);
+    if (adm) await adm;
+    iterator = matchEreLinearChain(program, root, subject, ledger, signal);
+  }
+  for (;;) {
+    const next = iterator.next();
+    if (next.done) return next.value ?? runMatcher(program, subject, ledger, signal, 0, true);
+    const checkpoint = ledger.checkpoint(signal);
+    if (checkpoint) await checkpoint;
+  }
 }
 
 /** Owns one validated immutable subject; cursor searches preserve original anchors. */

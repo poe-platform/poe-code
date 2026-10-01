@@ -967,6 +967,8 @@ export class OverlayFileSystem implements FileSystem {
       if (entry.stat.type === "directory") {
         await this.copyUp(entry, options);
         await operation(entry.path);
+      } else if (this.publication.supported() && entry.backend === this.#upper) {
+        await operation(entry.path);
       } else await this.replace({ path: entry.path, entry }, options, operation);
     });
   }

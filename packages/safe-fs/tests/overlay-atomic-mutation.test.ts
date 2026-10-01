@@ -3,6 +3,21 @@ import { MemoryFileSystem } from "../src/fs/memory/index.js";
 import { OverlayFileSystem } from "../src/fs/overlay/index.js";
 const bytes = (value: string) => new TextEncoder().encode(value);
 
+test("upper-file metadata changes preserve identity after copy-up", async () => {
+  const lower = new MemoryFileSystem();
+  await lower.writeFile("/file", bytes("lower"), { mode: 0o640 });
+  const fs = new OverlayFileSystem({ lower, upper: new MemoryFileSystem() });
+  await fs.writeFile("/file", bytes("upper"));
+  const original = await lower.lstat("/file");
+  const before = await fs.lstat("/file");
+  await fs.chmod("/file", 0o600);
+  expect(await fs.lstat("/file")).toMatchObject({ ino: before.ino, dev: before.dev, identityScope: before.identityScope, mode: 0o100600 });
+  await fs.utimes("/file", 1000, 2000);
+  expect(await fs.lstat("/file")).toMatchObject({ ino: before.ino, dev: before.dev, identityScope: before.identityScope, atimeMs: 1000, mtimeMs: 2000 });
+  expect(await lower.lstat("/file")).toEqual(original);
+  expect(await fs.readFile("/file")).toEqual(bytes("upper"));
+});
+
 for (const layer of ["upper", "lower"] as const) {
   test(`conditional rewrite and removal preserve the ${layer} source contract`, async () => {
     const upper = new MemoryFileSystem(), lower = new MemoryFileSystem();

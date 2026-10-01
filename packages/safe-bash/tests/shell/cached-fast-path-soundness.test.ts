@@ -23,6 +23,30 @@ test("parsed scripts are reused only within their owning shell", async context =
   assert.notEqual(scripts[0], scripts[2]);
 });
 
+test("cached constant arguments cannot change later executions", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/cached-original", new TextEncoder().encode("original\n"));
+  await fs.writeFile("/cached-replacement", new TextEncoder().encode("replacement\n"));
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  await shell.exec("");
+  const run = context.mock.method(Runtime.prototype, "runUnit");
+  const source = "head /cached-original";
+  const first = await shell.exec(source);
+  assert.equal(first.exitCode, 0, first.stderr);
+  assert.equal(first.stdout, "original\n");
+  const command = run.mock.calls[0]!.arguments[0].lists[0]!.pipelines[0]!.commands[0]!;
+  const args = (command as typeof command & { _cachedConstArgs?: readonly string[] })._cachedConstArgs;
+  assert.ok(args, "exercise the constant-argument cache");
+  assert.equal(Reflect.set(args, "0", "/cached-replacement"), false);
+  assert.equal(Reflect.set(args, "1", "/cached-replacement"), false);
+  for (let repeat = 0; repeat < 2; repeat++) {
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "original\n");
+  }
+});
+
 test("default locale reaches speculative warm parsing", async context => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
   context.after(() => shell.dispose());

@@ -6852,6 +6852,7 @@ export class Runtime {
             return undefined;
           }
           if (allPlain) {
+            Object.freeze(args);
             (command as { _cachedConstArgs?: string[] })._cachedConstArgs = args;
             if (command.redirects.length === 0 || (command.redirects[0]!.target.plain !== undefined && (command.redirects[0]!.operator === ">" || command.redirects[0]!.operator === ">>"))) {
               (command as { _cachedFastSingle?: typeof cSingle })._cachedFastSingle = {

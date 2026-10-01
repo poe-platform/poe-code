@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { validateObjectSchema as native } from "../dist/sdk-validation.js";
+import { formatSegment, validateObjectSchema as native } from "../dist/sdk-validation.js";
 import { validateObjectSchema as reference } from "../../toolcraft/dist/sdk.js";
 import { S, withJsonSchema } from "toolcraft-schema";
 import { withJsonSchema as withNativeJsonSchema } from "toolcraft-schema-rust";
@@ -110,4 +110,12 @@ test("SDK native validation returns catchable errors for cyclic schema wrappers"
   cyclic.inner = cyclic;
   assert.throws(() => native({ kind: "object", shape: { field: cyclic } }, {}, "", []), RangeError);
   assert.deepEqual(native(S.Object({ field: S.String() }), { field: "still usable" }, "", []), { field: "still usable" });
+});
+
+test("SDK casing keeps empty words returned by the caller's string runtime", () => {
+  const original = String.prototype.toLowerCase;
+  try {
+    String.prototype.toLowerCase = () => "";
+    assert.equal(formatSegment("first_second"), "");
+  } finally { String.prototype.toLowerCase = original; }
 });

@@ -42,7 +42,7 @@ pub fn format<E>(
     }
     let mut result = Vec::new();
     for (index, word) in words.into_iter().enumerate() {
-        if index == 0 {
+        if index == 0 || word.is_empty() {
             result.extend(word);
         } else {
             result.extend(upper(&word[..1])?);
@@ -50,4 +50,19 @@ pub fn format<E>(
         }
     }
     Ok(result)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::format;
+
+    #[test]
+    fn host_casing_can_return_empty_words() {
+        let result = format::<()>(
+            &"first_second".encode_utf16().collect::<Vec<_>>(),
+            |_| Ok(Vec::new()),
+            |value| Ok(value.to_vec()),
+        );
+        assert_eq!(result, Ok(Vec::new()));
+    }
 }

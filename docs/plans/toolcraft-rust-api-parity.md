@@ -259,7 +259,7 @@ object validation while leaving assembly/invocation in JavaScript. Reference SDK
 stream, scope, branch and default suites now exercise the native argument engine
 and schema dependency. Differential tests cover every schema kind, UTF-16 names,
 getter/diagnostic order, arbitrary exceptions, reentrancy and cyclic wrappers.
-The checkpoint passes 1,338 reference/parity tests and 67 native Node tests, plus
+The checkpoint passes 1,338 reference/parity tests and 68 native Node tests, plus
 Rust, declarations and lint. The existing 128-entry/16,384-wrapper guards remain
 unqualified for engine-specific resource parity. Runtime I/O, assembly, invocation
 and public SDK exports still require porting.

@@ -289,6 +289,10 @@ try:
 except CalledProcessError as error:
  assert error.returncode == 127
 assert call('identity', 'still-live') == 'still-live'
+import llm
+embedding_model = llm.get_embedding_model('fake')
+assert embedding_model.embed('ordinary') == [1.0, 2.0]
+assert list(embedding_model.embed_multi(iter(['one', 'two', 'three']), batch_size=2)) == [[1.0, 2.0]] * 3
 from pyodide.ffi import run_sync
 from poe_llm import Client as LlmClient, CapabilityError, Attachment, Message, LimitError
 import asyncio
@@ -299,6 +303,9 @@ def expected_bytes(offset, count):
  return (bytes(range(256)) * ((start + count + 255) // 256))[start:start + count]
 
 async def qualify_libraries():
+ reference_response = llm.get_async_model('fake').prompt('reference-async')
+ assert await reference_response.text() == 'reference-async'
+ assert [chunk async for chunk in reference_response] == ['reference-async']
  async with LlmClient() as client:
   stored_schema = await client.load_schema('unicode')
   assert stored_schema == {'type':'object','properties':{'☃':{'type':'string','description':'🙂'}}}

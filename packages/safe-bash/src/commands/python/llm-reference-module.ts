@@ -282,4 +282,69 @@ def get_async_model(name=None):
         return aliases[name]
     except KeyError:
         raise UnknownModelError("Unknown model: " + str(name)) from None
+
+
+class EmbeddingModel:
+    supports_text = True
+    supports_binary = False
+    batch_size = None
+    key = None
+
+    def __init__(self, model_id):
+        self.model_id = model_id
+
+    def _check(self, item):
+        if isinstance(item, bytes):
+            raise ValueError("This model does not support binary data, only text strings")
+
+    def embed_batch(self, items):
+        async def embed():
+            async with _core.Client(model=self.model_id, key=self.key) as client:
+                return await client.embed(items)
+        result = _sync(embed())
+        for vector in result.vectors:
+            yield list(vector)
+
+    def embed(self, item):
+        self._check(item)
+        return next(iter(self.embed_batch([item])))
+
+    def embed_multi(self, items, batch_size=None):
+        from itertools import islice
+        def checked():
+            for item in items:
+                self._check(item)
+                yield item
+        iterator = checked()
+        effective_batch_size = self.batch_size if batch_size is None else batch_size
+        if effective_batch_size is None:
+            yield from self.embed_batch(iterator)
+            return
+        while True:
+            batch = list(islice(iterator, effective_batch_size))
+            if not batch:
+                return
+            yield from self.embed_batch(batch)
+
+
+def get_embedding_models():
+    return [EmbeddingModel(item.id) for item in _sync(_models()) if "embed" in item.capabilities]
+
+
+def get_embedding_model_aliases():
+    result = {}
+    for item in _sync(_models()):
+        if "embed" not in item.capabilities:
+            continue
+        model = EmbeddingModel(item.id)
+        for name in (item.id, *item.aliases):
+            result[name] = model
+    return result
+
+
+def get_embedding_model(name):
+    try:
+        return get_embedding_model_aliases()[name]
+    except KeyError:
+        raise UnknownModelError("Unknown model: " + str(name)) from None
 `)();

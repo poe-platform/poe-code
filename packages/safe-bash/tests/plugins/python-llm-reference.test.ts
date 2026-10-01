@@ -38,6 +38,18 @@ async def check_async():
  assert [chunk async for chunk in response] == ["hel", "lo"]
  assert len(calls) == 3
 asyncio.run(check_async())
+embedding = llm.get_embedding_model("embed-alias")
+assert embedding.model_id == "embedding"
+assert embedding.embed("one") == [3.0, 1.0]
+batches = embedding.embed_multi(iter(["a", "bb", "ccc"]), batch_size=2)
+assert embedding_calls == [["one"]], "embedding batches must be lazy"
+assert list(batches) == [[1.0, 1.0], [2.0, 1.0], [3.0, 1.0]]
+assert embedding_calls == [["one"], ["a", "bb"], ["ccc"]]
+try:
+ embedding.embed(b"binary")
+ raise AssertionError("text model accepted binary input")
+except ValueError as error:
+ assert str(error) == "This model does not support binary data, only text strings"
 print("reference response contract passed")
 `;
 
@@ -59,6 +71,16 @@ class AsyncModel(llm.AsyncModel):
 llm.get_model_aliases = lambda: {"test-model": Model(), "alias": Model()}
 llm.get_async_model_aliases = lambda: {"test-model": AsyncModel(), "alias": AsyncModel()}
 llm.get_default_model = lambda: "test-model"
+embedding_calls = []
+class EmbeddingModel(llm.EmbeddingModel):
+ model_id = "embedding"
+ def embed_batch(self, items):
+  items = list(items)
+  embedding_calls.append(items)
+  for item in items:
+   yield [float(len(item)), 1.0]
+llm.get_embedding_model_aliases = lambda: {"embedding": EmbeddingModel(), "embed-alias": EmbeddingModel()}
+
 `;
 
 const bundledSetup = `
@@ -69,6 +91,7 @@ exec(bundle["registration"])
 del _safe_llm_source
 assert "llm" not in sys.modules
 calls = []
+embedding_calls = []
 class Bridge:
  async def call(self, operation, payload):
   if operation == "resolve_model":
@@ -76,7 +99,10 @@ class Bridge:
   if operation == "configuration":
    return {"default_model": "test-model", "aliases": {}, "model_options": {}}
   if operation == "models":
-   return [{"id": "test-model", "aliases": ["alias"], "capabilities": ["complete", "stream"]}]
+   return [{"id": "test-model", "aliases": ["alias"], "capabilities": ["complete", "stream"]}, {"id": "embedding", "aliases": ["embed-alias"], "capabilities": ["embed"]}]
+  if operation == "embed":
+   embedding_calls.append(payload["inputs"])
+   return {"model": payload["model"], "vectors": [[float(len(item)), 1.0] for item in payload["inputs"]]}
   calls.append(payload["prompt"])
   return {"model": "test-model", "text": "hello"}
  def stream(self, payload):

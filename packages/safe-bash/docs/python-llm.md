@@ -26,8 +26,14 @@ identities and raise `UnknownModelError` during lookup. Omitting the name uses
 the canonical configuration and the service's effective default; Python does
 not choose a provider or substitute a hardcoded model.
 
+Text embeddings use `llm.get_embedding_model("your-embedding-model").embed("text")`
+and return a list of floats. `embed_multi(items, batch_size=...)` consumes an
+iterable lazily in batches and yields one vector per input. Binary embedding
+inputs are explicitly unsupported by the shared transport. Embedding catalog
+lookups and calls retain the same host authorization and limits as prompts.
+
 This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
-attachments, conversations, embeddings,
+attachments, conversations, embedding collections,
 fragments, tools, persistence and the complete response interface still require
 qualification. The existing `poe_llm` workflow API below remains available during
 that implementation.

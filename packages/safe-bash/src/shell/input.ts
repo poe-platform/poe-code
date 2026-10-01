@@ -835,7 +835,7 @@ class InputCursor {
       if (this._boundedReads && chunk.byteLength > this._budget.limits.maxInputBytes - this._produced) this._budget.fail("maxInputBytes");
       this._produced += chunk.byteLength;
       this._ended = true;
-      return { value: this._boundedReads ? new Uint8Array(chunk) : chunk, done: false };
+      return { value: chunk, done: false };
     }
     if (this._ended || this._closed) return { value: undefined, done: true };
     if (!this._read) {
@@ -857,7 +857,7 @@ class InputCursor {
           if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
           if (this._boundedReads && result.value.byteLength > this._budget.limits.maxInputBytes - this._produced) this._budget.fail("maxInputBytes");
           this._produced += result.value.byteLength;
-          const out: IteratorResult<Uint8Array> = { value: this._boundedReads ? new Uint8Array(result.value) : result.value, done: false };
+          const out: IteratorResult<Uint8Array> = { value: result.value, done: false };
           this._readSettled = true;
           this._readResult = out;
           return out;
@@ -914,7 +914,7 @@ class InputCursor {
           if (!(result.value instanceof Uint8Array)) throw new TypeError("Shell stdin must yield Uint8Array");
           if (this._boundedReads && result.value.byteLength > this._budget.limits.maxInputBytes - this._produced) this._budget.fail("maxInputBytes");
           this._produced += result.value.byteLength;
-          const out: IteratorResult<Uint8Array> = { value: this._boundedReads ? new Uint8Array(result.value) : result.value, done: false };
+          const out: IteratorResult<Uint8Array> = { value: result.value, done: false };
           this._readSettled = true;
           this._readResult = out;
           return out;
@@ -1176,9 +1176,10 @@ export class ShellInput implements ByteSource, CommandInput {
       if (!maxBytes) return { done: false, value: new Uint8Array() };
       const result = await this._cursor.take(signal, maxBytes);
       if (result.done) return result;
-      const count = Math.min(maxBytes, result.value.byteLength);
-      const value = new Uint8Array(result.value.subarray(0, count));
-      if (count < result.value.byteLength) this._cursor.remainder = result.value.subarray(count);
+      const bytes = new Uint8Array(result.value);
+      const count = Math.min(maxBytes, bytes.byteLength);
+      const value = new Uint8Array(bytes.subarray(0, count));
+      if (count < bytes.byteLength) this._cursor.remainder = bytes.subarray(count);
       this._cursor.position += count;
       return { done: false, value };
     });
@@ -1202,13 +1203,14 @@ export class ShellInput implements ByteSource, CommandInput {
           }
           const result = await this._cursor.take(signal, maxBytes - length);
           if (result.done) break;
-          const count = Math.min(maxBytes - length, result.value.byteLength);
+          const bytes = new Uint8Array(result.value);
+          const count = Math.min(maxBytes - length, bytes.byteLength);
           if (count > this.budget.limits.maxInputBytes - length) {
-            this._cursor.restore([result.value]);
+            this._cursor.restore([bytes]);
             this.budget.fail("maxInputBytes");
           }
-          if (count < result.value.byteLength) this._cursor.remainder = result.value.subarray(count);
-          if (count) chunks.push(result.value.subarray(0, count));
+          if (count < bytes.byteLength) this._cursor.remainder = bytes.subarray(count);
+          if (count) chunks.push(bytes.subarray(0, count));
           length += count;
         }
         signal.throwIfAborted();

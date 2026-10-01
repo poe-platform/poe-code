@@ -4,6 +4,67 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
+import { ShellLimitError } from "../../src/shell/types.js";
+
+for (const loop of ["for i in {0..2}", "for ((i=0;i<3;i++))"]) {
+  for (const [expression, expected] of [
+    ["arr[i]", " 10 20 30\n"],
+    ["arr[$i]", " 10 20 30\n"],
+    ["i + $zero", " 0 1 2\n"],
+    ["arr[$i] + 1", " 11 21 31\n"],
+  ]) {
+    test(`finite expansion limits read current loop operands: ${loop}: ${expression}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()), limits: { maxExpansionBytes: 1024 * 1024 } });
+      try {
+        const result = await shell.exec(`arr=(10 20 30); i=2; zero=0; out=""; ${loop}; do val=$(( ${expression} )); out="$out $val"; done; echo "$out"`);
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stdout, expected);
+      } finally {
+        await shell.dispose();
+      }
+    });
+  }
+}
+
+test("finite expansion limits read the current array assignment operand", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()), limits: { maxExpansionBytes: 1024 * 1024 } });
+  try {
+    const result = await shell.exec('arr=(10); i=2; out=""; for i in {0..2}; do (( arr[0] = i )); out="$out ${arr[0]}"; done; echo "$out"');
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, " 0 1 2\n");
+  } finally {
+    await shell.dispose();
+  }
+});
+
+for (const command of ['echo $(( a + b ))', 'val=$(( a + b )); echo "$val"', '(( val = a + b )); echo "$val"']) {
+  test(`indirect arithmetic mutation executes once through array fallback: ${command}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+    try {
+      const result = await shell.exec(`arr=(100 200); a="z += 1"; b="arr"; z=10; ${command}; echo "z=$z"`);
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "111\nz=11\n");
+    } finally {
+      await shell.dispose();
+    }
+  });
+}
+
+for (const operator of ["#", "##", "%", "%%"]) {
+  test(`pattern ${operator} admits the input before trimming`, async () => {
+    const prefix = operator.startsWith("#");
+    const pattern = "a".repeat(200);
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()), env: { BIG: prefix ? `${pattern}ok` : `ok${pattern}` }, limits: { maxExpansionBytes: 100 } });
+    try {
+      await assert.rejects(shell.exec('echo "${BIG' + operator + pattern + '}"'), (error: unknown) => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
+    } finally {
+      await shell.dispose();
+    }
+  });
+}
 
 const sources: [string, string][] = [
   ['arr=(10 20); v=arr; for i in 1 2; do (( x = $v )); done; echo "x=$x"', "x=10\n"],

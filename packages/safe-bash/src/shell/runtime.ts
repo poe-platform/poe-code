@@ -4177,7 +4177,9 @@ export class Runtime {
             if (st.nounset || arrayStore(st)?.get(subVar) || stateMonitor(st)?.hasOverlay(subVar)) throw new ArrayFailure("complex var subscript in sync arithmetic");
             const rawSub = this._syncArithRawVars![subVar];
             if (typeof rawSub !== "string" || rawSub.length === 0) throw new ArrayFailure("empty var subscript in sync arithmetic");
-            resolvedSub = shellValueText(stateMonitor(st)?.values.get(subVar, rawSub) ?? rawSub);
+            resolvedSub = this._syncArithRawWriteOnly && this._syncArithTouched?.has(subVar)
+              ? rawSub
+              : shellValueText(stateMonitor(st)?.values.get(subVar, rawSub) ?? rawSub);
           } else if (/^[a-zA-Z_][a-zA-Z_0-9]*$/.test(resolvedSub)) {
             const st = this._syncArithState!;
             const binding = arrayStore(st)?.get(variable);

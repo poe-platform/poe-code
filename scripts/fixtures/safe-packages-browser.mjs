@@ -12,10 +12,10 @@ import "./safe-packages-atomic.mjs";
 import "./safe-packages-mkdir.mjs";
 
 const browserCore = await import("@poe-platform/safe-bash");
-for (const name of ["arraysExtension", "jobsExtension", "mapfileExtension", "readExtension", "trapExtension", "createCmpCommand", "createTruncateCommand", "createInstallCommand"]) {
+for (const name of ["arraysExtension", "jobsExtension", "mapfileExtension", "readExtension", "trapExtension"]) {
   if (Object.hasOwn(browserCore, name)) throw new Error(`Optional factory entered the browser core: ${name}`);
 }
-for (const name of ["createYesCommand", "createDdCommand", "createShufCommand"]) {
+for (const name of ["createYesCommand", "createDdCommand", "createShufCommand", "createCmpCommand", "createTruncateCommand", "createInstallCommand"]) {
   if (typeof browserCore[name] !== "function") throw new Error(`Browser command factory is missing: ${name}`);
 }
 if (typeof browserCore.createYqCommand !== "function") throw new Error("Restricted core YAML/TOML factory is missing");

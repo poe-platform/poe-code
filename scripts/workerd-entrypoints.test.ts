@@ -11,6 +11,8 @@ describe("portable runtime entrypoints", () => {
   for (const entry of [
     "packages/safe-bash/src/shell/extensions/trap/index.ts",
     "packages/safe-bash-command-shuf/src/random.ts",
+    "packages/safe-bash/src/commands/regex-execution/matching.ts",
+    "packages/safe-bash-zip-engine/src/zip/aes.ts",
     "packages/image-ast/src/index.ts",
   ]) it(`${entry} bundles without Node builtins`, async () => {
     await build({

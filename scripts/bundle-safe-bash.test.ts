@@ -387,6 +387,10 @@ it("preserves explicitly external private owners before applying browser source 
 it("bundles the complete portable preset with one owned-argument identity", async () => {
   const options = resolveBrowserShellBuild(root);
   expect(options.entryPoints).toEqual({
+    "commands/csvkit/index.browser": path.join(root, "packages/safe-bash/src/commands/csvkit/index.ts"),
+    "commands/pandoc/index.browser": path.join(root, "packages/safe-bash/src/commands/pandoc/index.ts"),
+    "commands/ssconvert/index.browser": path.join(root, "packages/safe-bash/src/commands/ssconvert/index.ts"),
+
     "search.browser": path.join(root, "packages/safe-bash/src/search.ts"),
     "commands/grep-aliases/index.browser": path.join(root, "packages/safe-bash/src/commands/grep-aliases/index.ts"),
     ...Object.fromEntries([
@@ -560,10 +564,7 @@ beforeAll(() => {
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   coreIdentity = (browser as BrowserShell & { coreIdentity: boolean }).coreIdentity;
   publicEntries = (browser as BrowserShell & { publicEntries: Record<string, unknown> }).publicEntries;
-  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate + ':' + typeof require", sandbox)).toBe("function:undefined:undefined:undefined");
-  expect(runInContext("Buffer.from('é').toString('hex')", sandbox)).toBe("c3a9");
-  expect(runInContext("Buffer.prototype.utf8Slice.call(new Uint8Array([195, 169]), 0, 2)", sandbox)).toBe("é");
-  expect(runInContext("Buffer", sandbox)).not.toBe(Buffer);
+  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate + ':' + typeof require", sandbox)).toBe("undefined:undefined:undefined:undefined");
 });
 
 beforeAll(async () => {
@@ -585,7 +586,8 @@ beforeAll(async () => {
   const companions = new Map<string, string>();
   for (const workspace of createWorkspaceBuildPlan(root).workspaces) {
     for (const [route, entry] of Object.entries(workspace.manifest.poeCode?.safeLibraryExports?.["safe-bash"] ?? {})) {
-      const target = workspace.manifest.exports[entry as string]?.import;
+      const exported = workspace.manifest.exports[entry as string];
+      const target = exported?.workerd ?? exported?.browser ?? exported?.import;
       expect(typeof target, `${workspace.name} companion ${route}`).toBe("string");
       const specifier = `@poe-platform/safe-bash${route.slice(1)}`;
       expect(companions.has(specifier), specifier).toBe(false);
@@ -601,16 +603,23 @@ beforeAll(async () => {
     plugins: [{
       name: "maintained-browser-fixture-entries",
       setup(builder) {
+        builder.onResolve({ filter: /^safe-bash-contracts(?:\/command)?$/ }, args => ({
+          path: args.path.endsWith("/command") ? "command" : "index", namespace: "evaluated-contracts",
+        }));
+        builder.onLoad({ filter: /.*/, namespace: "evaluated-contracts" }, args => ({
+          contents: [
+            `export * from ${JSON.stringify(path.join(root, "packages/safe-bash-contracts/src", args.path + ".ts"))};`,
+            ...["commandRuntimeIdentity", "createCommandArguments", "getCommandArguments", "CommandRegistry"].map(name => `export const ${name} = globalThis.browser.${name};`),
+          ].join("\n"), loader: "js", resolveDir: root,
+        }));
         builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args => {
           const companion = companions.get(args.path);
           if (companion) return { path: companion };
-          if (args.path === "@poe-platform/safe-bash/contracts") return { path: path.join(directory, "src/contracts/index.ts") };
+          if (args.path === "@poe-platform/safe-bash/contracts") return { path: "index", namespace: "evaluated-contracts" };
           const entry = manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`];
           if (!entry.browser) return { path: path.resolve(directory, entry.import) };
-          return {
-            path: path.resolve(directory, entry.browser),
-            namespace: "evaluated-shell",
-          };
+          const target = path.resolve(directory, entry.browser);
+          return artifacts.has(target) ? { path: target, namespace: "evaluated-shell" } : { path: target };
         });
         builder.onLoad({ filter: /.*/, namespace: "evaluated-shell" }, args => {
           const output = portableBuild.metafile!.outputs[path.relative(root, args.path)];
@@ -620,7 +629,7 @@ beforeAll(async () => {
           }
           return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
         });
-        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|xml)|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|xml|contracts\/(?:errors|object))|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/core|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
           contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));
@@ -641,7 +650,7 @@ it("executes the maintained browser fixture with all top-level workflows in a No
     fetch: async () => { throw new Error("Unexpected fetch in browser fixture"); },
   });
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
-  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("function:undefined:undefined");
+  expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("undefined:undefined:undefined");
   await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);
 });
 
@@ -748,8 +757,23 @@ it("uses the public portable trap subpath without the Node signal catalog", asyn
   } finally { await shell.dispose(); }
 });
 
+const portableSamplingAndMatchingCases = [
+  ["shuf -i 1-1000001 -n 4 > /sample && awk '{ if ($1 < 1 || $1 > 1000001 || seen[$1]++) bad=1 } END { if (NR == 4 && !bad) print \"sampled\"; else exit 1 }' /sample", "sampled\n"],
+  ["printf 'é🦊é🦊\\n' | rg -o 'é🦊'", "é🦊\né🦊\n"],
+] as const;
+
+it("samples large ranges and matches Unicode in the browser without Node globals", async () => {
+  const shell = new browser.Shell({ fs: filesystem.createMemoryFileSystem() }).use(browser.agentCommands());
+  try {
+    for (const [source, stdout] of portableSamplingAndMatchingCases) {
+      expect(await shell.exec(source), source).toMatchObject({ exitCode: 0, stdout, stderr: "" });
+    }
+  } finally { await shell.dispose(); }
+});
+
 it("runs shell byte operations and command exports in workerd without nodejs_compat", async () => {
   const cases = [
+    ...portableSamplingAndMatchingCases,
     ['[[ a < b ]] && echo ordered', 'ordered\n'],
     ['echo pre{1..3}post', 'pre1post pre2post pre3post\n'],
     ['rg -r REPL hello /in.txt', 'REPL world\n'],

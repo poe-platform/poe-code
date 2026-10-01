@@ -464,7 +464,9 @@ For a custom same-isolate Python JSPI host, use `createPythonJspiExecutor` from
 the same Python entry with an explicit loader, precompiled Wasm modules and
 pinned, authenticated runtime assets; follow the [static host recipe](src/contracts/python-jspi.md).
 Invocation-owned [host services and Python shell calls](docs/python-host-services.md)
-can be enabled explicitly through `createCapabilities`.
+can be enabled explicitly through `createCapabilities`. Python's `maxTransferBytes`
+is unlimited when omitted or set to `Infinity`; finite values enforce a per-request
+I/O ceiling. Worker transports use finite chunks independently of that ceiling.
 Native I/O uses the caller's asynchronous filesystem without workspace copying,
 Node worker threads or a SAB request/reply bridge. This path is qualified with
 installed public-package artifacts in local workerd, not a verified Cloudflare

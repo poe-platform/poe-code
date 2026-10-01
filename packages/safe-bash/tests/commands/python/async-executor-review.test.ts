@@ -191,6 +191,27 @@ test('direct execution needs neither SharedArrayBuffer nor Atomics even for bina
   assert.deepEqual(Buffer.concat(host.stdout), Buffer.from([0, 255]));
 });
 
+for (const maxTransferBytes of [undefined, Infinity]) test(`direct dispatch disables transfer ceilings: ${maxTransferBytes}`, async () => {
+  const host = invocation();
+  const data = Array.from(new Uint8Array(65537).fill(42));
+  await host.context.fs.writeFile('/input', Uint8Array.from(data));
+  let checked = false;
+  const [command] = createPythonCommands({ ...(maxTransferBytes === undefined ? {} : { maxTransferBytes }), createExecutor: () => ({
+    async run(start) {
+      assert.equal(start.maxTransferBytes, Infinity);
+      const handle = await start.dispatch({ op: 'open', args: ['/input', { access: 'readwrite' }] });
+      assert.deepEqual(await start.dispatch({ op: 'read', args: [handle, data.length, 0] }), Uint8Array.from(data));
+      assert.equal(await start.dispatch({ op: 'write', args: [handle, data, 0] }), data.length);
+      assert.equal(await start.dispatch({ op: 'stdout', args: [data] }), data.length);
+      await start.dispatch({ op: 'close', args: [handle] });
+      checked = true;
+      return 0;
+    }, terminate() {},
+  }) });
+  assert.equal((await command!.execute(host.context)).exitCode, 0);
+  assert(checked);
+});
+
 test('direct dispatch enforces transfer and open-handle limits without partial writes', async () => {
   const host = invocation();
   await host.context.fs.writeFile('/input', new Uint8Array([1, 2]));

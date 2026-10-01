@@ -10,6 +10,32 @@ function context(signal = new AbortController().signal): CommandContext {
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} }, stderr: { async write() {} } };
 }
 
+test('all optional Python resource ceilings accept explicit Infinity', () => {
+  assert.doesNotThrow(() => createPythonCommands({
+    maxTransferBytes: Infinity, maxOpenFiles: Infinity, maxDirectoryEntries: Infinity,
+    maxConcurrentWorkers: Infinity, maxInputChunkBytes: Infinity,
+    createExecutor: () => ({ async run() { return 0; }, terminate() {} }),
+  }));
+});
+
+for (const maxTransferBytes of [undefined, Infinity, 2]) test(`worker buffers stay finite with transfer ceiling ${maxTransferBytes}`, async () => {
+  let send!: (value: unknown) => void;
+  let started = false;
+  const [command] = createPythonCommands({ ...(maxTransferBytes === undefined ? {} : { maxTransferBytes }), createWorker: () => ({
+    subscribe(listener) { send = listener; return () => {}; },
+    postMessage(value) {
+      const start = value as { shared: SharedArrayBuffer; maxTransferBytes: number };
+      assert.equal(start.maxTransferBytes, Math.min(maxTransferBytes ?? Infinity, 65536));
+      assert.equal(start.shared.byteLength, 8 + start.maxTransferBytes * 6 + 65536);
+      started = true;
+      queueMicrotask(() => send({ type: 'exit', exitCode: 0 }));
+    },
+    terminate() {},
+  }) });
+  assert.equal((await command!.execute(context())).exitCode, 0);
+  assert(started);
+});
+
 test('an already failed endpoint is retired without sending interpreter startup', async () => {
   let started = 0;
   let terminated = 0;

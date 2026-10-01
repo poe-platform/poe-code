@@ -47,6 +47,7 @@ export interface PythonCommandsOptions {
   readonly onProgress?: (event: PythonInitializationProgress) => void;
   readonly onDiagnostic?: PythonDiagnosticObserver;
   readonly runtimeMount?: string;
+  /** Per-request I/O ceiling; omitted or Infinity disables it. Worker transports chunk independently. */
   readonly maxTransferBytes?: number;
   readonly maxOpenFiles?: number;
   readonly maxDirectoryEntries?: number;
@@ -85,14 +86,16 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   if (options.createCapabilities && !options.createExecutor) throw new TypeError('Python host capabilities require an asynchronous executor');
   if (options.onDiagnostic !== undefined && typeof options.onDiagnostic !== 'function') throw new TypeError('Python onDiagnostic must be a function');
   if (options.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
-  const maxTransferBytes = options.maxTransferBytes ?? 65536;
+  const maxTransferBytes = options.maxTransferBytes ?? Infinity;
+  // Transport chunks keep shared buffers finite without imposing an I/O quota.
+  const transferChunkBytes = Math.min(maxTransferBytes, 65536);
   const maxOpenFiles = options.maxOpenFiles;
   const maxConcurrentWorkers = options.maxConcurrentWorkers ?? Infinity;
   const maxInputChunkBytes = options.maxInputChunkBytes ?? Infinity;
-  if (options.maxConcurrentWorkers !== undefined && (!Number.isSafeInteger(maxConcurrentWorkers) || maxConcurrentWorkers < 1)) throw new RangeError('Invalid Python worker concurrency limit');
-  if (options.maxInputChunkBytes !== undefined && (!Number.isSafeInteger(maxInputChunkBytes) || maxInputChunkBytes < 1)) throw new RangeError('Invalid Python input chunk limit');
+  if (maxConcurrentWorkers !== Infinity && (!Number.isSafeInteger(maxConcurrentWorkers) || maxConcurrentWorkers < 1)) throw new RangeError('Invalid Python worker concurrency limit');
+  if (maxInputChunkBytes !== Infinity && (!Number.isSafeInteger(maxInputChunkBytes) || maxInputChunkBytes < 1)) throw new RangeError('Invalid Python input chunk limit');
   let activeWorkers = 0;
-  for (const size of [maxTransferBytes, maxOpenFiles, options.maxDirectoryEntries]) if (size !== undefined && (!Number.isSafeInteger(size) || size < 1)) throw new RangeError('Invalid Python resource limit');
+  for (const size of [maxTransferBytes, maxOpenFiles, options.maxDirectoryEntries]) if (size !== undefined && size !== Infinity && (!Number.isSafeInteger(size) || size < 1)) throw new RangeError('Invalid Python resource limit');
   const runtimeMount = options.runtimeMount ?? '/.pyodide-runtime';
   if (!runtimeMount.startsWith('/') || runtimeMount === '/' || runtimeMount.slice(1).includes('/') || runtimeMount.includes('\0') || runtimeMount.split('/').some(part => part === '..' || part === '.')) throw new TypeError('Python runtime mount must be an absolute top-level canonical path');
   const environment = options.environment ?? createPythonPackageEnvironment(options.provisioning);
@@ -237,7 +240,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
       if (options.createCapabilities) {
         const capabilityInput = { async *[Symbol.asyncIterator]() {
           while (true) {
-            const bytes = await dispatch({ op: 'stdin', args: [maxTransferBytes] }) as number[];
+            const bytes = await dispatch({ op: 'stdin', args: [transferChunkBytes] }) as number[];
             if (!bytes.length) break;
             yield Uint8Array.from(bytes);
           }
@@ -312,7 +315,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         });
       } else {
       let shared: SharedArrayBuffer;
-      try { shared = new SharedArrayBuffer(8 + maxTransferBytes * 6 + 65536); }
+      try { shared = new SharedArrayBuffer(8 + transferChunkBytes * 6 + 65536); }
       catch (reason) { throw reportPythonFailure('transport-unavailable', reason, options.onDiagnostic); }
       const control = new Int32Array(shared, 0, 2);
       const payload = new Uint8Array(shared, 8);
@@ -385,7 +388,7 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
         }, transportFailure); }
         catch (reason) { transportFailure(reason); }
         if (settled) return;
-        const start: PythonWorkerStart = { type: 'start', shared, invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
+        const start: PythonWorkerStart = { type: 'start', shared, invocation: { command: context.command, args: [...context.args], cwd: context.cwd, env: { ...context.env } }, runtimeMount, maxTransferBytes: transferChunkBytes, ...(packages ? {packages} : {}), installOnly: !!installation };
         signal.throwIfAborted();
         try { endpoint!.postMessage(start); }
         catch (reason) { transportFailure(reason); }

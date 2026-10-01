@@ -6,6 +6,17 @@ import type { FileStat } from "../src/contracts/filesystem.js";
 import { PythonFileSystem, translatePythonOpenFlags } from "../src/python/index.js";
 
 const bytes = (text: string) => new TextEncoder().encode(text);
+it.each([undefined, Infinity])("allows transfers beyond 64 KiB with limit %s", async maxTransferBytes => {
+  const fs = new MemoryFileSystem();
+  const data = new Uint8Array(65537).fill(42);
+  await fs.writeFile("/data", data);
+  const service = new PythonFileSystem(fs, { cwd: "/", ...(maxTransferBytes === undefined ? {} : { maxTransferBytes }) });
+  try {
+    const handle = await service.dispatch({ op: "open", args: ["/data", { access: "readwrite" }] });
+    expect(await service.dispatch({ op: "read", args: [handle, data.length, 0] })).toEqual(data);
+    expect(await service.dispatch({ op: "write", args: [handle, Array.from(data), 0] })).toBe(data.length);
+  } finally { await service.close(); }
+});
 it("enforces Python directory admission when a backend returns more than requested", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/first", bytes("a"));

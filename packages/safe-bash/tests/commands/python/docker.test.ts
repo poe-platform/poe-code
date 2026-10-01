@@ -72,6 +72,17 @@ test('Docker isolation rejects mutable images and invalid bounds before contacti
   assert.equal(engine.calls.length, 0);
 });
 
+test('Docker transports an unlimited executor budget with finite worker chunks', async context => {
+  const engine = fixture(context, { onStart() { engine.send({ type: 'exit', exitCode: 0 }); } });
+  const pool = await createDockerPythonExecutorPool(options);
+  const endpoint = pool.createExecutor();
+  try {
+    assert.equal(await endpoint.run({ ...start(), maxTransferBytes: Infinity }), 0);
+    const frame = JSON.parse(engine.input.join('').trim());
+    assert.equal(frame.maxTransferBytes, 65536);
+  } finally { await endpoint.terminate(); await pool.dispose(); }
+});
+
 test('Docker execution owns a confined container and removes it before releasing admission', async context => {
   let ready = 0;
   const engine = fixture(context, { onStart() { engine.send({ type: 'ready' }); engine.send({ type: 'exit', exitCode: 0 }); } });

@@ -48,10 +48,10 @@ export class PythonFileSystem {
     validatePath(options.cwd);
     if (!options.cwd.startsWith("/")) throw new FsError("EINVAL", { syscall: "python filesystem", path: options.cwd, message: "cwd must be absolute" });
     this.#cwd = options.cwd;
-    this.#transfer = options.maxTransferBytes ?? 65536;
+    this.#transfer = options.maxTransferBytes ?? Infinity;
     this.#limit = options.maxOpenFiles ?? Infinity;
     this.#directoryLimit = options.maxDirectoryEntries ?? Infinity;
-    for (const limit of [this.#transfer, options.maxOpenFiles, options.maxDirectoryEntries]) if (limit !== undefined && (!Number.isSafeInteger(limit) || limit < 1)) throw new FsError("EINVAL", { syscall: "python filesystem" });
+    for (const limit of [this.#transfer, options.maxOpenFiles, options.maxDirectoryEntries]) if (limit !== undefined && limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new FsError("EINVAL", { syscall: "python filesystem" });
     this.#open = options.open;
     this.#scope = composeAbortSignals([...(options.signal === undefined ? [] : [options.signal]), this.#abort.signal]);
   }

@@ -251,7 +251,7 @@ export async function createDockerPythonExecutorPool(options: DockerPythonExecut
           if (started.status !== 204 && started.status !== 304) throw new PythonFailure('startup');
           if (retired || settled) return;
           await send({ type: 'start', invocation: start!.invocation, runtimeMount: start!.runtimeMount,
-            maxTransferBytes: start!.maxTransferBytes, maxFrameBytes: configuration.maxFrameBytes,
+            maxTransferBytes: Math.min(start!.maxTransferBytes, 65536), maxFrameBytes: configuration.maxFrameBytes,
             ...(start!.packages ? { packages: start!.packages } : {}), installOnly: !!start!.installOnly,
           }, true);
         })().catch(error => fail(error instanceof PythonFailure || start!.signal.aborted ? error : new PythonFailure('startup')));

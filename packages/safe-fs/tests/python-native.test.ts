@@ -4,7 +4,7 @@ import { createPythonNativeSyscalls } from '../src/python/native.js';
 import { MemoryFileSystem } from '../src/fs/memory/index.js';
 import { PythonFileSystem } from '../src/python/filesystem.js';
 
-function fixture(dispatch: (request: { op: string; args: unknown[] }) => Promise<unknown>, signal = new AbortController().signal, getUmask?: () => number) {
+function fixture(dispatch: (request: { op: string; args: unknown[] }) => Promise<unknown>, signal = new AbortController().signal, getUmask?: () => number, maxTransferBytes = 2) {
   const memory = new Uint8Array(65536);
   const streams: any[] = [];
   const runtime = {
@@ -20,7 +20,7 @@ function fixture(dispatch: (request: { op: string; args: unknown[] }) => Promise
     },
   };
   const native = createPythonNativeSyscalls({ runtime, dispatch, ...(getUmask ? {getUmask} : {}), cwd: '/work',
-    runtimeMount: '/.runtime', maxTransferBytes: 2, signal });
+    runtimeMount: '/.runtime', maxTransferBytes, signal });
   function text(value: string, pointer = 128) { memory.set(new TextEncoder().encode(value + '\0'), pointer); return pointer; }
   function vector(pointer = 1024, length = 3) { new DataView(memory.buffer).setUint32(512, pointer, true); new DataView(memory.buffer).setUint32(516, length, true); }
   return { ...native, memory, text, vector };
@@ -43,6 +43,21 @@ test('native open/read uses retained canonical bytes and bounded requests', asyn
     assert.equal(new DataView(native.memory.buffer).getUint32(600, true), 2);
     assert.equal(await native.invoke('fd_close', [fd]), 0);
     assert.deepEqual(requests, ['open', 'descriptorCapabilities', 'read', 'close']);
+  } finally { await filesystem.close(); }
+});
+
+test('native reads accept Infinity and keep request lengths finite', async () => {
+  const backend = new MemoryFileSystem();
+  await backend.mkdir('/work');
+  await backend.writeFile('/work/input', Uint8Array.of(1, 2, 3));
+  const filesystem = new PythonFileSystem(backend, { cwd: '/work' });
+  const native = fixture(request => filesystem.dispatch(request), undefined, undefined, Infinity);
+  try {
+    const fd = await native.invoke('__syscall_openat', [-100, native.text('input'), 0, 0]);
+    native.vector();
+    assert.equal(await native.invoke('fd_read', [fd, 512, 1, 600]), 0);
+    assert.deepEqual(Array.from(native.memory.slice(1024, 1027)), [1, 2, 3]);
+    assert.equal(new DataView(native.memory.buffer).getUint32(600, true), 3);
   } finally { await filesystem.close(); }
 });
 

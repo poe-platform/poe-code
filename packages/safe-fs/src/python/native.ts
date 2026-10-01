@@ -37,7 +37,7 @@ export function createPythonNativeSyscalls(options: PythonNativeSyscallOptions):
   close(): Promise<void>;
 } {
   const { runtime, signal, maxTransferBytes, runtimeMount } = options;
-  if (!Number.isSafeInteger(maxTransferBytes) || maxTransferBytes < 1) throw new RangeError('Invalid native transfer limit');
+  if (maxTransferBytes !== Infinity && (!Number.isSafeInteger(maxTransferBytes) || maxTransferBytes < 1)) throw new RangeError('Invalid native transfer limit');
   const descriptors = new Map<number, NativeDescriptor>();
   const closedStdio = new Set<number>();
   let cwd = options.cwd;

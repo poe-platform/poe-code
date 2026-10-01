@@ -99,9 +99,9 @@ test('rejects a compact byte array within the wire limit before graph allocation
   } finally { parse.mockRestore(); }
 });
 
-test('defaults to a 4 MiB manifest byte cap', async () => {
-  const source = transport([' '.repeat(4 * 1024 * 1024 + 1)]);
-  await expect(createS3NamespaceFileSystem({ client: source.client, bucket: 'bucket', key: 'manifest' })).rejects.toMatchObject({ code: 'EFBIG' });
+test('enforces an explicitly configured manifest byte cap', async () => {
+  const source = transport([' '.repeat(1025)]);
+  await expect(createS3NamespaceFileSystem({ maxManifestBytes: 1024, client: source.client, bucket: 'bucket', key: 'manifest' })).rejects.toMatchObject({ code: 'EFBIG' });
   expect(source.closed()).toBe(true);
 });
 

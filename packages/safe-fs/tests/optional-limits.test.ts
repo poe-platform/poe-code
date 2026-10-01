@@ -167,3 +167,18 @@ it("object staging has no default page-count quota when only bytes are limited",
   try { await expect(writer.write(Uint8Array.of(1, 2), 0)).rejects.toMatchObject({ code: "ENOSPC" }); }
   finally { await writer.close(); }
 });
+
+it.each([undefined, Infinity])("S3 namespace manifest quota is disabled with %s", async maxManifestBytes => {
+  const client = new MockS3Client({ buckets: ["owned"] });
+  const options = { client, bucket: "owned", key: "manifest.json", ...(maxManifestBytes === undefined ? {} : { maxManifestBytes }) };
+  const fs = await createS3NamespaceFileSystem(options);
+  // JSON encodes every 255 as four bytes, exceeding the former 4 MiB ceiling.
+  const bytes = new Uint8Array(1024 * 1024 + 1).fill(255);
+  await fs.writeFile("/large", bytes);
+  const reopened = await createS3NamespaceFileSystem(options);
+  const restored = await reopened.readFile("/large");
+  expect(restored.byteLength).toBe(bytes.byteLength);
+  expect(restored.every(byte => byte === 255)).toBe(true);
+  await expect(createS3NamespaceFileSystem({ ...options, maxManifestBytes: 4 * 1024 * 1024 }))
+    .rejects.toMatchObject({ code: "EFBIG" });
+});

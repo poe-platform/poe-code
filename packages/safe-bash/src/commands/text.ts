@@ -2067,8 +2067,8 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
           start = offset + 1;
         }
         if (previous && pending.size === 0 && previous.buffer === chunk.buffer) {
-          previous = previous.slice();
-          if (identityKey) previousKey = previous;
+          previous = new Uint8Array(previous);
+          if (previousKey?.buffer === chunk.buffer) previousKey = key(previous);
         }
         pending.append(chunk, start);
         if (outUsed > 0) {

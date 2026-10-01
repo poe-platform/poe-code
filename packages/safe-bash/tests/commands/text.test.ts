@@ -46,6 +46,23 @@ test("uniq keeps the original iterator when synchronous input is unavailable", a
   }
 });
 
+for (const buffer of [false, true]) for (const args of [[], ["-f", "1"], ["-s", "2"], ["-w", "3"], ["-i", "-f", "1"]]) {
+  test(`uniq owns retained keys with Buffer=${buffer} args=${args.join(" ")}`, async () => {
+    const probe = sortProbe(args, "", new AbortController().signal, await fixture());
+    const storage = buffer ? Buffer.alloc(6) : new Uint8Array(6);
+    const stdin = { async *[Symbol.asyncIterator]() {
+      for (const line of ["a one\n", "b two\n", "b two\n"]) {
+        storage.set(new TextEncoder().encode(line));
+        yield storage;
+      }
+      storage.fill(0);
+    } };
+    const result = await textCommands().find(command => command.name === "uniq")!.execute({ ...probe.context, command: "uniq", stdin, env: { LC_ALL: "C" } });
+    assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+    assert.equal(Buffer.concat(probe.stdout).toString(), "a one\nb two\n");
+  });
+}
+
 test("sort batches both comparisons and record moves without publishing during checkpoints", async () => {
   const controller = new AbortController();
   const probe = sortProbe([], "\n".repeat(1024), controller.signal, await fixture());

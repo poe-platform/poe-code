@@ -1,11 +1,13 @@
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
 const metadata = JSON.parse(readFileSync(resolve(root, "packages/safe-bash/package.json"), "utf8"));
-const commands = Object.entries(metadata.poeCode.integration.privateWorkspaces).filter(([name]) => name.startsWith("safe-bash-command-"));
+const commands = readdirSync(resolve(root, "packages"), { withFileTypes: true })
+  .filter(entry => entry.isDirectory() && entry.name.startsWith("safe-bash-command-"))
+  .map(entry => entry.name);
 
 function exportedNames(file: string, visited = new Set<string>()): Set<string> {
   if (visited.has(file)) return new Set();
@@ -37,7 +39,7 @@ const sdk = new Set([
   ...exportedNames(resolve(root, "packages/safe-bash/src/optional.ts")),
 ]);
 describe("portable command API", () => {
-  for (const [workspace, configuration] of commands) {
+  for (const workspace of commands) {
     const name = workspace.slice("safe-bash-command-".length);
     const title = name.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
     const pluginName = title[0]!.toLowerCase() + title.slice(1);
@@ -49,7 +51,9 @@ describe("portable command API", () => {
         expect(metadata.exports).toHaveProperty(`./commands/${adapter}`);
         for (const symbol of exportedNames(source)) exported.add(symbol);
       }
-      expect(configuration).toHaveProperty("portable", true);
+      expect(metadata.poeCode.integration.privateWorkspaces[workspace]).toHaveProperty("portable", true);
+      const packageExports = exportedNames(resolve(root, `packages/${workspace}/src/index.ts`));
+      for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) expect(packageExports.has(symbol), `${workspace}: ${symbol}`).toBe(true);
       for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) expect(exported.has(symbol), symbol).toBe(true);
     });
   }
@@ -58,14 +62,17 @@ describe("portable command API", () => {
   }
 });
 
-const factoryNames = ["exiftool", "fmt", "fold", "imagemagick", "pandoc", "pdfimages", "pdfinfo", "sips", "unrtf", "xz"];
+const factoryNames = ["csvcut", "csvgrep", "csvkit", "diff3", "exiftool", "fmt", "fold", "htmlq", "imagemagick", "mmdc", "op", "pandoc", "pdfimages", "pdfinfo", "pdftk", "pdftoppm", "pdftotext", "qpdf", "sips", "soffice", "ssconvert", "unrtf", "wkhtmltopdf", "xmllint", "xz"];
 const factoryModules = await Promise.all(factoryNames.map(name => import(`../packages/safe-bash-command-${name}/src/index.ts`)));
 describe("command factories agree with plugin registration", () => {
   for (const [index, name] of factoryNames.entries()) {
     it(name, () => {
       const api = factoryModules[index];
       const capitalized = name[0]!.toUpperCase() + name.slice(1);
-      const definitions = api[`create${capitalized}Commands`]({ replace: true });
+      const definitions = api[`create${capitalized}Commands`]();
+      expect(definitions.length).toBeGreaterThan(0);
+      for (const command of definitions) expect(command.execute).toBeTypeOf("function");
+      expect(api[`${name}Commands`]().setup).toBeTypeOf("function");
       const registered: string[] = [];
       api[`${name}Commands`]({ replace: true }).setup({ commands: {
         has: () => false,

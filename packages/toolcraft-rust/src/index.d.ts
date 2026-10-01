@@ -1,5 +1,42 @@
 import type { CallToolResult } from "tiny-stdio-mcp-server-rust";
 export { createManagedStream } from "./stream.js";
+export { S, toJsonSchema, withStandardSchema } from "./schema.js";
+export type {
+  AnySchema,
+  ArraySchema,
+  BooleanSchema,
+  CliMissingParameterChoice,
+  CliMissingParameterContext,
+  CliMissingParameterResolution,
+  CliOutputMode,
+  CliSchemaOptions,
+  EnumSchema,
+  JsonSchema,
+  JsonSchemaDocument,
+  JsonSchemaDocumentOptions,
+  JsonSchemaOptions,
+  Input,
+  Output,
+  StandardSchema,
+  Standardized,
+  StandardIssue,
+  StandardResult,
+  StandardJsonSchemaOptions,
+  JsonValue,
+  JsonValueSchema,
+  NumberSchema,
+  ObjectSchema,
+  OneOfSchema,
+  OptionalSchema,
+  RecordSchema,
+  SchemaBase,
+  Static,
+  StringSchema,
+  UnionSchema,
+  ValidationIssue,
+  ValidationOptions,
+  ValidationResult
+} from "./schema.js";
 
 export declare function asMCPResult<TResult extends CallToolResult>(result: TResult): TResult;
 

@@ -1,4 +1,3 @@
-// The schema DSL and SDK remain the JS oracle at this checkpoint. All command
-// definitions, cloning and requirement evaluation resolve to our native adapter.
+// Definitions, schema construction and runtime helpers resolve to native code.
+// SDK/MCP consumers remain the JavaScript reference at this checkpoint.
 export * from "../dist/index.js";
-export { S } from "toolcraft-schema";

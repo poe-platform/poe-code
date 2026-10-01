@@ -201,6 +201,19 @@ thresholds do not claim equivalence to engine-dependent stack limits and remain
 part of resource qualification. The current Toolcraft checkpoint passes 390
 reference/parity tests, 40 native Node tests, Rust tests and declaration checks.
 
+The root schema exports and `./schema` subpath now forward to the native schema
+dependency. The public subpath export set matches Toolcraft exactly; native
+definitions and streams compose with its builders, conversion and Standard Schema
+adapters. The reference definition entry now uses native builders too. This
+facade intentionally retains the existing schema declaration contract, like the
+command declarations: separately branded recursive generic declarations are not
+interchangeable when assigning the entire API. The facade passes bidirectional
+generic namespace assignment; removing its type-only dependency remains part of
+standalone Toolcraft packaging. This does not change the native schema package's
+independent declarations or close its compiler/resource qualification gates.
+With native builders enabled, the checkpoint passes 390 reference/parity tests
+and 42 native Node tests, plus Rust, declarations, lint and the maintained build.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

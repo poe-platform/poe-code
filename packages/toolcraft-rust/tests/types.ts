@@ -6,6 +6,15 @@ import * as userErrors from "../../toolcraft/dist/user-error.js";
 import * as sourceSnippet from "toolcraft-rust/source-snippet";
 import * as originalSnippet from "toolcraft/source-snippet";
 import { S } from "toolcraft-schema";
+import * as nativeSchema from "toolcraft-rust/schema";
+import * as originalSchema from "toolcraft/schema";
+
+const nativeSchemaExports: typeof originalSchema = nativeSchema;
+const originalSchemaExports: typeof nativeSchema = originalSchema;
+const publicSchema: native.AnySchema = native.S.Object({ label: native.S.String() });
+const eventSchema = nativeSchema.S.Object({ label: nativeSchema.S.String() });
+const eventValue: native.Static<typeof eventSchema> = { label: "ready" };
+void [nativeSchemaExports, originalSchemaExports, publicSchema, eventSchema, eventValue];
 
 const managedStream: typeof import("toolcraft").createManagedStream = native.createManagedStream;
 const originalStream: typeof native.createManagedStream = managedStream;

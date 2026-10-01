@@ -19,6 +19,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Managed streams  | Lazy creation, event validation, status callbacks, cancellation and cleanup       |
 | Schema scoping   | Recursive field/branch filtering, required scopes and original schema identity   |
+| Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts
 import { suggest, createRuntimeLogger, createHttpError } from "toolcraft-rust";
@@ -31,8 +32,7 @@ diagnostics.emit({ level: "warn", message: "Retrying request" });
 Define commands with existing schema objects and keep handler inference:
 
 ```ts
-import { S } from "toolcraft-schema";
-import { defineCommand, defineGroup } from "toolcraft-rust";
+import { S, defineCommand, defineGroup } from "toolcraft-rust";
 
 const greet = defineCommand({
   name: "greet",
@@ -81,7 +81,7 @@ The internal scope projector also runs in Rust, retaining Node spread semantics,
 custom branch-array methods and original-schema identity through repeated filters.
 Deep graph resource limits still require compatibility qualification before a swap.
 
-The schema reexport, SDK, CLI, transports, approval runtime and
+The SDK, CLI, transports, approval runtime and
 remaining subpaths are not yet available. Declarations currently use the existing
 schema/design/config contract types; standalone type packaging and generic
 stream-factory interchangeability remain pending. The migration and replacement

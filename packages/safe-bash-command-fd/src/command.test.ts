@@ -48,6 +48,10 @@ test('SDK execution fallback receives literal command arguments',async()=>{
 for (const [args, expected] of [
   [['-p', '-g', '*sub/*.txt'], 'sub/file.txt\n'],
   [['-p', '^(\\./)?sub/file\\.txt$'], 'sub/file.txt\n'],
+  [['-p', '^sub/file'], 'sub/file.txt\n'],
+  [['-p', 'work'], ''],
+  [['-p', '-a', '^/work/sub/file'], '/work/sub/file.txt\n'],
+  [['-p', '^\\./sub/file', './sub'], './sub/file.txt\n'],
   [['-H', '-e', 'bashrc'], ''],
   [['-e', 'txt'], 'link.txt\nsub/file.txt\n'],
   [['-t', 'd', '-t', 'x'], 'exec.sh\nsub/\n'],
@@ -69,3 +73,37 @@ for (const [args, expected] of [
   assert.equal(result.exitCode, 0, stderr);
   assert.equal(stdout, expected);
 });
+
+for (const name of ['.gitignore', '.ignore', '.fdignore']) {
+  for (const directory of ['/work', '/work/sub', '/']) {
+    test(`fd traverses with directory ${directory}/${name}`, async () => {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir('/work/sub', { recursive: true });
+      await fs.mkdir(`${directory}/${name}`);
+      await fs.writeFile('/work/sub/keep.txt', new Uint8Array());
+      const result = await runIgnoreSearch(fs);
+      assert.deepEqual(result, { exitCode: 0, stdout: 'sub/keep.txt\n', stderr: '' });
+    });
+  }
+  test(`fd tolerates invalid UTF-8 in ${name} and applies valid ignore rules`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir('/work');
+    for (const file of ['keep.txt', 'skip.txt']) await fs.writeFile('/work/' + file, new Uint8Array());
+    await fs.writeFile('/work/' + name, new Uint8Array([
+      ...new TextEncoder().encode('# caf'), 0xe9, 10,
+      0xff, 10, ...new TextEncoder().encode('skip.txt\n'),
+    ]));
+    assert.deepEqual(await runIgnoreSearch(fs), { exitCode: 0, stdout: 'keep.txt\n', stderr: '' });
+  });
+}
+
+async function runIgnoreSearch(fs: MemoryFileSystem) {
+  const { createFdCommand } = await import('./index.js');
+  let stdout = '', stderr = '';
+  const result = await createFdCommand().execute({ command: 'fd', args: ['-t', 'f'], cwd: '/work', env: {}, fs,
+    signal: new AbortController().signal, stdin: (async function*(){})(),
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  return { exitCode: result.exitCode, stdout, stderr };
+}

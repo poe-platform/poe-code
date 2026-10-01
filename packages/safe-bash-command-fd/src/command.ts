@@ -25,7 +25,7 @@ export interface FdMatcher {
 }
 export type FdMatchingScope = (context: CommandContext, run: (matcher: FdMatcher) => Promise<CommandResult>) => Promise<CommandResult>;
 const sharedEncoder = new TextEncoder();
-const sharedFatalDecoder = new TextDecoder("utf-8", { fatal: true });
+const ignoreDecoder = new TextDecoder("utf-8");
 const requirements = [
   {id:'metadata',description:'Inspect search entries',capabilities:['stat']},
   {id:'directory',description:'Traverse directories and detect symlink loops',capabilities:['readdir','realpath']},
@@ -127,9 +127,12 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       const path=posixPath.join(dir,name);
       try {
         await admit(path,['ignore']);
-        const text=sharedFatalDecoder.decode(await fs.readFile(path,{signal,...(Number.isFinite(maxIgnoreFileBytes) ? {maxBytes:maxIgnoreFileBytes} : {})}));
-        for (const rule of await matcher.ignores(text)) rules.push({base:dir,priority,...rule});
-      } catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error) && error.code==='ENOENT')) throw error; }
+        const text=ignoreDecoder.decode(await fs.readFile(path,{signal,...(Number.isFinite(maxIgnoreFileBytes) ? {maxBytes:maxIgnoreFileBytes} : {})}));
+        // Replacement characters cannot be compiled by the ignore matcher. Drop
+        // malformed lines while preserving valid rules from the same file.
+        const validLines=text.split('\n').filter(line=>!line.includes('\uFFFD')).join('\n');
+        for (const rule of await matcher.ignores(validLines)) rules.push({base:dir,priority,...rule});
+      } catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error) && (error.code==='ENOENT' || error.code==='EISDIR'))) throw error; }
     }
     return rules;
   };

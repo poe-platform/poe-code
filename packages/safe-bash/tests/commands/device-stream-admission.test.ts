@@ -65,6 +65,7 @@ const readLimit = 1024 * 1024;
 const ordinaryCases = [
   ["jq", "jq -r -f /filter.jq /input.json", "ok\n", structuredCommands({ replace: true, limits: { maxSourceBytes: readLimit, maxInputBytes: readLimit } })],
   ["yq", "yq -o json -r .name /input.yaml", "ok\n", undefined],
+  ["yq expression file", "yq -o json -r --from-file /filter.jq /input.yaml", "ok\n", undefined],
   ["file", "file -b --mime-type /input.txt", "text/plain\n", fileCommands({ replace: true, limits: { maxReadFileBytes: readLimit } })],
   ["tac", "tac /input.txt", "second\nfirst\n", streamInspectionCommands({ replace: true, limits: { maxInputBytes: readLimit } })],
   ["nl", "nl -ba /input.txt", "     1\tfirst\n     2\tsecond\n", streamFormatCommands({ replace: true, limits: { maxInputBytes: readLimit } })],
@@ -126,7 +127,7 @@ for (const mode of ["disabled", "absent"] as const) {
       for (const command of ["jq -R . /dev/null", "yq -o json . /dev/null", "tac /dev/null", "nl /dev/null", 'awk \'BEGIN { print (getline line < "/dev/null") }\'', "file -b --mime-type /dev/null", "tar -cf - /out > /dev/null"]) {
         const result = await state.shell.exec(command);
         assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
-        assert.equal(result.stdout, command.startsWith("awk") ? "0\n" : command.startsWith("file") ? "inode/chardevice\n" : "");
+        assert.equal(result.stdout, command.startsWith("awk") ? "0\n" : command.startsWith("file") ? "inode/chardevice\n" : command.startsWith("yq") ? "null\n" : "");
       }
       assert.deepEqual(state.traps, []);
       assert.ok(state.reads.every(read => read.path !== "/dev/null"));

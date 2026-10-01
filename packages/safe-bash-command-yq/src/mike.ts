@@ -55,10 +55,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
     }
     const readText = async (filename: string): Promise<string> => {
       const path = pathOf(context, filename);
-      const bytes = context.fs.readStream
-        ? await work.collect(() => context.fs.readStream!(path, { signal: work.signal }))
-        : await work.track(context.fs.readFile(path, { signal: work.signal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) }));
-      if (!context.fs.readStream) work.input(bytes.length);
+      const bytes = await work.readFile(path);
       work.assertOpen();
       try { return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes); }
       catch { throw new MikeError(`bad file '${filename}': invalid UTF-8`); }
@@ -145,8 +142,7 @@ async function runCommand(context: CommandContext, limits: MikeLimits, work: Nat
         else {
           const path = fileIndex === 0 && original ? original.path : pathOf(context, filename);
           try {
-            if (context.fs.readStream) bytes = await work.collect(() => context.fs.readStream!(path, { signal: work.signal }));
-            else { bytes = await work.track(context.fs.readFile(path, { signal: work.signal, ...(Number.isFinite(limits.maxInputBytes) ? { maxBytes: limits.maxInputBytes } : {}) })); work.input(bytes.length); }
+            bytes = await work.readFile(path);
           } catch (error) {
             work.assertOpen();
             if (error instanceof FsError) {

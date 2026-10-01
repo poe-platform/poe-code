@@ -131,6 +131,24 @@ export class NativeWork {
     } catch (error) { settled(); await dispose(); throw error; }
   }
 
+  async readFile(path: string): Promise<Uint8Array> {
+    this.assertOpen();
+    const fs = this.context.fs;
+    const capabilities = fs.capabilitiesFor
+      ? await this.track(fs.capabilitiesFor(path, { signal: this.signal }))
+      : fs.capabilities;
+    this.assertOpen();
+    if (fs.readStream && capabilities.streamingRead !== false) {
+      return this.collect(() => fs.readStream!(path, { signal: this.signal }));
+    }
+    const bytes = await this.track(fs.readFile(path, {
+      signal: this.signal,
+      ...(Number.isFinite(this.limits.maxInputBytes) ? { maxBytes: this.limits.maxInputBytes } : {}),
+    }));
+    this.input(bytes.length);
+    return bytes;
+  }
+
   async collect(start: () => ByteSource): Promise<Uint8Array> {
     const iterator = await this.acquire(() => start()[Symbol.asyncIterator](), async value => { await value.return?.(); });
     const chunks: Uint8Array[] = [];

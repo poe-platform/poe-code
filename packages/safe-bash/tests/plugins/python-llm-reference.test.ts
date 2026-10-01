@@ -72,6 +72,18 @@ content = llm.Attachment(type="text/plain", content=b"abc")
 assert content.content_bytes() == b"abc"
 assert content.base64_content() == "YWJj"
 assert content.id() == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+fragmented = model.prompt("  tail ", fragments=["first", "", " second "],
+ system="  last  ", system_fragments=["  leading ", "   ", " trailing  "])
+assert fragmented.prompt.prompt == "first" + chr(10) * 2 + " second " + chr(10) + "  tail "
+assert fragmented.prompt.system == "leading" + chr(10) * 2 + "trailing" + chr(10) * 2 + "last"
+assert fragmented.text() == "hello"
+assert calls[-1] == "first" + chr(10) * 2 + " second " + chr(10) + "  tail "
+empty = model.prompt()
+assert empty.prompt.prompt == "" and empty.prompt.system == ""
+attachments = [attachment]
+retained = model.prompt("retained", attachments=attachments)
+attachments.clear()
+assert retained.prompt.attachments == [attachment]
 print("reference response contract passed")
 `;
 

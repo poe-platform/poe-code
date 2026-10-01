@@ -17,7 +17,10 @@ for chunk in llm.get_model("your-model").prompt("Explain gravity"):
 use `await response.text()` or `async for chunk in response`. Prompts are lazy,
 completed responses replay their chunks without another provider call, and
 `on_done` callbacks run on completion. The synchronous API suspends internally;
-callers do not import Pyodide or manage a client. Explicitly close an unfinished
+callers do not import Pyodide or manage a client. Prompt fragments use
+fragments=[...] joined with single newlines before the prompt. System fragments
+use system_fragments=[...]; whitespace is stripped and nonempty parts join
+with blank lines, matching the reference library. Explicitly close an unfinished
 response with `close()` or `await aclose()`.
 
 Use `get_models()` / `get_async_models()` for the shared host catalog.
@@ -49,7 +52,7 @@ attachments are not yet supported by this adapter.
 
 This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
 inline/URL prompt attachments, persisted conversations, embedding collections,
-fragments, tools, persistence and the complete response interface still require
+tools, persistence and the complete response interface still require
 qualification. The existing `poe_llm` workflow API below remains available during
 that implementation.
 
@@ -211,7 +214,7 @@ The table below describes the existing `poe_llm` workflow API. The ordinary
 `llm` surface described above currently qualifies prompt text/streaming, catalog
 lookup, in-memory text conversations, text embeddings and canonical path
 attachments. Reference raw-response JSON, complete token accounting, provider
-option model classes, inline/URL prompt attachments, fragments/tools and
+option model classes, inline/URL prompt attachments, tools and
 persistence remain unqualified.
 
 | Feature | `poe_llm` workflow API | Host responsibility |

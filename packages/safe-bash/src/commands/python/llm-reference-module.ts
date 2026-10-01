@@ -105,13 +105,33 @@ class Attachment:
 
 
 class Prompt:
-    def __init__(self, prompt, model, *, system=None, attachments=None, schema=None, options=None):
-        self.prompt = prompt
+    def __init__(self, prompt, model, *, fragments=None, attachments=None,
+                 system=None, system_fragments=None, prompt_json=None,
+                 options=None, schema=None, tools=None, tool_results=None):
+        if tools or tool_results:
+            raise NotImplementedError("Tools require shared service support")
+        self._prompt = prompt
         self.model = model
-        self.system = system
-        self.attachments = attachments or []
+        self.fragments = fragments or []
+        self._system = system
+        self.system_fragments = system_fragments or []
+        self.prompt_json = prompt_json
+        self.attachments = list(attachments or [])
+        if schema is not None and hasattr(schema, "model_json_schema"):
+            schema = schema.model_json_schema()
         self.schema = schema
         self.options = options or {}
+        self.tools = []
+        self.tool_results = []
+
+    @property
+    def prompt(self):
+        return "\n".join(self.fragments + ([self._prompt] if self._prompt else []))
+
+    @property
+    def system(self):
+        bits = [bit.strip() for bit in self.system_fragments + [self._system or ""] if bit.strip()]
+        return "\n\n".join(bits)
 
 
 _last_id = 0
@@ -298,12 +318,12 @@ class Model:
     def prompt(self, prompt=None, *, fragments=None, attachments=None, system=None,
                system_fragments=None, stream=True, schema=None, tools=None,
                tool_results=None, **options):
-        if fragments or system_fragments or tools or tool_results:
-            raise NotImplementedError("Fragments and tools are not yet supported by the bundled llm API")
         key = options.pop("key", None)
         if schema is not None and hasattr(schema, "model_json_schema"):
             schema = schema.model_json_schema()
         return Response(Prompt(prompt, self, system=system, attachments=attachments,
+                               fragments=fragments, system_fragments=system_fragments,
+                               tools=tools, tool_results=tool_results,
                                schema=schema, options=options), self, stream, key=key)
 
 

@@ -1693,7 +1693,17 @@ class FastShellCommandContext {
   declare args: readonly string[];
   declare private _env: Record<string, string> | undefined;
   declare cwd: string;
-  declare signal: AbortSignal;
+  declare private _rawSignal: AbortSignal;
+  declare private _nativeSignal: AbortSignal | undefined;
+  get signal(): AbortSignal {
+    const self = this._self ?? this;
+    return self._nativeSignal ??= toNativeAbortSignal(self._rawSignal);
+  }
+  set signal(signal: AbortSignal) {
+    const self = this._self ?? this;
+    self._rawSignal = signal;
+    self._nativeSignal = undefined;
+  }
   declare onInternalError: CommandContext["onInternalError"];
   declare argv0?: string | undefined;
   declare capabilities?: import("./types.js").ShellCapabilities | undefined;
@@ -1736,14 +1746,19 @@ class FastShellCommandContext {
     this._argumentValues = argumentValues;
     this._env = env;
     this.cwd = state.cwd;
-    this.signal = runtime._isMemoryBackingFs && runtime.commandSignal === runtime.signal ? runtime.commandSignal : toNativeAbortSignal(runtime.commandSignal);
+    this.signal = runtime.commandSignal;
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
     this.processSignals = io.processSignals;
     this.diagnosticLine = io.diagnosticLine;
     this.scriptName = io.scriptName;
-    if (directContext) return;
+    if (directContext) {
+      Object.defineProperty(this, "signal", {
+        ...Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, "signal"), enumerable: true,
+      });
+      return;
+    }
     workerRuntimeContexts.set(this as unknown as CommandContext, {
       budget: runtime.budget, umask: state.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(state.extensions), get fs() { return runtime.getContextFsForFast(0, combineManagedSignals(runtime.signal, scope.signal)); }, });
     for (const [key, descriptor] of fastShellCommandAccessors) {
@@ -1774,7 +1789,7 @@ class FastShellCommandContext {
     this.command = name;
     this.args = args;
     this.cwd = state.cwd;
-    this.signal = runtime._isMemoryBackingFs ? signal : toNativeAbortSignal(signal);
+    this.signal = signal;
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
     this.capabilities = io.capabilities;
@@ -1906,7 +1921,6 @@ class FastShellCommandContext {
   }
   get fs(): FileSystem {
     const self = this._self ?? this;
-    self.signal = toNativeAbortSignal(self.signal);
     if (!self._contextFs) {
       self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
     }
@@ -1962,7 +1976,7 @@ function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
   }
   return true;
 }
-const fastShellCommandAccessors = ["env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
+const fastShellCommandAccessors = ["signal", "env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
 function cloneRawState(raw: State, hasLocals: boolean): State {
   const variables = Object.assign(Object.create(null) as Record<string, string>, raw.variables);
   const exported = raw.exported.size ? new Set(raw.exported) : new Set<string>();
@@ -3590,7 +3604,7 @@ export class Runtime {
     if (this.reuseDefaultContextFs && sig === this.signal && umask === 0o022 && !this._contextFs && this._isMemoryBackingFs) {
       const entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
       if (entry && (entry.inUseBy === undefined || entry.inUseBy === this)) {
-        if (retargetScopedFileSystem(entry.scoped, this.budget.chargeFs, sig, this.budget.cleanupChargeFs, this.budget.limits.maxPathnameComponents)) {
+        if (retargetScopedFileSystem(entry.scoped, this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, this.budget.limits.maxPathnameComponents)) {
           entry.inUseBy = this;
           this._contextFsMask = umask;
           this._contextFsSignal = sig;
@@ -3599,7 +3613,7 @@ export class Runtime {
         }
       }
     }
-    const created = scopeFileSystem( creationFileSystem(this.sourceFs, umask), this.budget.chargeFs, sig, this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents }, );
+    const created = scopeFileSystem( creationFileSystem(this.sourceFs, umask), this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, { maxPathComponents: this.budget.limits.maxPathnameComponents }, );
     runtimeFileSystems.set(created, this.sourceFs);
     registerRuntimeBackingFileSystem(created, this.backingFs);
     this._contextFsMask = umask;
@@ -7183,7 +7197,7 @@ export class Runtime {
         context.stdin = input;
         if (incoming) context.stdinIsDefault = false;
         context.stdout = stageStdout;
-        context.signal = this._isMemoryBackingFs ? stageSignal : toNativeAbortSignal(stageSignal);
+        context.signal = stageSignal;
         (context as unknown as { _scopedSignal: AbortSignal })._scopedSignal = stageSignal;
         if (asyncTasks === undefined) {
           scope.enterWork();

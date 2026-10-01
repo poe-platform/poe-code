@@ -2,6 +2,69 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MemoryFileSystem, Shell, agentCommands } from "../../src/index.js";
 import type { FileSystem } from "../../src/contracts/index.js";
+import { workerRuntimeContexts } from "../../src/worker/runtime-context.js";
+
+for (const memory of [false, true]) {
+  for (const middleware of [false, true]) {
+    for (const name of ["native-probe", "head"]) {
+      test(`command signal is native before filesystem access: memory=${memory}, middleware=${middleware}, command=${name}`, async () => {
+        const base = new MemoryFileSystem();
+        const fs = memory ? base : nativeHostFileSystem(base, () => {});
+        const shell = new Shell({ fs });
+        if (middleware) shell.use((_context, next) => next());
+        let checked = 0;
+        shell.use({ name: "native-probe", setup({ commands }) {
+          commands.register({ name, execute(context) {
+            const signal = context.signal;
+            AbortSignal.prototype.throwIfAborted.call(signal);
+            new Request("https://example.invalid", { signal });
+            AbortSignal.any([signal, new AbortController().signal]);
+            assert.equal(context.signal, signal);
+            assert.equal({ ...context }.signal, signal);
+            checked++;
+            return { exitCode: 0 };
+          } });
+        } });
+        try {
+          for (const script of [name, `${name} | ${name}`]) {
+            const result = await shell.exec(script);
+            assert.equal(result.exitCode, 0, result.stderr);
+          }
+          assert.equal(checked, 3);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
+}
+
+for (const middleware of [false, true]) {
+  for (const callerSignal of [false, true]) {
+    test(`scoped filesystem resize signals are native: middleware=${middleware}, callerSignal=${callerSignal}`, async () => {
+      const base = new MemoryFileSystem();
+      await base.writeFile("/file", new Uint8Array([1, 2]));
+      let observations = 0;
+      const shell = new Shell({ fs: nativeHostFileSystem(base, () => { observations++; }) });
+      if (middleware) shell.use((_context, next) => next());
+      shell.use({ name: "resize-probe", setup({ commands }) {
+        commands.register({ name: "resize-probe", async execute(context) {
+          for (const fs of [context.fs, workerRuntimeContexts.get(context)!.fs]) {
+            const handle = await fs.openResizeFile!("/file");
+            try {
+              await handle.truncate(1, callerSignal ? { signal: new AbortController().signal } : {});
+            } finally { await handle.close(); }
+          }
+          return { exitCode: 0 };
+        } });
+      } });
+      try {
+        const result = await shell.exec("resize-probe");
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.deepEqual(await base.readFile("/file"), new Uint8Array([1]));
+        assert.ok(observations > 0);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
 
 function nativeHostFileSystem(base: MemoryFileSystem, observe: (method: string, signal: AbortSignal) => void): FileSystem {
   // This is a host adapter, not the memory adapter's direct fast path.

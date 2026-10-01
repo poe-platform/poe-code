@@ -524,6 +524,8 @@ describe("safe-bash-command-pdftotext", () => {
     const xmlRes = await runPdftohtmlCli(["-xml", "-stdout", "img.pdf"], files);
     assert.equal(xmlRes.exitCode, 0);
     assert.match(xmlRes.stdout, /<image top="0" left="0" width="1" height="1" src="page1_1\.png"\/>/);
+    assert.equal(files.has("page1_1.png"), false);
+    assert.equal((await runPdftohtmlCli(["-xml", "img.pdf", "img.xml"], files)).exitCode, 0);
     assert.ok(files.has("page1_1.png"));
     assert.equal(files.get("page1_1.png")![0], 0x89);
   });
@@ -571,6 +573,8 @@ describe("safe-bash-command-pdftotext", () => {
     assert.match(xmlRes.stdout, /<b>BoldHeading<\/b>/);
     assert.match(xmlRes.stdout, /<i>ItalicNote<\/i>/);
     assert.match(xmlRes.stdout, /src="page1_1\.jpg"/);
+    assert.equal(files.has("page1_1.jpg"), false);
+    assert.equal((await runPdftohtmlCli(["-xml", "-fmt", "jpg", "styled.pdf", "styled.xml"], files)).exitCode, 0);
     assert.equal(files.get("page1_1.jpg")?.[0], 0xff);
     assert.equal(files.get("page1_1.jpg")?.[1], 0xd8);
 

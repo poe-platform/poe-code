@@ -1114,6 +1114,16 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
     if (!inputPath) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdftohtml [options] <PDF-file> [<html-file>]\n" };
     }
+    const explicitOut = positionals[1];
+    const stdoutOutput = toStdout || explicitOut === "-" || (inputPath === "-" && !explicitOut);
+    const defaultExt = xmlMode ? ".xml" : ".html";
+    const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
+    const outPath = explicitOut
+        ? explicitOut.endsWith(".html") || explicitOut.endsWith(".xml")
+            ? explicitOut
+            : `${explicitOut}${defaultExt}`
+        : inputStem + defaultExt;
+    const imageDirectory = outPath.slice(0, outPath.lastIndexOf("/") + 1);
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${inputPath}'\n` };
@@ -1217,8 +1227,8 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
                 const img = pageImages[imgIdx]!;
                 const imgBytes = imageFmt === "jpg" ? (yield* encodeJpegSteps(img.bitmap)) : (yield* encodePngSteps(img.bitmap));
                 const imgFile = `page${p}_${imgIdx + 1}.${imageFmt}`;
-                if (!dataUrls) {
-                    files.set(imgFile, imgBytes);
+                if (!dataUrls && !stdoutOutput) {
+                    files.set(imageDirectory + imgFile, imgBytes);
                 }
                 const mime = imageFmt === "jpg" ? "image/jpeg" : "image/png";
                 const src = dataUrls ? `data:${mime};base64,${bytesToBase64(imgBytes)}` : imgFile;
@@ -1306,8 +1316,8 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
                 const img = pageImages[imgIdx]!;
                 const imgBytes = imageFmt === "jpg" ? (yield* encodeJpegSteps(img.bitmap)) : (yield* encodePngSteps(img.bitmap));
                 const imgFile = `page${p}_${imgIdx + 1}.${imageFmt}`;
-                if (!dataUrls) {
-                    files.set(imgFile, imgBytes);
+                if (!dataUrls && !stdoutOutput) {
+                    files.set(imageDirectory + imgFile, imgBytes);
                 }
                 const mime = imageFmt === "jpg" ? "image/jpeg" : "image/png";
                 const src = dataUrls
@@ -1374,17 +1384,7 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
         outputText = lines.join("\n") + "\n";
     }
     outputText = applyPopplerOutputEncoding(outputText, encoding);
-    const explicitOut = positionals[1];
-    if (toStdout || explicitOut === "-" || (inputPath === "-" && !explicitOut)) {
-        return { exitCode: 0, stdout: outputText, stderr: "" };
-    }
-    const defaultExt = xmlMode ? ".xml" : ".html";
-    const inputStem = inputPath.toLowerCase().endsWith(".pdf") ? inputPath.slice(0, -4) : inputPath;
-    const outPath = explicitOut
-        ? explicitOut.endsWith(".html") || explicitOut.endsWith(".xml")
-            ? explicitOut
-            : `${explicitOut}${defaultExt}`
-        : inputStem + defaultExt;
+    if (stdoutOutput) return { exitCode: 0, stdout: outputText, stderr: "" };
     files.set(outPath, new TextEncoder().encode(outputText));
     return { exitCode: 0, stdout: "", stderr: "" };
 }

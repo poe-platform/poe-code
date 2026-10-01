@@ -40,4 +40,6 @@ Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. 
 
 The `pdftotext -enc Latin1` option writes ISO-8859-1 bytes; `-enc UCS-2` writes big-endian 16-bit code units with a BOM. File output and stdout use the same encoding.
 
+`pdftohtml` writes image files beside the output HTML or XML file, with relative image references. Stdout output (`-stdout` or `-`) creates no image files; use `-dataurls` to embed the images.
+
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.

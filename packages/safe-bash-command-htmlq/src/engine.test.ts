@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { parseHtml, serializeHtml, detachHtmlNode, htmlText, type HtmlOptions } from "./index.js";
+import { getInternalHtmlNode } from "./tree.js";
 const limits = {
   inputBytes: 100000,
   decodedBytes: 200000,
@@ -470,4 +471,13 @@ test("byte admission accounts intrinsic storage rather than shadowed byteLength"
   async function* source() { try { yield chunk; } finally { cleanup++; } }
   await assert.rejects(parseHtml(source(), options({ inputBytes: 1 })), { code: 'E_LIMIT', resource: 'inputBytes' });
   assert.equal(cleanup, 1);
+});
+
+test("invalid node values fail with ownership errors before traversal", async () => {
+  const { inclusiveHtmlDescendants } = await import("./index.js");
+  for (const value of [null, undefined, false, 0, "node"]) {
+    const node = value as unknown as Parameters<typeof getInternalHtmlNode>[0];
+    assert.throws(() => getInternalHtmlNode(node), { code: "E_OWNERSHIP" });
+    assert.throws(() => inclusiveHtmlDescendants(node, options()).next(), { code: "E_OWNERSHIP" });
+  }
 });

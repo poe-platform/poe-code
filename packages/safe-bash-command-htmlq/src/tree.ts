@@ -33,6 +33,7 @@ const internals = {
   get(node: PublicHtmlNode): FastMutableNode | undefined { return (node as FastPublicView)[kNode]; }
 };
 export function getInternalHtmlNode(node: PublicHtmlNode): FastMutableNode | undefined {
+  if (!node || typeof node !== "object") throw new HtmlError("E_OWNERSHIP", "Unowned HTML node");
   return internals.get(node);
 }
 export function getPublicHtmlView(node: FastMutableNode): PublicHtmlNode {

@@ -941,7 +941,7 @@ test("evaluates chmod -v/-c/--reference, touch -d/-t/-r, and truncate -o in sync
   );
 });
 
-test("evaluates xmllint --format/--c14n, xq --arg/-n, and yq -n/--arg/object-array YAML output in sync substitutions (Wave 202)", async () => {
+test("evaluates xmllint --format/--c14n, xq --arg/-n, and yq -n/strenv YAML output in sync substitutions (Wave 202)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
   const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(xmlCommands()).use(yqCommands());
@@ -950,14 +950,15 @@ test("evaluates xmllint --format/--c14n, xq --arg/-n, and yq -n/--arg/object-arr
       "xm_fmt=$(printf \"<root><a>1</a></root>\" | xmllint --format - | tr \"\\n\" \"|\")",
       "xm_c14n=$(printf \"<root b=\\\"2\\\" a=\\\"1\\\"/>\" | xmllint --c14n -)",
       "xq_res=$(printf \"<r><v>10</v></r>\" | xq -r --arg p \"k=\" '$p + .r.v')",
-      "yq_res=$(yq -n --arg k \"host\" --arg v \"db\" '{($k): $v}' | tr \"\\n\" \",\")",
+      "yq_res=$(k=host v=db yq -n '.[strenv(k)] = strenv(v)' | tr \"\\n\" \",\")",
       "printf \"%s#%s#%s#%s\\n\" \"$xm_fmt\" \"$xm_c14n\" \"$xq_res\" \"$yq_res\"",
     ].join("\n")
   );
   assert.equal(r.exitCode, 0, r.stderr);
+  assert.equal(r.stderr, "");
   assert.equal(
     r.stdout,
-    "<?xml version=\"1.0\"?>|<root>|  <a>1</a>|</root>|#<root a=\"1\" b=\"2\"></root>#k=10#\"host\": \"db\",\n",
+    "<?xml version=\"1.0\"?>|<root>|  <a>1</a>|</root>|#<root a=\"1\" b=\"2\"></root>#k=10#host: db,\n",
   );
 });
 
@@ -1358,8 +1359,8 @@ EOF
 EOF
     out=""
     for i in 1 2 3 4 5; do
-      y1=$(yq -o json -c '.items | map(.name)' /tmp/items.yaml)
-      y2=$(yq -n '{a: {b: 1, c: [2, 3]}}' | paste -sd"|")
+      y1=$(yq -o json -I0 '.items | map(.name)' /tmp/items.yaml)
+      y2=$(yq -n '{"a": {"b": 1, "c": [2, 3]}}' | paste -sd"|")
       m1=$(mdq -o plain --no-br '1.' /tmp/doc.md | paste -sd",")
       m2=$(mdq -o plain --no-br '## Section Two | 1.' /tmp/doc.md)
       out="$y1#$y2#$m1#$m2"
@@ -1367,9 +1368,10 @@ EOF
     printf "%s\n" "$out"
   `);
   assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(res.stderr, "");
   assert.equal(
     res.stdout.trim(),
-    `["alpha","beta"]#"a":|  "b": 1|  "c":|    - 2|    - 3#first step,second step,third step#third step`
+    `["alpha","beta"]#a:|  b: 1|  c:|    - 2|    - 3#first step,second step,third step#third step`
   );
 });
 

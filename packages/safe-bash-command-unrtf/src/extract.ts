@@ -124,7 +124,14 @@ export function createRtfExtractor(source: AsyncIterable<Uint8Array> | Uint8Arra
     if (high !== undefined) throw new UnrtfError('E_ENCODING', 'Unpaired high surrogate', offset);
     return String.fromCharCode(unit);
   };
+  let pendingRoot: RtfEvent | undefined;
   const processToken = (token: RtfToken): void => {
+      if (pendingRoot) {
+        if (token.kind !== 'control' || token.name !== 'rtf' || token.parameter !== 1)
+          throw new UnrtfError('E_PARSE', 'Expected RTF version 1 header', token.offset);
+        queued.push(pendingRoot);
+        pendingRoot = undefined;
+      }
       budget.charge('work', 1, token.offset);
       if (state.starred && !state.skip && token.kind !== 'control')
         throw new UnrtfError('E_PARSE', 'Ignorable destination requires a control word', token.offset);
@@ -139,7 +146,8 @@ export function createRtfExtractor(source: AsyncIterable<Uint8Array> | Uint8Arra
           }
           state = stack.pop()!;
         }
-        queued.push({kind:token.kind,offset:token.offset});
+        if (token.kind === 'open' && stack.length === 1) pendingRoot = {kind:'open',offset:token.offset};
+        else queued.push({kind:token.kind,offset:token.offset});
         return;
       }
       if (token.kind === 'control') {

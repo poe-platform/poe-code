@@ -123,7 +123,7 @@ test('missing VFS input fails without emitting an HTML document in CLI and SDK',
   }
 });
 test('unadmitted profiles/options and multiple files fail before I/O', async () => {
-  for (const args of [['-t'],['-t='],['-t','pdf'],['-t=pdf'],['--profile=native-legacy'],['-P','/ambient'],['a','b']]) {
+  for (const args of [['-t'],['-t='],['-t','pdf'],['-t=pdf'],['--profile=native-legacy'],['--profile=standards-strict','--latex'],['--noremap','--profile=standards-strict'],['-P','/ambient'],['a','b']]) {
     const f = fixture(args);
     assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,1);
     assert.deepEqual(f.opened,[]); assert.deepEqual(f.stdout,[]); assert.ok(f.stderr.length);
@@ -235,4 +235,18 @@ test('stdin conversion needs neither environment credentials nor filesystem auth
   }});
   assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,0);
   assert.equal(new TextDecoder().decode(Uint8Array.from(f.stdout)),'<A>\nB');
+});
+
+test('invalid RTF headers emit no HTML, including fragmented input', async () => {
+  for (const input of ['{"a":1}', '{\\b not rtf}', '{', '{{\\rtf1 nested}}', '{\\rtf2 nope}']) {
+    for (const fragmented of [false,true]) {
+      const f = fixture(['--html']);
+      Object.assign(f.context, {stdin:(async function* () {
+        for (const chunk of fragmented ? [...input] : [input]) yield new TextEncoder().encode(chunk);
+      })()});
+      assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,1);
+      assert.deepEqual(f.stdout,[]);
+      assert.ok(f.stderr.length);
+    }
+  }
 });

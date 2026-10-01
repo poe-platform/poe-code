@@ -163,9 +163,9 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
                   const vals = fastMap._vals;
                   for (let i = 0; i < next; i++) {
                     const v = vals[i];
-                    if (v !== undefined) {
+                    const k = keys[i]!;
+                    if (k !== "" && v !== undefined) {
                       if (v.type !== "file") { allFiles = false; break; }
-                      const k = keys[i]!;
                       if (match(k)) {
                         matchCount++;
                         totalBytes += pLen + k.length + 2;

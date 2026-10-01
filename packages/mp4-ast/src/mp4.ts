@@ -2284,10 +2284,17 @@ export function buildProbeResultFromDoc(
     const desc = materialized.codecDescriptions[0];
     const codecName = desc?.codecName ?? (track.type === "video" ? "h264" : "aac");
     const codecLongName = CODEC_LONG_NAMES[codecName] ?? codecName;
-    const tagFourCC = desc?.formatFourCC ?? (track.type === "video" ? "avc1" : "mp4a");
-    const tagHex =
-      "0x" +
-      Array.from(tagFourCC.padEnd(4, " ").slice(0, 4))
+    const rawTag = desc?.formatFourCC ?? (track.type === "video" ? "avc1" : "mp4a");
+    const tagFourCC = Array.from(rawTag).map(c => c.charCodeAt(0) < 32 ? `[${c.charCodeAt(0)}]` : c).join("");
+    const sampleFormat = track.type !== "audio" ? undefined : ({
+      pcm_u8: "u8", pcm_s16le: "s16", pcm_s16be: "s16",
+      pcm_s24le: "s32", pcm_s24be: "s32", pcm_s32le: "s32", pcm_s32be: "s32",
+      pcm_f32le: "flt", pcm_f32be: "flt", pcm_f64le: "dbl", pcm_f64be: "dbl"
+    } as Record<string, string>)[codecName] ?? "fltp";
+    const tagHex = doc.containerFormat === "wav"
+      ? "0x" + (rawTag.charCodeAt(0) | (rawTag.charCodeAt(1) << 8)).toString(16).padStart(4, "0")
+      : "0x" +
+      Array.from(rawTag.padEnd(4, " ").slice(0, 4))
         .map((c) => c.charCodeAt(0).toString(16).padStart(2, "0"))
         .join("");
 
@@ -2324,7 +2331,7 @@ export function buildProbeResultFromDoc(
       height: h,
       coded_width: w ? Math.ceil(w / 16) * 16 : undefined,
       coded_height: h ? Math.ceil(h / 16) * 16 : undefined,
-      has_b_frames: materialized.samples.some((s) => s.cts !== 0) ? 1 : 0,
+      has_b_frames: track.type === "video" ? (materialized.samples.some((s) => s.cts !== 0) ? 1 : 0) : undefined,
       sample_aspect_ratio:
         track.type === "video"
           ? `${desc?.sarWidth ?? 1}:${desc?.sarHeight ?? 1}`
@@ -2335,7 +2342,7 @@ export function buildProbeResultFromDoc(
       level: desc?.level,
       color_range: track.type === "video" ? "tv" : undefined,
       color_space: track.type === "video" ? "bt709" : undefined,
-      sample_fmt: track.type === "audio" ? "fltp" : undefined,
+      sample_fmt: sampleFormat,
       sample_rate:
         track.type === "audio" ? String(desc?.sampleRate ?? track.timescale) : undefined,
       channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined,
@@ -2414,7 +2421,7 @@ export function buildProbeResultFromDoc(
             height: h,
             pix_fmt: track.type === "video" ? (desc?.pixFmt ?? "yuv420p") : undefined,
             pict_type: track.type === "video" ? (s.isKeyframe ? "I" : "P") : undefined,
-            sample_fmt: track.type === "audio" ? "fltp" : undefined,
+            sample_fmt: sampleFormat,
             nb_samples: track.type === "audio" ? s.duration : undefined,
             channels: track.type === "audio" ? (desc?.channels ?? 2) : undefined
           });

@@ -395,6 +395,7 @@ export function parseWav(bytes: Uint8Array): MediaDocument {
     throw new Error("Invalid WAV file: missing RIFF WAVE signature");
   }
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let formatTag = 1;
   let channels = 2;
   let sampleRate = 44100;
   let bitsPerSample = 16;
@@ -407,6 +408,7 @@ export function parseWav(bytes: Uint8Array): MediaDocument {
     const start = pos + 8;
     const end = Math.min(bytes.byteLength, start + size);
     if (id === "fmt " && size >= 16) {
+      formatTag = view.getUint16(start, true);
       channels = view.getUint16(start + 2, true) || 2;
       sampleRate = view.getUint32(start + 4, true) || 44100;
       bitsPerSample = view.getUint16(start + 14, true) || 16;
@@ -424,7 +426,14 @@ export function parseWav(bytes: Uint8Array): MediaDocument {
   for (let i = 0; i < totalPcmSamples; i++) {
     for (let ch = 0; ch < channels; ch++) {
       const byteOff = (i * channels + ch) * (bitsPerSample >>> 3);
-      if (bitsPerSample === 16 && byteOff + 2 <= pcmData.byteLength) {
+      if (formatTag === 3 && bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
+        channelData[ch]![i] = pcmView.getFloat32(byteOff, true);
+      } else if (bitsPerSample === 24 && byteOff + 3 <= pcmData.byteLength) {
+        const value = pcmData[byteOff]! | (pcmData[byteOff + 1]! << 8) | (pcmData[byteOff + 2]! << 16);
+        channelData[ch]![i] = (value << 8 >> 8) / 8388608;
+      } else if (bitsPerSample === 32 && byteOff + 4 <= pcmData.byteLength) {
+        channelData[ch]![i] = pcmView.getInt32(byteOff, true) / 2147483648;
+      } else if (bitsPerSample === 16 && byteOff + 2 <= pcmData.byteLength) {
         channelData[ch]![i] = pcmView.getInt16(byteOff, true) / 32768;
       } else if (bitsPerSample === 8 && byteOff < pcmData.byteLength) {
         channelData[ch]![i] = (pcmData[byteOff]! - 128) / 128;
@@ -467,8 +476,8 @@ export function parseWav(bytes: Uint8Array): MediaDocument {
         enabled: true,
         codecDescriptions: [
           {
-            formatFourCC: "sowt",
-            codecName: "pcm_s16le",
+            formatFourCC: String.fromCharCode(formatTag & 255, formatTag >>> 8, 0, 0),
+            codecName: formatTag === 3 ? `pcm_f${bitsPerSample}le` : bitsPerSample === 8 ? "pcm_u8" : `pcm_s${bitsPerSample}le`,
             sampleRate,
             channels,
             bitsPerSample

@@ -167,7 +167,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
       await diagnostic(`fold: ${error.message}\n`);
       return { exitCode: 1, filesRead, filesFailed, accounting: accounting() };
     }
-    const deliver = async (chunks: readonly Uint8Array[]): Promise<void> => {
+    const deliver = async (chunks: readonly Uint8Array[], ownedInput: number): Promise<void> => {
       chargeWork(0);
       const engOut = (engine as unknown as { outputBytes?: () => number })?.outputBytes?.() ?? engine!.accounting().outputBytes;
       if (engOut > limits.outputBytes - diagnostics) throw new FoldError('LIMIT', 'Output byte limit exceeded');
@@ -175,7 +175,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
       let size = 0;
       for (const bytes of chunks) size += bytes.length;
       if (!size) return;
-      retain(engine!.accounting().retainedBytes + size * (chunks.length === 1 ? 1 : 2));
+      retain(ownedInput + engine!.accounting().retainedBytes + size * (chunks.length === 1 ? 1 : 2));
       if (chunks.length === 1) { await writeBytes(stdout!.output, chunks[0]!, signal); return; }
       chargeWork(size);
       const combined = new Uint8Array(size);
@@ -247,7 +247,7 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
           // Consume/copy every producer byte before requesting its next chunk.
           if (byteKind.call(next.value) !== 'Uint8Array') throw new FoldError('INPUT', 'Input must be byte storage');
           const length = byteExtent.call(next.value) as number;
-          if (!length) await deliver(engine.push(next.value));
+          if (!length) await deliver(engine.push(next.value), ownedInput);
           for (let offset = 0; offset < length; offset += 4096) {
             await yieldTurn(signal);
             signal.throwIfAborted();
@@ -258,11 +258,11 @@ async function executeFold(context: CommandContext, configuration: FoldCommandOp
             const engRet = (engine as unknown as { retainedBytes?: () => number }).retainedBytes?.() ?? engine.accounting().retainedBytes;
             context.inputBudget?.check(engIn + unit.byteLength);
             retain(ownedInput + engRet + unit.byteLength * 2 + 4);
-            await deliver(engine.push(unit));
+            await deliver(engine.push(unit), ownedInput);
           }
         }
         retain(ownedInput + engine.accounting().retainedBytes + 4);
-        await deliver(engine.endFile());
+        await deliver(engine.endFile(), ownedInput);
       } catch (error) { escaping = true; throw error; }
       finally {
         if (!complete) {

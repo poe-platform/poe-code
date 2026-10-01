@@ -5,6 +5,7 @@ import { createCommandArguments, CommandRegistry, type CommandContext } from 'sa
 import { FsError } from 'safe-bash-contracts/errors';
 import { createFoldCommand, fold, foldCommands } from './command.js';
 import { FoldError } from './contracts.js';
+import { createFoldEngine } from './engine.js';
 const encoder = new TextEncoder();
 function fixture(args: readonly string[] = [], input = '', files: Record<string, string> = {}) {
   const stdout: number[] = [], stderr: number[] = [], cleanups: (() => void | Promise<void>)[] = [];
@@ -513,3 +514,39 @@ for (const option of ['--help', '--version']) {
     await Promise.all(f.cleanups.map(cleanup => cleanup()));
   });
 }
+
+test('coalesced output admission includes the live fallback file buffer', async () => {
+  // 4096 input bytes produce 4095 two-byte lines plus one retained byte.
+  // SDK operands retain 24 bytes for "--" and "file".
+  const peak = 8196 + 24 + 4096 + 1 + 8190 * 2;
+  for (const retainedBytes of [peak - 1, peak]) {
+    const f = fixture();
+    const context = { ...f.context, fs: {
+      async readFile() { return encoder.encode('a'.repeat(4096)); },
+    } as unknown as CommandContext['fs'] };
+    const running = fold(context, { width: 1, files: ['file'], limits: { retainedBytes } });
+    if (retainedBytes < peak) {
+      await assert.rejects(running, /Invocation retention limit exceeded/);
+      assert.equal(f.stdout.length, 0);
+    } else {
+      const result = await running;
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.accounting.peakRetainedBytes, peak);
+      assert.equal(f.text(), 'a\n'.repeat(4095) + 'a');
+    }
+    await Promise.all(f.cleanups.map(cleanup => cleanup()));
+  }
+});
+
+test('coalescing charges copy work before delivering output', async () => {
+  const engine = createFoldEngine({ width: 1, mode: 'columns', spaces: false, files: [] }, 'C');
+  const chunks = engine.push(encoder.encode('abc'));
+  const copyBytes = chunks.reduce((size, chunk) => size + chunk.length, 0);
+  assert.equal(chunks.length, 2);
+  const work = 12 + 1 + engine.accounting().work + copyBytes - 1;
+  engine.dispose();
+  const f = fixture([], 'abc');
+  await assert.rejects(fold(f.context, { width: 1, locale: 'C', limits: { work } }), /Invocation work limit exceeded/);
+  assert.equal(f.stdout.length, 0);
+  await Promise.all(f.cleanups.map(cleanup => cleanup()));
+});

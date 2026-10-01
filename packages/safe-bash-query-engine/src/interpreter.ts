@@ -1468,7 +1468,18 @@ export class Interpreter {
     }
     if (name === "split") {
       for await (const separator of this.run(args[0]!, input)) {
-        yield await splitString(input, separator, budget);
+        if (!args[1]) { yield await splitString(input, separator, budget); continue; }
+        for await (const flags of this.run(args[1], input)) {
+          const parts: Json[] = [];
+          let bytes = 2;
+          for await (const part of splitRegex(input, separator, budget, flags)) {
+            budget.collection(parts.length + 1);
+            bytes += budget.value(part) + (parts.length ? 1 : 0);
+            if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+            parts.push(part);
+          }
+          yield parts;
+        }
       }
       return;
     }

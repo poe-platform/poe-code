@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { toByteSource, type ByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
-import { createYqCommand } from "../../src/commands/yq/index.js";
+import { createYqCommand } from "safe-bash-command-yq/query";
 import { createYqQuerySession } from "../../src/commands/structured/query-core.js";
 import { YqLedger } from "safe-bash-command-yq/accounting";
 

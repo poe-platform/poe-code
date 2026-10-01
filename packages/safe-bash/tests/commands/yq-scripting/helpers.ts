@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { createReadStream, lstatSync } from "node:fs";
 import { spawn } from "node:child_process";
-import { createYqCommand } from "../../../src/commands/yq/index.js";
+import { createYqCommand } from "safe-bash-command-yq/query";
 import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 

@@ -7,8 +7,8 @@ import type { CommandDefinition } from "safe-bash-contracts";
 
 const bundle = await build({
   stdin: { contents: `
-    export { createYqCommand } from "./index.ts";
-    export { createMikeYqCommand } from "./mike.ts";
+    export { createYqCommand } from "./query.ts";
+    export { createYqCommand as createMikeYqCommand } from "./index.ts";
     export { createMemoryFileSystem } from "@poe-code/safe-fs/core";
     export { createCommandArguments } from "safe-bash-contracts";
   `, resolveDir: fileURLToPath(new URL(".", import.meta.url)) },
@@ -22,9 +22,9 @@ const sandbox = createContext({
 });
 runInContext(bundle.outputFiles[0]!.text, sandbox);
 const { createYqCommand, createMikeYqCommand, createMemoryFileSystem, createCommandArguments } = sandbox.module.exports as
-  typeof import("./index.js") & typeof import("./mike.js") & typeof import("@poe-code/safe-fs/core") & typeof import("safe-bash-contracts");
+  typeof import("./query.js") & typeof import("./mike.js") & typeof import("@poe-code/safe-fs/core") & typeof import("safe-bash-contracts");
 
-async function run(command: CommandDefinition, args: string[], input = "") {
+async function run(command: CommandDefinition, args: string[], input = "", fs = createMemoryFileSystem()) {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
   const stdout: string[] = [], stderr: string[] = [];
@@ -32,7 +32,7 @@ async function run(command: CommandDefinition, args: string[], input = "") {
   const carrier = createCommandArguments(args);
   const result = await command.execute({
     command: "yq", args: carrier.args, argumentValues: carrier,
-    cwd: "/", env: {}, fs: createMemoryFileSystem(), signal: new AbortController().signal,
+    cwd: "/", env: {}, fs, signal: new AbortController().signal,
     stdin: (async function* () { yield encoder.encode(input); })(),
     stdout: { async write(bytes) { stdout.push(decoder.decode(bytes)); } },
     stderr: { async write(bytes) { stderr.push(decoder.decode(bytes)); } },
@@ -73,4 +73,15 @@ test("Buffer-free yq preserves byte-based quotas and reports invalid base64", as
     assert.equal(result.exitCode, 1, invalid);
     assert.ok(result.stderr.includes("base64"), result.stderr);
   }
+});
+
+test("default yq edits files without Buffer or Node builtins", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/data.yaml", new TextEncoder().encode("a: 1\n"));
+  assert.deepEqual(await run(createMikeYqCommand(), ["-i", ".a = 2", "/data.yaml"], "", fs), {
+    exitCode: 0, stdout: "", stderr: "",
+  });
+  assert.deepEqual(await run(createMikeYqCommand(), [".a", "/data.yaml"], "", fs), {
+    exitCode: 0, stdout: "2\n", stderr: "",
+  });
 });

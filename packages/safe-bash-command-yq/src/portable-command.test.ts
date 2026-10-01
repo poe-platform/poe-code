@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createYqCommand } from "./index.js";
+import { createYqCommand } from "./query.js";
 import { createMikeYqCommand } from "./mike.js";
 import type { CommandContext } from "safe-bash-contracts";
 

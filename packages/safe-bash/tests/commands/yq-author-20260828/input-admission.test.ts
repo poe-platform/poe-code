@@ -5,7 +5,7 @@ import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { defaultJqLimits } from "../../../src/commands/structured/limits.js";
 import { createYqQuerySession } from "../../../src/commands/structured/query-core.js";
 import { yqCaps } from "safe-bash-command-yq/accounting";
-import { createYqCommand } from "../../../src/commands/yq/index.js";
+import { createYqCommand } from "safe-bash-command-yq/query";
 
 function syntheticChunk(text: string, admittedBytes: number): Uint8Array {
   const chunk = Buffer.from(text);

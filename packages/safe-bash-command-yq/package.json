@@ -74,6 +74,10 @@
     "./bytes": {
       "types": "./dist/bytes.d.ts",
       "import": "./dist/bytes.js"
+    },
+    "./query": {
+      "types": "./dist/query.d.ts",
+      "import": "./dist/query.js"
     }
   },
   "files": [

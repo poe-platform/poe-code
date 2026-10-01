@@ -1,47 +1,4 @@
-import { builtInDirectContextExecutors } from "../internal.js";
-import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import {
-  createYqCommand as createRawYqCommand,
-  createYqCommands as createRawYqCommands,
-  type YqCommandsOptions,
-  type YqLimits,
-} from "safe-bash-command-yq";
-
-export type { YqCommandsOptions, YqLimits };
-
-function isDefaultYqOptions(options?: YqCommandsOptions): boolean {
-  return options?.limits === undefined && (options?.inputFormat === undefined || options.inputFormat === "yaml");
-}
-
-export function createYqCommand(options: YqCommandsOptions = {}): CommandDefinition {
-  const def = createRawYqCommand(options);
-  if (isDefaultYqOptions(options)) builtInDirectContextExecutors.add(def.execute);
-  return def;
-}
-
-export function createYqCommands(options: YqCommandsOptions = {}): readonly CommandDefinition[] {
-  const defs = createRawYqCommands(options);
-  if (isDefaultYqOptions(options)) {
-    for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
-  }
-  return defs;
-}
-
-export function yqCommands(options: YqCommandsOptions = {}): VirtualShellPlugin {
-  const commands = createYqCommands(options);
-  const replace = options.replace ?? false;
-  return {
-    name: "yq-commands",
-    setup(host) {
-      if (!replace) {
-        for (const cmd of commands) {
-          if (host.commands.has(cmd.name)) throw new Error(`Command already registered: ${cmd.name}`);
-        }
-      }
-      for (const cmd of commands) host.commands.register(cmd, { replace });
-    },
-  };
-}
+export * from "safe-bash-command-yq";
 
 const syncYqDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 

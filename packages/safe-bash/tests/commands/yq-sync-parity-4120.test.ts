@@ -1,7 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell, CommandRegistry, createStandardCommands, MemoryFileSystem } from "../../src/index.js";
-import { createYqCommands, formatSyncYqYamlLines } from "../../src/commands/yq/index.js";
+import { createYqCommands } from "safe-bash-command-yq/query";
+import { formatSyncYqYamlLines } from "../../src/commands/yq/index.js";
 
 for (const [name, input, args, expected] of [
   ["scalar string", "name: safe-bash\n", ".name", '"safe-bash"\n'],

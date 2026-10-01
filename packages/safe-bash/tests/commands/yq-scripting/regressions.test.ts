@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { commandRuntimeIdentity, createCommandArguments, toByteSource, type ByteSource, type FileSystem } from "../../../src/contracts/index.js";
 import { shellValueFromBytes } from "../../../src/contracts/value.js";
 import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
-import { createYqCommand, createYqCommands, yqCommands } from "../../../src/commands/yq/index.js";
+import { createYqCommand, createYqCommands, yqCommands } from "safe-bash-command-yq/query";
 import { Budget, JqLimitError } from "../../../src/commands/structured/limits.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

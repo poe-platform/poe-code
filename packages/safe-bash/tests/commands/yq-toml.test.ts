@@ -5,7 +5,7 @@ import { Shell, createMemoryFileSystem } from "../../src/index.js";
 import { createCommandArguments, toByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { shellValueFromBytes, type ShellValue } from "../../src/contracts/value.js";
-import { createYqCommand, createYqCommands, yqCommands, type YqCommandsOptions } from "../../src/commands/yq/index.js";
+import { createYqCommand, createYqCommands, yqCommands, type YqCommandsOptions } from "safe-bash-command-yq/query";
 
 async function run(args: readonly string[], input: string | Uint8Array, options: YqCommandsOptions = {}, overrides: Partial<CommandContext> = {}) {
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];

@@ -1,3 +1,5 @@
+> Historical restricted-profile semantics. The default factories now use the Mike Farah profile; the implementation described here is retained at `safe-bash-command-yq/query`.
+
 # yq phase 1 semantics — September 4, 2026
 
 ## Status and dialect boundary

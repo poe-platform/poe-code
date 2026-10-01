@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createYqCommand } from "../../src/commands/yq/index.js";
+import { createYqCommand } from "safe-bash-command-yq/query";
 import { createCommandArguments, toByteSource, type CommandContext } from "../../src/contracts/index.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";

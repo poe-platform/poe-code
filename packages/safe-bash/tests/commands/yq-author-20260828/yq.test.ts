@@ -5,7 +5,7 @@ import { toByteSource, type ByteSink, type CommandContext } from "../../../src/c
 import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/shell.js";
-import { createYqCommand, createYqCommands, yqCommands } from "../../../src/commands/yq/index.js";
+import { createYqCommand, createYqCommands, yqCommands } from "safe-bash-command-yq/query";
 import { createYqQuerySession, type YqOwnedWork } from "../../../src/commands/structured/query-core.js";
 import { JqLimitError } from "../../../src/commands/structured/limits.js";
 import { parseYamlDocuments } from "safe-bash-command-yq/parser";

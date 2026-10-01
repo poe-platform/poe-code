@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { ByteSource, InvocationCleanup } from "../../../src/contracts/index.js";
-import { createYqCommand } from "../../../src/commands/yq/index.js";
+import { createYqCommand } from "safe-bash-command-yq/query";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { run } from "./helpers.js";

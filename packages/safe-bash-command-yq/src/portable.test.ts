@@ -3,7 +3,7 @@ import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createMikeYqCommand } from "./mike.js";
-import { createYqCommand } from "./index.js";
+import { createYqCommand } from "./query.js";
 
 for (const [command, args, input, expected, diagnostic = ""] of [
   [createYqCommand, ["-o", "json", "-r", ".b"], "a: 1\nb: héllo😀\n", "héllo😀\n"],

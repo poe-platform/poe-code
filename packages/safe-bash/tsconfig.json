@@ -1140,6 +1140,13 @@
       ],
       "safe-bash-command-mcp/remote": [
         "../safe-bash-command-mcp/src/index.ts"
+      ],
+      "safe-bash-command-node": [
+        "../safe-bash-command-node/src/index.ts"
+      ],
+      "safe-bash-command-node/*": [
+        "../safe-bash-command-node/src/*.ts",
+        "../safe-bash-command-node/src/*"
       ]
     },
     "baseUrl": "."

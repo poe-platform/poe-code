@@ -7,7 +7,7 @@ import { createDocumentHandlers } from "./documents.js";
 import { createItemHandlers } from "./items.js";
 import { createObjectBackend } from "./backend.js";
 import { readBytes, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
-import { resolvePath } from "@poe-code/safe-fs/core";
+import { isFsError, resolvePath } from "@poe-code/safe-fs/core";
 
 export interface OpCommandsOptions extends OpCommandOptions {
   readonly replace?: boolean;
@@ -95,27 +95,44 @@ export function createOpCommand(options: OpCommandsOptions = {}): CommandDefinit
       if (!("fs" in context)) return command.execute(context);
       const host = context as CommandContext & Partial<Pick<OpCommandContext, "readFile" | "writeFile">>;
       const { fs, signal, cwd } = context;
+      let inputBytes = 0;
+      const account = (bytes: Uint8Array) => {
+        context.inputBudget?.check(inputBytes += bytes.byteLength);
+        return bytes;
+      };
       const invocation: OpCommandContext = {
         ...host,
         args: context.args,
         env: { ...context.env },
         signal,
-        stdin: readBytes(context.stdin, signal),
+        stdin: (async function* () {
+          for await (const bytes of readBytes(context.stdin, signal)) yield account(bytes);
+        })(),
         stdout: context.stdout,
         stderr: context.stderr,
         ...(authentication === undefined ? {} : { authentication }),
         ...(pluginScope === undefined ? {} : { pluginScope }),
         ...(confirmPluginClear === undefined ? {} : { confirmPluginClear }),
         ...(selectPlugin === undefined ? {} : { selectPlugin }),
-        readFile: host.readFile ?? (async (path) => {
+        readFile: async (path) => {
+          if (host.readFile) return account(await host.readFile(path));
           signal.throwIfAborted();
           const resolved = resolvePath(cwd, path);
           const capabilities = fs.capabilitiesFor ? await fs.capabilitiesFor(resolved, { signal }) : fs.capabilities;
           if (capabilities.read !== true) throw new Error("op requires VFS read capability");
-          const bytes = await fs.readFile(resolved, { signal });
+          let bytes: Uint8Array;
+          try {
+            bytes = await fs.readFile(resolved, {
+              signal,
+              ...(context.inputBudget ? { maxBytes: Math.max(0, context.inputBudget.maxBytes - inputBytes) } : {}),
+            });
+          } catch (error) {
+            if (isFsError(error, "EFBIG") && context.inputBudget) context.inputBudget.check(context.inputBudget.maxBytes + 1);
+            throw error;
+          }
           signal.throwIfAborted();
-          return Uint8Array.from(bytes);
-        }),
+          return Uint8Array.from(account(bytes));
+        },
         writeFile: host.writeFile ?? (async (path, bytes, settings = {}) => {
           signal.throwIfAborted();
           const resolved = resolvePath(cwd, path);

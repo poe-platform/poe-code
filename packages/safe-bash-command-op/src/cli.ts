@@ -1,3 +1,4 @@
+import { isFsError } from "@poe-code/safe-fs/core";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import type { OpBackend, OpBackendContext, OpBackendRequest, OpBindingTarget, OpPreparedBinding } from "./types.js";
 import type { OpHandlerPreparation, OpPreparedEffect, OpPreparedHandler } from "./handler-preparation.js";
@@ -514,6 +515,7 @@ export function createOpCommand(options: OpCommandOptions = {}): { name: "op"; e
         }
         return { exitCode: 0 };
       } catch (error) {
+        if ((error instanceof Error && error.name === "BudgetExceededError") || isFsError(error, "EPIPE")) throw error;
         let message = error instanceof Error ? error.message : "operation failed";
         try { budget.assertOpen(); }
         catch { message = `input exceeds maximum size of ${maxInputBytes} bytes`; }

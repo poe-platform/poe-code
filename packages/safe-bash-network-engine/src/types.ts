@@ -1,10 +1,12 @@
-import type { HttpTransport } from "safe-bash-contracts/http";
+import type { HttpHeaders, HttpTransport } from "safe-bash-contracts/http";
 export type { HttpHeaders,HttpRequest,HttpResponse,HttpTransport } from "safe-bash-contracts/http";
 
 export interface NetworkAuthorization {
   /** Validated HTTP(S) origin with curl request-target spelling; transports must preserve it. */
   readonly url: string;
   readonly method: string;
+  /** Final request headers, including any virtual-host override. */
+  readonly headers?: HttpHeaders;
   readonly redirectFrom?: string;
   readonly attempt: number;
   readonly signal: AbortSignal;
@@ -21,6 +23,9 @@ export interface NetworkLimits {
   readonly maxRedirects: number;
   readonly maxRetries: number;
   readonly maxUrls: number;
+  readonly maxInputLines: number;
+  readonly maxConfigDepth: number;
+  readonly maxEncodingLayers: number;
   readonly maxTimeMs: number;
   readonly maxTotalTimeMs: number;
 }
@@ -28,7 +33,7 @@ export interface NetworkLimits {
 export interface NetworkCommandsOptions {
   readonly authorize?: NetworkAuthorizer;
   readonly transport?: HttpTransport;
-  /** Portable browser/Worker commands require finite maxUrls and maxBufferBytes. */
+  /** Quotas are disabled by default in every runtime. */
   readonly limits?: Partial<NetworkLimits>;
   readonly replace?: boolean;
 }
@@ -42,6 +47,9 @@ export const defaultNetworkLimits: Readonly<NetworkLimits> = Object.freeze({
   maxRedirects: Infinity,
   maxRetries: Infinity,
   maxUrls: Infinity,
+  maxInputLines: Infinity,
+  maxConfigDepth: Infinity,
+  maxEncodingLayers: Infinity,
   maxTimeMs: Infinity,
   maxTotalTimeMs: Infinity,
 });
@@ -54,6 +62,9 @@ export const cloudflareWorkerNetworkLimits: Readonly<NetworkLimits> = Object.fre
   maxRedirects: 2,
   maxRetries: 1,
   maxUrls: 8,
+  maxInputLines: 4096,
+  maxConfigDepth: 16,
+  maxEncodingLayers: 4,
   maxTimeMs: 10_000,
   maxTotalTimeMs: 10_000,
 });

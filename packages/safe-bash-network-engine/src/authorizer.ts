@@ -27,6 +27,9 @@ export function createOriginAuthorizer(allowlist: OriginAllowlist = "*", options
   }
   return request => {
     const url = new URL(request.url);
+    // An origin allowlist does not authorize routing to a different virtual host.
+    const hostHeaders = request.headers?.filter(([name]) => name.toLowerCase() === "host") ?? [];
+    if (hostHeaders.length > 1 || hostHeaders.some(([, value]) => value.toLowerCase() !== url.host.toLowerCase())) return false;
     const hostname = url.hostname.toLowerCase().replace(/\.$/u, "");
     if (denyPrivateNetworks) {
       request.requirePrivateNetworkDeny?.();

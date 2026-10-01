@@ -19,7 +19,7 @@ for (const lines of [1024, 4095, 4096, 4097]) test(`wget bounds Worker URL-list 
   let authorized = 0;
   const shell = new Shell({ fs }).use(networkCommands({
     authorize: () => { authorized++; return false; },
-    limits: { maxBufferBytes: 8192, maxUrls: 8 },
+    limits: { maxBufferBytes: 8192, maxUrls: 8, maxInputLines: 4096 },
   }));
   const result = await shell.exec('wget -i -', { stdin: '\n'.repeat(lines) + 'https://example.test/\n' });
   assert.equal(result.exitCode, lines >= 4096 ? 2 : 4, result.stderr);

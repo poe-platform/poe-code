@@ -2,9 +2,7 @@ import { readBytes,type ByteSource } from "safe-bash-contracts";
 import { withSignal } from "./shared.js";
 import { CurlError } from "./types.js";
 
-const maxEncodingLayers = 4;
-
-export async function* decodeContent(source: ByteSource, encoding: string, signal: AbortSignal, maxBytes: number): ByteSource {
+export async function* decodeContent(source: ByteSource, encoding: string, signal: AbortSignal, maxBytes: number, maxEncodingLayers = Infinity): ByteSource {
   // Admit the whole chain before creating native decoders, including identity tokens.
   let layers = 1;
   for (const character of encoding) {

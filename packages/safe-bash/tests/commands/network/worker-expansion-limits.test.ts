@@ -4,20 +4,28 @@ import { build, type BuildOptions } from "esbuild";
 import { expandUrls } from "../../../src/commands/network/glob.js";
 import { limitsFor } from "../../../src/commands/network/shared.js";
 import { run } from "./helpers.js";
+import path from "node:path";
 
 const { resolveBrowserShellBuild }: {
   resolveBrowserShellBuild(rootDir: string): BuildOptions & { entryPoints: { "commands/network/index.browser": string } };
 } = await import(new URL("../../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href);
 
-test("portable network registration requires both finite expansion quotas", async () => {
+test("portable network registration permits disabled and explicit expansion quotas", async () => {
   const recipe = resolveBrowserShellBuild(process.cwd().endsWith("safe-bash") ? process.cwd() + "/../.." : process.cwd());
-  const result = await build({ ...recipe, entryPoints: [recipe.entryPoints["commands/network/index.browser"]], write: false, sourcemap: false });
+  const root = path.resolve(recipe.absWorkingDir!);
+  const core = path.join(root, "packages/safe-fs/src/core.ts");
+  const result = await build({ ...recipe, entryPoints: [recipe.entryPoints["commands/network/index.browser"]], external: [], alias: {
+    ...recipe.alias, "@poe-code/safe-fs/core": core, "@poe-code/safe-fs": core,
+    "poe-code/safe-fs/core": core, "poe-code/safe-fs": core,
+    "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"),
+  }, write: false, sourcemap: false });
   const api = await import("data:text/javascript;base64," + Buffer.from(result.outputFiles![0]!.text).toString("base64"));
   for (const create of [api.networkCommands, api.createCurlCommand, api.createWgetCommand]) {
     for (const limits of [undefined, { maxUrls: 8 }, { maxBufferBytes: 1024 }, { maxUrls: Infinity, maxBufferBytes: 1024 }]) {
-      assert.throws(() => create({ authorize: () => false, transport: async () => assert.fail("transport"), limits }), /limit/i);
+      assert.doesNotThrow(() => create({ authorize: () => false, transport: async () => assert.fail("transport"), limits }));
     }
     assert.doesNotThrow(() => create({ authorize: () => false, transport: async () => assert.fail("transport"), limits: { maxUrls: 8, maxBufferBytes: 1024 } }));
+    assert.doesNotThrow(() => create());
   }
 });
 

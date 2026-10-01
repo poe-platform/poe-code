@@ -76,7 +76,7 @@ appends to an existing query, and keeps the request method unchanged. A leading
 their `--no-` form, with the last occurrence determining their value.
 `-K/--config` reads an explicit VFS file or `-` for stdin, in argument order;
 line options support whitespace, `=`/`:` separators and double-quoted escapes.
-Nested config reads share the input byte limit and stop after 16 levels.
+Nested config reads share the input byte limit; `maxConfigDepth` optionally limits nesting.
 `--variable name=value` and `name@file` define invocation-local variables;
 `%name` imports only that named shell environment value, with optional `=value`
 or `@file` fallback. `--expand-<value-option>` substitutes `{{name}}` and supports
@@ -105,7 +105,7 @@ outbound HTTP(S) authority.
 | Area | Supported forms and boundaries |
 | --- | --- |
 | URLs/methods | Explicit HTTP(S) URLs; sequential URLs to stdout; `--url`, `-X/--request`, `-I/--head`, `-G/--get`; brace lists and numeric/character ranges with padding and steps; `-o` supports `#1`, `#2` glob captures; no scheme guessing (`-g` permits literal brackets/braces). CONNECT and TRACE are rejected. |
-| Headers/auth | Repeated `-H/--header`; empty-value suppression and semicolon empty headers; `-A/--user-agent`, `-e/--referer`, `-u/--user user:password`, `--basic`, `--oauth2-bearer`. Referer operands support `;auto`: an optional seed is sent initially, then each followed redirect sends the previous URL without credentials or fragments. Custom Referer headers override this option and remain literal. No prompting. Host, Content-Length, Transfer-Encoding, Connection, Upgrade, Expect and Proxy-Authorization are transport-controlled and rejected as custom headers. |
+| Headers/auth | Repeated `-H/--header`; empty-value suppression and semicolon empty headers; `-A/--user-agent`, `-e/--referer`, `-u/--user user:password`, `--basic`, `--oauth2-bearer`. Referer operands support `;auto`: an optional seed is sent initially, then each followed redirect sends the previous URL without credentials or fragments. Custom Referer headers override this option and remain literal. No prompting. Host, Connection, and Expect overrides are accepted. Authorizers receive the final headers; the origin allowlist rejects Host values that differ from the URL authority. Content-Length, Transfer-Encoding, Upgrade, and Proxy-Authorization remain transport-controlled. |
 | Request data | `-d/--data/--data-ascii`, `--data-raw`, `--data-binary`, `--data-urlencode`, `--json`; literal, `@VFSFILE`, `@-` stdin; repeated data joins with `&`, repeated JSON concatenates. JSON defaults to `Content-Type: application/json` and `Accept: application/json`, including after `-G` or 301/302/303 discards the body; `-H` can override or suppress these defaults. JSON bytes are not syntax-validated. `-d @file` removes CR/LF/NUL; binary retains bytes. |
 | Uploads/forms | `-T/--upload-file FILE` or `-` uses PUT unless overridden. `-F/--form name=value`, `name=@file`, `name=@first,second` (ordered multipart/mixed children), `name=<file`, optional `;type=TYPE` (including MIME parameters such as `;charset=UTF-8`)/`;filename=NAME`, repeatable `;headers="Name: value"` or `;headers=@VFSFILE` part headers, and `--form-string`. Header files support LF/CRLF lines, comments and folded values; reads are bounded by host limits. File parts infer common MIME types from filenames, falling back to application/octet-stream. Double-quoted file operands and filenames preserve literal commas/semicolons. Explicit nested form syntax and other attributes are rejected. |
 | ETag files | `--etag-save VFSFILE` saves the response ETag plus LF (empty when absent); `-` writes to stdout. `--etag-compare VFSFILE` reads a bounded VFS file, removes CR/LF, and sends `If-None-Match`; missing or empty files send `""`. Explicit `-H` overrides or suppresses the generated header. HTTP 304 suppresses the body and preserves existing body files. ETags are server observations, not filesystem leases or durability guarantees. |
@@ -135,16 +135,17 @@ other CA/client-cert file flags, cookie-jar, HTTP/2/3, parallel,
 
 ## Streaming, quotas and failure state
 
-On Node, network byte, buffer, count and time quotas are unlimited by default. Each
+Network byte, buffer, count and time quotas are unlimited by default in every runtime. Each
 `options.limits` setting enables only that quota. Curl and wget values have no
 implicit ceiling; an explicitly configured host quota can restrict them. Zero
 `--max-time`, `--timeout` or `--tries` removes that command limit while preserving
 explicit host quotas. Curl defaults to no retries; wget retries without a fixed
 attempt limit unless `--tries` or the host's `maxRetries` limits it.
-Portable browser/Worker registration requires positive finite `maxUrls` and
-`maxBufferBytes` quotas, including with an injected transport. URL ranges and
-repeated prefix/capture copies are admitted against those budgets before allocation.
-For Workers, pass `limits: cloudflareWorkerNetworkLimits`; its worst-case URL,
+Portable browser/Worker commands default to Fetch and deny requests until an
+authorizer is supplied. `maxUrls`, `maxBufferBytes`, `maxInputLines`,
+`maxConfigDepth`, and `maxEncodingLayers` enable independent optional quotas.
+URL ranges and repeated prefix/capture copies are admitted before allocation.
+For a finite Worker profile, pass `limits: cloudflareWorkerNetworkLimits`; its worst-case URL,
 retry, and redirect combination is 48 fetches, within the smallest 50-subrequest
 budget, and its byte/deadline ceilings are substantially smaller.
 

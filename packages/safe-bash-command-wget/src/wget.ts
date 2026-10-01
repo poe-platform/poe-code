@@ -185,7 +185,7 @@ async function parseWget(context: CommandContext, limits: NetworkLimits): Promis
         if (index % 1024 === 0) await yieldTurn(context.signal);
         if (index !== text.length && text[index] !== "\n") continue;
         if (index === text.length && start === index) break;
-        if (++lines > 4096) throw new CurlError(2, "URL input exceeds 4096-line limit");
+        if (++lines > limits.maxInputLines) throw new CurlError(2, "URL input exceeds host line limit");
         const url = text.slice(start, index).trim();
         start = index + 1;
         if (url) result.urls.push(url);

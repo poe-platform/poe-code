@@ -18,8 +18,8 @@ for (const condition of ["browser", "workerd"]) {
     });
     assert.equal(Object.keys(result.metafile!.inputs).some(path => path.endsWith("/transport.ts")), false);
     const api = await import("data:text/javascript;base64," + Buffer.from(result.outputFiles![0]!.text).toString("base64"));
-    assert.equal(api.requiresFiniteUrlLimits, true);
-    assert.throws(() => api.createDefaultHttpTransport(), /explicit HTTP transport/);
+    assert.equal(api.requiresFiniteUrlLimits, false);
+    assert.equal(typeof api.createDefaultHttpTransport(), "function");
     for (const name of ["X-Test", "!#$%&'*+-.^_`|~0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"]) api.validateHeaderName(name);
     for (const name of ["", "a:b", "a b", "a\r\nB", "é"]) assert.throws(() => api.validateHeaderName(name));
     for (const value of ["", "value\twith spaces", "\u0080\u00ff"]) api.validateHeaderValue("X-Test", value);

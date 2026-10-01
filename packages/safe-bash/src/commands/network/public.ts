@@ -11,11 +11,11 @@ export { createOriginAuthorizer, type OriginAllowlist, type OriginAuthorizerOpti
 export { createCurlCommand } from "./curl.js";
 export { createWgetCommand } from "./wget.js";
 
-export function createNetworkCommands(options: NetworkCommandsOptions): readonly CommandDefinition[] {
+export function createNetworkCommands(options: NetworkCommandsOptions = {}): readonly CommandDefinition[] {
   return [createCurlCommand(options), createWgetCommand(options)];
 }
 
-export function networkCommands(options: NetworkCommandsOptions): VirtualShellPlugin {
+export function networkCommands(options: NetworkCommandsOptions = {}): VirtualShellPlugin {
   const definitions = createNetworkCommands(options);
   return {
     name: "network-commands",

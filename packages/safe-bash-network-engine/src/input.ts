@@ -158,7 +158,7 @@ export async function parseCurlInput(context: CommandContext, limits: NetworkLim
   };
   let ended = false;
   const visit = async (args: readonly string[], depth: number): Promise<void> => {
-    if (depth > 16) throw new CurlError(2, "Config nesting exceeds host limit");
+    if (depth > limits.maxConfigDepth) throw new CurlError(2, "Config nesting exceeds host limit");
     for (let index = 0; index < args.length; index++) {
       context.signal.throwIfAborted();
       if (++optionCount > limits.maxBufferBytes) throw new CurlError(2, "Curl option count exceeds host limit");

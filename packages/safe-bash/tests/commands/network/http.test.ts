@@ -137,7 +137,7 @@ test("curl cancels pending virtual header reads", async () => {
 test("curl header inputs retain read limits and transport header protections before requests", async () => {
   for (const [operand, stdin, limits, code] of [
     ["@missing", "", {}, 26],
-    ["@-", "Host: forbidden\n", {}, 2],
+    ["@-", "Content-Length: 12\n", {}, 2],
     ["@-", "X-Test: " + "a".repeat(256), { maxBufferBytes: 128 }, 26],
   ] as const) {
     const count = host.requests.length;

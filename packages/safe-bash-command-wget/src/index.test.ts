@@ -33,3 +33,14 @@ test("wget requires authorization before invoking an injected transport", async 
   assert.notEqual(denied.exitCode, 0);
   assert.equal(calls, 0);
 });
+
+test("wget input accepts more than 4096 blank lines with default limits", async () => {
+  let calls = 0;
+  const command = createWgetCommand({ authorize: () => true, transport: async () => {
+    calls++;
+    return { status: 200, statusText: "OK", headers: [], body: toByteSource(""), dispose: async () => {} };
+  } });
+  const result = await run(command, ["-i", "-", "-O", "-"], "\n".repeat(4097) + "https://example.test/data\n");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(calls, 1);
+});

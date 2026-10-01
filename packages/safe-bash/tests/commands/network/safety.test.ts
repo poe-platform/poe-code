@@ -4,12 +4,29 @@ import { test } from "node:test";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { collectBytes, FsError, toByteSource, type ByteSource } from "../../../src/contracts/index.js";
-import { createCurlCommand, type HttpRequest, type HttpResponse } from "../../../src/commands/network/index.js";
+import { createCurlCommand, createNodeHttpTransport, type HttpRequest, type HttpResponse } from "../../../src/commands/network/index.js";
 import { fixture, run, server } from "./helpers.js";
 import { networkCommands } from "../../../src/commands/network/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { parseArguments } from "../../../src/commands/network/args.js";
 import { defaultNetworkLimits } from "../../../src/commands/network/index.js";
+
+test("native curl and the Node transport agree on agent and request header overrides", async () => {
+  const host = await server();
+  try {
+    for (const agent of ["Agent2", ""]) {
+      const args = ["-A", "Agent1", "-A", agent, "-H", "Host: virtual.example", "-H", "Expect:", "-H", "Connection: close", host.origin];
+      await promisify(execFile)("curl", ["-sS", ...args]);
+      const native = host.requests.at(-1)!.headers;
+      let authorizedHeaders: HttpRequest["headers"] | undefined;
+      const result = await run(args, { options: { transport: createNodeHttpTransport(), authorize: request => { authorizedHeaders = request.headers; return true; } } });
+      assert.equal(result.exitCode, 0, result.stderr.toString());
+      const actual = host.requests.at(-1)!.headers;
+      for (const name of ["user-agent", "host", "expect", "connection"]) assert.equal(actual[name], native[name]);
+      assert.ok(authorizedHeaders?.some(([name, value]) => name.toLowerCase() === "host" && value === "virtual.example"));
+    }
+  } finally { await host.close(); }
+});
 
 test("curl accepts native finite timeout spellings and preserves host caps", async () => {
   const host = await server();
@@ -106,8 +123,8 @@ test("Shell multipart charset grammar agrees with native curl and form-string st
   } finally { await host.close(); }
 });
 
-test("registration requires an explicit authorizer", () => {
-  assert.throws(() => createCurlCommand({} as never), /authorizer/);
+test("registration permits an omitted authorizer with network denied by default", () => {
+  assert.doesNotThrow(() => createCurlCommand());
 });
 
 for (const args of [
@@ -115,7 +132,7 @@ for (const args of [
   ["--connect-timeout", "NaN"], ["--connect-timeout", "-1"], ["--connect-timeout=Infinity"],
   ["--proxy", "http://proxy.invalid"], ["--netrc"], ["-k"], ["--compressed=true"],
   ["-X", "GET\r\nInjected: bad"], ["-X", "CONNECT"], ["-H", "Authorization: secret\r\nX: injection"],
-  ["-H", "Content-Length: 9"], ["-H", "Host: elsewhere"], ["--max-time", "NaN"], ["--retry", "-1"],
+  ["-H", "Content-Length: 9"], ["--max-time", "NaN"], ["--retry", "-1"],
   ["--data", "x", "-T", "file"], ["--json", "{}", "-F", "x=y"], ["-u", "user-without-password"],
 ]) test(`unsupported/malformed arguments fail before networking: ${JSON.stringify(args)}`, async () => {
   let called = false;

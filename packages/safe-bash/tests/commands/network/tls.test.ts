@@ -41,6 +41,13 @@ test("HTTPS verifies injected CA without mutating global TLS state", async () =>
   assert.equal(process.env.NODE_TLS_REJECT_UNAUTHORIZED, before);
 });
 
+test("custom Host headers do not replace the URL's TLS peer identity", async () => {
+  const result = await run(["-H", "Host: virtual.example", origin], {
+    options: { transport: createNodeHttpTransport({ ca: cert }) },
+  });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+});
+
 test("untrusted HTTPS certificates fail with curl 60", async () => {
   const result = await run([origin]); assert.equal(result.exitCode, 60); assert.equal(result.stdout.length, 0);
 });

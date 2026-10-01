@@ -97,12 +97,12 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
       request = (url.protocol === "https:" ? httpsRequest : httpRequest)(url, {
         method: input.method,
         path: curlRequestTarget(input.url),
-        headers: pinned && headers.host?.length === 1 ? { ...headers, host: headers.host[0]! } : headers,
+        headers: headers.host?.length === 1 ? { ...headers, host: headers.host[0]! } : headers,
         signal, maxHeaderSize: Number.isFinite(maxHeaderSize) ? maxHeaderSize : Number.MAX_SAFE_INTEGER, agent: false,
         ...(requestCa === undefined ? {} : { ca: requestCa as NonNullable<import("node:https").RequestOptions["ca"]> }),
         ...(input.ca === undefined ? {} : { rejectUnauthorized: true }),
         ...pinned,
-        ...(pinned && url.protocol === "https:" ? {
+        ...(url.protocol === "https:" ? {
           servername: isIP(hostname) ? "" : hostname,
           rejectUnauthorized: true,
           checkServerIdentity: (_servername: string, certificate: PeerCertificate) => checkServerIdentity(hostname, certificate),

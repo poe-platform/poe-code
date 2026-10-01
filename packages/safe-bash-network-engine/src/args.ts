@@ -129,7 +129,7 @@ function timeoutSeconds(value: string): number {
 export function validateRequestHeader(name: string, value: string): void {
   try { validateHeaderName(name); validateHeaderValue(name, value); }
   catch { throw new CurlError(2, "Invalid HTTP header"); }
-  if (["host", "content-length", "transfer-encoding", "connection", "proxy-authorization", "upgrade", "expect"].includes(name.toLowerCase())) {
+  if (["content-length", "transfer-encoding", "proxy-authorization", "upgrade"].includes(name.toLowerCase())) {
     throw new CurlError(2, "Transport-controlled HTTP header is not supported");
   }
 }
@@ -189,7 +189,7 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
         try { validateHeaderValue("Range", value!); }
         catch { throw new CurlError(2, "Invalid byte range"); }
         result.range = value!; break;
-      case "user-agent": addHeader(result, `User-Agent: ${value!}`); break;
+      case "user-agent": validateRequestHeader("User-Agent", value!); result.agent = value!; break;
       case "referer": {
         validateRequestHeader("Referer", value!);
         const auto = value!.indexOf(";auto");

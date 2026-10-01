@@ -45,7 +45,8 @@ function requestHeaders(args: CurlArguments, contentType: string | undefined, us
   const json = args.data[0]?.kind === "json";
   // --json supplies semantic headers even when a redirect or -G removes the body.
   if (json) contentType = "application/json";
-  const defaults: [string, string][] = [["Accept", json ? "application/json" : "*/*"], ["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]];
+  const defaults: [string, string][] = [["Accept", json ? "application/json" : "*/*"]];
+  if (args.agent !== "") defaults.push(["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]);
   if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
   if (args.compressed) defaults.push(["Accept-Encoding", "gzip, deflate"]);
   const referer = args.autoReferer && previous !== undefined ? previous : args.referer;
@@ -348,7 +349,8 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         values.method = method;
         let denyPrivateNetworks = false;
         let allowed: boolean;
-        try { allowed = await withSignal(() => authorize({ url: currentUrl, method, attempt, signal,
+        const headers = requestHeaders(resumeOffset ? { ...args, range: `${resumeOffset}-` } : args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes, previous);
+        try { allowed = await withSignal(() => authorize({ url: currentUrl, method, headers, attempt, signal,
           requirePrivateNetworkDeny() { denyPrivateNetworks = true; },
           ...(previous === undefined ? {} : { redirectFrom: previous }) }), signal); }
         catch { signal.throwIfAborted(); throw new CurlError(7, "Network authorization failed"); }
@@ -358,7 +360,6 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         if (policy.denyPrivateNetworks && transport.supportsPrivateNetworkDeny !== true) {
           throw new CurlError(7, "Transport cannot enforce private network policy");
         }
-        const headers = requestHeaders(resumeOffset ? { ...args, range: `${resumeOffset}-` } : args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes, previous);
         if (args.verbose) await writeBytes(context.stderr, encode(`> ${method} ${current.origin}\n${headers.map(([name]) => `> ${name}: [redacted]\n`).join("")}`), signal);
         const upload: ByteSource | undefined = currentBody && (async function* () {
           for await (const chunk of currentBody!.open(signal)) { uploaded += chunk.length; yield chunk; }
@@ -491,7 +492,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
               if (!final.contentDecoded && length && /^\d+$/.test(length) && downloaded !== Number(length)) throw new CurlError(18, "Partial HTTP response body");
             })();
             const decoded = args.compressed && !args.raw && !final.contentDecoded && encoding
-              ? decodeContent(encoded, encoding, bodySignal, args.maxFileSize) : encoded;
+              ? decodeContent(encoded, encoding, bodySignal, args.maxFileSize, limits.maxEncodingLayers) : encoded;
             let outputBytes = 0;
             try {
               for await (const chunk of decoded) {

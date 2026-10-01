@@ -161,21 +161,16 @@ function powDec(base: DecimalValue, exp: DecimalValue, currentScale: number): De
   if (n === 0n) return ONE;
   const neg = n < 0n;
   if (neg) n = -n;
-  let result: DecimalValue = ONE;
-  let cur: DecimalValue = base;
-  const workScale = neg ? currentScale : Math.min(base.scale * Number(n), Math.max(currentScale, base.scale));
-  let e = n;
-  while (e > 0n) {
-    if ((e & 1n) === 1n) {
-      result = mulDec(result, cur, workScale);
-    }
-    e >>= 1n;
-    if (e > 0n) cur = mulDec(cur, cur, workScale);
-  }
+  // Keep the coefficient exact; rounding intermediate squares loses carries.
+  const coeff = base.coeff ** n;
+  const fullScale = BigInt(base.scale) * n;
   if (neg) {
-    return divDec(ONE, result, currentScale);
+    if (coeff === 0n) throw new Error("Runtime error (func=(main), adr=0): Divide by zero");
+    return { coeff: 10n ** (BigInt(currentScale) + fullScale) / coeff, scale: currentScale };
   }
-  return result;
+  const scaleLimit = BigInt(Math.max(currentScale, base.scale));
+  const resultScale = fullScale < scaleLimit ? fullScale : scaleLimit;
+  return { coeff: coeff / (10n ** (fullScale - resultScale)), scale: Number(resultScale) };
 }
 
 function cmpDec(a: DecimalValue, b: DecimalValue): number {

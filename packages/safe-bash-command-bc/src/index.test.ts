@@ -75,3 +75,18 @@ for (const [program, expected] of [
     assert.deepEqual(await evaluate(program), { exitCode: 0, stdout: expected, stderr: "" });
   });
 }
+
+for (const [program, expected] of [
+  ["1.5^4", "5.0"],
+  ["scale=2; 1.09^10", "2.36"],
+  ["scale=3; 1.5^-4", ".197"],
+  ["scale=3; .2^-4", "625.000"],
+  ["scale=0; (-1.5)^3", "-3.3"],
+  ["scale=8; 1.50^2", "2.2500"],
+  ["scale=2; x=1.09; x^=10; x", "2.36"],
+  ["scale=5; 0^0; 2^1.9", "1\n2"],
+] as const) {
+  test(`bc truncates powers only after exact exponentiation: ${program}`, async () => {
+    assert.deepEqual(await evaluate(program), { exitCode: 0, stdout: `${expected}\n`, stderr: "" });
+  });
+}

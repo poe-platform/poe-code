@@ -9,7 +9,7 @@ describe("safe-bash imagemagick integration", () => {
     const fs = createMemoryFileSystem();
     const shell = new Shell({ fs })
       .use(agentCommands())
-      .use(imagemagickCommands());
+      .use(imagemagickCommands({ replace: true }));
 
     const pipeRes = await shell.exec(
       "magick -size 80x40 xc:#2563eb -fill '#ffffff' -draw 'rectangle 10,10 70,30' png:- | magick - -resize 50% /piped.png"

@@ -967,74 +967,48 @@ export class Pattern {
       let matchEnd = -1;
       let groupStart = -1;
       let groupEnd = -1;
-      if (anchoredStart) {
-        if (textStart + prefix.length <= textEnd && text.startsWith(prefix, textStart)) {
-          const pos = textStart + prefix.length;
-          let cursor = pos;
-          let count = 0;
-          while (cursor < textEnd) {
-            const code = text.codePointAt(cursor)!;
+      let searchFrom = from;
+      let runStart = -1;
+      let runEnd = -1;
+      let count = 0;
+      while (searchFrom <= textEnd - prefix.length) {
+        budget.step();
+        const idx = anchoredStart
+          ? textStart + prefix.length <= textEnd && text.startsWith(prefix, textStart) ? textStart : -1
+          : text.indexOf(prefix, searchFrom);
+        if (idx < 0 || idx > textEnd - prefix.length) break;
+        budget.step(idx - searchFrom);
+        const pos = idx + prefix.length;
+        if (pos > runEnd) {
+          runStart = pos;
+          runEnd = pos;
+          count = 0;
+          while (runEnd < textEnd) {
+            budget.step();
+            const code = text.codePointAt(runEnd)!;
             if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
-            cursor += code > 0xffff ? 2 : 1;
+            runEnd += code > 0xffff ? 2 : 1;
             count++;
           }
-          if (count >= minimum && (!anchoredEnd || cursor === textEnd)) {
-            found = textStart;
-            matchEnd = cursor;
-            groupStart = pos;
-            groupEnd = cursor;
+        } else {
+          // Overlapping prefixes reuse the accepted suffix. Count code points,
+          // not UTF-16 units, as the candidate moves through the cached run.
+          while (runStart < pos) {
+            budget.step();
+            runStart += text.codePointAt(runStart)! > 0xffff ? 2 : 1;
+            count--;
           }
         }
-      } else if (prefix.length === 0) {
-        let searchFrom = from;
-        const maxStart = textEnd - minimum;
-        while (searchFrom <= maxStart) {
-          const c0 = text.codePointAt(searchFrom)!;
-          if (c0 < 128 ? ascii[c0] === 0 : !accepts(String.fromCodePoint(c0))) {
-            searchFrom += c0 > 0xffff ? 2 : 1;
-            continue;
-          }
-          const idx = searchFrom;
-          let cursor = idx + (c0 > 0xffff ? 2 : 1);
-          let count = 1;
-          while (cursor < textEnd) {
-            const code = text.codePointAt(cursor)!;
-            if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
-            cursor += code > 0xffff ? 2 : 1;
-            count++;
-          }
-          if (count >= minimum && (!anchoredEnd || cursor === textEnd)) {
-            found = idx;
-            matchEnd = cursor;
-            groupStart = idx;
-            groupEnd = cursor;
-            break;
-          }
-          searchFrom = cursor + ((text.codePointAt(cursor) ?? 0) > 0xffff ? 2 : 1);
+        if (count >= minimum && (!anchoredEnd || runEnd === textEnd)) {
+          found = idx;
+          matchEnd = runEnd;
+          groupStart = pos;
+          groupEnd = runEnd;
+          break;
         }
-      } else {
-        let searchFrom = from;
-        while (searchFrom <= textEnd - prefix.length) {
-          const idx = text.indexOf(prefix, searchFrom);
-          if (idx < 0 || idx > textEnd - prefix.length) break;
-          const pos = idx + prefix.length;
-          let cursor = pos;
-          let count = 0;
-          while (cursor < textEnd) {
-            const code = text.codePointAt(cursor)!;
-            if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
-            cursor += code > 0xffff ? 2 : 1;
-            count++;
-          }
-          if (count >= minimum && (!anchoredEnd || cursor === textEnd)) {
-            found = idx;
-            matchEnd = cursor;
-            groupStart = pos;
-            groupEnd = cursor;
-            break;
-          }
-          searchFrom = idx + 1;
-        }
+        if (anchoredStart) break;
+        const next = prefix.length === 0 ? runEnd : idx;
+        searchFrom = next + ((text.codePointAt(next) ?? 0) > 0xffff ? 2 : 1);
       }
       const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : textEnd - from + 1;
       const len = found >= 0 ? matchEnd - found : 0;
@@ -1190,58 +1164,16 @@ export class Pattern {
     budget: PatternBudget,
     from: number,
   ): Match | undefined | Promise<Match | undefined> {
-    const { prefix, anchoredStart, anchoredEnd, captured, minimum, accepts, ascii } = this.simpleRepeatMatch!;
-    if (from > text.length || (anchoredStart && from > 0)) return undefined;
-    let found = -1;
-    let matchEnd = -1;
-    let groupStart = -1;
-    let groupEnd = -1;
-    if (anchoredStart) {
-      if (text.startsWith(prefix)) {
-        const pos = prefix.length;
-        let cursor = pos;
-        let count = 0;
-        while (cursor < text.length) {
-          const code = text.codePointAt(cursor)!;
-          if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
-          cursor += code > 0xffff ? 2 : 1;
-          count++;
-        }
-        if (count >= minimum && (!anchoredEnd || cursor === text.length)) {
-          found = 0;
-          matchEnd = cursor;
-          groupStart = pos;
-          groupEnd = cursor;
-        }
-      }
-    } else {
-      let searchFrom = from;
-      while (searchFrom <= text.length - prefix.length) {
-        const idx = text.indexOf(prefix, searchFrom);
-        if (idx < 0) break;
-        const pos = idx + prefix.length;
-        let cursor = pos;
-        let count = 0;
-        while (cursor < text.length) {
-          const code = text.codePointAt(cursor)!;
-          if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
-          cursor += code > 0xffff ? 2 : 1;
-          count++;
-        }
-        if (count >= minimum && (!anchoredEnd || cursor === text.length)) {
-          found = idx;
-          matchEnd = cursor;
-          groupStart = pos;
-          groupEnd = cursor;
-          break;
-        }
-        searchFrom = idx + ((text.codePointAt(idx) ?? 0) > 0xffff ? 2 : 1);
-      }
-    }
+    const matched = this.findSyncFastInto(text, budget, from, FAST_MATCH_OFFSETS);
+    // Copy shared offsets before a checkpoint can yield to another matcher.
+    const found = matched ? FAST_MATCH_OFFSETS[0]! : -1;
+    const matchEnd = matched ? FAST_MATCH_OFFSETS[1]! : -1;
+    const groupStart = matched ? FAST_MATCH_OFFSETS[2]! : -1;
+    const groupEnd = matched ? FAST_MATCH_OFFSETS[3]! : -1;
+    const { anchoredStart, captured } = this.simpleRepeatMatch!;
     const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
     const len = found >= 0 ? matchEnd - found : 0;
     const stepCount = positionsTried * 2 + (found >= 0 ? this.code.length * 2 + len : 0);
-    budget.step(stepCount);
     if (stepCount >= 64) {
       const midCheck = (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
       if (midCheck) {

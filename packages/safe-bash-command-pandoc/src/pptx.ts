@@ -244,6 +244,12 @@ export const pptxWriter: WriterCapability = {
                 break;
               }
               case "Header": paragraph(block.c[2], level); break;
+              case "BlockQuote": {
+                const before = y;
+                await blocks(block.c, level + 1, firstParagraph ? bullet : undefined);
+                if (y !== before) firstParagraph = false;
+                break;
+              }
               case "BulletList":
                 for (const item of block.c) await blocks(item, bullet ? level + 1 : level, {kind: "character", character: "•"});
                 break;

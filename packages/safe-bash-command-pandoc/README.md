@@ -22,8 +22,11 @@ accepts explicit read/write callbacks for conversion without a Shell.
 The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
 `inspectCommand`, `formatCapabilities`, and `PandocError`. Inspect format
 capabilities before conversion: support is format-specific and does not imply full native Pandoc
-compatibility. Built-in DOCX conversion preserves headings and bold/italic paragraphs;
-its writer rejects unsupported blocks and inlines. XLSX input becomes one named
+compatibility. Built-in DOCX conversion preserves headings, bold/italic text, hyperlinks, lists,
+tables, blockquotes, and horizontal rules. PPTX renders blockquotes as indented
+content. PDF uses standard Helvetica bold/oblique and Courier fonts for styled
+text and inline code by default; supplied fonts retain their explicit styling.
+Other unsupported blocks and inlines return diagnostics. XLSX input becomes one named
 table per sheet, retaining cached values and calculating missing formula results.
 PDF input uses semantic text, tables and image extraction.
 Plain output uses link labels, spaces for soft breaks, four-column decimal list

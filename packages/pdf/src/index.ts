@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFFont, type PDFPage } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
 import { setTextRenderingMode, TextRenderingMode, setLineWidth, setStrokingRgbColor } from "pdf-lib";
 import {admitTrueTypeFont} from "./font-admission.js";
@@ -13,7 +13,7 @@ export {PdfError} from "./errors.js";
 export {serializePdf} from "./serialization.js";
 export {decodePng} from "./png.js";
 export function pdfCapabilities() {
-  return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], fonts: ["sfnt-TrueType-glyf"], png: "static-noninterlaced-8bit", jpeg: "8bit-gray-rgb-adobe-cmyk", images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false, accessibility: {tagged: false, readingOrder: "not-guaranteed", pdfUA: false}, conformance: {pdfA: false}, text: {unicodeMapping: "supported-scalars", extraction: "not-guaranteed", searchable: "not-guaranteed"}} as const;
+  return {profile: "PDF-1.7-supplied-fonts-ltr", reference: "Adobe PDF Reference sixth edition, November 2006", scripts: ["Latin", "Greek", "Cyrillic"], fonts: ["sfnt-TrueType-glyf", "standard-14"], png: "static-noninterlaced-8bit", jpeg: "8bit-gray-rgb-adobe-cmyk", images: ["png", "jpeg"], tables: "rectangular-unspanned", encryption: false, javascript: false, attachments: false, accessibility: {tagged: false, readingOrder: "not-guaranteed", pdfUA: false}, conformance: {pdfA: false}, text: {unicodeMapping: "supported-scalars", extraction: "not-guaranteed", searchable: "not-guaranteed"}} as const;
 }
 export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: Infinity, fonts: Infinity, glyphs: Infinity, pages: Infinity, objects: Infinity, images: Infinity, imageBytes: Infinity, imagePixels: Infinity, decodedImageBytes: Infinity, layoutWork: Infinity, outputBytes: Infinity});
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
@@ -44,8 +44,13 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   const ids = new Set<string>();
   for (const font of document.fonts) {
     if (!font.id || ids.has(font.id)) unsupported("Duplicate/empty font identity");
-    ids.add(font.id); charge("fonts", 1); charge("fontBytes", font.bytes.length); charge("objects", 8);
-    admitTrueTypeFont(font.bytes, unsupported, amount => charge("layoutWork", amount));
+    ids.add(font.id); charge("fonts", 1); charge("objects", 8);
+    if ("standard" in font) {
+      if (!Object.values(StandardFonts).includes(font.standard as StandardFonts)) unsupported("Unknown standard font");
+    } else {
+      charge("fontBytes", font.bytes.length);
+      admitTrueTypeFont(font.bytes, unsupported, amount => charge("layoutWork", amount));
+    }
   }
   const pdf = await PDFDocument.create({updateMetadata: false}); pdf.registerFontkit(fontkit);
   const textString = (text: string) => pdfTextString(text, limits.outputBytes, amount => charge("layoutWork", amount));
@@ -66,6 +71,10 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   const parsedFonts = new Map<PDFFont, Font>();
   try {
     for (const resource of document.fonts) {
+      if ("standard" in resource) {
+        fonts.set(resource.id, await pdf.embedFont(resource.standard as StandardFonts));
+        await cooperate(); continue;
+      }
       const bytes = new Uint8Array(resource.bytes); const parsed = fontkit.create(bytes);
       if (!positive(parsed.unitsPerEm) || !Number.isInteger(parsed.numGlyphs) || parsed.numGlyphs < 1 || parsed.numGlyphs > 65535) unsupported("Invalid font metrics");
       pdf.registerFontkit({create: () => parsed});
@@ -80,11 +89,12 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     if (!(cp >= 32 && cp <= 126 || cp >= 160 && cp <= 255 || cp >= 0x370 && cp <= 0x52f) || cp >= 0x483 && cp <= 0x489) unsupported("Unsupported script or combining sequence");
     const candidates = run.font === undefined ? [...fonts.values()] : [fonts.get(run.font), ...fonts.values()];
     if (run.font !== undefined && !fonts.has(run.font)) unsupported("Unknown font identity");
-    const font = candidates.find(candidate => candidate && coverage.get(candidate)!.has(cp) && parsedFonts.get(candidate)!.glyphForCodePoint(cp).id > 0);
+    const font = candidates.find(candidate => candidate && coverage.get(candidate)!.has(cp) && (!parsedFonts.has(candidate) || parsedFonts.get(candidate)!.glyphForCodePoint(cp).id > 0));
     if (!font) unsupported(`No supplied font covers U+${cp.toString(16)}`);
-    const parsedGlyph = parsedFonts.get(font)!.glyphForCodePoint(cp);
-    if (!Number.isInteger(parsedGlyph.id) || parsedGlyph.id <= 0 || parsedGlyph.id >= parsedFonts.get(font)!.numGlyphs) unsupported("Font character map points outside glyph records");
-    const encoded = parsedGlyph.id.toString(16).padStart(4, "0").toUpperCase();
+    const parsed = parsedFonts.get(font);
+    const parsedGlyph = parsed?.glyphForCodePoint(cp);
+    if (parsedGlyph && (!Number.isInteger(parsedGlyph.id) || parsedGlyph.id <= 0 || parsedGlyph.id >= parsed!.numGlyphs)) unsupported("Font character map points outside glyph records");
+    const encoded = parsedGlyph ? parsedGlyph.id.toString(16).padStart(4, "0").toUpperCase() : font.encodeText(text).asString();
     let scalars = emittedScalars.get(font);
     if (!scalars) {scalars = new Map(); emittedScalars.set(font, scalars);}
     const previous = scalars.get(encoded);
@@ -92,12 +102,12 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     scalars.set(encoded, cp);
     const size = run.size ?? 12; if (!positive(size) || size > 144) unsupported("Invalid font size");
     if (run.link !== undefined) { let url: URL; try { url = new URL(run.link); } catch { unsupported("Invalid link"); } if (!["https:", "http:", "mailto:"].includes(url.protocol)) unsupported("Unsafe link scheme"); }
-    const width = parsedGlyph.advanceWidth / parsedFonts.get(font)!.unitsPerEm * size;
+    const width = parsedGlyph ? parsedGlyph.advanceWidth / parsed!.unitsPerEm * size : font.widthOfTextAtSize(text, size);
     if (!positive(width)) unsupported(`Nonadvancing glyph U+${cp.toString(16)}`);
-    const parsed = parsedFonts.get(font)!;
-    const ascent = parsed.ascent / parsed.unitsPerEm * size; const descent = -parsed.descent / parsed.unitsPerEm * size;
+    const ascent = parsed ? parsed.ascent / parsed.unitsPerEm * size : font.heightAtSize(size, {descender: false});
+    const descent = parsed ? -parsed.descent / parsed.unitsPerEm * size : font.heightAtSize(size) - ascent;
     if (!positive(ascent) || !Number.isFinite(descent) || descent < 0) unsupported("Invalid vertical font metrics");
-    return {text, code: encoded, font, size, width, ascent, descent, bold: run.bold ?? false, italic: run.italic ?? false, strikeout: run.strikeout ?? false, underline: run.underline ?? false, ...(run.link === undefined ? {} : {link: run.link})};
+    return {text, code: encoded, font, size, width, ascent, descent, bold: parsed ? run.bold ?? false : false, italic: parsed ? run.italic ?? false : false, strikeout: run.strikeout ?? false, underline: run.underline ?? false, ...(run.link === undefined ? {} : {link: run.link})};
   };
   const lines = async (block: Paragraph, width: number): Promise<Line[]> => {
     charge("layoutWork", 1);

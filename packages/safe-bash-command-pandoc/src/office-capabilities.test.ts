@@ -69,5 +69,5 @@ it("rejects a one-byte malformed XLSX input", async () => {
 it("keeps DOCX work and output ceilings and rejects unsupported content", async () => {
   await expect(convert([{bytes: encode("Apple")}], {from: "commonmark", to: "docx"}, {...context, limits: {work: 100}})).rejects.toMatchObject({code: "E_LIMIT"});
   await expect(convert([{bytes: encode("Apple")}], {from: "commonmark", to: "docx"}, {...context, limits: {outputBytes: 100}})).rejects.toMatchObject({code: "E_LIMIT"});
-  await expect(convert([{bytes: encode("- Apple")}], {from: "commonmark", to: "docx"}, context)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+  await expect(convert([{bytes: encode("![Apple](image.png)")}], {from: "commonmark", to: "docx"}, context)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
 });

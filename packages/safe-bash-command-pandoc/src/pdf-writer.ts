@@ -1,4 +1,4 @@
-import { renderPdf, suppliedDefaultFont, PdfError, type LayoutBlock, type Paragraph, type TextRun, type PdfLimits, type PdfMetadata } from "@poe-code/pdf";
+import { renderPdf, suppliedDefaultFont, PdfError, type LayoutBlock, type Paragraph, type TextRun, type PdfLimits, type PdfMetadata, type StandardFontName, type StandardFont } from "@poe-code/pdf";
 import { PandocError } from "./errors.js";
 import type { Block, Inline, MetaValue } from "./ast-types.js";
 import type { WriterCapability, Limits } from "./types.js";
@@ -10,6 +10,7 @@ export const pdfWriter: WriterCapability = {
   async write(document, ctx) {
     const fail = (message: string): never => { throw new PandocError("E_CAPABILITY", ctx.operation ?? "write", message, "pdf"); };
     if (document.direction === "rtl" || document.direction === "auto") fail("PDF profile requires explicit LTR text");
+    const styledFonts = new Map<StandardFontName, StandardFont>();
     const notes: {number: number; blocks: readonly Block[]}[] = [];
     const runs = async (nodes: readonly Inline[], size = ctx.pdf?.fontSize ?? 12, link?: string, style: Pick<TextRun, "bold" | "italic" | "strikeout" | "underline"> = {}): Promise<TextRun[]> => {
       const result: TextRun[] = [];
@@ -17,7 +18,14 @@ export const pdfWriter: WriterCapability = {
         await ctx.cooperate(); ctx.charge("references", 1);
         if (node.t === "Str" || node.t === "Space" || node.t === "SoftBreak" || node.t === "LineBreak" || node.t === "Code") {
           const text = node.t === "Str" ? node.c : node.t === "Code" ? node.c[1] : node.t === "LineBreak" ? "\n" : " ";
-          ctx.charge("retainedBytes", text.length * 2 + 64); result.push({text, size, ...style, ...(link === undefined ? {} : {link})});
+          let font: string | undefined;
+          if (!ctx.pdfFonts && (style.bold || style.italic || node.t === "Code")) {
+            const family = node.t === "Code" ? "Courier" : "Helvetica";
+            const name = (family + (style.bold && style.italic ? "-BoldOblique" : style.bold ? "-Bold" : style.italic ? "-Oblique" : "")) as StandardFontName;
+            font = `standard:${name}`;
+            styledFonts.set(name, {id: font, standard: name});
+          }
+          ctx.charge("retainedBytes", text.length * 2 + 64); result.push({text, size, ...style, ...(font === undefined ? {} : {font}), ...(link === undefined ? {} : {link})});
         } else if (node.t === "Link") result.push(...await runs(node.c[1], size, node.c[2][0], style));
         else if (node.t === "Span") result.push(...await runs(node.c[1], size, link, style));
         else if (node.t === "Math") {
@@ -126,8 +134,8 @@ export const pdfWriter: WriterCapability = {
     // Shared reservations occur before work in the engine. Output is admitted by
     // Session.finish once, so do not double-charge publication bytes here.
     const budgetMap: Partial<Record<keyof PdfLimits, keyof Limits>> = {fontBytes: "binaryBytes", fonts: "fonts", glyphs: "glyphs", pages: "pages", objects: "objects", images: "images", imageBytes: "binaryBytes", decodedImageBytes: "retainedBytes", layoutWork: "layoutWork"};
-    ctx.bound("fonts", ctx.pdfFonts?.length ?? 1);
-    const fonts = ctx.pdfFonts ?? [suppliedDefaultFont(size => {ctx.bound("binaryBytes", size); ctx.charge("retainedBytes", size * 2);})];
+    ctx.bound("fonts", (ctx.pdfFonts?.length ?? 1) + styledFonts.size);
+    const fonts = [...(ctx.pdfFonts ?? [suppliedDefaultFont(size => {ctx.bound("binaryBytes", size); ctx.charge("retainedBytes", size * 2);})]), ...styledFonts.values()];
     try {
       const bytes = await renderPdf({blocks, fonts, metadata: metadata satisfies PdfMetadata, ...(ctx.pdf?.lineHeight === undefined ? {} : {lineHeight: ctx.pdf.lineHeight}), ...(ctx.pdfPage === undefined ? {} : {page: ctx.pdfPage})}, {signal: ctx.signal, yield: () => ctx.cooperate(256), limits: {outputBytes: ctx.limits.outputBytes}, charge: (key, amount) => {
         const mapped = budgetMap[key]; if (mapped && !(key === "fontBytes" && ctx.pdfFonts !== undefined)) ctx.charge(mapped, amount);

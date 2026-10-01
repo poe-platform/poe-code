@@ -2,7 +2,7 @@
 
 Private PDF-rendering workspace used by the document-conversion engine.
 `renderPdf(document, context)` produces PDF 1.7 bytes from explicit layout blocks
-and supplied TrueType fonts. `suppliedDefaultFont()` returns the packaged
+and supplied TrueType or standard PDF fonts. `suppliedDefaultFont()` returns the packaged
 JetBrains Mono font. `pdfCapabilities()` describes the supported profile;
 `PdfError` reports capability, budget, and cancellation failures.
 `admitTrueTypeFont(bytes, fail, work)` validates sfnt tables, character maps,
@@ -11,7 +11,10 @@ The caller bounds and owns the bytes; `work` can refuse coverage expansion.
 
 ## Configuration
 
-`LayoutDocument` requires `fonts` (`id` and `bytes` for each font) and `blocks`.
+`LayoutDocument` requires `fonts` and `blocks`. Each font has an `id` and either
+TrueType `bytes` or a standard font name, for example
+`{id: "heading", standard: "Helvetica-Bold"}`. Standard fonts need no supplied
+font file and use their built-in character coverage.
 Optional fields are `page` (`width`, `height`, `margin`, in points), `lineHeight`,
 and `metadata` (`title`, `author`, `subject`, `keywords`). The default page is
 595.28 × 841.89 points with a 48-point margin; the default line-height multiplier

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-const names = ["csvcut", "csvgrep", "csvkit", "diff3", "exiftool", "fmt", "fold", "htmlq", "imagemagick", "mmdc", "op", "pandoc", "pdfimages", "pdfinfo", "pdftk", "pdftoppm", "pdftotext", "qpdf", "sips", "soffice", "ssconvert", "unrtf", "wkhtmltopdf", "xmllint", "xz"];
+const names = ["cmp", "install", "truncate", "docx", "pptx", "xan", "shuf", "dd", "yes", "csvcut", "csvgrep", "csvkit", "diff3", "exiftool", "fmt", "fold", "htmlq", "imagemagick", "mmdc", "op", "pandoc", "pdfimages", "pdfinfo", "pdftk", "pdftoppm", "pdftotext", "qpdf", "sips", "soffice", "ssconvert", "unrtf", "wkhtmltopdf", "xmllint", "xz"];
 test("core exposes zero-argument command, collection and plugin factories", async () => {
   const core: Record<string, unknown> = await import("../../src/core.js");
   for (const name of [...names, "ffmpeg"]) {
@@ -10,6 +10,33 @@ test("core exposes zero-argument command, collection and plugin factories", asyn
       assert.equal(typeof core[symbol], "function", symbol);
       assert.ok((core[symbol] as () => unknown)(), symbol);
     }
+  }
+});
+
+test("public entry exposes every extracted command factory", async () => {
+  const entry: Record<string, unknown> = await import("../../src/index.js");
+  for (const name of names) {
+    const title = name[0]!.toUpperCase() + name.slice(1);
+    for (const symbol of [`create${title}Command`, `create${title}Commands`, `${name}Commands`])
+      assert.equal(typeof entry[symbol], "function", symbol);
+  }
+});
+
+test("spreadsheet plugins execute with omitted and empty options", async () => {
+  const { Shell, csvkitCommands, ssconvertCommands } = await import("../../src/core.js");
+  const { createMemoryFileSystem } = await import("../../src/fs/memory/index.js");
+  for (const options of [undefined, {}]) {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/sales.csv", new TextEncoder().encode("name,total\nAlice,12.5\n"));
+    const shell = new Shell({ fs }).use(csvkitCommands(options)).use(ssconvertCommands(options));
+    try {
+      for (const command of ["csvcut -c name /sales.csv", "ssconvert /sales.csv /sales.xlsx", "ssconvert /sales.xlsx /roundtrip.csv"]) {
+        const result = await shell.exec(command);
+        assert.equal(result.exitCode, 0, result.stderr);
+        if (command.startsWith("csvcut")) assert.equal(result.stdout, "name\nAlice\n");
+      }
+      assert.equal(new TextDecoder().decode(await fs.readFile("/roundtrip.csv")), "name,total\nAlice,12.5\n");
+    } finally { await shell.dispose(); }
   }
 });
 for (const name of names) {

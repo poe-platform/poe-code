@@ -4,7 +4,7 @@ import { test } from "node:test";
 const root = new URL("../../../", import.meta.url);
 const names = "pandoc ssconvert op htmlq csvkit dd shuf yes xmllint apply-patch cmp column csplit du expr factor file getopt hexdump html-to-markdown iconv install pr split timeout tree truncate tsort which xan nl rev tac readlink realpath strings paste join comm expand unexpand date env printenv sleep touch egrep fgrep rg base64 md5sum sha1sum sha256sum".split(" ");
 const manifest = path => JSON.parse(readFileSync(new URL(path, root), "utf8"));
-for (const name of names) test(name + " has one private portable command owner", () => {
+for (const name of [...names, "docx", "pptx"]) test(name + " has one private portable command owner", () => {
   const packageName = "safe-bash-command-" + name;
   const folder = "packages/" + packageName + "/";
   const pkg = manifest(folder + "package.json");
@@ -18,7 +18,7 @@ for (const name of names) test(name + " has one private portable command owner",
   assert.ok(readFileSync(new URL("packages/safe-bash/src/commands/" + adapter + "/index.ts", root), "utf8").includes('export * from "' + packageName + '";'));
 });
 
-for (const name of ["xml", "pandoc", "ssconvert", "op", "htmlq", "csvkit"]) test(name + " core adapter contains only public re-exports", async () => {
+for (const name of ["xml", "pandoc", "ssconvert", "op", "htmlq", "csvkit", "docx", "pptx", "xan"]) test(name + " core adapter contains only public re-exports", async () => {
   const { default: ts } = await import("typescript");
   const text = readFileSync(new URL("packages/safe-bash/src/commands/" + name + "/index.ts", root), "utf8");
   const source = ts.createSourceFile("xml.ts", text, ts.ScriptTarget.Latest, true);

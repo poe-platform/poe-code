@@ -368,7 +368,8 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
             prepareInputPromise,
             hostCalls.rebindHostCapability.bind(hostCalls),
             compilation,
-            hostCalls.registerInputSymbols.bind(hostCalls)
+            hostCalls.registerInputSymbols.bind(hostCalls),
+            hostCalls.inputPromiseOrder()
           );
           leaveInputReplay = () => {
             budget.setRetainedDataUsage(initialInputs,0);

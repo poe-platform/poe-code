@@ -596,6 +596,10 @@ export class HostCallJournal {
       }));
   }
 
+  inputPromiseOrder(): string[] {
+    return this.records.filter(record => record.moduleId === "<inputs>").map(record => record.operation);
+  }
+
   dispose(): void {
     this.disposed = true;
     for (const cancel of this.pendingReconciliations) cancel();

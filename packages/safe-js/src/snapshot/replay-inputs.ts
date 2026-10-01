@@ -35,7 +35,8 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
   preparePromise?: (promise: SandboxPromise | undefined, id: string) => SandboxPromise,
   onCapabilityRestored?: (original: SandboxClosure, restored: SandboxClosure) => void,
   compilation?: CompileScope,
-  onInputSymbols?: (symbols: ReadonlyMap<number, symbol>) => void
+  onInputSymbols?: (symbols: ReadonlyMap<number, symbol>) => void,
+  restoredPromiseOrder: readonly string[] = []
 ): {
   values: T;
   snapshot: ReplayData;
@@ -144,6 +145,8 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
     return isSandboxClosure(value) ? value : undefined;
   };
   const memo = { nodes: context.nodes, values: new Map<number, SandboxValue>() };
+  const restoredRootPromises = new Set<string>();
+  const restoredNamespacePromises = new Map<string, Set<string>>();
   if (saved !== undefined) validateSnapshotData(saved);
   const snapshot = saved === undefined ? encodeReplayData(current, {
     context, captureCapabilityProperties: true, identifyCapability, identifyPromise,
@@ -154,19 +157,21 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
     try {
       const validated = decodeReplayData(snapshot, {
         resolveCapability,
-        resolvePromise: id => { readCapability(id); return createSandboxPromise(Promise.resolve(undefined), { trackReplay: false }); }
+        resolvePromise: id => { readCapability(id); restoredRootPromises.add(id); return createSandboxPromise(Promise.resolve(undefined), { trackReplay: false }); }
       }, validationScope);
       assertReplayInputShape(validated, "namespace" in current);
       if (snapshot.namespaceRoots !== undefined) {
         if (snapshot.namespaceRoots === null || typeof snapshot.namespaceRoots !== "object" || Array.isArray(snapshot.namespaceRoots))
           throw new TypeError("Invalid replay namespace roots.");
         const validationCapability = createSandboxClosure({ call: () => undefined });
-        for (const root of Object.values(snapshot.namespaceRoots)) {
+        for (const [name, root] of Object.entries(snapshot.namespaceRoots)) {
+          const ids = new Set<string>();
           const namespace = decodeReplayData({ root, nodes: snapshot.nodes }, {
             resolveCapability: id => { readCapability(id); return validationCapability; },
-            resolvePromise: id => { readCapability(id); return createSandboxPromise(Promise.resolve(undefined), { trackReplay: false }); }
+            resolvePromise: id => { readCapability(id); ids.add(id); return createSandboxPromise(Promise.resolve(undefined), { trackReplay: false }); }
           }, validationScope);
           if (!isSandboxModuleNamespace(namespace)) throw new TypeError("Invalid replay module namespace.");
+          restoredNamespacePromises.set(name, ids);
         }
       }
     } finally {
@@ -189,6 +194,9 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
       promises.set(id, preparePromise(isSandboxPromise(value) ? value : undefined, id));
     return promises.get(id);
   };
+  // Graph construction may traverse breadth first. Restored host calls must
+  // instead retain their recorded declaration order, including old snapshots.
+  for (const id of restoredPromiseOrder) if (restoredRootPromises.has(id)) resolvePromise(id);
   if (inputPromises.size > 0) {
     memo.values.clear();
     for (const [id, symbol] of inputSymbols) memo.values.set(id, symbol);
@@ -212,6 +220,8 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
     values, snapshot, captureNamespace,
     prepareNamespace: (namespace, name) => {
       captureNamespace(namespace, name);
+      const ids = restoredNamespacePromises.get(name);
+      if (ids !== undefined) for (const id of restoredPromiseOrder) if (ids.has(id)) resolvePromise(id);
       return decodeReplayData({ root: snapshot.namespaceRoots![name], nodes: snapshot.nodes },
         { memo, resolveCapability, resolvePromise, onCapabilityRestored }, compilation) as Record<string, SandboxValue>;
     }

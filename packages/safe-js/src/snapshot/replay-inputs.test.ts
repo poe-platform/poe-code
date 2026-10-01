@@ -5,7 +5,8 @@ import {
   createSandboxMap,
   createSandboxSet,
   isSandboxMap,
-  isSandboxSet
+  isSandboxSet,
+  type SandboxPromise
 } from "../interp/values.js";
 import { encodeReplayData } from "./replay-data.js";
 import { prepareReplayInputs, type ReplayInputs } from "./replay-inputs.js";
@@ -16,6 +17,25 @@ function inputs(bindings: ReplayInputs["bindings"] = {}): ReplayInputs {
 }
 
 describe("initial replay inputs", () => {
+  it.each([false, true])("restores recorded promise order without activating dormant namespaces: %s", dormant => {
+    const data = {
+      nested: { promise: createSandboxPromise(Promise.resolve(1)) },
+      sibling: createSandboxPromise(Promise.resolve(2))
+    };
+    const first = prepareReplayInputs(dormant ? inputs() : inputs({ data }), undefined, promise => promise!);
+    if (dormant) first.captureNamespace(createModuleNamespace({ data }), "fixture");
+    const prefix = dormant ? ["moduleNamespaces", "fixture", "data"] : ["bindings", "data"];
+    const order = [JSON.stringify([...prefix, "nested", "promise"]), JSON.stringify([...prefix, "sibling"])];
+    const prepare = vi.fn((ignoredPromise: SandboxPromise | undefined, ignoredId: string) => createSandboxPromise(Promise.resolve(7)));
+    const resumed = prepareReplayInputs(inputs(), structuredClone(first.snapshot), prepare,
+      undefined, undefined, undefined, order);
+    if (dormant) {
+      expect(prepare).not.toHaveBeenCalled();
+      resumed.prepareNamespace(createModuleNamespace({}), "fixture");
+    }
+    expect(prepare.mock.calls.map(call => call[1])).toEqual(order);
+  });
+
   it("does not observe dormant namespace promises until activation", () => {
     const pending = createSandboxPromise(Promise.resolve(7));
     const preparePromise = vi.fn(() => pending);

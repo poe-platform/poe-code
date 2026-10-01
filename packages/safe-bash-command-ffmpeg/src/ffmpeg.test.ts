@@ -410,3 +410,23 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
     assert.equal(xfDoc.tracks.find((t) => t.type === "video")!.samples.length, 36);
   });
 });
+
+it("negative maps match input, subtitle, absolute and typed stream indices in order", async () => {
+  const bytes = createSyntheticMp4({ width: 16, height: 16, fps: 5, frameCount: 5, includeAudio: true });
+  for (const [maps, expected] of [
+    [["0", "1", "-1:a"], ["video", "audio", "video"]],
+    [["0", "-0:1"], ["video"]],
+    [["0", "-0:a:0"], ["video"]],
+    [["0", "-0:a", "0:a"], ["video", "audio"]],
+    [["0", "1", "-1"], ["video", "audio"]]
+  ] as const) {
+    const vfs = createTestVfs({ "/a.mp4": bytes, "/b.mp4": bytes });
+    const result = await runCmd(createFfmpegCommand(), ["-i", "/a.mp4", "-i", "/b.mp4", ...maps.flatMap(m => ["-map", m]), "-c", "copy", "/out.mp4"], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks.map(t => t.type), expected);
+  }
+  const vfs = createTestVfs({ "/a.mp4": bytes, "/s.srt": "1\n00:00:00,000 --> 00:00:01,000\nHello\n" });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/s.srt", "-i", "/a.mp4", "-map", "0", "-map", "1", "-map", "-0:s", "-c", "copy", "/out.mp4"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks.map(t => t.type), ["video", "audio"]);
+});

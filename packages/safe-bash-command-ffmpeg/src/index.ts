@@ -2534,46 +2534,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (cleanedComplex) vfFilters.push(cleanedComplex);
           }
         } else if (maps.length > 0) {
-          const selectedTracks: MediaTrack[] = [];
-          const excludedTrackKeys = new Set<string>();
-
-          for (const m of maps) {
-            if (m.startsWith("-")) {
-              excludedTrackKeys.add(m.slice(1).replace(/\?$/, ""));
-              continue;
-            }
-            const clean = m.replace(/\?$/, "");
+          let selectedTracks: { input: number; track: MediaTrack }[] = [];
+          for (const map of maps) {
+            const exclude = map.startsWith("-");
+            let clean = exclude ? map.slice(1) : map;
+            if (clean.endsWith("?")) clean = clean.slice(0, -1);
             if (clean.startsWith("[")) continue;
-            const parts = clean.split(":");
-            const inputIdx = parseInt(parts[0] ?? "0", 10) || 0;
+            const [input, selector, ordinal] = clean.split(":");
+            const inputIdx = Number(input);
             const srcDoc = loadedDocs[inputIdx];
             if (!srcDoc) continue;
-
-            if (parts.length === 1) {
-              for (let tIdx = 0; tIdx < srcDoc.tracks.length; tIdx++) {
-                selectedTracks.push(srcDoc.tracks[tIdx]!);
-              }
-            } else if (parts[1] === "v" || parts[1] === "a" || parts[1] === "s") {
-              const wantType =
-                parts[1] === "v" ? "video" : parts[1] === "a" ? "audio" : "subtitle";
-              const typeMatches = srcDoc.tracks.filter((t) => t.type === wantType);
-              if (parts[2] !== undefined) {
-                const ord = parseInt(parts[2], 10) || 0;
-                if (typeMatches[ord]) selectedTracks.push(typeMatches[ord]!);
-              } else {
-                selectedTracks.push(...typeMatches);
-              }
-            } else if (/^\d+$/.test(parts[1]!)) {
-              const tIdx = parseInt(parts[1]!, 10);
-              if (srcDoc.tracks[tIdx]) selectedTracks.push(srcDoc.tracks[tIdx]!);
+            const type = selector === "v" ? "video" : selector === "a" ? "audio" : selector === "s" ? "subtitle" : undefined;
+            let matches = type ? srcDoc.tracks.filter(t => t.type === type) : srcDoc.tracks;
+            const index = type ? ordinal : selector;
+            if (index !== undefined) matches = matches.filter((_, i) => i === Number(index));
+            if (exclude) {
+              selectedTracks = selectedTracks.filter(entry => entry.input !== inputIdx || !matches.includes(entry.track));
+            } else {
+              selectedTracks.push(...matches.map(track => ({ input: inputIdx, track })));
             }
           }
-
-          const filteredTracks = selectedTracks.filter((t) => {
-            if (excludedTrackKeys.has("0:a") && t.type === "audio") return false;
-            if (excludedTrackKeys.has("0:v") && t.type === "video") return false;
-            return true;
-          });
+          const filteredTracks = selectedTracks.map(entry => entry.track);
 
           workingDoc = await muxMp4Cooperatively(
             [{ ...loadedDocs[0]!, tracks: filteredTracks }],

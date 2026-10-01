@@ -26,4 +26,6 @@ implement the listed AST capabilities, not every native FFmpeg codec or option.
 - **Filtergraphs & Frame Extraction**: Supports `scale`, `crop`, `pad`, `fps`, `hflip`, `vflip`, `transpose`, `negate`, `drawbox`, `overlay`, `hstack`, `vstack`, and `%03d.png` image sequences with independent input/output `-start_number` values and no default frame ceiling.
 - **Consumer-Defined Limits**: Imposes no default limits while offering `cloudflareWorkerLimits()` and opt-in/opt-out feature controls (`features: { videoTranscode, filterGraph, lavfiSources }`).
 
+Negative `-map` selections remove previously selected streams by input, type, or stream index, and later positive maps can select them again.
+
 Explicit `-hls_segment_filename` paths resolve from the working directory; default segments are written beside the playlist. Missing HLS parent directories are created. `-n` preserves an existing output and exits with status 1.

@@ -16,6 +16,11 @@
       "workerd": "./platform/browser-path.js",
       "browser": "./platform/browser-path.js",
       "default": "./platform/node-path.js"
+    },
+    "#safe-fs-s3-request": {
+      "workerd": "./fs/s3/http/request-fetch.js",
+      "browser": "./fs/s3/http/request-fetch.js",
+      "default": "./fs/s3/http/request-node.js"
     }
   }
 }

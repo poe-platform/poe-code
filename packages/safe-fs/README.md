@@ -44,7 +44,7 @@ To create new outputs with Safe Bash's `dos2unix`, `unix2dos`, or compression co
 | `@poe-platform/safe-fs` | Full Node API; selects the portable core under the `browser` and `workerd` conditions. |
 | `@poe-platform/safe-fs/core` | Memory, mounts, overlays, read-only, WebDAV, portable bridges, types, and errors. Bundle with the `browser` condition for browsers and Workers. |
 | `@poe-platform/safe-fs/node` | Host filesystem, Node bridge, S3, and configuration helpers; unavailable in browsers. |
-| `@poe-platform/safe-fs/fs/*` | Individual adapters: `memory`, `readonly`, `mount`, `overlay`, `webdav`, `real`, `s3`, and `s3/http`. S3 and its mock accept an injected transport in browsers and Workers; `s3/http` is Node-only. |
+| `@poe-platform/safe-fs/fs/*` | Individual adapters: `memory`, `readonly`, `mount`, `overlay`, `webdav`, `real`, `s3`, and `s3/http`. S3, its mock, and the signed `s3/http` transport work in browsers and Workers. |
 
 ```ts
 import { createMemoryFileSystem, FsError, type FileSystem } from "@poe-platform/safe-fs/core";
@@ -340,7 +340,7 @@ Each batch lists from the beginning because previous keys have been deleted; it 
 | `enableCopy` | `true`; disabling uses a buffered GET/PUT fallback |
 | `verifiedConditionalOperations` | Optional `put`, `copy`, `delete` booleans, each defaulting to false; enable only after verifying the server's semantics |
 | `clock` | Current date/time function, used for signing |
-| `request` | Optional Node HTTP request factory; defaults to the built-in HTTP(S) client |
+| `request` | Optional Node HTTP request factory; Node defaults to HTTP(S), browsers and Workers use global fetch |
 
 </details>
 
@@ -376,7 +376,7 @@ See the [binding types](src/fs/webdav/webdav.ts) before implementing atomic dire
 - **A read-only view is not an immutable store.** Mount views serialize guest symlink, rename, and removal operations against active path operations. Finish or close read streams before awaiting these namespace changes. Other references can still change the backing filesystem; this coordination applies only to operations through the same mount view. Overlay reads require retained handles and stable object and ancestor identities; unsupported backends or changed read admission fail with `ENOTSUP`. Overlays with two stock MemoryFileSystem layers support race-safe patch publication, conditional file writes/removal, no-replace rename, and confined directory creation/removal and file writes. Compression file output, `mv -n`, `sed -i`, and ssconvert work with these layers. Upper-file writes retain file identity; lower-file writes copy up without changing lower bytes. Publication checks both layers, retains logical directory identity across copy-up, and leaves lower bytes intact; wrapped or customized layers remain unsupported. Overlays are not transactions; cancellation and cleanup do not guarantee rollback. Cross-mount rename can fail with `EXDEV`.
 - **Remote storage is not a POSIX disk.** S3 and WebDAV do not provide hardlinks or symlinks. S3 rename is non-atomic and may leave partial copies/deletions; `S3RenameError` reports the phase and affected keys. Strong empty-only removal and conditional writes depend on backend support, not a prior listing.
 - **The bridges are partial Node compatibility layers.** No synchronous/callback API, file handles, watchers, bigint stats, flush/retry support, or `cp` dereference/timestamp-preservation options. Missing optional operations fail rather than being approximated with destructive alternatives.
-- **Browser support is filesystem-only.** The `browser` and `workerd` export conditions select the portable surface: memory, mounts, overlays, read-only, WebDAV, and the codec-based bridge. S3 is available through `fs/s3` with an explicit transport, including its portable mock. Real storage, the Node bridge, and the configuration registry are not browser exports. WebDAV still needs server CORS support; no OPFS or directory-handle adapter is included. This does not make the SafeJS runtime browser-compatible.
+- **Browser support is filesystem-only.** The `browser` and `workerd` export conditions select the portable surface: memory, mounts, overlays, read-only, WebDAV, and the codec-based bridge. S3 is available through `fs/s3` with an explicit transport, including its portable mock and `fs/s3/http`. The HTTP transport uses fetch in browsers and Workers and requires server CORS support in browsers. Fetch rejects keys containing dot segments that the URL parser would normalize, and never follows redirects. Node request factories are only supported in Node. Real storage, the Node bridge, and the configuration registry are not browser exports. WebDAV still needs server CORS support; no OPFS or directory-handle adapter is included. This does not make the SafeJS runtime browser-compatible.
 - **Portable temporary names require secure randomness.** Browser overlay staging and portable bridge `mkdtemp` require `crypto.randomUUID` or `crypto.getRandomValues`; without either, they fail with `ENOTSUP` rather than use `Math.random`.
 - **Allocation and identity may be unknown.** Optional `FileStat.allocatedBytes` is provider-reported allocation, not logical length or reclaimable space. Do not infer identity from size, timestamps, or inode numbers across unrelated backends.
 

@@ -1,4 +1,6 @@
-import { createHash, createHmac } from "node:crypto";
+import { sha256 as hash } from "@noble/hashes/sha2.js";
+import { hmac } from "@noble/hashes/hmac.js";
+import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils.js";
 import { S3ServiceError } from "../transport.js";
 import type { S3HttpCredentials } from "./types.js";
 
@@ -24,7 +26,7 @@ export function canonicalQuery(entries: readonly (readonly [string, string])[]):
 }
 
 export function sha256(bytes: Uint8Array | string): string {
-  return createHash("sha256").update(bytes).digest("hex");
+  return bytesToHex(hash(typeof bytes === "string" ? utf8ToBytes(bytes) : bytes));
 }
 
 export function headerValue(value: string): string {
@@ -71,9 +73,9 @@ export function signRequest(input: {
     names.map(name => `${name}:${headers[name]}\n`).join(""), signedHeaders, payloadHash].join("\n");
   const scope = `${date}/${input.region}/s3/aws4_request`;
   const stringToSign = ["AWS4-HMAC-SHA256", timestamp, scope, sha256(canonicalRequest)].join("\n");
-  let key = createHmac("sha256", `AWS4${credentials.secretAccessKey}`).update(date).digest();
-  for (const part of [input.region, "s3", "aws4_request"]) key = createHmac("sha256", key).update(part).digest();
-  const signature = createHmac("sha256", key).update(stringToSign).digest("hex");
+  let key = hmac(hash, utf8ToBytes(`AWS4${credentials.secretAccessKey}`), utf8ToBytes(date));
+  for (const part of [input.region, "s3", "aws4_request"]) key = hmac(hash, key, utf8ToBytes(part));
+  const signature = bytesToHex(hmac(hash, key, utf8ToBytes(stringToSign)));
   headers.authorization = `AWS4-HMAC-SHA256 Credential=${credentials.accessKeyId}/${scope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
   if (Object.entries(headers).reduce((size, [name, value]) => size + name.length + value.length + 4, 0) > 16 * 1024) invalid("request headers exceed 16 KiB");
   return { headers, canonicalRequest, signature };

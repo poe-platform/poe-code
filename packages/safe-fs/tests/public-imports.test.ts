@@ -17,14 +17,14 @@ const manifest: { dependencies?: Record<string, string> } = JSON.parse(
 );
 
 describe("public package boundary", () => {
-  it("is a private ESM extraction using the shared XML parser", () => {
+  it("is a private ESM extraction using shared portable XML and signing libraries", () => {
     expect(manifest).toMatchObject({
       name: "@poe-code/safe-fs",
       version: "0.0.0-dev",
       private: true,
       type: "module"
     });
-    expect(Object.keys(manifest.dependencies ?? {})).toEqual(["@poe-code/xml-ast"]);
+    expect(Object.keys(manifest.dependencies ?? {})).toEqual(["@poe-code/xml-ast", "@noble/hashes"]);
   });
 
   it.each([

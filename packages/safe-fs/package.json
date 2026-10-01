@@ -26,6 +26,12 @@
       "workerd": "./dist/platform/browser-path.js",
       "browser": "./dist/platform/browser-path.js",
       "default": "./dist/platform/node-path.js"
+    },
+    "#safe-fs-s3-request": {
+      "types": "./src/fs/s3/http/request-node.ts",
+      "workerd": "./dist/fs/s3/http/request-fetch.js",
+      "browser": "./dist/fs/s3/http/request-fetch.js",
+      "default": "./dist/fs/s3/http/request-node.js"
     }
   },
   "exports": {
@@ -145,7 +151,8 @@
     "directory": "packages/safe-fs"
   },
   "dependencies": {
-    "@poe-code/xml-ast": "0.0.1"
+    "@poe-code/xml-ast": "0.0.1",
+    "@noble/hashes": "2.4.0"
   },
   "license": "MIT"
 }

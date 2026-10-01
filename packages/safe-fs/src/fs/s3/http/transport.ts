@@ -1,6 +1,4 @@
 import { concatBytes } from "./bytes.js";
-import type { IncomingMessage } from "node:http";
-import { isIP } from "node:net";
 import { S3ServiceError } from "../transport.js";
 import type { S3CopyInput, S3CopyOutput, S3HeadOutput, S3ListOutput, S3ObjectInput, S3RequestOptions, S3StreamGetInput, S3StreamGetOutput, S3Transport } from "../transport.js";
 import { abortable, collect, limitedBody, scopeFor, sendRequest } from "./request.js";
@@ -37,9 +35,14 @@ function boolean(value: boolean | undefined, fallback: boolean, name: string): b
   return value ?? fallback;
 }
 
+function isIPv4(value: string): boolean {
+  const parts = value.split(".");
+  return parts.length === 4 && parts.every(part => String(Number(part)) === part && Number(part) >= 0 && Number(part) <= 255);
+}
+
 function bucketName(bucket: string): void {
   if (typeof bucket !== "string" || !/^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$/.test(bucket)
-    || bucket.includes("..") || bucket.includes(".-") || bucket.includes("-.") || isIP(bucket)) invalid("expected a standard S3 bucket name");
+    || bucket.includes("..") || bucket.includes(".-") || bucket.includes("-.") || isIPv4(bucket)) invalid("expected a standard S3 bucket name");
 }
 
 function objectKey(key: string): void {
@@ -47,13 +50,13 @@ function objectKey(key: string): void {
   uriEncode(key);
 }
 
-function header(message: IncomingMessage, name: string): string | undefined {
+function header(message: WireResponse["message"], name: string): string | undefined {
   const values = message.headersDistinct[name];
   if (values && values.length !== 1) malformed(`duplicate ${name} header`);
   return values?.[0];
 }
 
-function head(message: IncomingMessage): S3HeadOutput {
+function head(message: WireResponse["message"]): S3HeadOutput {
   const length = header(message, "content-length");
   const modified = header(message, "last-modified");
   const etag = header(message, "etag");
@@ -124,7 +127,7 @@ function rangeHeader(value: string | undefined): string | undefined {
   return value;
 }
 
-function checkRange(message: IncomingMessage, range: string | undefined, metadata: S3HeadOutput): number | undefined {
+function checkRange(message: WireResponse["message"], range: string | undefined, metadata: S3HeadOutput): number | undefined {
   if (!range) { if (message.statusCode !== 200) malformed("unexpected GET status"); return metadata.ContentLength; }
   if (message.statusCode !== 206) malformed("provider ignored byte range");
   const match = /^bytes ([0-9]+)-([0-9]+)\/([0-9]+)$/.exec(header(message, "content-range") ?? "");
@@ -153,7 +156,7 @@ export function createS3HttpTransport(options: S3HttpTransportOptions): S3Transp
   if (addressing !== "path" && addressing !== "virtual-hosted") invalid("unsupported addressing style");
   const listEncoding = options.listUrlEncoding ?? "percent";
   if (listEncoding !== "percent" && listEncoding !== "form") invalid("unsupported LIST URL encoding");
-  if (addressing === "virtual-hosted" && (isIP(endpoint.hostname.replace(/^\[|\]$/g, "")) || endpoint.hostname === "localhost")) invalid("virtual-hosted addressing requires a DNS endpoint");
+  if (addressing === "virtual-hosted" && (endpoint.hostname.includes(":") || isIPv4(endpoint.hostname) || endpoint.hostname === "localhost")) invalid("virtual-hosted addressing requires a DNS endpoint");
   const maxPut = limit(options.maxPutBytes, Infinity, "maxPutBytes");
   const maxGet = limit(options.maxGetBytes, Infinity, "maxGetBytes");
   const maxXml = limit(options.maxXmlBytes, Infinity, "maxXmlBytes");

@@ -5,6 +5,24 @@ import { installPythonLlmModule } from '../../src/commands/python/llm-module.js'
 
 const snippet = `
 import llm
+class BinaryEmbedding(llm.EmbeddingModel):
+ model_id = "binary-custom"
+ supports_text = False
+ supports_binary = True
+ batch_size = 2
+ def embed_batch(self, items):
+  for item in items:
+   yield [float(len(item))]
+binary_custom = BinaryEmbedding()
+assert str(binary_custom) == "BinaryEmbedding: binary-custom"
+assert repr(binary_custom) == "<BinaryEmbedding: binary-custom>"
+assert binary_custom.embed(b"abc") == [3.0]
+assert list(binary_custom.embed_multi([b"a", b"bc", b"def"])) == [[1.0], [2.0], [3.0]]
+try:
+ binary_custom.embed("text")
+ raise AssertionError("binary-only custom model accepted text")
+except ValueError as error:
+ assert str(error) == "This model does not support text strings, only binary data"
 custom_calls = []
 class CustomModel(llm.Model):
  model_id = "custom"

@@ -79,6 +79,9 @@ a class attribute, and implement execute(prompt, stream, response, conversation)
 Synchronous implementations yield text; asynchronous implementations use an async
 generator. Responses remain lazy, replay completed text, retain conversation
 history, and close custom generators on cancellation or explicit early closure.
+Embedding customizations can subclass llm.EmbeddingModel, set model_id,
+supports_text and supports_binary, and implement embed_batch(items). The inherited
+embed and embed_multi methods enforce those input capabilities and batch sizes.
 Calling a discovered model from a custom workflow continues to use the shared
 JavaScript provider service.
 

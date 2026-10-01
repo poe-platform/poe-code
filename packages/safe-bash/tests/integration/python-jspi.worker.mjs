@@ -330,6 +330,14 @@ assert conversation.responses == []
 assert first_response.text() == 'reference-first'
 assert conversation.prompt('reference-second').text() == 'reference-second'
 assert len(conversation.responses) == 2
+class CustomBinaryEmbedding(llm.EmbeddingModel):
+ model_id = 'custom-binary'
+ supports_text = False
+ supports_binary = True
+ def embed_batch(self, items):
+  for item in items:
+   yield [float(len(item))]
+assert CustomBinaryEmbedding().embed(b'abc') == [3.0]
 embedding_model = llm.get_embedding_model('fake')
 assert embedding_model.embed('ordinary') == [1.0, 2.0]
 assert list(embedding_model.embed_multi(iter(['one', 'two', 'three']), batch_size=2)) == [[1.0, 2.0]] * 3

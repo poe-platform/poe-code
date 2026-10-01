@@ -626,12 +626,21 @@ class EmbeddingModel:
     batch_size = None
     key = None
 
-    def __init__(self, model_id):
-        self.model_id = model_id
+    def __init__(self, model_id=None):
+        if model_id is not None:
+            self.model_id = model_id
+
+    def __str__(self):
+        return self.__class__.__name__ + ": " + self.model_id
+
+    def __repr__(self):
+        return "<" + str(self) + ">"
 
     def _check(self, item):
-        if isinstance(item, bytes):
+        if not self.supports_binary and isinstance(item, bytes):
             raise ValueError("This model does not support binary data, only text strings")
+        if not self.supports_text and isinstance(item, str):
+            raise ValueError("This model does not support text strings, only binary data")
 
     def embed_batch(self, items):
         async def embed():

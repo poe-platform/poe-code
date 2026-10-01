@@ -42,7 +42,7 @@ if (JSON.stringify(commandNames) !== JSON.stringify(expectedAgentCommandNames)) 
   throw new Error(`Default browser command inventory differs: ${JSON.stringify(commandNames)}`);
 }
 const declaredCommands = [
-  "[", "basename", "cat", "cmp", "cp", "csplit", "cut", "dirname", "echo", "false", "fd", "fmt", "grep", "head", "ln", "ls",
+  "[", "basename", "cat", "cmp", "cp", "csplit", "cut", "dirname", "echo", "false", "fd", "fmt", "grep", "head", "install", "ln", "ls",
   "mkdir", "mv", "numfmt", "printf", "pwd", "readlink", "realpath", "rg", "rm", "rmdir", "sed", "shuf", "sort",
   "tail", "tee", "test", "touch", "tr", "true", "truncate", "uniq", "wc",
 ];

@@ -3,6 +3,7 @@ use napi::{Env, Error, bindgen_prelude::*};
 use napi_derive::napi;
 use toolcraft_schema_rust::{CompileOptions, CompiledSchema, FormatValidator, ValidationOptions};
 
+pub mod dsl;
 pub mod host_values;
 pub mod validate;
 

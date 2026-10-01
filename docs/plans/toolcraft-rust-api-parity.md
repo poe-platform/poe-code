@@ -126,21 +126,31 @@ The schema dependency now has native `cloneDefaultValue` and `isJsonValue`
 traversals with host identity, descriptor and enumeration operations. Differential
 coverage checks cycles, aliasing, sparse slots, prototype/serialization guards,
 budgets, getter/proxy order, deep graphs and arbitrary thrown values. The original
-default-isolation and JSON-safety suites run with these native utilities injected
-into the JavaScript builders and validator.
+default-isolation and JSON-safety suites run against the native public entry point.
 DSL validation now also has a Rust continuation engine for every descriptor kind,
 default mode, union branch policy and diagnostic path. JSON constraint comparison
 uses iterative native traversal, preserving caller-supplied array methods and
-callback results. Original top-level schema suites run with the native validator
-and graph utilities through the remaining JavaScript builders, conversion and
-Standard Schema adapters. The reference harness supplies the original bundle's
-private native-schema symbol; runtime code never imports the reference package.
+callback results. Original top-level schema suites run with the native validator,
+builders, conversion and Standard Schema adapters. Runtime code never imports
+the reference package.
 Differential checks include getter order, missing/undefined, resource defaults,
 native callback issues, reentrancy, iterator closing, cycles and deep/wide inputs.
 The portable 16,384-depth recursion guard preserves RangeError classification but
 does not reproduce engine-specific stack-exhaustion thresholds; qualify that
-resource boundary before a swap. Builders, adapters, conversion, standalone
-contract declarations and the compiler's known gaps still require completion.
+resource boundary before a swap.
+
+Descriptor construction and JSON Schema conversion now have Rust policy engines.
+The Node adapters retain spread/assignment behavior, symbol identity, getters,
+custom array methods and Standard Schema closures. Differential checks cover
+constructor diagnostics, required-key set collisions, sparse branch arrays,
+custom map results, option enumeration, native documents, exception identity and
+cyclic/deep conversion. Synchronous union-map conversion callbacks have a separate
+128-entry reentrancy guard, also requiring resource-boundary qualification.
+All 18 selected original top-level schema suites run through the native public
+entry point. The compiler-internal suites and property projection remain pending.
+Schema declarations are standalone, and all six original compile-check fixtures
+resolve to the built native declarations with a guard against fallback imports.
+Installed-tarball and complete compiler compatibility gates remain open.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

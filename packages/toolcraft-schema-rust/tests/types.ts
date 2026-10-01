@@ -5,9 +5,11 @@ import {
   cloneDefaultValue,
   isJsonValue,
   validate,
+  S,
   type CompiledJsonSchema
 } from "../src/index.js";
-import { S } from "toolcraft-schema";
+const compatibleCompiler: typeof import("toolcraft-schema").compileJsonSchema = compileJsonSchema;
+void compatibleCompiler;
 const compatibleValidate: typeof import("toolcraft-schema").validate = validate;
 const validated = validate(S.Object({ message: S.String(), count: S.Optional(S.Number()) }), {});
 if (validated.ok) {
@@ -39,6 +41,9 @@ void compatibleClone;
 void compatibleJson;
 const result = schema.validate(input);
 if (result.ok) {
+  const value: unknown = result.value;
+  void value;
+  // @ts-expect-error The JSON Schema compiler does not infer the input's type.
   const message: string = result.value.message;
   void message;
 } else {

@@ -1,6 +1,6 @@
 # toolcraft-schema-rust
 
-Validate JSON with an independent Rust schema compiler and native Node bindings.
+Build typed schemas and validate values with Rust policies and native Node bindings.
 The addon ships inside the package with zero external npm runtime dependencies.
 The reusable core depends only on the standard library and our JSON primitives.
 This private package is an additive implementation checkpoint.
@@ -18,6 +18,8 @@ This private package is an additive implementation checkpoint.
 | Diagnostics      | Structured issue paths, messages, keywords and formatted summaries                                              |
 | Host values      | JSON admission with node/depth budgets; default cloning with cycles, sparse arrays and resource identity        |
 | DSL validation   | Every descriptor kind, default modes, union selection, host callbacks and structured diagnostics                 |
+| Builders         | All `S` constructors, tagged and untagged unions, records, JSON constraints and constructor diagnostics         |
+| Interoperability | JSON Schema conversion/documents, Standard Schema input/output adapters and native document overrides         |
 
 ```ts
 import { compileJsonSchema, formatIssues } from "toolcraft-schema-rust";
@@ -64,6 +66,21 @@ descriptors from hanging and throws `RangeError`; its threshold is intentionally
 independent of a JavaScript engine's stack size. Matching engine-specific resource
 exhaustion behavior remains a replacement qualification item.
 
+Use `S.String()`, `S.Object()`, `S.Array()` and the other existing constructors to
+build descriptors. `toJsonSchema(schema, { io: "output" })` accounts for parsed
+defaults, while `toJsonSchemaDocument(schema, { id, title })` adds document metadata.
+Each builder exposes a nonenumerable `~standard` adapter for Standard Schema
+validation and draft-7/2020-12 JSON Schema generation. `withJsonSchema(projection,
+document)` attaches a snapshotted native document and validator to a descriptor.
+The standalone TypeScript declarations preserve input/output inference without
+requiring the original JavaScript package.
+
+Conversion preserves option getters, symbol properties, custom branch-array
+methods and thrown-value identity. Ordinary traversal uses an iterative Rust
+stack with the same 16,384-depth guard. Synchronous branch-map callbacks use a
+separate 128-entry reentrancy guard. Both guards throw `RangeError`; their resource
+thresholds still need qualification against the JavaScript implementation.
+
 The default dialect is 2020-12. Declare draft 7 with `$schema` when needed.
 Equality retains the existing compiler's signed-zero behavior. Diagnostic paths
 support lone surrogates even where the TypeScript compiler's URI scanner throws.
@@ -93,9 +110,8 @@ Native callbacks are borrowed only for a synchronous evaluation and are isolated
 between worker environments. Rust callers inject validators through `ValidationOptions`.
 
 Full schema compatibility is still in progress.
-The fluent builders, Standard Schema adapters, JSON Schema conversion and compiler
-support for arbitrary non-JSON host values remain pending. Validator declarations
-currently reuse the original schema contract types. Known
+Property projection and compiler support for arbitrary non-JSON host values
+remain pending. Known
 unfinished constraints fail at compilation rather than being silently ignored;
 unregistered `format` remains an annotation. Current ingress requires JSON values.
 Keep existing applications on `toolcraft-schema` until the full conformance gates

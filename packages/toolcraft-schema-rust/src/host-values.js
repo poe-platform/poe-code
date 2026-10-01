@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+import { compileJsonSchema } from "./compiler.js";
 
 const native = createRequire(import.meta.url)("./toolcraft-schema-rust.node");
 export const nativeJsonSchema = Symbol("toolcraft.nativeJsonSchema");
@@ -7,6 +8,45 @@ const arrayEvery = Array.prototype.every;
 // ECMAScript operations that may execute caller code stay in the caller realm.
 // Validation decisions, traversal, defaults and diagnostics are owned by Rust.
 const dslOperations = {
+  error: (message) => {
+    throw new Error(message);
+  },
+  null: () => null,
+  spread: (base, extra) => ({ ...base, ...extra }),
+  spreadWithKey: (base, key, value) => ({ ...base, [key]: value }),
+  assign: (target, key, value) => {
+    target[key] = value;
+  },
+  delete: (target, key) => delete target[key],
+  setSize: (values) => new Set(values).size,
+  appendUnique: (values, value) => [...new Set([...values, value])],
+  copyArray: (values) => [...values],
+  push: (values, value) => values.push(value),
+  first: (values) => {
+    const [first] = values;
+    return first;
+  },
+  someInvalidEnum: (values, integer) =>
+    values.some((value) => invoke(native.invalidEnumValue, value, integer)),
+  everyEnumType: (values, kind) =>
+    values.every((value) => invoke(native.enumTypeMatches, value, kind)),
+  branchFingerprints: (branches) => {
+    const records = [];
+    branches.forEach((branch, index) => records.push([invoke(native.requiredKeys, branch), index]));
+    return records;
+  },
+  mapBranchSchemas: (branches, options) =>
+    branches.map((branch) =>
+      conversion(native.branchJsonSchema, branch, options, nativeJsonSchema)
+    ),
+  documentOptions: (options) => {
+    const { id, schema = "https://json-schema.org/draft/2020-12/schema", ...metadata } = options;
+    return [id, schema, metadata];
+  },
+  structuredClone: (value) => structuredClone(value),
+  validateDescriptor: (schema, value) => validate(schema, value),
+  standardize: withStandardSchema,
+  compileSchema: compileJsonSchema,
   isTrue: (value) => Number(value === true),
   truthy: (value) => Number(Boolean(value)),
   stringify: String,
@@ -189,3 +229,92 @@ export const validate = createValidator(nativeJsonSchema);
 export function isPlainRecord(value) {
   return invoke(native.isPlainRecord, value);
 }
+
+// Most conversion uses a flat native stack. A caller's custom Array.map method
+// must still receive a synchronous callback, so bound that reentrant boundary.
+let conversionDepth = 0;
+function conversion(operation, value, ...args) {
+  if (conversionDepth >= 128) throw new RangeError("Maximum call stack size exceeded");
+  conversionDepth++;
+  try {
+    return invoke(operation, value, ...args);
+  } finally {
+    conversionDepth--;
+  }
+}
+
+export function withStandardSchema(schema) {
+  Object.defineProperty(schema, "~standard", {
+    configurable: true,
+    get() {
+      const descriptor = this;
+      return {
+        version: 1,
+        vendor: "toolcraft-schema",
+        validate(value) {
+          const result = validate(descriptor, value);
+          return result.ok ? { value: result.value } : { issues: result.issues };
+        },
+        jsonSchema: {
+          input: (options) =>
+            conversion(native.standardDocument, descriptor, "input", options, nativeJsonSchema),
+          output: (options) =>
+            conversion(native.standardDocument, descriptor, "output", options, nativeJsonSchema)
+        }
+      };
+    }
+  });
+  return schema;
+}
+
+export function Json(options = {}) {
+  return invoke(native.buildSchema, "json", options, undefined);
+}
+export function OneOf(config) {
+  return invoke(native.buildSchema, "oneOf", config, undefined);
+}
+export function Union(branches) {
+  return invoke(native.buildSchema, "union", branches, undefined);
+}
+export function Record(value) {
+  return invoke(native.buildSchema, "record", value, undefined);
+}
+
+export const S = {
+  String(options = {}) {
+    return invoke(native.buildSchema, "string", options, undefined);
+  },
+  Number(options = {}) {
+    return invoke(native.buildSchema, "number", options, undefined);
+  },
+  Boolean(options = {}) {
+    return invoke(native.buildSchema, "boolean", options, undefined);
+  },
+  Enum(values, options = {}) {
+    return invoke(native.buildSchema, "enum", values, options);
+  },
+  Array(item, options = {}) {
+    return invoke(native.buildSchema, "array", item, options);
+  },
+  Object(shape, options = {}) {
+    return invoke(native.buildSchema, "object", shape, options);
+  },
+  Optional(inner) {
+    return invoke(native.buildSchema, "optional", inner, undefined);
+  },
+  OneOf,
+  Union,
+  Record,
+  Json
+};
+
+export function toJsonSchema(schema, options = {}) {
+  return conversion(native.toJsonSchema, schema, options, nativeJsonSchema);
+}
+export function toJsonSchemaDocument(schema, options = {}) {
+  return conversion(native.toJsonSchemaDocument, schema, options, nativeJsonSchema);
+}
+export function withJsonSchema(projection, document) {
+  return invoke(native.withJsonSchema, projection, document, nativeJsonSchema);
+}
+export const { unicodeLength } = native;

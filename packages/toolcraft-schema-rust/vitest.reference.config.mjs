@@ -9,12 +9,13 @@ export default defineConfig({
       name: "schema-rust-host-values",
       enforce: "pre",
       resolveId(name, importer) {
-        if (name === "toolcraft-schema") return path("../toolcraft-schema/src/index.ts");
+        if (name === "toolcraft-schema") return path("dist/index.js");
         if (!importer?.startsWith(path("../toolcraft-schema/src/"))) return;
+        if (name === "./index.js") return path("dist/index.js");
         if (name === "./validate.js" || name === "../validate.js")
-          return path("tests/validate-entry.mjs");
+          return path("dist/host-values.js");
         if (name === "./clone-default.js") return path("dist/host-values.js");
-        if (name === "./json.js") return path("tests/json-entry.mjs");
+        if (name === "./json.js") return path("dist/host-values.js");
       }
     }
   ],

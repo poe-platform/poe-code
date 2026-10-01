@@ -5,7 +5,7 @@ use std::collections::HashSet;
 
 // Iterative traversal must still terminate unbounded descriptor/value recursion.
 // Unlike a node budget, this guard does not reject large, shallow collections.
-const MAX_TRAVERSAL_DEPTH: usize = 16_384;
+pub(crate) const MAX_TRAVERSAL_DEPTH: usize = 16_384;
 
 pub trait Host: GraphHost {
     fn call(&mut self, operation: &str, args: Vec<Self::Value>)
@@ -17,34 +17,38 @@ pub trait Host: GraphHost {
     fn undefined(&mut self) -> Result<Self::Value, Self::Error>;
 }
 
-fn u(value: &str) -> Vec<u16> {
+pub(crate) fn u(value: &str) -> Vec<u16> {
     value.encode_utf16().collect()
 }
-fn join(values: &[Vec<u16>], separator: &str) -> Vec<u16> {
+pub(crate) fn join(values: &[Vec<u16>], separator: &str) -> Vec<u16> {
     values.join(&u(separator)[..])
 }
-fn cat(parts: &[&[u16]]) -> Vec<u16> {
+pub(crate) fn cat(parts: &[&[u16]]) -> Vec<u16> {
     parts.concat()
 }
-fn get<H: Host>(host: &mut H, value: H::Value, key: &str) -> Result<H::Value, H::Error> {
+pub(crate) fn get<H: Host>(host: &mut H, value: H::Value, key: &str) -> Result<H::Value, H::Error> {
     host.get(value, &u(key))
 }
-fn is<H: Host>(host: &mut H, value: H::Value, text: &str) -> Result<bool, H::Error> {
+pub(crate) fn is<H: Host>(host: &mut H, value: H::Value, text: &str) -> Result<bool, H::Error> {
     Ok(host.kind(value)? == Kind::String && host.string(value)? == u(text))
 }
-fn yes<H: Host>(host: &mut H, value: H::Value) -> Result<bool, H::Error> {
+pub(crate) fn yes<H: Host>(host: &mut H, value: H::Value) -> Result<bool, H::Error> {
     let result = host.call("isTrue", vec![value])?;
     Ok(host.number(result)? == 1.0)
 }
-fn truthy<H: Host>(host: &mut H, value: H::Value) -> Result<bool, H::Error> {
+pub(crate) fn truthy<H: Host>(host: &mut H, value: H::Value) -> Result<bool, H::Error> {
     let result = host.call("truthy", vec![value])?;
     Ok(host.number(result)? == 1.0)
 }
-fn text<H: Host>(host: &mut H, value: H::Value, template: bool) -> Result<Vec<u16>, H::Error> {
+pub(crate) fn text<H: Host>(
+    host: &mut H,
+    value: H::Value,
+    template: bool,
+) -> Result<Vec<u16>, H::Error> {
     let result = host.call(if template { "template" } else { "stringify" }, vec![value])?;
     host.string(result)
 }
-fn values<H: Host>(host: &mut H, array: H::Value) -> Result<Vec<H::Value>, H::Error> {
+pub(crate) fn values<H: Host>(host: &mut H, array: H::Value) -> Result<Vec<H::Value>, H::Error> {
     let length = get(host, array, "length")?;
     let length = host.number(length)? as usize;
     (0..length)
@@ -52,7 +56,10 @@ fn values<H: Host>(host: &mut H, array: H::Value) -> Result<Vec<H::Value>, H::Er
         .collect()
 }
 type Entries<V> = Vec<(Vec<u16>, V)>;
-fn entries<H: Host>(host: &mut H, value: H::Value) -> Result<Entries<H::Value>, H::Error> {
+pub(crate) fn entries<H: Host>(
+    host: &mut H,
+    value: H::Value,
+) -> Result<Entries<H::Value>, H::Error> {
     let array = host.call("entries", vec![value])?;
     values(host, array)?
         .into_iter()
@@ -62,7 +69,7 @@ fn entries<H: Host>(host: &mut H, value: H::Value) -> Result<Entries<H::Value>, 
         })
         .collect()
 }
-fn has<H: Host>(host: &mut H, value: H::Value, key: &[u16]) -> Result<bool, H::Error> {
+pub(crate) fn has<H: Host>(host: &mut H, value: H::Value, key: &[u16]) -> Result<bool, H::Error> {
     let key = host.make_string(key.to_vec())?;
     let result = host.call("hasOwn", vec![value, key])?;
     yes(host, result)
@@ -92,6 +99,10 @@ pub fn has_required_keys<H: Host>(
 }
 
 pub fn required_fingerprint<H: Host>(host: &mut H, schema: H::Value) -> Result<Vec<u16>, H::Error> {
+    Ok(join(&required_keys(host, schema)?, "+"))
+}
+
+pub fn required_keys<H: Host>(host: &mut H, schema: H::Value) -> Result<Vec<Vec<u16>>, H::Error> {
     let shape = get(host, schema, "shape")?;
     let mut required = Vec::new();
     for key in host.keys(shape)? {
@@ -103,7 +114,7 @@ pub fn required_fingerprint<H: Host>(host: &mut H, schema: H::Value) -> Result<V
         }
     }
     required.sort();
-    Ok(join(&required, "+"))
+    Ok(required)
 }
 
 pub fn deep_equal<H: Host>(

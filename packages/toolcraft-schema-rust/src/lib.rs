@@ -2,11 +2,13 @@ use mcp_protocol_rust::json::Value;
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 
+pub mod builders;
 mod compile;
 mod evaluate;
 pub mod host_values;
 pub mod nullability;
 mod pattern;
+pub mod schema_document;
 mod unicode_categories;
 mod uri;
 pub mod validate;

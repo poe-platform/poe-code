@@ -1,5 +1,5 @@
 import {expect, it} from "vitest";
-import {writeDocument} from "./engine.js";
+import {convert, writeDocument} from "./engine.js";
 import type {Attr, Block, Inline} from "./ast-types.js";
 import type {WriteOptions} from "./types.js";
 const a: Attr = ["", [], []];
@@ -120,4 +120,14 @@ it("preserves nested block quotes", async () => {
 });
 it("separates a definition list from a following block quote", async () => {
   expect(await rst([{t: "DefinitionList", c: [[[s("term")], [[p(s("meaning"))]]]]}, {t: "BlockQuote", c: [p(s("outside"))]}])).toMatchObject({text: "term\n   meaning\n\n..\n\n   outside\n"});
+});
+
+it("leaves ordinary prose punctuation readable", async () => {
+  expect(await rst([p(s("Paragraph text. Note: a-b + c #1!"))])).toMatchObject({text: "Paragraph text. Note: a-b + c #1!\n"});
+});
+it.each(["- item", "+ item", "1. item", "a. item", "#. item", ".. note:: literal", ":field: literal", "----", "!!!!", "+---+---+", "literal::"])("preserves literal RST block syntax: %s", async text => {
+  const output = await rst([p(s(text))]);
+  if(output.kind !== "text") throw new Error("Expected RST");
+  const plain = await convert([{bytes: new TextEncoder().encode(output.text)}], {from: "rst", to: "plain"}, {});
+  expect(plain).toMatchObject({text: text + "\n"});
 });

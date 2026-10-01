@@ -2,6 +2,7 @@ import { taskListState } from "./task-list.js";
 import type {Attr, Block, Inline} from "./ast-types.js";
 import {assertNever} from "./ast-types.js";
 import type {AdapterContext, Document, SerializedDocument} from "./types.js";
+import {adornment, field, listMarker} from "./rst-syntax.js";
 import {rstColumnWidth} from "./rst-column-width.js";
 import {PandocError} from "./errors.js";
 
@@ -43,7 +44,7 @@ class RstWriter {
     for(const ch of text) {
       this.context.checkpoint();
       if(ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127) this.fail("Control character in inline text", path);
-      out += !literal && "\\`*_|<>[]:.+-#!".includes(ch) ? `\\${ch}` : ch;
+      out += !literal && "\\`*_|<>[]".includes(ch) ? `\\${ch}` : ch;
     }
     return this.retain(out);
   }
@@ -160,7 +161,13 @@ class RstWriter {
       this.context.checkpoint(); const p = `${path}[${i}]`;
       let text: string;
       switch(node.t) {
-        case "Plain": case "Para": text = this.inlines(node.c, `${p}.c`); break;
+        case "Plain": case "Para": {
+          text = this.inlines(node.c, `${p}.c`);
+          // Escape block syntax only where it can be interpreted as structure.
+          if(listMarker(text) || field(text) || adornment(text) || text.startsWith("+-") && text.endsWith("+") || text === ".." || text.startsWith(".. ")) text = "\\" + text;
+          if(text.endsWith("::")) text = text.slice(0, -1) + "\\:";
+          break;
+        }
         case "Header": {
           const [level, attr, content] = node.c;
           if(level > 9) this.loss("Heading level projected to level nine", p);

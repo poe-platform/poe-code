@@ -57,6 +57,7 @@
   "dependencies": {
     "toolcraft-design-rust": "*",
     "toolcraft-schema-rust": "*",
-    "commander": "^13.1.0"
+    "commander": "^13.1.0",
+    "tiny-mcp-client-rust": "*"
   }
 }

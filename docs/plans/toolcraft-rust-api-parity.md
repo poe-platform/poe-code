@@ -321,6 +321,21 @@ declarations and lint. The converter remains internal, ready for native MCP prox
 discovery. MCP connection/cache lifecycle, SDK assembly/invocation, complete
 approval runtime and deep-graph resource qualification are still required.
 
+MCP proxy discovery now uses native policies for group collection, refresh/cache
+selection, cache shape validation, pagination limits, allowlists, renames,
+transactional group replacement, typed results, hot connection reuse and disposal.
+The Node adapter preserves filesystem/promise sequencing, abort listeners, symbol
+identity, host path/hash operations and error formatting. Upstream connections
+use `tiny-mcp-client-rust` as a direct runtime dependency. The 80 original proxy
+tests run through the native implementation; differential tests verify exact
+side effects, tree metadata, getter order, replacement, cancellation, disposal
+failures and inherited-setter handling. A native HTTP-client smoke test covers
+protocol discovery fallback, initialization, tools, calls and session termination
+with a mocked fetch transport. The checkpoint passes 1,493 reference/parity tests
+and 86 native Node tests, plus Rust, declarations and lint. Proxy support remains
+internal until public SDK assembly/invocation is ported. The full approval runtime,
+CLI/transports, standalone contracts and resource-limit qualification remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

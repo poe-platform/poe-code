@@ -27,6 +27,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | HTTP summaries   | REST/GraphQL errors, request IDs, retry hints and redacted error envelopes         |
 | Error reports    | Secret-aware rendering, cause chains, project discovery and confined report writes |
 | Schema conversion | JSON-schema projections, recursive references, composition and upstream metadata |
+| MCP proxies      | Cached discovery, tool renaming, hot native clients and explicit disposal         |
 | Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts
@@ -107,6 +108,9 @@ error constructor so help/version exceptions keep their original identity.
 JSON-schema conversion uses Rust for reference traversal, schema selection,
 composition, nullability and metadata rules. It retains the native schema engine
 for validation and preserves JavaScript property descriptors and default identity.
+MCP proxy policies run in Rust and connect through `tiny-mcp-client-rust`. Cached
+discovery preserves atomic writes, symlink checks and tree rollback. Node retains
+filesystem promises, abort signals and connection-promise identity.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The SDK, CLI, transports, approval runtime and

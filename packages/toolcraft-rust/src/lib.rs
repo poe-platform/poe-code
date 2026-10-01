@@ -7,6 +7,7 @@ pub mod definitions;
 pub mod error_report;
 pub mod host;
 pub mod json_schema_converter;
+pub mod mcp_proxy;
 pub mod package_metadata;
 pub mod redaction;
 pub mod runtime_policy;

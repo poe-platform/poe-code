@@ -20,10 +20,15 @@ export default defineConfig({
           if (resolved === path("../toolcraft/src/error-report.js")) return path("dist/error-report.js");
           if (resolved === path("../toolcraft/src/project-root.js")) return path("dist/project-root.js");
           if (resolved === path("../toolcraft/src/json-schema-converter.js")) return path("dist/json-schema-converter.js");
+          if (resolved === path("../toolcraft/src/mcp-proxy.js")) return path("dist/mcp-proxy.js");
           if (resolved === path("../toolcraft/src/human-in-loop/types.js")) return path("dist/approval-error.js");
         }
         if (importer?.startsWith(path("../toolcraft/src/")) && name === "toolcraft-schema")
           return path("../toolcraft-schema-rust/dist/index.js");
+        if (importer === path("../toolcraft/src/mcp-proxy.test.ts")) {
+          if (name === "tiny-mcp-client") return path("../tiny-mcp-client-rust/dist/index.js");
+          if (name === "toolcraft-design") return path("../toolcraft-design-rust/dist/index.js");
+        }
         if (
           ["clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "error-report"].some(
             (suite) => importer === path(`../toolcraft/src/${suite}.test.ts`)
@@ -69,10 +74,12 @@ export default defineConfig({
       path("tests/runtime-io-parity.test.ts"),
       path("tests/error-report-parity.test.ts"),
       path("tests/json-schema-converter-parity.test.ts"),
+      path("tests/mcp-proxy-parity.test.ts"),
       path("../toolcraft/src/runtime/io.test.ts"),
       path("../toolcraft/src/api-error-summary.test.ts"),
       path("../toolcraft/src/error-report.test.ts"),
       path("../toolcraft/src/json-schema-converter.test.ts"),
+      path("../toolcraft/src/mcp-proxy.test.ts"),
       ...[...suites, "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "sdk-validation", "sdk-runtime-options"].map((suite) =>
         path(`../toolcraft/src/${suite}.test.ts`)
       )

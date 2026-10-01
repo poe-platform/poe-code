@@ -5,6 +5,7 @@ import { Shell } from "../../src/shell/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { createTextProgramCommands } from "../../src/commands/text-programs/index.js";
+import { bashExecutable } from "../helpers/bash-oracle.js";
 
 function createShell(fs = createMemoryFileSystem()) {
   const shell = new Shell({ fs, env: { LC_ALL: "C" } });
@@ -84,7 +85,11 @@ for (const separator of ["", '-F" "']) test(`awk file substitution retains zero-
 });
 
 for (const source of cases) test(`fast-path Bash parity: ${source}`, async () => {
-  const bash = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" } });
+  // Bash 5.2's substitution length optimization miscounts an initial ] in a
+  // negated bracket. Its equivalent escaped spelling avoids that oracle bug.
+  // Keep the original source under test, including both ! and ^ spellings.
+  const oracleSource = source.replaceAll("[!]]/", "[!\\]]/").replaceAll("[^]]/", "[^\\]]/");
+  const bash = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", oracleSource], { encoding: "utf8", env: { PATH: "/usr/bin:/bin", LC_ALL: "C" } });
   assert.ifError(bash.error);
   const shell = createShell();
   try {

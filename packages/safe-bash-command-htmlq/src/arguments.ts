@@ -76,11 +76,8 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
             short && offset + 1 < option.length
               ? option.slice(offset + (option[offset + 1] === "=" ? 2 : 1))
               : undefined;
-          const separate = attached === undefined && remainder === undefined;
           const value = attached ?? remainder ?? argv[++i];
           if (value === undefined) throw new HtmlError("E_ARGUMENT", `Missing value for ${arg}`);
-          if (separate && value.startsWith("-") && value !== "-")
-            throw new HtmlError("E_ARGUMENT", `Missing value for ${arg}`);
           budget.bound("tokenBytes", value.length * 2);
           budget.charge("work", value.length);
           budget.charge("retainedBytes", value.length * 2);

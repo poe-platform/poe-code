@@ -45,8 +45,10 @@ test("source-only help and version use native flag order without consuming input
 test("help and version retain argument validation and literal value boundaries", async () => {
   for (const argv of [
     ["--help=true"], ["--version=true"], ["--unknown", "--help"],
-    ["-f", "--help"], ["-tt", "--help"]
+    ["-tt", "--help"]
   ]) await assert.rejects(run("", argv), { code: "E_ARGUMENT" });
+  assert.equal(parseHtmlqArguments(["-f", "--help"], options).filename, "--help");
+  assert.equal(parseHtmlqArguments(["-f", "-file.html"], options).filename, "-file.html");
   assert.equal(parseHtmlqArguments(["--", "-h"], options).selector, "-h");
   assert.equal(parseHtmlqArguments(["-a--help"], options).attributes[0], "--help");
   assert.equal(await run('<p --help="literal">X</p>', ["p", "-a--help"]), "literal\n");
@@ -288,7 +290,7 @@ test("informational byte SDK respects option boundaries and output limits", asyn
     assert.ok(text.startsWith("Like jq") || text.startsWith("htmlq 0.5.0"));
   }
   assert.equal(parseHtmlqArguments(["--", "--help"], options).selector, "--help");
-  for (const argv of [["-f", "--help"], ["--help=yes"], ["--version=yes"]])
+  for (const argv of [["--help=yes"], ["--version=yes"]])
     assert.throws(() => parseHtmlqArguments(argv, options), { code: "E_ARGUMENT" });
   await assert.rejects(async () => {
     for await (const bytes of htmlqBytes(source, ["--help"], {

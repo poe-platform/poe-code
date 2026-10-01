@@ -148,3 +148,7 @@ test("htmlq help advertises standard flag spellings and multiple selectors", asy
   assert.ok(help.includes("-w, --ignore-whitespace"));
   assert.ok(help.includes("-a, --attribute"));
 });
+
+test("accepts separate option values beginning with a dash", async () => {
+  assert.equal(await run('<p data-x="yes">ok</p>', ["p", "--attribute", "-missing"]), "");
+});

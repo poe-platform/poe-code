@@ -504,16 +504,8 @@ test("repeatable native attribute and removal options retain order across spelli
   assert.equal(cli.text(), "x\ny\n");
   assert.deepEqual(cli.output, sdk.output);
 });
-test("separate option values cannot swallow flags or the operand delimiter", async () => {
-  for (const argv of [["-f", "--unknown"], ["-a", "--text"], ["-r", "--"], ["--output", "-tx"]]) {
-    const cli = fixture(argv), sdk = fixture([]);
-    assert.equal((await createHtmlqCommand().execute(cli.context)).exitCode, 2);
-    assert.equal((await htmlq(sdk.context, { argv })).exitCode, 2);
-    assert.deepEqual(cli.errors, sdk.errors);
-    assert.equal(new TextDecoder().decode(cli.errors[0]), "htmlq: E_ARGUMENT\n");
-    assert.equal(cli.text(), "");
-  }
-  const cli = fixture(["p", "--filename=-input", "-t"]), sdk = fixture([]);
+test("separate dash-prefixed filenames work in CLI and SDK", async () => {
+  const cli = fixture(["p", "--filename", "-input", "-t"]), sdk = fixture([]);
   for (const f of [cli, sdk]) f.files.set("/vfs/-input", new TextEncoder().encode("<p>literal</p>"));
   assert.equal((await createHtmlqCommand().execute(cli.context)).exitCode, 0);
   assert.equal((await htmlq(sdk.context, { selector: "p", filename: "-input", text: true })).exitCode, 0);

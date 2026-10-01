@@ -1860,14 +1860,10 @@
       "import": "./dist/opt-in/entrypoints/read.js"
     },
     "./trap": {
-      "types": {
-        "workerd": "./dist/trap.browser.d.ts",
-        "browser": "./dist/trap.browser.d.ts",
-        "default": "./dist/opt-in/entrypoints/trap.d.ts"
-      },
-      "import": "./dist/opt-in/entrypoints/trap.js",
+      "types": "./dist/opt-in/entrypoints/trap.d.ts",
       "workerd": "./dist/trap.browser.js",
-      "browser": "./dist/trap.browser.js"
+      "browser": "./dist/trap.browser.js",
+      "import": "./dist/opt-in/entrypoints/trap.js"
     },
     "./playwright": {
       "types": "./dist/commands/playwright/index.d.ts",

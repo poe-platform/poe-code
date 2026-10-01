@@ -181,3 +181,25 @@ test("a delayed speculative match cannot resume a released pooled runner", async
     await new Promise<void>(resolve => setImmediate(resolve));
   }
 });
+for (const pattern of ["secret", "sec.*ret"]) {
+  test(`pooled matcher releases tenant pattern state: ${pattern}`, async context => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/dir");
+    await fs.writeFile("/dir/file", bytes("secret\n"));
+    const matchers = new Set<Matcher>();
+    const reset = Matcher.prototype.resetForRun;
+    context.mock.method(Matcher.prototype, "resetForRun", function(this: Matcher, ...args: Parameters<typeof reset>) {
+      if (args[4]) matchers.add(this);
+      return reset.apply(this, args);
+    });
+    const result = await run(createRgCommand(), fs, ["-c", pattern, "/dir"]);
+    assert.equal(result.stdout, "/dir/file:1\n");
+    assert.ok(matchers.size > 0, "pooled matcher was exercised");
+    for (const matcher of matchers) {
+      const state = matcher as unknown as { vm: unknown; descriptor: { patterns: readonly string[] } };
+      assert.equal(state.vm, undefined);
+      assert.deepEqual(state.descriptor.patterns, []);
+      assert.equal(matcher.literalAsciiBytes, undefined);
+    }
+  });
+}

@@ -30,8 +30,6 @@ function isSimpleRgLiteralChar(c: number): boolean {
   }
 }
 
-const sharedLiteralBuf = new Uint8Array(64);
-const sharedLiteralViews: Uint8Array[] = Array.from({ length: 65 }, (_, len) => sharedLiteralBuf.subarray(0, len));
 const DUMMY_LITERAL_DESCRIPTOR: SearchDescriptor = Object.freeze({
   kind: "rg",
   patterns: Object.freeze([]),
@@ -48,10 +46,10 @@ export class Matcher {
   private captureVm: ErgonomicVmMatcher | undefined;
   crossLine!: boolean;
   literalAsciiBytes: Uint8Array | undefined;
-  constructor(patterns: readonly string[], args: Arguments, private session: RegexSession, ergonomic = true, useSharedLiteralBuf = false) {
-    this.resetForRun(patterns, args, session, ergonomic, useSharedLiteralBuf);
+  constructor(patterns: readonly string[], args: Arguments, private session: RegexSession, ergonomic = true, literalOnly = false) {
+    this.resetForRun(patterns, args, session, ergonomic, literalOnly);
   }
-  resetForRun(patterns: readonly string[], args: Arguments, session: RegexSession, ergonomic = true, useSharedLiteralBuf = false): void {
+  resetForRun(patterns: readonly string[], args: Arguments, session: RegexSession, ergonomic = true, literalOnly = false): void {
     this.session = session;
     this.captureVm = undefined;
     if (patterns.length === 0) {
@@ -82,7 +80,7 @@ export class Matcher {
           }
         }
         if (ok) {
-          const bytes = useSharedLiteralBuf ? sharedLiteralViews[pat.length]! : new Uint8Array(pat.length);
+          const bytes = new Uint8Array(pat.length);
           for (let i = 0; i < pat.length; i++) bytes[i] = pat.charCodeAt(i);
           literalAscii = bytes;
         }
@@ -92,9 +90,16 @@ export class Matcher {
     if (literalAscii !== undefined) {
       this.vm = undefined;
       this.crossLine = false;
-      this.descriptor = useSharedLiteralBuf
+      this.descriptor = literalOnly
         ? DUMMY_LITERAL_DESCRIPTOR
         : { kind: "rg", patterns, fixed: true, case: "sensitive", whole: false, word: false, nullData: false };
+      return;
+    }
+    // Fast callers only consume ASCII literals; decline before compiling a regex.
+    if (literalOnly) {
+      this.vm = undefined;
+      this.crossLine = false;
+      this.descriptor = DUMMY_LITERAL_DESCRIPTOR;
       return;
     }
     const captures = args.replacement?.includes("$") ?? false;

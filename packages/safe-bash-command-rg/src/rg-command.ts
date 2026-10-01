@@ -551,7 +551,7 @@ class PooledRgFastRunner {
   readonly args = new ParsedArguments();
   readonly limits = new Limits(DUMMY_CONTEXT, {});
   readonly matcher = new Matcher(EMPTY_PATTERNS, this.args, DUMMY_SESSION, true, true);
-  readonly walker = new Walker(DUMMY_CONTEXT, this.args, this.limits, DUMMY_REPORT, DUMMY_SESSION);
+  walker: Walker | undefined;
   readonly printer = new Printer(this.args, this.limits);
   readonly totals: Stats = stats();
   context: CommandContext = DUMMY_CONTEXT;
@@ -565,9 +565,11 @@ class PooledRgFastRunner {
     this.limits.context = DUMMY_CONTEXT;
     (this.limits as unknown as { _signal: unknown; stopped: unknown })._signal = undefined;
     (this.limits as unknown as { _signal: unknown; stopped: unknown }).stopped = undefined;
-    for (let i = 0; i < this.args.patterns.length; i++) this.args.patterns[i] = "";
-    for (let i = 0; i < this.args.paths.length; i++) this.args.paths[i] = "";
-    (this.walker as unknown as { context: unknown }).context = DUMMY_CONTEXT;
+    this.args.patterns.length = 0;
+    this.args.paths.length = 0;
+    this.args.reset();
+    this.matcher.resetForRun(EMPTY_PATTERNS, this.args, DUMMY_SESSION, true, true);
+    this.walker = undefined;
     this.context = DUMMY_CONTEXT;
     this.fastReadBacking = undefined;
     this.inUse = false;
@@ -600,6 +602,7 @@ class PooledRgFastRunner {
       return false;
     } finally {
       target.memoryView = undefined;
+      target.sourceRef = undefined;
     }
   };
 }
@@ -675,7 +678,7 @@ function tryExecuteRgFastSync(
       if (runner.matcher.literalAsciiBytes === undefined) return undefined;
       if (!args.hasInfiniteMaxCount && args.maxCount === 0) return RESOLVED_EXIT_ONE;
     }
-    runner.walker.resetForRun(context, args, limits, DUMMY_REPORT, DUMMY_SESSION);
+    runner.walker = new Walker(context, args, limits, DUMMY_REPORT, DUMMY_SESSION);
     runner.printer.resetForRun(args, limits);
     const totals = runner.totals;
     totals.searches = 0;

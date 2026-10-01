@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { Matcher } from "./matcher.js";
 import { count, parse } from "./options.js";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import type { RegexSession } from "safe-bash-regex-engine/execution/portable";
@@ -67,3 +68,20 @@ test('walker awaits its entry checkpoint and preserves target paths across await
   assert.deepEqual(visited, ['/files/a', '/files/b']);
 });
 test("search counts reject invalid and unsafe values", () => { assert.equal(count("12", "-m"), 12); assert.throws(() => count("oops", "-m")); assert.throws(() => count("9007199254740992", "-m")); });
+
+test("literal-only matcher admission does not compile a fallback regex", () => {
+  const args = parse(["-c", "sec.*ret", "/dir"]);
+  const matcher = new Matcher(args.patterns, args, {} as RegexSession, true, true);
+  const state = matcher as unknown as { vm: unknown; descriptor: { patterns: readonly string[] } };
+  assert.equal(matcher.literalAsciiBytes, undefined);
+  assert.equal(state.vm, undefined);
+  assert.deepEqual(state.descriptor.patterns, []);
+});
+
+test("literal-only matchers own their pattern bytes", () => {
+  const first = parse(["-c", "first", "/dir"]);
+  const second = parse(["-c", "other", "/dir"]);
+  const matcher = new Matcher(first.patterns, first, {} as RegexSession, true, true);
+  new Matcher(second.patterns, second, {} as RegexSession, true, true);
+  assert.equal(new TextDecoder().decode(matcher.literalAsciiBytes), "first");
+});

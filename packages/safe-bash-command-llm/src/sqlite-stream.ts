@@ -1,5 +1,3 @@
-import type { ByteSource } from 'safe-bash-contracts';
-
 function interruptible<Value>(start: () => PromiseLike<Value> | Value, signal: AbortSignal): Promise<Value> {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
@@ -12,7 +10,7 @@ function interruptible<Value>(start: () => PromiseLike<Value> | Value, signal: A
   });
 }
 
-export async function* sqliteSourceChunks(source: ByteSource, signal: AbortSignal): ByteSource {
+export async function* sqliteSourceChunks<Value>(source: AsyncIterable<Value>, signal: AbortSignal): AsyncGenerator<Value> {
   const iterator = source[Symbol.asyncIterator]();
   let done = false;
   try {

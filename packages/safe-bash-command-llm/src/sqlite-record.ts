@@ -1,3 +1,4 @@
+import { writeSqliteVarint as varint } from './sqlite-varint.js';
 import { sqliteSourceChunks } from './sqlite-stream.js';
 import { yieldTurn } from 'safe-bash-contracts/yield';
 import type { ByteSource } from 'safe-bash-contracts';
@@ -9,14 +10,6 @@ export type SqliteRecordValue = null | bigint | number | {
   readonly bytes: ByteSource;
 };
 
-function varint(value: bigint): Uint8Array {
-  if (value < 0n || value > 0xffffffffffffffffn) throw new RangeError('SQLite varint out of range');
-  const bytes: number[] = [];
-  if (value > 0x00ffffffffffffffn) { bytes.unshift(Number(value & 255n)); value >>= 8n; }
-  while (value > 127n) { bytes.unshift(Number(value & 127n) | (bytes.length ? 128 : 0)); value >>= 7n; }
-  bytes.unshift(Number(value) | (bytes.length ? 128 : 0));
-  return Uint8Array.from(bytes);
-}
 
 function scalar(value: null | bigint | number): { serial: bigint; bytes: Uint8Array } {
   if (value === null || typeof value === 'number' && Number.isNaN(value)) return { serial: 0n, bytes: new Uint8Array() };

@@ -92,6 +92,9 @@ operations inherit the client limit when omitted; explicit `None` disables it. S
 per guest request and copy binary events into owned byte arrays. `with stream(...)`
 or explicit `close()` releases an iterator on early exit. Invocation teardown
 aborts pending operations, awaits their settlement and closes retained iterators.
+Closing iterators continue to count toward `maxStreams` until cleanup succeeds.
+Failed iterator cleanup retains its slot and makes invocation retirement fail;
+the host does not retry that cleanup or admit a replacement into the same slot.
 Uncooperative host operations retain admission until they settle; cancellation is
 cooperative and does not undo effects already committed.
 

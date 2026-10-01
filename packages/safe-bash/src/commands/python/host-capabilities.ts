@@ -34,7 +34,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
   const controller = new AbortController();
   const signal = AbortSignal.any([options.signal, controller.signal]);
   const pending = new Set<Promise<unknown>>();
-  const streams = new Map<number, { iterator: AsyncIterator<string | Uint8Array | PythonHostValue>; busy: boolean; controller: AbortController; bytes: number }>();
+  const streams = new Map<number, { iterator: AsyncIterator<string | Uint8Array | PythonHostValue>; busy: boolean; controller: AbortController; bytes: number; closing?: Promise<void> }>();
   const jobs = new Map<number, { controller: AbortController; result?: PythonHostValue; failed?: PythonHostFailureCode }>();
   const cleanupFailures: unknown[] = [];
   const jobWork = new Set<Promise<void>>();
@@ -90,10 +90,16 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
   const release = async (handle: number, cancel = true): Promise<void> => {
     const stream = streams.get(handle);
     if (!stream) throw new Error('Unknown Python host stream');
-    streams.delete(handle);
-    if (cancel) stream.controller.abort(new Error('Python host stream released'));
-    try { await stream.iterator.return?.(); }
-    catch (error) { cleanupFailures.push(error); throw error; }
+    if (!stream.closing) {
+      stream.closing = Promise.resolve().then(async () => {
+        if (cancel) stream.controller.abort(new Error('Python host stream released'));
+        await stream.iterator.return?.();
+        // Retained iterators consume admission until cleanup succeeds, including
+        // when a host ignores cancellation or its cleanup fails.
+        streams.delete(handle);
+      }).catch(error => { cleanupFailures.push(error); throw error; });
+    }
+    await stream.closing;
   };
   const pull = async (handle: number): Promise<PythonHostValue> => {
     const stream = streams.get(handle);
@@ -144,7 +150,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
         let reservedStream: { busy: boolean } | undefined;
         if (payload.operation === 'begin-next') {
           const stream = typeof payload.handle === 'number' ? streams.get(payload.handle) : undefined;
-          if (!stream || stream.busy) throw new Error('Unknown or busy Python host stream');
+          if (!stream || stream.busy || stream.closing) throw new Error('Unknown or busy Python host stream');
           reservedStream = stream;
           stream.busy = true;
           child = stream.controller;
@@ -178,7 +184,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
         if (typeof handle !== 'number' || !Number.isSafeInteger(handle)) throw new TypeError('Invalid Python host stream handle');
         const stream = streams.get(handle);
         if (!stream) throw new Error('Unknown Python host stream');
-        if (stream.busy) throw new Error('Python host stream already pulling');
+        if (stream.busy || stream.closing) throw new Error('Python host stream already pulling or closing');
         if (payload.operation === 'release') { await release(handle); return null; }
         stream.busy = true;
         try { return await pull(handle); }

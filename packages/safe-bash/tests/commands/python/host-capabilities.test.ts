@@ -82,10 +82,13 @@ test('async guest jobs can cancel an outstanding host call without retiring the 
 
 test('failed iterator release keeps retirement failed', async () => {
   const failure = new Error('iterator cleanup failed');
-  const bridge = createPythonHostBridge({ stream: { stream() { return { [Symbol.asyncIterator]() { return { async next() { return {done:false, value:'value'}; }, async return() { throw failure; } }; } }; } } }, {signal:new AbortController().signal});
+  let releases = 0;
+  const bridge = createPythonHostBridge({ stream: { stream() { return { [Symbol.asyncIterator]() { return { async next() { return {done:false, value:'value'}; }, async return() { releases++; throw failure; } }; } }; } } }, {signal:new AbortController().signal, maxStreams:1});
   const handle = await bridge.request({version:1, operation:'stream', capability:'stream'});
   await assert.rejects(bridge.request({version:1, operation:'release', handle}), error => error === failure);
+  await assert.rejects(bridge.request({version:1, operation:'stream', capability:'stream'}), /stream limit/);
   await assert.rejects(bridge.close(), error => error === failure);
+  assert.equal(releases, 1);
 });
 
 test('natural async stream completion is not classified as cancellation', async () => {
@@ -168,6 +171,41 @@ test('finite host concurrency and stream admission remain enforced', async () =>
   await bridge.request({ version: 1, operation: 'stream', capability: 'echo' });
   await assert.rejects(bridge.request({ version: 1, operation: 'stream', capability: 'echo' }), /stream limit/);
   await bridge.close();
+});
+
+test('a closing stream retains its admission until iterator cleanup settles', async () => {
+  let finish!: () => void;
+  let entered!: () => void;
+  const cleanup = new Promise<void>(resolve => { finish = resolve; });
+  const started = new Promise<void>(resolve => { entered = resolve; });
+  let releases = 0;
+  const bridge = createPythonHostBridge({ output: { stream() {
+    return { [Symbol.asyncIterator]() { return {
+      async next() { return { done: false as const, value: 'chunk' }; },
+      async return() {
+        releases++;
+        entered();
+        await cleanup;
+        return { done: true as const, value: undefined };
+      },
+    }; } };
+  } } }, { signal: new AbortController().signal, maxStreams: 1 });
+  const handle = await bridge.request({ version: 1, operation: 'stream', capability: 'output' });
+  const release = bridge.request({ version: 1, operation: 'release', handle });
+  try {
+    await started;
+    await assert.rejects(bridge.request({ version: 1, operation: 'stream', capability: 'output' }), /stream limit/);
+    await assert.rejects(bridge.request({ version: 1, operation: 'next', handle }), /closing|busy/);
+    finish();
+    await release;
+    const next = await bridge.request({ version: 1, operation: 'stream', capability: 'output' });
+    await bridge.request({ version: 1, operation: 'release', handle: next });
+    assert.equal(releases, 2);
+  } finally {
+    finish();
+    await release;
+    await bridge.close();
+  }
 });
 
 test('host limits reject invalid finite settings', () => {

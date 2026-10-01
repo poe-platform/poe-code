@@ -620,6 +620,8 @@ function* runSofficeSteps(
           chunks.push(parseXlsxRows(bytes).map(row => row.join("\t")).join("\n"));
         } else if (lower.endsWith(".pptx")) {
           chunks.push(parsePptxSlides(bytes).map(slide => [slide.title, ...slide.bullets].join("\n")).join("\n\n"));
+        } else if (lower.endsWith(".html") || lower.endsWith(".htm")) {
+          chunks.push(parseHtmlBlocks(new TextDecoder().decode(bytes)).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
         } else if (lower.endsWith(".rtf")) {
           chunks.push(parseRtfBlocks(bytes).map((b) => b.text ?? "").join("\n"));
         } else {
@@ -706,6 +708,8 @@ function* runSofficeSteps(
           outBytes = formatStarCalcCsv(rows, filterOpts);
         } else if (targetExt === "xlsx") {
           outBytes = buildXlsxFromRows(rows);
+        } else if (targetExt === "docx") {
+          outBytes = buildDocxFromBlocks([{ kind: "table", rows }]);
         } else if (targetExt === "html") {
           outBytes = renderBlocksToHtml([{ kind: "table", rows }], stem);
         } else if (targetExt === "pdf") {

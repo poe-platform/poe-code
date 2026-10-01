@@ -14,7 +14,7 @@ await build({
     target: "es2022",
     rollupOptions: {
       output: {
-        onlyExplicitManualChunks: true,
+        onlyExplicitManualChunks: false,
         manualChunks(id) {
           if (id.includes("/@jspm/core/") || id.includes("/@noble/hashes/")) return "browser-platform";
           if (id.includes("/packages/safe-fs/")) return "browser-filesystem";

@@ -80,3 +80,24 @@ test("aborted awk releases the budget context before propagating cancellation", 
   assert.notEqual(retained.context, run.context);
   assert.equal(retained.signal.aborted, false);
 });
+
+for (const [args, expected] of [
+  ['++x, -1', '1 -1'],
+  ['++x, 1.5', '1 1.5'],
+  ['++x, "' + 'a'.repeat(241) + '"', '1 ' + 'a'.repeat(241)],
+  ['++x, (x += 10), -1', '1 11 -1'],
+  ['++x, sub(/first/, "changed"), -1', '1 1 -1'],
+] as const) test(`print evaluates side effects once: ${args}`, async () => {
+  const run = await runtime(`{ print ${args}; print x; exit }`);
+  assert.equal(await run.instance.runSyncOrAsync(), 0);
+  assert.equal(run.stdout(), `${expected}\n${args.includes('x +=') ? 11 : 1}\n`);
+});
+
+for (const statement of [
+  'print ++x, (getline line < "/input"), line',
+  'printf "%d %d:%s\\n", ++x, (getline line < "/input"), line',
+]) test(`output resumes getline without repeating arguments: ${statement}`, async () => {
+  const run = await runtime(`{ ${statement}; print x; exit }`);
+  assert.equal(await run.instance.runSyncOrAsync(), 0);
+  assert.equal(run.stdout(), statement.startsWith('printf') ? '1 1:first\n1\n' : '1 1 first\n1\n');
+});

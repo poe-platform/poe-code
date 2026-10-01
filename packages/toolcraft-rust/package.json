@@ -18,8 +18,8 @@
     }
   },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/definitions.d.ts src/source-snippet.d.ts dist/",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/definitions.d.ts src/source-snippet.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json",
+    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/*.d.ts dist/",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -51,6 +51,7 @@
     "directory": "packages/toolcraft-rust"
   },
   "dependencies": {
-    "toolcraft-design-rust": "*"
+    "toolcraft-design-rust": "*",
+    "toolcraft-schema-rust": "*"
   }
 }

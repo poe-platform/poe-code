@@ -17,6 +17,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
+| Managed streams  | Lazy creation, event validation, status callbacks, cancellation and cleanup       |
 
 ```ts
 import { suggest, createRuntimeLogger, createHttpError } from "toolcraft-rust";
@@ -72,7 +73,11 @@ schema and handler identity and supports trees from another Toolcraft bundle.
 The native addon is included in the
 package; it does not import the JavaScript Toolcraft implementation at runtime.
 
-The schema DSL, SDK, CLI, managed streams, transports, approval runtime and
+Managed streams use a Rust continuation engine and `toolcraft-schema-rust` event
+validation. Node retains promises, iterator handles and AbortSignals, preserving
+callback receivers, event identity, cleanup errors and cancellation promise identity.
+
+The schema reexport, SDK, CLI, transports, approval runtime and
 remaining subpaths are not yet available. Declarations currently use the existing
 schema/design/config contract types; standalone type packaging and generic
 stream-factory interchangeability remain pending. The migration and replacement

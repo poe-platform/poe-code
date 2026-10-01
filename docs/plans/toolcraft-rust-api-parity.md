@@ -177,6 +177,17 @@ remains native, and valid unsupported features keep explicit capability errors.
 This diagnostic adapter is an intentional host dependency; it is not a claim of
 complete independent ECMAScript pattern grammar coverage.
 
+Managed streams now expose the root `createManagedStream` export with a native
+continuation engine for startup, pulls, validation, completion and cancellation.
+The Node adapter retains promises and iterator handles; native schema validation
+checks events while the original untransformed event value remains observable.
+Both original stream suites run against the native implementation. Differential
+coverage checks arbitrary throws, cleanup precedence, distinct validation errors,
+getter order, callback receivers, microtask timing, reentrant cancellation,
+concurrent completion and exceptional listener removal. Managed-stream declarations
+pass bidirectional generic assignment and inferred event checks. SDK/MCP consumers
+in the reference suites now use native streams, but those consumers remain JavaScript.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

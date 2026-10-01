@@ -7,6 +7,7 @@ pub mod mcp_result;
 pub mod package_metadata;
 pub mod redaction;
 pub mod source_snippet;
+pub mod stream;
 
 #[napi]
 pub fn candidate_distances(input: Utf16String, candidates: Vec<Utf16String>) -> Vec<f64> {

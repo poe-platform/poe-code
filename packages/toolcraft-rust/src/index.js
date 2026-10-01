@@ -3,6 +3,7 @@ import { createRequire } from "node:module";
 export { isSensitiveName, redactHttpBody } from "./redaction.js";
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
 export { asMCPResult } from "./mcp-result.js";
+export { createManagedStream } from "./stream.js";
 
 export {
   defineCommand,

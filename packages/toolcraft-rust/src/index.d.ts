@@ -1,4 +1,5 @@
 import type { CallToolResult } from "tiny-stdio-mcp-server-rust";
+export { createManagedStream } from "./stream.js";
 
 export declare function asMCPResult<TResult extends CallToolResult>(result: TResult): TResult;
 

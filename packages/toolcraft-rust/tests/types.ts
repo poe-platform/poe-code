@@ -5,6 +5,19 @@ import * as suggestions from "../../toolcraft/dist/suggest.js";
 import * as userErrors from "../../toolcraft/dist/user-error.js";
 import * as sourceSnippet from "toolcraft-rust/source-snippet";
 import * as originalSnippet from "toolcraft/source-snippet";
+import { S } from "toolcraft-schema";
+
+const managedStream: typeof import("toolcraft").createManagedStream = native.createManagedStream;
+const originalStream: typeof native.createManagedStream = managedStream;
+void originalStream;
+const events = native.createManagedStream({
+  eventSchema: S.Object({ message: S.String() }),
+  create: async () => (async function* () { yield { message: "hello" }; })()
+});
+const typedEvents: native.ToolcraftStream<{ message: string }> = events;
+const streamSignal: AbortSignal = typedEvents.signal;
+const cancelled: Promise<void> = typedEvents.cancel({ reason: "done" });
+void [streamSignal, cancelled];
 
 const renderSnippet: typeof originalSnippet.renderSourceSnippet = sourceSnippet.renderSourceSnippet;
 const nativeSnippet: typeof sourceSnippet.renderSourceSnippet = originalSnippet.renderSourceSnippet;

@@ -4,6 +4,7 @@ import { databases as databaseDialects } from "./databases.js";
 import { defaultSniffStreamProfile } from "./csv/sniffer-profile.js";
 import { createGzipCompressionProvider } from "./io/compression.js";
 import { createCompressionCodec } from "@poe-code/office-package/compression";
+import { createDefaultSqliteDatabaseProvider } from "./default-sqlite.js";
 import { portableLocale } from "./portable-locale.js";
 import { commands } from "./commands.js";
 import { execute, defaultLimits } from "./engine.js";
@@ -35,10 +36,10 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
   const limits = Object.freeze({ ...defaultLimits, ...options.limits });
   const codecs = Object.freeze([...(options.codecs ?? [utf8Codec, ...pythonCodecs])]);
   const compression = Object.freeze([...(options.compression ?? [createGzipCompressionProvider(createCompressionCodec())])]);
-  const databases = Object.freeze([...(options.databases ?? [])]);
+  const clock = options.clock ?? { now: Date.now };
+  const databases = Object.freeze([...(options.databases ?? [createDefaultSqliteDatabaseProvider(clock, {maxWork: limits.maxWork, maxSqlBytes: limits.maxRetainedBytes, maxValueBytes: limits.maxRetainedBytes, maxResultRows: limits.maxDatabaseResultRows})])]);
   const sqlDialects = Object.freeze([...(options.sqlDialects ?? databaseDialects)]);
   const locale = options.locale ?? portableLocale;
-  const clock = options.clock ?? { now: Date.now };
   const interpreter = options.interpreter, openMatchFile = options.openMatchFile;
   const terminal = Object.freeze({ stdinIsTTY: false, stdoutIsTTY: false, stderrIsTTY: false, columns: 80, lines: 24, ...options.terminal });
   const sniffing = options.sniffing === undefined ? Object.freeze({ stream: defaultSniffStreamProfile, suppressWarnings: true }) : Object.freeze({

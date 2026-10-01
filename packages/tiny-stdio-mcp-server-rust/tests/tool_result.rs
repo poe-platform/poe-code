@@ -92,3 +92,26 @@ fn output_contract_survives_removal_and_invalid_output_grammar_is_atomic() {
         Err(ResultError::Rpc(_))
     ));
 }
+
+#[test]
+fn schema_compile_errors_preserve_messages_and_existing_registration() {
+    let mut server = server();
+    server
+        .set_tool(
+            value(r#"{"name":"check","inputSchema":{"type":"object"}}"#),
+            1,
+            false,
+        )
+        .unwrap();
+    for definition in [
+        r#"{"name":"check","inputSchema":{"type":"object","properties":{"value":{"pattern":"["}}}}"#,
+        r#"{"name":"check","inputSchema":{"type":"object"},"outputSchema":{"type":"object","properties":{"value":{"pattern":"["}}}}"#,
+    ] {
+        assert_eq!(
+            server.set_tool(value(definition), 2, true).unwrap_err(),
+            "Invalid pattern: unterminated character class"
+        );
+        assert!(server.output_contract(1).is_some());
+        assert!(server.output_contract(2).is_none());
+    }
+}

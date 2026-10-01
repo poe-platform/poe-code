@@ -240,7 +240,7 @@ impl ParameterSchema {
         }
         let document = schema(field, false);
         let compiled = CompiledSchema::compile(document.clone(), Default::default())
-            .map_err(|error| fault(-32603, error))?;
+            .map_err(|error| fault(-32603, error.message))?;
         Ok(Self {
             document,
             compiled,

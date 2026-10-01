@@ -155,7 +155,8 @@ impl Server {
         let input_schema = definition.get("inputSchema");
         let input_validator = input_schema
             .map(|schema| CompiledSchema::compile(schema.clone(), Default::default()))
-            .transpose()?;
+            .transpose()
+            .map_err(|error| error.message)?;
         if !input_schema.is_some_and(|value| {
             matches!(value, Value::Object(_)) && string_matches(value.get("type"), "object")
         }) {
@@ -171,7 +172,8 @@ impl Server {
         let output_validator = output_schema
             .as_ref()
             .map(|schema| CompiledSchema::compile(schema.clone(), Default::default()))
-            .transpose()?;
+            .transpose()
+            .map_err(|error| error.message)?;
         let tool = RegisteredTool {
             name: name.clone(),
             input_validator: input_validator.expect("validated input schema"),

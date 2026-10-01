@@ -1,4 +1,4 @@
-import { resolvePath } from "safe-bash-contracts/path";
+import { dirname, resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -2687,7 +2687,10 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
         } else {
           const abs = resolvePath(context.cwd, fileKey);
           try {
-            await writeFileOutput(context, fileBytes, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+            await writeFileOutput(context, fileBytes, async data => {
+              await context.fs.mkdir(dirname(abs), { recursive: true });
+              await context.fs.writeFile(abs, data, { signal: invocation.signal });
+            });
           } catch (error) {
             invocation.signal.throwIfAborted();
             if (!(error instanceof Error) || !("code" in error)) throw error;

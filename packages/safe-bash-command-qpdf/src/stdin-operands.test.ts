@@ -20,6 +20,7 @@ for (const [args, expectedReads] of cases) {
       stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
       stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } },
       fs: { async readFile(path: string) { const bytes = files.get(path); if (!bytes) throw new Error("missing"); return bytes; },
+        async mkdir() {},
         async writeFile(path: string, bytes: Uint8Array) { files.set(path, bytes); } }
     } as unknown as CommandContext;
     const result = await qpdf(context);

@@ -46,11 +46,10 @@ it("Qpdf reads only input operands", async () => {
   assert.deepEqual([...new Set(reads)], ["/work/in.pdf"]);
 });
 
-it("Qpdf reports missing output parents without creating directories", async () => {
-  const { result, volume, stderr } = await execute(createQpdfCommand(), ["in.pdf", "/missing/out.pdf"], true);
-  assert.equal(result.exitCode, 2);
-  assert.ok(stderr.length > 0);
-  assert.equal(volume.existsSync("/missing"), false);
+it("Qpdf creates missing output parents", async () => {
+  const { result, volume, stderr } = await execute(createQpdfCommand(), ["in.pdf", "/missing/nested/out.pdf"], true);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(PdfDocument.load(new Uint8Array(volume.readFileSync("/missing/nested/out.pdf") as Buffer)).pageCount, 1);
 });
 
 it("does not read qpdf page ranges as files", async () => {

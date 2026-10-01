@@ -6,7 +6,8 @@ for (const limits of [{}, { argumentBytes: 8 }, { commandOutputBytes: 8 }]) {
   it(`CLI only enforces explicitly provided limits ${JSON.stringify(limits)}`, async () => {
     const output: Uint8Array[] = [];
     const text = 'x'.repeat(1024 * 1024 + 1);
-    const result = await runCommand(['--version', text], { limits } as Engine, {
+    // Version output reads limits without acquiring the conversion engine.
+    const result = await runCommand(['--version', text], { limits } as unknown as Engine, {
       signal: new AbortController().signal,
       stdout: { async write(bytes) { output.push(bytes); } }, stderr: { async write() {} }
     }, { version: text, help: '' });

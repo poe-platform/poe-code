@@ -4,7 +4,7 @@ import { Shell } from "../../src/shell/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import type { CommandDefinition } from "../../src/contracts/index.js";
-import { createYqCommand } from "../../src/commands/yq/index.js";
+import { createYqCommand } from "safe-bash-command-yq/query";
 import { createXanCommand } from "../../src/commands/xan/index.js";
 import { contractRuntime, execute as runSafeJs, operation } from "./safejs/helpers.js";
 import { run as runCurl } from "./network/helpers.js";

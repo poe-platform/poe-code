@@ -7,7 +7,7 @@ import { createYqQuerySession, type YqOwnedWork } from "../../../../src/commands
 import { JqLimitError, type Json } from "../../../../src/commands/structured/limits.js";
 import { YqLedger } from "safe-bash-command-yq/accounting";
 import { encodeYaml } from "safe-bash-command-yq/encoder";
-import { createYqCommand, type YqLimits } from "../../../../src/commands/yq/index.js";
+import { createYqCommand, type YqLimits } from "safe-bash-command-yq/query";
 import { parseYamlDocuments } from "safe-bash-command-yq/parser";
 
 // Inspect the owning implementations, not safe-bash's compatibility re-exports.
@@ -69,7 +69,7 @@ async function run(input: string, limits?: Partial<YqLimits>): Promise<{ status:
 }
 
 test("WRK-06 raw document admission precedes retained copy and decode", async () => {
-  const text = await source("safe-bash-command-yq/src/index.ts");
+  const text = await source("safe-bash-command-yq/src/query.ts");
   ordered(text, "framer?.admit(chunk)", "new Uint8Array(chunk)");
   ordered(text, 'inputFormat === "toml" && chunk.byteLength > yqCaps.maxDocumentBytes - size', "new Uint8Array(chunk)");
   ordered(text, "ledger.admitDocumentBytes(frame.rawBytes)", "decodeDocument(frame.bytes, options.inputFormat)");

@@ -6517,12 +6517,17 @@ export class Runtime {
       fastLoopWords: readonly string[];
       bodyStepCount: number;
     } })._cachedForPlan;
+    // Only integer registers can skip unquoted field splitting and globbing.
+    if (plan.echoVar !== undefined && (!forPlan.touchedIntNamesList.includes(plan.echoVar) || forPlan.touchedIntNamesList.includes("IFS") || (rawState.variables.IFS !== undefined && rawState.variables.IFS !== " \t\n") || plan.initAssigns.some(assignment => assignment.name === "IFS"))) return undefined;
     const fastSyncSink = plan.echoVar !== undefined
       ? ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) ? io.stdout : undefined)
       : undefined;
     if (plan.echoVar !== undefined) {
       const def = this.commands.get("echo");
       if (!fastSyncSink || !def || !defaultEchoExecutors.has(def.execute) || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || (io.descriptors && io.descriptors.get(1)?.output !== io.stdout)) return undefined;
+      // Every signed SMI plus a newline fits in 12 bytes. Admit the bound before
+      // speculative arithmetic; smaller allowances use ordinary execution.
+      if (this.budget.maxOutputBytesSmi - this.budget.bytes < 12) return undefined;
     }
     const store = monitor.store;
     const existing = store?.get("PIPESTATUS");
@@ -6544,28 +6549,32 @@ export class Runtime {
     const finalValues = new Map<string, string>();
     for (const assignment of plan.initAssigns) finalValues.set(assignment.name, assignment.strVal);
     const regNames = forPlan.regNames;
-    for (let r = 1; r < regNames.length; r++) {
-      const refName = regNames[r]!;
-      const parsed = fastSafeInt(finalValues.get(refName) ?? rawState.variables[refName], this.budget.parsing);
-      if (parsed === undefined) return undefined;
-      sharedLoopIntRegs[r] = parsed | 0;
-    }
-    const { ok } = runIntForLoop(forPlan.fastLoopWords, forPlan.bodyStepCount, forPlan.intSteps, this.budget.parsing);
-    if (!ok) return undefined;
-    for (let r = 0; r < regNames.length; r++) finalValues.set(regNames[r]!, intToStr(sharedLoopIntRegs[r]!));
+    const savedParseBudget = this.budget.parsing.snapshot();
+    let admitted = false;
     let lastArg = "";
-    if (plan.echoVar !== undefined) {
-      const echoVal = finalValues.get(plan.echoVar) ?? rawState.variables[plan.echoVar] ?? "";
-      const ifs = finalValues.get("IFS") ?? rawState.variables.IFS;
-      if (ifs !== undefined && ifs !== " \t\n") return undefined;
-      if (echoVal.startsWith("-") || echoVal.includes("\0")) return undefined;
-      const encoded = encodeRedirectTextWithNewlineToScratch(echoVal);
-      if (!encoded) return undefined;
-      const bLen = encoded.byteLength;
-      if (this.budget.bytes + bLen > this.budget.maxOutputBytesSmi) return undefined;
-      if (!fastSyncSink!.writeSync(encoded)) return undefined;
-      this.budget.bytes += bLen;
-      lastArg = echoVal;
+    try {
+      for (let r = 1; r < regNames.length; r++) {
+        const refName = regNames[r]!;
+        const parsed = fastSafeInt(finalValues.get(refName) ?? rawState.variables[refName], this.budget.parsing);
+        if (parsed === undefined) return undefined;
+        sharedLoopIntRegs[r] = parsed | 0;
+      }
+      const { ok } = runIntForLoop(forPlan.fastLoopWords, forPlan.bodyStepCount, forPlan.intSteps, this.budget.parsing);
+      if (!ok) return undefined;
+      for (const name of forPlan.touchedIntNamesList) finalValues.set(name, intToStr(sharedLoopIntRegs[regNames.indexOf(name)]!));
+      if (plan.echoVar !== undefined) {
+        const echoVal = finalValues.get(plan.echoVar)!;
+        const encoded = encodeRedirectTextWithNewlineToScratch(echoVal);
+        if (!encoded) return undefined;
+        const bLen = encoded.byteLength;
+        if (this.budget.bytes + bLen > this.budget.maxOutputBytesSmi) return undefined;
+        if (!fastSyncSink!.writeSync(encoded)) return undefined;
+        this.budget.bytes += bLen;
+        lastArg = echoVal;
+      }
+      admitted = true;
+    } finally {
+      if (!admitted) this.budget.parsing.restore(savedParseBudget);
     }
     for (const [name, value] of finalValues) rawState.variables[name] = value;
     for (const name of publishNames) {
@@ -13193,8 +13202,8 @@ export class Runtime {
     this.budget.tick();
     this.budget.iterations += wordCount;
     this.budget.commands += wordCount * forPlan.bodyStepCount;
-    for (let r = 0; r < regNames.length; r++) {
-      rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
+    for (const name of forPlan.touchedIntNamesList) {
+      rawState.variables[name] = intToStr(sharedLoopIntRegs[regNames.indexOf(name)]!);
     }
     const touchedList = forPlan.touchedIntNamesList;
     for (let t = 0; t < touchedList.length; t++) {
@@ -14399,8 +14408,8 @@ export class Runtime {
             rawState.status = 0;
           }
           runYieldCheckpoint(this.signal);
-          for (let r = 0; r < regNames.length; r++) {
-            rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
+          for (const name of forPlan.touchedIntNamesList) {
+            rawState.variables[name] = intToStr(sharedLoopIntRegs[regNames.indexOf(name)]!);
           }
           regNames.length = 0;
         }

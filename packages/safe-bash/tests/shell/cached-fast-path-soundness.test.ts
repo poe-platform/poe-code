@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
 import { ParseBudget } from "../../src/shell/parse-budget.js";
+import { ShellLimitError } from "../../src/shell/types.js";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 
 for (const [name, source, env, expected] of [
   ["negative echo", "a=0; for i in {1..5}; do y=$((y - i)); done; echo $y", { y: "0" }, "-15\n"],
+  ["unquoted whitespace", "a=0; for i in {1..5}; do y=$((y + i)); done; echo $msg", { y: "0", msg: "a   b" }, "a b\n"],
   ["IFS on cached runs", "a=0; for i in {1..5}; do y=$((y + 30)); done; echo $y", { y: "0", IFS: "5" }, "1 0\n"],
   ["failed integer admission preserves initial assignment", "a=0; for i in {1..5}; do y=$((y + a + i)); a=$((a + 1)); done; echo $y", { y: "1+2", a: "99" }, "28\n"],
 ] as const) {
@@ -27,6 +29,20 @@ for (const [name, source, env, expected] of [
     assert.equal(result.exitCode, 0);
   });
 }
+
+test("cached script expands unquoted pathname patterns", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/hello.txt", new Uint8Array());
+  const shell = new Shell({ fs, cwd: "/work", env: { glob: "*.txt" } }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const source = "acc=0; for i in {1..10}; do acc=$((acc + i)); done; echo $glob";
+  for (let run = 0; run < 4; run++) {
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, "hello.txt\n");
+    assert.equal(result.exitCode, 0, result.stderr);
+  }
+});
 
 test("cached script fallback for a large echo does not replay arithmetic", async context => {
   const source = "a=0; for i in {1..5}; do y=$((y + i)); done; echo $z\necho $y";
@@ -148,3 +164,79 @@ for (const target of ["readonly target", "readonly parent", "failed write"] as c
     assert.equal(actual.stdout, expected.stdout);
   });
 }
+
+test("cached integer admission fallback preserves the finite parse allowance", async context => {
+  const source = "a=0; for i in {1..5}; do y=$((y + z + i)); done; echo $y";
+  const warm = new Shell({ fs: new MemoryFileSystem(), env: { y: "0", z: "1" } }).use(standardCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem(), env: { y: "0", z: "1+2" } }).use(standardCommands());
+  for (const item of [warm, shell]) context.after(() => item.dispose());
+  for (let run = 0; run < 4; run++) await warm.exec(source);
+  const result = await shell.exec(source, { limits: { maxParseUnits: 138 } });
+  assert.equal(result.stdout, "30\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});
+
+test("cached integer loop respects exact and insufficient output budgets without replay", async context => {
+  const source = "a=0; for i in {1..5}; do y=$((y + i)); done; echo $y";
+  const shell = new Shell({ fs: new MemoryFileSystem(), env: { y: "0" } }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (let run = 0; run < 4; run++) await shell.exec(source);
+  const rejected = shell.createSession();
+  await assert.rejects(rejected.exec(source, { limits: { maxOutputBytes: 2 } }),
+    error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+  assert.equal((await rejected.exec('echo "$y"')).stdout, "0\n");
+  const accepted = shell.createSession();
+  const result = await accepted.exec(source, { limits: { maxOutputBytes: 3 } });
+  assert.equal(result.stdout, "15\n");
+  assert.equal(result.exitCode, 0);
+});
+
+for (const y of [undefined, "", "-0"]) {
+  for (const echoVar of ["acc", "y"]) {
+    test(`cached integer loop preserves untouched ${String(y)} input when echoing ${echoVar}`, async context => {
+      const source = `acc=0; for i in {1..5}; do acc=$((acc + y)); done; echo $${echoVar}`;
+      const shell = new Shell({ fs: new MemoryFileSystem(), env: y === undefined ? {} : { y } }).use(standardCommands());
+      context.after(() => shell.dispose());
+      for (let run = 0; run < 4; run++) {
+        const session = shell.createSession();
+        assert.equal((await session.exec(source)).stdout, `${echoVar === "acc" ? "0" : y ?? ""}\n`);
+        assert.equal((await session.exec('echo "${y-unset}"')).stdout, `${y ?? "unset"}\n`);
+      }
+    });
+  }
+}
+
+test("cached integer loop honors IFS assigned by the body", async context => {
+  const source = "acc=0; for i in {1..5}; do acc=$((acc + 11)); IFS=$((i)); done; echo $acc";
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const oracle = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+  assert.equal(oracle.status, 0, oracle.stderr);
+  for (let run = 0; run < 4; run++) assert.equal((await shell.exec(source)).stdout, oracle.stdout);
+});
+
+test("cached loop-variable IFS changes match ordinary execution", async context => {
+  const source = "acc=0; for IFS in {1..5}; do acc=$((acc + 11)); done; echo $acc";
+  const ordinary = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  ordinary.use(async (_context, next) => next());
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => ordinary.dispose());
+  context.after(() => shell.dispose());
+  const expected = await ordinary.exec(source);
+  assert.equal(expected.stdout, " \n");
+  for (let run = 0; run < 4; run++) assert.equal((await shell.exec(source)).stdout, expected.stdout);
+});
+
+test("cached integer overflow fallback preserves the finite parse allowance", async context => {
+  const source = "a=0; for i in {1..5}; do y=$((y * 2)); done; echo $y";
+  const warm = new Shell({ fs: new MemoryFileSystem(), env: { y: "1" } }).use(standardCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem(), env: { y: "99999999" } }).use(standardCommands());
+  context.after(() => warm.dispose());
+  context.after(() => shell.dispose());
+  for (let run = 0; run < 4; run++) await warm.exec(source);
+  const result = await shell.exec(source, { limits: { maxParseUnits: 94 } });
+  assert.equal(result.stdout, "3199999968\n");
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+});

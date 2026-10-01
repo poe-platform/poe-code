@@ -13,9 +13,19 @@ const fixtures = [
   [`BEGIN { print strftime("%Y-%m-%d %H:%M:%S",0,1); print mktime("1970 01 01 00 00 00",1) }`, "1970-01-01 00:00:00\n0\n"],
   [`BEGIN { a["z"]=3; a["a"]=1; a["b"]=2; print asort(a,b), b[1],b[2],b[3],a["z"]; print asorti(a),a[1],a[2],a[3] }`, "3 1 2 3 3\n3 a b z\n"],
   [`BEGIN { print and(7,3),or(4,1),xor(7,3),lshift(1,33),rshift(8589934592,33); printf "%.0f\\n", compl(0) }`, "3 5 4 8589934592 1\n9007199254740991\n"],
-  [String.raw`BEGIN { print gensub(/a/,"\\n","g","a"),gensub(/a/,"\\t","g","a"); print lshift(1,64),rshift(1,64) }`, "n t\n0 0\n"],
+  [String.raw`BEGIN { print gensub(/a/,"\\n","g","a"),gensub(/a/,"\\t","g","a") }`, "n t\n"],
   [`BEGIN { print mktime("1970 01 01 00 00 60",1),mktime("invalid",1); a[1]="10";a[2]=2; print asort(a),a[1],a[2] }`, "60 -1\n2 2 10\n"],
 ] as const;
+
+test("awk bounds shifts at the integer word width", async () => {
+  // Older gawk versions perform undefined C shifts here and warn under --lint;
+  // current gawk and our bounded implementation return zero. Keep this boundary
+  // explicit instead of comparing it with an unqualified system executable.
+  const result = await runVirtual("awk", { args: ["BEGIN { print lshift(1,64),rshift(1,64) }"] });
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "0 0\n");
+});
+
 for (const [program, expected] of fixtures) {
   test(`awk builtin ${program}`, async () => {
     const result = await runVirtual("awk", { args: [program] });

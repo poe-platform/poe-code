@@ -107,7 +107,8 @@
   "devDependencies": {
     "@poe-code/safe-fs": "*",
     "safe-bash-command-file": "*",
-    "safe-bash-contracts": "*"
+    "safe-bash-contracts": "*",
+    "safe-bash-sqlite-engine": "*"
   },
   "peerDependencies": {
     "yaml": "2.9.0"

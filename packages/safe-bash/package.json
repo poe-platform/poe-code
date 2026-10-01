@@ -1495,7 +1495,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "safe-bash-command-file": "*"
+            "safe-bash-command-file": "*",
+            "safe-bash-sqlite-engine": "*"
           },
           "portable": true,
           "peerDependencies": {

@@ -9,15 +9,14 @@ import { readFileSync } from "node:fs";
 it("preserves the portable export surface when canonical owners remain external", async () => {
   const root = process.cwd();
   const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
-  const names = [];
-  for (const external of [[], Object.keys(manifest.poeCode.integration.privateWorkspaces)]) {
+  const names = await Promise.all([[], Object.keys(manifest.poeCode.integration.privateWorkspaces)].map(async external => {
     const options = resolveBrowserShellBuild(root, { external });
-    const result = await build({ ...options, sourcemap: false });
+    const result = await build({ ...options, sourcemap: false, minifyWhitespace: true });
     const publicOutputs = new Set(Object.keys(options.entryPoints).map(name =>
       path.relative(root, path.join(options.outdir, name + ".js"))));
-    names.push(Object.fromEntries(Object.entries(result.metafile!.outputs)
+    const surface = Object.fromEntries(Object.entries(result.metafile!.outputs)
       .filter(([filename]) => publicOutputs.has(filename))
-      .map(([filename, output]) => [filename, output.exports])));
+      .map(([filename, output]) => [filename, output.exports]));
     if (external.length) {
       const outputs = new Map(result.outputFiles.map(file => [file.path, file.text]));
       const entry = path.join(options.outdir, "commands/csplit/index.browser.js");
@@ -40,7 +39,8 @@ it("preserves the portable export surface when canonical owners remain external"
       expect(module.exports.api.createCsplitCommand).toBe(module.exports.canonical);
       expect(module.exports.api.createCsplitCommand().name).toBe("csplit");
     }
-  }
+    return surface;
+  }));
   expect(names[1]).toEqual(names[0]);
 });
 

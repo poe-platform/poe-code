@@ -231,3 +231,10 @@ it("warns for an invalid ordinary name while preserving its previous valid expre
   expect(book.names).toEqual([{ name: "Print_Area", expression: "=S!$A$1:$B$2" }]);
   expect(messages).toEqual(["At A1: '!#REF!' Invalid expression\n"]);
 });
+
+it.each(["hello", ""])("preserves inline formula caches: %j", async value => {
+ const bytes = await fixture(parts(`<sheetData><row><c r="A1" t="inlineStr"><f>"hello"</f><is><t>${value}</t></is></c></row></sheetData>`));
+ const cell = (await readXlsx(bytes, context)).sheets[0]!.cells[0]!;
+ expect(cell.formulaDirty).toBe(false);
+ expect(cell.cachedResult).toEqual({ kind: "string", value });
+});

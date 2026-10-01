@@ -365,7 +365,8 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
               if (kind === "array") { groupId = `array-${position.row}-${position.column}`; groups.push({ id: groupId, kind: "array", expression, range: range(attr(f, "ref")), ...semantics }); }
             }
           }
-          const hasCache = raw !== undefined && (raw !== "" || type === "str");
+          const hasCache = type === "inlineStr" ? child(node, "is") !== undefined
+            : raw !== undefined && (raw !== "" || type === "str");
           cells.push({ ...position, value, ...(expression === undefined ? {} : { formula: expression, ...semantics, formulaDirty: !hasCache,
             ...(hasCache ? { cachedResult: value } : {}) }), ...(groupId ? { formulaGroup: groupId } : {}),
             ...(style ?? {}), ...(richText ? { richText } : {}) });

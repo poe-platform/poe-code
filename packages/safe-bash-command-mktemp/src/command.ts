@@ -46,7 +46,8 @@ function parse(args: readonly string[]) {
     } else throw new UsageError(`unrecognized option '${argument}'`);
   }
   if (operands.length > 1) throw new UsageError("too many templates");
-  const template = operands[0] ?? "tmp.XXXXXXXXXX";
+  let template = operands[0] ?? "tmp.XXXXXXXXXX";
+  if (deprecatedTmpdir && !template.includes("XXX")) template += ".XXXXXXXXXX";
   if (operands.length === 0) useTmpdir = true;
   validatePath(template);
   if (deprecatedTmpdir && template.includes("/")) throw new UsageError("template contains directory separator");
@@ -138,6 +139,14 @@ export function createMktempCommand(configuration: MetadataCommandsOptions = {})
           const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
           if (capabilities.readOnly === true) throw new FsError("EROFS", { syscall: "mktemp" });
           if (capabilities.permissions !== true) throw new FsError("ENOTSUP", { syscall: "mktemp", message: "private temporary creation requires declared permission support" });
+          if (parsed.useTmpdir && parent === "/tmp" && !parsed.tmpdir && !context.env.TMPDIR) {
+            try { await context.fs.stat(parent, { signal: context.signal }); }
+            catch (error) {
+              context.signal.throwIfAborted();
+              if (codeOf(error) !== "ENOENT") throw error;
+              await context.fs.mkdir(parent, { recursive: true, mode: 0o777, signal: context.signal });
+            }
+          }
           try {
             const mask: unknown = configuredUmask ?? Reflect.get(context.fs, creationUmask);
             const activeUmask = typeof mask === "number" ? mask : configured.umask;

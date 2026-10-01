@@ -797,7 +797,7 @@ There are no package-specific runtime environment switches. Supply these through
 | `PATH` | Virtual script lookup and `which`; never a host executable search. |
 | `IFS` | Field splitting and `read`; defaults to space, tab, and newline. |
 | `LC_ALL`, `LC_CTYPE`, `LC_COLLATE`, `LANG` | Character and collation behavior where supported; locale support varies by command. |
-| `TMPDIR` | `mktemp` directory; defaults to `/tmp`, which must exist in the VFS. |
+| `TMPDIR` | `mktemp` directory; defaults to `/tmp`, created in a writable VFS when needed. Explicit directories must exist. |
 | `TZ` | `date` and `touch` timezone. `date` otherwise uses `timeEnv.defaultTimeZone`; `touch` defaults to `UTC`. |
 | `QUOTING_STYLE` | `stat` filename quoting: `literal`, `shell-always`, or `shell-escape-always`. |
 

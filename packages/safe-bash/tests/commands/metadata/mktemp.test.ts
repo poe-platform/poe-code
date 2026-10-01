@@ -211,7 +211,7 @@ test("mktemp bounds collisions, reports quiet failure, and preserves cancellatio
 
 test("mktemp refuses malformed templates and preflights output quota before creation", async () => {
   const fs = await fixture();
-  for (const args of [["xx.XX"], ["a.XXX.fooXX"], ["-p/tmp", "/absolute.XXX"], ["--suffix=/bad", "a.XXX"], ["--suffix=.txt", "a.XXX.old"], ["a\0.XXX"], ["first.XXX", "second.XXX"], ["-t", "x"]]) {
+  for (const args of [["xx.XX"], ["a.XXX.fooXX"], ["-p/tmp", "/absolute.XXX"], ["--suffix=/bad", "a.XXX"], ["--suffix=.txt", "a.XXX.old"], ["a\0.XXX"], ["first.XXX", "second.XXX"]]) {
     assert.equal((await runMetadata("mktemp", args, fs)).exitCode, 1, JSON.stringify(args));
   }
   const limited = await runMetadata("mktemp", [], fs, { limits: { maxOutputBytes: 1 } });
@@ -221,12 +221,12 @@ test("mktemp refuses malformed templates and preflights output quota before crea
   assert.deepEqual(await fs.readdir("/work"), []);
 });
 
-test("mktemp missing virtual tmp directory never falls back to the host", async () => {
+test("mktemp creates its default temporary directory in the VFS", async () => {
   const fs = new MemoryFileSystem();
   const result = await runMetadata("mktemp", [], fs);
-  assert.equal(result.exitCode, 1);
-  assert.match(result.stderr, /ENOENT/u);
-  assert.deepEqual(await fs.readdir("/"), []);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat(result.stdout.trimEnd())).type, "file");
+  assert.equal((await fs.stat("/tmp")).type, "directory");
 });
 
 test("mktemp output failure is not retried as a creation collision", async () => {

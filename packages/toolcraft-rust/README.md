@@ -19,6 +19,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Managed streams  | Lazy creation, event validation, status callbacks, cancellation and cleanup       |
 | Schema scoping   | Recursive field/branch filtering, required scopes and original schema identity   |
+| Member validation | Nested SDK/MCP name collisions, discriminator aliases and formatter callbacks   |
 | Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts
@@ -79,6 +80,8 @@ validation. Node retains promises, iterator handles and AbortSignals, preserving
 callback receivers, event identity, cleanup errors and cancellation promise identity.
 The internal scope projector also runs in Rust, retaining Node spread semantics,
 custom branch-array methods and original-schema identity through repeated filters.
+Member collision validation uses native traversal and per-object name maps, with
+Node iteration preserving callback errors and iterator cleanup.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The SDK, CLI, transports, approval runtime and

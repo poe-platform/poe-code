@@ -1,8 +1,10 @@
 //! Native Toolcraft policies. Node capabilities live in the binding adapter.
 
 pub mod definitions;
+pub mod host;
 pub mod package_metadata;
 pub mod redaction;
+pub mod schema_members;
 pub mod schema_scope;
 pub mod source_snippet;
 pub mod stream;

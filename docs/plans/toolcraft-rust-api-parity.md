@@ -214,6 +214,17 @@ independent declarations or close its compiler/resource qualification gates.
 With native builders enabled, the checkpoint passes 390 reference/parity tests
 and 42 native Node tests, plus Rust, declarations, lint and the maintained build.
 
+Schema member collision validation now runs in Rust, including discriminator
+aliases, optional propagation and independent maps for each object/union branch.
+The shared synchronous host bridge preserves opaque formatter keys, getter order,
+iteration and abrupt-completion cleanup. The original collision suite exercises
+native validation through SDK and MCP construction; those consumers remain
+JavaScript. Differential tests cover custom iterators, arbitrary throws, formatter
+reentrancy and changing discriminator access. The existing 16,384-wrapper and
+128-native-entry resource guards also apply here and still require replacement
+qualification. The checkpoint passes 549 reference/parity tests and 49 native
+Node tests, plus Rust, declaration and lint checks.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

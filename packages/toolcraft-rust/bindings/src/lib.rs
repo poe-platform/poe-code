@@ -3,9 +3,11 @@ use napi_derive::napi;
 use toolcraft_rust::ApiVersionIssue;
 
 pub mod definitions;
+mod host;
 pub mod mcp_result;
 pub mod package_metadata;
 pub mod redaction;
+pub mod schema_members;
 pub mod schema_scope;
 pub mod source_snippet;
 pub mod stream;

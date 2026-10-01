@@ -14,11 +14,11 @@ const pipelines = [
   "yes -n | cat; printf 'status:%s\\n' \"${PIPESTATUS[@]}\"",
 ];
 
-test("yes remains absent until explicitly installed on the shell", async () => {
+test("bare shells gain yes through the default agent preset", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() });
   try {
     assert.equal((await shell.exec("command -v yes")).exitCode, 1);
-    shell.use(agentCommands()).use(yesCommands());
+    shell.use(agentCommands());
     const result = await shell.exec("yes ready | head -n 2");
     assert.equal(result.stdout, "ready\nready\n");
     assert.equal(result.stderr, "");
@@ -28,12 +28,12 @@ test("yes remains absent until explicitly installed on the shell", async () => {
   }
 });
 
-test("agent commands do not implicitly install yes", async () => {
+test("default agent yes supports explicit plugin replacement", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   try {
-    assert.equal((await shell.exec("command -v yes")).exitCode, 1);
-    assert.equal((await shell.exec("yes --help")).exitCode, 127);
-    shell.use(yesCommands());
+    assert.equal((await shell.exec("command -v yes")).exitCode, 0);
+    assert.equal((await shell.exec("yes --help")).exitCode, 0);
+    shell.use(yesCommands({ replace: true }));
     const result = await shell.exec("yes explicit | head -n 1");
     assert.equal(result.stdout, "explicit\n");
     assert.equal(result.stderr, "");
@@ -47,7 +47,7 @@ test("a VFS script can consume yes and continue after its producer closes", asyn
   const fs = createMemoryFileSystem();
   await fs.mkdir("/work");
   await fs.writeFile("/work/job.sh", new TextEncoder().encode("yes item | head -n 2 > /work/items\ncat /work/items\nprintf done\\\\n\n"));
-  const shell = new Shell({ fs }).use(agentCommands()).use(yesCommands());
+  const shell = new Shell({ fs }).use(agentCommands());
   try {
     const result = await shell.exec("sh /work/job.sh");
     assert.equal(result.exitCode, 0);
@@ -77,7 +77,7 @@ test("independent GNU yes shell comparisons preserve bytes, diagnostics and pipe
     });
     assert.ifError(native.error);
     assert.equal(native.signal, null);
-    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands()).use(yesCommands());
+    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
     try {
       const virtual = await shell.exec(source);
       assert.equal(virtual.exitCode, native.status, source);

@@ -57,14 +57,15 @@ test("zero length ignores skip and missing files without acquiring stdin or file
   }
 });
 
-test("unsupported format programs are rejected without acquiring input", async () => {
+for (const [flag, diagnostic] of [
+  ["-e", "hexdump: bad format: 100000000000/1 %x\n"],
+  ["-f", "hexdump: -f: format files are not supported\n"],
+] as const) test(`invalid or unsupported format input ${flag} is rejected before acquiring stdin`, async () => {
   const stdin: ByteSource = { [Symbol.asyncIterator]() { assert.fail("unexpected input"); } };
-  for (const flag of ["-e", "-f"]) {
-    const result = await run([flag, "100000000000/1 %x"], undefined, {}, { stdin });
-    assert.equal(result.exitCode, 1);
-    assert.equal(result.stdout, "");
-    assert.match(Buffer.from(result.stderr, "hex").toString(), /custom formats are not supported/);
-  }
+  const result = await run([flag, "100000000000/1 %x"], undefined, {}, { stdin });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(Buffer.from(result.stderr, "hex").toString(), diagnostic);
 });
 
 test("numeric overflow fails closed before input", async () => {

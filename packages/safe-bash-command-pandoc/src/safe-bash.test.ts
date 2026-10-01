@@ -35,19 +35,18 @@ it("infers file input and HTML output without yes", async () => {
   expect(text(ctx.stdout)).toBe("");
   expect(text(ctx.stderr)).toBe("");
 });
-it("requires explicit lossy conversion and prints deterministic paths separately from content", async () => {
+it("defaults CLI conversion to lossy and prints deterministic paths separately from content", async () => {
   const table = {t: "Table", c: [["", [], []], [null, []], [[{t: "AlignDefault"}, {t: "ColWidthDefault"}], [{t: "AlignDefault"}, {t: "ColWidthDefault"}]],
     [["", [], []], [[["", [], []], [[["", [], []], {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: "H1"}]}]], [["", [], []], {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: "H2"}]}]]]]]],
     [[["", [], []], 0, [], [[["", [], []], [[["", [], []], {t: "AlignDefault"}, 1, 2, [{t: "Plain", c: [{t: "Str", c: "span"}]}]]]]]]], [["", [], []], []]]};
   const input = JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [table]});
-  const strict = context(["--from=json", "-t", "gfm"], input);
-  expect(await createStandalonePandocCommand().execute(strict)).toEqual({exitCode: 3});
-  expect(text(strict.stdout)).toBe("");
-  expect(text(strict.stderr)).toBe("E_CAPABILITY: $.blocks[0].c[4][0][3][0][1][0]: Flattened cell span\n");
-  const lossy = context(["--from", "json", "--to", "gfm", "--lossy"], input);
-  expect(await createStandalonePandocCommand().execute(lossy)).toEqual({exitCode: 0});
-  expect(text(lossy.stdout)).toBe("| H1 | H2 |\n| --- | --- |\n| span |  |\n");
-  expect(text(lossy.stderr)).toBe("W_TABLE_LOSS: $.blocks[0].c[4][0][3][0][1][0]: Flattened cell span\n");
+  await expect(convert([{bytes: encode(input)}], {from: "json", to: "gfm"}, {})).rejects.toMatchObject({code: "E_CAPABILITY"});
+  for (const flags of [[], ["--lossy"]]) {
+    const lossy = context(["--from", "json", "--to", "gfm", ...flags], input);
+    expect(await createStandalonePandocCommand().execute(lossy)).toEqual({exitCode: 0});
+    expect(text(lossy.stdout)).toBe("| H1 | H2 |\n| --- | --- |\n| span |  |\n");
+    expect(text(lossy.stderr)).toBe("W_TABLE_LOSS: $.blocks[0].c[4][0][3][0][1][0]: Flattened cell span\n");
+  }
 });
 it("rejects missing, duplicate, unknown and file arguments before acquiring stdin", async () => {
   for(const args of [["-f", "csv", "-t"], ["-f", "csv", "-t", "plain", "--lossy=false"], ["-f", "csv", "-t", "plain", "input.csv"], ["-f", "csv", "--from=json", "-t", "plain"]]) {

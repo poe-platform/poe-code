@@ -199,5 +199,5 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     const media = resourceDirectory(options.extractMedia, files.cwd ?? "/");
     if (output === media || media === "/" || output.startsWith(`${media}/`)) fail("Output cannot be inside the extraction directory");
   }
-  return {options: {...options, from: options.from!, to: options.to!, ...(yes ? {yes: true} : {}), ...(pdfFonts.length ? {pdfFonts} : {}), ...(metadataJson.length ? {metadataJson} : {}), ...(metadataFiles.length ? {metadataFiles} : {})}, operands: operands.length ? operands : undefined, ...(destination === undefined ? {} : {destination})};
+  return {options: {lossy: true, ...options, from: options.from!, to: options.to!, ...(yes ? {yes: true} : {}), ...(pdfFonts.length ? {pdfFonts} : {}), ...(metadataJson.length ? {metadataJson} : {}), ...(metadataFiles.length ? {metadataFiles} : {})}, operands: operands.length ? operands : undefined, ...(destination === undefined ? {} : {destination})};
 }

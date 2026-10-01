@@ -71,7 +71,10 @@ TypeScript converter's supported options and configured format registry.
 `ConversionOptions` requires `from` and `to`. Writer options are `yes` (explicit
 metadata defaults), `standalone`, `metadata`, `metadataJson` (ordered maps; null
 deletes keys), `metadataFiles` (explicit JSON inputs), `rawContent` (`reject`,
-`escape`, or `retain`), `lossy`, and `failIfWarnings`. Plain, CommonMark, and GFM output accept
+`escape`, or `retain`), `lossy`, and `failIfWarnings`. The CLI defaults to lossy
+conversion, projecting unsupported container attributes with diagnostics; the SDK
+remains strict unless `lossy: true` is selected. `--fail-if-warnings` rejects these
+diagnostics, and `--lossy` remains accepted for compatibility. Plain, CommonMark, and GFM output accept
 `wrap` (`none`, `auto`, or `preserve`) and positive `columns` (default 72 when
 wrapping is requested). Markdown wrapping preserves inline code, links, and fenced
 blocks. Markdown aliases include `markdown`, `md`, `markdown_strict`,

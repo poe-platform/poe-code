@@ -21,6 +21,10 @@ class RtfWriter {
   fail(message: string, code: "E_UNSUPPORTED_FEATURE" | "E_RESOURCE" | "E_OPTION" = "E_UNSUPPORTED_FEATURE"): never {
     throw new PandocError(code, this.context.operation ?? "write", message, "rtf");
   }
+  loss(message: string): void {
+    if (!this.context.lossy) this.fail(message);
+    this.context.report({code: "W_PRESENTATION_LOSS", operation: this.context.operation ?? "write", format: "rtf", message});
+  }
   add(text: string): void {
     this.context.checkpoint(text.length + 1);
     this.context.bound("outputBytes", this.length + text.length);
@@ -42,7 +46,7 @@ class RtfWriter {
     }
   }
   attrs(attr: Attr, paragraph = false): void {
-    if(attr[0] || attr[1].length) this.fail("Unsupported RTF identifiers or classes");
+    if(attr[0] || attr[1].length) this.loss("Unsupported RTF identifiers or classes");
     for(const [key, value] of attr[2]) {
       if(key === "font-family") {
         const id = this.fonts.indexOf(value);
@@ -57,7 +61,7 @@ class RtfWriter {
       } else if(key === "dir" && ["ltr", "rtl"].includes(value)) this.add(`\\${value}${paragraph ? "par" : "ch"}`);
       else if(key === "text-align" && paragraph && ["left", "right", "center", "justify"].includes(value))
         this.add(`\\${{left: "ql", right: "qr", center: "qc", justify: "qj"}[value]}`);
-      else this.fail(`Unsupported RTF attribute: ${key}`);
+      else this.loss(`Unsupported RTF attribute: ${key}`);
     }
   }
   async collect(value: unknown, listDepth = 0): Promise<void> {
@@ -173,7 +177,7 @@ class RtfWriter {
         case "BlockQuote": await this.blocks(node.c, {...current, indent: state.indent + 720}); break;
         case "Div":
           // Attributes belong to each paragraph so pard/plain cannot erase them.
-          if(node.c[0][2].length || node.c[0][0] || node.c[0][1].length) this.fail("Attributed RTF Div unsupported; use paragraph/run attributes");
+          if(node.c[0][2].length || node.c[0][0] || node.c[0][1].length) this.loss("Attributed RTF Div projected to contained blocks");
           await this.blocks(node.c[1], current); break;
         case "BulletList": case "OrderedList": {
           if(current.marker) this.fail("List item must begin with a paragraph");

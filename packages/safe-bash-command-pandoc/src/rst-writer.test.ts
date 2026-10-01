@@ -66,11 +66,11 @@ it("shares conversion and atomic publication through the thin adapter using memf
   const {createStandalonePandocCommand} = await import("./safe-bash.js");
   const fs = Volume.fromJSON({"/output.rst": "original"});
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
-  const run = (input: string) => createStandalonePandocCommand().execute({args: ["-f=commonmark", "-t=rst", "-o", "/output.rst"], stdin: [new TextEncoder().encode(input)], stdout: {write: async b => {stdout.push(b);}}, stderr: {write: async b => {stderr.push(b);}}, writeFile: async (path, bytes) => {fs.writeFileSync(path, bytes);}, signal: new AbortController().signal});
+  const run = (input: string) => createStandalonePandocCommand().execute({args: ["-f=commonmark", "-t=rst", "--fail-if-warnings", "-o", "/output.rst"], stdin: [new TextEncoder().encode(input)], stdout: {write: async b => {stdout.push(b);}}, stderr: {write: async b => {stderr.push(b);}}, writeFile: async (path, bytes) => {fs.writeFileSync(path, bytes);}, signal: new AbortController().signal});
   expect(await run("# Heading\n\n**strong**")).toEqual({exitCode: 0});
   expect(fs.readFileSync("/output.rst", "utf8")).toContain("Heading\n=======");
   const original = fs.readFileSync("/output.rst", "utf8");
-  expect(await run("**outer *inner***")).toEqual({exitCode: 5});
+  expect(await run("**outer *inner***")).toEqual({exitCode: 2});
   expect(fs.readFileSync("/output.rst", "utf8")).toBe(original);
   expect(stdout).toEqual([]);
   expect(new TextDecoder().decode(stderr[0])).toContain("Nested RST inline style");

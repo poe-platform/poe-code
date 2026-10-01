@@ -20,7 +20,7 @@ Inspect PDF document metadata, page geometry, boxes, encryption permissions, for
 | PDF Merging (`pdfunite`) | `pdfunite a.pdf b.pdf out.pdf` | Merges multiple PDF documents into a single PDF. |
 | PDF Splitting (`pdfseparate`) | `pdfseparate -f 1 -l 2 in.pdf page-%d.pdf` | Splits selected pages into individual PDF files using a `%d` pattern. |
 
-`pdfinfoCommands()` registers `pdfinfo`, `pdfunite`, `pdfseparate`, `pdffonts` and `pdfdetach`. Register `pdfimagesCommands()` and `pdftoppmCommands()` from their dedicated command subpaths for image extraction and rendering (`pdftoppm` / `pdftocairo`). Direct factories and CLI runners remain available.
+`pdfinfoCommands()` registers `pdfinfo`, `pdfunite`, `pdfseparate`, `pdffonts` and `pdfdetach`. Register `pdfimagesCommands()` and `pdftoppmCommands()` from their dedicated command subpaths for image extraction and rendering (`pdftoppm` / `pdftocairo`). Rendering and image-extraction factories and CLI runners are exported from those dedicated subpaths.
 
 ## Quick Start
 
@@ -41,3 +41,6 @@ The workspace entrypoint exports `pdfinfoCommands()` for plugin registration,
 `PdfinfoCommandsOptions` object; existing factory names remain available.
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdfinfoLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.
+
+Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
+Embedded attachment filenames are reduced to their final path component when extracting, keeping them in the chosen output directory.

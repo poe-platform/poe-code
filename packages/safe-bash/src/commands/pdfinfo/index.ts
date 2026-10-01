@@ -1,3 +1,4 @@
+import { createPdftocairoCommand as createRawPdftocairoCommand } from "safe-bash-command-pdftoppm";
 import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import {
@@ -5,7 +6,6 @@ import {
   createPdfinfoCommands as createRawPdfinfoCommands,
   createPdffontsCommand as createRawPdffontsCommand,
   createPdfdetachCommand as createRawPdfdetachCommand,
-  createPdftocairoCommand as createRawPdftocairoCommand,
   inspectPdfBytes,
   runPdffontsCliSync,
   runPdfdetachCliSync,

@@ -2602,21 +2602,16 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
       i += args.length - 1;
     }
 
-    for (const token of argv) {
+    const parsed = parseQpdfArguments(argv);
+    const inputs = parsed.options ? [
+      parsed.options.inputFile,
+      ...parsed.options.updateFromJsonFiles,
+      ...[...parsed.options.pageSpecs, ...parsed.options.stampSpecs,
+        ...parsed.options.addAttachmentSpecs, ...parsed.options.copyAttachmentsSpecs].map(spec => spec.file),
+    ] : [];
+    for (const candidate of new Set(inputs)) {
       await yieldTurn(invocation.signal);
-      invocation.signal.throwIfAborted();
-      let candidate = token;
-      if (
-        token.startsWith("--overlay=") ||
-        token.startsWith("--underlay=") ||
-        token.startsWith("--add-attachment=") ||
-        token.startsWith("--copy-attachments-from=") ||
-        token.startsWith("--update-from-json=")
-      ) {
-        candidate = token.slice(token.indexOf("=") + 1);
-      } else if (token.startsWith("-") || token === "--" || token === ".") {
-        continue;
-      }
+      if (!candidate || candidate === "-" || candidate === ".") continue;
       const abs = resolveVfsPath(candidate);
       let bytes: Uint8Array;
       try {
@@ -2691,7 +2686,14 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
           await writeBytes(stdout.output, fileBytes, invocation.signal);
         } else {
           const abs = resolveVfsPath(fileKey);
-          await writeFileOutput(context, fileBytes, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+          try {
+            await writeFileOutput(context, fileBytes, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+          } catch (error) {
+            invocation.signal.throwIfAborted();
+            if (!(error instanceof Error) || !("code" in error)) throw error;
+            await writeBytes(context.stderr, new TextEncoder().encode(`qpdf: open ${fileKey}: ${error.code === "ENOENT" ? "No such file or directory" : error.code}\n`), invocation.signal);
+            return { exitCode: 2 };
+          }
         }
       }
     }

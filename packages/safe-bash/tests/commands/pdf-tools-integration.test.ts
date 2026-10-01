@@ -317,6 +317,10 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     await fs.writeFile("/attachment.txt", new TextEncoder().encode("embedded-vfs-payload"));
 
     // 1. Burst /packet.pdf into /burst_out/pg_%04d.pdf
+    const missingBurst = await shell.exec("pdftk /packet.pdf burst output /burst_out/pg_%04d.pdf");
+    assert.equal(missingBurst.exitCode, 1);
+    assert.ok(missingBurst.stderr.includes("Failed to open output file"));
+    await fs.mkdir("/burst_out");
     const burstRes = await shell.exec("pdftk /packet.pdf burst output /burst_out/pg_%04d.pdf");
     assert.equal(burstRes.exitCode, 0);
     const pg1Txt = await shell.exec("pdftotext /burst_out/pg_0001.pdf -");
@@ -359,6 +363,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
       "pdftk /bookmarked.pdf attach_files /attachment.txt to_page 1 output /bundled.pdf"
     );
     assert.equal(attRes.exitCode, 0);
+    await fs.mkdir("/unpacked");
     const unpRes = await shell.exec("pdftk /bundled.pdf unpack_files output /unpacked");
     assert.equal(unpRes.exitCode, 0);
     const unpackedPayload = new TextDecoder().decode(await fs.readFile("/unpacked/attachment.txt"));
@@ -667,6 +672,10 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     assert.equal(detachList.exitCode, 0);
     assert.match(detachList.stdout, /1: readme\.txt/);
 
+    const missingDetach = await shell.exec("pdfdetach -saveall -o /work/detached /work/attached.pdf");
+    assert.equal(missingDetach.exitCode, 2);
+    assert.ok(missingDetach.stderr.includes("Error saving embedded file"));
+    await vfs.mkdir("/work/detached");
     const detachSave = await shell.exec("pdfdetach -saveall -o /work/detached /work/attached.pdf");
     assert.equal(detachSave.exitCode, 0);
     const detachedContent = new TextDecoder().decode(await vfs.readFile("/work/detached/readme.txt"));

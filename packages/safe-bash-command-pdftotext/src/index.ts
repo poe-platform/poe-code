@@ -1445,7 +1445,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
       }
     }
 
-    for (const token of argv) {
+    for (const token of inputOperand && inputOperand !== "-" ? [inputOperand] : []) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token.startsWith("-") && token !== "-") continue;
       try {
@@ -1473,7 +1473,14 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
       if (existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
         const abs = resolveVfsPath(key);
-        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+        try {
+          await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+        } catch (error) {
+          invocation.signal.throwIfAborted();
+          if (!(error instanceof Error) || !("code" in error)) throw error;
+          await writeBytes(context.stderr, new TextEncoder().encode(`I/O Error: Couldn't open html file '${key}'\n`), invocation.signal);
+          return { exitCode: 0 };
+        }
       }
     }
     return { exitCode: res.exitCode };

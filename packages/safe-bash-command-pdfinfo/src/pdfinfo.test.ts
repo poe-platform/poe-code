@@ -1,3 +1,5 @@
+import { runPdftoppmCli } from "safe-bash-command-pdftoppm";
+import { runPdfimagesCli } from "safe-bash-command-pdfimages";
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import {
@@ -18,8 +20,6 @@ import {
 import {
   inspectPdfBytes,
   runPdfinfoCli,
-  runPdftoppmCli,
-  runPdfimagesCli,
   runPdfuniteCli,
   runPdfseparateCli,
   runPdffontsCli,

@@ -514,7 +514,7 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
       }
     }
 
-    for (const token of positionals) {
+    for (const token of positionals.slice(0, 1)) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token === "-") continue;
       try {
@@ -543,13 +543,14 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (key !== "-" && existingSnap.get(key) !== val) {
         const abs = resolveVfsPath(key);
-        const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
         try {
-          await context.fs.mkdir(parentDir, { recursive: true, signal: invocation.signal });
-        } catch {
-          // Directory already exists
+          await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+        } catch (error) {
+          invocation.signal.throwIfAborted();
+          if (!(error instanceof Error) || !("code" in error)) throw error;
+          await writeBytes(context.stderr, new TextEncoder().encode(`Could not write image to ${key}; exiting\n`), invocation.signal);
+          return { exitCode: 1 };
         }
-        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }
     return { exitCode: res.exitCode };
@@ -990,7 +991,7 @@ try {
             vfsFiles.set("-", buf);
           }
         }
-        for (const token of positionals) {
+        for (const token of positionals.slice(0, 1)) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
           if (token === "-") continue;
           try {
@@ -1018,13 +1019,14 @@ try {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
           if (key !== "-" && existingSnap.get(key) !== val) {
             const abs = resolveVfsPath(key);
-            const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
             try {
-              await context.fs.mkdir(parentDir, { recursive: true, signal: invocation.signal });
-            } catch {
-              // Directory exists
+              await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+            } catch (error) {
+              invocation.signal.throwIfAborted();
+              if (!(error instanceof Error) || !("code" in error)) throw error;
+              await writeBytes(context.stderr, new TextEncoder().encode(`Error opening output file ${key}\n`), invocation.signal);
+              return { exitCode: 2 };
             }
-            await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
           }
         }
         return { exitCode: res.exitCode };

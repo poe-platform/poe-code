@@ -37,3 +37,5 @@ The workspace entrypoint exports `pdftotextCommands()` for plugin registration,
 `PdftotextCommandsOptions` object; existing factory names remain available.
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdftotextLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.
+
+Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.

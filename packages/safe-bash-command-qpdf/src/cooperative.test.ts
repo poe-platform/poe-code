@@ -45,7 +45,8 @@ for (const stage of ["clone", "serialize", "encrypt", "forms"] as const) {
       const controller = new AbortController();
       let turns = 0;
       registerYieldCheckpoint(controller.signal, () => {
-        if (++turns === 3) setTimeout(() => controller.abort(new Error("cancel objects")), 0);
+        // Cancel at the checkpoint: a zero-delay timer can run after short work completes.
+        if (++turns === 3) controller.abort(new Error("cancel objects"));
       });
       const work: Generator<void, unknown, void> = stage === "clone"
         ? PdfDocument.create().copyPagesFromSteps(doc, Array.from({ length: 40 }, (_, i) => i))

@@ -1245,7 +1245,9 @@
           "dependencies": {},
           "devDependencies": {
             "@poe-code/pdf-ast": "*",
-            "safe-bash-contracts": "*"
+            "safe-bash-contracts": "*",
+            "safe-bash-command-pdftoppm": "*",
+            "safe-bash-command-pdfimages": "*"
           },
           "portable": true
         },

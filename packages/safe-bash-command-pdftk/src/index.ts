@@ -1164,6 +1164,14 @@ function attachFilesToDocument(
   }
 }
 
+function attachmentBasename(name: string): string {
+  const leaf = name.split("/").at(-1)!.split("\\").at(-1)!;
+  if (!leaf || leaf === "." || leaf === ".." || leaf.includes("\0")) {
+    throw new Error("Invalid embedded attachment filename");
+  }
+  return leaf;
+}
+
 function unpackFilesFromDocument(
   doc: PdfDocument,
   outDir: string,
@@ -1172,7 +1180,7 @@ function unpackFilesFromDocument(
   const cleanDir = outDir.endsWith("/") ? outDir.slice(0, -1) : outDir;
   const writeSpecDict = (specDict: PdfCosDict, fallbackName = "attachment.bin") => {
     const ufNode = doc.cos.resolve(dictGet(specDict, "UF") ?? dictGet(specDict, "F"));
-    const fileName = ufNode?.kind === "string" ? decodePdfString(ufNode) : fallbackName;
+    const fileName = attachmentBasename(ufNode?.kind === "string" ? decodePdfString(ufNode) : fallbackName);
     const efDict = doc.cos.resolveDict(dictGet(specDict, "EF"));
     const fStream = efDict
       ? doc.cos.resolve(
@@ -2087,11 +2095,29 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       vfsFiles.set("-", buf);
     }
 
-    for (const token of argv) {
+    const inputPaths: string[] = [];
+    let operandIndex = 0;
+    while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) {
+      const token = argv[operandIndex++]!;
+      const eq = token.indexOf("=");
+      inputPaths.push(eq > 0 ? token.slice(eq + 1) : token);
+    }
+    while (argv[operandIndex]?.toLowerCase() === "input_pw") {
+      operandIndex++;
+      while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) operandIndex++;
+    }
+    const operation = argv[operandIndex++]?.toLowerCase();
+    if (["update_info", "update_info_utf8", "fill_form", "background", "multibackground", "stamp", "multistamp"].includes(operation ?? "")) {
+      if (argv[operandIndex]) inputPaths.push(argv[operandIndex]!);
+    } else if (operation === "attach_files") {
+      while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) {
+        const token = argv[operandIndex++]!;
+        if (token.toLowerCase() === "to_page") operandIndex++;
+        else inputPaths.push(token);
+      }
+    }
+    for (const filePath of new Set(inputPaths)) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (token.startsWith("-") && token !== "-") continue;
-      const eqIdx = token.indexOf("=");
-      const filePath = eqIdx > 0 ? token.slice(eqIdx + 1) : token;
       if (filePath === "-") continue;
       try {
         const bytes = await context.fs.readFile(resolveVfsPath(filePath), { signal: invocation.signal });
@@ -2123,13 +2149,14 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       if (key !== "-" && existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
         const abs = resolveVfsPath(key);
-        const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
         try {
-          await context.fs.mkdir(parentDir, { recursive: true, signal: invocation.signal });
-        } catch {
-          // Directory already exists
+          await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+        } catch (error) {
+          invocation.signal.throwIfAborted();
+          if (!(error instanceof Error) || !("code" in error)) throw error;
+          await writeBytes(context.stderr, new TextEncoder().encode(`Error: Failed to open output file '${key}': ${error.code}.\n`), invocation.signal);
+          return { exitCode: 1 };
         }
-        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }
     return { exitCode: res.exitCode };

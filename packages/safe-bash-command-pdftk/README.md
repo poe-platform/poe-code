@@ -36,3 +36,6 @@ The workspace entrypoint exports `pdftkCommands()` for plugin registration,
 `PdftkCommandsOptions` object; existing factory names remain available.
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdftkLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.
+
+Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
+Embedded attachment filenames are reduced to their final path component when extracting, keeping them in the chosen output directory.

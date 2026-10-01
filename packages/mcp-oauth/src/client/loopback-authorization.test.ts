@@ -1,6 +1,6 @@
 import http from "node:http";
 import { EventEmitter } from "node:events";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { nodeFetch } from "tiny-http-mcp-server/testing";
 import { installInMemoryHttp } from "tiny-http-mcp-server/test-support";
 import { createLoopbackAuthorizationSession } from "../index.js";
@@ -148,4 +148,22 @@ describe("createLoopbackAuthorizationSession", () => {
       session.close();
     }
   });
+});
+
+it.each([undefined, Infinity])("keeps default and explicit unlimited callback waits cancellable: %s", async timeoutMs => {
+  for (const hosted of [false, true]) {
+    const controller = new AbortController(), reason = new Error("stop callback");
+    const timer = vi.spyOn(globalThis, "setTimeout");
+    let session;
+    try {
+      session = await createLoopbackAuthorizationSession({ timeoutMs, signal: controller.signal,
+        ...(hosted ? { redirectUri: "https://host.example/callback", waitForCallback: async () => new Promise<string>(() => {}) } : {}) });
+      expect(timer).not.toHaveBeenCalled();
+      const authorizationUrl = new URL("https://auth.example/authorize");
+      authorizationUrl.searchParams.set("redirect_uri", session.redirectUri);
+      const pending = session.waitForCode(authorizationUrl.href);
+      controller.abort(reason);
+      await expect(pending).rejects.toBe(reason);
+    } finally { session?.close(); timer.mockRestore(); }
+  }
 });

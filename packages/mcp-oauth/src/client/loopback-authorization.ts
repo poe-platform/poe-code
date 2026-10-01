@@ -21,7 +21,7 @@ export interface LoopbackAuthorizationOptions {
   /** Exact registered HTTP loopback redirect, including its fixed port and query. */
   redirectUri?: string;
   signal?: AbortSignal;
-  /** Bounds listener setup and authorization; defaults to two minutes. */
+  /** Bounds listener setup and authorization; defaults to unlimited. */
   timeoutMs?: number;
 }
 
@@ -45,8 +45,8 @@ export async function createLoopbackAuthorizationSession(
 ): Promise<LoopbackAuthorizationSession> {
   options = snapshotLoopbackAuthorizationOptions(options);
   options.signal?.throwIfAborted();
-  const timeoutMs = options.timeoutMs ?? 120_000;
-  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
+  const timeoutMs = options.timeoutMs ?? Infinity;
+  if (timeoutMs !== Infinity && (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647))
     throw new Error("OAuth authorization timeoutMs must be a positive supported timer interval");
   if (options.waitForCallback !== undefined) return createHostedAuthorizationSession(options, timeoutMs);
   const target = loopbackTarget(options);
@@ -63,8 +63,8 @@ export async function createLoopbackAuthorizationSession(
     server.closeAllConnections?.();
     server.close();
   };
-  const timer = setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
-  timer.unref?.();
+  const timer = timeoutMs === Infinity ? undefined : setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
+  timer?.unref?.();
   controller.signal.addEventListener("abort", teardown, { once: true });
   options.signal?.addEventListener("abort", callerAbort, { once: true });
   if (options.signal?.aborted) callerAbort();
@@ -94,8 +94,8 @@ function createHostedAuthorizationSession(options: LoopbackAuthorizationOptions,
   const redirectUri = options.redirectUri!, controller = new AbortController();
   let used = false;
   const aborted = () => controller.abort(options.signal?.reason);
-  const timer = setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
-  timer.unref?.();
+  const timer = timeoutMs === Infinity ? undefined : setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
+  timer?.unref?.();
   const cleanup = () => { clearTimeout(timer); options.signal?.removeEventListener("abort", aborted); };
   controller.signal.addEventListener("abort", cleanup, { once: true });
   options.signal?.addEventListener("abort", aborted, { once: true });

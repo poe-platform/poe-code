@@ -8,8 +8,27 @@ test("agentCommands executes the reported portable command set after Buffer is d
   for (const [path, contents] of Object.entries({
     '/in.txt': 'alice\nbob\n', '/in2.txt': 'alice\ncarol\n',
     '/in.json': '{"a":2}', '/in.html': '<p>hello</p>',
+    '/data.txt': 'alpha:line_1:value_1\n'.repeat(30),
   })) await fs.writeFile(path, new TextEncoder().encode(contents));
-  const shell = new core.Shell({ fs }).use(core.agentCommands());
+  const internalErrors: unknown[] = [];
+  const shell = new core.Shell({ fs, onInternalError(error) { internalErrors.push(error); } }).use(core.agentCommands());
+  shell.use(core.yqCommands({ replace: true }));
+  shell.use(core.xzCommands({ replace: true }));
+  shell.use(core.exiftoolCommands({ replace: true }));
+  shell.use(core.networkCommands({
+    authorize: ({ url }) => url === "https://example.test/data",
+    async transport(request) {
+      assert.equal(request.method, "POST");
+      const chunks: number[] = [];
+      for await (const chunk of request.body!) chunks.push(...chunk);
+      assert.deepEqual(chunks, [...new TextEncoder().encode("alice\nbob\n")]);
+      return {
+        status: 200, statusText: "OK", headers: [],
+        body: (async function* () { yield Uint8Array.of(0, 128, 255); })(),
+        async dispose() {},
+      };
+    },
+  }));
   try {
     for (const script of [
       'uniq /in.txt', 'paste /in.txt /in.txt', 'join /in.txt /in.txt',
@@ -22,6 +41,36 @@ test("agentCommands executes the reported portable command set after Buffer is d
       const result = await shell.exec(script);
       assert.equal(result.exitCode, 0, `${script}: ${result.stderr}`);
     }
+    for (const [script, stdout] of [
+      ["awk -F: '/^alpha:/ { c++ } END { print c }' /data.txt", "30\n"],
+      ["sed 's/^alpha:/BETA:/g; s/:line_/:LINE_/g' /data.txt", "BETA:LINE_1:value_1\n".repeat(30)],
+      ["rg -c alpha /data.txt", "30\n"],
+      ["jq -c '.a' /in.json", "2\n"],
+      ["printf 'a: 2\n' | yq .a -o json -c", "2\n"],
+      ["tar -czf /out.tar.gz -C / in.txt; tar -xOzf /out.tar.gz", "alice\nbob\n"],
+      ["gzip -c /in.txt | gzip -dc", "alice\nbob\n"],
+      ["xz -c /in.txt | xz -dc", "alice\nbob\n"],
+      ["unzip -p /out.zip", "alice\nbob\n"],
+      ["stat -c %s /in.txt", "10\n"],
+      ["find /in.txt -type f", "/in.txt\n"],
+      ["seq 1 3", "1\n2\n3\n"],
+      ["tac /in.txt", "bob\nalice\n"],
+      ["date -u -d @0 +%Y-%m-%d", "1970-01-01\n"],
+      ["mktemp /tmp.XXXXXX >/dev/null", ""],
+    ]) {
+      const result = await shell.exec(script!);
+      assert.equal(result.exitCode, 0, `${script}: ${result.stderr}`);
+      assert.equal(result.stderr, "", script);
+      assert.equal(result.stdout, stdout, script);
+    }
+    const download = await shell.exec("curl -sS --data-binary @/in.txt https://example.test/data -o /download.bin");
+    assert.equal(download.exitCode, 0, download.stderr);
+    assert.deepEqual([...await fs.readFile("/download.bin")], [0, 128, 255]);
+    const png = Uint8Array.from(atob("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="), char => char.charCodeAt(0));
+    await fs.writeFile("/pixel.png", png);
+    const metadata = await shell.exec("exiftool -s3 -ImageWidth /pixel.png");
+    assert.equal(metadata.exitCode, 0, metadata.stderr);
+    assert.equal(metadata.stdout, "1\n");
     await fs.writeFile("/f.txt", new TextEncoder().encode("alpha\n"));
     for (const [script, stdout] of [
       ["[[ a < b ]] && echo ordered", "ordered\n"],
@@ -52,6 +101,7 @@ test("agentCommands executes the reported portable command set after Buffer is d
     assert.equal(diff.stderr, '');
     assert.ok((await fs.readFile('/out.tar')).byteLength > 0);
     assert.ok((await fs.readFile('/out.zip')).byteLength > 0);
+    assert.deepEqual(internalErrors, []);
   } finally { await shell.dispose(); }
 });
 

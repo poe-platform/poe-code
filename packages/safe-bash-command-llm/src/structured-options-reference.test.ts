@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createOpenAiProvider } from "./openai.js";
 import reference from "./fixtures/openai-structured-options-reference.json" with {type:"json"};
-import { openAiChatOptions } from "./openai-chat-options.js";
+import { openAiChatOptions } from "./providers/index.js";
 import integers from "./fixtures/token-integer-reference.json" with { type: "json" };
 test("token key grammar matches pinned Unicode decimal and whitespace semantics", () => {
  for (const fixture of integers.cases) {

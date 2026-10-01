@@ -1,19 +1,6 @@
+import { subscribeAbort } from "safe-bash-contracts";
 import { utf8ByteLength } from "safe-bash-byte-engine";
 const treeUtf8Encoder = new TextEncoder();
-const treeSignalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
-function getTreeSignalWaiters(signal: AbortSignal): Set<() => void> {
-  let waiters = treeSignalWaiters.get(signal);
-  if (!waiters) {
-    waiters = new Set();
-    treeSignalWaiters.set(signal, waiters);
-    signal.addEventListener("abort", () => {
-      const pending = [...waiters!];
-      waiters!.clear();
-      for (const fn of pending) fn();
-    }, { once: true });
-  }
-  return waiters;
-}
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { escapeText } from "safe-bash-contracts/escaping";
@@ -103,16 +90,14 @@ export class WalkBudget {
       await yieldTurn(signal);
     }
     signal.throwIfAborted();
-    const waiters = getTreeSignalWaiters(signal);
     const result = await new Promise<Result>((resolve, reject) => {
-      const abort = () => { waiters.delete(abort); reject(signal.reason); };
-      waiters.add(abort);
+      const unsubscribe = subscribeAbort(signal, () => reject(signal.reason));
       Promise.resolve().then(() => {
         signal.throwIfAborted();
         return operation();
       }).then(
-        value => { waiters.delete(abort); resolve(value); },
-        error => { waiters.delete(abort); reject(error); },
+        value => { unsubscribe(); resolve(value); },
+        error => { unsubscribe(); reject(error); },
       );
     });
     signal.throwIfAborted();

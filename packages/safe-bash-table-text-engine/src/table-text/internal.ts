@@ -71,22 +71,15 @@ export class Budget {
   private inputBytes = 0;
   private outputBytes = 0;
   steps = 0;
-  private signalAborted: boolean;
-  private readonly pollBaseSignal: boolean;
   constructor(readonly context: CommandContext, readonly limits: TableTextLimits, outputChunkBytes = 16384) {
     this.outBuf = new Uint8Array(outputChunkBytes);
-    this.signalAborted = context.signal.aborted;
-    this.pollBaseSignal = Object.prototype.hasOwnProperty.call(context.signal, "aborted");
-    if (!this.signalAborted && !this.pollBaseSignal) {
-      context.signal.addEventListener("abort", () => { this.signalAborted = true; }, { once: true });
-    }
     this.check(context.args.reduce((size, value) => size + utf8ByteLength(value), 0), limits.maxArgumentBytes, "argument");
   }
   check(value: number | bigint, maximum: number, label: string): void {
     if (value > maximum) throw new FsError("EFBIG", { message: `table-text ${label} limit exceeded` });
   }
   step(): void | Promise<void> {
-    if (this.pollBaseSignal ? this.context.signal.aborted : this.signalAborted) this.context.signal.throwIfAborted();
+    this.context.signal.throwIfAborted();
     this.check(++this.steps, this.limits.maxSteps, "step");
     if (this.steps % 1024 !== 0) return;
     // A work quantum must allow host cancellation even when the clock is frozen.

@@ -34,14 +34,9 @@ export class ColumnBudget extends Budget {
   private emittedBytes = 0;
   private retainedBytes = 0;
   private projectedBytes = 0;
-  private aborted = false;
-  private readonly pollSignal: boolean;
   constructor(context: CommandContext, readonly columnLimits: ColumnLimits) {
     super(context, readerSettings(columnLimits), ColumnBudget.outputChunkBytes);
-    const sig = context.signal;
-    this.pollSignal = typeof sig.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(sig, "aborted");
-    if (sig.aborted) this.aborted = true;
-    else if (!this.pollSignal) sig.addEventListener("abort", () => { this.aborted = true; }, { once: true });
+
   }
   override check(value: number, maximum: number, label: string): void {
     if (!Number.isSafeInteger(value) || value < 0 || value > maximum) {
@@ -62,7 +57,7 @@ export class ColumnBudget extends Budget {
     this.projectedBytes += size;
   }
   work(amount: number): void | Promise<void> {
-    if (this.aborted || (this.pollSignal && this.context.signal.aborted)) { this.aborted = true; this.context.signal.throwIfAborted(); }
+    this.context.signal.throwIfAborted();
     this.check(amount, this.columnLimits.maxSteps - this.workUsed, "work");
     this.workUsed += amount;
     this.untilYield -= amount;

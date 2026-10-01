@@ -4,8 +4,9 @@ import * as entry from "../../src/index.js";
 
 test("the default public preset appends iconv and exposes its factories", () => {
   const names = entry.createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 112);
-  assert.equal(new Set(names).size, 112);
+  assert.equal(names.length, 115);
+  assert.equal(new Set(names).size, 115);
+  for (const name of ["lzma", "unlzma", "lzcat"]) assert.ok(names.includes(name));
   assert.deepEqual(names.slice(-6), ["hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq"]);
   for (const name of ["createIconvCommand", "createIconvCommands", "iconvCommands"]) assert.ok(name in entry, `Missing public export: ${name}`);
 });

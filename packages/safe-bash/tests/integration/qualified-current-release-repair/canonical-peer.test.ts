@@ -19,7 +19,7 @@ const expectedCurrentCommands = [
   "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
   "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "cmp", "fmt", "shuf", "numfmt", "env", "xargs", "find",
   "sed", "awk", "jq", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
-  "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
+  "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
   "date", "sleep", "printenv", "tree", "file", "rg", "egrep", "fgrep", "column", "html-to-markdown",
   "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq",
@@ -46,8 +46,8 @@ async function generatedCatalogGuards() {
   assert.ok(initializer && ts.isArrayLiteralExpression(initializer));
   assert.ok(initializer.elements.every(ts.isStringLiteral));
   assert.deepEqual(initializer.elements.map(element => (element as ts.StringLiteral).text), expectedCurrentCommands);
-  assert.equal(expectedCurrentCommands.length, 112);
-  assert.equal(new Set(expectedCurrentCommands).size, 112);
+  assert.equal(expectedCurrentCommands.length, 115);
+  assert.equal(new Set(expectedCurrentCommands).size, 115);
   assert.equal(guards.length, 3, "factory, registered dispatch, and final factory each verify the full catalog");
   return guards.map(guard => {
     const script = `const expectedCurrentCommands = ${initializer.getText(parsed)};\n${guard.getText(parsed)}`;
@@ -56,7 +56,7 @@ async function generatedCatalogGuards() {
   });
 }
 
-test("generated current stream catalog accepts the independent exact 112 names at all three boundaries", async () => {
+test("generated current stream catalog accepts the independent exact 115 names at all three boundaries", async () => {
   assert.deepEqual(createAgentCommands().map(command => command.name), expectedCurrentCommands);
   for (const guard of await generatedCatalogGuards()) {
     const definitions = expectedCurrentCommands.map(name => ({ name }));

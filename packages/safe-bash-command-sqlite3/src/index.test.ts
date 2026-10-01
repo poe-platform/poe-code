@@ -845,3 +845,30 @@ test('sqlite3 checks unboxed JSON text before applying REAL affinity', async () 
   assert.equal(result.code, 0, result.stderr);
   assert.equal(result.stdout, '7.0|real\n"x"|text\n');
 });
+
+for (const [name, sql, expected] of [
+  ["conditional projections over nullable rows",
+    "CREATE TABLE t(a INT, b TEXT); INSERT INTO t VALUES (1, 'x'), (2, NULL), (3, 'y'); SELECT a, COALESCE(b, 'none'), IFNULL(b, 'fallback'), IIF(a > 1, 'yes', 'no') FROM t ORDER BY a DESC;",
+    "3|y|y|yes\n2|none|fallback|yes\n1|x|x|no\n"],
+  ["aggregate IN in HAVING",
+    "CREATE TABLE items(g TEXT, v INT); INSERT INTO items VALUES ('a', 1), ('a', 2), ('b', 5), ('c', 9); SELECT g FROM items GROUP BY g HAVING SUM(v) IN (3, 5) ORDER BY g;",
+    "a\nb\n"],
+  ["aggregate IN operands and NULL semantics",
+    "CREATE TABLE t(v INT); INSERT INTO t VALUES (1), (2); SELECT COUNT(*) IN (1, 2), 3 IN (SUM(v)), SUM(v) NOT IN (4, 5), SUM(v) IN (4, NULL), SUM(v) NOT IN (4, NULL), SUM(v) IN (), SUM(v) NOT IN () FROM t;",
+    "1|1|1|||0|1\n"],
+  ["empty aggregate IN operands",
+    "CREATE TABLE t(v INT); SELECT COUNT(*) IN (0, 1), SUM(v) IN (0), SUM(v) IN (), SUM(v) NOT IN () FROM t;",
+    "1||0|1\n"],
+  ["double-quoted INSERT strings and column precedence (DQS enabled)",
+    'CREATE TABLE t(a INT, b TEXT); INSERT INTO t VALUES (1, "x"), (2, NULL), (3, "y"); SELECT "a", "b", "---" FROM t ORDER BY a;',
+    "1|x|---\n2||---\n3|y|---\n"],
+  ["recursive aggregate REAL formatting",
+    "WITH RECURSIVE cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x < 5) SELECT SUM(x), COUNT(*), AVG(x), TOTAL(x) FROM cnt;",
+    "15|5|3.0|15.0\n"]
+]) {
+  test(`sqlite3 preserves expression parity: ${name}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", sql!]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  });
+}

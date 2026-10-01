@@ -3,10 +3,11 @@ import type { HtmlqArguments } from "./arguments.js";
 
 const help = `Like jq, but for HTML.
 
-Usage: htmlq [OPTIONS] [SELECTOR]...
+Usage: htmlq [OPTIONS] [SELECTOR] [FILE]
 
 Arguments:
-  [SELECTOR]...  CSS selectors to combine in document order [default: html]
+  [SELECTOR]     CSS selector, including comma-separated unions [default: html]
+  [FILE]         VFS input path (alternative to --filename) [default: -]
 
 Options:
   -f, --filename <INPUT_PATH>        Where to read HTML input from [default: -]

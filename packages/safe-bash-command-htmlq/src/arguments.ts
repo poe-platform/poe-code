@@ -29,7 +29,7 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
     attributes: [] as string[],
     removeNodes: [] as string[]
   };
-  const selectors: string[] = [];
+  let positional = false;
   let literal = false;
   const seen = new Set<string>();
   for (let i = 0; i < argv.length && !result.help && !result.version; i++) {
@@ -111,10 +111,17 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
         if (!short || result.help || result.version) break;
       }
     } else {
-      selectors.push(arg);
+      if (!positional) {
+        result.selector = arg;
+        positional = true;
+      } else if (!seen.has("filename")) {
+        result.filename = arg;
+        seen.add("filename");
+      } else {
+        throw new HtmlError("E_ARGUMENT", "Only one selector and input file are accepted");
+      }
     }
   }
-  if (selectors.length) result.selector = selectors.join(", ");
   budget.charge("retainedBytes", result.selector.length * 2);
   budget.charge("work", result.selector.length);
   return Object.freeze({

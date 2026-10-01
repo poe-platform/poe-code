@@ -140,12 +140,12 @@ for (const [id, source, argv, expected] of matrix)
 test("htmlq standard attribute and whitespace flags and selector operands", async () => {
   assert.equal(await run('<a href="/one">One</a>', ['a', '--attribute', 'href']), '/one\n');
   assert.equal(await run('<p> <b>A</b> </p>', ['p', '-t', '-w']), 'A\n\n');
-  assert.equal(await run('<p>P</p><h2>H</h2>', ['h2', 'p', '-t']), 'P\nH\n');
+  assert.equal(await run('<p>P</p><h2>H</h2>', ['h2, p', '-t']), 'P\nH\n');
 });
 
-test("htmlq help advertises standard flag spellings and multiple selectors", async () => {
+test("htmlq help advertises standard flag spellings and input operand", async () => {
   const help = await run("", ["--help"]);
-  assert.ok(help.includes("[SELECTOR]..."));
+  assert.ok(help.includes("[SELECTOR] [FILE]"));
   assert.ok(help.includes("-w, --ignore-whitespace"));
   assert.ok(help.includes("-a, --attribute"));
 });

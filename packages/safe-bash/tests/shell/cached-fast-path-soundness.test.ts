@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { spawnSync } from "node:child_process";
+import { ParseBudget } from "../../src/shell/parse-budget.js";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
@@ -107,5 +108,43 @@ for (const mutation of ["different filesystem", "middle entry", "nested director
       await shell.exec("");
       assert.equal((await shell.exec(source)).stdout.trim(), mutation === "middle entry" ? "31" : "33");
     }
+  });
+}
+
+for (const target of ["readonly target", "readonly parent", "failed write"] as const) {
+  test(`warmed echo sequences preserve ${target} diagnostics and parse allowance`, async context => {
+    const source = 'mkdir -p /work/a /work/b\necho first > /work/a/one\necho second > /work/a/two\necho removed > /work/b/file\nrm -rf /work/b';
+    async function setup(ordinary: boolean) {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir("/work/a", { recursive: true });
+      const shell = new Shell({ fs }).use(standardCommands());
+      if (ordinary) shell.use(async (_context, next) => next());
+      context.after(() => shell.dispose());
+      for (let run = 0; run < 4; run++) { await shell.exec(""); await shell.exec(source); }
+      if (target === "readonly target") {
+        await fs.mkdir("/work/b");
+        await fs.chmod("/work/b", 0o555);
+      } else if (target === "readonly parent") await fs.chmod("/work", 0o555);
+      else await fs.chmod("/work/a/two", 0o444);
+      await shell.exec("");
+      return shell;
+    }
+    const ordinary = await setup(true);
+    const shell = await setup(false);
+    let admitted = 0;
+    const admit = ParseBudget.prototype.admit;
+    context.mock.method(ParseBudget.prototype, "admit", function (this: ParseBudget, units = 1) {
+      admitted += units;
+      return admit.call(this, units);
+    });
+    const expected = await ordinary.exec(source);
+    const expectedUnits = admitted;
+    assert.ok(expected.stderr.toLowerCase().includes("permission denied"));
+    admitted = 0;
+    const actual = await shell.exec(source);
+    assert.equal(admitted, expectedUnits, "fallback must not charge parsed units twice");
+    assert.equal(actual.stderr, expected.stderr);
+    assert.equal(actual.exitCode, expected.exitCode);
+    assert.equal(actual.stdout, expected.stdout);
   });
 }

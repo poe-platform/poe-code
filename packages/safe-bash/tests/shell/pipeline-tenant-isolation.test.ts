@@ -8,7 +8,7 @@ import { agentCommands } from "../../src/core.js";
 test("alternating tenants never replay another filesystem's pipeline output", async () => {
   const tenants = await Promise.all(["ALPHA", "BRAVO"].map(async secret => {
     const fs = new MemoryFileSystem();
-    await fs.writeFile("/data.txt", new TextEncoder().encode(`foo:${secret}\n${"x".repeat(1200)}\n`));
+    await fs.writeFile("/data.txt", new TextEncoder().encode(`foo:${secret}\n${secret === "BRAVO" ? "bar:ONLY_BRAVO\n" : ""}${"x".repeat(1200)}\n`));
     return { fs, secret, shell: new Shell({ fs }).use(standardCommands()) };
   }));
   try {
@@ -17,6 +17,15 @@ test("alternating tenants never replay another filesystem's pipeline output", as
       const result = await shell.exec("grep foo /data.txt | cut -d: -f2 | sort");
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, `${secret}\n`);
+    }
+    for (let round = 0; round < 3; round++) {
+      await tenants[1]!.shell.exec("");
+      const bravo = await tenants[1]!.shell.exec("grep bar /data.txt | cut -d: -f2 | sort");
+      assert.equal(bravo.stdout, "ONLY_BRAVO\n");
+      await tenants[0]!.shell.exec("");
+      const alpha = await tenants[0]!.shell.exec("grep bar /data.txt | cut -d: -f2 | sort");
+      assert.equal(alpha.stdout, "");
+      assert.equal(alpha.exitCode, 0);
     }
     await tenants[0]!.fs.writeFile("/data.txt", new TextEncoder().encode(`foo:CHANGED\n${"x".repeat(1200)}\n`));
     assert.equal((await tenants[0]!.shell.exec("grep foo /data.txt | cut -d: -f2 | sort")).stdout, "CHANGED\n");

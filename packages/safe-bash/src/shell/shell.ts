@@ -654,26 +654,6 @@ export class Shell implements PluginHost {
       let unit = firstCached.unit;
       let exitCode = 0;
       while (true) {
-        if (currentCachedUnit !== undefined && ((unit.script as { _fastConstEcho?: unknown })._fastConstEcho !== undefined || (currentCachedUnit.nextCached !== undefined && (currentCachedUnit.nextCached.unit.script as { _fastConstEcho?: unknown })._fastConstEcho !== undefined))) {
-          const batchEnd: CachedParsedUnit | undefined = runtime.tryRunFastConstEchoBatch(currentCachedUnit, source.length, currentState, io);
-          if (batchEnd !== undefined) {
-            currentCachedUnit = batchEnd;
-            unit = batchEnd.unit;
-            exitCode = 0;
-            if (unit.next >= source.length) break;
-            budget.signal.throwIfAborted();
-            const vars = currentState.variables;
-            const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
-            const nextCached: CachedParsedUnit | undefined = currentCachedUnit.locale === nextLocale ? currentCachedUnit.nextCached : undefined;
-            if (nextCached !== undefined && (!nextCached.unit.script.warnings || nextCached.unit.script.warnings.length === 0)) {
-              currentCachedUnit = nextCached;
-              budget.parsing.admit(nextCached.unitsCharged);
-              unit = nextCached.unit;
-              continue;
-            }
-            return this.#continueWarmAsync(source, options, warm, sourceCache, undefined, unit, currentCachedUnit, exitCode);
-          }
-        }
         if (unit.script.lists.length) {
           const unitResult = runtime.runUnit(unit.script, currentState, io);
           if (unitResult instanceof Promise) {

@@ -51,3 +51,23 @@ XML`);
     await shell.dispose();
   }
 });
+
+test("public mmdc factories validate options and retain the array plugin contract", async () => {
+  const { Shell, createMmdcCommand, createMmdcCommands, mmdcCommands } = await import("../../src/core.js");
+  const { createMemoryFileSystem } = await import("../../src/fs/memory/index.js");
+  assert.throws(() => createMmdcCommand({ limits: { maxSourceBytes: -1 } }));
+  assert.equal(createMmdcCommands()[0]?.name, "mmdc");
+  const settings = { replace: true };
+  const plugin = mmdcCommands(settings);
+  settings.replace = false;
+  assert.ok(Array.isArray(plugin));
+  assert.ok(Object.isFrozen(plugin));
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(mmdcCommands()).use(plugin);
+  try {
+    const result = await shell.exec("mmdc --help");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.ok(result.stdout.includes("mmdc"));
+  } finally {
+    await shell.dispose();
+  }
+});

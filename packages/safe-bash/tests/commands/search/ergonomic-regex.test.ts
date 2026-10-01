@@ -159,3 +159,45 @@ test("sed and awk support ergonomic shorthand classes (\\d, \\w, \\s) and non-ca
     await shell.dispose();
   }
 });
+
+test("shared regex syntax works through sed, awk, jq, rg, and fd", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/README.md", new TextEncoder().encode("FOObar\n"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    for (const [command, stdin, stdout] of [
+      [String.raw`sed -E 's/[\d]+/NUM/g'`, "foo 123\n", "foo NUM\n"],
+      [String.raw`sed -E 's/[\w]+/W/g'`, "foo 123\n", "W W\n"],
+      [String.raw`sed 's/\(?:foo\)/X/g'`, "foo foobar\n", "X Xbar\n"],
+      [String.raw`awk '{ gsub(/[\d]+/, "NUM"); print }'`, "foo 123\n", "foo NUM\n"],
+      [String.raw`awk '{ gsub(/[\s]+/, "|"); print }'`, "foo 123\n", "foo|123\n"],
+      [String.raw`jq -r 'gsub("[\\d]+"; "NUM")'`, '"foo 123"\n', "foo NUM\n"],
+      [String.raw`rg -o '^(?i)foobar' /README.md`, "", "FOObar\n"],
+      [String.raw`rg -o '(?i:foo)bar' /README.md`, "", "FOObar\n"],
+      [String.raw`fd '^(?i)readme' /`, "", "/README.md\n"],
+      [String.raw`fd '(?i:readme)\.md' /`, "", "/README.md\n"],
+    ]) {
+      const result = await shell.exec(command!, { stdin: stdin! });
+      assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);
+      assert.equal(result.stderr, "", command);
+      assert.equal(result.stdout, stdout, command);
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("rg applies inline dot-all and scoped anchor flags across multiline input", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  try {
+    for (const [pattern, expected, status] of [
+      ["(?s)foo.bar", "foo\nbar\n", 0],
+      ["(?m)^bar", "bar\n", 0],
+      ["(?-m)^bar", "", 1],
+      ["(?m:^bar)(?-m:$)", "", 1],
+    ] as const) {
+      const result = await shell.exec(`rg -U -o '${pattern}' -`, { stdin: "foo\nbar\nbaz\n" });
+      assert.equal(result.stderr, "", pattern);
+      assert.equal(result.exitCode, status, pattern);
+      assert.equal(result.stdout, expected, pattern);
+    }
+  } finally { await shell.dispose(); }
+});

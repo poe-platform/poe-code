@@ -38,7 +38,7 @@ type AstNode =
   | { readonly type: "literal"; readonly cp: number; readonly insensitive: boolean }
   | { readonly type: "dot"; readonly dotall: boolean; readonly nullData: boolean }
   | { readonly type: "class"; readonly negated: boolean; readonly items: readonly ClassItem[]; readonly insensitive: boolean; readonly multiline: boolean }
-  | { readonly type: "assert"; readonly kind: "bol" | "eol" | "wb" | "nwb" | "bow" | "eow" }
+  | { readonly type: "assert"; readonly multiline?: boolean | undefined; readonly kind: "bol" | "eol" | "wb" | "nwb" | "bow" | "eow" }
   | { readonly type: "seq"; readonly children: readonly AstNode[] }
   | { readonly type: "alt"; readonly branches: readonly AstNode[] }
   | { readonly type: "capture"; readonly child: AstNode; readonly index: number }
@@ -164,6 +164,7 @@ function parsePattern(
   captureOffset = 0,
 ): ParseOutcome {
   let pos = 0;
+  let anchorMultiline = multiline;
   let needsVm = false;
   let hasCrossLinePotential = dotall;
   let hasUppercaseLiteral = false;
@@ -333,17 +334,20 @@ function parsePattern(
       const ch = pattern[pos]!;
       if (ch === "^") {
         pos++;
-        atomNode = { type: "assert", kind: "bol" };
+        atomNode = { type: "assert", kind: "bol", multiline: anchorMultiline };
+        if (multiline && !anchorMultiline) hasCrossLinePotential = true;
         atomEre = "^";
         quantifiable = false;
       } else if (ch === "$") {
         pos++;
-        atomNode = { type: "assert", kind: "eol" };
+        atomNode = { type: "assert", kind: "eol", multiline: anchorMultiline };
+        if (multiline && !anchorMultiline) hasCrossLinePotential = true;
         atomEre = "$";
         quantifiable = false;
       } else if (ch === ".") {
         pos++;
         atomNode = { type: "dot", dotall, nullData };
+        if (dotall) hasCrossLinePotential = true;
         atomEre = ".";
       } else if (ch === "[") {
         pos++;
@@ -352,11 +356,29 @@ function parsePattern(
         atomEre = br.ere;
       } else if (!bre && ch === "(") {
         pos++;
+        const enclosing = { insensitive, anchorMultiline, dotall };
         let capturing = true;
         let name: string | undefined;
         if (pattern[pos] === "?") {
           pos++;
-          if (pattern[pos] === ":") {
+          if ("ims-".includes(pattern[pos] ?? " ")) {
+            needsVm = true;
+            capturing = false;
+            let enabled = true;
+            let count = 0;
+            while (pos < pattern.length && pattern[pos] !== ":" && pattern[pos] !== ")") {
+              const flag = pattern[pos++]!;
+              if (flag === "-" && enabled) { enabled = false; count = 0; continue; }
+              if (flag === "i") insensitive = enabled;
+              else if (flag === "m") anchorMultiline = enabled;
+              else if (flag === "s") dotall = enabled;
+              else throw new SearchError("unsupported inline regular expression flag");
+              count++;
+            }
+            if (!count) throw new SearchError("empty inline regular expression flags");
+            if (pattern[pos] === ")") { pos++; continue; }
+            if (pattern[pos++] !== ":") throw new SearchError("unterminated inline regular expression flags");
+          } else if (pattern[pos] === ":") {
             pos++;
             capturing = false;
           } else if (pattern[pos] === "=" || pattern[pos] === "!" || (pattern[pos] === "<" && (pattern[pos + 1] === "=" || pattern[pos + 1] === "!"))) {
@@ -376,6 +398,7 @@ function parsePattern(
         const index = capturing ? ++captureCount : 0;
         if (name !== undefined) captureNames.set(name, index);
         const inner = parseAlternation(true);
+        ({ insensitive, anchorMultiline, dotall } = enclosing);
         if (pos >= pattern.length || pattern[pos] !== ")") {
           throw new SearchError("invalid ERE: unclosed '('");
         }
@@ -561,7 +584,7 @@ type NfaInst =
   | { readonly op: "jump"; readonly out: number }
   | { readonly op: "split"; readonly out1: number; readonly out2: number }
   | { readonly op: "save"; readonly slot: number; readonly out: number }
-  | { readonly op: "assert"; readonly kind: "bol" | "eol" | "wb" | "nwb" | "bow" | "eow"; readonly out: number }
+  | { readonly op: "assert"; readonly multiline?: boolean | undefined; readonly kind: "bol" | "eol" | "wb" | "nwb" | "bow" | "eow"; readonly out: number }
   | { readonly op: "literal"; readonly cp: number; readonly insensitive: boolean; readonly out: number }
   | { readonly op: "dot"; readonly dotall: boolean; readonly nullData: boolean; readonly out: number }
   | { readonly op: "class"; readonly node: Extract<AstNode, { type: "class" }>; readonly out: number };
@@ -586,7 +609,7 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
       case "class":
         return emit({ op: "class", node, out: next });
       case "assert":
-        return emit({ op: "assert", kind: node.kind, out: next });
+        return emit({ op: "assert", kind: node.kind, multiline: node.multiline, out: next });
       case "capture": {
         const end = emit({ op: "save", slot: node.index * 2 + 1, out: next });
         return emit({ op: "save", slot: node.index * 2, out: build(node.child, end) });
@@ -653,7 +676,7 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
           reordered.push({ op: "save", slot: inst.slot, out: inst.out + 1 });
           break;
         case "assert":
-          reordered.push({ op: "assert", kind: inst.kind, out: inst.out + 1 });
+          reordered.push({ op: "assert", kind: inst.kind, multiline: inst.multiline, out: inst.out + 1 });
           break;
         case "literal":
           reordered.push({ op: "literal", cp: inst.cp, insensitive: inst.insensitive, out: inst.out + 1 });
@@ -760,12 +783,13 @@ export class ErgonomicVmMatcher {
     cps: Int32Array,
     len: number,
     pos: number,
+    multiline = this.multiline,
   ): boolean {
     switch (kind) {
       case "bol":
-        return pos === 0 || (this.multiline && cps[pos - 1] === 10);
+        return pos === 0 || (multiline && cps[pos - 1] === 10);
       case "eol":
-        return pos === len || (this.multiline && cps[pos] === 10);
+        return pos === len || (multiline && cps[pos] === 10);
       case "wb": {
         const prevW = pos > 0 && isAsciiWordCp(cps[pos - 1]!);
         const nextW = pos < len && isAsciiWordCp(cps[pos]!);
@@ -835,7 +859,7 @@ export class ErgonomicVmMatcher {
         return addThread(inst.out, startPos, pos, stamp, saved);
       }
       if (inst.op === "assert") {
-        if (this.evalAssertion(inst.kind, cps, length, pos)) {
+        if (this.evalAssertion(inst.kind, cps, length, pos, inst.multiline)) {
           return addThread(inst.out, startPos, pos, stamp, slots);
         }
         return false;

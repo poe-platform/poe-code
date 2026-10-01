@@ -486,6 +486,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-node#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

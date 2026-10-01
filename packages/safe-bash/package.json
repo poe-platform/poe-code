@@ -1701,6 +1701,17 @@
             "@poe-code/remote-execution": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-node": {
+          "version": "0.0.1",
+          "dependencies": {
+            "quickjs-emscripten": "0.31.0"
+          },
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -2616,6 +2627,10 @@
     "./commands/unalias": {
       "types": "./dist/commands/unalias/index.d.ts",
       "import": "./dist/commands/unalias/index.js"
+    },
+    "./commands/node/quickjs": {
+      "types": "./dist/commands/node/quickjs.d.ts",
+      "import": "./dist/commands/node/quickjs.js"
     }
   },
   "sideEffects": [
@@ -2846,7 +2861,8 @@
     "safe-bash-command-gzip": "*",
     "safe-bash-command-alias": "*",
     "safe-bash-command-unalias": "*",
-    "safe-bash-command-media": "*"
+    "safe-bash-command-media": "*",
+    "safe-bash-command-node": "*"
   },
   "main": "./dist/index.js",
   "imports": {

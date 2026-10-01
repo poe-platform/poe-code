@@ -631,7 +631,8 @@
     "safe-bash-command-gzip": "*",
     "safe-bash-command-alias": "*",
     "safe-bash-command-unalias": "*",
-    "safe-bash-command-media": "*"
+    "safe-bash-command-media": "*",
+    "safe-bash-command-node": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

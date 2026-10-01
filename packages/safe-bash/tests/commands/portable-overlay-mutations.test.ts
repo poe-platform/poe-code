@@ -55,7 +55,7 @@ test("xan reports usage and missing-file diagnostics without global Buffer", asy
     Reflect.deleteProperty(globalThis, "Buffer");
     for (const [script, diagnostic] of [
       ["xan count /missing.csv", "/missing.csv"],
-      ["xan --invalid", "expected headers, count, select or slice subcommand"],
+      ["xan --invalid", "expected a CSV subcommand (use xan --help)"],
     ] as const) {
       const result = await shell.exec(script);
       assert.equal(result.exitCode, 1);

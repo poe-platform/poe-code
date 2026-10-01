@@ -21,3 +21,20 @@ test("file host releases listeners and rejects pre-aborted work", async () => {
   assert.equal(called, false);
   aborted.dispose();
 });
+
+test("file inherits host checkpoints at its first work quantum with a frozen clock", async () => {
+  const { registerYieldCheckpoint } = await import("safe-bash-contracts/yield");
+  const controller = new AbortController();
+  const reason = new Error("checkpoint cancelled");
+  registerYieldCheckpoint(controller.signal, () => controller.abort(reason));
+  const budget = new SharedBudget({ signal: controller.signal } as CommandContext, settings({}));
+  const original = Object.getOwnPropertyDescriptor(performance, "now");
+  Object.defineProperty(performance, "now", { configurable: true, value: () => 0 });
+  try {
+    await assert.rejects(async () => { for (let i = 0; i < 128; i++) await budget.step(); }, error => error === reason);
+  } finally {
+    if (original) Object.defineProperty(performance, "now", original);
+    else Reflect.deleteProperty(performance, "now");
+    budget.dispose();
+  }
+});

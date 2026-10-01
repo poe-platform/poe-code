@@ -1,5 +1,5 @@
 import { EventEmitter, Duplex, outputBytes, isBuffer } from "./streams/web.js";
-import { extname, normalizePath } from "@poe-code/safe-fs/core";
+import { extname, normalizePath } from "@poe-code/safe-fs/contracts";
 import {
   parseColor,
   type ColorInput,

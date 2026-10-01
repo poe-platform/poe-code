@@ -24,5 +24,8 @@ describe("portable image engine", () => {
     });
     expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
     expect(result.outputFiles[0]!.text).not.toContain('"node:');
+    expect(Object.keys(result.metafile!.inputs).filter(file =>
+      file.includes("/safe-fs/") && file.includes("/fs/")
+    )).toEqual([]);
   });
 });

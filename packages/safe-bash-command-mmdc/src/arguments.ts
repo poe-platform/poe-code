@@ -18,6 +18,7 @@ export interface MmdcParsedArguments {
   readonly backgroundColor: string | undefined;
   readonly configFile: string | undefined;
   readonly quiet: boolean;
+  readonly pdfFit: boolean;
 }
 
 const FORBIDDEN_FLAGS = new Set([
@@ -25,8 +26,6 @@ const FORBIDDEN_FLAGS = new Set([
   "--puppeteerConfigFile",
   "-C",
   "--cssFile",
-  "-f",
-  "--pdfFit",
   "--iconPacks",
   "--iconPacksNamesAndUrls"
 ]);
@@ -91,6 +90,7 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
   let backgroundColor: string | undefined;
   let configFile: string | undefined;
   let quiet = false;
+  let pdfFit = false;
   let help = false;
   let version = false;
 
@@ -113,13 +113,22 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
       continue;
     }
 
-    // Handle --flag=value syntax
+    if (arg === "-f" || arg === "--pdfFit") {
+      pdfFit = true;
+      i++;
+      continue;
+    }
+
+    // Handle long inline values and attached short option values.
     let flag = arg;
     let inlineVal: string | undefined;
     const eqIdx = arg.indexOf("=");
     if (arg.startsWith("--") && eqIdx > 2) {
       flag = arg.slice(0, eqIdx);
       inlineVal = arg.slice(eqIdx + 1);
+    } else if (arg.length > 2 && arg.startsWith("-") && "ioetwHsbcI".includes(arg[1]!)) {
+      flag = arg.slice(0, 2);
+      inlineVal = arg.slice(2);
     }
 
     if (FORBIDDEN_FLAGS.has(flag)) {
@@ -206,7 +215,8 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
       svgId,
       backgroundColor,
       configFile,
-      quiet
+      quiet,
+      pdfFit
     };
   }
 
@@ -223,7 +233,8 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
       svgId,
       backgroundColor,
       configFile,
-      quiet
+      quiet,
+      pdfFit
     };
   }
 
@@ -231,6 +242,7 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
     throw new MermaidError("E_ARGUMENT", "Input and output paths must not be empty");
   }
   input ??= "-";
+  if (input === "/dev/stdin") input = "-";
   output ??= `${input === "-" ? "out" : input}.${explicitFormat ?? "svg"}`;
   if (output === "/dev/stdout") output = "-";
   const outputFormat = inferFormatFromPath(output, explicitFormat);
@@ -247,7 +259,8 @@ export function parseMmdcArguments(argv: readonly string[]): MmdcParsedArguments
     svgId,
     backgroundColor,
     configFile,
-    quiet
+    quiet,
+    pdfFit
   };
 }
 
@@ -259,7 +272,7 @@ export const MMDC_HELP_TEXT = [
   "Render Mermaid diagrams (flowchart, sequence, state, class, ER, pie) to SVG, PNG, or PDF.",
   "",
   "Options:",
-  "  -i, --input <path|->            Input Mermaid file (default: stdin)",
+  "  -i, --input <path|->            Input Mermaid file or /dev/stdin (default: stdin)",
   "  -o, --output <path|->           Output file or '-' for stdout (default: input + .svg, or out.svg)",
   "  -e, --outputFormat <format>     Explicit format: svg, png, pdf (inferred from -o when omitted)",
   "  -t, --theme <theme>             default, forest, dark, neutral, base, light",
@@ -269,6 +282,7 @@ export const MMDC_HELP_TEXT = [
   "  -b, --backgroundColor <color>   Canvas color (default: white; CSS names, hex, rgb/rgba, transparent)",
   "  -c, --configFile <path>         JSON configuration file for theme and layout spacing",
   "  -I, --svgId <id>               ID of the root SVG element",
+  "  -f, --pdfFit                    Fit PDF page to the rendered viewport (already the default)",
   "  -q, --quiet                     Suppress non-fatal status messages",
   "  -h, --help                      Display this help message and exit",
   "  -V, --version                   Display version information and exit",

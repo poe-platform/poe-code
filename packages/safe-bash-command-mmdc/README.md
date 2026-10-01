@@ -105,7 +105,7 @@ const verification = verifySceneGeometry(scene);
 
 | Flag | Alias | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `--input <path\|->` | `-i` | `-` (`stdin`) | Input Mermaid file path in the VFS or `-` for `stdin` |
+| `--input <path\|->` | `-i` | `-` (`stdin`) | Input Mermaid file path in the VFS or `-` / `/dev/stdin` for `stdin` |
 | `--output <path\|->` | `-o` | `<input>.svg` or `out.svg` | Output file path in the VFS or `-` / `/dev/stdout` for `stdout`; `-e` controls the default extension |
 | `--outputFormat <svg\|png\|pdf>` | `-e` | Inferred from `-o` or `svg` | Explicit output format (`svg`, `png`, or `pdf`) |
 | `--theme <name>` | `-t` | `default` | Theme preset (`default`, `forest`, `dark`, `neutral`, `base`, `light`) |
@@ -115,13 +115,14 @@ const verification = verifySceneGeometry(scene);
 | `--scale <factor>` | `-s` | `1` | Positive raster scale multiplier; resource budgets bound the output |
 | `--configFile <path>` | `-c` | — | JSON renderer configuration in the VFS |
 | `--svgId <id>` | `-I` | — | Root SVG ID; namespaces internal definitions for embedding |
+| `--pdfFit` | `-f` | `true` | PDF pages always fit the rendered viewport; also accepted as SDK `runMmdc` option `pdfFit` |
 | `--quiet` | `-q` | `false` | Suppress non-error diagnostic output |
 | `--version` | `-V` | — | Print command version and exit `0` |
 | `--help` | `-h` | — | Print usage summary and exit `0` |
 
 ---
 
-This implements the SVG/PNG/PDF subset of Mermaid CLI 11.x options with a deterministic renderer. Explicit `-e` overrides format inference. The CLI and SDK default to white backgrounds and PNG scale 1; use `-b '#0b1120'` with dark diagrams for a dark canvas.
+This implements the SVG/PNG/PDF subset of Mermaid CLI 11.x options with a deterministic renderer. Explicit `-e` overrides format inference. Short value options accept attached values, for example `-idiagram.mmd -oout.pdf -epdf -tdark`. The CLI and SDK default to white backgrounds and PNG scale 1; use `-b '#0b1120'` with dark diagrams for a dark canvas.
 
 Dimensions describe the output viewport, fitting the natural scene. They are not browser viewport dimensions; omitted dimensions use the natural scene size rather than Mermaid CLI's 800 × 600 browser viewport. Presets use this renderer's palette, not Mermaid's exact CSS. Markdown extraction, Puppeteer, external CSS, icon packs, and diagram families outside the table below are unsupported and return explicit errors.
 

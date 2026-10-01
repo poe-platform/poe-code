@@ -62,6 +62,8 @@ export interface MmdcRunOptions extends MmdcSettings {
   readonly backgroundColor?: string | undefined;
   readonly configFile?: string | undefined;
   readonly quiet?: boolean | undefined;
+  /** PDF pages always fit the rendered viewport; accepted for CLI parity. */
+  readonly pdfFit?: boolean | undefined;
   readonly help?: boolean | undefined;
   readonly version?: boolean | undefined;
 }
@@ -468,6 +470,7 @@ export async function runMmdc(
       "backgroundColor",
       "configFile",
       "quiet",
+      "pdfFit",
       "help",
       "version",
       "svgId",
@@ -487,6 +490,7 @@ export async function runMmdc(
       if (options.help) argv.push("--help");
       if (options.version) argv.push("--version");
       if (options.quiet) argv.push("--quiet");
+      if (options.pdfFit) argv.push("--pdfFit");
       if (options.input !== undefined) argv.push("-i", options.input);
       if (options.output !== undefined) argv.push("-o", options.output);
       if (options.outputFormat !== undefined) argv.push("-e", options.outputFormat);

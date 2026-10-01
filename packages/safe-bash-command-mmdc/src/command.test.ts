@@ -322,3 +322,34 @@ describe("mmdc CLI grammar, VFS command execution, and SDK parity", () => {
     assert.equal(typedRun.stdoutText(), lightSvgText);
   });
 });
+
+it("accepts attached values for every supported short value option", () => {
+  const pairs = [["-i", "diagram.mmd"], ["-o", "out.png"], ["-e", "png"],
+    ["-t", "dark"], ["-w", "120"], ["-H", "80"], ["-s", "2"],
+    ["-b", "#abcdef"], ["-c", "config.json"], ["-I", "diagram"]];
+  assert.deepEqual(parseMmdcArguments(pairs.map(pair => pair.join(""))),
+    parseMmdcArguments(pairs.flat()));
+});
+
+it("normalizes /dev/stdin before deriving the default output", () => {
+  assert.deepEqual(parseMmdcArguments(["-i", "/dev/stdin"]), parseMmdcArguments(["-i", "-"]));
+});
+
+it("renders fitted PDF pages from stdin with both fit flags and attached options", async () => {
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  for (const flag of ["-f", "--pdfFit"]) {
+    const run = createMockContext(["-i/dev/stdin", "-o/dev/stdout", "-epdf", "-w120", "-H80", flag], createTestVfs(), "graph TD; A-->B");
+    assert.equal((await runMmdc(run.context)).exitCode, 0, run.stderrText());
+    const page = PdfDocument.load(run.stdoutBytes()).getPages()[0]!;
+    assert.equal(page.width, 90);
+    assert.equal(page.height, 60);
+  }
+});
+
+it("supports typed PDF fit options and rejects mixing them with argv", async () => {
+  const run = createMockContext([], createTestVfs(), "graph TD; A-->B");
+  assert.equal((await runMmdc(run.context, { input: "/dev/stdin", output: "-", outputFormat: "pdf", pdfFit: true })).exitCode, 0, run.stderrText());
+  assert.ok(run.stdoutText().startsWith("%PDF-"));
+  const mixed = createMockContext([], createTestVfs());
+  assert.equal((await runMmdc(mixed.context, { argv: [], pdfFit: false })).exitCode, 2);
+});

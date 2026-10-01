@@ -3,6 +3,36 @@ import test from "node:test";
 import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
 
+for (const [script, expected] of [
+  ['arr=(10 20); say "$((arr + 5))"; x=$((arr + 5)); say "$x"', '15\n15\n'],
+  ['arr=(10 20); i=0; ((i++, arr + 1)); say "$i"; x=$((i++, arr + 1)); say "$i:$x"', '1\n2:11\n'],
+  ['declare -ia arr=(10 20); arr+=("arr[0] + 5" "arr[2] + 1"); say "${arr[@]}"', '10 20 15 16\n'],
+  ['declare -ia arr; arr=([0]="10" [1]="arr[0] + 5"); say "${arr[@]}"', '10 15\n'],
+  ['declare -ia arr=(10 "arr[0]+5"); say "${arr[@]}"', '10 15\n'],
+  ['declare -ia arr=(99 88); arr=("arr[1]+1" "arr[0]+2"); say "${arr[@]}"', '1 3\n'],
+  ['declare -ia arr=(10 20); arr+=([0]+=5 [1]="arr[0]+1"); say "${arr[@]}"', '15 16\n'],
+  ['declare -ia arr=(10); i=0; arr+=("i++, arr[0]+1" "i++, arr[1]+1"); say "$i:${arr[@]}"', '2:10 11 12\n'],
+  ['declare -ia arr=(10 20); arr+=("arr[0]=99, 30" "arr[2]+1"); say "${arr[@]}"', '99 20 30 31\n'],
+  ['declare -ria arr=(10 "arr[0]+5"); say "${arr[@]}"; arr[0]=3', '10 15\n'],
+  ['arr=(1 2); say "${arr[arr[0]]}"; arr=(10 20); x=${arr[arr[0]/10]}; say "$x"', '2\n20\n'],
+  ['arr=([0]=10 [arr[0]+1]=20); say "${!arr[@]}:${arr[@]}"', '0 11:10 20\n'],
+  ['arr=(10 20); arr[1]=$((arr[0]=99, 55)); say "${arr[@]}"', '99 55\n'],
+  ['arr=(10 20); arr+=($((arr[0]=99, 30))); say "${arr[@]}"', '99 20 30\n'],
+] as const) test(`array arithmetic observes sequential assignments: ${script}`, async () => {
+  const { shell } = setup();
+  try {
+    const result = await shell.exec(script);
+    if (script.startsWith('declare -r')) {
+      assert.ok(result.stderr.includes('readonly'), result.stderr);
+      assert.notEqual(result.exitCode, 0);
+    } else {
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    }
+    assert.equal(result.stdout, expected);
+  } finally { await shell.dispose(); }
+});
+
 for (const kind of ["a", "A"]) {
   for (const [attribute, initial, assigned, appended, expected] of [
     ["i", "1+2", "5+6", "2*5", "13:11:15"],

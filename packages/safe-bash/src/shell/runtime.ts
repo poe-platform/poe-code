@@ -5671,8 +5671,14 @@ export class Runtime {
       // publication snapshot, and choose the append cursor from the new maximum.
       const expandedEntries: Array<{ entry: import("./arrays/syntax.js").ArrayEntry; fields: ShellValue[] }> = [];
       let elementFields: ShellValue[] | undefined;
+      let attributedElement: ShellValue | undefined;
       if (assignment.kind === "element") {
         elementFields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
+        if (selectedIndex !== undefined && state.variableAttributes?.get(name)?.includes("i")) {
+          const previous = assignment.append ? store.get(name)?.getValue(selectedIndex)
+            ?? (selectedIndex === 0 ? state.variables[name] : undefined) ?? "" : undefined;
+          attributedElement = await this.attributeValue(state, name, concatShellValues(elementFields, io[valueScope]), io, "assignment", previous);
+        }
       } else for (const entry of assignment.entries) {
         const original = compoundEntryWords.get(entry);
         let expandedEntry = false;
@@ -5692,6 +5698,30 @@ export class Runtime {
       }
       current = store.get(name);
       initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
+      // Arithmetic attributes and computed indices observe each preceding write.
+      // Expand words against the original binding first, then use ordinary element
+      // assignment publication so arithmetic reads the current array, not a draft.
+      if (assignment.kind === "compound" && expandedEntries.length > 0
+        && (state.variableAttributes?.get(name)?.includes("i")
+          || !isAssociative && expandedEntries.some(({ entry }) => entry.index && numericIndex(entry.index) === undefined))) {
+        let cursor = assignment.append ? initialMaximum + 1 : 0;
+        if (!assignment.append) await this.arrayAssignment({ ...assignment, entries: [] }, state, io, undefined, origin, associative, true);
+        for (const { entry, fields } of expandedEntries) {
+          const values = entry.index ? [concatShellValues(fields, io[valueScope])] : fields;
+          for (const value of values) {
+            const index = entry.index && !isAssociative
+              ? (await this.arrayIndex(store.get(name), entry.index, state, io, operation, true))! : cursor;
+            const part: WordPart = { kind: "text", value: shellValueText(value), quoted: true };
+            if (typeof value !== "string") invokedValues.set(part, value);
+            await this.arrayAssignment({ kind: "element", name, append: entry.append ?? false,
+              index: isAssociative ? entry.index! : { decimal: String(index) }, value: { offset: entry.value.offset, parts: [part] } },
+            state, io, undefined, origin, associative, true);
+            cursor = index + 1;
+          }
+        }
+        if (declaration) await this.arrayAssignment({ ...assignment, append: true, entries: [] }, state, io, declaration, origin, associative, true);
+        return;
+      }
       this.assertArrayWritable(state, name, origin);
       const watch = await store.watch(name, operation, this.signal);
       const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
@@ -5725,7 +5755,8 @@ export class Runtime {
           if (index > 2147483647) throw new ArrayFailure("index outside 0..2147483647");
           const previous = append ? targetBinding.getValue(index) ?? "" : undefined;
           if (append && !state.variableAttributes?.get(name)?.includes("i")) value = await join([previous!, value]);
-          if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io, "assignment", previous); else if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
+          if (attributedElement !== undefined) value = attributedElement;
+          else if (state.variableAttributes?.get(name)) value = await this.attributeValue(state, name, value, io, "assignment", previous); else if (shellValueByteLength(value) > this.budget.limits.maxExpansionBytes) this.budget.fail("maxExpansionBytes");
           const token = await valueToken(targetBinding.owner, value, this.signal);
           if (canReviseInPlace) {
             let slot: Admission | undefined;

@@ -572,7 +572,7 @@ class Lexer {
     this.error("Unterminated delimiter expansion syntax");
   }
 
-  word(terminator?: string, enclosingQuoted = false, literal = false, arithmetic = false, arithmeticExpansion = false): Word {
+  word(terminator?: string, enclosingQuoted = false, literal = false, arithmetic = false, arithmeticExpansion = false, assignmentSubscriptEnd = -1): Word {
     this.budget.admit();
     const offset = this.position;
     const reduction = this.printedNewlineReduction;
@@ -633,7 +633,7 @@ class Lexer {
           if (++brackets > this.budget.maxSyntaxDepth) this.error(`Subscript syntax nesting exceeds ${this.budget.maxSyntaxDepth}`);
         } else if (current === "]" && brackets > 0) brackets--;
         else if (terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0)) break;
-      } else if (!this.braceReplay) {
+      } else if (!this.braceReplay && this.position > assignmentSubscriptEnd) {
         if (!enclosingQuoted && !literal && current === "(" && (patternParentheses > 0 || (
           this.position > offset
           && "?*+@!".includes(this.source[this.position - 1] ?? " ")
@@ -1076,6 +1076,32 @@ class Parser {
     return this.lookahead ??= this.lexer.next();
   }
 
+  private assignmentWord(compound = false): Word {
+    const word = this.current.word!;
+    const bracket = word.spelling?.indexOf("[") ?? -1;
+    const prefix = word.spelling?.slice(0, bracket);
+    if (bracket >= 0 && (compound && bracket === 0 || prefix && scalarAssignmentName({ offset: word.offset,
+      parts: [{ kind: "text", quoted: false, value: prefix + "=" }] }) === prefix)) {
+      const scanner = new Lexer(this.budget, this.lexer.source, this.lexer.depth, [], this.lexer.lineOffset, this.lexer.byteLocale, undefined, false, this.lexer.lineIndex, this.lexer.sourceOffset, this.lexer.ordinaryBacktick, this.lexer.sourceValues, this.lexer.byteSource, this.lexer.syntax);
+      scanner.position = word.offset + bracket + 1;
+      scanner.word("]");
+      const end = scanner.position;
+      if (end >= this.current.end && this.lexer.source[end] === "]"
+        && (this.lexer.source[end + 1] === "=" || this.lexer.source.slice(end + 1, end + 3) === "+=")) {
+        // Only assignment positions may keep whitespace inside a subscript.
+        // Ordinary argv words such as `echo a[x y]=z` retain their boundaries.
+        this.lexer.position = word.offset;
+        const parsed = this.lexer.word(undefined, false, false, false, false, end);
+        this.budget.admit();
+        const complete = { ...parsed, spelling: this.lexer.source.slice(word.offset, this.lexer.position) };
+        this.lookahead = undefined;
+        this.current = this.lexer.next();
+        return complete;
+      }
+    }
+    return this.advance().word!;
+  }
+
   is(value: string): boolean { return this.current.value === value; }
 
   isEnd(): boolean { return this.current.kind === "end"; }
@@ -1366,14 +1392,15 @@ class Parser {
         if (redirect) { line ??= redirect.line; redirects.push(redirect); }
         else if (this.current.kind === "word") {
           line ??= wordLine;
-          let word = this.advance().word!;
+          let word = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) || indexedDeclaration()
+            ? this.assignmentWord() : this.advance().word!;
           const head = compoundHead(word, this.budget);
           if (head && this.is("(")) {
             this.advance();
             const entries: ArrayEntry[] = [];
             this.newlines();
             while (this.current.kind === "word") {
-              const original = this.advance().word!;
+              const original = this.assignmentWord(true);
               const entry = compoundEntry(original, this.budget, source => parseArraySubscript(source, this.budget, this.lexer.byteLocale, this.lexer.depth, this.lexer.byteSource, this.lexer.syntax), (source, start) => { const lexer = new Lexer(this.budget, source, this.lexer.depth, [], 0, this.lexer.byteLocale, undefined, false, undefined, 0, false, undefined, this.lexer.byteSource, this.lexer.syntax); lexer.position = start; lexer.word("]"); return lexer.source[lexer.position] === "]" ? lexer.position : -1; });
               if (entry.index) { this.budget.admit(); compoundEntryWords.set(entry, original); }
               entries.push(entry);

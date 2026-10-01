@@ -3,9 +3,6 @@ import test from "node:test";
 import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { Shell, createMemoryFileSystem, agentCommands } from "../../src/index.js";
-import { diff3Commands } from "../../src/commands/diff3/index.js";
-import { csvcutCommands } from "../../src/commands/csvcut/index.js";
-import { csvgrepCommands } from "../../src/commands/csvgrep/index.js";
 
 test("differential oracle parity: safe-bash bc vs /usr/bin/bc", async (t) => {
   if (!existsSync("/usr/bin/bc")) {
@@ -178,7 +175,7 @@ test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64
 
 test("differential oracle parity: safe-bash fold and diff3 vs host /usr/bin/fold and /usr/bin/diff3, plus 60KB fmt throughput", async (t) => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true })).use(diff3Commands()).use(csvcutCommands()).use(csvgrepCommands());
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
 
   if (existsSync("/usr/bin/fold") && existsSync("/usr/bin/diff3")) {
     const scripts = [

@@ -152,7 +152,7 @@ test("od aligns mixed item sizes and printable trailers on full and partial rows
 
 for (const [width, types, fallback] of [
   [5, ["x4"], 4], [1, ["x2", "x8", "x4"], 8], [9, ["x4", "x8"], 8],
-  [3, ["x2"], 2], [5, ["x2"], 2], [Number.MAX_SAFE_INTEGER, ["x4"], 4],
+  [3, ["x2"], 2], [5, ["x2"], 2], [17, ["x2"], 2], [Number.MAX_SAFE_INTEGER, ["x4"], 4],
 ] as const) {
   test(`od uses format alignment ${fallback} for invalid width ${width} and ${types.join(",")}`, async () => {
     const fs = createMemoryFileSystem();

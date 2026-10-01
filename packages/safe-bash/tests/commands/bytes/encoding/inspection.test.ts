@@ -295,6 +295,20 @@ test("od: multiple types preserve order and reject unknown encodings", async () 
   }
 });
 
+test("od: incompatible widths use type alignment and repeated widths use the last value", async () => {
+  const bytes = Uint8Array.of(1, 2, 3, 4, 5);
+  const result = await run("od", ["-An", "--endian=little", "-w3", "-tx2"], bytes);
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, " 0201\n 0403\n 0005\n");
+  assert.equal(result.stderr, "od: warning: invalid width 3; using 2 instead\n");
+  for (const width of [3, 4097]) {
+    const repeated = await run("od", ["-An", "--endian=little", `-w${width}`, "-w16", "-tx2"], bytes);
+    assert.equal(repeated.exitCode, 0);
+    assert.equal(repeated.stdout, " 0201 0403 0005\n");
+    assert.equal(repeated.stderr, "");
+  }
+});
+
 test("operands: -- protects literal option-like filenames and aliases", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/-plain", Buffer.from("a"));

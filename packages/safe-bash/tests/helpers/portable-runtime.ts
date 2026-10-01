@@ -4,14 +4,14 @@ import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
 
-export async function portableRuntime(contents: string) {
+export async function portableRuntime(contents: string, options: { removeBuffer?: boolean } = {}) {
   const root = fileURLToPath(new URL("../../../../", import.meta.url));
   const { resolveBrowserShellBuild } = await import(new URL("../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href);
-  const options = resolveBrowserShellBuild(root);
+  const buildOptions = resolveBrowserShellBuild(root);
   const filesystem = path.join(root, "packages/safe-fs/src/core.ts");
   const result = await build({
-    ...options, loader: { ...options.loader, ".wasm": "binary" }, external: [], entryPoints: undefined, splitting: false, format: "cjs", sourcemap: false,
-    alias: { ...options.alias,
+    ...buildOptions, loader: { ...buildOptions.loader, ".wasm": "binary" }, external: [], entryPoints: undefined, splitting: false, format: "cjs", sourcemap: false,
+    alias: { ...buildOptions.alias,
       "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"),
       "@poe-code/safe-fs": filesystem,
       "@poe-code/safe-fs/core": filesystem,
@@ -31,5 +31,9 @@ export async function portableRuntime(contents: string) {
   assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "undefined:undefined");
   const api = runInContext(`(function(){ const module = { exports: {} }; ${result.outputFiles![0]!.text}; return module.exports; })()`, realm);
   assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "function:undefined");
+  if (options.removeBuffer) {
+    runInContext("delete globalThis.Buffer", realm);
+    assert.equal(runInContext("typeof Buffer", realm), "undefined");
+  }
   return { api: api as typeof import("../../src/core.js"), buffer: realm.Buffer as typeof Buffer };
 }

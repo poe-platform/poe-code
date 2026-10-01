@@ -54,6 +54,8 @@ describe("built portable entrypoints", () => {
     "safe-bash-command-xz", "@poe-code/image-ast",
     "@poe-platform/safe-bash/core", "@poe-code/safe-fs/fs/s3",
     "safe-bash-command-yq", "safe-bash-command-imagemagick", "safe-bash-command-sips",
+    "@poe-code/pdf-ast",
+    ...["pdfimages", "pdfinfo", "pdftk", "pdftoppm", "pdftotext", "qpdf", "soffice", "wkhtmltopdf"].map(name => `safe-bash-command-${name}`),
   ]) it(`${specifier} bundles for workerd`, async () => {
     const result = await build({
       absWorkingDir: root.pathname,

@@ -1,12 +1,21 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import test from "node:test";
+import { predicateCommands } from "../../src/commands/predicates.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 
 const cases = [
+  'printf "%d|%05d\\n" -0 -0; printf -v out "%d" -0; printf "%s\\n" "$out"',
+  'printf "[%6s][%-6s]\\n" café café; printf -v out "[%6s][%-6s]" café café; printf "%s\\n" "$out"',
+  'x=0; echo $((++x)) $(echo a; echo b); printf "x=%s\\n" "$x"',
+  'x=0; printf -v out "%x" $((++x)); printf "x=%s out=%s\\n" "$x" "$out"',
+  'x=0; for i in 1 2; do printf -v out "%x" $((++x)); done; printf "x=%s out=%s\\n" "$x" "$out"',
+  'x=0; for i in 1 2; do [ -f $((++x)) ]; done; printf "x=%s\\n" "$x"',
+  'x=0; for i in 1 2; do test -f $((++x)); done; printf "x=%s\\n" "$x"',
+
   ...[
     ["a\\nb", "^a.b$"],
     ["a\\n", "^a$"],
@@ -63,7 +72,7 @@ for (const maxExpansionBytes of [undefined, 65536]) for (const { source, stdout 
 ]) test(`${stdout === undefined ? 'Bash parity' : 'Modern Bash replacement'} (${maxExpansionBytes ?? 'default'} bytes): ${source}`, async () => {
   const env = { HOME: '/home/user', LC_ALL: 'C' };
   const expected = stdout === undefined ? execFileSync('/bin/bash', ['-c', source], { env: { ...process.env, ...env } }) : Buffer.from(stdout);
-  const shell = new Shell({ fs: new MemoryFileSystem(), env, commands: new CommandRegistry(basicCommands()), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
+  const shell = new Shell({ fs: new MemoryFileSystem(), env, commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
   try {
     const actual = await shell.exec(source);
     assert.equal(actual.exitCode, 0);
@@ -85,7 +94,7 @@ for (const maxExpansionBytes of [undefined, 65536]) for (const [pattern, diagnos
   const source = `p='${pattern}'; for i in 1 2; do [[ seed =~ (seed) ]]; [[ abc =~ ${variable ? '$p' : pattern} ]]; printf '%s:<%s>:<%s>\\n' "$?" "\${BASH_REMATCH[0]}" "\${BASH_REMATCH[1]}"; done`;
   const expected = Buffer.from('2:<seed>:<seed>\n'.repeat(2));
   if (process.platform === 'darwin') assert.deepEqual(execFileSync('/bin/bash', ['-c', source], { env }), expected);
-  const shell = new Shell({ fs: new MemoryFileSystem(), env, commands: new CommandRegistry(basicCommands()), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
+  const shell = new Shell({ fs: new MemoryFileSystem(), env, commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
   try {
     const actual = await shell.exec(source);
     assert.equal(actual.exitCode, 0);

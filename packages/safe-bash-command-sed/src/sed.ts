@@ -40,7 +40,6 @@ interface CachedSedProgram {
   readonly readFiles: readonly string[];
 }
 const sedProgramCache = new Map<string, CachedSedProgram>();
-const sedFastRawCache = new Map<string, CachedSedProgram>();
 const EMPTY_STRINGS: readonly string[] = Object.freeze([]);
 const EMPTY_SET: Set<string> = new Set();
 
@@ -125,7 +124,6 @@ function tryParseFastPairProgramSync(rawProg: string, budget: Budget): CachedSed
   const cacheKey = `0:\n:${Infinity}:${rawProg}`;
   if (sedProgramCache.size >= 64) sedProgramCache.delete(sedProgramCache.keys().next().value!);
   sedProgramCache.set(cacheKey, cached);
-  sedFastRawCache.set(rawProg, cached);
   return cached;
 }
 
@@ -1168,7 +1166,7 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       context.args[1] !== "-"
     ) {
       const rawProg = context.args[0]!;
-      let cached = sedFastRawCache.get(rawProg);
+      let cached = sedProgramCache.get(`0:\n:${Infinity}:${rawProg}`);
       if (!cached) {
         const parseBudget = Budget.acquire(context, options);
         try {
@@ -1304,7 +1302,6 @@ async function executeSedGeneral(
       if (canCache) {
         if (sedProgramCache.size >= 64) sedProgramCache.delete(sedProgramCache.keys().next().value!);
         sedProgramCache.set(cacheKey, cached);
-        if (!extended && separator === "\n" && maxProgramInstructions === Infinity && sources.length === 1) sedFastRawCache.set(sources[0]!, cached);
       }
     }
     const { program, outputFiles, readFiles } = cached;

@@ -517,8 +517,10 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
       }
     };
 
-    const positionals = extractPdftoppmPositionals(argv);
-    const readStdin = positionals.length === 0 || positionals[0] === "-";
+    // Parse before acquiring input: help, version and usage errors need no PDF.
+    const needsInput = (await runPdftoppmCli(argv, new Map([["-", new Uint8Array()]]), { signal: invocation.signal })).exitCode === 1;
+    const positionals = needsInput ? extractPdftoppmPositionals(argv) : [];
+    const readStdin = needsInput && (positionals.length === 0 || positionals[0] === "-");
     if (readStdin) {
       const chunks: Uint8Array[] = [];
       let total = 0;

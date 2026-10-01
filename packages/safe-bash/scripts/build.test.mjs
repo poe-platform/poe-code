@@ -190,11 +190,13 @@ function afterInputRead(owned, path, action) {
 }
 
 for (const profile of ["dependencies", "devDependencies"]) for (const defect of ["none", "version", "name", "dependency", "link", "unapproved-import"]) test(`build pinned portable dependency declaration admission: ${defect}${profile === "devDependencies" ? " development profile" : ""}`, async () => {
-  const dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
+  const dependencies = { "@noble/hashes": "2.4.0", "@noble/ciphers": "2.4.0", pako: "3.0.1" };
   const owned = fixture({
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", [profile]: dependencies }),
-    "src/index.ts": 'import { value } from "@noble/hashes/sha2.js"; import { inflate } from "pako"; export const answer = inflate(value);',
+    "src/index.ts": 'import { value } from "@noble/hashes/sha2.js"; import { inflate } from "pako"; import { encrypt } from "@noble/ciphers/aes.js"; export const answer = encrypt(inflate(value));',
     "node_modules/@noble/hashes/package.json": JSON.stringify({ name: "@noble/hashes", version: "2.4.0", type: "module", exports: { "./sha2.js": "./sha2.js" } }),
+    "node_modules/@noble/ciphers/package.json": JSON.stringify({ name: "@noble/ciphers", version: "2.4.0", type: "module", exports: { "./aes.js": "./aes.js" } }),
+    "node_modules/@noble/ciphers/aes.d.ts": "export declare function encrypt(value: number): number;",
     "node_modules/@noble/hashes/sha2.d.ts": "export declare const value: number;",
     "node_modules/pako/package.json": JSON.stringify({ name: "pako", version: "3.0.1", types: "./dist/pako.d.ts" }),
     "node_modules/pako/dist/pako.d.ts": "export declare function inflate(value: number): number;",
@@ -204,6 +206,7 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
   if (defect === "none") {
     assert.equal((await owned.run()).status, 0, owned.output.join(""));
     assert.ok(owned.reads.includes(root + "/node_modules/@noble/hashes/sha2.d.ts"));
+    assert.ok(owned.reads.includes(root + "/node_modules/@noble/ciphers/aes.d.ts"));
     assert.ok(owned.reads.includes(root + "/node_modules/pako/dist/pako.d.ts"));
   } else if (defect === "unapproved-import") {
     owned.memory.writeFileSync(root + "/src/index.ts", 'export { secret } from "unapproved";');
@@ -223,10 +226,10 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
   assert.equal(owned.descriptors.size, 0);
 });
 
-for (const dependency of ["@noble/hashes", "pako", "@poe-code/office-package"]) test(`build refuses changed development declaration pin: ${dependency}`, async () => {
+for (const dependency of ["@noble/hashes", "@noble/ciphers", "pako", "@poe-code/office-package"]) test(`build refuses changed development declaration pin: ${dependency}`, async () => {
   const owned = fixture({
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: {
-      "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*", [dependency]: "unapproved",
+      "@noble/hashes": "2.4.0", "@noble/ciphers": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*", [dependency]: "unapproved",
     } }),
   });
   await assert.rejects(owned.run(), /portable dependency contract/);
@@ -248,9 +251,11 @@ for (const profile of ["dependencies", "devDependencies"]) for (const defect of 
     },
   };
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", [profile]: { "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" } }),
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", [profile]: { "@noble/hashes": "2.4.0", "@noble/ciphers": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" } }),
     "src/index.ts": 'export { archive } from "@poe-code/office-package/zip";',
     "node_modules/@noble/hashes/package.json": JSON.stringify({ name: "@noble/hashes", version: "2.4.0" }),
+    "node_modules/@noble/ciphers/package.json": JSON.stringify({ name: "@noble/ciphers", version: "2.4.0", type: "module", exports: { "./aes.js": "./aes.js" } }),
+    "node_modules/@noble/ciphers/aes.d.ts": "export declare function encrypt(value: number): number;",
     "node_modules/pako/package.json": JSON.stringify({ name: "pako", version: "3.0.1" }),
     [shared + "/package.json"]: JSON.stringify(metadata),
     [shared + "/dist/index.d.ts"]: 'export { archive } from "./zip.js";',

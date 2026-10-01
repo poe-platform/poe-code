@@ -42,8 +42,6 @@ import {
   readSvgMetadata
 } from "./svg-pdf.js";
 
-const DEFAULT_PIXEL_LIMIT = Infinity;
-
 function checkLimitInputPixels(width: number, height: number, options?: SharpInputOptions): void {
   const limit =
     options?.limitInputPixels === false ||
@@ -52,13 +50,11 @@ function checkLimitInputPixels(width: number, height: number, options?: SharpInp
       ? Infinity
       : typeof options?.limitInputPixels === "number"
         ? options.limitInputPixels
-        : DEFAULT_PIXEL_LIMIT;
+        : Infinity;
   if (width * height > limit) {
     throw new Error(`Input image exceeds pixel limit (${width}x${height} > ${limit})`);
   }
 }
-
-const DECODE_CACHE = new WeakMap<Uint8Array, RgbaImage>();
 
 export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isPngBytes(bytes)) return "png";
@@ -531,20 +527,6 @@ export function decodeImage(
   if (!bytes || bytes.length === 0) {
     throw new Error(!bytes ? "Input file is missing:" : "Input buffer contains unsupported image format");
   }
-  const canCache =
-    options?.density === undefined &&
-    options?.page === undefined &&
-    options?.pages === undefined &&
-    options?.animated === undefined &&
-    options?.raw === undefined &&
-    options?.create === undefined;
-  if (canCache) {
-    const cached = DECODE_CACHE.get(bytes);
-    if (cached) {
-      checkLimitInputPixels(cached.width, cached.height, options);
-      return cached;
-    }
-  }
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
@@ -584,9 +566,6 @@ export function decodeImage(
       break;
     default:
       throw new Error(`Unsupported format: ${meta.format}`);
-  }
-  if (canCache) {
-    DECODE_CACHE.set(bytes, decoded);
   }
   return decoded;
 }

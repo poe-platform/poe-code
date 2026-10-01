@@ -147,3 +147,18 @@ for (const trailingNewline of ["", "\n"]) {
     });
   }
 }
+
+for (const trailingNewline of ["", "\n"]) {
+  test(`long record after short records does not replay mutations (newline=${!!trailingNewline})`, async () => {
+    const input = "item:10\n".repeat(20) + "item:10:" + "A".repeat(120) + trailingNewline;
+    const { run } = await fixture(input);
+    for (let invocation = 0; invocation < 3; invocation++) {
+      const sum = await run('{ sum += $2 } END { print sum }');
+      assert.equal(sum.exitCode, 0, sum.stderr);
+      assert.equal(sum.stdout, "210\n");
+      const effects = await run('{ sum += $2; counts[$1]++; print NR, FNR } END { print sum, counts["item"], NR, FNR }');
+      assert.equal(effects.exitCode, 0, effects.stderr);
+      assert.equal(effects.stdout, Array.from({ length: 21 }, (_, index) => `${index + 1} ${index + 1}\n`).join("") + "210 21 21 21\n");
+    }
+  });
+}

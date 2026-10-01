@@ -440,6 +440,7 @@ export type { PythonExecutorPool, PythonExecutorPoolOptions } from './executor-p
 export { createPythonJspiExecutor } from './jspi.js';
 export type { PythonJspiExecutorOptions, PythonJspiRuntimeConfiguration } from './jspi.js';
 export { createPythonJspiAssets } from './jspi-assets.js';
+export { installPythonLlmDependencies, pythonLlmDependencies, type PythonLlmDependencyArchive } from './llm-dependencies.js';
 export type { PythonJspiAssetsOptions } from './jspi-assets.js';
 export { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from './jspi-trampoline.js';
 export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';

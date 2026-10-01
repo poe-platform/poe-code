@@ -71,17 +71,35 @@ const ccall = embeddedModule(files['pyodide.asm.mjs'], node => ts.isFunctionDecl
 const empty = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
 const callbacks = createPythonJspiCallbackCatalog(files['pyodide.asm.mjs']);
 const callbackFiles = callbacks.map(({signature}) => 'callback-' + signature + '.wasm');
+const dependencyRoot = process.env.SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT;
+const { pythonLlmDependencies } = await import(pathToFileURL(consumerRoot ? pythonEntry : resolve(root, 'packages/safe-bash/src/commands/python/llm-dependencies.ts')).href);
+const dependencyArchives = dependencyRoot ? pythonLlmDependencies.archives.map((archive, index) => {
+  const bytes = readFileSync(resolve(dependencyRoot, archive.fileName));
+  assert.equal(bytes.length, archive.byteLength);
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), archive.sha256);
+  return {...archive, bytes, asset:'python-dependency-' + index + '.bin'};
+}) : [];
+const dependencyNative = dependencyRoot ? pythonLlmDependencies.nativeModules.map((native, index) => {
+  const bytes = readFileSync(resolve(dependencyRoot, native.path));
+  assert.equal(createHash('sha256').update(bytes).digest('hex'), native.sha256);
+  return {bytes, wasm:'python-native-' + index + '.wasm', data:'python-native-' + index + '.bin'};
+}) : [];
+
 
 async function createNativeFixture(context) {
   const injection = `
 import main from 'main.wasm';
+${dependencyArchives.map((archive, index) => `import dependency${index} from '${archive.asset}';`).join('\n')}
+${dependencyNative.map((native, index) => `import native${index} from '${native.wasm}'; import nativeBytes${index} from '${native.data}';`).join('\n')}
+
 import helper from 'helper.wasm';
 import ccall from 'ccall.wasm';
 import empty from 'empty.wasm';
 ${callbackFiles.map((name, index) => `import callback${index} from '${name}';`).join('\n')}
 import stdlib from 'stdlib.bin';
-import { createPythonJspiAssets } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiAssets, installPythonLlmDependencies } from '@poe-platform/safe-bash/commands/python';
 const assets = createPythonJspiAssets({ main, stdlib:new Uint8Array(stdlib), modules:[
+${dependencyNative.map((_, index) => ` {module:native${index},bytes:new Uint8Array(nativeBytes${index})},`).join('\n')}
  { module:helper,bytes:new Uint8Array(${JSON.stringify(Array.from(helper))}) },
  { module:ccall,bytes:new Uint8Array(${JSON.stringify(Array.from(ccall))}) },
  { module:empty,bytes:new Uint8Array(${JSON.stringify(Array.from(empty))}) },
@@ -89,12 +107,17 @@ ${callbacks.map(({bytes}, index) => ` { module:callback${index},bytes:new Uint8A
 ]});
 const { WebAssembly, fetch, location } = assets;
 export { WebAssembly, fetch, location };
+export const pythonLlmDependenciesEnabled = ${Boolean(dependencyRoot)};
+export async function installStaticPackages(runtime) {
+ ${dependencyRoot ? `await installPythonLlmDependencies(runtime,[${dependencyArchives.map((archive,index) => `{fileName:${JSON.stringify(archive.fileName)},bytes:new Uint8Array(dependency${index})}`).join(',')}]);` : ''}
+}
+
 `;
   const outputRoot = process.env.TMPDIR;
   const bundle = await build({ entryPoints: [fileURLToPath(new URL('./python-jspi.worker.mjs', import.meta.url))],
     outfile:resolve(outputRoot, 'main.mjs'), loader:{'.wasm':'copy'},
     bundle: true, write: false, metafile: true, platform: 'browser', mainFields: ['browser', 'module', 'main'], format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
-    external: ['main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws', ...callbackFiles],
+    external: [...dependencyArchives.map(archive => archive.asset), ...dependencyNative.flatMap(native => [native.wasm,native.data]), 'main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws', ...callbackFiles],
     define: { 'globalThis.process': 'undefined', process: 'undefined' },
     alias: { 'pinned-pyodide-loader': resolve(runtimeRoot, 'pyodide.mjs'),
       'pinned-pyodide-module': resolve(runtimeRoot, 'pyodide.asm.mjs'),
@@ -140,6 +163,8 @@ export { WebAssembly, fetch, location };
     ...[['main.wasm', files['pyodide.asm.wasm']], ['helper.wasm', helper], ['ccall.wasm', ccall],
       ['empty.wasm', empty], ['trampoline.wasm', createPythonJspiTrampoline()], ['native-call.wasm', createPythonJspiNativeCall()],
       ['stat-result.wasm', createPythonJspiStatResult()]].map(([name, contents]) => ({ type: 'CompiledWasm', path: resolve(outputRoot, name), contents })),
+    ...dependencyArchives.map(archive => ({type:'Data',path:resolve(outputRoot,archive.asset),contents:archive.bytes})),
+    ...dependencyNative.flatMap(native => [{type:'CompiledWasm',path:resolve(outputRoot,native.wasm),contents:native.bytes},{type:'Data',path:resolve(outputRoot,native.data),contents:native.bytes}]),
     ...callbacks.map(({bytes}, index) => ({ type:'CompiledWasm', path:resolve(outputRoot, callbackFiles[index]), contents:bytes })),
     { type: 'Data', path: resolve(outputRoot, 'stdlib.bin'), contents: files['python_stdlib.zip'] },
   ];

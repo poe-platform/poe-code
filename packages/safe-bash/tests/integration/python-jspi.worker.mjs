@@ -1,6 +1,7 @@
 import storedSchemas from '../../../safe-bash-command-llm/src/fixtures/stored-schemas.json' with {type:'json'};
 import { standardCommands } from '@poe-platform/safe-bash/core';
 import libraryExamples from 'python-library-examples';
+import { installStaticPackages, pythonLlmDependenciesEnabled } from 'python-static-assets';
 import { loadPyodide } from 'pinned-pyodide-loader';
 import createPyodideModule from 'pinned-pyodide-module';
 import lockFileContents from 'pinned-pyodide-lock';
@@ -295,6 +296,7 @@ except CalledProcessError as error:
  assert error.returncode == 127
 assert call('identity', 'still-live') == 'still-live'
 import llm
+${pythonLlmDependenciesEnabled ? "from pydantic import BaseModel, ConfigDict, ValidationError\nclass ReferenceOptions(BaseModel):\n model_config = ConfigDict(extra='forbid')\n temperature: float | None = None\nassert ReferenceOptions(temperature='0.5').model_dump() == {'temperature': 0.5}\ntry:\n ReferenceOptions(unknown=True)\n raise AssertionError('extra option was accepted')\nexcept ValidationError:\n pass\nclass ReferenceSchema(BaseModel):\n name: str\n age: int\nassert llm.get_model('fake').prompt('reference-schema', schema=ReferenceSchema).text() == 'reference-schema'\n" : ''}
 assert llm.decode(llm.encode([1, -2.5])) == (1.0, -2.5)
 assert llm.cosine_similarity([1, 0], [0, 1]) == 0.0
 model = llm.get_model('fake')
@@ -744,6 +746,7 @@ export default {
           return module;
         }, jsglobals: configuration.jsglobals, args: configuration.args, env: configuration.env,
         enableRunUntilComplete: false });
+      await installStaticPackages(runtime);
       version = runtime.version;
       memory = runtime._module.HEAPU8.byteLength;
       if (mode === '/proxy') retainedProxy = runtime.globals;

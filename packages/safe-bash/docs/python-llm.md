@@ -75,6 +75,21 @@ qualification. The existing `poe_llm` workflow API below remains available durin
 that implementation.
 
 The module ships with the authenticated runtime, without pip installation.
+
+For real Pydantic schema classes, the public Python SDK exports
+pythonLlmDependencies and installPythonLlmDependencies. The manifest pins the
+Pyodide version, wheel filenames, sizes and SHA-256 digests, plus native module
+paths and digests. Fetch and authenticate these inputs at build time. Register
+the extracted native modules with createPythonJspiAssets, and bundle the wheels
+as static data. Inside loadRuntime, call
+await installPythonLlmDependencies(runtime, archives), where each archive is
+{fileName, bytes}, before returning the interpreter.
+
+The loader checks the complete bundle before extraction into the private
+interpreter runtime. It performs no network requests or pip installation, and
+requires no runtime Wasm compilation. Pydantic availability alone does not yet
+qualify the complete reference Options interface.
+
 The JSPI launcher installs an invocation-owned bridge. Enable `llm` in
 `pythonCommands({ createCapabilities })`: its `call({ operation, payload },
 { signal })` handles `models`, `complete` and `embed`; its `stream(payload,

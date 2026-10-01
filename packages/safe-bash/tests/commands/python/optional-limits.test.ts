@@ -77,3 +77,22 @@ test('a download budget does not impose a requirements or manifest budget', asyn
     env.finish(replay);
   } finally { await env.dispose(); }
 });
+
+for (const maxTransferBytes of [undefined, Infinity]) test(`Python output exceeds one MiB with unlimited transfer quota: ${maxTransferBytes}`, async () => {
+  const chunk = Array<number>(65_536).fill(120);
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(pythonCommands({
+    ...maxTransferBytes === undefined ? {} : { maxTransferBytes },
+    createExecutor: () => ({ async run(start) {
+      start.onReady();
+      for (let index = 0; index < 17; index++) {
+        assert.equal(await start.dispatch({ op: 'stdout', args: [chunk] }), chunk.length);
+      }
+      return 0;
+    }, terminate() {} }),
+  }));
+  try {
+    const result = await shell.exec('python -c pass');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, 'x'.repeat(chunk.length * 17));
+  } finally { await shell.dispose(); }
+});

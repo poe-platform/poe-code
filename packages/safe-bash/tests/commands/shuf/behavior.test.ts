@@ -357,3 +357,10 @@ test("shuf streams range permutations into stdout budget without prebuilding ful
   await assert.rejects(async () => createShufCommand().execute(context), error => error === budgetError);
   assert.ok(writeCount < 512, `expected stdout budget to stop shuf early, got ${writeCount} writes`);
 });
+
+test("shuf samples stdin beyond the former million-line ceiling", async () => {
+  const result = await run(["-n", "1"], Buffer.from("x\n".repeat(1024 * 1024 + 1)));
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout.toString(), "x\n");
+  assert.equal(result.stderr, "");
+});

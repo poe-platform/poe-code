@@ -200,7 +200,7 @@ for (const options of [
   '--header', '--user-agent', '--referer', '--header=invalid', '--header=X-Test;',
   "--header 'Bad Name: value'", "--header $'X-Test: value\\r\\nX-Injected: bad'",
   "--user-agent $'value\\r\\nX-Injected: bad'", "--referer $'value\\nX-Injected: bad'",
-  ...['Host', 'Content-Length', 'Transfer-Encoding', 'Connection', 'Proxy-Authorization', 'Upgrade', 'Expect']
+  ...['Content-Length', 'Transfer-Encoding', 'Proxy-Authorization', 'Upgrade']
     .map(name => `--header '${name}: value'`),
 ]) test(`wget rejects invalid request headers before authorization: ${options}`, async () => {
   let authorizations = 0;
@@ -212,6 +212,30 @@ for (const options of [
     assert.equal(requests.length, 0);
   } finally { await shell.dispose(); }
 });
+
+for (const name of ['Host', 'Connection', 'Expect']) {
+  test(`wget passes supported ${name} headers through explicit authorization`, async () => {
+    const events: string[] = [];
+    const { shell } = await fixture({
+      authorize: request => {
+        assert.ok(request.headers?.some(([key, value]) => key === name && value === 'value'));
+        events.push('authorize');
+        return true;
+      },
+      transport: async request => {
+        assert.ok(request.headers.some(([key, value]) => key === name && value === 'value'));
+        events.push('transport');
+        return { status: 200, statusText: 'OK', headers: [], body: toByteSource('hello'), async dispose() {} };
+      },
+    });
+    try {
+      const result = await shell.exec(`wget -qO- --header '${name}: value' https://example.test/hello`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, 'hello');
+      assert.deepEqual(events, ['authorize', 'transport']);
+    } finally { await shell.dispose(); }
+  });
+}
 
 test('wget drops custom headers after a cross-origin redirect', async () => {
   const seen: { url: string; headers: readonly (readonly [string, string])[] }[] = [];

@@ -1,19 +1,23 @@
 import { expect, test, vi } from "vitest";
+import { gzipSync } from "node:zlib";
 import type { CommandContext } from "safe-bash-contracts";
+import { FsError } from "safe-bash-contracts/errors";
 import { createCsvkitCommand, type CsvkitCommandsOptions } from "./command.js";
 import { portableLocale } from "./portable-locale.js";
 
-async function invoke(name: string, input: string | Uint8Array, args: string[], files: Record<string, string> = {}, options: CsvkitCommandsOptions = {}) {
+async function invoke(name: string, input: string | Uint8Array, args: string[], files: Record<string, string | Uint8Array> = {}, options: CsvkitCommandsOptions = {}) {
   let stdout = "", stderr = "";
   const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
   const context = {
     command: name, args, cwd: "/", env: {}, signal: new AbortController().signal,
     stdin: (async function* () { yield typeof input === "string" ? encoder.encode(input) : input; })(),
-    stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+    stdout: { async write(bytes: Uint8Array) { stdout += decoder.decode(bytes, { stream: true }); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
     fs: { capabilities: { read: true, streamingRead: true },
-      async stat() { return { type: "file" }; },
-      readStream(path: string) { return (async function* () { yield encoder.encode(files[path]!); })(); }
+      async stat(path: string) { if (!(path in files)) throw new FsError("ENOENT", { path }); return { type: "file" }; },
+      async readFile(path: string) { const value = files[path]!; return typeof value === "string" ? encoder.encode(value) : value; },
+      readStream(path: string) { return (async function* () { const value = files[path]!; yield typeof value === "string" ? encoder.encode(value) : value; })(); }
     }
   } as unknown as CommandContext;
   const result = await createCsvkitCommand({ ...options, name }).execute(context);
@@ -92,14 +96,37 @@ test.each([
 ] as const)("portable csvcut includes the %s codec", async (encoding, bytes, expected) => {
   const result = await invoke("csvcut", bytes, ["-e", encoding]);
   expect(result.exitCode).toBe(0);
-  // csvkit uses the selected encoding for stdout too.
+  // Input codecs normalize selected encodings to UTF-8 stdout.
   expect(result.stderr).toBe("");
-  expect(result.stdout.length).toBeGreaterThan(0);
-  if (encoding === "ascii") expect(result.stdout).toBe(expected);
+  expect(result.stdout).toBe(expected);
 });
 
 
 test.each([[[], "1,230\n"], [["-G"], "1230\n"]] as const)("csvstat preserves integer zeroes with decimal patterns (%s)", async (args, stdout) => {
   expect(await invoke("csvstat", "a\n1230\n", ["--min", "--decimal-format", "#,##0.###", ...args]))
     .toEqual({ exitCode: 0, stdout, stderr: "" });
+});
+
+test("portable csvstat formats decimal scores without host locale bindings", async () => {
+  const result = await invoke("csvstat", "id,name,score\n1,Alice,95.5\n2,Bob,82.0\n", []);
+  expect(result.exitCode).toBe(0);
+  expect(result.stderr).toBe("");
+  expect(result.stdout).toContain("95.5");
+  expect(result.stdout).toContain("88.75");
+});
+
+test.each([[[], "1,234.5\n"], [["-G"], "1234.5\n"]] as const)("portable csvstat accepts grouped printf formats (%s)", async (args, stdout) => {
+  expect(await invoke("csvstat", "score\n1234.5\n", ["--min", "--decimal-format", "%,.3f", ...args]))
+    .toEqual({ exitCode: 0, stdout, stderr: "" });
+});
+
+test("portable csvsql executes a query with its default SQLite provider", async () => {
+  expect(await invoke("csvsql", "", ["--query", "SELECT name, score FROM scores WHERE score > 85", "/scores.csv"], {
+    "/scores.csv": "id,name,score\n1,Alice,95.5\n2,Bob,82.0\n"
+  })).toEqual({ exitCode: 0, stdout: "name,score\nAlice,95.5\n", stderr: "" });
+});
+
+test("portable csvcut decompresses gzip with its default provider", async () => {
+  expect(await invoke("csvcut", "", ["-c", "name", "/scores.csv.gz"], { "/scores.csv.gz": gzipSync("name,score\nAlice,95.5\n") }))
+    .toEqual({ exitCode: 0, stdout: "name\nAlice\n", stderr: "" });
 });

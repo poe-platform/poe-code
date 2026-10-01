@@ -2,7 +2,18 @@ import type { LocaleServices } from "./contracts.js";
 import { Decimal } from "./types/decimal.js";
 import { CsvkitBlocked } from "./errors.js";
 
-/** C printf formats are ungrouped; decimal patterns opt into comma grouping. */
+function groupInteger(value: string, grouping: boolean): string {
+  if (!grouping) return value;
+  const start = value.startsWith("-") ? 1 : 0;
+  let result = value.slice(0, start);
+  for (let index = start; index < value.length; index++) {
+    if (index > start && (value.length - index) % 3 === 0) result += ",";
+    result += value[index];
+  }
+  return result;
+}
+
+/** Portable decimal and printf formats with explicit comma grouping. */
 export const portableLocale: LocaleServices = Object.freeze<LocaleServices>({
   profile: "C",
   timezone: "UTC",
@@ -24,17 +35,14 @@ export const portableLocale: LocaleServices = Object.freeze<LocaleServices>({
       const whole = digits.slice(0, -3);
       let fraction = digits.slice(-3);
       while (fraction.endsWith("0")) fraction = fraction.slice(0, -1);
-      let integer = "";
-      for (let index = 0; index < whole.length; index++) {
-        if (grouping && index && (whole.length - index) % 3 === 0) integer += ",";
-        integer += whole[index];
-      }
-      return (decimal.negative ? "-" : "") + integer + (fraction ? "." + fraction : "");
+      return (decimal.negative ? "-" : "") + groupInteger(whole, grouping) + (fraction ? "." + fraction : "");
     }
+    if (format === "%s") return value;
+    if (format.startsWith("%,")) format = "%" + format.slice(2);
     const number = Number(value);
     if (format === "%d" || format === "%i") {
       if (!Number.isFinite(number)) throw new CsvkitBlocked("non-finite integer formatting");
-      return BigInt(Math.trunc(number)).toString();
+      return groupInteger(BigInt(Math.trunc(number)).toString(), grouping);
     }
     if (format === "%f") format = "%.6f";
     const precisionText = format.slice(2, -1);
@@ -59,7 +67,7 @@ export const portableLocale: LocaleServices = Object.freeze<LocaleServices>({
       if (remainder * 2n > divisor || remainder * 2n === divisor && scaled % 2n !== 0n) scaled++;
     }
     const digits = scaled.toString().padStart(precision + 1, "0");
-    const fixed = precision ? digits.slice(0, -precision) + "." + digits.slice(-precision) : digits;
+    const fixed = precision ? groupInteger(digits.slice(0, -precision), grouping) + "." + digits.slice(-precision) : groupInteger(digits, grouping);
     return (number < 0 || Object.is(number, -0) ? "-" : "") + fixed;
   }
 });

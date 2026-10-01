@@ -21,7 +21,9 @@ The engine host explicitly supplies input and output, codecs, locale, clock and 
 configuration. The `csvkitCommands()` plugin and `createCsvkitCommands()` factory also
 work without options: they use portable UTF-8/Python codecs, gzip compression, a C/UTC
 locale, a clock, a noninteractive 80×24 terminal and the built-in SQL dialects.
-The C locale formats decimals with `%f` or `%.Nf` and integers with `%d`/`%i`.
+The C/C.UTF-8 formatter supports `%f`, `%.Nf`, and `%,.Nf` for decimals,
+`%d`/`%i` for integers, and `%s` for the original decimal text. Numeric formats
+apply comma grouping unless `-G` disables it.
 `--decimal-format '#,##0.###'` uses exact decimal rounding and comma grouping;
 `-G` disables grouping. The same format is available through the SDK settings.
 Portable commands normalize unnamed and duplicate headers with warnings suppressed;

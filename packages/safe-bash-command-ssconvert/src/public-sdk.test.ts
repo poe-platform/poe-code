@@ -1,5 +1,6 @@
 import { expect, it } from "vitest";
 import * as sdk from "safe-bash-command-ssconvert";
+import { CommandRegistry, createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createMemoryFileSystem, retainFileSystemCleanup, scopeFileSystem } from "@poe-code/safe-fs/core";
 import type { CapabilityContext, SsconvertCommandsOptions, Workbook } from "safe-bash-command-ssconvert";
 
@@ -66,4 +67,25 @@ const commandCoverage = {
 
 it("keeps every SDK conversion control assigned to a genuine CLI operation", () => {
   expect(Object.values(commandCoverage).every(operation => operation.length > 0)).toBe(true);
+});
+
+it.each([undefined, {}])("converts CSV through XLSX with all portable command factories (%j)", async options => {
+  const fs = createMemoryFileSystem();
+  const input = "Name,Score\nAlice,95.5\n";
+  await fs.writeFile("/input.csv", new TextEncoder().encode(input));
+  const commands = new CommandRegistry();
+  sdk.ssconvertCommands(options).setup({ commands, use() {}, registerFileSystem() {} });
+  const factories = [sdk.createSsconvertCommand(options), sdk.createSsconvertCommands(options)[0]!, commands.get("ssconvert")!];
+  let stderr = "";
+  for (const command of factories) {
+    for (const args of [["/input.csv", "/output.xlsx"], ["/output.xlsx", "/roundtrip.csv"]]) {
+      const result = await command.execute({ command: "ssconvert", cwd: "/", env: {}, fs,
+        ...createCommandArguments(args), signal: new AbortController().signal, stdin: toByteSource(""),
+        stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+      });
+      expect(stderr).toBe("");
+      expect(result.exitCode).toBe(0);
+    }
+    expect(new TextDecoder().decode(await fs.readFile("/roundtrip.csv"))).toBe(input);
+  }
 });

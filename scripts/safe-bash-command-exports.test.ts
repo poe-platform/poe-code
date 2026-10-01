@@ -1,15 +1,15 @@
-import { readFileSync, existsSync, readdirSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import ts from "typescript";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { toByteSource, type CommandDefinition } from "safe-bash-contracts";
 import { describe, expect, it } from "vitest";
+import { createWorkspaceBuildPlan } from "./build-workspaces.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const metadata = JSON.parse(readFileSync(resolve(root, "packages/safe-bash/package.json"), "utf8"));
-const commands = readdirSync(resolve(root, "packages"), { withFileTypes: true })
-  .filter(entry => entry.isDirectory() && entry.name.startsWith("safe-bash-command-"))
-  .map(entry => entry.name);
+const commands = createWorkspaceBuildPlan(root).workspaces
+  .filter(workspace => workspace.name.startsWith("safe-bash-command-"));
 
 function exportedNames(file: string, visited = new Set<string>()): Set<string> {
   if (visited.has(file)) return new Set();
@@ -41,7 +41,7 @@ const sdk = new Set([
   ...exportedNames(resolve(root, "packages/safe-bash/src/optional.ts")),
 ]);
 describe("portable command API", () => {
-  for (const workspace of commands) {
+  for (const { name: workspace, manifest } of commands) {
     const name = workspace.slice("safe-bash-command-".length);
     const title = name.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
     const pluginName = title[0]!.toLowerCase() + title.slice(1);
@@ -53,7 +53,17 @@ describe("portable command API", () => {
         expect(metadata.exports).toHaveProperty(`./commands/${adapter}`);
         for (const symbol of exportedNames(source)) exported.add(symbol);
       }
-      expect(metadata.poeCode.integration.privateWorkspaces[workspace]).toHaveProperty("portable", true);
+      const companion = manifest.poeCode?.safeLibraryExports?.["safe-bash"]?.[`./commands/${adapter}`];
+      if (companion !== undefined) {
+        const entry = manifest.exports[companion];
+        expect(entry).toMatchObject({ browser: expect.any(String), workerd: expect.any(String) });
+        for (const target of [entry.browser, entry.workerd]) {
+          const source = resolve(root, `packages/${workspace}`, target.replace("./dist/", "./src/").replace(".js", ".ts"));
+          for (const symbol of exportedNames(source)) exported.add(symbol);
+        }
+      } else {
+        expect(metadata.poeCode.integration.privateWorkspaces[workspace]).toHaveProperty("portable", true);
+      }
       const packageExports = exportedNames(resolve(root, `packages/${workspace}/src/index.ts`));
       for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) expect(packageExports.has(symbol), `${workspace}: ${symbol}`).toBe(true);
       for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) expect(exported.has(symbol), symbol).toBe(true);

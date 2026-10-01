@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { expect, it } from "vitest";
 
@@ -21,7 +22,8 @@ it.each(["llm-module", "shell-module", "library-adapter"])(
             path: name, namespace: "python-source", sideEffects: true
           }));
           plugin.onLoad({ filter: /.*/, namespace: "python-source" }, () => ({
-            contents, loader: "ts"
+            contents, loader: "ts",
+            resolveDir: fileURLToPath(new URL("../packages/safe-bash/src/commands/python/", import.meta.url))
           }));
         }
       }]

@@ -39,8 +39,7 @@ for (const condition of ["browser", "workerd"]) {
             const regex = await shell.exec(${JSON.stringify(`jq -cn '"xα" | gsub("x"; "🌍")'`)});
             const result = await shell.exec("yq -i '.a = 2' /input.yml");
             return { result, jq, regex, text: new TextDecoder().decode(await fs.readFile("/input.yml")),
-              nodeGlobals: "process" in globalThis || "require" in globalThis,
-              portableBytes: globalThis.Buffer.from("é").toString("hex") };
+              nodeGlobals: ["Buffer", "process", "require"].some(name => name in globalThis) };
           } finally { await shell.dispose(); }
         }
       ` },
@@ -73,10 +72,10 @@ it("ships the portable graph without bare private contract imports", () => {
   expect(imports.filter(item => item.external && item.path.startsWith("safe-bash-contracts"))).toEqual([]);
 });
 
-it.each(["browser", "workerd"])("runs public optional YQ staged writes with portable Buffer under %s", async condition => {
-  const sandbox = createContext({ TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream,
+it.each(["browser", "workerd"])("runs public optional YQ staged writes without Node globals under %s", async condition => {
+  const sandbox = createContext({ TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream,
     ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask,
-    crypto: globalThis.crypto, performance, atob });
+    crypto: globalThis.crypto, structuredClone, performance, URL, FormData, Blob, Response, Request, btoa, atob });
   expect(runInContext("typeof Buffer", sandbox)).toBe("undefined");
   const api = programs.get(condition)!.runInContext(sandbox);
   const result = await api.run();
@@ -85,5 +84,5 @@ it.each(["browser", "workerd"])("runs public optional YQ staged writes with port
   expect(result.regex).toMatchObject({ exitCode: 0, stdout: '"🌍α"\n', stderr: "" });
   expect(result.text).toBe("a: 2\n");
   expect(result.nodeGlobals).toBe(false);
-  expect(result.portableBytes).toBe("c3a9");
+  expect(runInContext("typeof Buffer", sandbox)).toBe("undefined");
 });

@@ -3,6 +3,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import ts from 'typescript';
 import { expect, test } from 'vitest';
+import { createWorkspaceBuildPlan } from './build-workspaces.mjs';
 
 const commands = ['csvcut', 'csvgrep', 'csvkit', 'diff3', 'exiftool', 'ffmpeg', 'fmt', 'fold', 'htmlq', 'imagemagick', 'mmdc', 'op', 'pandoc', 'pdfimages', 'pdfinfo', 'pdftk', 'pdftoppm', 'pdftotext', 'qpdf', 'sips', 'soffice', 'ssconvert', 'unrtf', 'wkhtmltopdf', 'xz'];
 test('every required command has a portable integration profile', async () => {
@@ -19,8 +20,11 @@ function collectDirectories(directory: string) {
   for (const entry of readdirSync(directory, {withFileTypes: true}))
     if (entry.isDirectory()) collectDirectories(path.join(directory, entry.name));
 }
-for (const name of readdirSync('packages').filter(name => name.startsWith('safe-bash-command-') || ['safe-bash', 'safe-bash-query-engine', 'safe-bash-compression-engine', 'safe-fs'].includes(name)))
-  collectDirectories(path.join('packages', name, 'src'));
+for (const workspace of createWorkspaceBuildPlan(process.cwd()).workspaces) {
+  const name = path.basename(workspace.path);
+  if (name.startsWith('safe-bash-command-') || ['safe-bash', 'safe-bash-query-engine', 'safe-bash-compression-engine', 'safe-fs'].includes(name))
+    collectDirectories(path.join(workspace.path, 'src'));
+}
 test.each(directories)('%s binds Buffer locally instead of requiring the host global', directory => {
   const failures: string[] = [];
   function visit(directory: string) {

@@ -27,7 +27,7 @@ async function runtime(source: string, onOutput?: (text: string, retained: numbe
   // Keep the initial execution synchronous; explicit redirected writes suspend it.
   budget.checkpointSync = () => undefined;
   const instance = new AwkRuntime(new AwkParser(source, builtinArities).parse(), context, budget, retention, ["/input"], []);
-  return { instance, budget, context, stdout: () => stdout };
+  return { instance, budget, context, retention, stdout: () => stdout };
 }
 
 for (const [args, expected] of [
@@ -100,4 +100,18 @@ for (const statement of [
   const run = await runtime(`{ ${statement}; print x; exit }`);
   assert.equal(await run.instance.runSyncOrAsync(), 0);
   assert.equal(run.stdout(), statement.startsWith('printf') ? '1 1:first\n1\n' : '1 1 first\n1\n');
+});
+
+for (const program of [
+  '{ print $1 }',
+  '{ sum[$1]++; } END { print sum["first"] }',
+  'END { print ENVIRON["TENANT"] }',
+  'BEGIN { FS=":"; OFS="::"; ORS="!"; RS="\\n"; SUBSEP="key"; OFMT="%.2f"; CONVFMT="%.3f" } { print $1 }',
+]) test(`awk releases the entire retention ledger after ${program}`, async () => {
+  for (let invocation = 0; invocation < 3; invocation++) {
+    const run = await runtime(program);
+    run.context.env.TENANT = `tenant-${invocation}`;
+    assert.equal(await run.instance.runSyncOrAsync(), 0);
+    assert.equal(run.retention.retainedBytes, 0);
+  }
 });

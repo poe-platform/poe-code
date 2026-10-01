@@ -126,15 +126,15 @@ export function createBindingManager(source: Map<string, OpObject[]>, policy: Op
   return {
     async prepareBinding(requests: readonly OpBackendRequest[], context: OpBindingPrepareContext): Promise<OpPreparedBinding> {
       context.signal.throwIfAborted();
-      if (context.binding || requests.length > 1024) throw new Error("Invalid binding plan");
+      if (context.binding) throw new Error("Invalid binding plan");
       context = Object.freeze({ ...context,
         ...(context.authentication === undefined ? {} : { authentication: structuredClone(context.authentication) }),
         ...(context.pluginScope === undefined ? {} : { pluginScope: structuredClone(context.pluginScope) }),
       });
       const preparedGeneration = generation;
       const now = clock.now();
-      const expiresAt = context.expiresAt ?? now + 60_000;
-      if (!Number.isFinite(now) || !Number.isFinite(expiresAt) || expiresAt <= now) throw new Error("Invalid binding deadline");
+      const expiresAt = context.expiresAt ?? Infinity;
+      if (!Number.isFinite(now) || (expiresAt !== Infinity && !Number.isFinite(expiresAt)) || expiresAt <= now) throw new Error("Invalid binding deadline");
       const targets: OpBindingTarget[] = [];
       const requestMetadata: OpBindingRequestMetadata[] = requests.map(() => Object.freeze({}));
       const accounts = new Set<string | null>();

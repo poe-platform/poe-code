@@ -35,6 +35,7 @@ export interface OpBindingTarget {
 }
 
 export interface OpBindingPrepareContext extends OpBackendContext {
+  /** Deadline on the backend clock; omitted or Infinity means no timeout. */
   readonly expiresAt?: number;
 }
 

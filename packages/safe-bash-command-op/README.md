@@ -199,8 +199,10 @@ Resolved `ask` requires both approval stages and backend `prepareBinding`,
 `validateBinding`, `cancelBinding` capabilities. Missing capabilities fail
 closed, without fallback to literal mode. Preparation fixes IDs, account/backend,
 mutation and effect intent; stale state invalidates the approval. The object
-backend uses coarse generation invalidation, a default 60-second binding
-lifetime and at most 1,024 planned requests within one account scope.
+backend uses coarse generation invalidation and accepts any number of planned
+requests within one account scope. Bindings have no timeout by default;
+`prepareBinding(requests, { signal, expiresAt })` accepts an explicit deadline
+in milliseconds on the backend clock, or `Infinity` for no timeout.
 
 The frozen `OpResolvedApproval` contains operation, backend/account IDs, targets,
 option names, mutation names/batch size, output kind/destination and optional

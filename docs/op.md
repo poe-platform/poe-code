@@ -593,9 +593,10 @@ nullable `accountId`, opaque `handle`, `targets`, and request-aligned `metadata`
 `account`, `parentId`. Request metadata can describe environment names,
 `unsetNames`, `scope`, and `dependenciesComplete`. The prepare context optionally
 accepts `expiresAt` in milliseconds on the injected clock. The object backend
-defaults to a 60-second binding lifetime and accepts at most 1,024 planned
-requests in one account scope. These are local safety limits, not native protocol
-defaults; no CLI/env setting for them is exposed.
+accepts any number of planned requests in one account scope. Binding lifetimes
+default to `Infinity` (no timeout), also accepted explicitly as `expiresAt`.
+Finite deadlines must be later than the current backend clock and remain
+enforced during validation and execution; no CLI/env setting is exposed.
 
 The coordinator privately propagates `OpBackendContext.binding`; handles must
 not be supplied through argv, environment, JSON, or persisted state. It ignores

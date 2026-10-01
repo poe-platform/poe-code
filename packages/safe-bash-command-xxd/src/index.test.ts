@@ -185,3 +185,8 @@ test("xxd reverse retains decoded rows before malformed input", async () => {
  assert.equal(result.exitCode, 1);
  assert.equal(result.stdout, "abcd");
 });
+
+test("xxd reverses rows larger than its output buffer", async () => {
+  const input = new TextEncoder().encode("00000000: " + "41".repeat(9000) + "\n");
+  assert.equal(await runParity(["-r", "-c", "9000"], input), "A".repeat(9000));
+});

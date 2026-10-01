@@ -351,7 +351,7 @@ async function reversePlain(context: CommandContext, files: readonly string[], m
 async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number, seek: number): Promise<void> {
   let line = "";
   let offset = 0;
-  const outBuf = new Uint8Array(8192);
+  const outBuf = new Uint8Array(Math.max(8192, columns));
   let outUsed = 0;
   let flushedFirst = false;
   const flushOut = async () => {

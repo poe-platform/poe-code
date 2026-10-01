@@ -15,12 +15,13 @@ const cases: Array<[string, string]> = [
   ['a=0; let "a++, b = 1 / 0" || true; echo "a=$a"', 'a=1\n'],
   ['count=0; f() { count=$((count + 1)); shift 1; echo "arg1=$1"; }; f first second; echo "count=$count"', 'arg1=second\ncount=1\n'],
 ];
-for (const ifs of [":", "", " "]) {
+// GNU Bash 5.2.37 joins quoted slices using the first nonempty IFS character.
+for (const ifs of [":", "", " ", "|:"]) {
   for (const quoted of [true, false]) {
     const quote = quoted ? '"' : '';
     cases.push([
       `arr=(a b c); IFS='${ifs}'; at=${quote}\${arr[@]}${quote}; star="\${arr[*]}"; slice_at=${quote}\${arr[@]:1:2}${quote}; slice_star="\${arr[*]:1:2}"; echo "at=$at star=$star slice_at=$slice_at slice_star=$slice_star"`,
-      `at=a b c star=${['a', 'b', 'c'].join(ifs)} slice_at=b c slice_star=${['b', 'c'].join(ifs)}\n`,
+      `at=a b c star=${['a', 'b', 'c'].join(ifs[0] ?? '')} slice_at=${['b', 'c'].join(quoted && ifs ? ifs[0] : ' ')} slice_star=${['b', 'c'].join(ifs[0] ?? '')}\n`,
     ]);
   }
 }

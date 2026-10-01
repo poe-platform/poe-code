@@ -62,8 +62,8 @@ for (const route of ["stdout-to-stderr", "stderr-to-stdout", "both-to-stdout"] a
   shell.register({ name: "channels", async execute(context) {
     await writeText(route === "stdout-to-stderr" ? context.stdout : context.stderr, "1234"); return { exitCode: 0 };
   } });
-  shell.register({ name: "alias", execute: context => context.invoke!("channels", [], route === "stdout-to-stderr" ? { stdout: context.stderr } : route === "stderr-to-stdout" ? { stderr: context.stdout } : { stdout: context.stdout, stderr: context.stdout }) });
-  try { const result = await shell.exec("alias", { limits: { maxOutputBytes: 4 } }); assert.equal(result.exitCode, 0); assert.equal(result.stdout, route === "stdout-to-stderr" ? "" : "1234"); assert.equal(result.stderr, route === "stdout-to-stderr" ? "1234" : ""); }
+  shell.register({ name: "route-channels", execute: context => context.invoke!("channels", [], route === "stdout-to-stderr" ? { stdout: context.stderr } : route === "stderr-to-stdout" ? { stderr: context.stdout } : { stdout: context.stdout, stderr: context.stdout }) });
+  try { const result = await shell.exec("route-channels", { limits: { maxOutputBytes: 4 } }); assert.equal(result.exitCode, 0); assert.equal(result.stdout, route === "stdout-to-stderr" ? "" : "1234"); assert.equal(result.stderr, route === "stdout-to-stderr" ? "1234" : ""); }
   finally { await shell.dispose(); }
 });
 

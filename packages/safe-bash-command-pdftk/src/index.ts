@@ -1927,7 +1927,7 @@ function* runPdftkCliSteps(argv: readonly string[], files: Map<string, Uint8Arra
         operation === "multibackground" ||
         operation === "stamp" ||
         operation === "multistamp") {
-        const overlayPath = opArgs[0];
+        const overlayPath = opArgs[0] ?? "-";
         const overlayBytes = overlayPath ? files.get(overlayPath) : undefined;
         if (!overlayBytes) {
             return { exitCode: 1, stdout: "", stderr: `Error: Unable to open '${overlayPath ?? ""}'\n` };
@@ -2075,7 +2075,29 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       }
     };
 
-    if (argv.some((t, i) => (t === "-" || t.endsWith("=-")) && argv[i - 1]?.toLowerCase() !== "output")) {
+    const inputPaths: string[] = [];
+    let operandIndex = 0;
+    while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) {
+      const token = argv[operandIndex++]!;
+      const eq = token.indexOf("=");
+      inputPaths.push(eq > 0 ? token.slice(eq + 1) : token);
+    }
+    while (argv[operandIndex]?.toLowerCase() === "input_pw") {
+      operandIndex++;
+      while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) operandIndex++;
+    }
+    const operation = argv[operandIndex++]?.toLowerCase();
+    if (["update_info", "update_info_utf8", "fill_form", "background", "multibackground", "stamp", "multistamp"].includes(operation ?? "")) {
+      const operand = argv[operandIndex];
+      inputPaths.push(operand && !PDFTK_OPERATIONS.has(operand.toLowerCase()) ? operand : "-");
+    } else if (operation === "attach_files") {
+      while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) {
+        const token = argv[operandIndex++]!;
+        if (token.toLowerCase() === "to_page") operandIndex++;
+        else inputPaths.push(token);
+      }
+    }
+    if (inputPaths.includes("-")) {
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
@@ -2094,27 +2116,6 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       vfsFiles.set("-", buf);
     }
 
-    const inputPaths: string[] = [];
-    let operandIndex = 0;
-    while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) {
-      const token = argv[operandIndex++]!;
-      const eq = token.indexOf("=");
-      inputPaths.push(eq > 0 ? token.slice(eq + 1) : token);
-    }
-    while (argv[operandIndex]?.toLowerCase() === "input_pw") {
-      operandIndex++;
-      while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) operandIndex++;
-    }
-    const operation = argv[operandIndex++]?.toLowerCase();
-    if (["update_info", "update_info_utf8", "fill_form", "background", "multibackground", "stamp", "multistamp"].includes(operation ?? "")) {
-      if (argv[operandIndex]) inputPaths.push(argv[operandIndex]!);
-    } else if (operation === "attach_files") {
-      while (operandIndex < argv.length && !PDFTK_OPERATIONS.has(argv[operandIndex]!.toLowerCase())) {
-        const token = argv[operandIndex++]!;
-        if (token.toLowerCase() === "to_page") operandIndex++;
-        else inputPaths.push(token);
-      }
-    }
     for (const filePath of new Set(inputPaths)) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (filePath === "-") continue;

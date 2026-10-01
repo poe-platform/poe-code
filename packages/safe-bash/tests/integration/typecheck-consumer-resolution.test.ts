@@ -33,7 +33,7 @@ const { createBuiltPackageBinding, assertBuiltConsumerResolution, publicDeclarat
   createBuiltPackageBinding(root: string, options: { includePeer: boolean }): Binding;
   assertBuiltConsumerResolution(trace: string, consumer: string, root: string, binding: Binding): void;
   publicDeclarationEntries(binding: { exports: Record<string, { types: string }>; declarations: Map<string, string> }): Map<string, string>;
-  stageConsumerDependencies(root: string, temporary: string, packageRoots: string[]): DependencyBinding[];
+  stageConsumerDependencies(root: string, temporary: string, packageRoots: string[], artifacts?: string[]): DependencyBinding[];
 };
 const hash = (bytes: string | Buffer): string => createHash("sha256").update(bytes).digest("hex");
 const resolution = (specifier: string, target: string, importer: string): string =>
@@ -244,7 +244,7 @@ function dependencyFixture(t: TestContext) {
     };
     return ts.getPreEmitDiagnostics(ts.createProgram(["/consumer/check.mts", "/consumer/globals.d.ts"], options, host));
   };
-  return { candidate, memory, diagnostics, stage: () => stageConsumerDependencies("/checkout/packages/safe-bash", "/consumer", [candidate]) };
+  return { candidate, memory, diagnostics, stage: (artifacts: string[] = []) => stageConsumerDependencies("/checkout/packages/safe-bash", "/consumer", [candidate], artifacts) };
 }
 
 test("standalone consumers receive declared dependency types with their nested versions", t => {
@@ -342,4 +342,25 @@ test("dependency imports of the canonical filesystem retain the peer's existing 
   f.binding.dependencies = [{ name: "renderer", directory, files: new Map([["package.json", hash(metadata)], ["index.d.ts", hash("export {};")]]) }];
   f.check(f.publicTrace + resolution("poe-code/safe-fs", join(f.peer, "packages/safe-fs/dist/index.d.ts"), join(directory, "index.d.ts")));
   assert.throws(() => f.check(f.publicTrace + resolution("poe-code/safe-fs", "/foreign/index.d.ts", join(directory, "index.d.ts"))), /foreign peer/);
+});
+
+test("consumer dependency staging uses generated publication artifacts without an ambient installation", t => {
+  const f = dependencyFixture(t);
+  const metadata = JSON.parse(f.memory.readFileSync(join(f.candidate,"package.json"),"utf8") as string);
+  metadata.dependencies["@poe-platform/safe-js"] = "1.2.3";
+  f.memory.writeFileSync(join(f.candidate,"package.json"),JSON.stringify(metadata));
+  const artifact = "/artifacts/safe-js";
+  f.memory.mkdirSync(join(artifact,"dist"),{recursive:true});
+  f.memory.writeFileSync(join(artifact,"package.json"),JSON.stringify({
+    name:"@poe-platform/safe-js",version:"1.2.3",types:"dist/index.d.ts",dependencies:{"shape-types":"^2.0.0"},
+  }));
+  const declaration = "export interface Runtime { readonly isolated: true; }";
+  f.memory.writeFileSync(join(artifact,"dist/index.d.ts"),declaration);
+  const dependencies = f.stage([artifact]);
+  const staged = dependencies.find(entry => entry.name === "@poe-platform/safe-js")!;
+  assert.equal(staged.files.get("dist/index.d.ts"),hash(declaration));
+  assert.equal(f.memory.readFileSync(join(staged.directory,"dist/index.d.ts"),"utf8"),declaration);
+  assert.equal(f.memory.readFileSync(join(staged.directory,"node_modules/shape-types/index.d.ts"),"utf8"),'export interface Shape { readonly label: string; }');
+  f.memory.writeFileSync(join(artifact,"package.json"),JSON.stringify({name:"@poe-platform/safe-js",version:"2.0.0",types:"dist/index.d.ts"}));
+  assert.throws(() => f.stage([artifact]),/dependency version does not satisfy/);
 });

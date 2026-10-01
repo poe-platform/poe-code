@@ -79,13 +79,25 @@ export function publicDeclarationEntries(binding) {
   return entries;
 }
 
-export function stageConsumerDependencies(root, temporary, packageRoots) {
+export function stageConsumerDependencies(root, temporary, packageRoots, artifactRoots = []) {
   // Standalone packaging selects direct dependency ranges at repository scope.
   const repository = resolve(root, "../..");
   const supplied = new Map(packageRoots.map(directory => {
     const manifest = JSON.parse(readFileSync(join(directory, "package.json"), "utf8"));
     return [manifest.name, manifest];
   }));
+  const metadataFor = source => {
+    const metadata = join(source, "package.json"), metadataStat = lstatSync(metadata);
+    assert.ok(metadataStat.isFile() && !metadataStat.isSymbolicLink() && metadataStat.size <= 1024 * 1024, "dependency metadata must be a bounded regular file");
+    return JSON.parse(readFileSync(metadata, "utf8"));
+  };
+  const artifacts = new Map();
+  for (const directory of artifactRoots) {
+    const manifest = metadataFor(directory);
+    assert.equal(typeof manifest.name, "string", "artifact dependency name must be declared");
+    assert.equal(artifacts.has(manifest.name), false, "duplicate artifact dependency name");
+    artifacts.set(manifest.name, realpathSync(directory));
+  }
   const staged = new Map();
   const stage = (name, range, origin, parent, ancestors) => {
     const parts = name.split("/");
@@ -95,16 +107,18 @@ export function stageConsumerDependencies(root, temporary, packageRoots) {
       assert.ok(semver.satisfies(supplied.get(name).version, range), `supplied dependency version does not satisfy ${name}@${range}`);
       return;
     }
-    let search = origin;
-    while (!existsSync(join(search, "node_modules", name, "package.json"))) {
-      const next = dirname(search);
-      assert.notEqual(next, search, `declared consumer dependency is not installed: ${name}`);
-      search = next;
+    const artifact = artifacts.get(name);
+    let source = artifact;
+    if (!source) {
+      let search = origin;
+      while (!existsSync(join(search, "node_modules", name, "package.json"))) {
+        const next = dirname(search);
+        assert.notEqual(next, search, `declared consumer dependency is not installed: ${name}`);
+        search = next;
+      }
+      source = realpathSync(join(search, "node_modules", name));
     }
-    const source = realpathSync(join(search, "node_modules", name));
-    const metadata = join(source, "package.json"), metadataStat = lstatSync(metadata);
-    assert.ok(metadataStat.isFile() && !metadataStat.isSymbolicLink() && metadataStat.size <= 1024 * 1024, "dependency metadata must be a bounded regular file");
-    const manifest = JSON.parse(readFileSync(metadata, "utf8"));
+    const manifest = metadataFor(source);
     assert.equal(manifest.name, name, "installed declaration dependency identity changed");
     assert.ok(semver.satisfies(manifest.version, range), `installed dependency version does not satisfy ${name}@${range}`);
     if (ancestors.get(name) === source) return;
@@ -132,7 +146,7 @@ export function stageConsumerDependencies(root, temporary, packageRoots) {
     copyDeclarations("");
     staged.set(directory, { name, directory, source, files });
     const nextAncestors = new Map(ancestors).set(name, source);
-    for (const [dependency, requested] of Object.entries(manifest.dependencies ?? {})) stage(dependency, requested, source, directory, nextAncestors);
+    for (const [dependency, requested] of Object.entries(manifest.dependencies ?? {})) stage(dependency, requested, artifact ? repository : source, directory, nextAncestors);
   };
   for (const manifest of supplied.values()) {
     for (const [name, range] of Object.entries(manifest.dependencies ?? {})) stage(name, range, repository, temporary, new Map());
@@ -168,7 +182,9 @@ export async function stageStandaloneConsumerPackage(root, temporary) {
   const candidateManifest = JSON.parse(readFileSync(join(candidate, "package.json"), "utf8"));
   const filesystemManifest = JSON.parse(readFileSync(join(filesystemRoot, "package.json"), "utf8"));
   assert.equal(candidateManifest.dependencies[filesystem.name], filesystemManifest.version, "standalone filesystem dependency must match its artifact");
-  binding.dependencies = stageConsumerDependencies(root, temporary, [candidate, filesystemRoot]);
+  const dependencyArtifacts = readdirSync(artifacts).map(name => join(artifacts, name))
+    .filter(directory => existsSync(join(directory, "package.json")));
+  binding.dependencies = stageConsumerDependencies(root, temporary, [candidate, filesystemRoot], dependencyArtifacts);
   binding.publicAliases = ["virtual-bash"];
   binding.filesystem = { ...filesystem, directory: filesystemRoot, version: filesystemManifest.version,
     publicAliases: ["poe-code/safe-fs", "@poe-code/safe-fs"], publicEntries: new Map(), privateEntries: new Map() };

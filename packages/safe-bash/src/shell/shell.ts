@@ -1079,7 +1079,7 @@ export class Shell implements PluginHost {
           cwd,
           variables,
           exported,
-          extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension),
+          undefined,
         );
         currentState.processSubstitutionIds = this.#processSubstitutionIds;
         state = currentState;
@@ -1140,6 +1140,8 @@ export class Shell implements PluginHost {
           unit = getOrParseUnitFromCache(source, 0, byteLocale(currentState.variables), sourceCache, parseState, budget, extensions.syntax, aliases);
           currentCachedUnit = parseState.currentCachedUnit;
         }
+        // Capture syntax before parsing, but defer host extension getters and factories.
+        if (!warm) currentState.extensions = extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension);
         // Caller iterators may acquire resources; admit the initial syntax first.
         if (!stdin) {
           stdin = new ShellInput(options.stdin as ConstructorParameters<typeof ShellInput>[0], budget);

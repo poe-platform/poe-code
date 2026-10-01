@@ -4366,7 +4366,7 @@ export class SqliteDatabase {
 
     // 1. Evaluate FROM & JOINs into row contexts
     let workingRows: Record<string, SqlValue>[] = [{}];
-    let sourceSchema: { tableAlias: string; columns: string[] }[] = [];
+    let sourceSchema: { tableAlias: string; columns: string[]; hidden?: Set<string>; shared?: Set<string> }[] = [];
 
     if (fromTokens && fromTokens.length > 0) {
       const built = yield* this.evaluateFromClause(fromTokens, positionalParams, cteScope);
@@ -4387,8 +4387,9 @@ export class SqliteDatabase {
             yield;
             for (const col of src.columns) {
               yield;
+              if (src.hidden?.has(col.toLowerCase())) continue;
               selectTargets.push({
-                expr: { kind: "column", table: src.tableAlias || undefined, name: col },
+                expr: { kind: "column", table: src.shared?.has(col.toLowerCase()) ? undefined : src.tableAlias || undefined, name: col },
                 alias: col
               });
             }
@@ -4806,7 +4807,7 @@ export class SqliteDatabase {
     cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
   ): SqlSteps<{
     rows: Record<string, SqlValue>[];
-    schema: { tableAlias: string; columns: string[] }[];
+    schema: { tableAlias: string; columns: string[]; hidden?: Set<string>; shared?: Set<string> }[];
   }> {
     // Parse sequence of table sources and JOIN operators
     interface JoinItem {
@@ -4953,7 +4954,7 @@ export class SqliteDatabase {
     }
 
     let currentRows: Record<string, SqlValue>[] = [];
-    const schema: { tableAlias: string; columns: string[] }[] = [];
+    const schema: { tableAlias: string; columns: string[]; hidden?: Set<string>; shared?: Set<string> }[] = [];
 
     for (let itemIdx = 0; itemIdx < items.length; itemIdx += 1) {
       yield;
@@ -5009,6 +5010,13 @@ export class SqliteDatabase {
           }, this)
         : item.usingCols;
 
+      if (usingList) {
+        const shared = new Set(usingList.map((column) => column.toLowerCase()));
+        schema[schema.length - 1]!.hidden = shared;
+        for (const source of schema) {
+          source.shared = new Set([...(source.shared ?? []), ...shared]);
+        }
+      }
       const rightMatched = new Set<number>();
 
       for (const leftRow of currentRows) {

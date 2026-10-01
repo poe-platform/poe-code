@@ -416,6 +416,32 @@ test('rowid accepts numeric text and insert NULL but rejects invalid identities'
   }
 });
 
+test("aggregate predicates retain SQL expression semantics", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE sales(dept TEXT, amount INT); INSERT INTO sales VALUES ('eng',100),('eng',200),('hr',50)");
+  for (const [predicate, expected] of [
+    ["COUNT(*) >= 2 AND SUM(amount) >= 200", [["eng"]]],
+    ["COUNT(*) >= 2 OR SUM(amount) >= 50", [["eng"],["hr"]]],
+    ["COUNT(*) IN (1,2)", [["eng"],["hr"]]],
+    ["COUNT(*) IN (SELECT 2)", [["eng"]]],
+    ["CAST(COUNT(*) AS TEXT) LIKE '2' ESCAPE '/'", [["eng"]]]
+  ] as const) assert.deepEqual(db.exec(`SELECT dept FROM sales GROUP BY dept HAVING ${predicate} ORDER BY dept`)[0]!.rows, expected);
+  assert.deepEqual(db.exec("SELECT COALESCE(SUM(amount),0), IFNULL(MAX(amount),-1), IIF(COUNT(*)>0,'nonempty','empty'), COUNT(*)>0 AND SUM(amount)>0 FROM sales")[0]!.rows, [[350,200,"nonempty",1]]);
+});
+
+test("join stars suppress shared columns but preserve qualified stars", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE a(id INT, va TEXT); CREATE TABLE b(id INT, vb TEXT); INSERT INTO a VALUES(1,'x'); INSERT INTO b VALUES(1,'y'),(2,'z')");
+  for (const join of ["NATURAL JOIN", "JOIN b USING (id)"]) {
+    const sql = join === "NATURAL JOIN" ? "a NATURAL JOIN b" : `a ${join}`;
+    const result = db.exec(`SELECT * FROM ${sql}`)[0]!;
+    assert.deepEqual(result.columns, ["id","va","vb"]);
+    assert.deepEqual(result.rows, [[1,"x","y"]]);
+  }
+  assert.deepEqual(db.exec("SELECT * FROM a FULL JOIN b USING(id) ORDER BY id")[0]!.rows, [[1,"x","y"],[2,null,"z"]]);
+  assert.deepEqual(db.exec("SELECT a.*, b.* FROM a JOIN b USING(id)")[0]!.rows, [[1,"x",1,"y"]]);
+});
+
 test("binary persistence retains signed rowids in key order", () => {
   const db = new SqliteDatabase();
   db.exec("CREATE TABLE t(id INTEGER PRIMARY KEY, name TEXT); INSERT INTO t VALUES(10,'ten'),(-5,'neg'),(2,'two')");
@@ -444,6 +470,14 @@ test("WITHOUT ROWID preserves records across interior and overflow pages", () =>
   const reopened = new SqliteDatabase();
   reopened.loadFromBytes(bytes);
   assert.deepEqual(reopened.exec("SELECT * FROM t ORDER BY id")[0]!.rows, expected);
+});
+
+test("correlations preserve literals, inner aliases and unqualified outer columns", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE a(b INT); INSERT INTO a VALUES(7); CREATE TABLE users(id INT); INSERT INTO users VALUES(1),(2); CREATE TABLE orders(user_id INT); INSERT INTO orders VALUES(1),(1)");
+  assert.deepEqual(db.exec("SELECT (SELECT 'a.b'), (SELECT a.b FROM (SELECT 9 AS b) AS a) FROM a")[0]!.rows, [["a.b",9]]);
+  assert.deepEqual(db.exec("SELECT id,(SELECT COUNT(*) FROM orders WHERE user_id=id) FROM users ORDER BY id")[0]!.rows, [[1,2],[2,0]]);
+  assert.deepEqual(db.exec("SELECT 1 BETWEEN 2 AND NULL, 1 NOT BETWEEN 2 AND NULL, 10 NOT BETWEEN NULL AND 5")[0]!.rows, [[0,1,1]]);
 });
 
 for (const key of ["id TEXT PRIMARY KEY DESC", "id TEXT PRIMARY KEY COLLATE NOCASE", "id TEXT, PRIMARY KEY(id COLLATE NOCASE DESC)"]) {

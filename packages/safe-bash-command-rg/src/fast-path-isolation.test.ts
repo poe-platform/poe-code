@@ -56,3 +56,23 @@ test("repeated 64-file counts honor maxFiles and charge reads", async () => {
     assert.ok(result.charges >= 64, `expected read charges, got ${result.charges}`);
   }
 });
+
+
+test("each invocation scans its input instead of replaying process-wide counts", async t => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/dir");
+  await fs.writeFile("/dir/file", bytes("needle\n".repeat(10)));
+  const command = createRgCommand();
+  const indexOf = Uint8Array.prototype.indexOf;
+  let scannedLines = 0;
+  t.mock.method(Uint8Array.prototype, "indexOf", function (this: Uint8Array, value: number, offset?: number) {
+    if (value === 10 && this.length === 70) scannedLines++;
+    return indexOf.call(this, value, offset);
+  });
+  for (let invocation = 0; invocation < 3; invocation++) {
+    scannedLines = 0;
+    const result = await run(command, fs, ["-c", "needle", "/dir"]);
+    assert.equal(result.stdout, "/dir/file:10\n");
+    assert.ok(scannedLines >= 10, `invocation ${invocation} must scan its own records`);
+  }
+});

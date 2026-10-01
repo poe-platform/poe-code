@@ -19,9 +19,6 @@ const DEFAULT_CWD_PATHS: readonly string[] = Object.freeze(["."]);
 const DEFAULT_STDIN_PATHS: readonly string[] = Object.freeze(["-"]);
 const defaultLimitsTick = Limits.prototype.tick;
 const sharedReadState: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
-let srcRefSlotMap = new WeakMap<Uint8Array, number>();
-let srcRefCountMap = new WeakMap<Uint8Array, number>();
-let srcRefCacheLiteral = new Uint8Array(0);
 const BATCH_SIZE_1: () => number = () => 1;
 const BATCH_SIZE_128: () => number = () => 128;
 const RETURN_TRUE = () => true;
@@ -86,7 +83,7 @@ function trySearchFileSync(
     args.hasInfiniteMaxCount !== false &&
     !hasExtYield &&
     (view.length <= limits.maxLineBytesSmi || view.length <= limits.maxLineBytes) &&
-    ((target.sourceRef !== undefined && srcRefSlotMap.get(target.sourceRef) === (totals.searches & 63)) || view.indexOf(0) === -1)
+    view.indexOf(0) === -1
   ) {
     const firstByte = lit[0]!;
     const litLen = lit.length;
@@ -100,39 +97,24 @@ function trySearchFileSync(
       lit.indexOf(10) === -1
     ) {
       bytesSearched = view.length;
-      const slot = totals.searches & 63;
-      const srcRef = target.sourceRef;
-      if (srcRefCacheLiteral.length !== litLen || !srcRefCacheLiteral.every((byte, index) => byte === lit[index])) {
-        srcRefCacheLiteral = new Uint8Array(lit);
-        srcRefSlotMap = new WeakMap<Uint8Array, number>(); srcRefCountMap = new WeakMap<Uint8Array, number>();
-      }
-      if (srcRef !== undefined && srcRefSlotMap.get(srcRef) === slot && args.mode === "count") {
-        matchedLines = srcRefCountMap.get(srcRef)!;
-        matchesCount = matchedLines;
-      } else {
-        const searchEnd = view.length - litLen;
-        let pos = 0;
-        while (pos <= searchEnd) {
-          const index = view.indexOf(firstByte, pos);
-          if (index < 0 || index > searchEnd) break;
-          let equal = true;
-          for (let offset = 1; offset < litLen; offset++) {
-            if (view[index + offset] !== lit[offset]) { equal = false; break; }
-          }
-          if (equal) {
-            matchedLines++;
-            matchesCount++;
-            if (args.quiet || args.mode === "with" || args.mode === "without") break;
-            const nl = view.indexOf(10, index + litLen);
-            if (nl < 0) break;
-            pos = nl + 1;
-          } else {
-            pos = index + 1;
-          }
+      const searchEnd = view.length - litLen;
+      let pos = 0;
+      while (pos <= searchEnd) {
+        const index = view.indexOf(firstByte, pos);
+        if (index < 0 || index > searchEnd) break;
+        let equal = true;
+        for (let offset = 1; offset < litLen; offset++) {
+          if (view[index + offset] !== lit[offset]) { equal = false; break; }
         }
-        if (srcRef !== undefined && args.mode === "count") {
-          srcRefSlotMap.set(srcRef, slot);
-          srcRefCountMap.set(srcRef, matchedLines);
+        if (equal) {
+          matchedLines++;
+          matchesCount++;
+          if (args.quiet || args.mode === "with" || args.mode === "without") break;
+          const nl = view.indexOf(10, index + litLen);
+          if (nl < 0) break;
+          pos = nl + 1;
+        } else {
+          pos = index + 1;
         }
       }
     } else {

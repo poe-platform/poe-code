@@ -250,8 +250,9 @@ describe("dedicated playground execution", () => {
     expect(close).toHaveBeenCalledTimes(1);
   });
 
-  it("kills synchronous work on a real worker without blocking the page and permits the next command", async () => {
+  it.each([false, true])("kills synchronous work without blocking the page and recovers with module syntax: %s", async (moduleSyntax) => {
     const fixture = browserWorkerFixture(`
+      ${moduleSyntax ? "void import.meta.url;" : ""}
       globalThis.addEventListener("message", ({data}) => {
         if (data.kind !== "start") return;
         if (data.command === "block") {
@@ -269,7 +270,7 @@ describe("dedicated playground execution", () => {
     const filesystem = createMemoryFileSystem();
     try {
       const running = executeInWorker(filesystem, "block", "/", "help", started);
-      await busy;
+      await Promise.race([busy, running.then(result => { throw new Error(`Worker exited before blocking: ${result.stderr}`); })]);
       await delay(1);
       await vi.advanceTimersByTimeAsync(5000);
       expect(await running).toMatchObject({ exitCode: 124 });

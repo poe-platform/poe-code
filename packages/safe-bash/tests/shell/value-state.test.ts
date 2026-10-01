@@ -58,6 +58,23 @@ test("positional string replacement keeps a cloned reservation independent", () 
   arena.close();
 });
 
+test("positional publication retains its reservation when the state invalidates old values", () => {
+  const { arena, store } = fixture(64);
+  store.replaceStrings(["original"], () => {});
+  const snapshot = store.clone();
+  try {
+    store.replaceStrings(["short"], () => { store.invalidate(); });
+    assert.deepEqual(arena.usage, { bytes: 26, slots: 0 });
+    store.replaceStrings(["changed"], () => { store.invalidate(); });
+    assert.deepEqual(arena.usage, { bytes: 30, slots: 0 });
+  } finally {
+    snapshot.close();
+    store.close();
+    assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+    arena.close();
+  }
+});
+
 for (const next of [["x"], ["longer"]]) {
   test(`failed positional string publication preserves reservation: ${next}`, () => {
     const { arena, store } = fixture(12);

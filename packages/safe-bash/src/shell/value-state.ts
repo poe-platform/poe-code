@@ -535,14 +535,18 @@ export class ValueStore {
     const record = previousRecord ?? this.arena.allocate(totalBytes, 0);
     // Keep the old reservation until publication succeeds, admitting only growth.
     if (previousRecord) this.arena.resizeStringRecord(record, Math.max(previousBytes, totalBytes));
+    // Publishing raw state can invalidate this store. Keep the reservation owned
+    // by this operation until the replacement is attached below.
+    this._stringRecord = undefined;
     try {
       action();
     } catch (error) {
       if (previousRecord) this.arena.shrinkStringRecord(record, Math.max(0, totalBytes - previousBytes));
       else this.arena.release(record);
+      this._stringRecord = previousRecord;
+      this._stringBytes = previousBytes;
       throw error;
     }
-    this._stringRecord = undefined;
     this.invalidate();
     if (previousRecord) this.arena.shrinkStringRecord(record, Math.max(0, previousBytes - totalBytes));
     this._stringRecord = record;

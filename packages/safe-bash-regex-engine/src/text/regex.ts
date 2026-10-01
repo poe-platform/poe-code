@@ -190,7 +190,10 @@ function extendedSource(source: string): string {
     const character = source[offset]!;
     if (!bracket && character === "\\" && offset + 1 < source.length) {
       const next = source[++offset]!;
-      result += "()|+?{}".includes(next) ? next : `\\${next}`;
+      if (next === "(" && source.startsWith("?:", offset + 1)) {
+        result += "(?:";
+        offset += 2;
+      } else result += "()|+?{}".includes(next) ? next : `\\${next}`;
     } else if (bracket) {
       if (bracketFirst && character === "^") {
         result += character;
@@ -441,11 +444,23 @@ export class Pattern {
     let offset = 0;
     let groups = 0;
     const closedGroups = new Set<number>();
-    const characterNode = (character: string): Node => ({
-      type: "character",
-      ...(ignoreCase ? {} : { literal: character }),
-      accepts: candidate => ignoreCase ? candidate.toLowerCase() === character.toLowerCase() : candidate === character,
-    });
+    let insensitive = ignoreCase;
+    let multiline = false;
+    let dotAll = dialect !== "jq" || modifiers.includes("m");
+    const characterNode = (character: string): Node => {
+      const fold = insensitive;
+      return { type: "character", ...(fold ? {} : { literal: character }),
+        accepts: candidate => fold ? candidate.toLowerCase() === character.toLowerCase() : candidate === character };
+    };
+    const shorthand = (reference: string): ((character: string) => boolean) => {
+      const alphabet = reference.toLowerCase();
+      return character => {
+        const accepted = alphabet === "d" ? character >= "0" && character <= "9"
+          : alphabet === "s" ? " \t\n\r\f\v".includes(character)
+          : isWordChar(character);
+        return reference === alphabet ? accepted : !accepted;
+      };
+    };
     const escaped = (): string => {
       const character = offset < source.length ? String.fromCodePoint(source.codePointAt(offset)!) : undefined;
       offset += character?.length ?? 1;
@@ -468,6 +483,7 @@ export class Pattern {
       const negate = source[offset] === "^";
       if (negate) offset++;
       const tests: ((character: string) => boolean)[] = [];
+      const fold = insensitive;
       let first = true;
       while (offset < source.length && (source[offset] !== "]" || first)) {
         first = false;
@@ -478,6 +494,12 @@ export class Pattern {
           tests.push(classes[name]!); offset = end + 2; continue;
         }
         if (source.startsWith("[.", offset) || source.startsWith("[=", offset)) throw new ProgramError("collating and equivalence classes are not supported");
+        if (source[offset] === "\\" && "dDsSwW".includes(source[offset + 1] ?? " ")) {
+          tests.push(shorthand(source[offset + 1]!));
+          offset += 2;
+          if (source[offset] === "-" && source[offset + 1] !== "]") throw new ProgramError("character class cannot be a range endpoint");
+          continue;
+        }
         const readBracketChar = (): string => {
           const ch = String.fromCodePoint(source.codePointAt(offset)!);
           offset += ch.length;
@@ -495,6 +517,7 @@ export class Pattern {
         const start = readBracketChar();
         if (source[offset] === "-" && source[offset + 1] !== "]" && source[offset + 1] !== undefined) {
           offset++;
+          if (source[offset] === "\\" && "dDsSwW".includes(source[offset + 1] ?? " ")) throw new ProgramError("character class cannot be a range endpoint");
           const end = readBracketChar();
           if (start > end) throw new ProgramError("reversed character range");
           tests.push(character => character >= start && character <= end);
@@ -502,7 +525,7 @@ export class Pattern {
       }
       if (source[offset++] !== "]") throw new ProgramError("unterminated bracket expression");
       return { type: "character", accepts: character => {
-        const accepted = tests.some(test => test(character) || ignoreCase && (test(character.toLowerCase()) || test(character.toUpperCase())));
+        const accepted = tests.some(test => test(character) || fold && (test(character.toLowerCase()) || test(character.toUpperCase())));
         return negate ? !accepted : accepted;
       } };
     };
@@ -516,7 +539,7 @@ export class Pattern {
           const index = Number(reference);
           if (!closedGroups.has(index)) throw new ProgramError("pattern references an undefined or open capture group");
           offset++;
-          return { type: "backreference", index };
+          return { type: "backreference", index, ignoreCase: insensitive };
         }
         if (reference !== undefined && "bByY<>".includes(reference)) {
           offset++;
@@ -528,19 +551,13 @@ export class Pattern {
         }
         if ((dialect === "jq" || dialect === "sed" || dialect === "awk") && reference !== undefined && "dDsSwW".includes(reference)) {
           offset++;
-          const alphabet = reference.toLowerCase();
-          return { type: "character", accepts: character => {
-            const accepted = alphabet === "d" ? character >= "0" && character <= "9"
-              : alphabet === "s" ? " \t\n\r\f\v".includes(character)
-              : character >= "a" && character <= "z" || character >= "A" && character <= "Z" || character >= "0" && character <= "9" || character === "_";
-            return reference === alphabet ? accepted : !accepted;
-          } };
+          return { type: "character", accepts: shorthand(reference) };
         }
         return characterNode(escaped());
       }
-      if (token === ".") return { type: "character", accepts: character => dialect !== "jq" || modifiers.includes("m") || character !== "\n" };
-      if (token === "^") return extended || atStart ? { type: "begin" } : characterNode(token);
-      if (token === "$") return extended || offset === source.length || source[offset] === ")" || source[offset] === "|" ? { type: "end" } : characterNode(token);
+      if (token === ".") { const all = dotAll; return { type: "character", accepts: character => all || character !== "\n" }; }
+      if (token === "^") return extended || atStart ? { type: "begin", multiline } : characterNode(token);
+      if (token === "$") return extended || offset === source.length || source[offset] === ")" || source[offset] === "|" ? { type: "end", multiline } : characterNode(token);
       if (token === "*" && !extended && (atStart || afterBegin)) return characterNode(token);
       if (token === undefined || "*+?{}".includes(token)) throw new ProgramError("quantifier without an expression");
       return characterNode(token);
@@ -569,6 +586,7 @@ export class Pattern {
       nodes: Node[];
       alternatives: Node[];
       index: number;
+      flags?: { insensitive: boolean; multiline: boolean; dotAll: boolean };
       assertion?: { positive: boolean; behind: boolean } | undefined;
     }
     const frames: ParseFrame[] = [{ nodes: [], alternatives: [], index: 0 }];
@@ -588,6 +606,7 @@ export class Pattern {
         offset++;
         const inner = finish(frame);
         frames.pop();
+        if (frame.flags) ({ insensitive, multiline, dotAll } = frame.flags);
         closedGroups.add(frame.index);
         const node: Node = frame.assertion ? { type: "assertion", node: inner, ...frame.assertion }
           : frame.index ? { type: "group", index: frame.index, lastCapture: groups, node: inner } : inner;
@@ -596,6 +615,26 @@ export class Pattern {
         if (frames.length > (limits.maxPatternDepth ?? Infinity)) throw new ProgramError(`${prefix}regular expression depth limit exceeded`);
         this.patternDepth = Math.max(this.patternDepth, frames.length);
         offset++;
+        const flags = { insensitive, multiline, dotAll };
+        if (dialect === "jq" && source[offset] === "?" && "ims-".includes(source[offset + 1] ?? " ")) {
+          offset++;
+          let enabled = true;
+          let count = 0;
+          while (offset < source.length && source[offset] !== ":" && source[offset] !== ")") {
+            const flag = source[offset++]!;
+            if (flag === "-" && enabled) { enabled = false; count = 0; continue; }
+            if (flag === "i") insensitive = enabled;
+            else if (flag === "m") multiline = enabled;
+            else if (flag === "s") dotAll = enabled;
+            else throw new ProgramError("unsupported inline regular expression flag");
+            count++;
+          }
+          if (!count) throw new ProgramError("empty inline regular expression flags");
+          if (source[offset] === ")") { offset++; continue; }
+          if (source[offset++] !== ":") throw new ProgramError("unterminated inline regular expression flags");
+          frames.push({ nodes: [], alternatives: [], index: 0, flags });
+          continue;
+        }
         let name: string | undefined;
         let capturing = true;
         let assertion: ParseFrame["assertion"];
@@ -618,7 +657,7 @@ export class Pattern {
         }
         const index = capturing ? ++groups : 0;
         if (name !== undefined) this.groupNames.set(name, index);
-        frames.push({ nodes: [], alternatives: [], index, assertion });
+        frames.push({ nodes: [], alternatives: [], index, assertion, flags });
       } else {
         frame.nodes.push(repeated(atom(frame.nodes.length === 0, frame.nodes.length === 1 && frame.nodes[0]!.type === "begin")));
       }

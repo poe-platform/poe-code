@@ -40,7 +40,8 @@ return async function runBash(options: BashOptions): Promise<ShellResult> {
   try {
     if (options.media) {
       const { createRemoteMediaCommands, mediaCommands } = await import('./commands/media/index.js');
-      shell.use('service' in options.media ? createRemoteMediaCommands(options.media) : mediaCommands(options.media));
+      const media = { ...options.media, replace: options.media.replace ?? true };
+      shell.use('service' in media ? createRemoteMediaCommands(media) : mediaCommands(media));
     }
     let source = options.source;
     if (source === undefined) {

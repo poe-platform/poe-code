@@ -130,11 +130,23 @@ it('executes shell scripts with the same explicit cwd/environment options', asyn
   expect(result.stdout).toBe('/work:a b');
 });
 
-it('preserves byte argv and does not enable cloud media implicitly', async () => {
+it('preserves byte argv and keeps default media local without remote configuration', async () => {
   const result = await runBash({ fs: new MemoryFileSystem(), command: 'printf', args: ['%s', Uint8Array.of(255)], env: {} });
   expect(result.stdoutBytes).toEqual(Uint8Array.of(255));
-  const missing = await runBash({ fs: new MemoryFileSystem(), command: 'ffmpeg', args: ['-version'], env: {} });
-  expect(missing.exitCode).toBe(127);
+  const fetch = vi.spyOn(globalThis, 'fetch');
+  try {
+    const result = await runBash({ fs: new MemoryFileSystem(), command: 'ffmpeg', args: ['-version'], env: {} });
+    expect(result).toMatchObject({ exitCode: 0, stdout: expect.stringContaining('ffmpeg version'), stderr: '' });
+    expect(fetch).not.toHaveBeenCalled();
+  } finally { fetch.mockRestore(); }
+});
+
+it('honors an explicit refusal to replace default media commands', async () => {
+  const execute = vi.fn(async () => ({ exitCode: 0 }));
+  await expect(runBash({ fs: new MemoryFileSystem(), command: 'ffmpeg', args: ['-version'],
+    media: { engine: { execute }, replace: false },
+  })).rejects.toThrow('Command already registered: ffmpeg');
+  expect(execute).not.toHaveBeenCalled();
 });
 
 it('keeps explicitly configured remote media inert for ordinary shell commands', async () => {

@@ -198,40 +198,46 @@ class ByteInputBudget {
   }
 }
 
-async function* sources(context: CommandContext, operands: readonly string[], maxInputBytes: number): ByteSource {
+async function* sources(context: CommandContext, operands: readonly string[], maxInputBytes: number, onFileError: (error: FsError) => Promise<void>): ByteSource {
   const budget = new ByteInputBudget(maxInputBytes);
   let usedStdin = false;
   let emptyChunks = 0;
   for (const operand of operands.length ? operands : ["-"]) {
     budget.assertOpen(context.signal);
-    let source: ByteSource;
-    if (operand === "-") {
-      if (usedStdin) continue;
-      usedStdin = true;
-      source = context.stdin;
-    } else {
-      const path = pathOf(context, operand);
-      if (context.fs.readStream && context.fs.capabilities?.streamingRead !== false) {
-        source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
+    try {
+      let source: ByteSource;
+      if (operand === "-") {
+        if (usedStdin) continue;
+        usedStdin = true;
+        source = context.stdin;
       } else {
-        const bytes = await context.fs.readFile(path, { signal: context.signal });
-        source = (async function* () { yield bytes; })();
-      }
-    }
-    let slicesSinceYield = 0;
-    for await (const chunk of budget.read(source, context.signal)) {
-      if (chunk.length === 0 && ++emptyChunks % 64 === 0) {
-        await yieldTurn();
-        context.signal.throwIfAborted();
-      }
-      for (let offset = 0; offset < chunk.length; offset += blockSize) {
-        if (++slicesSinceYield >= 32) {
-          slicesSinceYield = 0;
-          await yieldTurn();
+        const path = pathOf(context, operand);
+        if (context.fs.readStream && context.fs.capabilities?.streamingRead !== false) {
+          source = context.fs.readStream(path, { signal: context.signal, chunkSize: blockSize });
+        } else {
+          const bytes = await context.fs.readFile(path, { signal: context.signal });
+          source = (async function* () { yield bytes; })();
         }
-        context.signal.throwIfAborted();
-        yield chunk.subarray(offset, offset + blockSize);
       }
+      let slicesSinceYield = 0;
+      for await (const chunk of budget.read(source, context.signal)) {
+        if (chunk.length === 0 && ++emptyChunks % 64 === 0) {
+          await yieldTurn();
+          context.signal.throwIfAborted();
+        }
+        for (let offset = 0; offset < chunk.length; offset += blockSize) {
+          if (++slicesSinceYield >= 32) {
+            slicesSinceYield = 0;
+            await yieldTurn();
+          }
+          context.signal.throwIfAborted();
+          yield chunk.subarray(offset, offset + blockSize);
+        }
+      }
+    } catch (error) {
+      context.signal.throwIfAborted();
+      if (operand === "-" || !(error instanceof FsError) || !["ENOENT", "EACCES", "EISDIR", "ENOTDIR", "EIO"].includes(error.code)) throw error;
+      await onFileError(error);
     }
   }
 }
@@ -558,6 +564,11 @@ function defineOdCommand(handler: CommandHandler): CommandDefinition {
 export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): CommandDefinition {
   const maxInputBytes = resolveMaxInputBytes(optionsOrMaxBytes);
   return defineOdCommand(async context => {
+    let exitCode = 0;
+    const onFileError = async (error: FsError) => {
+      exitCode = 1;
+      await writeDiagnostic(context.stderr, `${context.command}: ${error.message}\n`, context.signal);
+    };
     const aliases: Record<string, string> = {
       a: "a",
       b: "o1",
@@ -702,7 +713,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       let text = "";
       let length = 0;
       let start = "";
-      for await (const chunk of range(sources(context, parsed.operands, maxInputBytes), skip, count)) {
+      for await (const chunk of range(sources(context, parsed.operands, maxInputBytes, onFileError), skip, count)) {
         for (const byte of chunk) {
           if (byte >= 32 && byte <= 126) {
             if (!length) start = address();
@@ -716,7 +727,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
           offset = addOffset(offset, 1);
         }
       }
-      return { exitCode: 0 };
+      return { exitCode };
     }
     const verbose = parsed.flags.has("v");
     const isBigEndian = endian === "big";
@@ -734,40 +745,44 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       outBuf += text;
       if (!flushedFirst || outBuf.length >= 16384) await flushOut();
     };
-    for await (const batch of rows(range(sources(context, parsed.operands, maxInputBytes), skip, count), width)) {
-      for (let rowStart = 0; rowStart < batch.length; rowStart += width) {
-        const row = batch.subarray(rowStart, Math.min(batch.length, rowStart + width));
-        let same = false;
-        if (!verbose && previous !== undefined && previous.length === row.length) {
-          same = true;
-          for (let i = 0; i < row.length; i++) {
-            if (previous[i] !== row[i]) {
-              same = false;
-              break;
+    try {
+      for await (const batch of rows(range(sources(context, parsed.operands, maxInputBytes, onFileError), skip, count), width)) {
+        for (let rowStart = 0; rowStart < batch.length; rowStart += width) {
+          const row = batch.subarray(rowStart, Math.min(batch.length, rowStart + width));
+          let same = false;
+          if (!verbose && previous !== undefined && previous.length === row.length) {
+            same = true;
+            for (let i = 0; i < row.length; i++) {
+              if (previous[i] !== row[i]) {
+                same = false;
+                break;
+              }
             }
           }
-        }
-        if (same) {
-          if (!suppressed) outBuf += "*\n";
-          suppressed = true;
-        } else {
-          const addr = address();
-          const pad = selected.length > 1 ? " ".repeat(addr.length) : "";
-          for (let index = 0; index < selected.length; index++) {
-            const prefix = index === 0 ? addr : pad;
-            outBuf += `${prefix}${formatRow(row, selected[index]!, isBigEndian)}\n`;
+          if (same) {
+            if (!suppressed) outBuf += "*\n";
+            suppressed = true;
+          } else {
+            const addr = address();
+            const pad = selected.length > 1 ? " ".repeat(addr.length) : "";
+            for (let index = 0; index < selected.length; index++) {
+              const prefix = index === 0 ? addr : pad;
+              outBuf += `${prefix}${formatRow(row, selected[index]!, isBigEndian)}\n`;
+            }
+            if (previous === undefined || previous.length !== row.length) previous = row.slice();
+            else previous.set(row);
+            suppressed = false;
           }
-          if (previous === undefined || previous.length !== row.length) previous = row.slice();
-          else previous.set(row);
-          suppressed = false;
+          offset = addOffset(offset, row.length);
+          if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
         }
-        offset = addOffset(offset, row.length);
-        if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
       }
+    } finally {
+      await flushOut();
     }
     if (radix !== "n") await writeOut(`${address()}\n`);
     if (outBuf) await output(context, outBuf);
-    return { exitCode: 0 };
+    return { exitCode };
   });
 }
 

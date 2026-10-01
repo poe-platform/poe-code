@@ -85,3 +85,27 @@ for (const [short, long] of [["-w2", "--width=2"], ["-S6", "--strings=6"]]) {
     else assert.equal(a.stdout.split("\n").length, 5);
   });
 }
+
+test("od retains rows before a missing operand and continues later operands", async () => {
+ const fs = createMemoryFileSystem();
+ await fs.writeFile("/first", Uint8Array.from({ length: 64 }, (_, i) => i));
+ await fs.writeFile("/last", Uint8Array.of(255));
+ const expected = await run(["-tx1", "/first", "/last"], fs);
+ const actual = await run(["-tx1", "/first", "/missing", "/last"], fs);
+ assert.equal(actual.exitCode, 1);
+ assert.equal(actual.stdout, expected.stdout);
+ assert.ok(actual.stderr.includes("missing"));
+});
+
+for (const failure of ["stream", "limit"] as const) test(`od retains complete rows on ${failure} failure`, async () => {
+ const values = createCommandArguments([]);
+ let stdout = "";
+ const result = await createOdCommand({ limits: { maxInputBytes: 64 } }).execute({
+  command: "od", args: values.args, cwd: "/", env: {}, fs: createMemoryFileSystem(),
+  stdin: (async function* () { yield Uint8Array.from({ length: 64 }, (_, i) => i); if (failure === "limit") yield Uint8Array.of(255); else throw new Error("stream failed"); })(),
+  stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+  stderr: { async write() {} }, signal: new AbortController().signal,
+ });
+ assert.equal(result.exitCode, 1);
+ assert.equal(stdout.trimEnd().split("\n").length, 4);
+});

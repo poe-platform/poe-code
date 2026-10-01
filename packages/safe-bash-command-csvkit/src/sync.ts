@@ -4,7 +4,6 @@ import {
   inferTable,
   readCsv,
   sniff,
-  POSSIBLE_DELIMITERS,
   Decimal,
   pythonValueText,
   writeCsvRow,
@@ -13,7 +12,7 @@ import {
   type CsvDialect,
   type InferenceOptions,
   type TableValue,
-} from "safe-bash-command-csvkit/sync-support";
+} from "./sync-support.js";
 
 
 const syncUtf8Decoder = new TextDecoder("utf-8", { fatal: true });

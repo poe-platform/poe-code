@@ -50,3 +50,5 @@ export { Runtime, type Settings } from './runtime.js';
 export * from "./command.js";
 
 export type {CsvpyWasiOptions} from './default-csvpy.js';
+
+export * from "./sync.js";

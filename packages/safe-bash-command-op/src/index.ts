@@ -1,3 +1,4 @@
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
 import { createOpCommand as createDispatcher, parseCommand, renderOpHelp, type OpCommandContext, type OpCommandOptions } from "./cli.js";
 import { resolveOpCompletion } from "./completion-resolver.js";
 import { createSecretHandlers } from "./secrets.js";
@@ -174,6 +175,8 @@ export function createOpCommand(options: OpCommandsOptions = {}): CommandDefinit
       return command.execute(invocation);
     },
   };
+  builtInDirectContextExecutors.add(def.execute);
+  syncCommandEvaluators.evalSyncOp = evalSyncOp;
   opMetaByExecutor.set(def.execute, { version: options.version ?? "0.0.1", channel: options.channel ?? "stable" });
   return def;
 }

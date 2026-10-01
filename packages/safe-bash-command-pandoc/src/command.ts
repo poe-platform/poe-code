@@ -1,3 +1,5 @@
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+import { evalSyncPandoc } from "./sync.js";
 import {validatePandocOptions} from "./options.js";
 import {convert} from "./engine.js";
 import {createCiteprocFilterCapability, type CiteprocFilterOptions} from "./citeproc-filters.js";
@@ -64,7 +66,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
   const limits = {...options.limits};
   const configuredFilters = options.filters;
   const citeprocCapability = createCiteprocFilterCapability(options.citeproc);
-  return {name: "pandoc", description: "Convert documents with the original bounded TypeScript SDK", async execute(context) {
+  const command: CommandDefinition = {name: "pandoc", description: "Convert documents with the original bounded TypeScript SDK", async execute(context) {
     context.signal.throwIfAborted();
     // Enroll the root scope before any invocation-owned I/O. stdout gets its own
     // child scope, so consumer closure cannot cancel a file destination.
@@ -219,6 +221,11 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       return {exitCode: statuses[code] ?? 2};
     } finally {await invocation.close();}
   }};
+  syncCommandEvaluators.evalSyncPandoc = evalSyncPandoc;
+  if (options.limits === undefined && options.filters === undefined && options.jsonFilterCommand === undefined && options.citeproc === undefined) {
+    builtInDirectContextExecutors.add(command.execute);
+  }
+  return command;
 }
 export function createPandocCommands(options: PandocCommandsOptions = {}): readonly CommandDefinition[] {
   return [createPandocCommand(options)];

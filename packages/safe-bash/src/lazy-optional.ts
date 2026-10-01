@@ -116,8 +116,8 @@ export const createSofficeCommands: sofficeModule["createSofficeCommands"] = (..
 };
 export type { SofficeCommandsOptions } from "./commands/soffice/index.js";
 
-type pandocModule = typeof import("./commands/pandoc/implementation.js");
-const loadpandoc = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/pandoc/implementation.js"));
+type pandocModule = typeof import("safe-bash-command-pandoc");
+const loadpandoc = /* @__PURE__ */ createLazyCommandLoader(() => import("safe-bash-command-pandoc"));
 const pandocMetadata = [
   {
     name: "pandoc",
@@ -152,8 +152,8 @@ export const createPandocCommand: pandocModule["createPandocCommand"] = (...args
     return () => [module.createPandocCommand(...args)];
   })[0]!;
 };
-export type { PandocCommandsOptions } from "./commands/pandoc/implementation.js";
-export type { PandocLimits } from "./commands/pandoc/implementation.js";
+export type { PandocCommandsOptions } from "safe-bash-command-pandoc";
+export type { PandocLimits } from "safe-bash-command-pandoc";
 
 type ssconvertModule = typeof import("./commands/ssconvert/index.js");
 const loadssconvert = /* @__PURE__ */ createLazyCommandLoader(() => import("safe-bash-command-ssconvert"));

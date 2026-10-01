@@ -1,45 +1,6 @@
-import { builtInDirectContextExecutors, syncCommandEvaluators } from "../internal.js";
-import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import {
-  createPandocCommand as createRawPandocCommand,
-  createPandocCommands as createRawPandocCommands,
-  inspectFormats,
-  parseConversionArgs,
-  convertSync,
-  type PandocCommandsOptions,
-} from "safe-bash-command-pandoc";
-
-export * from "safe-bash-command-pandoc";
-
-export function createPandocCommand(options: PandocCommandsOptions = {}, hasCommand?: (name: string) => boolean): CommandDefinition {
-  syncCommandEvaluators.evalSyncPandoc = evalSyncPandoc;
-  const def = createRawPandocCommand(options, hasCommand);
-  if (options.limits === undefined && options.filters === undefined && options.jsonFilterCommand === undefined && options.citeproc === undefined) {
-    builtInDirectContextExecutors.add(def.execute);
-  }
-  return def;
-}
-
-export function createPandocCommands(options: PandocCommandsOptions = {}): readonly CommandDefinition[] {
-  syncCommandEvaluators.evalSyncPandoc = evalSyncPandoc;
-  const defs = createRawPandocCommands(options);
-  if (options.limits === undefined && options.filters === undefined && options.jsonFilterCommand === undefined && options.citeproc === undefined) {
-    for (let i = 0; i < defs.length; i++) builtInDirectContextExecutors.add(defs[i]!.execute);
-  }
-  return defs;
-}
-
-export function pandocCommands(options: PandocCommandsOptions = {}): VirtualShellPlugin {
-  let hasCommand: ((name: string) => boolean) | undefined;
-  const command = createPandocCommand(options, name => hasCommand?.(name) ?? false);
-  return {
-    name: "pandoc",
-    setup(host) {
-      hasCommand = name => host.commands.has(name);
-      host.commands.register(command, { replace: options.replace ?? false });
-    },
-  };
-}
+import { inspectFormats } from "./inspection.js";
+import { parseConversionArgs } from "./cli.js";
+import { convertSync } from "./engine.js";
 
 export function evalSyncPandoc(
   inBytes: Uint8Array | undefined,
@@ -101,5 +62,3 @@ export function evalSyncPandoc(
     return undefined;
   }
 }
-
-syncCommandEvaluators.evalSyncPandoc = evalSyncPandoc;

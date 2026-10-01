@@ -28,3 +28,5 @@ export {
 export { createHtmlqCommands, type HtmlqCommandsOptions } from "./command.js";
 
 export type { HtmlLimits as HtmlqLimits } from "./contracts.js";
+
+export { evalSyncHtmlq } from "./sync.js";

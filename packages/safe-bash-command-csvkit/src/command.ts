@@ -18,6 +18,28 @@ import { writeFileOutput, openFileOutput } from "safe-bash-contracts/filesystem-
 import { FsError, isFsError } from "safe-bash-contracts/errors";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 
+import { evalSyncCsvlook, evalSyncCsvjson, evalSyncCsvsort, evalSyncCsvformat, evalSyncCsvstat, evalSyncIn2csv, evalSyncCsvstack, evalSyncCsvjoin } from "./sync.js";
+import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+
+function isDefaultCsvkitOptions(options?: CsvkitCommandsOptions): boolean {
+  if (!options) return true;
+  return (
+    options.limits === undefined &&
+    options.codecs === undefined &&
+    options.locale === undefined &&
+    options.clock === undefined &&
+    options.terminal === undefined &&
+    options.compression === undefined &&
+    options.databases === undefined &&
+    options.sqlDialects === undefined &&
+    options.interpreter === undefined &&
+    options.openMatchFile === undefined &&
+    options.sniffing === undefined &&
+    options.columnWarnings === undefined &&
+    options.probeInputOpen === undefined
+  );
+}
+
 /** Portable defaults; hosts may inject codecs, locale, clock and terminal. */
 export interface CsvkitCommandsOptions extends Partial<Pick<CsvkitContext, "codecs" | "locale" | "clock" | "terminal">> {
   readonly compression?: CsvkitContext["compression"];
@@ -49,7 +71,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
   });
   const columnWarnings = options.columnWarnings === undefined ? Object.freeze({ suppressWarnings: true }) : Object.freeze({ ...options.columnWarnings });
   const probeInputOpen = options.probeInputOpen;
-  return Object.freeze(commands.map<CommandDefinition>(descriptor => ({
+  const definitions = Object.freeze(commands.map<CommandDefinition>(descriptor => ({
     name: descriptor.name,
     ...(descriptor.name === "csvcut" || descriptor.name === "csvgrep" ? { fallback: true } : {}),
     description: `csvkit 2.2.0 ${descriptor.name}; compatibility gaps return status 78`,
@@ -261,6 +283,11 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
       return { exitCode: result! };
     }
   })));
+  Object.assign(syncCommandEvaluators, { evalSyncCsvlook, evalSyncCsvjson, evalSyncCsvsort, evalSyncCsvformat, evalSyncCsvstat, evalSyncIn2csv, evalSyncCsvstack, evalSyncCsvjoin });
+  if (isDefaultCsvkitOptions(options)) {
+    for (const definition of definitions) builtInDirectContextExecutors.add(definition.execute);
+  }
+  return definitions;
 }
 
 /** Explicit opt-in, with all-name collision preflight before any registration. */

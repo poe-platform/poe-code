@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 const root = new URL("../../../", import.meta.url);
-const names = "dd shuf yes xmllint apply-patch cmp column csplit du expr factor file getopt hexdump html-to-markdown iconv install pr split timeout tree truncate tsort which xan nl rev tac readlink realpath strings paste join comm expand unexpand date env printenv sleep touch egrep fgrep rg base64 md5sum sha1sum sha256sum".split(" ");
+const names = "pandoc ssconvert op htmlq csvkit dd shuf yes xmllint apply-patch cmp column csplit du expr factor file getopt hexdump html-to-markdown iconv install pr split timeout tree truncate tsort which xan nl rev tac readlink realpath strings paste join comm expand unexpand date env printenv sleep touch egrep fgrep rg base64 md5sum sha1sum sha256sum".split(" ");
 const manifest = path => JSON.parse(readFileSync(new URL(path, root), "utf8"));
 for (const name of names) test(name + " has one private portable command owner", () => {
   const packageName = "safe-bash-command-" + name;
@@ -18,9 +18,9 @@ for (const name of names) test(name + " has one private portable command owner",
   assert.ok(readFileSync(new URL("packages/safe-bash/src/commands/" + adapter + "/index.ts", root), "utf8").includes('export * from "' + packageName + '";'));
 });
 
-test("XML core adapter contains only public re-exports", async () => {
+for (const name of ["xml", "pandoc", "ssconvert", "op", "htmlq", "csvkit"]) test(name + " core adapter contains only public re-exports", async () => {
   const { default: ts } = await import("typescript");
-  const text = readFileSync(new URL("packages/safe-bash/src/commands/xml/index.ts", root), "utf8");
+  const text = readFileSync(new URL("packages/safe-bash/src/commands/" + name + "/index.ts", root), "utf8");
   const source = ts.createSourceFile("xml.ts", text, ts.ScriptTarget.Latest, true);
   assert.ok(source.statements.every(statement => ts.isExportDeclaration(statement)));
 });
@@ -34,7 +34,7 @@ test("extracted command evaluators stay in their private owners", async () => {
   }
 });
 
-for (const name of ["dd", "shuf", "yes", "yq", "xml"]) test(name + " has no leftover implementation modules", () => {
+for (const name of ["dd", "shuf", "yes", "yq", "xml", "csvkit", "pandoc", "ssconvert", "htmlq"]) test(name + " has no leftover implementation modules", () => {
   assert.deepEqual(readdirSync(new URL("packages/safe-bash/src/commands/" + name, root)).filter(file => file.endsWith(".ts")), ["index.ts"]);
 });
 

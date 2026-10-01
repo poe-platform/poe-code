@@ -1,3 +1,4 @@
+export { evalSyncPandoc } from "./sync.js";
 export { convert, convertSync, readDocument, writeDocument, PandocError } from "./engine.js";
 export { createFormatRegistry, coreFormats, formatCapabilities } from "./formats.js";
 export type { FormatCapability, FormatDescriptor, FormatSelection, Direction } from "./formats.js";

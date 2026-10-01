@@ -27,15 +27,18 @@ for (const condition of ["browser", "workerd"]) {
       loader: { ".wasm": "binary" },
       conditions: [condition], format: "cjs",
       stdin: { resolveDir: root, contents: `
-        import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+        import { Shell, createMemoryFileSystem, structuredCommands } from "@poe-platform/safe-bash";
         import { yqCommands } from "@poe-platform/safe-bash/yq";
         export async function run() {
           const fs = createMemoryFileSystem();
           await fs.writeFile("/input.yml", new TextEncoder().encode("a: 1\\n"));
-          const shell = new Shell({ fs }).use(yqCommands());
+          const shell = new Shell({ fs }).use(structuredCommands()).use(yqCommands());
           try {
+            await fs.writeFile("/input.jsonl", new TextEncoder().encode('{"active":true,"id":1,"val":"α🌍"}\\n'));
+            const jq = await shell.exec("jq -c 'select(.active) | {id, val}' /input.jsonl");
+            const regex = await shell.exec(${JSON.stringify(`jq -cn '"xα" | gsub("x"; "🌍")'`)});
             const result = await shell.exec("yq -i '.a = 2' /input.yml");
-            return { result, text: new TextDecoder().decode(await fs.readFile("/input.yml")),
+            return { result, jq, regex, text: new TextDecoder().decode(await fs.readFile("/input.yml")),
               nodeGlobals: "process" in globalThis || "require" in globalThis,
               portableBytes: globalThis.Buffer.from("é").toString("hex") };
           } finally { await shell.dispose(); }
@@ -78,6 +81,8 @@ it.each(["browser", "workerd"])("runs public optional YQ staged writes with port
   const api = programs.get(condition)!.runInContext(sandbox);
   const result = await api.run();
   expect(result.result).toMatchObject({ exitCode: 0, stdout: "", stderr: "" });
+  expect(result.jq).toMatchObject({ exitCode: 0, stdout: '{"id":1,"val":"α🌍"}\n', stderr: "" });
+  expect(result.regex).toMatchObject({ exitCode: 0, stdout: '"🌍α"\n', stderr: "" });
   expect(result.text).toBe("a: 2\n");
   expect(result.nodeGlobals).toBe(false);
   expect(result.portableBytes).toBe("c3a9");

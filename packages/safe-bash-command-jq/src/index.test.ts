@@ -157,3 +157,45 @@ for (const value of ["aaaaaaaa", "éééé"]) test(`jq value limit precedes outp
  assert.notEqual(result.exitCode, 0);
  assert.match(stderr, /maxValueBytes/);
 });
+
+for (const separateFileSystem of [false, true]) test(`jq select/project reads reused input bytes and retains owned output (separate filesystem=${separateFileSystem})`, async () => {
+ const encoder = new TextEncoder();
+ const decoder = new TextDecoder();
+ const original = '{"active":true,"id":0,"val":"item_0000000000"}\n'.repeat(128);
+ const reused = encoder.encode(original);
+ const probes = [0, reused.length >> 1, reused.length - 1];
+ const before = probes.map(index => reused[index]);
+ const firstFs = createMemoryFileSystem();
+ const secondFs = separateFileSystem ? createMemoryFileSystem() : firstFs;
+ const retained: Uint8Array[] = [];
+ let reads = 0;
+ let writes = 0;
+ const command = createJqCommand();
+ for (const [fs, file] of [[firstFs, "/first.jsonl"], [secondFs, "/second.jsonl"]] as const) {
+  if (file === "/second.jsonl") {
+   reused.set(encoder.encode("ZZZZ_9999999999"), original.indexOf("item_0000000000"));
+   assert.deepEqual(probes.map(index => reused[index]), before);
+  }
+  await fs.writeFile(file, reused);
+  assert.equal(decoder.decode(await fs.readFile(file)), decoder.decode(reused));
+  const values = createCommandArguments(["-c", "select(.active) | {id, val}", file]);
+  const context = {
+   command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+   _fastMemoryBackingFs: fs, _chargeFastFsOp() { reads++; },
+   stdin: toByteSource(""), signal: new AbortController().signal,
+   stdout: {
+    writeSync(bytes: Uint8Array) { writes++; retained.push(bytes); return true; },
+    async write() { assert.fail("expected synchronous select/project output"); },
+   },
+   stderr: { async write(bytes: Uint8Array) { assert.fail(decoder.decode(bytes)); } },
+  };
+  assert.equal((await command.execute(context)).exitCode, 0);
+ }
+ assert.equal(reads, 2);
+ assert.equal(writes, 2);
+ assert.deepEqual(retained.map(bytes => decoder.decode(bytes)), [
+  '{"id":0,"val":"item_0000000000"}\n'.repeat(128),
+  '{"id":0,"val":"ZZZZ_9999999999"}\n' + '{"id":0,"val":"item_0000000000"}\n'.repeat(127),
+ ]);
+ assert.equal(decoder.decode(await firstFs.readFile("/first.jsonl")), original);
+});

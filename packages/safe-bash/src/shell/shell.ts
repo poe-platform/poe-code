@@ -733,22 +733,7 @@ export class Shell implements PluginHost {
           currentState.shellStartedAt = Date.now();
           runtime = warm.runtime;
         } else {
-        if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
-          const value = options.stdin ?? "";
-          const needsCopy = extensions !== EMPTY_CAPTURED_EXTENSIONS || this.#hasCustomCommands || this.#middleware.length > 0;
-          const inlineBytes = typeof value === "string"
-            ? (value.length > 0 ? sharedUtf8Encoder.encode(value) : undefined)
-            : (value.byteLength > 0 ? (needsCopy ? new Uint8Array(value) : value) : undefined);
-          stdin = inlineBytes
-            ? new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, {
-                provenance: "stream",
-                initialChunk: inlineBytes,
-                initialChunkOwned: true,
-              })
-            : new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, EMPTY_STDIN_OPTIONS);
-          if (options.stdin !== undefined) scope.setActiveStdin(stdin);
-        }
-        if (stdin) io.stdin = stdin;
+
         if (!readySync) {
           await interruptible(this.#ready, budget.signal);
           io.capabilities = options.capabilities === undefined && options.limits === undefined
@@ -841,9 +826,22 @@ export class Shell implements PluginHost {
         }
         // Capture syntax before parsing, but defer host extension getters and factories.
         if (!warm) currentState.extensions = extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension);
-        // Caller iterators may acquire resources; admit the initial syntax first.
-        if (!stdin && options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {
-          stdin = new ShellInput(options.stdin, budget);
+        if (!warm) {
+          if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
+            const value = options.stdin ?? "";
+            const needsCopy = extensions !== EMPTY_CAPTURED_EXTENSIONS || this.#hasCustomCommands || this.#middleware.length > 0;
+            const inlineBytes = typeof value === "string"
+              ? (value.length > 0 ? sharedUtf8Encoder.encode(value) : undefined)
+              : (value.byteLength > 0 ? (needsCopy ? new Uint8Array(value) : value) : undefined);
+            stdin = inlineBytes
+              ? new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, {
+                  provenance: "stream",
+                  initialChunk: inlineBytes,
+                  initialChunkOwned: true,
+                })
+              : new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, EMPTY_STDIN_OPTIONS);
+            if (options.stdin !== undefined) scope.setActiveStdin(stdin);
+          } else stdin = new ShellInput(options.stdin as ConstructorParameters<typeof ShellInput>[0], budget);
           io.stdin = stdin;
         }
         exitCode = 0;

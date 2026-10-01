@@ -32,8 +32,9 @@ try {
 
 The result contains `alice\n`. This example was executed unchanged against the
 isolated installed root archive and exited zero. No credentials or 1Password configuration are
-needed. `op` is not automatically included in standard/agent commands, and
-there is no native CLI fallback or implicit host credential discovery.
+needed. `agentCommands()` includes `op`; with `standardCommands()`, register
+the plugin explicitly as above. There is no native CLI fallback or implicit
+host credential discovery.
 The unconditional allow policy is only a simple synthetic example; use a
 restrictive policy for sensitive operations.
 

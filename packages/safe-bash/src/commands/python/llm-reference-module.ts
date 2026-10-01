@@ -229,10 +229,57 @@ class AsyncModel(Model):
         return AsyncResponse(response.prompt, self, stream, key=response._key)
 
 
+class UnknownModelError(KeyError):
+    pass
+
+
+async def _models():
+    async with _core.Client() as client:
+        return await client.models()
+
+
+def get_models():
+    return [Model(item.id) for item in _sync(_models())]
+
+
+def get_async_models():
+    return [AsyncModel(item.id) for item in _sync(_models())]
+
+
+def get_model_aliases():
+    result = {}
+    for item in _sync(_models()):
+        model = Model(item.id)
+        for name in (item.id, *item.aliases):
+            result[name] = model
+    return result
+
+
+def get_async_model_aliases():
+    return {name: AsyncModel(model.model_id) for name, model in get_model_aliases().items()}
+
+
+def get_default_model():
+    async def read():
+        async with _core.Client() as client:
+            return await client._run(lambda: client._bridge.call("resolve_model", _core._configuration_context()), client._timeout)
+    return _sync(read())
+
+
 def get_model(name=None, _skip_async=False):
-    return Model(name)
+    aliases = get_model_aliases()
+    name = name or get_default_model()
+    try:
+        return aliases[name]
+    except KeyError:
+        raise UnknownModelError("Unknown model: " + str(name)) from None
 
 
 def get_async_model(name=None):
-    return AsyncModel(name)
+    aliases = get_async_model_aliases()
+    name = name or get_default_model()
+    try:
+        return aliases[name]
+    except KeyError:
+        raise UnknownModelError("Unknown model: " + str(name)) from None
 `)();

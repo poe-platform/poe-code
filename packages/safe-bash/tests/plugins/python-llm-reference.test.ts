@@ -6,6 +6,13 @@ import { installPythonLlmModule } from '../../src/commands/python/llm-module.js'
 const snippet = `
 import llm
 model = llm.get_model("test-model")
+assert llm.get_model("alias").model_id == "test-model"
+assert llm.get_model().model_id == "test-model"
+try:
+ llm.get_model("missing")
+ raise AssertionError("unknown model was accepted")
+except llm.UnknownModelError as error:
+ assert error.args == ("Unknown model: missing",)
 response = model.prompt("hello", stream=True)
 assert calls == [], "prompts must be lazy"
 assert response.model.model_id == "test-model"
@@ -21,8 +28,9 @@ assert callbacks == ["hello", "hello"]
 assert len(calls) == 1
 assert model.prompt("second", stream=False).text() == "hello"
 assert len(calls) == 2
+async_model = llm.get_async_model("test-model")
 async def check_async():
- model = llm.get_async_model("test-model")
+ model = async_model
  response = model.prompt("async")
  assert len(calls) == 2
  assert [chunk async for chunk in response] == ["hel", "lo"]
@@ -48,8 +56,9 @@ class AsyncModel(llm.AsyncModel):
   calls.append(prompt.prompt)
   yield "hel"
   yield "lo"
-llm.get_model = lambda name: Model()
-llm.get_async_model = lambda name: AsyncModel()
+llm.get_model_aliases = lambda: {"test-model": Model(), "alias": Model()}
+llm.get_async_model_aliases = lambda: {"test-model": AsyncModel(), "alias": AsyncModel()}
+llm.get_default_model = lambda: "test-model"
 `;
 
 const bundledSetup = `
@@ -62,8 +71,12 @@ assert "llm" not in sys.modules
 calls = []
 class Bridge:
  async def call(self, operation, payload):
+  if operation == "resolve_model":
+   return "test-model"
+  if operation == "configuration":
+   return {"default_model": "test-model", "aliases": {}, "model_options": {}}
   if operation == "models":
-   return [{"id": "test-model", "aliases": [], "capabilities": ["complete", "stream"]}]
+   return [{"id": "test-model", "aliases": ["alias"], "capabilities": ["complete", "stream"]}]
   calls.append(payload["prompt"])
   return {"model": "test-model", "text": "hello"}
  def stream(self, payload):
@@ -132,10 +145,11 @@ try:
 except ValueError as error:
  assert str(error) == "provider failed"
 assert closed == ["early", "error"]
+async_model = llm.get_async_model("test-model")
 async def check():
  global entered
  entered = asyncio.Event()
- response = llm.get_async_model("test-model").prompt("cancel")
+ response = async_model.prompt("cancel")
  task = asyncio.create_task(response.text())
  await entered.wait()
  task.cancel()

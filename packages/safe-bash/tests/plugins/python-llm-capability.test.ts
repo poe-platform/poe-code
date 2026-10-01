@@ -548,3 +548,12 @@ test('host materialization budget rejects oversized inputs and expanded template
   await assert.rejects(stream.next(),/input.*limit/);
   assert.equal(requests.length,0);
 });
+
+test('Python model lookup resolves service defaults and persisted aliases without provider calls', async () => {
+  const { capability, requests } = await fixture();
+  assert.equal(await capability.call!({operation:'resolve_model',payload:{}},{signal}), 'model');
+  assert.equal(await capability.call!({operation:'resolve_model',payload:{model:'alias'}},{signal}), 'model');
+  await assert.rejects(capability.call!({operation:'resolve_model',payload:{model:'missing'}},{signal}), /Unknown model/);
+  await assert.rejects(capability.call!({operation:'resolve_model',payload:{model:42}},{signal}), /Model must be a string/);
+  assert.deepEqual(requests, []);
+});

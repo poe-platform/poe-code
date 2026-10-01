@@ -310,6 +310,15 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         jsonBytes(result as PythonHostValue,bufferedLimit);
         return result as PythonHostValue;
       }
+      if (operation.operation === 'resolve_model') {
+        const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
+        const selected = payload.model ?? await configuration.defaultModel();
+        if (selected !== undefined && typeof selected !== 'string') throw new TypeError('Model must be a string');
+        const identity = selected === undefined ? undefined : await configuration.resolveAlias(selected);
+        const resolved = service.resolve(identity).model.id;
+        jsonBytes(resolved,bufferedLimit);
+        return resolved;
+      }
       if (operation.operation === 'select_model') {
         const queries = payload.queries;
         if (!Array.isArray(queries) || !queries.length || queries.some(query => typeof query !== 'string')) throw new TypeError('Model queries must be a nonempty array of strings');

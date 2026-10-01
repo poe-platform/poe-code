@@ -20,8 +20,14 @@ completed responses replay their chunks without another provider call, and
 callers do not import Pyodide or manage a client. Explicitly close an unfinished
 response with `close()` or `await aclose()`.
 
+Use `get_models()` / `get_async_models()` for the shared host catalog.
+`get_model(name)` and `get_async_model(name)` resolve its aliases to canonical
+identities and raise `UnknownModelError` during lookup. Omitting the name uses
+the canonical configuration and the service's effective default; Python does
+not choose a provider or substitute a hardcoded model.
+
 This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
-attachments, discovery and early model errors, conversations, embeddings,
+attachments, conversations, embeddings,
 fragments, tools, persistence and the complete response interface still require
 qualification. The existing `poe_llm` workflow API below remains available during
 that implementation.

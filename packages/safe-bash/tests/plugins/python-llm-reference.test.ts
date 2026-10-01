@@ -554,3 +554,54 @@ llm.user_dir = lambda: MemoryPath()
     assert.equal(reference.status,0,reference.stdout + reference.stderr);
   }
 });
+
+test('reference alias records support discovery and case-insensitive matching', {skip: pythonDependency}, () => {
+  const program = `
+import llm
+class Named(llm.Model):
+ model_id = "primary"
+ def execute(self, *args):
+  yield ""
+class AsyncNamed(llm.AsyncModel):
+ model_id = "async-primary"
+ async def execute(self, *args):
+  yield ""
+class Embedded(llm.EmbeddingModel):
+ model_id = "embed-primary"
+ def embed_batch(self, items):
+  return iter([])
+record = llm.ModelWithAliases(Named(), AsyncNamed(), {"short"})
+assert record.matches("SHORT") and record.matches("PRIMARY")
+assert record.matches("Named:") and record.matches("async-primary")
+assert not record.matches("absent")
+assert llm.ModelWithAliases(None, AsyncNamed(), []).matches("ASYNC")
+assert not llm.ModelWithAliases(None, None, []).matches("")
+embedding = llm.EmbeddingModelWithAliases(Embedded(), {"vector"})
+assert embedding.matches("VECTOR") and embedding.matches("Embedded:")
+assert not embedding.matches("absent")
+`;
+  const globals = new Map<string, unknown>();
+  let source: unknown;
+  let registration = '';
+  installPythonLlmModule({globals, runPython(value) {source = globals.get('_safe_llm_source'); registration = value;}});
+  const discovery = `
+records = llm.get_models_with_aliases()
+record = next(item for item in records if item.model.model_id == "test-model")
+assert record.aliases == ["alias"]
+assert record.async_model.model_id == "test-model"
+assert record.matches("ALIAS")
+embeddings = llm.get_embedding_models_with_aliases()
+assert len(embeddings) == 1 and embeddings[0].aliases == ["embed-alias"]
+assert embeddings[0].model.model_id == "embedding"
+`;
+  for (const [python, setup, extra] of [
+    [testPython, bundledSetup, discovery],
+    ...(process.env.LLM_REFERENCE_PYTHON ? [[process.env.LLM_REFERENCE_PYTHON, '', '']] : []),
+  ]) {
+    const result = spawnSync(python!, ['-B', '-c', setup + program + extra], {
+      input: JSON.stringify({source, registration}), encoding: 'utf8', timeout: 5000,
+    });
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  }
+});

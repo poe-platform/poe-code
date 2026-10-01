@@ -420,6 +420,11 @@ async def qualify_libraries():
   configuration = await client.configuration()
   assert configuration.default_model == 'saved' and configuration.aliases == {'saved':'fake'}
   assert configuration.model_options == {'fake':{'mode':'saved'}}
+  alias_records = llm.get_models_with_aliases()
+  alias_record = next(item for item in alias_records if item.model.model_id == 'fake')
+  assert alias_record.matches('SAVED') and alias_record.async_model.model_id == 'fake'
+  embedding_records = llm.get_embedding_models_with_aliases()
+  assert any(item.model.model_id == 'fake' and item.matches('SAVED') for item in embedding_records)
   assert llm.get_default_model() == 'saved'
   llm.set_default_model('  fake  ', filename='python-profile.txt')
   assert llm.get_default_model('python-profile.txt') == 'fake'

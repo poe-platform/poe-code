@@ -538,29 +538,63 @@ async def _models():
         return await client.models()
 
 
+@dataclass
+class ModelWithAliases:
+    model: object
+    async_model: object
+    aliases: object
+
+    def matches(self, query):
+        strings = list(self.aliases)
+        if self.model:
+            strings.append(str(self.model))
+        if self.async_model:
+            strings.append(str(self.async_model.model_id))
+        return any(query.lower() in value.lower() for value in strings)
+
+
+@dataclass
+class EmbeddingModelWithAliases:
+    model: object
+    aliases: object
+
+    def matches(self, query):
+        return any(query.lower() in value.lower() for value in [*self.aliases, str(self.model)])
+
+
+def get_models_with_aliases():
+    return [
+        ModelWithAliases(
+            Model(item.id, capabilities=item.capabilities, metadata=item.metadata),
+            AsyncModel(item.id, capabilities=item.capabilities, metadata=item.metadata),
+            list(item.aliases))
+        for item in _sync(_models())
+    ]
+
+
 def get_models():
-    return [Model(item.id, capabilities=item.capabilities, metadata=item.metadata) for item in _sync(_models())]
+    return [item.model for item in get_models_with_aliases() if item.model]
 
 
 def get_async_models():
-    return [AsyncModel(item.id, capabilities=item.capabilities, metadata=item.metadata) for item in _sync(_models())]
+    return [item.async_model for item in get_models_with_aliases() if item.async_model]
 
 
 def get_model_aliases():
     result = {}
-    for item in _sync(_models()):
-        model = Model(item.id, capabilities=item.capabilities, metadata=item.metadata)
-        for name in (item.id, *item.aliases):
-            result[name] = model
+    for item in get_models_with_aliases():
+        if item.model:
+            for name in (*item.aliases, item.model.model_id):
+                result[name] = item.model
     return result
 
 
 def get_async_model_aliases():
     result = {}
-    for item in _sync(_models()):
-        model = AsyncModel(item.id, capabilities=item.capabilities, metadata=item.metadata)
-        for name in (item.id, *item.aliases):
-            result[name] = model
+    for item in get_models_with_aliases():
+        if item.async_model:
+            for name in (*item.aliases, item.model.model_id):
+                result[name] = item.async_model
     return result
 
 
@@ -700,18 +734,22 @@ class EmbeddingModel:
             yield from self.embed_batch(batch)
 
 
+def get_embedding_models_with_aliases():
+    return [
+        EmbeddingModelWithAliases(EmbeddingModel(item.id), list(item.aliases))
+        for item in _sync(_models()) if "embed" in item.capabilities
+    ]
+
+
 def get_embedding_models():
-    return [EmbeddingModel(item.id) for item in _sync(_models()) if "embed" in item.capabilities]
+    return [item.model for item in get_embedding_models_with_aliases()]
 
 
 def get_embedding_model_aliases():
     result = {}
-    for item in _sync(_models()):
-        if "embed" not in item.capabilities:
-            continue
-        model = EmbeddingModel(item.id)
-        for name in (item.id, *item.aliases):
-            result[name] = model
+    for item in get_embedding_models_with_aliases():
+        for name in (*item.aliases, item.model.model_id):
+            result[name] = item.model
     return result
 
 

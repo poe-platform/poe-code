@@ -29,6 +29,9 @@ responses). Explicitly close an unfinished
 response with `close()` or `await aclose()`.
 
 Use `get_models()` / `get_async_models()` for the shared host catalog.
+`get_models_with_aliases()` and `get_embedding_models_with_aliases()` expose
+standard alias records; use their `matches(query)` method to search model names
+and aliases without case sensitivity.
 `get_model(name)` and `get_async_model(name)` resolve its aliases to canonical
 identities and raise `UnknownModelError` during lookup. Omitting the name uses
 the canonical configuration and the service's effective default; Python does

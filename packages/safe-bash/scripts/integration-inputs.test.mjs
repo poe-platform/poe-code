@@ -3228,7 +3228,7 @@ test("published root exposes supported shell SDKs while preserving private works
     "./safe-bash", "./safe-bash/commands/media", "./safe-bash/contracts", "./safe-bash/contracts/*", "./safe-bash/full", "./safe-bash/image-ast",
     "./safe-bash/pdf-ast", "./safe-bash/registry", "./safe-bash/sharp", "./safe-bash/shell", "./safe-bash/spreadsheet-ast", "./safe-fs", "./safe-fs/core",
     "./safe-fs/node", "./safe-fs/node/filesystem", "./safe-js", "./safe-js/cli",
-    "./safe-js/core", "./safe-playwright", "./safe-playwright/adapter",
+    "./safe-js/core", "./safe-js/workerd", "./safe-playwright", "./safe-playwright/adapter",
     "./safejs", "./safejs/cli", "./safejs/core",
   ].sort());
   assert.equal(source.exports["./node"].browser, null);

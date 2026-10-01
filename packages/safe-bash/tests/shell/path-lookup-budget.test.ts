@@ -139,7 +139,7 @@ test("default and reused filesystem scopes admit more than 256 path components",
   assert.equal(stat.mock.callCount(), 2);
 });
 
-test("Worker pathname quota preserves its boundary and the hard filesystem ceiling", async context => {
+test("Worker pathname quota enforces configured boundaries and permits explicit overrides", async context => {
   const fs = new MemoryFileSystem();
   const root = await fs.stat("/");
   const stat = context.mock.method(fs, "stat", async () => root);
@@ -150,12 +150,15 @@ test("Worker pathname quota preserves its boundary and the hard filesystem ceili
   const admitted = await shell.exec(`probe ${path(64)}`, { limits: { maxPathComponents: 0 } });
   assert.equal(admitted.exitCode, 0, admitted.stderr);
   assert.equal(stat.mock.callCount(), 1);
-  for (const [components, maximum] of [[65, 64], [2049, 4096]] as const) {
+  for (const [components, maximum] of [[65, 64], [2049, 2048]] as const) {
     const rejected = await shell.exec(`probe ${path(components)}`, { limits: { maxPathnameComponents: maximum } });
     assert.equal(rejected.exitCode, 1);
     assert.match(rejected.stderr, /name too long/i);
     assert.equal(stat.mock.callCount(), 1, "oversized paths must not reach the backend");
   }
+  const expanded = await shell.exec(`probe ${path(2049)}`, { limits: { maxPathnameComponents: 4096 } });
+  assert.equal(expanded.exitCode, 0, expanded.stderr);
+  assert.equal(stat.mock.callCount(), 2);
 });
 
 test("PATH lookup consumes the existing shared filesystem ledger, including cache-hit access", async context => {

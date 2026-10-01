@@ -597,7 +597,7 @@ async function runCommand(context: CommandContext, owner: InvocationOwner, input
         let outBatchUsed = 0;
         const flushOutBatch = async (): Promise<void> => {
           if (outBatchUsed > 0) {
-            const slice = outBatch!.subarray(0, outBatchUsed);
+            const slice = outBatch!.slice(0, outBatchUsed);
             outBatchUsed = 0;
             await writeOperation(stdoutOperation(), slice, owner, context.signal);
           }

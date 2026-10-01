@@ -409,3 +409,14 @@ test('portable pipeline decoding preserves an initial UTF-8 BOM', async context 
     assert.equal(result.stderr, '');
   } finally { globalThis.Buffer = original; }
 });
+
+test("loop redirects retain independent bytes across scratch buffer reuse", async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec('mkdir /dir; for ((i=0; i<5; i++)); do echo "val-$i" > "/dir/file-$i.txt"; done');
+  assert.equal(result.exitCode, 0, result.stderr);
+  for (let i = 0; i < 5; i++) {
+    assert.equal(new TextDecoder().decode(await fs.readFile(`/dir/file-${i}.txt`)), `val-${i}\n`);
+  }
+});

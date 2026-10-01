@@ -6,3 +6,43 @@ test("stat exports its command and plugin", () => {
   assert.equal(createStatCommands().length, 1);
   assert.equal(statCommands().name, "stat-commands");
 });
+
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createCommandArguments, toByteSource } from "safe-bash-contracts";
+
+async function run(args: string[], fs = createMemoryFileSystem(), env: Record<string, string> = {}) {
+  const values = createCommandArguments(args);
+  let stdout = "", stderr = "";
+  const result = await createStatCommand().execute({
+    command: "stat", args: values.args, argumentValues: values, cwd: "/", env, fs,
+    stdin: toByteSource(""), signal: new AbortController().signal,
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  return { ...result, stdout, stderr };
+}
+
+import { evalSyncStat } from "./command.js";
+
+test("BSD stat renders metadata without changing GNU formats", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", new TextEncoder().encode("hello"), { mode: 0o640 });
+  const stat = await fs.lstat("/file");
+  const format = "%z %N %m %a %c %B %Lp %Sp %u %Su %g %Sg %i %l %HT %%";
+  const expected = `5 /file ${Math.floor(stat.mtimeMs / 1000)} ${Math.floor(stat.atimeMs! / 1000)} ${Math.floor(stat.ctimeMs! / 1000)} ${Math.floor(stat.birthtimeMs! / 1000)} 640 -rw-r----- 0 root 0 root ${stat.ino} ${stat.nlink} Regular File %\n`;
+  assert.deepEqual(await run(["-f", format, "/file"], fs), { exitCode: 0, stdout: expected, stderr: "" });
+  assert.equal(evalSyncStat(["-f", format, "/file"], "/", undefined, () => stat), expected);
+  assert.equal((await run(["-c", "%s %n", "/file"], fs)).stdout, "5 /file\n");
+  for (const option of ["--format=%T", "--printf=%T", "-c%T"]) {
+    assert.equal((await run(["-f", option, "/file"], fs)).stdout, option.startsWith("--printf") ? "memory" : "memory\n");
+  }
+  assert.equal((await run(["-f", "/file"], fs)).stdout, (await run(["--file-system", "/file"], fs)).stdout);
+});
+
+test("BSD stat exposes raw symlink targets and obeys dereference", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", new TextEncoder().encode("hello"));
+  await fs.symlink!("file", "/link");
+  assert.equal((await run(["-f", "%N %Y %HT", "/link"], fs)).stdout, "/link file Symbolic Link\n");
+  assert.equal((await run(["-L", "-f", "%z %Y %HT", "/link"], fs)).stdout, "5  Regular File\n");
+});

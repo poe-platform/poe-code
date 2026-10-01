@@ -28,6 +28,7 @@ function parse(args: readonly string[]) {
   let terse = false;
   let format: string | undefined;
   let printf = false;
+  let bsd = false;
   let literal = false;
   const paths: string[] = [];
   for (let index = 0; index < args.length; index++) {
@@ -39,25 +40,36 @@ function parse(args: readonly string[]) {
     else if (argument === "--file-system") filesystem = true;
     else if (argument === "--terse") terse = true;
     else if (argument === "--format" || argument.startsWith("--format=") || argument === "--printf" || argument.startsWith("--printf=")) {
+      bsd = false;
       printf = argument.startsWith("--printf");
       format = argument.includes("=") ? argument.slice(argument.indexOf("=") + 1) : args[++index];
       if (format === undefined) throw new UsageError(`missing format for '${argument}'`);
     } else if (!argument.startsWith("--")) {
       for (let offset = 1; offset < argument.length; offset++) {
         if (argument[offset] === "L") follow = true;
-        else if (argument[offset] === "f") filesystem = true;
+        else if (argument[offset] === "f") {
+          const next = args[index + 1];
+          const formatOption = next?.startsWith("-c") || next?.startsWith("--format=") || next?.startsWith("--printf=");
+          if (offset === argument.length - 1 && next?.includes("%") && !formatOption && index + 2 < args.length) {
+            format = args[++index];
+            bsd = true;
+            filesystem = false;
+            printf = false;
+          } else filesystem = true;
+        }
         else if (argument[offset] === "t") terse = true;
         else if (argument[offset] === "c") {
           format = argument.slice(offset + 1) || args[++index];
           if (format === undefined) throw new UsageError("missing format for '-c'");
           printf = false;
+          bsd = false;
           break;
         } else throw new UsageError(`unrecognized option '${argument}'`);
       }
     } else throw new UsageError(`unrecognized option '${argument}'`);
   }
   requireOperands(paths);
-  return { follow, filesystem, terse, format, printf, paths };
+  return { follow, filesystem, terse, format, printf, paths, bsd };
 }
 
 function quoted(text: string, style?: string): string {
@@ -113,7 +125,7 @@ function epoch(milliseconds: number, precision: number): string {
   return `${value < 0 ? "-" : ""}${seconds}${suffix}`;
 }
 
-function directive(format: string, start: number) {
+function directive(format: string, start: number, bsd: boolean) {
   let index = start + 1;
   const flagsStart = index;
   while (index < format.length && "-+ #0".includes(format[index]!)) index++;
@@ -127,7 +139,15 @@ function directive(format: string, start: number) {
     while (index < format.length && format[index]! >= "0" && format[index]! <= "9") index++;
     precision = format.slice(precisionStart, index);
   }
-  const code = format[index];
+  let code = format[index];
+  if (bsd && code !== undefined) {
+    const pair = format.slice(index, index + 2);
+    const mapping: Record<string, string> = { z: "s", N: "n", m: "Y", a: "X", c: "Z", B: "W", Lp: "a", Sp: "A", u: "u", Su: "U", g: "g", Sg: "G", i: "i", l: "h", HT: "bsdType", Y: "bsdTarget", "%": "%" };
+    const key = Object.hasOwn(mapping, pair) ? pair : code;
+    if (!Object.hasOwn(mapping, key)) throw new UsageError(`unsupported BSD stat format: %${key}`);
+    code = mapping[key]!;
+    index += key.length - 1;
+  }
   if (code === undefined) throw new UsageError("invalid stat format directive");
   const codePoint = code.charCodeAt(0);
   if (code !== "%" && !(codePoint >= 65 && codePoint <= 90) && !(codePoint >= 97 && codePoint <= 122)) {
@@ -162,7 +182,7 @@ function formatField(text: string, code: string, flags: string, width: number, p
   return concatBytes([allocSpaces(padding), bytes]);
 }
 
-async function render(context: CommandContext, path: string, name: string, stat: FileStat, format: string, escapes: boolean, limit: number, filesystem: boolean, terse: boolean): Promise<Uint8Array> {
+async function render(context: CommandContext, path: string, name: string, stat: FileStat, format: string, escapes: boolean, limit: number, filesystem: boolean, terse: boolean, bsd: boolean): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let bytes = 0;
   const append = (text: string | Uint8Array) => {
@@ -201,7 +221,7 @@ async function render(context: CommandContext, path: string, name: string, stat:
       const point = String.fromCodePoint(format.codePointAt(index)!);
       append(point); index += point.length; continue;
     }
-    const parsed = directive(format, index);
+    const parsed = directive(format, index, bsd);
     index += parsed.length;
     const { code, flags } = parsed;
     const width = Number(parsed.width || 0);
@@ -228,7 +248,15 @@ async function render(context: CommandContext, path: string, name: string, stat:
     if (["a", "A", "f"].includes(code)) available(stat.mode, "mode");
     const times: Record<string, number | undefined> = { X: stat.atimeMs, Y: stat.mtimeMs, Z: stat.ctimeMs, W: stat.birthtimeMs };
     if (Object.hasOwn(times, code)) { text = terse && times[code] === undefined ? "?" : epoch(available(times[code], code), precision ?? 0); numeric = text !== "?"; }
+    else if (code === "bsdType") text = stat.type === "directory" ? "Directory" : stat.type === "symlink" ? "Symbolic Link" : stat.type === "character" ? "Character Device" : "Regular File";
     else if (code === "n") text = name;
+    else if (code === "bsdTarget") {
+      text = "";
+      if (stat.type === "symlink") {
+        if (!context.fs.readlink) throw new FsError("ENOTSUP", { syscall: "readlink", path });
+        text = await context.fs.readlink(path, { signal: context.signal });
+      }
+    }
     else if (code === "N") {
       text = quoted(name, context.env.QUOTING_STYLE);
       if (stat.type === "symlink") {
@@ -278,7 +306,7 @@ export function createStatCommand(configuration: MetadataCommandsOptions = {}) {
         const format = parsed.format ?? (parsed.filesystem ? "  File: %n\n  Type: %T" : terse
           ? "%n %s %b %f %u %g %D %i %h %t %T %X %Y %Z %W %o"
           : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
-        const text = await render(context, path, name, stat, format, parsed.printf, configured.limits.maxOutputBytes, parsed.filesystem, terse);
+        const text = await render(context, path, name, stat, format, parsed.printf, configured.limits.maxOutputBytes, parsed.filesystem, terse, parsed.bsd);
         await budget.output(parsed.printf ? text : concatBytes([text, Uint8Array.of(10)]));
       } catch (error) {
         context.signal.throwIfAborted();
@@ -306,6 +334,7 @@ function renderSync(
   filesystem: boolean,
   terse: boolean,
   quotingStyle: string | undefined,
+  bsd: boolean,
 ): Uint8Array {
   const chunks: Uint8Array[] = [];
   let bytes = 0;
@@ -344,7 +373,7 @@ function renderSync(
       const point = String.fromCodePoint(format.codePointAt(index)!);
       append(point); index += point.length; continue;
     }
-    const parsed = directive(format, index);
+    const parsed = directive(format, index, bsd);
     index += parsed.length;
     const { code, flags } = parsed;
     const width = Number(parsed.width || 0);
@@ -371,7 +400,12 @@ function renderSync(
     if (["a", "A", "f"].includes(code)) available(stat.mode, "mode");
     const times: Record<string, number | undefined> = { X: stat.atimeMs, Y: stat.mtimeMs, Z: stat.ctimeMs, W: stat.birthtimeMs };
     if (Object.hasOwn(times, code)) { text = terse && times[code] === undefined ? "?" : epoch(available(times[code], code), precision ?? 0); numeric = text !== "?"; }
+    else if (code === "bsdType") text = stat.type === "directory" ? "Directory" : stat.type === "symlink" ? "Symbolic Link" : stat.type === "character" ? "Character Device" : "Regular File";
     else if (code === "n") text = name;
+    else if (code === "bsdTarget") {
+      if (stat.type === "symlink" && stat.target === undefined) throw new FsError("ENOTSUP", { syscall: "readlink", path });
+      text = stat.type === "symlink" ? stat.target! : "";
+    }
     else if (code === "N") {
       text = quoted(name, quotingStyle);
       if (stat.type === "symlink") {
@@ -441,7 +475,7 @@ export function evalSyncStat(
       ? "%n %s %b %f %u %g %D %i %h %t %T %X %Y %Z %W %o"
       : "  File: %N\n  Size: %s\tType: %F\n  Mode: %a (%A)\nAccess: %x\nModify: %y\nChange: %z\n Birth: %w");
     try {
-      const rendered = renderSync(abs, name, stat, format, parsed.printf, 262144, parsed.filesystem, terse, quotingStyle);
+      const rendered = renderSync(abs, name, stat, format, parsed.printf, 262144, parsed.filesystem, terse, quotingStyle, parsed.bsd);
       outChunks.push(parsed.printf ? rendered : concatBytes([rendered, Uint8Array.of(10)]));
     } catch {
       return undefined;

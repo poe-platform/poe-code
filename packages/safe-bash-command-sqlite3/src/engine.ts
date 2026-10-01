@@ -50,6 +50,7 @@ export interface IndexDef {
   tableName: string;
   unique: boolean;
   columns: string[];
+  collations?: string[];
   sql: string;
 }
 
@@ -2449,37 +2450,55 @@ export class SqliteDatabase {
         return i >= idx && t.value.toUpperCase() === "ON";
       });
       const tableName = tokens[onIdx + 1]?.value ?? "";
+      const tbl = this.findTable(tableName);
+      if (!tbl) throw new Error(`no such table: ${tableName}`);
       const cols: string[] = [];
+      const collations: string[] = [];
       let p = onIdx + 2;
-      if (tokens[p]?.value === "(") {
-        p += 1;
-        while (p < tokens.length && tokens[p]?.value !== ")") {
-          yield;
-          const v = tokens[p]!.value;
-          if (
-            v !== "," &&
-            v.toUpperCase() !== "ASC" &&
-            v.toUpperCase() !== "DESC" &&
-            v.toUpperCase() !== "COLLATE"
-          ) {
-            cols.push(v);
-          }
-          p += 1;
+      if (tokens[p++]?.value !== "(") throw new Error("expected index columns");
+      while (p < tokens.length && tokens[p]?.value !== ")") {
+        yield;
+        const name = tokens[p++]!.value;
+        const column = tbl.columns.find(col => col.name.toLowerCase() === name.toLowerCase());
+        if (!column) throw new Error(`no such column: ${name}`);
+        cols.push(column.name);
+        let collation = column.collate ?? "BINARY";
+        if (tokens[p]?.value.toUpperCase() === "COLLATE") {
+          p++;
+          collation = tokens[p++]?.value.toUpperCase() ?? "";
+          if (!["BINARY", "NOCASE", "RTRIM"].includes(collation)) throw new Error(`no such collation sequence: ${collation}`);
         }
+        collations.push(collation);
+        if (["ASC", "DESC"].includes(tokens[p]?.value.toUpperCase() ?? "")) p++;
+        if (tokens[p]?.value === ",") p++;
+        else if (tokens[p]?.value !== ")") throw new Error("expected index column separator");
       }
-      this.indexes.set(objName, {
-        name: objName,
-        tableName,
-        unique,
-        columns: cols,
-        sql
-      });
       if (unique) {
-        const tbl = this.findTable(tableName);
-        if (tbl && cols.length > 0) {
-          tbl.uniqueColSets.push(cols);
+        const keys: SqlValue[][] = [];
+        for (const row of tbl.rows) {
+          const key: SqlValue[] = [];
+          for (const col of cols) {
+            yield;
+            const value = row.data[col] ?? null;
+            if (value === null) break;
+            key.push(value);
+          }
+          if (key.length === cols.length) keys.push(key);
+        }
+        function* compareKeys(left: SqlValue[], right: SqlValue[]): SqlSteps<number> {
+          for (let c = 0; c < cols.length; c++) {
+            yield;
+            const order = compareSqlValues(left[c]!, right[c]!, collations[c]!);
+            if (order !== 0) return order;
+          }
+          return 0;
+        }
+        yield* stepSort(keys, compareKeys, this);
+        for (let i = 1; i < keys.length; i++) {
+          if ((yield* compareKeys(keys[i - 1]!, keys[i]!)) === 0) throw new SqliteConstraintError(`UNIQUE constraint failed: ${tbl.name}`);
         }
       }
+      this.indexes.set(objName, { name: objName, tableName: tbl.name, unique, columns: cols, collations, sql });
       return;
     }
 
@@ -3027,6 +3046,14 @@ export class SqliteDatabase {
         return { cKey: realCol ? realCol.name : colName, collate: realCol?.collate ?? "BINARY" };
       });
     }, this);
+
+    // Table constraints and indexes have independent lifetimes and collations.
+    for (const index of this.indexes.values()) {
+      yield;
+      if (index.unique && index.tableName.toLowerCase() === tbl.name.toLowerCase()) {
+        resolvedKeySets.push(index.columns.map((cKey, i) => ({ cKey, collate: index.collations?.[i] ?? tbl.columns.find(col => col.name === cKey)?.collate ?? "BINARY" })));
+      }
+    }
 
     for (const existing of tbl.rows) {
       yield;

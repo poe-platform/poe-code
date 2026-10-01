@@ -18164,10 +18164,10 @@ export class Runtime {
               break;
             }
             const execRest = context.args.slice(execIdx);
-            if (execRest.length === 0) {
+            const execCmd = execRest[0];
+            if (execCmd === undefined) {
               return { exitCode: 0 };
             }
-            const execCmd = execRest[0];
             const execArgs = execRest.slice(1);
             if (
               execCmd === "bash" ||
@@ -18177,22 +18177,22 @@ export class Runtime {
               execCmd.endsWith("/sh") ||
               execCmd.endsWith("/safe-bash")
             ) {
-              const interpName = execCmd === "sh" || execCmd.endsWith("/sh") ? "sh" : "bash";
               let cFlagIdx = -1;
               for (let k = 0; k < execArgs.length; k += 1) {
                 const a = execArgs[k];
                 if (a === "-c" || a === "-lc" || a === "-ic" || a === "-ilc" || a === "-lic") { cFlagIdx = k; break; }
               }
               if (cFlagIdx !== -1 && cFlagIdx + 1 < execArgs.length) {
-                const exitCode = await this.runCurrentText(execArgs[cFlagIdx + 1], state, { ...io, ...context }, false, "exec");
+                const exitCode = await this.runCurrentText(execArgs[cFlagIdx + 1]!, state, { ...io, ...context }, false, "exec");
                 return { exitCode };
               }
               const exitCode = await this.runCurrentText(execArgs.join(" "), state, { ...io, ...context }, false, "exec");
               return { exitCode };
             }
-            const extDef = this.getExternalCommand(execCmd);
+            const extDef = this.commands.get(execCmd);
             if (extDef) {
-              return await extDef.execute({ ...context, command: execCmd, args: execArgs });
+              const arguments_ = this.admitArguments(context.argumentValues.values.slice(execIdx + 1), allocation);
+              return await extDef.execute({ ...context, command: execCmd, args: arguments_.args, argumentValues: arguments_ });
             }
           }
           const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);

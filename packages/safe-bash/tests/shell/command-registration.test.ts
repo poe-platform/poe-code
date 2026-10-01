@@ -5,6 +5,15 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { searchCommands } from "../../src/commands/search/index.js";
 import { grepCommands } from "../../src/commands/grep/index.js";
 import { whichCommands } from "../../src/commands/which/index.js";
+import { standardCommands } from "../../src/commands/index.js";
+
+test("exec resolves registered commands with their own argument carrier", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec("exec printf '%s' hello");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "hello");
+});
 
 for (const search of [searchCommands, grepCommands]) {
   test(`${search.name} does not grant unrelated command capabilities`, async context => {

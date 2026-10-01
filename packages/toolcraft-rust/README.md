@@ -23,6 +23,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Branch validation | Discriminator selection, exclusive-union matching and branch diagnostics         |
 | Applied defaults | Canonical cloned defaults, original-schema validation and ordered diagnostics     |
 | SDK arguments    | Native casing, nested validation, defaults, aliases and JSON-schema normalization |
+| SDK              | `toolcraft-rust/sdk`: native member trees, invocation routing, streams and deferred MCP discovery |
 | Runtime wiring   | Reserved service names, injected I/O and approval runtime admission              |
 | HTTP summaries   | REST/GraphQL errors, request IDs, retry hints and redacted error envelopes         |
 | Error reports    | Secret-aware rendering, cause chains, project discovery and confined report writes |
@@ -49,6 +50,10 @@ const greet = defineCommand({
   handler: ({ params }) => `Hello, ${params.name}`
 });
 const app = defineGroup({ name: "app", children: [greet], default: greet });
+
+// Create a typed SDK with the same command and parameter inference.
+const { createSDK } = await import("toolcraft-rust/sdk");
+await createSDK(app).greet({ name: "World" });
 ```
 
 Show a source location with surrounding lines:
@@ -111,9 +116,13 @@ for validation and preserves JavaScript property descriptors and default identit
 MCP proxy policies run in Rust and connect through `tiny-mcp-client-rust`. Cached
 discovery preserves atomic writes, symlink checks and tree rollback. Node retains
 filesystem promises, abort signals and connection-promise identity.
+SDK assembly and invocation policies run in Rust, including cased member trees,
+scope filtering, runtime routing, typed MCP failures and deferred discovery retries.
+Node retains async boundaries, context objects and callback receivers. The SDK
+preserves lazy streams and awaits error-report persistence before rejecting.
 Deep graph resource limits still require compatibility qualification before a swap.
 
-The SDK, CLI, transports, approval runtime and
+The CLI, transports, approval runtime and
 remaining subpaths are not yet available. Declarations currently use the existing
 schema/design/config contract types; standalone type packaging and generic
 stream-factory interchangeability remain pending. The migration and replacement

@@ -1,7 +1,6 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
-import ts from "typescript";
 
 const path = (value) => fileURLToPath(new URL(value, import.meta.url));
 const suites = ["suggest", "runtime-logging", "redaction", "package-metadata", "source-snippet"];
@@ -21,6 +20,7 @@ export default defineConfig({
           if (resolved === path("../toolcraft/src/project-root.js")) return path("dist/project-root.js");
           if (resolved === path("../toolcraft/src/json-schema-converter.js")) return path("dist/json-schema-converter.js");
           if (resolved === path("../toolcraft/src/mcp-proxy.js")) return path("dist/mcp-proxy.js");
+          if (resolved === path("../toolcraft/src/sdk.js")) return path("dist/sdk.js");
           if (resolved === path("../toolcraft/src/human-in-loop/types.js")) return path("dist/approval-error.js");
         }
         if (importer?.startsWith(path("../toolcraft/src/")) && name === "toolcraft-schema")
@@ -30,7 +30,7 @@ export default defineConfig({
           if (name === "toolcraft-design") return path("../toolcraft-design-rust/dist/index.js");
         }
         if (
-          ["clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "error-report"].some(
+          ["clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "error-report", "sdk-validation", "sdk-runtime-options"].some(
             (suite) => importer === path(`../toolcraft/src/${suite}.test.ts`)
           ) &&
           name === "./index.js"
@@ -53,16 +53,6 @@ export default defineConfig({
           return ["./package-metadata.js", "./source-snippet.js"].includes(name)
             ? path(`dist/${name.slice(2)}`)
             : path("dist/index.js");
-      },
-      transform(code, id) {
-        if (id !== path("../toolcraft/src/sdk.ts")) return;
-        // Keep the reference SDK assembly/invocation while substituting the
-        // native argument engine. Parse declarations rather than text patterns.
-        const source = ts.createSourceFile(id, code, ts.ScriptTarget.Latest, true);
-        const removed = source.statements.filter(statement => ts.isFunctionDeclaration(statement)
-          && ["formatSegment", "validateObjectSchema"].includes(statement.name?.text));
-        for (const statement of removed.reverse()) code = code.slice(0, statement.getFullStart()) + code.slice(statement.end);
-        return `import { formatSegment, validateObjectSchema } from ${JSON.stringify(path("dist/sdk-validation.js"))};\nexport { validateObjectSchema };\n${code}`;
       }
     }
   ],
@@ -75,6 +65,8 @@ export default defineConfig({
       path("tests/error-report-parity.test.ts"),
       path("tests/json-schema-converter-parity.test.ts"),
       path("tests/mcp-proxy-parity.test.ts"),
+      path("tests/sdk-parity.test.ts"),
+      path("../toolcraft/src/human-in-loop/sdk-runtime.integration.test.ts"),
       path("../toolcraft/src/runtime/io.test.ts"),
       path("../toolcraft/src/api-error-summary.test.ts"),
       path("../toolcraft/src/error-report.test.ts"),

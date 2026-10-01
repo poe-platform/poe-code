@@ -16,6 +16,7 @@ pub mod redaction;
 pub mod runtime_policy;
 pub mod schema_members;
 pub mod schema_scope;
+pub mod sdk;
 pub mod sdk_validation;
 pub mod source_snippet;
 pub mod stream;

@@ -1,6 +1,7 @@
 import * as native from "../dist/index.js";
 import * as reference from "../../toolcraft/dist/index.js";
-import { createSDK } from "../../toolcraft/dist/sdk.js";
+import { createSDK } from "../dist/sdk.js";
+import * as referenceSDK from "../../toolcraft/dist/sdk.js";
 import { S, type AnySchema, type ObjectSchema } from "toolcraft-schema";
 
 const define: typeof reference.defineCommand = native.defineCommand;
@@ -9,6 +10,10 @@ const clone: typeof reference.cloneCommandNode = native.cloneCommandNode;
 const nativeDefine: typeof native.defineCommand = reference.defineCommand;
 const nativeGroup: typeof native.defineGroup = reference.defineGroup;
 void [define, group, clone, nativeDefine, nativeGroup];
+
+const sdkFactory: typeof referenceSDK.createSDK = createSDK;
+const referenceFactory: typeof createSDK = referenceSDK.createSDK;
+void [sdkFactory, referenceFactory];
 
 const sensitive: typeof reference.isSensitiveName = native.isSensitiveName;
 const redact: typeof reference.redactHttpBody = native.redactHttpBody;

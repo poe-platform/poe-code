@@ -336,6 +336,22 @@ and 86 native Node tests, plus Rust, declarations and lint. Proxy support remain
 internal until public SDK assembly/invocation is ported. The full approval runtime,
 CLI/transports, standalone contracts and resource-limit qualification remain open.
 
+The public `toolcraft-rust/sdk` entrypoint now uses Rust policies for startup,
+member-tree assembly, cased names, scope filtering, invocation routing, parameter
+validation, typed MCP failures and deferred discovery caching/retries. Node keeps
+object spread, callbacks, promises and host I/O. Original SDK consumers now import
+the native adapter directly; the temporary AST substitution of SDK argument
+functions has been removed. Differential coverage includes getter order, immutable
+descriptors, callback receivers, arbitrary thrown values, promise settlement order,
+lazy streams/secret refresh, params changed by async requirements, error-report
+persistence and failure precedence, shared discovery and retry, and deferred path
+errors. The original approval SDK integration suite also exercises native SDK
+invocation with the existing approval runtime. The checkpoint passes 1,500
+reference/parity tests and 94 native Node tests, plus Rust, declarations and lint.
+SDK declarations currently borrow the original generic contract; this does not
+establish standalone packaging. The full approval runtime, CLI/transports,
+remaining exports and replacement qualification remain required.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

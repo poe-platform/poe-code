@@ -53,7 +53,6 @@ import { createHostnameCommands } from "../commands/hostname/index.js";
 import { createNprocCommands } from "../commands/nproc/index.js";
 import { createShufCommands } from "../shuf.js";
 import { createYesCommands } from "../yes.js";
-import { createDdCommands } from "../dd.js";
 import { createNumfmtCommands } from "../commands/numfmt/index.js";
 import { createEnvsubstCommands } from "../commands/envsubst/index.js";
 import { createCalCommands } from "../commands/cal/index.js";
@@ -68,7 +67,7 @@ import type { RegexExecutionOptions } from "../commands/regex-execution/protocol
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
 function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "replace">; sponge?: Omit<SpongeCommandsOptions, "replace">; fd?: Omit<FdCommandsOptions, "replace">; less?: Omit<LessCommandsOptions, "replace">; sqlite3?: Omit<Sqlite3CommandsOptions, "replace"> }): readonly CommandDefinition[] {
-  return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createOpensslCommands(), ...createSshCommands(), ...createGpgCommands(), ...createFdCommands(options?.fd), ...createLessCommands(options?.less), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands(options?.sqlite3)];
+  return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createOpensslCommands(), ...createSshCommands(), ...createGpgCommands(), ...createFdCommands(options?.fd), ...createLessCommands(options?.less), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands(options?.sqlite3)];
 }
 
 export interface AgentCommandsOptions {

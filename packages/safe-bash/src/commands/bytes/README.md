@@ -1,6 +1,6 @@
 # Byte commands
 
-Eleven commands operate on byte streams through the injected virtual filesystem:
+Byte commands, including `dd`, operate on byte streams through the injected virtual filesystem:
 `base64`, `base32`, `xxd`, `od`, `sha256sum`, `sha1sum`, `md5sum`, `cksum`,
 `gzip`, `gunzip`, and `zcat`. The implementation uses Node builtins and adds no
 runtime dependencies. Production commands do not execute native utilities or

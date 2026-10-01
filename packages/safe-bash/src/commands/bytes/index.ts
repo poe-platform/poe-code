@@ -1,4 +1,5 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { createDdCommand } from "../../dd.js";
 import { createEncodingCommands } from "./encoding/index.js";
 import { createChecksumCommands } from "./checksums/index.js";
 import { createCompressionCommands } from "./compression/index.js";
@@ -18,7 +19,7 @@ export interface ByteCommandsOptions {
 }
 
 export function createByteCommands(options: Omit<ByteCommandsOptions, "replace"> = {}): readonly CommandDefinition[] {
-  return [...createEncodingCommands(options.encoding), ...createChecksumCommands(options.checksums), ...createCompressionCommands(options.compression)];
+  return [...createEncodingCommands(options.encoding), ...createChecksumCommands(options.checksums), ...createCompressionCommands(options.compression), createDdCommand()];
 }
 
 export function byteCommands(options: ByteCommandsOptions = {}): VirtualShellPlugin {

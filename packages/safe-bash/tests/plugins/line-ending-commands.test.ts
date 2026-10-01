@@ -69,12 +69,14 @@ const expectedPrefix = [
   "zstd",
   "unzstd",
   "zstdcat",
+  "dd",
   "diff",
   "patch",
   "chmod",
   "stat",
   "mktemp",
   "truncate",
+  "install",
   "tar",
   "zip",
   "unzip",
@@ -120,8 +122,8 @@ const limitNames = ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxOut
 
 test("default line-ending commands append to the independent 109-command prefix", () => {
   const names = entry.createAgentCommands().map(command => command.name);
-  assert.deepEqual(names, [...expectedPrefix, "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "dd", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"]);
-  assert.equal(new Set(names).size, 188);
+  assert.deepEqual(names, [...expectedPrefix, "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv"]);
+  assert.equal(new Set(names).size, 189);
   for (const name of ["createDos2unixCommand", "createUnix2dosCommand", "createLineEndingCommands", "lineEndingCommands"]) assert.ok(name in entry, `Missing public export: ${name}`);
 });
 

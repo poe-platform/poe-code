@@ -1,6 +1,6 @@
 # Metadata commands
 
-`metadataCommands(options?)` registers the delivered metadata commands;
+`metadataCommands(options?)` registers `chmod`, `stat`, `mktemp`, `truncate`, and `install`;
 `createMetadataCommands(options?)` returns definitions. Registration preflights
 collisions; `{ replace: true }` explicitly replaces existing definitions. This
 author increment is separate from independent verification and broad GNU parity.

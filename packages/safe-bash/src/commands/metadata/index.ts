@@ -1,5 +1,6 @@
 import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
+import { createInstallCommand } from "safe-bash-command-install";
 import { createChmodCommand } from "./chmod.js";
 import { createStatCommand } from "./stat.js";
 import { createMktempCommand } from "./mktemp.js";
@@ -9,7 +10,7 @@ export type { MetadataCommandsOptions, MetadataLimits } from "./internal.js";
 
 export function createMetadataCommands(options: MetadataCommandsOptions = {}): readonly CommandDefinition[] {
   settings(options);
-  return registerDefaultExecutors([createChmodCommand(options), createStatCommand(options), createMktempCommand(options), truncateCommand(options)], options);
+  return registerDefaultExecutors([createChmodCommand(options), createStatCommand(options), createMktempCommand(options), truncateCommand(options), createInstallCommand()], options);
 }
 
 export function metadataCommands(options: MetadataCommandsOptions = {}): VirtualShellPlugin {

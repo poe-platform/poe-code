@@ -99,6 +99,12 @@ export class Budget {
       this.assertOpen();
     });
   }
+  buffered(amount: number): void {
+    this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");
+  }
+  outputCapacity(amount: number): void {
+    this.check(this.output + amount, this.limits.maxOutputBytes, "output bytes");
+  }
   retain(amount: number): void {
     this.check(this.retained + amount, this.limits.maxBufferedBytes, "buffered bytes");
     this.retained += amount;

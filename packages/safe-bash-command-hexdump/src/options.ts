@@ -1,3 +1,4 @@
+import { parseCustom, type CustomFormat } from "./custom.js";
 import { Budget, HexdumpError, type HexdumpCommandsOptions } from "./internal.js";
 
 const usage = "usage: hexdump [-bcCdovx] [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]\n       hd      [-bcdovx]  [-e fmt] [-f fmt_file] [-n length]\n               [-s skip] [file ...]";
@@ -5,6 +6,8 @@ const usage = "usage: hexdump [-bcCdovx] [-e fmt] [-f fmt_file] [-n length]\n   
 export type Format = "default" | "C" | "b" | "c" | "d" | "o" | "x";
 
 export interface Parsed {
+  readonly ordered: readonly (Format | CustomFormat)[];
+  readonly custom: readonly CustomFormat[];
   readonly files: readonly string[];
   readonly formats: readonly Format[];
   readonly verbose: boolean;
@@ -51,7 +54,9 @@ function number(text: string, skip: boolean, dialect: HexdumpCommandsOptions["di
 export function parse(budget: Budget, name: string, dialect: HexdumpCommandsOptions["dialect"]): Parsed {
   const args = budget.arguments();
   const files: string[] = [];
+  const custom: CustomFormat[] = [];
   const formats: Format[] = name === "hd" ? ["C"] : [];
+  const ordered: (Format | CustomFormat)[] = [...formats];
   let verbose = false, ended = false, skip = 0, count = Infinity;
   for (let index = 0; index < args.length; index++) {
     const argument = args[index]!;
@@ -67,17 +72,27 @@ export function parse(budget: Budget, name: string, dialect: HexdumpCommandsOpti
       if (flag === "v") verbose = true;
       else if (flag === "C" || flag === "b" || flag === "c" || flag === "d" || flag === "o" || flag === "x") {
         if (name === "hd" && flag === "C") throw new HexdumpError(usage, true);
-        budget.check(formats.length + 1, budget.limits.maxFormats, "format count");
+        budget.check(custom.length + formats.length + 1, budget.limits.maxFormats, "format count");
         formats.push(flag);
+        ordered.push(flag);
       } else if (flag === "n" || flag === "s") {
         const parameter = argument.slice(offset + 1) || args[++index];
         if (parameter === undefined) throw new HexdumpError(`${name}: option requires an argument -- '${flag}'\n${usage}`, true);
         if (flag === "n") count = number(parameter, false, dialect);
         else skip = number(parameter, true, dialect);
         break;
-      } else if (flag === "e" || flag === "f") throw new HexdumpError(`-${flag}: custom formats are not supported`);
+      } else if (flag === "e") {
+        const parameter = argument.slice(offset + 1) || args[++index];
+        if (parameter === undefined) throw new HexdumpError("-e requires a format");
+        budget.check(custom.length + formats.length + 1, budget.limits.maxFormats, "format count");
+        const format = parseCustom(parameter, budget);
+        custom.push(format);
+        ordered.push(format);
+        break;
+      } else if (flag === "f") throw new HexdumpError("-f: format files are not supported");
       else throw new HexdumpError(`unsupported option -- '${flag}'`);
     }
   }
-  return { files, formats: formats.length ? formats : ["default"], verbose, skip, count, dialect };
+  if (ordered.length === 0) ordered.push("default");
+  return { ordered, custom, files, formats: formats.length || custom.length ? formats : ["default"], verbose, skip, count, dialect };
 }

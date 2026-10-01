@@ -4,13 +4,16 @@ import { outputFailure, type ByteSink } from "safe-bash-contracts/io";
 import { Budget, HexdumpError, settings, type HexdumpCommandsOptions, type HexdumpLimits } from "./internal.js";
 import { Lifecycle, Reader, fsDetail } from "./io.js";
 import { parse, type Parsed } from "./options.js";
+import { formatCustom } from "./custom.js";
 import { formatBlock } from "./format.js";
 
 async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promise<number> {
   if (options.count === 0) return 0;
   const { budget } = lifecycle;
-  budget.retain(32);
-  const block = new Uint8Array(16), previous = new Uint8Array(16);
+  const blockSize = Math.max(options.formats.length ? 16 : 0, ...options.custom.map(format => format.size));
+  if (blockSize === 0) return 0;
+  budget.retain(blockSize * 2);
+  const block = new Uint8Array(blockSize), previous = new Uint8Array(blockSize);
   let address = 0, used = 0, skip = options.skip, count = options.count;
   let hasPrevious = false, squeezed = false, exitCode = 0;
   let firstWrite = true, outBuf = "";
@@ -32,7 +35,11 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     if (outBuf.length >= 16384) return flushOut();
   };
   const emitAsync = async (): Promise<void> => {
-    for (const format of options.formats) {
+    for (const format of options.ordered) {
+      if (typeof format !== "string") {
+        await writeOut(await formatCustom(format, block, used, address, false, budget));
+        continue;
+      }
       budget.charge(16);
       const cp = budget.checkpointWork();
       if (cp) { await flushOut(); await cp; }
@@ -46,7 +53,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     used = 0;
   };
   const emit = (): void | Promise<void> => {
-    let same = hasPrevious && (options.dialect !== "util-linux" || used === 16);
+    let same = hasPrevious && (options.dialect !== "util-linux" || used === blockSize);
     for (let index = 0; same && index < used; index++) if (block[index] !== previous[index]) same = false;
     budget.charge(used);
     if (!options.verbose && same) {
@@ -57,7 +64,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
       used = 0;
       return p;
     }
-    if (options.formats.length === 1 && unlimitedFast && !firstWrite && currentReader?.hasBufferedBytes()) {
+    if (options.custom.length === 0 && options.formats.length === 1 && unlimitedFast && !firstWrite && currentReader?.hasBufferedBytes()) {
       budget.charge(16);
       const cp = budget.checkpointWork();
       if (!cp) {
@@ -98,22 +105,22 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
     }
     if (opened) {
       while (count > 0) {
-        if (skip === 0 && used === 0 && count >= 16 && reader.hasBufferedBytes()) {
+        if (skip === 0 && used === 0 && count >= blockSize && reader.hasBufferedBytes()) {
           const cp = budget.checkpointWork();
           if (cp) await cp;
-          if (reader.canReadBlockSync(16)) {
-            reader.readBlockSync(block, 16);
-            used = 16;
-            count -= 16;
+          if (reader.canReadBlockSync(blockSize)) {
+            reader.readBlockSync(block, blockSize);
+            used = blockSize;
+            count -= blockSize;
             const p = emit();
             if (p) await p;
             continue;
           }
         }
-        if (skip === 0 && used === 0 && count >= 16 && reader.canReadBlockSync(16)) {
-          reader.readBlockSync(block, 16);
-          used = 16;
-          count -= 16;
+        if (skip === 0 && used === 0 && count >= blockSize && reader.canReadBlockSync(blockSize)) {
+          reader.readBlockSync(block, blockSize);
+          used = blockSize;
+          count -= blockSize;
           const p = emit();
           if (p) await p;
           continue;
@@ -131,7 +138,7 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
         if (skip > 0) { skip--; address++; continue; }
         block[used++] = byte;
         count--;
-        if (used === 16) { const p = emit(); if (p) await p; }
+        if (used === blockSize) { const p = emit(); if (p) await p; }
       }
     }
     await flushOut();
@@ -140,7 +147,9 @@ async function dump(options: Parsed, lifecycle: Lifecycle, name: string): Promis
   }
   if (used) { const p = emit(); if (p) await p; }
   await flushOut();
-  if (address > 0) await lifecycle.write(address.toString(16).padStart(options.formats.at(-1) === "C" ? 8 : 7, "0") + "\n");
+  const finalFormat = options.ordered.findLast(format => typeof format === "string" || format.finalUnit !== undefined);
+  if (finalFormat && typeof finalFormat !== "string") await lifecycle.write(await formatCustom(finalFormat, block, 0, address, true, budget));
+  else if (address > 0 && finalFormat) await lifecycle.write(address.toString(16).padStart(finalFormat === "C" ? 8 : 7, "0") + "\n");
   return exitCode;
 }
 

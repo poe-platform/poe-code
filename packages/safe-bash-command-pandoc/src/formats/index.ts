@@ -12,6 +12,7 @@ import rtf from "./rtf.js";
 import epub from "./epub.js";
 import pdf from "./pdf.js";
 import docx from "./docx.js";
+import odt from "./odt.js";
 import pptx from "./pptx.js";
 import xlsx from "./xlsx.js";
 import type { FormatDescriptor } from "../formats.js";
@@ -30,6 +31,7 @@ export const coreFormats: readonly FormatDescriptor[] = [
   epub,
   pdf,
   docx,
+  odt,
   pptx,
   xlsx
 ];

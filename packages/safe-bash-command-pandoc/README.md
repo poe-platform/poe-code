@@ -29,6 +29,11 @@ content, preserves code, strikeout, superscript, subscript and quotes, and accep
 Div containers. RST writes Divs as containers and strikeout as a declared role
 with the `strikeout` CSS class. PDF uses standard Helvetica bold/oblique and Courier fonts for styled
 text and inline code by default; supplied fonts retain their explicit styling.
+ODT reads and writes headings, rich text, links, lists, simple tables, quotations,
+code, rules, sections, and embedded raster images. The CLI infers `.odt` in both
+directions; the SDK uses `from: "odt"` or `to: "odt"`. ODT preserves named text
+style inheritance and repeated table cells; table spans and unsupported drawings
+return diagnostics.
 Other unsupported blocks and inlines return diagnostics. XLSX input becomes one named
 table per sheet, retaining cached values and calculating missing formula results.
 PDF input uses semantic text, tables and image extraction.
@@ -218,7 +223,7 @@ available while the script loads. Scripts run in a fresh VM; script bytes and
 returned AST values share conversion budgets. This capability does not process
 citeproc; use the separate CSL capability above.
 
-`limits` configures optional resource budgets. EPUB and PPTX archive paths and
+`limits` configures optional resource budgets. EPUB, ODT, and PPTX archive paths and
 text metadata use `text`; binary archive metadata uses `binaryBytes`. Every exported `defaultLimits` value
 is `Infinity` (disabled); finite limits accept nonnegative safe integers, and explicit `Infinity` is accepted: `inputBytes`,
 `resourceBytes`, `outputBytes`, `nodes`, `depth`, `work`, `retainedBytes`, `text`,

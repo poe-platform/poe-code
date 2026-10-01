@@ -56,7 +56,7 @@ const cases: Record<string, string> = {
   csv: "Owned,PDF\ntext,value\n", tsv: "Owned\tPDF\ntext\tvalue\n", latex: "Owned PDF text", rst: "Owned PDF text", rtf: "{\\rtf1\\ansi Owned PDF text}"
 };
 it("accounts for every available reader-to-PDF pair", () => {
-  expect([...Object.keys(cases), "docx", "epub", "pdf", "pptx", "xlsx"].sort()).toEqual(createFormatRegistry().list("read"));
+  expect([...Object.keys(cases), "docx", "epub", "odt", "pdf", "pptx", "xlsx"].sort()).toEqual(createFormatRegistry().list("read"));
 });
 let pptxBytes: Uint8Array;
 afterAll(() => vi.restoreAllMocks());
@@ -65,11 +65,11 @@ beforeAll(async () => {
   if (pptx.kind !== "binary") throw new Error("PPTX expected");
   pptxBytes = pptx.bytes;
 });
-it.each([...Object.keys(cases), "epub", "pptx"])("converts representable %s content to mapped PDF text", async from => {
+it.each([...Object.keys(cases), "epub", "odt", "pptx"])("converts representable %s content to mapped PDF text", async from => {
   let bytes: Uint8Array;
-  if (from === "epub") {
-    const epub = await writeDocument({...document, metadata: {title: {t: "MetaString", c: "Original EPUB"}}}, {to: "epub", yes: true}, {yield: async () => {}});
-    if (epub.kind !== "binary") throw new Error("EPUB expected"); bytes = epub.bytes;
+  if (from === "epub" || from === "odt") {
+    const publication = await writeDocument(document, {to: from}, {yield: async () => {}});
+    if (publication.kind !== "binary") throw new Error("Binary publication expected"); bytes = publication.bytes;
   } else if (from === "pptx") {
     bytes = pptxBytes;
   } else bytes = encode(cases[from]!);

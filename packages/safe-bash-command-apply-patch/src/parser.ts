@@ -60,7 +60,8 @@ export async function targetPath(value: string, work: Work): Promise<string> {
 export async function parse(text: string, work: Work): Promise<PatchFile[]> {
   await work.utf8(work.cwd, work.limits.maxPathBytes, 2);
   if (!work.cwd.startsWith("/") || work.cwd.includes("\0")) throw new PatchError("cwd must be an absolute virtual path", 2);
-  const lines = await patchLines(text, work);
+  await work.charge(text.length);
+  const lines = await patchLines(text.trim(), work);
   if (lines[0] !== "*** Begin Patch" || lines.at(-1) !== "*** End Patch") throw new PatchError("expected Begin Patch and End Patch envelope", 2);
   const files: PatchFile[] = [];
   let index = 1;

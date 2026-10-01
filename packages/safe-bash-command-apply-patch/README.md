@@ -1,6 +1,6 @@
 # apply_patch
 
-Use this command with virtual files and configurable resource limits.
+Use this command with virtual files and configurable resource limits. Patch envelopes may have surrounding whitespace. Context matching prefers exact lines, then retries with trailing whitespace removed, both ends trimmed, and Unicode punctuation normalized. Unchanged context retains its original bytes.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

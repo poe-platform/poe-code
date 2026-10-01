@@ -55,3 +55,21 @@ test("apply-patch behavior works through the standalone portable factory", async
  assert.equal(result.exitCode, 0, output);
  assert.equal(output, "Success. Updated the following files:\nA /hello.txt\n");
 });
+
+for (const [original, context] of [["old  ", "old"], ["    old", "old"], ["‘old’— ", "'old'-"]]) {
+ test(`patch matching falls back for ${JSON.stringify(original)}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/file", new TextEncoder().encode(`    anchor\n${original}\n`));
+  const result = await update({}, { fs, stdin: toByteSource(`\n \n*** Begin Patch\n*** Update File: /file\n@@ anchor\n-${context}\n+new\n*** End Patch\n\n`) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "    anchor\nnew\n");
+ });
+}
+
+test("exact matches take priority over earlier whitespace matches", async () => {
+ const fs = createMemoryFileSystem();
+ await fs.writeFile("/file", new TextEncoder().encode("old  \nold\n"));
+ const result = await update({}, { fs, stdin: toByteSource("*** Begin Patch\n*** Update File: /file\n@@\n-old\n+new\n*** End Patch") });
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.equal(new TextDecoder().decode(await fs.readFile("/file")), "old  \nnew\n");
+});

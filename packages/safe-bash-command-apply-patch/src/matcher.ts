@@ -22,18 +22,43 @@ async function records(text: string, work: Work): Promise<RecordLine[]> {
   return result;
 }
 
+async function normalized(text: string, pass: number, work: Work): Promise<string> {
+  await work.charge(text.length);
+  const trimmed = pass === 1 ? text.trimEnd() : text.trim();
+  if (pass < 3) return trimmed;
+  let result = "";
+  for (const character of trimmed) {
+    work.step();
+    if ("‐‑‒–—―−".includes(character)) result += "-";
+    else if ("‘’‚‛".includes(character)) result += "'";
+    else if ("“”„‟".includes(character)) result += '"';
+    else if ("\u00a0\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000".includes(character)) result += " ";
+    else result += character;
+    if (work.due) await work.checkpoint();
+  }
+  return result;
+}
+
 async function find(lines: readonly RecordLine[], pattern: readonly string[], start: number, eof: boolean, work: Work): Promise<number> {
   const last = lines.length - pattern.length;
   const first = eof ? last : start;
   if (first < start) return -1;
-  for (let candidate = first; candidate <= last; candidate++) {
-    await work.charge(1);
-    let matched = true;
-    for (let offset = 0; offset < pattern.length; offset++) {
-      if (!await work.equal(lines[candidate + offset]!.text, pattern[offset]!)) { matched = false; break; }
+  for (let pass = 0; pass < 4; pass++) {
+    for (let candidate = first; candidate <= last; candidate++) {
+      await work.charge(1);
+      let matched = true;
+      for (let offset = 0; offset < pattern.length; offset++) {
+        let actual = lines[candidate + offset]!.text;
+        let expected = pattern[offset]!;
+        if (pass) {
+          actual = await normalized(actual, pass, work);
+          expected = await normalized(expected, pass, work);
+        }
+        if (!await work.equal(actual, expected)) { matched = false; break; }
+      }
+      if (matched) return candidate;
+      await work.checkpoint();
     }
-    if (matched) return candidate;
-    await work.checkpoint();
   }
   return -1;
 }
@@ -87,7 +112,7 @@ export async function contents(file: PatchFile, original: Uint8Array | undefined
     }
     const pattern: string[] = [];
     for (const line of hunk.lines) { work.step(); if (line.kind !== "+") pattern.push(line.text); await work.checkpoint(); }
-    const searchStart = anchorPosition !== undefined && pattern.length && await work.equal(old[anchorPosition]!.text, pattern[0]!)
+    const searchStart = anchorPosition !== undefined && pattern.length && await work.equal(await normalized(old[anchorPosition]!.text, 3, work), await normalized(pattern[0]!, 3, work))
       ? anchorPosition : cursor;
     const start = pattern.length ? await find(old, pattern, searchStart, hunk.eof, work) : hunk.eof ? old.length : cursor;
     if (start < 0) throw new PatchError(`expected context not found: ${file.label}`);

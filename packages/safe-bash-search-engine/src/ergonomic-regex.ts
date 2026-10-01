@@ -1,4 +1,5 @@
-import type { Match, Row } from "safe-bash-regex-engine/execution/protocol";
+import type { Row } from "safe-bash-regex-engine/execution/protocol";
+import type { Match } from "./matcher.js";
 import { SearchError } from "./options.js";
 
 export interface ErgonomicRegexConfig {
@@ -11,6 +12,7 @@ export interface ErgonomicRegexConfig {
   readonly nullData: boolean;
   readonly multiline?: boolean | undefined;
   readonly multilineDotall?: boolean | undefined;
+  readonly captures?: boolean;
 }
 
 export type PreparedErgonomicRegex =
@@ -39,6 +41,7 @@ type AstNode =
   | { readonly type: "assert"; readonly kind: "bol" | "eol" | "wb" | "nwb" | "bow" | "eow" }
   | { readonly type: "seq"; readonly children: readonly AstNode[] }
   | { readonly type: "alt"; readonly branches: readonly AstNode[] }
+  | { readonly type: "capture"; readonly child: AstNode; readonly index: number }
   | { readonly type: "rep"; readonly child: AstNode; readonly min: number; readonly max: number; readonly lazy: boolean };
 
 function isAsciiWordCp(cp: number): boolean {
@@ -136,6 +139,8 @@ interface ParseOutcome {
   readonly needsVm: boolean;
   readonly hasCrossLinePotential: boolean;
   readonly hasUppercaseLiteral: boolean;
+  readonly captureCount: number;
+  readonly captureNames: ReadonlyMap<string, number>;
 }
 
 const VALID_POSIX_CLASSES = new Set([
@@ -155,11 +160,15 @@ function parsePattern(
   multiline: boolean,
   dotall: boolean,
   nullData: boolean,
+  captures = false,
+  captureOffset = 0,
 ): ParseOutcome {
   let pos = 0;
   let needsVm = false;
   let hasCrossLinePotential = dotall;
   let hasUppercaseLiteral = false;
+  let captureCount = captureOffset;
+  const captureNames = new Map<string, number>();
 
   if (!multiline && pattern.includes("\n")) {
     throw new SearchError("unsupported ERE literal newline without --multiline (-U)");
@@ -343,23 +352,36 @@ function parsePattern(
         atomEre = br.ere;
       } else if (!bre && ch === "(") {
         pos++;
+        let capturing = true;
+        let name: string | undefined;
         if (pattern[pos] === "?") {
           pos++;
           if (pattern[pos] === ":") {
             pos++;
+            capturing = false;
           } else if (pattern[pos] === "=" || pattern[pos] === "!" || (pattern[pos] === "<" && (pattern[pos + 1] === "=" || pattern[pos + 1] === "!"))) {
             throw new SearchError("unsupported ERE lookaround");
+          } else if (pattern[pos] === "<" || pattern.startsWith("P<", pos)) {
+            pos += pattern[pos] === "<" ? 1 : 2;
+            const end = pattern.indexOf(">", pos);
+            name = pattern.slice(pos, end);
+            if (end < 0 || !/^[\p{L}_][\p{L}\p{N}_.[\]]*$/u.test(name) || captureNames.has(name)) {
+              throw new SearchError("invalid ERE capture name");
+            }
+            pos = end + 1;
           } else {
             throw new SearchError("unsupported ERE group syntax");
           }
         }
+        const index = capturing ? ++captureCount : 0;
+        if (name !== undefined) captureNames.set(name, index);
         const inner = parseAlternation(true);
         if (pos >= pattern.length || pattern[pos] !== ")") {
           throw new SearchError("invalid ERE: unclosed '('");
         }
         pos++;
         if (inner.node.type === "empty") needsVm = true;
-        atomNode = inner.node;
+        atomNode = captures && capturing ? { type: "capture", child: inner.node, index } : inner.node;
         atomEre = `(${inner.ere})`;
       } else if (!bre && (ch === "*" || ch === "+" || ch === "?" || ch === "{")) {
         throw new SearchError(`invalid ERE: unexpected quantifier '${ch}'`);
@@ -529,6 +551,8 @@ function parsePattern(
     needsVm,
     hasCrossLinePotential,
     hasUppercaseLiteral,
+    captureCount,
+    captureNames,
   };
 }
 
@@ -536,6 +560,7 @@ type NfaInst =
   | { readonly op: "accept" }
   | { readonly op: "jump"; readonly out: number }
   | { readonly op: "split"; readonly out1: number; readonly out2: number }
+  | { readonly op: "save"; readonly slot: number; readonly out: number }
   | { readonly op: "assert"; readonly kind: "bol" | "eol" | "wb" | "nwb" | "bow" | "eow"; readonly out: number }
   | { readonly op: "literal"; readonly cp: number; readonly insensitive: boolean; readonly out: number }
   | { readonly op: "dot"; readonly dotall: boolean; readonly nullData: boolean; readonly out: number }
@@ -562,6 +587,10 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
         return emit({ op: "class", node, out: next });
       case "assert":
         return emit({ op: "assert", kind: node.kind, out: next });
+      case "capture": {
+        const end = emit({ op: "save", slot: node.index * 2 + 1, out: next });
+        return emit({ op: "save", slot: node.index * 2, out: build(node.child, end) });
+      }
       case "seq": {
         let cur = next;
         for (let i = node.children.length - 1; i >= 0; i--) {
@@ -620,6 +649,9 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
         case "split":
           reordered.push({ op: "split", out1: inst.out1 + 1, out2: inst.out2 + 1 });
           break;
+        case "save":
+          reordered.push({ op: "save", slot: inst.slot, out: inst.out + 1 });
+          break;
         case "assert":
           reordered.push({ op: "assert", kind: inst.kind, out: inst.out + 1 });
           break;
@@ -641,58 +673,43 @@ function compileAstToNfa(root: AstNode): NfaInst[] {
 
 interface DecodedSubject {
   readonly cps: Int32Array;
-  readonly offsets: Int32Array;
+  readonly widths: Uint8Array;
   readonly length: number;
 }
 
 function decodeUtf8Subject(bytes: Uint8Array): DecodedSubject {
+  // Empty matches may start at any byte; consuming matches must step across
+  // complete UTF-8 scalars. Continuation and invalid bytes remain nonconsuming.
   const len = bytes.length;
-  let ascii = true;
-  for (let i = 0; i < len; i++) {
-    if (bytes[i]! >= 0x80) {
-      ascii = false;
-      break;
-    }
-  }
-  if (ascii) {
-    const cps = new Int32Array(len);
-    const offsets = new Int32Array(len + 1);
-    for (let i = 0; i < len; i++) {
-      cps[i] = bytes[i]!;
-      offsets[i] = i;
-    }
-    offsets[len] = len;
-    return { cps, offsets, length: len };
-  }
   const cps = new Int32Array(len);
-  const offsets = new Int32Array(len + 1);
-  let count = 0;
+  const widths = new Uint8Array(len);
+  cps.fill(-1);
+  widths.fill(1);
   let i = 0;
   while (i < len) {
-    offsets[count] = i;
     const b0 = bytes[i]!;
-    if (b0 < 0x80) {
-      cps[count++] = b0;
-      i++;
-    } else if ((b0 & 0xe0) === 0xc0 && i + 1 < len) {
-      cps[count++] = ((b0 & 0x1f) << 6) | (bytes[i + 1]! & 0x3f);
-      i += 2;
-    } else if ((b0 & 0xf0) === 0xe0 && i + 2 < len) {
-      cps[count++] = ((b0 & 0x0f) << 12) | ((bytes[i + 1]! & 0x3f) << 6) | (bytes[i + 2]! & 0x3f);
-      i += 3;
-    } else if ((b0 & 0xf8) === 0xf0 && i + 3 < len) {
-      cps[count++] = ((b0 & 0x07) << 18) | ((bytes[i + 1]! & 0x3f) << 12) | ((bytes[i + 2]! & 0x3f) << 6) | (bytes[i + 3]! & 0x3f);
-      i += 4;
-    } else {
-      cps[count++] = b0;
-      i++;
+    const width = b0 < 0x80 ? 1 : b0 >= 0xc2 && b0 <= 0xdf ? 2
+      : b0 >= 0xe0 && b0 <= 0xef ? 3 : b0 >= 0xf0 && b0 <= 0xf4 ? 4 : 0;
+    let valid = width !== 0 && i + width <= len;
+    for (let j = 1; valid && j < width; j++) {
+      const byte = bytes[i + j]!;
+      valid = byte >= 0x80 && byte <= 0xbf && !(j === 1 && (
+        b0 === 0xe0 && byte < 0xa0 || b0 === 0xed && byte >= 0xa0
+        || b0 === 0xf0 && byte < 0x90 || b0 === 0xf4 && byte >= 0x90
+      ));
     }
+    if (!valid) { i++; continue; }
+    let cp = width === 1 ? b0 : b0 & (0x7f >> width);
+    for (let j = 1; j < width; j++) cp = (cp << 6) | (bytes[i + j]! & 0x3f);
+    cps[i] = cp;
+    widths[i] = width;
+    i += width;
   }
-  offsets[count] = len;
-  return { cps, offsets, length: count };
+  return { cps, widths, length: len };
 }
 
 function extractLeadingLiteral(node: AstNode): { cp: number; insensitive: boolean } | undefined {
+  if (node.type === "capture") return extractLeadingLiteral(node.child);
   if (node.type === "literal") {
     return { cp: node.cp, insensitive: node.insensitive };
   }
@@ -716,10 +733,12 @@ export class ErgonomicVmMatcher {
   private readonly clistStarts: Int32Array;
   private readonly nlistStates: Int32Array;
   private readonly nlistStarts: Int32Array;
+  private readonly clistPositions: Int32Array;
+  private readonly nlistPositions: Int32Array;
   private readonly leadingLiteral: { cp: number; foldedCp: number; insensitive: boolean } | undefined;
   private stepStamp = 1;
 
-  constructor(rootAst: AstNode, multiline: boolean) {
+  constructor(rootAst: AstNode, multiline: boolean, private readonly captureCount = 0, private readonly captureNames: ReadonlyMap<string, number> = new Map()) {
     this.insts = compileAstToNfa(rootAst);
     this.multiline = multiline;
     const n = this.insts.length;
@@ -728,6 +747,8 @@ export class ErgonomicVmMatcher {
     this.clistStarts = new Int32Array(n);
     this.nlistStates = new Int32Array(n);
     this.nlistStarts = new Int32Array(n);
+    this.clistPositions = new Int32Array(n);
+    this.nlistPositions = new Int32Array(n);
     const lead = extractLeadingLiteral(rootAst);
     this.leadingLiteral = lead
       ? { cp: lead.cp, foldedCp: foldAsciiCp(lead.cp), insensitive: lead.insensitive }
@@ -770,60 +791,70 @@ export class ErgonomicVmMatcher {
 
   private findNext(
     subject: DecodedSubject,
-    fromCp: number,
-    minEndIfAtFrom: number,
-  ): { start: number; end: number } | undefined {
-    const { cps, length } = subject;
+    from: number,
+  ): { start: number; end: number; slots: readonly number[] | undefined } | undefined {
+    const { cps, widths, length } = subject;
     const insts = this.insts;
     const visited = this.visited;
     const clistStates = this.clistStates;
     const clistStarts = this.clistStarts;
     const nlistStates = this.nlistStates;
     const nlistStarts = this.nlistStarts;
+    const clistPositions = this.clistPositions;
+    const nlistPositions = this.nlistPositions;
     let clistLen = 0;
     let nlistLen = 0;
     const lead = this.leadingLiteral;
 
     let matchedStart = -1;
     let matchedEnd = -1;
+    let matchedSlots: readonly number[] | undefined;
+    const clistSlots: (readonly number[] | undefined)[] = [];
+    const nlistSlots: (readonly number[] | undefined)[] = [];
 
     const addThread = (
       stateId: number,
       startPos: number,
       pos: number,
       stamp: number,
+      slots?: readonly number[],
     ): boolean => {
       if (visited[stateId] === stamp) return false;
       visited[stateId] = stamp;
       const inst = insts[stateId]!;
       if (inst.op === "jump") {
-        return addThread(inst.out, startPos, pos, stamp);
+        return addThread(inst.out, startPos, pos, stamp, slots);
       }
       if (inst.op === "split") {
-        if (addThread(inst.out1, startPos, pos, stamp)) return true;
-        return addThread(inst.out2, startPos, pos, stamp);
+        if (addThread(inst.out1, startPos, pos, stamp, slots)) return true;
+        return addThread(inst.out2, startPos, pos, stamp, slots);
+      }
+      if (inst.op === "save") {
+        const saved = slots ? [...slots] : [];
+        saved[inst.slot] = pos;
+        return addThread(inst.out, startPos, pos, stamp, saved);
       }
       if (inst.op === "assert") {
         if (this.evalAssertion(inst.kind, cps, length, pos)) {
-          return addThread(inst.out, startPos, pos, stamp);
+          return addThread(inst.out, startPos, pos, stamp, slots);
         }
         return false;
       }
       if (inst.op === "accept") {
-        if (startPos === fromCp && pos < minEndIfAtFrom) {
-          return false;
-        }
         matchedStart = startPos;
         matchedEnd = pos;
+        matchedSlots = slots;
         return true;
       }
       nlistStates[nlistLen] = stateId;
       nlistStarts[nlistLen] = startPos;
+      nlistPositions[nlistLen] = pos;
+      if (this.captureCount) nlistSlots[nlistLen] = slots;
       nlistLen++;
       return false;
     };
 
-    for (let pos = fromCp; pos <= length; pos++) {
+    for (let pos = from; pos <= length; pos++) {
       if (clistLen === 0 && matchedStart < 0 && lead !== undefined && pos < length) {
         if (!lead.insensitive) {
           while (pos < length && cps[pos] !== lead.cp) pos++;
@@ -841,7 +872,15 @@ export class ErgonomicVmMatcher {
 
       let acceptedAtPos = false;
       for (let i = 0; i < clistLen; i++) {
-        if (addThread(clistStates[i]!, clistStarts[i]!, pos, stamp)) {
+        if (clistPositions[i]! > pos) {
+          nlistStates[nlistLen] = clistStates[i]!;
+          nlistStarts[nlistLen] = clistStarts[i]!;
+          nlistPositions[nlistLen] = clistPositions[i]!;
+          if (this.captureCount) nlistSlots[nlistLen] = clistSlots[i];
+          nlistLen++;
+          continue;
+        }
+        if (addThread(clistStates[i]!, clistStarts[i]!, pos, stamp, clistSlots[i])) {
           acceptedAtPos = true;
           break;
         }
@@ -852,7 +891,7 @@ export class ErgonomicVmMatcher {
       }
 
       if (matchedStart >= 0 && nlistLen === 0) {
-        return { start: matchedStart, end: matchedEnd };
+        return { start: matchedStart, end: matchedEnd, slots: matchedSlots };
       }
       if (pos === length) break;
 
@@ -863,7 +902,12 @@ export class ErgonomicVmMatcher {
         const startPos = nlistStarts[i]!;
         const inst = insts[st]!;
         let nextOut = -1;
-        if (inst.op === "literal") {
+        const pendingPosition = nlistPositions[i]!;
+        if (pendingPosition > pos) {
+          nextOut = st;
+        } else if (cp < 0) {
+          continue;
+        } else if (inst.op === "literal") {
           if (inst.insensitive ? foldAsciiCp(cp) === foldAsciiCp(inst.cp) : cp === inst.cp) nextOut = inst.out;
         } else if (inst.op === "dot") {
           if ((inst.dotall || cp !== 10) && (inst.nullData || cp !== 0)) nextOut = inst.out;
@@ -873,15 +917,17 @@ export class ErgonomicVmMatcher {
         if (nextOut >= 0) {
           clistStates[clistLen] = nextOut;
           clistStarts[clistLen] = startPos;
+          clistPositions[clistLen] = pendingPosition > pos ? pendingPosition : pos + widths[pos]!;
+          if (this.captureCount) clistSlots[clistLen] = nlistSlots[i];
           clistLen++;
         }
       }
       if (matchedStart >= 0 && clistLen === 0) {
-        return { start: matchedStart, end: matchedEnd };
+        return { start: matchedStart, end: matchedEnd, slots: matchedSlots };
       }
     }
 
-    return matchedStart >= 0 ? { start: matchedStart, end: matchedEnd } : undefined;
+    return matchedStart >= 0 ? { start: matchedStart, end: matchedEnd, slots: matchedSlots } : undefined;
   }
 
   matchBytes(bytes: Uint8Array, all: boolean): Match[] {
@@ -890,12 +936,29 @@ export class ErgonomicVmMatcher {
     let cursor = 0;
     let prevEnd = -1;
     while (cursor <= subject.length) {
-      const minEnd = cursor === prevEnd ? cursor + 1 : cursor;
-      const found = this.findNext(subject, cursor, minEnd);
+      const found = this.findNext(subject, cursor);
       if (!found) break;
+      if (found.start === found.end && found.start === prevEnd) {
+        // Skip the prioritized empty match, without trying a lower-priority
+        // alternative at the end of the preceding nonempty match.
+        cursor = found.end + 1;
+        continue;
+      }
+      const captures = this.captureCount ? new Map<string | number, Match>() : undefined;
+      if (found.slots && captures) {
+        for (let index = 1; index <= this.captureCount; index++) {
+          const start = found.slots[index * 2], end = found.slots[index * 2 + 1];
+          if (start !== undefined && end !== undefined) captures.set(index, { start, end });
+        }
+        for (const [name, index] of this.captureNames) {
+          const span = captures.get(index);
+          if (span) captures.set(name, span);
+        }
+      }
       matches.push({
-        start: subject.offsets[found.start]!,
-        end: subject.offsets[found.end]!,
+        start: found.start,
+        end: found.end,
+        ...(captures ? { captures } : {}),
       });
       if (!all) break;
       prevEnd = found.end;
@@ -933,7 +996,7 @@ export function prepareErgonomicRegex(
   patterns: readonly string[],
   config: ErgonomicRegexConfig,
 ): PreparedErgonomicRegex {
-  const cacheKey = `${config.kind}\0${config.extended ? 1 : 0}\0${config.fixed ? 1 : 0}\0${config.caseMode}\0${config.multiline ? 1 : 0}\0${config.multilineDotall ? 1 : 0}\0${config.word ? 1 : 0}\0${config.whole ? 1 : 0}\0${config.nullData ? 1 : 0}\0${patterns.join("\u0001")}`;
+  const cacheKey = JSON.stringify([config, patterns]);
   const cached = preparedRegexCache.get(cacheKey);
   if (cached !== undefined) return cached;
 
@@ -966,18 +1029,25 @@ export function prepareErgonomicRegex(
 
   const translated: string[] = [];
   const branches: AstNode[] = [];
-  let anyNeedsVm = false;
+  let anyNeedsVm = config.captures ?? false;
   let anyCrossLine = false;
+  let captureCount = 0;
+  const captureNames = new Map<string, number>();
 
   for (const pat of patterns) {
     const provisionalInsensitive = config.caseMode === "insensitive";
-    const firstParse = parsePattern(pat, bre, provisionalInsensitive, multiline, dotall, config.nullData);
+    const firstParse = parsePattern(pat, bre, provisionalInsensitive, multiline, dotall, config.nullData, config.captures, captureCount);
     const effectiveInsensitive =
       config.caseMode === "insensitive" || (config.caseMode === "smart" && !firstParse.hasUppercaseLiteral);
     const outcome =
       effectiveInsensitive !== provisionalInsensitive
-        ? parsePattern(pat, bre, effectiveInsensitive, multiline, dotall, config.nullData)
+        ? parsePattern(pat, bre, effectiveInsensitive, multiline, dotall, config.nullData, config.captures, captureCount)
         : firstParse;
+    captureCount = outcome.captureCount;
+    for (const [name, index] of outcome.captureNames) {
+      if (captureNames.has(name)) throw new SearchError("invalid ERE duplicate capture name");
+      captureNames.set(name, index);
+    }
 
     translated.push(outcome.translatedEre);
     branches.push(outcome.ast);
@@ -1001,7 +1071,7 @@ export function prepareErgonomicRegex(
     }
     result = {
       mode: "vm",
-      vm: new ErgonomicVmMatcher(root, multiline),
+      vm: new ErgonomicVmMatcher(root, multiline, config.captures ? captureCount : 0, captureNames),
       crossLine: multiline && anyCrossLine,
     };
   }

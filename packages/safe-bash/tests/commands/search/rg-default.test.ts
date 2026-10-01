@@ -66,6 +66,8 @@ for (const [command, input, output, code = 0] of [
   ["rg -i -s alpha -", "Alpha\nalpha\n", "alpha\n"],
   ["rg -r '' alpha -", "alpha alpha\n", " \n"],
   ["rg -r X alpha -", "alpha alpha\n", "X X\n"],
+  ["rg -r '$1suffix/${1}suffix' '(alpha)' -", "alpha\n", "/alphasuffix\n"],
+  ["rg -r '$word' '(?<word>alpha)' -", "alpha\n", "alpha\n"],
 ] as const) {
   test(`default rg retains oracle bytes: ${command}`, async () => {
     const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
@@ -84,6 +86,24 @@ for (const [command, input, output, code = 0] of [
     } finally { await shell.dispose(); }
   });
 }
+
+test("shell rg capture replacements agree in pipelines, substitutions and loops", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("alpha\n"));
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    for (const script of [
+      "cat /input | rg '(?<word>alpha)' -r '$word'",
+      "x=$(rg '(alpha)' -r '$1suffix/${1}suffix' /input); printf '%s\\n' \"$x\"",
+      "for i in 1 2; do rg '(?<word>alpha)' -r '$word' /input; done",
+    ]) {
+      const result = await shell.exec(script);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, script.startsWith("for ") ? "alpha\nalpha\n" : script.startsWith("x=") ? "/alphasuffix\n" : "alpha\n", script);
+    }
+  } finally { await shell.dispose(); }
+});
 
 for (const [flags, expected] of [
   ["--glob='*.txt'", "dir/a.txt:alpha\n"],
@@ -136,7 +156,7 @@ test("default rg applies dot-ignore rules and explicit files bypass size filteri
 test("rg rejects unsupported profiles and malformed new options before input", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
   try {
-    for (const command of ["rg --max-filesize=1T alpha -", "rg --threads=-1 alpha -", "rg -r '$1' alpha -"]) {
+    for (const command of ["rg --max-filesize=1T alpha -", "rg --threads=-1 alpha -"]) {
       let consumed = false;
       const stdin = (async function* () { consumed = true; yield Buffer.from("alpha\n"); })();
       const result = await shell.exec(command, { stdin });

@@ -1,8 +1,9 @@
 import { base64Text } from "safe-bash-byte-engine";
 import { bytesFrom, concatBytes } from "safe-bash-byte-engine";
 import type { Match } from "./matcher.js";
-import { SearchError, type Arguments } from "./options.js";
+import type { Arguments } from "./options.js";
 import { Limits, type Line } from "./shared.js";
+import { Replacement } from "./replacement.js";
 
 export const elapsed = Object.freeze({ secs: 0, nanos: 0, human: "0.000000s" });
 export interface Stats { elapsed: typeof elapsed; searches: number; searches_with_match: number; bytes_searched: number; bytes_printed: number; matched_lines: number; matches: number }
@@ -16,13 +17,17 @@ export class Printer {
   private lastFile: string | undefined;
   private lastLine = 0;
   private headings: Set<string> | undefined;
-  constructor(public args: Arguments, public limits: Limits) {}
+  private replacement: Replacement | undefined;
+  constructor(public args: Arguments, public limits: Limits) {
+    this.replacement = args.replacement === undefined ? undefined : new Replacement(args.replacement);
+  }
   resetForRun(args: Arguments, limits: Limits): void {
     this.args = args;
     this.limits = limits;
     this.lastFile = undefined;
     this.lastLine = 0;
     this.headings = undefined;
+    this.replacement = args.replacement === undefined ? undefined : new Replacement(args.replacement);
   }
   async event(type: string, value: unknown): Promise<void> {
     const ordered = (input: unknown): unknown => input && typeof input === "object" && !Array.isArray(input)
@@ -46,7 +51,7 @@ export class Printer {
   async binary(label: string, offset: number, filename: boolean): Promise<void> {
     await this.limits.output(`${filename ? label + ": " : ""}binary file matches (found "\\0" byte around offset ${offset})\n`);
   }
-  async record(label: string, line: Line, matches: readonly Match[], selected: boolean, filename: boolean): Promise<void> {
+  async record(label: string, line: Line, matches: readonly Match[], selected: boolean, filename: boolean, multiline = false, sourceLines = 1): Promise<void> {
     if (this.args.mode === "json") {
       await this.event(selected ? "match" : "context", {
         path: data(bytesFrom(label)), lines: data(line.rawBytes), line_number: line.number, absolute_offset: line.offset,
@@ -63,37 +68,46 @@ export class Printer {
       await this.limits.output(this.args.separator + "\n");
     }
     const pieces = this.args.onlyMatching && selected && !this.args.invert ? matches : [undefined];
+    let expandedCursor = 0, expandedOffset = 0, expandedLine = line.number;
     for (const match of pieces) {
       const separator = selected ? ":" : "-";
-      let prefix = filename && !this.args.heading ? label + (this.args.nullPath ? "\0" : separator) : "";
-      if (this.args.lineNumber) prefix += line.number + separator;
-      if (this.args.column && matches.length) prefix += (match ?? matches[0])!.start + 1 + separator;
-      if (this.args.byteOffset) prefix += (line.offset + (match?.start ?? 0)) + separator;
-      let content = match ? line.content.subarray(match.start, match.end) : line.content;
-      if (this.args.replacement !== undefined && selected && !this.args.invert) {
-        const replacement = bytesFrom(this.args.replacement);
-        if (match) content = replacement;
-        else {
-          const parts: Uint8Array[] = [];
-          let cursor = 0;
-          let size = line.content.length;
-          for (const span of matches) {
-            size += replacement.length - (span.end - span.start);
-            if (size > this.limits.maxOutputBytes) throw new SearchError("replacement output byte limit exceeded");
-            parts.push(line.content.subarray(cursor, span.start), replacement); cursor = span.end;
-          }
-          parts.push(line.content.subarray(cursor));
-          content = concatBytes(parts);
+      if (multiline && match) {
+        for (let index = expandedCursor; index < match.start; index++) {
+          if (line.content[index] === (this.args.nullData ? 0 : 10)) expandedLine++;
         }
+        expandedOffset += match.start - expandedCursor;
       }
-      if (this.args.trim) {
-        let start = 0;
-        while (start < content.length && (content[start] === 32 || content[start]! >= 9 && content[start]! <= 13)) start++;
-        content = content.subarray(start);
+      let content = match ? line.content.subarray(match.start, match.end) : line.content;
+      if (this.replacement && selected && !this.args.invert) {
+        content = this.replacement.expand(line.content, match ? [match] : matches, match !== undefined, this.limits.maxOutputBytes - this.limits.outputBytes);
       }
       const terminator = this.args.nullData ? "\0" : match && this.args.crlf ? "\r\n" : "\n";
-      await this.limits.output(concatBytes([bytesFrom(prefix), content, bytesFrom(terminator)]));
+      let start = 0, number = multiline && match ? expandedLine : line.number;
+      do {
+        const delimiter = multiline ? content.indexOf(this.args.nullData ? 0 : 10, start) : -1;
+        let chunk = content.subarray(start, delimiter < 0 ? content.length : delimiter);
+        let prefix = filename && !this.args.heading ? label + (this.args.nullPath ? "\0" : separator) : "";
+        if (this.args.lineNumber) prefix += number + separator;
+        if (this.args.column && matches.length) prefix += (multiline && match ? expandedOffset : (match ?? matches[0])!.start) + 1 + separator;
+        if (this.args.byteOffset) prefix += (line.offset + (multiline && match ? expandedOffset : match?.start ?? start)) + separator;
+        if (this.args.trim) {
+          let trim = 0;
+          while (trim < chunk.length && (chunk[trim] === 32 || chunk[trim]! >= 9 && chunk[trim]! <= 13)) trim++;
+          chunk = chunk.subarray(trim);
+        }
+        if (!multiline || !match || chunk.length > 0) {
+          await this.limits.output(concatBytes([bytesFrom(prefix), chunk, bytesFrom(terminator)]));
+        }
+        if (delimiter < 0) break;
+        start = delimiter + 1;
+        number++;
+      } while (start < content.length);
+      if (multiline && match) {
+        expandedCursor = match.end;
+        expandedOffset += content.length;
+        expandedLine = number;
+      }
     }
-    this.lastFile = label; this.lastLine = line.number;
+    this.lastFile = label; this.lastLine = line.number + sourceLines - 1;
   }
 }

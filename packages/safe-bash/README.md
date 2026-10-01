@@ -326,10 +326,12 @@ It preserves original UTF-8 byte offsets and supports case/word selection on ASC
 subjects, plus bounded ASCII globs for path and ignore filtering. Unicode case/word
 selection, Unicode regex syntax, escape extensions, lazy repetition and invalid
 UTF-8/NUL subjects require a configured regex executor; unsupported profiles fail
-explicitly. Literal replacement, trimming, file-size limits, depth aliases and
+explicitly. Replacement supports `$0`, numbered and named captures (`$1`, `${1}`,
+`$name`, `${name}`), and `$$` for a literal dollar sign. Unknown or unmatched groups
+expand to empty text. Replacement, trimming, file-size limits, depth aliases and
 explicit virtual ignore files are supported. `--threads` accepts a count while
-execution stays serial; `--multiline` admits line-compatible searches, with
-cross-line patterns still rejected by the bounded matcher.
+execution stays serial; `--multiline` supports cross-line patterns and capture
+replacement through the default portable matcher.
 
 Default `grep`, `egrep` and `fgrep` preserve arbitrary subject bytes for fixed
 matching and ASCII patterns without regex syntax, including NUL and invalid UTF-8

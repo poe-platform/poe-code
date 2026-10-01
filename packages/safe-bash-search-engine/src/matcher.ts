@@ -1,9 +1,11 @@
 import { RegexExecutionError, type RegexSession } from "safe-bash-regex-engine/execution/portable";
-import { trustedInputRows, type Match, type Row, type SearchDescriptor } from "safe-bash-regex-engine/execution/protocol";
+import { trustedInputRows, type Match as MatchRange, type Row, type SearchDescriptor } from "safe-bash-regex-engine/execution/protocol";
 import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-regex.js";
 import { SearchError, type Arguments } from "./options.js";
 
-export type { Match } from "safe-bash-regex-engine/execution/protocol";
+export interface Match extends MatchRange {
+  readonly captures?: ReadonlyMap<string | number, MatchRange>;
+}
 
 function isSimpleRgLiteralChar(c: number): boolean {
   if (c < 32 || c > 126) return false;
@@ -43,6 +45,7 @@ const DUMMY_LITERAL_DESCRIPTOR: SearchDescriptor = Object.freeze({
 export class Matcher {
   private descriptor!: SearchDescriptor;
   private vm: ErgonomicVmMatcher | undefined;
+  private captureVm: ErgonomicVmMatcher | undefined;
   crossLine!: boolean;
   literalAsciiBytes: Uint8Array | undefined;
   constructor(patterns: readonly string[], args: Arguments, private session: RegexSession, ergonomic = true, useSharedLiteralBuf = false) {
@@ -50,6 +53,7 @@ export class Matcher {
   }
   resetForRun(patterns: readonly string[], args: Arguments, session: RegexSession, ergonomic = true, useSharedLiteralBuf = false): void {
     this.session = session;
+    this.captureVm = undefined;
     if (patterns.length === 0) {
       this.literalAsciiBytes = undefined;
       this.vm = undefined;
@@ -93,7 +97,8 @@ export class Matcher {
         : { kind: "rg", patterns, fixed: true, case: "sensitive", whole: false, word: false, nullData: false };
       return;
     }
-    const prepared = ergonomic
+    const captures = args.replacement?.includes("$") ?? false;
+    const prepared = ergonomic || captures
       ? prepareErgonomicRegex(patterns, {
           kind: "rg",
           fixed: args.fixed,
@@ -103,17 +108,38 @@ export class Matcher {
           nullData: args.nullData,
           multiline: args.multiline,
           multilineDotall: args.multilineDotall,
+          captures,
         })
       : undefined;
-    if (prepared?.mode === "vm") {
+    if (prepared?.mode === "vm" && ergonomic) {
       this.vm = prepared.vm;
       this.crossLine = prepared.crossLine;
       this.descriptor = { kind: "rg", patterns: [], fixed: args.fixed, case: args.case, whole: args.whole, word: args.word, nullData: args.nullData };
     } else {
       this.vm = undefined;
+      this.captureVm = prepared?.mode === "vm" ? prepared.vm : undefined;
       this.crossLine = false;
-      this.descriptor = { kind: "rg", patterns: prepared ? [...prepared.patterns] : [...patterns], fixed: args.fixed, case: args.case, whole: args.whole, word: args.word, nullData: args.nullData };
+      this.descriptor = { kind: "rg", patterns: prepared?.mode === "delegated" && ergonomic ? [...prepared.patterns] : [...patterns], fixed: args.fixed, case: args.case, whole: args.whole, word: args.word, nullData: args.nullData };
     }
+  }
+  private attachCaptures(results: Match[][], rows: readonly Row[]): Match[][] {
+    if (!this.captureVm) return results;
+    // An injected provider remains authoritative for selection and budgets.
+    // Only annotate ranges that agree with the portable capture interpreter.
+    return results.map((matches, index) => {
+      if (matches.length === 0) return matches;
+      const row = rows[index]!;
+      const captured = this.captureVm!.matchBytes(row.bytes, row.all);
+      let cursor = 0;
+      return matches.map(match => {
+        while (cursor < captured.length && captured[cursor]!.start < match.start) cursor++;
+        const candidate = captured[cursor];
+        if (candidate?.start !== match.start || candidate.end !== match.end) {
+          throw new SearchError("regex provider match cannot be expanded with the supported capture syntax");
+        }
+        return candidate;
+      });
+    });
   }
   matchBuffer(bytes: Uint8Array, all = true): Match[] {
     if (this.vm) return this.vm.matchBytes(bytes, all);
@@ -124,8 +150,8 @@ export class Matcher {
     trustedInputRows.add(rows);
     try {
       const res = this.session.runSync(this.descriptor, rows);
-      if (!(res instanceof Promise)) return res;
-      return res.catch(error => {
+      if (!(res instanceof Promise)) return this.attachCaptures(res, rows);
+      return res.then(result => this.attachCaptures(result, rows)).catch(error => {
         if (error instanceof RegexExecutionError && error.code === "MATCH") throw new SearchError(error.message);
         throw error;
       });

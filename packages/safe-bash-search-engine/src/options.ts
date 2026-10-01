@@ -414,7 +414,6 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
       if (long && equals >= 0 && !tookValue) throw new SearchError(`--${flag} does not take a value`);
     }
   }
-  if (result.replacement?.includes("$")) throw new SearchError("replacement capture expansion is unsupported; use a literal replacement without '$'");
   if (!result.help && !result.version && result.mode !== "files" && !result.explicitPatterns) {
     if (opLen === 0) {
       patterns.length = 0;

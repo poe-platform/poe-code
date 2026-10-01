@@ -13,6 +13,10 @@ test("portable search defaults to the bounded provider", async () => {
     assert.equal(result.stdout, "alpha\nbeta\n");
     assert.equal(result.stderr, "");
     assert.equal(result.exitCode, 0);
+    const captures = await shell.exec("rg '(?<word>alpha)' -r '$word/$1/$$' /input");
+    assert.equal(captures.stdout, "alpha/alpha/$\n");
+    assert.equal(captures.stderr, "");
+    assert.equal(captures.exitCode, 0);
   } finally {
     await shell.dispose();
   }

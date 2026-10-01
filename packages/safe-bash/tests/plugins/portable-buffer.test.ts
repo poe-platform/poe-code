@@ -11,6 +11,7 @@ test("core imports and executes commands without a host Buffer", async () => {
     ...core.createStandardCommands(), ...core.createStreamFormatCommands(),
     ...core.createDiffPatchCommands(), ...core.createDuCommands(),
     ...core.createTreeCommands(), ...core.createTextProgramCommands(),
+    ...core.createSearchCommands(),
   ]) });
   try {
     for (const [script, output] of [
@@ -18,6 +19,7 @@ test("core imports and executes commands without a host Buffer", async () => {
       ["awk '{ print $1 }' /a.txt", "hello\nworld\n"],
       ["sed 's/hello/hi/' /a.txt", "hi\nworld\n"],
       ["grep hello /a.txt", "hello\n"],
+      ["rg '(?<word>hello)' -r '$word/$1/$$' /a.txt", "hello/hello/$\n"],
       ["printf hello | tr a-z A-Z", "HELLO"],
       ["printf hello | xargs echo", "hello\n"],
     ]) {

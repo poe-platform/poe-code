@@ -122,6 +122,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     "node:stream/web": platform,
     // All importers share command/value brands, regardless of local tsconfig paths.
     "safe-bash-contracts": path.join(rootDir, "packages/safe-bash-contracts/src"),
+    "safe-bash-regex-engine": path.join(rootDir, "packages/safe-bash-regex-engine/src"),
     "safe-bash-command-op": path.join(rootDir, "packages/safe-bash-command-op/src/index.ts"),
     // Pandoc prepares its portable third-party adapters in the workspace build.
     "safe-bash-command-pandoc": path.join(rootDir, "packages/safe-bash-command-pandoc/dist"),

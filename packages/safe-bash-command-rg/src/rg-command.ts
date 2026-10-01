@@ -346,6 +346,14 @@ async function patterns(context: CommandContext, args: Arguments, limits: Limits
   return patterns;
 }
 
+function relativeMatch(match: Match, offset: number): Match {
+  return {
+    start: match.start - offset,
+    end: match.end - offset,
+    ...(match.captures ? { captures: new Map([...match.captures].map(([key, span]) => [key, { start: span.start - offset, end: span.end - offset }])) } : {}),
+  };
+}
+
 async function searchFile(context: CommandContext, args: Arguments, limits: Limits, matcher: Matcher, printer: Printer, target: FileTarget, stdin: ByteSource, filename: boolean): Promise<{ found: boolean; stats: Stats }> {
   const totals = stats(); totals.searches = 1;
   if (!args.hasInfiniteMaxCount && args.maxCount === 0) return { found: false, stats: totals };
@@ -361,7 +369,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
       : await collectBytes(source, { maxBytes: limits.maxFileBytes, signal: context.signal });
     source = rawBytes;
     crossLineMatches = matcher.matchBuffer(rawBytes, true);
-    if (args.onlyMatching && !args.invert && args.mode === "lines") {
+    if (args.onlyMatching && args.replacement === undefined && !args.invert && args.mode === "lines") {
       state.bytesRead = rawBytes.length;
       state.bytesSearched = rawBytes.length;
       const selectedOutput = !args.quiet;
@@ -381,18 +389,17 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
         totals.matches++;
         if (args.quiet && !args.stats) break;
         if (selectedOutput) {
-          const rawBuf = bytesFrom(rawBytes);
           const syntheticLine: Line = {
             number: lineNum,
             offset: lineStart,
-            rawBytes: rawBuf.subarray(m.start, m.end),
+            rawBytes: rawBytes.subarray(m.start, m.end),
             rawLength: m.end - m.start,
-            content: rawBuf,
-            bytes: rawBuf,
+            content: rawBytes.subarray(lineStart),
+            bytes: rawBytes.subarray(lineStart),
             all: true,
             terminated: true,
           };
-          await printer.record(target.label, syntheticLine, [{ start: m.start, end: m.end }], true, filename);
+          await printer.record(target.label, syntheticLine, [relativeMatch(m, lineStart)], true, filename, true, endLine - lineNum + 1);
         }
       }
       if (limits.outPos > 0) await limits.flush();
@@ -410,6 +417,7 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   let begun = false;
   let binaryPrinted = false;
   let lastSelectedEnd = 0;
+  let selectedCount = 0;
   let fileOutputStart = limits.outputBytes;
   const begin = async () => {
     if (begun) return;
@@ -420,7 +428,51 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   const binaryOutput = selectedOutput && args.mode === "lines" && binary === "binary";
   const needAll = args.replacement !== undefined || args.onlyMatching || args.mode === "json" || args.mode === "matches" || args.stats === true;
   const batchSize = () => Number.isFinite(args.maxCount) || args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without" || binaryOutput && state.binaryOffset !== null ? 1 : 128;
-  const syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf) : undefined;
+  let syncBatches = source instanceof Uint8Array ? trySyncLineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf) : undefined;
+  let replacementGroups: Map<Line, { matches: Match[]; lines: number; blocks: number }> | undefined;
+  if (crossLineMatches && args.replacement !== undefined && args.mode === "lines" && !args.invert && source instanceof Uint8Array) {
+    const records = syncBatches?.flat() ?? [];
+    if (syncBatches === undefined) {
+      for await (const batch of lineBatches(source, limits, state, binary, args.nullData, batchSize, needAll, args.crlf)) records.push(...batch);
+    }
+    replacementGroups = new Map();
+    const grouped: Line[] = [];
+    let matchIndex = 0;
+    let blocks = 0;
+    for (let index = 0; index < records.length; index++) {
+      const first = records[index]!;
+      let last = first;
+      let end = last.offset + last.rawLength;
+      const matches: Match[] = [];
+      while (matchIndex < crossLineMatches.length) {
+        const match = crossLineMatches[matchIndex]!;
+        if (match.start >= end && !(match.start === end && !last.terminated)) break;
+        while (match.end > end && index + 1 < records.length) {
+          last = records[++index]!;
+          end = last.offset + last.rawLength;
+        }
+        matches.push(relativeMatch(match, first.offset));
+        matchIndex++;
+      }
+      if (matches.length === 0) { grouped.push(first); continue; }
+      const previous = grouped.at(-1);
+      const previousGroup = previous && replacementGroups.get(previous);
+      const mergePrevious = previousGroup && previous!.offset + previous!.rawLength === first.offset && blocks < args.maxCount;
+      const start = mergePrevious ? previous! : first;
+      const combinedMatches = mergePrevious ? previousGroup.matches : matches;
+      if (mergePrevious) for (const match of matches) combinedMatches.push(relativeMatch(match, previous!.offset - first.offset));
+      const bytes = source.subarray(start.offset, end);
+      const line: Line = {
+        number: start.number, offset: start.offset, rawBytes: bytes, rawLength: bytes.length,
+        content: bytes, bytes, all: true, terminated: last.terminated,
+      };
+      if (mergePrevious) { grouped.pop(); replacementGroups.delete(previous!); }
+      replacementGroups.set(line, { matches: combinedMatches, lines: last.number - start.number + 1, blocks: (mergePrevious ? previousGroup.blocks : 0) + 1 });
+      grouped.push(line);
+      blocks++;
+    }
+    syncBatches = [grouped];
+  }
   let syncIdx = 0;
   let asyncIter: AsyncIterator<Line[]> | undefined;
   let failure: { reason: unknown } | undefined;
@@ -438,6 +490,8 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
     }
     const batchRes = crossLineMatches !== undefined
       ? batch.map(line => {
+          const group = replacementGroups?.get(line);
+          if (group) return group.matches;
           const lineStart = line.offset;
           const lineEnd = line.offset + line.content.length;
           const lineMatches: Match[] = [];
@@ -462,15 +516,17 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
         await printer.binary(target.label, state.binaryOffset, filename); binaryPrinted = true; break records;
       }
       const matches = results[index]!;
+      const replacementGroup = replacementGroups?.get(line);
+      const lineCount = replacementGroup?.lines ?? 1;
       // A multiline match can be projected onto several records for printing.
       // Count its occurrence only in the record containing its original start.
-      const matchCount = crossLineMatches === undefined ? matches.length : crossLineMatches.reduce((count, match) =>
+      const matchCount = crossLineMatches === undefined || replacementGroup ? matches.length : crossLineMatches.reduce((count, match) =>
         count + Number(match.start >= line.offset && match.start <= line.offset + line.content.length), 0);
-      const limitedInvertedTail = args.invert && totals.matched_lines >= args.maxCount && after > 0 && line.rawLength === line.content.length;
+      const limitedInvertedTail = args.invert && selectedCount >= args.maxCount && after > 0 && line.rawLength === line.content.length;
       const selected = (matches.length > 0) !== args.invert || limitedInvertedTail;
       if (selected) lastSelectedEnd = line.offset + line.rawLength;
-      if (selected && totals.matched_lines < args.maxCount) {
-        totals.matched_lines++; totals.matches += args.invert ? 0 : matchCount;
+      if (selected && selectedCount < args.maxCount) {
+        selectedCount += replacementGroup?.blocks ?? 1; totals.matched_lines += lineCount; totals.matches += args.invert ? 0 : matchCount;
         if (!args.stats && (args.quiet && args.mode !== "json" || args.mode === "with" || args.mode === "without")) break records;
         if (selectedOutput) {
           await begin();
@@ -481,15 +537,15 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
           if (before) for (const previous of before) if (previous.line.number > lastPrinted) {
             await printer.record(target.label, previous.line, previous.matches, false, filename); lastPrinted = previous.line.number;
           }
-          await printer.record(target.label, line, args.invert ? [] : matches, true, filename); lastPrinted = line.number;
+          await printer.record(target.label, line, args.invert ? [] : matches, true, filename, replacementGroup !== undefined, lineCount); lastPrinted = line.number + lineCount - 1;
           after = args.after;
         }
       } else if (after && selectedOutput) {
-        if (selected) { totals.matched_lines++; totals.matches += args.invert && !limitedInvertedTail ? 0 : matchCount; }
-        await printer.record(target.label, line, matches, selected, filename); lastPrinted = line.number; after--;
+        if (selected) { selectedCount += replacementGroup?.blocks ?? 1; totals.matched_lines += lineCount; totals.matches += args.invert && !limitedInvertedTail ? 0 : matchCount; }
+        await printer.record(target.label, line, matches, selected, filename, replacementGroup !== undefined, lineCount); lastPrinted = line.number + lineCount - 1; after--;
       }
       if (binaryOutput && args.before > 0 && state.binaryOffset !== null) break records;
-      if (totals.matched_lines >= args.maxCount && (!selectedOutput || after === 0)) {
+      if (selectedCount >= args.maxCount && (!selectedOutput || after === 0)) {
         state.bytesSearched = Math.max(lastSelectedEnd, args.invert || line.rawLength === line.content.length ? line.offset : 0);
         break records;
       }
@@ -908,7 +964,7 @@ Default input depends on shell configuration.
 
   -e, --regexp=PATTERN     Add a pattern (repeatable)
   -f, --file=FILE          Read patterns from FILE
-  -r, --replace=TEXT       Replace matches with literal TEXT
+  -r, --replace=TEXT       Replace matches with text and capture references
       --trim              Trim leading ASCII whitespace
   -F, --fixed-strings      Use fixed strings
       --max-filesize=SIZE  Filter discovered files (bytes or K/M/G)

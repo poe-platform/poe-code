@@ -40,7 +40,6 @@ export function evalSyncRg(
   let onlyMatching = false;
   let wordRegexp = false;
   let lineRegexp = false;
-  let replaceSpec: string | undefined;
   let lineNumber: boolean | undefined;
   let withFilename: boolean | undefined;
   let filesWithMatches = false;
@@ -68,13 +67,10 @@ export function evalSyncRg(
       continue;
     }
     if (!endOpts && (a === "-r" || a === "--replace")) {
-      if (i + 1 >= args.length) return undefined;
-      replaceSpec = args[++i]!;
-      continue;
+      return undefined;
     }
     if (!endOpts && a.startsWith("--replace=")) {
-      replaceSpec = a.slice(10);
-      continue;
+      return undefined;
     }
     if (!endOpts && (a === "-m" || a === "--max-count")) {
       if (i + 1 >= args.length || !/^\d+$/u.test(args[i + 1]!)) return undefined;
@@ -143,13 +139,7 @@ export function evalSyncRg(
           maxCount = Number(v);
           break;
         } else if (ch === "r") {
-          const rest = a.slice(j + 1);
-          if (rest) replaceSpec = rest;
-          else {
-            if (i + 1 >= args.length) return undefined;
-            replaceSpec = args[++i]!;
-          }
-          break;
+          return undefined;
         }
         else return undefined;
       }
@@ -164,7 +154,7 @@ export function evalSyncRg(
   }
   if (patterns.length === 0) return undefined;
   if (nullTerminated && (!allowNullBytes || (!filesWithMatches && !filesWithoutMatch))) return undefined;
-  if ((onlyMatching || replaceSpec !== undefined) && (invert || countOnly || filesWithMatches || filesWithoutMatch)) return undefined;
+  if (onlyMatching && (invert || countOnly || filesWithMatches || filesWithoutMatch)) return undefined;
   const effectiveIgnoreCase = ignoreCase || (smartCase && !patterns.some(p => /[A-Z]/u.test(p)));
 
   const escapeRegex = (s: string): string => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -192,35 +182,6 @@ export function evalSyncRg(
   } catch {
     return undefined;
   }
-
-  const applyReplace = (m: RegExpExecArray): string => {
-    if (replaceSpec === undefined) return m[0]!;
-    let res = "";
-    for (let k = 0; k < replaceSpec.length; k++) {
-      if (replaceSpec[k] === "$") {
-        const nxt = replaceSpec[k + 1];
-        if (nxt === "$") { res += "$"; k++; continue; }
-        if (nxt === "0" || nxt === "&") { res += m[0] ?? ""; k++; continue; }
-        if (nxt !== undefined && nxt >= "1" && nxt <= "9") {
-          const gIdx = Number(nxt);
-          res += m[gIdx] ?? "";
-          k++;
-          continue;
-        }
-        if (nxt === "{") {
-          const close = replaceSpec.indexOf("}", k + 2);
-          if (close > k + 2) {
-            const key = replaceSpec.slice(k + 2, close);
-            res += (/^\d+$/.test(key) ? m[Number(key)] : m.groups?.[key]) ?? "";
-            k = close;
-            continue;
-          }
-        }
-      }
-      res += replaceSpec[k]!;
-    }
-    return res;
-  };
 
   const targets = paths.length > 0 ? paths : ["-"];
   const showFile = withFilename ?? (targets.length > 1);
@@ -255,25 +216,9 @@ export function evalSyncRg(
             reGlobal.lastIndex = 0;
             let m: RegExpExecArray | null;
             while ((m = reGlobal.exec(line)) !== null) {
-              outLines.push(prefix + applyReplace(m));
+              outLines.push(prefix + m[0]!);
               if (m[0]!.length === 0) reGlobal.lastIndex++;
             }
-          } else if (replaceSpec !== undefined) {
-            reGlobal.lastIndex = 0;
-            let rebuilt = "";
-            let lastEnd = 0;
-            let m: RegExpExecArray | null;
-            while ((m = reGlobal.exec(line)) !== null) {
-              rebuilt += line.slice(lastEnd, m.index) + applyReplace(m);
-              lastEnd = m.index + m[0]!.length;
-              if (m[0]!.length === 0) {
-                if (reGlobal.lastIndex < line.length) rebuilt += line[reGlobal.lastIndex]!;
-                reGlobal.lastIndex++;
-                lastEnd = reGlobal.lastIndex;
-              }
-            }
-            rebuilt += line.slice(lastEnd);
-            outLines.push(prefix + rebuilt);
           } else {
             outLines.push(prefix + line);
           }

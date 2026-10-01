@@ -17,7 +17,7 @@ export async function runDockerPythonExecutor(options: DockerPythonRunnerOptions
   const input = process.stdin;
   const output = process.stdout;
   let buffered: Uint8Array = new Uint8Array(0);
-  let limit = 16777216;
+  let limit = Infinity;
   let endpoint: PythonWorkerEndpoint | undefined;
   let unsubscribe: (() => void) | undefined;
   let retirement: Promise<void> | undefined;
@@ -53,8 +53,9 @@ export async function runDockerPythonExecutor(options: DockerPythonRunnerOptions
       return;
     }
     if (frame?.type !== 'start' || !Number.isSafeInteger(frame.maxTransferBytes) || frame.maxTransferBytes < 1 || frame.maxTransferBytes > 1048576
-      || !Number.isSafeInteger(frame.maxFrameBytes) || frame.maxFrameBytes < 65536 || frame.maxFrameBytes > 16777216) throw new PythonFailure('transport-unavailable');
-    limit = frame.maxFrameBytes;
+      || (frame.maxFrameBytes !== null && (!Number.isSafeInteger(frame.maxFrameBytes) || frame.maxFrameBytes < 65536))) throw new PythonFailure('transport-unavailable');
+    // JSON null explicitly represents an unlimited frame ceiling.
+    limit = frame.maxFrameBytes === null ? Infinity : frame.maxFrameBytes;
     const shared = new SharedArrayBuffer(8 + frame.maxTransferBytes * 6 + 65536);
     control = new Int32Array(shared, 0, 2);
     payload = new Uint8Array(shared, 8);

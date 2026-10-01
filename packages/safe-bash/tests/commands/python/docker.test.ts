@@ -172,3 +172,16 @@ for (const [code, expected] of [['EACCES', 'EACCES'], ['HOST_SECRET_CODE', 'EIO'
     } finally { await endpoint.terminate(); await pool.dispose(); }
   });
 }
+
+for (const maxFrameBytes of [undefined, Infinity, 32 * 1024 * 1024]) {
+  test(`Docker accepts optional frame ceiling ${maxFrameBytes}`, async context => {
+    const engine = fixture(context, { onStart() { engine.send({ type: 'exit', exitCode: 0, padding: 'x'.repeat(8 * 1024 * 1024) }); } });
+    const pool = await createDockerPythonExecutorPool({ ...options, ...(maxFrameBytes === undefined ? {} : { maxFrameBytes }) });
+    const endpoint = pool.createExecutor();
+    try {
+      assert.equal(await endpoint.run(start()), 0);
+      const frame = JSON.parse(engine.input.join('').trim());
+      assert.equal(frame.maxFrameBytes, maxFrameBytes === undefined || maxFrameBytes === Infinity ? null : maxFrameBytes);
+    } finally { await endpoint.terminate(); await pool.dispose(); }
+  });
+}

@@ -20,6 +20,7 @@ export interface DockerPythonExecutorOptions {
   readonly maxConcurrentExecutors: number;
   readonly temporaryBytes?: number;
   readonly controlTimeoutMs?: number;
+  /** Omitted or Infinity disables the frame-size ceiling. */
   readonly maxFrameBytes?: number;
 }
 
@@ -36,6 +37,8 @@ export async function createDockerPythonExecutorPool(options: DockerPythonExecut
   if (typeof options?.socketPath !== 'string' || !options.socketPath.startsWith('/') || options.socketPath.includes('\0')) throw new TypeError('An explicit Docker Unix socket is required');
   if (typeof options.image !== 'string' || !options.image.startsWith('sha256:') || options.image.length !== 71
     || [...options.image.slice(7)].some(character => !'0123456789abcdef'.includes(character))) throw new TypeError('An immutable Docker image ID is required');
+  const maxFrameBytes = options.maxFrameBytes ?? Infinity;
+  if (maxFrameBytes !== Infinity) boundedInteger(maxFrameBytes, 65536, Number.MAX_SAFE_INTEGER);
   const configuration = Object.freeze({
     socketPath: options.socketPath, image: options.image,
     memoryBytes: boundedInteger(options.memoryBytes, 67108864, Number.MAX_SAFE_INTEGER),
@@ -44,7 +47,7 @@ export async function createDockerPythonExecutorPool(options: DockerPythonExecut
     maxConcurrentExecutors: boundedInteger(options.maxConcurrentExecutors, 1, Number.MAX_SAFE_INTEGER),
     temporaryBytes: boundedInteger(options.temporaryBytes ?? 16777216, 1, Number.MAX_SAFE_INTEGER),
     controlTimeoutMs: boundedInteger(options.controlTimeoutMs ?? 10000, 1, 300000),
-    maxFrameBytes: boundedInteger(options.maxFrameBytes ?? 8388608, 65536, 16777216),
+    maxFrameBytes,
   });
   if (!Number.isFinite(configuration.cpus) || configuration.cpus < 0.01 || configuration.cpus > 64) throw new RangeError('Invalid Python container CPU quota');
 
@@ -251,7 +254,7 @@ export async function createDockerPythonExecutorPool(options: DockerPythonExecut
           if (started.status !== 204 && started.status !== 304) throw new PythonFailure('startup');
           if (retired || settled) return;
           await send({ type: 'start', invocation: start!.invocation, runtimeMount: start!.runtimeMount,
-            maxTransferBytes: Math.min(start!.maxTransferBytes, 65536), maxFrameBytes: configuration.maxFrameBytes,
+            maxTransferBytes: Math.min(start!.maxTransferBytes, 65536), maxFrameBytes: configuration.maxFrameBytes === Infinity ? null : configuration.maxFrameBytes,
             ...(start!.packages ? { packages: start!.packages } : {}), installOnly: !!start!.installOnly,
           }, true);
         })().catch(error => fail(error instanceof PythonFailure || start!.signal.aborted ? error : new PythonFailure('startup')));

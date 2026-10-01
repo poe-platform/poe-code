@@ -15,8 +15,8 @@ export interface PlaywrightStorageControl {
 }
 
 export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorageControl, privateTargets: { beginCreation(): PlaywrightPrivateTargetCreation }, options: { readonly timeoutMs?: number } = {}): PlaywrightStorageOriginPreparer {
-  const timeoutMs = options.timeoutMs ?? 10_000;
-  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) throw new RangeError('Invalid native storage deadline');
+  const timeoutMs = options.timeoutMs ?? Infinity;
+  if (timeoutMs !== Infinity && (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1)) throw new RangeError('Invalid native storage deadline');
   return async ({ browserContextId, origin, signal }) => {
     signal.throwIfAborted();
     if (!browserContextId || new URL(origin).origin !== origin) throw new Error('Invalid native storage target request');
@@ -154,6 +154,7 @@ export function createPlaywrightStorageOriginPreparer(control: PlaywrightStorage
 }
 
 async function withDeadline<T>(operation: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  if (timeoutMs === Infinity) return operation;
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     return await Promise.race([operation, new Promise<never>((_, reject) => {

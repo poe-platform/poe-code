@@ -131,7 +131,7 @@ function createSession(
     budget,
     budget.limits.maxExpansionBytes,
     budget.limits.maxExpansionFields,
-    ArrayLedger.createInternal(budget.limits.maxCommands ?? 10_000),
+    ArrayLedger.createInternal(budget.limits.maxCommands ?? Infinity),
     scope,
   );
   scope.setArraySession(session);

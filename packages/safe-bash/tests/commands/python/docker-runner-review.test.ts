@@ -292,3 +292,13 @@ test('review: failed retirement releases owned pipe listeners while preserving c
     assert.equal(worker.listenerCount('message'), 0);
   } finally { await engine.finish(); }
 });
+
+for (const maxFrameBytes of [null, 32 * 1024 * 1024]) {
+  test(`stdio runner accepts frame ceiling ${maxFrameBytes}`, async context => {
+    const engine = fixture(context);
+    engine.input.write(line({ ...startup, maxFrameBytes }));
+    await nextTurn();
+    assert.equal(engine.workers, 1);
+    await engine.finish();
+  });
+}

@@ -93,7 +93,7 @@ function storageControlFixture(options: { load?: boolean; staleLoad?: boolean; n
       }
       return {};
     },
-  }, { beginCreation() { return { commit() {}, fail() {}, rollback() {} }; } }, { timeoutMs: options.timeoutMs ?? 10000 });
+  }, { beginCreation() { return { commit() {}, fail() {}, rollback() {} }; } }, options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs });
   return { controller, listeners, calls, emit, resolveClose, prepare: () => prepare({ context: {} as PlaywrightContext, browserContextId: 'owned', origin: 'https://storage.example', signal: controller.signal }) };
 }
 
@@ -280,3 +280,20 @@ test('confirmed target cleanup does not downgrade a resource boundary failure', 
   assert.equal(await outcome, cause);
   assert.equal(fixture.listeners.size, 0);
 });
+
+for (const timeoutMs of [undefined, Infinity]) {
+  test(`native storage deadline is disabled for ${timeoutMs}`, async context => {
+    context.mock.timers.enable({ apis: ['setTimeout'] });
+    const fixture = storageControlFixture({ load: false, ...(timeoutMs === undefined ? {} : { timeoutMs }) });
+    const preparation = fixture.prepare();
+    await flushControlOperations();
+    context.mock.timers.tick(20_000);
+    await flushControlOperations();
+    assert.equal(fixture.calls.includes('Target.closeTarget'), false);
+    fixture.emit({ method: 'Page.loadEventFired', sessionId: 'control' });
+    const lease = await preparation;
+    const retirement = lease.release();
+    fixture.emit({ method: 'Target.targetDestroyed', params: { targetId: 'hidden' } });
+    await retirement;
+  });
+}

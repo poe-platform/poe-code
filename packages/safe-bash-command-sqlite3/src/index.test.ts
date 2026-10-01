@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { collectBytes, CommandRegistry, commandRuntimeIdentity, createBytePipe, createCommandArguments, writeText } from "safe-bash-contracts";
-import { createSqlite3Command, createSqlite3Commands, settings, type Sqlite3CommandsOptions } from "./index.js";
+import { createSqlite3Command, createSqlite3Commands, evalSyncSqlite3, settings, type Sqlite3CommandsOptions } from "./index.js";
 
 test("sqlite3 factories cannot cross runtime registries", async () => {
   const foreign = await import(new URL("../../safe-bash-contracts/src/command.ts?sqlite3-foreign-runtime", import.meta.url).href) as typeof import("safe-bash-contracts");
@@ -611,6 +611,96 @@ test("CLI CSV flag retains LF row separators", async () => {
   const result = await runSqlite3(createMemoryFileSystem(), ["-csv", ":memory:", "SELECT 1,2;"]);
   assert.equal(result.stdout, "1,2\n");
 });
+
+for (const [name, script, expected] of [
+  ["CSV to list", ".mode csv\nSELECT 1,2;\n.mode list\nSELECT 3,4;", "1,2\r\n3|4\n"],
+  ["tabs to list", ".mode tabs\nSELECT 1,2;\n.mode list\nSELECT 3,4;", "1\t2\n3|4\n"],
+  ["CSV to tabs to list", ".mode csv\nSELECT 1,2;\n.mode tabs\nSELECT 3,4;\n.mode list\nSELECT 5,6;", "1,2\r\n3\t4\r\n5|6\n"],
+  ["list resets both custom separators", ".separator : !\n.mode list\nSELECT 1,2;\n.separator @ ~\nSELECT 3,4;\n.mode list\nSELECT 5,6;", "1|2\n3@4~5|6\n"],
+  ["tabs honors separator overrides", ".mode tabs\n.separator : !\nSELECT 1,2;\n.mode list\nSELECT 3,4;", "1:2!3|4\n"],
+  ["CSV honors a pipe separator", ".mode csv\n.separator | !\nSELECT 1,2;\n.mode list\nSELECT 3,4;", "1|2!3|4\n"],
+  ["ASCII to tabs", ".mode ascii\nSELECT 1,2;\n.mode tabs\nSELECT 3,4;\n.mode list\nSELECT 5,6;", "1\x1f2\x1e3\t4\x1e5|6\n"],
+  ["ASCII honors separator overrides", ".mode ascii\n.separator : !\nSELECT 1,2;\n.mode list\nSELECT 3,4;", "1:2!3|4\n"]
+] as const) {
+  test(`sqlite3 sync and async mode separators: ${name}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:"], script);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"]), expected);
+  });
+}
+
+for (const mode of ["line", "column", "quote"]) {
+  test(`sqlite3 ${mode} mode resets the row separator in both execution paths`, async () => {
+    const script = `.separator : !\n.mode ${mode}\n.mode tabs\n.headers off\nSELECT 1,2;`;
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:"], script);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, "1\t2\n");
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"]), "1\t2\n");
+  });
+}
+
+test("sqlite3 imports typed CSV columns with affinity and retains their types after reopening", async () => {
+  const fs = createMemoryFileSystem();
+  const csv = new TextEncoder().encode('"Bob, Jr.",10,88.0,3.0e+5,4,5\n');
+  await fs.writeFile("/typed.csv", csv);
+  const script = [
+    "CREATE TABLE imp(a TEXT, b INT, c REAL, d NUMERIC, e FLOAT, f DOUBLE);",
+    ".mode csv", ".import /typed.csv imp", ".mode list",
+    "SELECT a,b,typeof(b),c,typeof(c),d,typeof(d),e,typeof(e),f,typeof(f) FROM imp;",
+    ".mode json", "SELECT * FROM imp;"
+  ].join("\n");
+  const expected = 'Bob, Jr.|10|integer|88.0|real|300000|integer|4.0|real|5.0|real\n[{"a":"Bob, Jr.","b":10,"c":88.0,"d":300000,"e":4.0,"f":5.0}]\n';
+  const result = await runSqlite3(fs, ["/typed.db"], script);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, expected);
+  const reopened = await runSqlite3(fs, ["-json", "/typed.db", "SELECT * FROM imp;"]);
+  assert.equal(reopened.code, 0, reopened.stderr);
+  assert.equal(reopened.stdout, expected.slice(expected.indexOf("[")));
+
+  const files = new Map<string, Uint8Array>([["/typed.csv", csv]]);
+  const read = (path: string) => files.get(path);
+  const write = (path: string, bytes: Uint8Array) => { files.set(path, bytes); return true; };
+  assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), ["/typed.db"], read, write), expected);
+  assert.equal(evalSyncSqlite3(undefined, ["-json", "/typed.db", "SELECT * FROM imp;"], read, write), reopened.stdout);
+});
+
+for (const [mode, separator, importOptions, data] of [
+  ["csv", "|", "", "foo|10\nbar|20\n"],
+  ["list", ":", "--csv ", "foo,10\nbar,20\n"]
+] as const) {
+  test(`sqlite3 import respects ${importOptions || mode} separators and column affinity`, async () => {
+    const fs = createMemoryFileSystem();
+    const bytes = new TextEncoder().encode(data);
+    await fs.writeFile("/rows.csv", bytes);
+    const script = `CREATE TABLE imp(a TEXT,b INT);\n.mode ${mode}\n.separator ${separator}\n.import ${importOptions}/rows.csv imp\n.mode list\nSELECT a,b,typeof(b) FROM imp;`;
+    const expected = "foo|10|integer\nbar|20|integer\n";
+    const result = await runSqlite3(fs, [":memory:"], script);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"], () => bytes), expected);
+  });
+}
+
+for (const [mode, expected] of [
+  ["-list", "88.0|4.0|5.0|real|real|real\n"],
+  ["-csv", "88.0,4.0,5.0,real,real,real\n"],
+  ["-line", "    r = 88.0\n    f = 4.0\n    d = 5.0\n   rt = real\n   ft = real\n   dt = real\n"],
+  ["-json", '[{"r":88.0,"f":4.0,"d":5.0,"rt":"real","ft":"real","dt":"real"}]\n']
+] as const) {
+  test(`sqlite3 REAL, FLOAT and DOUBLE storage classes survive ${mode} formatting and persistence`, async () => {
+    const fs = createMemoryFileSystem();
+    const select = "SELECT r,f,d,typeof(r) AS rt,typeof(f) AS ft,typeof(d) AS dt FROM t;";
+    const sql = `CREATE TABLE t(r REAL, f FLOAT, d DOUBLE); INSERT INTO t VALUES (88.0, 4, '5'); ${select}`;
+    const result = await runSqlite3(fs, [mode, "/real.db", sql]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    const reopened = await runSqlite3(fs, [mode, "/real.db", select]);
+    assert.equal(reopened.code, 0, reopened.stderr);
+    assert.equal(reopened.stdout, expected);
+    assert.equal(evalSyncSqlite3(undefined, [mode, ":memory:", sql]), expected);
+  });
+}
 
 for (const sql of [
   "WITH RECURSIVE c(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM c WHERE x<50000) SELECT count(*) FROM c;",

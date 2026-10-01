@@ -117,6 +117,46 @@ interface CliSessionState {
   exitCode: number;
 }
 
+function setOutputMode(state: CliSessionState, mode: string, argument?: string): void {
+  if (!["list", "csv", "column", "line", "json", "tabs", "html", "markdown", "box", "table", "quote", "ascii", "insert"].includes(mode)) {
+    return;
+  }
+  state.mode = mode as OutputMode;
+  switch (mode) {
+    case "list":
+      state.colSeparator = "|";
+      state.rowSeparator = "\n";
+      break;
+    case "csv":
+      state.colSeparator = ",";
+      state.rowSeparator = "\r\n";
+      break;
+    case "tabs":
+      state.colSeparator = "\t";
+      break;
+    case "ascii":
+      state.colSeparator = "\x1f";
+      state.rowSeparator = "\x1e";
+      break;
+    case "quote":
+      state.colSeparator = ",";
+      state.rowSeparator = "\n";
+      break;
+    case "line":
+    case "column":
+      state.rowSeparator = "\n";
+      break;
+    case "insert":
+      if (argument) state.insertTable = argument;
+      break;
+    case "table":
+    case "box":
+    case "markdown":
+      if (argument === undefined) state.showHeaders = true;
+      break;
+  }
+}
+
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
 
@@ -309,6 +349,8 @@ function formatQueryResult(res: QueryResultSet, state: CliSessionState): string 
   }
 
   switch (state.mode) {
+    case "tabs":
+    case "ascii":
     case "list": {
       if (!state.showHeaders && rows.length === 0) {
         return "";
@@ -323,41 +365,11 @@ function formatQueryResult(res: QueryResultSet, state: CliSessionState): string 
       return lines.map((l) => `${l}${state.rowSeparator}`).join("");
     }
 
-    case "tabs": {
-      if (!state.showHeaders && rows.length === 0) {
-        return "";
-      }
-      const lines: string[] = [];
-      if (state.showHeaders) {
-        lines.push(columns.join("\t"));
-      }
-      for (const r of rows) {
-        lines.push(r.map((v) => formatCellValue(v, state.nullValue)).join("\t"));
-      }
-      return `${lines.join("\n")}\n`;
-    }
-
-    case "ascii": {
-      if (!state.showHeaders && rows.length === 0) {
-        return "";
-      }
-      const cSep = "\x1f";
-      const rSep = "\x1e";
-      let out = "";
-      if (state.showHeaders) {
-        out += columns.join(cSep) + rSep;
-      }
-      for (const r of rows) {
-        out += r.map((v) => formatCellValue(v, state.nullValue)).join(cSep) + rSep;
-      }
-      return out;
-    }
-
     case "csv": {
       if (!state.showHeaders && rows.length === 0) {
         return "";
       }
-      const sep = state.colSeparator === "|" ? "," : state.colSeparator;
+      const sep = state.colSeparator;
       const lines: string[] = [];
       if (state.showHeaders) {
         lines.push(columns.map((c) => formatCsvCell(c, sep)).join(sep));
@@ -741,10 +753,13 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         state.mode = "quote";
       } else if (arg === "-tabs" || arg === "--tabs") {
         state.mode = "tabs";
+        state.colSeparator = "\t";
       } else if (arg === "-html" || arg === "--html") {
         state.mode = "html";
       } else if (arg === "-ascii" || arg === "--ascii") {
         state.mode = "ascii";
+        state.colSeparator = "\x1f";
+        state.rowSeparator = "\x1e";
       } else if (arg === "-header" || arg === "--header") {
         state.showHeaders = true;
       } else if (arg === "-noheader" || arg === "--noheader") {
@@ -960,39 +975,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
 
       if (cmd === ".mode") {
-        const newMode = (parts[1] ?? "list").toLowerCase();
-        if (
-          [
-            "list",
-            "csv",
-            "column",
-            "line",
-            "json",
-            "tabs",
-            "html",
-            "markdown",
-            "box",
-            "table",
-            "quote",
-            "ascii",
-            "insert"
-          ].includes(newMode)
-        ) {
-          state.mode = newMode as OutputMode;
-          if (newMode === "list") {
-            state.colSeparator = "|";
-            state.rowSeparator = "\n";
-          } else if (newMode === "csv") {
-            state.colSeparator = ",";
-            state.rowSeparator = "\r\n";
-          } else if (newMode === "tabs") {
-            state.colSeparator = "\t";
-          } else if (newMode === "insert" && parts[2]) {
-            state.insertTable = parts[2];
-          } else if (["table", "box", "markdown"].includes(newMode) && parts[2] === undefined) {
-            state.showHeaders = true;
-          }
-        }
+        setOutputMode(state, (parts[1] ?? "list").toLowerCase(), parts[2]);
         return;
       }
 
@@ -1262,7 +1245,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
         const tableArg = parts[pIdx + 1] ?? "";
         const filePath = resolveVfsPath(context.cwd, fileArg);
         const content = textDecoder.decode(await readInputFile(filePath));
-        const sep = csvOverride || state.mode === "csv" ? (state.colSeparator === "|" ? "," : state.colSeparator) : state.colSeparator;
+        const sep = csvOverride ? "," : state.colSeparator;
         const parsedRows = parseCsvContent(content, sep).slice(skipRows);
         if (parsedRows.length === 0) {
           return;
@@ -1639,10 +1622,13 @@ export function evalSyncSqlite3(
         state.mode = "quote";
       } else if (arg === "-tabs" || arg === "--tabs") {
         state.mode = "tabs";
+        state.colSeparator = "\t";
       } else if (arg === "-html" || arg === "--html") {
         state.mode = "html";
       } else if (arg === "-ascii" || arg === "--ascii") {
         state.mode = "ascii";
+        state.colSeparator = "\x1f";
+        state.rowSeparator = "\x1e";
       } else if (arg === "-header" || arg === "--header") {
         state.showHeaders = true;
       } else if (arg === "-noheader" || arg === "--noheader") {
@@ -1714,15 +1700,7 @@ export function evalSyncSqlite3(
         return state.exitCode === 0;
       }
       if (cmd === ".mode") {
-        const newMode = (parts[1] ?? "list").toLowerCase();
-        if (["list","csv","column","line","json","tabs","html","markdown","box","table","quote","ascii","insert"].includes(newMode)) {
-          state.mode = newMode as OutputMode;
-          if (newMode === "list") state.colSeparator = "|";
-          else if (newMode === "csv") state.colSeparator = ",";
-          else if (newMode === "tabs") state.colSeparator = "\t";
-          else if (newMode === "insert" && parts[2]) state.insertTable = parts[2];
-          else if (["table", "box", "markdown"].includes(newMode) && parts[2] === undefined) state.showHeaders = true;
-        }
+        setOutputMode(state, (parts[1] ?? "list").toLowerCase(), parts[2]);
         return true;
       }
       if (cmd === ".headers" || cmd === ".header") {
@@ -1901,7 +1879,7 @@ export function evalSyncSqlite3(
         const fileBytes = readFileSync(fileArg);
         if (!fileBytes || fileBytes.byteLength > 65536) return false;
         const content = textDecoder.decode(fileBytes);
-        const sep = csvOverride || state.mode === "csv" ? (state.colSeparator === "|" ? "," : state.colSeparator) : state.colSeparator;
+        const sep = csvOverride ? "," : state.colSeparator;
         const parsedRows = parseCsvContent(content, sep).slice(skipRows);
         if (parsedRows.length === 0) return true;
         let tbl = db.findTable(tableArg);

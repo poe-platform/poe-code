@@ -269,25 +269,31 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
     if (++contentNodes > maxContentNodes) throw new XmlLimitError("maxContentNodes", "XML content node limit exceeded");
   };
   let pendingWork = 0;
-  const skipWhitespace = (): number => {
+  const skipWhitespace = function* (): Generator<number, number> {
     const start = offset;
     while (offset < source.length) {
       const c = source.charCodeAt(offset);
       if (c !== 32 && c !== 9 && c !== 10 && c !== 13) break;
       offset++;
+      pendingWork++;
+      if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
     }
     return offset - start;
   };
-  const scanName = (): [string, string, string, number] => {
+  const scanName = function* (): Generator<number, [string, string, string]> {
     const start = offset;
     while (offset < source.length) {
       const c = source.charCodeAt(offset);
       if (c === 32 || c === 9 || c === 13 || c === 10 || c === 47 || c === 61 || c === 62 || c === 63) break;
       offset++;
+      pendingWork++;
+      if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
     }
     const name = source.slice(start, offset);
+    pendingWork += offset - start;
+    while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
     const [prefix, localName] = qualifiedNameSync(name, qualifiedNames);
-    return [name, prefix, localName, (offset - start) * 2];
+    return [name, prefix, localName];
   };
   while (offset < source.length) {
     pendingWork += 1;
@@ -313,10 +319,11 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         }
       } else {
         for (let index = 0; index < resolved.length; index++) {
+          pendingWork++;
+          if (pendingWork >= 512) { yield 512; pendingWork -= 512; }
           const c = resolved.charCodeAt(index);
           if (c !== 32 && c !== 9 && c !== 13 && c !== 10) invalid("text outside the root");
         }
-        pendingWork += resolved.length;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         if (resolved.length) {
           admitContent();
@@ -349,8 +356,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
     } else if (source.startsWith("<?", offset)) {
       const start = offset;
       offset += 2;
-      const [target, , , wName] = scanName();
-      pendingWork += wName;
+      const [target] = yield* scanName();
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       const end = yield* find(source, "?>", offset);
       if (end < 0) invalid("unterminated processing instruction");
@@ -380,8 +386,8 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       invalid("DTD and entity declarations are forbidden");
     } else if (source.charCodeAt(offset + 1) === 47) {
       offset += 2;
-      const [name, , , wName] = scanName();
-      pendingWork += wName + skipWhitespace();
+      const [name] = yield* scanName();
+      yield* skipWhitespace();
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       if (source[offset++] !== ">" || stack.pop()?.name !== name) {
         if (!limits.recover) invalid("mismatched closing tag");
@@ -390,33 +396,31 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
     } else {
       offset++;
       const repeated = previousEmpty && source.startsWith(previousEmpty.suffix, offset) ? previousEmpty : undefined;
-      const [name, prefix, localName, wName]: [string, string, string, number] = repeated
-        ? [repeated.name, repeated.prefix, repeated.localName, repeated.name.length * 2]
-        : scanName();
+      const [name, prefix, localName]: [string, string, string] = repeated
+        ? [repeated.name, repeated.prefix, repeated.localName]
+        : (yield* scanName());
       if (repeated) offset += name.length;
       // Preserve scan/validation work while reusing the admitted spelling.
-      pendingWork += wName;
+      if (repeated) pendingWork += name.length * 2;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       let attributes: Map<string, string> | undefined;
       const attrMeta: [string, string, string][] = [];
       let namespaces = stack.at(-1)?.namespaces ?? new Map([["xml", xmlNamespace]]);
       let ownsNamespaces = stack.length === 0;
       while (!repeated) {
-        const ws = skipWhitespace();
-        pendingWork += ws;
+        const ws = (yield* skipWhitespace());
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         const ch = source.charCodeAt(offset);
         if (ch === 47 || ch === 62 || limits.recover && offset === source.length) break;
         if (ws === 0) invalid("attributes require whitespace");
-        const [attribute, attrPrefix, attrLocal, wAttr] = scanName();
-        pendingWork += wAttr;
+        const [attribute, attrPrefix, attrLocal] = yield* scanName();
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         if (attributes?.has(attribute)) invalid("duplicate attribute");
         if (++attributeCount > maxAttributes) throw new XmlLimitError("maxAttributes", "XML attribute limit exceeded");
         if ((attributes?.size ?? 0) >= maxAttributesPerElement) throw new XmlLimitError("maxAttributesPerElement", "XML attribute limit exceeded");
-        pendingWork += skipWhitespace();
+        yield* skipWhitespace();
         if (source[offset++] !== "=") invalid("missing attribute equals");
-        pendingWork += skipWhitespace();
+        yield* skipWhitespace();
         const quote = source[offset++];
         if (quote !== '"' && quote !== "'") invalid("unquoted attribute");
         const end = source.indexOf(quote, offset);

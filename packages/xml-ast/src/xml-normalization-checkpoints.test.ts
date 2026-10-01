@@ -109,3 +109,24 @@ it(`XML normalization keeps dense line endings and checkpoints; ending=${JSON.st
   expect(result.value.text).toBe("\n".repeat(count));
   expect(memory.readFileSync("/input", "utf8")).toBe(source);
 });
+
+for (const source of [
+  `<${"x".repeat(8192)}:/>`,
+  `<r a${" ".repeat(8192)}!/>`,
+  `<r a=${" ".repeat(8192)}!/>`,
+]) it("yields scanned work before rejecting a long malformed token", () => {
+  const parser = parseXmlSteps(source);
+  let work = 0;
+  expect(() => {
+    for (const step of parser) work += step;
+  }).toThrow(SyntaxError);
+  // Input normalization alone is insufficient: scanning must be charged too.
+  expect(work).toBeGreaterThan(source.length + 7000);
+});
+
+it("charges outside-root whitespace validation before rejecting trailing text", () => {
+  const source = " ".repeat(8192) + "!";
+  let work = 0;
+  expect(() => { for (const step of parseXmlSteps(source)) work += step; }).toThrow("text outside the root");
+  expect(work).toBeGreaterThan(source.length * 3 + 7000);
+});

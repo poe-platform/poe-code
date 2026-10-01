@@ -4,7 +4,7 @@ import { createBufferedOutput, FsError, type ByteSource, type CommandContext, ty
 import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
-import { hasYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
+import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
 import { RecordBuffer } from "./record-buffer.js";
 import { SortRecordBudget } from "./sort-admission.js";
 import { compareObservedEntries } from "./copy-identity.js";
@@ -2095,6 +2095,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
 export function textCommands(): CommandDefinition[] {
   return [
     define("sort", context => {
+      runYieldCheckpoint(context.signal);
       const collator = sortCollator(context.env);
       if (collator) return executeSortGeneral(context, undefined, collator);
       if (
@@ -2360,6 +2361,7 @@ export function textCommands(): CommandDefinition[] {
       return executeUniqGeneral(context);
     }),
     define("cut", context => {
+      runYieldCheckpoint(context.signal);
       if (!hasYieldCheckpoint(context.signal)) {
         const args = context.args;
         let sepByte = 9;

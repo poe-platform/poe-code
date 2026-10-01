@@ -34,6 +34,16 @@ for (const args of [[], ["-r"], ["-k1,1n"]]) {
   }
 }
 
+test("sort owns a repeated large first chunk before a scratch producer overwrites it", async () => {
+  const first = "z\n".repeat(128);
+  const warmup = await run("sort", [], { stdin: borrowedInput(Buffer.from(first), 256, true) });
+  assert.equal(warmup.exitCode, 0, warmup.stderr);
+  assert.equal(warmup.stdout, first);
+  const result = await run("sort", [], { stdin: borrowedInput(Buffer.from(first + "a\n".repeat(128)), 256, true) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "a\n".repeat(128) + first);
+});
+
 test("sort owns borrowed stdin when input exceeds the indexed fast-path size", async () => {
   const longRecord = "2 " + "b".repeat(65536) + "\n";
   const result = await run("sort", [], { stdin: borrowedInput(Buffer.from(longRecord + "1 a\n"), 16384) });

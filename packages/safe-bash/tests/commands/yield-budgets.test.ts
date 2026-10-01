@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { run } from "./helpers.js";
 import type { CommandContext } from "../../src/contracts/index.js";
 import { registerInternalYieldCheckpoint, registerYieldCheckpoint } from "../../src/contracts/yield.js";
 import { Session, settings as streamSettings } from "../../src/commands/stream-format/shared.js";
@@ -123,6 +124,24 @@ test("array synchronous checkpoints stop before every host-turn boundary", async
     await ledger.checkpoint();
   }
 });
+
+for (const [command, args, expected] of [
+  ["tr", ["b", "c"], "c:a\n".repeat(128)],
+  ["cut", ["-d:", "-f2"], "a\n".repeat(128)],
+  ["sort", [], "b:a\n".repeat(128)],
+] as const) {
+  test(`${command} honors checkpoints on repeated large single-chunk input`, async () => {
+    for (let invocation = 0; invocation < 2; invocation++) {
+      const controller = new AbortController();
+      let checkpoints = 0;
+      registerYieldCheckpoint(controller.signal, async () => { checkpoints++; });
+      const result = await run(command, args, { stdin: "b:a\n".repeat(128), signal: controller.signal });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+      assert.ok(checkpoints > 0, "each invocation must reach its checkpoint");
+    }
+  });
+}
 
 for (const [name, command, args, chunks] of [
   ["dd", createDdCommand(), ["bs=1", "status=none"], [Buffer.alloc(8)]],

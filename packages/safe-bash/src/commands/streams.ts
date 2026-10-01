@@ -1,4 +1,4 @@
-import { hasYieldCheckpoint } from "../contracts/yield.js";
+import { hasYieldCheckpoint, runYieldCheckpoint } from "../contracts/yield.js";
 const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
 const SINGLE_STDIN_OPERAND: readonly string[] = ["-"];
 import { collectBytes, createBufferedOutput, createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
@@ -887,6 +887,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
       }
     }),
     define("tr", context => {
+      runYieldCheckpoint(context.signal);
       const { deleting, squeezing, mapping, removed, squeezed } = compileTrConfig(context.args);
       let previous = -1;
       const iter = input(context)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {

@@ -10,3 +10,12 @@ export function readSqliteVarint(bytes: Uint8Array, start: number): { value: big
   }
   throw new FsError('EIO', { message: 'Invalid SQLite varint' });
 }
+
+export function writeSqliteVarint(value: bigint): Uint8Array {
+  if (value < 0n || value > 0xffffffffffffffffn) throw new RangeError('SQLite varint out of range');
+  const bytes: number[] = [];
+  if (value > 0x00ffffffffffffffn) { bytes.unshift(Number(value & 255n)); value >>= 8n; }
+  while (value > 127n) { bytes.unshift(Number(value & 127n) | (bytes.length ? 128 : 0)); value >>= 7n; }
+  bytes.unshift(Number(value) | (bytes.length ? 128 : 0));
+  return Uint8Array.from(bytes);
+}

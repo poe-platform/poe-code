@@ -31,5 +31,12 @@
   "devDependencies": {
     "@poe-code/safe-fs": "*",
     "safe-bash-contracts": "*"
+  },
+  "poeCode": {
+    "packageLint": {
+      "sourceExclude": [
+        "src/shell.integration.ts"
+      ]
+    }
   }
 }

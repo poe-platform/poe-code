@@ -16,8 +16,8 @@
   },
   "artifacts": {
     "native.mjs": {
-      "bytes": 111863,
-      "sha256": "1376b2dc6edebbdded8074eaf166e927d46bd8bfd809e355dd90af2b804a3bb9"
+      "bytes": 111856,
+      "sha256": "8d31afbd5df26fa778bc97444fec6bf4732b23991658242ac31576cac85df8b3"
     },
     "native.wasm": {
       "bytes": 2256849,

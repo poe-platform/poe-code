@@ -37,6 +37,7 @@
       "worker": "./dist/worker-assets.js",
       "browser": "./dist/worker-assets.js",
       "default": "./dist/native/node-assets.mjs"
-    }
+    },
+    "#sqlite-native": "./dist/native/native.mjs"
   }
 }

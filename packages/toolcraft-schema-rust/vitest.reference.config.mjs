@@ -16,6 +16,7 @@ export default defineConfig({
           return path("dist/host-values.js");
         if (name === "./clone-default.js") return path("dist/host-values.js");
         if (name === "./json.js") return path("dist/host-values.js");
+        if (name === "./normalize-nullability.js") return path("dist/compiler.js");
       }
     }
   ],
@@ -39,7 +40,10 @@ export default defineConfig({
       "discriminator-metadata",
       "json-schema-document",
       "nullable-json-schema",
-      "json-schema/properties"
+      "json-schema/properties",
+      "json-schema/index",
+      "json-schema/custom-formats",
+      "json-schema/normalize-nullability"
     ].map((suite) => path(`../toolcraft-schema/src/${suite}.test.ts`)),
     environment: "node",
     fileParallelism: false,

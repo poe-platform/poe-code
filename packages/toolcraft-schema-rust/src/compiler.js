@@ -33,7 +33,12 @@ function createCompiler(schema, options) {
   for (const [name, descriptor] of Object.entries(descriptors)) {
     if (name !== "formats") Object.defineProperty(nativeOptions, name, descriptor);
   }
-  const compiled = new NativeCompiledSchema(schema, nativeOptions);
+  const compiled = new NativeCompiledSchema(schema, nativeOptions, (source) => {
+    // Matching stays native. Rejected patterns use the caller engine's exact
+    // SyntaxError wording, including lossless UTF-16 and engine version details.
+    // Valid but unsupported syntax returns to the native capability diagnostic.
+    new RegExp(source, "u");
+  });
   const thrownValues = new WeakMap();
   const checkFormat =
     formats.size === 0

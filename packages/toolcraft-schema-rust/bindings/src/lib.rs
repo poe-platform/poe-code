@@ -56,7 +56,12 @@ impl FormatValidator for Formats<'_> {
 #[napi]
 impl NativeCompiledSchema {
     #[napi(constructor)]
-    pub fn new(env: Env, schema: Unknown<'_>, options: Option<Unknown<'_>>) -> Result<Self> {
+    pub fn new(
+        env: Env,
+        schema: Unknown<'_>,
+        options: Option<Unknown<'_>>,
+        diagnose_pattern: Option<Function<'_, Utf16String, Unknown<'_>>>,
+    ) -> Result<Self> {
         let value = input::read(&env, schema, input::Mode::Json)?
             .ok_or_else(|| Error::from_reason("JSON Schema must be a boolean or object."))?;
         let options = options
@@ -71,10 +76,16 @@ impl NativeCompiledSchema {
             None => Vec::new(),
             _ => return Err(Error::from_reason("registry must be an object.")),
         };
-        Ok(Self {
-            schema: CompiledSchema::compile(value, CompileOptions { registry })
-                .map_err(Error::from_reason)?,
-        })
+        let schema =
+            CompiledSchema::compile(value, CompileOptions { registry }).map_err(|error| {
+                if let (Some(source), Some(diagnose)) = (error.pattern, diagnose_pattern)
+                    && let Err(syntax_error) = diagnose.call(source.into())
+                {
+                    return syntax_error;
+                }
+                Error::from_reason(error.message)
+            })?;
+        Ok(Self { schema })
     }
 
     #[napi(

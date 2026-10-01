@@ -147,7 +147,10 @@ custom map results, option enumeration, native documents, exception identity and
 cyclic/deep conversion. Synchronous union-map conversion callbacks have a separate
 128-entry reentrancy guard, also requiring resource-boundary qualification.
 All 18 selected original top-level schema suites run through the native public
-entry point. The general compiler-internal suites remain pending.
+entry point. The compiler's index, custom-format and nullability suites also
+resolve to native implementations. The original external JSON Schema fixture
+harness still requires qualification; the separate native fixture harness does
+not establish that original-suite gate.
 Schema declarations are standalone, and all six original compile-check fixtures
 resolve to the built native declarations with a guard against fallback imports.
 Installed-tarball and complete compiler compatibility gates remain open.
@@ -163,6 +166,13 @@ arbitrary format-callback throws, including null, undefined and symbols. Every
 current runtime schema export is present; that export inventory does not prove
 complete compiler semantics. Projection resource budgets and the existing compiler
 ingress/pattern/URI limitations still require replacement qualification.
+
+Native compilation errors now retain a rejected pattern's UTF-16 source. The
+Node adapter uses it to reproduce engine-specific SyntaxError class and wording
+after native rejection, including lone-surrogate diagnostics. Successful matching
+remains native, and valid unsupported features keep explicit capability errors.
+This diagnostic adapter is an intentional host dependency; it is not a claim of
+complete independent ECMAScript pattern grammar coverage.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

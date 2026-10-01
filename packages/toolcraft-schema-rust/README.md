@@ -110,6 +110,9 @@ word boundaries and Unicode general categories using bundled Unicode 17 data.
 Pattern compilation, evaluation work and retained matcher states are bounded.
 Backreferences, lookbehind, named groups, script properties and most binary
 Unicode properties remain pending and fail explicitly at compilation.
+Rejected patterns retain their UTF-16 source so the Node adapter can reproduce
+the caller engine's `SyntaxError` details. Valid unsupported patterns keep the
+native capability diagnostic; pattern matching does not delegate to the host.
 
 Register formats with `compileJsonSchema(schema, { formats: { name: value => boolean } })`.
 Only `true` accepts a string; other instance types skip format checks. Callbacks

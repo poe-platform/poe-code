@@ -27,7 +27,7 @@ const TYPES: [&str; 7] = [
 ];
 
 impl CompiledSchema {
-    pub fn compile(schema: Value, options: CompileOptions) -> Result<Self, String> {
+    pub fn compile(schema: Value, options: CompileOptions) -> Result<Self, CompileError> {
         let mut builder = Builder::new(options)?;
         builder.document(schema, Dialect::Modern, "https://toolcraft.invalid/root", 0)?;
         let registry = std::mem::take(&mut builder.registry);
@@ -38,7 +38,7 @@ impl CompiledSchema {
                 builder.document(schema.clone(), dialect, uri, document)?;
             }
         }
-        builder.finish()
+        builder.finish().map_err(Into::into)
     }
 }
 
@@ -109,7 +109,7 @@ impl Builder {
         dialect: Dialect,
         retrieval_uri: &str,
         document: usize,
-    ) -> Result<(), String> {
+    ) -> Result<(), CompileError> {
         let base_uri: Arc<str> =
             uri::resolve(retrieval_uri, "https://toolcraft.invalid/root")?.into();
         let root = self.scan(
@@ -131,7 +131,7 @@ impl Builder {
         Ok(())
     }
 
-    fn scan(&mut self, schema: Value, scope: Scope, depth: usize) -> Result<usize, String> {
+    fn scan(&mut self, schema: Value, scope: Scope, depth: usize) -> Result<usize, CompileError> {
         if depth > 128 || self.nodes.len() >= 262_144 {
             return Err("Schema resource limit exceeded".into());
         }
@@ -245,15 +245,23 @@ impl Builder {
         } else {
             scope.validation_vocabulary
         };
+        let compile_pattern = |source: &Vec<u16>| {
+            pattern::Pattern::compile(source).map_err(|message| CompileError {
+                pattern: (message.starts_with("Invalid pattern:")
+                    || message.starts_with("Pattern feature not yet implemented:"))
+                .then(|| source.clone()),
+                message,
+            })
+        };
         let pattern = match schema.get("pattern") {
-            Some(Value::String(source)) => Some(pattern::Pattern::compile(source)?),
+            Some(Value::String(source)) => Some(compile_pattern(source)?),
             _ => None,
         };
         let property_patterns = match schema.get("patternProperties") {
             Some(Value::Object(entries)) => entries
                 .iter()
-                .map(|(source, _)| Ok((source.clone(), pattern::Pattern::compile(source)?)))
-                .collect::<Result<Vec<_>, String>>()?,
+                .map(|(source, _)| Ok((source.clone(), compile_pattern(source)?)))
+                .collect::<Result<Vec<_>, CompileError>>()?,
             _ => Vec::new(),
         };
         self.nodes.push(Node {

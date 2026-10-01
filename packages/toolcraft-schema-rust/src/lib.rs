@@ -19,6 +19,33 @@ pub struct CompileOptions {
     pub registry: Vec<(String, Value)>,
 }
 
+#[derive(Debug)]
+pub struct CompileError {
+    pub message: String,
+    /// A rejected pattern, retained losslessly for host syntax diagnostics.
+    pub pattern: Option<Vec<u16>>,
+}
+
+impl From<String> for CompileError {
+    fn from(message: String) -> Self {
+        Self {
+            message,
+            pattern: None,
+        }
+    }
+}
+impl From<&str> for CompileError {
+    fn from(message: &str) -> Self {
+        Self::from(message.to_owned())
+    }
+}
+impl std::fmt::Display for CompileError {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.message)
+    }
+}
+impl std::error::Error for CompileError {}
+
 pub trait FormatValidator {
     /// None leaves an unregistered format as an annotation.
     fn check(&mut self, name: &[u16], value: &[u16]) -> Result<Option<bool>, String>;

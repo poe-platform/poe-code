@@ -1,13 +1,7 @@
 import assert from "node:assert/strict";
-import {
-	acquire,
-	type BrowserWorker,
-	connect,
-	type Page,
-} from "@cloudflare/playwright";
+import type { BrowserWorker, Page } from "@cloudflare/playwright";
 import { createPlaywrightController } from "@poe-platform/safe-bash/playwright";
 import type { PlaywrightSnapshotJSONNode, PlaywrightLease } from "@poe-platform/safe-bash/playwright";
-import { captureBrowserSnapshotJSON } from "../src/browser-snapshot-json";
 import { collectRendererCoverage } from "./browser-native-coverage.worker";
 import { createCloudflarePlaywrightAdapter } from "../src/index";
 import { failureText } from "./browser-native-failure";
@@ -215,11 +209,19 @@ export default {
 				await lease.release();
 			}
 		}
-		const { sessionId } = await acquire(env.BROWSER, {});
-		const browser = await connect(env.BROWSER, sessionId);
+		// Exercise the public lease, including production snapshot preparation.
+		const lease = await createCloudflarePlaywrightAdapter(env.BROWSER).acquire({
+			acquisitionId: "snapshot",
+			session: "snapshot",
+			browser: "chromium",
+			headless: true,
+			signal: new AbortController().signal,
+		});
 		let page: Page | undefined;
 		try {
-			page = await browser.newPage();
+			assert.ok(lease.captureSnapshotJSON);
+			const captureBrowserSnapshotJSON = lease.captureSnapshotJSON;
+			page = await lease.context.newPage() as Page;
 			const name = "Long accessible name ".repeat(60);
 			await page.setContent(`<main aria-label="Main region">
 <button style="position:absolute;left:8.3px;top:8.7px;width:30.5px;height:12.5px;padding:0;border:0" aria-label="${name.trim()}" onclick="this.dataset.clicked='yes'">Owner</button>
@@ -321,7 +323,7 @@ export default {
 				}
 				case "/abort":
 					await assert.rejects(
-						captureBrowserSnapshotJSON(page, {
+						async () => captureBrowserSnapshotJSON(page!, {
 							...options,
 							signal: AbortSignal.abort(new Error("Snapshot cancelled")),
 						}),
@@ -342,9 +344,13 @@ export default {
 			);
 		} finally {
 			try {
-				if (page) await collectRendererCoverage(browser, page);
+				if (page) {
+					const browser = page.context().browser();
+					assert.ok(browser);
+					await collectRendererCoverage(browser, page);
+				}
 			} finally {
-				await browser.close();
+				await lease.release();
 			}
 		}
 	},

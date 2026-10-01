@@ -33,6 +33,7 @@ test("input budget yields under frozen clocks and observes timer aborts", async 
 });
 
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { retainFileSystemCleanup, scopeFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "./command.js";
 
 test("command input budgeting never overrides methods on a scoped filesystem proxy", async () => {
@@ -84,3 +85,29 @@ test("host budget failures survive command error handlers", async () => {
   assert.throws(() => budget.charge(1), error => error === failure);
   assert.throws(() => budget.assertOpen(), error => error === failure);
 });
+
+for (const reason of [false, null, new Error("cancelled")]) {
+  test(`input budget preserves retained filesystem cleanup after abort: ${String(reason)}`, async () => {
+    const memory = createMemoryFileSystem();
+    await memory.writeFile("/stage", Uint8Array.of(65));
+    const controller = new AbortController();
+    let cleanupCharges = 0;
+    const fs = scopeFileSystem(memory, () => {}, controller.signal, () => { cleanupCharges++; });
+    const originalBinding = Reflect.get(fs, Symbol.for("safe-fs.retainedCleanup"));
+    let cleanupError: unknown;
+    await assert.rejects(new InputByteBudget(1).run({
+      command: "probe", args: createCommandArguments([]).args, cwd: "/", env: {}, fs,
+      stdin: (async function* () {})(), stdout: { write: async () => {} }, stderr: { write: async () => {} },
+      signal: controller.signal,
+    }, async limited => {
+      const cleanup = retainFileSystemCleanup(limited.fs, view => view.rm("/stage"), { maxOperations: 1 });
+      assert.equal(Reflect.get(fs, Symbol.for("safe-fs.retainedCleanup")), originalBinding);
+      controller.abort(reason);
+      try { await cleanup(); } catch (error) { cleanupError = error; }
+      return { exitCode: 0 };
+    }), error => error === reason);
+    assert.equal(cleanupError, undefined);
+    await assert.rejects(memory.lstat("/stage"), { code: "ENOENT" });
+    assert.equal(cleanupCharges, 1);
+  });
+}

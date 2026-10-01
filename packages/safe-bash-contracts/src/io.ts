@@ -1,6 +1,6 @@
 import type { CommandContext, CommandResult } from "./command.js";
 import { yieldTurn } from "./yield.js";
-import { collectBytes, readBytes } from "@poe-code/safe-fs/core";
+import { collectBytes, readBytes, retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
 export { collectBytes, readBytes, toByteSource } from "@poe-code/safe-fs/core";
 export type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
@@ -1022,7 +1022,7 @@ export class InputByteBudget {
 
   async run(context: CommandContext, execute: (context: CommandContext) => Promise<CommandResult>): Promise<CommandResult> {
     const fs = context.fs;
-    const limited = {
+    const limited: CommandContext = {
       ...context,
       stdin: this.read(context.stdin, context.signal),
       fs: new Proxy(Object.create(fs, {
@@ -1068,6 +1068,15 @@ export class InputByteBudget {
         },
       },
     };
+    // This trusted input wrapper must retain cleanup against the original scope.
+    // Inherited bindings intentionally cannot authorize a different filesystem.
+    const retain: typeof retainFileSystemCleanup = (filesystem, callback, options) => {
+      if (filesystem !== limited.fs) throw new TypeError("Invalid input-budget cleanup filesystem");
+      return retainFileSystemCleanup(fs, callback, options);
+    };
+    Object.defineProperty(limited.fs, Symbol.for("safe-fs.retainedCleanup"), {
+      value: Object.freeze({ filesystem: limited.fs, retain }),
+    });
     try { return await execute(limited); }
     finally { context.signal.throwIfAborted(); this.assertOpen(); }
   }

@@ -66,9 +66,10 @@ export function besselPhaseDomain(x: number, order: number): boolean {
 export function capturedBesselPhase(x: number, order: number, secondKind: boolean, host: FunctionHost): number {
   let sum = 1, term = 1;
   const x2 = x * x, n2 = order * order;
+  const inverse = divide([1, 0], product(x, x)), square = product(order, order);
   // The source's paired inverse is NaN after square overflow, and every later
   // phase term stays NaN. Preserve that result without its 399 wasted steps.
-  if (!Number.isFinite(x2) || !Number.isFinite(n2)) {
+  if (!Number.isFinite(x2) || !Number.isFinite(n2) || !Number.isFinite(inverse[0] + inverse[1]) || !Number.isFinite(square[0] + square[1])) {
     if (x > 1 / Number.EPSILON) host.diagnostic?.({ code: "numeric-warning", severity: "warning", message: "Reduced accuracy for very large trigonometric arguments" });
     return NaN;
   }
@@ -79,7 +80,6 @@ export function capturedBesselPhase(x: number, order: number, secondKind: boolea
     if (Math.abs(term) < Number.EPSILON * Math.abs(sum)) break;
   }
   const amplitude = Math.sqrt(sum / (x * (Math.PI / 2)));
-  const inverse = divide([1, 0], product(x, x)), square = product(order, order);
   const t: Pair[] = [[1, 0]], s: Pair[] = [[1, 0]];
   let phase: Pair = [0, 0], last = Number.MAX_VALUE;
   for (let n = 1; n < 400; n++) {

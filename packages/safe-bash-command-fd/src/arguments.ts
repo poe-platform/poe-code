@@ -2,16 +2,16 @@ import { FdUsageError } from './errors.js';
 import { fdTemplate } from './templates.js';
 export interface FdArguments {
   patterns: string[]; roots: string[]; mode: 'regex' | 'glob' | 'fixed'; caseMode: 'smart' | 'sensitive' | 'insensitive';
-  hidden: boolean; ignore: boolean; ignoreVcs: boolean; ignoreParent: boolean; follow: boolean;
+  prune: boolean; ignoreFiles: string[]; hidden: boolean; ignore: boolean; ignoreVcs: boolean; ignoreParent: boolean; follow: boolean;
   fullPath: boolean; absolute: boolean; print0: boolean; quiet: boolean; details: boolean;
   minDepth: number; maxDepth: number; maxResults: number; extensions: string[]; types: string[]; excludes: string[];
   sizes: string[]; within: string | undefined; before: string | undefined; format: string | undefined;
   baseDirectory: string | undefined; pathSeparator: string | undefined; stripCwdPrefix: boolean; exec: string[]; batch: boolean; help: boolean; version: boolean;
 }
-const aliases: Record<string, string> = { C:'base-directory', H:'hidden', I:'no-ignore', u:'unrestricted', L:'follow', g:'glob', F:'fixed-strings', s:'case-sensitive', i:'ignore-case', p:'full-path', a:'absolute-path', '0':'print0', q:'quiet', l:'list-details', d:'max-depth', e:'extension', t:'type', E:'exclude', S:'size', '1':'one', h:'help', V:'version', x:'exec', X:'exec-batch' };
-const values = new Set(['path-separator','and','extension','type','exclude','max-depth','min-depth','exact-depth','max-results','size','changed-within','changed-before','format','color','base-directory']);
+const aliases: Record<string, string> = { c:'color', C:'base-directory', H:'hidden', I:'no-ignore', u:'unrestricted', L:'follow', g:'glob', F:'fixed-strings', s:'case-sensitive', i:'ignore-case', p:'full-path', a:'absolute-path', '0':'print0', q:'quiet', l:'list-details', d:'max-depth', e:'extension', t:'type', E:'exclude', S:'size', '1':'one', h:'help', V:'version', x:'exec', X:'exec-batch' };
+const values = new Set(['search-path','ignore-file','path-separator','and','extension','type','exclude','max-depth','min-depth','exact-depth','max-results','size','changed-within','changed-before','format','color','base-directory']);
 export function parseFdArguments(argv: readonly string[]): FdArguments {
-  const a: FdArguments = { patterns:[], roots:[], mode:'regex', caseMode:'smart', hidden:false, ignore:true, ignoreVcs:true, ignoreParent:true, follow:false, fullPath:false, absolute:false, print0:false, quiet:false, details:false, minDepth:1, maxDepth:Infinity, maxResults:Infinity, extensions:[], types:[], excludes:[], sizes:[], within:undefined, before:undefined, format:undefined, baseDirectory:undefined, pathSeparator:undefined, stripCwdPrefix:false, exec:[], batch:false, help:false, version:false };
+  const a: FdArguments = { patterns:[], roots:[], prune:false, ignoreFiles:[], mode:'regex', caseMode:'smart', hidden:false, ignore:true, ignoreVcs:true, ignoreParent:true, follow:false, fullPath:false, absolute:false, print0:false, quiet:false, details:false, minDepth:1, maxDepth:Infinity, maxResults:Infinity, extensions:[], types:[], excludes:[], sizes:[], within:undefined, before:undefined, format:undefined, baseDirectory:undefined, pathSeparator:undefined, stripCwdPrefix:false, exec:[], batch:false, help:false, version:false };
   const operands: string[] = []; let ended = false; let unrestricted = 0;
   const number = (value: string): number => { if (!value || [...value].some(c => c < '0' || c > '9') || !Number.isSafeInteger(Number(value))) throw new FdUsageError(`invalid count '${value}'`); return Number(value); };
   for (let i=0;i<argv.length;i++) {
@@ -36,6 +36,9 @@ export function parseFdArguments(argv: readonly string[]): FdArguments {
         else { value=argv[++i] ?? ''; if (!value) throw new FdUsageError(`option --${flag} requires a value`); }
       } else if (long && eq>=0) throw new FdUsageError(`option --${flag} does not take a value`);
       switch(flag) {
+        case 'search-path': a.roots.push(value); break;
+        case 'ignore-file': a.ignoreFiles.push(value); break;
+        case 'prune': a.prune=true; break;
         case 'hidden': a.hidden=true; break;
         case 'no-ignore': a.ignore=false; break;
         case 'no-ignore-vcs': a.ignoreVcs=false; break;
@@ -77,7 +80,9 @@ export function parseFdArguments(argv: readonly string[]): FdArguments {
       }
     }
   }
-  a.patterns.unshift(operands.shift() ?? ''); a.roots=operands.length ? operands : ['.'];
+  a.patterns.unshift(operands.shift() ?? '');
+  if (a.roots.length && operands.length) throw new FdUsageError('search-path cannot be combined with positional roots');
+  if (!a.roots.length) a.roots=operands.length ? operands : ['.'];
   if (a.caseMode==='smart') a.caseMode=a.patterns.some(pattern=>[...pattern].some(c=>c.toUpperCase()===c && c.toLowerCase()!==c)) ? 'sensitive' : 'insensitive';
   if (a.exec.length && (a.format!==undefined || a.details)) throw new FdUsageError('execution cannot be combined with formatting');
   if (a.batch && a.exec.reduce((count,token)=>count+fdTemplate(token).count,0)>1) throw new FdUsageError('batch execution accepts only one placeholder');

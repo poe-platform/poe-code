@@ -43,3 +43,12 @@ test('unrestricted counts short, combined and long occurrences consistently', ()
     assert.equal(a.hidden, true);
   }
 });
+
+test('fd supports explicit search roots, color alias, prune and custom ignore files', () => {
+  const a = parseFdArguments(['--search-path=a', '--search-path', 'b', '-cnever', '--prune', '--ignore-file', 'rules', 'needle']);
+  assert.deepEqual(a.roots, ['a', 'b']);
+  assert.deepEqual(a.patterns, ['needle']);
+  assert.equal(a.prune, true);
+  assert.deepEqual(a.ignoreFiles, ['rules']);
+  for (const args of [['-c', 'invalid'], ['--search-path'], ['--ignore-file'], ['--search-path', 'a', 'needle', 'b']]) assert.throws(() => parseFdArguments(args));
+});

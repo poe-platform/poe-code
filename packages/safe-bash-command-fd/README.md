@@ -21,6 +21,7 @@ For explicit registration, import `fdCommands` or `createFdCommand` from
 | Task | Example |
 | --- | --- |
 | Smart-case regex, glob, or literal names | `fd 'test.*'`, `fd -g '*.ts'`, `fd -F 'a.b'` |
+| Specify roots or prune matching directories | `fd --search-path src --search-path tests`, `fd --prune -t d` |
 | Search from another virtual directory | `fd -C /project --strip-cwd-prefix` |
 | Match full paths and multiple patterns | `fd -p src --and test` |
 | Select extensions and types | `fd -e ts -e js -t f`, `fd -t d`, `fd -t l`, `fd -t x`, `fd -t e` |
@@ -48,9 +49,17 @@ are read entirely from the supplied VFS, including parent directories unless
 `.gitignore`; nested rules override parent rules of the same kind. Negation
 cannot reinclude descendants of a pruned directory. Gitignore rules apply even
 without a Git repository; no ambient global ignore file or host Git config is read.
-`-I` disables all ignore files, `--no-ignore-vcs` disables only `.gitignore`, and
+`--ignore-file PATH` adds a VFS ignore file with patterns relative to the working
+directory (including `-C`). Repeated files are applied in order, with later rules
+taking precedence over earlier files and directory ignore files. Explicit files
+remain active with `-I`; missing or unreadable explicit files fail the command.
+`-I` disables automatic directory ignore files, `--no-ignore-vcs` disables only `.gitignore`, and
 `-u` disables ignores; `-uu` additionally includes hidden entries. Following links detects
 ancestor cycles and retains dangling links as symlinks.
+
+`--search-path` may be repeated and cannot be combined with positional roots.
+`--prune` stops traversal into directories selected by all active filters.
+`-c WHEN` aliases `--color WHEN` (`auto`, `always`, `never`); output remains plain text.
 
 Output is deterministic, with `/` appended to directories. `-0` and execution
 prefix ordinary relative paths with `./`. `--format` and execution substitute

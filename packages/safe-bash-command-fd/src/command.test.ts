@@ -167,3 +167,58 @@ for (const realDev of [false, true]) test(`root traversal ${realDev ? 'keeps rea
   if (realDev) { assert.ok(stdout.includes('dev/\n')); assert.ok(stdout.includes('dev/user\n')); }
   else assert.equal(stdout, 'file\n');
 });
+
+for (const [args, expected] of [
+  [['--search-path', 'sub', '-c', 'never'], 'sub/keep.txt\nsub/skip.txt\n'],
+  [['--prune', '-F', 'sub'], 'sub/\n'],
+  [['--prune', '-t', 'd'], 'sub/\n'],
+  [['--prune', '-t', 'f', '-e', 'txt'], 'sub/keep.txt\nsub/skip.txt\n'],
+  [['--ignore-file', 'rules', '-e', 'txt'], 'sub/keep.txt\n'],
+  [['--ignore-file', 'rules', '--ignore-file', 'override', '-e', 'txt'], 'sub/keep.txt\nsub/skip.txt\n'],
+  [['-I', '--ignore-file', 'rules', '-e', 'txt'], 'sub/keep.txt\n'],
+] as const) test(`fd explicit traversal controls: ${args.join(' ')}`, async () => {
+  const { createFdCommand } = await import('./index.js');
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/work/sub', { recursive: true });
+  for (const name of ['keep.txt', 'skip.txt']) await fs.writeFile('/work/sub/' + name, new Uint8Array());
+  await fs.writeFile('/work/rules', new TextEncoder().encode('/sub/skip.txt\n'));
+  await fs.writeFile('/work/override', new TextEncoder().encode('!sub/skip.txt\n'));
+  let stdout = '', stderr = '';
+  const result = await createFdCommand().execute({ command: 'fd', args, cwd: '/work', env: {}, fs,
+    signal: new AbortController().signal, stdin: (async function*(){})(),
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(stdout, expected);
+});
+
+test('prune never reads selected directories and explicit ignore reads enforce limits', async () => {
+  const { createFdCommand } = await import('./index.js');
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/work/sub/nested', { recursive: true });
+  await fs.writeFile('/work/rules', new TextEncoder().encode('skip.txt\n'));
+  const readdir = fs.readdir.bind(fs);
+  fs.readdir = async (path, options) => {
+    assert.notEqual(path, '/work/sub', 'matching directory must not be traversed');
+    return readdir(path, options);
+  };
+  async function run(args: string[], maxIgnoreFileBytes?: number) {
+    let stdout = '', stderr = '';
+    const result = await createFdCommand(maxIgnoreFileBytes === undefined ? {} : { maxIgnoreFileBytes }).execute({
+      command: 'fd', args, cwd: '/work', env: {}, fs, signal: new AbortController().signal,
+      stdin: (async function*(){})(),
+      stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    });
+    return { ...result, stdout, stderr };
+  }
+  assert.deepEqual(await run(['--prune', '-t', 'd']), { exitCode: 0, stdout: 'sub/\n', stderr: '' });
+  const missing = await run(['--ignore-file', 'absent']);
+  assert.equal(missing.exitCode, 1);
+  assert.equal(missing.stdout, '');
+  assert.ok(missing.stderr.includes('absent'));
+  const limited = await run(['--ignore-file', 'rules'], 1);
+  assert.equal(limited.exitCode, 1);
+  assert.equal(limited.stdout, '');
+});

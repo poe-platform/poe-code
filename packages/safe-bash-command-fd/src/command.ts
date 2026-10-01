@@ -59,7 +59,7 @@ export function createFdCommandWithMatcher(scope: FdMatchingScope, options: FdCo
       for (let i=0;i<context.args.length;i++) decoder.decode(carrier.bytes(i)!);
       const args=parseFdArguments(context.args);
       if (args.help || args.version) {
-        await writeBytes(context.stdout,new TextEncoder().encode(args.version ? 'fd (safe-bash)\n' : 'Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE, --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -0, -a, -l, --format FORMAT, -x COMMAND ... ;, -X COMMAND ... ;\n'),context.signal);
+        await writeBytes(context.stdout,new TextEncoder().encode(args.version ? 'fd (safe-bash)\n' : 'Usage: fd [OPTIONS] [PATTERN] [PATH ...]\nPatterns: -g --glob, -F --fixed-strings, -s --case-sensitive, -i --ignore-case, -p --full-path, --and PATTERN\nFilters: -e EXT, -t TYPE, -E GLOB, -d DEPTH, --min-depth N, --exact-depth N, -S SIZE\n         --changed-within TIME, --changed-before TIME, -1, --max-results N, -q\nTraversal: --search-path PATH, --prune, --ignore-file PATH\nVisibility: -H, -I, --no-ignore-vcs, --no-ignore-parent, -u, -uu, -L\nOutput: -c/--color WHEN, -0, -a, -l, --format FORMAT\n        -x COMMAND ... ;, -X COMMAND ... ;\n'),context.signal);
         return {exitCode:0};
       }
       const searchContext=args.baseDirectory===undefined ? context : {...context,cwd:resolvePath(context.cwd,args.baseDirectory)};
@@ -120,6 +120,17 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
     const result=context.invoke ? await context.invoke(command[0]!,command.slice(1),{stdin:(async function*(){})(),stdinIsDefault:true,signal}) : execute ? await execute({...context,command:command[0]!,args:command.slice(1),stdin:(async function*(){})()}) : (()=>{throw new Error('command invocation is unavailable');})();
     executionFailed ||= result.exitCode!==0;
   };
+  const readRules = async (path: string, base: string, priority: number): Promise<Rule[]> => {
+    await admit(path,['ignore']);
+    const text=ignoreDecoder.decode(await fs.readFile(path,{signal,...(Number.isFinite(maxIgnoreFileBytes) ? {maxBytes:maxIgnoreFileBytes} : {})}));
+    // Replacement characters cannot be compiled by the ignore matcher. Drop
+    // malformed lines while preserving valid rules from the same file.
+    const validLines=text.split('\n').filter(line=>!line.includes('\uFFFD')).join('\n');
+    return (await matcher.ignores(validLines)).map(rule => ({base,priority,...rule}));
+  };
+  const customRules: Rule[] = [];
+  for (const file of a.ignoreFiles)
+    for (const rule of await readRules(resolvePath(context.cwd,file),context.cwd,3)) customRules.push(rule);
   const load=async (dir: string, inherited: Rule[], present?: ReadonlySet<string>): Promise<Rule[]> => {
     if (!a.ignore) return inherited;
     const rules=[...inherited];
@@ -128,12 +139,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       if (present && !present.has(name)) continue;
       const path=posixPath.join(dir,name);
       try {
-        await admit(path,['ignore']);
-        const text=ignoreDecoder.decode(await fs.readFile(path,{signal,...(Number.isFinite(maxIgnoreFileBytes) ? {maxBytes:maxIgnoreFileBytes} : {})}));
-        // Replacement characters cannot be compiled by the ignore matcher. Drop
-        // malformed lines while preserving valid rules from the same file.
-        const validLines=text.split('\n').filter(line=>!line.includes('\uFFFD')).join('\n');
-        for (const rule of await matcher.ignores(validLines)) rules.push({base:dir,priority,...rule});
+        for (const rule of await readRules(path,dir,priority)) rules.push(rule);
       } catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error) && (error.code==='ENOENT' || error.code==='EISDIR'))) throw error; }
     }
     return rules;
@@ -199,6 +205,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
             else await emit(out+(directory ? (a.pathSeparator ?? '/') : '')+(a.print0 ? '\0' : '\n'));
           }
           if (a.quiet || found>=a.maxResults) return true;
+          if (a.prune && directory) continue;
         }
         if (directory && await walk(path,display,depth+1,local,ancestors,prefixCwd,searchRoot)) return true;
         } catch(error) { signal.throwIfAborted(); if (!isFsErrorInstance(error) || error.code === 'EFBIG' || error.code === 'EPIPE') throw error; await report(error); }
@@ -214,7 +221,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       const path=resolvePath(context.cwd,root);
       await admit(path,['metadata']);
       if ((await fs.stat(path,io)).type!=='directory') throw new Error(`search path '${root}' is not a directory`);
-      let inherited: Rule[]=[];
+      let inherited: Rule[]=[...customRules];
       if (a.ignoreParent) {
         const parents: string[]=[]; let parent=posixPath.dirname(path);
         if (path!=='/') { while (true) { parents.unshift(parent); if (parent==='/') break; parent=posixPath.dirname(parent); } }

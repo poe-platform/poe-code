@@ -41,7 +41,7 @@ before(async () => {
   });
   const sandbox = createContext({
     TextEncoder, TextDecoder, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
-    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, performance, crypto: globalThis.crypto,
+    AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, performance, crypto: globalThis.crypto, structuredClone,
   });
   assert.equal(runInContext("typeof Buffer", sandbox), "undefined");
   sandbox.canonical = runInContext(`(function(){ const module = { exports: {} }; ${filesystem.outputFiles![0]!.text}; return module.exports; })()`, sandbox);

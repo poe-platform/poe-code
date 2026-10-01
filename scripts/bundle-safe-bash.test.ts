@@ -94,7 +94,7 @@ let publicEntries: Record<string, unknown> | undefined;
 let browserRuntime: Script;
 
 function createConsumerContext(globals: Record<string, unknown>) {
-  const sandbox = createContext({ ...globals, canonical: filesystem });
+  const sandbox = createContext({ structuredClone, ...globals, canonical: filesystem });
   const { publicEntries: entries } = browserRuntime.runInContext(sandbox) as { publicEntries: Record<string, unknown> };
   sandbox.require = (name: string) => {
     if (name === "@poe-platform/safe-fs/core") return filesystem;
@@ -432,8 +432,15 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   expect(browser.posixPath).toBe(filesystem.posixPath);
   expect(browser.posixPath.join("/a", "..", "b")).toBe("/b");
   const names = browser.createAgentCommands().map(command => command.name).sort();
-  expect(names).toHaveLength(115);
+  expect(names).toHaveLength(188);
   expect(names).toEqual([
+    "bc", "cal", "compare", "composite", "convert", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin",
+    "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "dd", "df", "diff3", "envsubst",
+    "exiftool", "fd", "ffmpeg", "ffprobe", "getconf", "gpg", "hostname", "htmlq", "id", "identify", "in2csv",
+    "less", "libreoffice", "locale", "magick", "mmdc", "mogrify", "montage", "more", "ncal", "nproc", "op",
+    "openssl", "pandoc", "pathchk", "pdfdetach", "pdffonts", "pdfimages", "pdfinfo", "pdfseparate", "pdftk",
+    "pdftocairo", "pdftohtml", "pdftoppm", "pdftotext", "pdfunite", "qpdf", "sips", "soffice", "sponge",
+    "sql2csv", "sqlite3", "ssconvert", "ssh", "ssh-keygen", "uname", "unrtf", "whoami", "wkhtmltopdf", "xan", "yes", "yq",
     "lzma", "unlzma", "lzcat",
     "gh", "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
@@ -541,7 +548,7 @@ beforeAll(() => {
   const sandbox = createContext({
     TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
     AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance,
-    URL, FormData, Blob, Response, btoa, atob,
+    URL, FormData, Blob, Response, btoa, atob, structuredClone,
   });
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", sandbox)).toBe("undefined:undefined:undefined");
   filesystem = runInContext(`(function(){ const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as CoreFs;

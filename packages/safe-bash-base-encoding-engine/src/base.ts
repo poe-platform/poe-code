@@ -105,7 +105,7 @@ async function decode(context: CommandContext, files: readonly string[], alphabe
       const byte = chunk[i]!;
       const symbol = lookup[byte]!;
       if (ignore && symbol === -2) continue;
-      if (byte === 10) continue;
+      if (byte === 10 || byte === 13) continue;
       lastByte = byte;
       quantum[qLen++] = symbol;
       if (qLen === aQuantum) {

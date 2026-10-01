@@ -338,7 +338,7 @@ export function command(name: string, algorithm: Algorithm, maxInputBytes: numbe
     const selected = name === "cksum" ? parseCksum(context.args) : { algorithm, settings: parse(context.args, algorithm) };
     const selectedAlgorithm = selected.algorithm;
     const settings = selected.settings;
-    const state: InputState = { stdinUsed: false, budget: new ByteInputBudget(maxInputBytes) };
+    const state: InputState = { stdinUsed: false, budget: new ByteInputBudget(maxInputBytes, context.inputBudget) };
     let failed = false;
     for (const filename of settings.operands.length ? settings.operands : ["-"]) {
       await yieldTurn(context.signal);

@@ -51,7 +51,7 @@ for (const [name, column] of [["base64", 1], ["base32", 2]] as const) {
 
   test(`${name}: malformed blocks fail with GNU-compatible partial output`, async () => {
     const invalid = name === "base64"
-      ? ["A", "Zg=", "=g==", "Z===", "Zg=A", "Zg===", "Zh==", "Zm9=", "Zm!v", "Zm9v\r"]
+      ? ["A", "Zg=", "=g==", "Z===", "Zg=A", "Zg===", "Zh==", "Zm9=", "Zm!v"]
       : ["M", "MY=====", "=Y======", "M=======", "MY=====A", "MY=======", "MZ======", "MZXW7===", "mzxw6===", "MZX!6==="];
     for (const text of invalid) for (const width of [1, 3, 100]) {
       const result = await run(name, ["-d"], sliced(Buffer.from(text), width));
@@ -70,6 +70,16 @@ for (const [name, column] of [["base64", 1], ["base32", 2]] as const) {
 
   test(`${name}: independently padded blocks concatenate`, async () => {
     assert.equal((await run(name, ["-d"], vectors[1][column] + vectors[2][column])).stdout, "ffo");
+  });
+
+  test(`${name}: CRLF wrapping is accepted without ignoring other garbage`, async () => {
+    const encoded = vectors[3][column];
+    for (const width of [1, 3, 100]) {
+      const result = await run(name, ["-d"], sliced(Buffer.from(encoded.slice(0, 2) + "\r\n" + encoded.slice(2) + "\r\n"), width));
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "foo");
+    }
+    assert.equal((await run(name, ["-d"], encoded + " ")).exitCode, 1);
   });
 }
 

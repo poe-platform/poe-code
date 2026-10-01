@@ -1,4 +1,4 @@
-import { FsError, readBytes, type ByteSource } from "safe-bash-contracts";
+import { FsError, readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
 
 export interface ByteInputLimits {
   /** Optional maximum cumulative source bytes per invocation. Zero permits empty input. */
@@ -23,7 +23,7 @@ export class ByteInputBudget {
   #bytes = 0;
   #failure: FsError | undefined;
 
-  constructor(readonly maxInputBytes: number) {}
+  constructor(readonly maxInputBytes: number, readonly inputBudget?: CommandContext["inputBudget"]) {}
 
   assertOpen(signal: AbortSignal): void {
     signal.throwIfAborted();
@@ -39,6 +39,7 @@ export class ByteInputBudget {
         throw this.#failure;
       }
       this.#bytes += chunk.byteLength;
+      this.inputBudget?.check(this.#bytes);
       yield chunk;
       this.assertOpen(signal);
     }

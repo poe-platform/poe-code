@@ -13,7 +13,7 @@ export function validatedOption<Value>(parsed: ParsedOptions, key: string, parse
 }
 
 export async function* sources(context: CommandContext, operands: readonly string[], maxInputBytes: number): ByteSource {
-  const budget = new ByteInputBudget(maxInputBytes);
+  const budget = new ByteInputBudget(maxInputBytes, context.inputBudget);
   let usedStdin = false;
   let emptyChunks = 0;
   for (const operand of operands.length ? operands : ["-"]) {

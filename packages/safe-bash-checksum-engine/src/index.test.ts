@@ -3,6 +3,20 @@ import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { command, evalSyncChecksum } from "./index.js";
+
+test("checksums report cumulative source bytes to the host input budget", async () => {
+  const seen: number[] = [];
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/one", new TextEncoder().encode("ab"));
+  await fs.writeFile("/two", new TextEncoder().encode("cd"));
+  const result = await command("sha256sum", "sha256", Infinity).execute({
+    command: "sha256sum", args: ["/one", "/two"], cwd: "/", env: {}, fs, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} }, signal: new AbortController().signal,
+    inputBudget: { maxBytes: 3, check(total) { seen.push(total); if (total > 3) throw new Error("host limit"); } },
+  });
+  assert.equal(result.exitCode, 1);
+  assert.deepEqual(seen, [2, 4]);
+});
 test("portable engine preserves standard output bytes", async () => { let output = ""; const definition = command("sha256sum", "sha256", Infinity); const result = await definition.execute({ command: definition.name, args: [], cwd: "/", env: {}, fs: createMemoryFileSystem(), stdin: toByteSource(""), stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }, signal: new AbortController().signal }); assert.equal(result.exitCode, 0); assert.equal(output, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  -\n"); });
 
 

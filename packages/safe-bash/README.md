@@ -372,8 +372,9 @@ Portable plugins for media, PDFs, spreadsheets and text are available from both
 and option types. The `/commands/...` subpaths remain available for command-specific
 SDKs and helpers. Both main entry points share the portable `posixPath` API.
 
-`mikeYqCommands()` from `/commands/yq` enables bounded Mike-style format
-conversion: `yq -p csv -o json . records.csv` reads a table, and
+`mikeYqCommands()` is exported from the package root, core, and `/commands/yq`.
+It enables bounded Mike-style format conversion: `yq -p csv -o json . records.csv`
+reads a table, and
 `yq -o csv . records.yaml` writes one. Input and output support CSV, TSV,
 properties, XML, INI, TOML, base64 and URI; shell and Lua are output only.
 See the [format profile](src/commands/yq/FORMATS.md) for supported shapes and limits.
@@ -430,8 +431,10 @@ HTML projections preserve pinned separators and lazy first-match removals.
 Explicit engine limits and cancellation are required. Private implementation and
 types ship inside safe-bash. Full HTML5 recovery, selector grammar and Rust URL
 parity remain unqualified; modern `:is/:where/:has/:lang` are explicitly rejected.
-Use `--attributes` (plural) for attribute output; no-match succeeds with empty
-output. Scripts/styles remain inert and preserved; interior BOMs are retained
+Use `--attribute` (`--attributes` is also accepted) for attribute output, and
+`-w` (`-i` is also accepted) to ignore whitespace-only text. Multiple selector
+operands combine in document order; no-match succeeds with empty output.
+Scripts/styles remain inert and preserved; interior BOMs are retained
 regardless of input chunking, correcting the pinned upstream defect.
 Node.js 22+ is qualified; browser/workerd conditional graphs are checked
 in Node, while actual engines remain unverified. See the

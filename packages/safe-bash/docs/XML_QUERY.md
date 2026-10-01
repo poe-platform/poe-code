@@ -76,9 +76,16 @@ The expressions below apply to `xmllint --xpath`. Use jq filters with `xq`.
   also match namespaced elements, including Unicode names.
 - Terminal attributes (`/@id`, `/@*`) and text (`/text()`). Namespace declarations
   are excluded from `@*`.
-- Positive positional predicates (`[1]`, `[position()=2]`, `[last()]`), attribute
-  existence/equality (`[@id]`, `[@id='first']`), child equality (`[name='first']`),
-  and text equality (`[text()='first']`, `[.='first']`). Predicates apply in written order, with positions per parent.
+- Positional predicates (`[1]`, `[position()=2]`, `[last()]`) and attribute or child
+  existence (`[@id]`, `[name]`). Predicates apply in written order, with positions per parent.
+- Attribute, child and text comparisons (`[@id='first']`, `[name='first']`,
+  `[text()='first']`, `[.='first']`) support `=`, `!=`, `<`, `<=`, `>`, and `>=`
+  with string or numeric values, including `[@id=1]` and `[@price > 15]`.
+- Boolean combinations using `and`, `or`, parentheses, and `not(...)`, such as
+  `[@id=1 or @id=2]` and `[not(@price > 15)]`.
+- Predicate string functions `contains(...)`, `starts-with(...)`, and
+  `normalize-space(...)`, such as `[contains(., 'Alp')]` and
+  `[normalize-space(name)='Alpha']`. Normalization uses XML whitespace.
 - Outer `string(PATH)`, `count(PATH)`, and `boolean(PATH)`.
 
 Results are deduplicated in document order. Element results serialize XML;

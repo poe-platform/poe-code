@@ -27,6 +27,25 @@ async function run(command: CommandDefinition, fs: ReturnType<typeof createMemor
 }
 const bytes = (text: string) => new TextEncoder().encode(text);
 
+test("sed falls back to asynchronous output when a synchronous sink declines", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile('/input', bytes('foo\n'.repeat(20000)));
+  let stdout = '';
+  let declined = 0;
+  const result = await createSedCommand().execute({
+    command: 'sed', args: ['s/foo/bar/', '/input'], cwd: '/', env: {}, fs,
+    stdin: toByteSource(''), signal: new AbortController().signal,
+    stdout: {
+      ...{ writeSync() { declined++; return false; } },
+      async write(chunk) { stdout += new TextDecoder().decode(chunk); },
+    },
+    stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.ok(declined > 0);
+  assert.equal(stdout, 'bar\n'.repeat(20000));
+});
+
 for (const mode of ["range", "sync", "async"] as const) test(`pair substitutions remain isolated from general commands and other tenants: ${mode}`, async () => {
   const fs = createMemoryFileSystem(), other = createMemoryFileSystem();
   const input = Array.from({ length: 50 }, (_, i) => `foo:line${i}:baz:tail\n`).join("");

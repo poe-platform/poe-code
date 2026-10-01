@@ -396,7 +396,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   const STDOUT_CAP = 65536;
   const STDOUT_FLUSH = 60000;
   const stdoutSync = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
-    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): void })
+    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean | void })
     : undefined;
   let stdoutBuf: Uint8Array | undefined;
   let stdoutLen = 0;
@@ -430,8 +430,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       const chunk = new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, flushedLen);
       stdoutLen = 0;
       context.signal.throwIfAborted();
-      if (stdoutSync) {
-        stdoutSync.writeSync(chunk.slice());
+      if (stdoutSync && stdoutSync.writeSync(chunk.slice()) !== false) {
         return undefined;
       }
       return writeBytes(context.stdout, encodeBytes(chunk), context.signal);

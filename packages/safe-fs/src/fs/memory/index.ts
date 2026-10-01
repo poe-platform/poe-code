@@ -212,6 +212,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   private _rebuild(newCap: number): void {
+    if (lastFastMapMiss.map === this) lastFastMapMiss.map = undefined;
     const newTableLen = newCap * 2;
     const newMask = newTableLen - 1;
     const newTable = newCap <= 16384 ? new Int16Array(newTableLen).fill(-1) : new Int32Array(newTableLen).fill(-1);
@@ -260,6 +261,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
       lastFastMapMiss.map = undefined;
       return this;
     }
+    if (lastFastMapMiss.map === this) lastFastMapMiss.map = undefined;
     if (this._next >= this._keys.length) {
       this._rebuild(this.size * 2 <= this._keys.length ? this._keys.length : this._keys.length * 2);
     }
@@ -290,6 +292,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   delete(k: string): boolean {
+    if (lastFastMapMiss.map === this) lastFastMapMiss.map = undefined;
     if (this.size === 0) return false;
     let slot = this._hash(k);
     const mask = this._mask;
@@ -316,6 +319,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   clear(): void {
+    if (lastFastMapMiss.map === this) lastFastMapMiss.map = undefined;
     if (this._next > 0) {
       this._table.fill(-1);
       for (let i = 0; i < this._next; i++) {
@@ -1632,8 +1636,8 @@ export class MemoryFileSystem implements FileSystem {
       cache.lastFastFileNode.nlink !== 0 &&
       cache.lastFastDirNode !== undefined &&
       cache.lastFastDirNode.nlink !== 0 &&
-      (cache.lastFastDirNode.mode & 1) !== 0 &&
-      (cache.lastFastFileNode.mode & 2) !== 0
+      (cache.lastFastDirNode.mode & 0o100) !== 0 &&
+      (cache.lastFastFileNode.mode & 0o200) !== 0
     ) {
       const current = cache.lastFastFileNode;
       const length = current.byteLength + data.byteLength;
@@ -1651,7 +1655,7 @@ export class MemoryFileSystem implements FileSystem {
     if (
       cachedDir !== undefined &&
       cachedDir.nlink !== 0 &&
-      (cachedDir.mode & 1) !== 0 &&
+      (cachedDir.mode & 0o100) !== 0 &&
       cachedPrefix.length > 1 &&
       path.startsWith(cachedPrefix) &&
       path.indexOf("/", cachedPrefix.length) === -1
@@ -1666,7 +1670,7 @@ export class MemoryFileSystem implements FileSystem {
         if (slash === -1) {
           name = path.slice(start);
           if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, path);
-          if (start > 1 && (parent.mode & 1) !== 0) {
+          if (start > 1 && (parent.mode & 0o100) !== 0) {
             cache.lastFastDirPrefix = path.slice(0, start);
             cache.lastFastDirNode = parent;
           }
@@ -1807,6 +1811,7 @@ export class MemoryFileSystem implements FileSystem {
         let ino = this.nextInode;
         this.nextInode = ino + batchCount;
         let nextIdx = 1;
+        if (lastFastMapMiss.map === entries) lastFastMapMiss.map = undefined;
         entries._next = 1 + batchCount;
         entries.size = 1 + batchCount;
         const table = entries._table;
@@ -1915,8 +1920,8 @@ export class MemoryFileSystem implements FileSystem {
         cache.lastFastFileNode.nlink !== 0 &&
         cache.lastFastDirNode !== undefined &&
         cache.lastFastDirNode.nlink !== 0 &&
-        (cache.lastFastDirNode.mode & 1) !== 0 &&
-        (cache.lastFastFileNode.mode & 2) !== 0
+        (cache.lastFastDirNode.mode & 0o100) !== 0 &&
+        (cache.lastFastFileNode.mode & 0o200) !== 0
       ) {
         const current = cache.lastFastFileNode;
         const length = current.byteLength + data.byteLength;
@@ -1931,7 +1936,7 @@ export class MemoryFileSystem implements FileSystem {
       if (
         cachedDir !== undefined &&
         cachedDir.nlink !== 0 &&
-        (cachedDir.mode & 1) !== 0 &&
+        (cachedDir.mode & 0o100) !== 0 &&
         dirPrefix === cache.lastFastDirPrefix
       ) {
         parent = cachedDir;
@@ -1952,7 +1957,7 @@ export class MemoryFileSystem implements FileSystem {
         }
         this.permission(parent, 1, syscall, name);
         if (exceedsComponentByteLimit(name)) this.fail("ENAMETOOLONG", syscall, name);
-        if (dirPrefix.length > 1 && (parent.mode & 1) !== 0) {
+        if (dirPrefix.length > 1 && (parent.mode & 0o100) !== 0) {
           cache.lastFastDirPrefix = dirPrefix;
           cache.lastFastDirNode = parent;
         }

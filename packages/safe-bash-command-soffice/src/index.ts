@@ -614,6 +614,10 @@ function* runSofficeSteps(
           chunks.push(parseDocxBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
         } else if ([".odt", ".ods", ".odp"].some(ext => lower.endsWith(ext))) {
           chunks.push(parseOdtBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
+        } else if (lower.endsWith(".xlsx")) {
+          chunks.push(parseXlsxRows(bytes).map(row => row.join("\t")).join("\n"));
+        } else if (lower.endsWith(".pptx")) {
+          chunks.push(parsePptxSlides(bytes).map(slide => [slide.title, ...slide.bullets].join("\n")).join("\n\n"));
         } else if (lower.endsWith(".rtf")) {
           chunks.push(parseRtfBlocks(bytes).map((b) => b.text ?? "").join("\n"));
         } else {
@@ -716,6 +720,12 @@ function* runSofficeSteps(
         const slides = parsePptxSlides(inputBytes);
         if (targetExt === "pdf") {
           outBytes = renderSlidesToPdf(slides);
+        } else if (targetExt === "html" || targetExt === "docx") {
+          const blocks = slides.flatMap<DocBlock>(slide => [
+            { kind: "heading", text: slide.title },
+            ...slide.bullets.map((text): DocBlock => ({ kind: "paragraph", text }))
+          ]);
+          outBytes = targetExt === "html" ? renderBlocksToHtml(blocks, stem) : buildDocxFromBlocks(blocks);
         } else {
           const txt = slides.map((s) => `${s.title}\n${s.bullets.join("\n")}`).join("\n\n");
           outBytes = new TextEncoder().encode(txt + "\n");

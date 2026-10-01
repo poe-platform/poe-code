@@ -105,3 +105,54 @@ it("reports missing flag values and malformed archives in cat mode", async () =>
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /Invalid ZIP/);
 });
+
+function presentationFixture(extension: string): Uint8Array {
+  return createStoredZipArchive(extension === "pptx" ? {
+    "ppt/slides/slide1.xml": encode('<p:sld><p:sp><a:p><a:r><a:t>Title &amp; summary</a:t></a:r></a:p></p:sp><p:sp><a:p><a:r><a:t>First point</a:t></a:r></a:p><a:p><a:r><a:t>Second point</a:t></a:r></a:p></p:sp></p:sld>'),
+    "ppt/slides/slide2.xml": encode('<p:sld><p:sp><a:p><a:r><a:t>Conclusion</a:t></a:r></a:p></p:sp></p:sld>')
+  } : {
+    "content.xml": encode('<office:document><draw:page><text:h>Title &amp; summary</text:h><text:p>First point</text:p><text:p>Second point</text:p></draw:page><draw:page><text:h>Conclusion</text:h></draw:page></office:document>')
+  });
+}
+
+for (const extension of ["pptx", "odp"]) {
+  for (const target of ["html", "docx"]) it(`exports ${extension} as structured ${target}`, async () => {
+    const files = new Map([[`/deck.${extension}`, presentationFixture(extension)]]);
+    const result = await runSofficeCli(["--convert-to", target, `/deck.${extension}`], files);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const output = files.get(`/deck.${target}`)!;
+    if (target === "html") {
+      const html = decode(output);
+      assert.ok(html.startsWith("<!DOCTYPE html>"));
+      assert.ok(html.includes("<h1>Title &amp; summary</h1>"));
+      assert.ok(html.includes("<p>First point</p>"));
+      assert.ok(html.indexOf("Second point") < html.indexOf("Conclusion"));
+    } else {
+      assert.ok(readZipArchiveEntries(output).has("word/document.xml"));
+      const cat = await runSofficeCli(["--cat", "/deck.docx"], files);
+      assert.equal(cat.stdout, "Title & summary\nFirst point\nSecond point\nConclusion\n");
+    }
+  });
+}
+
+it("extracts readable XLSX and PPTX text in cat mode", async () => {
+  const files = new Map([["/data.csv", encode('Name,Score\n"Alice, Jr",95')], ["/deck.pptx", presentationFixture("pptx")]]);
+  const converted = await runSofficeCli(["--convert-to", "xlsx", "/data.csv"], files);
+  assert.equal(converted.exitCode, 0, converted.stderr);
+  const result = await runSofficeCli(["--cat", "/data.xlsx", "/deck.pptx"], files);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "Name\tScore\nAlice, Jr\t95\nTitle & summary\nFirst point\nSecond point\n\nConclusion\n");
+});
+
+it("keeps CSV cat output as readable source text", async () => {
+  const csv = 'Name,Score\n"Alice, Jr",95';
+  const result = await runSofficeCli(["--cat", "/data.csv"], new Map([["/data.csv", encode(csv)]]));
+  assert.equal(result.stdout, csv + "\n");
+});
+
+for (const extension of ["xlsx", "pptx"]) it(`rejects malformed ${extension} in cat mode without dumping binary`, async () => {
+  const result = await runSofficeCli(["--cat", `/bad.${extension}`], new Map([[`/bad.${extension}`, encode("not a zip")]]));
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.ok(result.stderr.includes("Invalid ZIP"));
+});

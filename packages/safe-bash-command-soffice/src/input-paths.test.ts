@@ -109,3 +109,21 @@ for (const run of [runSofficeCli, runSofficeCliSync]) {
     assert.equal(new TextDecoder().decode(files.get("/work/-data.txt")), "a\tb\n");
   });
 }
+
+for (const factory of [createSofficeCommand, createLibreofficeCommand]) {
+  it(`${factory.name} checks the cat input budget before publishing stdout`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    await fs.writeFile("/work/a.csv", encode("é,b"));
+    const totals: number[] = [];
+    const output: Uint8Array[] = [];
+    const failure = new Error("input budget exceeded");
+    const context = invocation(fs, ["--cat", "a.csv"], bytes => {
+      totals.push(bytes);
+      throw failure;
+    });
+    await assert.rejects(async () => factory().execute({ ...context, stdout: { async write(bytes) { output.push(bytes); } } }), error => error === failure);
+    assert.deepEqual(totals, [4]);
+    assert.deepEqual(output, []);
+  });
+}

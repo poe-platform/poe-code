@@ -13,13 +13,13 @@ const invalidArgs: string[][] = [
   ["-list", ...validArgs],
   ["-list"],
 ];
-for (const flag of ["-f", "-l"]) {
+for (const flag of ["-f", "-l", "-min-width", "-min-height"]) {
   for (const value of ["abc", "1abc", "NaN", "Infinity", "0x10", " 2", "2 "]) {
     invalidArgs.push([flag, value, ...validArgs]);
   }
   invalidArgs.push([flag]);
 }
-for (const flag of ["-f", "-l"]) {
+for (const flag of ["-f", "-l", "-min-width", "-min-height"]) {
   invalidArgs.push([flag, "1.5", ...validArgs], [flag, "1e2", ...validArgs]);
 }
 it.each(invalidArgs)("rejects invalid arguments %j before reading or writing PDFs", async (...args) => {

@@ -7,6 +7,7 @@ Zero-dependency Poppler `pdfimages` image extractor and inspector for `@poe-plat
 | Option | Description |
 | --- | --- |
 | `-list` | Print Poppler metadata table with page, dimensions, color space, PPI, object ID, and size |
+| `-min-width <pixels>` / `-min-height <pixels>` | Skip smaller images when listing or extracting |
 | `-png` | Extract embedded images as `.png` files matching original pixel dimensions |
 | `-j` / `-all` | Extract DCTDecode streams directly as `.jpg` |
 | `-p` | Include 3-digit zero-padded page numbers in output filenames (`root-001-000.png`) |

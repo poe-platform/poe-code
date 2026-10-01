@@ -728,3 +728,26 @@ describe("safe-bash-command-pdfimages", () => {
     expect(files.get("out-000.jb2g")).toEqual(codecFixture("jbig2-symbols.sym"));
   });
 });
+
+it("filters image extraction and listing by minimum dimensions", async () => {
+  for (const filter of [["-min-width", "40"], ["-min-height", "30"]]) {
+    const files = new Map([["paper.pdf", createMultiImagePdf()]]);
+    const extracted = await runPdfimagesCli([...filter, "paper.pdf", "out"], files);
+    expect(extracted.exitCode).toBe(0);
+    expect([...files.keys()]).toEqual(["paper.pdf", "out-000.ppm"]);
+    const listed = await runPdfimagesCli([...filter, "-list", "paper.pdf"], files);
+    expect(listed.exitCode).toBe(0);
+    expect(listed.stdout.trim().split("\n")).toHaveLength(3);
+    const all = await runPdfimagesCli(["-min-width", "32", "-min-height", "16", "-list", "paper.pdf"], files);
+    expect(all.stdout.trim().split("\n")).toHaveLength(4);
+  }
+});
+
+it("renumbers retained images after filtering earlier small images", async () => {
+  const doc = PdfDocument.create();
+  const page = doc.addPage([20, 20]);
+  for (const size of [2, 8]) page.drawImage(doc.embedRgbImage(size, size, new Uint8Array(size * size * 3)), { x: 0, y: 0, width: size, height: size });
+  const files = new Map([["in.pdf", doc.save()]]);
+  expect((await runPdfimagesCli(["-min-width", "4", "in.pdf", "out"], files)).exitCode).toBe(0);
+  expect([...files.keys()]).toEqual(["in.pdf", "out-000.ppm"]);
+});

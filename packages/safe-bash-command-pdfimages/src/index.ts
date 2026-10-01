@@ -50,7 +50,7 @@ function formatPopplerRatio(
   return `${pct.toFixed(1)}%`;
 }
 
-const PDFIMAGES_VALUE_FLAGS = new Set(["-f", "-l", "-upw", "-opw"]);
+const PDFIMAGES_VALUE_FLAGS = new Set(["-f", "-l", "-upw", "-opw", "-min-width", "-min-height"]);
 
 function extractPdfimagesPositionals(argv: readonly string[]): string[] {
   const pos: string[] = [];
@@ -81,6 +81,8 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
     let useCcitt = false;
     let firstPage = 1;
     let lastPage = 0;
+    let minWidth = 0;
+    let minHeight = 0;
     let includePage = false;
     let uniqueOnly = false;
     let printFilenames = false;
@@ -96,9 +98,9 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
             if (value === undefined) {
                 return { exitCode: 99, stdout: "", stderr: `Missing value for '${arg}'\n` };
             }
-            if (arg === "-f" || arg === "-l") {
+            if (arg === "-f" || arg === "-l" || arg === "-min-width" || arg === "-min-height") {
                 const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
-                if (![...unsigned].every(char => char >= "0" && char <= "9")) {
+                if (unsigned.length === 0 || !Number.isSafeInteger(Number(value)) || ![...unsigned].every(char => char >= "0" && char <= "9")) {
                     return { exitCode: 99, stdout: "", stderr: `Bad '${arg}' value on command line\n` };
                 }
             }
@@ -109,7 +111,7 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
             return {
                 exitCode: 0,
-                stdout: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n",
+                stdout: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n  -list / -png / -j / -all / -f <int> / -l <int> / -p\n  -min-width <int> / -min-height <int> : ignore smaller images\n",
                 stderr: "",
             };
         }
@@ -147,6 +149,12 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         }
         else if (arg === "-l") {
             lastPage = Math.max(0, Number.parseInt(argv[++i] ?? "0", 10) || 0);
+        }
+        else if (arg === "-min-width") {
+            minWidth = Number(argv[++i]);
+        }
+        else if (arg === "-min-height") {
+            minHeight = Number(argv[++i]);
         }
         else if (arg === "-upw" || arg === "-opw") {
             password = argv[++i] ?? "";
@@ -193,8 +201,9 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         signal: options.signal
     }));
     const seenObjectIds = new Set<string>();
+    const sizedImages = allExtracted.filter(img => img.width >= minWidth && img.height >= minHeight);
     const extracted = uniqueOnly
-        ? allExtracted.filter((img) => {
+        ? sizedImages.filter((img) => {
             if (img.inline || !img.objectId)
                 return true;
             const key = `${img.objectId.objNum}:${img.objectId.genNum}`;
@@ -203,7 +212,7 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
             seenObjectIds.add(key);
             return true;
         })
-        : allExtracted;
+        : sizedImages;
     const listLines = [
         "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio",
         "--------------------------------------------------------------------------------------------",
@@ -335,8 +344,10 @@ async function executePdfimages(context: CommandContext): Promise<{ exitCode: nu
       }
     };
 
-    const positionals = extractPdfimagesPositionals(argv);
-    if (positionals.length === 0 || positionals[0] === "-") {
+    // Parse before acquiring input: help, version and usage errors need no PDF.
+    const needsInput = (await runPdfimagesCli(argv, new Map(), { signal: invocation.signal })).exitCode === 1;
+    const positionals = needsInput ? extractPdfimagesPositionals(argv) : [];
+    if (needsInput && (positionals.length === 0 || positionals[0] === "-")) {
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {

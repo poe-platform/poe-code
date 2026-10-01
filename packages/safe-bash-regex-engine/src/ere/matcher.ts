@@ -391,6 +391,8 @@ function tryMatchEreAsciiRangeNfaSync(
     const anchored = root.kind === "start" || (root.kind === "sequence" && root.children[0]?.kind === "start");
     const maxStart = anchored ? 0 : rLen;
     for (let start = 0; start <= maxStart; start++) {
+      if (ledger.workAllowanceUntilCheckpoint(signal) < 1) return null;
+      ledger.chargeWork(1, signal);
       if (firstLitCode >= 0 && !anchored) {
         const found = buf.indexOf(firstLitCode, rStart + start);
         if (found < 0 || found >= rStart + rLen) break;
@@ -405,7 +407,8 @@ function tryMatchEreAsciiRangeNfaSync(
       push(start, rootTask);
       let bestPos = -1;
       while (pendingPos.length > 0) {
-        if (signal?.aborted) throw signal.reason;
+        if (ledger.workAllowanceUntilCheckpoint(signal) < 1) return null;
+        ledger.chargeWork(1, signal);
         const statePos = pendingPos.pop()!;
         const current = pendingTask.pop()!;
         if (current === null) {
@@ -424,6 +427,9 @@ function tryMatchEreAsciiRangeNfaSync(
             }
             const minDotPos = statePos + node.min;
             if (minDotPos <= maxDotPos) {
+              const scanWork = maxDotPos - minDotPos + 1;
+              if (ledger.workAllowanceUntilCheckpoint(signal) < scanWork) return null;
+              ledger.chargeWork(scanWork, signal);
               const nextTask = current.next;
               if (nextTask && nextTask.kind === "node" && nextTask.node.kind === "literal" && !nextTask.node.insensitive) {
                 const targetCode = nextTask.node.code;

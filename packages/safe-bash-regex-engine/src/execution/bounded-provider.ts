@@ -1182,8 +1182,15 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
       const buf = hasRange ? rWithRange.chunk! : row.bytes;
       const rStart = hasRange ? rWithRange.start! : 0;
       const rEnd = hasRange ? rWithRange.searchEnd! : buf.length;
-      let ascii = true;
-      for (let i = rStart; i < rEnd; i++) {
+      // Long rows use the cooperative matcher; short rows still consume a
+      // quantum across a batch, including literal-only and empty matches.
+      let ascii = rEnd - rStart <= 16384;
+      if (ascii) {
+        ledger.chargeWork(rEnd - rStart + 1, signal);
+        const pending = ledger.checkpoint(signal);
+        if (pending) await pending;
+      }
+      for (let i = rStart; ascii && i < rEnd; i++) {
         const b = buf[i]!;
         if (b === 0 || b >= 0x80) { ascii = false; break; }
       }

@@ -2223,6 +2223,21 @@ async function executePopplerFileTool(
       if (["-h", "-help", "--help", "-?", "-v", "--version"].includes(arg)) { informational = true; break; }
     }
     const positionals = informational ? [] : extractPopplerFileToolPositionals(argv);
+    if (!informational && runner === runPdfdetachCli) {
+      for (let i = 0; i < argv.length; i++) {
+        const flag = argv[i]!;
+        if (flag === "--") break;
+        if (!POPPLER_FILE_TOOL_VALUE_FLAGS.has(flag)) continue;
+        const value = argv[++i];
+        if (flag !== "-o" || !value || value.endsWith("/")) continue;
+        try {
+          const stat = await context.fs.stat(resolvePath(context.cwd, value), { signal: invocation.signal });
+          if (stat.type === "directory") argv[i] = `${value}/`;
+        } catch (error) {
+          if (!(error instanceof Error) || !("code" in error) || (error.code !== "ENOENT" && error.code !== "ENOTDIR")) throw error;
+        }
+      }
+    }
     if (!informational && (positionals.length === 0 || positionals[0] === "-")) {
       const chunks: Uint8Array[] = [];
       let total = 0;

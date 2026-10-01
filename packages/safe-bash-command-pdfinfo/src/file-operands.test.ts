@@ -30,6 +30,7 @@ async function execute(command: ReturnType<typeof createPdfuniteCommand>, args: 
     stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() {} },
     stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } },
     fs: {
+      async stat(path: string) { return { type: volume.statSync(path).isDirectory() ? "directory" : "file" }; },
       async readFile(path: string) { reads.push(path); return new Uint8Array(volume.readFileSync(path) as Buffer); },
       async mkdir(path: string) { volume.mkdirSync(path, { recursive: true }); },
       async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); }
@@ -120,3 +121,11 @@ it("stages dash-prefixed operands after --", async () => {
   assert.equal(result.exitCode, 0, stderr);
   assert.deepEqual(reads, ["/work/-in.pdf"]);
 });
+
+for (const args of [["-save", "1"], ["-savefile", "../escaped.txt"]]) {
+  it(`extracts to an existing directory without a trailing slash: ${args.join(" ")}`, async () => {
+    const { result, volume, stderr } = await execute(createPdfdetachCommand(), [...args, "-o", "out", "in.pdf"], false, "../escaped.txt");
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(volume.readFileSync("/work/out/escaped.txt", "utf8"), "payload");
+  });
+}

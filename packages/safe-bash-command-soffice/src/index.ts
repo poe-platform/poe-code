@@ -1,3 +1,4 @@
+import { parseHtmlBlocks, type DocBlock } from "./html.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { convertOds, starCalcCsvOptions } from "./spreadsheet.js";
@@ -50,12 +51,6 @@ function unescapeXml(str: string): string {
     .replace(/&quot;/g, '"')
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, "&");
-}
-
-interface DocBlock {
-  kind: "heading" | "paragraph" | "table";
-  text?: string;
-  rows?: string[][];
 }
 
 function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
@@ -350,6 +345,13 @@ function formatStarCalcCsv(rows: readonly string[][], filterOptions?: string): U
 
 function escapeHtmlText(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+function renderBlocksToText(blocks: readonly DocBlock[]): Uint8Array {
+  const lines = blocks.map(block => block.kind === "table"
+    ? (block.rows ?? []).map(row => row.join("\t")).join("\n")
+    : block.text ?? "");
+  return new TextEncoder().encode(lines.join("\n\n") + "\n");
 }
 
 function renderBlocksToHtml(blocks: readonly DocBlock[], title = "Document"): Uint8Array {
@@ -694,12 +696,7 @@ function* runSofficeSteps(
         } else if (targetExt === "docx") {
           outBytes = buildDocxFromBlocks(blocks);
         } else {
-          const textLines = blocks.map((b) =>
-            b.kind === "table" && b.rows
-              ? b.rows.map((r) => r.join("\t")).join("\n")
-              : (b.text ?? "")
-          );
-          outBytes = new TextEncoder().encode(textLines.join("\n\n") + "\n");
+          outBytes = renderBlocksToText(blocks);
         }
       } else if (lowerIn.endsWith(".xlsx") || lowerIn.endsWith(".csv")) {
         const rows = lowerIn.endsWith(".xlsx")
@@ -774,12 +771,16 @@ function* runSofficeSteps(
         // Plain text / Markdown / HTML input uses the selected document writer.
         const rawText = new TextDecoder().decode(inputBytes);
         const lines = rawText.split(/\r?\n/).filter((l) => l.trim().length > 0);
-        const blocks: DocBlock[] = lines.map((l) =>
+        const isHtml = lowerIn.endsWith(".html") || lowerIn.endsWith(".htm");
+        const blocks: DocBlock[] = isHtml ? parseHtmlBlocks(rawText) : lines.map((l) =>
           l.startsWith("# ")
             ? { kind: "heading", text: l.slice(2).trim() }
             : { kind: "paragraph", text: l }
         );
-        outBytes = targetExt === "pdf" ? yield* renderBlocksToPdf(blocks, stem) : targetExt === "docx" ? buildDocxFromBlocks(blocks) : targetExt === "html" ? renderBlocksToHtml(blocks, stem) : inputBytes;
+        if (targetExt === "pdf") outBytes = yield* renderBlocksToPdf(blocks, stem);
+        else if (targetExt === "docx") outBytes = buildDocxFromBlocks(blocks);
+        else if (targetExt === "html") outBytes = renderBlocksToHtml(blocks, stem);
+        else outBytes = isHtml || lowerIn.endsWith(".md") ? renderBlocksToText(blocks) : inputBytes;
       }
 
       if (targetExt === "pdf" && filterOpts && filterOpts.trim().startsWith("{")) {

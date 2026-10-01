@@ -28,7 +28,8 @@
     "@poe-code/spreadsheet-format-csv": "*",
     "@poe-code/spreadsheet-format-ods": "*",
     "@poe-code/spreadsheet-format-xlsx": "*",
-    "@poe-code/office-package": "*"
+    "@poe-code/office-package": "*",
+    "parse5": "7.3.0"
   },
   "devDependencies": {
     "@poe-code/pdf-ast": "*",

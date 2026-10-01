@@ -15,3 +15,13 @@ for (const mode of ["sync", "async"]) test(`plain text DOCX conversion emits an 
   assert.equal(restored.stderr, "");
   assert.equal(restored.stdout, "Hello LibreOffice\nLine Two\n");
 });
+
+for (const run of [runSofficeCliSync, runSofficeCli]) test(`Markdown to DOCX preserves heading and paragraph content (${run.name})`, async () => {
+  const files = new Map([["/note.md", new TextEncoder().encode("# Heading\n\nBody text\n")]]);
+  const result = await run(["--headless", "--convert-to", "docx", "/note.md"], files);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const xml = new TextDecoder().decode(readZipArchiveEntries(files.get("/note.docx")!).get("word/document.xml"));
+  assert.ok(xml.includes('w:val="Heading1"'), xml);
+  const restored = await runSofficeCli(["--cat", "/note.docx"], files);
+  assert.equal(restored.stdout, "Heading\nBody text\n");
+});

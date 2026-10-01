@@ -1,3 +1,4 @@
+import { taskListState } from "./task-list.js";
 import type { Alignment, Attr, Block, Caption, ColSpec, Inline, MetaValue, Row } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
 import { PandocError } from "./errors.js";
@@ -121,7 +122,14 @@ class LatexWriter {
         case "Code": this.attrs(node.c[0], p); this.add("\\texttt{"); this.escape(node.c[1], true); this.add("}"); break;
         case "Math": this.add(node.c[0] === "InlineMath" ? "\\(" : "\\["); this.math(node.c[1], p); this.add(node.c[0] === "InlineMath" ? "\\)" : "\\]"); break;
         case "RawInline": this.raw(node.c[1], p); break;
-        case "Span": this.attrs(node.c[0], p); this.add("{"); await this.inlines(node.c[1], `${p}.c[1]`); this.add("}"); break;
+        case "Span": {
+          const taskState = taskListState(node);
+          if (taskState !== undefined) {
+            this.add(taskState ? "☒ " : "☐ ");
+            break;
+          }
+          this.attrs(node.c[0], p); this.add("{"); await this.inlines(node.c[1], `${p}.c[1]`); this.add("}"); break;
+        }
         case "Note": this.context.charge("references", 1); this.notes.push({blocks: node.c, path: `${p}.c`}); this.add(`\\protect\\footnotemark[${this.notes.length}]`); break;
         case "Link": {
           this.attrs(node.c[0], p); if(node.c[2][1]) this.loss("Dropped link title", p);

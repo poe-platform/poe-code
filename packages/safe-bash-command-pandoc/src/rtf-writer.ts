@@ -1,3 +1,4 @@
+import { taskListState } from "./task-list.js";
 import { PandocError } from "./errors.js";
 import type { Attr, Block, Inline, Alignment } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
@@ -91,7 +92,14 @@ class RtfWriter {
         case "LineBreak": this.add("\\line "); break;
         case "Emph": case "Strong": case "Underline": case "Strikeout": case "Superscript": case "Subscript": case "SmallCaps":
           this.add(`{\\${formatting[node.t]} `); await this.inlines(node.c); this.add("}"); break;
-        case "Span": this.add("{"); this.attrs(node.c[0]); if(node.c[0][2].length) this.add(" "); await this.inlines(node.c[1]); this.add("}"); break;
+        case "Span": {
+          const taskState = taskListState(node);
+          if (taskState !== undefined) {
+            this.text(taskState ? "☒ " : "☐ ");
+            break;
+          }
+          this.add("{"); this.attrs(node.c[0]); if(node.c[0][2].length) this.add(" "); await this.inlines(node.c[1]); this.add("}"); break;
+        }
         case "Code": this.add("{"); this.attrs(node.c[0]); if(node.c[0][2].length) this.add(" "); this.text(node.c[1]); this.add("}"); break;
         case "Quoted": this.text(node.c[0] === "SingleQuote" ? "‘" : "“"); await this.inlines(node.c[1]); this.text(node.c[0] === "SingleQuote" ? "’" : "”"); break;
         case "Link": {

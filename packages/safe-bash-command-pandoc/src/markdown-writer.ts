@@ -1,3 +1,4 @@
+import { taskListState } from "./task-list.js";
 import type { Attr, Block, Inline } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
 import type { FormatSelection } from "./formats.js";
@@ -105,9 +106,9 @@ class Markdown {
         }
         case "Span": {
           const attr = node.c[0];
-          if(task && i === 0 && attr[0] === "" && attr[1].length === 1 && attr[1][0] === "task-list-marker" && attr[2].length === 1 && attr[2][0]?.[0] === "checked" && ["true", "false"].includes(attr[2][0][1]) && node.c[1].length === 0) {
-            if(!this.selection.extensions.task_lists) {this.loss(p, "task state"); break;}
-            parts.push(attr[2][0][1] === "true" ? "[x] " : "[ ] ");
+          const state = taskListState(node);
+          if(state !== undefined) {
+            parts.push(task && i === 0 && this.selection.extensions.task_lists ? (state ? "[x] " : "[ ] ") : (state ? "☒ " : "☐ "));
           } else {this.attrs(attr, p); parts.push(this.inline(node.c[1], `${p}.c[1]`));} break;
         }
         case "Quoted": {const quote = node.c[0] === "DoubleQuote" ? '"' : "'"; parts.push(this.join([quote, this.inline(node.c[1], `${p}.c[1]`), quote])); break;}

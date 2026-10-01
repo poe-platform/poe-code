@@ -155,7 +155,7 @@ export function createFormatRegistry(
     infer(path: string, direction: Direction): string {
       const dot = path.lastIndexOf(".");
       if (dot <= path.lastIndexOf("/") || dot < 0) return fail("E_FORMAT", `No suffix: ${path}`);
-      const suffix = path.slice(dot + 1);
+      const suffix = path.slice(dot + 1).toLowerCase();
       const matches = formats.filter(
         (descriptor) => descriptor[direction] && descriptor.suffixes.includes(suffix)
       );

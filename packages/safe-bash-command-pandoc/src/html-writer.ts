@@ -1,3 +1,4 @@
+import { taskListState } from "./task-list.js";
 import type { Alignment, Attr, Block, Caption, ColSpec, Inline, MetaValue, Row } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
 import { PandocError } from "./errors.js";
@@ -133,7 +134,14 @@ class HtmlWriter {
         case "Code": this.add("<code"); this.attrs(node.c[0]); this.add(">"); this.escape(node.c[1]); this.add("</code>"); break;
         case "Math": this.add(`<span class="math ${node.c[0] === "InlineMath" ? "inline" : "display"}">`); this.escape(node.c[0] === "InlineMath" ? `\\(${node.c[1]}\\)` : `\\[${node.c[1]}\\]`); this.add("</span>"); break;
         case "RawInline": this.raw(node.c[0], node.c[1], p); break;
-        case "Span": this.add("<span"); this.attrs(node.c[0]); this.add(">"); await this.inlines(node.c[1], `${p}.c[1]`); this.add("</span>"); break;
+        case "Span": {
+          const taskState = taskListState(node);
+          if (taskState !== undefined) {
+            this.add(taskState ? '<input type="checkbox" checked="" />' : '<input type="checkbox" />');
+            break;
+          }
+          this.add("<span"); this.attrs(node.c[0]); this.add(">"); await this.inlines(node.c[1], `${p}.c[1]`); this.add("</span>"); break;
+        }
         case "Link": case "Image": {
           const image = node.t === "Image"; this.add(image ? "<img" : "<a"); this.attribute(image ? "src" : "href", this.url(node.c[2][0]));
           if(image) this.attribute("alt", this.plain(node.c[1]));

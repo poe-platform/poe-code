@@ -46,7 +46,9 @@ outputs default to `html5`. Explicit `-f`/`-t` override inference; `--yes` is
 not required.
 `markdown`, `md`, `markdown_github`, `markdown_mmd`, `markdown_phpextra`, and
 `commonmark_x` select the supported GFM reader and writer, including tables
-and strikeout. `markdown_strict` selects the CommonMark reader and writer. These
+and strikeout. File suffix inference is case-insensitive. Task lists render as HTML
+checkboxes or text checkbox symbols in LaTeX, reStructuredText, RTF and CommonMark.
+`markdown_strict` selects the CommonMark reader and writer. These
 compatibility names use the documented engine features; they do not enable
 additional dialect-specific extensions. XLSX input uses the first row as table headers, preserves literal
 cell whitespace, and calculates formulas whose results are missing.

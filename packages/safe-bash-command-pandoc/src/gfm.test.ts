@@ -139,3 +139,18 @@ describe("declared GFM reader", () => {
     expect(await read(text, `gfm-${extension}+${extension}`)).toEqual(await read(text));
   });
 });
+
+it.each(["html", "html5", "latex", "rst", "rtf", "commonmark"])("renders GFM task states in %s", async to => {
+  const result = await convert([{ bytes: new TextEncoder().encode("- [x] done\n- [ ] todo\n") }], { from: "gfm", to }, {});
+  expect(result.kind).toBe("text");
+  if (result.kind !== "text") throw new Error("Expected text");
+  expect(result.text).toContain("done");
+  expect(result.text).toContain("todo");
+  expect(result.text).toContain(to.startsWith("html") ? '<input type="checkbox" />' : to === "rtf" ? "\\u9744 ?" : "☐");
+  expect(result.text).toContain(to.startsWith("html") ? 'type="checkbox"' : to === "rtf" ? "\\u9746 ?" : "☒");
+});
+it("infers formats from uppercase suffixes", () => {
+  const registry = createFormatRegistry();
+  expect(registry.infer("/in.MD", "read")).toBe(registry.infer("/in.md", "read"));
+  expect(registry.infer("/out.HTML", "write")).toBe(registry.infer("/out.html", "write"));
+});

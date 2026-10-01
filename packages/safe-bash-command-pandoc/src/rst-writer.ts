@@ -1,3 +1,4 @@
+import { taskListState } from "./task-list.js";
 import type {Attr, Block, Inline} from "./ast-types.js";
 import {assertNever} from "./ast-types.js";
 import type {AdapterContext, Document, SerializedDocument} from "./types.js";
@@ -104,7 +105,14 @@ class RstWriter {
         }
         case "Underline": case "SmallCaps": this.loss(`Projected unsupported ${node.t} to text`, p); text = children(node.c); break;
         case "Quoted": text = (node.c[0] === "SingleQuote" ? "‘" : "“") + this.inlines(node.c[1], `${p}.c[1]`, nested, literal) + (node.c[0] === "SingleQuote" ? "’" : "”"); break;
-        case "Span": this.loss("Projected unsupported Span to text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested, literal); break;
+        case "Span": {
+          const taskState = taskListState(node);
+          if (taskState !== undefined) {
+            text = taskState ? "☒ " : "☐ ";
+            break;
+          }
+          this.loss("Projected unsupported Span to text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested, literal); break;
+        }
         case "Cite": this.loss("Projected citation to displayed text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested, literal); break;
         case "Code": {
           if(node.c[0][0] || node.c[0][1].length || node.c[0][2].length) this.loss("Dropped inline code attributes", p);

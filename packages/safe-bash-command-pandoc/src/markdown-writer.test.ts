@@ -48,7 +48,7 @@ it("supports declared GFM strike/tasks and rejects or diagnoses CommonMark proje
   const task: Inline = {t: "Span", c: [["", ["task-list-marker"], [["checked", "true"]]], []]};
   const blocks: Block[] = [{t: "BulletList", c: [[{t: "Plain", c: [task, s("todo")]}]]}];
   expect(await md(blocks, "gfm")).toBe("- [x] todo\n");
-  await expect(md(blocks)).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE"});
+  expect(await md(blocks)).toBe("- ☒ todo\n");
 });
 it("supports only wrap none and bounds amplification", async () => {
   expect(await md([p(s("x"))], "commonmark", {wrap: "none"} as Partial<WriteOptions>)).toBe("x\n");

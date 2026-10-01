@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test, { type TestContext } from "node:test";
-import { Shell, cloudflareWorkerLimits } from "../../src/shell/index.js";
+import { Shell, ShellLimitError, cloudflareWorkerLimits } from "../../src/shell/index.js";
 import { archiveCommands, type ArchiveCommandsOptions } from "../../src/commands/archive/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
@@ -53,10 +53,18 @@ for (const plugin of [archiveCommands, agentCommands]) {
 test("Worker unzip bounds a stream that grows beyond its admitted metadata and closes it", async t => {
   const { shell, observed } = await streamingArchive(t, 1024, 40 * 1024 * 1024);
   shell.use(archiveCommands());
+  await assert.rejects(shell.exec("unzip -t /input.zip"), error => error instanceof ShellLimitError && error.limit === "maxInputBytes");
+  assert.ok(observed.bytes <= 4 * 1024 * 1024 + 64 * 1024, String(observed.bytes));
+  assert.equal(observed.closed, 1);
+});
+
+test("a lower archive ceiling stops a growing stream before the shared input budget", async t => {
+  const { shell, observed } = await streamingArchive(t, 1024, 8 * 1024 * 1024);
+  shell.use(archiveCommands({ limits: { maxArchiveBytes: 2 * 1024 * 1024 } }));
   const result = await shell.exec("unzip -t /input.zip");
   assert.equal(result.exitCode, 2, result.stderr);
   assert.match(result.stderr, /archive byte limit exceeded/);
-  assert.ok(observed.bytes <= 4 * 1024 * 1024 + 64 * 1024, String(observed.bytes));
+  assert.ok(observed.bytes <= 2 * 1024 * 1024 + 64 * 1024);
   assert.equal(observed.closed, 1);
 });
 
@@ -107,13 +115,11 @@ test("Worker admits an exact-limit input without weakening the stream ceiling", 
 
 test("concurrent Worker invocations independently stop oversized growing streams", async t => {
   const fixtures = await Promise.all(Array.from({ length: 4 }, () => streamingArchive(t, 1024, 8 * 1024 * 1024)));
-  const results = await Promise.all(fixtures.map(({ shell }) => shell.use(archiveCommands()).exec("unzip -t /input.zip")));
-  for (const [index, result] of results.entries()) {
-    assert.equal(result.exitCode, 2);
-    assert.match(result.stderr, /archive byte limit exceeded/);
-    assert.ok(fixtures[index]!.observed.bytes <= 4 * 1024 * 1024 + 64 * 1024);
-    assert.equal(fixtures[index]!.observed.closed, 1);
-  }
+  await Promise.all(fixtures.map(async ({ shell, observed }) => {
+    await assert.rejects(shell.use(archiveCommands()).exec("unzip -t /input.zip"), error => error instanceof ShellLimitError && error.limit === "maxInputBytes");
+    assert.ok(observed.bytes <= 4 * 1024 * 1024 + 64 * 1024);
+    assert.equal(observed.closed, 1);
+  }));
 });
 
 test("nested shell and literal invocations inherit Worker archive admission", async t => {

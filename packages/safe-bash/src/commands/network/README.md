@@ -115,7 +115,8 @@ outbound HTTP(S) authority.
 | Response encoding | `--compressed` advertises gzip/deflate and streams decoded content to stdout or VFS files; headers stay encoded and `size_download` counts transport body bytes. Both encoded and decoded bodies obey the download ceiling. `--raw` disables content decoding even with `--compressed`; already-decoded content and raw transfer framing (such as chunked encoding) fail with code 61. `--no-compressed` and `--no-raw` disable their respective flags. |
 | HTTP status | `-f/--fail`, `--fail-with-body`, `-s/--silent`, `-S/--show-error`; HTTP errors otherwise return zero. No progress meter is generated. `-v` emits method/origin, header names with all values redacted, and numeric response status. Explicit body/header outputs remain raw. |
 | Redirects | `-L/--location`, `--max-redirs`; 301/302/303 method/body changes and 307/308 replay; explicit `-X` is retained. HTTPS downgrade and credential-bearing Location URLs are rejected. All custom request headers and generated credentials are dropped permanently after crossing origins, more conservative than native curl. |
-| Deadlines/retries | `-m/--max-time` covers authorization, upload, response, body output and retry sleeps for each URL; host ceiling always applies. `--retry` retries completed HTTP 408/429/500/502/503/504 responses after output publication (subject to fail modes); `--retry-delay` and Retry-After are bounded by the deadline. Network, partial-transfer and output failures are not retried. |
+| Deadlines/retries | `-m/--max-time` covers authorization, upload, response, body output and retry sleeps for each URL; host ceiling always applies. `--retry` retries completed HTTP 408/429/500/502/503/504 responses after output publication (subject to fail modes); `--retry-delay` and Retry-After are bounded by the deadline. `--retry-connrefused` adds connection refusal; `--retry-all-errors` adds transfer failures. `--retry-max-time` bounds when another attempt can start. Retries can repeat request side effects and output. |
+| Cookies/output/TLS | `-b/--cookie` accepts literal cookie data or a VFS Netscape cookie file with domain, path, expiry and HTTPS scoping. `--create-dirs` creates output parents, including with `--output-dir`. `-k/--insecure` disables certificate verification on capable transports such as Node; Fetch rejects it because its TLS policy cannot be changed. |
 | Write-out | `-w/--write-out`, including `@VFSFILE`/`@-`; `http_code`, `response_code`, `url_effective`, `redirect_url`, `content_type`, `size_download`, `size_upload`, `num_redirects`, `num_retries`, `time_total`, `exitcode`, `errormsg`, `filename_effective`, `method`, `http_version`; `%%`, `\n`, `\r`, `\t`. Unsupported variables fail before requests. Expanded UTF-8 output must fit the host `maxBufferBytes` limit; overflow exits 63 before write-out publication. Final write-out/diagnostics observe shell cancellation, outside the completed transfer deadline. |
 
 `--disable`, `--no-buffer`, `--no-progress-meter` are accepted because config
@@ -138,9 +139,9 @@ Fetch callers use `responseHeaderTimeoutMs`; an exact `connectTimeoutMs` request
 is rejected rather than silently weakened. Omitted or zero header deadlines are
 disabled. Cancellation and late-response cleanup remain active in either case.
 
-Unknown flags fail, including proxy/config/netrc, `-k`,
+Unknown flags fail, including proxy/netrc,
 other CA/client-cert file flags, cookie-jar, HTTP/2/3, parallel,
-`--location-trusted`, `--retry-all-errors`, and non-HTTP protocols.
+`--location-trusted`, and non-HTTP protocols.
 
 ## Streaming, quotas and failure state
 

@@ -104,7 +104,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
         ...pinned,
         ...(url.protocol === "https:" ? {
           servername: isIP(hostname) ? "" : hostname,
-          rejectUnauthorized: true,
+          rejectUnauthorized: !input.insecure,
           checkServerIdentity: (_servername: string, certificate: PeerCertificate) => checkServerIdentity(hostname, certificate),
         } : {}),
       }, response => {
@@ -153,6 +153,7 @@ export function createNodeHttpTransport(options: NodeHttpTransportOptions = {}):
   Object.defineProperty(transport, "supportsPrivateNetworkDeny", { value: true });
   Object.defineProperty(transport, "supportsConnectTimeout", { value: true });
   Object.defineProperty(transport, "supportsRequestCa", { value: true });
+  Object.defineProperty(transport, "supportsInsecureTls", { value: true });
   Object.defineProperty(transport, "supportedHttpVersions", { value: Object.freeze(["1.1"]) });
   return transport;
 }

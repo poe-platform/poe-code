@@ -7,6 +7,12 @@ export interface DataArgument {
 }
 
 export interface CurlArguments {
+  insecure?: boolean;
+  createDirs?: boolean;
+  cookies?: string[];
+  retryAllErrors?: boolean;
+  retryConnrefused?: boolean;
+  retryMaxTimeMs?: number;
   caFile?: string;
   etagSave?: string;
   etagCompare?: string;
@@ -58,18 +64,19 @@ export interface CurlArguments {
 }
 
 export const values: Readonly<Record<string, string>> = {
-  C: "continue-at", X: "request", d: "data", H: "header", u: "user", A: "user-agent", e: "referer",
+  b: "cookie", C: "continue-at", X: "request", d: "data", H: "header", u: "user", A: "user-agent", e: "referer",
   o: "output", D: "dump-header", w: "write-out", T: "upload-file", m: "max-time", F: "form", r: "range",
 };
 export const flags: Readonly<Record<string, string>> = {
   L: "location", I: "head", i: "include", f: "fail", s: "silent", S: "show-error",
   G: "get", O: "remote-name", v: "verbose", q: "disable", N: "no-buffer", g: "globoff",
-  h: "help", V: "version",
+  k: "insecure", h: "help", V: "version",
 };
 export const longValues = new Set([...Object.values(values), "data-ascii", "data-raw", "data-binary", "data-urlencode", "url-query",
-  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "connect-timeout", "output-dir", "cacert", "etag-save", "etag-compare"]);
+  "json", "form-string", "url", "oauth2-bearer", "max-redirs", "max-filesize", "retry", "retry-delay", "retry-max-time", "connect-timeout", "output-dir", "cacert", "etag-save", "etag-compare"]);
 
 const booleans: Readonly<Record<string, keyof CurlArguments>> = {
+  insecure: "insecure", "create-dirs": "createDirs", "retry-all-errors": "retryAllErrors", "retry-connrefused": "retryConnrefused",
   location: "location", head: "head", include: "include", "show-headers": "include", get: "get",
   "remote-name": "remoteName", fail: "fail", "fail-with-body": "failWithBody", silent: "silent",
   "show-error": "showError", verbose: "verbose", globoff: "globoff", compressed: "compressed", raw: "raw",
@@ -175,6 +182,8 @@ export function parseArguments(args: readonly string[], limits: NetworkLimits): 
       }
       case "etag-save": result.etagSave = value!; break;
       case "etag-compare": result.etagCompare = value!; break;
+      case "cookie": (result.cookies ??= []).push(value!); break;
+      case "retry-max-time": result.retryMaxTimeMs = number(value!, true) * 1000 || Infinity; break;
       case "cacert": result.caFile = value!; break;
       case "http1.0": result.httpVersion = "1.0"; break;
       case "http1.1": result.httpVersion = "1.1"; break;

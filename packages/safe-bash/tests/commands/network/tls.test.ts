@@ -52,6 +52,18 @@ test("untrusted HTTPS certificates fail with curl 60", async () => {
   const result = await run([origin]); assert.equal(result.exitCode, 60); assert.equal(result.stdout.length, 0);
 });
 
+test("insecure TLS is per request and does not change subsequent verification", async () => {
+  const transport = createNodeHttpTransport();
+  const before = process.env.NODE_TLS_REJECT_UNAUTHORIZED;
+  for (const flag of ["-k", "--insecure"]) {
+    const result = await run([flag, origin], { options: { transport } });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.deepEqual(result.stdout, Buffer.from([0, 255, 72, 84, 84, 80, 83]));
+  }
+  assert.equal((await run([origin], { options: { transport } })).exitCode, 60);
+  assert.equal(process.env.NODE_TLS_REJECT_UNAUTHORIZED, before);
+});
+
 test("curl trusts an explicit VFS CA only for its request", async () => {
   const fs = await fixture();
   await fs.writeFile("/work/ca.pem", cert);

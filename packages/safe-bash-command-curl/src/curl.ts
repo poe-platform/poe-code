@@ -41,11 +41,12 @@ function parseUrl(text: string, redirect = false): { url: URL; user?: string } {
   return { url, ...(user === undefined ? {} : { user }) };
 }
 
-function requestHeaders(args: CurlArguments, contentType: string | undefined, user: string | undefined, scoped: boolean, maxBytes: number, previous?: string): HttpHeaders {
+function requestHeaders(args: CurlArguments, contentType: string | undefined, user: string | undefined, scoped: boolean, maxBytes: number, previous?: string, cookie?: string): HttpHeaders {
   const json = args.data[0]?.kind === "json";
   // --json supplies semantic headers even when a redirect or -G removes the body.
   if (json) contentType = "application/json";
   const defaults: [string, string][] = [["Accept", json ? "application/json" : "*/*"]];
+  if (cookie) defaults.push(["Cookie", cookie]);
   if (args.agent !== "") defaults.push(["User-Agent", args.agent ?? "virtual-bash-curl/0.0"]);
   if (contentType !== undefined) defaults.push(["Content-Type", contentType]);
   if (args.compressed) defaults.push(["Accept-Encoding", "gzip, deflate"]);
@@ -69,6 +70,43 @@ function requestHeaders(args: CurlArguments, contentType: string | undefined, us
     throw new CurlError(63, "Request headers exceed host byte limit");
   }
   return result;
+}
+
+interface Cookie { name: string; value: string; domain?: string; subdomains?: boolean; path?: string; secure?: boolean; expires?: number; }
+
+async function readCookies(context: CommandContext, args: CurlArguments, limits: NetworkLimits, signal: AbortSignal): Promise<Cookie[]> {
+  const cookies: Cookie[] = [];
+  for (const input of args.cookies ?? []) {
+    if (input.includes("=")) {
+      validateRequestHeader("Cookie", input);
+      cookies.push({ name: "", value: input });
+      continue;
+    }
+    if (!input) continue;
+    let bytes: Uint8Array;
+    try {
+      bytes = input === "-" ? await collectBytes(context.stdin, { signal, maxBytes: limits.maxBufferBytes })
+        : await withSignal(() => context.fs.readFile(pathOf(context, input), { signal, ...(Number.isFinite(limits.maxBufferBytes) ? { maxBytes: limits.maxBufferBytes } : {}) }), signal);
+    } catch (error) {
+      signal.throwIfAborted();
+      if (error instanceof FsError && error.code === "ENOENT") continue;
+      throw error;
+    }
+    if (bytes.length > limits.maxBufferBytes) throw new CurlError(63, "Cookie file exceeds host buffer limit");
+    for (let line of new TextDecoder().decode(bytes).split("\n")) {
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (line.startsWith("#HttpOnly_")) line = line.slice(10);
+      else if (line.startsWith("#")) continue;
+      const fields = line.split("\t");
+      if (fields.length !== 7) continue;
+      const [domain, subdomains, path, secure, expires, name, value] = fields as [string, string, string, string, string, string, string];
+      if (!["TRUE", "FALSE"].includes(subdomains) || !["TRUE", "FALSE"].includes(secure) || !Number.isFinite(Number(expires))) continue;
+      validateRequestHeader("Cookie", `${name}=${value}`);
+      cookies.push({ name, value, domain: domain.toLowerCase().startsWith(".") ? domain.slice(1).toLowerCase() : domain.toLowerCase(), subdomains: subdomains === "TRUE", path, secure: secure === "TRUE", expires: Number(expires) });
+      if (cookies.length % 256 === 0) await yieldTurn(signal);
+    }
+  }
+  return cookies;
 }
 
 async function stop(response: HttpResponse | undefined, signal: AbortSignal): Promise<void> {
@@ -151,6 +189,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
         if (args.connectTimeoutMs !== undefined && transport.supportsConnectTimeout !== true && transport.supportsResponseHeaderTimeout !== true) {
           throw new CurlError(2, "Transport cannot enforce connection timeout");
         }
+        if (args.insecure && transport.supportsInsecureTls !== true) throw new CurlError(2, "Transport cannot disable TLS verification");
         if (args.caFile !== undefined && transport.supportsRequestCa !== true) {
           throw new CurlError(2, "Transport cannot enforce request CA trust");
         }
@@ -277,6 +316,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     if (format !== undefined) { writeOutFormat(format, values, limits.maxBufferBytes); formatReady = true; }
     const parsed = parseUrl(input);
     const initial = parsed.url;
+    const cookies = await readCookies(context, args, limits, signal);
     const rawTarget = curlRequestTarget(input);
     let initialTarget = rawTarget;
     const initialSearch = initial.search;
@@ -326,7 +366,9 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
     const initialRequestMethod = args.head || args.download?.spider ? "HEAD" : args.get ? "GET" : args.upload !== undefined ? "PUT" : body ? "POST" : "GET";
     const initialMethod = args.method ?? initialRequestMethod;
     requestHeaders(args, body?.contentType, args.user ?? parsed.user, true, limits.maxHeaderBytes);
+    const retryRemaining = () => (args.retryMaxTimeMs ?? Infinity) - (performance.now() - start);
     attempts: for (let attempt = 0; attempt <= args.retries; attempt++) {
+      try {
       if (attempt && args.download?.resume && output && output !== "-") resumeOffset = await existingSize(context, output, signal) ?? 0;
       values.num_retries = String(attempt);
       downloaded = 0;
@@ -349,7 +391,15 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         values.method = method;
         let denyPrivateNetworks = false;
         let allowed: boolean;
-        const headers = requestHeaders(resumeOffset ? { ...args, range: `${resumeOffset}-` } : args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes, previous);
+        const cookie = cookies.filter(item => {
+          if (item.domain === undefined) return credentialsInScope;
+          const domain = current.hostname.toLowerCase();
+          const path = item.path || "/";
+          return (domain === item.domain || item.subdomains && domain.endsWith(`.${item.domain}`)) &&
+            (!item.secure || current.protocol === "https:") && (!item.expires || item.expires > Date.now() / 1000) &&
+            (current.pathname === path || current.pathname.startsWith(path.endsWith("/") ? path : `${path}/`));
+        }).map(item => item.name ? `${item.name}=${item.value}` : item.value).join("; ");
+        const headers = requestHeaders(resumeOffset ? { ...args, range: `${resumeOffset}-` } : args, currentBody?.contentType, args.user ?? parsed.user, credentialsInScope, limits.maxHeaderBytes, previous, cookie);
         try { allowed = await withSignal(() => authorize({ url: currentUrl, method, headers, attempt, signal,
           requirePrivateNetworkDeny() { denyPrivateNetworks = true; },
           ...(previous === undefined ? {} : { redirectFrom: previous }) }), signal); }
@@ -364,12 +414,12 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
         const upload: ByteSource | undefined = currentBody && (async function* () {
           for await (const chunk of currentBody!.open(signal)) { uploaded += chunk.length; yield chunk; }
         })();
-        try {
         response = await operation.acquire(async () => {
           const acquired = await transport({ url: currentUrl, method, headers, signal, responseBodyMode: args.download && method === "HEAD" || args.head || args.download?.spider ? "omit" : args.fail ? "omit-on-http-error" : "read",
             ...(args.httpVersion === undefined ? {} : { httpVersion: args.httpVersion }),
             ...(args.ignoreContentLength ? { ignoreContentLength: true as const } : {}),
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}),
+            ...(args.insecure ? { insecure: true as const } : {}),
             ...(ca === undefined ? {} : { ca }),
             ...(args.connectTimeoutMs === undefined ? {} : transport.supportsConnectTimeout === true
               ? { connectTimeoutMs: args.connectTimeoutMs }
@@ -377,15 +427,6 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
           let cleanup: Promise<void> | undefined;
           return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };
         }, result => result.dispose());
-        } catch (error) {
-          signal.throwIfAborted();
-          const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
-          if (args.retryTransport && (code === "ECONNRESET" || code === "ETIMEDOUT" || code === "EPIPE") && attempt < args.retries) {
-            await delay(args.retryDelayMs || Math.min(1000 * 2 ** attempt, 600_000), signal);
-            continue attempts;
-          }
-          throw error;
-        }
         const block = responseHeaders(response, limits.maxHeaderBytes);
         headerBytes += block.length;
         if (headerBytes > limits.maxHeaderBytes) throw new CurlError(63, "Combined response headers exceed host byte limit");
@@ -472,7 +513,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
       const readBody = !(args.download && method === "HEAD") && !args.head && !suppressBody;
       let published = 0;
       if (!args.download?.spider && (!suppressBody || included.length)) {
-        if (args.download && output && output !== "-") await context.fs.mkdir(posix.dirname(pathOf(context, output)), { recursive: true, signal });
+        if ((args.download || args.createDirs) && output && output !== "-") await context.fs.mkdir(posix.dirname(pathOf(context, output)), { recursive: true, signal });
         const length = args.ignoreContentLength ? undefined : header(response.headers, "content-length");
         if (readBody && length && /^\d+$/.test(length) && Number(length) > args.maxFileSize) throw new CurlError(63, "Response exceeds download byte limit");
         const final = response;
@@ -518,7 +559,7 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
           closedOutput = true;
         } finally { await writing?.close(); }
       }
-      if (retryStatuses.has(response.status) && attempt < args.retries) {
+      if ((retryStatuses.has(response.status) || args.retryAllErrors && failure) && attempt < args.retries && retryRemaining() > 0) {
         if (failure && (!args.silent || args.showError)) await deadlineDiagnostic(context, new CurlError(status(failure.exitCode), failure.message), remaining());
         const after = header(response.headers, "retry-after");
         let wait = args.retryDelayMs || Math.min(1000 * 2 ** attempt, 600_000);
@@ -526,12 +567,24 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
           const parsed = /^\d+$/.test(after) ? Number(after) * 1000 : Date.parse(after) - Date.now();
           if (Number.isFinite(parsed)) wait = Math.max(wait, parsed);
         }
+        if (wait >= retryRemaining()) break;
         await stop(response, signal); response = undefined;
         if (published && output !== undefined && output !== "-" && !args.download?.resume) await writeOutput(context, output, toByteSource(""), signal);
         await delay(Math.min(wait, limits.maxTimeMs), signal);
         continue;
       }
       break;
+      } catch (error) {
+        signal.throwIfAborted();
+        const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+        const retryable = args.retryAllErrors || args.retryConnrefused && code === "ECONNREFUSED" ||
+          args.retryTransport && (code === "ECONNRESET" || code === "ETIMEDOUT" || code === "EPIPE");
+        const wait = args.retryDelayMs || Math.min(1000 * 2 ** attempt, 600_000);
+        if (!retryable || attempt >= args.retries || wait >= retryRemaining() || pipeClosed(error)) throw error;
+        await stop(response, signal); response = undefined;
+        await delay(wait, signal);
+        continue attempts;
+      }
     }
   } catch (error) {
     if (context.signal.aborted) throw context.signal.reason;

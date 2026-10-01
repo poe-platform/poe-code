@@ -3,14 +3,15 @@ import { test } from "node:test";
 import { build, type BuildOptions } from "esbuild";
 import { expandUrls } from "../../../src/commands/network/glob.js";
 import { limitsFor } from "../../../src/commands/network/shared.js";
-import { run } from "./helpers.js";
+import { fixture, run } from "./helpers.js";
+import { toByteSource } from "safe-bash-contracts";
 import path from "node:path";
 
 const { resolveBrowserShellBuild }: {
   resolveBrowserShellBuild(rootDir: string): BuildOptions & { entryPoints: { "commands/network/index.browser": string } };
 } = await import(new URL("../../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href);
 
-test("portable network registration permits disabled and explicit expansion quotas", async () => {
+test("portable network registration permits disabled and explicit expansion quotas", async context => {
   const recipe = resolveBrowserShellBuild(process.cwd().endsWith("safe-bash") ? process.cwd() + "/../.." : process.cwd());
   const root = path.resolve(recipe.absWorkingDir!);
   const core = path.join(root, "packages/safe-fs/src/core.ts");
@@ -27,6 +28,21 @@ test("portable network registration permits disabled and explicit expansion quot
     assert.doesNotThrow(() => create({ authorize: () => false, transport: async () => assert.fail("transport"), limits: { maxUrls: 8, maxBufferBytes: 1024 } }));
     assert.doesNotThrow(() => create());
   }
+  let calls = 0;
+  context.mock.method(globalThis, "fetch", async () => { calls++; return new Response("portable default"); });
+  for (const create of [api.createCurlCommand, api.createWgetCommand]) {
+    const command = create({ authorize: () => true });
+    let output = "", stderr = "";
+    const result = await command.execute({ command: command.name,
+      args: command.name === "curl" ? ["https://example.test/"] : ["-O", "-", "https://example.test/"],
+      cwd: "/work", env: {}, fs: await fixture(), stdin: toByteSource(""), signal: new AbortController().signal,
+      stdout: { async write(bytes: Uint8Array) { output += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+    });
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(output, "portable default");
+  }
+  assert.equal(calls, 2);
 });
 
 test("range projection includes prefixes and capture copies before allocation", context => {

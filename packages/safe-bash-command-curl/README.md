@@ -19,3 +19,8 @@ const authorized = createCurlCommand({
   limits: { maxDownloadBytes: 1024 * 1024 },
 });
 ```
+
+Use `--create-dirs` to create output parent directories, including with `--output-dir`.
+`-b/--cookie` accepts cookie data or a VFS Netscape cookie file; file cookies honor domain, path, expiry, and HTTPS restrictions.
+`--retry-connrefused` includes refused connections, while `--retry-all-errors` retries transfer failures. Both require `--retry`; `--retry-max-time` bounds when another attempt can start. Retrying can repeat output or request side effects.
+`-k/--insecure` disables certificate verification only on transports advertising `supportsInsecureTls`, including `createNodeHttpTransport`. Fetch cannot disable TLS verification and reports an error for this option.

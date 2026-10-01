@@ -32,6 +32,7 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
   const transport: HttpTransport = async input => {
     input.signal.throwIfAborted();
     if (input.connectTimeoutMs !== undefined) throw new CurlError(2, "Fetch transport cannot enforce exact connection timeout");
+    if (input.insecure) throw new CurlError(2, "Fetch transport cannot disable TLS verification");
     if (input.ca !== undefined) throw new CurlError(2, "Fetch transport cannot enforce request CA trust");
     if (input.httpVersion !== undefined) throw new CurlError(2, "Transport cannot enforce requested HTTP version");
     if (input.ignoreContentLength) throw new CurlError(2, "Transport cannot enforce ignored Content-Length");

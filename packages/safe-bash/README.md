@@ -749,7 +749,8 @@ time/environment commands, metadata, diff/patch, LLM providers, `yes`, `less`,
 `sponge`, `bc`, `htmlq`, `which`, `getopt`, `factor`, and `tsort`
 have unlimited resource budgets by default. Set individual family limits to opt
 in; setting one limit leaves the others unlimited. Explicit `Infinity` also
-disables a limit. Standard and agent command factories accept `maxRecursiveDirectoryDepth`
+disables a limit. Shell limit overrides set to `undefined` preserve the inherited
+value (or the default when none was set). Standard and agent command factories accept `maxRecursiveDirectoryDepth`
 for recursive filesystem traversal; it defaults to unlimited. Shell helpers expose `maxCdWork`, `maxCdProbes`,
 `maxCdPathBytes`, `maxCdPathComponents`, `maxDirectoryStackEntries`,
 `maxDirectoryStackBytes`, `maxDirectoryDiagnosticBytes`, `maxDirectoryStackOutputBytes`, `maxSyntaxDepth`, `maxAdmittedHandles`, `maxDescriptorOperations`, `maxDescriptorReadBytes`, `maxGlobstarStates`, `maxGlobstarDepth` and

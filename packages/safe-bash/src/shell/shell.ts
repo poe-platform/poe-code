@@ -3,7 +3,7 @@ import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
 import { clearRgFastRunnerPool } from "../commands/search/rg-command.js";
 import { writeDiagnostic } from "../escaping.js";
 import { createDeviceFileSystem } from "@poe-code/safe-fs/core";
-import { CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
+import { builtInDirectContextExecutors, CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
 import type {
   ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,
   RegisterCommandOptions, VirtualShellPlugin,
@@ -385,7 +385,20 @@ export class Shell implements PluginHost {
   constructor(options?: ShellOptions) {
     if (!options?.fs) throw new TypeError("Shell requires an explicit filesystem");
     if (options.deviceView !== undefined && options.deviceView !== "default" && options.deviceView !== "provided") throw new TypeError("deviceView must be default or provided");
-    const commands = options.commands ?? new CommandRegistry();
+    const onRegister = (command: CommandDefinition): void => {
+      this.#clearWarmedInvocation();
+      if (!builtInDirectContextExecutors.has(command.execute)) {
+        this.#hasCustomCommands = true;
+        customRegisteredCommands.add(command.execute);
+      }
+    };
+    const commands = options.commands ?? new class extends CommandRegistry {
+      override register(command: CommandDefinition, options?: RegisterCommandOptions): this {
+        super.register(command, options);
+        onRegister(command);
+        return this;
+      }
+    }();
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     if (options.commands) {
       this.#hasCustomCommands = true;
@@ -445,6 +458,7 @@ export class Shell implements PluginHost {
 
   register(command: CommandDefinition, options?: RegisterCommandOptions): this {
     if (this.#disposed) throw new Error("Shell is disposed");
+    this.#clearWarmedInvocation();
     this.#hasCustomCommands = true;
     if (command && typeof command.execute === "function") customRegisteredCommands.add(command.execute);
     this.commands.register(command, options);
@@ -500,6 +514,7 @@ export class Shell implements PluginHost {
     void warm.stdin.close();
     warm.budget.close();
     void warm.scope.close();
+    warm.owner.finish({ kind: "return", value: undefined });
     warm.cancellationState.close();
   }
 
@@ -536,6 +551,7 @@ export class Shell implements PluginHost {
       !this.#disposed &&
       this.#warmedInvocation &&
       typeof source === "string" &&
+      source.length > 0 &&
       source.length <= 16384 &&
       (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options))
     ) {
@@ -1074,7 +1090,6 @@ export class Shell implements PluginHost {
     finally {
       if (
         source === "" &&
-        !warm &&
         !failed &&
         // A retained invocation keeps its parse admissions and clock origins.
         // Bounded executions must create their own budget and deadline instead.

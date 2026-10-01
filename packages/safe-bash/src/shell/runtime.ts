@@ -237,9 +237,10 @@ function publishCommandSpelling(state: State, description: string): void {
   (monitor?.raw ?? state).variables.BASH_COMMAND = description;
 }
 export function resolveLimits(...limits: (ShellLimits | undefined)[]): ResolvedShellLimits {
-  const result = Object.assign({}, defaultLimits, ...limits) as ResolvedShellLimits;
+  const definedLimits = limits.map(layer => Object.fromEntries(Object.entries(layer ?? {}).filter(([, value]) => value !== undefined)));
+  const result = Object.assign({}, defaultLimits, ...definedLimits) as ResolvedShellLimits;
   const commandLimits = resolveCommandLimits(...limits.map(value => value?.commandLimits));
-  for (const [key, value] of Object.entries(Object.assign({}, ...limits) as ShellLimits)) {
+  for (const [key, value] of Object.entries(Object.assign({}, ...definedLimits) as ShellLimits)) {
     if (key === "commandLimits") continue;
     if ((value !== Infinity || key === "pipeHighWaterMark") && (!Number.isSafeInteger(value) || value < (key === "pipeHighWaterMark" ? 1 : 0))) {
       throw new RangeError(`${key} must be a ${key === "pipeHighWaterMark" ? "positive" : "nonnegative"} safe integer`);

@@ -23,7 +23,8 @@ The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
 `inspectCommand`, `formatCapabilities`, and `PandocError`. Inspect format
 capabilities before conversion: support is format-specific and does not imply full native Pandoc
 compatibility. Built-in DOCX conversion preserves headings, bold/italic text, hyperlinks, lists,
-tables, blockquotes, and horizontal rules. PPTX renders blockquotes as indented
+tables, blockquotes, horizontal rules, strikeout, superscript, subscript, quotes,
+and embedded raster images (including inline images in table cells). PPTX renders blockquotes as indented
 content. PDF uses standard Helvetica bold/oblique and Courier fonts for styled
 text and inline code by default; supplied fonts retain their explicit styling.
 Other unsupported blocks and inlines return diagnostics. XLSX input becomes one named

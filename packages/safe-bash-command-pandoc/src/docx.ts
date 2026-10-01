@@ -3,6 +3,13 @@ import type {Paragraph, DocxBlock, DocxRunInput, DocumentModelContext} from "doc
 import type {Block, Inline, Row} from "./ast-types.js";
 import type {AdapterContext, ReaderCapability, WriterCapability} from "./types.js";
 import {PandocError} from "./errors.js";
+import {imageLength} from "./image-dimensions.js";
+interface RichRun extends DocxRunInput {
+  readonly link?: string;
+  readonly strike?: boolean;
+  readonly baseline?: "superscript" | "subscript";
+  readonly image?: Extract<Inline, {t: "Image" | "Link"}>;
+}
 const attr = ["", [], []] as const;
 async function modelContext(ctx: AdapterContext): Promise<DocumentModelContext> {
   const {DocumentBudget} = await import("docx");
@@ -56,21 +63,26 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
     return {blocks, metadata: {}, resources: []};
   });
 }};
-export const docxWriter: WriterCapability = {format: "docx", async write(document, ctx) {
+export const docxWriter: WriterCapability = {format: "docx", imageResources: "embed", async write(document, ctx) {
   return guarded(ctx, async () => {
     const blocks: DocxBlock[] = [];
-    const paragraphs: {runs: readonly (DocxRunInput & {link?: string})[]; properties: string}[] = [];
+    const paragraphs: {runs: readonly RichRun[]; properties: string}[] = [];
     const numbering: string[] = [];
     const w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-    const runs = (nodes: readonly Inline[], bold = false, italic = false, link?: string): (DocxRunInput & {link?: string})[] => {
-      const result: (DocxRunInput & {link?: string})[] = [];
+    const runs = (nodes: readonly Inline[], style: Omit<RichRun, "text" | "image"> = {}): RichRun[] => {
+      const result: RichRun[] = [];
       for (const node of nodes) {
         ctx.checkpoint();
-        if (node.t === "Strong") result.push(...runs(node.c, true, italic, link));
-        else if (node.t === "Emph") result.push(...runs(node.c, bold, true, link));
-        else if (node.t === "Span") result.push(...runs(node.c[1], bold, italic, link));
-        else if (node.t === "Link") result.push(...runs(node.c[1], bold, italic, node.c[2][0]));
+        if (node.t === "Strong") result.push(...runs(node.c, {...style, bold: true}));
+        else if (node.t === "Emph") result.push(...runs(node.c, {...style, italic: true}));
+        else if (node.t === "Underline") result.push(...runs(node.c, {...style, underline: true}));
+        else if (node.t === "Strikeout") result.push(...runs(node.c, {...style, strike: true}));
+        else if (node.t === "Superscript" || node.t === "Subscript") result.push(...runs(node.c, {...style, baseline: node.t === "Superscript" ? "superscript" : "subscript"}));
+        else if (node.t === "Span") result.push(...runs(node.c[1], style));
+        else if (node.t === "Link") result.push(...runs(node.c[1], {...style, link: node.c[2][0]}));
+        else if (node.t === "Quoted") result.push(...runs([{t: "Str", c: node.c[0] === "SingleQuote" ? "‘" : "“"}, ...node.c[1], {t: "Str", c: node.c[0] === "SingleQuote" ? "’" : "”"}], style));
+        else if (node.t === "Image") result.push({...style, text: "", image: node});
         else {
           let text: string;
           if (node.t === "Str") text = node.c;
@@ -78,15 +90,15 @@ export const docxWriter: WriterCapability = {format: "docx", async write(documen
           else if (node.t === "LineBreak") text = "\n";
           else if (node.t === "Code") text = node.c[1];
           else throw new PandocError("E_UNSUPPORTED_FEATURE", "write", `Unsupported DOCX inline: ${node.t}`, "docx");
-          result.push({text, bold, italic, ...(link === undefined ? {} : {link})});
+          result.push({...style, text});
         }
       }
       return result;
     };
-    const paragraph = (target: DocxBlock[], content: readonly (DocxRunInput & {link?: string})[], properties: string, level?: number) => {
+    const paragraph = (target: DocxBlock[], content: readonly RichRun[], properties: string, level?: number) => {
       // Sidecars keep relationship/paragraph properties out of the structured content API.
       paragraphs.push({runs: content, properties});
-      target.push({kind: "paragraph", ...(level === undefined ? {} : {level}), runs: content.map(({link: _link, ...run}) => run)});
+      target.push({kind: "paragraph", ...(level === undefined ? {} : {level}), runs: content.map(({link: _link, strike: _strike, baseline: _baseline, image: _image, ...run}) => run)});
     };
     const visit = async (nodes: readonly Block[], target: DocxBlock[], indent = 0, list?: {id: number; level: number; pending: boolean}): Promise<void> => {
       for (const block of nodes) {
@@ -128,7 +140,7 @@ export const docxWriter: WriterCapability = {format: "docx", async write(documen
       }
     };
     await visit(document.blocks, blocks);
-    const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor} = await import("docx");
+    const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor, Image} = await import("docx");
     const mc = await modelContext(ctx);
     const archiveContext = {signal: mc.signal!, budget: mc.budget!};
     const archive = await createDocumentArchive({content: {version: 1, blocks}}, archiveContext);
@@ -136,6 +148,30 @@ export const docxWriter: WriterCapability = {format: "docx", async write(documen
     const relationships = new DocumentXmlEditor(archive.members.find(member => member.name === "word/_rels/document.xml.rels")!.bytes, {}, undefined, mc.budget);
     let paragraphIndex = 0, relationshipId = 2;
     const linkRelationships: string[] = [];
+    const media = new Map<string, {name: string; bytes: Uint8Array; type: string; id: string; asset: import("docx").Image}>();
+    let drawingId = 0;
+    const drawing = async (node: Extract<Inline, {t: "Image" | "Link"}>): Promise<string> => {
+      ctx.charge("images", 1);
+      const source = node.c[2][0];
+      let entry = media.get(source);
+      if (!entry) {
+        const bytes = document.resources.find(resource => resource.id === source)?.bytes ?? await ctx.resources?.resolve(source, undefined, ctx.signal);
+        if (!bytes) throw new PandocError("E_RESOURCE", "write", `Missing image resource: ${source}`, "docx");
+        ctx.charge("resourceBytes", bytes.length);
+        const asset = await Image.from_blob(bytes, mc);
+        const name = `media/image-${media.size + 1}.${asset.ext}`;
+        entry = {name, bytes, type: asset.content_type, id: `rId${relationshipId++}`, asset};
+        media.set(source, entry);
+        linkRelationships.push(`<Relationship Id="${entry.id}" Type="${r}/image" Target="${name}"/>`);
+      }
+      const attributes = Object.fromEntries(node.c[0][2]);
+      let width = imageLength(attributes.width, entry.asset.width.emu, ctx, "docx"), height = imageLength(attributes.height, entry.asset.height.emu, ctx, "docx");
+      if (attributes.width && !attributes.height) height = Math.max(1, Math.round(width * entry.asset.height.emu / entry.asset.width.emu));
+      if (attributes.height && !attributes.width) width = Math.max(1, Math.round(height * entry.asset.width.emu / entry.asset.height.emu));
+      const alt = encodeXML(runs(node.c[1]).map(run => run.text).join(""));
+      const a = "http://schemas.openxmlformats.org/drawingml/2006/main", pic = "http://schemas.openxmlformats.org/drawingml/2006/picture";
+      return `<w:drawing xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="${a}" xmlns:pic="${pic}" xmlns:r="${r}"><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${width}" cy="${height}"/><wp:docPr id="${++drawingId}" name="Image ${drawingId}" descr="${alt}" title="${encodeXML(node.c[2][1])}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="${pic}"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Image ${drawingId}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${entry.id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${width}" cy="${height}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>`;
+    };
     const edit = async (node: import("docx").XmlElement): Promise<void> => {
       await ctx.cooperate();
       if (node.namespace === w && node.localName === "p") {
@@ -145,13 +181,21 @@ export const docxWriter: WriterCapability = {format: "docx", async write(documen
         const properties = node.children.find(child => child.localName === "pPr");
         if (properties && extra.properties) replacements.set(properties, `<w:pPr>${main.sourceXml(properties, new Map(), true)}${extra.properties}</w:pPr>`);
         const nativeRuns = node.children.filter(child => child.localName === "r");
-        for (const [index, run] of extra.runs.entries()) if (run.link !== undefined) {
+        for (const [index, run] of extra.runs.entries()) {
           ctx.checkpoint();
           const native = nativeRuns[index]!;
+          const properties = native.children.find(child => child.localName === "rPr");
+          const format = (run.strike ? "<w:strike/>" : "") + (run.baseline ? `<w:vertAlign w:val="${run.baseline}"/>` : "");
+          const edits = new Map<import("docx").XmlElement, string>();
+          if (properties && format) edits.set(properties, `<w:rPr>${main.sourceXml(properties, new Map(), true)}${format}</w:rPr>`);
+          let xml = run.image ? `<w:r>${await drawing(run.image)}</w:r>` : `<w:r>${!properties && format ? `<w:rPr>${format}</w:rPr>` : ""}${main.sourceXml(native, edits, true)}</w:r>`;
+          if (run.link !== undefined) {
           const anchor = run.link.startsWith("#");
           const id = `rId${relationshipId++}`;
           if (!anchor) linkRelationships.push(`<Relationship Id="${id}" Type="${r}/hyperlink" Target="${encodeXML(run.link)}" TargetMode="External"/>`);
-          replacements.set(native, `<w:hyperlink ${anchor ? `w:anchor="${encodeXML(run.link.slice(1))}"` : `xmlns:r="${r}" r:id="${id}"`}>${main.sourceXml(native)}</w:hyperlink>`);
+          xml = `<w:hyperlink ${anchor ? `w:anchor="${encodeXML(run.link.slice(1))}"` : `xmlns:r="${r}" r:id="${id}"`}>${xml}</w:hyperlink>`;
+          }
+          if (format || run.image || run.link !== undefined) replacements.set(native, xml);
         }
         if (extra.properties || replacements.size) main.replaceElement(node, `<w:p xmlns:w="${w}">${!properties && extra.properties ? `<w:pPr>${extra.properties}</w:pPr>` : ""}${main.sourceXml(node, replacements, true)}</w:p>`);
       } else for (const child of node.children) await edit(child);
@@ -162,8 +206,10 @@ export const docxWriter: WriterCapability = {format: "docx", async write(documen
 
     const types = new DocumentXmlEditor(archive.members.find(member => member.name === "[Content_Types].xml")!.bytes, {}, undefined, mc.budget);
     if (numbering.length) types.insertChildren(types.root, '<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>');
+    for (const entry of media.values()) types.insertChildren(types.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/${entry.name}" ContentType="${entry.type}"/>`);
     const parts = new Map([["word/document.xml", main.serialize()], ["word/_rels/document.xml.rels", relationships.serialize()], ["[Content_Types].xml", types.serialize()]]);
     const members = archive.members.map(member => ({...member, bytes: parts.get(member.name) ?? member.bytes}));
+    for (const entry of media.values()) members.push({name: `word/${entry.name}`, bytes: entry.bytes, directory: false, modified: new Date(0)});
     if (numbering.length) members.push({name: "word/numbering.xml", bytes: new TextEncoder().encode(`<w:numbering xmlns:w="${w}">${numbering.join("")}${numbering.map((_, i) => `<w:num w:numId="${i + 1}"><w:abstractNumId w:val="${i + 1}"/></w:num>`).join("")}</w:numbering>`), directory: false, modified: new Date(0)});
     const chunks: Uint8Array[] = []; let size = 0;
     await writeDocumentArchive({members, comment: archive.comment}, {async write(bytes) {size += bytes.length; ctx.bound("outputBytes", size); ctx.charge("retainedBytes", bytes.length); chunks.push(new Uint8Array(bytes));}}, {order: "name", compression: "store"}, archiveContext);

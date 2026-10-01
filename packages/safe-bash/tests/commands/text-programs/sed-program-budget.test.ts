@@ -116,7 +116,8 @@ for (const [instruction, patterns] of [["s/a/b/", 1], ["/a/p", 1], ["/a/,/b/s/c/
     try {
       result = await runVirtual("sed", { args: [`${instruction};`.repeat(3)] }, { maxProgramInstructions: 2 });
     } finally { Array.prototype.push = original; }
-    assert.equal(compiled, patterns * 2);
+    // Each admitted instruction compiles UTF-8 character and byte-fallback patterns.
+    assert.equal(compiled, patterns * 2 * 2);
     assert.equal(result.exitCode, 2);
     assert.equal(result.stderr.toString(), "sed: program instruction limit exceeded\n");
   });

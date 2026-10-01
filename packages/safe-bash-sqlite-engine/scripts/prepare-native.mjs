@@ -2,6 +2,7 @@ import {readFile,writeFile,mkdir} from 'node:fs/promises';
 import {resolve,join} from 'node:path';
 import {createHash} from 'node:crypto';
 import {build,version} from 'esbuild';
+import {rewriteModuleSpecifiers} from '../../../scripts/module-specifiers.mjs';
 import {reserveSqliteCallbackSlots,sqliteUnicodeCallback} from './native-assets.ts';
 const [sourceArgument,outputArgument]=process.argv.slice(2);
 if(!sourceArgument||!outputArgument||process.argv.length!==4)throw new Error('Usage: npm run prepare:native -- SOURCE_PACKAGE OUTPUT_DIRECTORY');
@@ -16,7 +17,7 @@ for(const [path,expected] of Object.entries(manifest.sources)){
 const bundle=await build({entryPoints:[join(source,'src/FacadeVFS.js')],bundle:true,write:false,minify:true,format:'esm',platform:'neutral',target:'es2022',metafile:true});
 for(const input of Object.keys(bundle.metafile.inputs))if(!Object.keys(manifest.sources).some(path=>resolve(input)===join(source,path)))throw new Error('Unpinned SQLite source dependency: '+input);
 const artifacts=new Map([
- ['native.mjs',sources.get('dist/wa-sqlite-async.mjs')],
+ ['native.mjs',Buffer.from(rewriteModuleSpecifiers('native.mjs',sources.get('dist/wa-sqlite-async.mjs').toString('utf8'),specifier=>specifier==='wa-sqlite-async.wasm'?'./native.wasm':specifier))],
  ['native.wasm',reserveSqliteCallbackSlots(sources.get('dist/wa-sqlite-async.wasm'),64)],
  ['callback.wasm',sqliteUnicodeCallback()],
  ['vfs.mjs',bundle.outputFiles[0].contents],

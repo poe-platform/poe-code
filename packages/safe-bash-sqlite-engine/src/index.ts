@@ -1,6 +1,6 @@
 import type { SqliteRuntime } from './types.js';
 export type { NativeSqliteModule, SqliteRuntime } from './types.js';
-import initialize from './native/native.mjs';
+import initialize from '#sqlite-native';
 export {FacadeVFS} from './native/vfs.mjs';
 /** One isolated native module and one reusable callback slot per owner. */
 export async function createSqliteRuntime({signal}: {signal?: AbortSignal} = {}): Promise<SqliteRuntime> {

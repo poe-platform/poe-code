@@ -758,6 +758,9 @@ it("uses the public portable trap subpath without the Node signal catalog", asyn
 });
 
 const portableSamplingAndMatchingCases = [
+  ['[[ abc123 =~ ([a-z]+)([0-9]+) ]] && printf "%s:%s:%s\\n" "${BASH_REMATCH[0]}" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"', "abc123:abc:123\n"],
+  ['[[ abc =~ z ]]; printf "%s\\n" "$?"', "1\n"],
+  ['[[ abc =~ "a.c" ]]; printf "%s\\n" "$?"', "1\n"],
   ["shuf -i 1-1000001 -n 4 > /sample && awk '{ if ($1 < 1 || $1 > 1000001 || seen[$1]++) bad=1 } END { if (NR == 4 && !bad) print \"sampled\"; else exit 1 }' /sample", "sampled\n"],
   ["printf 'é🦊é🦊\\n' | rg -o 'é🦊'", "é🦊\né🦊\n"],
 ] as const;
@@ -852,6 +855,19 @@ it("runs default network factories, Fetch deadlines and every WinZip AES mode in
       const browser = (() => { const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${byteOperationsSource}; return module.exports; })();
       export default { async fetch() {
         const names = [browser.createCurlCommand().name, browser.createWgetCommand().name, browser.networkCommands().name];
+        const originalFetch = globalThis.fetch;
+        globalThis.fetch = async () => new Response("default fetch");
+        const defaultResults = [];
+        for (const limits of [undefined, { maxUrls: Infinity, maxBufferBytes: Infinity }]) {
+          const defaults = new browser.Shell({ fs: canonical.createMemoryFileSystem() }).use(browser.networkCommands({ authorize: () => true, limits }));
+          try {
+            for (const command of ["curl https://allowed.test/", "wget -q -O - https://allowed.test/"]) {
+              const { exitCode, stdout, stderr } = await defaults.exec(command);
+              defaultResults.push({ exitCode, stdout, stderr });
+            }
+          } finally { await defaults.dispose(); }
+        }
+        globalThis.fetch = originalFetch;
         let timedOutRequestAborted = false;
         const fs = canonical.createMemoryFileSystem();
         await fs.writeFile("/input", new TextEncoder().encode("worker secret"));
@@ -883,7 +899,7 @@ it("runs default network factories, Fetch deadlines and every WinZip AES mode in
             results.push({ zipCode: zipped.exitCode, zipError: zipped.stderr, exitCode: read.exitCode, stdout: read.stdout, stderr: read.stderr, wrongRejected: wrong.exitCode !== 0 });
           }
         } finally { await shell.dispose(); }
-        return Response.json({ names, results });
+        return Response.json({ names, defaultResults, results });
       } };
     `,
   });
@@ -893,6 +909,7 @@ it("runs default network factories, Fetch deadlines and every WinZip AES mode in
     expect(response.status, body).toBe(200);
     expect(JSON.parse(body)).toEqual({
       names: ["curl", "wget", "network-commands"],
+      defaultResults: Array.from({ length: 4 }, () => ({ exitCode: 0, stdout: "default fetch", stderr: "" })),
       results: [
         ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "worker response", stderr: "" })),
         { timeoutCode: 28, timedOutRequestAborted: true, headerDiagnostic: true },

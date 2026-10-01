@@ -7,7 +7,7 @@ import { operation } from "./protocol.js";
 import type { EreTransportReply } from "./protocol.js";
 import { validateReply, validateRequest } from "./validation.js";
 
-export async function executeWireRequest(value: unknown, entryWork = 0): Promise<EreTransportReply> {
+export async function executeWireRequest(value: unknown, entryWork = 0, signal?: AbortSignal): Promise<EreTransportReply> {
   const prepaidWork = add(entryWork, workerReplyValidationWork);
   let requestWork = 0;
   const request = validateRequest(value, prepaidWork, units => { requestWork = add(requestWork, units); });
@@ -15,8 +15,8 @@ export async function executeWireRequest(value: unknown, entryWork = 0): Promise
   ledger.charge("work", add(prepaidWork, requestWork));
   let reply: EreTransportReply;
   try {
-    const program = await compileEre(request.pattern, ledger);
-    const result = await matchEre(program, request.subject, ledger);
+    const program = await compileEre(request.pattern, ledger, signal);
+    const result = await matchEre(program, request.subject, ledger, signal);
     const usage = ledger.usage;
     const spans = result.matched ? result.captures : Object.freeze(new Array<null>(program.groups + 1).fill(null));
     reply = {

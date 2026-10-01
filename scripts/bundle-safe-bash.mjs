@@ -116,7 +116,7 @@ export function resolvePortableBufferBuild(rootDir) {
 export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], imports = {} } = {}) {
   const directory = path.join(rootDir, "packages/safe-bash");
   const platform = path.join(directory, "browser/platform.mjs");
-  const transport = path.join(directory, "src/commands/regex-execution/ere/transport/root.js");
+  const transport = path.join(directory, "src/commands/regex-execution/ere/transport/owner.js");
   const aliases = {
     ...alias,
     "node:stream/web": platform,
@@ -226,11 +226,12 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
         });
         builder.onResolve({ filter: /^#safe-bash-network-platform$/ }, () =>
           ({ path: path.join(directory, "src/commands/network/platform-portable.ts") }));
-        builder.onResolve({ filter: /regex-execution\/ere\/transport\/root\.js$/ }, args =>
+        builder.onResolve({ filter: /(?:^|\/)owner\.js$/ }, args =>
           path.resolve(args.resolveDir, args.path) === transport
             ? { path: path.join(directory, "browser/regex.mjs") }
             : undefined);
         builder.onResolve({ filter: /^node:/ }, args => {
+          if (args.path === "node:util" && args.importer === path.join(directory, "src/commands/regex-execution/ere/transport/validation.ts")) return { path: path.join(directory, "browser/regex-validation.mjs") };
           if (args.path === "node:stream/web" || args.path === "node:path" && args.importer === path.join(directory, "src/contracts/path.ts")) return { path: platform };
           return { errors: [{ text: `Node-only module in portable shell: ${args.path}` }] };
         });

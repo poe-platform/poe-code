@@ -558,12 +558,13 @@ export function parseExpression(source: string, options: FormulaParseOptions): F
         if (value.kind === "reference" && value.label) return { ...value, label: { ...value.label,
           scalar: before !== "intersection" && after !== "intersection" && (before === "binary" || after === "binary") } };
         if (value.kind === "parentheses") return { ...value, child: select(value.child, "other", "other") };
-        if (value.kind === "unary") return { ...value, child: select(value.child, value.op === "%" ? before : "other", value.op === "%" ? "other" : after) };
+        if (value.kind === "unary") return { ...value, child: select(value.child, value.op === "%" ? before : "binary", value.op === "%" ? "binary" : after) };
         if (value.kind === "binary") {
           const neighbor = value.op === "intersection" || value.op === "label-intersection" ? "intersection" : "binary";
           return { ...value, left: select(value.left, before, neighbor), right: select(value.right, neighbor, after) };
         }
         if (value.kind === "call") return { ...value, args: value.args.map(child => select(child, "other", "other")) };
+        if (value.kind === "array") return { ...value, rows: value.rows.map(row => row.map(child => select(child, "other", "other"))) };
         return value;
       };
       root = select(root, "binary", "binary");

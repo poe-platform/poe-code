@@ -192,3 +192,21 @@ it("rejects radical SHRFMLA groups before cached members can be round-tripped", 
   ]);
   await expect(readBiff(bytes, context)).rejects.toThrow("shared formula");
 });
+
+// MS-XLS SharedParsedFormula excludes every ELF subtype, including live labels.
+it.each([2, 3, 6, 7])("rejects live ELF subtype %i in SHRFMLA before exposing member formulas", async subtype => {
+  const tokens = [24, subtype, ...words(1, 0x8000)];
+  const cell = (row: number) => {
+    const header = new Uint8Array(22), view = new DataView(header.buffer);
+    view.setUint16(0, row, true); view.setUint16(2, 1, true);
+    view.setFloat64(6, 999, true); view.setUint16(20, 5, true);
+    return record(6, [...header, 1, ...words(1, 1)]);
+  };
+  const bytes = Uint8Array.from([
+    ...record(0x809, [0, 6, 16, 0]), ...cell(1),
+    ...record(0x4bc, [...words(1, 2), 1, 1, 0, 2, ...words(tokens.length), ...tokens]),
+    ...cell(2), ...record(10, [])
+  ]);
+  expect(() => translateBiffFormula(Uint8Array.from(tokens), formulaContext)).not.toThrow();
+  await expect(readBiff(bytes, context)).rejects.toThrow("shared formula");
+});

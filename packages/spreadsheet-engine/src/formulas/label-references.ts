@@ -55,7 +55,7 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
   const columnLabel = label.axis === "column";
   const maximum = (columnLabel ? size.rows : size.columns) - 1;
   const ownAxis = columnLabel ? position.row : position.column;
-  const sameAxis = columnLabel ? position.column === column : position.row === row;
+  const sameAxis = position.sheet === sheet.id && (columnLabel ? position.column === column : position.row === row);
   let start: number, end: number;
   if (!declared && label.semantics === "openformula") {
     if (!book.automaticLabelLookup) return error("#NAME?");
@@ -103,9 +103,9 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
     if (!book.automaticLabelLookup) return error("#NAME?");
     const value = read(sheet, row, column);
     if (value.kind !== "string" && value.kind !== "blank") return error("#NAME?");
-    start = Math.min((columnLabel ? row : column) + 1, maximum); end = maximum;
+    start = (columnLabel ? row : column) + 1; end = maximum;
     if (sameAxis) {
-      if (ownAxis === start) start = Math.min(start + 1, maximum);
+      if (ownAxis === start) start++;
       else if (ownAxis > start) end = ownAxis - 1;
     }
     // Calc scans its workbook-wide pair list here, without filtering the data
@@ -121,37 +121,50 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
       }
     }
   }
-  if (start !== end && label.scalar) {
+  if (start > end) return error("#REF!");
+  if (label.scalar) {
     if (ownAxis < start || ownAxis > end) return error("#REF!");
     start = end = ownAxis;
   } else if (!declared && start !== end) {
-    // GetDataArea(includeOld=true, onlyDown=false). Scan sparse cells around the
-    // rectangle perimeter; diagonal cells can extend it. Never enumerate a grid.
+    // GetDataArea(includeOld=true, onlyDown=false), preserving the ordered
+    // horizontal/vertical perimeter expansion, including diagonal neighbors.
+    // Index occupied axes once so each perimeter query is logarithmic rather
+    // than scanning every cell at every step. Charge construction and queries.
+    const rows = new Map<number, number[]>(), columns = new Map<number, number[]>();
+    for (const cell of sheet.cells) {
+      tick(); if (cell.value.kind === "blank" && !cell.formula) continue;
+      const rowCells = rows.get(cell.row) ?? [], columnCells = columns.get(cell.column) ?? [];
+      rowCells.push(cell.column); columnCells.push(cell.row);
+      rows.set(cell.row, rowCells); columns.set(cell.column, columnCells);
+    }
+    for (const index of [rows, columns]) for (const coordinates of index.values()) {
+      tick(); coordinates.sort((a, b) => { tick(); return a - b; });
+    }
+    const occupied = (index: Map<number, number[]>, axis: number, low: number, high: number): boolean => {
+      tick(); const coordinates = index.get(axis);
+      if (!coordinates) return false;
+      let first = 0, last = coordinates.length;
+      while (first < last) {
+        tick(); const middle = Math.floor((first + last) / 2);
+        if (coordinates[middle]! < low) first = middle + 1;
+        else last = middle;
+      }
+      return first < coordinates.length && coordinates[first]! <= high;
+    };
     let left = columnLabel ? column : start, right = left;
     let top = columnLabel ? start : row, bottom = top;
     for (;;) {
-      let extendLeft = false, extendRight = false, extendTop = false, extendBottom = false;
-      for (const cell of sheet.cells) {
-        tick(); if (cell.value.kind === "blank" && !cell.formula) continue;
-        if (cell.row >= top - 1 && cell.row <= bottom + 1) {
-          if (cell.column === left - 1) extendLeft = true;
-          if (cell.column === right + 1) extendRight = true;
-        }
-      }
+      const extendLeft = occupied(columns, left - 1, top - 1, bottom + 1);
+      const extendRight = occupied(columns, right + 1, top - 1, bottom + 1);
       if (extendLeft) left--; if (extendRight) right++;
-      for (const cell of sheet.cells) {
-        tick(); if (cell.value.kind === "blank" && !cell.formula) continue;
-        if (cell.column >= left && cell.column <= right) {
-          if (cell.row === top - 1) extendTop = true;
-          if (cell.row === bottom + 1) extendBottom = true;
-        }
-      }
+      const extendTop = occupied(rows, top - 1, left, right);
+      const extendBottom = occupied(rows, bottom + 1, left, right);
       if (extendTop) top--; if (extendBottom) bottom++;
       if (!extendLeft && !extendRight && !extendTop && !extendBottom) break;
     }
     end = Math.min(end, columnLabel ? bottom : right);
     if (sameAxis && ownAxis >= start && ownAxis <= end) {
-      if (ownAxis === start) start = Math.min(start + 1, maximum);
+      if (ownAxis === start) start++;
       else end = ownAxis - 1;
     }
   }

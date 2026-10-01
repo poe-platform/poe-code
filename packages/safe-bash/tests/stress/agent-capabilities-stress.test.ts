@@ -26,7 +26,7 @@ test("stress: multi-turn session hooks + extglob + process substitution + fd + r
         snapshots.push(Object.keys(state.variables ?? {}).length);
       },
     },
-  }).use(agentCommands());
+  }).use(agentCommands({ muscleMemory: true }));
 
   const session = shell.createSession();
   try {
@@ -91,7 +91,7 @@ test("stress & performance: 5,000-line ergonomic regex + multiline PikeVM + 300-
   }
   await fs.writeFile("/bench/large.ts", Buffer.from(lines.join("\n") + "\n"));
 
-  const shell = new Shell({ fs, cwd: "/bench" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/bench" }).use(agentCommands({ muscleMemory: true }));
   try {
     const start = performance.now();
     const res = await shell.exec(`
@@ -144,7 +144,7 @@ printf 'trim:%s:%s\\n' "\${v##+(a)}" "\${v%%+([0-9])}"
   }
 
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands());
+  const shell = new Shell({ fs }).use(agentCommands({ muscleMemory: true }));
   try {
     const res = await shell.exec(script);
     assert.equal(res.stderr, "");

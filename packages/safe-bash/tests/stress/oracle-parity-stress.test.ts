@@ -13,7 +13,7 @@ test("differential oracle parity: safe-bash bc vs /usr/bin/bc", async (t) => {
     return;
   }
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
 
   const programs = [
     "scale=6; 355/113",
@@ -49,7 +49,7 @@ test("differential oracle parity: safe-bash xxd & od vs host /usr/bin/xxd & /bin
     return;
   }
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
 
   const scripts = [
     "printf 'Hello, safe-bash!\\x00\\xff\\x7f\\n' | xxd",
@@ -72,7 +72,7 @@ test("differential oracle parity: bash extglob, case fallthrough, heredoc, here-
     return;
   }
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
 
   const scripts = [
     `shopt -s extglob
@@ -107,7 +107,7 @@ printf "%s-%s-%s\n" "$c" "$b" "$a"`,
 
 test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64/xxd/od pipelines, and fd modifiers", async () => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true }));
   await fs.mkdir("/repo/src/utils", { recursive: true });
   const enc = new TextEncoder();
   await fs.writeFile("/repo/src/utils/Readme.MD", enc.encode("header\n"));
@@ -178,7 +178,7 @@ test("stress & parity: sed/awk ergonomic regexes, uniq chunked buffering, base64
 
 test("differential oracle parity: safe-bash fold and diff3 vs host /usr/bin/fold and /usr/bin/diff3, plus 60KB fmt throughput", async (t) => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(diff3Commands()).use(csvcutCommands()).use(csvgrepCommands());
+  const shell = new Shell({ fs, cwd: "/" }).use(agentCommands({ muscleMemory: true })).use(diff3Commands()).use(csvcutCommands()).use(csvgrepCommands());
 
   if (existsSync("/usr/bin/fold") && existsSync("/usr/bin/diff3")) {
     const scripts = [

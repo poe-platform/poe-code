@@ -35,10 +35,10 @@ export async function authenticateRemoteMcpServer(
     reset: options.reset, onAuthorizationUrl: options.onAuthorizationUrl,
     binding: snapshotConfigurationBindingOptions(options.binding) };
   options.signal?.throwIfAborted();
-  const limits = remoteLimits({ ...options, requestTimeoutMs: options.requestTimeoutMs ?? 120_000 });
-  if (limits.requestTimeoutMs > 2_147_483_647) throw new Error("Authentication requestTimeoutMs must be a positive supported timer interval");
-  const deadline = AbortSignal.timeout(limits.requestTimeoutMs);
-  const signal = options.signal === undefined ? deadline : AbortSignal.any([options.signal, deadline]);
+  const limits = remoteLimits({ ...options, requestTimeoutMs: options.requestTimeoutMs ?? Infinity });
+  const signals = options.signal === undefined ? [] : [options.signal];
+  if (limits.requestTimeoutMs !== Infinity) signals.push(AbortSignal.timeout(limits.requestTimeoutMs));
+  const signal = AbortSignal.any(signals);
   const configuration = parseRemoteMcpConfiguration({ version: 1, servers: [value] }, options.binding);
   const browser = options.binding.oauth?.browser === undefined ? undefined : { ...options.binding.oauth.browser };
   const opener = browser?.openBrowser;

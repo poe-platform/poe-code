@@ -400,7 +400,7 @@ outcomes can be recovered through a new consent flow.
 attempt. After any URL output, the connection summary goes to stderr; otherwise
 stdout contains `{ name, url, connected: true }`. Summaries omit remote server
 metadata and credentials. Use `--timeout-ms <milliseconds>` or SDK
-`requestTimeoutMs` to bound the complete operation (default 120,000 ms).
+`requestTimeoutMs` to bound the complete operation (default `Infinity`, with caller cancellation preserved).
 CLI timeouts retain the configured host ceiling.
 `--max-response-bytes <bytes>` can tighten the SDK's `maxResponseBytes` transport
 limit (default `Infinity`), separated or with `=`. Invalid/repeated values fail before

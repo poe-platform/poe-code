@@ -396,3 +396,18 @@ it("retains the original host reset receiver with live method state", async () =
   await authenticateRemoteMcpServer(f.configuration, { binding: { ...f.binding, oauth }, fetch: f.fetch, onAuthorizationUrl: f.observed, reset: true });
   expect(oauth.calls).toBe(3); expect(oauth.reset).toHaveBeenCalledOnce();
 });
+
+it.each([undefined, Infinity])('authentication timeout %s is unlimited and preserves cancellation', async requestTimeoutMs => {
+  const f = fixture();
+  const configuration = { ...f.configuration, auth: { type: "bearer" as const, token: { env: "TOKEN" } } };
+  const binding = { env: { TOKEN: "private-access" } };
+  const controller = new AbortController();
+  const timeout = vi.spyOn(AbortSignal, 'timeout');
+  try {
+    await authenticateRemoteMcpServer(configuration, { binding, fetch: f.fetch, requestTimeoutMs, signal: controller.signal });
+    expect(timeout).not.toHaveBeenCalled();
+    const reason = new Error('cancelled');
+    controller.abort(reason);
+    await expect(authenticateRemoteMcpServer(configuration, { binding, fetch: f.fetch, requestTimeoutMs, signal: controller.signal })).rejects.toBe(reason);
+  } finally { timeout.mockRestore(); }
+});

@@ -46,11 +46,11 @@ beforeAll(async () => {
   runInNewContext(result.outputFiles[0]!.text, realm);
 }, 30_000);
 
-it("executes the restricted private runtime without a host Buffer global", async () => {
+it("executes the default private runtime without a host Buffer global", async () => {
   const chunks: Uint8Array[] = [];
   const errors: Uint8Array[] = [];
   const outcome = await realm.module.exports.createYqCommand().execute({
-    command: "yq", args: ["-o", "json", "-c", ".value + 0.1"], cwd: "/", env: {}, fs: {}, signal: new AbortController().signal,
+    command: "yq", args: ["-o", "json", "-c", ".value + 0.1", "-"], cwd: "/", env: {}, fs: {}, signal: new AbortController().signal,
     stdin: { async *[Symbol.asyncIterator]() { yield new TextEncoder().encode("value: 2\n"); } },
     stdout: { async write(chunk: Uint8Array) { chunks.push(new Uint8Array(chunk)); } },
     stderr: { async write(chunk: Uint8Array) { errors.push(new Uint8Array(chunk)); } },

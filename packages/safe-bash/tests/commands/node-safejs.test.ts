@@ -17,6 +17,67 @@ function quote(source: string): string {
   return "'" + source.replaceAll("'", "'\\''") + "'";
 }
 
+test("node and safeJs registration use the default SafeJS adapter", async () => {
+  for (const plugin of [nodeCommands(), safeJsCommands()]) {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(plugin);
+    try {
+      const result = await shell.exec("node -p '1 + 2'");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "3\n");
+    } finally { await shell.dispose(); }
+  }
+});
+
+test("builtin require followed by a guest error does not fail snapshot serialization", async context => {
+  const errors: unknown[][] = [];
+  const replayErrors: unknown[] = [];
+  context.mock.method(console, "error", (...args: unknown[]) => { errors.push(args); });
+  context.mock.method(console, "warn", (...args: unknown[]) => { errors.push(args); });
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(nodeCommands({ runtime: {
+    ...runtime,
+    run(source, options) {
+      return run(source, { ...options, snapshotBackend: {
+        async read() { return undefined; },
+        async write(snapshot) { replayErrors.push(Reflect.get(snapshot, "replayError")); },
+        async remove() {},
+      } });
+    },
+  } }));
+  try {
+    for (const name of ["fs", "node:fs", "fs/promises", "node:fs/promises", "path", "node:path"]) {
+      const result = await shell.exec("node -e " + quote(`require(${JSON.stringify(name)}); throw new Error("boom");`));
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, "node: boom\n");
+    }
+    assert.deepEqual(errors, []);
+    assert.deepEqual(replayErrors, Array(6).fill(undefined));
+  } finally { await shell.dispose(); }
+});
+
+test("node synchronous filesystem methods complete virtual effects before returning", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(nodeCommands({ runtime }));
+  try {
+    const result = await shell.exec("node -e " + quote(`
+      const fs = require("node:fs");
+      fs.mkdirSync("/work");
+      fs.writeFileSync("/work/a", "é");
+      fs.appendFileSync("/work/a", "!");
+      fs.copyFileSync("/work/a", "/work/b");
+      fs.renameSync("/work/b", "/work/c");
+      console.log(fs.readFileSync("/work/c", "utf8"));
+      console.log(fs.existsSync("/work/c"), fs.existsSync("/missing"));
+      console.log(fs.statSync("/work/c").size, fs.lstatSync("/work/c").size);
+      console.log(fs.readdirSync("/work").sort().join(","));
+      fs.unlinkSync("/work/c");
+      fs.rmSync("/work", { recursive: true });
+      console.log(fs.existsSync("/work"));
+    `));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "é!\ntrue false\n3 3\na,c\nfalse\n");
+  } finally { await shell.dispose(); }
+});
+
 for (const flag of ["--input-type=commonjs", "--input-type commonjs"]) {
   for (const selector of ["--eval", "--print", "stdin"]) {
     test(`node ${flag} runs ${selector} with CommonJS bindings`, async () => {

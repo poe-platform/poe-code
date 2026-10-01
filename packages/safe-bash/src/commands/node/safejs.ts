@@ -17,12 +17,13 @@ import type { Invocation } from "../safejs/options.js";
 import type { SafeJsHostFunction } from "../safejs/types.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
 import { nodeEnvironment } from "./environment.js";
-import { unconfiguredNodeCommand } from "./unconfigured.js";
+import { defaultNodeCommand } from "./default-runtime.js";
+import { FsError } from "@poe-code/safe-fs/core";
 
 export type SafeJsNodeCommandsOptions<Budget = unknown> = NodeSafeJsCommandOptions<Budget> & { readonly replace?: boolean };
 
 export function createSafeJsNodeCommands<Budget = unknown>(options?: SafeJsNodeCommandsOptions<Budget>): readonly CommandDefinition[] {
-  if (options === undefined) return Object.freeze([unconfiguredNodeCommand]);
+  if (options === undefined) return Object.freeze([defaultNodeCommand]);
   const settings = record(options, "node options");
   onlyKeys(settings, ["runtime", "limits", "replace"]);
   if (Object.hasOwn(settings, "replace") && typeof settings.replace !== "boolean") throw new TypeError("node replace must be boolean");
@@ -120,7 +121,7 @@ function invocation(args: readonly string[], metadata: import("../safejs/types.j
 }
 
 export function createSafeJsNodeCommand<Budget = unknown>(options?: NodeSafeJsCommandOptions<Budget>): CommandDefinition {
-  if (options === undefined) return unconfiguredNodeCommand;
+  if (options === undefined) return defaultNodeCommand;
   const settings = record(options, "node options");
   onlyKeys(settings, ["runtime", "limits"]);
   if (settings.runtime === undefined || settings.runtime === null) throw new TypeError("node requires an injected SafeJS runtime");
@@ -177,13 +178,21 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
       const nodeFs = {
         ...fs,
         promises: fs,
+        ...Object.fromEntries(["readFile", "writeFile", "appendFile", "mkdir", "readdir", "stat", "lstat", "rm", "rename", "copyFile"].filter(name => typeof fs[name] === "function").map(name => [
+          name + "Sync", options.runtime.declareHostOperation((fs[name] as SafeJsHostFunction).bind(undefined), "read-side-effect", { awaitResult: true }),
+        ])),
+        existsSync: options.runtime.declareHostOperation(async (path: unknown) => {
+          try { await (fs.stat as SafeJsHostFunction)(path); return true; }
+          catch { lifecycle.signal.throwIfAborted(); return false; }
+        }, "read-side-effect", { awaitResult: true }),
+        unlinkSync: options.runtime.declareHostOperation(async (path: unknown) => {
+          if (typeof path !== "string") throw new TypeError("path must be a string");
+          lifecycle.signal.throwIfAborted();
+          if (!lifecycle.fs.unlink) throw new FsError("ENOTSUP", { path, syscall: "unlink" });
+          await lifecycle.fs.unlink(resolvePath(command.cwd as string, path), { signal: lifecycle.signal });
+        }, "read-side-effect", { awaitResult: true }),
         ...(typeof fs.readFile === "function" ? {
           readFile: nodeReadFile(options, fs, lifecycle.signal, lifecycle.fail, pending),
-          readFileSync: options.runtime.declareHostOperation(
-            // Give the synchronous facade its own declaration so readFile stays asynchronous.
-            (fs.readFile as SafeJsHostFunction).bind(undefined),
-            "read-side-effect", { awaitResult: true },
-          ),
         } : {}),
       };
       modules.fs = { ...nodeFs, default: nodeFs };
@@ -226,11 +235,7 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
             }
             return resolvePath(base, name);
           }, "read-side-effect"),
-          __safeBashRequire: options.runtime.declareHostOperation((name: unknown) => {
-            const module = typeof name === "string" ? requiredModules.get(name) : undefined;
-            if (!module) throw new TypeError("Unsupported node module; use fs, node:fs, fs/promises, node:fs/promises, path or node:path");
-            return module;
-          }, "read-side-effect"),
+          __safeBashModules: Object.fromEntries(requiredModules),
         },
       };
     },

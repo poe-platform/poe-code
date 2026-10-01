@@ -8,7 +8,7 @@ import { NodeHost } from "./host.js";
 import { NodeOwner } from "./lifecycle.js";
 import { buildNodeProgram } from "./program.js";
 import { createSafeJsNodeCommand } from "./safejs.js";
-import { unconfiguredNodeCommand } from "./unconfigured.js";
+import { defaultNodeCommand } from "./default-runtime.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
 import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, resolveNodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
 import { environment, grants, record, text } from "./values.js";
@@ -23,7 +23,7 @@ export type NodeCommandsOptions<Budget = unknown> = NodeCommandOptions<Budget> &
 }
 
 function commandConfiguration<Budget>(options?: NodeCommandsOptions<Budget>): { readonly definitions: readonly CommandDefinition[]; readonly replace: boolean } {
-  if (options === undefined) return { definitions: Object.freeze([unconfiguredNodeCommand]), replace: false };
+  if (options === undefined) return { definitions: Object.freeze([defaultNodeCommand]), replace: false };
   const settings = record(options, [], ["provider", "grants", "runtime", "limits", "replace"]);
   if (Object.hasOwn(settings, "replace") && typeof settings.replace !== "boolean") throw new TypeError("node replace must be boolean");
   const { replace, ...commandOptions } = settings;
@@ -53,7 +53,7 @@ function providerValue(value: unknown): NodeRuntimeProvider {
   return Object.freeze(provider) as unknown as NodeRuntimeProvider;
 }
 export function createNodeCommand<Budget = unknown>(options?: NodeCommandOptions<Budget>): CommandDefinition {
-  if (options === undefined) return unconfiguredNodeCommand;
+  if (options === undefined) return defaultNodeCommand;
   const selected = record(options, [], ["provider", "grants", "runtime", "limits"]);
   if (Object.hasOwn(selected, "runtime")) {
     const settings = record(selected, ["runtime"], ["limits"]);

@@ -16,6 +16,7 @@ export interface SafeJsCommandDialect {
   readonly invocation: (args: readonly string[]) => Invocation;
   readonly transformSource?: (source: string, selected: Invocation) => string;
   readonly prepare?: (source: string, selected: Invocation, modules: Record<string, SafeJsModule>, lifecycle: {
+    readonly fs: import("../../contracts/filesystem.js").FileSystem;
     readonly signal: AbortSignal;
     readonly fail: (error: unknown) => void;
     readonly sourceBytes: number;
@@ -168,7 +169,7 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
         if (Number.isFinite(deadline)) budgetOptions.deadline = deadline;
         const budget = runtime.createBudget(budgetOptions);
         const modules = { fs: makeSafeJsFsModule(runtime.makeFsModule, context.fs, { cwd: context.cwd, signal }), stdio, command };
-        const prepared = await dialect.prepare?.(source, { ...parsed, file: filename }, modules, { signal, fail, sourceBytes,
+        const prepared = await dialect.prepare?.(source, { ...parsed, file: filename }, modules, { fs: context.fs, signal, fail, sourceBytes,
           async readSource(path, maxBytes = limits.maxSourceBytes) {
             const capabilities = await withSignal(signal, async () =>
               await context.fs.capabilitiesFor?.(path, { signal }) ?? context.fs.capabilities);

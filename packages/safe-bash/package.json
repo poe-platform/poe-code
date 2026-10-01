@@ -2687,6 +2687,7 @@
     "yaml": "2.9.0"
   },
   "devDependencies": {
+    "@poe-code/safe-js": "*",
     "safe-bash-metadata-engine": "*",
     "safe-bash-command-chmod": "*",
     "safe-bash-command-stat": "*",

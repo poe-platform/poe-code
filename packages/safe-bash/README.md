@@ -485,8 +485,9 @@ see the [filesystem guide](../safe-fs/README.md). The root export includes
 
 ### Run JavaScript with SafeJS
 
-Plug SafeJS into `node`; nothing starts a native Node.js subprocess or loads a
-runtime automatically. SafeJS is the execution engine, not a separate shell command.
+Register `nodeCommands()` to load SafeJS on first execution, or inject a runtime
+as below. No native Node.js subprocess is started. SafeJS is the execution engine,
+not a separate shell command.
 
 ```ts
 import { Shell, agentCommands, createMemoryFileSystem, nodeCommands } from "@poe-platform/safe-bash";
@@ -542,7 +543,8 @@ source. `node --require ./setup.cjs` / `node -r ./setup.cjs` preloads virtual
 CommonJS modules before the program; repeated flags run in order from virtual cwd.
 Explicit `.cjs`, `.js`, and `.json` module paths share an invocation-local cache,
 including nested relative dependencies, and retain source limits, interpreter
-budgets, and cancellation. Other synchronous fs operations, package search,
+budgets, and cancellation. Synchronous writes, append, mkdir, readdir, stat/lstat,
+exists, unlink, rm, rename, and copyFile also use the VFS. Package search,
 ESM loading, `process.exit()`, and native module fallback are unavailable.
 Pass `limits` for source/input/output bytes, timeout, and interpreter budgets;
 see [defaults and configuration](src/commands/node/README.md#configuration).

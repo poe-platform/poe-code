@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { basename, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { spawnSync } from "node:child_process";
 import { build } from "esbuild";
 import ts from "typescript";
 import * as nodeCommands from "../../src/commands/node/index.js";
@@ -9,7 +10,40 @@ import * as root from "../../src/index.js";
 import { createSafeJsNodeCommand, createSafeJsNodeCommands, safeJsNodeCommands } from "../../src/commands/node/safejs.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
-test("zero-argument Node factories register without granting a runtime", async () => {
+test("default portable Node executes VFS operations and guest failures without Node globals", async () => {
+  const bundled = await build({
+    stdin: { resolveDir: fileURLToPath(new URL("../../", import.meta.url)), contents: `
+      import { createNodeCommand } from "./src/commands/node/browser.ts";
+      import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+      export async function execute(source) {
+        const stdout = [], stderr = [];
+        const result = await createNodeCommand().execute({
+          command: "node", args: ["-e", source], cwd: "/", env: {},
+          fs: new MemoryFileSystem(), signal: new AbortController().signal,
+          stdin: { async *[Symbol.asyncIterator]() {} },
+          stdout: { async write(bytes) { stdout.push(new TextDecoder().decode(bytes)); } },
+          stderr: { async write(bytes) { stderr.push(new TextDecoder().decode(bytes)); } },
+        });
+        return { ...result, stdout: stdout.join(""), stderr: stderr.join("") };
+      }
+    ` },
+    bundle: true, write: false, platform: "neutral", conditions: ["workerd"],
+    format: "esm", target: "es2022", logLevel: "silent",
+  });
+  const url = "data:text/javascript;base64," + Buffer.from(bundled.outputFiles[0]!.text).toString("base64");
+  const child = spawnSync(process.execPath, ["--input-type=module"], { encoding: "utf8", input: `
+    globalThis.Buffer = undefined; globalThis.process = undefined; globalThis.SharedArrayBuffer = undefined;
+    const { execute } = await import(${JSON.stringify(url)});
+    console.log(JSON.stringify(await execute('const fs = require("node:fs"); fs.writeFileSync("/a", "é😀"); console.log(fs.readFileSync("/a", "utf8")); throw new Error("boom");')));
+  ` });
+  assert.equal(child.status, 0, child.stderr);
+  const result = JSON.parse(child.stdout);
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, "node: boom\n");
+  assert.equal(result.stdout, "é😀\n");
+});
+
+test("zero-argument Node factories execute using the default SafeJS runtime", async () => {
   for (const [single, collection, plugin] of [
     [nodeCommands.createNodeCommand, nodeCommands.createNodeCommands, nodeCommands.nodeCommands],
     [createSafeJsNodeCommand, createSafeJsNodeCommands, safeJsNodeCommands],
@@ -28,10 +62,10 @@ test("zero-argument Node factories register without granting a runtime", async (
         use() { throw new Error("Unexpected middleware registration"); },
         registerFileSystem() { throw new Error("Unexpected filesystem registration"); },
       }), /already registered/);
-      const result = await shell.exec("node -e 'throw new Error(\"must not execute\")'");
-      assert.equal(result.exitCode, 2);
+      const result = await shell.exec("node -e 'throw new Error(\"guest failure\")'");
+      assert.equal(result.exitCode, 1);
       assert.equal(result.stdout, "");
-      assert.ok(result.stderr.includes("requires an injected runtime or provider"));
+      assert.equal(result.stderr, "node: guest failure\n");
     } finally { await shell.dispose(); }
   }
 });

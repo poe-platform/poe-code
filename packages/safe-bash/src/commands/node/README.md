@@ -1,20 +1,19 @@
 # Node with pluggable SafeJS
 
-`nodeCommands({ runtime })` registers `node` using an injected SafeJS interpreter.
+`nodeCommands()` registers `node` using the default SafeJS interpreter.
 It shares the shell's virtual filesystem, stdin, stdout, stderr, cwd, exported
-environment, and cancellation signal. No engine is loaded implicitly and no
-native subprocess is started.
+environment, and cancellation signal. The engine loads on first execution; no
+native subprocess is started. Pass `{ runtime }` to supply your own interpreter.
 
 Calling the Node command, collection, or plugin factory without arguments is
-supported. It registers an unconfigured `node` command that exits with status 2
-and a configuration diagnostic when invoked. Pass an explicit runtime or trusted
-provider to execute JavaScript; an explicitly supplied options object is still
+supported. It uses the default SafeJS adapter. You can also pass an explicit
+runtime or trusted provider; an explicitly supplied options object is still
 validated at construction.
 
 JavaScript integration registers only `node`, never `safejs` or `js`. The legacy
 SDK names `safeJsCommands` and `createSafeJsCommands` expose the portable SafeJS
 registration factories; they use the same Node-style arguments
-and require the same explicit runtime configuration. They do not add shell aliases.
+and support the same default runtime. They do not add shell aliases.
 Browser and workerd root and command-subpath exports provide the SafeJS-backed
 factories without the native provider implementation.
 
@@ -103,8 +102,11 @@ try {
   `fs` and `node:fs` also support require, default, named, and namespace imports
   of `readFileSync(path, encoding)` (or `{ encoding }`) for text reads. It returns
   the text or throws the VFS error before the next guest statement; the host
-  event loop remains asynchronous. An encoding is required; binary reads and
-  other synchronous filesystem operations are not supplied. `fs.promises`
+  event loop remains asynchronous. An encoding is required for reads.
+  `writeFileSync`, `appendFileSync`, `mkdirSync`, `readdirSync`, `statSync`,
+  `lstatSync`, `existsSync`, `unlinkSync`, `rmSync`, `renameSync`, and
+  `copyFileSync` operate on the same VFS. `unlinkSync` requires backend unlink
+  support. `fs.promises`
   exposes the asynchronous helpers. `fs.readFile(path, encoding, callback)`
   also supports asynchronous text callbacks: success supplies `(null, text)` and
   failure supplies the VFS error. The command waits for callback reads and their

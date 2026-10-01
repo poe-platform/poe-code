@@ -1990,6 +1990,34 @@ test("optional hashes bind actual BOM and UTF-8 bytes, not decoded character cou
   noHeldReads(owned);
 });
 
+for (const defect of ['none', 'declaration', 'source-import']) test(`build default SafeJS declaration admission: ${defect}`, async () => {
+  const owned = fixture({
+    'package.json': JSON.stringify({ name: 'virtual-bash', type: 'module', peerDependencies: { 'poe-code': '>=13.0.0' }, devDependencies: { 'poe-code': 'file:../..', '@poe-code/safe-js': '*' }, poeCode: { integration: { peerProfile: 'checkout-root' } } }),
+    'src/index.ts': 'export { run } from "poe-code/safe-js/core";',
+    '../../package.json': JSON.stringify({ name: 'poe-code', type: 'module', exports: {
+      './safe-fs': { types: './packages/safe-fs/dist/index.d.ts', import: './dist/shared/safe-js/safe-fs.js' },
+      './safe-js/core': { types: { default: './packages/safe-js/dist/core.d.ts' }, import: './dist/shared/safe-js/core.js' },
+    } }),
+    '../../packages/safe-fs/dist/index.d.ts': 'export interface FileSystem {}',
+    '../../packages/safe-js/dist/core.d.ts': 'export declare function run(): void;',
+    '../../packages/safe-js/src/private.d.ts': 'export declare function hidden(): void;',
+  });
+  if (defect === 'declaration') {
+    const peer = JSON.parse(owned.memory.readFileSync('/package.json', 'utf8'));
+    peer.exports['./safe-js/core'].types.default = './packages/safe-js/src/private.d.ts';
+    owned.memory.writeFileSync('/package.json', JSON.stringify(peer));
+    await assert.rejects(owned.run(), /canonical public SafeJS/);
+  } else if (defect === 'source-import') {
+    owned.memory.writeFileSync('/packages/safe-js/dist/core.d.ts', 'export { hidden as run } from "../src/private.js";');
+    assert.notEqual((await owned.run()).status, 0);
+    assert.equal(owned.reads.includes('/packages/safe-js/src/private.d.ts'), false);
+  } else {
+    assert.equal((await owned.run()).status, 0, owned.output.join(''));
+    assert.equal(owned.reads.includes('/packages/safe-js/dist/core.d.ts'), true);
+  }
+  noHeldReads(owned);
+});
+
 for (const defect of ['none', 'declaration', 'runtime', 'source-import']) test(`build focused Playwright public declaration admission: ${defect}`, async () => {
   const owned = fixture({
     'package.json': JSON.stringify({ name: 'virtual-bash', type: 'module', peerDependencies: { 'poe-code': '>=13.0.0' }, devDependencies: { 'poe-code': 'file:../..', '@poe-code/safe-playwright': '*' }, poeCode: { integration: { peerProfile: 'checkout-root' } } }),

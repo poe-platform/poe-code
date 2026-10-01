@@ -3,7 +3,10 @@ export const nodeRequireSource = `
 const __safeBashModuleCache = new Map();
 const __safeBashMakeRequire = base => name => {
   const path = __safeBashModulePath(base, name);
-  if (path === null) return __safeBashRequire(name);
+  if (path === null) {
+    if (!Object.hasOwn(__safeBashModules, name)) throw new TypeError("Unsupported node module; use fs, node:fs, fs/promises, node:fs/promises, path or node:path");
+    return __safeBashModules[name];
+  }
   if (__safeBashModuleCache.has(path)) return __safeBashModuleCache.get(path).exports;
   let source;
   try { source = __safeBashModuleRead(path); }

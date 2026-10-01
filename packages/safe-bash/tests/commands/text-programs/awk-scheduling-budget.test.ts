@@ -5,12 +5,12 @@ import { Budget } from "../../../src/commands/text-programs/shared.js";
 import { runVirtual } from "./helpers.js";
 import { string } from "../../../src/commands/text-programs/awk-values.js";
 
-test("AWK cached short strings preserve every UTF-16 code unit", () => {
+test("AWK sliced strings preserve every UTF-16 code unit without sharing scalar objects", () => {
   for (const text of ["abcdefghijklmnop", "é漢字😀", "\ud800x\udfff"]) {
     const parent = "q".repeat(100_000) + text + "q".repeat(100_000);
     const value = string(parent.slice(100_000, 100_000 + text.length));
     assert.deepEqual(value, { kind: "string", text });
-    assert.strictEqual(string(text), value);
+    assert.notStrictEqual(string(text), value);
   }
 });
 

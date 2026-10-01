@@ -135,3 +135,15 @@ test("awk reads batched memory input without a global Buffer", async () => {
     Object.defineProperty(globalThis, "Buffer", { value: originalBuffer, configurable: true, writable: true });
   }
 });
+
+for (const trailingNewline of ["", "\n"]) {
+  for (const matched of [true, false]) {
+    test(`END reads the final unmatched record (matched=${matched}, newline=${!!trailingNewline})`, async () => {
+      const input = [matched ? "alpha:10" : "beta:10", ...Array.from({ length: 39 }, (_, i) => `gamma_${i + 1}:30:extra`)].join("\n") + trailingNewline;
+      const { run } = await fixture(input);
+      const result = await run('/^alpha:/ { c += 1; first = $1 } END { print c+0, $0, $1, NF }');
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, `${matched ? 1 : 0} gamma_39:30:extra gamma_39 3\n`);
+    });
+  }
+}

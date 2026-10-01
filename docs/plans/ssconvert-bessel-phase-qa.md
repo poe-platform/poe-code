@@ -1,6 +1,6 @@
 # Large-argument Bessel phase QA
 
-Tracking: hey-boss #3623 within the open numerical family in #1748.
+Scope: large-argument phase behavior; broader native/platform qualification remains separate.
 
 1. Authenticate Gnumeric 1.12.61 `src/sf-bessel.c` against the recorded hash.
    Read its phase dispatch, amplitude, paired reduction and warning threshold.

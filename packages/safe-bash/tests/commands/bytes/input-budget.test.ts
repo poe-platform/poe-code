@@ -86,6 +86,7 @@ test("zero-byte limits accept EOF and zero-count commands do not acquire input",
     assert.equal(result.exitCode, 0, result.stderr);
   }
   const fs = createMemoryFileSystem();
+  await fs.writeFile("/unread", new Uint8Array());
   fs.readStream = () => { assert.fail("zero-count command acquired file input"); };
   for (const [name, args] of [["xxd", ["-l0", "/unread"]], ["od", ["-N0", "/unread"]]] as const) {
     assert.equal((await run(commands, name, args, toByteSource(""), fs)).exitCode, 0);

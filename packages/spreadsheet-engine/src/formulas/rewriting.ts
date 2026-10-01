@@ -50,8 +50,11 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
       if (id === undefined) return { row: { value: -1, relative: false }, column: { value: 0, relative: false } };
       next = { ...ref, sheet: document.sheetNames![id]! };
     }
-    if (edit.translation === "move" && target.sheet !== document.position.sheet && ref.workbook === undefined && ref.sheet === undefined)
-      next = { ...ref, sheet: document.sheetNames?.[document.position.sheet] ?? document.position.sheet };
+    if (edit.translation === "move" && target.sheet !== document.position.sheet && ref.workbook === undefined && ref.sheet === undefined) {
+      const { sheetOffset: ignoredOffset, ...anchored } = ref;
+      next = { ...anchored, sheet: document.sheetNames?.[document.position.sheet] ?? document.position.sheet,
+        ...(ref.sheetRelative === undefined ? {} : { sheetRelative: false }) };
+    }
     const renamed = next.workbook === undefined && next.sheet ? renamedSheet(next.sheet) : undefined;
     if (renamed !== undefined) next = { ...next, sheet: renamed };
     if (edit.translation === "move") for (const kind of ["row", "column"] as const) {
@@ -82,7 +85,14 @@ export function rewriteReferences(document: FormulaDocument, edit: ReferenceRewr
         if (JSON.stringify(comparable) !== JSON.stringify(ref)) unchanged = false;
         return next;
       };
-      const first = rewrite(node.first), last = node.last ? rewrite(node.last) : undefined;
+      const first = rewrite(node.first);
+      let last = node.last ? rewrite(node.last) : undefined;
+      // A newly anchored local ODF range inherits its first endpoint's sheet.
+      if (document.grammar.bracketReferences && node.first.sheet === undefined && node.last?.sheet === undefined &&
+        first.sheet !== undefined && last?.sheet === first.sheet && last.sheetRelative === first.sheetRelative) {
+        const { sheet: ignoredSheet, ...inherited } = last;
+        last = inherited;
+      }
       // The parent replacement includes its explicit area's source span.
       if (node.label?.kind === "radical") {
         if (node.label.data) absorbedReferences.add(node.label.data);

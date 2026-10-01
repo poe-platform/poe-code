@@ -174,3 +174,15 @@ it("clips data and rewrites a deleted earlier label on resize", () => {
   expect(resizeWorkbookReferences(book, "S", { rows: 256, columns: 256 }, context).sheets[0]!.cells.map(cell => cell.formula))
     .toEqual(["=SUM(@range.multi:{$C$10;$A$1}->$A$2:$A$256)", "=SUM(#REF!)"]);
 });
+
+// MS-XLS 2.5.198.53: the four bytes after eptg are undefined and MUST
+// be ignored. Unlike PtgElfRadical, PtgElfRadicalS has no ColElfU/fQuoted.
+it.each([0x4000, 0x8000, 0xffff])("ignores radical sequence unused bits %i instead of interpreting label flags", async bits => {
+  const tokens = [24, 11, ...words(0xffff, bits), 0x25, ...words(1, 3, 0, 0)];
+  const payload = extra(false, false);
+  const book = await readBiff(input(tokens, payload), context);
+  expect(book.sheets[0]!.cells.find(cell => cell.formula)!.formula).toBe("=@range.multi:{$C$10;$A$1}->$A$2:$A$4");
+  const native = formula(await createBiffWriter(8)(book, [], context));
+  expect([...native.bytes.subarray(22, 28)]).toEqual([24, 11, 0, 0, 0, 0]);
+  expect([...native.bytes.subarray(22 + native.u16(20))]).toEqual(payload);
+});

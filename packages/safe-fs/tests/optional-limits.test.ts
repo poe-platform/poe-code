@@ -34,12 +34,12 @@ it("omitted Python handle quotas stay unlimited while explicit ones are honored"
   } finally { await bridge.close(); await limited.close(); }
 });
 
-it("cleanup has no default operation quota or ceiling on explicit quotas", async () => {
+it.each([undefined, { maxOperations: Infinity }])("cleanup has no operation quota with %j", async options => {
   const fs = new MemoryFileSystem();
   const rm = vi.spyOn(fs, "rm").mockResolvedValue(undefined);
   const clean = retainFileSystemCleanup(fs, async view => {
     for (let i = 0; i < 257; i++) await view.rm("/f");
-  });
+  }, options);
   await clean();
   expect(rm).toHaveBeenCalledTimes(257);
   expect(() => retainFileSystemCleanup(fs, () => {}, { maxOperations: 4097 })).not.toThrow();

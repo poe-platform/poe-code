@@ -498,7 +498,7 @@ export function retainFileSystemCleanup(
   options?: RetainedFileSystemCleanupOptions,
 ): () => Promise<void> {
   const maximum = options?.maxOperations ?? Infinity;
-  if (options?.maxOperations !== undefined && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("cleanup maxOperations must be a nonnegative safe integer");
+  if (maximum !== Infinity && (!Number.isSafeInteger(maximum) || maximum < 0)) throw new RangeError("cleanup maxOperations must be a nonnegative safe integer or Infinity");
   if (typeof cleanupCallback !== "function") throw new TypeError("cleanup callback must be a function");
   const scope = originals.get(filesystem);
   if (!scope) {

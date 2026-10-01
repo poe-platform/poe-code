@@ -123,6 +123,7 @@ Capture `retainFileSystemCleanup(scoped, callback, { maxOperations })` before
 cancellation to clean up through a bounded view after ordinary scoped operations
 close. Cleanup preserves its owning scope and limits across separately bundled
 command runtimes, including restrictions added by filesystem wrappers.
+Omit `maxOperations` or pass `Infinity` for unlimited cleanup operations.
 
 | Backend or wrapper | Use it for |
 | --- | --- |

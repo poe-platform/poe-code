@@ -216,7 +216,7 @@ test("cleanup maxOperations bounds admissions, including fire-and-forget calls",
   const none = retainFileSystemCleanup(backing, view => view.lstat("/").then(() => {}), { maxOperations: 0 });
   await assert.rejects(none(), { code: "EFBIG" });
   assert.equal(operations, 1);
-  for (const maxOperations of [-1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => retainFileSystemCleanup(backing, () => {}, { maxOperations }), RangeError);
+  for (const maxOperations of [-1, -Infinity, NaN, 1.5, Number.MAX_SAFE_INTEGER + 1]) assert.throws(() => retainFileSystemCleanup(backing, () => {}, { maxOperations }), RangeError);
 });
 
 test("cleanup omits its operation quota by default", async () => {

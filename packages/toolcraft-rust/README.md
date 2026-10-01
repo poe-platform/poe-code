@@ -25,6 +25,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | SDK arguments    | Native casing, nested validation, defaults, aliases and JSON-schema normalization |
 | Runtime wiring   | Reserved service names, injected I/O and approval runtime admission              |
 | HTTP summaries   | REST/GraphQL errors, request IDs, retry hints and redacted error envelopes         |
+| Error reports    | Secret-aware rendering, cause chains, project discovery and confined report writes |
 | Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts
@@ -98,6 +99,10 @@ Runtime service admission and approval wiring use Rust policies. Filesystem
 promises, environment access and supplied runtime callbacks retain Node identity.
 HTTP summary policies run in Rust and reuse native redaction, preserving REST and
 GraphQL field precedence, nested validation paths and structured error envelopes.
+Error reports use native redaction policy, argument handling, cause-chain traversal,
+filename generation and directory checks. Node preserves filesystem promises,
+symlink resolution and report text formatting. Commander supplies its existing
+error constructor so help/version exceptions keep their original identity.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The SDK, CLI, transports, approval runtime and

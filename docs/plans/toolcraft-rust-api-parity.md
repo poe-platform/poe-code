@@ -287,6 +287,25 @@ Node tests, plus Rust, declarations and lint. SDK error-report persistence and
 project-root discovery still require porting; this increment does not provide
 the public SDK assembly/invocation or complete the approval runtime.
 
+Error-report rendering and persistence now use native policies for schema-marked
+secrets, sensitive parameter collection, argv redaction, structured error fields,
+cause chains, report admission, filename timestamps/slugs and directory confinement.
+Nearest project discovery runs in Rust without parsing package metadata. Node
+retains report string assembly, literal string replacement, dates/UUIDs, filesystem
+promises and path semantics. Persistence preserves the original mkdir, lexical
+containment, concurrent realpath checks, rendering and write order. Memfs parity
+checks cover exact content/paths, symlink escapes, getter order, arbitrary throws,
+Unicode slugs, environment overrides and filesystem effects. The original report
+suite now exercises the native implementation through SDK/CLI consumers.
+The approval error adapter preserves the original class behavior. Commander is a
+direct dependency solely for its shared error constructor; its parser/runtime
+still requires porting. Report version lookup uses the executing package's own
+metadata, so differential content tests supply the same explicit version.
+The checkpoint passes 1,372 reference/parity tests and 79 native Node tests, plus
+Rust, declarations and lint. Recursive callbacks retain the 128-entry guard and
+optional wrappers the 16,384 guard pending resource-limit qualification. Public SDK
+assembly/invocation, proxy resolution and the full approval runtime remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

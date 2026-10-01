@@ -4,6 +4,7 @@ pub mod api_error_summary;
 pub mod applied_default;
 pub mod branch_validation;
 pub mod definitions;
+pub mod error_report;
 pub mod host;
 pub mod package_metadata;
 pub mod redaction;

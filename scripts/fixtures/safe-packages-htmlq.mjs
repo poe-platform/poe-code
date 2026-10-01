@@ -27,7 +27,7 @@ try {
   assert.equal((await shell.exec('htmlq div -f /input')).exitCode, 127);
   shell.use(htmlqCommands());
   const cli = await shell.exec('htmlq div -r span -f /input');
-  assert.equal(cli.exitCode, 0); assert.equal(cli.stderr, ''); assert.equal(cli.stdout, '<div id="a"><span>2</span></div>\n');
+  assert.equal(cli.exitCode, 0); assert.equal(cli.stderr, ''); assert.equal(cli.stdout, '<div id="a"></div>\n<div id="b"></div>\n');
   shell.use({ name: 'htmlq-sdk', setup(host) {
     host.commands.register({ name: 'sdk-htmlq', runtimeIdentity: contracts.commandRuntimeIdentity, execute(context) { return htmlq(context, { selector: 'div', removeNodes: ['span'], filename: '/input' }); } });
   } });
@@ -47,7 +47,7 @@ try {
     assert.equal(duplicate.stdout, '');
     assert.equal(duplicate.stderr, 'htmlq: E_ARGUMENT\n');
   }
-  const missingValue = await shell.exec('htmlq -f --unknown');
+  const missingValue = await shell.exec('htmlq -f');
   assert.equal(missingValue.exitCode, 2);
   assert.equal(missingValue.stdout, '');
   assert.equal(missingValue.stderr, 'htmlq: E_ARGUMENT\n');
@@ -59,5 +59,6 @@ try {
   assert.equal(literalSdk.exitCode, 0);
   assert.equal(literalSdk.stdout, 'literal\n');
   assert.deepEqual(literalSdk, await shell.exec('htmlq p --filename=-input -t'));
+  assert.deepEqual(literalSdk, await shell.exec('htmlq p --filename -input -t'));
 } finally { await shell.dispose(); }
 console.log('Installed htmlq behavior: canonical registration, CLI/SDK, live mutations and atomic VFS passed');

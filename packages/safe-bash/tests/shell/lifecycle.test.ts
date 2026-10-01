@@ -10,6 +10,39 @@ import { ShellInput } from "../../src/shell/input.js";
 import { Budget, defaultLimits, Runtime } from "../../src/shell/runtime.js";
 import { setup } from "./helpers.js";
 
+test("empty execution does not run hidden scripts or reinstall host plugins", async t => {
+  let setups = 0;
+  const shell = new Shell({ fs: createMemoryFileSystem() })
+    .use(agentCommands())
+    .use({ setup() { setups++; } });
+  try {
+    await shell.exec(":");
+    const calls = t.mock.method(Shell.prototype, "exec");
+    const result = await shell.exec("");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(setups, 1);
+    assert.equal(calls.mock.callCount(), 1);
+    for (const options of [
+      { limits: { maxCpuMs: 50 } },
+      { limits: { maxWallClockMs: 1000 } },
+      { signal: new AbortController().signal },
+    ]) {
+      calls.mock.resetCalls();
+      const bounded = await shell.exec("", options);
+      assert.equal(bounded.exitCode, 0, bounded.stderr);
+      assert.equal(bounded.stdout, "");
+      assert.equal(calls.mock.callCount(), 1);
+      assert.equal(setups, 1);
+    }
+    const reason = new Error("cancel empty execution");
+    calls.mock.resetCalls();
+    await assert.rejects(shell.exec("", { signal: AbortSignal.abort(reason) }), error => error === reason);
+    assert.equal(calls.mock.callCount(), 1);
+    assert.equal(setups, 1);
+  } finally { await shell.dispose(); }
+});
+
 test("prewarmed mkdir preserves existing descendants and directory identity", async () => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/existing/nested", { recursive: true });

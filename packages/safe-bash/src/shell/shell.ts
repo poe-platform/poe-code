@@ -1,4 +1,3 @@
-import { MemoryFileSystem } from "../fs/memory/index.js";
 function utf8ByteLength(str: string): number {
   if (typeof globalThis.Buffer === "function") return globalThis.Buffer.byteLength(str);
   let bytes = str.length;
@@ -108,7 +107,6 @@ interface WarmedInvocation {
   currentState: State;
   runtime: Runtime;
 }
-let warmSyncExecJitWarmed = false;
 interface CachedParsedUnit {
   readonly offset: number;
   readonly unit: ReturnType<typeof parseShellUnit>;
@@ -534,68 +532,6 @@ export class Shell implements PluginHost {
     );
   }
 
-  static #enginePrewarmed = false;
-
-  async #prewarmIsolatedSandbox(): Promise<void> {
-    if (Shell.#enginePrewarmed) return;
-    Shell.#enginePrewarmed = true;
-    await this.#ready;
-    if (!this.commands.get("rg") || !this.commands.get("jq") || !this.commands.get("awk")) {
-      Shell.#enginePrewarmed = false;
-      return;
-    }
-    try {
-      const enc = new TextEncoder();
-      const dBytes = enc.encode(Array.from({ length: 120 }, (_, i) => `${i % 3 === 0 ? "alpha" : i % 3 === 1 ? "beta" : "gamma"}:val_${(i * 17) % 97}:${i}\n`).join(""));
-      const jBytes = enc.encode(Array.from({ length: 60 }, (_, i) => `{"id":${i},"active":${i % 2 === 0},"score":${(i * 7) % 100},"tag":"t_${i % 10}"}\n`).join(""));
-      const sandboxFs = new MemoryFileSystem();
-      await sandboxFs.writeFile("/data.txt", dBytes);
-      await sandboxFs.writeFile("/items.jsonl", jBytes);
-      for (let d = 0; d < 2; d++) {
-        await sandboxFs.mkdir(`/src/pkg_${d}`, { recursive: true });
-        for (let f = 0; f < 2; f++) {
-          await sandboxFs.writeFile(`/src/pkg_${d}/mod_${f}.ts`, enc.encode(Array.from({ length: 20 }, (_, l) => `export const v_${d}_${f}_${l} = "${(d + f + l) % 11 === 0 ? "NEEDLE_TOKEN" : "normal"}_${l}";\n`).join("")));
-        }
-      }
-      const fsScript = [
-        "mkdir -p /work/a /work/b",
-        ...Array.from({ length: 12 }, (_, i) => `echo "item_${i}" > /work/a/f_${i}.txt`),
-        ...Array.from({ length: 12 }, (_, i) => `echo "item_${i}" >> /work/b/f_${i}.txt`),
-        "rm -rf /work/b",
-        "find /work/a -name 'f_1*.txt' | wc -l",
-      ].join("\n");
-      const scripts = [
-        "grep '^alpha' /data.txt | cut -d: -f2 | tr 'a-z' 'A-Z' | sort | head -n 5",
-        "rg -c NEEDLE_TOKEN /src",
-        "sed 's/^alpha:/ALPHA_REPLACED:/g; s/:val_/:VALUE_/g' /data.txt > /out.txt",
-        "awk -F: '/^alpha/ { sum += $3; cnt++ } END { print cnt, sum }' /data.txt",
-        "jq -c 'select(.active) | {id, score}' /items.jsonl > /filtered.jsonl",
-        fsScript,
-        "acc=0; i=0; for i in {1..80}; do acc=$((acc + i)); done; echo $acc",
-        "declare -a arr=(); declare -A map=(); fn() { local x=\"$1\"; case \"$x\" in *0) return 0;; *) return 1;; esac; }; for ((i=0; i<40; i++)); do s=\"p_m_${i}_s_e\"; a=\"${s#p_}\"; b=\"${a%_e}\"; c=\"${b//_/}\"; arr+=(\"e_$i\"); map[\"k_$i\"]=$((i + ${#c})); if [[ \"$s\" =~ ^p_m_([0-9]+)_s_e$ ]]; then fn \"${BASH_REMATCH[1]}\"; fi; done",
-      ];
-      const sandboxShell = new Shell({ fs: sandboxFs });
-      for (const plugin of this.#plugins) {
-        sandboxShell.use(plugin);
-      }
-      for (const s of scripts) {
-        const isFs = s === fsScript;
-        const isSed = s.startsWith("sed ");
-        const isJq = s.startsWith("jq ");
-        for (let i = 0; i < 4; i++) {
-          if (isFs && i > 0) await sandboxFs.rm("/work", { recursive: true, force: true });
-          else if (isSed && i > 0) await sandboxFs.rm("/out.txt", { force: true });
-          else if (isJq && i > 0) await sandboxFs.rm("/filtered.jsonl", { force: true });
-          await sandboxShell.exec("");
-          await sandboxShell.exec(s);
-        }
-      }
-      sandboxShell.#clearWarmedInvocation();
-    } catch {
-      // Ignore prewarm errors in restricted environments
-    }
-  }
-
   exec(source: string, options: ShellExecOptions = EMPTY_EXEC_OPTIONS): Promise<ShellResult> {
     if (
       !this.#disposed &&
@@ -915,15 +851,6 @@ export class Shell implements PluginHost {
     }
     if (selection.outcome.kind === "throw") throw selection.outcome.reason;
     if (scope.hasFailures) throwCleanupFailures(scope.failures);
-    if (!warmSyncExecJitWarmed && source === "" && this.#warmedInvocation) {
-      warmSyncExecJitWarmed = true;
-      await this.#prewarmIsolatedSandbox();
-      for (let w = 0; w < 24; w++) { globalThis.process?.memoryUsage?.(); performance.now(); }
-      for (let w = 0; w < 16; w++) {
-        await this.exec(":", EMPTY_EXEC_OPTIONS);
-        await this.#execAsync("", EMPTY_EXEC_OPTIONS);
-      }
-    }
     return selection.outcome.value;
   }
 

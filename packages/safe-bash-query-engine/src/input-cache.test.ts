@@ -36,3 +36,24 @@ for (const next of [
       { id: row.id, val: row.val ?? null });
   }
 });
+
+test("select/project handles repeated large Uint8Array inputs without Node Buffer", () => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer");
+  const rows = Array.from({ length: 30 }, (_, id) => ({ id, active: true, val: id * 10 }));
+  const input = new TextEncoder().encode(rows.map(row => JSON.stringify(row)).join("\n") + "\n");
+  assert.ok(input.byteLength >= 512);
+  Object.defineProperty(globalThis, "Buffer", { value: undefined, configurable: true });
+  try {
+    for (let i = 0; i < 3; i++) {
+      const output = new Uint8Array(65536);
+      const budget = new Budget(defaultJqLimits, new AbortController().signal);
+      const length = tryProcessFlatSelectProjectChunkSync(input, budget, "active", ["id", "val"], ["id", "val"], output);
+      assert.ok(length > 0);
+      assert.equal(new TextDecoder().decode(output.subarray(0, length)),
+        rows.map(({ id, val }) => JSON.stringify({ id, val })).join("\n") + "\n");
+    }
+  } finally {
+    if (descriptor) Object.defineProperty(globalThis, "Buffer", descriptor);
+    else Reflect.deleteProperty(globalThis, "Buffer");
+  }
+});

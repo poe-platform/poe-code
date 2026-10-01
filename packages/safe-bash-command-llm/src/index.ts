@@ -18,3 +18,4 @@ export { resolveLlmSchemaInput, type LlmSchemaInputOptions } from "./schema-inpu
 export { getLlmModelAliases, selectLlmModelByQuery } from "./model-selection.js";
 
 export { createLlmSpool } from "./retained-spool.js";
+export { openAiChatOptions } from "./openai-chat-options.js";

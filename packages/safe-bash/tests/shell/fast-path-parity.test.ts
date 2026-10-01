@@ -15,6 +15,16 @@ function createShell(fs = createMemoryFileSystem()) {
 }
 
 const cases = [
+  ...["/", "//", "/#", "/%"].map(operator =>
+    'v="]a]b"; for i in 1 2; do echo "${v' + operator + '[]a]/X}" "${v' + operator + '[!]]/X}" "${v' + operator + '[^]]/X}"; done'),
+  ...[
+    ["]", "^[]a]+$"],
+    ["x]", "^[^]]+$"],
+    ["x", "^[^]]+$"],
+    ["foo", "^(?:foo)$"],
+    ["", "^()$"],
+  ].flatMap(([subject, pattern]) => ["", "[[ a =~ a ]]; "].map(prime =>
+    `${prime}subject='${subject}'; pattern='${pattern}'; for i in 1 2; do [[ $subject =~ $pattern ]] 2>/dev/null; printf '%s:<%s>:<%s>\\n' "$?" "\${BASH_REMATCH[0]}" "\${BASH_REMATCH[1]}"; done`)),
   'd=";"; read -r -d "$d" <<< "value;"; printf "<%s>\\n" "$_"',
   'd=";"; for i in 1 2; do read -r -d "$d"; printf "<%s>\\n" "$_"; done <<< "one;two;"',
   `s=$'a\\nb'; for i in 1 2; do [[ $s =~ ^.+$ ]]; echo "$?"; [[ foo =~ ^(?:foo)$ ]] 2>/dev/null; echo "$?"; [[ ']a' =~ ^[]a]+$ ]]; echo "$?"; done`,

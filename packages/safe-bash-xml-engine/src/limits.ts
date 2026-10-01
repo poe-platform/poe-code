@@ -72,6 +72,12 @@ export class XmlBudget {
       signal.addEventListener("abort", () => { this.aborted = true; }, { once: true });
     }
   }
+  /** Charge synchronous work only when it cannot start an asynchronous checkpoint. */
+  tryTickSync(work = 1): boolean {
+    if (this.checkpoint + work >= 16384) return false;
+    this.tick(work);
+    return true;
+  }
   tick(work = 1): Promise<void> | void {
     if (this.aborted || (this.pollSignal && this.signal.aborted)) this.signal.throwIfAborted();
     this.steps += work;

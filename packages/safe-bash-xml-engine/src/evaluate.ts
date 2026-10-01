@@ -202,7 +202,7 @@ export function serializeSimpleSync(node: Node, budget: XmlBudget): string | und
     node.value.text.length < 4096 &&
     !/[&<>"\n\r\t\uD800-\uDFFF]/.test(node.value.text)
   ) {
-    if (budget.tick(1 + node.value.text.length)) return undefined;
+    if (!budget.tryTickSync(1 + node.value.text.length)) return undefined;
     return node.value.text;
   }
   return undefined;

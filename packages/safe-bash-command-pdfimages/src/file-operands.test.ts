@@ -51,3 +51,11 @@ it("Pdfimages reports missing output parents without creating directories", asyn
   assert.ok(stderr.includes("Couldn't open image file"));
   assert.equal(volume.existsSync("/missing"), false);
 });
+
+for (const args of [["-list", "-"], ["-", "out"]]) {
+  it(`reports empty stdin for pdfimages ${args.join(" ")}`, async () => {
+    const { result, stderr } = await execute(createPdfimagesCommand(), args);
+    assert.equal(result.exitCode, 1);
+    assert.ok(stderr.includes("Syntax Error: Document stream is empty"), stderr);
+  });
+}

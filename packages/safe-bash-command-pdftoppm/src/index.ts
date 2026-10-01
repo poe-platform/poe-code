@@ -57,6 +57,9 @@ const VALUE_FLAGS = new Set([
   "-jpegopt",
 ]);
 
+const INTEGER_FLAGS = new Set(["-scale-to", "-scale-to-x", "-scale-to-y", "-f", "-l", "-x", "-y", "-W", "-H", "-sz", "-setpageno"]);
+const RESOLUTION_FLAGS = new Set(["-r", "-rx", "-ry"]);
+
 function extractPdftoppmPositionals(argv: readonly string[]): string[] {
   const pos: string[] = [];
   for (let i = 0; i < argv.length; i++) {
@@ -115,6 +118,23 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
+        if (VALUE_FLAGS.has(arg)) {
+            const value = argv[i + 1];
+            if (value === undefined) {
+                return { exitCode: 99, stdout: "", stderr: `Missing value for '${arg}'\n` };
+            }
+            const integer = INTEGER_FLAGS.has(arg);
+            const resolution = RESOLUTION_FLAGS.has(arg);
+            if (integer || resolution) {
+                const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+                const validInteger = [...unsigned].every(char => char >= "0" && char <= "9");
+                const validResolution = [...unsigned].every(char => "0123456789.eE+-".includes(char))
+                    && (Number.isFinite(Number(value)) || unsigned === "" || unsigned === ".");
+                if (integer ? !validInteger : !validResolution) {
+                    return { exitCode: 99, stdout: "", stderr: `Bad '${arg}' value on command line\n` };
+                }
+            }
+        }
         if (arg === "-v" || arg === "--version") {
             return { exitCode: 0, stdout: "pdftoppm version 24.08.0\n", stderr: "" };
         }
@@ -299,14 +319,20 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         else if (!arg.startsWith("-") || arg === "-") {
             positionals.push(arg);
         }
+        else {
+            return { exitCode: 99, stdout: "", stderr: `Unknown option '${arg}'\n` };
+        }
     }
     const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-    if (!inputPath) {
+    if (!inputPath || positionals.length > 2) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdftoppm [options] [PDF-file [PPM-root]]\n" };
     }
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
+    }
+    if (pdfBytes.byteLength === 0) {
+        return { exitCode: 1, stdout: "", stderr: quiet ? "" : "Syntax Error: Document stream is empty\n" };
     }
     let doc: PdfDocument;
     try {
@@ -502,16 +528,14 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
         total += chunk.byteLength;
         chargeBytes(chunk.byteLength);
       }
-      if (total > 0) {
-        const buf = new Uint8Array(total);
-        let off = 0;
-        for (const c of chunks) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-          buf.set(c, off);
-          off += c.byteLength;
-        }
-        vfsFiles.set("-", buf);
+      const buf = new Uint8Array(total);
+      let off = 0;
+      for (const c of chunks) {
+    if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
+        buf.set(c, off);
+        off += c.byteLength;
       }
+      vfsFiles.set("-", buf);
     }
 
     for (const token of positionals.slice(0, 1)) {

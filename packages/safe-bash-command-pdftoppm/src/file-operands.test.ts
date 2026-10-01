@@ -64,3 +64,11 @@ it("Pdftocairo reports missing output parents without creating directories", asy
   assert.ok(stderr.length > 0);
   assert.equal(volume.existsSync("/missing"), false);
 });
+
+for (const args of [[], ["-"]]) {
+  it(`reports empty stdin for pdftoppm ${args.join(" ")}`, async () => {
+    const { result, stderr } = await execute(createPdftoppmCommand(), args);
+    assert.equal(result.exitCode, 1);
+    assert.ok(stderr.includes("Syntax Error: Document stream is empty"), stderr);
+  });
+}

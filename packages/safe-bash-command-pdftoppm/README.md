@@ -37,3 +37,5 @@ The workspace entrypoint exports `pdftoppmCommands()` for plugin registration,
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdftoppmLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and PDF page rasterization and pixel encoding yield to timers and cancellation, including Workers with frozen clocks.
 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
+
+Unknown options, missing option values, invalid numeric values, and extra operands return exit code `99`. Omit the input filename or use `-` to read stdin. Empty PDF input returns exit code `1`.

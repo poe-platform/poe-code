@@ -91,6 +91,18 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
+        if (PDFIMAGES_VALUE_FLAGS.has(arg)) {
+            const value = argv[i + 1];
+            if (value === undefined) {
+                return { exitCode: 99, stdout: "", stderr: `Missing value for '${arg}'\n` };
+            }
+            if (arg === "-f" || arg === "-l") {
+                const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+                if (![...unsigned].every(char => char >= "0" && char <= "9")) {
+                    return { exitCode: 99, stdout: "", stderr: `Bad '${arg}' value on command line\n` };
+                }
+            }
+        }
         if (arg === "-v" || arg === "--version") {
             return { exitCode: 0, stdout: "pdfimages version 24.08.0\n", stderr: "" };
         }
@@ -142,14 +154,20 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         else if (!arg.startsWith("-") || arg === "-") {
             positionals.push(arg);
         }
+        else {
+            return { exitCode: 99, stdout: "", stderr: `Unknown option '${arg}'\n` };
+        }
     }
     const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
-    if (!inputPath) {
+    if (!inputPath || positionals.length !== (listOnly ? 1 : 2)) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdfimages [options] <PDF-file> [<image-root>]\n" };
     }
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
         return { exitCode: 1, stdout: "", stderr: quiet ? "" : `I/O Error: Couldn't open file '${inputPath}'\n` };
+    }
+    if (pdfBytes.byteLength === 0) {
+        return { exitCode: 1, stdout: "", stderr: quiet ? "" : "Syntax Error: Document stream is empty\n" };
     }
     let doc: PdfDocument;
     try {
@@ -190,7 +208,7 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         "page   num  type   width height color comp bpc  enc interp  object ID x-ppi y-ppi size ratio",
         "--------------------------------------------------------------------------------------------",
     ];
-    const root = positionals[1] ?? "image";
+    const root = positionals[1]!;
     const printedFilenames: string[] = [];
     for (let idx = 0; idx < extracted.length; idx++) {
         if (++cooperativeWork % 64 === 0)
@@ -327,16 +345,14 @@ async function executePdfimages(context: CommandContext): Promise<{ exitCode: nu
         total += chunk.byteLength;
         chargeBytes(chunk.byteLength);
       }
-      if (total > 0) {
-        const buf = new Uint8Array(total);
-        let off = 0;
-        for (const c of chunks) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-          buf.set(c, off);
-          off += c.byteLength;
-        }
-        vfsFiles.set("-", buf);
+      const buf = new Uint8Array(total);
+      let off = 0;
+      for (const c of chunks) {
+    if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
+        buf.set(c, off);
+        off += c.byteLength;
       }
+      vfsFiles.set("-", buf);
     }
 
     for (const token of positionals.slice(0, 1)) {

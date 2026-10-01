@@ -138,3 +138,12 @@ it("preserves freeform iTunes atoms when editing normalized tags", () => {
   const retained = all(parseAudio(output).nodes).find((n) => n.type === "----")!;
   expect(output.subarray(retained.offset, retained.offset + retained.size)).toEqual(free);
 });
+
+it("accepts deep MP4 atoms by default and enforces an optional nesting limit", () => {
+  let nested = atom("free", new Uint8Array());
+  for (let i = 0; i < 40; i++) nested = atom("udta", nested);
+  const bytes = join([fixture(), nested]);
+  expect(parseAudio(bytes).format).toBe("m4a");
+  expect(() => parseAudio(bytes, { maxAtomDepth: 32 })).toThrow("MP4 atom nesting too deep");
+  expect(parseAudio(bytes, { maxAtomDepth: Infinity }).format).toBe("m4a");
+});

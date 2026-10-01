@@ -64,3 +64,8 @@ export interface AudioStats {
   crestFactor: number;
   zeroCrossings: number;
 }
+
+export interface AudioParseOptions {
+  /** Maximum MP4 atom nesting depth; omitted means unlimited. */
+  maxAtomDepth?: number;
+}

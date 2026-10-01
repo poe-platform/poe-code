@@ -10,20 +10,20 @@ import { parseOgg } from "./ogg.js";
 import { parseMp4 } from "./mp4.js";
 import { rewriteMetadata } from "./metadata.js";
 import type { MetadataOptions } from "./metadata.js";
-import type { AudioAst, AudioTags } from "./types.js";
-export function parseAudio(data: Uint8Array): AudioAst {
+import type { AudioAst, AudioTags, AudioParseOptions } from "./types.js";
+export function parseAudio(data: Uint8Array, options: AudioParseOptions = {}): AudioAst {
   const reader = new Reader(data),
     marker = reader.text(0, 4);
   if (marker === "RIFF") return parseWav(data);
   if (marker === "fLaC") return parseFlac(data);
   if (marker === "OggS") return parseOgg(data);
-  if (data.length >= 8 && reader.text(4, 4) === "ftyp") return parseMp4(data);
+  if (data.length >= 8 && reader.text(4, 4) === "ftyp") return parseMp4(data, options);
   if (marker.startsWith("ID3") || (reader.u8(0) === 255 && (reader.u8(1) & 224) === 224))
     return parseMp3(data);
   throw new Error("Unsupported audio container");
 }
-export function probeAudio(data: Uint8Array): Omit<AudioAst, "data" | "nodes" | "pictures"> {
-  const { format, streams, tags, duration, bitrate } = parseAudio(data);
+export function probeAudio(data: Uint8Array, options: AudioParseOptions = {}): Omit<AudioAst, "data" | "nodes" | "pictures"> {
+  const { format, streams, tags, duration, bitrate } = parseAudio(data, options);
   return { format, streams, tags, duration, bitrate };
 }
 export function writeAudioMetadata(

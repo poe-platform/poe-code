@@ -1,5 +1,5 @@
 import { Reader, cleanText, duration } from "./binary.js";
-import type { AudioAst, AudioNode, AudioTags, AudioPicture, AudioStream } from "./types.js";
+import type { AudioParseOptions, AudioAst, AudioNode, AudioTags, AudioPicture, AudioStream } from "./types.js";
 export const itunesNames: Record<string, string> = {
   "©nam": "title",
   "©ART": "artist",
@@ -30,9 +30,10 @@ export function readAtoms(
   start = 0,
   end = r.bytes.length,
   depth = 0,
-  parent = ""
+  parent = "",
+  maxDepth = Infinity
 ): AudioNode[] {
-  if (depth > 32) throw new Error("MP4 atom nesting too deep");
+  if (depth > maxDepth) throw new Error("MP4 atom nesting too deep");
   const nodes: AudioNode[] = [];
   for (let offset = start; offset < end; ) {
     const short = r.u32(offset),
@@ -51,7 +52,7 @@ export function readAtoms(
     if (containers.has(type) || parent === "ilst") {
       const prefix = type === "meta" ? 4 : 0;
       if (data.length < prefix) throw new Error("Short MP4 meta");
-      node.children = readAtoms(r, offset + header + prefix, offset + size, depth + 1, type);
+      node.children = readAtoms(r, offset + header + prefix, offset + size, depth + 1, type, maxDepth);
     }
     offset += size;
   }
@@ -72,9 +73,9 @@ function timing(node: AudioNode): { timescale: number; duration: number } {
     units = version === 1 ? r.safe64(offset + 4) : r.u32(offset + 4);
   return { timescale, duration: duration(units, timescale) };
 }
-export function parseMp4(bytes: Uint8Array): AudioAst {
+export function parseMp4(bytes: Uint8Array, options: AudioParseOptions = {}): AudioAst {
   const r = new Reader(bytes),
-    nodes = readAtoms(r),
+    nodes = readAtoms(r, 0, bytes.length, 0, "", options.maxAtomDepth),
     tags: AudioTags = {},
     pictures: AudioPicture[] = [],
     streams: AudioStream[] = [];
@@ -104,7 +105,7 @@ export function parseMp4(bytes: Uint8Array): AudioAst {
       entries = readAtoms(
         r,
         stsd.offset + Number(stsd.fields!.headerSize) + 8,
-        stsd.offset + stsd.size
+        stsd.offset + stsd.size, 0, "", options.maxAtomDepth
       );
     stsd.children = entries;
     if (entries.length !== count) throw new Error("MP4 sample description count mismatch");
@@ -128,7 +129,7 @@ export function parseMp4(bytes: Uint8Array): AudioAst {
     audio.children = readAtoms(
       r,
       audio.offset + Number(audio.fields!.headerSize) + prefix,
-      audio.offset + audio.size
+      audio.offset + audio.size, 0, "", options.maxAtomDepth
     );
     const alac = audio.children.find((n) => n.type === "alac");
     if (alac) {

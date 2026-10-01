@@ -6,6 +6,60 @@ import { findCommands } from "../../src/commands/find.js";
 import { registerRuntimeBackingFileSystem } from "../../src/fs/creation-mask.js";
 import { chunks, fixture, run } from "./helpers.js";
 
+test("separate shells preserve retained tr stdout", async () => {
+  const fs = await fixture();
+  const first = new Shell({ fs }).use(standardCommands());
+  const second = new Shell({ fs }).use(standardCommands());
+  const retained: Uint8Array[] = [];
+  assert.equal((await first.exec("echo hello | tr a-z A-Z", {
+    stdout: { async write(chunk) { retained.push(chunk); } },
+  })).exitCode, 0);
+  assert.equal((await second.exec("echo world | tr a-z A-Z")).exitCode, 0);
+  assert.equal(Buffer.concat(retained).toString(), "HELLO\n");
+});
+
+test("tail preserves retained stdout chunks across batches and oversized lines", async () => {
+  const text = "first\n" + "x".repeat(17000) + "\n" + Array.from({ length: 1000 }, (_, i) => `line_${i}_abcdefghijklmno\n`).join("");
+  const retained: Uint8Array[] = [];
+  const result = await streamCommands().find(command => command.name === "tail")!.execute({
+    command: "tail", args: ["-n", "1002"], cwd: "/work", env: {}, fs: await fixture(),
+    signal: new AbortController().signal, stdin: chunks(text, 4096),
+    stdout: { async write(chunk) { retained.push(chunk); } },
+    stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.ok(retained.length > 2);
+  assert.equal(Buffer.concat(retained).toString(), text);
+});
+
+for (const syncInput of [false, true]) {
+  for (const [args, expected] of [
+    [["a-z", "A-Z"], "AABBCCDD"],
+    [["-d", "a"], "bbccdd"],
+    [["-s", "a-z", "A-Z"], "ABCD"],
+  ] as const) {
+    test(`tr preserves retained stdout across chunks and invocations: ${args.join(" ")} (${syncInput ? "sync" : "async"} input)`, async () => {
+      const retained: Uint8Array[] = [];
+      const definition = streamCommands().find(command => command.name === "tr")!;
+      const context = {
+        command: "tr", args, cwd: "/work", env: {}, fs: await fixture(),
+        signal: new AbortController().signal,
+        stdin: { [Symbol.asyncIterator]() {
+          const iterator = [Buffer.from("aabb"), Buffer.from("ccdd")][Symbol.iterator]();
+          return { ...(syncInput ? { tryNextSync: () => iterator.next() } : {}), next: async () => iterator.next() };
+        } },
+        stderr: { async write() {} },
+      };
+      const result = await definition.execute({ ...context, stdout: { async write(chunk) { retained.push(chunk); } } });
+      assert.equal(result.exitCode, 0);
+      assert.equal(Buffer.concat(retained).toString(), expected);
+      const later = await definition.execute({ ...context, args: ["a-z", "Z"], stdout: { async write() {} } });
+      assert.equal(later.exitCode, 0);
+      assert.equal(Buffer.concat(retained).toString(), expected);
+    });
+  }
+}
+
 for (const [command, args] of [
   ["tr", ["a", "b"]], ["tr", ["-s", "a", "b"]],
   ["head", ["-n", "10"]], ["head", ["-n", "1"]], ["tail", ["-c", "+2"]],

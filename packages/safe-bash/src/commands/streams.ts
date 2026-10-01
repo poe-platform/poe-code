@@ -426,14 +426,14 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
         const needed = line.bytes.length + (line.terminated ? 1 : 0);
         if (needed > batch.length) {
           if (batchUsed > 0) {
-            await output(context, batch.subarray(0, batchUsed));
+            await outputRange(context, batch, batchUsed);
             batchUsed = 0;
           }
           await output(context, line.terminated ? concatenate([line.bytes, delimiterByte]) : line.bytes);
           continue;
         }
         if (batchUsed + needed > batch.length) {
-          await output(context, batch.subarray(0, batchUsed));
+          await outputRange(context, batch, batchUsed);
           batchUsed = 0;
         }
         batch.set(line.bytes, batchUsed);
@@ -441,7 +441,7 @@ async function suffix(context: CommandContext, source: ByteSource, count: number
         if (line.terminated) batch[batchUsed++] = delimiter;
       }
       if (batchUsed > 0) {
-        await output(context, batch.subarray(0, batchUsed));
+        await outputRange(context, batch, batchUsed);
       }
     }
     return;
@@ -983,7 +983,7 @@ async function executeTrAsync(
           const buf = useShared ? sharedTrOutBuffer : new Uint8Array(chunk.length);
           if (!deleting && !squeezing) {
             for (let index = 0; index < chunk.length; index++) buf[index] = mapping[chunk[index]!]!;
-            const p = output(context, useShared ? buf.subarray(0, chunk.length) : buf);
+            const p = useShared ? outputRange(context, buf, chunk.length) : output(context, buf);
             if (!isSyncResolved(p)) await p;
             continue;
           }
@@ -996,7 +996,7 @@ async function executeTrAsync(
             buf[count++] = translated; previous = translated;
           }
           if (count) {
-            const p = output(context, buf.subarray(0, count));
+            const p = outputRange(context, buf, count);
             if (!isSyncResolved(p)) await p;
           }
         }

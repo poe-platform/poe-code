@@ -255,6 +255,7 @@ export async function forEachRecord(
   source: ByteSource,
   session: Session,
   onRecord: (record: Uint8Array, terminated: boolean) => void | Promise<void>,
+  onChunkEnd?: () => Promise<void>,
 ): Promise<void> {
   let buffer = new Uint8Array(Math.min(1024, session.limits.maxRecordBytes));
   let size = 0;
@@ -305,6 +306,7 @@ export async function forEachRecord(
         break;
       }
     }
+    if (onChunkEnd) await onChunkEnd();
   }
   if (size) {
     const r = onRecord(buffer.slice(0, size), false);

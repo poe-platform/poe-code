@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createBytePipe, createCommandArguments } from "safe-bash-contracts";
+import { builtInDirectContextExecutors, createBytePipe, createCommandArguments } from "safe-bash-contracts";
 import { createShufCommand, createShufCommands, shufCommands } from "./index.js";
 
 test("shuf permutes -e and -i ranges", async () => {
@@ -75,4 +75,19 @@ test("shuf yields to queued cancellation before any output", async () => {
     }), error => error === reason);
     assert.equal(chunks.length, 0);
   } finally { clearImmediate(pending); }
+});
+
+test("shuf enforces nested input and sample limits during execution", async () => {
+  for (const limits of [{ maxInputBytes: 1 }, { maxSampleSize: 1 }]) {
+    const command = createShufCommand({ limits });
+    assert.equal(builtInDirectContextExecutors.has(command.execute), false);
+    let stderr = "";
+    const result = await command.execute({
+      command: "shuf", args: ["-e", "aa", "bb"], cwd: "/", env: {}, fs: createMemoryFileSystem(),
+      stdin: createBytePipe().readable, stdout: { async write() {} },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }, signal: new AbortController().signal,
+    });
+    assert.equal(result.exitCode, 1);
+    assert.ok(stderr.includes(Object.keys(limits)[0]!));
+  }
 });

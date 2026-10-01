@@ -2,7 +2,7 @@
 
 Generate random permutations of input lines, argument lists, or integer ranges.
 
-Resource limits default to `Infinity`; configure finite quotas through command options when needed.
+Resource limits default to `Infinity`; configure finite quotas through `limits: { maxInputBytes, maxSampleSize }` when needed. Legacy top-level options remain supported; nested limits take precedence.
 
 Shuffle lines from files, standard input, `-e` arguments, or `-i LO-HI` numeric ranges with optional `-n COUNT`, `-r` replacement, and `--random-source` determinism.
 

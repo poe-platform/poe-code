@@ -10,3 +10,12 @@ test("settings accepts omitted options with unlimited defaults", () => {
     assert.throws(() => settings({ maxSampleSize: value }), RangeError);
   }
 });
+
+test("nested shuf limits override legacy options and validate resolved values", () => {
+  assert.deepEqual(settings({ limits: { maxInputBytes: 8, maxSampleSize: 2 } }), { maxInputBytes: 8, maxSampleSize: 2 });
+  assert.deepEqual(settings({ maxInputBytes: 1, maxSampleSize: 1, limits: { maxInputBytes: Infinity, maxSampleSize: Infinity } }), settings());
+  for (const value of [-Infinity, NaN, -1, 0, 1.5]) {
+    assert.throws(() => settings({ limits: { maxInputBytes: value } }), RangeError);
+    assert.throws(() => settings({ limits: { maxSampleSize: value } }), RangeError);
+  }
+});

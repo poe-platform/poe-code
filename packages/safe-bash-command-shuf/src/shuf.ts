@@ -224,6 +224,6 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
       }
     },
   });
-  if (options.maxInputBytes === undefined && options.maxSampleSize === undefined) builtInDirectContextExecutors.add(command.execute);
+  if (limits.maxInputBytes === Infinity && limits.maxSampleSize === Infinity) builtInDirectContextExecutors.add(command.execute);
   return command;
 }

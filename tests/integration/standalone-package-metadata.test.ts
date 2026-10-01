@@ -313,7 +313,11 @@ describe("standalone package publish metadata", () => {
     for (const host of ["node", "docker"]) {
       expect(root.exports?.[`./safe-bash/commands/python/${host}`]).toBeUndefined();
       expect(standalone.exports?.[`./commands/python/${host}`]).toEqual({
-        types: `./dist/commands/python/${host}.d.ts`,
+        types: {
+          workerd: "./dist/node-unavailable.d.ts",
+          browser: "./dist/node-unavailable.d.ts",
+          default: `./dist/commands/python/${host}.d.ts`
+        },
         workerd: null,
         browser: null,
         import: `./dist/commands/python/${host}.js`

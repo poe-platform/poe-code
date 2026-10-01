@@ -346,7 +346,7 @@ function argumentsFor(context: CommandContext, budget: Budget): Options | Promis
     if (!ended && argument === "--raw-output0") { options.rawOutput0 = true; options.raw = true; continue; }
     if (!ended && argument === "--unbuffered") continue;
     const flagStart = argument[1] ?? "";
-    const positionalOperand = positionalMode !== undefined && flagStart !== "-" && !(flagStart >= "a" && flagStart <= "z") && !(flagStart >= "A" && flagStart <= "Z");
+    const positionalOperand = (positionalMode !== undefined || (options.source === undefined && options.programFile === undefined)) && flagStart !== "-" && !(flagStart >= "a" && flagStart <= "z") && !(flagStart >= "A" && flagStart <= "Z");
     if (!ended && argument.startsWith("-") && argument !== "-" && !positionalOperand) {
       const flags = Object.hasOwn(JQ_LONG_FLAGS, argument) ? JQ_LONG_FLAGS[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
       if (!flags || [...flags].some(flag => !"rRjcSsneaCM".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
@@ -454,7 +454,7 @@ async function argumentsForAsync(context: CommandContext, budget: Budget): Promi
     const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e", "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M" };
     const flagStart = argument[1] ?? "";
     // jq treats negative numbers and punctuation after '-' as operands.
-    const positionalOperand = positionalMode !== undefined && flagStart !== "-" && !(flagStart >= "a" && flagStart <= "z") && !(flagStart >= "A" && flagStart <= "Z");
+    const positionalOperand = (positionalMode !== undefined || (options.source === undefined && options.programFile === undefined)) && flagStart !== "-" && !(flagStart >= "a" && flagStart <= "z") && !(flagStart >= "A" && flagStart <= "Z");
     if (!ended && argument.startsWith("-") && argument !== "-" && !positionalOperand) {
       const flags = Object.hasOwn(long, argument) ? long[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
       if (!flags || [...flags].some(flag => !"rRjcSsneaCM".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
@@ -785,7 +785,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     } else {
       ast = await compileProgram(context, options, source, budget);
     }
-    const interpreter = new Interpreter(budget, options.variables);
+    const interpreter = new Interpreter(budget, options.variables, undefined, context.env);
     let lastTruth: boolean | undefined;
     let status = 0;
     const suffix = options.rawOutput0 ? "\0" : options.joinOutput ? "" : "\n";

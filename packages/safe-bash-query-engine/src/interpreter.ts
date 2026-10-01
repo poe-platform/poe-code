@@ -66,7 +66,7 @@ export class Interpreter {
   private scratchObj: Record<string, Json> = object();
   private readonly scratchKeys: string[] = [];
   private scratchInUse = false;
-  constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame) {}
+  constructor(readonly budget: Budget, readonly variables: ReadonlyMap<string, Json>, private readonly frame?: Frame, private readonly environment: Readonly<Record<string, string>> = {}) {}
   resetForRun(budget: Budget, variables: ReadonlyMap<string, Json>): void {
     (this as unknown as { budget: Budget }).budget = budget;
     (this as unknown as { variables: ReadonlyMap<string, Json> }).variables = variables;
@@ -552,6 +552,7 @@ export class Interpreter {
           { const _p = this.budget.tickSync(); if (_p) await _p; }
           if (frame.name === ast.name) { yield frame.value; return; }
         }
+        if (ast.name === "ENV" && !this.variables.has(ast.name)) { yield* this.call("env", [], input); return; }
         yield this.variables.get(ast.name)!; return;
       }
       case "bind": {
@@ -941,6 +942,26 @@ export class Interpreter {
   }
   async *call(name: string, args: Ast[], input: Json): AsyncGenerator<Json> {
     const budget = this.budget;
+    if (name === "env") {
+      const result = object();
+      let bytes = 2, count = 0;
+      for (const key in this.environment) {
+        if (!Object.hasOwn(this.environment, key)) continue;
+        const pending = budget.tickSync(); if (pending) await pending;
+        budget.collection(++count);
+        const value = this.environment[key]!;
+        bytes += budget.value(key) + budget.value(value) + (count > 1 ? 2 : 1);
+        if (bytes > budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
+        put(result, key, value);
+      }
+      budget.value(result); yield result; return;
+    }
+    if (name === "path") {
+      for await (const path of this.paths(args[0]!, input)) {
+        budget.collection(path.length); budget.value(path); yield path;
+      }
+      return;
+    }
     if (name === "walk") {
       const evaluate = (value: Json) => this.run(args[0]!, value);
       async function* visit(value: Json): AsyncGenerator<Json> {
@@ -1156,7 +1177,7 @@ export class Interpreter {
       }
       return;
     }
-    if (name === "paths") {
+    if (name === "paths" || name === "leaf_paths") {
       if (!Array.isArray(input) && !isObject(input)) return;
       const stack = [{ iterator: entries(input, budget), path: [] as Json[] }];
       while (stack.length) {
@@ -1172,7 +1193,7 @@ export class Interpreter {
         budget.value(path);
         if (args.length) {
           for await (const selected of this.run(args[0]!, value)) if (truth(selected)) yield path;
-        } else yield path;
+        } else if (name !== "leaf_paths" || (!Array.isArray(value) && !isObject(value) && truth(value))) yield path;
         if (Array.isArray(value) || isObject(value)) stack.push({ iterator: entries(value, budget), path });
       }
       return;
@@ -1205,7 +1226,7 @@ export class Interpreter {
       }
       return;
     }
-    if (name === "floor" || name === "ceil" || name === "round" || name === "abs" || name === "sqrt") {
+    if (name === "floor" || name === "ceil" || name === "round" || name === "abs" || name === "fabs" || name === "sqrt") {
       if (!isNumber(input)) throw new JqError(`${describe(input, budget)} cannot be ${name}ed`);
       budget.step();
       const n = numberValue(input);

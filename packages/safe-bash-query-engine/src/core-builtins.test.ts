@@ -4,6 +4,11 @@ import { createYqQuerySession } from "./query-core.js";
 
 // Per-name/arity compatibility matrix, pinned to /usr/bin/jq 1.7.1-apple.
 const cases = [
+  ['path(.a.b[0])', null, [["a", "b", 0]]],
+  ['[path(.. | select(type == "number"))]', {a: {b: [10,20]}}, [[["a","b",0],["a","b",1]]]],
+  ['path(.)', null, [[]]],
+  ['[leaf_paths]', {a: false, b: null, c: 0, d: "", e: [], f: {}, g: true}, [[["c"],["d"],["g"]]]],
+  ['fabs', -3.5, [3.5]],
   ["[combinations(0,1)]", [1, 2], [[[1], [2]]]],
   ["test(\"foo\")", "foobar", [true]],
   ["test(\"foo\"; \"i\")", "FOObar", [true]],

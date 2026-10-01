@@ -45,13 +45,16 @@ test("numeric bracket conditions are admitted to synchronous execution", async (
   const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxLoopIterations: 100 } });
   for (const command of [...basicCommands(), ...predicateCommands()]) shell.commands.register(command);
   try {
-    for (const source of [
-      'j=0; while [ "$j" -lt 4 ]; do ((j+=1)); done',
-      'j=0; until [ $j -ge 4 ]; do ((j+=1)); done',
-    ]) {
+    for (const [source, expectedAdmission] of [
+      ['j=0; while [ "$j" -lt 4 ]; do ((j+=1)); done', true],
+      ['j=0; until [ $j -ge 4 ]; do ((j+=1)); done', true],
+      ['IFS=:; j=0; until [ $j -ge 4 ]; do ((j+=1)); done', false],
+    ] as const) {
       admitted = 0;
-      await shell.exec(source);
-      assert.ok(admitted > 0, source);
+      const result = await shell.exec(source + '; printf "%s" "$j"');
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "4");
+      assert.equal(admitted > 0, expectedAdmission, source);
     }
   } finally {
     prototype.extractPosixBracketCondExpr = original;

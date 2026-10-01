@@ -12243,7 +12243,7 @@ export class Runtime {
     const safeArgWord = (w: Word, numeric = false): boolean =>
       (!checkIntVars || this.isPureSyncValueWord(w, rawState)) &&
       (w.parts.every(p => p.quoted || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true))) ||
-        (numeric && ((!checkIntVars && w.parts.length === 1 && w.parts[0]!.kind === "variable") || (checkIntVars && rawState.variables.IFS === undefined && isGuaranteedIntWord(w)))));
+        (numeric && ((!checkIntVars && w.parts.length === 1 && w.parts[0]!.kind === "variable") || (checkIntVars && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && isGuaranteedIntWord(w)))));
     if (args.length === 2) {
       const op = args[0]!.plain;
       if ((op === "-n" || op === "-z") && safeArgWord(args[1]!)) {

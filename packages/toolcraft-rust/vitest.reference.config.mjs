@@ -16,6 +16,7 @@ export default defineConfig({
           const resolved = resolve(dirname(importer), name);
           if (resolved === path("../toolcraft/src/runtime/io.js")) return path("dist/runtime-io.js");
           if (resolved === path("../toolcraft/src/human-in-loop/wiring.js")) return path("dist/approval-wiring.js");
+          if (resolved === path("../toolcraft/src/api-error-summary.js")) return path("dist/api-error-summary.js");
         }
         if (importer?.startsWith(path("../toolcraft/src/")) && name === "toolcraft-schema")
           return path("../toolcraft-schema-rust/dist/index.js");
@@ -63,6 +64,7 @@ export default defineConfig({
       path("tests/source-snippet-parity.test.ts"),
       path("tests/runtime-io-parity.test.ts"),
       path("../toolcraft/src/runtime/io.test.ts"),
+      path("../toolcraft/src/api-error-summary.test.ts"),
       ...[...suites, "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "sdk-validation", "sdk-runtime-options"].map((suite) =>
         path(`../toolcraft/src/${suite}.test.ts`)
       )

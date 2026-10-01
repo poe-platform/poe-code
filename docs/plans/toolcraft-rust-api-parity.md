@@ -277,6 +277,16 @@ The original runtime-I/O and SDK suites use these adapters. The checkpoint passe
 Approval providers, persistence and invocation are not yet ported. Native callback
 traversals retain the 128-entry guard pending resource-limit qualification.
 
+HTTP error recognition, summaries and structured envelopes now use Rust policies
+and native redaction. REST/GraphQL precedence, header selection, optional fields,
+retry hints and nested field-error flattening retain the reference behavior.
+Node preserves own-property checks, getters, array iteration/mapping and thrown
+identity. The original API-summary suite and differential status/body/header
+matrices pass. The checkpoint passes 1,356 reference/parity tests and 77 native
+Node tests, plus Rust, declarations and lint. SDK error-report persistence and
+project-root discovery still require porting; this increment does not provide
+the public SDK assembly/invocation or complete the approval runtime.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

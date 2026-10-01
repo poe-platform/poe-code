@@ -2,12 +2,13 @@ import { build } from "esbuild";
 import { createContext, runInContext } from "node:vm";
 import { expect, it } from "vitest";
 
-it("runs sharp pixel, stream and safe-fs file workflows without Node globals", async () => {
+it.each(["index", "portable"])("runs %s sharp pixel, stream and safe-fs file workflows without Node globals", async entry => {
   const output = await build({
     entryPoints: [new URL("../tests/portable-sharp.ts", import.meta.url).pathname],
     bundle: true, platform: "browser", conditions: ["workerd"],
     format: "iife", globalName: "checks", write: false, logLevel: "silent",
     alias: {
+      "@poe-code/image-ast/portable": new URL(`./${entry}.ts`, import.meta.url).pathname,
       "@poe-code/safe-fs/core": new URL("../../safe-fs/src/core.ts", import.meta.url).pathname,
       "@poe-code/pdf-ast": new URL("../../pdf-ast/src/index.ts", import.meta.url).pathname,
     },

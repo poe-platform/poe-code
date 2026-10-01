@@ -1,4 +1,4 @@
-import sharp from "../src/index.js";
+import sharp from "@poe-code/image-ast/portable";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 
 export async function run(): Promise<boolean> {

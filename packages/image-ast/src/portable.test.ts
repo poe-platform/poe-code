@@ -22,7 +22,7 @@ describe("portable image engine", () => {
       bundle: true, platform: "browser", format: "esm", write: false,
       metafile: true, logLevel: "silent"
     });
-    expect(Object.keys(result.metafile!.inputs).some(name => name.endsWith("sharp.ts"))).toBe(false);
+    expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
     expect(result.outputFiles[0]!.text).not.toContain('"node:');
   });
 });

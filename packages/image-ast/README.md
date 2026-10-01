@@ -6,7 +6,7 @@ The main export uses Web Streams and Uint8Array in every runtime, including
 Node, browsers and Workers, without Node builtins. File paths require an explicit
 `filesystem` with asynchronous `readFile` and `writeFile` methods (such as safe-fs)
 and an asynchronous output method; byte inputs also
-support synchronous output. `@poe-code/image-ast/portable` exposes codecs and
+support synchronous output. `@poe-code/image-ast/portable` exposes the same `sharp` API alongside codecs and
 pixel operations; `compositeImage` accepts an explicit `readFile` capability.
 Pixel operations also expose `...Steps` generators, such as `resizeImageSteps`,
 for hosts that schedule bounded work between event-loop turns. The synchronous

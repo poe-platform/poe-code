@@ -884,6 +884,7 @@
     "chalk": "^5.6.2",
     "commander": "^13.1.0",
     "console-table-printer": "^2.15.0",
+    "decimal.js": "^10.6.0",
     "diff": ">=8.0.3",
     "fast-glob": "^3.3.3",
     "fast-string-width": "^3.0.2",

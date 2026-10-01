@@ -85,3 +85,11 @@ test("default yq edits files without Buffer or Node builtins", async () => {
     exitCode: 0, stdout: "2\n", stderr: "",
   });
 });
+
+for (const maxDocumentBytes of [Infinity, 100]) test(`UTF-8 scalar byte admission with document limit ${maxDocumentBytes}`, async () => {
+  const command = createMikeYqCommand({ limits: { maxScalarBytes: 4, maxDocumentBytes } });
+  assert.equal((await run(command, ["."], '"é"\n')).exitCode, 0);
+  const result = await run(command, ["."], '"éé"\n');
+  assert.equal(result.exitCode, 1);
+  assert.ok(result.stderr.includes("maxScalarBytes"), result.stderr);
+});

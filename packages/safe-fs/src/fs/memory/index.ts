@@ -1593,10 +1593,11 @@ export class MemoryFileSystem implements FileSystem {
         storage.set((node.view ?? node.allocation.data).subarray(0, curLen));
       }
       if (position > curLen) storage.fill(0, curLen, position);
+      const source = data as Uint8Array & { copy(target: Uint8Array, targetStart: number, sourceStart: number, sourceEnd: number): number };
       if (dataLen === data.byteLength) {
         storage.set(data, position);
-      } else if (typeof (data as Buffer).copy === "function") {
-        (data as Buffer).copy(storage, position, 0, dataLen);
+      } else if (typeof source.copy === "function") {
+        source.copy(storage, position, 0, dataLen);
       } else {
         for (let i = 0; i < dataLen; i++) storage[position + i] = data[i]!;
       }

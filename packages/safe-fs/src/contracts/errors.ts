@@ -57,12 +57,13 @@ export class FsError extends Error {
     const operation = options.syscall ? `, ${options.syscall}` : "";
     const path = options.path === undefined ? "" : ` '${options.path}'`;
     const destination = options.dest === undefined ? "" : ` -> '${options.dest}'`;
-    const prevStackLimit = Error.stackTraceLimit;
-    Error.stackTraceLimit = 0;
+    const errorConstructor = Error as ErrorConstructor & { stackTraceLimit: number | undefined };
+    const prevStackLimit = errorConstructor.stackTraceLimit;
+    errorConstructor.stackTraceLimit = 0;
     try {
       super(`${code}: ${options.message ?? descriptions[code]}${operation}${path}${destination}`, options);
     } finally {
-      Error.stackTraceLimit = prevStackLimit;
+      errorConstructor.stackTraceLimit = prevStackLimit;
     }
     this.name = "FsError";
     this.code = code;

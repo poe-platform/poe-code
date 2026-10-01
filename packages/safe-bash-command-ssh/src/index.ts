@@ -401,6 +401,10 @@ export function createSshKeygenCommand(options: SshCommandsOptions = {}): Comman
         else if (a === "-s" && i + 1 < args.length) signatureFile = args[++i];
         else if (a === "-q") continue;
         else if (!a.startsWith("-")) positionalFiles.push(a);
+        else {
+          await writeText(context.stderr, `ssh-keygen: unsupported option: ${a}\n`);
+          return { exitCode: 1 };
+        }
       }
 
       try {

@@ -17,6 +17,7 @@ This private package is an additive implementation checkpoint.
 | Formats          | Explicit custom validators, snapshotted registrations, synchronous errors and reentrant validation              |
 | Diagnostics      | Structured issue paths, messages, keywords and formatted summaries                                              |
 | Host values      | JSON admission with node/depth budgets; default cloning with cycles, sparse arrays and resource identity        |
+| DSL validation   | Every descriptor kind, default modes, union selection, host callbacks and structured diagnostics                 |
 
 ```ts
 import { compileJsonSchema, formatIssues } from "toolcraft-schema-rust";
@@ -49,6 +50,20 @@ and opaque resources retain identity. Enumerable getters run once in depth-first
 order, and thrown values propagate unchanged. Both utilities use iterative Rust
 traversal with host property operations and work independently of the compiler.
 
+`validate(descriptor, value, { defaults })` accepts the existing schema descriptor
+shapes, including objects, records, arrays, optional values, unions and tagged
+unions. The default mode is `"optional"`; `"none"` omits defaults and `"all"` also
+applies defaults to missing required properties. Present `undefined` stays distinct
+from an absent required property. Output objects safely retain keys such as
+`__proto__`, and optional array slots become dense output slots.
+
+The validator preserves live schema/value getters, resource identities, custom
+array methods, native-schema callbacks and arbitrary thrown values. Traversal and
+JSON constraint comparison are iterative. A depth guard at 16,384 prevents cyclic
+descriptors from hanging and throws `RangeError`; its threshold is intentionally
+independent of a JavaScript engine's stack size. Matching engine-specific resource
+exhaustion behavior remains a replacement qualification item.
+
 The default dialect is 2020-12. Declare draft 7 with `$schema` when needed.
 Equality retains the existing compiler's signed-zero behavior. Diagnostic paths
 support lone surrogates even where the TypeScript compiler's URI scanner throws.
@@ -78,7 +93,9 @@ Native callbacks are borrowed only for a synchronous evaluation and are isolated
 between worker environments. Rust callers inject validators through `ValidationOptions`.
 
 Full schema compatibility is still in progress.
-The fluent schema DSL and compiler support for arbitrary non-JSON host values remain pending. Known
+The fluent builders, Standard Schema adapters, JSON Schema conversion and compiler
+support for arbitrary non-JSON host values remain pending. Validator declarations
+currently reuse the original schema contract types. Known
 unfinished constraints fail at compilation rather than being silently ignored;
 unregistered `format` remains an annotation. Current ingress requires JSON values.
 Keep existing applications on `toolcraft-schema` until the full conformance gates

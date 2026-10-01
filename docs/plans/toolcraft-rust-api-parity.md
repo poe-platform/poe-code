@@ -127,8 +127,20 @@ traversals with host identity, descriptor and enumeration operations. Differenti
 coverage checks cycles, aliasing, sparse slots, prototype/serialization guards,
 budgets, getter/proxy order, deep graphs and arbitrary thrown values. The original
 default-isolation and JSON-safety suites run with these native utilities injected
-into the JavaScript builders and validator; those builders and the DSL validator
-remain unported. These utility checks do not establish DSL replacement readiness.
+into the JavaScript builders and validator.
+DSL validation now also has a Rust continuation engine for every descriptor kind,
+default mode, union branch policy and diagnostic path. JSON constraint comparison
+uses iterative native traversal, preserving caller-supplied array methods and
+callback results. Original top-level schema suites run with the native validator
+and graph utilities through the remaining JavaScript builders, conversion and
+Standard Schema adapters. The reference harness supplies the original bundle's
+private native-schema symbol; runtime code never imports the reference package.
+Differential checks include getter order, missing/undefined, resource defaults,
+native callback issues, reentrancy, iterator closing, cycles and deep/wide inputs.
+The portable 16,384-depth recursion guard preserves RangeError classification but
+does not reproduce engine-specific stack-exhaustion thresholds; qualify that
+resource boundary before a swap. Builders, adapters, conversion, standalone
+contract declarations and the compiler's known gaps still require completion.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

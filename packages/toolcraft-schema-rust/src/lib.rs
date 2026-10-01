@@ -9,6 +9,7 @@ pub mod nullability;
 mod pattern;
 mod unicode_categories;
 mod uri;
+pub mod validate;
 
 #[derive(Default)]
 pub struct CompileOptions {

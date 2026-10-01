@@ -3,9 +3,9 @@ export interface ValidationIssue {
   expected: string;
   received: string;
   message: string;
-  keyword: string;
+  keyword?: string;
 }
-export type ValidationResult<T> = { ok: true; value: T } | { ok: false; issues: ValidationIssue[] };
+export type ValidationResult<T> = { ok: true; value: T } | { ok: false; issues: readonly ValidationIssue[] };
 export interface CompiledJsonSchema {
   validate<T>(value: T): ValidationResult<T>;
 }
@@ -26,3 +26,12 @@ export interface JsonValueValidationOptions {
   readonly maxDepth?: number;
 }
 export declare function isJsonValue(value: unknown, options?: JsonValueValidationOptions): boolean;
+
+export interface ValidationOptions {
+  defaults?: "none" | "optional" | "all";
+}
+export declare function validate<S extends import("toolcraft-schema").AnySchema>(
+  schema: S,
+  value: unknown,
+  options?: ValidationOptions
+): ValidationResult<import("toolcraft-schema").Static<S>>;

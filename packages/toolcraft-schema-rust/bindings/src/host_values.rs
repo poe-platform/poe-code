@@ -1,8 +1,8 @@
-use napi::{ValueType, bindgen_prelude::*};
+use napi::{Env, ValueType, bindgen_prelude::*};
 use napi_derive::napi;
 use toolcraft_schema_rust::host_values::{self, Descriptor, Host, JsonLimits, Kind};
 
-struct NodeHost<'env>(Object<'env>);
+pub(crate) struct NodeHost<'env>(pub(crate) Object<'env>, pub(crate) Env);
 
 impl<'env> Host for NodeHost<'env> {
     type Value = Unknown<'env>;
@@ -16,6 +16,9 @@ impl<'env> Host for NodeHost<'env> {
             ValueType::Number => Kind::Number,
             ValueType::Object => Kind::Object,
             ValueType::Function => Kind::Function,
+            ValueType::Undefined => Kind::Undefined,
+            ValueType::BigInt => Kind::BigInt,
+            ValueType::Symbol => Kind::Symbol,
             _ => Kind::Other,
         })
     }
@@ -116,20 +119,22 @@ fn read_descriptor(value: Object<'_>) -> Result<Descriptor<Unknown<'_>>> {
 
 #[napi]
 pub fn clone_default_value<'env>(
+    env: Env,
     value: Unknown<'env>,
     host: Object<'env>,
 ) -> Result<Unknown<'env>> {
-    host_values::clone_default_value(&mut NodeHost(host), value)
+    host_values::clone_default_value(&mut NodeHost(host, env), value)
 }
 
 #[napi]
 pub fn is_json_value<'env>(
+    env: Env,
     value: Unknown<'env>,
     max_nodes: Unknown<'env>,
     max_depth: Unknown<'env>,
     host: Object<'env>,
 ) -> Result<bool> {
-    let mut host = NodeHost(host);
+    let mut host = NodeHost(host, env);
     let mut number = |value| {
         if host.kind(value)? == Kind::Number {
             host.number(value).map(Some)

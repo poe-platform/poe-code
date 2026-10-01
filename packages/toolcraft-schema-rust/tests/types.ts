@@ -4,8 +4,19 @@ import {
   normalizeLegacyNullability,
   cloneDefaultValue,
   isJsonValue,
+  validate,
   type CompiledJsonSchema
 } from "../src/index.js";
+import { S } from "toolcraft-schema";
+const compatibleValidate: typeof import("toolcraft-schema").validate = validate;
+const validated = validate(S.Object({ message: S.String(), count: S.Optional(S.Number()) }), {});
+if (validated.ok) {
+  const message: string = validated.value.message;
+  const count: number | undefined = validated.value.count;
+  void message;
+  void count;
+}
+void compatibleValidate;
 const nullableSchema: Record<string, unknown> = normalizeLegacyNullability({
   type: "string",
   nullable: true

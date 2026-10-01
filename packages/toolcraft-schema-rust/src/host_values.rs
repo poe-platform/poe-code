@@ -10,6 +10,9 @@ pub enum Kind {
     Number,
     Object,
     Function,
+    Undefined,
+    BigInt,
+    Symbol,
     Other,
 }
 
@@ -213,7 +216,9 @@ pub fn is_json_value<H: Host>(
                     depth,
                 });
             }
-            Kind::Function | Kind::Other => return Ok(false),
+            Kind::Function | Kind::Undefined | Kind::BigInt | Kind::Symbol | Kind::Other => {
+                return Ok(false);
+            }
         }
         loop {
             let Some(frame) = stack.last() else {

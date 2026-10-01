@@ -457,7 +457,7 @@ type Stmt =
   | { kind: "break" }
   | { kind: "continue" }
   | { kind: "halt" }
-  | { kind: "auto"; names: string[] }
+  | { kind: "auto"; names: { name: string; array: boolean }[] }
   | { kind: "define"; name: string; params: string[]; body: Stmt };
 
 class BcParser {
@@ -531,14 +531,13 @@ class BcParser {
       return { kind: "define", name: nameTok.name ?? "", params, body };
     }
     if (this.matchId("auto")) {
-      const names: string[] = [];
+      const names: { name: string; array: boolean }[] = [];
       while (true) {
         const p = this.next();
         if (p?.type !== "id") throw new Error("expected variable name in auto");
-        if (this.matchPunct("[")) {
-          this.matchPunct("]");
-        }
-        names.push(p.name ?? "");
+        const array = this.matchPunct("[");
+        if (array && !this.matchPunct("]")) throw new Error("expected ']' in auto");
+        names.push({ name: p.name ?? "", array });
         if (!this.matchPunct(",")) break;
       }
       return { kind: "auto", names };
@@ -817,7 +816,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     const globals = new Map<string, DecimalValue>();
     const arrays = new Map<string, Map<string, DecimalValue>>();
     const funcs = new Map<string, { params: string[]; body: Stmt }>();
-    const callStack: Map<string, DecimalValue>[] = [];
+    const callStack: { scalars: Map<string, DecimalValue>; arrays: Map<string, Map<string, DecimalValue>> }[] = [];
     let steps = 0;
     let outBuffer = "";
     let outputBytes = 0;
@@ -841,18 +840,31 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       return undefined;
     };
 
+    const getArray = (name: string): Map<string, DecimalValue> => {
+      for (let i = callStack.length - 1; i >= 0; i--) {
+        const local = callStack[i]!.arrays.get(name);
+        if (local) return local;
+      }
+      let array = arrays.get(name);
+      if (!array) {
+        array = new Map();
+        arrays.set(name, array);
+      }
+      return array;
+    };
+
     const getVar = async (name: string, indexExpr?: Expr): Promise<DecimalValue> => {
       if (indexExpr) {
         const idxVal = await evalExpr(indexExpr);
         const key = truncToInt(idxVal).toString(10);
-        return arrays.get(name)?.get(key) ?? ZERO;
+        return getArray(name).get(key) ?? ZERO;
       }
       if (name === "scale") return { coeff: BigInt(scale), scale: 0 };
       if (name === "ibase") return { coeff: BigInt(ibase), scale: 0 };
       if (name === "obase") return { coeff: obase, scale: 0 };
       if (name === "last") return last;
       for (let i = callStack.length - 1; i >= 0; i--) {
-        const frame = callStack[i]!;
+        const frame = callStack[i]!.scalars;
         if (frame.has(name)) return frame.get(name)!;
       }
       return globals.get(name) ?? ZERO;
@@ -862,12 +874,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       if (indexExpr) {
         const idxVal = await evalExpr(indexExpr);
         const key = truncToInt(idxVal).toString(10);
-        let map = arrays.get(name);
-        if (!map) {
-          map = new Map();
-          arrays.set(name, map);
-        }
-        map.set(key, val);
+        getArray(name).set(key, val);
         return val;
       }
       if (name === "scale") {
@@ -895,7 +902,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         return val;
       }
       for (let i = callStack.length - 1; i >= 0; i--) {
-        const frame = callStack[i]!;
+        const frame = callStack[i]!.scalars;
         if (frame.has(name)) {
           frame.set(name, val);
           return val;
@@ -992,7 +999,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           for (let i = 0; i < fn.params.length; i++) {
             frame.set(fn.params[i]!, args[i] ?? ZERO);
           }
-          callStack.push(frame);
+          callStack.push({ scalars: frame, arrays: new Map() });
           try {
             await execStmt(fn.body);
             return ZERO;
@@ -1017,8 +1024,10 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         case "auto": {
           const frame = callStack.at(-1);
           if (frame) {
-            for (const name of stmt.names) {
-              if (!frame.has(name)) frame.set(name, ZERO);
+            for (const { name, array } of stmt.names) {
+              if (array) {
+                if (!frame.arrays.has(name)) frame.arrays.set(name, new Map());
+              } else if (!frame.scalars.has(name)) frame.scalars.set(name, ZERO);
             }
           }
           return;

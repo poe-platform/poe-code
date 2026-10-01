@@ -354,6 +354,15 @@ test("bc concurrent math calls retain their own scale", async () => {
   assert.equal(results[1]?.stdout, ".78539816339744830961\n");
 });
 
+for (const [program, expected] of [
+  ["define f(x) { auto a[]; a[0]=x; if(x>1) { g=f(x-1) }; return a[0] }; a[0]=99; f(2); a[0]\n", "2\n99\n"],
+  ["define f(x) { auto a[], a; a=7; a[0]=x; return a+a[0] }; a=4; a[0]=99; f(2); a; a[0]\n", "9\n4\n99\n"],
+]) {
+  test(`bc scopes local arrays: ${program}`, async () => {
+    assert.deepEqual(await evaluate(program!), { exitCode: 0, stdout: expected, stderr: "" });
+  });
+}
+
 test("bc prints parenthesized assignments but suppresses bare assignments", async () => {
   assert.deepEqual(await evaluate("(x=5); x=6; ((x+=2)); x\n"), {
     exitCode: 0, stdout: "5\n8\n8\n", stderr: "",

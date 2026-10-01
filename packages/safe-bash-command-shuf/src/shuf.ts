@@ -63,6 +63,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
           await writeBytes(context.stdout, encoder.encode(parsed.action === "help" ? help : version), context.signal);
           return { exitCode: 0 };
         }
+        await yieldTurn(context.signal);
         const lines: Uint8Array[] = [];
         let totalBytes = 0;
         let size = parsed.count === 0n ? 0n : parsed.range?.size ?? 0n;

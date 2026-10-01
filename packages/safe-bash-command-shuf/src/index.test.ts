@@ -49,3 +49,30 @@ test("range sampling preserves a displaced value below the GNU sparse threshold"
   assert.equal(result.exitCode, 0);
   assert.equal(Buffer.concat(chunks).toString(), "1\n0\n");
 });
+
+test("shuf owns retained output chunks across flushes", async () => {
+  const chunks: Uint8Array[] = [];
+  const result = await createShufCommand().execute({
+    command: "shuf", args: ["-i", "1-10000"], cwd: "/", env: {}, fs: createMemoryFileSystem(),
+    stdin: createBytePipe().readable, stdout: { async write(bytes) { chunks.push(bytes); } },
+    stderr: { async write() { assert.fail("unexpected diagnostic"); } }, signal: new AbortController().signal,
+  });
+  assert.equal(result.exitCode, 0);
+  const values = Buffer.concat(chunks).toString().trim().split("\n").map(Number).sort((a, b) => a - b);
+  assert.deepEqual(values, Array.from({ length: 10000 }, (_, i) => i + 1));
+});
+
+test("shuf yields to queued cancellation before any output", async () => {
+  const controller = new AbortController();
+  const reason = new Error("cancel before output");
+  const chunks: Uint8Array[] = [];
+  const pending = setImmediate(() => controller.abort(reason));
+  try {
+    await assert.rejects(async () => createShufCommand().execute({
+      command: "shuf", args: ["-i", "1-10"], cwd: "/", env: {}, fs: createMemoryFileSystem(),
+      stdin: createBytePipe().readable, stdout: { async write(bytes) { chunks.push(bytes); } },
+      stderr: { async write() { assert.fail("unexpected diagnostic"); } }, signal: controller.signal,
+    }), error => error === reason);
+    assert.equal(chunks.length, 0);
+  } finally { clearImmediate(pending); }
+});

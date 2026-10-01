@@ -167,7 +167,8 @@
           "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
+            "@poe-code/safe-fs": "*",
+            "safe-bash-regex-engine": "*"
           },
           "portable": true
         },

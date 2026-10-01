@@ -58,12 +58,6 @@ const byteBuffer = Object.getOwnPropertyDescriptor(typedArrayPrototype, "buffer"
 const emptyFloat64 = new Float64Array(0);
 const emptyFloat64Results: readonly Float64Array[] = [];
 const emptyMatchRow: Match[] = [];
-const reusableTrustedReply: { id: number; results: readonly Float64Array[]; directMatches: Match[][] } = {
-  id: 0,
-  results: emptyFloat64Results,
-  directMatches: [],
-};
-trustedWorkerReplies.add(reusableTrustedReply);
 
 function fail(kind: "protocol" | "unsupported" | "limit", message: string): never {
   throw new PublicDiagnostic(`bounded regex ${kind}: ${message}`);
@@ -203,12 +197,7 @@ function admit(input: RegexWorkerRequest, limits: Required<BoundedRegexProviderO
   if (allowSharedLedger && knownTrustedRows) {
     const ledger = sharedSyncLedger.resetWithLimits(getPrevalidatedEreLimits(limits, selected.fixed));
     ledger.charge("allocationUnits", bytes + input.rows.length * 12 + selected.patterns.length * 2 + 16, signal);
-    sharedOwnedRequest.id = input.id;
-    sharedOwnedRequest.descriptor = selected as SelectionDescriptor;
-    sharedOwnedRequest.rows = input.rows;
-    sharedOwnedRequest.ledger = ledger;
-    sharedOwnedRequest.limits = limits;
-    return sharedOwnedRequest;
+    return { id: input.id, descriptor: selected as SelectionDescriptor, rows: input.rows, ledger, limits };
   }
   const ledger = selected.kind !== "glob"
     ? EreLedger.withPrevalidatedLimits(getPrevalidatedEreLimits(limits, selected.fixed))
@@ -650,7 +639,7 @@ interface CachedLiteralPrograms {
   readonly states: number;
   readonly allocationUnits: number;
 }
-let lastLiteralCache: CachedLiteralPrograms | undefined;
+
 interface EreCacheEntry {
   readonly key: string;
   readonly kind: SelectionDescriptor["kind"];
@@ -666,29 +655,32 @@ interface EreCacheEntry {
   readonly allocationUnits: number;
   singleMatchByEnd?: [Match][];
 }
-let lastEreCache: EreCacheEntry | undefined;
+interface WorkerCache {
+  literal?: CachedLiteralPrograms;
+  ere?: EreCacheEntry;
+}
 
 function ereCacheKeyFor(selected: SelectionDescriptor, fold: boolean): string | undefined {
   if (selected.patterns.length !== 1 || selected.patterns[0]!.length > 128) return undefined;
   return `${selected.kind}:${fold ? 1 : 0}:${selected.kind === "rg" && selected.nullData ? 1 : 0}:${selected.kind === "grep" && !selected.extended ? 1 : 0}:${selected.whole ? 1 : 0}:${selected.patterns[0]}`;
 }
 
-function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boolean): Reply | undefined {
+function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boolean, cache: WorkerCache): Reply | undefined {
   const { descriptor: selected, rows, ledger } = input;
   if (selected.patterns.length !== 1) return undefined;
   const pattern0 = selected.patterns[0]!;
   if (
-    lastEreCache === undefined ||
-    lastEreCache.kind !== selected.kind ||
-    lastEreCache.fold !== fold ||
-    lastEreCache.nullData !== (selected.kind === "rg" && selected.nullData) ||
-    lastEreCache.bre !== (selected.kind === "grep" && !selected.extended) ||
-    lastEreCache.whole !== selected.whole ||
-    lastEreCache.pattern0 !== pattern0
+    cache.ere === undefined ||
+    cache.ere.kind !== selected.kind ||
+    cache.ere.fold !== fold ||
+    cache.ere.nullData !== (selected.kind === "rg" && selected.nullData) ||
+    cache.ere.bre !== (selected.kind === "grep" && !selected.extended) ||
+    cache.ere.whole !== selected.whole ||
+    cache.ere.pattern0 !== pattern0
   ) {
     return undefined;
   }
-  const programs = lastEreCache.programs;
+  const programs = cache.ere.programs;
   const unboundedLedger =
     ledger.limits.work === Infinity &&
     ledger.limits.states === Infinity &&
@@ -710,21 +702,21 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     batchWork += rLen * 4 + 5 + patLen;
     batchAllocUnits += rLen * 11 + 23;
   }
-  const estimatedWork = lastEreCache.work + batchWork + 256;
+  const estimatedWork = cache.ere.work + batchWork + 256;
   if (ledger.workAllowanceUntilCheckpoint(signal) < estimatedWork) {
     return undefined;
   }
   ledger.admitInput("subjectBytes", maxSubjectLen, signal);
-  ledger.charge("work", lastEreCache.work + batchWork, signal);
-  ledger.charge("patternBytes", lastEreCache.patternBytes, signal);
-  ledger.charge("states", lastEreCache.states, signal);
-  ledger.charge("allocationUnits", lastEreCache.allocationUnits + 3 + batchAllocUnits, signal);
+  ledger.charge("work", cache.ere.work + batchWork, signal);
+  ledger.charge("patternBytes", cache.ere.patternBytes, signal);
+  ledger.charge("states", cache.ere.states, signal);
+  ledger.charge("allocationUnits", cache.ere.allocationUnits + 3 + batchAllocUnits, signal);
   runYieldCheckpoint(signal);
   if (rows.length === 0) {
     signal.throwIfAborted();
-    reusableTrustedReply.id = input.id;
-    reusableTrustedReply.directMatches = [];
-    return reusableTrustedReply;
+    const reply = { id: input.id, results: emptyFloat64Results, directMatches: [] };
+    trustedWorkerReplies.add(reply);
+    return reply;
   }
   // Consumers may retain these results across awaits or subsequent requests.
   const directMatches: Match[][] = new Array(rows.length);
@@ -759,7 +751,7 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
       if (matchCount >= maxMatches) fail("limit", "total match or result byte limit exceeded");
       matchCount++;
       if (bestSpan.start === 0 && bestSpan.end < 128) {
-        const byEnd = lastEreCache.singleMatchByEnd ??= [];
+        const byEnd = cache.ere.singleMatchByEnd ??= [];
         directMatches[r] = byEnd[bestSpan.end] ??= [bestSpan];
       } else {
         directMatches[r] = [{ start: bestSpan.start, end: bestSpan.end }];
@@ -769,27 +761,14 @@ function tryExecuteEreSync(input: OwnedRequest, signal: AbortSignal, fold: boole
     }
   }
   signal.throwIfAborted();
-  reusableTrustedReply.id = input.id;
-  reusableTrustedReply.directMatches = directMatches;
-  return reusableTrustedReply;
+  const reply = { id: input.id, results: emptyFloat64Results, directMatches };
+  trustedWorkerReplies.add(reply);
+  return reply;
 }
 const sharedSyncLedger = EreLedger.withPrevalidatedLimits(Object.freeze({
   patternBytes: Infinity, subjectBytes: Infinity, work: Infinity,
   states: Infinity, allocationUnits: Infinity, captureBytes: Infinity, captureSlots: Infinity,
 }));
-const sharedOwnedRequest: {
-  id: number;
-  descriptor: SelectionDescriptor;
-  rows: readonly Row[];
-  ledger: EreLedger;
-  limits: Required<BoundedRegexProviderOptions>;
-} = {
-  id: 0,
-  descriptor: undefined as unknown as SelectionDescriptor,
-  rows: [],
-  ledger: sharedSyncLedger,
-  limits: undefined as unknown as Required<BoundedRegexProviderOptions>,
-};
 let cachedWorkerLimitsRef: Required<BoundedRegexProviderOptions> | undefined;
 let cachedFixedEreLimits: any;
 let cachedRegexEreLimits: any;
@@ -854,7 +833,7 @@ function literalStartRangeSync(program: LiteralProgram, buf: Uint8Array, rStart:
   return -1;
 }
 
-function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: boolean): Reply | undefined {
+function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: boolean, cache: WorkerCache): Reply | undefined {
   const { descriptor: selected, rows, ledger } = input;
   for (let i = 0; i < rows.length; i++) {
     if (rows[i]!.all) return undefined;
@@ -864,10 +843,10 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
   if (pattern0.length > 128) return undefined;
   const nullData = selected.kind === "rg" && selected.nullData;
   if (
-    lastLiteralCache?.kind !== selected.kind ||
-    lastLiteralCache.fold !== fold ||
-    lastLiteralCache.nullData !== nullData ||
-    lastLiteralCache.pattern0 !== pattern0
+    cache.literal?.kind !== selected.kind ||
+    cache.literal.fold !== fold ||
+    cache.literal.nullData !== nullData ||
+    cache.literal.pattern0 !== pattern0
   ) {
     const snapBefore = ledger.usage;
     const compiled: LiteralProgram[] = [];
@@ -880,7 +859,7 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
       compiled.push(progOrPromise);
     }
     const snapAfter = ledger.usage;
-    lastLiteralCache = {
+    cache.literal = {
       kind: selected.kind,
       fold,
       nullData,
@@ -892,11 +871,11 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
       allocationUnits: (snapAfter.allocationUnits - snapBefore.allocationUnits) | 0,
     };
   } else {
-    if (ledger.workAllowanceUntilCheckpoint(signal) < lastLiteralCache.work) return undefined;
-    ledger.charge("work", lastLiteralCache.work, signal);
-    ledger.charge("patternBytes", lastLiteralCache.patternBytes, signal);
-    ledger.charge("states", lastLiteralCache.states, signal);
-    ledger.charge("allocationUnits", lastLiteralCache.allocationUnits, signal);
+    if (ledger.workAllowanceUntilCheckpoint(signal) < cache.literal.work) return undefined;
+    ledger.charge("work", cache.literal.work, signal);
+    ledger.charge("patternBytes", cache.literal.patternBytes, signal);
+    ledger.charge("states", cache.literal.states, signal);
+    ledger.charge("allocationUnits", cache.literal.allocationUnits, signal);
   }
   // Check if total row work fits within workAllowanceUntilCheckpoint
   const workPerByte = selected.kind === "grep" ? 2 : 3;
@@ -910,7 +889,7 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
     return undefined;
   }
   runYieldCheckpoint(signal);
-  const programs = lastLiteralCache.programs;
+  const programs = cache.literal.programs;
   ledger.charge("allocationUnits", 3, signal);
   // Consumers may retain these results across awaits or subsequent requests.
   const directMatches: Match[][] = new Array(rows.length);
@@ -976,12 +955,12 @@ function tryExecuteLiteralSync(input: OwnedRequest, signal: AbortSignal, fold: b
   }
   if (batchWork > 0) ledger.chargeWork(batchWork, signal);
   else signal.throwIfAborted();
-  reusableTrustedReply.id = input.id;
-  reusableTrustedReply.directMatches = directMatches;
-  return reusableTrustedReply;
+  const reply = { id: input.id, results: emptyFloat64Results, directMatches };
+  trustedWorkerReplies.add(reply);
+  return reply;
 }
 
-function tryExecuteSync(input: OwnedRequest, signal: AbortSignal): Reply | undefined {
+function tryExecuteSync(input: OwnedRequest, signal: AbortSignal, cache: WorkerCache): Reply | undefined {
   const { descriptor: selected, ledger } = input;
   const foldOrPromise = insensitive(selected, ledger, signal);
   if (typeof foldOrPromise !== "boolean") return undefined;
@@ -1005,28 +984,28 @@ function tryExecuteSync(input: OwnedRequest, signal: AbortSignal): Reply | undef
       }
     }
   }
-  if (!literal) return tryExecuteEreSync(input, signal, foldOrPromise);
-  return tryExecuteLiteralSync(input, signal, foldOrPromise);
+  if (!literal) return tryExecuteEreSync(input, signal, foldOrPromise, cache);
+  return tryExecuteLiteralSync(input, signal, foldOrPromise, cache);
 }
 
-async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: boolean): Promise<Reply> {
+async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: boolean, cache: WorkerCache): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
   const pattern0 = selected.patterns.length === 1 && selected.patterns[0]!.length <= 128 ? selected.patterns[0]! : undefined;
   const nullData = selected.kind === "rg" && selected.nullData;
   let programs: readonly LiteralProgram[];
   if (
     pattern0 !== undefined &&
-    lastLiteralCache?.kind === selected.kind &&
-    lastLiteralCache.fold === fold &&
-    lastLiteralCache.nullData === nullData &&
-    lastLiteralCache.pattern0 === pattern0 &&
-    ledger.workAllowanceUntilCheckpoint(signal) >= lastLiteralCache.work
+    cache.literal?.kind === selected.kind &&
+    cache.literal.fold === fold &&
+    cache.literal.nullData === nullData &&
+    cache.literal.pattern0 === pattern0 &&
+    ledger.workAllowanceUntilCheckpoint(signal) >= cache.literal.work
   ) {
-    ledger.charge("work", lastLiteralCache.work, signal);
-    ledger.charge("patternBytes", lastLiteralCache.patternBytes, signal);
-    ledger.charge("states", lastLiteralCache.states, signal);
-    ledger.charge("allocationUnits", lastLiteralCache.allocationUnits, signal);
-    programs = lastLiteralCache.programs;
+    ledger.charge("work", cache.literal.work, signal);
+    ledger.charge("patternBytes", cache.literal.patternBytes, signal);
+    ledger.charge("states", cache.literal.states, signal);
+    ledger.charge("allocationUnits", cache.literal.allocationUnits, signal);
+    programs = cache.literal.programs;
   } else {
     const snapBefore = ledger.usage;
     const compiled: LiteralProgram[] = [];
@@ -1040,7 +1019,7 @@ async function executeLiteral(input: OwnedRequest, signal: AbortSignal, fold: bo
     programs = compiled;
     if (pattern0 !== undefined) {
       const snapAfter = ledger.usage;
-      lastLiteralCache = {
+      cache.literal = {
         kind: selected.kind,
         fold,
         nullData,
@@ -1126,7 +1105,7 @@ async function insensitiveAsync(selected: Extract<SelectionDescriptor, { kind: "
   return true;
 }
 
-async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply> {
+async function execute(input: OwnedRequest, signal: AbortSignal, cache: WorkerCache): Promise<Reply> {
   const { descriptor: selected, rows, ledger } = input;
   const foldOrPromise = insensitive(selected, ledger, signal);
   const fold = typeof foldOrPromise === "boolean" ? foldOrPromise : await foldOrPromise;
@@ -1144,7 +1123,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
         || selected.kind === "grep" && character.charCodeAt(0) >= 128) { literal = false; break patterns; }
     }
   }
-  if (literal) return executeLiteral(input, signal, fold);
+  if (literal) return executeLiteral(input, signal, fold, cache);
   const ereKey = ereCacheKeyFor(selected, fold);
   const snapBeforeEre = ledger.usage;
   const programs: EreProgram[] = [];
@@ -1244,7 +1223,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
     for (const prog of programs) {
       if (canFastSyncEreProgram(prog)) await warmEreProgram(prog);
     }
-    lastEreCache = {
+    cache.ere = {
       key: ereKey,
       kind: selected.kind,
       fold,
@@ -1263,6 +1242,7 @@ async function execute(input: OwnedRequest, signal: AbortSignal): Promise<Reply>
 }
 
 class CooperativeWorker implements RegexWorker {
+  private cache: WorkerCache = {};
   private controller: AbortController | undefined;
   readonly listeners = new Map<WorkerEvent, Set<Listener>>();
   private singleMessageListener: ((message: unknown) => void) | undefined;
@@ -1377,7 +1357,7 @@ class CooperativeWorker implements RegexWorker {
     if (isTrusted && owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {
       try {
         signal.throwIfAborted();
-        const syncReply = tryExecuteSync(owned as OwnedRequest, signal);
+        const syncReply = tryExecuteSync(owned as OwnedRequest, signal, this.cache);
         if (syncReply !== undefined) {
           owned = undefined;
           if (!this.closing) this.emit(syncReply);
@@ -1422,7 +1402,7 @@ class CooperativeWorker implements RegexWorker {
         signal.throwIfAborted();
         reply = owned ? "subject" in owned ? await executeExpr(owned, signal)
           : owned.descriptor.kind === "glob" ? await executeBoundedGlobs(owned as OwnedGlobRequest, signal)
-          : await execute(owned as OwnedRequest, signal) : { id, error: failure! };
+          : await execute(owned as OwnedRequest, signal, this.cache) : { id, error: failure! };
         if (owned && !("subject" in owned) && !("error" in reply)) {
           trustedWorkerReplies.add(reply);
         }
@@ -1451,6 +1431,8 @@ class CooperativeWorker implements RegexWorker {
   terminate(): Promise<void> {
     if (!this.closing) {
       this.closing = Promise.allSettled([...this.tasks]).then(() => {
+        this.cache = {};
+        this.singleMessageListener = undefined;
         this.listeners.clear();
         this.tasks.clear();
         this.release();

@@ -1,7 +1,7 @@
 import type { BoundedRegexProvider, RegexWorker } from "./provider.js";
 import type { CommandContext, CommandResult } from "safe-bash-contracts/command";
 import type { ByteSource } from "safe-bash-contracts/io";
-import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, reusableTrustedRequest, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
+import { inProcessRegexProviders, inProcessRegexWorkers, inputBytes, policy, RegexExecutionError, trustedInputRows, trustedWorkerReplies, trustedWorkerRequests, validateReply, validateExprInput, validateExprReply, validateBreSearchInput, validateBreSearchReply, type BreSearchDescriptor, type BreSearchResult, type ExprMatchDescriptor, type ExprMatchResult, type Descriptor, type Match, type RegexExecutionOptions, type Row } from "./protocol.js";
 
 export type { RegexExecutionOptions } from "./protocol.js";
 export { RegexExecutionError } from "./protocol.js";
@@ -184,7 +184,6 @@ class Slot {
   idleTimer: ReturnType<typeof setTimeout> | undefined;
   private receiver: ((value: unknown) => void) | undefined;
   private failure: ((error: unknown) => void) | undefined;
-  private static readonly syncResultBox: { sync: true; value: unknown } = { sync: true, value: undefined };
   private syncSettled = false;
   private syncRejected = false;
   private syncValue: unknown;
@@ -296,8 +295,7 @@ class Slot {
       const val = this.syncValue;
       this.syncValue = undefined;
       if (this.syncRejected) return { sync: false, promise: Promise.reject(val) };
-      Slot.syncResultBox.value = val;
-      return Slot.syncResultBox;
+      return { sync: true, value: val };
     }
     return this.awaitInProcessAsync(timeout, signal);
   }
@@ -509,10 +507,9 @@ export class RegexExecutor {
         readySlot.busy = true;
         let ex: { sync: true; value: unknown } | { sync: false; promise: Promise<unknown> };
         if (readySlot.inProcess) {
-          reusableTrustedRequest.id = id;
-          reusableTrustedRequest.descriptor = descriptor;
-          reusableTrustedRequest.rows = rows;
-          ex = readySlot.postInProcessSync(reusableTrustedRequest, this.options.requestTimeoutMs, signal);
+          const request = { id, descriptor, rows };
+          trustedWorkerRequests.add(request);
+          ex = readySlot.postInProcessSync(request, this.options.requestTimeoutMs, signal);
         } else {
           ex = this.exchangeOutOfProcessSyncOrAsync(readySlot, id, descriptor, rows, session._ensureAsyncState());
         }

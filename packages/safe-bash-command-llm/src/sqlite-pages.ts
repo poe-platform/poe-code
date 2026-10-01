@@ -19,10 +19,16 @@ export interface SqliteRecordSource {
   bytes(offset?: number, length?: number): ByteSource;
 }
 
+export interface SqliteStoredRecord extends SqliteRecordSource {
+  readonly rowid: bigint;
+  /** Physical snapshot ranges; retained identity and revision remain checked. */
+  spans(offset?: number, length?: number): AsyncIterable<{ readonly offset: number; readonly length: number }>;
+}
+
 /** Read a table-btree row from a retained, closed/checkpointed SQLite snapshot.
  * The caller owns the handle; no ambient filesystem, full-file read or page cache.
  * Returned streams remain tied to the original snapshot revision and signal. */
-export async function findSqliteRecord(file: FileReadHandle, rootPage: number, rowid: bigint, signal: AbortSignal, match: "exact" | "at-or-after" = "exact"): Promise<(SqliteRecordSource & { readonly rowid: bigint }) | undefined> {
+export async function findSqliteRecord(file: FileReadHandle, rootPage: number, rowid: bigint, signal: AbortSignal, match: "exact" | "at-or-after" = "exact"): Promise<SqliteStoredRecord | undefined> {
   signal.throwIfAborted();
   if (rowid < -(1n << 63n) || rowid >= 1n << 63n) throw new RangeError('SQLite rowid out of range');
   const expected = await file.stat({ signal });
@@ -84,7 +90,30 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
         if (key.end + local + (local < size ? 4 : 0) > usable) return corrupt();
         const first = data.slice(key.end, key.end + local);
         const overflow = local < size ? u32(data, key.end + local) : 0;
-        return { size, rowid: foundRowid, async *bytes(offset = 0, length = size - offset) {
+        const firstOffset = (number - 1) * pageSize + key.end;
+        return { size, rowid: foundRowid, async *spans(offset = 0, length = size - offset) {
+          if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0 ||
+              offset > size || length > size - offset) throw new RangeError('Invalid SQLite record range');
+          await check();
+          const stop = offset + length;
+          const localStart = Math.min(local, offset), localStop = Math.min(local, stop);
+          if (localStop > localStart) yield { offset: firstOffset + localStart, length: localStop - localStart };
+          let position = local, next = overflow, traversed = 0;
+          while (length && position < stop) {
+            if (++traversed > pages) return corrupt();
+            const current = next;
+            const available = Math.min(size - position, usable - 4);
+            next = u32(await page(current, 4), 0);
+            const start = Math.max(position, offset), end = Math.min(position + available, stop);
+            if (end > start) {
+              await check();
+              yield { offset: (current - 1) * pageSize + 4 + start - position, length: end - start };
+            }
+            position += available;
+          }
+          if (stop === size && length && next !== 0) return corrupt();
+          await check();
+        }, async *bytes(offset = 0, length = size - offset) {
           if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0 ||
               offset > size || length > size - offset) throw new RangeError('Invalid SQLite record range');
           await check();

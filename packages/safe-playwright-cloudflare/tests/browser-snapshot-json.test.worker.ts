@@ -288,6 +288,18 @@ export default {
 					assert.deepEqual(boxed.box, { x: 8, y: 9, width: 31, height: 13 });
 					break;
 				}
+				case "/large-tree": {
+					await page.setContent(
+						Array.from({ length: 20005 }, (_, index) => `<button>Entry ${index}</button>`).join(""),
+					);
+					const tree = await captureBrowserSnapshotJSON(page, options);
+					const buttons = flatten(tree).filter(node => node.role === "button");
+					assert.equal(buttons.length, 20005);
+					assert.equal(buttons.at(-1)?.name, "Entry 20004");
+					assert.ok(buttons.at(-1)?.ref);
+					assert.ok(new TextEncoder().encode(JSON.stringify(tree)).byteLength > 65536);
+					break;
+				}
 				case "/bounds":
 					assert.deepEqual(
 						await captureBrowserSnapshotJSON(page, { ...options, maxBytes: 1 }),

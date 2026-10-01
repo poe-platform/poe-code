@@ -23,3 +23,20 @@ it.each(['md', 'markdown_strict', 'markdown_github', 'markdown_mmd', 'markdown_p
   }, { yield: async () => {} });
   expect(result).toMatchObject({ kind: 'text', text: expect.stringContaining('**world**') });
 });
+
+
+it("infers GFM tables from .md input and output while preserving explicit CommonMark", async () => {
+  const registry = createFormatRegistry();
+  for (const direction of ["read", "write"] as const) {
+    expect(registry.infer("report.MD", direction)).toBe("gfm");
+    expect(registry.infer("report.commonmark", direction)).toBe("commonmark");
+  }
+  const source = "| a | b |\n|---|---|\n| 1 | 2 |\n";
+  const input = [{ bytes: new TextEncoder().encode(source) }];
+  const result = await convert(input, {
+    from: registry.infer("table.md", "read"), to: "html"
+  }, { yield: async () => {} });
+  expect(result).toMatchObject({ kind: "text", text: expect.stringContaining("<table>") });
+  const strict = await convert(input, { from: "commonmark", to: "html" }, { yield: async () => {} });
+  expect(strict).toMatchObject({ kind: "text", text: expect.stringContaining("<p>| a | b |") });
+});

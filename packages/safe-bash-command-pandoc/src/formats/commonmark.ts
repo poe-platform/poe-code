@@ -11,7 +11,7 @@ export default {
   write: true,
   media: "text",
   inputEncoding: "utf8",
-  suffixes: ["md", "commonmark", "mkd", "mdown", "mdwn"],
+  suffixes: ["commonmark", "mkd", "mdown", "mdwn"],
   extensions: {},
   options: {
     read: [],

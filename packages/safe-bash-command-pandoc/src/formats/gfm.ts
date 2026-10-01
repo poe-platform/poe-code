@@ -11,7 +11,7 @@ export default {
   write: true,
   media: "text",
   inputEncoding: "utf8",
-  suffixes: ["gfm", "markdown"],
+  suffixes: ["gfm", "markdown", "md"],
   extensions: {
     pipe_tables: true,
     raw_html: true,

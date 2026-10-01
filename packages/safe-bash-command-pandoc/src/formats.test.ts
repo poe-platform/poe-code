@@ -39,7 +39,7 @@ describe("declarative format registry", () => {
     });
     expect(registry.list("read")).toEqual(["commonmark", "commonmark_x", "csv", "docx", "epub", "gfm", "html", "json", "latex", "markdown", "markdown_github", "markdown_mmd", "markdown_phpextra", "markdown_strict", "md", "odt", "pdf", "pptx", "rst", "rtf", "tsv", "xlsx"]);
     expect(registry.list("write")).toEqual(["commonmark", "commonmark_x", "docx", "epub", "epub3", "gfm", "html", "html5", "json", "latex", "markdown", "markdown_github", "markdown_mmd", "markdown_phpextra", "markdown_strict", "md", "odt", "pdf", "plain", "pptx", "rst", "rtf"]);
-    expect(registry.infer("file.md", "read")).toBe("commonmark");
+    expect(registry.infer("file.md", "read")).toBe("gfm");
     expect(registry.infer("file.html", "write")).toBe("html5");
     expect(() => registry.infer("file.txt", "read")).toThrowError();
     expect(registry.listExtensions("gfm")).toEqual([

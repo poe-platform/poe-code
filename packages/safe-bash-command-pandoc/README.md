@@ -46,7 +46,8 @@ outputs default to `html5`. Explicit `-f`/`-t` override inference; `--yes` is
 not required.
 `markdown`, `md`, `markdown_github`, `markdown_mmd`, `markdown_phpextra`, and
 `commonmark_x` select the supported GFM reader and writer, including tables
-and strikeout. File suffix inference is case-insensitive. Task lists render as HTML
+and strikeout. The `.md` suffix also selects GFM, so pipe tables work without
+an explicit input format. Use `-f commonmark` for strict CommonMark input. File suffix inference is case-insensitive. Task lists render as HTML
 checkboxes or text checkbox symbols in LaTeX, reStructuredText, RTF and CommonMark.
 `markdown_strict` selects the CommonMark reader and writer. These
 compatibility names use the documented engine features; they do not enable

@@ -16,15 +16,15 @@ describe("CLI format selection", () => {
       expect(() => parseConversionArgs(args, files, signal)).toThrow();
   });
   it.each(["html", "docx", "pdf"])("infers agreeing inputs and %s output without yes", extension => {
-    expect(parseConversionArgs(["a.md", "b.md", "-o", `out.${extension}`], files, signal).options).toMatchObject({from: "commonmark", to: extension === "html" ? "html5" : extension});
+    expect(parseConversionArgs(["a.md", "b.md", "-o", `out.${extension}`], files, signal).options).toMatchObject({from: "gfm", to: extension === "html" ? "html5" : extension});
   });
-  it.each([[], ["-"], ["a.md"], ["document"], ["dir.md/document", "-o", "dir.html/output"]])("defaults stdin, stdout and extensionless paths: %s", (...args) => {
+  it.each([[], ["-"], ["document"], ["dir.md/document", "-o", "dir.html/output"]])("defaults stdin, stdout and extensionless paths: %s", (...args) => {
     expect(parseConversionArgs(args, files, signal).options).toMatchObject({from: "commonmark", to: "html5"});
   });
   it("keeps yes compatible and respects explicit formats and default inputs", () => {
-    expect(parseConversionArgs(["--yes", "a.md", "-o", "out.html"], files, signal).options).toMatchObject({from: "commonmark", to: "html5"});
+    expect(parseConversionArgs(["--yes", "a.md", "-o", "out.html"], files, signal).options).toMatchObject({from: "gfm", to: "html5"});
     expect(parseConversionArgs(["-f", "plain", "a.md", "-o", "out.html"], files, signal).options).toMatchObject({from: "plain", to: "html5"});
-    expect(parseConversionArgs(["-t", "plain", "a.md", "-o", "out.html"], files, signal).options).toMatchObject({from: "commonmark", to: "plain"});
+    expect(parseConversionArgs(["-t", "plain", "a.md", "-o", "out.html"], files, signal).options).toMatchObject({from: "gfm", to: "plain"});
     expect(parseConversionArgs([], files, signal, ["a.html"]).options).toMatchObject({from: "html", to: "html5"});
   });
   it("treats output dash as stdout and input dash after -- as stdin", () => {

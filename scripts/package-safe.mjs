@@ -460,7 +460,11 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const rootExports = Object.entries(root.exports ?? {})
         .filter(([key]) => key === "./safe-js" || key.startsWith("./safe-js/"))
         .map(([key, value]) => [key === "./safe-js" ? "." : "." + key.slice("./safe-js".length), value]);
-      for (const [key, value] of rootExports.length ? rootExports : Object.entries(source.exports).map(([key, value]) => [key, workspaceTarget(value)])) {
+      // Retain root compatibility policies, while publishing workspace-only
+      // APIs such as /workerd that are deliberately absent from the CLI SDK.
+      const scopedExports = new Map(Object.entries(source.exports).map(([key, value]) => [key, workspaceTarget(value)]));
+      for (const [key, value] of rootExports) scopedExports.set(key, value);
+      for (const [key, value] of scopedExports) {
         exports[key] = enqueueExport(scopedExport(value));
       }
       for (const suffix of ["", "/core", "/node"]) {

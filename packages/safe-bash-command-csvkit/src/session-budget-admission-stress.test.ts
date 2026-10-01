@@ -116,6 +116,19 @@ test("finite JSON retained budgets wait for each value before visiting the next"
   } finally { release(); await operation; await f.runtime.close(); }
 });
 
+for (const maxWork of [Infinity, 100000]) test(`JSON retained refusal preserves admitted rows and separators (work=${maxWork})`, async () => {
+  const rows: JsonValue[] = [
+    new Map<string, JsonValue>([["a", 1], ["b", 2]]),
+    new Map<string, JsonValue>([["a", 3], ["b", 4]])
+  ];
+  // Array slots (64), first row entries (64), and its two quoted keys (12).
+  const f = fixture({ limits: { ...defaultLimits, maxRetainedBytes: 140, maxWork, maxOutputBytes: Infinity } });
+  try {
+    await assert.rejects(emit(rows, f.runtime, null), /retained byte budget exceeded/);
+    assert.equal(Buffer.concat(f.output).toString(), '[{"a": 1.0, "b": 2.0}, ');
+  } finally { await f.runtime.close(); }
+});
+
 test("JSON numeric tokens reserve retained bytes before publication", async () => {
   const token = "1".repeat(1024);
   const f = fixture({ limits: { ...defaultLimits, maxRetainedBytes: 64 } });

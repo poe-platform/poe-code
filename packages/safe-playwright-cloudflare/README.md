@@ -81,6 +81,9 @@ To also bound retention while recording, supply the fourth argument's
 `traceLimits: { maxBytes: 16 * 1024 * 1024, maxFiles: 1024,
 maxArchiveBytes: 16 * 1024 * 1024 }`. All three values accept positive
 integers or `Infinity`. Each omitted trace limit defaults to `Infinity`.
+`maxPathBytes`, `maxDepth`, `maxPaxBytes`, and `maxTextBytes` optionally bound
+archive paths, nesting, extended headers, and text through the ZIP codec; ZIP
+format constraints still apply.
 Trace budgeting requires `artifactFileSystem` to access the provider’s trace
 files; use a filesystem backed by the same storage as the native recorder.
 Omitting `traceLimits` preserves the existing provider behavior.

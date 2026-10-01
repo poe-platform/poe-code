@@ -6,6 +6,10 @@ export interface TraceLimits {
   readonly maxBytes?: number;
   readonly maxFiles?: number;
   readonly maxArchiveBytes?: number;
+  readonly maxPathBytes?: number;
+  readonly maxDepth?: number;
+  readonly maxPaxBytes?: number;
+  readonly maxTextBytes?: number;
 }
 export interface TraceCallData {
   id: number;
@@ -38,7 +42,7 @@ export async function writeTraceArchive(options: {
   zipFile: string;
   calls: readonly TraceCallData[];
   includeSources: boolean;
-  limits: Required<TraceLimits>;
+  limits: Required<Pick<TraceLimits, "maxBytes" | "maxFiles" | "maxArchiveBytes">> & TraceLimits;
   fs: FileSystem;
   signal: AbortSignal;
   admitInput(path: string, size: number, source: boolean): void;
@@ -48,7 +52,8 @@ export async function writeTraceArchive(options: {
   const zipLimits: ZipLimits = {
     maxArchiveBytes: limits.maxArchiveBytes, maxEntryBytes: limits.maxBytes,
     maxTotalBytes: limits.maxBytes, maxMembers: limits.maxFiles,
-    maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity,
+    maxPathBytes: limits.maxPathBytes ?? Infinity, maxDepth: limits.maxDepth ?? Infinity,
+    maxPaxBytes: limits.maxPaxBytes ?? Infinity, maxTextBytes: limits.maxTextBytes ?? Infinity,
     chunkSize: 65536,
   };
   const entries: ZipEntry[] = [];

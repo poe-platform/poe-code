@@ -86,11 +86,11 @@ interface DispatcherGuard { recordings: Map<string, Recording>; stacks: Map<stri
 const dispatchers = new WeakMap<LocalUtils, DispatcherGuard>();
 
 export function validateTraceLimits(limits: TraceLimits = {}): Readonly<Required<TraceLimits>> {
-  for (const key of ["maxBytes", "maxFiles", "maxArchiveBytes"] as const) {
+  for (const key of ["maxBytes", "maxFiles", "maxArchiveBytes", "maxPathBytes", "maxDepth", "maxPaxBytes", "maxTextBytes"] as const) {
     const value = limits[key];
     if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new TypeError(`Invalid Cloudflare trace ${key} limit`);
   }
-  return Object.freeze({ maxBytes: limits.maxBytes ?? Infinity, maxFiles: limits.maxFiles ?? Infinity, maxArchiveBytes: limits.maxArchiveBytes ?? Infinity });
+  return Object.freeze({ maxBytes: limits.maxBytes ?? Infinity, maxFiles: limits.maxFiles ?? Infinity, maxArchiveBytes: limits.maxArchiveBytes ?? Infinity, maxPathBytes: limits.maxPathBytes ?? Infinity, maxDepth: limits.maxDepth ?? Infinity, maxPaxBytes: limits.maxPaxBytes ?? Infinity, maxTextBytes: limits.maxTextBytes ?? Infinity });
 }
 
 class Recording {

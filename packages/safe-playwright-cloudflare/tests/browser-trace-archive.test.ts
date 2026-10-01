@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { createMemoryFileSystem } from '@poe-code/safe-fs/core';
 import { createZipCodec } from '@poe-code/office-package/zip';
+import { validateTraceLimits } from '../src/browser-trace-budget.js';
 import { writeTraceArchive } from '../src/browser-trace-archive.js';
 
 test('exports admitted trace files and source names through the supplied VFS without Buffer', async () => {
@@ -27,4 +28,20 @@ test('exports admitted trace files and source names through the supplied VFS wit
   let source = '';
   for await (const chunk of codec.decodeZipEntry(archive.entries[2]!, zipLimits, signal)) source += new TextDecoder().decode(chunk);
   expect(source).toBe('export {};');
+});
+
+test.each([undefined, Infinity, 2])('honors trace archive path limits %s', async maxPathBytes => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile('/events', new TextEncoder().encode('trace'));
+  const writing = writeTraceArchive({fs, entries: [{name: 'trace.trace', value: '/events'}], zipFile: '/archive.zip', calls: [], includeSources: false,
+    limits: {maxBytes: Infinity, maxFiles: Infinity, maxArchiveBytes: Infinity, ...(maxPathBytes === undefined ? {} : {maxPathBytes})}, signal: new AbortController().signal, admitInput() {}});
+  if (maxPathBytes === 2) await expect(writing).rejects.toThrow(/limit/);
+  else await expect(writing).resolves.toBeUndefined();
+});
+
+test.each(['maxPathBytes', 'maxDepth', 'maxPaxBytes', 'maxTextBytes'] as const)('validates optional trace %s', key => {
+  expect(validateTraceLimits()[key]).toBe(Infinity);
+  expect(validateTraceLimits({[key]: Infinity})[key]).toBe(Infinity);
+  expect(validateTraceLimits({[key]: 2})[key]).toBe(2);
+  for (const value of [0, -1, NaN, -Infinity, 1.5]) expect(() => validateTraceLimits({[key]: value})).toThrow(TypeError);
 });

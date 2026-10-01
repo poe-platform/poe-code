@@ -1,12 +1,12 @@
 import { utf8ByteLength, bytesFrom } from "safe-bash-byte-engine";
-import { tryGetMemoryDirectoryEntryNamesSync, tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
+import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { hasYieldCheckpoint } from "safe-bash-contracts/yield";
 import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { Matcher, type Match } from "safe-bash-search-engine/matcher";
 import { parse, ParsedArguments, SearchError, type Arguments, type SearchOptions } from "safe-bash-search-engine/options";
 import { data, elapsed, Printer, stats, type Stats } from "safe-bash-search-engine/output";
-import { diagnostic, Limits, lineBatches, sharedOutBufGeneration, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "safe-bash-search-engine/shared";
+import { diagnostic, Limits, lineBatches, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "safe-bash-search-engine/shared";
 import { Walker, type FileTarget } from "safe-bash-search-engine/walk";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "safe-bash-regex-engine/execution/portable";
 import { inProcessRegexProviders } from "safe-bash-regex-engine/execution/protocol";
@@ -15,7 +15,6 @@ import { RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "safe-bash-io-engine/inter
 
 const EMPTY_RG_LINES: readonly Line[] = Object.freeze([]);
 const EMPTY_PATTERNS: readonly string[] = Object.freeze([]);
-const EMPTY_SEARCH_OPTIONS: SearchOptions = Object.freeze({});
 const DEFAULT_CWD_PATHS: readonly string[] = Object.freeze(["."]);
 const DEFAULT_STDIN_PATHS: readonly string[] = Object.freeze(["-"]);
 const defaultLimitsTick = Limits.prototype.tick;
@@ -23,69 +22,6 @@ const sharedReadState: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffse
 let srcRefSlotMap = new WeakMap<Uint8Array, number>();
 let srcRefCountMap = new WeakMap<Uint8Array, number>();
 let srcRefCacheLiteral = new Uint8Array(0);
-const defaultDateNowRg = Date.now;
-let lastRgTreePattern = "";
-let lastRgTreePath = "";
-let lastRgTreeCwd = "";
-let lastRgTreeOutLen = -1;
-let lastRgTreeFound = false;
-let lastRgTreeGen = -1;
-const lastRgTreeDirNames = new Array<string>(8).fill("");
-const lastRgTreeFileNames = new Array<string>(64).fill("");
-
-export function preverifyMemoryRgTree(fastMem: unknown): void {
-  const m = fastMem as { root?: { entries?: { size?: number; _keys?: string[] } }; mutationTick?: number; _rgTreeVerifiedTick?: number; _rgTreeVerifiedGen?: number };
-  if (m && m.root?.entries?.size === 1 && m.root.entries._keys?.[0] === "src" && lastRgTreeOutLen >= 0 && lastRgTreePath === "/src") {
-    if (tryVerifyAndPopulate64Tree(fastMem as NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>, "/src", true)) {
-      m._rgTreeVerifiedTick = m.mutationTick ?? 0;
-      m._rgTreeVerifiedGen = lastRgTreeGen;
-    }
-  }
-}
-
-function tryVerifyAndPopulate64Tree(fastMem: NonNullable<ReturnType<typeof getRuntimeBackingFileSystem>>, rootPath: string, verifyOnly: boolean): boolean {
-  if (
-    verifyOnly &&
-    rootPath === "/src" &&
-    (fastMem as { _rgTreeVerifiedTick?: number })._rgTreeVerifiedTick !== undefined &&
-    (fastMem as { _rgTreeVerifiedTick?: number })._rgTreeVerifiedTick === ((fastMem as { mutationTick?: number }).mutationTick ?? -1) &&
-    (fastMem as { _rgTreeVerifiedGen?: number })._rgTreeVerifiedGen === lastRgTreeGen
-  ) {
-    return true;
-  }
-  const rootEntries = tryGetMemoryDirectoryEntryNamesSync(fastMem, rootPath) as unknown as { readonly size?: number; readonly _next?: number; readonly _keys?: string[]; readonly _vals?: unknown[] } | undefined;
-  if (!rootEntries || rootEntries._next !== 8 || rootEntries.size !== 8) return false;
-  const rKeys = rootEntries._keys!;
-  const rVals = rootEntries._vals!;
-  for (let d = 0; d < 8; d++) {
-    const dName = rKeys[d]!;
-    if (verifyOnly) {
-      if (dName !== lastRgTreeDirNames[d]) return false;
-    } else {
-      lastRgTreeDirNames[d] = dName;
-    }
-    const dObj = rVals[d] as { readonly type?: string; readonly mode?: number; readonly entries?: { readonly size?: number; readonly _next?: number; readonly _keys?: string[]; readonly _vals?: unknown[] } };
-    if (!dObj || dObj.type !== "directory" || dObj.mode === undefined || ((dObj.mode >> 6) & 4) !== 4) return false;
-    const sub = dObj.entries;
-    if (!sub || sub._next !== 8 || sub.size !== 8) return false;
-    const sKeys = sub._keys!;
-    const sVals = sub._vals!;
-    const base = d << 3;
-    for (let f = 0; f < 8; f++) {
-      const slot = base | f;
-      const fName = sKeys[f]!;
-      if (verifyOnly) {
-        if (fName !== lastRgTreeFileNames[slot]) return false;
-      } else {
-        lastRgTreeFileNames[slot] = fName;
-      }
-      const fObj = sVals[f] as { readonly type?: string; readonly mode?: number; readonly revision?: number; readonly sourceRef?: Uint8Array };
-      if (!fObj || fObj.type !== "file" || fObj.mode === undefined || ((fObj.mode >> 6) & 4) !== 4 || fObj.revision !== 0) return false;
-      if (fObj.sourceRef === undefined || srcRefSlotMap.get(fObj.sourceRef) !== slot) return false;
-    }
-  }
-  return true;
-}
 const BATCH_SIZE_1: () => number = () => 1;
 const BATCH_SIZE_128: () => number = () => 128;
 const RETURN_TRUE = () => true;
@@ -705,25 +641,6 @@ function tryExecuteRgFastSync(
     const limits = runner.limits;
     limits.resetForRun(context, options);
     limits.speculative = true;
-    const cArgs = context.args;
-    if (
-      cArgs.length === 3 &&
-      cArgs[0] === "-c" &&
-      cArgs[1] === lastRgTreePattern &&
-      cArgs[2] === lastRgTreePath &&
-      context.cwd === lastRgTreeCwd &&
-      sharedOutBufGeneration === lastRgTreeGen &&
-      lastRgTreeOutLen >= 0 &&
-      Date.now === defaultDateNowRg &&
-      options.regexExecutor === undefined &&
-      tryVerifyAndPopulate64Tree(fastMem, lastRgTreePath, true)
-    ) {
-      committing = true;
-      if (lastRgTreeOutLen === 0 || limits.flushCachedSharedSync(lastRgTreeOutLen)) {
-        return lastRgTreeFound ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
-      }
-      committing = false;
-    }
     const args = parse(context.args, runner.args);
     if (
       args.help ||
@@ -778,22 +695,6 @@ function tryExecuteRgFastSync(
         return pending.finally(runner.release).then(() => executeRgSlow(context, executor, options));
       }
       return undefined;
-    }
-    if (
-      cArgs.length === 3 &&
-      cArgs[0] === "-c" &&
-      totals.searches === 64 &&
-      limits.outPos >= 0 &&
-      Date.now === defaultDateNowRg &&
-      cArgs[2]!.charCodeAt(0) === 47 &&
-      tryVerifyAndPopulate64Tree(fastMem, cArgs[2]!, false)
-    ) {
-      lastRgTreePattern = cArgs[1]!;
-      lastRgTreePath = cArgs[2]!;
-      lastRgTreeCwd = context.cwd;
-      lastRgTreeOutLen = limits.outPos;
-      lastRgTreeFound = runner.found;
-      lastRgTreeGen = sharedOutBufGeneration;
     }
     committing = true;
     const flushRes = limits.flushSyncOrAsync();

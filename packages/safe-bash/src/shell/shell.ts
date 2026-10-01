@@ -1,4 +1,3 @@
-import { preverifyMemoryRgTree } from "../commands/search/rg-command.js";
 import { MemoryFileSystem } from "../fs/memory/index.js";
 function utf8ByteLength(str: string): number {
   if (typeof globalThis.Buffer === "function") return globalThis.Buffer.byteLength(str);
@@ -1183,7 +1182,6 @@ export class Shell implements PluginHost {
         stdout.enableScratchBuffer();
         stderr.enableScratchBuffer();
         void runtime.canFastMemoryRedirect;
-        preverifyMemoryRgTree((runtime as unknown as { backingFs: unknown }).backingFs);
         this.#warmedInvocation = {
           budget,
           scope,

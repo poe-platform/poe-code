@@ -63,7 +63,9 @@ this binding and retained reads (`openReadFile`); without it tracing reports an
 unavailable filesystem. Screenshots and PDFs return provider bytes directly.
 A separate memory filesystem cannot read native Playwright output. Capture
 performs its file I/O through safe-fs. The pinned Cloudflare provider still
-requires its documented `nodejs_compat` support.
+requires its documented `nodejs_compat` support for browser sessions. Loading
+the adapter, generating action code, and exporting trace archives through an
+injected safe-fs filesystem work without that flag or a global `Buffer`.
 
 The fourth argument also accepts `traceCapture: "archive"`. This explicitly
 selects the standard CLI's `tracing-start` / `tracing-stop` ZIP artifact flow,

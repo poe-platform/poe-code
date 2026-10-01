@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
+import ts from "typescript";
 
 const packageVersion = "1.3.6";
 const sourcePath = "lib/playwright-core/src/server/codegen/languages.js";
@@ -36,9 +37,37 @@ export async function buildBrowserCodegen() {
 		},
 		bundle: true,
 		format: "esm",
-		platform: "node",
+		platform: "browser",
 		target: "es2022",
-		external: ["node:*", "cloudflare:*"],
+		// The distributed generators retain bare imports from the server utility
+		// barrel. They perform no code-generation work and pull in the native
+		// runtime. Preserve all value imports; the browser build rejects any
+		// Node dependency that an actual generator still needs.
+		plugins: [
+			{
+				name: "portable-native-generators",
+				setup(builder) {
+					builder.onLoad({ filter: /\.js$/ }, async (args) => {
+						if (dirname(args.path) !== dirname(entry)) return;
+						const source = await readFile(args.path, "utf8");
+						const ast = ts.createSourceFile(
+							args.path,
+							source,
+							ts.ScriptTarget.Latest,
+							true,
+							ts.ScriptKind.JS
+						);
+						return {
+							contents: ast.statements
+								.filter((node) => !ts.isImportDeclaration(node) || node.importClause)
+								.map((node) => node.getFullText(ast))
+								.join("\n"),
+							loader: "js"
+						};
+					});
+				}
+			}
+		],
 		write: false,
 		minify: true,
 		legalComments: "inline",

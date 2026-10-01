@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { validatePath, normalizePath } from "../src/contracts/virtual-path.js";
+import { validatePath, normalizePath, resolvePath } from "../src/contracts/virtual-path.js";
 import { MemoryFileSystem, tryMkdirMemorySync, tryOpenMemoryRedirectHandleSync, tryWriteMemoryFileInDirSync } from "../src/fs/memory/index.js";
 import { lexicalDevicePath } from "../src/fs/devices/path.js";
 import { createDeviceFileSystem } from "../src/fs/devices/index.js";
@@ -59,4 +59,15 @@ it("canonicalization applies cumulative path expansion quotas", async () => {
   const fs = new MemoryFileSystem({ maxPathComponents: 4 });
   await fs.symlink("a/a/a", "/l");
   expect(() => fs.canonicalizeMissingTarget("/l/missing")).toThrow("ENAMETOOLONG");
+});
+
+it("combined relative paths remain normalizable beyond former limits", () => {
+  for (const [cwd, relative] of [
+    ["/" + Array(1500).fill("a").join("/"), Array(1000).fill("b").join("/")],
+    ["/" + "a".repeat(40_000), "b".repeat(30_000)],
+  ]) {
+    const resolved = resolvePath(cwd!, relative!);
+    expect(resolved).toBe(`${cwd}/${relative}`);
+    expect(normalizePath(resolved)).toBe(resolved);
+  }
 });

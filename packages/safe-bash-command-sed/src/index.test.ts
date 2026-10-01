@@ -208,3 +208,25 @@ for (const [script, input, expected] of [
     assert.equal(result.stdout, expected);
   }
 });
+
+test("sed reuses cached non-ASCII programs across file and stdin execution", async (t) => {
+  const originalGet = Map.prototype.get;
+  let hits = 0;
+  t.mock.method(Map.prototype, "get", function (this: Map<unknown, unknown>, key: unknown) {
+    const value = originalGet.call(this, key);
+    if (typeof value === "object" && value !== null && "program" in value && "steps" in value) hits++;
+    return value;
+  });
+  const command = createSedCommand();
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("crème brûlée\n"));
+  const script = "s/crème brûlée/dessert/;s/dessert/done/";
+  const first = await run(command, [script, "/input"], "", fs);
+  assert.equal(first.exitCode, 0, first.stderr);
+  assert.equal(first.stdout, "done\n");
+  const previousHits = hits;
+  const second = await run(command, [script], "crème brûlée\n", fs);
+  assert.equal(second.exitCode, 0, second.stderr);
+  assert.equal(second.stdout, "done\n");
+  assert.equal(hits, previousHits + 1);
+});

@@ -88,13 +88,18 @@ test("AWK memory-backed files honor lazy input limits", async context => {
   for (const maxInputBytes of [4, rows.byteLength - 1, rows.byteLength]) {
     const shell = new Shell({ fs, limits: { maxInputBytes }, commands: new CommandRegistry(createTextProgramCommands()) });
     context.after(() => shell.dispose());
-    const result = await shell.exec(`awk -F: '{ sum += $3; count++ } END { print sum, count }' /rows`);
+    const output: Uint8Array[] = [];
+    const execution = shell.exec(`awk -F: '{ sum += $3; count++ } END { print sum, count }' /rows`, {
+      stdout: { async write(chunk) { output.push(chunk.slice()); } },
+    });
     if (maxInputBytes < rows.byteLength) {
-      assert.notEqual(result.exitCode, 0);
-      assert.equal(result.stdout, "");
+      await assert.rejects(execution, { name: "ShellLimitError", limit: "maxInputBytes" });
+      assert.equal(Buffer.concat(output).toString(), "");
     } else {
+      const result = await execution;
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, "2400 80\n");
+      assert.equal(Buffer.concat(output).toString(), result.stdout);
     }
   }
 });

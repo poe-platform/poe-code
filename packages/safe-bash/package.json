@@ -1423,7 +1423,8 @@
           "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*"
+            "@poe-code/safe-fs": "*",
+            "docx": "*"
           },
           "portable": true
         },
@@ -1433,7 +1434,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "safe-bash-io-engine": "*"
+            "safe-bash-io-engine": "*",
+            "pptx": "*"
           },
           "portable": true
         },

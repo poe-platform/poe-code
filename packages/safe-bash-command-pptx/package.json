@@ -27,6 +27,7 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "safe-bash-io-engine": "*"
+    "safe-bash-io-engine": "*",
+    "pptx": "*"
   }
 }

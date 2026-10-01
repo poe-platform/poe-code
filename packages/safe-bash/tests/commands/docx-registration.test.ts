@@ -209,7 +209,7 @@ test("docx dispatch preserves literal byte arguments streams and SDK archive beh
 });
 
 test("docx validates explicit configuration before registry mutation", () => {
-  assert.throws(() => createDocxCommand(undefined as never), /engine/);
+  assert.equal(createDocxCommand().name, "docx");
   assert.throws(() => docxCommands({ engine: {} } as never), /engine/);
   assert.throws(() => docxCommands({ engine: { execute: async () => ({ exitCode: 0 }) }, replace: "yes" } as never), /boolean/);
 });

@@ -1,3 +1,4 @@
+import { createPptxCommandEngine } from "pptx";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { collectBytes, FsError, getCommandArguments, writeBytes, type CommandDefinition, type FileStat, type VirtualShellPlugin } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
@@ -32,19 +33,19 @@ export interface PptxLimits {
 }
 
 export interface PptxCommandsOptions {
-  readonly engine: PptxCommandEngine;
+  readonly engine?: PptxCommandEngine;
   readonly replace?: boolean;
   readonly limits?: Partial<PptxLimits>;
 }
 
-export function createPptxCommand(options: PptxCommandsOptions): CommandDefinition {
-  if (!options?.engine || typeof options.engine.execute !== "function") throw new TypeError("An explicit pptx command engine is required.");
+export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDefinition {
+  if (options.engine !== undefined && typeof options.engine.execute !== "function") throw new TypeError("An explicit pptx command engine is required.");
   if (options.replace !== undefined && typeof options.replace !== "boolean") throw new TypeError("pptx replace must be boolean");
   const maxArgumentBytes = options.limits?.maxArgumentBytes ?? Infinity;
   if (maxArgumentBytes !== Infinity && (!Number.isSafeInteger(maxArgumentBytes) || maxArgumentBytes < 0)) {
     throw new RangeError("maxArgumentBytes must be a nonnegative safe integer or Infinity");
   }
-  const engine = options.engine;
+  const engine = options.engine ?? createPptxCommandEngine();
   return { name: "pptx", filesystemRequirements: inputRequirements, async execute(context) {
     const arguments_ = getCommandArguments(context);
       let argumentBytes = 0;
@@ -155,11 +156,11 @@ export function createPptxCommand(options: PptxCommandsOptions): CommandDefiniti
   } };
 }
 
-export function createPptxCommands(options: PptxCommandsOptions): readonly CommandDefinition[] {
+export function createPptxCommands(options: PptxCommandsOptions = {}): readonly CommandDefinition[] {
   return [createPptxCommand(options)];
 }
 
-export function pptxCommands(options: PptxCommandsOptions): VirtualShellPlugin {
+export function pptxCommands(options: PptxCommandsOptions = {}): VirtualShellPlugin {
   const commands = createPptxCommands(options);
   const replace = options.replace ?? false;
   return { name: "pptx-commands", setup(host) {

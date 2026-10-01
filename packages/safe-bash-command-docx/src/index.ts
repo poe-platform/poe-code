@@ -1,3 +1,4 @@
+import { createDocxInspectionCommandEngine } from "docx";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import {
   FsError,
@@ -33,15 +34,15 @@ export interface DocxLimits {
 }
 
 export interface DocxCommandOptions {
-  readonly engine: DocxCommandEngine;
+  readonly engine?: DocxCommandEngine;
   readonly replace?: boolean;
   readonly limits?: Partial<DocxLimits>;
 }
 
 export type DocxCommandsOptions = DocxCommandOptions;
 
-export function createDocxCommand(options: DocxCommandOptions): CommandDefinition {
-  if (!options?.engine || typeof options.engine.execute !== "function")
+export function createDocxCommand(options: DocxCommandOptions = {}): CommandDefinition {
+  if (options.engine !== undefined && typeof options.engine.execute !== "function")
     throw new TypeError("An explicit docx command engine is required.");
   if (options.replace !== undefined && typeof options.replace !== "boolean")
     throw new TypeError("docx replace must be boolean.");
@@ -49,7 +50,7 @@ export function createDocxCommand(options: DocxCommandOptions): CommandDefinitio
   if (maxArgumentBytes !== Infinity && (!Number.isSafeInteger(maxArgumentBytes) || maxArgumentBytes < 0)) {
     throw new RangeError("maxArgumentBytes must be a nonnegative safe integer or Infinity");
   }
-  const engine = options.engine;
+  const engine = options.engine ?? createDocxInspectionCommandEngine();
   return {
     name: "docx",
     async execute(context) {
@@ -78,11 +79,11 @@ export function createDocxCommand(options: DocxCommandOptions): CommandDefinitio
   };
 }
 
-export function createDocxCommands(options: DocxCommandsOptions): readonly CommandDefinition[] {
+export function createDocxCommands(options: DocxCommandsOptions = {}): readonly CommandDefinition[] {
   return [createDocxCommand(options)];
 }
 
-export function docxCommands(options: DocxCommandOptions): VirtualShellPlugin {
+export function docxCommands(options: DocxCommandOptions = {}): VirtualShellPlugin {
   const command = createDocxCommand(options);
   const replace = options.replace ?? false;
   return {

@@ -176,14 +176,15 @@ for (const [mode, deleted] of [["row", 1], ["column", 1], ["both", 1], ["both", 
   });
 }
 
-it.each([8, 10, 12, 14])("rejects deleted BIFF8 input with a non-sentinel coordinate at %i", async offset => {
+it.each([8, 10, 12, 14])("ignores deleted BIFF8 input with a non-sentinel coordinate at %i", async offset => {
   const bytes: number[] = [];
   for (const r of readBiffRecords(originalTable(8, "both"), context)) {
     const data = r.data.bytes.slice();
     if (r.opcode === 0x236) { data[6]! |= 0x30; data.fill(0xff, 8, 16); data[offset] = 0; }
     bytes.push(...record(r.opcode, [...data]));
   }
-  await expect(readBiff(Uint8Array.from(bytes), context)).rejects.toThrow("invalid deleted data-table input cell");
+  const book = await readBiff(Uint8Array.from(bytes), context);
+  expect(book.sheets[0]!.formulaGroups![0]!.expression).toBe("=TABLE(#REF!,#REF!)");
 });
 
 it.each(["=TABLE(#REF!,F1)", "=TABLE(E1,#REF!)", "=TABLE((#REF!),F1)"])
@@ -237,12 +238,12 @@ it.each(["row", "column"] as const)("ignores the unused second input in a BIFF8 
 it("exports parenthesized and qualified TABLE input coordinates without external lookup", () => {
   const book: Workbook = { sheets: [{ id: "s", name: "Sheet", cells: [] }] };
   const group = { id: "t", kind: "array" as const, range: { startRow: 1, endRow: 2, startColumn: 1, endColumn: 2 },
-    expression: "=(TABLE('[missing.xls]Other'!E1,$F$1))" };
+    expression: "=(TABLE(('[missing.xls]Other'!E1),($F$1)))" };
   expect([...writeBiffDataTable(group, "s", book, context, 16384)!])
     .toEqual([1, 0, 2, 0, 1, 2, 12, 0, 0, 0, 4, 0, 0, 0, 5, 0]);
 });
 
-it.each(["=TABLE(E1)", "=TABLE(,)", "=TABLE(E1:F2,)", "=TABLE(1,F1)", "=TABLE(IW1,F1)", "=TABLE(E16385,F1)"])
+it.each(["=TABLE(E1)", "=TABLE(,)", "=TABLE(E1:F2,)", "=TABLE(1,F1)", "=TABLE(IW1,F1)", "=TABLE(E16385,F1)", "=TABLE(@row:$A$1,F1)", "=TABLE((@column:$A$1),F1)"])
   ("refuses a data table that BIFF7 cannot represent: %s", expression => {
     expect(() => writeBiffDataTable({ id: "t", kind: "array", expression,
       range: { startRow: 1, endRow: 2, startColumn: 1, endColumn: 2 } }, "s",

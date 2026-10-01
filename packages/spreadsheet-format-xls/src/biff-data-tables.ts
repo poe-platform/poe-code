@@ -15,7 +15,6 @@ export function readBiffDataTable(data: Binary, revision: number, opcode: number
   const input = (offset: number, deleted: boolean) => {
     const r = data.u16(offset), c = data.u16(offset + 2);
     if (deleted) {
-      if (r !== 0xffff || c !== 0xffff) invalidBiff("invalid deleted data-table input cell");
       return "#REF!";
     }
     if (c >= 256 || r >= (revision === 8 ? 65536 : 16384)) invalidBiff("invalid data-table input cell");
@@ -41,16 +40,16 @@ export function writeBiffDataTable(group: FormulaGroup, sheet: string, book: Wor
   const inputs = root.args.map(arg => {
     let marker = arg;
     while (marker.kind === "parentheses") marker = marker.child;
-    if (arg.kind === "omitted" || arg.kind === "literal" && arg.value.kind === "blank") return undefined;
+    if (marker.kind === "omitted" || marker.kind === "literal" && marker.value.kind === "blank") return undefined;
     if (marker.kind === "literal" && marker.value.kind === "error" && marker.value.value === "#REF!") {
       if (maxRows < 65536) throw new SsconvertError("unsupported-feature", "Cannot export deleted Excel data table input before BIFF8");
       return { row: 0xffff, column: 0xffff, deleted: true };
     }
-    if (arg.kind !== "reference" || arg.last || !arg.first.row || !arg.first.column)
+    if (marker.kind !== "reference" || marker.label || marker.last || !marker.first.row || !marker.first.column)
       throw new SsconvertError("unsupported-feature", "Cannot export Excel data table input expression");
     // TABLE evaluates raw coordinates on its own sheet, including qualified inputs.
-    const row = arg.first.row.value + (arg.first.row.relative ? position.row : 0);
-    const column = arg.first.column.value + (arg.first.column.relative ? position.column : 0);
+    const row = marker.first.row.value + (marker.first.row.relative ? position.row : 0);
+    const column = marker.first.column.value + (marker.first.column.relative ? position.column : 0);
     if (row < 0 || row >= maxRows || column < 0 || column >= 256)
       throw new SsconvertError("unsupported-feature", "Cannot export Excel data table input outside version limits");
     return { row, column };

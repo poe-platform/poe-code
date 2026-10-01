@@ -22,4 +22,7 @@ console.log(document.children[0].text); // A & B
 
 Pass positive integer limits for depth, element and content counts, attributes, namespaces, and text. Omitted limits are unlimited. `retainContent` preserves ordered mixed content; `onElement` observes element names, parents, and depths during parsing. `expectedEncoding` checks an XML declaration against the caller's decoded input.
 
-`parseXmlSteps` yields work counts so a host can account for parsing and yield between checkpoints. Syntax errors and resource limits remain errors; parsing never fetches external entities.
+`parseXmlSteps` yields work counts so a host can account for parsing and yield between checkpoints. Syntax errors and resource limits remain errors by default; parsing never fetches external entities.
+Pass `recover: message => report(message)` to repair truncated elements,
+mismatched closing tags, and undeclared entities. Each repair calls the callback.
+Resource limits and the prohibition on DTDs remain in force.

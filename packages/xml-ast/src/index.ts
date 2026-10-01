@@ -18,6 +18,8 @@ export interface XmlElement extends XmlName {
   readonly epilog?: readonly XmlContent[];
 }
 export interface XmlLimits {
+  /** Opt-in best-effort parsing; each repaired syntax error is reported. DTDs remain forbidden. */
+  readonly recover?: (message: string) => void;
   readonly expectedEncoding?: "UTF-8" | "UTF-16" | "UTF-16LE" | "UTF-16BE";
   readonly retainContent?: boolean;
   readonly maxDepth?: number;
@@ -108,7 +110,7 @@ function qualifiedNameSync(name: string, cache: QualifiedNameCache): [string, st
   return parts;
 }
 
-function* entities(text: string): Generator<number, string, void> {
+function* entities(text: string, recover?: (message: string) => void): Generator<number, string, void> {
   let result = "";
   let offset = 0;
   while (offset < text.length) {
@@ -116,14 +118,23 @@ function* entities(text: string): Generator<number, string, void> {
     if (start < 0) return result + text.slice(offset);
     result += text.slice(offset, start);
     const end = yield* find(text, ";", start + 1);
-    if (end < 0) invalid("unterminated entity");
+    if (end < 0) {
+      if (!recover) invalid("unterminated entity");
+      recover("unterminated entity");
+      return result + text.slice(start + 1);
+    }
     const entity = text.slice(start + 1, end);
     const predefined: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
     if (Object.hasOwn(predefined, entity)) result += predefined[entity];
     else {
       const hexadecimal = entity.startsWith("#x");
       const digits = entity.slice(hexadecimal ? 2 : 1);
-      if (!entity.startsWith("#") || !digits.length) invalid("undeclared entity");
+      if (!entity.startsWith("#") || !digits.length) {
+        if (!recover) invalid("undeclared entity");
+        recover("undeclared entity");
+        offset = end + 1;
+        continue;
+      }
       let point = 0;
       for (let index = 0; index < digits.length; index++) {
         const code = digits.charCodeAt(index);
@@ -290,7 +301,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       pendingWork += (endPos - offset) + text.length;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       if (text.indexOf("]]>") >= 0) invalid("CDATA terminator in text");
-      const resolved = stack.length ? (text.indexOf("&") < 0 ? (pendingWork += text.length, text) : yield* entities(text)) : text;
+      const resolved = stack.length ? (text.indexOf("&") < 0 ? (pendingWork += text.length, text) : yield* entities(text, limits.recover)) : text;
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
       admitText(resolved);
       const parent = stack.at(-1);
@@ -372,7 +383,10 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       const [name, , , wName] = scanName();
       pendingWork += wName + skipWhitespace();
       while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
-      if (source[offset++] !== ">" || stack.pop()?.name !== name) invalid("mismatched closing tag");
+      if (source[offset++] !== ">" || stack.pop()?.name !== name) {
+        if (!limits.recover) invalid("mismatched closing tag");
+        limits.recover("mismatched closing tag");
+      }
     } else {
       offset++;
       const repeated = previousEmpty && source.startsWith(previousEmpty.suffix, offset) ? previousEmpty : undefined;
@@ -392,7 +406,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         pendingWork += ws;
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         const ch = source.charCodeAt(offset);
-        if (ch === 47 || ch === 62) break;
+        if (ch === 47 || ch === 62 || limits.recover && offset === source.length) break;
         if (ws === 0) invalid("attributes require whitespace");
         const [attribute, attrPrefix, attrLocal, wAttr] = scanName();
         pendingWork += wAttr;
@@ -415,7 +429,7 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         if (raw.indexOf("<") >= 0) invalid("less-than in attribute");
         const normalized = /[\t\n\r]/.test(raw) ? raw.replace(/[\t\n\r]/g, " ") : raw;
-        const value = normalized.indexOf("&") < 0 ? (pendingWork += normalized.length, normalized) : yield* entities(normalized);
+        const value = normalized.indexOf("&") < 0 ? (pendingWork += normalized.length, normalized) : yield* entities(normalized, limits.recover);
         while (pendingWork >= 512) { yield 512; pendingWork -= 512; }
         admitText(value);
         (attributes ??= new Map()).set(attribute, value);
@@ -478,7 +492,10 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
       else root = element;
       const empty = source[offset] === "/";
       if (empty) offset++;
-      if (source[offset++] !== ">") invalid("unterminated start tag");
+      if (source[offset++] !== ">") {
+        if (!limits.recover) invalid("unterminated start tag");
+        limits.recover("unterminated start tag");
+      }
       // Only cache compact, attribute-free spellings. Namespace resolution and
       // every admission counter still run for each distinct physical element.
       if (empty && !attributes && name.length <= 512 && source.slice(offset - name.length - 3, offset) === `<${name}/>`)
@@ -487,7 +504,11 @@ export function* parseXmlSteps(input: string, limits: XmlLimits = {}): Generator
     }
   }
   if (pendingWork > 0) { yield pendingWork; pendingWork = 0; }
-  if (stack.length || !root) invalid("incomplete document");
+  if (!root) invalid("incomplete document");
+  if (stack.length) {
+    if (!limits.recover) invalid("incomplete document");
+    limits.recover("incomplete document");
+  }
   return root;
 }
 

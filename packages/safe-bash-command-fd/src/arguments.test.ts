@@ -30,3 +30,16 @@ test("fd parses --path-separator, -C/--base-directory, and --strip-cwd-prefix", 
   assert.equal(a.stripCwdPrefix, true);
   assert.deepEqual(a.patterns, ["README"]);
 });
+
+test('unrestricted counts short, combined and long occurrences consistently', () => {
+  for (const argv of [['-u'], ['--unrestricted']]) {
+    const a = parseFdArguments(argv);
+    assert.equal(a.ignore, false);
+    assert.equal(a.hidden, false);
+  }
+  for (const argv of [['-uu'], ['-u', '-u'], ['--unrestricted', '--unrestricted']]) {
+    const a = parseFdArguments(argv);
+    assert.equal(a.ignore, false);
+    assert.equal(a.hidden, true);
+  }
+});

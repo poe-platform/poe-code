@@ -140,16 +140,15 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
     for (const rule of rules) if (rule.priority>=priority && await matcher.glob(rule.pattern,path.slice(rule.base==='/' ? 1 : rule.base.length+1),directory,true)) { ignored=!rule.include; priority=rule.priority; }
     return !ignored;
   };
-  const selected=async(path: string,name: string,stat: FileStat,depth: number): Promise<boolean> => {
+  const selected=async(path: string,name: string,stat: FileStat,depth: number,display: string): Promise<boolean> => {
     if (depth<a.minDepth || depth>a.maxDepth) return false;
     const ordinary=a.types.filter(t=>t!=='empty' && t!=='executable');
-    if (ordinary.length && !ordinary.includes(stat.type)) return false;
-    if (a.types.includes('executable') && (stat.type==='file' ? !(stat.mode&0o111) : !ordinary.includes(stat.type))) return false;
+    if ((ordinary.length || a.types.includes('executable')) && !ordinary.includes(stat.type) && !(a.types.includes('executable') && stat.type==='file' && (stat.mode&0o111))) return false;
     if (a.types.includes('empty') && !(stat.type==='file' ? stat.size===0 : stat.type==='directory' && (await fs.readdir(path,io)).length===0)) return false;
-    if (a.extensions.length && (stat.type!=='file' || !a.extensions.some(e=>name.toLowerCase().endsWith('.'+e.toLowerCase())))) return false;
+    if (a.extensions.length && !a.extensions.some(e=>name.length>e.length+1 && name.toLowerCase().endsWith('.'+e.toLowerCase()))) return false;
     if (sizes.length && (stat.type!=='file' || !sizes.every(filter=>filter(stat.size)))) return false;
     if (stat.mtimeMs<=within || stat.mtimeMs>=before) return false;
-    for (const pattern of a.patterns) if (pattern && !await matcher.pattern(pattern,a.fullPath ? path : name,a.mode,a.caseMode)) return false;
+    for (const pattern of a.patterns) if (pattern && !await matcher.pattern(pattern,a.fullPath ? (a.absolute ? path : display) : name,a.mode,a.caseMode)) return false;
     return true;
   };
   const walk=async(dir: string,label: string,depth: number,rules: Rule[],ancestors: Set<string>,prefixCwd: boolean,searchRoot: string): Promise<boolean> => {
@@ -176,7 +175,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
         }
         const directory=stat.type==='directory';
         if (!await accepted(path,entry.name,directory,local,searchRoot)) continue;
-        if (await selected(path,entry.name,stat,depth+1)) {
+        if (await selected(path,entry.name,stat,depth+1,display)) {
           found++; const rawOut=a.absolute ? path : !a.stripCwdPrefix && prefixCwd && (a.exec.length || a.print0 || a.details) && !display.startsWith('/') && rootPrefixNeeded(display) ? './'+display : display;
           const out=a.pathSeparator!==undefined ? rawOut.replaceAll('/',a.pathSeparator) : rawOut;
           if (!a.quiet) {

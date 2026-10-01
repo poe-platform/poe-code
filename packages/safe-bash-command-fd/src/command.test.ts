@@ -44,3 +44,28 @@ test('SDK execution fallback receives literal command arguments',async()=>{
   const result=await createFdCommand({execute:async child=>{calls.push([child.command!,...child.args]);return {exitCode:0};}}).execute(context);
   assert.equal(result.exitCode,0,stderr);assert.deepEqual(calls,[['inspect','./a b.ts']]);
 });
+
+for (const [args, expected] of [
+  [['-p', '-g', '*sub/*.txt'], 'sub/file.txt\n'],
+  [['-p', '^(\\./)?sub/file\\.txt$'], 'sub/file.txt\n'],
+  [['-H', '-e', 'bashrc'], ''],
+  [['-e', 'txt'], 'link.txt\nsub/file.txt\n'],
+  [['-t', 'd', '-t', 'x'], 'exec.sh\nsub/\n'],
+  [['-u', '-F', '.bashrc'], ''],
+  [['-uu', '-F', '.bashrc'], '.bashrc\n'],
+] as const) test(`fd parity: ${args.join(' ')}`, async () => {
+  const { createFdCommand } = await import('./index.js');
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/work/sub', { recursive: true });
+  for (const name of ['sub/file.txt', '.bashrc', 'exec.sh']) await fs.writeFile('/work/' + name, new TextEncoder().encode('x'));
+  await fs.chmod('/work/exec.sh', 0o755);
+  await fs.symlink('sub/file.txt', '/work/link.txt');
+  let stdout = '', stderr = '';
+  const result = await createFdCommand().execute({ command: 'fd', args, cwd: '/work', env: {}, fs,
+    signal: new AbortController().signal, stdin: (async function*(){})(),
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(stdout, expected);
+});

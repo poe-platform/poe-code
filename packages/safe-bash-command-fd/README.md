@@ -22,7 +22,7 @@ For explicit registration, import `fdCommands` or `createFdCommand` from
 | --- | --- |
 | Smart-case regex, glob, or literal names | `fd 'test.*'`, `fd -g '*.ts'`, `fd -F 'a.b'` |
 | Search from another virtual directory | `fd -C /project --strip-cwd-prefix` |
-| Match absolute paths and multiple patterns | `fd -p src --and test` |
+| Match full paths and multiple patterns | `fd -p src --and test` |
 | Select extensions and types | `fd -e ts -e js -t f`, `fd -t d`, `fd -t l`, `fd -t x`, `fd -t e` |
 | Exclude paths and bound depth | `fd -E vendor --min-depth 2 -d 4`, `fd --exact-depth 2` |
 | Filter size and modification time | `fd -S +1ki --changed-within 1day --changed-before '2100-01-01'` |
@@ -34,8 +34,11 @@ For explicit registration, import `fdCommands` or `createFdCommand` from
 | Execute registered commands | `fd -e ts -x wc -l '{}' ';'`, `fd -e ts -X wc -l '{}' ';'` |
 
 `-s` forces sensitive matching and `-i` forces insensitive matching. Smart case
-considers all required patterns. Extensions are case insensitive. Types can be
-repeated; `empty` and `executable` refine the selected types. Sizes use integer
+considers all required patterns. Full-path matching uses the displayed relative
+path unless `-a` requests absolute paths. Extensions are case insensitive and
+include symlinks; a leading dot alone does not count as an extension. Types can be
+repeated to combine types; `executable` includes executable files, while `empty`
+restricts results to empty files or directories. Sizes use integer
 bytes or decimal/binary units (`k`, `kb`, `ki`, `kib`, through tera). Times accept
 durations, dates, or Unix seconds prefixed with `@`.
 
@@ -46,7 +49,7 @@ are read entirely from the supplied VFS, including parent directories unless
 cannot reinclude descendants of a pruned directory. Gitignore rules apply even
 without a Git repository; no ambient global ignore file or host Git config is read.
 `-I` disables all ignore files, `--no-ignore-vcs` disables only `.gitignore`, and
-`-u`/`-uu` disable ignores and include hidden entries. Following links detects
+`-u` disables ignores; `-uu` additionally includes hidden entries. Following links detects
 ancestor cycles and retains dangling links as symlinks.
 
 Output is deterministic, with `/` appended to directories. `-0` and execution

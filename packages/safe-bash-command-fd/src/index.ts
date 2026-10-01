@@ -1,5 +1,5 @@
 import { parseFdArguments } from "./arguments.js";
-import { fdTemplate, formatFdPath } from "./templates.js";
+import { formatFdPath } from "./templates.js";
 import type { CommandDefinition, VirtualShellPlugin } from 'safe-bash-contracts';
 import { createFdCommandWithMatcher, type FdCommandOptions } from './command.js';
 import { createFdMatcher } from './matching.js';
@@ -150,9 +150,9 @@ export function evalSyncFd(
         let extOk = a.extensions.length === 0;
         if (!extOk) {
           const lower = entry.name.toLowerCase();
-          extOk = a.extensions.some(ext => lower.endsWith(`.${ext.toLowerCase()}`));
+          extOk = a.extensions.some(ext => lower.length > ext.length + 1 && lower.endsWith(`.${ext.toLowerCase()}`));
         }
-        const subject = a.fullPath ? childRel : entry.name;
+        const subject = a.fullPath ? (a.absolute ? childAbs : childRel) : entry.name;
         if (depthOk && typeOk && sizeOk && extOk && matchFns.every(fn => fn(subject))) {
           let disp = a.absolute ? childAbs : (a.stripCwdPrefix ? childRel.replace(/^\.\//u, "") : childRel);
           if (a.pathSeparator !== undefined) disp = disp.split("/").join(a.pathSeparator);

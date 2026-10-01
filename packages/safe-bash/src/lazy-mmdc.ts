@@ -1,8 +1,8 @@
 import { createLazyCommandLoader, createLazyCommands, lazyCommandPlugin } from "./plugins/lazy-command.js";
 import { snapshotMmdcSettings } from "safe-bash-command-mmdc/settings";
 
-type MmdcModule = typeof import("./commands/mmdc/index.js");
-const loadMmdc = createLazyCommandLoader(() => import("./commands/mmdc/index.js"));
+type MmdcModule = typeof import("./commands/mmdc/registration.js");
+const loadMmdc = createLazyCommandLoader(() => import("./commands/mmdc/registration.js"));
 const metadata = [{ name: "mmdc", description: "Render Mermaid diagrams to SVG or PNG" }] as const;
 
 export const createMmdcCommands: MmdcModule["createMmdcCommands"] = (settings) => {
@@ -27,4 +27,4 @@ export const mmdcCommands: MmdcModule["mmdcCommands"] = (settings = {}) => {
   return Object.freeze(Object.assign([...commands], lazyCommandPlugin("mmdc-commands", commands, settings.replace ?? false)));
 };
 
-export type { MmdcSettings, MmdcCommandsOptions } from "./commands/mmdc/index.js";
+export type { MmdcSettings, MmdcCommandsOptions } from "./commands/mmdc/registration.js";

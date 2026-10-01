@@ -6,7 +6,6 @@ import { layoutMermaidSteps } from "./layout.js";
 import { rasterizeSceneSteps } from "./raster.js";
 import { encodeRgbaToPngSteps } from "./png.js";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
-import { PdfDocument } from "@poe-code/pdf-ast";
 import { mergeSourceConfig } from "./scanner.js";
 import {
   commandRuntimeIdentity,
@@ -72,29 +71,6 @@ export interface MmdcResult {
   readonly exitCode: 0 | 1 | 2;
   readonly error?: MermaidError | FsError | undefined;
   readonly accounting: MermaidAccounting;
-}
-
-export interface MermaidPdfResult {
-  readonly pdf: Uint8Array;
-  readonly width: number;
-  readonly height: number;
-  readonly family: MermaidSvgResult["family"];
-  readonly accounting: MermaidAccounting;
-}
-
-export function* renderMermaidPdfSteps(source: string, options?: MermaidPngRenderOptions): Generator<void, MermaidPdfResult, void> {
-  const { scene, budget, renderOptions } = yield* prepareSceneSteps(source, options);
-  const raster = yield* rasterizeSceneSteps(scene, { scale: renderOptions?.scale ?? 1, budget });
-  const png = yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height, budget, "intermediate");
-  budget.check();
-  const document = PdfDocument.create();
-  const width = scene.width * 0.75, height = scene.height * 0.75;
-  const page = document.addPage([width, height]);
-  page.drawImage(document.embedPng(png), { x: 0, y: 0, width, height });
-  const pdf = document.save();
-  budget.chargeMemoryBytes(pdf.byteLength);
-  budget.chargeOutputBytes(pdf.byteLength);
-  return { pdf, width, height, family: scene.family, accounting: budget.snapshot() };
 }
 
 export type MmdcPlugin = VirtualShellPlugin & readonly CommandDefinition[];
@@ -289,7 +265,7 @@ function resolveRenderOptions(options?: MermaidPngRenderOptions, sourceConfig?: 
   };
 }
 
-function* prepareSceneSteps(source: string, options?: MermaidPngRenderOptions) {
+export function* prepareSceneSteps(source: string, options?: MermaidPngRenderOptions) {
   yield;
   const hostCeiling = options?.settings?.limits
     ? admitMermaidLimits(options?.settings.limits, defaultMermaidLimits)
@@ -683,7 +659,7 @@ export async function runMmdc(
       signal.throwIfAborted();
       budget.check();
       outputBytes = parsedArgs.outputFormat === "pdf"
-        ? (await runWork(renderMermaidPdfSteps(sourceText, renderOptions), signal)).pdf
+        ? (await runWork((await import("./pdf.js")).renderMermaidPdfSteps(sourceText, renderOptions), signal)).pdf
         : (await renderMermaidPngAsync(sourceText, renderOptions)).png;
     }
 
@@ -787,8 +763,4 @@ export async function renderMermaidPngAsync(source: string, options?: MermaidPng
 
 export async function renderMermaidSvgAsync(source: string, options?: MermaidRenderOptions): Promise<MermaidSvgResult> {
   return await runWork(renderMermaidSvgSteps(source, options), options?.signal);
-}
-
-export function renderMermaidPdf(source: string, options?: MermaidPngRenderOptions): MermaidPdfResult {
-  return drainWork(renderMermaidPdfSteps(source, options));
 }

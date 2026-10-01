@@ -55,8 +55,6 @@ export {
   createMmdcCommand,
   mmdcCommand,
   mmdcCommands,
-  renderMermaidPdf,
-  type MermaidPdfResult,
   renderMermaidPng,
   renderMermaidPngAsync,
   renderMermaidSvg,
@@ -77,5 +75,5 @@ export { measureLineWidth, measureTextBlock, normalizeLabelText } from "./text.j
 export { darkThemeTokens, lightThemeTokens, parseCssColor, resolveMermaidTheme } from "./theme.js";
 
 export { createMmdcCommands, type MmdcCommandsOptions } from "./command.js";
-
 export type { MermaidLimits as MmdcLimits } from "./contracts.js";
+export { renderMermaidPdf, type MermaidPdfResult } from "./pdf.js";

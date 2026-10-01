@@ -6,7 +6,7 @@ import { csvgrepCommands } from '../../src/commands/csvgrep/index.js';
 
 test('csvcut to csvgrep independent multiline and authority controls', async (t) => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(csvcutCommands()).use(csvgrepCommands());
+  const shell = new Shell({ fs }).use(agentCommands()).use(csvcutCommands({ replace: true })).use(csvgrepCommands({ replace: true }));
   t.after(() => shell.dispose());
   const fetch = t.mock.method(globalThis, 'fetch', () => { throw new Error('network forbidden'); });
   const input = new TextEncoder().encode('id,note,extra\n1,"a\nb",x\n2,no,y\n3,a,z\nshort\n');

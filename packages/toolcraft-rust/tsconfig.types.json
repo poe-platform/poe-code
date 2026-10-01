@@ -12,6 +12,7 @@
   },
   "include": [
     "tests/types.ts",
-    "tests/definition-types.ts"
+    "tests/definition-types.ts",
+    "tests/approval-types.ts"
   ]
 }

@@ -53,7 +53,7 @@ modules; do not treat a matching export name as behavior parity.
 | `./schema`                                                                       | toolcraft-schema-rust                                                    | Complete DSL/compiler/reference suite                                       |
 | `./mcp`, `./mcp-proxy`                                                           | mcp-protocol-rust, tiny-stdio-mcp-server-rust, tiny-mcp-client-rust      | Native transport and in-memory reference suites                             |
 | `./http`, `./http/hosted-oauth`                                                  | tiny-http-mcp-server-rust, mcp-oauth-server-rust, mcp-oauth-rust         | HTTP/OAuth integration and injection suites                                 |
-| `./human-in-loop`                                                                | agent-human-in-loop (Rust implementation still required), task-list-rust | Sync/async approval, cancellation, replay                                   |
+| `./human-in-loop`                                                                | agent-human-in-loop-rust, task-list-rust | Sync/async approval, cancellation, replay                                   |
 | `./design`, `./design/*`, `./design/render-markdown-plaintext`, `./file-changes` | toolcraft-design-rust                                                    | Every concrete subpath, reference suites and screenshots                    |
 | `./agent-defs`                                                                   | agent-defs-rust                                                          | Export/type and behavior parity                                             |
 | `./agent-mcp-config`                                                             | agent-mcp-config-rust, config-mutations-rust                             | Config formats, deep merges, injected filesystem                            |
@@ -410,6 +410,28 @@ package lint. Ad hoc screenshots verify list/detail/empty rendering with the
 caller's existing table primitives; this does not qualify a native table renderer.
 The platform-provider dependency, full public approval subpath, CLI/transports,
 standalone types and complete swap qualification remain required.
+
+The provider dependency now has an additive `@poe-code/agent-human-in-loop-rust`
+package with all three runtime exports and standalone structural declarations.
+Rust owns request/result admission, response parsing, script selection, mock-result
+cloning and process-error policy. Node retains process execution, promises,
+callback receivers, property reads and JavaScript string operations. Its 40
+reference/parity and six native tests cover exact script snapshots, line endings,
+lone surrogates, inherited fields, changing getters, arbitrary exceptions and
+process rejection/settlement. Rust lint and bidirectional declaration checks pass.
+
+The public `toolcraft-rust/human-in-loop` entrypoint now exports the runtime,
+provider, gate, state machine and decline error. Native platform policy preserves
+lazy construction, fallback diagnostics and per-module provider caching. Original
+default-provider tests run against the native adapter; public-import tests compose
+the native SDK, approval runtime and task store through memfs. The checkpoint
+passes 1,562 reference/parity tests and 115 native Node tests plus declarations
+and package lint. Its generic declarations still borrow the reference contract.
+Both implementations currently fail to infer an unannotated parameter in a
+human-in-loop message callback; explicit callback parameter types work. This
+shared generic limitation needs a coordinated fix, not a native-only signature.
+CLI, transports, complete design dependencies, standalone Toolcraft contracts,
+cross-package error identity and platform/resource qualification remain open.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

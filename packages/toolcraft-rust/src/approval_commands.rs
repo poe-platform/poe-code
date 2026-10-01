@@ -7,6 +7,17 @@ pub fn run<H: Host>(
     args: &[H::Value],
 ) -> Result<H::Value, H::Error> {
     match (operation, args) {
+        ("defaultProvider", [cached]) => {
+            if !host.is_undefined(*cached)? {
+                return Ok(*cached);
+            }
+            let platform = host.call("platform", vec![])?;
+            if host.is_kind(platform, "darwin")? {
+                host.call("osascript", vec![])
+            } else {
+                host.call("noProvider", vec![])
+            }
+        }
         ("merge", [root]) => {
             let existing = host.call("findExisting", vec![*root])?;
             if !host.is_undefined(existing)? {

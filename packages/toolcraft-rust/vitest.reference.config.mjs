@@ -28,6 +28,8 @@ export default defineConfig({
           if (resolved === path("../toolcraft/src/human-in-loop/runner.js")) return path("dist/approval-runner.js");
           if (resolved === path("../toolcraft/src/human-in-loop/approvals-commands.js")) return path("dist/approval-commands.js");
           if (resolved === path("../toolcraft/src/human-in-loop/runtime.js")) return path("dist/approval-runtime.js");
+          if (resolved === path("../toolcraft/src/human-in-loop/index.js")) return path("dist/human-in-loop.js");
+          if (resolved === path("../toolcraft/src/human-in-loop/default-provider.js")) return path("dist/approval-default-provider.js");
           if (resolved === path("../toolcraft/src/human-in-loop/spawn.js")) return path("dist/approval-spawn.js");
           if (resolved === path("../toolcraft/src/human-in-loop/types.js")) return path("dist/approval-error.js");
         }
@@ -35,6 +37,8 @@ export default defineConfig({
           return path("../toolcraft-schema-rust/dist/index.js");
         if (importer?.startsWith(path("../toolcraft/src/human-in-loop/")) && name === "@poe-code/task-list")
           return path("../task-list-rust/dist/index.js");
+        if (importer?.startsWith(path("../toolcraft/src/human-in-loop/")) && name === "@poe-code/agent-human-in-loop")
+          return path("../agent-human-in-loop-rust/dist/index.js");
         if (importer === path("../toolcraft/src/mcp-proxy.test.ts")) {
           if (name === "tiny-mcp-client") return path("../tiny-mcp-client-rust/dist/index.js");
           if (name === "toolcraft-design") return path("../toolcraft-design-rust/dist/index.js");
@@ -84,6 +88,7 @@ export default defineConfig({
       path("../toolcraft/src/human-in-loop/gate.test.ts"),
       path("../toolcraft/src/human-in-loop/runner.test.ts"),
       path("../toolcraft/src/human-in-loop/approvals-commands.test.ts"),
+      path("../toolcraft/src/human-in-loop/default-provider.test.ts"),
       path("../toolcraft/src/human-in-loop/spawn.test.ts"),
       path("../toolcraft/src/runtime/io.test.ts"),
       path("../toolcraft/src/api-error-summary.test.ts"),

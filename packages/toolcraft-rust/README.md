@@ -28,7 +28,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Approval plans   | Canonical traversal, JSON admission, cycle rejection and hash verification         |
 | Approval execution | Native gate continuations, persisted tasks, cancellation and detached runner launch |
 | Queued approvals | Native claim/execute transitions, stored-plan checks and recorded handler outcomes |
-| Approval commands | Internal list/show/run commands, state filters, render records and runtime factory |
+| Approval runtime | `toolcraft-rust/human-in-loop`: providers, list/show/run, state filters and runtime factory |
 | HTTP summaries   | REST/GraphQL errors, request IDs, retry hints and redacted error envelopes         |
 | Error reports    | Secret-aware rendering, cause chains, project discovery and confined report writes |
 | Schema conversion | JSON-schema projections, recursive references, composition and upstream metadata |
@@ -58,6 +58,15 @@ const app = defineGroup({ name: "app", children: [greet], default: greet });
 // Create a typed SDK with the same command and parameter inference.
 const { createSDK } = await import("toolcraft-rust/sdk");
 await createSDK(app).greet({ name: "World" });
+```
+
+Use a human approval provider with the SDK:
+
+```ts
+import { createHumanInLoop, osascriptProvider } from "toolcraft-rust/human-in-loop";
+
+const humanInLoop = createHumanInLoop({ provider: osascriptProvider() });
+// Pass { humanInLoop } when creating the SDK for commands with humanInLoop config.
 ```
 
 Show a source location with surrounding lines:
@@ -136,11 +145,13 @@ failure handling preserves the reference's catch boundaries and promise timing.
 Approval built-ins now use native admission, deduplication, missing-error and
 render-record policies. The runtime factory copies options and connects the native
 gate and built-ins. Node retains async iteration, rendering callbacks and text/JSON
-operations. Platform providers still need porting before the complete
-`human-in-loop` entrypoint is available; table primitives remain caller supplied.
+operations. The public `human-in-loop` entrypoint now uses
+`@poe-code/agent-human-in-loop-rust` for macOS provider rules and preserves lazy
+per-module default-provider selection. Node executes the generated AppleScript;
+table primitives remain caller supplied.
 Deep graph resource limits still require compatibility qualification before a swap.
 
-The CLI, transports, approval runtime and
+The CLI, transports and
 remaining subpaths are not yet available. Declarations currently use the existing
 schema/design/config contract types; standalone type packaging and generic
 stream-factory interchangeability remain pending. The migration and replacement

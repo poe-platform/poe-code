@@ -8,6 +8,15 @@ import { run, shell } from "./helpers.js";
 
 const paddingProfile = JSON.parse(readFileSync(new URL("./padding-evolution/profile-deltas.json", import.meta.url), "utf8")) as { behavior: { stdout: string } };
 
+for (const text of ["👩‍💻", "\u200b\u200c\u200d\u200e\u200f", "\u2060\u2061\u2062\u2063\u2064\u2065\u2066\u2067\u2068\u2069\u206a\u206b\u206c\u206d\u206e\u206f", "\ufeff"]) {
+  test(`column preserves zero-width format characters: ${JSON.stringify(text)}`, async () => {
+    const result = await run(["-t"], `${text} x\nabcd y\n`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${text}${" ".repeat(text === "👩‍💻" ? 2 : 6)}x\nabcd  y\n`);
+  });
+}
+
 test("JSON table output matches the reported bytes through a VFS file", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", Buffer.from("a 1\n"));

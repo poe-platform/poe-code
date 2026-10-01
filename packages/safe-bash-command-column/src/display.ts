@@ -11,7 +11,9 @@ export function widthOf(point: number): number {
   if ((point >= 0x0300 && point <= 0x036f) || (point >= 0x1ab0 && point <= 0x1aff)
     || (point >= 0x1dc0 && point <= 0x1dff) || (point >= 0x20d0 && point <= 0x20ff)
     || (point >= 0xfe00 && point <= 0xfe0f) || (point >= 0xfe20 && point <= 0xfe2f)
-    || (point >= 0xe0100 && point <= 0xe01ef)) return 0;
+    || (point >= 0xe0100 && point <= 0xe01ef)
+    || (point >= 0x200b && point <= 0x200f) || (point >= 0x2060 && point <= 0x206f)
+    || point === 0xfeff) return 0;
   if ((point >= 0x1100 && point <= 0x115f) || point === 0x2329 || point === 0x232a
     || (point >= 0x2e80 && point <= 0xa4cf) || (point >= 0xac00 && point <= 0xd7a3)
     || (point >= 0xf900 && point <= 0xfaff) || (point >= 0xfe10 && point <= 0xfe19)
@@ -24,8 +26,8 @@ export function widthOf(point: number): number {
 export function validateScalar(character: string, allowTab = false): void {
   const point = character.codePointAt(0)!;
   if ((point < 0x20 && !(allowTab && point === 9)) || (point >= 0x7f && point <= 0x9f)
-    || (point >= 0xd800 && point <= 0xdfff) || (point >= 0x200b && point <= 0x200f)
-    || (point >= 0x2028 && point <= 0x202e) || (point >= 0x2060 && point <= 0x206f) || point === 0xfeff) {
+    || (point >= 0xd800 && point <= 0xdfff)
+    || (point >= 0x2028 && point <= 0x202e)) {
     throw new FsError("EINVAL", { message: `unsupported control or non-scalar U+${point.toString(16).toUpperCase().padStart(4, "0")}` });
   }
 }

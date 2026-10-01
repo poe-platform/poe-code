@@ -71,3 +71,17 @@ test("public mmdc factories validate options and retain the array plugin contrac
     await shell.dispose();
   }
 });
+
+
+test("default public yq accepts attached YAML and TOML format flags", async () => {
+  const { Shell, yqCommands } = await import("../../src/core.js");
+  const { createMemoryFileSystem } = await import("../../src/fs/memory/index.js");
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(yqCommands());
+  try {
+    for (const [format, input] of [["yaml", "name: Alpha\n"], ["toml", 'name = "Alpha"\n']]) {
+      const result = await shell.exec(`yq -p=${format} -o=json .`, { stdin: input });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(JSON.parse(result.stdout), { name: "Alpha" });
+    }
+  } finally { await shell.dispose(); }
+});

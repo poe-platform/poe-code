@@ -163,12 +163,12 @@ with optional exponents; arithmetic uses IEEE-754 doubles.
 | Separators | `FS=" "` splits on space, tab, and newline, preserving carriage returns, vertical tabs, and form feeds within fields; single-byte literal FS, empty FS byte fields, or ERE FS; single-byte `RS` and empty-RS paragraph mode; `OFS`, `ORS`. |
 | Expressions | Arithmetic `+ - * / % ^`, unary signs, prefix/postfix increment/decrement, assignments and compound assignments, concatenation, comparisons, `~`/`!~`, short-circuit `&&`/`||`, `!`, ternary expressions, parentheses. |
 | Control flow | Blocks, `if`/`else`, `while`, `do`/`while`, classic `for`, `for (key in array)`, `break`, `continue`, `next`, `nextfile`, `exit [status]`; `END` still runs after exit. |
-| Arrays | Associative indexing, comma-separated multidimensional keys via `SUBSEP`, `in` and `(a,b) in array`, element/whole-array `delete`; iteration uses insertion order and does not promise a host awk's unspecified traversal order. |
+| Arrays | Associative indexing, comma-separated multidimensional keys via `SUBSEP`, `in` and `(a,b) in array`, element/whole-array `delete`; `asort(source[, destination])` and `asorti(source[, destination])` produce ascending values or keys at indexes 1 through N. Iteration uses insertion order and does not promise a host awk's unspecified traversal order. |
 | Functions | Named functions, recursion, scalar arguments by value, arrays by reference, `return`, and omitted parameters as locals; array parameter roles are inferred before execution. |
-| Output | `print`, `printf`, `sprintf`, `OFMT`, `CONVFMT`; virtual-file `>`/`>>` and `close(path)`. The first open chooses truncate/append; subsequent writes append until close. |
+| Output | `print`, `printf`, `sprintf`, `OFMT`, `CONVFMT`; virtual-file `>`/`>>` and `close(path)`. The first open chooses truncate/append; subsequent writes append until close. `print ... \| command` and `command \| getline [target]` run registered commands through the virtual shell, with streaming backpressure and invocation cleanup; `close(command)` permits reopening. Direct command hosts must supply `context.invoke`. |
 | Explicit file input | `getline [variable/field/array] < expression` returns 1/0/-1 for record/EOF/I/O error. It respects RS, leaves NR/FNR unchanged, and resplits fields only when replacing `$0`. File cursors persist until `close(path)` or invocation cleanup; `maxGetlineFiles`, when supplied, bounds the number retained. `"-"` reads stdin; `"./-"` names a literal VFS file. |
 | Arguments/environment | Mutable `ARGC`, `ARGV`, and `ENVIRON` initialized only from the command context. Clearing/deleting ARGV entries skips files. ENVIRON changes do not mutate the parent context. |
-| String and regex functions | `length`, `substr`, `index`, `split`, `match` with `RSTART`/`RLENGTH`, `sub`, `gsub`, `tolower`, `toupper`. Substitution supports `&` and escaped literals; decoded `\1`…`\9` remain literal backslash+digit, not capture references. After string decoding, replacement `\&` and `\\` produce literal ampersands and backslashes (POSIX rules); other backslashes remain literal, so `"\\n"` inserts backslash+n rather than a newline. |
+| String and regex functions | `length`, `substr`, `index`, `split`, `match` with `RSTART`/`RLENGTH`, `sub`, `gsub`, `gensub`, `tolower`, `toupper`. `gensub(regex, replacement, how[, target])` returns a new string, supports capture references `\0`…`\9`, and selects an occurrence or all matches with `"g"`. In `sub`/`gsub`, decoded `\1`…`\9` remain literal backslash+digit; replacement `\&` and `\\` produce literal ampersands and backslashes, and other backslashes remain literal. |
 | Math functions | `int`, `sqrt`, `exp`, `log`, `sin`, `cos`, `atan2`; invalid/nonfinite results and division by zero are errors. `rand()` returns a value in `[0,1)`; `srand([seed])` resets the invocation's generator and returns the previous seed. The initial seed is 1; omitting the seed uses the current time in seconds. Equal seeds repeat the sequence; sequences need not match a host awk. |
 
 Numeric strings from fields, input assignments, and array keys retain their
@@ -217,10 +217,15 @@ execution treats these markers as literal byte strings, without locale translati
 containing one `run` (`r`) and `quit` (`q`); interactive debugging, breakpoints,
 stepping, and other debugger commands are refused explicitly.
 
-Known awk gaps: unredirected/main-input `getline`, command pipes/coprocesses, `system`, `fflush`,
-time functions, regex/multibyte `RS`, locale/Unicode character semantics,
+`systime()`, `strftime([format[, timestamp[, utc]]])`, and `mktime(spec[, utc])`
+use epoch seconds and the virtual `TZ` (UTC by default). Bitwise functions
+`and`, `or`, `xor`, `compl`, `lshift`, and `rshift` use unsigned 64-bit operations
+with GNU awk's representable-double result conversion.
+
+Known awk gaps: coprocesses, `system`, `fflush`, custom array sort comparators,
+regex/multibyte `RS`, locale/Unicode character semantics,
 hexadecimal literals, arbitrary-precision arithmetic, and GNU extensions such
-as `gensub`, `patsplit`, `asort`, nested arrays, and special variable behavior
+as `patsplit`, nested arrays, and special variable behavior
 for `FPAT`, `FIELDWIDTHS`, `IGNORECASE`, or `PROCINFO`. Unknown special-variable
 names are ordinary user variables; they do not activate unsupported behavior.
 Unknown functions/operators are errors, never passed to a host interpreter.

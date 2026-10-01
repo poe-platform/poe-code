@@ -12,6 +12,9 @@ import { shellValueByteLength } from "safe-bash-contracts/value";
 import { decodeBytes,encodeBytes,latin1Bytes,latin1Text } from "safe-bash-io-engine/byte-encoding";
 import { Budget,ProgramError,byteString,bytes,input,virtualPath,write } from "safe-bash-io-engine/commands/text-programs/shared";
 import { Pattern,substitute } from "safe-bash-regex-engine/text/regex";
+import { TimeZone, nanosecondsPerSecond } from "safe-bash-calendar-engine/time-env/calendar";
+import { formatDate } from "safe-bash-calendar-engine/time-env/format";
+import { AwkPipes } from "./awk-pipes.js";
 const textDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
 
 function textSize(value: Value | undefined): number {
@@ -70,7 +73,7 @@ const AWK_ARGV0: Scalar = Object.freeze({ kind: "string", text: "awk" });
 
 function hasMainGetline(node: unknown): boolean {
   if (!node || typeof node !== "object") return false;
-  if ((node as { kind?: string; file?: unknown }).kind === "getline" && !(node as { file?: unknown }).file) return true;
+  if ((node as { kind?: string }).kind === "getline" && !(node as { file?: unknown }).file && !(node as { pipe?: unknown }).pipe) return true;
   return Object.values(node).some(child => Array.isArray(child) ? child.some(hasMainGetline) : hasMainGetline(child));
 }
 
@@ -105,6 +108,7 @@ export class AwkRuntime {
   private regexes: Map<string, Pattern> | undefined;
   private outputs: Set<string> | undefined;
   private inputs: Map<string, Reader> | undefined;
+  private pipes: AwkPipes | undefined;
   private environInitialized = false;
   private mainReader: Reader | undefined;
   private argument = 1;
@@ -1096,6 +1100,14 @@ export class AwkRuntime {
   }
 
   private async getline(expression: Extract<Expression, { kind: "getline" }>): Promise<Scalar> {
+    if (expression.pipe) {
+      const command = textDecoder.decode(latin1Bytes(this.asText(await this.scalarExpression(expression.pipe))));
+      const record = await (this.pipes ??= new AwkPipes(this.context, this.budget, this.retention)).read(command, this.varText("RS"));
+      if (record === undefined) return numeric(0);
+      if (expression.target) await (await this.reference(expression.target)).set(inputValue(record));
+      else await this.setRecord(record);
+      return numeric(1);
+    }
     if (!expression.file) {
       const record = await this.readMainRecord();
       if (record === undefined) return numeric(0);
@@ -1182,6 +1194,49 @@ export class AwkRuntime {
       const value = args[0] ? await this.evaluate(args[0]) : string(this.record);
       return numeric(value instanceof AwkArray ? value.entries.size : this.asText(value).length);
     }
+    if (name === "gensub") {
+      const pattern = await this.regex(args[0]!);
+      const rawReplacement = this.asText(await this.scalarExpression(args[1]!));
+      let replacement = "";
+      for (let index = 0; index < rawReplacement.length; index++) {
+        const character = rawReplacement[index]!;
+        if (character === "\\" && index + 1 < rawReplacement.length) {
+          const next = rawReplacement[++index]!;
+          replacement += "0123456789&\\".includes(next) ? "\\" + next : next;
+        } else replacement += character;
+      }
+      this.budget.step(rawReplacement.length);
+      const how = await this.scalarExpression(args[2]!);
+      const target = args[3] ? this.asText(await this.scalarExpression(args[3])) : this.record;
+      const global = this.asText(how).toLowerCase().startsWith("g");
+      const occurrence = Math.max(1, Math.trunc(number(how)) || 1);
+      return string((await substitute(target, pattern, replacement, this.budget, global, occurrence, "sed")).text);
+    }
+    if (name === "asort" || name === "asorti") {
+      const source = this.array((args[0] as Extract<Expression, { kind: "variable" }>).name);
+      const target = args[1] ? this.array((args[1] as Extract<Expression, { kind: "variable" }>).name) : source;
+      if (this.entries - target.entries.size + source.entries.size > (this.budget.options.maxArrayEntries ?? Infinity)) throw new ProgramError("array entry limit exceeded");
+      const values: Scalar[] = [];
+      let size = 0;
+      for (const [key, value] of source.entries) {
+        this.budget.step();
+        const item = name === "asorti" ? string(key) : scalar(value);
+        size += String(values.length + 1).length + textSize(item);
+        values.push(item);
+      }
+      const allocation = this.arrays.get(target)!;
+      const sorted = this.retention.replace(allocation.bytes, size, () => values.sort((left, right) => {
+        this.budget.step();
+        if (left.kind === "string" && right.kind !== "string") return 1;
+        if (right.kind === "string" && left.kind !== "string") return -1;
+        return compare(left, right, this.varText("CONVFMT"), this.budget);
+      }).map(ownScalar));
+      this.entries += sorted.length - target.entries.size;
+      target.entries.clear();
+      for (let index = 0; index < sorted.length; index++) target.entries.set(String(index + 1), sorted[index]!);
+      allocation.bytes = size;
+      return numeric(sorted.length);
+    }
     if (name === "sub" || name === "gsub") {
       const pattern = await this.regex(args[0]!);
       const replacement = this.asText(await this.scalarExpression(args[1]!));
@@ -1221,6 +1276,59 @@ export class AwkRuntime {
     const values: Scalar[] = [];
     for (const argument of args) values.push(await this.scalarExpression(argument));
     const first = values[0] ?? unset;
+    if (name === "systime") return numeric(Math.floor(Date.now() / 1000));
+    if (name === "strftime" || name === "mktime") {
+      const utc = number(values[name === "strftime" ? 2 : 1] ?? unset) !== 0;
+      const zone = new TimeZone(utc ? "UTC" : this.context.env.TZ ?? "UTC");
+      if (name === "strftime") {
+        const timestamp = values[1] ? Math.trunc(number(values[1])) : Math.floor(Date.now() / 1000);
+        if (!Number.isFinite(timestamp)) throw new ProgramError("invalid strftime timestamp");
+        const format = values.length ? this.asText(first) : "%a %b %e %H:%M:%S %Z %Y";
+        this.budget.step(format.length);
+        return string(this.budget.check(formatDate(format, BigInt(timestamp) * nanosecondsPerSecond, zone, {
+          maxArguments: Infinity, maxArgumentBytes: Infinity, maxEnvironmentEntries: Infinity,
+          maxOutputBytes: this.budget.maxBufferBytes + 1, maxFormatWidth: this.budget.maxBufferBytes,
+        }).slice(0, -1)));
+      }
+      const fields = this.asText(first).trim().split(/\s+/u);
+      if (fields.length < 6 || fields.length > 7 || fields.some(field => !/^[+-]?\d+$/u.test(field))) return numeric(-1);
+      const parts = fields.map(Number);
+      const date = new Date(0);
+      date.setUTCFullYear(parts[0]!, parts[1]! - 1, parts[2]!);
+      date.setUTCHours(parts[3]!, parts[4]!, parts[5]!, 0);
+      if (!Number.isFinite(date.getTime())) return numeric(-1);
+      try {
+        const wall = BigInt(date.getTime()) * 1000000n;
+        const offsets = [-183, -2, 0, 2, 183].map(days => zone.fields(wall + BigInt(days * 86400) * nanosecondsPerSecond).offset);
+        const daylight = parts[6] ?? -1;
+        let offset = daylight > 0 ? Math.max(...offsets) : Math.min(...offsets);
+        if (daylight < 0) {
+          for (const candidate of [...new Set(offsets)].sort((a, b) => b - a)) {
+            const observed = zone.fields(wall - BigInt(candidate) * nanosecondsPerSecond);
+            if (observed.year === date.getUTCFullYear() && observed.month === date.getUTCMonth() + 1 && observed.day === date.getUTCDate() && observed.hour === date.getUTCHours() && observed.minute === date.getUTCMinutes() && observed.second === date.getUTCSeconds()) { offset = candidate; break; }
+          }
+        }
+        return numeric(date.getTime() / 1000 - offset);
+      } catch { return numeric(-1); }
+    }
+    if (["and", "or", "xor", "compl", "lshift", "rshift"].includes(name)) {
+      const operands = values.map(value => {
+        const operand = number(value);
+        if (!Number.isFinite(operand) || operand < 0) throw new ProgramError(`invalid argument in '${name}'`);
+        return BigInt.asUintN(64, BigInt(Math.trunc(operand)));
+      });
+      let result = operands[0]!;
+      if (name === "compl") result = ~result;
+      else if (name === "lshift" || name === "rshift") {
+        const shift = operands[1]!;
+        result = shift >= 64n ? 0n : name === "lshift" ? result << shift : result >> shift;
+      } else for (const operand of operands.slice(1)) result = name === "and" ? result & operand : name === "or" ? result | operand : result ^ operand;
+      result = BigInt.asUintN(64, result);
+      // GNU awk drops leading bits until the unsigned result is exactly
+      // representable as a double, rather than rounding the integer.
+      for (let bit = 63n; BigInt(Number(result)) !== result; bit--) result &= ~(1n << bit);
+      return numeric(Number(result));
+    }
     if (name === "srand") {
       const previous = this.randomSeed;
       this.randomSeed = values.length ? Math.trunc(number(first)) : Math.floor(Date.now() / 1000);
@@ -1248,6 +1356,8 @@ export class AwkRuntime {
     if (name === "tolower") return string(this.asText(first).replace(/[A-Z]/gu, character => character.toLowerCase()));
     if (name === "toupper") return string(this.asText(first).replace(/[a-z]/gu, character => character.toUpperCase()));
     if (name === "close") {
+      const pipeStatus = await this.pipes?.close(textDecoder.decode(latin1Bytes(this.asText(first))));
+      if (pipeStatus !== undefined) return numeric(pipeStatus);
       const path = virtualPath(this.context, textDecoder.decode(latin1Bytes(this.asText(first))));
       const reader = this.inputs?.get(path);
       this.inputs?.delete(path);
@@ -1463,6 +1573,11 @@ export class AwkRuntime {
           return;
         }
         const destination = textDecoder.decode(latin1Bytes(this.asText(await this.scalarExpression(statement.redirect.destination))));
+        if (statement.redirect.pipe) {
+          if (this.stdoutBuffer.length > 0) await this.flushStdout();
+          await (this.pipes ??= new AwkPipes(this.context, this.budget, this.retention)).write(destination, output);
+          return;
+        }
         if (destination === "/dev/stdout") {
           this.stdoutBuffer += output;
           if (this.stdoutBuffer.length >= 16384) await this.flushStdout();
@@ -1648,6 +1763,8 @@ export class AwkRuntime {
       await this.inspection?.publish(this.variables);
     }
     catch (error) { failed = true; failure = error; }
+    try { await this.pipes?.closeAll(failed); }
+    catch (error) { if (!failed) { failed = true; failure = error; } }
     if (this.stdoutBuffer.length > 0) {
       try { await this.flushStdout(); }
       catch (error) { if (!failed) { failed = true; failure = error; } }

@@ -2,6 +2,11 @@
 
 Run `awk` against an injected virtual filesystem with portable byte streams.
 
+Transform text with `gensub`, sort arrays with `asort` and `asorti`, format epoch
+timestamps with `strftime` and `mktime`, and use GNU-style bitwise functions.
+Command pipes (`command | getline` and `print ... | command`) run through the
+virtual shell, with bounded streams and `close(command)` support.
+
 ```ts
 import { createAwkCommand, awkCommands } from "@poe-platform/safe-bash/commands/awk";
 

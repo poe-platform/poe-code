@@ -1471,6 +1471,7 @@
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {
+            "safe-bash-calendar-engine": "*",
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
             "safe-bash-io-engine": "*",

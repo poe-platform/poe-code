@@ -16,6 +16,7 @@ test("sed and awk execute without a global Buffer", async () => {
       ["awk '{print $2, $1}'", "hello world\n", "world hello\n"],
       ["sed 'h;s/world/earth/;G' /input", "", "héllo earth\nhéllo world\n"],
       ["awk '{print $2, $1}' /input", "", "world héllo\n"],
+      ["awk 'BEGIN { print gensub(/(a)/,\"\\\\1X\",\"g\",\"a\"), and(7,3), strftime(\"%Y\",0,1); a[1]=2;a[2]=1;asort(a);print a[1],a[2] }'", "", "aX 3 1970\n1 2\n"],
       ["sed -i.bak 's/world/earth/' /input", "", ""],
     ] as const) {
       const result = await shell.exec(command, { stdin });

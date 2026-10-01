@@ -26,6 +26,8 @@ test("portable overlay command regressions remain in active discovery", () => {
 
 test("portable text program regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/text-programs/awk-builtins.test.ts"));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/text-programs/awk-pipes.test.ts"));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/text-programs/portable-inplace.test.ts"));
 });
 

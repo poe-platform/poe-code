@@ -25,7 +25,7 @@ export function prettyAwk(program: AwkProgram, budget: Budget): string {
       case "unary": emit("("); if (!node.postfix) emit(node.operator); expression(node.operand); if (node.postfix) emit(node.operator); emit(")"); return;
       case "binary": emit("("); expression(node.left); emit(` ${node.operator} `); expression(node.right); emit(")"); return;
       case "conditional": emit("("); expression(node.condition); emit(" ? "); expression(node.yes); emit(" : "); expression(node.no); emit(")"); return;
-      case "getline": emit("(getline "); if (node.target) { expression(node.target); emit(" "); } if (node.file) { emit("< "); expression(node.file); } emit(")"); return;
+      case "getline": emit("("); if (node.pipe) { expression(node.pipe); emit(" | "); } emit("getline "); if (node.target) { expression(node.target); emit(" "); } if (node.file) { emit("< "); expression(node.file); } emit(")"); return;
       case "call": emit(`${node.name}(`); list(node.args); emit(")"); return;
     }
   };
@@ -41,7 +41,7 @@ export function prettyAwk(program: AwkProgram, budget: Budget): string {
     switch (node.kind) {
       case "block": emit("{\n"); for (const child of node.body) statement(child, depth + 1); emit(`${indent}}\n`); return;
       case "expression": expression(node.expression); break;
-      case "print": emit(node.formatted ? "printf " : "print "); list(node.args); if (node.redirect) { emit(node.redirect.append ? " >> " : " > "); expression(node.redirect.destination); } break;
+      case "print": emit(node.formatted ? "printf " : "print "); list(node.args); if (node.redirect) { emit(node.redirect.pipe ? " | " : node.redirect.append ? " >> " : " > "); expression(node.redirect.destination); } break;
       case "flow": emit(node.flow); if (node.value) { emit(" "); expression(node.value); } break;
       case "delete": emit("delete "); expression(node.target); break;
       case "if": emit("if ("); expression(node.condition); emit(")\n"); controlled(node.yes, depth); if (node.no) { emit(`${indent}else\n`); controlled(node.no, depth); } return;

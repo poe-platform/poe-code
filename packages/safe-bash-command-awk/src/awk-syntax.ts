@@ -9,11 +9,11 @@ export type Expression = { kind: "number"; value: number } | { kind: "string"; v
   | { kind: "unary"; operator: string; operand: Expression; postfix: boolean }
   | { kind: "binary"; operator: string; left: Expression; right: Expression }
   | { kind: "conditional"; condition: Expression; yes: Expression; no: Expression }
-  | { kind: "getline"; target?: Expression; file?: Expression }
+  | { kind: "getline"; target?: Expression; file?: Expression; pipe?: Expression }
   | { kind: "call"; name: string; args: Expression[] };
 
 export type Statement = { kind: "block"; body: Statement[] } | { kind: "expression"; expression: Expression }
-  | { kind: "print"; formatted: boolean; args: Expression[]; redirect?: { append: boolean; destination: Expression } }
+  | { kind: "print"; formatted: boolean; args: Expression[]; redirect?: { append: boolean; destination: Expression; pipe?: boolean } }
   | { kind: "if"; condition: Expression; yes: Statement; no?: Statement }
   | { kind: "while"; condition: Expression; body: Statement }
   | { kind: "do"; condition: Expression; body: Statement }
@@ -121,6 +121,9 @@ export const builtinArities: Readonly<Record<string, readonly [number, number]>>
   sub: [2, 3], gsub: [2, 3], sprintf: [1, Infinity], tolower: [1, 1], toupper: [1, 1],
   int: [1, 1], sqrt: [1, 1], exp: [1, 1], log: [1, 1], sin: [1, 1], cos: [1, 1], atan2: [2, 2], close: [1, 1],
   rand: [0, 0], srand: [0, 1],
+  gensub: [3, 4], systime: [0, 0], strftime: [0, 3], mktime: [1, 2],
+  asort: [1, 2], asorti: [1, 2], and: [2, Infinity], or: [2, Infinity], xor: [2, Infinity],
+  lshift: [2, 2], rshift: [2, 2], compl: [1, 1],
 };
 
 const reserved = new Set(["BEGIN", "END", "function", "if", "else", "while", "do", "for", "break", "continue", "next", "nextfile", "return", "exit", "delete", "print", "printf", "getline", "in"]);
@@ -196,6 +199,7 @@ export class AwkParser {
       if (!arity) throw new ProgramError(`unsupported function '${call.expression.name}'`);
       if (call.expression.args.length < arity[0]! || call.expression.args.length > arity[1]!) throw new ProgramError(`invalid argument count for '${call.expression.name}'`);
       if (call.expression.name === "split" && call.expression.args[1]?.kind !== "variable") throw new ProgramError("split requires an array variable as its second argument");
+      if ((call.expression.name === "asort" || call.expression.name === "asorti") && call.expression.args.some(arg => arg.kind !== "variable")) throw new ProgramError("asort/asorti requires array variables");
       if ((call.expression.name === "sub" || call.expression.name === "gsub") && call.expression.args[2] && !isLvalue(call.expression.args[2])) throw new ProgramError("sub/gsub target must be assignable");
       if (call.expression.name === "sprintf" && call.expression.args[0]?.kind === "string") validateFormat(call.expression.args[0].value);
     }
@@ -283,7 +287,7 @@ export class AwkParser {
     if (this.at("print") || this.at("printf")) {
       const formatted = this.advance().text === "printf";
       const args: Expression[] = [];
-      if (![";", "\n", "}", ">", ">>"].some(token => this.at(token)) && this.token.kind !== "end") {
+      if (![";", "\n", "}", ">", ">>", "|"].some(token => this.at(token)) && this.token.kind !== "end") {
         do { args.push(this.expression(0, true)); } while (this.accept(",") && (this.newlines(), true));
       }
       if (args.length === 1 && args[0]?.kind === "tuple") args.splice(0, 1, ...args[0].items);
@@ -291,7 +295,7 @@ export class AwkParser {
       if (formatted && args[0]?.kind === "string") validateFormat(args[0].value);
       let redirect: Extract<Statement, { kind: "print" }>["redirect"];
       if (this.at(">") || this.at(">>")) { const append = this.advance().text === ">>"; redirect = { append, destination: this.expression() }; }
-      if (this.at("|")) throw new ProgramError("command pipes are not supported in awk");
+      if (this.accept("|")) redirect = { append: false, pipe: true, destination: this.expression() };
       return { kind: "print", formatted, args, ...(redirect ? { redirect } : {}) };
     }
     return { kind: "expression", expression: this.expression() };
@@ -310,6 +314,13 @@ export class AwkParser {
         left = { kind: "conditional", condition: left, yes, no }; continue;
       }
       if (print && (token === ">" || token === ">>" || token === "|")) break;
+      if (token === "|" && minimum <= 7) {
+        this.advance();
+        if (!this.at("getline")) throw new ProgramError("expected getline after command pipe");
+        const read = this.prefix();
+        if (read.kind !== "getline" || read.file) throw new ProgramError("invalid command pipe getline");
+        left = { ...read, pipe: left }; continue;
+      }
       const precedence = Object.hasOwn(precedences, token) ? precedences[token] : undefined;
       if (precedence !== undefined) {
         if (precedence < minimum) break;
@@ -369,6 +380,7 @@ export class AwkParser {
         const expression: Extract<Expression, { kind: "call" }> = { kind: "call", name, args };
         this.calls.push({ expression, owner: this.currentFunction });
         if (name === "split" && args[1]?.kind === "variable") this.arrays.add(args[1].name);
+        if (name === "asort" || name === "asorti") for (const arg of args) if (arg.kind === "variable") this.arrays.add(arg.name);
         return expression;
       }
       if (name !== "length" && Object.hasOwn(this.arities, name)) throw new ProgramError(`reserved variable '${name}'`);

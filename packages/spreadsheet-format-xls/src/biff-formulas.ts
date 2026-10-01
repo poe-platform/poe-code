@@ -124,6 +124,8 @@ export function translateBiffFormula(bytes: Uint8Array, context: BiffFormulaCont
   };
   while (offset < bytes.length) {
     const raw = data.u8(offset++), token = raw >= 0x20 ? (raw & 0x1f) | 0x20 : raw;
+    // MS-XLS SharedParsedFormula excludes ELF tokens, including radical labels.
+    if (context.shared && token === 0x18) invalidBiff("ELF label in shared formula");
     if (binaryOperators[token]) {
       const [operator, precedence] = binaryOperators[token]!, right = pop(), left = pop();
       push(protect(left, precedence) + operator + protect(right, precedence + (token === 4 || token === 6 || token === 7 ? 1 : 0)), precedence);

@@ -110,7 +110,7 @@ it("rejects malformed or geometrically invalid radical records", () => {
     expect(() => translateBiffFormula(Uint8Array.from([...prefix, ...tail]), formulaContext)).toThrow("radical label");
 });
 
-it("returns REF for a missed explicit scalar intersection but keeps single-cell data position independent", () => {
+it("returns REF for a missed explicit scalar intersection including single-cell data", () => {
   const book = (formula: string) => ({ sheets: [{ id: "S", name: "S", cells: [
     { row: 0, column: 0, value: { kind: "string" as const, value: "Sales" } },
     { row: 0, column: 1, value: { kind: "number" as const, value: 2 } },
@@ -118,7 +118,8 @@ it("returns REF for a missed explicit scalar intersection but keeps single-cell 
   ] }] });
   const value = (formula: string) => recalculateWorkbook(book(formula), context, true).sheets[0]!.cells.find(cell => cell.formula)!.value;
   expect(value("=@range:$A$1->$B$1:$D$1")).toEqual({ kind: "error", value: "#REF!" });
-  expect(value("=@range:$A$1->$B$1:$B$1")).toEqual({ kind: "number", value: 2 });
+  expect(value("=@range:$A$1->$B$1:$B$1")).toEqual({ kind: "error", value: "#REF!" });
+  expect(value("=SUM(@range:$A$1->$B$1:$B$1)")).toEqual({ kind: "number", value: 2 });
 });
 
 it("tracks the explicit area without dirtying it for unrelated data edits", () => {
@@ -137,4 +138,57 @@ it("tracks the explicit area without dirtying it for unrelated data edits", () =
   const dirty = dirtyWorkbook(edited, [{ sheet: "S", startRow: 0, endRow: 0, startColumn: 1, endColumn: 1 }], context);
   expect(recalculateWorkbook(dirty, context, { force: false, queueVolatile: false }).sheets[0]!.cells.find(cell => cell.formula)!.value)
     .toEqual({ kind: "number", value: 10 });
+});
+
+for (const axis of ["row", "column"] as const) for (const after of [false, true]) {
+  it(`intersects a single-cell ${axis} radical with its anchor-defined axis (after=${after})`, () => {
+    const anchor = after ? "$C$3" : "$A$1";
+    const data = axis === "row" ? (after ? "$B$3:$B$3" : "$B$1:$B$1") : (after ? "$C$2:$C$2" : "$A$2:$A$2");
+    for (const intersects of [false, true]) {
+      const row = axis === "column" && intersects ? 1 : 9;
+      const column = axis === "row" && intersects ? 1 : 9;
+      const book = { sheets: [{ id: "S", name: "S", cells: [
+        { row: axis === "row" ? (after ? 2 : 0) : 1, column: axis === "row" ? 1 : (after ? 2 : 0), value: { kind: "number" as const, value: 7 } },
+        { row, column, formula: `=@range:${anchor}->${data}`, value: { kind: "blank" as const } }
+      ] }] };
+      expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[1]!.value)
+        .toEqual(intersects ? { kind: "number", value: 7 } : { kind: "error", value: "#REF!" });
+    }
+  });
+}
+
+it("rejects a copied radical whose relative area no longer adjoins its fixed anchor", () => {
+  const position = { sheet: "S", row: 9, column: 0 };
+  const parsed = parseExpression("=SUM(@range:$A$1->A2:A4)", { position });
+  if (!parsed.ok) throw new Error(parsed.diagnostic.message);
+  const formula = rewriteReferences(parsed.document, { position: { ...position, column: 2 }, translation: "copy" });
+  const book = { sheets: [{ id: "S", name: "S", cells: [
+    { row: 1, column: 2, value: { kind: "number" as const, value: 7 } },
+    { row: 9, column: 2, formula, value: { kind: "blank" as const } }
+  ] }] };
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[1]!.value).toEqual({ kind: "error", value: "#REF!" });
+});
+
+it("rejects ELF tokens forbidden by MS-XLS SharedParsedFormula", () => {
+  for (const flags of [0, 0x8000]) {
+    const tokens = Uint8Array.from([24, 10, ...words(0, flags), 0x25, ...words(1, 3, flags, flags)]);
+    expect(() => translateBiffFormula(tokens, { ...formulaContext, shared: true })).toThrow("shared formula");
+    expect(() => translateBiffFormula(tokens, formulaContext)).not.toThrow();
+  }
+});
+
+it("rejects radical SHRFMLA groups before cached members can be round-tripped", async () => {
+  const tokens = [24, 10, ...words(0, 0x8000), 0x25, ...words(1, 3, 0xc000, 0xc000)];
+  const cell = (column: number) => {
+    const header = new Uint8Array(22), view = new DataView(header.buffer);
+    view.setUint16(0, 9, true); view.setUint16(2, column, true);
+    view.setFloat64(6, 999, true); view.setUint16(20, 5, true);
+    return record(6, [...header, 1, ...words(9, 1)]);
+  };
+  const bytes = Uint8Array.from([
+    ...record(0x809, [0, 6, 16, 0]), ...cell(1),
+    ...record(0x4bc, [...words(9, 9), 1, 2, 0, 2, ...words(tokens.length), ...tokens]),
+    ...cell(2), ...record(10, [])
+  ]);
+  await expect(readBiff(bytes, context)).rejects.toThrow("shared formula");
 });

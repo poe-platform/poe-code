@@ -38,9 +38,13 @@ export function resolveLabelReference(book: Workbook, node: Extract<FormulaNode,
       const coordinate = value && value.value + (value.relative ? position[axis] : 0);
       if (coordinate === undefined || coordinate < 0 || coordinate >= (axis === "row" ? size.rows : size.columns)) return error("#REF!");
     }
-    if (range.firstRow !== range.lastRow && range.firstColumn !== range.lastColumn) return error("#REF!");
-    if (!label.scalar || range.firstRow === range.lastRow && range.firstColumn === range.lastColumn) return { kind: "range", ...range };
-    if (range.firstRow === range.lastRow) return position.column < range.firstColumn || position.column > range.lastColumn ? error("#REF!") :
+    const rowLabel = range.firstRow === range.lastRow && row === range.firstRow &&
+      (column === range.firstColumn - 1 || column === range.lastColumn + 1);
+    const columnLabel = range.firstColumn === range.lastColumn && column === range.firstColumn &&
+      (row === range.firstRow - 1 || row === range.lastRow + 1);
+    if (rowLabel === columnLabel || label.preceding && !columnLabel) return error("#REF!");
+    if (!label.scalar) return { kind: "range", ...range };
+    if (rowLabel) return position.column < range.firstColumn || position.column > range.lastColumn ? error("#REF!") :
       { kind: "range", ...range, firstColumn: position.column, lastColumn: position.column };
     return position.row < range.firstRow || position.row > range.lastRow ? error("#REF!") :
       { kind: "range", ...range, firstRow: position.row, lastRow: position.row };

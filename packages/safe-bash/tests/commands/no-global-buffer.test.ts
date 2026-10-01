@@ -23,7 +23,13 @@ const cases: readonly [string, string, number?, string?][] = [
   ['stat', 'stat /in.txt'], ['mktemp', 'mktemp /tmp.XXXXXX'],
   ['nl', 'nl /in.txt'], ['seq', 'seq -w 1 3'], ['tac', 'tac /in.txt'],
   ['date', 'date -u +%Y'], ['printenv', 'FOO=bar printenv FOO'],
-  ['join', 'join /in.txt /in.txt'],
+  ['uniq', 'uniq /in.txt', 0, 'hello\nworld\n'],
+  ['comm', 'comm /in.txt /in.txt', 0, '\t\thello\n\t\tworld\n'],
+  ['join', 'join /in.txt /in.txt', 0, 'hello\nworld\n'],
+  ['paste', 'paste /in.txt /in.txt', 0, 'hello\thello\nworld\tworld\n'],
+  ['expand', 'expand /in.txt', 0, 'hello\nworld\n'],
+  ['fold', 'fold -w 3 /in.txt', 0, 'hel\nlo\nwor\nld\n'],
+  ['strings', 'strings /in.txt', 0, 'hello\nworld\n'],
   ['mapfile', 'mapfile -t arr < /in.txt; echo "${arr[0]}"'],
   ['read', `printf 'hello\\nworld\\n' | { read a; read b; echo "$a:$b"; }`],
   ['trap', `trap 'echo hi' EXIT; trap -p`],
@@ -45,6 +51,7 @@ for (const [name, script, exitCode = 0, stdout] of cases) test(`${name} works wi
   try {
     Reflect.deleteProperty(globalThis, 'Buffer');
     const result = await shell.exec(script);
+    assert.equal(globalThis.Buffer, undefined);
     assert.equal(result.stderr, '', `${name}: ${result.stderr}`);
     assert.equal(result.exitCode, exitCode, name);
     if (stdout !== undefined) assert.equal(result.stdout, stdout, name);

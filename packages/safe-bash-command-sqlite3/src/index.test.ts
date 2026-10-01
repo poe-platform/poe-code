@@ -895,3 +895,45 @@ for (const limits of [undefined, { maxInputBytes: Infinity, maxOutputBytes: Infi
     assert.equal(rows.stdout, "1\n".repeat(100_001));
   });
 }
+
+// Expected results checked against /usr/bin/sqlite3 3.43.2.
+for (const [label, sql, expected] of [
+  ["REAL arithmetic and aggregates", "SELECT 5.0 / 2, 10.0 / 4, CAST(5 AS REAL) / 2, 1.0 + 2.0, TOTAL(NULL), 5 / 2;", "2.5|2.5|2.5|3.0|0.0|2\n"],
+  ["NULL boolean truth tables", "WITH t(x) AS (VALUES(NULL),(0),(1)) SELECT a.x AND b.x, a.x OR b.x FROM t a CROSS JOIN t b;", "|\n0|\n|1\n0|\n0|0\n0|1\n|1\n0|1\n1|1\n"],
+  ["NULL BETWEEN comparisons", "SELECT 5 BETWEEN NULL AND 3, 5 NOT BETWEEN NULL AND 3, 5 NOT BETWEEN 6 AND NULL, 5 BETWEEN NULL AND 6, 5 NOT BETWEEN 3 AND NULL, NULL BETWEEN 1 AND 2;", "0|1|1|||\n"],
+  ["NULL BETWEEN filtering", "WITH t(x) AS (VALUES(2),(5),(7)) SELECT x FROM t WHERE x NOT BETWEEN NULL AND 3;", "5\n7\n"],
+  ["substring zero and out-of-range starts", "SELECT SUBSTR('abcdef',0,3), SUBSTR('abcdef',0,1), SUBSTR('abcdef',0,0), SUBSTR('abcdef',0,-3), SUBSTR('abcdef',0), SUBSTR('abcdef',-9,5), SUBSTR('abcdef',3,-2), SUBSTR('😀abc',0,3);", "ab||||abcdef|ab|ab|😀a\n"]
+] as const) {
+  test(`sqlite3 native semantics in both execution paths: ${label}`, async () => {
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:", sql]);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(evalSyncSqlite3(undefined, [":memory:", sql]), expected);
+  });
+}
+
+for (const [name, pattern, matches] of [
+  ["a[b_c", "a[b_c", true], ["a[b]_c", "a[b]_c", true],
+  ["a(b_c", "a(b_c", true], ["a\\b_c", "a\\b_c", true],
+  ["abc_def", "abc_def", true], ["abc_def", "%bc_d%", true],
+  ["abc_def", "bc_d", false], ["abc_def", "bc", false],
+  ["abc_def", "abc*", false], ["ABC_def", "abc%", true]
+] as const) {
+  test(`sqlite3 .tables uses literal SQL LIKE patterns: ${name}, ${pattern}`, async () => {
+    const script = `CREATE TABLE "${name}"(id INT);\n.tables ${pattern}\n`;
+    const expected = matches ? `${name}\n` : "";
+    const result = await runSqlite3(createMemoryFileSystem(), [":memory:"], script);
+    assert.equal(result.code, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(evalSyncSqlite3(new TextEncoder().encode(script), [":memory:"]), expected);
+  });
+}
+
+test("sqlite3 preserves REAL storage after reopening", async () => {
+  const fs = createMemoryFileSystem();
+  const result = await runSqlite3(fs, ["/real.db", "CREATE TABLE t(x REAL); INSERT INTO t VALUES (5); SELECT x, x / 2, typeof(x) FROM t;"]);
+  assert.equal(result.code, 0, result.stderr);
+  assert.equal(result.stdout, "5.0|2.5|real\n");
+  const reopened = await runSqlite3(fs, ["/real.db", "SELECT x, x / 2, typeof(x) FROM t;"]);
+  assert.deepEqual(reopened, { code: 0, stdout: result.stdout, stderr: "" });
+});

@@ -11,7 +11,7 @@ import {
 } from "safe-bash-contracts";
 import {
   SqliteDatabase, serializeSqlJson,
-  matchGlob,
+  matchGlob, matchLike,
   splitSqlStatements,
   toSqlString,
   type QueryResultSet,
@@ -1069,11 +1069,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           names = (res?.rows ?? []).map((r) => String(r[0] ?? ""));
         }
         const filtered = pattern
-          ? names.filter((n) =>
-              pattern.includes("%") || pattern.includes("_")
-                ? new RegExp(`^${pattern.replace(/%/g, ".*").replace(/_/g, ".")}$`, "i").test(n)
-                : matchGlob(n.toLowerCase(), pattern.toLowerCase()) || n.toLowerCase().includes(pattern.toLowerCase())
-            )
+          ? names.filter((n) => matchLike(n, pattern, true))
           : names;
         if (filtered.length > 0) {
           const maxLen = Math.max(...filtered.map((s) => s.length));
@@ -1759,11 +1755,7 @@ export function evalSyncSqlite3(
           .filter((n) => !n.toLowerCase().startsWith("sqlite_"))
           .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
         const filtered = pattern
-          ? names.filter((n) =>
-              pattern.includes("%") || pattern.includes("_")
-                ? new RegExp(`^${pattern.replace(/%/g, ".*").replace(/_/g, ".")}$`, "i").test(n)
-                : matchGlob(n.toLowerCase(), pattern.toLowerCase()) || n.toLowerCase().includes(pattern.toLowerCase())
-            )
+          ? names.filter((n) => matchLike(n, pattern, true))
           : names;
         if (filtered.length > 0) {
           const maxLen = Math.max(...filtered.map((s) => s.length));

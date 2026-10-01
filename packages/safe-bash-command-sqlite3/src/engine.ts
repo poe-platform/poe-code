@@ -1184,7 +1184,7 @@ function sqlEquals(a: SqlValue, b: SqlValue, collation = "BINARY"): boolean | nu
   return compareSqlValues(a, b, collation) === 0;
 }
 
-function matchLike(str: string, pattern: string, caseInsensitive: boolean, escapeChar = ""): boolean {
+export function matchLike(str: string, pattern: string, caseInsensitive: boolean, escapeChar = ""): boolean {
   let regexStr = "^";
   for (let i = 0; i < pattern.length; i += 1) {
     const c = pattern[i]!;
@@ -6044,11 +6044,13 @@ export class SqliteDatabase {
         const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
         const lo = yield* this.evalExprSteps(expr.low, row, positionalParams, cteScope, evaluation);
         const hi = yield* this.evalExprSteps(expr.high, row, positionalParams, cteScope, evaluation);
-        if (v === null || lo === null || hi === null) {
-          return null;
-        }
-        const inside = compareSqlValues(v, lo) >= 0 && compareSqlValues(v, hi) <= 0;
-        return (expr.not ? !inside : inside) ? 1 : 0;
+        // BETWEEN is (v >= lo) AND (v <= hi): false dominates NULL.
+        const lower = v === null || lo === null ? null : compareSqlValues(v, lo) >= 0;
+        const upper = v === null || hi === null ? null : compareSqlValues(v, hi) <= 0;
+        const inside = lower === false || upper === false
+          ? false
+          : lower === null || upper === null ? null : true;
+        return inside === null ? null : (expr.not ? !inside : inside) ? 1 : 0;
       }
       case "in_list": {
         const v = yield* this.evalExprSteps(expr.expr, row, positionalParams, cteScope, evaluation);
@@ -6422,7 +6424,7 @@ export class SqliteDatabase {
         const s = toSqlString(a0);
         const chars = Array.from(s);
         const pos = Math.trunc(toSqlNumber(a1));
-        const len =
+        let len =
           args[2] !== undefined && args[2] !== null
             ? Math.trunc(toSqlNumber(args[2]))
             : chars.length;
@@ -6433,6 +6435,8 @@ export class SqliteDatabase {
           startIdx = chars.length + pos;
         } else {
           startIdx = 0;
+          // Position zero consumes one character before the string begins.
+          if (args[2] !== undefined && args[2] !== null && len > 0) len -= 1;
         }
         if (len < 0) {
           const endIdx = Math.max(0, startIdx);

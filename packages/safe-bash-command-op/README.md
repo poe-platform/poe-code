@@ -37,8 +37,9 @@ there is no native CLI fallback or implicit host credential discovery.
 The unconditional allow policy is only a simple synthetic example; use a
 restrictive policy for sensitive operations.
 
-`opCommands(options = {}): VirtualShellPlugin` and
-`createOpCommand(options): CommandDefinition` are exported alongside
+`opCommands(options = {}): VirtualShellPlugin`,
+`createOpCommands(options = {}): readonly CommandDefinition[]`, and
+`createOpCommand(options = {}): CommandDefinition` are exported alongside
 `createObjectBackend` from the same plugin subpath. Here `createOpCommand`
 is the fully composed shell adapter. The standalone workspace entry point uses
 the same adapter: it bridges VFS input/output relative to the shell cwd and
@@ -132,12 +133,13 @@ No output or credentials are implicitly logged by this example.
 
 ### Command configuration
 
-`createOp(options)` composes built-in handlers. `createOpCommand(options)` is
-the lower-level dispatcher; it does not compose all those handlers for you.
+`createOp(options = {})` composes built-in handlers for direct SDK execution.
+`createOpCommand(options = {})` uses the same handlers and adds the virtual-shell
+adapter. Both create an empty object backend when `backend` is omitted.
 
 | Option | Meaning |
 | --- | --- |
-| `backend` | Required `OpBackend`; `execute(request, context)` returns a promise of the result. |
+| `backend` | Optional `OpBackend`; defaults to a fresh empty object backend. `execute(request, context)` returns a promise of the result. |
 | `authorize` | Returns `allow`, `deny` or `ask`, synchronously or asynchronously. Omitted means direct allow, not default deny. |
 | `approvalMode` | `resolved` by default for `ask`; explicit `literal` opts into legacy selector-only approval. |
 | `authorizeResolution` | Grants metadata/input preparation for resolved `ask`; not execution approval. |

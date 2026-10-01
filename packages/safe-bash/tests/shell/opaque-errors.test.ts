@@ -297,7 +297,7 @@ test("RED stream producer failures are sanitized without dropping earlier output
   assert.equal(result.stderr, "cat: internal error\n");
 });
 
-for (const stage of ["createBudget", "makeFsModule", "run"] as const) {
+for (const stage of ["createBudget", "makeFsModule"] as const) {
   test(`RED optional SafeJS host ${stage} rejection is opaque`, async context => {
     const runtime = {
       createBudget() { return {}; },
@@ -567,10 +567,10 @@ test("HOST callback-triggered cancellation keeps caller falsey reason over callb
   assert.deepEqual(seen, [failure]);
 });
 
-for (const stage of ["createBudget", "makeFsModule", "run"] as const) {
+for (const stage of ["createBudget", "makeFsModule"] as const) {
   test(`HOST SafeJS ${stage} keeps original falsey or error identity`, async context => {
     const seen: unknown[] = [];
-    const failure = stage === "run" ? null : new TypeError(secret);
+    const failure = stage === "makeFsModule" ? null : new TypeError(secret);
     const runtime = { createBudget() { return {}; }, makeFsModule() { return { readFile() { assert.fail("eval must not read guest files"); } }; }, declareHostOperation(operation) { return operation; }, async run() { return { ok: true }; } } satisfies SafeJsRuntime<object>;
     runtime[stage] = () => { throw failure; };
     const { shell } = fixture(context, createSafeJsCommands({ runtime }), { onInternalError(reason) { seen.push(reason); } });
@@ -579,3 +579,21 @@ for (const stage of ["createBudget", "makeFsModule", "run"] as const) {
     assert.equal(result.stderr, "node: internal error\n");
   });
 }
+
+test("SafeJS run rejections expose guest diagnostics without reporting host failures", async context => {
+  for (const [failure, message] of [[new TypeError("guest failure"), "guest failure"], [null, "SafeJS execution failed"]] as const) {
+    const seen: unknown[] = [];
+    const runtime = {
+      createBudget() { return {}; },
+      makeFsModule() { return {}; },
+      declareHostOperation(operation) { return operation; },
+      async run() { throw failure; },
+    } satisfies SafeJsRuntime<object>;
+    const { shell } = fixture(context, createSafeJsCommands({ runtime }), { onInternalError(reason) { seen.push(reason); } });
+    const result = await shell.exec("node -e '1'");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, `node: ${message}\n`);
+    assert.deepEqual(seen, []);
+  }
+});

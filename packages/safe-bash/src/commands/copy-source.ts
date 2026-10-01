@@ -94,6 +94,7 @@ export async function copyCheckedSource(context: CommandContext, source: string,
         const chunk = await reading;
         if (!chunk.length) { consumed = true; return; }
         position += chunk.length;
+        context.inputBudget?.check(position);
         yield chunk;
       }
     };

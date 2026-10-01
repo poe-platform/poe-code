@@ -7,6 +7,30 @@ import { collectBytes, toByteSource, type CommandContext } from "../../src/contr
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { fileInput } from "../../src/shell/input.js";
 
+for (const command of ["cat /big", "head /big", "tail /big", "grep x /big", "sort /big", "uniq /big", "cut -c1 /big", "cp /big /copy", "cmp /big /other", "shuf /big", "printf '%0100d' 1 | numfmt"]) {
+  test(`${command} enforces the shell file input budget`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/big", new TextEncoder().encode("x".repeat(1024)));
+    await fs.writeFile("/other", new TextEncoder().encode("x".repeat(1024)));
+    const shell = new Shell({ fs, limits: { maxInputBytes: 32 } }).use(standardCommands());
+    try { await assert.rejects(shell.exec(command), error => error instanceof ShellLimitError && error.limit === "maxInputBytes"); }
+    finally { await shell.dispose(); }
+  });
+}
+
+test("cp counts successive retained reads and accepts the exact byte limit", async () => {
+  const fs = new MemoryFileSystem();
+  const bytes = new Uint8Array(65_537).fill(120);
+  await fs.writeFile("/big", bytes);
+  const shell = new Shell({ fs, limits: { maxInputBytes: bytes.length } }).use(standardCommands());
+  try {
+    assert.equal((await shell.exec("cp /big /exact")).exitCode, 0);
+    assert.deepEqual(await fs.readFile("/exact"), bytes);
+    await assert.rejects(shell.exec("cp /big /overflow", { limits: { maxInputBytes: bytes.length - 1 } }),
+      error => error instanceof ShellLimitError && error.limit === "maxInputBytes");
+  } finally { await shell.dispose(); }
+});
+
 for (const boxed of [false, true]) {
   for (const streaming of [false, undefined]) {
     test(`mounted buffered redirections: boxed=${boxed}, streaming=${streaming}`, async () => {

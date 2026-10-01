@@ -1,5 +1,5 @@
 import {
-  builtInDirectContextExecutors, commandRuntimeIdentity, createBufferedOutput, getCommandArguments, isFsError, writeBytes,
+  builtInDirectContextExecutors, commandRuntimeIdentity, createBufferedOutput, getCommandArguments, InputByteBudget, isFsError, writeBytes,
   type ByteSource, type CommandContext, type CommandDefinition,
 } from "safe-bash-contracts";
 import { openFileOutput, type FileOutput } from "./filesystem-output.js";
@@ -31,6 +31,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
     runtimeIdentity: commandRuntimeIdentity,
     description: "Write a random permutation of input records",
     async execute(context: CommandContext) {
+      const budget = new InputByteBudget(Infinity, context.inputBudget);
       let random: RandomIntegers | undefined;
       let output: FileOutput | undefined;
       let source: AsyncGenerator<Uint8Array> | undefined;
@@ -96,7 +97,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
               if (stat?.type === "file" && Number.isSafeInteger(stat.size) && stat.size >= 0) inputSize = stat.size;
               input = fileInput;
             }
-            inputSource = ownedBytes(input, inputSignal);
+            inputSource = ownedBytes(input, inputSignal, budget);
             inputSignal.throwIfAborted();
             if (closed) throw new Error("shuf input is closed");
           }
@@ -208,6 +209,7 @@ export function createShufCommand(options: ShufCommandsOptions = {}): CommandDef
         executionFailed = true;
         if (output) await output.abort(error);
         context.signal.throwIfAborted();
+        budget.assertOpen();
         inputSignal.throwIfAborted();
         if (isFsError(error) && error.code === "EPIPE" && diagnostic === "write error") return { exitCode: 141 };
         if (!(error instanceof Diagnostic) && !isFsError(error)) {

@@ -2,7 +2,7 @@ import { commandRuntimeIdentity, FsError, getCommandArguments, isFsError, type B
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { assertCommandRequirements } from "safe-bash-contracts/command-requirements";
 import { PublicDiagnostic, publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
-import { ByteInputBudget } from "safe-bash-byte-input-engine/index";
+import { InputByteBudget } from "safe-bash-contracts";
 import { registerDefaultExecutor, output, pathOf, UsageError } from "safe-bash-io-engine/internal";
 import { inputRequirements } from "safe-bash-io-engine/portable-requirements";
 import { compareCopyIdentity, compareObservedEntries } from "safe-bash-contracts/filesystem-identity";
@@ -211,7 +211,7 @@ class Cursor {
   private handleClosing: Promise<void> | undefined;
   private readonly operations = new Set<Promise<unknown>>();
 
-  constructor(readonly name: string, private readonly context: CommandContext, private readonly budget: ByteInputBudget,
+  constructor(readonly name: string, private readonly context: CommandContext, private readonly budget: InputByteBudget,
     private readonly signal: AbortSignal, private readonly chargeChunk: () => Promise<void>, private readonly blockBytes: number, private readonly limits: CmpLimits, private readonly legacy: boolean) {}
 
   async open(limit: number, skip: bigint): Promise<void> {
@@ -406,12 +406,11 @@ class Cursor {
   }
 }
 
-async function compare(context: CommandContext, parsed: CmpOptions, blockBytes: number, limits: CmpLimits, legacy: boolean, preferredBlock: boolean): Promise<number> {
+async function compare(context: CommandContext, parsed: CmpOptions, blockBytes: number, limits: CmpLimits, legacy: boolean, preferredBlock: boolean, budget: InputByteBudget): Promise<number> {
   const { names, skips, silent, verbose, printBytes } = parsed;
   const limit = parsed.limit >= maxCount ? Infinity : parsed.limit > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(parsed.limit);
   const controller = new AbortController();
   const signal = AbortSignal.any([context.signal, controller.signal]);
-  const budget = new ByteInputBudget(Infinity);
   let chunks = 0;
   const chargeChunk = async (): Promise<void> => {
     if (++chunks % 64 === 0) await yieldTurn(signal);
@@ -536,6 +535,7 @@ function buildCmpCommand(legacy: boolean, options: CmpCommandsOptions = {}): Com
   const definition: CommandDefinition = { name: "cmp", runtimeIdentity: commandRuntimeIdentity, filesystemRequirements: inputRequirements, async execute(context) {
     context.signal.throwIfAborted();
     let silent = false;
+    const budget = new InputByteBudget(Infinity, context.inputBudget);
     try {
       const parsed = parse(context, legacy);
       if (parsed.information) {
@@ -543,9 +543,10 @@ function buildCmpCommand(legacy: boolean, options: CmpCommandsOptions = {}): Com
         return { exitCode: 0 };
       }
       silent = parsed.silent;
-      return { exitCode: await compare(context, parsed, blockBytes, limits, legacy, options.comparisonBlockBytes === undefined) };
+      return { exitCode: await compare(context, parsed, blockBytes, limits, legacy, options.comparisonBlockBytes === undefined, budget) };
     } catch (error) {
       context.signal.throwIfAborted();
+      budget.assertOpen();
       if (error instanceof InvocationClosed) throw error;
       if (!silent || !(error instanceof InputError) || !error.suppressInSilent) {
         const message = !legacy && error instanceof Error ? error.message : publicDiagnosticMessage(error, context.onInternalError);

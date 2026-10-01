@@ -1179,6 +1179,7 @@ export function numfmtCommand(options: NumfmtCommandsOptions = {}): CommandDefin
             if (item.done) break;
             if (item.value.length > limits.maxSingleChunkBytes || item.value.length > limits.maxInputBytes - received) throw new PublicDiagnostic("byte command input limit exceeded");
             received += item.value.length;
+            context.inputBudget?.check(received);
             if (!item.value.length && ++empty > limits.maxEmptyChunks) throw new PublicDiagnostic("empty input chunk limit exceeded");
             const chunk = new Uint8Array(item.value);
             const sepByte = settings.separator.charCodeAt(0);

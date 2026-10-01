@@ -1,4 +1,4 @@
-import { FsError, readBytes, type ByteSource, type CommandContext, type FileReadHandle, type FileStat } from "safe-bash-contracts";
+import { FsError, readBytes, type InputByteBudget, type ByteSource, type CommandContext, type FileReadHandle, type FileStat } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { Diagnostic } from "./args.js";
 
@@ -95,7 +95,7 @@ export class FileInput {
   }
 }
 
-export function ownedBytes(source: ByteSource, signal: AbortSignal): AsyncGenerator<Uint8Array> & AsyncDisposable {
+export function ownedBytes(source: ByteSource, signal: AbortSignal, budget?: InputByteBudget): AsyncGenerator<Uint8Array> & AsyncDisposable {
   const iterator = source[Symbol.asyncIterator]();
   const controller = new AbortController();
   const readingSignal = AbortSignal.any([signal, controller.signal]);
@@ -128,6 +128,7 @@ export function ownedBytes(source: ByteSource, signal: AbortSignal): AsyncGenera
     let chunks = 0;
     try {
       for await (const chunk of readBytes(tracked, readingSignal)) {
+        budget?.charge(chunk.byteLength);
         yield chunk;
         if (++chunks % 1024 === 0) await yieldTurn(readingSignal);
       }

@@ -5,6 +5,18 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 
+const bashExecutable = process.env.SAFE_BASH_TEST_BASH ?? "/bin/bash";
+const version = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", 'printf "%s" "$BASH_VERSION"'], {
+  encoding: "utf8", timeout: 2000,
+});
+assert.ifError(version.error);
+assert.equal(version.status, 0);
+const bashMajor = Number(version.stdout.split(".")[0]);
+assert.ok(Number.isInteger(bashMajor) && bashMajor > 0, `Invalid Bash version: ${version.stdout}`);
+const nativeComparison = {
+  skip: bashMajor < 5 ? `Dynamic arithmetic comparisons require Bash 5+; ${bashExecutable} is ${version.stdout}` : false,
+};
+
 const reproduction = [
   's="0123456789abcdef"',
   'arr=(a b c d e f g h i j k l m n o p)',
@@ -119,12 +131,12 @@ for (const header of ["for i in 1 2", "for ((i=1;i<=2;i++))", "i=0; while ((i++<
 
 for (const [name, source] of cases) {
   for (const invocation of ["inline", "script"] as const) {
-    test(`dynamic arithmetic ${name}: ${invocation}`, async context => {
+    test(`dynamic arithmetic ${name}: ${invocation}`, nativeComparison, async context => {
       const fs = new MemoryFileSystem();
       const shell = new Shell({ fs });
       for (const command of basicCommands()) shell.commands.register(command);
       context.after(() => shell.dispose());
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" } });
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" } });
       assert.equal(native.status, 0, native.stderr);
       assert.equal(native.stderr, "");
       if (source === reproduction) assert.equal(native.stdout, "sub_lineno=56\narr_lineno=g\nsub_expr=89\narr_expr=j\narith_expr=19\neq0=NO\n");

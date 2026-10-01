@@ -5,6 +5,18 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { Runtime } from "../../src/shell/runtime.js";
 import { setup } from "./helpers.js";
 
+const bashExecutable = process.env.SAFE_BASH_TEST_BASH ?? "bash";
+const version = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", 'printf "%s" "$BASH_VERSION"'], {
+  encoding: "utf8", timeout: 2000,
+});
+assert.ifError(version.error);
+assert.equal(version.status, 0);
+const bashMajor = Number(version.stdout.split(".")[0]);
+assert.ok(Number.isInteger(bashMajor) && bashMajor > 0, `Invalid Bash version: ${version.stdout}`);
+const nativeComparison = {
+  skip: bashMajor < 4 ? `Associative arrays require Bash 4+; ${bashExecutable} is ${version.stdout}` : false,
+};
+
 const accumulation = `
   for ((i=0; i<20; i++)); do
     k="k_$((i % 5))"
@@ -31,9 +43,9 @@ for (const inFunction of [false, true]) {
 }
 
 for (const header of ["i=start;i<2;i++", "i=0;i<stop;i++", "i=0;i<2;i+=step", "i=0;i<2;i++"]) {
-  test(`array bindings in arithmetic headers use normal evaluation: ${header}`, async t => {
+  test(`array bindings in arithmetic headers use normal evaluation: ${header}`, nativeComparison, async t => {
     const source = `start=(0); stop=(2); step=(1); ${header === "i=0;i<2;i++" ? "i=(0);" : ""} declare -A map; for ((${header})); do map[key]=$i; done; printf '%s\\n' "\${map[key]}" "$i"`;
-    const expected = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    const expected = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
     assert.ifError(expected.error);
     const runtime = Runtime.prototype as unknown as { runSyncArithForFallback(...args: unknown[]): unknown };
     const loop = t.mock.method(runtime, "runSyncArithForFallback");
@@ -73,10 +85,10 @@ for (const [name, body] of [
   ["growing key", `map[$k]=$i; k="$k${"x".repeat(2048)}"`],
 ] as const) {
   for (const inFunction of [false, true]) {
-    test(`array loop preserves Bash effects and diagnostics: ${name}, function=${inFunction}`, async t => {
+    test(`array loop preserves Bash effects and diagnostics: ${name}, function=${inFunction}`, nativeComparison, async t => {
       const code = `declare -A map; k=abc; n=0; for ((i=0;i<3;i++)); do printf 'before:%s\\n' "$i"; ${body}; done; printf 'after:%s:%s:%s\\n' "$n" "\${map[k_2]}" "\${map[abc]}"`;
       const source = inFunction ? `f() { ${code}; }; f` : code;
-      const expected = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+      const expected = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
       assert.ifError(expected.error);
       const { shell, commands } = setup();
       for (const command of basicCommands()) commands.register(command);
@@ -88,9 +100,9 @@ for (const [name, body] of [
       if (expected.stderr.includes("bad array subscript")) assert.ok(result.stderr.includes("bad array subscript"), result.stderr);
     });
   }
-  test(`assignment-only loop declines unsupported ${name} before execution`, async t => {
+  test(`assignment-only loop declines unsupported ${name} before execution`, nativeComparison, async t => {
     const source = `declare -A map; arr=(); k=abc; n=0; for ((i=0;i<3;i++)); do arr+=("$i"); ${body}; done; printf '%s\\n' "\${arr[*]}" "$n" "\${map[$k]}"`;
-    const expected = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+    const expected = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
     assert.ifError(expected.error);
     const runtime = Runtime.prototype as unknown as { runSyncArithForFallback(...args: unknown[]): unknown };
     const loop = t.mock.method(runtime, "runSyncArithForFallback");

@@ -1,3 +1,4 @@
+import { openCommandFile } from "safe-bash-contracts/filesystem-descriptor";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import { isAbsolutePath, validatePath } from "@poe-code/safe-fs/core";
 import {
@@ -318,7 +319,12 @@ function hexDigit(byte: number): number {
   return -1;
 }
 
-async function padToAddress(context: CommandContext, start: number, address: number): Promise<void> {
+async function padToAddress(context: CommandContext, start: number, address: number, seekOutput?: (address: number) => void): Promise<void> {
+  if (seekOutput) {
+    if (!Number.isSafeInteger(address) || address < 0) throw new SeekError("Sorry, cannot seek.");
+    seekOutput(address);
+    return;
+  }
   if (!Number.isSafeInteger(address) || address < start) throw new PublicDiagnostic("invalid input: cannot seek backwards on output stream");
   while (start < address) {
     const length = Math.min(blockSize, address - start);
@@ -328,8 +334,8 @@ async function padToAddress(context: CommandContext, start: number, address: num
   }
 }
 
-async function reversePlain(context: CommandContext, files: readonly string[], maxInputBytes: number, seek: number): Promise<void> {
-  await padToAddress(context, 0, seek);
+async function reversePlain(context: CommandContext, files: readonly string[], maxInputBytes: number, seek: number, seekOutput?: (address: number) => void): Promise<void> {
+  await padToAddress(context, 0, seek, seekOutput);
   let high = -1;
   for await (const chunk of sources(context, files, maxInputBytes)) {
     const pending: number[] = [];
@@ -350,7 +356,7 @@ async function reversePlain(context: CommandContext, files: readonly string[], m
   }
 }
 
-async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number, seek: number): Promise<void> {
+async function reverseNormal(context: CommandContext, files: readonly string[], columns: number, maxInputBytes: number, seek: number, seekOutput?: (address: number) => void): Promise<void> {
   let line = "";
   let offset = 0;
   const outBuf = new Uint8Array(Math.max(8192, columns));
@@ -383,7 +389,7 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
     }
     address = addOffset(address, seek);
     await flushOut();
-    await padToAddress(context, offset, address);
+    await padToAddress(context, offset, address, seekOutput);
     offset = address;
     let count = 0;
     let high = -1;
@@ -499,7 +505,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
     });
     const parsed = parseOptions(args, "aCprdubiec:g:l:s:o:n:");
     requireOperands(parsed.operands, 0, 2);
-    if (parsed.operands[1] !== undefined && parsed.operands[1] !== "-") {
+    if (!parsed.flags.has("r") && parsed.operands[1] !== undefined && parsed.operands[1] !== "-") {
       const original = context;
       const path = pathOf(context, parsed.operands[1]);
       let started = false;
@@ -553,9 +559,32 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       throw new UsageError("reverse does not support seek, length, displacement, or decimal addresses");
     }
     if (reverse) {
-      if (plain) await reversePlain(context, files, maxInputBytes, skip);
-      else await reverseNormal(context, files, columns, maxInputBytes, skip);
-      return { exitCode: 0 };
+      const outfile = parsed.operands[1];
+      const descriptor = outfile !== undefined && outfile !== "-"
+        ? await openCommandFile(context, pathOf(context, outfile), { access: "write", creation: "ifMissing" })
+        : undefined;
+      try {
+        let position = 0;
+        let seekOutput: ((address: number) => void) | undefined;
+        if (descriptor) {
+          if (descriptor.capabilities.positionedWrite) seekOutput = address => { position = address; };
+          context = { ...context, stdout: { async write(bytes) {
+            for (let offset = 0; offset < bytes.length;) {
+              const count = await descriptor.write(bytes.subarray(offset), seekOutput ? position : null);
+              if (!Number.isSafeInteger(count) || count <= 0 || count > bytes.length - offset) {
+                throw new FsError("EIO", { syscall: "write", message: "invalid descriptor write count" });
+              }
+              position = addOffset(position, count);
+              offset += count;
+            }
+          } } };
+        }
+        if (plain) await reversePlain(context, files, maxInputBytes, skip, seekOutput);
+        else await reverseNormal(context, files, columns, maxInputBytes, skip, seekOutput);
+        return { exitCode: 0 };
+      } finally {
+        await descriptor?.close();
+      }
     }
     const input = sources(context, files, maxInputBytes);
     if (skip < 0) {

@@ -184,3 +184,10 @@ for (const combined of [true, false]) {
     assert.deepEqual(result, { exitCode: 0, stdout: " 41\n".repeat(32), stderr: "" });
   });
 }
+
+
+test("explicit infinite input limits are accepted in both option forms", () => {
+  for (const options of [{ maxInputBytes: Infinity }, { limits: { maxInputBytes: Infinity } }]) {
+    assert.doesNotThrow(() => odCommands(options));
+  }
+});

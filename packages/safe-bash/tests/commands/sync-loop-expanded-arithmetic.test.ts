@@ -67,6 +67,22 @@ for (const operator of ["#", "##", "%", "%%"]) {
 }
 
 const sources: [string, string][] = [
+  ...["unset operand", 'operand=""', 'operand="-0"'].map((setup, index): [string, string] => [
+    `${setup}; for ((i=1;i<=5;i++)); do result=$((i + operand)); done; echo "result=$result operand=[\${operand-UNSET}]"`,
+    `result=5 operand=[${["UNSET", "", "-0"][index]}]\n`,
+  ]),
+  ...["for i in {1..5}", "for ((i=1;i<=5;i++))"].map((loop): [string, string] => [
+    `unset K; E=""; Z="-0"; sum=0; ${loop}; do sum=$((sum + i + K + E + Z)); done; echo "sum=$sum K=\${K-UNSET} E=[$E] Z=[$Z]"`,
+    "sum=15 K=UNSET E=[] Z=[-0]\n",
+  ]),
+  ...["for i in {1..5}", "for ((i=1;i<=5;i++))"].map((loop): [string, string] => [
+    `f() { unset K; E=""; Z="-0"; sum=0; ${loop}; do sum=$((sum + i + K + E + Z)); done; echo "sum=$sum K=\${K-UNSET} E=[$E] Z=[$Z]"; }; f; f`,
+    "sum=15 K=UNSET E=[] Z=[-0]\nsum=15 K=UNSET E=[] Z=[-0]\n",
+  ]),
+  ...["unset bodyVar", 'bodyVar=""', 'bodyVar="-0"'].map((setup, index): [string, string] => [
+    `${setup}; for ((j=5;j<1;j++)); do bodyVar=$((bodyVar + 1)); done; echo "j=$j bodyVar=[\${bodyVar-UNSET}]"`,
+    `j=5 bodyVar=[${["UNSET", "", "-0"][index]}]\n`,
+  ]),
   ['arr=(10 20); v=arr; for i in 1 2; do (( x = $v )); done; echo "x=$x"', "x=10\n"],
   ['arr=(10 20); v=arr; for i in 1 2; do (( $v = 99 )); done; echo "${arr[0]} ${arr[1]}"', "99 20\n"],
   ['arr=(10 20); v=arr; for i in 1 2; do (( ${v} = 99 )); done; echo "${arr[0]} ${arr[1]}"', "99 20\n"],

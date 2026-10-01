@@ -13736,8 +13736,8 @@ export class Runtime {
               rawState.status = 0;
             }
             runYieldCheckpoint(this.signal);
-            for (let r = 0; r < regNames.length; r++) {
-              rawState.variables[regNames[r]!] = intToStr(sharedLoopIntRegs[r]!);
+            for (const name of touchedIntNamesList) {
+              rawState.variables[name] = intToStr(sharedLoopIntRegs[regNames.indexOf(name)]!);
             }
             regNames.length = 0;
             if (hasDeferredSteps && lastInductionInt !== undefined) lastInductionVal = intToStr(lastInductionInt);

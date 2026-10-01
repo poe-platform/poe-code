@@ -15,7 +15,7 @@ export function createNodePathModule<Budget>(runtime: SafeJsRuntime<Budget>, cwd
     return normalized.length > 1 && normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
   };
   const path: SafeJsModule = {
-    ...Object.fromEntries(Object.entries(posixPath).map(([name, operation]) => [name, runtime.declareHostOperation(operation, "read-side-effect")])),
+    ...Object.fromEntries(Object.entries(posixPath).map(([name, operation]) => [name, typeof operation === "function" ? runtime.declareHostOperation(operation, "read-side-effect") : operation])),
     normalize: runtime.declareHostOperation((value: string) => {
       if (typeof value !== "string") throw new TypeError("path must be a string");
       return posixPath.join(value);

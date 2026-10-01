@@ -1,0 +1,16 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+import { createNodePathModule } from "../../src/commands/node/path.js";
+import type { SafeJsRuntime } from "../../src/commands/safejs/types.js";
+
+test("path constants are not declared as host operations", () => {
+  const runtime = {
+    declareHostOperation(operation) {
+      assert.equal(typeof operation, "function");
+      return operation;
+    },
+  } as SafeJsRuntime<unknown>;
+  const module = createNodePathModule(runtime, "/work");
+  assert.equal(module.sep, "/");
+  assert.equal(module.delimiter, ":");
+});

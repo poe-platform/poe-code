@@ -348,22 +348,17 @@ class AsyncResponse(_Response):
         return response
 
     def __aiter__(self):
-        async def chunks():
-            if self._done:
-                for chunk in self._chunks:
-                    yield chunk
-                return
+        if self._done:
+            self._replay = iter(self._chunks)
+        return self
+
+    async def __anext__(self):
+        if self._done:
             try:
-                while True:
-                    try:
-                        chunk = await self._next()
-                    except StopAsyncIteration:
-                        return
-                    yield chunk
-            finally:
-                if not self._done:
-                    await self.aclose()
-        return chunks()
+                return next(getattr(self, "_replay", iter(())))
+            except StopIteration:
+                raise StopAsyncIteration from None
+        return await self._next()
 
     async def text(self):
         if not self._done:

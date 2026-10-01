@@ -14,7 +14,8 @@ for chunk in llm.get_model("your-model").prompt("Explain gravity"):
 ```
 
 `llm.get_async_model(...).prompt(...)` returns an asynchronous response:
-use `await response.text()` or `async for chunk in response`. Prompts are lazy,
+use `await response.text()` or `async for chunk in response`. The response itself is
+an async iterator, so `await anext(response)` advances it directly. Prompts are lazy,
 completed responses replay their chunks without another provider call, and
 `on_done` callbacks run on completion. The synchronous API suspends internally;
 callers do not import Pyodide or manage a client. Prompt fragments use

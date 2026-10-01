@@ -116,6 +116,18 @@ assert timed.token_usage() == '1,000 input, 2 output, {"cached": 0}'
 timed.set_resolved_model("resolved")
 assert timed.resolved_model == "resolved"
 async def check_awaitable():
+ direct = async_model.prompt("direct-next")
+ assert direct.__aiter__() is direct
+ assert await direct.__anext__() == "hel"
+ assert await direct.text() == "hello"
+ assert direct.__aiter__() is direct
+ assert await direct.__anext__() == "hel"
+ assert await direct.__anext__() == "lo"
+ try:
+  await direct.__anext__()
+  raise AssertionError("exhausted response yielded a chunk")
+ except StopAsyncIteration:
+  pass
  pending = async_model.prompt("awaited")
  try:
   pending.text_or_raise()
@@ -276,6 +288,15 @@ async def check():
   pass
  await response.aclose()
  assert closed == ["early", "error", "cancel"]
+ response = async_model.prompt("async-early")
+ assert await response.__anext__() == "first"
+ await response.aclose()
+ assert closed == ["early", "error", "cancel", "async-early"]
+ try:
+  await response.__anext__()
+  raise AssertionError("exhausted response yielded a chunk")
+ except StopAsyncIteration:
+  pass
 asyncio.run(check())
 `;
   const globals = new Map<string, unknown>();

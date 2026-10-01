@@ -329,6 +329,8 @@ def expected_bytes(offset, count):
 
 async def qualify_libraries():
  reference_response = llm.get_async_model('fake').prompt('reference-async')
+ assert aiter(reference_response) is reference_response
+ assert await anext(reference_response) == 'reference-async'
  assert await reference_response is reference_response
  assert reference_response.text_or_raise() == 'reference-async'
  assert await reference_response.duration_ms() >= 0

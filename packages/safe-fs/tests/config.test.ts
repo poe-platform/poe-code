@@ -157,6 +157,8 @@ describe("filesystem configuration", () => {
 
   it.each([
     { maxFileBytes: 8 },
+    { maxFileBytes: Infinity, maxRetainedBytes: Infinity, maxMetadataUnits: Infinity, maxBytes: Infinity },
+    { maxFileBytes: undefined, maxRetainedBytes: undefined, maxMetadataUnits: undefined, maxBytes: undefined },
     { maxFileBytes: 16, maxRetainedBytes: 64, maxMetadataUnits: 8 },
     { maxFileBytes: 0, maxRetainedBytes: 0, maxMetadataUnits: 1 }
   ])("passes validated Memory limits to its factory: %j", async (options) => {
@@ -167,11 +169,11 @@ describe("filesystem configuration", () => {
     expect(factories.real).not.toHaveBeenCalled();
   });
 
-  it.each(["maxFileBytes", "maxRetainedBytes", "maxMetadataUnits"])(
+  it.each(["maxFileBytes", "maxRetainedBytes", "maxMetadataUnits", "maxBytes"])(
     "rejects invalid %s before factory effects",
     async (name) => {
       const registry = new Map([["memory", createMemoryFileSystemAdapter(factories.memory)]]);
-      for (const value of [undefined, null, -1, 1.5, NaN, Infinity, Number.MAX_SAFE_INTEGER + 1, "8"]) {
+      for (const value of [null, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1, "8"]) {
         await expect(createFileSystem({ type: "memory", options: { [name]: value } }, { registry })).rejects.toThrow();
       }
       expect(factories.memory).not.toHaveBeenCalled();

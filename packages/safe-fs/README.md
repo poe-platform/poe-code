@@ -252,7 +252,7 @@ There are no package environment variables, implicit credentials, or automatic `
 
 | API | Options and defaults |
 | --- | --- |
-| `createFileSystem(config, { registry })` | Required `config.type`; `config.options` defaults to an empty record. `registry` is required. Built-in `memory` accepts optional file, retained-byte, metadata and total-byte quotas; built-in `real` requires `root`. |
+| `createFileSystem(config, { registry })` | Required `config.type`; `config.options` defaults to an empty record. `registry` is required. Built-in `memory` accepts optional file, retained-byte, metadata and total-byte quotas (omitted, `undefined`, or `Infinity` disables each quota); built-in `real` requires `root`. |
 | `createNodeFileSystemAdapterRegistry(extensions?)` | Optional map of additional adapter descriptors; defaults to only `memory` and `real`. |
 | Memory / read-only | Memory accepts independent optional `maxFileBytes`, `maxRetainedBytes`, `maxMetadataUnits` and `maxBytes` quotas, all unlimited by default. Read-only takes the backing filesystem, without an options object. |
 | Real | Required `root`: existing absolute host directory; the constructor/factory also accepts the root string directly. |

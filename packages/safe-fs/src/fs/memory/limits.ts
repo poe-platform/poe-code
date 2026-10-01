@@ -7,7 +7,9 @@ export interface MemoryFileSystemLimits {
   readonly maxMetadataUnits: number;
 }
 
-export type MemoryFileSystemOptions = Partial<MemoryFileSystemLimits>;
+export type MemoryFileSystemOptions = {
+  readonly [Key in keyof MemoryFileSystemLimits]?: MemoryFileSystemLimits[Key] | undefined;
+};
 
 export const defaultMemoryFileSystemLimits: Readonly<MemoryFileSystemLimits> = Object.freeze({
   maxFileBytes: Infinity,
@@ -19,17 +21,11 @@ export function normalizeMemoryFileSystemLimits(options: unknown): Readonly<Memo
   const keys = ["maxFileBytes", "maxRetainedBytes", "maxMetadataUnits"] as const;
   const record = readConfigRecord(options, "memory option", [...keys, "maxBytes"]);
   const limits: { -readonly [Key in keyof MemoryFileSystemLimits]: MemoryFileSystemLimits[Key] } = { ...defaultMemoryFileSystemLimits };
-  if (Object.hasOwn(record, "maxBytes") && record.maxBytes !== undefined) {
-    if (typeof record.maxBytes !== "number" || !Number.isSafeInteger(record.maxBytes) || record.maxBytes < 0) {
-      throw new RangeError("maxBytes must be a nonnegative safe integer");
-    }
-    limits.maxBytes = record.maxBytes;
-  }
-  for (const key of keys) {
-    if (!Object.hasOwn(record, key)) continue;
+  for (const key of [...keys, "maxBytes"] as const) {
     const value = record[key];
+    if (value === undefined || value === Infinity) continue;
     if (typeof value !== "number" || !Number.isSafeInteger(value) || value < (key === "maxMetadataUnits" ? 1 : 0)) {
-      throw new RangeError(`${key} must be a ${key === "maxMetadataUnits" ? "positive" : "nonnegative"} safe integer`);
+      throw new RangeError(`${key} must be a ${key === "maxMetadataUnits" ? "positive" : "nonnegative"} safe integer or Infinity`);
     }
     limits[key] = value;
   }

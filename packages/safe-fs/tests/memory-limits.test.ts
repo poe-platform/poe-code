@@ -25,6 +25,20 @@ test("Memory defaults are unlimited, frozen, and shared by constructor and facto
   }
 });
 
+test("explicit unlimited memory options match omitted limits", async () => {
+  for (const value of [undefined, Infinity]) {
+    for (const create of [(options: memory.MemoryFileSystemOptions) => new memory.MemoryFileSystem(options), memory.createMemoryFileSystem]) {
+      const filesystem = create({ maxFileBytes: value, maxRetainedBytes: value, maxMetadataUnits: value, maxBytes: value });
+      await filesystem.mkdir("/dir");
+      await filesystem.writeFile("/dir/f", bytes(32));
+      await filesystem.appendFile("/dir/f", bytes(32));
+      assert.deepEqual(await filesystem.readFile("/dir/f"), bytes(64));
+      await filesystem.unlink("/dir/f");
+      await filesystem.writeFile("/dir/g", bytes(64));
+    }
+  }
+});
+
 test("constructor and factory enforce snapshotted options", async () => {
   for (const create of [(options: memory.MemoryFileSystemOptions) => new memory.MemoryFileSystem(options), memory.createMemoryFileSystem]) {
     const options = { maxFileBytes: 2, maxRetainedBytes: 32, maxMetadataUnits: 3 };
@@ -39,8 +53,8 @@ test("constructor and factory enforce snapshotted options", async () => {
 });
 
 test("provided invalid options and accessors are rejected without getter invocation", () => {
-  for (const key of ["maxFileBytes", "maxRetainedBytes", "maxMetadataUnits"]) {
-    for (const value of [undefined, null, -1, 1.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const key of ["maxFileBytes", "maxRetainedBytes", "maxMetadataUnits", "maxBytes"]) {
+    for (const value of [null, -Infinity, -1, 1.5, NaN, Number.MAX_SAFE_INTEGER + 1]) {
       assert.throws(() => Reflect.construct(memory.MemoryFileSystem, [{ [key]: value }]), RangeError);
     }
   }
@@ -273,7 +287,7 @@ test("factory remains a validated generic filesystem factory without dropping op
   const create: FileSystemFactory = memory.createMemoryFileSystem;
   const filesystem = await create({ maxFileBytes: 2 });
   await assert.rejects(filesystem.writeFile("/f", bytes(3)), code("EFBIG"));
-  assert.throws(() => create({ maxFileBytes: undefined }), RangeError);
+  await (await create({ maxFileBytes: undefined })).writeFile("/f", bytes(3));
 });
 
 test("failed native growth refunds reservations without publishing a file or changing its parent", async () => {

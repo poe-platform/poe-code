@@ -3201,8 +3201,12 @@ pub fn execute_git_cli_with_input(
             let Ok(target_commit) = crate::commands::plumbing::read_commit(fs, &gitdir, &commit_oid) else {
                 return CliResult::err(128, format!("fatal: could not read commit {commit_oid}\n"));
             };
-            let Some(parent_oid) = target_commit.commit.parent.first().cloned() else {
-                return CliResult::err(128, "fatal: cannot revert a root commit\n");
+            let parent_oid = match target_commit.commit.parent.first() {
+                Some(parent) => parent.clone(),
+                None => match crate::commands::plumbing::write_tree(fs, &gitdir, &[]) {
+                    Ok(tree) => tree,
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                },
             };
             let head_oid = match resolve_ref(fs, &gitdir, "HEAD", None) {
                 Ok(oid) => oid,

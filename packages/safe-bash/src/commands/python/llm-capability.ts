@@ -28,17 +28,17 @@ function configurationContext(context: PythonLlmContext, payload: {readonly [key
 }
 
 /** Count the wire representation before retaining/serializing host metadata. */
-function jsonBytes(value: PythonHostValue, limit: number): number {
+function jsonBytes(value: PythonHostValue, limit: number, subject: 'input' | 'response' = 'response'): number {
   if (limit === Infinity) return 0;
   let bytes = 0;
   const ancestors = new Set<object>();
   const add = (size: number): void => {
-    if (size > limit - bytes) throw new RangeError('Python LLM serialized response limit exceeded');
+    if (size > limit - bytes) throw new RangeError(`Python LLM serialized ${subject} limit exceeded`);
     bytes += size;
   };
   const string = (text: string): void => {
     add(2);
-    if (text.length > limit - bytes) throw new RangeError('Python LLM serialized response limit exceeded');
+    if (text.length > limit - bytes) throw new RangeError(`Python LLM serialized ${subject} limit exceeded`);
     for (let i = 0; i < text.length; i++) {
       const point = text.codePointAt(i)!;
       if (point > 65535) { add(4); i++; }
@@ -58,7 +58,7 @@ function jsonBytes(value: PythonHostValue, limit: number): number {
     add(2);
     let entries = 0;
     if (Array.isArray(item)) {
-      if (item.length > limit - bytes) throw new RangeError('Python LLM serialized response limit exceeded');
+      if (item.length > limit - bytes) throw new RangeError(`Python LLM serialized ${subject} limit exceeded`);
       for (let i = 0; i < item.length; i++) {
         const descriptor = Object.getOwnPropertyDescriptor(item, String(i));
         if (!descriptor || !('value' in descriptor)) throw new TypeError('Python LLM response must contain data');
@@ -96,6 +96,7 @@ function* textFragments(text: string, limit: number): Generator<string> {
 export interface PythonLlmCapabilityOptions {
   readonly maxStreamChunkBytes?: number;
   readonly maxBufferedResponseBytes?: number;
+  readonly maxBufferedInputBytes?: number;
   readonly maxBufferedEvents?: number;
   readonly maxMetadataBytes?: number;
   readonly templateLoaders?: ReadonlyMap<string, LlmTemplateLoader>;
@@ -107,16 +108,18 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
   const chunkBytes = options.maxStreamChunkBytes ?? 16384;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python LLM stream chunk limit');
   const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;
+  const bufferedInputLimit = options.maxBufferedInputBytes ?? Infinity;
   const eventLimit = options.maxBufferedEvents ?? bufferedLimit;
   const metadataLimit = options.maxMetadataBytes ?? bufferedLimit;
   const maxRemoteBytes = options.maxRemoteTemplateBytes ?? (context.inputBudget?.maxBytes === Infinity ? undefined : context.inputBudget?.maxBytes) ?? 1_048_576;
   if (!Number.isSafeInteger(maxRemoteBytes) || maxRemoteBytes < 1) throw new RangeError('Invalid Python LLM remote template limit');
-  const templateLoaderOptions = {maxRemoteBytes,...(options.templateLoaders ? {loaders:options.templateLoaders} : {})};
-  for (const limit of [bufferedLimit, eventLimit, metadataLimit]) {
+  const templateLoaderOptions = {maxRemoteBytes:Math.min(maxRemoteBytes,bufferedInputLimit),...(options.templateLoaders ? {loaders:options.templateLoaders} : {})};
+  for (const limit of [bufferedInputLimit, bufferedLimit, eventLimit, metadataLimit]) {
     if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python LLM host limit');
   }
   const prepare = async (value: PythonHostValue, signal: AbortSignal): Promise<(LlmServiceRequest | LlmServiceSourceRequest) & {readonly extract?: 'first' | 'last'}> => {
     let payload = record(value);
+    jsonBytes(payload,bufferedInputLimit,'input');
     const timeout = payload.timeout;
     if (timeout !== undefined && timeout !== null) {
       if (typeof timeout !== 'number' || !Number.isFinite(timeout) || timeout <= 0 || timeout * 1000 > 2147483647) throw new RangeError('Invalid LLM timeout');
@@ -161,6 +164,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     const identity = selected === undefined ? undefined : await configuration.resolveAlias(selected);
     const {model} = service.resolve(identity);
     payload = {...payload,model:model.id,options:{...await configuration.modelOptions(model.id),...record(payload.options ?? {})}};
+    jsonBytes(payload,bufferedInputLimit,'input');
     signal.throwIfAborted();
     if (payload.extract !== undefined && typeof payload.extract !== 'boolean' || payload.extract_last !== undefined && typeof payload.extract_last !== 'boolean') throw new TypeError('Invalid LLM extract option');
     if (payload.stream !== undefined && typeof payload.stream !== 'boolean') throw new TypeError('Invalid LLM stream option');
@@ -291,6 +295,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       signal.throwIfAborted();
       const operation = record(value);
       const payload = record(operation.payload ?? {});
+      jsonBytes(payload,bufferedInputLimit,'input');
       if (operation.operation === 'load_schema') {
         const id = payload.schema_id;
         if (typeof id !== 'string' || !id || id.includes('\0')) throw new TypeError('Stored schema ID must be a nonempty string');
@@ -299,7 +304,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         let admitted = 0;
         const result = await loadLlmStoredSchema(configurationContext(context,payload,signal),id,{
           ...(database === undefined ? {} : {database:database as string}),
-          maxBytes:Math.min(bufferedLimit,context.inputBudget?.maxBytes ?? Infinity),
+          maxBytes:Math.min(bufferedInputLimit,bufferedLimit,context.inputBudget?.maxBytes ?? Infinity),
           admitBytes(size) { admitted += size; context.inputBudget?.check(admitted); },
         }) ?? null;
         jsonBytes(result as PythonHostValue,bufferedLimit);

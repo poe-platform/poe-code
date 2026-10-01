@@ -181,7 +181,7 @@ test('large canonical attachments stream bounded chunks with exact bytes and rel
     }
     yield 'received'; yield 'more';
   }}]});
-  const capability = createPythonLlmCapability({fs,cwd:'/'},service);
+  const capability = createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:32*1024*1024,check() {}}},service,{maxBufferedInputBytes:256});
   const payload = {attachments:[{path:'/large.bin',mimeType:'application/octet-stream'}]};
   const first = capability.stream!(payload,{signal})[Symbol.asyncIterator]();
   await first.next();
@@ -533,4 +533,18 @@ test('Python loads canonical stored schemas under host budgets and preserves mis
   await assert.rejects(capability.call!({operation:'load_schema',payload:{schema_id:1}},{signal}),/schema ID/);
   await fs.writeFile('/settings/logs.db-wal',new Uint8Array([1]));
   await assert.rejects(capability.call!({operation:'load_schema',payload:{schema_id:'unicode'}},{signal}),/checkpointed/);
+});
+
+test('host materialization budget rejects oversized inputs and expanded templates before provider calls', async () => {
+  const {fs,service,requests} = await fixture();
+  await fs.mkdir('/settings/templates',{recursive:true});
+  await fs.writeFile('/settings/templates/large.yaml',new TextEncoder().encode('prompt: '+ 'x'.repeat(600)));
+  const context = {fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'},inputBudget:{maxBytes:32*1024*1024,check() {}}};
+  const capability = createPythonLlmCapability(context,service,{maxBufferedInputBytes:256});
+  for (const payload of [{prompt:'x'.repeat(600)},{template:'large'},{schema:{description:'x'.repeat(600)}},{inputs:['x'.repeat(600)]}]) {
+    await assert.rejects(capability.call!({operation:'inputs' in payload ? 'embed' : 'complete',payload},{signal}),/input.*limit/);
+  }
+  const stream = capability.stream!({prompt:'x'.repeat(600)},{signal})[Symbol.asyncIterator]();
+  await assert.rejects(stream.next(),/input.*limit/);
+  assert.equal(requests.length,0);
 });

@@ -191,6 +191,20 @@ interpreter memory, provider buffers or billing. Configure host admission,
 serialized-message and stream limits through `capabilityLimits`. The host may
 set stricter application limits; it must report refusal rather than truncate.
 
+Set `maxBufferedInputBytes` on the host adapter to bound serialized request
+controls independently of the parent `inputBudget.maxBytes` for canonical
+attachments. For example, an 8 MiB buffered-input ceiling can coexist with a
+larger streamed-file admission limit. Prompts, messages, options, schemas and
+expanded template controls must fit the buffered ceiling before provider admission; attachment file bytes
+remain streamed and do not count toward that ceiling. Stored schema loading also
+uses this ceiling before decoding its selected control object. The bridge's
+message limit still bounds transfer into the host; configure both limits. Provider
+wire limits must separately account for JSON escaping and base64 expansion.
+The buffered-input ceiling defaults to `Infinity`; callers cannot raise host policy.
+Remote template fetches also use this ceiling. Local template/configuration loaders
+and custom loader callbacks retain their own allocation policies; the request check
+does not retroactively bound allocations made inside those loaders.
+
 `createPythonLlmCapability(context, service, options)` accepts host-owned
 `maxBufferedResponseBytes`, `maxBufferedEvents` and `maxMetadataBytes` ceilings.
 Configure finite limits before exposing the capability: guest requests can lower

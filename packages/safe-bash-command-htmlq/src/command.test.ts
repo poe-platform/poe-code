@@ -656,3 +656,27 @@ test("retaining sinks preserve htmlq output across batch reuse", async () => {
   assert.equal(result.exitCode, 0);
   assert.equal(chunks.map(bytes => new TextDecoder().decode(bytes)).join(""), values.join("\n") + "\n");
 });
+
+test("native aliases and selector operands agree across CLI and SDK argv", async () => {
+  const cases: readonly (readonly [readonly string[], string, string])[] = [
+    ...["-a", "--attribute", "--attributes"].map(flag =>
+      [["a", flag, "href"], '<a href="/x"> link </a>', "/x\n"] as const),
+    ...["-w", "-i", "--ignore-whitespace"].map(flag =>
+      [["-t", flag, "div"], "<div> <b>hello</b> </div>", "hello\n\n"] as const),
+    [["-tw", "div"], "<div> <b>hello</b> </div>", "hello\n\n"],
+    [["a", "--attribute=href"], '<a href="/x">link</a>', "/x\n"],
+    [["-t", "h1", "h2"], "<h1>One</h1><h2>Two</h2>", "One\nTwo\n"],
+    [["-t", "--", ".subtitle", ".title", ".title"],
+      '<h1 class="title">One</h1><h2 class="subtitle">Two</h2>', "One\nTwo\n"]
+  ];
+  for (const [argv, input, expected] of cases) {
+    const cli = fixture(argv, input), sdk = fixture([], input);
+    assert.equal((await createHtmlqCommand().execute(cli.context)).exitCode, 0);
+    assert.equal((await htmlq(sdk.context, { argv })).exitCode, 0);
+    assert.equal(cli.text(), expected);
+    assert.equal(sdk.text(), expected);
+    assert.deepEqual(cli.errors, []);
+    assert.deepEqual(sdk.errors, []);
+    await Promise.all([...cli.cleanups, ...sdk.cleanups].map(fn => fn()));
+  }
+});

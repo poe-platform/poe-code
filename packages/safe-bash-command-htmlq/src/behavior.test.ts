@@ -305,3 +305,10 @@ test("remove-nodes removes all siblings, combined selectors and selected roots",
   assert.equal(await run("<div><p>1</p><p>2</p></div>", ["-r", "p", "p"]), "");
   assert.equal(await run("<div><span><span>nested</span></span><span>last</span></div>", ["-r", "span", "div"]), "<div></div>\n");
 });
+
+test("selector operands use the native comma-space separator and html default", () => {
+  assert.equal(parseHtmlqArguments([], options).selector, "html");
+  assert.equal(parseHtmlqArguments(["h1"], options).selector, "h1");
+  assert.equal(parseHtmlqArguments(["h1", "-t", "h2"], options).selector, "h1, h2");
+  assert.equal(parseHtmlqArguments(["--", ".title", ".subtitle"], options).selector, ".title, .subtitle");
+});

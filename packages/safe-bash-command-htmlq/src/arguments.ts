@@ -114,7 +114,7 @@ export function parseHtmlqArguments(argv: readonly string[], options: HtmlOption
       selectors.push(arg);
     }
   }
-  if (selectors.length) result.selector = selectors.join(",");
+  if (selectors.length) result.selector = selectors.join(", ");
   budget.charge("retainedBytes", result.selector.length * 2);
   budget.charge("work", result.selector.length);
   return Object.freeze({

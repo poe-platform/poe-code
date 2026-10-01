@@ -4,8 +4,38 @@ import { Budget, declareHostOperation, makeFsModule, run } from "@poe-code/safe-
 import { nodeCommands } from "../../src/commands/node/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
+import { nodeReadFile } from "../../src/commands/node/filesystem.js";
 
 const runtime = { run, makeFsModule, declareHostOperation, createBudget: (options: ConstructorParameters<typeof Budget>[0]) => new Budget(options) };
+
+for (const failure of [false, true]) test(`node cancels a queued readFile completion (read failure=${failure})`, async context => {
+  const controller = new AbortController();
+  const reason = new Error("cancel queued completion");
+  let scheduled!: () => void;
+  const queued = new Promise<void>(resolve => { scheduled = resolve; });
+  let deliver!: () => void;
+  const handle = {} as NodeJS.Immediate;
+  context.mock.method(globalThis, "setImmediate", (callback: () => void) => { deliver = callback; scheduled(); return handle; });
+  const clear = context.mock.method(globalThis, "clearImmediate", () => {});
+  const errors: unknown[] = [];
+  const pending = new Set<Promise<void>>();
+  let called = false;
+  const read = nodeReadFile({ runtime: { ...runtime, declareHostOperation: operation => operation } }, {
+    readFile: () => failure ? Promise.reject(new Error("read failed")) : Promise.resolve("text")
+  }, controller.signal, error => { errors.push(error); }, pending);
+  read("input", "utf8", () => { called = true; });
+  await queued;
+  const completion = [...pending];
+  controller.abort(reason);
+  // Release even the old non-cancellable implementation so failure never hangs.
+  deliver();
+  await Promise.all(completion);
+  assert.equal(called, false);
+  assert.deepEqual(errors, [reason]);
+  assert.equal(pending.size, 0);
+  assert.equal(clear.mock.callCount(), 1);
+  assert.equal(clear.mock.calls[0]?.arguments[0], handle);
+});
 
 test("node invokes fs.readFile callbacks before completing the command", async () => {
   const fs = new MemoryFileSystem();

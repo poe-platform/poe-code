@@ -1,4 +1,5 @@
 import { commandLimits } from "../safejs/options.js";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { SafeJsCommandLimitError, type SafeJsHostFunction, type SafeJsModule } from "../safejs/types.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
 
@@ -19,12 +20,12 @@ export function nodeReadFile<Budget>(options: NodeSafeJsCommandOptions<Budget>, 
     const done = callback;
     const completion = Promise.resolve().then(() => read(path, encoding)).then(
       async text => {
-        await new Promise<void>(resolve => setImmediate(resolve));
+        await yieldTurn(signal);
         signal.throwIfAborted();
         return done(null, text);
       },
       async error => {
-        await new Promise<void>(resolve => setImmediate(resolve));
+        await yieldTurn(signal);
         signal.throwIfAborted();
         return done(error);
       },

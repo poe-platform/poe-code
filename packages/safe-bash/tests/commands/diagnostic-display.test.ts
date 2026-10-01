@@ -217,7 +217,20 @@ test("curl generated transport errors escape controls with an in-memory transpor
   assert.equal(actual.stderr.toString().includes(escaped), true, JSON.stringify(actual.stderr.toString()));
 });
 
-test("safejs host exceptions are opaque but guest stderr remains raw", async () => {
+test("safejs host setup exceptions remain opaque", async () => {
+  const failure = new Error(marker);
+  const seen: unknown[] = [];
+  const runtime = {
+    ...contractRuntime(async () => { assert.fail("guest must not run after failed host setup"); }),
+    createBudget() { throw failure; },
+  };
+  const actual = await runSafeJs(["-e", "contract"], { runtime }, "", { onInternalError(error) { seen.push(error); } });
+  assert.equal(actual.exitCode, 1);
+  assert.equal(actual.stderr, "safejs: internal error\n");
+  assert.deepEqual(seen, [failure]);
+});
+
+test("safejs rejected guest errors are escaped but guest stderr remains raw", async () => {
   const failure = new Error(marker);
   const seen: unknown[] = [];
   const runtime = contractRuntime(async (_source, options) => {
@@ -226,9 +239,8 @@ test("safejs host exceptions are opaque but guest stderr remains raw", async () 
   });
   const actual = await runSafeJs(["-e", "contract"], { runtime }, "", { onInternalError(error) { seen.push(error); } });
   assert.equal(actual.exitCode, 1);
-  assert.equal(actual.stderr, `${marker}safejs: internal error\n`);
-  assert.equal(seen.length, 1);
-  assert.equal(seen[0], failure);
+  assert.equal(actual.stderr, `${marker}safejs: ${escaped}\n`);
+  assert.deepEqual(seen, []);
 });
 
 test("safejs explicit guest errors are escaped but guest stderr remains raw", async () => {

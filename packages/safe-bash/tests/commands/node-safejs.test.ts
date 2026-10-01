@@ -405,10 +405,10 @@ for (const [reason, exitCode] of [
   [new Error("private runtime failure"), 1], [undefined, 1], [null, 1], [false, 1], [0, 1], ["", 1],
   [Object.assign(new Error("private runtime metadata"), { name: "ParseError", code: "budgetExceeded" }), 124],
 ] as const) {
-  test(`node keeps thrown host failures opaque and reports their original identity: ${String(reason)}`, async () => {
+  test(`node keeps host setup failures opaque and reports their original identity: ${String(reason)}`, async () => {
     const internalErrors: unknown[] = [];
     const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError(error) { internalErrors.push(error); } }).use(nodeCommands({ runtime: {
-      ...runtime, async run() { throw reason; },
+      ...runtime, createBudget() { throw reason; },
     } }));
     try {
       const result = await shell.exec("node -e '1'");
@@ -435,8 +435,12 @@ test("node keeps explicitly returned guest failures public", async () => {
   } finally { await shell.dispose(); }
 });
 
-for (const [source, exitCode] of [["const =", 2], ["while (true) {}", 124], ['throw new Error("guest failure")', 1]] as const) {
-  test(`node keeps actual runtime rejections opaque with their original status: ${source}`, async () => {
+for (const [source, exitCode, diagnostic] of [
+  ["const =", 2, /^node: Unexpected token '=' at line \d+, column \d+\.\n$/u],
+  ["while (true) {}", 124, /^node: internal error\n$/u],
+  ['throw new Error("guest failure")', 1, /^node: guest failure\n$/u],
+] as const) {
+  test(`node preserves guest rejection diagnostics and limit status: ${source}`, async () => {
     const rejections: unknown[] = [];
     const internalErrors: unknown[] = [];
     const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError(error) { internalErrors.push(error); } }).use(nodeCommands({
@@ -450,10 +454,12 @@ for (const [source, exitCode] of [["const =", 2], ["while (true) {}", 124], ['th
       const result = await shell.exec(`node -e ${quote(source)}`);
       assert.equal(result.exitCode, exitCode);
       assert.equal(result.stdout, "");
-      assert.equal(result.stderr, "node: internal error\n");
+      assert.match(result.stderr, diagnostic);
       assert.equal(rejections.length, 1);
-      assert.equal(internalErrors.length, 1);
-      assert.equal(internalErrors[0], rejections[0]);
+      if (exitCode === 124) {
+        assert.equal(internalErrors.length, 1);
+        assert.equal(internalErrors[0], rejections[0]);
+      } else assert.deepEqual(internalErrors, []);
     } finally { await shell.dispose(); }
   });
 }
@@ -470,10 +476,12 @@ for (const [name, code, exitCode] of [["ParseError", "", 2], ["ParseError", "bud
       const result = await shell.exec("node -e '1'");
       assert.equal(result.exitCode, exitCode);
       assert.equal(result.stdout, "");
-      assert.equal(result.stderr, "node: internal error\n");
+      assert.equal(result.stderr, exitCode === 124 ? "node: internal error\n" : "node: SafeJS execution failed\n");
       assert.equal(messageReads, 0);
-      assert.equal(internalErrors.length, 1);
-      assert.equal(internalErrors[0], reason);
+      if (exitCode === 124) {
+        assert.equal(internalErrors.length, 1);
+        assert.equal(internalErrors[0], reason);
+      } else assert.deepEqual(internalErrors, []);
     } finally { await shell.dispose(); }
   });
 }

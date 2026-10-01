@@ -36,13 +36,14 @@ function dictionaryKeys(json: string): string[] {
 }
 
 function logitBias(input: LlmOption): Record<string, number> {
- if (typeof input !== "string") throw new TypeError("Invalid OpenAI logit_bias: expected a JSON dictionary");
- let parsed: unknown;
- try { parsed = JSON.parse(input); }
- catch { throw new TypeError("Invalid OpenAI logit_bias: Invalid JSON in logit_bias string"); }
+ let parsed: unknown = input;
+ if (typeof input === "string") {
+  try { parsed = JSON.parse(input); }
+  catch { throw new TypeError("Invalid OpenAI logit_bias: Invalid JSON in logit_bias string"); }
+ }
  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new TypeError("Invalid OpenAI logit_bias: expected a JSON dictionary");
  const result: Record<string, number> = {};
- for (const key of dictionaryKeys(input)) {
+ for (const key of typeof input === "string" ? dictionaryKeys(input) : Object.keys(parsed)) {
   const value: unknown = (parsed as Record<string, unknown>)[key];
   const token = tokenInteger(key);
   const bias = biasInteger(value);
@@ -52,12 +53,13 @@ function logitBias(input: LlmOption): Record<string, number> {
  return result;
 }
 
-/** Translate the reference CLI's JSON mode and JSON-string token bias options. */
+/** Translate the reference CLI's JSON mode and dictionary or JSON-string token bias options. */
 export function openAiChatOptions(options: Record<string, LlmOption>): Record<string, unknown> {
  const { json_object: jsonObject, logit_bias: bias, ...values } = options;
  const result: Record<string, unknown> = { ...values };
  if (bias !== undefined && bias !== null) result.logit_bias = logitBias(bias);
  if (jsonObject !== undefined && jsonObject !== null) {
+  if (typeof jsonObject === "object") throw new TypeError("Invalid OpenAI json_object: expected boolean");
   const text = String(jsonObject).toLowerCase();
   if (!["true", "false", "1", "0", "yes", "no", "on", "off", "y", "n", "t", "f"].includes(text)) throw new TypeError("Invalid OpenAI json_object: expected boolean");
   if (["true", "1", "yes", "on", "y", "t"].includes(text)) {

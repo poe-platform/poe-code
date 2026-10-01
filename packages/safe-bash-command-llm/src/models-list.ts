@@ -81,7 +81,7 @@ export async function listLlmModels(context: CommandContext, service: LlmService
     if (options && Object.keys(model.options ?? {}).length) {
       output += "\n  Options:";
       for (const [name, rule] of Object.entries(model.options!)) {
-        const type = { number: "float", integer: "int", boolean: "boolean", string: "str" }[rule.type];
+        const type = { number: "float", integer: "int", boolean: "boolean", string: "str", object: "dict", array: "list" }[rule.type];
         output += `\n    ${name}: ${type}`;
         if (rule.description && !shownDescriptions.has(provider.name)) output += `\n      ${wrapDescription(rule.description)}`;
       }

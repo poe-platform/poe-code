@@ -40,16 +40,22 @@ for (const condition of ["workerd", "worker", "browser"]) {
 test(`portable SDK executes without Node globals or shared memory under ${condition}`, async () => {
   const directory = new URL("../dist/", import.meta.url).pathname;
   const result = await build({
-    stdin: { contents: `import { run, makeFsModule, makeEnvModule, makeLogModule } from "@poe-code/safe-js";
+    stdin: { contents: `import { run, makeFsModule, makeEnvModule, makeLogModule, dump, restore, parse, parseModule, parseSourceModule, deepCopyFromSandbox, deepCopyToSandbox, SandboxError, SnapshotValidationError, declareHostOperation } from "@poe-code/safe-js";
       import { createRealm, createRootedSourceResolver } from "./core.js";
       import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-      export { run, makeFsModule, makeEnvModule, makeLogModule, createRealm, createRootedSourceResolver, MemoryFileSystem };`, resolveDir: directory },
+      export { run, makeFsModule, makeEnvModule, makeLogModule, createRealm, createRootedSourceResolver, MemoryFileSystem, dump, restore, parse, parseModule, parseSourceModule, deepCopyFromSandbox, deepCopyToSandbox, SandboxError, SnapshotValidationError, declareHostOperation };`, resolveDir: directory },
     bundle: true, platform: "neutral", format: "esm", conditions: [condition], write: false
   });
   const url = "data:text/javascript;base64," + Buffer.from(result.outputFiles[0].text).toString("base64");
   const script = `globalThis.process = undefined; globalThis.Buffer = undefined;
     globalThis.SharedArrayBuffer = undefined;
-    const { run, createRealm, createRootedSourceResolver, makeFsModule, makeEnvModule, makeLogModule, MemoryFileSystem } = await import(${JSON.stringify(url)});
+    const { run, createRealm, createRootedSourceResolver, makeFsModule, makeEnvModule, makeLogModule, MemoryFileSystem, dump, restore, parse, parseModule, parseSourceModule, deepCopyFromSandbox, deepCopyToSandbox, SandboxError, SnapshotValidationError, declareHostOperation } = await import(${JSON.stringify(url)});
+    if ([dump, restore, parse, parseModule, parseSourceModule, deepCopyFromSandbox, deepCopyToSandbox, SandboxError, SnapshotValidationError, declareHostOperation].some(value => typeof value !== "function")) throw new Error("Missing portable API");
+    const source = 'return "x".repeat(1100000);';
+    const execution = run(source);
+    await execution;
+    const restored = restore(JSON.parse(await dump(execution)), { source });
+    if (restored.sourceHash === undefined) throw new Error("Portable snapshot restore failed");
     if (makeEnvModule(["MISSING"]).get("MISSING") !== undefined) throw new Error("Missing env failed");
     if (makeEnvModule({ allow: ["TOKEN"], values: { TOKEN: "explicit" } }).get("TOKEN") !== "explicit") throw new Error("Explicit env failed");
     const lines = [];

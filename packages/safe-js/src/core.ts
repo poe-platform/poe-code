@@ -1,3 +1,27 @@
+import { parseModule as parseModuleInternal, parseSourceModule as parseSourceModuleInternal, type Module, type ParsedSourceModule } from "./parse/parser.js";
+import { restore as restoreInternal, type SafeJSSnapshot, type RestoreOptions } from "./restore.js";
+import {
+  deepCopyFromSandbox as copyFromSandboxInternal,
+  type SandboxPromise,
+  type SandboxValue
+} from "./interp/values.js";
+
+export { parse } from "./parse.js";
+export const parseModule: (source: string, filename?: string) => Module = parseModuleInternal;
+export const parseSourceModule: (source: string, filename?: string) => ParsedSourceModule = parseSourceModuleInternal;
+export type { ParsedSourceModule, SourceImport, SourceExport } from "./parse/module-syntax.js";
+export const restore: <TSnapshot extends SafeJSSnapshot>(
+  snapshot: TSnapshot,
+  options: RestoreOptions
+) => TSnapshot = restoreInternal;
+type PublicCopyOptions = Omit<
+  NonNullable<Parameters<typeof copyFromSandboxInternal>[1]>,
+  "compilation" | "unwrapHostObject"
+>;
+export const deepCopyFromSandbox: {
+  (value: SandboxPromise, options?: PublicCopyOptions): Promise<unknown>;
+  (value: SandboxValue, options?: PublicCopyOptions): unknown;
+} = copyFromSandboxInternal;
 export { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
 export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
 export { run } from "./run.js";
@@ -23,3 +47,9 @@ export * from "./modules/metric.js";
 export * from "./modules/time.js";
 
 export { makeLogModule, type LogModuleEntry, type LogModuleSink } from "./modules/log.js";
+
+export { dump, type DumpOptions } from "./dump.js";
+export { deepCopyToSandbox } from "./interp/values.js";
+export { SandboxError } from "./interp/budget.js";
+export { SnapshotValidationError } from "./snapshot/validation.js";
+export { declareHostOperation } from "./interp/host-bridge.js";

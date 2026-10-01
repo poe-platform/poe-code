@@ -411,7 +411,6 @@ function formats(text: string): Format[] {
       offset++;
     }
     result.push({ kind, size, ...(printable ? { printable: true } : {}) });
-    if (result.length > 16) throw new UsageError("at most 16 output types are supported");
   }
   if (!result.length) throw new UsageError("empty output type");
   return result;
@@ -682,24 +681,29 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
       "little",
     );
     const selected = (parsed.values.get("t") ?? ["o2"]).flatMap(formats);
-    const width = validatedOption(
+    const requestedWidth = validatedOption(
       parsed,
       "w",
       text => {
         const number = numeric(text);
-        if (number < 1 || selected.some(format => number % format.size !== 0)) {
-          throw new UsageError("width must be positive and a multiple of each output type size");
-        }
+        if (number < 1) throw new UsageError("width must be positive");
         return number;
       },
       16,
     );
+    // Supported item sizes are powers of two, so the largest is their LCM.
+    const alignment = selected.reduce((size, format) => Math.max(size, format.size), 1);
+    const width = Math.ceil(requestedWidth / alignment) * alignment;
+    if (!Number.isSafeInteger(width)) throw new UsageError("rounded width exceeds safe integer range");
+    if (width !== requestedWidth) {
+      await writeDiagnostic(context.stderr, `${context.command}: warning: invalid width ${requestedWidth}; using ${width} instead\n`, context.signal);
+    }
     const skip = validatedOption(parsed, "j", text => numeric(text, true), 0);
     const count = validatedOption(parsed, "N", text => numeric(text, true), Infinity);
     if (count === 0 && skip === 0 && parsed.operands[0] && parsed.operands[0] !== "-") {
       await context.fs.stat(pathOf(context, parsed.operands[0]), { signal: context.signal });
     }
-    const charsPerByte = Math.max(...selected.map(format => (fieldWidth(format) + 1) / format.size));
+    const charsPerByte = selected.reduce((width, format) => Math.max(width, (fieldWidth(format) + 1) / format.size), 0);
     const minimumStringLength = validatedOption(
       parsed,
       "S",

@@ -129,3 +129,57 @@ test("od aligns printable partial rows and multiple formats", async () => {
   }
 });
 
+
+test("od aligns mixed item sizes and printable trailers on full and partial rows", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("0123456789abcdefHELLO"));
+  const result = await run(["-t", "x4z", "-t", "x1z", "/input"], fs);
+  assert.deepEqual(result, {
+    exitCode: 0, stderr: "",
+    stdout: "0000000    33323130    37363534    62613938    66656463  >0123456789abcdef<\n" +
+      "        30 31 32 33 34 35 36 37 38 39 61 62 63 64 65 66  >0123456789abcdef<\n" +
+      "0000020    4c4c4548    0000004f" + " ".repeat(26) + ">HELLO<\n" +
+      "        48 45 4c 4c 4f" + " ".repeat(35) + ">HELLO<\n0000025\n",
+  });
+  const decimal = await run(["-t", "d2", "-t", "c", "/input"], fs);
+  assert.deepEqual(decimal, {
+    exitCode: 0, stderr: "",
+    stdout: "0000000   12592   13106   13620   14134   14648   25185   25699   26213\n" +
+      "          0   1   2   3   4   5   6   7   8   9   a   b   c   d   e   f\n" +
+      "0000020   17736   19532      79\n          H   E   L   L   O\n0000025\n",
+  });
+});
+
+for (const [width, types, rounded] of [
+  [5, ["x4"], 8], [1, ["x2", "x8", "x4"], 8], [9, ["x4", "x8"], 16],
+] as const) {
+  test(`od rounds width ${width} up to ${rounded} for ${types.join(",")}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", new TextEncoder().encode("0123456789abcdefHELLO"));
+    const args = types.flatMap(type => ["-t", type]);
+    const expected = await run([...args, `-w${rounded}`, "/input"], fs);
+    assert.equal(expected.exitCode, 0, expected.stderr);
+    for (const option of [`-w${width}`, `--width=${width}`]) {
+      const result = await run([...args, option, "/input"], fs);
+      assert.deepEqual(result, { ...expected, stderr: `od: warning: invalid width ${width}; using ${rounded} instead\n` });
+    }
+  });
+}
+
+test("od rejects zero width and rounding beyond the safe integer range", async () => {
+  for (const width of [0, Number.MAX_SAFE_INTEGER]) {
+    const result = await run(["-tx4", `-w${width}`], createMemoryFileSystem());
+    assert.equal(result.exitCode, 2);
+    assert.equal(result.stdout, "");
+  }
+});
+
+for (const combined of [true, false]) {
+  test(`od accepts more than sixteen ${combined ? "combined" : "separate"} output types`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", Uint8Array.of(65));
+    const args = combined ? ["-t", "x1".repeat(32)] : Array.from({ length: 32 }, () => ["-t", "x1"]).flat();
+    const result = await run(["-An", ...args, "/input"], fs, Infinity);
+    assert.deepEqual(result, { exitCode: 0, stdout: " 41\n".repeat(32), stderr: "" });
+  });
+}

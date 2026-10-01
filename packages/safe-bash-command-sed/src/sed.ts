@@ -1,13 +1,10 @@
-import type { FileSystem } from "@poe-code/safe-fs";
-import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { editInPlace,prepareInPlace } from "./inplace.js";
 import { FsError,writeBytes,type CommandContext,type CommandDefinition } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { decodeBytes,encodeBytes,writeEncodedBytes } from "safe-bash-io-engine/byte-encoding";
 import { assertPathRequirements,requiredFileInput,sedRequirements } from "safe-bash-io-engine/commands/search/requirements";
-import { Budget,ProgramError,byteString,bytes,command,getCachedLatin1Batch,input,lineRecordBatches,readProgram,virtualPath,type LineRecordBatch,type RecordLine,type TextProgramOptions } from "safe-bash-io-engine/commands/text-programs/shared";
-import { pathOf } from "safe-bash-io-engine/internal";
-import { BytePattern as Pattern,trySubstitutePairBatchToBufferSync,trySubstitutePairSync,trySubstitutePairToBufferSync,trySubstituteSync } from "safe-bash-regex-engine/text/regex";
+import { Budget,ProgramError,byteString,bytes,command,input,lineRecordBatches,readProgram,virtualPath,type LineRecordBatch,type RecordLine,type TextProgramOptions } from "safe-bash-io-engine/commands/text-programs/shared";
+import { BytePattern as Pattern,trySubstitutePairSync,trySubstitutePairToBufferSync,trySubstituteSync } from "safe-bash-regex-engine/text/regex";
 
 type Address = { kind: "number"; number: number } | { kind: "step"; first: number; step: number } | { kind: "plus"; count: number } | { kind: "tilde"; count: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
 interface Instruction {
@@ -42,90 +39,6 @@ interface CachedSedProgram {
 const sedProgramCache = new Map<string, CachedSedProgram>();
 const EMPTY_STRINGS: readonly string[] = Object.freeze([]);
 const EMPTY_SET: Set<string> = new Set();
-
-function tryParseFastPairProgramSync(rawProg: string, budget: Budget): CachedSedProgram | undefined {
-  if (rawProg.length > 256 || rawProg.startsWith("#n")) return undefined;
-  const parts = rawProg.split(/[;\n]/);
-  const instructions: Instruction[] = [];
-  const stepsBefore = budget.stepsUsed;
-  for (let i = 0; i < parts.length; i++) {
-    const part = parts[i]!.trim();
-    if (part.length === 0) continue;
-    if (part.charCodeAt(0) !== 115 || part.length < 4) return undefined;
-    const delim = part[1]!;
-    if (delim === "\\" || delim === "\n") return undefined;
-    let p = 2;
-    let patStr = "";
-    while (p < part.length && part[p] !== delim) {
-      const ch = part[p++]!;
-      if (ch === "\\") {
-        if (p >= part.length) return undefined;
-        const next = part[p++]!;
-        if (next === "[" || next === "]" || next === delim) return undefined;
-        patStr += `\\${next}`;
-      } else {
-        if (ch === "[") return undefined;
-        patStr += ch;
-      }
-    }
-    if (p >= part.length || part[p] !== delim || patStr.length === 0) return undefined;
-    p++;
-    let repStr = "";
-    let repGroupCount = 0;
-    while (p < part.length && part[p] !== delim) {
-      const ch = part[p++]!;
-      if (ch === "\\") {
-        if (p >= part.length) return undefined;
-        const next = part[p++]!;
-        if (next === delim) return undefined;
-        if (next >= "1" && next <= "9") repGroupCount = Math.max(repGroupCount, Number(next));
-        repStr += `\\${next}`;
-      } else {
-        repStr += ch;
-      }
-    }
-    if (p >= part.length || part[p] !== delim) return undefined;
-    p++;
-    let global = false;
-    for (; p < part.length; p++) {
-      if (part[p] === "g" && !global) global = true;
-      else return undefined;
-    }
-    let compiled: Pattern;
-    try {
-      compiled = new Pattern(patStr, false, false);
-    } catch {
-      return undefined;
-    }
-    const compiledInternal = compiled as unknown as { parsed?: unknown; budgetPrepared?: boolean; compiledSteps?: number };
-    if (compiledInternal.parsed || repGroupCount > compiled.groupCount) return undefined;
-    if (!compiledInternal.budgetPrepared && (compiledInternal.compiledSteps ?? 0) > 0) {
-      compiledInternal.budgetPrepared = true;
-      budget.step(compiledInternal.compiledSteps!);
-    }
-    instructions.push({
-      kind: "s",
-      negate: false,
-      pattern: compiled,
-      replacement: repStr,
-      replacementGroupCount: repGroupCount,
-      global,
-    });
-    if (instructions.length > 2) return undefined;
-  }
-  if (instructions.length !== 2) return undefined;
-  const steps = budget.stepsUsed - stepsBefore;
-  const cached: CachedSedProgram = {
-    program: instructions,
-    steps,
-    outputFiles: EMPTY_STRINGS,
-    readFiles: EMPTY_STRINGS,
-  };
-  const cacheKey = `0:\n:${Infinity}:${rawProg}`;
-  if (sedProgramCache.size >= 64) sedProgramCache.delete(sedProgramCache.keys().next().value!);
-  sedProgramCache.set(cacheKey, cached);
-  return cached;
-}
 
 async function parse(source: string, extended: boolean, separator: string, maxProgramInstructions: number, budget: Budget): Promise<Instruction[]> {
   const result: Instruction[] = [];
@@ -373,8 +286,6 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
   }
 }
 
-const STDOUT_CAP = 65536;
-const STDOUT_FLUSH = 60000;
 
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
   const useBatches = separator !== "\0";
@@ -977,111 +888,6 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   }
 }
 
-function runSedPairBatchLoopSync(
-  batchText: string,
-  batchEnds: Int32Array,
-  endsLen: number,
-  expr0: Pattern,
-  r1: string,
-  g1: boolean,
-  o1: number,
-  expr1: Pattern,
-  r2: string,
-  g2: boolean,
-  o2: number,
-  budget: Budget,
-  stdoutBuf: Uint8Array,
-): number {
-  return trySubstitutePairBatchToBufferSync(
-    batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf, 10, STDOUT_FLUSH,
-  );
-}
-
-function tryExecutePairFastSync(
-  program: readonly Instruction[],
-  context: CommandContext,
-  file: string,
-  quiet: boolean,
-  budget: Budget,
-  separator: string,
-): number | undefined {
-  if (program.length !== 2 || quiet || separator !== "\n" || file === "-") return undefined;
-  const inst0 = program[0]!;
-  const inst1 = program[1]!;
-  if (
-    inst0.kind !== "s" || inst0.first || inst0.second || inst0.negate || inst0.print || inst0.file || !inst0.pattern ||
-    inst1.kind !== "s" || inst1.first || inst1.second || inst1.negate || inst1.print || inst1.file || !inst1.pattern
-  ) {
-    return undefined;
-  }
-  const expr0 = inst0.pattern;
-  const expr1 = inst1.pattern;
-  if (inst0.replacementGroupCount! > expr0.groupCount || inst1.replacementGroupCount! > expr1.groupCount) return undefined;
-  const stdoutSync = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
-    ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean; writeImmutableSync?(data: Uint8Array): boolean })
-    : undefined;
-  if (!stdoutSync) return undefined;
-  const fastMem = (context as {
-    _fastMemoryBackingFs?: FileSystem;
-    _chargeFastFsOp?: () => void;
-  })._fastMemoryBackingFs;
-  if (
-    !fastMem ||
-    fastMem.capabilitiesFor !== undefined ||
-    Object.prototype.hasOwnProperty.call(fastMem, "readStream") ||
-    Object.prototype.hasOwnProperty.call(fastMem, "readFile")
-  ) {
-    return undefined;
-  }
-  const path = pathOf(context, file);
-  if (path === "/dev" || path.startsWith("/dev/")) return undefined;
-  let rawBytes: Uint8Array | undefined;
-  try {
-    rawBytes = tryReadMemoryFileViewSync(fastMem, path, undefined, context.signal, true);
-  } catch (e) {
-    console.error('SED_SYNC_ERR:', e);
-    return undefined;
-  }
-  if (rawBytes !== undefined) context.inputBudget?.check(rawBytes.byteLength);
-  if (!rawBytes || rawBytes.byteLength < 256) return undefined;
-  const cachedBatch = getCachedLatin1Batch(rawBytes);
-  if (!cachedBatch || cachedBatch.lastLineStart !== cachedBatch.text.length || cachedBatch.maxLineLen > budget.maxBufferBytes) {
-    return undefined;
-  }
-  const pending = budget.checkpointSync();
-  if (pending) {
-    pending.catch(() => {});
-    return undefined;
-  }
-  budget.step();
-  const stdoutBuf = new Uint8Array(STDOUT_CAP);
-  const batchText = cachedBatch.text;
-  const batchEnds = cachedBatch.ends;
-  const endsLen = batchEnds.length;
-  const g1 = inst0.global ?? false;
-  const o1 = inst0.occurrence ?? 1;
-  const r1 = inst0.replacement!;
-  const g2 = inst1.global ?? false;
-  const o2 = inst1.occurrence ?? 1;
-  const r2 = inst1.replacement!;
-  // Keep the attempt private until every line succeeds. Larger results use
-  // the streaming executor without publishing a prefix that it would replay.
-  const stdoutLen = runSedPairBatchLoopSync(
-    batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf,
-  );
-  if (stdoutLen < 0) return undefined;
-  (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
-  if (stdoutLen > 0) {
-    context.signal.throwIfAborted();
-    if (typeof stdoutSync.writeRangeSync === "function") {
-      stdoutSync.writeRangeSync(stdoutBuf, stdoutLen);
-    } else {
-      stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
-    }
-  }
-  return 0;
-}
-
 const SED_META_RE = /[\\^$.*+?()[\]{}|\n]/;
 function tryExecuteSimpleSedStdinSync(rawProg: string, context: CommandContext, options: TextProgramOptions): number | undefined {
   if (rawProg.length < 4 || rawProg.length > 256 || rawProg.charCodeAt(0) !== 115) return undefined;
@@ -1155,36 +961,6 @@ export function sedCommand(options: TextProgramOptions = {}): CommandDefinition 
       const rawProg = context.args[context.args.length - 1]!;
       const stdinRes = tryExecuteSimpleSedStdinSync(rawProg, context, options);
       if (stdinRes !== undefined) return stdinRes;
-    }
-    if (
-      maxProgramInstructions === Infinity &&
-      context.args.length === 2 &&
-      !context.args[0]!.startsWith("-") &&
-      context.args[0] !== "-" &&
-      !context.args[1]!.startsWith("-") &&
-      context.args[1] !== "-"
-    ) {
-      const rawProg = context.args[0]!;
-      let cached = sedProgramCache.get(`0:\n:${Infinity}:${rawProg}`);
-      if (!cached) {
-        const parseBudget = Budget.acquire(context, options);
-        try {
-          cached = tryParseFastPairProgramSync(rawProg, parseBudget);
-        } finally {
-          Budget.release(parseBudget);
-        }
-      }
-      if (cached && cached.outputFiles.length === 0 && cached.readFiles.length === 0) {
-        const quiet = rawProg.charCodeAt(0) === 35 && rawProg.charCodeAt(1) === 110;
-        const budget = Budget.acquire(context, options);
-        try {
-          if (cached.steps > 0) budget.step(cached.steps);
-          const syncStatus = tryExecutePairFastSync(cached.program, context, context.args[1]!, quiet, budget, "\n");
-          if (syncStatus !== undefined) return syncStatus;
-        } finally {
-          Budget.release(budget);
-        }
-      }
     }
     return executeSedGeneral(context, options, maxProgramInstructions);
   });

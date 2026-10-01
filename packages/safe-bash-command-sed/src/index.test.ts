@@ -125,7 +125,6 @@ for (const sink of ["writeSync", "writeRangeSync", "writeImmutableSync"] as cons
     const fs = createMemoryFileSystem();
     const input = "hello world\n".repeat(100);
     await fs.writeFile("/input", new TextEncoder().encode(input));
-    let fastReads = 0;
     async function capture(program: string) {
       const chunks: Uint8Array[] = [];
       const values = createCommandArguments([program, "/input"]);
@@ -141,14 +140,12 @@ for (const sink of ["writeSync", "writeRangeSync", "writeImmutableSync"] as cons
         },
         stderr: { async write() {} },
         _fastMemoryBackingFs: fs,
-        _chargeFastFsOp: () => { fastReads++; },
       };
       assert.equal((await command.execute(context)).exitCode, 0);
       return chunks;
     }
     const pair = "s/^hello/HELLO/;s/world/WORLD/";
     const first = await capture(pair);
-    assert.ok(fastReads > 0, "file-pair fast path exercised");
     await fs.writeFile("/output", first[0]!);
     await capture("s/hello/other/");
     const replay = await capture(pair);

@@ -12,6 +12,17 @@ import poe_llm as _core
 Error = _core.LlmError
 
 
+def __getattr__(name):
+    if name == "Options":
+        from pydantic import BaseModel, ConfigDict
+        class Options(BaseModel):
+            model_config = ConfigDict(extra="forbid")
+        Options.__qualname__ = "Options"
+        globals()["Options"] = Options
+        return Options
+    raise AttributeError("module 'llm' has no attribute " + repr(name))
+
+
 def _sync(awaitable):
     try:
         from pyodide.ffi import run_sync
@@ -251,7 +262,10 @@ class _Response:
                 self._start = time.monotonic()
                 self._start_utcnow = _datetime.datetime.now(_datetime.timezone.utc)
                 self._client = _core.Client(model=self.model.model_id, key=self._key)
-                values = dict(system=self.prompt.system, options=self.prompt.options,
+                options = self.prompt.options
+                if hasattr(options, "model_dump"):
+                    options = options.model_dump(exclude_none=True)
+                values = dict(system=self.prompt.system, options=options,
                               attachments=self.prompt.attachments, schema=self.prompt.schema)
                 if self.conversation is not None:
                     messages = []
@@ -423,6 +437,22 @@ class Model:
             self.supports_schema = "schema" in capabilities
         if metadata is not None:
             self.attachment_types = set(metadata.get("attachmentTypes", ()))
+            if "options" in metadata:
+                from pydantic import create_model, Field
+                from typing import Optional
+                types = {"number": float, "integer": int, "boolean": bool, "string": str}
+                fields = {}
+                for name, declaration in metadata["options"].items():
+                    value_type = types[declaration["type"]]
+                    if declaration.get("nullable"):
+                        value_type = Optional[value_type]
+                    constraints = {}
+                    for source, target in (("minimum", "ge"), ("maximum", "le"), ("description", "description")):
+                        if source in declaration:
+                            constraints[target] = declaration[source]
+                    fields[name] = (value_type, Field(default=None, **constraints))
+                base = globals().get("Options") or __getattr__("Options")
+                self.Options = create_model("Options", __base__=base, **fields)
 
     def __str__(self):
         suffix = " (async)" if isinstance(self, AsyncModel) else ""
@@ -447,6 +477,9 @@ class Model:
                tool_results=None, **options):
         self._validate_attachments(attachments)
         key = options.pop("key", None)
+        options_class = getattr(self, "Options", None)
+        if options_class is not None:
+            options = options_class(**options)
         if schema is not None and hasattr(schema, "model_json_schema"):
             schema = schema.model_json_schema()
         return Response(Prompt(prompt, self, system=system, attachments=attachments,

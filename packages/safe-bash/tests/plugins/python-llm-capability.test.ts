@@ -596,3 +596,11 @@ test('Python schema DSL reuses shared parsing with bounded results and no provid
   await assert.rejects(limited.call!({operation:'schema_dsl',payload:{schema:'name',multi:false}},{signal}),/limit/);
   assert.equal(requests.length,0);
 });
+
+test('Python discovery preserves canonical option declarations', async () => {
+  const options = {temperature:{type:'number' as const,minimum:0,maximum:2,description:'Sampling temperature'}};
+  const service = createLlmService({providers:[{name:'typed',models:[{id:'typed',options}],async *complete() {yield 'ok';}}]});
+  const capability = createPythonLlmCapability({fs:new MemoryFileSystem(),cwd:'/'},service);
+  const models = await capability.call!({operation:'models',payload:{}},{signal}) as {metadata:{options:unknown}}[];
+  assert.deepEqual(models[0]!.metadata.options,options);
+});

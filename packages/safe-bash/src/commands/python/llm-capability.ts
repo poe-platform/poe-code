@@ -373,7 +373,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         const aliases = await configuration.aliases();
         const models = service.models.map(entry => ({
           id:entry.model.id,aliases:getLlmModelAliases(entry,aliases),capabilities:[...entry.model.capabilities ?? []],
-          metadata:{provider:entry.provider.name,attachmentTypes:[...entry.model.attachmentTypes ?? []],outputType:entry.model.outputType ?? 'text/plain'},
+          metadata:{...(entry.model.options === undefined ? {} : {options:entry.model.options}),provider:entry.provider.name,attachmentTypes:[...entry.model.attachmentTypes ?? []],outputType:entry.model.outputType ?? 'text/plain'},
         }));
         jsonBytes(models,bufferedLimit);
         return models;

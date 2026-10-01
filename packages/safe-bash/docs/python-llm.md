@@ -96,7 +96,15 @@ await installPythonLlmDependencies(runtime, archives), where each archive is
 The loader checks the complete bundle before extraction into the private
 interpreter runtime. It performs no network requests or pip installation, and
 requires no runtime Wasm compilation. Pydantic availability alone does not yet
-qualify the complete reference Options interface.
+qualify the complete reference Options interface. With these dependencies loaded,
+llm.Options is a genuine Pydantic BaseModel with extra fields forbidden. Custom
+models can define a nested Options subclass; model.prompt validates it immediately
+and execute receives the typed instance through prompt.options. Discovered models
+with declared shared-service options receive generated Pydantic classes using
+those same types, bounds, nullability and descriptions. Transport serializes typed
+options before canonical JavaScript validation. Models without declarations retain
+their existing permissive option behavior; full base-model Options parity remains
+unfinished.
 
 The JSPI launcher installs an invocation-owned bridge. Enable `llm` in
 `pythonCommands({ createCapabilities })`: its `call({ operation, payload },

@@ -375,3 +375,72 @@ asyncio.run(check())
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stdout + result.stderr);
 });
+
+test('custom model Options use genuine Pydantic validation like the reference', {skip: !process.env.LLM_REFERENCE_PYTHON}, () => {
+  const program = `
+import llm
+from pydantic import BaseModel, ValidationError
+assert issubclass(llm.Options, BaseModel)
+class TypedModel(llm.Model):
+ model_id = "typed"
+ class Options(llm.Options):
+  temperature: float = 0.5
+ def execute(self, prompt, stream, response, conversation):
+  assert isinstance(prompt.options, self.Options)
+  yield str(prompt.options.temperature)
+model = TypedModel()
+assert model.prompt("test", temperature="0.75").text() == "0.75"
+assert model.prompt("test").text() == "0.5"
+for options in [{"unknown": True}, {"temperature": "invalid"}]:
+ try:
+  model.prompt("test", **options)
+  raise AssertionError("invalid options accepted")
+ except ValidationError as error:
+  assert error.errors()[0]["type"] in ("extra_forbidden", "float_parsing")
+class TypedAsyncModel(llm.AsyncModel):
+ model_id = "typed-async"
+ Options = TypedModel.Options
+ async def execute(self, prompt, stream, response, conversation):
+  yield str(prompt.options.temperature)
+async def check():
+ assert await TypedAsyncModel().prompt("test", temperature="0.25").text() == "0.25"
+asyncio.run(check())
+`;
+  const globals = new Map<string, unknown>();
+  let source: unknown;
+  let registration = '';
+  installPythonLlmModule({ globals, runPython(value) {
+    source = globals.get('_safe_llm_source');
+    registration = value;
+  } });
+  for (const setup of [bundledSetup, 'import asyncio\n']) {
+    const catalog = setup === bundledSetup ? `
+import llm
+from pydantic import ValidationError
+model = llm.Model("test-model", metadata={"options": {
+ "temperature": {"type": "number", "minimum": 0, "maximum": 2},
+ "count": {"type": "integer", "minimum": 1},
+ "enabled": {"type": "boolean"},
+ "label": {"type": "string", "nullable": True}
+}})
+assert model.prompt("test").prompt.options.model_dump(exclude_none=True) == {}
+for values in [{"temperature": 3}, {"count": 0}, {"temperature": None}, {"unknown": True}]:
+ try:
+  model.prompt("test", **values)
+  raise AssertionError("invalid catalog options accepted")
+ except ValidationError:
+  pass
+original_stream = Bridge.stream
+def checked_stream(self, payload):
+ assert payload["options"] == {"temperature": 0.5, "count": 2, "enabled": True}
+ return original_stream(self, payload)
+Bridge.stream = checked_stream
+assert model.prompt("typed", temperature="0.5", count="2", enabled=True, label=None).text() == "hello"
+` : '';
+    const result = spawnSync(process.env.LLM_REFERENCE_PYTHON!, ['-B', '-c', setup + program + catalog], {
+      input: JSON.stringify({source, registration}), encoding: 'utf8', timeout: 5000,
+    });
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stdout + result.stderr);
+  }
+});

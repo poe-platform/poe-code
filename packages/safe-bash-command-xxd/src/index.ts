@@ -152,7 +152,8 @@ function parseOptions(
         else values.set(key, [value]);
         offset = argument.length;
       }
-      flags.add(key);
+      if (key === "a" && flags.has(key)) flags.delete(key);
+      else flags.add(key);
     }
   }
   return { flags, values, operands };

@@ -626,9 +626,9 @@ export function evalSyncCmp(
 }
 
 /** Opt-in GNU comparison-block behavior; producer fragments do not define blocks. */
-export const createCmpCommand = buildCmpCommand.bind(undefined, false);
+export const createCmpCommand = /* @__PURE__ */ buildCmpCommand.bind(undefined, false);
 /** Existing default-shell behavior, sharing the same retained-input engine. */
-export const cmpCommand = buildCmpCommand.bind(undefined, true);
+export const cmpCommand = /* @__PURE__ */ buildCmpCommand.bind(undefined, true);
 export function createCmpCommands(options: CmpCommandsOptions = {}): readonly CommandDefinition[] { return [createCmpCommand(options)]; }
 export function cmpCommands(options: CmpCommandsOptions = {}): VirtualShellPlugin {
  const commands = createCmpCommands(options);

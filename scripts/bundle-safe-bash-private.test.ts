@@ -207,3 +207,26 @@ it("keeps Node prebundling out of portable image command artifacts", async () =>
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect(imports.filter(entry => entry.path.startsWith("node:"))).toEqual([]);
 });
+
+// A root re-export must not retain asynchronous command engines when unused.
+it.each([
+  ["cmp", "createCmpCommand", "buildCmpCommand"],
+  ["truncate", "createTruncateCommand", "createDefinition"],
+])("tree-shakes the unselected %s factory after ESM packaging", async (command, factory, implementation) => {
+  const packed = await build({
+    entryPoints: [`packages/safe-bash-command-${command}/src/index.ts`],
+    bundle: true, format: "esm", platform: "browser", packages: "external", write: false,
+  });
+  for (const selected of [false, true]) {
+    const consumer = await build({
+      stdin: { contents: selected ? `export { ${factory} } from "packed-command";` : 'import "packed-command"; export const marker = true;' },
+      bundle: true, format: "esm", platform: "browser", packages: "external", write: false,
+      plugins: [{ name: "packed-command", setup(builder) {
+        builder.onResolve({ filter: /^packed-command$/ }, () => ({ path: "command", namespace: "packed" }));
+        builder.onResolve({ filter: /.*/, namespace: "packed" }, args => ({ path: args.path, external: true }));
+        builder.onLoad({ filter: /.*/, namespace: "packed" }, () => ({ contents: packed.outputFiles[0]!.text }));
+      } }],
+    });
+    expect(consumer.outputFiles[0]!.text.includes(`function ${implementation}(`)).toBe(selected);
+  }
+});

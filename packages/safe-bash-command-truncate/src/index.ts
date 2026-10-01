@@ -639,8 +639,8 @@ function createDefinition(retained: boolean, options: TruncateCommandsOptions = 
 }
 
 // Portable callers retain the path-based filesystem contract; shell defaults require retained identity.
-export const createTruncateCommand = createDefinition.bind(undefined, false);
-export const truncateCommand = createDefinition.bind(undefined, true);
+export const createTruncateCommand = /* @__PURE__ */ createDefinition.bind(undefined, false);
+export const truncateCommand = /* @__PURE__ */ createDefinition.bind(undefined, true);
 export { evalSyncTruncate } from "./sync.js";
 export function createTruncateCommands(options: TruncateCommandsOptions = {}): readonly CommandDefinition[] { return [createTruncateCommand(options)]; }
 export function truncateCommands(options: TruncateCommandsOptions = {}): VirtualShellPlugin {

@@ -26,6 +26,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Runtime wiring   | Reserved service names, injected I/O and approval runtime admission              |
 | HTTP summaries   | REST/GraphQL errors, request IDs, retry hints and redacted error envelopes         |
 | Error reports    | Secret-aware rendering, cause chains, project discovery and confined report writes |
+| Schema conversion | JSON-schema projections, recursive references, composition and upstream metadata |
 | Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts
@@ -103,6 +104,9 @@ Error reports use native redaction policy, argument handling, cause-chain traver
 filename generation and directory checks. Node preserves filesystem promises,
 symlink resolution and report text formatting. Commander supplies its existing
 error constructor so help/version exceptions keep their original identity.
+JSON-schema conversion uses Rust for reference traversal, schema selection,
+composition, nullability and metadata rules. It retains the native schema engine
+for validation and preserves JavaScript property descriptors and default identity.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The SDK, CLI, transports, approval runtime and

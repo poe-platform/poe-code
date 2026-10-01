@@ -306,6 +306,21 @@ Rust, declarations and lint. Recursive callbacks retain the 128-entry guard and
 optional wrappers the 16,384 guard pending resource-limit qualification. Public SDK
 assembly/invocation, proxy resolution and the full approval runtime remain open.
 
+JSON-schema conversion now routes reference discovery/resolution, recursive
+projection selection, metadata and default rules, nullability, discriminators,
+composition and conditional object fields through Rust. The adapter retains
+JavaScript collection operations, property descriptors, schema-builder calls and
+error formatting. Native schema validation remains authoritative for upstream
+constraints. The original converter suite and differential nested-schema cases
+verify projections, wire documents, validation, getter ordering and arbitrary
+exceptions; independent native Node tests verify default identity, frozen inputs,
+pointer escaping, recursive validation, prototype-named fields and custom array
+iterator closing. The checkpoint
+passes 1,409 reference/parity tests and 83 native Node tests, plus Rust,
+declarations and lint. The converter remains internal, ready for native MCP proxy
+discovery. MCP connection/cache lifecycle, SDK assembly/invocation, complete
+approval runtime and deep-graph resource qualification are still required.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

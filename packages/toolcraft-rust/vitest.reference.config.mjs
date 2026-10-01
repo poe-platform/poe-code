@@ -19,6 +19,7 @@ export default defineConfig({
           if (resolved === path("../toolcraft/src/api-error-summary.js")) return path("dist/api-error-summary.js");
           if (resolved === path("../toolcraft/src/error-report.js")) return path("dist/error-report.js");
           if (resolved === path("../toolcraft/src/project-root.js")) return path("dist/project-root.js");
+          if (resolved === path("../toolcraft/src/json-schema-converter.js")) return path("dist/json-schema-converter.js");
           if (resolved === path("../toolcraft/src/human-in-loop/types.js")) return path("dist/approval-error.js");
         }
         if (importer?.startsWith(path("../toolcraft/src/")) && name === "toolcraft-schema")
@@ -67,9 +68,11 @@ export default defineConfig({
       path("tests/source-snippet-parity.test.ts"),
       path("tests/runtime-io-parity.test.ts"),
       path("tests/error-report-parity.test.ts"),
+      path("tests/json-schema-converter-parity.test.ts"),
       path("../toolcraft/src/runtime/io.test.ts"),
       path("../toolcraft/src/api-error-summary.test.ts"),
       path("../toolcraft/src/error-report.test.ts"),
+      path("../toolcraft/src/json-schema-converter.test.ts"),
       ...[...suites, "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "sdk-validation", "sdk-runtime-options"].map((suite) =>
         path(`../toolcraft/src/${suite}.test.ts`)
       )

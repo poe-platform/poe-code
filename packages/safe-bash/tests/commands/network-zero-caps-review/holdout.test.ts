@@ -9,15 +9,16 @@ const expectedDefaults = Object.freeze({
   maxUploadBytes: Infinity, maxDownloadBytes: Infinity, maxBufferBytes: Infinity,
   maxHeaderBytes: Infinity, maxRedirects: Infinity, maxRetries: Infinity, maxUrls: Infinity, maxTimeMs: Infinity,
   maxTotalTimeMs: Infinity,
+  maxInputLines: Infinity, maxConfigDepth: Infinity, maxEncodingLayers: Infinity,
 });
 
 test('independent zero-cap contract through direct and Shell/plugin public execution', { timeout: 30000 }, async context => {
   const result = await runSuite(root, network, { expectedDefaults });
   assert.equal(result.counts.skipped, 0);
   assert.equal(result.counts.failed, 0, JSON.stringify(result.receipts.filter(receipt => receipt.pass === false)));
-  assert.equal(result.counts.passed, 326);
+  assert.equal(result.counts.passed, 398);
   assert.equal(result.receipts.filter(receipt => receipt.name.split('/')[2] === 'maxTotalTimeMs').length, 24);
-  context.diagnostic('326 checks: 220 constructor validations (24 maxTotalTimeMs), 106 direct/Shell executions');
+  context.diagnostic('398 checks: 292 constructor validations (24 maxTotalTimeMs), 106 direct/Shell executions');
   assertOffline();
 });
 

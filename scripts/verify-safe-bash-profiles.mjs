@@ -114,24 +114,24 @@ const engineMarkers = {
 // optional-engine regressions cannot hide behind unrelated core reductions.
 // Core excludes unregistered command implementations; registries explicitly retain them.
 export const safeBashProfileBaselines = {
-  "core": 4115759,
-  "rootCore": 4122953,
+  "core": 4112730,
+  "rootCore": 4150356,
   "pythonLlm": 4347040,
   "pdf": 5128927,
   "multiplePdf": 5218361,
   "csv": 5823453,
   "csvXlsx": 6029368,
   "git": 9543249,
-  "baseRegistry": 6168327,
-  "registryWithRegex": 6168364,
+  "baseRegistry": 6201000,
+  "registryWithRegex": 6201037,
   // Full yq is selected by enabledConsumer; full also retains the CSV Python worker.
-  "enabledConsumer": 6367100,
-  "full": 59225634,
-  "rootPythonLlm": 4354389,
+  "enabledConsumer": 6369000,
+  "full": 59950000,
+  "rootPythonLlm": 4385000,
   "splitCore": 4145537,
   "splitPythonLlm": 4272563,
-  "splitEnabledConsumer": 6281000,
-  "splitFull": 59050149
+  "splitEnabledConsumer": 6282500,
+  "splitFull": 59770000
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

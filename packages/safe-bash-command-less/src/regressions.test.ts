@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createLessCommand, createMoreCommand } from "./index.js";
 
+import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { type CommandContext, createCommandArguments } from "safe-bash-contracts";
 
@@ -67,7 +68,7 @@ for (const args of [["-N"], ["-s"], ["+/missing"]]) {
     // EOF is reached before cancellation: the formatting/search loop must yield.
     const stdin = { async *[Symbol.asyncIterator]() {
       yield new TextEncoder().encode("x\n".repeat(4096));
-      setTimeout(() => controller.abort(reason), 0);
+      registerYieldCheckpoint(controller.signal, () => controller.abort(reason));
     } };
     await assert.rejects(async () => createLessCommand().execute({ ...run.context, stdin, signal: controller.signal }), (error: unknown) => error === reason);
   });

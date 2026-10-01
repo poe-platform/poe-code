@@ -368,3 +368,17 @@ test("bc prints parenthesized assignments but suppresses bare assignments", asyn
     exitCode: 0, stdout: "5\n8\n8\n", stderr: "",
   });
 });
+
+for (const [program, expected] of [
+  ['x=1; (++x)+sqrt(4); x', '4\n2\n'],
+  ['x=1; (x+=10)+a[0]; x', '11\n11\n'],
+  ['define f() { return 2; }\nx=1; (++x)+f(); x', '4\n2\n'],
+  ['scale=1; (++scale)+sqrt(4); scale', '4.00\n2\n'],
+  ['ibase=2; (++ibase)+sqrt(4); ibase', '5\n3\n'],
+  ['obase=2; (++obase)+sqrt(4); obase', '12\n10\n'],
+  ['1; (++last)+sqrt(4); last', '1\n4\n4\n'],
+  ['define f() { auto x; x=1; return (++x)+sqrt(4); }\nf()', '4\n'],
+  ['x=0; for(i=0;i<5000;i++) y=(++x)+sqrt(4); x; y', '5000\n5002\n'],
+]) test(`bc evaluates mutations once across complex expressions: ${program}`, async () => {
+  assert.deepEqual(await evaluate(program + '\n'), { exitCode: 0, stdout: expected, stderr: '' });
+});

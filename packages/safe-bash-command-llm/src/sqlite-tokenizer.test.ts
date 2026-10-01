@@ -43,3 +43,22 @@ test('streamed SQLite tokens return the source on cancellation and early termina
   }, value => value === error);
   assert.equal(closed, 2);
 });
+
+
+test('empty source chunks cannot starve scheduled tokenizer cancellation', async () => {
+  const controller = new AbortController();
+  let closed = false;
+  const source = (async function* () {
+    try { for (let index = 0; index < 1024; index++) yield new Uint8Array(); }
+    finally { closed = true; }
+  })();
+  const timer = setImmediate(() => controller.abort(new Error('empty stream stop')));
+  try {
+    await assert.rejects(async () => {
+      for await (const token of streamSqliteUnicode61(source, controller.signal, () => {
+        assert.fail('empty input must not invoke native tokenizer');
+      })) assert.fail(`unexpected token ${token.length}`);
+    }, /empty stream stop/);
+  } finally { clearImmediate(timer); }
+  assert.equal(closed, true);
+});

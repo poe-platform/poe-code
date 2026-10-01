@@ -48,6 +48,7 @@ export async function* streamSqliteUnicode61(source: ByteSource, signal: AbortSi
     }
   }
   for await (const chunk of sqliteSourceChunks(source, signal)) {
+    await yieldTurn(signal);
     if (!(chunk instanceof Uint8Array)) throw new TypeError('SQLite text source must yield bytes');
     for (let offset = 0; offset < chunk.length; offset += 16384) {
       await yieldTurn(signal);

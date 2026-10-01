@@ -102,6 +102,20 @@ it("rejects clip and poster byte budgets before package mutation", async () => {
     )
   ).rejects.toMatchObject({ code: "resource-limit" });
 });
+it.each([Infinity, 300_000_000])("admits media above the former fixed cap with byte limit %s", async (limit) => {
+  // Exercise byte admission without allocating a 256 MiB fixture. An unsupported
+  // content type stops validation after the budget check, before reading bytes.
+  const bytes = clip.slice();
+  Object.defineProperty(bytes, "byteLength", { value: 268_435_457 });
+  const admitted = { ...context, limits: { ...context.limits, maxBytes: limit },
+    archiveLimits: { ...context.archiveLimits, maxEntryBytes: limit } };
+  const source = new Uint8Array();
+  await expect(addMedia(source, { ...options, bytes, contentType: 'unsupported' }, admitted))
+    .rejects.toMatchObject({ message: 'Unsupported media content type or kind mismatch.' });
+  await expect(addMedia(source, { ...options, bytes }, {
+    ...admitted, archiveLimits: { ...admitted.archiveLimits, maxEntryBytes: 268_435_456 },
+  })).rejects.toMatchObject({ code: "resource-limit" });
+});
 it("replaces both clip bindings and explicit poster while retaining playback metadata", async () => {
   const source = await addMedia(
     await createPresentation({ slides: [{}] }, context),

@@ -63,7 +63,7 @@ function budget(bytes: Uint8Array, context: SelectionContext): void {
     invalid("Media requires nonempty supplied bytes.");
   if (
     bytes.byteLength >
-    Math.min(268435456, context.limits.maxBytes, context.archiveLimits.maxEntryBytes)
+    Math.min(context.limits.maxBytes, context.archiveLimits.maxEntryBytes)
   )
     throw new OfficeError("resource-limit", "Media exceeds the admitted byte budget.", "admit");
 }

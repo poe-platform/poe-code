@@ -15,7 +15,7 @@ test("ExifTool public command composes with Shell argv, pipelines and VFS script
     assert.equal(pipeline.exitCode, 0, pipeline.stderr); assert.equal(pipeline.stdout, "1e999");
     const stdin = await shell.exec("cat /image.png | exiftool -j -Title -");
     assert.equal(stdin.exitCode, 0, stdin.stderr);
-    assert.equal(stdin.stdout, '[{\n  "SourceFile": "-",\n  "Title": 1e999\n}]\n');
+    assert.equal(stdin.stdout, '[{\n  "SourceFile": "-",\n  "Title": "1e999"\n}]\n');
     const csv = await shell.exec("exiftool -csv -Title /image.png /image.png | cat");
     assert.equal(csv.exitCode, 0, csv.stderr);
     assert.equal(csv.stdout, "SourceFile,Title\n/image.png,1e999\n/image.png,1e999\n");
@@ -23,7 +23,7 @@ test("ExifTool public command composes with Shell argv, pipelines and VFS script
     await fs.writeFile("/inspect.sh", new TextEncoder().encode("exiftool -j -Title /image.png\n"));
     const script = await shell.exec("sh /inspect.sh");
     assert.equal(script.exitCode, 0, script.stderr);
-    assert.equal(script.stdout, '[{\n  "SourceFile": "/image.png",\n  "Title": 1e999\n}]\n');
+    assert.equal(script.stdout, '[{\n  "SourceFile": "/image.png",\n  "Title": "1e999"\n}]\n');
     const unicode = await shell.exec("exiftool -overwrite_original '-Title=café 水😀' '-ModifyDate=2024-02-29T12:34:56.789+05:30' /image.png");
     assert.equal(unicode.exitCode, 0, unicode.stderr);
     const date = await shell.exec("exiftool -b -ModifyDate /image.png | cat");

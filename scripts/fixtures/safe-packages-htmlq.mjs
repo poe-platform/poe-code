@@ -36,7 +36,11 @@ try {
   const same = await shell.exec('htmlq span -t -f /input -o /input');
   assert.equal(same.exitCode, 0); assert.equal(same.stdout, '');
   assert.equal(new TextDecoder().decode(await fs.readFile('/input')), '1\n2\n3\n');
-  assert.equal((await shell.exec('htmlq --attribute id')).exitCode, 2);
+  const attribute = await shell.exec('htmlq --attribute id', { stdin: '<html id="root"></html>' });
+  assert.equal(attribute.exitCode, 0);
+  assert.equal(attribute.stdout, 'root\n');
+  assert.equal(attribute.stderr, '');
+  assert.equal((await shell.exec('htmlq --attribute')).exitCode, 2);
   for (const command of ['htmlq -tt', 'htmlq -f /input --filename=/input']) {
     const duplicate = await shell.exec(command);
     assert.equal(duplicate.exitCode, 2);

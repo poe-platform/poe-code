@@ -18,6 +18,8 @@ const controls: Readonly<Record<number, number>> = { 97: 7, 98: 8, 102: 12, 110:
 /** Cooperative formatting and bounded output batches across all matched entries. */
 export class FindFormatBudget {
   private untilYield = 4096;
+  private readonly pending = new Uint8Array(4096);
+  private used = 0;
 
   constructor(readonly context: CommandContext) {}
 
@@ -29,11 +31,21 @@ export class FindFormatBudget {
     return yieldTurn(this.context.signal);
   }
 
+  async flush(): Promise<void> {
+    if (this.used === 0) return;
+    const chunk = this.pending.slice(0, this.used);
+    this.used = 0;
+    await output(this.context, chunk);
+  }
+
   async write(bytes: Uint8Array): Promise<void> {
-    for (let offset = 0; offset < bytes.length; offset += 4096) {
-      const chunk = bytes.subarray(offset, offset + 4096);
-      { const s = this.step(chunk.length); if (s) await s; }
-      await output(this.context, chunk);
+    for (let offset = 0; offset < bytes.length;) {
+      const length = Math.min(bytes.length - offset, this.pending.length - this.used);
+      { const s = this.step(length); if (s) await s; }
+      this.pending.set(bytes.subarray(offset, offset + length), this.used);
+      this.used += length;
+      offset += length;
+      if (this.used === this.pending.length) await this.flush();
     }
   }
 
@@ -110,5 +122,6 @@ export async function compileFindFormat(value: ShellValue, budget: FindFormatBud
       else if ("byte" in part) await budget.write(Uint8Array.of(part.byte));
       else await budget.write(source.subarray(part.start, part.end));
     }
+    await budget.flush();
   };
 }

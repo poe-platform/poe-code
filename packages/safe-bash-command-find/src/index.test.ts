@@ -205,3 +205,35 @@ for (const countOnly of [false, true]) {
     assert.equal(stdout, expected);
   });
 }
+
+test("find printf coalesces directives and literals into one entry write", async () => {
+  const writes: Uint8Array[] = [];
+  const result = await createFindCommand().execute({
+    command: "find", args: [".", "-maxdepth", "0", "-printf", "%d %y %p\\n"],
+    cwd: "/", env: {}, fs: createMemoryFileSystem(), stdin: toByteSource(""),
+    signal: new AbortController().signal,
+    stdout: { async write(bytes) { writes.push(bytes.slice()); } },
+    stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(Buffer.concat(writes).toString(), "0 d .\n");
+  assert.equal(writes.length, 1);
+});
+
+test("find printf batches large raw formats without altering bytes or retaining mutable chunks", async () => {
+  const writes: Uint8Array[] = [];
+  const literal = Buffer.concat([Buffer.alloc(65537, 120), Buffer.from([255])]);
+  const format = shellValueFromBytes(Buffer.concat([literal, Buffer.from("%p\\000%d\\n")]));
+  const values = createCommandArguments([".", ".", "-maxdepth", "0", "-printf", format]);
+  const result = await createFindCommand().execute({
+    command: "find", args: values.args, argumentValues: values,
+    cwd: "/", env: {}, fs: createMemoryFileSystem(), stdin: toByteSource(""),
+    signal: new AbortController().signal,
+    stdout: { async write(bytes) { writes.push(bytes); } },
+    stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 0);
+  const entry = Buffer.concat([literal, Buffer.from(".\0" + "0\n")]);
+  assert.deepEqual(Buffer.concat(writes), Buffer.concat([entry, entry]));
+  assert.ok(writes.every(bytes => bytes.length <= 4096));
+});

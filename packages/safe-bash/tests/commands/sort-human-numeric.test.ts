@@ -257,7 +257,8 @@ test("sort comparison and numeric parsing paths preserve queued cancellation", a
       let checkpoints = 0;
       registerYieldCheckpoint(controller.signal, () => { checkpoints++; scheduleTurn(() => controller.abort(reason)); });
       await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute(context)), failure => failure === reason);
-      assert.equal(checkpoints, 1);
+      // Sort checks once at entry, then yields during key processing.
+      assert.equal(checkpoints, 2);
       assert.equal(stdout.length, 0);
       assert.equal(stderr.length, 0);
       assert.equal(Buffer.from(await fs.readFile("/work/kept")).toString(), "unchanged");
@@ -275,7 +276,8 @@ for (const args of [["-h"], ["-n"], ["-k", "1,1"], ["-k", "1,1h"], ["-k", "1,1n"
       let checkpoints = 0;
       registerYieldCheckpoint(controller.signal, () => { checkpoints++; scheduleTurn(() => controller.abort(reason)); });
       await assert.rejects(run("sort", [...args, "-o", "kept"], { fs, stdin, signal: controller.signal }), error => error === reason);
-      assert.equal(checkpoints, 1);
+      // Sort checks once at entry, then yields during key processing.
+      assert.equal(checkpoints, 2);
       assert.equal(Buffer.from(await fs.readFile("/work/kept")).toString(), "unchanged");
     }
   });

@@ -101,3 +101,44 @@ test("caller buffer reuse cannot transfer counts or binary classification betwee
     assert.equal(binaryAsText.stdout, "/binary/file:1\n");
   }
 });
+
+for (const mode of ["sync", "async"] as const) {
+  for (const code of ["EPIPE", "EIO"] as const) {
+    test(`fast count flush handles ${mode} ${code} and releases its runner`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir("/dir");
+      await fs.writeFile("/dir/file", bytes("needle\n"));
+      const command = createRgCommand();
+      const values = createCommandArguments(["-c", "needle", "/dir"]);
+      const failure = Object.assign(new Error("sink failed"), { code });
+      let syncWrites = 0, asyncWrites = 0, stderr = "";
+      const context = {
+        command: "rg", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+        _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true,
+        stdin: toByteSource(""), signal: new AbortController().signal,
+        stdout: {
+          _scratch4k: new Uint8Array(4096),
+          writeSync() { throw new Error("expected range write"); },
+          writeRangeSync() {
+            syncWrites++;
+            if (mode === "sync") throw failure;
+            return false;
+          },
+          async write() { asyncWrites++; throw failure; },
+        },
+        stderr: { async write(chunk: Uint8Array) { stderr += new TextDecoder().decode(chunk); } },
+      };
+      // Repeat to verify that both exceptional flush paths release the pooled runner.
+      for (let attempt = 0; attempt < 2; attempt++) {
+        if (code === "EPIPE") assert.deepEqual(await command.execute(context), { exitCode: 0 });
+        else await assert.rejects(async () => command.execute(context), error => error === failure);
+        assert.equal(syncWrites, attempt + 1);
+        assert.equal(asyncWrites, mode === "async" ? attempt + 1 : 0);
+        assert.equal(stderr, "");
+        const next = await run(command, fs, ["-c", "needle", "/dir"]);
+        assert.equal(next.exitCode, 0);
+        assert.equal(next.stdout, "/dir/file:1\n");
+      }
+    });
+  }
+}

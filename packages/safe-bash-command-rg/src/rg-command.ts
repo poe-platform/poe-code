@@ -30,7 +30,10 @@ function finishPendingRgFlush(
   found: boolean,
   release: () => void,
 ): Promise<import("safe-bash-contracts").CommandResult> {
-  return flushRes.then(found ? RETURN_EXIT_ZERO_CMD : RETURN_EXIT_ONE_CMD).finally(release);
+  return flushRes.then(found ? RETURN_EXIT_ZERO_CMD : RETURN_EXIT_ONE_CMD, error => {
+    if (error instanceof OutputClosed) return RESOLVED_EXIT_ZERO;
+    throw error;
+  }).finally(release);
 }
 function resolveToBoolean(promise: Promise<unknown>, found: boolean): Promise<boolean> {
   return promise.then(found ? RETURN_TRUE : RETURN_FALSE);
@@ -685,6 +688,7 @@ function tryExecuteRgFastSync(
     return finishPendingRgFlush(flushRes, runner.found, runner.release);
   } catch (error) {
     if (!committing) return undefined;
+    if (error instanceof OutputClosed) return RESOLVED_EXIT_ZERO;
     throw error;
   } finally {
     if (!pendingFlush) runner.release();

@@ -205,7 +205,7 @@ for hosts supplying a `NodeRuntimeProvider` for the restricted synchronous profi
 below. Do not combine `provider`/`grants` with `runtime`. Provider `limits` use the
 restricted profile fields, such as `sourceBytes`, `operations`, `outputBytes`,
 `admissionMs`, `memoryBytes`, `steps`, and individual Worker heap/stack budgets.
-Each is optional; an omitted field is unlimited. Transfer chunks remain 64 KiB
+Each is optional; an omitted field or explicit `Infinity` is unlimited. Transfer chunks remain 64 KiB
 while total payloads, metadata, operations, and frame counts have no default cap.
 `createNodeWorkerProvider` accepts an explicitly authorized static engine adapter;
 it never discovers or loads SafeJS automatically. Entry URLs and identity strings

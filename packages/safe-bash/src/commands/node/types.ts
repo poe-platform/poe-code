@@ -10,7 +10,7 @@ export type NodeLimitOptions = Partial<Omit<NodeLimits, "sabBytes">>;
 export function resolveNodeLimits(options: NodeLimitOptions = {}): NodeLimits {
   for (const [name, value] of Object.entries(options)) {
     if (name === "sabBytes" || !Object.hasOwn(nodeLimits, name)) throw new TypeError(`Unknown Node limit: ${name}`);
-    if (!Number.isSafeInteger(value) || value < 0 || ["admissionMs", "oldGenerationMiB", "youngGenerationMiB", "codeMiB", "stackMiB"].includes(name) && value < 1) throw new RangeError(`Invalid Node limit: ${name}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0 || ["admissionMs", "oldGenerationMiB", "youngGenerationMiB", "codeMiB", "stackMiB"].includes(name) && value < 1)) throw new RangeError(`Invalid Node limit: ${name}`);
   }
   return Object.freeze({ ...nodeLimits, ...options });
 }

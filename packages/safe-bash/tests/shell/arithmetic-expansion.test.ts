@@ -7,6 +7,26 @@ import { basicCommands, printfCommand } from "../../src/commands/basic.js";
 import { streamCommands } from "../../src/commands/streams.js";
 import { writeText } from "../../src/contracts/index.js";
 
+for (const [source, stdout] of [
+  ['i=0; (( (++i, 1 / 0) )); echo "status=$? i=$i"', 'status=1 i=1\n'],
+  ['i=0; (( ++i / (i - 1) )); echo "status=$? i=$i"', 'status=1 i=1\n'],
+  ['i=0; echo "$((i++)):${j:-ok}:$i"', '0:ok:1\n'],
+  ['i=0; echo "$((i++))" "${j:-ok}" "$i"', '0 ok 1\n'],
+  ['i=0; echo $((i++)){a,b} "$i"', '0a 1b 2\n'],
+  ['i=0; x="i++"; echo $((x)){a,b} "$i"', '0a 1b 2\n'],
+  ['i=0; x="i++"; v=$(echo $((x))); echo "$v:$i"', '0:0\n'],
+  ['i=0; x="i++"; v=$(printf "%d" $((x))); echo "$v:$i"', '0:0\n'],
+] as const) test(`arithmetic mutations execute only in their committed scope: ${source}`, async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const command of basicCommands()) shell.commands.register(command);
+  const result = await shell.exec(source);
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.exitCode, 0);
+  if (source.includes('1 / 0') || source.includes('i - 1')) assert.match(result.stderr, /division by 0/);
+  else assert.equal(result.stderr, '');
+});
+
 for (const [source, bytes] of [
   ["dirname /é/file", 4],
   ["basename /dir/é", 3],

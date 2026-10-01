@@ -293,6 +293,8 @@ commit `running` before returning. It runs before session-command effects,
 including automatic restoration. Hosts may provide an opaque `operationId` on
 SDK invocations; otherwise a UUID is generated when recording is enabled.
 Successful commands record `completed`; errors and cancellation record `unknown`.
+A lost-page refusal also records `completed`: the controller proved that no page
+action ran. This does not resolve any preceding uncertain operation.
 Successful `delete-data` retires its running receipt instead. Terminal updates
 must atomically match an existing receipt's `operationId`: ignore them if the
 receipt was deleted or replaced by a newer running admission. Never upsert a
@@ -317,7 +319,16 @@ to replay saved URLs, which can repeat consumed login links or other actions.
 Select inert recovery after interruption when configuration and provider scripts
 must also be suppressed. Both profile restoration modes return
 `livePageStateLost: true`, so adopting a reconstructed profile cannot imply that
-the original live page survived. Recovery metadata has no guest CLI command.
+the original live page survived. The next page action reports an ordinary command
+error rather than returning the reconstructed page as the surviving DOM. The
+restored context stays owned; each restored tab requires main-document navigation
+before actions resume. Explicit `goto`, viewer navigation, or host-authorized
+initializer navigation establishes that new document. Old snapshot refs remain
+invalid. Commands do not replay the interrupted
+action or require the guest to inspect receipts. Recovery metadata has no guest
+CLI command.
+Completed tab selection and closure are reported and checkpointed even when the
+selected tab has no available document; their results omit a replacement snapshot.
 
 After a recoverable checkpoint failure, the completed action and live session
 remain usable. The SDK throws `PlaywrightCheckpointError` with

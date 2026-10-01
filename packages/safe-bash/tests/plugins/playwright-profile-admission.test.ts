@@ -429,6 +429,9 @@ test('storage recovery applies routing, timeouts and test ids without running in
     async checkpoint(session) { checkpoints.push(session); }, async delete() {},
   } });
   try {
+    await assert.rejects(controller.run({ args: ['-s=audit', 'press', 'Enter'], env: {}, signal: item.controller.signal, async write() {} }), /Previous page is unavailable/);
+    assert.equal(item.navigations[0]!.mock.callCount(), 0);
+    await controller.run({ args: ['-s=audit', 'goto', 'https://allowed.test/status'], env: {}, signal: item.controller.signal, async write() {} });
     await controller.run({ args: ['-s=audit', 'press', 'Enter'], env: {}, signal: item.controller.signal, async write() {} });
     assert.equal(action.mock.calls[0]?.arguments[0], 123);
     assert.equal(navigation.mock.calls[0]?.arguments[0], 456);
@@ -442,7 +445,8 @@ test('storage recovery applies routing, timeouts and test ids without running in
     playwrightLocatorSelector(page, "getByTestId('save')");
     assert.ok(locator.mock.calls[0]!.arguments[0].includes('data-qa'));
     assert.deepEqual(checkpoints.at(-1)?.configuration, configuration);
-    assert.equal(item.navigations[0]!.mock.callCount(), 0);
+    assert.equal(item.navigations[0]!.mock.callCount(), 1);
+    assert.equal(item.navigations[0]!.mock.calls[0]?.arguments[0], 'https://allowed.test/status');
   } finally { await controller.dispose(); }
 });
 

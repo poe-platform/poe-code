@@ -140,9 +140,12 @@ export interface PlaywrightSessionPersistence {
   /** Delete saved data and its operation receipt before returning successfully. */
   delete(name: string, signal: AbortSignal): Promise<void>;
 }
+class PlaywrightPageUnavailableError extends Error {}
+
 interface Session {
   recovery?: 'saved-storage';
   livePageStateLost?: true;
+  pagesNeedingNavigation?: WeakSet<PlaywrightPage>;
   readonly name: string;
   readonly generation: number;
   readonly retirement: AbortController;
@@ -658,7 +661,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           && (other.lease === restored.lease || other.lease.context === restored.lease?.context))) throw new TypeError('Restored Playwright lease is already owned by another session');
         session.lease = restored.lease;
         if (restored.recovery === 'saved-storage') session.recovery = 'saved-storage';
-        if (session.recovery === 'saved-storage' || restored.livePageStateLost === true) session.livePageStateLost = true;
+        if (session.recovery === 'saved-storage' || restored.livePageStateLost === true) {
+          session.livePageStateLost = true;
+        }
         check();
         if (!session.lease || typeof session.lease.release !== 'function' || typeof session.lease.onClosed !== 'function'
           || !session.lease.context || ['pages', 'newPage', 'close', 'on', 'off'].some(key => typeof Reflect.get(session.lease!.context, key) !== 'function')) throw new TypeError('Invalid restored Playwright lease');
@@ -667,6 +672,19 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         await initializeContext(session);
         const pages = [...session.lease.context.pages()];
         if (pages.length > maxTabs) throw new PlaywrightResourceLimitError('Playwright tab limit exceeded');
+        if (session.livePageStateLost) {
+          const pending = session.pagesNeedingNavigation = new WeakSet(pages);
+          for (const page of pages) {
+            if (!page.on || !page.off) continue;
+            // Viewer or authorized initializer navigation establishes the main
+            // document; child-frame changes do not replace the lost page.
+            const navigated = (frame?: PlaywrightFrame) => {
+              if (frame && page.mainFrame && frame === page.mainFrame()) pending.delete(page);
+            };
+            page.on('framenavigated', navigated);
+            session.cleanups.add(async () => { page.off!('framenavigated', navigated); });
+          }
+        }
         if (restored.selectedPage !== undefined) {
           if (!pages.includes(restored.selectedPage)) throw new Error('Selected tab does not belong to the restored context');
           await selectPage(session, restored.selectedPage, check);
@@ -884,7 +902,14 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if (errors.length === 1) throw errors[0];
       if (errors.length) throw new AggregateError(errors, 'Playwright trace flush and retirement failed');
     };
+    const assertPageAvailable = (session: Session) => {
+      if (!session.page || !session.pagesNeedingNavigation?.has(session.page)) return;
+      active = session;
+      retained = true;
+      throw new PlaywrightPageUnavailableError(`Previous page is unavailable. Saved browser state was restored, but the page action was not executed. Use playwright-cli -s ${session.name} goto <url> to visit a normal page and verify any earlier action before repeating it. Do not reuse a one-time login URL.`);
+    };
     const pageResult = async (session: Session, code: string | undefined, snapshot: 'none' | 'inline' | 'file' = 'none', filename?: string): Promise<PlaywrightCommandResult> => {
+      assertPageAvailable(session);
       const sections: PlaywrightResultSection[] = [];
       if (code) sections.push({ title: 'Ran Playwright code', content: code, codeframe: 'js' });
       const page = session.page;
@@ -1210,6 +1235,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             check();
           }
           const current = sessions.get(parsed.session);
+          if (current?.state === 'open' && !['goto', 'open', 'close', 'delete-data', 'list', 'config-print', 'tab-list', 'tab-select', 'tab-new', 'tab-close'].includes(parsed.command)) assertPageAvailable(current);
           if (current?.state === 'open' && current.idleTimeoutMs) {
             paused = current;
             current.idlePaused = true;
@@ -1394,6 +1420,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               checkSession(session);
               await runAction(session, async () => { await session.page!.goto(parsed.url!, { timeout: sessionNavigationTimeout(session) }); });
               checkSession(session);
+              session.pagesNeedingNavigation?.delete(session.page!);
               await writeResult(await pageResult(session, actionCode(session, { name: 'navigate', url: parsed.url! }, `await page.goto(${playwrightCodeString(parsed.url!)});`), 'file'));
               checkSession(session);
               await checkpointCompletedAction(session);
@@ -1457,7 +1484,11 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 else { session.detachPage?.(); delete session.page; }
               } else await selectPage(session, tab, () => checkSession(session));
               checkSession(session);
-              await writeResult(await pageResult(session, parsed.command === 'tab-close' ? `await page.context().pages()[${index}].close();` : undefined, 'file'));
+              if (session.page && session.pagesNeedingNavigation?.has(session.page)) {
+                // The tab mutation already completed. Report it and checkpoint
+                // below without pretending to snapshot the lost document.
+                await writeResult({ sections: [{ title: 'Result', content: `Tab ${index} ${parsed.command === 'tab-close' ? 'closed' : 'selected'}. Previous page is unavailable. Use playwright-cli -s ${session.name} goto <url> before acting on the selected tab.` }] });
+              } else await writeResult(await pageResult(session, parsed.command === 'tab-close' ? `await page.context().pages()[${index}].close();` : undefined, 'file'));
             } else if (parsed.command === 'highlight') {
               const target = parsed.args[0];
               const hide = parsed.options.hide === true;
@@ -1586,7 +1617,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         // Retirement is part of the session queue. Keep its rejection for
         // shared invocation cleanup so both execution and cleanup causes survive.
         if (active && !retained) await release(active).catch(() => {});
-        await recordOutcome(commandFailure || traceFailure || reportedError || local.signal.aborted ? 'unknown' : 'completed', new AbortController().signal);
+        // A lost-page refusal proves no page action was attempted; it must not
+        // turn an ordinary saved profile into an interrupted-operation profile.
+        const uncertainFailure = commandFailure && !(commandFailure.error instanceof PlaywrightPageUnavailableError);
+        await recordOutcome(uncertainFailure || traceFailure || reportedError || local.signal.aborted ? 'unknown' : 'completed', new AbortController().signal);
         if (traceFailure) {
           if (commandFailure) throw new AggregateError([commandFailure.error, traceFailure.error], 'Playwright command and trace flush failed');
           throw traceFailure.error;

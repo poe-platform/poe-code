@@ -646,3 +646,132 @@ test('in-memory operation receipts have optional count and age ceilings', async 
     } finally { await controller.dispose(); }
   }
 });
+
+test('standard commands report a reconstructed page and continue only after explicit navigation', async () => {
+  const host = browser();
+  let restores = 0;
+  const navigations: string[] = [];
+  const outcomes: string[] = [];
+  Object.assign(host.page, { async goto(url: string) { navigations.push(url); } });
+  const cli = createPlaywrightCli({ adapter: host.adapter, persistence: {
+    async recordOperation({ operation }) { outcomes.push(operation.status); },
+    async restore() { restores++; return { lease: host.lease, selectedPage: host.page, livePageStateLost: true }; },
+    async checkpoint() {}, async close() {}, async delete() {},
+  } });
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(cli.plugin);
+  try {
+    for (const command of ['snapshot', 'click e123', 'press Enter', 'eval "() => fetch(\'/submit\', {method: \'POST\'})"']) {
+      const result = await shell.exec(`playwright-cli -s owned ${command}`);
+      assert.equal(result.exitCode, 1, result.stdout);
+      assert.match(result.stdout + result.stderr, /Previous page is unavailable/);
+      assert.match(result.stdout + result.stderr, /playwright-cli -s owned goto/);
+      assert.doesNotMatch(result.stdout + result.stderr, /playwright-recovery|livePageStateLost/);
+    }
+    assert.equal(restores, 1, 'retain the restored context between refused actions');
+    assert.deepEqual(outcomes, Array.from({ length: 4 }, () => ['running', 'completed']).flat(), 'known refusals must not introduce uncertain effects');
+    assert.equal(host.calls.clicks, 0);
+    assert.deepEqual(navigations, [], 'never replay a saved or uncertain navigation');
+    const navigated = await shell.exec('playwright-cli -s owned goto https://example.test/status');
+    assert.equal(navigated.exitCode, 0, navigated.stdout + navigated.stderr);
+    assert.deepEqual(navigations, ['https://example.test/status']);
+    const snapshot = await shell.exec('playwright-cli -s owned snapshot');
+    assert.equal(snapshot.exitCode, 0, snapshot.stdout + snapshot.stderr);
+    assert.match(snapshot.stdout, /Save/);
+    const stale = await shell.exec('playwright-cli -s owned click e123');
+    assert.equal(stale.exitCode, 1);
+    assert.equal(host.calls.clicks, 0);
+    assert.equal((await shell.exec('playwright-cli -s owned close')).exitCode, 0);
+    assert.equal((await shell.exec('playwright-cli -s owned snapshot')).exitCode, 1);
+    assert.equal(restores, 1, 'explicit close must suppress restoration');
+    assert.equal((await shell.exec('playwright-cli -s owned delete-data')).exitCode, 0);
+    assert.equal((await shell.exec('playwright-cli -s owned snapshot')).exitCode, 1);
+    assert.equal(restores, 1, 'delete must not resurrect a saved session');
+  } finally { await shell.dispose(); await cli.dispose(); }
+});
+
+test('standard snapshot reconnects a retained page without replaying its effects', async () => {
+  const host = browser();
+  let restores = 0;
+  const cli = createPlaywrightCli({ adapter: host.adapter, persistence: {
+    async restore() { restores++; return { lease: host.lease, selectedPage: host.page }; },
+    async checkpoint() {}, async delete() {},
+  } });
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(cli.plugin);
+  try {
+    const first = await shell.exec('playwright-cli -s owned snapshot');
+    assert.equal(first.exitCode, 0, first.stdout + first.stderr);
+    const ref = first.stdout.split('[ref=')[1]?.split(']')[0];
+    assert.ok(ref);
+    const clicked = await shell.exec(`playwright-cli -s owned click ${ref}`);
+    assert.equal(clicked.exitCode, 0, clicked.stdout + clicked.stderr);
+    assert.equal(host.calls.clicks, 1);
+    const inspected = await shell.exec('playwright-cli -s owned snapshot');
+    assert.equal(inspected.exitCode, 0);
+    assert.match(inspected.stdout, /Save/);
+    assert.equal(host.calls.clicks, 1, 'inspection must not repeat the preceding effect');
+    assert.equal(restores, 1);
+    assert.equal(cli.inspectSessions()[0]!.selectedPage, host.page);
+    assert.equal(host.calls.acquisitions, 0);
+  } finally { await shell.dispose(); await cli.dispose(); }
+});
+
+test('authorized initializer navigation establishes the replacement document', async () => {
+  const host = browser();
+  Object.assign(host.page, { mainFrame: () => host.snapshot.frame });
+  const controller = createPlaywrightController({ adapter: host.adapter, persistence: {
+    async restore() { return { lease: host.lease, selectedPage: host.page, livePageStateLost: true,
+      async initialize() { host.pageEvents.emit('framenavigated', host.snapshot.frame); } }; },
+    async checkpoint() {}, async delete() {},
+  } });
+  try { assert.match(await run(controller, ['-s=owned', 'snapshot']), /Save/); }
+  finally { await controller.dispose(); }
+});
+
+test('restored tabs require their own main-document navigation and remain selectable', async () => {
+  const host = browser();
+  const other = browser();
+  Object.assign(other.page, { mainFrame: () => other.snapshot.frame });
+  host.pages.push(other.page);
+  const cli = createPlaywrightCli({ adapter: host.adapter, persistence: {
+    async restore() { return { lease: host.lease, selectedPage: host.page, livePageStateLost: true }; },
+    async checkpoint() {}, async delete() {},
+  } });
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(cli.plugin);
+  try {
+    assert.equal((await shell.exec('playwright-cli -s owned goto https://example.test/status')).exitCode, 0);
+    const selected = await shell.exec('playwright-cli -s owned tab-select 1');
+    assert.equal(selected.exitCode, 0);
+    assert.match(selected.stdout + selected.stderr, /Previous page is unavailable/);
+    assert.equal(cli.inspectSessions()[0]!.selectedPage, other.page, 'selection completes without presenting a reconstructed snapshot');
+    other.pageEvents.emit('framenavigated', host.snapshot.frame);
+    assert.equal((await shell.exec('playwright-cli -s owned snapshot')).exitCode, 1, 'a child document cannot establish the main page');
+    other.pageEvents.emit('framenavigated', other.snapshot.frame);
+    assert.equal((await shell.exec('playwright-cli -s owned snapshot')).exitCode, 0, 'viewer navigation makes the new document available');
+    await other.page.close();
+    assert.equal((await shell.exec('playwright-cli -s owned tab-select 0')).exitCode, 0, 'a closed selected page must not prevent selecting the remaining page');
+    assert.equal(host.calls.clicks + other.calls.clicks, 0);
+  } finally { await shell.dispose(); await cli.dispose(); }
+});
+
+test('closing a restored tab reports and checkpoints the completed close without a replacement snapshot', async () => {
+  const host = browser();
+  const other = browser();
+  host.pages.push(other.page);
+  const checkpoints: PlaywrightPage[][] = [];
+  const cli = createPlaywrightCli({ adapter: host.adapter, persistence: {
+    async restore() { return { lease: host.lease, selectedPage: host.page, livePageStateLost: true }; },
+    async checkpoint(session) { checkpoints.push([...session.context.pages()]); }, async delete() {},
+  } });
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(cli.plugin);
+  try {
+    const closed = await shell.exec('playwright-cli -s owned tab-close 0');
+    assert.equal(closed.exitCode, 0, closed.stdout + closed.stderr);
+    assert.match(closed.stdout, /Tab 0 closed/);
+    assert.doesNotMatch(closed.stdout + closed.stderr, /not executed|Snapshot/);
+    assert.deepEqual(host.pages, [other.page]);
+    assert.deepEqual(checkpoints.at(-1), [other.page]);
+    assert.equal(cli.inspectSessions()[0]!.selectedPage, other.page);
+    assert.equal((await shell.exec('playwright-cli -s owned snapshot')).exitCode, 1);
+    assert.deepEqual(host.pages, [other.page]);
+  } finally { await shell.dispose(); await cli.dispose(); }
+});

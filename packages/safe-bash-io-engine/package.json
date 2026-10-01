@@ -82,6 +82,14 @@
     "./shell/string-operations": {
       "types": "./dist/shell/string-operations.d.ts",
       "import": "./dist/shell/string-operations.js"
+    },
+    "./commands/mode-change": {
+      "types": "./dist/commands/mode-change.d.ts",
+      "import": "./dist/commands/mode-change.js"
+    },
+    "./commands/directory-admission": {
+      "types": "./dist/commands/directory-admission.d.ts",
+      "import": "./dist/commands/directory-admission.js"
     }
   },
   "files": [

@@ -610,7 +610,21 @@
     "@poe-code/spreadsheet-format-dbf": "0.0.1",
     "safe-bash-command-docx": "*",
     "safe-bash-command-pptx": "*",
-    "safe-bash-command-llm": "*"
+    "safe-bash-command-llm": "*",
+    "safe-bash-command-awk": "*",
+    "safe-bash-command-sed": "*",
+    "safe-bash-command-diff": "*",
+    "safe-bash-command-patch": "*",
+    "safe-bash-diff-engine": "*",
+    "safe-bash-command-tar": "*",
+    "safe-bash-zip-engine": "*",
+    "safe-bash-command-unzip": "*",
+    "safe-bash-command-zip": "*",
+    "safe-bash-network-engine": "*",
+    "safe-bash-command-curl": "*",
+    "safe-bash-command-wget": "*",
+    "safe-bash-command-find": "*",
+    "safe-bash-command-gzip": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

@@ -1,0 +1,73 @@
+{
+  "name": "safe-bash-command-awk",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./awk-inspection": {
+      "types": "./dist/awk-inspection.d.ts",
+      "import": "./dist/awk-inspection.js"
+    },
+    "./awk-pretty": {
+      "types": "./dist/awk-pretty.d.ts",
+      "import": "./dist/awk-pretty.js"
+    },
+    "./awk-quote": {
+      "types": "./dist/awk-quote.d.ts",
+      "import": "./dist/awk-quote.js"
+    },
+    "./awk-reader": {
+      "types": "./dist/awk-reader.d.ts",
+      "import": "./dist/awk-reader.js"
+    },
+    "./awk-retention": {
+      "types": "./dist/awk-retention.d.ts",
+      "import": "./dist/awk-retention.js"
+    },
+    "./awk-runtime": {
+      "types": "./dist/awk-runtime.d.ts",
+      "import": "./dist/awk-runtime.js"
+    },
+    "./awk-syntax": {
+      "types": "./dist/awk-syntax.d.ts",
+      "import": "./dist/awk-syntax.js"
+    },
+    "./awk-values": {
+      "types": "./dist/awk-values.d.ts",
+      "import": "./dist/awk-values.js"
+    },
+    "./awk": {
+      "types": "./dist/awk.d.ts",
+      "import": "./dist/awk.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-io-engine": "*",
+    "safe-bash-regex-engine": "*"
+  }
+}

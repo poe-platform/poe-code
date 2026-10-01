@@ -122,7 +122,7 @@ in workerd and reports cold runtime/setup, first use, repeat use and cleanup
 measurements. Python uses an injected asynchronous executor in this loader
 regression; LLM uses a synthetic provider, without external model calls.
 
-All private command plugins are available from `@poe-platform/safe-bash/core` in portable browser and workerd environments. Each command exposes its plugin, `create<Name>Commands`, `create<Name>Command`, `<Name>CommandsOptions`, and `<Name>Limits`; factories construct commands without registering them.
+All private command plugins are available from `@poe-platform/safe-bash/core` in portable browser and workerd environments. Each command exposes its plugin, `create<Name>Commands`, `create<Name>Command`, `<Name>CommandsOptions`, and `<Name>Limits`; factories construct commands without registering them. Standalone `sed`, `awk`, `find`, `diff`, `patch`, `tar`, `zip`, `unzip`, `gzip`, `curl`, and `wget` imports use `@poe-platform/safe-bash/commands/<name>`. Standalone network factories deny requests unless an `authorize` callback permits them.
 
 ### Shell syntax
 

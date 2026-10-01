@@ -16,3 +16,5 @@ export function createRgCommands(options: SearchOptions = {}): readonly CommandD
 export function rgCommands(options: SearchOptions = {}): VirtualShellPlugin { const commands = createRgCommands(options); return { name: "rg-commands", setup(host) { if (!options.replace) for (const command of commands) if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`); for (const command of commands) host.commands.register(command, {replace: options.replace ?? false}); } }; }
 
 export { createRgCommand as rgCommand };
+
+export * from "./sync.js";

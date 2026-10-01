@@ -247,3 +247,5 @@ export type {
   LineEndingCommandsOptions, LineEndingLimits,
   LineEndingCommandsOptions as Dos2unixCommandsOptions, LineEndingLimits as Dos2unixLimits,
 } from "safe-bash-line-ending-engine";
+
+export * from "./sync.js";

@@ -1,0 +1,59 @@
+{
+  "name": "safe-bash-command-diff",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./diff-format": {
+      "types": "./dist/diff-format.d.ts",
+      "import": "./dist/diff-format.js"
+    },
+    "./diff-options": {
+      "types": "./dist/diff-options.d.ts",
+      "import": "./dist/diff-options.js"
+    },
+    "./diff-output": {
+      "types": "./dist/diff-output.d.ts",
+      "import": "./dist/diff-output.js"
+    },
+    "./diff": {
+      "types": "./dist/diff.d.ts",
+      "import": "./dist/diff.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./sync": {
+      "types": "./dist/sync.d.ts",
+      "import": "./dist/sync.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-diff-engine": "*",
+    "safe-bash-regex-engine": "*",
+    "safe-bash-io-engine": "*",
+    "safe-bash-command-pr": "*"
+  }
+}

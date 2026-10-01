@@ -411,6 +411,76 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-awk#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-sed#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-diff#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-patch#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-diff-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-tar#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-zip-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-unzip#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-zip#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-network-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-curl#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-wget#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-find#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-gzip#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

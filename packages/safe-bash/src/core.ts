@@ -138,3 +138,10 @@ export { createConvertCommand, createMogrifyCommand, createCompositeCommand, cre
 export { createPdfuniteCommand, createPdfseparateCommand, createPdffontsCommand, createPdfdetachCommand, createPdftocairoCommand } from "./lazy-optional.js";
 export { createLibreofficeCommand } from "./lazy-optional.js";
 export { createFormatInspectionCommand } from "./lazy-optional.js";
+
+export * from "./commands/sed/index.js";
+export * from "./commands/awk/index.js";
+export * from "./commands/find/index.js";
+export * from "./commands/gzip/index.js";
+export { createWgetCommands, wgetCommands, type WgetCommandsOptions, type WgetLimits } from "./commands/wget/index.js";
+export type { CurlCommandsOptions, CurlLimits } from "./commands/curl/index.js";

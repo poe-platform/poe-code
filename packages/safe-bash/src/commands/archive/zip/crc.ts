@@ -1,1 +1,1 @@
-export { crcTable } from "safe-bash-compression-engine/crc";
+export * from "safe-bash-zip-engine/zip/crc";

@@ -1464,6 +1464,166 @@
           },
           "devDependencies": {},
           "portable": true
+        },
+        "safe-bash-command-awk": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-sed": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-diff": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-diff-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-command-pr": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-patch": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-diff-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-diff-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-tar": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "pako": "3.0.1",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-regex-engine": "*",
+            "safe-bash-command-xz": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-zip-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "@noble/ciphers": "2.4.0",
+            "@noble/hashes": "2.4.0",
+            "safe-bash-compression-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-unzip": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "pako": "3.0.1",
+            "safe-bash-zip-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-zip": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-zip-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-network-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-curl": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-network-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-wget": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-network-engine": "*",
+            "safe-bash-command-curl": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-find": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-gzip": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-compression-engine": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -2259,6 +2419,50 @@
     "./commands/dos2unix": {
       "types": "./dist/commands/dos2unix/index.d.ts",
       "import": "./dist/commands/dos2unix/index.js"
+    },
+    "./commands/sed": {
+      "types": "./dist/commands/sed/index.d.ts",
+      "import": "./dist/commands/sed/index.js"
+    },
+    "./commands/awk": {
+      "types": "./dist/commands/awk/index.d.ts",
+      "import": "./dist/commands/awk/index.js"
+    },
+    "./commands/diff": {
+      "types": "./dist/commands/diff/index.d.ts",
+      "import": "./dist/commands/diff/index.js"
+    },
+    "./commands/patch": {
+      "types": "./dist/commands/patch/index.d.ts",
+      "import": "./dist/commands/patch/index.js"
+    },
+    "./commands/tar": {
+      "types": "./dist/commands/tar/index.d.ts",
+      "import": "./dist/commands/tar/index.js"
+    },
+    "./commands/zip": {
+      "types": "./dist/commands/zip/index.d.ts",
+      "import": "./dist/commands/zip/index.js"
+    },
+    "./commands/unzip": {
+      "types": "./dist/commands/unzip/index.d.ts",
+      "import": "./dist/commands/unzip/index.js"
+    },
+    "./commands/find": {
+      "types": "./dist/commands/find/index.d.ts",
+      "import": "./dist/commands/find/index.js"
+    },
+    "./commands/curl": {
+      "types": "./dist/commands/curl/index.d.ts",
+      "import": "./dist/commands/curl/index.js"
+    },
+    "./commands/wget": {
+      "types": "./dist/commands/wget/index.d.ts",
+      "import": "./dist/commands/wget/index.js"
+    },
+    "./commands/gzip": {
+      "types": "./dist/commands/gzip/index.d.ts",
+      "import": "./dist/commands/gzip/index.js"
     }
   },
   "sideEffects": [
@@ -2468,7 +2672,21 @@
     "safe-bash-command-docx": "*",
     "safe-bash-command-pptx": "*",
     "safe-bash-command-llm": "*",
-    "@noble/ciphers": "2.4.0"
+    "@noble/ciphers": "2.4.0",
+    "safe-bash-command-awk": "*",
+    "safe-bash-command-sed": "*",
+    "safe-bash-command-diff": "*",
+    "safe-bash-command-patch": "*",
+    "safe-bash-diff-engine": "*",
+    "safe-bash-command-tar": "*",
+    "safe-bash-zip-engine": "*",
+    "safe-bash-command-unzip": "*",
+    "safe-bash-command-zip": "*",
+    "safe-bash-network-engine": "*",
+    "safe-bash-command-curl": "*",
+    "safe-bash-command-wget": "*",
+    "safe-bash-command-find": "*",
+    "safe-bash-command-gzip": "*"
   },
   "main": "./dist/index.js",
   "imports": {

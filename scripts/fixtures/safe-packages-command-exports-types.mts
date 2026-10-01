@@ -190,3 +190,57 @@ void commands;
 void collections;
 void plugins;
 void [createNcalCommand, createFfprobeCommand, createMagickCommand, createConvertCommand, createMogrifyCommand, createCompositeCommand, createMontageCommand, createIdentifyCommand, createCompareCommand, createPdfuniteCommand, createPdfseparateCommand, createPdffontsCommand, createPdfdetachCommand, createPdftocairoCommand, createLibreofficeCommand, createFormatInspectionCommand];
+
+import { createSedCommand, createSedCommands, sedCommands, type SedCommandsOptions, type SedLimits } from "@poe-platform/safe-bash/commands/sed";
+import { createAwkCommand, createAwkCommands, awkCommands, type AwkCommandsOptions, type AwkLimits } from "@poe-platform/safe-bash/commands/awk";
+import { createDiffCommand, createDiffCommands, diffCommands, type DiffCommandsOptions, type DiffLimits } from "@poe-platform/safe-bash/commands/diff";
+import { createPatchCommand, createPatchCommands, patchCommands, type PatchCommandsOptions, type PatchLimits } from "@poe-platform/safe-bash/commands/patch";
+import { createTarCommand, createTarCommands, tarCommands, type TarCommandsOptions, type TarLimits } from "@poe-platform/safe-bash/commands/tar";
+import { createZipCommand, createZipCommands, zipCommands, type ZipCommandsOptions, type ZipLimits } from "@poe-platform/safe-bash/commands/zip";
+import { createUnzipCommand, createUnzipCommands, unzipCommands, type UnzipCommandsOptions, type UnzipLimits } from "@poe-platform/safe-bash/commands/unzip";
+import { createFindCommand, createFindCommands, findCommands, type FindCommandsOptions, type FindLimits } from "@poe-platform/safe-bash/commands/find";
+import { createCurlCommand, createCurlCommands, curlCommands, type CurlCommandsOptions, type CurlLimits } from "@poe-platform/safe-bash/commands/curl";
+import { createWgetCommand, createWgetCommands, wgetCommands, type WgetCommandsOptions, type WgetLimits } from "@poe-platform/safe-bash/commands/wget";
+import { createGzipCommand, createGzipCommands, gzipCommands, type GzipCommandsOptions, type GzipLimits } from "@poe-platform/safe-bash/commands/gzip";
+
+const standaloneCommands: readonly CommandDefinition[] = [
+  createSedCommand({} satisfies SedCommandsOptions),
+  createAwkCommand({} satisfies AwkCommandsOptions),
+  createDiffCommand({} satisfies DiffCommandsOptions),
+  createPatchCommand({} satisfies PatchCommandsOptions),
+  createTarCommand({} satisfies TarCommandsOptions),
+  createZipCommand({} satisfies ZipCommandsOptions),
+  createUnzipCommand({} satisfies UnzipCommandsOptions),
+  createFindCommand({} satisfies FindCommandsOptions),
+  createCurlCommand({} satisfies CurlCommandsOptions),
+  createWgetCommand({} satisfies WgetCommandsOptions),
+  createGzipCommand({} satisfies GzipCommandsOptions),
+];
+const standaloneCollections: readonly (readonly CommandDefinition[])[] = [
+  createSedCommands(),
+  createAwkCommands(),
+  createDiffCommands(),
+  createPatchCommands(),
+  createTarCommands(),
+  createZipCommands(),
+  createUnzipCommands(),
+  createFindCommands(),
+  createCurlCommands(),
+  createWgetCommands(),
+  createGzipCommands(),
+];
+const standalonePlugins: readonly VirtualShellPlugin[] = [
+  sedCommands(),
+  awkCommands(),
+  diffCommands(),
+  patchCommands(),
+  tarCommands(),
+  zipCommands(),
+  unzipCommands(),
+  findCommands(),
+  curlCommands(),
+  wgetCommands(),
+  gzipCommands(),
+];
+const standaloneLimits: [Partial<SedLimits>, Partial<AwkLimits>, Partial<DiffLimits>, Partial<PatchLimits>, Partial<TarLimits>, Partial<ZipLimits>, Partial<UnzipLimits>, Partial<FindLimits>, Partial<CurlLimits>, Partial<WgetLimits>, Partial<GzipLimits>] = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
+void [standaloneCommands, standaloneCollections, standalonePlugins, standaloneLimits];

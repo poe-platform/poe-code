@@ -1,0 +1,127 @@
+{
+  "name": "safe-bash-zip-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./unzip/arguments": {
+      "types": "./dist/unzip/arguments.d.ts",
+      "import": "./dist/unzip/arguments.js"
+    },
+    "./zip/aes": {
+      "types": "./dist/zip/aes.d.ts",
+      "import": "./dist/zip/aes.js"
+    },
+    "./zip/comments": {
+      "types": "./dist/zip/comments.d.ts",
+      "import": "./dist/zip/comments.js"
+    },
+    "./zip/crc": {
+      "types": "./dist/zip/crc.d.ts",
+      "import": "./dist/zip/crc.js"
+    },
+    "./zip/crypto": {
+      "types": "./dist/zip/crypto.d.ts",
+      "import": "./dist/zip/crypto.js"
+    },
+    "./zip/dates": {
+      "types": "./dist/zip/dates.d.ts",
+      "import": "./dist/zip/dates.js"
+    },
+    "./zip/environment": {
+      "types": "./dist/zip/environment.d.ts",
+      "import": "./dist/zip/environment.js"
+    },
+    "./zip/grow": {
+      "types": "./dist/zip/grow.d.ts",
+      "import": "./dist/zip/grow.js"
+    },
+    "./zip/help": {
+      "types": "./dist/zip/help.d.ts",
+      "import": "./dist/zip/help.js"
+    },
+    "./zip/line-endings": {
+      "types": "./dist/zip/line-endings.d.ts",
+      "import": "./dist/zip/line-endings.js"
+    },
+    "./zip/log": {
+      "types": "./dist/zip/log.d.ts",
+      "import": "./dist/zip/log.js"
+    },
+    "./zip/lzma": {
+      "types": "./dist/zip/lzma.d.ts",
+      "import": "./dist/zip/lzma.js"
+    },
+    "./zip/move": {
+      "types": "./dist/zip/move.d.ts",
+      "import": "./dist/zip/move.js"
+    },
+    "./zip/names": {
+      "types": "./dist/zip/names.d.ts",
+      "import": "./dist/zip/names.js"
+    },
+    "./zip/options": {
+      "types": "./dist/zip/options.d.ts",
+      "import": "./dist/zip/options.js"
+    },
+    "./zip/repair": {
+      "types": "./dist/zip/repair.d.ts",
+      "import": "./dist/zip/repair.js"
+    },
+    "./zip/safety": {
+      "types": "./dist/zip/safety.d.ts",
+      "import": "./dist/zip/safety.js"
+    },
+    "./zip/sfx": {
+      "types": "./dist/zip/sfx.d.ts",
+      "import": "./dist/zip/sfx.js"
+    },
+    "./zip/test-command": {
+      "types": "./dist/zip/test-command.d.ts",
+      "import": "./dist/zip/test-command.js"
+    },
+    "./zip/volumes": {
+      "types": "./dist/zip/volumes.d.ts",
+      "import": "./dist/zip/volumes.js"
+    },
+    "./zip/zip64": {
+      "types": "./dist/zip/zip64.d.ts",
+      "import": "./dist/zip/zip64.js"
+    },
+    "./zip-format": {
+      "types": "./dist/zip-format.d.ts",
+      "import": "./dist/zip-format.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-io-engine": "*",
+    "@noble/ciphers": "2.4.0",
+    "@noble/hashes": "2.4.0",
+    "safe-bash-compression-engine": "*"
+  }
+}

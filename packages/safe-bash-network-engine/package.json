@@ -1,0 +1,104 @@
+{
+  "name": "safe-bash-network-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./aggregate": {
+      "types": "./dist/aggregate.d.ts",
+      "import": "./dist/aggregate.js"
+    },
+    "./args": {
+      "types": "./dist/args.d.ts",
+      "import": "./dist/args.js"
+    },
+    "./authorizer": {
+      "types": "./dist/authorizer.d.ts",
+      "import": "./dist/authorizer.js"
+    },
+    "./body": {
+      "types": "./dist/body.d.ts",
+      "import": "./dist/body.js"
+    },
+    "./deadline": {
+      "types": "./dist/deadline.d.ts",
+      "import": "./dist/deadline.js"
+    },
+    "./decode": {
+      "types": "./dist/decode.d.ts",
+      "import": "./dist/decode.js"
+    },
+    "./fetch-transport": {
+      "types": "./dist/fetch-transport.d.ts",
+      "import": "./dist/fetch-transport.js"
+    },
+    "./form-content-type": {
+      "types": "./dist/form-content-type.d.ts",
+      "import": "./dist/form-content-type.js"
+    },
+    "./form-headers": {
+      "types": "./dist/form-headers.d.ts",
+      "import": "./dist/form-headers.js"
+    },
+    "./glob": {
+      "types": "./dist/glob.d.ts",
+      "import": "./dist/glob.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./input": {
+      "types": "./dist/input.d.ts",
+      "import": "./dist/input.js"
+    },
+    "./output": {
+      "types": "./dist/output.d.ts",
+      "import": "./dist/output.js"
+    },
+    "./platform-portable": {
+      "types": "./dist/platform-portable.d.ts",
+      "import": "./dist/platform-portable.js"
+    },
+    "./private-address": {
+      "types": "./dist/private-address.d.ts",
+      "import": "./dist/private-address.js"
+    },
+    "./shared": {
+      "types": "./dist/shared.d.ts",
+      "import": "./dist/shared.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    },
+    "./url": {
+      "types": "./dist/url.d.ts",
+      "import": "./dist/url.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-io-engine": "*"
+  }
+}

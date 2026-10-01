@@ -1,0 +1,418 @@
+import type { AwkRetention } from "./awk-retention.js";
+import { readBytes,type ByteSource } from "safe-bash-contracts";
+import { latin1Text } from "safe-bash-io-engine/byte-encoding";
+import { Budget,ProgramError,getCachedLatin1Batch } from "safe-bash-io-engine/commands/text-programs/shared";
+
+interface Scan {
+  block: number;
+  offset: number;
+  bytes: number;
+  newline: number;
+  paragraphEnd: number;
+}
+
+const resolvedVoid = Promise.resolve();
+const RELEASED_READER_ITERATOR: AsyncIterator<Uint8Array> = {
+  next() { return Promise.resolve({ done: true as const, value: undefined }); },
+};
+const memoryReaderPool: { reader: Reader | undefined } = { reader: undefined };
+export function clearAwkReaderPool(): void { memoryReaderPool.reader = undefined; }
+
+export class Reader {
+  private iterator: AsyncIterator<Uint8Array>;
+  private blocks: (Uint8Array | undefined)[] = [];
+  readonly blockStrings: (string | undefined)[] = [];
+  readonly blockEnds: (Int32Array | undefined)[] = [];
+  blocksLen = 0;
+  private blockEndIdx = 0;
+  private head = 0;
+  offset = 0;
+  buffered = 0;
+  private ownedBytes = 0;
+  ended = false;
+  private closed = false;
+  private closing?: Promise<void> | undefined;
+  private isPooledMemory = false;
+  private activeReads = 0;
+
+  constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
+    this.iterator = source === undefined
+      ? RELEASED_READER_ITERATOR
+      : typeof (source as { tryNextSync?: unknown }).tryNextSync === "function"
+      ? source[Symbol.asyncIterator]()
+      : readBytes(source, budget.context.signal)[Symbol.asyncIterator]();
+  }
+
+  static fromMemoryView(chunk: Uint8Array, budget: Budget, retention: Pick<AwkRetention, "admit" | "replace" | "release">): Reader {
+    let reader = memoryReaderPool.reader;
+    if (reader !== undefined) {
+      memoryReaderPool.reader = undefined;
+      reader.budget = budget;
+      reader.retention = retention;
+      reader.iterator = RELEASED_READER_ITERATOR;
+      reader.blocksLen = 0;
+      reader.blockEndIdx = 0;
+      reader.head = 0;
+      reader.offset = 0;
+      reader.buffered = 0;
+      reader.ownedBytes = 0;
+      reader.ended = true;
+      reader.closed = false;
+      reader.closing = undefined;
+      reader.isPooledMemory = true;
+    } else {
+      reader = new Reader(undefined, budget, retention);
+      reader.ended = true;
+      reader.isPooledMemory = true;
+    }
+    budget.step();
+    const length = chunk.byteLength;
+    if (length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    if (length > 0) {
+      retention.admit(0, length);
+      try {
+        const batch = getCachedLatin1Batch(chunk);
+        const block = chunk;
+        reader.blocks[0] = block;
+        reader.blockStrings[0] = batch?.text;
+        reader.blockEnds[0] = batch?.ends;
+        reader.blocksLen = 1;
+      } catch (error) {
+        retention.release(length);
+        throw error;
+      }
+      reader.buffered = length;
+      reader.ownedBytes = length;
+    }
+    return reader;
+  }
+
+  get isEnded(): boolean {
+    return this.ended && this.buffered === 0;
+  }
+
+  private retain(chunk: Uint8Array): void {
+    const length = chunk.byteLength;
+    if (length > this.budget.maxBufferBytes - this.buffered) throw new ProgramError("text buffer limit exceeded");
+    if (length === 0) return;
+    this.retention.admit(0, length);
+    try {
+      const block = chunk;
+      const batch = getCachedLatin1Batch(chunk);
+      const idx = this.blocksLen++;
+      this.blocks[idx] = block;
+      this.blockStrings[idx] = batch?.text;
+      this.blockEnds[idx] = batch?.ends;
+    } catch (error) {
+      this.retention.release(length);
+      throw error;
+    }
+    this.buffered += length;
+    this.ownedBytes += length;
+  }
+
+  private tryFillSync(): boolean {
+    const syncIter = this.iterator as AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined };
+    if (typeof syncIter.tryNextSync !== "function") return false;
+    const signal = this.budget.context.signal;
+    while (!this.ended && !this.closed) {
+      this.budget.step();
+      if (this.head < this.blocksLen) {
+        const lastIdx = this.blocksLen - 1;
+        this.blocks[lastIdx] = new Uint8Array(this.blocks[lastIdx]!);
+      }
+      const next = syncIter.tryNextSync();
+      if (this.closed) return true;
+      if (next === undefined) return false;
+      signal.throwIfAborted();
+      if (this.closed) return false;
+      if (next.done) { this.ended = true; return true; }
+      if (next.value.byteLength === 0) continue;
+      this.retain(next.value);
+      return true;
+    }
+    return true;
+  }
+
+  private async fill(): Promise<void> {
+    this.budget.step();
+    const signal = this.budget.context.signal;
+    if (this.head < this.blocksLen) {
+      const lastIdx = this.blocksLen - 1;
+      this.blocks[lastIdx] = new Uint8Array(this.blocks[lastIdx]!);
+    }
+    const next = await this.iterator.next();
+    signal.throwIfAborted();
+    if (this.closed) return;
+    if (next.done) { this.ended = true; return; }
+    this.retain(next.value);
+  }
+
+  private consume(length: number): void {
+    this.buffered -= length;
+    while (length > 0) {
+      const block = this.blocks[this.head]!;
+      const available = block.length - this.offset;
+      if (length < available) { this.offset += length; break; }
+      length -= available;
+      this.retention.release(block.length);
+      this.ownedBytes -= block.length;
+      this.blocks[this.head] = undefined;
+      this.blockStrings[this.head] = undefined;
+      this.blockEnds[this.head] = undefined;
+      this.blockEndIdx = 0;
+      this.head++;
+      this.offset = 0;
+    }
+    if (this.head === this.blocksLen) {
+      this.blocksLen = 0;
+      this.blockEndIdx = 0;
+      this.head = 0;
+    } else if (this.head >= 256 && this.head * 2 >= this.blocksLen) {
+      const rem = this.blocksLen - this.head;
+      this.blocks.copyWithin(0, this.head, this.blocksLen);
+      this.blockStrings.copyWithin(0, this.head, this.blocksLen);
+      this.blockEnds.copyWithin(0, this.head, this.blocksLen);
+      this.blocks.fill(undefined, rem, this.blocksLen);
+      this.blockStrings.fill(undefined, rem, this.blocksLen);
+      this.blockEnds.fill(undefined, rem, this.blocksLen);
+      this.blocksLen = rem;
+      this.head = 0;
+    }
+  }
+
+  private finish(length: number, consumed: number): string {
+    const firstBlock = this.blocks[this.head]!;
+    if (length <= firstBlock.length - this.offset) {
+      const str = (this.blockStrings[this.head] ??= latin1Text(firstBlock));
+      const record = str.slice(this.offset, this.offset + length);
+      this.consume(consumed);
+      return record;
+    }
+    // The returned record is a bounded transient; runtime slots own its charge.
+    const bytes = new Uint8Array(length);
+    let written = 0;
+    for (let index = this.head; written < length; index++) {
+      const block = this.blocks[index]!;
+      const start = index === this.head ? this.offset : 0;
+      const count = Math.min(length - written, block.length - start);
+      bytes.set(block.subarray(start, start + count), written);
+      written += count;
+    }
+    const record = latin1Text(bytes);
+    this.consume(consumed);
+    return record;
+  }
+
+  private trimLeading(): boolean {
+    const block = this.blocks[this.head];
+    if (!block) return false;
+    let end = this.offset;
+    const stop = Math.min(block.length, end + 4096);
+    while (end < stop && block[end] === 10) end++;
+    const found = end < block.length && block[end] !== 10;
+    this.consume(end - this.offset);
+    return found;
+  }
+
+  private scan(separator: string, state: Scan): { length: number; consumed: number } | undefined {
+    let work = 4096;
+    while (state.block < this.blocksLen && work > 0) {
+      const block = this.blocks[state.block]!;
+      while (state.offset < block.length && work-- > 0) {
+        const byte = block[state.offset++]!;
+        const index = state.bytes++;
+        if (separator === "") {
+          if (state.paragraphEnd >= 0) {
+            if (byte !== 10) return { length: state.paragraphEnd, consumed: index };
+          } else {
+            if (byte === 10 && state.newline === index - 1) state.paragraphEnd = index - 1;
+            state.newline = byte === 10 ? index : -1;
+          }
+        } else if (byte === separator.charCodeAt(0)) return { length: index, consumed: index + 1 };
+      }
+      if (state.offset === block.length) { state.block++; state.offset = 0; }
+    }
+    return undefined;
+  }
+
+  readSync(separator: string): string | undefined | Promise<string | undefined> {
+    if (this.closed) return undefined;
+    if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
+    if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
+    if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
+      const headBlock = this.blocks[this.head]!;
+      const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+      if (idx >= 0 && idx - this.offset < 4096) {
+        this.budget.step();
+        const str = (this.blockStrings[this.head] ??= latin1Text(headBlock));
+        const record = str.slice(this.offset, idx);
+        this.consume(idx - this.offset + 1);
+        return record;
+      }
+    }
+    return this.read(separator);
+  }
+
+  readSliceSync(separator: string, out: { source: string; start: number; end: number }): boolean {
+    if (this.closed) return false;
+    if (this.budget.context.signal.aborted) this.budget.context.signal.throwIfAborted();
+    if (separator.length === 1 && !this.closed) {
+      if (this.head >= this.blocksLen && !this.ended) {
+        this.tryFillSync();
+      }
+      if (this.head < this.blocksLen) {
+        const headBlock = this.blocks[this.head]!;
+        const sepCode = separator.charCodeAt(0);
+        const cachedEnds = sepCode === 10 ? this.blockEnds[this.head] : undefined;
+        if (cachedEnds !== undefined) {
+          let eIdx = this.blockEndIdx;
+          while (eIdx < cachedEnds.length && cachedEnds[eIdx]! < this.offset) eIdx++;
+          if (eIdx < cachedEnds.length) {
+            const idx = cachedEnds[eIdx]!;
+            if (idx - this.offset < 4096) {
+              this.blockEndIdx = eIdx + 1;
+              out.source = (this.blockStrings[this.head] ??= latin1Text(headBlock));
+              out.start = this.offset;
+              out.end = idx;
+              this.consume(idx - this.offset + 1);
+              return true;
+            }
+          }
+        }
+        const idx = headBlock.indexOf(sepCode, this.offset);
+        if (idx >= 0 && idx - this.offset < 4096) {
+          out.source = (this.blockStrings[this.head] ??= latin1Text(headBlock));
+          out.start = this.offset;
+          out.end = idx;
+          this.consume(idx - this.offset + 1);
+          return true;
+        }
+        if (idx < 0 && this.head + 1 === this.blocksLen && !this.ended) {
+          this.tryFillSync();
+          if (this.head + 1 === this.blocksLen && this.ended && headBlock.length - this.offset < 4096) {
+            out.source = (this.blockStrings[this.head] ??= latin1Text(headBlock));
+            out.start = this.offset;
+            out.end = headBlock.length;
+            this.consume(headBlock.length - this.offset);
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+  async read(separator: string): Promise<string | undefined> {
+    this.activeReads++;
+    try {
+      if (this.closed) return undefined;
+      const budget = this.budget;
+      budget.context.signal.throwIfAborted();
+      if (separator.length > 1) throw new ProgramError("RS must be one byte or empty for paragraph records");
+      if (separator.length === 1 && !this.closed && this.head < this.blocksLen) {
+        const headBlock = this.blocks[this.head]!;
+        const idx = headBlock.indexOf(separator.charCodeAt(0), this.offset);
+        if (idx >= 0 && idx - this.offset < 4096) {
+          budget.step();
+          const record = latin1Text(headBlock.subarray(this.offset, idx));
+          this.consume(idx - this.offset + 1);
+          return record;
+        }
+      }
+      if (separator === "") {
+        while (!this.closed) {
+          budget.step();
+          if (this.trimLeading()) break;
+          if (this.buffered === 0) {
+            if (this.ended) return undefined;
+            await this.fill();
+          }
+          if (this.closed) return undefined;
+          const pendingCheck = budget.checkpointSync();
+          if (pendingCheck) await pendingCheck;
+        }
+      }
+      const state: Scan = { block: this.head, offset: this.offset, bytes: 0, newline: -1, paragraphEnd: -1 };
+      while (true) {
+        if (this.closed) return undefined;
+        budget.step();
+        const found = this.scan(separator, state);
+        if (found) return this.finish(found.length, found.consumed);
+        if (state.block === this.blocksLen) {
+          if (this.ended) {
+            if (this.buffered === 0) return undefined;
+            const length = separator !== "" ? this.buffered : state.paragraphEnd >= 0 ? state.paragraphEnd
+              : state.newline === this.buffered - 1 ? this.buffered - 1 : this.buffered;
+            return this.finish(length, this.buffered);
+          }
+          await this.fill();
+        }
+        if (this.closed) return undefined;
+        const pendingCheck = budget.checkpointSync();
+        if (pendingCheck) await pendingCheck;
+      }
+    } finally {
+      this.activeReads--;
+    }
+  }
+
+  close(): Promise<void> {
+    if (this.closing) return this.closing;
+    const wasEnded = this.ended;
+    this.closed = true;
+    this.ended = true;
+    if (this.blocksLen > 0) {
+      this.blocks.fill(undefined, 0, this.blocksLen);
+      this.blockStrings.fill(undefined, 0, this.blocksLen);
+      this.blockEnds.fill(undefined, 0, this.blocksLen);
+      this.blocksLen = 0;
+    }
+    this.head = this.offset = this.buffered = 0;
+    this.retention.release(this.ownedBytes);
+    this.ownedBytes = 0;
+    const origIter = this.iterator;
+    this.iterator = RELEASED_READER_ITERATOR;
+    this.budget = undefined!;
+    this.retention = undefined!;
+    if (this.isPooledMemory && this.activeReads === 0 && memoryReaderPool.reader === undefined) {
+      this.isPooledMemory = false;
+      memoryReaderPool.reader = this;
+    }
+    if (wasEnded || !origIter.return) {
+      this.closing = resolvedVoid;
+      return resolvedVoid;
+    }
+    this.closing = Promise.resolve().then(async () => { await origIter.return?.(); });
+    return this.closing;
+  }
+
+  closeSyncOrAsync(): Promise<void> | undefined {
+    if (this.closing) return this.closing === resolvedVoid ? undefined : this.closing;
+    const wasEnded = this.ended;
+    this.closed = true;
+    this.ended = true;
+    if (this.blocksLen > 0) {
+      this.blocks.fill(undefined, 0, this.blocksLen);
+      this.blockStrings.fill(undefined, 0, this.blocksLen);
+      this.blockEnds.fill(undefined, 0, this.blocksLen);
+      this.blocksLen = 0;
+    }
+    this.head = this.offset = this.buffered = 0;
+    this.retention.release(this.ownedBytes);
+    this.ownedBytes = 0;
+    const origIter = this.iterator;
+    this.iterator = RELEASED_READER_ITERATOR;
+    this.budget = undefined!;
+    this.retention = undefined!;
+    if (this.isPooledMemory && this.activeReads === 0 && memoryReaderPool.reader === undefined) {
+      this.isPooledMemory = false;
+      memoryReaderPool.reader = this;
+    }
+    if (wasEnded || !origIter.return) {
+      this.closing = resolvedVoid;
+      return undefined;
+    }
+    this.closing = Promise.resolve().then(async () => { await origIter.return?.(); });
+    return this.closing;
+  }
+}

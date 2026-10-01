@@ -3373,13 +3373,14 @@ export function getLastReadMemoryFileSourceRef(view: Uint8Array): Uint8Array | u
   return ref;
 }
 
-export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, maxBytes?: number, signal?: AbortSignal, captureSourceRef = false): Uint8Array | undefined {
+export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, maxBytes?: number, signal?: AbortSignal, captureSourceRef = false, beforeRead?: () => void): Uint8Array | undefined {
   // A capture belongs only to the most recent read, including failed/fallback reads.
   lastReadViewData = undefined;
   lastReadViewSourceRef = undefined;
   const mem = filesystem as MemoryFileSystem;
   if (mem._owner === undefined || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
   signal?.throwIfAborted();
+  beforeRead?.();
   if (maxBytes !== undefined) (mem as unknown as { integer: (v: number, s: string, p: string) => void }).integer(maxBytes, "readFile", path);
   const node = (mem as unknown as { file: (p: string, s: string) => FileNode }).file(path, "readFile");
   (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 4, "readFile", path);

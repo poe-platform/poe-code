@@ -1,6 +1,22 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem, getLastReadMemoryFileSourceRef, tryReadMemoryFileViewSync } from "../src/fs/memory/index.js";
 
+it("admits memory reads before accessing the file and skips declined probes", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/file', new Uint8Array([42]));
+  let charges = 0;
+  const admit = () => { charges++; };
+  expect(tryReadMemoryFileViewSync(fs, '/file', undefined, undefined, false, admit)).toEqual(new Uint8Array([42]));
+  expect(charges).toBe(1);
+  const denied = new Error('read budget exhausted');
+  expect(() => tryReadMemoryFileViewSync(fs, '/missing', undefined, undefined, false, () => { throw denied; })).toThrow(denied);
+  expect(() => tryReadMemoryFileViewSync(fs, '/missing', undefined, undefined, false, admit)).toThrow();
+  expect(charges).toBe(2);
+  fs.readFile = fs.readFile.bind(fs);
+  expect(tryReadMemoryFileViewSync(fs, '/file', undefined, undefined, false, admit)).toBeUndefined();
+  expect(charges).toBe(2);
+});
+
 it("source references own copied bytes across caller buffer reuse and filesystems", async () => {
   const source = new Uint8Array(1024 * 1024);
   const payload = source.subarray(100, 1100);

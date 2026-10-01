@@ -2,7 +2,7 @@ import { test } from "vitest";
 import assert from "node:assert/strict";
 import { readCsv, readCsvStream, writeCsvRow, type CsvRecord } from "./csv.js";
 
-test("streamed plain CSV charges every character before admitting a row", async () => {
+test("streamed plain CSV admits each row after its first character", async () => {
   for (const quoting of [0, 1, 3] as const) {
     let steps = 0;
     const admissions: number[] = [];
@@ -10,12 +10,12 @@ test("streamed plain CSV charges every character before admitting a row", async 
     async function* lines() { yield "a,b\n"; yield "c,d\n"; }
     for await (const row of readCsvStream(lines(), { quoting }, () => { steps++; }, () => { admissions.push(steps); })) rows.push(row);
     assert.equal(steps, 8);
-    assert.deepEqual(admissions, [4, 8]);
+    assert.deepEqual(admissions, [1, 5]);
     assert.deepEqual(rows, [{ cells: ["a", "b"], line: 1 }, { cells: ["c", "d"], line: 2 }]);
   }
 });
 
-test("streamed plain CSV preserves a step failure before row admission", async () => {
+test("streamed plain CSV preserves a step failure after row admission", async () => {
   for (const reason of [false, new Error("step budget exhausted")]) {
     let steps = 0;
     let admissions = 0;
@@ -26,10 +26,36 @@ test("streamed plain CSV preserves a step failure before row admission", async (
       for await (const row of readCsvStream(lines(), {}, () => { if (++steps === 4) throw reason; }, () => { admissions++; })) rows.push(row);
     }, error => error === reason);
     assert.equal(steps, 4);
-    assert.equal(admissions, 0);
+    assert.equal(admissions, 1);
     assert.equal(finalized, true);
     assert.deepEqual(rows, []);
   }
+});
+
+test("CSV row rejection precedes remaining character work on plain and general paths", async () => {
+  for (const text of ["a,b\n", "é,b\n", '"a",b\n']) {
+    let steps = 0;
+    let finalized = false;
+    const reason = new Error("row limit exceeded");
+    async function* lines() { try { yield text; } finally { finalized = true; } }
+    await assert.rejects(async () => {
+      for await (const row of readCsvStream(lines(), {}, () => {
+        if (++steps > 2) throw new Error("step limit exceeded");
+      }, () => { throw reason; })) assert.fail(`unexpected row ${row.line}`);
+    }, error => error === reason);
+    assert.equal(steps, 1);
+    assert.equal(finalized, true);
+  }
+});
+
+test("CSV first-character failure prevents row admission", async () => {
+  let admissions = 0;
+  const reason = new Error("step limit exceeded");
+  async function* lines() { yield "a,b\n"; }
+  await assert.rejects(async () => {
+    for await (const row of readCsvStream(lines(), {}, () => { throw reason; }, () => { admissions++; })) assert.fail(`unexpected row ${row.line}`);
+  }, error => error === reason);
+  assert.equal(admissions, 0);
 });
 
 // CPython 3.14.2 csv.reader / Agate 1.14.2 Writer, frozen C profile.

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Budget, declareHostOperation, makeFsModule, run } from "@poe-code/safe-js";
+import { safeJsCommands } from "../../src/commands/safejs/index.js";
 import { nodeCommands } from "../../src/commands/node/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
@@ -64,5 +65,26 @@ test("guest Buffer decodes Unicode hex and base64 with and without host Buffer",
       Object.defineProperty(globalThis, "Buffer", descriptor);
       await shell.dispose();
     }
+  }
+});
+
+test("SafeJS preserves Unicode files and guest Buffer conversions without a host Buffer", async () => {
+  const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(safeJsCommands({ runtime }));
+  try {
+    Reflect.deleteProperty(globalThis, "Buffer");
+    const source = 'const fs = require("node:fs"); const text = fs.readFileSync("/input", "utf8"); fs.writeFileSync("/bytes", text, "utf8"); process.stdout.write(Buffer.from(fs.readFileSync("/bytes", "utf8")).toString("hex"));';
+    const input = new TextEncoder().encode("é😀");
+    await fs.writeFile("/input", input);
+    const result = await shell.exec("node -e " + quote(source));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "c3a9f09f9880");
+    assert.deepEqual(await fs.readFile("/bytes"), input);
+    assert.equal(typeof globalThis.Buffer, "undefined");
+  } finally {
+    Object.defineProperty(globalThis, "Buffer", descriptor);
+    await shell.dispose();
   }
 });

@@ -149,3 +149,37 @@ test("core imports and executes commands without a host Buffer", async () => {
     }
   } finally { await shell.dispose(); }
 });
+
+test("custom plugins execute multi-command scripts and enforce UTF-8 source limits without Node globals", async () => {
+  const { api: core } = await portableRuntime('export * from "./packages/safe-bash/src/core.browser.ts";');
+  const fs = new core.MemoryFileSystem();
+  await fs.mkdir("/workspace", { recursive: true });
+  const commands: string[] = [];
+  const shell = new core.Shell({ fs, cwd: "/workspace" }).use(core.standardCommands()).use({
+    name: "observe-commands",
+    setup(host) {
+      host.use(async (context, next) => {
+        commands.push(context.command);
+        return next();
+      });
+    },
+  });
+  try {
+    const result = await shell.exec("echo a; echo b");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "a\nb\n");
+    assert.equal(result.stderr, "");
+    assert.deepEqual(commands, ["echo", "echo"]);
+
+    const source = "echo é; echo 😀";
+    const maxSourceBytes = new TextEncoder().encode(source).byteLength;
+    const accepted = await shell.exec(source, { limits: { maxSourceBytes } });
+    assert.equal(accepted.exitCode, 0, accepted.stderr);
+    assert.equal(accepted.stdout, "é\n😀\n");
+    await assert.rejects(
+      shell.exec(source, { limits: { maxSourceBytes: maxSourceBytes - 1 } }),
+      { name: "ShellLimitError", message: "Shell limit exceeded: maxSourceBytes" },
+    );
+    assert.deepEqual(commands, ["echo", "echo", "echo", "echo"]);
+  } finally { await shell.dispose(); }
+});

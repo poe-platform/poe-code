@@ -30,6 +30,8 @@ export const accessDeniedSystemError: readonly [number, string] = [-13, "permiss
 export const yieldToHost = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 export const hostCwd = () => "/";
 export const hostPlatform = "workerd";
+// Worker bindings are capabilities supplied explicitly through module options.
+export const hostEnv = (): Readonly<Record<string, string | undefined>> => ({});
 
 export const fsConstants = { F_OK: 0, R_OK: 4, W_OK: 2, X_OK: 1, COPYFILE_EXCL: 1 };
 export const hostFs = new Proxy({} as import("@poe-code/safe-fs/core").FsBridge, {

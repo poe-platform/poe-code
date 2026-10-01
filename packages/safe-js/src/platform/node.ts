@@ -68,3 +68,4 @@ export { constants as fsConstants } from "node:fs";
 export const hostFs = nativeFsPromises;
 export const hostCwd = process.cwd.bind(process);
 export const hostPlatform = process.platform;
+export const hostEnv = (): Readonly<Record<string, string | undefined>> => process.env;

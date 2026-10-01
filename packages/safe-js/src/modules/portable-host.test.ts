@@ -31,6 +31,16 @@ describe("module factories on portable hosts", () => {
     });
   });
 
+  it("does not expose ambient Worker secrets when nodejs_compat supplies process", () => {
+    vi.stubEnv("WORKER_SECRET", "host-secret");
+    try {
+      expect(makeEnvModule(["WORKER_SECRET"]).get("WORKER_SECRET")).toBeUndefined();
+      expect(makeEnvModule({ allow: ["WORKER_SECRET"], values: { WORKER_SECRET: "bound" } }).get("WORKER_SECRET")).toBe("bound");
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it.each(["missing process", "missing stdout"])("writes normalized JSON to console with %s", (host) => {
     const consoleLog = vi.spyOn(console, "log").mockImplementation(() => {});
     const write = () => {

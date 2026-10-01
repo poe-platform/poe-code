@@ -462,7 +462,7 @@ For one-shot use, `run(source, { extensions, grants, ... })` accepts the same re
 
 `JSON.parse` checks both parse paths before building native objects: input work counts toward steps and deadlines, array lengths and object member counts use `arrayLength`, and nesting uses `maxCallDepth` only when explicitly configured. Parsing requires room for a conservative temporary allocation bound of `16 * text.length + 8` data units alongside existing data; whitespace and duplicate keys count toward this bound.
 
-There are no runtime environment variables to set. `makeEnvModule({ allow, values? })` grants reads of names in `allow`; `values` supplies an explicit string map instead of reading the host's `process.env`. Hosts without `process.env` have no ambient values; pass Worker bindings through `values`. Disallowed reads throw `EnvAccessError`; allowed but unset names return `undefined`. Agent and MCP integrations may require their own credentials.
+There are no runtime environment variables to set. `makeEnvModule({ allow, values? })` grants reads of names in `allow`; `values` supplies an explicit string map instead of reading the host's `process.env`. Portable hosts never read ambient environment values, including with `nodejs_compat`; pass Worker bindings through `values`. Disallowed reads throw `EnvAccessError`; allowed but unset names return `undefined`. Agent and MCP integrations may require their own credentials.
 
 <details>
 <summary>Linting, parsing, and value conversion</summary>

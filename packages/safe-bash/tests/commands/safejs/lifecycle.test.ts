@@ -91,9 +91,8 @@ test("pending output before a runner error is drained instead of silently discar
   });
   assert.equal(result.exitCode, 1);
   assert.deepEqual(output, ["before\n"]);
-  assert.equal(result.stderr, "safejs: internal error\n");
-  assert.equal(seen.length, 1);
-  assert.equal(seen[0], failure);
+  assert.equal(result.stderr, "safejs: runner failure\n");
+  assert.deepEqual(seen, []);
 });
 
 test("parallel guest reads are serialized, and completed-invocation callbacks cannot write", async () => {

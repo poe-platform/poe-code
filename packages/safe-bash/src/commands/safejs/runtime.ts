@@ -179,13 +179,20 @@ export function createSafeJsCommands<Budget = unknown>(options: SafeJsCommandsOp
             try { return await reader.readText(); } finally { await reader.close(); }
           },
         });
-        const result = record(await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
-          ...(parsed.nodeOptions?.length ? { nodeOptions: parsed.nodeOptions } : {}),
-          budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings,
-            ...(prepared.sourceLocation ? { sourceLocation: prepared.sourceLocation } : {}),
-            ...(prepared.importSpecifiers ? { importSpecifiers: prepared.importSpecifiers } : {}) } : {}),
-          sink: { log: (...args) => output.console(args, false), error: (...args) => output.console(args, true) },
-        })), "SafeJS run result");
+        let rawResult: unknown;
+        try {
+          rawResult = await withSignal(signal, () => runtime.run(prepared?.source ?? source, {
+            ...(parsed.nodeOptions?.length ? { nodeOptions: parsed.nodeOptions } : {}),
+            budget, filename, modules, signal, ...(prepared ? { bindings: prepared.bindings,
+              ...(prepared.sourceLocation ? { sourceLocation: prepared.sourceLocation } : {}),
+              ...(prepared.importSpecifiers ? { importSpecifiers: prepared.importSpecifiers } : {}) } : {}),
+            sink: { log: (...args) => output.console(args, false), error: (...args) => output.console(args, true) },
+          }));
+        } catch (error) {
+          if (error instanceof SafeJsCommandLimitError || statusField(error, "code") === "budgetExceeded" || signal.aborted) throw error;
+          throw new GuestDiagnostic(errorInfo(error));
+        }
+        const result = record(rawResult, "SafeJS run result");
         signal.throwIfAborted();
         if (result.ok !== true && result.ok !== false) throw new TypeError("Invalid SafeJS run result.ok");
         if (!result.ok) {

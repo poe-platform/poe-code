@@ -81,7 +81,7 @@ test("real SafeJS console output and return-value printing do not escape to host
 
 for (const source of [
   'return process;', 'return require("node:fs");', 'return Function("return process")();',
-  'return globalThis.process;', 'return ({}).constructor.constructor("return process")();',
+ 'return ({}).constructor.constructor("return process")();',
   'import { readFile } from "node:fs/promises"; return await readFile("/etc/passwd", "utf8");',
   'import { readFile } from "fs"; return await readFile("/etc/passwd", "utf8");',
 ]) test(`real SafeJS denies ungranted host capability: ${source}`, { skip: localSkip }, async () => {
@@ -89,6 +89,13 @@ for (const source of [
   assert.notEqual(actual.exitCode, 0);
   assert.equal(actual.stdout.length, 0);
   assert.notEqual(actual.stderr, "");
+});
+
+test("real SafeJS exposes no process capability through globalThis", { skip: localSkip }, async () => {
+  const actual = await execute(["-p", "-e", 'return globalThis.process === undefined && !("process" in globalThis);'], { runtime: await localRuntime() });
+  assert.equal(actual.exitCode, 0, actual.stderr);
+  assert.equal(actual.stdout.toString(), "true\n");
+  assert.equal(actual.stderr, "");
 });
 
 test("real SafeJS parse, guest error, step budget, deadline and explicit status remain distinct", { skip: localSkip, timeout: 5000 }, async () => {
@@ -135,10 +142,10 @@ test("real SafeJS host-call journal marks consumed stdin/output and writes as ef
   assert.equal(result.exitCode, 0, result.stderr);
   assert(snapshot && typeof snapshot === "object");
   const calls = Reflect.get(snapshot, "hostCalls") as { moduleId: string; operation: string; policy: string }[];
-  for (const [module, name, policy] of [["stdio", "readText", "read-side-effect"], ["stdio", "write", "read-side-effect"], ["fs", "writeFile", "read-side-effect"]]) {
+  for (const [module, name, policy] of [["stdio", "readText", "read-side-effect"], ["stdio", "write", "read-side-effect"], ["fs", "default.writeFile", "read-side-effect"]]) {
     assert(calls.some(call => call.moduleId === module && call.operation === name && call.policy === policy), `${module}.${name}`);
   }
-  assert.equal(calls.some(call => call.moduleId === "fs" && call.operation === "readFile"), false);
+  assert.equal(calls.some(call => call.moduleId === "fs" && call.operation === "default.readFile"), false);
 });
 
 test("actual current engine preserves constructed Error messages with active cancellation", { skip: localSkip }, async context => {

@@ -118,3 +118,42 @@ test('less diagnoses invalid regular expressions', async () => {
   assert.equal((await createLessCommand().execute(run.context)).exitCode, 1);
   assert.match(run.diagnostic(), /expression|bracket/);
 });
+
+for (const factory of [createLessCommand, createMoreCommand]) {
+  for (const flags of [[], ['-N']]) {
+    for (const operands of [['one', 'two'], ['one', '-'], ['-', 'one']]) {
+      test(`${factory.name} bounds cumulative input: ${[...flags, ...operands].join(' ')}`, async () => {
+        const run = fixture([...flags, ...operands], 'abc');
+        await run.context.fs.writeFile('/one', new TextEncoder().encode('abc'));
+        await run.context.fs.writeFile('/two', new TextEncoder().encode('def'));
+        assert.equal((await factory({ maxInputBytes: 5 }).execute(run.context)).exitCode, 1);
+        assert.notEqual(run.diagnostic(), '');
+      });
+    }
+    test(`${factory.name} passes remaining bytes and signal to file reads ${flags}`, async () => {
+      const run = fixture([...flags, '-', 'file'], 'abc');
+      run.context.fs.readFile = async (_path, options) => {
+        assert.equal(options?.signal, run.context.signal);
+        assert.equal(options?.maxBytes, 2);
+        return new TextEncoder().encode('de');
+      };
+      assert.equal((await factory({ maxInputBytes: 5 }).execute(run.context)).exitCode, 0);
+    });
+  }
+}
+
+for (const factory of [createLessCommand, createMoreCommand]) {
+  for (const operands of [[], ['-'], ['binary'], ['binary', '-', 'binary']]) {
+    test(`${factory.name} preserves binary bytes from ${operands.join(' ') || 'stdin'}`, async () => {
+      const run = fixture(operands);
+      const bytes = new Uint8Array([0x80, 0xff, 0x41, 0x0a]);
+      await run.context.fs.writeFile('/binary', bytes);
+      const output: number[] = [];
+      const context = { ...run.context, stdin: (async function* () { yield bytes; })() };
+      context.stdout.write = async chunk => { output.push(...chunk); };
+      const expected = operands.length === 3 ? [...bytes, ...bytes, ...bytes] : [...bytes];
+      assert.equal((await factory({ maxInputBytes: expected.length }).execute(context)).exitCode, 0);
+      assert.deepEqual(output, expected);
+    });
+  }
+}

@@ -69,7 +69,7 @@ export function settings(options: LessCommandsOptions = {}): LessLimits {
   return Object.freeze(limits);
 }
 
-async function readSourceText(source: ByteSource, maxBytes: number, signal: AbortSignal, admit: (bytes: number) => void): Promise<string> {
+async function readSourceText(source: ByteSource, signal: AbortSignal, admit: (bytes: number) => void): Promise<string> {
   const chunks: Uint8Array[] = [];
   let total = 0;
   let quantum = 0;
@@ -80,9 +80,6 @@ async function readSourceText(source: ByteSource, maxBytes: number, signal: Abor
     signal.throwIfAborted();
     quantum += Math.max(1, chunk.byteLength);
     if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(signal); }
-    if (total > maxBytes) {
-      throw new PublicDiagnostic(`input exceeds maximum size of ${maxBytes} bytes`);
-    }
     chunks.push(chunk);
   }
   const merged = new Uint8Array(total);
@@ -104,7 +101,9 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
       let inputBytes = 0;
       const admit = (bytes: number): void => {
         context.signal.throwIfAborted();
-        context.inputBudget?.check(inputBytes += bytes);
+        inputBytes += bytes;
+        context.inputBudget?.check(inputBytes);
+        if (inputBytes > maxBytes) throw new PublicDiagnostic(`input exceeds maximum size of ${maxBytes} bytes`);
       };
       const maxBytes = Math.min(limits.maxInputBytes, (context as { limits?: { maxInputBytes?: number } }).limits?.maxInputBytes ?? limits.maxInputBytes);
       context.signal.throwIfAborted();
@@ -171,64 +170,42 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
         files.push(arg);
       }
 
-      if (!lineNumbers && !squeezeBlank && startLine === 1 && !startSearch && files.length === 0) {
-        let total = 0;
-        let quantum = 0;
-        let chunksRead = 0;
-        for await (const chunk of readBytes(context.stdin, context.signal)) {
-          context.signal.throwIfAborted();
-          quantum += Math.max(1, chunk.byteLength);
-          if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(context.signal); }
-          total += chunk.byteLength;
-          admit(chunk.byteLength);
-          if (total > maxBytes) {
-            await writeText(context.stderr, `${name}: input exceeds maximum size of ${maxBytes} bytes\n`);
-            return { exitCode: 1 };
-          }
-          await writeBytes(context.stdout, chunk, context.signal);
-        }
-        return { exitCode: 0 };
-      }
+      if (files.length === 0) files.push("-");
 
       try {
         const passThrough = !lineNumbers && !squeezeBlank && startLine === 1 && !startSearch;
         const texts: string[] = [];
         let exitCode = 0;
-        if (files.length === 0) {
-          texts.push(await readSourceText(context.stdin, maxBytes, context.signal, admit));
-        } else {
-          for (const file of files) {
-            if (file === "-") {
-              if (passThrough) {
-                // Explicit stdin uses the same bounded byte path as file operands.
-                let total = 0;
-                for await (const chunk of readBytes(context.stdin, context.signal)) {
-                  total += chunk.byteLength;
-                  admit(chunk.byteLength);
-                  if (total > maxBytes) throw new PublicDiagnostic(`input exceeds maximum size of ${maxBytes} bytes`);
-                  await writeBytes(context.stdout, chunk, context.signal);
-                  await yieldTurn(context.signal);
-                }
-              } else texts.push(await readSourceText(context.stdin, maxBytes, context.signal, admit));
-            } else {
-              try {
-                const targetPath = pathPosix.resolve(context.cwd, file);
-                const raw = await context.fs.readFile(targetPath, { signal: context.signal });
-                context.signal.throwIfAborted();
-                admit(raw.byteLength);
-                if (raw.byteLength > maxBytes) {
-                  await writeText(context.stderr, `${name}: ${file}: input exceeds maximum size\n`);
-                  return { exitCode: 1 };
-                }
-                if (passThrough) await writeBytes(context.stdout, raw, context.signal);
-                else texts.push(new TextDecoder("utf-8", { fatal: false }).decode(raw));
-              } catch (err) {
-                context.signal.throwIfAborted();
-                if (!(err instanceof FsError)) throw err;
-                const msg = err instanceof Error ? err.message : String(err);
-                await writeText(context.stderr, `${name}: ${file}: ${msg}\n`);
-                exitCode = 1;
+        for (const file of files) {
+          if (file === "-") {
+            if (passThrough) {
+              let quantum = 0;
+              let chunksRead = 0;
+              for await (const chunk of readBytes(context.stdin, context.signal)) {
+                admit(chunk.byteLength);
+                await writeBytes(context.stdout, chunk, context.signal);
+                quantum += Math.max(1, chunk.byteLength);
+                if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(context.signal); }
               }
+            } else texts.push(await readSourceText(context.stdin, context.signal, admit));
+          } else {
+            try {
+              const targetPath = pathPosix.resolve(context.cwd, file);
+              const remaining = maxBytes - inputBytes;
+              const raw = await context.fs.readFile(targetPath, {
+                signal: context.signal,
+                ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}),
+              });
+              context.signal.throwIfAborted();
+              admit(raw.byteLength);
+              if (passThrough) await writeBytes(context.stdout, raw, context.signal);
+              else texts.push(new TextDecoder("utf-8", { fatal: false }).decode(raw));
+            } catch (err) {
+              context.signal.throwIfAborted();
+              if (!(err instanceof FsError)) throw err;
+              const msg = err instanceof Error ? err.message : String(err);
+              await writeText(context.stderr, `${name}: ${file}: ${msg}\n`);
+              exitCode = 1;
             }
           }
         }

@@ -3,8 +3,10 @@ import type {Paragraph, DocxBlock, DocxRunInput, DocumentModelContext} from "doc
 import type {Block, Inline, Row} from "./ast-types.js";
 import type {AdapterContext, ReaderCapability, WriterCapability} from "./types.js";
 import {PandocError} from "./errors.js";
+import {literalInlines} from "./literal-inlines.js";
 import {imageLength} from "./image-dimensions.js";
 interface RichRun extends DocxRunInput {
+  readonly code?: boolean;
   readonly link?: string;
   readonly strike?: boolean;
   readonly baseline?: "superscript" | "subscript";
@@ -32,17 +34,21 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
   return guarded(ctx, async () => {
     const {Document: openDocument, Paragraph, Run} = await import("docx");
     const model = await openDocument(input.bytes, await modelContext(ctx));
-    const paragraph = (p: Paragraph): Block => {
+    const paragraph = async (p: Paragraph): Promise<Block> => {
       const inlines: Inline[] = [];
       for (const item of p.iter_inner_content()) {
         ctx.checkpoint();
         const runs = item instanceof Run ? [item] : item.runs;
-        const content = runs.map(run => {
-          let inline: Inline = {t: "Str", c: run.text};
-          if (run.bold) inline = {t: "Strong", c: [inline]};
-          if (run.italic) inline = {t: "Emph", c: [inline]};
-          return inline;
-        });
+        const content: Inline[] = [];
+        for (const run of runs) {
+          ctx.checkpoint();
+          let inlines: Inline[] = run.style?.style_id === "VerbatimChar"
+            ? [{t: "Code", c: [attr, run.text]}]
+            : await literalInlines(run.text, ctx);
+          if (run.bold) inlines = [{t: "Strong", c: inlines}];
+          if (run.italic) inlines = [{t: "Emph", c: inlines}];
+          content.push(...inlines);
+        }
         if (item instanceof Run) inlines.push(...content);
         else inlines.push({t: "Link", c: [attr, content, [item.url, ""]]});
       }
@@ -53,10 +59,18 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
     const blocks: Block[] = [];
     for (const item of model.iter_inner_content()) {
       await ctx.cooperate();
-      if (item instanceof Paragraph) blocks.push(paragraph(item));
+      if (item instanceof Paragraph) blocks.push(await paragraph(item));
       else {
         const rows: Row[] = [];
-        for (const row of item.rows) rows.push([attr, row.cells.map(cell => [attr, "AlignDefault", 1, 1, cell.paragraphs.map(paragraph)])]);
+        for (const row of item.rows) {
+          const cells: Row[1][number][] = [];
+          for (const cell of row.cells) {
+            const blocks: Block[] = [];
+            for (const p of cell.paragraphs) blocks.push(await paragraph(p));
+            cells.push([attr, "AlignDefault", 1, 1, blocks]);
+          }
+          rows.push([attr, cells]);
+        }
         blocks.push({t: "Table", c: [attr, [null, []], Array.from({length: item.columns.length}, () => ["AlignDefault", {t: "ColWidthDefault"}]), [attr, []], [[attr, 0, [], rows]], [attr, []]]});
       }
     }
@@ -90,7 +104,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           else if (node.t === "LineBreak") text = "\n";
           else if (node.t === "Code") text = node.c[1];
           else throw new PandocError("E_UNSUPPORTED_FEATURE", "write", `Unsupported DOCX inline: ${node.t}`, "docx");
-          result.push({...style, text});
+          result.push({...style, text, ...(node.t === "Code" ? {code: true} : {})});
         }
       }
       return result;
@@ -98,7 +112,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     const paragraph = (target: DocxBlock[], content: readonly RichRun[], properties: string, level?: number) => {
       // Sidecars keep relationship/paragraph properties out of the structured content API.
       paragraphs.push({runs: content, properties});
-      target.push({kind: "paragraph", ...(level === undefined ? {} : {level}), runs: content.map(({link: _link, strike: _strike, baseline: _baseline, image: _image, ...run}) => run)});
+      target.push({kind: "paragraph", ...(level === undefined ? {} : {level}), runs: content.map(({code: _code, link: _link, strike: _strike, baseline: _baseline, image: _image, ...run}) => run)});
     };
     const visit = async (nodes: readonly Block[], target: DocxBlock[], indent = 0, list?: {id: number; level: number; pending: boolean}): Promise<void> => {
       for (const block of nodes) {
@@ -185,17 +199,18 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           ctx.checkpoint();
           const native = nativeRuns[index]!;
           const properties = native.children.find(child => child.localName === "rPr");
+          const codeStyle = run.code ? '<w:rStyle w:val="VerbatimChar"/>' : "";
           const format = (run.strike ? "<w:strike/>" : "") + (run.baseline ? `<w:vertAlign w:val="${run.baseline}"/>` : "");
           const edits = new Map<import("docx").XmlElement, string>();
-          if (properties && format) edits.set(properties, `<w:rPr>${main.sourceXml(properties, new Map(), true)}${format}</w:rPr>`);
-          let xml = run.image ? `<w:r>${await drawing(run.image)}</w:r>` : `<w:r>${!properties && format ? `<w:rPr>${format}</w:rPr>` : ""}${main.sourceXml(native, edits, true)}</w:r>`;
+          if (properties && (codeStyle || format)) edits.set(properties, `<w:rPr>${codeStyle}${main.sourceXml(properties, new Map(), true)}${format}</w:rPr>`);
+          let xml = run.image ? `<w:r>${await drawing(run.image)}</w:r>` : `<w:r>${!properties && (codeStyle || format) ? `<w:rPr>${codeStyle}${format}</w:rPr>` : ""}${main.sourceXml(native, edits, true)}</w:r>`;
           if (run.link !== undefined) {
           const anchor = run.link.startsWith("#");
           const id = `rId${relationshipId++}`;
           if (!anchor) linkRelationships.push(`<Relationship Id="${id}" Type="${r}/hyperlink" Target="${encodeXML(run.link)}" TargetMode="External"/>`);
           xml = `<w:hyperlink ${anchor ? `w:anchor="${encodeXML(run.link.slice(1))}"` : `xmlns:r="${r}" r:id="${id}"`}>${xml}</w:hyperlink>`;
           }
-          if (format || run.image || run.link !== undefined) replacements.set(native, xml);
+          if (codeStyle || format || run.image || run.link !== undefined) replacements.set(native, xml);
         }
         if (extra.properties || replacements.size) main.replaceElement(node, `<w:p xmlns:w="${w}">${!properties && extra.properties ? `<w:pPr>${extra.properties}</w:pPr>` : ""}${main.sourceXml(node, replacements, true)}</w:p>`);
       } else for (const child of node.children) await edit(child);
@@ -208,6 +223,11 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     if (numbering.length) types.insertChildren(types.root, '<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>');
     for (const entry of media.values()) types.insertChildren(types.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/${entry.name}" ContentType="${entry.type}"/>`);
     const parts = new Map([["word/document.xml", main.serialize()], ["word/_rels/document.xml.rels", relationships.serialize()], ["[Content_Types].xml", types.serialize()]]);
+    if (paragraphs.some(paragraph => paragraph.runs.some(run => run.code))) {
+      const styles = new DocumentXmlEditor(archive.members.find(member => member.name === "word/styles.xml")!.bytes, {}, undefined, mc.budget);
+      styles.insertChildren(styles.root, `<w:style xmlns:w="${w}" w:type="character" w:styleId="VerbatimChar"><w:name w:val="Verbatim Char"/><w:rPr><w:rFonts w:ascii="Courier New" w:hAnsi="Courier New"/></w:rPr></w:style>`);
+      parts.set("word/styles.xml", styles.serialize());
+    }
     const members = archive.members.map(member => ({...member, bytes: parts.get(member.name) ?? member.bytes}));
     for (const entry of media.values()) members.push({name: `word/${entry.name}`, bytes: entry.bytes, directory: false, modified: new Date(0)});
     if (numbering.length) members.push({name: "word/numbering.xml", bytes: new TextEncoder().encode(`<w:numbering xmlns:w="${w}">${numbering.join("")}${numbering.map((_, i) => `<w:num w:numId="${i + 1}"><w:abstractNumId w:val="${i + 1}"/></w:num>`).join("")}</w:numbering>`), directory: false, modified: new Date(0)});

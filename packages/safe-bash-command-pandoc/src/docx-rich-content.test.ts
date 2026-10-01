@@ -12,13 +12,13 @@ const context = {yield: async () => {}};
 const attr = ["", [], []] as const;
 const str = (c: string): Inline => ({t: "Str", c});
 
-it.each(["Strikeout", "Superscript", "Subscript"] as const)("preserves nested %s formatting and hyperlinks in DOCX", async t => {
+it.each(["Strikeout", "Superscript", "Subscript", "Underline"] as const)("preserves nested %s formatting and hyperlinks in DOCX", async t => {
   const result = await writeDocument({blocks: [{t: "Para", c: [{t: "Link", c: [attr, [{t: "Strong", c: [{t, c: [str("styled")]}]}], ["https://example.com", ""]]}]}], metadata: {}, resources: []}, {to: "docx"}, context);
   if (result.kind !== "binary") throw new Error("Expected DOCX");
   const parts = readZipArchiveEntries(result.bytes);
   const xml = new TextDecoder().decode(parts.get("word/document.xml"));
   new SaxesParser({xmlns: true}).write(xml).close();
-  expect(xml).toContain(t === "Strikeout" ? '<w:strike/>' : `w:val="${t.toLowerCase()}"`);
+  expect(xml).toContain(t === "Strikeout" ? '<w:strike/>' : t === "Underline" ? '<w:u ' : `w:val="${t.toLowerCase()}"`);
   expect(xml).toContain("w:hyperlink");
   expect(xml).toContain("styled");
   expect(xml).toContain("w:b");
@@ -77,4 +77,27 @@ it('writes lists, quotes, rules, tables and divs without dropping their content'
   const div = await writeDocument({blocks: [{t: 'Div', c: [attr, [{t: 'Para', c: [str('contained')]}]]}], metadata: {}, resources: []}, {to: 'docx'}, context);
   if (div.kind !== 'binary') throw new Error('Expected DOCX');
   expect(new TextDecoder().decode(readZipArchiveEntries(div.bytes).get('word/document.xml'))).toContain('contained');
+});
+
+it("round trips inline code, including spaces, nested styles and linked code", async () => {
+  const blocks = [{t: "Para" as const, c: [
+    {t: "Code" as const, c: [attr, "a b < c"] as const},
+    {t: "Strong" as const, c: [{t: "Code" as const, c: [attr, "bold code"] as const}]},
+    {t: "Link" as const, c: [attr, [{t: "Code" as const, c: [attr, "linked code"] as const}], ["https://example.com", ""]] as const}
+  ]}];
+  const output = await writeDocument({blocks, metadata: {}, resources: []}, {to: "docx"}, context);
+  if(output.kind !== "binary") throw new Error("Expected DOCX");
+  const parts = readZipArchiveEntries(output.bytes);
+  expect(new TextDecoder().decode(parts.get("word/document.xml"))).toContain('w:rStyle w:val="VerbatimChar"');
+  expect(new TextDecoder().decode(parts.get("word/styles.xml"))).toContain('w:styleId="VerbatimChar"');
+  const result = await convert([{bytes: output.bytes}], {from: "docx", to: "json"}, context);
+  if(result.kind !== "text") throw new Error("Expected JSON");
+  expect(JSON.parse(result.text).blocks).toEqual(blocks);
+});
+it("splits DOCX text runs into literal words, spaces and line breaks", async () => {
+  const output = await writeDocument({blocks: [{t: "Para", c: [{t: "Emph", c: [str("two  words\nnext *literal*")]}]}], metadata: {}, resources: []}, {to: "docx"}, context);
+  if(output.kind !== "binary") throw new Error("Expected DOCX");
+  const result = await convert([{bytes: output.bytes}], {from: "docx", to: "json"}, context);
+  if(result.kind !== "text") throw new Error("Expected JSON");
+  expect(JSON.parse(result.text).blocks).toEqual([{t: "Para", c: [{t: "Emph", c: [str("two"), {t: "Space"}, {t: "Space"}, str("words"), {t: "LineBreak"}, str("next"), {t: "Space"}, str("*literal*")]}]}]);
 });

@@ -66,6 +66,21 @@ it("stages dash-prefixed operands after --", async () => {
   assert.deepEqual(reads, ["/work/-in.pdf"]);
 });
 
+for (const encoding of ["Latin1", "UCS-2"]) {
+  it(`writes ${encoding} bytes without UTF-8 re-encoding`, async () => {
+    const { result, volume, stderr } = await execute(createPdftotextCommand(), ["-enc", encoding, "in.pdf", "out.txt"]);
+    assert.equal(result.exitCode, 0, stderr);
+    const bytes = new Uint8Array(volume.readFileSync("/work/out.txt") as Buffer);
+    if (encoding === "Latin1") {
+      assert.ok(bytes.includes(0xe9));
+      assert.equal(bytes.includes(0xc3), false);
+    } else {
+      assert.deepEqual([...bytes.slice(0, 2)], [0xfe, 0xff]);
+      assert.equal(bytes.length % 2, 0);
+      assert.ok(Buffer.from(bytes).includes(Buffer.from([0, 0xe9])));
+    }
+  });
+}
 it("pdftotext normalizes both input and output paths", async () => {
  const { result, reads, volume, stderr } = await execute(createPdftotextCommand(), ["missing/../in.pdf", "missing/../out.txt"]);
  assert.equal(result.exitCode, 0, stderr);
@@ -73,6 +88,15 @@ it("pdftotext normalizes both input and output paths", async () => {
  assert.ok(volume.existsSync("/work/out.txt"));
 });
 
+for (const encoding of ["UTF-8", "ASCII7", "Latin1", "UCS-2"]) {
+  it(`uses identical ${encoding} bytes for files and stdout`, async () => {
+    const file = await execute(createPdftotextCommand(), ["-enc", encoding, "in.pdf", "out.txt"]);
+    const pipe = await execute(createPdftotextCommand(), ["-enc", encoding, "in.pdf", "-"]);
+    assert.equal(file.result.exitCode, 0, file.stderr);
+    assert.equal(pipe.result.exitCode, 0, pipe.stderr);
+    assert.deepEqual(pipe.stdout, file.volume.readFileSync("/work/out.txt"));
+  });
+}
 it("pdftotext does not create missing output parents", async () => {
   const { result, volume } = await execute(createPdftotextCommand(), ["in.pdf", "/missing/out.txt"]);
   assert.equal(result.exitCode, 2);

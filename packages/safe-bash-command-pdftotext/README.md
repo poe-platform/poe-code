@@ -38,4 +38,6 @@ The workspace entrypoint exports `pdftotextCommands()` for plugin registration,
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdftotextLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.
 
+The `pdftotext -enc Latin1` option writes ISO-8859-1 bytes; `-enc UCS-2` writes big-endian 16-bit code units with a BOM. File output and stdout use the same encoding.
+
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.

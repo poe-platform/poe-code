@@ -349,6 +349,14 @@ const ASCII7_COMPAT_MAP: Readonly<Record<string, string>> = {
   "\u00A0": " "
 };
 
+function encodeUcs2(text: string): Uint8Array {
+  const bytes = new Uint8Array(2 + text.length * 2);
+  const view = new DataView(bytes.buffer);
+  view.setUint16(0, 0xfeff);
+  for (let i = 0; i < text.length; i++) view.setUint16(2 + i * 2, text.charCodeAt(i));
+  return bytes;
+}
+
 function applyPopplerOutputEncoding(text: string, encoding: string): string {
   if (!encoding || encoding === "UTF-8" || encoding === "UCS-2") return text;
   if (encoding === "ASCII7") {
@@ -951,7 +959,11 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       return { exitCode: res.exitCode };
     }
 
-    const outBytes = new TextEncoder().encode(res.output);
+    const outBytes = parsed.encoding === "Latin1"
+      ? Uint8Array.from(res.output, char => char.charCodeAt(0))
+      : parsed.encoding === "UCS-2"
+        ? encodeUcs2(res.output)
+        : new TextEncoder().encode(res.output);
     chargeBytes(outBytes.byteLength);
     if (res.outputPath === "-") {
       const stdout = invocation.child(context.stdout);

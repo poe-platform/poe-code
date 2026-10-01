@@ -246,7 +246,11 @@ describe("PlaygroundSession", () => {
     expect((await session.run("pwd")).stdout).toBe("/home/examples\n");
     expect((await session.run("(cd /; exit 3)")).exitCode).toBe(3);
     expect(session.cwd).toBe("/home/examples");
-    expect((await session.run("move() { cd ../data; }; move; exit 4")).exitCode).toBe(4);
+  });
+
+  it("persists function cwd on exit and root cwd on output failure", async () => {
+    const session = await createSession();
+    expect((await session.run("cd examples; move() { cd ../data; }; move; exit 4")).exitCode).toBe(4);
     expect(session.cwd).toBe("/home/data");
     expect((await session.run("cd /home/examples; printf '%100000s' x")).exitCode).not.toBe(0);
     expect(session.cwd).toBe("/home/examples");

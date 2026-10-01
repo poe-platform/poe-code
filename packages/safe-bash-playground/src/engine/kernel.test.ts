@@ -568,74 +568,18 @@ describe("real safe-bash browser kernel", () => {
   });
 
   it("registers the full agent command bundle in the browser", () => {
-    expect(kernel.supportedCommands).toEqual(
-      expect.arrayContaining([
-        "[",
-        "basename",
-        "cat",
-        "cmp",
-        "fmt",
-        "shuf",
-        "numfmt",
-        "truncate",
-        "cp",
-        "cut",
-        "dirname",
-        "echo",
-        "false",
-        "head",
-        "ln",
-        "ls",
-        "mkdir",
-        "mv",
-        "printf",
-        "pwd",
-        "readlink",
-        "realpath",
-        "rm",
-        "rmdir",
-        "sort",
-        "tail",
-        "tee",
-        "test",
-        "touch",
-        "tr",
-        "true",
-        "uniq",
-        "wc",
-        "find",
-        "grep",
-        "rg",
-        "sed",
-        "awk",
-        "jq",
-        "mdq",
-        "gzip",
-        "bzip2",
-        "bunzip2",
-        "bzcat",
-        "xz",
-        "unxz",
-        "xzcat",
-        "zstd",
-        "unzstd",
-        "zstdcat",
-        "sha256sum",
-        "apply_patch",
-        "xq",
-        "xmllint",
-        "csplit",
-        "pr",
-        "tsort",
-        "factor",
-        "getopt",
-        "hexdump",
-        "hd",
-        "iconv"
-      ])
-    );
-    expect(kernel.supportedCommands).toHaveLength(188);
-    expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["lzma", "unlzma", "lzcat"]));
-    expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum", "gh"]));
+    const expected = [
+      "true", "false", "echo", "pwd", "basename", "dirname", "printf", "mkdir", "touch",
+      "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
+      "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find", "cmp", "fmt", "shuf", "numfmt",
+      "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
+      "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
+      "paste", "comm", "join", "tac", "expand", "fold", "strings",
+      "seq", "nl", "rev", "unexpand", "split",
+      "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "bc", "sponge", "openssl", "ssh", "ssh-keygen", "gpg", "fd", "less", "more", "id", "whoami", "uname", "hostname", "nproc", "yes", "dd", "envsubst", "cal", "ncal", "pathchk", "getconf", "locale", "df", "sqlite3", "yq", "htmlq", "diff3", "exiftool", "unrtf", "mmdc", "op", "ffmpeg", "ffprobe", "soffice", "libreoffice", "pandoc", "ssconvert", "pdfinfo", "pdfunite", "pdfseparate", "pdffonts", "pdfdetach", "pdftotext", "pdftohtml", "pdfimages", "pdftoppm", "pdftocairo", "pdftk", "qpdf", "sips", "magick", "convert", "mogrify", "composite", "montage", "identify", "compare", "wkhtmltopdf", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin", "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "in2csv", "sql2csv", "gh",
+    ].sort();
+    expect(expected).toHaveLength(188);
+    expect(new Set(expected).size).toBe(188);
+    expect(kernel.supportedCommands).toEqual(expected);
   });
 });

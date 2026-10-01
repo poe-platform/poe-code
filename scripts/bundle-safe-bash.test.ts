@@ -563,8 +563,10 @@ beforeAll(async () => {
           const companion = companions.get(args.path);
           if (companion) return { path: companion };
           if (args.path === "@poe-platform/safe-bash/contracts") return { path: path.join(directory, "src/contracts/index.ts") };
+          const entry = manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`];
+          if (!entry.browser) return { path: path.resolve(directory, entry.import) };
           return {
-            path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
+            path: path.resolve(directory, entry.browser),
             namespace: "evaluated-shell",
           };
         });
@@ -593,7 +595,9 @@ it("executes the maintained browser fixture with all top-level workflows in a No
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.exports)).toEqual([]);
   const sandbox = browserRealm;
-  Object.assign(sandbox, { URL, TypeError, console, structuredClone });
+  Object.assign(sandbox, { URL, TypeError, console, structuredClone,
+    fetch: async () => { throw new Error("Unexpected fetch in browser fixture"); },
+  });
   factoryIdentity = (browser as BrowserShell & { factoryIdentity: boolean[] }).factoryIdentity;
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox)).toBe("function:undefined:undefined");
   await runInContext(`(async () => { ${result.outputFiles![0]!.text} })()`, sandbox);

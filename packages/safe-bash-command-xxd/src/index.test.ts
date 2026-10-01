@@ -153,3 +153,24 @@ test("xxd zero columns selects the display mode default", async () => {
     assert.equal(await runParity([...mode, "-c", "0"], input), await runParity(mode, input));
   }
 });
+
+for (const failure of ["stream", "limit"] as const) test(`xxd retains complete rows on ${failure} failure`, async () => {
+ const values = createCommandArguments([]);
+ let stdout = "";
+ const result = await createXxdCommand({ limits: { maxInputBytes: 64 } }).execute({
+  command: "xxd", args: values.args, cwd: "/", env: {}, fs: createMemoryFileSystem(),
+  stdin: (async function* () { yield Uint8Array.from({ length: 64 }, (_, i) => i); if (failure === "limit") yield Uint8Array.of(255); else throw new Error("stream failed"); })(),
+  stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+  stderr: { async write() {} }, signal: new AbortController().signal,
+ });
+ assert.equal(result.exitCode, 1);
+ assert.equal(stdout.trimEnd().split("\n").length, 4);
+});
+
+test("xxd reverse retains decoded rows before malformed input", async () => {
+ const fs = createMemoryFileSystem();
+ await fs.writeFile("/hex", new TextEncoder().encode("00000000: 6162\n00000002: 6364\ninvalid\n"));
+ const result = await run(["-r", "/hex"], fs);
+ assert.equal(result.exitCode, 1);
+ assert.equal(result.stdout, "abcd");
+});

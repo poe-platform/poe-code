@@ -406,45 +406,48 @@ async function reverseNormal(context: CommandContext, files: readonly string[], 
     offset = addOffset(offset, count);
     return count;
   };
-  for await (const chunk of sources(context, files, maxInputBytes)) {
-    let start = 0;
-    while (start < chunk.length) {
-      const nl = chunk.indexOf(10, start);
-      if (nl < 0) {
-        for (let i = start; i < chunk.length; i++) line += String.fromCharCode(chunk[i]!);
-        break;
+  try {
+    for await (const chunk of sources(context, files, maxInputBytes)) {
+      let start = 0;
+      while (start < chunk.length) {
+        const nl = chunk.indexOf(10, start);
+        if (nl < 0) {
+          for (let i = start; i < chunk.length; i++) line += String.fromCharCode(chunk[i]!);
+          break;
+        }
+        let count = 0;
+        if (line.length === 0) {
+          count = await parseLineBytesInto(chunk, start, nl);
+        } else {
+          for (let i = start; i < nl; i++) line += String.fromCharCode(chunk[i]!);
+          const lineBytes = new Uint8Array(line.length);
+          for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
+          line = "";
+          count = await parseLineBytesInto(lineBytes, 0, lineBytes.length);
+        }
+        start = nl + 1;
+        if (count > 0) {
+          if (outUsed + count > outBuf.length) await flushOut();
+          outBuf.set(rowScratch.subarray(0, count), outUsed);
+          outUsed += count;
+          if (!flushedFirst || outUsed >= outBuf.length) await flushOut();
+        }
       }
-      let count = 0;
-      if (line.length === 0) {
-        count = await parseLineBytesInto(chunk, start, nl);
-      } else {
-        for (let i = start; i < nl; i++) line += String.fromCharCode(chunk[i]!);
-        const lineBytes = new Uint8Array(line.length);
-        for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
-        line = "";
-        count = await parseLineBytesInto(lineBytes, 0, lineBytes.length);
-      }
-      start = nl + 1;
+      if (outUsed > 0) await flushOut();
+    }
+    if (line) {
+      const lineBytes = new Uint8Array(line.length);
+      for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
+      const count = await parseLineBytesInto(lineBytes, 0, lineBytes.length);
       if (count > 0) {
         if (outUsed + count > outBuf.length) await flushOut();
         outBuf.set(rowScratch.subarray(0, count), outUsed);
         outUsed += count;
-        if (!flushedFirst || outUsed >= outBuf.length) await flushOut();
       }
     }
-    if (outUsed > 0) await flushOut();
+  } finally {
+    await flushOut();
   }
-  if (line) {
-    const lineBytes = new Uint8Array(line.length);
-    for (let i = 0; i < line.length; i++) lineBytes[i] = line.charCodeAt(i);
-    const count = await parseLineBytesInto(lineBytes, 0, lineBytes.length);
-    if (count > 0) {
-      if (outUsed + count > outBuf.length) await flushOut();
-      outBuf.set(rowScratch.subarray(0, count), outUsed);
-      outUsed += count;
-    }
-  }
-  await flushOut();
 }
 
 function defineCommand(name: string, handler: CommandHandler): CommandDefinition {
@@ -604,62 +607,70 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       else if (zeroRun === 2) outBuf += zeroLast;
       zeroRun = 0;
     };
-    for await (const batch of rows(source, rowWidth)) {
-      any = true;
-      for (let rowStart = 0; rowStart < batch.length; rowStart += rowWidth) {
-        const row = batch.subarray(rowStart, Math.min(batch.length, rowStart + rowWidth));
-        if (include) {
-          if (includeRow) outBuf += includeRow + ",\n";
-          const includePrefix = upper ? "0X" : "0x";
-          includeRow = "  " + Array.from(row, byte => includePrefix + hexTable[byte]!).join(", ");
-          includeLength = addOffset(includeLength, row.length);
-          if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
-          continue;
-        }
-        if (!parsed.flags.has("a") && !plain && !littleEndian && !binary && columns === 16 && group === 2 && row.length === 16) {
-          const b0 = row[0]!, b1 = row[1]!, b2 = row[2]!, b3 = row[3]!;
-          const b4 = row[4]!, b5 = row[5]!, b6 = row[6]!, b7 = row[7]!;
-          const b8 = row[8]!, b9 = row[9]!, b10 = row[10]!, b11 = row[11]!;
-          const b12 = row[12]!, b13 = row[13]!, b14 = row[14]!, b15 = row[15]!;
-          const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
-          outBuf += `${address}: ${hexTable[b0]}${hexTable[b1]} ${hexTable[b2]}${hexTable[b3]} ${hexTable[b4]}${hexTable[b5]} ${hexTable[b6]}${hexTable[b7]} ${hexTable[b8]}${hexTable[b9]} ${hexTable[b10]}${hexTable[b11]} ${hexTable[b12]}${hexTable[b13]} ${hexTable[b14]}${hexTable[b15]}  ${ASCII_CHAR[b0]}${ASCII_CHAR[b1]}${ASCII_CHAR[b2]}${ASCII_CHAR[b3]}${ASCII_CHAR[b4]}${ASCII_CHAR[b5]}${ASCII_CHAR[b6]}${ASCII_CHAR[b7]}${ASCII_CHAR[b8]}${ASCII_CHAR[b9]}${ASCII_CHAR[b10]}${ASCII_CHAR[b11]}${ASCII_CHAR[b12]}${ASCII_CHAR[b13]}${ASCII_CHAR[b14]}${ASCII_CHAR[b15]}\n`;
-          offset = addOffset(offset, 16);
-          if (!flushedFirst || outBuf.length >= 16384) await flushOut();
-          continue;
-        }
-        let data = "";
-        let ascii = "";
-        for (let index = 0; index < row.length; index++) {
-          if (!plain && !littleEndian && group && index && index % group === 0) data += " ";
-          const byte = row[index]!;
-          if (!littleEndian) data += byteTable[byte]!;
-          if (!plain) ascii += ASCII_CHAR[byte]!;
-        }
-        if (littleEndian) {
-          for (let start = 0; start < row.length; start += octets) {
-            if (start) data += " ";
-            for (let index = start + octets - 1; index >= start; index--) {
-              data += index < row.length ? hexTable[row[index]!]! : "  ";
+    try {
+      for await (const batch of rows(source, rowWidth)) {
+        any = true;
+        for (let rowStart = 0; rowStart < batch.length; rowStart += rowWidth) {
+          const row = batch.subarray(rowStart, Math.min(batch.length, rowStart + rowWidth));
+          if (include) {
+            if (includeRow) outBuf += includeRow + ",\n";
+            const includePrefix = upper ? "0X" : "0x";
+            includeRow = "  " + Array.from(row, byte => includePrefix + hexTable[byte]!).join(", ");
+            includeLength = addOffset(includeLength, row.length);
+            if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
+            continue;
+          }
+          if (!parsed.flags.has("a") && !plain && !littleEndian && !binary && columns === 16 && group === 2 && row.length === 16) {
+            const b0 = row[0]!, b1 = row[1]!, b2 = row[2]!, b3 = row[3]!;
+            const b4 = row[4]!, b5 = row[5]!, b6 = row[6]!, b7 = row[7]!;
+            const b8 = row[8]!, b9 = row[9]!, b10 = row[10]!, b11 = row[11]!;
+            const b12 = row[12]!, b13 = row[13]!, b14 = row[14]!, b15 = row[15]!;
+            const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
+            outBuf += `${address}: ${hexTable[b0]}${hexTable[b1]} ${hexTable[b2]}${hexTable[b3]} ${hexTable[b4]}${hexTable[b5]} ${hexTable[b6]}${hexTable[b7]} ${hexTable[b8]}${hexTable[b9]} ${hexTable[b10]}${hexTable[b11]} ${hexTable[b12]}${hexTable[b13]} ${hexTable[b14]}${hexTable[b15]}  ${ASCII_CHAR[b0]}${ASCII_CHAR[b1]}${ASCII_CHAR[b2]}${ASCII_CHAR[b3]}${ASCII_CHAR[b4]}${ASCII_CHAR[b5]}${ASCII_CHAR[b6]}${ASCII_CHAR[b7]}${ASCII_CHAR[b8]}${ASCII_CHAR[b9]}${ASCII_CHAR[b10]}${ASCII_CHAR[b11]}${ASCII_CHAR[b12]}${ASCII_CHAR[b13]}${ASCII_CHAR[b14]}${ASCII_CHAR[b15]}\n`;
+            offset = addOffset(offset, 16);
+            if (!flushedFirst || outBuf.length >= 16384) await flushOut();
+            continue;
+          }
+          let data = "";
+          let ascii = "";
+          for (let index = 0; index < row.length; index++) {
+            if (!plain && !littleEndian && group && index && index % group === 0) data += " ";
+            const byte = row[index]!;
+            if (!littleEndian) data += byteTable[byte]!;
+            if (!plain) ascii += ASCII_CHAR[byte]!;
+          }
+          if (littleEndian) {
+            for (let start = 0; start < row.length; start += octets) {
+              if (start) data += " ";
+              for (let index = start + octets - 1; index >= start; index--) {
+                data += index < row.length ? hexTable[row[index]!]! : "  ";
+              }
             }
           }
-        }
-        if (plain) outBuf += data + (columns ? "\n" : "");
-        else {
-          const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
-          const formatted = `${address}: ${data.padEnd(width)}  ${ascii}\n`;
-          if (parsed.flags.has("a") && row.length === columns && row.every(byte => byte === 0)) {
-            if (zeroRun === 0) outBuf += formatted;
-            if (zeroRun === 1) zeroSecond = formatted;
-            zeroRun++;
-            zeroLast = formatted;
-          } else {
-            finishZeros(false);
-            outBuf += formatted;
+          if (plain) outBuf += data + (columns ? "\n" : "");
+          else {
+            const address = offset.toString(decimalAddress ? 10 : 16).padStart(8, "0");
+            const formatted = `${address}: ${data.padEnd(width)}  ${ascii}\n`;
+            if (parsed.flags.has("a") && row.length === columns && row.every(byte => byte === 0)) {
+              if (zeroRun === 0) outBuf += formatted;
+              if (zeroRun === 1) zeroSecond = formatted;
+              zeroRun++;
+              zeroLast = formatted;
+            } else {
+              finishZeros(false);
+              outBuf += formatted;
+            }
           }
+          offset = addOffset(offset, row.length);
+          if (!flushedFirst || outBuf.length >= 16384) await flushOut();
         }
-        offset = addOffset(offset, row.length);
-        if (!flushedFirst || outBuf.length >= 16384) await flushOut();
       }
+    } catch (error) {
+      if (!any) throw error;
+      finishZeros(true);
+      if (includeRow) outBuf += includeRow + "\n";
+      await flushOut();
+      throw error;
     }
     finishZeros(true);
     if (include) {

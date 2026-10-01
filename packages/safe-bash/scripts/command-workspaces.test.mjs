@@ -16,7 +16,6 @@ for (const name of names) test(name + " has one private portable command owner",
   assert.ok(manifest("package.json").workspaces.includes("packages/*"));
   const adapter = name === "xmllint" ? "xml" : name;
   assert.ok(readFileSync(new URL("packages/safe-bash/src/commands/" + adapter + "/index.ts", root), "utf8").includes('export * from "' + packageName + '";'));
-  if (["dd", "shuf", "yes"].includes(name)) assert.deepEqual(readdirSync(new URL("packages/safe-bash/src/commands/" + adapter, root)).filter(file => file.endsWith(".ts")), ["index.ts"]);
 });
 
 test("XML core adapter contains only public re-exports", async () => {
@@ -33,4 +32,15 @@ test("extracted command evaluators stay in their private owners", async () => {
   for (const name of ["evalSyncDd", "evalSyncXan"]) {
     assert.ok(!source.statements.some(statement => ts.isFunctionDeclaration(statement) && statement.name?.text === name), `${name} must be imported from its command owner`);
   }
+});
+
+for (const name of ["dd", "shuf", "yes", "yq", "xml"]) test(name + " has no leftover implementation modules", () => {
+  assert.deepEqual(readdirSync(new URL("packages/safe-bash/src/commands/" + name, root)).filter(file => file.endsWith(".ts")), ["index.ts"]);
+});
+
+for (const name of ["csvkit", "pandoc"]) test(name + " is registered for portable integration", () => {
+  const packageName = "safe-bash-command-" + name;
+  const shell = manifest("packages/safe-bash/package.json");
+  assert.equal(shell.devDependencies[packageName], "*");
+  assert.equal(shell.poeCode.integration.privateWorkspaces[packageName].portable, true);
 });

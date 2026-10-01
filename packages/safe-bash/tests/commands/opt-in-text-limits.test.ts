@@ -10,7 +10,7 @@ import { settings as file } from "safe-bash-command-file/shared";
 import { settings as pr } from "safe-bash-command-pr/internal";
 import { settings as html } from "safe-bash-command-html-to-markdown/options";
 import { resolveJqLimits } from "../../src/commands/structured/limits.js";
-import { resolveXmlQueryLimits } from "../../src/commands/xml/limits.js";
+import { resolveXmlQueryLimits } from "safe-bash-xml-engine/limits";
 import { limitsFor } from "safe-bash-command-yq/native-work";
 import { validateOptions } from "safe-bash-command-xan/options";
 import { createSearchCommands } from "../../src/commands/search/index.js";

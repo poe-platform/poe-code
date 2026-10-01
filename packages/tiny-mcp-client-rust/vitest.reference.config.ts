@@ -38,6 +38,7 @@ export default defineConfig({
   }],
   test: { include: ["packages/tiny-mcp-client/src/*.test.ts"], exclude: [
     "**/mcp-client-sdk.test.ts", "**/mock-servers.test.ts", "**/package-runtime.test.ts",
-    "**/utilities.test.ts", "**/transports.test.ts", "**/sse-framing.test.ts", "**/sse-limits.test.ts", "**/stdio-line-bounds.test.ts"
+    "**/utilities.test.ts", "**/transports.test.ts", "**/sse-framing.test.ts", "**/sse-limits.test.ts", "**/stdio-line-bounds.test.ts",
+    "**/stream.browser.test.ts" // The native client uses node:stream, not the TypeScript browser shim.
   ], cache: false, testTimeout: 2000 }
 });

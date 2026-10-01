@@ -90,7 +90,7 @@ for (const mode of ["disabled", "absent"] as const) {
     });
   }
 
-  test(`${mode}: tar creates and extracts with buffered I/O`, async () => {
+  test(`${mode}: tar creates, lists and extracts archives with buffered I/O`, async () => {
     for (const maxBufferedFileBytes of [undefined, 1024 * 1024]) {
       const state = await fixture(mode);
       try {

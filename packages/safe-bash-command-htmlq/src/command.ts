@@ -12,6 +12,7 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import type { FileStat } from "safe-bash-contracts/filesystem";
 import {
+  defaultHtmlLimits,
   HtmlBudget,
   HtmlError,
   invocationOptions,
@@ -34,20 +35,9 @@ export interface HtmlqResult {
   readonly error?: HtmlError | FsError;
   readonly accounting: HtmlAccounting;
 }
-const defaultLimits: HtmlLimits = Object.freeze({
-  inputBytes: Infinity,
-  decodedBytes: Infinity,
-  retainedBytes: Infinity,
-  nodes: Infinity,
-  attributes: Infinity,
-  depth: Infinity,
-  tokenBytes: Infinity,
-  work: Infinity,
-  outputBytes: Infinity
-});
 function admittedLimits(overrides: Partial<HtmlLimits> = {}): HtmlLimits {
-  const limits = { ...defaultLimits, ...overrides };
-  for (const name of Object.keys(defaultLimits) as (keyof HtmlLimits)[]) {
+  const limits = { ...defaultHtmlLimits, ...overrides };
+  for (const name of Object.keys(defaultHtmlLimits) as (keyof HtmlLimits)[]) {
     const value = limits[name];
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
       throw new HtmlError("E_LIMIT", "Limits must be nonnegative safe integers or Infinity", 0, name);

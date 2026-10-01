@@ -10,9 +10,14 @@ export interface HtmlLimits {
   outputBytes: number;
 }
 export interface HtmlOptions {
-  limits: HtmlLimits;
+  limits?: Partial<HtmlLimits>;
   signal: AbortSignal;
 }
+export const defaultHtmlLimits: Readonly<HtmlLimits> = Object.freeze({
+  inputBytes: Infinity, decodedBytes: Infinity, retainedBytes: Infinity,
+  nodes: Infinity, attributes: Infinity, depth: Infinity, tokenBytes: Infinity,
+  work: Infinity, outputBytes: Infinity
+});
 export type HtmlErrorCode =
   | "E_SELECTOR"
   | "E_ARGUMENT"
@@ -84,8 +89,8 @@ function createLedger(): Ledger {
 }
 const invocationCounts = new WeakMap<HtmlOptions, Ledger>();
 /** Own one cumulative accounting ledger for an invocation. */
-export function invocationOptions(options: HtmlOptions): HtmlOptions {
-  const owned = { signal: options.signal, limits: { ...options.limits } };
+export function invocationOptions(options: HtmlOptions): HtmlOptions & { limits: HtmlLimits } {
+  const owned = { signal: options.signal, limits: { ...defaultHtmlLimits, ...options.limits } };
   invocationCounts.set(owned, createLedger());
   return owned;
 }
@@ -94,25 +99,23 @@ export class HtmlBudget {
   private ledger: Ledger;
   constructor(readonly options: HtmlOptions) {
     let ledger = invocationCounts.get(options);
+    this.limits = { ...defaultHtmlLimits, ...options.limits };
+    for (const name of [
+      "inputBytes",
+      "decodedBytes",
+      "retainedBytes",
+      "nodes",
+      "attributes",
+      "depth",
+      "tokenBytes",
+      "work",
+      "outputBytes"
+    ] as const)
+      if (this.limits[name] !== Infinity && (!Number.isSafeInteger(this.limits[name]) || this.limits[name] < 0))
+        throw new HtmlError("E_LIMIT", "Expected nonnegative safe integer limits or Infinity", 0, name);
     if (!ledger) {
-      this.limits = { ...options.limits };
-      for (const name of [
-        "inputBytes",
-        "decodedBytes",
-        "retainedBytes",
-        "nodes",
-        "attributes",
-        "depth",
-        "tokenBytes",
-        "work",
-        "outputBytes"
-      ] as const)
-        if (this.limits[name] !== Infinity && (!Number.isSafeInteger(this.limits[name]) || this.limits[name] < 0))
-          throw new HtmlError("E_LIMIT", "Expected nonnegative safe integer limits or Infinity", 0, name);
       ledger = createLedger();
       invocationCounts.set(options, ledger);
-    } else {
-      this.limits = options.limits;
     }
     this.ledger = ledger;
     this.check();

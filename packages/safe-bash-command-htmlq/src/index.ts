@@ -1,4 +1,4 @@
-export { HtmlBudget, HtmlError, htmlqBaseline, invocationOptions } from "./contracts.js";
+export { defaultHtmlLimits, HtmlBudget, HtmlError, htmlqBaseline, invocationOptions } from "./contracts.js";
 export type {
   HtmlAccounting,
   HtmlOptions,

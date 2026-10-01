@@ -49,6 +49,6 @@ test("escape scanning observes cancellation and token admission", async () => {
   cancelled.signal = AbortSignal.abort();
   await assert.rejects(query('#\\61\r\nb', cancelled), { code: "E_CANCELLED" });
   const limited = options();
-  limited.limits.tokenBytes = 4;
+  limited.limits = { ...limited.limits, tokenBytes: 4 };
   await assert.rejects(query('#\\61\r\nb', limited), { code: "E_LIMIT", resource: "tokenBytes" });
 });

@@ -3442,7 +3442,7 @@ export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path
   validatePath(path, owner.ledger.limits);
   const root: DirectoryNode = (mem as unknown as { root: DirectoryNode }).root;
   if (path === "/") {
-    if (((root.mode >> 6) & 4) !== 4) return undefined;
+    if (((root.mode >> 6) & 5) !== 5) return undefined;
     return root.entries;
   }
   if (!isCleanAbsolutePath(path) || path === "/dev" || path.startsWith("/dev/")) return undefined;
@@ -3452,7 +3452,7 @@ export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path
   if (
     fastDir !== undefined &&
     fastDir.nlink !== 0 &&
-    ((fastDir.mode >> 6) & 4) === 4 &&
+    ((fastDir.mode >> 6) & 5) === 5 &&
     fastPrefix !== undefined &&
     (fastPrefix === path || (fastPrefix.length === path.length + 1 && fastPrefix.charCodeAt(path.length) === 47 && fastPrefix.startsWith(path)))
   ) {
@@ -3465,7 +3465,7 @@ export function tryGetMemoryDirectoryEntryNamesSync(filesystem: FileSystem, path
     const slash = path.indexOf("/", start);
     if (slash === -1) {
       const next = (current.entries as FastDirectoryEntriesMap).getSubstr(path, start, path.length);
-      if (!next || next.type !== "directory" || ((next.mode >> 6) & 4) !== 4) return undefined;
+      if (!next || next.type !== "directory" || ((next.mode >> 6) & 5) !== 5) return undefined;
       return next.entries;
     }
     const next = (current.entries as FastDirectoryEntriesMap).getSubstr(path, start, slash);

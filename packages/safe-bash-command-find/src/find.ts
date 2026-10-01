@@ -704,34 +704,12 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
           const children = await readDirectory(context, path, true);
           for (const child of children) {
             if (quitRequested) return;
-            if (canSkipChildStat && child.type === "file" && childDepth <= 1024) {
-              if (childDepth >= minDepth) {
-                scratchChildEntry.name = child.name;
-                scratchChildEntry.depth = childDepth;
-                scratchChildEntry.root = root;
-                scratchChildEntry.prune = false;
-                if (needsDisplay) {
-                  const childDisplay = `${parent}/${child.name}`;
-                  scratchChildEntry.display = childDisplay;
-                  scratchChildEntry.path = pathOf(context, childDisplay);
-                  scratchChildEntry.relative = relative ? `${relative}/${child.name}` : child.name;
-                }
-                const res = evaluate(scratchChildEntry);
-                const ok = typeof res === "boolean" ? res : await res;
-                if (ok) {
-                  if (needsDisplay) await appendPrintLine(escapeText(scratchChildEntry.display, "display"));
-                  else {
-                    const pending = appendPrintChild(escapedParent, escapeText(child.name, "display"));
-                    if (pending) await pending;
-                  }
-                }
-              }
-              continue;
-            }
             next ??= new Set(ancestors).add(physical);
             const childDisplay = `${parent}/${child.name}`;
             const childRel = relative ? `${relative}/${child.name}` : child.name;
-            await visit(childDisplay, childDepth, next, root, childRel, child.name, child.type);
+            // Directory listings do not establish search permission for children.
+            // Only the admitted memory-directory path may supply synthetic stats.
+            await visit(childDisplay, childDepth, next, root, childRel, child.name);
           }
           }
         }

@@ -7,6 +7,54 @@ import { standardCommands } from "../../src/commands/index.js";
 import { Capture } from "../../src/shell/runtime.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 
+test("Node Shell validates omitted options consistently with the portable shell", async context => {
+  const { Shell: NodeShell } = await import("../../src/shell/node.js");
+  for (const Constructor of [Shell, NodeShell]) {
+    assert.throws(() => new Constructor(), { name: "TypeError", message: "Shell requires an explicit filesystem" });
+  }
+  const shell = new NodeShell({ fs: new MemoryFileSystem() });
+  context.after(() => shell.dispose());
+  assert.equal((await shell.exec("true")).exitCode, 0);
+});
+
+test("find pipelines retain recursive contexts and work without Buffer", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir/sub", { recursive: true });
+  await fs.writeFile("/dir/a.txt", Uint8Array.of(65, 10));
+  await fs.writeFile("/dir/sub/é.txt", Uint8Array.of(66, 10));
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const original = globalThis.Buffer;
+  try {
+    globalThis.Buffer = undefined!;
+    for (const expression of ['-name "*.txt"', '-type f', '-name "*.txt" -print']) {
+      const result = await shell.exec(`true; find /dir ${expression} | wc -l`);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "2\n");
+    }
+    const flat = await shell.exec('true; find /dir/sub -name "*.txt"');
+    assert.equal(flat.stdout, "/dir/sub/\\303\\251.txt\n");
+    assert.equal(flat.stderr, "");
+    assert.equal(flat.exitCode, 0);
+  } finally { globalThis.Buffer = original; }
+});
+
+test("find fast and general paths reject unsearchable directories", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir");
+  await fs.writeFile("/dir/a.txt", Uint8Array.of(65));
+  await fs.chmod("/dir", 0o444);
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (const suffix of ["", " -print"]) {
+    const result = await shell.exec(`find /dir -name "*.txt"${suffix}`);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, "");
+    assert.match(result.stderr, /EACCES/);
+  }
+});
+
 test("find pipelines retain async pattern reads and execute deletion once", async context => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/dir");

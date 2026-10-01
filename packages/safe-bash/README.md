@@ -471,7 +471,8 @@ is cooperative; it neither preempts CPU-only loops nor establishes confinement.
 
 Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
 with read-only wrappers, mounts, and overlays. Choose and configure it explicitly;
-see the [filesystem guide](../safe-fs/README.md).
+see the [filesystem guide](../safe-fs/README.md). The root export includes
+`createS3HttpTransport` in Node, browsers, and Workers; portable runtimes use fetch.
 
 ### Run JavaScript with SafeJS
 

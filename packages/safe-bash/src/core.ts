@@ -147,6 +147,7 @@ export { createWgetCommands, wgetCommands, type WgetCommandsOptions, type WgetLi
 export type { CurlCommandsOptions, CurlLimits } from "./commands/curl/index.js";
 
 export * from "./fs/s3/index.js";
+export * from "./fs/s3/http/index.js";
 
 export type { CsvcutLimits } from "./commands/csvcut/index.js";
 export type { CsvgrepLimits } from "./commands/csvgrep/index.js";

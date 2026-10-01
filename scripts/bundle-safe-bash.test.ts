@@ -51,6 +51,7 @@ it("exposes portable command plugins and media factories to browser consumers", 
     "exiftoolCommands", "sofficeCommands", "unrtfCommands", "wkhtmltopdfCommands",
     "mmdcCommands", "diff3Commands", "fmtCommands", "foldCommands", "ssconvertCommands",
     "createFfmpegCommand", "createFfprobeCommand", "createSsconvertCommand",
+    "createS3HttpTransport",
   ] as const) expect(typeof browser[name], name).toBe("function");
 
   const shell = new browser.Shell({ fs: browser.createMemoryFileSystem() })
@@ -125,7 +126,7 @@ beforeAll(async () => {
           path: path.resolve(directory, manifest.exports["./core"].browser),
           namespace: "built-shell",
         }));
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:shell|registry|jobs|optional-host|trap)|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:shell|registry|jobs|optional-host|trap)|\/commands\/(?:archive|du|xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));

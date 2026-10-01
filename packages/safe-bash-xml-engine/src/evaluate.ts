@@ -1,7 +1,7 @@
 import { evaluateExpression, testPredicate } from "./predicate.js";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import type { Query, QueryStep } from "./query.js";
-import { XmlBudget } from "./limits.js";
+import { XmlBudget, XmlQueryError } from "./limits.js";
 
 type Container = { kind: "document"; children: Node[] } | ElementNode;
 interface ElementNode {
@@ -24,7 +24,13 @@ const xmlns = "http://www.w3.org/2000/xmlns/";
 async function indexTree(
   root: XmlElement,
   budget: XmlBudget
-): Promise<{ document: Container; order: Node[]; parentOf: Map<Node, Container> }> {
+): Promise<{ document: Container; order: Node[]; parentOf: Map<Node, Container>; namespaces: Map<string, string> }> {
+  const namespaces = new Map<string, string>([["xml", "http://www.w3.org/XML/1998/namespace"]]);
+  for (const attribute of root.attributes) {
+    { const p = budget.tick(); if (p) await p; }
+    if (attribute.namespace === xmlns && attribute.name !== "xmlns")
+      namespaces.set(attribute.localName, attribute.value);
+  }
   const document: Container = { kind: "document", children: [] };
   const order: Node[] = [document];
   const parentOf = new Map<Node, Container>();
@@ -58,15 +64,15 @@ async function indexTree(
       order.push(node);
     }
   }
-  return { document, order, parentOf };
+  return { document, order, parentOf, namespaces };
 }
 
-function matches(node: Node, step: QueryStep): boolean {
+function matches(node: Node, step: QueryStep, namespace: string, localName: string): boolean {
   if (step.kind === "self" || step.kind === "parent") return true;
   if (step.kind === "text") return node.kind === "text" || node.kind === "cdata";
   if (node.kind !== step.kind) return false;
   if (node.kind === "element" || node.kind === "attribute") {
-    return step.name === "*" || (node.value.namespace === "" && node.value.localName === step.name);
+    return step.name === "*" || (node.value.namespace === namespace && node.value.localName === localName);
   }
   return false;
 }
@@ -89,6 +95,12 @@ async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof index
   for (const path of query.paths) {
     let contexts: Node[] = [context];
     for (const step of path) {
+      const colon = step.name.indexOf(":");
+      const prefix = colon < 0 ? "" : step.name.slice(0, colon);
+      const namespace = colon < 0 ? "" : tree.namespaces.get(prefix);
+      if (namespace === undefined)
+        throw new XmlQueryError(`undefined XPath namespace prefix: ${prefix}`, 10);
+      const localName = colon < 0 ? step.name : step.name.slice(colon + 1);
       const parents = new Set<Node>();
       const pending = [...contexts];
       while (pending.length) {
@@ -123,7 +135,7 @@ async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof index
         let matched: Node[] = [];
         for (const candidate of candidates) {
           { const _p = budget.tick(); if (_p) await _p; }
-          if (matches(candidate, step)) matched.push(candidate);
+          if (matches(candidate, step, namespace, localName)) matched.push(candidate);
         }
         for (const predicate of step.predicates) {
           { const _p = budget.tick(); if (_p) await _p; }

@@ -65,3 +65,31 @@ test("XPath numeric coercion accepts XML whitespace only", async () => {
   const nodes = await evaluate(query, parseXml('<root><item n="&#160;1"/><item n=" 1 "/></root>'), budget);
   assert.equal(nodes.length, 1);
 });
+
+for (const [source, count] of [
+  ["/root/@xml:lang", 1], ["/root/@xml:space", 1],
+  ["//ns:item", 2], ["//alias:item", 2],
+  ["//ns:item[@xml:lang='fr']", 1],
+  ["//*[local-name()='item']", 3], ["//item", 0],
+  ["//other:item", 1]
+] as const) {
+  test(`XPath namespace selection ${source}`, async () => {
+    const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+    const root = parseXml('<root xmlns:ns="urn:x" xmlns:alias="urn:x" xmlns:other="urn:y" xml:lang="en" xml:space="preserve"><ns:item xml:lang="fr"/><alias:item/><other:item/></root>');
+    assert.equal((await evaluate(await parseQuery(source, budget), root, budget)).length, count);
+  });
+}
+
+for (const source of ["//ns:", "//:item", "//ns:item:bad", "//ns::item"]) {
+  test(`rejects malformed QName ${source}`, async () => {
+    const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+    await assert.rejects(parseQuery(source, budget));
+  });
+}
+
+test("XPath prefixes use root bindings and reject undeclared prefixes", async () => {
+  const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+  const root = parseXml('<root xmlns:n="urn:one"><n:item/><branch xmlns:n="urn:two"><n:item/></branch></root>');
+  assert.equal((await evaluate(await parseQuery("//n:item", budget), root, budget)).length, 1);
+  await assert.rejects(evaluate(await parseQuery("//missing:item", budget), root, budget), /undefined XPath namespace prefix/);
+});

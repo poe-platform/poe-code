@@ -3070,14 +3070,12 @@ class PooledSyncPipeWriter implements ByteSink {
   signal!: AbortSignal;
   target: Uint8Array = EMPTY_BYTES;
   used = 0;
-  overflowed = false;
   lineCountOnly = -1;
   reset(budget: Budget, signal: AbortSignal, target: Uint8Array, lineCountOnly = -1): void {
     this.budget = budget;
     this.signal = signal;
     this.target = target;
     this.used = 0;
-    this.overflowed = false;
     this.lineCountOnly = lineCountOnly;
   }
   writeLineCountSync(count: number, totalBytes: number): boolean {
@@ -3085,15 +3083,20 @@ class PooledSyncPipeWriter implements ByteSink {
     if (totalBytes > 0) {
       const budget = this.budget;
       if (budget.bytes + totalBytes > budget.maxOutputBytesSmi && totalBytes > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
-      if (this.used + totalBytes > this.target.byteLength) {
-        this.overflowed = true;
-        return false;
-      }
       this.used += totalBytes;
       budget.bytes += totalBytes;
     }
     this.lineCountOnly = count;
     return true;
+  }
+  private reserve(length: number): void {
+    const required = this.used + length;
+    if (required <= this.target.byteLength) return;
+    // Output admission precedes allocation; intermediate stages may exceed 64 KiB.
+    const capacity = Math.min(this.budget.limits.maxOutputBytes, Math.max(required, this.target.byteLength * 2));
+    const target = new Uint8Array(capacity);
+    target.set(this.target.subarray(0, this.used));
+    this.target = target;
   }
   writeSync(chunk: Uint8Array): boolean {
     this.signal.throwIfAborted();
@@ -3101,11 +3104,9 @@ class PooledSyncPipeWriter implements ByteSink {
     if (len === 0) return true;
     const budget = this.budget;
     if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
-    if (this.used + len > this.target.byteLength) {
-      this.overflowed = true;
-      return false;
-    }
+    this.reserve(len);
     this.target.set(chunk, this.used);
+    if (this.lineCountOnly >= 0) for (const byte of chunk) if (byte === 10) this.lineCountOnly++;
     this.used += len;
     budget.bytes += len;
     return true;
@@ -3115,21 +3116,22 @@ class PooledSyncPipeWriter implements ByteSink {
     if (len === 0) return true;
     const budget = this.budget;
     if (budget.bytes + len > budget.maxOutputBytesSmi && len > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
-    if (this.used + len > this.target.byteLength) {
-      this.overflowed = true;
-      return false;
-    }
+    this.reserve(len);
     const dst = this.target;
     const base = this.used;
-    for (let i = 0; i < len; i++) dst[base + i] = src[i]!;
+    for (let i = 0; i < len; i++) {
+      const byte = src[i]!;
+      dst[base + i] = byte;
+      if (this.lineCountOnly >= 0 && byte === 10) this.lineCountOnly++;
+    }
     this.used = base + len;
     budget.bytes += len;
     return true;
   }
   write(chunk: Uint8Array): Promise<void> {
     try {
-      if (this.writeSync(chunk)) return resolvedVoid;
-      return Promise.reject(new Error("Sync pipe stage buffer overflow"));
+      this.writeSync(chunk);
+      return resolvedVoid;
     } catch (err) {
       return Promise.reject(err);
     }
@@ -7146,7 +7148,7 @@ export class Runtime {
               statuses ??= new Array<number>(n).fill(0);
               statuses[index] = status;
             }
-          }).finally(() => scope.leaveWork()).then(() => runStages(index + 1, nextBuf, sharedSyncPipeWriter.used));
+          }).finally(() => scope.leaveWork()).then(() => runStages(index + 1, sharedSyncPipeWriter.target, sharedSyncPipeWriter.used));
         }
         scope.leaveWork();
         this.signal.throwIfAborted();
@@ -7154,7 +7156,7 @@ export class Runtime {
           statuses ??= new Array<number>(n).fill(0);
           statuses[index] = 1;
         }
-        prevBuf = nextBuf;
+        prevBuf = sharedSyncPipeWriter.target;
         prevLen = sharedSyncPipeWriter.used;
       }
     };

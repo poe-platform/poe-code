@@ -187,3 +187,48 @@ for (const [command, bytes, output] of [
   // Terminal output consumes no pipeline quota; each exec starts a fresh ledger.
   assert.equal((await shell.exec("printf abc", { limits: { maxPipelineBytes: 0 } })).stdout, "abc");
 });
+
+for (const path of ["/large.txt", "/dir/large.txt"]) {
+  for (const count of [8, 8192]) {
+    for (const flag of ["-l", "-c"]) test(`pipeline preserves all stages: ${path}, ${count} lines, ${flag}`, async context => {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir("/dir");
+      const content = "match:value\n".repeat(count);
+      await fs.writeFile(path, new TextEncoder().encode(content));
+      const shell = new Shell({ fs }).use(standardCommands());
+      context.after(() => shell.dispose());
+      const command = `grep match ${path} | sort | wc ${flag}`;
+      for (let run = 0; run < 2; run++) {
+        await shell.exec("");
+        const result = await shell.exec(command);
+        assert.equal(result.stderr, "");
+        assert.equal(result.exitCode, 0);
+        assert.equal(result.stdout, `${flag === "-l" ? count : content.length}\n`);
+      }
+      await shell.exec("");
+      await assert.rejects(shell.exec(command, { limits: { maxOutputBytes: 100 } }), /maxOutputBytes/);
+    });
+  }
+}
+
+for (const flag of ["-l", "-c"]) test(`warmed wc ${flag} enforces input admission`, async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir");
+  await fs.writeFile("/dir/file", new Uint8Array());
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  await shell.exec("");
+  await assert.rejects(shell.exec(`find /dir -name '*' | wc ${flag}`, { limits: { maxInputBytes: 1 } }), /maxInputBytes/);
+});
+
+test("missing grep input still executes downstream pipeline stages", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (let run = 0; run < 2; run++) {
+    await shell.exec("");
+    const result = await shell.exec("grep foo /nonexistent | wc -l");
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, "0\n");
+    assert.match(result.stderr, /nonexistent/);
+  }
+});

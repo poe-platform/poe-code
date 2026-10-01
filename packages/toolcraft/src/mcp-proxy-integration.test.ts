@@ -19,17 +19,14 @@ const originalRefresh = process.env.TOOLCRAFT_MCP_REFRESH;
 const testServerCli = fileURLToPath(
   new URL("../../tiny-stdio-mcp-test-server/dist/cli.js", import.meta.url)
 );
-const tsxLoader = fileURLToPath(
-  new URL("../../../node_modules/tsx/dist/loader.mjs", import.meta.url)
-);
 const indexModuleUrl = pathToFileURL(
-  fileURLToPath(new URL("./index.ts", import.meta.url))
+  fileURLToPath(new URL("../dist/index.js", import.meta.url))
 ).href;
 const cliModuleUrl = pathToFileURL(
-  fileURLToPath(new URL("./cli.ts", import.meta.url))
+  fileURLToPath(new URL("../dist/cli.js", import.meta.url))
 ).href;
 const mcpModuleUrl = pathToFileURL(
-  fileURLToPath(new URL("./mcp.ts", import.meta.url))
+  fileURLToPath(new URL("../dist/mcp.js", import.meta.url))
 ).href;
 
 type ProxyHarness = {
@@ -293,7 +290,7 @@ function spawnToolcraftRuntime(
 ): ChildCollector {
   const child = spawn(
     process.execPath,
-    ["--import", tsxLoader, "--input-type=module", "--eval", source],
+    ["--input-type=module", "--eval", source],
     {
     cwd: harness.workdir,
     env: {

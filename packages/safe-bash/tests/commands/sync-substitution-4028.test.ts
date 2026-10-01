@@ -1,3 +1,5 @@
+import { createTacCommands } from "../../src/commands/tac/index.js";
+import { createStreamFormatCommands } from "../../src/commands/stream-format/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../src/shell/index.js";
@@ -7,7 +9,7 @@ import { createEncodingCommands } from "../../src/commands/bytes/encoding/index.
 import { CommandRegistry } from "../../src/contracts/index.js";
 
 async function execute(source: string) {
-  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createEncodingCommands()]) });
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createTacCommands(), ...createEncodingCommands()]) });
   try { return await shell.exec(source); } finally { await shell.dispose(); }
 }
 

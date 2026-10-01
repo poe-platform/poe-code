@@ -1,3 +1,4 @@
+import { createTacCommands } from "../../src/commands/tac/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../src/shell/index.js";
@@ -29,7 +30,7 @@ const cases = [
 for (const [name, pipeline, expected, status] of cases) {
   for (const mode of ["direct", "substitution", "loop", "arithmetic-loop"] as const) {
     test(`${name}: ${mode}`, async () => {
-      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createTacCommands()]) });
       try {
         const assignment = `out=$(${pipeline}); status=$?; printf '%s' "$out"; exit "$status"`;
         const source = mode === "direct" ? pipeline : mode === "substitution" ? assignment
@@ -46,7 +47,7 @@ for (const [name, pipeline, expected, status] of cases) {
 }
 
 test("tac in loop echo handles an unterminated upstream stage", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createTacCommands()]) });
   try {
     const result = await shell.exec(`for i in 1 2; do echo "a$(tr -d '\\n' <<< 'abc' | tac)"; done`);
     assert.equal(result.stdout, "aabc\naabc\n");

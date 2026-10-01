@@ -1,3 +1,8 @@
+import { expandCommands } from "../../src/commands/expand/index.js";
+import { foldCommands } from "../../src/commands/fold/index.js";
+import { stringsCommands } from "../../src/commands/strings/index.js";
+import { tacCommands } from "../../src/commands/tac/index.js";
+import { streamFormatCommands } from "../../src/commands/stream-format/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
 import { opCommands, createObjectBackend } from "../../src/commands/op/index.js";
 import { ghCommands } from "../../src/commands/gh/index.js";
@@ -235,7 +240,7 @@ test("evaluates multi-file and multi-flag wc, grep (-n/-l/-L/-c/-h), sort, cut, 
 test("evaluates stage-0 < file input redirections in pipelines and rev/tac/uniq file operands in sync substitutions and brace loops (Wave 168)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
-  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(textProgramCommands());
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(streamFormatCommands()).use(tacCommands()).use(textProgramCommands());
   const res = await shell.exec([
     "printf \"alpha\\nbeta\\n\" > /tmp/f1.txt",
     "printf \"gamma\\ndelta\\n\" > /tmp/f2.txt",
@@ -289,7 +294,7 @@ test("evaluates jq -n/--null-input, -s/--slurp, --arg, --argjson, dynamic object
 test("evaluates seq (-w, -s, -f), base64 (-w 0, -d, file operands), and column/fold/expand/unexpand/strings file operands in sync substitutions and pipelines (Wave 170)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
-  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(byteCommands()).use(columnCommands());
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(streamFormatCommands()).use(foldCommands()).use(byteCommands()).use(columnCommands());
   const res = await shell.exec([
     "printf \"hello world\" > /tmp/msg.txt",
     "printf \"aGVsbG8gd29ybGQ=\\n\" > /tmp/msg.b64",
@@ -316,7 +321,7 @@ test("evaluates seq (-w, -s, -f), base64 (-w 0, -d, file operands), and column/f
 test("evaluates nl, paste, comm, join, and numfmt with file operands in sync substitutions, pipelines, and brace loops (Wave 171)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
-  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands());
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(streamFormatCommands()).use(tableTextCommands());
   const res = await shell.exec([
     "printf 'x\\ny\\n' > /tmp/a.txt",
     "printf '10\\n20\\n' > /tmp/b.txt",
@@ -612,7 +617,7 @@ test("evaluates numfmt --header/-d/--field/--from-unit/--to-unit, xxd -l/-s, and
 test("evaluates nl -h/-f/-p/-l, strings -t d/o/x, and expand/unexpand comma-separated tab-stop lists (-t 4,8,12) in sync substitutions (Wave 187)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
-  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands());
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(expandCommands()).use(streamFormatCommands()).use(stringsCommands());
   const r = await shell.exec(
     [
       "nl_sec=$(printf \"\\:\\:\\:\\nhdr\\n\\:\\:\\nbody1\\n\\n\\nbody2\\n\" | nl -h a -b a -l 2 -p -w 2 -s : | tr '\\n' ',')",
@@ -632,7 +637,7 @@ test("evaluates nl -h/-f/-p/-l, strings -t d/o/x, and expand/unexpand comma-sepa
 test("evaluates seq decimal stepping (0 0.5 2) and %.Nf formatting, base64 -d -i / -di ignore-garbage, and tr [=c=] equivalence classes in sync substitutions (Wave 188)", async () => {
   const fs = new MemoryFileSystem();
   await fs.mkdir("/tmp");
-  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(byteCommands());
+  const shell = new Shell({ fs, cwd: "/tmp" }).use(standardCommands()).use(streamFormatCommands()).use(byteCommands());
   const r = await shell.exec(
     [
       "sq_dec=$(seq -s : 0 0.5 2)",
@@ -1191,7 +1196,7 @@ test("evaluates dirname/basename -z/--suffix, seq -ws/--separator/+nums, and exp
   await fs.mkdir("/tmp");
   await fs.writeFile("/tmp/graph.txt", new TextEncoder().encode("a b\nb c\n"));
   const shell = new Shell({ fs, cwd: "/tmp" })
-    .use(standardCommands())
+    .use(standardCommands()).use(streamFormatCommands())
     .use(tableTextCommands())
     .use(exprCommands())
     .use(tsortCommands());
@@ -1250,7 +1255,7 @@ test("sync sort (-g/--general-numeric-sort/-z/--field-separator/--key), uniq (--
 test("sync paste -z, comm -z, fold -N, expand -it/-N, unexpand -at/-N, and base64 --wrap in substitutions (Wave 214)", async () => {
   const memFs = new MemoryFileSystem();
   await memFs.mkdir("/tmp");
-  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(tableTextCommands()).use(byteCommands());
+  const shell = new Shell({ fs: memFs, cwd: "/tmp" }).use(standardCommands()).use(expandCommands()).use(streamFormatCommands()).use(foldCommands()).use(tableTextCommands()).use(byteCommands());
   const result = await shell.exec(`
     printf "%s\\0" a b c > /tmp/pz1.bin
     printf "%s\\0" 1 2 3 > /tmp/pz2.bin

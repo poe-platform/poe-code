@@ -1,3 +1,4 @@
+import { createStreamFormatCommands } from "../../src/commands/stream-format/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../src/shell/index.js";
@@ -7,7 +8,7 @@ import { createPasteCommands } from "../../src/commands/paste/index.js";
 
 function shell() {
   return new Shell({ fs: new MemoryFileSystem() }).use({ name: "regression", setup(host) {
-    for (const command of [...createStandardCommands(), ...createPasteCommands()]) host.commands.register(command);
+    for (const command of [...createStandardCommands(), ...createPasteCommands(), ...createStreamFormatCommands()]) host.commands.register(command);
   } });
 }
 

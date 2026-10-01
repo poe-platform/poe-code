@@ -1,3 +1,4 @@
+import { createStreamFormatCommands } from "../../src/commands/stream-format/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../src/shell/index.js";
@@ -22,7 +23,7 @@ for (const locale of ["", "export LC_ALL=C; "]) {
   for (const [name, input, filter, expected] of cases) {
     for (const mode of ["pipeline", "substitution", "loop", "arithmetic-loop"] as const) {
       test(`${name}: ${mode}: ${locale || "default locale"}`, async () => {
-        const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+        const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands()]) });
         try {
           const pipeline = `printf '%s' '${input}' | ${filter}`;
           const body = mode === "pipeline" ? pipeline : mode === "substitution"
@@ -42,7 +43,7 @@ for (const locale of ["", "export LC_ALL=C; "]) {
 
 for (const spec of ["1,2-3-4", "2-3-4", "1,2--3"]) {
   test(`cut rejects malformed range ${spec}`, async () => {
-    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+    const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands()]) });
     try {
       const result = await shell.exec(`printf 'a\\tb\\tc\\n' | cut -f${spec}`);
       assert.equal(result.exitCode, 2);

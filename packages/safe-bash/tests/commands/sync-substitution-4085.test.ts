@@ -1,3 +1,4 @@
+import { createStreamFormatCommands, streamFormatCommands } from "../../src/commands/stream-format/index.js";
 import { createAgentCommands } from "../../src/plugins/index.js";
 import { evalSyncRmdir, evalSyncRm } from "../../src/commands/internal.js";
 import { createCmpCommands } from "../../src/commands/cmp/index.js";
@@ -191,7 +192,7 @@ test("Wave 125: sync factor, tsort, envsubst, hexdump -C, column -t, fold, expan
   const { foldCommands } = await import("../../src/commands/fold/index.js");
   const { standardCommands } = await import("../../src/commands/index.js");
   const shell = new Shell({ fs: new MemoryFileSystem() })
-    .use(standardCommands())
+    .use(standardCommands()).use(streamFormatCommands())
     .use(factorCommands())
     .use(tsortCommands())
     .use(envsubstCommands())
@@ -232,8 +233,11 @@ test("Wave 125: sync factor, tsort, envsubst, hexdump -C, column -t, fold, expan
 });
 
 test("Wave 126: sync fmt, uname, id, whoami, hostname, and nproc in seq loops", async () => {
-  const { standardCommands } = await import("../../src/commands/index.js");
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([
+    ...createStandardCommands(), ...createStreamFormatCommands(),
+    ...createUnameCommands(), ...createIdCommands(), ...createWhoamiCommands(),
+    ...createHostnameCommands(), ...createNprocCommands(),
+  ]) });
   try {
     const rUname = await shell.exec("for i in $(seq 1 5); do out=\"$(uname -s)-$(uname -m)-$i\"; done; echo \"$out\"");
     assert.equal(rUname.exitCode, 0);
@@ -258,7 +262,7 @@ test("Wave 126: sync fmt, uname, id, whoami, hostname, and nproc in seq loops", 
 test("Wave 127: sync sha256sum, md5sum, sha1sum, sha512sum, cksum, and base32 in seq loops", async () => {
   const { standardCommands } = await import("../../src/commands/index.js");
   const { byteCommands } = await import("../../src/commands/bytes/index.js");
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(byteCommands());
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(streamFormatCommands()).use(byteCommands());
   try {
     const rSha256 = await shell.exec("for i in $(seq 1 5); do out=$(printf \"item-$i\" | sha256sum | cut -d\" \" -f1); done; echo \"$out\"");
     assert.equal(rSha256.exitCode, 0);
@@ -300,7 +304,7 @@ test("Wave 128: sync getconf, locale, csvcut, and csvgrep substitutions and pipe
     new TextEncoder().encode("id,name,role,score\n1,alice,admin,98\n2,bob,user,75\n3,carol,admin,91\n4,dave,user,84\n")
   );
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createGetconfCommands(),
     ...createLocaleCommands(),
     ...createCsvcutCommands(),
@@ -337,7 +341,7 @@ test("Wave 129: sync getopt, dos2unix, unix2dos, and iconv substitutions and pip
   await fs.mkdir("/tmp", { recursive: true });
   await fs.writeFile("/tmp/crlf.txt", new TextEncoder().encode("alpha\r\nbeta\r\ngamma\r\n"));
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createGetoptCommands(),
     ...createDos2unixCommands(),
     ...createIconvCommands(),
@@ -375,7 +379,7 @@ test("Wave 130: sync htmlq, cal, and ncal substitutions and pipelines", async ()
     new TextEncoder().encode("<html><body><ul id=\"items\"><li class=\"active\" data-id=\"42\">First</li><li>Second</li></ul></body></html>")
   );
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createHtmlqCommands(),
     ...createCalCommands(),
   ]);
@@ -412,7 +416,7 @@ test("Wave 131: sync yes | head pipelines and xmllint --xpath substitutions", as
     new TextEncoder().encode("<config><server id=\"main\" port=\"8080\"><host>localhost</host></server><server id=\"backup\" port=\"8081\"><host>replica</host></server></config>")
   );
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createYesCommands(),
     ...createXmllintCommands(),
   ]);
@@ -457,7 +461,7 @@ test("Wave 132: sync xq and yq substitutions and pipelines", async () => {
     new TextEncoder().encode("[server]\nhost = \"127.0.0.1\"\nport = 9000\n")
   );
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createXmlCommands(),
     ...createYqCommands(),
   ]);
@@ -502,7 +506,7 @@ test("Wave 133: sync mdq, shuf, and html-to-markdown substitutions and pipelines
     new Uint8Array(256).map((_, i) => (i * 73 + 19) & 0xff)
   );
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createMdqCommands(),
     ...createHtmlToMarkdownCommands(),
   ]);
@@ -544,7 +548,7 @@ test("sync substitution fast path covers unrtf, pr, and pathchk (Wave 134)", asy
   await fs.writeFile("/doc.rtf", new TextEncoder().encode("{\\rtf1\\ansi Hello {\\b World}\\par Second line}\n"));
   await fs.writeFile("/items.txt", new TextEncoder().encode("alpha\nbeta\ngamma\ndelta\n"));
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createUnrtfCommands(),
     ...createPrCommands(),
     ...createPathchkCommands(),
@@ -590,7 +594,7 @@ test("sync substitution fast path covers file, diff3, and cmp (Wave 135)", async
   await fs.writeFile("/mine.txt", new TextEncoder().encode("line1\nline2\nline3\n"));
   await fs.writeFile("/yours.txt", new TextEncoder().encode("line1\nline2-mod\nline3\n"));
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createFileCommands(),
     ...createDiff3Commands(),
   ]);
@@ -637,7 +641,7 @@ test("sync substitution fast path covers which, diff, and xan (Wave 136)", async
   await fs.writeFile("/c.txt", new TextEncoder().encode("ALPHA\nBETA  \n"));
   await fs.writeFile("/data.csv", new TextEncoder().encode("id,name,score\n1,Alice,95\n2,Bob,88\n"));
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createWhichCommands(),
     ...createDiffPatchCommands(),
     ...createXanCommands(),
@@ -679,7 +683,7 @@ test("sync substitution fast path covers date, printenv, less, more, egrep, and 
   const fs = new MemoryFileSystem();
   await fs.writeFile("/notes.txt", new TextEncoder().encode("one\n\n\ntwo\nthree\n"));
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createTimeEnvCommands({ clock: () => 1700000000000 }),
     ...createLessCommands(),
     ...createGrepAliasCommands(),
@@ -723,7 +727,7 @@ test("sync substitution fast path covers df, du, and tree (Wave 138)", async () 
   await fs.writeFile("/proj/README.md", new TextEncoder().encode("hello\n"));
   await fs.writeFile("/proj/src/index.ts", new TextEncoder().encode("export const x = 1;\n"));
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createDfCommands(),
     ...createDuCommands(),
     ...createTreeCommands(),
@@ -767,7 +771,7 @@ test("sync substitution fast path covers stat, fd, and rg (Wave 139)", async () 
   await fs.writeFile("/repo/README.md", new TextEncoder().encode("# Title\nhello world\n"));
   await fs.writeFile("/repo/src/app.ts", new TextEncoder().encode("export const port = 8080;\n"));
   const commands = new CommandRegistry([
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createMetadataCommands(),
     ...createFdCommands(),
     ...createSearchCommands(),
@@ -811,7 +815,7 @@ test("sync substitution fast path covers readlink, realpath, and ls (Wave 140)",
   await fs.writeFile("/opt/app/bin/run", new TextEncoder().encode("#!/bin/sh\n"));
   await fs.chmod("/opt/app/bin/run", 0o755);
   await fs.symlink("/opt/app/bin/run", "/opt/app/current");
-  const commands = new CommandRegistry([...createStandardCommands()]);
+  const commands = new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands()]);
   const shell = new Shell({ fs, commands });
 
   const r1 = await shell.exec(`
@@ -854,7 +858,7 @@ test("sync substitution and pipeline: find, csvlook, and csvjson (Wave 141)", as
   await fs.writeFile("/proj/src/sub/b.ts", enc.encode("export const b = 2;\n"));
   await fs.writeFile("/proj/src/readme.md", enc.encode("# Readme\n"));
   await fs.writeFile("/proj/data.csv", enc.encode("name,score\nalice,10\nbob,25\n"));
-  const commands = new CommandRegistry([...createStandardCommands(), ...createCsvkitCommands()]);
+  const commands = new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createCsvkitCommands()]);
   const shell = new Shell({ fs, commands });
 
   const r1 = await shell.exec(`
@@ -894,7 +898,7 @@ test("sync substitution and pipeline: csvsort, csvformat, and csvstat (Wave 142)
   const enc = new TextEncoder();
   await fs.mkdir("/proj", { recursive: true });
   await fs.writeFile("/proj/scores.csv", enc.encode("name,score\nbob,25\nalice,10\ncharlie,18\n"));
-  const commands = new CommandRegistry([...createStandardCommands(), ...createCsvkitCommands()]);
+  const commands = new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createCsvkitCommands()]);
   const shell = new Shell({ fs, commands });
 
   const r1 = await shell.exec(`
@@ -936,7 +940,7 @@ test("sync substitution and pipeline: in2csv, csvstack, and csvjoin (Wave 143)",
   await fs.writeFile("/proj/items.json", enc.encode("[{\"id\": 1, \"name\": \"alpha\"}, {\"id\": 2, \"name\": \"beta\"}]\n"));
   await fs.writeFile("/proj/left.csv", enc.encode("id,name\n1,alpha\n2,beta\n"));
   await fs.writeFile("/proj/right.csv", enc.encode("id,price\n1,100\n2,200\n"));
-  const commands = new CommandRegistry([...createStandardCommands(), ...createCsvkitCommands()]);
+  const commands = new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createCsvkitCommands()]);
   const shell = new Shell({ fs, commands });
 
   const r1 = await shell.exec(`
@@ -977,7 +981,7 @@ test("sync substitution and pipeline: dd, env, and xargs (Wave 144)", async () =
   await fs.mkdir("/proj", { recursive: true });
   await fs.writeFile("/proj/msg.txt", enc.encode("hello world\n"));
   await fs.writeFile("/proj/list.txt", enc.encode("alpha\nbeta\ngamma\n"));
-  const commands = new CommandRegistry([...createStandardCommands(), ...createDdCommands(), ...createPrintenvCommands()]);
+  const commands = new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createDdCommands(), ...createPrintenvCommands()]);
   const shell = new Shell({ fs, commands });
 
   const r1 = await shell.exec(`
@@ -1016,7 +1020,7 @@ test("Wave 145: sync openssl and sqlite3 substitutions and pipelines", async () 
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createOpensslCommands(),
     ...createSqlite3Commands(),
   ]) {
@@ -1041,7 +1045,7 @@ test("Wave 146: sync gpg, ssh, and ssh-keygen substitutions and pipelines", asyn
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createGpgCommands(),
     ...createSshCommands(),
   ]) {
@@ -1064,7 +1068,7 @@ test("Wave 147: sync gzip, gunzip, zcat, unzstd, and zstdcat substitutions and p
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createCompressionCommands(),
   ]) {
     registry.register(cmd);
@@ -1085,7 +1089,7 @@ test("Wave 148: sync pdfinfo, pdftotext, and exiftool substitutions and pipeline
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createPdfinfoCommands(),
     ...createPdftotextCommands(),
     ...createExiftoolCommands(),
@@ -1117,7 +1121,7 @@ test("Wave 149: sync pdffonts, pdftohtml, qpdf, and pdftk substitutions and pipe
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createPdfinfoCommands(),
     ...createPdftotextCommands(),
     ...createQpdfCommands(),
@@ -1148,7 +1152,7 @@ test("Wave 150: sync sips, identify, magick identify, and pdfimages substitution
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createSipsCommands(),
     ...createImagemagickCommands(),
     ...createPdfimagesCommands(),
@@ -1179,7 +1183,7 @@ test("Wave 151: sync pdfdetach, ffprobe, ffmpeg, and gh substitutions and pipeli
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createPdfinfoCommands(),
     ...createQpdfCommands(),
     ...createFfmpegCommands(),
@@ -1211,7 +1215,7 @@ test("Wave 152: sync pdftoppm, pdftocairo, mmdc, and pandoc substitutions and pi
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createPdftoppmCommands(),
     ...createMmdcCommands(),
     ...createPandocCommands(),
@@ -1240,7 +1244,7 @@ test("Wave 153: sync soffice, libreoffice, ssconvert, wkhtmltopdf, and op substi
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createSofficeCommands(),
     ...createSsconvertCommands(),
     ...createWkhtmltopdfCommands(),
@@ -1268,7 +1272,7 @@ test("sync substitution and pipeline fast path for git, tar, unzip, and zip (Wav
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createGitCommands(),
     ...createArchiveCommands(),
   ]) {
@@ -1336,7 +1340,7 @@ test("timeout sync evaluator admits parsed durations and defers options requirin
 });
 
 test("timeout sync substitutions preserve child diagnostics and echo options", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createTimeoutCommands()]) });
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createTimeoutCommands()]) });
   try {
     for (const args of ["0 echo ready", "-s invalid 5 echo ready", "--signal=invalid 5 echo ready", "-k invalid 5 echo ready", "--kill-after=invalid 5 echo ready", "5 echo -n -n ready"]) {
       const direct = await shell.exec(`timeout ${args}`);
@@ -1359,7 +1363,7 @@ test("sync substitution and pipeline fast path for bzip2, bunzip2, bzcat, xz, un
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();
   for (const cmd of [
-    ...createStandardCommands(),
+    ...createStandardCommands(), ...createStreamFormatCommands(),
     ...createCompressionCommands(),
     ...createTimeoutCommands(),
   ]) {

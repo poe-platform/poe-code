@@ -1,3 +1,4 @@
+import { streamFormatCommands } from "../../src/commands/stream-format/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { standardCommands } from "../../src/commands/index.js";
@@ -47,7 +48,7 @@ const posixCases = [
 
 for (const [command, input, expected, status] of posixCases) {
   test(`POSIX matching survives substitution optimizations: ${command}`, async t => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands()).use(streamFormatCommands());
     t.after(() => shell.dispose());
     const pipeline = `printf '${input}' | ${command}`;
     const direct = await shell.exec(pipeline);
@@ -69,7 +70,7 @@ for (const [command, input, expected, status] of posixCases) {
 
 for (const [command, input, expected] of cases) {
   test(`substitution preserves text command semantics: ${command}`, async t => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands()).use(streamFormatCommands());
     t.after(() => shell.dispose());
     for (let warmup = 0; warmup < 2; warmup++) {
       const result = await shell.exec(`echo "$(printf '${input}' | ${command})"`);
@@ -82,7 +83,7 @@ for (const [command, input, expected] of cases) {
 
 for (const delimiter of ["\\:", "\\:\\:", "\\:\\:\\:"]) {
   test(`nl here-string substitution honors page delimiter ${delimiter}`, async t => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands()).use(streamFormatCommands());
     t.after(() => shell.dispose());
     const command = `nl <<< $'a\\n${delimiter.replaceAll("\\", "\\\\")}\\nb'`;
     const direct = await shell.exec(command);
@@ -113,7 +114,7 @@ const wave112Cases = [
 
 for (const [command, input, expected, status] of wave112Cases) {
   test(`Wave 112 direct and substitution parity: ${command}`, async t => {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands()).use(textProgramCommands()).use(streamFormatCommands());
     t.after(() => shell.dispose());
     const pipeline = `printf '${input}' | ${command}`;
     const direct = await shell.exec(pipeline);

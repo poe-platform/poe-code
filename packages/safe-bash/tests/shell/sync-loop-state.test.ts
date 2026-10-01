@@ -1,3 +1,5 @@
+import { createStreamFormatCommands } from "../../src/commands/stream-format/index.js";
+import { createTacCommands } from "../../src/commands/tac/index.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
@@ -621,7 +623,7 @@ test("wave 99 sync loop: POSIX tr classes, jq array/iter/length/keys filters, se
 test("wave 100 sync loop: multi-stage pipeline sort -u, head -c, cut ranges, awk concat, grep -E, rev, and unsupported sed regex fallback", async () => {
   const { createStandardCommands } = await import("../../src/commands/index.js");
   const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
-  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]);
+  const commands = new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createTextProgramCommands()]);
   const shell = new Shell({ fs: new MemoryFileSystem(), commands });
   try {
     const script = [
@@ -681,7 +683,7 @@ test("wave 101 sync loop: basename --/-a/-s, dirname --/multi-arg, and wc -m/-L"
 test("wave 102 sync loop: grep -Eo [0-9]+, multi-expression sed (; and -e -e), nl <<< here-string, and ASCII tr preservation", async () => {
   const { createStandardCommands } = await import("../../src/commands/index.js");
   const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
-  const commands = new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]);
+  const commands = new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createTextProgramCommands()]);
   const shell = new Shell({ fs: new MemoryFileSystem(), commands });
   try {
     const script = [
@@ -1092,7 +1094,7 @@ test("Wave 113: trySyncLoop supports sort -h/-M/-d/long flags, nl -ba/-n/-w/-s/-
   const { createTextProgramCommands } = await import("../../src/commands/text-programs/index.js");
   const shell = new Shell({
     fs: new MemoryFileSystem(),
-    commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]),
+    commands: new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createTacCommands(), ...createTextProgramCommands()]),
   });
   try {
     const script = [

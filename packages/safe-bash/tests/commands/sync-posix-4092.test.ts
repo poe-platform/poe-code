@@ -1,3 +1,5 @@
+import { stringsCommands } from "../../src/commands/strings/index.js";
+import { streamFormatCommands } from "../../src/commands/stream-format/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../src/shell/index.js";
@@ -15,7 +17,7 @@ const classes = [
 
 async function verify(command: string, expected: string): Promise<void> {
   const shell = new Shell({ fs: new MemoryFileSystem() });
-  shell.use(standardCommands()).use(textProgramCommands());
+  shell.use(standardCommands()).use(textProgramCommands()).use(streamFormatCommands()).use(stringsCommands());
   try {
     for (const script of [command, `x=$(${command}); printf '%s\\n' "$x"`, `for i in 1 2; do x=$(${command}); done; printf '%s\\n' "$x"`]) {
       const result = await shell.exec(script);

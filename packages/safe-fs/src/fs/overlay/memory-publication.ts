@@ -1,6 +1,6 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type {
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, RenameOptions,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, RenameOptions, PrepareDirectoryOptions,
   CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStat, FileSystem,
   FsOptions, ChmodOptions, MkdirOptions, PublishStagedFileOptions, RemoveOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
@@ -8,7 +8,12 @@ import { dirname, isPathWithin, validatePath } from "../../contracts/virtual-pat
 import { memoryAtomicView, type MemoryAtomicView } from "../memory/atomic-view.js";
 import { compareIdentity } from "../mount/identity.js";
 import { snapshotConditionalChmod } from "../conditional-chmod.js";
+import { createStagingCleanup } from "../staging-cleanup.js";
 import { runStagingGuard } from "../staging-ancestry.js";
+
+// Enumerable ownership tokens survive caller snapshots without retaining stats forever.
+const overlayReceipt = Symbol("overlay observation");
+type ObservedStat = FileStat & { [overlayReceipt]?: object };
 
 interface Observation {
   path: string;
@@ -19,10 +24,11 @@ interface Observation {
 /** Stock Memory mutations commit before returning their promise. No user code or
  * await is allowed between inspecting the two stores and invoking a mutation. */
 export class OverlayMemoryPublication {
-  private readonly receipts = new WeakMap<FileStat, Observation>();
+  private readonly receipts = new WeakMap<object, Observation>();
   private readonly directories = new Map<string, Observation & { identityScope: symbol; ino: number; dev: number }>();
   private readonly origins = new Map<string, { upper: FileStat; lower: FileStat }>();
-  private readonly stages = new WeakMap<FileStaging, FileStaging>();
+  private readonly stages = new WeakMap<FileStagingEntry, FileStaging>();
+  private readonly stagingAncestors = new WeakMap<FileStagingEntry, readonly FileStagingEntry[]>();
 
   constructor(
     private readonly upper: FileSystem,
@@ -80,7 +86,7 @@ export class OverlayMemoryPublication {
     if (!this.supported()) return physical;
     const observation = this.observation(path);
     if (!this.same(physical, this.visible(observation), physical.type === "file")) throw new FsError("EAGAIN", { path });
-    let logical = physical;
+    let logical: ObservedStat = { ...physical };
     if (physical.type === "directory") {
       let directory = this.directories.get(path);
       if (!directory || !this.same(directory.upper, observation.upper) || !this.same(directory.lower, observation.lower)) {
@@ -89,7 +95,9 @@ export class OverlayMemoryPublication {
       }
       logical = { ...physical, identityScope: directory.identityScope, dev: directory.dev, ino: directory.ino };
     }
-    this.receipts.set(logical, observation);
+    const token = {};
+    logical[overlayReceipt] = token;
+    this.receipts.set(token, observation);
     return logical;
   }
 
@@ -101,7 +109,7 @@ export class OverlayMemoryPublication {
   }
 
   private expect(path: string, expected: FileStat, unchanged = false): void {
-    const receipt = this.receipts.get(expected);
+    const receipt = this.receipts.get((expected as ObservedStat)[overlayReceipt] ?? expected);
     if (!receipt || receipt.path !== path) throw new FsError("ENOTSUP", { path, message: "unowned overlay publication receipt" });
     const actual = this.observation(path);
     const origin = this.origins.get(path);
@@ -157,7 +165,7 @@ export class OverlayMemoryPublication {
     this.stores();
     this.path(path);
     const retain = (source: FileStat, snapshot: FileStat): void => {
-      const receipt = this.receipts.get(source);
+      const receipt = this.receipts.get((source as ObservedStat)[overlayReceipt] ?? source);
       if (!receipt) throw new FsError("ENOTSUP", { path, message: "unowned overlay chmod receipt" });
       this.receipts.set(snapshot, receipt);
     };
@@ -241,6 +249,35 @@ export class OverlayMemoryPublication {
     await removal;
   }
 
+  async prepareDirectory(path: string, options: PrepareDirectoryOptions, guard?: () => void): Promise<FileStat> {
+    const ancestors = this.capture(path);
+    const check = () => {
+      options.signal?.throwIfAborted();
+      guard?.();
+      this.check(ancestors);
+      this.expect(dirname(path), options.parent);
+      const current = this.inspect(path);
+      if (options.expected === null) {
+        if (current) throw new FsError("EAGAIN", { path });
+      } else {
+        this.expect(path, options.expected);
+        if (current?.type !== "directory") throw new FsError("ENOTDIR", { path });
+      }
+    };
+    check();
+    const current = this.inspect(path);
+    await this.copyParents(current ? [...ancestors, { path, stat: options.expected! }] : ancestors, options);
+    check();
+    const pending = this.upper.prepareDirectory!(path, {
+      ...options, parent: this.observation(dirname(path)).upper!, expected: this.observation(path).upper ?? null,
+    });
+    const physical = this.inspect(path);
+    if (physical && options.expected === null) this.opaque.add(path);
+    const receipt = physical ? this.stat(path, physical) : undefined;
+    await pending;
+    return receipt!;
+  }
+
   prepareRename(source: string, destination: string): () => void {
     const ancestors = [...this.capture(source), ...this.capture(destination)];
     const target = this.observation(destination);
@@ -305,7 +342,7 @@ export class OverlayMemoryPublication {
     }
   }
 
-  async create(directory: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
+  async create(directory: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions, guard?: () => void): Promise<FileStaging> {
     options.signal?.throwIfAborted();
     this.path(directory);
     this.expect(dirname(directory), options.parent);
@@ -313,12 +350,19 @@ export class OverlayMemoryPublication {
     const ancestors = this.capture(directory);
     await this.copyParents(ancestors, options);
     options.signal?.throwIfAborted();
+    guard?.();
     this.check(ancestors);
     this.expect(dirname(directory), options.parent);
     if (this.inspect(directory)) throw new FsError("EEXIST", { path: directory });
     const parent = this.observation(dirname(directory)).upper!;
-    const staging = await this.upper.createStagedFile!(directory, name, content, { ...options, parent });
-    this.stages.set(staging, staging);
+    const owned = await this.upper.createStagedFile!(directory, name, content, { ...options, parent });
+    const staging: FileStaging = Object.freeze({
+      parent: owned.parent, directory: owned.directory, file: owned.file,
+      ...(owned.cleanup ? { cleanup: createStagingCleanup(directory,
+        controls => this.cleanup(staging, controls), () => owned.cleanup!.close()) } : {}),
+    });
+    this.stages.set(staging.directory, owned);
+    this.stagingAncestors.set(staging.directory, ancestors);
     this.hidden.add(directory);
     return staging;
   }
@@ -326,10 +370,10 @@ export class OverlayMemoryPublication {
   async publish(staging: FileStaging, path: string, options: PublishStagedFileOptions): Promise<void> {
     options.signal?.throwIfAborted();
     this.path(path);
-    const owned = this.stages.get(staging);
+    const owned = this.stages.get(staging.directory);
     if (!owned) throw new FsError("ENOTSUP", { path });
     const paths = this.ancestors(path);
-    const ancestors = options.ancestors;
+    const ancestors = options.ancestors ?? this.stagingAncestors.get(staging.directory);
     if (!ancestors || ancestors.length !== paths.length || ancestors.some((entry, index) => entry.path !== paths[index])) {
       throw new FsError("EINVAL", { path, message: "complete overlay ancestry is required" });
     }
@@ -352,11 +396,13 @@ export class OverlayMemoryPublication {
 
   async cleanup(staging: FileStaging, options: FsOptions): Promise<void> {
     this.stores();
-    const owned = this.stages.get(staging);
+    const owned = this.stages.get(staging.directory);
     if (!owned) throw new FsError("ENOTSUP", { path: staging.directory.path });
-    await this.upper.removeStagedFile!(owned, options);
+    if (owned.cleanup) await owned.cleanup.remove(options);
+    else await this.upper.removeStagedFile!(owned, options);
     this.hidden.delete(owned.directory.path);
-    this.stages.delete(staging);
+    this.stages.delete(staging.directory);
+    this.stagingAncestors.delete(staging.directory);
   }
 
   confine(roots: readonly string[], options: FsOptions, run: <T>(options: FsOptions, operation: () => Promise<T>) => Promise<T>, fs: FileSystem, maxBytes: number): FileSystem {
@@ -370,9 +416,33 @@ export class OverlayMemoryPublication {
         retained.set(entry.path, entry.stat);
       }
     }
+    const admittedStages = new WeakSet<FileStagingEntry>();
+    const guard = (path: string): void => {
+      this.path(path);
+      if (!roots.some(root => isPathWithin(root, path))) throw new FsError("EPERM", { path });
+      this.check([...retained].filter(([root]) => isPathWithin(root, path)).map(([path, stat]) => ({ path, stat })));
+    };
     return new Proxy(fs, {
       get: (target, property) => {
         if (property === "confineExtraction" || property === "objects") return undefined;
+        if (property === "prepareDirectory") return (path: string, mutation: PrepareDirectoryOptions) => run(mutation,
+          () => this.prepareDirectory(path, { ...mutation }, () => guard(path)));
+        if (property === "createStagedFile") return (path: string, name: string, content: StagedFileContent, mutation: CreateStagedFileOptions) => run(mutation, async () => {
+          guard(path);
+          if (content.type === "file" && content.data.byteLength > maxBytes) throw new FsError("EFBIG", { path });
+          const stage = await this.create(path, name, content, mutation, () => guard(path));
+          admittedStages.add(stage.directory);
+          return stage;
+        });
+        if (property === "publishStagedFile") return (stage: FileStaging, path: string, mutation: PublishStagedFileOptions) => run(mutation, async () => {
+          guard(path);
+          if (!admittedStages.has(stage.directory)) throw new FsError("ENOTSUP", { path });
+          await this.publish(stage, path, mutation);
+        });
+        if (property === "removeStagedFile") return (stage: FileStaging, mutation: FsOptions = {}) => run(mutation, async () => {
+          if (!admittedStages.has(stage.directory)) throw new FsError("ENOTSUP", { path: stage.directory.path });
+          await this.cleanup(stage, mutation);
+        });
         if (property === "writeFileConditional") return async (path: string, data: Uint8Array, mutation: ConditionalWriteFileOptions) => {
           mutation.signal?.throwIfAborted();
           if (!(data instanceof Uint8Array)) throw new TypeError("Overlay files require Uint8Array data");

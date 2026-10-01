@@ -12,7 +12,7 @@ import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
-  ConditionalWriteFileOptions, ConditionalRemoveFileOptions,
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, PrepareDirectoryOptions,
   CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, StagedFileContent,
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, OpenReadFileOptions,
   FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, FsOptions, ChmodOptions, RenameOptions, MkdirOptions,
@@ -178,7 +178,7 @@ export class OverlayFileSystem implements FileSystem {
       ...semantics,
       open: false,
       conditionalChmod: this.publication.supported(),
-      atomicFilePublication: false, atomicFileMutation: this.publication.supported(), atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: this.publication.supported(), atomicStagingAncestry: this.publication.supported(), atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+      atomicFilePublication: false, atomicFileMutation: this.publication.supported(), atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: this.publication.supported(), atomicStagingAncestry: this.publication.supported(), retainedStagingCleanup: this.publication.supported(), atomicDirectoryMetadata: this.publication.supported(), trustedOwnedStaging: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
         : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,
@@ -709,6 +709,11 @@ export class OverlayFileSystem implements FileSystem {
         });
       }
     });
+  }
+
+  prepareDirectory(path: string, options: PrepareDirectoryOptions): Promise<FileStat> {
+    const captured = { ...options };
+    return this.run(captured, () => this.publication.prepareDirectory(path, captured), false);
   }
 
   async writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {

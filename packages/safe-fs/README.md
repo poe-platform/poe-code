@@ -111,6 +111,10 @@ advertising `retainedStagingCleanup` accept `createStagedFile(..., { parent,
 retainCleanup: true })`. Use the returned `staging.cleanup.remove()` and always
 call `staging.cleanup.close()` in `finally`. Memory and its supported wrappers
 retain only the owned staging entries; replacement entries remain protected.
+Overlays backed by stock Memory filesystems support conditional file mutations,
+directory preparation, and confined staging. Publication may omit `ancestors`
+when the destination shares the staging parent; the overlay checks the ancestry
+retained before staging began.
 See the [staging contract](src/contracts/filesystem.md#atomic-owned-staging).
 
 Capture `retainFileSystemCleanup(scoped, callback, { maxOperations })` before

@@ -145,3 +145,86 @@ test("confined pruning removes nested empty directories without invalidating sha
   await assert.rejects(fs.lstat("/work/created"), { code: "ENOENT" });
   assert.deepEqual(await lower.readFile("/work/file"), bytes("original"));
 });
+
+test("overlay retains cleanup and publishes with only parent and destination receipts", async () => {
+  const { fs, lower, parent, destination, stage } = await fixture();
+  assert.equal(fs.capabilities.retainedStagingCleanup, true);
+  await fs.publishStagedFile(stage, "/work/file", { parent, destination });
+  await fs.removeStagedFile(stage);
+  assert.deepEqual(await fs.readFile("/work/file"), bytes("changed"));
+  assert.deepEqual(await lower.readFile("/work/file"), bytes("original"));
+});
+
+test("implicit ancestry rejects ancestor replacement since staging admission", async () => {
+  const upper = new MemoryFileSystem(), lower = new MemoryFileSystem();
+  await lower.mkdir("/a/b", { recursive: true });
+  const fs = new OverlayFileSystem({ upper, lower });
+  const parent = await fs.lstat("/a/b");
+  const stage = await fs.createStagedFile("/a/b/.stage", "file", { type: "file", data: bytes("new") }, { parent });
+  await lower.rename("/a", "/old");
+  await lower.mkdir("/a");
+  await lower.rename("/old/b", "/a/b");
+  await assert.rejects(fs.publishStagedFile(stage, "/a/b/file", { parent, destination: null }), { code: "EAGAIN" });
+  await fs.removeStagedFile(stage);
+  await assert.rejects(fs.lstat("/a/b/file"), { code: "ENOENT" });
+});
+
+test("conditional mutation receipts survive ordinary stat snapshots", async () => {
+  const { fs, lower, stage } = await fixture();
+  await fs.removeStagedFile(stage);
+  const parent = Object.freeze({ ...await fs.lstat("/work") });
+  const expected = Object.freeze({ ...await fs.lstat("/work/file") });
+  const written = await fs.writeFileConditional("/work/file", bytes("changed"), { parent, expected });
+  await fs.removeFileConditional("/work/file", { parent, expected: Object.freeze({ ...written }) });
+  await assert.rejects(fs.lstat("/work/file"), { code: "ENOENT" });
+  assert.deepEqual(await lower.readFile("/work/file"), bytes("original"));
+});
+
+for (const layer of ["upper", "lower"] as const) test(`confined staging rejects ${layer} ancestor replacement and retains cleanup`, async () => {
+  const data = await fixture();
+  await data.fs.removeStagedFile(data.stage);
+  const view = await data.fs.confineExtraction(["/work"]);
+  const parent = await view.lstat("/work");
+  const stage = await view.createStagedFile!("/work/.retained", "file", { type: "file", data: bytes("new") }, { parent, retainCleanup: true });
+  await data[layer].rename("/work", "/old-work");
+  await data[layer].mkdir("/work");
+  await assert.rejects(view.publishStagedFile!({ ...stage }, "/work/new", { parent, destination: null }), { code: "EAGAIN" });
+  await assert.rejects(view.createStagedFile!("/work/.late", "file", { type: "file", data: bytes("new") }, { parent }), { code: "EAGAIN" });
+  await stage.cleanup!.remove();
+  assert.deepEqual((await data.upper.readdir(layer === "upper" ? "/old-work" : "/work")).map(entry => entry.name), []);
+});
+
+test("confined staging refuses foreign stages and output paths", async () => {
+  const { fs, stage, parent } = await fixture();
+  const view = await fs.confineExtraction(["/work"]);
+  await assert.rejects(view.publishStagedFile!(stage, "/work/foreign", { parent, destination: null }), { code: "ENOTSUP" });
+  await assert.rejects(view.createStagedFile!("/.escape", "file", { type: "file", data: bytes("new") }, { parent: await fs.lstat("/") }), { code: "EPERM" });
+  await fs.removeStagedFile(stage);
+});
+
+test("overlay conditionally creates directories and copies lower metadata without changing lower", async () => {
+  const { fs, lower, stage } = await fixture();
+  await fs.removeStagedFile(stage);
+  const parent = await fs.lstat("/");
+  const expected = await fs.lstat("/work");
+  const directory = await fs.prepareDirectory!("/work", { parent, expected, mode: 0o750 });
+  assert.equal(directory.mode & 0o777, 0o750);
+  assert.equal((await lower.lstat("/work")).mode & 0o777, 0o777);
+  const created = await fs.prepareDirectory!("/work/new", { parent: directory, expected: null, mode: 0o700 });
+  assert.equal(created.type, "directory");
+  assert.equal(created.mode & 0o777, 0o700);
+  await assert.rejects(fs.prepareDirectory!("/work/new", { parent: directory, expected: null }), { code: "EAGAIN" });
+});
+
+test("confined directory preparation preserves roots and refuses escaped or replaced parents", async () => {
+  const { fs, lower, stage } = await fixture();
+  await fs.removeStagedFile(stage);
+  const view = await fs.confineExtraction(["/work"]);
+  const parent = await view.lstat("/work");
+  const made = await view.prepareDirectory!("/work/new", { parent, expected: null, mode: 0o700 });
+  assert.equal(made.type, "directory");
+  await assert.rejects(view.prepareDirectory!("/escape", { parent: await fs.lstat("/"), expected: null }), { code: "EPERM" });
+  await lower.rename("/work", "/old");
+  await lower.mkdir("/work");
+  await assert.rejects(view.prepareDirectory!("/work/new", { parent, expected: made, mode: 0o777 }), { code: "EAGAIN" });
+});

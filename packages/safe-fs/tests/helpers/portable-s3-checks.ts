@@ -32,5 +32,23 @@ export async function run(): Promise<boolean> {
   try { await scoped.readFile("/nested/file"); throw new Error("budget bypassed"); }
   catch (error) { if (error !== limit && (error as { cause?: unknown }).cause !== limit) throw error; }
   if (client.requests.length - before > 1) throw new Error("request escaped budget");
+  // UTF-8 byte ordering differs from JavaScript UTF-16 ordering for these keys.
+  const ordered = ["a", "é", "\ue000", "😀"];
+  const paginated = new MockS3Client({ buckets: ["ordered"], pageSize: 1 });
+  for (const key of [...ordered].reverse()) {
+    await paginated.putObject({ Bucket: "ordered", Key: key, Body: Uint8Array.of(255) });
+  }
+  const listed: string[] = [];
+  let token: string | undefined;
+  do {
+    const page = await paginated.listObjectsV2({ Bucket: "ordered", ...(token ? { ContinuationToken: token } : {}) });
+    listed.push(...(page.Contents ?? []).map(object => object.Key));
+    token = page.NextContinuationToken;
+  } while (token);
+  if (JSON.stringify(listed) !== JSON.stringify(ordered)) throw new Error("mock UTF-8 pagination order failed");
+  const orderedFs = new S3FileSystem({ bucket: "ordered", transport: paginated });
+  const names = (await orderedFs.readdir("/")).map(entry => entry.name);
+  if (JSON.stringify(names) !== JSON.stringify(ordered)) throw new Error("filesystem UTF-8 listing order failed");
+  if ("Buffer" in globalThis) throw new Error("listing installed a Buffer global");
   return true;
 }

@@ -60,6 +60,8 @@ export interface BcLimits {
   readonly maxOutputBytes: number;
   readonly maxSteps: number;
   readonly maxScale: number;
+  readonly maxExponent: number;
+  readonly maxRecursionDepth: number;
 }
 
 export interface BcCommandsOptions {
@@ -69,6 +71,8 @@ export interface BcCommandsOptions {
   readonly maxOutputBytes?: number;
   readonly maxSteps?: number;
   readonly maxScale?: number;
+  readonly maxExponent?: number;
+  readonly maxRecursionDepth?: number;
 }
 
 export type BcCommandOptions = BcCommandsOptions;
@@ -80,6 +84,8 @@ export function settings(options: BcCommandsOptions = {}): BcLimits {
     maxOutputBytes: options.limits?.maxOutputBytes ?? options.maxOutputBytes ?? Infinity,
     maxSteps: options.limits?.maxSteps ?? options.maxSteps ?? Infinity,
     maxScale: options.limits?.maxScale ?? options.maxScale ?? Infinity,
+    maxExponent: options.limits?.maxExponent ?? options.maxExponent ?? Infinity,
+    maxRecursionDepth: options.limits?.maxRecursionDepth ?? options.maxRecursionDepth ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid bc limit: ${name}`);
@@ -156,11 +162,12 @@ function truncToInt(d: DecimalValue): bigint {
   return d.scale > 0 ? d.coeff / pow10(d.scale) : d.coeff;
 }
 
-function powDec(base: DecimalValue, exp: DecimalValue, currentScale: number): DecimalValue {
+function powDec(base: DecimalValue, exp: DecimalValue, currentScale: number, maxExponent: number): DecimalValue {
   let n = truncToInt(exp);
   if (n === 0n) return ONE;
   const neg = n < 0n;
   if (neg) n = -n;
+  if (maxExponent !== Infinity && n > BigInt(maxExponent)) throw new Error(`exponent exceeds maximum limit (${maxExponent})`);
   // Keep the coefficient exact; rounding intermediate squares loses carries.
   const coeff = base.coeff ** n;
   const fullScale = BigInt(base.scale) * n;
@@ -891,7 +898,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           else if (expr.op === "*=") next = mulDec(cur, r, scale);
           else if (expr.op === "/=") next = divDec(cur, r, scale);
           else if (expr.op === "%=") next = modDec(cur, r, scale);
-          else next = powDec(cur, r, scale);
+          else next = powDec(cur, r, scale, limits.maxExponent);
           return setVar(expr.target.name, expr.target.index, next);
         }
         case "unary": {
@@ -929,7 +936,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
             case "*": return mulDec(l, r, scale);
             case "/": return divDec(l, r, scale);
             case "%": return modDec(l, r, scale);
-            case "^": return powDec(l, r, scale);
+            case "^": return powDec(l, r, scale, limits.maxExponent);
             case "==": return cmpDec(l, r) === 0 ? ONE : ZERO;
             case "!=": return cmpDec(l, r) !== 0 ? ONE : ZERO;
             case "<": return cmpDec(l, r) < 0 ? ONE : ZERO;
@@ -966,7 +973,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           }
           const fn = funcs.get(expr.name);
           if (!fn) throw new Error(`Function ${expr.name} not defined.`);
-          if (callStack.length >= 64) throw new Error("bc function recursion depth exceeded (64)");
+          if (callStack.length >= limits.maxRecursionDepth) throw new Error(`bc function recursion depth exceeded (${limits.maxRecursionDepth})`);
           const frame = new Map<string, DecimalValue>();
           for (let i = 0; i < fn.params.length; i++) {
             frame.set(fn.params[i]!, args[i] ?? ZERO);

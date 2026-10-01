@@ -90,3 +90,28 @@ for (const [program, expected] of [
     assert.deepEqual(await evaluate(program), { exitCode: 0, stdout: `${expected}\n`, stderr: "" });
   });
 }
+
+const recursion = "define f(n) { if (n == 0) return (0); return (1+f(n-1)); }\n";
+
+test("bc recursion is unlimited by default and accepts explicit Infinity", async () => {
+  for (const options of [{}, { limits: { maxRecursionDepth: Infinity } }]) {
+    assert.deepEqual(await evaluate(recursion + "f(100)", options), { exitCode: 0, stdout: "100\n", stderr: "" });
+  }
+});
+
+test("bc enforces configurable recursion depth at the frame boundary", async () => {
+  assert.deepEqual(await evaluate(recursion + "f(3)", { maxRecursionDepth: 4 }), { exitCode: 0, stdout: "3\n", stderr: "" });
+  const result = await evaluate(recursion + "f(4)", { limits: { maxRecursionDepth: 4 } });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stderr, "bc: bc function recursion depth exceeded (4)\n");
+});
+
+test("bc enforces exponent magnitude for powers and compound assignment", async () => {
+  for (const expression of ["2^5", "2^-5", "x=2; x^=5", "x=2; x^=-5"]) {
+    const result = await evaluate(expression, { limits: { maxExponent: 4 } });
+    assert.equal(result.exitCode, 1, expression);
+    assert.equal(result.stderr, "bc: exponent exceeds maximum limit (4)\n");
+  }
+  assert.deepEqual(await evaluate("2^4; scale=4; 2^-4", { maxExponent: 4 }), { exitCode: 0, stdout: "16\n.0625\n", stderr: "" });
+  assert.equal((await evaluate("2^10001", { maxExponent: Infinity })).exitCode, 0);
+});

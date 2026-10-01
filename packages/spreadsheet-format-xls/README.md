@@ -18,6 +18,8 @@ try {
 ```
 
 Compose additional format modules explicitly to convert between file types.
+The formula reader rejects malformed shared formulas containing BIFF live-label
+tokens; ordinary cell and array formulas retain their supported live labels.
 For tabular imports, the `./cached` entrypoint reads BIFF2–8 cached values,
 including BIFF4 workbook containers, without translating formulas or names.
 It preserves raw error codes, encoding overrides, worksheet order and number

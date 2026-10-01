@@ -153,7 +153,7 @@ it.each([0, 1, 2])(`keeps formula string caches out of shared strings (${edition
     ...Array.from({ length: plainCount }, () => plainCount > 1 ? "s" : "inlineStr"), "str", "str"
   ]);
   for (const cell of cells.slice(plainCount)) {
-    expect(cell.children.find(node => node.localName === "f")?.text).toBe(formula.slice(1));
+    expect(cell.children.find(node => node.localName === "f")?.text).toBe('"_x005F_x0000_"');
     expect(cell.children.find(node => node.localName === "v")?.text).toBe("A_x0000__x005F_x0000_😀_xD800_");
   }
   const shared = parts.get("xl/sharedStrings.xml");
@@ -162,6 +162,7 @@ it.each([0, 1, 2])(`keeps formula string caches out of shared strings (${edition
     expect(cells.slice(0, plainCount).map(cell => cell.children.find(node => node.localName === "v")?.text)).toEqual(["0", "0"]);
   } else expect(shared).toBeUndefined();
   const reread = (await readXlsx(bytes, context)).sheets[0]!.cells;
+  expect(reread.slice(plainCount).map(cell => cell.formula)).toEqual([formula, formula]);
   expect(reread.map(cell => cell.formula ? cell.cachedResult : cell.value)).toEqual(Array(plainCount + 2).fill(stringValue));
   expect(book).toEqual(before);
 });

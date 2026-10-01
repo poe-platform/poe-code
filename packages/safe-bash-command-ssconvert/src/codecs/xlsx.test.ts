@@ -39,8 +39,8 @@ it.each([
   ["_x0000_x0041_", "\0x0041_"],
   ["_X0000_ _x000g_ _x001_", "_X0000_ _x000g_ _x001_"],
   ["", ""],
-])("decodes formula string caches once, without decoding formula syntax: %j", async (wire, value) => {
-  const bytes = await fixture(parts(`<sheetData><row><c r="A1" t="str"><f>"_x0000_"</f><v>${wire}</v></c></row></sheetData>`));
+])("decodes formula string caches once and preserves escaped formula tokens: %j", async (wire, value) => {
+  const bytes = await fixture(parts(`<sheetData><row><c r="A1" t="str"><f>"_x005F_x0000_"</f><v>${wire}</v></c></row></sheetData>`));
   const cell = (await readXlsx(bytes, context)).sheets[0]!.cells[0]!;
   expect(cell.formula).toBe('="_x0000_"');
   expect(cell.value).toEqual({ kind: "string", value });
@@ -55,6 +55,15 @@ it("distinguishes an empty string cache from a missing cache and an empty numeri
     { kind: "string", value: "" }, { kind: "blank" }, { kind: "blank" }
   ]);
   expect(cells.map(cell => cell.formulaDirty)).toEqual([false, true, undefined]);
+});
+it("decodes control characters once in ordinary, shared, and array formulas", async () => {
+  const bytes = await fixture(parts('<sheetData><row><c r="A1" t="str"><f>"a_x0000__x0001__x005F_x0000_"</f><v>a</v></c>' +
+    '<c r="B1" t="str"><f t="shared" si="0" ref="B1:C1">"b_x0001_"</f><v>b</v></c>' +
+    '<c r="C1" t="str"><f t="shared" si="0"/><v>b</v></c>' +
+    '<c r="D1" t="str"><f t="array" ref="D1">"d_x0000_"</f><v>d</v></c></row></sheetData>'));
+  expect((await readXlsx(bytes, context)).sheets[0]!.cells.map(cell => cell.formula)).toEqual([
+    '="a\0\x01_x0000_"', '="b\x01"', '="b\x01"', '="d\0"'
+  ]);
 });
 it.each(["store", "deflate"] as const)("imports an OOXML template using injected memfs bytes (%s)", async compression => {
   const bytes = await fixture(parts('<sheetData><row r="2"><c r="B2" t="inlineStr"><is><t>a&amp;b</t></is></c><c r="C2"><f>1+2</f><v>3</v></c></row></sheetData><mergeCells><mergeCell ref="A4:B5"/></mergeCells>'), compression);

@@ -71,6 +71,35 @@ it("resolves .xlsx to the second edition and converts command files exclusively 
   } finally { await engine.dispose(); }
 });
 
+it.each(["2006", "2008"] as const)("%s separates formula caches from literal shared strings and counts references", async edition => {
+  const value = { kind: "string", value: "same" } as const;
+  const input: Workbook = { sheets: [{ id: "s", name: "S", cells: [
+    { row: 0, column: 0, value, cachedResult: value, formula: '=IF(TRUE,"same","")' },
+    { row: 0, column: 1, value, cachedResult: value, formula: '="same"' },
+    { row: 0, column: 2, value }, { row: 0, column: 3, value },
+    { row: 0, column: 4, value: { kind: "string", value: "unique" } }
+  ] }] };
+  const bytes = await createXlsxWriter(edition)(input, [], context);
+  const parts = await unpack(bytes);
+  const sheet = parts.get("xl/worksheets/sheet1.xml")!;
+  expect(sheet).toContain('<c r="A1" t="str">');
+  expect(sheet).toContain('<c r="B1" t="str">');
+  expect(sheet).toContain('<c r="C1" t="s"><v>0</v></c>');
+  expect(sheet).toContain('<c r="D1" t="s"><v>0</v></c>');
+  expect(parts.get("xl/sharedStrings.xml")).toContain('uniqueCount="1" count="2"');
+  expect((await readXlsx(bytes, context)).sheets[0]!.cells.map(cell => cell.value)).toEqual([value, value, value, value, { kind: "string", value: "unique" }]);
+});
+
+it.each(["2006", "2008"] as const)("%s roundtrips formula control characters and literal escape tokens", async edition => {
+  const formula = '=IF(TRUE,"a\0\x01_x0000_","b")';
+  const input: Workbook = { sheets: [{ id: "s", name: "S", cells: [
+    { row: 0, column: 0, formula, value: { kind: "string", value: "a\0\x01_x0000_" } }
+  ] }] };
+  const bytes = await createXlsxWriter(edition)(input, [], context);
+  expect((await unpack(bytes)).get("xl/worksheets/sheet1.xml")).toContain('a_x0000__x0001__x005F_x0000_');
+  expect((await readXlsx(bytes, context)).sheets[0]!.cells[0]!.formula).toBe(formula);
+});
+
 async function unpack(bytes: Uint8Array): Promise<Map<string, string>> {
   const zip = createZipCodec(); const limits = { maxArchiveBytes: 1000000, maxEntryBytes: 1000000, maxTotalBytes: 1000000,
     maxMembers: 100, maxPathBytes: 1024, maxDepth: 32, maxPaxBytes: 10000, maxTextBytes: 1000000, chunkSize: 4096 };

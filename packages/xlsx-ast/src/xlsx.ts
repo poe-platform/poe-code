@@ -351,7 +351,7 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
             if (kind === "shared") {
               const si = attr(f, "si") ?? "0"; const existing = shared.get(si);
               if (f.text) {
-                expression = readOpenFormula(f)?.source ?? formula(f.text, id, position.row, position.column, context, semantics.arrayStringLiterals); groupId = `shared-${si}`;
+                expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals); groupId = `shared-${si}`;
                 shared.set(si, { expression, ...position, id: groupId, ...semantics });
                 if (attr(f, "ref")) groups.push({ id: groupId, kind: "shared", expression, range: range(attr(f, "ref")), ...semantics });
               } else if (existing) {
@@ -361,7 +361,7 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
                 expression = rewriteReferences(parsed.document, { position: { sheet: id, ...position }, translation: "copy", signal: context.signal }); groupId = existing.id;
               } else invalid("shared formula has no preceding definition");
             } else {
-              expression = readOpenFormula(f)?.source ?? formula(f.text, id, position.row, position.column, context, semantics.arrayStringLiterals);
+              expression = readOpenFormula(f)?.source ?? formula(decodeXlsxString(f.text), id, position.row, position.column, context, semantics.arrayStringLiterals);
               if (kind === "array") { groupId = `array-${position.row}-${position.column}`; groups.push({ id: groupId, kind: "array", expression, range: range(attr(f, "ref")), ...semantics }); }
             }
           }
@@ -574,6 +574,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
         Id: r.id, Type: r.type, Target: r.target, ...(r.external ? { TargetMode: "External" } : {}) })).join(""));
     const workbookRelations: { id: string; type: string; target: string }[] = [];
     const shared: Cell[] = [], sharedIds = new Map<string, number>(), stringCounts = new Map<string, number>();
+    let sharedReferences = 0;
     let totalCells = 0;
     for (const sheet of book.sheets) for (const cell of sheet.cells) {
       charge(); if (++totalCells > context.limits.cells) limit("cells");
@@ -650,10 +651,11 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
           if (cell.formula && (!array || cell.row === array.range.startRow && cell.column === array.range.startColumn))
             body += xml("f", { ...(array ? { t: "array", ref: rangeText(array.range) } : {}),
               ...formulaSemanticsAttributes(array?.arrayStringLiterals ?? cell.arrayStringLiterals, true, cell.formula) },
-              escapeXlsx(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals)));
+              escapeXlsx(encodeXlsxString(exportXlsxFormula(book, cell.formula, sheet, cell.row, cell.column, context, array?.arrayStringLiterals ?? cell.arrayStringLiterals))));
           if (value.kind === "string") {
             if (cell.formula) { type = "str"; body += xml("v", {}, escapeXlsx(encodeXlsxString(value.value))); }
             else if ((stringCounts.get(stringKey) ?? 0) > 1) {
+              sharedReferences++;
               type = "s"; let id = sharedIds.get(stringKey);
               if (id === undefined) { id = shared.length; sharedIds.set(stringKey, id); shared.push({ ...cell, value }); }
               body += xml("v", {}, String(id));
@@ -721,7 +723,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
       sheetNodes.push(xml("sheet", { name: sheet.name, sheetId: index + 1, "r:id": id }));
     }
     if (shared.length) {
-      await add("xl/sharedStrings.xml", xml("sst", { xmlns: namespace, uniqueCount: shared.length, count: shared.length }, shared.map(cell =>
+      await add("xl/sharedStrings.xml", xml("sst", { xmlns: namespace, uniqueCount: shared.length, count: sharedReferences }, shared.map(cell =>
         xml("si", {}, writeRichString(cell.value.kind === "string" ? cell.value.value : "", cell.richText, xml, charge))).join("")), "application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml");
       workbookRelations.push({ id: `rId${workbookRelations.length + 1}`, type: relationships + "/sharedStrings", target: "sharedStrings.xml" });
     }

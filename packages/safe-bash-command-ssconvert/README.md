@@ -132,6 +132,9 @@ This workspace is private and is distributed through the `poe-code` SDK subpath.
 BIFF8 preserves declared label ranges in each sheet's ordered `labelRanges`
 bindings (`axis`, `labels`, `data`) and the workbook's `automaticLabelLookup`
 setting. Inferred data ranges use the BIFF8 grid (65,536 rows, 256 columns).
+BIFF8 cannot store finite data endpoints produced by shrinking that grid; exporting
+those bindings is rejected rather than silently expanding them. Use ODF to retain
+explicit data endpoints.
 Overlaps and multi-column row labels retain their original order and extent.
 ODF and legacy OpenOffice imports read native same-sheet label/data declarations;
 ODF exports preserve their order, explicit endpoints and automatic lookup setting.

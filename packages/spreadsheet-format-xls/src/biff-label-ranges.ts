@@ -24,12 +24,12 @@ export function readBiffLabelRanges(parts: readonly Binary[], charge: (amount: n
   const word = () => byte() | byte() << 8;
   const pairs: LabelRange[] = [];
   for (const axis of ["row", "column"] as const) {
-    const count = word(); charge(count);
+    const count = word();
     for (let i = 0; i < count; i++) {
-      charge(0);
       const labels = { startRow: word(), endRow: word(), startColumn: word(), endColumn: word() };
       if (labels.startRow > labels.endRow || labels.startColumn > labels.endColumn || labels.endColumn >= 256)
         invalidBiff("invalid LABELRANGES rectangle");
+      charge(1);
       pairs.push({ axis, labels, data: dataRange(labels, axis) });
     }
   }
@@ -58,15 +58,17 @@ export function writeBiffLabelRanges(sheet: Sheet, revision: 7 | 8, output: Biff
     if (list.length >= 65535) throw new SsconvertError("unsupported-feature", "Excel BIFF8 label range count exceeds version limits");
     list.push(labels);
   }
-  // Stream words into bounded BIFF records; CONTINUE has no string-width byte.
+  // Keep each Ref8U intact; CONTINUE has no string-width byte.
   let payload = new Uint8Array(output.maximumRecord), offset = 0, opcode = 0x15f;
+  const reserve = (length: number) => {
+    if (offset + length > payload.length) { output.record(opcode, payload.subarray(0, offset)); opcode = 0x3c; payload = new Uint8Array(output.maximumRecord); offset = 0; }
+  };
   const word = (value: number) => {
-    if (offset === payload.length) { output.record(opcode, payload); opcode = 0x3c; payload = new Uint8Array(output.maximumRecord); offset = 0; }
     payload[offset++] = value & 255; payload[offset++] = value >> 8;
   };
   for (const ranges of [rows, columns]) {
-    word(ranges.length);
-    for (const range of ranges) { charge(1); word(range.startRow); word(range.endRow); word(range.startColumn); word(range.endColumn); }
+    reserve(2); word(ranges.length);
+    for (const range of ranges) { charge(1); reserve(8); word(range.startRow); word(range.endRow); word(range.startColumn); word(range.endColumn); }
   }
   output.record(opcode, payload.subarray(0, offset));
 }

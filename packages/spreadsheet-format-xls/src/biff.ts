@@ -237,7 +237,7 @@ export async function readBiff(borrowed: Uint8Array, context: CapabilityContext,
     if (opcode === 0x11) { iterationEnabled = !!data.u16(0); continue; }
     if (opcode === 0x160 && ver === 8 && scope.type === 5) {
       if (data.bytes.length !== 2) invalidBiff("invalid USESELFS length");
-      automaticLabelLookup ||= data.u16(0) !== 0; continue;
+      automaticLabelLookup = data.u16(0) !== 0; continue;
     }
     if (opcode === 0x15f && ver === 8 && sheet) {
       const parts = [data];

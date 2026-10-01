@@ -133,3 +133,30 @@ it("warns through the public engine when another exporter omits label semantics"
     expect(diagnostics).toContain("label-range-loss-warning");
   } finally { await engine.dispose(); }
 });
+
+it("rejects truncated declared ranges before charging nonexistent entries", async () => {
+ await expect(readBiff(source(words(500)), { ...context, limits: { ...context.limits, workbookWork: 100 } })).rejects.toMatchObject({ code: "io", message: expect.stringContaining("truncated LABELRANGES") });
+});
+
+it("uses the last workbook USESELFS record", async () => {
+ const bytes = Uint8Array.from([...record(0x809, words(0x600, 5)), ...record(0x160, words(1)), ...record(0x160, words(0)), ...record(10, []), ...record(0x809, words(0x600, 16)), ...record(10, [])]);
+ expect((await readBiff(bytes, context)).automaticLabelLookup).toBe(false);
+});
+
+it("keeps LABELRANGES rectangles intact at CONTINUE boundaries", async () => {
+ const book = await readBiff(source(words(0, 0)), context);
+ const labels = Array.from({ length: 1100 }, (_, row) => ({ axis: "row" as const, labels: { startRow: row, endRow: row, startColumn: 0, endColumn: 0 }, data: { startRow: row, endRow: row, startColumn: 1, endColumn: 255 } }));
+ const bytes = await createBiffWriter(8)({ ...book, sheets: [{ ...book.sheets[0]!, labelRanges: labels }] }, [], context);
+ const records = readBiffRecords(readCfb(bytes, context).get("Workbook")!, context);
+ const first = records.findIndex(record => record.opcode === 0x15f);
+ expect(records[first]!.data.bytes.length).toBe(8218);
+ expect(records[first + 1]!.opcode).toBe(0x3c);
+ expect((await readBiff(bytes, context)).sheets[0]!.labelRanges).toEqual(labels);
+});
+
+it("rejects resized finite data endpoints because BIFF stores only labels and restores its full grid", async () => {
+ const book = await readBiff(source(), context);
+ const resized = resizeWorkbookReferences(book, book.sheets[0]!.id, { rows: 128, columns: 128 }, context);
+ await expect(createBiffWriter(8)(resized, [], context)).rejects.toMatchObject({ code: "unsupported-feature" });
+ expect((await readBiff(await createBiffWriter(8)(book, [], context), context)).sheets[0]!.size).toEqual({ rows: 65536, columns: 256 });
+});

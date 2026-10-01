@@ -30,7 +30,7 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
     budget.charge('retainedBytes',working,offset);
     try { return encoder.encode(text); } finally { budget.release('retainedBytes',working); }
   };
-  let textBuf = '';
+  let textBuf = '', textRetained = 0;
   const queueText = (text:string, offset:number):void => {
     budget.charge('work',text.length,offset);
     let length = 0;
@@ -44,13 +44,17 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
     budget.charge('outputBytes',length,offset);
     const working = text.length * 2 + length;
     budget.charge('retainedBytes',working,offset);
-    budget.release('retainedBytes',working);
+    textRetained += working;
     textBuf += text;
   };
   const flushTextBuf = ():Uint8Array => {
-    const s = textBuf;
-    textBuf = '';
-    return encoder.encode(s);
+    budget.check(0);
+    try { return encoder.encode(textBuf); }
+    finally {
+      textBuf = '';
+      budget.release('retainedBytes',textRetained);
+      textRetained = 0;
+    }
   };
   const endParagraph = ():string => { if (!paragraph) return ''; paragraph = false; return '</p>'; };
   const beginText = ():string => {
@@ -194,9 +198,11 @@ export async function* renderRtf(source:AsyncIterable<Uint8Array>, options:Unrtf
     if (html) yield emit(endParagraph() + (table ? '</tbody></table>' : '') + '</body></html>',0);
   } catch (error) {
     failed = true;
-    if (textBuf) yield flushTextBuf();
+    if (textBuf && !options.signal.aborted) yield flushTextBuf();
     throw error;
   } finally {
+    budget.release('retainedBytes',textRetained);
+    textRetained = 0;
     textBuf = '';
     budget.release('retainedBytes',run.length * 2); run = '';
     if (preamble) budget.release('retainedBytes',preamble.length);

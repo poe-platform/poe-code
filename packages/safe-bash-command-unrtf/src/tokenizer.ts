@@ -240,7 +240,7 @@ export function createRtfTokenizer(source: AsyncIterable<Uint8Array> | Uint8Arra
             dc = chunk[dLook++]!;
             if (dc === 13) break;
           }
-          if (dc !== 13 && dLook < chunk.length) {
+          if (dc !== 13 && dLook < chunk.length && (isSyncBytes || (offset & 4095) + dLook - index <= 4096)) {
             return parseControlSync(at, rc0);
           }
         }

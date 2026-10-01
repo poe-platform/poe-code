@@ -25,7 +25,9 @@ capabilities before conversion: support is format-specific and does not imply fu
 compatibility. Built-in DOCX conversion preserves headings, bold/italic text, hyperlinks, lists,
 tables, blockquotes, horizontal rules, strikeout, superscript, subscript, quotes,
 and embedded raster images (including inline images in table cells). PPTX renders blockquotes as indented
-content. PDF uses standard Helvetica bold/oblique and Courier fonts for styled
+content, preserves code, strikeout, superscript, subscript and quotes, and accepts
+Div containers. RST writes Divs as containers and strikeout as a declared role
+with the `strikeout` CSS class. PDF uses standard Helvetica bold/oblique and Courier fonts for styled
 text and inline code by default; supplied fonts retain their explicit styling.
 Other unsupported blocks and inlines return diagnostics. XLSX input becomes one named
 table per sheet, retaining cached values and calculating missing formula results.

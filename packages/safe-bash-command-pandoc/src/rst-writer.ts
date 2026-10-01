@@ -15,6 +15,7 @@ function markedBody(marker: string, body: string): string {
 }
 class RstWriter {
   private readonly definitions: string[] = [];
+  private strikeout = false;
   private readonly notes: {blocks: readonly Block[]; path: string}[] = [];
   private serial = 0;
   private sourceText = "";
@@ -94,7 +95,14 @@ class RstWriter {
           text = node.t === "Emph" ? `*${content}*` : node.t === "Strong" ? `**${content}**` : `:${node.t === "Superscript" ? "sup" : "sub"}:\`${content}\``;
           markup = true; break;
         }
-        case "Underline": case "Strikeout": case "SmallCaps": this.loss(`Projected unsupported ${node.t} to text`, p); text = children(node.c); break;
+        case "Strikeout": {
+          const content = children(node.c);
+          if(nested) {this.loss("Nested RST inline style projected to text", p); text = content; break;}
+          if(!content || content.trim() !== content) this.fail("Empty or whitespace-bounded inline style", p);
+          this.strikeout = true;
+          text = `:strikeout:\`${content}\``; markup = true; break;
+        }
+        case "Underline": case "SmallCaps": this.loss(`Projected unsupported ${node.t} to text`, p); text = children(node.c); break;
         case "Quoted": text = (node.c[0] === "SingleQuote" ? "‘" : "“") + this.inlines(node.c[1], `${p}.c[1]`, nested, literal) + (node.c[0] === "SingleQuote" ? "’" : "”"); break;
         case "Span": this.loss("Projected unsupported Span to text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested, literal); break;
         case "Cite": this.loss("Projected citation to displayed text", p); text = this.inlines(node.c[1], `${p}.c[1]`, nested, literal); break;
@@ -167,7 +175,13 @@ class RstWriter {
           if(!body) this.fail("Empty block quote", p);
           text = indent(body.startsWith(" ") ? "..\n\n" + body : body, 3); break;
         }
-        case "Div": this.loss("Div projected to contained blocks", p); text = this.attrs(node.c[0], p) + this.blocks(node.c[1], `${p}.c[1]`); break;
+        case "Div": {
+          const [id, classes, attributes] = node.c[0];
+          if(classes.some(name => !name || [...name].some(ch => !"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-".includes(ch)))) this.fail("Unsupported RST container class", p);
+          const body = this.blocks(node.c[1], `${p}.c[1]`);
+          text = this.attrs([id, [], attributes], p) + `.. container::${classes.length ? " " + classes.join(" ") : ""}\n\n` + indent(body, 3);
+          break;
+        }
         case "Figure": this.loss("Figure projected to content and caption", p); text = this.blocks(node.c[2], `${p}.c[2]`) + "\n\n" + this.blocks(node.c[1][1], `${p}.c[1][1]`); if(node.c[1][0]?.length) text += "\n\n" + this.inlines(node.c[1][0], p); break;
         case "LineBlock": text = node.c.map((line, j) => "| " + this.inlines(line, `${p}.c[${j}]`)).join("\n"); break;
         case "BulletList": case "OrderedList": {
@@ -246,7 +260,7 @@ class RstWriter {
       const marker = `.. [${i + 1}] `;
       this.definitions.push(markedBody(marker, body));
     }
-    return {kind: "text", text: this.retain([text, ...this.definitions].filter(Boolean).join("\n\n") + (text || this.definitions.length ? "\n" : ""))};
+    return {kind: "text", text: this.retain([...(this.strikeout ? [".. role:: strikeout"] : []), text, ...this.definitions].filter(Boolean).join("\n\n") + (text || this.definitions.length ? "\n" : ""))};
   }
 }
 export async function writeRst(document: Document, context: AdapterContext): Promise<SerializedDocument> {

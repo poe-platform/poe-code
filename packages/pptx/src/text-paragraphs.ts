@@ -1054,6 +1054,20 @@ export class Font {
   set italic(value: boolean | null) {
     this.#set({ italic: value });
   }
+  get strike(): NonNullable<TextRunFormatting["strike"]> | null {
+    const value = this.#format.strike;
+    if (value === null || value === "none" || value === "single" || value === "double") return value;
+    throw new OfficeError("invalid-xml", "Unknown text strikeout.", "parse");
+  }
+  set strike(value: NonNullable<TextRunFormatting["strike"]> | null) {
+    this.#set({ strike: value });
+  }
+  get baseline(): number | null {
+    return this.#format.baseline;
+  }
+  set baseline(value: number | null) {
+    this.#set({ baseline: value });
+  }
   get name(): string | null {
     return this.#format.font;
   }

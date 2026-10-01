@@ -37,12 +37,20 @@ it("represents code, roles, quotes, images, lines, ordered lists and transitions
   expect(await rst([p({t: "Code", c: [a, "*_.!"]}, {t: "Space"}, {t: "Superscript", c: [s("2")]}, {t: "Space"}, {t: "Subscript", c: [s("i")]}, {t: "Space"}, {t: "Quoted", c: ["SingleQuote", [s("quote")]]}), {t: "CodeBlock", c: [["", ["text"], []], "- code"]}, {t: "LineBlock", c: [[s("line")], []]}, {t: "OrderedList", c: [[3, "Decimal", "Period"], [[{t: "Plain", c: [s("item")]}]]]}, {t: "BlockQuote", c: [p(s("quote"))]}, {t: "HorizontalRule"}, p({t: "Image", c: [a, [s("alt")], ["image.png", ""]]})])).toMatchObject({text: "``*_.!`` :sup:`2` :sub:`i` ‘quote’\n\n.. code:: text\n\n   - code\n\n| line\n| \n\n3. item\n\n..\n\n   quote\n\n----\n\n|pc-image-1|\n\n.. |pc-image-1| image:: image.png\n   :alt: alt\n"});
 });
 it("diagnoses every unsupported AST family rather than silently omitting it", async () => {
-  const inlines: Inline[] = [{t: "Underline", c: [s("u")]}, {t: "Strikeout", c: [s("s")]}, {t: "SmallCaps", c: [s("c")]}, {t: "Span", c: [a, [s("span")]]}, {t: "Cite", c: [[], [s("cite")]]}, {t: "Math", c: ["InlineMath", "x"]}, {t: "RawInline", c: ["rst", "raw"]}, {t: "LineBreak"}];
-  const blocks: Block[] = [{t: "Div", c: [a, [p(s("div"))]]}, {t: "Figure", c: [a, [null, [p(s("caption"))]], [p(s("body"))]]}, {t: "RawBlock", c: ["rst", ".. include:: secret"]}];
+  const inlines: Inline[] = [{t: "Underline", c: [s("u")]}, {t: "SmallCaps", c: [s("c")]}, {t: "Span", c: [a, [s("span")]]}, {t: "Cite", c: [[], [s("cite")]]}, {t: "Math", c: ["InlineMath", "x"]}, {t: "RawInline", c: ["rst", "raw"]}, {t: "LineBreak"}];
+  const blocks: Block[] = [{t: "Figure", c: [a, [null, [p(s("caption"))]], [p(s("body"))]]}, {t: "RawBlock", c: ["rst", ".. include:: secret"]}];
   for(const block of [...inlines.map(inline => p(inline)), ...blocks]) {
     await expect(rst([block])).rejects.toMatchObject({code: "E_UNSUPPORTED_FEATURE", format: "rst"});
     expect(await rst([block], {lossy: true})).toMatchObject({diagnostics: [expect.objectContaining({code: "W_TABLE_LOSS"})]});
   }
+});
+it("writes strikeout through a declared RST role and Divs through containers", async () => {
+  const output = await rst([{t: "Div", c: [["section", ["notice"], []], [p({t: "Strikeout", c: [s("old")]})]]}]);
+  expect(output).toMatchObject({text: expect.stringContaining(".. container:: notice\n\n   :strikeout:`old`"), diagnostics: []});
+  expect(output).toMatchObject({text: expect.stringContaining(".. role:: strikeout\n")});
+  expect(output).toMatchObject({text: expect.stringContaining(".. _pc-id-")});
+  if (output.kind !== "text") throw new Error("Expected RST");
+  expect(output.text.startsWith(".. role:: strikeout\n\n")).toBe(true);
 });
 it("measures combining marks outside the basic accent range", async () => {
   expect(await rst([{t: "Header", c: [1, a, [s("a᪰")]]}])).toMatchObject({text: "a᪰\n=\n"});

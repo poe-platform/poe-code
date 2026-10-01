@@ -9,6 +9,7 @@ import {
 import type { Attr, Block, Inline, Row } from "./ast-types.js";
 import type { AdapterContext, Document, ReaderCapability, WriterCapability } from "./types.js";
 import { PandocError } from "./errors.js";
+import {imageLength} from "./image-dimensions.js";
 
 const attr: Attr = ["", [], []];
 function engineContext(context: AdapterContext): PresentationContext & SelectionContext {
@@ -53,14 +54,6 @@ function slideLevel(document: Document, context: AdapterContext): number {
   if (!["1", "2", "3", "4", "5", "6"].includes(value)) fail(context, "pptx-slide-level requires an explicit integer from 1 to 6", "E_OPTION");
   return Number(value);
 }
-function imageLength(value: string | undefined, natural: number, context: AdapterContext): number {
-  if (value === undefined) return natural;
-  const units: Record<string, number> = {in: 914400, pt: 12700, cm: 360000, mm: 36000, px: 9525};
-  const unit = Object.keys(units).find(unit => value.endsWith(unit));
-  const number = unit ? Number(value.slice(0, -unit.length)) : NaN;
-  if (!unit || !Number.isFinite(number) || number <= 0) fail(context, "Image dimensions require positive in, pt, cm, mm or px values", "E_OPTION");
-  return Math.round(number * units[unit]!);
-}
 interface SlideContent { title: readonly Inline[] | undefined; blocks: Block[]; notes: Block[] }
 function slides(document: Document, level: number): SlideContent[] {
   const result: SlideContent[] = [];
@@ -101,7 +94,8 @@ function plain(nodes: readonly Inline[], context: AdapterContext): string {
       case "LineBreak": return "\v";
       case "Code": return node.c[1];
       case "Link": case "Span": return plain(node.c[1], context);
-      case "Emph": case "Strong": return plain(node.c, context);
+      case "Emph": case "Strong": case "Strikeout": case "Superscript": case "Subscript": case "Underline": return plain(node.c, context);
+      case "Quoted": return (node.c[0] === "SingleQuote" ? "‘" : "“") + plain(node.c[1], context) + (node.c[0] === "SingleQuote" ? "’" : "”");
       default: return fail(context, `Unsupported PPTX inline: ${node.t}`);
     }
   }).join("");
@@ -109,21 +103,29 @@ function plain(nodes: readonly Inline[], context: AdapterContext): string {
 function writeInline(shape: Shape, nodes: readonly Inline[], context: AdapterContext): void {
   shape.text_frame.clear();
   const paragraph = shape.text_frame.paragraphs[0]!;
-  const add = (inlines: readonly Inline[], bold = false, italic = false, url?: string): void => {
+  const add = (inlines: readonly Inline[], style: {bold?: boolean; italic?: boolean; strike?: "single"; baseline?: number; underline?: boolean; url?: string} = {}): void => {
     for (const node of inlines) {
       context.checkpoint();
-      if (node.t === "Strong") add(node.c, true, italic, url);
-      else if (node.t === "Emph") add(node.c, bold, true, url);
-      else if (node.t === "Span") add(node.c[1], bold, italic, url);
+      if (node.t === "Strong") add(node.c, {...style, bold: true});
+      else if (node.t === "Emph") add(node.c, {...style, italic: true});
+      else if (node.t === "Strikeout") add(node.c, {...style, strike: "single"});
+      else if (node.t === "Underline") add(node.c, {...style, underline: true});
+      else if (node.t === "Superscript" || node.t === "Subscript") add(node.c, {...style, baseline: node.t === "Superscript" ? 30 : -25});
+      else if (node.t === "Quoted") add([{t: "Str", c: node.c[0] === "SingleQuote" ? "‘" : "“"}, ...node.c[1], {t: "Str", c: node.c[0] === "SingleQuote" ? "’" : "”"}], style);
+      else if (node.t === "Span") add(node.c[1], style);
       else if (node.t === "Link") {
         if (!node.c[2][0] || node.c[2][0].startsWith("#")) fail(context, "Internal document links require slide target resolution");
-        add(node.c[1], bold, italic, node.c[2][0]);
+        add(node.c[1], {...style, url: node.c[2][0]});
       } else if (node.t === "LineBreak") paragraph.add_line_break();
       else {
         const run = paragraph.add_run();
         run.text = plain([node], context);
-        run.font.bold = bold; run.font.italic = italic; run.font.size = new Pt(20);
-        if (url) run.hyperlink.address = url;
+        run.font.bold = style.bold ?? false; run.font.italic = style.italic ?? false; run.font.size = new Pt(style.baseline ? 14 : 20);
+        if (style.strike) run.font.strike = style.strike;
+        if (style.baseline) run.font.baseline = style.baseline;
+        if (style.underline) run.font.underline = true;
+        if (node.t === "Code") run.font.name = "Courier New";
+        if (style.url) run.hyperlink.address = style.url;
       }
     }
   };
@@ -144,6 +146,7 @@ function referenceBox(layout: LayoutRecord | undefined, types: readonly string[]
 
 export const pptxWriter: WriterCapability = {
   format: "pptx",
+  imageResources: "embed",
   async write(document, context) {
     return guarded(context, async () => {
       const ec = engineContext(context);
@@ -211,6 +214,19 @@ export const pptxWriter: WriterCapability = {
             if (level > 8) fail(context, "PPTX lists support at most nine levels");
             switch (block.t) {
               case "Para": case "Plain": {
+                if (block.c.length > 1 && block.c.some(node => node.t === "Image")) {
+                  const fragments: Block[] = []; let pending: Inline[] = [];
+                  for (const node of block.c) {
+                    if (node.t === "Image") {
+                      if (pending.length) fragments.push({t: "Para", c: pending});
+                      fragments.push({t: "Para", c: [node]}); pending = [];
+                    } else pending.push(node);
+                  }
+                  if (pending.length) fragments.push({t: "Para", c: pending});
+                  await blocks(fragments, level, firstParagraph ? bullet : undefined);
+                  firstParagraph = false;
+                  break;
+                }
                 const image = block.c.length === 1 && block.c[0]!.t === "Image" ? block.c[0]! : undefined;
                 if (!image) {
                   const shape = paragraph(block.c, level, firstParagraph ? bullet : undefined);
@@ -218,16 +234,16 @@ export const pptxWriter: WriterCapability = {
                   firstParagraph = false;
                   break;
                 }
-                if (bullet) fail(context, "Images inside list items are unsupported");
+                if (bullet && firstParagraph) {paragraph([], level, bullet); firstParagraph = false;}
                 const id = image.c[2][0];
-                const media = document.resources.find(r => r.id === id)?.bytes;
+                const media = document.resources.find(r => r.id === id)?.bytes ?? await context.resources?.resolve(id, undefined, context.signal);
                 if (!media) fail(context, `Missing image resource: ${id}`, "E_RESOURCE");
                 const asset = new Image(media);
                 if (!["image/png", "image/jpeg"].includes(asset.content_type)) fail(context, "Only PNG and JPEG pictures are supported");
                 const attrs = Object.fromEntries(image.c[0][2]);
                 const naturalWidth = asset.size[0] * 914400 / asset.dpi[0];
                 const naturalHeight = asset.size[1] * 914400 / asset.dpi[1];
-                let w = imageLength(attrs.width, naturalWidth, context), h = imageLength(attrs.height, naturalHeight, context);
+                let w = imageLength(attrs.width, naturalWidth, context, "pptx"), h = imageLength(attrs.height, naturalHeight, context, "pptx");
                 if (attrs.width && !attrs.height) h = Math.round(w * naturalHeight / naturalWidth);
                 if (attrs.height && !attrs.width) w = Math.round(h * naturalWidth / naturalHeight);
                 if (Math.abs(w / h - naturalWidth / naturalHeight) > 0.01) fail(context, "Picture dimensions must preserve aspect ratio");
@@ -244,9 +260,14 @@ export const pptxWriter: WriterCapability = {
                 break;
               }
               case "Header": paragraph(block.c[2], level); break;
-              case "BlockQuote": {
+              case "CodeBlock": {
+                for (const line of block.c[1].split("\n")) {paragraph([{t: "Code", c: [block.c[0], line]}], level, firstParagraph ? bullet : undefined); firstParagraph = false;}
+                break;
+              }
+              case "HorizontalRule": paragraph([{t: "Str", c: "────────────────────"}], level); break;
+              case "Div": case "BlockQuote": {
                 const before = y;
-                await blocks(block.c, level + 1, firstParagraph ? bullet : undefined);
+                await blocks(block.t === "Div" ? block.c[1] : block.c, block.t === "Div" ? level : level + 1, firstParagraph ? bullet : undefined);
                 if (y !== before) firstParagraph = false;
                 break;
               }

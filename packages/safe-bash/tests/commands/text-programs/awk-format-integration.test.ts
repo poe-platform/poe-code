@@ -59,11 +59,11 @@ test("awk dynamic invalid formats fail after arguments and before destination ev
   await assert.rejects(fs.stat("/out"), error => error instanceof FsError && error.code === "ENOENT");
 });
 
-test("awk print converts arguments only after their evaluation changes OFMT", async context => {
+test("awk print converts each argument before later OFMT changes", async context => {
   const { shell } = fixture(context, 4096);
   const result = await shell.exec('awk \'function arg(){ OFMT="%.1f"; OFS="|"; ORS="!"; return 2.75 } BEGIN { print 1.25, arg() }\'');
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "1.3|2.8!");
+  assert.equal(result.stdout, "1.25|2.8!");
 });
 
 test("awk numeric comparisons and integer conversion do not invoke an unused invalid format", async context => {

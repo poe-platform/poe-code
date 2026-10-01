@@ -118,7 +118,7 @@ export function snapshotLoopbackAuthorizationOptions(options) {
 export async function createLoopbackAuthorizationSession(options = {}) {
   options = snapshotLoopbackAuthorizationOptions(options);
   options.signal?.throwIfAborted();
-  const timeout = options.timeoutMs ?? 120_000;
+  const timeout = options.timeoutMs ?? Infinity;
   if (!native.authorizationTimerValid(typeof timeout === "number" ? timeout : NaN))
     throw Error("OAuth authorization timeoutMs must be a positive supported timer interval");
   if (options.waitForCallback !== undefined) return createHostedAuthorizationSession(options, timeout);
@@ -134,8 +134,8 @@ export async function createLoopbackAuthorizationSession(options = {}) {
     server.closeAllConnections?.();
     server.close();
   };
-  const timer = setTimeout(() => controller.abort(Error("OAuth authorization timed out")), timeout);
-  timer.unref?.();
+  const timer = timeout === Infinity ? undefined : setTimeout(() => controller.abort(Error("OAuth authorization timed out")), timeout);
+  timer?.unref?.();
   controller.signal.addEventListener("abort", teardown, { once: true });
   options.signal?.addEventListener("abort", callerAbort, { once: true });
   if (options.signal?.aborted) callerAbort();
@@ -285,8 +285,8 @@ function createHostedAuthorizationSession(options, timeoutMs) {
   validateAuthorizationRedirect(options);
   const redirectUri = options.redirectUri, controller = new AbortController(), lifecycle = new native.NativeLoopbackLifecycle();
   const aborted = () => controller.abort(options.signal?.reason);
-  const timer = setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
-  timer.unref?.();
+  const timer = timeoutMs === Infinity ? undefined : setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
+  timer?.unref?.();
   const cleanup = () => { lifecycle.close(); clearTimeout(timer); options.signal?.removeEventListener("abort", aborted); };
   controller.signal.addEventListener("abort", cleanup, { once: true });
   options.signal?.addEventListener("abort", aborted, { once: true });

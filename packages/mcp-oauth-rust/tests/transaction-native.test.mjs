@@ -17,6 +17,18 @@ for (const [name, api] of [
   ["original", original],
   ["Rust", own]
 ]) {
+  for (const timeoutMs of [undefined, Infinity]) {
+    test(name + " leaves transaction waits unlimited for " + timeoutMs, async (context) => {
+      const timer = context.mock.method(globalThis, "setTimeout");
+      const store = { async withLock(resource, operation, options) {
+        assert.equal(resource, "r");
+        assert.equal(options.timeoutMs, Infinity);
+        return operation();
+      } };
+      assert.equal(await api(store, "r", async () => 42, { timeoutMs }), 42);
+      assert.equal(timer.mock.callCount(), 0);
+    });
+  }
   test(
     name + " queued cancellation preserves owner and next waiter without leaking listeners",
     async () => {
@@ -121,7 +133,7 @@ for (const [name, api] of [
   });
   test(name + " validates wait bounds and honors already aborted opaque reasons", async () => {
     let effects = 0;
-    for (const timeoutMs of [0, -1, NaN, Infinity, 1.5, 2147483648])
+    for (const timeoutMs of [0, -1, NaN, -Infinity, 1.5, 2147483648])
       await assert.rejects(
         api({}, "r", async () => effects++, { timeoutMs }),
         (error) =>

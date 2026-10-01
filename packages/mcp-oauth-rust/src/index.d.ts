@@ -203,6 +203,7 @@ export interface LoopbackAuthorizationOptions {
   callbackPath?: string;
   redirectUri?: string;
   signal?: AbortSignal;
+  /** Bounds listener setup and authorization; defaults to Infinity (unlimited). */
   timeoutMs?: number;
 }
 export interface LoopbackAuthorizationSession {

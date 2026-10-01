@@ -22,11 +22,11 @@ fn transaction_tickets_preserve_resource_order_and_retire_owned_waits() {
     assert_eq!(queue.enqueue(&resource).unwrap().previous, None);
 }
 #[test]
-fn timeout_policy_accepts_only_schedulable_positive_integers() {
-    for valid in [1.0, 30_000.0, 2_147_483_647.0] {
-        assert_eq!(timeout(valid), Ok(valid as u32));
+fn timeout_policy_accepts_unlimited_or_schedulable_positive_integers() {
+    for valid in [1.0, 30_000.0, 2_147_483_647.0, f64::INFINITY] {
+        assert_eq!(timeout(valid), Ok(valid));
     }
-    for invalid in [0.0, -1.0, 1.5, f64::INFINITY, f64::NAN, 2_147_483_648.0] {
+    for invalid in [0.0, -1.0, 1.5, f64::NEG_INFINITY, f64::NAN, 2_147_483_648.0] {
         assert!(
             timeout(invalid)
                 .unwrap_err()

@@ -5,7 +5,7 @@ private additive package has zero external npm runtime dependencies.
 
 - AES-256-GCM encrypted files compatible with `auth-store`.
 - Machine-bound scrypt keys, a bounded key cache, atomic writes and `0600` permissions.
-- File and Keychain transaction locks shared by independent stores, with waiter cancellation and timeouts.
+- File and Keychain transaction locks shared by independent stores, with waiter cancellation and optional timeouts (unlimited by default or with `Infinity`).
 - Credential path checks that refuse symbolic links, and optional errors for invalid encrypted documents.
 - macOS Keychain commands and matching error diagnostics.
 - Serialized legacy migration with rollback when mirrored mutations fail.

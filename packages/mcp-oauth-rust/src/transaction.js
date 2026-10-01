@@ -3,7 +3,7 @@ import { waitForOAuthOperation } from "./cancellable-operation.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 const stores = new WeakMap();
 export async function withOAuthSessionTransaction(store, resource, operation, options = {}) {
-  const supplied = options.timeoutMs ?? 30000;
+  const supplied = options.timeoutMs ?? Infinity;
   const timeoutMs = native.transactionTimeout(typeof supplied === "number" ? supplied : NaN);
   options.signal?.throwIfAborted();
   const started = performance.now();
@@ -27,7 +27,7 @@ export async function withOAuthSessionTransaction(store, resource, operation, op
     });
     const abort = () => rejectWait(options.signal?.reason);
     try {
-      timer = setTimeout(
+      if (timeoutMs !== Infinity) timer = setTimeout(
         () => rejectWait(new Error("Timed out waiting for OAuth session transaction lock")),
         timeoutMs
       );

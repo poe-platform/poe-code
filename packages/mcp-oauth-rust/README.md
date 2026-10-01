@@ -33,7 +33,10 @@ message, without echoing response credentials. They are terminal below status500
 
 Loopback sessions use an ephemeral `127.0.0.1` port or your exact registered
 HTTP redirect on `localhost`, `127.0.0.1` or `[::1]`. They support browser or pasted
-callback input, caller cancellation and a configurable two-minute deadline. Rust enforces state/issuer binding before accepting codes
+callback input and caller cancellation. Callback waits default to unlimited;
+set `timeoutMs` to a finite integer from 1 through 2147483647 for a deadline,
+or use `Infinity` explicitly. Hosted callbacks follow the same timeout policy.
+Rust enforces state/issuer binding before accepting codes
 or denials and renders escaped success pages. Duplicate security parameters reject
 before callback admission. Session creation captures landing-page title and body,
 including hidden properties and prototype getters, before browser callbacks run.
@@ -74,6 +77,9 @@ client and grant together, validates resource/issuer bindings, takes an owned
 snapshot before lock waits and disables stale environment replay. Explicit import
 can recover a corrupt document without decrypting its previous contents.
 Session transactions use the backing credential lock across independent provider instances.
+Session lock waits default to `Infinity`, with no timer unless a finite
+`sessionLockTimeoutMs` is configured. Explicit `Infinity` also disables the timeout;
+finite waits must be integer milliseconds from 1 through 2147483647.
 Session admission runs in Rust and client registration loads retain all validated metadata.
 Malformed stored JSON reports an explicit recovery error. The package ships these
 capabilities in its own addon and has no runtime import of `auth-store`.

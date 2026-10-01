@@ -3,7 +3,7 @@ use napi::bindgen_prelude::*;
 use napi_derive::napi;
 use std::cell::RefCell;
 #[napi]
-pub fn transaction_timeout(value: f64) -> Result<u32> {
+pub fn transaction_timeout(value: f64) -> Result<f64> {
     transaction::timeout(value).map_err(napi::Error::from_reason)
 }
 #[napi]

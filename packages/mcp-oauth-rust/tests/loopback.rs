@@ -81,10 +81,10 @@ fn loopback_lifecycle_admits_one_wait_and_idempotent_teardown() {
     assert!(state.close());
     assert!(!state.close());
     assert!(!state.begin());
-    for timer in [1.0, 120_000.0, 2_147_483_647.0] {
+    for timer in [1.0, 120_000.0, 2_147_483_647.0, f64::INFINITY] {
         assert!(valid_timer(timer));
     }
-    for timer in [0.0, -1.0, 1.5, f64::NAN, f64::INFINITY, 2_147_483_648.0] {
+    for timer in [0.0, -1.0, 1.5, f64::NAN, f64::NEG_INFINITY, 2_147_483_648.0] {
         assert!(!valid_timer(timer));
     }
 }

@@ -161,7 +161,8 @@ impl Lifecycle {
     }
 }
 pub fn valid_timer(value: f64) -> bool {
-    value.is_finite() && value.fract() == 0.0 && (1.0..=2_147_483_647.0).contains(&value)
+    value == f64::INFINITY
+        || (value.is_finite() && value.fract() == 0.0 && (1.0..=2_147_483_647.0).contains(&value))
 }
 pub fn valid_target(value: &mcp_protocol_rust::json::Value, fixed: bool) -> bool {
     use mcp_protocol_rust::json::Value;

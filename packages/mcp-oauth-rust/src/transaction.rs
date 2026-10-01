@@ -1,8 +1,10 @@
 //! Per-resource transaction ticket policy; hosts own asynchronous effects.
 use std::collections::{HashMap, VecDeque};
-pub fn timeout(value: f64) -> Result<u32, &'static str> {
-    if value.is_finite() && value.fract() == 0.0 && (1.0..=2_147_483_647.0).contains(&value) {
-        Ok(value as u32)
+pub fn timeout(value: f64) -> Result<f64, &'static str> {
+    if value == f64::INFINITY
+        || (value.is_finite() && value.fract() == 0.0 && (1.0..=2_147_483_647.0).contains(&value))
+    {
+        Ok(value)
     } else {
         Err("sessionLockTimeoutMs must be an integer from 1 to 2147483647 milliseconds")
     }

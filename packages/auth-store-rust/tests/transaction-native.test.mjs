@@ -4,6 +4,13 @@ import { Volume, createFsFromVolume } from "memfs";
 import { EncryptedFileStore, KeychainStore } from "../dist/index.js";
 
 for (const backend of ["file", "keychain"]) {
+  test(`${backend} transactions accept unlimited lock waits`, async () => {
+    const fs = createFsFromVolume(new Volume()).promises;
+    const store = backend === "file"
+      ? new EncryptedFileStore({ fs, salt: "lock-fixture", filePath: "/vault/session.enc" })
+      : new KeychainStore({ service: "fixture", account: "fixture", lock: { fs, directory: "/locks" }, runCommand: async () => { throw new Error("must not access credentials"); } });
+    assert.equal(await store.withLock(async () => "unlimited", { timeoutMs: Infinity }), "unlimited");
+  });
   test(`${backend} transactions exclude independent owners and preserve waiter cancellation`, async () => {
     const fs = createFsFromVolume(new Volume()).promises;
     const make = backend === "file"

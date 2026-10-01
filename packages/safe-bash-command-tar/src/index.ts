@@ -1,3 +1,4 @@
+import { withInputByteBudget } from "safe-bash-contracts";
 
 import { ungzip as gunzipSync } from "pako";
 import { createArchive,manifest } from "./create.js";
@@ -19,7 +20,7 @@ export type { ArchiveCommandsOptions,ArchiveLimits,ArchiveCommandsOptions as Tar
 
 export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
   const configured = settings(options);
-  const def: CommandDefinition = { name: "tar", description: "Stream USTAR/PAX archives through the virtual filesystem", async execute(original) {
+  const def: CommandDefinition = { name: "tar", description: "Stream USTAR/PAX archives through the virtual filesystem", execute: withInputByteBudget(async (original) => {
     const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const controller = new AbortController();
@@ -131,7 +132,7 @@ Examples: tar cf archive.tar file; tar tf archive.tar; tar xf archive.tar -C dir
       await writeBytes(original.stderr, encodeBytes(`tar: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), original.signal);
       return { exitCode: 2 };
     } finally { controller.abort(new Error("tar command finished")); }
-  } };
+  }) };
   if (options.limits === undefined && options.zipHost === undefined) builtInDirectContextExecutors.add(def.execute);
   return def;
 }

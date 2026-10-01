@@ -1,3 +1,4 @@
+import { withInputByteBudget } from "safe-bash-contracts";
 import { Extraction } from "./unzip/safety.js";
 import { collectBytes,dirname,readBytes,resolvePath,writeBytes,type CommandContext,type CommandDefinition,type FileStat } from "safe-bash-contracts";
 import { PublicDiagnostic,publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
@@ -53,7 +54,7 @@ async function comment(bytes: Uint8Array, budget: Budget): Promise<void> {
 
 export function createUnzipCommand(options: ArchiveCommandsOptions = {}): CommandDefinition {
   const configured = settings(options);
-  return { name: "unzip", description: "List, stream or safely extract ZIP archives in the virtual filesystem", async execute(original) {
+  return { name: "unzip", description: "List, stream or safely extract ZIP archives in the virtual filesystem", execute: withInputByteBudget(async (original) => {
     const limits = invocationLimits(configured, original);
     original.signal.throwIfAborted();
     const controller = new AbortController();
@@ -310,5 +311,5 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       await writeBytes(original.stderr, encodeBytes(`unzip: ${message}\n`).subarray(0, limits.maxDiagnosticBytes), original.signal);
       return { exitCode: 2 };
     } finally { await close(); }
-  } };
+  }) };
 }

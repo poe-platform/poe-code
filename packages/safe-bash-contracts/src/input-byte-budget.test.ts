@@ -52,3 +52,28 @@ test("command input budgeting never overrides methods on a scoped filesystem pro
     return { exitCode: 0 };
   });
 });
+
+
+test("host input ceilings account retained reads together with buffered files and stdin", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/in", Uint8Array.of(65, 66));
+  const observed: number[] = [];
+  const budget = new InputByteBudget(Infinity, { maxBytes: 5, check(total) {
+    observed.push(total);
+    if (total > 5) throw new Error("host input exceeded");
+  } });
+  await assert.rejects(budget.run({
+    command: "probe", args: createCommandArguments([]).args, cwd: "/", env: {}, fs,
+    stdin: (async function* () { yield Uint8Array.of(67, 68); })(),
+    stdout: { write: async () => {} }, stderr: { write: async () => {} },
+    signal: new AbortController().signal,
+  }, async limited => {
+    const handle = await limited.fs.openReadFile!("/in");
+    try { assert.deepEqual(await handle.read(0, 2), Uint8Array.of(65, 66)); }
+    finally { await handle.close(); }
+    assert.deepEqual(await limited.fs.readFile("/in"), Uint8Array.of(65, 66));
+    for await (const chunk of limited.stdin) void chunk;
+    return { exitCode: 0 };
+  }), /host input exceeded/);
+  assert.deepEqual(observed, [2, 4, 6]);
+});

@@ -995,7 +995,7 @@ export class InputByteBudget {
     return value;
   }
 
-  constructor(readonly maximum: number = Infinity) {
+  constructor(readonly maximum: number = Infinity, private readonly host?: CommandContext["inputBudget"]) {
     InputByteBudget.limit(maximum);
   }
 
@@ -1010,6 +1010,7 @@ export class InputByteBudget {
       this.#failure = new FsError("EFBIG", { message: "command input byte limit exceeded" });
       throw this.#failure;
     }
+    this.host?.check(this.#used + bytes);
     this.#used += bytes;
   }
 
@@ -1019,13 +1020,29 @@ export class InputByteBudget {
       ...context,
       stdin: this.read(context.stdin, context.signal),
       fs: Object.create(fs, {
-        readFile: { value: async (...args: Parameters<typeof fs.readFile>) => {
+        readFile: { configurable: true, value: async (...args: Parameters<typeof fs.readFile>) => {
           this.assertOpen();
           const bytes = await fs.readFile(...args);
           this.charge(bytes.byteLength);
           return bytes;
         } },
-        ...(fs.readStream ? { readStream: { value: (...args: Parameters<NonNullable<typeof fs.readStream>>) => {
+        ...(fs.openReadFile ? { openReadFile: { configurable: true, value: async (...args: Parameters<NonNullable<typeof fs.openReadFile>>) => {
+          this.assertOpen();
+          const handle = await fs.openReadFile!(...args);
+          return new Proxy(Object.create(handle) as typeof handle, {
+            get: (_target, key) => {
+              if (key === "read") return async (...readArgs: Parameters<typeof handle.read>) => {
+                this.assertOpen();
+                const bytes = await handle.read(...readArgs);
+                this.charge(bytes.byteLength);
+                return bytes;
+              };
+              const value: unknown = Reflect.get(handle, key, handle);
+              return typeof value === "function" ? value.bind(handle) : value;
+            },
+          });
+        } } } : {}),
+        ...(fs.readStream ? { readStream: { configurable: true, value: (...args: Parameters<NonNullable<typeof fs.readStream>>) => {
           this.assertOpen();
           return this.read(fs.readStream!(...args), context.signal);
         } } } : {}),
@@ -1054,4 +1071,11 @@ export class InputByteBudget {
     this.assertOpen();
     signal.throwIfAborted();
   }
+}
+
+/** Enforce the caller's cumulative input ceiling across all VFS input paths. */
+export function withInputByteBudget(execute: (context: CommandContext) => Promise<CommandResult>): (context: CommandContext) => Promise<CommandResult> {
+  return context => context.inputBudget
+    ? new InputByteBudget(Infinity, context.inputBudget).run(context, execute)
+    : execute(context);
 }

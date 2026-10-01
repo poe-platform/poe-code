@@ -120,3 +120,38 @@ for (const [family, create, args, expected] of [
     assert.ok(result.stdout.includes(expected));
   });
 }
+
+
+import { Shell } from "../../src/shell/shell.js";
+import { archiveCommands } from "../../src/commands/archive/index.js";
+
+test("shell input budget covers archive source files and cumulative creation inputs", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new Uint8Array(8).fill(65));
+  await fs.writeFile("/b", new Uint8Array(8).fill(66));
+  const producer = new Shell({ fs, cwd: "/" }).use(archiveCommands());
+  assert.equal((await producer.exec("tar -cf input.tar a")).exitCode, 0);
+  assert.equal((await producer.exec("zip -q input.zip a")).exitCode, 0);
+  await producer.dispose();
+  const shell = new Shell({ fs, cwd: "/", limits: { maxInputBytes: 8 } }).use(archiveCommands());
+  try {
+    for (const command of ["tar -cf - a", "zip -q - a"]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    for (const command of ["tar -cf result.tar a b", "zip -q result.zip a b", "tar -tf input.tar", "unzip -l input.zip"]) {
+      await assert.rejects(shell.exec(command), { name: "ShellLimitError", limit: "maxInputBytes" });
+    }
+    const tar = await fs.readFile("/input.tar");
+    const zip = await fs.readFile("/input.zip");
+    assert.equal((await shell.exec("tar -tf input.tar", { limits: { maxInputBytes: tar.length } })).exitCode, 0);
+    assert.equal((await shell.exec("tar -tf -", { stdin: tar, limits: { maxInputBytes: tar.length } })).exitCode, 0);
+    await assert.rejects(shell.exec("tar -tf -", { stdin: tar, limits: { maxInputBytes: tar.length - 1 } }), { name: "ShellLimitError", limit: "maxInputBytes" });
+    assert.equal((await shell.exec("unzip -l input.zip", { limits: { maxInputBytes: zip.length } })).exitCode, 0);
+    assert.equal((await shell.exec("zip -q - -", { stdin: new Uint8Array(8) })).exitCode, 0);
+    await assert.rejects(shell.exec("zip -q - -", { stdin: new Uint8Array(9) }), { name: "ShellLimitError", limit: "maxInputBytes" });
+    assert.deepEqual(await fs.readFile("/a"), new Uint8Array(8).fill(65));
+    assert.deepEqual(await fs.readFile("/b"), new Uint8Array(8).fill(66));
+    await assert.rejects(fs.stat("/result.zip"), { code: "ENOENT" });
+  } finally { await shell.dispose(); }
+});

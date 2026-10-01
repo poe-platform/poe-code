@@ -76,3 +76,39 @@ test("decoded host budgets reject invalid values and accept exact/zero boundarie
     } finally { await shell.dispose(); }
   }
 });
+
+
+test("shell input budget covers compression retained reads, cumulative operands, and staging", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new Uint8Array(8).fill(65));
+  await fs.writeFile("/b", new Uint8Array(8).fill(66));
+  const producer = new Shell({ fs, cwd: "/" }).use(byteCommands());
+  for (const [compressor, suffix] of [["gzip", "gz"], ["zstd", "zst"]]) {
+    const encoded = await producer.exec(`${compressor} -c a`);
+    assert.equal(encoded.exitCode, 0, encoded.stderr);
+    await fs.writeFile(`/a.${suffix}`, encoded.stdoutBytes);
+    await fs.writeFile(`/b.${suffix}`, encoded.stdoutBytes);
+  }
+  await producer.dispose();
+  const shell = new Shell({ fs, cwd: "/", limits: { maxInputBytes: 8 } }).use(byteCommands());
+  try {
+    for (const name of ["gzip", "zstd"]) {
+      assert.equal((await shell.exec(`${name} -c a`)).exitCode, 0, name);
+      assert.equal((await shell.exec(`${name} -c`, { stdin: new Uint8Array(8) })).exitCode, 0, name);
+      await assert.rejects(shell.exec(`${name} -c`, { stdin: new Uint8Array(9) }), { name: "ShellLimitError", limit: "maxInputBytes" });
+      await assert.rejects(shell.exec(`${name} -c a b`), { name: "ShellLimitError", limit: "maxInputBytes" });
+    }
+    for (const [name, suffix] of [["gunzip", "gz"], ["zcat", "gz"], ["unzstd", "zst"], ["zstdcat", "zst"]]) {
+      const stdin = await fs.readFile(`/a.${suffix}`);
+      assert.equal((await shell.exec(`${name} -c a.${suffix}`, { limits: { maxInputBytes: stdin.length } })).exitCode, 0, name);
+      await assert.rejects(shell.exec(`${name} -c a.${suffix} b.${suffix}`, { limits: { maxInputBytes: stdin.length } }), { name: "ShellLimitError", limit: "maxInputBytes" });
+      assert.equal((await shell.exec(`${name} -c`, { stdin, limits: { maxInputBytes: stdin.length } })).exitCode, 0, name);
+      await assert.rejects(shell.exec(`${name} -c`, { stdin, limits: { maxInputBytes: stdin.length - 1 } }), { name: "ShellLimitError", limit: "maxInputBytes" });
+      await assert.rejects(shell.exec(`${name} -c a.${suffix}`), { name: "ShellLimitError", limit: "maxInputBytes" });
+    }
+    await fs.writeFile("/large", new Uint8Array(9));
+    await assert.rejects(shell.exec("gzip large"), { name: "ShellLimitError", limit: "maxInputBytes" });
+    assert.equal((await fs.stat("/large")).size, 9);
+    await assert.rejects(fs.stat("/large.gz"), { code: "ENOENT" });
+  } finally { await shell.dispose(); }
+});

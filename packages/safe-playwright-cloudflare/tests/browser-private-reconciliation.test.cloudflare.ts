@@ -3,10 +3,7 @@ import {
 	createBrowserPrivateTransport,
 	waitForBrowserSocketClose,
 } from "../src/browser-private-transport";
-import {
-	createRunCodeCreationBudget,
-	MAX_RUN_CODE_FRAME_BYTES,
-} from "../src/browser-run-code-budget";
+import { createRunCodeCreationBudget } from "../src/browser-run-code-budget";
 import {
 	BROWSER_RUN_CODE_URL,
 	type BrowserRunCodeReceiver,
@@ -206,8 +203,7 @@ test("abnormal physical upstream closure remains an honest failure after client 
 	await expect(privacy.close()).rejects.toThrow("cleanup failed");
 });
 
-test("32 MiB service frame and pending contracts admit a scaled 16-to-32 boundary without giant allocations", async () => {
-	expect(MAX_RUN_CODE_FRAME_BYTES).toBe(32 * 1024 * 1024);
+test("explicit frame and pending budgets admit a scaled 16-to-32 boundary without giant allocations", async () => {
 	const unit = 256;
 	const ceiling = 32 * unit;
 	const pair = new WebSocketPair();

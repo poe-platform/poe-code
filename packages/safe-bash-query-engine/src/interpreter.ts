@@ -893,11 +893,11 @@ export class Interpreter {
     const length = input === null ? 0 : input.length;
     const size = remove ? Math.max(0, length - 1) : Math.max(length, key + 1);
     this.budget.collection(size);
-    // Assignment must remain bounded even when callers omit family limits.
-    if (!Number.isSafeInteger(size) || size > 1000000) throw new JqLimitError("maxCollectionSize");
+    // Keep array sizes representable while honoring caller-configured resource limits.
+    if (!Number.isSafeInteger(size)) throw new JqLimitError("maxCollectionSize");
     const padding = remove ? 0 : Math.max(0, key - length);
     const minimumBytes = size ? 2 * size + 1 + 3 * padding : 2;
-    if (minimumBytes > Math.min(this.budget.limits.maxValueBytes, 16 * 1024 * 1024)) throw new JqLimitError("maxValueBytes");
+    if (minimumBytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
     const result: Json[] = [];
     if (input !== null) for (const item of input) { { const _p = this.budget.tickSync(); if (_p) await _p; } result.push(item); }
     if (remove) { if (key < result.length) result.splice(key, 1); }

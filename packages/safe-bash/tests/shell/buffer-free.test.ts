@@ -3,6 +3,8 @@ import { test } from "node:test";
 import { portableRuntime } from "../helpers/portable-runtime.js";
 
 const cases: [string, number, string?][] = [
+  ['for i in {1..4}; do echo "val:$i"; done', 0, 'val:1\nval:2\nval:3\nval:4\n'],
+  ['for ((i=0;i<2;i++)); do v="café"; echo "x_${v#c}"; done', 0, 'x_afé\nx_afé\n'],
   ['trap "echo hi" EXIT; trap -p', 0], ["read -d $'\\x80' x", 1],
   ["read -d é x <<< aé; echo \"$x\"", 0, "a\n"],
   [`echo '{"a":1}' | jq .a`, 0, "1\n"], ["echo 'a: 1' | yq .a", 0, "1\n"],

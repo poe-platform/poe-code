@@ -4,7 +4,33 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
+// Replacement expectations use Bash 5.2's default patsub_replacement behavior.
+// Division by zero in an assignment expansion terminates the script, preserving
+// output from completed commands; it does not continue to the next iteration.
+for (const [source, stdout, diagnostic] of [
+  ['for i in {1..4}; do echo "val:$i"; done; echo "last:$_"', 'val:1\nval:2\nval:3\nval:4\nlast:val:4\n', false],
+  ['for i in {1..4}; do a=($i); echo "val:${a[0]}"; done', 'val:1\nval:2\nval:3\nval:4\n', false],
+  ['for ((i=0;i<2;i++)); do v="café"; echo "x_${v#c}"; done', 'x_afé\nx_afé\n', false],
+  ['v=abc; for ((i=0;i<2;i++)); do echo "x_${v/b/&}"; done', 'x_abc\nx_abc\n', false],
+  ['v=abc; for ((i=0;i<2;i++)); do echo "x_${v/b/\\&}"; done', 'x_a&c\nx_a&c\n', false],
+  ['HOME=/home/test; v=abc; for ((i=0;i<2;i++)); do echo "x_${v/b/~}"; done', 'x_a/home/testc\nx_a/home/testc\n', false],
+  ['d=1; for ((i=0;i<3;i++)); do echo "line:$i"; d=$((1-i)); y=$((10/$d)); done', 'line:0\nline:1\n', true],
+] as const) {
+  test(`batched loop output: ${source}`, async () => {
+    const shell = new Shell({ fs: new MemoryFileSystem() });
+    for (const command of basicCommands()) shell.commands.register(command);
+    try {
+      const result = await shell.exec(source);
+      assert.equal(result.stdout, stdout);
+      assert.equal(result.exitCode, diagnostic ? 1 : 0);
+      if (diagnostic) assert.match(result.stderr, /division by 0/);
+      else assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
 const expansions = [
+  ["${#s}", "5"],
   ["${s#c}", "afé🙂"], ["${s##c*}", ""],
   ["${s%🙂}", "café"], ["${s%%é*}", "caf"],
   ["${s/é/É}", "cafÉ🙂"], ["${s//é/É}", "cafÉ🙂"],

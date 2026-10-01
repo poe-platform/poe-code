@@ -113,6 +113,8 @@ test("synchronous loop regressions remain in active discovery", () => {
   const files = discoverTests(root, loadBoundaries(root));
   assert.ok(files.includes("tests/commands/waves-74-77-regression.test.ts"));
   assert.ok(files.includes("tests/commands/sync-loop-last-arg.test.ts"));
+  assert.ok(files.includes("tests/shell/sync-loop-parameter-fallback.test.ts"));
+  assert.ok(files.includes("tests/shell/buffer-free.test.ts"));
   assert.ok(files.includes("tests/commands/sync-posix-4092.test.ts"));
   assert.ok(files.includes("tests/commands/sync-conditional-4062.test.ts"));
 });

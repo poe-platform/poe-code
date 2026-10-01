@@ -932,7 +932,12 @@ it.each([["wkhtmltopdf", "index"], ["xz", "index"], ["pandoc", "index"]])("packs
   const shipped = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
   expect(shipped.dependencies).toEqual({});
   expect(shipped.exports[`./commands/${command}`]).toEqual({
-    types: `./dist/safe-bash/commands/${command}/index.d.ts`, import: `./dist/safe-bash/commands/${command}/index.js`,
+    types: `./dist/safe-bash/commands/${command}/index.d.ts`,
+    ...(command === "pandoc" ? {
+      workerd: `./dist/safe-bash/commands/${command}/index.browser.js`,
+      browser: `./dist/safe-bash/commands/${command}/index.browser.js`,
+    } : {}),
+    import: `./dist/safe-bash/commands/${command}/index.js`,
   });
   volume.writeFileSync(`/repo/packages/${commandName}/package.json`, JSON.stringify({
     name: commandName, private: false, type: "module", version: "0.0.1",

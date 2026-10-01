@@ -7,6 +7,16 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 
 const cases = [
+  ...[
+    ["a\\nb", "^a.b$"],
+    ["a\\n", "^a$"],
+    ["]a", "^[]a]+$"],
+    ["xb", "^[^]a]+$"],
+    ["]a", "^[^]a]+$"],
+  ].flatMap(([subject, pattern]) => [
+    `[[ seed =~ (seed) ]]; s=$'${subject}'; [[ "$s" =~ ${pattern} ]]; printf '%s:<%s>:<%s>\\n' "$?" "\${BASH_REMATCH[0]}" "\${BASH_REMATCH[1]}"`,
+    `s=$'${subject}'; p='${pattern}'; for i in 1 2; do [[ seed =~ (seed) ]]; [[ "$s" =~ $p ]]; printf '%s:<%s>:<%s>\\n' "$?" "\${BASH_REMATCH[0]}" "\${BASH_REMATCH[1]}"; done`,
+  ]),
   'HOME=/home/user; p=/home/user/bin; printf "%s|%s|%s|%s\\n" "${p#~/}" "${p##~/}" "${p/~/X}" "${p/#~/X}"',
   'HOME=/home/user; p=/home/user/bin; f() { printf "%s|%s\\n" "${p#~/}" "${p/~/X}"; }; f; f',
   'HOME=/home/user; p="~/bin"; printf "%s|%s\\n" "${p#"~/"}" "${p/"~"/X}"',
@@ -51,7 +61,7 @@ const modernReplacementCases = [
 for (const maxExpansionBytes of [undefined, 65536]) for (const { source, stdout } of [
   ...cases.map(source => ({ source, stdout: undefined })), ...modernReplacementCases,
 ]) test(`${stdout === undefined ? 'Bash parity' : 'Modern Bash replacement'} (${maxExpansionBytes ?? 'default'} bytes): ${source}`, async () => {
-  const env = { HOME: '/home/user' };
+  const env = { HOME: '/home/user', LC_ALL: 'C' };
   const expected = stdout === undefined ? execFileSync('/bin/bash', ['-c', source], { env: { ...process.env, ...env } }) : Buffer.from(stdout);
   const shell = new Shell({ fs: new MemoryFileSystem(), env, commands: new CommandRegistry(basicCommands()), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
   try {
@@ -59,5 +69,27 @@ for (const maxExpansionBytes of [undefined, 65536]) for (const { source, stdout 
     assert.equal(actual.exitCode, 0);
     assert.equal(actual.stderr, '');
     assert.deepEqual(Buffer.from(actual.stdoutBytes), expected);
+  } finally { await shell.dispose(); }
+});
+
+// Invalid/unsupported EREs retain the shell's explicit profile diagnostic,
+// while status and prior captures follow the macOS Bash rejection profile.
+// GNU libc accepts some stacked repetitions as an extension, so those native
+// results are not a portable oracle for this deliberately unsupported syntax.
+for (const maxExpansionBytes of [undefined, 65536]) for (const [pattern, diagnostic] of [
+  ['^(?:abc)$', 'at 1: extended group syntax'],
+  ['^([a-z]+?)[a-z]+$', 'at 8: stacked repetition'],
+  ['^([a-z]??)[a-z]+$', 'at 8: stacked repetition'],
+]) for (const variable of [false, true]) test(`Rejected ERE (${maxExpansionBytes ?? 'default'} bytes, ${variable ? 'variable' : 'literal'}): ${pattern}`, async () => {
+  const env = { LC_ALL: 'C' };
+  const source = `p='${pattern}'; for i in 1 2; do [[ seed =~ (seed) ]]; [[ abc =~ ${variable ? '$p' : pattern} ]]; printf '%s:<%s>:<%s>\\n' "$?" "\${BASH_REMATCH[0]}" "\${BASH_REMATCH[1]}"; done`;
+  const expected = Buffer.from('2:<seed>:<seed>\n'.repeat(2));
+  if (process.platform === 'darwin') assert.deepEqual(execFileSync('/bin/bash', ['-c', source], { env }), expected);
+  const shell = new Shell({ fs: new MemoryFileSystem(), env, commands: new CommandRegistry(basicCommands()), limits: maxExpansionBytes === undefined ? {} : { maxExpansionBytes } });
+  try {
+    const actual = await shell.exec(source);
+    assert.equal(actual.exitCode, 0);
+    assert.deepEqual(Buffer.from(actual.stdoutBytes), expected);
+    assert.equal(actual.stderr, `shell: line 1: [[ unsupported ERE profile ${diagnostic}\n`.repeat(2));
   } finally { await shell.dispose(); }
 });

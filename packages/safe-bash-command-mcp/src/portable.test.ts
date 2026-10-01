@@ -26,7 +26,7 @@ it.each(["workerd", "browser"])("bundles the %s MCP entry without desktop depend
 });
 
 it.each(["workerd", "browser"])("resolves portable runtime entries with %s", condition => {
-  for (const name of ["safe-bash-command-mcp/remote", "tiny-mcp-client", "mcp-oauth"]) {
+  for (const name of ["safe-bash-command-mcp", "safe-bash-command-mcp/remote", "tiny-mcp-client", "mcp-oauth"]) {
     const target = execFileSync(process.execPath, ["--conditions=" + condition, "--input-type=module", "-e",
       `console.log(import.meta.resolve(${JSON.stringify(name)}))`], { encoding: "utf8" }).trim();
     expect(target.endsWith("/dist/index.browser.js")).toBe(true);

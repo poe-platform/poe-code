@@ -12235,107 +12235,8 @@ export class Runtime {
         // Inline function steps have no continuation for a declined expansion.
         if (this._syncLoopFnCheckDepth > 0) return false;
         if (this.tryAdmitLoopInvariantSubstitution(part, rawState)) continue;
-        if (customRegisteredRegistries.has(this.commands)) return false;
-        if (part.script.lists.length !== 1) return false;
-        const list = part.script.lists[0]!;
-        if (list.terminator || list.pipelines.length !== 1) return false;
-        const p = list.pipelines[0]!;
-        // Pipeline buffers can overflow after variable or stage expansion.
-        // A synchronous loop cannot resume after earlier body effects, so keep
-        // bounded pipelines on the normal substitution execution path.
-        if (p.negate || p.commands.length !== 1) return false;
-        let cmd = p.commands[0]!;
-        // Loop substitutions require a real subshell: header admission can
-        // decline at runtime, and induction writes also change export attributes.
-        if (cmd.kind === "for" || cmd.kind === "arithmetic-for" || cmd.kind === "while") return false;
-        if (p.commands.length === 1 && (cmd.kind === "if" || cmd.kind === "case") && this.isPureSyncSubIfOrCase(cmd, rawState)) {
-          continue;
-        }
-        if (cmd.kind !== "simple" || cmd.redirects.length > 0 || cmd.words.length === 0) return false;
-        let w0Plain = cmd.words[0]!.plain;
-        // Range-aware tr and Buffer-free 76-col base64 are handled below.
-        if (p.commands.length === 1 && w0Plain !== undefined && rawState.functions.has(w0Plain) && this.firstInternalDiscovery(w0Plain, rawState, false) === "function" && !rawState.extensions?.builtins.has(w0Plain)) {
-          const fnBody = rawState.functions.get(w0Plain)!;
-          if (
-            fnBody.kind === "group" &&
-            fnBody.redirects.length === 0 &&
-            fnBody.body.lists.length === 1 &&
-            !fnBody.body.lists[0]!.terminator &&
-            fnBody.body.lists[0]!.pipelines.length === 1 &&
-            !fnBody.body.lists[0]!.pipelines[0]!.negate &&
-            fnBody.body.lists[0]!.pipelines[0]!.commands.length === 1 &&
-            fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.kind === "simple" &&
-            fnBody.body.lists[0]!.pipelines[0]!.commands[0]!.redirects.length === 0 &&
-            cmd.words.slice(1).every(w => this.isPureArgWord(w, rawState) && this.isPureSyncValueWord(w, rawState) && w.parts.length > 0 && w.parts.every(part =>
-              part.quoted || (part.kind === "text" && part.value.length > 0 && !part.value.includes(" ") && !part.value.includes("\t") && !part.value.includes("\n") && !part.value.includes("{") && !hasGlobOrEscape(part.value, true))
-            ))
-          ) {
-            const innerCmd = fnBody.body.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;
-            const innerW0 = innerCmd.words[0]?.plain;
-            if (innerW0 && (innerW0 === "echo" || innerW0 === "printf" || innerW0 === "dirname" || innerW0 === "basename" || innerW0 === "pwd" || innerW0 === "command" || innerW0 === "type" || innerW0 === "seq") && !rawState.functions.has(innerW0) && !rawState.extensions?.builtins.has(innerW0)) {
-              cmd = innerCmd;
-              w0Plain = innerW0;
-            }
-          }
-        }
-        // These evaluators can decline based on runtime input. Loop execution
-        // has no continuation for a declined substitution after earlier effects.
-        if (w0Plain === "tac" || w0Plain === "nl" || (w0Plain === "base64" && cmd.words.length > 1)) return false;
-        if (w0Plain === "pwd") {
-          if (p.commands.length === 1 && (cmd.words.length === 1 || (cmd.words.length === 2 && (cmd.words[1]?.plain === "-L" || cmd.words[1]?.plain === "--logical"))) && !rawState.functions.has("pwd") && !rawState.extensions?.builtins.has("pwd")) continue;
-          return false;
-        }
-        if ((w0Plain === "command" && cmd.words[1]?.plain === "-v") || (w0Plain === "type" && cmd.words[1]?.plain === "-t")) {
-          // PATH entries can change after admission, making discovery decline.
-          return false;
-        }
-        // File and here-string evaluators can decline on mutable input. Keep
-        // these on the normal path, which can handle arbitrary input sizes.
-        const def = w0Plain ? (w0Plain === "seq" ? this.getExternalCommand(w0Plain) : this.commands.get(w0Plain)) : undefined;
-        if (!w0Plain || (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq") || !def || rawState.functions.has(w0Plain) || rawState.extensions?.builtins.has(w0Plain)) return false;
-        if (w0Plain === "printf" ? def.execute !== printfCommand.execute : w0Plain === "echo" ? !defaultEchoExecutors.has(def.execute) : w0Plain === "seq" ? (!builtInDirectContextExecutors.has(def.execute) && customRegisteredCommands.has(def.execute)) : !builtInDirectContextExecutors.has(def.execute)) return false;
-        // Admission must satisfy the substitution evaluator too: a loop cannot
-        // recover from a declined argument after executing earlier body effects.
-        if (!cmd.words.slice(1).every(w => this.isPureArgWord(w, rawState) && this.isPureSyncValueWord(w, rawState))) return false;
-        // These substitutions consume one value per word. Unquoted expansions
-        // can split, glob, or disappear, including after loop admission.
-        if ((w0Plain === "echo" || w0Plain === "basename" || w0Plain === "dirname") &&
-            !cmd.words.slice(1).every(w => w.parts.length > 0 && w.parts.every(part =>
-              part.quoted || (part.kind === "text" && part.value.length > 0 && !part.value.includes(" ") && !part.value.includes("\t") && !part.value.includes("\n") && !part.value.includes("{") && !hasGlobOrEscape(part.value, true))
-            ))) return false;
-        if (w0Plain === "printf") {
-          if (!this.isSyncPrintfCallOk(cmd, 1, rawState, this._activePrintfInductionName)) return false;
-        } else if (w0Plain === "echo") {
-          if (!this.isSyncSubEchoCallOk(cmd, rawState)) return false;
-        } else if (w0Plain === "dirname" || w0Plain === "basename") {
-          const simArgs: string[] = [];
-          let seenDoubleDash = false;
-          for (let wi = 1; wi < cmd.words.length; wi++) {
-            const w = cmd.words[wi]!;
-            // Tilde prefixes depend on mutable HOME/PWD/OLDPWD; use normal expansion.
-            if (w.parts[0]?.kind === "text" && !w.parts[0].quoted && w.parts[0].value.startsWith("~")) return false;
-            const st = w.plain ?? (w.parts.length > 0 && w.parts.every(pt => pt.kind === "text") ? w.parts.map(pt => pt.value).join("") : undefined);
-            if (st !== undefined) {
-              if (st === "--") seenDoubleDash = true;
-              simArgs.push(st);
-            } else {
-              // A loop operand can become an option after admission.
-              if (!seenDoubleDash) return false;
-              simArgs.push("x");
-            }
-          }
-          if ((w0Plain === "dirname" ? this.evalSyncDirname(simArgs) : this.evalSyncBasename(simArgs)) === undefined) return false;
-        } else if (w0Plain === "seq") {
-          const simArgs: string[] = [];
-          for (let wi = 1; wi < cmd.words.length; wi++) {
-            const w = cmd.words[wi]!;
-            const st = w.plain ?? (w.parts.length > 0 && w.parts.every(pt => pt.kind === "text") ? w.parts.map(pt => pt.value).join("") : undefined);
-            if (st === undefined) return false;
-            simArgs.push(st);
-          }
-          if (this.evalSyncSeq(simArgs) === undefined) return false;
-        }
-        continue;
+        // Dynamic substitutions execute at the committed expansion boundary.
+        return false;
       }
       return false;
     }
@@ -22851,6 +22752,10 @@ export class Runtime {
         }
       } else if (part.kind === "substitution") {
         if (split && !part.quoted) return undefined;
+        // General word probes may be replayed by a caller after another word or
+        // command guard declines. Run substitutions at the committed valuePart
+        // boundary; only pre-admitted loop invariants belong in this path.
+        if (!this._syncLoopInvariantSubMap?.has(part)) return undefined;
         const substVal = this.tryFastPureSubstitution(part, state, rawState, io);
         if (substVal === undefined) return undefined;
         out += substVal;
@@ -29653,9 +29558,9 @@ export class Runtime {
         continue;
       }
       if (p.kind === "arithmetic") {
-        if (p.expression.hasSubscript || p.expression.hasMutation || rawState.nounset) return false;
-        if (p.expression.error && (p.expression.source.includes("=") || p.expression.source.includes("++") || p.expression.source.includes("--"))) return false;
-        continue;
+        // Even read-only arithmetic can fail (including through variable values).
+        // Its diagnostic and exit status belong to the substitution's child shell.
+        return false;
       }
       return false;
     }

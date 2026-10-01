@@ -8,19 +8,17 @@ for (const name of names) {
     const title = name[0]!.toUpperCase() + name.slice(1);
     for (const symbol of [`create${title}Command`, `create${title}Commands`, `${name}Commands`])
       assert.equal(typeof entry[symbol], "function", symbol);
-    if (name !== "op") {
-      const single = entry[`create${title}Command`]();
-      const list = entry[`create${title}Commands`]();
-      assert.equal(typeof single.execute, "function");
-      assert.ok(list.some((definition: { name: string }) => definition.name === single.name));
-      assert.equal(new Set(list.map((definition: { name: string }) => definition.name)).size, list.length);
-      const registered: string[] = [];
-      await entry[`${name}Commands`]().setup({ commands: {
-        has: () => false,
-        register: (definition: { name: string }) => registered.push(definition.name)
-      } });
-      assert.deepEqual(registered, list.map((definition: { name: string }) => definition.name));
-    }
+    const single = entry[`create${title}Command`]();
+    const list = entry[`create${title}Commands`]();
+    assert.equal(typeof single.execute, "function");
+    assert.ok(list.some((definition: { name: string }) => definition.name === single.name));
+    assert.equal(new Set(list.map((definition: { name: string }) => definition.name)).size, list.length);
+    const registered: string[] = [];
+    await entry[`${name}Commands`]().setup({ commands: {
+      has: () => false,
+      register: (definition: { name: string }) => registered.push(definition.name)
+    } });
+    assert.deepEqual(registered, list.map((definition: { name: string }) => definition.name));
   });
 }
 test("Mike yq profile is available from the safe-bash adapter", async () => {
@@ -34,4 +32,22 @@ test("Mike yq profile is exported by public core", async () => {
   assert.equal(core.createMikeYqCommand().name, "yq");
   assert.equal(core.createMikeYqCommands()[0]?.name, "yq");
   assert.equal(core.mikeYqCommands().name, "mike-yq-commands");
+});
+
+test("public shell executes the Mike profile and numeric XPath predicates", async () => {
+  const { Shell, mikeYqCommands, xmllintCommands } = await import("../../src/core.js");
+  const { createMemoryFileSystem } = await import("../../src/fs/memory/index.js");
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(mikeYqCommands()).use(xmllintCommands());
+  try {
+    const yaml = await shell.exec("yq -n -o=json '.name = \"Alpha\"'");
+    assert.equal(yaml.exitCode, 0, yaml.stderr);
+    assert.deepEqual(JSON.parse(yaml.stdout), { name: "Alpha" });
+    const xml = await shell.exec(`xmllint --xpath '//item[@price > 15]/text()' - <<'XML'
+<root><item price="10">Alpha</item><item price="20">Beta</item></root>
+XML`);
+    assert.equal(xml.exitCode, 0, xml.stderr);
+    assert.equal(xml.stdout, "Beta\n");
+  } finally {
+    await shell.dispose();
+  }
 });

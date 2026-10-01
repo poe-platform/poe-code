@@ -814,6 +814,16 @@ pub fn push(
         .map(|r| r.oid.clone())
         .unwrap_or_else(|| "0000000000000000000000000000000000000000".to_string());
 
+    if !delete && old_oid == new_oid {
+        let mut refs = BTreeMap::new();
+        refs.insert(full_remote_ref, crate::wire::RefUpdateStatus { ok: true, error: String::new() });
+        return Ok(PushResult {
+            ok: true,
+            error: None,
+            refs,
+        });
+    }
+
     if !delete && !force && old_oid != "0000000000000000000000000000000000000000" && old_oid != new_oid
         && !crate::commands::plumbing::is_descendent(fs, &gdir, &new_oid, &old_oid, None).unwrap_or(false) {
             return Err(GitError::push_rejected("not-fast-forward"));
@@ -824,6 +834,21 @@ pub fn push(
     } else {
         let mut oids = Vec::new();
         let mut seen = BTreeSet::new();
+        if old_oid != "0000000000000000000000000000000000000000" {
+            let mut stop_queue = vec![old_oid.clone()];
+            for _ in 0..64 {
+                let Some(cur) = stop_queue.pop() else { break };
+                if !seen.insert(cur.clone()) { continue; }
+                if let Ok(res) = crate::storage::_read_object(fs, &gdir, &cur, "content") && res.obj_type == "commit" {
+                    let c = crate::models::GitCommit::from_bytes(&res.object).parse();
+                    let mut dummy_out = Vec::new();
+                    collect_reachable_objects(fs, &gdir, &c.tree, &mut seen, &mut dummy_out);
+                    for p in c.parent {
+                        stop_queue.push(p);
+                    }
+                }
+            }
+        }
         collect_reachable_objects(fs, &gdir, &new_oid, &mut seen, &mut oids);
         pack_objects(fs, &gdir, &oids, false)?
             .packfile

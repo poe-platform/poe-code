@@ -121,10 +121,12 @@ for (const path of globSync(workspaces.map(pattern => `${pattern}/package.json`)
   for (const [subpath, target] of Object.entries(manifest.exports ?? {})) {
     const types = typeof target.types === "string" ? target.types : target.types?.default;
     if (!types?.startsWith("./dist/") || !types.endsWith(".d.ts")) continue;
-    workspaceExports.push({
-      specifier: manifest.name + (subpath === "." ? "" : subpath.slice(1)),
-      source: join(root, directory, "src", types.slice("./dist/".length, -".d.ts".length) + ".ts"),
-    });
+    const specifier = manifest.name + (subpath === "." ? "" : subpath.slice(1));
+    const sourcePath = `${directory}/src/${types.slice("./dist/".length, -".d.ts".length)}.ts`;
+    if (subpath !== "." && sourcePath !== `${directory}/src/${subpath.slice(2)}.ts`) {
+      workspaceSourcePaths[specifier] = [sourcePath];
+    }
+    workspaceExports.push({ specifier, source: join(root, sourcePath) });
   }
 }
 

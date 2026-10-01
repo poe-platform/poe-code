@@ -1130,6 +1130,16 @@
       "safe-bash-command-unalias/*": [
         "../safe-bash-command-unalias/src/*.ts",
         "../safe-bash-command-unalias/src/*"
+      ],
+      "safe-bash-command-media": [
+        "../safe-bash-command-media/src/index.ts"
+      ],
+      "safe-bash-command-media/*": [
+        "../safe-bash-command-media/src/*.ts",
+        "../safe-bash-command-media/src/*"
+      ],
+      "safe-bash-command-mcp/remote": [
+        "../safe-bash-command-mcp/src/index.ts"
       ]
     },
     "baseUrl": "."

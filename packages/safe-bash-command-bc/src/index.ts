@@ -1,3 +1,4 @@
+import { Decimal } from "decimal.js";
 import {
   commandRuntimeIdentity,
   readBytes,
@@ -287,44 +288,53 @@ function formatDecimalInBase(val: DecimalValue, obase: number): string {
   return (neg && absCoeff !== 0n ? "-" : "") + (intOut === "0" ? "" : intOut) + "." + fracOut;
 }
 
-function besselJ(nInt: number, x: number): number {
-  const n = Math.trunc(nInt);
-  if (x === 0) return n === 0 ? 1 : 0;
-  const m = Math.abs(n);
-  const halfX = x / 2;
-  let term = 1;
-  for (let i = 1; i <= m; i++) term *= halfX / i;
-  let sum = term;
-  const minusQuarterX2 = -(halfX * halfX);
-  for (let k = 1; k <= 80; k++) {
-    term *= minusQuarterX2 / (k * (m + k));
-    sum += term;
-    if (Math.abs(term) < 1e-18 * Math.abs(sum)) break;
+// Each call owns its precision, so concurrent shells cannot change one another's math.
+async function mathValue(name: string, args: readonly DecimalValue[], scale: number, tick: () => Promise<void> | undefined): Promise<DecimalValue | undefined> {
+  if (!["s", "c", "a", "l", "e", "j"].includes(name)) return undefined;
+  const decimal = (value: DecimalValue) => `${value.coeff}e-${value.scale}`;
+  const raw = args[name === "j" ? 1 : 0] ?? ZERO;
+  const magnitude = new Decimal(decimal(raw)).abs();
+  // Exponentials need room for integer digits; the Bessel series also needs
+  // guard digits for cancellation between terms as large as exp(abs(x)).
+  const extra = name === "e" || name === "j" ? magnitude.ceil().toNumber() : Math.max(0, magnitude.e + 1);
+  const D = Decimal.clone({ precision: scale + extra + 32, rounding: Decimal.ROUND_DOWN });
+  const x = new D(decimal(raw));
+  let result: Decimal;
+  switch (name) {
+    case "s": result = x.sin(); break;
+    case "c": result = x.cos(); break;
+    case "a": result = x.atan(); break;
+    case "l":
+      if (x.lte(0)) throw new Error("Runtime error: l(x) domain error");
+      result = x.ln(); break;
+    case "e": result = x.exp(); break;
+    default: {
+      const n = truncToInt(args[0] ?? ZERO);
+      const order = n < 0n ? -n : n;
+      const half = x.div(2);
+      let term = new D(1);
+      for (let i = 1n; i <= order; i++) {
+        const pending = tick(); if (pending) await pending;
+        term = term.mul(half).div(i.toString());
+      }
+      result = term;
+      const factor = half.mul(half).neg();
+      const epsilon = new D(10).pow(-scale - 16);
+      for (let k = 1n; !term.isZero(); k++) {
+        const pending = tick(); if (pending) await pending;
+        term = term.mul(factor).div((k * (order + k)).toString());
+        result = result.add(term);
+        // Stop only in the decreasing tail, after absolute error is negligible.
+        if (term.abs().lt(epsilon) && new D((k * (order + k)).toString()).gt(factor.abs())) break;
+      }
+      if (n < 0n && order % 2n === 1n) result = result.neg();
+    }
   }
-  if (n < 0 && (m & 1) === 1) sum = -sum;
-  return sum;
+  if (!result.isFinite()) throw new Error("math domain/range error");
+  const fixed = result.toFixed(scale, Decimal.ROUND_DOWN);
+  return { coeff: BigInt(fixed.split(".").join("")), scale };
 }
 
-function fromNumber(num: number, scale: number): DecimalValue {
-  if (!Number.isFinite(num)) throw new Error("math domain/range error");
-  const clampedScale = Math.min(scale, 30);
-  const fixed = num.toFixed(Math.min(clampedScale + 4, 20));
-  const dot = fixed.indexOf(".");
-  const neg = fixed.startsWith("-");
-  const clean = neg ? fixed.slice(1) : fixed;
-  const cleanDot = clean.indexOf(".");
-  const intPart = cleanDot >= 0 ? clean.slice(0, cleanDot) : clean;
-  let fracPart = cleanDot >= 0 ? clean.slice(cleanDot + 1) : "";
-  if (fracPart.length < scale) fracPart = fracPart.padEnd(scale, "0");
-  else if (fracPart.length > scale) fracPart = fracPart.slice(0, scale);
-  void dot;
-  const coeff = BigInt((intPart + fracPart) || "0");
-  return { coeff: neg ? -coeff : coeff, scale };
-}
-
-function toNumber(val: DecimalValue): number {
-  return Number(formatDecimalInBase(val, 10));
-}
 
 interface Token {
   type: "number" | "string" | "id" | "op" | "punct" | "semi" | "eof";
@@ -953,21 +963,8 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           if (expr.name === "length") return lengthDec(arg0);
           if (expr.name === "abs") return { coeff: arg0.coeff < 0n ? -arg0.coeff : arg0.coeff, scale: arg0.scale };
           if (mathlib) {
-            if (expr.name === "s") return fromNumber(Math.sin(toNumber(arg0)), scale);
-            if (expr.name === "c") return fromNumber(Math.cos(toNumber(arg0)), scale);
-            if (expr.name === "a") return fromNumber(Math.atan(toNumber(arg0)), scale);
-            if (expr.name === "l") {
-              const x = toNumber(arg0);
-              if (x <= 0) throw new Error("Runtime error: l(x) domain error");
-              return fromNumber(Math.log(x), scale);
-            }
-            if (expr.name === "e") return fromNumber(Math.exp(toNumber(arg0)), scale);
-            if (expr.name === "j") {
-              const nVal = Math.trunc(toNumber(arg0));
-              const xVal = toNumber(args[1] ?? ZERO);
-              if (xVal === 0) return nVal === 0 ? fromNumber(1, scale) : { coeff: 0n, scale };
-              return fromNumber(besselJ(nVal, xVal), scale);
-            }
+            const result = await mathValue(expr.name, args, scale, tick);
+            if (result) return result;
           }
           const fn = funcs.get(expr.name);
           if (!fn) throw new Error(`Function ${expr.name} not defined.`);

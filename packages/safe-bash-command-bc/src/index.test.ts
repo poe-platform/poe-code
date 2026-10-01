@@ -40,14 +40,14 @@ test("bc evaluates exponents above the former implicit ceiling", async () => {
   assert.equal(Buffer.concat(chunks).toString("utf8"), `${2n ** 20000n}\n0\n`);
 });
 
-async function evaluate(program: string, options: Parameters<typeof createBcCommand>[0] = {}) {
+async function evaluate(program: string, options: Parameters<typeof createBcCommand>[0] = {}, args: string[] = []) {
   const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
   const { createBytePipe, createCommandArguments } = await import("safe-bash-contracts");
   const stdin = createBytePipe(), stdout = createBytePipe(), stderr = createBytePipe();
   await stdin.writable.write(new TextEncoder().encode(program));
   await stdin.close();
   const result = await createBcCommand(options).execute({
-    command: "bc", args: createCommandArguments([]).args, cwd: "/", env: {},
+    command: "bc", args: createCommandArguments(args).args, cwd: "/", env: {},
     fs: createMemoryFileSystem(), stdin: stdin.readable,
     stdout: stdout.writable, stderr: stderr.writable, signal: new AbortController().signal,
   });
@@ -125,3 +125,39 @@ for (const [program, stdout] of [
     assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
   });
 }
+
+test("bc math library preserves decimal precision at default and extended scales", async () => {
+  const result = await evaluate("4*a(1); s(1); c(1); l(2); e(1); j(0,1); scale=40; a(1)\n", {}, ["-l"]);
+  assert.deepEqual(result, { exitCode: 0, stderr: "", stdout: [
+    "3.14159265358979323844", ".84147098480789650665", ".54030230586813971740",
+    ".69314718055994530941", "2.71828182845904523536", ".76519768655796655144",
+    ".7853981633974483096156608458198757210492", ""
+  ].join("\n") });
+});
+
+for (const [expression, expected] of [
+  ["s(1)", ".8414709848078965066525023216302989996225"],
+  ["c(1)", ".5403023058681397174009366074429766037323"],
+  ["l(2)", ".6931471805599453094172321214581765680755"],
+  ["e(1)", "2.7182818284590452353602874713526624977572"],
+  ["j(0,1)", ".7651976865579665514497175261026632209092"],
+  ["j(-1,1)", "-.4400505857449335159596822037189149131273"],
+  ["j(1,-1)", "-.4400505857449335159596822037189149131273"],
+  ["s(0); a(0); l(1); j(1,0)", "0\n0\n0\n0"],
+] as const) {
+  test(`bc math at scale 40: ${expression}`, async () => {
+    assert.deepEqual(await evaluate(`scale=40; ${expression}`, {}, ["-l"]), { exitCode: 0, stdout: expected + "\n", stderr: "" });
+  });
+}
+
+test("bc Bessel iterations obey the work quota", async () => {
+  const result = await evaluate("j(100,1)", { maxSteps: 10 }, ["-l"]);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /maximum step limit/);
+});
+
+test("bc concurrent math calls retain their own scale", async () => {
+  const results = await Promise.all([evaluate("scale=3; a(1)", {}, ["-l"]), evaluate("a(1)", {}, ["-l"])]);
+  assert.equal(results[0]?.stdout, ".785\n");
+  assert.equal(results[1]?.stdout, ".78539816339744830961\n");
+});

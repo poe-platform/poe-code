@@ -790,7 +790,9 @@
         },
         "safe-bash-command-bc": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "decimal.js": "^10.6.0"
+          },
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"

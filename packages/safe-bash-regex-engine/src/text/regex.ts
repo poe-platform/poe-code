@@ -226,7 +226,7 @@ export interface PatternLimits {
   readonly maxPatternDepth?: number;
 }
 
-export interface Match { readonly start: number; readonly end: number; readonly groups: readonly (string | undefined)[] }
+export interface Match { readonly start: number; readonly end: number; readonly groups: readonly (string | undefined)[]; readonly captureOffsets?: readonly (number | undefined)[] }
 
 type PatternBudget = Pick<Budget, "step" | "maxBufferBytes"> & { readonly options?: PatternLimits } & Partial<Pick<Budget, "checkpointSync">> & {
   checkpoint(): void | Promise<void>;
@@ -815,7 +815,7 @@ export class Pattern {
             budget.step();
             groups.push(captures[index * 2] === undefined ? undefined : text.slice(captures[index * 2], captures[index * 2 + 1]));
           }
-          return { match: { start: matchStart, end: position, groups }, captures };
+          return { match: { start: matchStart, end: position, groups, captureOffsets: captures }, captures };
         }
         if (instruction.kind === "conditional") {
           const result = await this.findJq(text, budget, position, { pc: instruction.first, exact: true, captures, continuation });

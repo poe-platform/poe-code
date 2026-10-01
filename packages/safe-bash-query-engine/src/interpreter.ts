@@ -4,7 +4,7 @@ import { Decimal, isNumber, numberValue, type Numeric } from "./numbers.js";
 import { JqParseError, measureValue, parseJson, stringify } from "./input.js";
 import type { Ast, BindingPattern } from "./parser.js";
 import { formatValue } from "./formats.js";
-import { scanRegex, substituteRegex } from "./regex.js";
+import { scanRegex, substituteRegex, matchRegex } from "./regex.js";
 import { splitString } from "./split.js";
 import { indices } from "./indices.js";
 import { fromDateIso8601, toDateIso8601, gmtime, mktime, strftime, strptime } from "./dates.js";
@@ -947,14 +947,74 @@ export class Interpreter {
       yield* visit(input);
       return;
     }
+    if (name === "test" || name === "match") {
+      for await (const pattern of this.run(args[0]!, input)) {
+        const source = !args[1] && Array.isArray(pattern) ? pattern[0] ?? null : pattern;
+        for await (const flags of args[1] ? this.run(args[1], input) : [Array.isArray(pattern) ? pattern[1] ?? null : null]) {
+          yield* matchRegex(input, source, flags, budget, name === "test");
+        }
+      }
+      return;
+    }
+    if (name === "isempty") {
+      for await (const value of this.run(args[0]!, input)) { void value; yield false; return; }
+      yield true; return;
+    }
+    if (name === "nth") {
+      for await (const value of this.run(args[0]!, input)) {
+        if (!args[1]) { yield indexValue(input, value); continue; }
+        if (!isNumber(value) || numberValue(value) < 0) throw new JqError("nth doesn't support negative indices");
+        const target = Math.ceil(numberValue(value));
+        let index = 0;
+        for await (const item of this.run(args[1], input)) {
+          if (index++ === target) { yield item; break; }
+        }
+      }
+      return;
+    }
+    if (name === "in") {
+      for await (const container of this.run(args[0]!, input)) {
+        yield* this.run({ kind: "call", name: "has", args: [{ kind: "literal", value: input }] }, container);
+      }
+      return;
+    }
+    if (name === "IN") {
+      for await (const candidate of args.length === 2 ? this.run(args[0]!, input) : [input]) {
+        for await (const value of this.run(args.at(-1)!, input)) {
+          if (equal(candidate, value, budget)) { yield true; return; }
+        }
+      }
+      yield false; return;
+    }
+    if (name === "INDEX") {
+      const result = object();
+      const source: Ast = args.length === 2 ? args[0]! : { kind: "iterate", base: { kind: "identity" } };
+      for await (const value of this.run(source, input)) {
+        for await (const key of this.run(args.at(-1)!, value)) {
+          const text = typeof key === "string" ? key : await stringify(key, budget);
+          put(result, text, value);
+          budget.collection(objectKeys(result).length);
+          budget.value(result);
+        }
+      }
+      yield result; return;
+    }
+    if (name === "pick") {
+      let result: Json = null;
+      for await (const path of this.paths(args[0]!, input)) {
+        result = await this.set(result, path, await this.read(input, path));
+        budget.value(result);
+      }
+      yield result; return;
+    }
     if (name === "gmtime") { yield gmtime(input); return; }
     if (name === "mktime") { yield mktime(input); return; }
     if (name === "strftime" || name === "strptime") {
       for await (const format of this.run(args[0]!, input)) yield name === "strftime" ? strftime(input, format, budget) : strptime(input, format, budget);
       return;
     }
-    if (name === "fromdateiso8601") { yield fromDateIso8601(input); return; }
-    if (name === "todateiso8601") { yield toDateIso8601(input); return; }
+    if (name === "fromdateiso8601" || name === "fromdate") { yield fromDateIso8601(input); return; }
+    if (name === "todateiso8601" || name === "todate") { yield toDateIso8601(input); return; }
     if (name === "while" || name === "until") {
       // Keep filter continuations explicitly: branching updates use depth-first
       // order, and consumers can stop before evaluating later branches.
@@ -986,7 +1046,7 @@ export class Interpreter {
       return;
     }
     if (name === "scan") {
-      for await (const source of this.run(args[0]!, input)) yield* scanRegex(input, source, budget);
+      for await (const source of this.run(args[0]!, input)) for await (const flags of args[1] ? this.run(args[1], input) : [null]) yield* scanRegex(input, source, budget, flags);
       return;
     }
     if (name === "recurse") { yield* recurse(this, args, input); return; }
@@ -1125,11 +1185,11 @@ export class Interpreter {
       }
       return;
     }
-    if (name === "floor" || name === "ceil" || name === "round" || name === "abs") {
+    if (name === "floor" || name === "ceil" || name === "round" || name === "abs" || name === "sqrt") {
       if (!isNumber(input)) throw new JqError(`${describe(input, budget)} cannot be ${name}ed`);
       budget.step();
       const n = numberValue(input);
-      yield name === "floor" ? Math.floor(n) : name === "ceil" ? Math.ceil(n) : name === "round" ? Math.sign(n) * Math.round(Math.abs(n)) : Math.abs(n);
+      yield name === "floor" ? Math.floor(n) : name === "ceil" ? Math.ceil(n) : name === "round" ? Math.sign(n) * Math.round(Math.abs(n)) : name === "sqrt" ? Math.sqrt(n) : Math.abs(n);
       return;
     }
     if (name === "implode") {
@@ -1227,33 +1287,35 @@ export class Interpreter {
       return;
     }
     if (name === "combinations") {
-      for await (const length of this.run({ kind: "call", name: "length", args: [] }, input)) {
-        const width = Math.ceil(numberValue(length as Numeric));
+      let width = 0;
+      for await (const length of this.run(args[0] ?? { kind: "call", name: "length", args: [] }, input)) {
+        if (!isNumber(length)) throw new JqError("combinations requires a number");
+        width += Math.max(0, Math.ceil(numberValue(length as Numeric)));
         budget.collection(width);
-        if (width === 0) { yield []; return; }
-        const values: Json[] = [];
-        const iterators: AsyncGenerator<[string | number, Json]>[] = [];
-        let depth = 0;
-        try {
-          while (depth >= 0) {
-            { const _p = budget.tickSync(); if (_p) await _p; }
-            if (!iterators[depth]) iterators[depth] = entries(indexValue(input, depth), budget);
-            const next = await iterators[depth]!.next();
-            if (next.done) {
-              iterators.pop();
-              values.pop();
-              depth--;
-            } else {
-              values[depth] = next.value[1];
-              if (depth + 1 === width) {
-                budget.value(values);
-                yield [...values];
-              } else depth++;
-            }
+      }
+      if (width === 0) { yield []; return; }
+      const values: Json[] = [];
+      const iterators: AsyncGenerator<[string | number, Json]>[] = [];
+      let depth = 0;
+      try {
+        while (depth >= 0) {
+          { const _p = budget.tickSync(); if (_p) await _p; }
+          if (!iterators[depth]) iterators[depth] = entries(args.length ? input : indexValue(input, depth), budget);
+          const next = await iterators[depth]!.next();
+          if (next.done) {
+            iterators.pop();
+            values.pop();
+            depth--;
+          } else {
+            values[depth] = next.value[1];
+            if (depth + 1 === width) {
+              budget.value(values);
+              yield [...values];
+            } else depth++;
           }
-        } finally {
-          for (const iterator of iterators) await iterator.return(undefined);
         }
+      } finally {
+        for (const iterator of iterators) await iterator.return(undefined);
       }
       return;
     }
@@ -1380,7 +1442,7 @@ export class Interpreter {
     }
     if (name === "splits") {
       for await (const separator of this.run(args[0]!, input)) {
-        yield* splitRegex(input, separator, budget);
+        for await (const flags of args[1] ? this.run(args[1], input) : [null]) yield* splitRegex(input, separator, budget, flags);
       }
       return;
     }

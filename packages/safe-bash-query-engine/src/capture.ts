@@ -4,7 +4,7 @@ import { ProgramError } from "safe-bash-regex-engine/text/budget";
 import { describe } from "./values.js";
 
 // Extended mode ignores unescaped whitespace/comments outside character classes.
-async function extendedPattern(pattern: string, budget: Budget): Promise<string> {
+export async function extendedPattern(pattern: string, budget: Budget): Promise<string> {
   let result = "";
   let characterClass = false;
   for (let index = 0; index < pattern.length; index++) {

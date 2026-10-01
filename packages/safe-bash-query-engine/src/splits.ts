@@ -1,18 +1,20 @@
 import { utf8ByteLength } from "./bytes.js";
 import { Pattern } from "safe-bash-regex-engine/text/regex";
 import { Budget, JqError, type Json } from "./limits.js";
-import { regexError } from "./regex.js";
+import { extendedPattern } from "./capture.js";
+import { regexError, regexFlags } from "./regex.js";
 import { describe } from "./values.js";
 
-export async function* splitRegex(input: Json, source: Json, budget: Budget): AsyncGenerator<string> {
+export async function* splitRegex(input: Json, source: Json, budget: Budget, modifiers: Json = null): AsyncGenerator<string> {
   { const _p = budget.tickSync(); if (_p) await _p; }
   if (typeof input !== "string") throw new JqError(`${describe(input, budget)} cannot be matched, as it is not a string`);
   if (typeof source !== "string") throw new JqError(`${describe(source, budget)} is not a string`);
+  const flags = regexFlags(modifiers, budget);
   budget.value(input);
   budget.value(source);
   const work = { step: (count = 1) => budget.step(count), checkpoint: () => budget.tick(0), maxBufferBytes: budget.limits.maxValueBytes };
   try {
-    const pattern = new Pattern(source, true, false, "jq");
+    const pattern = new Pattern(flags.includes("x") ? await extendedPattern(source, budget) : source, true, flags.includes("i"), "jq", flags.includes("p") ? flags + "m" : flags);
     let search = 0;
     let copied = 0;
     while (search <= input.length) {

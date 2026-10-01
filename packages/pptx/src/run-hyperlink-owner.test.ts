@@ -181,3 +181,22 @@ it("reports a typed unavailable-property error for detached run owners", () => {
   );
   expect(() => shape.text_frame.paragraphs[0]!.runs[0]!.hyperlink).toThrow(sdk.PropertyAccessError);
 });
+
+it("edits table-cell run hyperlinks through their package owner and preserves them on reopen", async () => {
+  const deck = await blank();
+  const table = deck.slides[0]!.shapes.add_table(2, 2, sdk.Inches(0), sdk.Inches(0), sdk.Inches(4), sdk.Inches(2)).table;
+  const run = table.cell(1, 1).text_frame.paragraphs[0]!.add_run();
+  run.text = "Details";
+  run.hyperlink.address = "https://example.invalid/table";
+  table.cell(0, 0).text = "Heading";
+  run.font.bold = true;
+  expect(run.hyperlink.address).toBe("https://example.invalid/table");
+  const saved = await deck.save();
+  expect((await sdk.listLinks(saved, {}, context)).map(link => link.url)).toEqual(["https://example.invalid/table"]);
+  const reopened = await sdk.Presentation(saved, context);
+  const frame = reopened.slides[0]!.shapes[0] as sdk.GraphicFrame;
+  expect(frame.table.cell(1, 1).text_frame.paragraphs[0]!.runs[0]!.hyperlink.address).toBe("https://example.invalid/table");
+  const link = run.hyperlink;
+  table.cell(1, 1).text = "Replacement";
+  expect(() => link.address).toThrow(expect.objectContaining({code: "invalid-handle"}));
+});

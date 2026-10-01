@@ -5,9 +5,16 @@ import { child, required } from "./masters.js";
 import { FillFormat } from "./shapes.js";
 import { nodeFor } from "./shape-operations.js";
 import { TextFrame } from "./text-frames.js";
+import { textLinkCapabilities } from "./text-link-capability.js";
+import type { Hyperlink } from "./links-model.js";
 import { MSO_VERTICAL_ANCHOR } from "./text-frame-enums.js";
 import { applyTableUpdate, readTable, type TableUpdate } from "./tables.js";
 import type { XmlElement, XmlPart } from "./xml.js";
+interface TableOwner {
+  read(): XmlPart;
+  write(xml: XmlPart): void;
+  readonly hyperlink?: (path: () => readonly number[]) => Hyperlink<{ readonly part: string }>;
+}
 function position(index: number, length: number): void {
   if (!Number.isSafeInteger(index) || index < 0 || index >= length)
     throw new IndexError("Table position is outside the collection.");
@@ -47,7 +54,7 @@ function indexed<T extends { get(index: number): unknown }>(collection: T): T {
 }
 export class Table {
   #storedXml: XmlPart;
-  readonly #owner: { read(): XmlPart; write(xml: XmlPart): void } | undefined;
+  readonly #owner: TableOwner | undefined;
   get #xml(): XmlPart {
     return this.#owner?.read() ?? this.#storedXml;
   }
@@ -64,7 +71,7 @@ export class Table {
   constructor(
     xml: XmlPart,
     shapeId?: number,
-    owner?: { read(): XmlPart; write(xml: XmlPart): void }
+    owner?: TableOwner
   ) {
     this.#storedXml = xml;
     this.#owner = owner;
@@ -181,21 +188,26 @@ export class Table {
     };
     const body = () => {
       validate();
-      const graphic = this.element.children.find((n) => n.name.localName === "graphic")!;
-      const tbl = required(required(graphic, "graphicData"), "tbl");
+      const frame = this.element;
+      const graphic = frame.children.find((node) => node.name.localName === "graphic")!;
+      const data = required(graphic, "graphicData");
+      const tbl = required(data, "tbl");
       const tr = tbl.children.filter((n) => n.name.localName === "tr")[row]!;
-      return required(tr.children.filter((n) => n.name.localName === "tc")[column]!, "txBody");
+      const cell = tr.children.filter((n) => n.name.localName === "tc")[column]!;
+      const node = required(cell, "txBody");
+      const ancestors = [frame, graphic, data, tbl, tr, cell, node];
+      return { node, path: ancestors.slice(1).map((child, i) => ancestors[i]!.children.indexOf(child)) };
     };
     let source: XmlPart | undefined, cached: XmlPart;
     const read = () => {
       validate();
       if (source !== this.#xml) {
         source = this.#xml;
-        cached = this.#xml.subtree(body());
+        cached = this.#xml.subtree(body().node);
       }
       return cached;
     };
-    return new TextFrame(read(), undefined, {
+    const frame = new TextFrame(read(), undefined, {
       parent,
       read,
       write: (xml) => {
@@ -203,7 +215,7 @@ export class Table {
           cell: { row, column },
           text: this.cell(row, column).text
         });
-        const target = body();
+        const target = body().node;
         const find = (node: XmlElement): XmlElement | undefined =>
           node.children.includes(target) ? node : node.children.map(find).find(Boolean);
         const owner = find(this.#xml.root)!;
@@ -212,6 +224,9 @@ export class Table {
         ]);
       }
     });
+    const hyperlink = this.#owner?.hyperlink;
+    if (hyperlink) textLinkCapabilities.set(frame, path => hyperlink(() => [...body().path, ...path()]));
+    return frame;
   }
 }
 export class TableCell {

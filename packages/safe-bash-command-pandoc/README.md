@@ -26,7 +26,7 @@ compatibility. Built-in DOCX conversion preserves headings, bold/italic text, hy
 tables, blockquotes, horizontal rules, strikeout, superscript, subscript, quotes,
 and embedded raster images (including inline images in table cells). PPTX renders blockquotes as indented
 content, preserves code, strikeout, superscript, subscript and quotes, and accepts
-Div containers. RST writes Divs as containers and strikeout as a declared role
+Div containers. PPTX table paragraphs preserve rich text and hyperlinks. RST writes Divs as containers and strikeout as a declared role
 with the `strikeout` CSS class. PDF uses standard Helvetica bold/oblique and Courier fonts for styled
 text and inline code by default; supplied fonts retain their explicit styling.
 ODT reads and writes headings, rich text, links, lists, simple tables, quotations,

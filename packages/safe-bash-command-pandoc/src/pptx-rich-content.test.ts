@@ -33,3 +33,16 @@ it("embeds a standalone image nested in a Div", async () => {
   if (result.kind !== "binary") throw new Error("Expected PPTX");
   expect([...readZipArchiveEntries(result.bytes)].some(([name, bytes]) => name.startsWith("ppt/media/") && Buffer.from(bytes).equals(image))).toBe(true);
 });
+it("preserves rich text and hyperlinks inside PPTX table cells", async () => {
+  const result = await convert([{bytes: new TextEncoder().encode("| Name | Detail |\n|---|---|\n| **Fruit** | [site](https://example.com) and ~~old~~ |\n")}], {from: "gfm", to: "pptx"}, context);
+  if (result.kind !== "binary") throw new Error("Expected PPTX");
+  const parts = readZipArchiveEntries(result.bytes);
+  const xml = new TextDecoder().decode(parts.get("ppt/slides/slide1.xml"));
+  expect(xml).toContain('b="1"');
+  expect(xml).toContain('strike="sngStrike"');
+  expect(xml).toContain("hlinkClick");
+  expect(new TextDecoder().decode(parts.get("ppt/slides/_rels/slide1.xml.rels"))).toContain("https://example.com");
+  const plain = await convert([{bytes: result.bytes}], {from: "pptx", to: "plain"}, context);
+  expect(plain).toMatchObject({text: expect.stringContaining("Fruit")});
+  expect(plain).toMatchObject({text: expect.stringContaining("site and old")});
+});

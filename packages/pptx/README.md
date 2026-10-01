@@ -16,6 +16,11 @@ publication, time, author and font metrics are explicit caller capabilities.
 Length helpers (`Length`, `Inches`, `Pt`, `Cm`, `Mm`, `Emu`, `Centipoints`) and `RGBColor`
 accept both factory calls and `new`. `Presentation.save()` accepts byte sinks with
 `write(bytes)`; `close()` is optional.
+Run fonts support `strike` (`"none"`, `"single"`, `"double"`, or `null`) and
+`baseline` (a percentage from −100 to 100, or `null` to inherit), alongside
+bold, italic, size, and underline.
+Table-cell runs expose live hyperlinks with the same relationship handling as
+text-box runs, including save/reopen and stale-handle checks.
 `PresentationContext` accepts `timestamp`, `author`, `fontMetrics`, `signal`,
 and four optional limit groups. Resources are unlimited by default; setting one
 limit leaves the others unlimited. Chunk sizes control I/O and default to 65536:

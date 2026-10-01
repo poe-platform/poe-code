@@ -3,7 +3,7 @@ import {
   readSelectionIndex, readAnimations, readCharts, readObjects, readNotes,
   mutateNotes, mutateTextParagraphs, Picture, GraphicFrame, Image, Emu, Pt,
   readLayouts, removeSlides, addSlide, readImages, Shape, PP_PLACEHOLDER_TYPE,
-  type PresentationContext, type SelectionContext, type ParagraphBullet, type LayoutRecord,
+  type PresentationContext, type SelectionContext, type ParagraphBullet, type LayoutRecord, type Paragraph,
   OfficeError
 } from "pptx";
 import type { Attr, Block, Inline, Row } from "./ast-types.js";
@@ -82,7 +82,7 @@ function slides(document: Document, level: number): SlideContent[] {
   return result;
 }
 function plainContent(nodes: readonly Inline[], context: AdapterContext): string {
-  if (nodes.some(n => !["Str", "Space", "SoftBreak", "LineBreak", "Code"].includes(n.t))) fail(context, "Notes and table cells require plaintext; rich content is unsupported");
+  if (nodes.some(n => !["Str", "Space", "SoftBreak", "LineBreak", "Code"].includes(n.t))) fail(context, "Notes require plaintext; rich content is unsupported");
   return plain(nodes, context);
 }
 function plain(nodes: readonly Inline[], context: AdapterContext): string {
@@ -100,9 +100,8 @@ function plain(nodes: readonly Inline[], context: AdapterContext): string {
     }
   }).join("");
 }
-function writeInline(shape: Shape, nodes: readonly Inline[], context: AdapterContext): void {
-  shape.text_frame.clear();
-  const paragraph = shape.text_frame.paragraphs[0]!;
+function writeInline(paragraph: Paragraph, nodes: readonly Inline[], context: AdapterContext): void {
+  paragraph.clear();
   const add = (inlines: readonly Inline[], style: {bold?: boolean; italic?: boolean; strike?: "single"; baseline?: number; underline?: boolean; url?: string} = {}): void => {
     for (const node of inlines) {
       context.checkpoint();
@@ -190,7 +189,7 @@ export const pptxWriter: WriterCapability = {
           if (text.length > 800 || y + 450000 > body.y + body.height || body.width - level * 300000 <= 0) fail(context, "PPTX content exceeds the conservative paragraph/geometry admission policy");
           context.charge("objects", 1);
           const shape = slide.shapes.add_textbox(new Emu(body.x + level * 300000), new Emu(y), new Emu(body.width - level * 300000), new Emu(450000));
-          writeInline(shape, nodes, context);
+          writeInline(shape.text_frame.paragraphs[0]!, nodes, context);
           shape.text_frame.paragraphs[0]!.level = level;
           shape.name = `Pandoc paragraph ${shape.shape_id}`;
           if (bullet) bullets.push({slide: index + 1, shape: shape.name, level, bullet});
@@ -204,7 +203,8 @@ export const pptxWriter: WriterCapability = {
           title.left = new Emu(box.x); title.top = new Emu(box.y);
           title.width = new Emu(box.width); title.height = new Emu(box.height);
           title.name = "Pandoc slide title";
-          writeInline(title, item.title, context);
+          title.text_frame.clear();
+          writeInline(title.text_frame.paragraphs[0]!, item.title, context);
           for (const run of title.text_frame.paragraphs[0]!.runs) run.font.size = new Pt(30);
         }
         const blocks = async (nodes: readonly Block[], level = 0, bullet?: ParagraphBullet): Promise<void> => {
@@ -298,11 +298,12 @@ export const pptxWriter: WriterCapability = {
                   if (row[1].length !== count) fail(context, "PPTX tables require rectangular unmerged rows");
                   for (const [c, cell] of row[1].entries()) {
                     if (cell[2] !== 1 || cell[3] !== 1 || cell[1] !== "AlignDefault") fail(context, "Table spans and explicit alignment are unsupported");
-                    const values = cell[4].map(b => {
-                      if (b.t !== "Plain" && b.t !== "Para") fail(context, "Table cells require plain paragraphs");
-                      return plainContent(b.c, context);
-                    });
-                    table.cell(r, c).text = values.join("\n");
+                    const frame = table.cell(r, c).text_frame;
+                    frame.clear();
+                    for (const [i, block] of cell[4].entries()) {
+                      if (block.t !== "Plain" && block.t !== "Para") fail(context, "Table cells require paragraphs");
+                      writeInline(i ? frame.add_paragraph() : frame.paragraphs[0]!, block.c, context);
+                    }
                   }
                 }
                 y += h + 500000;

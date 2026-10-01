@@ -304,3 +304,21 @@ test("awk reader preserves retained suffixes across many small block releases", 
   assert.equal(await reader.read("\n"), undefined); assert.equal(retention.retainedBytes, 0);
   await reader.close();
 });
+
+for (const failure of ["step", "buffer", "admission"] as const) test(`failed memory reader ${failure} preserves the sanitized pool`, async context => {
+  clearAwkReaderPool();
+  context.after(clearAwkReaderPool);
+  const seed = Reader.fromMemoryView(Buffer.from("a"), budget(), new AwkRetention(64));
+  await seed.close();
+  const nextBudget = budget(failure === "buffer" ? 1 : 64);
+  const retention = new AwkRetention(failure === "admission" ? 0 : 64);
+  if (failure === "step") context.mock.method(nextBudget, "step", () => { throw new Error("step failed"); });
+  assert.throws(() => Reader.fromMemoryView(Buffer.from("bb"), nextBudget, retention));
+  assert.ok((seed as unknown as { budget: unknown }).budget === undefined);
+  assert.equal((seed as unknown as { retention: unknown }).retention, undefined);
+  assert.equal(retention.retainedBytes, 0);
+  const next = Reader.fromMemoryView(Buffer.from("c"), budget(), new AwkRetention(64));
+  assert.equal(next, seed);
+  assert.equal(await next.read("\n"), "c");
+  await next.close();
+});

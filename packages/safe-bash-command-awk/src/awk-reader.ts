@@ -44,6 +44,16 @@ export class Reader {
   }
 
   static fromMemoryView(chunk: Uint8Array, budget: Budget, retention: Pick<AwkRetention, "admit" | "replace" | "release">): Reader {
+    // Admission must not repopulate a pooled reader with invocation references.
+    budget.step();
+    const length = chunk.byteLength;
+    if (length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+    let batch: ReturnType<typeof getCachedLatin1Batch>;
+    if (length > 0) {
+      retention.admit(0, length);
+      try { batch = getCachedLatin1Batch(chunk); }
+      catch (error) { retention.release(length); throw error; }
+    }
     let reader = memoryReaderPool.reader;
     if (reader !== undefined) {
       memoryReaderPool.reader = undefined;
@@ -65,22 +75,11 @@ export class Reader {
       reader.ended = true;
       reader.isPooledMemory = true;
     }
-    budget.step();
-    const length = chunk.byteLength;
-    if (length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     if (length > 0) {
-      retention.admit(0, length);
-      try {
-        const batch = getCachedLatin1Batch(chunk);
-        const block = chunk;
-        reader.blocks[0] = block;
-        reader.blockStrings[0] = batch?.text;
-        reader.blockEnds[0] = batch?.ends;
-        reader.blocksLen = 1;
-      } catch (error) {
-        retention.release(length);
-        throw error;
-      }
+      reader.blocks[0] = chunk;
+      reader.blockStrings[0] = batch?.text;
+      reader.blockEnds[0] = batch?.ends;
+      reader.blocksLen = 1;
       reader.buffered = length;
       reader.ownedBytes = length;
     }

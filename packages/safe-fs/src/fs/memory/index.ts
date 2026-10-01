@@ -101,9 +101,6 @@ const DUMMY_POOL_LEDGER = new MemoryLedger(normalizeMemoryFileSystemLimits({}));
 const DUMMY_POOL_ALLOCATION = new MemoryAllocation(EMPTY_ALLOC_BYTES, DUMMY_POOL_LEDGER);
 const DUMMY_POOL_FILE_NODE = new MemoryFileNode(0, 0, null as unknown as number, 0, DUMMY_POOL_ALLOCATION, DUMMY_POOL_ALLOCATION.data);
 DUMMY_POOL_FILE_NODE.atimeMs = DUMMY_POOL_FILE_NODE.mtimeMs = DUMMY_POOL_FILE_NODE.ctimeMs = DUMMY_POOL_FILE_NODE.birthtimeMs = 1700000000000;
-const defaultDateNow = Date.now;
-let fastWriteCachedNow: number = Date.now();
-let fastWriteNowTick = 0;
 
 class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   // Keep speculative slots local so a failed write cannot pin a tenant globally.
@@ -403,7 +400,7 @@ function replenishSharedMemoryPools(): void {
     sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
   }
   while (sharedFileNodePoolLen < 112) {
-    sharedFileNodePool[sharedFileNodePoolLen++] = new MemoryFileNode(0, 0, fastWriteCachedNow, 0, DUMMY_POOL_ALLOCATION, undefined);
+    sharedFileNodePool[sharedFileNodePoolLen++] = new MemoryFileNode(0, 0, 0, 0, DUMMY_POOL_ALLOCATION, undefined);
   }
   while (sharedLargeAllocationPoolLen < 4) {
     DUMMY_POOL_LEDGER.reserve(65536, 0, "init", "/");
@@ -418,7 +415,7 @@ function replenishSharedMemoryPools(): void {
     sharedMediumAllocationPool[sharedMediumAllocationPoolLen++] = alloc;
   }
   while (sharedDirectoryNodePoolLen < 16) {
-    sharedDirectoryNodePool[sharedDirectoryNodePoolLen++] = new MemoryDirectoryNode(0, 0, fastWriteCachedNow);
+    sharedDirectoryNodePool[sharedDirectoryNodePoolLen++] = new MemoryDirectoryNode(0, 0, 0);
   }
 }
 
@@ -1796,7 +1793,7 @@ export class MemoryFileSystem implements FileSystem {
       ) {
         this.ledger.reserve(totalNameBytes, 2 * batchCount, "writeFile", fileNames[batchCount - 1]!);
         this.totalBytes += payloadBytesSum;
-        const now = fastWriteCachedNow;
+        const now = Date.now();
         const fileMode = typeModes.file | mode;
         let ino = this.nextInode;
         this.nextInode = ino + batchCount;
@@ -1867,7 +1864,7 @@ export class MemoryFileSystem implements FileSystem {
       const existing = nameHash !== undefined ? entries.getForWriteWithHash(name, nameHash) : entries.getForWrite(name);
       if (existing === undefined && entries._next < entries._keys.length) {
         this.ledger.reserve(name.length * 2, 2, "writeFile", name);
-        const now = fastWriteCachedNow;
+        const now = Date.now();
         const length = data.byteLength;
         const node = sharedFileNodePool[--sharedFileNodePoolLen]!;
         sharedFileNodePool[sharedFileNodePoolLen] = DUMMY_POOL_FILE_NODE;
@@ -1980,7 +1977,7 @@ export class MemoryFileSystem implements FileSystem {
           if (!zeroCopyConst) allocation.data.set(data);
           this.ledger.reserve(nameBytes, 2, syscall, name);
           try {
-            const now = fastWriteCachedNow;
+            const now = Date.now();
             const fileMode = typeModes.file | mode;
             const view = zeroCopyConst ? new Uint8Array(data) : (capacity === length ? allocation.data : undefined);
             let node: MemoryFileNode | undefined;
@@ -3030,7 +3027,7 @@ export class MemoryRedirectHandle {
     if (this.closed) throw new FsError("EBADF", { syscall: "write", path: this.path });
     if (len === 0) return;
     const pos = this.append ? this.node.byteLength : this.position;
-    const now = Date.now === defaultDateNow ? fastWriteCachedNow : Date.now();
+    const now = Date.now();
     (this.fs as unknown as { writeAtRange: (n: FileNode, d: Uint8Array, l: number, p: number, s: string, pt: string, nw: number) => void }).writeAtRange(
       this.node,
       src,
@@ -3062,7 +3059,7 @@ export class MemoryRedirectHandle {
       mem.ledger.hasInfiniteFileBytes &&
       mem.ledger.limits.maxBytes === undefined
     ) {
-      const now = Date.now === defaultDateNow ? fastWriteCachedNow : Date.now();
+      const now = Date.now();
       this.node.byteLength = len;
       this.node.view = immutableData;
       this.node.sourceRef = immutableData;
@@ -3195,7 +3192,7 @@ export function tryOpenMemoryRedirectHandleSync(
     }
     const cache = mem._cache;
     cache.clearWrites();
-    const now = Date.now === defaultDateNow ? ((++fastWriteNowTick & 63) === 0 ? (fastWriteCachedNow = Date.now()) : fastWriteCachedNow) : Date.now();
+    const now = Date.now();
     const fileMode = typeModes.file | validMode;
     let newNode: MemoryFileNode | undefined;
     if (sharedFileNodePoolLen > 0) {
@@ -3386,9 +3383,7 @@ export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, 
   (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(node, 4, "readFile", path);
   const data = node.data;
   if (maxBytes !== undefined && data.byteLength > maxBytes) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EFBIG", "readFile", path);
-  if (Date.now !== defaultDateNow) node.atimeMs = Date.now();
-  else if ((++fastWriteNowTick & 63) === 0) node.atimeMs = fastWriteCachedNow = Date.now();
-  else node.atimeMs = fastWriteCachedNow;
+  node.atimeMs = Date.now();
   if (captureSourceRef && node.revision === 0) {
     lastReadViewData = new WeakRef(data);
     lastReadViewSourceRef = node.sourceRef === undefined ? undefined : new WeakRef(node.sourceRef);
@@ -3541,7 +3536,7 @@ export function tryMkdirMemorySync(
       let next = current.entries.get(seg);
       if (!next) {
         (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(current, 3, "mkdir", path);
-        next = (mem as unknown as { addDirectoryNode: (p: DirectoryNode, n: string, m: number, s: string, pt: string, now: number) => DirectoryNode }).addDirectoryNode(current, seg, validMode, "mkdir", path, fastWriteCachedNow);
+        next = (mem as unknown as { addDirectoryNode: (p: DirectoryNode, n: string, m: number, s: string, pt: string, now: number) => DirectoryNode }).addDirectoryNode(current, seg, validMode, "mkdir", path, Date.now());
       } else if (next.type !== "directory") {
         (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail(slash === -1 ? "EEXIST" : "ENOTDIR", "mkdir", path);
       }
@@ -3560,7 +3555,7 @@ export function tryMkdirMemorySync(
   const location = (mem as unknown as { resolve: (p: string, s: string, o: ResolveOptions) => Location }).resolve(path, "mkdir", sharedAllowMissingNoFollowOptions);
   if (location.node) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EEXIST", "mkdir", path);
   (mem as unknown as { permission: (n: MemoryNode, m: number, s: string, p: string) => void }).permission(location.parent, 3, "mkdir", path);
-  (mem as unknown as { addDirectoryNode: (p: DirectoryNode, n: string, m: number, s: string, pt: string, now: number) => DirectoryNode }).addDirectoryNode(location.parent, location.name, validMode, "mkdir", path, fastWriteCachedNow);
+  (mem as unknown as { addDirectoryNode: (p: DirectoryNode, n: string, m: number, s: string, pt: string, now: number) => DirectoryNode }).addDirectoryNode(location.parent, location.name, validMode, "mkdir", path, Date.now());
   return true;
 }
 
@@ -3612,7 +3607,7 @@ export function tryRmRfMemorySync(
   sharedFastLocation.name = targetName;
   sharedFastLocation.path = path;
   try {
-    (mem as unknown as { removeLocation: (l: Location, p: string, s: string, r: boolean, now: number) => void }).removeLocation(sharedFastLocation, path, "rm", true, fastWriteCachedNow);
+    (mem as unknown as { removeLocation: (l: Location, p: string, s: string, r: boolean, now: number) => void }).removeLocation(sharedFastLocation, path, "rm", true, Date.now());
   } finally {
     sharedFastLocation.node = undefined;
     sharedFastLocation.parent = DUMMY_POOL_DIR_NODE;

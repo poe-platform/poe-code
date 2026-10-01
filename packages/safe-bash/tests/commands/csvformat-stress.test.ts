@@ -94,7 +94,7 @@ test("csvformat stress numeric/null input cells preserve Python writer semantics
 
 test("issue 524 named and piped CSV primitives support formatting and projection", async () => {
   const fs = new MemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(csvkitCommands(options));
+  const shell = new Shell({ fs }).use(agentCommands()).use(csvkitCommands({ ...options, replace: true }));
   try {
     for (const quoting of [2, 4, 5]) {
       const input = quoting === 5 ? "label,n\r\nChangedGamma,\r\nChangedDelta,\r\n" :

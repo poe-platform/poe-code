@@ -106,21 +106,22 @@ test('standard element actions render native code from canonical selectors and p
     { language: 'python', action: { name: 'select', selector, options: ['two'] } },
     { language: 'python', action: { name: 'click', selector, button: 'right', modifiers: 9, clickCount: 2 } },
   ]);
-  assert.deepEqual(invoked.at(-1), ['dblclick', { timeout: 30000, button: 'right', modifiers: ['Alt', 'Shift'] }]);
+  assert.deepEqual(invoked.at(-1), ['dblclick', { timeout: 0, button: 'right', modifiers: ['Alt', 'Shift'] }]);
 });
 
-test('run-code uses only the owned native execution hook and supports virtual source files', async () => {
+for (const codeExecutionTimeoutMs of [undefined, 30000]) test(`run-code uses only the owned native execution hook and supports virtual source files: timeout=${codeExecutionTimeoutMs ?? 'default'}`, async () => {
   const f = fixture();
   const source = 'async page => page.title()';
   f.files.set('/code.js', new TextEncoder().encode(source));
   const request = f.request('run-code', [], { filename: '/code.js' });
   let actions = 0;
   const result = await playwrightStandardAbilities['run-code']!.execute({ ...request,
-    limits: { maxCommandBytes: 1024, maxArtifactBytes: 1024, actionTimeoutMs: 123, maxPages: 3 },
+    limits: { maxCommandBytes: 1024, maxArtifactBytes: 1024, actionTimeoutMs: 123, maxPages: 3,
+      ...(codeExecutionTimeoutMs === undefined ? {} : { codeExecutionTimeoutMs }) },
     browserSession: { ...request.browserSession!, runAction: async action => { actions++; await action(); }, executeCode: async options => {
       assert.equal(options.page, f.page);
       assert.equal(options.source, source);
-      assert.equal(options.timeoutMs, 30000);
+      assert.equal(options.timeoutMs, codeExecutionTimeoutMs ?? Infinity);
       assert.equal(options.maxPages, 3);
       assert.equal(options.maxOutputBytes, 1024);
       return 'native title';

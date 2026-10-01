@@ -5,7 +5,7 @@ import type { PlaywrightPage } from '../../src/playwright/adapter.js';
 
 for (const format of ['yaml', 'json'] as const) {
   for (const policy of [
-    { name: 'default', config: {}, expected: 30000 },
+    { name: 'default', config: {}, expected: 0 },
     { name: 'explicit action', config: { timeouts: { action: 1500 } }, expected: 1500 },
     { name: 'unlimited action', config: { timeouts: { action: 0 } }, expected: 0 },
     { name: 'snapshot override', config: { timeouts: { action: 1500, snapshot: 20000 } }, expected: 20000 },
@@ -17,7 +17,7 @@ for (const format of ['yaml', 'json'] as const) {
     const capture = (options?: { timeout?: number }) => {
       captures.push(options!.timeout!);
       // Model a cold native capture requiring seven seconds without sleeping.
-      if (policy.name === 'default' && options!.timeout! < 7000) throw new Error('Cold snapshot deadline exceeded');
+      if (policy.name === 'default' && options!.timeout !== 0 && options!.timeout! < 7000) throw new Error('Cold snapshot deadline exceeded');
     };
     const page = {
       url: () => 'about:blank', async goto() {}, on() {}, off() {},
@@ -51,7 +51,7 @@ for (const format of ['yaml', 'json'] as const) {
       }
       const printed = JSON.parse((await run(['--raw', 'config-print'])).trim());
       assert.equal(printed.timeouts.snapshot, policy.expected);
-      if (policy.name === 'default') assert.equal(printed.timeouts.action, 5000);
+      if (policy.name === 'default') assert.equal(printed.timeouts.action, 0);
     } finally { await controller.dispose(); }
   });
 }

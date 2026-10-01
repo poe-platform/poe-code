@@ -105,3 +105,34 @@ for (const kind of ['argument','schema','template','configuration']) {
     assert.match(stderr,/byte limit/);
   });
 }
+
+for (const streamed of [false, true]) {
+  test(`shell admission counts only stdin and attachments with a ${streamed ? 'source' : 'buffered'} provider`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile('/input.txt', new TextEncoder().encode('ab'));
+    let calls = 0;
+    const command = createLlmCommand({ defaultModel:'fixture', limits:{maxInputBytes:128,maxBufferedInputBytes:128}, providers:[{
+      name:'fixture', models:[{id:'fixture',attachmentTypes:['text/plain']}],
+      async *complete(){calls++;yield 'ok';},
+      ...(streamed ? {async *completeSources(request: import('./types.js').LlmSourceRequest){
+        calls++;
+        let promptBytes = 0, attachmentBytes = 0;
+        for await(const chunk of request.prompt.bytes) promptBytes += chunk.length;
+        for await(const chunk of request.attachments[0]!.source.bytes) attachmentBytes += chunk.length;
+        assert.equal(promptBytes,7);
+        assert.equal(attachmentBytes,2);
+        yield 'ok';
+      }} : {}),
+    }] });
+    const failure = new Error('shell input exceeded');
+    const run = async (stdin: string) => {
+      const controller = new AbortController();
+      return command.execute({command:'llm',args:['-a','/input.txt','hello'],fs,cwd:'/',env:{},signal:controller.signal,
+        inputBudget:{maxBytes:3,check(size){if(size>3){controller.abort(failure);throw failure;}}},
+        stdin:toByteSource(stdin),stdout:{async write(){}},stderr:{async write(){}}});
+    };
+    assert.equal((await run('a')).exitCode,0);
+    await assert.rejects(run('aa'),error=>error===failure);
+    assert.equal(calls,1);
+  });
+}

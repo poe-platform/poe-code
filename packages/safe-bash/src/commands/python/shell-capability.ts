@@ -7,12 +7,13 @@ export function pythonShellDispatchActive(scope: object | undefined): boolean {
 }
 
 /** Uses the parent's invoker, filesystem and execution budget, never an OS process. */
-export function createPythonShellCapability(context: CommandContext, options: { readonly maxInputBytes?: number; readonly maxOutputBytes?: number; readonly maxConcurrentCalls?: number; readonly maxStreamChunkBytes?: number } = {}): PythonHostCapability {
+export function createPythonShellCapability(context: CommandContext, options: { readonly maxInputBytes?: number; readonly maxOutputBytes?: number; readonly maxBufferedOutputBytes?: number; readonly maxConcurrentCalls?: number; readonly maxStreamChunkBytes?: number } = {}): PythonHostCapability {
   if (!context.invoke || !context.executionScope) throw new TypeError('Python shell capability requires a parent shell invocation');
   const maxInputBytes = options.maxInputBytes ?? Infinity;
   const maxOutputBytes = options.maxOutputBytes ?? Infinity;
+  const maxBufferedOutputBytes = options.maxBufferedOutputBytes ?? Infinity;
   const maxConcurrentCalls = options.maxConcurrentCalls ?? Infinity;
-  for (const limit of [maxInputBytes, maxOutputBytes, maxConcurrentCalls]) if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python shell limit');
+  for (const limit of [maxInputBytes, maxOutputBytes, maxBufferedOutputBytes, maxConcurrentCalls]) if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 1)) throw new RangeError('Invalid Python shell limit');
   const chunkBytes = options.maxStreamChunkBytes ?? 16384;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python shell stream chunk limit');
   const scope = context.executionScope;
@@ -25,7 +26,7 @@ export function createPythonShellCapability(context: CommandContext, options: { 
     const request = value as Record<string, PythonHostValue>;
     const requestedOutput = request.maxOutputBytes;
     if (requestedOutput !== undefined && (typeof requestedOutput !== 'number' || requestedOutput !== Infinity && (!Number.isSafeInteger(requestedOutput) || requestedOutput < 0))) throw new RangeError('Invalid Python shell output limit');
-    const outputLimit = Math.min(maxOutputBytes, typeof requestedOutput === 'number' ? requestedOutput : maxOutputBytes);
+    const outputLimit = Math.min(maxOutputBytes, publish ? Infinity : maxBufferedOutputBytes, typeof requestedOutput === 'number' ? requestedOutput : Infinity);
     const timeoutMs = request.timeoutMs;
     if (timeoutMs !== undefined && (typeof timeoutMs !== 'number' || !Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2147483647)) throw new RangeError('Invalid Python shell timeout');
     const childSignal = typeof timeoutMs === 'number' ? AbortSignal.any([signal, AbortSignal.timeout(timeoutMs)]) : signal;

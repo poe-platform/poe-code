@@ -127,7 +127,11 @@ stream/message limits and cancellation remain in force.
 
 Configure finite input/output limits explicitly with `maxInputBytes` and
 `maxOutputBytes` when creating the shell adapter. Capture overflow fails rather
-than returning silently truncated data. Native serialized-message budgets are
+than returning silently truncated data. Set `maxBufferedOutputBytes` to bound
+combined captured stdout/stderr independently of incremental output; streamed
+calls still obey `maxOutputBytes` and any lower guest output limit. This lets a
+host keep small capture buffers while allowing large transfers with backpressure.
+The additional capture ceiling defaults to `Infinity`. Native serialized-message budgets are
 configured separately with `capabilityLimits.maxMessageBytes`; there is no
 implicit 64 KiB ceiling or separate 128 KiB native decoder ceiling. The native
 transport decodes the complete allocated request before applying the configured

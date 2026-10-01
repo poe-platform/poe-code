@@ -38,6 +38,25 @@ test('script mode invokes the parent parser and output overflow fails', async ()
   assert.equal(pythonShellDispatchActive(context.executionScope), false);
 });
 
+test('buffered shell output stays bounded while larger streams retain backpressure', async () => {
+  const signal = new AbortController().signal;
+  const context = { signal, executionScope: {}, cwd: '/', env: {}, async invoke(_command, _args, options) {
+    await options!.stdout!.write(new Uint8Array(16).fill(255));
+    return { exitCode: 0 };
+  } } satisfies Partial<CommandContext> as unknown as CommandContext;
+  const shell = createPythonShellCapability(context, { maxOutputBytes: 32, maxBufferedOutputBytes: 8, maxStreamChunkBytes: 4 });
+  await assert.rejects(shell.call!({ argv: ['output'] }, { signal }), /output limit/);
+  const events = [];
+  for await (const event of shell.stream!({ argv: ['output'] }, { signal })) events.push(event);
+  assert.deepEqual(events, [
+    ...Array.from({ length: 4 }, () => ({ type: 'stdout', data: [255, 255, 255, 255] })),
+    { type: 'exit', returncode: 0 },
+  ]);
+  await assert.rejects(async () => {
+    for await (const event of shell.stream!({ argv: ['output'], maxOutputBytes: 8 }, { signal })) void event;
+  }, /output limit/);
+});
+
 test('child deadlines abort work without replacing parent cancellation authority', async () => {
   const parent = new AbortController();
   let aborted = false;

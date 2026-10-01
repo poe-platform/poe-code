@@ -235,14 +235,10 @@ const checks: Record<string, Check> = {
 };
 
 for (const adapter of adapters) {
-  test(`${adapter.name}: explicit unlimited reads retain the current provider contract`, async (context) => {
+  test(`${adapter.name}: explicit Infinity permits unlimited reads`, async (context) => {
     const { fs } = await adapter.create(context);
     await fs.writeFile("/file", binary);
-    if (adapter.name === "s3" || adapter.name === "webdav") {
-      assert.deepEqual(await fs.readFile("/file", { maxBytes: Infinity }), binary);
-    } else {
-      await assert.rejects(fs.readFile("/file", { maxBytes: Infinity }), errno("EINVAL"));
-    }
+    assert.deepEqual(await fs.readFile("/file", { maxBytes: Infinity }), binary);
   });
   for (const [name, check] of Object.entries(checks)) {
     test(`${adapter.name}: shared ${name}`, { timeout: 20000 }, async (context) => {

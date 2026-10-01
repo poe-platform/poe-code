@@ -329,12 +329,13 @@ test("directory link counts reflect child directory moves", async () => {
   assert.equal((await filesystem.stat("/two")).nlink, 3);
 });
 
-test("invalid numeric options fail with EINVAL and preserve content", async () => {
+test("numeric options allow unlimited reads and reject invalid values without changing content", async () => {
   const filesystem = new MemoryFileSystem();
   await filesystem.writeFile("/file", bytes("safe"));
   for (const value of [-1, NaN, Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
     await rejects(filesystem.truncate("/file", value), "EINVAL");
-    await rejects(filesystem.readFile("/file", { maxBytes: value }), "EINVAL");
+    if (value === Infinity) assert.equal(text(await filesystem.readFile("/file", { maxBytes: value })), "safe");
+    else await rejects(filesystem.readFile("/file", { maxBytes: value }), "EINVAL");
     await rejects(filesystem.chmod("/file", value), "EINVAL");
     await rejects(filesystem.access("/file", value), "EINVAL");
     await rejects(filesystem.writeFile("/file", bytes("bad"), { mode: value }), "EINVAL");

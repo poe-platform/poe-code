@@ -2787,19 +2787,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             vTrk ? vTrk.duration / Math.max(1, vTrk.timescale) : (workingDoc.durationSeconds || 1)
           );
           const segDur = Math.max(0.2, hlsTime);
-          const numSegs = Math.max(1, Math.ceil((totalSec - 1e-6) / segDur));
+          const boundaries = [0];
+          if (vTrk?.samples.length) {
+            for (const sample of vTrk.samples) {
+              const seconds = sample.dts / vTrk.timescale;
+              if (sample.isKeyframe && seconds >= boundaries[boundaries.length - 1]! + segDur - 1e-6 && seconds < totalSec) {
+                boundaries.push(seconds);
+              }
+            }
+          } else {
+            for (let seconds = segDur; seconds < totalSec - 1e-6; seconds += segDur) boundaries.push(seconds);
+          }
+          boundaries.push(totalSec);
+          let targetDuration = 0;
+          for (let i = 1; i < boundaries.length; i++) targetDuration = Math.max(targetDuration, boundaries[i]! - boundaries[i - 1]!);
           const playlistLines: string[] = [
             "#EXTM3U",
             "#EXT-X-VERSION:3",
-            `#EXT-X-TARGETDURATION:${Math.ceil(segDur)}`,
+            `#EXT-X-TARGETDURATION:${Math.ceil(targetDuration)}`,
             "#EXT-X-MEDIA-SEQUENCE:0"
           ];
 
-          for (let sIdx = 0; sIdx < numSegs; sIdx++) {
-            const st = sIdx * segDur;
-            const en = Math.min(totalSec, (sIdx + 1) * segDur);
+          for (let sIdx = 0; sIdx < boundaries.length - 1; sIdx++) {
+            const st = boundaries[sIdx]!;
+            const en = boundaries[sIdx + 1]!;
             const actualDur = Math.max(0.04, en - st);
-            const sliced = sliceMp4(workingDoc, { startSeconds: st, endSeconds: en });
+            const sliced = sliceMp4(workingDoc, { startSeconds: st, endSeconds: en, useEditList: false });
             const segBytes = segPlugin.serialize(sliced, {
               fragmented: isFmp4,
               limits: options.limits,

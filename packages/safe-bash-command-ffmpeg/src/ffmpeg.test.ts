@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createSyntheticMp4, mp4Ast, parseMp4 } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, mp4Ast, parseMp4, serializeMp4, parseMpegTs } from "@poe-code/mp4-ast";
 import {
   allMediaAsts,
   cloudflareWorkerLimits,
@@ -429,4 +429,21 @@ it("negative maps match input, subtitle, absolute and typed stream indices in or
   const result = await runCmd(createFfmpegCommand(), ["-i", "/s.srt", "-i", "/a.mp4", "-map", "0", "-map", "1", "-map", "-0:s", "-c", "copy", "/out.mp4"], vfs);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.deepEqual(parseMp4(vfs.store.get("/out.mp4")!).tracks.map(t => t.type), ["video", "audio"]);
+});
+
+it("HLS copies each video sample once and cuts at keyframes", async () => {
+  const doc = parseMp4(createSyntheticMp4({ width: 16, height: 16, fps: 10, frameCount: 20, includeAudio: true }));
+  const bytes = serializeMp4({ ...doc, tracks: doc.tracks.map(t => t.type === "video" ? {
+    ...t, samples: t.samples.map((s, i) => ({ ...s, isKeyframe: i === 0 || i === 16 }))
+  } : t) });
+  const vfs = createTestVfs({ "/a.mp4": bytes });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/a.mp4", "-c", "copy", "-hls_time", "0.5", "/out.m3u8"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const playlist = new TextDecoder().decode(vfs.store.get("/out.m3u8"));
+  assert.ok(playlist.includes("#EXT-X-TARGETDURATION:2"), playlist);
+  assert.ok(playlist.includes("#EXTINF:1.600000,"), playlist);
+  assert.ok(playlist.includes("#EXTINF:0.400000,"), playlist);
+  const segments = [...vfs.store.entries()].filter(([path]) => path.endsWith(".ts"));
+  assert.equal(segments.length, 2);
+  assert.equal(segments.reduce((sum, [, bytes]) => sum + parseMpegTs(bytes).tracks.find(t => t.type === "video")!.samples.length, 0), 20);
 });

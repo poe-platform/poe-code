@@ -5,6 +5,7 @@ import { admitFilesystemModes } from "./filesystem-requirements.js";
 export type CopyAttribute = "mode" | "ownership" | "timestamps" | "links";
 
 export type CopyOptions = ReturnType<typeof copyOptions> & {
+  readonly maxRecursiveDirectoryDepth?: number;
   readonly confirmOverwrite?: (operand: string) => Promise<boolean>;
 };
 

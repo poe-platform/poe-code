@@ -5,6 +5,8 @@ import { filesystemCommands } from "../../src/commands/filesystem.js";
 import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { registerYieldCheckpoint } from "../../src/contracts/yield.js";
+import { createStandardCommands } from "../../src/commands/index.js";
+import { createAgentCommands } from "../../src/plugins/index.js";
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
@@ -12,7 +14,7 @@ const originalIterator = Set.prototype[Symbol.iterator];
 
 async function execute(
   fs: FileSystem, command: "cp" | "ls", args: readonly string[],
-  signal = new AbortController().signal, stdout?: ByteSink,
+  signal = new AbortController().signal, stdout?: ByteSink, maxDepth?: number,
 ) {
   let text = "", diagnostic = "";
   const context: CommandContext = {
@@ -20,7 +22,7 @@ async function execute(
     stdout: stdout ?? { async write(chunk) { text += decoder.decode(chunk); } },
     stderr: { async write(chunk) { diagnostic += decoder.decode(chunk); } },
   };
-  const result = await filesystemCommands(8).find(definition => definition.name === command)!.execute(context);
+  const result = await filesystemCommands(8, maxDepth).find(definition => definition.name === command)!.execute(context);
   return { ...result, stdout: text, stderr: diagnostic };
 }
 
@@ -125,9 +127,9 @@ for (const command of ["ls", "cp"] as const) {
   }
 
   for (const lastDirectory of [1023, 1024, 1025]) {
-    test(`${command} admits directory depth ${lastDirectory} against the fixed 1024 bound`, async () => {
+    test(`${command} admits directory depth ${lastDirectory} against an explicit 1024 bound`, async () => {
       const { fs, counts, stdout } = chainHost(lastDirectory);
-      const result = await execute(fs, command, command === "ls" ? ["-R", "/source"] : ["-r", "/source", "/target"], undefined, stdout);
+      const result = await execute(fs, command, command === "ls" ? ["-R", "/source"] : ["-r", "/source", "/target"], undefined, stdout, 1024);
       const accepted = lastDirectory <= 1024;
       assert.equal(result.exitCode, accepted ? 0 : 1, result.stderr);
       if (!accepted) assert.match(result.stderr, new RegExp(`${command}.*depth limit.*1024`, "u"));
@@ -147,6 +149,37 @@ test("recursive ancestor instrumentation restores the original Set iterator", ()
   assert.equal(Set.prototype[Symbol.iterator], originalIterator);
 });
 
+test("recursive listing has no default depth quota", async () => {
+  const { fs, counts, stdout } = chainHost(1025);
+  const result = await execute(fs, "ls", ["-R", "/source"], undefined, stdout);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(counts.deepestRead, 1025);
+});
+
+test("recursive depth quotas reject invalid values", () => {
+  for (const value of [-1, NaN, 1.5]) assert.throws(() => filesystemCommands(undefined, value), RangeError);
+});
+
+test("standard and agent command factories forward recursive depth quotas", async () => {
+  for (const commands of [
+    createStandardCommands({ maxRecursiveDirectoryDepth: 0 }),
+    createAgentCommands({ maxRecursiveDirectoryDepth: 0 }),
+    createAgentCommands({ maxRecursiveDirectoryDepth: 0, metadata: {} }),
+  ]) {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/source/n", { recursive: true });
+    const shell = new Shell({ fs, commands: new CommandRegistry(commands) });
+    try {
+      const result = await shell.exec("ls -R /source");
+      assert.equal(result.exitCode, 1);
+      assert.match(result.stderr, /depth limit exceeded/);
+      const removed = await shell.exec("rm -r /source");
+      assert.equal(removed.exitCode, 1);
+      assert.equal((await fs.stat("/source/n")).type, "directory");
+    } finally { await shell.dispose(); }
+  }
+});
+
 test("cp depth refusal retains an earlier copied file and verbose output after preflight retry", async () => {
   const { fs, counts } = chainHost(1025);
   const read = fs.readdir.bind(fs);
@@ -154,7 +187,7 @@ test("cp depth refusal retains an earlier copied file and verbose output after p
     const entries = await read(path, options);
     return path === "/source" ? [{ name: "file", type: "file" }, ...entries] : entries;
   };
-  const result = await execute(fs, "cp", ["-rv", "/source", "/target"]);
+  const result = await execute(fs, "cp", ["-rv", "/source", "/target"], undefined, undefined, 1024);
   assert.equal(result.exitCode, 1);
   assert.match(result.stderr, /cp.*depth limit.*1024/u);
   assert.equal(result.stdout, "'/source/file' -> '/target/source/file'\n");

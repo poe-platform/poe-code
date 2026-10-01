@@ -109,6 +109,7 @@ export interface AgentCommandsOptions {
   readonly regex?: RegexExecutionOptions;
   readonly regexExecutor?: BoundedRegexProvider;
   readonly maxDirectoryEntries?: number;
+  readonly maxRecursiveDirectoryDepth?: number;
   readonly maxTeeTargets?: number;
   readonly maxTailFollowHandles?: number;
   readonly text?: Omit<TextProgramOptions, "replace">;
@@ -241,7 +242,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
     const defaults = getDefaultStatelessFamilies();
     const aliasesGrep = executors.aliases === executors.grep ? grep[0]! : createGrepCommands(executors.aliases, { ergonomicRegex: useErgonomicGrep })[0]!;
     commands.push(
-      ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep),
+      ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxRecursiveDirectoryDepth === undefined ? {} : { maxRecursiveDirectoryDepth: options.maxRecursiveDirectoryDepth }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep),
       ...defaults.beforeAliases,
       createRgCommand(executors.search, options.search),
       ...createGrepAliases(aliasesGrep),
@@ -269,7 +270,7 @@ export function composeRawAgentCommands(options: AgentCommandsOptions, executors
   const xmlLimits = options.xml?.limits;
   commands.push(
     // Explicit muscle-memory registration selects its shuf and numfmt definitions.
-    ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep).filter(command => !options.muscleMemory || (command.name !== "shuf" && command.name !== "numfmt")),
+    ...createStandardCommandsWithGrep({ execute: options.execute ?? commandExecutor(name => commands.find(command => command.name === name)), ...(options.execution === undefined ? {} : { execution: options.execution }), ...(options.regex === undefined ? {} : { regex: options.regex }), ...(options.maxDirectoryEntries === undefined ? {} : { maxDirectoryEntries: options.maxDirectoryEntries }), ...(options.maxRecursiveDirectoryDepth === undefined ? {} : { maxRecursiveDirectoryDepth: options.maxRecursiveDirectoryDepth }), ...(options.maxTeeTargets === undefined ? {} : { maxTeeTargets: options.maxTeeTargets }), ...(options.maxTailFollowHandles === undefined ? {} : { maxTailFollowHandles: options.maxTailFollowHandles }) }, grep).filter(command => !options.muscleMemory || (command.name !== "shuf" && command.name !== "numfmt")),
     ...createTextProgramCommands({ ...options.text }),
     ...createStructuredCommands({ ...options.structured }),
     createRgCommand(executors.search, options.search),

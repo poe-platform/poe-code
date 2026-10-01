@@ -32,7 +32,6 @@ import { admitCopyPreservation, preserveCopyMetadata, type CopyOptions } from ".
 
 // Operand directories start at depth zero; files inside the last admitted
 // directory do not consume another directory-recursion level.
-const MAX_RECURSIVE_DIRECTORY_DEPTH = 1024;
 const MKDIR_LONG_OPTIONS = Object.freeze({ parents: "p", mode: "m", verbose: "v" } as const);
 const TOUCH_LONG_OPTIONS = Object.freeze({ "no-create": "c", "no-dereference": "h", reference: "r", date: "d", time: "time:" } as const);
 const MV_LONG_OPTIONS = Object.freeze({
@@ -288,8 +287,8 @@ async function copy(
     if (ancestors.has(physicalSource)) throw new FsError("ELOOP", { path: source });
     if (targetStat && targetStat.type !== "directory") throw new FsError("ENOTDIR", { path: target });
     context.signal.throwIfAborted();
-    if (ancestors.size > MAX_RECURSIVE_DIRECTORY_DEPTH) {
-      throw new FsError("ELOOP", { path: source, message: `cp directory depth limit exceeded (${MAX_RECURSIVE_DIRECTORY_DEPTH})` });
+    if (ancestors.size > (settings.maxRecursiveDirectoryDepth ?? Infinity)) {
+      throw new FsError("ELOOP", { path: source, message: `cp directory depth limit exceeded (${settings.maxRecursiveDirectoryDepth})` });
     }
     await admitFilesystemModes(context, "cp", [attributesOnly ? "attributes-recursive" : "recursive"], [target]);
     const capabilities = await context.fs.capabilitiesFor?.(target, { signal: context.signal }) ?? context.fs.capabilities;
@@ -449,7 +448,10 @@ function modeText(stat: FileStat): string {
 export const defaultMkdirExecutors = new WeakSet<CommandHandler>();
 export const defaultRmExecutors = new WeakSet<CommandHandler>();
 
-export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinition[] {
+export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDirectoryDepth = Infinity): CommandDefinition[] {
+  if (maxRecursiveDirectoryDepth !== Infinity && (!Number.isSafeInteger(maxRecursiveDirectoryDepth) || maxRecursiveDirectoryDepth < 0)) {
+    throw new RangeError("maxRecursiveDirectoryDepth must be a nonnegative safe integer or Infinity");
+  }
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
   const commands = [
     define("mkdir", context => {
@@ -620,7 +622,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
     }),
     createTouchCommand(),
     define("cp", async context => {
-      const parsed = copyOptions(context);
+      const parsed = { ...copyOptions(context), maxRecursiveDirectoryDepth };
       if ((parsed.values.get("t")?.length ?? 0) > 1) throw new UsageError("multiple target directories specified");
       const destination = await destinations(context, parsed.operands, value(parsed, "t"), parsed.flags.has("T"));
       await preflightOperands(context, destination.sources, async operand => {
@@ -880,10 +882,12 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
       if (force) parsed.flags.add("f"); else parsed.flags.delete("f");
       if (!parsed.flags.has("f")) requireOperands(parsed.operands);
       const recursive = parsed.flags.has("r") || parsed.flags.has("R");
+      const recursiveTraversal = recursive && (interactive === "always" || maxRecursiveDirectoryDepth !== Infinity);
       const backingMem = getRuntimeBackingFileSystem(context.fs) as { symlinkCount?: number; capabilitiesFor?: unknown } | undefined;
       const caps = context.fs.capabilities;
       const fastStockMemory =
         interactive === "never" &&
+        !recursiveTraversal &&
         backingMem !== undefined &&
         backingMem.capabilitiesFor === undefined &&
         backingMem.symlinkCount === 0 &&
@@ -958,22 +962,22 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
             throw new FsError("ENOENT", { path });
           }
           if (stat.type === "directory" && !recursive && !parsed.flags.has("d")) throw new FsError("EISDIR", { path });
-          if (interactive === "always") {
+          if (interactive === "always" || recursiveTraversal) {
             const display = escapeText(operand, "display");
             if (stat.type === "directory" && recursive) {
-              if (depth > MAX_RECURSIVE_DIRECTORY_DEPTH) throw new FsError("ELOOP", { path });
+              if (depth > maxRecursiveDirectoryDepth) throw new FsError("ELOOP", { path });
               const entries = await readDirectory(context, path, true);
               if (entries.length) {
-                if (!await confirm(`descend into directory '${display}'`)) return false;
+                if (interactive === "always" && !await confirm(`descend into directory '${display}'`)) return false;
                 let removed = true;
                 for (const entry of entries) if (!await remove(childOperand(operand, entry.name), depth + 1)) removed = false;
                 if (!removed) return false;
               }
             }
             const type = stat.type === "file" ? stat.size === 0 ? "regular empty file" : "regular file" : stat.type === "symlink" ? "symbolic link" : "directory";
-            if (!await confirm(`remove ${type} '${display}'`)) return false;
+            if (interactive === "always" && !await confirm(`remove ${type} '${display}'`)) return false;
           }
-          if (stat.type === "directory" && (!recursive || interactive === "always")) {
+          if (stat.type === "directory" && (!recursive || recursiveTraversal)) {
             try { await removeEmptyDirectory(context, path, readDirectory); }
             catch (error) {
               context.signal.throwIfAborted();
@@ -1339,8 +1343,8 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
         const physical = await context.fs.realpath(path, { signal: context.signal });
         if (ancestors.has(physical)) throw new FsError("ELOOP", { path });
         context.signal.throwIfAborted();
-        if (ancestors.size > MAX_RECURSIVE_DIRECTORY_DEPTH) {
-          throw new FsError("ELOOP", { path, message: `ls directory depth limit exceeded (${MAX_RECURSIVE_DIRECTORY_DEPTH})` });
+        if (ancestors.size > maxRecursiveDirectoryDepth) {
+          throw new FsError("ELOOP", { path, message: `ls directory depth limit exceeded (${maxRecursiveDirectoryDepth})` });
         }
         ancestors.add(physical);
         try {
@@ -1401,7 +1405,7 @@ export function filesystemCommands(maxDirectoryEntries?: number): CommandDefinit
   });
   for (const command of commands) {
     if (command.name === "mkdir") defaultMkdirExecutors.add(command.execute);
-    else if (command.name === "rm") defaultRmExecutors.add(command.execute);
+    else if (command.name === "rm" && maxRecursiveDirectoryDepth === Infinity) defaultRmExecutors.add(command.execute);
   }
   return commands;
 }

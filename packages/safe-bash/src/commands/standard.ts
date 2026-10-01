@@ -25,6 +25,7 @@ export interface StandardCommandsOptions {
   readonly regex?: RegexExecutionOptions;
   readonly regexExecutor?: BoundedRegexProvider;
   readonly maxDirectoryEntries?: number;
+  readonly maxRecursiveDirectoryDepth?: number;
   readonly maxTeeTargets?: number;
   readonly maxTailFollowHandles?: number;
 }
@@ -42,6 +43,7 @@ export function createStandardCommandsWithGrep(options: StandardCommandsOptions,
   }));
   if (
     options.maxDirectoryEntries === undefined &&
+    options.maxRecursiveDirectoryDepth === undefined &&
     options.maxTeeTargets === undefined &&
     options.maxTailFollowHandles === undefined &&
     options.predicateIdentity === undefined
@@ -69,7 +71,7 @@ export function createStandardCommandsWithGrep(options: StandardCommandsOptions,
     for (let i = 0; i < commands.length; i++) builtInDirectContextExecutors.add(commands[i]!.execute);
     return commands;
   }
-  commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries), ...streamCommands(options.maxTeeTargets, options.maxTailFollowHandles), ...textCommands(), ...grep, ...predicateCommands(options.predicateIdentity), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
+  commands.push(...basicCommands(), ...filesystemCommands(options.maxDirectoryEntries, options.maxRecursiveDirectoryDepth), ...streamCommands(options.maxTeeTargets, options.maxTailFollowHandles), ...textCommands(), ...grep, ...predicateCommands(options.predicateIdentity), ...executionCommands(execute, options.execution), ...findCommands(execute, options.maxDirectoryEntries));
   commands.push(cmpCommand(), fmtCommand(), shufCommand(), numfmtCommand());
   for (let i = 0; i < commands.length; i++) builtInDirectContextExecutors.add(commands[i]!.execute);
   return commands;

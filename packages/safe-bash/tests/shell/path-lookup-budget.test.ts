@@ -124,6 +124,21 @@ for (const [source, target, rejectedStatus] of [
   assert.equal(admitted.exitCode, 0, admitted.stderr);
 });
 
+test("default and reused filesystem scopes admit more than 256 path components", async context => {
+  const fs = new MemoryFileSystem();
+  const root = await fs.stat("/");
+  const stat = context.mock.method(fs, "stat", async () => root);
+  const shell = new Shell({ fs, deviceView: "provided" });
+  context.after(() => shell.dispose());
+  shell.register({ name: "probe", async execute({ fs, args }) { await fs.stat(args[0]!); return { exitCode: 0 }; } });
+  const pathname = "/" + Array(300).fill("d").join("/");
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const result = await shell.exec(`probe ${pathname}`);
+    assert.equal(result.exitCode, 0, result.stderr);
+  }
+  assert.equal(stat.mock.callCount(), 2);
+});
+
 test("Worker pathname quota preserves its boundary and the hard filesystem ceiling", async context => {
   const fs = new MemoryFileSystem();
   const root = await fs.stat("/");

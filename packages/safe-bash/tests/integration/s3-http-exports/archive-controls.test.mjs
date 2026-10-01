@@ -1615,6 +1615,8 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
     // This synthetic S3 fixture has no Playwright sources or public peer entries.
     delete manifest.devDependencies["@poe-code/safe-playwright"];
+    // This synthetic S3 fixture has no SafeJS sources or public peer entry.
+    delete manifest.devDependencies["@poe-code/safe-js"];
     // This synthetic S3 fixture has no media sources or declaration dependency.
     delete manifest.devDependencies["@poe-code/media-cli"];
     delete manifest.devDependencies["@poe-code/remote-execution"];

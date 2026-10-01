@@ -130,6 +130,9 @@ async function seedHostGitAndSshMetadata(
   skipHostRead: boolean
 ): Promise<void> {
   await memoryFs.mkdir("/tmp", { recursive: true });
+  await memoryFs.mkdir("/bin", { recursive: true });
+  await memoryFs.writeFile("/bin/bash", new TextEncoder().encode("bash \"$@\"\n"), { mode: 0o755 });
+  await memoryFs.writeFile("/bin/sh", new TextEncoder().encode("sh \"$@\"\n"), { mode: 0o755 });
   await memoryFs.mkdir("/root/.ssh", { recursive: true });
 
   const normalizedHome = normalizePosixMountPath(homeDir);

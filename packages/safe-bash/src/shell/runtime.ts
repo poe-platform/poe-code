@@ -18859,13 +18859,20 @@ export class Runtime {
     while (args.length && (args[0]!.startsWith("-") || args[0]!.startsWith("+"))) {
       const option = args.shift()!;
       if (option === "--" || option === "-") break;
+      if (option === "--version") {
+        await writeDiagnostic(context.stdout, "safe-bash (poe-code)\n");
+        return 0;
+      }
+      if (option === "--login" || option === "--norc" || option === "--noprofile" || option === "--posix") {
+        continue;
+      }
       const enabled = option[0] === "-";
       if ((option === "-o" || option === "+o") && Object.hasOwn(options, args[0] ?? "")) {
         options[args.shift()! as keyof typeof options] = enabled;
         continue;
       }
       const flags = option.slice(1);
-      if (!flags.length || [...flags].some(flag => !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s")))) {
+      if (!flags.length || [...flags].some(flag => !Object.hasOwn(flagsByName, flag) && !(enabled && (flag === "c" || flag === "s" || flag === "l" || flag === "i")))) {
         await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-C and +/-o ${Object.keys(options).join(", ")}\n`);
         return 2;
       }

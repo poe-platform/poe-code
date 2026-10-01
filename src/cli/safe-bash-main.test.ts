@@ -140,4 +140,26 @@ describe("safe-bash CLI and workspace backend", () => {
     );
     expect((await workspaceBackend.stat("/.git/HEAD")).type).toBe("file");
   });
+
+  it("supports bash --version, /bin/bash --version, and nested login subshells", async () => {
+    const workspaceBackend = new MemoryFileSystem();
+    const outChunks: Uint8Array[] = [];
+
+    const exitCode = await runSafeBashCli(
+      ["-lc", "command -v bash; bash --version; /bin/bash --version; /bin/bash -lc 'echo subshell-ok'"],
+      {
+        workspaceRoot: "/workspace/project",
+        cwd: "/workspace/project",
+        homeDir: "/Users/test",
+        workspaceBackend,
+        stdout: (bytes) => {
+          outChunks.push(bytes);
+        }
+      }
+    );
+
+    const stdout = Buffer.concat(outChunks.map((b) => Buffer.from(b))).toString("utf8");
+    expect(exitCode).toBe(0);
+    expect(stdout).toBe("bash\nsafe-bash (poe-code)\nsafe-bash (poe-code)\nsubshell-ok\n");
+  });
 });

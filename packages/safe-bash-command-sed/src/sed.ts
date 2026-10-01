@@ -377,15 +377,6 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
 
 const STDOUT_CAP = 65536;
 const STDOUT_FLUSH = 60000;
-let sharedSedStdoutBuf: Uint8Array | undefined;
-let sharedSedStdoutBufInUse = false;
-let lastSedPairProgram: readonly Instruction[] | undefined;
-let lastSedPairBatch: unknown;
-let lastSedPairStdoutLen = 0;
-let lastSedPairSavedOutBuf: Uint8Array | undefined;
-let lastSedPairSteps = 0;
-let lastSedPairStdoutIntact = false;
-let sedPairBimodalWarm = 0;
 
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
   const useBatches = separator !== "\0";
@@ -498,17 +489,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
   const stdoutSync = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
     ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): void })
     : undefined;
-  const canReuseStdoutBuf = !(context.stdout as { isPipeStage?: boolean }).isPipeStage;
-  let usingSharedStdoutBuf = false;
   let stdoutBuf: Uint8Array | undefined;
-  if (canReuseStdoutBuf && !sharedSedStdoutBufInUse) {
-    sharedSedStdoutBufInUse = true;
-    usingSharedStdoutBuf = true;
-    if (!sharedSedStdoutBuf) {
-      sharedSedStdoutBuf = new Uint8Array(STDOUT_CAP);
-    }
-    stdoutBuf = sharedSedStdoutBuf;
-  }
   let stdoutLen = 0;
   const sepCode = separator.charCodeAt(0) & 0xff;
   const appendStdout = (text: string): void => {
@@ -763,7 +744,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
           case "s": {
             const expression = getPattern(instruction.pattern);
             if (instruction.replacementGroupCount! > expression.groupCount) throw new ProgramError("replacement references an undefined capture group");
-            if (!instruction.print && !instruction.file && pc + 1 < program.length) {
+            if (!instruction.first && !instruction.second && !instruction.negate && !instruction.print && !instruction.file && pc + 1 < program.length) {
               const nextInst = program[pc + 1]!;
               if (nextInst.kind === "s" && !nextInst.first && !nextInst.second && !nextInst.negate && !nextInst.print && !nextInst.file && nextInst.pattern) {
                 const nextExpr = nextInst.pattern;
@@ -992,13 +973,9 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     }
     return { status: 0, quit: false };
   } finally {
-    try {
-      if (stdoutLen > 0) await flushStdout();
-      if (batchSource) await batchSource.return(undefined);
-      else if (singleSource) await singleSource.return(undefined);
-    } finally {
-      if (usingSharedStdoutBuf) sharedSedStdoutBufInUse = false;
-    }
+    if (stdoutLen > 0) await flushStdout();
+    if (batchSource) await batchSource.return(undefined);
+    else if (singleSource) await singleSource.return(undefined);
   }
 }
 
@@ -1080,16 +1057,7 @@ function tryExecutePairFastSync(
     return undefined;
   }
   budget.step();
-  let usingSharedStdoutBuf = false;
-  let stdoutBuf: Uint8Array;
-  if (!sharedSedStdoutBufInUse) {
-    sharedSedStdoutBufInUse = true;
-    usingSharedStdoutBuf = true;
-    if (!sharedSedStdoutBuf) sharedSedStdoutBuf = new Uint8Array(STDOUT_CAP);
-    stdoutBuf = sharedSedStdoutBuf;
-  } else {
-    stdoutBuf = new Uint8Array(STDOUT_CAP);
-  }
+  const stdoutBuf = new Uint8Array(STDOUT_CAP);
   const batchText = cachedBatch.text;
   const batchEnds = cachedBatch.ends;
   const endsLen = batchEnds.length;
@@ -1099,62 +1067,22 @@ function tryExecutePairFastSync(
   const g2 = inst1.global ?? false;
   const o2 = inst1.occurrence ?? 1;
   const r2 = inst1.replacement!;
-  try {
-    if (
-      usingSharedStdoutBuf &&
-      lastSedPairStdoutIntact &&
-      program === lastSedPairProgram &&
-      cachedBatch === lastSedPairBatch &&
-      (++sedPairBimodalWarm > 4 || (sedPairBimodalWarm & 1) === 1)
-    ) {
-      budget.step(lastSedPairSteps);
-      const pCheck = budget.checkpointSync();
-      if (pCheck) {
-        pCheck.catch(() => {});
-        return undefined;
-      }
-      (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
-      if (lastSedPairStdoutLen > 0) {
-        context.signal.throwIfAborted();
-        if (lastSedPairSavedOutBuf !== undefined && typeof stdoutSync.writeImmutableSync === "function") {
-          stdoutSync.writeImmutableSync(lastSedPairSavedOutBuf);
-        } else if (typeof stdoutSync.writeRangeSync === "function") {
-          stdoutSync.writeRangeSync(stdoutBuf, lastSedPairStdoutLen);
-        } else {
-          stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, lastSedPairStdoutLen));
-        }
-      }
-      return 0;
+  // Keep the attempt private until every line succeeds. Larger results use
+  // the streaming executor without publishing a prefix that it would replay.
+  const stdoutLen = runSedPairBatchLoopSync(
+    batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf,
+  );
+  if (stdoutLen < 0) return undefined;
+  (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
+  if (stdoutLen > 0) {
+    context.signal.throwIfAborted();
+    if (typeof stdoutSync.writeRangeSync === "function") {
+      stdoutSync.writeRangeSync(stdoutBuf, stdoutLen);
+    } else {
+      stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
     }
-    if (usingSharedStdoutBuf) lastSedPairStdoutIntact = false;
-    const stepsBefore = budget.stepsUsed;
-    // Keep the attempt private until every line succeeds. Larger results use
-    // the streaming executor without publishing a prefix that it would replay.
-    const stdoutLen = runSedPairBatchLoopSync(
-      batchText, batchEnds, endsLen, expr0, r1, g1, o1, expr1, r2, g2, o2, budget, stdoutBuf,
-    );
-    if (stdoutLen >= 0 && usingSharedStdoutBuf && rawBytes.byteLength >= 1024) {
-      lastSedPairProgram = program;
-      lastSedPairBatch = cachedBatch;
-      lastSedPairStdoutLen = stdoutLen;
-      lastSedPairSavedOutBuf = stdoutLen > 0 ? Uint8Array.prototype.slice.call(stdoutBuf, 0, stdoutLen) : undefined;
-      lastSedPairSteps = budget.stepsUsed - stepsBefore;
-      lastSedPairStdoutIntact = true;
-    }
-    if (stdoutLen < 0) return undefined;
-    (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp?.();
-    if (stdoutLen > 0) {
-      context.signal.throwIfAborted();
-      if (typeof stdoutSync.writeRangeSync === "function") {
-        stdoutSync.writeRangeSync(stdoutBuf, stdoutLen);
-      } else {
-        stdoutSync.writeSync(new Uint8Array(stdoutBuf.buffer, stdoutBuf.byteOffset, stdoutLen));
-      }
-    }
-    return 0;
-  } finally {
-    if (usingSharedStdoutBuf) sharedSedStdoutBufInUse = false;
   }
+  return 0;
 }
 
 const SED_META_RE = /[\\^$.*+?()[\]{}|\n]/;

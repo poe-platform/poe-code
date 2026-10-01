@@ -24,7 +24,6 @@ const cases = [
   ["--names --mean --sum --csv --count --zero -c 999", "a,b\n2,3\n", "  0: a\n  1: b\n"],
   ["--freq --freq-count 0", "x\nb\na\nb\na\n\nc\n", '{ "b": 2, "a": 2, "None": 1, "c": 1 }\n'],
   ["--freq --freq-count -1", "x\na\nb\n", "{  }\n"],
-  ["--sum -G --decimal-format %.0f", "x\n20\n30\n", "5\n"],
   ["--min", "x\na\nb\n", "None\n"],
   ["--stdev", "x\n2\n", "None\n"],
   ["--unique", "x\n\nnull\n2\n", "2\n"],
@@ -49,6 +48,15 @@ for (const [args, stdin, stdout] of cases) {
     } finally { await shell.dispose(); }
   });
 }
+
+test("csvstat integer formatting retains significant trailing zeroes", async () => {
+  // Frozen csvkit 2.2.0 reports 5 here; the portable formatter preserves 50.
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(options));
+  try {
+    const result = await shell.exec("csvstat -y 0 --sum -G --decimal-format %.0f", { stdin: "x\n20\n30\n" });
+    assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, { stdout: "50\n", stderr: "", status: 0 });
+  } finally { await shell.dispose(); }
+});
 
 test("csvstat stress owns reusable producer chunks and returns input exactly once", async () => {
   let returned = 0;

@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import { createFsFromVolume, Volume } from "memfs";
 import { build, context, type BuildContext, type BuildResult } from "esbuild";
 import { afterAll, beforeAll, expect, it } from "vitest";
+import { Miniflare } from "miniflare";
 import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { createWorkspaceBuildPlan } from "./build-workspaces.mjs";
@@ -471,6 +472,7 @@ let browser: BrowserShell;
 let browserRealm: ReturnType<typeof createContext>;
 let filesystem: CoreFs;
 let browserConsumerSource: string;
+let byteOperationsSource: string;
 
 beforeAll(async () => {
   filesystemBuild = await build({
@@ -511,6 +513,11 @@ beforeAll(async () => {
       import { ${factory} as leaf${index} } from "@poe-platform/safe-bash/commands/${command}";
     `).join("\n")}
     export const factoryIdentity = [${commandFactories.map((_, index) => `root${index} === leaf${index}`).join(",")}];
+  `);
+  byteOperationsSource = await bundlePublicConsumer(`
+    export { Shell, standardCommands, textProgramCommands, structuredCommands, diffPatchCommands, archiveCommands, timeEnvCommands, duCommands } from "@poe-platform/safe-bash";
+    export { trapExtension as PortableTrapExtension } from "@poe-platform/safe-bash/trap";
+    ${["sed", "awk", "jq", "diff", "tar", "zip", "date", "printenv", "du"].map(name => `export { create${name[0].toUpperCase() + name.slice(1)}Command as leaf_${name} } from "@poe-platform/safe-bash/commands/${name}";`).join("\n")}
   `);
 });
 
@@ -714,6 +721,65 @@ it("uses the public portable trap subpath without the Node signal catalog", asyn
   try {
     expect(await shell.exec("trap 'printf done' EXIT; printf body")).toMatchObject({exitCode: 0, stdout: "bodydone", stderr: ""});
   } finally { await shell.dispose(); }
+});
+
+it("runs shell byte operations and command exports in workerd without nodejs_compat", async () => {
+  const cases = [
+    ['echo {1..3}', '1 2 3\n'],
+    ['s="héllo"; echo "${s^^}"', 'HÉLLO\n'],
+    ['[ "a" \\< "b" ]', ''],
+    ['eval "echo ok"', 'ok\n'],
+    ['a=(1 2 3); echo "${a[*]}"', '1 2 3\n'],
+    ['a[0]=héllo; echo "${a[0]}"', 'héllo\n'],
+    ['mapfile -t arr <<< "héllo"; echo "${arr[0]}"', 'héllo\n'],
+    ['sed "s/hello/hi/" /in.txt', 'hi world\n'],
+    ["awk '{print $1}' /in.txt", 'hello\n'],
+    ['jq ".a" /data.json', '42\n'],
+    ['diff -u --label before --label after /in.txt /other.txt', '--- before\n+++ after\n@@ -1 +1 @@\n-hello world\n+goodbye world\n', 1],
+    ['date -u -d @0 +%Y', '1970\n'],
+    ['PORTABLE=héllo printenv PORTABLE', 'héllo\n'],
+    ['du -b /in.txt', '12\t/in.txt\n'],
+    ['tar -cf /out.tar -C / in.txt; tar -xOf /out.tar', 'hello world\n'],
+    ['zip /out.zip /in.txt >/dev/null; unzip -p /out.zip', 'hello world\n'],
+    ["trap 'echo bye' EXIT; trap -p", "trap -- 'echo bye' EXIT\nbye\n"],
+  ];
+  const runtime = new Miniflare({
+    modules: true, compatibilityDate: "2026-07-01", cf: false,
+    script: `
+      if (typeof globalThis.Buffer !== "undefined") throw new Error("Host supplied Buffer");
+      const canonical = (() => { const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })();
+      const browser = (() => { const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${byteOperationsSource}; return module.exports; })();
+      export default { async fetch() {
+        const results = [];
+        for (const entry of ["root", "subpaths"]) {
+          const fs = canonical.createMemoryFileSystem();
+          await fs.writeFile("/in.txt", new TextEncoder().encode("hello world\\n"));
+          await fs.writeFile("/other.txt", new TextEncoder().encode("goodbye world\\n"));
+          await fs.writeFile("/data.json", new TextEncoder().encode('{"a":42}'));
+          const shell = new browser.Shell({ fs, extensions: [browser.PortableTrapExtension()] })
+            .use(browser.standardCommands()).use(browser.textProgramCommands()).use(browser.structuredCommands())
+            .use(browser.diffPatchCommands()).use(browser.archiveCommands()).use(browser.timeEnvCommands()).use(browser.duCommands());
+          try {
+            if (entry === "subpaths") {
+              await shell.exec(":");
+              for (const name of ${JSON.stringify(["sed", "awk", "jq", "diff", "tar", "zip", "date", "printenv", "du"])}) {
+                shell.commands.register(browser["leaf_" + name](), { replace: true });
+              }
+            }
+            for (const [source] of ${JSON.stringify(cases)}) {
+              const { exitCode, stdout, stderr } = await shell.exec(source);
+              results.push({ source, exitCode, stdout, stderr });
+            }
+          } finally { await shell.dispose(); }
+        }
+        return Response.json(results);
+      } };
+    `,
+  });
+  try {
+    const response = await runtime.dispatchFetch("https://portable.test");
+    expect(await response.json()).toEqual(["root", "subpaths"].flatMap(() => cases.map(([source, stdout, exitCode = 0]) => ({ source, exitCode, stdout, stderr: "" }))));
+  } finally { await runtime.dispose(); }
 });
 
 it("round-trips authenticated ZIP AES in the portable shell without Node crypto or Buffer", async () => {

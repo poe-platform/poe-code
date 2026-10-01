@@ -171,49 +171,61 @@
     },
     "./safe-fs/core": {
       "types": {
+        "workerd": "./dist/types/safe-fs/core.d.ts",
         "browser": "./dist/types/safe-fs/core.d.ts",
         "default": "./dist/types/safe-fs/core.d.ts"
       },
+      "workerd": "./dist/shared/safe-js/browser/safe-fs-core.js",
       "browser": "./dist/shared/safe-js/browser/safe-fs-core.js",
       "import": "./dist/shared/safe-js/safe-fs-core.js"
     },
     "./safe-fs": {
       "types": {
+        "workerd": "./dist/types/safe-fs/core.d.ts",
         "browser": "./dist/types/safe-fs/core.d.ts",
         "default": "./dist/types/safe-fs/index.d.ts"
       },
+      "workerd": "./dist/shared/safe-js/browser/safe-fs.js",
       "browser": "./dist/shared/safe-js/browser/safe-fs.js",
       "import": "./dist/shared/safe-js/safe-fs.js"
     },
     "./safe-fs/node": {
       "types": {
+        "workerd": "./dist/types/safe-fs/node-unavailable.d.ts",
         "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
         "default": "./dist/types/safe-fs/node-host.d.ts"
       },
+      "workerd": null,
       "browser": null,
       "import": "./dist/shared/safe-js/safe-fs-node.js"
     },
     "./safe-fs/node/filesystem": {
       "types": {
+        "workerd": "./dist/types/safe-fs/node-unavailable.d.ts",
         "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
         "default": "./dist/types/safe-fs/node/filesystem.d.ts"
       },
+      "workerd": null,
       "browser": null,
       "import": "./dist/shared/safe-js/safe-fs-bridge.js"
     },
     "./safe-js": {
       "types": {
+        "workerd": "./dist/types/safe-js/workerd.d.ts",
         "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
         "default": "./dist/types/safe-js/index.d.ts"
       },
+      "workerd": "./packages/safe-js/dist/workerd.js",
       "browser": null,
       "import": "./dist/shared/safe-js/index.js"
     },
     "./safe-js/core": {
       "types": {
+        "workerd": "./dist/types/safe-js/workerd.d.ts",
         "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
         "default": "./dist/types/safe-js/core.d.ts"
       },
+      "workerd": "./packages/safe-js/dist/workerd.js",
       "browser": null,
       "import": "./dist/shared/safe-js/core.js"
     },
@@ -227,17 +239,21 @@
     },
     "./safejs": {
       "types": {
+        "workerd": "./dist/types/safe-js/workerd.d.ts",
         "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
         "default": "./dist/types/safe-js/index.d.ts"
       },
+      "workerd": "./packages/safe-js/dist/workerd.js",
       "browser": null,
       "import": "./dist/shared/safe-js/index.js"
     },
     "./safejs/core": {
       "types": {
+        "workerd": "./dist/types/safe-js/workerd.d.ts",
         "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
         "default": "./dist/types/safe-js/core.d.ts"
       },
+      "workerd": "./packages/safe-js/dist/workerd.js",
       "browser": null,
       "import": "./dist/shared/safe-js/core.js"
     },
@@ -359,6 +375,16 @@
       "workerd": "./packages/safe-bash/dist/registry-entry.browser.js",
       "browser": "./packages/safe-bash/dist/registry-entry.browser.js",
       "import": "./dist/safe-bash-registry.js"
+    },
+    "./safe-js/workerd": {
+      "types": {
+        "workerd": "./dist/types/safe-js/workerd.d.ts",
+        "browser": "./dist/types/safe-fs/node-unavailable.d.ts",
+        "default": "./dist/types/safe-js/workerd.d.ts"
+      },
+      "workerd": "./packages/safe-js/dist/workerd.js",
+      "browser": null,
+      "import": "./packages/safe-js/dist/workerd.js"
     }
   },
   "engines": {
@@ -826,12 +852,15 @@
     "packages/spreadsheet-format-dbf/LICENSE",
     "!packages/*/dist/**/*.d.ts",
     "!packages/*/dist/**/*.d.mts",
-    "!packages/*/dist/**/*.d.cts"
+    "!packages/*/dist/**/*.d.cts",
+    "packages/safe-js/dist/workerd.js",
+    "packages/safe-js/dist/workerd.js.map"
   ],
   "license": "MIT",
   "imports": {
     "#safe-fs-platform": {
       "types": {
+        "workerd": "./dist/types/safe-fs/platform/browser.d.ts",
         "browser": "./dist/types/safe-fs/platform/browser.d.ts",
         "default": "./dist/types/safe-fs/platform/node.d.ts"
       },

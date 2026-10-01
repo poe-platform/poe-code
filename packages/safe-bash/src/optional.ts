@@ -1,4 +1,4 @@
-export { Shell, agentCommands } from "./index.js";
+export { Shell, agentCommands } from "./core.js";
 export { createYesCommand, createYesCommands, yesCommands } from "./commands/yes/index.js";
 export type { YesCommandOptions, YesCommandsOptions, YesLimits } from "./commands/yes/index.js";
 export { createCmpCommand, createCmpCommands, cmpCommands } from "./commands/cmp/index.js";

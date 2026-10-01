@@ -159,18 +159,20 @@ export function canonicalBundleFixture() {
     name: "poe-code",
     exports: {
       "./safe-js": {
-        types: {
+        types: { workerd: "./dist/types/safe-js/workerd.d.ts",
           browser: "./dist/types/safe-fs/node-unavailable.d.ts",
           default: "./dist/types/safe-js/index.d.ts"
         },
+        workerd: "./packages/safe-js/dist/workerd.js",
         browser: null,
         import: "./dist/shared/safe-js/index.js"
       },
       "./safe-js/core": {
-        types: {
+        types: { workerd: "./dist/types/safe-js/workerd.d.ts",
           browser: "./dist/types/safe-fs/node-unavailable.d.ts",
           default: "./dist/types/safe-js/core.d.ts"
         },
+        workerd: "./packages/safe-js/dist/workerd.js",
         browser: null,
         import: "./dist/shared/safe-js/core.js"
       },
@@ -183,18 +185,20 @@ export function canonicalBundleFixture() {
         import: "./dist/shared/safe-js/cli.js"
       },
       "./safejs": {
-        types: {
+        types: { workerd: "./dist/types/safe-js/workerd.d.ts",
           browser: "./dist/types/safe-fs/node-unavailable.d.ts",
           default: "./dist/types/safe-js/index.d.ts"
         },
+        workerd: "./packages/safe-js/dist/workerd.js",
         browser: null,
         import: "./dist/shared/safe-js/index.js"
       },
       "./safejs/core": {
-        types: {
+        types: { workerd: "./dist/types/safe-js/workerd.d.ts",
           browser: "./dist/types/safe-fs/node-unavailable.d.ts",
           default: "./dist/types/safe-js/core.d.ts"
         },
+        workerd: "./packages/safe-js/dist/workerd.js",
         browser: null,
         import: "./dist/shared/safe-js/core.js"
       },
@@ -207,31 +211,35 @@ export function canonicalBundleFixture() {
         import: "./dist/shared/safe-js/cli.js"
       },
       "./safe-fs": {
-        types: { browser: "./dist/types/safe-fs/core.d.ts", default: `./${types}` },
+        types: { workerd: "./dist/types/safe-fs/core.d.ts", browser: "./dist/types/safe-fs/core.d.ts", default: `./${types}` },
+        workerd: "./dist/shared/safe-js/browser/safe-fs.js",
         browser: "./dist/shared/safe-js/browser/safe-fs.js",
         import: `./${entry}`
       },
       "./safe-fs/core": {
-        types: {
+        types: { workerd: "./dist/types/safe-fs/core.d.ts",
           browser: "./dist/types/safe-fs/core.d.ts",
           default: "./dist/types/safe-fs/core.d.ts"
         },
+        workerd: "./dist/shared/safe-js/browser/safe-fs-core.js",
         browser: "./dist/shared/safe-js/browser/safe-fs-core.js",
         import: "./dist/shared/safe-js/safe-fs-core.js"
       },
       "./safe-fs/node": {
-        types: {
+        types: { workerd: "./dist/types/safe-fs/node-unavailable.d.ts",
           browser: "./dist/types/safe-fs/node-unavailable.d.ts",
           default: "./dist/types/safe-fs/node-host.d.ts"
         },
+        workerd: null,
         browser: null,
         import: "./dist/shared/safe-js/safe-fs-node.js"
       },
       "./safe-fs/node/filesystem": {
-        types: {
+        types: { workerd: "./dist/types/safe-fs/node-unavailable.d.ts",
           browser: "./dist/types/safe-fs/node-unavailable.d.ts",
           default: "./dist/types/safe-fs/node/filesystem.d.ts"
         },
+        workerd: null,
         browser: null,
         import: "./dist/shared/safe-js/safe-fs-bridge.js"
       }
@@ -239,6 +247,7 @@ export function canonicalBundleFixture() {
     imports: {
       "#safe-fs-platform": {
         types: {
+          workerd: "./dist/types/safe-fs/platform/browser.d.ts",
           browser: "./dist/types/safe-fs/platform/browser.d.ts",
           default: "./dist/types/safe-fs/platform/node.d.ts"
         },

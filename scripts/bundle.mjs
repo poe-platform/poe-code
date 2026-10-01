@@ -9,7 +9,7 @@ import { resolveBundleGraph, resolveConsumerGraph, resolveSharedRuntimeBuilds } 
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { collectPackageFiles, findBundleIssues, canonicalFs, canonicalFsRoutes, collectCanonicalDeclarations, collectCanonicalNativeAssets } from "../packages/package-lint/dist/bundle-policy.js";
 import { publishDeclarations } from "./publish-declarations.mjs";
-import { resolveCanonicalFsBuilds } from "./bundle-fs.mjs";
+import { resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 import { readBuiltNativeAssets, copyNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { resolveBrowserShellBuild, resolvePortableBufferBuild } from "./bundle-safe-bash.mjs";
 import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
@@ -72,6 +72,15 @@ for (const [profile, options] of Object.entries(resolveCanonicalFsBuilds(rootDir
   canonicalBuilds[profile] = { entryPoints: Object.values(options.entryPoints).map(filename => path.relative(rootDir, filename).split(path.sep).join("/")), metafile: result.metafile };
 }
 await copyNativeAssets({ rootDir, outDir: path.join(rootDir, "dist/shared/safe-js") });
+const workerdOptions = resolveWorkerdRuntimeBuild(rootDir, { alias: workspaceAliases, external: externalDeps });
+const workerdResult = await esbuild.build(workerdOptions);
+await publishBundleOutputs(workerdResult, {
+  outdir: workerdOptions.outdir,
+  entryPoints: Object.values(workerdOptions.entryPoints),
+  workingDirectory: rootDir
+});
+consumerBuilds.push(workerdResult);
+
 
 // Plugin to strip shebangs from source files
 const stripShebangPlugin = {

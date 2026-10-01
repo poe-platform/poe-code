@@ -72,14 +72,15 @@ export const canonicalFsExports = Object.fromEntries(
   canonicalFsRoutes.map((route) => [
     route.key,
     {
-      types: { browser: `./${route.types.browser}`, default: `./${route.types.node}` },
+      types: { workerd: `./${route.types.browser}`, browser: `./${route.types.browser}`, default: `./${route.types.node}` },
+      workerd: route.runtime.browser === null ? null : `./${route.runtime.browser}`,
       browser: route.runtime.browser === null ? null : `./${route.runtime.browser}`,
       import: `./${route.runtime.node}`
     }
   ])
 );
 
-const nodeOnlySafeJsExports = Object.fromEntries(
+const safeJsExports = Object.fromEntries(
   [
     ["./safe-js", "index"],
     ["./safe-js/core", "core"],
@@ -91,9 +92,11 @@ const nodeOnlySafeJsExports = Object.fromEntries(
     route,
     {
       types: {
+        ...(entry === "cli" ? {} : { workerd: "./dist/types/safe-js/workerd.d.ts" }),
         browser: "./dist/types/safe-fs/node-unavailable.d.ts",
         default: `./dist/types/safe-js/${entry}.d.ts`
       },
+      ...(entry === "cli" ? {} : { workerd: "./packages/safe-js/dist/workerd.js" }),
       browser: null,
       import: `./dist/shared/safe-js/${entry}.js`
     }
@@ -103,6 +106,7 @@ const nodeOnlySafeJsExports = Object.fromEntries(
 export const canonicalFsTypeImports = {
   "#safe-fs-platform": {
     types: {
+      workerd: `./${canonicalFsProfiles.browser.types}`,
       browser: `./${canonicalFsProfiles.browser.types}`,
       default: `./${canonicalFsProfiles.node.types}`
     },
@@ -314,7 +318,7 @@ export function findBundleIssues(
   }
   if (exportKeys.some((key) => !canonicalFsRoutes.some((route) => route.key === key)))
     fail("invalid-canonical-export");
-  for (const [key, expected] of Object.entries(nodeOnlySafeJsExports)) {
+  for (const [key, expected] of Object.entries(safeJsExports)) {
     if (JSON.stringify(exported[key]) !== JSON.stringify(expected))
       fail("invalid-node-only-safejs-export", `poe-code${key.slice(1)}`);
   }

@@ -333,7 +333,9 @@ export function createInterpretedClosure(
             }
           });
           const value = "hasValue" in result && result.hasValue ? result.value : undefined;
-          reconcileCompiledValues(context.budget, [...scope.retainedDataRoots(), value], compilation, parent, [value]);
+          if (context.budget.limits.dataSize !== undefined || compilation.tickets.size > 0) {
+            reconcileCompiledValues(context.budget, [...scope.retainedDataRoots(), value], compilation, parent, [value]);
+          }
           if (result.kind === "error") throw result.error;
           if (result.kind === "throw") throw result.value;
           return value;
@@ -620,13 +622,15 @@ export async function executeClosure(
     });
 
     const value = "hasValue" in result && result.hasValue ? result.value : undefined;
-    reconcileCompiledValues(
-      context.budget,
-      [...scope.retainedDataRoots(), value],
-      compilation,
-      parent,
-      [value]
-    );
+    if (context.budget.limits.dataSize !== undefined || compilation.tickets.size > 0) {
+      reconcileCompiledValues(
+        context.budget,
+        [...scope.retainedDataRoots(), value],
+        compilation,
+        parent,
+        [value]
+      );
+    }
 
     if (result.kind === "error") {
       throw result.error;

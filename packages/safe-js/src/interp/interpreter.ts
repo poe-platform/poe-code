@@ -285,7 +285,7 @@ export type InterpretOptions = {
   snapshot?: InterpreterSnapshot;
 };
 
-type EvaluationContext = AsyncEvaluationContext & { deferDataScans?: boolean };
+type EvaluationContext = AsyncEvaluationContext;
 const intrinsicRealmContexts = new WeakMap<object, EvaluationContext>();
 
 type EvaluationResult = AsyncEvaluationResult;
@@ -663,14 +663,12 @@ export async function evaluateNode(
   }
 
   // Primitive literals never compile source or regexes. Keep their await and
-  // full reconciliation, but avoid an empty scope and a copied context.
+  // data checkpoint, but avoid an empty scope and a copied context.
   const compilation = handler === evaluatePrimitiveLiteral
     ? undefined : new CompileScope(context.compilation?.owner, context.compilation);
   const evaluationContext = compilation === undefined ? context : {
     ...context,
     compilation,
-    deferDataScans: context.deferDataScans || node.type === "ForStatement" || node.type === "ForInStatement" ||
-      node.type === "ForOfStatement" || node.type === "WhileStatement" || node.type === "DoWhileStatement",
     get generatorResume() {
       return context.generatorResume;
     },
@@ -682,20 +680,19 @@ export async function evaluateNode(
     const result = node.type === "Identifier" && onReference !== undefined
       ? await evaluateIdentifier(node, evaluationContext, onReference)
       : await handler(node as never, evaluationContext);
-    // Unlimited loops measure their retained graph when the loop completes,
-    // rather than repeatedly walking an ever-growing graph each iteration.
-    // Scopes owning compilation tickets still reconcile before disposal.
-    if (!context.deferDataScans || context.budget.limits.dataSize !== undefined ||
-        (compilation?.tickets.size ?? 0) > 0) {
-      reconcileDataBudget(
-        context.budget,
-        context.stats,
-        context.scope,
-        "hasValue" in result && result.hasValue ? result.value : undefined,
-        compilation,
-        context.compilation
-      );
-    }
+    const transient = "hasValue" in result && result.hasValue ? result.value : undefined;
+    reconcileDataBudget(
+      context.budget,
+      context.stats,
+      context.scope,
+      transient,
+      compilation,
+      context.compilation,
+      true,
+      handler === evaluatePrimitiveLiteral
+        ? typeof transient === "string" ? transient.length : 8
+        : undefined
+    );
     if (result.kind === "break" && result.label !== undefined && "labels" in node && node.labels?.includes(result.label))
       return { kind: "normal", hasValue: context.evalCompletion === true && result.hasValue, value: context.evalCompletion ? result.value : undefined };
     return result;
@@ -724,7 +721,8 @@ export async function evaluateNode(
       context.scope,
       completion.value,
       compilation,
-      context.compilation
+      context.compilation,
+      true
     );
 
     return completion;
@@ -739,8 +737,19 @@ function reconcileDataBudget(
   scope: Scope,
   transient: SandboxValue | undefined,
   compilation?: CompileScope,
-  parent?: CompileScope
+  parent?: CompileScope,
+  nodeCheckpoint = false,
+  growth?: number
 ): void {
+  if (nodeCheckpoint && (compilation?.tickets.size ?? 0) === 0) {
+    const limit = budget.limits.dataSize;
+    // Exact accounting remains at execution/call boundaries and before ticket
+    // disposal. Unlimited AST nodes have no data constraint to reconcile.
+    if (limit === undefined || limit === Infinity) return;
+    // Literals cannot mutate the retained graph. Its last exact measurement
+    // plus the transient is an upper bound, without walking unrelated roots.
+    if (growth !== undefined && budget.currentDataSize + growth <= limit) return;
+  }
   reconcileCompiledValues(
     budget,
     [...scope.retainedDataRoots(), transient],

@@ -115,3 +115,26 @@ for (const program of [
     assert.equal(run.retention.retainedBytes, 0);
   }
 });
+
+for (const initial of [0, 5000]) {
+  for (const [statement, expected] of [
+    ['print "add:", (x + (++x))', `add: ${2 * initial + 3}\n`],
+    ['print "sub:", (x - (x += 10))', 'sub: -10\n'],
+    ['print "print:", x, ++x', `print: ${initial + 1} ${initial + 2}\n`],
+    ['printf "printf: %d %d\\n", x, ++x', `printf: ${initial + 1} ${initial + 2}\n`],
+  ]) test(`numeric updates preserve earlier operands: ${initial}; ${statement}`, async () => {
+    const run = await runtime(`BEGIN { x = ${initial}; x++; ${statement} }`);
+    assert.equal(await run.instance.runSyncOrAsync(), 0);
+    assert.equal(run.stdout(), expected);
+  });
+}
+
+for (const [update, next] of [
+  ['++x', 5002], ['--x', 5000], ['x++', 5001], ['x--', 5001],
+  ['x += 10', 5011], ['x -= 10', 4991], ['x *= 2', 10002],
+  ['x /= 3', 1667], ['x %= 10', 1], ['x ^= 2', 25010001],
+] as const) test(`numeric update preserves aliases and operands: ${update}`, async () => {
+  const run = await runtime(`BEGIN { x = 5000; x++; saved = x; printf "%d %d %d\\n", x, (${update}), saved }`);
+  assert.equal(await run.instance.runSyncOrAsync(), 0);
+  assert.equal(run.stdout(), `5001 ${next} 5001\n`);
+});

@@ -23,7 +23,11 @@ test("zero-argument Node factories register without granting a runtime", async (
     }
     const shell = new root.Shell({ fs: new MemoryFileSystem() }).use(plugin());
     try {
-      assert.throws(() => plugin().setup({ commands: { has: () => true } } as Parameters<root.VirtualShellPlugin["setup"]>[0]), /already registered/);
+      assert.throws(() => plugin().setup({
+        commands: new root.CommandRegistry(collection()),
+        use() { throw new Error("Unexpected middleware registration"); },
+        registerFileSystem() { throw new Error("Unexpected filesystem registration"); },
+      }), /already registered/);
       const result = await shell.exec("node -e 'throw new Error(\"must not execute\")'");
       assert.equal(result.exitCode, 2);
       assert.equal(result.stdout, "");

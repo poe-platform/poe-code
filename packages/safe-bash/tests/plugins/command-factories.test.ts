@@ -88,7 +88,7 @@ test("default public yq accepts attached YAML and TOML format flags", async () =
   const { createMemoryFileSystem } = await import("../../src/fs/memory/index.js");
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(yqCommands());
   try {
-    for (const [format, input] of [["yaml", "name: Alpha\n"], ["toml", 'name = "Alpha"\n']]) {
+    for (const [format, input] of [["yaml", "name: Alpha\n"], ["toml", 'name = "Alpha"\n']] as const) {
       const result = await shell.exec(`yq -p=${format} -o=json .`, { stdin: input });
       assert.equal(result.exitCode, 0, result.stderr);
       assert.deepEqual(JSON.parse(result.stdout), { name: "Alpha" });

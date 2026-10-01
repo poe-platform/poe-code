@@ -1,7 +1,7 @@
 import type { ByteSource } from "safe-bash-contracts";
 import type { LlmService } from "./service.js";
 import type { LlmTemplateLoader } from "./templates.js";
-export type LlmOption = string | number | boolean | null;
+export type LlmOption = string | number | boolean | null | readonly LlmOption[] | { readonly [key: string]: LlmOption };
 export type LlmCapability = "messages" | "schema" | "embed";
 export interface LlmResponseMetadata {
   readonly usage?: Readonly<Record<string, unknown>>;
@@ -16,7 +16,7 @@ export interface LlmProvider {
 }
 export interface LlmModelOption {
   readonly description?: string;
-  readonly type: "number" | "integer" | "boolean" | "string";
+  readonly type: "number" | "integer" | "boolean" | "string" | "object" | "array";
   readonly minimum?: number;
   readonly maximum?: number;
   readonly nullable?: boolean;

@@ -24,10 +24,25 @@ export function validateModelOptions(model: LlmModel, values: Readonly<Record<st
         break;
       }
       case "boolean": {
+        if (input !== null && typeof input === "object") return fail("Input should be a valid boolean");
         const text = String(input).toLowerCase();
         if (["true", "1", "yes", "on", "y", "t"].includes(text)) value = true;
         else if (["false", "0", "no", "off", "n", "f"].includes(text)) value = false;
         else fail("Input should be a valid boolean");
+        break;
+      }
+      case "object":
+      case "array": {
+        if (typeof input === "string") {
+          try {
+            value = JSON.parse(input, (_key, item: unknown) => {
+              if (typeof item === "number" && !Number.isFinite(item)) throw new TypeError("Non-finite option");
+              return item;
+            }) as LlmOption;
+          }
+          catch { return fail("Input should be valid JSON"); }
+        }
+        if (rule.type === "array" ? !Array.isArray(value) : !value || typeof value !== "object" || Array.isArray(value)) return fail(`Input should be a valid ${rule.type}`);
         break;
       }
       case "string":

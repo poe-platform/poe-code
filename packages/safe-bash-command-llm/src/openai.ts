@@ -3,7 +3,7 @@ import { openAiChatOptions } from "./openai-chat-options.js";
 import { chatJson } from "./chat-json.js";
 import { parseLlmNumericOption } from "./numeric-option.js";
 import type { HttpRequest, HttpTransport } from "safe-bash-contracts/http";
-import type { LlmModel, LlmProvider, LlmRequest, LlmResponseMetadata } from "./types.js";
+import type { LlmModel, LlmProvider, LlmRequest, LlmResponseMetadata, LlmOption } from "./types.js";
 import { openAiBytes, openAiError, openAiJson, openAiRecord, openAiResponse } from "./openai-http.js";
 import { openAiChat } from "./openai-sse.js";
 import { acceptsMimeType } from "./mime.js";
@@ -33,7 +33,7 @@ const numericOptions = {
   ]),
 } as const;
 
-function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, string | number | boolean | null> {
+function jsonOptions(options: LlmRequest["options"], endpoint: "chat" | "images"): Record<string, LlmOption> {
   return Object.fromEntries(Object.entries(options).map(([key, value]) => {
     if ((endpoint === "chat" ? ["store", "parallel_tool_calls", "logprobs"] : ["stream"]).includes(key)) {
       if (value !== "true" && value !== "false" && typeof value !== "boolean") throw new Error(`Invalid OpenAI option ${key}: expected boolean`);

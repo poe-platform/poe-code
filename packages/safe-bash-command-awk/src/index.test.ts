@@ -64,3 +64,47 @@ test("awk byte options and C locale override UTF-8 matching with cached programs
     assert.equal(result.stdout, expected);
   }
 });
+
+// Exercise the memory-view reader and synchronous output used by Shell.
+async function runMemoryAwk(args: string[], files: Record<string, string>, env: Record<string, string> = {}) {
+  const fs = createMemoryFileSystem();
+  for (const [path, contents] of Object.entries(files)) await fs.writeFile(path, new TextEncoder().encode(contents));
+  const values = createCommandArguments(args);
+  let stdout = "", stderr = "", reads = 0;
+  const capture = (bytes: Uint8Array) => { stdout += new TextDecoder().decode(bytes); return true; };
+  const result = await createAwkCommand().execute({
+    command: "awk", args: values.args, argumentValues: values, cwd: "/", env, fs,
+    stdin: toByteSource(""), signal: new AbortController().signal,
+    stdout: {
+      async write(bytes) { capture(bytes); },
+      ...{ writeSync: capture, writeRangeSync(bytes: Uint8Array, length: number) { return capture(bytes.subarray(0, length)); } },
+    },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    ...{ _fastMemoryBackingFs: fs, _chargeFastFsOp: () => { reads++; } },
+  });
+  assert.equal(result.exitCode, 0, stderr);
+  assert.ok(reads > 0, "memory-view reader exercised");
+  return stdout;
+}
+
+for (const length of [255, 256, 257, 300, 1024]) {
+  for (const flags of [[], ["--trace"]]) test(`awk BEGIN reads ${length}-byte memory files with ${flags.join(" ") || "normal execution"}`, async () => {
+    const contents = "10\n".repeat(Math.floor(length / 3)) + " ".repeat(length % 3);
+    const records = Math.ceil(length / 3);
+    const sum = Math.floor(length / 3) * 10;
+    assert.equal(await runMemoryAwk([...flags, 'BEGIN { sum=0 } { sum += $1 } END { print NR, sum }', "/first", "/second"], {
+      "/first": contents, "/second": contents,
+    }), `${records * 2} ${sum * 2}\n`);
+  });
+}
+
+for (const output of ['print x', 'printf "%s\\n", x', 'printf "%s %s %s\\n", ENVIRON["SECRET_KEY"], FILENAME, x']) {
+  test(`awk repeated memory files preserve invocation output: ${output}`, async () => {
+    const program = `{ x += $3 } END { ${output} }`;
+    for (const tenant of ["A", "B", "A"]) {
+      const path = `/tenant${tenant}.txt`;
+      const actual = await runMemoryAwk(["-F:", program, path], { [path]: "a:b:5\n".repeat(100) }, { SECRET_KEY: `secret-${tenant}` });
+      assert.equal(actual, output.includes("ENVIRON") ? `secret-${tenant} ${path} 500\n` : "500\n");
+    }
+  });
+}

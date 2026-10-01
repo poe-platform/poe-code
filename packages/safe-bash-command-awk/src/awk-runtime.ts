@@ -1686,11 +1686,12 @@ export class AwkRuntime {
     this.fieldCount = 0; this.fieldsMaterialized = true; this.fieldBytes = 0;
     this.sliceBox.source = "";
     this.recordValue = unset;
-    this.context.signal.throwIfAborted();
+    const signal = this.context.signal;
     (this as unknown as { context: CommandContext }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).context = RELEASED_AWK_CONTEXT;
     (this.budget as unknown as { context: CommandContext; signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
     (this.retention as unknown as { signal: AbortSignal }).signal = RELEASED_AWK_SIGNAL;
+    signal.throwIfAborted();
     return status;
   }
 

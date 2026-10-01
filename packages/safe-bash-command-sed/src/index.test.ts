@@ -123,7 +123,7 @@ for (const sink of ["writeSync", "writeRangeSync", "writeImmutableSync"] as cons
   test(`sed output survives later invocations with ${sink}`, async () => {
     const command = createSedCommand();
     const fs = createMemoryFileSystem();
-    const input = "hello world\n".repeat(40);
+    const input = "hello world\n".repeat(100);
     await fs.writeFile("/input", new TextEncoder().encode(input));
     let fastReads = 0;
     async function capture(program: string) {
@@ -154,8 +154,8 @@ for (const sink of ["writeSync", "writeRangeSync", "writeImmutableSync"] as cons
     const replay = await capture(pair);
     await capture("s/^hello/xxxxx/;s/world/yyyyy/");
     const decode = (chunks: Uint8Array[]) => chunks.map(bytes => new TextDecoder().decode(bytes)).join("");
-    assert.equal(decode(first), "HELLO WORLD\n".repeat(40));
-    assert.equal(decode(replay), "HELLO WORLD\n".repeat(40));
-    assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "HELLO WORLD\n".repeat(40));
+    assert.equal(decode(first), "HELLO WORLD\n".repeat(100));
+    assert.equal(decode(replay), "HELLO WORLD\n".repeat(100));
+    assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "HELLO WORLD\n".repeat(100));
   });
 }

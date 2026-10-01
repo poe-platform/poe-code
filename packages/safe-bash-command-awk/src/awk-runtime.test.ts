@@ -27,7 +27,7 @@ async function runtime(source: string, onOutput?: (text: string, retained: numbe
   // Keep the initial execution synchronous; explicit redirected writes suspend it.
   budget.checkpointSync = () => undefined;
   const instance = new AwkRuntime(new AwkParser(source, builtinArities).parse(), context, budget, retention, ["/input"], []);
-  return { instance, stdout: () => stdout };
+  return { instance, budget, context, stdout: () => stdout };
 }
 
 for (const [args, expected] of [
@@ -68,4 +68,15 @@ for (const args of ['f(), 1/3', '1/3, f(), 1/3']) test(`print resumes argument f
   const run = await runtime(`function f() { print "pause" > "/dev/stdout"; OFS=":"; ORS="!"; OFMT="%.2f"; return 1/3 } { print ${args}; exit }`);
   assert.equal(await run.instance.runSyncOrAsync(), 0);
   assert.equal(run.stdout(), args.startsWith('f') ? "pause\n0.33:0.33!" : "pause\n0.333333:0.33:0.33!");
+});
+
+test("aborted awk releases the budget context before propagating cancellation", async () => {
+  const controller = new AbortController();
+  const run = await runtime('{ print $0 > "/dev/stdout" }', () => controller.abort(new Error("cancelled")));
+  run.context.env.SECRET_KEY = "tenant-secret";
+  Object.assign(run.context, { signal: controller.signal });
+  await assert.rejects(async () => await run.instance.runSyncOrAsync(), /cancelled/);
+  const retained = run.budget as unknown as { context: CommandContext; signal: AbortSignal };
+  assert.notEqual(retained.context, run.context);
+  assert.equal(retained.signal.aborted, false);
 });

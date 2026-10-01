@@ -164,6 +164,7 @@ class _Response:
         self._closed = False
         self._client = None
         self._iterator = None
+        self._custom_iterator = None
         self.response_json = None
         self.input_tokens = None
         self.output_tokens = None
@@ -209,6 +210,13 @@ class _Response:
                 await value
 
     async def _close(self):
+        if self._custom_iterator is not None:
+            iterator, self._custom_iterator = self._custom_iterator, None
+            close = getattr(iterator, "aclose", None) or getattr(iterator, "close", None)
+            if close is not None:
+                result = close()
+                if inspect.isawaitable(result):
+                    await result
         if self._client is not None:
             await self._client.aclose()
 
@@ -223,6 +231,22 @@ class _Response:
         if self._done or self._closed:
             raise StopAsyncIteration
         try:
+            execute = getattr(self.model, "execute", None)
+            if execute is not None:
+                if self._custom_iterator is None:
+                    self._start = time.monotonic()
+                    self._start_utcnow = _datetime.datetime.now(_datetime.timezone.utc)
+                    self._custom_iterator = execute(self.prompt, self.stream, self, self.conversation)
+                try:
+                    if isinstance(self.model, AsyncModel):
+                        chunk = await self._custom_iterator.__anext__()
+                    else:
+                        chunk = next(self._custom_iterator)
+                except (StopIteration, StopAsyncIteration):
+                    await self._finish()
+                    raise StopAsyncIteration
+                self._chunks.append(chunk)
+                return chunk
             if self._client is None:
                 self._start = time.monotonic()
                 self._start_utcnow = _datetime.datetime.now(_datetime.timezone.utc)
@@ -392,10 +416,13 @@ class Model:
     supports_tools = False
     attachment_types = set()
 
-    def __init__(self, model_id, *, capabilities=(), metadata=None):
-        self.model_id = model_id
-        self.supports_schema = "schema" in capabilities
-        self.attachment_types = set((metadata or {}).get("attachmentTypes", ()))
+    def __init__(self, model_id=None, *, capabilities=None, metadata=None):
+        if model_id is not None:
+            self.model_id = model_id
+        if capabilities is not None:
+            self.supports_schema = "schema" in capabilities
+        if metadata is not None:
+            self.attachment_types = set(metadata.get("attachmentTypes", ()))
 
     def __str__(self):
         suffix = " (async)" if isinstance(self, AsyncModel) else ""

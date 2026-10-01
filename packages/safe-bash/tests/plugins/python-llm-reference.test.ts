@@ -5,6 +5,33 @@ import { installPythonLlmModule } from '../../src/commands/python/llm-module.js'
 
 const snippet = `
 import llm
+custom_calls = []
+class CustomModel(llm.Model):
+ model_id = "custom"
+ supports_schema = True
+ def execute(self, prompt, stream, response, conversation):
+  custom_calls.append(prompt.prompt)
+  response.set_usage(input=2, output=3)
+  yield prompt.prompt.upper()
+custom = CustomModel()
+assert custom.supports_schema
+custom_response = custom.prompt("custom")
+assert custom_calls == []
+assert list(custom_response) == ["CUSTOM"]
+assert custom_response.text() == "CUSTOM"
+assert custom_response.usage().input == 2
+assert custom_calls == ["custom"]
+class CustomAsyncModel(llm.AsyncModel):
+ model_id = "custom-async"
+ async def execute(self, prompt, stream, response, conversation):
+  yield prompt.prompt.upper()
+async def custom_async_check():
+ response = CustomAsyncModel().prompt("async-custom")
+ assert await response.text() == "ASYNC-CUSTOM"
+asyncio.run(custom_async_check())
+custom_conversation = custom.conversation()
+assert custom_conversation.prompt("turn").text() == "TURN"
+assert len(custom_conversation.responses) == 1
 schema = {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer", "description": "in years"}}, "required": ["name", "age"]}
 assert llm.schema_dsl("name, age int: in years") == schema
 assert llm.schema_dsl("name, age int: in years", multi=True) == {"type": "object", "properties": {"items": {"type": "array", "items": schema}}, "required": ["items"]}
@@ -315,6 +342,19 @@ async def check():
  assert await response.__anext__() == "first"
  await response.aclose()
  assert closed == ["early", "error", "cancel", "async-early"]
+ custom_closed = []
+ class Custom(llm.AsyncModel):
+  model_id = "custom"
+  async def execute(self, prompt, stream, response, conversation):
+   try:
+    yield "first"
+    await asyncio.Future()
+   finally:
+    custom_closed.append(True)
+ custom = Custom().prompt("custom")
+ assert await custom.__anext__() == "first"
+ await custom.aclose()
+ assert custom_closed == [True]
  try:
   await response.__anext__()
   raise AssertionError("exhausted response yielded a chunk")

@@ -297,6 +297,17 @@ except CalledProcessError as error:
 assert call('identity', 'still-live') == 'still-live'
 import llm
 ${pythonLlmDependenciesEnabled ? "from pydantic import BaseModel, ConfigDict, ValidationError\nclass ReferenceOptions(BaseModel):\n model_config = ConfigDict(extra='forbid')\n temperature: float | None = None\nassert ReferenceOptions(temperature='0.5').model_dump() == {'temperature': 0.5}\ntry:\n ReferenceOptions(unknown=True)\n raise AssertionError('extra option was accepted')\nexcept ValidationError:\n pass\nclass ReferenceSchema(BaseModel):\n name: str\n age: int\nassert llm.get_model('fake').prompt('reference-schema', schema=ReferenceSchema).text() == 'reference-schema'\n" : ''}
+class CustomizedModel(llm.Model):
+ model_id = "customized"
+ def execute(self, prompt, stream, response, conversation):
+  yield prompt.prompt.upper()
+assert CustomizedModel().prompt("customized").text() == "CUSTOMIZED"
+class CustomizedAsyncModel(llm.AsyncModel):
+ model_id = "customized-async"
+ async def execute(self, prompt, stream, response, conversation):
+  yield prompt.prompt.upper()
+async def check_customized_async():
+ assert await CustomizedAsyncModel().prompt("async-customized").text() == "ASYNC-CUSTOMIZED"
 assert llm.decode(llm.encode([1, -2.5])) == (1.0, -2.5)
 assert llm.cosine_similarity([1, 0], [0, 1]) == 0.0
 model = llm.get_model('fake')
@@ -332,6 +343,7 @@ def expected_bytes(offset, count):
  return (bytes(range(256)) * ((start + count + 255) // 256))[start:start + count]
 
 async def qualify_libraries():
+ await check_customized_async()
  reference_response = llm.get_async_model('fake').prompt('reference-async')
  assert aiter(reference_response) is reference_response
  assert await anext(reference_response) == 'reference-async'

@@ -74,6 +74,14 @@ tools, persistence and the complete response interface still require
 qualification. The existing `poe_llm` workflow API below remains available during
 that implementation.
 
+Custom Python models can subclass llm.Model or llm.AsyncModel, set model_id as
+a class attribute, and implement execute(prompt, stream, response, conversation).
+Synchronous implementations yield text; asynchronous implementations use an async
+generator. Responses remain lazy, replay completed text, retain conversation
+history, and close custom generators on cancellation or explicit early closure.
+Calling a discovered model from a custom workflow continues to use the shared
+JavaScript provider service.
+
 The module ships with the authenticated runtime, without pip installation.
 
 For real Pydantic schema classes, the public Python SDK exports

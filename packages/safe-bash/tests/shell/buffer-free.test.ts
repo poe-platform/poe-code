@@ -3,6 +3,11 @@ import { test } from "node:test";
 import { portableRuntime } from "../helpers/portable-runtime.js";
 
 const cases: [string, number, string?][] = [
+  ['arr=(1 2); echo "${arr[0]}"', 0, '1\n'],
+  ['echo pre{1..3}suf', 0, 'pre1suf pre2suf pre3suf\n'],
+  ['value="préfixe"; echo "${value#pré}" "${value%ixe}"', 0, 'fixe préf\n'],
+  ['FOO=bar printenv FOO', 0, 'bar\n'],
+  ['env -i FOO=bar printenv FOO', 0, 'bar\n'],
   ['[[ a < b ]]', 0, ''],
   ["printf 'hello world\\n%.0s' {1..32} > /in.txt; grep hello /in.txt; grep hello /in.txt", 0, 'hello world\n'.repeat(64)],
   ["printf 'hello world\\n%.0s' {1..32} > /in.txt; cut -d ' ' -f1 /in.txt", 0, 'hello\n'.repeat(32)],

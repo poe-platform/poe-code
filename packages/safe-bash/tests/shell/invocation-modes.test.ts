@@ -55,12 +55,25 @@ test("unimplemented invocation flags reject explicitly before source consumption
   const { shell } = setup();
   let reads = 0;
   const stdin: ByteSource = { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("say bad"); } };
-  for (const name of ["bash", "sh"]) for (const flag of ["-i", "-l", "-x", "--login", "--norc", "--posix", "+s", "-csx"]) {
+  for (const name of ["bash", "sh"]) for (const flag of ["-x", "+s", "-csx"]) {
     const result = await shell.exec(`${name} ${quote(flag)}`, { stdin });
     assert.equal(result.exitCode, 2, result.stderr);
     assert.match(result.stderr, /unsupported option/u);
   }
   assert.equal(reads, 0);
+});
+
+test("supported login and compatibility flags execute supplied source", async () => {
+  const { shell } = setup();
+  try {
+    for (const name of ["bash", "sh"]) for (const flag of ["-i", "-l", "--login", "--norc", "--noprofile", "--posix"]) {
+      let reads = 0;
+      const stdin: ByteSource = { async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("exit 7"); } };
+      const result = await shell.exec(`${name} ${quote(flag)}`, { stdin });
+      assert.equal(result.exitCode, 7, `${name} ${flag}: ${result.stderr}`);
+      assert.equal(reads, 1);
+    }
+  } finally { await shell.dispose(); }
 });
 
 test("new modes isolate cwd, variables, function locals, options and exit", async () => {

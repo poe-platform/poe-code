@@ -13567,19 +13567,28 @@ export class Runtime {
       return undefined;
     }
     const regNames = forPlan.regNames;
+    for (const refName of regNames) {
+      if (store?.get(refName) || store?.watches.has(refName) || monitor.hasOverlay(refName) || rawState.variableAttributes?.has(refName)) return undefined;
+    }
+    const intBudgetSnapshot = this.budget.parsing.snapshot();
     for (let r = 0; r < regNames.length; r++) {
       const refName = regNames[r]!;
-      if (store?.get(refName)) return undefined;
       if (r > 0) {
         const parsed = fastSafeInt(rawState.variables[refName], this.budget.parsing);
-        if (parsed === undefined) return undefined;
+        if (parsed === undefined) {
+          this.budget.parsing.restore(intBudgetSnapshot);
+          return undefined;
+        }
         sharedLoopIntRegs[r] = parsed | 0;
       }
     }
+    const { ok } = runIntForLoop(fastLoopWords, forPlan.bodyStepCount, forPlan.intSteps, this.budget.parsing);
+    if (!ok) {
+      this.budget.parsing.restore(intBudgetSnapshot);
+      return undefined;
+    }
     monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
     this.budget.tick();
-    const { ok } = runIntForLoop(fastLoopWords, forPlan.bodyStepCount, forPlan.intSteps, this.budget.parsing);
-    if (!ok) return undefined;
     this.budget.iterations += wordCount;
     this.budget.commands += wordCount * forPlan.bodyStepCount;
     for (let r = 0; r < regNames.length; r++) {

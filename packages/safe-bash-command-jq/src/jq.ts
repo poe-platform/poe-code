@@ -191,28 +191,28 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   } else {
     budget.resetForSyncFastRun(context.signal);
   }
-  if (budget.maxInputBytesSmi < 0x3fffffff && limits.maxInputBytes !== Infinity) {
-    const argBytes = 2 + utf8ByteLength(source) + utf8ByteLength(file);
-    if (argBytes + rawBytes.byteLength > limits.maxInputBytes) return undefined;
-  }
-  // Parse only after eligibility, retaining its work in this invocation's budget.
-  // A declined synchronous attempt must not populate the slow route's AST cache.
-  if (!cachedAst) {
-    try { cachedAst = parse(source, EMPTY_VARS_MAP, budget); }
-    catch { return undefined; }
-  }
-  if (budget.needsYield()) return undefined;
-  if (Interpreter.prototype.run !== DEFAULT_INTERPRETER_RUN) return undefined;
   let interpreter: Interpreter | undefined;
-  const outBuf = (sharedJqOutBuf ??= filledBytes(OUT_BUF_SIZE));
-  sharedFastInUse = true;
-  sharedJqOutBufInUse = true;
-  sharedFastJqAst = cachedAst;
-  sharedFastJqLimits = limits;
-  sharedFastJqOutPos = 0;
-  sharedFastJqAborted = false;
   let committing = false;
   try {
+    if (budget.maxInputBytesSmi < 0x3fffffff && limits.maxInputBytes !== Infinity) {
+      const argBytes = 2 + utf8ByteLength(source) + utf8ByteLength(file);
+      if (argBytes + rawBytes.byteLength > limits.maxInputBytes) return undefined;
+    }
+    // Parse only after eligibility, retaining its work in this invocation's budget.
+    // A declined synchronous attempt must not populate the slow route's AST cache.
+    if (!cachedAst) {
+      try { cachedAst = parse(source, EMPTY_VARS_MAP, budget); }
+      catch { return undefined; }
+    }
+    if (budget.needsYield()) return undefined;
+    if (Interpreter.prototype.run !== DEFAULT_INTERPRETER_RUN) return undefined;
+    const outBuf = (sharedJqOutBuf ??= filledBytes(OUT_BUF_SIZE));
+    sharedFastInUse = true;
+    sharedJqOutBufInUse = true;
+    sharedFastJqAst = cachedAst;
+    sharedFastJqLimits = limits;
+    sharedFastJqOutPos = 0;
+    sharedFastJqAborted = false;
     context.signal.throwIfAborted();
     budget.collection(3);
     budget.text(source);

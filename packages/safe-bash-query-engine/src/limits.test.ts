@@ -1,3 +1,4 @@
+import { getEventListeners } from "node:events";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { setTimeout as delay } from "node:timers/promises";
@@ -151,3 +152,24 @@ test("query fast admission yields every quantum with a frozen clock", async cont
     assert.equal(budget.currentSteps, quantum * 65536);
   }
 });
+
+for (const reset of ["resetForRun", "resetForSyncFastRun"] as const) {
+  test(`${reset} isolates abort state without retaining listeners`, () => {
+    const previous = new AbortController();
+    const current = new AbortController();
+    const budget = new Budget(resolveJqLimits(), previous.signal);
+    for (let run = 0; run < 15; run++) {
+      new Budget(resolveJqLimits(), previous.signal).step();
+      budget[reset](previous.signal);
+    }
+    assert.equal(getEventListeners(previous.signal, "abort").length, 0);
+    budget[reset](current.signal);
+    previous.abort(new Error("previous request finished"));
+    assert.doesNotThrow(() => budget.step());
+    const reason = new Error("current request cancelled");
+    current.abort(reason);
+    assert.throws(() => budget.step(), error => error === reason);
+    budget[reset](new AbortController().signal);
+    assert.doesNotThrow(() => budget.step());
+  });
+}

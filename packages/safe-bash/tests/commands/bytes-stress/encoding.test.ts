@@ -27,7 +27,7 @@ for (const [name, column] of [["base64", 1], ["base32", 2]] as const) {
     }
   });
 
-  test(`${name}: malformed quantum mutation matrix preserves GNU 9.7 output prefixes`, async () => {
+  test(`${name}: malformed quantum mutation matrix preserves output prefixes and accepts line endings`, async () => {
     const canonical = name === "base64" ? "Zg==" : "MY======";
     const noncanonical = name === "base64" ? "Zh==" : "MZ======";
     const malformed = [[canonical.slice(1), ""], [canonical.slice(0, -1), name === "base64" ? "f" : ""],
@@ -36,7 +36,12 @@ for (const [name, column] of [["base64", 1], ["base32", 2]] as const) {
       const result = await run(name, args, chunks(Buffer.from(value), width));
       assert.equal(result.exitCode, 1, `${name} ${value}`); assert.equal(result.stdout.toString(), expected);
     }
-    for (const garbage of [0, 9, 13, 32, 33, 127, 128, 255]) {
+    for (const separator of ["\n", "\r", "\r\n"]) {
+      const result = await run(name, ["-d"], chunks(Buffer.from(canonical + separator + canonical), 1));
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout.toString(), "ff");
+    }
+    for (const garbage of [0, 9, 32, 33, 127, 128, 255]) {
       const input = Buffer.concat([Buffer.from(canonical), Buffer.from([garbage]), Buffer.from(canonical)]);
       const strict = await run(name, ["-d"], chunks(input, 1));
       assert.equal(strict.exitCode, 1); assert.equal(strict.stdout.toString(), "f");

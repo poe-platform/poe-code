@@ -12,19 +12,21 @@ assert.equal(createHash("sha256").update(captured).digest("hex"), "6676fffacfe27
 const evidence = JSON.parse(captured) as { observations: Observation[] };
 assert.equal(evidence.observations.length, decoderCases().length);
 
-// GNU 9.11 rejects incomplete padding followed by LF. Keep the authenticated
-// GNU 9.7 capture intact and identify the two verified version differences.
-const current911 = new Map<string, Pick<Observation, "exitCode" | "stdoutHex" | "stderr">>([
+// Preserve the authenticated GNU 9.7 capture. GNU 9.11 padding differences
+// and Safe Bash's deliberate CR/LF tolerance are explicit overrides below.
+const expectedOverrides = new Map<string, Pick<Observation, "exitCode" | "stdoutHex" | "stderr">>([
   ['base64 -d "Zg=\\n"', { exitCode: 1, stdoutHex: "66", stderr: "base64: invalid input\n" }],
   ['base32 -d "MY=====\\n"', { exitCode: 1, stdoutHex: "", stderr: "base32: invalid input\n" }],
+  ['base64 -d "Zm9v\\r"', { exitCode: 0, stdoutHex: "666f6f", stderr: "" }],
+  ['base32 -d "MY=====\\r\\n"', { exitCode: 1, stdoutHex: "", stderr: "base32: invalid input\n" }],
 ]);
 
-for (const command of ["base64", "base32"]) test(`GNU ${command} EOF, malformed and partial-output vectors with verified 9.11 padding differences`, async () => {
+for (const command of ["base64", "base32"]) test(`GNU ${command} EOF, malformed and partial-output vectors with explicit padding and CR/LF differences`, async () => {
   for (const value of decoderCases().filter(value => value.command === command)) {
     const capturedExpected = evidence.observations.find(item => item.name === value.name);
     assert(capturedExpected);
     assert.equal(caseHash(value), capturedExpected.caseSha256);
-    const expected = current911.get(value.name) ?? capturedExpected;
+    const expected = expectedOverrides.get(value.name) ?? capturedExpected;
     for (const width of [1, 2, 7, 1024]) {
       const actual = await run(command, value.args, chunks(value.input, width));
       assert.deepEqual({ exitCode: actual.exitCode, stdoutHex: actual.stdout.toString("hex"), stderr: actual.stderr.toString() },

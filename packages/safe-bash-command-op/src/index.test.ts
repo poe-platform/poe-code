@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { createOp, createObjectBackend, type OpLimits, type OpCommandContext, type OpConfirmOverwrite, type OpSelectPlugin } from "./index.js";
+import { createOp, createOpCommand, createOpCommands, opCommands, createObjectBackend, type OpLimits, type OpCommandContext, type OpConfirmOverwrite, type OpSelectPlugin } from "./index.js";
 
 test("root entry point exposes the plugin selection capability contract", async () => {
   const callback: OpSelectPlugin = (candidates, context) => {
@@ -265,4 +265,17 @@ test("shell adapter preserves explicitly supplied file callbacks over VFS fallba
   assert.equal((await createOpCommand({ backend }).execute(context)).exitCode, 0, Buffer.concat(run.errors).toString());
   assert.deepEqual(writes, ["test-secret"]);
   assert.equal(Buffer.concat(run.output).toString(), "/host/output\n");
+});
+
+test('op zero-argument factories and plugin use a default backend', async () => {
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+  for (const command of [createOp(), createOpCommand(), ...createOpCommands()]) {
+    const run = fixture(['--help']);
+    assert.equal((await command.execute({ args: run.context.args, env: run.context.env, signal: run.context.signal, stdin: run.context.stdin, stdout: run.context.stdout, stderr: run.context.stderr, command: "op", cwd: "/", fs: createMemoryFileSystem() })).exitCode, 0);
+    assert.ok(run.output.length > 0);
+  }
+  const { CommandRegistry } = await import('safe-bash-contracts');
+  const commands = new CommandRegistry();
+  await opCommands().setup({ commands, use() {}, registerFileSystem() {} });
+  assert.equal(commands.has('op'), true);
 });

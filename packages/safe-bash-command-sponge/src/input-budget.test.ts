@@ -11,11 +11,10 @@ for (const factory of [createSpongeCommand]) {
       test(`${factory.name} checks ${mode} input against ${maximum} bytes`, async () => {
         const fs = createMemoryFileSystem();
         await fs.writeFile("/input", bytes);
-        if (mode === "file") Object.defineProperty(fs, "readStream", { value: undefined });
         const failure = Object.assign(new Error("input budget exceeded"), { name: "BudgetExceededError" });
         const totals: number[] = [];
         const context: CommandContext = {
-          command: "sponge", args: createCommandArguments([...[], ...(mode === "stdin" ? [] : ["/input"])]).args,
+          command: "sponge", args: createCommandArguments([]).args,
           cwd: "/", env: {}, fs, signal: new AbortController().signal,
           stdin: (async function* () { yield bytes.subarray(0, 2); yield bytes.subarray(2); })(),
           stdout: { async write() {} }, stderr: { async write() {} },
@@ -32,10 +31,9 @@ for (const factory of [createSpongeCommand]) {
       test(`${factory.name} propagates ${name} from ${mode}`, async () => {
         const failure = Object.assign(new Error(name), { name });
         const fs = createMemoryFileSystem();
-        Object.defineProperty(fs, "readStream", { value: mode === "file" ? undefined : () => ({ async *[Symbol.asyncIterator]() { yield await Promise.reject<Uint8Array>(failure); } }) });
         Object.defineProperty(fs, "readFile", { value: async () => { throw failure; } });
         const context: CommandContext = {
-          command: "sponge", args: createCommandArguments([...[], ...(mode === "stdin" ? [] : ["/input"])]).args,
+          command: "sponge", args: createCommandArguments([]).args,
           cwd: "/", env: {}, fs, signal: new AbortController().signal,
           stdin: { async *[Symbol.asyncIterator]() { yield await Promise.reject<Uint8Array>(failure); } },
           stdout: { async write() {} }, stderr: { async write() {} },

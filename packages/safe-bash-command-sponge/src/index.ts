@@ -35,7 +35,6 @@ import {
   commandRuntimeIdentity,
   getCommandArguments,
   readBytes,
-  shellValueBytes,
   writeBytes,
   writeText,
   type ByteSource,
@@ -160,7 +159,10 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         if (append) {
           let existing: Uint8Array = new Uint8Array(0);
           try {
-            existing = await context.fs.readFile(targetPath, { signal: context.signal });
+            existing = await context.fs.readFile(targetPath, {
+              signal: context.signal,
+              ...(Number.isFinite(maxBytes) ? { maxBytes: maxBytes - buffered.byteLength } : {}),
+            });
             admit(existing.byteLength);
           } catch (error) {
             context.signal.throwIfAborted();

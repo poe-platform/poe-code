@@ -77,3 +77,43 @@ test('sponge append preserves the target on a non-ENOENT read failure', async ()
   await assert.rejects(async () => createSpongeCommand().execute(run.context), (error: unknown) => error === failure);
   assert.deepEqual(await readFile('/output'), original);
 });
+
+test('sponge bounds existing append data before allocating it', async () => {
+  const run = fixture(['-a', 'output'], 'new');
+  await run.context.fs.writeFile('/output', new TextEncoder().encode('old'));
+  const readFile = run.context.fs.readFile.bind(run.context.fs);
+  run.context.fs.readFile = async (path, options) => {
+    assert.equal(options?.signal, run.context.signal);
+    assert.equal(options?.maxBytes, 2);
+    return readFile(path, options);
+  };
+  assert.equal((await createSpongeCommand({ maxBufferedBytes: 5 }).execute(run.context)).exitCode, 1);
+  assert.deepEqual(await readFile('/output'), new TextEncoder().encode('old'));
+});
+
+for (const maxBufferedBytes of [8, Infinity]) {
+  test(`sponge preserves write-only append targets with limit ${maxBufferedBytes}`, async () => {
+    const run = fixture(['-a', 'output'], 'new');
+    const original = new TextEncoder().encode('old');
+    await run.context.fs.writeFile('/output', original);
+    assert.ok(run.context.fs.chmod);
+    await run.context.fs.chmod('/output', 0o200);
+    assert.equal((await createSpongeCommand({ maxBufferedBytes }).execute(run.context)).exitCode, 1);
+    assert.match(run.diagnostic(), /EACCES/);
+    await run.context.fs.chmod('/output', 0o600);
+    assert.deepEqual(await run.context.fs.readFile('/output'), original);
+  });
+  for (const existing of [undefined, 'old']) {
+    test(`sponge appends safely to ${existing ?? 'missing'} targets with limit ${maxBufferedBytes}`, async () => {
+      const run = fixture(['-a', 'output'], 'new');
+      if (existing) await run.context.fs.writeFile('/output', new TextEncoder().encode(existing));
+      const appendFile = run.context.fs.appendFile.bind(run.context.fs);
+      run.context.fs.appendFile = async (path, data, options) => {
+        assert.equal(options?.signal, run.context.signal);
+        return appendFile(path, data, options);
+      };
+      assert.equal((await createSpongeCommand({ maxBufferedBytes }).execute(run.context)).exitCode, 0);
+      assert.deepEqual(await run.context.fs.readFile('/output'), new TextEncoder().encode((existing ?? '') + 'new'));
+    });
+  }
+}

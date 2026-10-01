@@ -47,7 +47,6 @@ export class Budget {
   private unlimited: boolean;
   private signal: AbortSignal;
   private checkpoints = 0;
-  private hasExtYield = false;
   private readonly yieldTimes = new Float64Array(1);
   static acquire(context: CommandContext, options: TextProgramOptions): Budget {
     if (!pooledBudgetA) {
@@ -83,8 +82,7 @@ export class Budget {
     this.remainingNum = this.unlimited ? 0 : rem;
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
-    this.hasExtYield = hasYieldCheckpoint(context.signal);
-    this.yieldTimes[0] = (performance.now !== defaultPerfNow || this.hasExtYield) ? monotonicNow() : -1;
+    this.yieldTimes[0] = monotonicNow();
     this.maxBufferBytes = options.maxBufferBytes ?? Infinity;
     if (context.signal.aborted) context.signal.throwIfAborted();
     if (!validatedTextProgramOptions.has(options)) {
@@ -107,8 +105,7 @@ export class Budget {
     this.remainingSmi = !this.unlimited && rem <= 0x3fffffff ? (rem | 0) : 0x3fffffff;
     this.signal = context.signal;
     this.checkpoints = 0;
-    this.hasExtYield = hasYieldCheckpoint(context.signal);
-    this.yieldTimes[0] = (performance.now !== defaultPerfNow || this.hasExtYield) ? monotonicNow() : -1;
+    this.yieldTimes[0] = monotonicNow();
     const nextMaxBuf = options.maxBufferBytes ?? Infinity;
     if (this.maxBufferBytes !== nextMaxBuf) this.maxBufferBytes = nextMaxBuf;
   }
@@ -141,11 +138,9 @@ export class Budget {
     if ((count & 255) === 0) {
       return this.yieldCheckpointAsync();
     }
-    if (performance.now !== defaultPerfNow || this.hasExtYield || (count & 63) === 0) {
+    if (performance.now !== defaultPerfNow || hasYieldCheckpoint(this.signal) || (count & 63) === 0) {
       const now = monotonicNow();
-      if (this.yieldTimes[0]! < 0) {
-        this.yieldTimes[0] = now;
-      } else if (now - this.yieldTimes[0]! >= 25) {
+      if (now - this.yieldTimes[0]! >= 25) {
         return this.yieldCheckpointAsync();
       }
     }

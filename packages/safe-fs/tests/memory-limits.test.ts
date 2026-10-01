@@ -316,21 +316,20 @@ test("failed native growth refunds reservations without publishing a file or cha
   await filesystem.writeFile("/f", bytes(6));
 });
 
-test("unlimited slab refill failure refunds the admitted slice without publishing it", async () => {
+test("unlimited small allocation failure refunds the reservation without publishing it", async () => {
   const filesystem = new memory.MemoryFileSystem(), input = bytes(1);
   const ledger = Reflect.get(filesystem, "ledger");
   const NativeUint8Array = globalThis.Uint8Array;
   let failure: unknown, retainedBefore = 0, parentBefore = 0, failedPath = "";
   globalThis.Uint8Array = new Proxy(NativeUint8Array, {
     construct(target, argumentsList, newTarget) {
-      if (argumentsList[0] === 8192) throw new RangeError("injected slab refill failure");
+      if (argumentsList[0] === 64) throw new RangeError("injected small allocation failure");
       return Reflect.construct(target, argumentsList, newTarget);
     },
   });
   try {
-    // Each new small file consumes a 64-byte slice; 129 attempts force a refill
-    // regardless of the shared slab's incoming cursor, without touching it.
-    for (let index = 0; index < 129; index++) {
+    // Exhaust the bounded pool so the next file needs a fresh allocation.
+    for (let index = 0; index < 257; index++) {
       failedPath = `/f${index}`;
       retainedBefore = Reflect.get(ledger, "retainedBytes");
       parentBefore = (await filesystem.stat("/")).mtimeMs;
@@ -338,7 +337,7 @@ test("unlimited slab refill failure refunds the admitted slice without publishin
       catch (error) { failure = error; break; }
     }
   } finally { globalThis.Uint8Array = NativeUint8Array; }
-  assert.ok(failure, "Expected an actual slab refill allocation failure");
+  assert.ok(failure, "Expected an actual small allocation failure");
   assert.equal(Reflect.get(ledger, "retainedBytes"), retainedBefore);
   assert.equal((await filesystem.stat("/")).mtimeMs, parentBefore);
   await assert.rejects(filesystem.stat(failedPath), code("ENOENT"));

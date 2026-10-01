@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
-import { MemoryFileSystem } from "../src/fs/memory/index.js";
+import { MemoryAllocation, MemoryLedger } from "../src/fs/memory/ledger.js";
+import { normalizeMemoryFileSystemLimits } from "../src/fs/memory/limits.js";
+import { MemoryFileSystem, tryReadMemoryFileViewSync } from "../src/fs/memory/index.js";
 
 for (const size of [64, 65536]) {
   for (const operation of ["unlink", "replace"] as const) {
@@ -32,3 +34,42 @@ test("pooling an empty directory discards a failed write's filename hint", async
   assert.equal(directory.entries._missKey, "");
   assert.equal(directory.entries._missSlot, -1);
 });
+
+for (const size of [1, 32, 64]) {
+  test(`separate tenants own distinct backing buffers for ${size}-byte files`, async () => {
+    const tenantA = new MemoryFileSystem();
+    const tenantB = new MemoryFileSystem();
+    await tenantA.writeFile("/secret", new Uint8Array(size).fill(91));
+    const viewA = tryReadMemoryFileViewSync(tenantA, "/secret")!;
+    await tenantB.writeFile("/hello", new Uint8Array(size).fill(7));
+    const viewB = tryReadMemoryFileViewSync(tenantB, "/hello")!;
+    assert.notEqual(viewA.buffer, viewB.buffer);
+    assert.ok(!new Uint8Array(viewB.buffer).includes(91));
+
+    // Releasing a neighbor must not put part of a live tenant's buffer in a shared pool.
+    await tenantA.writeFile("/neighbor", new Uint8Array(64).fill(92));
+    await tenantA.unlink("/neighbor");
+    await tenantB.writeFile("/reused", new Uint8Array(64).fill(8));
+    const reused = tryReadMemoryFileViewSync(tenantB, "/reused")!;
+    assert.notEqual(viewA.buffer, reused.buffer);
+    assert.ok(!new Uint8Array(reused.buffer).includes(91));
+    assert.deepEqual(await tenantA.readFile("/secret"), new Uint8Array(size).fill(91));
+  });
+}
+
+for (const size of [1, 64, 65, 16384, 65536]) {
+  test(`final release scrubs all ${size} bytes and frees the reservation`, () => {
+    const ledger = new MemoryLedger(normalizeMemoryFileSystemLimits({ maxRetainedBytes: size }));
+    ledger.reserve(size, 0, "writeFile", "/secret");
+    const data = new Uint8Array(size).fill(91);
+    const allocation = new MemoryAllocation(data, ledger);
+    allocation.retain();
+    allocation.release();
+    assert.ok(data.every(byte => byte === 91));
+    assert.equal(ledger.availableBytes, 0);
+    allocation.release();
+    assert.ok(data.every(byte => byte === 0));
+    assert.equal(ledger.availableBytes, size);
+    assert.throws(() => allocation.release(), /already released/);
+  });
+}

@@ -99,7 +99,10 @@ export class MemoryAllocation {
   release(): void {
     if (this.data.byteLength === 0) return;
     if (this.references <= 0) throw new Error("Memory allocation already released");
-    if (--this.references === 0) this.ledger.release(this.data.byteLength, 0);
+    if (--this.references === 0) {
+      this.data.fill(0);
+      this.ledger.release(this.data.byteLength, 0);
+    }
   }
 
   isReleased64(): boolean {

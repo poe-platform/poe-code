@@ -97,9 +97,6 @@ Object.assign(MemoryFileNode.prototype, {
 });
 
 const EMPTY_ALLOC_BYTES = new Uint8Array(0);
-const SMALL_ALLOC_SLAB_SIZE = 8192;
-let smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
-let smallAllocOffset = 0;
 const DUMMY_POOL_LEDGER = new MemoryLedger(normalizeMemoryFileSystemLimits({}));
 const DUMMY_POOL_ALLOCATION = new MemoryAllocation(EMPTY_ALLOC_BYTES, DUMMY_POOL_LEDGER);
 const DUMMY_POOL_FILE_NODE = new MemoryFileNode(0, 0, null as unknown as number, 0, DUMMY_POOL_ALLOCATION, DUMMY_POOL_ALLOCATION.data);
@@ -400,14 +397,8 @@ function collectRemovedChild(child: MemoryNode, name: string): void {
 
 function replenishSharedMemoryPools(): void {
   while (sharedAllocationPoolLen < 112) {
-    if (smallAllocOffset + 64 > SMALL_ALLOC_SLAB_SIZE) {
-      smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
-      smallAllocOffset = 0;
-    }
-    const slice = smallAllocSlab.subarray(smallAllocOffset, smallAllocOffset + 64);
-    smallAllocOffset += 64;
     DUMMY_POOL_LEDGER.reserve(64, 0, "init", "/");
-    const alloc = new MemoryAllocation(slice, DUMMY_POOL_LEDGER);
+    const alloc = new MemoryAllocation(new Uint8Array(64), DUMMY_POOL_LEDGER);
     alloc.release();
     sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
   }
@@ -1003,7 +994,6 @@ export class MemoryFileSystem implements FileSystem {
       if (alloc.isReleased64()) {
         alloc.detachLedger(DUMMY_POOL_LEDGER);
         if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
-          alloc.data.fill(0);
           sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
         } else if (cache.allocations.length < 128) {
           cache.allocations.push(alloc);
@@ -1011,7 +1001,6 @@ export class MemoryFileSystem implements FileSystem {
       } else if (alloc.isReleased65536()) {
         alloc.detachLedger(DUMMY_POOL_LEDGER);
         if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen < SHARED_LARGE_POOL_CAPACITY) {
-          alloc.data.fill(0);
           sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = alloc;
         }
       }
@@ -1055,13 +1044,11 @@ export class MemoryFileSystem implements FileSystem {
     if (previous.isReleased64()) {
       previous.detachLedger(DUMMY_POOL_LEDGER);
       if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
-        previous.data.fill(0);
         sharedAllocationPool[sharedAllocationPoolLen++] = previous;
       }
     } else if (previous.isReleased65536()) {
       previous.detachLedger(DUMMY_POOL_LEDGER);
       if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen < SHARED_LARGE_POOL_CAPACITY) {
-        previous.data.fill(0);
         sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = previous;
       }
     }
@@ -1431,17 +1418,6 @@ export class MemoryFileSystem implements FileSystem {
       }
     }
     try {
-      // A shared slab's backing buffer exceeds the admitted slice capacity.
-      // Finite file/storage ceilings require independently owned exact buffers.
-      if (length <= 64 && this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes) {
-        if (smallAllocOffset + length > SMALL_ALLOC_SLAB_SIZE) {
-          smallAllocSlab = new Uint8Array(SMALL_ALLOC_SLAB_SIZE);
-          smallAllocOffset = 0;
-        }
-        const slice = smallAllocSlab.subarray(smallAllocOffset, smallAllocOffset + length);
-        smallAllocOffset += length;
-        return new MemoryAllocation(slice, this.ledger);
-      }
       return new MemoryAllocation(new Uint8Array(length), this.ledger);
     } catch (cause) {
       this.ledger.release(length, 0);

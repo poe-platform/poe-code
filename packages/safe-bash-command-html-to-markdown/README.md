@@ -12,3 +12,5 @@ const result = await shell.exec("html-to-markdown --help");
 ```
 
 The module also exports `createHtmlToMarkdownCommand`, its command-list factory, and typed options and limits.
+
+`maxInputBytes` bounds cumulative source bytes. `maxWorkUnits` bounds processing across decoding, parsing, attribute handling and rendering, so its cost can exceed the input size. Discarded comments use constant parser storage while remaining subject to input, token-count and work limits.

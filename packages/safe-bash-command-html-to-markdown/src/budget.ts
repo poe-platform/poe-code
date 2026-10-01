@@ -60,6 +60,7 @@ export class Budget {
     const maximum = kind === "input" ? this.limits.maxInputBytes : kind === "tokens" ? this.limits.maxTokens
       : kind === "nodes" ? this.limits.maxNodes : this.limits.maxTableCells;
     this.check(amount, maximum - this[kind], kind);
+    if (kind === "input") this.context.inputBudget?.check(this.input + amount);
     this[kind] += amount;
   }
 

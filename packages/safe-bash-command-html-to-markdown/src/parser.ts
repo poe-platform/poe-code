@@ -18,6 +18,7 @@ export class Parser {
   private mode: "text" | "tag" | "comment" | "raw" = "text";
   private buffer = "";
   private bufferBytes = 0;
+  private commentState: "start" | "start-dash" | "body" | "dash" | "end" | "bang" = "start";
   private quote = "";
   private attributeMode: "name" | "before-value" | "unquoted" = "name";
   private rawName = "";
@@ -65,9 +66,13 @@ export class Parser {
         this.budget.add("tokens"); await this.flushText(true, this.rawText === "entities");
         if (this.rawText !== "drop") this.pop(this.rawName);
         this.rawCandidate = ""; this.rawCandidateBytes = 0; this.mode = "text";
-      } else if (this.rawCandidate.length < target.length && target.startsWith((this.rawCandidate + character).toLowerCase())
-        || this.rawCandidate.length >= target.length && /[\t\r\n\f ]/u.test(character)) {
-        if (this.rawText === "drop" && this.rawCandidate.length >= target.length) return;
+      } else if (this.rawCandidate.length === target.length && (character === "/" || /[\t\r\n\f ]/u.test(character))) {
+        await this.flushText(true, this.rawText === "entities");
+        this.budget.check(1, this.budget.limits.maxTokenBytes - this.rawCandidateBytes, "token bytes");
+        this.buffer = this.rawCandidate + character; this.bufferBytes = this.rawCandidateBytes + 1;
+        this.rawCandidate = ""; this.rawCandidateBytes = 0;
+        this.mode = "tag"; this.attributeMode = "name"; this.quote = "";
+      } else if (this.rawCandidate.length < target.length && target.startsWith((this.rawCandidate + character).toLowerCase())) {
         const bytes = utf8ByteLength(character);
         this.budget.check(bytes, this.budget.limits.maxTokenBytes - this.rawCandidateBytes, "token bytes");
         this.rawCandidateBytes += bytes; this.rawCandidate += character;
@@ -214,6 +219,15 @@ export class Parser {
         await this.rawCharacter(character);
         continue;
       }
+      if (this.mode === "comment") {
+        const state = this.commentState;
+        if (character === ">" && (state === "start" || state === "start-dash" || state === "end" || state === "bang")) {
+          this.budget.add("tokens"); this.mode = "text";
+        } else if (character === "-") {
+          this.commentState = state === "start" ? "start-dash" : state === "start-dash" || state === "dash" || state === "end" ? "end" : "dash";
+        } else this.commentState = character === "!" && state === "end" ? "bang" : "body";
+        continue;
+      }
       if (this.mode === "tag" && (this.buffer === "<" && !/[A-Za-z/?!]/u.test(character)
         || this.buffer === "</" && !/[A-Za-z]/u.test(character))) this.mode = "text";
       if (this.mode === "text" && character === "<") {
@@ -223,14 +237,9 @@ export class Parser {
       if (this.mode === "text" && bytes > this.budget.limits.maxTokenBytes - this.bufferBytes) await this.flushText(false);
       this.budget.check(bytes, this.budget.limits.maxTokenBytes - this.bufferBytes, "token bytes");
       this.bufferBytes += bytes;
-      if (this.mode === "comment") {
-        this.buffer = (this.buffer + character).slice(-3);
-        if (this.buffer === "-->") { this.budget.add("tokens"); this.mode = "text"; this.buffer = ""; this.bufferBytes = 0; }
-        continue;
-      }
       this.buffer += character;
       if (this.mode === "text") { if (this.bufferBytes >= 4096) await this.flushText(false); continue; }
-      if (this.buffer === "<!--") { this.mode = "comment"; this.buffer = ""; continue; }
+      if (this.buffer === "<!--") { this.mode = "comment"; this.commentState = "start"; this.buffer = ""; this.bufferBytes = 0; continue; }
       if (this.quote) { if (character === this.quote) this.quote = ""; continue; }
       if (this.attributeMode === "before-value") {
         if (/\s/u.test(character)) continue;

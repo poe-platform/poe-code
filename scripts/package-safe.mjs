@@ -319,6 +319,14 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const external = [...graph.external, "@poe-platform/safe-fs"];
       const result = await bundle({ absWorkingDir: rootDir, entryPoints, alias, external, bundle: true, splitting: true, platform: "node", target: "node18.18", format: "esm", outdir: path.join(packageDir, "dist"), chunkNames: "chunks/[name]-[hash]", sourcemap: false, write: false });
       for (const output of result.outputFiles) bundled.set(output.path, output.contents);
+      if (source.exports["."]?.browser) {
+        const portable = await bundle({ absWorkingDir: rootDir,
+          entryPoints: { "portable/core": path.join(packageDir, "src/core.ts"), "portable/modules/fs": path.join(packageDir, "src/modules/fs.ts") },
+          alias, external, bundle: true, splitting: true, platform: "browser", conditions: ["workerd"],
+          target: "es2022", format: "esm", outdir: path.join(packageDir, "dist"),
+          chunkNames: "portable/chunks/[name]-[hash]", sourcemap: false, write: false });
+        for (const output of portable.outputFiles) bundled.set(output.path, output.contents);
+      }
       if (source.exports["./workerd"]) {
         const workerd = await bundle({ ...resolveWorkerdRuntimeBuild(rootDir, { alias, external }), sourcemap: false });
         for (const output of workerd.outputFiles) bundled.set(output.path, output.contents);
@@ -464,8 +472,25 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       // APIs such as /workerd that are deliberately absent from the CLI SDK.
       const scopedExports = new Map(Object.entries(source.exports).map(([key, value]) => [key, workspaceTarget(value)]));
       for (const [key, value] of rootExports) scopedExports.set(key, value);
+      if (source.exports["."]?.browser) {
+        for (const [key, entry] of [[".", "core"], ["./core", "core"], ["./modules/fs", "modules/fs"]]) {
+          const original = scopedExports.get(key);
+          const declaration = workspaceTarget(source.exports[key].types);
+          scopedExports.set(key, {
+            ...original,
+            types: { workerd: typeof declaration === "string" ? declaration : declaration.workerd,
+              browser: typeof declaration === "string" ? declaration : declaration.browser,
+              default: typeof original.types === "string" ? original.types : original.types.default },
+            workerd: `./packages/safe-js/dist/portable/${entry}.js`,
+            browser: `./packages/safe-js/dist/portable/${entry}.js`,
+          });
+        }
+      }
       for (const [key, value] of scopedExports) {
-        exports[key] = enqueueExport(scopedExport(value));
+        // Conditions must precede the fallback import in the published manifest.
+        const { types, workerd, browser, ...rest } = scopedExport(value);
+        exports[key] = enqueueExport({ ...(types === undefined ? {} : { types }),
+          ...(workerd === undefined ? {} : { workerd }), ...(browser === undefined ? {} : { browser }), ...rest });
       }
       for (const suffix of ["", "/core", "/node"]) {
         const target = "./dist/compat/fs" + suffix.replace("/", "-");

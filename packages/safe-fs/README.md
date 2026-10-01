@@ -2,6 +2,8 @@
 
 An asynchronous filesystem interface for memory, rooted host directories, S3, and WebDAV, with mounts, copy-on-write overlays, and Node-style bridges. Portable filesystem types and POSIX helpers compile without Node types.
 
+Under `workerd` and `browser` conditions, the root export includes portable filesystems, `S3FileSystem`, and `MockS3Client`. Supply an S3 transport to use object storage without Node globals.
+
 ## Quickstart
 
 Install the standalone package; it does not depend on SafeJS, Safe Bash, or the `poe-code` CLI. These examples use TypeScript in a Node ESM application.

@@ -8,6 +8,8 @@ built-ins. It is suitable for capability-controlled scripts and agent workflows.
 Complete ECMAScript conformance has not been established; see
 [development status](#development-status) and [meaningful limitations](#meaningful-limitations).
 
+Under `workerd` and `browser` conditions, the standalone root and `/core` exports select the portable interpreter with `makeFsModule`, `makeEnvModule`, `makeTimeModule`, `makeFailModule`, `makeMetricModule`, and `makeHarnessModule`. The `/modules/fs` entry is also portable; supply a filesystem adapter for host file access.
+
 ## Quickstart
 
 Install the public ESM package. Its declared Node.js minimum is 18.18+, but

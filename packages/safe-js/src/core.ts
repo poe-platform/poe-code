@@ -14,3 +14,10 @@ export type { SnapshotValidationCode } from "./snapshot/validation.js";
 export type {SourceResolver, SourceModule} from "./modules/source-graph.js";
 
 export {createRootedSourceResolver} from "./modules/source-files.js";
+
+export * from "./modules/env.js";
+export * from "./modules/fail.js";
+export * from "./modules/fs.js";
+export * from "./modules/harness.js";
+export * from "./modules/metric.js";
+export * from "./modules/time.js";

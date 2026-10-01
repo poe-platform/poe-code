@@ -145,3 +145,5 @@ export * from "./commands/find/index.js";
 export * from "./commands/gzip/index.js";
 export { createWgetCommands, wgetCommands, type WgetCommandsOptions, type WgetLimits } from "./commands/wget/index.js";
 export type { CurlCommandsOptions, CurlLimits } from "./commands/curl/index.js";
+
+export * from "@poe-code/safe-fs/fs/s3";

@@ -9,7 +9,7 @@ import { proofScenarios } from "./helpers/proof-scenarios.js";
 describe("selected Node core graph", () => {
   for (const scenario of proofScenarios) it(scenario.name, scenario.run);
   it("shares constructors, errors and backing registries across all entry facades", async () => {
-    for (const name of ["FsError", "MemoryFileSystem", "ReadOnlyFileSystem", "MountFileSystem", "OverlayFileSystem", "WebDavFileSystem"] as const) {
+    for (const name of ["FsError", "MemoryFileSystem", "ReadOnlyFileSystem", "MountFileSystem", "OverlayFileSystem", "WebDavFileSystem", "createS3HttpTransport"] as const) {
       expect(core[name]).toBe(root[name]);
       expect(host[name]).toBe(root[name]);
     }
@@ -22,7 +22,7 @@ describe("selected Node core graph", () => {
   });
 
   it("keeps host-only backends out of core", () => {
-    for (const name of ["RealFileSystem", "createNodeFsBridge", "createS3HttpTransport", "createNodeFileSystemAdapterRegistry"]) {
+    for (const name of ["RealFileSystem", "createNodeFsBridge", "createNodeFileSystemAdapterRegistry"]) {
       expect(core).not.toHaveProperty(name);
       expect(host).toHaveProperty(name);
     }

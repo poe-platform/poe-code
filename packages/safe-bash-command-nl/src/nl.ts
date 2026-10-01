@@ -97,6 +97,7 @@ export function createNlWithSettings(limits: StreamFormatLimits): CommandDefinit
           current = section === 0 ? footer : section === 1 ? body : header;
           if (!parsed.flags.has("p")) number = start;
           if (canBatch) {
+            session.admitOutput(1);
             if (outUsed + 1 <= outBuf.length && flushedFirst && outUsed + 1 < 8192) {
               outBuf[outUsed++] = 10;
               return;

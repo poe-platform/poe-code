@@ -11,7 +11,7 @@ const record = (id: number, data: number[] = []) => [...word(id), ...word(data.l
 const sheetName = (index: number, bytes: number[]) => record(0x23, [0xb0, 0x36, ...word(index), ...bytes]);
 const styleSheetName = (index: number, bytes: number[]) => record(0x1b, [0xb0, 0x36, ...word(index), ...bytes]);
 const file = (version: number, ...records: number[][]) => Uint8Array.from([
-  ...record(0, [...word(version), 4, 0, ...Array<number>(22).fill(0)]), ...records.flat(), ...record(1)
+  ...record(0, [...word(version), 4, 0, ...Array<number>(12).fill(0), 1, ...Array<number>(9).fill(0)]), ...records.flat(), ...record(1)
 ]);
 
 // LibreOffice bce0998a OP_SheetName123 reads the indexed, bounded C string.
@@ -22,7 +22,7 @@ it.each([0x1003, 0x1004, 0x1005])("imports indexed .123 sheet names for version 
   expect(book.sheets.map(sheet => sheet.cells)).toEqual([[], []]);
 });
 
-it.each([["0x23", sheetName], ["STYLE", styleSheetName]] as const)("decodes %s Windows Western punctuation and preserves unmapped control bytes", async (_kind, nameRecord) => {
+it.each([["0x23", sheetName]] as const)("decodes %s Windows Western punctuation and preserves unmapped control bytes", async (_kind, nameRecord) => {
   const book = await readLotus(file(0x1003, nameRecord(0, Array.from({ length: 32 }, (_, i) => 0x80 + i))), context);
   expect(book.sheets[0]!.name).toBe("€\u0081‚ƒ„…†‡ˆ‰Š‹Œ\u008dŽ\u008f\u0090‘’“”•–—˜™š›œ\u009džŸ");
 });
@@ -76,7 +76,7 @@ it.each([
   [[65], "A"],
   [[65, 66], "AB"],
   [[65, 0, 66], "A"],
-  [[67, 97, 102, 0xe9, 0x80, 0], "Café€"]
+  [[67, 97, 102, 0x82, 0x14, 0x20, 0xac, 0], "Café€"]
 ] as const)("imports bounded STYLE sheet-name bytes %j", async (bytes, expected) => {
   const book = await readLotus(file(0x1005, styleSheetName(1, [...bytes])), context);
   expect(book.sheets.map(sheet => sheet.name)).toEqual(["Sheet1", expected]);
@@ -98,4 +98,24 @@ it("charges even truncated STYLE sheet names and preserves diagnostic cancellati
   const controller = new AbortController();
   await expect(readLotus(malformed, { ...context, signal: controller.signal,
     async diagnostic() { controller.abort(false); } })).rejects.toBe(false);
+});
+
+
+it.each([
+  [[0x82], "é"],
+  [[0x14, 0xf6, 0x01], "Ā"],
+  [[0x10, 0x93, 0xfa], "日"],
+  [[0x11, 0xc7, 0xd1], "한"],
+  [[0x12, 0xa4, 0xa4], "中"],
+  [[0x13, 0xd6, 0xd0], "中"]
+] as const)("uses bounded LMBCS STYLE sheet names %j in earlier cross-sheet formulas", async (bytes, expected) => {
+  const warnings: string[] = [];
+  const formula = record(40, [0, 0, 0, 1, ...Array<number>(8).fill(0), 1, 0, 0, 0, 1, 0, 3]);
+  const book = await readLotus(file(0x1003, formula,
+    record(39, [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 38, 64]), styleSheetName(1, [...bytes])),
+    { ...context, async diagnostic(d) { warnings.push(d.message); } });
+  expect(book.sheets[1]!.name).toBe(expected);
+  expect(book.sheets[0]!.cells[0]!.formula).toBe(`='${expected}'!$A$1`);
+  expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 11 });
+  expect(warnings).toEqual([]);
 });

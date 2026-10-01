@@ -644,7 +644,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
           if (length < 5) await warn(`Record with type 0x1b has wrong length ${length}.`);
           else {
             // libwps readSheetName1B uses the full index and bounded C string.
-            const name = decodeSheetName(data.bytes.subarray(4));
+            const name = await lmbcs(data.bytes.subarray(4, length), group, context);
             if (name) sheet(data.u16(2)).name = name;
           }
         } else if (subtype === 0xfa1) {

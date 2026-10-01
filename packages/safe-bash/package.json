@@ -887,7 +887,8 @@
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {
-            "safe-bash-contracts": "*"
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
           },
           "portable": true
         },

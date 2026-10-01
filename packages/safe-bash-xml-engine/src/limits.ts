@@ -57,21 +57,13 @@ export function resolveXmlQueryLimits(options: Partial<XmlQueryLimits> = {}): Xm
 export class XmlBudget {
   private steps = 0;
   private checkpoint = 0;
-  private aborted = false;
-  private readonly pollSignal: boolean;
   outputBytes = 0;
   inputBytes = 0;
   constructor(
     readonly limits: XmlQueryLimits,
     readonly signal: AbortSignal,
     private readonly checkpointTurn: XmlCheckpoint
-  ) {
-    this.aborted = Boolean(signal?.aborted);
-    this.pollSignal = Boolean(signal && (typeof signal.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(signal, "aborted")));
-    if (signal && !this.aborted && !this.pollSignal) {
-      signal.addEventListener("abort", () => { this.aborted = true; }, { once: true });
-    }
-  }
+  ) {}
   /** Charge synchronous work only when it cannot start an asynchronous checkpoint. */
   tryTickSync(work = 1): boolean {
     if (this.checkpoint + work >= 16384) return false;
@@ -79,7 +71,7 @@ export class XmlBudget {
     return true;
   }
   tick(work = 1): Promise<void> | void {
-    if (this.aborted || (this.pollSignal && this.signal.aborted)) this.signal.throwIfAborted();
+    if (this.signal.aborted) this.signal.throwIfAborted();
     this.steps += work;
     if (this.steps > this.limits.maxSteps) throw new XmlQueryLimitError("maxSteps");
     this.checkpoint += work;

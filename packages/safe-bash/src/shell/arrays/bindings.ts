@@ -5,7 +5,7 @@ import { shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueR
 import type { ShellValue } from "../../contracts/value.js";
 
 export const controlNames: ReadonlySet<string> = new Set([
-  "PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "OPTARG", "REPLY", "LANG", "LC_ALL", "LC_CTYPE",
+  "PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "OPTARG", "REPLY", "LANG", "LC_ALL", "LC_CTYPE", "RANDOM", "SECONDS", "LINENO",
 ]);
 
 export class OwnedText {

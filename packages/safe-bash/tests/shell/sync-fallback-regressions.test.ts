@@ -1,7 +1,62 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { test } from "node:test";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
+
+const paritySources = [
+  'shopt -s extglob; val=foofooabar; printf "%s\\n" "${val##*(foo)}"',
+  'shopt -s extglob; val="xx(foo)yy"; printf "%s\\n" "${val#*(foo)}"',
+  'set -a; for i in 5; do (( exported_var = $i )); done; export -p',
+  'f() { g=$((g + 1)); y=${1:-def}; }; g=0; for i in 1; do f hello; done; printf "g=%s y=%s\\n" "$g" "$y"',
+];
+for (const assignment of ['(( RANDOM = $s ))', 'printf -v RANDOM "%d" "$s"', 'read RANDOM <<< "$s"']) {
+  paritySources.push(`for s in 42; do ${assignment}; done; a=$RANDOM; b=$RANDOM; [[ $a != "$b" ]]; echo "$?"`);
+  paritySources.push(`RANDOM=42; a=$RANDOM; b=$RANDOM; for s in 42; do ${assignment}; done; c=$RANDOM; d=$RANDOM; [[ $a == "$c" && $b == "$d" && $c != "$d" ]]; echo "$?"`);
+}
+paritySources.push(
+  'unset RANDOM; RANDOM=42; echo "$RANDOM $RANDOM"',
+  'for s in 42; do (( SECONDS = $s )); done; echo "$SECONDS"',
+  'for s in 42; do (( LINENO = $s )); done\na=$LINENO\nb=$LINENO\necho "$((b-a))"',
+);
+for (const operator of ['#', '##', '%', '%%']) {
+  for (const pattern of ['*(foo)', '*(foo|bar)', '*foo', 'foo*']) {
+    paritySources.push(`shopt -s extglob; val=foofoobarfoo; for i in 1 2; do printf '%s\\n' "\${val${operator}${pattern}}"; done`);
+  }
+}
+for (const maxExpansionBytes of [65536, Infinity]) {
+  for (const source of paritySources) {
+    test(`scalar and trim fast-path Bash parity (${maxExpansionBytes}): ${source}`, async context => {
+      const { shell, commands } = setup({ limits: { maxExpansionBytes, maxExpansionFields: Infinity } });
+      for (const command of basicCommands()) commands.register(command);
+      context.after(() => shell.dispose());
+      const native = spawnSync('/bin/bash', ['--noprofile', '--norc', '-c', source], { encoding: 'utf8', env: {} });
+      assert.ifError(native.error);
+      const result = await shell.exec(source);
+      if (source.includes('export -p')) {
+        const exported = (output: string) => output.split('\n').filter(line => line.includes('exported_var'));
+        assert.deepEqual(exported(result.stdout), exported(native.stdout));
+      } else assert.equal(result.stdout, native.stdout);
+      assert.equal(result.stderr, native.stderr);
+      assert.equal(result.exitCode, native.status);
+    });
+  }
+}
+
+for (const assignment of ['(( SECONDS = $s ))', 'printf -v SECONDS "%d" "$s"', 'read SECONDS <<< "$s"']) {
+  test(`SECONDS advances after ${assignment}`, async context => {
+    let now = 100000;
+    context.mock.method(Date, 'now', () => now);
+    const { shell, commands } = setup();
+    for (const command of basicCommands()) commands.register(command);
+    commands.register({ name: 'advance', execute() { now += 3000; return { exitCode: 0 }; } });
+    context.after(() => shell.dispose());
+    const result = await shell.exec(`for s in 42; do ${assignment}; done; advance; echo "$SECONDS"`);
+    assert.equal(result.stdout, '45\n');
+    assert.equal(result.stderr, '');
+    assert.equal(result.exitCode, 0);
+  });
+}
 
 const cases: Array<[string, string]> = [
   ['d=";"; for i in 1 2; do read -r -d "$d"; echo "<$_>"; done <<< "one;two;"', '<;>\n<;>\n'],

@@ -1,4 +1,5 @@
 import type { State } from "../runtime.js";
+import { writeDynamicVariable } from "../dynamic-variables.js";
 import type { InvocationScope } from "../cleanup.js";
 import { ArrayFailure, ArrayLedger, ArrayOwner } from "./ledger.js";
 import type { Admission, Tickets } from "./ledger.js";
@@ -530,6 +531,7 @@ export class StateMonitor {
   publishStringVariable(name: string, value: string): void {
     const tickets = this.mutation(name);
     this.values.publishString(name, value, this.raw.variables);
+    writeDynamicVariable(this.raw, name, value);
     this.finish(tickets, name);
   }
 
@@ -685,6 +687,7 @@ class StateProxyHandler implements ProxyHandler<object> {
     const name = this.named ? String(key) : undefined;
     const tickets = this.monitor.mutation(name);
     const result = Reflect.set(target, key, entry);
+    if (result && this.field === "variables" && typeof key === "string" && typeof entry === "string") writeDynamicVariable(this.monitor.raw, key, entry);
     if (result) this.monitor.changedValue(target, this.field, key);
     this.monitor.finish(tickets, name);
     return result;

@@ -133,6 +133,7 @@ import { getArrayAssignment, getArraySelector, copyArraySelector, numericIndex, 
 import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure, ArrayOwner, exactSum } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken, valueToken } from "./arrays/bindings.js";
+import { readDynamicVariable, writeDynamicVariable, type DynamicVariableState } from "./dynamic-variables.js";
 import { collectMapfile, mapfileOptions, MapfileUsageError } from "./mapfile.js";
 import { arrayStore, ensureStateMonitor, guestArrays, monitorSymbol, requireArrays, snapshotState, stateMonitor, trackState, trySnapshotStateSync } from "./arrays/state.js";
 import { pipelineStatusTarget, publishPipelineStatus } from "./pipestatus.js";
@@ -1000,7 +1001,7 @@ const valueScope = Symbol("shell value allocation scope");
 const invokedValues = new WeakMap<WordPart, ShellValue>();
 const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
 const childIdentities = new WeakMap<Budget, number>();
-export interface State {
+export interface State extends DynamicVariableState {
   variableAttributes?: Map<string, string>;
   namerefVariables?: Set<string> | undefined;
   umask?: number;
@@ -2114,6 +2115,7 @@ function publishVariable(state: State, name: string, value: ShellValue): void {
     return;
   }
   state.variables[name] = shellValueText(value);
+  writeDynamicVariable(state, name, shellValueText(value));
 }
 function tryRestoreVariableSync(state: State, name: string, saved: SavedVariable): boolean {
   if (typedSavedVariables.has(saved)) return false;
@@ -4142,6 +4144,8 @@ export class Runtime {
     if (dereference) name = this.referenceName(state, name);
     if (state.readonlyVariables?.has(name)) throw new PublicDiagnostic(`${name}: readonly variable`);
     delete state.variables[name];
+    if (name === "RANDOM") state.randomDisabled = true;
+    if (name === "SECONDS") state.secondsDisabled = true;
     state.exported.delete(name);
     state.variableAttributes?.delete(name);
     if (name === "OPTIND" && !internal) this.syncGetopts(state);
@@ -4334,7 +4338,7 @@ export class Runtime {
       case "literal": return true;
       case "name": {
         const effName = resolveSyncNameref(state, tree.name);
-        if (effName === "OPTIND" || effName === "PIPESTATUS") return false;
+        if (effName === "OPTIND" || effName === "PIPESTATUS" || effName === "RANDOM" || effName === "SECONDS") return false;
         const monitor = stateMonitor(state);
         if (monitor?.hasOverlay(effName) || monitor?.store?.watches.has(effName)) return false;
         if (tree.subscript !== undefined) {
@@ -4557,7 +4561,7 @@ export class Runtime {
         this.signal.throwIfAborted();
         const name = typeof key === "string" ? this.referenceName(state, key) : key;
         if (arrayStore(state)?.get(String(name))) throw new ArrayFailure("indexed arithmetic is unsupported");
-        const value = Reflect.get(target, name)
+        const value = (typeof name === "string" && (name === "RANDOM" || name === "SECONDS") ? this.variable(state, name) : Reflect.get(target, name))
           ?? (name === "LINENO" ? String(line ?? 1)
             : name === "_" ? state.lastArgument ?? ""
             : name === "FUNCNAME" ? state.functionNames?.[0]
@@ -4596,6 +4600,7 @@ export class Runtime {
   }
   variable(state: State, name: string): string | undefined {
     name = this.referenceName(state, name);
+    if (name === "RANDOM" || name === "SECONDS") return readDynamicVariable(stateMonitor(state)?.raw ?? state, name) ?? state.variables[name];
     const binding = arrayStore(state)?.get(name);
     if (binding) return binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0);
     if (name === "DIRSTACK") return state.cwd;
@@ -9047,7 +9052,7 @@ export class Runtime {
           const rhsOp = scalarMutMatch[4];
           const rhs2 = scalarMutMatch[5] !== undefined ? Number(scalarMutMatch[5]) : 0;
           const rhsNum = rhsOp === "+" ? rhs1 + rhs2 : rhsOp === "-" ? rhs1 - rhs2 : rhsOp === "*" ? rhs1 * rhs2 : rhs1;
-          if ( varName !== "OPTIND" && varName !== "PIPESTATUS" && !store?.get(varName) && !hasNonNamerefAttributes(rawState)) {
+          if ( !controlNames.has(varName) && varName !== "PIPESTATUS" && !store?.get(varName) && !hasNonNamerefAttributes(rawState)) {
             const curVal = (this._syncArithRawWriteOnly && this._syncArithTouched?.has(varName))
               ? (rawState.variables[varName] ?? "0")
               : (monitor.values.get(varName, rawState.variables[varName] ?? "0") ?? rawState.variables[varName] ?? "0");
@@ -10743,7 +10748,7 @@ export class Runtime {
               }
               allArrOk = false;
               break;
-            } else if (rawState.locals.length === 0 && isShellIdentifier(tExpanded) && !tExpanded.startsWith("-") && !rawState.readonlyVariables?.has(tExpanded) && !arrStore.get(tExpanded) && !rawState.functions.has(tExpanded) && !monitor.hasOverlay(tExpanded) && tExpanded !== "OPTIND" && tExpanded !== "PIPESTATUS" && tExpanded !== "_" && tExpanded !== "IFS" && tExpanded !== "PATH") {
+            } else if (rawState.locals.length === 0 && isShellIdentifier(tExpanded) && !tExpanded.startsWith("-") && !rawState.readonlyVariables?.has(tExpanded) && !arrStore.get(tExpanded) && !rawState.functions.has(tExpanded) && !monitor.hasOverlay(tExpanded) && !controlNames.has(tExpanded) && tExpanded !== "PIPESTATUS" && tExpanded !== "_") {
               ops.push({ kind: "scalar", targetName: tExpanded });
               continue;
             } else {
@@ -10815,7 +10820,7 @@ export class Runtime {
             for (let ui = uStart; ui < command.words.length; ui++) {
               const targetName = command.words[ui]!.plain;
               const existingTargetArr = targetName ? store?.get(targetName) : undefined;
-              if (targetName && isShellIdentifier(targetName) && !targetName.startsWith("-") && !rawState.readonlyVariables?.has(targetName) && (!existingTargetArr || (existingTargetArr.references === 1 && !store!.watches.has(targetName) && !hasUnpreparedLocal(rawState, targetName))) && !rawState.functions.has(targetName) && !monitor.hasOverlay(targetName) && targetName !== "OPTIND" && targetName !== "PIPESTATUS" && targetName !== "_" && targetName !== "IFS" && targetName !== "PATH") {
+              if (targetName && isShellIdentifier(targetName) && !targetName.startsWith("-") && !rawState.readonlyVariables?.has(targetName) && (!existingTargetArr || (existingTargetArr.references === 1 && !store!.watches.has(targetName) && !hasUnpreparedLocal(rawState, targetName))) && !rawState.functions.has(targetName) && !monitor.hasOverlay(targetName) && !controlNames.has(targetName) && targetName !== "PIPESTATUS" && targetName !== "_") {
                 targets.push(targetName);
               } else {
                 allOk = false;
@@ -12121,7 +12126,7 @@ export class Runtime {
         // Unsubscripted array references expand element zero through the normal
         // evaluator. fastValueWord cannot guarantee that expansion throughout
         // a loop, so reject it before executing any loop effects.
-        if (stateMonitor(rawState)?.store?.get(part.name)) return false;
+        if (part.name === "RANDOM" || part.name === "SECONDS" || stateMonitor(rawState)?.store?.get(part.name)) return false;
         // These expansions can require multiple fields or asynchronous quoting
         // as loop state changes. Decide before the loop produces any effects.
         if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
@@ -21691,7 +21696,7 @@ export class Runtime {
         const name = this.referenceName(state, part.name);
         const binding = arrayStore(state)?.get(name);
         const index = binding?.associative ? binding.keys.get("30")?.index ?? -1 : 0;
-        retained = binding?.getValue(index) ?? stateMonitor(state)?.values.get(name, value) ?? value;
+        retained = name === "RANDOM" || name === "SECONDS" || name === "LINENO" ? value : binding?.getValue(index) ?? stateMonitor(state)?.values.get(name, value) ?? value;
       } else if (/^0+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(zeroPositionKey, value) ?? value;
       else if (/^[0-9]+$/u.test(part.name)) retained = stateMonitor(state)?.positionals.get(String(Number(part.name) - 1), value) ?? value;
       else if (part.name === "@" || part.name === "*") {
@@ -22015,6 +22020,7 @@ export class Runtime {
     let out = "";
     for (let i = 0; i < word.parts.length; i++) {
       let resolvedPart = word.parts[i]!;
+      if (resolvedPart.kind === "variable" && (resolveSyncNameref(rawState, resolvedPart.name) === "RANDOM" || resolveSyncNameref(rawState, resolvedPart.name) === "SECONDS")) return undefined;
       if (resolvedPart.kind === "variable" && !resolvedPart.prefixNames && rawState.variableAttributes?.get(resolvedPart.name)?.includes("n")) {
         if (resolvedPart.indirect) return undefined;
         const resolvedName = resolveSyncNameref(rawState, resolvedPart.name);
@@ -22594,7 +22600,7 @@ export class Runtime {
             let trimGlobRe: RegExp | undefined;
             if (!patQuoted && hasGlobOrEscape(pat, !!rawState.extglob)) {
               if (rawState.nocasematch || byteLocale(rawVars)) return undefined;
-              if (isPrefixTrim && pat.charCodeAt(0) === 42 && !hasGlobOrEscape(pat.slice(1), !!rawState.extglob)) starWildcardLit = pat.slice(1); else if (!isPrefixTrim && pat.charCodeAt(pat.length - 1) === 42 && !hasGlobOrEscape(pat.slice(0, -1), !!rawState.extglob)) starWildcardLit = pat.slice(0, -1); else {
+              if (isPrefixTrim && pat.charCodeAt(0) === 42 && !(rawState.extglob && pat.charCodeAt(1) === 40) && !hasGlobOrEscape(pat.slice(1), !!rawState.extglob)) starWildcardLit = pat.slice(1); else if (!isPrefixTrim && pat.charCodeAt(pat.length - 1) === 42 && !hasGlobOrEscape(pat.slice(0, -1), !!rawState.extglob)) starWildcardLit = pat.slice(0, -1); else {
                 trimGlobRe = tryCompileTrimGlobToRegex(pat, part.operator, !!rawState.extglob);
                 if (!trimGlobRe) return undefined;
               }
@@ -29543,7 +29549,7 @@ export class Runtime {
       const p = word.parts[i]!;
       if (p.kind === "text") continue;
       if (p.kind === "variable") {
-        if (p.name === "BASH_SUBSHELL") return false;
+        if (p.name === "BASH_SUBSHELL" || p.name === "RANDOM" || p.name === "SECONDS") return false;
         if ( !p.indirect && !p.prefixNames && !p.length && !p.substring && !p.transform && p.operator === undefined && getArraySelector(p) === undefined && (p.name === "?" || p.name === "#" || (p.name.length === 1 && p.name >= "1" && p.name <= "9"))) {
           const activePos = this._fastSubPositional ?? rawState.positional;
           if (rawState.nounset && p.name >= "1" && p.name <= "9" && activePos[p.name.charCodeAt(0) - 49] === undefined) return false;
@@ -32459,6 +32465,7 @@ export class RootShellState implements State {
   declare _locals: Map<string, SavedVariable>[] | undefined;
   declare pipefail: boolean;
   declare profile: "bash";
+  declare secondsOrigin: number;
   constructor( cwd: string, variables: Record<string, string>, exported: Set<string> | undefined, extensions: ShellExtensionState | undefined, ) {
     this.cwd = cwd;
     this.variables = variables;
@@ -32467,6 +32474,7 @@ export class RootShellState implements State {
     this.status = 0;
     this.substitutionStatus = 0;
     this.lastArgument = "";
+    this.secondsOrigin = Date.now();
   }
   get exported(): Set<string> {
     const raw = stateMonitor(this)?.raw as RootShellState | undefined;

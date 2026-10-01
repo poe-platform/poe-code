@@ -639,6 +639,11 @@ one execution. `stdin` accepts a string, `Uint8Array`, or async byte source;
 `stdout`/`stderr` accept byte sinks. Results still buffer output when sinks are
 provided. Pass an `AbortSignal` as `signal` to cancel. [Option types](src/shell/types.ts).
 
+`RANDOM` produces values from 0 through 32767 and accepts a seed for repeatable
+sequences. `SECONDS` tracks elapsed whole seconds and accepts a new starting
+value. Assignments through arithmetic, `read`, and `printf -v` retain these
+behaviors; unsetting either variable removes its special behavior.
+
 Execution quotas are unlimited by default. Set individual `limits` to opt in;
 supplying one does not enable other quotas. Available quotas are `maxParseUnits`,
 `maxInputBytes`, `maxOutputBytes`, `maxCommands`, `maxFileSystemOperations`,
@@ -803,7 +808,7 @@ and credential protections remain in effect.
   background jobs/job control, `exec`, process substitution,
   associative arrays, or C-style `for ((…))` loops. `shopt` supports `dotglob`,
   `globstar`, `nullglob`, `nocaseglob`, and `nocasematch`, plus `-o` for supported
-  `set` options. `extglob` can be queried, printed, or unset; enabling it is unsupported.
+  `set` options. `shopt -s extglob` enables extended patterns, including parameter trimming.
 - Utilities implement subsets of their native counterparts' flags and behavior.
   There is no `git`, `npm`, `npx`, or fallback to installed host programs.
   The opt-in `node` command is not a general Node.js runtime.

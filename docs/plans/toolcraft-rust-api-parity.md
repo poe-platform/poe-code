@@ -225,6 +225,16 @@ reentrancy and changing discriminator access. The existing 16,384-wrapper and
 qualification. The checkpoint passes 549 reference/parity tests and 49 native
 Node tests, plus Rust, declaration and lint checks.
 
+Discriminator selection and exclusive-union validation now have native policy
+engines. Host operations retain own-property checks, rest-property reads, JSON
+formatting, branch callback receivers and iterator cleanup. The original SDK/MCP
+discriminator and union suites use the native helpers. Differential coverage adds
+changing getters, prototype-like branch names, custom entries/index coercion,
+first-error reporting, raw return values, reentrancy and arbitrary callback throws.
+Callback nesting uses the existing 128-entry native guard and remains a resource
+qualification item. The checkpoint passes 957 reference/parity tests and 56 native
+Node tests, plus Rust, declaration and lint checks.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

@@ -58,6 +58,28 @@ test('released upstream variants preserve fixed expected bytes at every input sp
   }
   assert.deepEqual(fold(Buffer.from([255, 0, 97]), ['-w1'], 'C'), Uint8Array.of(255, 0, 10, 97));
 });
+test('NUL is zero-width at UTF-8 column boundaries and during space remainder rescans', () => {
+  const fixtures = [
+    ['\0\0\0\0abcdefgh\n', '-w5', '\0\0\0\0abcde\nfgh\n'],
+    ['abcde\0f\n', '-w5', 'abcde\0\nf\n'],
+    ['ab \0cdefgh\n', '-sw5', 'ab \n\0cdefg\nh\n'],
+  ];
+  for (const [input, flag, output] of fixtures) {
+    for (let chunkSize = 1; chunkSize <= expected(input!).length; chunkSize++) {
+      assert.deepEqual(fold(input!, [flag!], utf8, chunkSize), expected(output!), `${flag} chunk ${chunkSize}`);
+    }
+  }
+});
+test('byte and character modes still count NUL as one across locales and chunks', () => {
+  for (const locale of [utf8, 'C']) {
+    for (const flag of ['-bw5', '-cw5']) {
+      for (const chunkSize of [1, 4, 13]) {
+        assert.deepEqual(fold('\0\0\0\0abcdefgh\n', [flag], locale, chunkSize), expected('\0\0\0\0a\nbcdef\ngh\n'));
+        assert.deepEqual(fold('abcde\0f\n', [flag], locale, chunkSize), expected('abcde\n\0f\n'));
+      }
+    }
+  }
+});
 test('cross-realm bytes are admitted using storage length and values, not overridable iteration', () => {
   const input = runInNewContext('Uint8Array.of(255, 0, 97)') as Uint8Array;
   Object.defineProperty(input, 'length', { value: 0 });

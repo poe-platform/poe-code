@@ -11,6 +11,9 @@ interface FetchRequestOptions {
   readonly path?: string | undefined;
   readonly method?: string | undefined;
   readonly headers?: Record<string, string> | undefined;
+  readonly agent?: false;
+  readonly maxHeaderSize?: number;
+  readonly rejectUnauthorized?: true;
 }
 
 export async function sendRequest(

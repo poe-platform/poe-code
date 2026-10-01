@@ -39,7 +39,10 @@ test("sort yields queued cancellation before output for every comparison path", 
       const fs = await fixture({ kept: "unchanged" });
       const probe = sortProbe([...args, "-o", "kept"], stdin, controller.signal, fs);
       let checkpoints = 0;
+      let entered = false;
       registerYieldCheckpoint(controller.signal, () => {
+        // Invocation admission notifies checkpoints without yielding a turn.
+        if (!entered) { entered = true; return; }
         checkpoints++;
         scheduleTurn(() => controller.abort(reason));
       });
@@ -363,9 +366,12 @@ test("cut parse sort and normalization deliver queued false/null cancellation be
         const controller = new AbortController();
         let reads = 0;
         let checkpoints = 0;
+        let entered = false;
         const stdin = { async *[Symbol.asyncIterator]() { reads++; yield new Uint8Array([120, 10]); } };
         const probe = cutProbe(["-b", ranges], stdin, controller.signal, await fixture());
         registerYieldCheckpoint(controller.signal, () => {
+          // Count parsing/normalization yields after invocation admission.
+          if (!entered) { entered = true; return; }
           if (++checkpoints === checkpoint) scheduleTurn(() => controller.abort(reason));
         });
         await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "cut")!.execute(probe.context)), failure => failure === reason);
@@ -384,9 +390,12 @@ test("cut record selection delivers queued false/null cancellation in every mode
       await testContext.test(`${mode}, reason ${reason}`, async () => {
         const controller = new AbortController();
         let checkpoints = 0;
+        let entered = false;
         const stdin = mode === "f" ? Array(8192).fill("x").join(",") + "\n" : "x".repeat(8192) + "\n";
         const probe = cutProbe([`-${mode}`, "100000", ...(mode === "f" ? ["-d", ","] : [])], toByteSource(stdin), controller.signal, await fixture());
         registerYieldCheckpoint(controller.signal, () => {
+          // Count selection yields after invocation admission.
+          if (!entered) { entered = true; return; }
           checkpoints++;
           scheduleTurn(() => controller.abort(reason));
         });

@@ -2,7 +2,7 @@ import { resolvePath } from "safe-bash-contracts/path";
 import { Budget, XanError } from "./budget.js";
 import { boundedSort } from "./sort.js";
 
-export type Subcommand = "headers" | "count" | "select" | "slice" | "head" | "tail" | "sort" | "search" | "filter" | "reverse" | "rename" | "drop" | "stats" | "freq" | "join" | "dedup" | "enum" | "transpose" | "agg" | "groupby" | "to" | "from" | "cat" | "split";
+export type Subcommand = "headers" | "count" | "select" | "slice" | "head" | "tail" | "sort" | "search" | "filter" | "reverse" | "rename" | "drop" | "stats" | "freq" | "join" | "dedup" | "enum" | "transpose" | "agg" | "groupby" | "to" | "from" | "cat" | "split" | "map" | "top" | "table";
 export interface Arguments {
   command: Subcommand;
   options?: ReadonlyMap<string, string>;
@@ -64,6 +64,8 @@ export function inferDelimiter(path: string): number {
 const shortOptions: Record<string, string> = { B: "byte-offset", S: "start-condition", E: "end-condition", H: "human-readable", c: "check-alignment", a: "approx", p: "parallel", t: "threads", h: "help", o: "output", d: "delimiter", n: "no-headers", j: "just-names", s: "start", e: "end", l: "len", i: "index", I: "indices", L: "last" };
 const switches = new Set(["help", "no-headers", "just-names", "csv", "human-readable", "check-alignment", "approx", "parallel", "raw", "evaluate", "evaluate-file"]);
 const extraShort: Partial<Record<Subcommand, Record<string, string>>> = {
+  top: { l: "limit", R: "reverse" },
+  table: { s: "select" },
   dedup: { s: "select", l: "keep-last", S: "sorted" }, enum: { c: "column-name", S: "start" },
   from: { f: "format" }, cat: { p: "pad" }, split: { S: "size", O: "out-dir", f: "filename", c: "chunks" },
   head: { l: "limit" }, tail: { l: "limit" },
@@ -76,6 +78,9 @@ const extraShort: Partial<Record<Subcommand, Record<string, string>>> = {
 for (const name of ["keep-last", "sorted", "keep-duplicates", "pad", "sort-keys", "single-object", "omit", "numeric", "reverse", "uniq", "exact", "ignore-case", "invert-match", "every-column", "all", "no-extra", "inner", "left", "right", "full", "semi", "anti", "cross", "nulls"]) switches.add(name);
 const common = ["help", "output", "delimiter"];
 const allowed: Record<Subcommand, Set<string>> = {
+  map: new Set([...common, "no-headers"]),
+  top: new Set([...common, "no-headers", "limit", "reverse"]),
+  table: new Set([...common, "no-headers", "select"]),
   dedup: new Set([...common, "no-headers", "select", "keep-last", "sorted", "keep-duplicates"]),
   enum: new Set([...common, "no-headers", "column-name", "start"]),
   transpose: new Set(common),
@@ -158,12 +163,21 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   if (values.has("evaluate") && values.has("evaluate-file")) throw new XanError("conflicting expression modes");
   let rightSelection: string | undefined;
   let operand: string | undefined;
+  if (command === "map") {
+    operand = operands.shift();
+    rightSelection = operands.shift();
+    if ((!operand || !rightSelection) && !help) throw new XanError("map requires an expression and a new column name");
+  }
   if (command === "groupby") rightSelection = operands.shift();
   if (["search", "filter", "rename", "agg", "groupby", "to", "cat"].includes(command)) {
     operand = operands.shift();
     if (operand === undefined && !help) throw new XanError(`${command} requires an argument`);
   }
   let selection = command === "select" || command === "drop" ? operands.shift() : values.get("select") ?? "";
+  if (command === "top") {
+    selection = operands.shift();
+    if (!selection && !help) throw new XanError("top requires a column selection");
+  }
   if (command === "join" && !help) {
     const modes = ["inner", "left", "right", "full", "semi", "anti", "cross"].filter(name => values.has(name));
     if (modes.length > 1) throw new XanError("conflicting join modes");

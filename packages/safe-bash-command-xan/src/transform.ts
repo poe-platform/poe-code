@@ -84,13 +84,13 @@ export async function* transformRows(args: Arguments, scope: InputScope, budget:
     const predicate = args.command === 'filter' ? await condition(args.operand, first, args.noHeaders, budget, scope) : undefined;
     const pattern = args.command === 'search' ? await budget.encode(options.has('ignore-case') ? args.operand!.toLowerCase() : args.operand!) : undefined;
     if (pattern) scope.own(() => budget.release(pattern.length));
-    const limit = options.has('limit') ? await unsigned(options.get('limit')!, '--limit', budget) : undefined;
+    const limit = options.has('limit') ? await unsigned(options.get('limit')!, '--limit', budget) : args.command === 'top' ? 10n : undefined;
     let matches = 0n;
     for await (const row of source) {
       let held = false;
       try {
-        if (args.command === 'sort' || args.command === 'reverse') {
-          if (options.has('numeric')) for (const position of selected) numericCell(row.cells[position]!.decoded.view(), budget);
+        if (args.command === 'sort' || args.command === 'reverse' || args.command === 'top') {
+          if (options.has('numeric') || args.command === 'top') for (const position of selected) numericCell(row.cells[position]!.decoded.view(), budget);
           budget.hold(32); retained.push(row); held = true; continue;
         }
         let match = predicate ? await predicate(row) : true;
@@ -123,15 +123,16 @@ export async function* transformRows(args: Arguments, scope: InputScope, budget:
       for (const position of selected) {
         const a = left.cells[position]!.decoded.view(), b = right.cells[position]!.decoded.view();
         let order: number;
-        if (options.has('numeric')) {
+        if (options.has('numeric') || args.command === 'top') {
           order = Math.sign(numericCell(a, budget) - numericCell(b, budget));
         } else order = await compareBytes(a, b, budget);
-        if (order) return options.has('reverse') ? -order : order;
+        if (order) return options.has('reverse') !== (args.command === 'top') ? -order : order;
       }
       return 0;
     };
-    if (args.command === 'sort') await boundedSort(retained, 32, budget, compare);
+    if (args.command === 'sort' || args.command === 'top') await boundedSort(retained, 32, budget, compare);
     for (let i = 0; i < retained.length; i++) {
+      if (args.command === 'top' && BigInt(i) >= limit!) break;
       budget.work(); const c = budget.checkpoint(); if (c) await c;
       const row = retained[args.command === 'reverse' ? retained.length - i - 1 : i]!;
       if (options.has('uniq') && i && await compare(retained[i - 1]!, row) === 0) continue;

@@ -8,6 +8,19 @@ import {
 } from "../../src/index.js";
 
 import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
+
+test("default and configured agent commands run xan arithmetic from virtual files", async t => {
+  for (const options of [{}, { xan: { limits: { maxRecords: 100 } } }]) {
+    const fs = createMemoryFileSystem();
+    const shell = new Shell({ fs }).use(agentCommands(options));
+    t.after(() => shell.dispose());
+    await fs.writeFile("/scores.csv", new TextEncoder().encode("name,score\nalice,90\nbob,80\n"));
+    const result = await shell.exec("xan select -e 'name, score * 2 as double_score' /scores.csv");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "name,double_score\nalice,180\nbob,160\n");
+    assert.equal(shell.commands.list().filter(command => command.name === "xan").length, 1);
+  }
+});
 import { wkhtmltopdfCommands, wkhtmltopdfLimits } from "../../src/commands/wkhtmltopdf/index.js";
 
 for (const flags of ['-c', '--characters', '-sc', '--char']) {
@@ -127,10 +140,10 @@ test("aggregate definitions are exactly the delivered families, each registered 
     "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
     "paste", "comm", "join", "tac", "expand", "fold", "strings",
     "seq", "nl", "rev", "unexpand", "split",
-    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "gh",
+    "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan", "gh",
   ].sort();
-  assert.equal(expected.length, 115);
-  assert.equal(new Set(expected).size, 115);
+  assert.equal(expected.length, 116);
+  assert.equal(new Set(expected).size, 116);
   assert.deepEqual(createAgentCommands().map(command => command.name).sort(), expected);
   const target = host();
   await agentCommands().setup(target);
@@ -153,7 +166,7 @@ test("explicit replacement affects all families once and preserves unrelated com
   assert.throws(() => agentCommands().setup(target), /already registered/u);
   assert.deepEqual(target.commands.list(), original);
   await agentCommands({ replace: true }).setup(target);
-  assert.equal(target.commands.list().length, 116);
+  assert.equal(target.commands.list().length, 117);
   assert.equal(target.commands.get("custom"), original[0]);
   for (const name of ["printf", "sed", "jq", "rg", "gzip", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "paste", "comm", "join"]) {
     assert.notEqual(target.commands.get(name), original.find(command => command.name === name));

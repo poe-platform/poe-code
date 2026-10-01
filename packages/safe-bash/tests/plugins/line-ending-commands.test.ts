@@ -120,8 +120,8 @@ const limitNames = ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxOut
 
 test("default line-ending commands append to the independent 109-command prefix", () => {
   const names = entry.createAgentCommands().map(command => command.name);
-  assert.deepEqual(names, [...expectedPrefix, "dos2unix", "unix2dos", "mdq"]);
-  assert.equal(new Set(names).size, 115);
+  assert.deepEqual(names, [...expectedPrefix, "dos2unix", "unix2dos", "mdq", "xan"]);
+  assert.equal(new Set(names).size, 116);
   for (const name of ["createDos2unixCommand", "createUnix2dosCommand", "createLineEndingCommands", "lineEndingCommands"]) assert.ok(name in entry, `Missing public export: ${name}`);
 });
 

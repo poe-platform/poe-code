@@ -12,7 +12,6 @@ export class Budget {
   private workTotal = 0;
   private readonly maxWorkLimit: number;
   private _signal!: AbortSignal;
-  private _aborted = false;
   constructor(readonly limits: XanLimits, signal: AbortSignal) {
     this.maxWorkLimit = limits.maxWork;
     this.signal = signal;
@@ -20,11 +19,9 @@ export class Budget {
   get signal(): AbortSignal { return this._signal; }
   set signal(value: AbortSignal) {
     this._signal = value;
-    this._aborted = value.aborted;
-    if (!this._aborted) value.addEventListener("abort", () => { this._aborted = true; }, { once: true });
   }
-  get aborted(): boolean { return this._aborted; }
-  check(): void { if (this._aborted) this._signal.throwIfAborted(); }
+  get aborted(): boolean { return this._signal.aborted; }
+  check(): void { this._signal.throwIfAborted(); }
   bound(name: keyof XanLimits, value: number): void {
     this.check();
     if (!Number.isSafeInteger(value) || value < 0 || value > this.limits[name]) throw new LimitError(name);

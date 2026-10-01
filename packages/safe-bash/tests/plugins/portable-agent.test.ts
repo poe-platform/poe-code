@@ -14,7 +14,7 @@ const expected = [
   "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
   "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
   "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
-  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq",
+  "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq", "xan",
 ].sort();
 
 const portableFamilyCases = [
@@ -106,9 +106,9 @@ test("complete portable agent preset accepts an omitted provider", async () => {
 
 test("default inventory matches the independent 112 names and excludes host opt-ins", () => {
   const names = createAgentCommands().map(command => command.name);
-  assert.equal(names.length, 115);
+  assert.equal(names.length, 116);
   assert.deepEqual(names.sort(), expected);
-  assert.equal(new Set(names).size, 115);
+  assert.equal(new Set(names).size, 116);
 });
 
 test("portable preset graph never loads fs, native workers, or host command adapters", async () => {
@@ -161,7 +161,7 @@ test("portable registration is atomic and replacement preserves unrelated comman
   const custom = commands.get("custom");
   const replacement = agentCommands({ regexExecutor: browser.createBoundedRegexProvider(), replace: true });
   await replacement.setup(host);
-  assert.equal(commands.list().length, 116);
+  assert.equal(commands.list().length, 117);
   assert.equal(commands.get("custom"), custom);
   await replacement.dispose?.();
   assert.throws(() => replacement.setup(host), /disposed/);

@@ -1,5 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { getEventListeners } from "node:events";
+import { Budget } from "./budget.js";
+import { defaultLimits } from "./options.js";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createXanCommand } from "./index.js";
@@ -31,6 +34,52 @@ async function run(args: string[], input = 'name,score\nbob,2\nalice,10\ncarol,2
  });
  return { ...result, stdout, stderr };
 }
+
+test('budget borrows signals without retaining abort listeners', () => {
+ const first = new AbortController(), second = new AbortController();
+ const budget = new Budget(defaultLimits, first.signal);
+ assert.equal(getEventListeners(first.signal, 'abort').length, 0);
+ budget.signal = second.signal;
+ first.abort();
+ assert.equal(budget.aborted, false);
+ second.abort('cancelled');
+ assert.equal(budget.aborted, true);
+ assert.throws(() => budget.check(), error => error === 'cancelled');
+});
+
+test('table aligns wide and combining characters by terminal columns', async () => {
+ assert.equal((await run(['table'], 'a,b\n漢,x\né,z\n')).stdout, 'a   b\n--  -\n漢  x\né   z\n');
+});
+
+test('usage diagnostics do not need Node Buffer', async () => {
+ const original = Object.getOwnPropertyDescriptor(globalThis, 'Buffer')!;
+ Object.defineProperty(globalThis, 'Buffer', { value: undefined, configurable: true });
+ try {
+  const result = await run(['invalid']);
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /expected a CSV subcommand/);
+ } finally { Object.defineProperty(globalThis, 'Buffer', original); }
+});
+
+test('arithmetic rejects invalid values and honors expression and output budgets', async () => {
+ for (const expression of ['score / 0', 'missing + 1', 'score +', 'score ** 2', 'score,']) {
+  assert.equal((await run(['select', '-e', expression])).exitCode, 1, expression);
+ }
+ assert.equal((await run(['select', '-e', 'score + 1'], undefined, { maxSelectorNodes: 1 })).exitCode, 1);
+ assert.equal((await run(['select', '-e', 'score + 1'], undefined, { maxSelectorDepth: 1 })).exitCode, 1);
+ assert.equal((await run(['table'], undefined, { maxOutputBytes: 10 })).exitCode, 1);
+ assert.equal((await run(['table'], undefined, { maxRetainedBytes: 100 })).exitCode, 1);
+ assert.equal((await run(['top', '-R', '-l', '1', 'score'])).stdout, 'name,score\nbob,2\n');
+});
+
+for (const [args, stdout] of [
+ [['select', '-e', 'name, score * 2 as double_score'], 'name,double_score\nbob,4\nalice,20\ncarol,4\n'],
+ [['map', 'score * (2 + 1)', 'triple'], 'name,score,triple\nbob,2,6\nalice,10,30\ncarol,2,6\n'],
+ [['top', '-l', '2', 'score'], 'name,score\nalice,10\nbob,2\n'],
+ [['table'], 'name   score\n-----  -----\nbob    2    \nalice  10   \ncarol  2    \n'],
+] as [string[], string][]) test(`CSV feature ${args.join(' ')}`, async () => {
+ assert.deepEqual(await run(args), { exitCode: 0, stdout, stderr: '' });
+});
 
 test('slice last works with default unbounded limits and checks explicit bounds', async () => {
  assert.deepEqual(await run(['slice', '-L', '1']), { exitCode: 0, stdout: 'name,score\ncarol,2\n', stderr: '' });

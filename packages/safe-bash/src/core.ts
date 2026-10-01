@@ -9,6 +9,7 @@ export * from "./contracts/output.js";
 export * from "./contracts/plugin.js";
 export { validatePath, resolvePath, normalizePath, relativePath, isPathWithin, assertPathWithin, basename, dirname, extname, joinPath, isAbsolutePath, posixPath } from "@poe-code/safe-fs/core";
 export * from "./plugins/index.js";
+export { createXanCommand, createXanCommands, xanCommands, type XanCommandsOptions, type XanLimits } from "./commands/xan/index.js";
 export * from "./shell/index.js";
 export * from "./commands/index.js";
 export * from "./commands/regex-execution/public.js";

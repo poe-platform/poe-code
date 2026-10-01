@@ -1,6 +1,6 @@
 # xan
 
-Run `xan` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs.
+Run `xan` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. It is included in `agentCommands()`; use the standalone plugin for a smaller command set.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -16,10 +16,14 @@ The module also exports `createXanCommand`, its command-list factory, and typed 
 Available commands: `headers` (`h`), `count`, `select`, `slice`, `head`, `tail`,
 `sort`, `search`, `filter`, `reverse`, `rename`, `drop`, `stats`, `freq`
 (`frequency`), `join`, `dedup`, `enum`, `transpose`, `agg`, `groupby`,
-`to`, `from`, `cat`, and `split`. Use `xan --help` for supported options.
+`to`, `from`, `cat`, `split`, `table`, `top`, and `map`. Use `xan --help` for supported options.
 
 ```sh
 xan sort -s score -N data.csv
+xan select -e 'name, score * 2 as double_score' data.csv
+xan map 'score * (2 + 1)' triple_score data.csv
+xan top -l 5 score data.csv
+xan table -s name,score data.csv
 xan search -s name alice data.csv
 xan filter 'score >= 80' data.csv
 xan rename -s score points data.csv
@@ -52,10 +56,17 @@ CSV files by row count or number of chunks.
 are inferred across all rows. `from` imports JSON objects, JSON Lines or UTF-8
 text (`txt`/`text`/`lines`, or `raw` for one cell). Use `-f` for stdin; file
 inputs infer their format from the extension. Conversions require valid UTF-8.
+Selection expressions support columns, numeric and string literals, arithmetic
+(`+ - * / %`), parentheses and `as` aliases. `map` appends one expression
+under the supplied column name. Arithmetic requires finite decimal numbers;
+division by zero returns a diagnostic. Expression nesting is limited to 128.
+`top` orders selected numeric columns descending and emits ten rows by default;
+`-l` changes the count and `-R` selects the smallest values.
+`table` renders aligned plain text and escapes control characters.
 Advanced expression syntax and unlisted upstream options return diagnostics.
 
 Row transforms stream input; sorting, reversal and the right side of joins retain
-rows. Transposition, conversion and splitting also retain input; deduplication
+rows, as do `top` and `table`. Transposition, conversion and splitting also retain input; deduplication
 retains distinct keys and rows. Statistics retain column summaries; frequencies
 retain distinct values; grouped aggregates retain one summary per distinct key.
 Configure `limits` to bound work, retained memory, input and output. Limits default

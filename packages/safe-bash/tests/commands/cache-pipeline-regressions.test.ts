@@ -101,3 +101,54 @@ for (const asynchronous of [false, true]) {
     }
   });
 }
+
+for (const wrap of [
+  (query: string) => query,
+  (query: string) => `echo "$(${query})"`,
+]) test(`find output is isolated across tenants and directory mutations: ${wrap('find | sort')}`, async context => {
+  const tenants = await Promise.all(['secret', 'public'].map(async prefix => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir('/work/dir', { recursive: true });
+    await fs.writeFile('/work/dir/00_first.txt', enc.encode('a'));
+    for (let i = 1; i <= 30; i++) await fs.writeFile(`/work/dir/${prefix}_${i}.txt`, enc.encode('a'));
+    await fs.writeFile('/work/dir/31_last.txt', enc.encode('a'));
+    const shell = new Shell({ fs }).use(standardCommands());
+    context.after(() => shell.dispose());
+    await shell.exec('');
+    return { fs, shell };
+  }));
+  const [tenantA, tenantB] = tenants;
+  const query = wrap("find /work/dir -name 'secret*' | sort");
+  const check = async (tenant: typeof tenants[number], paths: string[]) => {
+    const result = await tenant.shell.exec(query);
+    const output = paths.sort().map(path => path + '\n').join('');
+    assert.equal(result.stdout, output || (wrap('x') === 'x' ? '' : '\n'));
+    assert.equal(result.stderr, '');
+    assert.equal(result.exitCode, 0);
+  };
+  await check(tenantA!, Array.from({ length: 30 }, (_, i) => `/work/dir/secret_${i + 1}.txt`));
+  await check(tenantB!, []);
+  // Same entry count and boundary names, but a different middle name.
+  await tenantB!.fs.rename('/work/dir/public_15.txt', '/work/dir/secret_new.txt');
+  await check(tenantB!, ['/work/dir/secret_new.txt']);
+  await tenantB!.fs.mkdir('/work/dir/nested');
+  await check(tenantB!, ['/work/dir/secret_new.txt']);
+  // The parent directory is unchanged when a descendant is added or renamed.
+  await tenantB!.fs.writeFile('/work/dir/nested/secret_child.txt', enc.encode('a'));
+  await check(tenantB!, ['/work/dir/nested/secret_child.txt', '/work/dir/secret_new.txt']);
+  await tenantB!.fs.rename('/work/dir/nested/secret_child.txt', '/work/dir/nested/public_child.txt');
+  await check(tenantB!, ['/work/dir/secret_new.txt']);
+});
+
+test('rg count does not reuse a same-length pattern with different middle bytes in one script', async context => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(searchCommands());
+  context.after(() => shell.dispose());
+  await fs.mkdir('/dir');
+  await fs.writeFile('/dir/file.txt', enc.encode('foo\n'.repeat(16)));
+  await shell.exec('');
+  const result = await shell.exec('rg -c foo /dir; rg -c fXo /dir');
+  assert.equal(result.stdout, '/dir/file.txt:16\n');
+  assert.equal(result.stderr, '');
+  assert.equal(result.exitCode, 1);
+});

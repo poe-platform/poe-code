@@ -3,6 +3,10 @@ import { test } from "node:test";
 import { portableRuntime } from "../helpers/portable-runtime.js";
 
 const cases: [string, number, string?][] = [
+  ['[[ a < b ]]', 0, ''],
+  ["printf 'hello world\\n%.0s' {1..32} > /in.txt; grep hello /in.txt; grep hello /in.txt", 0, 'hello world\n'.repeat(64)],
+  ["printf 'hello world\\n%.0s' {1..32} > /in.txt; cut -d ' ' -f1 /in.txt", 0, 'hello\n'.repeat(32)],
+  ["echo hello > /in.txt; rg --json hello /in.txt", 0],
   ['for i in {1..4}; do echo "val:$i"; done', 0, 'val:1\nval:2\nval:3\nval:4\n'],
   ['for ((i=0;i<2;i++)); do v="café"; echo "x_${v#c}"; done', 0, 'x_afé\nx_afé\n'],
   ['trap "echo hi" EXIT; trap -p', 0], ["read -d $'\\x80' x", 1],
@@ -17,8 +21,8 @@ const cases: [string, number, string?][] = [
   ["echo hi > f1; du --apparent-size f1", 0],
   ["echo hi > f1; tar -cf a.tar f1", 0], ["echo hi > f1; zip -q a.zip f1", 0],
 ];
-test("reported commands execute without a host Buffer or Node globals", async context => {
-  const { api: core } = await portableRuntime('export * from "./packages/safe-bash/src/core.ts";');
+for (const removeBuffer of [false, true]) test(`reported commands execute without Node globals (remove portable global Buffer: ${removeBuffer})`, async context => {
+  const { api: core } = await portableRuntime('export * from "./packages/safe-bash/src/core.ts";', { removeBuffer });
   for (const [source, exitCode, stdout] of cases) {
     await context.test(source, async () => {
       const commands = new core.CommandRegistry();
@@ -29,6 +33,12 @@ test("reported commands execute without a host Buffer or Node globals", async co
         assert.equal(result.exitCode, exitCode, result.stderr);
         assert.equal(result.stderr.includes("internal error"), false, result.stderr);
         if (stdout !== undefined) assert.equal(result.stdout, stdout);
+        if (source.includes('rg --json')) {
+          const events = result.stdout.trim().split('\n').map(line => JSON.parse(line));
+          assert.deepEqual(events.map(event => event.type), ['begin', 'match', 'end', 'summary']);
+          assert.equal(events[1].data.path.text, '/in.txt');
+          assert.equal(events[1].data.lines.text, 'hello\n');
+        }
       } finally { await shell.dispose(); }
     });
   }

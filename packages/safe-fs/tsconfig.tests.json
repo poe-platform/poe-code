@@ -14,6 +14,7 @@
       "poe-code/safe-fs": ["src/index.ts"],
       "poe-code/safe-fs/core": ["src/core.ts"],
       "poe-code/safe-fs/node/filesystem": ["src/node/filesystem.ts"],
+      "poe-code/safe-js/core": ["../safe-js/dist/core.d.ts"],
       "safe-bash-contracts": ["../safe-bash-contracts/src/index.ts"],
       "safe-bash-contracts/*": ["../safe-bash-contracts/src/*.ts", "../safe-bash-contracts/src/*"],
       "safe-bash-command-*": ["../safe-bash-command-*/src/index.ts"],

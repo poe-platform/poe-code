@@ -42,7 +42,10 @@ export async function run(): Promise<boolean> {
   let token: string | undefined;
   do {
     const page = await paginated.listObjectsV2({ Bucket: "ordered", ...(token ? { ContinuationToken: token } : {}) });
-    listed.push(...(page.Contents ?? []).map(object => object.Key));
+    for (const object of page.Contents ?? []) {
+      if (object.Key === undefined) throw new Error("mock listing omitted an object key");
+      listed.push(object.Key);
+    }
     token = page.NextContinuationToken;
   } while (token);
   if (JSON.stringify(listed) !== JSON.stringify(ordered)) throw new Error("mock UTF-8 pagination order failed");

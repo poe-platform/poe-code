@@ -15,6 +15,7 @@ exiftool -@ /arguments.txt
 ```
 
 These commands run inside the configured virtual Shell, not a host executable.
+The shell input budget applies cumulatively to image files, chunked stdin, and argument files.
 `ImageWidth`, `ImageHeight`, `BitDepth`, `ColorType`, `FileType`, `MIMEType` and `ImageSize` describe the PNG header. JPEG supports dimensions, file type, MIME type, bit depth and image size, plus EXIF `Artist` and `Copyright` reads and writes. PNG supports `Artist` text writes. `-all=` strips PNG text (including compressed/qualified text), timestamps, EXIF and ICC profile chunks while retaining rendering chunks, or JPEG APP1–APP15 and comment segments while preserving image data. JPEG scalar writes preserve other EXIF entries and segment bytes. Metadata
 deletion preserves the header and image data.
 The runtime is first-party TypeScript ESM with byte-stream input/output and no

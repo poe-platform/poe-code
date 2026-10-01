@@ -101,3 +101,12 @@ test("convert runner treats option-like operands after -- as filenames", async (
   expect(result.exitCode).toBe(0);
   expect(files.has("out.png")).toBe(true);
 });
+
+for (const command of createImagemagickCommands()) {
+  test(`${command.name} propagates caller budget failures from filesystem reads`, async () => {
+    const { context } = await imageContext(command, ["in.png", "out.png"]);
+    const failure = Object.assign(new Error("caller input ceiling exceeded"), { name: "BudgetExceededError" });
+    context.fs.readFile = async () => { throw failure; };
+    await expect(command.execute(context)).rejects.toBe(failure);
+  });
+}

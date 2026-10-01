@@ -14,6 +14,6 @@ The workspace entrypoint exports `sipsCommands()` for plugin registration,
 `createSipsCommand()` for a single command. Each accepts an optional
 `SipsCommandsOptions` object; existing factory names remain available.
 
-Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `SipsLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and image resampling, cropping, rotation and flips yield to timers and cancellation, including Workers with frozen clocks.
+Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. The shell input budget also applies cumulatively across image files. `SipsLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and image resampling, cropping, rotation and flips yield to timers and cancellation, including Workers with frozen clocks.
 
 Custom properties use namespaced PNG iTXt or JPEG comment metadata, limited to 65,500 UTF-8 payload bytes per image. Other output formats reject custom property persistence explicitly. Output parent directories must already exist; `--out` does not create them. File output, including metadata, uses the shell output budget.

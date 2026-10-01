@@ -1,3 +1,4 @@
+import { FsError } from "safe-bash-contracts/errors";
 import { expect, it } from "vitest";
 import sharp from "@poe-code/image-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
@@ -48,7 +49,7 @@ it.each(["png:-", "-", "out.png"])("does not drain stdin for file or tile input 
       command: "magick", args: args.args, argumentValues: args, cwd: "/vfs", env: {}, signal: new AbortController().signal,
       stdin: { [Symbol.asyncIterator]() { reads++; return { async next() { return { done: true, value: undefined }; } }; } },
       stdout: { async write() {} }, stderr: { async write() {} }, registerCleanup() {},
-      fs: { async readFile(path: string) { if (path !== "/vfs/in.png") throw new Error("missing"); return png.slice(); }, async writeFile() {}, async mkdir() {} }
+      fs: { async readFile(path: string) { if (path !== "/vfs/in.png") throw new FsError("ENOENT"); return png.slice(); }, async writeFile() {}, async mkdir() {} }
     } as unknown as CommandContext;
     expect((await createMagickCommand().execute(context)).exitCode).toBe(0);
     expect(reads).toBe(0);
@@ -65,7 +66,7 @@ it.each(["-", "png:-"])("still reads genuine stdin input %s", async (input) => {
       command: "magick", args: args.args, argumentValues: args, cwd: "/vfs", env: {}, signal: new AbortController().signal,
       stdin: (async function* () { reads++; yield png; })(),
       stdout: { async write(bytes: Uint8Array) { output.push(bytes); } }, stderr: { async write() {} }, registerCleanup() {},
-      fs: { async readFile() { throw new Error("missing"); } }
+      fs: { async readFile() { throw new FsError("ENOENT"); } }
     } as unknown as CommandContext;
     expect((await createMagickCommand().execute(context)).exitCode).toBe(0);
     expect(reads).toBe(1);

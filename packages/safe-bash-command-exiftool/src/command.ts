@@ -1,7 +1,7 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { commandRuntimeIdentity, getCommandArguments, type CommandDefinition } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
-import { readBytes, writeBytes } from "safe-bash-contracts/io";
+import { readBytes, writeBytes, withInputByteBudget } from "safe-bash-contracts/io";
 import { createOutputOperation, type OutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import { shellValueByteLength } from "safe-bash-contracts/value";
@@ -42,7 +42,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
   return Object.freeze({
     name: "exiftool", runtimeIdentity: commandRuntimeIdentity,
     description: "Inspect and edit admitted PNG, JPEG and PDF metadata through virtual files",
-    async execute(context) {
+    execute: withInputByteBudget(async context => {
       const publication = new Publication(context, limits.maxStagingAttempts);
       let stdout: OutputOperation | undefined, stderr: OutputOperation | undefined;
       let failed = false, failure: unknown;
@@ -85,7 +85,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
           invocation = parseArguments(await expandArgfiles(context.args, context, publication, resources), resources.limits);
         } catch (error) {
           context.signal.throwIfAborted();
-          if (error instanceof ResourceLimitError) throw error;
+          if (error instanceof ResourceLimitError || (error instanceof Error && error.name === "BudgetExceededError") || (error instanceof FsError && error.code === "EFBIG")) throw error;
           await output("Error: " + (error instanceof Error ? error.message : String(error)) + "\n", true);
           return { exitCode: 1 };
         }
@@ -199,7 +199,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
             tags = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : isPdf ? inspectPdf(bytes, resources).tags : [];
           } catch (error) {
             context.signal.throwIfAborted();
-            if (error instanceof ResourceLimitError) throw error;
+            if (error instanceof ResourceLimitError || (error instanceof Error && error.name === "BudgetExceededError") || (error instanceof FsError && error.code === "EFBIG")) throw error;
             errors++;
             const message = error instanceof FsError && error.code === "ENOENT" ? "File not found" : error instanceof Error ? error.message : String(error);
             await output("Error: " + message + " - " + file + "\n", true);
@@ -291,7 +291,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
         return { exitCode: errors ? 1 : 0 };
       } catch (error) { failed = true; failure = error; throw error; }
       finally { await cleanup(); }
-    },
+    }),
   } satisfies CommandDefinition);
 }
 

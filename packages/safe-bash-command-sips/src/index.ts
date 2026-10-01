@@ -1,6 +1,7 @@
 import { resolvePath } from "safe-bash-contracts/path";
 import { readProperties, writeProperties } from "./properties.js";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
+import { FsError } from "safe-bash-contracts/errors";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -1165,6 +1166,7 @@ async function executeVfsImageTool(
     const argv = [...carrier.args];
     const vfsFiles = new Map<string, Uint8Array>();
 
+    let totalInputBytes = 0;
     const normalizedArgv = [...argv];
     for (let i = 0; i < normalizedArgv.length; i++) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
@@ -1177,7 +1179,8 @@ async function executeVfsImageTool(
             if (st.type === "directory") {
               normalizedArgv[i + 1] = next + "/";
             }
-          } catch {
+          } catch (error) {
+            if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR"].includes(error.code)) throw error;
             // Target does not exist yet
           }
         }
@@ -1186,17 +1189,22 @@ async function executeVfsImageTool(
       if (token.startsWith("-")) continue;
       const bracketMatch = /^(.*)\[(\d+)\]$/.exec(token);
       const fileToken = bracketMatch ? bracketMatch[1]! : token;
+      let bytes: Uint8Array;
       try {
-        const bytes = await context.fs.readFile(resolvePath(context.cwd, fileToken), {
+        bytes = await context.fs.readFile(resolvePath(context.cwd, fileToken), {
           signal: invocation.signal
         });
-        vfsFiles.set(fileToken, bytes);
-      } catch {
+      } catch (error) {
+        if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
         // Output path or non-existent file
+        continue;
       }
+      totalInputBytes += bytes.byteLength;
+      context.inputBudget?.check(totalInputBytes);
+      vfsFiles.set(fileToken, bytes);
     }
 
-    context.inputBudget?.check(0);
+    context.inputBudget?.check(totalInputBytes);
     const existingSnap = new Map(vfsFiles);
     const res = await runner(normalizedArgv, vfsFiles, invocation.signal);
 

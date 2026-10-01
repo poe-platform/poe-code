@@ -1,3 +1,4 @@
+import { FsError } from "safe-bash-contracts/errors";
 import { expect, it } from "vitest";
 import sharp from "@poe-code/image-ast";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
@@ -35,7 +36,7 @@ it("persists properties through separate VFS command invocations", async () => {
       command: "sips", args: args.args, argumentValues: args, cwd: "/vfs", env: {}, signal: new AbortController().signal,
       stdout: { async write(bytes: Uint8Array) { output.push(new TextDecoder().decode(bytes)); } }, stderr: { async write() {} }, registerCleanup() {},
       fs: {
-        async readFile(path: string) { const bytes = files.get(path); if (!bytes) throw new Error("missing"); return bytes.slice(); },
+        async readFile(path: string) { const bytes = files.get(path); if (!bytes) throw new FsError("ENOENT"); return bytes.slice(); },
         async writeFile(path: string, bytes: Uint8Array) { files.set(path, bytes.slice()); }, async mkdir() {}
       }
     } as unknown as CommandContext;

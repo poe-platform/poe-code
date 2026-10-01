@@ -1,3 +1,4 @@
+import { FsError } from "safe-bash-contracts/errors";
 import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
@@ -5655,7 +5656,8 @@ async function executeVfsMagickTool(
         bytes = await context.fs.readFile(resolvePath(context.cwd, candidate), {
           signal: invocation.signal
         });
-      } catch {
+      } catch (error) {
+        if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
         // Output file or pseudo-operand
         continue;
       }

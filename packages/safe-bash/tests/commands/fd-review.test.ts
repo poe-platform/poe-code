@@ -9,7 +9,7 @@ async function fixture(files: Record<string, string>, run: (shell: Shell, fs: Me
     await fs.mkdir('/work/' + path.split('/').slice(0, -1).join('/'), { recursive: true });
     await fs.writeFile('/work/' + path, new TextEncoder().encode(text));
   }
-  const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands({ muscleMemory: true }));
   try { await run(shell, fs); } finally { await shell.dispose(); }
 }
 
@@ -18,8 +18,13 @@ test('fd review: nested ignore overrides, directory pruning and explicit no-igno
     const result = await shell.exec('fd -t f');
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, 'src/keep.tmp\n');
-    assert.equal((await shell.exec('fd -uu -t f')).stdout, '.hidden\n.ignore\nblocked/secret\nkeep.tmp\nsrc/.ignore\nsrc/keep.tmp\n');
-    assert.equal((await shell.exec('fd -u -t f')).stdout, '.hidden\n.ignore\nblocked/secret\nkeep.tmp\nsrc/.ignore\nsrc/keep.tmp\n');
+    // The documented Safe Bash profile includes hidden entries after two -u flags.
+    for (const flag of ['-uu', '--unrestricted --unrestricted']) {
+      assert.equal((await shell.exec(`fd ${flag} -t f`)).stdout, '.hidden\n.ignore\nblocked/secret\nkeep.tmp\nsrc/.ignore\nsrc/keep.tmp\n', flag);
+    }
+    for (const flag of ['-u', '--unrestricted']) {
+      assert.equal((await shell.exec(`fd ${flag} -t f`)).stdout, 'blocked/secret\nkeep.tmp\nsrc/keep.tmp\n', flag);
+    }
   });
 });
 

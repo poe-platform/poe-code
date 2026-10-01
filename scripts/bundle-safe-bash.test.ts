@@ -725,6 +725,11 @@ it("uses the public portable trap subpath without the Node signal catalog", asyn
 
 it("runs shell byte operations and command exports in workerd without nodejs_compat", async () => {
   const cases = [
+    ['arr=(10 20); (( arr[0] += 1 )); echo "${arr[0]}"', "11\n"],
+    ['declare -A map; map[key]=value; echo "${map[key]}"', "value\n"],
+    ['eval "echo hi"', "hi\n"],
+    ['echo "hello" | cut -c1-2', "he\n"],
+    ['tar --help > /tar-help; test -s /tar-help', ""],
     ['echo {1..3}', '1 2 3\n'],
     ['s="héllo"; echo "${s^^}"', 'HÉLLO\n'],
     ['[ "a" \\< "b" ]', ''],

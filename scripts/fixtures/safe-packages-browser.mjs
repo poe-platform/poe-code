@@ -65,13 +65,18 @@ try {
   for (const [script, expected] of [
     ...checksumWorkflows,
     ...nullDeviceWorkflows,
+    ['arr=(10 20); (( arr[0] += 1 )); echo "${arr[0]}"', "11\n"],
+    ['declare -A map; map[key]=value; echo "${map[key]}"', "value\n"],
+    ['eval "echo hi"', "hi\n"],
+    ['echo "hello" | cut -c1-2', "he\n"],
+    ['tar --help > /tar-help; test -s /tar-help', ""],
     ["printf 'a,b\\nc,d\\n' | cut -d , -f 2", "b\nd\n"],
     ["printf 'a\\tb\\tc\\n' | cut -f 1,3", "a\tc\n"],
     ["printf 'a,,c\\n,b,\\n' > /fields; cut -d , -f 2,3 /fields", ",c\nb,\n"],
   ]) {
     const output = await shell.exec(script);
     if (output.exitCode !== 0 || output.stderr !== "" || output.stdout !== expected) {
-      throw new Error(`Browser cut smoke failed: ${script}: ${JSON.stringify(output)}`);
+      throw new Error(`Browser shell smoke failed: ${script}: ${JSON.stringify(output)}`);
     }
   }
 } finally { await shell.dispose(); }

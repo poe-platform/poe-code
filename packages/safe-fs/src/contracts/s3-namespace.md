@@ -43,7 +43,7 @@ No product environment variables are read. All options are explicit:
 | `key` | Required nonempty dedicated manifest object key. |
 | `maxBytes` | Unlimited; optional positive safe integer for committed file-content bytes. |
 | `maxEntries` | Unlimited; optional positive safe integer for committed nodes including root. |
-| `maxManifestBytes` | 4 MiB; optional positive safe integer for serialized reads and writes. Streaming structure and graph-allocation admission precede JSON parsing; a conservative encoding bound precedes serialization. |
+| `maxManifestBytes` | Unlimited; optional positive safe integer for serialized reads and writes. Streaming structure and graph-allocation admission precede JSON parsing; a conservative encoding bound precedes serialization. |
 | `maxAttempts` | Unlimited; optional positive safe integer for conditional commit attempts. Exhaustion returns `EAGAIN`, never an unconditional overwrite. |
 | `maxOpenFiles` | Unlimited; shared immutable descriptor admission for this adapter instance. |
 | `maxFileBytes` | Unlimited; independent descriptor file-size ceiling, also subject to an explicit namespace byte quota. |
@@ -51,8 +51,9 @@ No product environment variables are read. All options are explicit:
 | `maxStagedBytes` | Unlimited; shared descriptor dirty-page budget. |
 | `maxStagedPages` | Unlimited; descriptor staging page-count bound. |
 
-The latter five options use the existing object-file-descriptor contract;
-supplied integer bounds are validated before initialization. Namespace limits count
+The latter five options use the existing object-file-descriptor contract.
+All resource limits accept explicit `Infinity`; supplied integer bounds are
+validated before initialization. Namespace limits count
 committed bytes/entries, not total process RSS. Reads, encoding and immutable
 descriptor snapshots also consume bounded host memory. Every mutation reads and
 conditionally replaces the manifest: this is intended for bounded workspaces,
@@ -65,8 +66,8 @@ while streaming. Before parsing the complete JSON, graph storage is conservative
 charged against four times `maxManifestBytes` (including array growth and validation
 tables); exceeding this admission estimate returns `EFBIG`. This estimate is not
 a process-RSS guarantee. Explicit content and entry quotas return `ENOSPC` as soon
-as streaming admission exceeds them. Increase `maxManifestBytes` explicitly for
-larger namespaces, accounting for both encoded and expanded storage.
+as streaming admission exceeds them. Configure `maxManifestBytes` to bound
+serialized manifests, accounting for both encoded and expanded storage.
 
 ## Filesystem and cleanup semantics
 

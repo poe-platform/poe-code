@@ -272,8 +272,8 @@ export function writePythonStat(heap: Uint8Array, pointer: number, stat: Record<
 }
 
 /** Runtime storage and application storage occupy disjoint guest device ranges. */
-export function createPythonRuntimeStatMapper(maxDevices = 1024): (stat: Record<string | symbol, any>) => Record<string | symbol, any> {
-  if (!Number.isSafeInteger(maxDevices) || maxDevices < 1 || maxDevices > 1024) throw new RangeError('Invalid runtime device limit');
+export function createPythonRuntimeStatMapper(maxDevices = Infinity): (stat: Record<string | symbol, any>) => Record<string | symbol, any> {
+  if (maxDevices !== Infinity && (!Number.isSafeInteger(maxDevices) || maxDevices < 1)) throw new RangeError('Invalid runtime device limit');
   const mapped = Symbol('mapped Python runtime device');
   const devices = new Map<number, number>();
   return stat => {
@@ -282,6 +282,8 @@ export function createPythonRuntimeStatMapper(maxDevices = 1024): (stat: Record<
     let device = devices.get(stat.dev);
     if (device === undefined) {
       if (devices.size >= maxDevices) throw new Error('EOVERFLOW');
+      // Preserve the uint32 guest ABI even when the resource budget is unlimited.
+      if (devices.size >= 0x80000000) throw new Error('EOVERFLOW');
       device = 0x80000000 + devices.size;
       devices.set(stat.dev, device);
     }

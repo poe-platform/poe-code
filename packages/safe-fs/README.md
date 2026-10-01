@@ -93,6 +93,11 @@ check cancellation at operation boundaries, as `readBytes` does.
 
 `createDeviceFileSystem(fs)` adds portable `/dev/null` whole-file, stream, and descriptor I/O. Descriptor reads return EOF and writes discard bytes; stat remains a zero-size character device and descriptor position remains zero. Truncating opens are accepted, exclusive creation fails with `EEXIST`, and descriptor resizing and synchronization are unsupported. Access modes, cancellation, and closed handles use the normal descriptor checks. With an authoritative object store, use `createDeviceFileSystem(withObjectFileDescriptors(fs, store))` so null-device I/O never acquires or publishes an object version; ordinary files retain conditional publication. The device wrapper must be outermost for this composition.
 
+`PythonStatTranslator` and `createPythonRuntimeStatMapper` allocate stable guest device
+identities without a default device-count budget. Their optional `maxDevices` accepts
+`Infinity` or a positive safe integer. Explicit budgets remain enforced; device numbers
+must still fit the disjoint application/runtime ranges of the uint32 Python stat ABI.
+
 `withObjectFileDescriptors(fs, store)` supports large shell and Python descriptor
 writes when the host supplies `store.createStaging`: private externally backed
 pages keep working memory bounded without publishing the growing file after

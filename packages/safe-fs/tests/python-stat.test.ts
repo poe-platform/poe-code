@@ -25,3 +25,17 @@ it("does not turn unqualified identifiers into guest identities", async () => {
   expect(translated).not.toHaveProperty("ino");
   expect(translated).not.toHaveProperty("dev");
 });
+
+it.each([undefined, Infinity, 2048])("supports more than 1024 device identities with limit %s", async limit => {
+  const stat = await new MemoryFileSystem().stat("/");
+  const translator = new PythonStatTranslator(limit);
+  for (let dev = 0; dev < 1025; dev++) {
+    const input = { ...stat, dev };
+    expect(translator.translate(input).dev).toBe(dev + 1);
+    expect(translator.translate(input).dev).toBe(dev + 1);
+  }
+});
+
+it.each([0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1])("rejects invalid device limit %s", limit => {
+  expect(() => new PythonStatTranslator(limit)).toThrowError(expect.objectContaining({ code: "EINVAL" }));
+});

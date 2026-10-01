@@ -63,8 +63,8 @@ Disposal drains admitted operations, attempts every close and reports cleanup er
 Object IDs are retained only while handles exist, with no guarantee of equality
 across complete release/reopen, reconnect, epoch or authority replacement.
 
-Configuration: `maxHandles` is a required positive safe integer; `maxIoBytes` is a
-positive safe integer defaulting to 1048576. The broker limits individual reads,
+Configuration: `maxHandles` and `maxIoBytes` default to `Infinity` (unlimited)
+and accept positive safe integers for explicit budgets. The broker limits individual reads,
 positional writes, appends and retains, not the transport's total queued bytes or
 request count. The transport must bound frames, queued requests and aggregate
 inflight bytes before

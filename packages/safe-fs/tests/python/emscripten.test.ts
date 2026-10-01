@@ -76,3 +76,19 @@ test('runtime devices stay disjoint from application identities and retain devic
    ['chmod','/work/private',0o666],
   ]);
  });
+
+test.each([undefined, Infinity, 2048])('runtime mapper supports more than 1024 devices with limit %s', async limit => {
+ const { createPythonRuntimeStatMapper } = await import('../../src/python/emscripten.js');
+ const map = createPythonRuntimeStatMapper(limit);
+ for (let dev = 0; dev < 1025; dev++) {
+  const stat = map({dev, ino:1});
+  assert.equal(stat.dev, 0x80000000 + dev);
+  assert.equal(map({dev, ino:2}).dev, stat.dev);
+  assert.equal(map(stat), stat);
+ }
+});
+
+test.each([0, -1, NaN, -Infinity, 1.5, Number.MAX_SAFE_INTEGER + 1])('runtime mapper rejects invalid device limit %s', async limit => {
+ const { createPythonRuntimeStatMapper } = await import('../../src/python/emscripten.js');
+ assert.throws(() => createPythonRuntimeStatMapper(limit), RangeError);
+});

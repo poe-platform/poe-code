@@ -112,6 +112,11 @@ custom methods, getters, serializer keys/receivers and thrown-value identity.
 Package metadata lookup now uses a native search algorithm with injected Node
 filesystem/path capabilities. The original lookup suite and in-memory differential
 tests cover symlinks, fallback directories, malformed packages and exception identity.
+MCP result marking and recognition now use native validation with Node property,
+spread and symbol operations. Original MCP-result tests run with native definitions
+and markers through the JavaScript SDK/MCP consumers; differential tests cover
+getters, inherited properties, cross-realm arrays, descriptors and arbitrary throws.
+The SDK/MCP consumers themselves still require porting.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

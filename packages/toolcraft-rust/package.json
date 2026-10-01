@@ -28,7 +28,8 @@
     "@poe-code/agent-mcp-config": "*",
     "toolcraft-schema": "*",
     "toolcraft-design": "*",
-    "memfs": "4.56.10"
+    "memfs": "4.56.10",
+    "tiny-stdio-mcp-server-rust": "*"
   },
   "files": [
     "dist",

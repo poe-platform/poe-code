@@ -15,6 +15,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Definitions      | Commands, groups, stream definitions, metadata inheritance and defaults          |
 | Cloning          | Detached command trees, scope overrides, source locations and MCP proxy metadata |
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
+| MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
 
 ```ts
 import { suggest, createRuntimeLogger, createHttpError } from "toolcraft-rust";
@@ -46,6 +47,8 @@ cycle detection. Node retains array mapping and JSON parsing semantics, includin
 sparse arrays, custom array species, serializer receivers and thrown values.
 Package lookup runs in Rust with Node filesystem and path capabilities, preserving
 symlink resolution, missing-path fallbacks and the nearest package's parse errors.
+MCP result validation and marker recognition run in Rust; Node performs property
+access, object spread and symbol definition to retain getter order and descriptors.
 Node retains locale sorting, callback receivers, original event values, error
 causes, subclass identity, symbol metadata and stack traces. Cloning preserves
 schema and handler identity and supports trees from another Toolcraft bundle.

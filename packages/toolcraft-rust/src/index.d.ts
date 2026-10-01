@@ -1,3 +1,7 @@
+import type { CallToolResult } from "tiny-stdio-mcp-server-rust";
+
+export declare function asMCPResult<TResult extends CallToolResult>(result: TResult): TResult;
+
 export declare function suggest(
   input: string,
   candidates: readonly string[],

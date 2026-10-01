@@ -11,7 +11,7 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (
-          ["clone-command-node", "toolcraft"].some(
+          ["clone-command-node", "toolcraft", "mcp-result"].some(
             (suite) => importer === path(`../toolcraft/src/${suite}.test.ts`)
           ) &&
           name === "./index.js"
@@ -32,7 +32,8 @@ export default defineConfig({
   test: {
     include: [
       path("tests/package-metadata-parity.test.ts"),
-      ...[...suites, "clone-command-node", "toolcraft"].map((suite) =>
+      path("tests/mcp-result-parity.test.ts"),
+      ...[...suites, "clone-command-node", "toolcraft", "mcp-result"].map((suite) =>
         path(`../toolcraft/src/${suite}.test.ts`)
       )
     ],

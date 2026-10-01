@@ -16,6 +16,14 @@ const metadata: typeof reference.packageMetadata = native.packageMetadata;
 const findMetadata: typeof reference.findPackageMetadata = native.findPackageMetadata;
 void [sensitive, redact, metadata, findMetadata];
 
+const mark: typeof reference.asMCPResult = native.asMCPResult;
+const nativeMark: typeof native.asMCPResult = reference.asMCPResult;
+const envelope = { content: [{ type: "text" as const, text: "message" }], extra: 42 };
+const marked: typeof envelope = native.asMCPResult(envelope);
+void [mark, nativeMark, marked];
+// @ts-expect-error MCP results must have a content array
+native.asMCPResult({ content: "message" });
+
 // Compare the declared stream signatures with the same type parameters. Asking
 // TS to re-infer services across two recursive copies instead infers the entire
 // contravariant stream context as the native service type.

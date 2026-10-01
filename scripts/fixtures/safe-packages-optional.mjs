@@ -85,7 +85,7 @@ for (const name of extensionNames) assert.equal(optional[name]().runtimeIdentity
 const defaultNames = core.createAgentCommands().map(command => command.name);
 assert.deepEqual([...defaultNames].sort(), expectedAgentCommandNames);
 assert.equal(new Set(defaultNames).size, expectedAgentCommandNames.length);
-const overlappingDefaults = new Set(["yes", "cmp", "dd", "shuf", "truncate", "yq"]);
+const overlappingDefaults = new Set(["yes", "cmp", "dd", "shuf", "truncate", "install", "yq"]);
 for (const [name] of factories) {
   assert.equal(defaultNames.includes(name), overlappingDefaults.has(name), name);
 }

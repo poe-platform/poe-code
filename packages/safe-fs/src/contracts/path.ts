@@ -1,11 +1,6 @@
-import { posix } from "#safe-fs-platform-path";
 export {
   assertPathWithin, isPathWithin, normalizePath, relativePath, resolvePath, validatePath
 } from "./virtual-path.js";
-
-export const posixPath = posix;
-export const basename = posix.basename;
-export const dirname = posix.dirname;
-export const extname = posix.extname;
-export const joinPath = posix.join;
-export const isAbsolutePath = posix.isAbsolute;
+export {
+  posixPath, basename, dirname, extname, joinPath, isAbsolutePath
+} from "./portable-path.js";

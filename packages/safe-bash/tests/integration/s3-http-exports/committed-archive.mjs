@@ -204,6 +204,7 @@ export function stageWorkspacePrerequisites(binding, directory, fileSystem = { e
 }
 
 const approvedDependencies = Object.freeze({
+  "@noble/ciphers": Object.freeze({ version: "2.4.0", resolved: "https://registry.npmjs.org/@noble/ciphers/-/ciphers-2.4.0.tgz", integrity: "sha512-AnjFn0Jv92laAkvMrghlFZq4qQCIN/4DxFV/eooqtC2YTjB7kBeLMS2T9KJX4Dn+ZVXLOwK0lSgqDtx9gvxtiw==" }),
   "@noble/hashes": Object.freeze({ version: "2.4.0", resolved: "https://registry.npmjs.org/@noble/hashes/-/hashes-2.4.0.tgz", integrity: "sha512-X5XaVWZIBCT7HHZGm5I7ZQXDwLG+bGXuSrMQAW+7Zvl87h1kmc1ZB1VSRJcpUfoUrGQp4Fkoxm5kZ+Ms+aW+eA==" }),
   pako: Object.freeze({ version: "3.0.1", resolved: "https://registry.npmjs.org/pako/-/pako-3.0.1.tgz", integrity: "sha512-GupotUUI0mlhugKjUs4bjOwLt3nrehy9Ys2dxC0GtgVef5cnKggkDMmf2bq2poCCuVXopWPmqsc9VDT2iJUy+w==" }),
 });

@@ -514,7 +514,7 @@ function dependencyFixture() {
   const tools = resolveTools();
   const artifacts = {};
   const files = {};
-  for (const [index, name] of ["@noble/hashes", "pako"].entries()) {
+  for (const [index, name] of ["@noble/ciphers", "@noble/hashes", "pako"].entries()) {
     const source = tools.dependencyArtifactPath(lock.packages[`node_modules/${name}`].integrity);
     artifacts[name] = `/artifacts/dependency-${index}.tgz`;
     files[artifacts[name]] = readRegularInput(dirname(source), source.slice(dirname(source).length + 1), 8 * 1024 * 1024);
@@ -532,7 +532,7 @@ test("development codec pins stage authenticated build inputs without runtime de
   fixture.lock.packages[packagePrefix].dependencies = {};
   fixture.lock.packages[packagePrefix].devDependencies = structuredClone(fixture.manifest.devDependencies);
   const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
-  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/hashes", "pako", "@poe-code/office-package"]);
+  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/ciphers", "@noble/hashes", "pako", "@poe-code/office-package"]);
   fixture.fileSystem.mkdirSync("/snapshot");
   distChecks.stageArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
   distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
@@ -666,16 +666,16 @@ test("committed export mirroring preserves single filename patterns without admi
 test("private archive dependency artifacts stage exact authenticated bytes and reject installed drift", async () => {
   const fixture = dependencyFixture();
   const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
-  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/hashes", "pako", "@poe-code/office-package"]);
+  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/ciphers", "@noble/hashes", "pako", "@poe-code/office-package"]);
   fixture.fileSystem.mkdirSync("/snapshot");
   distChecks.stageArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
   distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
   const shared = bindings.find(binding => binding.name === "@poe-code/office-package");
   assert.deepEqual(shared.sources.map(source => source.path), [...fixture.files.keys()]);
-  assert.throws(() => distChecks.assertArchiveDependencyArtifacts([...bindings.slice(0, 2), { ...shared }], fixture.fileSystem), /captured compilation/);
+  assert.throws(() => distChecks.assertArchiveDependencyArtifacts(bindings.map(binding => binding === shared ? { ...shared } : binding), fixture.fileSystem), /captured compilation/);
   const files = {
     "node_modules/@poe-platform/safe-bash/package.json": '{"type":"module"}',
-    "node_modules/@poe-platform/safe-bash/dist/index.js": 'export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako"; export { createZipCodec } from "@poe-code/office-package/zip";',
+    "node_modules/@poe-platform/safe-bash/dist/index.js": 'export { ecb } from "@noble/ciphers/aes.js"; export { sha256 } from "@noble/hashes/sha2.js"; export { gzip } from "pako"; export { createZipCodec } from "@poe-code/office-package/zip";',
     "node_modules/@poe-platform/safe-bash/dist/fs/s3/http/index.js": "export {};",
     "node_modules/poe-code/package.json": '{"type":"module"}',
     "node_modules/poe-code/index.js": "export {};",
@@ -688,6 +688,7 @@ test("private archive dependency artifacts stage exact authenticated bytes and r
   const packed = Object.keys(files).filter(path => path.startsWith("node_modules/@poe-platform/safe-bash/")).map(path => path.slice("node_modules/@poe-platform/safe-bash/".length));
   const bind = () => verifier.bindPackedConsumer("/snapshot", packed, peer, { publicEntries: new Map(), declarations: new Map() }, ts, fixture.fileSystem, bindings);
   const closure = bind();
+  assert.equal(closure.entries["@noble/ciphers/aes.js"], "node_modules/@noble/ciphers/aes.js");
   assert.equal(closure.entries["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
   assert.equal(closure.entries.pako, "node_modules/pako/dist/pako.mjs");
   assert.equal(closure.entries["@poe-code/office-package/zip"], "node_modules/@poe-code/office-package/dist/zip.js");
@@ -1608,7 +1609,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
   };
   try {
     const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
-    manifest.dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
+    manifest.dependencies = { "@noble/ciphers": "2.4.0", "@noble/hashes": "2.4.0", pako: "3.0.1" };
     manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([path]) => [".", "./fs/s3", "./fs/s3/http"].includes(path)));
     // This synthetic S3 fixture has no Playwright sources or public peer entries.
     delete manifest.devDependencies["@poe-code/safe-playwright"];
@@ -1647,7 +1648,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     lock.packages["packages/safe-bash-command-op"] = { name: op.name };
     lock.packages["node_modules/safe-bash-command-op"] = { resolved: "packages/safe-bash-command-op", link: true };
     const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
-    for (const name of ["@noble/hashes", "pako"]) lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
+    for (const name of ["@noble/ciphers", "@noble/hashes", "pako"]) lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
     for (const identity of Object.values(resolveTools().identities)) lock.packages[relative(resolve(authority, "../.."), identity.root)] = { version: identity.version };
     for (const path of ["tsconfig.json", "tsconfig.build.json", "integration-boundaries.json", "scripts/integration-inputs.mjs", "scripts/typecheck-integration-inputs.mjs", "scripts/build.mjs", "scripts/generate-native-storage-sources.mjs", ...boundaries.fixtureDirectories.map(fixture => fixture.owner)]) {
       put(`${packagePrefix}/${path}`, readRegularInput(authority, path, 300000, undefined, boundaries));
@@ -1656,7 +1657,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     put(`${packagePrefix}/README.md`, "Synthetic committed archive control, not a product qualification.\n");
     for (const path of boundaries.heldSourceFiles) put(`${packagePrefix}/${path}`, "SYNTHETIC_WITHHELD_SENTINEL\n");
     for (const path of boundaries.heldEvidenceDirectories) put(`${packagePrefix}/${path}/synthetic-held.ts`, "SYNTHETIC_WITHHELD_EVIDENCE_SENTINEL\n");
-    put(`${packagePrefix}/src/index.ts`, 'export * from "./fs/s3/http/index.js";\nexport { FsError, MemoryFileSystem } from "poe-code/safe-fs";\nexport type { S3Transport } from "./fs/s3/index.js";\nimport { sha256 } from "@noble/hashes/sha2.js";\nimport { gzip } from "pako";\nexport const dependencyControl = sha256(new Uint8Array()).length + gzip(new Uint8Array()).length;\n');
+    put(`${packagePrefix}/src/index.ts`, 'export * from "./fs/s3/http/index.js";\nexport { FsError, MemoryFileSystem } from "poe-code/safe-fs";\nexport type { S3Transport } from "./fs/s3/index.js";\nimport { sha256 } from "@noble/hashes/sha2.js";\nimport { gzip } from "pako";\nexport { ecb } from "@noble/ciphers/aes.js";\nexport const dependencyControl = sha256(new Uint8Array()).length + gzip(new Uint8Array()).length;\n');
     put(`${packagePrefix}/src/core.ts`, 'export * from "./index.js";\n');
     put(`${packagePrefix}/src/core.browser.ts`, 'export * from "./core.js";\n');
     const transport = 'export interface S3Transport { headObject(): void; getObject(): void; putObject(): void; copyObject(): void; deleteObject(): void; listObjectsV2(): void }\n';
@@ -1990,8 +1991,8 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.equal(report.status, "pass", JSON.stringify(report));
     assert.equal(report.qualification, "synthetic-committed-fixture-not-release-qualification");
     assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0" });
-    assert.deepEqual(report.package.runtimeDependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1" });
-    assert.deepEqual(report.dependencies.map(binding => binding.name), ["@noble/hashes", "pako"]);
+    assert.deepEqual(report.package.runtimeDependencies, { "@noble/ciphers": "2.4.0", "@noble/hashes": "2.4.0", pako: "3.0.1" });
+    assert.deepEqual(report.dependencies.map(binding => binding.name), ["@noble/ciphers", "@noble/hashes", "pako"]);
     assert.ok(report.steps.find(step => step.label === "offline tarball install without lifecycles").args.includes(report.dependencies[0].tarball));
     assert.equal(report.peerRuntimeBinding.edges["node_modules/@poe-platform/safe-bash/dist/index.js"]["@noble/hashes/sha2.js"], "node_modules/@noble/hashes/sha2.js");
     assert.equal(report.peerRuntimeBinding.edges["node_modules/@poe-platform/safe-bash/dist/index.js"].pako, "node_modules/pako/dist/pako.mjs");

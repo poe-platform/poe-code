@@ -261,7 +261,7 @@ function* normalization(
         }
         if (!Object.hasOwn(frame.v, k)) fail(frame.p);
         const d = Object.getOwnPropertyDescriptor(frame.v, k);
-        if (!d || !("value" in d) || ["__proto__", "constructor", "prototype"].includes(k))
+        if (!d || !d.enumerable || !("value" in d) || ["__proto__", "constructor", "prototype"].includes(k))
           fail(`${frame.p}.${k}`);
         if (k === "t" && d.value === "Table") hasTable = true;
         stack.push({ kind: "node", v: d.value, p: `${frame.p}.${k}`, depth: frame.depth + 1 });
@@ -340,8 +340,7 @@ function* normalization(
       }
       stack.push({ kind: "arr", v, elemValues, idx: 0, p, depth });
     } else {
-      const keys: string[] = [];
-      for (const k in v) keys.push(k);
+      const keys = Object.getOwnPropertyNames(v);
       stack.push({ kind: "obj", v: v as Record<string, unknown>, keys, idx: 0, p, depth });
     }
   }

@@ -1,3 +1,4 @@
+import assert from "node:assert/strict";
 import { expect, it, vi } from "vitest";
 import { normalizeDocument, normalizeDocumentCooperatively } from "./ast.js";
 import { writeDocument } from "./engine.js";
@@ -320,4 +321,19 @@ it("accepts explicitly supported math without changing its source", async () => 
   }));
   await writeDocument(doc, { to: "plain" }, { writer: { format: "plain", math: "source", write } });
   expect(write.mock.calls[0]?.[0]).toEqual(doc);
+});
+
+for (const key of ['blocks', 'metadata', 'resources']) {
+  it(`rejects non-enumerable ${key} without invoking getters`, () => {
+    const doc = {blocks: [], metadata: {}, resources: []};
+    let called = false;
+    Object.defineProperty(doc, key, {enumerable: false, get() { called = true; return []; }});
+    assert.throws(() => normalizeDocument(doc));
+    assert.equal(called, false);
+  });
+}
+it('rejects unbudgeted non-enumerable document content', () => {
+  const doc = {metadata: {}, resources: []};
+  Object.defineProperty(doc, 'blocks', {value: [{t: 'Para', c: [{t: 'Str', c: 'x'.repeat(10000)}]}]});
+  assert.throws(() => normalizeDocument(doc, {text: 100}));
 });

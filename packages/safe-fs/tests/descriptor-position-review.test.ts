@@ -126,7 +126,7 @@ it.each([false, 0, "", null, NaN])("a rejected running query drains before close
   const events: string[] = [];
   backend.getPosition = async () => { events.push("query"); started.resolve(); return finish.promise; };
   const release = backend.close;
-  backend.close = async resource => { events.push("close"); await release(resource); throw "close failure"; };
+  backend.close = async (resource, options) => { events.push("close"); await release(resource, options); throw "close failure"; };
   const descriptor = await openFileDescriptor("/file", { access: "read" }, capabilities, async () => backend);
   const controller = new AbortController();
   const query = descriptor.getPosition!({ signal: controller.signal });

@@ -173,7 +173,7 @@ it.each([undefined, null, false, 0, ""])("cancels queued work and drains close p
     return originalWrite(resource, bytes, position, options);
   };
   const originalClose = subject.backend.close;
-  subject.backend.close = async resource => { await originalClose(resource); throw reason; };
+  subject.backend.close = async (resource, options) => { await originalClose(resource, options); throw reason; };
   const descriptor = await openFileDescriptor("/file", { access: "write", append: true }, { ...capabilities, positionedAppendWrite: true }, subject.acquire);
   expect(descriptor.capabilities.positionedWrite).toBe(true);
   const first = descriptor.write(Uint8Array.of(88), 0);
@@ -276,10 +276,10 @@ it.each(["getPosition", "probeRead"] as const)("drains canceled %s getter materi
   const getter = vi.fn(() => { controller.abort(false); return originalMethod; });
   Object.defineProperty(subject.backend, method, { get: getter });
   const originalClose = subject.backend.close;
-  subject.backend.close = async resource => {
+  subject.backend.close = async (resource, options) => {
     cleanupStarted.resolve();
     await cleanupRelease.promise;
-    await originalClose(resource);
+    await originalClose(resource, options);
   };
   let published: Awaited<ReturnType<typeof openFileDescriptor>> | undefined;
   let settled = false;

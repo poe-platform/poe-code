@@ -16,7 +16,7 @@ vi.mock("../src/fs/s3/http/request.js", async importOriginal => ({
 it("collects HTTP bodies and reads S3 files without a global Buffer", async () => {
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
   const response = (): WireResponse => ({
-    message: { statusCode: 200, headersDistinct: { "content-length": ["3"], etag: ['"one"'], "last-modified": ["Wed, 01 Jan 2020 00:00:00 GMT"] } } as WireResponse["message"],
+    message: { statusCode: 200, headersDistinct: { "content-length": ["3"], etag: ['"one"'], "last-modified": ["Wed, 01 Jan 2020 00:00:00 GMT"] } } as unknown as WireResponse["message"],
     body: { async *[Symbol.asyncIterator]() { yield Uint8Array.of(0, 255); yield Uint8Array.of(65); } },
     close: vi.fn(),
   });

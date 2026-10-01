@@ -301,7 +301,7 @@ describe("optional canonical descriptor contract", () => {
     });
     await acquired.promise;
     const closing = setup.backend.close;
-    setup.backend.close = async resource => { await closing(resource); throw new Error("secondary close failure"); };
+    setup.backend.close = async (resource, options) => { await closing(resource, options); throw new Error("secondary close failure"); };
     controller.abort(0);
     admitted.resolve(setup.backend);
     await expect(opening).rejects.toBe(0);
@@ -339,7 +339,7 @@ describe("optional canonical descriptor contract", () => {
     const handle = await openFileDescriptor("/file", { access: "readwrite" }, capabilities, setup.acquire);
     const release = setup.backend.close;
     const failure = new FsError("EIO");
-    setup.backend.close = async resource => { await release(resource); throw failure; };
+    setup.backend.close = async (resource, options) => { await release(resource, options); throw failure; };
     const closing = handle.close();
     await expect(closing).rejects.toBe(failure);
     expect(handle.close()).toBe(closing);

@@ -117,6 +117,7 @@ export interface QpdfCommandOptions {
 export interface QpdfCliResult {
   readonly exitCode: number;
   readonly stdout: string;
+  readonly stdoutBytes?: Uint8Array | undefined;
   readonly stderr: string;
 }
 
@@ -1392,7 +1393,7 @@ function* executeQpdfCli(
     const node = baseDoc.cos.getObject(showObject.objNum);
     if (node?.kind === "stream" && (filteredStreamData || rawStreamData)) {
       const bytes = filteredStreamData ? baseDoc.cos.decodeStream(node) : node.rawBytes;
-      return { exitCode: 0, stdout: bytesToLatin1(bytes), stderr: "" };
+      return { exitCode: 0, stdout: bytesToLatin1(bytes), stdoutBytes: bytes, stderr: "" };
     }
     return { exitCode: 0, stdout: formatCosNodeForDisplay(node) + "\n", stderr: "" };
   }
@@ -1405,7 +1406,7 @@ function* executeQpdfCli(
       if (!found) {
         return { exitCode: 2, stdout: "", stderr: `qpdf: attachment ${showAttachmentKey} not found\n` };
       }
-      return { exitCode: 0, stdout: bytesToLatin1(found.data), stderr: "" };
+      return { exitCode: 0, stdout: bytesToLatin1(found.data), stdoutBytes: found.data, stderr: "" };
     }
     const outLines = entries.map((e) => `${e.key} -> ${e.filename}`);
     return { exitCode: 0, stdout: outLines.length > 0 ? outLines.join("\n") + "\n" : "", stderr: "" };
@@ -2670,8 +2671,8 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
-    if (res.stdout) {
-      const outBytes = new TextEncoder().encode(res.stdout);
+    if (res.stdoutBytes || res.stdout) {
+      const outBytes = res.stdoutBytes ?? new TextEncoder().encode(res.stdout);
       chargeOutput(outBytes.byteLength);
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, outBytes, invocation.signal);

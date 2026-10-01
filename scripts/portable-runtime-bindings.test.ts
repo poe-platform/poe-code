@@ -5,14 +5,11 @@ import ts from 'typescript';
 import { expect, test } from 'vitest';
 
 const commands = ['csvcut', 'csvgrep', 'csvkit', 'diff3', 'exiftool', 'ffmpeg', 'fmt', 'fold', 'htmlq', 'imagemagick', 'mmdc', 'op', 'pandoc', 'pdfimages', 'pdfinfo', 'pdftk', 'pdftoppm', 'pdftotext', 'qpdf', 'sips', 'soffice', 'ssconvert', 'unrtf', 'wkhtmltopdf', 'xz'];
-test('every required command has a portable integration profile and core plugin export', async () => {
+test('every required command has a portable integration profile', async () => {
   const manifest = JSON.parse(await readFile('packages/safe-bash/package.json', 'utf8'));
   expect(manifest.exports["./core"]).toMatchObject({workerd: "./dist/core.browser.js", browser: "./dist/core.browser.js", import: "./dist/core.js"});
-  const core = ts.createSourceFile('core.ts', await readFile('packages/safe-bash/src/core.ts', 'utf8'), ts.ScriptTarget.Latest, true);
-  const exports = core.statements.filter(ts.isExportDeclaration);
   for (const name of commands) {
     expect(manifest.poeCode.integration.privateWorkspaces['safe-bash-command-' + name]?.portable, name).toBe(true);
-    expect(exports.some(entry => entry.exportClause && ts.isNamedExports(entry.exportClause) && entry.exportClause.elements.some(element => element.name.text === name + 'Commands')), name).toBe(true);
   }
 });
 

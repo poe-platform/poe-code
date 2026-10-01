@@ -112,7 +112,7 @@ beforeAll(async () => {
           path: path.resolve(directory, manifest.exports["./core"].browser),
           namespace: "built-shell",
         }));
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:jobs|optional-host)|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:jobs|optional-host|trap)|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -710,3 +710,7 @@ it("round-trips authenticated ZIP AES in the portable shell without Node crypto 
   } finally { await shell.dispose(); }
 });
 
+
+it("exports every required portable plugin", () => {
+  for (const name of ["csvcut", "csvgrep", "csvkit", "diff3", "exiftool", "ffmpeg", "fmt", "fold", "htmlq", "imagemagick", "mmdc", "op", "pandoc", "pdfimages", "pdfinfo", "pdftk", "pdftoppm", "pdftotext", "qpdf", "sips", "soffice", "ssconvert", "unrtf", "wkhtmltopdf", "xz"]) expect(typeof Reflect.get(browser, name + "Commands"), name).toBe("function");
+});

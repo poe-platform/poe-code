@@ -29,7 +29,6 @@ export function resolveCommandExportBuilds(rootDir, source, root, workspaces, { 
       absWorkingDir: rootDir, alias, external: external.filter(name => !owned.has(name)),
       entryPoints: [path.join(directory, recipe.source)], outfile: path.join(directory, exported.import),
       bundle: true, platform: "node", target: recipe.target, format: "esm", sourcemap: true, write: false,
-      ...(recipe.require ? { banner: { js: 'import {createRequire as createCommandRequire} from "node:module"; const require = createCommandRequire(import.meta.url);' } } : {}),
     });
   }
   return builds;

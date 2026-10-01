@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { resolveCommandExportBuilds } from "./safe-command-publication.mjs";
 
 describe("declarative command export recipes", () => {
@@ -17,11 +18,22 @@ describe("declarative command export recipes", () => {
       entryPoints: ["/repo/packages/safe-bash/src/commands/example/index.ts"],
       outfile: "/repo/packages/safe-bash/dist/commands/example/index.js",
       external: ["shared", "safe-bash-contracts"], target: "node22", write: false,
-      banner: { js: expect.stringContaining("createRequire") },
     });
+    expect(recipes[0]).not.toHaveProperty("banner");
   });
   it("never creates an export or registration from a recipe", () => {
     expect(resolveCommandExportBuilds("/repo", { ...source, exports: {} }, {}, [], { alias: {}, external: [], recipes: source.poeCode.publication.commandExports })).toEqual([]);
+  });
+  it("leaves Pandoc publication to the portable build instead of overriding it with a Node recipe", () => {
+    const manifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
+    const builds = resolveCommandExportBuilds("/repo", manifest, {}, [], { alias: {}, external: [] });
+    expect(builds.some(build => build.outfile.includes("/pandoc/"))).toBe(false);
+    for (const name of ["docx", "python", "python/worker", "playwright", "pandoc", "xmllint"]) {
+      const exported = manifest.exports[`./commands/${name}`];
+      expect(exported.workerd, name).toBe(exported.browser);
+      expect(typeof exported.workerd, name).toBe("string");
+      expect(Object.keys(exported).indexOf("workerd"), name).toBeLessThan(Object.keys(exported).indexOf("import"));
+    }
   });
   it("refuses to replace the default entrypoint with a command recipe", () => {
     const invalid = {

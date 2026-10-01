@@ -7,7 +7,7 @@ test('fd searches names, directories and extensions in the virtual filesystem', 
   await fs.mkdir('/work/src', { recursive: true });
   await fs.writeFile('/work/src/Test.ts', new TextEncoder().encode('hello'));
   await fs.writeFile('/work/src/test.js', new Uint8Array());
-  const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: '/work' }).use(agentCommands({ muscleMemory: true }));
   try {
     const result = await shell.exec('fd test -e ts');
     assert.equal(result.exitCode, 0, result.stderr);
@@ -24,7 +24,7 @@ test('fd filters depth, size, executable/empty types, times, limits and formats'
   await fs.writeFile('/work/deep/run.sh',bytes.encode('run'));
   await fs.chmod('/work/deep/run.sh',0o755);
   await fs.writeFile('/work/deep/zero.txt',new Uint8Array());
-  const shell=new Shell({fs,cwd:'/work'}).use(agentCommands());
+  const shell=new Shell({fs,cwd:'/work'}).use(agentCommands({ muscleMemory: true }));
   try {
     for (const [command,expected] of [
       ['fd --exact-depth 2 -t f','deep/run.sh\ndeep/zero.txt\n'],
@@ -43,14 +43,14 @@ test('fd filters depth, size, executable/empty types, times, limits and formats'
 test('fd reads gitignore and fdignore precedence without host access',async()=>{
   const fs=new MemoryFileSystem(); await fs.mkdir('/work/.git',{recursive:true});
   for(const [name,text] of Object.entries({'.gitignore':'*.txt\n','.fdignore':'!keep.txt\n','keep.txt':'','skip.txt':''})) await fs.writeFile('/work/'+name,new TextEncoder().encode(text));
-  const shell=new Shell({fs,cwd:'/work'}).use(agentCommands());
+  const shell=new Shell({fs,cwd:'/work'}).use(agentCommands({ muscleMemory: true }));
   try { assert.equal((await shell.exec('fd -tf')).stdout,'keep.txt\n'); assert.equal((await shell.exec('fd --no-ignore-vcs -tf')).stdout,'keep.txt\nskip.txt\n'); }
   finally {await shell.dispose();}
 });
 
 test('fd NUL and execution paths keep explicit search-root spelling',async()=>{
   const fs=new MemoryFileSystem();await fs.mkdir('/work/src',{recursive:true});await fs.writeFile('/work/src/file.ts',new Uint8Array());
-  const shell=new Shell({fs,cwd:'/work'}).use(agentCommands());
+  const shell=new Shell({fs,cwd:'/work'}).use(agentCommands({ muscleMemory: true }));
   try {
     assert.equal((await shell.exec("fd -0 '' src")).stdout,'src/file.ts\0');
     assert.equal((await shell.exec("fd -0 '' ./src")).stdout,'./src/file.ts\0');
@@ -60,7 +60,7 @@ test('fd NUL and execution paths keep explicit search-root spelling',async()=>{
 
 test('fd exclusion globs are relative to each explicit search root',async()=>{
   const fs=new MemoryFileSystem();await fs.mkdir('/work/src/nested',{recursive:true});await fs.writeFile('/work/src/nested/file.ts',new Uint8Array());await fs.writeFile('/work/src/keep.ts',new Uint8Array());
-  const shell=new Shell({fs,cwd:'/work'}).use(agentCommands());
+  const shell=new Shell({fs,cwd:'/work'}).use(agentCommands({ muscleMemory: true }));
   try {assert.equal((await shell.exec("fd -tf -E nested/file.ts '' src")).stdout,'src/keep.ts\n');}
   finally {await shell.dispose();}
 });

@@ -186,11 +186,12 @@ filesystem path. Implement it with the store's actual version/ETag precondition.
 No directory listing or `mkdir` operation is required.
 
 The manifest stores a JSON array of original requirements and resolved pins.
-Reads and commits are bounded by `maxDownloadBytes`; host storage quotas still
-belong to their owner. The built-in manifest store defaults to a 1 MiB total
-payload budget and at most 1024 entries, rejects overflowing commits without
-evicting another environment, and copies supplied/returned bytes. Its `maxBytes`
-must be a positive safe integer. `dispose()` closes it permanently.
+Host storage quotas belong to their owner. The built-in manifest store has
+optional `maxBytes` (total payload bytes), `maxEntries`, and `maxScopeLength`
+(UTF-16 code units) budgets. Each defaults to `Infinity` and accepts a positive
+safe integer or `Infinity`. It rejects overflowing commits without evicting
+another environment and copies supplied/returned bytes. Revisions are opaque
+strings with no fixed numeric ceiling. `dispose()` closes it permanently.
 
 A stale commit raises `PythonPackageConflictError` with
 `code: 'EPACKAGECONFLICT'` and `retryable: true`. Retry the complete invocation

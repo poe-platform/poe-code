@@ -184,6 +184,28 @@ test('manifest stores preserve distinct scopes longer than 1,024 characters', as
   }
 });
 
+test('manifest scope limits apply to reads and writes without consuming entry capacity', async () => {
+  const store = python.createPythonPackageManifestStore({ maxScopeLength: 3, maxEntries: 1 });
+  const host = { signal: new AbortController().signal };
+  try {
+    await assert.rejects(store.get('long', host), /scope/);
+    await assert.rejects(store.compareAndSet('long', undefined, bytes('a'), host), /scope/);
+    assert.equal(await store.compareAndSet('abc', undefined, bytes('b'), host), true);
+    assert.deepEqual((await store.get('abc', host))!.bytes, bytes('b'));
+  } finally { store.dispose(); }
+});
+
+test('manifest scope limits accept Infinity and reject invalid bounds', async () => {
+  for (const maxScopeLength of [0, -1, 1.5, NaN, -Infinity]) {
+    assert.throws(() => python.createPythonPackageManifestStore({ maxScopeLength }), RangeError);
+  }
+  const store = python.createPythonPackageManifestStore({ maxScopeLength: Infinity });
+  const host = { signal: new AbortController().signal };
+  try {
+    assert.equal(await store.compareAndSet('x'.repeat(1025), undefined, bytes('a'), host), true);
+  } finally { store.dispose(); }
+});
+
 test('package environments accept long host scope identities without aliasing', async () => {
   const manifestStore = python.createPythonPackageManifestStore();
   const scope = 'x'.repeat(1024);

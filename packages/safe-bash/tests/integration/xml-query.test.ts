@@ -291,7 +291,7 @@ for (const [command, input, status] of [
   ["xmllint --xpath '/root'", '<root a="&unknown;"/>', 1],
   ["xmllint --xpath '/'", "<root/>", 10],
   ["xmllint '/root'", "<root/>", 1],
-  ["xmllint --xpath '/root' /one /two", "<root/>", 2],
+  ["xmllint --xpath '/root' /one /two", "<root/>", 1],
 ] as const) {
   test(`XML refuses unsupported input: ${command}: ${input}`, async () => {
     const shell = new api.Shell({ fs: api.createMemoryFileSystem() }).use(api.agentCommands());
@@ -399,10 +399,15 @@ test("xmllint document arguments fail before consuming input and admit literal f
   await fs.writeFile("/--input", new TextEncoder().encode("<a/>"));
   const shell = new api.Shell({ fs }).use(xmlCommands());
   try {
-    for (const command of ["xmllint --format --huge -", "xmllint --noout /one /two", "xmllint --c14n --schema /schema -"]) {
+    for (const command of ["xmllint --format --huge -", "xmllint --c14n --schema /schema -"]) {
       const result = await shell.exec(command, { stdin });
       assert.equal(result.exitCode, 2, result.stderr);
     }
+    await fs.writeFile("/one", new TextEncoder().encode("<one/>"));
+    await fs.writeFile("/two", new TextEncoder().encode("<two/>"));
+    const multiple = await shell.exec("xmllint --noout /one /two", { stdin });
+    assert.equal(multiple.exitCode, 0, multiple.stderr);
+    assert.equal(multiple.stdout, "");
     assert.equal(reads, 0);
     const result = await shell.exec("xmllint --noout -- --input");
     assert.equal(result.exitCode, 0, result.stderr);

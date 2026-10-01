@@ -39,7 +39,7 @@ test("Workerd public entry bundles without native filesystem authority", async (
 test("portable SDK executes without Node globals or shared memory", async () => {
   const directory = new URL("../dist/", import.meta.url).pathname;
   const result = await build({
-    stdin: { contents: `import { run, makeFsModule } from "./workerd.js";
+    stdin: { contents: `import { run, makeFsModule } from "@poe-code/safe-js";
       import { createRealm, createRootedSourceResolver } from "./core.js";
       import { MemoryFileSystem } from "@poe-code/safe-fs/core";
       export { run, makeFsModule, createRealm, createRootedSourceResolver, MemoryFileSystem };`, resolveDir: directory },

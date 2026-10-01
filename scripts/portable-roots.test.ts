@@ -10,13 +10,14 @@ const manifest = (name: string) => JSON.parse(readFileSync(resolve(root, `packag
 it.each(["workerd", "browser"])("exposes portable root APIs under %s without Node globals", async condition => {
   const fs = manifest("safe-fs");
   const js = manifest("safe-js");
-  expect(js.exports["."][condition]).toBe("./dist/core.js");
-  expect(js.exports["."].types[condition]).toBe("./dist/core.d.ts");
+  const entry = condition === "workerd" ? "workerd" : "core";
+  expect(js.exports["."][condition]).toBe(`./dist/${entry}.js`);
+  expect(js.exports["."].types[condition]).toBe(`./dist/${entry}.d.ts`);
   expect(fs.exports["."][condition]).toBe("./dist/core.js");
   const result = await build({
     stdin: { contents: `
       import { S3FileSystem, MockS3Client, createS3Transport } from './packages/safe-fs/src/core.ts';
-      import * as js from './packages/safe-js/src/core.ts';
+      import * as js from './packages/safe-js/src/${entry}.ts';
       import { joinPath } from './packages/safe-fs/src/contracts/index.ts';
       export async function verify() {
         for (const name of ['makeFsModule', 'makeEnvModule', 'makeTimeModule', 'makeFailModule', 'makeMetricModule', 'makeHarnessModule'])

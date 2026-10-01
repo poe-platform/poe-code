@@ -35,11 +35,11 @@
   "exports": {
     ".": {
       "types": {
-        "workerd": "./dist/core.d.ts",
+        "workerd": "./dist/workerd.d.ts",
         "browser": "./dist/core.d.ts",
         "default": "./dist/index.d.ts"
       },
-      "workerd": "./dist/core.js",
+      "workerd": "./dist/workerd.js",
       "browser": "./dist/core.js",
       "poe-code-source": "./src/index.ts",
       "import": "./dist/index.js"

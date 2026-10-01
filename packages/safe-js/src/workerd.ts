@@ -1,9 +1,3 @@
-export { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
-export { run, type RunOptions, type RunResult } from "./run.js";
-export { Budget } from "./interp/budget.js";
+export * from "./core.js";
+export type { RunOptions, RunResult } from "./run.js";
 export { declareHostOperation } from "./interp/host-bridge.js";
-export { makeFsModule } from "./modules/fs.js";
-
-export type {SourceResolver, SourceModule} from "./modules/source-graph.js";
-
-export {createRootedSourceResolver} from "./modules/source-files.js";

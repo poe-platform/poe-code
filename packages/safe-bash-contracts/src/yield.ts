@@ -16,8 +16,6 @@ interface Checkpoints {
 }
 
 const checkpoints = new WeakMap<AbortSignal, Checkpoints>();
-let checkpointCount = 0;
-let externalCheckpointCount = 0;
 
 interface SignalYieldState {
   currentAbort: (() => void) | null;
@@ -39,7 +37,6 @@ function ensureCheckpoints(signal: AbortSignal): Checkpoints {
   } else {
     checkpoints.set(signal, state);
   }
-  checkpointCount++;
   return state;
 }
 
@@ -77,7 +74,6 @@ export function monotonicNow(): number {
 
 export function registerYieldCheckpoint(signal: AbortSignal, checkpoint: () => void): void {
   ensureCheckpoints(signal).external = checkpoint;
-  externalCheckpointCount++;
 }
 
 export function registerInternalYieldCheckpoint(signal: AbortSignal, checkpoint: () => void): void {
@@ -87,22 +83,20 @@ export function registerInternalYieldCheckpoint(signal: AbortSignal, checkpoint:
 export function runYieldCheckpoint(signal?: AbortSignal): void | Promise<void> {
   if (!signal) return;
   if (signal.aborted) throw signal.reason;
-  if (checkpointCount === 0) return;
   const state = getCheckpoints(signal);
   state?.internal?.();
   state?.external?.();
 }
 
 export function hasYieldCheckpoint(signal?: AbortSignal): boolean {
-  return externalCheckpointCount > 0 && signal !== undefined && getCheckpoints(signal)?.external !== undefined;
+  return signal !== undefined && getCheckpoints(signal)?.external !== undefined;
 }
 
 export function hasRegisteredYieldCheckpoint(signal?: AbortSignal): boolean {
-  return checkpointCount > 0 && signal !== undefined && getCheckpoints(signal) !== undefined;
+  return signal !== undefined && getCheckpoints(signal) !== undefined;
 }
 
 export function inheritYieldCheckpoint(parent: AbortSignal, child: AbortSignal): void {
-  if (checkpointCount === 0) return;
   const state = getCheckpoints(parent);
   if (!state || parent === child) return;
   // Copy callbacks, not mutable state: replacing a child's budget must not
@@ -110,10 +104,8 @@ export function inheritYieldCheckpoint(parent: AbortSignal, child: AbortSignal):
   const inherited = ensureCheckpoints(child);
   if (state.internal) inherited.internal = state.internal;
   else delete inherited.internal;
-  if (state.external) {
-    inherited.external = state.external;
-    externalCheckpointCount++;
-  } else delete inherited.external;
+  if (state.external) inherited.external = state.external;
+  else delete inherited.external;
 }
 
 export function scheduleTurn(callback: () => void): TurnHandle {

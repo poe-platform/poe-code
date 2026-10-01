@@ -101,3 +101,21 @@ it.each(["session", "client"] as const)("omits decrypted %s contents from invali
   expect(error.message).toContain("Stored OAuth");
   expect(error.message).not.toContain("private");
 });
+
+it("persists and reloads Notion's explicit empty scope across native credential stores", async () => {
+  const resource = "https://mcp.notion.com/mcp", issuer = "https://mcp.notion.com";
+  const fs = createFsFromVolume(new Volume()).promises;
+  const options = { backend: "file" as const, fileStore: { fs, salt: "empty-scope-fixture", filePath: "/session.enc",
+    getMachineIdentity: () => ({ hostname: "host", username: "user" }) } };
+  const session: StoredOAuthSession = { resource, authorizationServer: issuer, client: { clientId: "client" },
+    tokens: { accessToken: "token", refreshToken: "refresh", tokenType: "Bearer", expiresAt: null, scope: "" },
+    discovery: { resourceMetadataUrl: `${issuer}/metadata`, resourceMetadata: { resource, authorization_servers: [issuer] }, authorizationServerMetadata: {
+      issuer, authorization_endpoint: `${issuer}/authorize`, token_endpoint: `${issuer}/token`, response_types_supported: ["code"], code_challenge_methods_supported: ["S256"]
+    } } };
+  await createAuthStoreSessionStore(options).save(resource, session);
+  expect((await createAuthStoreSessionStore(options).load(resource))?.tokens?.scope).toBe("");
+  const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" }, browser: {}, authStore: options, allowInteractive: false });
+  const fetch = vi.fn(), discover = vi.fn();
+  expect(await provider.authenticate!({ requestUrl: new URL(resource), fetch, discover })).toMatchObject({ accessToken: "token", scope: "" });
+  expect(fetch).not.toHaveBeenCalled(); expect(discover).not.toHaveBeenCalled();
+});

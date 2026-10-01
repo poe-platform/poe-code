@@ -46,9 +46,12 @@ pub fn validate_session(value: &Value) -> bool {
         _ => false,
     };
     valid_date
-        && ["refreshToken", "scope"]
-            .iter()
-            .all(|key| tokens.get(key).is_none_or(|value| nonblank(Some(value))))
+        && tokens
+            .get("refreshToken")
+            .is_none_or(|value| nonblank(Some(value)))
+        && tokens.get("scope").is_none_or(|value| {
+            matches!(value, Value::String(scope) if scope.is_empty()) || nonblank(Some(value))
+        })
 }
 pub fn read_stored_client(value: &Value) -> Result<Value, &'static str> {
     if !matches!(value.get("clientId"), Some(Value::String(_))) {

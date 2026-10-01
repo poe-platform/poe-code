@@ -58,3 +58,12 @@ fn persisted_sessions_enforce_pending_intents_requested_scope_and_registration_i
     );
     assert!(!validate_session(&value(&source)));
 }
+
+#[test]
+fn persisted_tokens_allow_explicit_empty_scope_but_not_blank_refresh_tokens() {
+    let session = r#"{"resource":"r","authorizationServer":"a","client":{"clientId":"c"},"discovery":{"resourceMetadataUrl":"u","resourceMetadata":{},"authorizationServerMetadata":{}},"tokens":{"accessToken":"t","tokenType":"Bearer","expiresAt":null,"scope":""}}"#;
+    assert!(validate_session(&value(session)));
+    assert!(!validate_session(&value(
+        &session.replace(r#""scope":"""#, r#""refreshToken":"""#)
+    )));
+}

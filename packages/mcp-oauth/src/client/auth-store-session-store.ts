@@ -233,7 +233,7 @@ function isStoredOAuthTokensOrMissing(value: unknown): value is StoredOAuthSessi
   }
 
   const scope = getOwnEntry(value, "scope");
-  return scope === undefined || (typeof scope === "string" && scope.trim().length > 0);
+  return scope === undefined || scope === "" || (typeof scope === "string" && scope.trim().length > 0);
 }
 
 function isNonBlankOwnString(record: Record<string, unknown>, key: string): boolean {

@@ -1,3 +1,4 @@
+import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { test } from "node:test";
@@ -35,10 +36,10 @@ regressionCases.push(
 
 for (const [name, source] of regressionCases) {
   for (const unbounded of [false, true]) {
-    test(`${name}, unbounded=${unbounded}`, async context => {
+    test(`${name}, unbounded=${unbounded}`, { skip: name.includes("LINENO") && modernBashSkip }, async context => {
       const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()), ...(unbounded ? { limits: { maxExpansionFields: Infinity, maxExpansionBytes: Infinity } } : {}) });
       context.after(() => shell.dispose());
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { timeout: 2000 });
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { timeout: 2000 });
       assert.equal(native.error, undefined);
       const result = await shell.exec(source);
       assert.equal(result.stdout, native.stdout.toString());
@@ -54,7 +55,7 @@ for (const body of ["if true; then echo sub_arg; fi", "echo first; echo sub_arg"
       const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(basicCommands()) });
       context.after(() => shell.dispose());
       const source = `f(){ ${body}; }; : parent_arg; echo "$(f)" "$_"; echo "$_"`;
-      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source]);
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source]);
       const original = globalThis.Buffer;
       let result;
       try {

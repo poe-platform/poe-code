@@ -1,3 +1,4 @@
+import { bashExecutable, modernBashSkip } from "../helpers/bash-oracle.js";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -79,8 +80,8 @@ for (const [name, source] of [
   ["inherited associative locals preserve kind and all elements", 'declare -A map=([key]=outer [other]=tail); f() { local -I map=inner; map[key]=changed; printf "%s:%s:%s\\n" "${map[0]}" "${map[key]}" "${map[other]}"; }; f; printf "%s:%s:%s\\n" "${map[0]}" "${map[key]}" "${map[other]}"'],
   ["nested inherited locals restore each binding", 'arr=(outer tail); g() { local -I arr; arr[0]=nested; printf "%s:%s\\n" "${arr[0]}" "${arr[1]}"; }; f() { local arr; declare -a arr=(inner keep); g; printf "%s:%s\\n" "${arr[0]}" "${arr[1]}"; }; f; printf "%s:%s\\n" "${arr[0]}" "${arr[1]}"'],
 ] as const) {
-  test(name, async t => {
-    const expected = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
+  test(name, { skip: modernBashSkip }, async t => {
+    const expected = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });
     assert.ifError(expected.error);
     assert.equal(expected.status, 0, expected.stderr);
     const { shell, commands } = setup();

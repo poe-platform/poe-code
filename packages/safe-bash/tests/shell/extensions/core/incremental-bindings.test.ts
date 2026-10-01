@@ -157,7 +157,7 @@ test("incremental revision invalidates an earlier one-shot transaction", async c
   assert.equal(result.stderr, "");
 });
 
-for (const replacement of ["unset a", "unset a; a=scalar", "unset a; a=(replacement); readonly a"]) test(`lost admitted identity fails closed: ${replacement}`, async context => {
+for (const replacement of ["unset a", "unset a; a=scalar", "unset a; a=(replacement)", "unset a; a=(replacement); readonly a"]) test(`lost admitted identity fails closed: ${replacement}`, async context => {
   const shell = setup(async command => {
     const writer = await command.bindings.openIndexed("a", { clear: true });
     try {

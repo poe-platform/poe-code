@@ -988,7 +988,7 @@ interface TypedSavedVariable {
   readonly owner: ArrayOwner;
   readonly binding: IndexedBinding | undefined;
   readonly tickets: Admission;
-  readonly prepared: { readonly name: OwnedText; readonly admission: Admission };
+  readonly prepared: { readonly name: OwnedText; readonly admission: Admission; readonly identity?: number | undefined };
   readonly watch: BindingWatch;
   overlayVersion?: number;
   readonly scalarLegacy: boolean;
@@ -2024,7 +2024,7 @@ async function cloneState(state: State, signal: AbortSignal, scope?: InvocationS
             const token = await textToken(savedOwner, name, signal);
             const admission = savedOwner.reserve({ slots: 1, metadata: 32, work: 5 });
             binding = typed.binding?.retain();
-            typedSavedVariables.set(copied, { owner: savedOwner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy: typed.scalarLegacy });
+            typedSavedVariables.set(copied, { owner: savedOwner, binding, tickets, prepared: { ...typed.prepared, name: token, admission }, watch, scalarLegacy: typed.scalarLegacy });
             tickets.cleanup = () => {
               if (typedSavedVariables.delete(copied) && scope) releaseBinding = scope.cleanup(async () => { await binding?.release(); });};
           } catch (error) { await binding?.release(); await savedOwner.close(); throw error; }
@@ -4696,7 +4696,7 @@ export class Runtime {
       if (saved.value !== undefined) await textToken(owner, saved.value, this.signal);
       if (!watch.valid()) throw new ArrayFailure("stale binding");
       binding = scalarLegacy ? undefined : store.get(name)?.retain();
-      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission }, watch, scalarLegacy });
+      typedSavedVariables.set(saved, { owner, binding, tickets, prepared: { name: token, admission, identity: store.bindings.get(name)?.identity }, watch, scalarLegacy });
       tickets.cleanup = () => { typedSavedVariables.delete(saved); };
     } catch (error) {
       primaryPresent = true;
@@ -6068,7 +6068,7 @@ export class Runtime {
     const monitor = stateMonitor(state)!;
     let lifetime: ArrayOwner | undefined;
     let holding: Admission | undefined;
-    let identity: object | undefined;
+    let identity: number | undefined;
     let admittedLocal: SavedVariable | undefined;
     let preparing: Promise<void> | undefined;
     let active: Promise<void> | undefined;
@@ -6094,7 +6094,7 @@ export class Runtime {
       scope.assertOpen();
       if (closed) throw new ArrayFailure("indexed writer is closed");
       owner.assertOpen();
-      if (arrayStore(state) !== store || store.owner !== owner || identity !== undefined && store.bindings.get(name) !== identity) throw new ArrayFailure("incremental target identity changed");
+      if (arrayStore(state) !== store || store.owner !== owner || identity !== undefined && store.bindings.get(name)?.identity !== identity) throw new ArrayFailure("incremental target identity changed");
       if (localIdentity() !== admittedLocal) throw new ArrayFailure("incremental target local identity changed");};
     try {
       admittedLocal = localIdentity();
@@ -6131,8 +6131,8 @@ export class Runtime {
               await retirement;
             } finally { await prepared.close(); }
           }
-          identity = store.bindings.get(name);
-          if (!identity) throw new ArrayFailure("incremental target is not indexed");
+          identity = store.bindings.get(name)?.identity;
+          if (identity === undefined) throw new ArrayFailure("incremental target is not indexed");
           validate();
         } finally { watch.close(); }});
       await preparing;

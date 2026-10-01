@@ -370,6 +370,8 @@ export class BindingWatch {
 
 interface NamedBinding {
   binding: IndexedBinding;
+  // Retained across assignment and local restoration; renewed after unset.
+  identity: number;
   readonly name: OwnedText;
   readonly admission: Admission;
 }
@@ -516,7 +518,7 @@ export class BindingStore {
     } catch (error) { token.release(); throw error; }
   }
 
-  recycledBindings = new Map<string, { binding: IndexedBinding; name: OwnedText; admission: Admission }>();
+  recycledBindings = new Map<string, NamedBinding>();
 
   releaseRecycled(name: string): void {
     const rec = (this.recycledBindings ??= new Map()).get(name);
@@ -558,21 +560,25 @@ export class BindingStore {
     }
     rec.binding.maximum = -1;
     rec.binding.assigned = false;
+    rec.identity = tickets.generation;
     this.bindings.set(name, rec);
     this.changed(tickets, name);
     return rec.binding;
   }
 
-  publish(name: string, binding: IndexedBinding, tickets: Tickets, prepared?: { readonly name: OwnedText; readonly admission: Admission }, restoring = false, owner = this.owner): Promise<void> | undefined {
+  publish(name: string, binding: IndexedBinding, tickets: Tickets, prepared?: { readonly name: OwnedText; readonly admission: Admission; readonly identity?: number | undefined }, restoring = false, owner = this.owner): Promise<void> | undefined {
     this.releaseRecycled(name);
     const previous = this.bindings.get(name);
     const displaced = previous?.binding;
-    if (previous) previous.binding = binding;
+    if (previous) {
+      previous.binding = binding;
+      if (restoring && prepared?.identity !== undefined) previous.identity = prepared.identity;
+    }
     else {
       if (!prepared) throw new Error("Missing indexed-array name admission");
       owner.adopt(prepared.name.admission, restoring);
       owner.adopt(prepared.admission, restoring);
-      const entry = { binding, name: prepared.name, admission: prepared.admission };
+      const entry = { binding, identity: restoring ? prepared.identity ?? tickets.generation : tickets.generation, name: prepared.name, admission: prepared.admission };
       prepared.admission.cleanup = () => {
         if (this.bindings.get(name) === entry) {
           this.bindings.delete(name);

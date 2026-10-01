@@ -12,6 +12,20 @@ const bodies = [
   ['function', 'f() { x=$((x+1)); echo "ran:$x"; echo $v; }; f arg1'],
 ] as const;
 
+for (const [source, expected] of [
+  ['i=0; sum=0; while ((i<4)); do ((sum+=i, i++)); done', '4:6:0\n'],
+  ['i=-2; sum=10; while ((i<=2)); do ((sum-=i, i++)); done', '3:10:0\n'],
+  ['i=-1; sum=10; while ((i<=0)); do ((sum=i, i++)); done', '1:0:1\n'],
+  ['i=04; sum=007; while ((i<4)); do ((sum+=i, i++)); done', '04:007:0\n'],
+] as const) test(`closed-form while arithmetic preserves values and status: ${source}`, async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  const result = await shell.exec(`${source}; say "$i:$sum:$?"`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, expected);
+});
+
 for (const [name, body] of bodies) test(`${name} resumes without replaying or skipping effects`, async context => {
   const { shell } = setup();
   shell.use(standardCommands());
@@ -53,6 +67,20 @@ for (const kind of ["while", "until"] as const) {
 }
 
 for (const kind of ["while", "until"] as const) {
+  test(`${kind} yields without a caller signal and preserves arithmetic progress`, async context => {
+    const { shell } = setup();
+    context.after(() => shell.dispose());
+    let yielded = false;
+    const turn = setImmediate(() => { yielded = true; });
+    context.after(() => clearImmediate(turn));
+    const condition = kind === "while" ? "i<3000" : "i>=3000";
+    const result = await shell.exec(`i=0; total=0; ${kind} ((${condition})); do ((i+=1)); ((total+=i)); done; say "$i:$total"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "3000:4501500\n");
+    assert.equal(yielded, true);
+  });
+
   test(`${kind} honors the original 30ms timer during 300000 iterations`, async context => {
     const { shell } = setup();
     shell.use(standardCommands());
@@ -83,6 +111,16 @@ test("portable loops honor timer cancellation without Node globals", async conte
       await assert.rejects(shell.exec(`i=0; ${kind} ${condition}; do ((i++)); done`, {
         signal: controller.signal,
       }), error => error === reason);
+
+      let yielded = false;
+      const turn = setImmediate(() => { yielded = true; });
+      context.after(() => clearImmediate(turn));
+      const finiteCondition = kind === "while" ? "i<3000" : "i>=3000";
+      const result = await shell.exec(`i=0; total=0; ${kind} ((${finiteCondition})); do ((i+=1)); ((total+=i)); done; echo "$i:$total"`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, "3000:4501500\n");
+      assert.equal(yielded, true);
     });
   }
 });

@@ -33,31 +33,23 @@ for (const [name, source, expected] of cases) test(name, async () => {
   } finally { await shell.dispose(); }
 });
 
-test("numeric bracket conditions are admitted to synchronous execution", async () => {
-  const prototype = Runtime.prototype as unknown as { extractPosixBracketCondExpr: (...args: unknown[]) => unknown };
-  const original = prototype.extractPosixBracketCondExpr;
-  let admitted = 0;
-  prototype.extractPosixBracketCondExpr = function (...args) {
-    const result = original.apply(this, args);
-    if (result !== undefined) admitted++;
-    return result;
-  };
-  const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxLoopIterations: 100 } });
+for (const source of [
+  'j=0; while [ "$j" -lt 3000 ]; do ((j+=1)); done',
+  'j=0; until [ $j -ge 3000 ]; do ((j+=1)); done',
+  'IFS=:; j=0; until [ $j -ge 3000 ]; do ((j+=1)); done',
+]) test(`numeric bracket loops yield and preserve arithmetic progress: ${source}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), limits: { maxLoopIterations: 4000 } });
   for (const command of [...basicCommands(), ...predicateCommands()]) shell.commands.register(command);
+  let yielded = false;
+  const turn = setImmediate(() => { yielded = true; });
   try {
-    for (const [source, expectedAdmission] of [
-      ['j=0; while [ "$j" -lt 4 ]; do ((j+=1)); done', true],
-      ['j=0; until [ $j -ge 4 ]; do ((j+=1)); done', true],
-      ['IFS=:; j=0; until [ $j -ge 4 ]; do ((j+=1)); done', false],
-    ] as const) {
-      admitted = 0;
-      const result = await shell.exec(source + '; printf "%s" "$j"');
-      assert.equal(result.exitCode, 0, result.stderr);
-      assert.equal(result.stdout, "4");
-      assert.equal(admitted > 0, expectedAdmission, source);
-    }
+    const result = await shell.exec(source + '; printf "%s" "$j"');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "3000");
+    assert.equal(result.stderr, "");
+    assert.equal(yielded, true);
   } finally {
-    prototype.extractPosixBracketCondExpr = original;
+    clearImmediate(turn);
     await shell.dispose();
   }
 });

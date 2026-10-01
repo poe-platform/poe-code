@@ -15218,11 +15218,12 @@ export class Runtime {
       const cp = command.condition.lists[0]!.pipelines[0]!;
       if (cp.negate || cp.commands.length !== 1) return undefined;
       const condCmd = cp.commands[0]!;
-      if (condCmd.kind !== "simple" && condCmd.kind !== "arithmetic" && condCmd.kind !== "conditional") return undefined;
-      let whileArithProg: ArithmeticProgram | undefined;
-      let whileCondExpr: ConditionalExpression | undefined;
+      // Only bounded input scans and closed-form arithmetic can finish synchronously.
+      // General conditions need the cooperative executor without a caller signal too.
+      if (condCmd.kind !== "simple" && condCmd.kind !== "arithmetic") return undefined;
       let whileReadSpec: { ifsAssign: ReturnType<Runtime["assignment"]>; varNames: string[]; isBareReply: boolean; readCmd: Extract<Command, { kind: "simple" }>; delimChar?: string | undefined } | undefined;
       let whileGetoptsSpec: { optstring: string; optVar: string; scanArgs: readonly string[]; getoptsCmd: Extract<Command, { kind: "simple" }>; cmdLastArg: string } | undefined;
+      let whileAccumulator: { indName: string; accName: string; end: number; value: number; iterations: number } | undefined;
       if (syncReadInputText !== undefined) {
         if (command.kind !== "while" || condCmd.kind !== "simple" || condCmd.redirects.length !== 0 || condCmd.words.length === 0) return undefined;
         let ifsAssign: ReturnType<Runtime["assignment"]>;
@@ -15273,42 +15274,46 @@ export class Runtime {
         if (varNames.length === 0 || varNames.length > 16) return undefined;
         whileReadSpec = { ifsAssign, varNames, isBareReply, readCmd: condCmd, delimChar };
       } else if (condCmd.kind === "arithmetic") {
-        if (condCmd.redirects.length !== 0) return undefined;
-        if (!condCmd.expression.error) {
-          if (!isSafeSmiProgram(condCmd.expression) || condCmd.expression.hasSubscript || !this.canSyncArithmeticWithoutFault(condCmd.expression.tree, rawState, condCmd.line ?? 1)) return undefined;
-        } else if (!this.canSyncErrorArithmeticStmt(condCmd.expression, rawState)) {
-          return undefined;
-        }
-        whileArithProg = condCmd.expression;
-      } else if (condCmd.kind === "conditional") {
-        if (condCmd.redirects.length !== 0 || rawState.nocasematch || byteLocale(rawState.variables) || !this.canSyncConditional(condCmd.expression, 0, rawState, true)) return undefined;
-        const checkWhileCond = (e: ConditionalExpression, depth: number): boolean => {
-          if (e.kind === "nonempty") return this.isPureSyncValueWord(e.operand, rawState);
-          if (e.kind === "unary") return (e.operator === "-n" || e.operator === "-z" || e.operator === "-v") && this.isPureSyncValueWord(e.operand, rawState);
-          if (e.kind === "binary") {
-            if (e.operator === "=~") {
-              const patInfo = this.extractSimpleErePattern(e.right, rawState);
-              // Nested branches cannot prove a variable pattern is invariant.
-              if (patInfo?.isVar) return false;
-              return (
-                depth === 0 &&
-                this.isPureSyncValueWord(e.left, rawState) &&
-                this.getFastAnchoredEreRegex(e.right, rawState) !== undefined &&
-                !rawState.readonlyVariables?.has("BASH_REMATCH") &&
-                !rawState.exported.has("BASH_REMATCH") &&
-                !monitor.hasOverlay("BASH_REMATCH") &&
-                !(store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH")
-              );
+        if (command.kind !== "while" || condCmd.redirects.length || condCmd.expression.error || hasYieldCheckpoint(this.signal)
+          || !isSafeSmiProgram(condCmd.expression) || condCmd.expression.hasSubscript
+          || !this.canSyncArithmeticWithoutFault(condCmd.expression.tree, rawState, condCmd.line ?? 1)) return undefined;
+        const wTree = condCmd.expression.tree;
+        const bStep = bodyAssignments.length === 1 && bodyAssignments[0]!.listOperator === undefined ? bodyAssignments[0]! : undefined;
+        const bTree = bStep?.arithStmt && !bStep.arithStmt.error ? bStep.arithStmt.tree : undefined;
+        if (
+          wTree.kind === "binary" &&
+          (wTree.operator === "<" || wTree.operator === "<=") &&
+          wTree.left.kind === "name" && wTree.left.subscript === undefined &&
+          wTree.right.kind === "literal" &&
+          bTree?.kind === "binary" && bTree.operator === "," &&
+          bTree.left.kind === "binary" &&
+          (bTree.left.operator === "+=" || bTree.left.operator === "-=" || bTree.left.operator === "=") &&
+          bTree.left.left.kind === "name" && bTree.left.left.subscript === undefined &&
+          bTree.left.right.kind === "name" && bTree.left.right.subscript === undefined &&
+          bTree.left.right.name === wTree.left.name &&
+          bTree.right.kind === "unary" && bTree.right.operator === "++" &&
+          bTree.right.operand.kind === "name" && bTree.right.operand.subscript === undefined &&
+          bTree.right.operand.name === wTree.left.name && bTree.left.left.name !== wTree.left.name
+        ) {
+          const indName = wTree.left.name, accName = bTree.left.left.name;
+          const limit = Number(wTree.right.value);
+          const savedParsing = this.budget.parsing.snapshot();
+          const curI = fastSafeInt(rawState.variables[indName], this.budget.parsing);
+          const curAcc = fastSafeInt(rawState.variables[accName], this.budget.parsing);
+          if (curI !== undefined && curAcc !== undefined && Number.isSafeInteger(limit) && limit <= 1000000 && Math.abs(curI) <= 1000000) {
+            const end = wTree.operator === "<=" ? limit + 1 : limit;
+            const iterations = Math.max(0, end - curI);
+            if (this.budget.commands + 2 * iterations + 2 <= this.budget.limits.maxCommands
+              && this.budget.iterations + iterations <= this.budget.limits.maxLoopIterations) {
+              const sumRange = iterations * (curI + end - 1) / 2;
+              const value = bTree.left.operator === "=" ? end - 1 : bTree.left.operator === "+=" ? curAcc + sumRange : curAcc - sumRange;
+              whileAccumulator = { indName, accName, end, value, iterations };
             }
-            return this.isPureSyncValueWord(e.left, rawState) && this.isPureSyncValueWord(e.right, rawState) && (!(e.operator === "==" || e.operator === "=" || e.operator === "!=") || (e.right.parts.length > 0 && e.right.parts.every(p => p.quoted)));
           }
-          if (e.kind === "not") return checkWhileCond(e.operand, depth + 1);
-          if (e.kind === "and" || e.kind === "or") return checkWhileCond(e.left, depth + 1) && checkWhileCond(e.right, depth + 1);
-          return false;
-        };
-        if (!checkWhileCond(condCmd.expression, 0)) return undefined;
-        whileCondExpr = condCmd.expression;
-      } else if (condCmd.kind === "simple") {
+          if (!whileAccumulator) this.budget.parsing.restore(savedParsing);
+        }
+        if (!whileAccumulator) return undefined;
+      } else {
         if (
           command.kind === "while" &&
           condCmd.redirects.length === 0 &&
@@ -15386,12 +15391,8 @@ export class Runtime {
           }
           whileGetoptsSpec = { optstring, optVar, scanArgs, getoptsCmd: condCmd, cmdLastArg };
         } else {
-          const bExpr = this.extractPosixBracketCondExpr(condCmd, rawState, true, command.body);
-          if (!bExpr || (bExpr.kind !== "binary" && bExpr.kind !== "unary")) return undefined;
-          whileCondExpr = bExpr;
+          return undefined;
         }
-      } else {
-        return undefined;
       }
       if (!store && monitor.store) {
         store = monitor.store;
@@ -15572,115 +15573,22 @@ export class Runtime {
               if (act === "break") break;
             }
           }
-        } else {
-          const wTree = command.kind === "while" && whileArithProg && !whileArithProg.error ? whileArithProg.tree : undefined;
-          const bStep = bodyAssignments.length === 1 && bodyAssignments[0]!.listOperator === undefined ? bodyAssignments[0]! : undefined;
-          const bTree = bStep?.arithStmt && !bStep.arithStmt.error ? bStep.arithStmt.tree : undefined;
-          let handledFastWhile = false;
-          if (
-            wTree?.kind === "binary" &&
-            (wTree.operator === "<" || wTree.operator === "<=") &&
-            wTree.left.kind === "name" &&
-            wTree.left.subscript === undefined &&
-            wTree.right.kind === "literal" &&
-            bTree?.kind === "binary" &&
-            bTree.operator === "," &&
-            bTree.left.kind === "binary" &&
-            (bTree.left.operator === "+=" || bTree.left.operator === "-=" || bTree.left.operator === "=") &&
-            bTree.left.left.kind === "name" &&
-            bTree.left.left.subscript === undefined &&
-            bTree.left.right.kind === "name" &&
-            bTree.left.right.subscript === undefined &&
-            bTree.left.right.name === wTree.left.name &&
-            bTree.right.kind === "unary" &&
-            bTree.right.operator === "++" &&
-            bTree.right.operand.kind === "name" &&
-            bTree.right.operand.subscript === undefined &&
-            bTree.right.operand.name === wTree.left.name &&
-            bTree.left.left.name !== wTree.left.name
-          ) {
-            const indName = wTree.left.name;
-            const accName = bTree.left.left.name;
-            const accOp = bTree.left.operator;
-            const limit = Number(wTree.right.value);
-            const isLe = wTree.operator === "<=";
-            let curI = fastSafeInt(rawState.variables[indName], this.budget.parsing);
-            let curAcc = fastSafeInt(rawState.variables[accName], this.budget.parsing);
-            if (curI !== undefined && curAcc !== undefined && Number.isSafeInteger(limit) && limit <= 1000000) {
-              handledFastWhile = true;
-              const effLimit = isLe ? limit + 1 : limit;
-              const rem = effLimit > curI ? effLimit - curI : 0;
-              if (
-                rem >= 0 &&
-                Math.abs(curI) <= 1000000 &&
-                !hasYieldCheckpoint(this.signal) &&
-                this.budget.commands + 2 * rem + 1 <= this.budget.limits.maxCommands &&
-                this.budget.iterations + rem <= this.budget.limits.maxLoopIterations
-              ) {
-                this.budget.commands += 2 * rem + 1;
-                this.budget.iterations += rem;
-                this.budget.parsing.admit(10 * rem + 4);
-                runYieldCheckpoint(this.signal);
-                if (rem > 0) {
-                  const sumRange = rem * (curI + effLimit - 1) / 2;
-                  curAcc = accOp === "=" ? (effLimit - 1) : accOp === "+=" ? curAcc + sumRange : curAcc - sumRange;
-                  curI = effLimit;
-                  loopStatus = (effLimit - 1) !== 0 ? 0 : 1;
-                  iterCount += rem;
-                }
-                progress.lastCmd = condCmd;
-                rawState.status = 1;
-                progress.pipelineStatus = 1;
-              } else {
-                while (true) {
-                  this.budget.tick();
-                  this.budget.parsing.admit(4);
-                  const condOk = isLe ? curI <= limit : curI < limit;
-                  progress.lastCmd = condCmd;
-                  rawState.status = condOk ? 0 : 1;
-                  progress.pipelineStatus = rawState.status;
-                  if (!condOk) break;
-                  ++iterCount;
-                  this.budget.loop();
-                  if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
-                  this.budget.tick();
-                  this.budget.parsing.admit(6);
-                  curAcc = accOp === "=" ? curI : accOp === "+=" ? curAcc + curI : curAcc - curI;
-                  const postI = curI;
-                  curI++;
-                  progress.lastCmd = bStep!.cmd;
-                  rawState.status = postI !== 0 ? 0 : 1;
-                  progress.pipelineStatus = rawState.status;
-                  loopStatus = rawState.status;
-                }
-              }
-              rawState.variables[indName] = intToStr(curI);
-              rawState.variables[accName] = intToStr(curAcc);
-              touched.add(indName);
-              touched.add(accName);
-            }
+        } else if (whileAccumulator) {
+          const { indName, accName, end, value, iterations } = whileAccumulator;
+          this.budget.commands += 2 * iterations + 1;
+          this.budget.iterations += iterations;
+          this.budget.parsing.admit(10 * iterations + 4);
+          runYieldCheckpoint(this.signal);
+          if (iterations > 0) {
+            rawState.variables[indName] = intToStr(end);
+            rawState.variables[accName] = intToStr(value);
+            touched.add(indName);
+            touched.add(accName);
+            loopStatus = end - 1 !== 0 ? 0 : 1;
           }
-          while (!handledFastWhile) {
-            this.budget.tick();
-            const condNonZero = whileCondExpr !== undefined
-              ? (this.tryEvalConditionalSync(whileCondExpr, rawState, monitor, store, io, condLine) ?? 1) === 0
-              : this.evalSyncLoopArithStmt(whileArithProg!, rawState, io, touched, condLine);
-            progress.lastCmd = condCmd;
-            if (condCmd.kind === "simple") progress.lastArg = this.fastValueWord(condCmd.words[condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
-            rawState.status = condNonZero ? 0 : 1;
-            progress.pipelineStatus = rawState.status;
-            if (condNonZero !== (command.kind === "while")) break;
-            ++iterCount;
-            this.budget.loop();
-            if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
-            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, progress);
-            loopStatus = rawState.status;
-            if (this._syncLoopAction !== undefined) {
-              const act = this._syncLoopAction;
-              this._syncLoopAction = undefined;
-              if (act === "break") break;
-            }
-          }
+          progress.lastCmd = condCmd;
+          rawState.status = 1;
+          progress.pipelineStatus = 1;
         }
       } finally {
         this.flushSyncStdoutBatch(io);

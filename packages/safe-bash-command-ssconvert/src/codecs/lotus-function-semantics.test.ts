@@ -84,7 +84,7 @@ it.each([[0x404, false], [0x1000, false], [0x1002, false], [0x1002, true]] as co
   }
 );
 
-for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]] as const) {
+for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, false], [0x1002, true], [0x1003, false], [0x1003, true]] as const) {
   it.each([
     { name: "CHOOSE", opcode: 48, args: [0, "first", "second"], formula: '=CHOOSE((0+1),"first","second")', value: "first" },
     { name: "MID", opcode: 73, args: ["abcd", 0, 2], formula: '=MID("abcd",(0+1),2)', value: "ab" },
@@ -154,11 +154,11 @@ it.each([
     .toEqual({ kind: "number", value: expect.closeTo(item.value, 12) });
 });
 
-it.each([false, true])("imports Lotus IRR guess/range order (named %s)", async named => {
+it.each([[0x1002, false], [0x1002, true], [0x1003, false], [0x1003, true]] as const)("imports Lotus IRR guess/range order (version %i, named %s)", async (version, named) => {
   const name = Array.from("@<<@123>>IRR(", c => c.charCodeAt(0));
   const tokens = [5, ...word(2), 2, 0, ...word(1), 0, 0, ...word(2), 0, 0,
     ...(named ? [0x7a, 2, ...word(name.length), ...name] : [89]), 3];
-  const initial = formulaFixture(0x1002, tokens);
+  const initial = formulaFixture(version, tokens);
   const cells = [-100, 200].flatMap((value, index) => record(25,
     [...word(index + 1), 0, 0, ...Array<number>(10).fill(0), 5, ...word(Math.abs(value) * 2), ...(value < 0 ? [14] : []), 3]));
   const book = await readLotus(Uint8Array.from([...initial.subarray(0, -4), ...cells, ...record(1)]), context);
@@ -185,7 +185,7 @@ for (const version of [0x1000, 0x1002]) {
   });
 }
 
-for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]] as const) {
+for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, false], [0x1002, true], [0x1003, false], [0x1003, true]] as const) {
   it.each([
     { name: "INDEX", opcode: 98, first: 1, last: 0, formula: '=INDEX($A$2:$B$3,(0+1),(1+1))', value: 10 },
     { name: "VLOOKUP", opcode: 85, first: 2, last: 1, formula: '=VLOOKUP(2,$A$2:$B$3,(1+1))', value: 20 },
@@ -211,7 +211,7 @@ for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]]
   });
 }
 
-for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]] as const) {
+for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, false], [0x1002, true], [0x1003, false], [0x1003, true]] as const) {
   it.each([0, 1, -1])(`converts four-argument INDEX offsets (version ${version}, named ${named}, sheet %i)`, async sheet => {
     // #3478 requires row/column conversion when the optional zero-based sheet
     // offset is present too. A single-sheet area admits only offset zero.

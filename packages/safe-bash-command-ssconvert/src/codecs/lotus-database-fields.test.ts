@@ -12,7 +12,7 @@ const text = (value: string) => [...Array.from(value, c => c.charCodeAt(0)), 0];
 
 // #3478 requires zero-based Lotus database field offsets. Gnumeric's standard
 // function hook currently forwards these operands unchanged.
-for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, true]] as const) {
+for (const [version, named] of [[0x404, false], [0x1000, false], [0x1002, false], [0x1002, true], [0x1003, false], [0x1003, true]] as const) {
   it.each([
     [91, "DSUM", "DSUM", 126], [92, "DAVG", "DAVERAGE", 63],
     [93, "DCNT", "DCOUNTA", 2], [94, "DMIN", "DMIN", 42],

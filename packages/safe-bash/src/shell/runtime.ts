@@ -6971,17 +6971,22 @@ export class Runtime {
         return finalStatus === 0 ? SYNC_UNIT_ZERO : SYNC_UNIT_ONE;
       }
     } catch (error) {
-      return this.finishFastSingleExternalUnitAsync( undefined, error, true, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch, );
+      return this.finishFastSingleExternalUnitAsync( context, undefined, error, true, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch, );
     }
-    return this.finishFastSingleExternalUnitAsync( raw, undefined, false, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch, );
+    return this.finishFastSingleExternalUnitAsync( context, raw, undefined, false, redirectSink, diagnosticLine, negate, ignored, monitor, rawState, existing, elem0, store, state, io, scope, restEpoch, );
   }
-  private async finishFastSingleExternalUnitAsync( raw: CommandResult | Promise<CommandResult> | undefined, initialError: unknown, hasInitialError: boolean, redirectSink: MemoryRedirectSink | undefined, diagnosticLine: number, negate: boolean, ignored: boolean, monitor: NonNullable<ReturnType<typeof stateMonitor>>, rawState: State, existing: ReturnType<NonNullable<typeof monitor.store>["get"]>, elem0: IndexedBinding["values"] extends Map<number, infer E> ? E | undefined : never, store: typeof monitor.store, state: State, io: IO, scope: InvocationScope, restEpoch: number, ): Promise<{ exitCode: number; terminated: boolean }> {
+  private async finishFastSingleExternalUnitAsync( context: FastShellCommandContext, raw: CommandResult | Promise<CommandResult> | undefined, initialError: unknown, hasInitialError: boolean, redirectSink: MemoryRedirectSink | undefined, diagnosticLine: number, negate: boolean, ignored: boolean, monitor: NonNullable<ReturnType<typeof stateMonitor>>, rawState: State, existing: ReturnType<NonNullable<typeof monitor.store>["get"]>, elem0: IndexedBinding["values"] extends Map<number, infer E> ? E | undefined : never, store: typeof monitor.store, state: State, io: IO, scope: InvocationScope, restEpoch: number, ): Promise<{ exitCode: number; terminated: boolean }> {
     let rawStatus = 0;
+    let commandSettled = hasInitialError;
+    const pending = hasInitialError ? undefined : Promise.resolve(raw!).then(
+      result => { commandSettled = true; return result; },
+      error => { commandSettled = true; throw error; },
+    );
     try {
       if (hasInitialError) throw initialError;
       const res = this.budget._hasExternalSignal
-        ? await interruptible(Promise.resolve(raw!), this.signal)
-        : await raw!;
+        ? await interruptible(pending!, this.signal)
+        : await pending!;
       this.signal.throwIfAborted();
       if (redirectSink?.failedError !== undefined) throw redirectSink.failedError;
       rawStatus = validateExitCode(res.exitCode);
@@ -7002,6 +7007,11 @@ export class Runtime {
       this.budget.endPathLookupSuspension();
       scope.leaveWork();
       redirectSink?.handle.close();
+      if (commandSettled) context.releaseDirectStage();
+      else {
+        // Cancellation may win before the command stops using its context.
+        void pending!.then(() => context.releaseDirectStage(), () => context.releaseDirectStage());
+      }
     }
     if (!existing) {
       monitor.lazyPipeStatus = rawStatus === 0 ? singleStatusZero : rawStatus === 1 ? singleStatusOne : [rawStatus];

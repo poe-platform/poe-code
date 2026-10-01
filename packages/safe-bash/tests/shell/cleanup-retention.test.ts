@@ -2,6 +2,10 @@ import assert from "node:assert/strict";
 import { test, type TestContext } from "node:test";
 import type { CommandResult, InvocationCleanup } from "../../src/contracts/index.js";
 import { InvocationScope, throwCleanupFailures } from "../../src/shell/cleanup.js";
+import { builtInDirectContextExecutors, RESOLVED_EXIT_ZERO } from "../../src/commands/internal.js";
+import { Shell } from "../../src/shell/index.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+import type { CommandContext } from "../../src/contracts/index.js";
 import { setup } from "./helpers.js";
 
 function deferred() {
@@ -325,3 +329,61 @@ for (const reason of [false, null]) {
     finally { await shell.dispose(); }
   });
 }
+
+for (const outcome of ["promise", "reject", "throw", "signal"] as const) test(`fast single command releases context after ${outcome}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  const commands = shell.commands;
+  let captured: CommandContext | undefined;
+  const execute = (command: CommandContext) => {
+    captured = command;
+    if (outcome === "throw") throw new Error("command failed");
+    if (outcome === "reject") return Promise.reject(new Error("command failed"));
+    return outcome === "signal" ? RESOLVED_EXIT_ZERO : Promise.resolve({ exitCode: 0 });
+  };
+  builtInDirectContextExecutors.add(execute);
+  commands.register({ name: "awk", execute });
+  try {
+    const result = await shell.exec("awk", outcome === "signal" ? { signal: new AbortController().signal } : {});
+    assert.equal(result.exitCode, outcome === "throw" || outcome === "reject" ? 1 : 0);
+    assert.ok(captured);
+    assert.ok((captured as unknown as { _runtime: unknown })._runtime === undefined);
+    assert.equal((captured as unknown as { _state: unknown })._state, undefined);
+    assert.equal(captured.stdout, undefined);
+    assert.equal(captured.stdin, undefined);
+  } finally {
+    builtInDirectContextExecutors.delete(execute);
+    await shell.dispose();
+  }
+});
+
+test("cancelled fast command keeps its context until late command work settles", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() });
+  const caller = new AbortController();
+  const entered = deferred(), release = deferred();
+  let captured: CommandContext | undefined;
+  let retainedUntilSettlement = false;
+  const execute = async (command: CommandContext) => {
+    captured = command;
+    entered.resolve();
+    await release.promise;
+    retainedUntilSettlement = command.stdout !== undefined;
+    return { exitCode: 0 };
+  };
+  builtInDirectContextExecutors.add(execute);
+  shell.commands.register({ name: "awk", execute });
+  const checked = assert.rejects(shell.exec("awk", { signal: caller.signal }), reason => reason === false);
+  try {
+    await entered.promise;
+    caller.abort(false);
+    await checked;
+    assert.ok(captured);
+    release.resolve();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(retainedUntilSettlement, true);
+    assert.ok((captured as unknown as { _runtime: unknown })._runtime === undefined);
+  } finally {
+    release.resolve();
+    builtInDirectContextExecutors.delete(execute);
+    await shell.dispose();
+  }
+});

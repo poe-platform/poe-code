@@ -37,7 +37,7 @@ export const captureBrowserSnapshotJSON: PlaywrightSnapshotJSONCapture = async (
 	options,
 ) => {
 	const native = page as typeof page & NativeSnapshotPage;
-	const signal = options.timeoutMs === 0 ? options.signal : AbortSignal.any([
+	const signal = (options.timeoutMs === 0 || !Number.isFinite(options.timeoutMs)) ? options.signal : AbortSignal.any([
 		options.signal,
 		AbortSignal.timeout(options.timeoutMs),
 	]);
@@ -61,7 +61,7 @@ async function capture(
 	page: NativeSnapshotPage,
 	options: Parameters<PlaywrightSnapshotJSONCapture>[1],
 ) {
-	await page._snapshotForAI({ timeout: options.timeoutMs });
+	await page._snapshotForAI({ timeout: options.timeoutMs === Infinity ? 0 : options.timeoutMs });
 	options.signal.throwIfAborted();
 	const root = page._connection.toImpl(page).mainFrame();
 	const forest: SnapshotNode[] = [];

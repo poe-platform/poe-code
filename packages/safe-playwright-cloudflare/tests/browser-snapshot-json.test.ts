@@ -25,7 +25,7 @@ for (const nested of [false, true]) test(`JSON serialization admits more than 20
   expect(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false })).toEqual(serializeNativeSnapshot(injected, { maxBytes: Infinity, boxes: false }));
 });
 
-test("zero snapshot timeout allows asynchronous capture and preserves caller cancellation", async () => {
+test.each([0, Infinity])("unlimited snapshot timeout %s allows asynchronous capture and preserves caller cancellation", async timeoutMs => {
 	const controller = new AbortController();
 	const reason = new Error("caller cancelled");
 	const snapshot = vi.fn(async () => {
@@ -36,7 +36,7 @@ test("zero snapshot timeout allows asynchronous capture and preserves caller can
 		async evaluate() { return JSON.stringify({ nodes: [], iframeRefs: [] }); },
 	}; } }; } };
 	const page = { frames: () => [frame], _snapshotForAI: snapshot, _connection: { toImpl: () => ({ mainFrame: () => frame }) } };
-	const options = { signal: controller.signal, timeoutMs: 0, maxBytes: 1048576 };
+	const options = { signal: controller.signal, timeoutMs, maxBytes: 1048576 };
 	await expect(captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, options)).resolves.toEqual([]);
 	expect(snapshot).toHaveBeenCalledWith({ timeout: 0 });
 	snapshot.mockImplementationOnce(async () => { controller.abort(reason); return { full: "" }; });

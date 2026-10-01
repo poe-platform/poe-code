@@ -38,7 +38,7 @@ async function readWitness<Result>(operation: Promise<Result>, signal?: AbortSig
 /** Preserve native accessibility IDs, but bind immutable identities in one RPC per frame.
  * Borrow the provider's utility handle; acquire no per-node browser resources here. */
 export const captureBrowserSnapshotReferences: PlaywrightSnapshotReferenceCapture = async (page, refs, options) => {
-  const signal = options.timeoutMs === 0 ? options.signal : AbortSignal.any([options.signal, AbortSignal.timeout(options.timeoutMs)]);
+  const signal = (options.timeoutMs === 0 || !Number.isFinite(options.timeoutMs)) ? options.signal : AbortSignal.any([options.signal, AbortSignal.timeout(options.timeoutMs)]);
   signal.throwIfAborted();
   let onAbort = () => {};
   const aborted = new Promise<never>((_, reject) => {

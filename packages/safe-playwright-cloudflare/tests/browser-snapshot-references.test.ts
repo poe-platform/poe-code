@@ -158,3 +158,17 @@ test('cancelled lazy acquisition disposes candidates that arrive after abort', a
   expect(handle.dispose).toHaveBeenCalledOnce();
   expect(f.adopt).not.toHaveBeenCalled();
 });
+
+test('unlimited reference capture retains caller cancellation without a timer', async () => {
+  const f = fixture();
+  const controller = new AbortController();
+  const timer = vi.spyOn(AbortSignal, 'timeout');
+  try {
+    const batch = await captureBrowserSnapshotReferences(f.page, ['e1'], { signal: controller.signal, timeoutMs: Infinity });
+    expect(await batch.connected()).toEqual([true]);
+    expect(timer).not.toHaveBeenCalled();
+    const reason = new Error('cancelled');
+    controller.abort(reason);
+    await expect(captureBrowserSnapshotReferences(f.page, ['e1'], { signal: controller.signal, timeoutMs: Infinity })).rejects.toBe(reason);
+  } finally { timer.mockRestore(); }
+});

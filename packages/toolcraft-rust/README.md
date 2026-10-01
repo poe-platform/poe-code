@@ -22,6 +22,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Member validation | Nested SDK/MCP name collisions, discriminator aliases and formatter callbacks   |
 | Branch validation | Discriminator selection, exclusive-union matching and branch diagnostics         |
 | Applied defaults | Canonical cloned defaults, original-schema validation and ordered diagnostics     |
+| SDK arguments    | Native casing, nested validation, defaults, aliases and JSON-schema normalization |
 | Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts
@@ -88,6 +89,9 @@ Discriminator and union selection preserve caller values, normalized successful
 branches and diagnostic order while the native runtime chooses the outcome.
 Applied-default validation uses the native schema dependency, preserves fields
 hidden by scope projection and avoids inserting unused nested defaults.
+The internal SDK argument engine now handles camel-case mapping, all canonical
+schema kinds and native JSON-schema input normalization. Node retains property
+descriptors, getter order, Unicode casing, array methods and diagnostic formatting.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The SDK, CLI, transports, approval runtime and

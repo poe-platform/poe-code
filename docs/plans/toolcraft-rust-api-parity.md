@@ -246,6 +246,24 @@ qualification. The checkpoint passes 1,311 reference/parity tests and 60 native
 Node tests, plus Rust, declaration and lint checks. SDK argument normalization,
 runtime assembly and invocation themselves still require porting.
 
+SDK argument validation and key normalization now run in Rust, including canonical
+schema kinds, defaults, additional properties, alias conflicts, discriminators,
+unions and native JSON-schema ingress. Rust chooses UTF-16 casing boundaries;
+Node supplies the caller's Unicode lowercase/uppercase behavior. Descriptor-based
+optional omission preserves accessors, prototypes, sparse arrays and the existing
+64-depth/10,000-node preprocessing limits. Native-schema tests construct each
+implementation's private symbol through its own builder, as required by those
+package contracts. Cross-bundle native-schema marker interoperability is not proven.
+The test harness parses the original SDK module and substitutes native casing and
+object validation while leaving assembly/invocation in JavaScript. Reference SDK,
+stream, scope, branch and default suites now exercise the native argument engine
+and schema dependency. Differential tests cover every schema kind, UTF-16 names,
+getter/diagnostic order, arbitrary exceptions, reentrancy and cyclic wrappers.
+The checkpoint passes 1,338 reference/parity tests and 67 native Node tests, plus
+Rust, declarations and lint. The existing 128-entry/16,384-wrapper guards remain
+unqualified for engine-specific resource parity. Runtime I/O, assembly, invocation
+and public SDK exports still require porting.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

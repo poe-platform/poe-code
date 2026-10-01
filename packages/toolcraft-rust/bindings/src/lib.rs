@@ -11,6 +11,7 @@ pub mod package_metadata;
 pub mod redaction;
 pub mod schema_members;
 pub mod schema_scope;
+pub mod sdk_validation;
 pub mod source_snippet;
 pub mod stream;
 

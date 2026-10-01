@@ -242,12 +242,21 @@ test("family deadline interrupts uncooperative host operations without claiming 
   await assert.rejects(run(["entry"], { limits: { maxDurationMs: 5 } }, { fs }), /time limit exceeded/);
 });
 
-test("deadline does not retry a blocked diagnostic sink after timeout", async () => {
+test("deadline does not retry a blocked diagnostic sink after timeout", async context => {
+  let now = 0;
+  context.mock.method(performance, "now", () => now);
+  context.mock.timers.enable({ apis: ["setTimeout"] });
   for (const [args, destination] of [[["missing"], "stdout"], [["-f", "missing"], "stderr"]] as const) {
     let writes = 0;
-    await assert.rejects(run(args, { limits: { maxDurationMs: 5 } }, { [destination]: { write() {
-      writes++; return new Promise(() => {});
-    } } }), /time limit exceeded/);
+    const started = deferred();
+    const running = run(args, { limits: { maxDurationMs: 5 } }, { [destination]: { write() {
+      writes++; started.resolve(); return new Promise(() => {});
+    } } });
+    const check = assert.rejects(running, /time limit exceeded/);
+    await started.promise;
+    now += 5;
+    context.mock.timers.tick(5);
+    await check;
     assert.equal(writes, 1);
   }
 });

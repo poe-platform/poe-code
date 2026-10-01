@@ -625,6 +625,9 @@ export async function interpret(
       snapshot,
       stats
     };
+  } catch (error) {
+    if (isFatalSandboxError(error)) attachErrorSpan(error, node.span);
+    throw error;
   } finally {
     compilation.dispose();
     operation.release();

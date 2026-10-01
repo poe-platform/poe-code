@@ -1,3 +1,4 @@
+import { loadLlmStoredSchema } from "./stored-schema.js";
 import { createOutputOperation, getCommandArguments, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
@@ -215,6 +216,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     let schema = schemaInput ? await resolveLlmSchemaInput({...context, signal}, schemaInput, {
       multi: Boolean(args.schemaMulti), maxBytes: inputLimit - inputBytes, admitBytes: admitInput,
       loadTemplate: name => templateStore.load(name),
+      loadSchema: id => loadLlmStoredSchema({...context, signal}, id, { maxBytes: inputLimit - inputBytes, admitBytes: admitInput }),
     }) : undefined;
     if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
     let stored;

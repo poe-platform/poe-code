@@ -22,7 +22,7 @@ export interface SqliteRecordSource {
 /** Read a table-btree row from a retained, closed/checkpointed SQLite snapshot.
  * The caller owns the handle; no ambient filesystem, full-file read or page cache.
  * Returned streams remain tied to the original snapshot revision and signal. */
-export async function findSqliteRecord(file: FileReadHandle, rootPage: number, rowid: bigint, signal: AbortSignal): Promise<SqliteRecordSource | undefined> {
+export async function findSqliteRecord(file: FileReadHandle, rootPage: number, rowid: bigint, signal: AbortSignal, match: "exact" | "at-or-after" = "exact"): Promise<(SqliteRecordSource & { readonly rowid: bigint }) | undefined> {
   signal.throwIfAborted();
   if (rowid < -(1n << 63n) || rowid >= 1n << 63n) throw new RangeError('SQLite rowid out of range');
   const expected = await file.stat({ signal });
@@ -54,8 +54,8 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
     await yieldTurn(signal);
     return (await read((number - 1) * pageSize, length)).subarray(0, usable);
   };
-  let number = rootPage;
-  for (let depth = 0; depth < pages; depth++) {
+  let number = rootPage, successor: bigint | undefined;
+  for (let depth = 0; depth < pages * (match === "exact" ? 1 : 2); depth++) {
     const data = await page(number), start = number === 1 ? 100 : 0;
     const kind = data[start];
     if (kind !== 5 && kind !== 13) return corrupt();
@@ -67,10 +67,15 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
       if (cell < pointers + count * 2 || cell >= usable) return corrupt();
       if (kind === 5) {
         const key = BigInt.asIntN(64, readSqliteVarint(data, cell + 4).value);
-        if (rowid <= key) { child = u32(data, cell); break; }
+        if (rowid <= key) {
+          child = u32(data, cell);
+          if (key < (1n << 63n) - 1n && (successor === undefined || key + 1n < successor)) successor = key + 1n;
+          break;
+        }
       } else {
         const payload = readSqliteVarint(data, cell), key = readSqliteVarint(data, payload.end);
-        if (BigInt.asIntN(64, key.value) !== rowid) continue;
+        const foundRowid = BigInt.asIntN(64, key.value);
+        if (match === "exact" ? foundRowid !== rowid : foundRowid < rowid) continue;
         const size = Number(payload.value);
         if (!Number.isSafeInteger(size)) return corrupt();
         const max = usable - 35, min = Math.floor((usable - 12) * 32 / 255) - 23;
@@ -79,7 +84,7 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
         if (key.end + local + (local < size ? 4 : 0) > usable) return corrupt();
         const first = data.slice(key.end, key.end + local);
         const overflow = local < size ? u32(data, key.end + local) : 0;
-        return { size, async *bytes(offset = 0, length = size - offset) {
+        return { size, rowid: foundRowid, async *bytes(offset = 0, length = size - offset) {
           if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0 ||
               offset > size || length > size - offset) throw new RangeError('Invalid SQLite record range');
           await check();
@@ -106,7 +111,13 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
         } };
       }
     }
-    if (kind === 13) return undefined;
+    if (kind === 13) {
+      if (match === 'exact' || successor === undefined) return undefined;
+      // Native deletion may leave an interior divider above the child's last
+      // surviving row. Resume at the following subtree instead of ending early.
+      rowid = successor; successor = undefined; number = rootPage;
+      continue;
+    }
     number = child;
   }
   return corrupt();

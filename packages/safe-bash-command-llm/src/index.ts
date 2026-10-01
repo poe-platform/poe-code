@@ -1,3 +1,4 @@
+export { loadLlmStoredSchema, type LlmStoredSchemaOptions } from "./stored-schema.js";
 export * from "./provider-serialization.js";
 export { createLlmCommand, createLlmCommands, llmCommands } from "./command.js";
 export { createLlmService, type LlmService, type LlmServiceOptions, type LlmServiceModel, type LlmStreamEvent, type LlmServiceRequest, type LlmServiceSourceRequest } from "./service.js";

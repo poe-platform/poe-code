@@ -490,7 +490,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             if (p === "/dev" || p.startsWith("/dev/") || p.length > 512) { fastOk = false; break; }
             operandCount++;
           }
-          if (fastOk && operandCount > 0 && (operandCount === 1 || recursive)) {
+          if (fastOk && operandCount === 1) {
             let admitted = false;
             try {
               assertCommandRequirements(context, filesystemCommandRequirements.mkdir, recursive ? MKDIR_PARENTS_MODES : MKDIR_DIR_MODES, backingMem.capabilities);

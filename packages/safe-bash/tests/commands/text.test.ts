@@ -112,16 +112,29 @@ test("sort long-record preparation cooperates even with only one comparison", as
   }
 });
 
-test("sort keeps byte scope and key-local flag precedence", async () => {
+test("sort keeps byte profiles and key-local flag precedence while honoring collation", async () => {
   const stdin = "b:2\na:2\nz:1\n";
   assert.equal((await run("sort", ["-r", "-t", ":", "-k2,2n", "-s"], { stdin })).stdout, "z:1\nb:2\na:2\n");
   assert.equal((await run("sort", ["-t", ":", "-k2,2nr"], { stdin })).stdout, "a:2\nb:2\nz:1\n");
   assert.equal((await run("sort", ["-t", ":", "-k2,2n", "-u"], { stdin })).stdout, "z:1\nb:2\n");
   assert.deepEqual((await run("sort", [], { stdin: Uint8Array.from([255, 10, 0, 10, 128, 10, 65, 10]) })).stdoutBytes, Buffer.from([0, 10, 65, 10, 128, 10, 255, 10]));
   for (const locale of ["C", "tr_TR.UTF-8"]) {
-    assert.equal((await run("sort", ["-f"], { stdin: "ı\ni\nİ\nI\n", env: { LC_ALL: locale } })).stdout, "I\ni\nİ\nı\n");
+    assert.equal((await run("sort", ["-f"], { stdin: "ı\ni\nİ\nI\n", env: { LC_ALL: locale } })).stdout, locale === "C" ? "I\ni\nİ\nı\n" : "ı\nI\ni\nİ\n");
   }
   for (const flag of ["-V", "--version-sort"]) assert.equal((await run("sort", [flag], { stdin: "v10\nv2\n" })).stdout, "v2\nv10\n");
+});
+
+test("sort applies collation precedence to text, keys, reverse and check modes", async () => {
+  const stdin = "B\nb\nA\na\n";
+  for (const env of [{ LC_ALL: "en_US.UTF-8" }, { LC_ALL: "", LC_COLLATE: "en_US.UTF-8", LANG: "C" }, { LANG: "en_US.UTF-8" }]) {
+    assert.equal((await run("sort", [], { stdin, env })).stdout, "a\nA\nb\nB\n");
+    assert.equal((await run("sort", ["-r"], { stdin, env })).stdout, "B\nb\nA\na\n");
+    assert.equal((await run("sort", ["-k2,2"], { stdin: "x A\ny a\n", env })).stdout, "y a\nx A\n");
+    assert.equal((await run("sort", ["-c"], { stdin: "a\nA\nb\nB\n", env })).exitCode, 0);
+    assert.equal((await run("sort", ["-c"], { stdin: "A\na\n", env })).exitCode, 1);
+  }
+  assert.equal((await run("sort", [], { stdin, env: { LC_ALL: "C", LC_COLLATE: "en_US.UTF-8" } })).stdout, "A\nB\na\nb\n");
+  assert.deepEqual((await run("sort", [], { stdin: Uint8Array.of(255, 10, 65, 10, 128, 10), env: { LC_ALL: "en_US.UTF-8" } })).stdoutBytes, Buffer.from([65, 10, 128, 10, 255, 10]));
 });
 
 test("sort uses byte ordering, numeric keys, reverse, stable and unique modes", async () => {

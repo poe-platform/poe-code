@@ -18,6 +18,7 @@ export interface SearchOptions {
 export class SearchError extends PublicDiagnostic {}
 
 export interface Arguments {
+  noConfig?: boolean;
   help?: boolean | undefined;
   version?: "short" | "long" | undefined;
   patterns: string[];
@@ -89,6 +90,7 @@ const EMPTY_GLOB_RULES: { source: string; insensitive: boolean }[] = [];
 const EMPTY_TYPE_RULES: { name: string; include: boolean }[] = [];
 
 export class ParsedArguments implements Arguments {
+  declare noConfig: boolean;
   declare help?: boolean | undefined;
   declare version?: "short" | "long" | undefined;
   patterns: string[] = [];
@@ -141,6 +143,7 @@ export class ParsedArguments implements Arguments {
   declare globs: { source: string; insensitive: boolean }[];
   declare types: { name: string; include: boolean }[];
   reset(): void {
+    this.noConfig = false;
     this.help = undefined;
     this.version = undefined;
     this.patternFiles = EMPTY_STRINGS;
@@ -199,6 +202,7 @@ export class ParsedArguments implements Arguments {
   }
   static {
     Object.assign(ParsedArguments.prototype, {
+      noConfig: false,
       patternFiles: EMPTY_STRINGS,
       explicitPatterns: false,
       mode: "lines",
@@ -368,7 +372,8 @@ export function parse(args: readonly string[], target?: ParsedArguments): Argume
         case "no-ignore-files": result.ignoreFiles = false; break;
         case "ignore-files": result.ignoreFiles = true; break;
         case "no-require-git": result.requireGit = false; break;
-        case "no-ignore-global": case "no-config": break;
+        case "no-ignore-global": break;
+        case "no-config": result.noConfig = true; break;
         case "a": case "text": result.binary = "text"; break;
         case "binary": result.binary = "binary"; break;
         case "no-binary": case "no-text": result.binary = "auto"; break;

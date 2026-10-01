@@ -19,3 +19,9 @@ expand to empty text. `-o` prints only replacements, and `-U` supports captures
 spanning lines. Output retains UTF-8 bytes and obeys `maxOutputBytes`.
 
 The module also exports `createRgCommand`, its command-list factory, and typed options and limits.
+
+Set `RIPGREP_CONFIG_PATH` to a virtual file containing one argument per line.
+Blank lines and comments beginning with `#` are ignored. Configuration is read
+for each invocation before command-line arguments, so later command-line options
+take precedence. `--no-config` skips the file. Configuration reads obey the
+filesystem and input-byte limits.

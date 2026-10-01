@@ -1,6 +1,6 @@
 import { utf8ByteLength, bytesFrom } from "safe-bash-byte-engine";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
-import { assertCommandRequirements, collectBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
+import { assertCommandRequirements, collectBytes, createCommandArguments, getCommandArguments, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { hasYieldCheckpoint } from "safe-bash-contracts/yield";
 import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { Matcher, type Match } from "safe-bash-search-engine/matcher";
@@ -1033,12 +1033,34 @@ Unicode selection and extended regex syntax require a configured executor.
   });
 }
 
+async function executeRgWithConfig(context: CommandContext, executor: RegexExecutor, options: SearchOptions, path: string): Promise<import("safe-bash-contracts").CommandResult> {
+  try {
+    if (parse(context.args).noConfig) return await executeRgSlow(context, executor, options);
+    const maximum = options.maxFileBytes ?? Infinity;
+    const bytes = await collectBytes(requiredFileInput(context, searchRequirements, "file", pathFor(context, path), maximum), { maxBytes: maximum, signal: context.signal });
+    const configArgs = new TextDecoder("utf-8", { fatal: true }).decode(bytes).split("\n").map(line => line.trim()).filter(line => line.length > 0 && !line.startsWith("#"));
+    const original = getCommandArguments(context);
+    const argumentsWithConfig = original.slice(0, 0).concat(createCommandArguments(configArgs), original);
+    const configured = Object.create(context, {
+      args: { value: argumentsWithConfig.args },
+      argumentValues: { value: argumentsWithConfig },
+    }) as CommandContext;
+    return await executeRgSlow(configured, executor, options);
+  } catch (error) {
+    context.signal.throwIfAborted();
+    await diagnostic(context, error);
+    return { exitCode: 2 };
+  }
+}
+
 export function createRgCommand(executor: RegexExecutor, options: SearchOptions = {}): CommandDefinition {
   return {
     name: "rg",
     filesystemRequirements: searchRequirements,
     description: "Search virtual files or stdin with recursive filtering and structured results",
     execute(context) {
+      const config = context.env.RIPGREP_CONFIG_PATH;
+      if (config) return executeRgWithConfig(context, executor, options, config);
       const fastSync = tryExecuteRgFastSync(context, executor, options);
       if (fastSync !== undefined) return fastSync;
       return executeRgSlow(context, executor, options);

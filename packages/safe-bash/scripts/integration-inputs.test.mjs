@@ -59,6 +59,7 @@ test("loop substitution and portable search regressions remain in active discove
     "tests/shell/read-array.test.ts",
     "tests/shell/mapfile-portable-records.test.ts",
     "tests/commands/portable-search-default.test.ts",
+    "tests/commands/cache-pipeline-regressions.test.ts",
   ]) assert.ok(selected.includes(path), path);
 });
 

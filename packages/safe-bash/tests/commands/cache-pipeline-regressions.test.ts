@@ -1,10 +1,37 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { Shell, MemoryFileSystem, standardCommands, structuredCommands } from '../../src/index.js';
+import { Shell } from '../../src/shell/index.js';
+import { MemoryFileSystem } from '../../src/fs/memory/index.js';
+import { standardCommands } from '../../src/commands/index.js';
+import { structuredCommands } from '../../src/commands/structured/index.js';
 import { searchCommands } from '../../src/commands/search/index.js';
 import { createNodeRegexProvider } from '../../src/commands/regex-execution/client.js';
 
 const enc = new TextEncoder();
+
+test('pipeline byte quotas cover every edge and descriptor writes on every invocation', async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (const command of [
+    'printf ab | cat | cat',
+    'echo -n ab | cat | cat',
+    '{ printf ab >&3; } 3>&1 | cat | cat',
+    '{ printf ab >&2; } |& cat | cat',
+    'echo "$(printf ab | cat | cat)"',
+  ]) {
+    for (let i = 0; i < 2; i++) {
+      const result = await shell.exec(command, { limits: { maxPipelineBytes: 4 } });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout.trimEnd(), 'ab', command);
+      await assert.rejects(shell.exec(command, { limits: { maxPipelineBytes: 3 } }), { name: 'ShellLimitError', limit: 'maxPipelineBytes' });
+    }
+  }
+  assert.equal((await shell.exec('printf ab', { limits: { maxPipelineBytes: 0 } })).stdout, 'ab');
+  await assert.rejects(shell.exec('echo ab | cat', { limits: { maxPipelineBytes: 1 } }), { name: 'ShellLimitError', limit: 'maxPipelineBytes' });
+  for (const command of ['pwd | cat', 'for i in 1 2; do echo x; done | cat']) {
+    await assert.rejects(shell.exec(command, { limits: { maxPipelineBytes: 0 } }), { name: 'ShellLimitError', limit: 'maxPipelineBytes' });
+  }
+});
 
 test('repeated pure pipelines honor each invocation locale and byte limits', async context => {
   const fs = new MemoryFileSystem();
@@ -17,11 +44,12 @@ test('repeated pure pipelines honor each invocation locale and byte limits', asy
       for (let i = 0; i < 2; i++) {
         const result = await shell.exec(command);
         assert.equal(result.exitCode, 0, result.stderr);
-        // sort-ordering.md specifies C byte ordering regardless of environment.
-        assert.equal(result.stdout, 'A\n'.repeat(4));
+        assert.equal(result.stdout, (locale === 'C' ? 'A\n' : 'a\n').repeat(4));
+        const substitution = await shell.exec(`echo "$(${command})"`);
+        assert.equal(substitution.stdout, result.stdout);
       }
       // Pipeline writes are included in the shell's output byte quota.
-      for (const limit of ['maxInputBytes', 'maxOutputBytes'] as const) {
+      for (const limit of ['maxInputBytes', 'maxOutputBytes', 'maxPipelineBytes'] as const) {
         await assert.rejects(shell.exec(command, { limits: { [limit]: 10 } }), { name: 'ShellLimitError', limit });
       }
     }
@@ -60,6 +88,25 @@ test('repeated 64-file rg walks honor budgets and parent ignore changes', async 
     await fs.unlink(`/work/${ignore}`);
     assert.equal((await shell.exec(command)).stdout.trim().split('\n').length, 64);
   }
+});
+
+test('rg reloads configuration when the environment or config file changes', async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/tree');
+  for (let i = 0; i < 64; i++) await fs.writeFile(`/tree/f${i}`, enc.encode('NEEDLE\n'));
+  await fs.writeFile('/sensitive', enc.encode('--case-sensitive\n'));
+  await fs.writeFile('/insensitive', enc.encode('# settings\n\n--ignore-case\n'));
+  const shell = new Shell({ fs }).use(searchCommands());
+  context.after(() => shell.dispose());
+  for (const path of ['/sensitive', '/insensitive', '/sensitive']) {
+    const result = await shell.exec('rg -c needle /tree', { env: { RIPGREP_CONFIG_PATH: path } });
+    assert.equal(result.exitCode, path === '/sensitive' ? 1 : 0, result.stderr);
+    assert.equal(result.stdout.trim().split('\n').filter(Boolean).length, path === '/sensitive' ? 0 : 64);
+  }
+  await fs.writeFile('/sensitive', enc.encode('--ignore-case\n'));
+  assert.equal((await shell.exec('rg -c needle /tree', { env: { RIPGREP_CONFIG_PATH: '/sensitive' } })).exitCode, 0);
+  assert.equal((await shell.exec('rg --no-config -c needle /tree', { env: { RIPGREP_CONFIG_PATH: '/missing' } })).exitCode, 1);
+  await assert.rejects(shell.exec('rg -c needle /tree', { env: { RIPGREP_CONFIG_PATH: '/sensitive' }, limits: { maxInputBytes: 3 } }), { name: 'ShellLimitError', limit: 'maxInputBytes' });
 });
 test('rg counts distinguish full literal patterns', async () => {
   const fs = new MemoryFileSystem();

@@ -103,6 +103,8 @@ export interface PipeWriteEndpoint extends PipeEndpoint {
 
 export interface BytePipeOptions {
   readonly highWaterMark?: number;
+  /** Admit each nonempty write before copying or publishing its bytes. */
+  readonly admitWrite?: (byteLength: number) => void;
   /** Maximum pending endpoint observations across both ends; defaults to Infinity. */
   readonly maxObservationWaiters?: number;
   readonly signal?: AbortSignal;
@@ -381,8 +383,10 @@ class BytePipeImpl implements BytePipe {
   declare _legacyIterator: AsyncGenerator<Uint8Array> | undefined;
   declare _legacyReadable: AsyncIterableIterator<Uint8Array> | undefined;
   declare _legacyWritable: ByteSink | undefined;
+  declare readonly admitWrite: BytePipeOptions["admitWrite"];
 
   constructor(options: BytePipeOptions) {
+    this.admitWrite = options.admitWrite;
     const highWaterMark = options.highWaterMark ?? 64 * 1024;
     if (!Number.isSafeInteger(highWaterMark) || highWaterMark < 1) {
       throw new RangeError("highWaterMark must be a positive safe integer");
@@ -747,6 +751,7 @@ class BytePipeImpl implements BytePipe {
       if (!this.readerReferences) throw brokenPipe();
       if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sinks require Uint8Array chunks");
       if (!chunk.byteLength) return resolvedVoid;
+      this.admitWrite?.(chunk.byteLength);
       const owned = new Uint8Array(chunk);
       if (!this.writes || this.writes.size === 0) {
         const reading = this.reads && this.reads.size > 0 ? (this.reads.values().next().value as ReadRequest | undefined) : undefined;

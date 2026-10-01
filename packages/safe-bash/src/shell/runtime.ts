@@ -619,10 +619,13 @@ export class Budget {
   set fsOperations(value: number) {
     this._fileSystemOperations = value;
   }
-  pipelineInput(bytes: number): void {
+  readonly pipelineInput = (bytes: number): void => {
     if (this.limits.maxPipelineBytes === Infinity) return;
-    if (bytes > this.limits.maxPipelineBytes - this.pipelineBytes) this.fail("maxPipelineBytes");
+    this.assertPipelineInput(bytes);
     this.pipelineBytes += bytes;
+  };
+  assertPipelineInput(bytes: number): void {
+    if (bytes > this.limits.maxPipelineBytes - this.pipelineBytes) this.fail("maxPipelineBytes");
   }
   reservePipelineStages(count: number): () => void {
     this.signal.throwIfAborted();
@@ -1457,7 +1460,6 @@ class BudgetedPipeStageSink implements ByteSink {
       const write = capability.write;
       signal.throwIfAborted();
       if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
-      budget.pipelineInput(chunk.byteLength);
       budget.bytes += chunk.byteLength;
       const res = Reflect.apply(write, capability, [chunk]);
       if (isSyncResolved(res)) return resolvedVoid;
@@ -1481,7 +1483,7 @@ class BudgetedPipeStageSink implements ByteSink {
     return Boolean( w.open && pipe && !pipe.failed && !pipe.signal?.aborted && pipe.readerReferences && (!pipe.writes || pipe.writes.size === 0) && (pipe.availableBytes ?? 0) < (pipe.highWaterMark ?? 0), );
   }
   writeSync(chunk: Uint8Array): void {
-    this.budget.pipelineInput(chunk.byteLength);
+    this.budget.assertPipelineInput(chunk.byteLength);
     this.budget.bytes += chunk.byteLength;
     this.writable.write(chunk);
     if (chunk.byteLength && this.written) this.written.add(this.index);
@@ -1493,7 +1495,6 @@ class BudgetedPipeStageSink implements ByteSink {
       if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
       const budget = this.budget;
       if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
-      budget.pipelineInput(chunk.byteLength);
       budget.bytes += chunk.byteLength;
       let res: Promise<void>;
       try {
@@ -7130,7 +7131,7 @@ export class Runtime {
     const n = pipeline.commands.length;
     this.budget.enterPipelineStages(n);
     this.budget.commands += n;
-    const pipeOptions = { highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal };
+    const pipeOptions = { highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal, admitWrite: this.budget.pipelineInput };
     const pipes = new Array<ReturnType<typeof createBytePipe>>(n - 1);
     for (let i = 0; i < n - 1; i++) {
       pipes[i] = createBytePipe(pipeOptions);
@@ -15737,7 +15738,7 @@ export class Runtime {
           }
         }
         for (let index = 1; index < pipeline.commands.length; index++) pipes.push(createBytePipe({
-          highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal, }));
+          highWaterMark: this.budget.limits.pipeHighWaterMark, signal: this.signal, admitWrite: this.budget.pipelineInput, }));
         for (let index = 0; index < pipeline.commands.length; index++) {
           controllers.push(createManagedControlController());
         }
@@ -29025,6 +29026,8 @@ export class Runtime {
     return true;
   }
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
+    if (!cCollation(rawState.variables.LC_ALL || rawState.variables.LC_COLLATE || rawState.variables.LANG || "C")) return undefined;
+    if (this.budget.limits.maxPipelineBytes !== Infinity) return undefined;
     // Synchronous evaluators do not expose cumulative source-read accounting.
     // Use the command context whenever the caller has set an input ceiling.
     if (this.budget.limits.maxInputBytes !== Infinity) return undefined;

@@ -9,6 +9,18 @@ import { RecordBuffer } from "./record-buffer.js";
 import { SortRecordBudget } from "./sort-admission.js";
 import { compareObservedEntries } from "./copy-identity.js";
 
+function sortCollator(env: Readonly<Record<string, string>>): Intl.Collator | undefined {
+  const locale = env.LC_ALL || env.LC_COLLATE || env.LANG || "C";
+  if (["C", "POSIX", "C.UTF-8", "C.utf8"].includes(locale)) return undefined;
+  const language = locale.split(".")[0]!.split("_").join("-");
+  try {
+    if (!Intl.Collator.supportedLocalesOf([language]).length || locale.includes("@")) throw new RangeError();
+    return new Intl.Collator(language, { usage: "sort", sensitivity: "variant", caseFirst: "lower" });
+  } catch {
+    throw new UsageError(`unsupported collation locale '${locale}'`);
+  }
+}
+
 class SortWork {
   #pending = 0;
 
@@ -1014,6 +1026,7 @@ async function collectSortRecords(
 async function executeSortGeneral(
   context: CommandContext,
   preReadChunks?: Uint8Array[],
+  collator = sortCollator(context.env),
 ): Promise<{ exitCode: number }> {
       let ended = false;
       let hasCheckLong = false;
@@ -1065,6 +1078,16 @@ async function executeSortGeneral(
       const simple = !keys.length && !["b", "f", "h", "n", "g", "M", "V", "d", "i"].some(flag => parsed.flags.has(flag));
       const direction = parsed.flags.has("r") ? -1 : 1;
       const work = new SortWork(context.signal);
+      const decoder = collator ? new TextDecoder("utf-8", { fatal: true }) : undefined;
+      const compareText = collator ? async (left: Uint8Array, right: Uint8Array, work: SortWork): Promise<number> => {
+        await work.charge(left.length + right.length);
+        let first: string | undefined, second: string | undefined;
+        try { first = decoder!.decode(left); } catch { /* Invalid UTF-8 sorts after valid text. */ }
+        try { second = decoder!.decode(right); } catch { /* Keep invalid records byte-ordered. */ }
+        if (first === undefined) return second === undefined ? compareSortBytes(left, right, work) : 1;
+        if (second === undefined) return -1;
+        return collator.compare(first, second);
+      } : compareSortBytes;
       const numericKey = keys.length === 1 ? keys[0] : undefined;
       const numericKeyFlags = numericKey?.flags.size ? numericKey.flags : parsed.flags;
       const skipTieFallback = simple || parsed.flags.has("s") || parsed.flags.has("u");
@@ -1073,6 +1096,7 @@ async function executeSortGeneral(
       const delimiter = parsed.flags.has("z") ? 0 : 10;
       const outPath = value(parsed, "o");
       const canFastIndexSort =
+        collator === undefined &&
         !preReadChunks &&
         !checking &&
         !hasYieldCheckpoint(context.signal) &&
@@ -1277,7 +1301,7 @@ async function executeSortGeneral(
             result = a.rank - b.rank || (a.value < b.value ? -1 : a.value > b.value ? 1 : 0);
           } else if (flags.has("M")) result = await monthValue(first, work) - await monthValue(second, work);
           else if (flags.has("V")) result = await compareVersions(first, second, work);
-          else result = flags.has("n") || flags.has("h") ? await compareNumeric(first, second, flags.has("h")) : await compareSortBytes(first, second, work);
+          else result = flags.has("n") || flags.has("h") ? await compareNumeric(first, second, flags.has("h")) : await compareText(first, second, work);
           if (flags.has("r")) result = -result;
           if (result) return result;
         }
@@ -1285,7 +1309,7 @@ async function executeSortGeneral(
       };
       const keyCompareSimpleAsync = async (left: Uint8Array, right: Uint8Array, checkpoint: Promise<void>): Promise<number> => {
         await checkpoint;
-        return (await compareSortBytes(left, right, work)) * direction;
+        return (await compareText(left, right, work)) * direction;
       };
       const compareUnkeyedNumericAsync = async (left: NumericValue | Promise<NumericValue>, right: Uint8Array, rightPending: NumericValue | Promise<NumericValue> | undefined): Promise<number> => {
         const leftValue = await left;
@@ -1296,7 +1320,7 @@ async function executeSortGeneral(
         const checkpoint = work.charge();
         if (simple) {
           if (checkpoint) return keyCompareSimpleAsync(left, right, checkpoint);
-          const cmp = compareSortBytes(left, right, work);
+          const cmp = compareText(left, right, work);
           return typeof cmp === "number" ? cmp * direction : resolveScaledAfterPromise(cmp, direction);
         }
         if (isUnkeyedNumericFast && checkpoint === undefined) {
@@ -1335,7 +1359,7 @@ async function executeSortGeneral(
           if (checkpoint) await checkpoint;
           const first = await (firstPending ?? getKeyedLexSlice(left));
           const second = await (secondPending ?? getKeyedLexSlice(right));
-          return (await compareSortBytes(first, second, work)) * lexRev;
+          return (await compareText(first, second, work)) * lexRev;
         };
         keyCompare = (left: Uint8Array, right: Uint8Array) => {
           const checkpoint = work.charge();
@@ -1346,7 +1370,7 @@ async function executeSortGeneral(
             if (!(first instanceof Promise)) {
               second = getKeyedLexSlice(right);
               if (!(second instanceof Promise)) {
-                const cmp = compareSortBytes(first, second, work);
+                const cmp = compareText(first, second, work);
                 if (typeof cmp === "number") return cmp * lexRev;
                 return resolveScaledAfterPromise(cmp, lexRev);
               }
@@ -1508,7 +1532,7 @@ async function executeSortGeneral(
               if (ls === undefined) return keyCompareGeneralAsync(left, right, undefined);
               const rs = ev.evalLexSync(right);
               if (rs === undefined) return keyCompareGeneralAsync(left, right, undefined);
-              const cmp = compareSortBytes(ls, rs, work);
+              const cmp = compareText(ls, rs, work);
               if (typeof cmp !== "number") return keyCompareGeneralAsync(left, right, undefined);
               if (cmp !== 0) return cmp * ev.revScale;
             }
@@ -1519,13 +1543,13 @@ async function executeSortGeneral(
       const compareSlowAsync = async (resultPromise: Promise<number>, left: Uint8Array, right: Uint8Array): Promise<number> => {
         const resolved = await resultPromise;
         if (resolved !== 0 || skipTieFallback) return resolved;
-        return (await compareSortBytes(left, right, work)) * direction;
+        return (await compareText(left, right, work)) * direction;
       };
       const compare = (left: Uint8Array, right: Uint8Array): number | Promise<number> => {
         const result = keyCompare(left, right);
         if (typeof result === "number") {
           if (result !== 0 || skipTieFallback) return result;
-          const fallback = compareSortBytes(left, right, work);
+          const fallback = compareText(left, right, work);
           return typeof fallback === "number" ? fallback * direction : resolveScaledAfterPromise(fallback, direction);
         }
         return compareSlowAsync(result, left, right);
@@ -2071,6 +2095,8 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
 export function textCommands(): CommandDefinition[] {
   return [
     define("sort", context => {
+      const collator = sortCollator(context.env);
+      if (collator) return executeSortGeneral(context, undefined, collator);
       if (
         (context.args.length === 0 || (context.args.length === 1 && context.args[0] === "-r")) &&
         !hasYieldCheckpoint(context.signal) &&

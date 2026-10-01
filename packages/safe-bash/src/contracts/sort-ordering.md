@@ -6,8 +6,11 @@ and `-m`/`--merge`. `--sort` accepts `numeric`, `general-numeric`,
 `human-numeric`, `month` and `version`. Ordering flags also work on key
 endpoints and use the existing key-local override rules.
 
-These modes use the command's C byte profile, regardless of locale environment
-variables. Dictionary order keeps ASCII letters, digits, spaces and tabs;
+Text ordering uses `LC_ALL`, then `LC_COLLATE`, then `LANG`. Unset locales and
+C/POSIX (including C.UTF-8) use byte ordering; supported named locales use the
+host's Intl collation with lowercase first. Numeric, version and month parsing
+retain their existing byte profiles. Invalid UTF-8 records follow valid text
+and compare by bytes. Dictionary order keeps ASCII letters, digits, spaces and tabs;
 nonprinting filtering keeps bytes 32 through 126. Both preserve original output
 bytes and use the existing whole-record byte comparison to break ties unless
 stable or unique mode disables it.

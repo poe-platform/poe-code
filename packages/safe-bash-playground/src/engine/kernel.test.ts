@@ -634,7 +634,7 @@ describe("real safe-bash browser kernel", () => {
         "iconv"
       ])
     );
-    expect(kernel.supportedCommands).toHaveLength(115);
+    expect(kernel.supportedCommands).toHaveLength(188);
     expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["lzma", "unlzma", "lzcat"]));
     expect(kernel.supportedCommands).toEqual(expect.arrayContaining(["sha512sum", "sha384sum", "sha224sum", "gh"]));
   });

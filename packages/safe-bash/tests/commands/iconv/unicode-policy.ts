@@ -93,8 +93,12 @@ const discardedInputCases = new Set([
 ]);
 for (const fixture of [...cases, ...reviewCases, ...translitCases]) {
   if (!discardedInputCases.has(fixture.name)) continue;
+  const previous = unicodePolicy[fixture.name];
+  const stdoutHex = previous?.stdoutHex ?? fixture.stdoutHex;
+  if (stdoutHex === undefined) throw new Error(`Missing Unicode policy output: ${fixture.name}`);
   unicodePolicy[fixture.name] = {
-    ...(unicodePolicy[fixture.name] ?? { stdoutHex: fixture.stdoutHex, stderrHex: "portableStderrHex" in fixture ? fixture.portableStderrHex : fixture.stderrHex }),
+    stdoutHex,
+    stderrHex: previous?.stderrHex ?? ("portableStderrHex" in fixture ? fixture.portableStderrHex : fixture.stderrHex),
     exitCode: 1,
   };
 }

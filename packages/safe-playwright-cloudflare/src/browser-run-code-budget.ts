@@ -1,8 +1,5 @@
 import { PlaywrightResourceLimitError } from "@poe-platform/safe-bash/playwright";
 
-// The separate owned-browser privacy transport still uses this legacy budget.
-export const MAX_RUN_CODE_FRAME_BYTES = 32 * 1024 * 1024;
-
 interface ProtocolMessage {
 	id?: number;
 	method?: string;

@@ -2,9 +2,9 @@ import type { Browser, BrowserWorker } from "@cloudflare/playwright";
 import { createPlaywrightStorageOriginPreparer } from "@poe-platform/safe-bash/playwright";
 import {
 	createBrowserPrivateTransport,
+  type BrowserPrivateTransportOptions,
 	waitForBrowserSocketClose,
 } from "./browser-private-transport.js";
-import { MAX_RUN_CODE_FRAME_BYTES } from "./browser-run-code-budget.js";
 import {
 	beginBrowserOwnerShutdown,
 	closeBrowserSocket,
@@ -21,13 +21,14 @@ const BROWSER_RELEASE_MS = 5_000;
 export async function acquireCloudflareBrowser(options: {
 	binding: BrowserWorker;
 	signal: AbortSignal;
+  transportLimits?: BrowserPrivateTransportOptions;
 }) {
 	const { binding, signal } = options;
 	signal.throwIfAborted();
 	const { acquire, connect } = await import("@cloudflare/playwright");
 	signal.throwIfAborted();
 	const { sessionId } = await acquire(binding, { keep_alive: BROWSER_IDLE_MS });
-	const owned = createOwnedConnections(binding, sessionId);
+	const owned = createOwnedConnections(binding, sessionId, options.transportLimits);
 	const canceled = Promise.withResolvers<never>();
 	const onAbort = () => {
 		canceled.reject(signal.reason);
@@ -57,16 +58,9 @@ export async function acquireCloudflareBrowser(options: {
 	}
 }
 
-function createOwnedConnections(binding: BrowserWorker, sessionId: string) {
+function createOwnedConnections(binding: BrowserWorker, sessionId: string, transportLimits: BrowserPrivateTransportOptions = {}) {
 	const sessionURL = `http://fake.host/v1/devtools/browser/${encodeURIComponent(sessionId)}`;
-	const protocolLimits = {
-		maxMessageBytes: MAX_RUN_CODE_FRAME_BYTES,
-		maxPendingBytes: MAX_RUN_CODE_FRAME_BYTES,
-	};
-	const privacy = createBrowserPrivateTransport({
-		...protocolLimits,
-		maxBufferedBytes: MAX_RUN_CODE_FRAME_BYTES,
-	});
+	const privacy = createBrowserPrivateTransport(transportLimits);
 	const upstreams = new Set<WebSocket>();
 	const clients = new AbortController();
 	const snapshots = createBrowserSnapshotScheduler();

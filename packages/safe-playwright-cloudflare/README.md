@@ -213,3 +213,5 @@ agent-tool-service at `a03e2c70269656d767e775848e69e30254f27217`. Consumer persi
 and owner-manifest implementations appear only as test fixtures; they are excluded
 from published artifacts. The adapter and portable profiles own the reusable
 lifecycle used by those fixtures.
+
+The shell adapter options accept `transportLimits` for owned-browser protocol budgets (including `maxMessageBytes`, `maxPendingBytes`, and `maxBufferedBytes`). Omitted budgets are unlimited.

@@ -1,3 +1,4 @@
+import type { BrowserPrivateTransportOptions } from "./browser-private-transport.js";
 import type { FileSystem } from "@poe-code/safe-fs/core";
 import type {
 	Browser,
@@ -42,7 +43,7 @@ export function createCloudflarePlaywrightAdapter(
 		): Promise<BrowserStorageState | undefined>;
 	},
   runtime?: BrowserCodeRuntime,
-  limits: { maxStorageBytes?: number; artifactFileSystem?: FileSystem; traceCapture?: "live" | "archive"; traceLimits?: TraceLimits } = {},
+  limits: { transportLimits?: BrowserPrivateTransportOptions; maxStorageBytes?: number; artifactFileSystem?: FileSystem; traceCapture?: "live" | "archive"; traceLimits?: TraceLimits } = {},
 ): PlaywrightAdapter {
   const nativeBuffer = globalThis.Buffer;
   if (limits.maxStorageBytes !== undefined && limits.maxStorageBytes !== Infinity && (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1)) throw new TypeError('Invalid Cloudflare storage byte limit');
@@ -58,7 +59,7 @@ export function createCloudflarePlaywrightAdapter(
 				if (!binding)
 					throw new Error("Playwright is unavailable: BROWSER binding missing");
 				const { generateBrowserActionCode } = await import("./browser-codegen.js");
-				const resource = await acquireCloudflareBrowser({ binding, signal });
+				const resource = await acquireCloudflareBrowser({ binding, signal, transportLimits: limits.transportLimits });
 				const traces = new Map<object, ReturnType<typeof prepareBrowserTraceBudget>>();
 				return {
 					prepareStorageOrigin: resource.prepareStorageOrigin,

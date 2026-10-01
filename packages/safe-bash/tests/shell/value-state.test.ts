@@ -33,6 +33,49 @@ function fixture(bytes = 4096, fields = 64) {
   return { arena, scope, store };
 }
 
+test("shrinking positional strings fits their existing finite arena reservation", () => {
+  const { arena, store } = fixture(12);
+  let values = ["aa", "bbbb"];
+  store.replaceStrings(values, () => {});
+  store.replaceStrings(["bbbb"], () => { values = values.slice(1); });
+  assert.deepEqual(values, ["bbbb"]);
+  assert.deepEqual(arena.usage, { bytes: 8, slots: 0 });
+  store.close();
+  assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+  arena.close();
+});
+
+test("positional string replacement keeps a cloned reservation independent", () => {
+  const { arena, store } = fixture(24);
+  store.replaceStrings(["aa", "bbbb"], () => {});
+  const snapshot = store.clone();
+  store.replaceStrings(["bbbb"], () => {});
+  assert.deepEqual(arena.usage, { bytes: 20, slots: 0 });
+  store.close();
+  assert.deepEqual(arena.usage, { bytes: 12, slots: 0 });
+  snapshot.close();
+  assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+  arena.close();
+});
+
+for (const next of [["x"], ["longer"]]) {
+  test(`failed positional string publication preserves reservation: ${next}`, () => {
+    const { arena, store } = fixture(12);
+    store.replaceStrings(["old"], () => {});
+    const before = arena.usage;
+    const reason = new Error("publication failed");
+    assert.throws(() => store.replaceStrings(next, () => { throw reason; }), error => error === reason);
+    assert.deepEqual(arena.usage, before);
+    let called = false;
+    assert.throws(() => store.replaceStrings(["too large"], () => { called = true; }));
+    assert.equal(called, false);
+    assert.deepEqual(arena.usage, before);
+    store.close();
+    assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+    arena.close();
+  });
+}
+
 for (const bytes of [4096, Infinity]) {
   for (const replacement of ["", "next"]) {
     test(`optimized string publication replaces a shared text snapshot: ${bytes}, ${JSON.stringify(replacement)}`, () => {

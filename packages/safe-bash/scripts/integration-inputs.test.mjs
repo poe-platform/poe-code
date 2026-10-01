@@ -72,6 +72,11 @@ test("issue 4087 sed BRE regressions remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/sed-bre-address-4087.test.ts"));
 });
 
+test("eval and loop isolation regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/eval-loop-isolation.test.ts"));
+});
+
 test("issue 4106 substitution parity regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/substitution-parity-4106.test.ts"));

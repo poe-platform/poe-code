@@ -530,14 +530,21 @@ export class ValueStore {
     for (let i = 0; i < values.length; i++) {
       totalBytes += values[i]!.length * 2;
     }
-    const record = this.arena.allocate(totalBytes, 0);
+    const previousRecord = this._stringRecord;
+    const previousBytes = this._stringBytes;
+    const record = previousRecord ?? this.arena.allocate(totalBytes, 0);
+    // Keep the old reservation until publication succeeds, admitting only growth.
+    if (previousRecord) this.arena.resizeStringRecord(record, Math.max(previousBytes, totalBytes));
     try {
       action();
     } catch (error) {
-      this.arena.release(record);
+      if (previousRecord) this.arena.shrinkStringRecord(record, Math.max(0, totalBytes - previousBytes));
+      else this.arena.release(record);
       throw error;
     }
+    this._stringRecord = undefined;
     this.invalidate();
+    if (previousRecord) this.arena.shrinkStringRecord(record, Math.max(0, previousBytes - totalBytes));
     this._stringRecord = record;
     this._stringBytes = totalBytes;
   }

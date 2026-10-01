@@ -3,7 +3,7 @@ import type { FileSystem } from "@poe-code/safe-fs";
 import { FsError, readBytes, toByteSource, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
-import { pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "safe-bash-io-engine/internal";
+import { pathOf, RESOLVED_EXIT_ZERO } from "safe-bash-io-engine/internal";
 import { createSyncSingleChunkByteSource } from "safe-bash-io-engine/commands/search/requirements";
 import { joinPath } from "safe-bash-contracts/path";
 import { escapeText, writeDiagnostic } from "safe-bash-contracts/escaping";
@@ -256,8 +256,11 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
       committing = true;
       const wrote = typeof syncSink.writeRangeSync === "function"
         ? syncSink.writeRangeSync(outBuf, len)
-        : syncSink.writeSync(outBuf.subarray(0, len));
-      if (!wrote) return undefined;
+        : syncSink.writeSync(new Uint8Array(outBuf.subarray(0, len)));
+      if (!wrote) {
+        const bytes = new Uint8Array(outBuf.subarray(0, len));
+        return writeBytes(context.stdout, bytes, context.signal).then(() => ({ exitCode: 0 }));
+      }
     }
     if (jqAstCache.size < 64) jqAstCache.set(source, cachedAst);
     return RESOLVED_EXIT_ZERO;
@@ -796,62 +799,30 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     let status = 0;
     const suffix = options.rawOutput0 ? "\0" : options.joinOutput ? "" : "\n";
     const isPlainFormat = !options.format.ascii && !options.format.color && !options.sequence && !options.rawOutput0;
-    const isCompactPlain = isPlainFormat && options.format.indent === "" && !options.sortKeys;
     const tryPublishSync = (result: Json): boolean => {
-      if (!isPlainFormat || budget.needsYield()) return false;
-      const isRawStr = options.raw && typeof result === "string";
-      const isScalar = result === null || typeof result !== "object";
-      if (!isCompactPlain && !isScalar) return false;
-      // The compact writers only accept objects; scalar JSON uses stringify.
-      if (isScalar && !isRawStr) return false;
-      if (budget.results + 1 > budget.maxResultsSmi && budget.results + 1 > limits.maxResults) throw new JqLimitError("maxResults");
-      let buf = outBuf;
-      if (!buf) {
+      if (!isPlainFormat || budget.needsYield() || !options.raw || typeof result !== "string") return false;
+      const chunkLen = result.length + suffix.length;
+      // Probe before charging: a declined publication is accounted by publishResult.
+      if (chunkLen === 0 || outPos + chunkLen > OUT_BUF_SIZE) return false;
+      for (let i = 0; i < result.length; i++) {
+        if (result.charCodeAt(i) >= 0x80) return false;
+      }
+      // Keep the same limit precedence as the general publication path.
+      budget.step();
+      budget.value(result);
+      if (++budget.results > limits.maxResults) throw new JqLimitError("maxResults");
+      if (chunkLen > limits.maxOutputBytes - budget.outputBytes) throw new JqLimitError("maxOutputBytes");
+      if (!outBuf) {
         if (!sharedJqOutBufInUse) {
           sharedJqOutBufInUse = true;
           usingSharedOutBuf = true;
-          buf = outBuf = sharedJqOutBuf ??= new Uint8Array(OUT_BUF_SIZE);
-        } else {
-          buf = outBuf = new Uint8Array(OUT_BUF_SIZE);
-        }
+          outBuf = sharedJqOutBuf ??= new Uint8Array(OUT_BUF_SIZE);
+        } else outBuf = new Uint8Array(OUT_BUF_SIZE);
       }
-      if (isRawStr) {
-        const str = result as string;
-        const chunkLen = str.length + suffix.length;
-        // A declined probe neither writes nor charges work that the fallback repeats.
-        if (outPos + chunkLen > OUT_BUF_SIZE) return false;
-        for (let i = 0; i < str.length; i++) {
-          if (str.charCodeAt(i) >= 0x80) return false;
-        }
-        const remaining = limits.maxOutputBytes - budget.outputBytes;
-        // A zero-byte result still needs a sink write to preserve backpressure.
-        if (chunkLen === 0) return false;
-        if (chunkLen > remaining) throw new JqLimitError("maxOutputBytes");
-        budget.step();
-        budget.value(str);
-        budget.results++;
-        budget.outputBytes += chunkLen;
-        let pos = outPos;
-        for (let i = 0; i < str.length; i++) buf[pos++] = str.charCodeAt(i);
-        for (let i = 0; i < suffix.length; i++) buf[pos++] = suffix.charCodeAt(i);
-        outPos = pos;
-        return true;
-      }
-      const remSmi = budget.maxOutputBytesSmi - budget.outputBytes;
-      const maxChunkSmi = remSmi > suffix.length
-        ? remSmi - suffix.length
-        : (limits.maxOutputBytes === Infinity ? 0x3fffffff : Math.max(0, limits.maxOutputBytes - budget.outputBytes - suffix.length));
-      if (outPos + 512 > OUT_BUF_SIZE && outPos > 0) return false;
-      const newPos = tryWriteCompactSync(result, budget, buf, outPos, suffix, maxChunkSmi, interpreter.getScratchKeys(result));
-      if (newPos >= 0) {
-        const chunkLen = newPos - outPos;
-        if (chunkLen > remSmi && chunkLen > limits.maxOutputBytes - budget.outputBytes) throw new JqLimitError("maxOutputBytes");
-        budget.results++;
-        budget.outputBytes += chunkLen;
-        outPos = newPos;
-        return true;
-      }
-      return false;
+      budget.outputBytes += chunkLen;
+      for (let i = 0; i < result.length; i++) outBuf[outPos++] = result.charCodeAt(i);
+      for (let i = 0; i < suffix.length; i++) outBuf[outPos++] = suffix.charCodeAt(i);
+      return true;
     };
     const publishResult = async (result: Json): Promise<void> => {
       await flushStdout();

@@ -83,3 +83,39 @@ for (const scenario of ["slurp", "fallback", "async output"] as const) test(`jq 
   assert.deepEqual(scratchResults, [true, true, true]);
  }
 });
+
+for (const decline of [false, true]) test(`jq fast output owns bytes and charges one read (decline=${decline})`, async () => {
+ const fs = createMemoryFileSystem();
+ await fs.writeFile("/a", new TextEncoder().encode('{"x":1}\n'));
+ await fs.writeFile("/b", new TextEncoder().encode('{"x":8}\n'));
+ const retained: Uint8Array[] = [];
+ let charges = 0;
+ const command = createJqCommand();
+ for (const file of ["/a", "/b"]) {
+  const values = createCommandArguments(["-c", "{a: (.x + 1)}", file]);
+  const context = {
+   command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+   _fastMemoryBackingFs: fs, _chargeFastFsOp() { charges++; },
+   stdin: toByteSource(""), signal: new AbortController().signal,
+   stdout: { writeSync(bytes: Uint8Array) { if (decline) return false; retained.push(bytes); return true; },
+    async write(bytes: Uint8Array) { retained.push(bytes); } },
+   stderr: { async write(bytes: Uint8Array) { assert.fail(new TextDecoder().decode(bytes)); } },
+  };
+  assert.equal((await command.execute(context)).exitCode, 0);
+ }
+ assert.deepEqual(retained.map(bytes => new TextDecoder().decode(bytes)), ['{"a":2}\n', '{"a":9}\n']);
+ assert.equal(charges, 2);
+});
+
+for (const value of ["aaaaaaaa", "éééé"]) test(`jq value limit precedes output limit for ${value}`, async () => {
+ const values = createCommandArguments(["-rn", JSON.stringify(value)]);
+ let stderr = "";
+ const result = await createJqCommand({ limits: { maxValueBytes: 7, maxOutputBytes: 5 } }).execute({
+  command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs: createMemoryFileSystem(),
+  stdin: toByteSource(""), signal: new AbortController().signal,
+  stdout: { async write() { assert.fail("unexpected output"); } },
+  stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+ });
+ assert.notEqual(result.exitCode, 0);
+ assert.match(stderr, /maxValueBytes/);
+});

@@ -8,7 +8,7 @@ workspace is bundled into safe-bash and is not published independently.
 ```sh
 unrtf --text /document.rtf
 unrtf --html /document > /document.html
-cat /document.rtf | unrtf --text
+cat /document.rtf | unrtf -t text -
 ```
 
 Commands run inside a Safe Bash shell after explicit `shell.use(unrtfCommands())`;
@@ -43,7 +43,8 @@ for await (const event of extractRtf(input(), { limits, signal })) {
 | `charsetCodePages`, `codecLabels` | Explicit source charset mapping and codec inventory |
 | `unrtfBaseline` | Pinned source provenance and admitted extraction profile |
 
-`standards-strict` is the default profile. `native-legacy` and `recovery`
+`standards-strict` is the default profile for text and HTML. LaTeX and
+`noremap` automatically select `gnu-0.21.10` when no profile is specified. `native-legacy` and `recovery`
 fail with `E_PROFILE` before input is pulled. This is standards-oriented
 extraction, **not GNU UnRTF 0.21.10 personality compatibility**.
 `unrtfBaseline` pins the official source archive SHA256
@@ -91,7 +92,8 @@ group/font/encoding/plain/Unicode/table boundaries flush and reject incompletene
 
 Register `unrtfCommands()` with a shell. SDK conversion uses
 `unrtf(context, { format: 'text', file: '/document.rtf', limits })`.
-HTML is default. Omit the file for stdin; `-` is a literal filename. Only one
+HTML is default. Omit the file or use `-` for stdin; use `./-` for a literal dash filename.
+Relative paths resolve against the shell working directory and normalize dot segments. Only one
 file is allowed; missing exact VFS paths retry with `.rtf` appended. `--` ends
 options (an explicit GNU deviation). Unsupported flags fail `E_PROFILE`, status 1,
 before input access; no ambient configuration search occurs.
@@ -99,14 +101,18 @@ before input access; no ambient configuration search occurs.
 | Supported CLI flag | Behavior |
 | --- | --- |
 | `--text` | UTF-8 text; no separator or added final LF |
+| `-t text\|html\|latex`, `-t=<format>` | Select output format |
+| `--latex` | LaTeX output using GNU personality templates by default |
+| `--noremap` | Bypass GNU character aliases; selects GNU templates by default |
 | `--html` | Strict HTML projection (default), not GNU HTML personality output |
 | `--quiet` | Accepted; this profile never emits initial comments |
 | `--nopict`, `-n` | Accepted; this profile never exports pictures |
 | `--` | End options; subsequent arguments are literal VFS operands |
 
 `--profile=standards-strict` and `--profile=gnu-0.21.10` select the profile.
-`--latex` and `--noremap` require the GNU profile; the latter has SDK option
-`noremap`. `--help` and `--version` remain unsupported. The last format flag
+`--latex` and `--noremap` automatically select the GNU profile unless a profile
+is explicitly supplied; explicit `standards-strict` rejects these options. SDK
+`format: 'latex'` and `noremap: true` select the same defaults. `--help` and `--version` remain unsupported. The last format flag
 wins. `--nopict` is unconditional in both profiles; SDK `quiet` controls the GNU banner.
 
 All resource quotas are unlimited by default. The command and stream APIs

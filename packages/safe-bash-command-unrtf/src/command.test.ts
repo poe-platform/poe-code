@@ -40,11 +40,41 @@ test('explicit GNU personality matches issue 292 and preserves CLI/SDK parity', 
     assert.deepEqual(cli.stdout,sdk.stdout);
   }
 });
-test('one literal VFS operand retries appended .rtf; dash remains a filename', async () => {
-  const cli = fixture(['--text','-'], {'/vfs/-.rtf':'{\\rtf1 literal}'});
-  assert.equal((await createUnrtfCommand().execute(cli.context)).exitCode,0);
-  assert.deepEqual(cli.opened,['/vfs/-','/vfs/-.rtf']);
-  assert.equal(new TextDecoder().decode(Uint8Array.from(cli.stdout)),'literal');
+test('dash reads stdin in CLI and SDK without filesystem access', async () => {
+  for (const cli of [true,false]) {
+    const f = fixture(['--text','-'], {'/-.rtf':'{\\rtf1 wrong}'});
+    Object.assign(f.context,{cwd:'/'});
+    const result = cli ? await createUnrtfCommand().execute(f.context) : await unrtf(f.context,{format:'text',file:'-'});
+    assert.equal(result.exitCode,0);
+    assert.deepEqual(f.opened,[]);
+    assert.equal(new TextDecoder().decode(Uint8Array.from(f.stdout)),'<A>\nB');
+  }
+});
+test('file paths normalize root, dot and parent segments before extension fallback', async () => {
+  for (const [cwd,file,path] of [['/','input','/input'],['/vfs','./sub/../input','/vfs/input'],['/vfs','../input','/input'],['/vfs','/a/../input','/input']]) {
+    for (const cli of [true,false]) {
+      const f = fixture(['--text',file!],{[path+'.rtf']:'{\\rtf1 literal}'});
+      Object.assign(f.context,{cwd});
+      const result = cli ? await createUnrtfCommand().execute(f.context) : await unrtf(f.context,{format:'text',file:file!});
+      assert.equal(result.exitCode,0);
+      assert.deepEqual(f.opened,[path,path+'.rtf']);
+      assert.equal(new TextDecoder().decode(Uint8Array.from(f.stdout)),'literal');
+    }
+  }
+});
+test('short format options match long options and SDK without a profile', async () => {
+  for (const format of ['text','html','latex'] as const) for (const noremap of [false,true]) {
+    const sdk = fixture([]);
+    assert.equal((await unrtf(sdk.context,{format,noremap})).exitCode,0);
+    for (const flags of [['--'+format],['-t',format],['-t='+format],['--html','-t',format]]) {
+      const f = fixture([...flags,...(noremap ? ['--noremap'] : [])]);
+      assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,0);
+      assert.deepEqual(f.stdout,sdk.stdout);
+      const output = new TextDecoder().decode(Uint8Array.from(f.stdout));
+      if (format === 'latex') assert.ok(output.includes('\\begin{document}'));
+      if (format === 'html' && noremap) assert.ok(output.includes('<body><A>'));
+    }
+  }
 });
 test('GNU quiet, aliases, noremap and scoped emphasis use official personality templates', async () => {
   for (const [format,input,body] of [
@@ -93,7 +123,7 @@ test('missing VFS input fails without emitting an HTML document in CLI and SDK',
   }
 });
 test('unadmitted profiles/options and multiple files fail before I/O', async () => {
-  for (const args of [['--latex'],['-P','/ambient'],['a','b']]) {
+  for (const args of [['-t'],['-t='],['-t','pdf'],['-t=pdf'],['--profile=native-legacy'],['-P','/ambient'],['a','b']]) {
     const f = fixture(args);
     assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,1);
     assert.deepEqual(f.opened,[]); assert.deepEqual(f.stdout,[]); assert.ok(f.stderr.length);
@@ -117,7 +147,7 @@ test('invocation cleanup is registered before reading output capabilities', asyn
   assert.equal((await createUnrtfCommand().execute(f.context)).exitCode,0);
 });
 test('invalid SDK formats and NUL operands fail before input access', async () => {
-  for (const options of [{format:'latex' as 'text'}, {file:'bad\0path'}]) {
+  for (const options of [{format:'pdf' as 'text'}, {file:'bad\0path'}]) {
     const f = fixture([]);
     assert.equal((await unrtf(f.context,options)).exitCode,1);
     assert.deepEqual(f.opened,[]);

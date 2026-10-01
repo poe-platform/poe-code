@@ -1,3 +1,4 @@
+import { resolvePath } from '@poe-code/safe-fs/core';
 import { commandRuntimeIdentity, getCommandArguments, type CommandContext, type CommandDefinition } from 'safe-bash-contracts/command';
 import { FsError } from 'safe-bash-contracts/errors';
 import { readBytes, writeBytes } from 'safe-bash-contracts/io';
@@ -52,7 +53,7 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
       const carrier = getCommandArguments(context);
       budget.bound('tokens',carrier.args.length,0);
       file = undefined;
-      let operands = false;
+      let operands = false, expectFormat = false;
       for (let i = 0; i < carrier.args.length; i++) {
         const projected = carrier.args[i]!; admit(projected);
         const bytes = carrier.bytes(i)!;
@@ -60,6 +61,12 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
         let arg:string;
         try { arg = new TextDecoder('utf-8',{fatal:true,ignoreBOM:true}).decode(bytes); }
         catch { throw new UnrtfError('E_ENCODING','Arguments must be UTF-8',0); }
+        if (expectFormat || !operands && arg.startsWith('-t=')) {
+          const value = expectFormat ? arg : arg.slice(3);
+          if (value !== 'text' && value !== 'html' && value !== 'latex') throw new UnrtfError('E_PROFILE','Unsupported output format',0);
+          format = value; expectFormat = false; continue;
+        }
+        if (!operands && arg === '-t') { expectFormat = true; continue; }
         if (!operands && arg === '--') { operands = true; continue; }
         if (operands) { if (file !== undefined) throw new UnrtfError('E_PARSE','Only one input file is supported',0); file = arg; }
         else if (arg === '--text') format = 'text';
@@ -72,7 +79,9 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
         else if (arg.startsWith('--') && arg !== '--' || arg.startsWith('-') && arg !== '-' && arg !== '--') throw new UnrtfError('E_PROFILE','Option requires an unadmitted personality/configuration profile',0);
         else { if (file !== undefined) throw new UnrtfError('E_PARSE','Only one input file is supported',0); file = arg; }
       }
+      if (expectFormat) throw new UnrtfError('E_PARSE','Missing output format after -t',0);
     } else if (file !== undefined) admit(file);
+    if (profile === undefined && (format === 'latex' || noremap)) profile = 'gnu-0.21.10';
     new Budget({limits,signal,...(profile === undefined ? {} : {profile})});
     if (format !== 'text' && format !== 'html' && !(profile === 'gnu-0.21.10' && format === 'latex') || noremap && profile !== 'gnu-0.21.10') throw new UnrtfError('E_PROFILE','Option requires the GNU personality profile',0);
     if (file?.includes('\0')) throw new UnrtfError('E_PARSE','NUL is unavailable in VFS paths',0);
@@ -82,8 +91,8 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
       context.inputBudget?.check(inputBytes += bytes.byteLength);
     };
     async function* source():AsyncGenerator<Uint8Array> {
-      if (file === undefined) { for await (const bytes of readBytes(context.stdin,signal)) { admitInput(bytes); yield bytes; } return; }
-      const path = file.startsWith('/') ? file : context.cwd + '/' + file;
+      if (file === undefined || file === '-') { for await (const bytes of readBytes(context.stdin,signal)) { admitInput(bytes); yield bytes; } return; }
+      const path = resolvePath(context.cwd,file);
       for (const candidate of [path,path + '.rtf']) {
         let yielded = false;
         try {

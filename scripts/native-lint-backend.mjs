@@ -75,94 +75,11 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
       fileSystem.mkdirSync(out, { recursive: true, mode: 0o700 });
       assert.equal(
         fileSystem.realpathSync(out),
-        out,
+        path.join(fileSystem.realpathSync(root), "out"),
         "Native snapshots must remain inside the checkout"
       );
       const directory = fileSystem.mkdtempSync(path.join(out, "native-lint-"));
       try {
-        if (fileSystem === fs) {
-          let positive;
-          try {
-            positive = new Set();
-            const groupedSubjects = new Map();
-            const byFilename = new Map();
-            for (const subject of subjects) {
-              const configuration = configurationFor(subject.configuration);
-              const signature = JSON.stringify(configuration);
-              let group = groupedSubjects.get(signature);
-              if (!group) {
-                group = { configuration, list: [] };
-                groupedSubjects.set(signature, group);
-              }
-              group.list.push(subject);
-              byFilename.set(path.resolve(subject.filename), subject);
-            }
-            let groupIndex = 0;
-            for (const { configuration, list } of groupedSubjects.values()) {
-              const config = path.join(directory, "config-" + groupIndex++ + ".json");
-              fileSystem.writeFileSync(
-                config,
-                JSON.stringify({
-                  plugins: ["typescript"],
-                  categories: { correctness: "off" },
-                  globals: configuration.globals,
-                  rules: configuration.rules
-                }),
-                { mode: 0o600 }
-              );
-              const filenames = list.map((s) => path.relative(root, s.filename));
-              for (let offset = 0; offset < filenames.length; offset += 800) {
-                const batch = filenames.slice(offset, offset + 800);
-                const execution = await invoke(
-                  [
-                    "--config",
-                    config,
-                    "--format",
-                    "json",
-                    "--no-ignore",
-                    "--disable-nested-config",
-                    ...batch
-                  ],
-                  { cwd: root }
-                );
-                assert.ok(execution.status === 0 || execution.status === 1, "Native execution failed");
-                const result = JSON.parse(execution.stdout);
-                assert.equal(result.number_of_files, batch.length, "Native lint skipped guarded files");
-                assert.ok(Array.isArray(result.diagnostics), "Native diagnostics are missing");
-                assert.ok(
-                  execution.status === 0 || result.diagnostics.length,
-                  "Native execution failed without diagnostics"
-                );
-                for (const diagnostic of result.diagnostics) {
-                  assert.equal(typeof diagnostic.filename, "string", "Native diagnostic has no subject");
-                  const resolved = path.resolve(root, diagnostic.filename);
-                  const subject = byFilename.get(resolved);
-                  assert.ok(subject, "Native diagnostic refers to an unguarded subject");
-                  positive.add(subject);
-                }
-              }
-            }
-          } catch {
-            positive = new Set(subjects);
-          }
-          return await Promise.all(
-            subjects.map((subject) =>
-              positive.has(subject)
-                ? confirm(subject)
-                : {
-                    filePath: subject.filename,
-                    messages: [],
-                    suppressedMessages: [],
-                    errorCount: 0,
-                    warningCount: 0,
-                    fatalErrorCount: 0,
-                    fixableErrorCount: 0,
-                    fixableWarningCount: 0,
-                    usedDeprecatedRules: []
-                  }
-            )
-          );
-        }
         const groups = new Map(),
           byFilename = new Map();
         const overrides = [];
@@ -184,7 +101,7 @@ export function createNativeLintBackend({ root, fileSystem = fs, catalogue, invo
             String(index) + path.extname(subject.filename)
           );
           fileSystem.writeFileSync(filename, subject.bytes, { mode: 0o600 });
-          if (fileSystem !== fs) fileSystem.chmodSync(filename, 0o400);
+          fileSystem.chmodSync(filename, 0o400);
           byFilename.set(filename, subject);
         }
         const config = path.join(directory, "config.json");

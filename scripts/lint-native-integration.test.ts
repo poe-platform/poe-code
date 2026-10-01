@@ -47,3 +47,18 @@ it("fails closed when a native batch changes subject identity", async () => {
   expect(result.exitCode).toBe(2);
   expect(result.complete).toBe(false);
 });
+
+it("keeps guarded native bytes when the diagnostics cache misses", async () => {
+  const state = model({ "src/native.ts": "export const value = 1;" });
+  const nativeBackend = {
+    admit: (subject) => subject.filename.endsWith("native.ts"),
+    lint: async (subjects) => {
+      expect(subjects[0].bytes.toString()).toBe("export const value = 1;");
+      return subjects.map(subject => ({ filePath: subject.filename, messages: [], errorCount: 0, warningCount: 0 }));
+    }
+  };
+  const diagnosticsCache = { read: () => undefined, save: () => {}, flush: () => {} };
+  const result = await lintRoot({ guard: state.guard, config: state.config, receiptBinding: state.binding, nativeBackend, diagnosticsCache });
+  expect(result.failure).toBeNull();
+  expect(result.complete).toBe(true);
+});

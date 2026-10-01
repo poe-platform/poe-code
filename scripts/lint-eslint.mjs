@@ -118,7 +118,6 @@ export async function lintRoot({ guard, config, receiptBinding = BOUNDARY_RECEIP
         const subject = diagnosticsCache || nativeBackend ? { filename: absolute, bytes, configuration: await selection.eslint.calculateConfigForFile(absolute) } : undefined;
         const cached = subject && diagnosticsCache?.read(subject);
         if (!cached && nativeBackend?.admit(subject)) {
-          if (diagnosticsCache) subject.bytes = null;
           nativeSubjects.push(subject);
           continue;
         }
@@ -222,7 +221,7 @@ export async function main({ argv = process.argv.slice(2), root = fileURLToPath(
           nativeBackend = createNativeLintBackend({
             root, fileSystem, catalogue: JSON.parse(catalogue.stdout),
             invoke: async (args, settings) => spawnSync(process.execPath, [binary, ...args], { ...settings, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024, timeout: 60000 }),
-            confirm: async subject => (await confirmationEngine.lintText((subject.bytes ?? fs.readFileSync(subject.filename)).toString('utf8'), { filePath: subject.filename, warnIgnored: false }))[0]
+            confirm: async subject => (await confirmationEngine.lintText(subject.bytes.toString('utf8'), { filePath: subject.filename, warnIgnored: false }))[0]
           });
         }
       }

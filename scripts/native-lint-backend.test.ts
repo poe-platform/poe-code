@@ -2,7 +2,9 @@ import { createFsFromVolume, Volume } from "memfs";
 import { expect, it, vi } from "vitest";
 import { createNativeLintBackend } from "./native-lint-backend.mjs";
 
-function fixture() {
+import fs from "node:fs";
+
+function fixture(native = false) {
   const fileSystem = createFsFromVolume(
     Volume.fromJSON({ "/repo/src/a.ts": "changed disk bytes" })
   );
@@ -31,7 +33,7 @@ function fixture() {
   });
   const backend = createNativeLintBackend({
     root: "/repo",
-    fileSystem,
+    fileSystem: native ? fs : fileSystem,
     confirm,
     invoke,
     catalogue: [{ scope: "eslint", value: "no-debugger" }]
@@ -124,4 +126,23 @@ it("keeps TypeScript scripts on ESLint when legacy octal coverage requires stric
     configuration: { ...state.subject.configuration, rules: { "no-octal": [2] } }
   };
   expect(state.backend.admit(subject)).toBe(false);
+});
+
+it("uses guarded snapshots with the default filesystem too", async () => {
+ const state = fixture(true);
+ const spies = ["mkdirSync", "realpathSync", "mkdtempSync", "writeFileSync", "chmodSync", "rmSync"].map(name =>
+  vi.spyOn(fs, name).mockImplementation(state.fileSystem[name].bind(state.fileSystem)));
+ try {
+  await state.backend.lint([state.subject]);
+  expect(state.invoke).toHaveBeenCalledOnce();
+  expect(state.confirm).not.toHaveBeenCalled();
+ } finally { spies.forEach(spy => spy.mockRestore()); }
+});
+it("accepts a checkout reached through a symlink while keeping snapshots inside it", async () => {
+ const state = fixture();
+ state.fileSystem.renameSync("/repo", "/canonical");
+ state.fileSystem.symlinkSync("/canonical", "/repo");
+ await state.backend.lint([state.subject]);
+ expect(state.invoke).toHaveBeenCalledOnce();
+ expect(state.confirm).not.toHaveBeenCalled();
 });

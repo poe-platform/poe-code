@@ -318,7 +318,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
             parent: parentEntry.absolute,
             parentStat: parentEntry.stat,
             rootStat: parentEntry.rootStat,
-            segments: used ? undefined : [...(parentEntry.segments ?? []), { absolute: next, stat }],
+            segments: [...(parentEntry.segments ?? []), { absolute: next, stat }],
           };
           inspectedCache.set(rel, entry);
           return entry;
@@ -326,6 +326,7 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
         cached = resolveRel(path);
       }
       if (cached) {
+        budget(counters.metadataOperations < limits.metadataOperations, 'metadata operation cap');
         counters.metadataOperations++;
         if (validateSegment) {
           for (const seg of cached.segments) validateSegment(seg.absolute, seg.stat);
@@ -396,15 +397,6 @@ export function createLintInputGuard({ root, boundaries, fileSystem = fs, limits
       }
       budget(counters[counter] + input.stat.size <= limits[counter], 'aggregate input cap');
       counters[counter] += input.stat.size;
-      if (isRealFs) {
-        const bytes = fs.readFileSync(input.absolute);
-        counters.opens++;
-        counters.closes++;
-        counters.metadataOperations += 4;
-        counters.readCalls += Math.max(1, Math.ceil(bytes.length / 65536));
-        counters.readBytes += bytes.length;
-        return bytes;
-      }
       counters.opens++;
       const descriptor = fileSystem.openSync(input.absolute, fileSystem.constants.O_RDONLY | fileSystem.constants.O_NOFOLLOW | fileSystem.constants.O_NONBLOCK);
       let bytes;

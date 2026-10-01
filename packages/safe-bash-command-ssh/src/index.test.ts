@@ -58,6 +58,17 @@ test("ssh and ssh-keygen export standard contract and settings", () => {
   assert.equal(settings().maxBufferedBytes, Infinity);
 });
 
+test("ssh-keygen rejects unsupported and incomplete options without creating keys", async () => {
+  for (const args of [["--help"], ["--unknown"], ["-f"], ["-f", "/key", "--unknown"]]) {
+    const fs = createMemoryFileSystem();
+    const result = await runCmd(createSshKeygenCommand(), fs, args);
+    assert.equal(result.exitCode, 1, args.join(" "));
+    assert.equal(result.stdout, "");
+    assert.ok(result.stderr.includes("unsupported option"));
+    assert.deepEqual(await fs.readdir("/"), []);
+  }
+});
+
 test("ssh-keygen generates Ed25519 keys, derives pubkey (-y), fingerprints (-l), and signs/verifies SSHSIG (-Y)", async () => {
   const fs = createMemoryFileSystem();
   const keygen = createSshKeygenCommand();

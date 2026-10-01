@@ -64,8 +64,8 @@ test("csvlook explicit input-open capability takes precedence over every VFS rea
   } finally { await shell.dispose(); }
 });
 
-test("sql2csv absent SQLite capability reports a blocker without consuming supplied query stdin", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(bindings));
+test("sql2csv explicit empty database capabilities report a blocker without consuming supplied query stdin", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands({ ...bindings, databases: [] }));
   try {
     const result = await shell.exec("sql2csv --db sqlite:///:memory: --query 'SELECT 1'", {
       stdin: { async *[Symbol.asyncIterator]() { assert.fail("explicit query must not advance stdin"); yield new Uint8Array(); } }

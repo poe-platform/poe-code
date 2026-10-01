@@ -1,4 +1,6 @@
-/** Python source bundled as data; a host bridge must install it as poe_llm. */
+import { pythonLlmReferenceModule } from './llm-reference-module.js';
+
+/** Python source bundled as data; a host bridge installs lazy public modules. */
 const pythonLlmModule = /* @__PURE__ */ (() => String.raw`
 """Async Python workflows for the invocation-owned JavaScript LLM service."""
 from __future__ import annotations
@@ -493,13 +495,14 @@ class _SafeLlmLoader:
   self._source = source
   self._spec = spec
  def find_spec(self, fullname, path=None, target=None):
-  if fullname == 'poe_llm':
+  if fullname in ('poe_llm', 'llm'):
    return self._spec(fullname, self, origin='poe_llm.py')
  def create_module(self, spec):
   return None
  def exec_module(self, module):
-  module.__file__ = 'poe_llm.py'
-  exec(compile(self._source, 'poe_llm.py', 'exec'), module.__dict__)
+  module.__file__ = module.__name__ + '.py'
+  source = self._source if module.__name__ == 'poe_llm' else ${JSON.stringify(pythonLlmReferenceModule)}
+  exec(compile(source, module.__file__, 'exec'), module.__dict__)
 _safe_llm_sys.meta_path.insert(0, _SafeLlmLoader(_safe_llm_source, _safe_llm_imports.ModuleSpec))
 del _SafeLlmLoader, _safe_llm_sys, _safe_llm_imports
 `);

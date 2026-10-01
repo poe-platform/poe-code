@@ -1,9 +1,30 @@
 # Python LLM workflows
 
-The bundled Python module is named `poe_llm`, distinct from the reference `llm`
-package. It contains Python request construction and workflow code. Providers,
-model resolution, authorization, billing and file access belong to the injected
-JavaScript service.
+Use `import llm` for lazy model prompts and synchronous or asynchronous text
+responses. The bundled module routes requests through the existing JavaScript
+service for provider transport, model resolution, authorization and billing.
+
+```python
+import llm
+
+response = llm.get_model("your-model").prompt("Explain gravity", temperature=0.2)
+print(response.text())
+for chunk in llm.get_model("your-model").prompt("Explain gravity"):
+    print(chunk, end="", flush=True)
+```
+
+`llm.get_async_model(...).prompt(...)` returns an asynchronous response:
+use `await response.text()` or `async for chunk in response`. Prompts are lazy,
+completed responses replay their chunks without another provider call, and
+`on_done` callbacks run on completion. The synchronous API suspends internally;
+callers do not import Pyodide or manage a client. Explicitly close an unfinished
+response with `close()` or `await aclose()`.
+
+This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
+attachments, discovery and early model errors, conversations, embeddings,
+fragments, tools, persistence and the complete response interface still require
+qualification. The existing `poe_llm` workflow API below remains available during
+that implementation.
 
 The module ships with the authenticated runtime, without pip installation.
 The JSPI launcher installs an invocation-owned bridge. Enable `llm` in

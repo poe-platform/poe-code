@@ -43,3 +43,23 @@ describe("portable virtual-path primitives", () => {
     expect(() => dirname(null as unknown as string)).toThrowError(TypeError);
   });
 });
+
+describe("portable POSIX path surface", () => {
+  it("normalizes without making relative paths absolute", async () => {
+    const { posixPath } = await import("../src/contracts/path.js");
+    for (const path of [...pieces, ...paths]) expect(posixPath.normalize(path), path).toBe(posix.normalize(path));
+    expect(posixPath.sep).toBe("/");
+    expect(posixPath.delimiter).toBe(":");
+  });
+  it("resolves and relativizes from the portable root", async () => {
+    const { posixPath } = await import("../src/contracts/path.js");
+    expect(posixPath.resolve()).toBe("/");
+    for (const first of pieces) for (const second of paths) {
+      expect(posixPath.resolve(first, second)).toBe(posix.resolve("/", first, second));
+      expect(posixPath.relative(first, second)).toBe(posix.relative(posix.resolve("/", first), posix.resolve("/", second)));
+    }
+    expect(posixPath.resolve("/base", "child", "/reset", "../last/")).toBe("/last");
+    expect(() => posixPath.resolve(null as unknown as string, "/reset")).toThrow(TypeError);
+    expect(() => posixPath.normalize(null as unknown as string)).toThrow(TypeError);
+  });
+});

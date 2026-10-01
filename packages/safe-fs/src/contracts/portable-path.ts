@@ -49,4 +49,26 @@ export function joinPath(...paths: string[]): string {
   return joined.endsWith("/") && result !== "/" ? `${result}/` : result;
 }
 
-export const posixPath = Object.freeze({ basename, dirname, extname, join: joinPath, isAbsolute: isAbsolutePath });
+// Portable paths have a stable root instead of a process working directory.
+function resolve(...paths: string[]): string {
+  let joined = "/";
+  for (const path of paths) {
+    assertString(path);
+    joined = path.startsWith("/") ? path : `${joined}/${path}`;
+  }
+  const normalized = joinPath(joined);
+  return normalized.length > 1 && normalized.endsWith("/") ? normalized.slice(0, -1) : normalized;
+}
+
+function relative(from: string, to: string): string {
+  const source = resolve(from).split("/").filter(Boolean);
+  const target = resolve(to).split("/").filter(Boolean);
+  let common = 0;
+  while (common < source.length && common < target.length && source[common] === target[common]) common++;
+  return [...Array<string>(source.length - common).fill(".."), ...target.slice(common)].join("/");
+}
+
+export const posixPath = Object.freeze({
+  basename, dirname, extname, join: joinPath, isAbsolute: isAbsolutePath,
+  normalize: joinPath, resolve, relative, sep: "/", delimiter: ":"
+});

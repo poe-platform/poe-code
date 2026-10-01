@@ -1,6 +1,6 @@
 # safe-fs
 
-An asynchronous filesystem interface for memory, rooted host directories, S3, and WebDAV, with mounts, copy-on-write overlays, and Node-style bridges. Portable filesystem types and POSIX helpers compile without Node types.
+An asynchronous filesystem interface for memory, rooted host directories, S3, and WebDAV, with mounts, copy-on-write overlays, and Node-style bridges. Portable filesystem types and POSIX helpers compile without Node types. The `posixPath` export from `@poe-code/safe-fs/core` provides `basename`, `dirname`, `extname`, `join`, `isAbsolute`, `normalize`, `resolve`, `relative`, `sep`, and `delimiter`; `resolve` and `relative` use `/` as their working directory in every runtime.
 
 Under `workerd` and `browser` conditions, the root export includes portable filesystems, `S3FileSystem`, and `MockS3Client`. Supply an S3 transport to use object storage without Node globals.
 

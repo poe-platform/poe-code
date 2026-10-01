@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import * as root from "@poe-code/safe-fs";
 import * as core from "../src/core.js";
 import * as host from "../src/node-host.js";
-import { platform, comparisonContext } from "#safe-fs-platform";
+import { platform, comparisonContext } from "../src/platform/node.js";
 import { wrapperScenarios } from "./helpers/wrapper-scenarios.js";
 import { proofScenarios } from "./helpers/proof-scenarios.js";
 

@@ -37,7 +37,9 @@ not choose a provider or substitute a hardcoded model.
 Text embeddings use `llm.get_embedding_model("your-embedding-model").embed("text")`
 and return a list of floats. `embed_multi(items, batch_size=...)` consumes an
 iterable lazily in batches and yields one vector per input. Binary embedding
-inputs are explicitly unsupported by the shared transport. Embedding catalog
+inputs are explicitly unsupported by the shared transport. Use `llm.encode(values)`
+and `llm.decode(binary)` for the reference little-endian float32 embedding
+format, and `llm.cosine_similarity(a, b)` to compare vectors. Embedding catalog
 lookups and calls retain the same host authorization and limits as prompts.
 
 Create an in-memory conversation with `model.conversation()`, then call

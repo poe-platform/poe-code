@@ -295,6 +295,8 @@ except CalledProcessError as error:
  assert error.returncode == 127
 assert call('identity', 'still-live') == 'still-live'
 import llm
+assert llm.decode(llm.encode([1, -2.5])) == (1.0, -2.5)
+assert llm.cosine_similarity([1, 0], [0, 1]) == 0.0
 model = llm.get_model('fake')
 assert model.supports_schema and model.attachment_types == {'text/plain'}
 assert model.prompt('reference-inline', attachments=[llm.Attachment(type='text/plain', content=bytes([0,255,128]))]).text() == 'reference-inline'

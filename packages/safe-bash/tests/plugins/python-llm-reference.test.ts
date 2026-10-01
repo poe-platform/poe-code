@@ -69,6 +69,22 @@ second = conversation.prompt("second")
 assert second.text() == "hello"
 assert conversation.responses == [first, second]
 assert histories == [[], [("first", "hello")]]
+import struct
+assert llm.encode([1, -2.5, 0]) == struct.pack("<fff", 1, -2.5, 0)
+assert llm.decode(llm.encode([1, -2.5, 0])) == (1.0, -2.5, 0.0)
+assert llm.encode([]) == b"" and llm.decode(b"") == ()
+try:
+ llm.decode(b"x")
+ raise AssertionError("invalid embedding encoding was accepted")
+except struct.error:
+ pass
+assert llm.cosine_similarity([1, 0], [0, 1]) == 0.0
+assert llm.cosine_similarity([1, 0], [-1, 0]) == -1.0
+try:
+ llm.cosine_similarity([0, 0], [1, 0])
+ raise AssertionError("zero magnitude was accepted")
+except ZeroDivisionError:
+ pass
 embedding = llm.get_embedding_model("embed-alias")
 assert embedding.model_id == "embedding"
 assert embedding.embed("one") == [3.0, 1.0]

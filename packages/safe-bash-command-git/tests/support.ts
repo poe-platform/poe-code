@@ -1,8 +1,8 @@
-import { MemoryFileSystem } from '@poe-code/safe-fs/core';
+import type { FileSystem } from '@poe-code/safe-fs/core';
 import { createGitCommand } from '../src/index.js';
 import type { CommandContext } from 'safe-bash-contracts';
 
-export function runner(fs: MemoryFileSystem, command=createGitCommand()) {
+export function runner(fs: FileSystem, command=createGitCommand()) {
   return async (args: string[]) => {
     let stdout='', stderr='';
     const result=await command.execute({command:'git',args,cwd:'/repo',env:{},fs,

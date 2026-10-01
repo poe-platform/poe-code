@@ -57,7 +57,7 @@ async function publish(fs:FileSystem, before:Entry[], after:Entry[], signal:Abor
   for(const e of removed) {
     signal.throwIfAborted();
     if(e.kind==='directory') { if(!fs.rmdir) throw new Error('Git requires rmdir'); await fs.rmdir(e.path,{signal}); }
-    else { if(!fs.unlink) throw new Error('Git requires unlink'); await fs.unlink(e.path,{signal}); }
+    else await fs.rm(e.path,{signal});
   }
   for(const e of after.filter(e=>e.kind==='directory').sort((a,b)=>a.path.length-b.path.length)) {
     if(prior.get(e.path)?.kind!=='directory') await fs.mkdir(e.path,{recursive:true,signal});
@@ -67,8 +67,8 @@ async function publish(fs:FileSystem, before:Entry[], after:Entry[], signal:Abor
     const old=prior.get(e.path);
     if(old?.data===e.data && old.kind===e.kind && (old.mode & 0o777)===(e.mode & 0o777)) continue;
     if(e.kind==='symlink') {
-      if(!fs.symlink || !fs.unlink) throw new Error('Git requires symlink support');
-      if(old?.kind===e.kind) await fs.unlink(e.path,{signal});
+      if(!fs.symlink) throw new Error('Git requires symlink support');
+      if(old?.kind===e.kind) await fs.rm(e.path,{signal});
       await fs.symlink(decoder.decode(decode(e.data)),e.path,{signal});
     } else {
       await fs.writeFile(e.path,decode(e.data),{signal,mode:e.mode & 0o777});

@@ -165,6 +165,12 @@ export type Command = (
   | { kind: "conditional"; expression: ConditionalExpression; source: string }
 ) & { redirects: Redirect[]; line?: number; sourceName?: string };
 
+function isSelfDelimitingCompound(command: Command | undefined): boolean {
+  if (!command || command.redirects.length > 0) return false;
+  if (command.kind === "function") return isSelfDelimitingCompound(command.body);
+  return command.kind !== "simple" && command.kind !== "arithmetic" && command.kind !== "conditional";
+}
+
 export interface Pipeline {
   readonly commands: Command[];
   readonly negate: boolean;
@@ -677,7 +683,7 @@ class Lexer {
         parts.push({ kind: "process-substitution", direction, script, line, sourceLine: script.line ?? line, quoted: true });
         continue;
       }
-      if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted && !literal) {
+      if (current === "$" && this.source[this.position + 1] === "'" && !enclosingQuoted) {
         plain = false;
         this.unprintedWords++;
         const start = this.position;
@@ -760,7 +766,6 @@ class Lexer {
       } else if (current === "$" || current === "`") {
         plain = false;
         if (literal) {
-          if (current === "$" && ["'", '"'].includes(this.source[this.position + 1] ?? "")) this.error("Unsupported shell quoting in here-document delimiter");
           text(this.literalExpansion(), current === "`");
         }
         else this.expansion(parts, enclosingQuoted);
@@ -871,6 +876,43 @@ class Lexer {
     this.error("Unterminated ANSI-C quote", { quote: "'", line: quoteLine });
   }
 
+  private readExpansionName(): string | undefined {
+    while (this.source.startsWith("\\\n", this.position)) this.position += 2;
+    const first = this.source[this.position];
+    if (first && /^[?@*#-]$/u.test(first)) {
+      this.position++;
+      return first;
+    }
+    if (first && /^[0-9]$/u.test(first)) {
+      let name = "";
+      while (this.position < this.source.length) {
+        if (this.source.startsWith("\\\n", this.position)) { this.position += 2; continue; }
+        const ch = this.source[this.position];
+        if (!ch || !/^[0-9]$/u.test(ch)) break;
+        name += ch;
+        this.position++;
+      }
+      return name;
+    }
+    if (first && /^[a-zA-Z_]$/u.test(first)) {
+      let name = "";
+      while (this.position < this.source.length) {
+        if (this.source.startsWith("\\\n", this.position)) { this.position += 2; continue; }
+        const ch = this.source[this.position];
+        if (!ch || !/^[a-zA-Z_0-9]$/u.test(ch)) break;
+        name += ch;
+        this.position++;
+      }
+      return name;
+    }
+    return undefined;
+  }
+
+  peekAfterContinuation(offset = this.position): number {
+    while (this.source.startsWith("\\\n", offset)) offset += 2;
+    return offset;
+  }
+
   expansion(parts: WordPart[], quoted: boolean): void {
     this.budget.admit();
     const spellingStart = this.position;
@@ -884,8 +926,9 @@ class Lexer {
       this.position++;
       let source = "";
       const sourceValues = this.sourceValues ? new Map<number, ByteShellValue>() : undefined;
+      const backtickEscapable = quoted && this.documentLine === undefined ? /[$`\\"]/u : /[$`\\]/u;
       while (this.position < this.source.length && this.source[this.position] !== "`") {
-        if (this.source[this.position] === "\\" && /[$`\\]/u.test(this.source[this.position + 1] ?? "")) this.position++;
+        if (this.source[this.position] === "\\" && backtickEscapable.test(this.source[this.position + 1] ?? "")) this.position++;
         const opaque = this.sourceValues?.get(this.sourceOffset + this.position);
         if (opaque !== undefined) { this.budget.admit(); sourceValues!.set(source.length, opaque); }
         source += this.source[this.position++]!;
@@ -905,14 +948,18 @@ class Lexer {
       return;
     }
     this.position++;
-    const arithmeticClose = this.source.startsWith("((", this.position)
-      ? arithmeticEnd(this.source, this.position + 2, true, this.budget.maxSyntaxDepth) : -1;
-    if (arithmeticClose >= 0) {
-      const start = this.position + 2;
-      const end = arithmeticClose;
+    while (this.source.startsWith("\\\n", this.position)) this.position += 2;
+    const firstParen = this.source[this.position] === "(" ? this.position : -1;
+    const secondParen = firstParen !== -1 ? this.peekAfterContinuation(firstParen + 1) : -1;
+    const arithmeticEndPos = secondParen !== -1 && this.source[secondParen] === "("
+      ? arithmeticEnd(this.source, secondParen + 1, true, this.budget.maxSyntaxDepth) : -1;
+    if (arithmeticEndPos !== -1) {
+      const start = secondParen + 1;
+      const end = arithmeticEndPos;
       const source = this.source.slice(start, end);
       parts.push({ kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, line, quoted });
-      this.position = end + 2;
+      const afterFirstClose = this.peekAfterContinuation(end + 1);
+      this.position = afterFirstClose + 1;
     } else if (this.source[this.position] === "(") {
       const start = this.position + 1;
       let nested: Parser;
@@ -937,25 +984,30 @@ class Lexer {
       else this.printedNewlineReduction += this.source.slice(start, this.position - 1).split("\n").length - 1 - script.printedNewlines;
       parts.push({ kind: "substitution", form: "dollar-parenthesis", script, line, sourceLine: script.line ?? line, quoted });
     } else if (this.source[this.position] === "{") {
-      this.position++;
+      this.position = this.peekAfterContinuation(this.position + 1);
       const parameterStart = this.position - 2;
-      const listing = this.source[this.position] === "!" && /[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "");
-      if (listing) this.position++;
-      const length = !listing && this.source[this.position] === "#" && (/[a-zA-Z_0-9]/u.test(this.source[this.position + 1] ?? "")
-        || ["@", "*"].includes(this.source[this.position + 1] ?? "") && this.source[this.position + 2] === "}"
-        || this.syntax.specialParameters.some(parameter => parameter.name === this.source[this.position + 1]));
-      if (length) this.position++;
+      const afterBang = this.peekAfterContinuation(this.position + 1);
+      const listing = this.source[this.position] === "!" && /[a-zA-Z_0-9]/u.test(this.source[afterBang] ?? "");
+      if (listing) this.position = afterBang;
+      const afterHash = this.peekAfterContinuation(this.position + 1);
+      const length = !listing && this.source[this.position] === "#" && (/[a-zA-Z_0-9]/u.test(this.source[afterHash] ?? "")
+        || ["@", "*"].includes(this.source[afterHash] ?? "") && this.source[this.peekAfterContinuation(afterHash + 1)] === "}"
+        || this.syntax.specialParameters.some(parameter => parameter.name === this.source[afterHash]));
+      if (length) this.position = afterHash;
       const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);
-      const name = specialParameter?.name ?? ("$!".includes(this.source[this.position] ?? " ") ? this.source[this.position] : undefined) ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
+      if (specialParameter) this.position += specialParameter.name.length;
+      const dollarBang = !specialParameter && "$!".includes(this.source[this.position] ?? " ") ? this.source[this.position++] : undefined;
+      const name = specialParameter?.name ?? dollarBang ?? this.readExpansionName();
       if (!name) this.error("Unsupported parameter expansion");
-      this.position += name.length;
+      this.position = this.peekAfterContinuation(this.position);
       let prefixNames: "*" | "@" | undefined;
       let indirect = false;
       if (listing && this.source[this.position] !== "[") {
         const separator = this.source[this.position];
-        if ((separator === "*" || separator === "@") && this.source[this.position + 1] === "}") {
+        const afterSep = this.peekAfterContinuation(this.position + 1);
+        if ((separator === "*" || separator === "@") && this.source[afterSep] === "}") {
           prefixNames = separator;
-          this.position++;
+          this.position = afterSep;
         } else indirect = true;
       }
       let selector: ArraySelector | undefined;
@@ -966,7 +1018,7 @@ class Lexer {
         const end = this.position;
         if (this.source[end] !== "]") this.error("Unterminated indexed-array subscript");
         selector = arraySelector(this.source.slice(start, end), start, this.budget, keyWord);
-        this.position = end + 1;
+        this.position = this.peekAfterContinuation(end + 1);
         if (listing && selector.kind === "members" && this.source[this.position] !== "}" && this.source[this.position] !== "@") this.error("Unsupported array-key operator");
       }
       if (listing && selector?.kind === "element") indirect = true;
@@ -976,14 +1028,34 @@ class Lexer {
       }
       let transform: Extract<WordPart, { kind: "variable" }>["transform"];
       if (this.source[this.position] === "@") {
-        const operation = this.source[this.position + 1] as typeof transform;
-        if (length || prefixNames || !["Q", "E", "a", "A", "K", "k", "P", "u", "U", "L"].includes(operation ?? "") || this.source[this.position + 2] !== "}") this.error("Unsupported parameter transform");
+        const opPos = this.peekAfterContinuation(this.position + 1);
+        const operation = this.source[opPos] as typeof transform;
+        const closePos = this.peekAfterContinuation(opPos + 1);
+        if (length || prefixNames || !["Q", "E", "a", "A", "K", "k", "P", "u", "U", "L"].includes(operation ?? "") || this.source[closePos] !== "}") this.error("Unsupported parameter transform");
         transform = operation;
-        this.position += 2;
+        this.position = closePos;
       }
-      const caseCharacter = this.source[this.position];
-      const caseOperator = caseCharacter === "^" || caseCharacter === "," ? caseCharacter.repeat(this.source[this.position + 1] === caseCharacter ? 2 : 1) : undefined;
-      const operator = caseOperator ?? /^(?::[-=+?]|##|%%|\/\/|\/[#%]?|[-=+?#%])/u.exec(this.source.slice(this.position))?.[0];
+      const firstOpChar = this.source[this.position];
+      const secondOpPos = this.peekAfterContinuation(this.position + 1);
+      const secondOpChar = this.source[secondOpPos];
+      const caseOperator = firstOpChar === "^" || firstOpChar === "," ? firstOpChar.repeat(secondOpChar === firstOpChar ? 2 : 1) : undefined;
+      let operator = caseOperator;
+      let operatorEnd = caseOperator ? (caseOperator.length === 2 ? secondOpPos + 1 : this.position + 1) : this.position;
+      if (!operator) {
+        if (firstOpChar === ":" && secondOpChar && "-=+?".includes(secondOpChar)) {
+          operator = `:${secondOpChar}`;
+          operatorEnd = secondOpPos + 1;
+        } else if ((firstOpChar === "#" || firstOpChar === "%") && secondOpChar === firstOpChar) {
+          operator = `${firstOpChar}${secondOpChar}`;
+          operatorEnd = secondOpPos + 1;
+        } else if (firstOpChar === "/" && secondOpChar && "/#%".includes(secondOpChar)) {
+          operator = `/${secondOpChar}`;
+          operatorEnd = secondOpPos + 1;
+        } else if (firstOpChar && "-=+?#%/".includes(firstOpChar)) {
+          operator = firstOpChar;
+          operatorEnd = this.position + 1;
+        }
+      }
       let alternate: Word | undefined;
       let replacement: Word | undefined;
       let substring: Extract<WordPart, { kind: "variable" }>["substring"];
@@ -993,7 +1065,7 @@ class Lexer {
         try {
           if (operator) {
             if (length) this.error("Invalid length expansion");
-            this.position += operator.length;
+            this.position = operatorEnd;
             alternate = this.word(operator.startsWith("/") ? "/}" : "}", quoted && !caseOperator && !["#", "##", "%", "%%"].includes(operator) && !operator.startsWith("/"));
             if (operator.startsWith("/") && this.source[this.position] === "/") {
               this.position++;
@@ -1001,7 +1073,7 @@ class Lexer {
             }
           } else {
             if (length || (name !== "@" && name !== "*" && !/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+)$/u.test(name))) this.error("Unsupported non-scalar substring expansion");
-            this.position++;
+            this.position = secondOpPos;
             const offset = this.word(":}", true, false, true);
             let substringLength: Word | undefined;
             if (this.source[this.position] === ":") {
@@ -1013,6 +1085,7 @@ class Lexer {
           }
         } finally { this.operandDepth--; }
       }
+      this.position = this.peekAfterContinuation(this.position);
       if (this.source[this.position] !== "}") {
         let end = this.position;
         if (this.ordinaryBacktick && !selector && !operator && !substring && /^[a-zA-Z_]/u.test(name)
@@ -1031,9 +1104,10 @@ class Lexer {
       }
     } else {
       const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);
-      const name = specialParameter?.name ?? ("$!".includes(this.source[this.position] ?? " ") ? this.source[this.position] : undefined) ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
+      if (specialParameter) this.position += specialParameter.name.length;
+      const dollarBang = !specialParameter && "$!".includes(this.source[this.position] ?? " ") ? this.source[this.position++] : undefined;
+      const name = specialParameter?.name ?? dollarBang ?? (this.source[this.position] && /^[0-9]$/u.test(this.source[this.position]!) ? this.source[this.position++] : this.readExpansionName());
       if (name) {
-        this.position += name.length;
         parts.push({ kind: "variable", name, quoted, line, ...(specialParameter ? { specialParameter } : {}) });
       } else parts.push({ kind: "text", value: "$", quoted });
     }
@@ -1186,7 +1260,7 @@ class Parser {
         if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
         if (inputUnit && !this.aliasFrames.length && this.is("\n")) break;
         this.newlines();
-      } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && [";;", ";&", ";;&"].includes(this.current.value))) this.error("Expected command separator");
+      } else if (!this.isEnd() && !this.is(")") && !(stops.has(this.current.value) && ([";;", ";&", ";;&"].includes(this.current.value) || isSelfDelimitingCompound(pipelines.at(-1)?.commands.at(-1))))) this.error("Expected command separator");
     }
     const printed = printedSimpleLines(lists, separators, this.budget);
     scriptSeparators.set(lists, Object.freeze(separators));
@@ -1228,8 +1302,9 @@ class Parser {
 
   commandInner(): Command {
     this.budget.admit();
-    const arithmeticCommandEnd = this.is("(") && this.lexer.source.startsWith("((", this.current.offset)
-      ? arithmeticEnd(this.lexer.source, this.current.offset + 2, true, this.lexer.budget.maxSyntaxDepth) : -1;
+    const arithmeticSecondOpen = this.is("(") ? this.lexer.peekAfterContinuation(this.current.offset + 1) : -1;
+    const arithmeticCommandEnd = arithmeticSecondOpen !== -1 && this.lexer.source[arithmeticSecondOpen] === "("
+      ? arithmeticEnd(this.lexer.source, arithmeticSecondOpen + 1, true, this.lexer.budget.maxSyntaxDepth) : -1;
     let command: Command;
     if (this.is("[[")) {
       const start = this.current.end;
@@ -1283,11 +1358,11 @@ class Parser {
       this.advance();
       command = { kind: "conditional", expression, source, redirects: [] };
     } else if (arithmeticCommandEnd !== -1) {
-      const start = this.current.offset + 2;
+      const start = arithmeticSecondOpen + 1;
       const end = arithmeticCommandEnd;
       const source = this.lexer.source.slice(start, end);
       command = { kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, redirects: [] };
-      this.lexer.position = end + 2;
+      this.lexer.position = this.lexer.peekAfterContinuation(end + 1) + 1;
       this.lookahead = undefined;
       this.current = this.lexer.next();
     } else if (this.is("(") || this.is("{")) {
@@ -1353,32 +1428,54 @@ class Parser {
       const body = this.nonemptyScript(new Set(["done"]));
       this.expect("done", true);
       command = { kind, condition, body, redirects: [] };
-    } else if (this.is("for") && this.peek().value === "(" && this.lexer.source.startsWith("((", this.peek().offset)) {
+    } else if (this.is("for") && this.peek().value === "(" && this.lexer.source[this.lexer.peekAfterContinuation(this.peek().offset + 1)] === "(") {
       this.advance();
-      const start = this.current.offset + 2;
+      const start = this.lexer.peekAfterContinuation(this.current.offset + 1) + 1;
       let partStart = start;
       let depth = 0;
       let end = start;
+      let quote = "";
+      let ansiQuote = false;
+      const quotedSubstitutions: number[] = [];
       this.budget.admit(4);
       const sources: string[] = [];
       for (; end < this.lexer.source.length; end++) {
         this.budget.admit();
         const character = this.lexer.source[end];
+        if (character === "\\" && (quote !== "'" || ansiQuote)) { end++; continue; }
+        if (quote === '"' && character === "$" && this.lexer.source[end + 1] === "(") {
+          if (quotedSubstitutions.length >= 64) this.error("Syntax nesting exceeds 64");
+          quotedSubstitutions.push(depth);
+          depth++;
+          end++;
+          quote = "";
+          continue;
+        }
+        if (quote) {
+          if (character === quote) quote = "";
+          continue;
+        }
+        if (character === "'" || character === '"' || character === "`") {
+          quote = character;
+          ansiQuote = character === "'" && this.lexer.source[end - 1] === "$";
+          continue;
+        }
         if (character === "(") depth++;
         else if (character === ")") {
-          if (!depth && this.lexer.source[end + 1] === ")") break;
+          if (!depth && this.lexer.source[this.lexer.peekAfterContinuation(end + 1)] === ")") break;
           if (--depth < 0) this.error("Unterminated arithmetic for", true);
+          if (quotedSubstitutions.at(-1) === depth) { quotedSubstitutions.pop(); quote = '"'; }
         } else if (character === ";" && !depth) {
           if (sources.length === 2) this.error("Arithmetic for requires three expressions");
           sources.push(this.lexer.source.slice(partStart, end));
           partStart = end + 1;
         }
       }
-      if (end === this.lexer.source.length) this.error("Unterminated arithmetic for", true);
+      if (quote || end === this.lexer.source.length) this.error("Unterminated arithmetic for", true);
       if (sources.length !== 2) this.error("Arithmetic for requires three expressions");
       sources.push(this.lexer.source.slice(partStart, end));
       const expressions = sources.map(source => source.trim() ? prepareArithmetic(source, this.budget) : undefined) as [ArithmeticProgram | undefined, ArithmeticProgram | undefined, ArithmeticProgram | undefined];
-      this.lexer.position = end + 2;
+      this.lexer.position = this.lexer.peekAfterContinuation(end + 1) + 1;
       this.lookahead = undefined;
       this.current = this.lexer.next();
       if (this.is(";")) this.advance();

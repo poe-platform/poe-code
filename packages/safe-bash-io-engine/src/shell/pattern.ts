@@ -100,17 +100,16 @@ async function tokens(pattern: string, work: StringWork, ignoreCase = false, ext
     } else if (character === "?") result.push({ kind: "any" });
     else if (character === "[" && index < lastClosingBracket) {
       let cursor = index + 1;
+      const negated = ["!", "^"].includes(characters[cursor] ?? "");
+      if (negated) cursor++;
       let contents = "";
-      if (["!", "^"].includes(characters[cursor] ?? "")) { contents = "^"; cursor++; }
-      if (characters[cursor] === "]") { contents += "\\]"; cursor++; }
       let valid = true;
-      for (; cursor < characters.length && characters[cursor] !== "]"; cursor++) {
+      const startIndex = cursor;
+      for (; cursor < characters.length && (cursor === startIndex || characters[cursor] !== "]"); cursor++) {
         const pending = tick();
         if (pending) await pending;
         const member = characters[cursor]!;
-        if (member === "\\" && cursor + 1 < characters.length) {
-          contents += `\\u{${characters[++cursor]!.codePointAt(0)!.toString(16)}}`;
-        } else if (member === "[" && characters[cursor + 1] === ":") {
+        if (member === "[" && characters[cursor + 1] === ":") {
           let end = cursor + 2;
           while (end < characters.length && characters[end] !== ":" && characters[end] !== "]") {
             const pending = tick();
@@ -122,13 +121,37 @@ async function tokens(pattern: string, work: StringWork, ignoreCase = false, ext
             valid &&= characterClasses[name] !== undefined;
             contents += characterClasses[name] ?? "";
             cursor = end + 1;
-          } else contents += "\\[";
-        } else contents += member === "[" || member === "^" ? `\\${member}` : member;
+            continue;
+          }
+        }
+        const firstChar = member === "\\" && cursor + 1 < characters.length ? characters[++cursor]! : member;
+        if (
+          characters[cursor + 1] === "-" &&
+          cursor + 2 < characters.length &&
+          characters[cursor + 2] !== "]" &&
+          !(characters[cursor + 2] === "[" && characters[cursor + 3] === ":")
+        ) {
+          cursor += 2;
+          const secondChar = characters[cursor] === "\\" && cursor + 1 < characters.length ? characters[++cursor]! : characters[cursor]!;
+          const startCp = firstChar.codePointAt(0)!;
+          const endCp = secondChar.codePointAt(0)!;
+          if (startCp <= endCp) {
+            contents += `\\u{${startCp.toString(16)}}-\\u{${endCp.toString(16)}}`;
+          }
+        } else {
+          contents += `\\u{${firstChar.codePointAt(0)!.toString(16)}}`;
+        }
       }
-      if (cursor < characters.length && cursor > index + 1) {
+      if (cursor < characters.length && cursor > startIndex) {
         let expression: RegExp;
-        try { expression = valid ? new RegExp(`^[${contents}](?![\\s\\S])`, ignoreCase ? "iu" : "u") : /(?!)/u; }
-        catch { expression = /(?!)/u; }
+        if (!valid) {
+          expression = /(?!)/u;
+        } else if (contents === "") {
+          expression = negated ? /^[\s\S](?![\s\S])/u : /(?!)/u;
+        } else {
+          try { expression = new RegExp(`^[${negated ? "^" : ""}${contents}](?![\\s\\S])`, ignoreCase ? "iu" : "u"); }
+          catch { expression = /(?!)/u; }
+        }
         result.push({ kind: "class", expression });
         index = cursor;
       } else result.push({ kind: "literal", value: character });
@@ -290,6 +313,10 @@ function getCompiledSyncPatternRegex(pattern: string): RegExp | null {
       }
       // Bash treats a closing bracket at the start of a class as a member.
       if (pattern.charCodeAt(cursor) === 93) {
+        if (pattern.charCodeAt(cursor + 1) === 45) {
+          syncPatternRegexCache.set(pattern, null);
+          return null;
+        }
         contents += "\\]";
         cursor++;
       }
@@ -305,6 +332,10 @@ function getCompiledSyncPatternRegex(pattern: string): RegExp | null {
           break;
         }
         if (mc >= 128 || mc === 92 || mc === 91 || mc === 94) {
+          syncPatternRegexCache.set(pattern, null);
+          return null;
+        }
+        if (pattern.charCodeAt(cursor + 1) === 45 && cursor + 2 < pattern.length && pattern.charCodeAt(cursor + 2) !== 93 && mc > pattern.charCodeAt(cursor + 2)) {
           syncPatternRegexCache.set(pattern, null);
           return null;
         }

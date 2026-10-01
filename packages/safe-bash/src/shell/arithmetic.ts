@@ -137,6 +137,7 @@ function integer(text: string): bigint {
 }
 
 export function parseArithmetic(source: string, offset = 0, budget = new ParseBudget()): Arithmetic {
+  if (source.includes("\\\n")) source = source.replace(/\\\n/gu, "");
   const tokens: { value: string; offset: number }[] = [];
   let position = 0;
   while (position < source.length) {
@@ -267,7 +268,11 @@ export function arithmeticEnd(source: string, start: number, allowSubshell = fal
     }
     if (character === "(") depth++;
     if (character === ")") {
-      if (depth === 0 && source[position + 1] === ")") return position;
+      if (depth === 0) {
+        let nextClose = position + 1;
+        while (source.startsWith("\\\n", nextClose)) nextClose += 2;
+        if (source[nextClose] === ")") return position;
+      }
       if (--depth < 0) {
         if (allowSubshell) return -1;
         break;
@@ -343,7 +348,7 @@ function smallBigInt(n: number): bigint {
 }
 
 // Zero is served by SMALL_INT_STRINGS, so an empty large-cache slot cannot match.
-const LARGE_INT_KEYS = new Int32Array(16);
+const LARGE_INT_KEYS = new Float64Array(16);
 const LARGE_INT_STRS = new Array<string>(16).fill("");
 
 export function intToStr(n: number): string {
@@ -447,7 +452,7 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
     const v = evalSafeSmi(node.operand, refs, budget);
     if (v === undefined || v < -94906265 || v > 94906265) return undefined;
     if (node.operator === "+") return v;
-    if (node.operator === "-") return -v;
+    if (node.operator === "-") return v === 0 ? 0 : -v;
     if (node.operator === "!") return v === 0 ? 1 : 0;
     return undefined;
   }
@@ -491,8 +496,8 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
       case "+": return l + r;
       case "-": return l - r;
       case "*": return l * r;
-      case "/": return Math.trunc(l / r);
-      case "%": return (l % r) | 0;
+      case "/": { const q = Math.trunc(l / r); return q === 0 ? 0 : q; }
+      case "%": { const m = (l % r) | 0; return m === 0 ? 0 : m; }
       case "<": return l < r ? 1 : 0;
       case "<=": return l <= r ? 1 : 0;
       case ">": return l > r ? 1 : 0;

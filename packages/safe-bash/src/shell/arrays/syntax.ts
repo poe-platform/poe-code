@@ -63,9 +63,10 @@ export function stringIndex(source: string, budget: ParseBudget, word?: Word): L
 
 export function arraySelector(source: string, offset: number, budget = new ParseBudget(), word?: Word): ArraySelector {
   budget.admit();
-  return source === "@" || source === "*"
-    ? { kind: "members", separator: source }
-    : { kind: "element", index: word ? stringIndex(source, budget, word) : literalIndex(source, offset, budget) };
+  const cleanSource = source.includes("\\\n") ? source.replace(/\\\n/gu, "") : source;
+  return cleanSource === "@" || cleanSource === "*"
+    ? { kind: "members", separator: cleanSource }
+    : { kind: "element", index: word ? stringIndex(cleanSource, budget, word) : literalIndex(cleanSource, offset, budget) };
 }
 
 export function setArraySelector(part: WordPart, selector: ArraySelector): void {

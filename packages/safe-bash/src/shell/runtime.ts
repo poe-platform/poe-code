@@ -2026,6 +2026,10 @@ function cloneRawState(raw: State, hasLocals: boolean): State {
   if (raw.getopts) cloned.getopts = cloneGetoptsBinding(raw);
   if (raw.functionNames) cloned.functionNames = [...raw.functionNames];
   if (raw.aliases) cloned.aliases = new Map(raw.aliases);
+  if (raw.loopDepth > 0 || (raw as { _subshellInLoop?: boolean })._subshellInLoop) {
+    (cloned as { _subshellInLoop?: boolean })._subshellInLoop = true;
+  }
+  cloned.loopDepth = 0;
   return cloned;
 }
 function tryCloneStateSync(state: State, scope?: InvocationScope, inheritLocals = true): State | undefined {
@@ -6762,7 +6766,7 @@ export class Runtime {
           if (state.isolated) throw error;
           throw error.reason;
         }
-        if (error instanceof Flow && error.kind === "exit") {
+        if (error instanceof Flow && (error.kind === "exit" || error.kind === "return" || error.kind === "break" || error.kind === "continue")) {
           if (this.tryFinishShellSync(state)) return { exitCode: error.status, terminated: true };
           return this.finishShell(monitor.proxy, io, error.status).then(exitCode => ({ exitCode, terminated: true }));
         }
@@ -6784,7 +6788,7 @@ export class Runtime {
         if (state.isolated) throw error;
         throw error.reason;
       }
-      if (error instanceof Flow && error.kind === "exit") return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
+      if (error instanceof Flow && (error.kind === "exit" || error.kind === "return" || error.kind === "break" || error.kind === "continue")) return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
       throw error;
     }
   }
@@ -6797,7 +6801,7 @@ export class Runtime {
         if (state.isolated) throw error;
         throw error.reason;
       }
-      if (error instanceof Flow && error.kind === "exit") return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
+      if (error instanceof Flow && (error.kind === "exit" || error.kind === "return" || error.kind === "break" || error.kind === "continue")) return { exitCode: await this.finishShell(state, io, error.status), terminated: true };
       throw error;
     }
   }
@@ -6875,7 +6879,13 @@ export class Runtime {
           try {
             for (let i = 1; i < command.words.length; i++) {
               const w = command.words[i]!;
-              if (w.plain === undefined && !(w.parts.length === 1 && w.parts[0]!.kind === "text" && w.parts[0]!.quoted === true && !w.parts[0]!.byteValue)) allPlain = false;
+              if (
+                w.plain !== undefined
+                  ? w.plain.includes("{") || w.plain.startsWith("~") || hasGlobOrEscape(w.plain, true)
+                  : !(w.parts.length === 1 && w.parts[0]!.kind === "text" && w.parts[0]!.quoted === true && !w.parts[0]!.byteValue)
+              ) {
+                allPlain = false;
+              }
               const v = this.fastValueWord(w, rawState, io, true, false, false, true, undefined, diagnosticLine);
               if (typeof v !== "string") return undefined;
               args[i - 1] = v;
@@ -11706,6 +11716,7 @@ export class Runtime {
       const part = word.parts[i]!;
       if (part.kind === "text") {
         if (part.byteValue || invokedValues.has(part)) return false;
+        if (!part.quoted && (part.value.includes("~") || part.value.includes("{") || hasGlobOrEscape(part.value, true))) return false;
         continue;
       }
       if (part.kind === "variable") {
@@ -14901,8 +14912,8 @@ export class Runtime {
     encoded = encoded.slice();
     if (step.targetDirPrefix !== undefined && step.targetNamePrefix !== undefined) {
       const fileName = this.evalSyncRedirectSuffix(step.targetWord!, step.targetDirPrefix, step.targetNamePrefix, rawState, io);
-      if (tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) return;
-      tryWriteMemoryFileSync(this.backingFs, step.targetDirPrefix + fileName, encoded, append, mode, this.commandSignal);
+      if (!fileName.includes("/") && fileName !== "." && fileName !== ".." && tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) return;
+      tryWriteMemoryFileSync(this.backingFs, normalizePath(step.targetDirPrefix + fileName, rawState.cwd), encoded, append, mode, this.commandSignal);
       return;
     }
     const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, io);
@@ -16521,7 +16532,7 @@ export class Runtime {
                 if (await matchesPattern(pattern, subject, work, !!state.nocasematch, !!state.extglob)) { matched = true; break; }
               }
               if (!matched) continue;
-              if (clause.body.lists.length) status = await this.script(clause.body, state, io);
+              status = clause.body.lists.length ? await this.script(clause.body, state, io) : 0;
               if (clause.terminator === ";;" || clause.terminator === "esac") break;
               fallthrough = clause.terminator === ";&";
             }
@@ -16539,7 +16550,7 @@ export class Runtime {
               if (await matchesPattern(pattern, subject, work, !!state.nocasematch, !!state.extglob)) { matched = true; break; }
             }
             if (!matched) continue;
-            if (clause.body.lists.length) status = await this.script(clause.body, state, io);
+            status = clause.body.lists.length ? await this.script(clause.body, state, io) : 0;
             if (clause.terminator === ";;" || clause.terminator === "esac") break;
             fallthrough = clause.terminator === ";&";
           }
@@ -18674,7 +18685,8 @@ export class Runtime {
       else {
         const options = { signal: this.signal };
         const stat = await interruptible(this.fs.stat(path, options), this.signal);
-        if (stat.type !== "file") throw new CommandFailure(`${target}: ${stat.type === "directory" ? "Is a directory" : "not a regular file"}`, 126);
+        if (stat.type === "directory") throw new CommandFailure(`${target}: Is a directory`, 126);
+        if (stat.type !== "file" && (direct || (stat.type !== "character" && (stat.type as string) !== "fifo"))) throw new CommandFailure(`${target}: not a regular file`, 126);
         if (direct) {
           const capabilities = this.fs.capabilitiesFor
             ? await interruptible(this.fs.capabilitiesFor(path, options), this.signal) : this.fs.capabilities;
@@ -18882,7 +18894,7 @@ export class Runtime {
       const path = pathOf(state, target);
       const stat = await interruptible(this.fs.stat(path, options), this.signal);
       if (stat.type === "directory") throw new CommandFailure(`${context.command}: ${target}: is a directory`, 1);
-      if (stat.type !== "file") throw new CommandFailure(`${target}: not a regular file`, 1);
+      if (stat.type !== "file" && stat.type !== "character" && (stat.type as string) !== "fifo") throw new CommandFailure(`${target}: not a regular file`, 1);
       await interruptible(this.fs.access(path, ACCESS_MODES.R_OK, options), this.signal);
       const maxBytes = this.budget.limits.maxSourceBytes - this.budget.sourceBytes;
       if (stat.size > maxBytes) this.budget.fail("maxSourceBytes");
@@ -20518,7 +20530,11 @@ export class Runtime {
       throw completedExit(status, command, 1, state.status);
     }
     if (command === "break" || command === "continue") {
-      if (!state.loopDepth) { await writeDiagnostic(stderr, `${command}: only meaningful in a loop\n`); return 0; }
+      if (!state.loopDepth) {
+        if ((state as { _subshellInLoop?: boolean })._subshellInLoop) throw completedExit(0, command, 1);
+        await writeDiagnostic(stderr, `${command}: only meaningful in a loop\n`);
+        return 0;
+      }
       const offset = args[0] === "--" ? 1 : 0;
       const operand = args[offset];
       const count = operand === undefined ? 1n : await signedLong(operand, this.budget, this.signal);
@@ -20709,7 +20725,7 @@ export class Runtime {
       const operator = part.operator.at(-1)!;
       if (operator === "+" ? !missing : missing) {
         if (operator === "=") throw new ArrayFailure(`${part.name}[${memberSelector.separator}]: bad array subscript`);
-        const alternate = concatShellValues(await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, false, hereString, false, undefined, hereDocument), io[valueScope]);
+        const alternate = concatShellValues(await this.valueWord(part.alternate!, state, this.parameterOperandIO(part.alternate!, state, io), false, false, hereString, false, undefined, hereDocument || part.quoted), io[valueScope]);
         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${shellValueText(alternate) || "parameter not set"}`, io.diagnosticLine ?? part.line);
         return alternate;
       }
@@ -20731,12 +20747,13 @@ export class Runtime {
         if (operator === "+" ? !missing : missing) {
           const operandIO = this.parameterOperandIO(part.alternate!, state, io);
           if (operator === "=") {
-            await this.arrayAssignment({ kind: "element", name: part.name, index: element.index, append: false, value: part.alternate! }, state, operandIO);
+            const elemAlt = part.quoted ? { ...part.alternate!, parts: part.alternate!.parts.map(p => ({ ...p, quoted: true })) } : part.alternate!;
+            await this.arrayAssignment({ kind: "element", name: part.name, index: element.index, append: false, value: elemAlt }, state, operandIO);
             const assigned = store.get(part.name)!;
             const assignedIndex = assigned.associative ? await this.arrayIndex(assigned, element.index, state, io, store.owner) : index;
             return assignedIndex === undefined ? "" : assigned.getValue(assignedIndex) ?? "";
           }
-          const alternate = concatShellValues(await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument), io[valueScope]);
+          const alternate = concatShellValues(await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument || part.quoted), io[valueScope]);
           if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${shellValueText(alternate) || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
           return alternate;
         }
@@ -20961,7 +20978,6 @@ export class Runtime {
         if (state.profile !== "sh") child.errexit = false;
         delete child.redirectAssignments;
         child.depth++;
-        child.loopDepth = 0;
         const references = new PipeDescriptorFrame(io[invocationScope]);
         const lifetime = new DescriptorLifetime();
         const captureIO = isolateIO({
@@ -21000,7 +21016,6 @@ export class Runtime {
         if (state.profile !== "sh") child.errexit = false;
         delete child.redirectAssignments;
         child.depth++;
-        child.loopDepth = 0;
         const prepared = prepareBytesInput(bytes, this.budget);
         const input = new ShellInput(prepared.source, this.budget, this.commandSignal, prepared.options);
         const lifetime = new DescriptorLifetime(async () => {
@@ -21042,7 +21057,6 @@ export class Runtime {
       }
       delete child.redirectAssignments;
       child.depth++;
-      child.loopDepth = 0;
       const pipeline = part.script.lists.length === 1 && part.script.lists[0]!.pipelines.length === 1 ? part.script.lists[0]!.pipelines[0] : undefined;
       const command = pipeline && !pipeline.negate && pipeline.commands.length === 1 ? pipeline.commands[0] : undefined;
       const fileShortcut = command?.kind === "simple" && command.words.length === 0 && command.redirects.length === 1 && command.redirects[0]!.operator === "<";
@@ -21163,15 +21177,18 @@ export class Runtime {
       if ((operator === "+" && !missing) || (operator !== "+" && missing)) {
         const operandIO = this.parameterOperandIO(part.alternate!, state, io);
         let alternate: string;
+        const altWord = !hereDocument && !part.quoted && operator === "="
+          ? { ...part.alternate!, parts: expandTildes(part.alternate!.parts, state.variables, this.budget, undefined, true) }
+          : part.alternate!;
         if (operator === "=" && arrayStore(state)?.get(part.name)) {
           alternate = "";
           await this.arrayZero(state, part.name, io, async () => {
-            retained = await this.arrayJoin(requireArrays(state).owner, await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument), "");
+            retained = await this.arrayJoin(requireArrays(state).owner, await this.valueWord(altWord, state, operandIO, false, false, hereString, false, undefined, hereDocument || part.quoted || operator === "="), "");
             return retained;});
           value = shellValueText(retained!);
           return part.length ? this.valueLength(retained!, state, io) : retained!;
         }
-        retained = concatShellValues(await this.valueWord(part.alternate!, state, operandIO, false, false, hereString, false, undefined, hereDocument), io[valueScope]);
+        retained = concatShellValues(await this.valueWord(altWord, state, operandIO, false, false, hereString, false, undefined, hereDocument || part.quoted || operator === "="), io[valueScope]);
         alternate = shellValueText(retained);
         if (operator === "?") throw new ParameterExpansionFailure(`${part.name}: ${alternate || (part.operator.startsWith(":") ? "parameter null or not set" : "parameter not set")}`, io.diagnosticLine ?? part.line);
         if (operator === "=") {

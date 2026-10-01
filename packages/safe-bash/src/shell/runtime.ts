@@ -7166,6 +7166,7 @@ export class Runtime {
       sharedSyncPipeWriter.signal = undefined!;
       sharedSyncPipeWriter.target = EMPTY_BYTES;
       sharedSyncPipeReader.reset(EMPTY_BYTES, 0);
+      sharedSyncPipeReader.clearViews();
       syncPurePipelineSlotInUse = false;
       this.budget.leavePipelineStages(n);
     };
@@ -29483,8 +29484,6 @@ export class Runtime {
       syncPurePipelineSlotInUse = true;
       this.budget.enterPipelineStages(n);
       this.budget.commands += n;
-      const scope = io[invocationScope];
-      let context = pooledSyncPipeContext;
       let prevBuf = sharedSyncPipeBuf0;
       let prevLen = fastSharedTextEncoder.encodeInto(stage0Formatted, sharedSyncPipeBuf0).written;
       try {
@@ -30143,34 +30142,9 @@ export class Runtime {
             prevLen = written;
             continue;
           }
-          sharedSyncPipeReader.reset(prevBuf, prevLen, this.signal, -1);
-          sharedSyncPipeWriter.reset(this.budget, this.signal, nextBuf, -1);
-          if (!context) {
-            context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
-            pooledSyncPipeContext = context;
-          }
-          context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, sharedSyncPipeReader, false, sharedSyncPipeWriter, this.signal);
-          sharedSyncPipeReader.abortSignal = context.signal;
-          scope.enterWork();
-          this.budget.beginPathLookupSuspension();
-          let resPromise: CommandResult | Promise<CommandResult>;
-          try {
-            resPromise = extDef.execute(context as unknown as ShellCommandContext);
-          } finally {
-            this.budget.endPathLookupSuspension();
-            scope.leaveWork();
-          }
-          if (resPromise !== RESOLVED_EXIT_ZERO) {
-            if (resPromise && typeof (resPromise as Promise<unknown>).catch === "function") {
-              (resPromise as Promise<unknown>).catch(() => {});
-            }
-            pooledSyncPipeContext = undefined;
-            context = undefined;
-            return undefined;
-          }
-          this.signal.throwIfAborted();
-          prevBuf = nextBuf;
-          prevLen = sharedSyncPipeWriter.used;
+          // A command executor may suspend. Decline before invoking it so the
+          // ordinary pipeline owns its context and executes every stage once.
+          return undefined;
         }
         if (prevBuf.subarray(0, prevLen).includes(0)) return undefined;
         completed = true;
@@ -30180,11 +30154,6 @@ export class Runtime {
           this.budget.bytes = previousBytes;
           this.budget.commands = previousCommands;
         }
-        if (context) context.releaseDirectStage();
-        sharedSyncPipeWriter.budget = undefined!;
-        sharedSyncPipeWriter.signal = undefined!;
-        sharedSyncPipeWriter.target = EMPTY_BYTES;
-        sharedSyncPipeReader.reset(EMPTY_BYTES, 0);
         syncPurePipelineSlotInUse = false;
         this.budget.leavePipelineStages(n);
       }

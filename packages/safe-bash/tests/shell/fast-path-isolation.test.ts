@@ -158,6 +158,42 @@ for (const command of [
   if (command.startsWith("sort")) assert.equal(new TextDecoder().decode(await fs.readFile("/sorted")), "HELLO\nworld\n");
 });
 
+for (const [command, expected] of [
+  ["grep a /f.txt | cut -c 1-5", "alpha\nabeta\n"],
+  ["grep a /f.txt | sort -V", "abeta  two\nalpha  one\n"],
+  ["grep a /f.txt | grep -i ALPHA", "alpha  one\n"],
+  ["grep a /f.txt | head -n -1", "alpha  one\n"],
+  // Root includes the shell's /dev and /dev/null entries.
+  ["find / -print0 | wc -c", "24\n"],
+] as const) test(`promise-returning pipeline stages survive repeated execution: ${command}`, async context => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/f.txt", new TextEncoder().encode("alpha  one\nabeta  two\n"));
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (let iteration = 0; iteration < 24; iteration++) {
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+    assert.equal(result.stderr, "");
+  }
+  // Drain pending jobs so node:test also detects orphaned stage rejections.
+  await new Promise<void>(resolve => setImmediate(resolve));
+});
+
+for (const sort of ["sort", "sort -V"]) test(`C-locale substitution preserves expanded pipeline bytes: ${sort}`, async context => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/small", new TextEncoder().encode("x\n".repeat(4000)));
+  const shell = new Shell({ fs, env: { LC_ALL: "C" } }).use(standardCommands()).use(textProgramCommands());
+  context.after(() => shell.dispose());
+  for (let run = 0; run < 3; run++) {
+    const result = await shell.exec(`value=$(cat /small | sed 's/x/xxxxxxxxxxxxxxxxxxxx/' | ${sort} | wc -c); printf '%s' "$value"`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "84000");
+    assert.equal(result.stderr, "");
+  }
+  await new Promise<void>(resolve => setImmediate(resolve));
+});
+
 test("shell source admission works without global Buffer", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() });
   const original = globalThis.Buffer;

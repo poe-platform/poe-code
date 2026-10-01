@@ -7,6 +7,44 @@ import { Budget } from "safe-bash-query-engine/limits";
 import { registerRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { createJqCommand } from "./index.js";
 
+for (const decline of [false, true]) test(`jq owns sync output and charges one read (decline=${decline})`, async () => {
+ const fs = createMemoryFileSystem();
+ const retained: Uint8Array[] = [];
+ let charges = 0, attempts = 0;
+ const stdout = {
+  writeSync(bytes: Uint8Array) { attempts++; if (decline) return false; retained.push(bytes); return true; },
+  async write(bytes: Uint8Array) { retained.push(bytes); },
+ };
+ const command = createJqCommand();
+ for (const x of [1, 8]) {
+  await fs.writeFile("/in", new TextEncoder().encode(`{"x":${x}}\n`));
+  const values = createCommandArguments(["-c", "{a: (.x + 1)}", "/in"]);
+  const context = {
+   command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+   _fastMemoryBackingFs: fs, _chargeFastFsOp() { charges++; },
+   stdin: toByteSource(""), stdout, stderr: { async write() {} }, signal: new AbortController().signal,
+  };
+  assert.equal((await command.execute(context)).exitCode, 0);
+ }
+ assert.equal(attempts, 2);
+ assert.equal(charges, 2);
+ assert.deepEqual(retained.map(bytes => new TextDecoder().decode(bytes)), ['{"a":2}\n', '{"a":9}\n']);
+});
+
+for (const outputLimit of [{ maxOutputBytes: 5 }, { maxResults: 1 }]) {
+ for (const value of ["aaaaaaaa", "éééé"]) test(`jq checks value limits before ${JSON.stringify(outputLimit)} for ${value}`, async () => {
+  let stderr = "";
+  const values = createCommandArguments(["-rn", `${"maxResults" in outputLimit ? '"",' : ""}${JSON.stringify(value)}`]);
+  const result = await createJqCommand({ limits: { maxValueBytes: 7, ...outputLimit } }).execute({
+   command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs: createMemoryFileSystem(),
+   stdin: toByteSource(""), stdout: { async write() {} },
+   stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }, signal: new AbortController().signal,
+  });
+  assert.notEqual(result.exitCode, 0);
+  assert.ok(stderr.includes("maxValueBytes"), stderr);
+ });
+}
+
 test("jq behavior works through the standalone portable factory", async () => {
  const values = createCommandArguments(["."]);
  let output = "";

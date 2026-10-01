@@ -35,14 +35,17 @@ export const epubWriter: WriterCapability = {
       if(tree.isTextNode(node)) return node.value;
       return "childNodes" in node ? node.childNodes.map(text).join("") : "";
     };
+    const inlineText = async (nodes: readonly Inline[]): Promise<string> => {
+      const result = await writeHtml5({blocks: [{t: "Plain", c: nodes}], metadata: {}, resources: []}, htmlContext);
+      if(result.kind !== "text") return fail("Expected text serialization");
+      return text(parseFragment(result.text)).trim();
+    };
     const meta = async (key: string): Promise<string | undefined> => {
       const value = document.metadata[key];
       if(value === undefined) return undefined;
       if(value.t === "MetaString") return value.c;
       if(value.t !== "MetaInlines") return fail(`${key} must be text metadata`, "E_OPTION");
-      const result = await writeHtml5({blocks: [{t: "Plain", c: value.c}], metadata: {}, resources: []}, htmlContext);
-      if(result.kind !== "text") return fail("Expected text serialization");
-      return text(parseFragment(result.text)).trim();
+      return inlineText(value.c);
     };
     // Keep budget/session methods bound to their original owner.
     const htmlContext: AdapterContext = new Proxy(ctx, {get(target, key) {
@@ -54,9 +57,19 @@ export const epubWriter: WriterCapability = {
     const suppliedTitle = ctx.epub?.title ?? await meta("title");
     const suppliedLang = ctx.epub?.language ?? (await meta("lang")) ?? document.language;
     const explicitIdentifier = ctx.epub?.identifier ?? await meta("identifier");
-    if (!ctx.yes && (suppliedTitle === undefined || suppliedLang === undefined || explicitIdentifier === undefined)) fail("EPUB requires title, language and identifier; supply metadata or use --yes to accept defaults", "E_METADATA");
-    const title = suppliedTitle ?? "Untitled";
-    const lang = suppliedLang ?? "en";
+    const headingTitle = async (blocks: readonly Block[]): Promise<string | undefined> => {
+      for (const block of blocks) {
+        await ctx.cooperate();
+        if (block.t === "Header") {const title = await inlineText(block.c[2]); if (title) return title;}
+        if (block.t === "Div" || block.t === "BlockQuote") {
+          const title = await headingTitle(block.t === "Div" ? block.c[1] : block.c);
+          if (title) return title;
+        }
+      }
+      return undefined;
+    };
+    const title = suppliedTitle ?? await headingTitle(document.blocks) ?? "Untitled";
+    const lang = suppliedLang ?? "en-US";
     const modified = (await meta("modified")) ?? "1970-01-01T00:00:00Z";
     if(!title.trim() || !lang.trim() || explicitIdentifier !== undefined && !explicitIdentifier.trim()) fail("Publication metadata must be nonempty", "E_OPTION");
     const date = new Date(modified);

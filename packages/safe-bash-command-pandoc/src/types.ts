@@ -126,7 +126,7 @@ export interface WriteOptions {
   readonly fileScope?: boolean;
   /** Admits only existing explicit VFS capabilities; never a native sandbox guarantee. */
   readonly sandbox?: boolean;
-  /** Opt into format metadata defaults; absent means strict explicit metadata. */
+  /** Accept defaults where supported; ordinary format inference and EPUB metadata need no opt-in. */
   readonly yes?: boolean;
   readonly pdf?: PdfOptions;
   readonly epub?: EpubOptions;

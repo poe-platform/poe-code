@@ -106,6 +106,9 @@ other named families are unsupported. PDF preserves bold, italic, underline,
 strikeout, horizontal rules, and left/center/right table alignment. Bold and
 italic use synthetic styling of the supplied font. EPUB options are `epub.title`,
 `epub.language`, `epub.identifier`, and `epub.chapterLevel` (1–6).
+EPUB conversion requires no `--yes`: missing metadata defaults to the first
+heading (or `Untitled`), language `en-US`, and a deterministic content identifier.
+Explicit publication metadata takes precedence.
 
 `ConversionContext` accepts `resourceFiles`, `resourceCwd`, `resources`, `reader`,
 `writer`, `output`, `signal`, `yield`, and `limits`. Output supports atomic

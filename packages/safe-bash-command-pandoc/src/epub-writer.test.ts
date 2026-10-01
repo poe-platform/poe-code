@@ -121,7 +121,7 @@ it.each(["epub", "epub3"])("writes %s with stored first mimetype, namespace-vali
   expect(xml(parts.get("META-INF/container.xml")!).tags.find(t => t.name === "rootfile")?.attrs["full-path"]).toBe("EPUB/package.opf");
   const opf = xml(parts.get("EPUB/package.opf")!);
   expect(opf.tags[0]).toMatchObject({name: "package", uri: "http://www.idpf.org/2007/opf", attrs: {version: "3.0", "unique-identifier": "publication-id"}});
-  expect(opf.text).toContain("Untitled");
+  expect(opf.text).toContain("First");
   expect(opf.text).toContain("1970-01-01T00:00:00Z");
   expect(opf.text).toContain("urn:sha256:");
   expect(opf.tags.filter(t => t.name === "itemref").map(t => t.attrs.idref)).toEqual(["chapter-1", "chapter-2"]);

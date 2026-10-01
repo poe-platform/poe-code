@@ -9,6 +9,7 @@ import { ShellLimitError } from "../../../../src/shell/types.js";
 import { nativeOptions, runNative } from "../trap/oracle.js";
 
 const cases: readonly [string, string, string][] = [
+  ["element assignment retains raw zero created during RHS expansion", `raw=$'\\xfe'; a=([4]=$'\\xff'); a[1]=\${a:=$raw}; printf '%s' "\${a[@]}"`, "fefeff"],
   ["compound cells distinguish identical display projections", `a=($'\\xff' $'\\xfe' '�'); printf '%s' "\${a[@]}"`, "fffeefbfbd"],
   ["sparse element assignment", `a[9]=$'\\xff'; printf '%s' "\${a[9]}"`, "ff"],
   ["scalar promotion preserves zero", `a=$'\\xff'; a[3]=z; printf '%s' "\${a[@]}"`, "ff7a"],
@@ -64,7 +65,6 @@ test("byte-cell fixture bytes agree with pinned Bash in the C byte profile", nat
 for (const [name, source, expected] of [
   ["readonly element refuses RHS effects", `a=($'\\xff'); readonly a; a[0]=\${side:=bad}; printf '%s:%s' "$a" "\${side-unset}"`, "ff3a756e736574"],
   ["readonly zero retains RHS evaluation order", `a=($'\\xff'); readonly a; a=\${side:=ran}; printf '%s:%s' "$a" "\${side-unset}"`, "ff3a72616e"],
-  ["stale outer publication cannot overwrite a raw inner assignment", `raw=$'\\xfe'; a=([4]=$'\\xff'); a[1]=\${a:=$raw} 2>/errors; printf '%s' "\${a[@]}"`, "feff"],
 ] as const) test(`byte-cell guard: ${name}`, async context => {
   const fs = createMemoryFileSystem();
   const shell = new Shell({ fs });
@@ -72,9 +72,8 @@ for (const [name, source, expected] of [
   for (const command of basicCommands()) shell.register(command);
   const result = await shell.exec(source);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stderr, name.startsWith("readonly") ? "shell: line 1: indexed array: readonly binding\n" : "");
+  assert.equal(result.stderr, "shell: line 1: indexed array: readonly binding\n");
   assert.equal(Buffer.from(result.stdoutBytes).toString("hex"), expected);
-  if (!name.startsWith("readonly")) assert.match(Buffer.from(await fs.readFile("/errors")).toString(), /stale binding/u);
 });
 
 test("byte-array command arguments remain immutable after caller buffer mutation", async context => {

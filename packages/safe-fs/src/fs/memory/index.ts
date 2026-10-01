@@ -1880,6 +1880,7 @@ export class MemoryFileSystem implements FileSystem {
       const entries = parent.entries as FastDirectoryEntriesMap;
       const existing = nameHash !== undefined ? entries.getForWriteWithHash(name, nameHash) : entries.getForWrite(name);
       if (existing === undefined && entries._next < entries._keys.length) {
+        this.ledger.reserve(name.length * 2, 2, "writeFile", name);
         const now = fastWriteCachedNow;
         const length = data.byteLength;
         const node = sharedFileNodePool[--sharedFileNodePoolLen]!;
@@ -1903,7 +1904,6 @@ export class MemoryFileSystem implements FileSystem {
         entries._vals[entryIdx] = node;
         entries.size++;
         entries._missKey = "";
-        this.ledger.reserve(name.length * 2, 2, "writeFile", name);
         this.totalBytes += length;
         this.mutationTick = (this.mutationTick + 1) | 0;
         parent.revision = parent.revision < 1073741823 ? (parent.revision + 1) | 0 : Math.min(Number.MAX_SAFE_INTEGER + 1, parent.revision + 1);

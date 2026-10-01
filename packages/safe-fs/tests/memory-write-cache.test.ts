@@ -2,6 +2,21 @@ import assert from "node:assert/strict";
 import { test } from "vitest";
 import { MemoryFileSystem, tryWriteMemoryFileSync } from "../src/fs/memory/index.js";
 
+test("fast directory write rejects metadata exhaustion without inserting a file", async () => {
+  const fs = new MemoryFileSystem({ maxMetadataUnits: 5 });
+  await fs.mkdir("/dir");
+  fs.writeMemoryFileInDirFast("/dir/", "first", Uint8Array.of(1), false, 0o666);
+  for (let attempt = 0; attempt < 3; attempt++) {
+    assert.throws(() => fs.writeMemoryFileInDirFast("/dir/", "second", Uint8Array.of(2), false, 0o666), { code: "ENOSPC" });
+    assert.deepEqual((await fs.readdir("/dir")).map(entry => entry.name), ["first"]);
+    await assert.rejects(fs.stat("/dir/second"), { code: "ENOENT" });
+  }
+  await fs.rm("/dir/first");
+  fs.writeMemoryFileInDirFast("/dir/", "second", Uint8Array.of(2), false, 0o666);
+  assert.deepEqual(await fs.readFile("/dir/second"), Uint8Array.of(2));
+  await fs.rm("/dir", { recursive: true });
+});
+
 for (const grow of [false, true]) {
   test(`failed write cache cannot corrupt later directory insertions, growth=${grow}`, async () => {
     const fs = new MemoryFileSystem();

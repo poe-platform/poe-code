@@ -74,6 +74,7 @@ test.each(["before", "during"] as const)("discard retires a recording that excee
     expect(f.localUtils._stackSessions.size).toBe(0);
     await f.check();
     await f.context.tracing.start();
+    expect(f.context.tracing._resetStackCounter).toHaveBeenCalledOnce();
     f.recorders.at(-1)!._appendResource("healthy", Uint8Array.of(7));
     await f.check();
     await f.context.tracing.stop({ path: "/tmp/restarted-after-discard.zip" });
@@ -453,5 +454,19 @@ test.each([{}, { maxFiles: 32 }, { maxBytes: Infinity, maxFiles: Infinity, maxAr
     await f.check();
     await f.context.tracing.stop({ path: "/tmp/unlimited.zip" });
     expect(vol.existsSync("/tmp/unlimited.zip")).toBe(true);
+  } finally { await f.resource.release(); }
+});
+
+test.each(["stop", "discard"] as const)("resets failed stack capture after native %s retirement", async method => {
+  const f = await acquire();
+  try {
+    await f.context.tracing.start();
+    f.recorders.at(-1)!._appendResource("overflow", new Uint8Array(2048));
+    await expect(f.check()).rejects.toThrow("Browser trace byte limit exceeded");
+    if (method === "stop") await f.native.stop();
+    else await f.native.stopChunk(progress, { mode: "discard" });
+    await f.context.tracing.start();
+    expect(f.context.tracing._resetStackCounter).toHaveBeenCalledOnce();
+    await f.check();
   } finally { await f.resource.release(); }
 });

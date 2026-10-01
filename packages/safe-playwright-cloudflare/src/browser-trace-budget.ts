@@ -500,14 +500,14 @@ export function prepareBrowserTraceBudget(context: BrowserContext, limits: Requi
     if (!recording) return {};
     if (options.mode !== "discard") return recording.run(() => recording.native.stopChunk(progress, options));
     const result = await recording.stop(() => recording.native.stopChunk(progress, options));
-    if (recording.failure && active === recording) active = undefined;
+    if (recording.failure && active === recording) { client._resetStackCounter?.(); active = undefined; }
     return result ?? {};
   };
   native.stop = async progress => {
     if (!active) return;
     const recording = active;
     await recording.stop(() => recording.native.stop(progress));
-    if (recording.failure && active === recording) active = undefined;
+    if (recording.failure && active === recording) { client._resetStackCounter?.(); active = undefined; }
     recording.finish();
   };
   native.group = (...args) => { if (active) { active.native.group(...args); active.throwIfFailed(); } };

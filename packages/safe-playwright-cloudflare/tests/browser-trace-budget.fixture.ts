@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { Buffer } from "node:buffer";
 import type { EventEmitter } from "node:events";
 import { fs } from "memfs";
@@ -179,6 +180,7 @@ export function providerFixture() {
     _connection: connection,
     _tracesDir: "/tmp/playwright-artifacts-shared",
     _stacksId: undefined as string | undefined,
+    _resetStackCounter: vi.fn(),
     async start(options: { name?: string; _live?: boolean } = {}) {
       native.start(options);
       const { traceName } = await native.startChunk(progress);

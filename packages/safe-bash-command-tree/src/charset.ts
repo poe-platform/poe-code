@@ -2,8 +2,6 @@ import { UsageError, type WalkBudget } from "./io.js";
 
 export type Charset = "ASCII" | "UTF-8";
 
-const utf8Locales = new Set(["C.UTF-8", "C.utf8", "en_US.UTF-8", "en_US.utf8"]);
-
 export function explicitCharset(value: string): Charset {
   const normalized = value.toUpperCase();
   if (normalized === "UTF-8" || normalized === "UTF8") return "UTF-8";
@@ -29,7 +27,12 @@ export function environmentCharset(budget: WalkBudget, branches = true): Charset
   }
   for (const name of ["LC_ALL", "LC_CTYPE", "LANG"]) {
     const locale = ownValue(name);
-    if (locale) return utf8Locales.has(locale) ? "UTF-8" : "ASCII";
+    if (locale) {
+      const modifier = locale.indexOf("@");
+      const name = modifier < 0 ? locale : locale.slice(0, modifier);
+      const encoding = name.slice(name.indexOf(".") + 1).toUpperCase();
+      return encoding === "UTF-8" || encoding === "UTF8" ? "UTF-8" : "ASCII";
+    }
   }
   return "ASCII";
 }

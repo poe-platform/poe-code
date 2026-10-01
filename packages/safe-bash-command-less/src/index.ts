@@ -1,3 +1,5 @@
+import { Pattern } from "safe-bash-regex-engine";
+import { Budget } from "safe-bash-regex-engine/text/budget";
 import { FsError } from "safe-bash-contracts";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -103,6 +105,7 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
       const args = getCommandArguments(context).args;
       let lineNumbers = false;
       let squeezeBlank = false;
+      let ignoreCase = false;
       let startLine = 1;
       let startSearch: string | undefined;
       const files: string[] = [];
@@ -134,6 +137,8 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
         if (!endOfOptions && arg.startsWith("--")) {
           if (arg === "--LINE-NUMBERS" || arg === "--line-numbers") lineNumbers = true;
           else if (arg === "--squeeze-blank-lines") squeezeBlank = true;
+          else if (arg === "--ignore-case" || arg === "--IGNORE-CASE") ignoreCase = true;
+          else if (arg === "--pattern" || arg.startsWith("--pattern=")) startSearch = arg === "--pattern" ? (args[++i] ?? "") : arg.slice(10);
           continue;
         }
         if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
@@ -142,12 +147,15 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
             if (ch === "N") lineNumbers = true;
             else if (ch === "n") lineNumbers = false;
             else if (ch === "s") squeezeBlank = true;
+            else if (ch === "i" || ch === "I") ignoreCase = true;
             else if (ch === "p") {
               startSearch = j < arg.length - 1 ? arg.slice(j + 1) : (args[++i] ?? "");
               break;
             } else if ("Pxz".includes(ch)) {
-              if (j === arg.length - 1 && i + 1 < args.length && !args[i + 1]!.startsWith("-")) {
-                i++;
+              const value = j < arg.length - 1 ? arg.slice(j + 1) : args[++i];
+              if (value === undefined || (ch !== "P" && !(ch === "x" ? /^\d+(,\d+)*$/u : /^[+-]?\d+$/u).test(value))) {
+                await writeText(context.stderr, `${name}: numeric value required after -${ch}\n`);
+                return { exitCode: 1 };
               }
               break;
             }
@@ -176,6 +184,7 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
       }
 
       try {
+        const passThrough = !lineNumbers && !squeezeBlank && startLine === 1 && !startSearch;
         const texts: string[] = [];
         let exitCode = 0;
         if (files.length === 0) {
@@ -183,7 +192,16 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
         } else {
           for (const file of files) {
             if (file === "-") {
-              texts.push(await readSourceText(context.stdin, maxBytes, context.signal));
+              if (passThrough) {
+                // Explicit stdin uses the same bounded byte path as file operands.
+                let total = 0;
+                for await (const chunk of readBytes(context.stdin, context.signal)) {
+                  total += chunk.byteLength;
+                  if (total > maxBytes) throw new PublicDiagnostic(`input exceeds maximum size of ${maxBytes} bytes`);
+                  await writeBytes(context.stdout, chunk, context.signal);
+                  await yieldTurn(context.signal);
+                }
+              } else texts.push(await readSourceText(context.stdin, maxBytes, context.signal));
             } else {
               try {
                 const targetPath = pathPosix.resolve(context.cwd, file);
@@ -193,7 +211,8 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
                   await writeText(context.stderr, `${name}: ${file}: input exceeds maximum size\n`);
                   return { exitCode: 1 };
                 }
-                texts.push(new TextDecoder("utf-8", { fatal: false }).decode(raw));
+                if (passThrough) await writeBytes(context.stdout, raw, context.signal);
+                else texts.push(new TextDecoder("utf-8", { fatal: false }).decode(raw));
               } catch (err) {
                 context.signal.throwIfAborted();
                 if (!(err instanceof FsError)) throw err;
@@ -214,11 +233,13 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
 
         let startIdx = Math.max(0, startLine - 1);
         if (startSearch) {
+          const pattern = new Pattern(startSearch, true, ignoreCase);
+          const budget = new Budget(context, { maxSteps: Infinity, maxBufferBytes: Infinity });
           let found = -1;
           for (let index = 0; index < rawLines.length; index++) {
             context.signal.throwIfAborted();
             if ((index & 127) === 0) await yieldTurn(context.signal);
-            if (rawLines[index]!.includes(startSearch)) { found = index; break; }
+            if (await pattern.find(rawLines[index]!, budget) !== undefined) { found = index; break; }
           }
           if (found >= 0) startIdx = found;
         }
@@ -283,7 +304,7 @@ export function lessCommands(options: LessCommandsOptions = {}): VirtualShellPlu
 
 export const pagerCommands = lessCommands;
 
-const syncLessDecoder = new TextDecoder("utf-8", { fatal: false });
+const syncLessDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 const SYNC_LESS_SIMPLE_FLAGS = new Set(["N", "s", "F", "R", "X", "S", "i", "I", "q", "Q", "e", "E", "m", "M", "w", "W", "c", "d", "f", "u", "n", "G", "g", "J", "K", "L", "r", "U", "V"]);
 
 export function evalSyncLess(
@@ -293,7 +314,6 @@ export function evalSyncLess(
 ): string | undefined {
   let lineNumbers = false;
   let squeezeBlank = false;
-  let ignoreCase = false;
   let startLine = 1;
   let startSearch: string | undefined;
   const files: string[] = [];
@@ -319,7 +339,7 @@ export function evalSyncLess(
     if (parsingFlags && arg.startsWith("--")) {
       if (arg === "--LINE-NUMBERS" || arg === "--line-numbers") lineNumbers = true;
       else if (arg === "--squeeze-blank-lines") squeezeBlank = true;
-      else if (arg === "--ignore-case" || arg === "--IGNORE-CASE") ignoreCase = true;
+      else if (arg === "--ignore-case" || arg === "--IGNORE-CASE") continue;
       else if (arg === "--pattern" || arg.startsWith("--pattern=")) {
         const pat = arg === "--pattern" ? args[++i] : arg.slice(10);
         if (pat === undefined) return undefined;
@@ -339,11 +359,12 @@ export function evalSyncLess(
           break;
         }
         if ("Pxz".includes(ch)) {
-          if (j === arg.length - 1 && i + 1 < args.length && !args[i + 1]!.startsWith("-")) i++;
+          const value = j < arg.length - 1 ? arg.slice(j + 1) : args[++i];
+          if (value === undefined || (ch !== "P" && !(ch === "x" ? /^\d+(,\d+)*$/u : /^[+-]?\d+$/u).test(value))) return undefined;
           break;
         }
         if (ch === "n") { lineNumbers = false; continue; }
-        if (ch === "i" || ch === "I") { ignoreCase = true; continue; }
+        if (ch === "i" || ch === "I") continue;
         if (!SYNC_LESS_SIMPLE_FLAGS.has(ch) || ch === "V") return undefined;
         if (ch === "N") lineNumbers = true;
         else if (ch === "s") squeezeBlank = true;
@@ -353,16 +374,17 @@ export function evalSyncLess(
     files.push(arg);
   }
 
+  if (startSearch) return undefined;
   const chunks: string[] = [];
   if (files.length === 0) {
     if (!stdinBytes) return undefined;
-    chunks.push(syncLessDecoder.decode(stdinBytes));
+    try { chunks.push(syncLessDecoder.decode(stdinBytes)); } catch { return undefined; }
   } else {
     for (let i = 0; i < files.length; i++) {
       const f = files[i]!;
       const b = f === "-" ? stdinBytes : (readFile ? readFile(f) : undefined);
       if (!b) return undefined;
-      chunks.push(syncLessDecoder.decode(b));
+      try { chunks.push(syncLessDecoder.decode(b)); } catch { return undefined; }
     }
   }
   const combined = chunks.join("");
@@ -373,19 +395,7 @@ export function evalSyncLess(
   const hasTrailingNewline = combined.endsWith("\n");
   const rawLines = combined.split("\n");
   if (hasTrailingNewline) rawLines.pop();
-  let startIdx = Math.max(0, startLine - 1);
-  if (startSearch) {
-    let found = -1;
-    const needle = ignoreCase ? startSearch.toLowerCase() : startSearch;
-    for (let idx = 0; idx < rawLines.length; idx++) {
-      const hay = ignoreCase ? rawLines[idx]!.toLowerCase() : rawLines[idx]!;
-      if (hay.includes(needle)) {
-        found = idx;
-        break;
-      }
-    }
-    if (found >= 0) startIdx = found;
-  }
+  const startIdx = Math.max(0, startLine - 1);
   let out = "";
   let prevBlank = false;
   for (let idx = startIdx; idx < rawLines.length; idx++) {

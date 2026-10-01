@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createLessCommand, createMoreCommand } from "./index.js";
+import { createLessCommand, createMoreCommand, evalSyncLess } from "./index.js";
 
 import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
@@ -73,3 +73,48 @@ for (const args of [["-N"], ["-s"], ["+/missing"]]) {
     await assert.rejects(async () => createLessCommand().execute({ ...run.context, stdin, signal: controller.signal }), (error: unknown) => error === reason);
   });
 }
+
+for (const args of [['-p', '^foo'], ['+/f.*o']]) test(`less searches regular expressions: ${args.join(' ')}`, async () => {
+  const run = fixture(args, 'skip\nfoo\ntail\n');
+  let output = '';
+  run.context.stdout.write = async bytes => { output += new TextDecoder().decode(bytes); };
+  assert.equal((await createLessCommand().execute(run.context)).exitCode, 0);
+  assert.equal(output, 'foo\ntail\n');
+});
+
+test('less preserves file bytes without formatting', async () => {
+  const run = fixture(['binary']);
+  const bytes = new Uint8Array([0xff, 0, 0xfe, 10]);
+  await run.context.fs.writeFile('/binary', bytes);
+  const output: number[] = [];
+  run.context.stdout.write = async chunk => { output.push(...chunk); };
+  assert.equal((await createLessCommand().execute(run.context)).exitCode, 0);
+  assert.deepEqual(output, [...bytes]);
+});
+
+for (const flag of ['-x', '-z']) test(`less rejects a nonnumeric ${flag} argument`, async () => {
+  const run = fixture([flag, 'file.txt']);
+  assert.equal((await createLessCommand().execute(run.context)).exitCode, 1);
+  assert.match(run.diagnostic(), /value|number/i);
+});
+
+test('less concatenates adjacent files exactly like native redirected output', async () => {
+  const run = fixture(['one', 'two']);
+  await run.context.fs.writeFile('/one', new TextEncoder().encode('one'));
+  await run.context.fs.writeFile('/two', new TextEncoder().encode('two\n'));
+  let output = '';
+  run.context.stdout.write = async bytes => { output += new TextDecoder().decode(bytes); };
+  assert.equal((await createLessCommand().execute(run.context)).exitCode, 0);
+  assert.equal(output, 'onetwo\n');
+});
+
+test('less sync path defers binary data and regex search to the byte-safe async command', () => {
+  assert.equal(evalSyncLess(undefined, ['binary'], () => new Uint8Array([0xff])), undefined);
+  assert.equal(evalSyncLess(new TextEncoder().encode('skip\nfoo\n'), ['-p', '^foo']), undefined);
+});
+
+test('less diagnoses invalid regular expressions', async () => {
+  const run = fixture(['-p', '[']);
+  assert.equal((await createLessCommand().execute(run.context)).exitCode, 1);
+  assert.match(run.diagnostic(), /expression|bracket/);
+});

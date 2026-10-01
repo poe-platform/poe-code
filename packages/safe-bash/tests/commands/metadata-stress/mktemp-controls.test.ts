@@ -46,8 +46,8 @@ test("mktemp 64 concurrent creations reserve distinct names with virtual umasks"
 });
 
 test("mktemp uses unbiased Web Crypto with no native/host filesystem fallback", async context => {
-  const syntaxes = await Promise.all(["metadata/mktemp.ts", "portable-random.ts"].map(async filename => {
-    const source = await readFile(new URL(`../../../src/commands/${filename}`, import.meta.url), "utf8");
+  const syntaxes = await Promise.all(["safe-bash-command-mktemp/src/command.ts", "safe-bash-metadata-engine/src/random.ts"].map(async filename => {
+    const source = await readFile(new URL(`../../../../${filename}`, import.meta.url), "utf8");
     return ts.createSourceFile(filename, source, ts.ScriptTarget.Latest, true);
   }));
   const imports: string[] = [];
@@ -64,7 +64,7 @@ test("mktemp uses unbiased Web Crypto with no native/host filesystem fallback", 
     ts.forEachChild(node, inspect);
   }
   for (const syntax of syntaxes) inspect(syntax);
-  assert.ok(imports.includes("../portable-random.js"));
+  assert.ok(imports.includes("safe-bash-metadata-engine/random"));
   assert.ok(calls.includes("globalThis.crypto.getRandomValues"));
   assert.ok(!calls.some(call => ["random", "eval", "Function", "exec", "execSync", "execFile", "execFileSync", "spawn", "spawnSync", "fork", "require", "createRequire", "getBuiltinModule"].includes(call.split(".").at(-1)!)));
   assert.ok(!imports.some(specifier => specifier.startsWith("node:") || specifier.includes("child_process") || ["fs", "fs/promises", "crypto"].includes(specifier)));

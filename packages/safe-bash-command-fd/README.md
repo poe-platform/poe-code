@@ -59,7 +59,9 @@ Execution dispatches literal arguments through the Shell registry, sequentially;
 batch execution permits one replacement token. Quote the terminating `';'` when
 writing shell source. `-l` invokes the registered virtual `ls -ld` command.
 Normal empty searches succeed; quiet searches return 1 if no result exists.
-Command failures and filesystem errors return a nonzero status.
+Command failures and filesystem errors return a nonzero status. Entry-limit
+exhaustion and broken output pipes stop the entire search, including later roots.
+Root searches skip synthetic `/dev` when it is absent from the backing filesystem.
 
 Traversal, ignore-file reads, and matching have no finite default resource
 budgets. The SDK factory accepts explicit `maxEntries`, `maxIgnoreFileBytes`,

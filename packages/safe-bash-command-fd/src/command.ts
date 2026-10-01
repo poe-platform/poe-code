@@ -1,3 +1,4 @@
+import { getRuntimeBackingFileSystem } from 'safe-bash-contracts/runtime-control';
 import { FdUsageError } from './errors.js';
 import { assertCommandRequirements } from 'safe-bash-contracts/command-requirements';
 import { fdTemplate, formatFdPath } from './templates.js';
@@ -89,6 +90,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       signal.throwIfAborted();
     }
   };
+  const backing = getRuntimeBackingFileSystem(fs);
   const matches: string[]=[]; let visited=0, found=0, failed=false, executionFailed=false;
   let emitPending = "";
   const flushEmit = async () => {
@@ -166,7 +168,16 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
       const local=await load(dir,rules,present);
       entries.sort((l,r)=>l.name<r.name ? -1 : l.name>r.name ? 1 : 0);
       for (const entry of entries) {
-        signal.throwIfAborted(); if (++visited>maximum) throw new Error('filesystem entry limit exceeded');
+        signal.throwIfAborted();
+        if (canonical === '/' && entry.name === 'dev' && backing) {
+          try { await backing.lstat('/dev', io); }
+          catch (error) {
+            signal.throwIfAborted();
+            if (isFsErrorInstance(error) && error.code === 'ENOENT') continue;
+            throw error;
+          }
+        }
+        if (++visited>maximum) throw new Error('filesystem entry limit exceeded');
         if ((visited&1023)===0) { await new Promise<void>(resolve=>setTimeout(resolve,0)); signal.throwIfAborted(); }
         const path=posixPath.join(dir,entry.name), display=label ? label+(label.endsWith('/') ? '' : '/')+entry.name : entry.name;
         try {
@@ -190,7 +201,7 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
           if (a.quiet || found>=a.maxResults) return true;
         }
         if (directory && await walk(path,display,depth+1,local,ancestors,prefixCwd,searchRoot)) return true;
-        } catch(error) { signal.throwIfAborted(); if (!(isFsErrorInstance(error))) throw error; await report(error); }
+        } catch(error) { signal.throwIfAborted(); if (!isFsErrorInstance(error) || error.code === 'EFBIG' || error.code === 'EPIPE') throw error; await report(error); }
       }
       return false;
     } finally { ancestors.delete(canonical); }
@@ -210,7 +221,10 @@ async function find(context: CommandContext, a: FdArguments, matcher: FdMatcher,
         for (const dir of parents) inherited=await load(dir,inherited);
       }
       if (await walk(path,root==='.' ? '' : root,0,inherited,new Set(),root==='.',path)) break;
-    } catch(error) { await report(error); }
+    } catch(error) {
+      await report(error);
+      if (isFsErrorInstance(error) && (error.code === 'EFBIG' || error.code === 'EPIPE')) return {exitCode: 1};
+    }
   }
   await flushEmit();
   if (a.batch && matches.length) await invoke(matches);

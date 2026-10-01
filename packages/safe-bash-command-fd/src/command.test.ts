@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { MemoryFileSystem } from '@poe-code/safe-fs/core';
+import { DeviceFileSystem, FsError, MemoryFileSystem } from '@poe-code/safe-fs/core';
+import { registerRuntimeBackingFileSystem } from 'safe-bash-contracts/runtime-control';
 import { type CommandContext } from 'safe-bash-contracts';
 import { createFdCommandWithMatcher, type FdMatcher } from './command.js';
 const matcher: FdMatcher={ async pattern(){return true;},async glob(){return false;},async ignores(){return [];} };
@@ -107,3 +108,62 @@ async function runIgnoreSearch(fs: MemoryFileSystem) {
   });
   return { exitCode: result.exitCode, stdout, stderr };
 }
+
+for (const nested of [false, true]) test(`entry exhaustion stops all later ${nested ? 'siblings' : 'roots'}`, async () => {
+  const fs = new MemoryFileSystem();
+  for (const [dir, count] of [['a', 2], ['b', 2], ['c', 1]] as const) {
+    await fs.mkdir('/work/' + dir, {recursive: true});
+    for (let i = 0; i < count; i++) await fs.writeFile(`/work/${dir}/${i}`, new Uint8Array());
+  }
+  const reads: string[] = [], readdir = fs.readdir.bind(fs);
+  fs.readdir = async (path, options) => { reads.push(path); return readdir(path, options); };
+  let stdout = '', stderr = '';
+  const result = await createFdCommandWithMatcher(async (_context, run) => run(matcher), {maxEntries: nested ? 5 : 3}).execute({
+    command: 'fd', args: ['-I', '.', ...(nested ? ['/work'] : ['/work/a', '/work/b', '/work/c'])], cwd: '/', env: {}, fs,
+    signal: new AbortController().signal, stdin: (async function*(){})(),
+    stdout: {async write(bytes) { stdout += new TextDecoder().decode(bytes); }},
+    stderr: {async write(bytes) { stderr += new TextDecoder().decode(bytes); }},
+  });
+  assert.equal(result.exitCode, 1);
+  assert.ok(stderr.includes('limit'));
+  assert.ok(!stdout.includes('/work/c'));
+  assert.ok(!reads.includes('/work/c'));
+  assert.equal(stderr.trim().split('\n').length, 1);
+});
+
+test('broken output pipe stops traversal and later roots at the first failed flush', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/work/a', {recursive: true});
+  await fs.mkdir('/later');
+  for (let i = 0; i < 100; i++) await fs.writeFile('/work/a/' + String(i).padStart(3, '0') + 'x'.repeat(200), new Uint8Array());
+  const readdir = fs.readdir.bind(fs), lstat = fs.lstat.bind(fs);
+  let broken = false, writes = 0, afterFailure = 0;
+  fs.readdir = async (path, options) => { if (broken) afterFailure++; return readdir(path, options); };
+  fs.lstat = async (path, options) => { if (broken) afterFailure++; return lstat(path, options); };
+  const result = await createFdCommandWithMatcher(async (_context, run) => run(matcher)).execute({
+    command: 'fd', args: ['-I', '.', '/work', '/later'], cwd: '/', env: {}, fs,
+    signal: new AbortController().signal, stdin: (async function*(){})(),
+    stdout: {async write() { writes++; broken = true; throw new FsError('EPIPE'); }},
+    stderr: {async write() {}},
+  });
+  assert.equal(result.exitCode, 1);
+  assert.equal(afterFailure, 0);
+  assert.equal(writes, 1);
+});
+
+for (const realDev of [false, true]) test(`root traversal ${realDev ? 'keeps real' : 'skips synthetic'} dev`, async () => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile('/file', new Uint8Array());
+  if (realDev) { await backing.mkdir('/dev'); await backing.writeFile('/dev/user', new Uint8Array()); }
+  const fs = new DeviceFileSystem(backing);
+  registerRuntimeBackingFileSystem(fs, backing);
+  let stdout = '';
+  const result = await createFdCommandWithMatcher(async (_context, run) => run(matcher)).execute({
+    command: 'fd', args: ['-I'], cwd: '/', env: {}, fs,
+    signal: new AbortController().signal, stdin: (async function*(){})(),
+    stdout: {async write(bytes) { stdout += new TextDecoder().decode(bytes); }}, stderr: {async write() {}},
+  });
+  assert.equal(result.exitCode, 0);
+  if (realDev) { assert.ok(stdout.includes('dev/\n')); assert.ok(stdout.includes('dev/user\n')); }
+  else assert.equal(stdout, 'file\n');
+});

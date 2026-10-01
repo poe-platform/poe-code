@@ -7,6 +7,47 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 import { Runtime } from "../../src/shell/runtime.js";
+import { workerRuntimeContexts } from "../../src/worker/runtime-context.js";
+import type { CommandContext } from "../../src/contracts/index.js";
+
+for (const name of ["grep", "rg", "sed", "awk", "jq", "sort", "head", "tail", "tr", "cut", "wc", "uniq", "rm", "mkdir", "find"]) {
+  test(`replacement ${name} preserves enumerable command context`, async t => {
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+    t.after(() => shell.dispose());
+    await shell.exec("");
+    let calls = 0;
+    shell.register({ name, execute(context) {
+      calls++;
+      const copy = { ...context };
+      assert.ok(workerRuntimeContexts.has(context));
+      for (const key of ["env", "fs", "stderr", "registerCleanup", "stdinInput", "stdoutFile"] as const) {
+        assert.ok(Object.hasOwn(copy, key), key);
+        assert.equal(copy[key], context[key], key);
+      }
+      return { exitCode: 0 };
+    } }, { replace: true });
+    for (let repeat = 0; repeat < 2; repeat++) {
+      const result = await shell.exec(name);
+      assert.equal(result.exitCode, 0, result.stderr);
+    }
+    assert.equal(calls, 2);
+  });
+}
+
+test("fast context checks the resolved executor identity", async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  t.after(() => shell.dispose());
+  await shell.exec("");
+  const original = shell.commands.get.bind(shell.commands);
+  const replacement = { name: "sort", execute(context: CommandContext) {
+    assert.ok(Object.hasOwn({ ...context }, "env"));
+    assert.ok(workerRuntimeContexts.has(context));
+    return { exitCode: 0 };
+  } };
+  t.mock.method(shell.commands, "get", (name: string) => name === "sort" ? replacement : original(name));
+  const result = await shell.exec("sort");
+  assert.equal(result.exitCode, 0, result.stderr);
+});
 
 test("parsed scripts are reused only within their owning shell", async context => {
   const first = new Shell({ fs: new MemoryFileSystem() });

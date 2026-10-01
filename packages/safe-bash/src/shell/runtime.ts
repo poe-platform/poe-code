@@ -1753,8 +1753,9 @@ class FastShellCommandContext {
   declare private _argumentValues: CommandArguments | undefined;
   declare private _registerCleanup: NonNullable<CommandContext["registerCleanup"]> | undefined;
   declare private _invoke: ShellCommandContext["invoke"] | undefined;
-  constructor( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], argumentValues: CommandArguments | undefined, env: Record<string, string> | undefined, signalIsScoped: boolean, ) {
-    const directContext = FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok"));
+  constructor( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], argumentValues: CommandArguments | undefined, env: Record<string, string> | undefined, signalIsScoped: boolean, definition: NonNullable<ReturnType<CommandRegistry["get"]>>, ) {
+    const directContext = builtInDirectContextExecutors.has(definition.execute) && !customRegisteredCommands.has(definition.execute)
+      && (FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok")));
     if (!directContext) {
       const { [invocationScope]: ignoredScope, [valueScope]: ignoredAllocation, [declarationArrays]: ignoredArrays, argumentValues: ignoredArguments, signal: ignoredSignal, ...publicIO } = io as IO & { argumentValues?: unknown; signal?: AbortSignal };
       Object.defineProperties(this, Object.getOwnPropertyDescriptors(publicIO));
@@ -6954,7 +6955,7 @@ export class Runtime {
           (context as unknown as { _scopedSignal: AbortSignal | undefined })._scopedSignal = undefined;
         }
       } else {
-        context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs);
+        context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs, externalDef!);
         if (redirectSink) context.stdout = redirectSink;
       }
       if (redirectSink && io.descriptors) {
@@ -7165,7 +7166,7 @@ export class Runtime {
           stageStdout = sharedSyncPipeWriter;
         }
         if (!context) {
-          context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true);
+          context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true, extDef);
           pooledSyncPipeContext = context;
         }
         context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, inputSource, isFirst, stageStdout, this.signal);
@@ -17510,7 +17511,7 @@ export class Runtime {
         if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
       }
     }
-    const context = new FastShellCommandContext(this, state, io, scope, name, values as readonly string[], undefined, env, this._isMemoryBackingFs);
+    const context = new FastShellCommandContext(this, state, io, scope, name, values as readonly string[], undefined, env, this._isMemoryBackingFs, definition);
     const runtimeFrame: RuntimeOutcomeFrame = {};
     scope.enterWork();
     this.budget.beginPathLookupSuspension();

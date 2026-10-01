@@ -14,8 +14,8 @@
     }
   },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json",
+    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/definitions.d.ts dist/definitions.d.ts",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/definitions.d.ts dist/definitions.d.ts && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
@@ -24,7 +24,10 @@
     "toolcraft": "*",
     "typescript": "5.9.3",
     "vitest": "4.1.11",
-    "tsx": "*"
+    "tsx": "*",
+    "@poe-code/agent-mcp-config": "*",
+    "toolcraft-schema": "*",
+    "toolcraft-design": "*"
   },
   "files": [
     "dist",

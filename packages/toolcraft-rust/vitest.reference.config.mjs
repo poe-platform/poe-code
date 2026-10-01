@@ -11,6 +11,13 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (
+          ["clone-command-node", "toolcraft"].some(
+            (suite) => importer === path(`../toolcraft/src/${suite}.test.ts`)
+          ) &&
+          name === "./index.js"
+        )
+          return path("tests/definition-entry.mjs");
+        if (
           suites.some(
             (suite) =>
               importer === path(`../toolcraft/src/${suite}.test.ts`) && name === `./${suite}.js`
@@ -21,7 +28,9 @@ export default defineConfig({
     }
   ],
   test: {
-    include: suites.map((suite) => path(`../toolcraft/src/${suite}.test.ts`)),
+    include: [...suites, "clone-command-node", "toolcraft"].map((suite) =>
+      path(`../toolcraft/src/${suite}.test.ts`)
+    ),
     environment: "node",
     fileParallelism: false,
     maxWorkers: 1,

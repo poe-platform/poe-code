@@ -1,5 +1,14 @@
 import { createRequire } from "node:module";
 
+export {
+  defineCommand,
+  defineStreamCommand,
+  defineGroup,
+  cloneCommandNode,
+  getCommandSourcePath,
+  hasMcpProxyConfig
+} from "./definitions.js";
+
 const native = createRequire(import.meta.url)("./toolcraft-rust.node");
 
 export const { isLogLevel, shouldEmitDiagnostic } = native;

@@ -100,5 +100,16 @@ their availability does not establish complete parity. The first Toolcraft
 checkpoint implements suggestions, diagnostics, HTTP/user errors, command
 requirements and secret resolution. Rust unit tests, native differential tests,
 the original suggestion/logging suites and declaration checks cover these
-surfaces. The remaining sequence is still required; current requirement/secret
-parameter declarations use structural inputs until the full command types land.
+surfaces. Command/group/stream definitions, cloning, default selection, source
+locations and metadata inheritance now have a native policy layer with Node
+identity adapters. Original Toolcraft and clone suites exercise native definitions
+through the existing SDK/MCP consumers; those consumers remain JavaScript.
+Requirement/secret signatures now use the complete command contracts.
+
+The remaining sequence is still required. Definition declarations currently
+import existing schema/design/config contract types. Standalone type packaging
+must be finished before a swap. Direct higher-order assignment of the generic
+stream factories also needs shared contract identity: independent recursive
+declarations make TypeScript infer the stream context as services during that
+assignment, although matching generic instantiations and inferred SDK consumers
+pass. Do not treat those narrower checks as proof of full factory interchangeability.

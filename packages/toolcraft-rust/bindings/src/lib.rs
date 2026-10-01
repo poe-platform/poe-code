@@ -2,6 +2,8 @@ use napi::bindgen_prelude::Utf16String;
 use napi_derive::napi;
 use toolcraft_rust::ApiVersionIssue;
 
+pub mod definitions;
+
 #[napi]
 pub fn candidate_distances(input: Utf16String, candidates: Vec<Utf16String>) -> Vec<f64> {
     let candidates: Vec<Vec<u16>> = candidates

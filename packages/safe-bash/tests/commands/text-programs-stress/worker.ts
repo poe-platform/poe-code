@@ -1,9 +1,7 @@
 import { parentPort } from "node:worker_threads";
 import { createTextProgramCommands, type TextProgramOptions } from "../../../src/commands/text-programs/index.js";
-import { createStandardCommands } from "../../../src/commands/index.js";
 import { CommandRegistry, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { Shell } from "../../../src/shell/index.js";
 import type { TextCase } from "./cases.js";
 import type { Execution, Observation } from "./model.js";
 import { runSafety, type SafetyProbe } from "./safety.js";
@@ -41,6 +39,9 @@ async function execute({ fixture, options }: Request): Promise<Execution> {
       signal: new AbortController().signal, stdout: sink("stdout"), stderr: sink("stderr") };
     let exitCode: number;
     if (fixture.tool === "pipeline") {
+      const [{ Shell }, { createStandardCommands }] = await Promise.all([
+        import("../../../src/shell/index.js"), import("../../../src/commands/index.js"),
+      ]);
       const shell = new Shell({ fs, cwd: "/work", env: context.env, commands: new CommandRegistry([...createStandardCommands(), ...definitions]) });
       try { exitCode = (await shell.exec(fixture.script!, { stdin, stdout: context.stdout, stderr: context.stderr, limits: { maxOutputBytes: 1024 * 1024 } })).exitCode; }
       finally { await shell.dispose(); }

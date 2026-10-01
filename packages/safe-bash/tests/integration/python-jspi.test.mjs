@@ -72,6 +72,7 @@ const empty = new Uint8Array([0, 97, 115, 109, 1, 0, 0, 0]);
 const callbacks = createPythonJspiCallbackCatalog(files['pyodide.asm.mjs']);
 const callbackFiles = callbacks.map(({signature}) => 'callback-' + signature + '.wasm');
 const dependencyRoot = process.env.SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT;
+assert.ok(dependencyRoot, 'Set SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT to the authenticated offline LLM dependency bundle');
 const { pythonLlmDependencies } = await import(pathToFileURL(consumerRoot ? pythonEntry : resolve(root, 'packages/safe-bash/src/commands/python/llm-dependencies.ts')).href);
 const dependencyArchives = dependencyRoot ? pythonLlmDependencies.archives.map((archive, index) => {
   const bytes = readFileSync(resolve(dependencyRoot, archive.fileName));
@@ -107,7 +108,6 @@ ${callbacks.map(({bytes}, index) => ` { module:callback${index},bytes:new Uint8A
 ]});
 const { WebAssembly, fetch, location } = assets;
 export { WebAssembly, fetch, location };
-export const pythonLlmDependenciesEnabled = ${Boolean(dependencyRoot)};
 export async function installStaticPackages(runtime) {
  ${dependencyRoot ? `await installPythonLlmDependencies(runtime,[${dependencyArchives.map((archive,index) => `{fileName:${JSON.stringify(archive.fileName)},bytes:new Uint8Array(dependency${index})}`).join(',')}]);` : ''}
 }

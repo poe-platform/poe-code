@@ -7,20 +7,14 @@ import datetime as _datetime
 from dataclasses import dataclass, field
 import os
 import time
+from pydantic import BaseModel, ConfigDict, Field, create_model
 import poe_llm as _core
 
 Error = _core.LlmError
 
 
-def __getattr__(name):
-    if name == "Options":
-        from pydantic import BaseModel, ConfigDict
-        class Options(BaseModel):
-            model_config = ConfigDict(extra="forbid")
-        Options.__qualname__ = "Options"
-        globals()["Options"] = Options
-        return Options
-    raise AttributeError("module 'llm' has no attribute " + repr(name))
+class Options(BaseModel):
+    model_config = ConfigDict(extra="forbid")
 
 
 def _sync(awaitable):
@@ -426,6 +420,8 @@ class AsyncResponse(_Response):
 
 
 class Model:
+    class Options(Options):
+        pass
     supports_schema = False
     supports_tools = False
     attachment_types = set()
@@ -437,8 +433,9 @@ class Model:
             self.supports_schema = "schema" in capabilities
         if metadata is not None:
             self.attachment_types = set(metadata.get("attachmentTypes", ()))
-            if "options" in metadata:
-                from pydantic import create_model, Field
+            if "options" not in metadata:
+                self.Options = create_model("Options", __base__=type(self).Options, __config__=ConfigDict(extra="allow"))
+            else:
                 from typing import Optional
                 types = {"number": float, "integer": int, "boolean": bool, "string": str}
                 fields = {}
@@ -451,8 +448,7 @@ class Model:
                         if source in declaration:
                             constraints[target] = declaration[source]
                     fields[name] = (value_type, Field(default=None, **constraints))
-                base = globals().get("Options") or __getattr__("Options")
-                self.Options = create_model("Options", __base__=base, **fields)
+                self.Options = create_model("Options", __base__=type(self).Options, **fields)
 
     def __str__(self):
         suffix = " (async)" if isinstance(self, AsyncModel) else ""
@@ -477,9 +473,7 @@ class Model:
                tool_results=None, **options):
         self._validate_attachments(attachments)
         key = options.pop("key", None)
-        options_class = getattr(self, "Options", None)
-        if options_class is not None:
-            options = options_class(**options)
+        options = self.Options(**options)
         if schema is not None and hasattr(schema, "model_json_schema"):
             schema = schema.model_json_schema()
         return Response(Prompt(prompt, self, system=system, attachments=attachments,

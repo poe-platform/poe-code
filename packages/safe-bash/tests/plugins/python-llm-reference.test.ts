@@ -3,6 +3,10 @@ import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { installPythonLlmModule } from '../../src/commands/python/llm-module.js';
 
+const testPython = process.env.LLM_TEST_PYTHON ?? process.env.LLM_REFERENCE_PYTHON ?? 'python3';
+const pydanticAvailable = spawnSync(testPython, ['-c', 'import pydantic'], {timeout: 5000}).status === 0;
+const pythonDependency = pydanticAvailable ? false : 'Requires Python with Pydantic 2; set LLM_TEST_PYTHON or LLM_REFERENCE_PYTHON';
+
 const snippet = `
 import llm
 class BinaryEmbedding(llm.EmbeddingModel):
@@ -32,6 +36,16 @@ class CustomModel(llm.Model):
   response.set_usage(input=2, output=3)
   yield prompt.prompt.upper()
 custom = CustomModel()
+from pydantic import ValidationError
+assert issubclass(llm.Model.Options, llm.Options)
+assert llm.Model.Options is not llm.Options
+assert isinstance(custom.prompt("empty").prompt.options, llm.Options)
+assert custom.prompt("empty").prompt.options.model_dump() == {}
+try:
+ custom.prompt("bad-option", unexpected=True)
+ raise AssertionError("base options accepted extra fields")
+except ValidationError as error:
+ assert error.errors()[0]["type"] == "extra_forbidden"
 assert custom.supports_schema
 custom_response = custom.prompt("custom")
 assert custom_calls == []
@@ -54,6 +68,7 @@ schema = {"type": "object", "properties": {"name": {"type": "string"}, "age": {"
 assert llm.schema_dsl("name, age int: in years") == schema
 assert llm.schema_dsl("name, age int: in years", multi=True) == {"type": "object", "properties": {"items": {"type": "array", "items": schema}}, "required": ["items"]}
 model = llm.get_model("test-model")
+assert isinstance(model.prompt("unused").prompt.options, llm.Options)
 assert llm.get_model("alias").model_id == "test-model"
 assert llm.get_model().model_id == "test-model"
 try:
@@ -288,7 +303,7 @@ capability.bridge = Bridge()
 sys.modules[capability.__name__] = capability
 `;
 
-test('bundled llm matches reference lazy sync and async response contracts', () => {
+test('bundled llm matches reference lazy sync and async response contracts', {skip: pythonDependency}, () => {
   const globals = new Map<string, unknown>();
   let source: unknown;
   let registration = '';
@@ -296,7 +311,7 @@ test('bundled llm matches reference lazy sync and async response contracts', () 
     source = globals.get('_safe_llm_source');
     registration = value;
   } });
-  const result = spawnSync('python3', ['-B', '-c', bundledSetup + snippet], {
+  const result = spawnSync(testPython, ['-B', '-c', bundledSetup + snippet], {
     input: JSON.stringify({ source, registration }), encoding: 'utf8', timeout: 5000,
   });
   assert.ifError(result.error);
@@ -311,7 +326,7 @@ test('bundled llm matches reference lazy sync and async response contracts', () 
   }
 });
 
-test('reference response API closes streams after early exit, errors and cancellation', () => {
+test('reference response API closes streams after early exit, errors and cancellation', {skip: pythonDependency}, () => {
   const program = bundledSetup + `
 import llm
 closed = []
@@ -387,7 +402,7 @@ asyncio.run(check())
     source = globals.get('_safe_llm_source');
     registration = value;
   } });
-  const result = spawnSync('python3', ['-B', '-c', program], {
+  const result = spawnSync(testPython, ['-B', '-c', program], {
     input: JSON.stringify({ source, registration }), encoding: 'utf8', timeout: 5000,
   });
   assert.ifError(result.error);

@@ -87,7 +87,7 @@ JavaScript provider service.
 
 The module ships with the authenticated runtime, without pip installation.
 
-For real Pydantic schema classes, the public Python SDK exports
+The standard llm API requires the pinned offline Pydantic dependencies. The public Python SDK exports
 pythonLlmDependencies and installPythonLlmDependencies. The manifest pins the
 Pyodide version, wheel filenames, sizes and SHA-256 digests, plus native module
 paths and digests. Fetch and authenticate these inputs at build time. Register
@@ -98,16 +98,23 @@ await installPythonLlmDependencies(runtime, archives), where each archive is
 
 The loader checks the complete bundle before extraction into the private
 interpreter runtime. It performs no network requests or pip installation, and
-requires no runtime Wasm compilation. Pydantic availability alone does not yet
-qualify the complete reference Options interface. With these dependencies loaded,
-llm.Options is a genuine Pydantic BaseModel with extra fields forbidden. Custom
+requires no runtime Wasm compilation. llm.Options is a genuine Pydantic BaseModel with extra fields forbidden, and
+every model.prompt call constructs a typed Options object. Custom
 models can define a nested Options subclass; model.prompt validates it immediately
 and execute receives the typed instance through prompt.options. Discovered models
 with declared shared-service options receive generated Pydantic classes using
 those same types, bounds, nullability and descriptions. Transport serializes typed
-options before canonical JavaScript validation. Models without declarations retain
-their existing permissive option behavior; full base-model Options parity remains
-unfinished.
+options before canonical JavaScript validation. Discovered models without declarations use a Pydantic class that accepts extra
+fields, matching the shared service's unrestricted option policy. Custom Model
+subclasses inherit the reference strict Options class unless they override it.
+
+For the maintained installed-package Worker check, prepare the authenticated
+bundle with node scripts/prepare-python-llm-dependencies.mjs CONSUMER_ROOT DESTINATION
+and set SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT to that destination. The release
+qualification step performs this preparation and always exercises Pydantic.
+Native Python response tests require Pydantic 2 via LLM_TEST_PYTHON or the pinned
+LLM_REFERENCE_PYTHON environment; missing dependencies are reported as skips,
+not conformance passes.
 
 The JSPI launcher installs an invocation-owned bridge. Enable `llm` in
 `pythonCommands({ createCapabilities })`: its `call({ operation, payload },

@@ -1,7 +1,7 @@
 import storedSchemas from '../../../safe-bash-command-llm/src/fixtures/stored-schemas.json' with {type:'json'};
 import { standardCommands } from '@poe-platform/safe-bash/core';
 import libraryExamples from 'python-library-examples';
-import { installStaticPackages, pythonLlmDependenciesEnabled } from 'python-static-assets';
+import { installStaticPackages } from 'python-static-assets';
 import { loadPyodide } from 'pinned-pyodide-loader';
 import createPyodideModule from 'pinned-pyodide-module';
 import lockFileContents from 'pinned-pyodide-lock';
@@ -296,12 +296,48 @@ except CalledProcessError as error:
  assert error.returncode == 127
 assert call('identity', 'still-live') == 'still-live'
 import llm
-${pythonLlmDependenciesEnabled ? "from pydantic import BaseModel, ConfigDict, ValidationError\nclass ReferenceOptions(llm.Options):\n model_config = ConfigDict(extra='forbid')\n temperature: float | None = None\nassert ReferenceOptions(temperature='0.5').model_dump() == {'temperature': 0.5}\ntry:\n ReferenceOptions(unknown=True)\n raise AssertionError('extra option was accepted')\nexcept ValidationError:\n pass\nclass TypedReferenceModel(llm.Model):\n model_id = 'typed-custom'\n Options = ReferenceOptions\n def execute(self, prompt, stream, response, conversation):\n  assert isinstance(prompt.options, ReferenceOptions)\n  yield str(prompt.options.temperature)\nassert TypedReferenceModel().prompt('typed', temperature='0.75').text() == '0.75'\ndeclared = llm.Model('declared', metadata={'options': {'temperature': {'type': 'number', 'minimum': 0, 'maximum': 2}}})\nassert declared.prompt('typed', temperature='0.5').prompt.options.temperature == 0.5\ntry:\n declared.prompt('invalid', temperature=3)\n raise AssertionError('option bound ignored')\nexcept ValidationError:\n pass\nclass ReferenceSchema(BaseModel):\n name: str\n age: int\nassert llm.get_model('fake').prompt('reference-schema', schema=ReferenceSchema).text() == 'reference-schema'\n" : ''}
+from pydantic import BaseModel, ConfigDict, ValidationError
+class ReferenceOptions(llm.Options):
+ model_config = ConfigDict(extra='forbid')
+ temperature: float | None = None
+assert ReferenceOptions(temperature='0.5').model_dump() == {'temperature': 0.5}
+try:
+ ReferenceOptions(unknown=True)
+ raise AssertionError('extra option was accepted')
+except ValidationError:
+ pass
+class TypedReferenceModel(llm.Model):
+ model_id = 'typed-custom'
+ Options = ReferenceOptions
+ def execute(self, prompt, stream, response, conversation):
+  assert isinstance(prompt.options, ReferenceOptions)
+  yield str(prompt.options.temperature)
+assert TypedReferenceModel().prompt('typed', temperature='0.75').text() == '0.75'
+declared = llm.Model('declared', metadata={'options': {'temperature': {'type': 'number', 'minimum': 0, 'maximum': 2}}})
+assert declared.prompt('typed', temperature='0.5').prompt.options.temperature == 0.5
+try:
+ declared.prompt('invalid', temperature=3)
+ raise AssertionError('option bound ignored')
+except ValidationError:
+ pass
+class ReferenceSchema(BaseModel):
+ name: str
+ age: int
+assert llm.get_model('fake').prompt('reference-schema', schema=ReferenceSchema).text() == 'reference-schema'
+
 class CustomizedModel(llm.Model):
  model_id = "customized"
  def execute(self, prompt, stream, response, conversation):
   yield prompt.prompt.upper()
 assert CustomizedModel().prompt("customized").text() == "CUSTOMIZED"
+assert issubclass(llm.Model.Options, llm.Options)
+assert isinstance(CustomizedModel().prompt("typed-default").prompt.options, llm.Options)
+assert isinstance(llm.get_model('fake').prompt("typed-discovered").prompt.options, llm.Options)
+try:
+ CustomizedModel().prompt("invalid-options", unexpected=True)
+ raise AssertionError("base Options accepted unknown field")
+except ValidationError:
+ pass
 class CustomizedAsyncModel(llm.AsyncModel):
  model_id = "customized-async"
  async def execute(self, prompt, stream, response, conversation):

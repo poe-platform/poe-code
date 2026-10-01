@@ -18,6 +18,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Managed streams  | Lazy creation, event validation, status callbacks, cancellation and cleanup       |
+| Schema scoping   | Recursive field/branch filtering, required scopes and original schema identity   |
 
 ```ts
 import { suggest, createRuntimeLogger, createHttpError } from "toolcraft-rust";
@@ -76,6 +77,9 @@ package; it does not import the JavaScript Toolcraft implementation at runtime.
 Managed streams use a Rust continuation engine and `toolcraft-schema-rust` event
 validation. Node retains promises, iterator handles and AbortSignals, preserving
 callback receivers, event identity, cleanup errors and cancellation promise identity.
+The internal scope projector also runs in Rust, retaining Node spread semantics,
+custom branch-array methods and original-schema identity through repeated filters.
+Deep graph resource limits still require compatibility qualification before a swap.
 
 The schema reexport, SDK, CLI, transports, approval runtime and
 remaining subpaths are not yet available. Declarations currently use the existing

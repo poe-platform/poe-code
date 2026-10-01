@@ -6,6 +6,7 @@ pub mod definitions;
 pub mod mcp_result;
 pub mod package_metadata;
 pub mod redaction;
+pub mod schema_scope;
 pub mod source_snippet;
 pub mod stream;
 

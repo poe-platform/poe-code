@@ -11,7 +11,7 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (
-          ["clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle"].some(
+          ["clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope-exhausted"].some(
             (suite) => importer === path(`../toolcraft/src/${suite}.test.ts`)
           ) &&
           name === "./index.js"
@@ -19,6 +19,8 @@ export default defineConfig({
           return path("tests/definition-entry.mjs");
         if (importer?.startsWith(path("../toolcraft/src/")) && name === "./stream.js")
           return path("dist/stream.js");
+        if (importer?.startsWith(path("../toolcraft/src/")) && name === "./schema-scope.js")
+          return path("dist/schema-scope.js");
         if (
           suites.some(
             (suite) =>
@@ -36,7 +38,7 @@ export default defineConfig({
       path("tests/package-metadata-parity.test.ts"),
       path("tests/mcp-result-parity.test.ts"),
       path("tests/source-snippet-parity.test.ts"),
-      ...[...suites, "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle"].map((suite) =>
+      ...[...suites, "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope", "schema-scope-exhausted"].map((suite) =>
         path(`../toolcraft/src/${suite}.test.ts`)
       )
     ],

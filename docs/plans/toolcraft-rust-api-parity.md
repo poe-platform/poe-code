@@ -188,6 +188,19 @@ concurrent completion and exceptional listener removal. Managed-stream declarati
 pass bidirectional generic assignment and inferred event checks. SDK/MCP consumers
 in the reference suites now use native streams, but those consumers remain JavaScript.
 
+Scope projection now uses a Rust traversal for optional promotion, field pruning,
+empty-branch policy and original-schema association. Node retains property access,
+object spreads, WeakMap identity and custom `flatMap`/`includes` operations. The
+original scope and exhausted-scope suites run through native projections, including
+SDK/MCP commands and streams; the consumers themselves remain JavaScript. Native
+differential tests cover getter order, changing shapes, sparse/custom branch arrays,
+retained callbacks and arbitrary throws. Wrapper chains use an explicit work stack
+bounded at 16,384 levels; synchronous map callback nesting is guarded at 128 native
+entries. Both produce catchable RangeErrors rather than native stack aborts. These
+thresholds do not claim equivalence to engine-dependent stack limits and remain
+part of resource qualification. The current Toolcraft checkpoint passes 390
+reference/parity tests, 40 native Node tests, Rust tests and declaration checks.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

@@ -294,8 +294,11 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       if (operation.operation === 'load_schema') {
         const id = payload.schema_id;
         if (typeof id !== 'string' || !id || id.includes('\0')) throw new TypeError('Stored schema ID must be a nonempty string');
+        const database = payload.database;
+        if (database !== undefined && (typeof database !== 'string' || !database || database.includes('\0'))) throw new TypeError('Schema database must be a nonempty canonical path');
         let admitted = 0;
         const result = await loadLlmStoredSchema(configurationContext(context,payload,signal),id,{
+          ...(database === undefined ? {} : {database:database as string}),
           maxBytes:Math.min(bufferedLimit,context.inputBudget?.maxBytes ?? Infinity),
           admitBytes(size) { admitted += size; context.inputBudget?.check(admitted); },
         }) ?? null;

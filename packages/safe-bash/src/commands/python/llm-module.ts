@@ -392,10 +392,14 @@ class Client:
         payload = {**_configuration_context(), "queries": list(queries)}
         return await self._run(lambda: self._bridge.call("select_model", payload), self._timeout)
 
-    async def load_schema(self, schema_id: str) -> dict | None:
+    async def load_schema(self, schema_id: str, *, database: str | None = None) -> dict | None:
         if not isinstance(schema_id, str) or not schema_id or "\\0" in schema_id:
             raise TypeError("Stored schema ID must be a nonempty string")
+        if database is not None and (not isinstance(database, str) or not database or "\\0" in database):
+            raise TypeError("Schema database must be a nonempty canonical path")
         payload = {**_configuration_context(), "schema_id": schema_id}
+        if database is not None:
+            payload["database"] = database
         value = await self._run(lambda: self._bridge.call("load_schema", payload), self._timeout)
         return copy.deepcopy(value)
 

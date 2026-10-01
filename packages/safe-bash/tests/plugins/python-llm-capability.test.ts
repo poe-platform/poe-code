@@ -525,6 +525,10 @@ test('Python loads canonical stored schemas under host budgets and preserves mis
   const capability = createPythonLlmCapability(context,service);
   assert.deepEqual(await capability.call!({operation:'load_schema',payload:{schema_id:'unicode'}},{signal}),storedSchemas.schemas.unicode);
   assert.equal(await capability.call!({operation:'load_schema',payload:{schema_id:'absent'}},{signal}),null);
+  await fs.writeFile('/work/custom.db',Buffer.from(storedSchemas.database,'base64'));
+  assert.deepEqual(await capability.call!({operation:'load_schema',payload:{schema_id:'unicode',database:'custom.db',configuration_env:{LLM_USER_PATH:'/missing'}}},{signal}),storedSchemas.schemas.unicode);
+  await assert.rejects(capability.call!({operation:'load_schema',payload:{schema_id:'unicode',database:1}},{signal}),/database/);
+
   await assert.rejects(createPythonLlmCapability(context,service,{maxBufferedResponseBytes:100}).call!({operation:'load_schema',payload:{schema_id:'large'}},{signal}),/byte limit/);
   await assert.rejects(capability.call!({operation:'load_schema',payload:{schema_id:1}},{signal}),/schema ID/);
   await fs.writeFile('/settings/logs.db-wal',new Uint8Array([1]));

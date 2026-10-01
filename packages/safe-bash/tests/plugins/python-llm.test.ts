@@ -53,6 +53,10 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
    self.assertEqual(bridge.calls[-1][0], 'load_schema')
    self.assertEqual(bridge.calls[-1][1]['schema_id'], 'saved')
    self.assertIsNone(await client.load_schema('absent'))
+   await client.load_schema('saved', database='relative.db')
+   self.assertEqual(bridge.calls[-1][1]['database'], 'relative.db')
+   with self.assertRaises(TypeError):
+    await client.load_schema('saved', database=1)
    count = len(bridge.calls)
    for value in [None, 1, '']:
     with self.assertRaises(TypeError):

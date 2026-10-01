@@ -88,7 +88,9 @@ current configuration directory and host response budget without calling a provi
 
 Use `schema = await client.load_schema("saved-schema-id")` to read a stored schema
 from the shared canonical `logs.db`, then pass it to `complete(..., schema=schema)`.
-A missing ID returns `None`. Lookup uses the current guest configuration directory,
+A missing ID returns `None`. Supply `database="/work/history.db"` to read another
+canonical database; relative database paths resolve from the current guest cwd.
+Lookup otherwise uses the current guest configuration directory,
 client timeout, and host input/response budgets. The database must be a checkpointed
 SQLite snapshot: active WAL or rollback journals are explicitly rejected. The
 selected schema is returned as an owned dictionary; this operation does not write

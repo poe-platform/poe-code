@@ -21,6 +21,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Schema scoping   | Recursive field/branch filtering, required scopes and original schema identity   |
 | Member validation | Nested SDK/MCP name collisions, discriminator aliases and formatter callbacks   |
 | Branch validation | Discriminator selection, exclusive-union matching and branch diagnostics         |
+| Applied defaults | Canonical cloned defaults, original-schema validation and ordered diagnostics     |
 | Schemas          | Root DSL exports and `toolcraft-rust/schema`, backed by `toolcraft-schema-rust`     |
 
 ```ts
@@ -85,6 +86,8 @@ Member collision validation uses native traversal and per-object name maps, with
 Node iteration preserving callback errors and iterator cleanup.
 Discriminator and union selection preserve caller values, normalized successful
 branches and diagnostic order while the native runtime chooses the outcome.
+Applied-default validation uses the native schema dependency, preserves fields
+hidden by scope projection and avoids inserting unused nested defaults.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The SDK, CLI, transports, approval runtime and

@@ -235,6 +235,17 @@ Callback nesting uses the existing 128-entry native guard and remains a resource
 qualification item. The checkpoint passes 957 reference/parity tests and 56 native
 Node tests, plus Rust, declaration and lint checks.
 
+Applied-default validation now uses native policy plus the native clone and
+schema validator. It checks the original schema retained by scope projection,
+keeps canonical default contents and disables unused nested default insertion.
+The original SDK/MCP applied-default suite runs through this path. Differential
+tests verify clone isolation, invalid-value return behavior, default getter reads,
+scoped fields, diagnostic receivers and arbitrary throws. Reentrant host calls
+retain the existing 128-entry guard, whose resource threshold still needs
+qualification. The checkpoint passes 1,311 reference/parity tests and 60 native
+Node tests, plus Rust, declaration and lint checks. SDK argument normalization,
+runtime assembly and invocation themselves still require porting.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

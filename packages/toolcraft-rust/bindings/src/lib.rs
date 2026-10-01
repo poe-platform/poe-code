@@ -2,6 +2,7 @@ use napi::bindgen_prelude::Utf16String;
 use napi_derive::napi;
 use toolcraft_rust::ApiVersionIssue;
 
+pub mod applied_default;
 pub mod branch_validation;
 pub mod definitions;
 mod host;

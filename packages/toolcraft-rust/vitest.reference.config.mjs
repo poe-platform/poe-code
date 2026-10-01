@@ -11,7 +11,7 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (
-          ["clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation"].some(
+          ["clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation"].some(
             (suite) => importer === path(`../toolcraft/src/${suite}.test.ts`)
           ) &&
           name === "./index.js"
@@ -23,7 +23,7 @@ export default defineConfig({
           return path("dist/schema-scope.js");
         if (importer?.startsWith(path("../toolcraft/src/")) && name === "./schema-member-names.js")
           return path("dist/schema-member-names.js");
-        if (importer?.startsWith(path("../toolcraft/src/")) && ["./discriminator.js", "./union-validation.js"].includes(name))
+        if (importer?.startsWith(path("../toolcraft/src/")) && ["./discriminator.js", "./union-validation.js", "./applied-default.js"].includes(name))
           return path(`dist/${name.slice(2)}`);
         if (
           suites.some(
@@ -42,7 +42,7 @@ export default defineConfig({
       path("tests/package-metadata-parity.test.ts"),
       path("tests/mcp-result-parity.test.ts"),
       path("tests/source-snippet-parity.test.ts"),
-      ...[...suites, "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation"].map((suite) =>
+      ...[...suites, "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation"].map((suite) =>
         path(`../toolcraft/src/${suite}.test.ts`)
       )
     ],

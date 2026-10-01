@@ -40,15 +40,12 @@ async function checkRoot(context: CommandContext, root: string): Promise<FileSta
   if (root === "/") return ancestors;
   const parts = root.split("/").filter(Boolean);
   let path = "/";
-  for (let i = 0; i < parts.length - 1; i++) {
+  for (let i = 0; i < parts.length; i++) {
     path = resolvePath(path, parts[i]!);
     const stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
     if (stat.type !== "directory") fail(`extraction root has a non-directory or symlink ancestor: ${display(path)}`);
     ancestors.push({ path, stat });
   }
-  const stat = await operation(context, () => context.fs.lstat(root, { signal: context.signal }));
-  if (stat.type !== "directory") fail(`not an extraction directory: ${display(root)}`);
-  ancestors.push({ path: root, stat });
   return ancestors;
 }
 

@@ -673,7 +673,11 @@
           },
           "devDependencies": {
             "@e965/xlsx": "0.20.3",
-            "safe-bash-contracts": "*"
+            "safe-bash-contracts": "*",
+            "@antonz/python-wasi": "3.12.0",
+            "@bjorn3/browser_wasi_shim": "0.4.2",
+            "binaryen": "123.0.0",
+            "fflate": "0.8.2"
           },
           "portable": true
         },
@@ -2494,7 +2498,8 @@
     "test:unit": "npm run test:runner && node scripts/test.mjs",
     "provision:python:integration": "npm --prefix tests/integration/pyodide-runtime ci && npm --prefix tests/integration/pyodide-runtime run provision:public",
     "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public",
-    "postbuild": "node scripts/build-optional-cli.mjs"
+    "postbuild": "node scripts/build-optional-cli.mjs",
+    "test:csvpy-runtime": "node --import tsx --conditions=poe-code-source --test tests/integration/csvpy-runtime/*.test.mjs"
   },
   "version": "0.0.0",
   "files": [

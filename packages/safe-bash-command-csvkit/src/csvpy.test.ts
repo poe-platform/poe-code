@@ -81,3 +81,16 @@ test("recoverable reader does not resume after a host work budget failure", () =
   expect(() => reader.next()).toThrow(failure);
   expect(reader.next().done).toBe(true);
 });
+
+test.each([2, 3])('raw interpreter output obeys the %i-byte output budget', async maxOutputBytes => {
+  const written: number[] = [];
+  const f = fixture('', ['data.csv'], {
+    limits: {...defaultLimits, maxOutputBytes},
+    stdout: {async write(bytes) {written.push(...bytes);}},
+    interpreter: {modes: ['reader'], async load() {throw Error('unexpected raw loader');}, async loadConverted(input) {
+      return {profile: 'test', async close() {}, async interact() {await input.writeBytes!(Uint8Array.of(0xc3, 0x41, 0), 'stdout');}};
+    }}
+  });
+  expect(await execute('csvpy', f.context)).toBe(maxOutputBytes === 3 ? 0 : 78);
+  expect(written).toEqual(maxOutputBytes === 3 ? [0xc3, 0x41, 0] : []);
+});

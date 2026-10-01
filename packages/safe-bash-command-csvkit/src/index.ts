@@ -48,3 +48,5 @@ export type { CsvkitWorkbook, CsvkitWorksheet, CsvkitWorkbookCell } from './work
 export { Runtime, type Settings } from './runtime.js';
 
 export * from "./command.js";
+
+export type {CsvpyWasiOptions} from './default-csvpy.js';

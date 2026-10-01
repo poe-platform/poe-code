@@ -1,3 +1,4 @@
+import {createCsvpyInterpreter} from "./csvpy-interpreter.js";
 import { utf8Codec } from "./codecs/utf8.js";
 import { pythonCodecs } from "./codecs/python.js";
 import { databases as databaseDialects } from "./databases.js";
@@ -156,7 +157,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
           stdout: { write: bytes => output().output.write(bytes) }, stderr: context.stderr, terminal, env: Object.freeze({ ...context.env }),
           codecs, compression, locale, clock, databases,
           sqlDialects,
-          ...(interpreter === undefined ? {} : { interpreter }),
+          interpreter: interpreter ?? createCsvpyInterpreter({stdin: context.stdin, admitInput: account}),
           openMatchFile: openMatchFile ?? (async (path, settings) => {
             const resolved = virtualPath(settings.cwd, path);
             await context.fs.stat(resolved, { signal: settings.signal });

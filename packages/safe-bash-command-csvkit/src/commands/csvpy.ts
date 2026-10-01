@@ -455,7 +455,7 @@ export async function executeCsvpy(runtime: Runtime): Promise<number> {
   let failure: unknown;
   try {
     work.consume();
-    const session = await scope.acquire(() => provider.loadConverted ? provider.loadConverted({ mode, retainOutput: bytes => runtime.retain(bytes), write: (text, channel) => runtime.write(text, channel),
+    const session = await scope.acquire(() => provider.loadConverted ? provider.loadConverted({ mode, retainOutput: bytes => runtime.retain(bytes), write: (text, channel) => runtime.write(text, channel), writeBytes: (bytes, channel) => runtime.writeBytes(bytes, channel),
       reader: async () => {
         const text = await runtime.text(String(o.input_path));
         const dialect: CsvDialect = {

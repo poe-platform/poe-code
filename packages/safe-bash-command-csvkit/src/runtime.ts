@@ -285,6 +285,16 @@ export class Runtime {
     await this.context[channel].write(bytes);
     this.step();
   }
+  async writeBytes(bytes: Uint8Array, channel: "stdout" | "stderr" = "stdout"): Promise<void> {
+    this.step();
+    if (bytes.byteLength > this.context.limits.maxOutputBytes - this.#output) throw new CsvkitOutputBudgetError();
+    this.#work += bytes.byteLength;
+    if (this.#work > this.context.limits.maxWork) throw new CsvkitWorkBudgetError();
+    this.#output += bytes.byteLength;
+    await this.checkpoint();
+    await this.context[channel].write(bytes);
+    this.step();
+  }
   async writeSideFile(path: string, texts: Iterable<string>): Promise<void> {
     this.step();
     const destination = virtualPath(this.context.cwd, path);

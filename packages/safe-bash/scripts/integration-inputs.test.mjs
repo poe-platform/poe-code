@@ -196,6 +196,16 @@ test("extracted XZ and codec tests remain owned by their private workspaces", ()
   }
 });
 
+test("csvpy runtime verification remains an explicit maintained route", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const manifest = JSON.parse(readRegularInput(root, "package.json", 262144));
+  assert.equal(manifest.scripts["test:csvpy-runtime"], "node --import tsx --conditions=poe-code-source --test tests/integration/csvpy-runtime/*.test.mjs");
+  for (const path of [
+    "tests/integration/csvpy-runtime/defaults.test.mjs",
+    "tests/integration/csvpy-runtime/packaging.test.mjs"
+  ]) assert.ok(readRegularInput(root, path, 16384).length > 0);
+});
+
 test("Pyodide real-runtime verification has explicit opt-in entries and a pinned runtime", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const manifest = JSON.parse(readRegularInput(root, "tests/integration/pyodide-runtime/package.json", 4096));

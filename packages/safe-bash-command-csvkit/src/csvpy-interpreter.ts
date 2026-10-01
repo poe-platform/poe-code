@@ -1,3 +1,4 @@
+import {createDefaultCsvpyInterpreter, type CsvpyWasiOptions} from "./default-csvpy.js";
 import type { InterpreterProvider, InterpreterSession } from "./contracts.js";
 import { CsvkitBlocked, CsvkitDiagnostic } from "./errors.js";
 import type { TypedTable } from "./table/index.js";
@@ -33,7 +34,8 @@ export interface CsvpyInterpreterOptions {
 }
 
 /** Scoped Python console profile. IPython and unqualified library operations are explicit gaps. */
-export function createCsvpyInterpreter(options: CsvpyInterpreterOptions): InterpreterProvider {
+export function createCsvpyInterpreter(options: CsvpyInterpreterOptions | CsvpyWasiOptions = {}): InterpreterProvider {
+  if (!("createSession" in options)) return createDefaultCsvpyInterpreter(options);
   return {
     modes: ["reader", "dict", "agate"],
     load: async () => { throw new CsvkitBlocked("csvpy requires JavaScript conversion"); },

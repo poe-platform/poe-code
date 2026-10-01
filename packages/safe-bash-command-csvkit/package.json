@@ -34,7 +34,7 @@
     "THIRD_PARTY_NOTICES.txt"
   ],
   "scripts": {
-    "build": "node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node scripts/generate-inventories.mjs && node ../../scripts/guard-package-dist.mjs && node scripts/build-python-worker.mjs && tsc",
     "test": "cd ../.. && vitest run packages/safe-bash-command-csvkit/src",
     "test:unit": "cd ../.. && vitest run packages/safe-bash-command-csvkit/src",
     "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
@@ -63,6 +63,18 @@
   },
   "devDependencies": {
     "@e965/xlsx": "0.20.3",
-    "safe-bash-contracts": "*"
+    "safe-bash-contracts": "*",
+    "@antonz/python-wasi": "3.12.0",
+    "@bjorn3/browser_wasi_shim": "0.4.2",
+    "binaryen": "123.0.0",
+    "fflate": "0.8.2"
+  },
+  "imports": {
+    "#csvpy-worker": {
+      "types": "./src/python-worker-browser.ts",
+      "workerd": "./dist/python-worker-browser.js",
+      "browser": "./dist/python-worker-browser.js",
+      "default": "./dist/python-worker-node.js"
+    }
   }
 }

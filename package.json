@@ -840,6 +840,11 @@
         "default": "./dist/types/safe-js/platform/node.d.ts"
       },
       "default": null
+    },
+    "#csvpy-worker": {
+      "workerd": "./packages/safe-bash-command-csvkit/dist/python-worker-browser.js",
+      "browser": "./packages/safe-bash-command-csvkit/dist/python-worker-browser.js",
+      "default": "./packages/safe-bash-command-csvkit/dist/python-worker-node.js"
     }
   },
   "main": "./dist/index.js",

@@ -29,10 +29,17 @@ The portable sniffing profile suppresses deployment-specific Python warnings; su
 `sniffing` with warning metadata when exact native warning text is needed.
 SQLite queries use the packaged WASM runtime lazily, with isolated in-memory
 connections. Set `databases: []` to disable that default, or supply providers for
-persistent databases and other engines. Python interpretation still requires an
-explicit interpreter binding with its session, terminal, and Agate library;
-`createCsvpyInterpreter` does not construct those host capabilities. Ambient host
-credentials are never loaded implicitly.
+persistent databases and other engines. `csvpy`, `csvpy --dict`, and `csvpy --agate`
+start a packaged CPython 3.12/WASI console with Agate 1.14.2 and read Python commands
+from shell stdin. The runtime loads lazily in a dedicated worker, without downloads,
+host filesystem access, native processes, or JavaScript interoperability. It requires
+Node.js 22+ or a browser with workers and shared memory enabled. Its guest filesystem
+is read-only, guest linear memory is capped at 256 MiB, and `maxInterpreterWork`
+counts WASM function entries and loop iterations. Cancellation terminates the worker.
+`createCsvpyInterpreter()` provides the same default for SDK hosts; pass `stdin` or
+`terminal.readLine` for interactive input, or retain explicit `createSession` and
+`createTable` bindings for another runtime. Ambient host credentials are never loaded
+implicitly.
 The engine does not fall back to native csvkit processes.
 `csvcut` and `csvformat` accept numeric and null cells from input quoting modes
 2, 4 and 5, preserving Python float serialization and empty null output cells.
@@ -44,7 +51,7 @@ SQLite engine options remain unsupported.
 
 See the [usage guide](../../docs/csvkit/usage-draft.md) for command registration,
 encoding, environment settings and limits. Safe Bash provides an opt-in
-`csvkitCommands(options = {})` plugin using the same SDK. Its portable defaults include Python codecs, C/UTC locale, a live clock, in-memory SQLite, and a non-interactive 80-column, 24-line terminal. Inject bindings for other locale formatting, database providers, or Python interpretation. Its `csvcut` and `csvgrep` registrations yield to the dedicated plugins in either installation order; standalone registration still supplies all fourteen commands. Explicit `replace: true` overrides existing definitions.
+`csvkitCommands(options = {})` plugin using the same SDK. Its portable defaults include Python codecs, C/UTC locale, a live clock, in-memory SQLite, a Python/Agate console, and non-interactive 80-column, 24-line terminal metadata. Inject bindings for other locale formatting, database providers, or a different Python runtime. Its `csvcut` and `csvgrep` registrations yield to the dedicated plugins in either installation order; standalone registration still supplies all fourteen commands. Explicit `replace: true` overrides existing definitions.
 
 This workspace is private and is distributed through the `poe-code` SDK subpath.
 

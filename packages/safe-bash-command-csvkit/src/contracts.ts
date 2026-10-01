@@ -122,6 +122,7 @@ export interface CsvpyConvertedInput {
   readonly reader: () => Promise<Iterator<CsvRecord<CsvCell>>>;
   readonly table: () => Promise<TypedTable>;
   readonly write: (text: string, channel: "stdout" | "stderr") => Promise<void>;
+  readonly writeBytes?: (bytes: Uint8Array, channel: "stdout" | "stderr") => Promise<void>;
   /** Admit synchronous guest output before retaining it for awaited engine writes. */
   readonly retainOutput: (bytes: number) => void;
 }

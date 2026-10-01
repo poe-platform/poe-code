@@ -25,8 +25,8 @@ export async function resetRemoteMcpAuthentication(
   const { name, url } = server;
   if (server.auth?.type !== "oauth") throw new Error("Only managed OAuth credentials can be reset; update bearer/header environment values at the host");
   const oauth = options.binding?.oauth;
-  const timeoutMs = options.timeoutMs ?? oauth?.sessionLockTimeoutMs ?? 30_000;
-  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
+  const timeoutMs = options.timeoutMs ?? oauth?.sessionLockTimeoutMs ?? Infinity;
+  if (timeoutMs !== Infinity && (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647))
     throw new Error("Credential reset timeoutMs must be a positive supported timer interval");
   if (oauth?.reset !== undefined) await oauth.reset(server, { signal: options.signal, timeoutMs });
   else {

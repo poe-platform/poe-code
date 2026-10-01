@@ -151,7 +151,7 @@ export function createMcpCommand(configuration: McpCommandsOptions | readonly In
     "host-configured opener. Cached credentials may connect without another URL.", "",
     "--reset retires saved OAuth tokens and registrations before new consent.",
     "--timeout-ms <milliseconds> bounds the complete authentication operation",
-    "(default 120000). Host callback timeouts may impose a shorter limit.",
+    "(default Infinity). Host callback timeouts may impose a shorter limit.",
     "--max-response-bytes <bytes> overrides the transport response limit",
     "(default Infinity). OAuth metadata/token responses retain their own limits."
   ];
@@ -161,13 +161,13 @@ export function createMcpCommand(configuration: McpCommandsOptions | readonly In
     "Reset needs no credential environment values or network connection. It can",
     "recover corrupt native records and withholds stale environment-token imports.",
     "Host-owned persistence requires a host reset hook. Update static bearer/header",
-    "values in the host environment. The default lock wait is 30000 milliseconds.", "", "  --help  Show this help.", ""].join("\n");
+    "values in the host environment. The default lock wait is unlimited.", "", "  --help  Show this help.", ""].join("\n");
   const resourceHelp = [`Usage: ${textLine(shellWord(name))} resource <server> [uri] [--cursor <value>] [--templates]`, "",
     "Without a URI, list one resource page; --templates lists URI templates.",
     "With a URI, read remote text/blob contents. URIs are sent to the MCP server.",
     "Complete results are JSON, including metadata and nextCursor; provide that",
     "cursor explicitly to request the next page. No tools are discovered or called.",
-    "--timeout-ms <milliseconds> bounds the complete resource operation (default 30000).",
+    "--timeout-ms <milliseconds> bounds the complete resource operation (default Infinity).",
     "--max-input-bytes <bytes> bounds the UTF-8 request JSON (default Infinity).",
     "--max-response-bytes <bytes> bounds transport responses (default Infinity).",
     "CLI values override host resource settings; the host command input limit also applies.",
@@ -184,8 +184,8 @@ export function createMcpCommand(configuration: McpCommandsOptions | readonly In
     "expires_in uses seconds; absolute expires_at uses epoch seconds and expiresAt",
     "uses epoch milliseconds. Optional top-level issuedAt uses epoch milliseconds",
     "for delayed imports. Absolute expiry wins over remaining relative lifetime.", "",
-    "--timeout-ms <milliseconds> bounds input, discovery and persistence (default 30000).",
-    "--lock-timeout-ms <milliseconds> sets the separate persistence lock wait (default 30000).",
+    "--timeout-ms <milliseconds> bounds input, discovery and persistence (default Infinity).",
+    "--lock-timeout-ms <milliseconds> sets the separate persistence lock wait (default Infinity).",
     "--max-import-bytes <bytes> bounds credential input (default Infinity).",
     "CLI values override host import settings; the host command input limit also applies.",
     "Host-owned persistence requires an atomic import hook. Input is bounded by",
@@ -213,7 +213,7 @@ export function createMcpCommand(configuration: McpCommandsOptions | readonly In
     "  module  Dependency-free ESM data module exporting the artifact as default.",
     "Credentials remain environment references in every generated format.", "",
     "Generation --timeout-ms <milliseconds> bounds each discovery request",
-    "(default 30000). Supplied schemas remain offline.",
+    "(default Infinity). Supplied schemas remain offline.",
     "Generation limits: --max-pages (Infinity), --max-tools (Infinity per server),",
     "--max-response-bytes (Infinity), --max-configuration-bytes (Infinity),",
     "--max-artifact-bytes (Infinity). Each accepts a positive integer or Infinity.",
@@ -324,7 +324,7 @@ export function createMcpCommand(configuration: McpCommandsOptions | readonly In
           let result: RemoteMcpCredentialImportResult;
           try {
             parentSignal.throwIfAborted();
-            const requestTimeoutMs = callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs") ?? 30_000;
+            const requestTimeoutMs = callerLimit(selected.requestTimeoutMs, settings?.requestTimeoutMs, "requestTimeoutMs") ?? Infinity;
             if (requestTimeoutMs !== Infinity && (!Number.isSafeInteger(requestTimeoutMs) || requestTimeoutMs < 1 || requestTimeoutMs > 2_147_483_647))
               throw new Error("Import requestTimeoutMs must be a positive supported timer interval");
             const signal = requestTimeoutMs === Infinity ? parentSignal : AbortSignal.any([parentSignal, AbortSignal.timeout(requestTimeoutMs)]);

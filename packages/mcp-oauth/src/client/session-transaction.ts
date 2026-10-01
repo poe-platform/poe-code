@@ -10,8 +10,8 @@ export async function withOAuthSessionTransaction<T>(
   operation: () => Promise<T>,
   options: { signal?: AbortSignal; timeoutMs?: number } = {}
 ): Promise<T> {
-  const timeoutMs = options.timeoutMs ?? 30_000;
-  if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
+  const timeoutMs = options.timeoutMs ?? Infinity;
+  if (timeoutMs !== Infinity && (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647))
     throw new Error("sessionLockTimeoutMs must be an integer from 1 to 2147483647 milliseconds");
   options.signal?.throwIfAborted();
   const started = performance.now();
@@ -29,7 +29,7 @@ export async function withOAuthSessionTransaction<T>(
     const waiting = new Promise<void>((resolve, reject) => { rejectWait = reject; previous.then(resolve, reject); });
     const abort = () => rejectWait(options.signal?.reason);
     try {
-      timer = setTimeout(() => rejectWait(new Error("Timed out waiting for OAuth session transaction lock")), timeoutMs);
+      if (timeoutMs !== Infinity) timer = setTimeout(() => rejectWait(new Error("Timed out waiting for OAuth session transaction lock")), timeoutMs);
       options.signal?.addEventListener("abort", abort, { once: true });
       if (options.signal?.aborted) abort();
       await waiting;

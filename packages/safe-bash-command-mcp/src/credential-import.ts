@@ -15,9 +15,9 @@ export interface RemoteMcpCredentialImportOptions extends ConfigurationOptions {
   readonly signal?: AbortSignal;
   readonly fetch?: SchemaFetchOptions["fetch"];
   readonly oauthDiscoveryCache?: SchemaFetchOptions["oauthDiscoveryCache"];
-  /** Bounds discovery and the complete persistence operation. Default 30000. */
+  /** Bounds discovery and the complete persistence operation. Default Infinity. */
   readonly requestTimeoutMs?: number;
-  /** Maximum native transaction lock wait. Default 30000. */
+  /** Maximum native transaction lock wait. Default Infinity. */
   readonly timeoutMs?: number;
   readonly maxImportBytes?: number;
 }
@@ -43,10 +43,10 @@ export async function importRemoteMcpAuthentication(
   const now = oauth?.now?.bind(oauth);
   if (oauth?.sessionStore !== undefined && importSession === undefined)
     throw new Error("Host-owned OAuth persistence requires an explicit atomic import hook");
-  const timeoutMs = options.timeoutMs ?? oauth?.sessionLockTimeoutMs ?? 30_000;
-  const requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
+  const timeoutMs = options.timeoutMs ?? oauth?.sessionLockTimeoutMs ?? Infinity;
+  const requestTimeoutMs = options.requestTimeoutMs ?? Infinity;
   for (const [name, duration] of [["timeoutMs", timeoutMs], ["requestTimeoutMs", requestTimeoutMs]] as const)
-    if (!(name === "requestTimeoutMs" && duration === Infinity) && (!Number.isSafeInteger(duration) || duration < 1 || duration > 2_147_483_647)) throw new Error(`${name} must be a positive supported timer interval`);
+    if (duration !== Infinity && (!Number.isSafeInteger(duration) || duration < 1 || duration > 2_147_483_647)) throw new Error(`${name} must be a positive supported timer interval`);
   const maxBytes = options.maxImportBytes ?? Infinity;
   if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new Error("maxImportBytes must be a positive safe integer");
   let input: Record<string, unknown>;

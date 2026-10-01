@@ -14,7 +14,7 @@ it("defaults resource budgets to unlimited and accepts explicit Infinity", async
     expect(remoteLimits(options)).toMatchObject({ maxPages: Infinity, maxTools: Infinity, maxResponseBytes: Infinity });
   expect(commandLimit(Infinity, "maxInputBytes")).toBe(Infinity);
   expect(positiveArgument("Infinity", "--max-input-bytes")).toBe(Infinity);
-  expect(() => positiveArgument("Infinity", "--timeout-ms", 2147483647)).toThrow();
+  expect(positiveArgument("Infinity", "--timeout-ms", 2147483647)).toBe(Infinity);
   const configuration = initRemoteMcpConfiguration([server], { maxConfigurationBytes: Infinity, maxTools: Infinity });
   const generated = await generateRemoteMcpArtifact(configuration.configuration, { maxArtifactBytes: Infinity });
   expect(await parseRemoteMcpArtifact(generated.json, { maxArtifactBytes: Infinity })).toEqual(generated.artifact);
@@ -67,6 +67,7 @@ it("stops artifact recreation before credential binding when aborted during hash
 });
 
 it("accepts unlimited request deadlines while retaining finite timer bounds", () => {
+  expect(remoteLimits({}).requestTimeoutMs).toBe(Infinity);
   expect(remoteLimits({ requestTimeoutMs: Infinity }).requestTimeoutMs).toBe(Infinity);
   expect(() => remoteLimits({ requestTimeoutMs: 2_147_483_648 })).toThrow("requestTimeoutMs");
 });

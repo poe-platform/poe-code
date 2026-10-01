@@ -62,7 +62,7 @@ it("rejects unmanaged credentials instead of claiming to reset a supplied bearer
   await expect(sdk.resetRemoteMcpAuthentication(bearer, { binding: { oauth: { reset } } })).rejects.toThrow("OAuth");
   expect(reset).not.toHaveBeenCalled();
 });
-it.each([0, -1, 1.5, NaN, Infinity, 2_147_483_648])("rejects invalid reset lock bounds before invoking a host hook: %s", async timeoutMs => {
+it.each([0, -1, 1.5, NaN, 2_147_483_648])("rejects invalid reset lock bounds before invoking a host hook: %s", async timeoutMs => {
   const reset = vi.fn(async () => {});
   await expect(sdk.resetRemoteMcpAuthentication(server, { timeoutMs, binding: { oauth: { reset } } })).rejects.toThrow("timeoutMs");
   expect(reset).not.toHaveBeenCalled();
@@ -87,6 +87,11 @@ it.each(["replace with aborted", "replace after original abort"])("retains the s
     else { controller.abort(reason); options.signal = new AbortController().signal; }
     resume.resolve();
     expect(await outcome).toEqual(mutation === "replace with aborted" ? { name: "catalog", url: resource, reset: true } : reason);
-    expect(reset).toHaveBeenCalledWith(server, { signal: controller.signal, timeoutMs: 30_000 });
+    expect(reset).toHaveBeenCalledWith(server, { signal: controller.signal, timeoutMs: Infinity });
   } finally { resume.resolve(); await outcome; }
+});
+
+it.each([undefined, Infinity])("resets native persistence with unlimited lock wait %s", async timeoutMs => {
+  const f = fixture();
+  await expect(sdk.resetRemoteMcpAuthentication(server, { timeoutMs, binding: { oauth: { authStore: f.authStore } } })).resolves.toMatchObject({ reset: true });
 });

@@ -28,7 +28,7 @@ export function callerLimit(caller: number | undefined, host: number | undefined
 }
 
 export function positiveArgument(value: string | undefined, flag: string, maximum = Number.MAX_SAFE_INTEGER): number {
-  if (value === "Infinity" && maximum === Number.MAX_SAFE_INTEGER) return Infinity;
+  if (value === "Infinity") return Infinity;
   if (value === undefined || value.length === 0 || [...value].some(char => char < "0" || char > "9"))
     throw new Error(`${flag} requires a positive integer no greater than ${maximum}`);
   const result = Number(value);

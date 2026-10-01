@@ -114,7 +114,7 @@ it("requires an explicit atomic import hook for host-owned persistence", async (
 it("passes the bound grant to a host import hook without querying its session factory", async () => {
   const f = fixture(), importSession = vi.fn(async (_server: unknown, _session: StoredOAuthSession, _options: unknown) => {});
   await sdk.importRemoteMcpAuthentication(dynamic, payload, { binding: { ...f.binding, oauth: { now: () => 10_000, importSession } }, fetch: f.fetch });
-  expect(importSession).toHaveBeenCalledWith(dynamic, expect.objectContaining({ tokens: expect.objectContaining({ expiresAt: 3_610_000 }) }), expect.objectContaining({ timeoutMs: 30_000, signal: expect.any(AbortSignal) }));
+  expect(importSession).toHaveBeenCalledWith(dynamic, expect.objectContaining({ tokens: expect.objectContaining({ expiresAt: 3_610_000 }) }), expect.objectContaining({ timeoutMs: Infinity, signal: expect.any(AbortSignal) }));
   expect(await f.stores.sessionStore.load(resource)).toBeNull();
 });
 it("reports the original import identity when its atomic hook mutates the supplied configuration", async () => {
@@ -382,4 +382,9 @@ it("imports with an unlimited request deadline retaining the caller signal", asy
     })).resolves.toEqual({ name: "catalog", url: resource, imported: true });
     expect(importSession).toHaveBeenCalledWith(expect.anything(), expect.anything(), expect.objectContaining({ signal: controller.signal }));
   } finally { controller.abort(); }
+});
+
+it.each([undefined, Infinity])("imports native credentials with unlimited deadlines %s", async timeoutMs => {
+  const f = fixture();
+  await expect(sdk.importRemoteMcpAuthentication(dynamic, payload, { timeoutMs, requestTimeoutMs: timeoutMs, binding: f.binding, fetch: f.fetch })).resolves.toMatchObject({ imported: true });
 });

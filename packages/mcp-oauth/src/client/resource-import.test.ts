@@ -105,7 +105,7 @@ it("takes an owned snapshot before waiting for a native lock", async () => {
   release.resolve(); await Promise.all([owner, waiting]);
   expect(await f.stores.sessionStore.load(resource)).toEqual(grant());
 });
-it.each([0, -1, 1.5, Infinity, 2_147_483_648])("rejects unsupported import lock intervals: %s", async timeoutMs => {
+it.each([0, -1, 1.5, 2_147_483_648])("rejects unsupported import lock intervals: %s", async timeoutMs => {
   const f = fixture();
   await expect(f.stores.importSession(grant(), { timeoutMs })).rejects.toThrow("timeoutMs");
   expect(await f.stores.sessionStore.load(resource)).toBeNull();

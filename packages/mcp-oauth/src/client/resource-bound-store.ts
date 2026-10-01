@@ -65,8 +65,8 @@ export function createResourceBoundOAuthStores(options: CreateSecretStoreInput, 
   async function replace(record: ResourceCredentials, options: { signal?: AbortSignal; timeoutMs?: number }): Promise<void> {
     options = { ...options, signal: options.signal, timeoutMs: options.timeoutMs };
     options.signal?.throwIfAborted();
-    const timeoutMs = options.timeoutMs ?? 30_000;
-    if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
+    const timeoutMs = options.timeoutMs ?? Infinity;
+    if (timeoutMs !== Infinity && (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647))
       throw new Error("OAuth replacement timeoutMs must be a positive supported timer interval");
     if (store.withLock === undefined) throw new Error("OAuth resource identity backend must support transaction locks");
     // Strict reconciliation reads are bypassed only for explicit replacement,

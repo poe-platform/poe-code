@@ -96,7 +96,7 @@ it("times out a waiter without letting a following transaction bypass the owner"
   expect(f.fetch).toHaveBeenCalledOnce();
 });
 
-it.each([0, -1, NaN, Infinity, Number.MAX_SAFE_INTEGER])("rejects an invalid or unschedulable lock wait before redemption: %s", async timeout => {
+it.each([0, -1, NaN, Number.MAX_SAFE_INTEGER])("rejects an invalid or unschedulable lock wait before redemption: %s", async timeout => {
   const f = fixture();
   f.finish.resolve();
   await expect(f.authorize(f.provider(timeout))).rejects.toThrow("sessionLockTimeoutMs");
@@ -163,4 +163,14 @@ it("retains an unfinished refresh-intent write after caller cancellation and pre
   expect(await owner).toBe(reason);
   expect(await follower).toMatchObject({ message: expect.stringContaining("outcome is unknown") });
   expect(f.fetch).not.toHaveBeenCalled();
+});
+
+it.each([undefined, Infinity])("keeps session lock waits unlimited without scheduling overflow timers: %s", async timeoutMs => {
+  const { withOAuthSessionTransaction } = await import("./session-transaction.js");
+  const f = fixture();
+  const timer = vi.spyOn(globalThis, "setTimeout");
+  try {
+    await expect(withOAuthSessionTransaction(f.store, resource, async () => 42, { timeoutMs })).resolves.toBe(42);
+    expect(timer).not.toHaveBeenCalled();
+  } finally { timer.mockRestore(); }
 });

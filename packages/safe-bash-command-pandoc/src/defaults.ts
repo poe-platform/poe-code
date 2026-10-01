@@ -53,7 +53,26 @@ export async function resolveConversionArgs(args: readonly string[], files: Comm
       const document = parseDocument(text, {uniqueKeys: true});
       if (document.errors.length) execution.fail("E_OPTION", "Invalid YAML defaults");
       let value: unknown;
-      try {value = document.toJS({maxAliasCount: 0});} catch {execution.fail("E_OPTION", "YAML defaults aliases are unsupported");}
+      try {value = document.toJS({maxAliasCount: execution.limits.yamlAliases === Infinity ? -1 : execution.limits.yamlAliases});}
+      catch (error) {
+        if (error instanceof ReferenceError && (execution.limits.yamlAliases === 0 || error.message.includes("alias count"))) execution.fail("E_LIMIT", "YAML defaults alias expansion limit exceeded");
+        execution.fail("E_OPTION", "Invalid YAML defaults aliases");
+      }
+      // JSON metadata cannot represent cycles. Shared acyclic alias values are valid.
+      const active = new Set<object>(), visited = new Set<object>();
+      const pending: {value: unknown; depth: number; leave?: boolean}[] = [{value, depth: 0}];
+      while (pending.length) {
+        const item = pending.pop()!;
+        if (!item.value || typeof item.value !== "object") continue;
+        if (item.leave) {active.delete(item.value); visited.add(item.value); continue;}
+        if (visited.has(item.value)) continue;
+        if (active.has(item.value)) execution.fail("E_OPTION", "Cyclic YAML defaults are unsupported");
+        await execution.cooperate();
+        execution.bound("depth", item.depth);
+        active.add(item.value);
+        pending.push({...item, leave: true});
+        for (const child of Object.values(item.value)) pending.push({value: child, depth: item.depth + 1});
+      }
       if (!value || typeof value !== "object" || Array.isArray(value)) execution.fail("E_OPTION", "Defaults must be a YAML map");
       for (const [raw, entry] of Object.entries(value as Record<string, unknown>)) {
         execution.checkpoint();

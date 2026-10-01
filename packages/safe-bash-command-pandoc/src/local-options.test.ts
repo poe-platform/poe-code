@@ -1,6 +1,7 @@
 import {expect, it, vi} from "vitest";
 import {Volume} from "memfs";
 import {createStandalonePandocCommand} from "./safe-bash.js";
+import {resolveConversionArgs} from "./defaults.js";
 import {convert} from "./engine.js";
 const encode = (s: string) => new TextEncoder().encode(s);
 async function run(args: string[], fixtures: Record<string, string> = {}) {
@@ -76,4 +77,16 @@ it("deep merges metadata defaults across files", async () => {
 });
 it.each(["-tplain", "-wplain", "--write=plain"])("explicit incoming format alias %s overrides YAML defaults", async flag => {
   expect(await run(["-d", "/settings.yaml", flag], {"/settings.yaml": "from: commonmark\nto: html\n"})).toMatchObject({exitCode: 0, stdout: "Hello\n"});
+});
+
+it.each([undefined, Infinity])("accepts YAML defaults aliases with disabled limit %s", async yamlAliases => {
+  const result = await resolveConversionArgs(["-d", "/settings.yaml"], {readFile: async () => encode("from: &format commonmark\nto: *format\n")}, new AbortController().signal, {limits: yamlAliases === undefined ? {} : {yamlAliases}});
+  expect(result.options).toMatchObject({from: "commonmark", to: "commonmark"});
+});
+it("enforces an explicit YAML alias expansion limit", async () => {
+  await expect(resolveConversionArgs(["-d", "/settings.yaml"], {readFile: async () => encode("from: &format commonmark\nto: *format\n")}, new AbortController().signal, {limits: {yamlAliases: 0}})).rejects.toMatchObject({code: "E_LIMIT"});
+});
+it("rejects recursive YAML metadata aliases", async () => {
+  const result = await run(["-d", "/settings.yaml"], {"/settings.yaml": "from: commonmark\nto: html\nmetadata: &x {self: *x}\n"});
+  expect(result.exitCode).toBe(2);
 });

@@ -91,7 +91,9 @@ Short include flags accept attached paths, such as `-Hheader.html`.
 `to`/`writer` to select formats; explicit flags override scalar defaults.
 Supported defaults cover the writer flags above, template variables, metadata,
 include arrays, `input-files`, and `output-file`. Repeated defaults combine
-ordered file lists and maps; unsafe execution keys and YAML aliases are refused.
+ordered file lists and maps. YAML anchors and acyclic aliases are supported; unsafe
+execution keys and cyclic values are refused. `limits.yamlAliases` optionally bounds
+alias expansion per defaults file; omission or `Infinity` disables that budget.
 `-dsettings.yaml` is also accepted. Explicit CLI operands replace `input-files`
 defaults; `-` in that list reads the supplied stdin once.
 SDK callers can use `resolveConversionArgs(args, files, signal, context)` with

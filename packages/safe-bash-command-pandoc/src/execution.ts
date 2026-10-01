@@ -26,6 +26,7 @@ export const defaultLimits: Limits = Object.freeze({
   resources: Infinity,
   diagnostics: Infinity,
   references: Infinity,
+  yamlAliases: Infinity,
   entities: Infinity,
   entityBytes: Infinity,
   work: Infinity,

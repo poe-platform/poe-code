@@ -80,6 +80,8 @@ export interface Limits {
   readonly resources: number;
   readonly diagnostics: number;
   readonly references: number;
+  /** YAML defaults alias expansion budget; Infinity disables it. */
+  readonly yamlAliases: number;
   readonly entities: number;
   readonly entityBytes: number;
   readonly compressedBytes: number;

@@ -8,6 +8,18 @@ import { ParseBudget } from "../../src/shell/parse-budget.js";
 import { expansionSpellings, hereDocumentWords, parseShellUnit } from "../../src/shell/parser.js";
 import { setup } from "./helpers.js";
 
+for (const [pattern, expected] of [["@(a){1..2}", ["a1"]], ["!(a){1..2}", ["b1"]], ["+(a){1..2}", ["a1"]]] as const) {
+  for (const loop of [false, true]) test(`brace ranges preserve extglob expansion: ${pattern}, loop=${loop}`, async context => {
+    const { shell, fs } = setup();
+    context.after(() => shell.dispose());
+    await fs.writeFile("/a1", new Uint8Array());
+    await fs.writeFile("/b1", new Uint8Array());
+    const result = await shell.exec(`shopt -s extglob nullglob; ${loop ? `for i in ${pattern}; do args "$i"; done` : `args ${pattern}`}`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, JSON.stringify(expected));
+  });
+}
+
 for (const [source, expected] of [
   ["args pre{a,b}post", ["preapost", "prebpost"]],
   ["args {1..5..2} {e..a..2} {-02..2}", ["1", "3", "5", "e", "c", "a", "-02", "-01", "000", "001", "002"]],

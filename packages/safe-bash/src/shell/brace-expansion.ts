@@ -94,7 +94,7 @@ export function tryFastExpandBraceRange(
     const c = text.charCodeAt(i);
     if (
       c === 123 || c === 125 || c === 44 || c === 92 || c === 126 ||
-      c === 42 || c === 63 || c === 91 || c === 32 || c === 9 || c === 10
+      c === 40 || c === 42 || c === 63 || c === 91 || c === 32 || c === 9 || c === 10
     ) {
       braceRangeWordCache.set(word, null);
       return undefined;

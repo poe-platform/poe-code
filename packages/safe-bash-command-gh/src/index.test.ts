@@ -1053,6 +1053,7 @@ test("shared plugin isolates shell state and gh does not drain while-read pipeli
   assert.equal((await first.exec("gh auth token")).stdout.trim(), "private-shell-token");
   assert.notEqual((await second.exec("gh auth token")).stdout.trim(), "private-shell-token");
   assert.equal((await first.exec("gh issue create -R octocat/isolation -t private -b body")).exitCode, 0);
+  assert.deepEqual(JSON.parse((await first.exec("gh issue list -R octocat/isolation --json title")).stdout), [{ title: "private" }]);
   assert.equal(JSON.parse((await second.exec("gh issue list -R octocat/isolation --json title")).stdout).length, 0);
   const result = await first.exec('printf "item1\\nitem2\\nitem3\\n" | while read -r x; do gh --version >/dev/null; echo "got:$x"; done');
   assert.equal(result.exitCode, 0);

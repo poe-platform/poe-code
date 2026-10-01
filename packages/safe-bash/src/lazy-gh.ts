@@ -1,4 +1,5 @@
 import { createLazyCommandLoader, createLazyCommands, lazyCommandPlugin } from "./plugins/lazy-command.js";
+import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 
 import type { CommandContext } from "./contracts/index.js";
 
@@ -14,7 +15,8 @@ export const createGhCommand: ghModule["createGhCommand"] = (options = {}) => {
     return () => [{
       ...ghMetadata[0],
       async execute(context) {
-        let backend = options.backend ?? backends.get(context.fs);
+        const filesystem = getRuntimeBackingFileSystem(context.fs) ?? context.fs;
+        let backend = options.backend ?? backends.get(filesystem);
         if (!backend) {
           backend = module.createGitHubBackend({
             defaultHost: options.defaultHost,
@@ -22,7 +24,7 @@ export const createGhCommand: ghModule["createGhCommand"] = (options = {}) => {
             defaultToken: options.defaultToken,
             now: options.now,
           });
-          backends.set(context.fs, backend);
+          backends.set(filesystem, backend);
         }
         return module.createGhCommand({ ...options, backend }).execute(context);
       },
@@ -34,4 +36,3 @@ export const createGhCommands: ghModule["createGhCommands"] = (options = {}) =>
 export const ghCommands: ghModule["ghCommands"] = (options = {}) =>
   lazyCommandPlugin("gh-commands", createGhCommands(options), options.replace ?? false);
 export type { GhCommandOptions, GhCommandsOptions, GhLimits } from "./commands/gh/index.js";
-

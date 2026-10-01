@@ -1,4 +1,5 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { createGhInput } from "./input.js";
 import {
   commandRuntimeIdentity,
@@ -232,7 +233,8 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
     description: "Work seamlessly with GitHub from the command line",
     async execute(context: CommandContext) {
       context.signal.throwIfAborted();
-      let backend = options.backend ?? backends.get(context.fs);
+      const filesystem = getRuntimeBackingFileSystem(context.fs) ?? context.fs;
+      let backend = options.backend ?? backends.get(filesystem);
       if (!backend) {
         backend = createGitHubBackend({
           defaultHost: options.defaultHost,
@@ -240,7 +242,7 @@ export function createGhCommand(options: GhCommandOptions = {}): CommandDefiniti
           defaultToken: options.defaultToken,
           now: options.now,
         });
-        backends.set(context.fs, backend);
+        backends.set(filesystem, backend);
       }
       const limits = { ...configuredLimits };
       const ssh = createDefaultSshProvider(options.ssh, backend.getActiveUser());

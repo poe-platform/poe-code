@@ -183,7 +183,7 @@ describe("safe-bash-command-pdftotext", () => {
     // Crop x=[0..60] on page 1 so only "Hello" (x=20..48) remains from "Hello world" (world is x=51..82, center=66.7)
     // and verify line and block xMax are recomputed to Hello's xMax (< 55)
     const croppedBbox = extractPdfToTextBytes(pdf, [
-      "-bbox",
+      "-bbox-layout",
       "-f",
       "1",
       "-l",
@@ -364,9 +364,9 @@ describe("safe-bash-command-pdftotext", () => {
     assert.equal(wideFixed.exitCode, 0);
     assert.ok(narrowFixed.output.indexOf("ColB") > wideFixed.output.indexOf("ColB"));
 
-    // Tight -colspacing 0.3 splits ColA and ColB into separate <line> elements in -bbox
-    const tightColBbox = extractPdfToTextBytes(bytes, ["-bbox", "-colspacing", "0.3", "in.pdf", "-"]);
-    const wideColBbox = extractPdfToTextBytes(bytes, ["-bbox", "-colspacing", "2.0", "in.pdf", "-"]);
+    // Tight -colspacing 0.3 splits ColA and ColB into separate <line> elements in -bbox-layout
+    const tightColBbox = extractPdfToTextBytes(bytes, ["-bbox-layout", "-colspacing", "0.3", "in.pdf", "-"]);
+    const wideColBbox = extractPdfToTextBytes(bytes, ["-bbox-layout", "-colspacing", "2.0", "in.pdf", "-"]);
     const countLineTags = (s: string) => s.split("<line ").length - 1;
     assert.equal(countLineTags(tightColBbox.output), 2);
     assert.equal(countLineTags(wideColBbox.output), 1);
@@ -623,4 +623,23 @@ describe("safe-bash-command-pdftotext", () => {
     const htmlBadEnc = await runPdftohtmlCli(["-enc", "InvalidEnc", "-stdout", "enc.pdf"], files);
     assert.equal(htmlBadEnc.exitCode, 99);
   });
+});
+
+for (const [flag, expected] of [["-layout", "Hello Poppler Parity!\n\f"], ["-raw", "Hello Poppler Parity!\f"]]) {
+  it(`matches Poppler text boundaries for ${flag}`, () => {
+    const doc = PdfDocument.create();
+    doc.addPage([300, 200]).drawText("Hello Poppler Parity!", { x: 20, y: 120, size: 12 });
+    assert.equal(extractPdfToTextBytes(doc.save(), [flag!]).output, expected);
+  });
+}
+it("keeps bbox words directly under pages and TSV flows at level 3", () => {
+  const pdf = buildThreePageTestPdf();
+  const bbox = extractPdfToTextBytes(pdf, ["-bbox"]).output;
+  assert.ok(bbox.includes("<word "));
+  for (const tag of ["<flow", "<block", "<line"]) assert.ok(!bbox.includes(tag), tag);
+  const layout = extractPdfToTextBytes(pdf, ["-bbox-layout"]).output;
+  for (const tag of ["<flow", "<block", "<line"]) assert.ok(layout.includes(tag), tag);
+  const flows = extractPdfToTextBytes(pdf, ["-tsv"]).output.split("\n").filter(line => line.endsWith("###FLOW###"));
+  assert.ok(flows.length > 0);
+  for (const flow of flows) assert.equal(flow.split("\t")[0], "3");
 });

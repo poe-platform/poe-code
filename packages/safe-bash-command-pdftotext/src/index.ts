@@ -527,13 +527,13 @@ function renderBboxHtml(
       const bxMax = (block.bbox[2] * scale).toFixed(6);
       const byMax = ((extracted.height - block.bbox[1]) * scale).toFixed(6);
       if (args.bboxLayout) html += "    <flow>\n";
-      html += `      <block xMin="${bxMin}" yMin="${byMin}" xMax="${bxMax}" yMax="${byMax}">\n`;
+      if (args.bboxLayout) html += `      <block xMin="${bxMin}" yMin="${byMin}" xMax="${bxMax}" yMax="${byMax}">\n`;
       for (const line of block.lines) {
         const lxMin = (line.bbox[0] * scale).toFixed(6);
         const lyMin = ((extracted.height - line.bbox[3]) * scale).toFixed(6);
         const lxMax = (line.bbox[2] * scale).toFixed(6);
         const lyMax = ((extracted.height - line.bbox[1]) * scale).toFixed(6);
-        html += `        <line xMin="${lxMin}" yMin="${lyMin}" xMax="${lxMax}" yMax="${lyMax}">\n`;
+        if (args.bboxLayout) html += `        <line xMin="${lxMin}" yMin="${lyMin}" xMax="${lxMax}" yMax="${lyMax}">\n`;
         for (const word of line.words) {
           const wxMin = (word.bbox[0] * scale).toFixed(6);
           const wyMin = ((extracted.height - word.bbox[3]) * scale).toFixed(6);
@@ -541,9 +541,9 @@ function renderBboxHtml(
           const wyMax = ((extracted.height - word.bbox[1]) * scale).toFixed(6);
           html += `          <word xMin="${wxMin}" yMin="${wyMin}" xMax="${wxMax}" yMax="${wyMax}">${escapeXml(word.text)}</word>\n`;
         }
-        html += "        </line>\n";
+        if (args.bboxLayout) html += "        </line>\n";
       }
-      html += "      </block>\n";
+      if (args.bboxLayout) html += "      </block>\n";
       if (args.bboxLayout) html += "    </flow>\n";
     }
     html += "  </page>\n";
@@ -573,7 +573,7 @@ function renderTsv(
       const bWidth = ((block.bbox[2] - block.bbox[0]) * scale).toFixed(6);
       const bHeight = ((block.bbox[3] - block.bbox[1]) * scale).toFixed(6);
       rows.push(
-        `2\t${pageNumber}\t${blockIdx}\t${blockIdx}\t0\t0\t${bLeft}\t${bTop}\t${bWidth}\t${bHeight}\t-1\t###FLOW###`
+        `3\t${pageNumber}\t${blockIdx}\t${blockIdx}\t0\t0\t${bLeft}\t${bTop}\t${bWidth}\t${bHeight}\t-1\t###FLOW###`
       );
       block.lines.forEach((line, lineIdx) => {
         const lLeft = (line.bbox[0] * scale).toFixed(6);
@@ -800,7 +800,7 @@ argv: readonly string[] = []): Generator<void, PdftotextCliResult> {
     if (eolChar !== "\n") {
       pageText = pageText.replaceAll("\n", eolChar);
     }
-    if (pageText.length > 0 && !pageText.endsWith(eolChar)) {
+    if (mode !== "raw" && pageText.length > 0 && !pageText.endsWith(eolChar)) {
       pageText += eolChar;
     }
     if (mode === "logical" && pageText.length > 0) {

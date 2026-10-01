@@ -316,6 +316,7 @@ export function formatExtractedPageText(
       if (Math.abs(dy) > 4) return dy;
       return a.bbox[0] - b.bbox[0];
     });
+    const leftMargin = allLines.reduce((left, line) => Math.min(left, line.bbox[0]), Infinity);
     const rows: PdfTextLine[][] = [];
     for (const l of allLines) {
       const lastRow = rows[rows.length - 1];
@@ -330,17 +331,17 @@ export function formatExtractedPageText(
         row.sort((a, b) => a.bbox[0] - b.bbox[0]);
         const pitch = options.fixedPitch !== undefined && options.fixedPitch > 0 ? options.fixedPitch : 6;
         let lineStr = "";
-        let curX = 0;
+        let curX = leftMargin;
         if (options.fixedPitch !== undefined && options.fixedPitch > 0) {
           const words = row.flatMap(seg => seg.words).sort((a, b) => a.bbox[0] - b.bbox[0]);
           for (const w of words) {
-            const spaces = Math.max(curX > 0 ? 1 : 0, Math.round((w.bbox[0] - curX) / pitch));
+            const spaces = Math.max(lineStr.length > 0 ? 1 : 0, Math.round((w.bbox[0] - curX) / pitch));
             lineStr += " ".repeat(Math.min(spaces, 80)) + w.text;
             curX = w.bbox[2];
           }
         } else {
           for (const seg of row) {
-            const spaces = Math.max(curX > 0 ? 2 : 0, Math.round((seg.bbox[0] - curX) / pitch));
+            const spaces = Math.max(lineStr.length > 0 ? 2 : 0, Math.round((seg.bbox[0] - curX) / pitch));
             lineStr += " ".repeat(Math.min(spaces, 40)) + seg.text;
             curX = seg.bbox[2];
           }

@@ -69,10 +69,10 @@ test("jq preflight preserves assertion costs and skips enormous zero-instruction
   assert.throws(() => new Pattern("(?=a{16381})a", true, false, "jq", "", { maxPatternInstructions: 16384 }), { message: "jq regular expression program limit exceeded" });
   const work = { step() {}, async checkpoint() {}, maxBufferBytes: 8192 };
   for (const source of ["(?:){9007199254740991}", "(?:){9007199254740991,}", "(?:a{700000}){0}"]) {
-    assert.deepEqual(await new Pattern(source, true, false, "jq").find("", work), { start: 0, end: 0, groups: [""] }, source);
+    assert.deepEqual(await new Pattern(source, true, false, "jq").find("", work), { start: 0, end: 0, groups: [""], captureOffsets: [] }, source);
   }
-  assert.deepEqual(await new Pattern("(?:(a{700000})){0}", true, false, "jq").find("", work), { start: 0, end: 0, groups: ["", undefined] });
-  assert.deepEqual(await new Pattern("(?=a{2})a+?", true, false, "jq").find("aa", work), { start: 0, end: 1, groups: ["a"] });
+  assert.deepEqual(await new Pattern("(?:(a{700000})){0}", true, false, "jq").find("", work), { start: 0, end: 0, groups: ["", undefined], captureOffsets: [] });
+  assert.deepEqual(await new Pattern("(?=a{2})a+?", true, false, "jq").find("aa", work), { start: 0, end: 1, groups: ["a"], captureOffsets: [] });
 });
 
 test("regex tree projection honors caller instruction limits", () => {

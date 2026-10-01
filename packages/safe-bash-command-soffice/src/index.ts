@@ -545,6 +545,10 @@ function parseSofficeArguments(argv: readonly string[], cwd: string): SofficeArg
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    if (arg === "--") {
+      inputs.push(...argv.slice(i + 1));
+      break;
+    }
     if (arg === "--help" || arg === "-h") {
       return {
         exitCode: 0,

@@ -41,3 +41,6 @@ ODS-to-CSV/XLSX conversion; use the async API for those formats.
 Source paths and `--outdir` resolve relative to the working directory, including
 `.` and `..`. Shell commands charge each loaded source once to the cumulative
 input budget; option values and existing destinations do not count as inputs.
+
+Use `--` before filenames beginning with a dash, for example
+`soffice --convert-to txt -- -report.csv`. All following arguments are input paths.

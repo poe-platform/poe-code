@@ -85,3 +85,27 @@ for (const args of [["--help", "data.csv"], ["--version", "data.csv"], ["data.cs
     assert.deepEqual(reads, []);
   });
 }
+
+for (const factory of [createSofficeCommand, createLibreofficeCommand]) {
+  it(`${factory.name} treats every token after -- as an input operand`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    for (const name of ["-data.csv", "--help", "--version"]) await fs.writeFile(`/work/${name}`, encode("a,b"));
+    const totals: number[] = [];
+    const result = await factory().execute(invocation(fs, ["--convert-to", "txt", "--", "-data.csv", "--help", "--version"], bytes => totals.push(bytes)));
+    assert.equal(result.exitCode, 0);
+    assert.deepEqual(totals, [3, 6, 9]);
+    for (const [name, expected] of [["-data.txt", "a\tb\n"], ["--help.txt", "a,b"], ["--version.txt", "a,b"]]) {
+      assert.equal(new TextDecoder().decode(await fs.readFile(`/work/${name}`)), expected);
+    }
+  });
+}
+
+for (const run of [runSofficeCli, runSofficeCliSync]) {
+  it(`${run.name} supports dash-prefixed operands after --`, async () => {
+    const files = new Map([["/work/-data.csv", encode("a,b")]]);
+    const result = await run(["--convert-to", "txt", "--", "-data.csv"], files, "/work");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(new TextDecoder().decode(files.get("/work/-data.txt")), "a\tb\n");
+  });
+}

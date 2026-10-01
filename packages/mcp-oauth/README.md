@@ -41,6 +41,15 @@ alone do not establish either native error type.
 - `createJwksTokenVerifier(options)`: JWKS-backed access-token verifier for MCP servers.
 - `OAuthError`: OAuth HTTP error type with status, retryability and known-outcome fields.
 
+## Resumable server authorization
+
+`beginRemoteMcpAuthorization` and `completeRemoteMcpAuthorization` are available
+in both Node and Worker exports, and through `@poe-platform/safe-bash/mcp`.
+They use Web Crypto and host storage, with no filesystem, listener, browser opener
+or pending callback promise. Supply a statically registered client and trusted
+discovery. See [the public MCP example](../safe-bash-mcp/README.md#resumable-https-oauth)
+for callback routing and the required atomic storage contract.
+
 ## Configuration
 
 `createDefaultOAuthClientProvider(options)` accepts:

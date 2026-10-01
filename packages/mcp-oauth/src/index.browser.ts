@@ -18,3 +18,6 @@ export function createDefaultOAuthClientProvider(): never {
 export function createAuthStoreSessionStore(): never {
   throw new Error("Desktop OAuth persistence is unavailable in Worker MCP");
 }
+
+export { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./client/resumable.js";
+export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "./client/resumable.js";

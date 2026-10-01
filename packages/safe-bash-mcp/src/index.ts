@@ -21,3 +21,6 @@ export { importRemoteMcpAuthentication } from "./credential-import.js";
 export type { RemoteMcpCredentialImportOptions, RemoteMcpCredentialImportResult } from "./credential-import.js";
 export { accessRemoteMcpResources } from "./resources.js";
 export type { RemoteMcpResourceRequest, RemoteMcpResourceOptions, RemoteMcpResourceResult } from "./resources.js";
+
+export { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "mcp-oauth";
+export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "mcp-oauth";

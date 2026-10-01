@@ -63,3 +63,6 @@ export type {
 
 export { readBoundedResponseText } from "./http-response.js";
 export { fetchMcpResponse } from "./http-fetch.js";
+
+export { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./client/resumable.js";
+export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "./client/resumable.js";

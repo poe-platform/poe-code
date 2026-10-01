@@ -570,3 +570,71 @@ Callback denials use native `OAuthAuthorizationError`: CLI summaries retain reco
 codes and withhold reflected descriptions or unknown codes; SDK fields/messages
 remain intact. Native error markers preserve these summaries when the client bundles
 its own OAuth package copy; mutable error names alone are insufficient. Other MCP protocol error codes/data and ordinary failure causes are preserved.
+
+## Resumable HTTPS OAuth
+
+Start consent in one request and complete it in another, even after a Worker
+restart. These functions are exported from both Node and Worker entrypoints:
+
+```ts
+import {
+  beginRemoteMcpAuthorization,
+  completeRemoteMcpAuthorization,
+  type RemoteMcpAuthorizationStore
+} from "@poe-platform/safe-bash/mcp";
+
+// Each request supplies a store scoped to its authenticated user and server.
+const store: RemoteMcpAuthorizationStore = userServerOAuthStore;
+const { authorizationUrl } = await beginRemoteMcpAuthorization({
+  resource: "https://mcp.example/mcp",
+  redirectUri: "https://app.example/oauth/callback",
+  client: { clientId: registeredClientId, clientSecret: registeredClientSecret,
+    tokenEndpointAuthMethod: "client_secret_basic" },
+  scope: "read",
+  store,
+  discover: validatedHostDiscovery
+});
+// Redirect this user to authorizationUrl. Do not log it.
+
+// In the authenticated callback route, potentially in a new Worker:
+await completeRemoteMcpAuthorization({
+  callbackUrl: request.url,
+  store: userServerOAuthStore,
+  fetch: policyCheckedFetch
+});
+```
+
+The host must implement all three storage operations with durable database
+atomicity, scoped to the authenticated user and logical server:
+
+- `create(transaction)` inserts the private JSON record under a unique state and
+  captures the current credential generation. Do not overwrite existing states.
+- `consume(state)` atomically marks it consumed and returns it at most once across
+  all workers. Retain its generation for the subsequent conditional commit.
+- `commit(transaction, session)` atomically checks that the consumed transaction's
+  generation is still current, persists the session and invalidates that fence.
+  Return `false` when stale. Reset, deletion, reconfiguration and superseding
+  grants must advance the generation, so late token responses cannot restore
+  retired credentials. A load followed by an unconditional save is insufficient.
+
+For D1, use a unique user/server/state key, an atomic conditional update with
+`RETURNING` for consumption, and a transactional generation check plus credential
+write for commit. Do not trust a callback-supplied user or server identifier to
+select the store. Resolve ownership through the authenticated host session. Keep
+transactions, PKCE verifiers, registrations and token sessions in private storage;
+expire abandoned records. The default transaction lifetime is ten minutes and
+`ttlMs` may shorten it. A failed or interrupted exchange consumes the transaction;
+start consent again instead of retrying the code.
+
+Discovery is required and must enforce host issuer trust and network policy.
+The API additionally checks resource/issuer binding, HTTPS endpoints, authorization
+code support and S256 PKCE. Completion uses the required injected fetch policy and
+rejects redirects. Static clients support `none`, `client_secret_post` and
+`client_secret_basic`; this API never registers a client dynamically. The exact
+HTTPS redirect, fixed query parameters, state and issuer are checked before code
+exchange. Issuer is mandatory when advertised by discovery.
+
+Completion returns only the resource after the conditional commit succeeds.
+Errors omit callback, endpoint and storage exception details. To use the saved
+grant, have your existing host-owned `oauth: { provider }` read the persisted
+session for that same user/server. Tokens are never returned in public results.

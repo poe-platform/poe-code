@@ -138,7 +138,7 @@ async function requestTokens(input: {
   if (method === "client_secret_basic") {
     const encoded = new URLSearchParams({ credential: input.clientId }).toString().slice("credential=".length);
     const encodedSecret = new URLSearchParams({ credential: input.clientSecret! }).toString().slice("credential=".length);
-    headers.set("Authorization", `Basic ${Buffer.from(`${encoded}:${encodedSecret}`).toString("base64")}`);
+    headers.set("Authorization", `Basic ${btoa(`${encoded}:${encodedSecret}`)}`);
   } else {
     body.set("client_id", input.clientId);
     if (method === "client_secret_post") body.set("client_secret", input.clientSecret!);

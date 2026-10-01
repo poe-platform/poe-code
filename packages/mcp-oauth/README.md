@@ -47,7 +47,7 @@ alone do not establish either native error type.
 in both Node and Worker exports, and through `@poe-platform/safe-bash/mcp`.
 They use Web Crypto and host storage, with no filesystem, listener, browser opener
 or pending callback promise. Supply a statically registered client and trusted
-discovery. See [the public MCP example](../safe-bash-mcp/README.md#resumable-https-oauth)
+discovery. See [the public MCP example](../safe-bash-command-mcp/README.md#resumable-https-oauth)
 for callback routing and the required atomic storage contract.
 
 ## Configuration

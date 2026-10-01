@@ -229,3 +229,15 @@ import "./safe-packages-private-command-types.mjs";
 import "./safe-packages-fmt-types.mjs";
 
 import "./safe-packages-csvgrep-types.mjs";
+
+import { createMediaCommand, createMediaCommands, mediaCommands, type MediaCommandsOptions, type MediaLimits } from "@poe-platform/safe-bash/commands/media";
+import { createMcpCommand, createMcpCommands, mcpCommands, type McpCommandsOptions, type McpLimits } from "@poe-platform/safe-bash/commands/mcp";
+const mediaOptions: MediaCommandsOptions = {};
+const mcpOptions: McpCommandsOptions = {};
+const mediaDefinition: CommandDefinition = createMediaCommand(mediaOptions);
+const mcpDefinition: CommandDefinition = createMcpCommand(mcpOptions);
+const mediaDefinitions: readonly CommandDefinition[] = createMediaCommands();
+const mcpDefinitions: readonly CommandDefinition[] = createMcpCommands();
+const mediaLimits: Partial<MediaLimits> = {};
+const mcpLimits: McpLimits = {};
+void [mediaDefinition, mcpDefinition, mediaDefinitions, mcpDefinitions, mediaLimits, mcpLimits, mediaCommands(), mcpCommands()];

@@ -2,7 +2,7 @@ import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import {
   collectBytes, readBytes, commandRuntimeIdentity, createOutputOperation, getCommandArguments,
   type CommandContext, type CommandDefinition, type OutputOperation, type VirtualShellPlugin
-} from "@poe-platform/safe-bash/contracts";
+} from "safe-bash-contracts";
 import { OAuthAuthorizationError, OAuthError } from "mcp-oauth";
 import { HttpTransportError, McpError, OAuthMetadataError, type Tool, type CallToolResult } from "tiny-mcp-client";
 import { compileJsonSchema, formatIssues, type CompiledJsonSchema, type CompileJsonSchemaOptions } from "toolcraft-schema";

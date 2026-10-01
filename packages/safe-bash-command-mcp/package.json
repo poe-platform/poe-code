@@ -1,0 +1,55 @@
+{
+  "name": "safe-bash-command-mcp",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./remote": {
+      "types": {
+        "workerd": "./dist/index.browser.d.ts",
+        "browser": "./dist/index.browser.d.ts",
+        "default": "./dist/index.d.ts"
+      },
+      "workerd": "./dist/index.browser.js",
+      "browser": "./dist/index.browser.js",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=node --format=esm --target=node22 --external:safe-bash-contracts --outfile=dist/index.js && esbuild src/index.browser.ts --bundle --platform=neutral --format=esm --target=es2022 --conditions=workerd,browser --external:node:stream --external:safe-bash-contracts --outfile=dist/index.browser.js && rollup dist/index.d.ts --file dist/index.d.ts --format es --external safe-bash-contracts --plugin dts={respectExternal:true} && rollup dist/index.browser.d.ts --file dist/index.browser.d.ts --format es --external safe-bash-contracts --plugin dts={respectExternal:true}",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-mcp/src",
+    "test": "cd ../.. && vitest run packages/safe-bash-command-mcp/src",
+    "lint": "eslint src && tsc --noEmit"
+  },
+  "dependencies": {
+    "tiny-mcp-client": "*",
+    "mcp-oauth": "*",
+    "toolcraft-schema": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-contracts": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/safe-bash-command-mcp"
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./mcp": "./remote",
+        "./commands/mcp": "."
+      }
+    }
+  }
+}

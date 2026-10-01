@@ -492,7 +492,7 @@
     "@poe-code/agent-child-process": "*",
     "@poe-code/agent-skill-config": "*",
     "safe-bash-command-od": "*",
-    "safe-bash-mcp": "*",
+    "safe-bash-command-mcp": "*",
     "terminal-png-mcp": "*",
     "safe-bash-command-readlink": "*",
     "safe-bash-command-pdfinfo": "*",

@@ -4,9 +4,9 @@ import { expect, it } from "vitest";
 
 it.each(["workerd", "browser"])("bundles the %s MCP entry without desktop dependencies", async condition => {
   const result = await build({
-    entryPoints: ["packages/safe-bash-mcp/src/index.browser.ts"], bundle: true,
+    entryPoints: ["packages/safe-bash-command-mcp/src/index.browser.ts"], bundle: true,
     platform: "neutral", mainFields: ["module", "main"], format: "esm", conditions: [condition], write: false, metafile: true,
-    external: ["node:*", "@poe-platform/safe-bash/contracts"],
+    external: ["node:*", "safe-bash-contracts"],
     alias: { "tiny-mcp-client": "./packages/tiny-mcp-client/src/index.browser.ts", "mcp-oauth": "./packages/mcp-oauth/src/index.browser.ts", "node:child_process": "./packages/tiny-mcp-client/src/spawn.browser.ts", "tiny-stdio-mcp-server/protocol": "./packages/tiny-stdio-mcp-server/src/protocol.ts", "tiny-stdio-mcp-server/headers": "./packages/tiny-stdio-mcp-server/src/headers.ts", "toolcraft-schema": "./packages/toolcraft-schema/src/index.ts" }
   });
   expect(result.outputFiles[0].text).toContain("beginRemoteMcpAuthorization");
@@ -17,7 +17,7 @@ it.each(["workerd", "browser"])("bundles the %s MCP entry without desktop depend
 });
 
 it.each(["workerd", "browser"])("resolves portable runtime entries with %s", condition => {
-  for (const name of ["safe-bash-mcp", "tiny-mcp-client", "mcp-oauth"]) {
+  for (const name of ["safe-bash-command-mcp/remote", "tiny-mcp-client", "mcp-oauth"]) {
     const target = execFileSync(process.execPath, ["--conditions=" + condition, "--input-type=module", "-e",
       `console.log(import.meta.resolve(${JSON.stringify(name)}))`], { encoding: "utf8" }).trim();
     expect(target.endsWith("/dist/index.browser.js")).toBe(true);

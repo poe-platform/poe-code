@@ -1158,6 +1158,42 @@ it('preserves companion references to conditional public contracts in the same p
   expect(manifest.dependencies).not.toHaveProperty('@poe-platform/safe-bash');
 });
 
+it('ships companion command factories using the canonical private contracts', async () => {
+  const { volume, options } = optionalLeftovers();
+  const contractsManifest = structuredClone(bashManifest);
+  contractsManifest.exports = Object.fromEntries(Object.entries(contractsManifest.exports)
+    .filter(([route]) => route === "." || route.startsWith("./contracts")));
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {} };
+  contractsManifest.poeCode.integration.privateWorkspaces["safe-bash-contracts"] = profile;
+  volume.mkdirSync("/repo/packages/safe-bash-contracts/dist", { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-bash-contracts/package.json", JSON.stringify({
+    name: "safe-bash-contracts", private: true, type: "module", ...profile,
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  volume.writeFileSync("/repo/packages/safe-bash-contracts/dist/index.js", "export const commandRuntimeIdentity = {};");
+  volume.writeFileSync("/repo/packages/safe-bash-contracts/dist/index.d.ts", "export interface CommandDefinition { name: string }");
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(contractsManifest));
+  const directory = '/repo/packages/mcp-companion';
+  volume.mkdirSync(directory + '/dist', { recursive: true });
+  volume.writeFileSync(directory + '/package.json', JSON.stringify({
+    name: 'mcp-companion', private: true, type: 'module',
+    exports: { '.': { types: './dist/index.d.ts', import: './dist/index.js' } },
+    poeCode: { safeLibraryExports: { 'safe-bash': { './mcp': '.', './commands/mcp': '.' } } },
+  }));
+  volume.writeFileSync(directory + '/dist/index.js', 'export { commandRuntimeIdentity } from "safe-bash-contracts";');
+  volume.writeFileSync(directory + '/dist/index.d.ts', 'export type { CommandDefinition } from "safe-bash-contracts";');
+  await packageSafeLibraries({ ...options, outDir: '/output' });
+  const read = (path: string) => volume.readFileSync('/output/safe-bash/' + path, 'utf8');
+  expect(read('dist/mcp-companion/index.js')).not.toContain('"safe-bash-contracts"');
+  expect(read('dist/mcp-companion/index.d.ts')).not.toContain('"safe-bash-contracts"');
+  const manifest = JSON.parse(read('package.json'));
+  expect(manifest.exports['./mcp']).toEqual({
+    types: './dist/mcp-companion/index.d.ts', import: './dist/mcp-companion/index.js',
+  });
+  expect(manifest.exports['./commands/mcp']).toEqual(manifest.exports['./mcp']);
+  expect(manifest.dependencies).not.toHaveProperty('@poe-platform/safe-bash');
+});
+
 it('preserves companion conditional types and internal platform imports', async () => {
   const { volume, options } = optionalLeftovers();
   const directory = '/repo/packages/image-companion';

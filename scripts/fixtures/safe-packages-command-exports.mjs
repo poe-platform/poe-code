@@ -36,3 +36,15 @@ for (const [name, api] of Object.entries({ sed, awk, diff, patch, tar, zip, unzi
   api[`${name}Commands`]().setup({ commands: registry });
   if (JSON.stringify(registry.list().map(command => command.name)) !== JSON.stringify(definitions.map(command => command.name))) throw new Error(`${name}: standalone plugin inventory differs`);
 }
+
+import * as media from "@poe-platform/safe-bash/commands/media";
+import * as mcp from "@poe-platform/safe-bash/commands/mcp";
+for (const [name, api] of Object.entries({ media, mcp })) {
+  const title = name[0].toUpperCase() + name.slice(1);
+  const primary = api[`create${title}Command`]();
+  const definitions = api[`create${title}Commands`]();
+  if (!definitions.some(command => command.name === primary.name)) throw new Error(`${name}: primary missing`);
+  const registry = new commands.CommandRegistry();
+  api[`${name}Commands`]().setup({ commands: registry });
+  if (JSON.stringify(registry.list().map(command => command.name)) !== JSON.stringify(definitions.map(command => command.name))) throw new Error(`${name}: plugin inventory differs`);
+}

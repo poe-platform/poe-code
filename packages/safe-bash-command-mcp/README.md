@@ -1,4 +1,11 @@
-# safe-bash-mcp
+# safe-bash-command-mcp
+
+For the `mcp` management command, import `mcpCommands`, `createMcpCommands`,
+or `createMcpCommand` from `@poe-platform/safe-bash/commands/mcp` (Node).
+All accept optional `McpCommandsOptions`, including `servers` and `replace` for
+the plugin. Empty options construct the command without connecting to a server.
+The existing `createRemoteMcpManagementCommand(servers, options)` API remains available.
+
 
 Workers and browser bundlers select a remote-only entry for
 `@poe-platform/safe-bash/mcp`: discovery, commands, argument parsing and resource
@@ -553,7 +560,7 @@ The guard retains referenced credential values from before and after binding;
 host clocks and store factories cannot remove the original values from this check.
 
 The ESM data module has no dependency imports and can be loaded from any working
-directory. Runtime commands use the host's installed `safe-bash-mcp` library and
+directory. Runtime commands use the host's installed `@poe-platform/safe-bash/mcp` API and
 explicit environment binding; every schema is supplied, so loading does not
 rediscover tools. Recreation captures command policies, selected dependency handles
 and schema format mappings before credential-binding callbacks; the original

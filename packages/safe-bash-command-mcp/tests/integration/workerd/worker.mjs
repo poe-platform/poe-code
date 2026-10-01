@@ -1,4 +1,4 @@
-import { fetchRemoteMcpSchema, createRemoteMcpCommands } from 'safe-bash-mcp';
+import { fetchRemoteMcpSchema, createRemoteMcpCommands } from 'safe-bash-command-mcp';
 import { createCommandArguments, toByteSource } from '@poe-platform/safe-bash/contracts';
 
 function check(value, message) { if (!value) throw new Error(message); }

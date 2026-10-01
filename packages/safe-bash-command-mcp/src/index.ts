@@ -24,3 +24,5 @@ export type { RemoteMcpResourceRequest, RemoteMcpResourceOptions, RemoteMcpResou
 
 export { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "mcp-oauth";
 export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "mcp-oauth";
+
+export { createMcpCommand, createMcpCommands, mcpCommands, type McpCommandsOptions, type McpLimits } from "./management.js";

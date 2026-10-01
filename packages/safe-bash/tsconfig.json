@@ -65,12 +65,12 @@
         "../safe-bash-playground/src/*.ts",
         "../safe-bash-playground/src/*"
       ],
-      "safe-bash-mcp": [
-        "../safe-bash-mcp/src/index.ts"
+      "safe-bash-command-mcp": [
+        "../safe-bash-command-mcp/src/index.ts"
       ],
-      "safe-bash-mcp/*": [
-        "../safe-bash-mcp/src/*.ts",
-        "../safe-bash-mcp/src/*"
+      "safe-bash-command-mcp/*": [
+        "../safe-bash-command-mcp/src/*.ts",
+        "../safe-bash-command-mcp/src/*"
       ],
       "safe-bash-markdown-engine": [
         "../safe-bash-markdown-engine/src/index.ts"

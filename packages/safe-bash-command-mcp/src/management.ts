@@ -1,7 +1,7 @@
 import { snapshotRemoteMcpCredentialOptions } from "./credential-options.js";
 import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import { resolvePath } from "@poe-code/safe-fs/core";
-import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "@poe-platform/safe-bash/contracts";
+import { commandRuntimeIdentity, collectBytes, toByteSource, createOutputOperation, type CommandDefinition } from "safe-bash-contracts";
 import { argumentText, callerLimit, commandLimit, emit, errorDetails, positiveArgument, shellWord, textLine, validateCommandName } from "./commands.js";
 import { initRemoteMcpConfiguration, type ConfigurationOptions, type InitRemoteMcpServer } from "./configuration.js";
 import { generateRemoteMcpArtifact, type ArtifactGenerationOptions } from "./artifact.js";
@@ -122,10 +122,18 @@ function credentialArguments(args: readonly string[]): { name: string; json: boo
 }
 
 /** Create configuration and artifact commands for a host-owned static remote registry. */
-export function createRemoteMcpManagementCommand(
-  servers: readonly InitRemoteMcpServer[],
-  options: RemoteMcpManagementOptions = {}
-): CommandDefinition {
+export interface McpCommandsOptions extends RemoteMcpManagementOptions {
+  readonly servers?: readonly InitRemoteMcpServer[];
+  readonly replace?: boolean;
+}
+
+export type McpLimits = Pick<RemoteMcpManagementOptions, "maxInputBytes" | "maxOutputBytes">;
+
+export function createMcpCommand(options?: McpCommandsOptions): CommandDefinition;
+export function createMcpCommand(servers: readonly InitRemoteMcpServer[], options?: RemoteMcpManagementOptions): CommandDefinition;
+export function createMcpCommand(configuration: McpCommandsOptions | readonly InitRemoteMcpServer[] = {}, legacyOptions: RemoteMcpManagementOptions = {}): CommandDefinition {
+  const options: McpCommandsOptions = Array.isArray(configuration) ? { ...legacyOptions, servers: configuration } : configuration as McpCommandsOptions;
+  const servers = options.servers ?? [];
   const name = options.name ?? "mcp";
   validateCommandName(name);
   if (servers.some(server => server.name === name)) throw new Error(`Management command conflicts with generated command: ${name}`);
@@ -442,3 +450,21 @@ export function createRemoteMcpManagementCommand(
     }
   };
 }
+
+
+export function createMcpCommands(options: McpCommandsOptions = {}): readonly CommandDefinition[] {
+  return [createMcpCommand(options)];
+}
+
+export function mcpCommands(options: McpCommandsOptions = {}): import("safe-bash-contracts").VirtualShellPlugin {
+  const commands = createMcpCommands(options);
+  const replace = options.replace ?? false;
+  return { name: "mcp-commands", setup(host) {
+    if (!replace) for (const command of commands) {
+      if (host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
+    }
+    for (const command of commands) host.commands.register(command, { replace });
+  } };
+}
+
+export { createMcpCommand as createRemoteMcpManagementCommand };

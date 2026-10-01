@@ -7,6 +7,36 @@ import { standardCommands } from "../../src/commands/index.js";
 import { Capture } from "../../src/shell/runtime.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 
+for (const [source, expected] of [
+  ['arr=(one two three); echo hi | grep ^h; echo "after: ${arr[@]}"', 'hi\nafter: one two three\n'],
+  ['export x=outer; f() { local x=inner; env | grep ^x=; }; f; echo "after-f: $x"', 'x=inner\nafter-f: outer\n'],
+  ['declare -A arr=([key]=value); [[ abc =~ (b) ]]; echo hi | grep ^h; echo "${arr[key]}:${BASH_REMATCH[1]}"', 'hi\nvalue:b\n'],
+  ['x=0; if true; then ((x++)); y=$(echo a; echo b); fi; echo "if-x=$x"', 'if-x=1\n'],
+  ['z=0; { ((z++)); y=$(echo a; echo b); }; echo "group-z=$z"', 'group-z=1\n'],
+  ['w=0; case foo in foo) ((w++)); y=$(echo a; echo b) ;; esac; echo "case-w=$w"', 'case-w=1\n'],
+  ['fn=0; f() { ((fn++)); y=$(echo a; echo b); }; f arg; echo "fn=$fn"', 'fn=1\n'],
+] as const) test(`pipeline ownership and compound execution: ${source}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.stderr, "");
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, expected);
+});
+
+test("ERE matching and capture replacement work without global Buffer", async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), env: { LANG: "C.UTF-8" } }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const original = globalThis.Buffer;
+  try {
+    globalThis.Buffer = undefined!;
+    const result = await shell.exec('[[ abc =~ (b) ]]; echo "${BASH_REMATCH[1]}"; [[ xyz =~ (y) ]]; echo "${BASH_REMATCH[1]}"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "b\ny\n");
+  } finally { globalThis.Buffer = original; }
+});
+
 for (const [pipeline, expected] of [
   [String.raw`printf 'abc\n123\n' | grep -E '[[:digit:]]+'`, "123"],
   [String.raw`printf '123\nabc\n' | grep -E '[[:alpha:]]+'`, "abc"],

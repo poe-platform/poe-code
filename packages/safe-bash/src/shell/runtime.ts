@@ -16356,11 +16356,10 @@ export class Runtime {
                 const isFastPure = isPureStage || runtime.isPureExternalStageCommand(command, rawStateForChild);
                 const forkedExt = isFastPure ? forkExtensions(state.extensions, "pipeline") : undefined;
                 const child: State = isFastPure
-                  ? Object.assign( new RootShellState(rawStateForChild.cwd, rawStateForChild.variables, rawStateForChild.exported, forkedExt), rawStateForChild, {
+                  ? Object.assign(cloneRawState(rawStateForChild, false), {
                         extensions: forkedExt, isolated: true, _readOnlyStage: true, }, )
                   : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
                 preparedChild = child;
-                if (child._readOnlyStage) child.variables = { ...child.variables };
                 child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
                 if (!child._readOnlyStage) {
                   child.extensions = undefined;

@@ -14,16 +14,18 @@ function definition(name: string, options: StreamFormatCommandsOptions = {}) {
   return command;
 }
 
-test("default factory contains 115 and standalone formatting installs exactly four without split", async () => {
+test("default factory contains 189 and standalone formatting installs exactly four without split", async () => {
   const instance = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
-  assert.equal(createAgentCommands().length, 115);
-  for (const name of ["curl", "safejs"]) {
+  const names = createAgentCommands().map(command => command.name);
+  assert.equal(names.length, 189);
+  assert.equal(new Set(names).size, 189);
+  for (const name of ["curl", "safejs", "node", "npm", "npx"]) {
     const result = await instance.exec(`${name}`);
     assert.equal(result.exitCode, 127);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, `shell: line 1: ${name}: command not found\n`);
   }
-  assert.equal(instance.commands.list().length, 115);
+  assert.equal(instance.commands.list().length, 189);
   for (const name of ["lzma", "unlzma", "lzcat"]) assert.equal(instance.commands.has(name), true);
   for (const name of ["seq", "nl", "rev", "unexpand", "split", "xq", "xmllint", "mdq"]) assert.equal(instance.commands.has(name), true);
   assert.equal((await instance.exec("seq 1")).exitCode, 0);

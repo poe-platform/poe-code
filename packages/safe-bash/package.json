@@ -1690,6 +1690,17 @@
             "safe-bash-contracts": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-media": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/media-cli": "*",
+            "@poe-code/remote-execution": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -2828,7 +2839,8 @@
     "safe-bash-command-find": "*",
     "safe-bash-command-gzip": "*",
     "safe-bash-command-alias": "*",
-    "safe-bash-command-unalias": "*"
+    "safe-bash-command-unalias": "*",
+    "safe-bash-command-media": "*"
   },
   "main": "./dist/index.js",
   "imports": {

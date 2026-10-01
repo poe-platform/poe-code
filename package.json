@@ -630,7 +630,8 @@
     "safe-bash-command-find": "*",
     "safe-bash-command-gzip": "*",
     "safe-bash-command-alias": "*",
-    "safe-bash-command-unalias": "*"
+    "safe-bash-command-unalias": "*",
+    "safe-bash-command-media": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

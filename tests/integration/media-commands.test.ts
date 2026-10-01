@@ -1,10 +1,10 @@
 import { expect, it, vi } from 'vitest';
 import { CommandRegistry, MemoryFileSystem, Shell, agentCommands, createCommandArguments } from '@poe-platform/safe-bash';
 import { mediaCommands } from '@poe-platform/safe-bash/commands/media';
-import { grammarRevision, nativeReference } from './options.generated.js';
-import { imageMagickGrammarRevision, imageMagickReference } from './imagemagick.generated.js';
-import type { MediaEngineRequest } from './engine.js';
-import type { ImageMagickDiscovery } from './imagemagick.js';
+import { grammarRevision, nativeReference } from '@poe-code/media-cli';
+import { imageMagickGrammarRevision, imageMagickReference } from '@poe-code/media-cli';
+import type { MediaEngineRequest } from '@poe-code/media-cli';
+import type { ImageMagickDiscovery } from '@poe-code/media-cli';
 
 it('passes invocation cancellation to ImageMagick advisory filesystem operations', async () => {
   const fs = new MemoryFileSystem();
@@ -150,7 +150,7 @@ it('preserves invalid UTF-8 argv and caller context through public invocation', 
 it('executes a VFS script created with a heredoc equivalently to literal SDK argv', async () => {
   const options = bindings();
   const fs = new MemoryFileSystem();
-  const shell = new Shell({ fs, env: {} }).use(agentCommands()).use(mediaCommands(options));
+  const shell = new Shell({ fs, env: {} }).use(agentCommands()).use(mediaCommands({ ...options, replace: true }));
   const direct = await invoke(shell, 'ffprobe', ['-show_entries', 'format=duration', 'a b.mp4']);
   const scripted = await shell.exec("cat > /run.sh <<'EOF'\n#!/bin/sh\nffprobe -show_entries format=duration 'a b.mp4'\nEOF\nchmod +x /run.sh\n/run.sh");
   expect(scripted.exitCode).toBe(0);
@@ -217,7 +217,7 @@ it.each([
 ])('preserves %s native argv through executable heredocs and literal invocation', async command => {
   const options = bindings();
   const shell = new Shell({ fs: new MemoryFileSystem(), env: { NATIVE: 'a b' } })
-    .use(agentCommands()).use(mediaCommands(options));
+    .use(agentCommands()).use(mediaCommands({ ...options, replace: true }));
   try {
     const direct = await invoke(shell, command, ['-version', '--media-service', 'a b', '', Uint8Array.of(255)]);
     const scripted = await shell.exec(`cat > /native.sh <<'EOF'\n#!/bin/sh\n${command} -version --media-service 'a b' '' $'\\377'\nEOF\nchmod +x /native.sh\n/native.sh`);
@@ -231,4 +231,14 @@ it.each([
     expect(calls[1]![0].context.cwd).toBe(calls[0]![0].context.cwd);
     expect(calls[1]![0].context.env).toMatchObject({ NATIVE: 'a b' });
   } finally { await shell.dispose(); }
+});
+
+it('exposes standard media factories without granting implicit host execution', async () => {
+  const api = await import('@poe-platform/safe-bash/commands/media');
+  expect(api.createMediaCommand().name).toBe('ffmpeg');
+  expect(api.createMediaCommands().map(command => command.name)).toContain('ffmpeg');
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(api.mediaCommands());
+  const result = await shell.exec('ffmpeg -version');
+  expect(result.exitCode).not.toBe(0);
+  expect(result.stderr).toContain('Explicit remote media bindings required');
 });

@@ -481,6 +481,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-media#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

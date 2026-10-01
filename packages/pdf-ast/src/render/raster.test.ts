@@ -236,7 +236,19 @@ describe("Netpbm encoders & PDF rasterization options", () => {
     let svg: string;
     try {
       globalThis.Buffer = undefined as never;
-      svg = renderDisplayListToSvg(parsedDoc.getPage(0).evaluateDisplayList());
+      const displayList = parsedDoc.getPage(0).evaluateDisplayList();
+      svg = renderDisplayListToSvg(displayList);
+      const embeddedImages = svg.split('href="data:image/png;base64,').slice(1);
+      expect(embeddedImages).toHaveLength(displayList.images.length);
+      for (const [index, embedded] of embeddedImages.entries()) {
+        const encoded = embedded.slice(0, embedded.indexOf('"'));
+        const png = Uint8Array.from(atob(encoded), char => char.charCodeAt(0));
+        const bitmap = decodePng(png);
+        const source = displayList.images[index]!;
+        expect(bitmap.width).toBe(source.width);
+        expect(bitmap.height).toBe(source.height);
+        expect(bitmap.data).toEqual(source.decodedRgba);
+      }
     } finally { globalThis.Buffer = savedBuffer; }
     expect(svg).toContain("<image");
     expect(svg).toContain("data:image/png;base64,");

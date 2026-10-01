@@ -4,7 +4,7 @@ import { setImmediate } from "node:timers/promises";
 import {
   toByteSource, type ByteSink, type ByteSource, type FileSystem, type FsOptions,
 } from "../../../../src/contracts/index.js";
-import { MemoryFileSystem } from "../../../../src/fs/memory/index.js";
+import { MemoryFileSystem, type MemoryFileSystemOptions } from "../../../../src/fs/memory/index.js";
 import { createDiffPatchCommands, type DiffPatchOptions } from "../../../../src/commands/diff-patch/index.js";
 
 export const cwd = "/sandbox/work";
@@ -13,8 +13,8 @@ export const replacement = (name = "target", next = "new"): string => `--- ${nam
 export const creation = (name: string): string => `--- /dev/null\n+++ ${name}\n@@ -0,0 +1 @@\n+created\n`;
 export const deletion = (name: string): string => `--- ${name}\n+++ /dev/null\n@@ -1 +0,0 @@\n-old\n`;
 
-export async function memory(files: Readonly<Record<string, string | Uint8Array>> = { target: "old\n" }): Promise<MemoryFileSystem> {
-  const backing = new MemoryFileSystem();
+export async function memory(files: Readonly<Record<string, string | Uint8Array>> = { target: "old\n" }, options: MemoryFileSystemOptions = {}): Promise<MemoryFileSystem> {
+  const backing = new MemoryFileSystem(options);
   await backing.mkdir(cwd, { recursive: true });
   for (const [name, data] of Object.entries(files)) {
     assert(name && !name.startsWith("/") && !name.split("/").includes(".."));

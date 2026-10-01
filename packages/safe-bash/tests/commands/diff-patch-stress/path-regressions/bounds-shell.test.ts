@@ -34,9 +34,9 @@ test("deep decoded headers are accepted before path stripping", async () => {
   await exactUpdate("deep-target", section(quoted(name)), ["-p257"]);
 });
 
-test("unstripped deep paths retain Memory's resolution limit without mutation", async () => {
+test("unstripped deep paths retain Memory's explicit resolution limit without mutation", async () => {
   const name = `${"d/".repeat(257)}deep-target`;
-  const backing = await memory({ "deep-target": "old\n", sentinel: "untouched\n" });
+  const backing = await memory({ "deep-target": "old\n", sentinel: "untouched\n" }, { maxPathComponents: 256 });
   const before = await snapshot(backing);
   const observed = instrument(backing);
   const result = await invoke(observed.fs, "patch", { input: section(quoted(name)), args: ["-p0"] });

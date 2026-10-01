@@ -1,7 +1,17 @@
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { test } from "node:test";
-import { HtmlBudget, invocationOptions } from "./contracts.js";
+import { defaultHtmlLimits, HtmlBudget, invocationOptions } from "./contracts.js";
+
+test("HTML budgets treat undefined limits as omitted", () => {
+  const signal = new AbortController().signal;
+  for (const key of Object.keys(defaultHtmlLimits)) {
+    for (const value of [undefined, Infinity]) {
+      const budget = new HtmlBudget({ signal, limits: { [key]: value } });
+      assert.deepEqual(budget.limits, defaultHtmlLimits);
+    }
+  }
+});
 
 test("shared HTML ledgers observe cancellation without retaining signal listeners", () => {
   const controller = new AbortController();

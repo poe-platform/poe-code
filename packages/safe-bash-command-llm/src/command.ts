@@ -433,6 +433,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
 
 export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefinition {
   for (const [name, value] of Object.entries(options.limits ?? {})) {
+    if (value === undefined || value === Infinity) continue;
     if (!Number.isSafeInteger(value) || value < 0) throw new TypeError(`Invalid llm limit: ${name}`);
   }
   const limits = options.limits === undefined ? undefined : Object.freeze({ ...options.limits });

@@ -91,6 +91,9 @@ const invocationCounts = new WeakMap<HtmlOptions, Ledger>();
 /** Own one cumulative accounting ledger for an invocation. */
 export function invocationOptions(options: HtmlOptions): HtmlOptions & { limits: HtmlLimits } {
   const owned = { signal: options.signal, limits: { ...defaultHtmlLimits, ...options.limits } };
+  for (const name of Object.keys(defaultHtmlLimits) as (keyof HtmlLimits)[]) {
+    if (owned.limits[name] === undefined) owned.limits[name] = defaultHtmlLimits[name];
+  }
   invocationCounts.set(owned, createLedger());
   return owned;
 }
@@ -110,9 +113,11 @@ export class HtmlBudget {
       "tokenBytes",
       "work",
       "outputBytes"
-    ] as const)
+    ] as const) {
+      if (this.limits[name] === undefined) this.limits[name] = defaultHtmlLimits[name];
       if (this.limits[name] !== Infinity && (!Number.isSafeInteger(this.limits[name]) || this.limits[name] < 0))
         throw new HtmlError("E_LIMIT", "Expected nonnegative safe integer limits or Infinity", 0, name);
+    }
     if (!ledger) {
       ledger = createLedger();
       invocationCounts.set(options, ledger);

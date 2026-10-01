@@ -5,6 +5,16 @@ import { toByteSource } from "safe-bash-contracts";
 import { createLlmCommand } from "./command.js";
 import { createLlmTemplateStore, type LlmTemplateLoader } from "./templates.js";
 
+test("remote template loading accepts an unlimited byte quota", async () => {
+  const store = createLlmTemplateStore({
+    command: "llm", args: [], fs: new MemoryFileSystem(), cwd: "/", env: {},
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write() {} }, stderr: { async write() {} },
+    fetch: async () => new Response("prompt: remote\n"),
+  }, { maxRemoteBytes: Infinity });
+  assert.equal((await store.load("https://fixture.test/template")).prompt, "remote");
+});
+
 test("template loaders support URL fetch, plugin prefixes, byte limits, and independent abort cleanup", async () => {
   const cases = [
     {

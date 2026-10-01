@@ -658,6 +658,9 @@ sequences. `SECONDS` tracks elapsed whole seconds and accepts a new starting
 value. Assignments through arithmetic, `read`, and `printf -v` retain these
 behaviors; unsetting either variable removes its special behavior.
 
+HTML, YAML, CSV and XML query limits, plus `xan`, `bc`, `less`, `sponge`, SafeJS
+and LLM provider quotas accept `Infinity`; explicit `undefined` retains the default.
+
 Execution quotas are unlimited by default. Set individual `limits` to opt in;
 supplying one does not enable other quotas. Available quotas are `maxParseUnits`,
 `maxInputBytes`, `maxOutputBytes`, `maxPipelineBytes`, `maxCommands`, `maxFileSystemOperations`,

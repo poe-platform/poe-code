@@ -47,6 +47,7 @@ export function resolveYqLimits(overrides: Partial<YqLimits> = {}): Readonly<YqL
     maxSteps: yqCaps.maxSteps,
   };
   for (const [key, value] of Object.entries(overrides)) {
+    if (Object.hasOwn(limits, key) && value === undefined) continue;
     if (!Object.hasOwn(limits, key) || value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) {
       throw new TypeError("yq limits must be nonnegative safe integers or Infinity with supported names");
     }

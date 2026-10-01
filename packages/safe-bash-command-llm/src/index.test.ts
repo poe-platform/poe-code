@@ -45,9 +45,18 @@ test("output byte limit includes final newline and closes the provider", async (
 
 test("command limits reject unsafe, fractional and negative values at construction", async () => {
   const { createLlmCommand } = await import("./index.js");
-  for (const value of [-1, 0.5, Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
+  for (const value of [-1, 0.5, -Infinity, NaN, Number.MAX_SAFE_INTEGER + 1]) {
     assert.throws(() => createLlmCommand({ providers: [], limits: { maxInputBytes: value } }), /Invalid llm limit/);
     assert.throws(() => createLlmCommand({ providers: [], limits: { maxOutputBytes: value } }), /Invalid llm limit/);
+  }
+});
+
+test("command byte limits accept explicit Infinity and undefined", async () => {
+  const { createLlmCommand } = await import("./index.js");
+  for (const key of ["maxInputBytes", "maxOutputBytes"]) {
+    for (const value of [undefined, Infinity]) {
+      assert.doesNotThrow(() => createLlmCommand({ providers: [], limits: { [key]: value } }));
+    }
   }
 });
 

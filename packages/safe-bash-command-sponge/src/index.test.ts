@@ -10,6 +10,7 @@ test("sponge command definition exports standard contract", () => {
 
 test("sponge input quotas are optional with equivalent flat and nested options", () => {
   assert.equal(settings().maxBufferedBytes, Infinity);
+  assert.equal(settings({ limits: { ["maxBufferedBytes" as string]: undefined } }).maxBufferedBytes, Infinity);
   for (const value of [Infinity, 16]) {
     assert.equal(settings({ maxBufferedBytes: value }).maxBufferedBytes, value);
     assert.equal(settings({ limits: { maxBufferedBytes: value } }).maxBufferedBytes, value);

@@ -2,6 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createSafeJsNodeCommand } from "../../../src/commands/node/safejs.js";
 import { contractRuntime, execute, operation } from "./helpers.js";
+import { commandLimits } from "../../../src/commands/safejs/options.js";
+
+test("SafeJS limits treat explicit undefined as omitted", () => {
+  const defaults = commandLimits();
+  for (const key of Object.keys(defaults)) {
+    for (const value of [undefined, Infinity]) assert.deepEqual(commandLimits({ [key]: value }), defaults);
+  }
+});
 
 for (const limits of [undefined, { maxOutputBytes: 2 }, { maxSteps: 7 }]) {
   test(`only explicit interpreter limits reach the runtime: ${JSON.stringify(limits)}`, async () => {

@@ -8,6 +8,16 @@ import {
 import { shellValueFromBytes } from "safe-bash-contracts/value";
 import { FsError } from "safe-bash-contracts/errors";
 import { createHtmlqCommand, htmlq, htmlqCommands, HtmlError } from "./index.js";
+import { defaultHtmlLimits } from "./contracts.js";
+
+test("htmlq accepts explicitly undefined limit overrides", async () => {
+  for (const key of Object.keys(defaultHtmlLimits)) {
+    const sample = fixture(["-t", "p"]);
+    const result = await createHtmlqCommand({ limits: { [key]: undefined } }).execute(sample.context);
+    assert.equal(result.exitCode, 0, key);
+    assert.equal(sample.text(), "X\n");
+  }
+});
 function fixture(argv: readonly string[], input = "<p>X</p>") {
   const carrier = createCommandArguments(argv),
     output: Uint8Array[] = [],

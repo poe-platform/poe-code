@@ -43,7 +43,11 @@ export class XmlQueryLimitError extends XmlQueryError {
 }
 export function resolveXmlQueryLimits(options: Partial<XmlQueryLimits> = {}): XmlQueryLimits {
   const limits = { ...defaultXmlQueryLimits, ...options };
-  for (const [name, value] of Object.entries(limits)) {
+  for (const name of Object.keys(limits)) {
+    if (Object.hasOwn(defaultXmlQueryLimits, name) && limits[name as keyof XmlQueryLimits] === undefined) {
+      limits[name as keyof XmlQueryLimits] = defaultXmlQueryLimits[name as keyof XmlQueryLimits];
+    }
+    const value = limits[name as keyof XmlQueryLimits];
     if (
       !Object.hasOwn(defaultXmlQueryLimits, name) ||
       (value !== Infinity && !Number.isSafeInteger(value)) ||

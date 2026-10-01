@@ -78,7 +78,11 @@ export class CsvBudget {
     limits: Partial<CsvLimits>,
     readonly signal: AbortSignal
   ) {
-    this.limits = Object.freeze({ ...defaultCsvLimits, ...limits });
+    const resolved = { ...defaultCsvLimits, ...limits };
+    for (const name of Object.keys(defaultCsvLimits) as (keyof CsvLimits)[]) {
+      if (resolved[name] === undefined) resolved[name] = defaultCsvLimits[name];
+    }
+    this.limits = Object.freeze(resolved);
     for (const value of Object.values(this.limits))
       if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
         throw new CsvError("ARGUMENT", "CSV limits must be nonnegative safe integers");

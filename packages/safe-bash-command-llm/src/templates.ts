@@ -135,7 +135,7 @@ export function createLlmTemplateStore(context: LlmTemplateStoreContext, loaders
       if (name.startsWith("https://") || name.startsWith("http://")) {
         const fetch = context.fetch ?? context.capabilities?.fetch;
         if (!fetch) throw new Error("Template URL loading is not configured");
-        if (!loaders || !Number.isSafeInteger(loaders.maxRemoteBytes) || loaders.maxRemoteBytes < 1) throw new Error("Template URL byte limit is not configured");
+        if (!loaders || loaders.maxRemoteBytes !== Infinity && (!Number.isSafeInteger(loaders.maxRemoteBytes) || loaders.maxRemoteBytes < 1)) throw new Error("Template URL byte limit is not configured");
         let response: Response | undefined, failed = false;
         let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
         const abort = () => { void reader?.cancel().catch(() => {}); };

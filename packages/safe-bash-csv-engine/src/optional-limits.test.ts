@@ -7,6 +7,7 @@ for (const key of Object.keys(defaultCsvLimits) as (keyof CsvLimits)[]) {
     const signal = new AbortController().signal;
     const defaults = new CsvBudget({}, signal);
     assert.equal(defaults.limits[key], Infinity);
+    assert.equal(new CsvBudget({ [key]: undefined }, signal).limits[key], Infinity);
     assert.doesNotThrow(() => defaults.charge(key, 268_435_456));
     const explicit = new CsvBudget({ [key]: Infinity }, signal);
     assert.doesNotThrow(() => explicit.charge(key, 268_435_456));

@@ -13,6 +13,8 @@ test("bc resource quotas are optional with equivalent flat and nested options", 
   const defaults = settings();
   for (const key of Object.keys(defaults) as (keyof typeof defaults)[]) {
     assert.equal(defaults[key], Infinity, key);
+    assert.equal(settings({ [key]: undefined })[key], Infinity);
+    assert.equal(settings({ limits: { [key]: undefined } })[key], Infinity);
     for (const value of [Infinity, 16]) {
       assert.equal(settings({ [key]: value })[key], value);
       assert.equal(settings({ limits: { [key]: value } })[key], value);

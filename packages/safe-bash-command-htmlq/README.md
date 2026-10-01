@@ -2,7 +2,7 @@
 
 `createHtmlqCommand(options?)` creates one command, `createHtmlqCommands(options?)` returns the command family, and `htmlqCommands(options?)` registers it as a shell plugin. `HtmlqCommandsOptions` describes configuration; all three factories accept no arguments.
 
-Engine operations accept `{ signal, limits? }`; omitted limit fields default to
+Engine operations accept `{ signal, limits? }`; omitted or `undefined` limit fields default to
 Infinity, and supplied ceilings are validated and enforced.
 
 Select elements with CSS selectors and extract HTML, descendant text or attributes.

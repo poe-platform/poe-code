@@ -11,6 +11,9 @@ export interface LlmProviderLimits {
 
 export function providerLimits(input: Partial<LlmProviderLimits> = {}): LlmProviderLimits {
   const limits = { maxRequestBytes: Infinity, maxResponseBytes: Infinity, maxEventBytes: Infinity, maxPolls: Infinity, pollIntervalMs: 1000, ...input };
+  for (const name of Object.keys(limits) as (keyof LlmProviderLimits)[]) {
+    if (limits[name] === undefined) limits[name] = name === "pollIntervalMs" ? 1000 : Infinity;
+  }
   for (const [name, value] of Object.entries(limits)) {
     if (name !== "pollIntervalMs" && value === Infinity) continue;
     if (!Number.isSafeInteger(value) || value < (name === "maxPolls" || name === "pollIntervalMs" ? 0 : 1)) throw new RangeError(`Invalid provider limit: ${name}`);

@@ -12,11 +12,14 @@ const unlimitedLimits: Readonly<SafeJsCommandLimits> = Object.freeze({
 });
 
 export function commandLimits(options: Partial<SafeJsCommandLimits> = {}): SafeJsCommandLimits {
+  const limits = { ...unlimitedLimits };
   for (const [name, value] of Object.entries(options)) {
     if (!Object.hasOwn(unlimitedLimits, name)) throw new TypeError(`Unknown SafeJS limit: ${name}`);
+    if (value === undefined) continue;
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < (name === "timeoutMs" ? 1 : 0))) throw new RangeError(`Invalid SafeJS limit: ${name}`);
+    limits[name as keyof SafeJsCommandLimits] = value;
   }
-  return Object.freeze({ ...unlimitedLimits, ...options });
+  return Object.freeze(limits);
 }
 
 export interface Invocation { readonly source?: string; readonly file: string; readonly args: readonly string[]; readonly print: boolean; readonly help: boolean; readonly inputType?: "module" | "commonjs"; readonly check?: boolean; readonly preloads?: readonly string[]; readonly sourceMaps?: boolean; readonly output?: string; readonly nodeOptions?: readonly string[]; readonly envFiles?: readonly { path: string; optional: boolean }[] }

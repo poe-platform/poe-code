@@ -38,6 +38,7 @@ export interface HtmlqResult {
 function admittedLimits(overrides: Partial<HtmlLimits> = {}): HtmlLimits {
   const limits = { ...defaultHtmlLimits, ...overrides };
   for (const name of Object.keys(defaultHtmlLimits) as (keyof HtmlLimits)[]) {
+    if (limits[name] === undefined) limits[name] = defaultHtmlLimits[name];
     const value = limits[name];
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0))
       throw new HtmlError("E_LIMIT", "Limits must be nonnegative safe integers or Infinity", 0, name);

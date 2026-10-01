@@ -10,6 +10,7 @@ test("less command definition exports standard contract", () => {
 
 test("less input quotas are optional with equivalent flat and nested options", () => {
   assert.equal(settings().maxInputBytes, Infinity);
+  assert.equal(settings({ limits: { ["maxInputBytes" as string]: undefined } }).maxInputBytes, Infinity);
   for (const value of [Infinity, 16]) {
     assert.equal(settings({ maxInputBytes: value }).maxInputBytes, value);
     assert.equal(settings({ limits: { maxInputBytes: value } }).maxInputBytes, value);

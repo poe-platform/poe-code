@@ -5,6 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createFsFromVolume, Volume } from "memfs";
 import { build, type BuildOptions } from "esbuild";
+import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { packageSafeLibraries } from "./package-safe.mjs";
 
 function optionalLeftovers() {
@@ -31,6 +32,7 @@ it("publishes portable SafeJS root and subpaths despite legacy SDK browser prohi
   const { volume, options } = optionalLeftovers();
   const source = JSON.parse(readFileSync(new URL("../packages/safe-js/package.json", import.meta.url), "utf8"));
   delete source.bin;
+  volume.writeFileSync("/repo/packages/safe-js/dist/workerd.d.ts", "export * from \"./core.js\";\n");
   source.exports = Object.fromEntries(Object.entries(source.exports).filter(([key]) => [".", "./core", "./modules/fs"].includes(key)));
   volume.writeFileSync("/repo/packages/safe-js/package.json", JSON.stringify(source));
   const root = JSON.parse(volume.readFileSync("/repo/package.json", "utf8") as string);
@@ -51,7 +53,7 @@ it("publishes portable SafeJS root and subpaths despite legacy SDK browser prohi
     const target = published.exports[route];
     for (const condition of ["workerd", "browser"]) {
       expect(target[condition]).toBe(`./dist/safe-js/portable/${entry}.js`);
-      expect(target.types[condition]).toBe(`./dist/safe-js/${entry}.d.ts`);
+      expect(target.types[condition]).toBe(`./dist/safe-js/${route === "." && condition === "workerd" ? "workerd" : entry}.d.ts`);
       expect(volume.readFileSync(`/output/safe-js/${target[condition].slice(2)}`, "utf8")).toContain("portable = true");
       expect(Object.keys(target).indexOf(condition)).toBeLessThan(Object.keys(target).indexOf("import"));
     }
@@ -81,6 +83,7 @@ it("publishes portable SafeJS root and subpaths despite legacy SDK browser prohi
       import { makeFsModule as subpathFs } from '@poe-platform/safe-js/modules/fs';
       import { S3FileSystem, MockS3Client, createS3Transport } from '@poe-platform/safe-fs';
       export async function verify() {
+        if (makeEnvModule({ allow: ['ABSENT'] }).get('ABSENT') !== undefined) throw new Error('Unexpected ambient environment');
         if (run !== coreRun || makeFsModule !== subpathFs) throw new Error('Divergent portable API identities');
         for (const factory of [makeEnvModule, makeTimeModule, makeFailModule, makeMetricModule, makeHarnessModule])
           if (typeof factory !== 'function') throw new Error('Missing portable module builder');
@@ -114,3 +117,21 @@ it("publishes portable SafeJS root and subpaths despite legacy SDK browser prohi
   }
 });
 
+it("portable Node command artifact initializes without native provider imports or Node globals", async () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const recipe = resolveBrowserShellBuild(root);
+  const artifact = await build({ ...recipe,
+    entryPoints: { "commands/node/index.browser": recipe.entryPoints["commands/node/index.browser"] },
+    alias: { ...recipe.alias, "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"), "@poe-code/safe-fs": path.join(root, "packages/safe-fs/src"), "poe-code/safe-fs": path.join(root, "packages/safe-fs/src") },
+    external: [], splitting: false, format: "cjs", sourcemap: false,
+  });
+  expect(Object.values(artifact.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
+  const inputs = Object.keys(artifact.metafile!.inputs);
+  for (const native of ["host.ts", "values.ts", "worker-provider.ts"]) {
+    expect(inputs.some(name => name.endsWith(`/commands/node/${native}`))).toBe(false);
+  }
+  const module = { exports: {} as { createNodeCommand(): { name: string } } };
+  runInContext(artifact.outputFiles[0]!.text, createContext({ module, exports: module.exports,
+    TextEncoder, TextDecoder, URL, AbortController, AbortSignal, setTimeout, clearTimeout }));
+  expect(module.exports.createNodeCommand().name).toBe("node");
+});

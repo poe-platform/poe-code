@@ -242,3 +242,15 @@ describe("makeLogModule", () => {
     expect(eventEntry.payload.__proto__).toBe("preserved");
   });
 });
+
+it("logs JSON through console when the host has no process", () => {
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.stubGlobal("process", undefined);
+  try {
+    makeLogModule().info("portable");
+    expect(JSON.parse(output.mock.calls[0]![0] as string)).toMatchObject({ type: "info", args: ["portable"] });
+  } finally {
+    vi.unstubAllGlobals();
+    output.mockRestore();
+  }
+});

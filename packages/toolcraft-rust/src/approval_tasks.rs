@@ -248,7 +248,7 @@ pub fn run<H: Host>(
     }
 }
 
-fn optional<H: Host>(
+pub(crate) fn optional<H: Host>(
     host: &mut H,
     metadata: H::Value,
     key: &str,

@@ -383,6 +383,19 @@ requires a coordinated reference/native fix. Constructor identity across indepen
 loaded task-list packages still needs replacement qualification. The approval
 runner, built-in commands, runtime factory and provider dependency remain open.
 
+The queued approval runner now uses Rust continuations for task admission,
+claim contention, provider decisions, stored-plan/prompt verification, execution
+plan re-validation, command lookup/CLI-visible suggestions and outcome recording.
+Node retains callback objects, JSON round-trips, error metadata and promises.
+Differential tests exercise getter/transition order, exact promise timing,
+malformed metadata, skipped states, drifted plans, non-JSON results and storage
+failures in each catch region (including retrying a failed failure-write).
+The 12 original runner tests exercise native execution and native task storage,
+including concurrent claim contention through memfs. The checkpoint passes
+1,546 reference/parity tests and 108 native Node tests, plus Rust, declarations
+and lint. The approval commands, factory, platform providers and public subpath
+still require porting. The complete replacement gates remain unchanged.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

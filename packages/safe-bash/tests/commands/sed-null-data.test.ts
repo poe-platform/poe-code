@@ -112,7 +112,6 @@ const nativeCorpus: readonly [string, readonly string[], string, string][] = [
   ["regex address", ["-zn", "/a\\nb/p"], "610a62007461696c", "610a6200"],
   ["P", ["-zn", "N;P"], "610a62007461696c00", "610a6200"],
   ["n", ["-zn", "n;p"], "610a62007461696c00746869726400", "7461696c00"],
-  ["N EOF", ["-z", "N"], "610a6200", "610a6200"],
   ["D", ["-zn", "N;P;D"], "610a62007461696c00746869726400", "610a62007461696c00"],
   ["hold H", ["-z", "H;g"], "610a62007461696c", "00610a620000610a62007461696c"],
   ["hold G", ["-z", "h;G"], "610a62007461696c00", "610a6200610a62007461696c007461696c00"],
@@ -467,7 +466,6 @@ const nativeTransitions: readonly [string, readonly string[], string, string, Re
   ["insert then print", ["-zn", "-e", "i text", "-e", "p;p"], "7461696c", "74657874007461696c007461696c"],
   ["append and change", ["-zn", "-e", "p", "-e", "a after", "-e", "c changed"], "7461696c", "7461696c006368616e6765640061667465720a"],
   ["queued before N", ["-z", "-e", "a added", "-e", "N"], "610062", "61646465640a610062"],
-  ["queued N EOF", ["-z", "-e", "a added", "-e", "N"], "7461696c", "7461696c0061646465640a"],
   ["q EOF", ["-z", "q"], "7461696c", "7461696c00"],
   ["quiet q EOF", ["-zn", "p;q"], "7461696c", "7461696c00"],
   ["terminated print append", ["-zn", "-e", "p;p", "-e", "a text"], "7461696c00", "7461696c007461696c00746578740a"],
@@ -504,6 +502,20 @@ for (const [name, args, inputHex, stdoutHex, files, outputHex] of nativeTransiti
     assert.equal(result.stderr.length, 0);
     assert.equal(result.stdout.toString("hex"), stdoutHex);
     if (outputHex !== undefined) assert.equal(result.files.out?.toString("hex"), outputHex);
+  });
+}
+
+// The documented POSIX N-at-EOF policy also applies to NUL records.
+// GNU instead emits 610a6200 and 7461696c0061646465640a for these inputs.
+for (const [name, args, inputHex, stdoutHex] of [
+  ["N EOF", ["-z", "N"], "610a6200", ""],
+  ["queued N EOF", ["-z", "-e", "a added", "-e", "N"], "7461696c", "61646465640a"],
+] as const) {
+  test(`sed NUL POSIX EOF profile: ${name}`, async () => {
+    const result = await runVirtual("sed", { args, stdin: Buffer.from(inputHex, "hex") });
+    assert.equal(result.exitCode, 0, result.stderr.toString());
+    assert.equal(result.stderr.length, 0);
+    assert.equal(result.stdout.toString("hex"), stdoutHex);
   });
 }
 

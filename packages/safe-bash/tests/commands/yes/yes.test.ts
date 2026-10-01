@@ -167,7 +167,7 @@ test("repeated writes reuse stable bounded storage instead of retaining output h
   assert.equal(writes, 32);
 });
 
-test("factories validate options, snapshot limits, freeze definitions and preserve opt-in", () => {
+test("factories validate options, freeze definitions and preserve command registration", () => {
   for (const invalid of [null, [], 1, "x", true]) assert.throws(() => createYesCommand(invalid as never), TypeError);
   for (const key of ["maxRecordBytes", "chunkBytes"] as const) {
     for (const value of [0, -1, 1.5, NaN, -Infinity]) {
@@ -187,7 +187,7 @@ test("factories validate options, snapshot limits, freeze definitions and preser
   assert.ok(Object.isFrozen(commands[0]));
   assert.notEqual(commands[0], createYesCommand());
   assert.ok(!createStandardCommands().some(command => command.name === "yes"));
-  assert.ok(!createAgentCommands().some(command => command.name === "yes"));
+  assert.equal(createAgentCommands().filter(command => command.name === "yes").length, 1);
   const registry = new CommandRegistry(commands);
   const original = registry.get("yes");
   const host: PluginHost = { commands: registry, use() {}, registerFileSystem() {} };

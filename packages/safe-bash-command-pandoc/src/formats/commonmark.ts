@@ -3,6 +3,7 @@ import { commonmarkReader } from "../commonmark.js";
 import { writeMarkdown } from "../markdown-writer.js";
 export default {
   name: "commonmark",
+  aliases: { read: ["markdown_strict"], write: ["markdown_strict"] },
   operands: "join",
   reader: commonmarkReader,
   writer: {format: "commonmark", write: writeMarkdown},

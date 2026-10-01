@@ -62,7 +62,7 @@ it("rejects missing, duplicate, unknown and file arguments before acquiring stdi
 it("preserves inspection, honors cancellation and awaits diagnostic/content byte sinks", async () => {
   const ctx = context(["--list-output-formats"]);
   expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
-  expect(text(ctx.stdout)).toBe("commonmark\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\nmarkdown\nodt\npdf\nplain\npptx\nrst\nrtf\n");
+  expect(text(ctx.stdout)).toBe("commonmark\ncommonmark_x\ndocx\nepub\nepub3\ngfm\nhtml\nhtml5\njson\nlatex\nmarkdown\nmarkdown_github\nmarkdown_mmd\nmarkdown_phpextra\nmarkdown_strict\nmd\nodt\npdf\nplain\npptx\nrst\nrtf\n");
   const controller = new AbortController(); controller.abort();
   await expect(createStandalonePandocCommand().execute({...context(["-f", "csv", "-t", "gfm"]), signal: controller.signal})).rejects.toThrow();
   const failing = context(["-f", "csv", "-t", "gfm"]);

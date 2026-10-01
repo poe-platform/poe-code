@@ -16,3 +16,10 @@ it("accepts markdown for both directions with tables and strikeout enabled", asy
   expect(result).toMatchObject({ kind: "text", text: expect.stringContaining("~~old~~") });
   expect(result.diagnostics).toEqual([]);
 });
+
+it.each(['md', 'markdown_strict', 'markdown_github', 'markdown_mmd', 'markdown_phpextra', 'commonmark_x'])("accepts %s in both conversion directions", async alias => {
+  const result = await convert([{ bytes: new TextEncoder().encode('# Title\n\nHello **world**.\n') }], {
+    from: alias, to: alias
+  }, { yield: async () => {} });
+  expect(result).toMatchObject({ kind: 'text', text: expect.stringContaining('**world**') });
+});

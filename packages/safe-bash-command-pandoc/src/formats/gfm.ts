@@ -3,7 +3,7 @@ import type { FormatDescriptor } from "../formats.js";
 import { writeMarkdown } from "../markdown-writer.js";
 export default {
   name: "gfm",
-  aliases: { read: ["markdown"], write: ["markdown"] },
+  aliases: { read: ["markdown", "md", "markdown_github", "markdown_mmd", "markdown_phpextra", "commonmark_x"], write: ["markdown", "md", "markdown_github", "markdown_mmd", "markdown_phpextra", "commonmark_x"] },
   operands: "join",
   reader: { format: "gfm", read: readCommonMark },
   writer: { format: "gfm", write: writeMarkdown },

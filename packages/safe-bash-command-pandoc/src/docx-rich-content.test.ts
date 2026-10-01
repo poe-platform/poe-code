@@ -61,3 +61,20 @@ it("embeds an inline image with alt text, dimensions and a valid relationship in
   expect(relationships).toContain("/image");
   expect(new TextDecoder().decode(parts.get("[Content_Types].xml"))).toContain("image/jpeg");
 });
+
+it('writes lists, quotes, rules, tables and divs without dropping their content', async () => {
+  const markdown = '# Title\n\n- bullet\n\n3. numbered\n\n> quotation\n\n---\n\n| Name | Value |\n| --- | --- |\n| [link](https://example.com) | ~~old~~ |\n';
+  const result = await convert([{bytes: new TextEncoder().encode(markdown)}], {from: 'markdown', to: 'docx'}, context);
+  if (result.kind !== 'binary') throw new Error('Expected DOCX');
+  const parts = readZipArchiveEntries(result.bytes);
+  const xml = new TextDecoder().decode(parts.get('word/document.xml'));
+  new SaxesParser({xmlns: true}).write(xml).close();
+  for (const fragment of ['Title', 'bullet', 'numbered', 'quotation', 'w:numPr', 'w:pBdr', 'w:tbl', 'w:hyperlink', 'w:strike']) expect(xml).toContain(fragment);
+  const numbering = new TextDecoder().decode(parts.get('word/numbering.xml'));
+  expect(numbering).toContain('w:val="bullet"');
+  expect(numbering).toContain('w:val="decimal"');
+  expect(numbering).toContain('w:start w:val="3"');
+  const div = await writeDocument({blocks: [{t: 'Div', c: [attr, [{t: 'Para', c: [str('contained')]}]]}], metadata: {}, resources: []}, {to: 'docx'}, context);
+  if (div.kind !== 'binary') throw new Error('Expected DOCX');
+  expect(new TextDecoder().decode(readZipArchiveEntries(div.bytes).get('word/document.xml'))).toContain('contained');
+});

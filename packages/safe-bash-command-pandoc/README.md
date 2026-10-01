@@ -44,8 +44,11 @@ The shell command infers omitted input and output formats from file extensions.
 Stdin and extensionless inputs default to `commonmark`; stdout and extensionless
 outputs default to `html5`. Explicit `-f`/`-t` override inference; `--yes` is
 not required.
-`markdown` is an alias for the supported GFM reader and writer, including tables
-and strikeout. XLSX input uses the first row as table headers, preserves literal
+`markdown`, `md`, `markdown_github`, `markdown_mmd`, `markdown_phpextra`, and
+`commonmark_x` select the supported GFM reader and writer, including tables
+and strikeout. `markdown_strict` selects the CommonMark reader and writer. These
+compatibility names use the documented engine features; they do not enable
+additional dialect-specific extensions. XLSX input uses the first row as table headers, preserves literal
 cell whitespace, and calculates formulas whose results are missing.
 Shell arguments accept `--read`/`-r` and `--write`/`-w` as format aliases,
 attached short values such as `-fcommonmark -thtml -ooutput.html`, and bare

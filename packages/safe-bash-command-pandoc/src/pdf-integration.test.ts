@@ -51,6 +51,8 @@ it("infers PDF output without --yes and rejects external engines before acquisit
   }
 });
 const cases: Record<string, string> = {
+  md: "Owned PDF text", markdown_strict: "Owned PDF text", markdown_github: "Owned PDF text",
+  markdown_mmd: "Owned PDF text", markdown_phpextra: "Owned PDF text", commonmark_x: "Owned PDF text",
   commonmark: "Owned PDF text", gfm: "Owned PDF text", markdown: "Owned PDF text", html: "<p>Owned PDF text</p>",
   json: JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "Para", c: [{t: "Str", c: "Owned PDF text"}]}]}),
   csv: "Owned,PDF\ntext,value\n", tsv: "Owned\tPDF\ntext\tvalue\n", latex: "Owned PDF text", rst: "Owned PDF text", rtf: "{\\rtf1\\ansi Owned PDF text}"

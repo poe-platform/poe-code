@@ -1,13 +1,12 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { Shell, agentCommands, createMemoryFileSystem } from '../../src/index.js';
-import { unrtf, unrtfCommands } from '../../src/commands/unrtf/index.js';
-import { fmtCommands } from '../../src/commands/fmt/index.js';
+import { unrtf } from '../../src/commands/unrtf/index.js';
 
 const encoder = new TextEncoder();
 test('independent RTF extraction composes with rg and fmt through VFS CLI and SDK', async t => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({fs}).use(agentCommands()).use(unrtfCommands()).use(fmtCommands({replace:true}));
+  const shell = new Shell({fs}).use(agentCommands());
   t.after(() => shell.dispose());
   await fs.writeFile('/document.rtf', encoder.encode('{\\rtf1 alpha beta gamma\\par other line\\par alpha delta\\par}'));
   shell.use({name:'unrtf-sdk-compatibility',setup(host) {

@@ -771,8 +771,6 @@ export class Budget {
 Object.assign(Budget.prototype, {
   onInternalError: undefined, _yieldCheckpoint: undefined, _values: undefined, _executionScope: undefined, _pathLookup: undefined, _pathLookupSuspensions: 0, _executionCleanup: undefined, globstarEntries: 0, globstarStates: 0, _cleanupChargeFs: undefined, _wallClockTimer: undefined, _aborted: false, _cpuStarted: 0, _hasExternalSignal: false, });
 const EMPTY_CAPTURE_BYTES = new Uint8Array(0);
-const sharedCaptureStdoutScratch = new Uint8Array(65536);
-const sharedCaptureStderrScratch = new Uint8Array(65536);
 export class Capture implements ByteSink {
   declare private _chunks: Uint8Array[] | undefined;
   declare private _first: Uint8Array | undefined;
@@ -796,8 +794,8 @@ export class Capture implements ByteSink {
     this.signal = signal;
     this.file = undefined;
   }
-  enableScratchBuffer(isStderr = false): void {
-    this._scratch4k ??= isStderr ? sharedCaptureStderrScratch : sharedCaptureStdoutScratch;
+  enableScratchBuffer(): void {
+    this._scratch4k ??= new Uint8Array(65536);
   }
   get self(): ByteSink {
     return this;

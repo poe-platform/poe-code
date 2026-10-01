@@ -54,9 +54,6 @@ const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const sharedUtf8Encoder = new TextEncoder();
 const EMPTY_SHELL_BYTES = new Uint8Array(0);
 
-let _cachedFastResultStdout = "\0";
-let _cachedFastResultPromise: Promise<ShellResult> | undefined;
-
 class FastShellResult implements ShellResult {
   declare readonly stdout: string;
   declare readonly stderr: string;
@@ -112,7 +109,6 @@ interface WarmedInvocation {
   currentState: State;
   runtime: Runtime;
 }
-const _execAnchor: unknown[] = new Array(13);
 let warmSyncExecJitWarmed = false;
 interface CachedParsedUnit {
   readonly offset: number;
@@ -717,30 +713,6 @@ export class Shell implements PluginHost {
         void scope.close();
       }
       cancellationState.close();
-      if (_execAnchor[10] === undefined) {
-        _execAnchor[10] = ensureStateMonitor(currentState, budget, scope);
-      }
-      if (source.length > 0) {
-        _execAnchor[0] = budget;
-        _execAnchor[1] = scope;
-        _execAnchor[2] = cancellationState;
-        _execAnchor[3] = owner;
-        _execAnchor[4] = warm.admission;
-        _execAnchor[5] = warm.boundary;
-        _execAnchor[6] = stdout;
-        _execAnchor[7] = stderr;
-        _execAnchor[8] = io;
-        _execAnchor[9] = currentState;
-        _execAnchor[11] = runtime;
-      }
-      if (exitCode === 0 && stderrOutput === "" && typeof stdoutOutput === "string") {
-        if (stdoutOutput === _cachedFastResultStdout && _cachedFastResultPromise !== undefined) {
-          return _cachedFastResultPromise;
-        }
-        _cachedFastResultStdout = stdoutOutput;
-        _cachedFastResultPromise = Promise.resolve(new FastShellResult(stdoutOutput, "", 0));
-        return _cachedFastResultPromise;
-      }
       return Promise.resolve(new FastShellResult(stdoutOutput, stderrOutput, exitCode));
     } catch (error) {
       return this.#failWarmAsync(warm, error);
@@ -1229,7 +1201,7 @@ export class Shell implements PluginHost {
         void monitor.proxy.variables;
         monitor.values.prewarm();
         stdout.enableScratchBuffer();
-        stderr.enableScratchBuffer(true);
+        stderr.enableScratchBuffer();
         void runtime.canFastMemoryRedirect;
         preverifyMemoryRgTree((runtime as unknown as { backingFs: unknown }).backingFs);
         this.#warmedInvocation = {
@@ -1301,9 +1273,6 @@ export class Shell implements PluginHost {
   dispose(): Promise<void> {
     if (this.#disposal) return this.#disposal;
     this.#disposed = true;
-    _execAnchor.fill(undefined);
-    _cachedFastResultStdout = "\0";
-    _cachedFastResultPromise = undefined;
     Runtime.clearStaticPools();
     clearAwkReaderPool();
     clearRgFastRunnerPool();

@@ -3,7 +3,7 @@ import { FsError as DirectFsError } from "../../src/contracts/errors.js";
 import { MemoryFileSystem as DirectMemory } from "../../src/fs/memory/index.js";
 import { compareResolvedEntries, registerEntryAuthority } from "../../src/fs/mount/comparison.js";
 import type { EntryView } from "../../src/fs/mount/comparison.js";
-import { platform, comparisonContext, chargeScopedTransportCall, withScopedTransportBudget } from "#safe-fs-platform";
+import { platform, comparisonContext, chargeScopedTransportCall, withScopedTransportBudget } from "../../src/platform/browser.js";
 import { wrapperScenarios } from "./wrapper-scenarios.js";
 import { proofScenarios } from "./proof-scenarios.js";
 

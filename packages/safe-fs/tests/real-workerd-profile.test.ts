@@ -2,7 +2,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import { fs, vol } from "memfs";
 vi.mock("node:fs", async () => (await import("memfs")).fs);
 vi.mock("node:fs/promises", async () => (await import("memfs")).fs.promises);
-vi.mock("#safe-fs-platform", async importOriginal => {
+vi.mock("../src/platform/node.js", async importOriginal => {
   const actual = await importOriginal<typeof import("../src/platform/node.js")>();
   return { ...actual, platform: { ...actual.platform, nativeFileSystem: {
     open: false, permissions: false, timestamps: false, conditionalChmod: false, trustedOwnedStaging: false, atomicRename: false,

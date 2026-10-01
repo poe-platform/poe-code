@@ -22,6 +22,30 @@ test("agentCommands executes the reported portable command set after Buffer is d
       const result = await shell.exec(script);
       assert.equal(result.exitCode, 0, `${script}: ${result.stderr}`);
     }
+    await fs.writeFile("/f.txt", new TextEncoder().encode("alpha\n"));
+    for (const [script, stdout] of [
+      ["[[ a < b ]] && echo ordered", "ordered\n"],
+      ["echo pre{1..3}post", "pre1post pre2post pre3post\n"],
+      ["printf '%s' $'\\xff' | wc -c", "1\n"],
+      ["rg -r REPL alpha /f.txt", "REPL\n"],
+    ]) {
+      const result = await shell.exec(script!, { limits: { maxExpansionBytes: 4096 } });
+      assert.equal(result.exitCode, 0, `${script}: ${result.stderr}`);
+      assert.equal(result.stdout, stdout, script);
+      assert.equal(result.stderr, "", script);
+    }
+    const search = await shell.exec("rg --json alpha /f.txt");
+    assert.equal(search.exitCode, 0, search.stderr);
+    const match = search.stdout.trim().split("\n").map(line => JSON.parse(line)).find(event => event.type === "match");
+    assert.equal(match.data.lines.text, "alpha\n");
+    const patch = await shell.exec("apply_patch", { stdin: "*** Begin Patch\n*** Update File: /f.txt\n@@\n-alpha\n+beta\n*** End Patch\n" });
+    assert.equal(patch.exitCode, 0, patch.stderr);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/f.txt")), "beta\n");
+    const trap = await shell.exec('trap "echo bye" EXIT; trap -p');
+    assert.equal(trap.exitCode, 0, trap.stderr);
+    assert.ok(trap.stdout.includes("echo bye"));
+    assert.ok(trap.stdout.endsWith("bye\n"));
+    assert.equal((await shell.exec("trap - EXIT")).exitCode, 0);
     const diff = await shell.exec('diff -u /in.txt /in2.txt');
     assert.equal(diff.exitCode, 1, diff.stderr);
     assert.ok(diff.stdout.includes('-bob\n+carol\n'));

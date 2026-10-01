@@ -733,6 +733,10 @@ it("uses the public portable trap subpath without the Node signal catalog", asyn
 
 it("runs shell byte operations and command exports in workerd without nodejs_compat", async () => {
   const cases = [
+    ['[[ a < b ]] && echo ordered', 'ordered\n'],
+    ['echo pre{1..3}post', 'pre1post pre2post pre3post\n'],
+    ['rg -r REPL hello /in.txt', 'REPL world\n'],
+    ["rg --json hello /in.txt | jq -r 'select(.type == \"match\") | .data.lines.text'", 'hello world\n\n'],
     ['[[ abc123 =~ ^([a-z]+)([0-9]+)$ ]] && printf "%s:%s" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"', "abc:123"],
     ['[[ abc =~ ^z$ ]]; printf "%s" "$?"', "1"],
     ['pattern="["; [[ abc =~ $pattern ]] 2>/dev/null; printf "%s" "$?"', "2"],

@@ -1,3 +1,4 @@
+import { readVint, writeVintSize } from "./ebml.js";
 import {
   BinaryWriter,
   concatBytes,
@@ -44,50 +45,6 @@ export function isMkvSignature(bytes: Uint8Array): boolean {
     bytes[2] === 0xdf &&
     bytes[3] === 0xa3
   );
-}
-
-function readVint(
-  bytes: Uint8Array,
-  offset: number,
-  stripMarker: boolean
-): { value: number; length: number } | null {
-  if (offset >= bytes.byteLength) return null;
-  const first = bytes[offset]!;
-  if (first === 0) return null;
-  let length = 1;
-  let mask = 0x80;
-  while (length <= 8 && (first & mask) === 0) {
-    length++;
-    mask >>>= 1;
-  }
-  if (length > 8 || offset + length > bytes.byteLength) return null;
-  let value = stripMarker ? first & (mask - 1) : first;
-  for (let i = 1; i < length; i++) {
-    value = value * 256 + bytes[offset + i]!;
-  }
-  return { value, length };
-}
-
-function writeVintSize(size: number): Uint8Array {
-  if (size < 0x7f) {
-    return new Uint8Array([0x80 | size]);
-  }
-  if (size < 0x3fff) {
-    return new Uint8Array([0x40 | ((size >>> 8) & 0x3f), size & 0xff]);
-  }
-  if (size < 0x1fffff) {
-    return new Uint8Array([
-      0x20 | ((size >>> 16) & 0x1f),
-      (size >>> 8) & 0xff,
-      size & 0xff
-    ]);
-  }
-  return new Uint8Array([
-    0x10 | ((size >>> 24) & 0x0f),
-    (size >>> 16) & 0xff,
-    (size >>> 8) & 0xff,
-    size & 0xff
-  ]);
 }
 
 function writeEbmlId(id: number): Uint8Array {
@@ -162,6 +119,7 @@ interface MkvTrackInfo {
   channels?: number;
   bitDepth?: number;
   language?: string;
+  defaultDuration?: number;
 }
 
 export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): MediaDocument {
@@ -193,13 +151,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       if (!sizeVint) break;
       pos += sizeVint.length;
 
-      // Handle unknown size VINT (all 1s)
-      const isUnknownSize =
-        (sizeVint.length === 1 && sizeVint.value === 0x7f) ||
-        (sizeVint.length === 2 && sizeVint.value === 0x3fff) ||
-        (sizeVint.length === 4 && sizeVint.value === 0x0fffffff) ||
-        (sizeVint.length === 8 && sizeVint.value >= 0x00ffffffffffff);
-      const elemEnd = isUnknownSize ? end : Math.min(end, pos + sizeVint.value);
+      const elemEnd = sizeVint.unknownSize ? end : Math.min(end, pos + sizeVint.value);
       const payload = bytes.subarray(pos, elemEnd);
 
       switch (idVint.value) {
@@ -274,6 +226,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             const tPay = bytes.subarray(tPos, tEnd);
 
             if (tid.value === 0xd7) info.trackNumber = readEbmlUint(tPay);
+            else if (tid.value === 0x23e383) info.defaultDuration = readEbmlUint(tPay);
             else if (tid.value === 0x83) info.trackType = readEbmlUint(tPay);
             else if (tid.value === 0x86) info.codecId = decodeUtf8(tPay).replace(/\0+$/, "");
             else if (tid.value === 0x63a2) info.codecPrivate = tPay;
@@ -338,6 +291,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
             } else if (cid.value === 0xa3 || cid.value === 0xa0) {
               // SimpleBlock (0xA3) or BlockGroup (0xA0)
               let blockPay = cPay;
+              let blockDuration = 0;
               if (cid.value === 0xa0) {
                 let bgPos = cPos;
                 while (bgPos < cEnd) {
@@ -349,7 +303,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                   bgPos += bsz.length;
                   if (bid.value === 0xa1) {
                     blockPay = bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value));
-                    break;
+                  } else if (bid.value === 0x9b) {
+                    blockDuration = readEbmlUint(bytes.subarray(bgPos, Math.min(cEnd, bgPos + bsz.value)));
                   }
                   bgPos += bsz.value;
                 }
@@ -378,7 +333,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
                   dts: ptsMs,
                   pts: ptsMs,
                   cts: 0,
-                  duration: 33, // recalculated below
+                  duration: blockDuration,
                   size: frameData.byteLength,
                   isKeyframe,
                   sampleDescriptionIndex: 1
@@ -408,7 +363,11 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     for (let i = 0; i < rawSamples.length; i++) {
       const cur = rawSamples[i]!;
       const next = rawSamples[i + 1];
-      const dur = cur.duration > 0 ? cur.duration : (next ? Math.max(1, next.dts - cur.dts) : (info.trackType === 1 ? 33 : 23));
+      const defaultTicks = (info.defaultDuration ?? 0) / timecodeScale;
+      const previous = rawSamples[i - 1];
+      const inferred = next && next.dts > cur.dts ? next.dts - cur.dts
+        : defaultTicks || previous?.duration || Math.max(1, timescale / (info.trackType === 1 ? 30 : 44100 / 1024));
+      const dur = cur.duration > 0 ? cur.duration : defaultTicks || inferred;
       rawSamples[i] = { ...cur, duration: dur };
     }
 
@@ -478,8 +437,8 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
     }
 
     const totalTrackDur =
-      rawSamples.reduce((acc, s) => acc + s.duration, 0) ||
-      Math.round((segmentDurationTicks * timecodeScale) / 1_000_000);
+      rawSamples.reduce((end, s) => Math.max(end, s.dts + s.duration), 0) ||
+      segmentDurationTicks;
 
     let decodedVideoFrames: MediaVideoFrame[] | undefined;
     if (options.decodeFrames && type === "video" && width && height) {
@@ -546,7 +505,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
   let maxDurationSec = (segmentDurationTicks * timecodeScale) / 1_000_000_000;
   for (const t of tracks) {
     const sec = t.duration / Math.max(1, t.timescale);
-    if (sec > maxDurationSec) maxDurationSec = sec;
+    if (segmentDurationTicks <= 0 && sec > maxDurationSec) maxDurationSec = sec;
   }
 
   const metadata: Mp4MetadataTags = {

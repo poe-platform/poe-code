@@ -3306,6 +3306,9 @@ function resolveSimpleArithOperand(tok: string, rawState: State, monitor: Return
     return Number(elemVal);
   }
   tok = resolveSyncNameref(rawState, tok);
+  // These values come from execution context or lazy shell bindings, not raw variables.
+  // Decline after resolving namerefs so aliases use the same full evaluator.
+  if (tok === "LINENO" || tok === "_" || tok === "FUNCNAME" || tok === "PIPESTATUS") return undefined;
   if (rawState.nounset || activeArrayStore?.bindings.has(tok) || monitor?.hasOverlay(tok) || activeArrayStore?.watches.has(tok)) return undefined;
   const raw = rawState.variables[tok];
   if (raw === undefined || raw === "") return 0;
@@ -4179,9 +4182,9 @@ export class Runtime {
             const st = this._syncArithState!;
             const binding = arrayStore(st)?.get(variable);
             if (!binding || !binding.associative) {
-              if (st.nounset || arrayStore(st)?.get(resolvedSub) || stateMonitor(st)?.hasOverlay(resolvedSub)) throw new ArrayFailure("complex indexed ident subscript in sync arithmetic");
-              const rawSub = this._syncArithRawVars![resolvedSub];
-              resolvedSub = rawSub === undefined || rawSub === "" ? "0" : shellValueText(stateMonitor(st)?.values.get(resolvedSub, rawSub) ?? rawSub);
+              const index = resolveSimpleArithOperand(resolvedSub, st, stateMonitor(st), arrayStore(st), this._syncArithRawWriteOnly ? this._syncArithTouched : undefined);
+              if (index === undefined) throw new ArrayFailure("complex indexed ident subscript in sync arithmetic");
+              resolvedSub = String(index);
             }
           } else {
             const st = this._syncArithState!;

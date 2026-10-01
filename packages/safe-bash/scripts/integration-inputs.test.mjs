@@ -34,6 +34,11 @@ test("associative loop regressions remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/sync-associative-loop.test.ts"));
 });
 
+test("dynamic arithmetic regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/dynamic-arithmetic.test.ts"));
+});
+
 test("loop substitution and portable search regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const selected = discoverTests(root, loadBoundaries(root));

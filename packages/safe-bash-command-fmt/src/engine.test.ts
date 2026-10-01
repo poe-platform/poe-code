@@ -5,6 +5,37 @@ import { createFmtEngine, parseFmtArguments, FmtError, type FmtLimits } from './
 const encoder = new TextEncoder();
 const limits: FmtLimits = { inputBytes: 100_000, outputBytes: 200_000, retainedBytes: 20_000, work: 10_000_000, argumentBytes: 4096 };
 const argv = (...args: string[]): Uint8Array[] => args.map(arg => encoder.encode(arg));
+
+test('fast reads preserve checkpoints and charge each byte once across chunk boundaries', () => {
+  for (const args of [[], ['-p>']]) {
+    const input = encoder.encode((args.length ? '> ' : '') + 'a'.repeat(222) + '\n' + (args.length ? '> a b\n' : 'a b\n').repeat(400));
+    const runs = [input.length, 1].map(chunkSize => {
+      const engine = createFmtEngine(parseFmtArguments(argv(...args)), limits, new AbortController().signal);
+      const machine = engine.run();
+      let offset = 0;
+      let previous = 0;
+      let step = machine.next();
+      while (!step.done) {
+        if (step.value === 'input') {
+          const chunk = offset < input.length ? input.subarray(offset, offset + chunkSize) : null;
+          offset += chunk?.length ?? 0;
+          step = machine.next(chunk);
+        } else {
+          if (step.value === undefined) {
+            const work = engine.accounting().work;
+            // Input ownership and bulk operations can exceed one checkpoint interval.
+            if (previous > input.length + 1024) assert.ok(work - previous < 2048, `${args}: checkpoint gap ${work - previous}`);
+            previous = work;
+          }
+          step = machine.next();
+        }
+      }
+      // Each input admission costs one operation in addition to byte copying.
+      return engine.accounting().work - Math.ceil(input.length / chunkSize);
+    });
+    assert.equal(runs[0], runs[1]);
+  }
+});
 function format(input: string | Uint8Array, args: string[] = [], chunkSize = 4096): Uint8Array {
   const engine = createFmtEngine(parseFmtArguments(argv(...args), { limits }), limits, new AbortController().signal);
   const machine = engine.run();

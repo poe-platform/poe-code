@@ -201,7 +201,8 @@ class Formatter {
 
   private *lineStart(): FmtMachine<number> {
     this.column = 0;
-    if (this.settings.prefix.length === 0 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9 && !this.budget.tick()) {
+    if (this.settings.prefix.length === 0 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9) {
+      if (this.budget.tick()) yield* this.budget.checkpoint();
       this.nextPrefix = 0;
       return this.chunk[this.offset++]!;
     }
@@ -214,7 +215,11 @@ class Formatter {
         this.column++;
         byte = (this.offset < this.chunkUsed && !this.budget.tick()) ? this.chunk[this.offset++]! : yield* this.readSlow(this.offset < this.chunkUsed);
       }
-      if (byte === 32 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9 && !this.budget.tick()) { this.column = this.budget.exact(this.column + 1); byte = this.chunk[this.offset++]!; } else byte = yield* this.whitespace(byte);
+      if (byte === 32 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9) {
+        if (this.budget.tick()) yield* this.budget.checkpoint();
+        this.column = this.budget.exact(this.column + 1);
+        byte = this.chunk[this.offset++]!;
+      } else byte = yield* this.whitespace(byte);
     }
     return byte;
   }
@@ -375,7 +380,11 @@ class Formatter {
       while (terminal > word.start) { const tb = this.text[terminal]!; if (tb !== 0 && tb !== 41 && tb !== 93 && tb !== 39 && tb !== 34) break; terminal--; }
       { const pb = this.text[terminal]!; word.period = pb === 0 || pb === 46 || pb === 63 || pb === 33; }
       const before = this.column;
-      if (byte === 32 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9 && !this.budget.tick()) { this.column = this.budget.exact(this.column + 1); byte = this.chunk[this.offset++]!; } else byte = yield* this.whitespace(byte);
+      if (byte === 32 && this.offset < this.chunkUsed && this.chunk[this.offset] !== 32 && this.chunk[this.offset] !== 9) {
+        if (this.budget.tick()) yield* this.budget.checkpoint();
+        this.column = this.budget.exact(this.column + 1);
+        byte = this.chunk[this.offset++]!;
+      } else byte = yield* this.whitespace(byte);
       word.space = this.column - before;
       word.final = byte === -1 || word.period && (byte === 10 || word.space > 1);
       if (byte === 10 || byte === -1 || this.settings.uniform) word.space = word.final ? 2 : 1;

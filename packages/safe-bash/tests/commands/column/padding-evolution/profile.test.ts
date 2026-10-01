@@ -93,12 +93,18 @@ test("borrowed split multibyte inputs retain exact padded output", async () => {
 });
 
 test("strict decoding, control rejection and unsupported advanced options remain", async () => {
-  for (const input of [Buffer.from([0xff]), Buffer.from("a\x1b:b\n"), Buffer.from("a\u200d:b\n")]) {
+  for (const input of [Buffer.from([0xff]), Buffer.from("a\x1b:b\n"), Buffer.from("a\u202e:b\n")]) {
     const result = await run(["-t", "-s:"], input);
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
   }
   for (const args of [["--json"], ["--tree", "1"], ["-c0"], ["-tx"]]) assert.equal((await run(args, "a b\n")).exitCode, 1);
+});
+
+for (const format of ["\u200d", "\ufeff"]) test(`padding preserves zero-width format ${JSON.stringify(format)}`, async () => {
+  const result = await run(["-t", "-s:"], `a${format}:b\naa:c\n`);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, `a${format}   b\naa  c\n`);
 });
 
 test("new profile preserves exact row/cell/argument/width limits", async () => {

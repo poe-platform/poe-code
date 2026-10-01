@@ -27,7 +27,7 @@ for (const bytes of [Buffer.from([0xc0, 0xaf, 10]), Buffer.from([0xe2, 0x82]), B
   });
 }
 
-for (const text of ["\0", "\x1b[31mred", "\x7f", "\u0085", "\u200d", "\u202e", "\ufeff"]) {
+for (const text of ["\0", "\x1b[31mred", "\x7f", "\u0085", "\u202e"]) {
   test(`controls reject ${JSON.stringify(text)}`, async () => {
     const result = await run(["-t"], `ok x\n${text} y\n`);
     assert.equal(result.exitCode, 1);

@@ -140,3 +140,50 @@ test("find pipelines observe middle entry mutations and separate filesystems", a
     await Promise.all(tenants.map(({ shell }) => shell.dispose()));
   }
 });
+
+test("repeated find and grep pipelines enforce byte and filesystem limits", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir/sub/nested", { recursive: true });
+  for (let i = 0; i < 31; i++) {
+    await fs.writeFile(`/dir/sub/f${String(i).padStart(2, "0")}.txt`, new Uint8Array());
+  }
+  await fs.writeFile("/dir/sub/nested/extra.txt", new Uint8Array());
+  await fs.writeFile("/data.txt", new TextEncoder().encode("match:value\n".repeat(128)));
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const find = "find /dir/sub -name '*.txt' | wc -l";
+  for (let run = 0; run < 3; run++) {
+    assert.equal((await shell.exec(find)).stdout, "32\n");
+    await assert.rejects(shell.exec(find, { limits: { maxPipelineBytes: 5 } }), /maxPipelineBytes/);
+    await assert.rejects(shell.exec(find, { limits: { maxFileSystemOperations: 1 } }), /maxFileSystemOperations/);
+    const grep = "grep match /data.txt | cut -d: -f2 | sort";
+    assert.equal((await shell.exec(grep)).stdout, "value\n".repeat(128));
+    await assert.rejects(shell.exec(grep, { limits: { maxPipelineBytes: 5 } }), /maxPipelineBytes/);
+    await assert.rejects(shell.exec(grep, { limits: { maxFileSystemOperations: 0 } }), /maxFileSystemOperations/);
+  }
+  for (let i = 0; i < 10; i++) await fs.writeFile(`/dir/sub/nested/more_${i}.txt`, new Uint8Array());
+  assert.equal((await shell.exec(find)).stdout, "42\n");
+  await fs.rm("/dir/sub/nested/extra.txt");
+  assert.equal((await shell.exec(find)).stdout, "41\n");
+});
+
+for (const [command, bytes, output] of [
+  ["printf abc | cat", 3, "abc"],
+  ["printf abc | cat | cat", 6, "abc"],
+  ["printf abc | cat; printf de | cat", 5, "abcde"],
+  ["for i in 1 2; do printf abc | cat; done", 6, "abcabc"],
+  ['echo "$(printf abc | cat)"', 3, "abc\n"],
+  ["(printf abc >&2) |& cat", 3, "abc"],
+  ["printf abc | cat > /out; cat /out", 3, "abc"],
+] as const) test(`pipeline byte limit charges every edge: ${command}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (let run = 0; run < 2; run++) {
+    const result = await shell.exec(command, { limits: { maxPipelineBytes: bytes } });
+    assert.equal(result.stdout, output);
+    assert.equal(result.exitCode, 0, result.stderr);
+    await assert.rejects(shell.exec(command, { limits: { maxPipelineBytes: bytes - 1 } }), /maxPipelineBytes/);
+  }
+  // Terminal output consumes no pipeline quota; each exec starts a fresh ledger.
+  assert.equal((await shell.exec("printf abc", { limits: { maxPipelineBytes: 0 } })).stdout, "abc");
+});

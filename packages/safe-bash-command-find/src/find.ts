@@ -121,6 +121,7 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
   const readDirectory = createDirectoryReader(maxDirectoryEntries);
   const defs = [define("find", context => {
     if (
+      (context as { _hasInfiniteFsOpsLimit?: boolean })._hasInfiniteFsOpsLimit === true &&
       !context.argumentValues &&
       context.args.length === 3 &&
       (context.args[1] === "-name" || context.args[1] === "-iname") &&
@@ -608,7 +609,8 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
       })();
     };
     const canSkipChildStat = !needsStat && !explicitAction && follow !== "-L";
-    const backing = getRuntimeBackingFileSystem(context.fs);
+    const backing = (context as { _hasInfiniteFsOpsLimit?: boolean })._hasInfiniteFsOpsLimit === true
+      ? getRuntimeBackingFileSystem(context.fs) : undefined;
     const maxEntriesLimit = maxDirectoryEntries ?? Infinity;
     let uniformDirAdmitted = false;
     const scratchChildEntry: Entry = { path: "", display: "", name: "", stat: SYNTHETIC_FILE_STAT, symlink: false, depth: 0, root: "", relative: "", prune: false };

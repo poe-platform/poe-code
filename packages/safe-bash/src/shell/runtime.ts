@@ -176,6 +176,7 @@ export const defaultLimits: ResolvedShellLimits = {
   maxPathnameComponents: Infinity,
   maxRedirects: Infinity,
   maxPipelineStages: Infinity,
+  maxPipelineBytes: Infinity,
   maxLoopIterations: Infinity,
   maxSubstitutionDepth: Infinity,
   maxFunctionDepth: Infinity,
@@ -434,6 +435,7 @@ export class Budget {
   declare private _wallClockTimer: ReturnType<typeof setTimeout> | true | undefined;
   declare private _wallClockDeadline: number;
   declare private _pipelineStages: number;
+  private pipelineBytes = 0;
   declare private _fileSystemOperations: number;
   get fileSystemOperations(): number {
     return this._fileSystemOperations;
@@ -485,7 +487,7 @@ export class Budget {
     if (limits.maxRedirects < 1) (this as { canRedirect1: boolean }).canRedirect1 = false;
     if (limits.maxSourceBytes < 0x3fffffff) (this as { maxSourceBytesSmi: number }).maxSourceBytesSmi = limits.maxSourceBytes | 0;
     if (limits.maxPipelineStages < 0x3fffffff) (this as { maxPipelineStagesSmi: number }).maxPipelineStagesSmi = limits.maxPipelineStages | 0;
-    if (limits.pipeHighWaterMark < 65536) (this as { canSyncPurePipe: boolean }).canSyncPurePipe = false;
+    if (limits.pipeHighWaterMark < 65536 || limits.maxPipelineBytes !== Infinity) (this as { canSyncPurePipe: boolean }).canSyncPurePipe = false;
     this.signal = signal ? combineManagedSignals(signal, this.controller.signal) : this.controller.signal;
     if (signal) inheritYieldCheckpoint(signal, this.signal);
     this.parsing = new ParseBudget(limits.maxParseUnits === Infinity ? undefined : limits.maxParseUnits, this.signal, this, limits.maxSyntaxDepth);
@@ -616,6 +618,11 @@ export class Budget {
   }
   set fsOperations(value: number) {
     this._fileSystemOperations = value;
+  }
+  pipelineInput(bytes: number): void {
+    if (this.limits.maxPipelineBytes === Infinity) return;
+    if (bytes > this.limits.maxPipelineBytes - this.pipelineBytes) this.fail("maxPipelineBytes");
+    this.pipelineBytes += bytes;
   }
   reservePipelineStages(count: number): () => void {
     this.signal.throwIfAborted();
@@ -1450,6 +1457,7 @@ class BudgetedPipeStageSink implements ByteSink {
       const write = capability.write;
       signal.throwIfAborted();
       if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.pipelineInput(chunk.byteLength);
       budget.bytes += chunk.byteLength;
       const res = Reflect.apply(write, capability, [chunk]);
       if (isSyncResolved(res)) return resolvedVoid;
@@ -1473,6 +1481,7 @@ class BudgetedPipeStageSink implements ByteSink {
     return Boolean( w.open && pipe && !pipe.failed && !pipe.signal?.aborted && pipe.readerReferences && (!pipe.writes || pipe.writes.size === 0) && (pipe.availableBytes ?? 0) < (pipe.highWaterMark ?? 0), );
   }
   writeSync(chunk: Uint8Array): void {
+    this.budget.pipelineInput(chunk.byteLength);
     this.budget.bytes += chunk.byteLength;
     this.writable.write(chunk);
     if (chunk.byteLength && this.written) this.written.add(this.index);
@@ -1484,6 +1493,7 @@ class BudgetedPipeStageSink implements ByteSink {
       if (!(chunk instanceof Uint8Array)) throw new TypeError("Shell output must be Uint8Array");
       const budget = this.budget;
       if (chunk.byteLength > budget.limits.maxOutputBytes - budget.bytes) budget.fail("maxOutputBytes");
+      budget.pipelineInput(chunk.byteLength);
       budget.bytes += chunk.byteLength;
       let res: Promise<void>;
       try {

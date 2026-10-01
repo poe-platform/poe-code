@@ -58,7 +58,7 @@ test("kill-after refuses finite shared interpreter quotas instead of resetting t
   const shell = new Shell({ fs: createMemoryFileSystem() });
   shell.use(agentCommands());
   try {
-    for (const limits of [{ maxCommands: 10 }, { maxFunctionDepth: 1 }]) {
+    for (const limits of [{ maxCommands: 10 }, { maxFunctionDepth: 1 }, { maxPipelineBytes: 3 }]) {
       const result = await shell.exec("timeout -k0.02 2 sh -c 'printf escaped'", { limits });
       assert.equal(result.exitCode, 125);
       assert.equal(result.stdout, "");

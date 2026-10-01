@@ -60,6 +60,8 @@ export interface ShellLimits {
    * Zero permits only redirect-free commands. Not a global byte or filesystem-call budget. */
   readonly maxRedirects?: number;
   readonly maxPipelineStages?: number;
+  /** Cumulative bytes written between pipeline stages per invocation, including nested pipelines. */
+  readonly maxPipelineBytes?: number;
   readonly maxLoopIterations?: number;
   readonly maxSubstitutionDepth?: number;
   /** Maximum simultaneously active shell functions; zero rejects function calls. Unlimited when omitted. */

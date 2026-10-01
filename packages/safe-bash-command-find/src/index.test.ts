@@ -36,7 +36,7 @@ test("find omits non-tail tombstones in traversal, matching and count-only outpu
     for (const countOnly of [false, true]) {
       let stdout = "", stderr = "", count: number | undefined;
       const result = await createFindCommand().execute({
-        ...{ _fastMemoryBackingFs: fs, _chargeFastFsOp() {} },
+        ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true, _chargeFastFsOp() {} },
         command: "find", args, cwd: "/", env: {}, fs, stdin: toByteSource(""),
         stdout: {
           ...(countOnly ? { lineCountOnly: 0, writeLineCountSync(value: number) { count = value; return true; } } : {}),

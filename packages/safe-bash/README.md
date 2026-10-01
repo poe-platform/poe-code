@@ -648,11 +648,13 @@ behaviors; unsetting either variable removes its special behavior.
 
 Execution quotas are unlimited by default. Set individual `limits` to opt in;
 supplying one does not enable other quotas. Available quotas are `maxParseUnits`,
-`maxInputBytes`, `maxOutputBytes`, `maxCommands`, `maxFileSystemOperations`,
+`maxInputBytes`, `maxOutputBytes`, `maxPipelineBytes`, `maxCommands`, `maxFileSystemOperations`,
 `maxPathComponents`, `maxPathnameComponents`, `maxRedirects`, `maxPipelineStages`, `maxLoopIterations`,
 `maxSubstitutionDepth`, `maxFunctionDepth`, `maxSourceBytes`, `maxExpansionFields`, `maxExpansionBytes`,
 `maxWallClockMs`, and `maxCpuMs`. The CPU deadline measures elapsed time including
-waits at cooperative checkpoints. `pipeHighWaterMark` defaults to 64 KiB for
+waits at cooperative checkpoints. `maxPipelineBytes` counts bytes written across
+all pipeline edges in one invocation, including nested pipelines; terminal output
+does not consume this quota. `pipeHighWaterMark` defaults to 64 KiB for
 streaming backpressure and does not cap total work. `cloudflareWorkerLimits` is
 an explicit restrictive preset. Background job quotas (`maxJobs`, `maxWaiters`,
 `maxCleanupsPerJob`) are also unlimited unless supplied. `maxFunctionDepth` limits

@@ -345,17 +345,16 @@ export function tryMatchesPatternSync(pattern: string, value: string, work: Stri
     if (c === 91 || c === 63 || c === 92) hasBracketOrQmark = true;
   }
   work.signal.throwIfAborted();
+  const firstStar = pattern.indexOf("*");
+  const nextStar = firstStar < 0 ? -1 : pattern.indexOf("*", firstStar + 1);
+  const needsRegex = hasBracketOrQmark || (nextStar >= 0 && !(firstStar === 0 && nextStar === pattern.length - 1));
+  const re = needsRegex ? getCompiledSyncPatternRegex(pattern) : undefined;
+  if (needsRegex && !re) return undefined;
   work.remaining -= pattern.length + value.length + 1;
   if (work.remaining < 0) work.exhausted();
-  if (hasBracketOrQmark) {
-    const re = getCompiledSyncPatternRegex(pattern);
-    if (!re) return undefined;
-    return re.test(value);
-  }
+  if (re) return re.test(value);
   if (pattern === "*") return true;
-  const firstStar = pattern.indexOf("*");
   if (firstStar < 0) return value === pattern;
-  const nextStar = pattern.indexOf("*", firstStar + 1);
   if (nextStar < 0) {
     if (firstStar === 0) return value.endsWith(pattern.slice(1));
     if (firstStar === pattern.length - 1) return value.startsWith(pattern.slice(0, -1));
@@ -363,11 +362,7 @@ export function tryMatchesPatternSync(pattern: string, value: string, work: Stri
     const suffix = pattern.slice(firstStar + 1);
     return value.length >= prefix.length + suffix.length && value.startsWith(prefix) && value.endsWith(suffix);
   }
-  if (firstStar === 0 && nextStar === pattern.length - 1) {
-    return value.includes(pattern.slice(1, -1));
-  }
-  const re = getCompiledSyncPatternRegex(pattern);
-  return re ? re.test(value) : undefined;
+  return value.includes(pattern.slice(1, -1));
 }
 
 export async function matchesPattern(pattern: string, value: string, work: StringWork, ignoreCase = false, extglob = false): Promise<boolean> {

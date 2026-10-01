@@ -6,6 +6,18 @@ import { ShellLimitError } from "../../src/shell/types.js";
 import { ValueArena } from "../../src/shell/value-state.js";
 import { tryMatchesPatternSync } from "../../src/shell/pattern.js";
 
+for (const pattern of ["[[:alpha:]]", "[é]", "*a*b*c*d*e*"]) {
+  test(`unsupported synchronous pattern ${pattern} leaves the fallback budget intact`, () => {
+    const work = {
+      remaining: 0,
+      signal: new AbortController().signal,
+      exhausted(): never { throw new Error("budget exhausted"); },
+    };
+    assert.equal(tryMatchesPatternSync(pattern, "a", work), undefined);
+    assert.equal(work.remaining, 0);
+  });
+}
+
 test("long synchronous pattern matches charge and enforce the string work budget", () => {
   const value = "x".repeat(600);
   const work = {

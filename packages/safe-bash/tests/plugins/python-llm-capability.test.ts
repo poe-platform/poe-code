@@ -557,3 +557,12 @@ test('Python model lookup resolves service defaults and persisted aliases withou
   await assert.rejects(capability.call!({operation:'resolve_model',payload:{model:42}},{signal}), /Model must be a string/);
   assert.deepEqual(requests, []);
 });
+
+test('Python attachment type lookup reuses bounded shared MIME inference', async () => {
+  const { capability, requests } = await fixture();
+  assert.equal(await capability.call!({operation:'attachment_type',payload:{path:'note.txt',prefix:[97,98,99]}},{signal}), 'text/plain');
+  assert.equal(await capability.call!({operation:'attachment_type',payload:{path:'unknown',prefix:[137,80,78,71,13,10,26,10]}},{signal}), 'image/png');
+  await assert.rejects(capability.call!({operation:'attachment_type',payload:{path:'x',prefix:Array(4097).fill(0)}},{signal}), /attachment prefix/);
+  await assert.rejects(capability.call!({operation:'attachment_type',payload:{path:'x',prefix:[256]}},{signal}), /attachment prefix/);
+  assert.deepEqual(requests, []);
+});

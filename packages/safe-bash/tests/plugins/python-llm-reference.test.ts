@@ -64,6 +64,14 @@ try:
  raise AssertionError("text model accepted binary input")
 except ValueError as error:
  assert str(error) == "This model does not support binary data, only text strings"
+attachment = llm.Attachment(type="text/plain", path="/work/note.txt")
+assert attachment.type == "text/plain" and attachment.path == "/work/note.txt"
+assert attachment.resolve_type() == "text/plain"
+assert model.prompt("attached", attachments=[attachment]).text() == "hello"
+content = llm.Attachment(type="text/plain", content=b"abc")
+assert content.content_bytes() == b"abc"
+assert content.base64_content() == "YWJj"
+assert content.id() == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
 print("reference response contract passed")
 `;
 
@@ -73,6 +81,7 @@ calls = []
 histories = []
 class Model(llm.Model):
  model_id = "test-model"
+ attachment_types = {"text/plain"}
  def execute(self, prompt, stream, response, conversation):
   if conversation is not None:
    histories.append([(r.prompt.prompt, r.text()) for r in conversation.responses])

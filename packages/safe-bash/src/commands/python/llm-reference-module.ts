@@ -38,6 +38,72 @@ class Usage:
     details: object = None
 
 
+@dataclass
+class Attachment:
+    type: object = None
+    path: object = None
+    url: object = None
+    content: object = None
+    _id: object = None
+
+    def payload(self):
+        if self.url is not None or self.content is not None:
+            raise NotImplementedError("Prompt attachments currently require a canonical filesystem path")
+        return _core.Attachment(os.fspath(self.path), self.type).payload()
+
+    def id(self):
+        import hashlib
+        import json
+        if self._id is None:
+            digest = hashlib.sha256()
+            if self.content:
+                digest.update(self.content)
+            elif self.path:
+                with open(self.path, "rb") as source:
+                    for chunk in iter(lambda: source.read(65536), b""):
+                        digest.update(chunk)
+            else:
+                digest.update(json.dumps({"url": self.url}).encode("utf-8"))
+            self._id = digest.hexdigest()
+        return self._id
+
+    def content_bytes(self):
+        if self.content:
+            return self.content
+        if self.path:
+            with open(self.path, "rb") as source:
+                return source.read()
+        if self.url:
+            raise NotImplementedError("URL attachment acquisition requires shared service support")
+        return self.content
+
+    def base64_content(self):
+        import base64
+        return base64.b64encode(self.content_bytes()).decode("utf-8")
+
+    def resolve_type(self):
+        if self.type:
+            return self.type
+        if self.path:
+            with open(self.path, "rb") as source:
+                prefix = source.read(4096)
+        elif self.content:
+            prefix = self.content[:4096]
+        elif self.url:
+            raise NotImplementedError("URL attachment acquisition requires shared service support")
+        else:
+            raise ValueError("Attachment has no type and no content to derive it from")
+        async def resolve():
+            async with _core.Client() as client:
+                payload = {"path": os.fspath(self.path) if self.path else "", "prefix": list(prefix)}
+                return await client._run(lambda: client._bridge.call("attachment_type", payload), client._timeout)
+        return _sync(resolve())
+
+    @classmethod
+    def from_row(cls, row):
+        return cls(_id=row["id"], type=row["type"], path=row["path"], url=row["url"], content=row["content"])
+
+
 class Prompt:
     def __init__(self, prompt, model, *, system=None, attachments=None, schema=None, options=None):
         self.prompt = prompt

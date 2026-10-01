@@ -188,6 +188,7 @@ async function qualifyHostServices(backend, createExecutor) {
       return {metadata:{id:'large-image'}};
     }
     if (request.prompt === 'error-call') throw new Error('private-host-error');
+    if (request.prompt === 'reference-attached' && (request.attachments[0]?.mimeType !== 'text/plain' || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'changed')) throw new Error('Reference canonical attachment changed');
     if (request.prompt === 'reference-second' && (request.messages.length !== 2 || request.messages[0].content !== 'reference-first' || request.messages[1].content !== 'reference-first')) throw new Error('Reference conversation history changed');
     if (request.prompt === 'library' && (request.options.enabled !== true || request.options.count !== 2 || request.options.nullable !== null)) throw new Error('Typed options were changed');
     if (request.prompt === 'Guest native' && (request.system !== 'guest' || request.options.mode !== 'guest' || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'guest-canonical')) throw new Error('Guest template configuration or canonical path changed');
@@ -291,6 +292,10 @@ except CalledProcessError as error:
  assert error.returncode == 127
 assert call('identity', 'still-live') == 'still-live'
 import llm
+attachment = llm.Attachment(path='/work/shared.txt')
+assert attachment.resolve_type() == 'text/plain'
+assert attachment.content_bytes() == b'changed'
+assert llm.get_model('fake').prompt('reference-attached', attachments=[attachment]).text() == 'reference-attached'
 conversation = llm.get_model('fake').conversation()
 first_response = conversation.prompt('reference-first')
 assert conversation.responses == []

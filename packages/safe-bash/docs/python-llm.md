@@ -39,8 +39,16 @@ supply structured text history to later turns. Unconsumed prompts and failed
 turns do not enter history. This does not yet qualify persisted conversation
 loading or attachment history.
 
+Canonical file attachments use `llm.Attachment(path="/work/report.txt")`, with
+an optional `type="text/plain"`, passed to `model.prompt(..., attachments=[...])`.
+Prompt attachment bytes retain the shared bounded streaming path. Explicit
+`content_bytes()` and `base64_content()` calls materialize file contents;
+`id()` hashes path contents incrementally. `resolve_type()` sends at most
+4 KiB to the shared JavaScript MIME classifier. Inline content and URL prompt
+attachments are not yet supported by this adapter.
+
 This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
-attachments, persisted conversations, embedding collections,
+inline/URL prompt attachments, persisted conversations, embedding collections,
 fragments, tools, persistence and the complete response interface still require
 qualification. The existing `poe_llm` workflow API below remains available during
 that implementation.
@@ -199,7 +207,14 @@ with its own cleanup scope and the same borrowed bridge.
 
 ## Feature matrix and limits
 
-| Feature | Python API | Host responsibility |
+The table below describes the existing `poe_llm` workflow API. The ordinary
+`llm` surface described above currently qualifies prompt text/streaming, catalog
+lookup, in-memory text conversations, text embeddings and canonical path
+attachments. Reference raw-response JSON, complete token accounting, provider
+option model classes, inline/URL prompt attachments, fragments/tools and
+persistence remain unqualified.
+
+| Feature | `poe_llm` workflow API | Host responsibility |
 | --- | --- | --- |
 | Discovery and selection | `models()`, `select_model(*queries)`, `model=` | Resolve identities through the shared catalog and list its aliases alongside canonical saved aliases |
 | Prompt, system and messages | `Request`, `Message`, `complete()` | Validate and dispatch the same request as the CLI |

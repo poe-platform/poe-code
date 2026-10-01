@@ -296,6 +296,16 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       const operation = record(value);
       const payload = record(operation.payload ?? {});
       jsonBytes(payload,bufferedInputLimit,'input');
+      if (operation.operation === 'attachment_type') {
+        const prefix = payload.prefix;
+        if (typeof payload.path !== 'string' || !Array.isArray(prefix) || prefix.length > 4096
+          || prefix.some(byte => typeof byte !== 'number' || !Number.isInteger(byte) || byte < 0 || byte > 255)) {
+          throw new TypeError('Invalid bounded attachment prefix');
+        }
+        const result = sniffMimeType(payload.path, Uint8Array.from(prefix as number[]));
+        jsonBytes(result,bufferedLimit);
+        return result;
+      }
       if (operation.operation === 'load_schema') {
         const id = payload.schema_id;
         if (typeof id !== 'string' || !id || id.includes('\0')) throw new TypeError('Stored schema ID must be a nonempty string');

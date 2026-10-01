@@ -11,7 +11,7 @@ import { FileSystemQuotaError, withFileSystemQuota } from "@poe-platform/safe-fs
 export const expectedAgentCommandNames = Object.freeze([
   "bc", "cal", "compare", "composite", "convert", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin",
   "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "dd", "df", "diff3", "envsubst",
-  "exiftool", "fd", "ffmpeg", "ffprobe", "getconf", "gpg", "hostname", "htmlq", "id", "identify", "in2csv", "install",
+  "exiftool", "fd", "ffmpeg", "ffprobe", "getconf", "gpg", "hostname", "htmlq", "id", "identify", "in2csv",
   "less", "libreoffice", "locale", "magick", "mmdc", "mogrify", "montage", "more", "ncal", "nproc", "op",
   "openssl", "pandoc", "pathchk", "pdfdetach", "pdffonts", "pdfimages", "pdfinfo", "pdfseparate", "pdftk",
   "pdftocairo", "pdftohtml", "pdftoppm", "pdftotext", "pdfunite", "qpdf", "sips", "soffice", "sponge",

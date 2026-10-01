@@ -85,6 +85,11 @@ test("xxd: exact normal/plain formats and uppercase", async () => {
   assert.equal((await run("xxd", ["-c4", "-g1"], "hello")).stdout, "00000000: 68 65 6c 6c  hell\n00000004: 6f           o\n");
   assert.equal((await run("xxd", ["-p", "-c2", "-u"], Uint8Array.of(0, 255, 128))).stdout, "00FF\n80\n");
   assert.equal((await run("xxd", ["-p", "-c0"], "abc")).stdout, "616263\n");
+  for (const args of [["-c0"], ["-c0", "-c16"]]) {
+    const result = await run("xxd", args, "abc");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "00000000: 6162 63                                  abc\n");
+  }
   assert.equal((await run("xxd", [], "")).stdout, "");
 });
 
@@ -157,7 +162,7 @@ test("xxd: unsupported flags preserve every VFS file", async () => {
   await fs.writeFile("/output", Buffer.from("preserved"));
   await fs.symlink("/input", "/alias");
   await fs.link("/input", "/hardlink");
-  for (const args of [["-s-1"], ["-c0"], ["-r", "-l1"], ["-r", "-d"], ["-lbad", "-l1"], ["-wat"], ["input", "-", "extra"]]) {
+  for (const args of [["-s-1"], ["-c-1"], ["-r", "-l1"], ["-r", "-d"], ["-lbad", "-l1"], ["-wat"], ["input", "-", "extra"]]) {
     assert.equal((await run("xxd", args, "!!", { fs })).exitCode, 2, args.join(" "));
   }
   assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "original");
@@ -325,7 +330,7 @@ test("options: every supplied value validates before input is read", async () =>
     ["base64", ["--wrap=bad", "--wrap=0"]],
     ["base32", ["-d", "-w-1", "-w0"]],
     ["xxd", ["-c9007199254740992", "-c16"]],
-    ["xxd", ["-c0", "-c16"]],
+    ["xxd", ["-c-1", "-c16"]],
     ["xxd", ["-p", "-c-1", "-c0"]],
     ["xxd", ["-g-1", "-g0"]],
     ["xxd", ["-sbad", "-s0"]],

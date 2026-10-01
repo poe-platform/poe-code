@@ -23,6 +23,7 @@ export interface ObjectFilePublicationOptions extends FsOptions {
 }
 
 export interface ObjectFileAcquireOptions extends FsOptions {
+  readonly noFollow?: boolean;
   readonly access: OpenFileOptions["access"];
 }
 
@@ -39,6 +40,8 @@ export interface ObjectFileStagingOptions extends FsOptions {
 }
 
 export interface ObjectFilePublicationStore {
+  /** Certifies acquire can reject symbolic links when noFollow is requested. */
+  readonly noFollow?: boolean;
   acquire(path: string, options: ObjectFileAcquireOptions): Promise<ObjectFileVersion | undefined>;
   publish?(path: string, expectedRevision: string | null, source: ByteSource, options: ObjectFilePublicationOptions): Promise<ObjectFileVersion>;
   createStaging?(path: string, options: ObjectFileStagingOptions): Promise<ObjectFileStaging>;
@@ -73,6 +76,7 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
   const maxOpenFiles = options.maxOpenFiles ?? Infinity;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1
     || ![maxStagedBytes, maxStagedPages, maxFileBytes, maxOpenFiles].every(value => value === Infinity || Number.isSafeInteger(value) && value > 0)
+    || store.noFollow !== undefined && typeof store.noFollow !== "boolean"
     || typeof store.acquire !== "function"
     || store.publish !== undefined && typeof store.publish !== "function"
     || store.createStaging !== undefined && typeof store.createStaging !== "function") throw new TypeError("Invalid object descriptor configuration");
@@ -125,7 +129,7 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
     state.pages.clear();
   };
   const open = (path: string, openOptions: OpenFileOptions): Promise<FileDescriptor> => openFileDescriptor<ObjectFileState>(path, openOptions, {
-    publication: "conditional", position: true, positionedRead: true, positionedWrite: true,
+    publication: "conditional", position: true, positionedRead: true, positionedWrite: true, noFollow: store.noFollow === true,
     truncate: true, synchronization: "storage",
   }, async admitted => {
     validatePath(path);
@@ -251,7 +255,7 @@ export function withObjectFileDescriptors(filesystem: FileSystem, store: ObjectF
       if (mutating && capabilities.readOnly === true) throw new FsError("EROFS", { path });
       if (mutating && (!store.publish || capabilities.write === false)) throw new FsError("ENOTSUP", { path, message: "Object writes require authoritative conditional publication" });
       if (admitted.access !== "write" && capabilities.read === false) throw new FsError("EACCES", { path });
-      const acquired = await store.acquire(path, { access: admitted.access, ...(admitted.signal ? { signal: admitted.signal } : {}) });
+      const acquired = await store.acquire(path, { access: admitted.access, ...(admitted.noFollow ? { noFollow: true } : {}), ...(admitted.signal ? { signal: admitted.signal } : {}) });
       if (acquired) {
         try { state.head = version(acquired); }
         catch (error) { await finishCleanup(() => acquired.close(), true); throw error; }

@@ -405,3 +405,43 @@ it("supports zip and tar creation round trips through withObjectFileDescriptors 
   expect((await storage.stat("/archive.tar")).size).toBeGreaterThan(0);
   expect(events.released).toBe(events.acquired);
 });
+
+it("forwards no-follow opens only to stores that explicitly support them", async () => {
+  const storage = new MemoryFileSystem();
+  await storage.writeFile("/db", new Uint8Array());
+  let acquired = 0;
+  const store: ObjectFilePublicationStore = {
+    noFollow: true,
+    async acquire(path, options) {
+      acquired++;
+      expect(options.noFollow).toBe(true);
+      const reader = await storage.openReadFile(path);
+      return { revision: "1", stat: await reader.stat(), read: reader.read.bind(reader), close: reader.close.bind(reader) };
+    },
+  };
+  const filesystem = withObjectFileDescriptors(storage, store);
+  const descriptor = await filesystem.open!("/db", { access: "read", noFollow: true });
+  expect(descriptor.capabilities.noFollow).toBe(true);
+  await descriptor.close();
+  expect(acquired).toBe(1);
+});
+
+it("rejects unsupported no-follow opens before acquiring an object", async () => {
+  const storage = new MemoryFileSystem();
+  let acquired = 0;
+  const filesystem = withObjectFileDescriptors(storage, {
+    async acquire() { acquired++; return undefined; },
+  });
+  await expect(filesystem.open!("/db", { access: "read", noFollow: true })).rejects.toMatchObject({ code: "ENOTSUP" });
+  expect(acquired).toBe(0);
+});
+
+it("preserves the object's no-follow acquisition rejection", async () => {
+  const storage = new MemoryFileSystem();
+  const reason = new FsError("ELOOP", { path: "/link" });
+  const filesystem = withObjectFileDescriptors(storage, {
+    noFollow: true,
+    async acquire(_path, options) { expect(options.noFollow).toBe(true); throw reason; },
+  });
+  await expect(filesystem.open!("/link", { access: "read", noFollow: true })).rejects.toBe(reason);
+});

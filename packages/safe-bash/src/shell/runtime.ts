@@ -31393,7 +31393,7 @@ export class Runtime {
       const disc = typeof targetName === "string" ? this.tryResolveSyncDiscovery(w0Plain === "command" ? "name" : "kind", targetName, rawState) : undefined;
       if (disc !== undefined && (disc.status === 0 || !rawState.errexit)) {
         if (disc.status === 0) {
-          const byteLength = (disc.text.length * 3 > 127 ? shellValueByteLength(disc.text) : disc.text.length) + 1;
+          const byteLength = shellValueByteLength(disc.text) + 1;
           const nextBytes = this.budget.bytes + byteLength;
           if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
           this.budget.bytes = nextBytes;
@@ -31408,7 +31408,7 @@ export class Runtime {
     if (w0Plain === "pwd" && (cmd.words.length === 1 || (cmd.words.length === 2 && (cmd.words[1]?.plain === "-L" || cmd.words[1]?.plain === "--logical"))) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd")) {
       let res = rawState.cwd;
       while (res.endsWith("\n")) res = res.slice(0, -1);
-      const byteLength = (res.length * 3 > 127 ? shellValueByteLength(res) : res.length) + 1;
+      const byteLength = shellValueByteLength(res) + 1;
       const nextBytes = this.budget.bytes + byteLength;
       if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes = nextBytes;

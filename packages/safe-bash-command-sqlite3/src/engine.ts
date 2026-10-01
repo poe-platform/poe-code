@@ -101,6 +101,8 @@ interface SnapshotState {
 const textEncoder = new TextEncoder();
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
 
+class SqliteConstraintError extends Error {}
+
 function cloneSqlValue(v: SqlValue): SqlValue {
   if (v instanceof Uint8Array) {
     return new Uint8Array(v);
@@ -2982,23 +2984,28 @@ export class SqliteDatabase {
   private *checkConstraintsAndConflicts(
     tbl: TableDef,
     candidate: TableRow,
-    excludeRowid?: number
+    excludeRowid?: number,
+    replaceNotNull = false
   ): SqlSteps<TableRow | null> {
     // NOT NULL and CHECK constraints
     for (const col of tbl.columns) {
       yield;
-      const val = candidate.data[col.name] ?? null;
+      let val = candidate.data[col.name] ?? null;
+      if (replaceNotNull && col.notNull && val === null && col.defaultExpr) {
+        val = applyColumnAffinity(yield* this.evalScalarSql(col.defaultExpr, {}, []), col.type);
+        candidate.data[col.name] = val;
+      }
       if (col.notNull && val === null) {
         if (col.primaryKey && col.type.toUpperCase() === "INTEGER" && !tbl.withoutRowId) {
           candidate.data[col.name] = candidate.rowid;
         } else {
-          throw new Error(`NOT NULL constraint failed: ${tbl.name}.${col.name}`);
+          throw new SqliteConstraintError(`NOT NULL constraint failed: ${tbl.name}.${col.name}`);
         }
       }
       if (col.checkExpr && val !== null) {
         const ok = yield* this.evalExprSteps(parseExprSql(col.checkExpr), candidate.data, []);
         if (ok !== null && !isTruthy(ok)) {
-          throw new Error(`CHECK constraint failed: ${col.checkExpr}`);
+          throw new SqliteConstraintError(`CHECK constraint failed: ${col.checkExpr}`);
         }
       }
     }
@@ -3505,7 +3512,9 @@ export class SqliteDatabase {
     _cteScope: Map<string, { columns: string[]; rows: SqlValue[][] }>
   ): SqlSteps<QueryResultSet | null> {
     let idx = 1;
+    let conflictAction = "ABORT";
     if (tokens[idx]?.value.toUpperCase() === "OR") {
+      conflictAction = tokens[idx + 1]?.value.toUpperCase() ?? "ABORT";
       idx += 2;
     }
     if (tokens[idx + 1]?.value === ".") {
@@ -3609,8 +3618,10 @@ export class SqliteDatabase {
       }
       return [];
     }, this);
+    const replacedRows = new Set<TableRow>();
     for (const { row, ctx } of matches) {
       yield;
+      if (replacedRows.has(row)) continue;
       const oldData = { ...row.data };
       const newData = { ...row.data };
       for (const assign of assignments) {
@@ -3636,13 +3647,24 @@ export class SqliteDatabase {
       yield* this.fireTriggers(tbl.name, "BEFORE", "UPDATE", oldData, newData);
       const candidate: TableRow = { rowid: row.rowid, data: newData };
       this.synchronizeRowid(tbl, candidate, assignments.map(assignment => assignment.col));
-      const conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate, row.rowid);
-      if (conflict) {
-        throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
+      let conflict: TableRow | null;
+      try {
+        conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate, row.rowid, conflictAction === "REPLACE");
+      } catch (error) {
+        if (conflictAction === "IGNORE" && error instanceof SqliteConstraintError) continue;
+        throw error;
+      }
+      if (conflict && conflictAction === "IGNORE") continue;
+      while (conflict) {
+        if (conflictAction !== "REPLACE") throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
+        replacedRows.add(conflict);
+        tbl.rows.splice(tbl.rows.indexOf(conflict), 1);
+        conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate, row.rowid);
       }
       row.data = newData;
       row.rowid = candidate.rowid;
       tbl.nextRowId = Math.max(tbl.nextRowId, row.rowid + 1);
+      tbl.maxAutoInc = Math.max(tbl.maxAutoInc, row.rowid);
       updated += 1;
       affectedRows.push(row);
       yield* this.fireTriggers(tbl.name, "AFTER", "UPDATE", oldData, newData);

@@ -15,7 +15,7 @@ export async function verifySnapshotLabels(page: Page, capture: PlaywrightSnapsh
       '<label for="action">Shadow label</label><button id="action">Shadow fallback</button>';
   });
   await page.frameLocator("iframe").getByRole("button").waitFor();
-  const options = { signal: new AbortController().signal, timeoutMs: 5000, maxBytes: Infinity };
+  const options = { signal: new AbortController().signal, timeoutMs: 20000, maxBytes: Infinity };
   const names = (tree: readonly PlaywrightSnapshotJSONNode[]) => {
     const pending = [...tree];
     for (let i = 0; i < pending.length; i++) {

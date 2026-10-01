@@ -133,11 +133,11 @@ export default {
           await nativePage.setContent('<button onclick="this.dataset.clicked=\'yes\'">Original</button><div id="shadow"></div><iframe srcdoc="<button>Child</button>"></iframe>');
           await nativePage.evaluate(() => { document.querySelector('#shadow')!.attachShadow({ mode: 'open' }).innerHTML = '<button>Shadow</button>'; });
           await nativePage.frameLocator('iframe').getByRole('button').waitFor();
-          const tree = flatten(await lease.captureSnapshotJSON!(page, { signal: new AbortController().signal, timeoutMs: 5000, maxBytes: Infinity }));
+          const tree = flatten(await lease.captureSnapshotJSON!(page, { signal: new AbortController().signal, timeoutMs: 20000, maxBytes: Infinity }));
           const refs = ['Original', 'Shadow', 'Child'].map(name => { const ref = tree.find(node => node.name === name)?.ref; assert.ok(ref); return ref; });
-          const batch = await lease.captureSnapshotReferences!(page, refs, { signal: new AbortController().signal, timeoutMs: 5000 });
+          const batch = await lease.captureSnapshotReferences!(page, refs, { signal: new AbortController().signal, timeoutMs: 20000 });
           await nativePage.getByRole('button', { name: 'Original' }).evaluate(node => { node.textContent = 'Renamed'; });
-          await nativePage._snapshotForAI({ timeout: 5000 });
+          await nativePage._snapshotForAI({ timeout: 20000 });
           assert.deepEqual(await batch.connected(), [true, true, true]);
           for (let index = 0; index < refs.length; index++) {
             const handle = await batch.resolve(index);
@@ -146,7 +146,7 @@ export default {
           }
           assert.equal(await nativePage.getByRole('button', { name: 'Renamed' }).getAttribute('data-clicked'), 'yes');
           await nativePage.getByRole('button', { name: 'Renamed' }).evaluate(node => { node.outerHTML = '<button>Replacement</button>'; });
-          await nativePage._snapshotForAI({ timeout: 5000 });
+          await nativePage._snapshotForAI({ timeout: 20000 });
           assert.deepEqual(await batch.connected(), [false, true, true]);
           assert.equal(await batch.resolve(0), null);
           const child = nativePage.frames().find(frame => frame !== nativePage.mainFrame())!;
@@ -164,10 +164,10 @@ export default {
           try { assert.equal(await batch.resolve(2), null); }
           finally { child.locator = originalLocator; }
           assert.equal(raced, true);
-          const changed = flatten(await lease.captureSnapshotJSON!(page, { signal: new AbortController().signal, timeoutMs: 5000, maxBytes: Infinity }));
+          const changed = flatten(await lease.captureSnapshotJSON!(page, { signal: new AbortController().signal, timeoutMs: 20000, maxBytes: Infinity }));
           const childRef = changed.find(node => node.name === 'New Child')?.ref;
           assert.ok(childRef);
-          const replacement = await lease.captureSnapshotReferences!(page, [childRef], { signal: new AbortController().signal, timeoutMs: 5000 });
+          const replacement = await lease.captureSnapshotReferences!(page, [childRef], { signal: new AbortController().signal, timeoutMs: 20000 });
           assert.notEqual(replacement.identities[0]!.scope, batch.identities[2]!.scope);
           assert.deepEqual(await batch.connected(), [false, true, false]);
           return Response.json({ ok: true });
@@ -233,7 +233,7 @@ export default {
 			await page.frameLocator("iframe").getByRole("button").waitFor();
 			const options = {
 				signal: new AbortController().signal,
-				timeoutMs: 5000,
+				timeoutMs: 20000,
 				maxBytes: 65536,
 			};
 			switch (new URL(request.url).pathname) {

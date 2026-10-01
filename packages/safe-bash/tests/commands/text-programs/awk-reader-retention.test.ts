@@ -163,7 +163,9 @@ test("Latin1 batches refresh content and record boundaries after interior produc
   const chunk = Buffer.alloc(256, 120);
   chunk[63] = chunk[255] = 10;
   const first = getCachedLatin1Batch(chunk)!;
-  assert.equal(getCachedLatin1Batch(chunk), first);
+  const unchanged = getCachedLatin1Batch(chunk)!;
+  assert.notEqual(unchanged, first);
+  assert.deepEqual(unchanged, first);
   chunk[1] = 255;
   chunk[63] = 120;
   chunk[64] = 10;

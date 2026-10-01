@@ -210,6 +210,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
 
   private _rebuild(newCap: number): void {
     this._missKey = "";
+    this._missSlot = -1;
     const newTableLen = newCap * 2;
     const newMask = newTableLen - 1;
     const newTable = newCap <= 16384 ? new Int16Array(newTableLen).fill(-1) : new Int32Array(newTableLen).fill(-1);
@@ -249,16 +250,17 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   }
 
   set(k: string, v: MemoryNode): this {
-    if (k === this._missKey && this._next < this._keys.length) {
+    const missSlot = k === this._missKey ? this._missSlot : -1;
+    this._missKey = "";
+    this._missSlot = -1;
+    if (missSlot >= 0 && (this._table[missSlot] === -1 || this._table[missSlot] === -2) && this._next < this._keys.length) {
       const entryIdx = this._next++;
-      this._table[this._missSlot] = entryIdx;
+      this._table[missSlot] = entryIdx;
       this._keys[entryIdx] = k;
       this._vals[entryIdx] = v;
       this.size++;
-      this._missKey = "";
       return this;
     }
-    this._missKey = "";
     if (this._next >= this._keys.length) {
       this._rebuild(this.size * 2 <= this._keys.length ? this._keys.length : this._keys.length * 2);
     }
@@ -290,6 +292,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
 
   delete(k: string): boolean {
     this._missKey = "";
+    this._missSlot = -1;
     if (this.size === 0) return false;
     let slot = this._hash(k);
     const mask = this._mask;
@@ -317,6 +320,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
 
   clear(): void {
     this._missKey = "";
+    this._missSlot = -1;
     if (this._next > 0) {
       this._table.fill(-1);
       for (let i = 0; i < this._next; i++) {
@@ -999,6 +1003,7 @@ export class MemoryFileSystem implements FileSystem {
       if (alloc.isReleased64()) {
         alloc.detachLedger(DUMMY_POOL_LEDGER);
         if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
+          alloc.data.fill(0);
           sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
         } else if (cache.allocations.length < 128) {
           cache.allocations.push(alloc);
@@ -1006,6 +1011,7 @@ export class MemoryFileSystem implements FileSystem {
       } else if (alloc.isReleased65536()) {
         alloc.detachLedger(DUMMY_POOL_LEDGER);
         if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen < SHARED_LARGE_POOL_CAPACITY) {
+          alloc.data.fill(0);
           sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = alloc;
         }
       }
@@ -1022,6 +1028,7 @@ export class MemoryFileSystem implements FileSystem {
         cache.lastFastDirNode = undefined;
       }
       if (node.entries.size === 0) {
+        node.entries.clear();
         if (sharedDirectoryNodePoolLen < SHARED_DIR_POOL_CAPACITY) {
           sharedDirectoryNodePool[sharedDirectoryNodePoolLen++] = node;
         } else if (cache.directories.length < 32) {
@@ -1048,11 +1055,13 @@ export class MemoryFileSystem implements FileSystem {
     if (previous.isReleased64()) {
       previous.detachLedger(DUMMY_POOL_LEDGER);
       if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
+        previous.data.fill(0);
         sharedAllocationPool[sharedAllocationPoolLen++] = previous;
       }
     } else if (previous.isReleased65536()) {
       previous.detachLedger(DUMMY_POOL_LEDGER);
       if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen < SHARED_LARGE_POOL_CAPACITY) {
+        previous.data.fill(0);
         sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = previous;
       }
     }

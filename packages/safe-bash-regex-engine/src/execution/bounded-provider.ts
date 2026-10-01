@@ -1352,6 +1352,18 @@ class CooperativeWorker implements RegexWorker {
         }
       }
     }
+    if (isTrusted && owned && "subject" in owned) {
+      // Async execution must own its bytes, including when a checkpoint skips
+      // the speculative synchronous run or that run exhausts its yield allowance.
+      try {
+        owned = admitExpr(input, this.limits, signal, false);
+      } catch (error) {
+        if (!(error instanceof ExprMatchError || error instanceof PublicDiagnostic || error instanceof EreSyntaxError || error instanceof EreUnsupportedError || error instanceof EreProfileLimitError || error instanceof EreUsageUnknownError)) throw error;
+        if (error instanceof ExprMatchError) category = error.category;
+        failure = error.message.slice(0, 512);
+        owned = undefined;
+      }
+    }
     // Only the in-process executor consumes private direct-match replies.
     // Public worker requests retain the wire protocol's owned span arrays.
     if (isTrusted && owned && !("subject" in owned) && owned.descriptor.kind !== "glob") {

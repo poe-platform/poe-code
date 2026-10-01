@@ -1,9 +1,10 @@
+import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createBoundedRegexProvider } from "./execution/bounded-provider.js";
 import { RegexExecutor } from "./execution/portable.js";
 import type { RegexWorkerRequest } from "./execution/provider.js";
-import { defaults, trustedInputRows, trustedWorkerRequests, type Reply } from "./execution/protocol.js";
+import { defaults, exprMatchCeilings, trustedInputRows, trustedWorkerRequests, type Reply } from "./execution/protocol.js";
 
 test("trusted synchronous replies remain owned across requests and workers", async context => {
   const workers = [createBoundedRegexProvider().createWorker(defaults), createBoundedRegexProvider().createWorker(defaults)];
@@ -50,3 +51,33 @@ test("executor sends request-owned input envelopes on the trusted fast path", as
   assert.equal(new Set(requests).size, 3);
   assert.deepEqual(requests.map(request => new TextDecoder().decode(request.rows[0]!.bytes)), ["warmup", "tenant-a", "tenant-b"]);
 });
+
+for (const kind of ["expr-match", "bre-search"] as const) {
+ for (const checkpoint of [false, true]) {
+ for (const mutate of ["pattern", "subject"] as const) {
+  test(`${kind} owns ${mutate} during async fallback, checkpoint=${checkpoint}`, async context => {
+   if (checkpoint) {
+    const OriginalController = AbortController;
+    context.mock.method(globalThis, "AbortController", class extends OriginalController {
+     constructor() { super(); registerYieldCheckpoint(this.signal, () => {}); }
+    });
+   }
+   const worker = createBoundedRegexProvider().createWorker(defaults);
+   context.after(() => worker.terminate());
+   await Promise.resolve();
+   const pattern = new TextEncoder().encode("a*b");
+   const subject = new TextEncoder().encode("a".repeat(2000) + "b");
+   const request = { id: 1, descriptor: { kind, pattern, profile: "byte" as const, limits: exprMatchCeilings }, rows: [{ bytes: subject, all: false, terminated: false }] };
+   trustedWorkerRequests.add(request);
+   let received = false;
+   const reply = new Promise<unknown>(resolve => worker.on("message", value => { received = true; resolve(value); }));
+   worker.postMessage(request);
+   assert.equal(received, false, "must exercise asynchronous fallback");
+   (mutate === "pattern" ? pattern : subject).fill(120);
+   const result = await reply as { result: { matched: boolean; overall: unknown } };
+   assert.equal(result.result.matched, true);
+   assert.deepEqual(result.result.overall, { start: 0, end: 2001 });
+  });
+ }
+}
+}

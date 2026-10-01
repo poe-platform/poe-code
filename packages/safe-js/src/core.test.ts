@@ -14,10 +14,13 @@ describe("@poe-code/safe-js/core", () => {
     expect(Object.keys(core).sort()).toEqual(
       [
         "Budget", "EnvAccessError", "FS_OPTION_SURFACE", "HarnessFailure",
+        "SandboxError", "SnapshotValidationError",
         "admitNativePromiseProperties", "createRealm", "createReplayableRandom",
-        "createRootedSourceResolver", "defineExtension", "lint", "makeEnvModule",
+        "createRootedSourceResolver", "declareHostOperation", "deepCopyFromSandbox",
+        "deepCopyToSandbox", "defineExtension", "dump", "lint", "makeEnvModule",
         "makeFailModule", "makeFsModule", "makeHarnessModule", "makeMetricModule",
-        "makeTimeModule", "makeLogModule", "parseEnvConfig", "run"
+        "makeTimeModule", "makeLogModule", "parse", "parseEnvConfig", "parseModule",
+        "parseSourceModule", "restore", "run"
       ].sort()
     );
   });

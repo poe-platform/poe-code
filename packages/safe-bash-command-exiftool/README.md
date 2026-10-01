@@ -63,6 +63,7 @@ try {
 | PNG text | `tEXt`, uncompressed unqualified `iTXt`; Title, Author, Description, Comment and Copyright writes; non-ASCII writes use UTF-8 `iTXt` |
 | PNG timestamp | `tIME`/ModifyDate inspection, assignment and deletion; fixed-width EXIF/ISO syntax, optional fractions and explicit offsets; native storage discards fractions/offsets without timezone conversion |
 | Duplicate tags | Last repeated text value wins; `-a` emits source order; extracted tags retain raw keyword, chunk/index/offset, instance, bytes and interpreted text |
+| System tags | `FileName` and `Directory` describe the literal virtual operand; `FileSize` reports bytes read (human-readable units, or exact bytes with `-n`/`-FileSize#`); `FileTypeExtension` follows detected PNG/JPEG/PDF content. Stdin omits path tags. |
 | Input | Literal VFS paths, `--` option terminator and one `-` stdin byte stream for extraction; stdin editing and repeated stdin operands are explicitly refused |
 | Presentation | `-s` (cumulative), `-ss`/`-s2`/`-S`, `-sss`/`-s3`, `-G1`, `-X`, `-T`, literal `-p '$Title'`, `-b`, `-j`, `-csv`, `-f`; text sanitization is separate from stored values |
 | JSON | Conservative lexical numbers and booleans; `-api StructFormat=JSONQ` quotes every scalar; `1e999` stays lexical text in the SDK |
@@ -78,7 +79,7 @@ Accepted flags are exactly `--`, `-config ''`, `-j`/`-json`, `-csv`, `-G1`, `-G4
 `-charset filename=UTF8`, `-api StructFormat=JSONQ`, `-a`, `-b`, `-f`, `-s`/`-s1`, `-ss`/`-S`/`-s2`, `-sss`/`-s3`, `-n`,
 `-overwrite_original`, `-overwrite_original_in_place`, `-o PATH`, `-tagsFromFile SOURCE` and `-@ PATH`.
 Selectors are `-Title`, `-Author`, `-Description`, `-Comment`, `-Copyright`,
-`-ModifyDate` and the missing-value probe `-MissingTag`; a trailing `#` requests
+`-ModifyDate`, `-FileName`, `-Directory`, `-FileSize`, `-FileTypeExtension` and the missing-value probe `-MissingTag`; a trailing `#` requests
 ValueConv without PrintConv. Assignment forms are `-TAG=VALUE`, `-TAG=` and
 `-TAG-=VALUE`, plus standalone `-all=`. Scalar `+=` is recognized but refused.
 Most flags and tag names are case-insensitive; `-S` and `-G4` are case-sensitive.
@@ -105,7 +106,7 @@ limit expanded arguments, file operands, argument-file nesting and staging
 collision attempts. Explicit limits must be nonnegative safe integers; setting
 one quota leaves all others unlimited. Argument-file cycles remain rejected.
 
-XML emits RDF descriptions with PNG namespaces and escaped values; `-T` emits
+XML emits RDF descriptions with tag-group namespaces and escaped values; `-T` emits
 one tab-separated row per file with `-` for missing selected tags.
 Text output uses aligned tag names by default, compact `Tag: value` with `-S`,
 or LF-terminated values with `-s3`. Binary output has no final terminator.

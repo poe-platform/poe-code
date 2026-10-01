@@ -1,3 +1,4 @@
+import { systemTags } from "./system-tags.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { commandRuntimeIdentity, getCommandArguments, type CommandDefinition } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
@@ -201,6 +202,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
             // Unrecognized nonempty formats match the validated no-selected-tag control.
             if (!png && !isPdf && !jpeg && ["XMP", "DOCX", "PPTX", "XLSX", "JPG", "JPEG", "TIF", "TIFF"].includes(extension)) throw new Error(extension + " reader not yet supported");
             tags = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : isPdf ? inspectPdf(bytes, resources).tags : [];
+            tags = [...systemTags(file, bytes.length, tags, invocation, resources), ...tags];
           } catch (error) {
             context.signal.throwIfAborted();
             if (error instanceof ResourceLimitError || (error instanceof Error && error.name === "BudgetExceededError") || (error instanceof FsError && error.code === "EFBIG")) throw error;
@@ -391,7 +393,8 @@ export function evalSyncExiftool(
         }
         continue;
       }
-      const tags = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : inspectPdf(bytes, resources).tags;
+      const metadata = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : inspectPdf(bytes, resources).tags;
+      const tags = [...systemTags(file, bytes.length, metadata, invocation, resources), ...metadata];
       const chosen = selected(tags, invocation.tags, invocation.json ? invocation.groupFamily === 4 : invocation.duplicates && !invocation.csv, resources);
       if (invocation.xml || invocation.tabular || invocation.template !== undefined) {
         const values = invocation.template !== undefined ? selected(tags, [], false, resources) : chosen;

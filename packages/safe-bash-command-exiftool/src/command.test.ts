@@ -704,7 +704,7 @@ test("PNG header metadata, Artist writes and all deletion", async () => {
   await fs.writeFile("/image.png", fixture());
   const read = await invoke(["-j", "image.png"], fs);
   assert.equal(read.exitCode, 0, read.stderr);
-  assert.deepEqual(JSON.parse(read.stdout)[0], { SourceFile: "image.png", ImageWidth: 1, ImageHeight: 1, BitDepth: 8, ColorType: "Grayscale with Alpha", FileType: "PNG", MIMEType: "image/png", ImageSize: "1x1" });
+  assert.deepEqual(JSON.parse(read.stdout)[0], { SourceFile: "image.png", FileName: "image.png", Directory: ".", FileSize: "68 bytes", FileTypeExtension: "png", ImageWidth: 1, ImageHeight: 1, BitDepth: 8, ColorType: "Grayscale with Alpha", FileType: "PNG", MIMEType: "image/png", ImageSize: "1x1" });
   assert.equal((await invoke(["-Artist=Alice", "-Title=Test Title", "-overwrite_original", "image.png"], fs)).exitCode, 0);
   assert.equal((await invoke(["-s3", "-Artist", "image.png"], fs)).stdout, "Alice\n");
   assert.equal((await invoke(["-all=", "-overwrite_original", "image.png"], fs)).exitCode, 0);
@@ -768,3 +768,43 @@ for (const directory of ["/", "/images/nested/"]) {
     });
   }
 }
+
+
+test("system tags describe virtual paths, byte size and detected format", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = fixture("Alice");
+  await fs.mkdir("/images", { recursive: true });
+  await fs.writeFile("/images/photo.bin", bytes);
+  const tags = ["-FileName", "-Directory", "-FileSize", "-FileTypeExtension"];
+  const result = await invoke(["-s3", ...tags, "images/photo.bin"], fs);
+  assert.deepEqual(result, { exitCode: 0, stdout: `photo.bin\nimages\n${bytes.length} bytes\npng\n`, stderr: "" });
+  const numeric = await invoke(["-j", "-n", ...tags, "/images/photo.bin"], fs);
+  assert.equal(numeric.exitCode, 0, numeric.stderr);
+  assert.deepEqual(JSON.parse(numeric.stdout), [{ SourceFile: "/images/photo.bin", FileName: "photo.bin", Directory: "/images", FileSize: bytes.length, FileTypeExtension: "png" }]);
+  const qualified = await invoke(["-s3", "-FileSize#", "images/photo.bin"], fs);
+  assert.equal(qualified.stdout, `${bytes.length}\n`);
+});
+
+test("system tags are available through synchronous extraction", async () => {
+  const { evalSyncExiftool } = await import("./command.js");
+  const bytes = fixture("Alice");
+  assert.equal(evalSyncExiftool(undefined, ["-s3", "-n", "-FileName", "-Directory", "-FileSize", "-FileTypeExtension", "photo.bin"], () => bytes), `photo.bin\n.\n${bytes.length}\npng\n`);
+});
+
+
+test("stdin exposes byte size and detected extension without virtual path tags", async () => {
+  const bytes = fixture();
+  const result = await invoke(["-j", "-n", "-FileName", "-Directory", "-FileSize", "-FileTypeExtension", "-"], undefined, undefined, undefined, undefined, (async function* () { yield bytes; })());
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(JSON.parse(result.stdout), [{ SourceFile: "-", FileSize: bytes.length, FileTypeExtension: "png" }]);
+});
+
+test("system tag XML uses System and File namespaces", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/image.png", fixture());
+  const result = await invoke(["-X", "-FileName", "-FileTypeExtension", "image.png"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.ok(result.stdout.includes("<System:FileName>image.png</System:FileName>"));
+  assert.ok(result.stdout.includes("xmlns:System='http://ns.exiftool.org/File/System/1.0/'"));
+  assert.ok(result.stdout.includes("<File:FileTypeExtension>png</File:FileTypeExtension>"));
+});

@@ -188,3 +188,13 @@ test("PDF exiftool deleting a tag does not resurrect it from earlier revision (i
   assert.equal(meta.Title, undefined);
   assert.equal(meta.Author, "Café");
 });
+
+
+test("PDF system extension is detected independently of the operand suffix", async () => {
+  const fs = createMemoryFileSystem();
+  const bytes = createTwoPagePdfBytes();
+  await fs.writeFile("/document.bin", bytes);
+  const result = await invoke(["-s3", "-n", "-FileTypeExtension", "-FileSize", "document.bin"], fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, `pdf\n${bytes.length}\n`);
+});

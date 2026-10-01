@@ -3,6 +3,7 @@ import type { TagAssignment } from "./png.js";
 import type { ResourceLimits } from "./resources.js";
 export interface Invocation {
   readonly files: string[]; readonly tags: string[]; readonly assignments: TagAssignment[];
+  numeric: boolean; readonly valueConvTags: string[];
   json: boolean; csv: boolean; quoteScalars: boolean; duplicates: boolean; binary: boolean; missing: boolean;
   style: "short" | "compact" | "values"; overwrite: "backup" | "replace" | "in-place";
   destination: string | undefined;
@@ -14,7 +15,7 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
   if (args.length > (limits.maxArguments ?? Infinity)) throw new RangeError("ExifTool argument count exceeded");
   let extent = 0;
   for (const arg of args) { extent += arg.length * 2; if (extent > limits.maxDecodedBytes) throw new RangeError("ExifTool argument decoded budget exceeded"); }
-  const result: Invocation = { files: [], tags: [], assignments: [], json: false, csv: false, quoteScalars: false, duplicates: false,
+  const result: Invocation = { files: [], tags: [], assignments: [], numeric: false, valueConvTags: [], json: false, csv: false, quoteScalars: false, duplicates: false,
     binary: false, missing: false, style: "short", overwrite: "backup", destination: undefined, tagsFromFile: undefined, groupFamily: undefined, xml: false, tabular: false, template: undefined };
   let shortLevel = 0;
   let literal = false;
@@ -43,7 +44,7 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
       result.style = shortLevel >= 3 ? "values" : shortLevel === 2 ? "compact" : "short";
       continue;
     }
-    if (option === "-n") continue; // admitted PNG tags have no PrintConv
+    if (option === "-n") { result.numeric = true; continue; }
     if (option === "-overwrite_original") { result.overwrite = "replace"; continue; }
     if (option === "-overwrite_original_in_place") { result.overwrite = "in-place"; continue; }
     if (option === "-tagsfromfile") {
@@ -58,7 +59,7 @@ export function parseArguments(args: readonly string[], limits: ResourceLimits):
     let name = arg.slice(1, equals < 0 ? undefined : equals);
     const operation = name.endsWith("+") ? "add" : name.endsWith("-") ? "remove" : "set";
     if (operation !== "set") name = name.slice(0, -1);
-    if (name.endsWith("#")) { if (equals < 0) valueConvSelector = true; name = name.slice(0, -1); }
+    if (name.endsWith("#")) { if (equals < 0) { valueConvSelector = true; result.valueConvTags.push(name.slice(0, -1).toLowerCase()); } name = name.slice(0, -1); }
     const known = exiftoolRegistry.tags.find(tag => tag.toLowerCase() === name.toLowerCase());
     if (equals >= 0) result.assignments.push({ name: known ?? name, operation, value: arg.slice(equals + 1) });
     else if (known || name === "MissingTag") result.tags.push(known ?? name);

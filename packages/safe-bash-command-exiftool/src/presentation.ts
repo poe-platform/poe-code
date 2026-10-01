@@ -16,7 +16,10 @@ export function renderPresentation(file: string, tags: readonly MetadataTag[], i
     return Array.from(text(value), character => escapes[character] ?? character).join("");
   };
   if (invocation.xml) {
-    return "\n<rdf:Description rdf:about='" + xml(file) + "'\n  xmlns:et='http://ns.exiftool.org/1.0/' et:toolkit='Image::ExifTool " + exiftoolRegistry.source.version + "'\n  xmlns:PNG='http://ns.exiftool.org/PNG/PNG/1.0/'>\n" + tags.map(tag => " <PNG:" + tag.name + ">" + xml(tag.value) + "</PNG:" + tag.name + ">\n").join("") + "</rdf:Description>\n";
+    const groups = [...new Set(tags.map(tag => tag.group))];
+    if (!groups.length) groups.push("PNG");
+    const namespaces = groups.map(group => "  xmlns:" + group + "='http://ns.exiftool.org/" + (group === "System" ? "File" : group) + "/" + group + "/1.0/'").join("\n");
+    return "\n<rdf:Description rdf:about='" + xml(file) + "'\n  xmlns:et='http://ns.exiftool.org/1.0/' et:toolkit='Image::ExifTool " + exiftoolRegistry.source.version + "'\n" + namespaces + ">\n" + tags.map(tag => " <" + tag.group + ":" + tag.name + ">" + xml(tag.value) + "</" + tag.group + ":" + tag.name + ">\n").join("") + "</rdf:Description>\n";
   }
   if (invocation.template !== undefined) {
     const parts = parseTemplate(invocation.template);

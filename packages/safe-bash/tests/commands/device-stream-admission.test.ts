@@ -5,7 +5,6 @@ import {
   archiveCommands, fileCommands, streamFormatCommands, streamInspectionCommands,
   structuredCommands, textProgramCommands, type FileSystem, type FsOptions,
 } from "../../src/index.js";
-import { yqCommands } from "../../src/commands/yq/index.js";
 
 async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuery?: (path: string, options?: FsOptions) => Promise<void>) {
   const memory = createMemoryFileSystem();
@@ -57,7 +56,7 @@ async function fixture(mode: "disabled" | "absent", readOnly = false, beforeQuer
       return typeof value === "function" ? value.bind(target) : value;
     },
   });
-  const shell = new Shell({ fs: wrap(backing) }).use(agentCommands()).use(yqCommands());
+  const shell = new Shell({ fs: wrap(backing) }).use(agentCommands());
   return { shell, memory, reads, queries, traps, writes };
 }
 

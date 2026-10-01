@@ -39,6 +39,6 @@ export function fixture() {
     const value: unknown = Reflect.get(target, key, target);
     return typeof value === "function" ? value.bind(target) : value;
   }});
-  const shell = new Shell({fs, cwd: "/work"}).use(agentCommands()).use(pandocCommands());
+  const shell = new Shell({fs, cwd: "/work"}).use(agentCommands()).use(pandocCommands({replace: true}));
   return {volume, fs, shell};
 }

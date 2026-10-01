@@ -4,7 +4,6 @@ import type {FilterRequest} from "safe-bash-command-pandoc";
 import {Shell} from "../../src/shell/index.js";
 import {MemoryFileSystem} from "../../src/fs/memory/index.js";
 import {FsError, readBytes} from "../../src/contracts/index.js";
-import {agentCommands} from "../../src/plugins/index.js";
 import {createPandocCommand, createPandocCommands, pandocCommands} from "../../src/commands/pandoc/index.js";
 
 import {fixture} from "./pandoc-fixture.js";
@@ -57,7 +56,7 @@ test("pandoc accepts native aliases, attached values and bare metadata through S
   } finally {await shell.dispose();}
 });
 test("pandoc opt-in registration preflights collisions and supports replacement", async () => {
-  const shell = new Shell({fs: new MemoryFileSystem()}).use(agentCommands());
+  const shell = new Shell({fs: new MemoryFileSystem()});
   try {
     assert.equal(shell.commands.has("pandoc"), false);
     assert.equal(createPandocCommand().name, "pandoc");

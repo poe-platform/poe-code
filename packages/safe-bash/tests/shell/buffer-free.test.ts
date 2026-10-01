@@ -33,7 +33,6 @@ for (const removeBuffer of [false, true]) test(`reported commands execute withou
     await context.test(source, async () => {
       const commands = new core.CommandRegistry();
       const shell = new core.Shell({ fs: new core.MemoryFileSystem(), commands }).use(core.agentCommands());
-      for (const command of core.createYqCommands()) commands.register(command, { replace: true });
       try {
         const result = await shell.exec(source);
         assert.equal(result.exitCode, exitCode, result.stderr);

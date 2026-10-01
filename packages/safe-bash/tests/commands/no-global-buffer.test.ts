@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell, agentCommands } from "../../src/core.js";
-import { yqCommands } from "../../src/commands/yq/index.js";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 
 const cases: readonly [string, string, number?, string?][] = [
@@ -64,7 +63,7 @@ for (const [name, script, exitCode = 0, stdout] of cases) test(`${name} works wi
       '/in.txt': 'hello\nworld\n', '/f1.txt': 'a\nb\n', '/f2.txt': 'a\nc\n',
       '/data.json': '{"a":1,"b":"héllo"}\n',
     })) await fs.writeFile(path, encoder.encode(value));
-    const shell = new Shell({ fs }).use(agentCommands()).use(yqCommands());
+    const shell = new Shell({ fs }).use(agentCommands());
     context.after(() => shell.dispose());
     const result = await shell.exec(script);
     assert.equal(globalThis.Buffer, undefined);

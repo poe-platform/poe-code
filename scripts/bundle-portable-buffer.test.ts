@@ -2,10 +2,15 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { findUnreachableBundleOutputs } from "./bundle-graph.mjs";
 import { buildBrowserShellOutputs, resolveBrowserShellBuild, resolvePortableBufferBuild } from "./bundle-safe-bash.mjs";
+
+vi.mock("esbuild", async importOriginal => {
+  const actual = await importOriginal<typeof import("esbuild")>();
+  return { ...actual, build: vi.fn(actual.build) };
+});
 
 it("emits a self-contained portable bootstrap for production consumers", async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,6 +28,25 @@ it("emits a self-contained portable bootstrap for production consumers", async (
 
 it("preserves browser chunks when publishing the standalone bootstrap", async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const actual = await vi.importActual<typeof import("esbuild")>("esbuild");
+  // Exercise real chunk emission and publication with small in-memory modules.
+  // The separate browser suite verifies the complete shell implementation.
+  vi.mocked(build).mockImplementationOnce(options => actual.build({
+    ...options, alias: {}, external: [], inject: [],
+    plugins: [{
+      name: "publication-fixture",
+      setup(builder) {
+        const shared = path.join(root, "publication-shared.ts");
+        builder.onResolve({ filter: /^publication-shared$/ }, () => ({ path: shared }));
+        builder.onLoad({ filter: /.*/ }, args => ({
+          contents: args.path === shared
+            ? 'export const marker = "shared publication chunk";'
+            : 'export { marker } from "publication-shared";',
+          loader: "js",
+        }));
+      },
+    }],
+  }));
   const volume = new Volume();
   volume.mkdirSync(path.join(root, "packages/safe-bash"), { recursive: true });
   const result = await buildBrowserShellOutputs(root, { files: createFsFromVolume(volume).promises });
@@ -30,6 +54,9 @@ it("preserves browser chunks when publishing the standalone bootstrap", async ()
   for (const output of result.outputFiles) {
     if (!unreachable.has(path.resolve(root, output.path))) expect(volume.existsSync(output.path), output.path).toBe(true);
   }
+  const chunks = result.outputFiles.filter(output => output.path.includes(`${path.sep}chunks${path.sep}`));
+  expect(chunks.length).toBeGreaterThan(0);
+  for (const chunk of chunks) expect(new Uint8Array(volume.readFileSync(chunk.path) as Buffer)).toEqual(chunk.contents);
   const script = volume.readFileSync(path.join(root, "packages/safe-bash/dist/portable-buffer.js"), "utf8").toString();
   const realm = createContext({ TextEncoder, TextDecoder, Uint8Array });
   runInContext(script, realm);

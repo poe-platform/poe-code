@@ -2,6 +2,7 @@
 
 pub mod api_error_summary;
 pub mod applied_default;
+pub mod approval_commands;
 pub mod approval_gate;
 pub mod approval_plan;
 pub mod approval_runner;

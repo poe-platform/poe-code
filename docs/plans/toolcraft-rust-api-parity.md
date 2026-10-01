@@ -396,6 +396,21 @@ including concurrent claim contention through memfs. The checkpoint passes
 and lint. The approval commands, factory, platform providers and public subpath
 still require porting. The complete replacement gates remain unchanged.
 
+Approval list/show/run built-ins and the runtime factory now use Rust policies
+for reserved-group admission, state-filter selection, ordered ID deduplication,
+missing-task translation, provider admission and render-record traversal. Node
+retains method receivers, async iteration/await boundaries, presentation callbacks
+and string/JSON semantics. Differential tests cover getter order, marker descriptors,
+duplicate states/tasks, missing-file catch boundaries, arbitrary thrown values,
+Markdown escaping, JSON fallbacks and microtask settlement. The 11 original
+approval command tests now run through native commands/factory/SDK/storage while
+CLI and MCP hosts remain the reference implementations. The checkpoint passes
+1,557 reference/parity tests and 113 native Node tests, Rust, declarations and
+package lint. Ad hoc screenshots verify list/detail/empty rendering with the
+caller's existing table primitives; this does not qualify a native table renderer.
+The platform-provider dependency, full public approval subpath, CLI/transports,
+standalone types and complete swap qualification remain required.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

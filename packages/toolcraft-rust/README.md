@@ -28,6 +28,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Approval plans   | Canonical traversal, JSON admission, cycle rejection and hash verification         |
 | Approval execution | Native gate continuations, persisted tasks, cancellation and detached runner launch |
 | Queued approvals | Native claim/execute transitions, stored-plan checks and recorded handler outcomes |
+| Approval commands | Internal list/show/run commands, state filters, render records and runtime factory |
 | HTTP summaries   | REST/GraphQL errors, request IDs, retry hints and redacted error envelopes         |
 | Error reports    | Secret-aware rendering, cause chains, project discovery and confined report writes |
 | Schema conversion | JSON-schema projections, recursive references, composition and upstream metadata |
@@ -132,8 +133,11 @@ cancellation boundaries, list caches, collision retries and stored-payload acces
 The queued approval runner now verifies stored prompts and plans, claims tasks,
 resolves command paths and records outcomes through Rust continuations. Storage
 failure handling preserves the reference's catch boundaries and promise timing.
-The built-in commands still need porting before the complete
-`human-in-loop` entrypoint is available.
+Approval built-ins now use native admission, deduplication, missing-error and
+render-record policies. The runtime factory copies options and connects the native
+gate and built-ins. Node retains async iteration, rendering callbacks and text/JSON
+operations. Platform providers still need porting before the complete
+`human-in-loop` entrypoint is available; table primitives remain caller supplied.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The CLI, transports, approval runtime and

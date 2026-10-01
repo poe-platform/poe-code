@@ -26,6 +26,8 @@ export default defineConfig({
           if (resolved === path("../toolcraft/src/human-in-loop/state-machine.js")) return path("dist/approval-state-machine.js");
           if (resolved === path("../toolcraft/src/human-in-loop/gate.js")) return path("dist/approval-gate.js");
           if (resolved === path("../toolcraft/src/human-in-loop/runner.js")) return path("dist/approval-runner.js");
+          if (resolved === path("../toolcraft/src/human-in-loop/approvals-commands.js")) return path("dist/approval-commands.js");
+          if (resolved === path("../toolcraft/src/human-in-loop/runtime.js")) return path("dist/approval-runtime.js");
           if (resolved === path("../toolcraft/src/human-in-loop/spawn.js")) return path("dist/approval-spawn.js");
           if (resolved === path("../toolcraft/src/human-in-loop/types.js")) return path("dist/approval-error.js");
         }
@@ -81,6 +83,7 @@ export default defineConfig({
       path("../toolcraft/src/human-in-loop/state-machine.test.ts"),
       path("../toolcraft/src/human-in-loop/gate.test.ts"),
       path("../toolcraft/src/human-in-loop/runner.test.ts"),
+      path("../toolcraft/src/human-in-loop/approvals-commands.test.ts"),
       path("../toolcraft/src/human-in-loop/spawn.test.ts"),
       path("../toolcraft/src/runtime/io.test.ts"),
       path("../toolcraft/src/api-error-summary.test.ts"),

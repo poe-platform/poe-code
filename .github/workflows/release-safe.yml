@@ -226,7 +226,7 @@ jobs:
           cp scripts/fixtures/safe-packages-mixed-entry-runtime.mjs scripts/fixtures/safe-packages-optional.mjs scripts/fixtures/safe-packages-optional-no-yaml.mjs scripts/fixtures/safe-packages-optional-types.mts scripts/fixtures/safe-packages-opt-in.mjs scripts/fixtures/safe-packages-opt-in.d.mts "$OPTIONAL_CONSUMER/"
           cd "$OPTIONAL_CONSUMER"
           npm init --yes
-          npm install --ignore-scripts --omit=optional --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz
+          npm install --ignore-scripts --omit=optional --no-audit --no-fund "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-js-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz
           node safe-packages-optional-no-yaml.mjs
           bun safe-packages-optional-no-yaml.mjs
           "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --strict --exactOptionalPropertyTypes --noUncheckedIndexedAccess --module NodeNext --moduleResolution NodeNext --target ES2023 --typeRoots "$GITHUB_WORKSPACE/node_modules/@types" --types node safe-packages-optional-types.mts
@@ -234,7 +234,7 @@ jobs:
           SECOND_CONSUMER=$(mktemp -d)
           cd "$SECOND_CONSUMER"
           npm init --yes
-          npm install --ignore-scripts --no-audit --no-fund --save-exact "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz yaml@2.9.0
+          npm install --ignore-scripts --no-audit --no-fund --save-exact "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-js-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz yaml@2.9.0
           cd "$OPTIONAL_CONSUMER"
           node safe-packages-optional.mjs "$SECOND_CONSUMER"
           bun safe-packages-optional.mjs "$SECOND_CONSUMER"
@@ -282,7 +282,7 @@ jobs:
           cp "$GITHUB_WORKSPACE/scripts/fixtures/safe-packages-cloudflare-types.mts" "$CLOUDFLARE_CONSUMER/"
           cd "$CLOUDFLARE_CONSUMER"
           npm init --yes
-          npm install --ignore-scripts --no-audit --no-fund --save-exact "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz @cloudflare/playwright@1.3.6 @cloudflare/workers-types@4.20260415.1
+          npm install --ignore-scripts --no-audit --no-fund --save-exact "$TARBALLS"/poe-platform-safe-fs-*.tgz "$TARBALLS"/poe-platform-safe-js-*.tgz "$TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz @cloudflare/playwright@1.3.6 @cloudflare/workers-types@4.20260415.1
           "$GITHUB_WORKSPACE/node_modules/.bin/tsc" --noEmit --strict --skipLibCheck --exactOptionalPropertyTypes --noUncheckedIndexedAccess --module ESNext --moduleResolution Bundler --target ES2024 --types node,@cloudflare/workers-types safe-packages-cloudflare-types.mts
           cd "$GITHUB_WORKSPACE"
           node scripts/verify-safe-cloudflare.mjs "$CLOUDFLARE_CONSUMER"

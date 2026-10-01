@@ -11,7 +11,7 @@ export default defineConfig({
       resolveId(name, importer) {
         if (name === "toolcraft-schema") return path("dist/index.js");
         if (!importer?.startsWith(path("../toolcraft-schema/src/"))) return;
-        if (name === "./index.js") return path("dist/index.js");
+        if (name === "./index.js" || name === "../index.js") return path("dist/index.js");
         if (name === "./validate.js" || name === "../validate.js")
           return path("dist/host-values.js");
         if (name === "./clone-default.js") return path("dist/host-values.js");
@@ -38,7 +38,8 @@ export default defineConfig({
       "index",
       "discriminator-metadata",
       "json-schema-document",
-      "nullable-json-schema"
+      "nullable-json-schema",
+      "json-schema/properties"
     ].map((suite) => path(`../toolcraft-schema/src/${suite}.test.ts`)),
     environment: "node",
     fileParallelism: false,

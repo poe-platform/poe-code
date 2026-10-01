@@ -301,6 +301,8 @@ export type { JsonValueValidationOptions } from "./json.js";
 export { cloneDefaultValue } from "./clone-default.js";
 export declare function unicodeLength(value: string): number;
 export { compileJsonSchema, formatIssues } from "./compiler.js";
+export { projectJsonSchemaProperties } from "./compiler.js";
+export type { JsonSchemaProperty } from "./compiler.js";
 export { normalizeLegacyNullability } from "./compiler.js";
 export { withJsonSchema, nativeJsonSchema } from "./native-json-schema.js";
 export type { NativeSchema } from "./native-json-schema.js";

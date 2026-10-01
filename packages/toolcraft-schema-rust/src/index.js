@@ -1,4 +1,9 @@
-export { compileJsonSchema, formatIssues, normalizeLegacyNullability } from "./compiler.js";
+export {
+  compileJsonSchema,
+  formatIssues,
+  normalizeLegacyNullability,
+  projectJsonSchemaProperties
+} from "./compiler.js";
 export {
   cloneDefaultValue,
   isJsonValue,

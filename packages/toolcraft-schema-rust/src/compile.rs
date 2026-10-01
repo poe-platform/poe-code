@@ -1,6 +1,6 @@
 use super::*;
 
-const MAPS: [&str; 6] = [
+pub(super) const MAPS: [&str; 6] = [
     "$defs",
     "definitions",
     "properties",
@@ -8,8 +8,8 @@ const MAPS: [&str; 6] = [
     "dependencies",
     "patternProperties",
 ];
-const ARRAYS: [&str; 4] = ["allOf", "anyOf", "oneOf", "prefixItems"];
-const SINGLE: [&str; 11] = [
+pub(super) const ARRAYS: [&str; 4] = ["allOf", "anyOf", "oneOf", "prefixItems"];
+pub(super) const SINGLE: [&str; 11] = [
     "additionalItems",
     "additionalProperties",
     "contains",

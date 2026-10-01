@@ -147,10 +147,22 @@ custom map results, option enumeration, native documents, exception identity and
 cyclic/deep conversion. Synchronous union-map conversion callbacks have a separate
 128-entry reentrancy guard, also requiring resource-boundary qualification.
 All 18 selected original top-level schema suites run through the native public
-entry point. The compiler-internal suites and property projection remain pending.
+entry point. The general compiler-internal suites remain pending.
 Schema declarations are standalone, and all six original compile-check fixtures
 resolve to the built native declarations with a guard against fallback imports.
 Installed-tarball and complete compiler compatibility gates remain open.
+
+Property projection now walks the native reference graph to collect declarations,
+derive unconditional required flags and reconstruct independent annotation copies.
+Each candidate validator evaluates every declaration with fresh evaluation state,
+retaining the original graph's reference context and callback order. All ten
+original projection tests run through the native entry point. Differential tests
+cover recursive references, draft-7 siblings, snapshot getters, annotation isolation,
+special keys, callback reentrancy and diagnostics. The compiler bridge now preserves
+arbitrary format-callback throws, including null, undefined and symbols. Every
+current runtime schema export is present; that export inventory does not prove
+complete compiler semantics. Projection resource budgets and the existing compiler
+ingress/pattern/URI limitations still require replacement qualification.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

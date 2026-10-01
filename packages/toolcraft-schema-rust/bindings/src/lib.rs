@@ -79,13 +79,14 @@ impl NativeCompiledSchema {
 
     #[napi(
         ts_return_type = "{ ok: boolean; issues?: { path: string[]; expected: string; received: string; message: string; keyword: string }[] }",
-        ts_args_type = "value: unknown, checkFormat?: (name: string, value: string) => boolean | undefined"
+        ts_args_type = "value: unknown, checkFormat?: (name: string, value: string) => boolean | undefined, sources?: number[]"
     )]
     pub fn validate(
         &self,
         env: Env,
         value: Unknown<'_>,
         check_format: Option<FormatCallback<'_>>,
+        sources: Option<Vec<u32>>,
     ) -> Result<NativeJson> {
         let value = input::read(&env, value, input::Mode::Json)?.ok_or_else(|| {
             Error::from_reason("Schema validation currently requires a JSON value")
@@ -94,14 +95,22 @@ impl NativeCompiledSchema {
             callback,
             error: None,
         });
-        let evaluation = self.schema.validate(
-            &value,
-            ValidationOptions {
-                formats: formats
-                    .as_mut()
-                    .map(|formats| formats as &mut dyn FormatValidator),
-            },
-        );
+        let options = ValidationOptions {
+            formats: formats
+                .as_mut()
+                .map(|formats| formats as &mut dyn FormatValidator),
+        };
+        let evaluation = match sources {
+            Some(sources) => self.schema.validate_candidates(
+                &sources
+                    .into_iter()
+                    .map(|source| source as usize)
+                    .collect::<Vec<_>>(),
+                &value,
+                options,
+            ),
+            None => self.schema.validate(&value, options),
+        };
         if let Some(error) = formats.and_then(|formats| formats.error) {
             return Err(error);
         }
@@ -135,6 +144,33 @@ impl NativeCompiledSchema {
                 ),
             ])
         }))
+    }
+
+    #[napi]
+    pub fn properties(&self) -> Result<NativeJson> {
+        let properties = self.schema.properties().map_err(Error::from_reason)?;
+        Ok(NativeJson(Value::Array(
+            properties
+                .into_iter()
+                .map(|property| {
+                    object([
+                        ("name", Value::String(property.name)),
+                        ("required", Value::Bool(property.required)),
+                        ("schemas", Value::Array(property.schemas)),
+                        (
+                            "sources",
+                            Value::Array(
+                                property
+                                    .sources
+                                    .into_iter()
+                                    .map(|source| Value::Number(source as f64))
+                                    .collect(),
+                            ),
+                        ),
+                    ])
+                })
+                .collect(),
+        )))
     }
 }
 

@@ -15,3 +15,17 @@ export declare function compileJsonSchema(
 ): CompiledJsonSchema;
 export declare function formatIssues(issues: readonly ValidationIssue[]): string;
 export declare function normalizeLegacyNullability(source: object): Record<string, unknown>;
+
+export interface JsonSchemaProperty {
+  readonly name: string;
+  /** Required regardless of the object's selected alternative or condition. */
+  readonly required: boolean;
+  /** Isolated annotation/schema copies, including resolved references. */
+  readonly schemas: readonly unknown[];
+  /** Candidate hint; validate the complete object to enforce composition rules. */
+  validate(value: unknown): ValidationResult<unknown>;
+}
+export declare function projectJsonSchemaProperties(
+  schema: unknown,
+  options?: CompileJsonSchemaOptions
+): readonly JsonSchemaProperty[];

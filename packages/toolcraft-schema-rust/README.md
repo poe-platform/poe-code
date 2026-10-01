@@ -20,6 +20,7 @@ This private package is an additive implementation checkpoint.
 | DSL validation   | Every descriptor kind, default modes, union selection, host callbacks and structured diagnostics                 |
 | Builders         | All `S` constructors, tagged and untagged unions, records, JSON constraints and constructor diagnostics         |
 | Interoperability | JSON Schema conversion/documents, Standard Schema input/output adapters and native document overrides         |
+| Property hints   | Sorted property names, unconditional required flags, resolved annotation copies and candidate validators       |
 
 ```ts
 import { compileJsonSchema, formatIssues } from "toolcraft-schema-rust";
@@ -96,6 +97,14 @@ resource identities and annotations, and rewrites in-document pointer references
 when their targets move. The source schema remains unchanged; annotation objects
 such as defaults are copied without being interpreted as child schemas.
 
+`projectJsonSchemaProperties(schema, options)` returns sorted property hints from
+references, compositions and conditional branches. Each hint contains a name,
+an unconditional `required` flag, isolated annotation copies and a `validate`
+method. Candidate validation keeps the compiled reference graph and accepts a
+value matching any advertised declaration. Validate the complete object to
+enforce branch selection and conditional requirements. Graph walking and
+annotation reconstruction have bounded work budgets.
+
 Patterns support classes/ranges, alternation, groups, repetition, lookahead,
 word boundaries and Unicode general categories using bundled Unicode 17 data.
 Pattern compilation, evaluation work and retained matcher states are bounded.
@@ -110,8 +119,7 @@ Native callbacks are borrowed only for a synchronous evaluation and are isolated
 between worker environments. Rust callers inject validators through `ValidationOptions`.
 
 Full schema compatibility is still in progress.
-Property projection and compiler support for arbitrary non-JSON host values
-remain pending. Known
+Compiler support for arbitrary non-JSON host values remains pending. Known
 unfinished constraints fail at compilation rather than being silently ignored;
 unregistered `format` remains an annotation. Current ingress requires JSON values.
 Keep existing applications on `toolcraft-schema` until the full conformance gates

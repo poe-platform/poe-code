@@ -5,11 +5,27 @@ import {
   cloneDefaultValue,
   isJsonValue,
   validate,
+  projectJsonSchemaProperties,
   S,
   type CompiledJsonSchema
 } from "../src/index.js";
 const compatibleCompiler: typeof import("toolcraft-schema").compileJsonSchema = compileJsonSchema;
 void compatibleCompiler;
+const compatibleProjection: typeof import("toolcraft-schema").projectJsonSchemaProperties =
+  projectJsonSchemaProperties;
+void compatibleProjection;
+const property = projectJsonSchemaProperties({ properties: { message: { type: "string" } } })[0];
+const name: string = property.name;
+const required: boolean = property.required;
+const schemas: readonly unknown[] = property.schemas;
+const propertyResult = property.validate("hello");
+if (propertyResult.ok) {
+  const value: unknown = propertyResult.value;
+  void value;
+}
+void name;
+void required;
+void schemas;
 const compatibleValidate: typeof import("toolcraft-schema").validate = validate;
 const validated = validate(S.Object({ message: S.String(), count: S.Optional(S.Number()) }), {});
 if (validated.ok) {

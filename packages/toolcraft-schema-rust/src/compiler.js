@@ -5,7 +5,7 @@ const { NativeCompiledSchema, normalizeLegacyNullability } = createRequire(impor
 );
 export { normalizeLegacyNullability };
 
-export function compileJsonSchema(schema, options = {}) {
+function createCompiler(schema, options) {
   const prototype = Object.getPrototypeOf(options);
   if (prototype !== null && prototype !== Object.prototype) {
     throw new Error("JSON objects must have a plain prototype");
@@ -34,19 +34,55 @@ export function compileJsonSchema(schema, options = {}) {
     if (name !== "formats") Object.defineProperty(nativeOptions, name, descriptor);
   }
   const compiled = new NativeCompiledSchema(schema, nativeOptions);
+  const thrownValues = new WeakMap();
   const checkFormat =
     formats.size === 0
       ? undefined
       : (name, value) => {
           const validator = formats.get(name);
-          return validator === undefined ? undefined : validator(value) === true;
+          try {
+            return validator === undefined ? undefined : validator(value) === true;
+          } catch (value) {
+            const carrier = new Error("Schema format callback failed");
+            thrownValues.set(carrier, value);
+            throw carrier;
+          }
         };
+  return { compiled, checkFormat, thrownValues };
+}
+
+export function compileJsonSchema(schema, options = {}) {
+  const { compiled, checkFormat, thrownValues } = createCompiler(schema, options);
   return {
     validate(value) {
-      const result = compiled.validate(value, checkFormat);
-      return result.ok ? { ok: true, value } : result;
+      try {
+        const result = compiled.validate(value, checkFormat);
+        return result.ok ? { ok: true, value } : result;
+      } catch (error) {
+        if (thrownValues.has(error)) throw thrownValues.get(error);
+        throw error;
+      }
     }
   };
+}
+
+export function projectJsonSchemaProperties(schema, options = {}) {
+  const { compiled, checkFormat, thrownValues } = createCompiler(structuredClone(schema), {
+    ...options,
+    ...(options.registry === undefined ? {} : { registry: structuredClone(options.registry) })
+  });
+  return compiled.properties().map(({ sources, ...metadata }) => ({
+    ...metadata,
+    validate(value) {
+      try {
+        const result = compiled.validate(value, checkFormat, sources);
+        return result.ok ? { ok: true, value } : result;
+      } catch (error) {
+        if (thrownValues.has(error)) throw thrownValues.get(error);
+        throw error;
+      }
+    }
+  }));
 }
 
 export function formatIssues(issues) {

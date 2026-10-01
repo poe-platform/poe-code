@@ -1,13 +1,7 @@
-The fixture checks remote schema discovery and command invocation with both
-host-owned authenticated fetch and a host-owned OAuth provider. Run it against
-the built or packaged MCP entry, bundling with esbuild's `workerd`, `worker` and
-`import` conditions and keeping `node:*` external. Place `bundle.mjs` and
-`config.capnp` together under the repository's `out` directory, then run:
-
-```sh
-node_modules/workerd/bin/workerd test out/4116/config.capnp
-```
-
-The configuration deliberately uses compatibility date `2025-01-01` and only
-`nodejs_compat`. The transport needs `node:stream`; the bundle must not import
-desktop OAuth, auth-store, `node:os`, `node:fs` or `node:child_process`.
+The fixture verifies schema discovery and command invocation with host-owned
+fetch and OAuth, using workerd without any compatibility flags. Bundle worker.mjs
+against the built MCP entry with workerd conditions, keeping node:* external so
+any accidental Node dependency fails to load. Place bundle.mjs and config.capnp
+under out, then run `node_modules/workerd/bin/workerd test out/mcp/config.capnp`.
+The portable contracts bundle must use the same canonical owner for both the
+fixture and MCP commands.

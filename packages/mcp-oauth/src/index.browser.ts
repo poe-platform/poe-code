@@ -21,3 +21,13 @@ export function createAuthStoreSessionStore(): never {
 
 export { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./client/resumable.js";
 export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "./client/resumable.js";
+
+export { normalizeOAuthScope } from "./client/scope.js";
+export { waitForOAuthOperation } from "./client/cancellable-operation.js";
+export { parseOAuthTokenGrant } from "./client/token-grant.js";
+export { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./client/client-registration.js";
+
+/** Native persistence needs a desktop host; portable callers provide atomic hooks. */
+export function createResourceBoundOAuthStores(): never {
+  throw new Error("Desktop OAuth persistence is unavailable in Worker MCP; provide host-owned import/reset hooks");
+}

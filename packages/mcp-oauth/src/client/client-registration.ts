@@ -1,6 +1,6 @@
 import { copyBoundedOAuthJson } from "./bounded-json.js";
 import type { OAuthClientRegistration, StoredOAuthClient } from "./types.js";
-import { loopbackTarget, validateHostedOAuthRedirect } from "./loopback-authorization.js";
+import { loopbackTarget, validateHostedOAuthRedirect } from "./redirect-target.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 

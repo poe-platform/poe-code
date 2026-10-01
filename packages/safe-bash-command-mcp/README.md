@@ -1,7 +1,7 @@
 # safe-bash-command-mcp
 
 For the `mcp` management command, import `mcpCommands`, `createMcpCommands`,
-or `createMcpCommand` from `@poe-platform/safe-bash/commands/mcp` (Node).
+or `createMcpCommand` from `@poe-platform/safe-bash/commands/mcp` in Node, browsers, or Workers.
 All accept optional `McpCommandsOptions`, including `servers` and `replace` for
 the plugin. Empty options construct the command without connecting to a server.
 The existing `createRemoteMcpManagementCommand(servers, options)` API remains available.
@@ -10,9 +10,9 @@ The existing `createRemoteMcpManagementCommand(servers, options)` API remains av
 Workers and browser bundlers select a remote-only entry for
 `@poe-platform/safe-bash/mcp`: discovery, commands, argument parsing and resource
 access. Supply authenticated `fetch` or `oauth: { provider }` owned by your host.
-Desktop OAuth persistence, loopback login and management APIs remain in the full
-Node entry. Workers require `nodejs_compat` for the transport's `node:stream`;
-browser hosts must provide a Node stream polyfill through their bundler.
+Configuration and command management are portable. Desktop OAuth persistence and
+loopback login require Node; portable credential import/reset use explicit host hooks.
+Workers need no `nodejs_compat`, Node streams, Buffer or process globals.
 
 Install `@poe-platform/safe-bash` and import this SDK from
 `@poe-platform/safe-bash/mcp`.
@@ -99,7 +99,7 @@ and queries remain literal URL data. Discovery supports
 injected `fetch`, OAuth discovery caches, warning callbacks and cancellation.
 Set `maxPages`, `maxTools`, `maxResponseBytes` and `requestTimeoutMs` to bound
 discovery. Page, tool and byte budgets default to `Infinity`; request deadlines default to
-30 seconds. SDK budgets and CLI `--max-*` options accept explicit `Infinity`. The byte limit does not accumulate across
+`Infinity`. SDK budgets and CLI timeout/`--max-*` options accept explicit `Infinity`. The byte limit does not accumulate across
 the lifetime of a receive stream; keepalive comments and separate events remain
 usable. SDK `requestTimeoutMs: Infinity` disables the request deadline while retaining caller cancellation.
 Finite request deadlines must not exceed 2,147,483,647 ms;
@@ -242,7 +242,7 @@ The SDK accepts `{ operation: "list" | "templates", cursor?: string }` or
 `{ operation: "read", uri: string }`. `maxInputBytes` bounds its request JSON
 (default `Infinity`); `requestTimeoutMs` bounds the complete resource operation.
 Management `--timeout-ms <milliseconds>` can tighten that SDK/host setting
-(default 30,000 ms), including initialization and the resource request.
+(default unlimited), including initialization and the resource request.
 `--max-input-bytes <bytes>` can tighten the resource request limit, and
 `--max-response-bytes <bytes>` can tighten the native transport response limit
 (default `Infinity`). Both accept positive integers, separated or with `=`. The
@@ -465,13 +465,13 @@ Use `mcp import catalog < /credentials.json` or
 `mcp import catalog --file /credentials.json --json` for the same operation.
 Paths belong to the safe-bash virtual filesystem; `--file -` explicitly selects
 stdin. `--json` emits the public import summary. `--timeout-ms` retains the host
-deadline and bounds input, discovery and persistence (default 30,000 ms), including stalled host metadata
+deadline and bounds input, discovery and persistence (default unlimited), including stalled host metadata
 cache and atomic import callbacks. `mcp import --help` shows payload
 and expiry guidance. Management `options.credentialImport` supplies SDK settings
 and otherwise uses the authentication binding's persistence or shell environment.
 `--max-import-bytes <bytes>` can tighten the import budget (default `Infinity`),
 and `--lock-timeout-ms <milliseconds>` can tighten the separate persistence lock
-wait (default 30,000 ms). Both accept separated or inline positive values. Input
+wait (default unlimited). Both accept separated or inline positive values. Input
 collection stops at the smaller of the selected import budget and the host's
 `maxInputBytes` ceiling, before JSON parsing or OAuth discovery. A smaller host
 `credentialImport.maxImportBytes` budget also applies while reading.
@@ -500,7 +500,7 @@ Raw token fields follow OAuth: `access_token`, `refresh_token`, `token_type`,
 anchored before network waits, using original payload `issuedAt` milliseconds
 when supplied. Old token, timing and header environment values are never read.
 The SDK returns only `{ name, url, imported: true }`. Import and reset summaries retain the original validated identity even if a host hook changes its configuration argument. Default complete-operation
-and lock limits are 30 seconds (`requestTimeoutMs` and `timeoutMs`). Input defaults
+and lock limits default to unlimited (`requestTimeoutMs` and `timeoutMs`). Input defaults
 to `Infinity` (`maxImportBytes`), including token and DCR metadata. Nesting has no
 implicit depth ceiling; configured byte limits still bound the complete payload.
 Malformed JSON diagnostics never quote input. Host-owned persistence requires
@@ -525,7 +525,7 @@ shell.use(await remoteMcpArtifactPlugin(generated.artifact, {
 `mcp generate` prints the JSON artifact. Use `--format config` for resolved
 configuration or `--format module` for an ESM data module that exports the
 artifact as default. `--timeout-ms <milliseconds>` can tighten the SDK's
-`schema.requestTimeoutMs` for each discovery request (default 30,000 ms).
+`schema.requestTimeoutMs` for each discovery request (default unlimited).
 Supplied schemas remain offline. Generation also accepts `--max-pages`, `--max-tools`, `--max-response-bytes`,
 `--max-configuration-bytes` and `--max-artifact-bytes` (all default to `Infinity`).
 Each takes a positive integer or `Infinity`, separated or with `=`. CLI values retain the

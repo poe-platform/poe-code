@@ -3086,7 +3086,7 @@ export class HttpTransport implements McpTransport {
     if (this.legacyProtocolVersion !== undefined) headers.set("MCP-Protocol-Version", this.legacyProtocolVersion);
     if (this.lastEventId !== undefined) {
       if (this.lastEventId === "") headers.delete("Last-Event-ID");
-      else headers.set("Last-Event-ID", Buffer.from(this.lastEventId, "utf8").toString("latin1"));
+      else headers.set("Last-Event-ID", Array.from(new TextEncoder().encode(this.lastEventId), byte => String.fromCharCode(byte)).join(""));
     }
     return this.authorizeRequestHeaders(headers, signal);
   }
@@ -3645,7 +3645,7 @@ export async function* readLines(stream: Readable, maxLineBytes = 16 * 1024 * 10
   let bytes = 0;
   const decoder = new TextDecoder("utf-8", { fatal: true });
   const append = (part: string): void => {
-    bytes += Buffer.byteLength(part, "utf8");
+    bytes += new TextEncoder().encode(part).byteLength;
     if (bytes > maxLineBytes) throw new Error(`Stdio input line byte limit exceeded (${maxLineBytes} bytes)`);
     if (part.length > 0) parts.push(part);
   };
@@ -3716,7 +3716,7 @@ export class SseParser {
         else if (index === this.buffer.length - 1) this.skipLf = true;
       }
       start = index + 1;
-      if (Buffer.byteLength(line, "utf8") > this.maxEventBytes)
+      if (new TextEncoder().encode(line).byteLength > this.maxEventBytes)
         throw new Error(`SSE event exceeds ${this.maxEventBytes} bytes`);
       this.consumeLine(line, messages);
       this.assertEventSize("");
@@ -3756,7 +3756,7 @@ export class SseParser {
     }
 
     if (field === "data") {
-      this.dataBytes += Buffer.byteLength(value, "utf8") + (this.dataLines.length > 0 ? 1 : 0);
+      this.dataBytes += new TextEncoder().encode(value).byteLength + (this.dataLines.length > 0 ? 1 : 0);
       this.dataLines.push(value);
       return;
     }
@@ -3805,8 +3805,8 @@ export class SseParser {
   }
 
   private assertEventSize(partialLine: string): void {
-    if (this.dataBytes + Buffer.byteLength(this.eventType ?? "", "utf8") +
-        Buffer.byteLength(this.eventId, "utf8") + Buffer.byteLength(partialLine, "utf8") > this.maxEventBytes)
+    if (this.dataBytes + new TextEncoder().encode(this.eventType ?? "").byteLength +
+        new TextEncoder().encode(this.eventId).byteLength + new TextEncoder().encode(partialLine).byteLength > this.maxEventBytes)
       throw new Error(`SSE event exceeds ${this.maxEventBytes} bytes`);
   }
 }

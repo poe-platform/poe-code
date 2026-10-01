@@ -5,8 +5,8 @@ export interface ParameterHeader {
 }
 
 export function encodeHeaderValue(value: string): string {
-  const bytes = Buffer.from(value, "utf8");
-  if (bytes.toString("utf8") !== value)
+  const bytes = new TextEncoder().encode(value);
+  if (new TextDecoder("utf-8", { ignoreBOM: true }).decode(bytes) !== value)
     throw new Error("MCP header value must contain valid Unicode");
   const sentinel = value.startsWith("=?base64?") && value.endsWith("?=");
   const unsafe =
@@ -15,16 +15,17 @@ export function encodeHeaderValue(value: string): string {
       const code = character.charCodeAt(0);
       return code !== 9 && (code < 32 || code > 126);
     });
-  return sentinel || unsafe ? `=?base64?${bytes.toString("base64")}?=` : value;
+  return sentinel || unsafe ? `=?base64?${btoa(Array.from(bytes, byte => String.fromCharCode(byte)).join(""))}?=` : value;
 }
 
 export function decodeHeaderValue(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
   if (value.startsWith("=?base64?") && value.endsWith("?=")) {
     const encoded = value.slice(9, -2);
-    const bytes = Buffer.from(encoded, "base64");
-    if (bytes.toString("base64") !== encoded) return undefined;
     try {
+      const binary = atob(encoded);
+      if (btoa(binary) !== encoded) return undefined;
+      const bytes = Uint8Array.from(binary, character => character.charCodeAt(0));
       return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(bytes);
     } catch {
       return undefined;

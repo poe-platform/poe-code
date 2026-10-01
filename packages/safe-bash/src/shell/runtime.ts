@@ -4591,6 +4591,7 @@ export class Runtime {
     const binding = arrayStore(state)?.get(name);
     if (binding) return binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0);
     if (name === "DIRSTACK") return state.cwd;
+    if (name === "BASH_SUBSHELL") return state.variables.BASH_SUBSHELL ?? "0";
     if (name === "FUNCNAME" && state.variables.FUNCNAME === undefined) return state.functionNames?.[0];
     if (name === "_" && state.variables._ === undefined) return state.lastArgument ?? "";
     return state.variables[name];
@@ -16118,6 +16119,7 @@ export class Runtime {
       signal.throwIfAborted();
       child.extensions = forkExtensions(state.extensions, "subshell");
       child.isolated = true;
+      child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
       child.depth++;
       const allocation = this.budget.values.scope();
       scope.register(() => allocation.close());
@@ -16269,6 +16271,8 @@ export class Runtime {
                         extensions: forkedExt, isolated: true, _readOnlyStage: true, }, )
                   : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
                 preparedChild = child;
+                if (child._readOnlyStage) child.variables = { ...child.variables };
+                child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
                 if (!child._readOnlyStage) {
                   child.extensions = undefined;
                   child.extensions = forkExtensions(state.extensions, "pipeline");
@@ -16991,6 +16995,7 @@ export class Runtime {
         try {
           child.extensions = forkExtensions(state.extensions, "subshell");
           child.isolated = true;
+          child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
           child.loopDepth = 0;
           if (state.extensions?.checkpoints.length) await this.extensionCheckpoint("child-job-install", state, io);
           started = true;
@@ -21409,6 +21414,7 @@ export class Runtime {
         const capture = new Capture();
         const child = await cloneState(state, this.signal);
         child.isolated = true;
+        child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
         child.extensions = forkExtensions(state.extensions, "substitution");
         if (state.profile !== "sh") child.errexit = false;
         delete child.redirectAssignments;
@@ -21447,6 +21453,7 @@ export class Runtime {
         }
         const child = await cloneState(state, this.signal);
         child.isolated = true;
+        child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
         child.extensions = forkExtensions(state.extensions, "substitution");
         if (state.profile !== "sh") child.errexit = false;
         delete child.redirectAssignments;
@@ -21484,6 +21491,7 @@ export class Runtime {
       const capture = new Capture();
       const child = await cloneState(state, this.signal);
       child.isolated = true;
+      child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
       child.extensions = forkExtensions(state.extensions, "substitution");
       if (state.profile !== "sh") child.errexit = false;
       for (const [name, value] of state.redirectAssignments ?? []) {
@@ -22091,7 +22099,7 @@ export class Runtime {
           continue;
         }
         if (part.indirect || part.specialParameter) return undefined;
-        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
+        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "BASH_SUBSHELL" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;
         const selector = getArraySelector(part);
         const arrayBinding = activeArrayStore?.get(part.name);
@@ -29447,6 +29455,7 @@ export class Runtime {
       const p = word.parts[i]!;
       if (p.kind === "text") continue;
       if (p.kind === "variable") {
+        if (p.name === "BASH_SUBSHELL") return false;
         if ( !p.indirect && !p.prefixNames && !p.length && !p.substring && !p.transform && p.operator === undefined && getArraySelector(p) === undefined && (p.name === "?" || p.name === "#" || (p.name.length === 1 && p.name >= "1" && p.name <= "9"))) {
           const activePos = this._fastSubPositional ?? rawState.positional;
           if (rawState.nounset && p.name >= "1" && p.name <= "9" && activePos[p.name.charCodeAt(0) - 49] === undefined) return false;

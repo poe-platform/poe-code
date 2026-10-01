@@ -134,7 +134,8 @@ All private command plugins are available from `@poe-platform/safe-bash/core` in
   redirection such as `2>&1`, here-documents, and here-strings. `<>` opens without
   truncation and requires a filesystem with descriptor support.
 - `if`/`elif`/`else`, `case`, `for name in …`, `while`, `until`, functions,
-  groups `{ …; }`, subshells `( … )` (including adjacent nested subshells),
+  groups `{ …; }`, subshells `( … )` (including adjacent nested subshells and
+  `BASH_SUBSHELL` nesting levels),
   `[[ … ]]` (including file age/identity, special-file, mode and nameref
   predicates; ordering uses byte comparison in C/POSIX and host Intl collation
   in supported UTF-8 locales. Literal/glob and ASCII ERE comparisons also accept UTF-8 locales,

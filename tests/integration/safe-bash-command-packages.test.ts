@@ -8,6 +8,9 @@ const commands = [
   "getopt", "hexdump", "html-to-markdown", "iconv", "install", "dos2unix", "pptx",
   "pr", "split", "timeout", "tree", "truncate", "tsort", "which", "xan", "tar", "zip",
   "unzip", "gzip", "diff", "patch", "jq", "rg", "find", "sed", "awk", "curl", "wget",
+  "csvcut", "csvgrep", "csvkit", "diff3", "exiftool", "fmt", "fold", "htmlq",
+  "imagemagick", "mmdc", "op", "pandoc", "pdfimages", "pdfinfo", "pdftk", "pdftoppm",
+  "pdftotext", "qpdf", "sips", "soffice", "ssconvert", "unrtf", "wkhtmltopdf", "xmllint", "xz",
 ];
 const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
 

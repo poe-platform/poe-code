@@ -20742,14 +20742,14 @@ export class Runtime {
             let shadow: IndexedBinding | undefined;
             try {
               const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
-              shadow = IndexedBinding.create(store.owner);
+              if (enabled.has("I")) shadow = await store.get(name)!.copy(this.signal);
               this.signal.throwIfAborted();
               if (state.readonlyVariables?.has(name)) throw new ArrayFailure("readonly binding");
               if (!typedSavedVariables.get(saved)!.watch.valid()) throw new ArrayFailure("stale binding");
               let released: Promise<void> | undefined;
               stateMonitor(state)!.publish(tickets, name, () => {
                 locals!.set(name, saved);
-                released = store.publish(name, shadow!, tickets);});
+                released = shadow ? store.publish(name, shadow, tickets) : store.remove(name, tickets);});
               shadow = undefined;
               await released;
             } finally { try { await shadow?.release(); await operation.close(); } finally { holding.release(); } }

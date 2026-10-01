@@ -73,14 +73,14 @@ test("ERE repeated linear candidates cannot bypass a finite work limit", async (
   assert.ok(ledger.usage.work <= 2000);
 });
 
-test("ERE synchronous linear matching preserves captures and yields to the bounded fallback", async () => {
+test("ERE synchronous linear matching preserves captures and reports a hard work ceiling", async () => {
   const ledger = new EreLedger(bounds, { work: 2000 });
   const program = await compileEre("^(m+)([0-9]+)$", ledger);
   const expected = await matchEre(program, "mmm42", ledger);
   assert.deepEqual(expected.values, ["mmm42", "mmm", "42"]);
   assert.deepEqual(tryMatchEreSync(program, "mmm42", ledger), expected);
   const failing = await compileEre("i+j", ledger);
-  assert.equal(tryMatchEreSync(failing, "i".repeat(64), ledger), undefined);
+  assert.throws(() => tryMatchEreSync(failing, "i".repeat(64), ledger), { resource: "work", status: 3 });
   await assert.rejects(matchEre(failing, "i".repeat(64), ledger), { resource: "work", status: 3 });
   assert.ok(ledger.usage.work <= 2000);
 });

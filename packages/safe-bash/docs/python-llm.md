@@ -54,6 +54,10 @@ Prompt attachment bytes retain the shared bounded streaming path. Explicit
 4 KiB to the shared JavaScript MIME classifier. Inline content and URL prompt
 attachments are not yet supported by this adapter.
 
+Model discovery preserves declared schema and attachment support, including aliases
+and asynchronous models. Unsupported schemas and attachment MIME types fail before
+a provider request, using the reference errors.
+
 This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
 inline/URL prompt attachments, persisted conversations, embedding collections,
 tools, persistence and the complete response interface still require

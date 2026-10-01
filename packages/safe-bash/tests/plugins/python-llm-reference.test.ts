@@ -13,6 +13,20 @@ try:
  raise AssertionError("unknown model was accepted")
 except llm.UnknownModelError as error:
  assert error.args == ("Unknown model: missing",)
+assert model.attachment_types == {"text/plain"}
+assert not model.supports_schema and not model.supports_tools
+assert str(model) == "Model: test-model"
+assert repr(model) == "<Model: test-model>"
+for kwargs, message in [
+ ({"schema": {"type": "object"}}, "Model: test-model does not support schemas"),
+ ({"attachments": [llm.Attachment(type="image/png", content=b"x")]},
+  "This model does not support attachments of type 'image/png', only text/plain"),
+]:
+ try:
+  model.prompt("invalid", **kwargs)
+  raise AssertionError("unsupported input was accepted")
+ except ValueError as error:
+  assert str(error) == message
 response = model.prompt("hello", stream=True)
 assert calls == [], "prompts must be lazy"
 assert response.model.model_id == "test-model"
@@ -29,6 +43,9 @@ assert len(calls) == 1
 assert model.prompt("second", stream=False).text() == "hello"
 assert len(calls) == 2
 async_model = llm.get_async_model("test-model")
+assert str(async_model) == "AsyncModel (async): test-model"
+assert async_model.attachment_types == {"text/plain"}
+assert not async_model.supports_schema
 async def check_async():
  model = async_model
  response = model.prompt("async")
@@ -131,6 +148,7 @@ class Model(llm.Model):
   yield "lo"
 class AsyncModel(llm.AsyncModel):
  model_id = "test-model"
+ attachment_types = {"text/plain"}
  async def execute(self, prompt, stream, response, conversation):
   if conversation is not None:
    histories.append([(r.prompt.prompt, r.text()) for r in conversation.responses])
@@ -169,7 +187,7 @@ class Bridge:
   if operation == "configuration":
    return {"default_model": "test-model", "aliases": {}, "model_options": {}}
   if operation == "models":
-   return [{"id": "test-model", "aliases": ["alias"], "capabilities": ["complete", "stream"]}, {"id": "embedding", "aliases": ["embed-alias"], "capabilities": ["embed"]}]
+   return [{"id": "test-model", "aliases": ["alias"], "capabilities": ["complete", "stream"], "metadata": {"attachmentTypes": ["text/plain"]}}, {"id": "embedding", "aliases": ["embed-alias"], "capabilities": ["embed"]}]
   if operation == "embed":
    embedding_calls.append(payload["inputs"])
    return {"model": payload["model"], "vectors": [[float(len(item)), 1.0] for item in payload["inputs"]]}

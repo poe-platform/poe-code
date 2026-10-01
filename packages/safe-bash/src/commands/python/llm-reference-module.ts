@@ -147,6 +147,8 @@ def _new_id():
 
 class _Response:
     def __init__(self, prompt, model, stream, conversation=None, key=None):
+        if prompt.schema and not model.supports_schema:
+            raise ValueError(str(model) + " does not support schemas")
         self.id = _new_id()
         self.prompt = prompt
         self.model = model
@@ -387,12 +389,37 @@ class AsyncResponse(_Response):
 
 
 class Model:
-    def __init__(self, model_id):
+    supports_schema = False
+    supports_tools = False
+    attachment_types = set()
+
+    def __init__(self, model_id, *, capabilities=(), metadata=None):
         self.model_id = model_id
+        self.supports_schema = "schema" in capabilities
+        self.attachment_types = set((metadata or {}).get("attachmentTypes", ()))
+
+    def __str__(self):
+        suffix = " (async)" if isinstance(self, AsyncModel) else ""
+        return self.__class__.__name__ + suffix + ": " + self.model_id
+
+    def __repr__(self):
+        return "<" + str(self) + ">"
+
+    def _validate_attachments(self, attachments=None):
+        if attachments and not self.attachment_types:
+            raise ValueError("This model does not support attachments")
+        for attachment in attachments or []:
+            attachment_type = attachment.resolve_type()
+            if attachment_type not in self.attachment_types:
+                raise ValueError(
+                    "This model does not support attachments of type '" + attachment_type
+                    + "', only " + ", ".join(self.attachment_types)
+                )
 
     def prompt(self, prompt=None, *, fragments=None, attachments=None, system=None,
                system_fragments=None, stream=True, schema=None, tools=None,
                tool_results=None, **options):
+        self._validate_attachments(attachments)
         key = options.pop("key", None)
         if schema is not None and hasattr(schema, "model_json_schema"):
             schema = schema.model_json_schema()
@@ -459,24 +486,29 @@ async def _models():
 
 
 def get_models():
-    return [Model(item.id) for item in _sync(_models())]
+    return [Model(item.id, capabilities=item.capabilities, metadata=item.metadata) for item in _sync(_models())]
 
 
 def get_async_models():
-    return [AsyncModel(item.id) for item in _sync(_models())]
+    return [AsyncModel(item.id, capabilities=item.capabilities, metadata=item.metadata) for item in _sync(_models())]
 
 
 def get_model_aliases():
     result = {}
     for item in _sync(_models()):
-        model = Model(item.id)
+        model = Model(item.id, capabilities=item.capabilities, metadata=item.metadata)
         for name in (item.id, *item.aliases):
             result[name] = model
     return result
 
 
 def get_async_model_aliases():
-    return {name: AsyncModel(model.model_id) for name, model in get_model_aliases().items()}
+    result = {}
+    for item in _sync(_models()):
+        model = AsyncModel(item.id, capabilities=item.capabilities, metadata=item.metadata)
+        for name in (item.id, *item.aliases):
+            result[name] = model
+    return result
 
 
 def get_default_model():

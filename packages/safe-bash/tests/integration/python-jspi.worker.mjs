@@ -189,6 +189,7 @@ async function qualifyHostServices(backend, createExecutor) {
     }
     if (request.prompt === 'error-call') throw new Error('private-host-error');
     if (request.prompt.startsWith('reference-fragment') && request.system !== 'first\n\nsecond') throw new Error('Reference system fragments changed');
+    if (request.prompt === 'reference-schema' && request.schema?.type !== 'object') throw new Error('Reference schema changed');
     if (request.prompt === 'reference-attached' && (request.attachments[0]?.mimeType !== 'text/plain' || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'changed')) throw new Error('Reference canonical attachment changed');
     if (request.prompt === 'reference-second' && (request.messages.length !== 2 || request.messages[0].content !== 'reference-first' || request.messages[1].content !== 'reference-first')) throw new Error('Reference conversation history changed');
     if (request.prompt === 'library' && (request.options.enabled !== true || request.options.count !== 2 || request.options.nullable !== null)) throw new Error('Typed options were changed');
@@ -293,6 +294,10 @@ except CalledProcessError as error:
  assert error.returncode == 127
 assert call('identity', 'still-live') == 'still-live'
 import llm
+model = llm.get_model('fake')
+assert model.supports_schema and model.attachment_types == {'text/plain'}
+assert llm.get_async_model('fake').supports_schema
+assert model.prompt('reference-schema', schema={'type': 'object'}).text() == 'reference-schema'
 fragment_response = llm.get_model('fake').prompt('body', fragments=['reference-fragment'], system_fragments=['  first  '], system=' second ')
 assert fragment_response.text() == 'reference-fragment' + chr(10) + 'body'
 assert fragment_response.text_or_raise() == str(fragment_response)

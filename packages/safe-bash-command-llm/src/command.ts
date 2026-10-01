@@ -340,8 +340,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       const stat = await interrupted(() => context.fs.stat(path, { signal }), signal);
       context.inputBudget?.check(shellInputBytes + stat.size);
       input.check(stat.size, !streamed);
+      const remainingBytes = Math.min(input.remaining(!streamed),
+        (context.inputBudget?.maxBytes ?? Infinity) - shellInputBytes);
       if (streamed) {
-        const source = await operation.acquire(() => fileSource({ fs: context.fs, path, signal, maxBytes: input.remaining(), expectedStat: stat }), source => source.dispose());
+        const source = await operation.acquire(() => fileSource({ fs: context.fs, path, signal, maxBytes: remainingBytes, expectedStat: stat }), source => source.dispose());
         const chunks = source.bytes[Symbol.asyncIterator]();
         const first = await interrupted(() => chunks.next(), signal);
         const mimeType = attachment.mimeType ?? sniffMimeType(path, first.done ? new Uint8Array() : first.value);
@@ -367,7 +369,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         continue;
       }
       const bytes = await interrupted(() => context.fs.readFile(path, { signal,
-        ...(input.remaining(true) === Infinity ? {} : { maxBytes: input.remaining(true) }),
+        ...(remainingBytes === Infinity ? {} : { maxBytes: remainingBytes }),
       }), signal);
       signal.throwIfAborted();
       if (!(bytes instanceof Uint8Array)) throw new TypeError("Attachment read must return Uint8Array");

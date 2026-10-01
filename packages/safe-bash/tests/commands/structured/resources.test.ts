@@ -18,9 +18,10 @@ test("array assignment admits null padding before allocation or copying", async 
   await assert.rejects(async () => interpreter.set(input, [500000], 1), /maxValueBytes/);
 });
 
-test("array assignment has a finite default index admission", async () => {
-  const interpreter = new Interpreter(new Budget(resolveJqLimits(), new AbortController().signal), new Map());
-  await assert.rejects(async () => interpreter.set(null, [1000000], 1), /maxCollectionSize/);
+test("array assignment enforces the configured collection boundary", async () => {
+  const interpreter = new Interpreter(new Budget(resolveJqLimits({ maxCollectionSize: 3 }), new AbortController().signal), new Map());
+  await assert.rejects(async () => interpreter.set(null, [3], 1), /maxCollectionSize/);
+  assert.deepEqual(await interpreter.set(null, [2], 1), [null, null, 1]);
 });
 
 test("array padding observes cancellation before completing a large fill", async () => {

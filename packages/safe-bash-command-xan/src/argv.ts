@@ -162,7 +162,11 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   if (numbers.has("len")) end = checkedAdd(start, numbers.get("len")!);
   if (end !== undefined && start > end) throw new XanError("start exceeds end");
   let last: number | undefined;
-  if (numbers.has("last")) { const value = numbers.get("last")!; if (value > BigInt(budget.limits.maxLastRows)) budget.bound("maxLastRows", budget.limits.maxLastRows + 1); last = Number(value); }
+  if (numbers.has("last")) {
+    const value = numbers.get("last")!;
+    last = Number(value);
+    budget.bound("maxLastRows", last);
+  }
   let indices: bigint[] | undefined;
   if (values.has("indices")) {
     const text = values.get("indices")!;

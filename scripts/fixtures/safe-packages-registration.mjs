@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
-import { Shell, agentCommands, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { Shell, baseAgentCommands, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { exiftoolCommands } from "@poe-platform/safe-bash/commands/exiftool";
 import { wkhtmltopdfCommands, wkhtmltopdfLimits } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
 import { verification } from "./safe-packages-private-command.mjs";
 
 await verification;
 const fs = createMemoryFileSystem();
-const shell = new Shell({ fs }).use(agentCommands());
+const shell = new Shell({ fs }).use(baseAgentCommands());
 const seen = [];
 shell.use(async (context, next) => { seen.push(context.command); return next(); });
 try {

@@ -29,7 +29,7 @@ const shell = new root.Shell({ fs });
 const expected = 'a\n<<<<<<< /alias\nours\n||||||| /base\nbase\n=======\ntheirs\n>>>>>>> /theirs\nz\n';
 try {
   assert.equal(shell.commands.has('diff3'), false);
-  shell.use(diff3Commands()); shell.use(root.agentCommands());
+  shell.use(diff3Commands()); shell.use(root.baseAgentCommands());
   const cli = await shell.exec('diff3 -m /alias /base /theirs');
   assert.equal(cli.exitCode, 1); assert.equal(cli.stdout, expected); assert.equal(cli.stderr, '');
   shell.register({ name: 'sdk-diff3', runtimeIdentity: contracts.commandRuntimeIdentity, execute(context) { return diff3(context, { files: ['/alias', '/base', '/theirs'], merge: true }); } });

@@ -54,7 +54,7 @@ try {
   const fs = createMemoryFileSystem();
   const original = Buffer.from("a: 1\n");
   await fs.writeFile("/settings.yaml", original);
-  owner.shell = new core.Shell({ fs, limits: { maxWallClockMs: 2000 } }).use(core.agentCommands()).use(optional.yesCommands()).use(optional.yqCommands());
+  owner.shell = new core.Shell({ fs, limits: { maxWallClockMs: 2000 } }).use(core.agentCommands()).use(optional.yesCommands({ replace: true })).use(optional.yqCommands({ replace: true }));
   const unrelated = await owner.shell.exec(String.raw`yes $'\377' | head -c 3`);
   assert.equal(unrelated.exitCode, 0, unrelated.stderr);
   assert.equal(unrelated.stderr, "");

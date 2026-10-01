@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { createSyntheticMp4, mp4Ast, parseMp4, serializeMp4, parseMpegTs } from "@poe-code/mp4-ast";
+import { createSyntheticMp4, mp4Ast, parseMp4, serializeMp4, parseMpegTs, parseWav } from "@poe-code/mp4-ast";
 import {
   allMediaAsts,
   cloudflareWorkerLimits,
@@ -446,4 +446,26 @@ it("HLS copies each video sample once and cuts at keyframes", async () => {
   const segments = [...vfs.store.entries()].filter(([path]) => path.endsWith(".ts"));
   assert.equal(segments.length, 2);
   assert.equal(segments.reduce((sum, [, bytes]) => sum + parseMpegTs(bytes).tracks.find(t => t.type === "video")!.samples.length, 0), 20);
+});
+
+describe("decoded audio editing", () => {
+  it("trims and repeats WAV waveforms through ffmpeg options", async () => {
+    const vfs = createTestVfs();
+    const command = createFfmpegCommand();
+    const generated = await runCmd(command, ["-f", "lavfi", "-i", "sine=frequency=440:duration=4", "-y", "/four.wav"], vfs);
+    assert.equal(generated.exitCode, 0, generated.stderr);
+    for (const [args, duration] of [
+      [["-i", "/four.wav", "-ss", "1", "-t", "1"], 1],
+      [["-ss", "1", "-i", "/four.wav", "-to", "2"], 2],
+      [["-stream_loop", "2", "-i", "/four.wav"], 12],
+      [["-i", "concat:/four.wav|/four.wav"], 8],
+      [["-i", "/four.wav", "-af", "volume=0.5", "-t", "1"], 1]
+    ] as const) {
+      const result = await runCmd(command, [...args, "-y", "/output.wav"], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = parseWav(vfs.store.get("/output.wav")!);
+      assert.equal(output.durationSeconds, duration, args.join(" "));
+      assert.ok(output.tracks[0]!.decodedAudio!.channelData[0]!.some((value) => value !== 0));
+    }
+  });
 });

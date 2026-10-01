@@ -36,6 +36,7 @@ import {
   MediaBudgetTracker,
   type ConcatMediaOptions,
   type MediaAstPlugin,
+  type MediaAudioData,
   type MediaCodecDescription,
   type MediaDocument,
   type MediaProbeFrame,
@@ -1370,17 +1371,17 @@ function materializeTrackSamples(track: MediaTrack): {
   if (track.type === "audio" && track.decodedAudio) {
     const sampleRate = track.decodedAudio.sampleRate || 44100;
     const channels = track.decodedAudio.channels || 2;
-    const totalSamples = track.decodedAudio.channelData[0]?.length ?? 1024;
-    const numFrames = Math.max(1, Math.ceil(totalSamples / 1024));
+    const totalSamples = track.decodedAudio.channelData[0]?.length ?? 0;
+    const numFrames = Math.ceil(totalSamples / 1024);
     const silentAac = createSilentAacFrame(channels);
     const samples: MediaSample[] = [];
     for (let i = 0; i < numFrames; i++) {
       samples.push({
         data: silentAac,
-        dts: i * 1024,
-        pts: i * 1024,
+        dts: Math.round(i * 1024 * track.timescale / sampleRate),
+        pts: Math.round(i * 1024 * track.timescale / sampleRate),
         cts: 0,
-        duration: 1024,
+        duration: Math.round(Math.min(totalSamples, (i + 1) * 1024) * track.timescale / sampleRate) - Math.round(i * 1024 * track.timescale / sampleRate),
         size: silentAac.byteLength,
         isKeyframe: true,
         sampleDescriptionIndex: 1
@@ -1894,6 +1895,8 @@ export function concatMp4(
   const mergedSamples: MediaSample[][] = trackSlots.map(() => []);
   const mergedDecodedFrames: MediaVideoFrame[][] = trackSlots.map(() => []);
   const runningTicksPerSlot: number[] = trackSlots.map(() => 0);
+  const audioSegments: { audio: MediaAudioData; offsetSeconds: number }[][] = trackSlots.map(() => []);
+  const encodedAudioSlots = new Set<number>();
 
   for (let docIdx = 0; docIdx < docs.length; docIdx++) {
     budget.checkCpu();
@@ -1951,6 +1954,13 @@ export function concatMp4(
       }
 
       let currentTick = runningTicksPerSlot[slotIdx]!;
+      if (trk.type === "audio") {
+        if (trk.decodedAudio) {
+          audioSegments[slotIdx]!.push({ audio: trk.decodedAudio, offsetSeconds: currentTick / targetTimescale });
+        } else if (materialized.samples.length > 0) {
+          encodedAudioSlots.add(slotIdx);
+        }
+      }
       for (const s of materialized.samples) {
         const scaledDur = Math.max(1, Math.round(s.duration * scaleRatio));
         const scaledCts = Math.round(s.cts * scaleRatio);
@@ -2008,9 +2018,49 @@ export function concatMp4(
     const timescale = slotTimescales[idx]!;
     const samples = mergedSamples[idx]!;
     const duration = samples.reduce((acc, s) => acc + s.duration, 0);
+    const segments = audioSegments[idx]!;
+    let decodedAudio: MediaAudioData | undefined;
+    if (segments.length > 0) {
+      if (encodedAudioSlots.has(idx)) {
+        throw new Error("concatMp4 requires all segments in a decoded audio track to be decoded");
+      }
+      const { sampleRate, channels } = segments[0]!.audio;
+      const length = Math.round(duration / timescale * sampleRate);
+      budget.allocateMemory(length * channels * Float32Array.BYTES_PER_ELEMENT);
+      const channelData = Array.from({ length: channels }, () => new Float32Array(length));
+      for (const { audio, offsetSeconds } of segments) {
+        const offset = Math.round(offsetSeconds * sampleRate);
+        const sourceLength = audio.channelData[0]?.length ?? 0;
+        const count = Math.min(length - offset, Math.round(sourceLength * sampleRate / audio.sampleRate));
+        for (let channel = 0; channel < channels; channel++) {
+          const sources = channels === 1 ? audio.channelData : [audio.channelData[channel % audio.channels]!];
+          const output = channelData[channel]!;
+          if (audio.sampleRate === sampleRate && sources.length === 1) {
+            budget.checkCpu();
+            output.set(sources[0]!.subarray(0, count), offset);
+            continue;
+          }
+          for (let i = 0; i < count; i++) {
+            if (i % 4096 === 0) budget.checkCpu();
+            const position = i * audio.sampleRate / sampleRate;
+            const left = Math.floor(position);
+            const fraction = position - left;
+            let value = 0;
+            for (const source of sources) {
+              const a = source[left] ?? 0;
+              const b = source[Math.min(left + 1, source.length - 1)] ?? 0;
+              value += a + (b - a) * fraction;
+            }
+            output[offset + i] = value / sources.length;
+          }
+        }
+      }
+      decodedAudio = { sampleRate, channels, channelData };
+    }
     return {
       ...slot.template,
       id: idx + 1,
+      decodedAudio,
       timescale,
       duration,
       codecDescriptions: mergedCodecDescriptions[idx]!,
@@ -2057,13 +2107,13 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
         ? startSec + options.durationSeconds
         : doc.durationSeconds;
 
-  const useEditList = options.useEditList ?? true;
   const movieTimescale = doc.timescale || 1000;
   const slicedTracks: MediaTrack[] = [];
 
   for (const track of doc.tracks) {
     if (++work % 256 === 0) yield;
 
+    const useEditList = (options.useEditList ?? true) && !track.decodedAudio;
     const materialized = materializeTrackSamples(track);
     const ts = track.timescale || 1000;
     const sourceOrigin = Math.max(0, track.editList?.[0]?.mediaTime ?? 0);
@@ -2165,8 +2215,18 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
         }));
     }
 
+    const decodedAudio = track.decodedAudio && {
+      ...track.decodedAudio,
+      channelData: track.decodedAudio.channelData.map((channel) =>
+        channel.slice(Math.round(startSec * track.decodedAudio!.sampleRate), Math.max(0, Math.round(endSec * track.decodedAudio!.sampleRate)))
+      )
+    };
+    if (decodedAudio) {
+      runningDts = Math.round((decodedAudio.channelData[0]?.length ?? 0) * ts / decodedAudio.sampleRate);
+    }
     slicedTracks.push({
       ...track,
+      decodedAudio,
       duration: editList ? Math.round(editList[0]!.segmentDuration * ts / movieTimescale) : runningDts,
       codecDescriptions: materialized.codecDescriptions,
       editList,

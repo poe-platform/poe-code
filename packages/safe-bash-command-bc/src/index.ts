@@ -1,4 +1,4 @@
-import { Decimal } from "decimal.js";
+import { mathValue } from "./math.js";
 import {
   commandRuntimeIdentity,
   readBytes,
@@ -167,14 +167,20 @@ function truncToInt(d: DecimalValue): bigint {
   return d.scale > 0 ? d.coeff / pow10(d.scale) : d.coeff;
 }
 
-function powDec(base: DecimalValue, exp: DecimalValue, currentScale: number, maxExponent: number): DecimalValue {
+async function powDec(base: DecimalValue, exp: DecimalValue, currentScale: number, maxExponent: number, tick: () => Promise<void> | undefined): Promise<DecimalValue> {
   let n = truncToInt(exp);
   if (n === 0n) return ONE;
   const neg = n < 0n;
   if (neg) n = -n;
   if (maxExponent !== Infinity && n > BigInt(maxExponent)) throw new Error(`exponent exceeds maximum limit (${maxExponent})`);
   // Keep the coefficient exact; rounding intermediate squares loses carries.
-  const coeff = base.coeff ** n;
+  let coeff = 1n;
+  let factor = base.coeff;
+  for (let remaining = n; remaining > 0n; remaining >>= 1n) {
+    const pending = tick(); if (pending) await pending;
+    if (remaining & 1n) coeff *= factor;
+    if (remaining > 1n) factor *= factor;
+  }
   const fullScale = BigInt(base.scale) * n;
   if (neg) {
     if (coeff === 0n) throw new Error("Runtime error (func=(main), adr=0): Divide by zero");
@@ -291,54 +297,6 @@ function formatDecimalInBase(val: DecimalValue, obase: bigint): string {
   }
   return (neg && absCoeff !== 0n ? "-" : "") + (intOut === "0" ? "" : intOut) + "." + fracOut;
 }
-
-// Each call owns its precision, so concurrent shells cannot change one another's math.
-async function mathValue(name: string, args: readonly DecimalValue[], scale: number, tick: () => Promise<void> | undefined): Promise<DecimalValue | undefined> {
-  if (!["s", "c", "a", "l", "e", "j"].includes(name)) return undefined;
-  const decimal = (value: DecimalValue) => `${value.coeff}e-${value.scale}`;
-  const raw = args[name === "j" ? 1 : 0] ?? ZERO;
-  const magnitude = new Decimal(decimal(raw)).abs();
-  // Exponentials need room for integer digits; the Bessel series also needs
-  // guard digits for cancellation between terms as large as exp(abs(x)).
-  const extra = name === "e" || name === "j" ? magnitude.ceil().toNumber() : Math.max(0, magnitude.e + 1);
-  const D = Decimal.clone({ precision: scale + extra + 32, rounding: Decimal.ROUND_DOWN });
-  const x = new D(decimal(raw));
-  let result: Decimal;
-  switch (name) {
-    case "s": result = x.sin(); break;
-    case "c": result = x.cos(); break;
-    case "a": result = x.atan(); break;
-    case "l":
-      if (x.lte(0)) throw new Error("Runtime error: l(x) domain error");
-      result = x.ln(); break;
-    case "e": result = x.exp(); break;
-    default: {
-      const n = truncToInt(args[0] ?? ZERO);
-      const order = n < 0n ? -n : n;
-      const half = x.div(2);
-      let term = new D(1);
-      for (let i = 1n; i <= order; i++) {
-        const pending = tick(); if (pending) await pending;
-        term = term.mul(half).div(i.toString());
-      }
-      result = term;
-      const factor = half.mul(half).neg();
-      const epsilon = new D(10).pow(-scale - 16);
-      for (let k = 1n; !term.isZero(); k++) {
-        const pending = tick(); if (pending) await pending;
-        term = term.mul(factor).div((k * (order + k)).toString());
-        result = result.add(term);
-        // Stop only in the decreasing tail, after absolute error is negligible.
-        if (term.abs().lt(epsilon) && new D((k * (order + k)).toString()).gt(factor.abs())) break;
-      }
-      if (n < 0n && order % 2n === 1n) result = result.neg();
-    }
-  }
-  if (!result.isFinite()) throw new Error("math domain/range error");
-  const fixed = result.toFixed(scale, Decimal.ROUND_DOWN);
-  return { coeff: BigInt(fixed.split(".").join("")), scale };
-}
-
 
 interface Token {
   type: "number" | "string" | "id" | "op" | "punct" | "semi" | "eof";
@@ -827,6 +785,9 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     let steps = 0;
     let outBuffer = "";
     let outputBytes = 0;
+    const configuredWidth = Number(context.env.BC_LINE_LENGTH ?? 70);
+    const lineLength = Number.isSafeInteger(configuredWidth) && (configuredWidth === 0 || configuredWidth > 1) ? configuredWidth : 70;
+    let outputColumn = 0;
 
     const appendOutput = (text: string): void => {
       if (limits.maxOutputBytes !== Infinity) {
@@ -836,6 +797,20 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         }
       }
       outBuffer += text;
+      const newline = text.lastIndexOf("\n");
+      outputColumn = newline < 0 ? outputColumn + text.length : text.length - newline - 1;
+    };
+
+    const appendNumber = (value: DecimalValue): void => {
+      let text = formatDecimalInBase(value, obase);
+      if (lineLength !== 0) {
+        while (outputColumn + text.length >= lineLength) {
+          const count = Math.max(0, lineLength - outputColumn - 1);
+          appendOutput(text.slice(0, count) + "\\\n");
+          text = text.slice(count);
+        }
+      }
+      appendOutput(text);
     };
 
     const tick = (): Promise<void> | undefined => {
@@ -939,7 +914,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           else if (expr.op === "*=") next = mulDec(cur, r, scale);
           else if (expr.op === "/=") next = divDec(cur, r, scale);
           else if (expr.op === "%=") next = modDec(cur, r, scale);
-          else next = powDec(cur, r, scale, limits.maxExponent);
+          else next = await powDec(cur, r, scale, limits.maxExponent, tick);
           return setVar(expr.target.name, expr.target.index, next);
         }
         case "unary": {
@@ -977,7 +952,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
             case "*": return mulDec(l, r, scale);
             case "/": return divDec(l, r, scale);
             case "%": return modDec(l, r, scale);
-            case "^": return powDec(l, r, scale, limits.maxExponent);
+            case "^": return await powDec(l, r, scale, limits.maxExponent, tick);
             case "==": return cmpDec(l, r) === 0 ? ONE : ZERO;
             case "!=": return cmpDec(l, r) !== 0 ? ONE : ZERO;
             case "<": return cmpDec(l, r) < 0 ? ONE : ZERO;
@@ -1087,7 +1062,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
             } else {
               const v = await evalExpr(item);
               last = v;
-              appendOutput(formatDecimalInBase(v, obase));
+              appendNumber(v);
             }
           }
           return;
@@ -1107,7 +1082,8 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           const val = await evalExpr(stmt.expr);
           if (stmt.expr.kind !== "assign" || stmt.expr.parenthesized) {
             last = val;
-            appendOutput(formatDecimalInBase(val, obase) + "\n");
+            appendNumber(val);
+            appendOutput("\n");
           }
           return;
         }

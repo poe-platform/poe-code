@@ -23,9 +23,7 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {
-    "decimal.js": "^10.6.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@poe-code/safe-fs": "*",
     "safe-bash-contracts": "*"

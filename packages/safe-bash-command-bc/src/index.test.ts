@@ -29,7 +29,7 @@ test("bc evaluates exponents above the former implicit ceiling", async () => {
   await stdin.writable.write(new TextEncoder().encode("2^20000\nscale=5; 2^-10001\n"));
   await stdin.close();
   const result = await createBcCommand().execute({
-    command: "bc", args: createCommandArguments([]).args, cwd: "/", env: {},
+    command: "bc", args: createCommandArguments([]).args, cwd: "/", env: { BC_LINE_LENGTH: "0" },
     fs: createMemoryFileSystem(), stdin: stdin.readable,
     stdout: stdout.writable, stderr: stderr.writable, signal: new AbortController().signal,
   });
@@ -381,4 +381,74 @@ for (const [program, expected] of [
   ['x=0; for(i=0;i<5000;i++) y=(++x)+sqrt(4); x; y', '5000\n5002\n'],
 ]) test(`bc evaluates mutations once across complex expressions: ${program}`, async () => {
   assert.deepEqual(await evaluate(program + '\n'), { exitCode: 0, stdout: expected, stderr: '' });
+});
+
+test("bc wraps numeric output at the default width and honors BC_LINE_LENGTH", async () => {
+  const digits = (2n ** 300n).toString();
+  for (const [env, expected] of [
+    [{}, digits.slice(0, 69) + "\\\n" + digits.slice(69)],
+    [{ BC_LINE_LENGTH: "0" }, digits],
+    [{ BC_LINE_LENGTH: "10" }, Array.from({ length: Math.ceil(digits.length / 9) }, (_, i) => digits.slice(i * 9, i * 9 + 9)).join("\\\n")],
+  ] as const) {
+    assert.deepEqual(await evaluate("2^300", {}, [], { env }), { exitCode: 0, stdout: expected + "\n", stderr: "" });
+  }
+});
+
+for (const expression of ["s(1)", "c(1)", "a(1)", "l(2)", "e(1)", "2^10001"]) {
+  test(`bc charges iterative arithmetic to maxSteps: ${expression}`, async () => {
+    const result = await evaluate(expression, { maxSteps: 10 }, ["-l"]);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /maximum step limit/);
+  });
+}
+
+test("bc supports precision beyond a precomputed pi table", async () => {
+  const result = await evaluate("scale=1100; s(1)", {}, ["-l"], { env: { BC_LINE_LENGTH: "0" } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout.length, 1102);
+  assert.ok(result.stdout.startsWith(".8414709848078965066525023216302989996225"));
+});
+
+test("bc exponentials exceed floating point range and preserve nested truncation", async () => {
+  const result = await evaluate("length(e(1000)); l(e(1))", {}, ["-l"]);
+  assert.deepEqual(result, { exitCode: 0, stdout: "455\n.99999999999999999999\n", stderr: "" });
+});
+
+test("bc wraps print numbers across output columns and counts continuation bytes", async () => {
+  const program = 'print "abc",123456789; print "\\n"; 1234567890';
+  const stdout = 'abc123456\\\n789\n123456789\\\n0\n';
+  assert.deepEqual(await evaluate(program, { maxOutputBytes: stdout.length }, [], { env: { BC_LINE_LENGTH: "10" } }), { exitCode: 0, stdout, stderr: "" });
+  assert.equal((await evaluate(program, { maxOutputBytes: stdout.length - 1 }, [], { env: { BC_LINE_LENGTH: "10" } })).exitCode, 1);
+  for (const value of ["1", "-1", "invalid", "1.5"]) {
+    assert.equal((await evaluate("2^300", {}, [], { env: { BC_LINE_LENGTH: value } })).stdout, (await evaluate("2^300")).stdout);
+  }
+});
+
+test("bc retains single digits in binary and resets ibase with A", async () => {
+  assert.deepEqual(await evaluate("ibase=2; A; F; 9; 11; ibase=A; 19"), { exitCode: 0, stdout: "10\n15\n9\n3\n19\n", stderr: "" });
+});
+
+test("bc handles exponentially small results without allocating argument-sized precision", async () => {
+  assert.deepEqual(await evaluate("e(-(10^310))", {}, ["-l"]), { exitCode: 0, stdout: "0\n", stderr: "" });
+});
+
+for (const expression of ["e(1000000000)", "j(0,1000000000)"]) {
+  test(`bc checks the work budget before large precision allocation: ${expression}`, async () => {
+    const result = await evaluate(expression, { maxSteps: 10 }, ["-l"]);
+    assert.equal(result.exitCode, 1);
+    assert.match(result.stderr, /maximum step limit/);
+  });
+}
+
+for (const scale of [0, 20]) {
+  test(`bc truncates tiny negative exponential arguments below one at scale ${scale}`, async () => {
+    const program = `scale=${scale}; e(-.${"0".repeat(99)}1)`;
+    assert.deepEqual(await evaluate(program, {}, ["-l"]), { exitCode: 0, stdout: scale === 0 ? "0\n" : "." + "9".repeat(scale) + "\n", stderr: "" });
+  });
+}
+
+test("bc keeps small series corrections that affect final truncation", async () => {
+  assert.deepEqual(await evaluate('scale=20; s(.00000000000000000001); a(.00000000000000000001); c(.00000000000000000001); j(0,.00000000000000000001)', {}, ['-l']), {
+    exitCode: 0, stdout: '0\n0\n.99999999999999999999\n.99999999999999999999\n', stderr: '',
+  });
 });

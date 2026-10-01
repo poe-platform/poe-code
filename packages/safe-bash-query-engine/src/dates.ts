@@ -66,9 +66,23 @@ export function mktime(input: Json): number {
   return seconds;
 }
 
-export function strftime(input: Json, format: Json, budget: Budget): string {
-  if (typeof format !== "string") throw new JqError("strftime/1 requires a string format");
-  const fields = isNumber(input) ? gmtime(input) : datetime(input, "strftime/1");
+export function strftime(input: Json, format: Json, budget: Budget, local = false): string {
+  const name = local ? "strflocaltime/1" : "strftime/1";
+  if (typeof format !== "string") throw new JqError(`${name} requires a string format`);
+  let fields = isNumber(input) ? gmtime(input) : datetime(input, name);
+  let localDate: Date | undefined;
+  if (local) {
+    if (isNumber(input)) {
+      localDate = new Date(Math.trunc(numberValue(input)) * 1000);
+      const calendar = utcDate([localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), localDate.getHours(), localDate.getMinutes(), localDate.getSeconds()]);
+      fields = gmtime(calendar.getTime() / 1000);
+    } else {
+      localDate = new Date(0);
+      localDate.setFullYear(fields[0]!, fields[1]!, fields[2]!);
+      localDate.setHours(fields[3]!, fields[4]!, fields[5]!, 0);
+    }
+    if (!Number.isFinite(localDate.getTime())) throw new JqError("error converting datetime to local time");
+  }
   const [year, month, day, hour, minute, second, weekday, yearday] = fields as [number, number, number, number, number, number, number, number];
   const pad = (value: number, width = 2, fill = "0") => String(Math.trunc(value)).padStart(width, fill);
   const date = utcDate(fields);
@@ -76,13 +90,15 @@ export function strftime(input: Json, format: Json, budget: Budget): string {
   thursday.setUTCDate(date.getUTCDate() + 3 - ((date.getUTCDay() + 6) % 7));
   const isoYear = thursday.getUTCFullYear();
   const isoWeek = 1 + Math.floor((thursday.getTime() - utcDate([isoYear, 0, 1, 0, 0, 0]).getTime()) / 604800000);
+  const offset = localDate ? -localDate.getTimezoneOffset() : 0;
+  const zone = localDate ? new Intl.DateTimeFormat("en-US", { timeZoneName: "short" }).formatToParts(localDate).find(part => part.type === "timeZoneName")!.value : "UTC";
   const directives: Readonly<Record<string, string>> = {
     Y: pad(year, 4), y: pad(year % 100), C: pad(Math.floor(year / 100)), m: pad(month + 1), d: pad(day), e: pad(day, 2, " "),
     H: pad(hour), k: pad(hour, 2, " "), I: pad(hour % 12 || 12), l: pad(hour % 12 || 12, 2, " "), M: pad(minute), S: pad(second),
     p: hour < 12 ? "AM" : "PM", P: hour < 12 ? "am" : "pm", a: weekdays[weekday]?.slice(0, 3) ?? "?", A: weekdays[weekday] ?? "?",
     b: months[month]?.slice(0, 3) ?? "?", h: months[month]?.slice(0, 3) ?? "?", B: months[month] ?? "?", j: pad(yearday + 1, 3),
     w: String(weekday), u: String(weekday || 7), U: pad(Math.floor((yearday + 7 - weekday) / 7)), W: pad(Math.floor((yearday + 7 - ((weekday + 6) % 7)) / 7)),
-    G: pad(isoYear, 4), g: pad(isoYear % 100), V: pad(isoWeek), s: String(date.getTime() / 1000), z: "+0000", Z: "UTC", "%": "%", n: "\n", t: "\t",
+    G: pad(isoYear, 4), g: pad(isoYear % 100), V: pad(isoWeek), s: String((localDate ?? date).getTime() / 1000), z: `${offset < 0 ? "-" : "+"}${pad(Math.floor(Math.abs(offset) / 60))}${pad(Math.abs(offset) % 60)}`, Z: zone, "%": "%", n: "\n", t: "\t",
   };
   const fragments: string[] = [];
   let bytes = 2;

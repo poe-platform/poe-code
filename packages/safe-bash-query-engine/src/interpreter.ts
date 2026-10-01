@@ -1029,8 +1029,8 @@ export class Interpreter {
     }
     if (name === "gmtime") { yield gmtime(input); return; }
     if (name === "mktime") { yield mktime(input); return; }
-    if (name === "strftime" || name === "strptime") {
-      for await (const format of this.run(args[0]!, input)) yield name === "strftime" ? strftime(input, format, budget) : strptime(input, format, budget);
+    if (name === "strftime" || name === "strflocaltime" || name === "strptime") {
+      for await (const format of this.run(args[0]!, input)) yield name === "strptime" ? strptime(input, format, budget) : strftime(input, format, budget, name === "strflocaltime");
       return;
     }
     if (name === "fromdateiso8601" || name === "fromdate") { yield fromDateIso8601(input); return; }

@@ -10,7 +10,9 @@ lookups, lazy `isempty`/`nth` selection, `pick` projections, repeated
 `combinations`, Unicode `explode`/`implode`, basic math including `sqrt`, and UTC
 `gmtime`, `mktime`, `strftime`, and `strptime` date conversions. Date formats use
 English names and POSIX format directives; `strftime` takes one format argument,
-as in jq. `todate` and `fromdate` alias the ISO-8601 conversions.
+as in jq. `strflocaltime` formats timestamps or broken-down local dates in the
+host timezone, including daylight-saving offsets. Zone names use the runtime’s
+English timezone data. `todate` and `fromdate` alias the ISO-8601 conversions.
 
 Use `structuredCommands` from `@poe-platform/safe-bash` and `yqCommands` from
 `@poe-platform/safe-bash/commands/yq` to register commands. This private

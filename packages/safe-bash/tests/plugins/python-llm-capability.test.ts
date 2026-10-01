@@ -566,3 +566,20 @@ test('Python attachment type lookup reuses bounded shared MIME inference', async
   await assert.rejects(capability.call!({operation:'attachment_type',payload:{path:'x',prefix:[256]}},{signal}), /attachment prefix/);
   assert.deepEqual(requests, []);
 });
+
+
+test('inline Python attachments preserve bytes and share aggregate attachment admission', async () => {
+  const {fs,service,requests,capability} = await fixture();
+  await capability.call!({operation:'complete',payload:{attachments:[{content:[0,255,128],mimeType:'text/plain'}]}},{signal});
+  assert.deepEqual(requests[0]!.attachments,[{mimeType:'text/plain',bytes:new Uint8Array([0,255,128])}]);
+  const bounded = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:10,check(bytes) {if (bytes > 10) throw new RangeError('input budget');}}},service);
+  await assert.rejects(bounded.call!({operation:'complete',payload:{attachments:[{content:[1,2],mimeType:'text/plain'},{path:'note.txt'}]}},{signal}),/input.*(budget|limit)/);
+  assert.equal(requests.length,1);
+  for (const content of [[256],[-1],[0.5],['x']]) {
+    await assert.rejects(capability.call!({operation:'complete',payload:{attachments:[{content,mimeType:'text/plain'}]}},{signal}),/Invalid inline attachment/);
+  }
+  const controller = new AbortController();
+  controller.abort();
+  await assert.rejects(capability.call!({operation:'complete',payload:{attachments:[{content:[1],mimeType:'text/plain'}]}},{signal:controller.signal}),{name:'AbortError'});
+  assert.equal(requests.length,1);
+});

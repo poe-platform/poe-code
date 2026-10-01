@@ -87,6 +87,7 @@ assert attachment.resolve_type() == "text/plain"
 assert model.prompt("attached", attachments=[attachment]).text() == "hello"
 content = llm.Attachment(type="text/plain", content=b"abc")
 assert content.content_bytes() == b"abc"
+assert model.prompt("inline", attachments=[content]).text() == "hello"
 assert content.base64_content() == "YWJj"
 assert content.id() == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
 fragmented = model.prompt("  tail ", fragments=["first", "", " second "],

@@ -48,8 +48,12 @@ class Attachment:
     _id: object = None
 
     def payload(self):
-        if self.url is not None or self.content is not None:
-            raise NotImplementedError("Prompt attachments currently require a canonical filesystem path")
+        if self.content is not None:
+            if not isinstance(self.content, bytes):
+                raise TypeError("Attachment content must be bytes")
+            return {"content": list(self.content), "mimeType": self.resolve_type()}
+        if self.url is not None:
+            raise NotImplementedError("URL attachment acquisition requires shared service support")
         return _core.Attachment(os.fspath(self.path), self.type).payload()
 
     def id(self):

@@ -51,7 +51,10 @@ an optional `type="text/plain"`, passed to `model.prompt(..., attachments=[...])
 Prompt attachment bytes retain the shared bounded streaming path. Explicit
 `content_bytes()` and `base64_content()` calls materialize file contents;
 `id()` hashes path contents incrementally. `resolve_type()` sends at most
-4 KiB to the shared JavaScript MIME classifier. Inline content and URL prompt
+4 KiB to the shared JavaScript MIME classifier. Inline attachments use
+llm.Attachment(content=b"data", type="text/plain"). Their bytes cross the bounded
+host message channel and share attachment input accounting with canonical files;
+large inputs should use canonical paths to avoid buffered copies. URL prompt
 attachments are not yet supported by this adapter.
 
 Model discovery preserves declared schema and attachment support, including aliases
@@ -59,7 +62,7 @@ and asynchronous models. Unsupported schemas and attachment MIME types fail befo
 a provider request, using the reference errors.
 
 This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
-inline/URL prompt attachments, persisted conversations, embedding collections,
+URL prompt attachments, persisted conversations, embedding collections,
 tools, persistence and the complete response interface still require
 qualification. The existing `poe_llm` workflow API below remains available during
 that implementation.

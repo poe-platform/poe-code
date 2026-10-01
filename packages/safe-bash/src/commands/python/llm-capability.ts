@@ -194,6 +194,31 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       }
       for (const value of inputs) {
         const attachment = record(value);
+        if (attachment.content !== undefined) {
+          const content = attachment.content;
+          if (!Array.isArray(content) || !content.every(byte => typeof byte === 'number' && Number.isInteger(byte) && byte >= 0 && byte <= 255)) throw new TypeError('Invalid inline attachment bytes');
+          if (attachment.path !== undefined || attachment.url !== undefined) throw new TypeError('Invalid inline attachment location');
+          if (attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
+          if (content.length > inputLimit - admitted) throw new RangeError('LLM input byte limit exceeded');
+          admitted += content.length;
+          context.inputBudget?.check(admitted);
+          const bytes = Uint8Array.from(content as number[]);
+          const controller = new AbortController();
+          const source: LlmInputSource = {bytes:(async function* () {
+            for (let offset = 0; offset < bytes.length; offset += 16384) {
+              signal.throwIfAborted();
+              controller.signal.throwIfAborted();
+              const chunk = bytes.subarray(offset, offset + 16384);
+              if (chunk.byteLength > inputLimit - consumed) throw new RangeError('LLM input byte limit exceeded');
+              consumed += chunk.byteLength;
+              context.inputBudget?.check(consumed);
+              yield chunk;
+            }
+          })(), async dispose() { controller.abort(); }};
+          sources.push(source);
+          attachments.push({mimeType:attachment.mimeType as string | undefined ?? sniffMimeType('', bytes.subarray(0,4096)),source});
+          continue;
+        }
         if (typeof attachment.path !== 'string' || !attachment.path || attachment.path.includes('\0') || attachment.path.includes('://')) throw new TypeError('Attachment requires a canonical filesystem path');
         if (attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
         const path = pathOf(requestContext, attachment.path);

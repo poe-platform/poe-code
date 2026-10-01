@@ -68,9 +68,10 @@ test("decoder byte-budget failure cancels the encoded producer", async () => {
       assert.fail("Over-budget data must not be emitted");
     }
   }, (error: unknown) => error instanceof Error && "exitCode" in error && error.exitCode === 63);
-  await new Promise<void>(resolve => setImmediate(resolve));
   assert.equal(cancelled, true);
-  assert.ok(reads <= 4, `Read ${reads} chunks after budget failure`);
+  const readsAtCancellation = reads;
+  await new Promise<void>(resolve => setImmediate(resolve));
+  assert.equal(reads, readsAtCancellation, "Encoded reads must stop before cancellation settles");
 });
 
 test("decoder budget failure awaits encoded producer cancellation", async () => {

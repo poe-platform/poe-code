@@ -14,6 +14,7 @@ export interface PublicationFileSystem {
   writeFile(path: string, bytes: Uint8Array, options?: Options & { readonly flag?: "w" | "wx"; readonly mode?: number }): Promise<void>;
   rename(source: string, destination: string, options?: Options): Promise<void>;
   unlink?(path: string, options?: Options): Promise<void>;
+  rm?(path: string, options?: Options): Promise<void>;
   chmod?(path: string, mode: number, options?: Options): Promise<void>;
 }
 
@@ -23,6 +24,7 @@ export function createVfsOutput(fs: PublicationFileSystem,
   writeBytes: (path: string, bytes: Uint8Array, signal: AbortSignal) => Promise<void>,
   retainCleanup?: (cleanup: (remove: (path: string) => Promise<void>) => Promise<void>) => () => Promise<void>) {
   let serial = 0;
+  const removeFile = fs.unlink?.bind(fs) ?? fs.rm?.bind(fs);
   return async (filename: string, context: CapabilityContext): Promise<FileOutput> => {
     const signal = context.signal;
     const options = { signal };
@@ -38,7 +40,7 @@ export function createVfsOutput(fs: PublicationFileSystem,
       signal.throwIfAborted();
       if (closed) throw new SsconvertError("invalid-request", "ssconvert file output is closed");
     };
-    const abort = (remove = (path: string) => fs.unlink!(path)): Promise<void> => {
+    const abort = (remove = removeFile): Promise<void> => {
       closed = true;
       return (aborting ??= (async () => {
         // Ownership cleanup drains admitted acquisition before deciding which
@@ -47,7 +49,7 @@ export function createVfsOutput(fs: PublicationFileSystem,
         if (finalized || temporary === undefined) return;
         const path = temporary;
         temporary = undefined;
-        await remove(path);
+        await remove!(path);
       })());
     };
     try {
@@ -89,7 +91,7 @@ export function createVfsOutput(fs: PublicationFileSystem,
       check();
       const capabilities = await fs.capabilitiesFor?.(path, options) ?? fs.capabilities;
       check();
-      if (!capabilities.exclusiveCreate || !capabilities.atomicRename || !capabilities.permissions || !fs.unlink || !fs.chmod)
+      if (!capabilities.exclusiveCreate || !capabilities.atomicRename || !capabilities.permissions || !removeFile || !fs.chmod)
         throw new SsconvertError("capability-denied", "Filesystem exclusive creation, atomic rename, unlink and permissions capabilities are required for ssconvert file publication");
       const dirname = path.slice(0, path.lastIndexOf("/") + 1);
       const random = context.random?.next() ?? 0;

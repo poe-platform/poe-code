@@ -101,17 +101,6 @@ function getFastSelectProjectPlan(ast: Ast): FastSelectProjectPlan | null {
     const arg0 = left.args[0]!;
     if (arg0.kind === "index" && arg0.base.kind === "identity" && arg0.index.kind === "literal" && typeof arg0.index.value === "string") {
       condKey = arg0.index.value;
-    } else if (
-      arg0.kind === "binary" &&
-      arg0.operator === "==" &&
-      arg0.left.kind === "index" &&
-      arg0.left.base.kind === "identity" &&
-      arg0.left.index.kind === "literal" &&
-      typeof arg0.left.index.value === "string" &&
-      arg0.right.kind === "literal" &&
-      arg0.right.value === true
-    ) {
-      condKey = arg0.left.index.value;
     } else {
       (ast as { _fastSelectProjectPlan?: FastSelectProjectPlan | null })._fastSelectProjectPlan = null;
       return null;

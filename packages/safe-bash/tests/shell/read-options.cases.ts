@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { ShellLimitError } from "../../src/shell/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
@@ -102,3 +103,61 @@ for (const [options, suffix] of [["-rn4097", ""], ["-rN4097", ""], ["-rd :", ":"
     } finally { await shell.dispose(); }
   });
 }
+
+for (const [options, stdin] of [
+  ["-n 50", "a".repeat(100) + "\n"],
+  ["-N 50", "a".repeat(100) + "\n"],
+  ["-r", "a".repeat(100)],
+  ["", "\\a".repeat(50) + "\n"],
+] as const) {
+  for (const streamed of [false, true]) {
+    test(`read enforces maxInputBytes on fallback: ${options}, streamed=${streamed}`, async context => {
+      const { shell } = setup({ limits: { maxInputBytes: 10 } });
+      context.after(() => shell.dispose());
+      const input = streamed ? { async *[Symbol.asyncIterator]() { yield new TextEncoder().encode(stdin); } } : stdin;
+      await assert.rejects(shell.exec(`read ${options} x; args "$x"`, { stdin: input }),
+        error => error instanceof ShellLimitError && error.limit === "maxInputBytes");
+    });
+  }
+}
+
+test("read admits exact input boundaries and unlimited fallback reads", async context => {
+  for (const options of ["-n 50", "-N 50", "-r", ""]) {
+    for (const maxInputBytes of [10, Infinity]) {
+      const { shell } = setup({ limits: { maxInputBytes } });
+      context.after(() => shell.dispose());
+      const value = "a".repeat(maxInputBytes === 10 ? 10 : 100);
+      const stdin = { async *[Symbol.asyncIterator]() {
+        yield new TextEncoder().encode(value.slice(0, 5));
+        yield new TextEncoder().encode(value.slice(5));
+      } };
+      const result = await shell.exec(`read ${options} x; args "$x"`, { stdin });
+      assert.equal(result.stdout, JSON.stringify([options.includes("50") ? value.slice(0, 50) : value]));
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
+    }
+  }
+});
+
+test("read enforces cumulative input admission across streamed fragments", async context => {
+  const { shell } = setup({ limits: { maxInputBytes: 10 } });
+  context.after(() => shell.dispose());
+  const stdin = { async *[Symbol.asyncIterator]() {
+    yield new TextEncoder().encode("abcdef");
+    yield new TextEncoder().encode("ghijk");
+  } };
+  await assert.rejects(shell.exec("read -r x", { stdin }),
+    error => error instanceof ShellLimitError && error.limit === "maxInputBytes");
+});
+
+test("read delimiter expansion splits fields before selecting target names", async context => {
+  const { shell } = setup();
+  context.after(() => shell.dispose());
+  for (const prefix of ["", "for i in 1 2; do "]) {
+    const source = `${prefix}{ delim="; y"; read -r -d $delim x; } <<< "hello:world;"; args "$x" "$y"${prefix ? "; done" : ""}`;
+    const result = await shell.exec(source);
+    assert.equal(result.stdout, '["","hello:world"]'.repeat(prefix ? 2 : 1));
+    assert.equal(result.stderr, "");
+    assert.equal(result.exitCode, 0);
+  }
+});

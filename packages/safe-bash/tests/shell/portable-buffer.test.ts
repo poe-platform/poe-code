@@ -28,6 +28,22 @@ test("standalone shell installs Buffer before evaluating runtime modules", async
       assert.equal(arrays.stderr, "");
       assert.equal(arrays.exitCode, 0);
     }
+    for (const [source, stdin, stdout] of [
+      ['read -r x; echo "$x"', "hi\n", "hi\n"],
+      ['read -n 2 x; echo "$x"', "hi!", "hi\n"],
+      ['read -r x <<< "hi"; echo "$x"', "", "hi\n"],
+      ['mapfile -t arr <<< "hi"; echo "${arr[0]}"', "", "hi\n"],
+      ['eval "x=1"; echo "$x"', "", "1\n"],
+      ['v=abc; echo "${v/a/b}"', "", "bbc\n"],
+      ['trap "echo hi" EXIT; trap -p', "", "trap -- 'echo hi' EXIT\nhi\n"],
+      ['declare -A m; m[é]=1; echo "${m[é]}"', "", "1\n"],
+      ['v="a]b"; echo "${v//[]a]/X}" "${v//[!]]/X}" "${v//[!]a]/X}"', "", "XXb X]X a]X\n"],
+    ] as const) {
+      const result = await shell.exec(source, { stdin });
+      assert.equal(result.stdout, stdout, source);
+      assert.equal(result.stderr, "", source);
+      assert.equal(result.exitCode, 0, source);
+    }
   } finally { await shell.dispose(); }
 
   assert.ok(portable.from("abc") instanceof Uint8Array);

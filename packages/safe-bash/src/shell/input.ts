@@ -1520,6 +1520,7 @@ export class ShellInput implements ByteSource, CommandInput {
   tryReadSimpleRawAsciiLineSync(delimiter = 10, raw = true): string | undefined {
     if (this._viewClosed || (this._reads && this._reads.size > 0)) return undefined;
     const cursor = this._cursor;
+    cursor.admitBoundedRead();
     if (!cursor.remainder && cursor.canTakeRemainderSync()) {
       const ready = cursor.tryTakeReadySync();
       if (ready && !ready.done && ready.value.length > 0) {
@@ -1535,7 +1536,6 @@ export class ShellInput implements ByteSource, CommandInput {
       if (b === 0 || b >= 128 || (!raw && b === 92)) return undefined;
     }
     this.signal.throwIfAborted();
-    cursor.admitBoundedRead();
     cursor.position += delimIdx + 1;
     cursor.remainder = delimIdx + 1 < rem.length ? rem.subarray(delimIdx + 1) : undefined;
     return latin1Text(rem.subarray(0, delimIdx));
@@ -1546,6 +1546,7 @@ export class ShellInput implements ByteSource, CommandInput {
     this.signal.throwIfAborted();
     if (count !== undefined && (!Number.isSafeInteger(count) || count < 0)) throw new RangeError("Invalid read count");
     if (!Number.isInteger(delimiter) || delimiter < 0 || delimiter > 255) throw new RangeError("Invalid read delimiter");
+    this._cursor.admitBoundedRead();
       const scope = this.budget.values.scope();
       let active = 1;
       let closed = false;
@@ -1599,7 +1600,6 @@ export class ShellInput implements ByteSource, CommandInput {
               if (rem[i] === 0) { hasNul = true; break; }
             }
             if (!hasNul) {
-              this._cursor.admitBoundedRead();
               this._cursor.position += delimIdx + 1;
               this._cursor.remainder = delimIdx + 1 < rem.length ? rem.subarray(delimIdx + 1) : undefined;
               scope.reserve(delimIdx + 64, 1);

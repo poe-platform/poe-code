@@ -199,3 +199,42 @@ for (const separateFileSystem of [false, true]) test(`jq select/project reads re
  ]);
  assert.equal(decoder.decode(await firstFs.readFile("/first.jsonl")), original);
 });
+
+test("jq declines a spent select/project budget before trying another synchronous parser", async t => {
+ const fs = createMemoryFileSystem();
+ await fs.writeFile("/fallback.jsonl", new TextEncoder().encode('{"fallback":true,"id":7}\n'));
+ const step = Budget.prototype.step;
+ const candidates = new WeakSet<Budget>();
+ const declined = new WeakSet<Budget>();
+ let didDecline = false;
+ let chargedAfterDecline = false;
+ t.mock.method(Budget.prototype, "step", function (this: Budget, count = 1) {
+  if (count === 16 && this.inputBytes === 0) candidates.add(this);
+  if (declined.has(this)) chargedAfterDecline = true;
+  return step.call(this, count);
+ });
+ const tick = Budget.prototype.tickSync;
+ t.mock.method(Budget.prototype, "tickSync", function (this: Budget, count = 1) {
+  // Select/project charges the complete row before its final checkpoint.
+  if (!didDecline && candidates.has(this)) {
+   declined.add(this);
+   didDecline = true;
+   return Promise.resolve();
+  }
+  return tick.call(this, count);
+ });
+ const values = createCommandArguments(["-c", "select(.fallback) | {id}", "/fallback.jsonl"]);
+ let output = "";
+ const context = {
+  command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+  _fastMemoryBackingFs: fs, stdin: toByteSource(""), signal: new AbortController().signal,
+  stdout: { writeSync(bytes: Uint8Array) { output += new TextDecoder().decode(bytes); return true; },
+   async write(bytes: Uint8Array) { output += new TextDecoder().decode(bytes); } },
+  stderr: { async write(bytes: Uint8Array) { assert.fail(new TextDecoder().decode(bytes)); } },
+ };
+ const result = await createJqCommand().execute(context);
+ assert.equal(result.exitCode, 0);
+ assert.equal(output, '{"id":7}\n');
+ assert.ok(didDecline, "must exercise a charged speculative attempt");
+ assert.equal(chargedAfterDecline, false, "a declined attempt must not charge another parser to its budget");
+});

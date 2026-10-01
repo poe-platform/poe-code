@@ -238,6 +238,9 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     if (fastPos >= 0) {
       sharedFastJqOutPos = fastPos;
     } else {
+      // Select/project may already have charged work or requested a yield. Let
+      // the normal route restart with its own budget instead of charging twice.
+      if (spPlan) return undefined;
       interpreter = sharedFastInterpreter;
       if (!interpreter) {
         interpreter = sharedFastInterpreter = new Interpreter(budget, EMPTY_VARS_MAP);

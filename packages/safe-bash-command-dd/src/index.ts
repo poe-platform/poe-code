@@ -457,6 +457,7 @@ export function createDdCommands(options: DdCommandsOptions = {}): readonly Comm
 export function ddCommands(options: DdCommandsOptions = {}): VirtualShellPlugin {
   const command = createDdCommand(options);
   return { name: "dd-commands", setup(host) {
+    if (!options.replace && host.commands.has(command.name)) throw new Error(`Command already registered: ${command.name}`);
     host.commands.register(command, { replace: options.replace ?? false });
   } };
 }

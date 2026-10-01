@@ -64,3 +64,15 @@ for (const name of limitNames) {
     assert.throws(() => createDdCommand({ limits: { [name]: 1.5 } }), RangeError);
   });
 }
+
+test("dd refuses duplicate registration unless replacement is requested", () => {
+  let registrations = 0;
+  const host = { commands: {
+    has: () => true,
+    register: () => { registrations++; },
+  } } as unknown as Parameters<ReturnType<typeof ddCommands>["setup"]>[0];
+  assert.throws(() => ddCommands().setup(host), /already registered/);
+  assert.equal(registrations, 0);
+  ddCommands({ replace: true }).setup(host);
+  assert.equal(registrations, 1);
+});

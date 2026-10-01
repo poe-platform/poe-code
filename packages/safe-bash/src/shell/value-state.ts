@@ -383,7 +383,7 @@ export class ValueStore {
   get(name: string, text: string): ShellValue { return this._values?.get(name)?.value ?? this._strings?.get(name) ?? text; }
 
   publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {
-    if (this.arena.hasInfiniteBytes) {
+    if (this.arena.hasInfiniteBytes && this.arena.maximumSlots === Infinity) {
       this.arena.assertOpen();
       rawVariables[name] = value;
       this.invalidate(name);

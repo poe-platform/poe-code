@@ -186,9 +186,9 @@ test("failed optimized string admission preserves the prior raw binding", () => 
   arena.close();
 });
 
-for (const bytes of [4096, Infinity]) {
-  test(`optimized scalar replacement invalidates retained text without changing a snapshot (${bytes})`, () => {
-    const { arena, store } = fixture(bytes);
+for (const [bytes, fields] of [[4096, 64], [Infinity, 64], [Infinity, Infinity]]) {
+  test(`optimized scalar replacement invalidates retained text without changing a snapshot (${bytes}, ${fields})`, () => {
+    const { arena, store } = fixture(bytes, fields);
     const variables = { value: "before" };
     store.publish("value", variables.value, () => true);
     const snapshot = store.clone();
@@ -201,6 +201,21 @@ for (const bytes of [4096, Infinity]) {
     arena.close();
   });
 }
+
+test("optimized string publication retains accounting with finite field limits", () => {
+  const { arena, store } = fixture(Infinity, 1);
+  const variables = { value: "before" };
+  store.publish("value", variables.value, () => true);
+  const snapshot = store.clone();
+  store.publishString("value", "after", variables);
+  assert.equal(store.get("value", variables.value), "after");
+  assert.equal(snapshot.get("value", "before"), "before");
+  assert.deepEqual(arena.usage, { bytes: 22, slots: 0 });
+  snapshot.close();
+  store.close();
+  assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+  arena.close();
+});
 
 for (const kind of ["raw", "text"] as const) {
   for (const replacement of ["", "longer replacement"]) {

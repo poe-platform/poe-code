@@ -27,3 +27,31 @@ test("standalone diff works with only portable filesystem and command contracts"
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "");
 });
+
+for (const [name, args, left, right] of [
+  ["computation", ["-u"], Array.from({ length: 1200 }, (_, i) => `old${i}\n`).join(""), Array.from({ length: 1200 }, (_, i) => `new${i}\n`).join("")],
+  ["normal comparison", [], "old\n".repeat(800), "new\n".repeat(800)],
+  ["whitespace normalization", ["-wc"], "a b\n".repeat(10_000), "ab\n".repeat(10_000)],
+] as const) {
+  test(`queued cancellation interrupts ${name} without stdout or stderr`, async t => {
+    t.mock.method(performance, "now", () => 0);
+    const controller = new AbortController();
+    const reason = { cancellation: name };
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/left", new TextEncoder().encode(left));
+    await fs.writeFile("/right", new TextEncoder().encode(right));
+    const values = createCommandArguments([...args, "/left", "/right"]);
+    let stdoutWrites = 0, stderrWrites = 0;
+    const turn = setImmediate(() => controller.abort(reason));
+    try {
+      await assert.rejects(async () => createDiffCommand({ maxWork: 100_000_000 }).execute({
+        command: "diff", args: values.args, argumentValues: values, cwd: "/", env: {},
+        fs, stdin: toByteSource(""), signal: controller.signal,
+        stdout: { async write() { stdoutWrites++; } },
+        stderr: { async write() { stderrWrites++; } },
+      }), error => error === reason);
+      assert.equal(stdoutWrites, 0);
+      assert.equal(stderrWrites, 0);
+    } finally { clearImmediate(turn); }
+  });
+}

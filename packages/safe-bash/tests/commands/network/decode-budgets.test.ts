@@ -6,7 +6,7 @@ import { run } from "./helpers.js";
 async function compressed(encoding: string, body: Uint8Array, maxBytes = 1024) {
   let disposed = false;
   const result = await run(["--compressed", "http://127.0.0.1/"], { options: {
-    limits: { maxDownloadBytes: maxBytes },
+    limits: { maxDownloadBytes: maxBytes, maxEncodingLayers: 4 },
     transport: async () => ({ status: 200, statusText: "OK", headers: [["Content-Encoding", encoding]],
       body: (async function* () { yield body; })(), async dispose() { disposed = true; } }),
   } });
@@ -14,7 +14,7 @@ async function compressed(encoding: string, body: Uint8Array, maxBytes = 1024) {
   return result;
 }
 
-test("curl rejects header-sized encoding chains before allocating any decoder", async t => {
+test("curl enforces the explicit layer limit and encoding syntax before allocating any decoder", async t => {
   let allocations = 0;
   t.mock.method(globalThis, "DecompressionStream", function () {
     allocations++;

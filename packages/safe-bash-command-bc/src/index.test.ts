@@ -61,6 +61,38 @@ async function evaluate(program: string, options: Parameters<typeof createBcComm
   return { exitCode: result.exitCode, stdout: await read(stdout.readable), stderr: await read(stderr.readable) };
 }
 
+for (const [program, stdout] of [
+  ["123", "123\n"],
+  ["print 123", "123"],
+  ['"é🙂"', "é🙂"],
+  ['print "é", "🙂"', "é🙂"],
+  ['x="é"; x="🙂"', "é🙂"],
+  ['1; print "é"; "🙂"', "1\né🙂"],
+  ["obase=1001; 1002", " 0001 0001\n"],
+  ['define f() { print "é"; return (1); }\nf(); halt; "unused"', "é1\n"],
+] as const) {
+  test(`bc enforces cumulative UTF-8 output bytes: ${program}`, async () => {
+    const bytes = new TextEncoder().encode(stdout).byteLength;
+    for (const nested of [false, true]) {
+      const exact = nested ? { limits: { maxOutputBytes: bytes } } : { maxOutputBytes: bytes };
+      const short = nested ? { limits: { maxOutputBytes: bytes - 1 } } : { maxOutputBytes: bytes - 1 };
+      assert.deepEqual(await evaluate(program, exact), { exitCode: 0, stdout, stderr: "" });
+      assert.deepEqual(await evaluate(program, short), {
+        exitCode: 1, stdout: "", stderr: `bc: output exceeds maximum size (${bytes - 1} bytes)\n`,
+      });
+    }
+  });
+}
+
+test("bc checks output quota before executing subsequent statements", async () => {
+  assert.deepEqual(await evaluate('"ab"; 1/0', { maxOutputBytes: 100, limits: { maxOutputBytes: 1 } }), {
+    exitCode: 1, stdout: "", stderr: "bc: output exceeds maximum size (1 bytes)\n",
+  });
+  for (const options of [{}, { maxOutputBytes: Infinity }, { limits: { maxOutputBytes: Infinity } }]) {
+    assert.deepEqual(await evaluate('print "é🙂", 123', options), { exitCode: 0, stdout: "é🙂123", stderr: "" });
+  }
+});
+
 for (const [program, expected] of [
   ["x=0; x++ + sqrt(4); x", "2\n1\n"],
   ["x=0; ++x + a[0]; x", "1\n1\n"],

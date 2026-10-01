@@ -818,6 +818,17 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     const callStack: Map<string, DecimalValue>[] = [];
     let steps = 0;
     let outBuffer = "";
+    let outputBytes = 0;
+
+    const appendOutput = (text: string): void => {
+      if (limits.maxOutputBytes !== Infinity) {
+        outputBytes += encoder.encode(text).byteLength;
+        if (outputBytes > limits.maxOutputBytes) {
+          throw new Error(`output exceeds maximum size (${limits.maxOutputBytes} bytes)`);
+        }
+      }
+      outBuffer += text;
+    };
 
     const tick = (): Promise<void> | undefined => {
       if (++steps > maxSteps) throw new Error(`bc execution exceeded maximum step limit (${maxSteps})`);
@@ -897,7 +908,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         case "num":
           return parseLiteralInBase(expr.raw, ibase);
         case "str":
-          outBuffer += expr.value;
+          appendOutput(expr.value);
           return ZERO;
         case "var":
           return getVar(expr.name, expr.index);
@@ -1053,11 +1064,11 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         case "print":
           for (const item of stmt.items) {
             if (item.kind === "str") {
-              outBuffer += item.value;
+              appendOutput(item.value);
             } else {
               const v = await evalExpr(item);
               last = v;
-              outBuffer += formatDecimalInBase(v, obase);
+              appendOutput(formatDecimalInBase(v, obase));
             }
           }
           return;
@@ -1071,13 +1082,13 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           throw new FlowSignal("halt");
         case "expr": {
           if (stmt.expr.kind === "str") {
-            outBuffer += stmt.expr.value;
+            appendOutput(stmt.expr.value);
             return;
           }
           const val = await evalExpr(stmt.expr);
           if (stmt.expr.kind !== "assign") {
             last = val;
-            outBuffer += formatDecimalInBase(val, obase) + "\n";
+            appendOutput(formatDecimalInBase(val, obase) + "\n");
           }
           return;
         }

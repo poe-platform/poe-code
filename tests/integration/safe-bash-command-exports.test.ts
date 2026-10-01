@@ -37,10 +37,11 @@ describe.each(commands)("$name public command contract", ({ name, api }) => {
 
   const requiredOptions = documentEngines[name];
   if (requiredOptions) {
-    it("requires an explicit document engine for every factory", () => {
+    it("accepts the default document engine and validates explicit engines for every factory", () => {
       for (const factory of [`create${title}Command`, `create${title}Commands`, `${pluginName}Commands`]) {
-        expect(() => api[factory]()).toThrow("explicit");
-        expect(() => api[factory]({})).toThrow("explicit");
+        expect(() => api[factory]()).not.toThrow();
+        expect(() => api[factory]({})).not.toThrow();
+        expect(() => api[factory]({ engine: {} })).toThrow("explicit");
       }
     });
   }

@@ -1,32 +1,16 @@
+import { subscribeAbort } from "safe-bash-contracts";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { FsError, readBytes, type ByteSource, type CommandContext } from "safe-bash-contracts";
 import { pathOf } from "safe-bash-io-engine/internal";
 import type { SplitLimits } from "./options.js";
 
-const splitSignalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
-function getSplitSignalWaiters(signal: AbortSignal): Set<() => void> {
-  let waiters = splitSignalWaiters.get(signal);
-  if (!waiters) {
-    waiters = new Set();
-    splitSignalWaiters.set(signal, waiters);
-    signal.addEventListener("abort", () => {
-      const pending = [...waiters!];
-      waiters!.clear();
-      for (const fn of pending) fn();
-    }, { once: true });
-  }
-  return waiters;
-}
-
 export async function interruptible<Result>(operation: () => Promise<Result>, signal: AbortSignal): Promise<Result> {
   signal.throwIfAborted();
-  const waiters = getSplitSignalWaiters(signal);
   return new Promise<Result>((resolve, reject) => {
-    const abort = (): void => { waiters.delete(abort); reject(signal.reason); };
-    waiters.add(abort);
+    const unsubscribe = subscribeAbort(signal, () => reject(signal.reason));
     Promise.resolve().then(() => { signal.throwIfAborted(); return operation(); }).then(
-      value => { waiters.delete(abort); resolve(value); },
-      error => { waiters.delete(abort); reject(error); },
+      value => { unsubscribe(); resolve(value); },
+      error => { unsubscribe(); reject(error); },
     );
   });
 }

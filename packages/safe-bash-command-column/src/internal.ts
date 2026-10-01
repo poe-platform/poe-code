@@ -1,3 +1,4 @@
+import { subscribeAbort } from "safe-bash-contracts";
 import { bytesFrom, concatBytes, utf8ByteLength } from "safe-bash-byte-engine";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
@@ -102,33 +103,16 @@ export class ColumnBudget extends Budget {
   }
 }
 
-const columnSignalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
-function getColumnSignalWaiters(signal: AbortSignal): Set<() => void> {
-  let waiters = columnSignalWaiters.get(signal);
-  if (!waiters) {
-    waiters = new Set();
-    columnSignalWaiters.set(signal, waiters);
-    signal.addEventListener("abort", () => {
-      const pending = [...waiters!];
-      waiters!.clear();
-      for (const fn of pending) fn();
-    }, { once: true });
-  }
-  return waiters;
-}
-
 function cancellable<Result>(operation: () => Promise<Result>, signal: AbortSignal): Promise<Result> {
   signal.throwIfAborted();
-  const waiters = getColumnSignalWaiters(signal);
   return new Promise<Result>((resolve, reject) => {
-    const onAbort = (): void => { waiters.delete(onAbort); reject(signal.reason); };
-    waiters.add(onAbort);
+    const unsubscribe = subscribeAbort(signal, () => reject(signal.reason));
     try {
       Promise.resolve(operation()).then(value => {
-        waiters.delete(onAbort);
+        unsubscribe();
         if (signal.aborted) reject(signal.reason); else resolve(value);
-      }, error => { waiters.delete(onAbort); reject(error); });
-    } catch (error) { waiters.delete(onAbort); reject(error); }
+      }, error => { unsubscribe(); reject(error); });
+    } catch (error) { unsubscribe(); reject(error); }
   });
 }
 

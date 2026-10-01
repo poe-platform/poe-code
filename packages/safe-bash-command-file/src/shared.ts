@@ -1,3 +1,4 @@
+import { subscribeAbort } from "safe-bash-contracts";
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { writeBytes, type ByteSink, type CommandContext } from "safe-bash-contracts";
@@ -38,25 +39,6 @@ export class FileLimitError extends FileFailure {}
 
 const utf8Encoder = new TextEncoder();
 const printableAsciiNoBackslash = /^[\x20-\x5b\x5d-\x7e]*$/;
-const hostAbortWaiters = new WeakMap<AbortSignal, Set<() => void>>();
-
-function subscribeHostAbort(signal: AbortSignal, fn: () => void): () => void {
-  let waiters = hostAbortWaiters.get(signal);
-  if (!waiters) {
-    waiters = new Set();
-    hostAbortWaiters.set(signal, waiters);
-    signal.addEventListener("abort", () => {
-      const current = Array.from(waiters!);
-      waiters!.clear();
-      for (let i = 0; i < current.length; i++) current[i]!();
-    }, { once: true });
-  }
-  waiters.add(fn);
-  return () => {
-    waiters!.delete(fn);
-  };
-}
-
 export class SharedBudget {
   private inputBytes = 0;
   private outputBytes = 0;
@@ -191,7 +173,7 @@ export class SharedBudget {
   async host<Result>(operation: () => Promise<Result>): Promise<Result> {
     this.checkTime();
     return new Promise<Result>((resolve, reject) => {
-      const unsubscribe = subscribeHostAbort(this.signal, () => reject(this.signal.reason));
+      const unsubscribe = subscribeAbort(this.signal, () => reject(this.signal.reason));
       try {
         Promise.resolve(operation()).then(result => {
           unsubscribe();

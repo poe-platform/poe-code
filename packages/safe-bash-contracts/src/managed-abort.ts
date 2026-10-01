@@ -45,3 +45,36 @@ export function notifyManagedAbortWaiters(signal: AbortSignal): void {
     }
   }
 }
+
+interface AbortSubscription {
+  readonly waiters: Set<() => void>;
+  readonly listener: () => void;
+}
+const abortSubscriptions = new WeakMap<AbortSignal, AbortSubscription>();
+
+/** Share one listener while work is pending; release it when the last waiter leaves. */
+export function subscribeAbort(signal: AbortSignal, callback: () => void): () => void {
+  signal.throwIfAborted();
+  let entry = abortSubscriptions.get(signal);
+  if (!entry) {
+    const waiters = new Set<() => void>();
+    const listener = (): void => {
+      abortSubscriptions.delete(signal);
+      signal.removeEventListener("abort", listener);
+      const pending = [...waiters];
+      waiters.clear();
+      for (const waiter of pending) waiter();
+    };
+    entry = { waiters, listener };
+    abortSubscriptions.set(signal, entry);
+    signal.addEventListener("abort", listener, { once: true });
+  }
+  entry.waiters.add(callback);
+  return () => {
+    entry.waiters.delete(callback);
+    if (entry.waiters.size === 0 && abortSubscriptions.get(signal) === entry) {
+      abortSubscriptions.delete(signal);
+      signal.removeEventListener("abort", entry.listener);
+    }
+  };
+}

@@ -1,3 +1,4 @@
+import { subscribeAbort } from "safe-bash-contracts";
 import { bytesFrom, utf8ByteLength } from "safe-bash-byte-engine";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -89,34 +90,16 @@ export function vfsPath(cwd: string, path: string): string {
   return path.startsWith("/") ? path : `${cwd === "/" ? "" : cwd}/${path}`;
 }
 
-const signalWaiters = new WeakMap<AbortSignal, Set<() => void>>();
-
-function getSignalWaiters(signal: AbortSignal): Set<() => void> {
-  let waiters = signalWaiters.get(signal);
-  if (!waiters) {
-    waiters = new Set();
-    signalWaiters.set(signal, waiters);
-    signal.addEventListener("abort", () => {
-      const pending = [...waiters!];
-      waiters!.clear();
-      for (const fn of pending) fn();
-    }, { once: true });
-  }
-  return waiters;
-}
-
 export function wait<Value>(signal: AbortSignal, action: () => Value | PromiseLike<Value>): Promise<Value> {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const waiters = getSignalWaiters(signal);
-    const abort = () => { waiters.delete(abort); reject(signal.reason); };
-    waiters.add(abort);
+    const unsubscribe = subscribeAbort(signal, () => reject(signal.reason));
     try {
       Promise.resolve(action()).then(value => {
-        waiters.delete(abort);
+        unsubscribe();
         resolve(value);
-      }, error => { waiters.delete(abort); reject(error); });
-    } catch (error) { waiters.delete(abort); reject(error); }
+      }, error => { unsubscribe(); reject(error); });
+    } catch (error) { unsubscribe(); reject(error); }
   });
 }
 

@@ -1,7 +1,8 @@
+import { getEventListeners } from "node:events";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createBytePipe } from "./io.js";
-import { addManagedAbortWaiter, notifyManagedAbortWaiters, removeManagedAbortWaiter } from "./managed-abort.js";
+import { subscribeAbort, addManagedAbortWaiter, notifyManagedAbortWaiters, removeManagedAbortWaiter } from "./managed-abort.js";
 import { createOutputOperation } from "./output.js";
 
 const waitersSymbol = Symbol.for("safe-bash.managedWaiters");
@@ -263,4 +264,27 @@ test("output acquisition promotes an existing singleton and drains after cancell
     await closing;
     assert.deepEqual(released, [7]);
   } finally { pending.resolve(7); await closing; }
+});
+
+
+test("abort subscriptions multiplex, release, and resubscribe without retaining listeners", () => {
+  const controller = new AbortController();
+  const { signal } = controller;
+  let calls = 0;
+  const first = subscribeAbort(signal, () => calls++);
+  const second = subscribeAbort(signal, () => calls++);
+  assert.equal(getEventListeners(signal, "abort").length, 1);
+  first();
+  assert.equal(getEventListeners(signal, "abort").length, 1);
+  second();
+  assert.equal(getEventListeners(signal, "abort").length, 0);
+  const third = subscribeAbort(signal, () => calls++);
+  first(); // An old release cannot detach a later subscription.
+  assert.equal(getEventListeners(signal, "abort").length, 1);
+  const reason = new Error("cancelled");
+  controller.abort(reason);
+  assert.equal(calls, 1);
+  assert.equal(getEventListeners(signal, "abort").length, 0);
+  third();
+  assert.throws(() => subscribeAbort(signal, () => calls++), error => error === reason);
 });

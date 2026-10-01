@@ -14,8 +14,8 @@ export const verification = (async () => {
   check(FsError === contracts.FsError, 'canonical filesystem errors');
   check(getCommandArguments === contracts.getCommandArguments, 'canonical argument implementation');
   check(commandRuntimeIdentity === contracts.commandRuntimeIdentity, 'canonical command runtime');
-  equal(createXzCommands().map(command => command.name), ['xz', 'unxz', 'xzcat']);
-  equal(createByteCommands().filter(command => ['xz', 'unxz', 'xzcat'].includes(command.name)).map(command => command.name), ['xz', 'unxz', 'xzcat']);
+  equal(createXzCommands().map(command => command.name), ['xz', 'unxz', 'xzcat', 'lzma', 'unlzma', 'lzcat']);
+  equal(createByteCommands().filter(command => ['xz', 'unxz', 'xzcat', 'lzma', 'unlzma', 'lzcat'].includes(command.name)).map(command => command.name), ['xz', 'unxz', 'xzcat', 'lzma', 'unlzma', 'lzcat']);
   const commands = new CommandRegistry(createStandardCommands());
   let invocations = 0;
   for (const command of createXzCommands()) commands.register({

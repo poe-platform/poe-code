@@ -95,13 +95,13 @@ it("rejects unconfigured local files and malformed metadata/options before readi
     expect(next).not.toHaveBeenCalled(); expect(text(ctx.stdout)).toBe(""); expect(text(ctx.stderr)).toContain("E_OPTION:");
   }
 });
-it("shares Markdown wrap none validation with the SDK", async () => {
+it("accepts Markdown wrapping policies", async () => {
   const ctx = context(["-f", "commonmark", "-t", "commonmark", "--wrap=none"], "hi\nthere\n");
   expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
   expect(text(ctx.stdout)).toBe("hi\nthere\n");
   for(const wrap of ["auto", "preserve"]) {
-    const rejected = context(["-f", "commonmark", "-t", "gfm", `--wrap=${wrap}`], "hi");
-    expect(await createStandalonePandocCommand().execute(rejected)).toEqual({exitCode: 2}); expect(text(rejected.stdout)).toBe("");
+    const wrapped = context(["-f", "commonmark", "-t", "gfm", `--wrap=${wrap}`], "hi");
+    expect(await createStandalonePandocCommand().execute(wrapped)).toEqual({exitCode: 0}); expect(text(wrapped.stdout)).toBe("hi\n");
   }
 });
 it.each(["html", "html5", "json"])("accepts wrap none for %s file conversion with matching SDK bytes", async to => {
@@ -227,4 +227,24 @@ it("injects LaTeX include resources from memfs for file and stdin conversion", a
   expect(await createStandalonePandocCommand().execute(missing)).toEqual({exitCode: 9});
   expect(text(missing.stdout)).toBe("");
   expect(volume.existsSync("/book/result.txt")).toBe(false);
+});
+
+it.each(["markdown", "markdown_strict", "markdown_github", "md", "commonmark_x"])("converts the %s alias in both directions", async alias => {
+  for (const [from, to, input, expected] of [[alias, "html", "Hello\n", "<p>Hello</p>\n"], ["html", alias, "<p>Hello</p>", "Hello\n"]]) {
+    const ctx = context(["-f", from!, "-t", to!], input);
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+    expect(text(ctx.stdout)).toBe(expected);
+    expect(text(ctx.stderr)).toBe("");
+  }
+});
+it.each(["markdown", "mkd", "mdown", "mdwn"])("infers .%s input and output through memfs", async suffix => {
+  const volume = Volume.fromJSON({[`/doc.${suffix}`]: "Hello\n", "/source.html": "<p>Hello</p>"});
+  for (const [input, output, expected] of [[`/doc.${suffix}`, "/out.html", "<p>Hello</p>\n"], ["/source.html", `/out.${suffix}`, "Hello\n"]]) {
+    const ctx = {...context([input!, "-o", output!]),
+      readFile: async (path: string) => new Uint8Array(volume.readFileSync(path) as Buffer),
+      writeFile: async (path: string, bytes: Uint8Array) => {volume.writeFileSync(path, bytes);}};
+    expect(await createStandalonePandocCommand().execute(ctx)).toEqual({exitCode: 0});
+    expect(volume.readFileSync(output!, "utf8")).toBe(expected);
+    expect(text(ctx.stderr)).toBe("");
+  }
 });

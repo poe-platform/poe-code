@@ -82,7 +82,7 @@ class Session extends ExecutionContext {
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("wrap" in options && !["none", "auto", "preserve"].includes(options.wrap!)) this.fail("E_OPTION", "Invalid wrap policy");
-    if ("wrap" in options && options.wrap !== "none" && "to" in options && this.registry.resolve(options.to, "write").descriptor.name !== "plain") this.fail("E_OPTION", "This writer supports only wrap none");
+    if ("wrap" in options && options.wrap !== "none" && "to" in options && !["plain", "commonmark", "gfm"].includes(this.registry.resolve(options.to, "write").descriptor.name)) this.fail("E_OPTION", "This writer supports only wrap none");
     if ("lossy" in options && typeof options.lossy !== "boolean") this.fail("E_OPTION", "lossy must be boolean");
     this.lossy = "lossy" in options && options.lossy === true;
     if ("to" in options) {

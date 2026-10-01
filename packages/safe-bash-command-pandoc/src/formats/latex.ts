@@ -13,6 +13,6 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: ["wrap", "standalone", "metadata", "rawContent"]
+    write: ["wrap", "columns", "standalone", "metadata", "toc", "ascii", "eol", "rawContent"]
   }
 } satisfies FormatDescriptor;

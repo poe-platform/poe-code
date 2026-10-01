@@ -121,6 +121,29 @@ class Markdown {
     }
     return this.join(parts);
   }
+  paragraph(nodes: readonly Inline[], path: string, task: boolean): string {
+    if(this.context.wrap !== "auto" && !(this.context.wrap === undefined && this.context.columns !== undefined)) return this.inline(nodes, path, "", task);
+    const width = this.context.columns ?? 72;
+    this.context.charge("references", nodes.length * 3 + 1);
+    const parts: string[] = [];
+    let start = 0, lineWidth = 0;
+    let separator = "";
+    for(let i = 0; i <= nodes.length; i++) {
+      this.context.checkpoint();
+      if(i < nodes.length && nodes[i]!.t !== "Space" && nodes[i]!.t !== "SoftBreak") continue;
+      if(i > start) {
+        // Render each word as a potential line start, escaping block markers.
+        const word = this.inline(nodes.slice(start, i), path, "", task && start === 0);
+        const gap = separator && lineWidth > 0 && lineWidth + 1 + word.length > width ? "\n" : separator;
+        parts.push(gap, word);
+        const lastBreak = word.lastIndexOf("\n");
+        lineWidth = lastBreak >= 0 ? word.length - lastBreak - 1 : (gap === "\n" ? 0 : lineWidth + gap.length) + word.length;
+        separator = " ";
+      }
+      start = i + 1;
+    }
+    return this.join(parts);
+  }
   indent(text: string, first: string, rest: string): string {
     let lines = 1;
     for(const ch of text) if(ch === "\n") lines++;
@@ -135,7 +158,7 @@ class Markdown {
       const p = `${path}[${i}]`;
       if(i) parts.push(nodes[i - 1]?.t === "Plain" ? "\n" : "\n\n");
       switch(node.t) {
-        case "Plain": case "Para": parts.push(this.inline(node.c, `${p}.c`, "", task && i === 0)); break;
+        case "Plain": case "Para": parts.push(this.paragraph(node.c, `${p}.c`, task && i === 0)); break;
         case "Header": this.attrs(node.c[1], p); parts.push(this.join(["#".repeat(node.c[0]), " ", this.inline(node.c[2], `${p}.c[2]`)])); break;
         case "HorizontalRule": parts.push("---"); break;
         case "CodeBlock": {

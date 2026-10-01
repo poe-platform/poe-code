@@ -45,3 +45,23 @@ it("strips Markdown raw comments while preserving fenced code", async () => {
   expect(await run("<!--comment-->\n\nHello\n", "plain", ["--strip-comments"], {stripComments: true})).toBe("Hello\n");
   expect(await run("```\n<!--comment-->\n```\n", "plain", ["--strip-comments"], {stripComments: true})).toBe(await run("```\n<!--comment-->\n```\n", "plain", [], {}));
 });
+
+it.each(["commonmark", "gfm", "rst", "latex"])("accepts shared text writer options for %s with CLI/SDK parity", async to => {
+  const text = await run("<p>Text</p>", to,
+    ["--columns=60", "-s", "-M", "title=Doc", "--toc", "--ascii", "--eol=crlf", "--raw-content=reject"],
+    {columns: 60, standalone: true, metadata: {title: {t: "MetaString", c: "Doc"}}, toc: true, ascii: true, eol: "crlf", rawContent: "reject"});
+  expect(text).toContain("Text");
+  expect(text).toContain("\r\n");
+});
+it.each(["commonmark", "gfm"])("wraps %s prose without breaking inline code or fenced blocks", async to => {
+  expect(await run("one two three\n", to, ["--wrap=auto", "--columns=7"], {wrap: "auto", columns: 7})).toBe("one two\nthree\n");
+  expect(await run("one\ntwo three\n", to, ["--wrap=preserve"], {wrap: "preserve"})).toBe("one\ntwo three\n");
+  expect(await run("one `two three` four\n", to, ["--wrap=auto", "--columns=7"], {wrap: "auto", columns: 7})).toBe("one\n`two three`\nfour\n");
+  expect(await run("```\none two three\n```\n", to, ["--wrap=auto", "--columns=7"], {wrap: "auto", columns: 7})).toBe("```\none two three\n```\n");
+});
+
+it("keeps block-looking prose escaped after wrapping and preserves hard breaks", async () => {
+  expect(await run("one two - three\n", "commonmark", ["--wrap=auto", "--columns=7"], {wrap: "auto", columns: 7})).toBe("one two\n\\-\nthree\n");
+  expect(await run("one\\\ntwo three\n", "commonmark", ["--wrap=auto", "--columns=7"], {wrap: "auto", columns: 7})).toBe("one\\\ntwo\nthree\n");
+  expect(await run("one\ntwo three\n", "gfm", ["--wrap=auto", "--columns=20"], {wrap: "auto", columns: 20})).toBe("one two three\n");
+});

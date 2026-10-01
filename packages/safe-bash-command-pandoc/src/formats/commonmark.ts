@@ -11,10 +11,10 @@ export default {
   write: true,
   media: "text",
   inputEncoding: "utf8",
-  suffixes: ["md", "commonmark"],
+  suffixes: ["md", "commonmark", "mkd", "mdown", "mdwn"],
   extensions: {},
   options: {
     read: [],
-    write: ["wrap"]
+    write: ["wrap", "columns", "standalone", "metadata", "toc", "ascii", "eol", "rawContent"]
   }
 } satisfies FormatDescriptor;

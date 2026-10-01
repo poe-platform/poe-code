@@ -50,9 +50,9 @@ it("supports declared GFM strike/tasks and rejects or diagnoses CommonMark proje
   expect(await md(blocks, "gfm")).toBe("- [x] todo\n");
   expect(await md(blocks)).toBe("- ☒ todo\n");
 });
-it("supports only wrap none and bounds amplification", async () => {
+it("supports wrapping policies and bounds amplification", async () => {
   expect(await md([p(s("x"))], "commonmark", {wrap: "none"} as Partial<WriteOptions>)).toBe("x\n");
-  for(const wrap of ["auto", "preserve", "invalid"]) await expect(md([p(s("x"))], "commonmark", {wrap} as Partial<WriteOptions>)).rejects.toMatchObject({code: "E_OPTION"});
+  for(const wrap of ["invalid"]) await expect(md([p(s("x"))], "commonmark", {wrap} as Partial<WriteOptions>)).rejects.toMatchObject({code: "E_OPTION"});
   await expect(writeDocument({blocks: [p(s("[".repeat(100)))], metadata: {}, resources: []}, {to: "commonmark"}, {limits: {outputBytes: 100}})).rejects.toMatchObject({code: "E_LIMIT"});
 });
 it("uses collision-free numeric references for repeated targets, preserving distinct equal labels", async () => {

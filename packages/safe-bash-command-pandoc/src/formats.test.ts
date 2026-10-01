@@ -78,7 +78,7 @@ describe("declarative format registry", () => {
     expect(registry.list("read")).toEqual(["custom"]);
     expect(registry.infer("a.custom", "read")).toBe("custom");
     expect(registry.resolve("custom", "read").reader).toBeDefined();
-    expect(() => registry.validateOptions("custom", "write", ["standalone"])).toThrowError();
+    expect(() => registry.validateOptions("custom", "write", ["numberSections"])).toThrowError();
   });
   it("does not infer extensionless names or directory suffixes", () => {
     const registry = createFormatRegistry();
@@ -96,4 +96,14 @@ describe("declarative format registry", () => {
       ])
     ).toThrowError();
   });
+});
+
+it("supports Markdown aliases and inferred suffixes in both directions", () => {
+  const registry = createFormatRegistry(coreFormats);
+  for (const direction of ["read", "write"] as const) {
+    for (const alias of ["markdown", "markdown_strict", "markdown_github", "md", "commonmark_x"])
+      expect(["commonmark", "gfm"]).toContain(registry.resolve(alias, direction).descriptor.name);
+    for (const suffix of ["markdown", "mkd", "mdown", "mdwn"])
+      expect(["commonmark", "gfm"]).toContain(registry.infer(`doc.${suffix}`, direction));
+  }
 });

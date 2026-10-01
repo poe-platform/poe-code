@@ -21,6 +21,6 @@ export default {
   },
   options: {
     read: [],
-    write: ["wrap"]
+    write: ["wrap", "columns", "standalone", "metadata", "toc", "ascii", "eol", "rawContent"]
   }
 } satisfies FormatDescriptor;

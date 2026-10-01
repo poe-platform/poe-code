@@ -71,9 +71,15 @@ TypeScript converter's supported options and configured format registry.
 `ConversionOptions` requires `from` and `to`. Writer options are `yes` (explicit
 metadata defaults), `standalone`, `metadata`, `metadataJson` (ordered maps; null
 deletes keys), `metadataFiles` (explicit JSON inputs), `rawContent` (`reject`,
-`escape`, or `retain`), `lossy`, and `failIfWarnings`. Plain output accepts
+`escape`, or `retain`), `lossy`, and `failIfWarnings`. Plain, CommonMark, and GFM output accept
 `wrap` (`none`, `auto`, or `preserve`) and positive `columns` (default 72 when
-wrapping is requested); other wrapping writers, including HTML and JSON, accept `none`. HTML accepts
+wrapping is requested). Markdown wrapping preserves inline code, links, and fenced
+blocks. Markdown aliases include `markdown`, `md`, `markdown_strict`,
+`commonmark_x`, and `markdown_github`; file inference also accepts `.markdown`,
+`.mkd`, `.mdown`, and `.mdwn`. CommonMark, GFM, RST, and LaTeX accept
+`columns`, `standalone`, `metadata`, `toc`, `ascii`, `eol`, and `rawContent`;
+output effects depend on the writer. Other wrapping writers, including HTML
+and JSON, accept `none`. HTML accepts
 `numberSections`, `toc` (linked contents in standalone output, through level 3),
 and `ascii` (numeric entities). `shiftHeadingLevelBy` (−6 through 6) adjusts
 headings, `stripComments` removes raw HTML comments while preserving code, and

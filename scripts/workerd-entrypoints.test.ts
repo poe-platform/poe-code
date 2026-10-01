@@ -52,6 +52,8 @@ describe("built portable entrypoints", () => {
     "@poe-platform/safe-bash/trap", "@poe-platform/safe-bash/shuf",
     "@poe-platform/safe-bash/yes", "@poe-platform/safe-bash/dd",
     "safe-bash-command-xz", "@poe-code/image-ast",
+    "@poe-platform/safe-bash/core", "@poe-code/safe-fs/fs/s3",
+    "safe-bash-command-yq", "safe-bash-command-imagemagick", "safe-bash-command-sips",
   ]) it(`${specifier} bundles for workerd`, async () => {
     const result = await build({
       absWorkingDir: root.pathname,
@@ -70,4 +72,17 @@ describe("built portable entrypoints", () => {
       bundle: true, platform: "browser", format: "esm", write: false,
     });
   });
+});
+
+// Package-level consumers must resolve shipped JavaScript, never development sources.
+describe("safe-fs platform runtime imports", () => {
+  for (const condition of ["workerd", "browser", "worker", "node"]) {
+    it(`resolves compiled platform code under ${condition}`, () => {
+      const result = execFileSync(process.execPath, [`--conditions=${condition}`, "--input-type=module", "-e",
+        'console.log(import.meta.resolve("#safe-fs-platform"));'
+      ], { cwd: new URL("packages/safe-fs/", root), encoding: "utf8" }).trim();
+      const profile = condition === "node" ? "node" : "browser";
+      expect(result).toBe(new URL(`packages/safe-fs/dist/platform/${profile}.js`, root).href);
+    });
+  }
 });

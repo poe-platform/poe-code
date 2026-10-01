@@ -14,10 +14,16 @@
       "default": "./dist/native/fs-seek/loader.mjs"
     },
     "#safe-fs-platform": {
-      "workerd": "./src/platform/browser.ts",
-      "browser": "./src/platform/browser.ts",
-      "worker": "./src/platform/browser.ts",
-      "default": "./src/platform/node.ts"
+      "types": {
+        "workerd": "./src/platform/browser.ts",
+        "browser": "./src/platform/browser.ts",
+        "worker": "./src/platform/browser.ts",
+        "default": "./src/platform/node.ts"
+      },
+      "workerd": "./dist/platform/browser.js",
+      "browser": "./dist/platform/browser.js",
+      "worker": "./dist/platform/browser.js",
+      "default": "./dist/platform/node.js"
     },
     "#safe-fs-platform-path": {
       "types": {

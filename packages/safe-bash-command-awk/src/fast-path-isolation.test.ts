@@ -4,14 +4,14 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandDefinition } from "safe-bash-contracts";
 import { createAwkCommand } from "./index.js";
 
-async function run(command: CommandDefinition, fs: ReturnType<typeof createMemoryFileSystem>, args: string[], env: Record<string, string> = {}) {
+async function run(command: CommandDefinition, fs: ReturnType<typeof createMemoryFileSystem>, args: string[], env: Record<string, string> = {}, stdin = "") {
   const values = createCommandArguments(args);
   let stdout = "", stderr = "", charges = 0;
   const result = await command.execute({
     command: command.name, args: values.args, argumentValues: values, cwd: "/", env, fs,
     _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true,
     _chargeFastFsOp() { charges++; },
-    stdin: toByteSource(""), signal: new AbortController().signal,
+    stdin: toByteSource(stdin), signal: new AbortController().signal,
     stdout: {
       _scratch4k: new Uint8Array(4096),
       writeSync(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); return true; },
@@ -61,4 +61,18 @@ test("random seeds observe the current environment rather than memoized output",
   assert.equal(second.exitCode, 0, second.stderr);
   assert.notEqual(first.stdout, second.stdout);
   assert.equal(replay.stdout, first.stdout);
+});
+
+test("file and stdin both succeed at the 18-step record budget on repeated runs", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/data", bytes("a\n"));
+  const command = createAwkCommand({ maxSteps: 18 });
+  for (let invocation = 0; invocation < 2; invocation++) {
+    for (const operands of [["/data"], ["-"], []]) {
+      const result = await run(command, fs, ["{print}", ...operands], {}, "a\n");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "a\n");
+      assert.equal(result.stderr, "");
+    }
+  }
 });

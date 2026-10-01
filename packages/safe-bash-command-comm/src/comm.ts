@@ -1,10 +1,10 @@
 import type { CommandDefinition } from "safe-bash-contracts";
-import { argument, Budget, command, compare, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
+import { argument, command, compare, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 export function createCommCommand(options: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return command("comm", async context => {
-    const budget = new Budget(context, limits), files: string[] = [], suppressed = new Set<number>();
+  return command("comm", limits, async (context, budget) => {
+    const files: string[] = [], suppressed = new Set<number>();
     let separator = 10, delimiter: Uint8Array = Uint8Array.of(9), literal = false, total = false, mode: OrderMode = "default";
     let delimiterSet = false;
     for (let index = 0; index < context.args.length; index++) {
@@ -27,7 +27,7 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
       } else fail(`unsupported option ${token}`);
     }
     if (files.length !== 2) fail("comm requires exactly two files");
-    const inputs = new Inputs(context, budget, separator), order = new OrderCheck(mode, context), terminator = Uint8Array.of(separator);
+    const inputs = new Inputs(context, budget, separator), order = new OrderCheck(mode, context, budget), terminator = Uint8Array.of(separator);
     try {
       const readers = [await inputs.open(files[0]!), await inputs.open(files[1]!)];
       const rows = [await readers[0]!.next(), await readers[1]!.next()];
@@ -38,7 +38,7 @@ export function createCommCommand(options: TableTextCommandsOptions = {}): Comma
         const comparison = rows[0] === undefined ? 1 : rows[1] === undefined ? -1 : compare(rows[0], rows[1]);
         const column = comparison < 0 ? 0 : comparison > 0 ? 1 : 2;
         totals[column] = totals[column]! + 1n;
-        if (column !== 2) order.unpaired = true;
+        if (column !== 2) await order.markUnpaired();
         if (!suppressed.has(column)) {
           const parts: Uint8Array[] = [];
           for (let index = 0; index < column; index++) if (!suppressed.has(index)) parts.push(delimiter);

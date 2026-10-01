@@ -1,6 +1,6 @@
 import type { CommandDefinition } from "safe-bash-contracts";
 import { diagnostic } from "safe-bash-io-engine/internal";
-import { argument, Budget, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
+import { argument, command, empty, encode, fail, Inputs, settings, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 function delimiters(text: string): readonly Uint8Array[] {
   const characters = Array.from(text), result: Uint8Array[] = [];
@@ -20,8 +20,8 @@ function delimiters(text: string): readonly Uint8Array[] {
 
 export function createPasteCommand(options: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
-  return command("paste", async context => {
-    const budget = new Budget(context, limits), files: string[] = [];
+  return command("paste", limits, async (context, budget) => {
+    const files: string[] = [];
     let serial = false, separator = 10, list = [Uint8Array.of(9)] as readonly Uint8Array[], literal = false;
     for (let index = 0; index < context.args.length; index++) {
       const token = context.args[index]!;
@@ -57,6 +57,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
           try { reader = await inputs.open(file); }
           catch (error) {
             context.signal.throwIfAborted();
+            if (budget.hasPendingOutput()) await budget.flushOutput();
             await diagnostic(context, error); status = 1; continue;
           }
           let record = await reader.next(), count = 0;

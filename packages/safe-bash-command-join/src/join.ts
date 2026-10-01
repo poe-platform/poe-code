@@ -1,5 +1,5 @@
 import type { CommandDefinition, CommandContext } from "safe-bash-contracts";
-import { argument, Budget, command, compare, empty, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
+import { argument, type Budget, command, compare, empty, encode, fail, Inputs, OrderCheck, settings, type OrderMode, type TableTextCommandsOptions } from "safe-bash-table-text-engine/table-text/internal";
 
 interface Field { readonly file: number; readonly index: number }
 interface Row { readonly bytes: Uint8Array; readonly fields: readonly Uint8Array[]; readonly key: Uint8Array }
@@ -157,9 +157,9 @@ function split(bytes: Uint8Array, options: Options, budget: Budget): readonly Ui
 
 export function createJoinCommand(factory: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(factory);
-  return command("join", async context => {
-    const budget = new Budget(context, limits), options = parse(context, budget);
-    const inputs = new Inputs(context, budget, options.separator), order = new OrderCheck(options.order, context);
+  return command("join", limits, async (context, budget) => {
+    const options = parse(context, budget);
+    const inputs = new Inputs(context, budget, options.separator), order = new OrderCheck(options.order, context, budget);
     const terminator = Uint8Array.of(options.separator), delimiter = Uint8Array.of(options.delimiter ?? 32);
     try {
       const readers = [await inputs.open(options.files[0]!), await inputs.open(options.files[1]!)];
@@ -257,9 +257,10 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         { const step = budget.step(); if (step) await step; }
         const comparison = compare(rows[0].key, rows[1].key, options.fold);
         if (comparison !== 0) {
+          await order.markUnpaired();
           const file = comparison < 0 ? 0 : 1;
           if (options.unpaired.has(file)) await emit(file === 0 ? rows[file] : undefined, file === 1 ? rows[file] : undefined);
-          { const nr = next(file); rows[file] = nr instanceof Promise ? await nr : nr; } order.unpaired = true;
+          { const nr = next(file); rows[file] = nr instanceof Promise ? await nr : nr; }
           continue;
         }
         const key = rows[0].key, groups: Row[][] = [[], []];
@@ -292,6 +293,7 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
       }
       for (let file = 0; file < 2; file++) {
         if (!options.unpaired.has(file) && options.order === "none") continue;
+        if (rows[file]) await order.markUnpaired();
         while (rows[file]) {
           if (options.unpaired.has(file)) await emit(file === 0 ? rows[file] : undefined, file === 1 ? rows[file] : undefined);
           rows[file] = await next(file);

@@ -9,8 +9,9 @@ const evidence = JSON.parse(await readFile(new URL("gnu-evidence.json", import.m
 assert.equal(evidence.observations.length, tableCases.length);
 for (const [index, fixture] of tableCases.entries()) {
   const currentStdoutHex = currentPasteStdout(fixture, evidence.observations[index]!.stdoutHex);
+  const currentOrderCheck = ["comm: unsorted unpaired ", "join: unsorted unpaired ", "join: unsorted empty side "].includes(fixture.name);
   const sharedStdinArtifact = fixture.name === "comm: shared stdin";
-  test(`${currentStdoutHex !== undefined ? "current paste profile" : sharedStdinArtifact ? "frozen GNU 9.7 shared-stdin regression" : "frozen GNU 9.7"} ${fixture.name}`, async () => {
+  test(`${currentOrderCheck ? "current default order checking" : currentStdoutHex !== undefined ? "current paste profile" : sharedStdinArtifact ? "frozen GNU 9.7 shared-stdin regression" : "frozen GNU 9.7"} ${fixture.name}`, async () => {
     const expected = evidence.observations[index]!;
     assert.equal(expected.name, fixture.name);
     assert.equal(expected.caseSha256, caseHash(fixture));
@@ -28,6 +29,11 @@ for (const [index, fixture] of tableCases.entries()) {
       assert.equal(Buffer.from(expected.stderrHex, "hex").toString(), "comm: -: Bad file descriptor\n");
       assert.equal(actual.exitCode, 1, actual.stderr);
       assert.equal(actual.stderr, "comm: -: Bad file descriptor\n");
+    } else if (currentOrderCheck) {
+      // Preserve native captures: current defaults also check the first unpaired row.
+      assert.equal(expected.exitCode, 0);
+      assert.equal(actual.exitCode, 1);
+      assert.equal(actual.stderr, `${fixture.command}: file 1 is not in sorted order\n${fixture.command}: input is not in sorted order\n`);
     } else {
       assert.equal(actual.exitCode, expected.exitCode, actual.stderr);
       assert.equal(Boolean(actual.stderr), Boolean(expected.stderrHex));

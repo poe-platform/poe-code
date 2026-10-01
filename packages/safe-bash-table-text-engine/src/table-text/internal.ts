@@ -42,18 +42,27 @@ export function settings(options: TableTextCommandsOptions): TableTextLimits {
 
 export function fail(message: string): never { throw new FsError("EINVAL", { message }); }
 
-export function command(name: string, handler: CommandHandler): CommandDefinition {
+export function command(name: string, limits: TableTextLimits, handler: (context: CommandContext, budget: Budget) => ReturnType<CommandHandler>): CommandDefinition {
   return { name, async execute(context) {
     context.signal.throwIfAborted();
+    let budget: Budget | undefined;
     try {
       const infoPromise = gnuInformation(name, context);
       if (infoPromise) {
         const info = await infoPromise;
         if (info) return info;
       }
-      return await handler(context);
+      budget = new Budget(context, limits);
+      const result = await handler(context, budget);
+      await budget.flushOutput();
+      return result;
     }
-    catch (error) { context.signal.throwIfAborted(); await diagnostic(context, error); return { exitCode: 1 }; }
+    catch (error) {
+      context.signal.throwIfAborted();
+      if (budget?.hasPendingOutput()) await budget.flushOutput();
+      await diagnostic(context, error);
+      return { exitCode: 1 };
+    }
   } };
 }
 
@@ -293,20 +302,39 @@ export function argument(args: readonly string[], index: number, attached: strin
 export type OrderMode = "default" | "check" | "none";
 
 export class OrderCheck {
-  unpaired = false;
+  private unpaired = false;
   failed = false;
   private warned = new Set<number>();
-  constructor(readonly mode: OrderMode, readonly context: CommandContext) {}
+  // Only the transition into each current row matters when default checking starts.
+  private pending = new Set<number>();
+  constructor(readonly mode: OrderMode, readonly context: CommandContext, readonly budget: Budget) {}
+  async markUnpaired(): Promise<void> {
+    if (this.unpaired) return;
+    this.unpaired = true;
+    for (const file of this.pending) await this.report(file);
+    this.pending.clear();
+  }
   check(previous: Uint8Array | undefined, next: Uint8Array | undefined, file: number, fold = false): void | Promise<void> {
-    if (this.mode === "none" || (this.mode === "default" && !this.unpaired) || this.warned.has(file)) return;
-    if (previous && next && compare(previous, next, fold) > 0) {
-      const message = `file ${file} is not in sorted order`;
-      if (this.mode === "check") fail(message);
-      this.warned.add(file); this.failed = true;
-      return diagnostic(this.context, new PublicDiagnostic(message));
+    if (this.mode === "none" || this.warned.has(file)) return;
+    const disordered = previous !== undefined && next !== undefined && compare(previous, next, fold) > 0;
+    if (this.mode === "default" && !this.unpaired) {
+      if (disordered) this.pending.add(file);
+      else this.pending.delete(file);
+      return;
     }
+    if (disordered) return this.report(file);
+  }
+  private async report(file: number): Promise<void> {
+    const message = `file ${file} is not in sorted order`;
+    if (this.mode === "check") fail(message);
+    this.warned.add(file); this.failed = true;
+    if (this.budget.hasPendingOutput()) await this.budget.flushOutput();
+    await diagnostic(this.context, new PublicDiagnostic(message));
   }
   async finish(): Promise<void> {
-    if (this.failed) await diagnostic(this.context, new PublicDiagnostic("input is not in sorted order"));
+    if (this.failed) {
+      if (this.budget.hasPendingOutput()) await this.budget.flushOutput();
+      await diagnostic(this.context, new PublicDiagnostic("input is not in sorted order"));
+    }
   }
 }

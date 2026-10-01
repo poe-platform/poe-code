@@ -12,3 +12,5 @@ const result = await shell.exec("join --help");
 ```
 
 The module also exports `createJoinCommand`, its command-list factory, and typed options and limits.
+
+Default order checking includes the transition into the first unpaired row, even after matching rows. This detects some unsorted inputs that GNU coreutils accepts silently. Use `--check-order` to check fully paired inputs too, or `--nocheck-order` to disable checking.

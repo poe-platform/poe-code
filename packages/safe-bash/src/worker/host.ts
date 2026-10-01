@@ -26,7 +26,7 @@ export function createWorkerKillAfterPolicy(registry: () => CommandRegistry, con
     // These counters/leases belong to the interpreter, not to a separate Shell.
     // Until a shared ledger is available, refuse rather than reset their quota.
     const limits = runtimeContext?.budget.limits ?? configuration.limits;
-    const shared = ["maxCommands", "maxLoopIterations", "maxSourceBytes", "maxParseUnits", "maxExpansionBytes", "maxExpansionFields", "maxPipelineStages", "maxSubstitutionDepth", "maxCpuMs"] as const;
+    const shared = ["maxCommands", "maxLoopIterations", "maxSourceBytes", "maxParseUnits", "maxExpansionBytes", "maxExpansionFields", "maxPipelineStages", "maxSubstitutionDepth", "maxFunctionDepth", "maxCpuMs"] as const;
     if (shared.some(key => limits?.[key] !== undefined && limits[key] !== Infinity)) {
       await writeBytes(context.stderr, new TextEncoder().encode("timeout: worker escalation cannot preserve finite shared interpreter quotas\n"), context.signal);
       return { exitCode: 125 };

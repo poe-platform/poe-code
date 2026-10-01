@@ -643,12 +643,14 @@ Execution quotas are unlimited by default. Set individual `limits` to opt in;
 supplying one does not enable other quotas. Available quotas are `maxParseUnits`,
 `maxInputBytes`, `maxOutputBytes`, `maxCommands`, `maxFileSystemOperations`,
 `maxPathComponents`, `maxPathnameComponents`, `maxRedirects`, `maxPipelineStages`, `maxLoopIterations`,
-`maxSubstitutionDepth`, `maxSourceBytes`, `maxExpansionFields`, `maxExpansionBytes`,
+`maxSubstitutionDepth`, `maxFunctionDepth`, `maxSourceBytes`, `maxExpansionFields`, `maxExpansionBytes`,
 `maxWallClockMs`, and `maxCpuMs`. The CPU deadline measures elapsed time including
 waits at cooperative checkpoints. `pipeHighWaterMark` defaults to 64 KiB for
 streaming backpressure and does not cap total work. `cloudflareWorkerLimits` is
 an explicit restrictive preset. Background job quotas (`maxJobs`, `maxWaiters`,
-`maxCleanupsPerJob`) are also unlimited unless supplied.
+`maxCleanupsPerJob`) are also unlimited unless supplied. `maxFunctionDepth` limits
+simultaneously active shell functions independently of substitution depth; zero
+rejects function calls, and completed calls free their depth slot.
 
 Always call `dispose()` when finished. Shell failures normally produce an exit
 code and stderr; limit violations, cancellation, and host failures can reject `exec()`.

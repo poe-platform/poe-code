@@ -62,6 +62,8 @@ export interface ShellLimits {
   readonly maxPipelineStages?: number;
   readonly maxLoopIterations?: number;
   readonly maxSubstitutionDepth?: number;
+  /** Maximum simultaneously active shell functions; zero rejects function calls. Unlimited when omitted. */
+  readonly maxFunctionDepth?: number;
   readonly maxSourceBytes?: number;
   readonly maxExpansionFields?: number;
   readonly maxExpansionBytes?: number;

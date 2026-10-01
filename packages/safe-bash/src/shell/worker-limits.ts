@@ -49,6 +49,7 @@ export const cloudflareWorkerLimits: Readonly<Required<ShellLimits>> = Object.fr
   maxPipelineStages: 64,
   maxLoopIterations: 1_000,
   maxSubstitutionDepth: 16,
+  maxFunctionDepth: 16,
   maxSourceBytes: 256 * 1024,
   maxExpansionFields: 1_000,
   maxExpansionBytes: 4 * 1024 * 1024,

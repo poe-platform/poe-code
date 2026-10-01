@@ -198,6 +198,7 @@ export const defaultLimits: ResolvedShellLimits = {
   maxPipelineStages: Infinity,
   maxLoopIterations: Infinity,
   maxSubstitutionDepth: Infinity,
+  maxFunctionDepth: Infinity,
   maxSourceBytes: Infinity,
   maxExpansionFields: Infinity,
   maxExpansionBytes: Infinity,
@@ -11267,6 +11268,7 @@ export class Runtime {
             }
           }
           if (canSyncFn) {
+            if (rawState.functionDepth >= this.budget.limits.maxFunctionDepth) this.budget.fail("maxFunctionDepth");
             const prevCommands = this.budget.commands;
             this.budget.tick();
             rawState.substitutionStatus = 0;
@@ -18212,6 +18214,7 @@ export class Runtime {
     },
   ): Promise<number> {
     if (!pendingResume && state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+    if (!pendingResume && state.functionDepth >= this.budget.limits.maxFunctionDepth) this.budget.fail("maxFunctionDepth");
     const scope = io[invocationScope].child();
     try {
       const monitor = stateMonitor(state);
@@ -18607,6 +18610,7 @@ export class Runtime {
         if (body) {
           ensureRuntimeContext();
           if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");
+          if (state.functionDepth >= this.budget.limits.maxFunctionDepth) this.budget.fail("maxFunctionDepth");
           const positional = state.positional;
           const savedPositionals = stateMonitor(state)!.positionals.clone();
           const positionalSetVersion = state.positionalSetVersion ?? 0;

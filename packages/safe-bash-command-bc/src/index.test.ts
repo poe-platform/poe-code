@@ -353,3 +353,9 @@ test("bc concurrent math calls retain their own scale", async () => {
   assert.equal(results[0]?.stdout, ".785\n");
   assert.equal(results[1]?.stdout, ".78539816339744830961\n");
 });
+
+test("bc prints parenthesized assignments but suppresses bare assignments", async () => {
+  assert.deepEqual(await evaluate("(x=5); x=6; ((x+=2)); x\n"), {
+    exitCode: 0, stdout: "5\n8\n8\n", stderr: "",
+  });
+});

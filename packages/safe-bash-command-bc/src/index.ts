@@ -443,7 +443,7 @@ type Expr =
   | { kind: "var"; name: string; index?: Expr }
   | { kind: "unary"; op: string; arg: Expr; prefix: boolean }
   | { kind: "binary"; op: string; left: Expr; right: Expr }
-  | { kind: "assign"; op: string; target: { name: string; index?: Expr }; right: Expr }
+  | { kind: "assign"; parenthesized?: boolean; op: string; target: { name: string; index?: Expr }; right: Expr }
   | { kind: "call"; name: string; args: Expr[] };
 
 type Stmt =
@@ -702,7 +702,7 @@ class BcParser {
     if (t.type === "punct" && (t.value ?? "") === "(") {
       const expr = this.parseExpr();
       if (!this.matchPunct(")")) throw new Error("expected ')'");
-      return expr;
+      return expr.kind === "assign" ? { ...expr, parenthesized: true } : expr;
     }
     if (t.type === "id") {
       if (this.matchPunct("(")) {
@@ -1089,7 +1089,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
             return;
           }
           const val = await evalExpr(stmt.expr);
-          if (stmt.expr.kind !== "assign") {
+          if (stmt.expr.kind !== "assign" || stmt.expr.parenthesized) {
             last = val;
             appendOutput(formatDecimalInBase(val, obase) + "\n");
           }

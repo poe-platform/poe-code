@@ -414,3 +414,11 @@ test('projection shares an invocation ledger without resetting or disposing call
   assert.equal(budget.accounting.outputBytes, 2);
   budget.dispose();
 });
+
+test("names output charges encoding work for every row", async () => {
+  const signal = new AbortController().signal;
+  const budget = new CsvBudget({}, signal);
+  assert.equal(await run("a,b,c\n", { names: true }, { signal, budget }), "  1: a\n  2: b\n  3: c\n");
+  assert.equal(budget.getUsage("work"), 50);
+  await assert.rejects(run("a,b,c\n", { names: true }, { limits: { work: 49 } }), { code: "LIMIT" });
+});

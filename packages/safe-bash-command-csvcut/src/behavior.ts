@@ -155,6 +155,7 @@ export function cutCsv(
       const output: Uint8Array[] = [];
       let pendingBatch = "";
       const chargeEncoded = (text: string): void => {
+        b.charge("work", text.length);
         let length = 0;
         for (let i = 0; i < text.length; i++) {
           const code = text.charCodeAt(i);

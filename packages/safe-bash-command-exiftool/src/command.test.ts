@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createOverlayFileSystem } from "@poe-code/safe-fs/fs/overlay";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { createCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import type { ByteSink } from "safe-bash-contracts/io";
@@ -139,7 +140,7 @@ test("failed staging cleanup escapes rather than reporting ordinary command succ
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name), ["image.png"]);
 });
 
-async function invoke(args: readonly ShellValue[], fs = createMemoryFileSystem(), signal = new AbortController().signal, stdoutOverride?: ByteSink, options?: ExiftoolCommandOptions, stdin: CommandContext["stdin"] = (async function* () {})()) {
+async function invoke(args: readonly ShellValue[], fs: CommandContext["fs"] = createMemoryFileSystem(), signal = new AbortController().signal, stdoutOverride?: ByteSink, options?: ExiftoolCommandOptions, stdin: CommandContext["stdin"] = (async function* () {})()) {
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
   const cleanups: (() => void | Promise<void>)[] = [];
   const carrier = createCommandArguments(args);
@@ -747,3 +748,23 @@ test("cumulative short flags produce compact and values-only output", async () =
     assert.equal(result.stdout, expected);
   }
 });
+
+for (const directory of ["/", "/images/nested/"]) {
+  for (const overwrite of [[], ["-overwrite_original"], ["-overwrite_original_in_place"]]) {
+    test(`overlay metadata publication ${directory} ${overwrite.join(" ") || "backup"}`, async () => {
+      const lower = createMemoryFileSystem();
+      await lower.mkdir(directory, { recursive: true });
+      const path = directory + "image.png";
+      const original = fixture("old");
+      await lower.writeFile(path, original);
+      const fs = createOverlayFileSystem({ lower, upper: createMemoryFileSystem() });
+      const result = await invoke([...overwrite, "-Title=new", path], fs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal((await invoke(["-s3", "-Title", path], fs)).stdout, "new\n");
+      assert.deepEqual(await lower.readFile(path), original);
+      if (!overwrite.length) assert.deepEqual(await fs.readFile(path + "_original"), original);
+      assert.deepEqual((await fs.readdir(directory)).map(entry => entry.name).sort(),
+        overwrite.length ? ["image.png"] : ["image.png", "image.png_original"]);
+    });
+  }
+}

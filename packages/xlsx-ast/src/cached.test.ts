@@ -6,9 +6,24 @@ const limits: ZipLimits = { maxArchiveBytes: 1000000, maxEntryBytes: 1000000, ma
   maxMembers: 20, maxPathBytes: 1000, maxDepth: 100, maxPaxBytes: 1000, maxTextBytes: 1000000, chunkSize: 512 };
 const ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
 const rel = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
+
+test("full reader recognizes present inline formula caches, including empty strings", async () => {
+  const input = await fixture(`<worksheet xmlns="${ns}"><sheetData><row r="1"><c r="A1" t="inlineStr"><f>"hello"</f><is><t>hello</t></is></c><c r="B1" t="inlineStr"><f>""</f><is><t/></is></c><c r="C1" t="inlineStr"><f>"missing"</f></c></row></sheetData></worksheet>`);
+  const bytes = await input.codec.writeZipArchive(input.archive, limits, input.signal);
+  const book = await xlsx.readXlsx(bytes, { signal: input.signal, own() {},
+    environment: { env: {}, locale: "C", timezone: "UTC" },
+    limits: { inputBytes: 1000000, outputBytes: 1000000, cells: 100, sheets: 4, operations: 100000 } });
+  expect(book.sheets[0]!.cells).toMatchObject([
+    { formulaDirty: false, cachedResult: { kind: "string", value: "hello" } },
+    { formulaDirty: false, cachedResult: { kind: "string", value: "" } },
+    { formulaDirty: true },
+  ]);
+  expect(book.sheets[0]!.cells[2]).not.toHaveProperty("cachedResult");
+});
 async function fixture(sheet: string) {
   const codec = createZipCodec(), signal = new AbortController().signal;
   const parts = {
+    "_rels/.rels": `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="book" Type="${rel}/officeDocument" Target="xl/book.xml"/></Relationships>`,
     "[Content_Types].xml": '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Override PartName="/xl/book.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/></Types>',
     "xl/book.xml": `<workbook xmlns="${ns}" xmlns:r="${rel}"><workbookPr date1904="1"/><bookViews><workbookView activeTab="0"/></bookViews><sheets><sheet name="Data" r:id="data"/></sheets></workbook>`,
     "xl/_rels/book.xml.rels": `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="data" Type="${rel}/worksheet" Target="worksheets/data.xml"/><Relationship Id="strings" Type="${rel}/sharedStrings" Target="strings.xml"/><Relationship Id="styles" Type="${rel}/styles" Target="styles.xml"/></Relationships>`,

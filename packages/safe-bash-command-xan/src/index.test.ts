@@ -80,3 +80,64 @@ test('numeric cells use decimal syntax rather than JavaScript radix prefixes', a
  const stats = await run(['stats'], 'n\n0x10\n');
  assert.ok(stats.stdout.includes('n,1,0,string,string,0,'));
 });
+
+for (const [args, expected] of [
+ [['dedup', '-s', 'score'], 'name,score\nbob,2\nalice,10\n'],
+ [['enum'], 'index,name,score\n0,bob,2\n1,alice,10\n2,carol,2\n'],
+ [['transpose'], 'name,bob,alice,carol\nscore,2,10,2\n'],
+ [['agg', 'sum(score) as total, count() as n'], 'total,n\n14,3\n'],
+ [['groupby', 'score', 'count() as n'], 'score,n\n2,2\n10,1\n'],
+ [['cat', 'rows', '-', '/right.csv'], 'name,score\nbob,2\nalice,10\ncarol,2\nalice,Paris\nbob,Rome\nbob,Oslo\n'],
+ [['to', 'json'], '[{"name":"bob","score":2},{"name":"alice","score":10},{"name":"carol","score":2}]\n'],
+] as [string[], string][]) test(`extended xan ${args.join(' ')}`, async () => {
+ assert.deepEqual(await run(args), { exitCode: 0, stdout: expected, stderr: '' });
+});
+test('from JSON converts objects into CSV columns', async () => {
+ assert.deepEqual(await run(['from', '-f', 'json'], '[{"name":"bob","score":2}]'), { exitCode: 0, stdout: 'name,score\nbob,2\n', stderr: '' });
+});
+test('split writes CSV chunks through the virtual filesystem', async () => {
+ const fs = createMemoryFileSystem();
+ const values = createCommandArguments(['split', '-S', '2', '-O', '/chunks']);
+ let errors = '';
+ const result = await createXanCommand().execute({
+  command: 'xan', args: values.args, argumentValues: values, cwd: '/', env: {}, fs,
+  stdin: toByteSource('n\n1\n2\n3\n'), signal: new AbortController().signal,
+  stdout: { async write() {} }, stderr: { async write(bytes) { errors += new TextDecoder().decode(bytes); } },
+ });
+ assert.equal(result.exitCode, 0, errors);
+ assert.equal(new TextDecoder().decode(await fs.readFile('/chunks/0.csv')), 'n\n1\n2\n');
+ assert.equal(new TextDecoder().decode(await fs.readFile('/chunks/2.csv')), 'n\n3\n');
+});
+
+test('duplicate keys and replacements consume live memory rather than cumulative memory', async () => {
+ for (const args of [['dedup'], ['dedup', '--keep-last'], ['groupby', '0', 'count()']]) {
+  const result = await run(args, 'n\n' + 'a\n'.repeat(3000), { maxRetainedBytes: 32000 });
+  assert.equal(result.exitCode, 0, `${args.join(' ')}: ${result.stderr}`);
+ }
+});
+
+
+test('conversion accepts its output formats as destination paths', async () => {
+ assert.equal((await run(['to', 'jsonl', '-o', '/output.jsonl'])).exitCode, 0);
+});
+
+test('sort rejects options belonging to other subcommands', async () => {
+ for (const option of ['--pad', '--single-object', '--keep-duplicates']) assert.equal((await run(['sort', option])).exitCode, 1);
+});
+
+
+test('from applies record and field budgets to text and JSON input', async () => {
+ for (const [format, input, limits] of [
+  ['txt', 'a\nb\n', { maxRecords: 1 }],
+  ['raw', 'abcd', { maxCellBytes: 3 }],
+  ['json', '[{"a":"abcd"}]', { maxCellBytes: 3 }],
+ ] as [string, string, Record<string, number>][]) assert.equal((await run(['from', '-f', format], input, limits)).exitCode, 1);
+});
+
+test('from charges only emitted CSV bytes to the output limit', async () => {
+ assert.deepEqual(await run(['from', '-f', 'json'], '[{"a":1}]', { maxOutputBytes: 4 }), { exitCode: 0, stdout: 'a\n1\n', stderr: '' });
+});
+
+test('cat rows emits the first available header after an empty input', async () => {
+ assert.deepEqual(await run(['cat', 'rows', '-', '/right.csv'], ''), { exitCode: 0, stdout: 'name,city\nalice,Paris\nbob,Rome\nbob,Oslo\n', stderr: '' });
+});

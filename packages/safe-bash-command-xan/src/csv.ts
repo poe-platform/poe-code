@@ -58,16 +58,16 @@ export class Scanner {
     while (BigInt(this.absolute) < start) if (await this.nextByte() === undefined) break;
     this.endByte = end;
   }
-  async *raw(): ByteSource {
+  async *raw(output = true): ByteSource {
     const bytes = new Bytes(this.budget);
     try {
       while (true) {
         const byte = await this.nextByte();
         if (byte === undefined) break;
         { const p = bytes.push(byte); if (p) await p; }
-        if (bytes.length === 4096) { this.budget.add("maxOutputBytes", bytes.length); yield bytes.view(); bytes.free(); }
+        if (bytes.length === 4096) { if (output) this.budget.add("maxOutputBytes", bytes.length); yield bytes.view(); bytes.free(); }
       }
-      if (bytes.length) { this.budget.add("maxOutputBytes", bytes.length); yield bytes.view(); }
+      if (bytes.length) { if (output) this.budget.add("maxOutputBytes", bytes.length); yield bytes.view(); }
     } finally { bytes.free(); await this.close(); }
   }
   async next(): Promise<RecordRow | undefined> {

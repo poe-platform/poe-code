@@ -2,7 +2,7 @@ import { resolvePath } from "safe-bash-contracts/path";
 import { Budget, XanError } from "./budget.js";
 import { boundedSort } from "./sort.js";
 
-export type Subcommand = "headers" | "count" | "select" | "slice" | "head" | "tail" | "sort" | "search" | "filter" | "reverse" | "rename" | "drop" | "stats" | "freq" | "join";
+export type Subcommand = "headers" | "count" | "select" | "slice" | "head" | "tail" | "sort" | "search" | "filter" | "reverse" | "rename" | "drop" | "stats" | "freq" | "join" | "dedup" | "enum" | "transpose" | "agg" | "groupby" | "to" | "from" | "cat" | "split";
 export interface Arguments {
   command: Subcommand;
   options?: ReadonlyMap<string, string>;
@@ -64,6 +64,8 @@ export function inferDelimiter(path: string): number {
 const shortOptions: Record<string, string> = { B: "byte-offset", S: "start-condition", E: "end-condition", H: "human-readable", c: "check-alignment", a: "approx", p: "parallel", t: "threads", h: "help", o: "output", d: "delimiter", n: "no-headers", j: "just-names", s: "start", e: "end", l: "len", i: "index", I: "indices", L: "last" };
 const switches = new Set(["help", "no-headers", "just-names", "csv", "human-readable", "check-alignment", "approx", "parallel", "raw", "evaluate", "evaluate-file"]);
 const extraShort: Partial<Record<Subcommand, Record<string, string>>> = {
+  dedup: { s: "select", l: "keep-last", S: "sorted" }, enum: { c: "column-name", S: "start" },
+  from: { f: "format" }, cat: { p: "pad" }, split: { S: "size", O: "out-dir", f: "filename", c: "chunks" },
   head: { l: "limit" }, tail: { l: "limit" },
   sort: { s: "select", N: "numeric", R: "reverse", u: "uniq" },
   search: { s: "select", e: "exact", i: "ignore-case", v: "invert-match", l: "limit" },
@@ -71,9 +73,17 @@ const extraShort: Partial<Record<Subcommand, Record<string, string>>> = {
   stats: { s: "select" }, freq: { s: "select", l: "limit", A: "all", N: "no-extra" },
   join: { i: "ignore-case" },
 };
-for (const name of ["numeric", "reverse", "uniq", "exact", "ignore-case", "invert-match", "every-column", "all", "no-extra", "inner", "left", "right", "full", "semi", "anti", "cross", "nulls"]) switches.add(name);
+for (const name of ["keep-last", "sorted", "keep-duplicates", "pad", "sort-keys", "single-object", "omit", "numeric", "reverse", "uniq", "exact", "ignore-case", "invert-match", "every-column", "all", "no-extra", "inner", "left", "right", "full", "semi", "anti", "cross", "nulls"]) switches.add(name);
 const common = ["help", "output", "delimiter"];
 const allowed: Record<Subcommand, Set<string>> = {
+  dedup: new Set([...common, "no-headers", "select", "keep-last", "sorted", "keep-duplicates"]),
+  enum: new Set([...common, "no-headers", "column-name", "start"]),
+  transpose: new Set(common),
+  agg: new Set([...common, "no-headers"]), groupby: new Set([...common, "no-headers"]),
+  to: new Set([...common, "no-headers", "nulls", "omit"]),
+  from: new Set([...common, "format", "sort-keys", "single-object", "column-name"]),
+  cat: new Set([...common, "no-headers", "pad"]),
+  split: new Set(["help", "delimiter", "no-headers", "size", "out-dir", "filename", "chunks"]),
   head: new Set([...common, "no-headers", "limit"]),
   tail: new Set([...common, "no-headers", "limit"]),
   sort: new Set([...common, "no-headers", "select", "numeric", "reverse", "uniq"]),
@@ -148,7 +158,8 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   if (values.has("evaluate") && values.has("evaluate-file")) throw new XanError("conflicting expression modes");
   let rightSelection: string | undefined;
   let operand: string | undefined;
-  if (["search", "filter", "rename"].includes(command)) {
+  if (command === "groupby") rightSelection = operands.shift();
+  if (["search", "filter", "rename", "agg", "groupby", "to", "cat"].includes(command)) {
     operand = operands.shift();
     if (operand === undefined && !help) throw new XanError(`${command} requires an argument`);
   }
@@ -167,16 +178,16 @@ export async function parseArguments(args: readonly string[], cwd: string, budge
   }
   if (values.has("limit")) await unsigned(values.get("limit")!, "--limit", budget);
   if (selection === undefined && !help) throw new UsageError("Usage:\n    xan select [options] [--] <selection> [<input>]\n    xan select --help\n\nInvalid subcommand or arguments! Use the -h/--help flag for more information.");
-  if (command !== "headers" && command !== "join" && operands.length > 1) throw new XanError("too many input files");
+  if (command !== "headers" && command !== "join" && command !== "cat" && operands.length > 1) throw new XanError("too many input files");
   if (operands.filter(path => path === "-").length > 1) throw new XanError("stdin may appear only once");
   if (!operands.length) operands.push("-");
   budget.bound("maxInputFiles", operands.length);
-  const path = (value: string): string => {
+  const path = (value: string, input = false): string => {
     if (!value || value.includes("\0")) throw new XanError("invalid path");
-    if (/\.(gz|zst|cdx|ndjson|jsonl|vcf|gtf|gff2|sam|bed)$/u.test(value)) throw new XanError(`unsupported in bounded CSV profile: format ${value}`);
+    if (input && command !== "from" && /\.(gz|zst|cdx|ndjson|jsonl|vcf|gtf|gff2|sam|bed)$/u.test(value)) throw new XanError(`unsupported in bounded CSV profile: format ${value}`);
     return value === "-" ? value : resolvePath(cwd, value);
   };
-  for (const operand of operands) path(operand);
+  for (const operand of operands) path(operand, true);
   const output = values.get("output");
   if (output !== undefined) path(output);
   let delimiter: number | undefined;

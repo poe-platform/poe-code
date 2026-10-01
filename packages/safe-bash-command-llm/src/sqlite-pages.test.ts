@@ -98,3 +98,27 @@ test('page one schema records account for the database header', async () => {
     assert.deepEqual(await collect(record.bytes()), await collect(expected.bytes(signal())));
   } finally { await file.close(); }
 });
+
+test('record byte ranges cross local and overflow boundaries without reading the tail', async () => {
+  const { file } = await database();
+  try {
+    const record = await findSqliteRecord(file, fixture.root, 3n, signal());
+    assert.ok(record);
+    const whole = await collect(record.bytes());
+    for (const [offset, length] of [[0, 1], [20, 700], [whole.length - 31, 31], [whole.length, 0]]) {
+      assert.deepEqual(await collect(record.bytes(offset!, length!)), whole.subarray(offset!, offset! + length!));
+    }
+    let reads = 0;
+    const read = file.read.bind(file);
+    file.read = async (...args) => { reads++; return read(...args); };
+    assert.deepEqual(await collect(record.bytes(0, 1)), whole.subarray(0, 1));
+    assert.equal(reads, 0, 'local header reads must not traverse large payloads');
+    const sizes: number[] = [];
+    file.read = async (position, size, options) => { sizes.push(size); return read(position, size, options); };
+    await collect(record.bytes(whole.length - 1, 1));
+    assert.ok(sizes.includes(4), 'skipped overflow pages need only their next-page pointer');
+    for (const [offset, length] of [[-1, 1], [0, -1], [0.1, 1], [0, Infinity], [whole.length, 1]]) {
+      await assert.rejects(collect(record.bytes(offset!, length!)), RangeError);
+    }
+  } finally { await file.close(); }
+});

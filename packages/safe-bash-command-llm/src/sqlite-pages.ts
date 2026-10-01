@@ -1,3 +1,4 @@
+import { readSqliteVarint } from './sqlite-varint.js';
 import { FsError, type ByteSource, type FileReadHandle } from 'safe-bash-contracts';
 import { verifySqliteSnapshot } from './sqlite-snapshot.js';
 import { yieldTurn } from 'safe-bash-contracts/yield';
@@ -10,24 +11,18 @@ function u16(bytes: Uint8Array, offset: number): number {
 function u32(bytes: Uint8Array, offset: number): number {
   return u16(bytes, offset) * 65536 + u16(bytes, offset + 2);
 }
-function varint(bytes: Uint8Array, start: number): { value: bigint; end: number } {
-  let value = 0n;
-  for (let i = 0; i < 9; i++) {
-    const byte = bytes[start + i];
-    if (byte === undefined) return corrupt();
-    value = (value << BigInt(i === 8 ? 8 : 7)) | BigInt(i === 8 ? byte : byte & 127);
-    if (i === 8 || byte < 128) return { value, end: start + i + 1 };
-  }
-  return corrupt();
+
+
+export interface SqliteRecordSource {
+  readonly size: number;
+  /** Retained snapshot range; omitted bounds read the complete record. */
+  bytes(offset?: number, length?: number): ByteSource;
 }
 
 /** Read a table-btree row from a retained, closed/checkpointed SQLite snapshot.
  * The caller owns the handle; no ambient filesystem, full-file read or page cache.
  * Returned streams remain tied to the original snapshot revision and signal. */
-export async function findSqliteRecord(file: FileReadHandle, rootPage: number, rowid: bigint, signal: AbortSignal): Promise<{
-  readonly size: number;
-  bytes(): ByteSource;
-} | undefined> {
+export async function findSqliteRecord(file: FileReadHandle, rootPage: number, rowid: bigint, signal: AbortSignal): Promise<SqliteRecordSource | undefined> {
   signal.throwIfAborted();
   if (rowid < -(1n << 63n) || rowid >= 1n << 63n) throw new RangeError('SQLite rowid out of range');
   const expected = await file.stat({ signal });
@@ -54,10 +49,10 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
   const usable = pageSize - header[20]!;
   if (usable < 480) return corrupt();
   const pages = expected.size / pageSize;
-  const page = async (number: number): Promise<Uint8Array> => {
+  const page = async (number: number, length = pageSize): Promise<Uint8Array> => {
     if (!Number.isSafeInteger(number) || number < 1 || number > pages) return corrupt();
     await yieldTurn(signal);
-    return (await read((number - 1) * pageSize, pageSize)).subarray(0, usable);
+    return (await read((number - 1) * pageSize, length)).subarray(0, usable);
   };
   let number = rootPage;
   for (let depth = 0; depth < pages; depth++) {
@@ -71,10 +66,10 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
       const cell = u16(data, pointers + i * 2);
       if (cell < pointers + count * 2 || cell >= usable) return corrupt();
       if (kind === 5) {
-        const key = BigInt.asIntN(64, varint(data, cell + 4).value);
+        const key = BigInt.asIntN(64, readSqliteVarint(data, cell + 4).value);
         if (rowid <= key) { child = u32(data, cell); break; }
       } else {
-        const payload = varint(data, cell), key = varint(data, payload.end);
+        const payload = readSqliteVarint(data, cell), key = readSqliteVarint(data, payload.end);
         if (BigInt.asIntN(64, key.value) !== rowid) continue;
         const size = Number(payload.value);
         if (!Number.isSafeInteger(size)) return corrupt();
@@ -84,21 +79,29 @@ export async function findSqliteRecord(file: FileReadHandle, rootPage: number, r
         if (key.end + local + (local < size ? 4 : 0) > usable) return corrupt();
         const first = data.slice(key.end, key.end + local);
         const overflow = local < size ? u32(data, key.end + local) : 0;
-        return { size, async *bytes() {
+        return { size, async *bytes(offset = 0, length = size - offset) {
+          if (!Number.isSafeInteger(offset) || !Number.isSafeInteger(length) || offset < 0 || length < 0 ||
+              offset > size || length > size - offset) throw new RangeError('Invalid SQLite record range');
           await check();
-          for (let offset = 0; offset < first.length; offset += 16384) { await check(); yield first.slice(offset, offset + 16384); }
-          let remaining = size - local, next = overflow, traversed = 0;
-          while (remaining) {
-            if (++traversed > pages) return corrupt();
-            const content = await page(next);
-            next = u32(content, 0);
-            const length = Math.min(remaining, usable - 4);
-            for (let offset = 0; offset < length; offset += 16384) {
-              await check(); yield content.slice(4 + offset, 4 + Math.min(length, offset + 16384));
+          const stop = offset + length;
+          async function* emit(content: Uint8Array, position: number): ByteSource {
+            const start = Math.max(0, offset - position), end = Math.min(content.length, stop - position);
+            for (let index = start; index < end; index += 16384) {
+              await check(); yield content.slice(index, Math.min(end, index + 16384));
             }
-            remaining -= length;
           }
-          if (next !== 0) return corrupt();
+          yield* emit(first, 0);
+          let position = local, next = overflow, traversed = 0;
+          while (length && position < stop) {
+            if (++traversed > pages) return corrupt();
+            const available = Math.min(size - position, usable - 4);
+            const skipped = position + available <= offset;
+            const content = await page(next, skipped ? 4 : pageSize);
+            next = u32(content, 0);
+            if (!skipped) yield* emit(content.subarray(4, 4 + available), position);
+            position += available;
+          }
+          if (stop === size && length && next !== 0) return corrupt();
           await check();
         } };
       }

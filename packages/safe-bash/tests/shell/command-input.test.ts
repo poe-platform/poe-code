@@ -7,6 +7,27 @@ import type { ByteSource, FileStat } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../src/shell/index.js";
 
+test("file operands enforce the shell input limit across standard and table commands", async () => {
+  const { agentCommands } = await import("../../src/plugins/index.js");
+  for (const streamed of [true, false]) {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile("/data", new TextEncoder().encode("a b\nc d\n"));
+    if (!streamed) Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, streamingRead: false } });
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const repeated = await shell.exec("cat /data /data", { limits: { maxInputBytes: 8 } });
+      assert.equal(repeated.stdout, "a b\nc d\na b\nc d\n");
+      assert.equal(repeated.exitCode, 0, repeated.stderr);
+      for (const script of ["cat /data", "head /data", "tail /data", "cut -c 1 /data", "sort /data", "uniq /data", "comm /data /data", "join /data /data", "paste /data /data", "grep a /data", "grep -F a /data", "grep a /data | cut -c 1 | sort"]) {
+        const allowed = await shell.exec(script, { limits: { maxInputBytes: 16 } });
+        assert.equal(allowed.exitCode, 0, `${script}: ${allowed.stderr}`);
+        await assert.rejects(shell.exec(script, { limits: { maxInputBytes: 3 } }),
+          error => error instanceof ShellLimitError && error.limit === "maxInputBytes", `${script}, streamingRead=${streamed}`);
+      }
+    } finally { await shell.dispose(); }
+  }
+});
+
 function fixture(contents = "abcdef\n") {
   const volume = Volume.fromJSON({ "/left": contents });
   const fs = new MemoryFileSystem();

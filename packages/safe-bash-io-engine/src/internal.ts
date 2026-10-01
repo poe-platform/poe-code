@@ -274,6 +274,17 @@ export function input(context: CommandContext, name = "-"): ByteSource {
     }
     return readBytes(context.stdin, context.signal);
   }
+  const budget = context.inputBudget;
+  if (budget && Number.isFinite(budget.maxBytes)) {
+    return (async function* () {
+      let total = 0;
+      for await (const bytes of inputFileSlow(context, name)) {
+        total += bytes.byteLength;
+        budget.check(total);
+        yield bytes;
+      }
+    })();
+  }
   const backing = getRuntimeBackingFileSystem(context.fs);
   if (
     !context.signal.aborted &&

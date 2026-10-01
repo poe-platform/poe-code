@@ -90,6 +90,7 @@ export class Budget {
   input(size: number): void {
     this.check(size, this.limits.maxChunkBytes, "chunk");
     this.inputBytes += size;
+    this.context.inputBudget?.check(this.inputBytes);
     this.check(this.inputBytes, this.limits.maxInputBytes, "input");
   }
   admitOutput(size: bigint): void {

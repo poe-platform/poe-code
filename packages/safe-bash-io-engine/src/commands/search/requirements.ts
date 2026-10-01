@@ -96,7 +96,7 @@ export function createSyncSingleChunkByteSource(bytes: Uint8Array, signal: Abort
 export function requiredFileInput(
   context: CommandContext, requirements: readonly CommandFileSystemRequirement[], mode: string, file: string, maxBytes: number,
 ): ByteSource {
-  if (maxBytes === Infinity) {
+  if (maxBytes === Infinity && (context.inputBudget?.maxBytes ?? Infinity) === Infinity) {
     const fastMemFs = (context as {
       _fastMemoryBackingFs?: FileSystem;
       _chargeFastFsOp?: () => void;
@@ -163,6 +163,7 @@ async function* requiredFileInputSlow(
         reading = false;
         if (chunk.byteLength > maxBytes - bytes) throw new FsError("EFBIG", { syscall: "read", path, message: "input file byte limit exceeded" });
         bytes += chunk.byteLength;
+        context.inputBudget?.check(bytes);
         if (chunk.byteLength) emitted = true;
         yield chunk;
         reading = true;
@@ -174,7 +175,9 @@ async function* requiredFileInputSlow(
     }
   }
   if (capabilities.read !== false && context.fs.capabilities.read !== false) {
-    yield await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
+    const bytes = await context.fs.readFile(path, { signal: context.signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
+    context.inputBudget?.check(bytes.byteLength);
+    yield bytes;
     return;
   }
   throw new FsError("ENOTSUP", { syscall: "readFile", path });

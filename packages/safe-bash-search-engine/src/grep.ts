@@ -261,6 +261,7 @@ function tryFastGrepAscii(
         else chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
         const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        if (raw !== undefined) context.inputBudget?.check(raw.byteLength);
         if (raw !== undefined && raw.length < 65536 && !hasNulOrNonAscii(raw, 0, raw.length)) {
           const literalStart = anchoredStart ? 1 : 0;
           const litLen = pat.length - literalStart;
@@ -378,6 +379,7 @@ async function tryFastGrepAsciiAsync(
         chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
         const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        if (raw !== undefined) context.inputBudget?.check(raw.byteLength);
         if (raw !== undefined) {
           const lineLimit = Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity);
           let lineStart = 0;

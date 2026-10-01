@@ -7,7 +7,7 @@ import { formatValue } from "./formats.js";
 import { scanRegex, substituteRegex } from "./regex.js";
 import { splitString } from "./split.js";
 import { indices } from "./indices.js";
-import { fromDateIso8601, toDateIso8601 } from "./dates.js";
+import { fromDateIso8601, toDateIso8601, gmtime, mktime, strftime, strptime } from "./dates.js";
 import { capture } from "./capture.js";
 import { recurse } from "./recurse.js";
 import { delpaths } from "./delpaths.js";
@@ -51,6 +51,8 @@ function extractIteratePipeline(ast: Ast): { base: Ast; tail: Ast } | undefined 
 }
 
 export class Interpreter {
+  private definitions = new Map<Extract<Ast, { kind: "invoke" }>["definition"], Interpreter>();
+  private callDepth = 0;
   private _filters: Map<Ast, { ast: Ast; scope: Interpreter }> | undefined;
   private _labels: Map<symbol, number> | undefined;
   private get filters(): Map<Ast, { ast: Ast; scope: Interpreter }> {
@@ -68,6 +70,8 @@ export class Interpreter {
   resetForRun(budget: Budget, variables: ReadonlyMap<string, Json>): void {
     (this as unknown as { budget: Budget }).budget = budget;
     (this as unknown as { variables: ReadonlyMap<string, Json> }).variables = variables;
+    this.definitions.clear();
+    this.callDepth = 0;
     this._filters?.clear();
     this._labels?.clear();
     this.labelSequence.next = 0;
@@ -504,7 +508,8 @@ export class Interpreter {
         const filter = this.filters.get(ast)!;
         yield* filter.scope.run(filter.ast, input); return;
       }
-      case "invoke": yield* this.invocation(ast).run(ast.body, input); return;
+      case "define": yield* this.definitionScope(ast).run(ast.body, input); return;
+      case "invoke": await Promise.resolve(); yield* this.invocation(ast).run(ast.definition.body, input); return;
       case "label": {
         const target = this.labelSequence.next++;
         const labels = new Map(this.labels);
@@ -742,14 +747,24 @@ export class Interpreter {
       }
     }
   }
+  definitionScope(ast: Extract<Ast, { kind: "define" }>): Interpreter {
+    const scope = Object.create(Interpreter.prototype) as Interpreter;
+    const definitions = new Map(this.definitions);
+    Object.assign(scope, this, { definitions });
+    for (const definition of ast.definitions) definitions.set(definition, scope);
+    return scope;
+  }
   invocation(ast: Extract<Ast, { kind: "invoke" }>): Interpreter {
     const scope = Object.create(Interpreter.prototype) as Interpreter;
-    const filters = new Map(this.filters);
-    for (let index = 0; index < ast.parameters.length; index++) {
+    const lexical = this.definitions.get(ast.definition) ?? this;
+    const filters = new Map(lexical.filters);
+    const callDepth = this.callDepth + 1;
+    if (callDepth > this.budget.limits.maxDepth) throw new JqLimitError("maxDepth");
+    for (let index = 0; index < ast.definition.parameters.length; index++) {
       this.budget.step();
-      filters.set(ast.parameters[index]!, { ast: ast.args[index]!, scope: this });
+      filters.set(ast.definition.parameters[index]!, { ast: ast.args[index]!, scope: this });
     }
-    Object.assign(scope, this, { _filters: filters });
+    Object.assign(scope, lexical, { _filters: filters, callDepth });
     return scope;
   }
   async read(input: Json, path: Path): Promise<Json> {
@@ -766,7 +781,8 @@ export class Interpreter {
       const filter = this.filters.get(ast)!;
       yield* filter.scope.paths(filter.ast, input); return;
     }
-    if (ast.kind === "invoke") { yield* this.invocation(ast).paths(ast.body, input); return; }
+    if (ast.kind === "define") { yield* this.definitionScope(ast).paths(ast.body, input); return; }
+    if (ast.kind === "invoke") { yield* this.invocation(ast).paths(ast.definition.body, input); return; }
     if (ast.kind === "bind") {
       for await (const value of this.run(ast.source, input)) yield* this.binding(ast.name, value).paths(ast.body, input, depth);
       return;
@@ -929,6 +945,12 @@ export class Interpreter {
         yield* evaluate(result);
       }
       yield* visit(input);
+      return;
+    }
+    if (name === "gmtime") { yield gmtime(input); return; }
+    if (name === "mktime") { yield mktime(input); return; }
+    if (name === "strftime" || name === "strptime") {
+      for await (const format of this.run(args[0]!, input)) yield name === "strftime" ? strftime(input, format, budget) : strptime(input, format, budget);
       return;
     }
     if (name === "fromdateiso8601") { yield fromDateIso8601(input); return; }
@@ -1348,10 +1370,10 @@ export class Interpreter {
       }
       return;
     }
-    if (name === "gsub") {
+    if (name === "gsub" || name === "sub") {
       for await (const pattern of this.run(args[0]!, input)) {
         for await (const flags of args[2] ? this.run(args[2], input) : [""]) {
-          yield* substituteRegex(input, pattern, flags, captures => this.run(args[1]!, captures), budget);
+          yield* substituteRegex(input, pattern, flags, captures => this.run(args[1]!, captures), budget, name === "gsub");
         }
       }
       return;

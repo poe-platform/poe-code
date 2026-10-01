@@ -5,7 +5,7 @@ import { Budget, JqError, JqLimitError, object, put, type Json } from "./limits.
 import { describe } from "./values.js";
 
 export async function* substituteRegex(input: Json, source: Json, flags: Json,
-  replacement: (captures: Json) => AsyncIterable<Json>, budget: Budget): AsyncGenerator<Json> {
+  replacement: (captures: Json) => AsyncIterable<Json>, budget: Budget, global = true): AsyncGenerator<Json> {
   if (typeof input !== "string") throw new JqError(`${describe(input, budget)} cannot be matched, as it is not a string`);
   if (typeof source !== "string") throw new JqError(`${describe(source, budget)} is not a string`);
   if (typeof flags !== "string" || [...flags].some(flag => !"gimns".includes(flag))) throw new JqError(`${typeof flags === "string" ? flags + "g" : describe(flags, budget)} is not a valid modifier string`);
@@ -42,6 +42,7 @@ export async function* substituteRegex(input: Json, source: Json, flags: Json,
         for (let index = next.length; index < results.length; index++) next.push(results[index]!);
         results = next; copied = match.end;
       }
+      if (!global && !flags.includes("g")) break;
       search = match.end > match.start ? match.end : match.end + ((input.codePointAt(match.end) ?? 0) > 0xffff ? 2 : 1);
     }
     for (const prefix of results) {

@@ -6,9 +6,12 @@ export type BindingPattern =
   | { kind: "variable"; name: string; pattern?: BindingPattern }
   | { kind: "fields"; fields: { key: Ast; pattern: BindingPattern }[] };
 
+export interface Definition { parameters: Ast[]; body: Ast }
+
 export type Ast =
   | { kind: "parameter"; name: string }
-  | { kind: "invoke"; parameters: Ast[]; args: Ast[]; body: Ast }
+  | { kind: "invoke"; definition: Definition; args: Ast[] }
+  | { kind: "define"; definitions: Definition[]; body: Ast }
   | { kind: "format"; name: string }
   | { kind: "identity" }
   | { kind: "literal"; value: Json }
@@ -40,11 +43,11 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
   walk: [1],
   explode: [0], implode: [0], utf8bytelength: [0], floor: [0], ceil: [0], round: [0], abs: [0], index: [1], rindex: [1],
-  while: [2], until: [2], fromdateiso8601: [0], todateiso8601: [0],
+  while: [2], until: [2], fromdateiso8601: [0], todateiso8601: [0], strftime: [1], strptime: [1], gmtime: [0], mktime: [0],
   scan: [1], paths: [0, 1], getpath: [1], flatten: [0, 1], del: [1], error: [0, 1], startswith: [1], endswith: [1], ltrimstr: [1], rtrimstr: [1], ascii_downcase: [0], ascii_upcase: [0],
   halt: [0], halt_error: [0, 1], setpath: [2], delpaths: [1], empty: [0], select: [1], map: [1], map_values: [1], length: [0], keys: [0], keys_unsorted: [0], values: [0],
   type: [0], has: [1], contains: [1], inside: [1], bsearch: [1], sort: [0], sort_by: [1], unique: [0], unique_by: [1], group_by: [1], add: [0],
-  not: [0], reverse: [0], transpose: [0], combinations: [0], first: [0, 1], last: [0, 1], limit: [2], range: [1, 2, 3], join: [1], split: [1], splits: [1], gsub: [2, 3],
+  not: [0], reverse: [0], transpose: [0], combinations: [0], first: [0, 1], last: [0, 1], limit: [2], range: [1, 2, 3], join: [1], split: [1], splits: [1], sub: [2, 3], gsub: [2, 3],
   tostring: [0], tonumber: [0], tojson: [0], fromjson: [0], to_entries: [0], from_entries: [0], with_entries: [1],
   min: [0], max: [0], min_by: [1], max_by: [1], any: [0, 1, 2], all: [0, 1, 2],
   strings: [0], numbers: [0], booleans: [0], arrays: [0], objects: [0], nulls: [0], scalars: [0], iterables: [0],
@@ -139,7 +142,7 @@ function isPath(ast: Ast): boolean {
     if (node.kind === "identity" || node.kind === "parameter" || node.kind === "invoke" || node.kind === "descend") continue;
     if (node.kind === "index" || node.kind === "iterate" || node.kind === "slice") pending.push(node.base);
     else if (node.kind === "optional") pending.push(node.operand);
-    else if (node.kind === "bind") pending.push(node.body);
+    else if (node.kind === "bind" || node.kind === "define") pending.push(node.body);
     else if (node.kind === "call" && ["select", "values", "strings", "numbers", "booleans", "arrays", "objects", "nulls", "scalars", "iterables", "empty"].includes(node.name)) continue;
     else if (node.kind === "binary" && (node.operator === "," || node.operator === "|")) pending.push(node.left, node.right);
     else return false;
@@ -256,6 +259,17 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
   const expression = (minimum = 0, stopComma = false): Ast => {
     if (++nesting > limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
     try {
+      if (peek().text === "def") {
+        const previous = new Map(definitions);
+        try {
+          const entries: Definition[] = [];
+          while (accept("def")) entries.push(definition());
+          return { kind: "define", definitions: entries, body: expression(0, stopComma) };
+        } finally {
+          definitions.clear();
+          for (const [name, value] of previous) definitions.set(name, value);
+        }
+      }
       let left = primary();
       while (true) {
         const operator = peek().text;
@@ -415,7 +429,12 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
     return result!;
   };
   const bodies: Ast[] = [];
-  while (definitions && accept("def")) {
+  const definition = (): Definition => {
+    const previousParameters = new Map(parameters);
+    const previousBindings = new Map(bindings);
+    const previousDefinitions = new Map(definitions);
+    const previousDefining = defining;
+    const names = new Set<string>();
     budget.step();
     const name = take();
     if (name.kind !== "name") fail("expected function name");
@@ -425,7 +444,8 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       do {
         const value = accept("$");
         const parameter = take();
-        if (parameter.kind !== "name" || parameters.has(parameter.text) || parameters.has(`$${parameter.text}`)) fail("expected unique parameter name");
+        if (parameter.kind !== "name" || names.has(parameter.text)) fail("expected unique parameter name");
+        names.add(parameter.text);
         const node: Ast = { kind: "parameter", name: parameter.text };
         parameters.set(value ? `$${parameter.text}` : parameter.text, node);
         formal.push(node);
@@ -436,28 +456,43 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       expect(")");
     }
     expect(":");
+    const entry: Ast = { kind: "invoke", definition: { parameters: formal, body: { kind: "identity" } }, args: [] };
+    const signature = `${name.text}/${formal.length}`;
+    definitions.set(signature, entry);
     defining = true;
     let body: Ast;
-    try { body = expression(); } finally { defining = false; }
+    try { body = expression(); } finally { defining = previousDefining; }
     expect(";");
     for (let index = formal.length - 1; index >= 0; index--) {
       if (values[index]) body = { kind: "bind", name: values[index]!, source: formal[index]!, body };
     }
     parameters.clear();
-    for (const value of values) if (value) bindings.delete(value);
-    definitions.set(`${name.text}/${formal.length}`, { kind: "invoke", parameters: formal, args: [], body });
+    for (const [name, value] of previousParameters) parameters.set(name, value);
+    bindings.clear();
+    for (const [name, value] of previousBindings) bindings.set(name, value);
+    definitions.clear();
+    for (const [name, value] of previousDefinitions) definitions.set(name, value);
+    entry.definition.body = body;
+    definitions.set(signature, entry);
     budget.collection(definitions.size);
     bodies.push(body);
-  }
+    return entry.definition;
+  };
+  const entries: Definition[] = [];
+  while (accept("def")) entries.push(definition());
   if (module && peek().kind !== "end") fail("module must contain only imports and definitions");
-  const ast = module ? { kind: "identity" as const } : expression();
+  const body = module ? { kind: "identity" as const } : expression();
+  const ast: Ast = entries.length && !module ? { kind: "define", definitions: entries, body } : body;
   if (peek().kind !== "end") syntaxError(peek(), true);
   const pending: { node: Ast; depth: number }[] = [ast, ...bodies].map(node => ({ node, depth: 1 }));
   const errors: string[] = [];
   let errorBytes = 0;
+  const visited = new Set<Ast>();
   while (pending.length) {
     budget.step();
     const { node, depth } = pending.pop()!;
+    if (visited.has(node)) continue;
+    visited.add(node);
     if (depth > limits.maxAstDepth) throw new JqLimitError("maxAstDepth");
     const token = unresolved.get(node);
     if (token && node.kind === "call") {
@@ -468,8 +503,8 @@ export function parse(source: string, variables: ReadonlyMap<string, Json>, budg
       continue;
     }
     const children: Ast[] = [];
-    if (node.kind === "invoke") children.push(node.body, ...node.args);
-    else if (node.kind === "label") children.push(node.body);
+    if (node.kind === "invoke") children.push(...node.args);
+    else if (node.kind === "label" || node.kind === "define") children.push(node.body);
     else if (node.kind === "binary") children.push(node.left, node.right);
     else if (node.kind === "bind") children.push(node.source, node.body);
     else if (node.kind === "destructure") {

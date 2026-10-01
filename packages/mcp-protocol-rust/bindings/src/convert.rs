@@ -41,15 +41,21 @@ impl ToNapiValue for NativeJson {
                         sys::napi_create_array_with_length(env, values.len(), &mut array)
                     })?;
                     pending.extend(values.into_iter().enumerate().rev().map(|(index, value)| {
-                        (NativeJson(value), Some((array, index.to_string().encode_utf16().collect())))
+                        (
+                            NativeJson(value),
+                            Some((array, index.to_string().encode_utf16().collect())),
+                        )
                     }));
                     array
                 }
                 Value::Object(properties) => {
                     let object = Object::new(&environment)?.raw();
-                    pending.extend(properties.into_iter().rev().map(|(key, value)| {
-                        (NativeJson(value), Some((object, key)))
-                    }));
+                    pending.extend(
+                        properties
+                            .into_iter()
+                            .rev()
+                            .map(|(key, value)| (NativeJson(value), Some((object, key)))),
+                    );
                     object
                 }
             };

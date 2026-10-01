@@ -3,6 +3,8 @@ use napi::{Env, Error, bindgen_prelude::*};
 use napi_derive::napi;
 use toolcraft_schema_rust::{CompileOptions, CompiledSchema, FormatValidator, ValidationOptions};
 
+pub mod host_values;
+
 #[path = "../../../mcp-protocol-rust/bindings/src/convert.rs"]
 mod convert;
 #[path = "../../../mcp-protocol-rust/bindings/src/json_input.rs"]

@@ -15,13 +15,15 @@
   },
   "scripts": {
     "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && vitest run --config vitest.reference.config.mjs && tsc --project tsconfig.types.json",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint"
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
     "mcp-protocol-rust": "*",
-    "toolcraft-schema": "*"
+    "toolcraft-schema": "*",
+    "typescript": "5.9.3",
+    "vitest": "4.1.11"
   },
   "files": [
     "dist",

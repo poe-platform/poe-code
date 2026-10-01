@@ -122,6 +122,14 @@ design styling. The original renderer tests and differential coverage exercise
 line endings, UTF-16, numeric edge cases, changing accessors, styling scopes and
 exception identity. Its subpath declaration is included in build and type checks.
 
+The schema dependency now has native `cloneDefaultValue` and `isJsonValue`
+traversals with host identity, descriptor and enumeration operations. Differential
+coverage checks cycles, aliasing, sparse slots, prototype/serialization guards,
+budgets, getter/proxy order, deep graphs and arbitrary thrown values. The original
+default-isolation and JSON-safety suites run with these native utilities injected
+into the JavaScript builders and validator; those builders and the DSL validator
+remain unported. These utility checks do not establish DSL replacement readiness.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

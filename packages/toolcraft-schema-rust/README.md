@@ -16,6 +16,7 @@ This private package is an additive implementation checkpoint.
 | Vocabularies     | Registered metadata controls validation keywords while retaining applicators                                    |
 | Formats          | Explicit custom validators, snapshotted registrations, synchronous errors and reentrant validation              |
 | Diagnostics      | Structured issue paths, messages, keywords and formatted summaries                                              |
+| Host values      | JSON admission with node/depth budgets; default cloning with cycles, sparse arrays and resource identity        |
 
 ```ts
 import { compileJsonSchema, formatIssues } from "toolcraft-schema-rust";
@@ -36,6 +37,17 @@ their Rust graph, so later edits to the source schema do not change validation.
 Input copying rejects accessors, serialization hooks, cycles and sparse arrays
 without executing getters or hooks. It preserves own UTF-16 names and strings.
 Graphs retain each child schema once rather than copying subtrees at every node.
+
+Use `isJsonValue(value, { maxNodes, maxDepth })` to check JSON safety without
+executing getters or serialization hooks. Defaults are 10,000 nodes and depth 64;
+explicit `Infinity` removes either budget. Repeated references consume the node
+budget each time, and ancestor cycles are rejected.
+
+Use `cloneDefaultValue(value)` to isolate plain object and array containers while
+preserving cycles, shared references, sparse slots and null prototypes. Functions
+and opaque resources retain identity. Enumerable getters run once in depth-first
+order, and thrown values propagate unchanged. Both utilities use iterative Rust
+traversal with host property operations and work independently of the compiler.
 
 The default dialect is 2020-12. Declare draft 7 with `$schema` when needed.
 Equality retains the existing compiler's signed-zero behavior. Diagnostic paths
@@ -66,7 +78,7 @@ Native callbacks are borrowed only for a synchronous evaluation and are isolated
 between worker environments. Rust callers inject validators through `ValidationOptions`.
 
 Full schema compatibility is still in progress.
-the fluent schema DSL, and arbitrary non-JSON host values remain pending. Known
+The fluent schema DSL and compiler support for arbitrary non-JSON host values remain pending. Known
 unfinished constraints fail at compilation rather than being silently ignored;
 unregistered `format` remains an annotation. Current ingress requires JSON values.
 Keep existing applications on `toolcraft-schema` until the full conformance gates

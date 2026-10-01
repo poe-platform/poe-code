@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+export { cloneDefaultValue, isJsonValue } from "./host-values.js";
 
 const { NativeCompiledSchema, normalizeLegacyNullability } = createRequire(import.meta.url)(
   "./toolcraft-schema-rust.node"

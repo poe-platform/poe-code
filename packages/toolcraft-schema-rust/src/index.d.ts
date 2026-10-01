@@ -19,3 +19,10 @@ export declare function compileJsonSchema(
 ): CompiledJsonSchema;
 export declare function formatIssues(issues: readonly ValidationIssue[]): string;
 export declare function normalizeLegacyNullability(schema: object): Record<string, unknown>;
+
+export declare function cloneDefaultValue<Value>(value: Value): Value;
+export interface JsonValueValidationOptions {
+  readonly maxNodes?: number;
+  readonly maxDepth?: number;
+}
+export declare function isJsonValue(value: unknown, options?: JsonValueValidationOptions): boolean;

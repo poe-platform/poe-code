@@ -2,6 +2,8 @@ import {
   compileJsonSchema,
   formatIssues,
   normalizeLegacyNullability,
+  cloneDefaultValue,
+  isJsonValue,
   type CompiledJsonSchema
 } from "../src/index.js";
 const nullableSchema: Record<string, unknown> = normalizeLegacyNullability({
@@ -17,6 +19,13 @@ const schema: CompiledJsonSchema = compileJsonSchema(
   }
 );
 const input = { message: "hello" };
+const cloned: typeof input = cloneDefaultValue(input);
+const json: boolean = isJsonValue(cloned, { maxDepth: Infinity, maxNodes: 100 });
+void json;
+const compatibleClone: typeof import("toolcraft-schema").cloneDefaultValue = cloneDefaultValue;
+const compatibleJson: typeof import("toolcraft-schema").isJsonValue = isJsonValue;
+void compatibleClone;
+void compatibleJson;
 const result = schema.validate(input);
 if (result.ok) {
   const message: string = result.value.message;

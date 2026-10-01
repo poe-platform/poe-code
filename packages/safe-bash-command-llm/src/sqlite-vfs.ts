@@ -18,6 +18,7 @@ export function createSqliteVfs(options: {
   type Entry = { file: FileDescriptor; name: string; remove: boolean };
   const handles = new Map<number, Entry>();
   const pending = new Set<Promise<number>>();
+  const opening = new Map<number, string>();
   let disposal: Promise<void> | undefined;
   let failed = false, failure: unknown, disposed = false;
   const fail = (error: unknown): void => { if (!failed) { failed = true; failure = error; } };
@@ -64,23 +65,26 @@ export function createSqliteVfs(options: {
   return {
     async jOpen(name: string | null, id: number, flags: number, out: DataView): Promise<number> {
       return execute(async () => {
-        if (handles.has(id) || handles.size >= maxOpenFiles) throw new FsError('EMFILE', { message: 'SQLite open file limit exceeded' });
+        if (handles.has(id) || opening.has(id) || handles.size + opening.size >= maxOpenFiles) throw new FsError('EMFILE', { message: 'SQLite open file limit exceeded' });
         const temporary = name === null;
         const path = filename(name ?? `${directory}/sqlite-temp-${crypto.randomUUID()}`);
-        if ([...handles.values()].some(value => value.name === path)) throw new FsError('EBUSY', { path, message: 'SQLite private files require a single connection' });
-        const file = await open(path, { access: flags & 1 ? 'read' : 'readwrite', creation: temporary || flags & 16 ? 'exclusive' : flags & 4 ? 'ifMissing' : 'never', noFollow: true, mode: 0o600, signal });
-        const value = { file, name: path, remove: temporary || Boolean(flags & 8) };
+        if ([...opening.values()].includes(path) || [...handles.values()].some(value => value.name === path)) throw new FsError('EBUSY', { path, message: 'SQLite private files require a single connection' });
+        opening.set(id, path);
         try {
-          admit();
-          if (!file.capabilities.positionedRead || (!(flags & 1) && (!file.capabilities.positionedWrite || !file.capabilities.truncate))) throw new FsError('ENOTSUP', { message: 'SQLite requires positioned descriptor IO' });
-          const stat = await file.stat({ signal });
-          if (stat.type !== 'file') throw new FsError('EINVAL', { path });
-          growth(offset(stat.size)); admit();
-          out.setInt32(0, flags, true); handles.set(id, value); return 0;
-        } catch (error) {
-          try { await close(value); } catch (cleanup) { throw new AggregateError([error, cleanup], 'SQLite open and cleanup failed'); }
-          throw error;
-        }
+          const file = await open(path, { access: flags & 1 ? 'read' : 'readwrite', creation: temporary || flags & 16 ? 'exclusive' : flags & 4 ? 'ifMissing' : 'never', noFollow: true, mode: 0o600, signal });
+          const value = { file, name: path, remove: temporary || Boolean(flags & 8) };
+          try {
+            admit();
+            if (!file.capabilities.positionedRead || (!(flags & 1) && (!file.capabilities.positionedWrite || !file.capabilities.truncate))) throw new FsError('ENOTSUP', { message: 'SQLite requires positioned descriptor IO' });
+            const stat = await file.stat({ signal });
+            if (stat.type !== 'file') throw new FsError('EINVAL', { path });
+            growth(offset(stat.size)); admit();
+            out.setInt32(0, flags, true); handles.set(id, value); return 0;
+          } catch (error) {
+            try { await close(value); } catch (cleanup) { throw new AggregateError([error, cleanup], 'SQLite open and cleanup failed'); }
+            throw error;
+          }
+        } finally { opening.delete(id); }
       }, 14);
     },
     async jClose(id: number): Promise<number> {

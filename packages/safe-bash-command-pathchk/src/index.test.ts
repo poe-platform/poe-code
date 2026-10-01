@@ -37,3 +37,14 @@ test("pathchk validates POSIX portability, leading dashes, component lengths, an
   assert.equal((await runPathchk(["-P", ""])).exitCode, 1);
   assert.equal((await runPathchk(["/file/child"], { "/file": "data" })).exitCode, 1);
 });
+
+test("pathchk checks directory components before parent traversal and trailing slashes", async () => {
+  for (const path of ["/file/../other", "/file/", "/file//", "/file/.", "file/../other", "file/"]) {
+    const result = await runPathchk([path], { "/file": "data" });
+    assert.equal(result.exitCode, 1, path);
+    assert.match(result.stderr, /Not a directory/);
+  }
+  for (const path of ["/missing/../other", "/missing/", "/", "/../other"]) {
+    assert.equal((await runPathchk([path])).exitCode, 0, path);
+  }
+});

@@ -49,18 +49,6 @@ const VERSION_TEXT = `pathchk (Sandbox VFS-ish/GNU coreutils) 9.7
 
 const PORTABLE_CHAR_RE = /^[A-Za-z0-9._-]+$/;
 
-function resolveVfsPath(cwd: string, target: string): string {
-  const raw = target.startsWith("/") ? target : (cwd.endsWith("/") ? cwd + target : `${cwd}/${target}`);
-  const parts = raw.split("/");
-  const stack: string[] = [];
-  for (const part of parts) {
-    if (!part || part === ".") continue;
-    if (part === "..") stack.pop();
-    else stack.push(part);
-  }
-  return "/" + stack.join("/");
-}
-
 export function createPathchkCommand(options: PathchkCommandsOptions = {}): CommandDefinition {
   const limits = settings(options);
   return {
@@ -202,12 +190,13 @@ export function createPathchkCommand(options: PathchkCommandsOptions = {}): Comm
 
         if (!checkBasicPosix) {
           // Verify existing ancestor prefixes on VFS are directories
-          const full = resolveVfsPath(context.cwd, name);
-          const parts = full.split("/").filter(Boolean);
+          const full = name.startsWith("/") ? name : `${context.cwd}/${name}`;
+          const parts = full.split("/");
           let current = "";
           for (let k = 0; k < parts.length - 1; k++) {
             context.signal.throwIfAborted();
             if ((k & 127) === 0) await yieldTurn(context.signal);
+            if (!parts[k]) continue;
             current += "/" + parts[k]!;
             try {
               const st = await context.fs.stat(current, { signal: context.signal });

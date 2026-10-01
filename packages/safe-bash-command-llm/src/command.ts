@@ -134,7 +134,13 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       offset = end;
     }
   };
-  const input = createLlmInputBudget(limits, context.inputBudget);
+  const input = createLlmInputBudget(limits);
+  let shellInputBytes = 0;
+  const admitInput = (size: number, materialized = false): void => {
+    context.inputBudget?.check(shellInputBytes + size);
+    input.admit(size, materialized);
+    shellInputBytes += size;
+  };
   const admitBuffered = (size: number): void => input.admit(size, true);
   const invocationLoaders = { ...templateLoaderOptions, get maxBytes() { return input.remaining(true); }, admitBytes: admitBuffered };
   try {
@@ -246,7 +252,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         if (result.done) break;
         const chunk = result.value;
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
-        input.admit(chunk.byteLength, !stagePrompt);
+        admitInput(chunk.byteLength, !stagePrompt);
         stdinBytes += chunk.byteLength;
         if (stagePrompt) {
           for (let offset = 0; offset < chunk.byteLength; offset += 16384) {
@@ -332,6 +338,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (attachment.path.includes("://")) throw new Error("URL attachments are not supported");
       const path = pathOf(context, attachment.path);
       const stat = await interrupted(() => context.fs.stat(path, { signal }), signal);
+      context.inputBudget?.check(shellInputBytes + stat.size);
       input.check(stat.size, !streamed);
       if (streamed) {
         const source = await operation.acquire(() => fileSource({ fs: context.fs, path, signal, maxBytes: input.remaining(), expectedStat: stat }), source => source.dispose());
@@ -339,7 +346,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         const first = await interrupted(() => chunks.next(), signal);
         const mimeType = attachment.mimeType ?? sniffMimeType(path, first.done ? new Uint8Array() : first.value);
         if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
-        input.admit(stat.size);
+        admitInput(stat.size);
         let closed = false, consumed = false;
         sourceAttachments.push({ mimeType, source: {
           async dispose() { closed = true; await source.dispose(); },
@@ -364,7 +371,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       }), signal);
       signal.throwIfAborted();
       if (!(bytes instanceof Uint8Array)) throw new TypeError("Attachment read must return Uint8Array");
-      input.admit(bytes.byteLength, true);
+      admitInput(bytes.byteLength, true);
       const mimeType = attachment.mimeType ?? sniffMimeType(path, bytes);
       if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
       attachments.push({ mimeType, bytes: new Uint8Array(bytes) });

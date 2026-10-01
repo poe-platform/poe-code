@@ -143,3 +143,24 @@ test("UTF-16 output includes its BOM and is limited by bytes", async () => {
   assert.equal(limited.exitCode, 5);
   assert.equal(limited.files.size, 0);
 });
+
+for (const [query, expected] of [
+  ["string(//item[@id=2])", "Beta"],
+  ["//item[@id!=1]/text()", "Beta"],
+  ["//item[@id<2]/text()", "Alpha"],
+  ["//item[@id<=1]/text()", "Alpha"],
+  ["//item[@id>1]/text()", "Beta"],
+  ["//item[@id>=2]/text()", "Beta"],
+  ["//item[contains(@class, 'foo')]/text()", "Alpha"],
+  ["//item[starts-with(@class, 'ba')]/text()", "Beta"],
+  ["//item[not(@id='1')]/text()", "Beta"],
+  ["//item[@id='1' and @class='foo bar']/text()", "Alpha"],
+  ["//item[@id='1' or @id='2']/text()", "Alpha\nBeta"],
+  ["number(//item/@id)", "1"],
+  ["concat(//item[1]/text(), '-', //item[2]/text())", "Alpha-Beta"],
+] as const) test(`attribute predicate parity: ${query}`, async () => {
+  const result = await run(["--xpath", query],
+    '<root><item id="1" class="foo bar">Alpha</item><item id="2" class="bar">Beta</item></root>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});

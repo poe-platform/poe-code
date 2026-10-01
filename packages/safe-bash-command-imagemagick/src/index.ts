@@ -5603,7 +5603,8 @@ async function executeVfsMagickTool(
     files: Map<string, Uint8Array>,
     stdinBytes?: Uint8Array,
     signal?: AbortSignal
-  ) => Promise<ImageMagickCliResult>
+  ) => Promise<ImageMagickCliResult>,
+  maxInputBytes: number
 ): Promise<{ exitCode: number }> {
   let cooperativeWork = 63;
   const invocation = createOutputOperation(context, { write: async () => {} });
@@ -5614,6 +5615,13 @@ async function executeVfsMagickTool(
     const resolveVfsPath = (p: string) =>
       p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
 
+    const budget = new InputByteBudget(maxInputBytes);
+    let accountedBytes = 0;
+    const chargeInput = (bytes: number) => {
+      budget.charge(bytes);
+      accountedBytes += bytes;
+      context.inputBudget?.check(accountedBytes);
+    };
     let needsStdin = false;
     const hasOutputOperand = runner !== runIdentifyCli && !(runner === runMagickCli && argv[0] === "identify");
     for (const [index, token] of argv.entries()) {
@@ -5632,14 +5640,17 @@ async function executeVfsMagickTool(
       if (bracketMatch) {
         candidate = bracketMatch[1]!;
       }
+      let bytes: Uint8Array;
       try {
-        const bytes = await context.fs.readFile(resolveVfsPath(candidate), {
+        bytes = await context.fs.readFile(resolveVfsPath(candidate), {
           signal: invocation.signal
         });
-        vfsFiles.set(candidate, bytes);
       } catch {
         // Output file or pseudo-operand
+        continue;
       }
+      chargeInput(bytes.byteLength);
+      vfsFiles.set(candidate, bytes);
     }
 
     let stdinBytes: Uint8Array | undefined;
@@ -5648,6 +5659,7 @@ async function executeVfsMagickTool(
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
+        chargeInput(chunk.byteLength);
         chunks.push(chunk);
         total += chunk.byteLength;
       }
@@ -5659,7 +5671,7 @@ async function executeVfsMagickTool(
         off += chunk.byteLength;
       }
     }
-    context.inputBudget?.check(0);
+    context.inputBudget?.check(accountedBytes);
     const existingSnap = new Map(vfsFiles);
     const res = await runner(argv, vfsFiles, stdinBytes, invocation.signal);
 
@@ -5700,9 +5712,7 @@ export function createMagickCommand(options: ImageMagickCommandOptions = {}): Co
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick v7 image processor powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsMagickTool(context, runMagickCli);
-      });
+      return executeVfsMagickTool(context, runMagickCli, maxInputBytes);
     }
   });
 }
@@ -5716,9 +5726,7 @@ export function createConvertCommand(options: ImageMagickCommandOptions = {}): C
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick convert pipeline powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsMagickTool(context, runConvertCli);
-      });
+      return executeVfsMagickTool(context, runConvertCli, maxInputBytes);
     }
   });
 }
@@ -5732,9 +5740,7 @@ export function createMogrifyCommand(options: ImageMagickCommandOptions = {}): C
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick in-place batch image processor powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsMagickTool(context, runMogrifyCli);
-      });
+      return executeVfsMagickTool(context, runMogrifyCli, maxInputBytes);
     }
   });
 }
@@ -5748,9 +5754,7 @@ export function createCompositeCommand(options: ImageMagickCommandOptions = {}):
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick overlay composition tool powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsMagickTool(context, runCompositeCli);
-      });
+      return executeVfsMagickTool(context, runCompositeCli, maxInputBytes);
     }
   });
 }
@@ -5764,9 +5768,7 @@ export function createMontageCommand(options: ImageMagickCommandOptions = {}): C
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick contact-sheet grid generator powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsMagickTool(context, runMontageCli);
-      });
+      return executeVfsMagickTool(context, runMontageCli, maxInputBytes);
     }
   });
 }
@@ -5780,9 +5782,7 @@ export function createIdentifyCommand(options: ImageMagickCommandOptions = {}): 
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick image metadata inspector powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsMagickTool(context, runIdentifyCli);
-      });
+      return executeVfsMagickTool(context, runIdentifyCli, maxInputBytes);
     }
   });
 }
@@ -5796,9 +5796,7 @@ export function createCompareCommand(options: ImageMagickCommandOptions = {}): C
     runtimeIdentity: commandRuntimeIdentity,
     description: "ImageMagick image comparison and diff generator powered by @poe-code/image-ast",
     execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executeVfsMagickTool(context, runCompareCli);
-      });
+      return executeVfsMagickTool(context, runCompareCli, maxInputBytes);
     }
   });
 }

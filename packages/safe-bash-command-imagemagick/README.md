@@ -34,4 +34,4 @@ The workspace entrypoint exports `imagemagickCommands()` for plugin registration
 `createImagemagickCommand` is the `createMagickCommand` factory; the collection
 includes all seven tools registered by the ImageMagick plugin.
 
-Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `ImagemagickLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and image generation and pixel transforms yield to timers and cancellation, including Workers with frozen clocks.
+Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound cumulative file and stdin input. Caller-provided input budgets also receive cumulative read totals; output is accounted separately. `ImagemagickLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and image generation and pixel transforms yield to timers and cancellation, including Workers with frozen clocks.

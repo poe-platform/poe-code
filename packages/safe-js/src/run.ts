@@ -438,10 +438,9 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
               migration: restoredSnapshot?.migration,
               bindings: executionScope.snapshot().bindings,
               clock: options.clock,
-              hostCalls: hostCalls.snapshot(),
-              replay: hostCalls.snapshotReplay(),
+              hostCalls,
               initialInputs: initialInputs.snapshot,
-              promiseReplay: promiseReplay.snapshot(),
+              promiseReplay,
               random,
               sourceHash
             });
@@ -469,12 +468,11 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
                   migration: restoredSnapshot?.migration,
                   bindings: interpreterSnapshot.bindings,
                   clock: options.clock,
-                  hostCalls: hostCalls.snapshot(),
+                  hostCalls,
                   loopIterations: interpreterSnapshot.loopIterations,
                   pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
-                  replay: hostCalls.snapshotReplay(),
                   initialInputs: initialInputs.snapshot,
-                  promiseReplay: promiseReplay.snapshot(),
+                  promiseReplay,
                   random,
                   randomResumeState:
                     typeof yieldPoint.replayState === "number" ? yieldPoint.replayState : undefined,
@@ -519,12 +517,11 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
                         migration: restoredSnapshot?.migration,
                         bindings: interpreterSnapshot.bindings,
                         clock: options.clock,
-                        hostCalls: hostCalls.snapshot(),
+                        hostCalls,
                         loopIterations: interpreterSnapshot.loopIterations,
                         pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
-                        replay: hostCalls.snapshotReplay(),
                         initialInputs: initialInputs.snapshot,
-                        promiseReplay: promiseReplay.snapshot(),
+                        promiseReplay,
                         random,
                         randomResumeState:
                           typeof yieldPoint.replayState === "number"
@@ -546,27 +543,17 @@ export function run(source: string, options: RunOptions = {}): RunPromise {
           await throwIfUnhandledPromiseRejected(promiseTracker);
           await activeSnapshotScheduler.finish();
 
-          let replay: HostCallReplay | undefined;
-          let replayError: string | undefined;
-          try {
-            replay = hostCalls.snapshotReplay();
-          } catch (error) {
-            if (!(error instanceof MissingReplayCapabilityError)) throw error;
-            replayError = error.message;
-          }
           const snapshot = createRunSnapshot({
             executionSemantics,
             migration: restoredSnapshot?.migration,
             bindings: executionScope.snapshot().bindings,
             clock: options.clock,
-            hostCalls: hostCalls.snapshot(),
-            replay,
+            hostCalls,
             initialInputs: initialInputs.snapshot,
-            promiseReplay: promiseReplay.snapshot(),
+            promiseReplay,
             random,
             sourceHash
           });
-          if (replayError !== undefined) snapshot.replayError = replayError;
           dumpController.finalize(snapshot);
           completedSnapshot = snapshot;
 
@@ -783,9 +770,8 @@ function createRunSnapshot(input: {
   migration?: SafeJSSnapshot["migration"];
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;
-  hostCalls?: HostCallRecord[];
-  replay?: HostCallReplay;
-  promiseReplay?: PromiseReplaySnapshot;
+  hostCalls: HostCallJournal;
+  promiseReplay: PromiseReplay;
   initialInputs?: ReplayData;
   loopIterations?: Record<string, LoopIterationSnapshot>;
   pendingAwaits?: RunPendingAwaitSnapshot[];
@@ -799,6 +785,15 @@ function createRunSnapshot(input: {
     | undefined;
   sourceHash: string;
 }): RunSnapshot {
+  let replay: HostCallReplay | undefined;
+  let replayError: string | undefined;
+  try {
+    replay = input.hostCalls.snapshotReplay();
+  } catch (error) {
+    if (!(error instanceof MissingReplayCapabilityError)) throw error;
+    replayError = error.message;
+  }
+  const hostCalls = input.hostCalls.snapshot();
   const snapshot: RunSnapshot = {
     version: DUMP_FORMAT_VERSION,
     executionSemantics: input.executionSemantics,
@@ -806,13 +801,12 @@ function createRunSnapshot(input: {
     ...(input.migration === undefined ? {} : { migration: structuredClone(input.migration) }),
     bindings: input.bindings,
     clock: input.clock?.snapshot(),
-    ...(input.hostCalls === undefined || input.hostCalls.length === 0
-      ? {}
-      : { hostCalls: input.hostCalls }),
+    ...(hostCalls.length === 0 ? {} : { hostCalls }),
     ...(input.loopIterations === undefined ? {} : { loopIterations: input.loopIterations }),
-    ...(input.replay === undefined ? {} : { replay: input.replay }),
+    ...(replay === undefined ? {} : { replay }),
+    ...(replayError === undefined ? {} : { replayError }),
     ...(input.initialInputs === undefined ? {} : { initialInputs: structuredClone(input.initialInputs) }),
-    ...(input.promiseReplay === undefined ? {} : { promiseReplay: input.promiseReplay }),
+    promiseReplay: input.promiseReplay.snapshot(),
     ...(input.pendingAwaits === undefined || input.pendingAwaits.length === 0
       ? {}
       : { pendingAwaits: input.pendingAwaits }),

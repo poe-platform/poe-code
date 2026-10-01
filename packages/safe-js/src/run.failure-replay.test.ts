@@ -302,7 +302,7 @@ describe("failed run recovery checkpoints", () => {
       const early = dump(execution);
       await expect(execution).rejects.toThrow("failed");
       await early;
-      await expect(dump(execution, { onFailure: "checkpoint" })).rejects.toThrow("failed");
+      await expect(dump(execution, { onFailure: "checkpoint" })).rejects.toThrow(/not replayable/);
     } finally {
       warning.mockRestore();
     }

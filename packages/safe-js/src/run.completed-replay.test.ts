@@ -46,6 +46,44 @@ describe("completed snapshot replay", () => {
     expect(read).not.toHaveBeenCalled();
   });
 
+  it("preserves guest failure without host warnings when replay contains native callables", async () => {
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      await expect(run('await load(); throw new Error("guest failure");', {
+        bindings: { load: async () => ({ callback: () => 1 }) }
+      })).rejects.toThrow("guest failure");
+      expect(warning).not.toHaveBeenCalled();
+    } finally { warning.mockRestore(); }
+  });
+
+  it.each([false, true])("marks incomplete yield and failure replay (entry point=%s)", async entryPoint => {
+    const snapshots: import("./snapshot/backend.js").Snapshot[] = [];
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const body = 'await load(); await tick(); throw new Error("guest failure");';
+    try {
+      await expect(run(entryPoint ? `export default async function () { ${body} }` : body, {
+        ...(entryPoint ? { entryPointArgs: [] } : {}),
+        bindings: {
+          load: async () => ({ callback: () => 1 }),
+          tick: async () => { await new Promise(resolve => setTimeout(resolve, 5)); }
+        },
+        snapshotIntervalMs: 1,
+        snapshotBackend: {
+          async read() { return undefined; },
+          async remove() {},
+          async write(snapshot) { snapshots.push(snapshot); }
+        }
+      })).rejects.toThrow("guest failure");
+      expect(snapshots.length).toBeGreaterThanOrEqual(2);
+      expect(snapshots.at(-1)?.replayError).toMatch(/resume capability/);
+      expect(snapshots.some(snapshot => snapshot.pendingAwaits?.length && snapshot.replayError)).toBe(true);
+      for (const snapshot of snapshots.filter(snapshot => snapshot.replayError)) {
+        expect(() => serializeSafeJSSnapshot(snapshot)).toThrow(/not replayable/);
+      }
+      expect(warning).not.toHaveBeenCalled();
+    } finally { warning.mockRestore(); }
+  });
+
   it(
     "keeps ordinary execution available but refuses incomplete native function snapshots",
     async () => {

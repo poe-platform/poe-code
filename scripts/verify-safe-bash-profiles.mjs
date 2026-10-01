@@ -73,11 +73,11 @@ shell.use(htmlqCommands());
 shell.use(lessCommands());
 shell.use(unrtfCommands());
 shell.use(yqCommands());
-shell.use(ddCommands());
+shell.use(ddCommands({ replace: true }));
 shell.use(yesCommands());
 await shell.exec("true");
 for (const name of ["ln", "readlink"]) shell.commands.unregister(name);`,
-    smoke: `check(JSON.stringify(shell.commands.list().filter(command => command.name !== "probe").map(command => command.name).sort()) === JSON.stringify(["[", "apply_patch", "awk", "base32", "base64", "basename", "bc", "bunzip2", "bzcat", "bzip2", "cat", "chmod", "cksum", "cmp", "column", "comm", "cp", "csplit", "csvcut", "csvgrep", "cut", "date", "dd", "diff", "diff3", "dirname", "dos2unix", "du", "echo", "egrep", "env", "expand", "expr", "factor", "false", "fd", "fgrep", "file", "find", "fmt", "fold", "getopt", "grep", "gunzip", "gzip", "hd", "head", "hexdump", "html-to-markdown", "htmlq", "iconv", "join", "jq", "less", "ls", "lzcat", "lzma", "md5sum", "mdq", "mkdir", "mktemp", "more", "mv", "nl", "numfmt", "od", "paste", "patch", "pr", "printenv", "printf", "pwd", "realpath", "rev", "rg", "rm", "rmdir", "sed", "seq", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum", "shuf", "sleep", "sort", "split", "stat", "strings", "tac", "tail", "tar", "tee", "test", "timeout", "touch", "tr", "tree", "true", "truncate", "tsort", "unexpand", "uniq", "unix2dos", "unlzma", "unrtf", "unxz", "unzip", "unzstd", "wc", "which", "xan", "xargs", "xmllint", "xq", "xxd", "xz", "xzcat", "yes", "yq", "zcat", "zip", "zstd", "zstdcat"]), "enabled consumer inventory");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
+    smoke: `check(JSON.stringify(shell.commands.list().filter(command => command.name !== "probe").map(command => command.name).sort()) === JSON.stringify(["[", "apply_patch", "awk", "base32", "base64", "basename", "bc", "bunzip2", "bzcat", "bzip2", "cat", "chmod", "cksum", "cmp", "column", "comm", "cp", "csplit", "csvcut", "csvgrep", "cut", "date", "dd", "diff", "diff3", "dirname", "dos2unix", "du", "echo", "egrep", "env", "expand", "expr", "factor", "false", "fd", "fgrep", "file", "find", "fmt", "fold", "getopt", "grep", "gunzip", "gzip", "hd", "head", "hexdump", "html-to-markdown", "htmlq", "iconv", "install", "join", "jq", "less", "ls", "lzcat", "lzma", "md5sum", "mdq", "mkdir", "mktemp", "more", "mv", "nl", "numfmt", "od", "paste", "patch", "pr", "printenv", "printf", "pwd", "realpath", "rev", "rg", "rm", "rmdir", "sed", "seq", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum", "shuf", "sleep", "sort", "split", "stat", "strings", "tac", "tail", "tar", "tee", "test", "timeout", "touch", "tr", "tree", "true", "truncate", "tsort", "unexpand", "uniq", "unix2dos", "unlzma", "unrtf", "unxz", "unzip", "unzstd", "wc", "which", "xan", "xargs", "xmllint", "xq", "xxd", "xz", "xzcat", "yes", "yq", "zcat", "zip", "zstd", "zstdcat"]), "enabled consumer inventory");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
   full: { embeddedPython: true, imports: `import * as full from "@poe-platform/safe-bash/full";\n${shell}`,
     setup: "shell.use(full.agentCommands()); globalThis.fullProfile = full;",
     smoke: `check((await shell.exec("printf full | cat")).stdout === "full", "full registry");
@@ -114,24 +114,24 @@ const engineMarkers = {
 // optional-engine regressions cannot hide behind unrelated core reductions.
 // Core excludes unregistered command implementations; registries explicitly retain them.
 export const safeBashProfileBaselines = {
-  "core": 4086316,
-  "rootCore": 4120391,
-  "pythonLlm": 4319073,
-  "pdf": 5100537,
-  "multiplePdf": 5190156,
-  "csv": 5794195,
-  "csvXlsx": 6000122,
-  "git": 9402985,
-  "baseRegistry": 6236530,
-  "registryWithRegex": 6236567,
+  "core": 4089784,
+  "rootCore": 4123857,
+  "pythonLlm": 4322503,
+  "pdf": 5103969,
+  "multiplePdf": 5193588,
+  "csv": 5797627,
+  "csvXlsx": 6003554,
+  "git": 9406453,
+  "baseRegistry": 6239600,
+  "registryWithRegex": 6239637,
   // Full yq is selected by enabledConsumer; full also retains the CSV Python worker.
-  "enabledConsumer": 6408613,
-  "full": 67924932,
-  "rootPythonLlm": 4353303,
-  "splitCore": 4112788,
-  "splitPythonLlm": 4241233,
-  "splitEnabledConsumer": 6316355,
-  "splitFull": 67727495
+  "enabledConsumer": 6411704,
+  "full": 67928037,
+  "rootPythonLlm": 4356733,
+  "splitCore": 4116218,
+  "splitPythonLlm": 4244663,
+  "splitEnabledConsumer": 6319459,
+  "splitFull": 67730620
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

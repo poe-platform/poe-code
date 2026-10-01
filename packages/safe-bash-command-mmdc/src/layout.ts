@@ -1,3 +1,4 @@
+import { layoutGantt } from "./layout/gantt.js";
 import { measureLineWidth } from "./text.js";
 import { drainWork } from "./work.js";
 import { layoutGraphDocumentSteps } from "./layout/graph.js";
@@ -29,7 +30,7 @@ export function* layoutMermaidSteps(
       throw new MermaidError("E_ARGUMENT", `Viewport ${dimension} must be a positive integer`);
     }
   }
-  let scene = document.family === "pie" ? layoutPie(document, options) : document.family === "sequence"
+  let scene = document.family === "gantt" ? (yield* layoutGantt(document, options)) : document.family === "pie" ? layoutPie(document, options) : document.family === "sequence"
     ? (yield* layoutSequenceDocumentSteps(document, options))
     : (yield* layoutGraphDocumentSteps(document, options));
   if (document.title && document.family !== "pie") {

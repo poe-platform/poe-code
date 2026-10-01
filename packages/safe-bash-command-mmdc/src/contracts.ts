@@ -1,4 +1,4 @@
-export type DiagramFamily = "flowchart" | "sequence" | "state" | "class" | "er" | "pie";
+export type DiagramFamily = "flowchart" | "sequence" | "state" | "class" | "er" | "pie" | "mindmap" | "gantt" | "timeline" | "gitGraph" | "journey";
 
 export type FlowDirection = "TB" | "TD" | "BT" | "LR" | "RL";
 
@@ -383,6 +383,7 @@ export interface MermaidDocument {
   readonly family: DiagramFamily;
   readonly direction: FlowDirection;
   readonly config?: Record<string, unknown> | undefined;
+  readonly tasks?: readonly { id: string; start: number; end: number; milestone: boolean; status?: string | undefined }[] | undefined;
   readonly slices?: readonly { label: string; value: number }[] | undefined;
   readonly showData?: boolean | undefined;
   readonly title?: string | undefined;

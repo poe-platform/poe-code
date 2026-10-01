@@ -353,3 +353,15 @@ it("supports typed PDF fit options and rejects mixing them with argv", async () 
   const mixed = createMockContext([], createTestVfs());
   assert.equal((await runMmdc(mixed.context, { argv: [], pdfFit: false })).exitCode, 2);
 });
+
+it('standard command collection renders each core family through CLI and SDK', async () => {
+  const { createMmdcCommands } = await import('./index.js');
+  const options: import('./index.js').MmdcCommandsOptions = {};
+  const commands = createMmdcCommands(options);
+  assert.equal(commands.length, 1);
+  for (const source of ['mindmap\nRoot\n  Child', 'gantt\nTask: 2026-01-01, 2d', 'timeline\n2026: Launch', 'journey\nTask: 4: Me', 'gitGraph\ncommit']) {
+    const run = createMockContext(['-o', '-', '-e', 'svg'], createTestVfs(), source);
+    assert.equal((await commands[0]!.execute(run.context)).exitCode, 0, run.stderrText());
+    assert.equal(run.stdoutText(), renderMermaidSvg(source).svg);
+  }
+});

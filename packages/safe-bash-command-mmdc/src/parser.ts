@@ -1,3 +1,8 @@
+import { parseJourney } from "./parsers/journey.js";
+import { parseGitGraph } from "./parsers/gitGraph.js";
+import { parseTimeline } from "./parsers/timeline.js";
+import { parseGantt } from "./parsers/gantt.js";
+import { parseMindmap } from "./parsers/mindmap.js";
 import { drainWork } from "./work.js";
 import { scanStatementsSteps } from "./scanner.js";
 import { parseFlowchartSteps } from "./parsers/flowchart.js";
@@ -52,6 +57,16 @@ export function* parseMermaidSteps(
   if (headWord === "erDiagram") {
     return complete(yield* parseErDiagramSteps(statements, budget));
   }
+
+  if (headWord === "mindmap") return complete(yield* parseMindmap(statements, budget));
+
+  if (headWord === "gantt") return complete(yield* parseGantt(statements, budget));
+
+  if (headWord === "timeline") return complete(yield* parseTimeline(statements, budget));
+
+  if (headWord === "gitGraph") return complete(yield* parseGitGraph(statements, budget));
+
+  if (headWord === "journey") return complete(yield* parseJourney(statements, budget));
 
   if (headWord === "pie") return complete(parsePie(statements, budget));
 

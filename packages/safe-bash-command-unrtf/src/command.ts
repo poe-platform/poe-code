@@ -76,17 +76,23 @@ async function executeUnrtf(context:CommandContext, configuration:UnrtfCommandOp
     new Budget({limits,signal,...(profile === undefined ? {} : {profile})});
     if (format !== 'text' && format !== 'html' && !(profile === 'gnu-0.21.10' && format === 'latex') || noremap && profile !== 'gnu-0.21.10') throw new UnrtfError('E_PROFILE','Option requires the GNU personality profile',0);
     if (file?.includes('\0')) throw new UnrtfError('E_PARSE','NUL is unavailable in VFS paths',0);
+    let inputBytes = 0;
+    const admitInput = (bytes: Uint8Array): void => {
+      signal.throwIfAborted();
+      context.inputBudget?.check(inputBytes += bytes.byteLength);
+    };
     async function* source():AsyncGenerator<Uint8Array> {
-      if (file === undefined) { yield* readBytes(context.stdin,signal); return; }
+      if (file === undefined) { for await (const bytes of readBytes(context.stdin,signal)) { admitInput(bytes); yield bytes; } return; }
       const path = file.startsWith('/') ? file : context.cwd + '/' + file;
       for (const candidate of [path,path + '.rtf']) {
         let yielded = false;
         try {
           if (context.fs.readStream) {
-            for await (const bytes of readBytes(context.fs.readStream(candidate,{signal}),signal)) { yielded = true; yield bytes; }
+            for await (const bytes of readBytes(context.fs.readStream(candidate,{signal}),signal)) { admitInput(bytes); yielded = true; yield bytes; }
           } else {
             const maxBytes = Math.min(limits.inputBytes, limits.retainedBytes);
             const bytes = await context.fs.readFile(candidate,{signal,...(Number.isFinite(maxBytes) ? { maxBytes } : {})});
+            admitInput(bytes);
             budget.charge('retainedBytes',bytes.length,0);
             try { yield bytes; } finally { budget.release('retainedBytes',bytes.length); }
           }

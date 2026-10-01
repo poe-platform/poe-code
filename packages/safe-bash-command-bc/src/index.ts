@@ -38,11 +38,12 @@ class UsageError extends Error {
   }
 }
 
-async function collectSourceBytes(source: ByteSource, signal: AbortSignal, maxBytes: number): Promise<Uint8Array> {
+async function collectSourceBytes(source: ByteSource, signal: AbortSignal, maxBytes: number, admit: (bytes: number) => void): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let total = 0;
   for await (const chunk of readBytes(source, signal)) {
     total += chunk.byteLength;
+    admit(chunk.byteLength);
     if (total > maxBytes) throw new Error(`input exceeds maximum size (${maxBytes} bytes)`);
     chunks.push(chunk);
   }
@@ -741,6 +742,11 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     description: "Arbitrary-precision calculator language",
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
+      let inputBytes = 0;
+      const admit = (bytes: number): void => {
+        context.signal.throwIfAborted();
+        context.inputBudget?.check(inputBytes += bytes);
+      };
       context.signal.throwIfAborted();
       try {
     let mathlib = false;
@@ -790,14 +796,15 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
 
     const sources: string[] = [...expressions];
     if (files.length === 0 && expressions.length === 0) {
-      sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes)));
+      sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes, admit)));
     } else if (files.length > 0) {
       for (const file of files) {
         if (file === "-") {
-          sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes)));
+          sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes, admit)));
         } else {
-          const raw = await context.fs.readFile(pathPosix.resolve(context.cwd, file));
+          const raw = await context.fs.readFile(pathPosix.resolve(context.cwd, file), { signal: context.signal });
           context.signal.throwIfAborted();
+          admit(raw.byteLength);
           if (raw.byteLength > maxInputBytes) throw new Error(`bc program exceeds maximum input size (${maxInputBytes} bytes)`);
           sources.push(decoder.decode(raw));
         }
@@ -1125,7 +1132,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     return { exitCode: 0 };
       } catch (err) {
         context.signal.throwIfAborted();
-        if (err instanceof Error && err.name === "AbortError") throw err;
+        if (err instanceof Error && (err.name === "AbortError" || err.name === "BudgetExceededError")) throw err;
         const msg = err instanceof Error ? err.message : String(err);
         const code = err instanceof UsageError ? 2 : 1;
         await writeText(context.stderr, `bc: ${msg}\n`);

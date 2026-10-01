@@ -44,7 +44,7 @@ function pathOf(context: Pick<CommandContext, 'cwd'>, path: string): string {
 }
 class InputBudget {
   private used = 0;
-  constructor(readonly maximum: number, private sourceBufferBytes: number) {}
+  constructor(readonly maximum: number, private sourceBufferBytes: number, readonly inputBudget: CommandContext["inputBudget"]) {}
   get maxReadBytes(): number { return Math.max(0, Math.min(this.sourceBufferBytes, this.maximum - this.used)); }
   async *read(source: ByteSource, signal: AbortSignal): ByteSource {
     for await (const chunk of readBytes(source, signal)) {
@@ -53,6 +53,7 @@ class InputBudget {
       if (size > this.maximum - this.used) throw new FsError('EFBIG', { message: 'byte command input limit exceeded' });
       if (size > this.maxReadBytes) throw new FmtError('LIMIT', 'source chunk retention limit exceeded');
       this.used += size;
+      this.inputBudget?.check(this.used);
       if (!size) yield byteSpan(chunk, 0, 0);
       for (let offset = 0; offset < size; offset += 4096) yield byteSpan(chunk, offset, Math.min(4096, size - offset));
     }
@@ -207,7 +208,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
         const engineBytes = 10120 + settings.prefix.length;
         const batchBytes = limits.retainedBytes >= Math.max(32768, engineBytes + 16384 + 4096) ? 16384 : 0;
         const engineLimit = limits.retainedBytes - batchBytes;
-        const budget = new InputBudget(limits.inputBytes, engineLimit - engineBytes);
+        const budget = new InputBudget(limits.inputBytes, engineLimit - engineBytes, context.inputBudget);
         let work = 0, outputBytes = 0;
         stdout = createOutputOperation({ signal: local.signal }, context.stdout);
         const outputContext = { ...context, stdout: stdout.output };
@@ -222,6 +223,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
           current = new InputScope(local, budget);
           try { await current.open(name, nameBytes); }
           catch (error) {
+            if (error instanceof Error && (error.name === "BudgetExceededError" || error.name === "AbortError")) throw error;
             local.signal.throwIfAborted();
             await diagnostic(context, fileError(error, name, nameBytes, true, context));
             await current.close();
@@ -255,6 +257,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
                 if (!readFailed) {
                   try { bytes = await current.next(); if (bytes?.length) received = true; }
                   catch (error) {
+                    if (error instanceof Error && (error.name === "BudgetExceededError" || error.name === "AbortError")) throw error;
                     local.signal.throwIfAborted();
                     if (isFsError(error, "EFBIG")) throw new FmtError("LIMIT", "byte command input limit exceeded");
                     readFailed = true;
@@ -283,6 +286,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
             }
             if (outBatchUsed) await flushOutBatch();
           } catch (error) {
+            if (error instanceof Error && (error.name === "BudgetExceededError" || error.name === "AbortError")) throw error;
             local.signal.throwIfAborted();
             // The engine already admitted these bytes before the failure.
             // A failed write clears the batch first, so it is never retried.
@@ -306,6 +310,7 @@ export async function fmt(context: CommandContext, configuration: FmtRunOptions 
       } catch (error) {
         failed = true;
         context.signal.throwIfAborted();
+        if (error instanceof Error && (error.name === "BudgetExceededError" || error.name === "AbortError")) throw error;
         if (error instanceof FmtError && error.usage) await writeBytes(context.stderr, Uint8Array.from(`fmt: ${error.message}\nTry 'fmt --help' for more information.\n`, character => character.charCodeAt(0)), context.signal);
         else await diagnostic(context, error);
         return { exitCode: 1 };

@@ -183,7 +183,7 @@ class ByteInputBudget {
   #bytes = 0;
   #failure: FsError | undefined;
 
-  constructor(readonly maxInputBytes: number) {}
+  constructor(readonly maxInputBytes: number, readonly inputBudget: CommandContext["inputBudget"]) {}
 
   assertOpen(signal: AbortSignal): void {
     signal.throwIfAborted();
@@ -199,6 +199,7 @@ class ByteInputBudget {
         throw this.#failure;
       }
       this.#bytes += chunk.byteLength;
+      this.inputBudget?.check(this.#bytes);
       yield chunk;
       this.assertOpen(signal);
     }
@@ -206,7 +207,7 @@ class ByteInputBudget {
 }
 
 async function* sources(context: CommandContext, operands: readonly string[], maxInputBytes: number): ByteSource {
-  const budget = new ByteInputBudget(maxInputBytes);
+  const budget = new ByteInputBudget(maxInputBytes, context.inputBudget);
   let usedStdin = false;
   let emptyChunks = 0;
   for (const operand of operands.length ? operands : ["-"]) {
@@ -460,6 +461,7 @@ function defineCommand(name: string, handler: CommandHandler): CommandDefinition
         return await handler(context);
       } catch (error) {
         context.signal.throwIfAborted();
+        if (error instanceof Error && (error.name === "BudgetExceededError" || error.name === "AbortError")) throw error;
         await writeDiagnostic(
           context.stderr,
           `${context.command}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`,

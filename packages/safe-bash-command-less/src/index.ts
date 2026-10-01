@@ -69,13 +69,14 @@ export function settings(options: LessCommandsOptions = {}): LessLimits {
   return Object.freeze(limits);
 }
 
-async function readSourceText(source: ByteSource, maxBytes: number, signal: AbortSignal): Promise<string> {
+async function readSourceText(source: ByteSource, maxBytes: number, signal: AbortSignal, admit: (bytes: number) => void): Promise<string> {
   const chunks: Uint8Array[] = [];
   let total = 0;
   let quantum = 0;
   let chunksRead = 0;
   for await (const chunk of readBytes(source, signal)) {
     total += chunk.byteLength;
+    admit(chunk.byteLength);
     signal.throwIfAborted();
     quantum += Math.max(1, chunk.byteLength);
     if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(signal); }
@@ -100,6 +101,11 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
     description: `Non-interactive ${name} pager pass-through`,
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
+      let inputBytes = 0;
+      const admit = (bytes: number): void => {
+        context.signal.throwIfAborted();
+        context.inputBudget?.check(inputBytes += bytes);
+      };
       const maxBytes = Math.min(limits.maxInputBytes, (context as { limits?: { maxInputBytes?: number } }).limits?.maxInputBytes ?? limits.maxInputBytes);
       context.signal.throwIfAborted();
       const args = getCommandArguments(context).args;
@@ -174,6 +180,7 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
           quantum += Math.max(1, chunk.byteLength);
           if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(context.signal); }
           total += chunk.byteLength;
+          admit(chunk.byteLength);
           if (total > maxBytes) {
             await writeText(context.stderr, `${name}: input exceeds maximum size of ${maxBytes} bytes\n`);
             return { exitCode: 1 };
@@ -188,7 +195,7 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
         const texts: string[] = [];
         let exitCode = 0;
         if (files.length === 0) {
-          texts.push(await readSourceText(context.stdin, maxBytes, context.signal));
+          texts.push(await readSourceText(context.stdin, maxBytes, context.signal, admit));
         } else {
           for (const file of files) {
             if (file === "-") {
@@ -197,16 +204,18 @@ function createPagerCommand(name: "less" | "more", options: LessCommandsOptions 
                 let total = 0;
                 for await (const chunk of readBytes(context.stdin, context.signal)) {
                   total += chunk.byteLength;
+                  admit(chunk.byteLength);
                   if (total > maxBytes) throw new PublicDiagnostic(`input exceeds maximum size of ${maxBytes} bytes`);
                   await writeBytes(context.stdout, chunk, context.signal);
                   await yieldTurn(context.signal);
                 }
-              } else texts.push(await readSourceText(context.stdin, maxBytes, context.signal));
+              } else texts.push(await readSourceText(context.stdin, maxBytes, context.signal, admit));
             } else {
               try {
                 const targetPath = pathPosix.resolve(context.cwd, file);
                 const raw = await context.fs.readFile(targetPath, { signal: context.signal });
                 context.signal.throwIfAborted();
+                admit(raw.byteLength);
                 if (raw.byteLength > maxBytes) {
                   await writeText(context.stderr, `${name}: ${file}: input exceeds maximum size\n`);
                   return { exitCode: 1 };

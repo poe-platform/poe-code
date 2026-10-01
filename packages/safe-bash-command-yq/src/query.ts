@@ -178,6 +178,7 @@ class SinkFailure {
 }
 
 class InvocationOwner {
+  inputBytes = 0;
   #accepting = true;
   #callbacks: InvocationCleanup[] = [];
   #closePromise: Promise<void> | undefined;
@@ -429,6 +430,7 @@ async function collectSource(
     }
     owner.assertOpen(context.signal);
     if (chunk.byteLength === 0) continue;
+    context.inputBudget?.check(owner.inputBytes += chunk.byteLength);
     session.ownedWork.admitInputBytes(chunk.byteLength);
     if (chunk.byteLength > yqCaps.maxInputBytes - size) throw fromJqLimit(new JqLimitError("maxInputBytes"));
     if (inputFormat === "toml" && chunk.byteLength > yqCaps.maxDocumentBytes - size) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);
@@ -491,6 +493,7 @@ async function sourceFrames(
     throw failure;
   }
   owner.assertOpen(context.signal);
+  context.inputBudget?.check(owner.inputBytes += bytes.byteLength);
   session.ownedWork.admitInputBytes(bytes.byteLength);
   if (inputFormat === "toml") {
     if (bytes.byteLength > yqCaps.maxDocumentBytes) throw new YqError("limit", "LIMIT_MAX_DOCUMENT_BYTES", 5);

@@ -79,6 +79,7 @@ export class NativeWork {
     this.assertOpen();
     if (bytes > this.limits.maxInputBytes - this.#input) throw new MikeError("yq limit exceeded: maxInputBytes");
     this.#input += bytes;
+    this.context.inputBudget?.check(this.#input);
   }
 
   node(count = 1): void {

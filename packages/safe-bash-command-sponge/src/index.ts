@@ -67,13 +67,14 @@ export function settings(options: SpongeCommandsOptions = {}): SpongeLimits {
   return Object.freeze(limits);
 }
 
-async function collectSourceBytes(source: ByteSource, maxBytes: number, signal: AbortSignal): Promise<Uint8Array> {
+async function collectSourceBytes(source: ByteSource, maxBytes: number, signal: AbortSignal, admit: (bytes: number) => void): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let total = 0;
   let quantum = 0;
   let chunksRead = 0;
   for await (const chunk of readBytes(source, signal)) {
     total += chunk.byteLength;
+    admit(chunk.byteLength);
     signal.throwIfAborted();
     quantum += Math.max(1, chunk.byteLength);
     if (quantum >= 16384 || ++chunksRead >= 128) { quantum = 0; chunksRead = 0; await yieldTurn(signal); }
@@ -102,6 +103,11 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
     description: "Soak up all standard input before writing to a file",
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
+      let inputBytes = 0;
+      const admit = (bytes: number): void => {
+        context.signal.throwIfAborted();
+        context.inputBudget?.check(inputBytes += bytes);
+      };
       context.signal.throwIfAborted();
       const args = getCommandArguments(context).args;
       let append = false;
@@ -143,7 +149,7 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
 
       try {
         const maxBytes = Math.min(limits.maxBufferedBytes, (context as { limits?: { maxInputBytes?: number } }).limits?.maxInputBytes ?? limits.maxBufferedBytes);
-        const buffered = await collectSourceBytes(context.stdin, maxBytes, context.signal);
+        const buffered = await collectSourceBytes(context.stdin, maxBytes, context.signal, admit);
 
         if (files.length === 0 || files[0] === "-") {
           await writeBytes(context.stdout, buffered, context.signal);
@@ -154,7 +160,8 @@ export function createSpongeCommand(options: SpongeCommandsOptions = {}): Comman
         if (append) {
           let existing: Uint8Array = new Uint8Array(0);
           try {
-            existing = await context.fs.readFile(targetPath);
+            existing = await context.fs.readFile(targetPath, { signal: context.signal });
+            admit(existing.byteLength);
           } catch (error) {
             context.signal.throwIfAborted();
             if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;

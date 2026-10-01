@@ -1,6 +1,7 @@
 import { PublicDiagnostic, UsageError } from "safe-bash-contracts/diagnostics";
 import {
   commandRuntimeIdentity,
+  withInputByteBudget,
   type CommandDefinition,
   type VirtualShellPlugin,
 } from "safe-bash-contracts";
@@ -50,7 +51,7 @@ function createNamedBzip2Command(
     name,
     description: `${name} block-sorting file compressor`,
     runtimeIdentity: commandRuntimeIdentity,
-    async execute(context) {
+    execute: withInputByteBudget(async (context) => {
       context.signal.throwIfAborted();
       try {
         const parsed = parseOptions(name, context.args);
@@ -109,7 +110,7 @@ function createNamedBzip2Command(
         await diagnostic(context, error);
         return { exitCode: error instanceof UsageError ? 2 : 1 };
       }
-    },
+    }),
   };
 }
 

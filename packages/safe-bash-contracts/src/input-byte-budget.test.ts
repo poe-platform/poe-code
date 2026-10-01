@@ -77,3 +77,10 @@ test("host input ceilings account retained reads together with buffered files an
   }), /host input exceeded/);
   assert.deepEqual(observed, [2, 4, 6]);
 });
+
+test("host budget failures survive command error handlers", async () => {
+  const failure = new Error("host budget exceeded");
+  const budget = new InputByteBudget(Infinity, { maxBytes: 0, check() { throw failure; } });
+  assert.throws(() => budget.charge(1), error => error === failure);
+  assert.throws(() => budget.assertOpen(), error => error === failure);
+});

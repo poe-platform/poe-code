@@ -991,7 +991,7 @@ function createLegacyWritable(pipe: BytePipeImpl): ByteSink {
 /** Cumulative command-local input accounting, including failures caught by file probes. */
 export class InputByteBudget {
   #used = 0;
-  #failure: FsError | undefined;
+  #failure: { error: unknown } | undefined;
 
   static limit(value: number = Infinity): number {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 0)) {
@@ -1005,17 +1005,18 @@ export class InputByteBudget {
   }
 
   assertOpen(): void {
-    if (this.#failure) throw this.#failure;
+    if (this.#failure) throw this.#failure.error;
   }
 
   charge(bytes: number): void {
     this.assertOpen();
     if (!Number.isSafeInteger(bytes) || bytes < 0) throw new RangeError("Invalid input byte charge");
     if (bytes > this.maximum - this.#used) {
-      this.#failure = new FsError("EFBIG", { message: "command input byte limit exceeded" });
-      throw this.#failure;
+      this.#failure = { error: new FsError("EFBIG", { message: "command input byte limit exceeded" }) };
+      throw this.#failure.error;
     }
-    this.host?.check(this.#used + bytes);
+    try { this.host?.check(this.#used + bytes); }
+    catch (error) { this.#failure = { error }; throw error; }
     this.#used += bytes;
   }
 
@@ -1024,7 +1025,7 @@ export class InputByteBudget {
     const limited = {
       ...context,
       stdin: this.read(context.stdin, context.signal),
-      fs: Object.create(fs, {
+      fs: new Proxy(Object.create(fs, {
         readFile: { configurable: true, value: async (...args: Parameters<typeof fs.readFile>) => {
           this.assertOpen();
           const bytes = await fs.readFile(...args);
@@ -1051,6 +1052,12 @@ export class InputByteBudget {
           this.assertOpen();
           return this.read(fs.readStream!(...args), context.signal);
         } } } : {}),
+      }), {
+        get(target, key) {
+          if (Object.hasOwn(target, key)) return Reflect.get(target, key, target);
+          const value: unknown = Reflect.get(fs, key, fs);
+          return typeof value === "function" ? value.bind(fs) : value;
+        },
       }),
       inputBudget: {
         maxBytes: Math.min(this.maximum, context.inputBudget?.maxBytes ?? Infinity),

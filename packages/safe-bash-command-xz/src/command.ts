@@ -1,5 +1,5 @@
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
-import type { CommandDefinition } from "safe-bash-contracts";
+import { withInputByteBudget, type CommandDefinition } from "safe-bash-contracts";
 import { codeOf, diagnostic, output } from "safe-bash-compression-engine/internal";
 import { UsageError } from "safe-bash-contracts/diagnostics";
 import { runOperand } from "safe-bash-compression-engine/operand";
@@ -24,7 +24,7 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
   if (maxDecodedBytes !== undefined && maxDecodedBytes !== Infinity && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
     throw new RangeError("maxDecodedBytes must be a nonnegative safe integer or Infinity");
   }
-  return { name, async execute(context) {
+  return { name, execute: withInputByteBudget(async (context) => {
     context.signal.throwIfAborted();
     try {
       const options = parseOptions(name, context.args);
@@ -97,7 +97,7 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
       await diagnostic(context, error);
       return { exitCode: error instanceof UsageError ? 2 : 1 };
     }
-  } };
+  }) };
 }
 
 export function createUnxzCommand(options: XzCommandsOptions = {}): CommandDefinition {

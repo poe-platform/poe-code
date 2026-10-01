@@ -25,7 +25,8 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
   if (maxDecodedBytes !== undefined && maxDecodedBytes !== Infinity && (!Number.isSafeInteger(maxDecodedBytes) || maxDecodedBytes < 0)) {
     throw new RangeError("maxDecodedBytes must be a nonnegative safe integer or Infinity");
   }
-  const commands = profiles.flatMap(profile => profile.format === "gzip" ? createGzipCommands(config) : profile.format === "bzip2" ? createBzip2Commands(config) : profile.names.map((name) => define(name, withInputByteBudget(async (context) => {
+  const commands = profiles.flatMap(profile => profile.format === "gzip" ? createGzipCommands(config) : profile.format === "bzip2" ? createBzip2Commands(config) : profile.names.map((name) => {
+    const command = define(name, async (context) => {
     const options = parseOptions(name, context.args);
     if (options.help) {
       await output(context, `Usage: ${name} [OPTION]... [FILE]...\n-c, --stdout, --to-stdout\n-d, --decompress, --uncompress\n-k, --keep\n-f, --force\n-t, --test\n${options.format === "zstd" ? "-1..-9, --best\nHigher levels and --fast[=NUM] are unsupported by the bounded codec.\n" : "-1..-9, --fast, --best\n"}${options.format === "zstd" ? "-q, --quiet (repeat to suppress errors)\n" : ""}${options.format === "gzip" ? "-q, --quiet (suppress warnings)\n-r, --recursive (traverse directories without following symlinks)\n-n, --no-name (always enabled)\n" : `Default compression level: ${options.level}.\n`}-h, --help\nNo FILE or FILE '-' uses stdin; file output uses private VFS staging.\n`);
@@ -71,7 +72,9 @@ export function createCompressionCommands(config: CompressionCommandOptions = {}
       }
     }
     return { exitCode };
-  }))));
+  });
+    return { ...command, execute: withInputByteBudget(async context => command.execute(context)) };
+  }));
   const xzCmds = createXzCommands(config);
   if (maxDecodedBytes === undefined || maxDecodedBytes === Infinity) {
     for (const c of [...commands, ...xzCmds]) builtInDirectContextExecutors.add(c.execute);

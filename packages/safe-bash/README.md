@@ -75,6 +75,8 @@ the default registry’s GH/Git integration; add `ghCommands` explicitly where n
 The registry subpath supports ESM splitting without visiting the full aggregate.
 Its exports do not select the optional
 `op`, `node` or `safejs` plugins; add those only through their command entrypoints.
+Only registered commands are available; adding search commands does not enable unrelated tools.
+Use `agentCommands({ muscleMemory: true })` or individual command plugins to enable tools such as `bc`, `fd`, `sponge`, and `less`.
 Removing a registered command changes availability, while shared family code may
 remain bundled. Splitting dynamic
 imports changes initialization timing: every uploaded static chunk and Wasm asset

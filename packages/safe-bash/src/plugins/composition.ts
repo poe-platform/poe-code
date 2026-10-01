@@ -66,13 +66,6 @@ import { createMdqCommand, type MdqCommandOptions } from "../commands/mdq/index.
 import type { RegexExecutionOptions } from "../commands/regex-execution/protocol.js";
 import type { BoundedRegexProvider } from "../commands/regex-execution/provider.js";
 
-let defaultMuscleMemoryLookup: ReadonlyMap<string, CommandDefinition> | undefined;
-
-function getExtraAgentCommand(name: string): CommandDefinition | undefined {
-  defaultMuscleMemoryLookup ??= new Map(createExtraAgentCommands().map(cmd => [cmd.name, cmd]));
-  return defaultMuscleMemoryLookup.get(name);
-}
-
 function createExtraAgentCommands(options?: { bc?: Omit<BcCommandsOptions, "replace">; sponge?: Omit<SpongeCommandsOptions, "replace">; fd?: Omit<FdCommandsOptions, "replace">; less?: Omit<LessCommandsOptions, "replace">; sqlite3?: Omit<Sqlite3CommandsOptions, "replace"> }): readonly CommandDefinition[] {
   return [...createBcCommands(options?.bc), ...createSpongeCommands(options?.sponge), ...createOpensslCommands(), ...createSshCommands(), ...createGpgCommands(), ...createFdCommands(options?.fd), ...createLessCommands(options?.less), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createYesCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands(options?.sqlite3)];
 }
@@ -130,7 +123,7 @@ export interface AgentCommandsOptions {
 
 export function commandExecutor(lookup: (name: string) => CommandDefinition | undefined): CommandHandler {
   return async context => {
-    const command = lookup(context.command) ?? getExtraAgentCommand(context.command);
+    const command = lookup(context.command);
     if (command) return command.execute(context);
     await diagnostic(context, new PublicDiagnostic("command not found"));
     return { exitCode: 127 };

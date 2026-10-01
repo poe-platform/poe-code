@@ -18,27 +18,6 @@ import {
   ACCESS_MODES, FsError, basename, composeMiddleware, createBytePipe, dirname, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
 import type {
   ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware, } from "../contracts/index.js";
-import { createBcCommands } from "../commands/bc/index.js";
-import { createStreamInspectionCommands } from "../commands/stream-inspection/index.js";
-import { createStreamFormatCommands } from "../commands/stream-format/index.js";
-import { createSpongeCommands } from "../commands/sponge/index.js";
-import { createFdCommands } from "../commands/fd/index.js";
-import { createLessCommands } from "../commands/less/index.js";
-import { createIdCommands } from "../commands/id/index.js";
-import { createWhoamiCommands } from "../commands/whoami/index.js";
-import { createUnameCommands } from "../commands/uname/index.js";
-import { createHostnameCommands } from "../commands/hostname/index.js";
-import { createNprocCommands } from "../commands/nproc/index.js";
-import { createShufCommands } from "../shuf.js";
-import { createDdCommands } from "../dd.js";
-import { createNumfmtCommands } from "../commands/numfmt/index.js";
-import { createEnvsubstCommands } from "../commands/envsubst/index.js";
-import { createCalCommands } from "../commands/cal/index.js";
-import { createPathchkCommands } from "../commands/pathchk/index.js";
-import { createGetconfCommands } from "../commands/getconf/index.js";
-import { createLocaleCommands } from "../commands/locale/index.js";
-import { createDfCommands } from "../commands/df/index.js";
-import { createSqlite3Commands } from "../commands/sqlite3/index.js";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
@@ -2791,11 +2770,7 @@ function hasGlobOrEscape(text: string, extglob = false): boolean {
   return false;
 }
 let nextProcessSubstitutionId = 0;
-let defaultRuntimeMuscleMemoryMap: ReadonlyMap<string, CommandDefinition> | undefined;
-function getRuntimeMuscleMemoryCommand(name: string): CommandDefinition | undefined {
-  defaultRuntimeMuscleMemoryMap ??= new Map([...createStreamFormatCommands(), ...createStreamInspectionCommands(), ...createBcCommands(), ...createSpongeCommands(), ...createFdCommands(), ...createLessCommands(), ...createIdCommands(), ...createWhoamiCommands(), ...createUnameCommands(), ...createHostnameCommands(), ...createNprocCommands(), ...createShufCommands(), ...createDdCommands(), ...createNumfmtCommands(), ...createEnvsubstCommands(), ...createCalCommands(), ...createPathchkCommands(), ...createGetconfCommands(), ...createLocaleCommands(), ...createDfCommands(), ...createSqlite3Commands()].map(cmd => [cmd.name, cmd]));
-  return defaultRuntimeMuscleMemoryMap.get(name);
-}
+
 const fastSubScratchArgs: string[] = [];
 const defaultValueScopeReserve = ValueScope.prototype.reserve;
 const defaultStringCodePointAt = String.prototype.codePointAt;
@@ -7003,7 +6978,7 @@ export class Runtime {
       const diagnosticLine = io.diagnosticCommandLines?.get(command) ?? (command.line ?? 1) + (io.diagnosticOffset ?? 0);
       if ( cSingle !== undefined && !customRegisteredRegistries.has(this.commands) && !hasShellFunction(rawState, cSingle.w0Plain) && !rawState.extensions?.builtins.has(cSingle.w0Plain) && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.budget.commands + 1 <= this.budget.maxCommandsSmi || this.budget.commands + 1 <= this.budget.limits.maxCommands)) {
         w0Plain = cSingle.w0Plain;
-        const extD = this.getExternalCommand(w0Plain);
+        const extD = this.commands.get(w0Plain);
         if (!extD || !builtInDirectContextExecutors.has(extD.execute) || customRegisteredCommands.has(extD.execute)) return undefined;
         externalDef = extD;
         args = cSingle.args;
@@ -7021,7 +6996,7 @@ export class Runtime {
           return undefined;
         }
         w0Plain = w0P;
-        const extD = this.getExternalCommand(w0Plain);
+        const extD = this.commands.get(w0Plain);
         if ( !extD || !builtInDirectContextExecutors.has(extD.execute) || customRegisteredCommands.has(extD.execute) || customRegisteredRegistries.has(this.commands) || command.words.length > this.budget.maxExpansionFieldsSmi || (this.budget.commands + 1 > this.budget.maxCommandsSmi && this.budget.commands + 1 > this.budget.limits.maxCommands)) {
           return undefined;
         }
@@ -7238,7 +7213,7 @@ export class Runtime {
     for (let i = 0; i < n; i++) {
       const cmd = pipeline.commands[i]! as Extract<Command, { kind: "simple" }>;
       const name = cmd.words[0]!.plain!;
-      const extDef = this.getExternalCommand(name);
+      const extDef = this.commands.get(name);
       if ( !extDef || !builtInDirectContextExecutors.has(extDef.execute) || customRegisteredCommands.has(extDef.execute)) {
         return undefined;
       }
@@ -7300,7 +7275,7 @@ export class Runtime {
       for (let index = start; index < n; index++) {
         const cmd = pipeline.commands[index]! as Extract<Command, { kind: "simple" }>;
         const firstName = cmd.words[0]!.plain!;
-        const extDef = this.getExternalCommand(firstName)!;
+        const extDef = this.commands.get(firstName)!;
         const stageArgs = (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs!;
         const isFirst = index === 0;
         const isLast = index === n - 1;
@@ -7417,7 +7392,7 @@ export class Runtime {
       for (let index = 0; index < n; index++) {
         const cmd = pipeline.commands[index]! as Extract<Command, { kind: "simple" }>;
         const firstName = cmd.words[0]!.plain!;
-        const extDef = this.getExternalCommand(firstName)!;
+        const extDef = this.commands.get(firstName)!;
         let stageArgs = (cmd as { _cachedPlainArgs?: string[] })._cachedPlainArgs;
         if (!stageArgs) {
           stageArgs = new Array<string>(cmd.words.length - 1);
@@ -16301,7 +16276,7 @@ export class Runtime {
         }
       }
     }
-    const extDef = this.getExternalCommand(firstName);
+    const extDef = this.commands.get(firstName);
     return extDef !== undefined && !customRegisteredCommands.has(extDef.execute) && !customRegisteredRegistries.has(this.commands);
   }
   private publishStatus(state: State, statuses: readonly number[], io: IO, terminal?: IO["terminal"]): Promise<void> | void {
@@ -18060,7 +18035,7 @@ export class Runtime {
       }
     }
     const scope = io[invocationScope].child();
-    const externalDef = typeof name === "string" ? this.getExternalCommand(name) : undefined;
+    const externalDef = typeof name === "string" ? this.commands.get(name) : undefined;
     const fastInline = !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && (!externalDef || (!customRegisteredCommands.has(externalDef.execute) && !customRegisteredRegistries.has(this.commands))) && !(!bypassFunctions && state.functions.has(name)) && !state.extensions?.builtins.has(name) && name !== "." && name !== "source" && name !== "eval" && name !== "command" && name !== "builtin" && name !== "type" && name !== "read" && name !== "mapfile" && name !== "readarray";
     if ( fastInline && externalDef !== undefined && values.every(value => typeof value === "string") && !implementedBuiltins.has(name) && !(name === "printf" && externalDef.execute === printfCommand.execute && args[0]?.startsWith("-v"))) {
       try {
@@ -18409,7 +18384,7 @@ export class Runtime {
             return { exitCode: builtin };
           }
         }
-        const definition = this.getExternalCommand(context.command);
+        const definition = this.commands.get(context.command);
         if (context.command === "printf" && definition?.execute === printfCommand.execute && context.args[0]?.startsWith("-v")) {
           ensureRuntimeContext();
           return { exitCode: await this.printfVariable(context, state, assignments) };
@@ -18476,7 +18451,7 @@ export class Runtime {
     const matches: Discovery[] = [];
     if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
     if (implementedBuiltins.has(name) || state.extensions?.builtins.has(name)) matches.push({ kind: "builtin", name });
-    else if (this.hasExternalCommand(name)) matches.push({ kind: "command", name });
+    else if (this.commands.has(name)) matches.push({ kind: "command", name });
     else if (name === "bash" || name === "sh") matches.push({ kind: "interpreter", name });
     if (state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
     return matches;
@@ -18518,18 +18493,9 @@ export class Runtime {
     if (isBuiltin && state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) return "builtin";
     if (!bypassFunctions && state.functions.has(name)) return "function";
     if (isBuiltin) return "builtin";
-    if (this.hasExternalCommand(name)) return "command";
+    if (this.commands.has(name)) return "command";
     if (name === "bash" || name === "sh") return "interpreter";
     return undefined;
-  }
-  private getExternalCommand(name: string): CommandDefinition | undefined {
-    const direct = this.commands.get(name);
-    if (direct) return direct;
-    if (this.commands.has("rg") || this.commands.has("grep")) return getRuntimeMuscleMemoryCommand(name);
-    return undefined;
-  }
-  private hasExternalCommand(name: string): boolean {
-    return this.getExternalCommand(name) !== undefined;
   }
   async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>, inheritedDefaultPath = false): Promise<number> {
     const args = [...context.args];
@@ -29332,7 +29298,7 @@ export class Runtime {
       const name = command.words[0]?.plain;
       if (!name) continue;
       if (name === "fmt" && command === pipeline.commands[0] && command.redirects.length === 0 && !io.stdinIsDefault) return undefined;
-      const definition = this.getExternalCommand(name);
+      const definition = this.commands.get(name);
       if (definition && customRegisteredCommands.has(definition.execute)) return undefined;
       if (name === "uname" || name === "nproc" || name === "hostname" || name === "id" || name === "whoami") {
         if (!definition || !builtInDirectContextExecutors.has(definition.execute)) return undefined;
@@ -29373,11 +29339,11 @@ export class Runtime {
       }
       if (cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length !== 1) return undefined;
       if (!cmd0StdinRedir && !cmd0HereStringRedir && w0Plain0 === "cat" && cmd0.words.length < 2) return undefined;
-      const def0 = (w0Plain0 === "printf" || w0Plain0 === "echo" || w0Plain0 === "cat" || w0Plain0 === "pwd" || w0Plain0 === "dirname" || w0Plain0 === "basename") ? this.commands.get(w0Plain0) : this.getExternalCommand(w0Plain0);
+      const def0 = this.commands.get(w0Plain0);
       if (!def0 || (w0Plain0 === "printf" ? def0.execute !== printfCommand.execute : w0Plain0 === "echo" ? !defaultEchoExecutors.has(def0.execute) : (w0Plain0 === "cat" || w0Plain0 === "seq" || cmd0YesStage || cmd0SysStage || cmd0StdinRedir || cmd0HereStringRedir || cmd0FileStage) ? (w0Plain0 !== "rev" && w0Plain0 !== "tac" && w0Plain0 !== "nl" && w0Plain0 !== "paste" && w0Plain0 !== "comm" && w0Plain0 !== "join" && w0Plain0 !== "jq" && w0Plain0 !== "strings" && w0Plain0 !== "bc" && w0Plain0 !== "factor" && w0Plain0 !== "tsort" && w0Plain0 !== "envsubst" && w0Plain0 !== "xxd" && w0Plain0 !== "od" && w0Plain0 !== "hexdump" && w0Plain0 !== "hd" && w0Plain0 !== "fmt" && w0Plain0 !== "md5sum" && w0Plain0 !== "sha1sum" && w0Plain0 !== "sha224sum" && w0Plain0 !== "sha256sum" && w0Plain0 !== "sha384sum" && w0Plain0 !== "sha512sum" && w0Plain0 !== "cksum" && w0Plain0 !== "base32" && w0Plain0 !== "base64" && w0Plain0 !== "csvcut" && w0Plain0 !== "csvgrep" && w0Plain0 !== "dos2unix" && w0Plain0 !== "unix2dos" && w0Plain0 !== "iconv" && w0Plain0 !== "gzip" && w0Plain0 !== "gunzip" && w0Plain0 !== "zcat" && w0Plain0 !== "unzstd" && w0Plain0 !== "zstdcat" && w0Plain0 !== "htmlq" && w0Plain0 !== "xmllint" && w0Plain0 !== "xq" && w0Plain0 !== "yq" && w0Plain0 !== "mdq" && w0Plain0 !== "shuf" && w0Plain0 !== "html-to-markdown" && w0Plain0 !== "unrtf" && w0Plain0 !== "pr" && w0Plain0 !== "file" && w0Plain0 !== "diff3" && w0Plain0 !== "cmp" && w0Plain0 !== "which" && w0Plain0 !== "diff" && w0Plain0 !== "xan" && w0Plain0 !== "less" && w0Plain0 !== "more" && w0Plain0 !== "df" && w0Plain0 !== "du" && w0Plain0 !== "tree" && w0Plain0 !== "stat" && w0Plain0 !== "fd" && w0Plain0 !== "rg" && w0Plain0 !== "readlink" && w0Plain0 !== "realpath" && w0Plain0 !== "ls" && w0Plain0 !== "find" && w0Plain0 !== "csvlook" && w0Plain0 !== "csvjson" && w0Plain0 !== "csvsort" && w0Plain0 !== "csvformat" && w0Plain0 !== "csvstat" && w0Plain0 !== "in2csv" && w0Plain0 !== "csvstack" && w0Plain0 !== "csvjoin" && w0Plain0 !== "dd" && w0Plain0 !== "env" && w0Plain0 !== "xargs" && w0Plain0 !== "openssl" && w0Plain0 !== "sqlite3" && w0Plain0 !== "gpg" && w0Plain0 !== "ssh" && w0Plain0 !== "ssh-keygen" && w0Plain0 !== "pdfinfo" && w0Plain0 !== "pdffonts" && w0Plain0 !== "pdftotext" && w0Plain0 !== "pdftohtml" && w0Plain0 !== "exiftool" && w0Plain0 !== "qpdf" && w0Plain0 !== "pdftk" && w0Plain0 !== "sips" && w0Plain0 !== "identify" && w0Plain0 !== "magick" && w0Plain0 !== "convert" && w0Plain0 !== "pdfimages" && w0Plain0 !== "pdfdetach" && w0Plain0 !== "ffprobe" && w0Plain0 !== "ffmpeg" && w0Plain0 !== "gh" && w0Plain0 !== "pdftoppm" && w0Plain0 !== "pdftocairo" && w0Plain0 !== "mmdc" && w0Plain0 !== "pandoc" && w0Plain0 !== "soffice" && w0Plain0 !== "libreoffice" && w0Plain0 !== "ssconvert" && w0Plain0 !== "wkhtmltopdf" && w0Plain0 !== "op" && w0Plain0 !== "date" && w0Plain0 !== "printenv" && w0Plain0 !== "egrep" && w0Plain0 !== "fgrep" && w0Plain0 !== "yes" && w0Plain0 !== "cal" && w0Plain0 !== "ncal" && w0Plain0 !== "expr" && w0Plain0 !== "getopt" && w0Plain0 !== "pathchk" && !builtInDirectContextExecutors.has(def0.execute)) : (customRegisteredCommands.has(def0.execute) || customRegisteredRegistries.has(this.commands)))) return undefined;
       if (!this.arePureArgWords(cmd0.words, rawState)) return undefined;
       const n = pipeline.commands.length;
-      const stageDefs: NonNullable<ReturnType<Runtime["getExternalCommand"]>>[] = [];
+      const stageDefs: CommandDefinition[] = [];
       const stageNames: string[] = [];
       const stageArgsList: string[][] = [];
       const startStageIdx = ((cmd0HereStringRedir || cmd0StdinRedir) && (w0Plain0 !== "cat" || cmd0.words.length > 1)) || cmd0FileStage ? 0 : 1;
@@ -29386,7 +29352,7 @@ export class Runtime {
         if (sCmd.kind !== "simple" || (i > 0 ? sCmd.redirects.length !== 0 : (!cmd0StdinRedir && !cmd0HereStringRedir && !cmd0FileStage)) || sCmd.words.length === 0) return undefined;
         const sName = sCmd.words[0]!.plain;
         if (!sName || hasShellFunction(rawState, sName) || rawState.extensions?.builtins.has(sName)) return undefined;
-        const extDef = this.getExternalCommand(sName);
+        const extDef = this.commands.get(sName);
         if (!extDef || ((sName !== "cat" || startStageIdx === 0) && sName !== "rev" && sName !== "tac" && sName !== "nl" && sName !== "paste" && sName !== "column" && sName !== "fold" && sName !== "expand" && sName !== "unexpand" && sName !== "strings" && sName !== "comm" && sName !== "join" && sName !== "jq" && sName !== "bc" && sName !== "factor" && sName !== "tsort" && sName !== "envsubst" && sName !== "xxd" && sName !== "od" && sName !== "hexdump" && sName !== "hd" && sName !== "fmt" && sName !== "md5sum" && sName !== "sha1sum" && sName !== "sha224sum" && sName !== "sha256sum" && sName !== "sha384sum" && sName !== "sha512sum" && sName !== "cksum" && sName !== "base32" && sName !== "base64" && sName !== "csvcut" && sName !== "csvgrep" && sName !== "dos2unix" && sName !== "unix2dos" && sName !== "iconv" && sName !== "gzip" && sName !== "gunzip" && sName !== "zcat" && sName !== "unzstd" && sName !== "zstdcat" && sName !== "htmlq" && sName !== "xmllint" && sName !== "xq" && sName !== "yq" && sName !== "mdq" && sName !== "shuf" && sName !== "html-to-markdown" && sName !== "unrtf" && sName !== "pr" && sName !== "file" && sName !== "diff3" && sName !== "cmp" && sName !== "which" && sName !== "diff" && sName !== "xan" && sName !== "less" && sName !== "more" && sName !== "df" && sName !== "du" && sName !== "tree" && sName !== "stat" && sName !== "fd" && sName !== "rg" && sName !== "readlink" && sName !== "realpath" && sName !== "ls" && sName !== "find" && sName !== "csvlook" && sName !== "csvjson" && sName !== "csvsort" && sName !== "csvformat" && sName !== "csvstat" && sName !== "in2csv" && sName !== "csvstack" && sName !== "csvjoin" && sName !== "dd" && sName !== "xargs" && sName !== "openssl" && sName !== "sqlite3" && sName !== "gpg" && sName !== "ssh" && sName !== "ssh-keygen" && sName !== "pdfinfo" && sName !== "pdffonts" && sName !== "pdftotext" && sName !== "pdftohtml" && sName !== "exiftool" && sName !== "qpdf" && sName !== "pdftk" && sName !== "sips" && sName !== "identify" && sName !== "magick" && sName !== "convert" && sName !== "pdfimages" && sName !== "pdfdetach" && sName !== "ffprobe" && sName !== "ffmpeg" && sName !== "gh" && sName !== "pdftoppm" && sName !== "pdftocairo" && sName !== "mmdc" && sName !== "pandoc" && sName !== "soffice" && sName !== "libreoffice" && sName !== "ssconvert" && sName !== "wkhtmltopdf" && sName !== "op" && sName !== "date" && sName !== "cal" && sName !== "ncal" && sName !== "getopt" && sName !== "pathchk" && sName !== "printenv" && sName !== "env" && sName !== "egrep" && sName !== "fgrep" && !builtInDirectContextExecutors.has(extDef.execute)) || customRegisteredCommands.has(extDef.execute)) return undefined;
         if ((sName === "xxd" || sName === "od") && !builtInDirectContextExecutors.has(extDef.execute)) return undefined;
         if (!this.arePureArgWords(sCmd.words, rawState)) return undefined;
@@ -30404,13 +30370,13 @@ export class Runtime {
     if (!w0Plain || rawState.extensions?.builtins.has(w0Plain)) return undefined;
     if (w0Plain === "fmt" && !hasSingleStdinRedir && !hasSingleHereStringRedir && !io.stdinIsDefault) return undefined;
     if (w0Plain === "xxd" || w0Plain === "od" || w0Plain === "mktemp" || w0Plain === "chmod" || w0Plain === "uname" || w0Plain === "nproc" || w0Plain === "hostname" || w0Plain === "id" || w0Plain === "whoami") {
-      const definition = this.getExternalCommand(w0Plain);
+      const definition = this.commands.get(w0Plain);
       if (!definition || !builtInDirectContextExecutors.has(definition.execute)) return undefined;
     }
     if (cmd.words.length === 2 && cmd.redirects.length === 0 && (cmd.words[1]?.plain === "--help" || cmd.words[1]?.plain === "--version")) {
       const gnuInfo = gnuInformationSync(w0Plain, [cmd.words[1]!.plain!], false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined);
       if (gnuInfo !== undefined) {
-        const extDef = this.getExternalCommand(w0Plain);
+        const extDef = this.commands.get(w0Plain);
         if (!extDef || !builtInDirectContextExecutors.has(extDef.execute)) return undefined;
         return gnuInfo.replace(/\n+$/, "");
       }
@@ -30431,7 +30397,7 @@ export class Runtime {
       w0Plain === "uniq" ||
       w0Plain === "tr" ||
       (w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join") || w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "numfmt" || w0Plain === "nl" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "getopt" || w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "pathchk" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "which" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "df" || w0Plain === "du" || w0Plain === "tree" || w0Plain === "stat" || w0Plain === "fd" || w0Plain === "rg" || w0Plain === "readlink" || w0Plain === "realpath" || w0Plain === "ls" || w0Plain === "find" || w0Plain === "csvlook" || w0Plain === "csvjson" || w0Plain === "csvsort" || w0Plain === "csvformat" || w0Plain === "csvstat" || w0Plain === "in2csv" || w0Plain === "csvstack" || w0Plain === "csvjoin" || w0Plain === "dd" || w0Plain === "env" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "mogrify" || w0Plain === "composite" || w0Plain === "montage" || w0Plain === "compare" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || w0Plain === "date" || w0Plain === "printenv" || w0Plain === "egrep" || w0Plain === "fgrep" || w0Plain === "cal" || w0Plain === "ncal" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32";
-    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "getopt" || w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "pathchk" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "which" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "df" || w0Plain === "du" || w0Plain === "tree" || w0Plain === "stat" || w0Plain === "fd" || w0Plain === "rg" || w0Plain === "readlink" || w0Plain === "realpath" || w0Plain === "ls" || w0Plain === "find" || w0Plain === "csvlook" || w0Plain === "csvjson" || w0Plain === "csvsort" || w0Plain === "csvformat" || w0Plain === "csvstat" || w0Plain === "in2csv" || w0Plain === "csvstack" || w0Plain === "csvjoin" || w0Plain === "dd" || w0Plain === "env" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "mogrify" || w0Plain === "composite" || w0Plain === "montage" || w0Plain === "compare" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || w0Plain === "date" || w0Plain === "printenv" || w0Plain === "egrep" || w0Plain === "fgrep" || w0Plain === "cal" || w0Plain === "ncal" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32") && Boolean(this.getExternalCommand(w0Plain))))) {
+    if (isSingleFileTool && !hasShellFunction(rawState, w0Plain) && (this.commands.has(w0Plain) || ((w0Plain === "base64" || w0Plain === "rev" || w0Plain === "tac" || w0Plain === "nl" || w0Plain === "paste" || w0Plain === "column" || w0Plain === "fold" || w0Plain === "expand" || w0Plain === "unexpand" || w0Plain === "strings" || w0Plain === "comm" || w0Plain === "join" || w0Plain === "expr" || w0Plain === "bc" || w0Plain === "xxd" || w0Plain === "od" || w0Plain === "factor" || w0Plain === "tsort" || w0Plain === "envsubst" || w0Plain === "hexdump" || w0Plain === "hd" || w0Plain === "fmt" || w0Plain === "uname" || w0Plain === "id" || w0Plain === "whoami" || w0Plain === "hostname" || w0Plain === "nproc" || w0Plain === "getconf" || w0Plain === "locale" || w0Plain === "csvcut" || w0Plain === "csvgrep" || w0Plain === "getopt" || w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat" || w0Plain === "htmlq" || w0Plain === "xmllint" || w0Plain === "xq" || w0Plain === "yq" || w0Plain === "mdq" || w0Plain === "shuf" || w0Plain === "html-to-markdown" || w0Plain === "unrtf" || w0Plain === "pr" || w0Plain === "pathchk" || w0Plain === "file" || w0Plain === "diff3" || w0Plain === "cmp" || w0Plain === "which" || w0Plain === "diff" || w0Plain === "xan" || w0Plain === "less" || w0Plain === "more" || w0Plain === "df" || w0Plain === "du" || w0Plain === "tree" || w0Plain === "stat" || w0Plain === "fd" || w0Plain === "rg" || w0Plain === "readlink" || w0Plain === "realpath" || w0Plain === "ls" || w0Plain === "find" || w0Plain === "csvlook" || w0Plain === "csvjson" || w0Plain === "csvsort" || w0Plain === "csvformat" || w0Plain === "csvstat" || w0Plain === "in2csv" || w0Plain === "csvstack" || w0Plain === "csvjoin" || w0Plain === "dd" || w0Plain === "env" || w0Plain === "xargs" || w0Plain === "openssl" || w0Plain === "sqlite3" || w0Plain === "gpg" || w0Plain === "ssh" || w0Plain === "ssh-keygen" || w0Plain === "pdfinfo" || w0Plain === "pdffonts" || w0Plain === "pdftotext" || w0Plain === "pdftohtml" || w0Plain === "exiftool" || w0Plain === "qpdf" || w0Plain === "pdftk" || w0Plain === "sips" || w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "mogrify" || w0Plain === "composite" || w0Plain === "montage" || w0Plain === "compare" || w0Plain === "pdfimages" || w0Plain === "pdfdetach" || w0Plain === "ffprobe" || w0Plain === "ffmpeg" || w0Plain === "gh" || w0Plain === "pdftoppm" || w0Plain === "pdftocairo" || w0Plain === "mmdc" || w0Plain === "pandoc" || w0Plain === "soffice" || w0Plain === "libreoffice" || w0Plain === "ssconvert" || w0Plain === "wkhtmltopdf" || w0Plain === "op" || w0Plain === "git" || w0Plain === "tar" || w0Plain === "unzip" || w0Plain === "zip" || w0Plain === "timeout" || w0Plain === "split" || w0Plain === "csplit" || w0Plain === "curl" || w0Plain === "wget" || w0Plain === "sponge" || w0Plain === "truncate" || w0Plain === "install" || w0Plain === "apply_patch" || w0Plain === "mktemp" || w0Plain === "tee" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "patch" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln" || w0Plain === "date" || w0Plain === "printenv" || w0Plain === "egrep" || w0Plain === "fgrep" || w0Plain === "cal" || w0Plain === "ncal" || w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum" || w0Plain === "base32") && Boolean(this.commands.get(w0Plain))))) {
       const allArgs: string[] = [];
       let fOk = true;
       for (let i = 1; i < cmd.words.length; i++) {
@@ -30536,7 +30502,7 @@ export class Runtime {
         }
       }
       if (fOk && (w0Plain === "date" || w0Plain === "printenv" || w0Plain === "env") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
-        const ext = this.getExternalCommand(w0Plain);
+        const ext = this.commands.get(w0Plain);
         const dpOut = w0Plain === "date"
           ? evalSyncDate(allArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, ext?.execute, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.mtimeMs)
           : w0Plain === "env"
@@ -30561,7 +30527,7 @@ export class Runtime {
         const inspectNode = (p: string) => this.tryInspectMemoryNodeSync(p, true);
         const inspectStat = (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow);
         const vfsOut = w0Plain === "df"
-          ? evalSyncDf(allArgs, rawState.cwd, rawState.variables, inspectNode, this.getExternalCommand("df")?.execute)
+          ? evalSyncDf(allArgs, rawState.cwd, rawState.variables, inspectNode, this.commands.get("df")?.execute)
           : w0Plain === "du"
             ? evalSyncDu(allArgs, rawState.cwd, rawState.variables, inspectNode)
             : w0Plain === "tree"
@@ -30674,7 +30640,7 @@ export class Runtime {
           : w0Plain === "ffmpeg"
             ? syncCommandEvaluators.evalSyncFfmpeg?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "gh"
-            ? syncCommandEvaluators.evalSyncGh?.(this.getExternalCommand("gh")!.execute, allArgs, rawState.variables, rawState.cwd, readFile)
+            ? syncCommandEvaluators.evalSyncGh?.(this.commands.get("gh")!.execute, allArgs, rawState.variables, rawState.cwd, readFile)
           : w0Plain === "pdftoppm"
             ? syncCommandEvaluators.evalSyncPdftoppm?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "pdftocairo"
@@ -30686,13 +30652,13 @@ export class Runtime {
           : (w0Plain === "soffice" || w0Plain === "libreoffice")
             ? syncCommandEvaluators.evalSyncSoffice?.(allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "ssconvert"
-            ? syncCommandEvaluators.evalSyncSsconvert?.(this.getExternalCommand("ssconvert")!.execute, allArgs, optInBytes, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
+            ? syncCommandEvaluators.evalSyncSsconvert?.(this.commands.get("ssconvert")!.execute, allArgs, optInBytes, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "wkhtmltopdf"
             ? syncCommandEvaluators.evalSyncWkhtmltopdf?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "op"
-            ? syncCommandEvaluators.evalSyncOp?.(this.getExternalCommand("op")!.execute, allArgs, rawState.variables)
+            ? syncCommandEvaluators.evalSyncOp?.(this.commands.get("op")!.execute, allArgs, rawState.variables)
           : w0Plain === "git"
-            ? syncCommandEvaluators.evalSyncGit?.(optInBytes, allArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.getExternalCommand("git")!.execute, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const dir = p.slice(0, p.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, p, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, p, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, p, this.commandSignal); } catch { return false; } })
+            ? syncCommandEvaluators.evalSyncGit?.(optInBytes, allArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.commands.get("git")!.execute, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const dir = p.slice(0, p.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, p, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, p, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, p, this.commandSignal); } catch { return false; } })
           : w0Plain === "tar"
             ? evalSyncTar(optInBytes, allArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, m ?? 0o755, this.commandSignal); } catch { return false; } })
           : w0Plain === "unzip"
@@ -31096,7 +31062,7 @@ export class Runtime {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncFfmpeg?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "gh") {
-              fileRes = syncCommandEvaluators.evalSyncGh?.(this.getExternalCommand("gh")!.execute, opArgs, rawState.variables, rawState.cwd, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false));
+              fileRes = syncCommandEvaluators.evalSyncGh?.(this.commands.get("gh")!.execute, opArgs, rawState.variables, rawState.cwd, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false));
             } else if (w0Plain === "pdftoppm") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdftoppm?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
@@ -31113,14 +31079,14 @@ export class Runtime {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncSoffice?.(opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "ssconvert") {
-              fileRes = syncCommandEvaluators.evalSyncSsconvert?.(this.getExternalCommand("ssconvert")!.execute, opArgs, view, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
+              fileRes = syncCommandEvaluators.evalSyncSsconvert?.(this.commands.get("ssconvert")!.execute, opArgs, view, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "wkhtmltopdf") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncWkhtmltopdf?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "op") {
-              fileRes = syncCommandEvaluators.evalSyncOp?.(this.getExternalCommand("op")!.execute, opArgs, rawState.variables);
+              fileRes = syncCommandEvaluators.evalSyncOp?.(this.commands.get("op")!.execute, opArgs, rawState.variables);
             } else if (w0Plain === "git") {
-              fileRes = syncCommandEvaluators.evalSyncGit?.(view, opArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.getExternalCommand("git")!.execute, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const dir = p.slice(0, p.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, p, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, p, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, p, this.commandSignal); } catch { return false; } });
+              fileRes = syncCommandEvaluators.evalSyncGit?.(view, opArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.commands.get("git")!.execute, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const dir = p.slice(0, p.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, p, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, p, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, p, this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "tar") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncTar(view, opArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, m ?? 0o755, this.commandSignal); } catch { return false; } });
@@ -31365,7 +31331,7 @@ export class Runtime {
       return res;
     }
     if (w0Plain !== "printf" && w0Plain !== "echo" && w0Plain !== "dirname" && w0Plain !== "basename" && w0Plain !== "seq") return undefined;
-    const def = w0Plain === "seq" ? this.getExternalCommand(w0Plain) : this.commands.get(w0Plain);
+    const def = this.commands.get(w0Plain);
     if (!def) return undefined;
     if (w0Plain === "printf" && def.execute !== printfCommand.execute) return undefined;
     if (w0Plain === "echo" && !defaultEchoExecutors.has(def.execute)) return undefined;

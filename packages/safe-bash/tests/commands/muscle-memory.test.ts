@@ -23,7 +23,7 @@ printf 'ABCD' | od -An -t x1 | tr -s ' '
 
 test("bc arbitrary-precision arithmetic, -l mathlib, base conversion, loops, and user functions", async () => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ muscleMemory: true }));
   await fs.mkdir("/work", { recursive: true });
   try {
     const r1 = await shell.exec(`
@@ -53,7 +53,7 @@ echo "s=0; for (i=1; i<=100; i++) s += i; s" | bc
 
 test("sponge soaks all stdin before modifying target file in-place and supports -a", async () => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ muscleMemory: true }));
   await fs.mkdir("/work", { recursive: true });
   await fs.writeFile("/work/data.txt", Buffer.from("gamma\nalpha\nbeta\nalpha\n"));
   try {
@@ -76,7 +76,7 @@ cat data.txt
 
 test("fd finds files with regex/glob, extensions (-e), types (-t), hidden (-H), excludes (-E), and exec (-x/-X)", async () => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ muscleMemory: true }));
   await fs.mkdir("/work/src/components", { recursive: true });
   await fs.mkdir("/work/src/utils", { recursive: true });
   await fs.mkdir("/work/.git", { recursive: true });
@@ -108,7 +108,7 @@ fd -e ts -x printf 'stem:%s\\n' '{/.}'
 
 test("less and more act as non-interactive pass-throughs with -N, -s, and +pattern support", async () => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ muscleMemory: true }));
   await fs.mkdir("/work", { recursive: true });
   await fs.writeFile("/work/log.txt", Buffer.from("line1\n\n\nline2\nline3\n"));
   try {
@@ -194,7 +194,7 @@ test("fd -q, -S, -C, --strip-cwd-prefix, --and, and bc -e / less -p parity", asy
   await fs.writeFile("/work/pkg/large.ts", new TextEncoder().encode("x".repeat(500) + "\n"));
   await fs.writeFile("/work/pkg/sub/match_target.ts", new TextEncoder().encode("alpha\nbeta_marker\ngamma\n"));
 
-  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands());
+  const shell = new Shell({ fs, cwd: "/work" }).use(agentCommands({ muscleMemory: true }));
 
   // fd -q / --has-results
   const qHit = await shell.exec("fd -q large");

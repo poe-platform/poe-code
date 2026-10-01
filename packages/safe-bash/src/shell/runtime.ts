@@ -2860,6 +2860,11 @@ function sameRedirectTargetWord(a: Word, b: Word): boolean {
   }
   return true;
 }
+type SyncLoopProgress = {
+  lastCmd: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }> | undefined;
+  lastArg: string;
+  pipelineStatus: number | undefined;
+};
 type SyncLoopStep = {
   readonly cmd: Extract<Command, { kind: "simple" }>;
   readonly name: string | undefined;
@@ -8566,7 +8571,7 @@ export class Runtime {
     // Loops and pure substitutions cannot replay after an unsupported result.
     // These operators depend on arithmetic, filesystem or collation state that
     // the speculative synchronous evaluator does not fully support.
-    if (requireTotal && ((expr.kind === "unary" && syncConditionalFileUnaryOps.has(expr.operator)) ||
+    if (requireTotal && ((expr.kind === "unary" && (expr.operator === "-v" || syncConditionalFileUnaryOps.has(expr.operator))) ||
       (expr.kind === "binary" && expr.operator !== "==" && expr.operator !== "=" && expr.operator !== "!=" && expr.operator !== "=~"))) return false;
     const okWord = (w: Word): boolean => !Runtime.wordMayMutate(w) || (rawState !== undefined && this.isPureSyncValueWord(w, rawState));
     if (expr.kind === "nonempty") return okWord(expr.operand);
@@ -13401,7 +13406,16 @@ export class Runtime {
       for (let b = 0; b + 1 < bodyAssignments.length; b++) {
         const curr = bodyAssignments[b]!;
         const next = bodyAssignments[b + 1]!;
-        if ( curr.targetWord !== undefined && curr.value !== undefined && this.isSimpleRedirectEchoWord(curr.value) && !curr.append && next.targetWord !== undefined && next.value !== undefined && this.isSimpleRedirectEchoWord(next.value) && next.append && sameRedirectTargetWord(curr.targetWord, next.targetWord)) {
+        // The first echo must finish before a dependent command or $? expansion.
+        if (
+          curr.listOperator === undefined && next.listOperator === undefined &&
+          curr.targetWord !== undefined && curr.value !== undefined &&
+          this.isSimpleRedirectEchoWord(curr.value) && !curr.append &&
+          next.targetWord !== undefined && next.value !== undefined &&
+          this.isSimpleRedirectEchoWord(next.value) && next.append &&
+          sameRedirectTargetWord(curr.targetWord, next.targetWord) &&
+          [next.value, next.targetWord].every(word => word.parts.every(part => part.kind !== "variable" || part.name !== "?"))
+        ) {
           curr.coalesceNext = true;
           b++;
         }
@@ -13650,8 +13664,9 @@ export class Runtime {
     if (bodyAssignments.length > 30 || !this.syncLoopArithmeticReadsRemainInteger(bodyAssignments, rawState, arrayLoop?.integerWords)) return undefined;
     const touched = this._syncArithRawWriteOnly ? new Set<string>() : sharedSyncLoopTouched;
     touched.clear();
-    let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
+    let lastCmd: SyncLoopProgress["lastCmd"];
     let lastArg = "";
+    let lastPipelineStatus: number | undefined;
     const mode = 0o666 & ~(rawState.umask ?? 0o022);
     if (command.kind === "arithmetic-for") {
       type CachedArithPlan = {
@@ -13961,6 +13976,7 @@ export class Runtime {
           const { ok, lastInductionInt, subBytes, subCount } = runIntArithForLoop( startVal, limitVal, isLe, bodyAssignments.length, deferredMask, intSteps, this.budget.parsing, );
           if (!ok) canUseIntRegisters = false; else {
             usedFastIntPath = true;
+            if (iterations > 0) lastPipelineStatus = 0;
             this.budget.parsing.admit(limitVal < 0 ? 4 : 2);
             this.budget.iterations += iterations + 1;
             this.budget.commands += iterations * bodyAssignments.length + subCount;
@@ -13989,6 +14005,7 @@ export class Runtime {
             loopStatus = rawState.status;
             lastCmd = fb.lastCmd;
             lastArg = fb.lastArg;
+            lastPipelineStatus = fb.pipelineStatus;
             lastInductionVal = fb.lastInductionVal;
           } finally {
             this._syncReturnDepth--;
@@ -14053,11 +14070,13 @@ export class Runtime {
         if (rawState.variables._ !== undefined && !touched.has("_") && !(usedFastIntPath && touchedIntNamesList.includes("_"))) delete rawState.variables._;
         rawState.lastArgument = lastArg;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+      }
+      if (lastPipelineStatus !== undefined) {
         if (!existing) {
-          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : [loopStatus];
+          monitor.lazyPipeStatus = lastPipelineStatus === 0 ? singleStatusZero : [lastPipelineStatus];
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          this.setSyncPipeStatusCell(existing!, String(loopStatus));
+          this.setSyncPipeStatusCell(existing!, String(lastPipelineStatus));
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
       }
@@ -14072,6 +14091,7 @@ export class Runtime {
       const cp = command.condition.lists[0]!.pipelines[0]!;
       if (cp.negate || cp.commands.length !== 1) return undefined;
       const condCmd = cp.commands[0]!;
+      if (condCmd.kind !== "simple" && condCmd.kind !== "arithmetic" && condCmd.kind !== "conditional") return undefined;
       let whileArithProg: ArithmeticProgram | undefined;
       let whileCondExpr: ConditionalExpression | undefined;
       let whileReadSpec: { ifsAssign: ReturnType<Runtime["assignment"]>; varNames: string[]; isBareReply: boolean; readCmd: Extract<Command, { kind: "simple" }>; delimChar?: string | undefined } | undefined;
@@ -14264,6 +14284,7 @@ export class Runtime {
       this._syncArithTouched = touched;
       const condLine = io.diagnosticCommandLines?.get(condCmd) ?? (condCmd.line ?? diagnosticLine) + (io.diagnosticOffset ?? 0);
       let loopStatus = 0;
+      const progress: SyncLoopProgress = { lastCmd: undefined, lastArg: rawState.lastArgument ?? "", pipelineStatus: undefined };
       let iterCount = 0;
       try {
         if (whileReadSpec !== undefined && syncReadInputText !== undefined) {
@@ -14321,8 +14342,9 @@ export class Runtime {
                 rawState.variables[vn] = "";
                 touched.add(vn);
               }
-              lastCmd = rCmd;
-              lastArg = rLastArg;
+              progress.lastCmd = rCmd;
+              progress.lastArg = rLastArg;
+              progress.pipelineStatus = 1;
               break;
             }
             const nlIdx = syncReadInputText.indexOf(readDelim, cursor);
@@ -14330,18 +14352,22 @@ export class Runtime {
               const partialLine = syncReadInputText.slice(cursor);
               cursor = textLen;
               splitSyncReadLine(partialLine, readIfs);
-              lastCmd = rCmd;
-              lastArg = rLastArg;
+              progress.lastCmd = rCmd;
+              progress.lastArg = rLastArg;
+              progress.pipelineStatus = 1;
               break;
             }
             const lineStr = syncReadInputText.slice(cursor, nlIdx);
             cursor = nlIdx + 1;
             splitSyncReadLine(lineStr, readIfs);
+            progress.lastCmd = rCmd;
+            progress.lastArg = rLastArg;
+            progress.pipelineStatus = 0;
             rawState.status = 0;
             ++iterCount;
             this.budget.loop();
             if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
-            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
+            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, progress);
             loopStatus = rawState.status;
             if (this._syncLoopAction !== undefined) {
               const act = this._syncLoopAction;
@@ -14368,14 +14394,15 @@ export class Runtime {
             }
             rawState.variables[whileGetoptsSpec.optVar] = res.option;
             touched.add(whileGetoptsSpec.optVar);
-            lastCmd = whileGetoptsSpec.getoptsCmd;
-            lastArg = whileGetoptsSpec.cmdLastArg;
+            progress.lastCmd = whileGetoptsSpec.getoptsCmd;
+            progress.lastArg = whileGetoptsSpec.cmdLastArg;
+            progress.pipelineStatus = res.status;
             if (res.status !== 0) break;
             rawState.status = 0;
             ++iterCount;
             this.budget.loop();
             if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
-            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
+            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, progress);
             loopStatus = rawState.status;
             if (this._syncLoopAction !== undefined) {
               const act = this._syncLoopAction;
@@ -14389,13 +14416,15 @@ export class Runtime {
             const condNonZero = whileCondExpr !== undefined
               ? (this.tryEvalConditionalSync(whileCondExpr, rawState, monitor, store, io, condLine) ?? 1) === 0
               : this.evalSyncLoopArithStmt(whileArithProg!, rawState, io, touched, condLine);
-            if (condCmd.kind === "simple") { lastCmd = condCmd; lastArg = this.fastValueWord(condCmd.words[condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string; }
+            progress.lastCmd = condCmd;
+            if (condCmd.kind === "simple") progress.lastArg = this.fastValueWord(condCmd.words[condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
             rawState.status = condNonZero ? 0 : 1;
+            progress.pipelineStatus = rawState.status;
             if (condNonZero !== (command.kind === "while")) break;
             ++iterCount;
             this.budget.loop();
             if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
-            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
+            this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, progress);
             loopStatus = rawState.status;
             if (this._syncLoopAction !== undefined) {
               const act = this._syncLoopAction;
@@ -14421,15 +14450,20 @@ export class Runtime {
           }
         }
       }
+      lastCmd = progress.lastCmd;
+      lastArg = progress.lastArg;
+      lastPipelineStatus = progress.pipelineStatus;
       if (lastCmd) {
         if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(lastCmd));
         rawState.substitutionStatus = 0;
         if (rawState.variables._ !== undefined && !touched.has("_")) delete rawState.variables._;
         rawState.lastArgument = lastArg;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
-        const statusStr = loopStatus === 0 ? "0" : String(loopStatus);
+      }
+      if (lastPipelineStatus !== undefined) {
+        const statusStr = String(lastPipelineStatus);
         if (!existing) {
-          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : [loopStatus];
+          monitor.lazyPipeStatus = lastPipelineStatus === 0 ? singleStatusZero : [lastPipelineStatus];
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
           this.setSyncPipeStatusCell(existing!, statusStr);
@@ -14670,6 +14704,7 @@ export class Runtime {
         const { ok, subBytes, subCount } = runIntForLoop(fastLoopWords, bodyAssignments.length, intSteps, this.budget.parsing);
         if (!ok) canUseIntRegisters = false; else {
           usedFastIntFor = true;
+          if (fastLoopWords.length > 0) lastPipelineStatus = 0;
           lastCmd = bodyAssignments[bodyAssignments.length - 1]?.cmd;
           this.budget.iterations += fastLoopWords.length;
           this.budget.commands += fastLoopWords.length * bodyAssignments.length + subCount;
@@ -14698,6 +14733,7 @@ export class Runtime {
           loopStatus = fastLoopWords.length === 0 ? 0 : rawState.status;
           lastCmd = fb.lastCmd;
           lastArg = fb.lastArg;
+          lastPipelineStatus = fb.pipelineStatus;
         } finally {
           this._syncReturnDepth--;
         }
@@ -14736,11 +14772,13 @@ export class Runtime {
         if (rawState.variables._ !== undefined && !touched.has("_") && !(usedFastIntFor && forPlan.touchedIntNamesList.includes("_"))) delete rawState.variables._;
         rawState.lastArgument = lastArg;
         if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+      }
+      if (lastPipelineStatus !== undefined) {
         if (!existing) {
-          monitor.lazyPipeStatus = loopStatus === 0 ? singleStatusZero : [loopStatus];
+          monitor.lazyPipeStatus = lastPipelineStatus === 0 ? singleStatusZero : [lastPipelineStatus];
           monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
         } else {
-          this.setSyncPipeStatusCell(existing!, String(loopStatus));
+          this.setSyncPipeStatusCell(existing!, String(lastPipelineStatus));
           store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
         }
       }
@@ -15289,10 +15327,9 @@ export class Runtime {
     const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, io);
     tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, append, mode, this.commandSignal);
   }
-  private runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string; lastInductionVal: string | undefined } {
+  private runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): SyncLoopProgress & { lastInductionVal: string | undefined } {
     let enteredBody = false;
-    let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
-    let lastArg = rawState.lastArgument ?? "";
+    const progress: SyncLoopProgress = { lastCmd: undefined, lastArg: rawState.lastArgument ?? "", pipelineStatus: undefined };
     let lastInductionVal: string | undefined;
     touched.add(inductionName);
     this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
@@ -15303,138 +15340,7 @@ export class Runtime {
       if (!this.syncShellArithmeticNonZero(e1, rawState, diagnosticLine)) break;
       enteredBody = true;
       if (hasDeferredSteps) lastInductionVal = rawState.variables[inductionName];
-      for (let b = 0; b < bodyAssignments.length; b++) {
-        const step = bodyAssignments[b]!;
-        if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
-        if (step.caseClauses === undefined && step.ifBranches === undefined && step.nestedLoop === undefined) lastCmd = step.cmd;
-        this.budget.tick();
-        if (step.loopAction !== undefined) {
-          lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          rawState.status = 0;
-          this._syncLoopAction = step.loopAction;
-          break;
-        }
-        if (step.unsetVars !== undefined) {
-          lastArg = this.execSyncUnsetStep(step, rawState, monitor, touched);
-          rawState.status = 0;
-          continue;
-        }
-        if (step.localDecl !== undefined) {
-          lastArg = this.execSyncLocalDeclStep(step.localDecl, rawState, io, monitor, touched, step.line);
-          rawState.status = 0;
-          continue;
-        }
-        if (step.shiftCount !== undefined) {
-          const shRes = this.execSyncShiftStep(step.shiftCount, step.cmd, rawState);
-          lastArg = shRes.lastArg;
-          rawState.status = shRes.status;
-          continue;
-        }
-        if (step.readHereString !== undefined) {
-          lastArg = this.execSyncReadHereStringStep(step.readHereString, step, rawState, io, monitor, touched);
-          continue;
-        }
-        if (deferredMask & (1 << b)) {
-          lastArg = "";
-          rawState.status = 0;
-          continue;
-        }
-        if (step.coalesceNext) {
-          const nextStep = bodyAssignments[++b]!;
-          this.budget.tick();
-          const encoded = this.encodeSyncRedirectWordsToScratch(step.value!, nextStep.value!, rawState, io);
-          this.writeSyncRedirectStep(step, encoded, false, mode, rawState, io);
-          this.budget.fileSystemOperation();
-          this.budget.fileSystemOperation();
-          this.budget.bytes += encoded.byteLength;
-          lastCmd = nextStep.cmd;
-          lastArg = this.evalSyncRedirectWord(nextStep.value!, rawState, io) ?? "";
-        } else if (step.targetWord !== undefined && step.value !== undefined) {
-          if (this.isSimpleRedirectEchoWord(step.value)) {
-            const encoded = this.encodeSyncRedirectWordsToScratch(step.value, undefined, rawState, io);
-            this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
-            this.budget.fileSystemOperation();
-            this.budget.bytes += encoded.byteLength;
-            lastArg = this.evalSyncRedirectWord(step.value, rawState, io) ?? "";
-          } else {
-            const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-            const encoded = fastSharedTextEncoder.encode(this.formatSyncEchoLine(val));
-            this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
-            this.budget.fileSystemOperation();
-            this.budget.bytes += encoded.byteLength;
-            lastArg = val;
-          }
-        } else if (step.targetWord !== undefined && step.printfVArgs !== undefined) {
-          const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
-          const encoded = fastSharedTextEncoder.encode(formatted);
-          this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
-          this.budget.fileSystemOperation();
-          this.budget.bytes += encoded.byteLength;
-          lastArg = pLastArg;
-        } else if (step.isStdoutEcho && step.value !== undefined) {
-          const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-          this.writeSyncStdoutText(this.formatSyncEchoLine(val), io);
-          lastArg = val;
-        } else if (step.isStdoutEcho && step.printfVArgs !== undefined) {
-          const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
-          this.writeSyncStdoutText(formatted, io);
-          lastArg = pLastArg;
-        } else if (step.arrayAssign !== undefined) {
-          if (!this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true)) {
-            throw new Error("Synchronous loop array assignment was not executable");
-          }
-          lastArg = "";
-        } else if (step.caseClauses !== undefined) {
-          this.flushSyncStdoutBatch(io);
-          this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
-          if (this._syncLoopAction !== undefined) break;
-          continue;
-        } else if (step.ifBranches !== undefined) {
-          this.flushSyncStdoutBatch(io);
-          this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
-          if (this._syncLoopAction !== undefined) break;
-          continue;
-        } else if (step.condStmt !== undefined) {
-          const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
-          if (step.cmd.kind === "simple") {
-            lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
-          }
-          rawState.status = cStatus;
-          continue;
-        } else if (step.nestedLoop !== undefined) {
-          this.flushSyncStdoutBatch(io);
-          this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
-          continue;
-        } else if (step.fnCall !== undefined) {
-          this.flushSyncStdoutBatch(io);
-          this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
-          continue;
-        } else if (step.arithStmt !== undefined) {
-          const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);
-          rawState.status = nonZero ? 0 : 1;
-          continue;
-        } else if (step.printfVArgs !== undefined && step.name !== undefined) {
-          const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
-          rawState.variables[step.name] = formatted;
-          touched.add(step.name);
-          lastArg = pLastArg;
-        } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
-          lastArg = this.runSyncDiscardStep(step, rawState, io);
-        } else if (step.name !== undefined && step.value !== undefined) {
-          rawState.substitutionStatus = 0;
-          const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-          if (step.append) {
-            const curRaw = rawState.variables[step.name];
-            const curStr = curRaw === undefined ? "" : (touched.has(step.name) ? curRaw : (monitor.values.get(step.name, curRaw) ?? curRaw));
-            rawState.variables[step.name] = (typeof curStr === "string" ? curStr : "") + val;
-          } else rawState.variables[step.name] = val;
-          touched.add(step.name);
-          lastArg = "";
-        } else {
-          lastArg = step.cmd.words[0]!.plain!;
-        }
-        rawState.status = step.name !== undefined && step.value !== undefined ? rawState.substitutionStatus : 0;
-      }
+      this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, progress, deferredMask);
       if (this._syncLoopAction !== undefined) {
         const act = this._syncLoopAction;
         this._syncLoopAction = undefined;
@@ -15444,7 +15350,7 @@ export class Runtime {
     }
     this.flushSyncStdoutBatch(io);
     if (!enteredBody) rawState.status = 0;
-    return { lastCmd, lastArg, lastInductionVal };
+    return { ...progress, lastInductionVal };
   }
   private _syncLoopFnCheckDepth = 0;
   private canSyncReadOnlyArraySubscripts(tree: ArithmeticProgram["tree"], rawState: State): boolean {
@@ -15624,7 +15530,7 @@ export class Runtime {
     monitor: NonNullable<ReturnType<typeof stateMonitor>>,
     touched: Set<string>,
     mode: number,
-    onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
+    progress: SyncLoopProgress,
   ): void {
     const fnCall = step.fnCall!;
     const fnArgs: string[] = [];
@@ -15664,12 +15570,14 @@ export class Runtime {
         }
       }
       if (fnCall.steps.length > 0) {
-        this.execSyncLoopSteps(fnCall.steps, rawState, io, monitor, touched, mode, onUpdate);
+        this.execSyncLoopSteps(fnCall.steps, rawState, io, monitor, touched, mode, progress);
       } else {
         rawState.status = 0;
       }
       rawState.lastArgument = fnArgs.at(-1) ?? fnCall.name;
-      onUpdate({ lastCmd: step.cmd, lastArg: rawState.lastArgument });
+      progress.lastCmd = step.cmd;
+      progress.lastArg = rawState.lastArgument;
+      progress.pipelineStatus = rawState.status;
     } finally {
       for (let i = savedLocals.length - 1; i >= 0; i--) {
         const saved = savedLocals[i]!;
@@ -15692,17 +15600,11 @@ export class Runtime {
     monitor: NonNullable<ReturnType<typeof stateMonitor>>,
     touched: Set<string>,
     mode: number,
-    onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
+    progress: SyncLoopProgress,
   ): void {
     const nl = step.nestedLoop!;
     const lc = nl.loopCmd;
-    let innerLastCmd: Extract<Command, { kind: "simple" }> | undefined;
-    let innerLastArg = "";
     let innerStatus = 0;
-    const updateInner = (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }): void => {
-      innerLastCmd = v.lastCmd;
-      innerLastArg = v.lastArg;
-    };
     rawState.loopDepth++;
     try {
       if (lc.kind === "arithmetic-for") {
@@ -15715,7 +15617,7 @@ export class Runtime {
         while (this.syncShellArithmeticNonZero(e1, rawState, nl.condLine)) {
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
-          this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, progress);
           innerStatus = rawState.status;
           if (this._syncLoopAction !== undefined) {
             const act = this._syncLoopAction;
@@ -15732,7 +15634,7 @@ export class Runtime {
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
           rawState.variables[lc.name] = words[i]!;
-          this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, progress);
           innerStatus = rawState.status;
           if (this._syncLoopAction !== undefined) {
             const act = this._syncLoopAction;
@@ -15747,12 +15649,14 @@ export class Runtime {
           const condOk = nl.condExpr !== undefined
             ? (this.tryEvalConditionalSync(nl.condExpr, rawState, monitor, arrayStore(rawState), io, nl.condLine) ?? 1) === 0
             : this.evalSyncLoopArithStmt(nl.condArith!, rawState, io, touched, nl.condLine);
-          if (nl.condCmd?.kind === "simple") { innerLastCmd = nl.condCmd; innerLastArg = this.fastValueWord(nl.condCmd.words[nl.condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string; }
+          progress.lastCmd = nl.condCmd;
+          if (nl.condCmd?.kind === "simple") progress.lastArg = this.fastValueWord(nl.condCmd.words[nl.condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
           rawState.status = condOk ? 0 : 1;
+          progress.pipelineStatus = rawState.status;
           if (condOk !== (lc.kind === "while")) break;
           this.budget.loop();
           if ((++turn & 127) === 0) runYieldCheckpoint(this.signal);
-          this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, updateInner);
+          this.execSyncLoopSteps(nl.steps, rawState, io, monitor, touched, mode, progress);
           innerStatus = rawState.status;
           if (this._syncLoopAction !== undefined) {
             const act = this._syncLoopAction;
@@ -15765,7 +15669,6 @@ export class Runtime {
       rawState.loopDepth--;
     }
     rawState.status = innerStatus;
-    if (innerLastCmd) onUpdate({ lastCmd: innerLastCmd, lastArg: innerLastArg });
   }
   private execSyncCaseStep(
     step: SyncLoopStep,
@@ -15774,7 +15677,7 @@ export class Runtime {
     monitor: NonNullable<ReturnType<typeof stateMonitor>>,
     touched: Set<string>,
     mode: number,
-    onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
+    progress: SyncLoopProgress,
   ): void {
     const subj = this.fastValueWord(step.caseSubject!, rawState, io, false, false, false, false, 0, step.line) as string;
     const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
@@ -15793,7 +15696,7 @@ export class Runtime {
     if (!chosen) {
       rawState.status = 0;
     } else {
-      this.execSyncLoopSteps(chosen, rawState, io, monitor, touched, mode, onUpdate);
+      this.execSyncLoopSteps(chosen, rawState, io, monitor, touched, mode, progress);
     }
   }
   private execSyncIfStep(
@@ -15803,7 +15706,7 @@ export class Runtime {
     monitor: NonNullable<ReturnType<typeof stateMonitor>>,
     touched: Set<string>,
     mode: number,
-    onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
+    progress: SyncLoopProgress,
   ): void {
     let chosen: readonly SyncLoopStep[] | undefined;
     for (let bi = 0; bi < step.ifBranches!.length; bi++) {
@@ -15812,8 +15715,10 @@ export class Runtime {
       const condOk = br.condExpr !== undefined
         ? (this.tryEvalConditionalSync(br.condExpr, rawState, monitor, arrayStore(rawState), io, br.condLine) ?? 1) === 0
         : this.evalSyncLoopArithStmt(br.cond!, rawState, io, touched, br.condLine);
-      if (br.condCmd.kind === "simple") onUpdate({ lastCmd: br.condCmd, lastArg: this.fastValueWord(br.condCmd.words[br.condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string });
+      progress.lastCmd = br.condCmd;
+      if (br.condCmd.kind === "simple") progress.lastArg = this.fastValueWord(br.condCmd.words[br.condCmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
       rawState.status = condOk ? 0 : 1;
+      progress.pipelineStatus = rawState.status;
       if (condOk) {
         chosen = br.steps;
         break;
@@ -15823,7 +15728,7 @@ export class Runtime {
     if (!chosen) {
       rawState.status = 0;
     } else {
-      this.execSyncLoopSteps(chosen, rawState, io, monitor, touched, mode, onUpdate);
+      this.execSyncLoopSteps(chosen, rawState, io, monitor, touched, mode, progress);
     }
   }
   private execSyncLoopSteps(
@@ -15833,72 +15738,49 @@ export class Runtime {
     monitor: NonNullable<ReturnType<typeof stateMonitor>>,
     touched: Set<string>,
     mode: number,
-    onUpdate: (v: { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string }) => void,
+    progress: SyncLoopProgress,
+    deferredMask = 0,
   ): void {
-    let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
-    let lastArg = rawState.lastArgument ?? "";
     for (let b = 0; b < steps.length; b++) {
       const step = steps[b]!;
       if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
-      if (step.caseClauses === undefined && step.ifBranches === undefined && step.nestedLoop === undefined) lastCmd = step.cmd;
       this.budget.tick();
+      // Compound commands return their body's status, but only executed pipelines
+      // update PIPESTATUS. Share progress so empty branches and loops preserve it.
+      if (step.nestedLoop !== undefined || step.fnCall !== undefined || step.caseClauses !== undefined || step.ifBranches !== undefined) {
+        this.flushSyncStdoutBatch(io);
+        if (step.nestedLoop !== undefined) this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, progress);
+        else if (step.fnCall !== undefined) this.execSyncFnStep(step, rawState, io, monitor, touched, mode, progress);
+        else if (step.caseClauses !== undefined) this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, progress);
+        else this.execSyncIfStep(step, rawState, io, monitor, touched, mode, progress);
+        if (this._syncLoopAction !== undefined) break;
+        continue;
+      }
+      progress.lastCmd = step.cmd;
+      let status = 0;
       if (step.loopAction !== undefined) {
-        lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-        rawState.status = 0;
+        progress.lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
         this._syncLoopAction = step.loopAction;
-        onUpdate({ lastCmd, lastArg });
-        break;
-      }
-      if (step.unsetVars !== undefined) {
-        lastArg = this.execSyncUnsetStep(step, rawState, monitor, touched);
-        rawState.status = 0;
-        onUpdate({ lastCmd, lastArg });
-        continue;
-      }
-      if (step.localDecl !== undefined) {
-        lastArg = this.execSyncLocalDeclStep(step.localDecl, rawState, io, monitor, touched, step.line);
-        rawState.status = 0;
-        onUpdate({ lastCmd, lastArg });
-        continue;
-      }
-      if (step.shiftCount !== undefined) {
-        const shRes = this.execSyncShiftStep(step.shiftCount, step.cmd, rawState);
-        lastArg = shRes.lastArg;
-        rawState.status = shRes.status;
-        onUpdate({ lastCmd, lastArg });
-        continue;
-      }
-      if (step.readHereString !== undefined) {
-        lastArg = this.execSyncReadHereStringStep(step.readHereString, step, rawState, io, monitor, touched);
-        onUpdate({ lastCmd, lastArg });
-        continue;
-      }
-      if (step.nestedLoop !== undefined) {
-        this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; onUpdate(v); });
-        continue;
-      } else if (step.fnCall !== undefined) {
-        this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; onUpdate(v); });
-        continue;
-      } else if (step.caseClauses !== undefined) {
-        this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; onUpdate(v); });
-        if (this._syncLoopAction !== undefined) break;
-        continue;
-      } else if (step.ifBranches !== undefined) {
-        this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; onUpdate(v); });
-        if (this._syncLoopAction !== undefined) break;
-        continue;
+      } else if (step.unsetVars !== undefined) {
+        progress.lastArg = this.execSyncUnsetStep(step, rawState, monitor, touched);
+      } else if (step.localDecl !== undefined) {
+        progress.lastArg = this.execSyncLocalDeclStep(step.localDecl, rawState, io, monitor, touched, step.line);
+      } else if (step.shiftCount !== undefined) {
+        const result = this.execSyncShiftStep(step.shiftCount, step.cmd, rawState);
+        progress.lastArg = result.lastArg;
+        status = result.status;
+      } else if (step.readHereString !== undefined) {
+        progress.lastArg = this.execSyncReadHereStringStep(step.readHereString, step, rawState, io, monitor, touched);
+        status = rawState.status;
+      } else if (deferredMask & (1 << b)) {
+        progress.lastArg = "";
       } else if (step.condStmt !== undefined) {
-        const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
+        status = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
         if (step.cmd.kind === "simple") {
-          lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
-          onUpdate({ lastCmd, lastArg });
+          progress.lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
         }
-        rawState.status = cStatus;
-        continue;
       } else if (step.arithStmt !== undefined) {
-        const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);
-        rawState.status = nonZero ? 0 : 1;
-        continue;
+        status = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line) ? 0 : 1;
       } else if (step.coalesceNext) {
         const nextStep = steps[++b]!;
         this.budget.tick();
@@ -15907,42 +15789,42 @@ export class Runtime {
         this.budget.fileSystemOperation();
         this.budget.fileSystemOperation();
         this.budget.bytes += encoded.byteLength;
-        lastCmd = nextStep.cmd;
-        lastArg = this.evalSyncRedirectWord(nextStep.value!, rawState, io);
+        progress.lastCmd = nextStep.cmd;
+        progress.lastArg = this.evalSyncRedirectWord(nextStep.value!, rawState, io);
       } else if (step.targetWord !== undefined && step.value !== undefined) {
         if (this.isSimpleRedirectEchoWord(step.value)) {
           const encoded = this.encodeSyncRedirectWordsToScratch(step.value, undefined, rawState, io);
           this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
-          lastArg = this.evalSyncRedirectWord(step.value, rawState, io);
+          progress.lastArg = this.evalSyncRedirectWord(step.value, rawState, io);
         } else {
           const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
           const encoded = fastSharedTextEncoder.encode(this.formatSyncEchoLine(val));
           this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
           this.budget.fileSystemOperation();
           this.budget.bytes += encoded.byteLength;
-          lastArg = val;
+          progress.lastArg = val;
         }
       } else if (step.targetWord !== undefined && step.printfVArgs !== undefined) {
-        const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
+        const { formatted, lastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
         const encoded = fastSharedTextEncoder.encode(formatted);
         this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
         this.budget.fileSystemOperation();
         this.budget.bytes += encoded.byteLength;
-        lastArg = pLastArg;
+        progress.lastArg = lastArg;
       } else if (step.arrayAssign !== undefined) {
         if (!this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true)) {
           throw new Error("Synchronous loop array assignment was not executable");
         }
-        lastArg = "";
+        progress.lastArg = "";
       } else if (step.printfVArgs !== undefined && step.name !== undefined) {
-        const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
+        const { formatted, lastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
         rawState.variables[step.name] = formatted;
         touched.add(step.name);
-        lastArg = pLastArg;
+        progress.lastArg = lastArg;
       } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
-        lastArg = this.runSyncDiscardStep(step, rawState, io);
+        progress.lastArg = this.runSyncDiscardStep(step, rawState, io);
       } else if (step.name !== undefined && step.value !== undefined) {
         rawState.substitutionStatus = 0;
         const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
@@ -15952,153 +15834,32 @@ export class Runtime {
           rawState.variables[step.name] = (typeof curStr === "string" ? curStr : "") + val;
         } else rawState.variables[step.name] = val;
         touched.add(step.name);
-        lastArg = "";
+        progress.lastArg = "";
+        status = rawState.substitutionStatus;
       } else if (step.isStdoutEcho && step.value !== undefined) {
         const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
         this.writeSyncStdoutText(this.formatSyncEchoLine(val), io);
-        lastArg = val;
+        progress.lastArg = val;
       } else if (step.isStdoutEcho && step.printfVArgs !== undefined) {
-        const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
+        const { formatted, lastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
         this.writeSyncStdoutText(formatted, io);
-        lastArg = pLastArg;
+        progress.lastArg = lastArg;
       } else {
-        lastArg = step.cmd.words[0]!.plain!;
+        progress.lastArg = step.cmd.words[0]!.plain!;
       }
-      rawState.status = step.name !== undefined && step.value !== undefined ? rawState.substitutionStatus : 0;
-      onUpdate({ lastCmd, lastArg });
+      rawState.status = status;
+      progress.pipelineStatus = status;
+      if (this._syncLoopAction !== undefined) break;
     }
   }
-  private runSyncForFallback( varName: string, fastLoopWords: readonly string[], bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, ): { lastCmd: Extract<Command, { kind: "simple" }> | undefined; lastArg: string } {
-    let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
-    let lastArg = rawState.lastArgument ?? "";
+  private runSyncForFallback( varName: string, fastLoopWords: readonly string[], bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, ): SyncLoopProgress {
+    const progress: SyncLoopProgress = { lastCmd: undefined, lastArg: rawState.lastArgument ?? "", pipelineStatus: undefined };
     let loopTurn = 0;
     for (let idx = 0; idx < fastLoopWords.length; idx++) {
       this.budget.loop();
       if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
       rawState.variables[varName] = fastLoopWords[idx]!;
-      for (let b = 0; b < bodyAssignments.length; b++) {
-        const step = bodyAssignments[b]!;
-        if (step.listOperator !== undefined && ((step.listOperator === "&&" && rawState.status !== 0) || (step.listOperator === "||" && rawState.status === 0))) continue;
-        if (step.caseClauses === undefined && step.ifBranches === undefined && step.nestedLoop === undefined) lastCmd = step.cmd;
-        this.budget.tick();
-        if (step.loopAction !== undefined) {
-          lastArg = step.cmd.words[step.cmd.words.length - 1]!.plain!;
-          rawState.status = 0;
-          this._syncLoopAction = step.loopAction;
-          break;
-        }
-        if (step.unsetVars !== undefined) {
-          lastArg = this.execSyncUnsetStep(step, rawState, monitor, touched);
-          rawState.status = 0;
-          continue;
-        }
-        if (step.localDecl !== undefined) {
-          lastArg = this.execSyncLocalDeclStep(step.localDecl, rawState, io, monitor, touched, step.line);
-          rawState.status = 0;
-          continue;
-        }
-        if (step.shiftCount !== undefined) {
-          const shRes = this.execSyncShiftStep(step.shiftCount, step.cmd, rawState);
-          lastArg = shRes.lastArg;
-          rawState.status = shRes.status;
-          continue;
-        }
-        if (step.readHereString !== undefined) {
-          lastArg = this.execSyncReadHereStringStep(step.readHereString, step, rawState, io, monitor, touched);
-          continue;
-        }
-        if (step.coalesceNext) {
-          const nextStep = bodyAssignments[++b]!;
-          this.budget.tick();
-          const encoded = this.encodeSyncRedirectWordsToScratch(step.value!, nextStep.value!, rawState, io);
-          this.writeSyncRedirectStep(step, encoded, false, mode, rawState, io);
-          this.budget.fileSystemOperation();
-          this.budget.fileSystemOperation();
-          this.budget.bytes += encoded.byteLength;
-          lastCmd = nextStep.cmd;
-          lastArg = this.evalSyncRedirectWord(nextStep.value!, rawState, io) ?? "";
-        } else if (step.targetWord !== undefined && step.value !== undefined) {
-          if (this.isSimpleRedirectEchoWord(step.value)) {
-            const encoded = this.encodeSyncRedirectWordsToScratch(step.value, undefined, rawState, io);
-            this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
-            this.budget.fileSystemOperation();
-            this.budget.bytes += encoded.byteLength;
-            lastArg = this.evalSyncRedirectWord(step.value, rawState, io) ?? "";
-          } else {
-            const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-            const encoded = fastSharedTextEncoder.encode(this.formatSyncEchoLine(val));
-            this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
-            this.budget.fileSystemOperation();
-            this.budget.bytes += encoded.byteLength;
-            lastArg = val;
-          }
-        } else if (step.targetWord !== undefined && step.printfVArgs !== undefined) {
-          const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
-          const encoded = fastSharedTextEncoder.encode(formatted);
-          this.writeSyncRedirectStep(step, encoded, step.append, mode, rawState, io);
-          this.budget.fileSystemOperation();
-          this.budget.bytes += encoded.byteLength;
-          lastArg = pLastArg;
-        } else if (step.nestedLoop !== undefined) {
-          this.execSyncNestedLoopStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
-          continue;
-        } else if (step.fnCall !== undefined) {
-          this.execSyncFnStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
-          continue;
-        } else if (step.caseClauses !== undefined) {
-          this.execSyncCaseStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
-          if (this._syncLoopAction !== undefined) break;
-          continue;
-        } else if (step.ifBranches !== undefined) {
-          this.execSyncIfStep(step, rawState, io, monitor, touched, mode, v => { lastCmd = v.lastCmd; lastArg = v.lastArg; });
-          if (this._syncLoopAction !== undefined) break;
-          continue;
-        } else if (step.condStmt !== undefined) {
-          const cStatus = this.tryEvalConditionalSync(step.condStmt, rawState, monitor, arrayStore(rawState), io, step.line) ?? 1;
-          if (step.cmd.kind === "simple") {
-            lastArg = this.fastValueWord(step.cmd.words[step.cmd.words.length - 1]!, rawState, io, false, false, false, true) as string;
-          }
-          rawState.status = cStatus;
-          continue;
-        } else if (step.arrayAssign !== undefined) {
-          if (!this.tryFastArrayAssignmentSync(step.arrayAssign, rawState, io, step.line, undefined, undefined, true)) {
-            throw new Error("Synchronous loop array assignment was not executable");
-          }
-          lastArg = "";
-        } else if (step.arithStmt !== undefined) {
-          const nonZero = this.evalSyncLoopArithStmt(step.arithStmt, rawState, io, touched, step.line);
-          rawState.status = nonZero ? 0 : 1;
-          continue;
-        } else if (step.printfVArgs !== undefined && step.name !== undefined) {
-          const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line);
-          rawState.variables[step.name] = formatted;
-          touched.add(step.name);
-          lastArg = pLastArg;
-        } else if (step.isDiscardDevNull && step.discardWords !== undefined) {
-          lastArg = this.runSyncDiscardStep(step, rawState, io);
-        } else if (step.name !== undefined && step.value !== undefined) {
-          rawState.substitutionStatus = 0;
-          const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-          if (step.append) {
-            const curRaw = rawState.variables[step.name];
-            const curStr = curRaw === undefined ? "" : (touched.has(step.name) ? curRaw : (monitor.values.get(step.name, curRaw) ?? curRaw));
-            rawState.variables[step.name] = (typeof curStr === "string" ? curStr : "") + val;
-          } else rawState.variables[step.name] = val;
-          touched.add(step.name);
-          lastArg = "";
-        } else if (step.isStdoutEcho && step.value !== undefined) {
-          const val = this.fastValueWord(step.value, rawState, io, false, false, false, false, 0, step.line) as string;
-          this.writeSyncStdoutText(this.formatSyncEchoLine(val), io);
-          lastArg = val;
-        } else if (step.isStdoutEcho && step.printfVArgs !== undefined) {
-          const { formatted, lastArg: pLastArg } = this.evalSyncPrintfStep(step.printfVArgs, rawState, io, step.line, step.cmd.words[0]?.plain === "echo");
-          this.writeSyncStdoutText(formatted, io);
-          lastArg = pLastArg;
-        } else {
-          lastArg = step.cmd.words[0]!.plain!;
-        }
-        rawState.status = step.name !== undefined && step.value !== undefined ? rawState.substitutionStatus : 0;
-      }
+      this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, progress);
       if (this._syncLoopAction !== undefined) {
         const act = this._syncLoopAction;
         this._syncLoopAction = undefined;
@@ -16106,7 +15867,7 @@ export class Runtime {
       }
     }
     this.flushSyncStdoutBatch(io);
-    return { lastCmd, lastArg };
+    return progress;
   }
   async script(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {
     if (state.extensions?.syntax.indexedDeclarations?.includes("readonly")) io.assignmentDiagnosticContext ??= { name: undefined };

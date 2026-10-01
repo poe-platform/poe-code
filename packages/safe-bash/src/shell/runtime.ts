@@ -1048,7 +1048,25 @@ export interface State extends DynamicVariableState {
   hashedCommands?: Map<string, string>;
 }
 const declarationArrays = Symbol("declarationArrays");
+interface ExecDescriptorFrame {
+  version: number;
+  descriptors: Map<number, Descriptor>;
+  revisions: Map<number, number>;
+  releases: Map<number, () => Promise<void>>;
+}
+const execDescriptorFrames = new WeakMap<State, ExecDescriptorFrame>();
+async function closeExecDescriptors(state: State): Promise<void> {
+  const raw = stateMonitor(state)?.raw ?? state;
+  const frame = execDescriptorFrames.get(raw);
+  if (!frame) return;
+  execDescriptorFrames.delete(raw);
+  const results = await Promise.allSettled([...frame.releases.values()].map(release => release()));
+  frame.releases.clear();
+  throwCleanupFailures(results.filter(result => result.status === "rejected").map(result => result.reason));
+}
 interface IO {
+  readonly execVersion?: number;
+  readonly execFrame?: ExecDescriptorFrame;
   /** Zeroth argument identity; command remains the name used for lookup. */
   readonly argv0?: string | undefined;
   readonly [declarationArrays]?: ReadonlyMap<number, ArrayAssignment> | undefined;
@@ -3481,6 +3499,17 @@ function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, parseBudg
   return entry;
 }
 export class Runtime {
+  private persistentIO(state: State, io: IO): IO {
+    const frame = execDescriptorFrames.get(stateMonitor(state)?.raw ?? state);
+    if (!frame || io.execFrame === frame && io.execVersion === frame.version) return io;
+    const changed = new Map([...frame.descriptors].filter(([number]) => io.execFrame !== frame || (frame.revisions.get(number) ?? 0) > (io.execVersion ?? 0)));
+    const descriptors = new Map(io.descriptors ?? [[0, { input: io.stdin }], [1, { output: io.stdout }], [2, { output: io.stderr }]]);
+    for (const [number, descriptor] of changed) descriptors.set(number, descriptor);
+    return { ...io, descriptors, execFrame: frame, execVersion: frame.version,
+      ...(changed.has(0) ? { stdin: descriptors.get(0)?.closed ? closedSource : descriptors.get(0)?.input ?? closedSource, stdinIsDefault: false } : {}),
+      ...(changed.has(1) ? { stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink } : {}),
+      ...(changed.has(2) ? { stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink } : {}) };
+  }
   static clearStaticPools(): void { clearRuntimePools(); }
   declare readonly commands: CommandRegistry;
   declare readonly middleware: readonly Middleware[];
@@ -4609,6 +4638,8 @@ export class Runtime {
   }
   variable(state: State, name: string): string | undefined {
     name = this.referenceName(state, name);
+    if (name === "$" || name === "BASHPID") return "1";
+    if (name === "!") return "";
     if (name === "RANDOM" || name === "SECONDS") return readDynamicVariable(stateMonitor(state)?.raw ?? state, name) ?? state.variables[name];
     const binding = arrayStore(state)?.get(name);
     if (binding) return binding.get(binding.associative ? binding.keys.get("30")?.index ?? -1 : 0);
@@ -5884,7 +5915,8 @@ export class Runtime {
     } finally { try { await staged?.release(); await operation.close(); } finally { holding.release(); } }
   }
   async run(script: Script, state: State, io: IO): Promise<number> {
-    return this.finishShell(state, io, (await this.runUnit(script, state, io)).exitCode);
+    try { return await this.finishShell(state, io, (await this.runUnit(script, state, io)).exitCode); }
+    finally { await closeExecDescriptors(state); }
   }
   private extensionContext(state: State, io: IO, command = "", args: readonly string[] = [], argumentValues: readonly ShellValue[] = args): ShellExtensionContext {
     const frame = state.extensions!;
@@ -7206,6 +7238,7 @@ export class Runtime {
     }
   }
   private trySyncPipeline(pipeline: Pipeline, state: State, io: IO, ignored: boolean): number | undefined {
+    io = this.persistentIO(state, io);
     const _rawSt = (stateMonitor(state)?.raw ?? state) as { _syncPendingFunctionResumes?: unknown[]; _syncPendingEvalResume?: unknown };
     if ((_rawSt._syncPendingFunctionResumes?.length ?? 0) > 0 || _rawSt._syncPendingEvalResume !== undefined) return undefined;
     if (this.budget.limits.maxExpansionBytes < 65536 || this.budget.limits.maxCommands < 1000 || this.script !== Runtime.prototype.script) return undefined;
@@ -11529,7 +11562,7 @@ export class Runtime {
     const initializer = command.expressions[0]?.tree;
     if (initializer?.kind !== "binary" || initializer.operator !== "=" || initializer.left.kind !== "name") return undefined;
     const induction = initializer.left.name;
-    const dynamicNames = new Set(["PIPESTATUS", "LINENO", "_", "FUNCNAME", "DIRSTACK", "BASH_SUBSHELL"]);
+    const dynamicNames = new Set(["PIPESTATUS", "LINENO", "_", "FUNCNAME", "DIRSTACK", "BASH_SUBSHELL", "BASHPID"]);
     type Assignment = { name: string; value: Word; append: boolean } | ArrayAssignment;
     const assignments: Assignment[] = [];
     const appends = new Map<string, number>();
@@ -11679,7 +11712,7 @@ export class Runtime {
         // Unsubscripted array references expand element zero through the normal
         // evaluator. fastValueWord cannot guarantee that expansion throughout
         // a loop, so reject it before executing any loop effects.
-        if (part.name === "RANDOM" || part.name === "SECONDS" || stateMonitor(rawState)?.store?.get(part.name)) return false;
+        if (part.name === "RANDOM" || part.name === "SECONDS" || part.name === "BASHPID" || stateMonitor(rawState)?.store?.get(part.name)) return false;
         // These expansions can require multiple fields or asynchronous quoting
         // as loop state changes. Decide before the loop produces any effects.
         if (this._syncLoopFnCheckDepth > 0 && (part.substring || getArraySelector(part)?.kind === "element")) return false;
@@ -15447,6 +15480,7 @@ export class Runtime {
       }
       const firstIndex = listIndex === startListIndex ? startPipelineIndex : 0;
       for (let index = firstIndex; index < list.pipelines.length; index++) {
+        io = this.persistentIO(state, io);
         if (state.noexec) throw new Flow("discard", 0);
         const operator = index > 0 ? list.operators[index - 1] : undefined;
         const resumingEnteredPipeline = skipFirstSync && listIndex === startListIndex && index === startPipelineIndex;
@@ -15955,6 +15989,7 @@ export class Runtime {
     return status;
   }
   async executeCommand(command: Command, state: State, originalIO: IO, fileShortcut = false): Promise<number> {
+    originalIO = this.persistentIO(state, originalIO);
     const terminal = originalIO.terminal?.target === command ? originalIO.terminal : undefined;
     if (!state._readOnlyStage) state = trackState(state, this.budget, originalIO[invocationScope]);
     if (originalIO.asyncDefaultInput) {
@@ -16258,7 +16293,20 @@ export class Runtime {
     let io = originalIO;
     let diagnosticFailure: NounsetDiagnosticFailure | undefined;
     let outputTracker: OutputFailureTracker | undefined;
-    const snapshotHolder: { scope?: InvocationScope; finish?: () => void } = {};
+    const snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean } = {};
+    const execState = stateMonitor(state)?.raw ?? state;
+    const savedExecDescriptors = new Map<number, { descriptor: Descriptor; revision: number | undefined; release: (() => Promise<void>) | undefined }>();
+    if (command.redirects.length) {
+      const frame = execDescriptorFrames.get(execState);
+      for (const redirect of command.redirects) {
+        for (const number of redirect.operator === "&>" || redirect.operator === "&>>" ? [1, 2] : [redirect.descriptor]) {
+          if (savedExecDescriptors.has(number)) continue;
+          const descriptor = originalIO.descriptors?.get(number)
+            ?? (number === 0 ? { input: originalIO.stdin } : number === 1 ? { output: originalIO.stdout } : number === 2 ? { output: originalIO.stderr } : { closed: true });
+          savedExecDescriptors.set(number, { descriptor, revision: frame?.revisions.get(number), release: descriptor.lifetime?.acquire() });
+        }
+      }
+    }
     try {
       let status = 0;
       if (command.kind === "simple") {
@@ -16286,10 +16334,26 @@ export class Runtime {
       return errResult.status;
     } finally {
       try {
-        if (!references && outputs.size === 0 && inputs.size === 0 && processSubstitutions.length === 0) allocation.close(); else await this.cleanupCommandResources(references, outputs, inputs, processSubstitutions, allocation, diagnosticFailure, io);
+        const frame = execDescriptorFrames.get(execState);
+        const retirements: Promise<void>[] = [];
+        for (const [number, saved] of savedExecDescriptors) {
+          if (frame && !snapshotHolder.persistentRedirects && frame.revisions.get(number) !== saved.revision) {
+            const release = frame.releases.get(number);
+            if (saved.release) frame.releases.set(number, saved.release); else frame.releases.delete(number);
+            frame.descriptors.set(number, saved.descriptor);
+            frame.revisions.set(number, ++frame.version);
+            if (release) retirements.push(release());
+          } else if (saved.release) retirements.push(saved.release());
+        }
+        const retired = await Promise.allSettled(retirements);
+        throwCleanupFailures(retired.filter(result => result.status === "rejected").map(result => result.reason));
       } finally {
-        snapshotHolder.finish?.();
-        if (snapshotHolder.scope) await snapshotHolder.scope.close();
+        try {
+          if (!references && outputs.size === 0 && inputs.size === 0 && processSubstitutions.length === 0) allocation.close(); else await this.cleanupCommandResources(references, outputs, inputs, processSubstitutions, allocation, diagnosticFailure, io);
+        } finally {
+          snapshotHolder.finish?.();
+          if (snapshotHolder.scope) await snapshotHolder.scope.close();
+        }
       }
     }
   }
@@ -16806,6 +16870,8 @@ export class Runtime {
       const descriptor = descriptors.get(0)?.closed ? undefined : descriptors.get(0);
       const stdinIsDefault = descriptor?.input ? descriptor.stdinIsDefault : false;
       return {
+        ...(io.execVersion === undefined ? {} : { execVersion: io.execVersion }),
+        ...(io.execFrame === undefined ? {} : { execFrame: io.execFrame }),
         capabilities: io.capabilities, ...(io.argv0 === undefined ? {} : { argv0: io.argv0 }), [invocationScope]: io[invocationScope], ...(io.admittedHandles === undefined ? {} : { admittedHandles: io.admittedHandles }), ...(io.processSignals === undefined ? {} : { processSignals: io.processSignals }), ...(io[valueScope] === undefined ? {} : { [valueScope]: io[valueScope] }), ...(io.execution === undefined ? {} : { execution: io.execution }), ...(io.diagnosticLine === undefined ? {} : { diagnosticLine: io.diagnosticLine }), ...(io.diagnosticOffset === undefined ? {} : { diagnosticOffset: io.diagnosticOffset }), ...(io.assignmentDiagnosticContext === undefined ? {} : { assignmentDiagnosticContext: io.assignmentDiagnosticContext }), ...(io.functionCommandLines === undefined ? {} : { functionCommandLines: io.functionCommandLines }), ...(io.diagnosticCommandLines === undefined ? {} : { diagnosticCommandLines: io.diagnosticCommandLines }), ...(io.scriptName === undefined ? {} : { scriptName: io.scriptName }), ...(io.substitutionDiagnosticLine === undefined ? {} : { substitutionDiagnosticLine: io.substitutionDiagnosticLine }), ...(io.substitutionDiagnosticLines === undefined ? {} : { substitutionDiagnosticLines: io.substitutionDiagnosticLines }), ...(io.processSubstitutions === undefined ? {} : { processSubstitutions: io.processSubstitutions }), stdin: descriptor?.input ?? closedSource, ...(stdinIsDefault === undefined ? {} : { stdinIsDefault }), stdout: descriptors.get(1)?.closed ? closedSink : descriptors.get(1)?.output ?? closedSink, stderr: descriptors.get(2)?.closed ? closedSink : descriptors.get(2)?.output ?? closedSink, descriptors, };};
     try { for (const redirect of redirects) {
       replaced.add(redirect.descriptor);
@@ -16899,7 +16965,16 @@ export class Runtime {
           await replaceDescriptor(redirect.descriptor, { input, stdinIsDefault: false, lifetime, ...(file ? { file } : {}), ...(output ? { output } : {}) });
         } else {
           const append = redirect.operator === ">>" || redirect.operator === "&>>";
-          const flag = append ? "a" : state.noclobber && redirect.operator !== ">|" ? "wx" : "w";
+          let flag: "a" | "wx" | "w" = append ? "a" : state.noclobber && redirect.operator !== ">|" ? "wx" : "w";
+          if (flag === "wx") {
+            try {
+              const stat = await resourceFs.stat(path, options);
+              if (stat.type !== "file" && stat.type !== "directory") flag = "w";
+            } catch (error) {
+              this.signal.throwIfAborted();
+              if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+            }
+          }
           const capabilities = await this.fs.capabilitiesFor?.(path, { ...options, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? this.fs.capabilities;
           const streaming = capabilities.preferStreamingRedirection === true && typeof this.fs.writeStream === "function"
             && (append ? capabilities.streamingAppend ?? capabilities.streamingWrite : capabilities.streamingWrite) === true;
@@ -17035,7 +17110,7 @@ export class Runtime {
     assignmentCache.set(word, result);
     return result;
   }
-  async simple( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
+  async simple( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
     state.substitutionStatus = 0;
     const firstAssignment = command.words.length > 0 ? (getArrayAssignment(command.words[0]!) ?? this.assignment(command.words[0]!)) : undefined;
     if (!firstAssignment && command.redirects.length === 0 && !fileShortcut) {
@@ -17103,7 +17178,7 @@ export class Runtime {
     }
     return this.simpleWithSetup(command, state, originalIO, inputs, outputs, snapshotHolder, fileShortcut, terminal);
   }
-  private async simpleWithSetup( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
+  private async simpleWithSetup( command: Extract<Command, { kind: "simple" }>, state: State, originalIO: IO, inputs: Set<{ close(): void | Promise<void> }>, outputs: Set<OutputFinalizer>, snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean }, fileShortcut = false, terminal?: IO["terminal"], ): Promise<number> {
     const assignments: ({ name: string; value: Word; append: boolean; kind?: undefined } | ArrayAssignment)[] = [];
     let wordIndex = 0;
     for (; wordIndex < command.words.length; wordIndex++) {
@@ -17291,6 +17366,28 @@ export class Runtime {
         }
       }
       if (!words.length) return state.substitutionStatus;
+      if (words[declarationIndex] === "exec" && !functionCommand && !state.extensions?.builtins.has("exec")) {
+        snapshotHolder.persistentRedirects = true;
+        const raw = stateMonitor(state)?.raw ?? state;
+        let frame = execDescriptorFrames.get(raw);
+        if (!frame) {
+          frame = { version: 0, descriptors: new Map(), revisions: new Map(), releases: new Map() };
+          execDescriptorFrames.set(raw, frame);
+          this.budget.executionCleanup.register(() => closeExecDescriptors(raw));
+        }
+        for (const redirect of command.redirects) {
+          const numbers = redirect.operator === "&>" || redirect.operator === "&>>" ? [1, 2] : [redirect.descriptor];
+          for (const number of numbers) {
+            const descriptor = io.descriptors?.get(number) ?? { closed: true };
+            const release = descriptor.lifetime?.acquire();
+            const previousRelease = frame.releases.get(number);
+            if (release) frame.releases.set(number, release); else frame.releases.delete(number);
+            frame.descriptors.set(number, descriptor);
+            frame.revisions.set(number, ++frame.version);
+            await previousRelease?.();
+          }
+        }
+      }
       const args = words.slice(1);
       const argValues = allStrings ? args : wordValues.slice(1);
       const dispatchIO = compounds ? { ...io, [declarationArrays]: compounds } : io;
@@ -18004,31 +18101,12 @@ export class Runtime {
               return { exitCode: 0 };
             }
             const execArgs = execRest.slice(1);
-            if (
-              execCmd === "bash" ||
-              execCmd === "sh" ||
-              execCmd === "safe-bash" ||
-              execCmd.endsWith("/bash") ||
-              execCmd.endsWith("/sh") ||
-              execCmd.endsWith("/safe-bash")
-            ) {
-              let cFlagIdx = -1;
-              for (let k = 0; k < execArgs.length; k += 1) {
-                const a = execArgs[k];
-                if (a === "-c" || a === "-lc" || a === "-ic" || a === "-ilc" || a === "-lic") { cFlagIdx = k; break; }
-              }
-              if (cFlagIdx !== -1 && cFlagIdx + 1 < execArgs.length) {
-                const exitCode = await this.runCurrentText(execArgs[cFlagIdx + 1]!, state, { ...io, ...context }, false, "exec");
-                return { exitCode };
-              }
-              const exitCode = await this.runCurrentText(execArgs.join(" "), state, { ...io, ...context }, false, "exec");
-              return { exitCode };
-            }
-            const extDef = this.commands.get(execCmd);
-            if (extDef) {
-              const arguments_ = this.admitArguments(context.argumentValues.values.slice(execIdx + 1), allocation);
-              return await extDef.execute({ ...context, command: execCmd, args: arguments_.args, argumentValues: arguments_ });
-            }
+            const status = await this.dispatch(execCmd, execArgs, state, { ...io, ...context }, assignments, true, context.argumentValues.values.slice(execIdx + 1));
+            throw completedExit(status, "exit");
+          }
+          if (context.command === "read" && context.args.some(arg => arg.startsWith("-") && (arg.includes("u") || arg.includes("t")))) {
+            const { executeRead } = await import("./read-builtin.js");
+            return { exitCode: await executeRead(true, this.extensionContext(state, { ...io, ...context }, context.command, context.args, context.argumentValues.values)) };
           }
           const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
           const builtin = await interruptible(builtinWork, this.signal);
@@ -21564,7 +21642,7 @@ export class Runtime {
           continue;
         }
         if (part.indirect || part.specialParameter) return undefined;
-        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "BASH_SUBSHELL" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
+        if (part.name === "@" || part.name === "*" || part.name === "PIPESTATUS" || part.name === "LINENO" || part.name === "BASH_SUBSHELL" || part.name === "BASHPID" || part.name === "_" || part.name === "FUNCNAME" || part.name === "DIRSTACK") return undefined;
         if (!isShellIdentifier(part.name)) return undefined;
         const selector = getArraySelector(part);
         const arrayBinding = activeArrayStore?.get(part.name);
@@ -28915,7 +28993,7 @@ export class Runtime {
       const p = word.parts[i]!;
       if (p.kind === "text") continue;
       if (p.kind === "variable") {
-        if (p.name === "BASH_SUBSHELL" || p.name === "RANDOM" || p.name === "SECONDS") return false;
+        if (p.name === "BASH_SUBSHELL" || p.name === "BASHPID" || p.name === "RANDOM" || p.name === "SECONDS") return false;
         if ( !p.indirect && !p.prefixNames && !p.length && !p.substring && !p.transform && p.operator === undefined && getArraySelector(p) === undefined && (p.name === "?" || p.name === "#" || (p.name.length === 1 && p.name >= "1" && p.name <= "9"))) {
           const activePos = this._fastSubPositional ?? rawState.positional;
           if (rawState.nounset && p.name >= "1" && p.name <= "9" && activePos[p.name.charCodeAt(0) - 49] === undefined) return false;

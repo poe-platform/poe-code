@@ -51,12 +51,19 @@ test("default read nonterminal options assign partial input and report EOF", asy
 });
 
 test("default read nonterminal options preserve input on malformed or unsupported options", async () => {
-  for (const option of ["-u", "-p", "-u1", "-unope", "-u0 -Z"]) {
+  const usage = "read: usage: read [-Eers] [-a array] [-d delim] [-i text] [-n nchars] [-N nchars] [-p prompt] [-t timeout] [-u fd] [name ...]\n";
+  for (const [option, status, diagnostic] of [
+    ["-u", 2, `shell: line 1: read: -u: option requires an argument\n${usage}`],
+    ["-p", 2, "read: invalid variable name or unsupported option\n"],
+    ["-u1", 1, "shell: line 1: read: 1: read error: Bad file descriptor\n"],
+    ["-unope", 1, "shell: line 1: read: nope: invalid file descriptor specification\n"],
+    ["-u0 -Z", 2, `shell: line 1: read: -Z: invalid option\n${usage}`],
+  ] as const) {
     const { shell } = setup();
     try {
       const result = await shell.exec(`value=old; read ${option}; args "$?" "$value"; pass`, { stdin: "untouched" });
-      assert.equal(result.stdout, '["2","old"]untouched', option);
-      assert.equal(result.stderr, "read: invalid variable name or unsupported option\n", option);
+      assert.equal(result.stdout, `["${status}","old"]untouched`, option);
+      assert.equal(result.stderr, diagnostic, option);
     } finally { await shell.dispose(); }
   }
 });

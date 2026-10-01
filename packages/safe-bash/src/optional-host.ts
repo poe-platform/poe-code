@@ -47,6 +47,7 @@ export type {
   ShellSpecialParameterHook,
 } from "./shell/extensions.js";
 export type { RawRecord, ReadLine } from "./shell/input.js";
+export { executeRead } from "./shell/read-builtin.js";
 export { ByteInputBudget } from "./commands/bytes/input-budget.js";
 export { inputRequirements } from "./commands/portable-requirements.js";
 export { textOutputRequirements } from "safe-bash-io-engine/portable-requirements";

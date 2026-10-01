@@ -8,6 +8,33 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 
 for (const [name, source, expected] of [
+  ["subshell substitution", 'say $((say a); (say b))', 'a b\n'],
+  ["quoted arithmetic substitution", 'say $(( $(say "))" >/dev/null; say 5) + 1 ))', '6\n'],
+  ["read descriptor", 'say first > in; say second >> in; { read -r -u 3 a; read -r -u 3 b; } 3< in; say "$a|$b"', 'first|second\n'],
+  ["read timeout", 'say first > in; read -t 1 a < in; say "$a"', 'first\n'],
+  ["exec output", '(exec > out; say first; say second); pass < out', 'first\nsecond\n'],
+  ["exec output ordering", '(exec > out; say first; say second); say before; pass < out', 'before\nfirst\nsecond\n'],
+  ["exec input", 'say first > in; say second >> in; exec 3< in; read -u3 a; read -u3 b; exec 3<&-; say "$a|$b"', 'first|second\n'],
+  ["exec duplicate survives close", 'exec 3> out; exec 4>&3; exec 3>&-; say saved >&4; exec 4>&-; pass < out', 'saved\n'],
+  ["exec temporary redirect", 'exec 3> out; say other > other; say kept >&3; exec 3>&-; pass < other; pass < out', 'other\nkept\n'],
+  ["exec output restored in compound", 'exec 3>&1; { exec > out; say hidden; } > temporary; say visible; exec 1>&3; pass < out', 'visible\nhidden\n'],
+  ["exec in function", 'f(){ exec 3> out; }; f; say kept >&3; exec 3>&-; pass < out', 'kept\n'],
+  ["exec expanded function restores redirected descriptor", 'exec 3>out; f(){ exec 3>other; }; name=f; "$name" 3>temp; say expected >&3; exec 3>&-; say OUT; pass <out; say OTHER; pass <other', 'OUT\nexpected\nOTHER\n'],
+  ["exec command substitution descriptor isolation", 'exec 3>out; say "$(exec 3>other; say child >&3; say ok)"; say parent >&3; exec 3>&-; say OUT; pass <out; say OTHER; pass <other', 'ok\nOUT\nparent\nOTHER\nchild\n'],
+  ["exec unrelated descriptor preserves compound output", 'exec 5>&1; exec >out; { exec 4>&1; say temp; } >temp; say main; exec 1>&5; pass <out; pass <temp', 'main\ntemp\n'],
+  ["exec unrelated descriptor preserves function output", 'exec 5>&1; exec >out; f(){ exec 4>&1; say temp; }; f >temp; say main; exec 1>&5; pass <out; pass <temp', 'main\ntemp\n'],
+  ["exec subshell isolation", '(exec 3> out; say child >&3); say "$?"; pass < out', '0\nchild\n'],
+  ["read zero timeout does not consume", 'say first > in; { read -t0 -u3 a; say "$?:${a-unset}"; read -u3 a; say "$a"; } 3< in', '0:unset\nfirst\n'],
+  ["exec descriptor", 'exec 3> out; say first >&3; say second >&3; exec 3>&-; pass < out', 'first\nsecond\n'],
+  ["exec replacement", '(exec say replaced; say unreachable)', 'replaced\n'],
+  ["exec replacement status", '(exec status 7; say unreachable); say "$?"', '7\n'],
+  ["exec builtin eval restores descriptor", 'exec 3>out; f(){ exec 3>other; }; builtin eval "f" 3>temp; say expected >&3; exec 3>&-; pass <out; pass <other', 'expected\n'],
+  ["nested temporary redirects", 'exec 5>&1; exec >out; { say inner >inner; exec 4>&1; say temp; } >temp; say main; exec 1>&5; pass <out; pass <temp; pass <inner', 'main\ntemp\ninner\n'],
+  ["noclobber device", 'set -C; say hello > /dev/null; say "$?"', '0\n'],
+  ["shell pid", 'say "$$:${$}:$BASHPID"', '1:1:1\n'],
+  ["empty background pid", 'say "<$!>"', '<>\n'],
+  ["locale quoting", 'USER=world; say $"hello $USER"', 'hello world\n'],
+  ["subshell depth", 'say "$BASH_SUBSHELL"; (say "$BASH_SUBSHELL"); say "$(say "$BASH_SUBSHELL")"', '0\n1\n1\n'],
   ["implicit both output", 'both >& out; pass < out', 'out\nerr\n'],
   ["append both output", 'say first > out; both &>> out; pass < out', 'first\nout\nerr\n'],
   ["readwrite input", 'say data > out; pass <> out', 'data\n'],
@@ -27,6 +54,25 @@ for (const [name, source, expected] of [
     assert.equal(result.stdout, expected);
     assert.equal(result.exitCode, 0);
   } finally { await shell.dispose(); }
+});
+
+for (const [source, expected, stderr = ""] of [
+  ['echo $((echo hello) | tr a-z A-Z)', 'HELLO\n'],
+  ['echo $((echo a); (echo b))', 'a b\n'],
+  ['echo $((echo out; echo err >&2) 3>&1 1>&2 2>&3)', 'err\n', 'out\n'],
+  ['echo $(( $(echo ")" >/dev/null; echo 5) + 1 ))', '6\n'],
+  ['echo $(( $(echo "))" >/dev/null; echo 5) + 1 ))', '6\n'],
+  ['echo "$$:${$}:$BASHPID"; for i in 1 2; do echo "$BASHPID"; done', '1:1:1\n1\n1\n'],
+  ['RANDOM=42; a=$RANDOM; RANDOM=42; b=$RANDOM; [[ $a == "$b" && $a -ge 0 && $a -le 32767 ]]; echo "$?"; SECONDS=123; echo "$SECONDS"', '0\n123\n'],
+  ['(exec echo replaced; echo unreachable); echo parent', 'replaced\nparent\n'],
+  ['(exec bash -c \'printf "%s\\n" "$1"\' ignored "two words"; echo unreachable); echo parent', 'two words\nparent\n'],
+] as const) test(`standard shell reported parity: ${source}`, async t => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  t.after(() => shell.dispose());
+  const result = await shell.exec(source);
+  assert.equal(result.stderr, stderr);
+  assert.equal(result.stdout, expected);
+  assert.equal(result.exitCode, 0);
 });
 
 for (const source of ['say wrong 1>& out', 'say wrong >&9', 'say wrong 2>& out']) {

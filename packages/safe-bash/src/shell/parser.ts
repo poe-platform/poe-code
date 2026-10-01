@@ -702,8 +702,9 @@ class Lexer {
           text(this.source.slice(start, end), true, false, start, end);
         } else text(this.source.slice(this.position + 1, end), true, false, this.position, Math.min(end + 1, this.source.length));
         this.position = Math.min(end + 1, this.source.length);
-      } else if (current === '"') {
+      } else if (current === '"' || current === "$" && this.source[this.position + 1] === '"' && !enclosingQuoted) {
         plain = false;
+        if (current === "$") this.position++;
         const quoteLine = this.lineAt(this.position);
         this.position++;
         text("", true, true, this.position - 1, this.position);
@@ -904,11 +905,11 @@ class Lexer {
       return;
     }
     this.position++;
-    if (this.source[this.position] === "$" || this.source[this.position] === "!" && !this.syntax.specialParameters.length
-      || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
-    if (this.source.startsWith("((", this.position)) {
+    const arithmeticClose = this.source.startsWith("((", this.position)
+      ? arithmeticEnd(this.source, this.position + 2, true, this.budget.maxSyntaxDepth) : -1;
+    if (arithmeticClose >= 0) {
       const start = this.position + 2;
-      const end = arithmeticEnd(this.source, start, false, this.budget.maxSyntaxDepth);
+      const end = arithmeticClose;
       const source = this.source.slice(start, end);
       parts.push({ kind: "arithmetic", expression: prepareArithmetic(source, this.budget), source, line, quoted });
       this.position = end + 2;
@@ -945,7 +946,7 @@ class Lexer {
         || this.syntax.specialParameters.some(parameter => parameter.name === this.source[this.position + 1]));
       if (length) this.position++;
       const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);
-      const name = specialParameter?.name ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
+      const name = specialParameter?.name ?? ("$!".includes(this.source[this.position] ?? " ") ? this.source[this.position] : undefined) ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#-])/u.exec(this.source.slice(this.position))?.[0];
       if (!name) this.error("Unsupported parameter expansion");
       this.position += name.length;
       let prefixNames: "*" | "@" | undefined;
@@ -1030,7 +1031,7 @@ class Lexer {
       }
     } else {
       const specialParameter = this.syntax.specialParameters.find(parameter => parameter.name === this.source[this.position]);
-      const name = specialParameter?.name ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
+      const name = specialParameter?.name ?? ("$!".includes(this.source[this.position] ?? " ") ? this.source[this.position] : undefined) ?? /^(?:[a-zA-Z_][a-zA-Z_0-9]*|[?@*#0-9-])/u.exec(this.source.slice(this.position))?.[0];
       if (name) {
         this.position += name.length;
         parts.push({ kind: "variable", name, quoted, line, ...(specialParameter ? { specialParameter } : {}) });

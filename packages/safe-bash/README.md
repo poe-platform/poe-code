@@ -44,6 +44,8 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 Each `exec()` starts fresh shell variables, functions, and working-directory state;
 filesystem changes persist in the supplied `fs`. The invocation-local `umask`
 starts at `0022`, accepts octal or symbolic modes, and is inherited by child shells.
+Within a script, `exec` keeps file redirections open or replaces the current shell
+command; `read -u FD -t SECONDS` reads an open descriptor with a timeout.
 Creation modes use the filesystem's capabilities; advisory modes do not enforce
 physical permissions, and the host process mask remains unchanged.
 Core, shell, and command imports use Web-standard bytes without installing

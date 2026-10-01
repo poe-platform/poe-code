@@ -118,9 +118,10 @@ the selected element itself and adds LF. No matches succeed with empty output.
 Script/style/noscript content stays inert and preserved; templates omit their
 separate content fragment from selection, text and serialization.
 
-Removal detaches the first inclusive match of comma-joined removal selectors
-per selected node. Queries remain live: detaching an already queued node can
-truncate later selection. Invalid removal selectors are ignored. Rewriting
+Removal detaches all inclusive matches of the comma-joined removal selectors.
+Selected nodes that are removed (or belong to removed subtrees) produce no output.
+Selections are captured before mutation, so removal preserves later results.
+Invalid removal selectors are ignored. Rewriting
 only changes the selected HTML a/area/link href. A valid first detected base wins
 over explicit base; an invalid first base falls back to explicit base. `////`
 hrefs lose all leading slashes; invalid joins substitute the base. URLs remain

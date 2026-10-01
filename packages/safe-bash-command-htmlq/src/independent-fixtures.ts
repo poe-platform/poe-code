@@ -19,5 +19,5 @@ export const independentFixtures: readonly (readonly [string, string, readonly s
   ["Q15-base-precedence", '<base href="https://d.test/x/"><a href="?q">X</a>', ['a', '-a', 'href', '-B', '-b', 'https://e.test/'], 'https://d.test/x/?q\n'],
   ["Q16-descendants", '<div><a href="/x">X</a><img src="child"></div>', ['div', '-b', 'https://e.test/'], '<div><a href="/x">X</a><img src="child"></div>\n'],
   ["Q17-pretty-mixed", '<div>A<span>B</span><p>C</p>D</div>', ['div', '-p'], '\n<div>A<span>B</span>\n  <p>C\n  </p>\n  D\n</div>\n'],
-  ["Q18-remove-two", '<div><span>1</span><span>2</span></div>', ['div', '-r', 'span'], '<div><span>2</span></div>\n']
+  ["Q18-remove-two", '<div><span>1</span><span>2</span></div>', ['div', '-r', 'span'], '<div></div>\n']
 ];

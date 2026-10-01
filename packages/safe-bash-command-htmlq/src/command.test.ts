@@ -647,3 +647,12 @@ test("help and version flags return informational output without reading or writ
     assert.equal(sdk.text(), cli.text());
   }
 });
+
+test("retaining sinks preserve htmlq output across batch reuse", async () => {
+  const values = Array.from({ length: 2500 }, (_, i) => `value-${i}`);
+  const f = fixture(["-t", "p"], values.map(value => `<p>${value}</p>`).join(""));
+  const chunks: Uint8Array[] = [];
+  const result = await createHtmlqCommand().execute({ ...f.context, stdout: { async write(bytes) { chunks.push(bytes); } } });
+  assert.equal(result.exitCode, 0);
+  assert.equal(chunks.map(bytes => new TextDecoder().decode(bytes)).join(""), values.join("\n") + "\n");
+});

@@ -257,21 +257,21 @@ export async function htmlq(
             }
             if (bytes.byteLength >= 8192) {
               if (batchOffset > 0) {
-                await writeBytes(stdout!.output, batch.subarray(0, batchOffset), options.signal);
+                await writeBytes(stdout!.output, batch.slice(0, batchOffset), options.signal);
                 batchOffset = 0;
               }
               await writeBytes(stdout!.output, bytes, options.signal);
               continue;
             }
             if (batchOffset + bytes.byteLength > 16384) {
-              await writeBytes(stdout!.output, batch.subarray(0, batchOffset), options.signal);
+              await writeBytes(stdout!.output, batch.slice(0, batchOffset), options.signal);
               batchOffset = 0;
             }
             batch.set(bytes, batchOffset);
             batchOffset += bytes.byteLength;
           }
           if (batchOffset > 0) {
-            await writeBytes(stdout!.output, batch.subarray(0, batchOffset), options.signal);
+            await writeBytes(stdout!.output, batch.slice(0, batchOffset), options.signal);
           }
         } else {
           for await (const bytes of rendered) await writeBytes(stdout!.output, bytes, options.signal);

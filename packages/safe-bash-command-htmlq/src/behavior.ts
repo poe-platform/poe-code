@@ -1,5 +1,5 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { HtmlBudget, HtmlError, invocationOptions, type HtmlOptions } from "./contracts.js";
+import { HtmlBudget, HtmlError, invocationOptions, type HtmlOptions, type HtmlNode } from "./contracts.js";
 import { parseHtml, detachHtmlNode, replaceHtmlAttribute, getInternalHtmlNode } from "./tree.js";
 import { selectHtml } from "./selectors.js";
 import { inclusiveHtmlDescendants } from "./traversal.js";
@@ -104,16 +104,38 @@ export async function* projectHtmlq(
       budget.check();
     }
   }
+  // Detaching a node severs the links used by the selector iterator. Snapshot
+  // selections before mutation, charging each retained reference.
+  let nodes: Iterable<HtmlNode> = selected;
+  if (removal) {
+    const snapshot = [];
+    for (const node of selected) {
+      budget.charge("retainedBytes", 8);
+      snapshot.push(node);
+    }
+    nodes = snapshot;
+  }
   let selectedIndex = 0;
-  for (const node of selected) {
+  for (const node of nodes) {
     if (selectedIndex % 64 === 0) {
       await yieldTurn(invocation.signal);
       invocation.signal.throwIfAborted();
     }
     const isFirstNode = selectedIndex++ === 0;
     if (removal) {
-      const first = selectHtml(node, removal, invocation).next().value;
-      if (first) detachHtmlNode(first, invocation);
+      let ancestor = getInternalHtmlNode(node);
+      while (ancestor?.parent) {
+        budget.charge("work", 1);
+        ancestor = ancestor.parent;
+      }
+      if (ancestor !== getInternalHtmlNode(document)) continue;
+      const matches = [];
+      for (const match of selectHtml(node, removal, invocation)) {
+        budget.charge("retainedBytes", 8);
+        matches.push(match);
+      }
+      for (const match of matches) detachHtmlNode(match, invocation);
+      if (matches.includes(node)) continue;
     }
     if (base && node.namespace === "html" && ["a", "area", "link"].includes(node.name)) {
       const href = node.attributes.find((a) => a.namespace === "none" && a.name === "href")?.value;

@@ -130,20 +130,20 @@ test("projections retain raw text, ordered attributes and whitespace rules", asy
   assert.equal(await run("<p>X</p>", [".absent"]), "");
   assert.equal(await run("<template><p>T</p></template>", ["template"]), "<template></template>\n");
 });
-test("removal uses live queued traversal and first inclusive match", async () => {
+test("removal preserves later selections and removes every inclusive match", async () => {
   const s = '<div id="a"><span>1</span><span>2</span></div><div id="b"><span>3</span></div>';
-  assert.equal(await run(s, ["div", "-r", "span"]), '<div id="a"><span>2</span></div>\n');
+  assert.equal(await run(s, ["div", "-r", "span"]), '<div id="a"></div>\n<div id="b"></div>\n');
   assert.equal(
     await run(s, ["div", "-r", "span:last-child"]),
     '<div id="a"><span>1</span></div>\n<div id="b"></div>\n'
   );
   assert.equal(
     await run(s, ["div,span", "-r", "span"]),
-    '<div id="a"><span>2</span></div>\n<span>1</span>\n'
+    '<div id="a"></div>\n<div id="b"></div>\n'
   );
   assert.equal(
     await run("<div><span>X</span></div>", ["div", "-r", "div"]),
-    "<div><span>X</span></div>\n"
+    ""
   );
   assert.equal(await run("<p>X</p>", ["p", "-r", "["]), "<p>X</p>\n");
 });
@@ -297,4 +297,11 @@ test("informational byte SDK respects option boundaries and output limits", asyn
       ...options, limits: { ...options.limits, outputBytes: 1 }
     })) void bytes;
   }, { code: "E_LIMIT" });
+});
+
+test("remove-nodes removes all siblings, combined selectors and selected roots", async () => {
+  assert.equal(await run("<div><span>1</span><span>2</span><p>keep</p></div>", ["-r", "span", "div"]), "<div><p>keep</p></div>\n");
+  assert.equal(await run("<p><b>A</b><i>B</i></p>", ["-rb", "--remove-nodes=i", "p"]), "<p></p>\n");
+  assert.equal(await run("<div><p>1</p><p>2</p></div>", ["-r", "p", "p"]), "");
+  assert.equal(await run("<div><span><span>nested</span></span><span>last</span></div>", ["-r", "span", "div"]), "<div></div>\n");
 });

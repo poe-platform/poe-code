@@ -26,6 +26,7 @@ async function run(source: string, argv: readonly string[]): Promise<string> {
 }
 // Independent literal expectations transcribed from the pinned acceptance matrix;
 // they qualify these fixtures, never complete HTML5/selector/URL grammar parity.
+// Removal expectations intentionally require all matches, fixing the pinned first-match bug.
 const matrix: readonly [string, string, readonly string[], string][] = [
   ["A01", "<p>A</p>", [], "<html><head></head><body><p>A</p></body></html>\n"],
   ["A02", "<p>A</p>", [".absent"], ""],
@@ -63,7 +64,7 @@ const matrix: readonly [string, string, readonly string[], string][] = [
     "A18",
     '<div id="a"><span>1</span><span>2</span></div><div id="b"><span>3</span></div>',
     ["div", "-r", "span"],
-    '<div id="a"><span>2</span></div>\n'
+    '<div id="a"></div>\n<div id="b"></div>\n'
   ],
   [
     "A19",
@@ -75,10 +76,10 @@ const matrix: readonly [string, string, readonly string[], string][] = [
     "A20",
     '<div id="a"><span>1</span><span>2</span></div><div id="b"><span>3</span></div>',
     ["div,span", "-r", "span"],
-    '<div id="a"><span>2</span></div>\n<span>1</span>\n'
+    '<div id="a"></div>\n<div id="b"></div>\n'
   ],
-  ["A21", "<div><span>X</span></div>", ["div", "-r", "div"], "<div><span>X</span></div>\n"],
-  ["A22", "<div><b>B</b><i>I</i></div>", ["div", "-r", "i", "-r", "b"], "<div><i>I</i></div>\n"],
+  ["A21", "<div><span>X</span></div>", ["div", "-r", "div"], ""],
+  ["A22", "<div><b>B</b><i>I</i></div>", ["div", "-r", "i", "-r", "b"], "<div></div>\n"],
   ["A23", "<p>X</p>", ["p", "-r", "["], "<p>X</p>\n"],
   [
     "A24",

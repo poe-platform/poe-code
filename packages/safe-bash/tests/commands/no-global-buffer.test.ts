@@ -4,7 +4,10 @@ import { Shell, agentCommands } from "../../src/core.js";
 import { yqCommands } from "../../src/commands/yq/index.js";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 
-const cases: readonly [string, string, number?][] = [
+const cases: readonly [string, string, number?, string?][] = [
+  ['sort month', `printf 'Feb\\nJan\\n' | sort -M`, 0, 'Jan\nFeb\n'],
+  ['cut output delimiter', `printf 'a:b:c\\nd:e:f\\n' | cut -d: -f1,3 --output-delimiter=,`, 0, 'a,c\nd,f\n'],
+  ['xargs end marker', `printf 'a\\nEND\\nb\\n' | xargs -E END echo`, 0, 'a\n'],
   ['jq', `jq '.b' /data.json`], ['yq', `yq '.b' /data.json`], ['awk', `awk '{ print $1 }' /in.txt`],
   ['sed', `sed 's/hello/hi/' /in.txt`], ['rg', 'rg hello /in.txt'],
   ['find', `find / -maxdepth 1 -printf '%p\\n'`],
@@ -29,7 +32,7 @@ const cases: readonly [string, string, number?][] = [
   ['associative keys', 'declare -A m; m["é"]=42; echo "${m[é]}"'],
 ];
 
-for (const [name, script, exitCode = 0] of cases) test(`${name} works without global Buffer`, async context => {
+for (const [name, script, exitCode = 0, stdout] of cases) test(`${name} works without global Buffer`, async context => {
   const fs = createMemoryFileSystem();
   const encoder = new TextEncoder();
   for (const [path, value] of Object.entries({
@@ -44,5 +47,6 @@ for (const [name, script, exitCode = 0] of cases) test(`${name} works without gl
     const result = await shell.exec(script);
     assert.equal(result.stderr, '', `${name}: ${result.stderr}`);
     assert.equal(result.exitCode, exitCode, name);
+    if (stdout !== undefined) assert.equal(result.stdout, stdout, name);
   } finally { Object.defineProperty(globalThis, 'Buffer', descriptor); }
 });

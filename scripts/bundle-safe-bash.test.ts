@@ -520,6 +520,8 @@ beforeAll(async () => {
   byteOperationsSource = await bundlePublicConsumer(`
     export { Shell } from "@poe-platform/safe-bash/shell";
     export { baseAgentCommands } from "@poe-platform/safe-bash/registry";
+    export { archiveCommands } from "@poe-platform/safe-bash/commands/archive";
+    export { createCurlCommand, createWgetCommand, networkCommands, createFetchTransport } from "@poe-platform/safe-bash/commands/network";
     export { trapExtension as PortableTrapExtension } from "@poe-platform/safe-bash/trap";
     ${["sed", "awk", "jq", "diff", "tar", "zip", "date", "printenv", "du"].map(name => `export { create${name[0].toUpperCase() + name.slice(1)}Command as leaf_${name} } from "@poe-platform/safe-bash/commands/${name}";`).join("\n")}
   `);
@@ -651,6 +653,8 @@ it("runs filesystem pipelines with canonical identity and injected mounts", asyn
     expect(matched.exitCode).toBe(0);
     expect(matched.stdout).toBe("abc:123");
     expect(matched.stderr).toBe("");
+    expect((await shell.exec("[[ abc =~ ^z$ ]]")).exitCode).toBe(1);
+    expect((await shell.exec("pattern='['; [[ abc =~ $pattern ]]")).exitCode).toBe(2);
   } finally { await shell.dispose(); }
   await expect(shell.exec("echo closed")).rejects.toThrow();
 });
@@ -729,6 +733,9 @@ it("uses the public portable trap subpath without the Node signal catalog", asyn
 
 it("runs shell byte operations and command exports in workerd without nodejs_compat", async () => {
   const cases = [
+    ['[[ abc123 =~ ^([a-z]+)([0-9]+)$ ]] && printf "%s:%s" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"', "abc:123"],
+    ['[[ abc =~ ^z$ ]]; printf "%s" "$?"', "1"],
+    ['pattern="["; [[ abc =~ $pattern ]] 2>/dev/null; printf "%s" "$?"', "2"],
     ['arr=(10 20); (( arr[0] += 1 )); echo "${arr[0]}"', "11\n"],
     ['declare -A map; map[key]=value; echo "${map[key]}"', "value\n"],
     ['eval "echo hi"', "hi\n"],
@@ -789,6 +796,54 @@ it("runs shell byte operations and command exports in workerd without nodejs_com
     const body = await response.text();
     expect(response.status, body).toBe(200);
     expect(JSON.parse(body)).toEqual(["registry", "subpaths"].flatMap(() => cases.map(([source, stdout, exitCode = 0]) => ({ source, exitCode, stdout, stderr: "" }))));
+  } finally { await runtime.dispose(); }
+});
+
+it("runs default network factories and every WinZip AES mode in workerd", async () => {
+  const runtime = new Miniflare({
+    modules: true, compatibilityDate: "2026-07-01", cf: false,
+    script: `
+      const canonical = (() => { const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })();
+      const browser = (() => { const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${byteOperationsSource}; return module.exports; })();
+      export default { async fetch() {
+        const names = [browser.createCurlCommand().name, browser.createWgetCommand().name, browser.networkCommands().name];
+        const fs = canonical.createMemoryFileSystem();
+        await fs.writeFile("/input", new TextEncoder().encode("worker secret"));
+        const shell = new browser.Shell({ fs }).use(browser.archiveCommands({
+          zipHost: { entropy: length => crypto.getRandomValues(new Uint8Array(length)) }
+        })).use(browser.networkCommands({
+          authorize: () => true,
+          transport: browser.createFetchTransport({ fetch: async () => new Response("worker response") })
+        }));
+        const results = [];
+        try {
+          for (const command of ["curl https://allowed.test/", "wget -q -O - https://allowed.test/"]) {
+            const { exitCode, stdout, stderr } = await shell.exec(command);
+            results.push({ exitCode, stdout, stderr });
+          }
+          for (const strength of [128, 192, 256]) for (const version of [1, 2]) {
+            const archive = "/aes-" + strength + "-" + version + ".zip";
+            const zipped = await shell.exec("zip -Z store --encryption aes-" + strength + "-ae" + version + " -P password " + archive + " /input");
+            const read = await shell.exec("unzip -p -P password " + archive);
+            const wrong = await shell.exec("unzip -p -P wrong " + archive);
+            results.push({ zipCode: zipped.exitCode, zipError: zipped.stderr, exitCode: read.exitCode, stdout: read.stdout, stderr: read.stderr, wrongRejected: wrong.exitCode !== 0 });
+          }
+        } finally { await shell.dispose(); }
+        return Response.json({ names, results });
+      } };
+    `,
+  });
+  try {
+    const response = await runtime.dispatchFetch("https://portable.test");
+    const body = await response.text();
+    expect(response.status, body).toBe(200);
+    expect(JSON.parse(body)).toEqual({
+      names: ["curl", "wget", "network-commands"],
+      results: [
+        ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "worker response", stderr: "" })),
+        ...Array.from({ length: 6 }, () => ({ zipCode: 0, zipError: "", exitCode: 0, stdout: "worker secret", stderr: "", wrongRejected: true })),
+      ],
+    });
   } finally { await runtime.dispose(); }
 });
 

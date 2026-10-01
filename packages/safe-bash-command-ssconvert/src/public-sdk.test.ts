@@ -1,12 +1,37 @@
 import { expect, it } from "vitest";
 import * as sdk from "safe-bash-command-ssconvert";
-import type { CapabilityContext, Workbook } from "safe-bash-command-ssconvert";
+import { createMemoryFileSystem, retainFileSystemCleanup, scopeFileSystem } from "@poe-code/safe-fs/core";
+import type { CapabilityContext, SsconvertCommandsOptions, Workbook } from "safe-bash-command-ssconvert";
 
 const context: CapabilityContext = {
   signal: new AbortController().signal, own() {},
   environment: { env: {}, locale: "C", timezone: "UTC" },
   limits: { inputBytes: 1000000, outputBytes: 1000000, cells: 10, sheets: 2, operations: 20 }
 };
+it("exports command factories and plugin with configurable public options", () => {
+  const options: SsconvertCommandsOptions = { limits: { inputBytes: 1024 } };
+  expect(sdk.createSsconvertCommand(options).name).toBe("ssconvert");
+  expect(sdk.createSsconvertCommands(options).map(command => command.name)).toEqual(["ssconvert"]);
+  expect(sdk.ssconvertCommands(options)).toMatchObject({ name: "ssconvert-commands", setup: expect.any(Function) });
+});
+it("cleans multiple cancelled output publications with one operation per retained output", async () => {
+  const backing = createMemoryFileSystem();
+  const controller = new AbortController();
+  const fs = scopeFileSystem(backing, () => {}, controller.signal);
+  const cleanups: (() => void | Promise<void>)[] = [];
+  const operation = { ...context, signal: controller.signal, own(cleanup: () => void | Promise<void>) { cleanups.push(cleanup); } };
+  const open = sdk.createVfsOutput(fs, (path, bytes, signal) => fs.writeFile(path, bytes, { signal }),
+    cleanup => retainFileSystemCleanup(fs, view => cleanup(path => view.rm(path)), { maxOperations: 1 }));
+  const first = await open("/first.csv", operation);
+  const second = await open("/second.csv", operation);
+  await first.write(new TextEncoder().encode("first"));
+  await second.write(new TextEncoder().encode("second"));
+  expect(await backing.readdir("/")).toHaveLength(2);
+  controller.abort();
+  await Promise.all(cleanups.map(cleanup => cleanup()));
+  await Promise.all(cleanups.map(cleanup => cleanup()));
+  expect(await backing.readdir("/")).toEqual([]);
+});
 it("exports reusable bounded XLSX codecs and captured help through the public SDK", async () => {
   expect(sdk).toHaveProperty("readXlsx", expect.any(Function));
   expect(sdk).toHaveProperty("createXlsxWriter", expect.any(Function));

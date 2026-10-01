@@ -27,7 +27,7 @@ export async function portableRuntime(contents: string, options: { removeBuffer?
   // Injected Web APIs throw host TypeErrors, so preserve their error identity too.
   const realm = createContext({ TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream,
     ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask,
-    crypto: globalThis.crypto, performance, URL, FormData, Blob, Response, Request, btoa, atob });
+    crypto: globalThis.crypto, structuredClone, performance, URL, FormData, Blob, Response, Request, btoa, atob });
   assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "undefined:undefined");
   const api = runInContext(`(function(){ const module = { exports: {} }; ${result.outputFiles![0]!.text}; return module.exports; })()`, realm);
   assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "function:undefined");

@@ -1386,6 +1386,11 @@ describe("scoped safe package artifacts", () => {
       "/output/safe-bash/dist/safe-bash-command-dos2unix/LICENSE": data["/repo/packages/safe-bash-command-dos2unix/LICENSE"],
       "/output/safe-bash/dist/safe-bash-line-ending-engine/LICENSE": data["/repo/packages/safe-bash-line-ending-engine/LICENSE"],
     });
+    expected["/output/safe-bash/dist/safe-bash-sqlite-engine/LICENSE"] = data["/repo/packages/safe-bash-sqlite-engine/LICENSE"]!;
+    expected["/output/safe-bash/dist/safe-bash-sqlite-engine/index.d.ts"] = "export {};\n";
+    for (const asset of ["LICENSE", "callback.wasm", "native.d.mts", "native.mjs", "native.wasm", "node-assets.mjs", "sources.json", "vfs.d.mts", "vfs.mjs"]) {
+      expected["/output/safe-bash/dist/safe-bash-sqlite-engine/native/" + asset] = data["/repo/packages/safe-bash-sqlite-engine/dist/native/" + asset]!;
+    }
     expected["/output/safe-bash/dist/safe-bash-compression-engine/LICENSE"] = data["/repo/packages/safe-bash-compression-engine/LICENSE"]!;
     for (const asset of ["sources.json", "LICENSES.txt", "generated/bz2.mjs", "generated/bz2.d.mts", "generated/xz.mjs", "generated/xz.d.mts", "generated/zstd.mjs", "generated/zstd.d.mts"]) {
       expected["/output/safe-bash/dist/safe-bash-compression-engine/native/" + asset] = data["/repo/packages/safe-bash-compression-engine/dist/native/" + asset]!;

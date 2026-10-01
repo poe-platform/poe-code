@@ -10,7 +10,7 @@ const position = { sheet: "Local", row: 3, column: 2 };
 it.each([
   { grammar: gnumericGrammar, source: "=A1:$B$2", expected: "='Local'!A1:$B$2" },
   { grammar: excelGrammar, source: "=A1:$B$2", expected: "='Local'!A1:$B$2" },
-  { grammar: odfGrammar, source: "of:=[.A1:.$B$2]", expected: "of:=['Local'.A1:'Local'.$B$2]" },
+  { grammar: odfGrammar, source: "of:=[.A1:.$B$2]", expected: "of:=[$'Local'.A1:.$B$2]" },
   { grammar: sylkGrammar, source: "=R[-3]C[-2]:R2C2", expected: "='Local'!R[-3]C[-2]:R2C2" }
 ])("retains implicit targets when moving across sheets in $grammar.id", ({ grammar, source, expected }) => {
   const parsed = parseExpression(source, { position, grammar });
@@ -33,8 +33,13 @@ it("uses the source sheet's captured display name and applies a simultaneous ren
 it("qualifies the implicit end of a mixed-sheet ODF range independently", () => {
   const parsed = parseExpression("of:=[.A1:Remote.B2]", { position, grammar: odfGrammar });
   if (!parsed.ok) throw new Error(parsed.diagnostic.message);
-  expect(rewriteReferences(parsed.document, { position: { ...position, sheet: "Other" }, translation: "move" }))
-    .toBe("of:=['Local'.A1:'Remote'.B2]");
+  const destination = { ...position, sheet: "Other" };
+  const moved = rewriteReferences(parsed.document, { position: destination, translation: "move" });
+  expect(moved).toBe("of:=[$'Local'.A1:'Remote'.B2]");
+  const reparsed = parseExpression(moved, { position: destination, grammar: odfGrammar });
+  if (!reparsed.ok) throw new Error(reparsed.diagnostic.message);
+  expect(reparsed.document.root).toMatchObject({ kind: "reference",
+    first: { sheet: "Local", sheetRelative: false }, last: { sheet: "Remote", sheetRelative: true } });
 });
 
 it("preserves external targets and source strings during cross-sheet moves", () => {

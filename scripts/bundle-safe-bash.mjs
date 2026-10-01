@@ -138,6 +138,11 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
   for (const specifier of Object.keys(aliases)) {
     if (external.some(name => specifier === name || specifier.startsWith(name + "/"))) delete aliases[specifier];
   }
+  // Declaration-only root aliases cannot satisfy emitted runtime imports.
+  // Resolve those imports inside their source package so the runtime is bundled.
+  const runtimeImports = Object.entries(imports)
+    .filter(([, target]) => hasRuntimeTarget(target))
+    .map(([specifier]) => specifier);
   const options = {
     absWorkingDir: rootDir,
     loader: { ".wasm": "copy" },
@@ -207,7 +212,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     sourcemap: true,
     metafile: true,
     write: false,
-    external: [...new Set(["poe-code/safe-fs/core", ...external, ...Object.keys(imports)])],
+    external: [...new Set(["poe-code/safe-fs/core", ...external, ...runtimeImports])],
     alias: aliases,
     inject: [platform],
     plugins: [portableLuaLibraries, {
@@ -238,6 +243,14 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
       privateRuntimeExportResolver(rootDir, external, fileSystem, recipe, build)));
   }
   return options;
+}
+
+function hasRuntimeTarget(target) {
+  if (typeof target === "string") return true;
+  if (Array.isArray(target)) return target.some(hasRuntimeTarget);
+  if (target === null || typeof target !== "object") return false;
+  return Object.entries(target).some(([condition, value]) =>
+    condition !== "types" && hasRuntimeTarget(value));
 }
 
 export async function buildBrowserShellOutputs(rootDir, { alias = {}, external = [], files } = {}) {

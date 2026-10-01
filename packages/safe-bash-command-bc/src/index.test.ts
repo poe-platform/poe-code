@@ -106,6 +106,44 @@ test("bc enforces configurable recursion depth at the frame boundary", async () 
   assert.equal(result.stderr, "bc: bc function recursion depth exceeded (4)\n");
 });
 
+test("bc output bases are unlimited by default and accept explicit Infinity", async () => {
+  assert.equal(settings().maxObase, Infinity);
+  for (const options of [{}, { maxObase: Infinity }, { limits: { maxObase: Infinity } }]) {
+    assert.deepEqual(await evaluate("obase=1001; obase; 1000; 1002; -1002; .1; 1.23; 0", options), {
+      exitCode: 0, stderr: "",
+      stdout: " 0001 0000\n 1000\n 0001 0001\n- 0001 0001\n.0100\n 0001.0230\n0\n",
+    });
+    assert.deepEqual(await evaluate("obase=9007199254740993; obase; 9007199254740992", options), {
+      exitCode: 0, stderr: "",
+      stdout: " 0000000000000001 0000000000000000\n 9007199254740992\n",
+    });
+  }
+});
+
+test("bc enforces configurable output base limits on assignments and increments", async () => {
+  for (const options of [{ maxObase: 1001 }, { limits: { maxObase: 1001 } }]) {
+    assert.deepEqual(await evaluate("obase=1001; 1002", options), { exitCode: 0, stdout: " 0001 0001\n", stderr: "" });
+    for (const program of ["obase=1002", "obase=1001; obase++", "obase=1001; obase+=1"]) {
+      const result = await evaluate(program, options);
+      assert.equal(result.exitCode, 1, program);
+      assert.equal(result.stderr, "bc: obase (1002) out of bounds [2, 1001]\n", program);
+    }
+  }
+  assert.equal(settings({ maxObase: 1001, limits: { maxObase: 16 } }).maxObase, 16);
+  assert.equal((await evaluate("obase=1")).exitCode, 1);
+});
+
+for (const [program, stdout] of [
+  ["obase=2; 1.23", "1.0011101\n"],
+  ["obase=16; 1.23", "1.3A\n"],
+  ["obase=17; 1.23", " 01.03 15\n"],
+  ["obase=100; 101; 1.2", " 01 01\n 01.20\n"],
+] as const) {
+  test(`bc formats output base digits and fractional precision: ${program}`, async () => {
+    assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
+  });
+}
+
 test("bc enforces exponent magnitude for powers and compound assignment", async () => {
   for (const expression of ["2^5", "2^-5", "x=2; x^=5", "x=2; x^=-5"]) {
     const result = await evaluate(expression, { limits: { maxExponent: 4 } });

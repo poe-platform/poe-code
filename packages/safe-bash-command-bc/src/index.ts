@@ -63,6 +63,7 @@ export interface BcLimits {
   readonly maxScale: number;
   readonly maxExponent: number;
   readonly maxRecursionDepth: number;
+  readonly maxObase: number;
 }
 
 export interface BcCommandsOptions {
@@ -74,6 +75,7 @@ export interface BcCommandsOptions {
   readonly maxScale?: number;
   readonly maxExponent?: number;
   readonly maxRecursionDepth?: number;
+  readonly maxObase?: number;
 }
 
 export type BcCommandOptions = BcCommandsOptions;
@@ -87,6 +89,7 @@ export function settings(options: BcCommandsOptions = {}): BcLimits {
     maxScale: options.limits?.maxScale ?? options.maxScale ?? Infinity,
     maxExponent: options.limits?.maxExponent ?? options.maxExponent ?? Infinity,
     maxRecursionDepth: options.limits?.maxRecursionDepth ?? options.maxRecursionDepth ?? Infinity,
+    maxObase: options.limits?.maxObase ?? options.maxObase ?? Infinity,
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid bc limit: ${name}`);
@@ -247,11 +250,11 @@ function parseLiteralInBase(raw: string, ibase: number): DecimalValue {
   return { coeff: intVal * pow10(scale) + scaledFrac, scale };
 }
 
-function formatDecimalInBase(val: DecimalValue, obase: number): string {
+function formatDecimalInBase(val: DecimalValue, obase: bigint): string {
   const neg = val.coeff < 0n;
   const absCoeff = neg ? -val.coeff : val.coeff;
   if (absCoeff === 0n) return "0";
-  if (obase === 10) {
+  if (obase === 10n) {
     if (val.scale <= 0) {
       return (neg && absCoeff !== 0n ? "-" : "") + absCoeff.toString(10);
     }
@@ -261,29 +264,29 @@ function formatDecimalInBase(val: DecimalValue, obase: number): string {
     const prefix = intStr === "0" ? "" : intStr;
     return (neg && absCoeff !== 0n ? "-" : "") + (prefix || (fracStr.length > 0 ? "" : "0")) + "." + fracStr;
   }
-  const baseBig = BigInt(obase);
   const scaleFactor = pow10(val.scale);
   let intPart = absCoeff / scaleFactor;
   let rem = absCoeff % scaleFactor;
   const digits = "0123456789ABCDEF";
+  const digitWidth = (obase - 1n).toString(10).length;
   let intOut = "";
   if (intPart === 0n) intOut = "0";
   else {
     while (intPart > 0n) {
-      const d = Number(intPart % baseBig);
-      intOut = (obase <= 16 ? digits[d]! : ` ${d.toString(10).padStart(2, "0")}`) + intOut;
-      intPart /= baseBig;
+      const d = intPart % obase;
+      intOut = (obase <= 16n ? digits[Number(d)]! : ` ${d.toString(10).padStart(digitWidth, "0")}`) + intOut;
+      intPart /= obase;
     }
   }
   if (val.scale <= 0) {
-    return (neg && absCoeff !== 0n ? "-" : "") + intOut.trimStart();
+    return (neg && absCoeff !== 0n ? "-" : "") + intOut;
   }
   let fracOut = "";
-  for (let i = 0; i < val.scale; i++) {
-    rem *= baseBig;
-    const d = Number(rem / scaleFactor);
+  for (let place = 1n; place < scaleFactor; place *= obase) {
+    rem *= obase;
+    const d = rem / scaleFactor;
     rem %= scaleFactor;
-    fracOut += obase <= 16 ? digits[d]! : ` ${d.toString(10).padStart(2, "0")}`;
+    fracOut += obase <= 16n ? digits[Number(d)]! : `${fracOut ? " " : ""}${d.toString(10).padStart(digitWidth, "0")}`;
   }
   return (neg && absCoeff !== 0n ? "-" : "") + (intOut === "0" ? "" : intOut) + "." + fracOut;
 }
@@ -807,7 +810,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     const stmts = new BcParser(tokenizeBc(fullProgram)).parseProgram();
     let scale = mathlib ? 20 : 0;
     let ibase = 10;
-    let obase = 10;
+    let obase = 10n;
     let last: DecimalValue = ZERO;
     const globals = new Map<string, DecimalValue>();
     const arrays = new Map<string, Map<string, DecimalValue>>();
@@ -832,7 +835,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       }
       if (name === "scale") return { coeff: BigInt(scale), scale: 0 };
       if (name === "ibase") return { coeff: BigInt(ibase), scale: 0 };
-      if (name === "obase") return { coeff: BigInt(obase), scale: 0 };
+      if (name === "obase") return { coeff: obase, scale: 0 };
       if (name === "last") return last;
       for (let i = callStack.length - 1; i >= 0; i--) {
         const frame = callStack[i]!;
@@ -866,10 +869,12 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
         return { coeff: BigInt(ibase), scale: 0 };
       }
       if (name === "obase") {
-        const b = Number(truncToInt(val));
-        if (b < 2 || b > 1000) throw new Error(`obase (${b}) out of bounds`);
+        const b = truncToInt(val);
+        if (b < 2n || (limits.maxObase !== Infinity && b > BigInt(limits.maxObase))) {
+          throw new Error(`obase (${b}) out of bounds [2, ${limits.maxObase}]`);
+        }
         obase = b;
-        return { coeff: BigInt(obase), scale: 0 };
+        return { coeff: obase, scale: 0 };
       }
       if (name === "last") {
         last = val;

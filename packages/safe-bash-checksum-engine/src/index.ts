@@ -7,7 +7,7 @@ import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { md5, sha1 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
 import { bytesToHex, hexToBytes } from "@noble/hashes/utils.js";
-import { FsError, getCommandArguments, readBytes, toByteSource, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, getCommandArguments, readBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { codeOf, define, diagnostic, encoder, options, output, pathOf, UsageError, value } from "safe-bash-io-engine/internal";
 import { ByteInputBudget } from "safe-bash-byte-input-engine/index";
 
@@ -125,17 +125,24 @@ function validateFilename(filename: string): void {
   if (bytes.length > filenameBytes) throw new FsError("ENAMETOOLONG", { message: "filename exceeds 16384 UTF-8 bytes" });
 }
 
-function source(context: CommandContext, filename: string, state: InputState): ByteSource {
+async function* source(context: CommandContext, filename: string, state: InputState): AsyncGenerator<Uint8Array> {
   state.budget.assertOpen(context.signal);
   validateFilename(filename);
   if (filename === "-") {
-    if (state.stdinUsed) return toByteSource("");
+    if (state.stdinUsed) return;
     state.stdinUsed = true;
-    return state.budget.read(context.stdin, context.signal);
+    yield* state.budget.read(context.stdin, context.signal);
+    return;
   }
   const path = pathOf(context, filename);
   if (!context.fs.readStream) throw new FsError("ENOTSUP", { message: "checksum file input requires VFS readStream" });
-  return state.budget.read(context.fs.readStream(path, { signal: context.signal, chunkSize: blockBytes }), context.signal);
+  try {
+    yield* state.budget.read(context.fs.readStream(path, { signal: context.signal, chunkSize: blockBytes }), context.signal);
+  } catch (error) {
+    context.signal.throwIfAborted();
+    if (error instanceof FsError && error.code === "EISDIR") throw new PublicDiagnostic(`${escaped(filename).name}: Is a directory`);
+    throw error;
+  }
 }
 
 async function* blocks(input: ByteSource, signal: AbortSignal): AsyncGenerator<Uint8Array> {

@@ -233,7 +233,7 @@ export function createPeerBinding(root, manifest, declarations = new Map(), publ
         pending.push(publicEntry(fileName));
         continue;
       }
-      const privatePolicy = fileName === "#safe-fs-platform" || fileName === "#safe-fs-platform-path";
+      const privatePolicy = fileName === "#safe-fs-platform" || fileName === "#safe-fs-platform-path" || fileName === "#safe-fs-s3-request";
       assert.ok(fileName.startsWith(".") || privatePolicy, `unreviewed transitive peer package: ${fileName}`);
       let privateTarget;
       if (privatePolicy) {

@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { xanCommands } from "../../src/commands/xan/index.js";
 import { networkCommands } from "../../src/commands/network/public.js";
 import { toByteSource } from "../../src/contracts/index.js";
 import { Shell, MemoryFileSystem, agentCommands, createAgentCommands } from "../../src/index.js";
@@ -28,7 +27,7 @@ test("command families preserve results without the global Buffer", async () => 
       await fs.writeFile(path!, new TextEncoder().encode(text!));
       await fs.utimes(path!, 0, Date.UTC(2020, 0, 1));
     }
-    const shell = new Shell({ fs, env: { HOME: "/home" } }).use(agentCommands()).use(xanCommands()).use(networkCommands({
+    const shell = new Shell({ fs, env: { HOME: "/home" } }).use(agentCommands()).use(networkCommands({
       authorize: () => true,
       transport: async () => ({ status: 200, statusText: "OK", headers: [], body: toByteSource(Uint8Array.of(0, 255, 65)), async dispose() {} }),
     }));
@@ -42,7 +41,10 @@ test("command families preserve results without the global Buffer", async () => 
       for (const command of createAgentCommands()) {
         const result = await shell.exec(`${command.name} --help`);
         assert.ok(!result.stderr.includes("internal error"), `${command.name} --help: ${result.stderr}`);
-        results.push({ script: `${command.name} --help`, exitCode: result.exitCode, stdout: result.stdout, stderr: result.stderr });
+        // Some commands (including ssh-keygen) do not implement --help and
+        // produce random data. Compare dispatch outcomes here; the explicit
+        // command cases above compare output bytes.
+        results.push({ script: `${command.name} --help`, exitCode: result.exitCode, stderr: result.stderr });
       }
       return results;
     } finally { await shell.dispose(); }

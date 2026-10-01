@@ -6,6 +6,8 @@ import * as ssconvert from "safe-bash-command-ssconvert";
 import { createXmllintCommand } from "safe-bash-command-xmllint";
 import { csvkitCommands } from "../../src/commands/csvkit/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
+import * as core from "../../src/core.js";
+import * as publicApi from "../../src/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
@@ -48,5 +50,39 @@ for (const [csv, sheet] of [[csvkit.csvkitCommands, ssconvert.ssconvertCommands]
       const invalid = await shell.exec("xmllint --noout", { stdin: "<root>" });
       assert.equal(invalid.exitCode, 1); assert.ok(invalid.stderr.includes("xmllint:"));
     } finally { await shell.dispose(); }
+  });
+}
+
+for (const [entry, api] of [["core", core], ["index", publicApi]] as const) {
+  test(`${entry} exposes portable command factories with zero-argument defaults`, async () => {
+    const descriptor = Object.getOwnPropertyDescriptor(globalThis, "Buffer")!;
+    Reflect.deleteProperty(globalThis, "Buffer");
+    const shell = new api.Shell({ fs: new api.MemoryFileSystem() });
+    try {
+      const htmlOptions: core.HtmlqCommandsOptions & publicApi.HtmlqCommandsOptions = {};
+      for (const [factory, name] of [
+        [api.createCsvkitCommands, "csvcut"], [api.createHtmlqCommands, "htmlq"],
+        [api.createPandocCommands, "pandoc"], [api.createXanCommands, "xan"],
+      ] as const) assert.ok(factory().some(command => command.name === name));
+      shell.use(api.csvkitCommands()).use(api.htmlqCommands(htmlOptions))
+        .use(api.pandocCommands()).use(api.xanCommands());
+      for (const [script, stdin, stdout] of [
+        ["csvcut -c name", "name,value\nAda,2\n", "name\nAda\n"],
+        ["csvcut -e latin1 -c name", Uint8Array.of(110, 97, 109, 101, 10, 233, 10), "name\né\n"],
+        ["csvstat --mean", "value\n2\n4\n", "3\n"],
+        ["htmlq --text p", "<p>Hello</p>", "Hello\n"],
+        ["pandoc -f markdown -t plain", "Hello", "Hello\n"],
+        ["xan count", "name\nAda\n", "1\n"],
+      ] as const) {
+        const result = await shell.exec(script, { stdin });
+        assert.equal(result.exitCode, 0, `${script}: ${result.stderr}`);
+        assert.equal(result.stderr, "", script);
+        assert.equal(result.stdout, stdout, script);
+        assert.equal(globalThis.Buffer, undefined);
+      }
+    } finally {
+      await shell.dispose();
+      Object.defineProperty(globalThis, "Buffer", descriptor);
+    }
   });
 }

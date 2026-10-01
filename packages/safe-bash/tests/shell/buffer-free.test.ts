@@ -5,6 +5,12 @@ import { portableRuntime } from "../helpers/portable-runtime.js";
 const cases: [string, number, string?][] = [
   ["printf 'b:a\\n%.0s' {1..128} > /in.txt; for i in 1 2; do cat /in.txt | tr a c | cut -d: -f2 | sort; done", 0, 'c\n'.repeat(256)],
   ['arr=(1 2); echo "${arr[0]}"', 0, '1\n'],
+  ["eval 'echo hi'", 0, 'hi\n'],
+  ['x=hello; echo ${x^}', 0, 'Hello\n'],
+  ['x=hello; echo ${x/h/H}', 0, 'Hello\n'],
+  ['FOO_1=1; FOO_2=2; echo ${!FOO_*}', 0, 'FOO_1 FOO_2\n'],
+  ['arr=(a b); declare -p arr', 0, 'declare -a arr=([0]="a" [1]="b")\n'],
+  ['echo hello > /a.txt; echo /*.txt', 0, '/a.txt\n'],
   ['echo pre{1..3}suf', 0, 'pre1suf pre2suf pre3suf\n'],
   ['value="préfixe"; echo "${value#pré}" "${value%ixe}"', 0, 'fixe préf\n'],
   ['FOO=bar printenv FOO', 0, 'bar\n'],

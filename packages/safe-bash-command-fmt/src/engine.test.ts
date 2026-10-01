@@ -374,6 +374,23 @@ test('unexpected input on output or checkpoint events fails and releases invocat
   }
 });
 
+test('optimization checkpoints reject resumed input and release buffers', () => {
+  for (const unexpected of [null, encoder.encode('lost input')]) {
+    const engine = createFmtEngine(parseFmtArguments(argv('-w1000')), limits, new AbortController().signal);
+    const machine = engine.run();
+    assert.equal(machine.next().value, 'input');
+    let step = machine.next(encoder.encode('word '.repeat(100)));
+    while (!step.done && step.value !== 'input') step = machine.next();
+    assert.equal(step.value, 'input');
+    step = machine.next(null);
+    assert.equal(step.done, false);
+    assert.equal(step.value, undefined);
+    assert.throws(() => machine.next(unexpected), { code: 'INPUT' });
+    assert.equal(engine.accounting().retainedBytes, 0);
+    assert.throws(() => engine.run().next(), { code: 'CLOSED' });
+  }
+});
+
 test('engine accepts input chunks above the former bounded-call ceiling', () => {
   const input = 'word\n'.repeat(1000);
   assert.deepEqual(format(input, [], 5000), format(input, [], 4096));

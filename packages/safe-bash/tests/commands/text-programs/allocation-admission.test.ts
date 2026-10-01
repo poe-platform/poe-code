@@ -345,13 +345,14 @@ test("awk joins admit copying work before materializing repeated separators", as
   assert.equal(result.stdout.length, 0);
 });
 
-test("awk print evaluates arguments before conversion and rejection, but not redirect destination", async () => {
+test("awk print converts arguments in order before join rejection and redirect destination", async () => {
   const result = await runVirtual("awk", { args: ['function arg(){ print "arg" > "effects"; OFS="............"; return "d" } function dest(){ print "dest" > "effects"; return "out" } BEGIN { print "a", "b", "c", arg() > dest() }'] }, { maxBufferBytes: 32 });
   assert.equal(result.exitCode, 2);
   assert.equal(result.files.effects?.toString(), "arg\n");
   assert.equal(result.files.out, undefined);
   const converted = await runVirtual("awk", { args: ['function change(){ OFMT="%.1f"; OFS="|"; ORS="!"; return 2.75 } BEGIN { print 1.25, change() }'] });
-  assert.equal(converted.stdout.toString(), "1.3|2.8!");
+  assert.equal(converted.exitCode, 0, converted.stderr.toString());
+  assert.equal(converted.stdout.toString(), "1.25|2.8!");
 });
 
 test("awk SUBSEP evaluates and converts each index before later index effects", async () => {

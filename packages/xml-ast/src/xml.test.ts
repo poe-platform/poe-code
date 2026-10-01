@@ -203,3 +203,19 @@ it("matches generic UTF-16 declarations to explicit byte order", () => {
 it.each(['&#32;<r/>', '<r/>&#xA;', '&amp;<r/>'])("rejects references outside the document element", source => {
   expect(() => parseXml(source)).toThrow(SyntaxError);
 });
+
+it.each([
+  "<1" + "a".repeat(10000) + ">",
+  "<r 1" + "a".repeat(10000) + '="x"/>',
+  "<?1" + "a".repeat(10000) + "?><r/>",
+  " ".repeat(10000) + "invalid<r/>",
+  "<r/>" + " ".repeat(10000) + "invalid",
+])("charges a small work budget before rejecting oversized invalid XML", source => {
+  let work = 0;
+  expect(() => {
+    for (const units of parseXmlSteps(source)) {
+      work += units;
+      if (work > 100) throw new Error("work budget exceeded");
+    }
+  }).toThrow("work budget exceeded");
+});

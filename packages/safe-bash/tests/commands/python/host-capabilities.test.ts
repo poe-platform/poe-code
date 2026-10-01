@@ -173,6 +173,45 @@ test('finite host concurrency and stream admission remain enforced', async () =>
   await bridge.close();
 });
 
+test('synchronous calls and asynchronous jobs share one host concurrency limit', async () => {
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const bridge = createPythonHostBridge({ hold: { async call() { await gate; return null; } } },
+    { signal: new AbortController().signal, maxConcurrentCalls: 2 });
+  await bridge.request({ version: 1, operation: 'begin', capability: 'hold' });
+  const direct = bridge.request({ version: 1, operation: 'call', capability: 'hold' });
+  try {
+    await assert.rejects(bridge.request({ version: 1, operation: 'begin', capability: 'hold' }), /concurrency limit/);
+  } finally {
+    finish();
+    await direct;
+    await bridge.close();
+  }
+});
+
+test('cancelled unfinished work and uncollected results each retain host admission', async () => {
+  let finish!: () => void;
+  const gate = new Promise<void>(resolve => { finish = resolve; });
+  const bridge = createPythonHostBridge({ hold: { async call(value) { if (value === 'hold') await gate; return value; } } },
+    { signal: new AbortController().signal, maxConcurrentCalls: 2 });
+  const cancelled = await bridge.request({ version: 1, operation: 'begin', capability: 'hold', value: 'hold' });
+  try {
+    await bridge.request({ version: 1, operation: 'cancel', handle: cancelled });
+    const completed = await bridge.request({ version: 1, operation: 'begin', capability: 'hold', value: 'completed' });
+    await new Promise<void>(resolve => setImmediate(resolve));
+    await assert.rejects(bridge.request({ version: 1, operation: 'begin', capability: 'hold' }), /concurrency limit/);
+    assert.deepEqual(await bridge.request({ version: 1, operation: 'poll', handle: completed }), { done: true, value: 'completed' });
+    assert.equal(await bridge.request({ version: 1, operation: 'call', capability: 'hold', value: 'available' }), 'available');
+    finish();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    await bridge.request({ version: 1, operation: 'begin', capability: 'hold' });
+    await bridge.request({ version: 1, operation: 'begin', capability: 'hold' });
+  } finally {
+    finish();
+    await bridge.close();
+  }
+});
+
 test('a closing stream retains its admission until iterator cleanup settles', async () => {
   let finish!: () => void;
   let entered!: () => void;

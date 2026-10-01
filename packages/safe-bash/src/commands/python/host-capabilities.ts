@@ -14,6 +14,13 @@ export interface PythonHostBridgeOptions {
 }
 
 export type PythonHostFailureCode = 'limit' | 'timeout' | 'service';
+interface HostJob {
+  controller: AbortController;
+  reservation: object;
+  settled: boolean;
+  result?: PythonHostValue;
+  failed?: PythonHostFailureCode;
+}
 export function pythonHostFailureCode(error: unknown): PythonHostFailureCode {
   if (error instanceof RangeError) return 'limit';
   if (error instanceof Error && error.name === 'TimeoutError') return 'timeout';
@@ -35,7 +42,8 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
   const signal = AbortSignal.any([options.signal, controller.signal]);
   const pending = new Set<Promise<unknown>>();
   const streams = new Map<number, { iterator: AsyncIterator<string | Uint8Array | PythonHostValue>; busy: boolean; controller: AbortController; bytes: number; closing?: Promise<void> }>();
-  const jobs = new Map<number, { controller: AbortController; result?: PythonHostValue; failed?: PythonHostFailureCode }>();
+  const jobs = new Map<number, HostJob>();
+  const activeCalls = new Set<object>();
   const cleanupFailures: unknown[] = [];
   const jobWork = new Set<Promise<void>>();
   let nextJob = 1;
@@ -127,6 +135,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
     if (pending.size >= maxConcurrentCalls) throw new Error('Python host call concurrency limit exceeded');
     const payload = data(incoming) as Record<string, PythonHostValue>;
     if (!payload || Array.isArray(payload) || typeof payload !== 'object' || payload.version !== 1) throw new TypeError('Unsupported Python host protocol');
+    let reservation: object | undefined;
     const operation = Promise.resolve().then(async (): Promise<PythonHostValue> => {
       assertLive();
       if (payload.operation === 'poll' || payload.operation === 'cancel') {
@@ -136,14 +145,18 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
         if (!job) throw new Error('Unknown Python host job');
         if (payload.operation === 'cancel') {
           jobs.delete(handle);
+          if (job.settled) activeCalls.delete(job.reservation);
           job.controller.abort(new Error('Python guest cancelled host operation'));
           return null;
         }
         if (job.result === undefined && !job.failed) return { done: false };
         jobs.delete(handle);
+        if (job.settled) activeCalls.delete(job.reservation);
         return job.failed ? { done: true, error: 'Python host operation failed', errorCode: job.failed } : { done: true, value: job.result! };
       }
-      if (Math.max(jobWork.size, jobs.size) >= maxConcurrentCalls) throw new Error('Python host call concurrency limit exceeded');
+      if (activeCalls.size >= maxConcurrentCalls) throw new Error('Python host call concurrency limit exceeded');
+      reservation = {};
+      activeCalls.add(reservation);
       if (payload.operation === 'begin' || payload.operation === 'begin-next') {
         let work: (childSignal: AbortSignal) => Promise<PythonHostValue>;
         let child: AbortController;
@@ -162,8 +175,10 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
           work = childSignal => capability.call!(payload.value ?? null, { signal: childSignal });
         }
         const handle = nextJob++;
-        const job: { controller: AbortController; result?: PythonHostValue; failed?: PythonHostFailureCode } = { controller: child };
+        const job: HostJob = { controller: child, reservation, settled: false };
         jobs.set(handle, job);
+        // Transfer admission to the job until both host work and guest ownership end.
+        reservation = undefined;
         const task = Promise.resolve().then(() => {
           const childSignal = AbortSignal.any([signal, child.signal]);
           childSignal.throwIfAborted();
@@ -173,6 +188,8 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
           child.signal.throwIfAborted();
           job.result = data(value);
         }).catch(error => { job.failed = pythonHostFailureCode(error); }).finally(() => {
+          job.settled = true;
+          if (!jobs.has(handle)) activeCalls.delete(job.reservation);
           if (reservedStream) reservedStream.busy = false;
           jobWork.delete(task);
         });
@@ -210,7 +227,10 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
     });
     pending.add(operation);
     try { return await operation; }
-    finally { pending.delete(operation); }
+    finally {
+      pending.delete(operation);
+      if (reservation) activeCalls.delete(reservation);
+    }
   };
   const close = (): Promise<void> => {
     if (closing) return closing;
@@ -220,6 +240,7 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
       for (const job of jobs.values()) job.controller.abort(controller.signal.reason);
       await Promise.allSettled([...pending, ...jobWork]);
       jobs.clear();
+      activeCalls.clear();
       const results = await Promise.allSettled([...streams.keys()].map(handle => release(handle)));
       registry.clear();
       for (const result of results) if (result.status === 'rejected') throw result.reason;

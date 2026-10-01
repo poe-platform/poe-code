@@ -511,7 +511,7 @@ print('host-ok')
   shell.use(pythonCommands({ createExecutor() {
     const executor = createExecutor();
     return { run(start) { retiredBridge = start.host; return executor.run(start); }, terminate: executor.terminate.bind(executor) };
-  }, maxConcurrentWorkers:1, capabilityLimits:{maxMessageBytes:1048576}, createCapabilities(context) {
+  }, maxConcurrentWorkers:1, capabilityLimits:{maxMessageBytes:1048576,maxConcurrentCalls:2,maxStreams:2}, createCapabilities(context) {
     return {
       identity: { async call(value) { calls++; return value; } },
       llm: createPythonLlmCapability(context,service,{maxBufferedResponseBytes:8192,maxBufferedEvents:64,maxMetadataBytes:4096}),

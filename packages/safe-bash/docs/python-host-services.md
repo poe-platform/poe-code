@@ -86,6 +86,9 @@ depth. Set positive safe integers in `capabilityLimits` to enforce host budgets;
 `maxMessageBytes` can exceed 64 KiB and `maxMessageDepth` controls nesting. Cyclic
 messages are invalid data. Nested shell input, output and concurrency limits also
 default to `Infinity`; configure them in `createPythonShellCapability`.
+Synchronous calls and asynchronous jobs share `maxConcurrentCalls`. A job retains
+admission until its host work settles and the guest collects or cancels its result;
+cancelling an uncooperative operation does not free its slot early.
 Python `poe_shell` output and `poe_llm.Client` response limits default to `None`
 (disabled), and accept `float("inf")`. Finite byte limits remain enforced. LLM
 operations inherit the client limit when omitted; explicit `None` disables it. Streams pull one event

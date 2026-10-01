@@ -1088,6 +1088,48 @@
       "safe-bash-command-awk/*": [
         "../safe-bash-command-awk/src/*.ts",
         "../safe-bash-command-awk/src/*"
+      ],
+      "safe-bash-metadata-engine": [
+        "../safe-bash-metadata-engine/src/index.ts"
+      ],
+      "safe-bash-metadata-engine/*": [
+        "../safe-bash-metadata-engine/src/*.ts",
+        "../safe-bash-metadata-engine/src/*"
+      ],
+      "safe-bash-command-chmod": [
+        "../safe-bash-command-chmod/src/index.ts"
+      ],
+      "safe-bash-command-chmod/*": [
+        "../safe-bash-command-chmod/src/*.ts",
+        "../safe-bash-command-chmod/src/*"
+      ],
+      "safe-bash-command-stat": [
+        "../safe-bash-command-stat/src/index.ts"
+      ],
+      "safe-bash-command-stat/*": [
+        "../safe-bash-command-stat/src/*.ts",
+        "../safe-bash-command-stat/src/*"
+      ],
+      "safe-bash-command-mktemp": [
+        "../safe-bash-command-mktemp/src/index.ts"
+      ],
+      "safe-bash-command-mktemp/*": [
+        "../safe-bash-command-mktemp/src/*.ts",
+        "../safe-bash-command-mktemp/src/*"
+      ],
+      "safe-bash-command-alias": [
+        "../safe-bash-command-alias/src/index.ts"
+      ],
+      "safe-bash-command-alias/*": [
+        "../safe-bash-command-alias/src/*.ts",
+        "../safe-bash-command-alias/src/*"
+      ],
+      "safe-bash-command-unalias": [
+        "../safe-bash-command-unalias/src/index.ts"
+      ],
+      "safe-bash-command-unalias/*": [
+        "../safe-bash-command-unalias/src/*.ts",
+        "../safe-bash-command-unalias/src/*"
       ]
     },
     "baseUrl": "."

@@ -76,3 +76,28 @@ test("each invocation scans its input instead of replaying process-wide counts",
     assert.ok(scannedLines >= 10, `invocation ${invocation} must scan its own records`);
   }
 });
+
+test("caller buffer reuse cannot transfer counts or binary classification between files", async () => {
+  const command = createRgCommand();
+  const fs = createMemoryFileSystem();
+  const scratch = bytes("alpha_match\n");
+  for (const directory of ["text", "other", "binary"]) await fs.mkdir(`/${directory}`);
+  await fs.writeFile("/text/file", scratch);
+  scratch.set(bytes("zzzzz_other\n"));
+  await fs.writeFile("/other/file", scratch);
+  scratch.set(bytes("alpha\0match\n"));
+  await fs.writeFile("/binary/file", scratch);
+  for (let repeat = 0; repeat < 3; repeat++) {
+    const text = await run(command, fs, ["-c", "alpha", "/text"]);
+    assert.equal(text.exitCode, 0, text.stderr);
+    assert.equal(text.stdout, "/text/file:1\n");
+    for (const directory of ["other", "binary"]) {
+      const result = await run(command, fs, ["-c", "alpha", `/${directory}`]);
+      assert.equal(result.exitCode, 1, result.stderr);
+      assert.equal(result.stdout, "");
+    }
+    const binaryAsText = await run(command, fs, ["-a", "-c", "alpha", "/binary"]);
+    assert.equal(binaryAsText.exitCode, 0, binaryAsText.stderr);
+    assert.equal(binaryAsText.stdout, "/binary/file:1\n");
+  }
+});

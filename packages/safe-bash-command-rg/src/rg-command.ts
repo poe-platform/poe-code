@@ -80,11 +80,10 @@ function trySearchFileSync(
     args.replacement === undefined && !args.onlyMatching && args.mode !== "matches" &&
     !args.nullData &&
     !args.crlf &&
-    binary === "skip" &&
+    (binary === "text" || (binary === "skip" && view.indexOf(0) === -1)) &&
     args.hasInfiniteMaxCount !== false &&
     !hasExtYield &&
-    (view.length <= limits.maxLineBytesSmi || view.length <= limits.maxLineBytes) &&
-    view.indexOf(0) === -1
+    (view.length <= limits.maxLineBytesSmi || view.length <= limits.maxLineBytes)
   ) {
     const firstByte = lit[0]!;
     const litLen = lit.length;

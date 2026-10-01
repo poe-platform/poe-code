@@ -12,7 +12,13 @@ describe("@poe-code/safe-js/core", () => {
     expect(core.run).toBe(run);
     expect(core.createReplayableRandom({ seed: 123 }).next()).toBe(0.2837369213812053);
     expect(Object.keys(core).sort()).toEqual(
-      ["Budget", "admitNativePromiseProperties", "createRealm", "createReplayableRandom", "createRootedSourceResolver", "defineExtension", "run", "lint"].sort()
+      [
+        "Budget", "EnvAccessError", "FS_OPTION_SURFACE", "HarnessFailure",
+        "admitNativePromiseProperties", "createRealm", "createReplayableRandom",
+        "createRootedSourceResolver", "defineExtension", "lint", "makeEnvModule",
+        "makeFailModule", "makeFsModule", "makeHarnessModule", "makeMetricModule",
+        "makeTimeModule", "parseEnvConfig", "run"
+      ].sort()
     );
   });
 });

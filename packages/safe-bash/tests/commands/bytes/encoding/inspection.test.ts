@@ -288,8 +288,8 @@ test("od: concatenate files, skip/count and suppress duplicates", async () => {
 });
 
 test("od: multiple types preserve order and reject unknown encodings", async () => {
-  assert.equal((await run("od", ["-An", "-tx1u1"], Uint8Array.of(15))).stdout, " 0f\n  15\n");
-  assert.equal((await run("od", ["-An", "-b", "-tx1"], Uint8Array.of(15))).stdout, " 017\n 0f\n");
+  assert.equal((await run("od", ["-An", "-tx1u1"], Uint8Array.of(15))).stdout, "  0f\n  15\n");
+  assert.equal((await run("od", ["-An", "-b", "-tx1"], Uint8Array.of(15))).stdout, " 017\n  0f\n");
   for (const args of [["-tf2"], ["-ta2"], ["-tx3"], ["-Aq"], ["-Aq", "-An"], ["--endian=middle"], ["--endian=middle", "--endian=big"], ["-e", "big"], ["-j-1"], ["-N08"], ["-w0"], ["-w0", "-w16"], ["-w3", "-tx2"], ["--type="], ["-j9007199254740992"]]) {
     assert.equal((await run("od", args)).exitCode, 2, args.join(" "));
   }
@@ -387,7 +387,7 @@ for (const { name, args, input, expected } of [
     name: "hexadecimal multiple-format continuation alignment",
     args: ["-Ax", "-tx1u1", "-w2"],
     input: Uint8Array.of(15, 16, 17),
-    expected: "000000 0f 10\n        15  16\n000002 11\n        17\n000003\n"
+    expected: "000000  0f  10\n        15  16\n000002  11\n        17\n000003\n"
   },
   {
     name: "hexadecimal duplicate suppression and resumed row",
@@ -435,7 +435,7 @@ for (const { name, args, input, expected } of [
     name: "no address retains multiple-format rows without a final offset",
     args: ["-An", "-tx1u1", "-w2"],
     input: Uint8Array.of(15, 16, 17),
-    expected: " 0f 10\n  15  16\n 11\n  17\n"
+    expected: "  0f  10\n  15  16\n  11\n  17\n"
   }
 ])
   test(`od: address width - ${name}`, async () => {
@@ -564,7 +564,7 @@ test("od: output type selections have no implicit quota", async () => {
 test("od: supports size-less/symbolic -t types, z printable suffix, optional -w, and uppercase aliases", async () => {
   assert.equal((await run("od", ["-An", "-tf"], Uint8Array.of(0, 0, 0, 0, 0, 0, 240, 63))).stdout, ` ${"1".padStart(24)}\n`);
   assert.equal((await run("od", ["-An", "-t", "xC"], "AB")).stdout, " 41 42\n");
-  assert.equal((await run("od", ["-An", "-tx1z"], "AB")).stdout, " 41 42  >AB<\n");
+  assert.equal((await run("od", ["-An", "-tx1z"], "AB")).stdout, " 41 42                                            >AB<\n");
   assert.equal((await run("od", ["-An", "-t", "x"], "ABCD")).stdout, " 44434241\n");
   assert.equal((await run("od", ["-An", "-X"], "ABCD")).stdout, " 44434241\n");
   assert.equal((await run("od", ["-An", "-tx1", "-w"], "ABCD")).stdout, " 41 42 43 44\n");

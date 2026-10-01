@@ -124,7 +124,7 @@ export function createOpCommand(options: OpCommandsOptions = {}): CommandDefinit
           try {
             bytes = await fs.readFile(resolved, {
               signal,
-              ...(context.inputBudget ? { maxBytes: Math.max(0, context.inputBudget.maxBytes - inputBytes) } : {}),
+              ...(context.inputBudget && Number.isFinite(context.inputBudget.maxBytes) ? { maxBytes: Math.max(0, context.inputBudget.maxBytes - inputBytes) } : {}),
             });
           } catch (error) {
             if (isFsError(error, "EFBIG") && context.inputBudget) context.inputBudget.check(context.inputBudget.maxBytes + 1);

@@ -30,3 +30,17 @@ test("xmllint plugin captures the replacement policy at creation", () => {
   assert.throws(() => plugin.setup({ commands, use() {}, registerFileSystem() {} }),
     (error: unknown) => error instanceof Error && error.message.includes("Command already registered"));
 });
+
+test("retaining sinks preserve xmllint output across batch reuse", async () => {
+  const values = Array.from({ length: 2500 }, (_, i) => `value-${i}`);
+  const chunks: Uint8Array[] = [];
+  const context = {
+    args: ["--xpath", "//item/text()"], command: "xmllint", cwd: "/", env: {},
+    signal: new AbortController().signal,
+    stdin: toByteSource("<root>" + values.map(value => `<item>${value}</item>`).join("") + "</root>"),
+    stdout: { async write(bytes: Uint8Array) { chunks.push(bytes); } },
+    stderr: { async write() { assert.fail("unexpected diagnostic"); } },
+  } as unknown as CommandContext;
+  assert.equal((await createXmllintCommand().execute(context)).exitCode, 0);
+  assert.equal(chunks.map(bytes => new TextDecoder().decode(bytes)).join(""), values.join("\n") + "\n");
+});

@@ -353,7 +353,7 @@ test("awk current aggregate preserves small maxBufferBytes and isolates repeated
   }
 });
 
-test("awk terminal main close releases blocks before END without waiting ahead of named cleanup", async () => {
+for (const mode of ["run", "runSyncOrAsync"] as const) test(`awk terminal main close releases blocks before END without waiting ahead of named cleanup: ${mode}`, async () => {
   const program = '{ getline a < "/named"; exit } END { print length(a) > "/dev/stderr"; getline b < "/named"; print b > "/dev/stderr" }';
   const { context } = invocation(program);
   let mainStarted!: () => void, releaseMain!: () => void;
@@ -386,7 +386,7 @@ test("awk terminal main close releases blocks before END without waiting ahead o
     stderr: { async write(chunk: Uint8Array) { observed.push([Buffer.from(chunk).toString(), retention.retainedBytes]); } },
   };
   const runtime = new AwkRuntime(new AwkParser(program).parse(), configured, new Budget(configured, {}), retention, [], []);
-  const work = runtime.run();
+  const work = runtime[mode]();
   try {
     await entered;
     await new Promise<void>(resolve => setImmediate(resolve));

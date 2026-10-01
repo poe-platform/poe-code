@@ -1863,13 +1863,14 @@ export class AwkRuntime {
         }
       }
     }
-    if (this.mainReader && !hasMainGetline(this.program.end) && ![...this.program.functions.values()].some(hasMainGetline)) {
-      void this.mainReader.close().catch(() => undefined);
-    }
     return this.runEndPhaseSyncOrAsync(0);
   }
 
   private runEndPhaseSyncOrAsync(startIdx: number): number | Promise<number> {
+    if (this.mainReader && !hasMainGetline(this.program.end) && ![...this.program.functions.values()].some(hasMainGetline)) {
+      // Release buffered input now, but await host cleanup alongside named readers.
+      void this.mainReader.close().catch(() => undefined);
+    }
     this.phase = "END";
     try {
       for (let i = startIdx; i < this.program.end.length; i++) {
@@ -2003,9 +2004,6 @@ export class AwkRuntime {
         if (error.kind === "nextfile") { await this.mainReader?.close(); this.mainReader = undefined; }
         else if (error.kind !== "next") throw error;
       }
-    }
-    if (this.mainReader && !hasMainGetline(this.program.end) && ![...this.program.functions.values()].some(hasMainGetline)) {
-      void this.mainReader.close().catch(() => undefined);
     }
     return this.runEndPhaseSyncOrAsync(0);
   }

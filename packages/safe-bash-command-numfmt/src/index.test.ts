@@ -140,3 +140,11 @@ test("numfmt accepts exact resource bounds and the direct factory honors limits"
   assert.equal((await runNumfmt([], { limits: { maxRecordBytes: 2, maxInputBytes: 3, maxSingleChunkBytes: 2, maxEmptyChunks: 1 } }, [new Uint8Array(), Buffer.from("12"), Buffer.from("\n")])).exitCode, 0);
   assert.throws(() => numfmtCommand({ limits: { maxWork: 0 } }), RangeError);
 });
+
+for (const delimiter of [" ", ","]) test(`numfmt charges every unselected field with delimiter ${JSON.stringify(delimiter)}`, async () => {
+  const args = delimiter === "," ? ["--delimiter=,"] : [];
+  const line = Array(30).fill("1").join(delimiter) + "\n";
+  const result = await runNumfmt(args, { limits: { maxWork: 300 } }, Array.from({ length: 10 }, () => Buffer.from(line)));
+  assert.equal(result.exitCode, 1);
+  assert.match(result.stderr, /work limit exceeded/);
+});

@@ -1003,17 +1003,6 @@ class Converter {
         lineOut += text;
       }
       if (end >= line.length) break;
-      if (onlyFirstField && field === 1n) {
-        if (settings.delimiter !== undefined) {
-          if (this.tick((settings.fields?.length ?? 0) + 1)) return bail();
-          lineOut += line.slice(end);
-          break;
-        } else if (line[end] === " " && !/[\t\n]| {2}| $/.test(line.slice(end))) {
-          if (this.tick((settings.fields?.length ?? 0) + 1)) return bail();
-          lineOut += line.slice(end);
-          break;
-        }
-      }
       lineOut += settings.delimiter ?? " ";
       start = end + 1;
     }

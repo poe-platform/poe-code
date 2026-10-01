@@ -1014,9 +1014,10 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
     if (options.decodeFrames && type === "video" && width && height) {
       const lengthSize = (firstCodec?.avcC?.lengthSizeMinusOne ?? 3) + 1;
       decodedVideoFrames = [];
+      const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
       for (const sample of samples) {
         budget.recordFrame(width, height);
-        const rgba = decodeH264FrameToRgba(sample.data, width, height, lengthSize);
+        const rgba = decodeH264FrameToRgba(sample.data, width, height, lengthSize, refBuffer);
         decodedVideoFrames.push({
           width,
           height,
@@ -1330,11 +1331,12 @@ function materializeTrackSamples(track: MediaTrack): {
     const avcC = parseAvcC(avcCBytes);
     const samples: MediaSample[] = [];
     let dts = 0;
+    const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
 
     for (let i = 0; i < track.decodedVideoFrames.length; i++) {
       const frame = track.decodedVideoFrames[i]!;
       const duration = Math.max(1, Math.round(frame.durationSeconds * timescale));
-      const encoded = encodeH264IdrFrame(frame.data, width, height, i);
+      const encoded = encodeH264IdrFrame(frame.data, width, height, i, refBuffer);
       samples.push({
         data: encoded,
         dts,
@@ -2094,6 +2096,30 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     const slicedSamples: MediaSample[] = [];
     let runningDts = 0;
 
+    let promotedFirstSampleData: Uint8Array | undefined;
+    if (
+      track.type === "video" &&
+      actualStartIdx < materialized.samples.length &&
+      materialized.samples[actualStartIdx]!.data.byteLength > 5 &&
+      (materialized.samples[actualStartIdx]!.data[4]! & 0x1f) === 1
+    ) {
+      let keyIdx = actualStartIdx;
+      while (keyIdx > 0 && (materialized.samples[keyIdx]!.data[4]! & 0x1f) !== 5) {
+        keyIdx--;
+      }
+      const w = track.width ?? materialized.codecDescriptions[0]?.width ?? 64;
+      const h = track.height ?? materialized.codecDescriptions[0]?.height ?? 64;
+      const lengthSize = (materialized.codecDescriptions[0]?.avcC?.lengthSizeMinusOne ?? 3) + 1;
+      const refBuf: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
+      let rgba: Uint8Array | undefined;
+      for (let k = keyIdx; k <= actualStartIdx; k++) {
+        rgba = decodeH264FrameToRgba(materialized.samples[k]!.data, w, h, lengthSize, refBuf);
+      }
+      if (rgba) {
+        promotedFirstSampleData = encodeH264IdrFrame(rgba, w, h, 0);
+      }
+    }
+
     for (let i = actualStartIdx; i < materialized.samples.length; i++) {
       if (++work % 256 === 0) yield;
 
@@ -2101,8 +2127,13 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       if (s.dts >= endTick) break;
       const sampleStart = useEditList ? s.dts : Math.max(startTick, s.dts);
       const clippedDuration = Math.max(0, Math.min(s.dts + s.duration, endTick) - sampleStart);
+      const isPromotedFirst = i === actualStartIdx && promotedFirstSampleData !== undefined;
+      const sampleData = isPromotedFirst ? promotedFirstSampleData! : s.data;
       slicedSamples.push({
         ...s,
+        data: sampleData,
+        size: sampleData.byteLength,
+        isKeyframe: isPromotedFirst ? true : s.isKeyframe,
         dts: runningDts,
         pts: runningDts + s.cts,
         duration: clippedDuration

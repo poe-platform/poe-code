@@ -1913,6 +1913,51 @@ export class SqliteDatabase {
     });
   }
 
+  public bulkImportRows(tableName: string, rows: readonly (readonly string[])[]): boolean {
+    const tbl = this.findTable(tableName);
+    if (!tbl) return false;
+    const lowerTbl = tbl.name.toLowerCase();
+    const hasTriggers = Array.from(this.triggers.values()).some((tr) => tr.tableName.toLowerCase() === lowerTbl);
+    const hasComplexCols = tbl.columns.some(
+      (c) => Boolean(c.checkExpr || c.generatedExpr || (c.primaryKey && c.type.toUpperCase() === "INTEGER" && !tbl.withoutRowId && tbl.primaryKeyCols.length === 1))
+    );
+    if (this.foreignKeys || hasTriggers || hasComplexCols) {
+      return false;
+    }
+    const cols = tbl.columns;
+    const colCount = cols.length;
+    let inserted = 0;
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i]!;
+      if (r.length === 1 && r[0] === "" && colCount > 1) continue;
+      const data: Record<string, SqlValue> = {};
+      for (let cIdx = 0; cIdx < colCount; cIdx++) {
+        const col = cols[cIdx]!;
+        const raw = r[cIdx] ?? "";
+        const val = applyColumnAffinity(raw, col.type);
+        if (col.notNull && (val === null || val === undefined)) {
+          return false;
+        }
+        data[col.name] = val;
+      }
+      const rowid = tbl.nextRowId;
+      const candidate: TableRow = { rowid, data };
+      const conflict = runSynchronously(this.checkConstraintsAndConflicts(tbl, candidate));
+      if (conflict) {
+        throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
+      }
+      this.checkRowCount(tbl.rows.length + 1);
+      tbl.rows.push(candidate);
+      tbl.nextRowId = rowid + 1;
+      if (rowid > tbl.maxAutoInc) tbl.maxAutoInc = rowid;
+      this.lastInsertRowid = rowid;
+      inserted++;
+    }
+    this.lastChanges = inserted;
+    this.totalChanges += inserted;
+    return true;
+  }
+
   public findTable(name: string): TableDef | undefined {
     const lower = name.toLowerCase();
     for (const [k, v] of this.tables) {
@@ -4642,10 +4687,12 @@ export class SqliteDatabase {
         }, this);
       }
     } else {
-      groupedRows = yield* stepMap(workingRows, function* (r) { yield;
+      groupedRows = yield* stepMap(workingRows, function* (r, idx) { yield;
+        workingRows[idx] = undefined as any;
         return { representative: r, group: [r] };
       }, this);
     }
+    workingRows = [];
 
     // Evaluate window functions if any target has OVER (...)
     const windowResults = new Map<ExprNode, SqlValue[]>();
@@ -4660,13 +4707,22 @@ export class SqliteDatabase {
       );
     }
 
+    const firstWindowPeek = windowResults.keys().next().value;
+    const needsPostProjectionCtx = Boolean(
+      (orderByTokens && orderByTokens.length > 0) ||
+      (!orderByTokens?.length && firstWindowPeek?.kind === "func" && firstWindowPeek.over)
+    );
+    const emptyCtx: Record<string, SqlValue> = {};
+    const emptyGroup: Record<string, SqlValue>[] = [];
+
     // Build projection rows + augmented sort contexts
     let projected: {
       values: SqlValue[];
       ctx: Record<string, SqlValue>;
       group: Record<string, SqlValue>[];
     }[] = yield* stepMap(groupedRows, function* (g, rowIdx) {
-      const repCtx = { ...g.representative };
+      groupedRows[rowIdx] = undefined as any;
+      const repCtx = g.representative;
       const values = yield* stepMap(selectTargets, function* (st) {
         const val = yield* this.evalExprSteps(
           st.expr, repCtx, positionalParams, cteScope,
@@ -4677,8 +4733,13 @@ export class SqliteDatabase {
         }
         return val;
       }, this);
-      return { values, ctx: repCtx, group: g.group };
+      return {
+        values,
+        ctx: needsPostProjectionCtx ? repCtx : emptyCtx,
+        group: needsPostProjectionCtx ? g.group : emptyGroup
+      };
     }, this);
+    groupedRows = [];
 
     // Match SQLite's first window traversal when no outer ordering overrides it.
     // Keep the original indices above so independent windows retain their values.
@@ -5090,7 +5151,110 @@ export class SqliteDatabase {
       }
       const rightMatched = new Set<number>();
 
-      for (const leftRow of currentRows) {
+      // Build O(1) hash index when joining on column equality (ON a.k = b.k or USING (k))
+      let equiJoinSpec: {
+        leftTable: string | undefined;
+        leftCol: string;
+        rightTable: string | undefined;
+        rightCol: string;
+        isPureSingleEqui: boolean;
+      } | undefined;
+      const rightAliasLower = resolved.alias.toLowerCase();
+      const rightColSet = new Set(resolved.columns.map((c) => c.toLowerCase()));
+      const leftAliasSet = new Set(schema.slice(0, -1).map((s) => s.tableAlias.toLowerCase()));
+
+      const classifyJoinCol = (colExpr: Extract<ExprNode, { kind: "column" }>): "left" | "right" | undefined => {
+        if (colExpr.table) {
+          const tLower = colExpr.table.toLowerCase();
+          if (tLower === rightAliasLower) return "right";
+          if (leftAliasSet.has(tLower)) return "left";
+          return undefined;
+        }
+        const cLower = colExpr.name.toLowerCase();
+        const inLeft = prevCols.has(cLower);
+        const inRight = rightColSet.has(cLower);
+        if (inLeft && !inRight) return "left";
+        if (inRight && !inLeft) return "right";
+        return undefined;
+      };
+
+      const findEquiPair = (expr: ExprNode | undefined, topLevel: boolean): void => {
+        if (!expr || equiJoinSpec) return;
+        if (expr.kind === "binary" && expr.op === "=" && expr.left.kind === "column" && expr.right.kind === "column") {
+          const sideA = classifyJoinCol(expr.left);
+          const sideB = classifyJoinCol(expr.right);
+          if (sideA === "left" && sideB === "right") {
+            equiJoinSpec = {
+              leftTable: expr.left.table,
+              leftCol: expr.left.name,
+              rightTable: expr.right.table ?? resolved.alias,
+              rightCol: expr.right.name,
+              isPureSingleEqui: topLevel
+            };
+          } else if (sideA === "right" && sideB === "left") {
+            equiJoinSpec = {
+              leftTable: expr.right.table,
+              leftCol: expr.right.name,
+              rightTable: expr.left.table ?? resolved.alias,
+              rightCol: expr.left.name,
+              isPureSingleEqui: topLevel
+            };
+          }
+        } else if (expr.kind === "binary" && expr.op === "AND") {
+          findEquiPair(expr.left, false);
+          findEquiPair(expr.right, false);
+        }
+      };
+
+      if (!resolved.isCorrelated) {
+        if (onExpr) {
+          findEquiPair(onExpr, true);
+        } else if (usingList && usingList.length > 0) {
+          equiJoinSpec = {
+            leftTable: undefined,
+            leftCol: usingList[0]!,
+            rightTable: resolved.alias,
+            rightCol: usingList[0]!,
+            isPureSingleEqui: usingList.length === 1
+          };
+        }
+      }
+
+      const getHashJoinKeys = (val: SqlValue): string[] => {
+        if (val === null || val === undefined) return [];
+        if (typeof val === "number") {
+          return ["num:" + String(Object.is(val, -0) ? 0 : val)];
+        }
+        if (typeof val === "string") {
+          const trimmed = val.trim();
+          const num = trimmed !== "" ? Number(trimmed) : NaN;
+          if (!Number.isNaN(num)) {
+            return ["str:" + val, "num:" + String(Object.is(num, -0) ? 0 : num)];
+          }
+          return ["str:" + val];
+        }
+        return ["other:" + String(val)];
+      };
+
+      let rightHashIndex: Map<string, number[]> | undefined;
+      if (equiJoinSpec && resolved.rows.length > 0) {
+        rightHashIndex = new Map<string, number[]>();
+        for (let rIdx = 0; rIdx < resolved.rows.length; rIdx += 1) {
+          const rVal = this.lookupColInRow(resolved.rows[rIdx]!, equiJoinSpec.rightTable, equiJoinSpec.rightCol);
+          for (const key of getHashJoinKeys(rVal)) {
+            let bucket = rightHashIndex.get(key);
+            if (!bucket) {
+              bucket = [];
+              rightHashIndex.set(key, bucket);
+            }
+            bucket.push(rIdx);
+          }
+        }
+      }
+
+      for (let lIdx = 0; lIdx < currentRows.length; lIdx += 1) {
+        const leftRow = currentRows[lIdx]!;
+        currentRows[lIdx] = undefined as any;
         yield;
         const candidateRightRows = resolved.isCorrelated
           ? (yield* this.resolveSingleTableSource(
@@ -5102,23 +5266,90 @@ export class SqliteDatabase {
           : resolved.rows;
 
         let matchedLeft = false;
-        for (let rIdx = 0; rIdx < candidateRightRows.length; rIdx += 1) {
+        let candidateIndices: readonly number[] | undefined;
+        let leftEquiVal: SqlValue = null;
+        if (rightHashIndex && equiJoinSpec) {
+          leftEquiVal = this.lookupColInRow(leftRow, equiJoinSpec.leftTable, equiJoinSpec.leftCol);
+          const probeKeys = getHashJoinKeys(leftEquiVal);
+          if (probeKeys.length === 0) {
+            candidateIndices = [];
+          } else if (probeKeys.length === 1) {
+            candidateIndices = rightHashIndex.get(probeKeys[0]!) ?? [];
+          } else {
+            const seen = new Set<number>();
+            for (const pk of probeKeys) {
+              const bucket = rightHashIndex.get(pk);
+              if (bucket) {
+                for (const idx of bucket) seen.add(idx);
+              }
+            }
+            candidateIndices = [...seen];
+          }
+        }
+
+        const totalCandidates = candidateIndices ? candidateIndices.length : candidateRightRows.length;
+        for (let cPos = 0; cPos < totalCandidates; cPos += 1) {
           yield;
+          const rIdx = candidateIndices ? candidateIndices[cPos]! : cPos;
           const rightRow = candidateRightRows[rIdx]!;
-          const merged: Record<string, SqlValue> = { ...leftRow };
-          for (const [k, v] of Object.entries(rightRow)) {
-            yield;
-            if (k.includes(".") || !(k in merged) || merged[k] === null) {
-              merged[k] = v;
+
+          if (equiJoinSpec) {
+            const rVal = this.lookupColInRow(rightRow, equiJoinSpec.rightTable, equiJoinSpec.rightCol);
+            if (leftEquiVal === null || rVal === null || !sqlEquals(leftEquiVal, rVal)) {
+              continue;
+            }
+          }
+
+          const canMutateInPlace =
+            !matchedLeft &&
+            totalCandidates === 1 &&
+            Boolean(equiJoinSpec && equiJoinSpec.isPureSingleEqui);
+          let merged: Record<string, SqlValue>;
+          const lTables = (leftRow as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+          const rTables = (rightRow as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+          if (lTables && rTables) {
+            if (canMutateInPlace) {
+              Object.assign(lTables, rTables);
+              if ((leftRow as any).__rowids && (rightRow as any).__rowids) {
+                Object.assign((leftRow as any).__rowids, (rightRow as any).__rowids);
+              }
+              ((leftRow as any).__sources as Record<string, SqlValue>[]).push(...((rightRow as any).__sources ?? []));
+              merged = leftRow;
+            } else {
+              merged = {
+                __rowid: (leftRow as any).__rowid,
+                __tables: { ...lTables, ...rTables },
+                __rowids: { ...(leftRow as any).__rowids, ...(rightRow as any).__rowids },
+                __sources: [...((leftRow as any).__sources ?? []), ...((rightRow as any).__sources ?? [])]
+              } as unknown as Record<string, SqlValue>;
+            }
+          } else {
+            merged = canMutateInPlace ? leftRow : { ...leftRow };
+            if (lTables && !canMutateInPlace) {
+              (merged as any).__tables = { ...lTables };
+              (merged as any).__rowids = { ...(leftRow as any).__rowids };
+              (merged as any).__sources = [...((leftRow as any).__sources ?? [])];
+            }
+            if (rTables) {
+              (merged as any).__tables = { ...((merged as any).__tables ?? {}), ...rTables };
+              (merged as any).__rowids = { ...((merged as any).__rowids ?? {}), ...(rightRow as any).__rowids };
+              (merged as any).__sources = [...((merged as any).__sources ?? []), ...((rightRow as any).__sources ?? [])];
+            }
+            for (const k in rightRow) {
+              if (k.startsWith("__")) continue;
+              const v = rightRow[k]!;
+              if (k.includes(".") || !(k in merged) || merged[k] === null) {
+                merged[k] = v;
+              }
             }
           }
 
           let matches = true;
-          if (onExpr) {
+          if (onExpr && !(equiJoinSpec && equiJoinSpec.isPureSingleEqui)) {
             matches = isTruthy(
               yield* this.evalExprSteps(onExpr, merged, positionalParams, cteScope)
             );
-          } else if (usingList && usingList.length > 0) {
+          } else if (usingList && usingList.length > 0 && !(equiJoinSpec && equiJoinSpec.isPureSingleEqui)) {
             for (const uCol of usingList) {
               yield;
               const lVal = this.lookupColInRow(leftRow, undefined, uCol);
@@ -5139,16 +5370,29 @@ export class SqliteDatabase {
         }
 
         if (!matchedLeft && (item.joinType === "LEFT" || item.joinType === "FULL")) {
-          const nullPadded: Record<string, SqlValue> = { ...leftRow };
+          const nullObj: Record<string, SqlValue> = {};
           for (const col of resolved.columns) {
-            yield;
-            nullPadded[`${resolved.alias}.${col}`] = null;
-            if (!(col in nullPadded)) {
-              nullPadded[col] = null;
-            }
+            nullObj[col] = null;
           }
-          this.checkRowCount(nextRows.length + 1);
-          nextRows.push(nullPadded);
+          const lTables = (leftRow as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+          if (lTables) {
+            lTables[resolved.alias] = nullObj;
+            if ((leftRow as any).__rowids) (leftRow as any).__rowids[resolved.alias] = null;
+            ((leftRow as any).__sources as Record<string, SqlValue>[]).push(nullObj);
+            this.checkRowCount(nextRows.length + 1);
+            nextRows.push(leftRow);
+          } else {
+            const nullPadded: Record<string, SqlValue> = { ...leftRow };
+            for (const col of resolved.columns) {
+              yield;
+              nullPadded[`${resolved.alias}.${col}`] = null;
+              if (!(col in nullPadded)) {
+                nullPadded[col] = null;
+              }
+            }
+            this.checkRowCount(nextRows.length + 1);
+            nextRows.push(nullPadded);
+          }
         }
       }
 
@@ -5157,18 +5401,44 @@ export class SqliteDatabase {
           yield;
           if (!rightMatched.has(rIdx)) {
             const rightRow = resolved.rows[rIdx]!;
-            const nullPadded: Record<string, SqlValue> = {};
-            for (const s of schema.slice(0, -1)) {
-              yield;
-              for (const col of s.columns) {
-                yield;
-                nullPadded[`${s.tableAlias}.${col}`] = null;
-                nullPadded[col] = null;
+            const rTables = (rightRow as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+            if (rTables) {
+              const tablesMap: Record<string, Record<string, SqlValue>> = {};
+              const rowidsMap: Record<string, SqlValue> = {};
+              const sourcesList: Record<string, SqlValue>[] = [];
+              for (const s of schema.slice(0, -1)) {
+                const nullLeft: Record<string, SqlValue> = {};
+                for (const col of s.columns) {
+                  nullLeft[col] = null;
+                }
+                tablesMap[s.tableAlias] = nullLeft;
+                rowidsMap[s.tableAlias] = null;
+                sourcesList.push(nullLeft);
               }
+              Object.assign(tablesMap, rTables);
+              if ((rightRow as any).__rowids) Object.assign(rowidsMap, (rightRow as any).__rowids);
+              sourcesList.push(...((rightRow as any).__sources ?? []));
+              this.checkRowCount(nextRows.length + 1);
+              nextRows.push({
+                __rowid: (rightRow as any).__rowid ?? null,
+                __tables: tablesMap,
+                __rowids: rowidsMap,
+                __sources: sourcesList
+              } as unknown as Record<string, SqlValue>);
+            } else {
+              const nullPadded: Record<string, SqlValue> = {};
+              for (const s of schema.slice(0, -1)) {
+                yield;
+                for (const col of s.columns) {
+                  yield;
+                  nullPadded[`${s.tableAlias}.${col}`] = null;
+                  nullPadded[col] = null;
+                }
+              }
+              Object.assign(nullPadded, rightRow);
+              this.checkRowCount(nextRows.length + 1);
+              nextRows.push(nullPadded);
             }
-            Object.assign(nullPadded, rightRow);
-            this.checkRowCount(nextRows.length + 1);
-            nextRows.push(nullPadded);
           }
         }
       }
@@ -5454,14 +5724,22 @@ export class SqliteDatabase {
         cteScope
       )) ?? { columns: [], rows: [] };
       const cols = view.columns && view.columns.length > 0 ? view.columns : res.columns;
-      const rows = yield* stepMap(res.rows, function* (r) { yield;
-        const obj: Record<string, SqlValue> = {};
-        cols.forEach((c, cIdx) => {
-          obj[c] = r[cIdx] ?? null;
-          obj[`${alias}.${c}`] = r[cIdx] ?? null;
-          obj[`${name}.${c}`] = r[cIdx] ?? null;
-        });
-        return obj;
+      const sameViewAlias = alias.toLowerCase() === name.toLowerCase();
+      const rows = yield* stepMap(res.rows, function* (r, rIdx) { yield;
+        res.rows[rIdx] = undefined as any;
+        const data: Record<string, SqlValue> = {};
+        for (let cIdx = 0; cIdx < cols.length; cIdx++) {
+          data[cols[cIdx]!] = r[cIdx] ?? null;
+        }
+        const tablesMap: Record<string, Record<string, SqlValue>> = sameViewAlias
+          ? { [alias]: data }
+          : { [alias]: data, [name]: data };
+        return {
+          __rowid: rIdx + 1,
+          __tables: tablesMap,
+          __rowids: sameViewAlias ? { [alias]: rIdx + 1 } : { [alias]: rIdx + 1, [name]: rIdx + 1 },
+          __sources: [data]
+        } as unknown as Record<string, SqlValue>;
       }, this);
       return { alias, columns: cols, rows };
     }
@@ -5474,22 +5752,21 @@ export class SqliteDatabase {
     const cols = tbl.columns.map((c) => {
       return c.name;
     });
+    const sameAliasAndName = alias.toLowerCase() === name.toLowerCase();
     const rows = yield* stepMap(this.preparing ? [] : tbl.rows, function* (r) {
-      const obj: Record<string, SqlValue> = {
-        rowid: r.rowid,
-        _rowid_: r.rowid,
-        oid: r.rowid,
-        [`${alias}.rowid`]: r.rowid,
-        [`${name}.rowid`]: r.rowid
-      };
-      for (const c of cols) {
-        yield;
-        const val = r.data[c] ?? null;
-        obj[c] = val;
-        obj[`${alias}.${c}`] = val;
-        obj[`${name}.${c}`] = val;
-      }
-      return obj;
+      yield;
+      const tablesMap: Record<string, Record<string, SqlValue>> = sameAliasAndName
+        ? { [alias]: r.data }
+        : { [alias]: r.data, [name]: r.data };
+      const rowidsMap: Record<string, number> = sameAliasAndName
+        ? { [alias]: r.rowid }
+        : { [alias]: r.rowid, [name]: r.rowid };
+      return {
+        __rowid: r.rowid,
+        __tables: tablesMap,
+        __rowids: rowidsMap,
+        __sources: [r.data]
+      } as unknown as Record<string, SqlValue>;
     }, this);
     return { alias, columns: cols, rows };
   }
@@ -6091,33 +6368,154 @@ export class SqliteDatabase {
     name: string,
     doubleQuoted = false
   ): SqlValue {
+    const tables = (row as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+    const sources = (row as any).__sources as Record<string, SqlValue>[] | undefined;
+    const rowids = (row as any).__rowids as Record<string, SqlValue> | undefined;
+    const lowerName = name.toLowerCase();
+
+    if (lowerName === "rowid" || lowerName === "_rowid_" || lowerName === "oid") {
+      if (!table && name in row && !name.startsWith("__")) {
+        return row[name]!;
+      }
+      if (table) {
+        const exact = `${table}.${name}`;
+        if (exact in row) return row[exact]!;
+        if (tables) {
+          let td = tables[table];
+          if (!td) {
+            const lt = table.toLowerCase();
+            for (const tk in tables) {
+              if (tk.toLowerCase() === lt) { td = tables[tk]; break; }
+            }
+          }
+          if (td) {
+            if (name in td) return td[name]!;
+            for (const k in td) {
+              if (k.toLowerCase() === lowerName) return td[k]!;
+            }
+          }
+        }
+        if (rowids) {
+          if (table in rowids) return rowids[table]!;
+          const lt = table.toLowerCase();
+          for (const tk in rowids) {
+            if (tk.toLowerCase() === lt) return rowids[tk]!;
+          }
+        }
+        const tableRowidKey = table + ".rowid";
+        if (tableRowidKey in row) return row[tableRowidKey]!;
+      } else {
+        if (sources) {
+          for (let i = 0; i < sources.length; i++) {
+            const s = sources[i]!;
+            if (name in s) return s[name]!;
+            for (const k in s) {
+              if (k.toLowerCase() === lowerName) return s[k]!;
+            }
+          }
+        }
+        for (const k in row) {
+          if (!k.startsWith("__") && k.toLowerCase() === lowerName) return row[k]!;
+        }
+        if ("__rowid" in row) return row.__rowid!;
+      }
+    }
+
     if (table) {
+      if (tables) {
+        let td = tables[table];
+        if (!td) {
+          const lt = table.toLowerCase();
+          for (const tk in tables) {
+            if (tk.toLowerCase() === lt) {
+              td = tables[tk];
+              break;
+            }
+          }
+        }
+        if (td) {
+          if (name in td) return td[name] ?? null;
+          for (const k in td) {
+            if (k.toLowerCase() === lowerName) return td[k] ?? null;
+          }
+        }
+      }
       const exact = `${table}.${name}`;
       if (exact in row) {
         return row[exact]!;
       }
       const lowerExact = exact.toLowerCase();
-      for (const [k, v] of Object.entries(row)) {
+      for (const k in row) {
+        if (k.startsWith("__")) continue;
         if (k.toLowerCase() === lowerExact) {
-          return v;
+          return row[k]!;
+        }
+      }
+    } else {
+      if (name in row && !name.startsWith("__")) {
+        return row[name]!;
+      }
+      if (sources) {
+        let found: SqlValue | undefined;
+        for (let i = 0; i < sources.length; i++) {
+          const src = sources[i]!;
+          if (name in src) {
+            const v = src[name] ?? null;
+            if (found === undefined || found === null) found = v;
+            if (found !== null && found !== undefined) return found;
+          }
+        }
+        if (found !== undefined) return found;
+        for (let i = 0; i < sources.length; i++) {
+          const src = sources[i]!;
+          for (const k in src) {
+            if (k.toLowerCase() === lowerName) {
+              const v = src[k] ?? null;
+              if (found === undefined || found === null) found = v;
+              if (found !== null && found !== undefined) return found;
+            }
+          }
+        }
+        if (found !== undefined) return found;
+      }
+      for (const k in row) {
+        if (k.startsWith("__")) continue;
+        if (k.toLowerCase() === lowerName || k.toLowerCase().endsWith(`.${lowerName}`)) {
+          return row[k]!;
         }
       }
     }
-    if (!table && name in row) {
-      return row[name]!;
-    }
-    const lowerName = name.toLowerCase();
-    for (const [k, v] of Object.entries(row)) {
-      if (!table && (k.toLowerCase() === lowerName || k.toLowerCase().endsWith(`.${lowerName}`))) {
-        return v;
-      }
-    }
+
     for (let i = this.outerRows.length - 1; i >= 0; i -= 1) {
       const outer = this.outerRows[i]!;
+      const outerTables = (outer as any).__tables as Record<string, Record<string, SqlValue>> | undefined;
+      const outerSources = (outer as any).__sources as Record<string, SqlValue>[] | undefined;
+      if (table && outerTables) {
+        const lt = table.toLowerCase();
+        for (const tk in outerTables) {
+          if (tk.toLowerCase() === lt) {
+            const td = outerTables[tk]!;
+            if (name in td) return td[name] ?? null;
+            for (const k in td) {
+              if (k.toLowerCase() === lowerName) return td[k] ?? null;
+            }
+          }
+        }
+      } else if (!table && outerSources) {
+        for (let s = 0; s < outerSources.length; s++) {
+          const src = outerSources[s]!;
+          if (name in src) return src[name] ?? null;
+          for (const k in src) {
+            if (k.toLowerCase() === lowerName) return src[k] ?? null;
+          }
+        }
+      }
       const key = Object.keys(outer).find((key) =>
-        table
-          ? key.toLowerCase() === `${table}.${name}`.toLowerCase()
-          : key.toLowerCase() === lowerName
+        !key.startsWith("__") && (
+          table
+            ? key.toLowerCase() === `${table}.${name}`.toLowerCase()
+            : key.toLowerCase() === lowerName
+        )
       );
       if (key !== undefined) return outer[key]!;
     }

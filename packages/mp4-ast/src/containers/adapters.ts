@@ -41,7 +41,7 @@ import { aviAst, flvAst } from "./avi.js";
 import { mkvAst, webmAst } from "./mkv.js";
 import { mpegtsAst } from "./mpegts.js";
 
-function extractVideoFramesFromDoc(doc: MediaDocument): {
+function extractVideoFramesFromDoc(doc: MediaDocument, maxFrames?: number): {
   frames: MediaVideoFrame[];
   width: number;
   height: number;
@@ -64,10 +64,12 @@ function extractVideoFramesFromDoc(doc: MediaDocument): {
   }
   const ts = vTrack.timescale || 90000;
   const lengthSize = (vTrack.codecDescriptions[0]?.avcC?.lengthSizeMinusOne ?? 3) + 1;
-  const frames: MediaVideoFrame[] = vTrack.samples.map((s) => ({
+  const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
+  const targetSamples = maxFrames !== undefined ? vTrack.samples.slice(0, maxFrames) : vTrack.samples;
+  const frames: MediaVideoFrame[] = targetSamples.map((s) => ({
     width,
     height,
-    data: decodeH264FrameToRgba(s.data, width, height, lengthSize),
+    data: decodeH264FrameToRgba(s.data, width, height, lengthSize, refBuffer),
     ptsSeconds: s.pts / ts,
     durationSeconds: s.duration / ts,
     keyframe: s.isKeyframe
@@ -1148,7 +1150,7 @@ export function image2Ast(): MediaAstPlugin {
       };
     },
     serialize(doc, options) {
-      const { frames, width, height } = extractVideoFramesFromDoc(doc);
+      const { frames, width, height } = extractVideoFramesFromDoc(doc, 1);
       const first = frames[0]?.data ?? new Uint8Array(width * height * 4);
       const fmt = (options?.format?.toLowerCase() ?? "png") as string;
       const imgFmt: ImageFormat =

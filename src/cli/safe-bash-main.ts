@@ -12,21 +12,11 @@ import {
   agentCommands,
   gitCommands,
   optionalCommands,
-  csvcutCommands,
-  csvgrepCommands,
-  htmlqCommands,
-  mdqCommands,
-  yqCommands,
-  opensslCommands,
-  sshCommands,
-  gpgCommands,
+  createLazyCommands,
+  lazyCommandPlugin,
   type CommandContext,
   type FileSystem
 } from "@poe-platform/safe-bash";
-import { xanCommands } from "safe-bash-command-xan";
-import { mikeYqCommands } from "safe-bash-command-yq/mike";
-import { createSqlite3Commands } from "safe-bash-command-sqlite3";
-import { exiftoolCommands } from "safe-bash-command-exiftool";
 
 export interface WorkspaceFileSystemOptions {
   workspaceRoot: string;
@@ -640,16 +630,73 @@ export async function runSafeBashCli(
         ]
       })
     )
-    .use(csvcutCommands({ replace: true }))
-    .use(csvgrepCommands({ replace: true }))
-    .use(xanCommands({ replace: true }))
-    .use(mikeYqCommands({ replace: true }))
-    .use(exiftoolCommands({ replace: true }))
-    .use(htmlqCommands({ replace: true }))
-    .use(mdqCommands({ replace: true }))
-    .use(opensslCommands({ replace: true }))
-    .use(sshCommands({ replace: true }))
-    .use(gpgCommands({ replace: true }));
+    .use(
+      lazyCommandPlugin(
+        "safe-bash-cli-lazy-extras",
+        [
+          ...createLazyCommands([{ name: "sqlite3", description: "Command-line interface for SQLite version 3" }], async () => {
+            const m = await import("safe-bash-command-sqlite3");
+            return () => m.createSqlite3Commands({ replace: true });
+          }),
+          ...createLazyCommands([{ name: "csvcut", description: "Filter and truncate CSV files" }], async () => {
+            const m = await import("@poe-platform/safe-bash");
+            return () => [m.createCsvcutCommand()];
+          }),
+          ...createLazyCommands([{ name: "csvgrep", description: "Search CSV files by cell pattern" }], async () => {
+            const m = await import("@poe-platform/safe-bash");
+            return () => [m.createCsvgrepCommand()];
+          }),
+          ...createLazyCommands([{ name: "xan", description: "CSV magician" }], async () => {
+            const m = await import("safe-bash-command-xan");
+            return () => m.createXanCommands({ replace: true });
+          }),
+          ...createLazyCommands([{ name: "yq", description: "YAML, JSON, XML, CSV and TOML processor" }], async () => {
+            const m = await import("safe-bash-command-yq/mike");
+            return () => m.createMikeYqCommands({ replace: true });
+          }),
+          ...createLazyCommands([{ name: "exiftool", description: "Read and write meta information in files" }], async () => {
+            const m = await import("safe-bash-command-exiftool");
+            return () => m.createExiftoolCommands({ replace: true });
+          }),
+          ...createLazyCommands([{ name: "htmlq", description: "Query HTML documents with CSS selectors" }], async () => {
+            const m = await import("@poe-platform/safe-bash");
+            return () => [m.createHtmlqCommand()];
+          }),
+          ...createLazyCommands([{ name: "mdq", description: "Query Markdown documents" }], async () => {
+            const m = await import("@poe-platform/safe-bash");
+            return () => [m.createMdqCommand()];
+          }),
+          ...createLazyCommands([{ name: "openssl", description: "OpenSSL cryptography toolkit" }], async () => {
+            const m = await import("@poe-platform/safe-bash");
+            return () => m.createOpensslCommands({ replace: true });
+          }),
+          ...createLazyCommands(
+            [
+              { name: "ssh", description: "OpenSSH remote login client" },
+              { name: "ssh-keygen", description: "OpenSSH authentication key utility" },
+              { name: "ssh-keyscan", description: "Gather SSH public keys" },
+              { name: "scp", description: "OpenSSH secure file copy" },
+              { name: "sftp", description: "OpenSSH secure file transfer" }
+            ],
+            async () => {
+              const m = await import("@poe-platform/safe-bash");
+              return () => m.createSshCommands({ replace: true });
+            }
+          ),
+          ...createLazyCommands(
+            [
+              { name: "gpg", description: "OpenPGP encryption and signing tool" },
+              { name: "gpgv", description: "Verify OpenPGP signatures" }
+            ],
+            async () => {
+              const m = await import("@poe-platform/safe-bash");
+              return () => m.createGpgCommands({ replace: true });
+            }
+          )
+        ],
+        true
+      )
+    );
   if (!nativeGitRust) {
     shell.use(gitCommands());
   }

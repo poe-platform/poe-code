@@ -815,11 +815,18 @@ export function buildH264SpsPps(
  * Uses H.264 `I_PCM` (`mb_type = 25`) lossless macroblocks so native `ffmpeg`, QuickTime,
  * browsers, and our own pure-TS decoder decode every macroblock bit-accurately.
  */
+export interface H264ReferenceBuffer {
+  y?: Uint8Array;
+  u?: Uint8Array;
+  v?: Uint8Array;
+}
+
 export function encodeH264IdrFrame(
   rgba: Uint8Array,
   width: number,
   height: number,
-  frameIndex = 0
+  frameIndex = 0,
+  refBuffer?: H264ReferenceBuffer
 ): Uint8Array {
   const mbWidth = Math.max(1, Math.ceil(width / 16));
   const mbHeight = Math.max(1, Math.ceil(height / 16));
@@ -846,6 +853,105 @@ export function encodeH264IdrFrame(
 
   const { y: yPlane, u: uPlane, v: vPlane } = rgbaToYuv420p(paddedRgba, paddedWidth, paddedHeight);
   const uvWidth = paddedWidth >>> 1;
+
+  const gopPos = frameIndex % 24;
+  if (
+    refBuffer &&
+    gopPos !== 0 &&
+    refBuffer.y?.byteLength === yPlane.byteLength &&
+    refBuffer.u?.byteLength === uPlane.byteLength &&
+    refBuffer.v?.byteLength === vPlane.byteLength
+  ) {
+    const refY = refBuffer.y;
+    const refU = refBuffer.u;
+    const refV = refBuffer.v;
+    const pBits = new BitWriter();
+    pBits.writeUE(0); // first_mb_in_slice = 0
+    pBits.writeUE(5); // slice_type = 5 (all-P slice)
+    pBits.writeUE(0); // pic_parameter_set_id = 0
+    pBits.writeBits(gopPos & 0x0f, 4); // frame_num
+    pBits.writeBits((gopPos * 2) & 0x0f, 4); // pic_order_cnt_lsb
+    pBits.writeBit(0); // num_ref_idx_active_override_flag = 0
+    pBits.writeBit(0); // ref_pic_list_modification_flag_l0 = 0
+    pBits.writeBit(0); // adaptive_ref_pic_marking_mode_flag = 0
+    pBits.writeSE(0); // slice_qp_delta = 0
+    pBits.writeUE(1); // disable_deblocking_filter_idc = 1
+
+    let skipRun = 0;
+    for (let mbY = 0; mbY < mbHeight; mbY++) {
+      for (let mbX = 0; mbX < mbWidth; mbX++) {
+        const lumaBaseY = mbY * 16;
+        const lumaBaseX = mbX * 16;
+        const chromaBaseY = mbY * 8;
+        const chromaBaseX = mbX * 8;
+        let unchanged = true;
+        for (let dy = 0; dy < 16 && unchanged; dy++) {
+          const ro = (lumaBaseY + dy) * paddedWidth + lumaBaseX;
+          for (let dx = 0; dx < 16; dx++) {
+            if (yPlane[ro + dx] !== refY[ro + dx]) {
+              unchanged = false;
+              break;
+            }
+          }
+        }
+        for (let dy = 0; dy < 8 && unchanged; dy++) {
+          const ro = (chromaBaseY + dy) * uvWidth + chromaBaseX;
+          for (let dx = 0; dx < 8; dx++) {
+            if (uPlane[ro + dx] !== refU[ro + dx] || vPlane[ro + dx] !== refV[ro + dx]) {
+              unchanged = false;
+              break;
+            }
+          }
+        }
+        if (unchanged) {
+          skipRun++;
+        } else {
+          pBits.writeUE(skipRun);
+          skipRun = 0;
+          pBits.writeUE(30); // mb_type = 30 (I_PCM inside P-slice)
+          pBits.alignWithZeroBits();
+          for (let dy = 0; dy < 16; dy++) {
+            const ro = (lumaBaseY + dy) * paddedWidth + lumaBaseX;
+            for (let dx = 0; dx < 16; dx++) {
+              pBits.writeBits(yPlane[ro + dx]!, 8);
+            }
+          }
+          for (let dy = 0; dy < 8; dy++) {
+            const ro = (chromaBaseY + dy) * uvWidth + chromaBaseX;
+            for (let dx = 0; dx < 8; dx++) {
+              pBits.writeBits(uPlane[ro + dx]!, 8);
+            }
+          }
+          for (let dy = 0; dy < 8; dy++) {
+            const ro = (chromaBaseY + dy) * uvWidth + chromaBaseX;
+            for (let dx = 0; dx < 8; dx++) {
+              pBits.writeBits(vPlane[ro + dx]!, 8);
+            }
+          }
+        }
+      }
+    }
+    if (skipRun > 0) {
+      pBits.writeUE(skipRun);
+    }
+    pBits.writeRbspTrailingBits();
+    const pEscaped = escapeRbsp(pBits.toUint8Array());
+    const pLen = 1 + pEscaped.byteLength;
+    const pAvcc = new Uint8Array(4 + pLen);
+    new DataView(pAvcc.buffer).setUint32(0, pLen, false);
+    pAvcc[4] = 0x61; // nal_ref_idc = 3, nal_unit_type = 1 (non-IDR reference P-slice)
+    pAvcc.set(pEscaped, 5);
+    refBuffer.y = yPlane;
+    refBuffer.u = uPlane;
+    refBuffer.v = vPlane;
+    return pAvcc;
+  }
+
+  if (refBuffer) {
+    refBuffer.y = yPlane;
+    refBuffer.u = uPlane;
+    refBuffer.v = vPlane;
+  }
 
   const bits = new BitWriter();
   // Slice header for IDR I-slice
@@ -916,7 +1022,8 @@ export function decodeH264FrameToRgba(
   sampleData: Uint8Array,
   width: number,
   height: number,
-  lengthSize = 4
+  lengthSize = 4,
+  refBuffer?: H264ReferenceBuffer
 ): Uint8Array {
   const mbWidth = Math.max(1, Math.ceil(width / 16));
   const mbHeight = Math.max(1, Math.ceil(height / 16));
@@ -951,9 +1058,23 @@ export function decodeH264FrameToRgba(
     }
   }
 
-  const yPlane = new Uint8Array(paddedWidth * paddedHeight).fill(16);
-  const uPlane = new Uint8Array(uvWidth * uvHeight).fill(128);
-  const vPlane = new Uint8Array(uvWidth * uvHeight).fill(128);
+  const yPlane = new Uint8Array(paddedWidth * paddedHeight);
+  const uPlane = new Uint8Array(uvWidth * uvHeight);
+  const vPlane = new Uint8Array(uvWidth * uvHeight);
+  if (
+    refBuffer &&
+    refBuffer.y?.byteLength === yPlane.byteLength &&
+    refBuffer.u?.byteLength === uPlane.byteLength &&
+    refBuffer.v?.byteLength === vPlane.byteLength
+  ) {
+    yPlane.set(refBuffer.y);
+    uPlane.set(refBuffer.u);
+    vPlane.set(refBuffer.v);
+  } else {
+    yPlane.fill(16);
+    uPlane.fill(128);
+    vPlane.fill(128);
+  }
 
   if (sliceNalu && sliceNalu.byteLength > 1) {
     const nalType = sliceNalu[0]! & 0x1f;
@@ -969,6 +1090,16 @@ export function decodeH264FrameToRgba(
       bits.readUE(); // idr_pic_id
     }
     bits.readBits(4); // pic_order_cnt_lsb
+    if (sliceType === 0 || sliceType === 5) {
+      const numRefOverride = bits.readBit();
+      if (numRefOverride) bits.readUE();
+      const refPicListMod = bits.readBit();
+      if (refPicListMod) {
+        while (bits.bitsRemaining > 0 && bits.readUE() !== 3) {
+          bits.readUE();
+        }
+      }
+    }
     if (nalType === 5) {
       bits.readBit(); // no_output_of_prior_pics_flag
       bits.readBit(); // long_term_reference_flag
@@ -989,7 +1120,6 @@ export function decodeH264FrameToRgba(
         for (let mbX = 0; mbX < mbWidth && bits.bitsRemaining >= 8; mbX++) {
           const mbType = bits.readUE();
           if (mbType === 25) {
-            // I_PCM
             bits.alignToByte();
             const lumaBaseY = mbY * 16;
             const lumaBaseX = mbX * 16;
@@ -1019,6 +1149,53 @@ export function decodeH264FrameToRgba(
           }
         }
       }
+    } else if (firstMb === 0 && (sliceType === 0 || sliceType === 5)) {
+      const totalMbs = mbWidth * mbHeight;
+      let mbAddr = 0;
+      while (mbAddr < totalMbs && bits.bitsRemaining > 0) {
+        const skipRun = bits.readUE();
+        mbAddr += skipRun;
+        decodedMbs += skipRun;
+        if (mbAddr >= totalMbs || bits.bitsRemaining < 8) break;
+        const mbType = bits.readUE();
+        if (mbType === 30) {
+          bits.alignToByte();
+          const mbY = Math.floor(mbAddr / mbWidth);
+          const mbX = mbAddr % mbWidth;
+          const lumaBaseY = mbY * 16;
+          const lumaBaseX = mbX * 16;
+          for (let dy = 0; dy < 16; dy++) {
+            const rowOffset = (lumaBaseY + dy) * paddedWidth + lumaBaseX;
+            for (let dx = 0; dx < 16; dx++) {
+              yPlane[rowOffset + dx] = bits.readBits(8);
+            }
+          }
+          const chromaBaseY = mbY * 8;
+          const chromaBaseX = mbX * 8;
+          for (let dy = 0; dy < 8; dy++) {
+            const rowOffset = (chromaBaseY + dy) * uvWidth + chromaBaseX;
+            for (let dx = 0; dx < 8; dx++) {
+              uPlane[rowOffset + dx] = bits.readBits(8);
+            }
+          }
+          for (let dy = 0; dy < 8; dy++) {
+            const rowOffset = (chromaBaseY + dy) * uvWidth + chromaBaseX;
+            for (let dx = 0; dx < 8; dx++) {
+              vPlane[rowOffset + dx] = bits.readBits(8);
+            }
+          }
+          mbAddr++;
+          decodedMbs++;
+        } else {
+          break;
+        }
+      }
+    }
+
+    if (refBuffer && decodedMbs > 0) {
+      refBuffer.y = yPlane;
+      refBuffer.u = uPlane;
+      refBuffer.v = vPlane;
     }
 
     if (decodedMbs === 0) {

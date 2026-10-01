@@ -348,9 +348,11 @@ function* lavfiSteps(
             [0, 0, 255]
           ];
           const [r, g, b] = palette[bar % 7]!;
-          rgba[idx] = (r + i * 12) & 0xff;
-          rgba[idx + 1] = g;
-          rgba[idx + 2] = b;
+          const scanY = (i * 16) % Math.max(16, height);
+          const inScanBar = y >= scanY && y < scanY + 16;
+          rgba[idx] = inScanBar ? (r ^ 0x80) : r;
+          rgba[idx + 1] = inScanBar ? (g ^ 0x80) : g;
+          rgba[idx + 2] = inScanBar ? (b ^ 0x80) : b;
           rgba[idx + 3] = 255;
         } else {
           rgba[idx] = color[0];
@@ -375,7 +377,7 @@ function* lavfiSteps(
     width,
     height,
     fps,
-    frameCount,
+    frameCount: 1,
     color: [color[0], color[1], color[2]],
     includeAudio: false
   });
@@ -383,7 +385,7 @@ function* lavfiSteps(
   return {
     ...parsed,
     tracks: parsed.tracks.map((t) =>
-      t.type === "video" ? { ...t, decodedVideoFrames: frames } : t
+      t.type === "video" ? { ...t, samples: [], decodedVideoFrames: frames } : t
     )
   };
 }
@@ -403,14 +405,13 @@ async function ensureDecodedFrames(
   const ts = track.timescale || 90000;
   const lengthSize = (track.codecDescriptions[0]?.avcC?.lengthSizeMinusOne ?? 3) + 1;
 
+  const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
   return await mapWork(track.samples, async (s) => {
-
-
     budget.recordFrame(width, height);
     return {
       width,
       height,
-      data: decodeH264FrameToRgba(s.data, width, height, lengthSize),
+      data: decodeH264FrameToRgba(s.data, width, height, lengthSize, refBuffer),
       ptsSeconds: s.pts / ts,
       durationSeconds: s.duration / ts,
       keyframe: s.isKeyframe
@@ -2233,14 +2234,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               width: first.width,
               height: first.height,
               fps,
-              frameCount: frames.length,
+              frameCount: 1,
               includeAudio: false
             }));
             const base = parseMp4(synthBytes);
             return {
               ...base,
               tracks: base.tracks.map((t) =>
-                t.type === "video" ? { ...t, decodedVideoFrames: frames } : t
+                t.type === "video" ? { ...t, samples: [], decodedVideoFrames: frames } : t
               )
             };
           }
@@ -2612,6 +2613,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         }
         if (outputFps && videoCodec !== "copy") {
           vfFilters.push(`fps=${outputFps}`);
+        }
+
+        // Pre-apply `-frames:v <N>` before decoding when no temporal filter is used
+        if (
+          maxVideoFrames !== undefined &&
+          !vfFilters.some((f) => /\b(fps|select|reverse|trim|tile|setpts)\b/i.test(f))
+        ) {
+          workingDoc = {
+            ...workingDoc,
+            tracks: workingDoc.tracks.map((t) => {
+              if (t.type !== "video") return t;
+              if (t.decodedVideoFrames && t.decodedVideoFrames.length > maxVideoFrames!) {
+                return { ...t, samples: [], decodedVideoFrames: t.decodedVideoFrames.slice(0, maxVideoFrames) };
+              }
+              if (t.samples.length > maxVideoFrames!) {
+                const slicedSamples = t.samples.slice(0, maxVideoFrames);
+                return { ...t, duration: slicedSamples.reduce((acc, s) => acc + s.duration, 0), samples: slicedSamples };
+              }
+              return t;
+            })
+          };
         }
 
         // Apply video filters (`-vf`)

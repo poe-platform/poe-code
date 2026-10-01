@@ -1286,17 +1286,22 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           await execSingleStmt(createSql);
           tbl = db.findTable ? db.findTable(tableArg) : undefined;
         }
-        const batchValues: string[] = [];
-        for (const r of dataRows) {
-          if (r.length === 1 && r[0] === "" && colCount > 1) {
-            continue;
+        const targetTableName = tbl ? tbl.name : tableArg;
+        if (typeof (db as SqliteDatabase).bulkImportRows === "function" && (db as SqliteDatabase).bulkImportRows(targetTableName, dataRows)) {
+          state.dirty = true;
+        } else {
+          const batchValues: string[] = [];
+          for (const r of dataRows) {
+            if (r.length === 1 && r[0] === "" && colCount > 1) {
+              continue;
+            }
+            const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replace(/'/g, "''")}'`).join(", ");
+            batchValues.push(`(${valsSql})`);
           }
-          const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replace(/'/g, "''")}'`).join(", ");
-          batchValues.push(`(${valsSql})`);
-        }
-        for (let b = 0; b < batchValues.length; b += 500) {
-          const chunk = batchValues.slice(b, b + 500);
-          await execSingleStmt(`INSERT INTO "${tbl ? tbl.name : tableArg}" VALUES ${chunk.join(", ")}`);
+          for (let b = 0; b < batchValues.length; b += 500) {
+            const chunk = batchValues.slice(b, b + 500);
+            await execSingleStmt(`INSERT INTO "${targetTableName}" VALUES ${chunk.join(", ")}`);
+          }
         }
         state.dirty = true;
         return;

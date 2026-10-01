@@ -1,4 +1,4 @@
-import { equalBytes, latin1Text } from "safe-bash-io-engine/byte-encoding";
+import { latin1Text } from "safe-bash-io-engine/byte-encoding";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements } from "safe-bash-contracts/command-requirements";
@@ -56,15 +56,6 @@ class PooledGrepLine implements GrepLine {
 }
 const EMPTY_GREP_ROWS: readonly GrepLine[] = Object.freeze([]);
 trustedInputRows.add(EMPTY_GREP_ROWS);
-const sharedGrepOutBuffer = new Uint8Array(64 * 1024);
-let sharedGrepOutInUse = false;
-const cachedGrepOutBuffer = new Uint8Array(32768);
-let lastGrepRawBuf: Uint8Array | undefined;
-let lastGrepPat = "";
-let lastGrepAnchored = false;
-let lastGrepMaxLineLen = 0;
-let lastGrepOutUsed = -1;
-let lastGrepAnySelected = false;
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 function isSyncResolved(promise: unknown): boolean {
   return Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
@@ -250,7 +241,7 @@ function tryFastGrepAscii(
   fileArg: string | undefined,
   anchoredStart: boolean,
 ): Promise<{ exitCode: number }> {
-  if (fileArg !== undefined && fileArg !== "-" && !sharedGrepOutInUse) {
+  if (fileArg !== undefined && fileArg !== "-") {
     const fastBacking = (context as { _fastMemoryBackingFs?: import("safe-bash-contracts").FileSystem })._fastMemoryBackingFs;
     const path = pathOf(context, fileArg);
     const backing = fastBacking ?? getRuntimeBackingFileSystem(context.fs) ?? context.fs;
@@ -270,38 +261,17 @@ function tryFastGrepAscii(
         else chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
         const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
-        if (
-          raw !== undefined &&
-          lastGrepOutUsed >= 0 &&
-          lastGrepRawBuf !== undefined &&
-          raw.byteLength === lastGrepRawBuf.byteLength &&
-          pat === lastGrepPat &&
-          anchoredStart === lastGrepAnchored &&
-          lastGrepMaxLineLen <= Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity) &&
-          equalBytes(lastGrepRawBuf, raw)
-        ) {
-          context.signal.throwIfAborted();
-          if (!lastGrepOutUsed) {
-            return lastGrepAnySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
-          }
-          const pending = outputRange(context, cachedGrepOutBuffer, lastGrepOutUsed);
-          if (isSyncResolved(pending)) {
-            return lastGrepAnySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
-          }
-          return pending.then(lastGrepAnySelected ? RETURN_EXIT_ZERO : RETURN_EXIT_ONE);
-        }
-        if (raw !== undefined && raw.length < sharedGrepOutBuffer.length && !hasNulOrNonAscii(raw, 0, raw.length)) {
+        if (raw !== undefined && raw.length < 65536 && !hasNulOrNonAscii(raw, 0, raw.length)) {
           const literalStart = anchoredStart ? 1 : 0;
           const litLen = pat.length - literalStart;
           const firstByte = pat.charCodeAt(literalStart);
           const lineLimit = Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity);
-          const outBuffer = sharedGrepOutBuffer;
+          const outBuffer = new Uint8Array(64 * 1024);
           let outUsed = 0;
           let anySelected = false;
           let linesScanned = 0;
           let lineStart = 0;
           let exceededLines = false;
-          let maxSeenLineLen = 0;
           while (lineStart < raw.length) {
             if ((linesScanned & 63) === 0) context.signal.throwIfAborted();
             if ((++linesScanned & 4095) === 0) {
@@ -311,7 +281,6 @@ function tryFastGrepAscii(
             let lineEnd = raw.indexOf(10, lineStart);
             if (lineEnd < 0) lineEnd = raw.length;
             const lineLen = lineEnd - lineStart;
-            if (lineLen > maxSeenLineLen) maxSeenLineLen = lineLen;
             if (lineLen > lineLimit) {
               throw new FsError("EFBIG", { message: "line buffer limit exceeded" });
             }
@@ -348,15 +317,6 @@ function tryFastGrepAscii(
             lineStart = lineEnd + 1;
           }
           if (!exceededLines) {
-            if (raw.byteLength >= 256 && outUsed <= 32768) {
-              lastGrepRawBuf = new Uint8Array(raw);
-              lastGrepPat = pat;
-              lastGrepAnchored = anchoredStart;
-              lastGrepMaxLineLen = maxSeenLineLen;
-              lastGrepOutUsed = outUsed;
-              lastGrepAnySelected = anySelected;
-              cachedGrepOutBuffer.set(outBuffer.subarray(0, outUsed));
-            }
             if (!outUsed) {
               return anySelected ? RESOLVED_EXIT_ZERO : RESOLVED_EXIT_ONE;
             }
@@ -387,9 +347,7 @@ async function tryFastGrepAsciiAsync(
   const literalStart = anchoredStart ? 1 : 0;
   const litLen = pat.length - literalStart;
   const firstByte = pat.charCodeAt(literalStart);
-  const ownsSharedOut = !sharedGrepOutInUse;
-  if (ownsSharedOut) sharedGrepOutInUse = true;
-  const outBuffer = ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
+  const outBuffer = new Uint8Array(64 * 1024);
   let outUsed = 0;
   let anySelected = false;
   let subjectLedger: EreLedger | undefined;
@@ -554,8 +512,6 @@ async function tryFastGrepAsciiAsync(
     if (error instanceof RegexExecutionError) throw error;
     await diagnostic(context, error);
     return { exitCode: 2 };
-  } finally {
-    if (ownsSharedOut) sharedGrepOutInUse = false;
   }
 }
 
@@ -797,8 +753,6 @@ inspect the resulting state before repeating the action.
       const delimiter = parsed.flags.has("z") ? "\0" : "\n";
       const delimiterBytes = parsed.flags.has("z") ? NUL_BYTES : NEWLINE_BYTES;
       const lineBuffered = parsed.flags.has("line-buffered") || parsed.flags.has("o");
-      const ownsSharedOut = !sharedGrepOutInUse;
-      if (ownsSharedOut) sharedGrepOutInUse = true;
       let outBuffer: Uint8Array | undefined;
       let outStart = 0;
       let outUsed = 0;
@@ -831,7 +785,7 @@ inspect the resulting state before repeating the action.
           await output(context, bytes);
           return;
         }
-        outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
+        outBuffer ??= new Uint8Array(64 * 1024);
         if (outUsed + bytes.length > outBuffer.length) {
           await flushOut();
           outBuffer = new Uint8Array(64 * 1024);
@@ -841,7 +795,6 @@ inspect the resulting state before repeating the action.
         outBuffer.set(bytes, outUsed);
         outUsed += bytes.length;
       };
-      try {
       const extractMatches = parsed.flags.has("o") && !["c", "q", "l", "L", "v"].some(flag => parsed.flags.has(flag));
       const displayLines = !["c", "q", "l", "L"].some(flag => parsed.flags.has(flag));
       const withContext = (beforeContext > 0 || afterContext > 0) && displayLines && !(parsed.flags.has("o") && parsed.flags.has("v"));
@@ -943,7 +896,7 @@ inspect the resulting state before repeating the action.
                     const lStart = line.start;
                     const lEnd = line.searchEnd;
                     const lLen = lEnd - lStart;
-                    outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
+                    outBuffer ??= new Uint8Array(64 * 1024);
                     if (outUsed + lLen + 1 <= outBuffer.length) {
                       const c = line.chunk;
                       let dst = outUsed;
@@ -991,7 +944,7 @@ inspect the resulting state before repeating the action.
                 const lStart = line.start;
                 const lEnd = line.searchEnd;
                 const lLen = lEnd - lStart;
-                outBuffer ??= ownsSharedOut ? sharedGrepOutBuffer : new Uint8Array(64 * 1024);
+                outBuffer ??= new Uint8Array(64 * 1024);
                 if (outUsed + lLen + 1 <= outBuffer.length) {
                   count++;
                   anySelected = true;
@@ -1030,9 +983,7 @@ inspect the resulting state before repeating the action.
         }
       }
       return { exitCode: failed ? 2 : anySelected ? 0 : 1 };
-      } finally {
-        if (ownsSharedOut) sharedGrepOutInUse = false;
-      }
+
     } catch (error) {
       context.signal.throwIfAborted();
       await diagnostic(context, error);

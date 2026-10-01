@@ -3,25 +3,19 @@ import { prettyAwk } from "./awk-pretty.js";
 import { quoteAwk } from "./awk-quote.js";
 import { AwkRetention } from "./awk-retention.js";
 import { AwkRuntime } from "./awk-runtime.js";
-import { AwkParser,builtinArities,decodeString,type AwkProgram } from "./awk-syntax.js";
+import { AwkParser,builtinArities,decodeString } from "./awk-syntax.js";
 import type { CommandDefinition } from "safe-bash-contracts";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
 import { Budget,ProgramError,byteString,bytes,command,readProgram,virtualPath,write,type TextProgramOptions } from "safe-bash-io-engine/commands/text-programs/shared";
 
 const ordchrArities = Object.freeze({ ...builtinArities, ord: [1, 1] as const, chr: [1, 1] as const });
-const awkProgramCache = new Map<string, AwkProgram>();
 const EMPTY_ARGS: readonly string[] = Object.freeze([]);
-const sharedSingleArg: string[] = [""];
-let sharedRetention: AwkRetention | undefined;
-let sharedAwkBudget: Budget | undefined;
-let sharedAwkBudgetInUse = false;
 
 function tryExecuteAwkFastSync(
   context: Parameters<CommandDefinition["execute"]>[0],
   options: TextProgramOptions,
 ): number | Promise<number> | undefined {
   if (
-    sharedAwkBudgetInUse ||
     context.args.length !== 3 ||
     !context.args[0]!.startsWith("-F") ||
     context.args[0]!.length <= 2 ||
@@ -41,45 +35,10 @@ function tryExecuteAwkFastSync(
     separator = rawSep.indexOf("\\") >= 0 ? decodeString(rawSep) : rawSep;
   }
   const source = byteString(context.args[1]!);
-  let program = awkProgramCache.get(source);
-  if (!program && source.length <= 8192) {
-    program = new AwkParser(source, builtinArities).parse();
-    if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
-    awkProgramCache.set(source, program);
-  }
-  if (!program) return undefined;
-  let budget = sharedAwkBudget;
-  if (!budget) {
-    budget = sharedAwkBudget = new Budget(context, options);
-  } else {
-    budget.resetForRun(context, options);
-  }
-  let retention: AwkRetention;
-  if (sharedRetention && sharedRetention.retainedBytes === 0) {
-    (sharedRetention as unknown as { signal: AbortSignal }).signal = context.signal;
-    retention = sharedRetention;
-  } else {
-    retention = new AwkRetention(Infinity, context.signal);
-    sharedRetention = retention;
-  }
-  sharedSingleArg[0] = context.args[2]!;
-  sharedAwkBudgetInUse = true;
-  try {
-    const rt = new AwkRuntime(program, context, budget, retention, sharedSingleArg, EMPTY_ARGS, separator, true, false, undefined);
-    const res = rt.runSyncOrAsync();
-    sharedSingleArg[0] = "";
-    if (typeof res === "number") {
-      sharedAwkBudgetInUse = false;
-      return res;
-    }
-    return res.finally(() => {
-      sharedAwkBudgetInUse = false;
-    });
-  } catch (err) {
-    sharedSingleArg[0] = "";
-    sharedAwkBudgetInUse = false;
-    throw err;
-  }
+  const program = new AwkParser(source, builtinArities).parse();
+  const budget = new Budget(context, options);
+  const retention = new AwkRetention(Infinity, context.signal);
+  return new AwkRuntime(program, context, budget, retention, [context.args[2]!], EMPTY_ARGS, separator, true, false, undefined).runSyncOrAsync();
 }
 
 export function awkCommand(options: TextProgramOptions = {}): CommandDefinition {
@@ -160,29 +119,12 @@ function executeAwkSlow(
       }
       const source = programs.length === 1 ? programs[0]! : programs.join("\n");
       const arities = ordchr ? ordchrArities : builtinArities;
-      const canCache = options.maxSteps === undefined && source.length <= 8192;
-      const cacheKey = canCache ? (ordchr ? `1:${source}` : `0:${source}`) : "";
-      let program = canCache ? awkProgramCache.get(cacheKey) : undefined;
-      if (!program) {
-        const parser = new AwkParser(source, arities);
-        program = parser.parse();
-        if (canCache) {
-          if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
-          awkProgramCache.set(cacheKey, program);
-        }
-      }
+      const program = new AwkParser(source, arities).parse();
       const hasInspection = inspection.trace !== undefined || inspection.dump !== undefined || inspection.profile !== undefined;
       const observer = hasInspection ? new AwkInspection(context, budget, inspection) : undefined;
       const remainingArgs = index >= context.args.length ? EMPTY_ARGS : context.args.slice(index);
       const maxRetained = options.maxRetainedBytes ?? Infinity;
-      let retention: AwkRetention;
-      if (maxRetained === Infinity && sharedRetention && sharedRetention.retainedBytes === 0) {
-        (sharedRetention as unknown as { signal: AbortSignal }).signal = context.signal;
-        retention = sharedRetention;
-      } else {
-        retention = new AwkRetention(maxRetained, context.signal);
-        if (maxRetained === Infinity) sharedRetention = retention;
-      }
+      const retention = new AwkRetention(maxRetained, context.signal);
       return new AwkRuntime(program, context, budget, retention, remainingArgs, assignments, separator, operandAssignments, ordchr, observer).runSyncOrAsync();
     }
     return (async () => {
@@ -245,18 +187,8 @@ function executeAwkSlow(
     }
     const source = programs.length === 1 ? programs[0]! : programs.join("\n");
     const arities = ordchr ? ordchrArities : builtinArities;
-    const canCache = !generatePot && options.maxSteps === undefined && source.length <= 8192;
-    const cacheKey = canCache ? (ordchr ? `1:${source}` : `0:${source}`) : "";
-    let program = canCache ? awkProgramCache.get(cacheKey) : undefined;
-    let parser: AwkParser | undefined;
-    if (!program) {
-      parser = new AwkParser(source, arities);
-      program = parser.parse();
-      if (canCache) {
-        if (awkProgramCache.size >= 64) awkProgramCache.delete(awkProgramCache.keys().next().value!);
-        awkProgramCache.set(cacheKey, program);
-      }
-    }
+    const parser = new AwkParser(source, arities);
+    const program = parser.parse();
     if (debug !== undefined) {
       if (!hasProgramFile) throw new ProgramError("debugging requires a program supplied with -f");
       const commands = await readProgram(context, debug);

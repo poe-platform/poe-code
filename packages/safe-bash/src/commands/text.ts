@@ -1,4 +1,4 @@
-import { compareByteArrays, decodeBytes, encodeBytes, equalBytes, indexOfBytes } from "../byte-encoding.js";
+import { compareByteArrays, decodeBytes, encodeBytes, indexOfBytes } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createBufferedOutput, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
@@ -122,9 +122,6 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
   return normalized;
 }
 
-const sharedCutOutBuffer = new Uint8Array(64 * 1024);
-let sharedCutOutInUse = false;
-const sharedUniqOutBuffer = new Uint8Array(128 * 1024);
 
 function writeUniqCountBytes(writeByte: (b: number) => void, count: number): void {
   const digits = String(count);
@@ -136,18 +133,10 @@ function writeUniqCountBytes(writeByte: (b: number) => void, count: number): voi
 
 class CutOutput {
   readonly #buffer: Uint8Array;
-  readonly #ownsShared: boolean;
   #used = 0;
 
   constructor(readonly context: CommandContext, readonly work: SortWork) {
-    if (!sharedCutOutInUse) {
-      sharedCutOutInUse = true;
-      this.#buffer = sharedCutOutBuffer;
-      this.#ownsShared = true;
-    } else {
-      this.#buffer = new Uint8Array(64 * 1024);
-      this.#ownsShared = false;
-    }
+    this.#buffer = new Uint8Array(64 * 1024);
   }
 
   get remaining(): number {
@@ -226,9 +215,6 @@ class CutOutput {
     await output(this.context, bytes);
   }
 
-  release(): void {
-    if (this.#ownsShared) sharedCutOutInUse = false;
-  }
 }
 
 function cutFieldBoundary(record: Uint8Array, separator: Uint8Array, start: number, work: SortWork): number | Promise<number> {
@@ -695,19 +681,6 @@ const sharedSortIndices = new Int32Array(4096);
 const sharedSortScratchIndices = new Int32Array(4096);
 const sharedSortInScratch = new Uint8Array(65536);
 let sharedSortInUse = false;
-const sharedSortOutScratch = new Uint8Array(65536);
-let lastSort: {
-  readonly input: Uint8Array;
-  readonly output: Uint8Array;
-  readonly direction: number;
-  readonly maxLineLength: number;
-} | undefined;
-const cachedCutOutBuffer = new Uint8Array(32768);
-let lastCutInBuf: Uint8Array | undefined;
-let lastCutSep = -1;
-let lastCutField = -1;
-let lastCutMaxLineLen = 0;
-let lastCutOutUsed = -1;
 const SORT_LONG_OPTIONS = Object.freeze({
   "human-numeric-sort": "h",
   "numeric-sort": "n",
@@ -1776,7 +1749,6 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
       const outputDelimiterBytes = outputDelimiter === undefined ? separator : outputDelimiter.length === 0 ? Uint8Array.of(0) : encoder.encode(outputDelimiter);
       const writer = new CutOutput(context, work);
       let exitCode = 0;
-      try {
       for (const name of parsed.operands.length ? parsed.operands : ["-"]) {
         try {
           try {
@@ -2026,9 +1998,6 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
           }
         } catch (error) { await diagnostic(context, error); exitCode = 1; }
       }
-      } finally {
-        writer.release();
-      }
       return { exitCode };
 }
 
@@ -2251,29 +2220,6 @@ export function textCommands(): CommandDefinition[] {
             } catch (error) {
               return diagnostic(context, error).then(RETURN_EXIT_TWO);
             }
-            const cached = lastSort;
-            if (
-              cached !== undefined &&
-              firstChunkLen >= 256 &&
-              firstChunkLen === cached.input.byteLength &&
-              direction === cached.direction &&
-              cached.maxLineLength <= bufferLimit &&
-              equalBytes(cached.input, rawFirst)
-            ) {
-              let res2Fast: IteratorResult<Uint8Array> | undefined;
-              try {
-                res2Fast = srcIter.tryNextSync();
-              } catch (error) {
-                return diagnostic(context, error).then(RETURN_EXIT_TWO);
-              }
-              if (res2Fast !== undefined && res2Fast.done) {
-                context.signal.throwIfAborted();
-                const p = outputRange(context, cached.output, cached.output.length);
-                if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-                return p.then(RETURN_EXIT_ZERO);
-              }
-              return executeSortFastContinueAsync(context, direction, srcIter, cached.input, res2Fast);
-            }
             let firstChunk: Uint8Array;
             let usedSortInScratch = false;
             try {
@@ -2301,11 +2247,9 @@ export function textCommands(): CommandDefinition[] {
                 let start = 0;
                 let count = 0;
                 let validLines = true;
-                let maxSortLine = 0;
                 while (start < firstChunkLen) {
                   const offset = firstChunk.indexOf(10, start);
                   const lLen = offset - start;
-                  if (lLen > maxSortLine) maxSortLine = lLen;
                   if (offset < 0 || offset >= firstChunkLen || count >= 4096 || lLen > bufferLimit) {
                     validLines = false;
                     break;
@@ -2355,7 +2299,7 @@ export function textCommands(): CommandDefinition[] {
                     src = dst;
                     dst = tmp;
                   }
-                  const outBuf = sharedSortOutScratch;
+                  const outBuf = new Uint8Array(65536);
                   let used = 0;
                   for (let i = 0; i < count; i++) {
                     const idx = src[i]!;
@@ -2363,14 +2307,6 @@ export function textCommands(): CommandDefinition[] {
                     const e = sharedSortEnds[idx]!;
                     for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
                     outBuf[used++] = 10;
-                  }
-                  if (firstChunkLen >= 256 && used <= 32768) {
-                    lastSort = {
-                      input: encodeBytes(firstChunk.subarray(0, firstChunkLen)),
-                      output: outBuf.slice(0, used),
-                      direction,
-                      maxLineLength: maxSortLine,
-                    };
                   }
                   const p = outputRange(context, outBuf, used);
                   if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
@@ -2383,7 +2319,10 @@ export function textCommands(): CommandDefinition[] {
             } catch (error) {
               return diagnostic(context, error).then(RETURN_EXIT_TWO);
             } finally {
-              if (usedSortInScratch) sharedSortInUse = false;
+              if (usedSortInScratch) {
+                sharedSortInScratch.fill(0);
+                sharedSortInUse = false;
+              }
             }
           }
         }
@@ -2438,7 +2377,7 @@ export function textCommands(): CommandDefinition[] {
                 return diagnostic(context, error).then(RETURN_EXIT_ONE);
               }
               if (res2 !== undefined && res2.done && chunk.length <= 65536) {
-                const outBuf = sharedUniqOutBuffer;
+                const outBuf = new Uint8Array(128 * 1024);
                 let outUsed = 0;
                 let prevStart = -1;
                 let prevEnd = -1;
@@ -2602,7 +2541,7 @@ export function textCommands(): CommandDefinition[] {
         }
         if (canFast && (targetField >= 1 || (fieldMask !== 0 && typeof (context.stdin as { tryReadAllSync?: unknown }).tryReadAllSync === "function"))) {
           const req = assertInputRequirements(context, operand !== undefined ? [operand] : EMPTY_OPERANDS);
-          if (!req && operand === undefined && !sharedCutOutInUse) {
+          if (!req && operand === undefined) {
             const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
               tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
             };
@@ -2622,28 +2561,10 @@ export function textCommands(): CommandDefinition[] {
                 } catch (error) {
                   return diagnostic(context, error).then(RETURN_EXIT_ONE);
                 }
-                if (res2 !== undefined && res2.done && chunk.length < sharedCutOutBuffer.length) {
-                  if (
-                    fieldMask === 0 &&
-                    lastCutOutUsed >= 0 &&
-                    chunk.length >= 256 &&
-                    lastCutInBuf !== undefined &&
-                    chunk.length === lastCutInBuf.byteLength &&
-                    sepByte === lastCutSep &&
-                    targetField === lastCutField &&
-                    lastCutMaxLineLen <= bufferLimit &&
-                    equalBytes(lastCutInBuf, chunk)
-                  ) {
-                    context.signal.throwIfAborted();
-                    if (lastCutOutUsed === 0) return RESOLVED_EXIT_ZERO;
-                    const p = outputRange(context, cachedCutOutBuffer, lastCutOutUsed);
-                    if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-                    return p.then(RETURN_EXIT_ZERO);
-                  }
-                  const outBuf = sharedCutOutBuffer;
+                if (res2 !== undefined && res2.done && chunk.length < 65536) {
+                  const outBuf = new Uint8Array(65536);
                   let outUsed = 0;
                   let start = 0;
-                  let maxCutLine = 0;
                   while (start < chunk.length) {
                     let offset = chunk.indexOf(10, start);
                     const hasNewline = offset >= 0;
@@ -2656,7 +2577,6 @@ export function textCommands(): CommandDefinition[] {
                     context.signal.throwIfAborted();
                     let boundary = chunk.indexOf(sepByte, start);
                     if (boundary >= offset) boundary = -1;
-                    if (offset - start > maxCutLine) maxCutLine = offset - start;
                     if (fieldMask !== 0 && boundary >= 0) {
                       let f = 1;
                       let curStart = start;
@@ -2698,14 +2618,6 @@ export function textCommands(): CommandDefinition[] {
                       outBuf[outUsed++] = 10;
                     }
                     start = offset + 1;
-                  }
-                  if (fieldMask === 0 && chunk.length >= 256 && outUsed <= 32768) {
-                    lastCutInBuf = encodeBytes(chunk);
-                    lastCutSep = sepByte;
-                    lastCutField = targetField;
-                    lastCutMaxLineLen = maxCutLine;
-                    lastCutOutUsed = outUsed;
-                    cachedCutOutBuffer.set(outBuf.subarray(0, outUsed));
                   }
                   if (outUsed === 0) return RESOLVED_EXIT_ZERO;
                   const p = outputRange(context, outBuf, outUsed);
@@ -2844,9 +2756,7 @@ async function executeCutFastAsync(
   initialSecondRes: IteratorResult<Uint8Array> | undefined,
 ): Promise<{ exitCode: number }> {
           if (req) await req;
-          const ownsShared = !sharedCutOutInUse;
-          if (ownsShared) sharedCutOutInUse = true;
-          const outBuf = ownsShared ? sharedCutOutBuffer : new Uint8Array(65536);
+          const outBuf = new Uint8Array(65536);
           let outUsed = 0;
           const isPipeStage = Boolean((context.stdout as { isPipeStage?: boolean }).isPipeStage);
           const syncSink = !isPipeStage
@@ -2981,7 +2891,5 @@ async function executeCutFastAsync(
           } catch (error) {
             await diagnostic(context, error);
             return { exitCode: 1 };
-          } finally {
-            if (ownsShared) sharedCutOutInUse = false;
           }
 }

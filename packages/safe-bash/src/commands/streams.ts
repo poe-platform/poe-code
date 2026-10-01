@@ -1,4 +1,3 @@
-import { encodeBytes, equalBytes } from "../byte-encoding.js";
 import { hasYieldCheckpoint } from "../contracts/yield.js";
 const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
 const SINGLE_STDIN_OPERAND: readonly string[] = ["-"];
@@ -22,9 +21,6 @@ function isSyncResolved(promise: unknown): boolean {
 }
 
 let sharedTrOutBuffer = new Uint8Array(64 * 1024);
-const cachedTrOutBuffer = new Uint8Array(32768);
-let lastTrInBuf: Uint8Array | undefined;
-let lastTrMapping: Uint8Array | undefined;
 let sharedTrOutInUse = false;
 interface TrCompiledConfig {
   readonly deleting: boolean;
@@ -918,27 +914,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
             const useShared = chunk.length <= sharedTrOutBuffer.length;
             const buf = useShared ? sharedTrOutBuffer : new Uint8Array(chunk.length);
             if (!deleting && !squeezing) {
-              if (
-                useShared &&
-                chunk.length >= 256 &&
-                lastTrInBuf !== undefined &&
-                chunk.length === lastTrInBuf.byteLength &&
-                mapping === lastTrMapping &&
-                equalBytes(lastTrInBuf, chunk)
-              ) {
-                const p = outputRange(context, cachedTrOutBuffer, chunk.length);
-                if (!isSyncResolved(p)) {
-                  released = true;
-                  return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
-                }
-                continue;
-              }
               for (let index = 0; index < chunk.length; index++) buf[index] = mapping[chunk[index]!]!;
-              if (useShared && chunk.length >= 256 && chunk.length <= 32768) {
-                lastTrInBuf = encodeBytes(chunk);
-                lastTrMapping = mapping;
-                cachedTrOutBuffer.set(buf.subarray(0, chunk.length));
-              }
               const p = useShared ? outputRange(context, buf, chunk.length) : output(context, buf);
               if (!isSyncResolved(p)) {
                 released = true;
@@ -967,7 +943,10 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
           released = true;
           return rejectTrOutput(iter, err);
         } finally {
-          if (!released) sharedTrOutInUse = false;
+          if (!released) {
+            sharedTrOutBuffer.fill(0);
+            sharedTrOutInUse = false;
+          }
         }
       }
       return executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezed, previous, false);
@@ -1025,7 +1004,10 @@ async function executeTrAsync(
         if (ownsShared) sharedTrOutBuffer = new Uint8Array(sharedTrOutBuffer.length);
         throw error;
       } finally {
-        if (ownsShared) sharedTrOutInUse = false;
+        if (ownsShared) {
+          sharedTrOutBuffer.fill(0);
+          sharedTrOutInUse = false;
+        }
         if (!done) {
           if (typeof iter.syncReturn === "function") iter.syncReturn();
           else await iter.return?.();

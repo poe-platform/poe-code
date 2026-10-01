@@ -2936,16 +2936,8 @@ const SYNC_UNIT_ZERO: { readonly exitCode: number; readonly terminated: boolean 
 const SYNC_UNIT_ONE: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 1, terminated: false });
 const EMPTY_BYTES = new Uint8Array(0);
 const SYNC_PIPE_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: true, value: undefined });
-const sharedSyncPipeBuf0 = new Uint8Array(65536);
-const sharedSyncPipeBuf1 = new Uint8Array(65536);
 const sharedSyncPipeDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
 let syncPurePipelineSlotInUse = false;
-let lastPurePipeAst: unknown;
-const lastPurePipeSrcRefs = new WeakSet<Uint8Array>();
-let lastPurePipeSlice1 = "";
-let lastPurePipeRegistry: unknown;
-const lastPurePipeOutBuf = new Uint8Array(256);
-let lastPurePipeOutLen = 0;
 function isSimpleAsciiGrepPattern(pat: string): boolean {
   const start = pat.length >= 2 && pat.charCodeAt(0) === 94 ? 1 : 0;
   if (start >= pat.length) return false;
@@ -7137,25 +7129,6 @@ export class Runtime {
     if (pipeline.commands.length >= 2 && !existing) {
       const n = pipeline.commands.length;
       if ((this.budget.commands + n > this.budget.maxCommandsSmi && this.budget.commands + n > this.budget.limits.maxCommands)) return undefined;
-      if ( pipeline === lastPurePipeAst && !syncPurePipelineSlotInUse && this._isMemoryBackingFs && this.backingFs && this.backingFs.capabilitiesFor === undefined && this.commands === lastPurePipeRegistry && (!rawState.functions || rawState.functions.size === 0) && !rawState.extensions?.builtins.size && io.stdinIsDefault && !this.signal.aborted && !hasYieldCheckpoint(this.signal) && this.budget.canSyncPurePipe && Date.now === defaultDateNow && io.stdout instanceof Capture && (io.stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k !== undefined && io.stdout.length === 0 && io.stdout.write === Capture.prototype.write && io.stderr instanceof Capture && io.stderr.length === 0 && io.stderr.write === Capture.prototype.write) {
-        const rootEntry = (this.backingFs as unknown as { root?: { entries?: Map<string, { type: string; mode?: number; revision?: number; sourceRef?: Uint8Array }> } }).root?.entries?.get(lastPurePipeSlice1);
-        if (rootEntry && rootEntry.type === "file" && rootEntry.revision === 0 && rootEntry.mode !== undefined && ((rootEntry.mode >> 6) & 4) === 4 && rootEntry.sourceRef && lastPurePipeSrcRefs.has(rootEntry.sourceRef)) {
-          this.budget.enterPipelineStages(n);
-          this.budget.commands += n;
-          try {
-            this.budget.fileSystemOperation();
-            (io.stdout as Capture).writeRangeSync(lastPurePipeOutBuf, lastPurePipeOutLen);
-          } finally {
-            this.budget.leavePipelineStages(n);
-          }
-          const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-          monitor.lazyPipeStatus = ZERO_PIPE_STATUSES[n]!;
-          monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-          rawState.status = 0;
-          monitor.epoch = restEpoch;
-          return SYNC_UNIT_ZERO;
-        }
-      }
       for (let i = 0; i < n; i++) {
         const cmd = pipeline.commands[i]!;
         if (cmd.kind !== "simple" || !this.isPureExternalStageCommand(cmd, rawState) || cmd.words.length > this.budget.maxExpansionFieldsSmi) return undefined;
@@ -7264,7 +7237,6 @@ export class Runtime {
       return undefined;
     }
     const n = pipeline.commands.length;
-    let firstStageRootSourceRef: Uint8Array | undefined;
     for (let i = 0; i < n; i++) {
       const cmd = pipeline.commands[i]! as Extract<Command, { kind: "simple" }>;
       const name = cmd.words[0]!.plain!;
@@ -7292,7 +7264,6 @@ export class Runtime {
             const slice1 = (cmd as { _cachedSlice1?: string })._cachedSlice1 ?? ((cmd as { _cachedSlice1?: string })._cachedSlice1 = fileArg.slice(1));
             const rootEntry = (backing as unknown as { root?: { entries?: Map<string, { type: string; mode?: number; revision?: number; sourceRef?: Uint8Array; data?: Uint8Array }> } }).root?.entries?.get(slice1);
             if (!rootEntry || rootEntry.type !== "file" || (rootEntry.data && rootEntry.data.byteLength > 65536)) return undefined;
-            if (rootEntry.revision === 0 && rootEntry.mode !== undefined && ((rootEntry.mode >> 6) & 4) === 4 && rootEntry.data && rootEntry.data.byteLength >= 1024) firstStageRootSourceRef = rootEntry.sourceRef;
           }
         } else if (name === "find") {
           if (stageArgs.length !== 3 || stageArgs[1] !== "-name" || stageArgs[0]!.startsWith("-") || stageArgs[0]!.startsWith("/dev")) return undefined;
@@ -7319,22 +7290,8 @@ export class Runtime {
         } else return undefined;
       }
     }
-    if ( n >= 3 && pipeline === lastPurePipeAst && firstStageRootSourceRef !== undefined && lastPurePipeSrcRefs.has(firstStageRootSourceRef) && Date.now === defaultDateNow) {
-      this.budget.enterPipelineStages(n);
-      this.budget.commands += n;
-      try {
-        this.budget.fileSystemOperation();
-        (io.stdout as Capture).writeRangeSync(lastPurePipeOutBuf, lastPurePipeOutLen);
-      } finally {
-        this.budget.leavePipelineStages(n);
-      }
-      const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
-      monitor.lazyPipeStatus = ZERO_PIPE_STATUSES[n] ?? new Array<number>(n).fill(0);
-      monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
-      rawState.status = 0;
-      monitor.epoch = restEpoch;
-      return SYNC_UNIT_ZERO;
-    }
+    const sharedSyncPipeBuf0 = new Uint8Array(65536);
+    const sharedSyncPipeBuf1 = new Uint8Array(65536);
     syncPurePipelineSlotInUse = true;
     this.budget.enterPipelineStages(n);
     this.budget.commands += n;
@@ -7408,21 +7365,7 @@ export class Runtime {
       syncPurePipelineSlotInUse = false;
       this.budget.leavePipelineStages(n);
     };
-    const stdout = io.stdout;
-    const stderr = io.stderr;
     const finish = (): { exitCode: number; terminated: boolean } | Promise<{ exitCode: number; terminated: boolean }> => {
-      if ( n >= 3 && !pipeline.negate && statuses === undefined && firstStageRootSourceRef !== undefined && stderr.length === 0 && stdout.length <= 256 && Date.now === defaultDateNow) {
-        const scratch = (stdout as unknown as { _scratch4k?: Uint8Array })._scratch4k;
-        if (scratch) {
-          const outLen = stdout.length;
-          for (let bi = 0; bi < outLen; bi++) lastPurePipeOutBuf[bi] = scratch[bi]!;
-          lastPurePipeOutLen = outLen;
-          lastPurePipeAst = pipeline;
-          lastPurePipeSlice1 = ((pipeline.commands[0]! as { _cachedSlice1?: string })._cachedSlice1) ?? "";
-          lastPurePipeRegistry = this.commands;
-          lastPurePipeSrcRefs.add(firstStageRootSourceRef);
-        }
-      }
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       const finalStatuses = statuses ?? ZERO_PIPE_STATUSES[n] ?? new Array<number>(n).fill(0);
       monitor.lazyPipeStatus = finalStatuses;
@@ -29658,7 +29601,9 @@ export class Runtime {
       }
       if (stage0Formatted === undefined || stage0Formatted.length > 8192) return undefined;
       const stage0ByteLen = shellValueByteLength(stage0Formatted);
-      if (stage0ByteLen > sharedSyncPipeBuf0.byteLength) return undefined;
+      if (stage0ByteLen > 65536) return undefined;
+      const sharedSyncPipeBuf0 = new Uint8Array(65536);
+      const sharedSyncPipeBuf1 = new Uint8Array(65536);
       const nextBytes0 = this.budget.bytes + stage0ByteLen;
       if (nextBytes0 > this.budget.maxOutputBytesSmi && stage0ByteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       const previousBytes = this.budget.bytes;

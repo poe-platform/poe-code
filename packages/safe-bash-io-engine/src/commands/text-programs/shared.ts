@@ -1,4 +1,4 @@
-import { equalBytes, latin1Bytes as bytes, latin1Text } from "../../byte-encoding.js";
+import { latin1Bytes as bytes, latin1Text } from "../../byte-encoding.js";
 export { bytes };
 const textEncoder = new TextEncoder();
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
@@ -17,7 +17,6 @@ export function byteString(text: string): string {
   }
   return text;
 }
-const sharedSmallWriteBuf = new Uint8Array(256);
 const RESOLVED_VOID_SYNC: Promise<void> = (() => {
   const p = Promise.resolve();
   (p as unknown as Record<symbol, boolean>)[Symbol.for("safe-bash.syncResolved")] = true;
@@ -40,10 +39,11 @@ export function write(context: CommandContext, text: string): Promise<void> {
   };
   if (!stdoutSink.isPipeStage) {
     if (len <= 256 && typeof stdoutSink.writeRangeSync === "function") {
+      const buffer = new Uint8Array(len);
       for (let i = 0; i < len; i++) {
-        sharedSmallWriteBuf[i] = text.charCodeAt(i) & 0xff;
+        buffer[i] = text.charCodeAt(i) & 0xff;
       }
-      if (stdoutSink.writeRangeSync(sharedSmallWriteBuf, len) !== false) {
+      if (stdoutSink.writeRangeSync(buffer, len) !== false) {
         return RESOLVED_VOID_SYNC;
       }
     } else if (typeof stdoutSink.writeSync === "function") {
@@ -111,55 +111,41 @@ export interface CachedLatin1Batch {
   readonly lastLineStart: number;
 }
 
-const latin1BatchCache = new WeakMap<Uint8Array, CachedLatin1Batch>();
-
 export function getCachedLatin1Batch(chunk: Uint8Array): CachedLatin1Batch | undefined {
   const cLen = chunk.byteLength;
   if (cLen < 256) return undefined;
-  let cached = latin1BatchCache.get(chunk);
-  if (
-    !cached ||
-    cached.byteLength !== cLen ||
-    cached.b0 !== chunk[0] ||
-    cached.bMid !== chunk[cLen >> 1] ||
-    cached.bEnd !== chunk[cLen - 1] ||
-    !equalBytes(cached.rawBuf, chunk)
-  ) {
-    let batchEnds = new Int32Array(4096);
-    const rawBuf = new Uint8Array(chunk);
-    const cText = latin1Text(rawBuf);
-    let cStart = 0;
-    let cEnd: number;
-    let cEndsCount = 0;
-    let maxLineLen = 0;
-    while ((cEnd = cText.indexOf("\n", cStart)) >= 0) {
-      const lLen = cEnd - cStart;
-      if (lLen > maxLineLen) maxLineLen = lLen;
-      if (cEndsCount === batchEnds.length) {
-        const grown = new Int32Array(batchEnds.length * 2);
-        grown.set(batchEnds);
-        batchEnds = grown;
-      }
-      batchEnds[cEndsCount++] = cEnd;
-      cStart = cEnd + 1;
+  let batchEnds = new Int32Array(4096);
+  const rawBuf = new Uint8Array(chunk);
+  const cText = latin1Text(rawBuf);
+  let cStart = 0;
+  let cEnd: number;
+  let cEndsCount = 0;
+  let maxLineLen = 0;
+  while ((cEnd = cText.indexOf("\n", cStart)) >= 0) {
+    const lLen = cEnd - cStart;
+    if (lLen > maxLineLen) maxLineLen = lLen;
+    if (cEndsCount === batchEnds.length) {
+      const grown = new Int32Array(batchEnds.length * 2);
+      grown.set(batchEnds);
+      batchEnds = grown;
     }
-    const tailLen = cText.length - cStart;
-    if (tailLen > maxLineLen) maxLineLen = tailLen;
-    const ends = cEndsCount > 0 ? batchEnds.slice(0, cEndsCount) : EMPTY_ENDS;
-    cached = {
-      byteLength: cLen,
-      b0: chunk[0]!,
-      bMid: chunk[cLen >> 1]!,
-      bEnd: chunk[cLen - 1]!,
-      rawBuf,
-      text: cText,
-      ends,
-      maxLineLen,
-      lastLineStart: cStart,
-    };
-    latin1BatchCache.set(chunk, cached);
+    batchEnds[cEndsCount++] = cEnd;
+    cStart = cEnd + 1;
   }
-  return cached;
+  const tailLen = cText.length - cStart;
+  if (tailLen > maxLineLen) maxLineLen = tailLen;
+  const ends = cEndsCount > 0 ? batchEnds.slice(0, cEndsCount) : EMPTY_ENDS;
+  return {
+    byteLength: cLen,
+    b0: chunk[0]!,
+    bMid: chunk[cLen >> 1]!,
+    bEnd: chunk[cLen - 1]!,
+    rawBuf,
+    text: cText,
+    ends,
+    maxLineLen,
+    lastLineStart: cStart,
+  };
 }
 
 export function getCachedLatin1Text(chunk: Uint8Array): string {

@@ -1727,7 +1727,7 @@ class FastShellCommandContext {
   constructor( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], argumentValues: CommandArguments | undefined, env: Record<string, string> | undefined, signalIsScoped: boolean, ) {
     const directContext = FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok"));
     if (!directContext) {
-      const { [invocationScope]: ignoredScope, [valueScope]: ignoredAllocation, [declarationArrays]: ignoredArrays, argumentValues: ignoredArguments, ...publicIO } = io as IO & { argumentValues?: unknown };
+      const { [invocationScope]: ignoredScope, [valueScope]: ignoredAllocation, [declarationArrays]: ignoredArrays, argumentValues: ignoredArguments, signal: ignoredSignal, ...publicIO } = io as IO & { argumentValues?: unknown; signal?: AbortSignal };
       Object.defineProperties(this, Object.getOwnPropertyDescriptors(publicIO));
     }
     this._self = this;

@@ -26,11 +26,11 @@ for (const memory of [false, true]) {
           } });
         } });
         try {
-          for (const script of [name, `${name} | ${name}`]) {
+          for (const script of [name, `${name} | ${name}`, `sh -c "${name}"`]) {
             const result = await shell.exec(script);
             assert.equal(result.exitCode, 0, result.stderr);
           }
-          assert.equal(checked, 3);
+          assert.equal(checked, 4);
         } finally { await shell.dispose(); }
       });
     }

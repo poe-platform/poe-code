@@ -73,3 +73,39 @@ test("html-to-markdown help works through the standalone portable factory", asyn
  assert.equal(result.exitCode, 0, output);
  assert.ok(output.length > 0);
 });
+
+import { Budget } from "./budget.js";
+import { destination } from "./entities.js";
+import { Parser } from "./parser.js";
+import { settings } from "./options.js";
+import type { CommandContext } from "safe-bash-contracts";
+function budget(limits = {}) {
+ return new Budget({ signal: new AbortController().signal } as CommandContext, settings({ limits }));
+}
+test("destinations validate numeric hosts, encode quotes and enforce rendered bytes", async () => {
+ assert.equal(await destination("https://example.com/a'b", false, budget()), "https://example.com/a%27b");
+ assert.equal(await destination("http://123.456.789.000/foo", false, budget()), undefined);
+ await assert.rejects(destination("https://example.com/foo", false, budget({ maxOutputBytes: 10 })), /rendered bytes/);
+});
+test("ASCII text flushes at the same byte boundary across feeds", async () => {
+ const parser = new Parser(budget({ maxNodes: 2 }));
+ await parser.feed("<p>" + "a".repeat(4093));
+ await parser.feed("a".repeat(3907));
+ await assert.rejects(parser.feed("</p>"), /nodes limit/);
+});
+test("mixed text scans each ASCII prefix once", async () => {
+ const parser = new Parser(budget());
+ const original = String.prototype.charCodeAt;
+ let calls = 0;
+ String.prototype.charCodeAt = function(index) { calls++; return original.call(this, index); };
+ try { await parser.feed("a".repeat(4094) + "é"); }
+ finally { String.prototype.charCodeAt = original; }
+ assert.ok(calls < 100_000, `scanned ${calls} characters`);
+});
+
+test("ASCII prefixes respect small token limits without repeated suffix scans", async () => {
+ const parser = new Parser(budget({ maxTokenBytes: 32 }));
+ await parser.feed("a".repeat(4094) + "é");
+ await parser.feed("<br>");
+ assert.equal(parser.root.children.filter(node => node.tag === "text").map(node => node.text).join(""), "a".repeat(4094) + "é");
+});

@@ -167,25 +167,24 @@ export class Parser {
   async feed(text: string): Promise<void> {
     for (let offset = 0; offset < text.length;) {
       if (this.mode === "text") {
-        const lt = text.indexOf("<", offset);
-        const end = lt >= 0 ? lt : text.length;
-        if (end > offset) {
-          const span = text.slice(offset, end);
-          let isAscii = true;
-          for (let i = 0; i < span.length; i++) {
-            if (span.charCodeAt(i) >= 0x80) { isAscii = false; break; }
-          }
-          if (isAscii && span.length <= this.budget.limits.maxTokenBytes - this.bufferBytes) {
-            this.budget.work(span.length);
-            this.budget.check(span.length, this.budget.limits.maxTokenBytes - this.bufferBytes, "token bytes");
-            this.bufferBytes += span.length;
-            this.buffer += span;
-            if (this.bufferBytes >= 4096) await this.flushText(false);
-            offset = end;
-            continue;
-          }
+        const maximum = Math.min(text.length, offset + 4096 - this.bufferBytes,
+          offset + this.budget.limits.maxTokenBytes - this.bufferBytes);
+        let end = offset;
+        while (end < maximum) {
+          const code = text.charCodeAt(end);
+          if (code >= 0x80 || code === 60) break;
+          end++;
         }
-        if (lt === offset && offset + 2 < text.length) {
+        if (end > offset) {
+          this.budget.work(end - offset);
+          this.bufferBytes += end - offset;
+          this.buffer += text.slice(offset, end);
+          offset = end;
+          if (this.bufferBytes >= 4096) await this.flushText(false);
+          { const checkpoint = this.budget.checkpoint(); if (checkpoint) await checkpoint; }
+          continue;
+        }
+        if (text[offset] === "<" && offset + 2 < text.length) {
           const c1 = text.charCodeAt(offset + 1);
           const isAlpha = (c1 >= 65 && c1 <= 90) || (c1 >= 97 && c1 <= 122);
           const c2 = text.charCodeAt(offset + 2);

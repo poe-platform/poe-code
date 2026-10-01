@@ -45,10 +45,10 @@ before(async () => {
   });
   assert.equal(runInContext("typeof Buffer", sandbox), "undefined");
   sandbox.canonical = runInContext(`(function(){ const module = { exports: {} }; ${filesystem.outputFiles![0]!.text}; return module.exports; })()`, sandbox);
-  browser = runInContext(`(function(){ const module = { exports: {} }; const require = name => { if (name !== "poe-code/safe-fs/core") throw new Error(name); return canonical; }; ${compiled.outputFiles![0]!.text}; return module.exports; })()`, sandbox) as BrowserShell;
-  assert.equal(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox), "function:undefined:undefined");
-  assert.equal(runInContext("Buffer.from('é').toString('hex')", sandbox), "c3a9");
-  assert.ok(Object.keys(bundle.metafile!.inputs).some(input => input.endsWith("node_modules/buffer/index.js")));
+  browser = runInContext(`(function(module, require){ ${compiled.outputFiles![0]!.text}; return module.exports; })({ exports: {} }, name => { if (name !== "poe-code/safe-fs/core") throw new Error(name); return canonical; })`, sandbox) as BrowserShell;
+  assert.equal(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", sandbox), "undefined:undefined:undefined");
+  assert.equal(browser.FsError, sandbox.canonical.FsError);
+  assert.equal(browser.MemoryFileSystem, sandbox.canonical.MemoryFileSystem);
 });
 
 const cases = [

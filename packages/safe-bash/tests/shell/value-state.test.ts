@@ -37,7 +37,9 @@ test("shrinking positional strings fits their existing finite arena reservation"
   const { arena, store } = fixture(12);
   let values = ["aa", "bbbb"];
   store.replaceStrings(values, () => {});
-  store.replaceStrings(["bbbb"], () => { values = values.slice(1); });
+  store.replaceStrings(["bbbb"], () => { store.invalidate(); values = values.slice(1); });
+  store.replaceStrings(["x"], () => { store.invalidate(); });
+  store.replaceStrings(["bbbb"], () => { store.invalidate(); });
   assert.deepEqual(values, ["bbbb"]);
   assert.deepEqual(arena.usage, { bytes: 8, slots: 0 });
   store.close();
@@ -96,7 +98,7 @@ for (const next of [["x"], ["longer"]]) {
     store.replaceStrings(["old"], () => {});
     const before = arena.usage;
     const reason = new Error("publication failed");
-    assert.throws(() => store.replaceStrings(next, () => { throw reason; }), error => error === reason);
+    assert.throws(() => store.replaceStrings(next, () => { store.invalidate(); throw reason; }), error => error === reason);
     assert.deepEqual(arena.usage, before);
     let called = false;
     assert.throws(() => store.replaceStrings(["too large"], () => { called = true; }));

@@ -43,7 +43,12 @@ test("split separator generators share the command result budget", { timeout: 30
   assert.match(actual.stderr, /maxResults limit exceeded/u);
 });
 
-for (const filter of ["split", 'split(","; "g")']) test(`${filter === "split" ? "split rejects undefined native arity" : "split rejects out-of-scope arity"}: ${filter}`, { timeout: 3000 }, async () => {
+test("split accepts the regex flags argument", async () => {
+  const actual = await execute(["-c", 'split(","; "g")'], '"a,b,c"');
+  assert.deepEqual(actual, { status: 0, stdout: '["a","b","c"]\n', stderr: "" });
+});
+
+for (const filter of ["split", 'split(","; "g"; 0)']) test(`${filter === "split" ? "split rejects undefined native arity" : "split rejects out-of-scope arity"}: ${filter}`, { timeout: 3000 }, async () => {
   let acquired = false;
   if (filter === "split") {
     const actual = await executeWithBytes([filter], { [Symbol.asyncIterator]() { acquired = true; throw new Error("input must not be acquired"); } });
@@ -53,7 +58,7 @@ for (const filter of ["split", 'split(","; "g")']) test(`${filter === "split" ? 
   }
   const actual = await execute([filter], { [Symbol.asyncIterator]() { acquired = true; throw new Error("input must not be acquired"); } });
   assert.equal(actual.status, 3);
-  assert.match(actual.stderr, /unsupported function split\/(0|2)/u);
+  assert.equal(actual.stderr, `jq: error: split/3 is not defined at <top-level>, line 1:\n${filter}\njq: 1 compile error\n`);
   assert.equal(actual.stdout, "");
   assert.equal(acquired, false);
 });

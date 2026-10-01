@@ -24,7 +24,7 @@ export type FileSnapshotBackendOptions = {
 const DEFAULT_WRITE_MAX_ATTEMPTS = 3;
 const DEFAULT_WRITE_RETRY_DELAY_MS = 100;
 const LOCKED_FILE_ERROR_CODES = new Set(["EACCES", "EBUSY", "EPERM"]);
-const pendingOperations = new Map<string, Promise<void>>();
+const adapterOperations = new WeakMap<object, Map<string, Promise<void>>>();
 
 type SnapshotIo = {
   readFile(path: string, encoding: "utf8"): Promise<string>;
@@ -36,6 +36,7 @@ type SnapshotIo = {
 
 export class FileSnapshotBackend implements SnapshotBackend {
   readonly #io: SnapshotIo;
+  readonly #pendingOperations: Map<string, Promise<void>>;
   readonly #writeMaxAttempts: number;
   readonly #writeRetryDelayMs: number;
 
@@ -43,6 +44,13 @@ export class FileSnapshotBackend implements SnapshotBackend {
     readonly path: string,
     options: FileSnapshotBackendOptions = {}
   ) {
+    const adapter = options.adapter ?? hostFs;
+    let pending = adapterOperations.get(adapter);
+    if (pending === undefined) {
+      pending = new Map();
+      adapterOperations.set(adapter, pending);
+    }
+    this.#pendingOperations = pending;
     this.#io = options.adapter === undefined ? hostFs : createFsBridge(options.adapter, { codec: fsCodec });
     this.#writeMaxAttempts = options.writeMaxAttempts ?? DEFAULT_WRITE_MAX_ATTEMPTS;
     this.#writeRetryDelayMs = options.writeRetryDelayMs ?? DEFAULT_WRITE_RETRY_DELAY_MS;
@@ -65,7 +73,7 @@ export class FileSnapshotBackend implements SnapshotBackend {
   }
 
   async write(snapshot: Snapshot): Promise<void> {
-    await enqueueOperation(this.path, () =>
+    await enqueueOperation(this.#pendingOperations, this.path, () =>
       writeSnapshotAtomically(this.#io, this.path, snapshot, {
         maxAttempts: this.#writeMaxAttempts,
         retryDelayMs: this.#writeRetryDelayMs
@@ -74,7 +82,7 @@ export class FileSnapshotBackend implements SnapshotBackend {
   }
 
   async remove(): Promise<void> {
-    await enqueueOperation(this.path, async () => {
+    await enqueueOperation(this.#pendingOperations, this.path, async () => {
       try {
         await this.#io.unlink(this.path);
       } catch (error) {
@@ -190,7 +198,7 @@ async function writeSnapshotOnce(
   }
 }
 
-async function enqueueOperation(path: string, operation: () => Promise<void>): Promise<void> {
+async function enqueueOperation(pendingOperations: Map<string, Promise<void>>, path: string, operation: () => Promise<void>): Promise<void> {
   const previous = pendingOperations.get(path) ?? Promise.resolve();
   const pending = previous.catch(() => undefined).then(operation);
   const queued = pending.catch(() => undefined);

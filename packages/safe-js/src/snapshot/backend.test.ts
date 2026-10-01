@@ -102,6 +102,55 @@ describe("FileSnapshotBackend", () => {
     await expect(backend.read()).resolves.toBeUndefined();
   });
 
+  it("does not queue independent adapters behind a write at the same path", async () => {
+    const firstAdapter = new MemoryFileSystem();
+    const secondAdapter = new MemoryFileSystem();
+    const started = deferred();
+    const released = deferred();
+    const rename = firstAdapter.rename.bind(firstAdapter);
+    vi.spyOn(firstAdapter, "rename").mockImplementation(async (...args) => {
+      started.resolve();
+      await released.promise;
+      return rename(...args);
+    });
+    const first = new FileSnapshotBackend("/snapshot.json", { adapter: firstAdapter });
+    const second = new FileSnapshotBackend("/snapshot.json", { adapter: secondAdapter });
+    const writing = first.write({ sourceHash: "first" });
+    await started.promise;
+    try {
+      const independent = second.write({ sourceHash: "second" });
+      // A completed operation on this adapter must precede releasing the other tenant.
+      await expect(Promise.race([independent.then(() => true), new Promise(resolve => setTimeout(() => resolve(false), 50))])).resolves.toBe(true);
+      await expect(second.read()).resolves.toMatchObject({ sourceHash: "second" });
+      await second.remove();
+    } finally {
+      released.resolve();
+      await writing;
+    }
+    await expect(first.read()).resolves.toMatchObject({ sourceHash: "first" });
+  });
+
+  it("serializes writes and removal across backends sharing an adapter", async () => {
+    const adapter = new MemoryFileSystem();
+    const started = deferred();
+    const released = deferred();
+    const rename = adapter.rename.bind(adapter);
+    vi.spyOn(adapter, "rename").mockImplementationOnce(async (...args) => {
+      started.resolve();
+      await released.promise;
+      return rename(...args);
+    });
+    const first = new FileSnapshotBackend("/snapshot.json", { adapter });
+    const second = new FileSnapshotBackend("/snapshot.json", { adapter });
+    const writing = first.write({ sourceHash: "first" });
+    await started.promise;
+    const next = second.write({ sourceHash: "second" });
+    const removing = second.remove();
+    released.resolve();
+    await Promise.all([writing, next, removing]);
+    await expect(first.read()).resolves.toBeUndefined();
+  });
+
   it("preserves a snapshot value through a write/read round-trip", async () => {
     vol.mkdirSync("/snapshots");
     const backend = new FileSnapshotBackend("/snapshots/run.json");

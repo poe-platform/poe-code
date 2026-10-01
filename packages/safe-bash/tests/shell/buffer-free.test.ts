@@ -27,8 +27,8 @@ const cases: [string, number, string?][] = [
   ["echo hi > f1; du --apparent-size f1", 0],
   ["echo hi > f1; tar -cf a.tar f1", 0], ["echo hi > f1; zip -q a.zip f1", 0],
 ];
-for (const removeBuffer of [false, true]) test(`reported commands execute without Node globals (remove portable global Buffer: ${removeBuffer})`, async context => {
-  const { api: core } = await portableRuntime('export * from "./packages/safe-bash/src/core.ts";', { removeBuffer });
+for (const bootstrapBuffer of [false, true]) test(`reported commands execute without Node globals (explicit portable Buffer: ${bootstrapBuffer})`, async context => {
+  const { api: core } = await portableRuntime('export * from "./packages/safe-bash/src/core.ts";', { bootstrapBuffer });
   for (const [source, exitCode, stdout] of cases) {
     await context.test(source, async () => {
       const commands = new core.CommandRegistry();

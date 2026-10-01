@@ -1,4 +1,3 @@
-import "./portable-buffer.js";
 
 export * from "./contracts/command.js";
 export * from "./contracts/command-requirements.js";

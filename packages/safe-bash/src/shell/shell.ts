@@ -1,20 +1,4 @@
-function utf8ByteLength(str: string): number {
-  if (typeof globalThis.Buffer === "function") return globalThis.Buffer.byteLength(str);
-  let bytes = str.length;
-  for (let i = 0; i < str.length; i++) {
-    const code = str.charCodeAt(i);
-    if (code >= 0x80) {
-      if (code <= 0x7ff) bytes += 1;
-      else if (code >= 0xd800 && code <= 0xdbff && i + 1 < str.length && (str.charCodeAt(i + 1) & 0xfc00) === 0xdc00) {
-        bytes += 2;
-        i++;
-      } else {
-        bytes += 2;
-      }
-    }
-  }
-  return bytes;
-}
+import { utf8ByteLength } from "safe-bash-byte-engine";
 import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
 import { clearRgFastRunnerPool } from "../commands/search/rg-command.js";
 import { writeDiagnostic } from "../escaping.js";

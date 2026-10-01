@@ -942,7 +942,7 @@ export class Capture implements ByteSink {
         }
         if (same) return cachedCaptureAsciiStr;
       }
-      const decoded = typeof globalThis.Buffer === "function" ? (globalThis.Buffer.prototype as unknown as { utf8Slice(s: number, e: number): string }).utf8Slice.call(buf, 0, len) : sharedCaptureDecoder.decode(buf.subarray(0, len));
+      const decoded = sharedCaptureDecoder.decode(buf.subarray(0, len));
       if (len <= 4096) {
         for (let i = 0; i < len; i++) cachedCaptureAsciiBytes[i] = buf[i]!;
         cachedCaptureAsciiLen = len;

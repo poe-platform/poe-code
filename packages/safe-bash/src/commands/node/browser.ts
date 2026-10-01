@@ -1,4 +1,3 @@
-import "../../portable-buffer.js";
 export {
   createSafeJsNodeCommand as createNodeCommand,
   createSafeJsNodeCommands as createNodeCommands,

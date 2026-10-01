@@ -1,4 +1,3 @@
-import "../../portable-buffer.js";
 import { syncCommandEvaluators } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createWgetCommand } from "./wget.js";

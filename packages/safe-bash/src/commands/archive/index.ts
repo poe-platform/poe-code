@@ -1,4 +1,3 @@
-import "../../portable-buffer.js";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { createTarCommand, type ArchiveCommandsOptions } from "safe-bash-command-tar";
 import { createZipCommand } from "safe-bash-command-zip";

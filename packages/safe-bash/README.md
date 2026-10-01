@@ -46,8 +46,8 @@ filesystem changes persist in the supplied `fs`. The invocation-local `umask`
 starts at `0022`, accepts octal or symbolic modes, and is inherited by child shells.
 Creation modes use the filesystem's capabilities; advisory modes do not enforce
 physical permissions, and the host process mask remains unchanged.
-Core and shell imports install a portable `globalThis.Buffer` when it is absent;
-an existing host Buffer is preserved. Workers do not need `nodejs_compat` for this.
+Core, shell, and command imports use Web-standard bytes without installing
+`globalThis.Buffer`. Workers do not need `nodejs_compat` for this.
 AES ZIP encryption and decryption also work in browsers and Workers. The
 `@poe-platform/safe-bash/trap` entry selects the portable signal catalog there.
 

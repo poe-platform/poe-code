@@ -9,12 +9,12 @@ for (const entry of [
   "apply-patch/index", "metadata/index", "python/index", "python/worker",
   "network/public", "node/browser",
 ]) {
-  test(`standalone commands/${entry} installs portable Buffer`, async () => {
+  test(`standalone commands/${entry} loads without installing Buffer`, async () => {
     const { api, buffer } = await portableRuntime(`
       export * from "./packages/safe-bash/src/commands/${entry}.ts";
       export { MemoryFileSystem } from "./packages/safe-bash/src/fs/memory/index.ts";
     `);
-    assert.equal(buffer.from("hello").toString(), "hello");
+    assert.equal(buffer, undefined);
     if (entry === "du/index") {
       const fs = new api.MemoryFileSystem();
       await fs.writeFile("/a.txt", new TextEncoder().encode("hello\n"));

@@ -66,3 +66,14 @@ test("sponge append does not swallow cancellation while reading the existing tar
   run.context.fs.readFile = async () => { controller.abort(reason); throw reason; };
   await assert.rejects(async () => createSpongeCommand().execute({ ...run.context, signal: controller.signal }), (error: unknown) => error === reason);
 });
+
+test('sponge append preserves the target on a non-ENOENT read failure', async () => {
+  const run = fixture(['-a', 'output']);
+  const original = new TextEncoder().encode('original');
+  await run.context.fs.writeFile('/output', original);
+  const readFile = run.context.fs.readFile.bind(run.context.fs);
+  const failure = new Error('read denied');
+  run.context.fs.readFile = async () => { throw failure; };
+  await assert.rejects(async () => createSpongeCommand().execute(run.context), (error: unknown) => error === failure);
+  assert.deepEqual(await readFile('/output'), original);
+});

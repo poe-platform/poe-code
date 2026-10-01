@@ -38,7 +38,12 @@
       "default": "./dist/platform/node-path.js"
     },
     "#safe-fs-s3-request": {
-      "types": "./src/fs/s3/http/request-node.ts",
+      "types": {
+        "workerd": "./src/fs/s3/http/request-fetch.ts",
+        "browser": "./src/fs/s3/http/request-fetch.ts",
+        "worker": "./src/fs/s3/http/request-fetch.ts",
+        "default": "./src/fs/s3/http/request-node.ts"
+      },
       "workerd": "./dist/fs/s3/http/request-fetch.js",
       "browser": "./dist/fs/s3/http/request-fetch.js",
       "worker": "./dist/fs/s3/http/request-fetch.js",

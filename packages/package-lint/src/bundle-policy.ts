@@ -115,6 +115,14 @@ export const canonicalFsTypeImports = {
       default: "./dist/types/safe-fs/platform/node-path.d.ts"
     },
     default: null
+  },
+  "#safe-fs-s3-request": {
+    types: {
+      workerd: "./dist/types/safe-fs/fs/s3/http/request-fetch.d.ts",
+      browser: "./dist/types/safe-fs/fs/s3/http/request-fetch.d.ts",
+      default: "./dist/types/safe-fs/fs/s3/http/request-node.d.ts"
+    },
+    default: null
   }
 };
 

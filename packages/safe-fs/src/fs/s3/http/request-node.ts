@@ -3,9 +3,13 @@ import { request as httpRequest } from "node:http";
 import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { S3ServiceError } from "../transport.js";
-import type { S3HttpRequestFactory } from "./types.js";
 import { abortable } from "./request.js";
 import type { RequestScope, WireResponse } from "./request.js";
+
+export type S3HttpRequestFactory = (
+  options: RequestOptions,
+  onResponse: (response: IncomingMessage) => void,
+) => ClientRequest;
 
 export async function sendRequest(
   options: RequestOptions,
@@ -95,4 +99,3 @@ export async function sendRequest(
     } catch (error) { fail(error); }
   });
 }
-

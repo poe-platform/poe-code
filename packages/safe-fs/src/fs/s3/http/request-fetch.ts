@@ -1,11 +1,20 @@
-import type { RequestOptions } from "node:http";
 import { S3ServiceError } from "../transport.js";
 import { abortable } from "./request.js";
 import type { RequestScope, WireResponse } from "./request.js";
-import type { S3HttpRequestFactory } from "./types.js";
+
+export type S3HttpRequestFactory = never;
+
+interface FetchRequestOptions {
+  readonly protocol?: string | undefined;
+  readonly hostname?: string | undefined;
+  readonly port?: string | number | undefined;
+  readonly path?: string | undefined;
+  readonly method?: string | undefined;
+  readonly headers?: Record<string, string> | undefined;
+}
 
 export async function sendRequest(
-  options: RequestOptions,
+  options: FetchRequestOptions,
   body: Uint8Array,
   scope: RequestScope,
   factory?: S3HttpRequestFactory,

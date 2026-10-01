@@ -1,4 +1,5 @@
-import type { ClientRequest, IncomingMessage, RequestOptions } from "node:http";
+import type { S3HttpRequestFactory } from "#safe-fs-s3-request";
+export type { S3HttpRequestFactory } from "#safe-fs-s3-request";
 
 export interface S3HttpCredentials {
   readonly accessKeyId: string;
@@ -7,11 +8,6 @@ export interface S3HttpCredentials {
 }
 
 export type S3HttpCredentialProvider = (options: { readonly signal: AbortSignal }) => Promise<S3HttpCredentials>;
-
-export type S3HttpRequestFactory = (
-  options: RequestOptions,
-  onResponse: (response: IncomingMessage) => void,
-) => ClientRequest;
 
 export interface S3HttpTransportOptions {
   readonly endpoint: string;

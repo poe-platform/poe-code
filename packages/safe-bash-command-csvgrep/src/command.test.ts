@@ -665,3 +665,21 @@ test("csvgrep yields independently of wall-clock progress", async () => {
   try { assert.equal((await csvgrep(f.context)).exitCode, 0); assert.ok(ticks > 0); }
   finally { clearInterval(timer); }
 });
+
+test("retaining sinks preserve every batch and matched rows before an input failure", async () => {
+  const rows = Array.from({ length: 2500 }, (_, i) => `yes,${i}\n`).join("");
+  for (const failed of [false, true]) {
+    const f = fixture(["-c1", "-myes"], "match,id\n" + rows);
+    const chunks: Uint8Array[] = [];
+    const result = await csvgrep({ ...f.context,
+      stdin: (async function* () {
+        yield encoder.encode("match,id\n" + rows);
+        if (failed) throw new CsvError("INPUT", "read failed");
+      })(),
+      stdout: { async write(bytes) { chunks.push(bytes); } }
+    });
+    assert.equal(result.exitCode, failed ? 1 : 0);
+    assert.equal(chunks.map(bytes => new TextDecoder().decode(bytes)).join(""), "match,id\n" + rows);
+    if (failed) assert.ok(f.error().includes("error:"));
+  }
+});

@@ -250,7 +250,7 @@ export async function csvgrep(
     let stdoutWrites = 0;
     const flushStdout = async (): Promise<void> => {
       if (outBatchUsed > 0) {
-        const slice = outBatch.subarray(0, outBatchUsed);
+        const slice = outBatch.slice(0, outBatchUsed);
         outBatchUsed = 0;
         stdoutWrites++;
         await writeBytes(stdout!.output, slice, signal);
@@ -526,8 +526,8 @@ export async function csvgrep(
       await flushStdout();
       return { exitCode: 0, accounting: Object.freeze({ ...b.accounting, retainedBytes: 0 }) };
     } catch (error) {
-      outBatchUsed = 0;
       signal.throwIfAborted();
+      await flushStdout();
       if (!(error instanceof CsvError) && !(error instanceof FsError)) throw error;
       await write(`error: ${error.message}\n`, true);
       return {

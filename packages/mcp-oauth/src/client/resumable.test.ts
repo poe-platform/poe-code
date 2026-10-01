@@ -1,9 +1,10 @@
 import { expect, it, vi } from "vitest";
-import * as api from "../index.browser.js";
+import * as api from "./resumable.js";
 
-it("exposes resumable OAuth in the Worker entrypoint", () => {
-  expect(api).toHaveProperty("beginRemoteMcpAuthorization", expect.any(Function));
-  expect(api).toHaveProperty("completeRemoteMcpAuthorization", expect.any(Function));
+it("exposes resumable OAuth in the Worker entrypoint", async () => {
+  const browser = await import("../index.browser.js");
+  expect(browser).toHaveProperty("beginRemoteMcpAuthorization", expect.any(Function));
+  expect(browser).toHaveProperty("completeRemoteMcpAuthorization", expect.any(Function));
 });
 
 import type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore } from "./resumable.js";

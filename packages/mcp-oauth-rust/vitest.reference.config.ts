@@ -6,6 +6,7 @@ const referenceRoot = fileURLToPath(new URL("../mcp-oauth/src/", import.meta.url
 const redirects = new Map(
   [
     ["index.js", "index.js"],
+    ["client/resumable.js", "resumable.js"],
     ["http-fetch.js", "http.js"],
     ["http-response.js", "http.js"],
     ["resource-indicator.js", "resource.js"],
@@ -54,6 +55,11 @@ export default defineConfig({
             continue;
           const target = redirect(statement.moduleSpecifier.text, id);
           const clause = statement.importClause;
+          if (target !== undefined && clause?.isTypeOnly !== true && clause?.namedBindings && ts.isNamespaceImport(clause.namedBindings)) {
+            const alias = `nativeContractBinding${checks.length}`;
+            checks.push(`import * as ${alias} from ${JSON.stringify(target)};\nif (${clause.namedBindings.name.text} !== ${alias}) throw new Error("OAuth reference contracts must execute the Rust package");`);
+            continue;
+          }
           if (
             target === undefined ||
             clause === undefined ||

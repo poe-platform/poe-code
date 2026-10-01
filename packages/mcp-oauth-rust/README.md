@@ -41,6 +41,14 @@ including hidden properties and prototype getters, before browser callbacks run.
 server denials across package copies. Closing a session disposes its
 listeners and rejects pending waits; close is idempotent and code waits are single-use.
 
+`beginRemoteMcpAuthorization` and `completeRemoteMcpAuthorization` support hosted
+HTTPS callbacks across process restarts. A host-bound store atomically creates and
+consumes authorization state and conditionally commits credentials against reset
+or replacement races. Native PKCE, scope and token-exchange primitives retain the
+same validation as the interactive flow; callback matching, issuer checks and
+expiry checks precede persistence. Only the authorization URL and expiry leave the
+begin operation; completion returns the resource identity.
+
 Encrypted session and client-registration persistence uses the embedded Rust
 credential store. URI-specific filenames and Keychain accounts match the original
 package, including resource normalization and machine-bound encrypted documents.

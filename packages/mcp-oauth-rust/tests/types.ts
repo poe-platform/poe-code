@@ -192,3 +192,14 @@ const snapshotOriginal: typeof OriginalSnapshot = snapshotOAuthPersistenceOption
 const snapshotOwn: typeof snapshotOAuthPersistenceOptions =
   null as unknown as typeof OriginalSnapshot;
 void [snapshotOriginal, snapshotOwn];
+
+import { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "../dist/index.js";
+import {
+  beginRemoteMcpAuthorization as referenceBeginAuthorization,
+  completeRemoteMcpAuthorization as referenceCompleteAuthorization
+} from "../../mcp-oauth/src/client/resumable.js";
+const beginAuthorizationA: typeof referenceBeginAuthorization = beginRemoteMcpAuthorization;
+const beginAuthorizationB: typeof beginRemoteMcpAuthorization = referenceBeginAuthorization;
+const completeAuthorizationA: typeof referenceCompleteAuthorization = completeRemoteMcpAuthorization;
+const completeAuthorizationB: typeof completeRemoteMcpAuthorization = referenceCompleteAuthorization;
+void [beginAuthorizationA, beginAuthorizationB, completeAuthorizationA, completeAuthorizationB];

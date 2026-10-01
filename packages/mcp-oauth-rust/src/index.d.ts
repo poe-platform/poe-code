@@ -303,3 +303,56 @@ export declare function waitForOAuthOperation<T>(
   operation: Promise<T>,
   signal?: AbortSignal
 ): Promise<T>;
+
+
+
+/** Sensitive, JSON-serializable record. Store only in private, authenticated host storage. */
+export interface RemoteMcpAuthorizationTransaction {
+  readonly state: string;
+  readonly expiresAt: number;
+  readonly redirectUri: string;
+  readonly codeVerifier: string;
+  readonly requireIssuer: boolean;
+  readonly session: StoredOAuthSession;
+}
+
+
+/** Bind each store instance to the authenticated user and logical server. */
+export interface RemoteMcpAuthorizationStore {
+  /** Atomically insert a unique state and capture the current credential generation. Never overwrite a state. */
+  create(transaction: RemoteMcpAuthorizationTransaction): Promise<void>;
+  /** Atomically remove/mark consumed, returning at most once across all workers. Preserve the commit fence. */
+  consume(state: string): Promise<RemoteMcpAuthorizationTransaction | null>;
+  /** Atomically persist only if the consumed transaction's generation is still current.
+   * Reset, deletion, reconfiguration and a superseding grant must invalidate the fence.
+   * Return false if stale. Never implement as an unconditional credential save.
+   */
+  commit(transaction: RemoteMcpAuthorizationTransaction, session: StoredOAuthSession): Promise<boolean>;
+}
+
+
+export interface BeginRemoteMcpAuthorizationOptions {
+  readonly resource: string;
+  readonly redirectUri: string;
+  readonly client: StoredOAuthClient;
+  readonly scope?: string;
+  readonly store: RemoteMcpAuthorizationStore;
+  /** Host-validated discovery, including issuer trust and network policy. No implicit network access. */
+  readonly discover: (resource: string, signal?: AbortSignal) => Promise<OAuthDiscoveryResult>;
+  readonly signal?: AbortSignal;
+  readonly now?: () => number;
+  /** Transaction lifetime, at most ten minutes. */
+  readonly ttlMs?: number;
+}
+
+export interface CompleteRemoteMcpAuthorizationOptions {
+  readonly callbackUrl: string;
+  readonly store: RemoteMcpAuthorizationStore;
+  /** Required host network policy. Redirects are rejected, including at the token endpoint. */
+  readonly fetch: OAuthMetadataFetch;
+  readonly signal?: AbortSignal;
+  readonly now?: () => number;
+}
+
+export declare function beginRemoteMcpAuthorization(options: BeginRemoteMcpAuthorizationOptions): Promise<{ authorizationUrl: string; expiresAt: number }>;
+export declare function completeRemoteMcpAuthorization(options: CompleteRemoteMcpAuthorizationOptions): Promise<{ resource: string }>;

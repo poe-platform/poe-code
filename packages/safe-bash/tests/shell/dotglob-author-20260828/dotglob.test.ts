@@ -4,10 +4,10 @@ import { Shell, MemoryFileSystem, ShellLimitError, standardCommands, createAgent
 import type { ShellOptions, ShellCommandContext, FsOptions } from "../../../src/index.js";
 
 const line = (enabled: boolean, print = false): string => print ? `shopt -${enabled ? "s" : "u"} dotglob\n` : `dotglob             \t${enabled ? "on" : "off"}\n`;
-const globstarLine = (print = false): string => ["extglob", "globstar", "nocaseglob", "nocasematch", "nullglob", "extdebug"].map(name => print ? `shopt -u ${name}\n` : `${name.padEnd(20)}\toff\n`).join("");
+const globstarLine = (print = false): string => ["expand_aliases", "extglob", "failglob", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "extdebug"].map(name => print ? `shopt -u ${name}\n` : `${name.padEnd(20)}\toff\n`).join("");
 const quote = (value: string): string => `'${value.replaceAll("'", "'\\''")}'`;
 const diagnostic = (text: string): string => `shell: line 1: shopt: ${text}\n`;
-const unsupported = (name: string): string => diagnostic(`${name}: unsupported shell option name (supported: dotglob, extglob, globstar, nocaseglob, nocasematch, nullglob, extdebug)`);
+const unsupported = (name: string): string => diagnostic(`${name}: unsupported shell option name (supported: dotglob, expand_aliases, extglob, failglob, globstar, inherit_errexit, lastpipe, nocaseglob, nocasematch, nullglob, extdebug)`);
 
 async function fixture(options: Partial<ShellOptions> = {}) {
   const fs = new MemoryFileSystem();
@@ -46,7 +46,7 @@ for (const enabled of [false, true]) {
     }
   }
   for (const flags of ["-su", "-us", "-s -u", "-u -s", "-ssuuqqpp", "-u -psq"]) {
-    for (const names of ["", " dotglob expand_aliases"]) {
+    for (const names of ["", " dotglob unsupported_option"]) {
       test(`conflict preflight ${enabled} ${flags}${names}`, async () => {
         const result = await run(`${prefix}shopt ${flags}${names}; printf '%s\\n' "$?"; shopt -p`);
         assert.equal(result.stdout, `1\n${line(enabled, true)}${globstarLine(true)}`);
@@ -61,7 +61,7 @@ for (const enabled of [false, true]) {
       assert.equal(result.stderr, diagnostic(`${token}: unsupported option`) + "shopt: usage: shopt [-opqsu] [--] [option ...]\n");
     });
   }
-  for (const name of ["", "-", "+s", "Dotglob", "dot", "dotglob=on", "expand_aliases", "globskipdots", "unrecognized"]) {
+  for (const name of ["", "-", "+s", "Dotglob", "dot", "dotglob=on", "unsupported_option", "globskipdots", "unrecognized"]) {
     for (const flags of ["", "-s", "-u", "-q", "-upq"]) {
       test(`unknown operand ${enabled} ${flags} ${JSON.stringify(name)}`, async () => {
         const result = await run(`${prefix}shopt ${flags} -- ${quote(name)}; printf '%s\\n' "$?"; shopt -p`);
@@ -72,11 +72,11 @@ for (const enabled of [false, true]) {
   }
   for (const flags of ["-s", "-u", "-spq", "-upq", "", "-p", "-q"]) {
     test(`left-to-right valid invalid duplicates ${enabled} ${flags}`, async () => {
-      const result = await run(`${prefix}shopt ${flags} dotglob expand_aliases dotglob '' dotglob; printf '%s\\n' "$?"; shopt -p`);
+      const result = await run(`${prefix}shopt ${flags} dotglob unsupported_option dotglob '' dotglob; printf '%s\\n' "$?"; shopt -p`);
       const mutation = flags.includes("s") || flags.includes("u");
       const output = mutation || flags.includes("q") ? "" : line(enabled, flags.includes("p")).repeat(3);
       assert.equal(result.stdout, `${output}1\n${line(mutation ? flags.includes("s") : enabled, true)}${globstarLine(true)}`);
-      assert.equal(result.stderr, unsupported("expand_aliases") + unsupported(""));
+      assert.equal(result.stderr, unsupported("unsupported_option") + unsupported(""));
     });
   }
   test(`leading scan ends at operand ${enabled}`, async () => {
@@ -208,8 +208,8 @@ test("builtin discovery, function precedence, command bypass, registry unchanged
     assert.equal(result.stderr, "");
     assert.deepEqual(shell.commands.list().map(command => command.name), before);
     const names = createAgentCommands().map(command => command.name);
-    assert.equal(names.length, 115);
-    assert.equal(new Set(names).size, 115);
+    assert.equal(names.length, 189);
+    assert.equal(new Set(names).size, 189);
     for (const name of ["which", "timeout", "apply_patch", "sha512sum", "sha384sum", "sha224sum", "xq", "xmllint", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "zip", "unzip", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "mdq"]) assert.ok(names.includes(name));
     for (const name of ["shopt", "curl", "safejs", "node", "npm", "npx"]) assert.equal(names.includes(name), false);
   } finally { await shell.dispose(); }
@@ -260,20 +260,20 @@ test("listing writes preserve operand order across diagnostics", async () => {
   const { shell } = await fixture();
   const events: string[] = [];
   try {
-    const result = await shell.exec("shopt dotglob expand_aliases dotglob", {
+    const result = await shell.exec("shopt dotglob unsupported_option dotglob", {
       stdout: { async write(bytes) { events.push("out:" + new TextDecoder().decode(bytes)); } },
       stderr: { async write(bytes) { events.push("err:" + new TextDecoder().decode(bytes)); } },
     });
     assert.equal(result.exitCode, 1);
-    assert.deepEqual(events, ["out:" + line(false), "err:" + unsupported("expand_aliases"), "out:" + line(false)]);
+    assert.deepEqual(events, ["out:" + line(false), "err:" + unsupported("unsupported_option"), "out:" + line(false)]);
   } finally { await shell.dispose(); }
 });
 
-for (const names of ["dotglob expand_aliases", "expand_aliases dotglob"]) test(`mutation is observable at the invalid operand: ${names}`, async () => {
+for (const names of ["dotglob unsupported_option", "unsupported_option dotglob"]) test(`mutation is observable at the invalid operand: ${names}`, async () => {
   const { shell } = await fixture();
   const states: number[] = [];
   shell.use(async (context, next) => {
-    if (context.command === "shopt" && context.args.includes("expand_aliases")) {
+    if (context.command === "shopt" && context.args.includes("unsupported_option")) {
       Object.assign(context, { stderr: { async write() { states.push((await (context as ShellCommandContext).invoke("shopt", ["-q", "dotglob"])).exitCode); } } });
     }
     return next();
@@ -291,9 +291,9 @@ test("diagnostic write failure stops operands under existing mapped status", asy
   const observed: unknown[] = [];
   let calls = 0;
   try {
-    const result = await shell.exec("shopt -s expand_aliases dotglob; printf '%s\\n' \"$?\"; shopt -p", { stderr: { async write() { calls++; throw reason; } }, onInternalError(error) { observed.push(error); } });
+    const result = await shell.exec("shopt -s unsupported_option dotglob; printf '%s\\n' \"$?\"; shopt -p", { stderr: { async write() { calls++; throw reason; } }, onInternalError(error) { observed.push(error); } });
     assert.equal(result.stdout, "1\n" + line(false, true) + globstarLine(true));
-    assert.equal(result.stderr, unsupported("expand_aliases") + "shell: line 1: internal error\n");
+    assert.equal(result.stderr, unsupported("unsupported_option") + "shell: line 1: internal error\n");
     assert.equal(observed.length, 2);
     for (const error of observed) assert.equal(error, reason);
     assert.equal(calls, 2);

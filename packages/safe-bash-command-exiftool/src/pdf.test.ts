@@ -198,3 +198,16 @@ test("PDF system extension is detected independently of the operand suffix", asy
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, `pdf\n${bytes.length}\n`);
 });
+
+test("PDF JSON retains text tag types", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/text.pdf", createTwoPagePdfBytes());
+  const values = {Title:"1984", Author:"true", Subject:"null", Creator:"123", Producer:"false"};
+  const write = await invoke([...Object.entries(values).map(([name,value]) => "-" + name + "=" + value), "-overwrite_original", "text.pdf"], fs);
+  assert.equal(write.exitCode, 0, write.stderr);
+  const read = await invoke(["-j", "text.pdf"], fs);
+  assert.equal(read.exitCode, 0, read.stderr);
+  const tags = JSON.parse(read.stdout)[0];
+  for (const [name,value] of Object.entries(values)) assert.equal(tags[name], value);
+  assert.equal(tags.PageCount, 2);
+});

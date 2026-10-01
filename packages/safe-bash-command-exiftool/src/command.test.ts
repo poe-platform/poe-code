@@ -256,7 +256,7 @@ test("command uses native duplicate winner, -a, -s3, -b, JSON and JSONQ", async 
   assert.equal((await invoke(["-s3", "-Title", "image.png"], fs)).stdout, "1e999\n");
   assert.equal((await invoke(["-a", "-s3", "-Title", "image.png"], fs)).stdout, "first\n1e999\n");
   assert.equal((await invoke(["-b", "-Title", "image.png"], fs)).stdout, "1e999");
-  assert.equal((await invoke(["-j", "-Title", "image.png"], fs)).stdout, '[{\n  "SourceFile": "image.png",\n  "Title": 1e999\n}]\n');
+  assert.equal((await invoke(["-j", "-Title", "image.png"], fs)).stdout, '[{\n  "SourceFile": "image.png",\n  "Title": "1e999"\n}]\n');
   assert.equal((await invoke(["-j", "-api", "StructFormat=JSONQ", "-Title", "image.png"], fs)).stdout, '[{\n  "SourceFile": "image.png",\n  "Title": "1e999"\n}]\n');
 });
 
@@ -522,7 +522,7 @@ test("JSON -G4 exposes duplicate instances without colliding output tokens", asy
   const fs = createMemoryFileSystem(); await fs.writeFile("/a.png", fixture("first", "second", "1e999"));
   const result = await invoke(["-j", "-G4", "-Title", "-Title", "a.png"], fs);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, '[{\n  "SourceFile": "a.png",\n  "Copy1:Title": "first",\n  "Copy2:Title": "second",\n  ":Title": 1e999\n}]\n');
+  assert.equal(result.stdout, '[{\n  "SourceFile": "a.png",\n  "Copy1:Title": "first",\n  "Copy2:Title": "second",\n  ":Title": "1e999"\n}]\n');
   const missing = await invoke(["-j", "-G4", "-f", "-MissingTag", "a.png"], fs);
   assert.equal(missing.stdout, '[{\n  "SourceFile": "a.png",\n  ":MissingTag": "-"\n}]\n');
 });
@@ -562,7 +562,7 @@ test("stdin extraction owns reused byte fragments and never accesses the VFS", a
   })();
   const result = await invoke(["-j", "-Title", "-"], fs, new AbortController().signal, undefined, undefined, stdin);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, '[{\n  "SourceFile": "-",\n  "Title": 1e999\n}]\n');
+  assert.equal(result.stdout, '[{\n  "SourceFile": "-",\n  "Title": "1e999"\n}]\n');
   assert.equal(finalized, true);
 });
 
@@ -718,12 +718,12 @@ test("JPEG reads, EXIF writes, replacement and deletion preserve image segments"
   for (const args of [["img.jpg"], ["-j", "img.jpg"]]) assert.equal((await invoke(args, fs)).exitCode, 0);
   const dimensions = await invoke(["-s3", "-ImageWidth", "-ImageHeight", "img.jpg"], fs);
   assert.equal(dimensions.stdout, "64\n32\n");
-  for (const artist of ["Bob", "Alice"]) {
+  for (const artist of ["Bob", "true"]) {
     const write = await invoke(["-Artist=" + artist, "-Copyright=2026", "-overwrite_original", "img.jpg"], fs);
     assert.equal(write.exitCode, 0, write.stderr);
     const read = await invoke(["-j", "img.jpg"], fs);
     assert.equal(JSON.parse(read.stdout)[0].Artist, artist);
-    assert.equal(String(JSON.parse(read.stdout)[0].Copyright), "2026");
+    assert.equal(JSON.parse(read.stdout)[0].Copyright, "2026");
   }
   const clear = await invoke(["-all=", "-overwrite_original", "img.jpg"], fs);
   assert.equal(clear.exitCode, 0, clear.stderr);
@@ -807,4 +807,28 @@ test("system tag XML uses System and File namespaces", async () => {
   assert.ok(result.stdout.includes("<System:FileName>image.png</System:FileName>"));
   assert.ok(result.stdout.includes("xmlns:System='http://ns.exiftool.org/File/System/1.0/'"));
   assert.ok(result.stdout.includes("<File:FileTypeExtension>png</File:FileTypeExtension>"));
+});
+
+test("JSON keeps numeric and boolean-looking PNG text as strings", async () => {
+  const fs = createMemoryFileSystem();
+  for (const value of ["1984", "true", "false", "null"]) {
+    await fs.writeFile("/text.png", fixture(value));
+    const result = await invoke(["-j", "text.png"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const tags = JSON.parse(result.stdout)[0];
+    assert.equal(tags.Title, value);
+    assert.equal(typeof tags.ImageWidth, "number");
+  }
+});
+
+test("CLI writes every admitted standard JPEG tag", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/tags.jpg", new Uint8Array([255,216,255,217]));
+  const values = { ImageDescription: "1984", Make: "true", Model: "123", Software: "false", ModifyDate: "2026:09:26 12:00:00", Orientation: "6", UserComment: "null", DateTimeOriginal: "2020:01:02 03:04:05", CreateDate: "2021:02:03 04:05:06" };
+  const write = await invoke([...Object.entries(values).map(([name,value]) => "-" + name + "=" + value), "-overwrite_original", "tags.jpg"], fs);
+  assert.equal(write.exitCode, 0, write.stderr);
+  const read = await invoke(["-j", "-n", "tags.jpg"], fs);
+  assert.equal(read.exitCode, 0, read.stderr);
+  const tags = JSON.parse(read.stdout)[0];
+  for (const [name,value] of Object.entries(values)) assert.equal(tags[name], name === "Orientation" ? 6 : value, name);
 });

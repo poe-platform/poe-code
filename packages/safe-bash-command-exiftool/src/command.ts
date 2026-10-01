@@ -13,7 +13,7 @@ import { inspectPdf, editPdf, pdfWriteTags } from "./pdf.js";
 import { Publication } from "./publication.js";
 import { Resources, ResourceLimitError, type ResourceLimits } from "./resources.js";
 import { encodeJsonScalar, printable } from "./scalar.js";
-import { exiftoolRegistry } from "./registry.js";
+import { exiftoolRegistry, stringMetadataTags } from "./registry.js";
 import { isNumericShift } from "./shifts.js";
 import { CsvTable } from "./csv.js";
 import { expandArgfiles } from "./argfiles.js";
@@ -248,7 +248,7 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
               if (tokens.has(token)) continue;
               tokens.add(token);
               resources.admit("work", tag.value.length * 4);
-              entries.push("  " + token + ": " + encodeJsonScalar(tag.value, scalarOptions));
+              entries.push("  " + token + ": " + encodeJsonScalar(tag.value, { ...scalarOptions, quoteScalars: invocation.quoteScalars || stringMetadataTags.has(tag.name) }));
             }
             if (invocation.missing) for (const name of invocation.tags) {
               if (present.has(name)) continue;
@@ -433,7 +433,7 @@ export function evalSyncExiftool(
           const token = encodeJsonScalar(name, { ...scalarOptions, quoteScalars: true });
           if (tokens.has(token)) continue;
           tokens.add(token);
-          entries.push("  " + token + ": " + encodeJsonScalar(tag.value, scalarOptions));
+          entries.push("  " + token + ": " + encodeJsonScalar(tag.value, { ...scalarOptions, quoteScalars: invocation.quoteScalars || stringMetadataTags.has(tag.name) }));
         }
         if (invocation.missing) {
           for (const name of invocation.tags) {

@@ -147,6 +147,17 @@ test("xxd seeks beyond EOF successfully and resets zero columns", async () => {
  assert.equal(before.stderr, "xxd: Sorry, cannot seek.\n");
 });
 
+test("xxd rejects a seek beyond stdin EOF", async () => {
+  for (const operands of [[], ["-"]]) {
+    const result = await run(["-s", "1", ...operands], createMemoryFileSystem());
+    assert.deepEqual(result, {
+      exitCode: 4,
+      stdout: "",
+      stderr: "xxd: Sorry, cannot seek.\n",
+    });
+  }
+});
+
 test("xxd zero columns selects the display mode default", async () => {
   const input = new Uint8Array([65, 66, 67]);
   for (const mode of [["-i"], ["-b"]]) {

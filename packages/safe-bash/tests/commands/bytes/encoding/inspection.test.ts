@@ -104,7 +104,12 @@ test("xxd: skip, count, displayed offsets", async () => {
   assert.equal((await run("xxd", ["-s0x2", "-l2", "-g0", "-c2", "-o010"], "abcdef")).stdout, "0000000a: 6364  cd\n");
   assert.equal((await run("xxd", ["-d", "-s2", "-l1", "-c1"], "abc")).stdout, "00000002: 63  c\n");
   assert.equal((await run("xxd", ["-l0"], "abc")).stdout, "");
-  assert.equal((await run("xxd", ["-s4"], "abc")).exitCode, 1);
+  for (const args of [["-s4"], ["-s4", "-"]]) {
+    const result = await run("xxd", args, "abc");
+    assert.equal(result.exitCode, 4);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "xxd: Sorry, cannot seek.\n");
+  }
 });
 
 test("xxd: issue 420 native reverse lexical inputs across chunk boundaries", async () => {

@@ -243,7 +243,7 @@ async function* sources(context: CommandContext, operands: readonly string[], ma
   }
 }
 
-async function* range(source: ByteSource, skip: number, count: number): ByteSource {
+async function* range(source: ByteSource, skip: number, count: number, seekable: boolean): ByteSource {
   if (!skip && !count) return;
   for await (const chunk of source) {
     const skipped = Math.min(skip, chunk.length);
@@ -255,6 +255,7 @@ async function* range(source: ByteSource, skip: number, count: number): ByteSour
     }
     if (!skip && !count) return;
   }
+  if (skip && !seekable) throw new SeekError("Sorry, cannot seek.");
 }
 
 async function* rows(source: ByteSource, width: number): ByteSource {
@@ -561,7 +562,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       if (skip < 0) throw new SeekError("Sorry, cannot seek.");
     }
     let offset = addOffset(skip, displacement);
-    const source = range(input, skip, count);
+    const source = range(input, skip, count, files.length > 0 && files[0] !== "-");
     let any = false;
     let includeLength = 0;
     let includeRow = "";

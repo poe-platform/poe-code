@@ -323,13 +323,13 @@ test("23. return inside subshells (...) and command substitutions $(...) within 
     "  (return 5; echo unreachable_sub)",
     "  echo \"sub:$?\"",
     "  local out",
-    "  out=\$(echo captured; return 7; echo unreachable_cmdsub)",
-    "  echo \"cmdsub:\$out:\$?\"",
-    "  (trap 'echo sub_trap:\$?' EXIT; return 9)",
-    "  echo \"trap_after:\$?\"",
+    "  out=$(echo captured; return 7; echo unreachable_cmdsub)",
+    "  echo \"cmdsub:$out:$?\"",
+    "  (trap 'echo sub_trap:$?' EXIT; return 9)",
+    "  echo \"trap_after:$?\"",
     "}",
     "f",
-    "echo \"final:\$?\"",
+    "echo \"final:$?\"",
   ].join("\n"));
   assert.equal(result.exitCode, 0);
   assert.equal(result.stderr, "");
@@ -340,11 +340,11 @@ test("24. case fallthrough (;& and ;;&) into an empty clause resets case exit st
   const env = createTestShell();
   const result = await env.shell.exec([
     "case a in a) false ;& b) ;; esac",
-    "echo \"s1:\$?\"",
+    "echo \"s1:$?\"",
     "case a in a) false ;;& *) ;; esac",
-    "echo \"s2:\$?\"",
+    "echo \"s2:$?\"",
     "case a in a) false ;;& b) ;; esac",
-    "echo \"s3:\$?\"",
+    "echo \"s3:$?\"",
   ].join("\n"));
   assert.equal(result.exitCode, 0);
   assert.equal(result.stderr, "");

@@ -5,6 +5,12 @@ import { setup } from "./helpers.js";
 import { basicCommands } from "../../src/commands/basic.js";
 
 const scripts = [
+  'arr=(); for i in 1 2 3; do arr+=("$i"); done; echo "${arr[@]}"',
+  'arr=(); for ((i=0;i<3;i++)); do arr+=("$i"); done; echo "${arr[@]}"',
+  'arr=(zero); for i in 1 2; do arr[$((i+1))]="v$i"; done; echo "${arr[@]}"',
+  'arr=(zero); for ((i=0;i<3;i++)); do arr[$((i+1))]="v$i"; done; echo "${arr[@]}"',
+  'readonly -a arr=(zero); for i in 1 2; do arr+=("$i"); done',
+  'readonly -a arr=(zero); for ((i=0;i<3;i++)); do arr+=("$i"); done',
   ...['$arr', '${arr}', '${#arr}', '${arr:-fb}', '${arr^}', '${arr#h}', '${arr/h/H}', '${arr:0:2}'].flatMap(value => [
     `arr=(hello world); for i in 1 2; do echo "${value}" b; done`,
     `arr=(hello world); for i in 1 2; do printf '%s\\n' "${value}"; done`,

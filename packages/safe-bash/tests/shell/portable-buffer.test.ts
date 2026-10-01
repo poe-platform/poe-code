@@ -15,6 +15,19 @@ test("standalone shell installs Buffer before evaluating runtime modules", async
     const result = await shell.exec('printf -v x "%04d" 7', { limits: { maxExpansionBytes: 4096 } });
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
+    for (const maxExpansionBytes of [4096, Infinity]) {
+      const arrays = await shell.exec([
+        'arr=(); arr+=("hello")',
+        'declare -A map; map["k"]="world"',
+        'echo "arr=${arr[0]}" "map=${map[k]}"',
+        'for i in 1 2 3; do arr+=("é$i"); done',
+        'for ((i=0;i<3;i++)); do map["k$i"]="🌍$i"; done',
+        'echo "${arr[@]}" "${map[k0]}" "${map[k1]}" "${map[k2]}"',
+      ].join("\n"), { limits: { maxExpansionBytes } });
+      assert.equal(arrays.stdout, "arr=hello map=world\nhello é1 é2 é3 🌍0 🌍1 🌍2\n");
+      assert.equal(arrays.stderr, "");
+      assert.equal(arrays.exitCode, 0);
+    }
   } finally { await shell.dispose(); }
 
   assert.ok(portable.from("abc") instanceof Uint8Array);

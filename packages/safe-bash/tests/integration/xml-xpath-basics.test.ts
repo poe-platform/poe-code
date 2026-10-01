@@ -34,7 +34,7 @@ for (const args of ['-', '/input', '-- /input']) test(`flagless xmllint ${args}`
   } finally { await shell.dispose(); }
 });
 
-for (const query of ['//item |', '//item[]', '//item[last(1)]', '//item[@id=]', '//item[position()=0]']) {
+for (const query of ['//item |', '//item[]', '//item[last(1)]', '//item[@id=]']) {
   test(`XPath rejects malformed query: ${query}`, async () => {
     const shell = new Shell({ fs: createMemoryFileSystem() }).use(xmlCommands());
     try {
@@ -67,5 +67,16 @@ test("xmllint --xpath serializes the document root node for /., //., and /r/..",
     assert.equal((await shell.exec("xmllint --xpath \"/.\" -", { stdin: input })).stdout, docOut);
     assert.equal((await shell.exec("xmllint --xpath \"/r/..\" -", { stdin: input })).stdout, docOut);
     assert.equal((await shell.exec("xmllint --xpath \"//.\" -", { stdin: input })).stdout, docOut + "<r><a>1</a></r>\n<a>1</a>\n1\n");
+  } finally { await shell.dispose(); }
+});
+
+
+test("XPath zero position is a valid predicate with an empty result", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(xmlCommands());
+  try {
+    const result = await shell.exec('xmllint --xpath "//item[position()=0]" -', { stdin: Buffer.from(xml) });
+    assert.equal(result.exitCode, 11);
+    assert.equal(result.stdout, "");
+    assert.ok(result.stderr.includes("empty"));
   } finally { await shell.dispose(); }
 });

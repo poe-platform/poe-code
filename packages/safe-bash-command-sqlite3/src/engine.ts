@@ -4487,7 +4487,7 @@ export class SqliteDatabase {
     }
 
     // Build projection rows + augmented sort contexts
-    const projected: {
+    let projected: {
       values: SqlValue[];
       ctx: Record<string, SqlValue>;
       group: Record<string, SqlValue>[];
@@ -4505,6 +4505,33 @@ export class SqliteDatabase {
       }, this);
       return { values, ctx: repCtx, group: g.group };
     }, this);
+
+    // Match SQLite's first window traversal when no outer ordering overrides it.
+    // Keep the original indices above so independent windows retain their values.
+    const firstWindow = windowResults.keys().next().value;
+    if (!orderByTokens?.length && firstWindow?.kind === "func" && firstWindow.over) {
+      const sortSpecs = [
+        ...firstWindow.over.partitionBy.map((expr) => ({ expr, desc: false })),
+        ...firstWindow.over.orderBy
+      ];
+      if (sortSpecs.length > 0) {
+        const keyed = yield* stepMap(projected, function* (row) {
+          const keys = yield* stepMap(sortSpecs, function* (spec) {
+            return yield* this.evalExprSteps(spec.expr, row.ctx, positionalParams, cteScope, { group: row.group });
+          }, this);
+          return { row, keys };
+        }, this);
+        yield* stepSort(keyed, function* (a, b) {
+          for (let i = 0; i < sortSpecs.length; i++) {
+            yield;
+            const cmp = compareSqlValues(a.keys[i]!, b.keys[i]!);
+            if (cmp !== 0) return sortSpecs[i]!.desc ? -cmp : cmp;
+          }
+          return 0;
+        }, this);
+        projected = yield* stepMap(keyed, function* (entry) { yield; return entry.row; }, this);
+      }
+    }
 
     // 4. Deduplicate if SELECT DISTINCT
     let finalProjected = projected;

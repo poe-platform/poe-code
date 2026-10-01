@@ -12,6 +12,8 @@ Run interactive or scripted SQLite 3 workloads inside @poe-platform/safe-bash wi
 - **Dot-Commands** — `.mode`, `.headers`, `.separator`, `.nullvalue`, `.tables`, `.schema`, `.dump`, `.import`, `.output`, `.once`, `.read`, `.databases`, `.indexes`, `.parameter`, `.backup`, `.restore`. Switching to `.mode list` restores pipe-separated columns and LF rows; `.separator` overrides list, tabs, ASCII, and CSV output. `.tables PATTERN` uses SQL LIKE matching: `%` matches any sequence and `_` matches one character; punctuation is literal. Imports into existing tables apply column affinity, including REAL, FLOAT, and DOUBLE storage types.
 - **Full SQL Engine** — DDL (`CREATE/ALTER/DROP`), DML (`INSERT ... ON CONFLICT`, `RETURNING`), Joins, Recursive CTEs, Window Functions, `json_each` / `json_tree`, and `PRAGMA` introspection
 
+Without an outer `ORDER BY`, window queries follow the first projected window's partition and sort keys, matching the pinned SQLite 3.43.2 traversal. Use an outer `ORDER BY` whenever your application requires a guaranteed result order.
+
 ## Quick Start
 
 ```ts

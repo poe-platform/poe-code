@@ -1,7 +1,7 @@
 import type { CommandContext } from '../../contracts/index.js';
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from '../llm/service.js';
 import type { LlmOption, LlmInputSource } from '../llm/types.js';
-import { selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
+import { loadLlmStoredSchema, selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
 import { sniffMimeType } from '../llm/mime.js';
 import { pathOf } from '../internal.js';
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
@@ -291,6 +291,17 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       signal.throwIfAborted();
       const operation = record(value);
       const payload = record(operation.payload ?? {});
+      if (operation.operation === 'load_schema') {
+        const id = payload.schema_id;
+        if (typeof id !== 'string' || !id || id.includes('\0')) throw new TypeError('Stored schema ID must be a nonempty string');
+        let admitted = 0;
+        const result = await loadLlmStoredSchema(configurationContext(context,payload,signal),id,{
+          maxBytes:Math.min(bufferedLimit,context.inputBudget?.maxBytes ?? Infinity),
+          admitBytes(size) { admitted += size; context.inputBudget?.check(admitted); },
+        }) ?? null;
+        jsonBytes(result as PythonHostValue,bufferedLimit);
+        return result as PythonHostValue;
+      }
       if (operation.operation === 'select_model') {
         const queries = payload.queries;
         if (!Array.isArray(queries) || !queries.length || queries.some(query => typeof query !== 'string')) throw new TypeError('Model queries must be a nonempty array of strings');

@@ -392,6 +392,13 @@ class Client:
         payload = {**_configuration_context(), "queries": list(queries)}
         return await self._run(lambda: self._bridge.call("select_model", payload), self._timeout)
 
+    async def load_schema(self, schema_id: str) -> dict | None:
+        if not isinstance(schema_id, str) or not schema_id or "\\0" in schema_id:
+            raise TypeError("Stored schema ID must be a nonempty string")
+        payload = {**_configuration_context(), "schema_id": schema_id}
+        value = await self._run(lambda: self._bridge.call("load_schema", payload), self._timeout)
+        return copy.deepcopy(value)
+
     async def models(self):
         values = await self._run(lambda: self._bridge.call("models", _configuration_context()), self._timeout)
         return tuple(Model(id=value["id"], aliases=tuple(value.get("aliases", ())),

@@ -86,6 +86,14 @@ All queries must match; the shortest matching model ID wins, with catalog order
 breaking ties. No match raises an error. Selection inherits the client timeout,
 current configuration directory and host response budget without calling a provider.
 
+Use `schema = await client.load_schema("saved-schema-id")` to read a stored schema
+from the shared canonical `logs.db`, then pass it to `complete(..., schema=schema)`.
+A missing ID returns `None`. Lookup uses the current guest configuration directory,
+client timeout, and host input/response budgets. The database must be a checkpointed
+SQLite snapshot: active WAL or rollback journals are explicitly rejected. The
+selected schema is returned as an owned dictionary; this operation does not write
+schemas or create a missing database.
+
 Paths refer to the caller's canonical agent filesystem. Python sends attachment
 paths, rather than copying attachment contents into the request. JavaScript owns
 reading, authorization and provider transport. Binary results are `response.data`;
@@ -157,7 +165,7 @@ with its own cleanup scope and the same borrowed bridge.
 | Attachments | `Attachment(path, mime_type)` | Lease canonical files, resolve relative paths from current Python cwd and stream bounded input chunks; infer MIME from a bounded prefix |
 | Text and binary responses | `Response`, incremental `Stream` events | Return text/bytes and final response records |
 | Usage and metadata | `Response` and `Embeddings` fields | Supply available provider metadata |
-| Structured output | `schema`, `Response.json()` | Validate and send schema through the shared service |
+| Structured output | `schema`, `load_schema(schema_id)`, `Response.json()` | Validate and send schema through the shared service |
 | Templates | `template`, `parameters`, Python prompt functions | Load named templates from canonical shared configuration; reuse Bash interpolation, defaults, options and attachments |
 | Conversations | `Conversation`, prior messages | Python orchestrates message history; persisted conversation IDs are explicitly rejected until shared-service support is delivered |
 | Embeddings | `embed()`, `Embeddings` | Use the shared embedding operation; reject unsupported providers |

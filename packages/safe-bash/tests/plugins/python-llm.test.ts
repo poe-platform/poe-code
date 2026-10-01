@@ -23,6 +23,8 @@ class FakeBridge:
   self.calls.append((operation, payload))
   if self.fail:
    raise LlmError('invalid_option', 'Unsupported temperature')
+  if operation == 'load_schema':
+   return {'type':'object','properties':{'answer':{'type':'string'}}} if payload['schema_id'] == 'saved' else None
   if operation == 'configuration':
    return {'default_model': None, 'aliases': {}, 'model_options': {}}
   if operation == 'select_model':
@@ -44,6 +46,19 @@ class FakeBridge:
   return chunks()
 
 class LibraryTests(unittest.IsolatedAsyncioTestCase):
+ async def test_stored_schema_lookup_is_structured(self):
+  bridge = FakeBridge()
+  async with Client(bridge=bridge) as client:
+   self.assertEqual((await client.load_schema('saved'))['type'], 'object')
+   self.assertEqual(bridge.calls[-1][0], 'load_schema')
+   self.assertEqual(bridge.calls[-1][1]['schema_id'], 'saved')
+   self.assertIsNone(await client.load_schema('absent'))
+   count = len(bridge.calls)
+   for value in [None, 1, '']:
+    with self.assertRaises(TypeError):
+     await client.load_schema(value)
+   self.assertEqual(len(bridge.calls), count)
+
  async def test_model_selection_is_structured_and_validates_queries(self):
   bridge = FakeBridge()
   async with Client(bridge=bridge) as client:
@@ -63,6 +78,7 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
    with patch('os.getcwd', return_value='/guest'), patch.dict(__import__('os').environ, {'HOME':'/guest/home','XDG_CONFIG_HOME':'/guest/xdg','LLM_USER_PATH':'/guest-settings','EXTRA':'synthetic'}, clear=True):
     await client.complete('context')
     await client.models()
+    await client.load_schema('saved')
     await client.select_model('small')
     await client.configuration()
     await client.embed(['one'])

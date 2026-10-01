@@ -1,3 +1,4 @@
+import storedSchemas from '../../../safe-bash-command-llm/src/fixtures/stored-schemas.json' with {type:'json'};
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { createPythonLlmCapability } from '../../src/commands/python/llm-capability.js';
@@ -514,4 +515,18 @@ test('unlimited shell input budget retains the finite remote template default', 
   const result = await capability.call!({operation:'complete',payload:{prompt:'q'}},{signal}) as {text:string};
   assert.equal(typeof result.text,'string');
   assert.throws(() => createPythonLlmCapability({fs,cwd:'/work'},service,{maxRemoteTemplateBytes:Infinity}),/remote template limit/);
+});
+
+test('Python loads canonical stored schemas under host budgets and preserves missing IDs', async () => {
+  const {fs,service} = await fixture();
+  await fs.mkdir('/settings');
+  await fs.writeFile('/settings/logs.db',Buffer.from(storedSchemas.database,'base64'));
+  const context = {fs,cwd:'/work',env:{LLM_USER_PATH:'/settings'}};
+  const capability = createPythonLlmCapability(context,service);
+  assert.deepEqual(await capability.call!({operation:'load_schema',payload:{schema_id:'unicode'}},{signal}),storedSchemas.schemas.unicode);
+  assert.equal(await capability.call!({operation:'load_schema',payload:{schema_id:'absent'}},{signal}),null);
+  await assert.rejects(createPythonLlmCapability(context,service,{maxBufferedResponseBytes:100}).call!({operation:'load_schema',payload:{schema_id:'large'}},{signal}),/byte limit/);
+  await assert.rejects(capability.call!({operation:'load_schema',payload:{schema_id:1}},{signal}),/schema ID/);
+  await fs.writeFile('/settings/logs.db-wal',new Uint8Array([1]));
+  await assert.rejects(capability.call!({operation:'load_schema',payload:{schema_id:'unicode'}},{signal}),/checkpointed/);
 });

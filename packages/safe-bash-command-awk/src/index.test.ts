@@ -66,8 +66,7 @@ test("awk byte options and C locale override UTF-8 matching with cached programs
 });
 
 // Exercise the memory-view reader and synchronous output used by Shell.
-async function runMemoryAwk(args: string[], files: Record<string, string>, env: Record<string, string> = {}) {
-  const fs = createMemoryFileSystem();
+async function runMemoryAwk(args: string[], files: Record<string, string>, env: Record<string, string> = {}, fs = createMemoryFileSystem()) {
   for (const [path, contents] of Object.entries(files)) await fs.writeFile(path, new TextEncoder().encode(contents));
   const values = createCommandArguments(args);
   let stdout = "", stderr = "", reads = 0;
@@ -86,6 +85,42 @@ async function runMemoryAwk(args: string[], files: Record<string, string>, env: 
   assert.ok(reads > 0, "memory-view reader exercised");
   return stdout;
 }
+
+test("awk appends exactly once per invocation, including the first fast execution", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/data.txt", new TextEncoder().encode("a:10:20\nb:30:40\n".repeat(40)));
+  const args = ["-F:", '{ s += $3; c++ } END { print s >> "/append.txt" }', "/data.txt"];
+  for (let invocation = 1; invocation <= 3; invocation++) {
+    assert.equal(await runMemoryAwk(args, {}, {}, fs), "");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/append.txt")), "2400\n".repeat(invocation));
+  }
+});
+
+test("awk repeated identical file bytes observe output, environment and filename spelling", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/data.txt", new TextEncoder().encode("a:10:20\nb:30:40\n".repeat(40)));
+  for (let invocation = 0; invocation < 3; invocation++) {
+    assert.equal(await runMemoryAwk(["-F:", "{ s += $3; c++ } END { print s, c }", "/data.txt"], {}, {}, fs), "2400 80\n");
+  }
+  const program = String.raw`{ s += $3 } END { printf "%s %s %d\n", ENVIRON["MODE"], FILENAME, s }`;
+  for (const [mode, path] of [["prod", "/data.txt"], ["dev", "data.txt"], ["prod", "/data.txt"]]) {
+    assert.equal(await runMemoryAwk(["-F:", program, path!], {}, { MODE: mode! }, fs), `${mode} ${path} 2400\n`);
+  }
+});
+
+test("awk srand without arguments observes the clock on each invocation", async t => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/data.txt", new TextEncoder().encode("a:10:20\n".repeat(80)));
+  let now = 1000;
+  t.mock.method(Date, "now", () => now);
+  const args = ["-F:", String.raw`{ s += $3 } END { srand(); printf "%.9f\n", rand() }`, "/data.txt"];
+  const first = await runMemoryAwk(args, {}, {}, fs);
+  now = 2000;
+  const second = await runMemoryAwk(args, {}, {}, fs);
+  assert.notEqual(first, second);
+  now = 1000;
+  assert.equal(await runMemoryAwk(args, {}, {}, fs), first);
+});
 
 for (const length of [255, 256, 257, 300, 1024]) {
   for (const flags of [[], ["--trace"]]) test(`awk BEGIN reads ${length}-byte memory files with ${flags.join(" ") || "normal execution"}`, async () => {

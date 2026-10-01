@@ -770,7 +770,7 @@ class RealmState {
     this.assertOpen();
     const closure = readGuestCallback(callback, this);
     this.checkCollection(this.pendingCallbacks.size + 1, this.limits.callbacks, "pending callback");
-    const scheduled = this.options.callbackScheduling === "after-prefix";
+    const scheduled = this.options.callbackScheduling === "after-prefix" || this.queuedCallbacks.has(callback as Callback);
     const record: { closure: SandboxClosure; prefixComplete: boolean; promise?: Promise<unknown> } = {
       closure, prefixComplete: false
     };
@@ -1188,7 +1188,7 @@ class RealmState {
       await this.dispose();
     this.assertOpen();
     if (this.active !== undefined) throw new SandboxError("reentry");
-    const scheduled = this.options.callbackScheduling === "after-prefix";
+    const scheduled = this.options.callbackScheduling === "after-prefix" || this.releaseReconciliation !== undefined || this.pendingWork.size > 0;
     if (scheduled && (this.phase.getStore()?.active || [...this.pendingCallbacks].some(record => !record.prefixComplete)))
       throw new SandboxError("reentry");
     const rejectionOwner = scheduled ? this.tracker.startOperation() : undefined;
@@ -1235,14 +1235,14 @@ class RealmState {
     } finally {
       this.tracker.finishOperation(rejectionOwner);
       if (this.active === pending) this.active = undefined;
-      if (scheduled) this.reconcileWhenIdle();
+      if (scheduled || this.releaseReconciliation !== undefined) this.reconcileWhenIdle();
     }
   }
 
   close = (): Promise<void> => {
     this.closed = true;
     this.controller.abort(new Error("SafeJS realm is closed."));
-    if (this.options.callbackScheduling === "after-prefix") {
+    if (this.options.callbackScheduling === "after-prefix" || this.releaseReconciliation !== undefined || this.pendingWork.size > 0) {
       const disposal = this.dispose();
       if (this.phase.getStore()?.active) {
         void disposal.catch(() => undefined);
@@ -1262,7 +1262,7 @@ class RealmState {
     this.closed = true;
     this.controller.abort(new Error("SafeJS realm is closed."));
     this.options.signal?.removeEventListener("abort", this.abort);
-    if (this.options.callbackScheduling === "after-prefix") {
+    if (this.options.callbackScheduling === "after-prefix" || this.releaseReconciliation !== undefined || this.pendingWork.size > 0) {
       this.disposal = Promise.resolve().then(async () => {
         while (this.pendingWork.size > 0) await Promise.allSettled([...this.pendingWork]);
         await this.sourceGraph?.settle();

@@ -5,6 +5,58 @@ import { dump } from "./dump.js";
 import { restore, type SafeJSSnapshot } from "./restore.js";
 import { serializeSafeJSSnapshot } from "./snapshot/dump-format.js";
 import { declareHostOperation } from "./interp/host-bridge.js";
+import { createRealm } from "./core.js";
+
+it.each(["close", "abort", "failure"])("settles per-operation callback lifetime on %s", async action => {
+  let callback!: () => Promise<unknown>;
+  let started!: () => void;
+  const prefix = new Promise<void>(resolve => { started = resolve; });
+  const controller = new AbortController();
+  const realm = createRealm({ signal: controller.signal, bindings: {
+    save: declareHostOperation((value: typeof callback) => { callback = value; }, "read-side-effect", { callbackScheduling: "after-prefix" }),
+    wait: () => { started(); return new Promise(() => {}); }
+  } });
+  await realm.evaluate('save(async () => { await wait(); });');
+  const pending = callback();
+  void pending.catch(() => undefined);
+  await prefix;
+  await new Promise<void>(resolve => setImmediate(resolve));
+  if (action === "abort") controller.abort(new Error("stopped"));
+  if (action === "failure") await expect(realm.evaluate('throw new Error("failed");')).rejects.toThrow("failed");
+  await realm.close();
+  await expect(pending).rejects.toThrow();
+  await expect(callback()).rejects.toThrow();
+});
+
+it("permits evaluation while a per-operation callback awaits its tail", async () => {
+  const callbacks: (() => Promise<unknown>)[] = [];
+  let release!: () => void;
+  let started!: () => void;
+  const prefix = new Promise<void>(resolve => { started = resolve; });
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const realm = createRealm({ bindings: {
+    save: declareHostOperation((value: () => Promise<unknown>) => { callbacks.push(value); }, "read-side-effect", { callbackScheduling: "after-prefix" }),
+    wait: () => { started(); return gate; }
+  } });
+  let pending: Promise<unknown> | undefined;
+  try {
+    expect(await realm.evaluate('let count = 0; save(async () => { count++; await wait(); count++; }); save(() => { count += 2; });')).toMatchObject({ ok: true });
+    pending = callbacks[0]!();
+    void pending.catch(() => undefined);
+    await prefix;
+    // Let the guest callback reach its suspended await boundary.
+    await new Promise<void>(resolve => setImmediate(resolve));
+    await callbacks[1]!();
+    expect(await realm.evaluate('count += 2; return count;')).toMatchObject({ ok: true, returnValue: 5 });
+    release();
+    await pending;
+    expect(await realm.evaluate('return count;')).toMatchObject({ ok: true, returnValue: 6 });
+  } finally {
+    release();
+    await pending?.catch(() => undefined);
+    await realm.close();
+  }
+});
 
 for (const realm of [false, true]) {
   const mode = realm ? { extensions: [] } : {};

@@ -5,6 +5,13 @@ import { yqCommands } from "../../src/commands/yq/index.js";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 
 const cases: readonly [string, string, number?, string?][] = [
+  ['read here string', `read -r x <<< "hello"; printf '%s\\n' "$x"`, 0, 'hello\n'],
+  ['indexed array assignment', `arr=(a b c); printf '%s\\n' "\${arr[1]}"`, 0, 'b\n'],
+  ['numeric brace expansion', `printf '%s\\n' {1..3}`, 0, '1\n2\n3\n'],
+  ['parameter replacement', `x=foobar; printf '%s\\n' "\${x/foo/baz}"`, 0, 'bazbar\n'],
+  ['eval', `eval 'printf "ok\\n"'`, 0, 'ok\n'],
+  ['mapfile here string', `mapfile -t lines <<< $'a\\nb'; printf '%s\\n' "\${lines[1]}"`, 0, 'b\n'],
+  ['trap listing', `trap 'printf bye' EXIT; trap -p`, 0, "trap -- 'printf bye' EXIT\nbye"],
   ['sort month', `printf 'Feb\\nJan\\n' | sort -M`, 0, 'Jan\nFeb\n'],
   ['cut output delimiter', `printf 'a:b:c\\nd:e:f\\n' | cut -d: -f1,3 --output-delimiter=,`, 0, 'a,c\nd,f\n'],
   ['xargs end marker', `printf 'a\\nEND\\nb\\n' | xargs -E END echo`, 0, 'a\n'],

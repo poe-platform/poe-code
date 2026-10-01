@@ -90,7 +90,7 @@ export { createExiftoolCommand, exiftoolCommands, type ExiftoolCommandOptions, c
 export { createSofficeCommand, sofficeCommands, type SofficeCommandOptions, createSofficeCommands, type SofficeCommandsOptions } from "./lazy-optional.js";
 export { createUnrtfCommand, unrtfCommands, type UnrtfCommandOptions, createUnrtfCommands, type UnrtfCommandsOptions } from "./commands/unrtf/index.js";
 export { createWkhtmltopdfCommand, wkhtmltopdfCommands, type WkhtmltopdfCommandOptions, createWkhtmltopdfCommands, type WkhtmltopdfCommandsOptions } from "./lazy-optional.js";
-export { createMmdcCommand, mmdcCommands, type MmdcSettings, createMmdcCommands, type MmdcCommandsOptions } from "./commands/mmdc/index.js";
+export { createMmdcCommand, mmdcCommands, type MmdcSettings, createMmdcCommands, type MmdcCommandsOptions } from "./lazy-mmdc.js";
 export { createDiff3Command, diff3Commands, type Diff3CommandOptions, createDiff3Commands, type Diff3CommandsOptions } from "./commands/diff3/index.js";
 export { fmtCommands, type FmtCommandOptions, type FmtPluginOptions, createFmtCommands, createFmtCommand, type FmtCommandsOptions } from "./commands/fmt/index.js";
 export { createFoldCommand, foldCommands, type FoldCommandOptions, createFoldCommands, type FoldCommandsOptions } from "./commands/fold/index.js";

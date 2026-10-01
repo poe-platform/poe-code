@@ -39,7 +39,7 @@ test("document factories supply usable default engines", async () => {
 import { archiveCommands } from "../../safe-bash/src/commands/archive/index.js";
 import { csplitCommands } from "../../safe-bash/src/commands/csplit/index.js";
 import { applyPatchCommands } from "../../safe-bash/src/commands/apply-patch/index.js";
-import { mmdcCommands } from "../../safe-bash/src/commands/mmdc/index.js";
+import { mmdcCommands } from "../../safe-bash/src/core.js";
 import { wkhtmltopdfCommands } from "../../safe-bash/src/commands/wkhtmltopdf/index.js";
 import { htmlqCommands } from "../../safe-bash/src/commands/htmlq/index.js";
 import { pandocCommands } from "../../safe-bash/src/commands/pandoc/index.js";

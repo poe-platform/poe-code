@@ -75,10 +75,9 @@ test("html-to-markdown help works through the standalone portable factory", asyn
 });
 
 import { Budget } from "./budget.js";
-import { destination } from "./entities.js";
+import { destination, entities } from "./entities.js";
 import { Parser } from "./parser.js";
 import { settings } from "./options.js";
-import type { CommandContext } from "safe-bash-contracts";
 function budget(limits = {}) {
  return new Budget({ signal: new AbortController().signal } as CommandContext, settings({ limits }));
 }
@@ -109,3 +108,14 @@ test("ASCII prefixes respect small token limits without repeated suffix scans", 
  await parser.feed("<br>");
  assert.equal(parser.root.children.filter(node => node.tag === "text").map(node => node.text).join(""), "a".repeat(4094) + "é");
 });
+
+for (const [input, output, work] of [
+ ["plain", "plain", 15],
+ ["abc&amp;", "abc&", 17],
+ ["&amp;abc", "&abc", 20],
+] as const) {
+ test(`entity decoding charges scanning work for ${input}`, async () => {
+  assert.equal(await entities(input, budget({ maxWorkUnits: work })), output);
+  await assert.rejects(entities(input, budget({ maxWorkUnits: work - 1 })), /work limit/);
+ });
+}

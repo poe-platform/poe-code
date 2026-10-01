@@ -11,8 +11,10 @@ const named: Readonly<Record<string, string>> = Object.freeze({
 
 export async function entities(text: string, budget: Budget): Promise<string> {
   if (text.length < 4096 && !text.includes("&")) {
+    budget.work(text.length);
     const result = new Builder(budget);
     result.append(text);
+    { const c = budget.checkpoint(); if (c) await c; }
     return result.finish();
   }
   const result = new Builder(budget);
@@ -20,10 +22,13 @@ export async function entities(text: string, budget: Budget): Promise<string> {
     if (text.length < 4096) {
       const nextAmp = text.indexOf("&", offset);
       if (nextAmp < 0) {
+        budget.work(text.length - offset);
         result.append(text.slice(offset));
+        { const c = budget.checkpoint(); if (c) await c; }
         break;
       }
       if (nextAmp > offset) {
+        budget.work(nextAmp - offset);
         result.append(text.slice(offset, nextAmp));
         offset = nextAmp;
         { const c = budget.checkpoint(); if (c) await c; }

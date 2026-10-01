@@ -14,6 +14,7 @@ const options = {
   module: ts.ModuleKind.NodeNext,
   moduleResolution: ts.ModuleResolutionKind.NodeNext,
   strict: true,
+  types: [],
   noEmit: true,
   skipLibCheck: false
 };

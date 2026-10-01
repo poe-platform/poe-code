@@ -13,8 +13,9 @@ export function stringCheckpoint(work: StringWork, units = 1): Promise<void> | u
   work.signal.throwIfAborted();
   work.remaining -= units;
   if (work.remaining < 0) work.exhausted();
+  const first = work.steps === undefined;
   work.steps = (work.steps ?? 0) + units;
-  if (work.steps < 128) return undefined;
+  if (!first && work.steps < 128) return undefined;
   work.steps %= 128;
   return yieldTurn(work.signal);
 }

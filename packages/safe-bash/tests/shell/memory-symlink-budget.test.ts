@@ -13,7 +13,7 @@ test("provided-device Worker shell bounds cyclic memory symlink expansion", asyn
   assert.deepEqual([created.exitCode, created.stdout, created.stderr], [0, "", ""]);
   assert.equal((await fs.readlink("/l")).length, 196_610);
   const result = await shell.exec("cat /l");
-  assert.deepEqual([result.exitCode, result.stdout, result.stderr], [1, "", "cat: ENAMETOOLONG: name too long, readStream '/l'\n"]);
+  assert.deepEqual([result.exitCode, result.stdout, result.stderr], [1, "", "cat: ELOOP: too many symbolic links encountered, readStream '/l'\n"]);
   assert.equal(await fs.readlink("/l"), `l/${"a/".repeat(98_304)}`);
   assert.equal((await shell.exec("echo healthy")).stdout, "healthy\n");
 });

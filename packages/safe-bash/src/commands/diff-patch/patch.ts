@@ -250,7 +250,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
       || !fs.createStagedFile || !fs.publishStagedFile || !fs.removeStagedFile) {
       throw new ToolError("filesystem does not support race-safe patch publication");
     }
-    await publication.capture(`${context.cwd}/.patch-admission`);
+    await publication.capture(`${context.cwd === "/" ? "" : context.cwd}/.patch-admission`);
     const confined = await host(context, () => fs.confineExtraction!([context.cwd], { signal: context.signal }));
     context = { ...context, fs: new Proxy(fs, {
       get(target, property) {

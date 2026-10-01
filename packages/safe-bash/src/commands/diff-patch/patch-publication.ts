@@ -60,7 +60,7 @@ export class PatchPublication {
       operation = Promise.resolve().then(async () => {
         context.signal.throwIfAborted();
         if (closed) throw new ToolError("patch publication is closed");
-        staging = await context.fs.createStagedFile!(`${dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
+        staging = await context.fs.createStagedFile!(`${dirname(path) === "/" ? "" : dirname(path)}/.patch-${globalThis.crypto.randomUUID()}`, "file", {
           type: "file", data: encodeBytes(text),
         }, { parent, signal: context.signal, ...(mode === undefined ? {} : { mode }),
           ...(mtimeMs === undefined ? {} : { atimeMs: mtimeMs, mtimeMs }) });

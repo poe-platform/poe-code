@@ -6,6 +6,26 @@ import { runInNewContext } from "node:vm";
 import path from "node:path";
 import { readFileSync } from "node:fs";
 
+it("admits every private workspace into the portable build", () => {
+  const root = process.cwd();
+  const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
+  const profiles = manifest.poeCode.integration.privateWorkspaces;
+  const workspaces = Object.keys(profiles).map(name => {
+    const dir = name.split("/").at(-1)!;
+    return { dir, pkg: JSON.parse(readFileSync(path.join(root, "packages", dir, "package.json"), "utf8")) };
+  });
+  const recipe = resolvePrivateCommandBuild(root, profiles, workspaces, { alias: {}, external: [], portable: true });
+  for (const { dir, pkg } of workspaces) {
+    expect(profiles[pkg.name].portable, pkg.name).toBe(true);
+    for (const [route, target] of Object.entries(pkg.exports) as [string, { import: string }][]) {
+      if (Object.hasOwn(profiles[pkg.name].optionalModules ?? {}, route)) continue;
+      expect(recipe.entryPoints, pkg.name + route).toHaveProperty(dir + "/" + target.import.slice(2, -3));
+    }
+  }
+  expect(recipe.conditions).toEqual(["workerd", "worker", "browser"]);
+  expect(recipe.platform).toBe("browser");
+});
+
 it("preserves the portable export surface when canonical owners remain external", async () => {
   const root = process.cwd();
   const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
@@ -17,6 +37,9 @@ it("preserves the portable export surface when canonical owners remain external"
     const surface = Object.fromEntries(Object.entries(result.metafile!.outputs)
       .filter(([filename]) => publicOutputs.has(filename))
       .map(([filename, output]) => [filename, output.exports]));
+    expect(surface["packages/safe-bash/dist/core.browser.js"]).toEqual(expect.arrayContaining([
+      "ssconvertCommands", "createSsconvertCommand", "opCommands", "createOpCommand", "diff3Commands"
+    ]));
     if (external.length) {
       const outputs = new Map(result.outputFiles.map(file => [file.path, file.text]));
       const entry = path.join(options.outdir, "commands/csplit/index.browser.js");

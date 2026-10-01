@@ -47,7 +47,7 @@ const declaredCommands = [
   "tail", "tee", "test", "touch", "tr", "true", "truncate", "uniq", "wc",
 ];
 const declaredNames = definitions.filter(definition => Object.hasOwn(definition, "filesystemRequirements")).map(definition => definition.name).sort();
-if (JSON.stringify(declaredNames) !== JSON.stringify(declaredCommands)) throw new Error("Default browser filesystem requirement declarations changed");
+if (JSON.stringify(declaredNames) !== JSON.stringify(declaredCommands)) throw new Error(`Default browser filesystem requirement declarations changed: ${JSON.stringify(declaredNames)}`);
 for (const definition of definitions.filter(definition => !Object.hasOwn(definition, "filesystemRequirements"))) {
   const support = evaluateCommandSupport(definition, { readOnly: true });
   if (support.declared || support.status !== "partial" || support.modes.length) throw new Error(`Undeclared browser command support became optimistic: ${definition.name}`);

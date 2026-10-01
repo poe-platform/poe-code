@@ -436,7 +436,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   expect(browser.posixPath).toBe(filesystem.posixPath);
   expect(browser.posixPath.join("/a", "..", "b")).toBe("/b");
   const names = browser.createAgentCommands().map(command => command.name).sort();
-  expect(names).toHaveLength(188);
+  expect(names).toHaveLength(189);
   expect(names).toEqual([
     "bc", "cal", "compare", "composite", "convert", "csvclean", "csvcut", "csvformat", "csvgrep", "csvjoin",
     "csvjson", "csvlook", "csvpy", "csvsort", "csvsql", "csvstack", "csvstat", "dd", "df", "diff3", "envsubst",
@@ -450,7 +450,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "cp", "mv", "rm", "rmdir", "ln", "readlink", "realpath", "ls", "cat", "head", "tail",
     "wc", "tee", "tr", "sort", "uniq", "cut", "grep", "test", "[", "env", "xargs", "find",
     "sed", "awk", "jq", "rg", "base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum",
-    "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
+    "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "zstd", "unzstd", "zstdcat", "cmp", "fmt", "shuf", "numfmt", "diff", "patch", "chmod", "install", "stat", "mktemp", "truncate", "tar", "zip", "unzip",
     "paste", "comm", "join", "tac", "expand", "fold", "strings", "seq", "nl", "rev", "unexpand", "split",
     "date", "sleep", "printenv", "tree", "file", "egrep", "fgrep", "column", "html-to-markdown", "du", "expr", "which", "timeout", "apply_patch", "xq", "xmllint", "csplit", "pr", "tsort", "factor", "getopt", "hexdump", "hd", "iconv", "dos2unix", "unix2dos", "mdq",
   ].sort());

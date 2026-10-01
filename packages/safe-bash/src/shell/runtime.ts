@@ -7263,6 +7263,7 @@ export class Runtime {
       return undefined;
     }
     const command = pipeline.commands[0]!;
+    if (command.kind === "simple" && this.hasBuiltinOverride(command.words[0]?.plain)) return undefined;
     if ( (command.kind !== "simple" && command.kind !== "function" && command.kind !== "arithmetic" && command.kind !== "conditional" && command.kind !== "arithmetic-for" && command.kind !== "for" && command.kind !== "while" && command.kind !== "until" && command.kind !== "if" && command.kind !== "case" && command.kind !== "group") || (command.redirects.length > 1 && !(command.kind === "while" && command.redirects.length === 2))) {
       (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
       return undefined;
@@ -8438,6 +8439,7 @@ export class Runtime {
     return finalStatus;
   }
   private executeSyncPipelineBody( pipeline: Pipeline, command: Extract<Command, { kind: "simple" | "function" | "arithmetic" | "conditional" | "arithmetic-for" | "for" | "while" | "until" | "if" | "case" | "group" }>, state: State, io: IO, ignored: boolean, ): number | undefined {
+    if (command.kind === "simple" && this.hasBuiltinOverride(command.words[0]?.plain)) return undefined;
     const scope = io[invocationScope];
     if (scope.hasFailures || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxParseUnits !== Infinity) return undefined;
     // Caller cancellation needs the async loop path. Refuse before redirects
@@ -12538,6 +12540,7 @@ export class Runtime {
         }
         if (this.extractPosixBracketCondExpr(cmd, rawState, true, integerWrites) !== undefined) continue;
         if (cmd.kind !== "simple") return false;
+        if (this.hasBuiltinOverride(cmd.words[0]?.plain)) return false;
         // Nested step execution does not implement redirects; use normal execution.
         if (nested && cmd.redirects.length !== 0) return false;
         if (cmd.words.length === 0) return false;
@@ -16172,7 +16175,7 @@ export class Runtime {
       if (command.words.length === 1) {
         const w0 = command.words[0]!;
         const w0Plain = w0.plain;
-        if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") && !hasShellFunction(state, w0Plain) && !state.extensions?.builtins.has(w0Plain) && !state.externalInvocation) {
+        if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false") && !hasShellFunction(state, w0Plain) && !state.extensions?.builtins.has(w0Plain) && !state.externalInvocation && !this.hasBuiltinOverride(w0Plain)) {
           state.substitutionStatus = 0;
           const rawState = stateMonitor(state)?.raw ?? state;
           if (rawState.variables._ !== undefined) delete rawState.variables._;
@@ -17825,7 +17828,7 @@ export class Runtime {
       await scope.close();
     }
   }
-  async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false): Promise<number> {
+  async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, forceBuiltin = false): Promise<number> {
     if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.extensions?.builtins.has(name) && !bypassFunctions && state.functions.has(name) && this.firstInternalDiscovery(name, state, false) === "function" && !hasActiveExtensions(state) && !guestArrays(state) && !mapfileCallbackStates.has(state) && assignments.size === 0 && !temporaryEnvironment && (values === args || !values.some(value => typeof value !== "string"))) {
       return await this.dispatchFastFunction(name, state.functions.get(name)!, args, state, io);
     }
@@ -17839,7 +17842,7 @@ export class Runtime {
       } else if (name === ":") {
         if (state.profile === "sh" && !bypassFunctions) assignments.clear();
         return 0;
-      } else if (name === "true") return 0; else if (name === "false") return 1; else if (name === "echo" && (args.length === 0 || !args[0]!.startsWith("-"))) {
+      } else if (name === "true" && (forceBuiltin || !this.hasBuiltinOverride(name))) return 0; else if (name === "false" && (forceBuiltin || !this.hasBuiltinOverride(name))) return 1; else if (name === "echo" && (args.length === 0 || !args[0]!.startsWith("-"))) {
         const def = this.commands.get("echo");
         if (def && defaultEchoExecutors.has(def.execute)) {
           const text = args.length === 0 ? "\n" : args.length === 1 ? `${args[0]!}\n` : `${args.join(" ")}\n`;
@@ -17908,10 +17911,10 @@ export class Runtime {
     const runtime = fastInline
       ? this
       : new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, combineManagedSignals(this.signal, scope.signal), this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
-    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath, !fastInline || this._isMemoryBackingFs); }
+    try { return await runtime.dispatchScoped(name, values, state, { ...io, [invocationScope]: scope }, assignments, bypassFunctions, temporaryEnvironment, defaultPath, !fastInline || this._isMemoryBackingFs, forceBuiltin); }
     finally { await scope.close(); }
   }
-  private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, signalIsScoped = false): Promise<number> {
+  private async dispatchScoped(nameValue: ShellValue, values: readonly ShellValue[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions: boolean, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, signalIsScoped = false, forceBuiltin = false): Promise<number> {
     const { [invocationScope]: scope, [valueScope]: ignoredValueScope, [declarationArrays]: ignoredDeclarationArrays, argumentValues: ignoredArgumentValues, ...publicIO } = io as IO & { argumentValues?: unknown };
     const allocation = this.budget.values.scope();
     try {
@@ -18217,7 +18220,7 @@ export class Runtime {
           state.lastArgument = context.args.at(-1) ?? context.command;
           return outcome.value;
         }
-        if (selectedKind === "builtin" && !(state.externalInvocation && this.commands.has(context.command))) {
+        if (selectedKind === "builtin" && (forceBuiltin || !this.hasBuiltinOverride(context.command)) && !(state.externalInvocation && this.commands.has(context.command))) {
           ensureRuntimeContext();
           const extensionBuiltin = state.extensions?.builtins.get(context.command);
           const special = state.profile === "sh" && !bypassFunctions && (specialBuiltinNames.has(context.command) || !!extensionBuiltin?.special);
@@ -18371,6 +18374,11 @@ export class Runtime {
     }
     return undefined;
   }
+  private hasBuiltinOverride(name: string | undefined): boolean {
+    if (name !== "true" && name !== "false" && name !== "pwd") return false;
+    const definition = this.commands.get(name);
+    return definition !== undefined && customRegisteredCommands.has(definition.execute);
+  }
   firstInternalDiscovery(name: string, state: State, bypassFunctions = false): Discovery["kind"] | undefined {
     const isBuiltin = implementedBuiltins.has(name) || Boolean(state.extensions?.builtins.has(name));
     if (isBuiltin && state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) return "builtin";
@@ -18422,7 +18430,7 @@ export class Runtime {
       const restoration = stateMonitor(state)?.restoration(true);
       try { state.depth++; }
       catch (error) { restoration?.close(); throw error; }
-      try { return await this.dispatch(targetValue, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, command && (defaultPath || inheritedDefaultPath)); }
+      try { return await this.dispatch(targetValue, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, command && (defaultPath || inheritedDefaultPath), builtin); }
       finally {
         const restore = () => { state.depth--; };
         if (restoration) restoration.apply(restore);
@@ -31198,7 +31206,7 @@ export class Runtime {
         return disc.text;
       }
     }
-    if (w0Plain === "pwd" && (cmd.words.length === 1 || (cmd.words.length === 2 && (cmd.words[1]?.plain === "-L" || cmd.words[1]?.plain === "--logical"))) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd")) {
+    if (w0Plain === "pwd" && (cmd.words.length === 1 || (cmd.words.length === 2 && (cmd.words[1]?.plain === "-L" || cmd.words[1]?.plain === "--logical"))) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd") && !this.hasBuiltinOverride("pwd")) {
       let res = rawState.cwd;
       while (res.endsWith("\n")) res = res.slice(0, -1);
       const byteLength = shellValueByteLength(res) + 1;

@@ -133,6 +133,8 @@ regression; LLM uses a synthetic provider, without external model calls.
 
 All private command plugins are available from `@poe-platform/safe-bash/core` in portable browser and workerd environments. Each command exposes its plugin, `create<Name>Commands`, `create<Name>Command`, `<Name>CommandsOptions`, and `<Name>Limits`; factories construct commands without registering them. Standalone `sed`, `awk`, `find`, `diff`, `patch`, `tar`, `zip`, `unzip`, `gzip`, `curl`, and `wget` imports use `@poe-platform/safe-bash/commands/<name>`. Standalone network factories deny requests unless an `authorize` callback permits them.
 
+Chain `.use(plugin).register(command, { replace: true })` to replace a plugin command. Registration waits for pending plugin setup in call order; setup and queued registration errors surface through `exec()`. Replacements for `true`, `false`, and `pwd` also apply to shell calls; `builtin <name>` explicitly runs the shell builtin.
+
 ### Shell syntax
 
 - Quoting and escapes, variables and positional arguments (including

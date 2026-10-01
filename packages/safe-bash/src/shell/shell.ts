@@ -461,7 +461,12 @@ export class Shell implements PluginHost {
     this.#clearWarmedInvocation();
     this.#hasCustomCommands = true;
     if (command && typeof command.execute === "function") customRegisteredCommands.add(command.execute);
-    this.commands.register(command, options);
+    if (isSyncResolved(this.#ready)) this.commands.register(command, options);
+    else {
+      const nextReady = this.#ready.then(() => { this.commands.register(command, options); });
+      this.#ready = nextReady;
+      void nextReady.then(() => { Object.defineProperty(nextReady, Symbol.for("safe-bash.syncResolved"), { value: true }); }, () => undefined);
+    }
     return this;
   }
 

@@ -766,6 +766,7 @@ function assertSource7Discovery(files) {
     "tests/commands/stream-inspection/integration.test.ts",
     "tests/contracts/runtime-identity.test.ts",
     "tests/plugins/agent-commands.test.ts",
+    "tests/shell/registration.test.ts",
     "tests/plugins/htmlq-boundaries.test.ts",
     "tests/plugins/mdq.test.ts",
     "tests/stress/root-exports.test.ts",

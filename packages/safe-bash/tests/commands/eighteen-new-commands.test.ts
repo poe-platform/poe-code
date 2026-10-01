@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryFileSystem, Shell, agentCommands, yesCommands } from "../../src/index.js";
+import { createMemoryFileSystem, Shell, agentCommands } from "../../src/index.js";
 
 test("Shell executes all 18 new commands end-to-end over VFS", async t => {
-  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands()).use(yesCommands());
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands({ muscleMemory: true }));
   t.after(() => shell.dispose());
 
   // 1. Identity & platform shims (mentioning Sandbox and VFS-ish/GNU)
@@ -70,10 +70,11 @@ test("Shell executes all 18 new commands end-to-end over VFS", async t => {
 });
 
 
-test("sqlite3 64-bit bigint, REAL affinity formatting, index B-tree persistence, ncal, and Cloudflare injectable engine", async () => {
+test("sqlite3 64-bit bigint, REAL affinity formatting, index B-tree persistence, ncal, and Cloudflare injectable engine", async t => {
   const memfs = createMemoryFileSystem();
   await memfs.mkdir("/tmp", { recursive: true });
-  const shell = new Shell({ fs: memfs }).use(agentCommands());
+  const shell = new Shell({ fs: memfs }).use(agentCommands({ muscleMemory: true }));
+  t.after(() => shell.dispose());
 
   const createRes = await shell.exec(`
     sqlite3 /tmp/compat.db "
@@ -111,6 +112,7 @@ test("sqlite3 64-bit bigint, REAL affinity formatting, index B-tree persistence,
       }
     })
   );
+  t.after(() => injectedShell.dispose());
   const injRes = await injectedShell.exec(`sqlite3 -json /cf/d1.db "SELECT 42"`);
   assert.equal(injRes.exitCode, 0, injRes.stderr);
   assert.equal(injRes.stdout.trim(), `[{"source":"cloudflare-worker-injected","query":"SELECT 42"}]`);

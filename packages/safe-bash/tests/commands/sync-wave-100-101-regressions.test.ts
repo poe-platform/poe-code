@@ -4,6 +4,7 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { createStandardCommands } from "../../src/commands/index.js";
 import { createStreamFormatCommands } from "../../src/commands/stream-format/index.js";
+import { createTacCommands } from "../../src/commands/tac/index.js";
 import { CommandRegistry } from "../../src/contracts/index.js";
 
 const cases = [
@@ -20,7 +21,7 @@ const cases = [
 for (const [name, body, expected] of cases) {
   for (const loop of ['for w in 1 2', 'for ((w=1;w<=2;w++))', 'w=0; while ((w++<2))']) {
     test(`${name}: ${loop}`, async () => {
-      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands()]) });
+      const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands(), ...createTacCommands()]) });
       try {
         const result = await shell.exec(`v=é; wide=中文; ${loop}; do ${body}; done; printf '%s' "$out"`);
         assert.equal(result.stdout, expected);

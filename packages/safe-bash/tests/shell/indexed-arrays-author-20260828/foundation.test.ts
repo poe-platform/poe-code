@@ -266,8 +266,8 @@ test("private state: whole-state epoch rejects interleaved dotglob snapshot", { 
   assert.deepEqual(scope.failures, []);
 });
 
-test("foundation: staged RHS mutation preserves live effects and refuses stale publication", { timeout: 5000 }, async () => {
-  await output('a=([2]=old); a=(${a:=side}) || printf "stale:"; printf "<%s>" "${a[@]}"', "stale:<side><old>");
+test("foundation: staged RHS mutation publishes after expansion and retains overflow preflight", { timeout: 5000 }, async () => {
+  await output('a=([2]=old); a=(${a:=side}) || printf "stale:"; printf "<%s>" "${a[@]}"', "<side>");
   await output('a=([2147483647]=${side:=bad} "$missing") || printf "overflow:"; printf "%s" "${side-unset}"', "overflow:unset");
 });
 

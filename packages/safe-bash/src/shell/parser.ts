@@ -579,6 +579,7 @@ class Lexer {
     const unprinted = this.unprintedWords;
     const parts: WordPart[] = [];
     let parentheses = 0;
+    let brackets = 0;
     let conditionals = 0;
     let patternParentheses = 0;
     let regexBracket = false;
@@ -628,7 +629,10 @@ class Lexer {
         } else if (current === ")" && patternParentheses > 0) patternParentheses--;
         else if (/[()<>]/u.test(current) || patternParentheses === 0 && (this.source.startsWith("&&", this.position) || this.source.startsWith("||", this.position))) break;
       } else if (terminator) {
-        if (terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0)) break;
+        if (terminator.includes("]") && current === "[") {
+          if (++brackets > this.budget.maxSyntaxDepth) this.error(`Subscript syntax nesting exceeds ${this.budget.maxSyntaxDepth}`);
+        } else if (current === "]" && brackets > 0) brackets--;
+        else if (terminator.includes(current) && (!arithmetic || current !== ":" || parentheses === 0 && conditionals === 0)) break;
       } else if (!this.braceReplay) {
         if (!enclosingQuoted && !literal && current === "(" && (patternParentheses > 0 || (
           this.position > offset

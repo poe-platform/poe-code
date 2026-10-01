@@ -5651,11 +5651,10 @@ export class Runtime {
     const holding = store.owner.hold();
     let staged: IndexedBinding | undefined;
     try {
-      const watch = await store.watch(name, operation, this.signal);
-      const current = store.get(name);
+      let current = store.get(name);
       if (associative !== undefined && current && current.associative !== associative) throw new ArrayFailure("cannot convert array kind");
       const isAssociative = associative ?? current?.associative;
-      const initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
+      let initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
       let selectedIndex: number | undefined;
       let planned: number | null = assignment.append && assignment.kind === "compound" ? initialMaximum + 1 : 0;
       if (assignment.kind === "element") {
@@ -5678,6 +5677,33 @@ export class Runtime {
         }
         await operation.ledger.checkpoint(this.signal, entry.value.parts.length + 2);
       }
+      // Word expansion can mutate this binding. Finish it before taking the
+      // publication snapshot, and choose the append cursor from the new maximum.
+      const expandedEntries: Array<{ entry: import("./arrays/syntax.js").ArrayEntry; fields: ShellValue[] }> = [];
+      let elementFields: ShellValue[] | undefined;
+      if (assignment.kind === "element") {
+        elementFields = await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0);
+      } else for (const entry of assignment.entries) {
+        const original = compoundEntryWords.get(entry);
+        let expandedEntry = false;
+        if (entry.index && original && state.braceexpand !== false && original.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
+          for await (const expanded of expandBraces(original, this.budget, this.signal)) {
+            if (expanded === original) break;
+            expandedEntry = true;
+            const fields = await this.valueWord(expanded, state, io, true, false, false, false, undefined, false, false);
+            operation.reserve({ metadata: 32, slots: 1, work: 1 });
+            expandedEntries.push({ entry: { value: expanded }, fields });
+          }
+        }
+        if (expandedEntry) continue;
+        const fields = await this.valueWord(entry.value, state, io, entry.index === undefined, false, false, false, undefined, false, entry.index === undefined, entry.index === undefined ? undefined : 0);
+        operation.reserve({ metadata: 32, slots: 1, work: 1 });
+        expandedEntries.push({ entry, fields });
+      }
+      current = store.get(name);
+      initialMaximum = current?.maximum ?? (state.variables[name] === undefined ? -1 : 0);
+      this.assertArrayWritable(state, name, origin);
+      const watch = await store.watch(name, operation, this.signal);
       const supersede = await stateMonitor(state)!.prepareTypedPublication(name, operation, this.signal);
       await this.prepareArrayObservers(state, operation);
       const tickets = operation.reserve({ generation: true, version: true, epoch: true, work: 8 });
@@ -5745,7 +5771,7 @@ export class Runtime {
             if (stagedKey.pendingKey) pendingKeys.push(stagedKey.pendingKey);
             index = stagedKey.index;
           } else index = (await this.arrayIndex(targetBinding, assignment.index, state, io, operation, true))!;
-          const value = await join(await this.valueWord(assignment.value, state, io, false, false, false, false, undefined, false, false, 0));
+          const value = await join(elementFields!);
           // Expansion can initialize the unset target as a scalar. Preserve that
           // value when promoting it to an indexed binding.
           if (!current && state.variables[name] !== undefined && (index !== 0 || assignment.append)) {
@@ -5754,20 +5780,8 @@ export class Runtime {
             try { targetBinding.insert(0, token); } catch (error) { token.release(); throw error; }
           }
           await insert(index, value, assignment.append);
-        } else for (const entry of assignment.entries) {
-          const original = compoundEntryWords.get(entry);
-          if (entry.index && original && state.braceexpand !== false && original.parts.some(part => part.kind === "text" && !part.quoted && part.value.includes("{"))) {
-            let expandedEntry = false;
-            for await (const expanded of expandBraces(original, this.budget, this.signal)) {
-              if (expanded === original) break;
-              expandedEntry = true;
-              const values = await this.valueWord(expanded, state, io, true, false, false, false, undefined, false, false);
-              for (const value of values) { await insert(cursor, value); cursor++; }
-            }
-            if (expandedEntry) continue;
-          }
+        } else for (const { entry, fields } of expandedEntries) {
           const index = entry.index ? (await this.arrayIndex(targetBinding, entry.index, state, io, operation, true))! : undefined;
-          const fields = await this.valueWord(entry.value, state, io, entry.index === undefined, false, false, false, undefined, false, entry.index === undefined, entry.index === undefined ? undefined : 0);
           if (index !== undefined) {
             const value = await join(fields);
             await insert(index, value, entry.append);

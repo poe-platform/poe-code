@@ -5333,7 +5333,9 @@ export class Runtime {
           if (entry.value.parts.length > 0) {
             try {
               val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, entry.index === undefined ? undefined : 0, diagnosticLine);
-            } catch {
+            } catch (error) {
+              this.signal.throwIfAborted();
+              if (error instanceof ShellLimitError) throw error;
               return false;
             }
           }
@@ -5411,7 +5413,9 @@ export class Runtime {
               let unsplit: ShellValue | undefined;
               try {
                 unsplit = this.fastValueWord(entry.value, rawState, io, false, false, false, false, undefined, diagnosticLine);
-              } catch {
+              } catch (error) {
+                this.signal.throwIfAborted();
+                if (error instanceof ShellLimitError) throw error;
                 return false;
               }
               if (typeof unsplit !== "string" || hasGlobOrEscape(unsplit, !!rawState.extglob)) return false;
@@ -5434,7 +5438,9 @@ export class Runtime {
           if (entry.value.parts.length > 0) {
             try {
               val = this.fastValueWord(entry.value, rawState, io, false, false, false, false, entry.index === undefined ? undefined : 0, diagnosticLine);
-            } catch {
+            } catch (error) {
+              this.signal.throwIfAborted();
+              if (error instanceof ShellLimitError) throw error;
               return false;
             }
           }
@@ -5514,7 +5520,9 @@ export class Runtime {
         let val: ShellValue | undefined;
         try {
           val = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
-        } catch {
+        } catch (error) {
+          this.signal.throwIfAborted();
+          if (error instanceof ShellLimitError) throw error;
           return false;
         }
         if (typeof val !== "string") return false;
@@ -5542,7 +5550,9 @@ export class Runtime {
         keyVal = this.fastValueWord(word, rawState, io, false, false, false, false, undefined, diagnosticLine);
         if (typeof keyVal !== "string" || keyVal.length === 0) return false;
         val = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
-      } catch {
+      } catch (error) {
+        this.signal.throwIfAborted();
+        if (error instanceof ShellLimitError) throw error;
         return false;
       }
       if (typeof val !== "string") return false;

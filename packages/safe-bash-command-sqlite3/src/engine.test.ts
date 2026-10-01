@@ -415,3 +415,44 @@ test('rowid accepts numeric text and insert NULL but rejects invalid identities'
     assert.throws(() => db.exec(`UPDATE t SET rowid=${value}`), /datatype mismatch/);
   }
 });
+
+test("binary persistence retains signed rowids in key order", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(id INTEGER PRIMARY KEY, name TEXT); INSERT INTO t VALUES(10,'ten'),(-5,'neg'),(2,'two')");
+  const reopened = new SqliteDatabase();
+  reopened.loadFromBytes(db.serializeToBytes());
+  assert.deepEqual(reopened.exec("SELECT id,name FROM t ORDER BY id")[0]!.rows, [[-5,"neg"],[2,"two"],[10,"ten"]]);
+});
+
+test("WITHOUT ROWID persistence stores primary key columns first", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(value TEXT, k INT, part TEXT, PRIMARY KEY(part,k)) WITHOUT ROWID; INSERT INTO t VALUES('one',2,'b'),('two',1,'a')");
+  const bytes = db.serializeToBytes();
+  assert.equal(bytes[4096], 0x0a);
+  const reopened = new SqliteDatabase();
+  reopened.loadFromBytes(bytes);
+  assert.deepEqual(reopened.exec("SELECT * FROM t ORDER BY part,k")[0]!.rows, [["two",1,"a"],["one",2,"b"]]);
+});
+
+test("WITHOUT ROWID preserves records across interior and overflow pages", () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(value TEXT, id INTEGER PRIMARY KEY) WITHOUT ROWID");
+  const expected = Array.from({length: 100}, (_, id) => ["x".repeat(id === 0 ? 10000 : 900), id]);
+  for (const [value, id] of [...expected].reverse()) db.exec(`INSERT INTO t VALUES('${value}',${id})`);
+  const bytes = db.serializeToBytes();
+  assert.equal(bytes[4096], 0x02);
+  const reopened = new SqliteDatabase();
+  reopened.loadFromBytes(bytes);
+  assert.deepEqual(reopened.exec("SELECT * FROM t ORDER BY id")[0]!.rows, expected);
+});
+
+for (const key of ["id TEXT PRIMARY KEY DESC", "id TEXT PRIMARY KEY COLLATE NOCASE", "id TEXT, PRIMARY KEY(id COLLATE NOCASE DESC)"]) {
+  test(`WITHOUT ROWID serializes declared key ordering: ${key}`, () => {
+    const db = new SqliteDatabase();
+    db.exec(`CREATE TABLE t(${key}) WITHOUT ROWID; INSERT INTO t VALUES('a'),('B'),('c')`);
+    const reopened = new SqliteDatabase();
+    reopened.loadFromBytes(db.serializeToBytes());
+    const expected = key.includes('NOCASE') ? (key.includes('DESC') ? [['c'],['B'],['a']] : [['a'],['B'],['c']]) : [['c'],['a'],['B']];
+    assert.deepEqual(reopened.exec("SELECT * FROM t")[0]!.rows, expected);
+  });
+}

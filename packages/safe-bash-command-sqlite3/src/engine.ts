@@ -86,7 +86,17 @@ export interface TableDef {
   withoutRowId: boolean;
   strict: boolean;
   primaryKeyCols: string[];
+  primaryKeyOrder?: { desc: boolean; collation: string | undefined }[] | undefined;
   uniqueColSets: string[][];
+}
+
+function tableStorageColumns(table: TableDef): ColumnDef[] {
+  if (!table.withoutRowId) return table.columns;
+  const keys = table.primaryKeyCols.map((name) => name.toLowerCase());
+  return [
+    ...keys.map((name) => table.columns.find((column) => column.name.toLowerCase() === name)!),
+    ...table.columns.filter((column) => !keys.includes(column.name.toLowerCase()))
+  ];
 }
 
 interface SnapshotState {
@@ -131,6 +141,7 @@ function cloneTableDef(t: TableDef): TableDef {
     withoutRowId: t.withoutRowId,
     strict: t.strict,
     primaryKeyCols: [...t.primaryKeyCols],
+    primaryKeyOrder: t.primaryKeyOrder?.map((key) => ({ ...key })),
     uniqueColSets: t.uniqueColSets.map((u) => [...u])
   };
 }
@@ -1689,11 +1700,13 @@ export class SqliteDatabase {
       }
       tbl.rows = [];
       let maxRowid = 0;
+      const storageColumns = tableStorageColumns(tbl);
       for (const r of rawRows) {
         yield;
         const data: Record<string, SqlValue> = {};
         let valIdx = 0;
-        for (const col of tbl.columns) {
+
+        for (const col of storageColumns) {
           yield;
           if (
             col.primaryKey &&
@@ -1779,7 +1792,8 @@ export class SqliteDatabase {
         name: tbl.name,
         tbl_name: tbl.name,
         rootpage: rootPageCounter++,
-        sql: tbl.sql
+        sql: tbl.sql,
+        withoutRowId: tbl.withoutRowId
       });
       if (
         tbl.columns.some((c) => {
@@ -1801,10 +1815,24 @@ export class SqliteDatabase {
           });
         }
       }
-      const rows = yield* stepMap(tbl.rows, function* (r) { yield;
+      const storageColumns = tableStorageColumns(tbl);
+      const orderedRows = tbl.withoutRowId
+        ? yield* stepSort([...tbl.rows], function* (left, right) {
+            for (let i = 0; i < tbl.primaryKeyCols.length; i++) {
+              yield;
+              const column = storageColumns[i]!;
+              const order = tbl.primaryKeyOrder?.[i];
+              const comparison = compareSqlValues(left.data[column.name] ?? null, right.data[column.name] ?? null,
+                order?.collation ?? column.collate ?? "BINARY");
+              if (comparison) return order?.desc ? -comparison : comparison;
+            }
+            return 0;
+          }, this)
+        : tbl.rows;
+      const rows = yield* stepMap(orderedRows, function* (r) { yield;
         return {
           rowid: r.rowid,
-          values: tbl.columns.map((c) => {
+          values: storageColumns.map((c) => {
             const isRowidAlias =
               c.primaryKey &&
               c.type.toUpperCase() === "INTEGER" &&
@@ -2346,6 +2374,7 @@ export class SqliteDatabase {
 
       const columns: ColumnDef[] = [];
       const primaryKeyCols: string[] = [];
+      const primaryKeyOrder: NonNullable<TableDef["primaryKeyOrder"]> = [];
       const uniqueColSets: string[][] = [];
 
       for (const part of bodyParts) {
@@ -2364,15 +2393,16 @@ export class SqliteDatabase {
             pIdx += 1;
             while (pIdx < part.length && part[pIdx]?.value !== ")") {
               yield;
-              const colName = part[pIdx]!.value;
-              if (
-                colName !== "," &&
-                colName.toUpperCase() !== "ASC" &&
-                colName.toUpperCase() !== "DESC"
-              ) {
-                primaryKeyCols.push(colName);
+              if (part[pIdx]!.value === ",") { pIdx++; continue; }
+              primaryKeyCols.push(part[pIdx++]!.value);
+              let collation: string | undefined;
+              if (part[pIdx]?.value.toUpperCase() === "COLLATE") {
+                collation = part[pIdx + 1]?.value;
+                pIdx += 2;
               }
-              pIdx += 1;
+              const direction = part[pIdx]?.value.toUpperCase();
+              primaryKeyOrder.push({ desc: direction === "DESC", collation });
+              if (direction === "ASC" || direction === "DESC") pIdx++;
             }
           }
           continue;
@@ -2408,6 +2438,8 @@ export class SqliteDatabase {
         columns.push(colDef);
         if (colDef.primaryKey && !primaryKeyCols.includes(colDef.name)) {
           primaryKeyCols.push(colDef.name);
+          const primaryIndex = part.findIndex((token) => token.type === "word" && token.value.toUpperCase() === "PRIMARY");
+          primaryKeyOrder.push({ desc: part[primaryIndex + 2]?.value.toUpperCase() === "DESC", collation: colDef.collate });
         }
         if (colDef.unique) {
           uniqueColSets.push([colDef.name]);
@@ -2433,6 +2465,7 @@ export class SqliteDatabase {
         withoutRowId,
         strict,
         primaryKeyCols,
+        primaryKeyOrder,
         uniqueColSets
       });
       return;

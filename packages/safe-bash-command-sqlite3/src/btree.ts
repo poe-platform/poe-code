@@ -10,6 +10,7 @@ export interface StoredTableMeta {
   tbl_name: string;
   rootpage: number;
   sql: string;
+  withoutRowId?: boolean;
 }
 
 export interface StoredDatabaseImage {
@@ -283,11 +284,12 @@ function extractLeafCellPayload(
   dbBytes: Uint8Array,
   pageSize: number,
   cellBytes: Uint8Array,
-  payloadSize: number
+  payloadSize: number,
+  index = false
 ): Uint8Array {
   const reservedSpace = dbBytes[20] ?? 0;
   const usableSize = Math.max(480, pageSize - reservedSpace);
-  const maxLocal = usableSize - 35;
+  const maxLocal = index ? Math.floor(((usableSize - 12) * 64) / 255) - 23 : usableSize - 35;
   const minLocal = Math.floor(((usableSize - 12) * 32) / 255) - 23;
   if (payloadSize <= maxLocal) {
     return cellBytes.subarray(0, payloadSize);
@@ -331,7 +333,23 @@ function parseTableBTreeRows(
   const cellCount = readU16BE(dbBytes, pageStart + headerOffset + 3);
   const rows: { rowid: number; values: SqlValue[] }[] = [];
 
-  if (pageType === 0x0d) {
+  if (pageType === 0x0a || pageType === 0x02) {
+    const interior = pageType === 0x02;
+    const ptrArrayOffset = pageStart + headerOffset + (interior ? 12 : 8);
+    for (let i = 0; i < cellCount; i++) {
+      let offset = pageStart + readU16BE(dbBytes, ptrArrayOffset + i * 2);
+      if (interior) {
+        rows.push(...parseTableBTreeRows(dbBytes, pageSize, readU32BE(dbBytes, offset), visited));
+        offset += 4;
+      }
+      const size = readVarint(dbBytes, offset);
+      const payload = extractLeafCellPayload(dbBytes, pageSize,
+        dbBytes.subarray(offset + size.length, pageStart + pageSize), size.value, true);
+      rows.push({ rowid: rows.length + 1, values: decodeRecord(payload) });
+    }
+    if (interior) rows.push(...parseTableBTreeRows(dbBytes, pageSize,
+      readU32BE(dbBytes, pageStart + headerOffset + 8), visited));
+  } else if (pageType === 0x0d) {
     const ptrArrayOffset = pageStart + headerOffset + 8;
     for (let i = 0; i < cellCount; i += 1) {
       const cellOffsetInPage = readU16BE(dbBytes, ptrArrayOffset + i * 2);
@@ -346,7 +364,10 @@ function parseTableBTreeRows(
         pSize.value
       );
       rows.push({
-        rowid: rId.value,
+        rowid: rId.length === 9
+          ? Number(BigInt.asIntN(64, Array.from(dbBytes.subarray(absOffset + pSize.length, absOffset + pSize.length + 9))
+            .reduce((value, byte, i) => (value << BigInt(i === 8 ? 8 : 7)) | BigInt(i === 8 ? byte : byte & 0x7f), 0n)))
+          : rId.value,
         values: decodeRecord(payload)
       });
     }
@@ -471,7 +492,7 @@ function buildTablePages(
     return cell;
   };
 
-  const encodedCells = rows.map((r) => ({
+  const encodedCells = [...rows].sort((a, b) => a.rowid - b.rowid).map((r) => ({
     rowid: r.rowid,
     cell: encodeCellWithOverflow(r.rowid, r.values)
   }));
@@ -573,7 +594,8 @@ function compareSqlValuesForBTree(a: SqlValue, b: SqlValue): number {
 
 function buildIndexPages(
   entries: SqlValue[][],
-  startPageNumber: number
+  startPageNumber: number,
+  presorted = false
 ): { rootPage: number; pages: Uint8Array[] } {
   const pageSize = DEFAULT_PAGE_SIZE;
   const pages: Uint8Array[] = [];
@@ -586,7 +608,7 @@ function buildIndexPages(
     return { pageNum: startPageNumber + pages.length - 1, buf };
   };
 
-  const sorted = [...entries].sort((r1, r2) => {
+  const sorted = presorted ? entries : [...entries].sort((r1, r2) => {
     const len = Math.min(r1.length, r2.length);
     for (let i = 0; i < len; i += 1) {
       const c = compareSqlValuesForBTree(r1[i] ?? null, r2[i] ?? null);
@@ -638,43 +660,53 @@ function buildIndexPages(
   };
 
   const encodedCells = sorted.map((vals) => encodeIndexCell(vals));
-  const maxRootSpace = pageSize - 8;
-  const totalRootBytes = encodedCells.reduce((sum, c) => sum + c.byteLength + 2, 0);
-
-  if (totalRootBytes <= maxRootSpace) {
-    const rootBuf = pages[0]!;
-    rootBuf[0] = 0x0a;
-    writeU16BE(rootBuf, 1, 0);
-    writeU16BE(rootBuf, 3, encodedCells.length);
-    let contentOffset = pageSize;
-    for (let i = 0; i < encodedCells.length; i += 1) {
-      const c = encodedCells[i]!;
-      contentOffset -= c.byteLength;
-      rootBuf.set(c, contentOffset);
-      writeU16BE(rootBuf, 8 + i * 2, contentOffset);
+  // Promote separator records into interior pages; index trees store records
+  // in both leaf and interior cells (unlike table trees).
+  const writeNode = (buf: Uint8Array, cells: Uint8Array[], children: number[]): void => {
+    const interior = children.length > 0;
+    const header = interior ? 12 : 8;
+    buf[0] = interior ? 0x02 : 0x0a;
+    writeU16BE(buf, 3, cells.length);
+    if (interior) writeU32BE(buf, 8, children[children.length - 1]!);
+    let offset = pageSize;
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i]!;
+      offset -= cell.length + (interior ? 4 : 0);
+      if (interior) writeU32BE(buf, offset, children[i]!);
+      buf.set(cell, offset + (interior ? 4 : 0));
+      writeU16BE(buf, header + i * 2, offset);
     }
-    writeU16BE(rootBuf, 5, contentOffset === pageSize ? 0 : contentOffset);
-    return { rootPage: rootPageNum, pages };
-  }
-
-  // Fallback empty or first-page fitting index cells if multi-page
-  const rootBuf = pages[0]!;
-  rootBuf[0] = 0x0a;
-  writeU16BE(rootBuf, 1, 0);
-  let contentOffset = pageSize;
-  let count = 0;
-  for (let i = 0; i < encodedCells.length; i += 1) {
-    const c = encodedCells[i]!;
-    if (contentOffset - (c.byteLength + 2) < 8 + (count + 1) * 2) {
+    writeU16BE(buf, 5, offset);
+  };
+  let cells = encodedCells;
+  let children: number[] = [];
+  while (true) {
+    const overhead = children.length ? 6 : 2;
+    const header = children.length ? 12 : 8;
+    if (cells.reduce((size, cell) => size + cell.length + overhead, header) <= pageSize) {
+      writeNode(pages[0]!, cells, children);
       break;
     }
-    contentOffset -= c.byteLength;
-    rootBuf.set(c, contentOffset);
-    writeU16BE(rootBuf, 8 + count * 2, contentOffset);
-    count += 1;
+    const separators: Uint8Array[] = [];
+    const nextChildren: number[] = [];
+    let start = 0;
+    while (start <= cells.length) {
+      let end = start;
+      let size = header;
+      while (end < cells.length && size + cells[end]!.length + overhead <= pageSize) {
+        size += cells[end]!.length + overhead;
+        end++;
+      }
+      const { pageNum, buf } = allocatePage();
+      writeNode(buf, cells.slice(start, end), children.length ? children.slice(start, end + 1) : []);
+      nextChildren.push(pageNum);
+      if (end === cells.length) break;
+      separators.push(cells[end]!);
+      start = end + 1;
+    }
+    cells = separators;
+    children = nextChildren;
   }
-  writeU16BE(rootBuf, 3, count);
-  writeU16BE(rootBuf, 5, contentOffset === pageSize ? 0 : contentOffset);
   return { rootPage: rootPageNum, pages };
 }
 
@@ -687,7 +719,7 @@ export function writeSqliteDatabaseBytes(image: StoredDatabaseImage): Uint8Array
   for (const item of image.master) {
     if (item.type === "table") {
       const rows = image.tableRows.get(item.name) ?? [];
-      const built = buildTablePages(rows, nextPageNumber, false);
+      const built = item.withoutRowId ? buildIndexPages(rows.map((row) => row.values), nextPageNumber, true) : buildTablePages(rows, nextPageNumber, false);
       extraPageChunks.push(...built.pages);
       nextPageNumber += built.pages.length;
       masterEntries.push({
@@ -736,7 +768,7 @@ export function writeSqliteDatabaseBytes(image: StoredDatabaseImage): Uint8Array
     for (const item of image.master) {
       if (item.type === "table") {
         const rows = image.tableRows.get(item.name) ?? [];
-        const built = buildTablePages(rows, pNum, false);
+        const built = item.withoutRowId ? buildIndexPages(rows.map((row) => row.values), pNum, true) : buildTablePages(rows, pNum, false);
         reExtraChunks.push(...built.pages);
         pNum += built.pages.length;
         reMasterEntries.push({ ...item, rootpage: built.rootPage });

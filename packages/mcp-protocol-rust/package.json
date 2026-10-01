@@ -7,7 +7,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/cargo.mjs build",
-    "test:unit": "node --test scripts/run-native-tests.test.mjs && node scripts/cargo.mjs test",
+    "test:unit": "node --test scripts/run-native-tests.test.mjs scripts/cargo-cache.test.mjs && node scripts/cargo.mjs test",
     "lint": "node scripts/cargo.mjs lint"
   },
   "repository": {

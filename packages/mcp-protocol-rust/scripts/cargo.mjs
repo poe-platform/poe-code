@@ -2,7 +2,7 @@ import { spawnSync } from "node:child_process";
 import { runNativeTests } from "./run-native-tests.mjs";
 import { copyNativeBinding } from "./native-binding.mjs";
 import { createHash } from "node:crypto";
-import { accessSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { accessSync, constants, copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import os from "node:os";
 import path from "node:path";
@@ -70,18 +70,15 @@ function computeRustInputsState() {
   const hash = createHash("sha256").update(
     JSON.stringify({ platform: process.platform, arch: process.arch, abi: process.versions.modules, pkg: path.basename(packageDirectory) })
   );
-  let maxMtimeMs = 0;
   const extensions = [".rs", ".toml", ".lock", ".json", ".md", ".ttf", ".base64", ".txt"];
   const walk = (dir) => {
     if (!existsSync(dir)) return;
     for (const entry of readdirSync(dir, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name))) {
-      if (entry.name === "target" || entry.name === "dist" || entry.name === "node_modules" || entry.name === "tests") continue;
+      if (entry.name === "target" || entry.name === "dist" || entry.name === "node_modules") continue;
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) {
         walk(full);
       } else if (extensions.some((ext) => entry.name.endsWith(ext))) {
-        const st = statSync(full);
-        if (st.mtimeMs > maxMtimeMs) maxMtimeMs = st.mtimeMs;
         hash.update(path.relative(packagesRoot, full) + "\0");
         hash.update(readFileSync(full));
       }
@@ -94,14 +91,14 @@ function computeRustInputsState() {
     walk(path.join(packagesRoot, "agent-defs", "src"));
     walk(path.join(packagesRoot, "poe-code-config", "src"));
   }
-  return { digest: hash.digest("hex"), maxMtimeMs };
+  return { digest: hash.digest("hex") };
 }
 
 function resolveNapiCacheDirectories() {
   const primary = process.env.POE_CHECK_CACHE_DIR
-    ? path.join(path.dirname(path.resolve(repoRoot, process.env.POE_CHECK_CACHE_DIR)), "napi-artifacts-v1")
-    : path.join(process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "poe-code", "napi-artifacts-v1");
-  const fallback = path.join(os.tmpdir(), "poe-code", "napi-artifacts-v1");
+    ? path.join(path.dirname(path.resolve(repoRoot, process.env.POE_CHECK_CACHE_DIR)), "napi-artifacts-v2")
+    : path.join(process.env.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "poe-code", "napi-artifacts-v2");
+  const fallback = path.join(os.tmpdir(), "poe-code", "napi-artifacts-v2");
   return primary === fallback ? [primary] : [fallback, primary];
 }
 
@@ -112,8 +109,7 @@ if (operation === "lint" || !existsSync(bindingManifest)) {
 if ((operation === "build" || operation === "test") && existsSync(bindingManifest)) {
   const output = path.join(packageDirectory, "dist");
   const dtsName = existsSync(path.join(packageDirectory, "src/index.d.ts")) ? "native.d.ts" : "index.d.ts";
-  const nodeFile = existsSync(output) ? readdirSync(output).find((name) => name.endsWith(".node")) : undefined;
-  const { digest: rustDigest, maxMtimeMs } = computeRustInputsState();
+  const { digest: rustDigest } = computeRustInputsState();
   const pkgName = path.basename(packageDirectory);
   const cacheDirs = resolveNapiCacheDirectories();
   if (operation === "test") {
@@ -136,11 +132,6 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
     .map((base) => path.join(base, `${pkgName}-${rustDigest}`))
     .find((dir) => existsSync(dir) && existsSync(path.join(dir, dtsName)) && readdirSync(dir).some((name) => name.endsWith(".node")));
 
-  const hasFreshLocalBinding =
-    nodeFile !== undefined &&
-    existsSync(path.join(output, dtsName)) &&
-    (operation === "test" || statSync(path.join(output, nodeFile)).mtimeMs >= maxMtimeMs);
-
   const saveToNapiCache = (builtNodeName) => {
     for (const base of [...cacheDirs].reverse()) {
       try {
@@ -158,8 +149,6 @@ if ((operation === "build" || operation === "test") && existsSync(bindingManifes
     const cachedNode = readdirSync(cachedEntryDir).find((name) => name.endsWith(".node"));
     copyNativeBinding(path.join(cachedEntryDir, cachedNode), path.join(output, cachedNode));
     copyFileSync(path.join(cachedEntryDir, dtsName), path.join(output, dtsName));
-  } else if (hasFreshLocalBinding) {
-    saveToNapiCache(nodeFile);
   } else {
     const require = createRequire(import.meta.url);
     const cli = path.join(path.dirname(require.resolve("@napi-rs/cli/package.json")), "dist/cli.js");

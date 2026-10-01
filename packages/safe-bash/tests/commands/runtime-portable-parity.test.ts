@@ -114,7 +114,8 @@ for (const bounded of [false, true]) {
     ['${arr[@]/p/X}', 'Xax Xbx Xcx'],
     ['"${arr[@]/p/X}"', 'Xax:Xbx:Xcx'],
     ['"${arr[@]^^}"', 'PAX:PBX:PCX'],
-    ['"${arr[@]:1:2}"', 'pbx pcx'],
+    // GNU Bash 5.2 uses IFS for quoted slices; Bash 3.2 uses a space.
+    ['"${arr[@]:1:2}"', 'pbx:pcx'],
     ['${arr[@]@U}', 'PAX:PBX:PCX'],
   ] as const) {
     test(`modified array scalar joining: ${operand}, bounded=${bounded}`, async () => {

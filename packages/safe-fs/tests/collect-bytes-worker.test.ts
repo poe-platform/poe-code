@@ -14,14 +14,14 @@ it("disables the collection budget by default in browser and Worker bundles", ()
 
 it("accepts just-under-limit input and rejects a larger single allocation", async () => {
   expect((await collectBytes((async function* () { yield new Uint8Array(15); })(), {
-    maxBytes: 16
+    maxBytes: 16, maxMemoryBytes: 32
   })).length).toBe(15);
   await expect(collectBytes((async function* () { yield new Uint8Array(17); })(), {
-    maxBytes: 64
+    maxBytes: 64, maxMemoryBytes: 32
   })).rejects.toMatchObject({ code: "EFBIG" });
 });
 
-it("refunds reservations on abort and on allocation failure", async () => {
+it("keeps later collectors independent of abort and allocation failure", async () => {
   const controller = new AbortController();
   await expect(collectBytes((async function* () {
     yield new Uint8Array(12);
@@ -42,21 +42,24 @@ it("refunds reservations on abort and on allocation failure", async () => {
   expect((await collectBytes((async function* () { yield new Uint8Array(16); })(), {})).length).toBe(16);
 });
 
-it("shares the Worker ceiling across concurrent collectors and refunds on failure", async () => {
+it("keeps concurrent collectors within their own explicit memory budgets", async () => {
   let resume!: () => void;
-  let ready!: () => void;
-  const waiting = new Promise<void>(resolve => { resume = resolve; });
-  const started = new Promise<void>(resolve => { ready = resolve; });
+  let suspended!: () => void;
+  const gate = new Promise<void>(resolve => { resume = resolve; });
+  const ready = new Promise<void>(resolve => { suspended = resolve; });
   const first = collectBytes((async function* () {
-    yield new Uint8Array(12);
-    ready();
-    await waiting;
-  })(), {});
-  await started;
-  await expect(collectBytes((async function* () { yield new Uint8Array(12); })(), {
-    maxMemoryBytes: 1000
-  })).rejects.toMatchObject({ code: "EFBIG" });
-  resume();
-  expect((await first).length).toBe(12);
-  expect((await collectBytes((async function* () { yield new Uint8Array(16); })(), {})).length).toBe(16);
+    yield new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8]);
+    suspended();
+    await gate;
+  })(), { maxMemoryBytes: 32 });
+  await ready;
+  try {
+    const second = await collectBytes((async function* () {
+      yield Uint8Array.of(9, 10, 11, 12, 13, 14, 15, 16, 17);
+    })(), { maxMemoryBytes: 32 });
+    expect([...second]).toEqual([9, 10, 11, 12, 13, 14, 15, 16, 17]);
+  } finally {
+    resume();
+    expect([...(await first)]).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+  }
 });

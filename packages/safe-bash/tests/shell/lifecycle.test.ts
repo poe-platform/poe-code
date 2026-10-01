@@ -93,7 +93,7 @@ test("empty execution does not run hidden scripts or reinstall host plugins", as
   let setups = 0;
   const shell = new Shell({ fs: createMemoryFileSystem() })
     .use(agentCommands())
-    .use({ setup() { setups++; } });
+    .use({ name: "setup-counter", setup() { setups++; } });
   try {
     await shell.exec(":");
     const calls = t.mock.method(Shell.prototype, "exec");

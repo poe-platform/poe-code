@@ -5,11 +5,11 @@ import type { SafeJsRuntime } from "../../src/commands/safejs/types.js";
 
 test("path constants are not declared as host operations", () => {
   const runtime = {
-    declareHostOperation(operation) {
+    declareHostOperation(operation: Parameters<SafeJsRuntime<unknown>["declareHostOperation"]>[0]) {
       assert.equal(typeof operation, "function");
       return operation;
     },
-  } as SafeJsRuntime<unknown>;
+  } as unknown as SafeJsRuntime<unknown>;
   const module = createNodePathModule(runtime, "/work");
   assert.equal(module.sep, "/");
   assert.equal(module.delimiter, ":");

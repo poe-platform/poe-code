@@ -21,7 +21,7 @@ for (const condition of ["browser", "workerd"]) describe(`${condition}-selected 
     expect(Object.values(output.metafile!.inputs).flatMap(input => input.imports).filter(input => input.external)).toEqual([]);
     expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("platform/browser.ts"))).toBe(true);
     expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("platform/node.ts"))).toBe(false);
-    expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("/fs/s3/authority.ts") || input.endsWith("/fs/s3/filesystem.ts"))).toBe(false);
+    expect(Object.keys(output.metafile!.inputs).some(input => input.endsWith("/fs/real/real.ts") || input.endsWith("/fs/s3/http/request-node.ts"))).toBe(false);
     const context = createContext({
       AbortController, AbortSignal, Headers, Response, Request, URL, TextEncoder, TextDecoder,
       ReadableStream, Uint8Array, crypto: webcrypto, setTimeout, clearTimeout, DOMException

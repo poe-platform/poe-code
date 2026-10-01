@@ -21,8 +21,8 @@ describe("selected Node core graph", () => {
     expect(core.isFsError({ code: "ENOENT" })).toBe(false);
   });
 
-  it("keeps host-only and deferred backends out of core", () => {
-    for (const name of ["RealFileSystem", "createNodeFsBridge", "S3FileSystem", "MockS3Client", "createS3HttpTransport", "createNodeFileSystemAdapterRegistry"]) {
+  it("keeps host-only backends out of core", () => {
+    for (const name of ["RealFileSystem", "createNodeFsBridge", "createS3HttpTransport", "createNodeFileSystemAdapterRegistry"]) {
       expect(core).not.toHaveProperty(name);
       expect(host).toHaveProperty(name);
     }

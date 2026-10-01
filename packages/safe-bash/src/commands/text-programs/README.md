@@ -97,7 +97,7 @@ on that first line. Zero is rejected in other address positions.
 | `{ ... }` | Addressed nested command groups. |
 | `:label`, `b`, `t`, `T` | Labels, unconditional branches, and substitution-success/failure branches; omitted target ends the current cycle. |
 | `h`, `H`, `g`, `G`, `x` | Replace/append hold and pattern spaces, or exchange them. |
-| `n`, `N` | Advance input with normal output, or append a record to multiline pattern space. |
+| `n`, `N` | Advance input with normal output, or append a record to multiline pattern space. At EOF, `N` exits without automatically printing pattern space; queued append/read output is retained (POSIX behavior). |
 | `y/from/to/` | Byte translation with equal-length sets. |
 | `r FILE` | Queue raw file bytes after the cycle's normal output; missing/unreadable files contribute no bytes. Reads use the virtual filesystem and propagate cancellation. |
 | `w FILE`, `s///w FILE` | Precreate/truncate named outputs after parsing, then append selected pattern spaces with newlines. Substitution writes only changed patterns. Files remain open logically across input files; names extend to the script newline. |

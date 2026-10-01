@@ -970,7 +970,11 @@ async function execute(program: readonly Instruction[], context: CommandContext,
             if (instruction.kind === "n") { const p = flush(); if (p) await p; }
             else if ((await peekNextRecord()) !== undefined) { const p = flush(false); if (p) await p; }
             const next = await readNextRecord();
-            if (next === undefined) { if (instruction.kind === "N") { const p = flush(); if (p) await p; } return { status: 0, quit: false }; }
+            if (next === undefined) {
+              // POSIX N at EOF skips pattern printing but retains queued output.
+              if (instruction.kind === "N") { const p = flush(false); if (p) await p; }
+              return { status: 0, quit: false };
+            }
             record = next.terminated || files.length < 2 ? next : await prepareRecord(next); number++;
             pattern = instruction.kind === "N" ? joinSpace(pattern, record.text) : record.text;
             substituted = false;

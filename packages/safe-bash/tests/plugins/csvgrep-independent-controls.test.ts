@@ -5,7 +5,7 @@ import { csvgrepCommands } from "../../src/commands/csvgrep/index.js";
 
 test("independent csvgrep pipeline status and negative authority controls", async (t) => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(csvgrepCommands());
+  const shell = new Shell({ fs }).use(agentCommands()).use(csvgrepCommands({ replace: true }));
   t.after(() => shell.dispose());
   const bytes = new TextEncoder().encode("x\na\n");
   await fs.writeFile("/input", bytes);

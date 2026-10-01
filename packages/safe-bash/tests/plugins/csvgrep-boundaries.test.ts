@@ -41,7 +41,7 @@ test("csvgrep has no host executable or network command fallback", async (t) => 
     assert.equal(result.stdout, "");
   }
 });
-test("csvgrep opt-in dispatch uses VFS scripts, pipes, redirects and SDK parity", async (t) => {
+test("csvgrep explicit replacement dispatch uses VFS scripts, pipes, redirects and SDK parity", async (t) => {
   const fs = createMemoryFileSystem(),
     shell = new Shell({ fs }).use(agentCommands()).use(csvgrepCommands({ replace: true }));
   t.after(() => shell.dispose());

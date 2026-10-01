@@ -27,6 +27,10 @@ export async function readXmlInput(
   budget: XmlBudget,
   runtime: XmlCommandRuntime
 ): Promise<string> {
+  const remainingBytes = Math.max(0, Math.min(
+    budget.limits.maxInputBytes,
+    context.inputBudget?.maxBytes ?? Infinity
+  ) - budget.inputBytes);
   let source: ByteSource = context.stdin;
   if (file !== undefined && file !== "-") {
     const path = runtime.pathOf(context, file);
@@ -46,8 +50,8 @@ export async function readXmlInput(
             () =>
               context.fs.readFile(path, {
                 signal: context.signal,
-                ...(Number.isFinite(budget.limits.maxInputBytes)
-                  ? { maxBytes: budget.limits.maxInputBytes }
+                ...(Number.isFinite(remainingBytes)
+                  ? { maxBytes: remainingBytes }
                   : {})
               }),
             context.signal
@@ -76,6 +80,7 @@ export async function readXmlInput(
       chunksSinceYield = 0;
     }
     budget.inputBytes += chunk.byteLength;
+    context.inputBudget?.check(budget.inputBytes);
     if (budget.inputBytes > budget.limits.maxInputBytes)
       throw new XmlQueryLimitError("maxInputBytes");
     // Decode before requesting another chunk; a producer may reuse its backing bytes.

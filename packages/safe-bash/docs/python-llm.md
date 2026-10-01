@@ -230,3 +230,9 @@ Attachments in conversation history and nonscalar option descriptors still
 need transport support. Binary embedding inputs are not
 supported by the current transport. Worker conformance does not establish
 consumer deployment acceptance.
+
+`createPythonLlmCapability` accepts `maxInputBytes` for total input admission and
+`maxBufferedInputBytes` for aggregate materialized request controls. Retained
+input bytes consume the total allowance; configuration, templates, schemas and
+serialized controls also consume the buffering allowance. Parent invocation
+limits and provider encoded-body limits still apply.

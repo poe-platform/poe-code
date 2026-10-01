@@ -1,0 +1,107 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { MemoryFileSystem } from '@poe-code/safe-fs/core';
+import { toByteSource } from 'safe-bash-contracts';
+import { createLlmCommand } from './command.js';
+
+for (const streamed of [false, true]) {
+  test(`independent materialization limit with ${streamed ? 'source' : 'buffered'} provider`, async () => {
+    const backing = new MemoryFileSystem();
+    await backing.writeFile('/large.txt', new Uint8Array(1024).fill(97));
+    let wholeReads = 0, received = 0;
+    const fs = new Proxy(backing, { get(target, key) {
+      if (key === 'readFile') return async (...args: Parameters<typeof backing.readFile>) => {
+        if (args[0] === '/large.txt') wholeReads++;
+        return target.readFile(...args);
+      };
+      const value: unknown = Reflect.get(target,key);
+      return typeof value === 'function' ? value.bind(target) : value;
+    } });
+    const command = createLlmCommand({defaultModel:'fixture',limits:{maxInputBytes:4096,maxBufferedInputBytes:128},providers:[{
+      name:'fixture',models:[{id:'fixture',attachmentTypes:['text/plain']}],
+      async *complete() { received++; yield 'buffered'; },
+      ...(streamed ? {async *completeSources(request: import('./types.js').LlmSourceRequest) {
+        for await (const chunk of request.attachments[0]!.source.bytes) received += chunk.length;
+        yield 'source';
+      }} : {}),
+    }]});
+    let stderr = '';
+    const result = await command.execute({command:'llm',args:['-a','/large.txt','hello'],fs,cwd:'/',env:{},signal:new AbortController().signal,
+      stdin:toByteSource(''),stdout:{async write(){}},stderr:{async write(bytes){stderr += new TextDecoder().decode(bytes);}}});
+    assert.equal(result.exitCode,streamed ? 0 : 1,stderr);
+    assert.equal(wholeReads,0,'oversized buffered attachment must reject before whole-file acquisition');
+    assert.equal(received,streamed ? 1024 : 0);
+    if (!streamed) assert.match(stderr,/buffered input byte limit/);
+  });
+}
+
+for (const args of [[],['--save','saved'],['-t','repeat']]) {
+  test(`buffered stdin is capped before provider/save for ${JSON.stringify(args)}`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir('/settings/templates',{recursive:true});
+    await fs.writeFile('/settings/templates/repeat.yaml',new TextEncoder().encode('prompt: "$input $input"\n'));
+    let calls = 0;
+    const command = createLlmCommand({defaultModel:'fixture',limits:{maxInputBytes:4096,maxBufferedInputBytes:128},providers:[{
+      name:'fixture',models:[{id:'fixture'}],async *complete(){calls++;yield 'unexpected';},
+    }]});
+    let stderr = '';
+    const result = await command.execute({command:'llm',args,fs,cwd:'/',env:{LLM_USER_PATH:'/settings'},signal:new AbortController().signal,
+      stdin:toByteSource('x'.repeat(256)),stdout:{async write(){}},stderr:{async write(bytes){stderr += new TextDecoder().decode(bytes);}}});
+    assert.equal(result.exitCode,1,stderr);
+    assert.equal(calls,0);
+    assert.match(stderr,/buffered input byte limit/);
+    assert.deepEqual((await fs.readdir('/settings/templates')).map(entry => entry.name),['repeat.yaml']);
+  });
+}
+
+test('staged stdin exceeds materialization allowance but obeys total admission and cleans up', async () => {
+  for (const maxInputBytes of [2048,512]) {
+    const fs = new MemoryFileSystem();
+    let received = 0, calls = 0, stderr = '';
+    const command = createLlmCommand({defaultModel:'fixture',limits:{maxInputBytes,maxBufferedInputBytes:128},providers:[{
+      name:'fixture',models:[{id:'fixture'}],complete(){throw new Error('must stream');},
+      async *completeSources(request){calls++;for await(const bytes of request.prompt.bytes){assert.ok(bytes.length <= 16384);received += bytes.length;}yield 'ok';},
+    }]});
+    const result = await command.execute({command:'llm',args:[],fs,cwd:'/',env:{},signal:new AbortController().signal,
+      stdin:toByteSource('x'.repeat(1024)),stdout:{async write(){}},stderr:{async write(bytes){stderr += new TextDecoder().decode(bytes);}}});
+    assert.equal(result.exitCode,maxInputBytes === 2048 ? 0 : 1,stderr);
+    assert.equal(received,maxInputBytes === 2048 ? 1024 : 0);
+    assert.equal(calls,maxInputBytes === 2048 ? 1 : 0);
+    assert.deepEqual(await fs.readdir('/'),[]);
+  }
+});
+
+test('template expansion is admitted before repeated substitutions reach the provider', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/repeat.yaml',new TextEncoder().encode('prompt: "$input $input $input $input"'));
+  let calls = 0, stderr = '';
+  const command = createLlmCommand({defaultModel:'fixture',limits:{maxInputBytes:4096,maxBufferedInputBytes:256},providers:[{
+    name:'fixture',models:[{id:'fixture'}],async *complete(){calls++;yield 'wrong';},
+  }]});
+  const result = await command.execute({command:'llm',args:['-t','/repeat.yaml'],fs,cwd:'/',env:{},signal:new AbortController().signal,
+    stdin:toByteSource('x'.repeat(64)),stdout:{async write(){}},stderr:{async write(bytes){stderr += new TextDecoder().decode(bytes);}}});
+  assert.equal(result.exitCode,1);
+  assert.equal(calls,0);
+  assert.match(stderr,/buffered input byte limit/);
+});
+
+for (const kind of ['argument','schema','template','configuration']) {
+  test(`${kind} controls consume materialization admission before provider execution`, async () => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir('/settings',{recursive:true});
+    const large = 'x'.repeat(512);
+    await fs.writeFile('/schema.json',new TextEncoder().encode(JSON.stringify({description:large})));
+    await fs.writeFile('/template.yaml',new TextEncoder().encode(`prompt: ${large}`));
+    if (kind === 'configuration') await fs.writeFile('/settings/model_options.json',new TextEncoder().encode(JSON.stringify({fixture:{unused:large}})));
+    let calls = 0, stderr = '';
+    const command = createLlmCommand({defaultModel:'fixture',limits:{maxInputBytes:4096,maxBufferedInputBytes:128},providers:[{
+      name:'fixture',models:[{id:'fixture',capabilities:['schema']}],async *complete(){calls++;yield 'unexpected';},
+    }]});
+    const args = kind === 'argument' ? [large] : kind === 'schema' ? ['--schema','/schema.json','hello'] : kind === 'template' ? ['-t','/template.yaml'] : ['hello'];
+    const result = await command.execute({command:'llm',args,fs,cwd:'/',env:{LLM_USER_PATH:'/settings'},signal:new AbortController().signal,
+      stdin:toByteSource(''),stdout:{async write(){}},stderr:{async write(bytes){stderr += new TextDecoder().decode(bytes);}}});
+    assert.equal(result.exitCode,1);
+    assert.equal(calls,0);
+    assert.match(stderr,/byte limit/);
+  });
+}

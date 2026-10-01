@@ -1,5 +1,6 @@
+import { createLlmInputBudget } from "./input-budget.js";
 import { loadLlmStoredSchema } from "./stored-schema.js";
-import { createOutputOperation, getCommandArguments, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
+import { createOutputOperation, getCommandArguments, shellValueByteLength, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { pathOf } from "safe-bash-contracts/path";
@@ -35,7 +36,7 @@ interface Arguments {
   attachments: { path: string; mimeType?: string }[];
 }
 
-async function parse(length: number, text: (index: number) => string, step: () => Promise<void>): Promise<Arguments> {
+async function parse(length: number, text: (index: number) => string, step: () => Promise<void>, admitBytes: (size: number) => void): Promise<Arguments> {
   const parsed: Arguments = { prompt: "", queries: [], params: {}, options: Object.create(null) as Record<string, string>, attachments: [] };
   const operands: string[] = [];
   let ended = false;
@@ -70,6 +71,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
     else if (flag === "--at" || flag === "--attachment-type") parsed.attachments.push({ path: value, mimeType: take() });
     else parsed.attachments.push({ path: value });
   }
+  if (operands.length > 1) admitBytes(operands.length - 1);
   parsed.prompt = operands.join(" ");
   return parsed;
 }
@@ -132,19 +134,15 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       offset = end;
     }
   };
-  let inputBytes = 0;
-  const inputLimit = Math.min(context.inputBudget?.maxBytes ?? Infinity, limits?.maxInputBytes ?? Infinity);
-  const checkInput = (size: number): void => {
-    context.inputBudget?.check(inputBytes + size);
-    if (size > inputLimit - inputBytes) throw new FsError("EFBIG", { message: "llm input byte limit exceeded" });
-  };
-  const admitInput = (size: number): void => {
-    checkInput(size);
-    inputBytes += size;
-  };
+  const input = createLlmInputBudget(limits, context.inputBudget);
+  const admitBuffered = (size: number): void => input.admit(size, true);
+  const invocationLoaders = { ...templateLoaderOptions, get maxBytes() { return input.remaining(true); }, admitBytes: admitBuffered };
   try {
     const argumentsValue = getCommandArguments(context);
     const argumentText = (index: number): string => {
+      const value = argumentsValue.values[index];
+      if (value === undefined) throw new Error("Missing option argument");
+      input.admit(shellValueByteLength(value), true);
       const bytes = argumentsValue.bytes(index);
       if (!bytes) throw new Error("Missing option argument");
       return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
@@ -175,7 +173,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         if (!optionsEnded && token === "--") optionsEnded = true;
         else if (!optionsEnded && token === "--multi") multi = true;
         else if (!optionsEnded && token.startsWith("-") && token !== "-") { failure = `No such option: ${token}`; break; }
-        else { admitInput(new TextEncoder().encode(token).byteLength); inputs.push(token); }
+        else inputs.push(token);
       }
       failure ??= inputs.length === 0 ? "Missing argument 'INPUT'." : inputs.length > 1 ? `Got unexpected extra argument (${inputs[1]})` : undefined;
       if (failure) {
@@ -187,7 +185,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     if (argumentsValue.args[0] === "templates") {
       let exitCode = 0;
-      try { exitCode = await createLlmTemplateStore(context, templateLoaderOptions).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal)); }
+      try { exitCode = await createLlmTemplateStore(context, invocationLoaders).command(Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, text => writeDiagnostic(context.stderr, text, signal)); }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Template failed"}`); }
       return { exitCode };
     }
@@ -205,18 +203,18 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return { exitCode: 0 };
     }
     const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
-    const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
-    const configuration = createLlmConfiguration(context, limits?.maxConfigurationBytes);
+    const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step, admitBuffered);
+    const configuration = createLlmConfiguration(context, limits?.maxConfigurationBytes, invocationLoaders);
     if (args.model === undefined && args.queries.length) {
       try { args.model = (await selectLlmModelByQuery(service.models, args.queries, await configuration.aliases(), signal)).model.id; }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Model selection failed"}`); }
     }
-    const templateStore = createLlmTemplateStore(context, templateLoaderOptions);
+    const templateStore = createLlmTemplateStore(context, invocationLoaders);
     const schemaInput = args.schemaMulti ?? args.schema;
     let schema = schemaInput ? await resolveLlmSchemaInput({...context, signal}, schemaInput, {
-      multi: Boolean(args.schemaMulti), maxBytes: inputLimit - inputBytes, admitBytes: admitInput,
+      multi: Boolean(args.schemaMulti), maxBytes: input.remaining(true), admitBytes: admitBuffered,
       loadTemplate: name => templateStore.load(name),
-      loadSchema: id => loadLlmStoredSchema({...context, signal}, id, { maxBytes: inputLimit - inputBytes, admitBytes: admitInput }),
+      loadSchema: id => loadLlmStoredSchema({...context, signal}, id, { maxBytes: input.remaining(true), admitBytes: admitBuffered }),
     }) : undefined;
     if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
     let stored;
@@ -238,17 +236,17 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     const decoder = new TextDecoder("utf-8", { fatal: true });
     const templateUsesInput = stored !== undefined && llmTemplateUsesInput(stored);
     if (stored === undefined || templateUsesInput) {
-      const input = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
-        ? { next: () => context.stdinInput!.read(Math.min(65536, inputLimit - inputBytes + 1), signal) }
+      const stdin = await operation.acquire<AsyncIterator<Uint8Array>>(() => context.stdinInput
+        ? { next: () => context.stdinInput!.read(Math.min(65536, input.remaining(!stagePrompt) + 1), signal) }
         : context.stdin[Symbol.asyncIterator](), async iterator => { await iterator.return?.(); });
       while (true) {
         await step();
-        const result = await interrupted(() => input.next(), signal);
+        const result = await interrupted(() => stdin.next(), signal);
         signal.throwIfAborted();
         if (result.done) break;
         const chunk = result.value;
         if (!(chunk instanceof Uint8Array)) throw new TypeError("Byte sources must yield Uint8Array chunks");
-        admitInput(chunk.byteLength);
+        input.admit(chunk.byteLength, !stagePrompt);
         stdinBytes += chunk.byteLength;
         if (stagePrompt) {
           for (let offset = 0; offset < chunk.byteLength; offset += 16384) {
@@ -264,6 +262,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     const decoderTail = decoder.decode();
     if (!stagePrompt) fragments.push(decoderTail);
+    if (stdinBytes && args.prompt) input.admit(1, !stagePrompt);
     if (promptSpool && args.prompt) {
       if (stdinBytes) await promptSpool.write(new TextEncoder().encode(" "));
       for (let start = 0; start < args.prompt.length;) {
@@ -298,7 +297,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
           args.extract = stored.extract_last ? "last" : "first";
           args.noStream = true;
         }
-        const evaluated = evaluateLlmTemplate(stored, templateUsesInput ? prompt : "", args.params);
+        const evaluated = evaluateLlmTemplate(stored, templateUsesInput ? prompt : "", args.params, input.admitText);
+        if (evaluated.prompt && !templateUsesInput && args.prompt) input.admit(1, true);
         if (evaluated.prompt) prompt = !templateUsesInput && args.prompt ? `${evaluated.prompt}\n${args.prompt}` : evaluated.prompt;
         if (args.system === undefined && evaluated.system !== undefined) args.system = evaluated.system;
       }
@@ -332,14 +332,14 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (attachment.path.includes("://")) throw new Error("URL attachments are not supported");
       const path = pathOf(context, attachment.path);
       const stat = await interrupted(() => context.fs.stat(path, { signal }), signal);
-      checkInput(stat.size);
+      input.check(stat.size, !streamed);
       if (streamed) {
-        const source = await operation.acquire(() => fileSource({ fs: context.fs, path, signal, maxBytes: inputLimit - inputBytes, expectedStat: stat }), source => source.dispose());
-        const input = source.bytes[Symbol.asyncIterator]();
-        const first = await interrupted(() => input.next(), signal);
+        const source = await operation.acquire(() => fileSource({ fs: context.fs, path, signal, maxBytes: input.remaining(), expectedStat: stat }), source => source.dispose());
+        const chunks = source.bytes[Symbol.asyncIterator]();
+        const first = await interrupted(() => chunks.next(), signal);
         const mimeType = attachment.mimeType ?? sniffMimeType(path, first.done ? new Uint8Array() : first.value);
         if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
-        admitInput(stat.size);
+        input.admit(stat.size);
         let closed = false, consumed = false;
         sourceAttachments.push({ mimeType, source: {
           async dispose() { closed = true; await source.dispose(); },
@@ -350,7 +350,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
             if (!first.done) yield first.value;
             while (true) {
               if (closed) throw new FsError("EBADF", { message: "LLM attachment source is closed" });
-              const next = await interrupted(() => input.next(), signal);
+              const next = await interrupted(() => chunks.next(), signal);
               if (closed) throw new FsError("EBADF", { message: "LLM attachment source is closed" });
               if (next.done) break;
               yield next.value;
@@ -360,11 +360,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         continue;
       }
       const bytes = await interrupted(() => context.fs.readFile(path, { signal,
-        ...(inputLimit === Infinity ? {} : { maxBytes: inputLimit - inputBytes }),
+        ...(input.remaining(true) === Infinity ? {} : { maxBytes: input.remaining(true) }),
       }), signal);
       signal.throwIfAborted();
       if (!(bytes instanceof Uint8Array)) throw new TypeError("Attachment read must return Uint8Array");
-      admitInput(bytes.byteLength);
+      input.admit(bytes.byteLength, true);
       const mimeType = attachment.mimeType ?? sniffMimeType(path, bytes);
       if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
       attachments.push({ mimeType, bytes: new Uint8Array(bytes) });

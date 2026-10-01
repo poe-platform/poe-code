@@ -13,13 +13,13 @@ if (fs.existsSync(distEntry)) {
     await import(pathToFileURL(distEntry).href);
     process.exit(process.exitCode ?? 0);
   } catch {
-    // Fall back to tsx source entrypoint when dist/ is incomplete
+    // Fall back to tsx loader when dist/ is incomplete
   }
 }
 
-const tsxCli = path.join(repoRoot, "node_modules", "tsx", "dist", "cli.mjs");
+const tsxLoader = pathToFileURL(path.join(repoRoot, "node_modules", "tsx", "dist", "loader.mjs")).href;
 const srcEntry = path.join(repoRoot, "src", "cli", "safe-bash-entry.ts");
-const res = spawnSync(process.execPath, [tsxCli, srcEntry, ...process.argv.slice(2)], {
+const res = spawnSync(process.execPath, ["--import", tsxLoader, srcEntry, ...process.argv.slice(2)], {
   stdio: "inherit",
   env: process.env
 });

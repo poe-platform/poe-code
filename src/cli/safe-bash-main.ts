@@ -378,6 +378,7 @@ function buildCarryOverEnv(
   }
   env.PWD = cwd;
   env.SAFE_BASH_WORKSPACE_ROOT = workspaceRoot;
+  env.POE_CODE_SAFE_BASH = "1";
   if (!env.HOME) {
     env.HOME = os.homedir() || "/root";
   }
@@ -482,6 +483,10 @@ export async function runSafeBashCli(
     } else {
       source = "";
     }
+  }
+
+  if (source.includes("__CODEX_SHELL_SNAPSHOT_STATE_")) {
+    return 1;
   }
 
   if (parsed.positionals.length > 0) {

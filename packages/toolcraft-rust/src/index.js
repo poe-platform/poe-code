@@ -1,5 +1,7 @@
 import { createRequire } from "node:module";
 
+export { isSensitiveName, redactHttpBody } from "./redaction.js";
+
 export {
   defineCommand,
   defineStreamCommand,

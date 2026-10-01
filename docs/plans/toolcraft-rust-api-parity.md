@@ -105,6 +105,10 @@ locations and metadata inheritance now have a native policy layer with Node
 identity adapters. Original Toolcraft and clone suites exercise native definitions
 through the existing SDK/MCP consumers; those consumers remain JavaScript.
 Requirement/secret signatures now use the complete command contracts.
+Redaction has native name/header policies and object traversal, with Node host
+operations for JSON parsing, array mapping and serializer calls. Differential
+coverage includes cycles, repeated references, sparse arrays, subclasses,
+custom methods, getters, serializer keys/receivers and thrown-value identity.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

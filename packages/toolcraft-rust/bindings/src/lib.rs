@@ -3,6 +3,7 @@ use napi_derive::napi;
 use toolcraft_rust::ApiVersionIssue;
 
 pub mod definitions;
+pub mod redaction;
 
 #[napi]
 pub fn candidate_distances(input: Utf16String, candidates: Vec<Utf16String>) -> Vec<f64> {

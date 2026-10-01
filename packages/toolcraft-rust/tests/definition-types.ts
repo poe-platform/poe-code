@@ -10,6 +10,10 @@ const nativeDefine: typeof native.defineCommand = reference.defineCommand;
 const nativeGroup: typeof native.defineGroup = reference.defineGroup;
 void [define, group, clone, nativeDefine, nativeGroup];
 
+const sensitive: typeof reference.isSensitiveName = native.isSensitiveName;
+const redact: typeof reference.redactHttpBody = native.redactHttpBody;
+void [sensitive, redact];
+
 // Compare the declared stream signatures with the same type parameters. Asking
 // TS to re-infer services across two recursive copies instead infers the entire
 // contravariant stream context as the native service type.

@@ -1,6 +1,7 @@
 //! Native Toolcraft policies. Node capabilities live in the binding adapter.
 
 pub mod definitions;
+pub mod redaction;
 
 /// Optimal string alignment distance over JavaScript UTF-16 code units.
 /// Three rows retain adjacent-transposition semantics without a quadratic matrix.

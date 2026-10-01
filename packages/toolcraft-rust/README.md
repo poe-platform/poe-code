@@ -8,6 +8,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | ------------ | -------------------------------------------------------------------------------- |
 | Suggestions  | UTF-16 typo distance, Node locale ordering, thresholds and result limits         |
 | Diagnostics  | Log levels, filtering, function and object sinks                                 |
+| Redaction    | Sensitive field/header policies, JSON bodies, serializers and cyclic references  |
 | Errors       | Toolcraft user/bug errors and HTTP status subclasses                             |
 | Requirements | Authentication, numeric API version checks and async preconditions               |
 | Secrets      | Required/optional environment values and missing-name suggestions                |
@@ -39,6 +40,9 @@ const app = defineGroup({ name: "app", children: [greet], default: greet });
 Rust computes edit distances, API version validation, log filtering, HTTP status
 classification, metadata inheritance, secret precedence, rename/default checks
 and source-frame parsing.
+Rust also traverses redacted objects and controls serializer application and
+cycle detection. Node retains array mapping and JSON parsing semantics, including
+sparse arrays, custom array species, serializer receivers and thrown values.
 Node retains locale sorting, callback receivers, original event values, error
 causes, subclass identity, symbol metadata and stack traces. Cloning preserves
 schema and handler identity and supports trees from another Toolcraft bundle.

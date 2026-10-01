@@ -104,3 +104,6 @@ export declare function createHttpError(args: {
 }): HttpError;
 
 export * from "./definitions.js";
+
+export declare function isSensitiveName(name: string): boolean;
+export declare function redactHttpBody(body: unknown): unknown;

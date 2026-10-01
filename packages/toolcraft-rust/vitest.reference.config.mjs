@@ -2,7 +2,7 @@ import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
 const path = (value) => fileURLToPath(new URL(value, import.meta.url));
-const suites = ["suggest", "runtime-logging"];
+const suites = ["suggest", "runtime-logging", "redaction"];
 
 export default defineConfig({
   plugins: [

@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandDefinition } from "safe-bash-contracts";
+import { Matcher } from "safe-bash-search-engine/matcher";
+import { clearRgFastRunnerPool } from "./rg-command.js";
 import { createRgCommand } from "./index.js";
 
 async function run(command: CommandDefinition, fs: ReturnType<typeof createMemoryFileSystem>, args: string[], env: Record<string, string> = {}) {
@@ -142,3 +144,40 @@ for (const mode of ["sync", "async"] as const) {
     });
   }
 }
+
+test("a delayed speculative match cannot resume a released pooled runner", async t => {
+  clearRgFastRunnerPool();
+  t.after(clearRgFastRunnerPool);
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/dir");
+  await fs.writeFile("/dir/file", bytes("needle\n"));
+  const batchSync = Matcher.prototype.batchSync;
+  const speculativeMatchers = new Set<Matcher>();
+  let speculativeCalls = 0;
+  let release!: () => void;
+  const blocked = new Promise<void>(resolve => { release = resolve; });
+  t.mock.method(Matcher.prototype, "batchSync", function (this: Matcher, rows: Parameters<Matcher["batchSync"]>[0]) {
+    if (speculativeMatchers.size === 0) speculativeMatchers.add(this);
+    if (speculativeMatchers.has(this)) {
+      speculativeCalls++;
+      if (speculativeCalls === 1) {
+        const matches = batchSync.call(this, rows);
+        return blocked.then(() => matches);
+      }
+    }
+    return batchSync.call(this, rows);
+  });
+  try {
+    // CRLF forces the literal matcher through the batch path in the pooled attempt.
+    const result = await run(createRgCommand(), fs, ["-c", "--crlf", "needle", "/dir"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "/dir/file:1\n");
+    assert.equal(speculativeCalls, 1, "the suspended pooled attempt must fall back");
+    release();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(speculativeCalls, 1, "settling the discarded match must not resume its released runner");
+  } finally {
+    release();
+    await new Promise<void>(resolve => setImmediate(resolve));
+  }
+});

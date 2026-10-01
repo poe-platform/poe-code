@@ -6,6 +6,73 @@ import { createGrepCommands } from "../../../src/commands/search/grep.js";
 import { Shell, agentCommands, cloudflareWorkerLimits, createMemoryFileSystem } from "../../../src/index.js";
 import { fixture, run } from "../helpers.js";
 
+for (const command of ['rg --files /dir/input', 'rg -c -i hello /dir/input']) {
+  test(`${command} preserves directory search permissions`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir('/dir');
+    await fs.writeFile('/dir/input', new TextEncoder().encode('hello\n'));
+    await fs.chmod('/dir', 0o444);
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stdout, '');
+      assert.match(result.stderr, /EACCES/);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const sorted of [false, true]) test(`rg charges every directory, sorted insertion=${sorted}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir('/dir/sub', { recursive: true });
+  for (const name of sorted ? ['a', 'z'] : ['z', 'a']) {
+    await fs.writeFile(`/dir/sub/${name}.txt`, new Uint8Array());
+  }
+  const shell = new Shell({ fs }).use(agentCommands());
+  try {
+    await assert.rejects(shell.exec('rg --files /dir', { limits: { maxFileSystemOperations: 1 } }),
+      { name: 'ShellLimitError', limit: 'maxFileSystemOperations' });
+    const result = await shell.exec('rg --files /dir', { limits: { maxFileSystemOperations: 2 } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '/dir/sub/a.txt\n/dir/sub/z.txt\n');
+  } finally { await shell.dispose(); }
+});
+
+for (const middleware of [false, true]) for (const command of ['find /dir', 'find /dir -type f', 'find /dir -maxdepth 2', 'find /dir -name "*.txt"', 'rg --files /dir', 'rg --files -g "*.txt" /dir']) {
+  test(`${command} rejects a zero filesystem budget, middleware=${middleware}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir('/dir/sub', { recursive: true });
+    await fs.writeFile('/dir/sub/a.txt', new TextEncoder().encode('hello\n'));
+    const shell = new Shell({ fs }).use(agentCommands());
+    if (middleware) shell.use((_context, next) => next());
+    try {
+      await assert.rejects(shell.exec(command, { limits: { maxFileSystemOperations: 0 } }),
+        { name: 'ShellLimitError', limit: 'maxFileSystemOperations' });
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [command, content, expected] of [
+  ['grep hello /input', 'hello café\n', 'hello café\n'],
+  ['grep hello /input', 'hello\n'.repeat(12000), 'hello\n'.repeat(12000)],
+  ['grep hello /input', 'hello\n'.repeat(4096), 'hello\n'.repeat(4096)],
+  ['rg -c -i hello /input', 'hello\n'.repeat(1200), '1200\n'],
+  ['rg -c -i hello /input', 'hello\n'.repeat(12000), '12000\n'],
+] as const) {
+  test(`${command} reads ${content.length} bytes with one filesystem operation`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile('/input', new TextEncoder().encode(content));
+    const shell = new Shell({ fs }).use(agentCommands());
+    try {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const result = await shell.exec(command, { limits: { maxFileSystemOperations: 1 } });
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, expected);
+      }
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const size of [65535, 65536, 65537]) {
   for (const terminated of [false, true]) test(`ASCII grep preserves the final newline at ${size} bytes, terminated=${terminated}`, async () => {
     const line = "x".repeat(size);

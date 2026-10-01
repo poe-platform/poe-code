@@ -257,10 +257,11 @@ function tryFastGrepAscii(
     ) {
       try {
         assertCommandRequirements(context, grepRequirements, SINGLE_FILE_OPERAND, fastBacking?.capabilities);
-        if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
-        else chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
-        const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal, false, () => {
+          if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
+          else chargeRuntimeFileSystemOperation(context.fs);
+        });
         if (raw !== undefined) context.inputBudget?.check(raw.byteLength);
         if (raw !== undefined && raw.length < 65536 && !hasNulOrNonAscii(raw, 0, raw.length)) {
           const literalStart = anchoredStart ? 1 : 0;
@@ -378,9 +379,9 @@ async function tryFastGrepAsciiAsync(
         !Object.prototype.hasOwnProperty.call(backing, "readFile")
       ) {
         assertCommandRequirements(context, grepRequirements, ["file"]);
-        if (admittedBytes === undefined) chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
-        const raw = admittedBytes ?? tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        const raw = admittedBytes ?? tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal, false,
+          () => chargeRuntimeFileSystemOperation(context.fs));
         if (admittedBytes === undefined && raw !== undefined) context.inputBudget?.check(raw.byteLength);
         if (raw !== undefined) {
           const lineLimit = Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity);
@@ -428,7 +429,7 @@ async function tryFastGrepAsciiAsync(
                 if (pending) await pending;
               }
               if (lineLen + 1 > outBuffer.length) {
-                await output(context, raw.subarray(lineStart, lineEnd));
+                await output(context, new Uint8Array(raw.subarray(lineStart, lineEnd)));
                 await output(context, NEWLINE_BYTES);
               } else {
                 for (let i = lineStart; i < lineEnd; i++) {
@@ -491,7 +492,7 @@ async function tryFastGrepAsciiAsync(
           if (pending) await pending;
         }
         if (lineLen + 1 > outBuffer.length) {
-          await output(context, chunk.subarray(lStart, lEnd));
+          await output(context, new Uint8Array(chunk.subarray(lStart, lEnd)));
           await output(context, NEWLINE_BYTES);
         } else {
           for (let i = lStart; i < lEnd; i++) {
@@ -762,7 +763,7 @@ inspect the resulting state before repeating the action.
       let outUsed = 0;
       const flushOutSyncOrAsync = (): Promise<void> | undefined => {
         if (!outBuffer || outUsed === outStart) return undefined;
-        const view = outBuffer.subarray(outStart, outUsed);
+        const view = outBuffer.slice(outStart, outUsed);
         const p = output(context, view);
         if (isSyncResolved(p)) {
           outStart = 0;

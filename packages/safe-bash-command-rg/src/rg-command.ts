@@ -59,16 +59,32 @@ function trySearchFileSync(
   if (!hasCanonical || !backing) {
     return undefined;
   }
-  const fastCharge = (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp;
-  if (fastCharge) fastCharge.call(context);
-  else {
-    context.signal.throwIfAborted();
-    chargeRuntimeFileSystemOperation(context.fs);
-  }
   const maxBytes = limits.hasFiniteMaxFileBytes ? limits.maxFileBytes : undefined;
-  const view = target.memoryView ?? tryReadMemoryFileViewSync(backing, target.canonicalPath!, maxBytes, context.signal);
+  const fastCharge = (context as { _chargeFastFsOp?: () => void })._chargeFastFsOp;
+  const admitRead = () => {
+    context.signal.throwIfAborted();
+    if (fastCharge) fastCharge.call(context);
+    else chargeRuntimeFileSystemOperation(context.fs);
+  };
+  if (target.memoryView !== undefined) admitRead();
+  const view = target.memoryView ?? tryReadMemoryFileViewSync(backing, target.canonicalPath!, maxBytes, context.signal, false, admitRead);
   if (view === undefined) return undefined;
   context.inputBudget?.check(view.byteLength);
+  // A yielding matcher must continue with the read already admitted above.
+  // Reopening the file here would charge the same logical read twice.
+  const speculative = limits.speculative;
+  const resume = (): Promise<boolean> | undefined => {
+    if (speculative) return undefined;
+    return searchFile(context, args, limits, matcher, printer, target, context.stdin, filename, view).then(result => {
+      totals.searches += result.stats.searches;
+      totals.searches_with_match += result.stats.searches_with_match;
+      totals.bytes_searched += result.stats.bytes_searched;
+      totals.bytes_printed += result.stats.bytes_printed;
+      totals.matched_lines += result.stats.matched_lines;
+      totals.matches += result.stats.matches;
+      return result.found;
+    });
+  };
   if (!args.hasInfiniteMaxCount && args.maxCount === 0) {
     totals.searches++;
     return false;
@@ -126,7 +142,7 @@ function trySearchFileSync(
         const end = newline < 0 ? view.length : newline;
         bytesSearched = newline < 0 ? end : end + 1;
         const pending = limits.tick();
-        if (pending) return pending.then(() => undefined);
+        if (pending) return pending.then(resume);
         let count = 0;
         let pos = start;
         while (pos <= end - litLen) {
@@ -176,7 +192,7 @@ function trySearchFileSync(
   sharedReadState.skipped = false;
   const batchSizeFn = Number.isFinite(args.maxCount) || args.quiet || args.mode === "with" || args.mode === "without" ? BATCH_SIZE_1 : BATCH_SIZE_128;
   const syncBatches = trySyncLineBatches(view, limits, sharedReadState, binary, args.nullData, batchSizeFn, needAll, args.crlf);
-  if (syncBatches === undefined) return undefined;
+  if (syncBatches === undefined) return resume();
   const maxCountSmi = Number.isFinite(args.maxCount) ? (args.maxCount | 0) : 0x3fffffff;
   let pendingTick: Promise<void> | undefined;
   let matchedLines = 0;
@@ -187,14 +203,14 @@ function trySearchFileSync(
     const batch = syncBatches[bIdx]!;
     const batchRes = matcher.batchSync(batch);
     if (batchRes instanceof Promise) {
-      return (pendingTick ? Promise.all([pendingTick, batchRes]) : batchRes).then(() => undefined);
+      return (pendingTick ? Promise.all([pendingTick, batchRes]) : batchRes).then(resume);
     }
     for (let index = 0; index < batch.length; index++) {
       const line = batch[index]!;
       bytesSearched = line.offset + line.rawLength;
       const t = limits.tick();
       if (t !== undefined) {
-        if (hasExtYield) return t.then(() => undefined);
+        if (hasExtYield) return t.then(resume);
         pendingTick ??= t;
       }
       const matches = batchRes[index]!;
@@ -275,14 +291,14 @@ function relativeMatch(match: Match, offset: number): Match {
   };
 }
 
-async function searchFile(context: CommandContext, args: Arguments, limits: Limits, matcher: Matcher, printer: Printer, target: FileTarget, stdin: ByteSource, filename: boolean): Promise<{ found: boolean; stats: Stats }> {
+async function searchFile(context: CommandContext, args: Arguments, limits: Limits, matcher: Matcher, printer: Printer, target: FileTarget, stdin: ByteSource, filename: boolean, admittedBytes?: Uint8Array): Promise<{ found: boolean; stats: Stats }> {
   const totals = stats(); totals.searches = 1;
   if (!args.hasInfiniteMaxCount && args.maxCount === 0) return { found: false, stats: totals };
   const state: ReadState = { bytesRead: 0, bytesSearched: 0, binaryOffset: null, skipped: false };
   const binary = args.binary === "text" ? "text" : args.binary === "binary" || target.explicit ? "binary" : "skip";
   let source: ByteSource | Uint8Array = target.path === "-"
     ? stdin
-    : requiredFileInput(context, searchRequirements, "file", target.path, limits.maxFileBytes);
+    : admittedBytes ?? requiredFileInput(context, searchRequirements, "file", target.path, limits.maxFileBytes);
   let crossLineMatches: Match[] | undefined;
   if (matcher.crossLine) {
     const rawBytes = source instanceof Uint8Array

@@ -164,9 +164,7 @@ export class Limits {
   }
   async flush(): Promise<void> {
     if (this.outPos > 0 && this.outBuf) {
-      const slice = this.usingSharedBuf
-        ? this.outBuf.slice(0, this.outPos)
-        : this.outBuf.subarray(0, this.outPos);
+      const slice = this.outBuf.slice(0, this.outPos);
       this.outPos = 0;
       try {
         await this.write(slice);
@@ -194,7 +192,7 @@ export class Limits {
           (this._signal ?? this.context.signal).throwIfAborted();
           const ok = typeof syncSink.writeRangeSync === "function"
             ? syncSink.writeRangeSync(this.outBuf, len)
-            : syncSink.writeSync(this.outBuf.subarray(0, len));
+            : syncSink.writeSync(this.outBuf.slice(0, len));
           if (ok) {
             this.releaseOutBuf();
             return undefined;

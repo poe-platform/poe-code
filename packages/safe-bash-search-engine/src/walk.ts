@@ -536,6 +536,7 @@ export class Walker {
     let fastSortedKeys = false;
     if (canFastMemReaddir && memDirEntries.size <= maxEntries) {
       this.context.signal.throwIfAborted();
+      chargeRuntimeFileSystemOperation(this.context.fs);
       let isSorted = true;
       let prevKey = "";
       for (const k of memDirEntries.keys()) {
@@ -755,6 +756,7 @@ export class Walker {
     }
     const fastMap = memDirEntries as unknown as { readonly size?: number; readonly _next?: number; readonly _keys?: string[]; readonly _vals?: unknown[] };
     if (syncOnly && isFastEntriesMapSorted(fastMap)) {
+      chargeRuntimeFileSystemOperation(this.context.fs);
       if (this.args.ignore && !this.uniformIgnoreAdmitted) {
         assertCommandRequirements(this.context, searchRequirements, ["metadata", "ignore-file"]);
         this.uniformIgnoreAdmitted = true;
@@ -829,6 +831,7 @@ export class Walker {
     const cleanLabel = label === path ? cleanPath : (label && label.endsWith("/") ? label.slice(0, -1) : label);
     const samePrefix = cleanLabel === cleanPath;
     try {
+      chargeRuntimeFileSystemOperation(this.context.fs);
       for (let bufIdx = baseOffset, entryIdx = 0; bufIdx < endOffset; bufIdx += 2, entryIdx++) {
         const entryName = syncWalkBuffer[bufIdx] as string;
         const entryObj = syncWalkBuffer[bufIdx + 1] as { readonly type: DirectoryEntry["type"]; readonly mode?: number; readonly data?: Uint8Array; atimeMs?: number };
@@ -966,6 +969,19 @@ export class Walker {
         continue;
       }
       try {
+        // An explicit memory file needs one admitted read, not a separate
+        // metadata operation merely to distinguish it from a directory.
+        if (this.args.mode !== "files" && uniformNonDev && uniformBacking.symlinkCount === 0 &&
+          this.context.fs.capabilities.stat !== false && uniformBacking.capabilities.stat !== false &&
+          this.context.fs.capabilities.read !== false && uniformBacking.capabilities.read !== false) {
+          const parent = dirname(path);
+          const entries = tryGetMemoryDirectoryEntryNamesSync(uniformBacking, parent);
+          const name = path.slice(parent === "/" ? 1 : parent.length + 1);
+          if (entries?.get(name)?.type === "file") {
+            if (!await onTarget({ path, label: operand, explicit: true, recursive: false, canonicalPath: path })) return;
+            continue;
+          }
+        }
         if (
           uniformNonDev &&
           uniformBacking.symlinkCount === 0 &&

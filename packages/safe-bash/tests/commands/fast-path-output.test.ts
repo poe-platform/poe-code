@@ -1,4 +1,4 @@
-import { standardCommands } from "../../src/commands/index.js";
+import { createStandardCommands, standardCommands } from "../../src/commands/index.js";
 import { streamFormatCommands } from "../../src/commands/stream-format/index.js";
 import { createEncodingCommands } from "../../src/commands/bytes/encoding/index.js";
 import assert from "node:assert/strict";
@@ -10,6 +10,7 @@ import { searchCommands } from "../../src/commands/search/index.js";
 import { Capture } from "../../src/shell/runtime.js";
 import { jqCommand } from "../../src/commands/structured/jq.js";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
+import { Limits as SearchLimits } from "../../src/commands/search/shared.js";
 import { rgCommand } from "../../src/commands/search/rg.js";
 
 test("synchronous command warmup preserves output at the exact byte limit", async t => {
@@ -406,3 +407,124 @@ for (const env of wordCountEnvironments) {
     assert.equal(substituted.stderr, ordinary.stderr);
   });
 }
+
+
+for (const synchronous of [false, true]) {
+  for (const scenario of [
+    { name: "sort", args: [], line: (i: number) => `${String(1200 - i).padStart(4, "0")}:${"x".repeat(70)}\n`, transform: (lines: string[]) => lines.sort().join("") },
+    { name: "uniq", args: [], line: (i: number) => `${i}:${"x".repeat(70)}\n`, transform: (lines: string[]) => lines.join("") },
+    { name: "cut", args: ["-d:", "-f2"], line: (i: number) => `${i}:${"x".repeat(70)}\n`, transform: (lines: string[]) => lines.map(line => line.slice(line.indexOf(":") + 1)).join("") },
+    { name: "grep", args: ["-F", "x"], line: (i: number) => `${i}:${"x".repeat(70)}\n`, transform: (lines: string[]) => lines.join("") },
+  ]) {
+    test(`${scenario.name} preserves retained output across slab flushes, synchronous=${synchronous}`, async () => {
+      const chunks: Uint8Array[] = [];
+      const lines = Array.from({ length: 1200 }, (_, i) => scenario.line(i));
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/input", new TextEncoder().encode(lines.join("")));
+      const definition = createStandardCommands().find(command => command.name === scenario.name)!;
+      const stdout = {
+        async write(bytes: Uint8Array) { chunks.push(bytes); },
+        ...(synchronous ? { writeSync(bytes: Uint8Array) { chunks.push(bytes); return true; } } : {}),
+      };
+      const result = await definition.execute({
+        command: scenario.name, args: [...scenario.args, "/input"], cwd: "/", env: { LC_ALL: "C" }, fs,
+        signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+        stdout, stderr: new Capture(),
+      });
+      assert.equal(result.exitCode, 0);
+      assert.ok(chunks.length > 1, "exercise more than one staging-buffer publication");
+      assert.ok(Buffer.concat(chunks).toString() === scenario.transform(lines), "retained chunks preserve every output byte");
+    });
+  }
+  test(`find preserves retained output across invocations, synchronous=${synchronous}`, async () => {
+    const chunks: Uint8Array[] = [];
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/alpha");
+    await fs.mkdir("/omega");
+    await fs.writeFile("/alpha/first", new Uint8Array());
+    await fs.writeFile("/omega/other", new Uint8Array());
+    const definition = createStandardCommands().find(command => command.name === "find")!;
+    const stdout = {
+      async write(bytes: Uint8Array) { chunks.push(bytes); },
+      ...(synchronous ? { writeSync(bytes: Uint8Array) { chunks.push(bytes); return true; } } : {}),
+    };
+    for (const directory of ["/alpha", "/omega"]) {
+      const result = await definition.execute({
+        command: "find", args: [directory], cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+        stdout, stderr: new Capture(),
+      });
+      assert.equal(result.exitCode, 0);
+    }
+    assert.equal(Buffer.concat(chunks).toString(), "/alpha\n/alpha/first\n/omega\n/omega/other\n");
+  });
+}
+
+for (const synchronous of [false, true]) {
+  for (const privateBuffer of [false, true]) {
+    test(`search staging retains owned output, synchronous=${synchronous}, privateBuffer=${privateBuffer}`, async () => {
+      const chunks: Uint8Array[] = [];
+      const context = {
+        command: "rg", args: [], cwd: "/", env: {}, fs: new MemoryFileSystem(),
+        signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+        stdout: { async write(bytes: Uint8Array) { chunks.push(bytes); },
+          ...(synchronous ? { writeSync(bytes: Uint8Array) { chunks.push(bytes); return true; } } : {}) },
+        stderr: new Capture(),
+      };
+      const holder = new SearchLimits(context, {});
+      const output = new SearchLimits(context, {});
+      try {
+        if (privateBuffer) await holder.outputSyncOrAsync("held");
+        for (const value of ["alpha", "omega"]) {
+          await output.outputSyncOrAsync(value);
+          await output.flushSyncOrAsync();
+        }
+        assert.equal(Buffer.concat(chunks).toString(), "alphaomega");
+      } finally { await holder.flush(); await output.flush(); }
+    });
+  }
+}
+
+test("grep owns retained long-line output before borrowed input advances", async () => {
+  const chunks: Uint8Array[] = [];
+  const expected = "x".repeat(65537) + "\n";
+  const borrowed = Buffer.from(expected);
+  const definition = createStandardCommands().find(command => command.name === "grep")!;
+  const result = await definition.execute({
+    command: "grep", args: ["x"], cwd: "/", env: { LC_ALL: "C" }, fs: new MemoryFileSystem(),
+    signal: new AbortController().signal,
+    stdin: { async *[Symbol.asyncIterator]() { yield borrowed; borrowed.fill(0); } },
+    stdout: { async write(bytes: Uint8Array) { chunks.push(bytes); } }, stderr: new Capture(),
+  });
+  assert.equal(result.exitCode, 0);
+  assert.ok(Buffer.concat(chunks).toString() === expected, "retained output survives producer reuse");
+});
+
+test("grep charges one file operation when the memory view declines", async t => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("needle\n"));
+  const permission = Reflect.get(fs, "permission") as (...args: unknown[]) => unknown;
+  Reflect.set(fs, "permission", function (this: MemoryFileSystem, ...args: unknown[]) { return permission.apply(this, args); });
+  assert.equal(tryReadMemoryFileViewSync(fs, "/input"), undefined);
+  const shell = new Shell({ fs }).use(standardCommands());
+  t.after(() => shell.dispose());
+  const result = await shell.exec("grep needle /input", { limits: { maxFileSystemOperations: 1 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "needle\n");
+});
+
+test("grep owns retained long-line memory output across file replacement", async () => {
+  const chunks: Uint8Array[] = [];
+  const expected = "x".repeat(65537) + "\n";
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode(expected));
+  const definition = createStandardCommands().find(command => command.name === "grep")!;
+  const result = await definition.execute({
+    command: "grep", args: ["x", "/input"], cwd: "/", env: { LC_ALL: "C" }, fs,
+    signal: new AbortController().signal, stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout: { async write(bytes: Uint8Array) { chunks.push(bytes); } }, stderr: new Capture(),
+  });
+  assert.equal(result.exitCode, 0);
+  await fs.writeFile("/input", new TextEncoder().encode("y".repeat(65537) + "\n"));
+  assert.ok(Buffer.concat(chunks).toString() === expected, "retained output survives replacement of the source file");
+});

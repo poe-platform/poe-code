@@ -48,11 +48,13 @@ Exactly three VFS file operands are required. With no selector, output is a
 native-style comparison report (differences return status 0). `-m` merges;
 `-A`, `-e`, `-E`, `-3`, `-x` and `-X` select ed scripts without `-m`, or merge
 filtering with it. Repeating one selector is valid; distinct selectors fail 2.
-GNU diffutils **3.12** is the qualified target: `-X` is unflagged, like `-x`.
+GNU diffutils **3.12** is the comparison target, with two deliberate differences:
+`-X` brackets overlapping conflicts (unlike unflagged `-x`), and successful
+ed-script generation returns 0 even when the script contains conflicts.
 The reference is the official `diffutils-3.12.tar.xz` release, SHA256
 `7c8b7f9fc8609141fdea9cece85249d308624391ff61dedaf528fcb337727dfd`.
 Default merge flags identical ours/theirs changes relative to base; `-mE`
-preserves those changes cleanly. Flagged conflicts return 1; errors return 2.
+preserves those changes cleanly. Flagged merge conflicts return 1; errors return 2.
 
 `-L` supplies up to three literal labels in flagging modes, `-T` changes report
 indentation, `-a` admits binary comparison, and `--strip-trailing-cr` changes

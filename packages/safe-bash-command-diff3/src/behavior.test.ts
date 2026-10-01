@@ -6,8 +6,10 @@ import { compareDiff3, parseDiff3Arguments } from './behavior.js';
 const bytes = (s: string): Uint8Array => Uint8Array.from(s, c => c.charCodeAt(0));
 const limits = { inputBytes: 1000000, retainedBytes: 4000000, tokens: 10000, graphCells: 1000000, work: 20000000, outputBytes: 1000000, argumentBytes: 65536, decodedBytes: 200000, labelBytes: 65536 };
 for (const control of controls.filter(c => ['core', 'corners', 'alignment', 'options', 'inventory'].includes(c.group))) {
-  test(`GNU 3.12 ${control.id}`, () => {
-    const args = control.args.includes('--') ? control.args : [...control.args, ...control.operands];
+  test(`GNU 3.12 bytes with supported status contract ${control.id}`, () => {
+    // GNU 3.12 -X captured unflagged output; retain those byte checks as -x.
+    const selected = control.args.map(arg => arg === '-X' && !control.args.includes('-x') ? '-x' : arg);
+    const args = selected.includes('--') ? selected : [...selected, ...control.operands];
     if (control.status === 2) {
       assert.throws(() => compareDiff3((fixtures[control.id.split('/')[0]!] ?? fixtures.conflict)!.map(bytes), parseDiff3Arguments(args, limits), limits));
       return;
@@ -20,7 +22,7 @@ for (const control of controls.filter(c => ['core', 'corners', 'alignment', 'opt
     const result = compareDiff3(inputs.map(bytes), parseDiff3Arguments(args, limits), limits);
     assert.deepEqual(result.stdout, bytes(control.stdout));
     assert.deepEqual(result.stderr, bytes(control.stderr.replaceAll('<DIFF3>', 'diff3')));
-    assert.equal(result.exitCode, control.status);
+    assert.equal(result.exitCode, parseDiff3Arguments(args, limits).merge ? control.status : 0);
   });
 }
 
@@ -77,4 +79,34 @@ test('SDK metadata does not invoke borrowed array methods or unrelated property 
   const invocation = { files, information: 'version' as const };
   Object.defineProperty(invocation, 'unrelated', { enumerable: true, get() { throw new Error('Unrelated property read'); } });
   assert.equal(compareDiff3([], invocation, limits).exitCode, 0);
+});
+
+for (const selector of ['X', 'E', 'A'] as const) {
+  test(`flagged ${selector} scripts succeed while merges report conflicts`, () => {
+    const inputs = ['a\nb_mine\nc\nd\ne_mine\n', 'a\nb\nc\nd\ne\n', 'a\nb\nc\nd_yours\ne_yours\n'].map(bytes);
+    const script = compareDiff3(inputs, parseDiff3Arguments([`-${selector}`, '/mine', '/older', '/yours'], limits), limits);
+    assert.equal(script.exitCode, 0);
+    if (selector !== 'A') assert.deepEqual(script.stdout, bytes('5a\n=======\nd_yours\ne_yours\n>>>>>>> /yours\n.\n3a\n<<<<<<< /mine\n.\n'));
+    const merge = compareDiff3(inputs, parseDiff3Arguments([`-m${selector}`, '/mine', '/older', '/yours'], limits), limits);
+    assert.equal(merge.exitCode, 1);
+    if (selector !== 'A') assert.deepEqual(merge.stdout, bytes('a\nb_mine\nc\n<<<<<<< /mine\nd\ne_mine\n=======\nd_yours\ne_yours\n>>>>>>> /yours\n'));
+  });
+}
+
+test('overlap-only markers admit labels and reject unsafe ed labels', () => {
+  const options = parseDiff3Arguments(['-X', '-L', 'mine', 'ours', 'base', 'theirs'], limits);
+  assert.ok(new TextDecoder().decode(compareDiff3(fixtures.conflict!.map(bytes), options, limits).stdout).includes('<<<<<<< mine'));
+  assert.throws(() => parseDiff3Arguments(['-X', '-L', 'bad\nlabel', 'ours', 'base', 'theirs'], limits));
+  assert.throws(() => parseDiff3Arguments(['-X', 'bad\npath', 'base', 'theirs'], limits));
+});
+
+test('X excludes non-overlapping changes while preserving merge source', () => {
+  const inputs = ['a\nb\nc\n', 'a\nb\nc\n', 'a\nyours\nc\n'].map(bytes);
+  const files = ['ours', 'base', 'theirs'];
+  const script = compareDiff3(inputs, { files, selector: 'X' }, limits);
+  assert.equal(script.exitCode, 0);
+  assert.deepEqual(script.stdout, bytes(''));
+  const merge = compareDiff3(inputs, { files, selector: 'X', merge: true }, limits);
+  assert.equal(merge.exitCode, 0);
+  assert.deepEqual(merge.stdout, inputs[0]);
 });

@@ -18,7 +18,9 @@ const hex = (bytes: readonly number[]) => bytes.map(byte => byte.toString(16).pa
 for (const [sample, control] of generatedControls.entries()) {
   test(`independent GNU 3.12 triple ${sample}: CLI/SDK bytes, status and effects`, async () => {
     for (const expected of control.results) {
-      const options = modes[expected.args[0] ?? ''];
+      // GNU 3.12 -X is unflagged; these captures continue to verify -x.
+      const args = expected.args.map(arg => arg === '-X' ? '-x' : arg);
+      const options = modes[args[0] ?? ''];
       assert.ok(options);
       assert.ok(expected.args.length === 0 || expected.args.length === 1 || (expected.args.length === 3 && expected.args[1] === '-L'));
       for (const sdk of [false, true]) {
@@ -27,7 +29,7 @@ for (const [sample, control] of generatedControls.entries()) {
         const cleanups: (() => void | Promise<void>)[] = [];
         let opened = 0, closed = 0;
         const signal = new AbortController().signal;
-        const carrier = createCommandArguments([...expected.args, ...paths]);
+        const carrier = createCommandArguments([...args, ...paths]);
         const context = {
           command: 'diff3', args: carrier.args, argumentValues: carrier, cwd: '/vfs', env: {}, signal,
           stdin: { [Symbol.asyncIterator]() { assert.fail('No stdin authority for file operands'); } },
@@ -53,7 +55,7 @@ for (const [sample, control] of generatedControls.entries()) {
         const result: CommandResult = sdk
           ? await diff3(context, { files: paths, ...options, ...(expected.args.length === 3 ? { labels: [expected.args[2]!] } : {}) })
           : await createDiff3Command().execute(context);
-        assert.equal(result.exitCode, expected.status);
+        assert.equal(result.exitCode, (options.merge ? expected.status : 0));
         assert.equal(hex(stdout), expected.stdout);
         assert.equal(hex(stderr), expected.stderr);
         assert.equal(opened, 3); assert.equal(closed, opened);

@@ -72,11 +72,11 @@ export function validateDiff3Invocation(options: Diff3Invocation, limits: Diff3B
   if (selector !== undefined && !['A', 'e', 'E', '3', 'x', 'X'].includes(selector)) optionError('Unsupported script selector');
   if (options.merge && options.writeQuit) optionError('Incompatible options: merge and write/quit');
   if (labels.length > 3) optionError('Too many file labels');
-  if (labels.length && selector !== 'A' && selector !== 'E') optionError('Labels require a flagging mode');
+  if (labels.length && selector !== 'A' && selector !== 'E' && selector !== 'X') optionError('Labels require a flagging mode');
   if (!options.information && files.length !== 3) optionError('Exactly three operands are required');
   if (files.filter(file => file === '-').length > 1) optionError('Multiple stdin operands are unavailable');
   const effectiveLabels = files.map((file, index) => labels[index] ?? file);
-  if (!options.merge && (selector === 'A' || selector === 'E') && effectiveLabels.some(label => label.includes('\n') || label.includes('\r'))) optionError('Ed labels must be single-line');
+  if (!options.merge && (selector === 'A' || selector === 'E' || selector === 'X') && effectiveLabels.some(label => label.includes('\n') || label.includes('\r'))) optionError('Ed labels must be single-line');
   return Object.freeze({ files: Object.freeze(files), labels: Object.freeze(labels), merge: options.merge === true, writeQuit: options.writeQuit === true, initialTab: options.initialTab === true, text: options.text === true, stripTrailingCR: options.stripTrailingCR === true, ...(selector ? { selector } : {}), ...(options.information ? { information: options.information } : {}) });
 }
 const longOptions: Readonly<Record<string, string>> = Object.freeze({ 'diff-program': 'external', 'easy-only': '3', ed: 'e', help: 'help', 'initial-tab': 'T', label: 'L', merge: 'm', 'overlap-only': 'x', 'show-all': 'A', 'show-overlap': 'E', 'strip-trailing-cr': 'cr', text: 'a', version: 'version' });
@@ -247,8 +247,8 @@ export function compareDiff3(inputs: readonly Uint8Array[], invocation: Diff3Inv
         continue;
       }
       const selector = options.selector!;
-      const flagged = different === 0 && (selector === 'A' || selector === 'E') || different === 2 && selector === 'A';
-      const replace = different === 3 && ['A', 'E', 'e', '3'].includes(selector) || different === 0 && ['e', 'x', 'X'].includes(selector);
+      const flagged = different === 0 && (selector === 'A' || selector === 'E' || selector === 'X') || different === 2 && selector === 'A';
+      const replace = different === 3 && ['A', 'E', 'e', '3'].includes(selector) || different === 0 && ['e', 'x'].includes(selector);
       if (options.merge) {
         range(0, { start: cursor, end: region.left.start }, 'source');
         if (flagged) {
@@ -289,7 +289,7 @@ export function compareDiff3(inputs: readonly Uint8Array[], invocation: Diff3Inv
       return bytes;
     };
     const stdout = flatten(out), stderr = flatten(err);
-    return { stdout, stderr, exitCode: conflict ? 1 : 0, accounting: accounting() };
+    return { stdout, stderr, exitCode: options.merge && conflict ? 1 : 0, accounting: accounting() };
   }
   const size = out.reduce((sum, chunk) => sum + chunk.length, 0); hold(size); charge(size);
   const bytes = new Uint8Array(size); let offset = 0;

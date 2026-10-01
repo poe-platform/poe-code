@@ -28,7 +28,9 @@ and `diagnostic` hooks. Its `codec(input, options, signal)` takes `mode` (`gzip`
 
 `createZipCodec(runtime?, profile?)` accepts runtime `yieldTurn`, `fail` and
 `compression` hooks. Profile options are `zip64`, `rejectDuplicateNames`,
-`utcDates`, and `validatePayloads`. ZIP operations require `ZipLimits`:
+`utcDates`, `validatePayloads`, and `allowStoredCompressionFlags`. The last option
+accepts harmless compression-level hints on stored entries from producers such as
+Pandoc; the default profile remains strict. ZIP operations require `ZipLimits`:
 `maxArchiveBytes`, `maxEntryBytes`, `maxTotalBytes`, `maxMembers`, `maxPathBytes`,
 `maxDepth`, `maxPaxBytes`, `maxTextBytes`, and `chunkSize`.
 See [ZIP contracts](src/zip.ts) and [compression contracts](src/compression.ts)

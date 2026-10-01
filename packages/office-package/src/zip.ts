@@ -22,6 +22,8 @@ export interface ZipProfile {
   readonly rejectDuplicateNames?: boolean;
   readonly utcDates?: boolean;
   readonly validatePayloads?: boolean;
+  /** Accept compression-level hints on stored entries from producers such as Pandoc. */
+  readonly allowStoredCompressionFlags?: boolean;
 }
 const defaults: ZipRuntime = {
   yieldTurn: defaultRuntime.yieldTurn,
@@ -211,7 +213,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
   function format(method: number, flags: number, version: number): void {
     number(flags, 65535, "general purpose flags");
     if (flags & (1 | 64 | 0x2000)) fail("ZIP encryption is unsupported");
-    if (flags & ~0x80e || (method === 0 && flags & 6))
+    if (flags & ~0x80e || (method === 0 && flags & 6 && !profile.allowStoredCompressionFlags))
       fail("ZIP unsupported general purpose flags");
     if (method !== 0 && method !== 8) fail("ZIP unsupported compression method");
     if (version < (method === 8 || flags & 8 ? 20 : 10) || version > (profile.zip64 ? 45 : 20))

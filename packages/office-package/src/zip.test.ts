@@ -15,6 +15,21 @@ const limits = {
 };
 const signal = new AbortController().signal;
 
+it("reads stored members carrying producer DEFLATE hints only with an explicit compatibility profile", async () => {
+  const bytes = archive(0, 0);
+  const view = new DataView(bytes.buffer);
+  const central = view.getUint32(bytes.length - 6, true);
+  view.setUint16(6, 0x802, true);
+  view.setUint16(central + 8, 0x802, true);
+  const strict = createZipCodec();
+  await expect(strict.readZipArchive(bytes, limits, signal)).rejects.toThrow("general purpose flags");
+  const compatible = createZipCodec(undefined, {allowStoredCompressionFlags: true});
+  const parsed = await compatible.readZipArchive(bytes, limits, signal);
+  const decoded: number[] = [];
+  for await (const chunk of compatible.decodeZipEntry(parsed.entries[0]!, limits, signal)) decoded.push(...chunk);
+  expect(Uint8Array.from(decoded)).toEqual(content);
+});
+
 // A literal raw DEFLATE block and independently known CRC for nine ASCII digits.
 const content = new TextEncoder().encode("123456789");
 const compressed = Uint8Array.of(0x33, 0x34, 0x32, 0x36, 0x31, 0x35, 0x33, 0xb7, 0xb0, 0x04, 0x00);

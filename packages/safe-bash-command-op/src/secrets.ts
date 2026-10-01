@@ -1,4 +1,5 @@
 import type { OpBackend, OpBackendRequest } from "./types.js";
+import { listenForAbort } from "@poe-code/safe-fs/core";
 import { selectOpBackendContext, selectOpGlobalFlags, type OpCommandContext } from "./cli.js";
 import { createOpTextCodec } from "./encoding.js";
 import { parseOpFileMode } from "./file-mode.js";
@@ -55,17 +56,16 @@ function expand(value: string, env: Readonly<Record<string, string>>, escapes = 
 
 async function cancellable<Value>(signal: AbortSignal, operation: () => Promise<Value>): Promise<Value> {
   signal.throwIfAborted();
-  let abort!: () => void;
+  let disposeAbort: (() => void) | undefined;
   const cancelled = new Promise<never>((_resolve, reject) => {
-    abort = () => reject(signal.reason);
-    signal.addEventListener("abort", abort, { once: true });
+    disposeAbort = listenForAbort(signal, () => reject(signal.reason));
   });
   try {
     const value = await Promise.race([operation(), cancelled]);
     signal.throwIfAborted();
     return value;
   } finally {
-    signal.removeEventListener("abort", abort);
+    disposeAbort?.();
   }
 }
 

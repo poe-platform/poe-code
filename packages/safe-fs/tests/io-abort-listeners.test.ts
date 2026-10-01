@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { test } from "vitest";
-import { readBytes, type ByteSource } from "../src/contracts/io.js";
+import { listenForAbort, readBytes, type ByteSource } from "../src/contracts/io.js";
 
 function pendingRead() {
   let resolve!: (value: IteratorResult<Uint8Array>) => void;
@@ -10,6 +10,71 @@ function pendingRead() {
   const source: ByteSource = { [Symbol.asyncIterator]: () => ({ next: () => pending }) };
   return { source, resolve, reject };
 }
+
+test("byte reads tolerate frozen host bookkeeping and remove partially registered listeners", async () => {
+  const signal = new AbortController().signal;
+  const add = signal.addEventListener.bind(signal);
+  Object.defineProperty(signal, "addEventListener", { value: (...args: Parameters<AbortSignal["addEventListener"]>) => {
+    add(...args);
+    Object.defineProperty(signal, "hostListenerCount", { value: 1 });
+  } });
+  Object.freeze(signal);
+  const source: ByteSource = { async *[Symbol.asyncIterator]() { yield Uint8Array.of(7); } };
+  const iterator = readBytes(source, signal);
+  assert.deepEqual(await iterator.next(), { done: false, value: Uint8Array.of(7) });
+  assert.equal((await iterator.next()).done, true);
+  assert.equal(getEventListeners(signal, "abort").length, 0);
+});
+
+test("frozen signals that support listeners still register and release them", () => {
+  const signal = Object.freeze(new AbortController().signal);
+  const dispose = listenForAbort(signal, () => {});
+  assert.equal(getEventListeners(signal, "abort").length, 1);
+  dispose();
+  dispose();
+  assert.equal(getEventListeners(signal, "abort").length, 0);
+});
+
+test("disposed listeners are inactive when frozen hosts cannot remove them", () => {
+  const signal = new AbortController().signal;
+  Object.defineProperty(signal, "removeEventListener", { value: () => {
+    Object.defineProperty(signal, "hostListenerCount", { value: 0 });
+  } });
+  Object.freeze(signal);
+  let calls = 0;
+  const dispose = listenForAbort(signal, () => { calls++; });
+  dispose();
+  signal.dispatchEvent(new Event("abort"));
+  assert.equal(calls, 0);
+});
+
+test("listener cleanup tolerates frozen host bookkeeping", async () => {
+  const signal = new AbortController().signal;
+  const remove = signal.removeEventListener.bind(signal);
+  Object.defineProperty(signal, "removeEventListener", { value: (...args: Parameters<AbortSignal["removeEventListener"]>) => {
+    remove(...args);
+    Object.defineProperty(signal, "hostListenerCount", { value: 0 });
+  } });
+  Object.freeze(signal);
+  const source: ByteSource = { async *[Symbol.asyncIterator]() { yield Uint8Array.of(7); } };
+  const iterator = readBytes(source, signal);
+  assert.deepEqual(await iterator.next(), { done: false, value: Uint8Array.of(7) });
+  assert.equal((await iterator.next()).done, true);
+  assert.equal(getEventListeners(signal, "abort").length, 0);
+});
+
+for (const frozen of [false, true]) test(`unexpected listener errors propagate and clean up with frozen=${frozen}`, () => {
+  const signal = new AbortController().signal;
+  const error = frozen ? new Error("host failure") : new TypeError("host failure");
+  const add = signal.addEventListener.bind(signal);
+  Object.defineProperty(signal, "addEventListener", { value: (...args: Parameters<AbortSignal["addEventListener"]>) => {
+    add(...args);
+    throw error;
+  } });
+  if (frozen) Object.freeze(signal);
+  assert.throws(() => listenForAbort(signal, () => {}), reason => reason === error);
+  assert.equal(getEventListeners(signal, "abort").length, 0);
+});
 
 test("byte reads retire abort listeners before later reads", async () => {
   const controller = new AbortController();

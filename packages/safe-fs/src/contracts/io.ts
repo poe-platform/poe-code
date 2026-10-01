@@ -129,28 +129,50 @@ export async function collectBytes(source: ByteSource, options: CollectOptions):
   return buffer.subarray(0, size);
 }
 
+/** Subscribe when supported; callers must still check cancellation at operation boundaries. */
+export function listenForAbort(signal: AbortSignal, listener: () => void): () => void {
+  let callback: (() => void) | undefined = listener;
+  const onAbort = () => callback?.();
+  const dispose = () => {
+    // Release operation state even when a frozen host refuses removal.
+    callback = undefined;
+    try {
+      signal.removeEventListener("abort", onAbort);
+    } catch (error) {
+      if (!(error instanceof TypeError) || Object.isExtensible(signal)) throw error;
+    }
+  };
+  try {
+    signal.addEventListener("abort", onAbort, { once: true });
+  } catch (error) {
+    // Frozen hosts may register before failing to update their bookkeeping.
+    dispose();
+    if (!(error instanceof TypeError) || Object.isExtensible(signal)) throw error;
+  }
+  return dispose;
+}
+
 async function abortable<Result>(operation: () => PromiseLike<Result>, signal?: AbortSignal): Promise<Result> {
   signal?.throwIfAborted();
   if (!signal) return operation();
   return new Promise<Result>((resolve, reject) => {
-    const onAbort = (): void => {
-      signal.removeEventListener("abort", onAbort);
+    const dispose = listenForAbort(signal, () => {
+      dispose();
       reject(signal.reason);
-    };
-    signal.addEventListener("abort", onAbort, { once: true });
+    });
     try {
       Promise.resolve(operation()).then(
         (result) => {
-          signal.removeEventListener("abort", onAbort);
+          dispose();
           resolve(result);
         },
         (error: unknown) => {
-          signal.removeEventListener("abort", onAbort);
+          dispose();
           reject(error);
         },
       );
     } catch (error) {
-      signal.removeEventListener("abort", onAbort);
+      dispose();
       reject(error);
     }
   });

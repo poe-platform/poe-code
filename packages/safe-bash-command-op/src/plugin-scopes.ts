@@ -1,4 +1,5 @@
 import type { OpBackendContext, OpObject, PluginDefault, PluginScope } from "./types.js";
+import { listenForAbort } from "@poe-code/safe-fs/core";
 
 function object(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -85,10 +86,10 @@ export async function clearPluginDefaults(plugin: OpObject, context: OpBackendCo
     const confirm = context.confirmPluginClear;
     if (!confirm) throw new Error("Plugin clear confirmation capability is unavailable");
     const confirmation = Object.freeze({ pluginId: plugin.id, defaults: Object.freeze(selected.map(({ entry }) => Object.freeze({ id: entry.id, scope: Object.freeze({ ...entry.scope }) }))) });
-    let onAbort!: () => void;
+    let disposeAbort: (() => void) | undefined;
     const aborted = new Promise<never>((_resolve, reject) => {
-      onAbort = () => reject(new DOMException("Plugin clear aborted", "AbortError"));
-      context.signal.addEventListener("abort", onAbort, { once: true });
+      const onAbort = () => reject(new DOMException("Plugin clear aborted", "AbortError"));
+      disposeAbort = listenForAbort(context.signal, onAbort);
       if (context.signal.aborted) onAbort();
     });
     let accepted: boolean;
@@ -101,7 +102,7 @@ export async function clearPluginDefaults(plugin: OpObject, context: OpBackendCo
       if (context.signal.aborted) throw new DOMException("Plugin clear aborted", "AbortError");
       throw new Error("Plugin clear confirmation failed");
     } finally {
-      context.signal.removeEventListener("abort", onAbort);
+      disposeAbort?.();
     }
     if (accepted !== true) throw new Error("Plugin clear was not confirmed");
   }

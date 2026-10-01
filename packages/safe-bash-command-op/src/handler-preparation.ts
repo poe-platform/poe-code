@@ -1,4 +1,5 @@
 import type { OpCommandContext, OpFileWriteOptions } from "./cli.js";
+import { listenForAbort } from "@poe-code/safe-fs/core";
 import type { OpBackendRequest } from "./types.js";
 import type { EnvironmentSnapshot } from "./environment.js";
 
@@ -39,17 +40,16 @@ export type OpPreparedHandler = ((request: OpBackendRequest, context: OpCommandC
 
 async function acquire<Value>(signal: AbortSignal, operation: () => Promise<Value>): Promise<Value> {
   signal.throwIfAborted();
-  let abort!: () => void;
+  let disposeAbort: (() => void) | undefined;
   const cancelled = new Promise<never>((_resolve, reject) => {
-    abort = () => reject(new Error("Operation aborted"));
-    signal.addEventListener("abort", abort, { once: true });
+    disposeAbort = listenForAbort(signal, () => reject(new Error("Operation aborted")));
   });
   try {
     const value = await Promise.race([operation(), cancelled]);
     signal.throwIfAborted();
     return value;
   } finally {
-    signal.removeEventListener("abort", abort);
+    disposeAbort?.();
   }
 }
 

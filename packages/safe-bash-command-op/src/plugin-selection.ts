@@ -1,4 +1,5 @@
 import type { OpBackendContext, OpObject } from "./types.js";
+import { listenForAbort } from "@poe-code/safe-fs/core";
 import { availablePlugins } from "./plugin-catalog.js";
 
 export async function selectPluginId(plugins: readonly OpObject[], context: OpBackendContext, accountId: string | null): Promise<string> {
@@ -9,13 +10,12 @@ export async function selectPluginId(plugins: readonly OpObject[], context: OpBa
     const id = plugin.executable ?? plugin.id;
     return id === undefined ? [] : [Object.freeze({ id, name: plugin.plugin_name ?? plugin.name ?? id })];
   }));
-  let abort!: () => void;
+  let disposeAbort: (() => void) | undefined;
   let selected: unknown;
   try {
     selected = await Promise.race([
       new Promise<never>((_resolve, reject) => {
-        abort = () => reject(new Error("Plugin selection cancelled"));
-        signal.addEventListener("abort", abort, { once: true });
+        disposeAbort = listenForAbort(signal, () => reject(new Error("Plugin selection cancelled")));
       }),
       Promise.resolve().then(() => {
         signal.throwIfAborted();
@@ -26,7 +26,7 @@ export async function selectPluginId(plugins: readonly OpObject[], context: OpBa
   } catch {
     signal.throwIfAborted();
     throw new Error("Plugin selection failed");
-  } finally { signal.removeEventListener("abort", abort); }
+  } finally { disposeAbort?.(); }
   if (selected === undefined) throw new Error("Plugin selection cancelled");
   if (typeof selected !== "string" || !candidates.some(candidate => candidate.id === selected)) throw new Error("Invalid plugin selection");
   const configured = plugins.find(plugin => plugin.id.toLowerCase() === selected.toLowerCase());

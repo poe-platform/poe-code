@@ -1,4 +1,4 @@
-import { isFsError } from "@poe-code/safe-fs/core";
+import { isFsError, listenForAbort } from "@poe-code/safe-fs/core";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import type { OpBackend, OpBackendContext, OpBackendRequest, OpBindingTarget, OpPreparedBinding } from "./types.js";
 import type { OpHandlerPreparation, OpPreparedEffect, OpPreparedHandler } from "./handler-preparation.js";
@@ -313,10 +313,9 @@ export function renderOpOutput(result: unknown, request: OpBackendRequest): Uint
 
 async function policyResult<Value>(callback: () => Value | Promise<Value>, signal: AbortSignal): Promise<Value> {
   signal.throwIfAborted();
-  let abort!: () => void;
+  let disposeAbort: (() => void) | undefined;
   const cancelled = new Promise<never>((_resolve, reject) => {
-    abort = () => reject(new Error("operation aborted"));
-    signal.addEventListener("abort", abort, { once: true });
+    disposeAbort = listenForAbort(signal, () => reject(new Error("operation aborted")));
   });
   try {
     return await Promise.race([Promise.resolve().then(() => {
@@ -326,7 +325,7 @@ async function policyResult<Value>(callback: () => Value | Promise<Value>, signa
   } catch {
     throw new Error("authorization failed");
   } finally {
-    signal.removeEventListener("abort", abort);
+    disposeAbort?.();
   }
 }
 

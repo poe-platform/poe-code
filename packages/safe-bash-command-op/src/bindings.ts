@@ -1,4 +1,5 @@
 import { createAccountScope, externalCommands } from "./admin.js";
+import { listenForAbort } from "@poe-code/safe-fs/core";
 import { opCrypto } from "./crypto.js";
 import { inspectAuthentication, sameData } from "./auth.js";
 import { parseSecretReference } from "./references.js";
@@ -65,7 +66,7 @@ interface Binding {
   cancelled: boolean;
   staged?: Map<string, OpObject[]> | undefined;
   queue: Promise<void>;
-  abort: () => void;
+  disposeAbort?: () => void;
 }
 
 export function createBindingManager(source: Map<string, OpObject[]>, policy: OpAuthenticationPolicy, clock: OpClock, hasHook: (command: string, context: OpBackendContext) => boolean, defaultVault?: string) {
@@ -106,7 +107,8 @@ export function createBindingManager(source: Map<string, OpObject[]>, policy: Op
     binding.cancelled = true;
     delete binding.staged;
     binding.steps = [];
-    binding.signal.removeEventListener("abort", binding.abort);
+    binding.disposeAbort?.();
+    delete binding.disposeAbort;
   }
   function validate(handle: OpBindingHandle, context: OpBackendContext): Binding {
     const binding = bindings.get(handle);
@@ -270,9 +272,9 @@ export function createBindingManager(source: Map<string, OpObject[]>, policy: Op
       if (generation !== preparedGeneration) throw invalid();
       if (accounts.size > 1) throw new Error("A binding requires one account scope");
       const handle = Object.freeze({}) as OpBindingHandle;
-      const binding: Binding = { generation, expiresAt, signal: context.signal, authentication: structuredClone(context.authentication), pluginScope: structuredClone(context.pluginScope), steps, cancelled: false, queue: Promise.resolve(), abort: () => cancel(binding) };
+      const binding: Binding = { generation, expiresAt, signal: context.signal, authentication: structuredClone(context.authentication), pluginScope: structuredClone(context.pluginScope), steps, cancelled: false, queue: Promise.resolve() };
       bindings.set(handle, binding);
-      context.signal.addEventListener("abort", binding.abort, { once: true });
+      if (steps.length) binding.disposeAbort = listenForAbort(context.signal, () => cancel(binding));
       validate(handle, context);
       return Object.freeze({ backendId, accountId: accounts.values().next().value ?? null, handle, targets: Object.freeze(targets), metadata: Object.freeze(requestMetadata) });
     },
@@ -310,6 +312,8 @@ export function createBindingManager(source: Map<string, OpObject[]>, policy: Op
           published(before);
           binding.generation = generation;
           delete binding.staged;
+          binding.disposeAbort?.();
+          delete binding.disposeAbort;
         }
         return result;
       } catch (error) {

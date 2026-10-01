@@ -203,6 +203,10 @@ backend uses coarse generation invalidation and accepts any number of planned
 requests within one account scope. Bindings have no timeout by default;
 `prepareBinding(requests, { signal, expiresAt })` accepts an explicit deadline
 in milliseconds on the backend clock, or `Infinity` for no timeout.
+Completed and empty bindings retain no abort listener; cancellation, expiry and
+generation checks still apply to later validation. Frozen host signals are
+supported, with cancellation checked at operation boundaries if the host
+cannot attach an abort listener.
 
 The frozen `OpResolvedApproval` contains operation, backend/account IDs, targets,
 option names, mutation names/batch size, output kind/destination and optional

@@ -1,3 +1,6 @@
+import { translitCases } from "./translit-fixtures.js";
+import { cases } from "./fixtures.js";
+import { reviewCases } from "./review-fixtures.js";
 // Issue 910 deliberately rejects legacy glibc extended UTF-8 and resets file BOM state.
 // Native capture fixtures remain unchanged; these are the current Unicode policy expectations.
 export const unicodePolicy: Record<string, { exitCode: number; stdoutHex: string; stderrHex: string }> = {
@@ -52,3 +55,46 @@ export const unicodePolicy: Record<string, { exitCode: number; stdoutHex: string
   "extended-31bit:UTF-16LE": { exitCode: 1, stdoutHex: "", stderrHex: "69636f6e763a20696c6c6567616c20696e7075742073657175656e636520617420706f736974696f6e20300a" },
   "extended-31bit:UTF-16BE": { exitCode: 1, stdoutHex: "", stderrHex: "69636f6e763a20696c6c6567616c20696e7075742073657175656e636520617420706f736974696f6e20300a" },
 };
+
+// Discarded invalid input remains a failure even when later output is valid.
+// Keep native captures intact and override only the portable status contract.
+const discardedInputCases = new Set([
+  "invalid:41ff42:discard",
+  "invalid:f4908080ff41:discard",
+  "invalid:41c3a9ff42:discard",
+  "utf16-invalid-source",
+  "replay:bad-utf8-c",
+  "replay:unrepresentable-c",
+  "replay:surrogate-c",
+  "replay:utf16-bad-pair-c",
+  "illegal-then-good:discard",
+  "bad-after-prefix:discard",
+  "bad-then-prefix:discard",
+  "ascii-bad-prefix:discard",
+  "utf16-two-highs:discard",
+  "output-boundary-invalid:32767",
+  "output-boundary-invalid:32768",
+  "output-boundary-invalid:32769",
+  "mixed-head-tail-8158",
+  "mixed-tail-head-8158",
+  "mixed-tail-head-8159",
+  "mixed-head-tail-8160",
+  "mixed-tail-head-8160",
+  "mixed-head-tail-32767",
+  "mixed-tail-head-32767",
+  "mixed-head-tail-32768",
+  "mixed-tail-head-32768",
+  "flush-ASCII-ff",
+  "flush-UTF-8-ff",
+  "flush-UTF-16-ff",
+  "flush-UTF-16LE-ff",
+  "six-invalid",
+  "six-utf16"
+]);
+for (const fixture of [...cases, ...reviewCases, ...translitCases]) {
+  if (!discardedInputCases.has(fixture.name)) continue;
+  unicodePolicy[fixture.name] = {
+    ...(unicodePolicy[fixture.name] ?? { stdoutHex: fixture.stdoutHex, stderrHex: "portableStderrHex" in fixture ? fixture.portableStderrHex : fixture.stderrHex }),
+    exitCode: 1,
+  };
+}

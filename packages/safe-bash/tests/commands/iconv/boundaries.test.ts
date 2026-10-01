@@ -4,15 +4,15 @@ import { createCommandArguments, type ByteSource } from "../../../src/contracts/
 import { run } from "./helpers.js";
 
 for (const count of [8159, 8160, 8161, 16383, 16384, 16385, 32768]) {
-  for (const [name, inputHex, to, stdoutHex, exitCode] of [
-    ["utf16-output-invalid", "41".repeat(count) + "ff", "UTF-16", "fffe" + "4100".repeat(count), 0],
-    ["suppressed-target-tail", "41" + "c3a9".repeat(count), "ASCII", "41", count >= 8160 ? 1 : 0],
-    ["suppressed-source-tail", "41" + "ff".repeat(count), "UTF-8", "41", 0],
-    ["suppressed-target-head", "c3a9".repeat(count) + "41", "ASCII", "41", 0],
-    ["three-byte-output-tail", "e282ac".repeat(count) + "ff", "UTF-8", "e282ac".repeat(count), 0],
-    ["four-byte-output-tail", "f09f9880".repeat(count) + "ff", "UTF-16LE", "3dd800de".repeat(count), 0],
-  ] as const) test(`pinned gconv boundaries: ${name}:${count}`, async () => {
-    assert.deepEqual(await run(["-c", "-f", "UTF-8", "-t", to], Buffer.from(inputHex, "hex")), { exitCode, stdoutHex, stderrHex: "" });
+  for (const [name, inputHex, to, stdoutHex] of [
+    ["utf16-output-invalid", "41".repeat(count) + "ff", "UTF-16", "fffe" + "4100".repeat(count)],
+    ["suppressed-target-tail", "41" + "c3a9".repeat(count), "ASCII", "41"],
+    ["suppressed-source-tail", "41" + "ff".repeat(count), "UTF-8", "41"],
+    ["suppressed-target-head", "c3a9".repeat(count) + "41", "ASCII", "41"],
+    ["three-byte-output-tail", "e282ac".repeat(count) + "ff", "UTF-8", "e282ac".repeat(count)],
+    ["four-byte-output-tail", "f09f9880".repeat(count) + "ff", "UTF-16LE", "3dd800de".repeat(count)],
+  ] as const) test(`persistent discard status at gconv boundaries: ${name}:${count}`, async () => {
+    assert.deepEqual(await run(["-c", "-f", "UTF-8", "-t", to], Buffer.from(inputHex, "hex")), { exitCode: 1, stdoutHex, stderrHex: "" });
   });
 }
 

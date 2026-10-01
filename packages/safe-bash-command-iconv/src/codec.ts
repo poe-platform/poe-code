@@ -73,12 +73,12 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
   budget.retain(32_768 + 256);
   const buffer = new Uint8Array(32_768);
   let used = 0, offset = 0, status = 0, batchCount = 0;
-  let suppressed = false, targetSuppressed = false, started = false, firstTargetBatch = true;
+  let targetSuppressed = false, started = false, firstTargetBatch = true;
   const flush = async (): Promise<void> => {
-    if (used) { await lifecycle.write(buffer.slice(0, used)); used = 0; status = 0; }
+    if (used) { await lifecycle.write(buffer.slice(0, used)); used = 0; }
   };
   const flushFullOutput = async (): Promise<void> => {
-    await flush(); batchCount = 1; suppressed = false; targetSuppressed = false; firstTargetBatch = false;
+    await flush(); batchCount = 1; targetSuppressed = false; firstTargetBatch = false;
   };
   const append = (bytes: readonly number[], transliterated = false): void | Promise<void> => {
     const recursiveBom = transliterated && firstTargetBatch && options.to === "utf16";
@@ -118,7 +118,7 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
           batchCount = 0;
           firstTargetBatch = false;
           if (targetSuppressed) {
-            status = 1; await flush(); suppressed = false; targetSuppressed = false;
+            status = 1; await flush(); targetSuppressed = false;
           }
         }
         continue;
@@ -145,7 +145,7 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
         if (bytes === undefined) { error = "illegal"; targetSuppressed = true; }
         else { const a = append(bytes, transliterated); if (a) await a; }
       }
-      if (error === "illegal" && options.discard) suppressed = true;
+      if (error === "illegal" && options.discard) status = 1;
       else if (error) {
         await flush();
         await lifecycle.diagnostic(error === "illegal" ? `illegal input sequence at position ${offset}` : "incomplete character or shift sequence at end of buffer");
@@ -156,11 +156,10 @@ export async function convert(input: Uint8Array, options: Parsed, state: Convers
         batchCount = 0;
         firstTargetBatch = false;
         if (targetSuppressed) {
-          status = 1; await flush(); suppressed = false; targetSuppressed = false;
+          status = 1; await flush(); targetSuppressed = false;
         }
       }
     }
-    if (suppressed) status = 1;
     await flush();
     return { status, fatal: false };
   } finally { budget.retain(-32_768 - 256); }

@@ -12,9 +12,9 @@ test("UTF-16 byte order is independent for every input file", async () => {
   assert.deepEqual(result, { exitCode: 0, stdoutHex: "41424143", stderrHex: "" });
 });
 
-for (const [target, expected] of [["ASCII//IGNORE", "6361660a"], ["ASCII//TRANSLIT//IGNORE", "6361663f0a"], ["ASCII//IGNORE//TRANSLIT", "6361663f0a"], ["UTF-8//IGNORE", "636166c3a90a"]]) {
+for (const [target, expected, exitCode] of [["ASCII//IGNORE", "6361660a", 1], ["ASCII//TRANSLIT//IGNORE", "6361663f0a", 0], ["ASCII//IGNORE//TRANSLIT", "6361663f0a", 0], ["UTF-8//IGNORE", "636166c3a90a", 0]] as const) {
   test(`target suffix ${target}`, async () => {
-    assert.deepEqual(await run(["-f", "UTF-8", "--to-code", target!], Buffer.from("caf\u00e9\n")), { exitCode: 0, stdoutHex: expected, stderrHex: "" });
+    assert.deepEqual(await run(["-f", "UTF-8", "--to-code", target!], Buffer.from("caf\u00e9\n")), { exitCode, stdoutHex: expected, stderrHex: "" });
   });
 }
 

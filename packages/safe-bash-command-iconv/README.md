@@ -11,4 +11,6 @@ shell.use(iconvCommands());
 const result = await shell.exec("iconv --help");
 ```
 
+`-c` and `//IGNORE` discard invalid or unrepresentable input while preserving valid output. If any input is discarded, the command returns status 1 even when later output succeeds.
+
 The module also exports `createIconvCommand`, its command-list factory, and typed options and limits.

@@ -83,6 +83,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
   const def: CommandDefinition = {name:'git',runtimeIdentity:commandRuntimeIdentity,description:'Git repositories in the virtual filesystem',async execute(context) {
     try {
       let stdin: string | undefined;
+      const env = {...context.env, POE_GIT_TIMESTAMP: String(Math.floor(Date.now()/1000))};
       const before=await snapshot(context.fs,limits,context.signal);
       const exports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : createDefaultGitExports();
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];
@@ -90,7 +91,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       let result:Result;
       for(;;) {
         context.signal.throwIfAborted();
-        const input=encoder.encode(JSON.stringify({cwd:context.cwd,args:context.args,env:context.env,entries:before,responses,stdin}));
+        const input=encoder.encode(JSON.stringify({cwd:context.cwd,args:context.args,env,entries:before,responses,stdin}));
         const ptr=exports.git_alloc(input.length);
         try {
           new Uint8Array(exports.memory.buffer,ptr,input.length).set(input);

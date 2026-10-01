@@ -828,7 +828,7 @@ pub fn execute_git_cli_with_input(
             let author = Author {
                 name: author_name,
                 email: author_email,
-                timestamp: 1502484200,
+                timestamp: crate::environment::timestamp(),
                 timezone_offset: 0.0,
             };
             let mut author = match crate::environment::identity(author, "AUTHOR") {
@@ -839,7 +839,7 @@ pub fn execute_git_cli_with_input(
             let committer = Author {
                 name: get_config(fs, &gitdir, "user.name").map(|v| v.as_str()).unwrap_or_else(|| "Git User".into()),
                 email: get_config(fs, &gitdir, "user.email").map(|v| v.as_str()).unwrap_or_else(|| "user@example.com".into()),
-                timestamp: 1502484200, timezone_offset: 0.0,
+                timestamp: crate::environment::timestamp(), timezone_offset: 0.0,
             };
             let committer = match crate::environment::identity(committer, "COMMITTER") {
                 Ok(committer) => committer,
@@ -1956,7 +1956,7 @@ pub fn execute_git_cli_with_input(
                         email: get_config(fs, &gitdir, "user.email")
                             .map(|v| v.as_str().to_string())
                             .unwrap_or_else(|| "user@example.com".to_string()),
-                        timestamp: 1502484200,
+                        timestamp: crate::environment::timestamp(),
                         timezone_offset: 0.0,
                     };
                     let tagger = match crate::environment::identity(tagger, "COMMITTER") {
@@ -2067,15 +2067,13 @@ pub fn execute_git_cli_with_input(
             let squash = sub_args.contains(&"--squash");
             let no_commit = sub_args.contains(&"--no-commit");
             let no_ff = sub_args.contains(&"--no-ff");
-            let author = Author {
-                name: get_config(fs, &gitdir, "user.name")
-                    .map(|v| v.as_str().to_string())
-                    .unwrap_or_else(|| "Git User".to_string()),
-                email: get_config(fs, &gitdir, "user.email")
-                    .map(|v| v.as_str().to_string())
-                    .unwrap_or_else(|| "user@example.com".to_string()),
-                timestamp: 1502484200,
-                timezone_offset: 0.0,
+            let author = match crate::environment::configured_identity(fs, &gitdir, "AUTHOR") {
+                Ok(value) => value,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
+            let committer = match crate::environment::configured_identity(fs, &gitdir, "COMMITTER") {
+                Ok(value) => value,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
             };
             let default_message = format!("Merge branch '{target_ref}' into {}\n", current_branch(fs, &gitdir, false, false).ok().flatten().unwrap_or_else(|| "HEAD".to_string()));
             match merge(
@@ -2091,7 +2089,7 @@ pub fn execute_git_cli_with_input(
                 false,
                 Some(message.unwrap_or(&default_message)),
                 Some(author),
-                None,
+                Some(committer),
             ) {
                 Ok(r) => {
                     if squash {
@@ -2167,15 +2165,9 @@ pub fn execute_git_cli_with_input(
                     Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
             }
-            let committer = Author {
-                name: get_config(fs, &gitdir, "user.name")
-                    .map(|v| v.as_str().to_string())
-                    .unwrap_or_else(|| "Git User".to_string()),
-                email: get_config(fs, &gitdir, "user.email")
-                    .map(|v| v.as_str().to_string())
-                    .unwrap_or_else(|| "user@example.com".to_string()),
-                timestamp: 1502484200,
-                timezone_offset: 0.0,
+            let committer = match crate::environment::configured_identity(fs, &gitdir, "COMMITTER") {
+                Ok(value) => value,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
             };
             let no_commit = sub_args.contains(&"-n") || sub_args.contains(&"--no-commit");
             let mut out = String::new();
@@ -3297,19 +3289,17 @@ pub fn execute_git_cli_with_input(
             if no_commit {
                 CliResult::ok("")
             } else {
-                let author = Author {
-                    name: get_config(fs, &gitdir, "user.name")
-                        .map(|v| v.as_str().to_string())
-                        .unwrap_or_else(|| "Git User".to_string()),
-                    email: get_config(fs, &gitdir, "user.email")
-                        .map(|v| v.as_str().to_string())
-                        .unwrap_or_else(|| "user@example.com".to_string()),
-                    timestamp: 1502484200,
-                    timezone_offset: 0.0,
-                };
+                let author = match crate::environment::configured_identity(fs, &gitdir, "AUTHOR") {
+                Ok(value) => value,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
+            let committer = match crate::environment::configured_identity(fs, &gitdir, "COMMITTER") {
+                Ok(value) => value,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
                 let subj = target_commit.commit.message.lines().next().unwrap_or("commit");
                 let revert_msg = format!("Revert \"{subj}\"\n\nThis reverts commit {commit_oid}.\n");
-                match commit(fs, &gitdir, Some(&revert_msg), Some(author), None, false, false, false, false, None, None, None) {
+                match commit(fs, &gitdir, Some(&revert_msg), Some(author), Some(committer), false, false, false, false, None, None, None) {
                     Ok(new_oid) => CliResult::ok(format!("[revert {}] Revert \"{subj}\"\n", &new_oid[..7])),
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
@@ -3346,7 +3336,7 @@ pub fn execute_git_cli_with_input(
                 email: get_config(fs, &gitdir, "user.email")
                     .map(|v| v.as_str().to_string())
                     .unwrap_or_else(|| "user@example.com".to_string()),
-                timestamp: 1502484200,
+                timestamp: crate::environment::timestamp(),
                 timezone_offset: 0.0,
             };
             match action {
@@ -3750,7 +3740,7 @@ pub fn execute_git_cli_with_input(
                     } else { remove(fs, &gitdir, &path) };
                     if let Err(e) = result { return CliResult::err(128, format!("fatal: {}\n", e.message)); }
                 }
-                let author = Author { name: author_name, email: author_email, timestamp: 1502484200, timezone_offset: 0.0 };
+                let author = Author { name: author_name, email: author_email, timestamp: crate::environment::timestamp(), timezone_offset: 0.0 };
                 if let Err(e) = commit(fs, &gitdir, Some(&message), Some(author), None, false, false, false, false, None, None, None) {
                     return CliResult::err(128, format!("fatal: {}\n", e.message));
                 }
@@ -4211,7 +4201,7 @@ pub fn execute_git_cli_with_input(
                 email: get_config(fs, &gitdir, "user.email")
                     .map(|v| v.as_str().to_string())
                     .unwrap_or_else(|| "user@example.com".to_string()),
-                timestamp: 1502484200,
+                timestamp: crate::environment::timestamp(),
                 timezone_offset: 0.0,
             };
             let commit_obj = crate::models::CommitObject {
@@ -4438,11 +4428,13 @@ pub fn execute_git_cli_with_input(
             Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
         },
         "pull" => {
-            let author = Author {
-                name: "Git User".to_string(),
-                email: "user@example.com".to_string(),
-                timestamp: 1502484200,
-                timezone_offset: 0.0,
+            let author = match crate::environment::configured_identity(fs, &gitdir, "AUTHOR") {
+                Ok(value) => value,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+            };
+            let committer = match crate::environment::configured_identity(fs, &gitdir, "COMMITTER") {
+                Ok(value) => value,
+                Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
             };
             match pull(
                 fs,
@@ -4457,7 +4449,7 @@ pub fn execute_git_cli_with_input(
                 sub_args.contains(&"--ff-only"),
                 None,
                 Some(author),
-                None,
+                Some(committer),
                 None,
             ) {
                 Ok(()) => CliResult::ok(""),

@@ -22,6 +22,21 @@ pub(crate) fn get(name: &str) -> Option<String> {
 pub(crate) fn home() -> String {
     get("HOME").unwrap_or_else(|| "/home/user".to_string())
 }
+pub(crate) fn timestamp() -> i64 {
+    if let Some(value) = get("POE_GIT_TIMESTAMP").and_then(|s| s.parse().ok()) { return value; }
+    #[cfg(not(target_arch = "wasm32"))]
+    { std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_secs() as i64 }
+    #[cfg(target_arch = "wasm32")]
+    { 0 }
+}
+pub(crate) fn configured_identity(fs: &crate::MemoryFs, gitdir: &str, role: &str) -> Result<crate::utils::Author, crate::GitError> {
+    let config = crate::GitConfigManager::get(fs, gitdir);
+    identity(crate::utils::Author {
+        name: config.get("user.name").map(|v| v.as_str()).unwrap_or_else(|| "Git User".into()),
+        email: config.get("user.email").map(|v| v.as_str()).unwrap_or_else(|| "user@example.com".into()),
+        timestamp: timestamp(), timezone_offset: 0.0,
+    }, role)
+}
 pub(crate) fn identity(
     mut author: crate::utils::Author,
     role: &str,

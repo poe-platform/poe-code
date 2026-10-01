@@ -23,7 +23,10 @@ test('zero-argument factories run Rust Git against safe-fs', async () => {
   await run(['init','-b','main']);
   await fs.writeFile('/repo/a',new TextEncoder().encode('one\n'));
   await run(['add','.']);
+  const started = Math.floor(Date.now()/1000);
   await run(['commit','-m','first']);
+  const recorded = Number((await run(['log','-1','--format=%at'])).trim());
+  assert.ok(recorded >= started && recorded <= Math.floor(Date.now()/1000));
   assert.equal(await run(['rev-parse','--abbrev-ref','HEAD']),'main\n');
   await fs.writeFile('/repo/a',new TextEncoder().encode('two\n'));
   assert.match(await run(['diff']),/-one\n\+two\n/u);

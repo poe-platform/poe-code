@@ -488,7 +488,7 @@ const CCITT_BLACK_CODES: ReadonlyMap<string, number> = new Map([
 
 export function decodeCcittFax(bytes: Uint8Array, parms?: PdfFilterDecodeParms): Uint8Array {
   const columns = Math.max(1, parms?.Columns ?? 1728);
-  const maxRows = parms?.Rows && parms.Rows > 0 ? parms.Rows : 2048;
+  const maxRows = parms?.Rows && parms.Rows > 0 ? parms.Rows : Infinity;
   const k = parms?.K ?? 0;
   const blackIs1 = parms?.BlackIs1 ?? false;
   const byteAlign = parms?.EncodedByteAlign ?? false;

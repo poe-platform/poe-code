@@ -286,6 +286,8 @@ test('substitution fallback isolates arithmetic and last argument', async contex
 });
 
 for (const [script, expected] of [
+  ["printf 'café\\n' | xargs echo", 'café\n'],
+  ["printf 'café\\n' | xargs printf '%s'", 'café'],
   ['x=$(case a in a) :;; esac); echo "ok:$x"', 'ok:\n'],
   ['x=$(if true; then echo ok; fi); echo "$x"', 'ok\n'],
   ['f() { local a=1; echo $a; }; x=$(f); echo "$x"', '1\n'],

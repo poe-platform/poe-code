@@ -22553,6 +22553,13 @@ export class Runtime {
           if ( part.length || part.operator !== undefined || this.budget.limits.maxExpansionBytes !== Infinity || rawState.depth + (io.parameterDepth ?? 0) >= 60 || !part.substring.offset.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring)) || (part.substring.length && !part.substring.length.parts.every(p => p.kind === "text" || p.kind === "arithmetic" || (p.kind === "variable" && !p.operator && !p.substring))) || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array || (!part.substring.offset.parts.length && !part.substring.length)) {
             return undefined;
           }
+          // Resolve the parameter before expanding either arithmetic operand.
+          const raw = rawVars[part.name];
+          this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
+          if (raw === undefined) {
+            if (split && !part.quoted) return undefined;
+            continue;
+          }
           const parameterLine = part.line ?? overrideDiagnosticLine;
           const evalSubInt = (w: Word): number | undefined => {
             if (w.parts.length === 0) return 0;
@@ -22570,12 +22577,6 @@ export class Runtime {
           if (offsetNum === undefined) return undefined;
           const lenNum = part.substring.length ? evalSubInt(part.substring.length) : undefined;
           if (part.substring.length && lenNum === undefined) return undefined;
-          const raw = rawVars[part.name];
-          this.requireParameter(raw, part.name, state, io, part.line ?? overrideDiagnosticLine);
-          if (raw === undefined) {
-            if (split && !part.quoted) return undefined;
-            continue;
-          }
           const val = this._syncArithRawWriteOnly && this._syncArithTouched?.has(part.name) ? raw : (monitor?.values.get(part.name, raw) ?? raw);
           if (typeof val !== "string" || val.length > this.budget.limits.maxExpansionBytes) return undefined;
           for (let k = 0; k < val.length; k++) {

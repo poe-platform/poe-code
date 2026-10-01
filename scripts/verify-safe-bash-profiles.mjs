@@ -112,26 +112,26 @@ const engineMarkers = {
 // Measured from clean installed tarballs using the exact profiles below.
 // Allow 2% total growth and 5% incremental growth (at least 16 KiB) so
 // optional-engine regressions cannot hide behind unrelated core reductions.
-// Includes the shared shell expansion/cancellation and Python admission fixes.
+// Core excludes unregistered command implementations; registries explicitly retain them.
 export const safeBashProfileBaselines = {
-  "core": 4623709,
-  "rootCore": 4631369,
-  "pythonLlm": 4855453,
-  "pdf": 5636979,
-  "multiplePdf": 5726273,
-  "csv": 6331283,
-  "csvXlsx": 6537312,
-  "git": 10051197,
-  "baseRegistry": 6123571,
-  "registryWithRegex": 6123608,
+  "core": 4115759,
+  "rootCore": 4122953,
+  "pythonLlm": 4347040,
+  "pdf": 5128927,
+  "multiplePdf": 5218361,
+  "csv": 5823453,
+  "csvXlsx": 6029368,
+  "git": 9543249,
+  "baseRegistry": 6125393,
+  "registryWithRegex": 6125430,
   // Full yq is selected by enabledConsumer; full also retains the CSV Python worker.
-  "enabledConsumer": 6322320,
-  "full": 59224394,
-  "rootPythonLlm": 4863369,
-  "splitCore": 4649894,
-  "splitPythonLlm": 4776947,
-  "splitEnabledConsumer": 6235847,
-  "splitFull": 59048451
+  "enabledConsumer": 6324151,
+  "full": 59225634,
+  "rootPythonLlm": 4354389,
+  "splitCore": 4145537,
+  "splitPythonLlm": 4272563,
+  "splitEnabledConsumer": 6238023,
+  "splitFull": 59050149
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

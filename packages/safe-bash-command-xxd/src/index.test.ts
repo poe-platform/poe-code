@@ -129,3 +129,19 @@ test("xxd reverse plain honors the seek offset", async () => {
   const input = new TextEncoder().encode("4142");
   assert.equal(await runParity(["-r", "-p", "-s", "2"], input), "\0\0AB");
 });
+
+test("xxd opens include input before emitting its declaration", async () => {
+ const result = await run(["-i", "/missing"], createMemoryFileSystem());
+ assert.equal(result.exitCode, 2);
+ assert.equal(result.stdout, "");
+});
+test("xxd seeks beyond EOF successfully and resets zero columns", async () => {
+ const fs = createMemoryFileSystem();
+ await fs.writeFile("/a", new TextEncoder().encode("abc"));
+ assert.equal(await runParity(["-s", "10", "/a"], undefined, fs), "");
+ assert.equal(await runParity(["-i", "-s", "10", "/a"], undefined, fs), "unsigned char _a[] = {\n};\nunsigned int _a_len = 0;\n");
+ assert.equal(await runParity(["-c", "0", "/a"], undefined, fs), await runParity(["/a"], undefined, fs));
+ const before = await run(["-s", "-4", "/a"], fs);
+ assert.equal(before.exitCode, 4);
+ assert.equal(before.stdout, "");
+});

@@ -23,6 +23,7 @@ const blockSize = 8192;
 const controls: Readonly<Record<number, string>> = { 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r", 92: "\\\\" };
 
 class UsageError extends PublicDiagnostic {}
+class SeekError extends PublicDiagnostic {}
 
 function publicDiagnosticMessage(error: unknown, onInternalError?: InternalErrorHandler): string {
   if (error instanceof FsError || error instanceof CommandArgumentIdentityError) return error.message;
@@ -254,7 +255,6 @@ async function* range(source: ByteSource, skip: number, count: number): ByteSour
     }
     if (!skip && !count) return;
   }
-  if (skip) throw new PublicDiagnostic("cannot skip past end of input");
 }
 
 async function* rows(source: ByteSource, width: number): ByteSource {
@@ -461,7 +461,7 @@ function defineCommand(name: string, handler: CommandHandler): CommandDefinition
           `${context.command}: ${publicDiagnosticMessage(error, context.onInternalError)}\n`,
           context.signal,
         );
-        return { exitCode: error instanceof UsageError ? 2 : 1 };
+        return { exitCode: error instanceof UsageError || error instanceof FsError && error.code === "ENOENT" ? 2 : error instanceof SeekError ? 4 : 1 };
       }
     },
   };
@@ -519,7 +519,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       "c",
       text => {
         const number = numeric(text);
-        if (!plain && number < 1) throw new UsageError("columns must be positive (plain: nonnegative)");
+        if (!plain && number === 0) return include ? 12 : binary ? 6 : 16;
         return number;
       },
       plain ? 30 : include ? 12 : binary ? 6 : 16,
@@ -554,7 +554,8 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
     if (skip < 0) {
       if (!files[0] || files[0] === "-") throw new UsageError("negative seek requires an input file");
       const size = (await context.fs.stat(pathOf(context, files[0]), { signal: context.signal })).size;
-      skip = Math.max(0, size + skip);
+      skip = size + skip;
+      if (skip < 0) throw new SeekError("Sorry, cannot seek.");
     }
     let offset = addOffset(skip, displacement);
     const source = range(input, skip, count);
@@ -593,7 +594,7 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
       outBuf += text;
       if (!flushedFirst || outBuf.length >= 16384) await flushOut();
     };
-    if (include && includeName !== undefined) await writeOut(`unsigned char ${identifier}[] = {\n`);
+    if (include && includeName !== undefined) outBuf = `unsigned char ${identifier}[] = {\n`;
     const rowWidth = plain && !columns ? 4096 : columns;
     let zeroRun = 0;
     let zeroSecond = "", zeroLast = "";

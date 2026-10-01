@@ -131,3 +131,51 @@ test("find charges one filesystem operation when a full count-only pipe declines
   assert.equal(written, offered);
   assert.equal(charges, 1);
 });
+
+for (const failure of [new Error("broken output"), new DOMException("cancelled", "AbortError")]) {
+  test(`find releases its shared print buffer after ${failure.name}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile('/file', new Uint8Array());
+    const command = createFindCommand();
+    let charges = 0;
+    const context = {
+      _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true, _chargeFastFsOp() { charges++; },
+      command: 'find', args: ['/', '-name', '*'], cwd: '/', env: {}, fs,
+      stdin: toByteSource(''), signal: new AbortController().signal,
+      stdout: { async write() { throw failure; } }, stderr: { async write() {} },
+    };
+    assert.equal((await command.execute(context)).exitCode, 1);
+    assert.equal(charges, 1);
+    let stdout = '';
+    const result = await command.execute({ ...context, stdout: {
+      async write(bytes) { stdout += new TextDecoder().decode(bytes); },
+    } });
+    assert.equal(result.exitCode, 0);
+    assert.equal(stdout, '/\n/file\n');
+    assert.equal(charges, 2, 'the next invocation must reacquire the fast print buffer');
+  });
+}
+
+for (const countOnly of [false, true]) {
+  test(`find finite filesystem budgets bypass speculative output with countOnly=${countOnly}`, async () => {
+    const fs = createMemoryFileSystem();
+    const names = Array.from({ length: 100 }, (_, i) => `/file-${String(i).padStart(3, '0')}-${'x'.repeat(90)}`);
+    for (const name of names) await fs.writeFile(name, new Uint8Array());
+    let stdout = '';
+    const result = await createFindCommand().execute({
+      ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: false,
+        _chargeFastFsOp() { assert.fail('finite budgets must use the accounted filesystem'); } },
+      command: 'find', args: ['/', '-name', '*'], cwd: '/', env: {}, fs,
+      stdin: toByteSource(''), signal: new AbortController().signal,
+      stdout: {
+        ...(countOnly ? { lineCountOnly: 0, writeLineCountSync() { assert.fail('speculative count bypassed'); } } : {}),
+        async write(bytes) { stdout += new TextDecoder().decode(bytes); },
+      },
+      stderr: { async write() {} },
+    });
+    assert.equal(result.exitCode, 0);
+    const expected = ['/', ...names].join('\n') + '\n';
+    assert.ok(expected.length > 8192);
+    assert.equal(stdout, expected);
+  });
+}

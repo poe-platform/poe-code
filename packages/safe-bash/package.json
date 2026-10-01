@@ -1673,6 +1673,8 @@
     },
     "./search": {
       "types": "./dist/search.d.ts",
+      "workerd": "./dist/search.browser.js",
+      "browser": "./dist/search.browser.js",
       "import": "./dist/search.js"
     },
     "./optional-host": {
@@ -1743,26 +1745,38 @@
     },
     "./commands/metadata": {
       "types": "./dist/commands/metadata/index.d.ts",
+      "workerd": "./dist/commands/metadata/index.browser.js",
+      "browser": "./dist/commands/metadata/index.browser.js",
       "import": "./dist/commands/metadata/index.js"
     },
     "./commands/archive": {
       "types": "./dist/commands/archive/index.d.ts",
+      "workerd": "./dist/commands/archive/index.browser.js",
+      "browser": "./dist/commands/archive/index.browser.js",
       "import": "./dist/commands/archive/index.js"
     },
     "./commands/table-text": {
       "types": "./dist/commands/table-text/index.d.ts",
+      "workerd": "./dist/commands/table-text/index.browser.js",
+      "browser": "./dist/commands/table-text/index.browser.js",
       "import": "./dist/commands/table-text/index.js"
     },
     "./commands/stream-inspection": {
       "types": "./dist/commands/stream-inspection/index.d.ts",
+      "workerd": "./dist/commands/stream-inspection/index.browser.js",
+      "browser": "./dist/commands/stream-inspection/index.browser.js",
       "import": "./dist/commands/stream-inspection/index.js"
     },
     "./commands/stream-format": {
       "types": "./dist/commands/stream-format/index.d.ts",
+      "workerd": "./dist/commands/stream-format/index.browser.js",
+      "browser": "./dist/commands/stream-format/index.browser.js",
       "import": "./dist/commands/stream-format/index.js"
     },
     "./commands/split": {
       "types": "./dist/commands/split/index.d.ts",
+      "workerd": "./dist/commands/split/index.browser.js",
+      "browser": "./dist/commands/split/index.browser.js",
       "import": "./dist/commands/split/index.js"
     },
     "./commands/csplit": {
@@ -1809,34 +1823,50 @@
     },
     "./commands/time-env": {
       "types": "./dist/commands/time-env/index.d.ts",
+      "workerd": "./dist/commands/time-env/index.browser.js",
+      "browser": "./dist/commands/time-env/index.browser.js",
       "import": "./dist/commands/time-env/index.js"
     },
     "./commands/tree": {
       "types": "./dist/commands/tree/index.d.ts",
+      "workerd": "./dist/commands/tree/index.browser.js",
+      "browser": "./dist/commands/tree/index.browser.js",
       "import": "./dist/commands/tree/index.js"
     },
     "./commands/file": {
       "types": "./dist/commands/file/index.d.ts",
+      "workerd": "./dist/commands/file/index.browser.js",
+      "browser": "./dist/commands/file/index.browser.js",
       "import": "./dist/commands/file/index.js"
     },
     "./commands/grep-aliases": {
       "types": "./dist/commands/grep-aliases/index.d.ts",
+      "workerd": "./dist/commands/grep-aliases/index.browser.js",
+      "browser": "./dist/commands/grep-aliases/index.browser.js",
       "import": "./dist/commands/grep-aliases/index.js"
     },
     "./commands/column": {
       "types": "./dist/commands/column/index.d.ts",
+      "workerd": "./dist/commands/column/index.browser.js",
+      "browser": "./dist/commands/column/index.browser.js",
       "import": "./dist/commands/column/index.js"
     },
     "./commands/html-to-markdown": {
       "types": "./dist/commands/html-to-markdown/index.d.ts",
+      "workerd": "./dist/commands/html-to-markdown/index.browser.js",
+      "browser": "./dist/commands/html-to-markdown/index.browser.js",
       "import": "./dist/commands/html-to-markdown/index.js"
     },
     "./commands/du": {
       "types": "./dist/commands/du/index.d.ts",
+      "workerd": "./dist/commands/du/index.browser.js",
+      "browser": "./dist/commands/du/index.browser.js",
       "import": "./dist/commands/du/index.js"
     },
     "./commands/expr": {
       "types": "./dist/commands/expr/index.d.ts",
+      "workerd": "./dist/commands/expr/index.browser.js",
+      "browser": "./dist/commands/expr/index.browser.js",
       "import": "./dist/commands/expr/index.js"
     },
     "./commands/timeout": {
@@ -1845,6 +1875,8 @@
     },
     "./commands/apply-patch": {
       "types": "./dist/commands/apply-patch/index.d.ts",
+      "workerd": "./dist/commands/apply-patch/index.browser.js",
+      "browser": "./dist/commands/apply-patch/index.browser.js",
       "import": "./dist/commands/apply-patch/index.js"
     },
     "./commands/which": {
@@ -1894,7 +1926,11 @@
       "import": "./dist/fs/overlay/index.js"
     },
     "./node": {
-      "types": "./dist/node.d.ts",
+      "types": {
+        "workerd": "./dist/node-unavailable.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "default": "./dist/node.d.ts"
+      },
       "workerd": null,
       "browser": null,
       "import": "./dist/node.js"
@@ -1952,13 +1988,21 @@
       "import": "./dist/commands/python/worker.js"
     },
     "./commands/python/node": {
-      "types": "./dist/commands/python/node.d.ts",
+      "types": {
+        "workerd": "./dist/node-unavailable.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "default": "./dist/commands/python/node.d.ts"
+      },
       "workerd": null,
       "browser": null,
       "import": "./dist/commands/python/node.js"
     },
     "./commands/python/docker": {
-      "types": "./dist/commands/python/docker.d.ts",
+      "types": {
+        "workerd": "./dist/node-unavailable.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "default": "./dist/commands/python/docker.d.ts"
+      },
       "workerd": null,
       "browser": null,
       "import": "./dist/commands/python/docker.js"

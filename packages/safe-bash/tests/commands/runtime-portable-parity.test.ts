@@ -114,7 +114,7 @@ for (const bounded of [false, true]) {
     ['${arr[@]/p/X}', 'Xax Xbx Xcx'],
     ['"${arr[@]/p/X}"', 'Xax:Xbx:Xcx'],
     ['"${arr[@]^^}"', 'PAX:PBX:PCX'],
-    ['"${arr[@]:1:2}"', 'pbx:pcx'],
+    ['"${arr[@]:1:2}"', 'pbx pcx'],
     ['${arr[@]@U}', 'PAX:PBX:PCX'],
   ] as const) {
     test(`modified array scalar joining: ${operand}, bounded=${bounded}`, async () => {

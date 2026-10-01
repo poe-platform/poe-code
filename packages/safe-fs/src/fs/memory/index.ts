@@ -1039,6 +1039,7 @@ export class MemoryFileSystem implements FileSystem {
 
   private replaceData(node: FileNode, allocation: MemoryAllocation, length = allocation.data.byteLength): void {
     const previous = node.allocation;
+    node.sourceRef = undefined;
     this.totalBytes += length - node.byteLength;
     node.byteLength = length;
     node.view = length === allocation.data.byteLength ? allocation.data : undefined;
@@ -1624,6 +1625,7 @@ export class MemoryFileSystem implements FileSystem {
       node.byteLength = length;
       node.view = length === allocation.data.byteLength ? allocation.data : undefined;
     }
+    node.sourceRef = undefined;
     this.changed(node, now);
   }
 
@@ -3386,6 +3388,9 @@ export function getLastReadMemoryFileSourceRef(view: Uint8Array): Uint8Array | u
 }
 
 export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, maxBytes?: number, signal?: AbortSignal, captureSourceRef = false): Uint8Array | undefined {
+  // A capture belongs only to the most recent read, including failed/fallback reads.
+  lastReadViewData = undefined;
+  lastReadViewSourceRef = undefined;
   const mem = filesystem as MemoryFileSystem;
   if (mem._owner === undefined || !isStockMemoryMethods(mem, readFileFastMethodNames, false)) return undefined;
   signal?.throwIfAborted();
@@ -3396,6 +3401,7 @@ export function tryReadMemoryFileViewSync(filesystem: FileSystem, path: string, 
   if (maxBytes !== undefined && data.byteLength > maxBytes) (mem as unknown as { fail: (c: ErrnoCode, s: string, p: string) => never }).fail("EFBIG", "readFile", path);
   if (Date.now !== defaultDateNow) node.atimeMs = Date.now();
   else if ((++fastWriteNowTick & 63) === 0) node.atimeMs = fastWriteCachedNow = Date.now();
+  else node.atimeMs = fastWriteCachedNow;
   if (captureSourceRef && node.revision === 0) {
     lastReadViewData = new WeakRef(data);
     lastReadViewSourceRef = node.sourceRef === undefined ? undefined : new WeakRef(node.sourceRef);

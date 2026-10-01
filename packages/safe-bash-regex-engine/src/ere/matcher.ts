@@ -15,6 +15,23 @@ type Task =
   | { readonly kind: "close"; readonly group: number; readonly start: number; readonly next: Task | null }
   | { readonly kind: "repeat"; readonly node: Extract<EreNode, { kind: "repeat" }>; readonly count: number; readonly previous: number; readonly next: Task | null };
 
+// Tasks are recreated while expanding alternatives. Compare their semantics,
+// not object identities; captures are deliberately absent in this span path.
+function spanStateKey(position: number, task: Task | null, nodeIds: Map<EreNode, number>): string {
+  let key = String(position);
+  for (let current = task; current; current = current.next) {
+    if (current.kind === "close") return `${key}/close`;
+    let id = nodeIds.get(current.node);
+    if (id === undefined) { id = nodeIds.size; nodeIds.set(current.node, id); }
+    key += `/${id}`;
+    if (current.kind === "repeat") {
+      const count = current.node.max === Infinity ? Math.min(current.count, Math.max(1, current.node.min)) : current.count;
+      key += `:${count}:${current.previous === position ? 1 : 0}`;
+    }
+  }
+  return key;
+}
+
 interface State {
   readonly position: number;
   readonly task: Task | null;
@@ -360,26 +377,10 @@ function tryMatchEreAsciiRangeNfaSync(
     if (signal?.aborted) throw signal.reason;
     const nodeIds = new Map<EreNode, number>();
     const seen = new Set<string>();
-    // Tasks are recreated while expanding alternatives. Compare their semantics,
-    // not object identities; captures are deliberately absent in this span path.
-    const stateKey = (position: number, task: Task | null): string => {
-      let key = String(position);
-      for (let current = task; current; current = current.next) {
-        if (current.kind === "close") return `${key}/close`;
-        let id = nodeIds.get(current.node);
-        if (id === undefined) { id = nodeIds.size; nodeIds.set(current.node, id); }
-        key += `/${id}`;
-        if (current.kind === "repeat") {
-          const count = current.node.max === Infinity ? Math.min(current.count, Math.max(1, current.node.min)) : current.count;
-          key += `:${count}:${current.previous === position ? 1 : 0}`;
-        }
-      }
-      return key;
-    };
     const pendingPos: number[] = [];
     const pendingTask: (Task | null)[] = [];
     const push = (position: number, next: Task | null): void => {
-      const key = stateKey(position, next);
+      const key = spanStateKey(position, next, nodeIds);
       if (seen.has(key)) return;
       seen.add(key);
       pendingPos.push(position);
@@ -1154,16 +1155,28 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
   const emptyCaptures: readonly (EreSpan | null)[] = Object.freeze(new Array<EreSpan | null>(width).fill(null));
   const emptyHistories: readonly (History | null)[] = Object.freeze(new Array<History | null>(width).fill(null));
   const pending: State[] = [];
+  // Capture histories affect precedence; only group-free states are equivalent
+  // solely by their position and remaining tasks.
+  const seen = program.groups === 0 ? new Set<string>() : undefined;
+  const nodeIds = new Map<EreNode, number>();
   const task = (create: () => Task): Task => {
     ledger.charge("allocationUnits", 5, signal);
     return create();
   };
   const push = (position: number, next: Task | null, captures: readonly (EreSpan | null)[], histories: readonly (History | null)[]): void => {
+    if (seen) {
+      const key = spanStateKey(position, next, nodeIds);
+      ledger.charge("work", key.length, signal);
+      ledger.charge("allocationUnits", key.length + 2, signal);
+      if (seen.has(key)) return;
+      seen.add(key);
+    }
     ledger.charge("states", 1, signal);
     ledger.charge("allocationUnits", 5, signal);
     pending.push({ position, task: next, captures, histories });
   };
   for (let start = from; start <= subject.length; start++) {
+    seen?.clear();
     if (initial) {
       ledger.charge("work", 1, signal);
       const pendingCheck = ledger.checkpoint(signal);

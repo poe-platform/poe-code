@@ -4,11 +4,11 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandDefinition } from "safe-bash-contracts";
 import { createSedCommand, createSedCommands, sedCommands } from "./index.js";
 
-async function run(command: CommandDefinition, args: string[], input = "", fs = createMemoryFileSystem()) {
+async function run(command: CommandDefinition, args: string[], input = "", fs = createMemoryFileSystem(), env: Record<string, string> = {}) {
   const values = createCommandArguments(args);
   let stdout = "", stderr = "";
   const result = await command.execute({
-    command: command.name, args: values.args, argumentValues: values, cwd: "/", env: {},
+    command: command.name, args: values.args, argumentValues: values, cwd: "/", env,
     fs, stdin: toByteSource(input),
     stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
     stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
@@ -61,5 +61,28 @@ test("sed shares byte-oriented programs between file and stdin execution", async
     const result = await run(command, args, "café\n", fs);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "done\n");
+  }
+});
+
+for (const [args, input, expected] of [
+  [["s/a.b/MATCH/"], "a😀b\n", "MATCH\n"],
+  [["s/a[^x]b/MATCH/"], "a😀b\n", "MATCH\n"],
+  [["-E", "s/a.{2,}b/MATCH/"], "a😀b\n", "a😀b\n"],
+  [["-E", "s/(😀+)/[\\1]/g"], "😀x😀😀\n", "[😀]x[😀😀]\n"],
+] as const) test(`sed matches UTF-8 characters: ${args.join(" ")}`, async () => {
+  const command = createSedCommand();
+  for (const env of [{}, { LC_ALL: "C.UTF-8" }]) {
+    const result = await run(command, [...args], input, createMemoryFileSystem(), env);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+});
+
+test("sed cached patterns retain explicit C locale byte matching", async () => {
+  const command = createSedCommand();
+  for (const [env, expected] of [[{}, "MATCH\n"], [{LC_ALL:"C"}, "a😀b\n"], [{LC_CTYPE:"POSIX"}, "a😀b\n"], [{LANG:"en_US.UTF-8"}, "MATCH\n"]] as const) {
+    const result = await run(command, ["s/a.b/MATCH/"], "a😀b\n", createMemoryFileSystem(), env);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
   }
 });

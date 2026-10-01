@@ -38,6 +38,7 @@ export interface TextProgramOptions extends PatternLimits {
 export class ProgramError extends PublicDiagnostic {}
 
 export class Budget {
+  regexByteMode = false;
   maxBufferBytes: number;
   stepsUsed = 0;
   inUse = false;
@@ -97,6 +98,7 @@ export class Budget {
   resetForRun(context: CommandContext, options: TextProgramOptions): void {
     if (context.signal.aborted) context.signal.throwIfAborted();
     const rem = options.maxSteps ?? Infinity;
+    this.regexByteMode = false;
     this.context = context;
     this.options = options;
     this.stepsUsed = 0;

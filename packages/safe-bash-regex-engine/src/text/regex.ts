@@ -1,3 +1,4 @@
+import { decodeByteText, encodeByteText, byteTextPosition, type DecodedByteText } from "./byte-text.js";
 import { Budget, ProgramError } from "./budget.js";
 import { ReplacementBuffer } from "./replacement-buffer.js";
 import type { RegexNode as Node } from "./regex-syntax.js";
@@ -2388,4 +2389,93 @@ export function trySubstitutePairBatchToBufferSync(
     lStart = lEnd + 1;
   }
   return outPos;
+}
+
+const decodedByteSubjects = new WeakMap<object, { source: string; value: DecodedByteText }>();
+
+/** Regex boundary for commands whose records and capture offsets are byte strings. */
+export class BytePattern extends Pattern {
+  private readonly unicode: Pattern;
+
+  constructor(...args: ConstructorParameters<typeof Pattern>) {
+    super(...args);
+    const [source, ...settings] = args;
+    this.unicode = new Pattern(decodeByteText(source).text, ...settings);
+  }
+
+  private usesUnicode(budget: object): boolean {
+    const owner = budget as { regexByteMode?: boolean; context?: { env?: Readonly<Record<string, string | undefined>> } };
+    if (owner.regexByteMode) return false;
+    const env = owner.context?.env;
+    const locale = env?.LC_ALL || env?.LC_CTYPE || env?.LANG;
+    return locale !== "C" && locale !== "POSIX";
+  }
+
+  private input(text: string, budget: Pick<PatternBudget, "step" | "maxBufferBytes">): DecodedByteText {
+    const key = (budget as { context?: object }).context ?? budget;
+    const cached = decodedByteSubjects.get(key);
+    if (cached?.source === text) {
+      budget.step(0);
+      if (cached.value.offsets && (text.length + 1) * 6 > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
+      return cached.value;
+    }
+    const value = decodeByteText(text, budget);
+    decodedByteSubjects.set(key, { source: text, value });
+    return value;
+  }
+
+  private byteMatch(match: Match | undefined, decoded: DecodedByteText, budget: Pick<PatternBudget, "step">): Match | undefined {
+    if (!match || !decoded.offsets) return match;
+    budget.step(match.groups.reduce((count, group) => count + (group?.length ?? 0), 0));
+    return {
+      start: decoded.offsets[match.start]!,
+      end: decoded.offsets[match.end]!,
+      groups: match.groups.map(group => group === undefined ? undefined : encodeByteText(group)),
+      ...(match.captureOffsets ? { captureOffsets: match.captureOffsets.map(offset =>
+        offset === undefined || offset < 0 ? offset : decoded.offsets![offset]) } : {}),
+    };
+  }
+
+  override async prepare(budget: Parameters<Pattern["prepare"]>[0]): Promise<void> {
+    if (this.usesUnicode(budget)) await this.unicode.prepare(budget);
+    else await super.prepare(budget);
+  }
+
+  override canFindSync(): boolean {
+    return super.canFindSync() && this.unicode.canFindSync();
+  }
+
+  override getFastPrefixInfo(): ReturnType<Pattern["getFastPrefixInfo"]> {
+    // Byte-specialized substitution fusion cannot consume Unicode character runs.
+    return undefined;
+  }
+
+  override findSyncFastInto(
+    text: string, budget: Parameters<Pattern["findSyncFastInto"]>[1],
+    from: number, outOffsets: Int32Array, textEnd = text.length, textStart = 0,
+  ): boolean {
+    if (!this.usesUnicode(budget)) return super.findSyncFastInto(text, budget, from, outOffsets, textEnd, textStart);
+    const segment = textStart === 0 && textEnd === text.length ? text : text.slice(textStart, textEnd);
+    const decoded = this.input(segment, budget);
+    const found = this.unicode.findSyncFastInto(decoded.text, budget, byteTextPosition(decoded, from - textStart),
+      outOffsets, decoded.text.length, 0);
+    if (found) for (let i = 0; i < (this.groupCount + 1) * 2; i++)
+      if (outOffsets[i]! >= 0) outOffsets[i] = (decoded.offsets?.[outOffsets[i]!] ?? outOffsets[i]!) + textStart;
+    return found;
+  }
+
+  override tryFindSync(text: string, budget: PatternBudget, from = 0): Match | undefined | Promise<Match | undefined> {
+    if (!this.usesUnicode(budget)) return super.tryFindSync(text, budget, from);
+    const decoded = this.input(text, budget);
+    const result = this.unicode.tryFindSync(decoded.text, budget, byteTextPosition(decoded, from));
+    return result instanceof Promise ? result.then(match => this.byteMatch(match, decoded, budget))
+      : this.byteMatch(result, decoded, budget);
+  }
+
+  override async find(text: string, budget: PatternBudget, from = 0, continuation = from): Promise<Match | undefined> {
+    if (!this.usesUnicode(budget)) return super.find(text, budget, from, continuation);
+    const decoded = this.input(text, budget);
+    return this.byteMatch(await this.unicode.find(decoded.text, budget, byteTextPosition(decoded, from),
+      byteTextPosition(decoded, continuation)), decoded, budget);
+  }
 }

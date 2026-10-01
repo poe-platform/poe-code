@@ -113,8 +113,7 @@ function executeAwkSlow(
       const argument = context.args[index]!;
       if (argument === "--") { index++; break; }
       if (argument === "-" || !argument.startsWith("-")) break;
-      // The runtime already treats strings and records as raw byte strings.
-      if (argument === "--characters-as-bytes" || argument === "-b") continue;
+      if (argument === "--characters-as-bytes" || argument === "-b") { budget.regexByteMode = true; continue; }
       if (argument === "--gen-pot" || argument === "-g") { generatePot = true; needsAsyncFlags = true; continue; }
       const equals = argument.indexOf("=");
       const option = argument.startsWith("--") ? argument.slice(0, equals < 0 ? undefined : equals) : `-${argument[1]}`;
@@ -202,7 +201,7 @@ function executeAwkSlow(
       const argument = context.args[index]!;
       if (argument === "--") { index++; break; }
       if (argument === "-" || !argument.startsWith("-")) break;
-      if (argument === "--characters-as-bytes" || argument === "-b") continue;
+      if (argument === "--characters-as-bytes" || argument === "-b") { budget.regexByteMode = true; continue; }
       if (argument === "--gen-pot" || argument === "-g") { generatePot = true; continue; }
       const equals = argument.indexOf("=");
       const option = argument.startsWith("--") ? argument.slice(0, equals < 0 ? undefined : equals) : `-${argument[1]}`;

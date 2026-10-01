@@ -1,6 +1,6 @@
 import { validateFormat } from "./awk-values.js";
 import { ProgramError } from "safe-bash-io-engine/commands/text-programs/shared";
-import { Pattern } from "safe-bash-regex-engine/text/regex";
+import { BytePattern as Pattern } from "safe-bash-regex-engine/text/regex";
 
 export type Expression = { kind: "number"; value: number } | { kind: "string"; value: string }
   | { kind: "regex"; pattern: Pattern; source?: string } | { kind: "variable"; name: string }

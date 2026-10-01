@@ -11,7 +11,7 @@ import { isSyncResolved } from "safe-bash-contracts/runtime-control";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 import { decodeBytes,encodeBytes,latin1Bytes,latin1Text } from "safe-bash-io-engine/byte-encoding";
 import { Budget,ProgramError,byteString,bytes,input,virtualPath,write } from "safe-bash-io-engine/commands/text-programs/shared";
-import { Pattern,substitute } from "safe-bash-regex-engine/text/regex";
+import { BytePattern as Pattern,substitute } from "safe-bash-regex-engine/text/regex";
 import { TimeZone, nanosecondsPerSecond } from "safe-bash-calendar-engine/time-env/calendar";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";
 import { AwkPipes } from "./awk-pipes.js";

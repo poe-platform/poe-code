@@ -7,7 +7,7 @@ import { decodeBytes,encodeBytes,writeEncodedBytes } from "safe-bash-io-engine/b
 import { assertPathRequirements,requiredFileInput,sedRequirements } from "safe-bash-io-engine/commands/search/requirements";
 import { Budget,ProgramError,byteString,bytes,command,getCachedLatin1Batch,input,lineRecordBatches,readProgram,virtualPath,type LineRecordBatch,type RecordLine,type TextProgramOptions } from "safe-bash-io-engine/commands/text-programs/shared";
 import { pathOf } from "safe-bash-io-engine/internal";
-import { Pattern,trySubstitutePairBatchToBufferSync,trySubstitutePairSync,trySubstitutePairToBufferSync,trySubstituteSync } from "safe-bash-regex-engine/text/regex";
+import { BytePattern as Pattern,trySubstitutePairBatchToBufferSync,trySubstitutePairSync,trySubstitutePairToBufferSync,trySubstituteSync } from "safe-bash-regex-engine/text/regex";
 
 type Address = { kind: "number"; number: number } | { kind: "step"; first: number; step: number } | { kind: "plus"; count: number } | { kind: "tilde"; count: number } | { kind: "last" } | { kind: "regex"; pattern: Pattern | undefined };
 interface Instruction {

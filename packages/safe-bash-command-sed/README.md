@@ -1,6 +1,6 @@
 # sed
 
-Run `sed` against an injected virtual filesystem with portable byte streams.
+Run `sed` against an injected virtual filesystem with portable byte streams. Regular expressions count UTF-8 characters by default and in UTF-8 locales; C/POSIX locales retain byte matching.
 
 ```ts
 import { createSedCommand, sedCommands } from "@poe-platform/safe-bash/commands/sed";

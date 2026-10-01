@@ -3,6 +3,7 @@ export const pythonLlmReferenceModule = /* @__PURE__ */ (() => String.raw`
 """Lazy synchronous and asynchronous model responses backed by JavaScript."""
 import asyncio
 import inspect
+import datetime as _datetime
 from dataclasses import dataclass, field
 import os
 import time
@@ -162,8 +163,35 @@ class _Response:
         self.output_tokens = None
         self.token_details = None
         self.done_callbacks = []
+        self.resolved_model = None
+        self.attachments = []
+        self._tool_calls = []
+        self._prompt_json = None
+        self._start = None
+        self._end = None
+        self._start_utcnow = None
+
+    def set_usage(self, *, input=None, output=None, details=None):
+        self.input_tokens = input
+        self.output_tokens = output
+        self.token_details = details
+
+    def set_resolved_model(self, model_id):
+        self.resolved_model = model_id
+
+    def token_usage(self):
+        import json
+        parts = []
+        if self.input_tokens is not None:
+            parts.append(format(self.input_tokens, ",") + " input")
+        if self.output_tokens is not None:
+            parts.append(format(self.output_tokens, ",") + " output")
+        if self.token_details:
+            parts.append(json.dumps(self.token_details))
+        return ", ".join(parts)
 
     async def _finish(self):
+        self._end = time.monotonic()
         self._done = True
         if self.conversation is not None:
             self.conversation.responses.append(self)
@@ -190,6 +218,8 @@ class _Response:
             raise StopAsyncIteration
         try:
             if self._client is None:
+                self._start = time.monotonic()
+                self._start_utcnow = _datetime.datetime.now(_datetime.timezone.utc)
                 self._client = _core.Client(model=self.model.model_id, key=self._key)
                 values = dict(system=self.prompt.system, options=self.prompt.options,
                               attachments=self.prompt.attachments, schema=self.prompt.schema)
@@ -225,6 +255,20 @@ class _Response:
 
 
 class Response(_Response):
+    def __str__(self):
+        return self.text()
+
+    def text_or_raise(self):
+        return self.text()
+
+    def duration_ms(self):
+        self.text()
+        return int(((self._end or 0) - (self._start or 0)) * 1000)
+
+    def datetime_utc(self):
+        self.text()
+        return self._start_utcnow.isoformat() if self._start_utcnow else ""
+
     def __iter__(self):
         if self._done:
             yield from self._chunks
@@ -266,6 +310,37 @@ class Response(_Response):
 
 
 class AsyncResponse(_Response):
+    def __await__(self):
+        async def complete():
+            await self.text()
+            return self
+        return complete().__await__()
+
+    def text_or_raise(self):
+        if not self._done:
+            raise ValueError("Response not yet awaited")
+        return "".join(self._chunks)
+
+    async def duration_ms(self):
+        await self.text()
+        return int(((self._end or 0) - (self._start or 0)) * 1000)
+
+    async def datetime_utc(self):
+        await self.text()
+        return self._start_utcnow.isoformat() if self._start_utcnow else ""
+
+    async def to_sync_response(self):
+        await self.text()
+        conversation = self.conversation.to_sync_conversation() if self.conversation else None
+        response = Response(self.prompt, self.model, self.stream, conversation=conversation)
+        for name in ("id", "_done", "_end", "_start", "_start_utcnow", "input_tokens",
+                     "output_tokens", "token_details", "_prompt_json", "response_json", "resolved_model"):
+            setattr(response, name, getattr(self, name))
+        response._chunks = list(self._chunks)
+        response._tool_calls = list(self._tool_calls)
+        response.attachments = list(self.attachments)
+        return response
+
     def __aiter__(self):
         async def chunks():
             if self._done:
@@ -369,7 +444,9 @@ class Conversation:
 
 
 class AsyncConversation(Conversation):
-    pass
+    def to_sync_conversation(self):
+        return Conversation(model=self.model, id=self.id, name=self.name, responses=[],
+                            tools=self.tools, chain_limit=self.chain_limit)
 
 
 class UnknownModelError(KeyError):

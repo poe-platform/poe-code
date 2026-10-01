@@ -20,7 +20,11 @@ completed responses replay their chunks without another provider call, and
 callers do not import Pyodide or manage a client. Prompt fragments use
 fragments=[...] joined with single newlines before the prompt. System fragments
 use system_fragments=[...]; whitespace is stripped and nonempty parts join
-with blank lines, matching the reference library. Explicitly close an unfinished
+with blank lines, matching the reference library. Awaiting an async response itself completes it and returns that response.
+Completed async responses expose text_or_raise() without another await and can
+convert to a replayable synchronous response with await to_sync_response().
+Both response types expose duration_ms() and datetime_utc() (await these on async
+responses). Explicitly close an unfinished
 response with `close()` or `await aclose()`.
 
 Use `get_models()` / `get_async_models()` for the shared host catalog.

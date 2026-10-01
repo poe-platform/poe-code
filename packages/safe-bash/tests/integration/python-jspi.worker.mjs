@@ -295,6 +295,9 @@ assert call('identity', 'still-live') == 'still-live'
 import llm
 fragment_response = llm.get_model('fake').prompt('body', fragments=['reference-fragment'], system_fragments=['  first  '], system=' second ')
 assert fragment_response.text() == 'reference-fragment' + chr(10) + 'body'
+assert fragment_response.text_or_raise() == str(fragment_response)
+assert fragment_response.duration_ms() >= 0
+assert fragment_response.datetime_utc().endswith('+00:00')
 attachment = llm.Attachment(path='/work/shared.txt')
 assert attachment.resolve_type() == 'text/plain'
 assert attachment.content_bytes() == b'changed'
@@ -319,7 +322,12 @@ def expected_bytes(offset, count):
 
 async def qualify_libraries():
  reference_response = llm.get_async_model('fake').prompt('reference-async')
- assert await reference_response.text() == 'reference-async'
+ assert await reference_response is reference_response
+ assert reference_response.text_or_raise() == 'reference-async'
+ assert await reference_response.duration_ms() >= 0
+ assert (await reference_response.datetime_utc()).endswith('+00:00')
+ synchronous = await reference_response.to_sync_response()
+ assert str(synchronous) == 'reference-async' and synchronous.id == reference_response.id
  assert [chunk async for chunk in reference_response] == ['reference-async']
  async_conversation = llm.get_async_model('fake').conversation()
  assert await async_conversation.prompt('reference-first').text() == 'reference-first'

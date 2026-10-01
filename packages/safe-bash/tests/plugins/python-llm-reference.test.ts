@@ -84,6 +84,35 @@ attachments = [attachment]
 retained = model.prompt("retained", attachments=attachments)
 attachments.clear()
 assert retained.prompt.attachments == [attachment]
+from datetime import datetime, timezone
+timed = model.prompt("timed", stream=False)
+count = len(calls)
+assert timed.token_usage() == "" and len(calls) == count
+assert str(timed) == "hello"
+assert timed.text_or_raise() == "hello"
+assert isinstance(timed.duration_ms(), int) and timed.duration_ms() >= 0
+assert datetime.fromisoformat(timed.datetime_utc()).tzinfo == timezone.utc
+timed.set_usage(input=1000, output=2, details={"cached": 0})
+assert timed.usage().input == 1000 and timed.usage().output == 2
+assert timed.token_usage() == '1,000 input, 2 output, {"cached": 0}'
+timed.set_resolved_model("resolved")
+assert timed.resolved_model == "resolved"
+async def check_awaitable():
+ pending = async_model.prompt("awaited")
+ try:
+  pending.text_or_raise()
+  raise AssertionError("Unawaited text was accepted")
+ except ValueError as error:
+  assert str(error) == "Response not yet awaited"
+ assert await pending is pending
+ assert pending.text_or_raise() == "hello"
+ assert isinstance(await pending.duration_ms(), int)
+ assert datetime.fromisoformat(await pending.datetime_utc()).tzinfo == timezone.utc
+ converted = await pending.to_sync_response()
+ assert isinstance(converted, llm.Response)
+ assert converted.id == pending.id and converted.text() == "hello"
+ assert list(converted) == ["hel", "lo"]
+asyncio.run(check_awaitable())
 print("reference response contract passed")
 `;
 

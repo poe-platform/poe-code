@@ -160,10 +160,36 @@ describe("formatInterpreterError", () => {
   });
 
   it("truncates very long error messages with an explicit suffix", () => {
-    const formatted = formatInterpreterError(new Error("x".repeat(10_025)));
+    const formatted = formatInterpreterError(new Error("x".repeat(10_025)), { maxMessageLength: 10_000 });
 
     expect(formatted).toHaveLength("Error: ".length + 10_000 + "... [truncated 25 chars]".length);
     expect(formatted.startsWith("Error: xxx")).toBe(true);
     expect(formatted.endsWith("... [truncated 25 chars]")).toBe(true);
   });
+  it("preserves long messages by default and with explicit Infinity", () => {
+    const message = "x".repeat(10_025);
+    expect(formatInterpreterError(new Error(message))).toBe(`Error: ${message}`);
+    expect(formatInterpreterError(new Error(message), { maxMessageLength: Infinity })).toBe(`Error: ${message}`);
+  });
+
+  it("preserves long cause chains unless a depth limit is configured", () => {
+    let error = new Error("bottom");
+    for (let depth = 0; depth < 25; depth++) error = new Error(`level ${depth}`, { cause: error });
+    expect(formatInterpreterError(error)).toContain("Caused by: Error: bottom");
+    expect(formatInterpreterError(error, { maxCauseDepth: Infinity })).toContain("Caused by: Error: bottom");
+    expect(formatInterpreterError(error, { maxCauseDepth: 1 })).toBe("Error: level 24\n\nCaused by: Error: level 23");
+    expect(formatInterpreterError(error, { maxCauseDepth: 0 })).toBe("Error: level 24");
+  });
+
+  it("stops circular cause chains without a depth limit", () => {
+    const error = new Error("cycle");
+    error.cause = error;
+    expect(formatInterpreterError(error)).toContain("Caused by: [Circular cause]");
+  });
+
+  it("applies explicit message limits to source diagnostics", () => {
+    const error = { message: "abcdef", span: { start: { line: 1, column: 1 } } };
+    expect(formatInterpreterError(error, { source: "x", maxMessageLength: 3 })).toContain("abc... [truncated 3 chars]");
+  });
+
 });

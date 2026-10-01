@@ -12,7 +12,10 @@ export type InterpreterDiagnostic = {
 export type FormatErrorOptions = {
   filename?: string;
   hostCallName?: string;
+  /** Maximum message characters; omitted or Infinity preserves the full message. */
   maxMessageLength?: number;
+  /** Maximum cause-chain entries; omitted or Infinity preserves every non-circular cause. */
+  maxCauseDepth?: number;
   source?: string;
 };
 
@@ -32,8 +35,7 @@ type SpanDiagnostic = {
   };
 };
 
-const DEFAULT_MAX_MESSAGE_LENGTH = 10_000;
-const MAX_CAUSE_DEPTH = 20;
+const DEFAULT_MAX_MESSAGE_LENGTH = Infinity;
 
 export function formatInterpreterError(source: string, error: InterpreterDiagnostic): string;
 export function formatInterpreterError(error: unknown, options?: FormatErrorOptions): string;
@@ -62,6 +64,7 @@ function normalizeOptions(options: FormatErrorOptions | undefined): Required<For
     filename: options?.filename ?? "<input>",
     hostCallName: options?.hostCallName ?? "",
     maxMessageLength: options?.maxMessageLength ?? DEFAULT_MAX_MESSAGE_LENGTH,
+    maxCauseDepth: options?.maxCauseDepth ?? Infinity,
     source: options?.source ?? ""
   };
 }
@@ -86,11 +89,11 @@ function formatTopLevelError(error: unknown, options: Required<FormatErrorOption
       line: error.span.start.line,
       column: error.span.start.column,
       message: error.message
-    });
+    }, options);
   }
 
   if (isErrorLike(error)) {
-    return formatErrorLike(error, options.maxMessageLength);
+    return formatErrorLike(error, options.maxMessageLength, options.maxCauseDepth);
   }
 
   return `Thrown value: ${truncate(describeThrownValue(error), options.maxMessageLength)}`;
@@ -117,9 +120,9 @@ function formatSandboxError(error: SandboxError, maxMessageLength: number): stri
   return lines.join("\n");
 }
 
-function formatErrorLike(error: ErrorLike, maxMessageLength: number): string {
+function formatErrorLike(error: ErrorLike, maxMessageLength: number, maxCauseDepth: number): string {
   const stack = formatSandboxStack(error, maxMessageLength);
-  const causes = formatCauses(error, maxMessageLength);
+  const causes = formatCauses(error, maxMessageLength, maxCauseDepth);
 
   if (causes.length === 0) {
     return stack;
@@ -158,12 +161,12 @@ function isSandboxStackFrame(line: string): boolean {
   );
 }
 
-function formatCauses(error: ErrorLike, maxMessageLength: number): string[] {
+function formatCauses(error: ErrorLike, maxMessageLength: number, maxCauseDepth: number): string[] {
   const causes: string[] = [];
   const seen = new Set<unknown>();
   let current: unknown = readCause(error);
 
-  for (let depth = 0; depth < MAX_CAUSE_DEPTH && current !== undefined; depth += 1) {
+  for (let depth = 0; depth < maxCauseDepth && current !== undefined; depth += 1) {
     if (seen.has(current)) {
       causes.push("Caused by: [Circular cause]");
       break;

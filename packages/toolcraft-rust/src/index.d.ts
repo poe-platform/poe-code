@@ -107,3 +107,11 @@ export * from "./definitions.js";
 
 export declare function isSensitiveName(name: string): boolean;
 export declare function redactHttpBody(body: unknown): unknown;
+
+export interface PackageMetadata {
+  name?: string;
+  path: string;
+  version?: string;
+}
+export declare function findPackageMetadata(from: string | URL): PackageMetadata | undefined;
+export declare function packageMetadata(from?: string | URL): PackageMetadata;

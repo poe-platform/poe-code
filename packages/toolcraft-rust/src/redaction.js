@@ -1,31 +1,8 @@
 import { createRequire } from "node:module";
+import { callNative, protect } from "./host-errors.js";
 
 const native = createRequire(import.meta.url)("./toolcraft-rust.node");
 export const { isSensitiveName, redactHttpHeaderValue } = native;
-
-const thrownValues = new WeakMap();
-function protect(operation) {
-  return (...args) => {
-    try {
-      return operation(...args);
-    } catch (value) {
-      // napi-rs preserves Error identity but converts non-Error throws. Carry
-      // arbitrary thrown values through an Error without stringifying them.
-      const carrier = new Error("Redaction host operation failed");
-      thrownValues.set(carrier, value);
-      throw carrier;
-    }
-  };
-}
-
-function visit(value, name, seen) {
-  try {
-    return native.redactValue(value, name, seen, true, host);
-  } catch (error) {
-    if (thrownValues.has(error)) throw thrownValues.get(error);
-    throw error;
-  }
-}
 
 // These operations run caller code. Keeping them in JS preserves map species,
 // sparse entries, custom methods and serializer exceptions without copying values.
@@ -34,11 +11,15 @@ const host = {
   serialize: protect((hook, value, name) => hook.call(value, name)),
   entries: protect((value) => Object.entries(value)),
   fromEntries: protect((entries) => Object.fromEntries(entries)),
-  map: protect((value, seen) => value.map((entry, index) => visit(entry, String(index), seen)))
+  map: protect((value, seen) =>
+    value.map((entry, index) =>
+      callNative(native.redactValue, entry, String(index), seen, true, host)
+    )
+  )
 };
 
 export function redactSecretLikeFields(value, name = "") {
-  return visit(value, name, new WeakSet());
+  return callNative(native.redactValue, value, name, new WeakSet(), true, host);
 }
 
 export function redactHttpBody(body) {

@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 
 export { isSensitiveName, redactHttpBody } from "./redaction.js";
+export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
 
 export {
   defineCommand,

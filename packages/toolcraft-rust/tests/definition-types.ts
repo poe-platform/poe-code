@@ -12,7 +12,9 @@ void [define, group, clone, nativeDefine, nativeGroup];
 
 const sensitive: typeof reference.isSensitiveName = native.isSensitiveName;
 const redact: typeof reference.redactHttpBody = native.redactHttpBody;
-void [sensitive, redact];
+const metadata: typeof reference.packageMetadata = native.packageMetadata;
+const findMetadata: typeof reference.findPackageMetadata = native.findPackageMetadata;
+void [sensitive, redact, metadata, findMetadata];
 
 // Compare the declared stream signatures with the same type parameters. Asking
 // TS to re-infer services across two recursive copies instead infers the entire

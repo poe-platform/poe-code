@@ -27,7 +27,8 @@
     "tsx": "*",
     "@poe-code/agent-mcp-config": "*",
     "toolcraft-schema": "*",
-    "toolcraft-design": "*"
+    "toolcraft-design": "*",
+    "memfs": "4.56.10"
   },
   "files": [
     "dist",

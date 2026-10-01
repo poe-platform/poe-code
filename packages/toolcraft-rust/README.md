@@ -4,16 +4,17 @@ An additive Rust implementation of Toolcraft for applications that need the
 same Node API backed by native code. This private package is a work in progress;
 keep existing applications on `toolcraft` until the complete API is available.
 
-| Capability   | Current support                                                                  |
-| ------------ | -------------------------------------------------------------------------------- |
-| Suggestions  | UTF-16 typo distance, Node locale ordering, thresholds and result limits         |
-| Diagnostics  | Log levels, filtering, function and object sinks                                 |
-| Redaction    | Sensitive field/header policies, JSON bodies, serializers and cyclic references  |
-| Errors       | Toolcraft user/bug errors and HTTP status subclasses                             |
-| Requirements | Authentication, numeric API version checks and async preconditions               |
-| Secrets      | Required/optional environment values and missing-name suggestions                |
-| Definitions  | Commands, groups, stream definitions, metadata inheritance and defaults          |
-| Cloning      | Detached command trees, scope overrides, source locations and MCP proxy metadata |
+| Capability       | Current support                                                                  |
+| ---------------- | -------------------------------------------------------------------------------- |
+| Suggestions      | UTF-16 typo distance, Node locale ordering, thresholds and result limits         |
+| Diagnostics      | Log levels, filtering, function and object sinks                                 |
+| Redaction        | Sensitive field/header policies, JSON bodies, serializers and cyclic references  |
+| Errors           | Toolcraft user/bug errors and HTTP status subclasses                             |
+| Requirements     | Authentication, numeric API version checks and async preconditions               |
+| Secrets          | Required/optional environment values and missing-name suggestions                |
+| Definitions      | Commands, groups, stream definitions, metadata inheritance and defaults          |
+| Cloning          | Detached command trees, scope overrides, source locations and MCP proxy metadata |
+| Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 
 ```ts
 import { suggest, createRuntimeLogger, createHttpError } from "toolcraft-rust";
@@ -43,6 +44,8 @@ and source-frame parsing.
 Rust also traverses redacted objects and controls serializer application and
 cycle detection. Node retains array mapping and JSON parsing semantics, including
 sparse arrays, custom array species, serializer receivers and thrown values.
+Package lookup runs in Rust with Node filesystem and path capabilities, preserving
+symlink resolution, missing-path fallbacks and the nearest package's parse errors.
 Node retains locale sorting, callback receivers, original event values, error
 causes, subclass identity, symbol metadata and stack traces. Cloning preserves
 schema and handler identity and supports trees from another Toolcraft bundle.

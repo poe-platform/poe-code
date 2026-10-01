@@ -109,6 +109,9 @@ Redaction has native name/header policies and object traversal, with Node host
 operations for JSON parsing, array mapping and serializer calls. Differential
 coverage includes cycles, repeated references, sparse arrays, subclasses,
 custom methods, getters, serializer keys/receivers and thrown-value identity.
+Package metadata lookup now uses a native search algorithm with injected Node
+filesystem/path capabilities. The original lookup suite and in-memory differential
+tests cover symlinks, fallback directories, malformed packages and exception identity.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

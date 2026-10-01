@@ -299,6 +299,7 @@ Every raw filesystem operation accepts an optional `signal`. Additional fields a
 `createS3NamespaceFileSystem` resource limits (`maxBytes`, `maxEntries`,
 `maxManifestBytes`, `maxAttempts`, and inherited descriptor limits) are unlimited
 when omitted or set to `Infinity`; positive safe integers enable finite limits.
+Namespace paths have no implicit length cap; configured manifest budgets still apply.
 
 `createS3Transport(client, capabilities?)` wraps a compatible client with explicit `streamingRead`, `streamingWrite`, `conditionalPut`, `conditionalCopy`, and `conditionalDelete` flags (all absent by default). Direct transport requests accept an optional `abortSignal`.
 

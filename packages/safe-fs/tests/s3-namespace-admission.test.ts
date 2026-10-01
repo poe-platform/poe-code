@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { createS3NamespaceFileSystem, type S3NamespaceOptions } from '../src/fs/s3/namespace.js';
+import { MockS3Client } from '../src/fs/s3/mock.js';
 
 const root = { ino: 1, revision: 1, type: 'directory', mode: 493, time: 0, bytes: [] };
 const manifest = () => ({ version: 1, identity: 'namespace', nextInode: 2, nodes: { '/': root } });
@@ -46,6 +47,27 @@ test('accepts valid manifests across every token boundary and on later reads', a
   const source = transport([...JSON.stringify(manifest())]);
   const fs = await createS3NamespaceFileSystem({ client: source.client, bucket: 'bucket', key: 'manifest' });
   expect((await fs.stat('/')).type).toBe('directory');
+});
+
+test.each([{}, { maxManifestBytes: Infinity, maxEntries: Infinity, maxBytes: Infinity }])('accepts long namespace paths with optional limits %j', async limits => {
+  const path = '/' + 'é'.repeat(25_000);
+  const source = transport([JSON.stringify({ ...manifest(), nextInode: 3, nodes: {
+    '/': root,
+    [path]: { ...root, ino: 2, type: 'file', bytes: [42] },
+  } })]);
+  const fs = await createS3NamespaceFileSystem({ client: source.client, bucket: 'bucket', key: 'manifest', ...limits });
+  expect(await fs.readFile(path)).toEqual(Uint8Array.of(42));
+  expect((await fs.stat(path)).type).toBe('file');
+});
+
+test('persists long namespace paths and still enforces configured manifest budgets', async () => {
+  const options = { client: new MockS3Client({ buckets: ['bucket'] }), bucket: 'bucket', key: 'manifest' };
+  const fs = await createS3NamespaceFileSystem(options);
+  const path = '/' + 'a'.repeat(25_000);
+  await fs.writeFile(path, Uint8Array.of(42));
+  const reopened = await createS3NamespaceFileSystem(options);
+  expect(await reopened.readFile(path)).toEqual(Uint8Array.of(42));
+  await expect(createS3NamespaceFileSystem({ ...options, maxManifestBytes: 4096 })).rejects.toMatchObject({ code: 'EFBIG' });
 });
 
 test.each([

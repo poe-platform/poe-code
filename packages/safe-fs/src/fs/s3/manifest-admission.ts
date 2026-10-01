@@ -49,7 +49,6 @@ export async function* admitManifest(source: ByteSource, options: {
       if (typeof value !== 'string' || frame.keys.has(value)) invalid();
       const key = value as string;
       if (frame.shape === 'nodes') {
-        if (key.length > 4096) invalid();
         if (++entries > options.maxEntries) throw new FsError('ENOSPC');
       } else {
         const fields = frame.shape === 'namespace' ? ['version', 'identity', 'nextInode', 'nodes']
@@ -79,7 +78,6 @@ export async function* admitManifest(source: ByteSource, options: {
       if (token) {
         if (quoted) {
           token += character;
-          if (token.length > 4096 * 6 + 2) invalid();
           if (escaped) escaped = false;
           else if (character === '\\') escaped = true;
           else if (character === '"') { quoted = false; scalar(); }

@@ -56,7 +56,6 @@ export async function createS3NamespaceFileSystem(options: S3NamespaceOptions): 
   const path = (value: string) => {
     validatePath(value);
     if (!value) throw new FsError('ENOENT');
-    if (value.length > 4096) throw new FsError('ENAMETOOLONG');
     return normalizePath(value);
   };
   const entryPath = (value: string) => {

@@ -17,6 +17,18 @@ function fixture(options: Parameters<typeof setup>[0] = {}) {
   return result;
 }
 
+for (const name of ["IFS", "OPTIND", "RANDOM", "SECONDS"]) {
+  test(`printf -v ${name} uses the normal variable writer`, async context => {
+    const writes = context.mock.method(Runtime.prototype, "writeVariable");
+    const { shell } = fixture({ limits: { maxExpansionFields: Infinity, maxExpansionBytes: Infinity } });
+    try {
+      const result = await shell.exec(`printf -v ${name} %s 123`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(writes.mock.calls.some(call => call.arguments[1] === name && call.arguments[2] === "123"));
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const [name, script, expected] of [
   ["outer indexed binding", 'value=(outer tail); f(){ local -a value; value[0]=inner; }; f; printf "<%s:%s>" "${value[0]}" "${value[1]}"', "<outer:tail>"],
   ["repeated declaration", 'f(){ local -a value; value[2]=inner; local -a value; printf "<%s>" "${value[2]}"; }; f', "<inner>"],
@@ -43,6 +55,14 @@ for (const [name, script, expected] of [
 }
 
 const cases = [
+  ["compound printf hexadecimal fallback executes once", 'n=0; if true; then ((n++)); printf -v x "%04x" 10; fi; echo "n=$n x=$x"'],
+  ["compound printf wide fallback executes once", 'n=0; if true; then ((n++)); printf -v x "%129s" a; fi; echo "n=$n x=$x"'],
+  ["compound printf escaped fallback executes once", String.raw`n=0; if true; then ((n++)); printf -v x '\u0041'; fi; echo "n=$n x=$x"`],
+  ["printf preserves FUNCNAME", 'f() { printf -v FUNCNAME %s hacked; echo "FUNCNAME=$FUNCNAME"; }; f'],
+  ["loop printf preserves FUNCNAME", 'f() { for ((i=0;i<2;i++)); do printf -v FUNCNAME %s hacked; done; echo "FUNCNAME=$FUNCNAME"; }; f'],
+  ["printf SECONDS uses its setter", 'printf -v SECONDS %s 123; echo "$SECONDS"'],
+  ["printf RANDOM seeds its generator", 'RANDOM=123; first=$RANDOM; printf -v RANDOM %s 123; second=$RANDOM; [[ "$first" = "$second" ]]; echo "$?"'],
+  ["printf UTF-8 string widths", 'printf "[%5s][%-5s][%5s]" é é 😀; printf -v x "[%5s][%-5s][%5s]" é é 😀; printf %s "$x"'],
   ["associative printf destinations", 'declare -A map; printf -v "map[foo]" %s hello; printf -v "map[01]" %s leading; printf "<%s:%s>" "${map[foo]}" "${map[01]}"'],
   ["arithmetic printf destinations", 'arr=(a b c); i=1; printf -v "arr[i]" %s updated; printf -v "arr[i+1]" %s last; printf "<%s:%s>" "${arr[1]}" "${arr[2]}"'],
   ["relative and quoted printf destinations", 'arr=(a b c); printf -v "arr[-1]" %s last; printf -v \'arr["01"]\' %s middle; printf "<%s:%s>" "${arr[1]}" "${arr[2]}"'],
@@ -145,6 +165,7 @@ test("local nameref cycles stop with a diagnostic", async () => {
 // GNU Bash 5.0.17 qualified the original corpus (docs/plans/bugfix-636-printf-variable.md).
 // Fixed contracts preserve required empty/readonly/indexed assignment on Bash 3 hosts.
 const modernContracts = new Map<string, { stdout: Uint8Array; hasStderr: boolean }>([
+  ["compound printf escaped fallback executes once", { stdout: new TextEncoder().encode("n=1 x=A\n"), hasStderr: false }],
   ["relative and quoted printf destinations", { stdout: new TextEncoder().encode("<middle:last>"), hasStderr: false }],
   ["expanded associative printf destination", { stdout: new TextEncoder().encode("spaced"), hasStderr: false }],
   ["quoted associative printf destination", { stdout: new TextEncoder().encode("spaced"), hasStderr: false }],
@@ -175,32 +196,34 @@ const bashVersion = version.stdout.toString();
 const bashMajor = Number(bashVersion.split(".")[0]);
 assert.ok(Number.isInteger(bashMajor) && bashMajor > 0, `Invalid Bash version: ${bashVersion}`);
 
-for (const [name, script] of cases) {
-  test(`printf -v: ${name}`, async context => {
-    const { shell } = fixture();
-    try {
-      const result = await shell.exec(script);
-      const compareNative = () => {
-        const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
-        assert.ifError(oracle.error);
-        assert.equal(oracle.signal, null);
-        assert.equal(result.exitCode, oracle.status, result.stderr);
-        assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout), result.stderr);
-        assert.equal(result.stderr.length > 0, oracle.stderr.length > 0);
-      };
-      const contract = modernContracts.get(name);
-      if (contract !== undefined) {
-        assert.equal(result.exitCode, 0, result.stderr);
-        assert.deepEqual(result.stdoutBytes, contract.stdout, result.stderr);
-        assert.equal(result.stderr.length > 0, contract.hasStderr);
-        await context.test("GNU Bash 5+ native comparison", {
-          skip: bashMajor < 5 ? `GNU Bash 5+ oracle unavailable; ${bashExecutable} is ${bashVersion}` : false,
-        }, compareNative);
-      } else {
-        compareNative();
-      }
-    } finally { await shell.dispose(); }
-  });
+for (const unlimited of [false, true]) {
+  for (const [name, script] of cases) {
+    test(`printf -v: ${name}${unlimited ? " (unlimited expansion)" : ""}`, async context => {
+      const { shell } = fixture(unlimited ? { limits: { maxExpansionFields: Infinity, maxExpansionBytes: Infinity } } : {});
+      try {
+        const result = await shell.exec(script);
+        const compareNative = () => {
+          const oracle = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", script], { env: { PATH: "/usr/bin:/bin", LC_ALL: "C" }, timeout: 2000 });
+          assert.ifError(oracle.error);
+          assert.equal(oracle.signal, null);
+          assert.equal(result.exitCode, oracle.status, result.stderr);
+          assert.deepEqual(result.stdoutBytes, new Uint8Array(oracle.stdout), result.stderr);
+          assert.equal(result.stderr.length > 0, oracle.stderr.length > 0);
+        };
+        const contract = modernContracts.get(name);
+        if (contract !== undefined) {
+          assert.equal(result.exitCode, 0, result.stderr);
+          assert.deepEqual(result.stdoutBytes, contract.stdout, result.stderr);
+          assert.equal(result.stderr.length > 0, contract.hasStderr);
+          await context.test("GNU Bash 5+ native comparison", {
+            skip: bashMajor < 5 ? `GNU Bash 5+ oracle unavailable; ${bashExecutable} is ${bashVersion}` : false,
+          }, compareNative);
+        } else {
+          compareNative();
+        }
+      } finally { await shell.dispose(); }
+    });
+  }
 }
 
 test("standalone printf still refuses -v without shell-state capability", async () => {

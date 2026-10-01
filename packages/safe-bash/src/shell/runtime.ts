@@ -154,6 +154,7 @@ function hasActiveExtensions(state: State): state is State & { extensions: Shell
 }
 const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
 const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
+const printfSlowTargets = new Set([...controlNames, "FUNCNAME", "RANDOM", "SECONDS", "PIPESTATUS", "_"]);
 async function signedLong(argument: string, budget: Budget, signal: AbortSignal): Promise<bigint | "overflow" | undefined> {
   const checkpoint = async (): Promise<void> => {
     budget.cpuCheckpoint();
@@ -8135,7 +8136,7 @@ export class Runtime {
                 ) {
                   targetOk = true;
                 }
-              } else if (isShellIdentifier(w2Plain) && !controlNames.has(w2Plain) && !rawState.readonlyVariables?.has(w2Plain) && !rawState.variableAttributes?.get(w2Plain) && !st?.get(w2Plain) && !mon.hasOverlay(w2Plain)) {
+              } else if (isShellIdentifier(w2Plain) && !printfSlowTargets.has(w2Plain) && !rawState.readonlyVariables?.has(w2Plain) && !rawState.variableAttributes?.get(w2Plain) && !st?.get(w2Plain) && !mon.hasOverlay(w2Plain)) {
                 targetOk = true;
               }
             } else if (w2) {
@@ -9665,7 +9666,7 @@ export class Runtime {
             const isSubTarget = openBr > 0 && targetSpec.endsWith("]") && targetSpec.length > openBr + 2;
             const rawTargetVar = isSubTarget ? targetSpec.slice(0, openBr) : targetSpec;
             const targetVar = isShellIdentifier(rawTargetVar) ? resolveSyncNameref(rawState, rawTargetVar) : "";
-            if (targetVar && isShellIdentifier(targetVar) && targetVar !== "OPTIND" && targetVar !== "PIPESTATUS" && targetVar !== "_" && !rawState.readonlyVariables?.has(targetVar) && !rawState.variableAttributes?.get(targetVar) && !monitor.hasOverlay(targetVar) && (isSubTarget ? Boolean(store?.get(targetVar)) : !store?.get(targetVar))) {
+            if (targetVar && isShellIdentifier(targetVar) && !printfSlowTargets.has(targetVar) && !rawState.readonlyVariables?.has(targetVar) && !rawState.variableAttributes?.get(targetVar) && !monitor.hasOverlay(targetVar) && (isSubTarget ? Boolean(store?.get(targetVar)) : !store?.get(targetVar))) {
               fastSubScratchArgs.length = 0;
               let allStrings = true;
               try {
@@ -11556,12 +11557,12 @@ export class Runtime {
           return undefined;
         }
         const def = this.commands.get("printf");
-        const isPlainTargetId = targetSpec !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(targetSpec) && targetSpec !== "OPTIND" && targetSpec !== "PIPESTATUS";
+        const isPlainTargetId = targetSpec !== undefined && isShellIdentifier(targetSpec) && !printfSlowTargets.has(targetSpec);
         const isScalarTarget = isPlainTargetId && !store?.get(targetSpec!);
         const brkIdx = targetSpec !== undefined && !isPlainTargetId && targetSpec.endsWith("]") ? targetSpec.indexOf("[") : -1;
         const arrName = isPlainTargetId && !isScalarTarget ? targetSpec : (brkIdx > 0 ? targetSpec!.slice(0, brkIdx) : undefined);
         const subExpr = isPlainTargetId && !isScalarTarget ? "0" : (brkIdx > 0 ? targetSpec!.slice(brkIdx + 1, -1) : undefined);
-        const isArrayTarget = arrName !== undefined && /^[a-zA-Z_][a-zA-Z_0-9]*$/.test(arrName) && !controlNames.has(arrName) && subExpr !== undefined && subExpr.length > 0 && !subExpr.includes("$") && !subExpr.includes("\x60");
+        const isArrayTarget = arrName !== undefined && isShellIdentifier(arrName) && !printfSlowTargets.has(arrName) && subExpr !== undefined && subExpr.length > 0 && !subExpr.includes("$") && !subExpr.includes("\x60");
         if ( def?.execute === printfCommand.execute && (isScalarTarget || isArrayTarget) && command.words.length <= this.budget.maxExpansionFieldsSmi) {
           fastSubScratchArgs.length = 0;
           let allStrings = true;
@@ -12888,8 +12889,7 @@ export class Runtime {
             !hasActiveVariableAttributes(rawState) &&
             vName !== undefined &&
             isShellIdentifier(vName) &&
-            !controlNames.has(vName) &&
-            vName !== "OPTIND" &&
+            !printfSlowTargets.has(vName) &&
             !rawState.readonlyVariables?.has(vName) &&
             !rawState.variableAttributes?.get(vName) &&
             !store?.get(vName) &&
@@ -20026,6 +20026,8 @@ export class Runtime {
         await writeDiagnostic(context.stderr, `printf: ${name}: readonly variable\n`);
         return 1;
       }
+      // Bash ignores assignments to its function-stack variable.
+      if (name === "FUNCNAME") return status;
       if (index || arrayStore(state)?.get(name)) {
         const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
         const decode = (bytes: Uint8Array): string | undefined => {

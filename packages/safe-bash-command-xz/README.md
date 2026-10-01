@@ -1,7 +1,8 @@
 # XZ commands for Safe Bash
 
 Compress and inspect virtual files or stream bytes through `xz`, `unxz`, and
-`xzcat`. These commands are included in Safe Bash's existing byte and agent
+`xzcat`, plus the legacy LZMA aliases `lzma`, `unlzma`, and `lzcat`.
+The aliases default to LZMA format; `--format` can override that default. These commands are included in Safe Bash's existing byte and agent
 command collections. A smaller registry can select just this family:
 
 ```ts

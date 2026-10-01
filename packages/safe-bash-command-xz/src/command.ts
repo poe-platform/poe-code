@@ -4,7 +4,7 @@ import { codeOf, diagnostic, output } from "safe-bash-compression-engine/interna
 import { UsageError } from "safe-bash-contracts/diagnostics";
 import { runOperand } from "safe-bash-compression-engine/operand";
 import { planOperands, verifyOperandDestinations } from "safe-bash-compression-engine/files";
-import { parseOptions, xzProfile } from "./options.js";
+import { parseOptions, xzProfile, lzmaProfile } from "./options.js";
 import { DecodedBudget, type CompressionCommandOptions } from "safe-bash-compression-engine/stream";
 import { inspectXz, listingRatio, listingChecks, humanListing, type XzListing } from "./xz-list.js";
 
@@ -101,7 +101,7 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
 }
 
 export function createXzCommands(options: XzCommandsOptions = {}): readonly CommandDefinition[] {
-  return xzProfile.names.map(name => createXzCommand(options, name));
+  return [...xzProfile.names, ...lzmaProfile.names].map(name => createXzCommand(options, name));
 }
 
 export function xzCommands(options: XzCommandsOptions = {}): VirtualShellPlugin {

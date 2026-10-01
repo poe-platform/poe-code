@@ -105,3 +105,19 @@ test('forced XZ checks every concatenated member and auto can override it', asyn
   const testMode = await run('xz', ['-t', '--format=xz'], chunks(legacy));
   assert.equal(testMode.exitCode, 1);
 });
+
+
+test('legacy aliases default to LZMA streams and allow explicit format overrides', async () => {
+  const plain = Buffer.from('legacy aliases');
+  const encoded = await run('lzma', ['-0c'], chunks(plain));
+  assert.equal(encoded.exitCode, 0, encoded.stderr);
+  assert.equal(encoded.stdout[0], 0x5d);
+  for (const command of ['unlzma', 'lzcat']) {
+    const decoded = await run(command, ['-c'], chunks(encoded.stdout));
+    assert.equal(decoded.exitCode, 0, decoded.stderr);
+    assert.deepEqual(decoded.stdout, plain);
+  }
+  const xz = await run('lzma', ['--format=xz', '-c'], chunks(plain));
+  assert.equal(xz.exitCode, 0, xz.stderr);
+  assert.equal(xz.stdout.subarray(0, 6).toString('hex'), 'fd377a585a00');
+});

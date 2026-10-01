@@ -694,6 +694,9 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
     );
     const skip = validatedOption(parsed, "j", text => numeric(text, true), 0);
     const count = validatedOption(parsed, "N", text => numeric(text, true), Infinity);
+    if (count === 0 && skip === 0 && parsed.operands[0] && parsed.operands[0] !== "-") {
+      await context.fs.stat(pathOf(context, parsed.operands[0]), { signal: context.signal });
+    }
     const minimumStringLength = validatedOption(
       parsed,
       "S",

@@ -109,3 +109,8 @@ for (const failure of ["stream", "limit"] as const) test(`od retains complete ro
  assert.equal(result.exitCode, 1);
  assert.equal(stdout.trimEnd().split("\n").length, 4);
 });
+
+test("od validates file operands with a zero byte count", async () => {
+  const result = await run(["-N", "0", "/nonexistent"], createMemoryFileSystem());
+  assert.notEqual(result.exitCode, 0);
+});

@@ -125,7 +125,7 @@ beforeAll(async () => {
           path: path.resolve(directory, manifest.exports["./core"].browser),
           namespace: "built-shell",
         }));
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:jobs|optional-host|trap)|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:shell|registry|jobs|optional-host|trap)|\/commands\/(?:xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
           path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
           namespace: "built-shell",
         }));
@@ -514,8 +514,11 @@ beforeAll(async () => {
     `).join("\n")}
     export const factoryIdentity = [${commandFactories.map((_, index) => `root${index} === leaf${index}`).join(",")}];
   `);
+  // Select the shell and registry for native Worker execution; the aggregate
+  // root graph above includes optional engines unrelated to these byte cases.
   byteOperationsSource = await bundlePublicConsumer(`
-    export { Shell, standardCommands, textProgramCommands, structuredCommands, diffPatchCommands, archiveCommands, timeEnvCommands, duCommands } from "@poe-platform/safe-bash";
+    export { Shell } from "@poe-platform/safe-bash/shell";
+    export { baseAgentCommands } from "@poe-platform/safe-bash/registry";
     export { trapExtension as PortableTrapExtension } from "@poe-platform/safe-bash/trap";
     ${["sed", "awk", "jq", "diff", "tar", "zip", "date", "printenv", "du"].map(name => `export { create${name[0].toUpperCase() + name.slice(1)}Command as leaf_${name} } from "@poe-platform/safe-bash/commands/${name}";`).join("\n")}
   `);
@@ -756,14 +759,13 @@ it("runs shell byte operations and command exports in workerd without nodejs_com
       const browser = (() => { const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${byteOperationsSource}; return module.exports; })();
       export default { async fetch() {
         const results = [];
-        for (const entry of ["root", "subpaths"]) {
+        for (const entry of ["registry", "subpaths"]) {
           const fs = canonical.createMemoryFileSystem();
           await fs.writeFile("/in.txt", new TextEncoder().encode("hello world\\n"));
           await fs.writeFile("/other.txt", new TextEncoder().encode("goodbye world\\n"));
           await fs.writeFile("/data.json", new TextEncoder().encode('{"a":42}'));
           const shell = new browser.Shell({ fs, extensions: [browser.PortableTrapExtension()] })
-            .use(browser.standardCommands()).use(browser.textProgramCommands()).use(browser.structuredCommands())
-            .use(browser.diffPatchCommands()).use(browser.archiveCommands()).use(browser.timeEnvCommands()).use(browser.duCommands());
+            .use(browser.baseAgentCommands());
           try {
             if (entry === "subpaths") {
               await shell.exec(":");
@@ -783,7 +785,9 @@ it("runs shell byte operations and command exports in workerd without nodejs_com
   });
   try {
     const response = await runtime.dispatchFetch("https://portable.test");
-    expect(await response.json()).toEqual(["root", "subpaths"].flatMap(() => cases.map(([source, stdout, exitCode = 0]) => ({ source, exitCode, stdout, stderr: "" }))));
+    const body = await response.text();
+    expect(response.status, body).toBe(200);
+    expect(JSON.parse(body)).toEqual(["registry", "subpaths"].flatMap(() => cases.map(([source, stdout, exitCode = 0]) => ({ source, exitCode, stdout, stderr: "" }))));
   } finally { await runtime.dispose(); }
 });
 

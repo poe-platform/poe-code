@@ -101,10 +101,41 @@ export interface FfmpegCommandsOptions {
   readonly replace?: boolean | undefined;
 }
 
-async function readStdinAll(context: CommandContext): Promise<Uint8Array> {
+function isStdin(path: string): boolean {
+  return ["-", "pipe:", "pipe:0", "/dev/stdin", "/dev/fd/0"].includes(path);
+}
+
+function isStdout(path: string): boolean {
+  return ["-", "pipe:", "pipe:1", "/dev/stdout", "/dev/fd/1"].includes(path);
+}
+
+function rethrowRuntimeError(context: CommandContext, error: unknown): void {
+  context.signal.throwIfAborted();
+  if (error instanceof Error && (error.name === "BudgetExceededError" || error.name === "AbortError")) throw error;
+  if (typeof error === "object" && error !== null && "code" in error && error.code === "EPIPE") throw error;
+}
+
+function createInputReader(context: CommandContext, budget: MediaBudgetTracker) {
+  let total = 0;
+  const account = (bytes: Uint8Array) => {
+    context.signal.throwIfAborted();
+    total += bytes.byteLength;
+    context.inputBudget?.check(total);
+    budget.checkInputBytes(total);
+  };
+  return async (path: string): Promise<Uint8Array> => {
+    if (isStdin(path)) return readStdinAll(context, account);
+    const bytes = await context.fs.readFile(resolvePath(context.cwd, path), { signal: context.signal });
+    account(bytes);
+    return bytes;
+  };
+}
+
+async function readStdinAll(context: CommandContext, account: (bytes: Uint8Array) => void): Promise<Uint8Array> {
   const chunks: Uint8Array[] = [];
   let total = 0;
   for await (const chunk of readBytes(context.stdin, context.signal)) {
+    account(chunk);
     chunks.push(chunk);
     total += chunk.byteLength;
   }
@@ -1440,7 +1471,7 @@ export function evalSyncFfmpeg(
         // command runs lavfiSteps and yields between sample/pixel batches.
         return undefined;
       } else {
-        const rawBytes = inp.path === "-" || inp.path === "pipe:" || inp.path === "pipe:0" ? inBytes : readFileSync?.(inp.path);
+        const rawBytes = isStdin(inp.path) ? inBytes : readFileSync?.(inp.path);
         if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
         budget.checkInputBytes(rawBytes.byteLength);
         const plugin = registry.detect(rawBytes, inp.path, inp.format);
@@ -1516,7 +1547,7 @@ export function evalSyncFfmpeg(
     if (!outPlugin || !outPlugin.canMux) return undefined;
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     const serializedBytes = outPlugin.serialize(workingDoc, { format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
-    if (outputTarget === "-" || outputTarget === "pipe:" || outputTarget === "pipe:1") return undefined;
+    if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
     return "";
   } catch {
@@ -1614,7 +1645,7 @@ export function evalSyncFfprobe(
 
   try {
     let bytes: Uint8Array | undefined;
-    if (inputTarget === "-" || inputTarget === "pipe:" || inputTarget === "pipe:0") {
+    if (isStdin(inputTarget)) {
       bytes = inBytes;
     } else {
       bytes = readFileSync?.(inputTarget);
@@ -1658,6 +1689,7 @@ export function createFfprobeCommand(options: FfmpegCommandsOptions = {}): Comma
     description: "Multimedia stream analyzer powered by pluggable ASTs",
     async execute(context: CommandContext) {
       const budget = new MediaBudgetTracker(options.limits);
+      const readInput = createInputReader(context, budget);
       const argsObj = getCommandArguments(context);
       const args = argsObj.args;
 
@@ -1761,15 +1793,8 @@ export function createFfprobeCommand(options: FfmpegCommandsOptions = {}): Comma
       }
 
       try {
-        let bytes: Uint8Array;
-        if (inputTarget === "-" || inputTarget === "pipe:" || inputTarget === "pipe:0") {
-          bytes = await readStdinAll(context);
-        } else {
-          const fullPath = resolvePath(context.cwd, inputTarget);
-          bytes = await context.fs.readFile(fullPath, { signal: context.signal });
-        }
+        const bytes = await readInput(inputTarget);
 
-        budget.checkInputBytes(bytes.byteLength);
         const plugin = registry.detect(bytes, inputTarget, explicitFormat);
         if (!plugin || !plugin.canDemux) {
           const msg = explicitFormat
@@ -1805,6 +1830,7 @@ export function createFfprobeCommand(options: FfmpegCommandsOptions = {}): Comma
         options.onMetrics?.(budget.getStats());
         return { exitCode: 0 };
       } catch (err) {
+        rethrowRuntimeError(context, err);
         const msg = err instanceof Error ? err.message : String(err);
         await writeBytes(context.stderr, encodeUtf8(`ffprobe: ${msg}\n`), context.signal);
         return { exitCode: 1 };
@@ -1835,6 +1861,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
     description: "Multimedia converter, merger, and stream processor powered by pluggable ASTs",
     async execute(context: CommandContext) {
       const budget = new MediaBudgetTracker(options.limits);
+      const readInput = createInputReader(context, budget);
       const argsObj = getCommandArguments(context);
       const args = argsObj.args;
 
@@ -2081,9 +2108,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         // Check `-n` (do not overwrite)
         if (
           noOverwrite &&
-          outputTarget !== "-" &&
-          outputTarget !== "pipe:" &&
-          outputTarget !== "pipe:1" &&
+          !isStdout(outputTarget) &&
           outputFormat !== "null"
         ) {
           const outFull = resolvePath(context.cwd, outputTarget);
@@ -2095,7 +2120,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               context.signal
             );
             return { exitCode: 1 };
-          } catch {
+          } catch (error) {
+            rethrowRuntimeError(context, error);
+            if ((error as { code?: string }).code !== "ENOENT") throw error;
             // File does not exist, proceed
           }
         }
@@ -2126,7 +2153,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
           if (/\.m3u8?$/i.test(filePath) || explicitFormat === "hls") {
             const m3uResolved = resolvePath(context.cwd, filePath);
-            const m3uBytes = await context.fs.readFile(m3uResolved, { signal: context.signal });
+            const m3uBytes = await readInput(filePath);
             const m3uText = decodeUtf8(m3uBytes).replace(/\r\n/g, "\n");
             const baseDir = m3uResolved.includes("/")
               ? m3uResolved.slice(0, m3uResolved.lastIndexOf("/")) || "/"
@@ -2139,7 +2166,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               try {
                 const segDoc = await loadSingleDocument(segPath);
                 segDocs.push(segDoc);
-              } catch {
+              } catch (error) {
+                rethrowRuntimeError(context, error);
+                if ((error as { code?: string }).code !== "ENOENT") throw error;
                 // ignore missing optional segment
               }
             }
@@ -2176,8 +2205,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const resolved = resolvePath(context.cwd, formatted);
               let imgBytes: Uint8Array;
               try {
-                imgBytes = await context.fs.readFile(resolved, { signal: context.signal });
+                imgBytes = await readInput(resolved);
               } catch (error) {
+                rethrowRuntimeError(context, error);
                 if ((error as { code?: string }).code !== "ENOENT") throw error;
                 if (idx === 0 && input?.startNumber === undefined) continue;
                 break;
@@ -2215,15 +2245,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             };
           }
 
-          let rawBytes: Uint8Array;
-          if (filePath === "-" || filePath === "pipe:" || filePath === "pipe:0") {
-            rawBytes = await readStdinAll(context);
-          } else {
-            const fullPath = resolvePath(context.cwd, filePath);
-            rawBytes = await context.fs.readFile(fullPath, { signal: context.signal });
-          }
-
-          budget.checkInputBytes(rawBytes.byteLength);
+          const rawBytes = await readInput(filePath);
 
           if (explicitFormat === "concat") {
             const listText = new TextDecoder().decode(rawBytes);
@@ -2602,7 +2624,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           const subMatch = /subtitles=(?:filename=)?['"]?([^:'",]+)['"]?/.exec(combinedChain);
           if (subMatch?.[1]) {
             const subPath = resolvePath(context.cwd, subMatch[1]);
-            const subBytes = await context.fs.readFile(subPath, { signal: context.signal });
+            const subBytes = await readInput(subPath);
             const subFmt = subPath.toLowerCase().endsWith(".vtt") ? "webvtt" : "srt";
             const subDoc = parseSubtitleDocument(subBytes, subFmt);
             const st = subDoc.tracks.find((t) => t.type === "subtitle");
@@ -2901,7 +2923,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         budget.checkOutputBytes(serializedBytes.byteLength);
 
-        if (outputTarget === "-" || outputTarget === "pipe:" || outputTarget === "pipe:1") {
+        if (isStdout(outputTarget)) {
           await writeBytes(context.stdout, serializedBytes, context.signal);
         } else {
           const fullOutPath = resolvePath(context.cwd, outputTarget);
@@ -2911,6 +2933,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         options.onMetrics?.(budget.getStats());
         return { exitCode: 0 };
       } catch (err) {
+        rethrowRuntimeError(context, err);
         const msg = err instanceof Error ? err.message : String(err);
         await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
         return { exitCode: 1 };

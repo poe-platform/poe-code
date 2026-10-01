@@ -14,7 +14,10 @@ await shell.dispose();
 ```
 
 Register the plugin explicitly; importing it does not enable commands. Media I/O
-uses the shell's virtual filesystem and byte streams. The portable command bundle
+uses the shell's virtual filesystem and byte streams. Input accepts `/dev/stdin`
+and `/dev/fd/0`; output accepts `/dev/stdout` and `/dev/fd/1`, alongside `-`
+and `pipe:` aliases. Shell and media input limits count bytes cumulatively across
+stdin chunks, media files, playlists, image sequences, and subtitles. The portable command bundle
 requires no Node builtins and supports browser and Worker runtimes. These commands
 implement the listed AST capabilities, not every native FFmpeg codec or option.
 

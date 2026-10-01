@@ -12,7 +12,7 @@ import {
 import {
   SqliteDatabase, serializeSqlJson,
   matchGlob, matchLike,
-  splitSqlStatements,
+  splitSqlStatements, tokenizeSql,
   toSqlString,
   type QueryResultSet,
   type SqlValue
@@ -628,6 +628,21 @@ function splitDotCommandArgs(line: string): string[] {
   return args;
 }
 
+function isMutatingStatement(sql: string): boolean {
+  const tokens = tokenizeSql(sql);
+  let depth = 0;
+  for (const token of tokens) {
+    if (token.type === "punct" && token.value === "(") { depth++; continue; }
+    if (token.type === "punct" && token.value === ")") { depth--; continue; }
+    if (depth !== 0 || token.type !== "word") continue;
+    const word = token.value.toUpperCase();
+    if (["CREATE", "DROP", "ALTER", "INSERT", "REPLACE", "UPDATE", "DELETE", "VACUUM", "REINDEX", "ANALYZE"].includes(word)) return true;
+    if (word === "PRAGMA") return tokens.some((item) => item.value === "=" || item.value === "(");
+    if (["SELECT", "VALUES", "EXPLAIN"].includes(word)) return false;
+  }
+  return false;
+}
+
 export const settings = {
   commandName: "sqlite3",
   limits: {
@@ -786,7 +801,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       } else if (arg === "-init" || arg === "--init") {
         initFile = args[i + 1] ?? null;
         i += 1;
-      } else if (arg.startsWith("-")) {
+      } else if (arg.startsWith("-") && positional.length === 0) {
         await writeText(context.stderr, `sqlite3: Error: unknown option: ${arg}\n`);
         return { exitCode: 1 };
       } else {
@@ -1222,6 +1237,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
 
       if (cmd === ".import") {
+        if (state.readonly) throw new Error("attempt to write a readonly database");
         let pIdx = 1;
         let csvOverride = false;
         let skipRows = 0;
@@ -1322,6 +1338,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       }
 
       if (cmd === ".restore") {
+        if (state.readonly) throw new Error("attempt to write a readonly database");
         const srcArg = parts.length >= 3 ? parts[2]! : parts[1]!;
         const srcPath = resolveVfsPath(context.cwd, srcArg);
         db.tables?.clear();
@@ -1370,17 +1387,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
       if (state.echo) {
         await emitOutput(`${stmt}\n`);
       }
-      const upper = stmt.trim().toUpperCase();
-      const isMutating =
-        upper.startsWith("CREATE") ||
-        upper.startsWith("DROP") ||
-        upper.startsWith("ALTER") ||
-        upper.startsWith("INSERT") ||
-        upper.startsWith("REPLACE") ||
-        upper.startsWith("UPDATE") ||
-        upper.startsWith("DELETE") ||
-        upper.startsWith("VACUUM") ||
-        (upper.startsWith("PRAGMA") && stmt.includes("="));
+      const isMutating = isMutatingStatement(stmt);
 
       if (state.readonly && isMutating) {
         throw new Error("attempt to write a readonly database");
@@ -1651,7 +1658,7 @@ export function evalSyncSqlite3(
       } else if (arg === "-init" || arg === "--init") {
         initFile = opArgs[i + 1] ?? null;
         i += 1;
-      } else if (arg.startsWith("-")) {
+      } else if (arg.startsWith("-") && positional.length === 0) {
         return undefined;
       } else {
         positional.push(arg);
@@ -1899,7 +1906,7 @@ export function evalSyncSqlite3(
     const runSqlStatementSync = (stmt: string): boolean => {
       const trimmed = stmt.trim();
       if (!trimmed) return true;
-      const isMutating = !/^\s*(SELECT|PRAGMA|EXPLAIN|VALUES|WITH\s+[\s\S]*?\bSELECT)\b/i.test(trimmed);
+      const isMutating = isMutatingStatement(trimmed);
       if (isMutating) {
         if (state.readonly || (state.dbPath !== ":memory:" && !writeFileSync)) return false;
       }

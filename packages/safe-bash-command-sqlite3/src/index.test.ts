@@ -937,3 +937,39 @@ test("sqlite3 preserves REAL storage after reopening", async () => {
   const reopened = await runSqlite3(fs, ["/real.db", "SELECT x, x / 2, typeof(x) FROM t;"]);
   assert.deepEqual(reopened, { code: 0, stdout: result.stdout, stderr: "" });
 });
+
+for (const sql of ["-- comment\nINSERT INTO t VALUES(2)", "/* comment */ INSERT INTO t VALUES(2)", "WITH s AS (SELECT 2) INSERT INTO t SELECT * FROM s"]) {
+  test(`sqlite3 persists and guards prefixed mutations: ${sql}`, async () => {
+    const fs = createMemoryFileSystem();
+    assert.equal((await runSqlite3(fs, ["/db", "CREATE TABLE t(x); INSERT INTO t VALUES(1)"])).code, 0);
+    const denied = await runSqlite3(fs, ["-readonly", "/db", sql]);
+    assert.equal(denied.code, 1);
+    assert.match(denied.stderr, /readonly/);
+    const written = await runSqlite3(fs, ["/db", sql]);
+    assert.equal(written.code, 0, written.stderr);
+    assert.equal((await runSqlite3(fs, ["/db", "SELECT * FROM t ORDER BY x"])).stdout, "1\n2\n");
+  });
+}
+for (const command of [".import /data t", ".restore /backup"]) {
+  test(`sqlite3 readonly rejects ${command}`, async () => {
+    const fs = createMemoryFileSystem();
+    await runSqlite3(fs, ["/db", "CREATE TABLE t(x); INSERT INTO t VALUES(1)"]);
+    await fs.writeFile("/data", new TextEncoder().encode("2\n"));
+    await fs.writeFile("/backup", await fs.readFile("/db"));
+    const result = await runSqlite3(fs, ["-readonly", "/db"], command + "\n");
+    assert.equal(result.code, 1);
+    assert.match(result.stderr, /readonly/);
+    assert.equal((await runSqlite3(fs, ["/db", "SELECT * FROM t"])).stdout, "1\n");
+  });
+}
+
+test("sqlite3 sync persists comment and CTE mutations", () => {
+  const files = new Map<string, Uint8Array>();
+  const read = (path: string) => files.get(path);
+  const write = (path: string, bytes: Uint8Array) => { files.set(path, bytes); return true; };
+  assert.equal(evalSyncSqlite3(undefined, ["/db", "/* comment */ CREATE TABLE t(x)"], read, write), "");
+  for (const sql of ["-- comment\nINSERT INTO t VALUES(1)", "WITH s AS (SELECT 2) INSERT INTO t SELECT * FROM s"]) {
+    assert.equal(evalSyncSqlite3(undefined, ["/db", sql], read, write), "");
+  }
+  assert.equal(evalSyncSqlite3(undefined, ["/db", "SELECT * FROM t ORDER BY x"], read, write), "1\n2\n");
+});

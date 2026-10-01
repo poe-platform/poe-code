@@ -64,7 +64,7 @@ for (const mode of ["c", "r", "u"]) {
 }
 
 for (const missing of ["handle", "identity"]) {
-  test(`tar fails before publication when source ${missing} is unavailable`, async () => {
+  test(`tar checks pathname sources when source ${missing} is unavailable`, async () => {
     const fs = createMemoryFileSystem();
     await fs.mkdir("/work");
     await fs.writeFile("/work/a", Buffer.from("safe"));
@@ -75,8 +75,9 @@ for (const missing of ["handle", "identity"]) {
       },
     });
     const result = await direct(["cf", "archive.tar", "a"], view);
-    assert.equal(result.exitCode, 2, result.stderr);
-    assert.match(result.stderr, /retained backing identity/u);
-    await assert.rejects(fs.lstat("/work/archive.tar"), { code: "ENOENT" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    const extracted = await direct(["xOf", "archive.tar"], fs);
+    assert.equal(extracted.exitCode, 0, extracted.stderr);
+    assert.equal(extracted.stdout, "safe");
   });
 }

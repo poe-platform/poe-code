@@ -55,8 +55,8 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let strip = 0;
   let format: TarOptions["format"] = "pax";
   let cwd = context.cwd;
-  let nullFiles = false;
-  let verbatim = false;
+  let nullFiles: boolean | undefined;
+  let verbatim: boolean | undefined;
   let filesFrom = false;
   let stdinUsed = false;
   let filesFromBytes = 0;
@@ -84,22 +84,22 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
     if (stat.type !== "directory") fail(`not a directory: ${name}`);
     cwd = path;
   };
-  const names = async (path: string) => {
+  const names = async (path: string, listNull = nullFiles, listVerbatim = verbatim) => {
     filesFrom = true;
     if (path === "-" && stdinUsed) fail("standard input file list can only be read once");
     const bytes = path === "-"
       ? await collectBytes(context.stdin, { ...(Number.isFinite(limits.maxFilesFromBytes) ? { maxBytes: limits.maxFilesFromBytes } : {}), signal: context.signal })
-      : await smallFile(context, vfsPath(context.cwd, path), limits);
+      : await smallFile(context, vfsPath(cwd, path), limits);
     if (path === "-") stdinUsed = true;
     filesFromBytes += bytes.length;
     if (filesFromBytes > limits.maxFilesFromBytes) fail("files-from byte limit exceeded");
     const contents = text(bytes);
-    if (!nullFiles && contents.includes("\0")) fail("NUL in newline file list; use --null");
-    const lines = contents.split(nullFiles ? "\0" : "\n");
+    if (!listNull && contents.includes("\0")) fail("NUL in newline file list; use --null");
+    const lines = contents.split(listNull ? "\0" : "\n");
     for (let index = 0; index < lines.length; index++) {
       const line = lines[index]!;
       if (!line) continue;
-      if (!nullFiles && !verbatim && line.startsWith("-")) {
+      if (!listNull && !listVerbatim && line.startsWith("-")) {
         if (line === "-C") {
           const next = lines[++index];
           if (!next) fail("missing -C argument in file list");
@@ -108,7 +108,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
         else if (line.startsWith("--directory=")) await directory(line.slice(12));
         else fail(`unsupported option in file list: ${line}; use --verbatim-files-from for literal names`);
       } else {
-        operand(!nullFiles && !verbatim ? unquoteFileName(line) : line);
+        operand(!listNull && !listVerbatim ? unquoteFileName(line) : line);
       }
     }
   };
@@ -224,6 +224,17 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   };
   const long: Record<string, string> = { create: "c", list: "t", extract: "x", get: "x", append: "r", update: "u", compare: "d", diff: "d", catenate: "A", concatenate: "A", file: "f", gzip: "z", bzip2: "j", xz: "J", "auto-compress": "a", verbose: "v", directory: "C", "files-from": "T", "exclude-from": "X", xform: "transform", "blocking-factor": "b", "read-full-records": "B", "ignore-zeros": "i", seek: "n" };
   const values = new Set(["f", "C", "T", "X", "exclude", "strip-components", "format", "transform", "mtime", "owner", "group", "mode", "sort", "b", "record-size", "quoting-style"]);
+  // Lists without an explicit decoding mode also accept trailing mode flags.
+  // Explicit mode changes, directories and operands retain their original order.
+  const actions: (() => void | Promise<void>)[] = [];
+  const schedule = async (flag: string, value?: string) => {
+    if (["null", "no-null", "verbatim-files-from", "no-verbatim-files-from"].includes(flag)) await apply(flag, value);
+    else if (flag === "T") {
+      const listNull = nullFiles, listVerbatim = verbatim;
+      actions.push(() => names(value!, listNull ?? nullFiles, listVerbatim ?? verbatim));
+    }
+    else actions.push(() => apply(flag, value));
+  };
   let end = false;
   for (let index = 0; index < context.args.length; index++) {
     const argument = context.args[index]!;
@@ -238,7 +249,7 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
       if (flag === "atime-preserve" && value === undefined) value = "replace";
       if (!values.has(flag) && flag !== "atime-preserve" && flag !== "occurrence" && value !== undefined) fail(`option --${name} does not take an argument`);
       if (flag === "help") return "help";
-      await apply(flag, value);
+      await schedule(flag, value);
     } else if (!end && ((argument.startsWith("-") && argument !== "-") || (index === 0 && argument.length > 0 && [...argument].every(flag => "ctxrudAzjJavfCTXmpkhbBinO".includes(flag))))) {
       const old = !argument.startsWith("-");
       const cluster = old ? argument : argument.slice(1);
@@ -250,10 +261,11 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
           if (value === undefined) fail(`missing argument for -${flag}`);
           if (!old) offset = cluster.length;
         }
-        await apply(flag, value);
+        await schedule(flag, value);
       }
-    } else operand(argument);
+    } else actions.push(() => operand(argument));
   }
+  for (const action of actions) await action();
   if (!mode) fail("exactly one tar operation is required (-c, -t, -x, -r, -u, -d, --delete, -A)");
   const creating = mode === "c" || mode === "r" || mode === "u";
   if (occurrence !== undefined && (creating || mode === "A" || !operands.length)) fail("--occurrence requires member operands when reading archives");
@@ -335,9 +347,9 @@ function tokenize(pattern: string): Token[] {
 export class Exclusions {
   private readonly patterns: Token[][];
   private work = 0;
-  constructor(patterns: readonly string[], readonly maxWork = Infinity, private readonly anchored = false) { this.patterns = patterns.map(tokenize); }
+  constructor(patterns: readonly string[], readonly maxWork = Infinity, private readonly anchored = false) { this.patterns = patterns.map(pattern => tokenize(anchored ? pattern : exclusionName(pattern))); }
   matches(name: string): boolean {
-    const characters = Array.from(name);
+    const characters = Array.from(this.anchored ? name : exclusionName(name));
     for (const tokens of this.patterns) {
       let states = new Uint8Array(characters.length + 1);
       states[0] = 1;
@@ -361,4 +373,10 @@ export class Exclusions {
     }
     return false;
   }
+}
+
+function exclusionName(name: string): string {
+  while (name.startsWith("./")) name = name.slice(2);
+  while (name.endsWith("/")) name = name.slice(0, -1);
+  return name;
 }

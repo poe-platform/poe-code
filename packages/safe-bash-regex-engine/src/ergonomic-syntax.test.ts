@@ -10,6 +10,7 @@ for (const dialect of ["sed", "awk", "jq"] as const) {
     ["[\\S]+", " abc ", "abc"], ["[\\w]+", "!a_1", "a_1"],
     ["[\\W]+", "a_1!?", "!?"], ["[a\\d]+", "!a123", "a123"],
     ["[\\d\\s]+", "x 12", " 12"],
+    ["[\\\\d]+", "\\d1", "\\d"], ["[\\\\n]+", "\\n\n", "\\n"],
   ]) test(`${dialect} bracket ${source}`, async () => {
     assert.equal((await new Pattern(source!, true, false, dialect).find(input!, budget))?.groups[0], expected);
   });

@@ -235,7 +235,7 @@ test("sed accepts one-byte input chunks and composes with the virtual shell", as
 });
 
 test("sed handles bracket backslashes, leading ], repeated inner captures, and escaped control delimiters", async () => {
-  assert.equal((await runVirtual("sed", { args: ["s/[\\d]/X/g"], stdin: "\\d\n" })).stdout.toString(), "XX\n");
+  assert.equal((await runVirtual("sed", { args: ["s/[\\\\d]/X/g"], stdin: "\\d\n" })).stdout.toString(), "XX\n");
   assert.equal((await runVirtual("sed", { args: ["s/[\\1]/X/g"], stdin: "\\1\n" })).stdout.toString(), "XX\n");
   assert.equal((await runVirtual("sed", { args: ["s/[]\\(]/X/g"], stdin: "\\\n" })).stdout.toString(), "X\n");
   assert.equal((await runVirtual("sed", { args: ["-E", "s/((a)|b)+/\\2/"], stdin: "ab\n" })).stdout.toString(), "\n");
@@ -243,7 +243,7 @@ test("sed handles bracket backslashes, leading ], repeated inner captures, and e
   assert.equal((await runVirtual("sed", { args: ["sn\\nnXn"], stdin: "anb\n" })).stdout.toString(), "aXb\n");
   assert.equal((await runVirtual("sed", { args: ["s/[/]/_/g"], stdin: "a/b/c\n" })).stdout.toString(), "a_b_c\n");
   assert.equal((await runVirtual("sed", { args: ["-n", "/[/]/p"], stdin: "a/b\ncd\n" })).stdout.toString(), "a/b\n");
-  assert.equal((await runVirtual("sed", { args: ["s/[\\d]/_/g"], stdin: "a\\bd\n" })).stdout.toString(), "a_b_\n");
+  assert.equal((await runVirtual("sed", { args: ["s/[\\\\d]/_/g"], stdin: "a\\bd\n" })).stdout.toString(), "a_b_\n");
   assert.equal((await runVirtual("sed", { args: ["s/[d\\]/_/g"], stdin: "a\\bd\n" })).stdout.toString(), "a_b_\n");
   assert.equal((await runVirtual("sed", { args: ["s/[]\\(]/_/g"], stdin: "a\\b(c]d\n" })).stdout.toString(), "a_b_c_d\n");
 });

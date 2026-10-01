@@ -506,7 +506,7 @@ export class Pattern {
           if (ch !== "\\") return ch;
           if (dialect === "sed") {
             const next = source[offset];
-            if (next !== undefined && "ntrfva".includes(next)) return escaped();
+            if (next === "\\" || next !== undefined && "ntrfva".includes(next)) return escaped();
             return "\\";
           }
           if (dialect === "awk" && source[offset] !== undefined && /^[1-9]$/u.test(source[offset]!)) {

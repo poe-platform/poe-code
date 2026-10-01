@@ -42,3 +42,12 @@ it("retains passive URLs and stops decoding when its work budget aborts", () => 
     if ((work += n) > 22) throw new Error("work exhausted");
   }, ["50% off"])).toThrow("work exhausted");
 });
+
+it.each([
+  ["Sheet1!A1", "#Sheet1.A1"],
+  ["Data!$A$1:$B$2", "#Data.$A$1:$B$2"],
+])("leaves ordinary sheet names unquoted: %s", (target, expected) => {
+  const exported = translateOdfHyperlink(target, "export", () => {});
+  expect(exported).toBe(expected);
+  expect(translateOdfHyperlink(exported, "import", () => {})).toBe(target);
+});

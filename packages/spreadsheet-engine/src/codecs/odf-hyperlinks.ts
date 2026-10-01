@@ -1,10 +1,16 @@
 import { parseExpression } from "../formulas/parser.js";
 import { excelGrammar, gnumericGrammar } from "../formulas/conventions.js";
-import { quoteNativeSheet, serializeExpression } from "../formulas/serialization.js";
+import { quoteFormulaString, quoteNativeSheet, serializeExpression } from "../formulas/serialization.js";
 import { foldSheetName } from "@poe-code/spreadsheet-ast/case-fold";
 
 // Calc hyperlink fragments use unbracketed addresses, not OpenFormula syntax.
-const linkGrammar = { ...excelGrammar, id: "odf-hyperlink", sheetSeparator: ".", absoluteSheetReferences: true };
+const linkGrammar = { ...excelGrammar, id: "odf-hyperlink", sheetSeparator: ".", absoluteSheetReferences: true,
+  quoteSheetName(name: string): string {
+    const letter = (c: string) => c >= "A" && c <= "Z" || c >= "a" && c <= "z" || c === "_";
+    return name.length > 0 && letter(name[0]!) && [...name].every(c => letter(c) || c >= "0" && c <= "9")
+      ? name : quoteFormulaString(name, "'", excelGrammar);
+  }
+};
 
 // Calc getUTF32/WithCharset decodes valid characters independently, leaving
 // malformed UTF-8 octets escaped and literal percent characters untouched.

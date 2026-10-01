@@ -359,7 +359,7 @@ export class OverlayMemoryPublication {
     const staging: FileStaging = Object.freeze({
       parent: owned.parent, directory: owned.directory, file: owned.file,
       ...(owned.cleanup ? { cleanup: createStagingCleanup(directory,
-        controls => this.cleanup(staging, controls), () => owned.cleanup!.close()) } : {}),
+        controls => this.cleanup(staging, controls, true), () => owned.cleanup!.close()) } : {}),
     });
     this.stages.set(staging.directory, owned);
     this.stagingAncestors.set(staging.directory, ancestors);
@@ -394,12 +394,15 @@ export class OverlayMemoryPublication {
     });
   }
 
-  async cleanup(staging: FileStaging, options: FsOptions): Promise<void> {
+  async cleanup(staging: FileStaging, options: FsOptions, retained = false): Promise<void> {
     this.stores();
     const owned = this.stages.get(staging.directory);
     if (!owned) throw new FsError("ENOTSUP", { path: staging.directory.path });
-    if (owned.cleanup) await owned.cleanup.remove(options);
-    else await this.upper.removeStagedFile!(owned, options);
+    if (retained && owned.cleanup) await owned.cleanup.remove(options);
+    else {
+      await this.upper.removeStagedFile!(owned, options);
+      await owned.cleanup?.close();
+    }
     this.hidden.delete(owned.directory.path);
     this.stages.delete(staging.directory);
     this.stagingAncestors.delete(staging.directory);

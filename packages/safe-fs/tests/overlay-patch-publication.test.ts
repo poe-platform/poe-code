@@ -228,3 +228,11 @@ test("confined directory preparation preserves roots and refuses escaped or repl
   await lower.mkdir("/work");
   await assert.rejects(view.prepareDirectory!("/work/new", { parent, expected: made, mode: 0o777 }), { code: "EAGAIN" });
 });
+
+test("closing retained cleanup still allows ordinary owned staging removal", async () => {
+  const fs = new OverlayFileSystem({ upper: new MemoryFileSystem(), lower: new MemoryFileSystem() });
+  const stage = await fs.createStagedFile("/.stage", "file", { type: "file", data: bytes("new") }, { parent: await fs.lstat("/"), retainCleanup: true });
+  await stage.cleanup!.close();
+  await fs.removeStagedFile(stage);
+  assert.deepEqual(await fs.readdir("/"), []);
+});

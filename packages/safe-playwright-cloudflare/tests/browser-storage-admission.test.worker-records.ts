@@ -45,7 +45,7 @@ export async function mobileStorage(f: Fixture, input: Origins) {
 			}),
 		),
 	);
-	const restored = await f.run(["eval", "() => undefined", "--json"]);
+	const restored = await f.run(["tab-select", "0", "--json"]);
 	assert.equal(restored.exitCode, 0, JSON.stringify(restored));
 	const session = f.client.inspectSessions()[0]!;
 	assert.ok(session.selectedPage);

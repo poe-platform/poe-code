@@ -191,6 +191,7 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string, trans
 			prepareStorageOrigin: createPlaywrightStorageOriginPreparer(
 				control,
 				privacy,
+				{ timeoutMs: 10_000 },
 			),
 			async interrupt() {
 				disconnect();

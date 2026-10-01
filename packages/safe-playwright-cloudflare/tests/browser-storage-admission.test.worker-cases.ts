@@ -58,7 +58,7 @@ export async function coldRestore(
 			),
 		);
 		try {
-      const opened = await first.run(['eval', '() => undefined', '--json']);
+      const opened = await first.run(['tab-select', '0', '--json']);
       assert.equal(opened.exitCode, 0, JSON.stringify(opened));
 			const session = first.client.inspectSessions()[0];
 			assert.ok(session?.selectedPage);
@@ -79,10 +79,10 @@ export async function coldRestore(
 				"/supplied.json",
 				new TextEncoder().encode(JSON.stringify(supplied)),
 			);
-			const loaded = await first.run(["state-load", "supplied.json", "--json"]);
-			assert.equal(loaded.exitCode, 0, JSON.stringify(loaded));
 			assert.equal(session.selectedPage.url(), 'about:blank');
 			await session.selectedPage.goto(input.origin);
+			const loaded = await first.run(["state-load", "supplied.json", "--json"]);
+			assert.equal(loaded.exitCode, 0, JSON.stringify(loaded));
 			await seed(session.selectedPage, "current");
 			const history = await session.context.newPage();
 			await history.goto(input.history);
@@ -118,7 +118,7 @@ export async function coldRestore(
   const failures: unknown[] = [];
 	try {
 		assert.equal(
-			(await second.run(["eval", "() => undefined", "--json"])).exitCode,
+			(await second.run(["tab-select", "1", "--json"])).exitCode,
 			0,
 		);
 		const session = second.client.inspectSessions()[0];
@@ -368,7 +368,7 @@ export async function largeScriptRestore(f: Fixture, phase: 'save' | 'restore') 
       const opened = await f.run(['open', 'about:blank', '--config=cli.config.json', '--json']);
       assert.equal(opened.exitCode, 0, JSON.stringify(opened));
     } else {
-      const resumed = await f.run(['eval', '() => window.largeProfileScript', '--json']);
+      const resumed = await f.run(['tab-select', '0', '--json']);
       assert.equal(resumed.exitCode, 0, JSON.stringify(resumed));
     }
     const session = f.client.inspectSessions()[0]!;

@@ -396,6 +396,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "mcp-oauth-rust#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { readFile } from "node:fs/promises";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 
@@ -202,7 +203,40 @@ export default { async fetch() {
       staticModules: result.outputFiles.length, contributingModules: new Set(contributing).size };
     console.log(JSON.stringify({ profile: name, ...results[name] }));
   }
+  if (smoke) await verifySafeBashPortableCommands(consumer);
   return results;
+}
+
+export async function verifySafeBashPortableCommands(consumer) {
+  consumer = path.resolve(consumer);
+  const fixture = await readFile(new URL("./fixtures/safe-packages-network-safejs.mjs", import.meta.url), "utf8");
+  for (const conditions of [["workerd"], ["workerd", "worker", "browser"]]) {
+    const result = await build({
+      absWorkingDir: consumer,
+      stdin: { contents: fixture + `\nexport default { async fetch() {
+        try { return Response.json(await verifyNetworkAndSafeJs()); }
+        catch (error) { return new Response(error.stack ?? String(error), { status: 500 }); }
+      } };`, resolveDir: consumer, sourcefile: "portable-commands.mjs" },
+      bundle: true, format: "esm", platform: "neutral", conditions, write: false,
+      mainFields: ["module", "main"], metafile: true,
+      outdir: path.join(consumer, "portable-commands"), loader: { ".wasm": "copy", ".bin": "copy" },
+    });
+    for (const input of Object.keys(result.metafile.inputs))
+      assert.ok(path.resolve(consumer, input).startsWith(path.join(consumer, "node_modules") + path.sep) || input === "portable-commands.mjs", "Worker input escaped installed consumer: " + input);
+    const outputs = [...result.outputFiles].sort((left, right) => Number(right.path.endsWith("/stdin.js")) - Number(left.path.endsWith("/stdin.js")));
+    const modules = outputs.map(output => ({ path: output.path,
+      type: output.path.endsWith(".js") ? "ESModule" : output.path.endsWith(".wasm") ? "CompiledWasm" : "Data",
+      contents: output.path.endsWith(".js") ? output.text : output.contents,
+    }));
+    const worker = new Miniflare({ modules, modulesRoot: path.join(consumer, "portable-commands"), compatibilityDate: "2026-07-01" });
+    try {
+      const response = await worker.dispatchFetch("https://portable.test", { signal: AbortSignal.timeout(30_000) });
+      const body = await response.text();
+      assert.equal(response.status, 200, body);
+      assert.deepEqual(JSON.parse(body), { networkEntries: 3, nodeEntries: 3, safeJsEntries: 1 });
+      console.log(JSON.stringify({ profile: "network-safejs", conditions, ...JSON.parse(body) }));
+    } finally { await worker.dispose(); }
+  }
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -11,6 +11,8 @@ import {
   type CommandDefinition,
   type VirtualShellPlugin
 } from "safe-bash-contracts";
+import { writeFileOutput } from "safe-bash-contracts/filesystem-output";
+import { prepareDocument, encodeOutput, outputEncoding } from "./output.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { pathOf } from "safe-bash-contracts/path";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
@@ -24,10 +26,9 @@ import {
   type XmlQueryLimits
 } from "safe-bash-xml-engine/limits";
 import { parseQuery, type Query } from "safe-bash-xml-engine/query";
-import { evaluate, serialize, serializeSimpleSync, stringValue } from "safe-bash-xml-engine/evaluate";
+import { evaluate, evaluateScalar, serialize, serializeSimpleSync } from "safe-bash-xml-engine/evaluate";
 import { serializeDocument, type DocumentMode } from "safe-bash-xml-engine/document";
 
-const sharedEncoder = new TextEncoder();
 export { defaultXmlQueryLimits } from "safe-bash-xml-engine/limits";
 export type { XmlCommandsOptions, XmlQueryLimits } from "safe-bash-xml-engine/limits";
 export type { XmlQueryLimits as XmllintLimits, XmlCommandsOptions as XmllintCommandsOptions } from "safe-bash-xml-engine/limits";
@@ -41,8 +42,11 @@ async function argumentsFor(
   format?: boolean;
   noout?: boolean;
   file: string | undefined;
+  output?: string | undefined;
+  encoding?: string | undefined;
+  noblanks?: boolean;
+  recover?: boolean;
 }> {
-  if (context.args.length > 5) throw new XmlQueryError("expected one XML input FILE or -", 2);
   const carrier = getCommandArguments(context);
   const args = carrier.args;
   async function admitted(
@@ -71,8 +75,11 @@ async function argumentsFor(
   let noout = false;
   let format = false;
   let xpathIndex: number | undefined;
+  let output: string | undefined, encoding: string | undefined;
+  let noblanks = false, recover = false;
   while (index < args.length) {
     const flag = args[index]!;
+    { const p = budget.tick(flag.length + 1); if (p) await p; }
     if (flag === "--noout") {
       noout = true;
       index++;
@@ -80,8 +87,18 @@ async function argumentsFor(
       mode ??= "format";
       format = true;
       index++;
-    } else if (flag === "--c14n") {
-      mode = "c14n";
+    } else if (flag === "--noblanks") {
+      noblanks = true; index++;
+    } else if (flag === "--recover") {
+      recover = true; index++;
+    } else if (flag === "--output" || flag === "-o" || flag === "--encode") {
+      index++;
+      if (args[index] === undefined) throw new XmlQueryError(`expected value after ${flag}`, 2);
+      const value = await admitted(index++, "maxInputBytes");
+      if (flag === "--encode") encoding = outputEncoding(value);
+      else output = value;
+    } else if (flag === "--c14n" || flag === "--exc-c14n") {
+      mode = flag === "--c14n" ? "c14n" : "exc-c14n";
       index++;
     } else if (flag === "--xpath") {
       if (xpathIndex !== undefined) throw new XmlQueryError("expected one --xpath QUERY", 2);
@@ -103,16 +120,15 @@ async function argumentsFor(
     throw new XmlQueryError("expected one XML input FILE or -", 2);
   }
   if (xpathIndex !== undefined) {
-    if (mode !== undefined || format) throw new XmlQueryError("expected --xpath QUERY [FILE|-]", 2);
     const query = await parseQuery(await admitted(xpathIndex, "maxSourceBytes"), budget);
     return {
-      query,
+      query, output, encoding, noblanks, recover,
       file: file === undefined ? undefined : await admitted(fileIndex, "maxInputBytes")
     };
   }
   mode ??= "format";
   return {
-    mode,
+    mode, output, encoding, noblanks, recover,
     format,
     noout,
     file: file === undefined ? undefined : await admitted(fileIndex, "maxInputBytes")
@@ -129,7 +145,9 @@ async function execute(
   try {
     const options = await argumentsFor(context, budget);
     const source = await readXmlInput(context, options.file, budget, runtime);
+    const recoveryMessages = new Set<string>();
     const parser = parseXmlSteps(source, {
+      ...(options.recover ? { recover: (message: string) => { recoveryMessages.add(message); } } : {}),
       ...limits,
       maxContentNodes: limits.maxNodes,
       expectedEncoding: "UTF-8"
@@ -144,6 +162,30 @@ async function execute(
     } finally {
       if (!parsed.done) parser.return(undefined as never);
     }
+    for (const message of recoveryMessages)
+      await runtime.writeDiagnostic(context.stderr, `xmllint: ${message} (recovered)\n`, context.signal);
+    const root = await prepareDocument(parsed.value, options.noblanks ?? false, options.encoding, budget);
+    const fileChunks: Uint8Array[] = [];
+    const sink = options.output === undefined || options.query !== undefined ? context.stdout : {
+      async write(bytes: Uint8Array) { fileChunks.push(bytes.slice()); }
+    };
+    let encodingStarted = false;
+    async function finish(): Promise<void> {
+      await flushWrite();
+      if (options.output !== undefined && options.query === undefined && !options.noout) {
+        const bytes = new Uint8Array(budget.outputBytes);
+        let offset = 0;
+        for (const chunk of fileChunks) { bytes.set(chunk, offset); offset += chunk.length; }
+        const destination = runtime.pathOf(context, options.output);
+        try {
+          await runtime.interruptible(() => writeFileOutput(context, bytes,
+            data => context.fs.writeFile(destination, data, { signal: context.signal })), context.signal);
+        } catch (error) {
+          if (error instanceof FsError) throw new XmlQueryError(error.message, 6);
+          throw error;
+        }
+      }
+    }
     const outBatch = new Uint8Array(16384);
     let outBatchUsed = 0;
     let writesCount = 0;
@@ -153,7 +195,7 @@ async function execute(
         outBatchUsed = 0;
         writesCount++;
         try {
-          await writeBytes(context.stdout, slice, context.signal);
+          await writeBytes(sink, slice, context.signal);
         } catch (error) {
           outputFailed = true;
           throw error;
@@ -171,7 +213,8 @@ async function execute(
           end--;
         { const _p = budget.tick(end - offset); if (_p) await _p; }
         const slice = part.slice(offset, end);
-        const bytes = sharedEncoder.encode(slice);
+        const bytes = encodeOutput(slice, options.query || options.mode !== "format" ? undefined : options.encoding, !encodingStarted);
+        encodingStarted = true;
         const size = bytes.byteLength;
         if (size > limits.maxOutputBytes - budget.outputBytes) {
           await flushWrite();
@@ -182,7 +225,7 @@ async function execute(
           await flushWrite();
           writesCount++;
           try {
-            await writeBytes(context.stdout, bytes, context.signal);
+            await writeBytes(sink, bytes, context.signal);
           } catch (error) {
             outputFailed = true;
             throw error;
@@ -198,47 +241,44 @@ async function execute(
     if (options.query === undefined) {
       if (!options.noout && options.mode !== undefined) {
         for await (const part of serializeDocument(
-          parsed.value,
+          root,
           options.mode,
           budget,
           options.format
         ))
           await write(part);
       }
-      await flushWrite();
+      await finish();
       return { exitCode: 0 };
     }
-    const nodes = await evaluate(options.query, parsed.value, budget);
-    if (options.query.scalar === "count") await write(String(nodes.length));
-    else if (options.query.scalar === "boolean") await write(nodes.length ? "true" : "false");
-    else if (options.query.scalar === "string") {
-      for await (const part of stringValue(nodes[0], budget)) await write(part);
-    } else {
-      if (!nodes.length) throw new XmlQueryError("XPath set is empty", 11);
-      let pendingText = "";
-      for (const node of nodes) {
-        const simple = writesCount >= 2 ? serializeSimpleSync(node, budget) : undefined;
-        if (simple !== undefined) {
-          pendingText += simple + "\n";
-          if (pendingText.length >= 4096) {
-            await write(pendingText);
-            pendingText = "";
-          }
-        } else {
-          if (pendingText.length > 0) {
-            await write(pendingText);
-            pendingText = "";
-          }
-          for await (const part of serialize(node, budget)) await write(part);
-          await write("\n");
+    if (options.query.expression) {
+      await write(await evaluateScalar(options.query, root, budget));
+      await write("\n");
+      await finish();
+      return { exitCode: 0 };
+    }
+    const nodes = await evaluate(options.query, root, budget);
+    if (!nodes.length) throw new XmlQueryError("XPath set is empty", 11);
+    let pendingText = "";
+    for (const node of nodes) {
+      const simple = writesCount >= 2 ? serializeSimpleSync(node, budget) : undefined;
+      if (simple !== undefined) {
+        pendingText += simple + "\n";
+        if (pendingText.length >= 4096) {
+          await write(pendingText);
+          pendingText = "";
         }
+      } else {
+        if (pendingText.length > 0) {
+          await write(pendingText);
+          pendingText = "";
+        }
+        for await (const part of serialize(node, budget)) await write(part);
+        await write("\n");
       }
-      if (pendingText.length > 0) await write(pendingText);
-      await flushWrite();
-      return { exitCode: 0 };
     }
-    await write("\n");
-    await flushWrite();
+    if (pendingText.length > 0) await write(pendingText);
+    await finish();
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();

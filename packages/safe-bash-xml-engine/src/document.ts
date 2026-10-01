@@ -2,7 +2,7 @@ import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/cor
 import { escape } from "./evaluate.js";
 import { XmlBudget, XmlQueryError } from "./limits.js";
 
-export type DocumentMode = "format" | "c14n";
+export type DocumentMode = "format" | "c14n" | "exc-c14n";
 const xmlns = "http://www.w3.org/2000/xmlns/";
 const xml = "http://www.w3.org/XML/1998/namespace";
 
@@ -38,7 +38,8 @@ function declaration(source: string | undefined): string {
 async function attributes(
   element: XmlElement,
   inherited: ReadonlyMap<string, string>,
-  budget: XmlBudget
+  budget: XmlBudget,
+  exclusive: boolean
 ): Promise<XmlAttribute[]> {
   const selected: XmlAttribute[] = [];
   for (const attribute of element.attributes) {
@@ -48,6 +49,17 @@ async function attributes(
   for (const [prefix, uri] of element.namespaces) {
     { const _p = budget.tick(uri.length + prefix.length + 1); if (_p) await _p; }
     if (prefix === "xml") continue;
+    if (exclusive) {
+      const colon = element.name.indexOf(":");
+      let used = prefix === (colon < 0 ? "" : element.name.slice(0, colon));
+      for (const attribute of element.attributes) {
+        const p = budget.tick(attribute.name.length + 1); if (p) await p;
+        if (attribute.namespace === xmlns) continue;
+        const at = attribute.name.indexOf(":");
+        if (at > 0 && attribute.name.slice(0, at) === prefix) used = true;
+      }
+      if (!used) continue;
+    }
     if (uri === (inherited.get(prefix) ?? "")) continue;
     selected.push({
       name: prefix ? `xmlns:${prefix}` : "xmlns",
@@ -76,7 +88,7 @@ export async function* serializeDocument(
   budget: XmlBudget,
   format = mode === "format"
 ): AsyncGenerator<string> {
-  const canonical = mode === "c14n";
+  const canonical = mode !== "format";
   const escaping = { canonical, ascii: !canonical && !root.declaration?.includes("encoding") };
   if (canonical) {
     const elements = [root];
@@ -172,7 +184,7 @@ export async function* serializeDocument(
         } else if (child.kind === "cdata") mixed = true;
         content.push(child);
       }
-      const ordered = canonical ? await attributes(current, frame.namespaces, budget) : [];
+      const ordered = canonical ? await attributes(current, frame.namespaces, budget, mode === "exc-c14n") : [];
       if (!canonical) {
         for (const namespace of [true, false])
           for (const attribute of current.attributes) {
@@ -193,7 +205,10 @@ export async function* serializeDocument(
       }
       yield ">";
       const indent = !canonical && format && !mixed && content.length > 0;
-      const childNamespaces = canonical ? current.namespaces : frame.namespaces;
+      const childNamespaces = new Map(frame.namespaces);
+      if (canonical) for (const attribute of ordered) {
+        if (attribute.namespace === xmlns) childNamespaces.set(attribute.localName, attribute.value);
+      }
       const childFrame = { depth: frame.depth + 1, namespaces: childNamespaces, preserveSpace };
       pending.push({
         ...frame,

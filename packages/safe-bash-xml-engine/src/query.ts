@@ -10,7 +10,7 @@ export interface QueryStep {
   readonly predicates: readonly Predicate[];
 }
 export interface Query {
-  readonly scalar: "string" | "count" | "boolean" | undefined;
+  readonly expression?: readonly Instruction[];
   readonly paths: readonly (readonly QueryStep[])[];
 }
 const nameStart = (character: string): boolean =>
@@ -24,6 +24,23 @@ const namePart = (character: string): boolean =>
   character === ".";
 
 export async function parseQuery(source: string, budget: XmlBudget): Promise<Query> {
+  const query = await parseSyntax(source, budget);
+  const pending = [{ query, depth: 0 }];
+  while (pending.length) {
+    const current = pending.pop()!;
+    const programs = current.query.expression ? [current.query.expression] :
+      current.query.paths.flatMap(path => path.flatMap(step => step.predicates));
+    for (const program of programs) for (const instruction of program) {
+      if (instruction.kind !== "path") continue;
+      if (current.depth >= budget.limits.maxDepth) throw new XmlQueryLimitError("maxDepth");
+      instruction.query = await parseSyntax(instruction.source, budget);
+      pending.push({ query: instruction.query, depth: current.depth + 1 });
+    }
+  }
+  return query;
+}
+
+async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
   if (
     source.length > budget.limits.maxSourceBytes ||
     new TextEncoder().encode(source).byteLength > budget.limits.maxSourceBytes
@@ -54,23 +71,15 @@ export async function parseQuery(source: string, budget: XmlBudget): Promise<Que
     return source.slice(start, at);
   };
   space();
-  let scalar: Query["scalar"];
-  if (
-    ["string", "count", "boolean"].some(
-      (value) =>
-        source.startsWith(value, at) &&
-        (() => {
-          let offset = at + value.length;
-          while (" \t\r\n".includes(source[offset] ?? "") && offset < source.length) offset++;
-          return source[offset] === "(";
-        })()
-    )
-  ) {
-    const value = name();
-    if (value !== "string" && value !== "count" && value !== "boolean") fail();
-    scalar = value as Query["scalar"];
-    expect("(");
+  const start = at;
+  if (nameStart(source[at] ?? "")) {
+    while (namePart(source[at] ?? "")) at++;
+    const selected = source.slice(start, at);
+    space();
+    if (source[at] === "(" && selected !== "text")
+      return { paths: [], expression: parsePredicate(source, budget) };
   }
+  at = start;
   const paths: QueryStep[][] = [];
   let morePaths: boolean;
   do {
@@ -115,12 +124,13 @@ export async function parseQuery(source: string, budget: XmlBudget): Promise<Que
         at++;
         space();
         const start = at;
-        let quote = "";
+        let quote = "", depth = 0;
         while (at < source.length) {
           const character = source[at]!;
           if (quote) { if (character === quote) quote = ""; }
           else if (character === "'" || character === '"') quote = character;
-          else if (character === "]") break;
+          else if (character === "[") depth++;
+          else if (character === "]") { if (depth === 0) break; depth--; }
           at++;
         }
         if (at === source.length) fail();
@@ -136,8 +146,7 @@ export async function parseQuery(source: string, budget: XmlBudget): Promise<Que
     morePaths = source[at] === "|";
     if (morePaths) at++;
   } while (morePaths);
-  if (scalar !== undefined) expect(")");
   space();
   if (at !== source.length) fail();
-  return { scalar, paths };
+  return { paths };
 }

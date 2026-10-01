@@ -1,4 +1,4 @@
-import { testPredicate } from "./predicate.js";
+import { evaluateExpression, testPredicate } from "./predicate.js";
 import type { XmlAttribute, XmlContent, XmlElement } from "@poe-code/safe-fs/core";
 import type { Query, QueryStep } from "./query.js";
 import { XmlBudget } from "./limits.js";
@@ -71,11 +71,23 @@ function matches(node: Node, step: QueryStep): boolean {
   return false;
 }
 
+export async function evaluateScalar(query: Query, root: XmlElement, budget: XmlBudget): Promise<string> {
+  const tree = await indexTree(root, budget);
+  const result = await evaluateExpression(query.expression!, tree.document, 1, 1, budget,
+    async selected => evaluatePaths(selected, tree, budget, tree.document));
+  if (Array.isArray(result)) return result[0]?.text ?? "";
+  return String(result);
+}
+
 export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget): Promise<Node[]> {
-  const { document, order, parentOf } = await indexTree(root, budget);
+  const tree = await indexTree(root, budget);
+  return evaluatePaths(query, tree, budget, tree.document);
+}
+async function evaluatePaths(query: Query, tree: Awaited<ReturnType<typeof indexTree>>, budget: XmlBudget, context: Node): Promise<Node[]> {
+  const { order, parentOf } = tree;
   const union = new Set<Node>();
   for (const path of query.paths) {
-    let contexts: Node[] = [document];
+    let contexts: Node[] = [context];
     for (const step of path) {
       const parents = new Set<Node>();
       const pending = [...contexts];
@@ -127,7 +139,8 @@ export async function evaluate(query: Query, root: XmlElement, budget: XmlBudget
           const filtered: Node[] = [];
           for (let index = 0; index < matched.length; index++) {
             const candidate = matched[index]!;
-            if (await testPredicate(predicate, candidate, index + 1, matched.length, budget))
+            if (await testPredicate(predicate, candidate, index + 1, matched.length, budget,
+              async (selected, absolute) => evaluatePaths(selected, tree, budget, absolute ? tree.document : candidate)))
               filtered.push(candidate);
           }
           matched = filtered;

@@ -37,6 +37,13 @@ omitting the filename reads supplied stdin. `--` separates options from filename
 Formatting escapes non-ASCII text and attribute values as character references
 when the input declaration omits an encoding; declared UTF-8 remains UTF-8.
 
+`--noblanks` removes ignorable whitespace before XPath evaluation or serialization.
+`--output FILE` (or `-o FILE`) writes serialized XML to the virtual filesystem;
+XPath results still go to stdout. `--exc-c14n` emits exclusive canonical XML
+with comments, declaring only visibly used namespaces. `--encode ENCODING`
+selects UTF-8, UTF-16, UTF-16LE, UTF-16BE, US-ASCII, or ISO-8859-1 output.
+`--recover` repairs truncated elements, mismatched end tags, and undeclared
+entities while reporting repairs on stderr. Limits remain enforced during recovery.
 There is no host filesystem fallback or external entity resolution.
 
 ## SDK configuration
@@ -83,10 +90,15 @@ The expressions below apply to `xmllint --xpath`. Use jq filters with `xq`.
   with string or numeric values, including `[@id=1]` and `[@price > 15]`.
 - Boolean combinations using `and`, `or`, parentheses, and `not(...)`, such as
   `[@id=1 or @id=2]` and `[not(@price > 15)]`.
-- Predicate string functions `contains(...)`, `starts-with(...)`, and
-  `normalize-space(...)`, such as `[contains(., 'Alp')]` and
-  `[normalize-space(name)='Alpha']`. Normalization uses XML whitespace.
-- Outer `string(PATH)`, `count(PATH)`, and `boolean(PATH)`.
+- String functions `concat`, `contains`, `starts-with`, `substring`,
+  `substring-before`, `substring-after`, `translate`, `string-length`,
+  `normalize-space`, and `string`. String positions count Unicode characters;
+  normalization uses XML whitespace.
+- Node-set functions `count`, `name`, `local-name`, and `namespace-uri`.
+- Boolean functions `boolean`, `not`, `true`, and `false`.
+- Numeric functions `sum`, `number`, `floor`, `ceiling`, and `round`.
+  Functions compose at the top level or inside predicates; optional arguments
+  default to the context node where XPath defines that behavior.
 
 Results are deduplicated in document order. Element results serialize XML;
 node results each end with a newline. Scalars also end with a newline.
@@ -95,12 +107,11 @@ node results each end with a newline. Scalars also end with a newline.
 Unsupported expressions fail before reading input. These include `/` alone,
 namespace prefixes, explicit axes, arithmetic, variables,
 and other functions. Multiple xmllint input files and other xmllint flags are
-unsupported, including DTD/schema validation, output files, and other
-canonicalization variants. Validation here means XML well-formedness, not schema
+unsupported, including DTD/schema validation and canonicalization variants other than the two above. Validation here means XML well-formedness, not schema
 validation. The shared parser normalizes processing instructions with whitespace-only
 data to an instruction without data. XML input, query arguments, and filenames must be valid UTF-8;
 XML declarations must agree with UTF-8. DTDs, DOCTYPE, external entities, unknown
-entities, malformed namespaces, and malformed XML are rejected.
+entities, malformed namespaces, and malformed XML are rejected by default; the recoverable cases above require `--recover`.
 
 ## Limits and outcomes
 

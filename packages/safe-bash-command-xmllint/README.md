@@ -15,11 +15,19 @@ await shell.dispose();
 ```
 
 Standalone `createXmllintCommand()` and `createXmllintCommands()` factories use
-the same default runtime as `xmllintCommands()`. XPath predicates support numeric
-and string comparisons (`=`, `!=`, `<`, `<=`, `>`, `>=`), `and`, `or`, `not`,
-`contains`, `starts-with` and `normalize-space`, alongside positional selection.
+the same default runtime as `xmllintCommands()`. XPath functions work both at
+the top level and inside predicates: `concat`, `contains`, `starts-with`,
+`substring`, `substring-before`, `substring-after`, `translate`, `string-length`,
+`normalize-space`, `string`, `count`, `name`, `local-name`, `namespace-uri`,
+`not`, `boolean`, `true`, `false`, `sum`, `number`, `floor`, `ceiling`,
+and `round`. Predicates also support comparisons, `and`, `or`, and positions.
 
-Supported modes include `--noout`, `--format`, `--c14n`, and `--xpath`. Inputs come
+Supported modes include `--noout`, `--format`, `--c14n`, `--exc-c14n`,
+and `--xpath`. Use `--noblanks` to remove ignorable whitespace before queries
+or serialization, and `--output FILE` / `-o FILE` to write serialized XML to
+the virtual filesystem. `--recover` repairs truncated elements, mismatched end
+tags, and undeclared entities, reporting repairs on stderr. `--encode ENCODING`
+selects UTF-8, UTF-16 (including LE/BE), US-ASCII, or ISO-8859-1 output. Inputs come
 from stdin or the configured virtual filesystem. XML limits bound input, output,
 query bytes, depth, nodes, attributes, namespaces, steps and results. The XML
 plugin accepts explicit limit overrides and replacement registration.

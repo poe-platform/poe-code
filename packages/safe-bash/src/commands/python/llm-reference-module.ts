@@ -535,6 +535,14 @@ def get_async_model(name=None):
         raise UnknownModelError("Unknown model: " + str(name)) from None
 
 
+def schema_dsl(schema_dsl, multi=False):
+    async def parse():
+        async with _core.Client() as client:
+            payload = {"schema": schema_dsl, "multi": bool(multi)}
+            return await client._run(lambda: client._bridge.call("schema_dsl", payload), client._timeout)
+    return _sync(parse())
+
+
 def encode(values):
     import struct
     return struct.pack("<" + "f" * len(values), *values)

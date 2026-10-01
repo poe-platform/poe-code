@@ -5,6 +5,9 @@ import { installPythonLlmModule } from '../../src/commands/python/llm-module.js'
 
 const snippet = `
 import llm
+schema = {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer", "description": "in years"}}, "required": ["name", "age"]}
+assert llm.schema_dsl("name, age int: in years") == schema
+assert llm.schema_dsl("name, age int: in years", multi=True) == {"type": "object", "properties": {"items": {"type": "array", "items": schema}}, "required": ["items"]}
 model = llm.get_model("test-model")
 assert llm.get_model("alias").model_id == "test-model"
 assert llm.get_model().model_id == "test-model"
@@ -211,6 +214,10 @@ histories = []
 embedding_calls = []
 class Bridge:
  async def call(self, operation, payload):
+  if operation == "schema_dsl":
+   assert payload["schema"] == "name, age int: in years"
+   schema = {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer", "description": "in years"}}, "required": ["name", "age"]}
+   return {"type": "object", "properties": {"items": {"type": "array", "items": schema}}, "required": ["items"]} if payload["multi"] else schema
   if operation == "resolve_model":
    return "test-model"
   if operation == "configuration":

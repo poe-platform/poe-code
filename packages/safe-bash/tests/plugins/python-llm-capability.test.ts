@@ -583,3 +583,16 @@ test('inline Python attachments preserve bytes and share aggregate attachment ad
   await assert.rejects(capability.call!({operation:'complete',payload:{attachments:[{content:[1],mimeType:'text/plain'}]}},{signal:controller.signal}),{name:'AbortError'});
   assert.equal(requests.length,1);
 });
+
+
+test('Python schema DSL reuses shared parsing with bounded results and no provider call', async () => {
+  const {fs,service,requests,capability} = await fixture();
+  const schema = {type:'object',properties:{name:{type:'string'},age:{type:'integer',description:'in years'}},required:['name','age']};
+  const single = await capability.call!({operation:'schema_dsl',payload:{schema:'name, age int: in years',multi:false}},{signal});
+  assert.deepEqual(JSON.parse(JSON.stringify(single)),schema);
+  const multi = await capability.call!({operation:'schema_dsl',payload:{schema:'name\nage int: in years',multi:true}},{signal});
+  assert.deepEqual(JSON.parse(JSON.stringify(multi)),{type:'object',properties:{items:{type:'array',items:schema}},required:['items']});
+  const limited = createPythonLlmCapability({fs,cwd:'/work'},service,{maxBufferedResponseBytes:32});
+  await assert.rejects(limited.call!({operation:'schema_dsl',payload:{schema:'name',multi:false}},{signal}),/limit/);
+  assert.equal(requests.length,0);
+});

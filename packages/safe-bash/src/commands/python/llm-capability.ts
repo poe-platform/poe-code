@@ -1,7 +1,7 @@
 import type { CommandContext } from '../../contracts/index.js';
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from '../llm/service.js';
 import type { LlmOption, LlmInputSource } from '../llm/types.js';
-import { loadLlmStoredSchema, selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
+import { parseLlmSchemaDsl, loadLlmStoredSchema, selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
 import { sniffMimeType } from '../llm/mime.js';
 import { pathOf } from '../internal.js';
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
@@ -321,6 +321,12 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       const operation = record(value);
       const payload = record(operation.payload ?? {});
       jsonBytes(payload,bufferedInputLimit,'input');
+      if (operation.operation === 'schema_dsl') {
+        if (typeof payload.schema !== 'string' || typeof payload.multi !== 'boolean') throw new TypeError('Invalid schema DSL input');
+        const result = parseLlmSchemaDsl(payload.schema, payload.multi);
+        jsonBytes(result as PythonHostValue,bufferedLimit);
+        return result as PythonHostValue;
+      }
       if (operation.operation === 'attachment_type') {
         const prefix = payload.prefix;
         if (typeof payload.path !== 'string' || !Array.isArray(prefix) || prefix.length > 4096

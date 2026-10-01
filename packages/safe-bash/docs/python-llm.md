@@ -60,6 +60,10 @@ host message channel and share attachment input accounting with canonical files;
 large inputs should use canonical paths to avoid buffered copies. URL prompt
 attachments are not yet supported by this adapter.
 
+Use `llm.schema_dsl("name, age int")` to build a schema with the shared
+parser, or pass `multi=True` for an array under the items property. Pass the
+result as `schema=` to a model prompt.
+
 Model discovery preserves declared schema and attachment support, including aliases
 and asynchronous models. Unsupported schemas and attachment MIME types fail before
 a provider request, using the reference errors.

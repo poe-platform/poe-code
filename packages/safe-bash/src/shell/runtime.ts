@@ -3516,6 +3516,7 @@ export class Runtime {
   declare private _syncArithRefs: ArithmeticReferences | undefined;
   private _syncReadOnlyArithRefs: ArithmeticReferences | undefined;
   private _activeSyncLoopAssignedVars: Set<string> | undefined;
+  private _activeSyncArrayLoopWords: WeakSet<Word> | undefined;
   private _activeSyncLoopHasFileMutations = false;
   private _inSyncLoopPreflight = false;
   private _activeSyncLoopIO: IO | undefined;
@@ -5240,6 +5241,19 @@ export class Runtime {
     return p0.operator !== undefined ? this.applySyncArrayMemberOperator(out, p0, rawState) : out;
   }
 
+  private syncArraySubscriptWord(index: { decimal: string; source?: string; word?: Word }, state: State): Word | undefined {
+    if (byteLocale(state.variables) || state.depth >= 24) return undefined;
+    const cached = index as { _cachedWord?: Word; _cachedSyntax?: unknown };
+    const word = index.word ?? (cached._cachedSyntax === state.extensions?.syntax ? cached._cachedWord : undefined);
+    if (word) return word;
+    try {
+      cached._cachedWord = parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, false, state.depth, false, state.extensions?.syntax);
+      cached._cachedSyntax = state.extensions?.syntax;
+      return cached._cachedWord;
+    } catch {
+      return undefined;
+    }
+  }
   private tryFastArrayAssignmentSync(assignment: ArrayAssignment, state: State, io: IO, diagnosticLine?: number, declaration?: "readonly", associative?: boolean, ignoreYield = false): boolean {
     if (!ignoreYield && hasYieldCheckpoint(this.signal)) return false;
     if (declaration) return false;
@@ -5503,18 +5517,8 @@ export class Runtime {
       return false;
     }
     if (assignment.kind === "element" && current?.associative) {
-      const cachedIdx = assignment.index as { _cachedWord?: Word; _cachedSyntax?: unknown };
-      let word = assignment.index.word ?? (cachedIdx._cachedSyntax === rawState.extensions?.syntax ? cachedIdx._cachedWord : undefined);
-      if (!word) {
-        if (byteLocale(rawState.variables) || rawState.depth >= 24) return false;
-        try {
-          word = parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, false, rawState.depth, false, rawState.extensions?.syntax);
-          cachedIdx._cachedWord = word;
-          cachedIdx._cachedSyntax = rawState.extensions?.syntax;
-        } catch {
-          return false;
-        }
-      }
+      const word = this.syncArraySubscriptWord(assignment.index, rawState);
+      if (!word) return false;
       let keyVal: ShellValue | undefined;
       let val: ShellValue | undefined;
       try {
@@ -11954,7 +11958,152 @@ export class Runtime {
     return true;
   }
 
+  private admitSyncArrayLoop(command: Extract<Command, { kind: "arithmetic-for" }>, state: State): { words: WeakSet<Word>; integerWords: WeakSet<Word>; appends: ReadonlyMap<string, number> } | undefined {
+    const monitor = stateMonitor(state);
+    const store = monitor?.store;
+    if (!store || store.watches.size || hasUnpreparedLocals(state) || state.depth >= 24 || byteLocale(state.variables) || state.nounset || hasActiveVariableAttributes(state) || this.budget.limits.maxExpansionBytes !== Infinity || this.budget.limits.maxExpansionFields !== Infinity) return undefined;
+    const initializer = command.expressions[0]?.tree;
+    if (initializer?.kind !== "binary" || initializer.operator !== "=" || initializer.left.kind !== "name") return undefined;
+    const induction = initializer.left.name;
+    const dynamicNames = new Set(["PIPESTATUS", "LINENO", "_", "FUNCNAME", "DIRSTACK", "BASH_SUBSHELL"]);
+    type Assignment = { name: string; value: Word; append: boolean } | ArrayAssignment;
+    const assignments: Assignment[] = [];
+    const appends = new Map<string, number>();
+    for (const list of command.body.lists) {
+      if (list.terminator || list.pipelines.length !== 1) return undefined;
+      const pipeline = list.pipelines[0]!;
+      const cmd = pipeline.commands[0];
+      if (pipeline.negate || pipeline.commands.length !== 1 || cmd?.kind !== "simple" || cmd.redirects.length || cmd.words.length !== 1) return undefined;
+      const assignment = getArrayAssignment(cmd.words[0]!) ?? this.assignment(cmd.words[0]!);
+      if (!assignment || assignment.name === induction || controlNames.has(assignment.name) || dynamicNames.has(assignment.name) || monitor.hasOverlay(assignment.name) || state.readonlyVariables?.has(assignment.name)) return undefined;
+      if ("kind" in assignment) {
+        const binding = store.get(assignment.name);
+        if (!binding || binding.references !== 1 || state.exported.has(assignment.name)) return undefined;
+        if (assignment.kind === "element") {
+          if (!binding.associative || assignment.append) return undefined;
+        } else {
+          if (binding.associative || !assignment.append || assignment.entries.some(entry => entry.index || entry.append)) return undefined;
+          appends.set(assignment.name, (appends.get(assignment.name) ?? 0) + assignment.entries.length);
+        }
+      } else if (assignment.append || store.get(assignment.name) || ["IFS", "LC_ALL", "LC_CTYPE", "LC_COLLATE", "LANG"].includes(assignment.name)) return undefined;
+      assignments.push(assignment);
+    }
+    if (assignments.length > 30 || !assignments.some(assignment => "kind" in assignment && assignment.kind === "element")) return undefined;
+
+    type Shape = { min: number; max: number; integer: boolean };
+    const integer: Shape = { min: 1, max: 20, integer: true }; // Signed shell arithmetic is 64 bit.
+    const decimal = (value: string): boolean => {
+      if (value === "") return true; // Unset/empty arithmetic operands are zero.
+      let i = value[0] === "-" ? 1 : 0;
+      if (i === value.length || value.length > 20 || (value[i] === "0" && i + 1 !== value.length)) return false;
+      for (; i < value.length; i++) if (value[i]! < "0" || value[i]! > "9") return false;
+      return true;
+    };
+    const literalShape = (value: ShellValue): Shape | undefined => {
+      if (typeof value !== "string") return undefined;
+      for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) >= 128) return undefined;
+      return { min: value.length, max: value.length, integer: decimal(value) };
+    };
+    const integerArrays = new Set<string>();
+    for (const [name, { binding }] of store.bindings) {
+      if (!binding.associative) continue;
+      if (![...binding.values.values()].every(slot => typeof slot.text.shellValue === "string" && decimal(slot.text.shellValue))) continue;
+      const writesInteger = assignments.every(assignment => {
+        if (assignment.name !== name || !("kind" in assignment) || assignment.kind !== "element") return true;
+        const parts = assignment.value.parts.filter(part => part.kind !== "text" || part.value !== "");
+        return parts.length === 1 && parts[0]!.kind === "arithmetic" || parts.every(part => part.kind === "text") && decimal(parts.map(part => (part as Extract<WordPart, { kind: "text" }>).value).join(""));
+      });
+      if (writesInteger) integerArrays.add(name);
+    }
+    const entry = new Map<string, Shape>();
+    for (const assignment of assignments) {
+      if ("kind" in assignment) continue;
+      const raw = state.variables[assignment.name];
+      const shape = literalShape(raw === undefined ? "" : monitor.values.get(assignment.name, raw) ?? raw);
+      if (!shape) return undefined;
+      entry.set(assignment.name, shape);
+    }
+    // Find an invariant over successive iterations. Growing strings or unknown
+    // key bounds decline before execution; no speculative writes or replay.
+    for (let pass = 0; pass < 32; pass++) {
+      const values = new Map(entry);
+      values.set(induction, integer);
+      const words = new WeakSet<Word>();
+      const integerWords = new WeakSet<Word>();
+      const scalar = (name: string): Shape | undefined => {
+        if (!isShellIdentifier(name) || controlNames.has(name) || dynamicNames.has(name) || store.get(name) || monitor.hasOverlay(name) || hasUnpreparedLocal(state, name)) return undefined;
+        const known = values.get(name);
+        if (known) return known;
+        const raw = state.variables[name];
+        return literalShape(raw === undefined ? "" : monitor.values.get(name, raw) ?? raw);
+      };
+      const shapeWord = (word: Word, key = false): Shape | undefined => {
+        if (!word.parts.length) return undefined;
+        const shapes: Shape[] = [];
+        for (const part of word.parts) {
+          let shape: Shape | undefined;
+          if (part.kind === "text") {
+            if (part.byteValue || invokedValues.has(part) || !part.quoted && part.value.includes("~")) return undefined;
+            shape = literalShape(part.value);
+          } else if (part.kind === "arithmetic") {
+            const names = new Set<string>();
+            if (!collectPureReadOnlySmiNames(part.expression, names) || [...names].some(name => !scalar(name)?.integer)) return undefined;
+            shape = integer;
+          } else if (part.kind === "variable") {
+            if (part.indirect || part.specialParameter || part.prefixNames || part.length || part.substring || part.transform || part.keys || dynamicNames.has(part.name)) return undefined;
+            const selector = getArraySelector(part);
+            if (selector) {
+              if (key || selector.kind !== "element" || !store.get(part.name)?.associative || monitor.hasOverlay(part.name) || controlNames.has(part.name)) return undefined;
+              const index = this.syncArraySubscriptWord(selector.index, state);
+              if (!index || !shapeWord(index, true)) return undefined;
+              shape = { min: 0, max: integerArrays.has(part.name) ? 20 : Infinity, integer: integerArrays.has(part.name) };
+              if (part.operator !== undefined) {
+                if ((part.operator !== "-" && part.operator !== ":-") || !part.alternate || !part.alternate.parts.every(p => p.kind === "text")) return undefined;
+                const alternate = shapeWord(part.alternate);
+                if (!alternate) return undefined;
+                shape = { min: part.operator === ":-" ? Math.min(1, alternate.min) : 0, max: Math.max(shape.max, alternate.max), integer: shape.integer && alternate.integer };
+              }
+            } else {
+              if (part.operator !== undefined) return undefined;
+              shape = scalar(part.name);
+            }
+          } else return undefined;
+          if (!shape) return undefined;
+          shapes.push(shape);
+        }
+        const nonempty = shapes.filter(shape => shape.max !== 0);
+        const result = { min: shapes.reduce((sum, shape) => sum + shape.min, 0), max: shapes.reduce((sum, shape) => sum + shape.max, 0), integer: nonempty.length === 0 || nonempty.length === 1 && nonempty[0]!.integer };
+        if (key && (result.min === 0 || result.max > 4096)) return undefined;
+        words.add(word);
+        if (result.integer) integerWords.add(word);
+        return result;
+      };
+      for (const assignment of assignments) {
+        if ("kind" in assignment && assignment.kind === "compound") {
+          if (assignment.entries.some(entry => !entry.value.parts.every(part => part.quoted) || !shapeWord(entry.value))) return undefined;
+        } else {
+          if ("kind" in assignment) {
+            const index = this.syncArraySubscriptWord(assignment.index, state);
+            if (!index || !shapeWord(index, true)) return undefined;
+          }
+          const shape = shapeWord(assignment.value);
+          if (!shape) return undefined;
+          if (!("kind" in assignment)) values.set(assignment.name, shape);
+        }
+      }
+      let stable = true;
+      for (const [name, before] of entry) {
+        const after = values.get(name)!;
+        const merged = { min: Math.min(before.min, after.min), max: Math.max(before.max, after.max), integer: before.integer && after.integer };
+        if (merged.min !== before.min || merged.max !== before.max || merged.integer !== before.integer) stable = false;
+        entry.set(name, merged);
+      }
+      if (stable) return { words, integerWords, appends };
+    }
+    return undefined;
+  }
   private isPureSyncValueWord(word: Word, rawState: State, allowAt = false): boolean {
+    if (this._activeSyncArrayLoopWords?.has(word)) return true;
     if (word.parts.length === 0) return false;
     for (let i = 0; i < word.parts.length; i++) {
       const part = word.parts[i]!;
@@ -12941,12 +13090,17 @@ export class Runtime {
           if (this._syncLoopFnCheckDepth > 0) return false;
           if (hasUnpreparedLocals(rawState)) return false;
           // Eligibility checks must not create bindings: the loop may never run.
-          // Element subscripts need the normal arithmetic and relative-index evaluator.
-          if (arrAssign.kind === "element") return false;
           const curArr = store?.get(arrAssign.name);
           const activeArrStore = store ?? stateMonitor(rawState)?.store;
-          if ( !curArr || curArr.references !== 1 || activeArrStore?.watches.has(arrAssign.name) || rawState.readonlyVariables?.has(arrAssign.name) || rawState.exported.has(arrAssign.name) || controlNames.has(arrAssign.name)) {
+          if ( !curArr || curArr.references !== 1 || activeArrStore?.watches.has(arrAssign.name) || rawState.readonlyVariables?.has(arrAssign.name) || rawState.variableAttributes?.has(arrAssign.name) || rawState.exported.has(arrAssign.name) || controlNames.has(arrAssign.name)) {
             return false;
+          }
+          if (arrAssign.kind === "element") {
+            // Only the whole-loop proof can admit associative keys. Indexed
+            // arithmetic and relative subscripts retain normal evaluation.
+            const index = curArr.associative ? this.syncArraySubscriptWord(arrAssign.index, rawState) : undefined;
+            if (!index || !this._activeSyncArrayLoopWords?.has(index) || !this.isPureSyncValueWord(index, rawState) || !this.isPureSyncValueWord(arrAssign.value, rawState)) return false;
+            continue;
           }
           if (arrAssign.kind === "compound" && arrAssign.entries.length <= 16 && arrAssign.entries.every(e => !e.append)) {
             let allEntriesOk = true;
@@ -13348,7 +13502,7 @@ export class Runtime {
     }
     return res;
   }
-  private syncLoopArithmeticReadsRemainInteger(steps: readonly SyncLoopStep[], rawState: State): boolean {
+  private syncLoopArithmeticReadsRemainInteger(steps: readonly SyncLoopStep[], rawState: State, integerWords?: WeakSet<Word>): boolean {
     const reads = new Set<string>();
     const seen = new WeakSet<object>();
     // Inspect words in commands, conditions, substitutions, and inlined functions.
@@ -13367,7 +13521,7 @@ export class Runtime {
     const safeWrites = (items: readonly SyncLoopStep[]): boolean => items.every(step => {
       if (step.name && reads.has(step.name)) {
         const literal = step.value?.plain;
-        if (step.append || (!this.extractIntLoopStep(step, rawState) && (literal === undefined || !/^-?[0-9]+$/.test(literal)))) return false;
+        if (step.append || (!integerWords?.has(step.value!) && !this.extractIntLoopStep(step, rawState) && (literal === undefined || !/^-?[0-9]+$/.test(literal)))) return false;
       }
       if (step.readHereString?.varNames.some(name => reads.has(name)) || (step.readHereString?.arrayTarget && reads.has(step.readHereString.arrayTarget))) return false;
       if (step.localDecl?.items.some(item => reads.has(item.name))) return false;
@@ -13520,6 +13674,9 @@ export class Runtime {
     const prevAssignedVars = this._activeSyncLoopAssignedVars;
     const prevLoopIO = this._activeSyncLoopIO;
     const prevInvMap = this._syncLoopInvariantSubMap;
+    const prevArrayWords = this._activeSyncArrayLoopWords;
+    const arrayLoop = command.kind === "arithmetic-for" ? this.admitSyncArrayLoop(command, rawState) : undefined;
+    this._activeSyncArrayLoopWords = arrayLoop?.words;
     this._activePrintfInductionName = printfInductionName;
     this._activeSyncLoopAssignedVars = this.collectSyncLoopAssignedVars(command, rawState);
     this._activeSyncLoopIO = io;
@@ -13533,6 +13690,7 @@ export class Runtime {
       this._activeSyncLoopAssignedVars = prevAssignedVars;
       this._activeSyncLoopIO = prevLoopIO;
       this._syncLoopInvariantSubMap = prevInvMap;
+      this._activeSyncArrayLoopWords = prevArrayWords;
     }
     if (!bodySyncOk) {
       (command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop = true;
@@ -13568,7 +13726,7 @@ export class Runtime {
     this._syncLoopInvariantSubMap = localInvMap;
     try {
     const { steps: bodyAssignments, redirectCount } = this.buildSyncLoopBody(command, rawState, io);
-    if (bodyAssignments.length > 30 || !this.syncLoopArithmeticReadsRemainInteger(bodyAssignments, rawState)) return undefined;
+    if (bodyAssignments.length > 30 || !this.syncLoopArithmeticReadsRemainInteger(bodyAssignments, rawState, arrayLoop?.integerWords)) return undefined;
     const touched = this._syncArithRawWriteOnly ? new Set<string>() : sharedSyncLoopTouched;
     touched.clear();
     let lastCmd: Extract<Command, { kind: "simple" }> | undefined;
@@ -13713,6 +13871,9 @@ export class Runtime {
           : step.value ? [step.value] : [];
         for (let wIdx = 0; wIdx < wordsToScan.length; wIdx++) {
           const wVal = wordsToScan[wIdx]!;
+          // The array-loop proof tracks integer values at each statement,
+          // including scalars loaded from arrays earlier in the same iteration.
+          if (arrayLoop?.words.has(wVal)) continue;
           for (let i = 0; i < wVal.parts.length; i++) {
             const part = wVal.parts[i]!;
             if (part.kind === "text" || part.kind === "variable") continue;
@@ -13795,11 +13956,18 @@ export class Runtime {
       }
       const {
         e0, e1, e2, iterations, inductionName, startVal, limitVal, isLe, isSimpleLiteralAsc, arithNamesList, intSteps, allIntStepsReady, hasSubIntStep, hasDeferredSteps, deferredMask, touchedIntNamesList, } = plan;
+      if (arrayLoop?.appends.size) {
+        if (!isSimpleLiteralAsc) return undefined;
+        for (const [name, count] of arrayLoop.appends) {
+          if (store!.get(name)!.maximum + iterations * count > 2147483647) return undefined;
+        }
+      }
       if (inductionName === "OPTIND" || controlNames.has(inductionName) || monitor.hasOverlay(inductionName) || hasUnpreparedLocal(rawState, inductionName) || store?.get(inductionName) || rawState.readonlyVariables?.has(inductionName) || rawState.variableAttributes?.get(inductionName)) return undefined;
       if (!isSimpleLiteralAsc && (!this.canSyncArithmeticWithoutFault(e0.tree, rawState, diagnosticLine) || !this.canSyncArithmeticWithoutFault(e1.tree, rawState, diagnosticLine) || !this.canSyncArithmeticWithoutFault(e2.tree, rawState, diagnosticLine))) return undefined;
       if (arithNamesList.length > 0) {
         for (let a = 0; a < arithNamesList.length; a++) {
           const refName = arithNamesList[a]!;
+          if (store?.get(refName)) return undefined;
           if (refName === inductionName) continue;
           const initial = rawState.variables[refName];
           if (initial !== undefined && initial !== "" && !/^-?[0-9]+$/.test(initial)) return undefined;
@@ -22252,18 +22420,8 @@ export class Runtime {
             return undefined;
           }
           if (selector.kind === "element") {
-            const cachedSub = selector.index as { _cachedWord?: Word; _cachedSyntax?: unknown };
-            let subWord = selector.index.word ?? (cachedSub._cachedSyntax === rawState.extensions?.syntax ? cachedSub._cachedWord : undefined);
-            if (!subWord) {
-              if (byteLocale(rawVars) || rawState.depth >= 24) return undefined;
-              try {
-                subWord = parseArraySubscript(selector.index.source ?? selector.index.decimal, this.budget.parsing, false, rawState.depth, false, rawState.extensions?.syntax);
-                cachedSub._cachedWord = subWord;
-                cachedSub._cachedSyntax = rawState.extensions?.syntax;
-              } catch {
-                return undefined;
-              }
-            }
+            const subWord = this.syncArraySubscriptWord(selector.index, rawState);
+            if (!subWord) return undefined;
             const subVal = this.fastValueWord(subWord, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
             if (typeof subVal !== "string") return undefined;
             let elemVal: ShellValue | undefined;

@@ -1,3 +1,4 @@
+import { adjustDate, isEpochSeconds, type DateAdjustment, parseAdjustment } from "./adjustments.js";
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { FsError } from "safe-bash-contracts";
 import { input as fileInput, lines, pathOf } from "safe-bash-io-engine/internal";
@@ -11,6 +12,8 @@ interface DateArguments {
   readonly reference?: string;
   readonly file?: string;
   readonly utc: boolean;
+  readonly epochReference?: boolean;
+  readonly adjustments?: readonly DateAdjustment[];
   readonly format: string;
   readonly informational?: "help" | "version";
 }
@@ -19,6 +22,8 @@ function parseArguments(args: readonly string[]): DateArguments {
   let input: string | undefined, reference: string | undefined, format: string | undefined, style: string | undefined;
   let utc = false, ended = false;
   let file: string | undefined;
+  let epochReference = false;
+  const adjustments: DateAdjustment[] = [];
   const formatted = (value: string): void => {
     if (style !== undefined) throw new CommandFailure("multiple output formats specified");
     style = value;
@@ -53,7 +58,7 @@ function parseArguments(args: readonly string[]): DateArguments {
         case "--version": return { utc, format: "", informational: "version" };
         case "--utc": case "--universal": utc = true; break;
         case "--date": input = required(); break;
-        case "--reference": reference = required(); break;
+        case "--reference": reference = required(); epochReference = false; break;
         case "--file": file = required(); break;
         case "--iso-8601": formatted(iso(attached ?? "date")); break;
         case "--rfc-email": case "--rfc-2822": case "--rfc-822": formatted("%a, %d %b %Y %T %z"); break;
@@ -72,12 +77,16 @@ function parseArguments(args: readonly string[]): DateArguments {
       for (let position = 1; position < argument.length; position++) {
         const flag = argument[position]!;
         if (flag === "u") utc = true;
+        else if (flag === "j") continue;
         else if (flag === "R") formatted("%a, %d %b %Y %T %z");
         else if (flag === "I") { formatted(iso(argument.slice(position + 1) || "date")); break; }
-        else if (flag === "d" || flag === "r" || flag === "f") {
+        else if (flag === "d" || flag === "r" || flag === "f" || flag === "v") {
           const value = argument.slice(position + 1) || args[++index];
           if (value === undefined) throw new CommandFailure(`option requires an argument: -${flag}`);
-          if (flag === "d") input = value; else if (flag === "r") reference = value; else file = value;
+          if (flag === "d") input = value;
+          else if (flag === "r") { reference = value; epochReference = true; }
+          else if (flag === "v") adjustments.push(parseAdjustment(value));
+          else file = value;
           break;
         } else if (flag === "s") throw new CommandFailure("setting clocks is unsupported");
         else throw new CommandFailure(`unsupported option: -${flag}`);
@@ -91,7 +100,7 @@ function parseArguments(args: readonly string[]): DateArguments {
   if (input !== undefined && reference !== undefined) throw new CommandFailure("--date and --reference are mutually exclusive");
   if (file !== undefined && (input !== undefined || reference !== undefined)) throw new CommandFailure("--file, --date and --reference are mutually exclusive");
   if (format !== undefined && style !== undefined) throw new CommandFailure("multiple output formats specified");
-  return { utc, format: format ?? style ?? "%a %b %e %T %Z %Y",
+  return { utc, epochReference, adjustments, format: format ?? style ?? "%a %b %e %T %Z %Y",
     ...(input === undefined ? {} : { input }), ...(reference === undefined ? {} : { reference }),
     ...(file === undefined ? {} : { file }) };
 }
@@ -102,7 +111,7 @@ export function createDateWithSettings(configuration: Settings) {
     const parsed = parseArguments(context.args);
     if (parsed.informational) {
       await emit(context, parsed.informational === "version" ? "date (safe-bash virtual command)\n"
-        : "Usage: date [-u] [-d DATE | -r FILE | -f FILE] [+FORMAT]\n-f, --file=FILE reads one date per line; FILE - reads stdin.\nAlso: -I[date|hours|minutes|seconds|ns], -R, --rfc-3339=PRECISION\nDATE accepts @seconds, ISO calendar/time, RFC dates, now/today/yesterday/tomorrow, and integer seconds/minutes/hours relative to now.\nVirtual TZ defaults to UTC; no clock setting or host-locale parsing.\n", configuration.limits);
+        : "Usage: date [-uj] [-d DATE | -r FILE_OR_SECONDS | -f FILE] [-v[+|-]VALUE[ymwdHMS]] [+FORMAT]\n-f, --file=FILE reads one date per line; FILE - reads stdin.\nAlso: -I[date|hours|minutes|seconds|ns], -R, --rfc-3339=PRECISION\nDATE accepts @seconds, ISO calendar/time, RFC dates, now/today/yesterday/tomorrow, and integer seconds/minutes/hours relative to now.\nVirtual TZ defaults to UTC; no clock setting or host-locale parsing.\n", configuration.limits);
       return 0;
     }
     const zone = new TimeZone(parsed.utc ? "UTC" : ownEnvironment(context, "TZ") ?? configuration.defaultTimeZone);
@@ -129,7 +138,7 @@ export function createDateWithSettings(configuration: Settings) {
           exitCode = 1;
           continue;
         }
-        const value = formatDate(parsed.format, instant, zone, configuration.limits);
+        const value = formatDate(parsed.format, adjustDate(instant, parsed.adjustments ?? [], zone), zone, configuration.limits);
         outputBytes += utf8ByteLength(value);
         checkSize(outputBytes, configuration.limits.maxOutputBytes, "output");
         await emit(context, value, configuration.limits);
@@ -145,11 +154,15 @@ export function createDateWithSettings(configuration: Settings) {
         instant = millisecondsInstant(stat.mtimeMs);
       } catch (error) {
         context.signal.throwIfAborted();
-        if (error instanceof FsError) throw new CommandFailure(error.message);
-        throw error;
+        if (error instanceof FsError && error.code === "ENOENT" && parsed.epochReference && isEpochSeconds(parsed.reference)) {
+          instant = parseDate("@" + parsed.reference, zone, now);
+        } else {
+          if (error instanceof FsError) throw new CommandFailure(error.message);
+          throw error;
+        }
       }
     } else instant = parsed.input === undefined ? now() : parseDate(parsed.input, zone, now);
-    await emit(context, formatDate(parsed.format, instant, zone, configuration.limits), configuration.limits);
+    await emit(context, formatDate(parsed.format, adjustDate(instant, parsed.adjustments ?? [], zone), zone, configuration.limits), configuration.limits);
     return 0;
   });
 }
@@ -197,7 +210,7 @@ export function evalSyncDate(
       for (const line of rawLines) {
         if (utf8ByteLength(line) > limits.maxArgumentBytes) return undefined;
         const inst = parseDate(line, zone, now);
-        out += formatDate(parsed.format, inst, zone, limits);
+        out += formatDate(parsed.format, adjustDate(inst, parsed.adjustments ?? [], zone), zone, limits);
         if (utf8ByteLength(out) > limits.maxOutputBytes) return undefined;
       }
       return out;
@@ -206,12 +219,14 @@ export function evalSyncDate(
     if (parsed.reference !== undefined) {
       if (!parsed.reference || !statMtimeMsSync) return undefined;
       const mtimeMs = statMtimeMsSync(parsed.reference);
+      // An unavailable synchronous stat is not proof of ENOENT. Let async stat
+      // distinguish missing files from permission, symlink and provider errors.
       if (mtimeMs === undefined) return undefined;
       instant = millisecondsInstant(mtimeMs);
     } else {
       instant = parsed.input === undefined ? now() : parseDate(parsed.input, zone, now);
     }
-    const out = formatDate(parsed.format, instant, zone, limits);
+    const out = formatDate(parsed.format, adjustDate(instant, parsed.adjustments ?? [], zone), zone, limits);
     if (utf8ByteLength(out) > limits.maxOutputBytes) return undefined;
     return out;
   } catch {

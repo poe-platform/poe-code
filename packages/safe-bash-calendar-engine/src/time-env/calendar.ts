@@ -121,16 +121,25 @@ export class TimeZone {
     return { ...fields, offset, zone };
   }
 
-  instant(fields: CalendarFields, fraction = 0n): bigint {
+  instant(fields: CalendarFields, fraction = 0n, disambiguation: "reject" | "compatible" = "reject"): bigint {
     checkCalendar(fields);
     const wall = utcMilliseconds(fields);
     if (this.fixedOffset !== undefined) return boundedInstant(BigInt(wall) * 1000000n - BigInt(this.fixedOffset) * nanosecondsPerSecond + fraction);
     const offsets = new Set<number>();
     for (const days of [-2, -1, 0, 1, 2]) offsets.add(this.observedFields(BigInt(wall + days * 86400000) * 1000000n, false).offset);
     const candidates: bigint[] = [];
+    const shifted: bigint[] = [];
     for (const offset of offsets) {
       const candidate = BigInt(wall) * 1000000n - BigInt(offset) * nanosecondsPerSecond + fraction;
+      shifted.push(candidate);
       if (sameFields(this.observedFields(candidate, false), fields)) candidates.push(candidate);
+    }
+    if (disambiguation === "compatible") {
+      // Choose the first occurrence in a fold; move forward across a gap.
+      const choices = candidates.length ? candidates : shifted;
+      const selected = choices.reduce((left, right) => candidates.length
+        ? (left < right ? left : right) : (left > right ? left : right));
+      return boundedInstant(selected);
     }
     if (candidates.length === 0) throw new CommandFailure("nonexistent local time in virtual TZ");
     if (candidates.length !== 1) throw new CommandFailure("ambiguous local time; specify an explicit UTC offset");

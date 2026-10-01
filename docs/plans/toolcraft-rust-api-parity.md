@@ -352,6 +352,19 @@ SDK declarations currently borrow the original generic contract; this does not
 establish standalone packaging. The full approval runtime, CLI/transports,
 remaining exports and replacement qualification remain required.
 
+Approval-plan admission, canonical traversal, cycle rejection and hash comparison
+now use Rust policies. Node retains array species/methods, getter execution,
+finally cleanup, JSON serialization and SHA-256. Differential tests cover sorted
+accessor order, shared references, sparse/subclass arrays, arbitrary exceptions,
+finite-number requirements and exact diagnostics/messages. The original plan-hash
+suite and approval SDK integration now use this adapter. The checkpoint passes
+1,502 reference/parity tests and 97 native Node tests, plus Rust, declarations and
+lint. Canonicalization currently preserves the reference's own `__proto__`
+assignment behavior, including its omission from canonical JSON; correcting that
+requires a coordinated reference/native behavior change. The synchronous 128-entry
+guard still needs resource-parity qualification. This does not complete the
+approval task store, gate, runner, commands or provider dependency.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

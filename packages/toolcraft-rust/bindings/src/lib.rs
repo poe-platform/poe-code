@@ -4,6 +4,7 @@ use toolcraft_rust::ApiVersionIssue;
 
 pub mod api_error_summary;
 pub mod applied_default;
+pub mod approval_plan;
 pub mod branch_validation;
 pub mod definitions;
 pub mod error_report;

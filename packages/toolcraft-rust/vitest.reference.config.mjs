@@ -21,6 +21,7 @@ export default defineConfig({
           if (resolved === path("../toolcraft/src/json-schema-converter.js")) return path("dist/json-schema-converter.js");
           if (resolved === path("../toolcraft/src/mcp-proxy.js")) return path("dist/mcp-proxy.js");
           if (resolved === path("../toolcraft/src/sdk.js")) return path("dist/sdk.js");
+          if (resolved === path("../toolcraft/src/human-in-loop/plan-hash.js")) return path("dist/approval-plan.js");
           if (resolved === path("../toolcraft/src/human-in-loop/types.js")) return path("dist/approval-error.js");
         }
         if (importer?.startsWith(path("../toolcraft/src/")) && name === "toolcraft-schema")
@@ -67,6 +68,7 @@ export default defineConfig({
       path("tests/mcp-proxy-parity.test.ts"),
       path("tests/sdk-parity.test.ts"),
       path("../toolcraft/src/human-in-loop/sdk-runtime.integration.test.ts"),
+      path("../toolcraft/src/human-in-loop/plan-hash.test.ts"),
       path("../toolcraft/src/runtime/io.test.ts"),
       path("../toolcraft/src/api-error-summary.test.ts"),
       path("../toolcraft/src/error-report.test.ts"),

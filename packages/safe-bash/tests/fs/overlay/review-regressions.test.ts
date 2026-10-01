@@ -168,11 +168,12 @@ test("capability metadata cannot be reassigned, redefined, or mutated", () => {
   const overlay = new OverlayFileSystem({ upper: new MemoryFileSystem(), lower: new MemoryFileSystem() });
   const capabilities = overlay.capabilities;
   assert.equal(Reflect.set(capabilities, "hardlinks", true), false);
-  assert.equal(Reflect.set(overlay, "capabilities", { ...capabilities, hardlinks: true, atomicRename: true }), false);
+  assert.equal(Reflect.set(capabilities, "atomicRename", false), false);
+  assert.equal(Reflect.set(overlay, "capabilities", { ...capabilities, hardlinks: true, atomicRename: false }), false);
   assert.throws(() => Object.defineProperty(overlay, "capabilities", { value: { hardlinks: true } }), TypeError);
   assert.equal(overlay.capabilities, capabilities);
   assert.equal(overlay.capabilities.hardlinks, false);
-  assert.equal(overlay.capabilities.atomicRename, false);
+  assert.equal(overlay.capabilities.atomicRename, true);
 });
 
 test("a metadata getter failure is not mistaken for backend absence", async () => {

@@ -7,6 +7,15 @@ import { Shell } from "../../src/shell/shell.js";
 import { fixture, run } from "./helpers.js";
 
 const cases: readonly (readonly [readonly string[], number])[] = [
+  ...["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"].flatMap(operand => [
+    [["-f", operand], 1],
+    [["!", "-n", operand], 1],
+    [["!", "-z", operand], 0],
+    [["!", "-f", operand], 0],
+    [["!", "!", "-n", operand], 0],
+    [["-z", "", "-a", "-n", operand], 0],
+    [["-n", "x", "-o", "-z", operand], 0],
+  ] as const),
   [["(", "-n", ")"], 0],
   [["(", "!", ")"], 0],
   [["(", "", ")"], 1],
@@ -87,6 +96,15 @@ for (const command of ["test", "["]) {
       assert.equal(result.stdout, "");
       if (exitCode !== 2) assert.equal(result.stderr, "");
       else assert.match(result.stderr, /integer expression expected/u);
+      const shell = new Shell({ fs: await fixture(), commands: new CommandRegistry([...basicCommands(), ...predicateCommands()]) });
+      try {
+        const source = `${command} ${args.map(arg => `'${arg}'`).join(" ")}${command === "[" ? " ]" : ""}`;
+        for (const invocation of [source, `for i in 1 2; do ${source}; done`]) {
+          const invoked = await shell.exec(invocation);
+          assert.equal(invoked.exitCode, exitCode, invocation);
+          if (exitCode !== 2) assert.equal(invoked.stderr, "", invocation);
+        }
+      } finally { await shell.dispose(); }
     });
   }
 }

@@ -114,9 +114,8 @@ export function tryFastPredicate(
       if (cursor >= end) return undefined;
       const t0 = rawArgs[cursor]!;
       if (t0 === "(" || t0 === ")") return undefined;
-      if (cursor + 1 < end && binary.has(rawArgs[cursor + 1]!)) {
+      if (cursor + 2 < end && binary.has(rawArgs[cursor + 1]!)) {
         const op = rawArgs[cursor + 1]!;
-        if (cursor + 2 >= end) return undefined;
         const right = rawArgs[cursor + 2]!;
         cursor += 3;
         if (op === "=" || op === "==") return t0 === right;
@@ -292,7 +291,8 @@ export function predicateCommands(identity: { readonly effectiveUid?: number; re
       const leftLength = token === "-l" && numeric.has(args[offset + 1] ?? "");
       const left = leftLength ? args[offset++]! : token;
       const operator = args[offset];
-      if (operator !== undefined && binary.has(operator)) {
+      // With only two tokens, an operator-looking operand belongs to the unary test.
+      if (offset + 1 < args.length && operator !== undefined && binary.has(operator)) {
         offset++;
         const rightLength = numeric.has(operator) && args[offset] === "-l";
         if (rightLength) offset++;

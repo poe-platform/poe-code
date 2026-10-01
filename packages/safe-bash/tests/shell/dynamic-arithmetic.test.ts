@@ -31,6 +31,14 @@ const reproduction = [
 ].join("\n");
 
 const cases: [string, string][] = [
+  ["indirect pipeline element", 'true | false; x="PIPESTATUS[0 + 1]"; (( y = x + 5 )); echo "y=$y exit=$?"'],
+  ["integer indirect pipeline element", 'true | false; declare -i dummy=1; x="PIPESTATUS[1]"; (( y = x + 5 )); echo "y=$y exit=$?"'],
+  ["nameref pipeline element", 'true | false; declare -n ref="PIPESTATUS[1]"; (( y = ref + 5 )); echo "y=$y exit=$?"'],
+  ["nameref pipeline array", 'true | false; declare -n ref=PIPESTATUS; (( y = ref + 5 )); echo "y=$y exit=$?"'],
+  ["mapfile unterminated arithmetic effects", 'printf "42" | { mapfile -t arr; side=0; x="(side += 1) + arr[0]"; (( c = x )); echo "side=$side c=$c"; }'],
+  ["mapfile UTF-8 records", 'printf "café\\n" | { mapfile -t arr; printf "%s\\n" "${arr[0]}"; }'],
+  ["indirect line conditional", '\nx=LINENO; [[ $x -gt 0 ]]; echo $?'],
+  ["indirect line expansion", '\nx=LINENO; echo "$(( $x + 10 ))"'],
   ["reported arithmetic consumers", reproduction],
   ["substring offsets and lengths in loops", [
     's=0123456789abcdef',

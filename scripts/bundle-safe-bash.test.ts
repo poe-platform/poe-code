@@ -74,6 +74,18 @@ it("shares the browser runtime through the public core subpath", () => {
   expect(coreIdentity).toBe(true);
 });
 
+it("preserves predicate and mapfile arithmetic behavior in the portable root", async () => {
+  const shell = new browser.Shell({ fs: browser.createMemoryFileSystem() }).use(browser.agentCommands());
+  try {
+    expect(await shell.exec('[ ! -z = ]; echo $?; test "é" "<" "ê"; echo $?')).toMatchObject({
+      exitCode: 0, stdout: "0\n0\n", stderr: "",
+    });
+    expect(await shell.exec('printf "42" | { mapfile -t arr; side=0; x="(side += 1) + arr[0]"; (( c = x )); echo "$side:$c"; }')).toMatchObject({
+      exitCode: 0, stdout: "1:43\n", stderr: "",
+    });
+  } finally { await shell.dispose(); }
+});
+
 let consumerBuild: BuildContext;
 let consumerSource = "";
 let publicEntries: Record<string, unknown> | undefined;

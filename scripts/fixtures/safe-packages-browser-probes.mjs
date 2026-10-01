@@ -10,6 +10,7 @@ import { llmCommands, createOpenAiProvider, createElevenLabsProvider } from "@po
 export async function runNode(factory) {
   const configure = { nodeCommands, safeJsCommands }[factory];
   const sources = [];
+  const callbacks = [];
   const imports = [];
   const runtime = {
     createBudget: options => options,
@@ -18,6 +19,8 @@ export async function runNode(factory) {
     async run(source, options) {
       sources.push(source);
       imports.push({ names: options.importSpecifiers, aliases: ["fs/promises", "node:fs/promises"].every(name => options.modules[name].readFile === options.modules.fs.promises.readFile) });
+      options.modules.fs.readFile("/virtual", "utf8", (error, text) => callbacks.push({ error, text }));
+      await options.bindings.__safeBashTimers.drain();
       options.sink.log(3);
       return { ok: true };
     },
@@ -27,7 +30,7 @@ export async function runNode(factory) {
     const result = await shell.exec("node -p '1 + 2'");
     const missing = await shell.exec("safejs --help");
     return {
-      result, missing, sources, imports, names: shell.commands.list().map(command => command.name),
+      result, missing, sources, imports, callbacks, names: shell.commands.list().map(command => command.name),
       shared: nodeCommands === leafPlugin && createNodeCommands === leafCommands && createNodeCommand === leafCommand,
     };
   } finally { await shell.dispose(); }

@@ -209,6 +209,7 @@ it("shares disown state across default, public, and optional-host browser jobs",
 it.each(["nodeCommands", "safeJsCommands"])("registers only sandboxed node through the portable %s API", async factory => {
   const result = await createBrowserProbes().runNode(factory);
   expect(result.shared).toBe(true);
+  expect(result.callbacks).toEqual([{ error: null, text: "virtual" }]);
   expect(result.names).toEqual(["node"]);
   expect(result.result).toMatchObject({ exitCode: 0, stdout: "3\n", stderr: "" });
   expect(result.missing).toMatchObject({ exitCode: 127, stdout: "" });

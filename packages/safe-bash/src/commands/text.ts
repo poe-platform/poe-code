@@ -1721,7 +1721,7 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
             const canFastSliceCut = (byteSelection || mode === "c") && !complement && ranges.length <= 16;
             const processFastSliceRange = (buf: Uint8Array, lineStart: number, lineEnd: number): Promise<void> | undefined | null => {
               const lineLen = lineEnd - lineStart;
-              if (writer.remaining <= lineLen * (outDelimLen > 1 ? outDelimLen : 1) + 1) {
+              if (writer.remaining <= lineLen + (outputDelimiter !== undefined ? Math.max(0, ranges.length - 1) * outDelimLen : 0) + 1) {
                 return null;
               }
               if (!byteSelection) {

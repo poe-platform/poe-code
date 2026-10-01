@@ -114,3 +114,18 @@ test("od validates file operands with a zero byte count", async () => {
   const result = await run(["-N", "0", "/nonexistent"], createMemoryFileSystem());
   assert.notEqual(result.exitCode, 0);
 });
+
+test("od aligns printable partial rows and multiple formats", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("hello"));
+  for (const [args, expected] of [
+    [["-t", "x1z"], "0000000 68 65 6c 6c 6f" + " ".repeat(35) + ">hello<\n0000005\n"],
+    [["-t", "x1", "-t", "c"], "0000000  68  65  6c  6c  6f\n          h   e   l   l   o\n0000005\n"],
+    [["-t", "x2", "-t", "c", "--endian=little"], "0000000    6568    6c6c    006f\n          h   e   l   l   o\n0000005\n"],
+  ] as const) {
+    const result = await run([...args, "input"], fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  }
+});
+

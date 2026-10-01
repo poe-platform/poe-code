@@ -476,23 +476,31 @@ const OD_NAMES = [
 ];
 const OD_HEX1_TABLE = Array.from({ length: 256 }, (_, i) => " " + i.toString(16).padStart(2, "0"));
 const OD_OCT1_TABLE = Array.from({ length: 256 }, (_, i) => " " + i.toString(8).padStart(3, "0"));
-const OD_ASCII_CHAR = Array.from({ length: 256 }, (_, i) => (i >= 32 && i <= 126 ? String.fromCharCode(i) : "."));
 
-function formatRow(row: Uint8Array, format: Format, bigEndian: boolean): string {
-  let text = "";
-  if (format.size === 1 && (format.kind === "x" || format.kind === "o")) {
-    const table = format.kind === "x" ? OD_HEX1_TABLE : OD_OCT1_TABLE;
-    for (let i = 0; i < row.length; i++) text += table[row[i]!]!;
-    if (format.printable) {
-      let ascii = "";
-      for (let i = 0; i < row.length; i++) ascii += OD_ASCII_CHAR[row[i]!]!;
-      text += `  >${ascii}<`;
-    }
-    return text;
+function fieldWidth(format: Format): number {
+  const bits = format.size * 8;
+  switch (format.kind) {
+    case "a": case "c": return 3;
+    case "f": return format.size === 4 ? 15 : 24;
+    case "o": return Math.ceil(bits / 3);
+    case "x": return bits / 4;
+    case "d": return (1n << BigInt(bits - 1)).toString().length + 1;
+    default: return ((1n << BigInt(bits)) - 1n).toString().length;
   }
+}
+
+function formatRow(row: Uint8Array, format: Format, bigEndian: boolean, rowWidth: number, charsPerByte: number): string {
+  let text = "";
   const escapes = OD_ESCAPES;
   const names = OD_NAMES;
+  const width = fieldWidth(format);
   for (let offset = 0; offset < row.length; offset += format.size) {
+    const columnWidth = Math.ceil((offset + format.size) * charsPerByte) - Math.ceil(offset * charsPerByte);
+    text += " ".repeat(columnWidth - width - 1);
+    if (format.size === 1 && (format.kind === "x" || format.kind === "o")) {
+      text += (format.kind === "x" ? OD_HEX1_TABLE : OD_OCT1_TABLE)[row[offset]!]!;
+      continue;
+    }
     if (format.kind === "a") {
       const byte = row[offset]! & 127;
       text += ` ${(names[byte] ?? (byte === 127 ? "del" : String.fromCharCode(byte))).padStart(3)}`;
@@ -521,20 +529,12 @@ function formatRow(row: Uint8Array, format: Format, bigEndian: boolean): string 
     const bits = format.size * 8;
     if (format.kind === "d" && number >= 1n << BigInt(bits - 1)) number -= 1n << BigInt(bits);
     const base = format.kind === "o" ? 8 : format.kind === "x" ? 16 : 10;
-    const width =
-      format.kind === "o"
-        ? Math.ceil(bits / 3)
-        : format.kind === "x"
-          ? bits / 4
-          : format.kind === "d"
-            ? (1n << BigInt(bits - 1)).toString().length + 1
-            : ((1n << BigInt(bits)) - 1n).toString().length;
     text += ` ${number.toString(base).padStart(width, base === 10 ? " " : "0")}`;
   }
   if (format.printable) {
     let ascii = "";
     for (const byte of row) ascii += byte >= 32 && byte <= 126 ? String.fromCharCode(byte) : ".";
-    text += `  >${ascii}<`;
+    text = text.padEnd(Math.ceil(rowWidth * charsPerByte)) + `  >${ascii}<`;
   }
   return text;
 }
@@ -697,6 +697,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
     if (count === 0 && skip === 0 && parsed.operands[0] && parsed.operands[0] !== "-") {
       await context.fs.stat(pathOf(context, parsed.operands[0]), { signal: context.signal });
     }
+    const charsPerByte = Math.max(...selected.map(format => (fieldWidth(format) + 1) / format.size));
     const minimumStringLength = validatedOption(
       parsed,
       "S",
@@ -770,7 +771,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
             const pad = selected.length > 1 ? " ".repeat(addr.length) : "";
             for (let index = 0; index < selected.length; index++) {
               const prefix = index === 0 ? addr : pad;
-              outBuf += `${prefix}${formatRow(row, selected[index]!, isBigEndian)}\n`;
+              outBuf += `${prefix}${formatRow(row, selected[index]!, isBigEndian, width, charsPerByte)}\n`;
             }
             if (previous === undefined || previous.length !== row.length) previous = row.slice();
             else previous.set(row);

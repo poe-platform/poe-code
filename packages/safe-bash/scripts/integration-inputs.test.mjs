@@ -1211,6 +1211,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/shell/parse-budget.test.ts"));
   assert.ok(files.includes("tests/shell/parse-admission.test.ts"));
   assert.ok(files.includes("tests/shell/parse-admission-runtime.test.ts"));
+  assert.ok(files.includes("tests/shell/lifecycle.test.ts"));
   assert.ok(files.includes("tests/shell/source-line-units.test.ts"));
   assert.ok(files.includes("tests/shell/parser-integration.test.ts"));
   assert.ok(files.includes("tests/shell/conditional-pattern-arithmetic.test.ts"));

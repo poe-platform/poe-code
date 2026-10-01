@@ -1084,6 +1084,11 @@ export class Shell implements PluginHost {
         source === "" &&
         !warm &&
         !failed &&
+        // A retained invocation keeps its parse admissions and clock origins.
+        // Bounded executions must create their own budget and deadline instead.
+        budget.limits.maxParseUnits === Infinity &&
+        budget.limits.maxCpuMs === Infinity &&
+        budget.limits.maxWallClockMs === Infinity &&
         !this.#warmedInvocation &&
         !budget.hasExecutionCleanup &&
         !scope.hasFailures &&

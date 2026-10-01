@@ -9,6 +9,85 @@ import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js
 import { ShellInput } from "../../src/shell/input.js";
 import { Budget, defaultLimits, Runtime } from "../../src/shell/runtime.js";
 import { setup } from "./helpers.js";
+import { ParseBudget } from "../../src/shell/parse-budget.js";
+import { parseShellUnit } from "../../src/shell/parser.js";
+import { stateMonitor } from "../../src/shell/arrays/state.js";
+
+test("cached echo redirects checkpoint CPU and retain completed command state on interruption", async t => {
+  let now = 0;
+  t.mock.method(globalThis.performance, "now", () => now);
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/d");
+  const shell = new Shell({ fs, limits: { maxCpuMs: 40 } }).use(agentCommands());
+  const source = "echo alpha > /d/a\necho beta > /d/b\necho gamma > /d/c\necho delta > /d/d";
+  try {
+    await shell.exec(source);
+    await shell.exec("");
+    const runUnit = Runtime.prototype.runUnit;
+    let completedState: Parameters<typeof runUnit>[1] | undefined;
+    let completedPipeStatus: readonly number[] | undefined;
+    t.mock.method(Runtime.prototype, "runUnit", function (this: Runtime, ...args: Parameters<typeof runUnit>) {
+      const result = runUnit.apply(this, args);
+      const capture = () => {
+        if (args[1].lastArgument === "beta") {
+          completedState = args[1];
+          completedPipeStatus = stateMonitor(args[1])?.lazyPipeStatus;
+          now = 60;
+        }
+      };
+      if (result instanceof Promise) return result.then(value => { capture(); return value; });
+      capture();
+      return result;
+    });
+    await assert.rejects(shell.exec(source), { limit: "maxCpuMs" });
+    assert.ok(completedState);
+    assert.equal(completedState.lastArgument, "beta");
+    assert.equal(completedState.status, 0);
+    assert.deepEqual(completedPipeStatus, [0]);
+  } finally { await shell.dispose(); }
+});
+
+for (const limit of ["maxCpuMs", "maxWallClockMs"] as const) {
+  test(`empty execution does not spend the next invocation's ${limit} while idle`, async t => {
+    let now = 0;
+    t.mock.method(globalThis.performance, "now", () => now);
+    t.mock.timers.enable({ apis: ["Date", "setTimeout"], now: 0 });
+    const shell = new Shell({ fs: createMemoryFileSystem(), limits: { [limit]: 40 } }).use(agentCommands());
+    try {
+      await shell.exec("");
+      now = 60;
+      t.mock.timers.tick(60);
+      const result = await shell.exec("echo hi");
+      assert.equal(result.stdout, "hi\n");
+      assert.equal(result.exitCode, 0);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("empty execution leaves the full parse budget for cached redirects and write fallback", async () => {
+  const source = "echo alpha > /d/f1\necho beta > /d/f2\necho gamma > /d/f3";
+  const parsing = new ParseBudget();
+  let offset = 0;
+  do { offset = parseShellUnit(source, offset, false, parsing).next; } while (offset < source.length);
+  const seedFs = createMemoryFileSystem();
+  await seedFs.mkdir("/d");
+  const seed = new Shell({ fs: seedFs }).use(agentCommands());
+  try { await seed.exec(source); } finally { await seed.dispose(); }
+  for (const directoryTarget of [false, true]) {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/d");
+    if (directoryTarget) await fs.mkdir("/d/f2");
+    const shell = new Shell({ fs, limits: { maxParseUnits: parsing.admittedUnits } }).use(agentCommands());
+    try {
+      await shell.exec("");
+      const result = await shell.exec(source);
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stderr, directoryTarget ? "shell: line 2: /d/f2: Is a directory\n" : "");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/d/f1")), "alpha\n");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/d/f3")), "gamma\n");
+    } finally { await shell.dispose(); }
+  }
+});
 
 test("empty execution does not run hidden scripts or reinstall host plugins", async t => {
   let setups = 0;

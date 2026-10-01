@@ -69,6 +69,10 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
           resources.admit("retained", text.length * 5);
           await writeBytes(error ? stderr!.output : stdout!.output, new TextEncoder().encode(text), context.signal);
         };
+        if (context.args.length === 1 && (context.args[0] === "-ver" || context.args[0] === "--version")) {
+          await output(exiftoolRegistry.source.version + "\n");
+          return { exitCode: 0 };
+        }
         let invocation;
         try {
           const carrier = getCommandArguments(context);

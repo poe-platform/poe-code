@@ -198,4 +198,63 @@ describe("safe-bash CLI and workspace backend", () => {
     expect(stdout).toContain("pixelWidth: 64");
     expect(stdout).toContain("h264");
   });
+
+  it("emits memory, CPU, and I/O telemetry for executed safe-bash commands", async () => {
+    const workspaceBackend = new MemoryFileSystem();
+    const records: Array<Record<string, unknown>> = [];
+
+    const exitCode = await runSafeBashCli(
+      ["-lc", "printf 'hello-telemetry'; printf 'warn-msg\\n' >&2"],
+      {
+        workspaceRoot: "/workspace/telemetry",
+        cwd: "/workspace/telemetry",
+        homeDir: "/Users/test",
+        workspaceBackend,
+        stdout: () => {},
+        stderr: () => {},
+        onTelemetry: (record) => {
+          records.push(record as unknown as Record<string, unknown>);
+        }
+      }
+    );
+
+    expect(exitCode).toBe(0);
+    expect(records).toHaveLength(1);
+    expect(records[0]).toMatchObject({
+      cwd: "/workspace/telemetry",
+      workspaceRoot: "/workspace/telemetry",
+      command: "printf 'hello-telemetry'; printf 'warn-msg\\n' >&2",
+      exitCode: 0,
+      stdoutBytes: 15,
+      stderrBytes: 9,
+      stderrPreview: "warn-msg\n"
+    });
+    expect(typeof records[0]?.wallMs).toBe("number");
+    expect(typeof records[0]?.rssAfterMB).toBe("number");
+    expect(typeof records[0]?.heapUsedAfterMB).toBe("number");
+  });
+
+  it("supports Codex shell-snapshot exec builtin, sqlite3 BEGIN TRANSACTION + .import, and exiftool -ImageDescription/-ver", async () => {
+    const workspaceBackend = new MemoryFileSystem();
+    const outChunks: Uint8Array[] = [];
+
+    const exitCode = await runSafeBashCli(
+      ["-lc", "exec '/bin/bash' -c 'printf \"k,v\\nA,10\\nB,20\\n\" > kv.csv && printf \"CREATE TABLE kv(k TEXT PRIMARY KEY, v INT);\\nBEGIN TRANSACTION;\\n.mode csv\\n.import --skip 1 kv.csv kv\\nCOMMIT;\\nSELECT SUM(v) FROM kv;\\n\" | sqlite3 test.db && exiftool -ver && magick -size 32x32 xc:#ef4444 card.jpg && exiftool -overwrite_original -Artist=Poe -ImageDescription=Hero card.jpg && exiftool -j card.jpg | jq -r \".[0].ImageDescription\"'"],
+      {
+        workspaceRoot: "/workspace/regressions",
+        cwd: "/workspace/regressions",
+        homeDir: "/Users/test",
+        workspaceBackend,
+        stdout: (bytes) => {
+          outChunks.push(bytes);
+        }
+      }
+    );
+
+    const stdout = Buffer.concat(outChunks.map((b) => Buffer.from(b))).toString("utf8");
+    expect(exitCode).toBe(0);
+    expect(stdout).toContain("30");
+    expect(stdout).toContain("13.59");
+    expect(stdout).toContain("Hero");
+  });
 });

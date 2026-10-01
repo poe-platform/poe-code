@@ -3087,6 +3087,77 @@ export class SqliteDatabase {
         resolvedKeySets.push(index.columns.map((cKey, i) => ({ cKey, collate: index.collations?.[i] ?? tbl.columns.find(col => col.name === cKey)?.collate ?? "BINARY" })));
       }
     }
+    if (resolvedKeySets.length === 0 && candidate.rowid >= tbl.nextRowId) {
+      return null;
+    }
+    const canUseFastIndex =
+      excludeRowid === undefined &&
+      tbl.rows.length > 32 &&
+      resolvedKeySets.every((ks) => ks.every((k) => k.collate === "BINARY"));
+    if (canUseFastIndex) {
+      type FastIndex = {
+        len: number;
+        lastRow: TableRow | undefined;
+        byRowid: Map<number, TableRow>;
+        byKeySets: Map<string, TableRow>[];
+      };
+      const encodeKey = (row: TableRow, ks: { cKey: string }[]): string | null => {
+        if (ks.length === 1) {
+          const v = row.data[ks[0]!.cKey] ?? null;
+          if (v === null) return null;
+          return `${typeof v}:${String(v)}`;
+        }
+        const parts: string[] = [];
+        for (const { cKey } of ks) {
+          const v = row.data[cKey] ?? null;
+          if (v === null) return null;
+          parts.push(`${typeof v}:${String(v)}`);
+        }
+        return parts.join("\x1f");
+      };
+      const indexRow = (idx: FastIndex, row: TableRow) => {
+        idx.byRowid.set(row.rowid, row);
+        for (let i = 0; i < resolvedKeySets.length; i += 1) {
+          const k = encodeKey(row, resolvedKeySets[i]!);
+          if (k !== null) {
+            idx.byKeySets[i]!.set(k, row);
+          }
+        }
+      };
+      let fastIdx = (tbl as unknown as { __fastConflictIndex?: FastIndex }).__fastConflictIndex;
+      if (
+        !fastIdx ||
+        fastIdx.byKeySets.length !== resolvedKeySets.length ||
+        (fastIdx.len !== tbl.rows.length &&
+          !(fastIdx.len + 1 === tbl.rows.length && fastIdx.lastRow === tbl.rows[tbl.rows.length - 2]))
+      ) {
+        fastIdx = {
+          len: tbl.rows.length,
+          lastRow: tbl.rows[tbl.rows.length - 1],
+          byRowid: new Map(),
+          byKeySets: resolvedKeySets.map(() => new Map())
+        };
+        for (const r of tbl.rows) {
+          indexRow(fastIdx, r);
+        }
+        (tbl as unknown as { __fastConflictIndex?: FastIndex }).__fastConflictIndex = fastIdx;
+      } else if (fastIdx.len + 1 === tbl.rows.length) {
+        const added = tbl.rows[tbl.rows.length - 1]!;
+        indexRow(fastIdx, added);
+        fastIdx.len = tbl.rows.length;
+        fastIdx.lastRow = added;
+      }
+      const byId = fastIdx.byRowid.get(candidate.rowid);
+      if (byId) return byId;
+      for (let i = 0; i < resolvedKeySets.length; i += 1) {
+        const k = encodeKey(candidate, resolvedKeySets[i]!);
+        if (k !== null) {
+          const hit = fastIdx.byKeySets[i]!.get(k);
+          if (hit) return hit;
+        }
+      }
+      return null;
+    }
 
     for (const existing of tbl.rows) {
       yield;

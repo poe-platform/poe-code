@@ -192,7 +192,7 @@ export const defaultLimits: ResolvedShellLimits = {
 };
 
 const shellBuiltinNames = new Set([
-  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", ]);
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", ]);
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
@@ -18153,6 +18153,47 @@ export class Runtime {
             const exitCode = await this.evalBuiltin(context, state, { ...io, ...context }, special);
             state.lastArgument = context.args.at(-1) ?? context.command;
             return { exitCode };
+          }
+          if (context.command === "exec") {
+            let execIdx = 0;
+            while (execIdx < context.args.length) {
+              const f = context.args[execIdx];
+              if (f === "--") { execIdx += 1; break; }
+              if (f === "-a" && execIdx + 1 < context.args.length) { execIdx += 2; continue; }
+              if (f === "-c" || f === "-l") { execIdx += 1; continue; }
+              break;
+            }
+            const execRest = context.args.slice(execIdx);
+            if (execRest.length === 0) {
+              return { exitCode: 0 };
+            }
+            const execCmd = execRest[0];
+            const execArgs = execRest.slice(1);
+            if (
+              execCmd === "bash" ||
+              execCmd === "sh" ||
+              execCmd === "safe-bash" ||
+              execCmd.endsWith("/bash") ||
+              execCmd.endsWith("/sh") ||
+              execCmd.endsWith("/safe-bash")
+            ) {
+              const interpName = execCmd === "sh" || execCmd.endsWith("/sh") ? "sh" : "bash";
+              let cFlagIdx = -1;
+              for (let k = 0; k < execArgs.length; k += 1) {
+                const a = execArgs[k];
+                if (a === "-c" || a === "-lc" || a === "-ic" || a === "-ilc" || a === "-lic") { cFlagIdx = k; break; }
+              }
+              if (cFlagIdx !== -1 && cFlagIdx + 1 < execArgs.length) {
+                const exitCode = await this.runCurrentText(execArgs[cFlagIdx + 1], state, { ...io, ...context }, false, "exec");
+                return { exitCode };
+              }
+              const exitCode = await this.runCurrentText(execArgs.join(" "), state, { ...io, ...context }, false, "exec");
+              return { exitCode };
+            }
+            const extDef = this.getExternalCommand(execCmd);
+            if (extDef) {
+              return await extDef.execute({ ...context, command: execCmd, args: execArgs });
+            }
           }
           const builtinWork = this.builtin({ ...context, [declarationArrays]: io[declarationArrays] }, state, assignments, (error, diagnostic) => { builtinFailure = { error, diagnostic }; }, bypassFunctions);
           const builtin = await interruptible(builtinWork, this.signal);

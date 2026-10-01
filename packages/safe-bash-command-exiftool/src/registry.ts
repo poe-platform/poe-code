@@ -1,7 +1,7 @@
 /** Independently admitted format/tag subset; this is not the full upstream catalog. */
 const textChunks = Object.freeze(["tEXt", "iTXt"]);
 const writeChunks: Readonly<Record<string, readonly string[]>> = Object.freeze({
-  Artist: textChunks, Title: textChunks, Author: textChunks, Description: textChunks,
+  Artist: textChunks, Title: textChunks, Author: textChunks, Description: textChunks, ImageDescription: textChunks, Software: textChunks,
   Comment: textChunks, Copyright: textChunks, ModifyDate: Object.freeze(["tIME"]),
 });
 export const exiftoolRegistry = Object.freeze({

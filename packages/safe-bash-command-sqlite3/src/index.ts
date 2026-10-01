@@ -1286,12 +1286,17 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           await execSingleStmt(createSql);
           tbl = db.findTable ? db.findTable(tableArg) : undefined;
         }
+        const batchValues: string[] = [];
         for (const r of dataRows) {
           if (r.length === 1 && r[0] === "" && colCount > 1) {
             continue;
           }
           const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replace(/'/g, "''")}'`).join(", ");
-          await execSingleStmt(`INSERT INTO "${tbl ? tbl.name : tableArg}" VALUES (${valsSql})`);
+          batchValues.push(`(${valsSql})`);
+        }
+        for (let b = 0; b < batchValues.length; b += 500) {
+          const chunk = batchValues.slice(b, b + 500);
+          await execSingleStmt(`INSERT INTO "${tbl ? tbl.name : tableArg}" VALUES ${chunk.join(", ")}`);
         }
         state.dirty = true;
         return;
@@ -1461,7 +1466,7 @@ export function createSqlite3Command(options: Sqlite3CommandsOptions = {}): Comm
           }
         } else {
           sqlBuffer.push(line);
-          if (trimmed.endsWith(";") && !/\bBEGIN\b/i.test(sqlBuffer.join("\n"))) {
+          if (trimmed.endsWith(";") && !(/\bCREATE\s+(?:TEMP\s+|TEMPORARY\s+)?TRIGGER\b[\s\S]*\bBEGIN\b/i.test(sqlBuffer.join("\n")) && !/\bEND\s*;\s*$/i.test(sqlBuffer.join("\n")))) {
             const ok = await flushSqlBuffer();
             if (!ok) {
               return false;
@@ -1876,7 +1881,7 @@ export function evalSyncSqlite3(
         const fileArg = parts[pIdx] ?? "";
         const tableArg = parts[pIdx + 1] ?? "";
         const fileBytes = readFileSync(fileArg);
-        if (!fileBytes || fileBytes.byteLength > 65536) return false;
+        if (!fileBytes || fileBytes.byteLength > 16 * 1024 * 1024) return false;
         const content = textDecoder.decode(fileBytes);
         const sep = csvOverride ? "," : state.colSeparator;
         const parsedRows = parseCsvContent(content, sep).slice(skipRows);
@@ -1892,10 +1897,15 @@ export function evalSyncSqlite3(
           db.executeStatement(createSql);
           tbl = db.findTable(tableArg);
         }
+        const batchValues: string[] = [];
         for (const r of dataRows) {
           if (r.length === 1 && r[0] === "" && colCount > 1) continue;
           const valsSql = Array.from({ length: colCount }, (_, cIdx) => `'${(r[cIdx] ?? "").replace(/'/g, "''")}'`).join(", ");
-          db.executeStatement(`INSERT INTO "${tbl ? tbl.name : tableArg}" VALUES (${valsSql})`);
+          batchValues.push(`(${valsSql})`);
+        }
+        for (let b = 0; b < batchValues.length; b += 500) {
+          const chunk = batchValues.slice(b, b + 500);
+          db.executeStatement(`INSERT INTO "${tbl ? tbl.name : tableArg}" VALUES ${chunk.join(", ")}`);
         }
         state.dirty = true;
         return true;
@@ -1943,7 +1953,7 @@ export function evalSyncSqlite3(
           if (state.exitRequested) return true;
         } else {
           sqlBuffer.push(line);
-          if (trimmed.endsWith(";") && !/\bBEGIN\b/i.test(sqlBuffer.join("\n"))) {
+          if (trimmed.endsWith(";") && !(/\bCREATE\s+(?:TEMP\s+|TEMPORARY\s+)?TRIGGER\b[\s\S]*\bBEGIN\b/i.test(sqlBuffer.join("\n")) && !/\bEND\s*;\s*$/i.test(sqlBuffer.join("\n")))) {
             if (!flushSqlBuffer()) return false;
             if (state.exitRequested) return true;
           }

@@ -1,7 +1,7 @@
 import type { MetadataTag, TagAssignment } from "./png.js";
 import { Resources, type EngineOptions } from "./resources.js";
 
-export const jpegWriteTags: Readonly<Record<string, number>> = Object.freeze({ Artist: 0x013b, Copyright: 0x8298 });
+export const jpegWriteTags: Readonly<Record<string, number>> = Object.freeze({ ImageDescription: 0x010e, Description: 0x010e, Software: 0x0131, Artist: 0x013b, Copyright: 0x8298 });
 interface Segment { marker: number; start: number; end: number; payload: Uint8Array }
 function segments(bytes: Uint8Array, resources: Resources): Segment[] {
   resources.admit("input", bytes.length);

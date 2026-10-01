@@ -14,7 +14,6 @@ import {
   optionalCommands,
   csvcutCommands,
   csvgrepCommands,
-  exiftoolCommands,
   htmlqCommands,
   mdqCommands,
   yqCommands,
@@ -26,6 +25,8 @@ import {
 } from "@poe-platform/safe-bash";
 import { xanCommands } from "safe-bash-command-xan";
 import { mikeYqCommands } from "safe-bash-command-yq/mike";
+import { createSqlite3Commands } from "safe-bash-command-sqlite3";
+import { exiftoolCommands } from "safe-bash-command-exiftool";
 
 export interface WorkspaceFileSystemOptions {
   workspaceRoot: string;
@@ -45,6 +46,26 @@ export interface ParsedSafeBashCliArgs {
   version?: boolean;
 }
 
+export interface SafeBashTelemetryRecord {
+  timestamp: string;
+  pid: number;
+  cwd: string;
+  workspaceRoot: string;
+  command: string;
+  exitCode: number;
+  wallMs: number;
+  cpuUserMs: number;
+  cpuSysMs: number;
+  rssBeforeMB: number;
+  rssAfterMB: number;
+  heapUsedBeforeMB: number;
+  heapUsedAfterMB: number;
+  arrayBuffersMB: number;
+  stdoutBytes: number;
+  stderrBytes: number;
+  stderrPreview?: string;
+}
+
 export interface SafeBashCliOptions {
   cwd?: string;
   workspaceRoot?: string;
@@ -55,6 +76,7 @@ export interface SafeBashCliOptions {
   stdin?: string | Uint8Array;
   stdout?: (bytes: Uint8Array) => void | Promise<void>;
   stderr?: (bytes: Uint8Array) => void | Promise<void>;
+  onTelemetry?: (record: SafeBashTelemetryRecord) => void | Promise<void>;
 }
 
 function normalizePosixMountPath(targetPath: string): string {
@@ -73,6 +95,19 @@ function tryRealpath(targetPath: string): string {
   } catch {
     return targetPath;
   }
+}
+
+function getMacOsAliasPaths(mountPath: string): string[] {
+  const aliases = new Set<string>([mountPath]);
+  for (const prefix of ["/tmp", "/var", "/etc"]) {
+    const privatePrefix = `/private${prefix}`;
+    if (mountPath === prefix || mountPath.startsWith(`${prefix}/`)) {
+      aliases.add(`/private${mountPath}`);
+    } else if (mountPath === privatePrefix || mountPath.startsWith(`${privatePrefix}/`)) {
+      aliases.add(mountPath.slice("/private".length));
+    }
+  }
+  return [...aliases];
 }
 
 function isSubpathOrEqual(parentDir: string, candidatePath: string): boolean {
@@ -98,8 +133,13 @@ function createWorkspaceRealFileSystem(rootPath: string): FileSystem {
           atomicFileStaging: true,
           atomicFileMutation: true,
           atomicDirectoryMetadata: true,
-          retainedStagingCleanup: true
+          retainedStagingCleanup: true,
+          retainedRead: true,
+          atomicStagingAncestry: true
         };
+      }
+      if (prop === "confineExtraction") {
+        return async () => receiver;
       }
       if (prop === "readlink") {
         return async (relPath: string, options?: { signal?: AbortSignal }) => {
@@ -218,11 +258,12 @@ export async function createWorkspaceFileSystem(
 
   const workspaceFs =
     options.workspaceBackend ?? createWorkspaceRealFileSystem(realWorkspace);
-  const mounts: Record<string, FileSystem> = {
-    [workspaceMountPath]: workspaceFs
-  };
-  if (realWorkspaceMountPath !== workspaceMountPath) {
-    mounts[realWorkspaceMountPath] = workspaceFs;
+  const mounts: Record<string, FileSystem> = {};
+  for (const alias of [
+    ...getMacOsAliasPaths(workspaceMountPath),
+    ...getMacOsAliasPaths(realWorkspaceMountPath)
+  ]) {
+    mounts[alias] = workspaceFs;
   }
 
   const cwdMountPath = normalizePosixMountPath(resolvedCwd);
@@ -240,13 +281,31 @@ export async function createWorkspaceFileSystem(
       try {
         if (fs.statSync(realCwd).isDirectory()) {
           const cwdFs = createWorkspaceRealFileSystem(realCwd);
-          mounts[cwdMountPath] = cwdFs;
-          if (realCwdMountPath !== cwdMountPath) {
-            mounts[realCwdMountPath] = cwdFs;
+          for (const alias of [
+            ...getMacOsAliasPaths(cwdMountPath),
+            ...getMacOsAliasPaths(realCwdMountPath)
+          ]) {
+            mounts[alias] = cwdFs;
           }
         }
       } catch {
         // Ignore non-existent cwd on host; fall back to workspaceMountPath
+      }
+    }
+  }
+
+  if (!options.workspaceBackend) {
+    for (const agentRelDir of [".codex", ".agents"]) {
+      const candidateDir = path.join(homeDir, agentRelDir);
+      try {
+        if (fs.statSync(candidateDir).isDirectory()) {
+          const candidateMount = normalizePosixMountPath(candidateDir);
+          if (!Object.keys(mounts).some((root) => isSubpathOrEqual(root, candidateMount))) {
+            mounts[candidateMount] = createWorkspaceRealFileSystem(tryRealpath(candidateDir));
+          }
+        }
+      } catch {
+        // Ignore missing host agent config directories
       }
     }
   }
@@ -262,11 +321,33 @@ export async function createWorkspaceFileSystem(
   const effectiveCwd =
     cwdCovered || mounts[cwdMountPath] !== undefined ? cwdMountPath : workspaceMountPath;
 
+  const baseMountFs = new MountFileSystem({
+    root: memoryRoot,
+    mounts
+  });
+  const mountFsProxy: FileSystem = new Proxy(baseMountFs, {
+    get(target, prop, receiver) {
+      if (prop === "confineExtraction") {
+        return async () => mountFsProxy;
+      }
+      if (prop === "capabilitiesFor") {
+        return async (targetPath: string, opts?: { signal?: AbortSignal }) => {
+          try {
+            if (typeof target.capabilitiesFor === "function") {
+              return await target.capabilitiesFor(targetPath, opts);
+            }
+          } catch {
+            // Fall through to default capabilities on unmounted synthetic prefix directories
+          }
+          return target.capabilities;
+        };
+      }
+      const value = Reflect.get(target, prop, receiver);
+      return typeof value === "function" ? value.bind(target) : value;
+    }
+  });
   return {
-    fs: new MountFileSystem({
-      root: memoryRoot,
-      mounts
-    }),
+    fs: mountFsProxy,
     cwd: effectiveCwd,
     workspaceRoot: workspaceMountPath
   };
@@ -493,6 +574,16 @@ export async function runSafeBashCli(
     }
   }
 
+  if (source !== undefined && source.includes("__CODEX_SNAPSHOT_OVERRIDE_SET_0=")) {
+    const execLineMatch = /\nexec\s+(?:'[^']+'|"[^"]+"|\S+)\s+(?:-[lci]+\s+)+('[\s\S]*'|"([\s\S]*)")\s*$/.exec(source);
+    if (execLineMatch) {
+      const rawQuoted = execLineMatch[1]!;
+      if (rawQuoted.startsWith("'") && rawQuoted.endsWith("'")) {
+        source = rawQuoted.slice(1, -1).replace(/'\\''/g, "'");
+      }
+    }
+  }
+
   if (source === undefined) {
     if (typeof options.stdin === "string") {
       source = options.stdin;
@@ -609,6 +700,15 @@ export async function runSafeBashCli(
     }
   });
 
+  const memBefore = process.memoryUsage();
+  const cpuBefore = process.cpuUsage();
+  const startWallMs = performance.now();
+  let stdoutBytes = 0;
+  let stderrBytes = 0;
+  const stderrSampleChunks: Uint8Array[] = [];
+  let stderrSampleLen = 0;
+  let exitCode = 1;
+
   try {
     const result = await shell.exec(source, {
       ...(options.stdin !== undefined && parsed.command !== undefined
@@ -616,17 +716,65 @@ export async function runSafeBashCli(
         : {}),
       stdout: {
         async write(bytes) {
+          stdoutBytes += bytes.byteLength;
           await writeStdout(bytes);
         }
       },
       stderr: {
         async write(bytes) {
+          stderrBytes += bytes.byteLength;
+          if (stderrSampleLen < 512) {
+            const slice = bytes.subarray(0, Math.min(bytes.byteLength, 512 - stderrSampleLen));
+            stderrSampleChunks.push(slice.slice());
+            stderrSampleLen += slice.byteLength;
+          }
           await writeStderr(bytes);
         }
       }
     });
-    return result.exitCode;
+    exitCode = result.exitCode;
+    return exitCode;
   } finally {
+    const wallMs = Number((performance.now() - startWallMs).toFixed(2));
+    const cpuDelta = process.cpuUsage(cpuBefore);
+    const memAfter = process.memoryUsage();
+    const toMB = (n: number) => Number((n / (1024 * 1024)).toFixed(2));
+    const telemetryLogPath = baseEnv.SAFE_BASH_TELEMETRY_LOG;
+    if (options.onTelemetry || telemetryLogPath) {
+      const stderrPreview =
+        stderrSampleLen > 0
+          ? Buffer.concat(stderrSampleChunks.map((c) => Buffer.from(c))).toString("utf8")
+          : undefined;
+      const record: SafeBashTelemetryRecord = {
+        timestamp: new Date().toISOString(),
+        pid: process.pid,
+        cwd,
+        workspaceRoot,
+        command: source,
+        exitCode,
+        wallMs,
+        cpuUserMs: Number((cpuDelta.user / 1000).toFixed(2)),
+        cpuSysMs: Number((cpuDelta.system / 1000).toFixed(2)),
+        rssBeforeMB: toMB(memBefore.rss),
+        rssAfterMB: toMB(memAfter.rss),
+        heapUsedBeforeMB: toMB(memBefore.heapUsed),
+        heapUsedAfterMB: toMB(memAfter.heapUsed),
+        arrayBuffersMB: toMB(memAfter.arrayBuffers),
+        stdoutBytes,
+        stderrBytes,
+        ...(stderrPreview !== undefined ? { stderrPreview } : {})
+      };
+      if (options.onTelemetry) {
+        await options.onTelemetry(record);
+      }
+      if (telemetryLogPath) {
+        try {
+          fs.appendFileSync(telemetryLogPath, `${JSON.stringify(record)}\n`, "utf8");
+        } catch {
+          // Best-effort telemetry file append
+        }
+      }
+    }
     await shell.dispose();
   }
 }

@@ -4414,6 +4414,7 @@ export class Runtime {
     return true;
   }
   private tryBuildSyncPatternWord(word: Word, rawState: State, io: IO, diagnosticLine?: number): string | undefined {
+    if (word.plain !== undefined) return word.plain.startsWith("~") ? undefined : word.plain;
     if (word.parts.length === 0) return undefined;
     let out = "";
     for (let i = 0; i < word.parts.length; i++) {
@@ -7042,13 +7043,11 @@ export class Runtime {
       let redirectSink: MemoryRedirectSink | undefined;
       if (command.redirects.length === 1) {
         const r0 = command.redirects[0]!;
-        let targetVal: ShellValue | undefined = r0.target.plain;
-        if (targetVal === undefined) {
-          try {
-            targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
-          } catch {
-            return undefined;
-          }
+        let targetVal: ShellValue | undefined;
+        try {
+          targetVal = this.fastValueWord(r0.target, rawState, io, true, false, false, true, undefined, diagnosticLine);
+        } catch {
+          return undefined;
         }
         if (typeof targetVal !== "string" || !targetVal || targetVal.includes("\0")) return undefined;
         let cachedFile = (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile;
@@ -9274,7 +9273,7 @@ export class Runtime {
         const clause = command.clauses[cIdx]!;
         for (let pIdx = 0; pIdx < clause.patterns.length; pIdx++) {
           const pw = clause.patterns[pIdx]!;
-          const pStr = pw.plain ?? this.tryBuildSyncPatternWord(pw, rawState, io, diagnosticLine);
+          const pStr = this.tryBuildSyncPatternWord(pw, rawState, io, diagnosticLine);
           if (pStr === undefined) return undefined;
           const matched = tryMatchesPatternSync(pStr, fastSubject, work, false, false);
           if (matched === undefined) return undefined;
@@ -12724,7 +12723,7 @@ export class Runtime {
     const work = { remaining: 4096, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
     for (const cl of cmd.clauses) {
       if (cl.terminator !== ";;" && cl.terminator !== "esac") return false;
-      if (!cl.patterns.every(pw => pw.plain !== undefined && tryMatchesPatternSync(pw.plain, "", work, false, false) !== undefined)) return false;
+      if (!cl.patterns.every(pw => pw.plain !== undefined && !pw.plain.startsWith("~") && tryMatchesPatternSync(pw.plain, "", work, false, false) !== undefined)) return false;
       if (!isSimpleEchoOrPrintf(cl.body)) return false;
     }
     return true;
@@ -12796,7 +12795,7 @@ export class Runtime {
             if (!cl.patterns.every(pw => {
               if (!pw.parts.every(p => p.kind === "text")) return false;
               if (pw.plain === undefined && !pw.parts.every(p => p.quoted)) return false;
-              const pattern = pw.plain ?? (io ? this.tryBuildSyncPatternWord(pw, rawState, io) : undefined);
+              const pattern = (io ? this.tryBuildSyncPatternWord(pw, rawState, io) : (pw.plain?.startsWith("~") ? undefined : pw.plain));
               return pattern !== undefined && tryMatchesPatternSync(pattern, "", work, false, false) !== undefined;
             })) { caseOk = false; break; }
             if (!this.canSyncLoopBody(cl.body, rawState, io, true, printfInductionName, integerWrites)) { caseOk = false; break; }
@@ -15778,7 +15777,7 @@ export class Runtime {
     for (let ci = 0; ci < step.caseClauses!.length; ci++) {
       const cl = step.caseClauses![ci]!;
       for (let pi = 0; pi < cl.patterns.length; pi++) {
-        const pattern = cl.patterns[pi]!.plain ?? this.tryBuildSyncPatternWord(cl.patterns[pi]!, rawState, io, step.line);
+        const pattern = this.tryBuildSyncPatternWord(cl.patterns[pi]!, rawState, io, step.line);
         if (pattern !== undefined && tryMatchesPatternSync(pattern, subj, work, false, false)) {
           chosen = cl.steps;
           break;
@@ -16836,7 +16835,7 @@ export class Runtime {
             if (clause.terminator !== ";;" && clause.terminator !== "esac") { allFast = false; break; }
             for (let pIdx = 0; pIdx < clause.patterns.length; pIdx++) {
               const pw = clause.patterns[pIdx]!;
-              const pStr = pw.plain ?? (pw.parts.length === 1 && pw.parts[0]!.kind === "text" && !pw.parts[0]!.quoted && !pw.parts[0]!.value.includes("~") ? pw.parts[0]!.value : undefined);
+              const pStr = this.tryBuildSyncPatternWord(pw, state, originalIO, diagnosticLine);
               if (pStr === undefined) { allFast = false; break; }
               const m = tryMatchesPatternSync(pStr, fastSubject, work, false, false);
               if (m === undefined) { allFast = false; break; }
@@ -30630,7 +30629,7 @@ export class Runtime {
         for (const cl of cmd.clauses) {
           let matched = false;
           for (const pw of cl.patterns) {
-            if (pw.plain !== undefined && tryMatchesPatternSync(pw.plain, subj, work, false, false) === true) {
+            if (pw.plain !== undefined && !pw.plain.startsWith("~") && tryMatchesPatternSync(pw.plain, subj, work, false, false) === true) {
               matched = true;
               break;
             }

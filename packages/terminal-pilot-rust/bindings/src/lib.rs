@@ -25,7 +25,7 @@ pub fn terminal_key_sequence(input: Utf16String) -> NativeJson {
     })
 }
 fn dimension(value: f64) -> Result<usize> {
-    if !value.is_finite() || value < 1.0 || value > 1000.0 || value.fract() != 0.0 {
+    if !value.is_finite() || !(1.0..=1000.0).contains(&value) || value.fract() != 0.0 {
         return Err(Error::from_reason(
             "Terminal dimensions must be integers between 1 and 1000.",
         ));

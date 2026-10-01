@@ -15,6 +15,10 @@ function createShell(fs = createMemoryFileSystem()) {
 }
 
 const cases = [
+  'd=";"; read -r -d "$d" <<< "value;"; printf "<%s>\\n" "$_"',
+  'd=";"; for i in 1 2; do read -r -d "$d"; printf "<%s>\\n" "$_"; done <<< "one;two;"',
+  `s=$'a\\nb'; for i in 1 2; do [[ $s =~ ^.+$ ]]; echo "$?"; [[ foo =~ ^(?:foo)$ ]] 2>/dev/null; echo "$?"; [[ ']a' =~ ^[]a]+$ ]]; echo "$?"; done`,
+  'x="a]b"; for i in 1 2; do echo "${x/[]a]/Z} ${x/[!]]/Z}"; done',
   'other=(); arr=("${other[@]}"); printf "%s\\n" "${#arr[@]}"',
   'other=(x "y z"); arr=("${other[@]}"); printf "%s\\n" "${#arr[@]}" "${arr[@]}"',
   'other=(x y); arr=(start); arr+=("${other[@]}"); printf "%s\\n" "${#arr[@]}" "${arr[@]}"',
@@ -114,4 +118,30 @@ test("compound arithmetic fallback keeps diagnostics in shell stderr", async con
     assert.match(result.stderr, /division by 0/u);
     assert.equal(log.mock.callCount(), 0);
   } finally { await shell.dispose(); }
+});
+
+for (const [source, stdout] of [
+  ['for i in {1..3}; do echo "hi_$i"; done', 'hi_1\nhi_2\nhi_3\n'],
+  ['for ((i=1; i<=3; i++)); do echo "hi_$i"; done', 'hi_1\nhi_2\nhi_3\n'],
+  ['while read -r x; do echo "$x"; done <<< "hello"', 'hello\n'],
+  ['mapfile -t lines <<< "hello"; printf "%s\\n" "${lines[@]}"', 'hello\n'],
+  ['eval "echo ok"', 'ok\n'],
+  ["trap 'echo done' EXIT; trap -p", "trap -- 'echo done' EXIT\ndone\n"],
+  ['prefix_a=1; prefix_b=2; echo "${!prefix*}"', 'prefix_a prefix_b\n'],
+  ['echo hello | xargs echo', 'hello\n'],
+  ['x=aaa; echo "${x/a/b}"', 'baa\n'],
+  ['x="éa"; echo "${x^^}"', 'éA\n'],
+] as const) test(`shell fast paths without global Buffer: ${source}`, async () => {
+  const shell = createShell();
+  const buffer = globalThis.Buffer;
+  try {
+    Reflect.deleteProperty(globalThis, "Buffer");
+    const result = await shell.exec(source);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, stdout);
+    assert.equal(result.exitCode, 0);
+  } finally {
+    globalThis.Buffer = buffer;
+    await shell.dispose();
+  }
 });

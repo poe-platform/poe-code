@@ -10433,6 +10433,7 @@ export class Runtime {
             let simpleRead = true;
             let readDelim = 10;
             let arrayTarget: string | undefined;
+            let readLastArgument = command.words[command.words.length - 1]!.plain;
             while (readWordIdx < command.words.length) {
               const p = command.words[readWordIdx]!.plain;
               if (p === undefined) { simpleRead = false; break; }
@@ -10452,6 +10453,7 @@ export class Runtime {
                           delimStr = undefined;
                         }
                       }
+                      if (readWordIdx === command.words.length - 1) readLastArgument = delimStr;
                     }
                     if (delimStr !== undefined && delimStr.length >= 1 && delimStr.charCodeAt(0) > 0 && delimStr.charCodeAt(0) < 128) {
                       readDelim = delimStr.charCodeAt(0);
@@ -10659,7 +10661,7 @@ export class Runtime {
                   this.budget.tick();
                   rawState.substitutionStatus = 0;
                   if (rawState.variables._ !== undefined) delete rawState.variables._;
-                  rawState.lastArgument = command.words[command.words.length - 1]!.plain!;
+                  rawState.lastArgument = readLastArgument!;
                   if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
                   if (!existing) {
                     monitor.lazyPipeStatus = singleStatusZero;

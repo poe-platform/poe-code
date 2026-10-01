@@ -4,6 +4,10 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 
 const cases: Array<[string, string]> = [
+  ['d=";"; for i in 1 2; do read -r -d "$d"; echo "<$_>"; done <<< "one;two;"', '<;>\n<;>\n'],
+  ['REPLY=";suffix"; for i in 1; do read -r -d "$REPLY"; echo "<$_>:$REPLY"; done <<< "value;"', '<;suffix>:value\n'],
+  ['d=";"; for i in 1; do read -d "$d" -r; echo "<$_>:$REPLY"; done <<< "value;"', '<-r>:value\n'],
+  ['d=";"; for i in 1; do read -r -d "$d" value; echo "<$_>:$value"; done <<< "value;"', '<value>:value\n'],
   ['for i in {1..3}; do echo "hi_$i"; done', 'hi_1\nhi_2\nhi_3\n'],
   ['echo "$(for i in {1..3}; do echo "hi_$i"; done)"', 'hi_1\nhi_2\nhi_3\n'],
   ['for i in {1..3}; do echo "hi_$i"; done > /out.txt; pass < /out.txt', 'hi_1\nhi_2\nhi_3\n'],

@@ -6,7 +6,7 @@ import { createCommandArguments, type CommandContext } from "safe-bash-contracts
 import type { ByteSink } from "safe-bash-contracts/io";
 import { shellValueFromBytes, type ShellValue } from "safe-bash-contracts/value";
 import { createExiftoolCommand, type ExiftoolCommandOptions } from "./command.js";
-import { fixture } from "./fixtures.js";
+import { fixture } from "../tests/fixtures.js";
 import { pngChunk } from "./png.js";
 
 test("short, grouped, XML, literal template and tabular extraction", async () => {

@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { getCommandArguments, type CommandContext } from "safe-bash-contracts/command";
 import { createExiftoolCommand } from "./command.js";
 import { createExiftoolArguments } from "./sdk.js";
-import { fixture } from "./fixtures.js";
+import { fixture } from "../tests/fixtures.js";
 
 const signal = new AbortController().signal;
 

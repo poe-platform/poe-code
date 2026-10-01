@@ -4,10 +4,12 @@
     "noEmit": true,
     "types": [
       "node"
-    ]
+    ],
+    "rootDir": "."
   },
   "include": [
-    "src"
+    "src",
+    "tests"
   ],
   "exclude": []
 }

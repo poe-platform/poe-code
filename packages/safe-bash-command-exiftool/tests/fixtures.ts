@@ -1,5 +1,5 @@
 import { crc32 } from "node:zlib";
-import { pngChunk } from "./png.js";
+import { pngChunk } from "../src/png.js";
 export function fixture(...titles: string[]): Uint8Array {
   // Original one-pixel image chunks: independent fixture bytes, not the writer.
   const base = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a5xkAAAAASUVORK5CYII=", "base64");

@@ -17,9 +17,9 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && rm -rf dist && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
-    "lint": "eslint src && npm run typecheck",
+    "lint": "eslint src tests && npm run typecheck",
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { fixture } from "./fixtures.js";
+import { fixture } from "../tests/fixtures.js";
 import { inspectPng, editPng, pngChunk } from "./png.js";
 
 const signature = new Uint8Array([137,80,78,71,13,10,26,10]);

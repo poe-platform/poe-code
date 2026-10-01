@@ -576,6 +576,7 @@ export class Budget {
     return this._wallClockDeadline;
   }
   close(): void {
+    if (this._hasExternalSignal) releaseCombinedSignal(this.signal);
     const timer = this._wallClockTimer;
     if (timer === undefined) return;
     if (timer === true) {
@@ -2764,7 +2765,7 @@ export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: Fil
   void created.rm;
   reusableDefaultContextFsBySourceFs.set(sourceFs, { scoped: created, inUseBy: undefined });
 }
-import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, toNativeAbortSignal, type ManagedControlController } from "safe-bash-contracts/runtime-control";
+import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, releaseCombinedSignal, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, toNativeAbortSignal, type ManagedControlController } from "safe-bash-contracts/runtime-control";
 export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];

@@ -125,6 +125,8 @@ AbortSignal.any = function any(signals: Iterable<AbortSignal>): AbortSignal {
   );
 };
 
+const combinedSignalWaiters = new WeakMap<AbortSignal, CombinedSignalWaiter>();
+
 class CombinedSignalWaiter {
   declare readonly primary: AbortSignal;
   declare readonly secondary: AbortSignal;
@@ -136,10 +138,14 @@ class CombinedSignalWaiter {
     this.tertiary = tertiary;
     this.combined = combined;
   }
-  onAbort(reason: unknown): void {
+  dispose(): void {
+    combinedSignalWaiters.delete(this.combined.signal);
     removeAbortSignalWaiter(this.primary, this);
     removeAbortSignalWaiter(this.secondary, this);
     if (this.tertiary) removeAbortSignalWaiter(this.tertiary, this);
+  }
+  onAbort(reason: unknown): void {
+    this.dispose();
     this.combined.abort(reason);
   }
 }
@@ -150,10 +156,16 @@ export function combineManagedSignals(primary: AbortSignal, secondary: AbortSign
   if (tertiary?.aborted) return tertiary;
   const combined = new ManagedControlSignalImpl();
   const waiter = new CombinedSignalWaiter(primary, secondary, tertiary, combined);
+  combinedSignalWaiters.set(combined.signal, waiter);
   addAbortSignalWaiter(primary, waiter);
   addAbortSignalWaiter(secondary, waiter);
   if (tertiary) addAbortSignalWaiter(tertiary, waiter);
   return combined.signal;
+}
+
+/** Detach an owned combination without aborting borrowed inputs or completed work. */
+export function releaseCombinedSignal(signal: AbortSignal): void {
+  combinedSignalWaiters.get(signal)?.dispose();
 }
 
 export function createManagedControlController(): ManagedControlController {

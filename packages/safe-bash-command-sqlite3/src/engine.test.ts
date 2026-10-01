@@ -384,3 +384,34 @@ for (const [sql, expected] of [
     assert.deepEqual(new SqliteDatabase().exec(sql)[0]!.rows, expected);
   });
 }
+
+for (const alias of ['rowid', '_rowid_', 'oid']) {
+  test(`explicit ${alias} insert/update preserves identity and uniqueness`, () => {
+    const db = new SqliteDatabase();
+    db.exec(`CREATE TABLE t(x); INSERT INTO t(${alias}, x) VALUES (10, 'a')`);
+    assert.deepEqual(db.exec('SELECT rowid, x FROM t')[0]!.rows, [[10, 'a']]);
+    assert.throws(() => db.exec(`INSERT INTO t(${alias}, x) VALUES (10, 'b')`), /UNIQUE constraint failed/);
+    db.exec(`UPDATE t SET ${alias} = 20 WHERE rowid = 10; INSERT INTO t(x) VALUES ('b')`);
+    assert.deepEqual(db.exec('SELECT rowid, x FROM t')[0]!.rows, [[20, 'a'], [21, 'b']]);
+    assert.throws(() => db.exec(`UPDATE t SET ${alias} = 20 WHERE rowid = 21`), /UNIQUE constraint failed/);
+  });
+}
+
+test('rowid aliases synchronize integer primary keys and preserve shadowing', () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(id INTEGER PRIMARY KEY, x); INSERT INTO t(rowid, x) VALUES(10, 'a'); UPDATE t SET id=20");
+  assert.deepEqual(db.exec('SELECT id, rowid FROM t')[0]!.rows, [[20, 20]]);
+  db.exec('UPDATE t SET oid=30');
+  assert.deepEqual(db.exec('SELECT id, rowid FROM t')[0]!.rows, [[30, 30]]);
+  db.exec("CREATE TABLE shadow(rowid TEXT, x); INSERT INTO shadow(rowid, x) VALUES('label', 1); UPDATE shadow SET rowid='other'");
+  assert.deepEqual(db.exec('SELECT rowid, _rowid_ FROM shadow')[0]!.rows, [['other', 1]]);
+});
+test('rowid accepts numeric text and insert NULL but rejects invalid identities', () => {
+  const db = new SqliteDatabase();
+  db.exec("CREATE TABLE t(x); INSERT INTO t(rowid,x) VALUES('10','a'),(NULL,'b')");
+  assert.deepEqual(db.exec('SELECT rowid FROM t')[0]!.rows, [[10], [11]]);
+  for (const value of ["'invalid'", '1.5']) {
+    assert.throws(() => db.exec(`INSERT INTO t(rowid) VALUES(${value})`), /datatype mismatch/);
+    assert.throws(() => db.exec(`UPDATE t SET rowid=${value}`), /datatype mismatch/);
+  }
+});

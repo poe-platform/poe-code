@@ -3012,9 +3012,6 @@ export class SqliteDatabase {
       yield;
       keySets.push(u);
     }
-    if (keySets.length === 0 && candidate.rowid >= tbl.nextRowId) {
-      return null;
-    }
     const resolvedKeySets = yield* stepMap(keySets, function* (kSet) { yield;
       return kSet.map((colName) => {
         const realCol = tbl.columns.find((c) => {
@@ -3050,6 +3047,24 @@ export class SqliteDatabase {
       }
     }
     return null;
+  }
+
+  private synchronizeRowid(tbl: TableDef, candidate: TableRow, assigned: string[]): void {
+    if (tbl.withoutRowId) return;
+    const primary = tbl.columns.find(col => col.primaryKey && col.type.toUpperCase() === "INTEGER" && tbl.primaryKeyCols.length === 1);
+    for (const name of assigned) {
+      const column = tbl.columns.find(col => col.name.toLowerCase() === name.toLowerCase());
+      if (column ? column !== primary : !["rowid", "_rowid_", "oid"].includes(name.toLowerCase())) continue;
+      const key = column?.name ?? name;
+      const value = candidate.data[key];
+      if (value !== null && value !== undefined) {
+        const number = typeof value === "string" && value.trim() !== "" ? Number(value) : value;
+        if (typeof number !== "number" || !Number.isSafeInteger(number)) throw new Error("datatype mismatch");
+        candidate.rowid = number;
+      }
+      if (!column) delete candidate.data[key];
+    }
+    if (primary) candidate.data[primary.name] = candidate.rowid;
   }
 
   private *executeInsert(
@@ -3309,6 +3324,8 @@ export class SqliteDatabase {
       }
 
       const candidate: TableRow = { rowid, data };
+      this.synchronizeRowid(tbl, candidate, targetCols);
+      rowid = candidate.rowid;
       yield* this.fireTriggers(tbl.name, "BEFORE", "INSERT", undefined, candidate.data);
 
       const conflictRow = yield* this.checkConstraintsAndConflicts(tbl, candidate);
@@ -3618,11 +3635,14 @@ export class SqliteDatabase {
       }
       yield* this.fireTriggers(tbl.name, "BEFORE", "UPDATE", oldData, newData);
       const candidate: TableRow = { rowid: row.rowid, data: newData };
+      this.synchronizeRowid(tbl, candidate, assignments.map(assignment => assignment.col));
       const conflict = yield* this.checkConstraintsAndConflicts(tbl, candidate, row.rowid);
       if (conflict) {
         throw new Error(`UNIQUE constraint failed: ${tbl.name}`);
       }
       row.data = newData;
+      row.rowid = candidate.rowid;
+      tbl.nextRowId = Math.max(tbl.nextRowId, row.rowid + 1);
       updated += 1;
       affectedRows.push(row);
       yield* this.fireTriggers(tbl.name, "AFTER", "UPDATE", oldData, newData);

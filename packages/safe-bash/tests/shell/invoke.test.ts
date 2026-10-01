@@ -9,6 +9,57 @@ import { setup } from "./helpers.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { agentCommands } from "../../src/plugins/index.js";
 import { truncateCommands } from "../../src/commands/truncate/index.js";
+import { createLlmCommands } from "../../src/commands/llm/index.js";
+
+for (const pipeline of [false, true]) {
+  test(`LLM catalog streams preserve completion and combined input limits: pipeline=${pipeline}`, async t => {
+    const errors: unknown[] = [];
+    const { shell, commands, fs } = setup({ onInternalError: error => { errors.push(error); } });
+    t.after(() => shell.dispose());
+    await fs.writeFile("/part.pdf", new TextEncoder().encode("pdf"));
+    let completions = 0;
+    let catalogs = 0;
+    commands.register({ name: "emit", async execute(context) {
+      await writeText(context.stdout, "piped");
+      return { exitCode: 0 };
+    } });
+    commands.register({ name: "llm", async execute(context) {
+      // Consumer wrappers load their model catalog before delegating to LLM.
+      const reader = Response.json([{ id: "fixture", attachmentTypes: ["application/pdf"] }]).body!
+        .pipeThrough(new TextDecoderStream(), { signal: context.signal }).getReader();
+      let json = "";
+      try {
+        for (;;) {
+          const chunk = await reader.read();
+          if (chunk.done) break;
+          json += chunk.value;
+        }
+      } finally { reader.releaseLock(); }
+      catalogs++;
+      const [command] = createLlmCommands({ defaultModel: "fixture", limits: { maxInputBytes: 10 }, providers: [{
+        name: "fixture", models: JSON.parse(json), async *complete(request) {
+          AbortSignal.prototype.throwIfAborted.call(request.signal);
+          completions++;
+          assert.equal(request.prompt, "piped");
+          assert.equal(request.system, "instruction");
+          yield "completion";
+        },
+      }] });
+      return command!.execute(context);
+    } });
+    const run = (source: string) => shell.exec(pipeline ? `emit | ${source}` : source, pipeline ? {} : { stdin: "piped" });
+    const completion = await run("llm prompt -s instruction");
+    assert.equal(completion.exitCode, 0, completion.stderr);
+    assert.equal(completion.stdout, "completion\n");
+    const limited = await run("llm describe -a /part.pdf -a /part.pdf");
+    assert.equal(limited.exitCode, 1);
+    assert.match(limited.stderr, /input byte limit exceeded/);
+    assert.equal(limited.stdout, "");
+    assert.equal(completions, 1);
+    assert.equal(catalogs, 2);
+    assert.deepEqual(errors, []);
+  });
+}
 
 for (const middleware of [false, true]) {
   for (const pipeline of [false, true]) {

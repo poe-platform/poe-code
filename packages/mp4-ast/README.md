@@ -7,7 +7,7 @@ For cooperative hosts, `muxMp4Steps` and `sliceMp4Steps` return generators that 
 ## Features
 
 - **Lossless MP4 / Multi-Container Merging (`concatMp4`)**: Concatenates multiple videos at the sample/packet level without pixel re-encoding, automatically handling multi-entry `stsd` codec tables (`sample_description_index = 1, 2, ...`) and aligning video/audio durations at segment boundaries.
-- **Keyframe & Edit-List Cutting (`sliceMp4`)**: Trims video and audio tracks by time range (`startSeconds`, `endSeconds`, `durationSeconds`) with optional `edts`/`elst` sub-GOP accuracy.
+- **Keyframe & Edit-List Cutting (`sliceMp4`)**: Trims video and audio tracks by time range (`startSeconds`, `endSeconds`, `durationSeconds`) with `edts`/`elst` edit lists preserving keyframe preroll and the requested playback duration by default. Set `useEditList: false` for sample cutting without preroll (for example, at HLS keyframe boundaries).
 - **Track Muxing & Remapping (`muxMp4`)**: Mixes tracks across files, strips audio (`stripAudio`) or video (`stripVideo`), updates display rotation (`0`, `90`, `180`, `270`), and relocates `moov` before `mdat` (`faststart`).
 - **Modular AST Registry (`createMediaAstRegistry`, `allMediaAsts`)**: Pluggable format descriptors consumed by `ffmpeg` and `ffprobe` to dynamically determine which container formats, extensions, demuxers, muxers, and codecs are enabled.
 - **Consumer-Defined Resource Limits (`MediaResourceLimits`, `cloudflareWorkerLimits`)**: Imposes zero default restrictions while offering a ready-made Cloudflare Worker limit preset and `MediaBudgetTracker`.

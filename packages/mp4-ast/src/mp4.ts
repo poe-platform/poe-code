@@ -1004,8 +1004,9 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       }
     }
 
-    const computedDuration =
-      samples.reduce((acc, s) => acc + s.duration, 0) ||
+    const computedDuration = editList.length > 0
+      ? Math.round(editList.reduce((total, edit) => total + edit.segmentDuration, 0) * timescale / movieTimescale)
+      : samples.reduce((acc, s) => acc + s.duration, 0) ||
       trackDuration ||
       Math.round((tkhdDuration / Math.max(1, movieTimescale)) * timescale);
 
@@ -1423,10 +1424,10 @@ function buildTrakBox(
   const codecDescriptions = materialized.codecDescriptions;
 
   const totalSampleDuration =
-    samples.reduce((acc, s) => acc + s.duration, 0) || track.duration || track.timescale;
-  const durationInMovieTimescale = Math.round(
-    (totalSampleDuration / Math.max(1, track.timescale)) * movieTimescale
-  );
+    samples.reduce((acc, s) => acc + s.duration, 0) || track.duration;
+  const durationInMovieTimescale = track.editList?.length
+    ? track.editList.reduce((total, edit) => total + edit.segmentDuration, 0)
+    : Math.round((totalSampleDuration / Math.max(1, track.timescale)) * movieTimescale);
 
   // tkhd
   const tkhdWriter = new BinaryWriter(92);
@@ -1669,7 +1670,9 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   let maxDurationSeconds = 0;
   for (const mt of materializedTracks) {
     const durTicks = mt.samples.reduce((acc, s) => acc + s.duration, 0) || mt.track.duration;
-    const sec = durTicks / Math.max(1, mt.track.timescale);
+    const sec = mt.track.editList?.length
+      ? mt.track.editList.reduce((total, edit) => total + edit.segmentDuration, 0) / movieTimescale
+      : durTicks / Math.max(1, mt.track.timescale);
     if (sec > maxDurationSeconds) maxDurationSeconds = sec;
   }
   const movieDuration = Math.round(maxDurationSeconds * movieTimescale);
@@ -2052,6 +2055,7 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
         ? startSec + options.durationSeconds
         : doc.durationSeconds;
 
+  const useEditList = options.useEditList ?? true;
   const movieTimescale = doc.timescale || 1000;
   const slicedTracks: MediaTrack[] = [];
 
@@ -2060,8 +2064,9 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
 
     const materialized = materializeTrackSamples(track);
     const ts = track.timescale || 1000;
-    const startTick = Math.round(startSec * ts);
-    const endTick = Math.round(endSec * ts);
+    const sourceOrigin = Math.max(0, track.editList?.[0]?.mediaTime ?? 0);
+    const startTick = sourceOrigin + Math.round(startSec * ts);
+    const endTick = sourceOrigin + Math.round(Math.min(endSec, track.duration / ts) * ts);
 
     // Find first sample covering or after startTick
     let firstIdx = materialized.samples.length;
@@ -2069,36 +2074,23 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       if (++work % 256 === 0) yield;
 
       const s = materialized.samples[i]!;
-      if (s.dts + s.duration > startTick) {
+      if (endTick > startTick && s.dts < endTick && s.dts + s.duration > startTick) {
         firstIdx = i;
         break;
       }
     }
 
-    // Back up to preceding keyframe if useEditList is requested on video tracks
-    let keyframeIdx = firstIdx;
-    if (options.useEditList && track.type === "video") {
+    let actualStartIdx = firstIdx;
+    if (useEditList && track.type === "video" && firstIdx < materialized.samples.length) {
       for (let i = firstIdx; i >= 0; i--) {
         if (++work % 256 === 0) yield;
-
         if (materialized.samples[i]!.isKeyframe) {
-          keyframeIdx = i;
+          actualStartIdx = i;
           break;
         }
       }
-    } else if (track.type === "video" && !materialized.samples[firstIdx]?.isKeyframe) {
-      for (let i = firstIdx; i >= 0; i--) {
-        if (++work % 256 === 0) yield;
-
-        if (materialized.samples[i]!.isKeyframe) {
-          keyframeIdx = i;
-          break;
-        }
-      }
-      firstIdx = keyframeIdx;
     }
 
-    const actualStartIdx = options.useEditList ? keyframeIdx : firstIdx;
     const slicedSamples: MediaSample[] = [];
     let runningDts = 0;
 
@@ -2106,9 +2098,9 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       if (++work % 256 === 0) yield;
 
       const s = materialized.samples[i]!;
-      if (s.dts >= endTick && slicedSamples.length > 0) break;
-      const clippedDuration =
-        s.dts + s.duration > endTick ? Math.max(1, endTick - s.dts) : s.duration;
+      if (s.dts >= endTick) break;
+      const sampleStart = useEditList ? s.dts : Math.max(startTick, s.dts);
+      const clippedDuration = Math.max(0, Math.min(s.dts + s.duration, endTick) - sampleStart);
       slicedSamples.push({
         ...s,
         dts: runningDts,
@@ -2119,9 +2111,9 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     }
 
     let editList: Mp4EditListEntry[] | undefined;
-    if (options.useEditList && actualStartIdx < firstIdx && materialized.samples[actualStartIdx]) {
+    if (useEditList && slicedSamples.length > 0 && materialized.samples[actualStartIdx]!.dts < startTick) {
       const mediaSkipTicks = Math.max(0, startTick - materialized.samples[actualStartIdx]!.dts);
-      const segmentDurMovie = Math.round(Math.max(0, endSec - startSec) * movieTimescale);
+      const segmentDurMovie = Math.round(Math.max(0, Math.min(endTick, materialized.samples[actualStartIdx]!.dts + runningDts) - startTick) / ts * movieTimescale);
       editList = [
         {
           segmentDuration: segmentDurMovie,
@@ -2144,7 +2136,7 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
 
     slicedTracks.push({
       ...track,
-      duration: runningDts,
+      duration: editList ? Math.round(editList[0]!.segmentDuration * ts / movieTimescale) : runningDts,
       codecDescriptions: materialized.codecDescriptions,
       editList,
       samples: slicedSamples,

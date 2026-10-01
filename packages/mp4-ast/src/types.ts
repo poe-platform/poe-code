@@ -547,6 +547,7 @@ export interface SliceMediaOptions {
   readonly startSeconds?: number | undefined;
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
+  /** Preserve decode preroll using MP4 edit lists (default true). False cuts samples without preroll. */
   readonly useEditList?: boolean | undefined;
   readonly resetTimestamps?: boolean | undefined;
   readonly limits?: MediaResourceLimits | undefined;

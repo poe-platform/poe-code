@@ -697,6 +697,8 @@ export function createXxdCommand(optionsOrMaxBytes?: number | XxdCommandOptions)
           offset = addOffset(offset, row.length);
           if (!flushedFirst || outBuf.length >= 16384) await flushOut();
         }
+        // Publish completed rows before waiting for another input batch.
+        await flushOut();
       }
     } catch (error) {
       if (!any) throw error;

@@ -785,6 +785,8 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
           offset = addOffset(offset, row.length);
           if (!flushedFirst && outBuf || outBuf.length >= 16384) await flushOut();
         }
+        // Publish completed rows before waiting for another input batch.
+        await flushOut();
       }
     } finally {
       await flushOut();

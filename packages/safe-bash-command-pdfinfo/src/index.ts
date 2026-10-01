@@ -208,7 +208,7 @@ function sanitizeControls(value: string, preserveLf = false): string {
 
 function formatField(label: string, value: string): string {
   const prefix = `${label}:`;
-  const pad = Math.max(1, 16 - [...prefix].length);
+  const pad = Math.max(1, 17 - [...prefix].length);
   return `${prefix}${" ".repeat(pad)}${sanitizeControls(value)}\n`;
 }
 
@@ -1065,11 +1065,12 @@ options: PdfinfoInspectionOptions = {}): Generator<void, PdfinfoCliResult> {
     out += formatField(`${pagePrefix}rot`, String(rot));
 
     if (args.box) {
-      out += formatField(`${pagePrefix}MediaBox`, formatBox8(mediaBox));
-      out += formatField(`${pagePrefix}CropBox`, formatBox8(cropBox));
-      out += formatField(`${pagePrefix}BleedBox`, formatBox8(bleedBox));
-      out += formatField(`${pagePrefix}TrimBox`, formatBox8(trimBox));
-      out += formatField(`${pagePrefix}ArtBox`, formatBox8(artBox));
+      const boxPrefix = multiPage ? pagePrefix : "";
+      out += formatField(`${boxPrefix}MediaBox`, formatBox8(mediaBox));
+      out += formatField(`${boxPrefix}CropBox`, formatBox8(cropBox));
+      out += formatField(`${boxPrefix}BleedBox`, formatBox8(bleedBox));
+      out += formatField(`${boxPrefix}TrimBox`, formatBox8(trimBox));
+      out += formatField(`${boxPrefix}ArtBox`, formatBox8(artBox));
     }
   }
 

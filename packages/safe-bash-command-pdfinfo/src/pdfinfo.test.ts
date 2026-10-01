@@ -920,3 +920,13 @@ describe("safe-bash-command-pdfinfo", () => {
     assert.equal((unitedDoc.cos.resolve(nums.items[2]!) as { value: number }).value, 1);
   });
 });
+
+it("matches Poppler field and default box columns", () => {
+  const doc = PdfDocument.create();
+  doc.addPage([612, 792]);
+  const result = inspectPdfBytes(doc.save(), ["-box"]);
+  assert.equal(result.exitCode, 0);
+  assert.ok(result.stdout.includes("Pages:           1\n"));
+  assert.ok(result.stdout.includes("MediaBox:            0.00     0.00   612.00   792.00\n"));
+  assert.ok(!result.stdout.includes("Page MediaBox:"));
+});

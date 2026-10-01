@@ -47,7 +47,8 @@ test("unprefixed names and attributes do not silently acquire a document namespa
   assert.equal((await query("count(/*/*)", xml)).stdout, "3\n");
   assert.equal((await query("count(/*/@*)", xml)).stdout, "1\n");
   assert.equal((await query("/*/@a", xml)).stdout, ' a="v"\n');
-  const prefixed = await query("/*/p:i", xml);
+  assert.equal((await query("count(/*/p:i)", xml)).stdout, "1\n");
+  const prefixed = await query("/*/missing:i", xml);
   assert.equal(prefixed.exitCode, 10);
   assert.equal(prefixed.stdout, "");
 });

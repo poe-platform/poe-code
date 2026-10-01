@@ -365,6 +365,24 @@ requires a coordinated reference/native behavior change. The synchronous 128-ent
 guard still needs resource-parity qualification. This does not complete the
 approval task store, gate, runner, commands or provider dependency.
 
+Approval task storage and gate invocation now use native policies. The static,
+deeply frozen state-machine definition comes from Rust; list cache selection,
+state/event comparisons, payload admission, optional metadata, collision retries
+and missing-record handling run through the native engine. The direct runtime
+dependency is `@poe-code/task-list-rust`. Node retains its filesystem promises,
+error constructors, weak caches, record construction and random IDs. Gate
+continuations preserve the reference's exact await boundaries, callback receivers,
+getter order, cancellation checks, plan re-verification, async enqueue results
+and detached runner launch. Original task/gate/spawn/state-machine and SDK
+integration suites now use these adapters. Memfs differential checks cover exact
+stored contents, cache behavior, invalid machines and metadata getter order.
+The checkpoint passes 1,534 reference/parity tests and 104 native Node tests,
+plus Rust, declarations and lint. State-machine admission currently preserves
+the reference's omission of `initial` from its equality check; correcting it
+requires a coordinated reference/native fix. Constructor identity across independently
+loaded task-list packages still needs replacement qualification. The approval
+runner, built-in commands, runtime factory and provider dependency remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

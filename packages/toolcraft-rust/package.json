@@ -62,6 +62,7 @@
     "toolcraft-design-rust": "*",
     "toolcraft-schema-rust": "*",
     "commander": "^13.1.0",
-    "tiny-mcp-client-rust": "*"
+    "tiny-mcp-client-rust": "*",
+    "@poe-code/task-list-rust": "*"
   }
 }

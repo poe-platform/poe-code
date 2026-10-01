@@ -26,6 +26,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | SDK              | `toolcraft-rust/sdk`: native member trees, invocation routing, streams and deferred MCP discovery |
 | Runtime wiring   | Reserved service names, injected I/O and approval runtime admission              |
 | Approval plans   | Canonical traversal, JSON admission, cycle rejection and hash verification         |
+| Approval execution | Native gate continuations, persisted tasks, cancellation and detached runner launch |
 | HTTP summaries   | REST/GraphQL errors, request IDs, retry hints and redacted error envelopes         |
 | Error reports    | Secret-aware rendering, cause chains, project discovery and confined report writes |
 | Schema conversion | JSON-schema projections, recursive references, composition and upstream metadata |
@@ -124,6 +125,11 @@ preserves lazy streams and awaits error-report persistence before rejecting.
 Approval-plan validation and normalization use Rust policies with Node JSON
 serialization and SHA-256. Sparse arrays, array subclasses, getter order and
 shared references follow the existing approval runtime's behavior.
+Approval gates and task admission use Rust policies with `@poe-code/task-list-rust`
+storage. They preserve synchronous approval, async pending markers, plan checks,
+cancellation boundaries, list caches, collision retries and stored-payload access.
+The approval runner and built-in commands still need porting before the complete
+`human-in-loop` entrypoint is available.
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The CLI, transports, approval runtime and

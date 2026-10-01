@@ -95,7 +95,7 @@ for (const name of [...extensionNames, "createDeviceFileSystem"]) {
 // Public factories and default registration are separate contracts. The promoted
 // factories coexist with the opt-in profiles; yes/dd stay outside the default registry.
 for (const [stem, publicFactory] of [
-  ["Yes", true], ["Cmp", false], ["Dd", true], ["Shuf", true], ["Truncate", false], ["Install", false], ["Yq", true],
+  ["Yes", true], ["Cmp", true], ["Dd", true], ["Shuf", true], ["Truncate", true], ["Install", true], ["Yq", true],
   ["Id", true], ["Whoami", true], ["Uname", true], ["Hostname", true], ["Nproc", true], ["Numfmt", true],
   ["Envsubst", true], ["Cal", true], ["Pathchk", true], ["Getconf", true], ["Sha512sum", true],
   ["Bzip2", true], ["Locale", true], ["Df", true], ["Sqlite3", true],

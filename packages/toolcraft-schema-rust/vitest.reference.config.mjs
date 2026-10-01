@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 const path = (value) => fileURLToPath(new URL(value, import.meta.url));
 
 export default defineConfig({
+  root: path("../../"),
   plugins: [
     {
       name: "schema-rust-host-values",
@@ -21,30 +22,7 @@ export default defineConfig({
     }
   ],
   test: {
-    include: [
-      "default-cloning",
-      "schema-default-isolation",
-      "json-limits",
-      "json-value-safety",
-      "json-literal-constraints",
-      "validate",
-      "validation-default-options",
-      "validation-no-defaults",
-      "union",
-      "sparse-arrays",
-      "nonplain-diagnostics",
-      "string-length",
-      "native-json-schema",
-      "standard",
-      "index",
-      "discriminator-metadata",
-      "json-schema-document",
-      "nullable-json-schema",
-      "json-schema/properties",
-      "json-schema/index",
-      "json-schema/custom-formats",
-      "json-schema/normalize-nullability"
-    ].map((suite) => path(`../toolcraft-schema/src/${suite}.test.ts`)),
+    include: [path("../toolcraft-schema/src/**/*.test.ts")],
     environment: "node",
     fileParallelism: false,
     maxWorkers: 1,

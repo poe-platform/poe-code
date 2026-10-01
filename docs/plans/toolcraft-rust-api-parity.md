@@ -146,11 +146,14 @@ constructor diagnostics, required-key set collisions, sparse branch arrays,
 custom map results, option enumeration, native documents, exception identity and
 cyclic/deep conversion. Synchronous union-map conversion callbacks have a separate
 128-entry reentrancy guard, also requiring resource-boundary qualification.
-All 18 selected original top-level schema suites run through the native public
-entry point. The compiler's index, custom-format and nullability suites also
-resolve to native implementations. The original external JSON Schema fixture
-harness still requires qualification; the separate native fixture harness does
-not establish that original-suite gate.
+All original schema test files now run through native module resolution, including
+the compiler's index, custom-format and nullability suites and the original
+external JSON Schema fixture harness. The config discovers the original test
+tree instead of maintaining an allow-list. Its package script uses the original
+suite's repository-root working directory. The duplicate native fixture runner
+has been removed; the same canonical cases run through the original assertions.
+The current 23 files contain 2,634 passing tests. This proves the maintained-suite
+gate, not parity beyond its assertions or the other replacement gates.
 Schema declarations are standalone, and all six original compile-check fixtures
 resolve to the built native declarations with a guard against fallback imports.
 Installed-tarball and complete compiler compatibility gates remain open.

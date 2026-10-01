@@ -181,11 +181,13 @@ export class Budget {
     return this.visitValue(value, 0, 0);
   }
   private visitValue(current: Json, depth: number, bytes: number): number {
+    const startSteps = this.steps;
     this.step();
     if (depth > this.limits.maxDepth) throw new JqLimitError("maxDepth");
     if (current !== null && typeof current === "object" && !(current instanceof Decimal)) {
       const cached = cachedValueMetrics.get(current);
       if (cached !== undefined) {
+        this.step(cached.steps - 1);
         if (depth + cached.maxRelDepth > this.limits.maxDepth) throw new JqLimitError("maxDepth");
         this.collection(cached.maxCol);
         const total = bytes + cached.bytes;
@@ -255,7 +257,7 @@ export class Budget {
           bytes += 2;
         }
       }
-      cachedValueMetrics.set(current, { bytes: bytes - startBytes, maxRelDepth, maxCol });
+      cachedValueMetrics.set(current, { bytes: bytes - startBytes, maxRelDepth, maxCol, steps: this.steps - startSteps });
     } else {
       if (typeof current === "string") { this.step(current.length); this.text(current); }
       bytes += scalarJsonByteLength(current, this);
@@ -265,7 +267,7 @@ export class Budget {
   }
 }
 const keyOrders = new WeakMap<Record<string, Json>, string[]>();
-const cachedValueMetrics = new WeakMap<object, { bytes: number; maxRelDepth: number; maxCol: number }>();
+const cachedValueMetrics = new WeakMap<object, { bytes: number; maxRelDepth: number; maxCol: number; steps: number }>();
 export function invalidateCachedValueMetrics(target: object): void {
   cachedValueMetrics.delete(target);
 }
@@ -283,6 +285,7 @@ export function* objectKeyIterator(value: Record<string, Json>): IterableIterato
 }
 export function objectSize(value: Record<string, Json>): number { return keyOrders.get(value)?.length ?? Object.keys(value).length; }
 export function put(value: Record<string, Json>, key: string, item: Json): void {
+  invalidateCachedValueMetrics(value);
   const existing = Object.hasOwn(value, key);
   let keys = keyOrders.get(value);
   if (keys !== undefined) {
@@ -303,6 +306,7 @@ export function put(value: Record<string, Json>, key: string, item: Json): void 
 }
 export function remove(value: Record<string, Json>, key: string): void {
   if (!Object.hasOwn(value, key)) return;
+  invalidateCachedValueMetrics(value);
   let keys = keyOrders.get(value);
   if (!keys) {
     keys = Object.keys(value);

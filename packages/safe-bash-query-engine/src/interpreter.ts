@@ -85,7 +85,14 @@ export class Interpreter {
   }
   tryRunSync(ast: Ast, input: Json): Json[] | undefined {
     const savedSteps = this.budget.currentSteps;
-    const res = this.tryRunSyncInternal(ast, input, true);
+    let res: Json[] | undefined;
+    try {
+      res = this.tryRunSyncInternal(ast, input, true);
+    } catch (error) {
+      // Speculative work may hit a limit before discovering an unsupported
+      // expression. Let the full evaluator enforce limits in execution order.
+      if (!(error instanceof JqLimitError) || this.budget.signal.aborted) throw error;
+    }
     if (res === undefined) {
       this.budget.restoreSteps(savedSteps);
       this.releaseScratch();
@@ -95,7 +102,14 @@ export class Interpreter {
   tryRunSyncNoScratch(ast: Ast, input: Json): Json[] | undefined {
     if (!this.budget.unlimitedValueCheck) return undefined;
     const savedSteps = this.budget.currentSteps;
-    const res = this.tryRunSyncInternal(ast, input, false);
+    let res: Json[] | undefined;
+    try {
+      res = this.tryRunSyncInternal(ast, input, false);
+    } catch (error) {
+      // Speculative work may hit a limit before discovering an unsupported
+      // expression. Let the full evaluator enforce limits in execution order.
+      if (!(error instanceof JqLimitError) || this.budget.signal.aborted) throw error;
+    }
     if (res === undefined) {
       this.budget.restoreSteps(savedSteps);
       return undefined;
@@ -398,12 +412,15 @@ export class Interpreter {
               } else {
                 const nk = exactFiniteNumber(k);
                 if (nk === undefined) return NOT_SINGLE;
-                keyBytes += this.budget.value(k);
+                keyBytes += this.budget.value([k]);
                 if (keyBytes > this.budget.limits.maxValueBytes) throw new JqLimitError("maxValueBytes");
                 keyed.push({ key: nk, value: val, idx: i });
               }
             }
-            keyed.sort((a, b) => (a.key < b.key ? -1 : a.key > b.key ? 1 : a.idx - b.idx));
+            keyed.sort((a, b) => {
+              this.budget.step();
+              return a.key < b.key ? -1 : a.key > b.key ? 1 : a.idx - b.idx;
+            });
             if (name === "sort_by") {
               const res = keyed.map(x => x.value);
               this.budget.value(res);

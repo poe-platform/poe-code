@@ -96,6 +96,7 @@ class JsonParser {
   }
   releaseReusable(): void {
     invalidateCachedValueMetrics(this.reusableObj);
+    invalidateCachedValueMetrics(this.reusableArr);
     this.reusableInUse = false;
   }
   isQuotedUnescaped(): boolean {

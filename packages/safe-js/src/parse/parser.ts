@@ -1745,46 +1745,72 @@ class Parser {
   }
 
   private parseIfStatement(): IfStatement {
-    const pending: Array<{ token: Token; test: Expression; consequent: Statement }> = [];
-    let entered = 0;
+    type Frame =
+      | { kind: "if"; token: Token; test: Expression; consequent?: Statement }
+      | { kind: "block"; token: Token; body: Statement[] };
+    const pending: Frame[] = [];
+    const initialDepth = this.ifStatementDepth;
+    const initialScopes = this.scopes.length;
+    let result: Statement | undefined;
     try {
       for (;;) {
-        if (this.ifStatementDepth >= (this.compilation?.owner?.budget.limits.maxCallDepth ?? Infinity)) {
+        if (result === undefined) {
           const token = this.currentToken();
-          throw new Error(
-            `If statement nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`
-          );
+          if (token.type === "keyword" && token.value === "if") {
+            if (this.ifStatementDepth >= (this.compilation?.owner?.budget.limits.maxCallDepth ?? Infinity))
+              throw new Error(`If statement nesting limit exceeded at line ${token.start.line}, column ${token.start.column}.`);
+            this.ifStatementDepth++;
+            this.index++;
+            this.expectPunctuator("(");
+            const test = this.parseExpression({ allowSequence: true }).node;
+            this.expectPunctuator(")");
+            pending.push({ kind: "if", token, test });
+            continue;
+          }
+          if (token.type === "punctuator" && token.value === "{") {
+            this.index++;
+            this.scopes.push(new Map());
+            pending.push({ kind: "block", token, body: [] });
+          } else {
+            result = pending.at(-1)?.kind === "block" ? this.parseStatement() : this.parseIfClause();
+          }
         }
-        this.ifStatementDepth++;
-        entered++;
-        const token = this.expectKeyword("if");
-        this.expectPunctuator("(");
-        const test = this.parseExpression({ allowSequence: true }).node;
-        this.expectPunctuator(")");
-        const consequent = this.parseIfClause();
-        const hasElse = this.consumeKeyword("else") !== undefined;
-        // Keep ladder continuations off the native stack. Nested consequents
-        // still parse their own clauses, including the nearest dangling else.
-        if (hasElse && this.currentToken().type === "keyword" && this.currentToken().value === "if") {
-          pending.push({ token, test, consequent });
+        const frame = pending.at(-1);
+        if (frame === undefined) return result as IfStatement;
+        if (frame.kind === "block") {
+          if (result !== undefined) {
+            frame.body.push(result);
+            while (result.type !== "EmptyStatement" && this.consumePunctuator(";") !== undefined) { /* statement separators */ }
+            result = undefined;
+          }
+          if (this.consumePunctuator("}") === undefined) {
+            if (this.currentToken().type === "eof")
+              throw new Error(`Unterminated block at line ${frame.token.start.line}, column ${frame.token.start.column}.`);
+            continue;
+          }
+          pending.pop();
+          this.scopes.pop();
+          result = { type: "BlockStatement", body: frame.body, span: createSpan(frame.token.start, this.previousToken().end) };
           continue;
         }
-        const alternate = hasElse ? this.parseIfClause() : undefined;
-        let result: IfStatement = {
-          type: "IfStatement", test, consequent, alternate,
-          span: createSpan(token.start, alternate?.span.end ?? consequent.span.end)
-        };
-        while (pending.length > 0) {
-          const parent = pending.pop()!;
-          result = {
-            type: "IfStatement", test: parent.test, consequent: parent.consequent,
-            alternate: result, span: createSpan(parent.token.start, result.span.end)
-          };
+        if (frame.consequent === undefined) {
+          frame.consequent = result!;
+          if (this.consumeKeyword("else") !== undefined) {
+            result = undefined;
+            continue;
+          }
+          result = undefined;
         }
-        return result;
+        pending.pop();
+        this.ifStatementDepth--;
+        result = {
+          type: "IfStatement", test: frame.test, consequent: frame.consequent, alternate: result,
+          span: createSpan(frame.token.start, result?.span.end ?? frame.consequent.span.end)
+        };
       }
     } finally {
-      this.ifStatementDepth -= entered;
+      this.ifStatementDepth = initialDepth;
+      this.scopes.length = initialScopes;
     }
   }
 

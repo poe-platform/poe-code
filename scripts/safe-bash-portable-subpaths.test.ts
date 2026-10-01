@@ -6,7 +6,7 @@ import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 const root = process.cwd();
 const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
 const subpaths = ["search", ...[
-  "metadata", "archive", "table-text", "stream-inspection", "stream-format", "split",
+  "pandoc", "csvkit", "ssconvert", "metadata", "archive", "table-text", "stream-inspection", "stream-format", "split",
   "time-env", "tree", "file", "grep-aliases", "column", "html-to-markdown", "du", "expr", "apply-patch",
 ].map(name => `commands/${name}`)];
 
@@ -46,13 +46,14 @@ it("executes every reported subpath in workerd without nodejs_compat", async () 
   const result = await build({ ...recipe, sourcemap: false,
     entryPoints: Object.fromEntries(Object.entries(recipe.entryPoints).filter(([name]) => targets.has(name))),
   });
-  const outputs = new Map(result.outputFiles.map(output => [output.path, output.text]));
+  const outputs = new Map(result.outputFiles.map(output => [output.path, output.contents]));
   const consumer = await build({
     stdin: { contents: `
       import { verifyPortableSubpaths } from './scripts/fixtures/safe-packages-portable-subpaths.mjs';
       export default { async fetch() { await verifyPortableSubpaths(); return new Response('ok'); } };
     `, resolveDir: root },
     bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm",
+    loader: { ".wasm": "copy" }, outdir: recipe.outdir,
     alias: { "@poe-platform/safe-fs/core": path.join(root, "packages/safe-fs/src/core.ts"),
       "poe-code/safe-fs/core": path.join(root, "packages/safe-fs/src/core.ts") },
     plugins: [{ name: "portable-artifacts", setup(builder) {
@@ -62,11 +63,13 @@ it("executes every reported subpath in workerd without nodejs_compat", async () 
       builder.onResolve({ filter: /^\./, namespace: "artifact" }, args => ({
         path: path.resolve(path.dirname(args.importer), args.path), namespace: "artifact",
       }));
-      builder.onLoad({ filter: /.*/, namespace: "artifact" }, args => ({ contents: outputs.get(args.path)!, loader: "js" }));
+      builder.onLoad({ filter: /.*/, namespace: "artifact" }, args => ({ contents: outputs.get(args.path)!, loader: args.path.endsWith(".wasm") ? "copy" : "js" }));
     } }],
   });
-  const runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false,
-    script: consumer.outputFiles[0]!.text });
+  const runtime = new Miniflare({ modules: [...consumer.outputFiles].sort((a, b) => Number(b.path.endsWith("stdin.js")) - Number(a.path.endsWith("stdin.js"))).map(file => file.path.endsWith(".wasm")
+      ? { type: "CompiledWasm" as const, path: file.path, contents: file.contents }
+      : { type: "ESModule" as const, path: file.path, contents: file.text }),
+    modulesRoot: recipe.outdir, compatibilityDate: "2026-07-01", cf: false });
   try {
     const response = await runtime.dispatchFetch("https://portable.test");
     const body = await response.text();

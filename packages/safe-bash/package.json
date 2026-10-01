@@ -2098,6 +2098,8 @@
     },
     "./commands/pandoc": {
       "types": "./dist/commands/pandoc/index.d.ts",
+      "workerd": "./dist/commands/pandoc/index.browser.js",
+      "browser": "./dist/commands/pandoc/index.browser.js",
       "import": "./dist/commands/pandoc/index.js"
     },
     "./commands/playwright": {
@@ -2184,10 +2186,14 @@
     },
     "./commands/csvkit": {
       "types": "./dist/commands/csvkit/index.d.ts",
+      "workerd": "./dist/commands/csvkit/index.browser.js",
+      "browser": "./dist/commands/csvkit/index.browser.js",
       "import": "./dist/commands/csvkit/index.js"
     },
     "./commands/ssconvert": {
       "types": "./dist/commands/ssconvert/index.d.ts",
+      "workerd": "./dist/commands/ssconvert/index.browser.js",
+      "browser": "./dist/commands/ssconvert/index.browser.js",
       "import": "./dist/commands/ssconvert/index.js"
     },
     "./commands/media": {

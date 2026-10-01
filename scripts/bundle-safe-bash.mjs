@@ -142,6 +142,9 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     absWorkingDir: rootDir,
     loader: { ".wasm": "copy" },
     entryPoints: {
+      "commands/pandoc/index.browser": path.join(directory, "src/commands/pandoc/index.ts"),
+      "commands/csvkit/index.browser": path.join(directory, "src/commands/csvkit/index.ts"),
+      "commands/ssconvert/index.browser": path.join(directory, "src/commands/ssconvert/index.ts"),
       "search.browser": path.join(directory, "src/search.ts"),
       "commands/metadata/index.browser": path.join(directory, "src/commands/metadata/index.ts"),
       "commands/archive/index.browser": path.join(directory, "src/commands/archive/index.ts"),

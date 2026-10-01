@@ -1,3 +1,6 @@
+import { createPandocCommands } from '@poe-platform/safe-bash/commands/pandoc';
+import { createCsvkitCommands } from '@poe-platform/safe-bash/commands/csvkit';
+import { createSsconvertCommands } from '@poe-platform/safe-bash/commands/ssconvert';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createMemoryFileSystem } from '@poe-platform/safe-fs/core';
 import { createMetadataCommands } from '@poe-platform/safe-bash/commands/metadata';
@@ -24,11 +27,16 @@ export async function verifyPortableSubpaths() {
     createTableTextCommands, createStreamInspectionCommands, createStreamFormatCommands,
     createSplitCommands, createTimeEnvCommands, createTreeCommands, createFileCommands,
     createGrepAliasCommands, createColumnCommands, createHtmlToMarkdownCommands,
-    createDuCommands, createExprCommands, createApplyPatchCommands]) {
+    createDuCommands, createExprCommands, createApplyPatchCommands, createPandocCommands, createCsvkitCommands, createSsconvertCommands]) {
     for (const command of factory()) shell.commands.register(command);
   }
   try {
+    await fs.writeFile('/table.csv', new TextEncoder().encode('name,value\nhéllo,2\n'));
+    await fs.writeFile('/filter.lua', new TextEncoder().encode('function Str(el) el.text = string.upper(el.text); return el end'));
     for (const [source, stdin, expected] of [
+      ['pandoc -f markdown -t html --lua-filter=/filter.lua', 'hello', '<p>HELLO</p>\n'],
+      ['csvcut -c name /table.csv', '', 'name\nhéllo\n'],
+      ['ssconvert /table.csv /table.xlsx; ssconvert /table.xlsx /roundtrip.csv', '', undefined],
       ['rg -F héllo /input', '', 'héllo\n'],
       ['stat -c %s /input', '', '7\n'],
       ['tar -cf /archive.tar -C / input; tar -xOf /archive.tar', '', 'héllo\n'],
@@ -51,6 +59,7 @@ export async function verifyPortableSubpaths() {
         throw new Error(`${source}: ${JSON.stringify(result)}`);
       }
     }
+    if (!new TextDecoder().decode(await fs.readFile('/roundtrip.csv')).includes('héllo')) throw new Error('Spreadsheet round trip failed');
     if (new TextDecoder().decode(await fs.readFile('/patched')) !== 'héllo\n') throw new Error('Patch bytes differ');
   } finally { await shell.dispose(); }
 }

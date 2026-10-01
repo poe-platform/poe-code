@@ -1,3 +1,5 @@
+import { resolvePath } from "safe-bash-contracts/path";
+import { readProperties, writeProperties } from "./properties.js";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -36,20 +38,6 @@ type SipsAction =
   | { readonly kind: "resampleW"; readonly width: number }
   | { readonly kind: "resampleH"; readonly height: number }
   | { readonly kind: "pad"; readonly height: number; readonly width: number };
-
-const SIPS_BUFFER_PROPS = new WeakMap<Uint8Array, Map<string, string | null>>();
-const SIPS_CONTENT_PROPS = new Map<string, Map<string, string | null>>();
-
-function imageFingerprint(bytes: Uint8Array): string {
-  let h1 = 0x811c9dc5;
-  let h2 = 0x01000193;
-  for (let i = 0; i < bytes.byteLength; i++) {
-    const b = bytes[i]!;
-    h1 = Math.imul(h1 ^ b, 0x01000193) >>> 0;
-    h2 = Math.imul(h2 ^ ((b + i) & 0xff), 0x85ebca6b) >>> 0;
-  }
-  return `${bytes.byteLength}:${h1.toString(16).padStart(8, "0")}:${h2.toString(16).padStart(8, "0")}`;
-}
 
 function escapeXml(value: string): string {
   return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
@@ -560,13 +548,13 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
             continue;
         }
         try {
-            const mergedProps = new Map<string, string | null>(SIPS_BUFFER_PROPS.get(inBytes) ?? SIPS_CONTENT_PROPS.get(imageFingerprint(inBytes)) ?? []);
+            let meta = readImageMetadata(inBytes);
+            const mergedProps = readProperties(inBytes, meta.format);
             for (const [k, v] of customSetProps) {
                 if (++cooperativeWork % 64 === 0)
                     yield;
                 mergedProps.set(k, v);
             }
-            let meta = readImageMetadata(inBytes);
             let curW = meta.width;
             let curH = meta.height;
             const origW = meta.width;
@@ -738,10 +726,10 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                 }
                 const outFmt = targetFormat ?? (meta.format === "pdf" || meta.format === "svg" ? "png" : meta.format);
                 const quality = resolveQualityOption(formatOptionsStr);
-                const outBytes = encodeImage(image, {
+                const outBytes = writeProperties(encodeImage(image, {
                     format: outFmt, ...(quality === undefined ? {} : { quality }),
                     ...(targetDpi === undefined ? {} : { density: targetDpi })
-                }).data;
+                }).data, outFmt, mergedProps);
                 let finalOutPath = inPath;
                 if (outTarget) {
                     const normTarget = outTarget.endsWith("/") ? outTarget.slice(0, -1) : outTarget;
@@ -774,10 +762,6 @@ function* runSipsCliSteps(argv: readonly string[], files: Map<string, Uint8Array
                     }
                 }
                 files.set(finalOutPath, outBytes);
-                if (mergedProps.size > 0) {
-                    SIPS_BUFFER_PROPS.set(outBytes, mergedProps);
-                    SIPS_CONTENT_PROPS.set(imageFingerprint(outBytes), mergedProps);
-                }
                 meta = readImageMetadata(outBytes);
                 if (getProperties.length === 0) {
                     outLines.push(inPath);
@@ -1180,8 +1164,6 @@ async function executeVfsImageTool(
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
 
     const normalizedArgv = [...argv];
     for (let i = 0; i < normalizedArgv.length; i++) {
@@ -1191,7 +1173,7 @@ async function executeVfsImageTool(
         const next = normalizedArgv[i + 1];
         if (next && !next.endsWith("/")) {
           try {
-            const st = await context.fs.stat(resolveVfsPath(next), { signal: invocation.signal });
+            const st = await context.fs.stat(resolvePath(context.cwd, next), { signal: invocation.signal });
             if (st.type === "directory") {
               normalizedArgv[i + 1] = next + "/";
             }
@@ -1205,7 +1187,7 @@ async function executeVfsImageTool(
       const bracketMatch = /^(.*)\[(\d+)\]$/.exec(token);
       const fileToken = bracketMatch ? bracketMatch[1]! : token;
       try {
-        const bytes = await context.fs.readFile(resolveVfsPath(fileToken), {
+        const bytes = await context.fs.readFile(resolvePath(context.cwd, fileToken), {
           signal: invocation.signal
         });
         vfsFiles.set(fileToken, bytes);
@@ -1218,6 +1200,13 @@ async function executeVfsImageTool(
     const existingSnap = new Map(vfsFiles);
     const res = await runner(normalizedArgv, vfsFiles, invocation.signal);
 
+    for (const [key, val] of vfsFiles.entries()) {
+      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
+      if (existingSnap.get(key) !== val) {
+        const abs = resolvePath(context.cwd, key);
+        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
+      }
+    }
     if (res.stderr) {
       await writeBytes(context.stderr, new TextEncoder().encode(res.stderr), invocation.signal);
     }
@@ -1226,20 +1215,12 @@ async function executeVfsImageTool(
       await writeBytes(stdout.output, new TextEncoder().encode(res.stdout), invocation.signal);
     }
 
-    for (const [key, val] of vfsFiles.entries()) {
-      if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (existingSnap.get(key) !== val) {
-        const abs = resolveVfsPath(key);
-        const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
-        try {
-          await context.fs.mkdir(parentDir, { recursive: true, signal: invocation.signal });
-        } catch {
-          // Directory already exists
-        }
-        await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
-      }
-    }
     return { exitCode: res.exitCode };
+  } catch (error) {
+    invocation.signal.throwIfAborted();
+    if (!(error instanceof Error) || !("code" in error) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(String(error.code))) throw error;
+    await writeBytes(context.stderr, new TextEncoder().encode(`${context.command}: Can't write output file: ${error.message}\n`), invocation.signal);
+    return { exitCode: 1 };
   } finally {
     await invocation.close();
   }

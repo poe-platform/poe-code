@@ -6,7 +6,7 @@ Zero-dependency `sips` (macOS Scriptable Image Processing System) and `identify`
 
 ## Commands
 
-- `sips`: Query image properties (`-g`, including XML-escaped `allxml`), set/delete properties (`-s`/`-d`) across VFS reads and copies within the running process, resize (`-Z`, `-z`, `--resampleWidth`, `--resampleHeight`), crop (`-c`, `--cropOffset`), pad (`-p`, `--padColor`), rotate (`-r`), flip (`-f`), and convert formats (`-s format`, `-s formatOptions`, `--out`).
+- `sips`: Query image properties (`-g`, including XML-escaped `allxml`), set/delete properties (`-s`/`-d`) in PNG/JPEG file metadata, preserved across VFS reads and copies, resize (`-Z`, `-z`, `--resampleWidth`, `--resampleHeight`), crop (`-c`, `--cropOffset`), pad (`-p`, `--padColor`), rotate (`-r`), flip (`-f`), and convert formats (`-s format`, `-s formatOptions`, `--out`).
 - `identify`: Inspect image format, geometry, bit depth, color space, and channel statistics (`identify [-ping] [-format ...] [-verbose] <file>...`).
 
 The workspace entrypoint exports `sipsCommands()` for plugin registration,
@@ -15,3 +15,5 @@ The workspace entrypoint exports `sipsCommands()` for plugin registration,
 `SipsCommandsOptions` object; existing factory names remain available.
 
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `SipsLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops and image resampling, cropping, rotation and flips yield to timers and cancellation, including Workers with frozen clocks.
+
+Custom properties use namespaced PNG iTXt or JPEG comment metadata, limited to 65,500 UTF-8 payload bytes per image. Other output formats reject custom property persistence explicitly. Output parent directories must already exist; `--out` does not create them. File output, including metadata, uses the shell output budget.

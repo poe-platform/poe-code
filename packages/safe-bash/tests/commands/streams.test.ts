@@ -32,13 +32,13 @@ test("tail preserves retained stdout chunks across batches and oversized lines",
   assert.equal(Buffer.concat(retained).toString(), text);
 });
 
-for (const syncInput of [false, true]) {
+for (const syncInput of [false, true]) for (const syncOutput of [false, true]) {
   for (const [args, expected] of [
     [["a-z", "A-Z"], "AABBCCDD"],
     [["-d", "a"], "bbccdd"],
     [["-s", "a-z", "A-Z"], "ABCD"],
   ] as const) {
-    test(`tr preserves retained stdout across chunks and invocations: ${args.join(" ")} (${syncInput ? "sync" : "async"} input)`, async () => {
+    test(`tr preserves retained stdout across chunks and invocations: ${args.join(" ")} (${syncInput ? "sync" : "async"} input, ${syncOutput ? "sync" : "async"} output)`, async () => {
       const retained: Uint8Array[] = [];
       const definition = streamCommands().find(command => command.name === "tr")!;
       const context = {
@@ -50,7 +50,11 @@ for (const syncInput of [false, true]) {
         } },
         stderr: { async write() {} },
       };
-      const result = await definition.execute({ ...context, stdout: { async write(chunk) { retained.push(chunk); } } });
+      const stdout = {
+        async write(chunk: Uint8Array) { retained.push(chunk); },
+        ...(syncOutput ? { writeSync(chunk: Uint8Array) { retained.push(chunk); return true; } } : {}),
+      };
+      const result = await definition.execute({ ...context, stdout });
       assert.equal(result.exitCode, 0);
       assert.equal(Buffer.concat(retained).toString(), expected);
       const later = await definition.execute({ ...context, args: ["a-z", "Z"], stdout: { async write() {} } });
@@ -102,7 +106,7 @@ for (const [command, args] of [
 for (const command of ["find", "tr"] as const) {
   for (const asyncInput of command === "tr" ? [false, true] : [false]) {
     for (const failure of ["reject", "throw", "abort"] as const) {
-      test(`${command} releases and detaches shared output after ${failure} (${asyncInput ? "async" : "sync"} input)`, async () => {
+      test(`${command} isolates retained output after ${failure} (${asyncInput ? "async" : "sync"} input)`, async () => {
         const fs = await fixture({ alpha: "" });
         if (command === "find") registerRuntimeBackingFileSystem(fs, fs);
         const controller = new AbortController();
@@ -135,7 +139,7 @@ for (const command of ["find", "tr"] as const) {
         else assert.equal((await execution).exitCode, 1);
         assert.ok(borrowed);
         assert.equal(Buffer.from(borrowed).toString(), command === "find" ? "/work\n/work/alpha\n" : "bbb");
-        assert.equal(borrowed.buffer.byteLength, command === "find" ? 8192 : 65536, "failure must exercise a shared-buffer write");
+        assert.ok(borrowed.buffer.byteLength <= (command === "find" ? 8192 : 65536), "failed output retains bounded backing storage");
         const before = borrowed.slice();
         let recovered: Uint8Array | undefined;
         let recoveredText: string | undefined;
@@ -150,7 +154,7 @@ for (const command of ["find", "tr"] as const) {
         assert.equal(second.exitCode, 0);
         assert.ok(recovered);
         assert.equal(recoveredText, command === "find" ? "/work/alpha\n" : "ccc");
-        assert.equal(recovered.buffer.byteLength, command === "find" ? 8192 : 65536, "subsequent invocation reuses the fast shared buffer");
+        assert.ok(recovered.buffer.byteLength <= (command === "find" ? 8192 : 65536), "subsequent output retains bounded backing storage");
         assert.notEqual(recovered.buffer, borrowed.buffer);
         assert.deepEqual(borrowed, before);
       });

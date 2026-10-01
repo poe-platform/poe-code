@@ -431,7 +431,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
       stdoutLen = 0;
       context.signal.throwIfAborted();
       if (stdoutSync) {
-        stdoutSync.writeSync(chunk);
+        stdoutSync.writeSync(chunk.slice());
         return undefined;
       }
       return writeBytes(context.stdout, encodeBytes(chunk), context.signal);

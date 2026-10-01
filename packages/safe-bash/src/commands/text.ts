@@ -1,7 +1,7 @@
 import { compareByteArrays, decodeBytes, encodeBytes, indexOfBytes } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createBufferedOutput, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
-import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, lines, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
+import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
@@ -2666,22 +2666,11 @@ async function executeCutFastAsync(
           if (req) await req;
           const outBuf = new Uint8Array(65536);
           let outUsed = 0;
-          const isPipeStage = Boolean((context.stdout as { isPipeStage?: boolean }).isPipeStage);
-          const syncSink = !isPipeStage
-            ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
-            : undefined;
-          const canWriteSync = typeof syncSink?.writeSync === "function";
           const flush = (): Promise<void> | undefined => {
             if (outUsed === 0) return;
-            context.signal.throwIfAborted();
-            if (canWriteSync && syncSink!.writeSync!(outBuf.subarray(0, outUsed)) !== false) {
-              outUsed = 0;
-              context.signal.throwIfAborted();
-              return;
-            }
-            const bytes = isPipeStage ? outBuf.subarray(0, outUsed) : outBuf.slice(0, outUsed);
+            const p = outputRange(context, outBuf, outUsed);
             outUsed = 0;
-            const p = output(context, bytes);
+            context.signal.throwIfAborted();
             return isSyncResolved(p) ? undefined : p;
           };
           const writeFieldSlow = async (chunk: Uint8Array, start: number, end: number): Promise<void> => {

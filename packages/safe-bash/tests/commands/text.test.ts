@@ -331,6 +331,26 @@ function cutProbe(args: readonly string[], stdin: CommandContext["stdin"], signa
   return { context, stdout, stderr };
 }
 
+test("cut async fallback preserves retained synchronous chunks across multiple flushes", async () => {
+  const first = "a".repeat(70 * 1024);
+  const second = "b".repeat(70 * 1024);
+  const stdin = (async function* () {
+    yield new TextEncoder().encode(`${first},tail\n`);
+    yield new TextEncoder().encode(`${second},tail\n`);
+  })();
+  const probe = cutProbe(["-f", "1", "-d", ","], stdin, new AbortController().signal, await fixture());
+  Object.assign(probe.context.stdout, {
+    writeSync(bytes: Uint8Array) {
+      probe.stdout.push(bytes);
+      return true;
+    },
+  });
+  const result = await textCommands().find(command => command.name === "cut")!.execute(probe.context);
+  assert.equal(result.exitCode, 0, Buffer.concat(probe.stderr).toString());
+  assert.ok(probe.stdout.length > 1);
+  assert.equal(Buffer.concat(probe.stdout).equals(Buffer.from(`${first}\n${second}\n`)), true);
+});
+
 test("cut selection work does not rescan all ranges per position", async testContext => {
   for (const mode of ["b", "c", "f"]) {
     await testContext.test(mode, async () => {

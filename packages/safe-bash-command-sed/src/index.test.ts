@@ -172,3 +172,20 @@ test("sed transforms batched memory input without a global Buffer", async () => 
     Object.defineProperty(globalThis, "Buffer", { value: originalBuffer, configurable: true, writable: true });
   }
 });
+
+test("sed preserves retained synchronous chunks across multiple flushes", async () => {
+  const chunks: Uint8Array[] = [];
+  const stdout = { async write(bytes: Uint8Array) { chunks.push(bytes); }, writeSync(bytes: Uint8Array) { chunks.push(bytes); return true; } };
+  const input = "first row\n".repeat(7000) + "last row\n".repeat(7000);
+  const values = createCommandArguments(["s/row/ROW/"]);
+  const result = await createSedCommand().execute({
+    command: "sed", args: values.args, argumentValues: values, cwd: "/", env: {},
+    fs: createMemoryFileSystem(), stdin: toByteSource(input),
+    signal: new AbortController().signal,
+    stdout,
+    stderr: { async write() { assert.fail("unexpected diagnostic"); } },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.ok(chunks.length > 1);
+  assert.equal(Buffer.concat(chunks).toString(), "first ROW\n".repeat(7000) + "last ROW\n".repeat(7000));
+});

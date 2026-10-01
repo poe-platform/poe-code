@@ -14,8 +14,6 @@ import {
 } from "safe-bash-contracts";
 
 const syncResolved = Symbol.for("safe-bash.syncResolved");
-const sharedSmallOutputBuf = new Uint8Array(64);
-const sharedSmallOutputViews: Uint8Array[] = Array.from({ length: 65 }, (_, i) => sharedSmallOutputBuf.subarray(0, i));
 const resolvedVoid: Promise<void> = Object.defineProperty(
   Promise.resolve(),
   syncResolved,
@@ -167,34 +165,20 @@ export function outputRange(context: CommandContext, src: Uint8Array, len: numbe
     if (typeof stdout.writeRangeSync === "function" && stdout.writeRangeSync(src, len) !== false) {
       return resolvedVoid;
     }
-    if (typeof stdout.writeSync === "function" && stdout.writeSync(src.subarray(0, len)) !== false) {
+    if (typeof stdout.writeSync === "function" && stdout.writeSync(new Uint8Array(src.subarray(0, len))) !== false) {
       return resolvedVoid;
     }
   }
-  return writeBytes(context.stdout, stdout.isPipeStage ? src.subarray(0, len) : src.slice(0, len), context.signal);
+  return writeBytes(context.stdout, stdout.isPipeStage ? src.subarray(0, len) : new Uint8Array(src.subarray(0, len)), context.signal);
 }
 
 export function output(context: CommandContext, text: string | Uint8Array): Promise<void> {
   context.signal.throwIfAborted();
   const stdout = context.stdout as { isPipeStage?: boolean; writeSync?: (chunk: Uint8Array) => boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean };
-  if (typeof text === "string" && !stdout.isPipeStage) {
-    const len = text.length;
-    if (len <= 64 && (typeof stdout.writeRangeSync === "function" || typeof stdout.writeSync === "function")) {
-      let ascii = true;
-      for (let i = 0; i < len; i++) {
-        const code = text.charCodeAt(i);
-        if (code >= 0x80) { ascii = false; break; }
-        sharedSmallOutputBuf[i] = code;
-      }
-      if (ascii) {
-        const ok = typeof stdout.writeRangeSync === "function"
-          ? stdout.writeRangeSync(sharedSmallOutputBuf, len)
-          : stdout.writeSync!(sharedSmallOutputViews[len]!);
-        if (ok !== false) return resolvedVoid;
-      }
-    }
-  }
   const bytes = typeof text === "string" ? encoder.encode(text) : text;
+  if (typeof text === "string" && !stdout.isPipeStage && typeof stdout.writeRangeSync === "function" && stdout.writeRangeSync(bytes, bytes.length) !== false) {
+    return resolvedVoid;
+  }
   if (!stdout.isPipeStage && typeof stdout.writeSync === "function" && stdout.writeSync(bytes) !== false) {
     return resolvedVoid;
   }

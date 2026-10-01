@@ -21562,7 +21562,7 @@ export class Runtime {
       }
       if (part.length) return String(binding?.values.size ?? (part.name === "FUNCNAME" && state.variables.FUNCNAME === undefined ? state.functionNames?.length ?? 0 : state.variables[part.name] === undefined ? 0 : 1));
       const values = await this.arrayMembers(part.name, state, io, selector.kind === "keys" || part.keys === true, part.substring);
-      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@" && (!part.substring || !part.quoted || state.variables.IFS === ""));
+      const space = (selector.kind === "keys" || part.keys === true) ? Boolean(hereDocument || (selector.separator === "@" ? !part.quoted && !split || state.variables.IFS === "" : !part.quoted && split && state.variables.IFS === "")) : (!split && selector.separator === "@");
       return this.arrayJoin(store.owner, values, space ? " " : this.ifsSeparator(state, io));
     }
     if (part.substring && (part.name === "@" || part.name === "*")) {
@@ -22153,7 +22153,7 @@ export class Runtime {
               }
               const ifsVal = monitor?.values.get("IFS", rawVars.IFS ?? " ") ?? rawVars.IFS ?? " ";
               if (validElemOp && typeof ifsVal === "string" && (ifsVal.length === 0 || ifsVal.charCodeAt(0) < 128)) {
-                const sep = (selector.separator as string) === "@" && (ifsVal.length === 0 || !isKeys && part.operator === undefined && !part.substring) ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
+                const sep = (selector.separator as string) === "@" && (ifsVal.length === 0 || !isKeys && part.operator === undefined) ? " " : ifsVal.length > 0 ? ifsVal[0]! : "";
                 const parameterLine = part.line ?? overrideDiagnosticLine;
                 const evalSliceInt = (w: Word): number | undefined => {
                   if (w.parts.length === 0) return 0;

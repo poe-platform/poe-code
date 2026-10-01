@@ -131,9 +131,10 @@ binary operands without `-a`.
 The `gnu-3.12-qualified` alignment profile uses variant-to-common direction,
 100-line prefix/suffix horizons, confusing-line discard rules, midpoint ties and
 boundary shifting. Repeated-line controls around 99/100/101 lines qualify this
-profile, without universal GNU tie parity. GNU's costly-search shortcut is
-unsupported: its cutoff fails with `ALIGNMENT`; quota exhaustion fails with
-`LIMIT`. Neither enables minimal alignment or a greedy fallback.
+profile, without universal GNU tie parity. Large edit distances continue the
+bidirectional midpoint search instead of stopping at GNU's costly-search
+threshold. Explicit work and graph quotas still fail with `LIMIT`; no greedy
+fallback is used.
 
 Limits are nonnegative safe integers and conservative logical bounds, not
 heap/RSS guarantees. Copies, spool fragments, tokens, alignment and output are

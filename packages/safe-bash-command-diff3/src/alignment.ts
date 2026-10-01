@@ -1,7 +1,6 @@
 import { Diff3Error, type Diff3Edit, type Diff3Line, type Diff3Options } from './contracts.js';
 import type { Budget } from './budget.js';
 import { bodyLength, equalLines } from './comparison.js';
-import { assertAlignmentCost } from './profile.js';
 
 function equivalences(files: readonly (readonly Diff3Line[])[], options: Diff3Options, budget: Budget): number[][] {
   const buckets = new Map<number, { line: Diff3Line; key: number }[]>();
@@ -137,7 +136,7 @@ function midpoint(x0: number, x1: number, y0: number, y1: number, a: IndexedKey[
   let fLow = first, fHigh = first, rLow = last, rHigh = last;
   f[origin + first] = x0; r[origin + last] = x1;
   const odd = (first - last) % 2 !== 0;
-  for (let cost = 1;; cost++) {
+  for (;;) {
     budget.admit('work', 1);
     if (fLow > min) { fLow--; f[origin + fLow - 1] = -1; } else fLow++;
     if (fHigh < max) { fHigh++; f[origin + fHigh + 1] = -1; } else fHigh--;
@@ -159,7 +158,6 @@ function midpoint(x0: number, x1: number, y0: number, y1: number, a: IndexedKey[
       r[origin + diagonal] = x;
       if (!odd && diagonal >= fLow && diagonal <= fHigh && x <= f[origin + diagonal]!) return [x, y];
     }
-    assertAlignmentCost(cost, a.length + b.length + 3);
   }
 }
 

@@ -33,7 +33,8 @@ for (const name of createByteCommands().map(command => command.name)) {
     const result = await run(name, [], source, {}, {
       stdout: { async write(data) { attempted++; assert(data.length > 8); throw new FsError("EFBIG", { message: "independent stdout quota" }); } },
     });
-    assert.equal(result.exitCode, 1, name); assert.match(result.stderr.toString(), /quota/u);
+    assert.equal(result.exitCode, 1, name);
+    assert.match(result.stderr.toString(), name === "dd" ? /dd: writing to 'standard output': File too large\n/u : /quota/u);
     assert.equal(attempted, 1); assert.equal(closed, true);
   });
 

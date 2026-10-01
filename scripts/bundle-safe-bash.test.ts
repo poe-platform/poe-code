@@ -126,10 +126,13 @@ beforeAll(async () => {
           path: path.resolve(directory, manifest.exports["./core"].browser),
           namespace: "built-shell",
         }));
-        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/(?:shell|registry|jobs|optional-host|trap)|\/commands\/(?:archive|du|xml|yq|network|node|csplit|pr|tsort|factor|getopt|hexdump|iconv|line-endings|mdq|llm(?:\/providers)?))?$/ }, args => ({
-          path: path.resolve(directory, manifest.exports[args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`].browser),
-          namespace: "built-shell",
-        }));
+        builder.onResolve({ filter: /^@poe-platform\/safe-bash(?:\/.*)?$/ }, args => {
+          const key = args.path === "@poe-platform/safe-bash" ? "." : `.${args.path.slice("@poe-platform/safe-bash".length)}`;
+          const target = manifest.exports[key]?.browser;
+          if (typeof target !== "string") return undefined;
+          const output = path.resolve(directory, target);
+          return artifacts.has(output) ? { path: output, namespace: "built-shell" } : undefined;
+        });
         builder.onResolve({ filter: /^\./, namespace: "built-shell" }, args => ({
           path: path.resolve(path.dirname(args.importer), args.path), namespace: "built-shell",
         }));
@@ -810,7 +813,7 @@ it("runs shell byte operations and command exports in workerd without nodejs_com
   } finally { await runtime.dispose(); }
 });
 
-it("runs default network factories and every WinZip AES mode in workerd", async () => {
+it("runs default network factories, Fetch deadlines and every WinZip AES mode in workerd", async () => {
   const runtime = new Miniflare({
     modules: true, compatibilityDate: "2026-07-01", cf: false,
     script: `
@@ -818,20 +821,29 @@ it("runs default network factories and every WinZip AES mode in workerd", async 
       const browser = (() => { const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${byteOperationsSource}; return module.exports; })();
       export default { async fetch() {
         const names = [browser.createCurlCommand().name, browser.createWgetCommand().name, browser.networkCommands().name];
+        let timedOutRequestAborted = false;
         const fs = canonical.createMemoryFileSystem();
         await fs.writeFile("/input", new TextEncoder().encode("worker secret"));
         const shell = new browser.Shell({ fs }).use(browser.archiveCommands({
           zipHost: { entropy: length => crypto.getRandomValues(new Uint8Array(length)) }
         })).use(browser.networkCommands({
           authorize: () => true,
-          transport: browser.createFetchTransport({ fetch: async () => new Response("worker response") })
+          transport: browser.createFetchTransport({ fetch: async request => {
+            if (new URL(request.url).pathname === "/stall") {
+              request.signal.addEventListener("abort", () => { timedOutRequestAborted = true; }, { once: true });
+              return new Promise(() => {});
+            }
+            return new Response("worker response");
+          } })
         }));
         const results = [];
         try {
-          for (const command of ["curl https://allowed.test/", "wget -q -O - https://allowed.test/"]) {
+          for (const command of ["curl --connect-timeout 1 https://allowed.test/", "wget -q -O - https://allowed.test/"]) {
             const { exitCode, stdout, stderr } = await shell.exec(command);
             results.push({ exitCode, stdout, stderr });
           }
+          const timedOut = await shell.exec("curl --connect-timeout 0.01 https://allowed.test/stall");
+          results.push({ timeoutCode: timedOut.exitCode, timedOutRequestAborted, headerDiagnostic: timedOut.stderr.includes("Response headers timed out") });
           for (const strength of [128, 192, 256]) for (const version of [1, 2]) {
             const archive = "/aes-" + strength + "-" + version + ".zip";
             const zipped = await shell.exec("zip -Z store --encryption aes-" + strength + "-ae" + version + " -P password " + archive + " /input");
@@ -852,6 +864,7 @@ it("runs default network factories and every WinZip AES mode in workerd", async 
       names: ["curl", "wget", "network-commands"],
       results: [
         ...Array.from({ length: 2 }, () => ({ exitCode: 0, stdout: "worker response", stderr: "" })),
+        { timeoutCode: 28, timedOutRequestAborted: true, headerDiagnostic: true },
         ...Array.from({ length: 6 }, () => ({ zipCode: 0, zipError: "", exitCode: 0, stdout: "worker secret", stderr: "", wrongRejected: true })),
       ],
     });

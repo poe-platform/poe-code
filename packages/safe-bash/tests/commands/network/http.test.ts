@@ -492,13 +492,15 @@ test("connection timeout stops at TCP connection, before response headers or bod
   } finally { clearTimeout(timer); await delayed.close(); }
 });
 
-test("Fetch refuses connection deadlines it cannot enforce", async () => {
+test("Fetch uses an explicit response-header deadline fallback", async () => {
   let calls = 0;
   const transport = createFetchTransport({ fetch: async () => { calls++; return new Response("hello\n"); } });
   const result = await run(["--connect-timeout", "1", host.origin], { options: { transport } });
-  assert.equal(result.exitCode, 2);
-  assert.match(result.stderr.toString(), /connection timeout/);
-  assert.equal(calls, 0);
+  assert.equal(transport.supportsConnectTimeout, undefined);
+  assert.equal(transport.supportsResponseHeaderTimeout, true);
+  assert.equal(result.exitCode, 0, result.stderr.toString());
+  assert.equal(result.stdout.toString(), "hello\n");
+  assert.equal(calls, 1);
 });
 
 test("per-hop authorization and cross-origin custom credentials are removed", async () => {

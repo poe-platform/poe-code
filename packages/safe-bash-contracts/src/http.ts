@@ -21,6 +21,9 @@ export interface HttpRequest {
   readonly signal: AbortSignal;
   /** Deadline for DNS, TCP and TLS setup only; absent means no separate connection deadline. */
   readonly connectTimeoutMs?: number;
+  /** Deadline until response headers arrive, including connection setup and server delay.
+   * Separate from connectTimeoutMs because Fetch cannot observe connection completion. */
+  readonly responseHeaderTimeoutMs?: number;
   readonly registerCleanup?: (cleanup: InvocationCleanup) => void;
   readonly denyPrivateNetworks?: true;
 }
@@ -42,5 +45,6 @@ export type HttpTransport = ((request: HttpRequest) => Promise<HttpResponse>) & 
   readonly supportsIgnoreContentLength?: true;
   readonly supportsPrivateNetworkDeny?: true;
   readonly supportsConnectTimeout?: true;
+  readonly supportsResponseHeaderTimeout?: true;
 };
 

@@ -148,7 +148,7 @@ export function createTransferCommand(options: NetworkCommandsOptions, profile: 
           await writeBytes(context.stdout, encode(args.version ? profile.version : profile.help), context.signal);
           return { exitCode: 0 };
         }
-        if (args.connectTimeoutMs !== undefined && transport.supportsConnectTimeout !== true) {
+        if (args.connectTimeoutMs !== undefined && transport.supportsConnectTimeout !== true && transport.supportsResponseHeaderTimeout !== true) {
           throw new CurlError(2, "Transport cannot enforce connection timeout");
         }
         if (args.caFile !== undefined && transport.supportsRequestCa !== true) {
@@ -371,7 +371,9 @@ async function transfer(context: CommandContext, args: CurlArguments, input: str
             ...(args.ignoreContentLength ? { ignoreContentLength: true as const } : {}),
             registerCleanup: operation.registerCleanup, ...policy, ...(upload ? { body: upload } : {}),
             ...(ca === undefined ? {} : { ca }),
-            ...(args.connectTimeoutMs === undefined ? {} : { connectTimeoutMs: args.connectTimeoutMs }) });
+            ...(args.connectTimeoutMs === undefined ? {} : transport.supportsConnectTimeout === true
+              ? { connectTimeoutMs: args.connectTimeoutMs }
+              : { responseHeaderTimeoutMs: args.connectTimeoutMs }) });
           let cleanup: Promise<void> | undefined;
           return { ...acquired, dispose() { cleanup ??= Promise.resolve().then(() => acquired.dispose()); return cleanup; } };
         }, result => result.dispose());

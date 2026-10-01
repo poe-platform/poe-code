@@ -63,3 +63,17 @@ test("curl sends only the final user-agent and omits an explicitly empty agent",
     assert.deepEqual(headers, agent ? [agent] : []);
   }
 });
+
+for (const exact of [false, true]) test(`curl selects ${exact ? "exact connection" : "response-header"} deadline capability`, async () => {
+  let calls = 0;
+  const transport = Object.assign(async (request: import("safe-bash-contracts/http").HttpRequest) => {
+    calls++;
+    assert.equal(request.connectTimeoutMs, exact ? 1000 : undefined);
+    assert.equal(request.responseHeaderTimeoutMs, exact ? undefined : 1000);
+    return { status: 200, statusText: "OK", headers: [], body: toByteSource("ok"), dispose: async () => {} };
+  }, { supportsResponseHeaderTimeout: true as const, ...(exact ? { supportsConnectTimeout: true as const } : {}) });
+  const result = await run(createCurlCommand({ authorize: () => true, transport }), ["--connect-timeout", "1", "https://example.test/"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "ok");
+  assert.equal(calls, 1);
+});

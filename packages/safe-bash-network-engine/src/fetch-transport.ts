@@ -1,6 +1,8 @@
 import { type ByteSource } from "safe-bash-contracts";
 import { CurlError,type HttpTransport } from "./types.js";
 import { curlRequestTarget } from "./url.js";
+import { scheduleNetworkDeadline } from "./deadline.js";
+import { withSignal } from "./shared.js";
 
 export interface FetchTransportOptions {
   readonly fetch?: typeof globalThis.fetch;
@@ -27,8 +29,9 @@ function requestBody(source: ByteSource | undefined, signal: AbortSignal): Reada
 export function createFetchTransport(options: FetchTransportOptions = {}): HttpTransport {
   const fetchRequest = options.fetch ?? globalThis.fetch;
   if (typeof fetchRequest !== "function") throw new TypeError("Fetch is unavailable");
-  return async input => {
+  const transport: HttpTransport = async input => {
     input.signal.throwIfAborted();
+    if (input.connectTimeoutMs !== undefined) throw new CurlError(2, "Fetch transport cannot enforce exact connection timeout");
     if (input.ca !== undefined) throw new CurlError(2, "Fetch transport cannot enforce request CA trust");
     if (input.httpVersion !== undefined) throw new CurlError(2, "Transport cannot enforce requested HTTP version");
     if (input.ignoreContentLength) throw new CurlError(2, "Transport cannot enforce ignored Content-Length");
@@ -53,14 +56,26 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
       ...(body ? { duplex: "half" } : {}),
     } as RequestInit & { duplex?: "half" });
     // Cleanup must be registered before the request settles, so assignment happens afterward.
-    // eslint-disable-next-line prefer-const
     let response: Response | undefined;
+    const cancelDeadline = scheduleNetworkDeadline(input.responseHeaderTimeoutMs && input.responseHeaderTimeoutMs > 0
+      ? input.responseHeaderTimeoutMs : Infinity, () => stopped.abort(new CurlError(28, "Response headers timed out")));
     const dispose = async (): Promise<void> => {
+      cancelDeadline();
       stopped.abort();
       if (response?.body) await response.body.cancel().catch(() => undefined);
     };
-    input.registerCleanup?.(dispose);
-    response = await fetchRequest(request);
+    try {
+      input.registerCleanup?.(dispose);
+      response = await withSignal(async () => {
+        signal.throwIfAborted();
+        const received = await fetchRequest(request);
+        if (signal.aborted) {
+          void received.body?.cancel().catch(() => undefined);
+          signal.throwIfAborted();
+        }
+        return received;
+      }, signal);
+    } finally { cancelDeadline(); }
     const reader = response.body?.getReader();
     const responseBody: ByteSource = reader ? (async function* () {
       try {
@@ -81,4 +96,5 @@ export function createFetchTransport(options: FetchTransportOptions = {}): HttpT
       dispose,
     };
   };
+  return Object.assign(transport, { supportsResponseHeaderTimeout: true as const });
 }

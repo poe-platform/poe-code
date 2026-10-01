@@ -125,9 +125,18 @@ identify the virtual implementation, not a fabricated libcurl version.
 host-capped deadline for each connection's DNS, TCP and TLS setup. Fractional
 seconds are supported; zero disables this separate deadline. The Node transport
 stops it when TCP connects or TLS completes, before response headers and body.
-The total transfer deadline still applies. Custom transports must advertise
-`supportsConnectTimeout: true` and enforce `HttpRequest.connectTimeoutMs`;
-Fetch cannot expose connection completion and rejects positive connection timeouts.
+The total transfer deadline still applies. Custom transports advertise
+`supportsConnectTimeout: true` to enforce `HttpRequest.connectTimeoutMs` exactly.
+Fetch cannot expose connection completion. It instead advertises
+`supportsResponseHeaderTimeout: true`: curl applies `--connect-timeout` through
+`HttpRequest.responseHeaderTimeoutMs`, until response headers arrive. This Fetch
+fallback includes server response delay and upload time, so it can expire after
+an established connection that native curl would keep waiting on. It stops before
+reading the response body. Timeout exits 28 with `Response headers timed out`.
+When both capabilities exist, curl prefers the exact connection deadline. Direct
+Fetch callers use `responseHeaderTimeoutMs`; an exact `connectTimeoutMs` request
+is rejected rather than silently weakened. Omitted or zero header deadlines are
+disabled. Cancellation and late-response cleanup remain active in either case.
 
 Unknown flags fail, including proxy/config/netrc, `-k`,
 other CA/client-cert file flags, cookie-jar, HTTP/2/3, parallel,

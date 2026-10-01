@@ -10,7 +10,7 @@ import zstd from '../../../../src/commands/bytes/compression/native/generated/zs
 
 const input = Buffer.from('supplemental zstd options\n'.repeat(20));
 for (const command of ['zstd', 'unzstd', 'zstdcat']) {
-  for (const flags of [['--no-progress'], ['--single-thread'], ['--threads=1'], ['-T1'], ['--check'], ['--no-asyncio'], ['--asyncio'], ['--format=zstd'], ['--no-dictID'], ['--no-sparse'], ['--auto-threads=logical'], ['--ultra'], ['--compress-literals'], ['--no-compress-literals'], ['--row-match-finder'], ['--no-row-match-finder'], ['--size-hint=500'], [`--stream-size=${input.length}`], ['--long=20']]) {
+  for (const flags of [['--no-progress'], ['--single-thread'], ['--threads=0'], ['--threads', '0'], ['-T0'], ['-T', '0'], ['--threads=1'], ['-T1'], ['--check'], ['--no-asyncio'], ['--asyncio'], ['--format=zstd'], ['--no-dictID'], ['--no-sparse'], ['--auto-threads=logical'], ['--ultra'], ['--compress-literals'], ['--no-compress-literals'], ['--row-match-finder'], ['--no-row-match-finder'], ['--size-hint=500'], [`--stream-size=${input.length}`], ['--long=20']]) {
     test(`${command} ${flags.join(' ')} preserves bytes`, async () => {
       const encoded = await run('zstd', ['-c', ...flags], chunks(input));
       assert.equal(encoded.exitCode, 0, encoded.stderr);
@@ -42,7 +42,7 @@ test('Zstd checksum controls affect framing and validation', async () => {
   assert.deepEqual(ignored.stdout, input);
 });
 test('Zstd rejects unsupported execution capabilities and malformed values before output', async () => {
-  for (const flag of ['--threads=2', '--threads=0', '--adapt', '--rsyncable', '--progress', '--long=31', '--format=lz4', '--stream-size=oops', '--size-hint=-1', '--auto-threads=unknown']) {
+  for (const flag of ['--threads=2', '--adapt', '--rsyncable', '--progress', '--long=31', '--format=lz4', '--stream-size=oops', '--size-hint=-1', '--auto-threads=unknown']) {
     const result = await run('zstd', ['-c', flag], chunks(input));
     assert.equal(result.exitCode, 2, flag);
     assert.equal(result.stdout.length, 0);

@@ -45,7 +45,7 @@ test('preset zero remains invalid for other compression formats', async () => {
 });
 
 for (const command of ['xz', 'unxz', 'xzcat']) {
-  for (const flags of [['--compress'], ['--extreme'], ['-e'], ['--threads=1'], ['--threads', '1'], ['-T1'], ['-T', '1'], ['-0eT1']]) {
+  for (const flags of [['--compress'], ['--extreme'], ['-e'], ['--threads=0'], ['--threads', '0'], ['-T0'], ['-T', '0'], ['--threads=1'], ['--threads', '1'], ['-T1'], ['-T', '1'], ['-0eT1']]) {
     test(`${command} ${flags.join(' ')} compresses and round trips`, async () => {
       const input = Buffer.from('abc\n');
       const encoded = await run(command, ['--compress', ...flags, '-c'], chunks(input));
@@ -59,7 +59,7 @@ for (const command of ['xz', 'unxz', 'xzcat']) {
 }
 
 test('XZ rejects unsupported thread counts explicitly', async () => {
-  for (const flags of [['--threads=2'], ['-T0'], ['--threads=abc'], ['--threads']]) {
+  for (const flags of [['--threads=2'], ['--threads=abc'], ['--threads']]) {
     const result = await run('xz', flags);
     assert.equal(result.exitCode, 2);
     assert.match(result.stderr, /thread/);

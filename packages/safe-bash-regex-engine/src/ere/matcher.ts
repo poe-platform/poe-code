@@ -358,9 +358,30 @@ function tryMatchEreAsciiRangeNfaSync(
   }
   if (unbounded) {
     if (signal?.aborted) throw signal.reason;
+    const nodeIds = new Map<EreNode, number>();
+    const seen = new Set<string>();
+    // Tasks are recreated while expanding alternatives. Compare their semantics,
+    // not object identities; captures are deliberately absent in this span path.
+    const stateKey = (position: number, task: Task | null): string => {
+      let key = String(position);
+      for (let current = task; current; current = current.next) {
+        if (current.kind === "close") return `${key}/close`;
+        let id = nodeIds.get(current.node);
+        if (id === undefined) { id = nodeIds.size; nodeIds.set(current.node, id); }
+        key += `/${id}`;
+        if (current.kind === "repeat") {
+          const count = current.node.max === Infinity ? Math.min(current.count, Math.max(1, current.node.min)) : current.count;
+          key += `:${count}:${current.previous === position ? 1 : 0}`;
+        }
+      }
+      return key;
+    };
     const pendingPos: number[] = [];
     const pendingTask: (Task | null)[] = [];
     const push = (position: number, next: Task | null): void => {
+      const key = stateKey(position, next);
+      if (seen.has(key)) return;
+      seen.add(key);
       pendingPos.push(position);
       pendingTask.push(next);
     };
@@ -380,14 +401,16 @@ function tryMatchEreAsciiRangeNfaSync(
       }
       if (word && start > 0 && isAsciiWord(buf[rStart + start - 1]!)) continue;
       if (secondLitCode >= 0 && (start + 1 >= rLen || buf[rStart + start + 1] !== secondLitCode)) continue;
+      seen.clear();
       push(start, rootTask);
       let bestPos = -1;
       while (pendingPos.length > 0) {
+        if (signal?.aborted) throw signal.reason;
         const statePos = pendingPos.pop()!;
         const current = pendingTask.pop()!;
         if (current === null) {
           if (word && statePos < rLen && isAsciiWord(buf[rStart + statePos]!)) continue;
-          if (leftmostFirst) { bestPos = statePos; pendingPos.length = 0; pendingTask.length = 0; break; }
+          if (leftmostFirst || statePos === rLen) { bestPos = statePos; pendingPos.length = 0; pendingTask.length = 0; break; }
           if (statePos > bestPos) bestPos = statePos;
           continue;
         }
@@ -405,7 +428,7 @@ function tryMatchEreAsciiRangeNfaSync(
               if (nextTask && nextTask.kind === "node" && nextTask.node.kind === "literal" && !nextTask.node.insensitive) {
                 const targetCode = nextTask.node.code;
                 const afterLit = nextTask.next;
-                for (let p = minDotPos; p < maxDotPos; p++) {
+                for (let p = minDotPos; p <= maxDotPos && p < rLen; p++) {
                   if (buf[rStart + p] === targetCode) push(p + 1, afterLit);
                 }
               } else {

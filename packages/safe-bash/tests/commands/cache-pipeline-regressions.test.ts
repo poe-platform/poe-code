@@ -5,6 +5,62 @@ import { searchCommands } from '../../src/commands/search/index.js';
 import { createNodeRegexProvider } from '../../src/commands/regex-execution/client.js';
 
 const enc = new TextEncoder();
+
+test('repeated pure pipelines honor each invocation locale and byte limits', async context => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/data.txt', enc.encode('a:b\na:A\na:a\na:B\n'.repeat(80)));
+  const command = 'grep a /data.txt | cut -d: -f2 | sort | head -n 4';
+  for (const variable of ['LC_ALL', 'LC_COLLATE']) {
+    for (const locale of ['C', 'en_US.UTF-8', 'C']) {
+      const shell = new Shell({ fs, env: { [variable]: locale } }).use(standardCommands());
+      context.after(() => shell.dispose());
+      for (let i = 0; i < 2; i++) {
+        const result = await shell.exec(command);
+        assert.equal(result.exitCode, 0, result.stderr);
+        // sort-ordering.md specifies C byte ordering regardless of environment.
+        assert.equal(result.stdout, 'A\n'.repeat(4));
+      }
+      // Pipeline writes are included in the shell's output byte quota.
+      for (const limit of ['maxInputBytes', 'maxOutputBytes'] as const) {
+        await assert.rejects(shell.exec(command, { limits: { [limit]: 10 } }), { name: 'ShellLimitError', limit });
+      }
+    }
+  }
+  await fs.writeFile('/characters.txt', enc.encode('éa\n'.repeat(400)));
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  for (const locale of ['C', 'en_US.UTF-8', 'C']) {
+    const result = await shell.exec(`export LC_ALL=${locale}; grep a /characters.txt | cut -c 1 | head -n 4`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, locale === 'C' ? Uint8Array.of(195, 10, 195, 10, 195, 10, 195, 10) : enc.encode('é\n'.repeat(4)));
+  }
+});
+
+test('repeated 64-file rg walks honor budgets and parent ignore changes', async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/work/tree', { recursive: true });
+  for (let i = 0; i < 64; i++) await fs.writeFile(`/work/tree/file${i}.txt`, enc.encode('needle\n'.repeat(20)));
+  const shell = new Shell({ fs, cwd: '/work' }).use(searchCommands());
+  context.after(() => shell.dispose());
+  const command = 'rg -c needle tree';
+  for (let i = 0; i < 2; i++) {
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.trim().split('\n').length, 64);
+  }
+  for (const limit of ['maxInputBytes', 'maxFileSystemOperations'] as const) {
+    await assert.rejects(shell.exec(command, { limits: { [limit]: 10 } }), { name: 'ShellLimitError', limit });
+  }
+  await fs.mkdir('/work/.git');
+  for (const ignore of ['.gitignore', '.ignore', '.rgignore']) {
+    await fs.writeFile(`/work/${ignore}`, enc.encode('tree/*.txt\n'));
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(result.stdout, '');
+    await fs.unlink(`/work/${ignore}`);
+    assert.equal((await shell.exec(command)).stdout.trim().split('\n').length, 64);
+  }
+});
 test('rg counts distinguish full literal patterns', async () => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs });

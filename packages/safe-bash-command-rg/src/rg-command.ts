@@ -65,6 +65,7 @@ function trySearchFileSync(
   const maxBytes = limits.hasFiniteMaxFileBytes ? limits.maxFileBytes : undefined;
   const view = target.memoryView ?? tryReadMemoryFileViewSync(backing, target.canonicalPath!, maxBytes, context.signal);
   if (view === undefined) return undefined;
+  context.inputBudget?.check(view.byteLength);
   if (!args.hasInfiniteMaxCount && args.maxCount === 0) {
     totals.searches++;
     return false;

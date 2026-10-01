@@ -88,3 +88,50 @@ test("fast awk evaluates random state for each invocation", async () => {
   assert.notEqual(first.stdout, second.stdout);
   assert.equal(first.stdout, repeat.stdout);
 });
+
+for (const size of [255, 256, 310]) test(`BEGIN reads every record in a ${size}-byte file exactly once`, async () => {
+  const input = "x".repeat(size - 3) + "\na\n";
+  const { run } = await fixture(input);
+  for (let invocation = 0; invocation < 2; invocation++) {
+    const result = await run('BEGIN { x = 1 } { c++ } END { print x, c, NR, $0, NF }');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "1 2 2 a 1\n");
+  }
+});
+
+test("BEGIN aggregation on batched input emits END only once", async () => {
+  const { run } = await fixture("a:x:10\n".repeat(40));
+  const result = await run('BEGIN { sum = 1 } /^a/ { sum += $3 } END { print "END_RAN", sum, NR }');
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "END_RAN 401 40\n");
+});
+
+for (const matchedLast of [false, true]) test(`large sums preserve END record state with final match ${matchedLast}`, async () => {
+  const matches = "a:x:900000000\n".repeat(3);
+  const padding = Array.from({ length: 20 }, (_, i) => `b:pad_${i}:100000000\n`).join("");
+  const { run } = await fixture(matchedLast ? padding + matches : matches + padding);
+  const result = await run('/^a/ { sum += $3; cnt++ } END { print sum, cnt, $0, NF }');
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, `2700000000 3 ${matchedLast ? "a:x:900000000" : "b:pad_19:100000000"} 3\n`);
+});
+
+test("batch aggregation preserves fractional sums", async () => {
+  const { run } = await fixture("a:x:0.5\n".repeat(40));
+  const result = await run('BEGIN { sum = 0.25 } /^a/ { sum += $3; cnt++ } END { print sum, cnt }');
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "20.25 40\n");
+});
+
+test("awk reads batched memory input without a global Buffer", async () => {
+  const { run } = await fixture("a:x:10\n".repeat(40));
+  const originalBuffer = globalThis.Buffer;
+  Object.defineProperty(globalThis, "Buffer", { value: undefined, configurable: true, writable: true });
+  try {
+    const result = await run('BEGIN { sum = 1 } { sum += $3 } END { print sum, NR }');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "401 40\n");
+  } finally {
+    Object.defineProperty(globalThis, "Buffer", { value: originalBuffer, configurable: true, writable: true });
+  }
+});

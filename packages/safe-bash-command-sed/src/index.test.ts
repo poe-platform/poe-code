@@ -159,3 +159,19 @@ for (const sink of ["writeSync", "writeRangeSync", "writeImmutableSync"] as cons
     assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "HELLO WORLD\n".repeat(100));
   });
 }
+
+test("sed transforms batched memory input without a global Buffer", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/input", new TextEncoder().encode("foo baz\n".repeat(40)));
+  const originalBuffer = globalThis.Buffer;
+  Object.defineProperty(globalThis, "Buffer", { value: undefined, configurable: true, writable: true });
+  try {
+    for (let invocation = 0; invocation < 2; invocation++) {
+      const result = await run(createSedCommand(), ["s/^foo/qux/;s/baz/zip/", "/input"], "", fs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "qux zip\n".repeat(40));
+    }
+  } finally {
+    Object.defineProperty(globalThis, "Buffer", { value: originalBuffer, configurable: true, writable: true });
+  }
+});

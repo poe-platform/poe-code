@@ -105,7 +105,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
         } else {
           if (!supplied || ![...supplied].every(character => character >= "0" && character <= "9") || !Number.isSafeInteger(Number(supplied))) throw new UsageError(`invalid --${name} value`);
           const number = Number(supplied);
-          if (name === "threads" && number !== 1) throw new UsageError("only --threads=1 is supported by the single-threaded Zstandard codec");
+          if (name === "threads" && number !== 0 && number !== 1) throw new UsageError("only --threads=0 or --threads=1 is supported by the single-threaded Zstandard codec");
           if (name === "long") {
             if (number < 10 || number > 30) throw new UsageError("long-distance matching requires a window log from 10 through 30");
             result.zstd.window = number;
@@ -198,7 +198,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
       if (argument === "--extreme") { result.extreme = true; delete result.xzFilters; continue; }
       if (argument === "--threads" || argument.startsWith("--threads=")) {
         const threads = argument === "--threads" ? args[++index] : argument.slice("--threads=".length);
-        if (threads !== "1") throw new UsageError("only --threads=1 is supported by the single-threaded XZ codec");
+        if (threads !== "0" && threads !== "1") throw new UsageError("only --threads=0 or --threads=1 is supported by the single-threaded XZ codec");
         continue;
       }
     }
@@ -245,7 +245,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
         case "T": {
           if (profile.format !== "xz" && profile.format !== "zstd") throw new UsageError(`invalid option -- '${flag}'`);
           const threads = flags.slice(offset + 1) || args[++index];
-          if (threads !== "1") throw new UsageError(`only --threads=1 is supported by the single-threaded ${profile.format} codec`);
+          if (threads !== "0" && threads !== "1") throw new UsageError(`only --threads=0 or --threads=1 is supported by the single-threaded ${profile.format} codec`);
           offset = flags.length;
           break;
         }

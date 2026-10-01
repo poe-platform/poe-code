@@ -24,7 +24,7 @@ The existing profile supports XZ, legacy LZMA and raw formats; CRC32, CRC64,
 SHA-256 and omitted checks; presets, custom filter chains, block controls,
 single-stream decoding, custom suffixes, and human or robot index listings.
 The codec runs as bundled JavaScript without native processes or runtime fetches.
-It is single-threaded: `--threads=1` is supported. Listing requires a retained
+It is single-threaded: `--threads=0` (automatic) and `--threads=1` both use one thread. Listing requires a retained
 virtual-file read handle and does not read stdin.
 
 Pass `maxDecodedBytes` to `createXzCommands` to enforce an optional decoded-byte

@@ -29297,6 +29297,9 @@ export class Runtime {
     return true;
   }
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
+    // Synchronous evaluators do not expose cumulative source-read accounting.
+    // Use the command context whenever the caller has set an input ceiling.
+    if (this.budget.limits.maxInputBytes !== Infinity) return undefined;
     const cachedInv = this._syncLoopInvariantSubMap?.get(part);
     if (cachedInv !== undefined && !cachedInv.dynamic) {
       const nextTotalBytes = this.budget.bytes + cachedInv.outBytes;

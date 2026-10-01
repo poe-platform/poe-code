@@ -11,6 +11,26 @@ import { createChecksumCommands } from "../../../src/commands/bytes/checksums/in
 
 const encoder = new TextEncoder();
 
+for (const name of ["base64", "base32", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum", "md5sum", "cksum"]) {
+  test(`${name} enforces Shell input limits for files, stdin and substitutions`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", encoder.encode("hello"));
+    for (const command of [`${name} /input`, `${name} < /input`, `printf hello | ${name}`, `echo $(${name} /input)`]) {
+      const shell = new Shell({ fs, limits: { maxInputBytes: 4 } }).use(agentCommands());
+      try {
+        if (command.includes(" < ")) {
+          const result = await shell.exec(command);
+          assert.equal(result.exitCode, 1, command);
+          assert.match(result.stderr, /EFBIG/, command);
+        } else await assert.rejects(shell.exec(command), /maxInputBytes/, command);
+      } finally { await shell.dispose(); }
+    }
+    const shell = new Shell({ fs, limits: { maxInputBytes: 5 } }).use(agentCommands());
+    try { assert.equal((await shell.exec(`${name} /input`)).exitCode, 0); }
+    finally { await shell.dispose(); }
+  });
+}
+
 async function run(
   definitions: readonly CommandDefinition[], name: string, args: readonly string[] = [],
   stdin: ByteSource = toByteSource(""), fs: FileSystem = createMemoryFileSystem(),
@@ -160,18 +180,17 @@ test("family and aggregate options route independently without limiting compress
   for (const route of ["factory", "plugin", "aggregate factory", "aggregate plugin"]) {
     const fs = createMemoryFileSystem();
     const commands = route === "factory" ? createByteCommands(options) : route === "aggregate factory" ? createAgentCommands({ bytes: options }) : [];
-    const shell = new Shell({ fs, commands: new CommandRegistry(commands), limits: { maxInputBytes: 1 } });
+    const shell = new Shell({ fs, commands: new CommandRegistry(commands), limits: { maxInputBytes: 4 } });
     if (route === "plugin") shell.use(byteCommands(options));
     if (route === "aggregate plugin") shell.use(agentCommands({ bytes: options }));
     try {
-      // Stream input isolates command-family limits from finite-input ownership admission.
+      // Command-family limits remain independent within the shared Shell ceiling.
       assert.equal((await shell.exec("base64", { stdin: toByteSource("abc") })).exitCode, 1, route);
       for (let index = 0; index < 2; index++) assert.equal((await shell.exec("sha256sum", { stdin: toByteSource("abcd") })).exitCode, 0, route);
       assert.equal((await shell.exec("gzip -c", { stdin: toByteSource("abc") })).exitCode, 0, route);
       await fs.writeFile("/data", encoder.encode("abcd"));
       const redirected = await shell.exec("sha256sum < /data");
-      assert.equal(redirected.exitCode, 1, route);
-      assert.match(redirected.stderr, /EFBIG/);
+      assert.equal(redirected.exitCode, 0, route);
     } finally { await shell.dispose(); }
   }
 });

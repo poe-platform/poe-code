@@ -8,6 +8,32 @@ import { convert } from "./html-to-markdown/helpers.js";
 import { Budget } from "safe-bash-command-html-to-markdown/budget";
 import { Parser } from "safe-bash-command-html-to-markdown/parser";
 import { settings } from "safe-bash-command-html-to-markdown/options";
+import { toByteSource } from "safe-bash-contracts";
+
+for (const route of ["stdin", "file", "pipeline", "substitution"] as const) {
+  test(`HTML ${route} enforces the Shell input ceiling at its exact byte boundary`, async t => {
+    const html = "<p>é</p>", bytes = new TextEncoder().encode(html);
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input.html", bytes);
+    for (const maxInputBytes of [bytes.length, bytes.length - 1]) {
+      const shell = new Shell({ fs, limits: { maxInputBytes } }).use(agentCommands());
+      t.after(() => shell.dispose());
+      const command = route === "stdin" ? "html-to-markdown"
+        : route === "file" ? "html-to-markdown /input.html"
+        : route === "pipeline" ? `printf '%s' '${html}' | html-to-markdown`
+        : 'value=$(html-to-markdown /input.html) && printf "%s" "$value"';
+      const execution = shell.exec(command, route === "stdin" ? { stdin: toByteSource(bytes) } : {});
+      if (maxInputBytes === bytes.length) {
+        const result = await execution;
+        assert.equal(result.exitCode, 0, result.stderr);
+        assert.equal(result.stdout, route === "substitution" ? "é" : "é\n");
+        assert.equal(result.stderr, "");
+      } else {
+        await assert.rejects(execution, { name: "ShellLimitError", message: "Shell limit exceeded: maxInputBytes" });
+      }
+    }
+  });
+}
 
 for (const plugin of [htmlToMarkdownCommands, agentCommands]) {
   test(`Worker ${plugin.name} bounds large zero-output trees despite a small output cap`, async t => {

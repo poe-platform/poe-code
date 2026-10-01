@@ -1,3 +1,4 @@
+import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -929,9 +930,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
         offset += c.byteLength;
       }
     } else {
-      const resolvedPath = inputTarget.startsWith("/")
-        ? inputTarget
-        : `${context.cwd === "/" ? "" : context.cwd}/${inputTarget}`;
+      const resolvedPath = resolvePath(context.cwd, inputTarget);
       try {
         pdfBytes = await context.fs.readFile(resolvedPath, { signal: invocation.signal });
         chargeBytes(pdfBytes.byteLength);
@@ -958,9 +957,7 @@ export async function pdftotext(context: CommandContext): Promise<{ exitCode: nu
       const stdout = invocation.child(context.stdout);
       await writeBytes(stdout.output, outBytes, invocation.signal);
     } else {
-      const outResolved = res.outputPath.startsWith("/")
-        ? res.outputPath
-        : `${context.cwd === "/" ? "" : context.cwd}/${res.outputPath}`;
+      const outResolved = resolvePath(context.cwd, res.outputPath);
       try {
         await writeFileOutput(context, outBytes, data => context.fs.writeFile(outResolved, data, { signal: invocation.signal }));
       } catch {
@@ -1038,6 +1035,10 @@ function* runPdftohtmlCliSteps(argv: readonly string[], files: Map<string, Uint8
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
+        if (arg === "--") {
+            positionals.push(...argv.slice(i + 1));
+            break;
+        }
         if (arg === "-v" || arg === "--version") {
             return { exitCode: 0, stdout: "pdftohtml version 24.08.0\n", stderr: "" };
         }
@@ -1403,8 +1404,6 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
     let accountedBytes = 0;
     const chargeBytes = (delta: number) => {
       if (delta > 0) {
@@ -1417,6 +1416,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
     for (let i = 0; i < argv.length; i++) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       const arg = argv[i]!;
+      if (arg === "--") { inputOperand = argv[i + 1]; break; }
       if (["-f", "-l", "-zoom", "-fmt", "-enc", "-upw", "-opw"].includes(arg)) {
         i++;
       } else if (arg === "-" || !arg.startsWith("-")) {
@@ -1447,9 +1447,8 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
 
     for (const token of inputOperand && inputOperand !== "-" ? [inputOperand] : []) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
-      if (token.startsWith("-") && token !== "-") continue;
       try {
-        const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
+        const bytes = await context.fs.readFile(resolvePath(context.cwd, token), { signal: invocation.signal });
         chargeBytes(bytes.byteLength);
         vfsFiles.set(token, bytes);
       } catch {
@@ -1472,7 +1471,7 @@ export async function pdftohtml(context: CommandContext): Promise<{ exitCode: nu
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
-        const abs = resolveVfsPath(key);
+        const abs = resolvePath(context.cwd, key);
         try {
           await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
         } catch (error) {

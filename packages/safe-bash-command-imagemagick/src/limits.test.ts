@@ -84,3 +84,20 @@ test("magick enforces a local budget shared by files and chunked stdin", async (
   await expect(command.execute(initial.context)).rejects.toThrow(/input byte limit/);
   expect(initial.output).toEqual([]);
 });
+
+test("converts dash-prefixed files after -- and normalizes VFS paths", async () => {
+  const command = createMagickCommand();
+  const { context, png } = await imageContext(command, ["--", "-in.png", "missing/../out.png"]);
+  await context.fs.writeFile("/-in.png", png);
+  const result = await command.execute(context);
+  expect(result.exitCode).toBe(0);
+  expect((await context.fs.readFile("/out.png")).length).toBeGreaterThan(0);
+});
+test("convert runner treats option-like operands after -- as filenames", async () => {
+  const files = new Map<string, Uint8Array>();
+  await runConvertCli(["-size", "1x1", "xc:red", "in.png"], files);
+  files.set("--help", files.get("in.png")!);
+  const result = await runConvertCli(["--", "--help", "out.png"], files);
+  expect(result.exitCode).toBe(0);
+  expect(files.has("out.png")).toBe(true);
+});

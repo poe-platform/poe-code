@@ -19,6 +19,7 @@ async function execute(command: ReturnType<typeof createPdftkCommand>, args: str
   const volume = new Volume();
   volume.mkdirSync("/work");
   volume.writeFileSync("/work/in.pdf", fixture(attachment));
+  volume.writeFileSync("/work/-in.pdf", fixture(attachment));
   for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) volume.writeFileSync(`/work/${name}`, new Uint8Array(10000));
   const reads: string[] = [], errors: Uint8Array[] = [];
   const carrier = createCommandArguments(args);
@@ -68,3 +69,9 @@ for (const args of [["A=in.pdf", "input_pw", "secret", "cat", "A1", "output", "o
     assert.deepEqual(reads, ["/work/in.pdf"]);
   });
 }
+
+it("normalizes dot segments before VFS access", async () => {
+  const { result, reads, stderr } = await execute(createPdftkCommand(), ["missing/../in.pdf", "cat", "missing/../output", "missing/../out.pdf"]);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.deepEqual(reads, ["/work/in.pdf"]);
+});

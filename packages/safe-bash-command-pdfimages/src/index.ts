@@ -1,3 +1,4 @@
+import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -56,6 +57,10 @@ function extractPdfimagesPositionals(argv: readonly string[]): string[] {
   const pos: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    if (arg === "--") {
+      pos.push(...argv.slice(i + 1));
+      break;
+    }
     if (PDFIMAGES_VALUE_FLAGS.has(arg)) {
       i++;
       continue;
@@ -93,6 +98,10 @@ function* runPdfimagesCliSteps(argv: readonly string[], files: Map<string, Uint8
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
+        if (arg === "--") {
+            positionals.push(...argv.slice(i + 1));
+            break;
+        }
         if (PDFIMAGES_VALUE_FLAGS.has(arg)) {
             const value = argv[i + 1];
             if (value === undefined) {
@@ -334,8 +343,6 @@ async function executePdfimages(context: CommandContext): Promise<{ exitCode: nu
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
     let accountedBytes = 0;
     const chargeBytes = (delta: number) => {
       if (delta > 0) {
@@ -370,7 +377,7 @@ async function executePdfimages(context: CommandContext): Promise<{ exitCode: nu
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token === "-") continue;
       try {
-        const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
+        const bytes = await context.fs.readFile(resolvePath(context.cwd, token), { signal: invocation.signal });
         chargeBytes(bytes.byteLength);
         vfsFiles.set(token, bytes);
       } catch {
@@ -391,7 +398,7 @@ async function executePdfimages(context: CommandContext): Promise<{ exitCode: nu
     for (const [key, val] of vfsFiles.entries()) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (key !== "-" && existingSnap.get(key) !== val) {
-        const abs = resolveVfsPath(key);
+        const abs = resolvePath(context.cwd, key);
         try {
           await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
         } catch (error) {

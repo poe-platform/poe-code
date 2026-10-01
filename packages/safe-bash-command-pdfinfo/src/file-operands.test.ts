@@ -20,6 +20,7 @@ async function execute(command: ReturnType<typeof createPdfuniteCommand>, args: 
   const volume = new Volume();
   volume.mkdirSync("/work");
   volume.writeFileSync("/work/in.pdf", fixture(attachment));
+  volume.writeFileSync("/work/-in.pdf", fixture(attachment));
   for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) volume.writeFileSync(`/work/${name}`, new Uint8Array(10000));
   const reads: string[] = [], errors: Uint8Array[] = [];
   const carrier = createCommandArguments(args);
@@ -106,4 +107,16 @@ it("respects an explicit attachment output filename", async () => {
   const { result, volume, stderr } = await execute(createPdfdetachCommand(), ["-save", "1", "-o", "/work/chosen.txt", "in.pdf"], false, "../escaped.txt");
   assert.equal(result.exitCode, 0, stderr);
   assert.equal(volume.readFileSync("/work/chosen.txt", "utf8"), "payload");
+});
+
+it("normalizes dot segments before VFS access", async () => {
+  const { result, reads, stderr } = await execute(createPdfinfoCommand(), ["missing/../in.pdf"]);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.deepEqual(reads, ["/work/in.pdf"]);
+});
+
+it("stages dash-prefixed operands after --", async () => {
+  const { result, reads, stderr } = await execute(createPdfinfoCommand(), ["--", "-in.pdf"]);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.deepEqual(reads, ["/work/-in.pdf"]);
 });

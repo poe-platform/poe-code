@@ -1,3 +1,4 @@
+import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
 import {
@@ -2572,8 +2573,6 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
 
     // Collect referenced VFS files into a working Map and write back any modified/created outputs
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
     let accountedBytes = 0;
     const chargeBytes = (delta: number) => {
       if (delta > 0) {
@@ -2590,7 +2589,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
       const path = token.slice(1);
       let bytes: Uint8Array;
       try {
-        bytes = await context.fs.readFile(resolveVfsPath(path), { signal: invocation.signal });
+        bytes = await context.fs.readFile(resolvePath(context.cwd, path), { signal: invocation.signal });
       } catch {
         await writeBytes(context.stderr, new TextEncoder().encode(`qpdf: cannot open ${path}\n`), invocation.signal);
         return { exitCode: 2 };
@@ -2612,7 +2611,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
     for (const candidate of new Set(inputs)) {
       await yieldTurn(invocation.signal);
       if (!candidate || candidate === "-" || candidate === ".") continue;
-      const abs = resolveVfsPath(candidate);
+      const abs = resolvePath(context.cwd, candidate);
       let bytes: Uint8Array;
       try {
         bytes = await context.fs.readFile(abs, { signal: invocation.signal });
@@ -2641,7 +2640,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
           const stream = (entry as { stream?: { datafile?: unknown } }).stream;
           if (!stream || typeof stream.datafile !== "string" || vfsFiles.has(stream.datafile)) continue;
           let bytes: Uint8Array;
-          try { bytes = await context.fs.readFile(resolveVfsPath(stream.datafile), { signal: invocation.signal }); }
+          try { bytes = await context.fs.readFile(resolvePath(context.cwd, stream.datafile), { signal: invocation.signal }); }
           catch { invocation.signal.throwIfAborted(); continue; }
           chargeBytes(bytes.byteLength);
           vfsFiles.set(stream.datafile, bytes);
@@ -2685,7 +2684,7 @@ export async function qpdf(context: CommandContext, options: QpdfCommandOptions 
           const stdout = invocation.child(context.stdout);
           await writeBytes(stdout.output, fileBytes, invocation.signal);
         } else {
-          const abs = resolveVfsPath(fileKey);
+          const abs = resolvePath(context.cwd, fileKey);
           try {
             await writeFileOutput(context, fileBytes, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
           } catch (error) {

@@ -20,6 +20,7 @@ async function execute(command: ReturnType<typeof createPdftoppmCommand>, args: 
   const volume = new Volume();
   volume.mkdirSync("/work");
   volume.writeFileSync("/work/in.pdf", fixture(attachment));
+  volume.writeFileSync("/work/-in.pdf", fixture(attachment));
   for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) volume.writeFileSync(`/work/${name}`, new Uint8Array(10000));
   const reads: string[] = [], errors: Uint8Array[] = [];
   const carrier = createCommandArguments(args);
@@ -72,3 +73,20 @@ for (const args of [[], ["-"]]) {
     assert.ok(stderr.includes("Syntax Error: Document stream is empty"), stderr);
   });
 }
+
+it("normalizes dot segments before VFS access", async () => {
+  const { result, reads, stderr } = await execute(createPdftoppmCommand(), ["-scale-to", "8", "missing/../in.pdf", "missing/../out"]);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.deepEqual(reads, ["/work/in.pdf"]);
+});
+
+it("stages dash-prefixed operands after --", async () => {
+  const { result, reads, stderr } = await execute(createPdftoppmCommand(), ["-scale-to", "8", "--", "-in.pdf", "out"]);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.deepEqual(reads, ["/work/-in.pdf"]);
+});
+
+it("pdftocairo stages dash-prefixed operands after --", async () => {
+ const { result, stderr } = await execute(createPdftocairoCommand(), ["-png", "-scale-to", "8", "--", "-in.pdf", "out"]);
+ assert.equal(result.exitCode, 0, stderr);
+});

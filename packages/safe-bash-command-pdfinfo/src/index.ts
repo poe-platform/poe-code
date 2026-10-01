@@ -1,3 +1,4 @@
+import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -102,6 +103,10 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   const positional: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    if (arg === "--") {
+      positional.push(...argv.slice(i + 1));
+      break;
+    }
     if (arg === "-f") {
       const next = argv[++i];
       const val = Number.parseInt(next ?? "", 10);
@@ -1185,9 +1190,7 @@ export async function pdfinfo(context: CommandContext): Promise<{ exitCode: numb
         offset += c.byteLength;
       }
     } else {
-      const resolvedPath = inputTarget.startsWith("/")
-        ? inputTarget
-        : `${context.cwd === "/" ? "" : context.cwd}/${inputTarget}`;
+      const resolvedPath = resolvePath(context.cwd, inputTarget);
       try {
         pdfBytes = await context.fs.readFile(resolvedPath, { signal: invocation.signal });
         chargeBytes(pdfBytes.byteLength);
@@ -2175,6 +2178,10 @@ function extractPopplerFileToolPositionals(argv: readonly string[]): string[] {
   const pos: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    if (arg === "--") {
+        pos.push(...argv.slice(i + 1));
+        break;
+    }
     if (POPPLER_FILE_TOOL_VALUE_FLAGS.has(arg)) {
       i++;
       continue;
@@ -2200,8 +2207,6 @@ async function executePopplerFileTool(
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
     let accountedBytes = 0;
     const chargeBytes = (delta: number) => {
       if (delta > 0) {
@@ -2236,7 +2241,7 @@ async function executePopplerFileTool(
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token === "-") continue;
       try {
-        const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
+        const bytes = await context.fs.readFile(resolvePath(context.cwd, token), { signal: invocation.signal });
         chargeBytes(bytes.byteLength);
         vfsFiles.set(token, bytes);
       } catch {
@@ -2264,7 +2269,7 @@ async function executePopplerFileTool(
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (key !== "-" && existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
-        const abs = resolveVfsPath(key);
+        const abs = resolvePath(context.cwd, key);
         try {
           await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
         } catch (error) {

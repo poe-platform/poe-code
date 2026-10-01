@@ -20,6 +20,7 @@ async function execute(command: ReturnType<typeof createQpdfCommand>, args: stri
   const volume = new Volume();
   volume.mkdirSync("/work");
   volume.writeFileSync("/work/in.pdf", fixture(attachment));
+  volume.writeFileSync("/work/-in.pdf", fixture(attachment));
   for (const name of ["out.pdf", "out.html", "out", "out-%d.pdf", "cat", "1", "output"]) volume.writeFileSync(`/work/${name}`, new Uint8Array(10000));
   const reads: string[] = [], errors: Uint8Array[] = [];
   const carrier = createCommandArguments(args);
@@ -61,4 +62,10 @@ it("overwrites an existing output without charging its previous contents", async
   const { result, volume, stderr } = await execute(createQpdfCommand({ limits: { maxInputBytes: fixture().byteLength } }), ["in.pdf", "out.pdf"]);
   assert.equal(result.exitCode, 0, stderr);
   assert.equal(PdfDocument.load(new Uint8Array(volume.readFileSync("/work/out.pdf") as Buffer)).pageCount, 1);
+});
+
+it("normalizes dot segments before VFS access", async () => {
+  const { result, reads, stderr } = await execute(createQpdfCommand(), ["missing/../in.pdf", "missing/../out.pdf"]);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.deepEqual(reads, ["/work/in.pdf"]);
 });

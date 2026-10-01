@@ -1,3 +1,4 @@
+import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -3708,10 +3709,18 @@ function parseMagickIndexSpec(spec: string, length: number): number[] {
 function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack: RgbaImage[] = [], stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, RgbaImage[], void> {
     let cooperativeWork = 63;
     let stack: RgbaImage[] = [];
+    let operandsOnly = false;
     let i = 0;
     while (i < tokens.length) {
         yield;
         const t = tokens[i]!;
+        if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
+        if (operandsOnly) {
+            const loaded = yield* parseInputOperandsSteps(t, files, state, stdinBytes);
+            if (loaded) stack.push(...loaded);
+            i++;
+            continue;
+        }
         if (t === "(") {
             let depth = 1;
             let j = i + 1;
@@ -4783,14 +4792,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
 
 function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
     let cooperativeWork = 63;
-    if (argv.length === 0 || argv.includes("--help") || argv.includes("-help") || argv.includes("-h")) {
+    const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
+    if (argv.length === 0 || optionArgs.includes("--help") || optionArgs.includes("-help") || optionArgs.includes("-h")) {
         return {
             exitCode: 0,
             stdout: "Usage: magick [input-options] input-file [operators] output-file\n",
             stderr: ""
         };
     }
-    if (argv.includes("--version") || argv.includes("-version")) {
+    if (optionArgs.includes("--version") || optionArgs.includes("-version")) {
         return {
             exitCode: 0,
             stdout: "Version: ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)\n",
@@ -5612,8 +5622,6 @@ async function executeVfsMagickTool(
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
 
     const budget = new InputByteBudget(maxInputBytes);
     let accountedBytes = 0;
@@ -5624,13 +5632,15 @@ async function executeVfsMagickTool(
     };
     let needsStdin = false;
     const hasOutputOperand = runner !== runIdentifyCli && !(runner === runMagickCli && argv[0] === "identify");
+    let operandsOnly = false;
     for (const [index, token] of argv.entries()) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
+      if (!operandsOnly && token === "--") { operandsOnly = true; continue; }
       if (token === "-" || token.endsWith(":-")) {
         if (!hasOutputOperand || index < argv.length - 1) needsStdin = true;
         continue;
       }
-      if (token.startsWith("-") || token.startsWith("+") || token === "(" || token === ")") continue;
+      if (!operandsOnly && (token.startsWith("-") || token.startsWith("+") || token === "(" || token === ")")) continue;
       let candidate = token.toLowerCase().startsWith("tile:") ? token.slice(5) : token;
       const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(candidate);
       if (prefixMatch && extToImageFormat(prefixMatch[1]!)) {
@@ -5642,7 +5652,7 @@ async function executeVfsMagickTool(
       }
       let bytes: Uint8Array;
       try {
-        bytes = await context.fs.readFile(resolveVfsPath(candidate), {
+        bytes = await context.fs.readFile(resolvePath(context.cwd, candidate), {
           signal: invocation.signal
         });
       } catch {
@@ -5689,7 +5699,7 @@ async function executeVfsMagickTool(
     for (const [key, val] of vfsFiles.entries()) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (existingSnap.get(key) !== val) {
-        const abs = resolveVfsPath(key);
+        const abs = resolvePath(context.cwd, key);
         await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }

@@ -1,3 +1,4 @@
+import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -64,6 +65,10 @@ function extractPdftoppmPositionals(argv: readonly string[]): string[] {
   const pos: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    if (arg === "--") {
+      pos.push(...argv.slice(i + 1));
+      break;
+    }
     if (VALUE_FLAGS.has(arg)) {
       i++;
       continue;
@@ -118,6 +123,10 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
+        if (arg === "--") {
+            positionals.push(...argv.slice(i + 1));
+            break;
+        }
         if (VALUE_FLAGS.has(arg)) {
             const value = argv[i + 1];
             if (value === undefined) {
@@ -507,8 +516,6 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
     let accountedBytes = 0;
     const chargeBytes = (delta: number) => {
       if (delta > 0) {
@@ -544,7 +551,7 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token === "-") continue;
       try {
-        const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
+        const bytes = await context.fs.readFile(resolvePath(context.cwd, token), { signal: invocation.signal });
         chargeBytes(bytes.byteLength);
         vfsFiles.set(token, bytes);
       } catch {
@@ -568,7 +575,7 @@ async function executePdftoppm(context: CommandContext): Promise<{ exitCode: num
     for (const [key, val] of vfsFiles.entries()) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (key !== "-" && existingSnap.get(key) !== val) {
-        const abs = resolveVfsPath(key);
+        const abs = resolvePath(context.cwd, key);
         try {
           await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
         } catch (error) {
@@ -622,6 +629,10 @@ function extractPdftocairoPositionals(argv: readonly string[]): string[] {
   const pos: string[] = [];
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]!;
+    if (arg === "--") {
+        pos.push(...argv.slice(i + 1));
+        break;
+    }
     if (CAIRO_VALUE_FLAGS.has(arg)) {
       i++;
       continue;
@@ -661,6 +672,10 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
         if (++cooperativeWork % 64 === 0)
             yield;
         const arg = argv[i]!;
+        if (arg === "--") {
+            positionals.push(...argv.slice(i + 1));
+            break;
+        }
         if (arg === "-v" || arg === "--version") {
             return { exitCode: 0, stdout: "pdftocairo version 24.08.0\n", stderr: "" };
         }
@@ -817,7 +832,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
     if (format === "svg") {
         const rawOut = positionals[1] ?? (inputPath === "-" ? "-" : `${inputStem}.svg`);
         const rootForSvg = rawOut.toLowerCase().endsWith(".svg") ? rawOut.slice(0, -4) : rawOut;
-        return (yield* runPdftoppmCliSteps(["-svg", "-singlefile", ...forwardedArgs, inputPath, rootForSvg], files, options));
+        return (yield* runPdftoppmCliSteps(["-svg", "-singlefile", ...forwardedArgs, "--", inputPath, rootForSvg], files, options));
     }
     if (format === "pdf" || format === "ps" || format === "eps") {
         const pdfBytes = files.get(inputPath);
@@ -931,7 +946,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
     }
     const snapBefore = new Map(files);
     const rasterPositionals = positionals.length === 1 && inputPath !== "-" ? [inputPath, inputStem] : positionals;
-    const res = (yield* runPdftoppmCliSteps([...forwardedArgs, ...rasterPositionals], files, options));
+    const res = (yield* runPdftoppmCliSteps([...forwardedArgs, "--", ...rasterPositionals], files, options));
     if (res.exitCode !== 0 || (!grayMode && !monoMode)) {
         return res;
     }
@@ -987,8 +1002,6 @@ try {
         const carrier = getCommandArguments(context);
         const argv = [...carrier.args];
         const vfsFiles = new Map<string, Uint8Array>();
-        const resolveVfsPath = (p: string) =>
-          p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
         let accountedBytes = 0;
         const chargeBytes = (delta: number) => {
           if (delta > 0) {
@@ -1021,7 +1034,7 @@ try {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
           if (token === "-") continue;
           try {
-            const bytes = await context.fs.readFile(resolveVfsPath(token), { signal: invocation.signal });
+            const bytes = await context.fs.readFile(resolvePath(context.cwd, token), { signal: invocation.signal });
             chargeBytes(bytes.byteLength);
             vfsFiles.set(token, bytes);
           } catch {
@@ -1044,7 +1057,7 @@ try {
         for (const [key, val] of vfsFiles.entries()) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
           if (key !== "-" && existingSnap.get(key) !== val) {
-            const abs = resolveVfsPath(key);
+            const abs = resolvePath(context.cwd, key);
             try {
               await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
             } catch (error) {

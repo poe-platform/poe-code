@@ -1,3 +1,4 @@
+import { resolvePath } from "safe-bash-contracts/path";
 import { yieldTurn, drainCooperativeSteps as drainSteps } from "safe-bash-contracts/yield";
 import { InputByteBudget } from "safe-bash-contracts/io";
 import { writeFileOutput } from "safe-bash-contracts/filesystem-output-budget";
@@ -2066,8 +2067,6 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
     const carrier = getCommandArguments(context);
     const argv = [...carrier.args];
     const vfsFiles = new Map<string, Uint8Array>();
-    const resolveVfsPath = (p: string) =>
-      p.startsWith("/") ? p : `${context.cwd === "/" ? "" : context.cwd}/${p}`;
     let accountedBytes = 0;
     const chargeBytes = (delta: number) => {
       if (delta > 0) {
@@ -2120,7 +2119,7 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (filePath === "-") continue;
       try {
-        const bytes = await context.fs.readFile(resolveVfsPath(filePath), { signal: invocation.signal });
+        const bytes = await context.fs.readFile(resolvePath(context.cwd, filePath), { signal: invocation.signal });
         chargeBytes(bytes.byteLength);
         vfsFiles.set(filePath, bytes);
       } catch {
@@ -2148,7 +2147,7 @@ async function executePdftk(context: CommandContext): Promise<{ exitCode: number
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (key !== "-" && existingSnap.get(key) !== val) {
         chargeBytes(val.byteLength);
-        const abs = resolveVfsPath(key);
+        const abs = resolvePath(context.cwd, key);
         try {
           await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
         } catch (error) {

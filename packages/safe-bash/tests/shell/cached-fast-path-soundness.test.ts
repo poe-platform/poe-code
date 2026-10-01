@@ -60,6 +60,67 @@ test("cached script fallback for a large echo does not replay arithmetic", async
 
 const batch = 'mkdir -p /tmp_dir\necho "first" > /keep/a\necho "second" > /tmp_dir/b\nrm -rf /tmp_dir';
 
+for (const override of ["function", "command", "builtin"] as const) {
+  test(`repeated function writes remain visible to an rm ${override}`, async context => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir("/work");
+    const observed: string[] = [];
+    const execute = async () => {
+      observed.push(new TextDecoder().decode(await fs.readFile("/work/a")) + new TextDecoder().decode(await fs.readFile("/work/b")));
+      return { exitCode: 0 };
+    };
+    const shell = new Shell({ fs, extensions: override === "builtin" ? [{
+      name: "observe-rm", create: () => ({ builtins: [{ name: "rm", async execute() { await execute(); return 0; } }] })
+    }] : [] }).use(standardCommands());
+    context.after(() => shell.dispose());
+    await shell.exec("");
+    if (override === "command") shell.register({ name: "rm", execute }, { replace: true });
+    const result = await shell.exec(`${override === "function" ? "rm() { cat /work/a /work/b; }" : ""}
+      work() { echo first > /work/a; echo second > /work/b; rm -rf /work; }
+      work; work; work`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    if (override === "function") assert.equal(result.stdout, "first\nsecond\n".repeat(3));
+    else assert.deepEqual(observed, Array(3).fill("first\nsecond\n"));
+  });
+}
+
+for (const failure of ["readonly directory", "readonly file", "directory target", "file parent"] as const) {
+  for (const errexit of [false, true]) {
+    test(`warmed writes preserve ${failure} with errexit=${errexit}`, async context => {
+      const fs = new MemoryFileSystem();
+      await fs.mkdir("/work");
+      const shell = new Shell({ fs }).use(standardCommands());
+      context.after(() => shell.dispose());
+      const session = shell.createSession();
+      const warm = await session.exec('work() { echo first > /work/a; echo second > /work/b; rm -rf /work; echo survived; }; work; mkdir /work; work');
+      assert.equal(warm.stderr, "");
+      assert.equal(warm.exitCode, 0);
+      await fs.mkdir("/work", { recursive: true });
+      if (failure === "readonly directory") await fs.chmod("/work", 0o555);
+      if (failure === "readonly file") {
+        await fs.writeFile("/work/b", new TextEncoder().encode("original"));
+        await fs.chmod("/work/b", 0o444);
+      }
+      if (failure === "directory target") await fs.mkdir("/work/b");
+      if (failure === "file parent") {
+        await fs.rmdir("/work");
+        await fs.writeFile("/work", new Uint8Array());
+      }
+      const result = await session.exec(`${errexit ? "set -e; " : ""}work`);
+      assert.equal(result.exitCode, errexit ? 1 : 0);
+      assert.equal(result.stdout, errexit ? "" : "survived\n");
+      assert.ok(result.stderr.includes(failure === "directory target" ? "Is a directory" : failure === "file parent" ? "Not a directory" : "Permission denied"), result.stderr);
+      if (errexit) {
+        await fs.lstat("/work");
+        if (failure === "readonly file" || failure === "directory target") {
+          assert.equal(new TextDecoder().decode(await fs.readFile("/work/a")), "first\n");
+        }
+      }
+    });
+  }
+}
+
 for (const target of ["file", "symlink", "overridden rm", "rm function"] as const) {
   test(`cached echo batch preserves effects with ${target}`, async context => {
     const fs = new MemoryFileSystem();

@@ -5,6 +5,25 @@ import { basicCommands } from "../../src/commands/basic.js";
 import { setup } from "./helpers.js";
 import { agentCommands, createMemoryFileSystem, Shell } from "../../src/core.js";
 
+for (const target of ["items", "'items[0]'", "'fresh[0]'"]) {
+  for (const initialize of ["", "IFS=original;", "unset IFS;"]) {
+    test(`read restores temporary scalar prefixes after array target ${target}: ${initialize || "default IFS"}`, async () => {
+      const { shell, commands } = setup();
+      for (const command of basicCommands()) commands.register(command);
+      const source = `${initialize} declare -a items=(one two); marker=original; IFS=: marker=temporary read ${target} <<< 'a:b'; printf '<%s>' "\${IFS+x}" "$IFS" "$marker" "\${items[@]}" "\${fresh[@]}"`;
+      try {
+        const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+        assert.equal(native.error, undefined);
+        assert.equal(native.status, 0);
+        const result = await shell.exec(source);
+        assert.equal(result.stderr, native.stderr);
+        assert.equal(result.exitCode, native.status);
+        assert.equal(result.stdout, native.stdout);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 for (const option of ["-u 0", "-u0", "-u +00", "-p SYNTHETIC_PROMPT", "-pSYNTHETIC_PROMPT", "-p ''", "-s", "-rsu0", "-n9 -s -p prompt -u0"]) {
   test(`default read nonterminal option consumes one record: ${option}`, async () => {
     const { shell } = setup();

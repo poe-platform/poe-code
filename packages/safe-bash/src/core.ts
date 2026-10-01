@@ -104,7 +104,7 @@ export * from "./integrations/safejs/shell.js";
 export { csvkitCommands, createCsvkitCommands, createCsvkitCommand, type CsvkitCommandsOptions } from "./lazy-optional.js";
 export { gitCommands, createGitCommands, createGitCommand, type GitCommandsOptions } from "./lazy-optional.js";
 export { pandocCommands, createPandocCommands, createPandocCommand, type PandocCommandsOptions, type PandocLimits } from "./lazy-optional.js";
-export { xzCommands, createXzCommands, createXzCommand, type XzCommandsOptions } from "./commands/xz/index.js";
+export { xzCommands, createXzCommands, createXzCommand, createUnxzCommand, createXzcatCommand, type XzCommandsOptions } from "./commands/xz/index.js";
 export * from "./commands/op/index.js";
 export * from "./commands/mdq/index.js";
 
@@ -147,3 +147,9 @@ export { createWgetCommands, wgetCommands, type WgetCommandsOptions, type WgetLi
 export type { CurlCommandsOptions, CurlLimits } from "./commands/curl/index.js";
 
 export * from "./fs/s3/index.js";
+
+export type { CsvcutLimits } from "./commands/csvcut/index.js";
+export type { CsvgrepLimits } from "./commands/csvgrep/index.js";
+export type { ExiftoolLimits } from "./commands/exiftool/index.js";
+export type { HtmlqLimits } from "./commands/htmlq/index.js";
+export type { MmdcLimits } from "./commands/mmdc/index.js";

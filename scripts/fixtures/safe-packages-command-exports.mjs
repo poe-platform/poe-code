@@ -11,7 +11,7 @@ for (const name of families) {
   commands[`${name}Commands`]().setup({ commands: registry });
   if (JSON.stringify(registry.list().map(value => value.name)) !== JSON.stringify(definitions.map(value => value.name))) throw new Error(`${name}: plugin inventory differs`);
 }
-for (const name of ["createNcalCommand", "createFfprobeCommand", "createMagickCommand", "createConvertCommand", "createMogrifyCommand", "createCompositeCommand", "createMontageCommand", "createIdentifyCommand", "createCompareCommand", "createPdfuniteCommand", "createPdfseparateCommand", "createPdffontsCommand", "createPdfdetachCommand", "createPdftocairoCommand", "createLibreofficeCommand", "createFormatInspectionCommand"]) {
+for (const name of ["createUnxzCommand", "createXzcatCommand", "createNcalCommand", "createFfprobeCommand", "createMagickCommand", "createConvertCommand", "createMogrifyCommand", "createCompositeCommand", "createMontageCommand", "createIdentifyCommand", "createCompareCommand", "createPdfuniteCommand", "createPdfseparateCommand", "createPdffontsCommand", "createPdfdetachCommand", "createPdftocairoCommand", "createLibreofficeCommand", "createFormatInspectionCommand"]) {
   if (typeof commands[name] !== "function") throw new Error(`${name}: missing factory`);
 }
 

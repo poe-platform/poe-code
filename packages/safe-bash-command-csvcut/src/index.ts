@@ -10,3 +10,5 @@ export { csvcut, csvcutCommand, createCsvcutCommand, csvcutCommands, parseCsvcut
   type CsvcutInvocation, type CsvcutCommandOptions, type CsvcutResult } from "./command.js";
 
 export { createCsvcutCommands, type CsvcutCommandsOptions } from "./command.js";
+
+export type { CsvLimits as CsvcutLimits } from "safe-bash-csv-engine";

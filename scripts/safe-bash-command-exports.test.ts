@@ -1,6 +1,8 @@
 import { readFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import ts from "typescript";
+import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
+import { toByteSource, type CommandDefinition } from "safe-bash-contracts";
 import { describe, expect, it } from "vitest";
 
 const root = resolve(import.meta.dirname, "..");
@@ -69,6 +71,8 @@ describe("command factories agree with plugin registration", () => {
     it(name, () => {
       const api = factoryModules[index];
       const capitalized = name[0]!.toUpperCase() + name.slice(1);
+      const exports = exportedNames(resolve(root, `packages/safe-bash-command-${name}/src/index.ts`));
+      expect(exports.has(`${capitalized}Limits`), `${name}: limits type`).toBe(true);
       const definitions = api[`create${capitalized}Commands`]();
       expect(definitions.length).toBeGreaterThan(0);
       for (const command of definitions) expect(command.execute).toBeTypeOf("function");
@@ -85,5 +89,46 @@ describe("command factories agree with plugin registration", () => {
       expect(registered).toContain(api[`create${capitalized}Command`]().name);
       expect(new Set(registered).size).toBe(registered.length);
     });
+  }
+});
+
+
+describe("standalone XZ alias factories", () => {
+  for (const [factory, name] of [["createUnxzCommand", "unxz"], ["createXzcatCommand", "xzcat"]]) {
+    it(`${factory} preserves alias defaults and validates limits`, () => {
+      const api = factoryModules[factoryNames.indexOf("xz")];
+      expect(api[factory]).toBeTypeOf("function");
+      expect(api[factory]().name).toBe(name);
+      expect(api[factory]().execute).toBeTypeOf("function");
+      expect(() => api[factory]({ limits: { maxDecodedBytes: -1 } })).toThrow(RangeError);
+      expect(sdk.has(factory)).toBe(true);
+    });
+  }
+});
+
+
+it("standalone XZ aliases decompress stdin and enforce decoded-byte quotas", async () => {
+  const api = factoryModules[factoryNames.indexOf("xz")];
+  async function execute(command: CommandDefinition, input: Uint8Array, args: string[] = []) {
+    const stdout: Uint8Array[] = [];
+    const stderr: Uint8Array[] = [];
+    const result = await command.execute({
+      command: command.name, args, stdin: toByteSource(input),
+      cwd: "/", env: {}, fs: createMemoryFileSystem(), signal: new AbortController().signal,
+      stdout: { async write(chunk) { stdout.push(chunk.slice()); } },
+      stderr: { async write(chunk) { stderr.push(chunk.slice()); } },
+    });
+    return { ...result, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr).toString() };
+  }
+  const plain = Buffer.from("standalone aliases\n");
+  const encoded = await execute(api.createXzCommand(), plain, ["-c"]);
+  expect(encoded.exitCode, encoded.stderr).toBe(0);
+  for (const factory of [api.createUnxzCommand, api.createXzcatCommand]) {
+    const decoded = await execute(factory(), encoded.stdout);
+    expect(decoded.exitCode, decoded.stderr).toBe(0);
+    expect(decoded.stdout).toEqual(plain);
+    const limited = await execute(factory({ limits: { maxDecodedBytes: 1 } }), encoded.stdout);
+    expect(limited.exitCode).not.toBe(0);
+    expect(limited.stdout.length).toBeLessThanOrEqual(1);
   }
 });

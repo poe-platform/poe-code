@@ -77,6 +77,8 @@ import {
   createXmllintCommand,
   createXmllintCommands,
   xmllintCommands,
+  createUnxzCommand,
+  createXzcatCommand,
   createXzCommand,
   createXzCommands,
   xzCommands,
@@ -126,6 +128,8 @@ const commands: readonly CommandDefinition[] = [
   createUnrtfCommand(),
   createWkhtmltopdfCommand(),
   createXmllintCommand(),
+  createUnxzCommand(),
+  createXzcatCommand(),
   createXzCommand()
 ];
 const collections: readonly (readonly CommandDefinition[])[] = [
@@ -244,3 +248,8 @@ const standalonePlugins: readonly VirtualShellPlugin[] = [
 ];
 const standaloneLimits: [Partial<SedLimits>, Partial<AwkLimits>, Partial<DiffLimits>, Partial<PatchLimits>, Partial<TarLimits>, Partial<ZipLimits>, Partial<UnzipLimits>, Partial<FindLimits>, Partial<CurlLimits>, Partial<WgetLimits>, Partial<GzipLimits>] = [{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}];
 void [standaloneCommands, standaloneCollections, standalonePlugins, standaloneLimits];
+
+
+import type { CsvcutLimits, CsvgrepLimits, ExiftoolLimits, HtmlqLimits, MmdcLimits } from "@poe-platform/safe-bash";
+const familyLimits: [Partial<CsvcutLimits>, Partial<CsvgrepLimits>, Partial<ExiftoolLimits>, Partial<HtmlqLimits>, Partial<MmdcLimits>] = [{}, {}, {}, {}, {}];
+void familyLimits;

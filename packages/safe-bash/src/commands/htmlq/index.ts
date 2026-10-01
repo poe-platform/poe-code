@@ -38,6 +38,7 @@ export type {
   HtmlqArguments,
   HtmlqCommandOptions,
   HtmlqCommandsOptions,
+  HtmlqLimits,
   HtmlqRunOptions,
   HtmlqResult,
   HtmlAccounting,

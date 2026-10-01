@@ -7,3 +7,5 @@ export { createExiftoolArguments, type ExiftoolInvocationOptions } from "./sdk.j
 
 export { inspectJpeg, editJpeg } from "./jpeg.js";
 export { createExiftoolCommands, evalSyncExiftool, type ExiftoolCommandsOptions } from "./command.js";
+
+export type { ResourceLimits as ExiftoolLimits } from "./resources.js";

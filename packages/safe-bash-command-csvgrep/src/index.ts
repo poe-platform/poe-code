@@ -22,3 +22,5 @@ export {
 } from "safe-bash-csv-engine";
 
 export { createCsvgrepCommands, type CsvgrepCommandsOptions } from "./command.js";
+
+export type { CsvLimits as CsvgrepLimits } from "safe-bash-csv-engine";

@@ -100,6 +100,14 @@ export function createXzCommand(config: XzCommandsOptions = {}, name = "xz"): Co
   } };
 }
 
+export function createUnxzCommand(options: XzCommandsOptions = {}): CommandDefinition {
+  return createXzCommand(options, "unxz");
+}
+
+export function createXzcatCommand(options: XzCommandsOptions = {}): CommandDefinition {
+  return createXzCommand(options, "xzcat");
+}
+
 export function createXzCommands(options: XzCommandsOptions = {}): readonly CommandDefinition[] {
   return [...xzProfile.names, ...lzmaProfile.names].map(name => createXzCommand(options, name));
 }

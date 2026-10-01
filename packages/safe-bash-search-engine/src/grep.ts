@@ -328,6 +328,7 @@ function tryFastGrepAscii(
             return pending.then(anySelected ? RETURN_EXIT_ZERO : RETURN_EXIT_ONE);
           }
         }
+        if (raw !== undefined) return tryFastGrepAsciiAsync(context, limits, pat, fileArg, anchoredStart, raw);
       } catch (error) {
         context.signal.throwIfAborted();
         if (error instanceof RegexExecutionError) return Promise.reject(error);
@@ -344,6 +345,7 @@ async function tryFastGrepAsciiAsync(
   pat: string,
   fileArg: string | undefined,
   anchoredStart: boolean,
+  admittedBytes?: Uint8Array,
 ): Promise<{ exitCode: number }> {
   const literalStart = anchoredStart ? 1 : 0;
   const litLen = pat.length - literalStart;
@@ -376,10 +378,10 @@ async function tryFastGrepAsciiAsync(
         !Object.prototype.hasOwnProperty.call(backing, "readFile")
       ) {
         assertCommandRequirements(context, grepRequirements, ["file"]);
-        chargeRuntimeFileSystemOperation(context.fs);
+        if (admittedBytes === undefined) chargeRuntimeFileSystemOperation(context.fs);
         const maxFileBytes = Number.isFinite(limits.maxFileBytes) ? limits.maxFileBytes : undefined;
-        const raw = tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
-        if (raw !== undefined) context.inputBudget?.check(raw.byteLength);
+        const raw = admittedBytes ?? tryReadMemoryFileViewSync(backing, path, maxFileBytes, context.signal);
+        if (admittedBytes === undefined && raw !== undefined) context.inputBudget?.check(raw.byteLength);
         if (raw !== undefined) {
           const lineLimit = Math.min(internalBufferLimit, limits.maxLineBytes ?? Infinity);
           let lineStart = 0;

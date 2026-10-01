@@ -257,6 +257,7 @@ export interface SharpInputOptions {
   readonly ignoreIcc?: boolean;
   readonly failOnError?: boolean;
   readonly failOn?: "none" | "truncated" | "error" | "warning";
+  readonly maxDecodeDimension?: number;
   readonly raw?: {
     readonly width: number;
     readonly height: number;

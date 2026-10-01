@@ -2,7 +2,41 @@ import type { MetadataTag, TagAssignment } from "./png.js";
 import { Resources, type EngineOptions } from "./resources.js";
 
 export const jpegWriteTags: Readonly<Record<string, number>> = Object.freeze({ ImageDescription: 0x010e, Description: 0x010e, Software: 0x0131, Artist: 0x013b, Copyright: 0x8298 });
+const jpegReadIfd0Tags: Readonly<Record<number, string>> = Object.freeze({
+  0x010e: "ImageDescription",
+  0x010f: "Make",
+  0x0110: "Model",
+  0x0112: "Orientation",
+  0x0131: "Software",
+  0x0132: "ModifyDate",
+  0x013b: "Artist",
+  0x8298: "Copyright"
+});
+const jpegReadExifIfdTags: Readonly<Record<number, string>> = Object.freeze({
+  0x829a: "ExposureTime",
+  0x829d: "FNumber",
+  0x8827: "ISO",
+  0x9003: "DateTimeOriginal",
+  0x9004: "CreateDate",
+  0x920a: "FocalLength",
+  0xa434: "LensModel"
+});
 interface Segment { marker: number; start: number; end: number; payload: Uint8Array }
+function hasValidEoiAfterSos(bytes: Uint8Array, sosEnd: number): boolean {
+  let trimmedLen = bytes.length;
+  while (trimmedLen > sosEnd + 2 && bytes[trimmedLen - 1] === 0) {
+    trimmedLen--;
+  }
+  if (trimmedLen >= sosEnd + 2 && bytes[trimmedLen - 2] === 255 && bytes[trimmedLen - 1] === 217) {
+    return true;
+  }
+  for (let i = sosEnd; i + 1 < bytes.length; i++) {
+    if (bytes[i] === 255 && bytes[i + 1] === 217) {
+      return true;
+    }
+  }
+  return false;
+}
 function segments(bytes: Uint8Array, resources: Resources): Segment[] {
   resources.admit("input", bytes.length);
   resources.admit("work", bytes.length * 8);
@@ -28,7 +62,7 @@ function segments(bytes: Uint8Array, resources: Resources): Segment[] {
     result.push({ marker, start, end, payload: bytes.subarray(position + 2, end) });
     // Entropy data and subsequent progressive scans stay opaque and byte-exact.
     if (marker === 218) {
-      if (bytes[bytes.length - 2] !== 255 || bytes[bytes.length - 1] !== 217) throw new Error("JPEG missing EOI");
+      if (!hasValidEoiAfterSos(bytes, end)) throw new Error("JPEG missing EOI");
       return result;
     }
     position = end;
@@ -52,6 +86,55 @@ function tiff(payload: Uint8Array) {
   if (count * 12 + 6 > bytes.length - offset) throw new Error("Truncated EXIF directory");
   return { bytes, view, little, offset, count };
 }
+function decodeTiffEntryValue(
+  bytes: Uint8Array,
+  view: DataView,
+  little: boolean,
+  entry: number
+): { value: string; valueOffset: number } | undefined {
+  const type = view.getUint16(entry + 2, little);
+  const count = view.getUint32(entry + 4, little);
+  if (type === 2) {
+    const start = count <= 4 ? entry + 8 : view.getUint32(entry + 8, little);
+    if (start > bytes.length || count > bytes.length - start) throw new Error("Truncated EXIF text");
+    const raw = bytes.subarray(start, start + count);
+    const end = raw.indexOf(0);
+    return {
+      value: new TextDecoder("utf-8").decode(end < 0 ? raw : raw.subarray(0, end)),
+      valueOffset: start
+    };
+  }
+  if (type === 3 && count >= 1) {
+    const start = count <= 2 ? entry + 8 : view.getUint32(entry + 8, little);
+    if (start + 2 <= bytes.length) {
+      return { value: String(view.getUint16(start, little)), valueOffset: start };
+    }
+  }
+  if (type === 4 && count >= 1) {
+    const start = count === 1 ? entry + 8 : view.getUint32(entry + 8, little);
+    if (start + 4 <= bytes.length) {
+      return { value: String(view.getUint32(start, little)), valueOffset: start };
+    }
+  }
+  if (type === 5 && count >= 1) {
+    const start = view.getUint32(entry + 8, little);
+    if (start + 8 <= bytes.length) {
+      const num = view.getUint32(start, little);
+      const den = view.getUint32(start + 4, little);
+      if (den > 0) {
+        if (num < den && num > 0 && den % num === 0) {
+          return { value: `1/${Math.round(den / num)}`, valueOffset: start };
+        }
+        const ratio = num / den;
+        return {
+          value: Number.isInteger(ratio) ? String(ratio) : ratio.toFixed(2).replace(/\.?0+$/, ""),
+          valueOffset: start
+        };
+      }
+    }
+  }
+  return undefined;
+}
 export function inspectJpeg(input: Uint8Array, options: EngineOptions | Resources): { readonly tags: readonly MetadataTag[] } {
   const resources = options instanceof Resources ? options : new Resources(options);
   const parts = segments(input, resources);
@@ -73,16 +156,40 @@ export function inspectJpeg(input: Uint8Array, options: EngineOptions | Resource
     }
     if (!isExif(part)) continue;
     const { bytes, view, little, offset, count } = tiff(part.payload);
+    let exifIfdOffset = 0;
     for (let i = 0; i < count; i++) {
       const entry = offset + 2 + i * 12;
-      const name = Object.keys(jpegWriteTags).find(name => jpegWriteTags[name] === view.getUint16(entry, little));
-      if (!name || view.getUint16(entry + 2, little) !== 2) continue;
-      const length = view.getUint32(entry + 4, little);
-      const start = length <= 4 ? entry + 8 : view.getUint32(entry + 8, little);
-      if (start > bytes.length || length > bytes.length - start) throw new Error("Truncated EXIF text");
-      const raw = bytes.subarray(start, start + length);
-      const end = raw.indexOf(0);
-      add(name, new TextDecoder("utf-8").decode(end < 0 ? raw : raw.subarray(0, end)), "IFD0", part.start + 10 + start);
+      const tagId = view.getUint16(entry, little);
+      if (tagId === 0x8769 && view.getUint16(entry + 2, little) === 4) {
+        exifIfdOffset = view.getUint32(entry + 8, little);
+        continue;
+      }
+      const name = jpegReadIfd0Tags[tagId];
+      if (!name) continue;
+      const decoded = decodeTiffEntryValue(bytes, view, little, entry);
+      if (decoded) {
+        add(name, decoded.value, "IFD0", part.start + 10 + decoded.valueOffset);
+      }
+    }
+    if (exifIfdOffset >= 8 && exifIfdOffset + 2 <= bytes.length) {
+      const subCount = view.getUint16(exifIfdOffset, little);
+      if (subCount * 12 + 2 <= bytes.length - exifIfdOffset) {
+        for (let i = 0; i < subCount; i++) {
+          const entry = exifIfdOffset + 2 + i * 12;
+          const tagId = view.getUint16(entry, little);
+          const name = jpegReadExifIfdTags[tagId];
+          if (!name) continue;
+          let decoded: { value: string; valueOffset: number } | undefined;
+          try {
+            decoded = decodeTiffEntryValue(bytes, view, little, entry);
+          } catch {
+            continue;
+          }
+          if (decoded) {
+            add(name, decoded.value, "ExifIFD", part.start + 10 + decoded.valueOffset);
+          }
+        }
+      }
     }
   }
   return { tags };

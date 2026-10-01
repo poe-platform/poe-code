@@ -8,7 +8,7 @@ export const exiftoolRegistry = Object.freeze({
   version: 5,
   source: Object.freeze({ version: "13.59", commit: "2200871d9cef988051d2a99d67df3bda6cbb30a8", archiveSha256: "e1e2ad6c6fbf568afee5993ef8b2b91ab013d21698c9304e079e633ad82776f5" }),
   formats: Object.freeze({ PNG: Object.freeze({ reader: "header-uncompressed-text-time", writer: "selected-text-time" }), JPEG: Object.freeze({ reader: "frame-ifd0-text", writer: "ifd0-artist-copyright" }) }),
-  tags: Object.freeze([...Object.keys(writeChunks), "ImageWidth", "ImageHeight", "BitDepth", "ColorType", "FileName", "Directory", "FileSize", "FileTypeExtension", "FileType", "MIMEType", "ImageSize", "Subject", "Keywords", "Creator", "Producer", "CreateDate", "PDFVersion", "PageCount"]),
+  tags: Object.freeze([...Object.keys(writeChunks), "ImageWidth", "ImageHeight", "BitDepth", "ColorType", "FileName", "Directory", "FileSize", "FileTypeExtension", "FileType", "MIMEType", "ImageSize", "Subject", "Keywords", "Creator", "Producer", "CreateDate", "PDFVersion", "PageCount", "Make", "Model", "Orientation", "ExposureTime", "FNumber", "ISO", "DateTimeOriginal", "FocalLength", "LensModel"]),
   writeChunks,
   scalarShiftErrorGroups: Object.freeze({ Title: "XMP-xmp" } as Readonly<Record<string, string>>),
 });

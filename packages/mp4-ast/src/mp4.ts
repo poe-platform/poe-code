@@ -1351,20 +1351,32 @@ function materializeTrackSamples(track: MediaTrack): {
       dts += duration;
     }
 
+    const codecDescriptions = [
+      {
+        formatFourCC: "avc1",
+        codecName: "h264" as const,
+        profile: "Constrained Baseline",
+        level: 31,
+        width,
+        height,
+        pixFmt: "yuv420p" as const,
+        avcC
+      }
+    ];
+    const mutableTrack = track as unknown as {
+      samples?: MediaSample[];
+      codecDescriptions?: typeof codecDescriptions;
+      dirtyVideoEncode?: boolean;
+      decodedVideoFrames?: unknown;
+    };
+    mutableTrack.samples = samples;
+    mutableTrack.codecDescriptions = codecDescriptions;
+    mutableTrack.dirtyVideoEncode = false;
+    mutableTrack.decodedVideoFrames = undefined;
+
     return {
       samples,
-      codecDescriptions: [
-        {
-          formatFourCC: "avc1",
-          codecName: "h264",
-          profile: "Constrained Baseline",
-          level: 31,
-          width,
-          height,
-          pixFmt: "yuv420p",
-          avcC
-        }
-      ]
+      codecDescriptions
     };
   }
 

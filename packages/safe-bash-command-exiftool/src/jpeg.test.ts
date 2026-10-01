@@ -27,3 +27,15 @@ test("JPEG rejects truncated segments and EXIF pointers and honors resource boun
   assert.throws(() => inspectJpeg(original, { ...options, maxWork: 1 }), /work budget/);
   assert.throws(() => editJpeg(original, [{ name: "Artist", operation: "set", value: "A" }], { ...options, maxOutputBytes: 1 }), /output budget/);
 });
+
+test("JPEG accepts SOS followed by EOI with trailing MPF/padding bytes and extracts Orientation and ImageSize", () => {
+  const withSosAndTrailing = new Uint8Array([
+    ...original.subarray(0, original.length - 2),
+    0xff, 0xda, 0x00, 0x08, 0x01, 0x01, 0x00, 0x00, 0x3f, 0x00,
+    0x7f, 0xff, 0xd9,
+    0x00, 0x00, 0x00, 0x00, 0xff, 0xd8, 0xff, 0xd9
+  ]);
+  const info = inspectJpeg(withSosAndTrailing, options);
+  assert.equal(info.tags.find(tag => tag.name === "Orientation")?.value, "6");
+  assert.equal(info.tags.find(tag => tag.name === "ImageSize")?.value, "64x32");
+});

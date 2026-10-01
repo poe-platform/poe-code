@@ -1,4 +1,4 @@
-import type { ImageMetadata, RgbaImage } from "../ast.js";
+import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
 import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
 
 const ZIGZAG = new Uint8Array([
@@ -173,6 +173,7 @@ export function readJpegMetadata(bytes: Uint8Array): ImageMetadata {
 interface HuffmanNode {
   children?: [HuffmanNode | undefined, HuffmanNode | undefined];
   symbol?: number;
+  fastLut?: Int32Array;
 }
 
 function buildHuffmanTree(counts: Uint8Array, symbols: Uint8Array): HuffmanNode {
@@ -195,32 +196,244 @@ function buildHuffmanTree(counts: Uint8Array, symbols: Uint8Array): HuffmanNode 
     }
     level = nextLevel.slice(count);
   }
+  const fastLut = new Int32Array(256).fill(-1);
+  for (let byte = 0; byte < 256; byte++) {
+    let node: HuffmanNode | undefined = root;
+    for (let bitIdx = 7; bitIdx >= 0; bitIdx--) {
+      node = node?.children?.[(byte >>> bitIdx) & 1];
+      if (!node) break;
+      if (node.symbol !== undefined) {
+        const len = 8 - bitIdx;
+        fastLut[byte] = (len << 8) | node.symbol;
+        break;
+      }
+    }
+  }
+  root.fastLut = fastLut;
   return root;
 }
 
-function idct8x8(coeffs: Int32Array, quant: Uint16Array, out: Uint8Array): void {
-  const dequant = new Float64Array(64);
-  for (let i = 0; i < 64; i++) {
-    dequant[ZIGZAG[i]!] = coeffs[i]! * quant[i]!;
+const IDCT_DEQUANT = new Float64Array(64);
+const IDCT_TEMP = new Float64Array(64);
+const SCRATCH_COEFFS = new Int32Array(64);
+
+const BOX4_TABLE = (() => {
+  const table = new Float64Array(32);
+  for (let q = 0; q < 4; q++) {
+    for (let u = 0; u < 8; u++) {
+      table[q * 8 + u] = 0.25 * (COS_TABLE[u * 8 + 2 * q]! + COS_TABLE[u * 8 + 2 * q + 1]!);
+    }
   }
-  const temp = new Float64Array(64);
+  return table;
+})();
+
+const BOX2_TABLE = (() => {
+  const table = new Float64Array(16);
+  for (let q = 0; q < 2; q++) {
+    for (let u = 0; u < 8; u++) {
+      table[q * 8 + u] =
+        0.125 *
+        (COS_TABLE[u * 8 + 4 * q]! +
+          COS_TABLE[u * 8 + 4 * q + 1]! +
+          COS_TABLE[u * 8 + 4 * q + 2]! +
+          COS_TABLE[u * 8 + 4 * q + 3]!);
+    }
+  }
+  return table;
+})();
+
+function idct8x8(coeffs: Int32Array | Int16Array, quant: Uint16Array, out: Uint8Array, maxK = 63): void {
+  if (maxK === 0) {
+    const dcVal = Math.round(coeffs[0]! * quant[0]! * 0.125 + 128);
+    const clamped = dcVal < 0 ? 0 : dcVal > 255 ? 255 : dcVal;
+    out.fill(clamped, 0, 64);
+    return;
+  }
+  IDCT_DEQUANT.fill(0);
+  for (let i = 0; i <= maxK; i++) {
+    const c = coeffs[i]!;
+    if (c !== 0) {
+      IDCT_DEQUANT[ZIGZAG[i]!] = c * quant[i]!;
+    }
+  }
   for (let y = 0; y < 8; y++) {
+    const rowOff = y * 8;
+    const d0 = IDCT_DEQUANT[rowOff]!;
+    const d1 = IDCT_DEQUANT[rowOff + 1]!;
+    const d2 = IDCT_DEQUANT[rowOff + 2]!;
+    const d3 = IDCT_DEQUANT[rowOff + 3]!;
+    const d4 = IDCT_DEQUANT[rowOff + 4]!;
+    const d5 = IDCT_DEQUANT[rowOff + 5]!;
+    const d6 = IDCT_DEQUANT[rowOff + 6]!;
+    const d7 = IDCT_DEQUANT[rowOff + 7]!;
+    if (d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0 && d5 === 0 && d6 === 0 && d7 === 0) {
+      const v = d0 * COS_TABLE[0]! * 0.5;
+      IDCT_TEMP[rowOff] = v;
+      IDCT_TEMP[rowOff + 1] = v;
+      IDCT_TEMP[rowOff + 2] = v;
+      IDCT_TEMP[rowOff + 3] = v;
+      IDCT_TEMP[rowOff + 4] = v;
+      IDCT_TEMP[rowOff + 5] = v;
+      IDCT_TEMP[rowOff + 6] = v;
+      IDCT_TEMP[rowOff + 7] = v;
+      continue;
+    }
     for (let x = 0; x < 8; x++) {
-      let sum = 0;
-      for (let u = 0; u < 8; u++) {
-        sum += dequant[y * 8 + u]! * COS_TABLE[u * 8 + x]!;
-      }
-      temp[y * 8 + x] = sum * 0.5;
+      const sum =
+        d0 * COS_TABLE[x]! +
+        d1 * COS_TABLE[8 + x]! +
+        d2 * COS_TABLE[16 + x]! +
+        d3 * COS_TABLE[24 + x]! +
+        d4 * COS_TABLE[32 + x]! +
+        d5 * COS_TABLE[40 + x]! +
+        d6 * COS_TABLE[48 + x]! +
+        d7 * COS_TABLE[56 + x]!;
+      IDCT_TEMP[rowOff + x] = sum * 0.5;
     }
   }
   for (let x = 0; x < 8; x++) {
+    const t0 = IDCT_TEMP[x]!;
+    const t1 = IDCT_TEMP[8 + x]!;
+    const t2 = IDCT_TEMP[16 + x]!;
+    const t3 = IDCT_TEMP[24 + x]!;
+    const t4 = IDCT_TEMP[32 + x]!;
+    const t5 = IDCT_TEMP[40 + x]!;
+    const t6 = IDCT_TEMP[48 + x]!;
+    const t7 = IDCT_TEMP[56 + x]!;
     for (let y = 0; y < 8; y++) {
-      let sum = 0;
-      for (let v = 0; v < 8; v++) {
-        sum += temp[v * 8 + x]! * COS_TABLE[v * 8 + y]!;
-      }
+      const sum =
+        t0 * COS_TABLE[y]! +
+        t1 * COS_TABLE[8 + y]! +
+        t2 * COS_TABLE[16 + y]! +
+        t3 * COS_TABLE[24 + y]! +
+        t4 * COS_TABLE[32 + y]! +
+        t5 * COS_TABLE[40 + y]! +
+        t6 * COS_TABLE[48 + y]! +
+        t7 * COS_TABLE[56 + y]!;
       const val = Math.round(sum * 0.5 + 128);
       out[y * 8 + x] = val < 0 ? 0 : val > 255 ? 255 : val;
+    }
+  }
+}
+
+function idctScaledBlock(
+  coeffs: Int32Array | Int16Array,
+  quant: Uint16Array,
+  out: Uint8Array,
+  maxK: number,
+  step: 8 | 4 | 2
+): void {
+  if (step === 8) {
+    idct8x8(coeffs, quant, out, maxK);
+    return;
+  }
+  if (maxK === 0) {
+    const dcVal = Math.round(coeffs[0]! * quant[0]! * 0.125 + 128);
+    const clamped = dcVal < 0 ? 0 : dcVal > 255 ? 255 : dcVal;
+    out.fill(clamped, 0, step * step);
+    return;
+  }
+  IDCT_DEQUANT.fill(0);
+  for (let i = 0; i <= maxK; i++) {
+    const c = coeffs[i]!;
+    if (c !== 0) {
+      IDCT_DEQUANT[ZIGZAG[i]!] = c * quant[i]!;
+    }
+  }
+  if (step === 4) {
+    for (let y = 0; y < 8; y++) {
+      const rowOff = y * 8;
+      const d0 = IDCT_DEQUANT[rowOff]!;
+      const d1 = IDCT_DEQUANT[rowOff + 1]!;
+      const d2 = IDCT_DEQUANT[rowOff + 2]!;
+      const d3 = IDCT_DEQUANT[rowOff + 3]!;
+      const d4 = IDCT_DEQUANT[rowOff + 4]!;
+      const d5 = IDCT_DEQUANT[rowOff + 5]!;
+      const d6 = IDCT_DEQUANT[rowOff + 6]!;
+      const d7 = IDCT_DEQUANT[rowOff + 7]!;
+      const dstOff = y * 4;
+      if (d1 === 0 && d2 === 0 && d3 === 0 && d4 === 0 && d5 === 0 && d6 === 0 && d7 === 0) {
+        const v = d0 * BOX4_TABLE[0]!;
+        IDCT_TEMP[dstOff] = v;
+        IDCT_TEMP[dstOff + 1] = v;
+        IDCT_TEMP[dstOff + 2] = v;
+        IDCT_TEMP[dstOff + 3] = v;
+        continue;
+      }
+      for (let qx = 0; qx < 4; qx++) {
+        const bOff = qx * 8;
+        IDCT_TEMP[dstOff + qx] =
+          d0 * BOX4_TABLE[bOff]! +
+          d1 * BOX4_TABLE[bOff + 1]! +
+          d2 * BOX4_TABLE[bOff + 2]! +
+          d3 * BOX4_TABLE[bOff + 3]! +
+          d4 * BOX4_TABLE[bOff + 4]! +
+          d5 * BOX4_TABLE[bOff + 5]! +
+          d6 * BOX4_TABLE[bOff + 6]! +
+          d7 * BOX4_TABLE[bOff + 7]!;
+      }
+    }
+    for (let qx = 0; qx < 4; qx++) {
+      const t0 = IDCT_TEMP[qx]!;
+      const t1 = IDCT_TEMP[4 + qx]!;
+      const t2 = IDCT_TEMP[8 + qx]!;
+      const t3 = IDCT_TEMP[12 + qx]!;
+      const t4 = IDCT_TEMP[16 + qx]!;
+      const t5 = IDCT_TEMP[20 + qx]!;
+      const t6 = IDCT_TEMP[24 + qx]!;
+      const t7 = IDCT_TEMP[28 + qx]!;
+      for (let qy = 0; qy < 4; qy++) {
+        const bOff = qy * 8;
+        const sum =
+          t0 * BOX4_TABLE[bOff]! +
+          t1 * BOX4_TABLE[bOff + 1]! +
+          t2 * BOX4_TABLE[bOff + 2]! +
+          t3 * BOX4_TABLE[bOff + 3]! +
+          t4 * BOX4_TABLE[bOff + 4]! +
+          t5 * BOX4_TABLE[bOff + 5]! +
+          t6 * BOX4_TABLE[bOff + 6]! +
+          t7 * BOX4_TABLE[bOff + 7]!;
+        const val = Math.round(sum + 128);
+        out[qy * 4 + qx] = val < 0 ? 0 : val > 255 ? 255 : val;
+      }
+    }
+  } else {
+    for (let y = 0; y < 8; y++) {
+      const rowOff = y * 8;
+      const d0 = IDCT_DEQUANT[rowOff]!;
+      const d1 = IDCT_DEQUANT[rowOff + 1]!;
+      const d3 = IDCT_DEQUANT[rowOff + 3]!;
+      const d5 = IDCT_DEQUANT[rowOff + 5]!;
+      const d7 = IDCT_DEQUANT[rowOff + 7]!;
+      const evenTerm = d0 * BOX2_TABLE[0]!;
+      const oddTerm =
+        d1 * BOX2_TABLE[1]! +
+        d3 * BOX2_TABLE[3]! +
+        d5 * BOX2_TABLE[5]! +
+        d7 * BOX2_TABLE[7]!;
+      IDCT_TEMP[y * 2] = evenTerm + oddTerm;
+      IDCT_TEMP[y * 2 + 1] = evenTerm - oddTerm;
+    }
+    for (let qx = 0; qx < 2; qx++) {
+      const evenCol =
+        (IDCT_TEMP[qx]! +
+          IDCT_TEMP[2 + qx]! +
+          IDCT_TEMP[4 + qx]! +
+          IDCT_TEMP[6 + qx]! +
+          IDCT_TEMP[8 + qx]! +
+          IDCT_TEMP[10 + qx]! +
+          IDCT_TEMP[12 + qx]! +
+          IDCT_TEMP[14 + qx]!) *
+        BOX2_TABLE[0]!;
+      const oddCol =
+        (IDCT_TEMP[qx]! - IDCT_TEMP[14 + qx]!) * BOX2_TABLE[1]! +
+        (IDCT_TEMP[2 + qx]! - IDCT_TEMP[12 + qx]!) * BOX2_TABLE[3]! +
+        (IDCT_TEMP[4 + qx]! - IDCT_TEMP[10 + qx]!) * BOX2_TABLE[5]! +
+        (IDCT_TEMP[6 + qx]! - IDCT_TEMP[8 + qx]!) * BOX2_TABLE[7]!;
+      const v0 = Math.round(evenCol + oddCol + 128);
+      const v1 = Math.round(evenCol - oddCol + 128);
+      out[qx] = v0 < 0 ? 0 : v0 > 255 ? 255 : v0;
+      out[2 + qx] = v1 < 0 ? 0 : v1 > 255 ? 255 : v1;
     }
   }
 }
@@ -235,10 +448,12 @@ interface ComponentSpec {
   dcPred: number;
   blocksX: number;
   blocksY: number;
-  blocks: Int32Array[];
+  blocksFlat?: Int16Array;
+  pixels?: Uint8Array;
+  stripPixels?: Uint8Array;
 }
 
-export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
+export function decodeJpegImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
   const meta = readJpegMetadata(bytes);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
 
@@ -248,6 +463,12 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
 
   let width = 0;
   let height = 0;
+  let scaleDenom: 1 | 2 | 4 = 1;
+  let blockStep: 8 | 4 | 2 = 8;
+  let outWidth = 0;
+  let outHeight = 0;
+  let useStripDecode = false;
+  let outRgba: Uint8Array | undefined;
   let maxH = 1;
   let maxV = 1;
   let mcusX = 0;
@@ -308,6 +529,19 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
     } else if (marker === 0xc0 || marker === 0xc1 || marker === 0xc2) {
       height = (payload[1]! << 8) | payload[2]!;
       width = (payload[3]! << 8) | payload[4]!;
+      if (!meta.isProgressive && options?.maxDecodeDimension && options.maxDecodeDimension > 0) {
+        const maxSide = Math.max(width, height);
+        const minSide = Math.min(width, height);
+        if (maxSide >= options.maxDecodeDimension * 4 && minSide >= options.maxDecodeDimension * 2) {
+          scaleDenom = 4;
+          blockStep = 2;
+        } else if (maxSide >= options.maxDecodeDimension * 2) {
+          scaleDenom = 2;
+          blockStep = 4;
+        }
+      }
+      outWidth = Math.max(1, Math.ceil(width / scaleDenom));
+      outHeight = Math.max(1, Math.ceil(height / scaleDenom));
       const numComps = payload[5]!;
       components.length = 0;
       maxH = 1;
@@ -329,16 +563,22 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
           acId: 0,
           dcPred: 0,
           blocksX: 0,
-          blocksY: 0,
-          blocks: []
+          blocksY: 0
         });
       }
       mcusX = Math.ceil(width / (maxH * 8));
       mcusY = Math.ceil(height / (maxV * 8));
+      useStripDecode = !meta.isProgressive && (scaleDenom > 1 || width * height > 512 * 512);
       for (const comp of components) {
         comp.blocksX = mcusX * comp.h;
         comp.blocksY = mcusY * comp.v;
-        comp.blocks = Array.from({ length: comp.blocksX * comp.blocksY }, () => new Int32Array(64));
+        if (meta.isProgressive) {
+          comp.blocksFlat = new Int16Array(comp.blocksX * comp.blocksY * 64);
+        } else if (useStripDecode) {
+          comp.stripPixels = new Uint8Array(comp.blocksX * blockStep * comp.v * blockStep);
+        } else {
+          comp.pixels = new Uint8Array(comp.blocksX * blockStep * comp.blocksY * blockStep);
+        }
       }
     } else if (marker === 0xda) {
       // SOS
@@ -353,6 +593,17 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
         comp.acId = tdta & 0x0f;
         scanComps.push(comp);
       }
+      if (!meta.isProgressive && scanCompsCount < components.length) {
+        useStripDecode = false;
+        for (const comp of components) {
+          if (!comp.pixels) {
+            comp.pixels = new Uint8Array(comp.blocksX * blockStep * comp.blocksY * blockStep);
+          }
+        }
+      }
+      if (useStripDecode && !outRgba) {
+        outRgba = new Uint8Array(outWidth * outHeight * 4);
+      }
       const ssPos = 1 + scanCompsCount * 2;
       const spectralStart = payload[ssPos] ?? 0;
       const spectralEnd = payload[ssPos + 1] ?? 63;
@@ -365,6 +616,24 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
       let bitBuf = 0;
       let bitCount = 0;
       let eobRun = 0;
+
+      const refillBits = (): void => {
+        while (bitCount <= 16 && scanPos < bytes.length) {
+          const b = bytes[scanPos]!;
+          if (b === 0xff) {
+            if (scanPos + 1 >= bytes.length || bytes[scanPos + 1] !== 0x00) {
+              break;
+            }
+            scanPos += 2;
+            bitBuf = ((bitBuf << 8) | 0xff) >>> 0;
+            bitCount += 8;
+          } else {
+            scanPos++;
+            bitBuf = ((bitBuf << 8) | b) >>> 0;
+            bitCount += 8;
+          }
+        }
+      };
 
       const readBit = (): number => {
         if (bitCount === 0) {
@@ -383,6 +652,13 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
       };
 
       const readBits = (n: number): number => {
+        if (n === 0) return 0;
+        if (bitCount < n) refillBits();
+        if (bitCount >= n) {
+          const val = (bitBuf >>> (bitCount - n)) & ((1 << n) - 1);
+          bitCount -= n;
+          return val;
+        }
         let val = 0;
         for (let i = 0; i < n; i++) {
           val = (val << 1) | readBit();
@@ -397,6 +673,16 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
       };
 
       const decodeSymbol = (tree: HuffmanNode | undefined): number => {
+        if (!tree) throw new Error("Invalid JPEG Huffman code");
+        if (bitCount < 8) refillBits();
+        if (bitCount >= 8 && tree.fastLut) {
+          const peek = (bitBuf >>> (bitCount - 8)) & 0xff;
+          const fast = tree.fastLut[peek]!;
+          if (fast >= 0) {
+            bitCount -= fast >>> 8;
+            return fast & 0xff;
+          }
+        }
         let node: HuffmanNode | undefined = tree;
         while (node && node.symbol === undefined) {
           const bit = readBit();
@@ -406,13 +692,15 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
         return node.symbol;
       };
 
-      const decodeBlockBaseline = (comp: ComponentSpec, block: Int32Array) => {
+      const decodeBlockBaseline = (comp: ComponentSpec, block: Int32Array): number => {
+        block.fill(0);
         const dcTree = dcTrees[comp.dcId];
         const acTree = acTrees[comp.acId];
         const t = decodeSymbol(dcTree);
         const diff = receiveExtend(t);
         comp.dcPred += diff;
         block[0] = comp.dcPred;
+        let maxK = 0;
         let k = 1;
         while (k < 64) {
           const rs = decodeSymbol(acTree);
@@ -428,12 +716,14 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
           k += r;
           if (k < 64) {
             block[k] = receiveExtend(s);
+            maxK = k;
           }
           k++;
         }
+        return maxK;
       };
 
-      const decodeBlockProgressive = (comp: ComponentSpec, block: Int32Array) => {
+      const decodeBlockProgressive = (comp: ComponentSpec, block: Int16Array) => {
         if (spectralStart === 0) {
           if (approxHigh === 0) {
             const dcTree = dcTrees[comp.dcId];
@@ -509,6 +799,25 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
         }
       };
 
+      const blockOut = new Uint8Array(64);
+      const decodeAndStoreBaselineBlock = (comp: ComponentSpec, bx: number, by: number, stripVy: number): void => {
+        const maxK = decodeBlockBaseline(comp, SCRATCH_COEFFS);
+        const quant = quantTables[comp.qId];
+        if (!quant) throw new Error("Missing JPEG quantization table");
+        idctScaledBlock(SCRATCH_COEFFS, quant, blockOut, maxK, blockStep);
+        const stride = comp.blocksX * blockStep;
+        const dst = useStripDecode ? comp.stripPixels! : comp.pixels!;
+        const baseRow = (useStripDecode ? stripVy : by) * blockStep;
+        const baseCol = bx * blockStep;
+        for (let y = 0; y < blockStep; y++) {
+          const dstOff = (baseRow + y) * stride + baseCol;
+          const srcOff = y * blockStep;
+          for (let x = 0; x < blockStep; x++) {
+            dst[dstOff + x] = blockOut[srcOff + x]!;
+          }
+        }
+      };
+
       let mcuCounter = 0;
       let restartCounter = 0;
       const consumeRestart = (): void => {
@@ -529,13 +838,17 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
             if (restartInterval > 0 && mcuCounter > 0 && mcuCounter % restartInterval === 0) {
               consumeRestart();
             }
-            const block = comp.blocks[by * comp.blocksX + bx]!;
-            if (meta.isProgressive) decodeBlockProgressive(comp, block);
-            else decodeBlockBaseline(comp, block);
+            if (meta.isProgressive) {
+              const off = (by * comp.blocksX + bx) * 64;
+              decodeBlockProgressive(comp, comp.blocksFlat!.subarray(off, off + 64));
+            } else {
+              decodeAndStoreBaselineBlock(comp, bx, by, by % comp.v);
+            }
             mcuCounter++;
           }
         }
       } else {
+        const mcuRowH = maxV * blockStep;
         for (let my = 0; my < mcusY; my++) {
           for (let mx = 0; mx < mcusX; mx++) {
             if (restartInterval > 0 && mcuCounter > 0 && mcuCounter % restartInterval === 0) {
@@ -546,13 +859,86 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
                 for (let hx = 0; hx < comp.h; hx++) {
                   const bx = mx * comp.h + hx;
                   const by = my * comp.v + vy;
-                  const block = comp.blocks[by * comp.blocksX + bx]!;
-                  if (meta.isProgressive) decodeBlockProgressive(comp, block);
-                  else decodeBlockBaseline(comp, block);
+                  if (meta.isProgressive) {
+                    const off = (by * comp.blocksX + bx) * 64;
+                    decodeBlockProgressive(comp, comp.blocksFlat!.subarray(off, off + 64));
+                  } else {
+                    decodeAndStoreBaselineBlock(comp, bx, by, vy);
+                  }
                 }
               }
             }
             mcuCounter++;
+          }
+          if (useStripDecode && outRgba) {
+            const yStart = my * mcuRowH;
+            const yEnd = Math.min(outHeight, yStart + mcuRowH);
+            const c0 = components[0]!;
+            const s0 = c0.blocksX * blockStep;
+            if (components.length === 1) {
+              const p0 = c0.stripPixels!;
+              for (let y = yStart; y < yEnd; y++) {
+                const ly = y - yStart;
+                const rowIn = ly * s0;
+                let outIdx = y * outWidth * 4;
+                for (let x = 0; x < outWidth; x++) {
+                  const g = p0[rowIn + x]!;
+                  outRgba[outIdx] = g;
+                  outRgba[outIdx + 1] = g;
+                  outRgba[outIdx + 2] = g;
+                  outRgba[outIdx + 3] = 255;
+                  outIdx += 4;
+                }
+              }
+            } else if (components.length >= 3) {
+              const c1 = components[1]!;
+              const c2 = components[2]!;
+              const pY = c0.stripPixels!;
+              const pCb = c1.stripPixels!;
+              const pCr = c2.stripPixels!;
+              const sY = s0;
+              const sCb = c1.blocksX * blockStep;
+              const sCr = c2.blocksX * blockStep;
+              const hY = c0.h, vY = c0.v;
+              const hCb = c1.h, vCb = c1.v;
+              const hCr = c2.h, vCr = c2.v;
+              const hasK = components.length === 4;
+              const c3 = hasK ? components[3]! : undefined;
+              const pK = c3?.stripPixels;
+              const sK = c3 ? c3.blocksX * blockStep : 0;
+              for (let y = yStart; y < yEnd; y++) {
+                const ly = y - yStart;
+                const yRow = (vY === maxV ? ly : Math.floor((ly * vY) / maxV)) * sY;
+                const cbRow = (vCb === maxV ? ly : Math.floor((ly * vCb) / maxV)) * sCb;
+                const crRow = (vCr === maxV ? ly : Math.floor((ly * vCr) / maxV)) * sCr;
+                const kRow = c3 ? (c3.v === maxV ? ly : Math.floor((ly * c3.v) / maxV)) * sK : 0;
+                let outIdx = y * outWidth * 4;
+                for (let x = 0; x < outWidth; x++) {
+                  const yVal = pY[yRow + (hY === maxH ? x : Math.floor((x * hY) / maxH))]!;
+                  const cbVal = pCb[cbRow + (hCb === maxH ? x : Math.floor((x * hCb) / maxH))]! - 128;
+                  const crVal = pCr[crRow + (hCr === maxH ? x : Math.floor((x * hCr) / maxH))]! - 128;
+                  let r = (yVal + ((91881 * crVal + 32768) >> 16));
+                  let g = (yVal - ((22554 * cbVal + 46802 * crVal + 32768) >> 16));
+                  let b = (yVal + ((116130 * cbVal + 32768) >> 16));
+                  r = r < 0 ? 0 : r > 255 ? 255 : r;
+                  g = g < 0 ? 0 : g > 255 ? 255 : g;
+                  b = b < 0 ? 0 : b > 255 ? 255 : b;
+                  if (hasK && pK && c3) {
+                    const kVal = pK[kRow + (c3.h === maxH ? x : Math.floor((x * c3.h) / maxH))]!;
+                    outRgba[outIdx] = Math.round((r * kVal) / 255);
+                    outRgba[outIdx + 1] = Math.round((g * kVal) / 255);
+                    outRgba[outIdx + 2] = Math.round((b * kVal) / 255);
+                    outRgba[outIdx + 3] = 255;
+                  } else {
+                    outRgba[outIdx] = r;
+                    outRgba[outIdx + 1] = g;
+                    outRgba[outIdx + 2] = b;
+                    outRgba[outIdx + 3] = 255;
+                  }
+                  outIdx += 4;
+                }
+              }
+            }
           }
         }
       }
@@ -563,14 +949,35 @@ export function decodeJpegImage(bytes: Uint8Array): RgbaImage {
     pos += segLen;
   }
 
+  if (useStripDecode && outRgba) {
+    return {
+      width: outWidth,
+      height: outHeight,
+      data: outRgba,
+      format: "jpeg",
+      space: meta.space,
+      channels: meta.channels,
+      depth: "uchar",
+      density: meta.density,
+      hasAlpha: false,
+      ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {}),
+      ...(meta.isProgressive !== undefined ? { isProgressive: meta.isProgressive } : {})
+    };
+  }
+
   const compPixels = components.map(comp => {
+    if (!meta.isProgressive && comp.pixels) {
+      return { comp, pixels: comp.pixels, stride: comp.blocksX * blockStep };
+    }
     const pixels = new Uint8Array(comp.blocksX * 8 * comp.blocksY * 8);
     const blockOut = new Uint8Array(64);
     const quant = quantTables[comp.qId];
     if (!quant) throw new Error("Missing JPEG quantization table");
+    const blocksFlat = comp.blocksFlat!;
     for (let by = 0; by < comp.blocksY; by++) {
       for (let bx = 0; bx < comp.blocksX; bx++) {
-        idct8x8(comp.blocks[by * comp.blocksX + bx]!, quant, blockOut);
+        const off = (by * comp.blocksX + bx) * 64;
+        idct8x8(blocksFlat.subarray(off, off + 64), quant, blockOut, 63);
         for (let y = 0; y < 8; y++) {
           const dstOffset = (by * 8 + y) * (comp.blocksX * 8) + bx * 8;
           for (let x = 0; x < 8; x++) {
@@ -694,28 +1101,38 @@ const ENC_DC_CHROMA = buildEncodeTable(STD_DC_CHROMA_NRCODES, STD_DC_CHROMA_VALU
 const ENC_AC_LUMA = buildEncodeTable(STD_AC_LUMA_NRCODES, STD_AC_LUMA_VALUES);
 const ENC_AC_CHROMA = buildEncodeTable(STD_AC_CHROMA_NRCODES, STD_AC_CHROMA_VALUES);
 
+const INV_ZIGZAG = (() => {
+  const inv = new Uint8Array(64);
+  for (let i = 0; i < 64; i++) {
+    inv[ZIGZAG[i]!] = i;
+  }
+  return inv;
+})();
+
+const FDCT_TEMP = new Float64Array(64);
+
 function fdct8x8(block: Float64Array, quant: Uint8Array, outZigZag: Int32Array): void {
-  const temp = new Float64Array(64);
   for (let y = 0; y < 8; y++) {
+    const rowOff = y * 8;
     for (let u = 0; u < 8; u++) {
+      const cosOff = u * 8;
       let sum = 0;
       for (let x = 0; x < 8; x++) {
-        sum += block[y * 8 + x]! * COS_TABLE[u * 8 + x]!;
+        sum += block[rowOff + x]! * COS_TABLE[cosOff + x]!;
       }
-      temp[y * 8 + u] = sum * 0.5;
+      FDCT_TEMP[rowOff + u] = sum * 0.5;
     }
   }
   for (let v = 0; v < 8; v++) {
+    const cosOff = v * 8;
+    const vRow = v * 8;
     for (let u = 0; u < 8; u++) {
       let sum = 0;
       for (let y = 0; y < 8; y++) {
-        sum += temp[y * 8 + u]! * COS_TABLE[v * 8 + y]!;
+        sum += FDCT_TEMP[y * 8 + u]! * COS_TABLE[cosOff + y]!;
       }
-      const coeff = sum * 0.5;
-      const zigIdx = ZIGZAG.indexOf(v * 8 + u);
-      if (zigIdx >= 0) {
-        outZigZag[zigIdx] = Math.round(coeff / (quant[zigIdx] ?? 1));
-      }
+      const zigIdx = INV_ZIGZAG[vRow + u]!;
+      outZigZag[zigIdx] = Math.round((sum * 0.5) / (quant[zigIdx] ?? 1));
     }
   }
 }
@@ -823,24 +1240,14 @@ export function encodeJpegImage(
   let bitBuf = 0;
   let bitCnt = 0;
   const writeBits = (code: number, len: number) => {
-    for (let i = len - 1; i >= 0; i--) {
-      bitBuf = (bitBuf << 1) | ((code >>> i) & 1);
-      bitCnt++;
-      if (bitCnt === 8) {
-        bytes.push(bitBuf);
-        if (bitBuf === 0xff) bytes.push(0x00);
-        bitBuf = 0;
-        bitCnt = 0;
-      }
+    bitBuf = (bitBuf << len) | (code & ((1 << len) - 1));
+    bitCnt += len;
+    while (bitCnt >= 8) {
+      bitCnt -= 8;
+      const b = (bitBuf >>> bitCnt) & 0xff;
+      bytes.push(b);
+      if (b === 0xff) bytes.push(0x00);
     }
-  };
-
-  const encodeNumber = (val: number): { category: number; bits: number } => {
-    if (val === 0) return { category: 0, bits: 0 };
-    const abs = Math.abs(val);
-    const category = 32 - Math.clz32(abs);
-    const bits = val > 0 ? val : (1 << category) - 1 + val;
-    return { category, bits };
   };
 
   const encodeBlock = (
@@ -850,9 +1257,15 @@ export function encodeJpegImage(
     acTab: { code: Uint16Array; len: Uint8Array }
   ): number => {
     const diff = zz[0]! - prevDc;
-    const dcEnc = encodeNumber(diff);
-    writeBits(dcTab.code[dcEnc.category]!, dcTab.len[dcEnc.category]!);
-    if (dcEnc.category > 0) writeBits(dcEnc.bits, dcEnc.category);
+    if (diff === 0) {
+      writeBits(dcTab.code[0]!, dcTab.len[0]!);
+    } else {
+      const abs = diff < 0 ? -diff : diff;
+      const cat = 32 - Math.clz32(abs);
+      const bits = diff > 0 ? diff : (1 << cat) - 1 + diff;
+      writeBits(dcTab.code[cat]!, dcTab.len[cat]!);
+      writeBits(bits, cat);
+    }
 
     let zeroRun = 0;
     for (let k = 1; k < 64; k++) {
@@ -864,10 +1277,12 @@ export function encodeJpegImage(
           writeBits(acTab.code[0xf0]!, acTab.len[0xf0]!);
           zeroRun -= 16;
         }
-        const acEnc = encodeNumber(v);
-        const sym = (zeroRun << 4) | acEnc.category;
+        const abs = v < 0 ? -v : v;
+        const cat = 32 - Math.clz32(abs);
+        const bits = v > 0 ? v : (1 << cat) - 1 + v;
+        const sym = (zeroRun << 4) | cat;
         writeBits(acTab.code[sym]!, acTab.len[sym]!);
-        writeBits(acEnc.bits, acEnc.category);
+        writeBits(bits, cat);
         zeroRun = 0;
       }
     }

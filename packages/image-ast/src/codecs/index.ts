@@ -534,7 +534,7 @@ export function decodeImage(
       decoded = decodePngImage(bytes);
       break;
     case "jpeg":
-      decoded = decodeJpegImage(bytes);
+      decoded = decodeJpegImage(bytes, options);
       break;
     case "webp":
       decoded = decodeWebpImage(bytes);

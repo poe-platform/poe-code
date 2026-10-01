@@ -3401,7 +3401,41 @@ function* applyInlineReadModifierSteps(img: RgbaImage, inlineGeom: string, kerne
     return (yield* applyMagickResizeSteps(img, inlineGeom, kernel));
 }
 
-function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array): Generator<void, RgbaImage[] | undefined, void> {
+function inferMaxDecodeDimensionFromUpcomingTokens(
+    tokens: readonly string[],
+    startIdx: number,
+    inlineGeom?: string
+): number | undefined {
+    if (inlineGeom) {
+        const g = parseMagickGeometry(inlineGeom);
+        if (!g.hasOffset && !g.isPercent && g.areaLimit === undefined && (g.width !== undefined || g.height !== undefined)) {
+            const dim = Math.max(g.width ?? 0, g.height ?? 0);
+            if (dim >= 32) return dim;
+        }
+    }
+    const coordDependentOps = new Set([
+        "-crop", "-chop", "-splice", "-trim", "-roll", "-shave",
+        "-extent", "-border", "-frame", "-draw", "-annotate",
+        "-region", "-floodfill", "-repage", "+repage", "-distort"
+    ]);
+    for (let k = startIdx; k < tokens.length; k++) {
+        const tok = tokens[k]!;
+        if (coordDependentOps.has(tok)) return undefined;
+        if (tok === "-resize" || tok === "-thumbnail" || tok === "-scale" || tok === "-sample") {
+            const geomStr = tokens[k + 1];
+            if (!geomStr) return undefined;
+            const g = parseMagickGeometry(geomStr);
+            if (!g.hasOffset && !g.isPercent && g.areaLimit === undefined && (g.width !== undefined || g.height !== undefined)) {
+                const dim = Math.max(g.width ?? 0, g.height ?? 0);
+                if (dim >= 32) return dim;
+            }
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
+function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number): Generator<void, RgbaImage[] | undefined, void> {
     let work = 0;
     let baseToken = token;
     let pageSpec: string | undefined;
@@ -3517,12 +3551,14 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     else {
         pageIndices = [0];
     }
+    const effectiveMaxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens([], 0, inlineGeom) ?? maxDecodeDimension;
     const results: RgbaImage[] = [];
     for (const pageIdx of pageIndices) {
         if (++work % 16384 === 0)
             yield;
         let img = decodeImage(rawBytes, {
             density: state.density,
+            ...(effectiveMaxDecodeDim !== undefined ? { maxDecodeDimension: effectiveMaxDecodeDim } : {}),
             ...(totalPages > 1 || pageSpec !== undefined ? { page: pageIdx } : {})
         });
         if (inlineGeom) {
@@ -4781,7 +4817,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else {
-            const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes));
+            const maxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
+            const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes, maxDecodeDim));
             if (loaded) {
                 stack.push(...loaded);
             }
@@ -5845,7 +5882,12 @@ export function createImagemagickCommands(options: ImagemagickCommandsOptions = 
 
 
 function* mapSteps<T, U>(values: readonly T[], mapper: (value: T) => Generator<void, U, void>): Generator<void, U[], void> {
-  const result: U[] = [];
-  for (const value of values) result.push(yield* mapper(value));
+  const result: U[] = new Array(values.length);
+  const mutable = Array.isArray(values) ? (values as unknown[]) : undefined;
+  for (let i = 0; i < values.length; i++) {
+    const val = values[i]!;
+    if (mutable) mutable[i] = undefined;
+    result[i] = yield* mapper(val);
+  }
   return result;
 }

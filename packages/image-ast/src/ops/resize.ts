@@ -528,19 +528,22 @@ function *shrinkVBoxSteps(
   const out = new Uint8Array(w * outH * 4);
   const roundAdd = vshrink >> 1;
   for (let y = 0; y < outH; y++) {
-    if (++work % 16384 === 0) yield;
     for (let x = 0; x < w; x++) {
-    if (++work % 16384 === 0) yield;
-      for (let c = 0; c < 4; c++) {
-    if (++work % 16384 === 0) yield;
-        let sum = 0;
-        for (let k = 0; k < vshrink; k++) {
-    if (++work % 16384 === 0) yield;
-          const sy = Math.min(h - 1, y * vshrink + k);
-          sum += src[(sy * w + x) * 4 + c]!;
-        }
-        out[(y * w + x) * 4 + c] = Math.floor((sum + roundAdd) / vshrink);
+      if (++work % 16384 === 0) yield;
+      let sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+      for (let k = 0; k < vshrink; k++) {
+        const sy = Math.min(h - 1, y * vshrink + k);
+        const sIdx = (sy * w + x) * 4;
+        sum0 += src[sIdx]!;
+        sum1 += src[sIdx + 1]!;
+        sum2 += src[sIdx + 2]!;
+        sum3 += src[sIdx + 3]!;
       }
+      const dIdx = (y * w + x) * 4;
+      out[dIdx] = Math.floor((sum0 + roundAdd) / vshrink);
+      out[dIdx + 1] = Math.floor((sum1 + roundAdd) / vshrink);
+      out[dIdx + 2] = Math.floor((sum2 + roundAdd) / vshrink);
+      out[dIdx + 3] = Math.floor((sum3 + roundAdd) / vshrink);
     }
   }
   return { data: out, h: outH };
@@ -557,19 +560,24 @@ function *shrinkHBoxSteps(
   const out = new Uint8Array(outW * h * 4);
   const roundAdd = hshrink >> 1;
   for (let y = 0; y < h; y++) {
-    if (++work % 16384 === 0) yield;
+    const rowOff = y * w * 4;
+    const dstRowOff = y * outW * 4;
     for (let x = 0; x < outW; x++) {
-    if (++work % 16384 === 0) yield;
-      for (let c = 0; c < 4; c++) {
-    if (++work % 16384 === 0) yield;
-        let sum = 0;
-        for (let k = 0; k < hshrink; k++) {
-    if (++work % 16384 === 0) yield;
-          const sx = Math.min(w - 1, x * hshrink + k);
-          sum += src[(y * w + sx) * 4 + c]!;
-        }
-        out[(y * outW + x) * 4 + c] = Math.floor((sum + roundAdd) / hshrink);
+      if (++work % 16384 === 0) yield;
+      let sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+      for (let k = 0; k < hshrink; k++) {
+        const sx = Math.min(w - 1, x * hshrink + k);
+        const sIdx = rowOff + sx * 4;
+        sum0 += src[sIdx]!;
+        sum1 += src[sIdx + 1]!;
+        sum2 += src[sIdx + 2]!;
+        sum3 += src[sIdx + 3]!;
       }
+      const dIdx = dstRowOff + x * 4;
+      out[dIdx] = Math.floor((sum0 + roundAdd) / hshrink);
+      out[dIdx + 1] = Math.floor((sum1 + roundAdd) / hshrink);
+      out[dIdx + 2] = Math.floor((sum2 + roundAdd) / hshrink);
+      out[dIdx + 3] = Math.floor((sum3 + roundAdd) / hshrink);
     }
   }
   return { data: out, w: outW };
@@ -661,23 +669,32 @@ export function *resampleRawBitmapSteps(
         const voffset = (extraPixels + 1.0) * 0.5 - 1.0;
         const out = new Uint8Array(w * targetH * 4);
         let Y = fmaDouble(0.5, vshrink, -0.5) - voffset;
+        const rowOffsets = new Int32Array(nPoint);
         for (let y = 0; y < targetH; y++) {
-    if (++work % 16384 === 0) yield;
           const iy = Math.trunc(Y);
           const ty = ((Math.trunc(Y * 128.0) & 127) + 1) >> 1;
           const wRow = ty * nPoint;
+          for (let j = 0; j < nPoint; j++) {
+            rowOffsets[j] = Math.max(0, Math.min(h - 1, iy + j - topPad)) * w * 4;
+          }
+          const dstRowOff = y * w * 4;
           for (let x = 0; x < w; x++) {
-    if (++work % 16384 === 0) yield;
-            for (let c = 0; c < 4; c++) {
-    if (++work % 16384 === 0) yield;
-              let sum = 0;
-              for (let j = 0; j < nPoint; j++) {
-    if (++work % 16384 === 0) yield;
-                const sy = Math.max(0, Math.min(h - 1, iy + j - topPad));
-                sum += cur[(sy * w + x) * 4 + c]! * table[wRow + j]!;
-              }
-              out[(y * w + x) * 4 + c] = Math.max(0, Math.min(255, (sum + 2048) >> 12));
+            if (++work % 16384 === 0) yield;
+            const xOff = x * 4;
+            let sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+            for (let j = 0; j < nPoint; j++) {
+              const wt = table[wRow + j]!;
+              const sIdx = rowOffsets[j]! + xOff;
+              sum0 += cur[sIdx]! * wt;
+              sum1 += cur[sIdx + 1]! * wt;
+              sum2 += cur[sIdx + 2]! * wt;
+              sum3 += cur[sIdx + 3]! * wt;
             }
+            const dIdx = dstRowOff + xOff;
+            out[dIdx] = Math.max(0, Math.min(255, (sum0 + 2048) >> 12));
+            out[dIdx + 1] = Math.max(0, Math.min(255, (sum1 + 2048) >> 12));
+            out[dIdx + 2] = Math.max(0, Math.min(255, (sum2 + 2048) >> 12));
+            out[dIdx + 3] = Math.max(0, Math.min(255, (sum3 + 2048) >> 12));
           }
           Y += vshrink;
         }
@@ -704,24 +721,33 @@ export function *resampleRawBitmapSteps(
         const leftPad = Math.ceil(nPoint * 0.5) - 1;
         const hoffset = (extraPixels + 1.0) * 0.5 - 1.0;
         const out = new Uint8Array(targetW * h * 4);
+        const colOffsets = new Int32Array(nPoint);
         let X = fmaDouble(0.5, hshrink, -0.5) - hoffset;
         for (let x = 0; x < targetW; x++) {
-    if (++work % 16384 === 0) yield;
           const ix = Math.trunc(X);
           const tx = ((Math.trunc(X * 128.0) & 127) + 1) >> 1;
           const wRow = tx * nPoint;
+          for (let j = 0; j < nPoint; j++) {
+            colOffsets[j] = Math.max(0, Math.min(w - 1, ix + j - leftPad)) * 4;
+          }
+          const dstColOff = x * 4;
           for (let y = 0; y < h; y++) {
-    if (++work % 16384 === 0) yield;
-            for (let c = 0; c < 4; c++) {
-    if (++work % 16384 === 0) yield;
-              let sum = 0;
-              for (let j = 0; j < nPoint; j++) {
-    if (++work % 16384 === 0) yield;
-                const sx = Math.max(0, Math.min(w - 1, ix + j - leftPad));
-                sum += cur[(y * w + sx) * 4 + c]! * table[wRow + j]!;
-              }
-              out[(y * targetW + x) * 4 + c] = Math.max(0, Math.min(255, (sum + 2048) >> 12));
+            if (++work % 16384 === 0) yield;
+            const srcRowOff = y * w * 4;
+            let sum0 = 0, sum1 = 0, sum2 = 0, sum3 = 0;
+            for (let j = 0; j < nPoint; j++) {
+              const wt = table[wRow + j]!;
+              const sIdx = srcRowOff + colOffsets[j]!;
+              sum0 += cur[sIdx]! * wt;
+              sum1 += cur[sIdx + 1]! * wt;
+              sum2 += cur[sIdx + 2]! * wt;
+              sum3 += cur[sIdx + 3]! * wt;
             }
+            const dIdx = y * targetW * 4 + dstColOff;
+            out[dIdx] = Math.max(0, Math.min(255, (sum0 + 2048) >> 12));
+            out[dIdx + 1] = Math.max(0, Math.min(255, (sum1 + 2048) >> 12));
+            out[dIdx + 2] = Math.max(0, Math.min(255, (sum2 + 2048) >> 12));
+            out[dIdx + 3] = Math.max(0, Math.min(255, (sum3 + 2048) >> 12));
           }
           X += hshrink;
         }

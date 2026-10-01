@@ -1822,37 +1822,37 @@ function buildVipsGaussmat(
   return { radius: maxX, weights, scale };
 }
 
-function vipsSrgbToLabForSharpen(r: number, g: number, b: number): [number, number, number] {
+const SHARPEN_LAB_OUT = new Float64Array(3);
+const SHARPEN_RGB_OUT = new Uint8Array(3);
+
+function vipsSrgbToLabForSharpenInto(r: number, g: number, b: number, out: Float64Array): void {
   const rl = SRGB_TO_LINEAR_LUT[r]!;
   const gl = SRGB_TO_LINEAR_LUT[g]!;
   const bl = SRGB_TO_LINEAR_LUT[b]!;
   const X = (41.24 * rl + 35.76 * gl + 18.05 * bl) / 95.047;
   const Y = (21.26 * rl + 71.52 * gl + 7.22 * bl) / 100.0;
   const Z = (1.93 * rl + 11.92 * gl + 95.05 * bl) / 108.883;
-  const f = (t: number): number => (t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16.0 / 116.0);
-  const fx = f(X);
-  const fy = f(Y);
-  const fz = f(Z);
-  return [
-    Math.fround(116.0 * fy - 16.0),
-    Math.fround(500.0 * (fx - fy)),
-    Math.fround(200.0 * (fy - fz))
-  ];
+  const fx = X > 0.008856 ? Math.cbrt(X) : 7.787 * X + 16.0 / 116.0;
+  const fy = Y > 0.008856 ? Math.cbrt(Y) : 7.787 * Y + 16.0 / 116.0;
+  const fz = Z > 0.008856 ? Math.cbrt(Z) : 7.787 * Z + 16.0 / 116.0;
+  out[0] = Math.fround(116.0 * fy - 16.0);
+  out[1] = Math.fround(500.0 * (fx - fy));
+  out[2] = Math.fround(200.0 * (fy - fz));
 }
 
-function vipsLabToSrgbForSharpen(L: number, a: number, b: number): [number, number, number] {
+function vipsLabToSrgbForSharpenInto(L: number, a: number, b: number, out: Uint8Array): void {
   const fy = (L + 16.0) / 116.0;
   const fx = fy + a / 500.0;
   const fz = fy - b / 200.0;
-  const inv = (t: number): number =>
-    t > 0.20689655172413793 ? t * t * t : (t - 16.0 / 116.0) / 7.787;
-  const X = inv(fx) * 0.95047;
-  const Y = inv(fy) * 1.0;
-  const Z = inv(fz) * 1.08883;
+  const X = (fx > 0.20689655172413793 ? fx * fx * fx : (fx - 16.0 / 116.0) / 7.787) * 0.95047;
+  const Y = (fy > 0.20689655172413793 ? fy * fy * fy : (fy - 16.0 / 116.0) / 7.787) * 1.0;
+  const Z = (fz > 0.20689655172413793 ? fz * fz * fz : (fz - 16.0 / 116.0) / 7.787) * 1.08883;
   const rl = 3.2406 * X - 1.5372 * Y - 0.4986 * Z;
   const gl = -0.9689 * X + 1.8758 * Y + 0.0415 * Z;
   const bl = 0.0557 * X - 0.204 * Y + 1.057 * Z;
-  return [linearToSrgbByte(rl), linearToSrgbByte(gl), linearToSrgbByte(bl)];
+  out[0] = linearToSrgbByte(rl);
+  out[1] = linearToSrgbByte(gl);
+  out[2] = linearToSrgbByte(bl);
 }
 
 export function *sharpenImageSteps(
@@ -1907,10 +1907,10 @@ export function *sharpenImageSteps(
   for (let i = 0; i < width * height; i++) {
     if (++work % 16384 === 0) yield;
     const idx = i * 4;
-    const [lVal, aVal, bVal] = vipsSrgbToLabForSharpen(cur[idx]!, cur[idx + 1]!, cur[idx + 2]!);
-    Ls[i] = Math.trunc(lVal * 327.67);
-    As[i] = Math.trunc(aVal * 256.0);
-    Bs[i] = Math.trunc(bVal * 256.0);
+    vipsSrgbToLabForSharpenInto(cur[idx]!, cur[idx + 1]!, cur[idx + 2]!, SHARPEN_LAB_OUT);
+    Ls[i] = Math.trunc(SHARPEN_LAB_OUT[0]! * 327.67);
+    As[i] = Math.trunc(SHARPEN_LAB_OUT[1]! * 256.0);
+    Bs[i] = Math.trunc(SHARPEN_LAB_OUT[2]! * 256.0);
   }
 
   const { radius, weights, scale } = buildVipsGaussmat(sigma, 0.1);
@@ -1918,27 +1918,25 @@ export function *sharpenImageSteps(
   const tmpL = new Int16Array(width * height);
   const blurL = new Int16Array(width * height);
   for (let y = 0; y < height; y++) {
-    if (++work % 16384 === 0) yield;
+    const rowOff = y * width;
     for (let x = 0; x < width; x++) {
-    if (++work % 16384 === 0) yield;
+      if (++work % 16384 === 0) yield;
       let sum = 0;
       for (let k = -radius; k <= radius; k++) {
-    if (++work % 16384 === 0) yield;
-        sum += Ls[y * width + Math.max(0, Math.min(width - 1, x + k))]! * weights[k + radius]!;
+        sum += Ls[rowOff + Math.max(0, Math.min(width - 1, x + k))]! * weights[k + radius]!;
       }
-      tmpL[y * width + x] = Math.floor((sum + roundAdd) / scale);
+      tmpL[rowOff + x] = Math.floor((sum + roundAdd) / scale);
     }
   }
   for (let y = 0; y < height; y++) {
-    if (++work % 16384 === 0) yield;
+    const rowOff = y * width;
     for (let x = 0; x < width; x++) {
-    if (++work % 16384 === 0) yield;
+      if (++work % 16384 === 0) yield;
       let sum = 0;
       for (let k = -radius; k <= radius; k++) {
-    if (++work % 16384 === 0) yield;
         sum += tmpL[Math.max(0, Math.min(height - 1, y + k)) * width + x]! * weights[k + radius]!;
       }
-      blurL[y * width + x] = Math.floor((sum + roundAdd) / scale);
+      blurL[rowOff + x] = Math.floor((sum + roundAdd) / scale);
     }
   }
 
@@ -1956,7 +1954,10 @@ export function *sharpenImageSteps(
     if (v > y2) v = y2;
     const boostS = rintEven(v * 327.67);
     const newLS = Math.max(0, Math.min(32767, Ls[i]! + boostS));
-    const [nr, ng, nb] = vipsLabToSrgbForSharpen(newLS / 327.67, As[i]! / 256.0, Bs[i]! / 256.0);
+    vipsLabToSrgbForSharpenInto(newLS / 327.67, As[i]! / 256.0, Bs[i]! / 256.0, SHARPEN_RGB_OUT);
+    const nr = SHARPEN_RGB_OUT[0]!;
+    const ng = SHARPEN_RGB_OUT[1]!;
+    const nb = SHARPEN_RGB_OUT[2]!;
     if (hasSemiTransparentAlpha && !alreadyPremultiplied) {
       const a = cur[idx + 3]!;
       const factor = a === 0 ? 0 : Math.fround(255.0 / a);

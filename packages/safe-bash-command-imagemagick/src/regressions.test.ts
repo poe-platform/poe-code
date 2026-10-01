@@ -73,3 +73,24 @@ it.each(["-", "png:-"])("still reads genuine stdin input %s", async (input) => {
     expect(output.length).toBeGreaterThan(0);
   }
 });
+
+it("uses downscaled DCT decode when resizing high-resolution baseline JPEGs", async () => {
+  const jpg = await sharp({ create: { width: 320, height: 240, channels: 3, background: { r: 40, g: 120, b: 200 } } }).jpeg({ quality: 85 }).toBuffer();
+  let written: Uint8Array | undefined;
+  const args = createCommandArguments(["in.jpg", "-resize", "64x48", "out.jpg"]);
+  const context = {
+    command: "magick", args: args.args, argumentValues: args, cwd: "/vfs", env: {}, signal: new AbortController().signal,
+    stdin: (async function* () {})(),
+    stdout: { async write() {} }, stderr: { async write() {} }, registerCleanup() {},
+    fs: {
+      async readFile(path: string) { if (path !== "/vfs/in.jpg") throw new FsError("ENOENT"); return jpg.slice(); },
+      async writeFile(path: string, bytes: Uint8Array) { if (path === "/vfs/out.jpg") written = bytes; },
+      async mkdir() {}
+    }
+  } as unknown as CommandContext;
+  expect((await createMagickCommand().execute(context)).exitCode).toBe(0);
+  expect(written).toBeDefined();
+  const meta = await sharp(written!).metadata();
+  expect(meta.width).toBe(64);
+  expect(meta.height).toBe(48);
+});

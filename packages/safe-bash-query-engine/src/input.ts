@@ -851,14 +851,13 @@ export function tryProcessFlatSelectProjectChunkSync(
   if (rawChunk[0] !== 123 || rawChunk[len - 1] !== 10) return -1;
   const totalAfter = budget.inputBytes + len;
   if (totalAfter > budget.maxInputBytesSmi && totalAfter > budget.limits.maxInputBytes) return -1;
-  let plan = planHolder?.cachedSchemaPlan;
-  if (!plan) {
-    const firstNl = rawChunk.indexOf(10, 0);
-    if (firstNl < 2 || firstNl > 16384) return -1;
-    plan = getOrCreateFlatSchemaPlan(rawChunk, firstNl, condKey, outKeys, srcKeys);
-    if (!plan) return -1;
-    if (planHolder) planHolder.cachedSchemaPlan = plan;
-  }
+  // The AST may be shared by unrelated files. Resolve the schema from this input;
+  // the schema cache still reuses plans with the same keys and projection.
+  const firstNl = rawChunk.indexOf(10, 0);
+  if (firstNl < 2 || firstNl > 16384) return -1;
+  const plan = getOrCreateFlatSchemaPlan(rawChunk, firstNl, condKey, outKeys, srcKeys);
+  if (planHolder) planHolder.cachedSchemaPlan = plan;
+  if (!plan) return -1;
 
   let pos = 0;
   let outPos = 0;

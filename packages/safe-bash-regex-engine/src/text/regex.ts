@@ -1651,6 +1651,7 @@ function appendReplacementFromOffsetsSync(
   maxBufferBytes: number,
   syntax: ReplacementSyntax,
   simpleRep = getSimpleReplacement(replacement, syntax),
+  offsets = FAST_MATCH_OFFSETS,
 ): string {
   if (simpleRep !== null) {
     if (simpleRep.kind === "literal") {
@@ -1659,10 +1660,10 @@ function appendReplacementFromOffsetsSync(
       return out ? out + simpleRep.prefix : simpleRep.prefix;
     }
     if (simpleRep.kind === "twoRefs") {
-      const g1Start = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : FAST_MATCH_OFFSETS[simpleRep.group * 2]!;
-      const g1End = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : FAST_MATCH_OFFSETS[simpleRep.group * 2 + 1]!;
-      const g2Start = simpleRep.group2 === 0 ? matchStart : simpleRep.group2 === 1 ? group1Start : FAST_MATCH_OFFSETS[simpleRep.group2 * 2]!;
-      const g2End = simpleRep.group2 === 0 ? matchEnd : simpleRep.group2 === 1 ? group1End : FAST_MATCH_OFFSETS[simpleRep.group2 * 2 + 1]!;
+      const g1Start = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : offsets[simpleRep.group * 2]!;
+      const g1End = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : offsets[simpleRep.group * 2 + 1]!;
+      const g2Start = simpleRep.group2 === 0 ? matchStart : simpleRep.group2 === 1 ? group1Start : offsets[simpleRep.group2 * 2]!;
+      const g2End = simpleRep.group2 === 0 ? matchEnd : simpleRep.group2 === 1 ? group1End : offsets[simpleRep.group2 * 2 + 1]!;
       const g1Len = g1Start >= 0 && g1End > g1Start ? g1End - g1Start : 0;
       const g2Len = g2Start >= 0 && g2End > g2Start ? g2End - g2Start : 0;
       const addedLen = simpleRep.prefix.length + g1Len + simpleRep.mid.length + g2Len + simpleRep.suffix.length;
@@ -1675,8 +1676,8 @@ function appendReplacementFromOffsetsSync(
         : simpleRep.prefix + g1Str + simpleRep.mid + g2Str;
       return out ? out + expanded : expanded;
     }
-    const gStart = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : FAST_MATCH_OFFSETS[simpleRep.group * 2]!;
-    const gEnd = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : FAST_MATCH_OFFSETS[simpleRep.group * 2 + 1]!;
+    const gStart = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : offsets[simpleRep.group * 2]!;
+    const gEnd = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : offsets[simpleRep.group * 2 + 1]!;
     const gLen = gStart >= 0 && gEnd > gStart ? gEnd - gStart : 0;
     const addedLen = simpleRep.prefix.length + gLen + simpleRep.suffix.length;
     budget.step(simpleRep.stepsPerExpansion + gLen);
@@ -1728,8 +1729,8 @@ function appendReplacementFromOffsetsSync(
         if (g === 0) piece = matchEnd > matchStart ? text.slice(matchStart, matchEnd) : "";
         else if (g === 1 && group1Start >= 0) piece = group1End > group1Start ? text.slice(group1Start, group1End) : "";
         else if (g > 1) {
-          const gs = FAST_MATCH_OFFSETS[g * 2]!;
-          const ge = FAST_MATCH_OFFSETS[g * 2 + 1]!;
+          const gs = offsets[g * 2]!;
+          const ge = offsets[g * 2 + 1]!;
           if (gs >= 0 && ge > gs) piece = text.slice(gs, ge);
         }
       } else {
@@ -1919,43 +1920,9 @@ export async function substitute(text: string, pattern: Pattern, replacement: st
 }
 
 
-const PAIR_OFFSETS_1 = new Int32Array(4);
-const PAIR_OFFSETS_2 = new Int32Array(4);
+const PAIR_OFFSETS_1 = new Int32Array(20);
+const PAIR_OFFSETS_2 = new Int32Array(20);
 const SYNC_PAIR_RESULT = { text: "", substituted: false };
-
-function expandSimpleFromOffsets(
-  simpleRep: SimpleReplacement,
-  text: string,
-  matchStart: number,
-  matchEnd: number,
-  group1Start: number,
-  group1End: number,
-  budget: Budget,
-): string {
-  if (simpleRep.kind === "literal") {
-    budget.step(simpleRep.stepsPerExpansion);
-    return simpleRep.prefix;
-  }
-  const gStart = simpleRep.group === 0 ? matchStart : simpleRep.group === 1 ? group1Start : -1;
-  const gEnd = simpleRep.group === 0 ? matchEnd : simpleRep.group === 1 ? group1End : -1;
-  const gLen = gStart >= 0 && gEnd > gStart ? gEnd - gStart : 0;
-  budget.step(simpleRep.stepsPerExpansion + gLen);
-  if (gLen === 1) {
-    const c0 = text.charCodeAt(gStart) - 48;
-    if (c0 >= 0 && c0 <= 9) {
-      return simpleRep.smallInts[c0] ??= (simpleRep.suffix ? simpleRep.prefix + String.fromCharCode(c0 + 48) + simpleRep.suffix : simpleRep.prefix + String.fromCharCode(c0 + 48));
-    }
-  } else if (gLen === 2) {
-    const c0 = text.charCodeAt(gStart) - 48;
-    const c1 = text.charCodeAt(gStart + 1) - 48;
-    if (c0 >= 1 && c0 <= 9 && c1 >= 0 && c1 <= 9) {
-      const num = c0 * 10 + c1;
-      return simpleRep.smallInts[num] ??= (simpleRep.suffix ? simpleRep.prefix + String(num) + simpleRep.suffix : simpleRep.prefix + String(num));
-    }
-  }
-  const gStr = gLen > 0 ? text.slice(gStart, gEnd) : "";
-  return simpleRep.suffix ? simpleRep.prefix + gStr + simpleRep.suffix : simpleRep.prefix + gStr;
-}
 
 export function trySubstitutePairSync(
   text: string,
@@ -1986,7 +1953,7 @@ export function trySubstitutePairSync(
     const e1 = PAIR_OFFSETS_1[1]!;
     if (e1 === 0) return undefined;
     matched1 = true;
-    exp1 = expandSimpleFromOffsets(sr1, text, 0, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+    exp1 = appendReplacementFromOffsetsSync("", rep1, text, 0, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget, budget.maxBufferBytes, "sed", sr1, PAIR_OFFSETS_1);
     let commonSuffix = 0;
     const maxSuffix = Math.min(exp1.length, e1);
     while (commonSuffix < maxSuffix && exp1.charCodeAt(exp1.length - 1 - commonSuffix) === text.charCodeAt(e1 - 1 - commonSuffix)) {
@@ -2023,7 +1990,7 @@ export function trySubstitutePairSync(
     budget.step();
     if (pat2.findSyncFastInto(text, budget, e2, PAIR_OFFSETS_1)) return undefined;
   }
-  const exp2 = expandSimpleFromOffsets(sr2, text, s2, e2, g2s, g2e, budget);
+  const exp2 = appendReplacementFromOffsetsSync("", rep2, text, s2, e2, g2s, g2e, budget, budget.maxBufferBytes, "sed", sr2, PAIR_OFFSETS_2);
   const midLen = s2 - effectiveE1;
   const tailLen = text.length - e2;
   const totalLen = effectiveExp1Len + midLen + exp2.length + tailLen;
@@ -2070,7 +2037,7 @@ export function trySubstitutePairToBufferSync(
   if (pat1.findSyncFastInto(text, budget, lineStart, PAIR_OFFSETS_1, lineEnd, lineStart)) {
     const e1 = PAIR_OFFSETS_1[1]!;
     if (e1 === lineStart) return -1;
-    exp1 = expandSimpleFromOffsets(sr1, text, lineStart, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+    exp1 = appendReplacementFromOffsetsSync("", rep1, text, lineStart, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget, budget.maxBufferBytes, "sed", sr1, PAIR_OFFSETS_1);
     let commonSuffix = 0;
     const maxSuffix = Math.min(exp1.length, e1 - lineStart);
     while (commonSuffix < maxSuffix && exp1.charCodeAt(exp1.length - 1 - commonSuffix) === text.charCodeAt(e1 - 1 - commonSuffix)) {
@@ -2104,7 +2071,7 @@ export function trySubstitutePairToBufferSync(
     budget.step();
     if (pat2.findSyncFastInto(text, budget, e2, PAIR_OFFSETS_1, lineEnd, lineStart)) return -1;
   }
-  const exp2 = expandSimpleFromOffsets(sr2, text, s2, e2, g2s, g2e, budget);
+  const exp2 = appendReplacementFromOffsetsSync("", rep2, text, s2, e2, g2s, g2e, budget, budget.maxBufferBytes, "sed", sr2, PAIR_OFFSETS_2);
   const midLen = s2 - effectiveE1;
   const tailLen = lineEnd - e2;
   const totalLen = effectiveExp1Len + midLen + exp2.length + tailLen;
@@ -2335,7 +2302,7 @@ export function trySubstitutePairBatchToBufferSync(
     if (pat1.findSyncFastInto(batchText, budget, lStart, PAIR_OFFSETS_1, lEnd, lStart)) {
       const e1 = PAIR_OFFSETS_1[1]!;
       if (e1 === lStart) return -1;
-      exp1 = expandSimpleFromOffsets(sr1, batchText, lStart, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget);
+      exp1 = appendReplacementFromOffsetsSync("", rep1, batchText, lStart, e1, PAIR_OFFSETS_1[2]!, PAIR_OFFSETS_1[3]!, budget, budget.maxBufferBytes, "sed", sr1, PAIR_OFFSETS_1);
       let commonSuffix = 0;
       const maxSuffix = Math.min(exp1.length, e1 - lStart);
       while (commonSuffix < maxSuffix && exp1.charCodeAt(exp1.length - 1 - commonSuffix) === batchText.charCodeAt(e1 - 1 - commonSuffix)) {
@@ -2366,7 +2333,7 @@ export function trySubstitutePairBatchToBufferSync(
         budget.step();
         if (pat2.findSyncFastInto(batchText, budget, e2, PAIR_OFFSETS_1, lEnd, lStart)) return -1;
       }
-      const exp2 = expandSimpleFromOffsets(sr2, batchText, s2, e2, g2s, g2e, budget);
+      const exp2 = appendReplacementFromOffsetsSync("", rep2, batchText, s2, e2, g2s, g2e, budget, budget.maxBufferBytes, "sed", sr2, PAIR_OFFSETS_2);
       const midLen = s2 - effectiveE1;
       const tailLen = lEnd - e2;
       const totalLen = effectiveExp1Len + midLen + exp2.length + tailLen;

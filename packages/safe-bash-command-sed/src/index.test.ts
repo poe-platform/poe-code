@@ -86,3 +86,76 @@ test("sed cached patterns retain explicit C locale byte matching", async () => {
     assert.equal(result.stdout, expected);
   }
 });
+
+for (const prefix of ["", "^"]) {
+  for (const [address, expected] of [
+    ["1", "BAR QUX\nfoo QUX\nfoo QUX\n"],
+    ["1,2", "BAR QUX\nBAR QUX\nfoo QUX\n"],
+    ["2!", "BAR QUX\nfoo QUX\nBAR QUX\n"],
+  ]) test(`paired sed respects ${address} with prefix ${prefix}`, async () => {
+    const fs = createMemoryFileSystem();
+    const input = "foo baz\n".repeat(3);
+    await fs.writeFile("/input", new TextEncoder().encode(input));
+    for (const files of [[], ["/input"]]) {
+      const result = await run(createSedCommand(), [`${address}s/${prefix}foo/BAR/;s/baz/QUX/`, ...files], input, fs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, expected);
+    }
+  });
+}
+
+for (const [program, expected] of [
+  ["s/^foo/qux/;s/baz/&-&/", "qux baz-baz\n"],
+  ["s/^foo/qux/;s/b\\(a\\)\\(z\\)/\\2/", "qux z\n"],
+  ["s/^f\\(o\\+\\)/\\1-\\1/;s/baz/qux/", "oo-oo qux\n"],
+]) test(`paired sed expands ${program}`, async () => {
+  const fs = createMemoryFileSystem();
+  const input = "foo baz\n".repeat(40);
+  await fs.writeFile("/input", new TextEncoder().encode(input));
+  for (const files of [[], ["/input"]]) {
+    const result = await run(createSedCommand(), [program!, ...files], input, fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected!.repeat(40));
+  }
+});
+
+for (const sink of ["writeSync", "writeRangeSync", "writeImmutableSync"] as const) {
+  test(`sed output survives later invocations with ${sink}`, async () => {
+    const command = createSedCommand();
+    const fs = createMemoryFileSystem();
+    const input = "hello world\n".repeat(40);
+    await fs.writeFile("/input", new TextEncoder().encode(input));
+    let fastReads = 0;
+    async function capture(program: string) {
+      const chunks: Uint8Array[] = [];
+      const values = createCommandArguments([program, "/input"]);
+      const retain = (bytes: Uint8Array) => { chunks.push(bytes); return true; };
+      const context = {
+        command: "sed", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+        stdin: toByteSource(""), signal: new AbortController().signal,
+        stdout: {
+          async write(bytes: Uint8Array) { retain(bytes); },
+          writeSync: retain,
+          ...(sink === "writeRangeSync" ? { writeRangeSync: (bytes: Uint8Array, length: number) => retain(bytes.subarray(0, length)) } : {}),
+          ...(sink === "writeImmutableSync" ? { writeImmutableSync: retain } : {}),
+        },
+        stderr: { async write() {} },
+        _fastMemoryBackingFs: fs,
+        _chargeFastFsOp: () => { fastReads++; },
+      };
+      assert.equal((await command.execute(context)).exitCode, 0);
+      return chunks;
+    }
+    const pair = "s/^hello/HELLO/;s/world/WORLD/";
+    const first = await capture(pair);
+    assert.ok(fastReads > 0, "file-pair fast path exercised");
+    await fs.writeFile("/output", first[0]!);
+    await capture("s/hello/other/");
+    const replay = await capture(pair);
+    await capture("s/^hello/xxxxx/;s/world/yyyyy/");
+    const decode = (chunks: Uint8Array[]) => chunks.map(bytes => new TextDecoder().decode(bytes)).join("");
+    assert.equal(decode(first), "HELLO WORLD\n".repeat(40));
+    assert.equal(decode(replay), "HELLO WORLD\n".repeat(40));
+    assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "HELLO WORLD\n".repeat(40));
+  });
+}

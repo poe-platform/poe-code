@@ -41,7 +41,7 @@ async function argumentsFor(
   mode?: DocumentMode | undefined;
   format?: boolean;
   noout?: boolean;
-  file: string | undefined;
+  files: readonly (string | undefined)[];
   output?: string | undefined;
   encoding?: string | undefined;
   noblanks?: boolean;
@@ -110,20 +110,21 @@ async function argumentsFor(
       xpathIndex = index++;
     } else break;
   }
-  if (args[index] === "--") index++;
-  const fileIndex = index++;
-  const file = args[fileIndex];
-  if (
-    index < args.length ||
-    (file !== undefined && file.startsWith("-") && file !== "-" && args[fileIndex - 1] !== "--")
-  ) {
-    throw new XmlQueryError("expected one XML input FILE or -", 2);
+  const literalFiles = args[index] === "--";
+  if (literalFiles) index++;
+  const files: (string | undefined)[] = [];
+  while (index < args.length) {
+    const file = args[index]!;
+    if (!literalFiles && file.startsWith("-") && file !== "-")
+      throw new XmlQueryError("expected XML input FILE or -", 2);
+    files.push(await admitted(index++, "maxInputBytes"));
   }
+  if (files.length === 0) files.push(undefined);
   if (xpathIndex !== undefined) {
     const query = await parseQuery(await admitted(xpathIndex, "maxSourceBytes"), budget);
     return {
       query, output, encoding, noblanks, recover,
-      file: file === undefined ? undefined : await admitted(fileIndex, "maxInputBytes")
+      files
     };
   }
   mode ??= "format";
@@ -131,20 +132,21 @@ async function argumentsFor(
     mode, output, encoding, noblanks, recover,
     format,
     noout,
-    file: file === undefined ? undefined : await admitted(fileIndex, "maxInputBytes")
+    files
   };
 }
 
-async function execute(
+async function executeDocument(
   context: CommandContext,
   limits: XmlQueryLimits,
-  runtime: XmlCommandRuntime
+  runtime: XmlCommandRuntime,
+  budget: XmlBudget,
+  options: Awaited<ReturnType<typeof argumentsFor>>,
+  file: string | undefined
 ): Promise<{ exitCode: number }> {
-  const budget = new XmlBudget(limits, context.signal, runtime.yieldTurn);
   let outputFailed = false;
   try {
-    const options = await argumentsFor(context, budget);
-    const source = await readXmlInput(context, options.file, budget, runtime);
+    const source = await readXmlInput(context, file, budget, runtime);
     const recoveryMessages = new Set<string>();
     const parser = parseXmlSteps(source, {
       ...(options.recover ? { recover: (message: string) => { recoveryMessages.add(message); } } : {}),
@@ -165,6 +167,7 @@ async function execute(
     for (const message of recoveryMessages)
       await runtime.writeDiagnostic(context.stderr, `xmllint: ${message} (recovered)\n`, context.signal);
     const root = await prepareDocument(parsed.value, options.noblanks ?? false, options.encoding, budget);
+    const documentOutputStart = budget.outputBytes;
     const fileChunks: Uint8Array[] = [];
     const sink = options.output === undefined || options.query !== undefined ? context.stdout : {
       async write(bytes: Uint8Array) { fileChunks.push(bytes.slice()); }
@@ -173,7 +176,7 @@ async function execute(
     async function finish(): Promise<void> {
       await flushWrite();
       if (options.output !== undefined && options.query === undefined && !options.noout) {
-        const bytes = new Uint8Array(budget.outputBytes);
+        const bytes = new Uint8Array(budget.outputBytes - documentOutputStart);
         let offset = 0;
         for (const chunk of fileChunks) { bytes.set(chunk, offset); offset += chunk.length; }
         const destination = runtime.pathOf(context, options.output);
@@ -281,25 +284,55 @@ async function execute(
     await finish();
     return { exitCode: 0 };
   } catch (error) {
-    context.signal.throwIfAborted();
-    if (outputFailed || (error instanceof FsError && error.code === "EPIPE")) throw error;
-    const status =
-      error instanceof XmlQueryError
-        ? error.status
-        : error instanceof XmlLimitError
-          ? 5
-          : error instanceof SyntaxError || error instanceof FsError
-            ? 1
-            : undefined;
-    if (status === undefined) throw error;
-    const message = error instanceof Error ? error.message.slice(0, 1000) : "XML query failed";
-    await runtime.writeDiagnostic(
-      context.stderr,
-      `${context.command}: ${message}\n`,
-      context.signal
-    );
-    return { exitCode: status };
+    return reportError(context, runtime, error, outputFailed);
   }
+}
+
+async function reportError(
+  context: CommandContext,
+  runtime: XmlCommandRuntime,
+  error: unknown,
+  outputFailed = false
+): Promise<{ exitCode: number }> {
+  context.signal.throwIfAborted();
+  if (outputFailed || (error instanceof FsError && error.code === "EPIPE")) throw error;
+  const status =
+    error instanceof XmlQueryError
+      ? error.status
+      : error instanceof XmlLimitError
+        ? 5
+        : error instanceof SyntaxError || error instanceof FsError
+          ? 1
+          : undefined;
+  if (status === undefined) throw error;
+  const message = error instanceof Error ? error.message.slice(0, 1000) : "XML query failed";
+  await runtime.writeDiagnostic(
+    context.stderr,
+    `${context.command}: ${message}\n`,
+    context.signal
+  );
+  return { exitCode: status };
+}
+
+async function execute(
+  context: CommandContext,
+  limits: XmlQueryLimits,
+  runtime: XmlCommandRuntime
+): Promise<{ exitCode: number }> {
+  const budget = new XmlBudget(limits, context.signal, runtime.yieldTurn);
+  let options: Awaited<ReturnType<typeof argumentsFor>>;
+  try {
+    options = await argumentsFor(context, budget);
+  } catch (error) {
+    return reportError(context, runtime, error);
+  }
+  let exitCode = 0;
+  for (const file of options.files) {
+    const result = await executeDocument(context, limits, runtime, budget, options, file);
+    if (result.exitCode !== 0) exitCode = result.exitCode;
+    if (exitCode === 5) break;
+  }
+  return { exitCode };
 }
 
 const portableRuntime: XmlCommandRuntime = {

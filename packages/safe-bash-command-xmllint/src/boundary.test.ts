@@ -27,7 +27,7 @@ for (const [args, input, output, exitCode] of [
   [["--format", "--xpath", "//a", "-"], "<root><a>1</a><a>2</a></root>", "<a>1</a>\n<a>2</a>\n", 0],
   [["--xpath", "//a", "--format", "-"], "<root><a>1</a></root>", "<a>1</a>\n", 0],
   [["--noout", "--format", "--xpath", "--", "//a", "--", "-"], "<root><a/></root>", "<a/>\n", 0],
-  [["--format", "--format", "--noout", "--noout", "--", "-", "extra"], "<root/>", "", 2],
+  [["--format", "--format", "--noout", "--noout", "--bad"], "<root/>", "", 2],
   [["--xpath", "/root/@xml:lang"], '<root xml:lang="en"/>', ' xml:lang="en"\n', 0],
   [["--xpath", '//*[local-name()="item"]'], '<root xmlns:ns="urn:x"><ns:item>val</ns:item></root>', '<ns:item>val</ns:item>\n', 0],
   [["--c14n"], '<root b="2" a="1"/>', '<root a="1" b="2"></root>', 0],

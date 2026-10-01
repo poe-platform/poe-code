@@ -28,7 +28,11 @@ or serialization, and `--output FILE` / `-o FILE` to write serialized XML to
 the virtual filesystem. `--recover` repairs truncated elements, mismatched end
 tags, and undeclared entities, reporting repairs on stderr. `--encode ENCODING`
 selects UTF-8, UTF-16 (including LE/BE), US-ASCII, or ISO-8859-1 output. Inputs come
-from stdin or the configured virtual filesystem. XML limits bound input, output,
+from stdin or one or more files in the configured virtual filesystem. Files are
+processed in order; malformed files report an error while later files continue.
+XPath output remains enabled with `--noout` or `--format`. When writing multiple
+documents with `--output`, each document replaces the destination. XML limits
+are shared across all files in an invocation and bound input, output,
 query bytes, depth, nodes, attributes, namespaces, steps and results. The XML
 plugin accepts explicit limit overrides and replacement registration.
 DTD/external entities and unsupported XPath syntax are refused. This internal

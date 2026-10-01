@@ -2,6 +2,20 @@ import { describe, expect, it } from "vitest";
 import { findBundleIssues } from "./bundle-policy.js";
 import { canonicalBundleFixture } from "./fixtures.js";
 
+it("accepts bundled portable signing code while rejecting other foreign filesystem inputs", () => {
+  for (const profile of ["canonicalBundle", "browserCanonicalBundle"] as const) {
+    for (const location of ["node_modules/@noble/hashes/sha2.js", "packages/safe-fs/node_modules/@noble/hashes/hmac.js"]) {
+      const { manifest, metafile, packed } = canonicalBundleFixture();
+      const output = Object.values(metafile[profile].metafile.outputs).find(value => Object.keys(value.inputs ?? {}).some(input => input.startsWith("packages/safe-fs/src/")))!;
+      output.inputs[location] = {};
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toEqual([]);
+      delete output.inputs[location];
+      output.inputs[location.replace("@noble/hashes/", "@noble/hashes-unrelated/")] = {};
+      expect(findBundleIssues(manifest, new Set(), metafile, packed)).toContainEqual({ external: "poe-code/safe-fs", reason: "foreign-canonical-input" });
+    }
+  }
+});
+
 describe("version-independent builtins retain released FS profile restrictions", () => {
   it.each([
     "node:sqlite",

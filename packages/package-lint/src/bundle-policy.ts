@@ -5,6 +5,9 @@ import { isCanonicalNativeClosure, type NativeClosure } from "./native-assets.js
 export { collectCanonicalNativeAssets } from "./native-assets.js";
 export type { NativeClosure, NativeAssetFiles } from "./native-assets.js";
 
+// Pure JavaScript signing code is part of the self-contained filesystem runtime.
+export const canonicalFsBundledDependencies = ["@noble/hashes"] as const;
+
 export const canonicalFsRoutes = [
   {
     workspace: "@poe-code/safe-fs",
@@ -419,7 +422,10 @@ export function findBundleIssues(
       }
       if (!packedFiles.has(filename)) fail("unpacked-canonical-output");
       if (
-        Object.keys(output.inputs ?? {}).some((input) => !input.startsWith("packages/safe-fs/src/") && input !== canonicalXml.source)
+        Object.keys(output.inputs ?? {}).some((input) =>
+          !input.startsWith("packages/safe-fs/src/") && input !== canonicalXml.source &&
+          !(path.posix.normalize(input) === input && canonicalFsBundledDependencies.some(dependency =>
+            input.startsWith(`node_modules/${dependency}/`) || input.startsWith(`packages/safe-fs/node_modules/${dependency}/`))))
       )
         fail("foreign-canonical-input");
       if (output.cssBundle) pending.push(output.cssBundle);

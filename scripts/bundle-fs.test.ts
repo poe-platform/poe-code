@@ -90,6 +90,15 @@ it("externalizes the registered native loader only in the Node canonical profile
   expect(builds.browser.external).toEqual([]);
 });
 
+it("bundles portable S3 signing dependencies into the canonical filesystem", async () => {
+  const { resolveCanonicalFsBuilds } = await import("./bundle-fs.mjs");
+  const builds = resolveCanonicalFsBuilds("/repo", {
+    alias: {}, external: ["node:*", "@noble/hashes", "@noble/hashes/hmac.js", "unrelated"]
+  });
+  expect(builds.node.external).toEqual(["node:*", "unrelated"]);
+  expect(builds.browser.external).toEqual([]);
+});
+
 it("keeps public runtime outputs intact when a private workspace rebuild clears its dist", async () => {
   const { createFsFromVolume, Volume } = await import("memfs");
   const { resolveCanonicalFsBuilds } = await import("./bundle-fs.mjs");

@@ -1,7 +1,8 @@
 import path from "node:path";
 import {
   canonicalFsProfiles,
-  canonicalFsRoutes
+  canonicalFsRoutes,
+  canonicalFsBundledDependencies
 } from "../packages/package-lint/dist/bundle-policy.js";
 
 export function mergeRuntimeBundleOutputs(node, workerd) {
@@ -59,7 +60,11 @@ export function resolveCanonicalFsBuilds(rootDir, graph, nodeEntries = {}, nativ
           format: "esm",
           outdir: path.join(rootDir, settings.outdir),
           chunkNames: "chunks/[name]-[hash]",
-          external: profile === "node" ? [...new Set([...graph.external, ...(nativeAssets ? [nativeAssets.specifier] : [])])] : [],
+          external: profile === "node" ? [...new Set([
+            ...graph.external.filter(specifier => !canonicalFsBundledDependencies.some(dependency =>
+              specifier === dependency || specifier.startsWith(`${dependency}/`))),
+            ...(nativeAssets ? [nativeAssets.specifier] : [])
+          ])] : [],
           sourcemap: true,
           metafile: true,
           write: false

@@ -248,3 +248,44 @@ test("lazy format inspection accepts its standalone context", async () => {
   assert.equal(result.exitCode, 0);
   assert.ok(new TextDecoder().decode(Buffer.concat(chunks)).includes("markdown"));
 });
+
+test("root mmdc registration preserves settings snapshots and its array-shaped plugin", async t => {
+  const core = await import("../../src/core.js");
+  const direct = await import("../../src/commands/mmdc/index.js");
+  const mmdc = await import("../../src/lazy-mmdc.js");
+  assert.equal(core.createMmdcCommand, mmdc.createMmdcCommand);
+  assert.equal(core.createMmdcCommands, mmdc.createMmdcCommands);
+  assert.equal(core.mmdcCommands, mmdc.mmdcCommands);
+  for (const create of [core.createMmdcCommand, core.createMmdcCommands, core.mmdcCommands]) {
+    assert.throws(() => create({ limits: { maxNodes: 0 } }), /maxNodes/);
+  }
+
+  const settings: { theme: { mode: "light" | "dark" }; limits: { maxNodes: number } } = {
+    theme: { mode: "light" }, limits: { maxNodes: 5 }
+  };
+  const command = core.createMmdcCommand(settings);
+  const family = core.createMmdcCommands(settings);
+  const plugin = core.mmdcCommands(settings);
+  assert.ok(Array.isArray(plugin));
+  assert.ok(Object.isFrozen(plugin));
+  assert.equal(plugin.length, 1);
+  assert.equal(plugin.name, "mmdc-commands");
+  assert.deepEqual(family.map(({ name }) => name), ["mmdc"]);
+
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/diagram.mmd", new TextEncoder().encode("flowchart LR\nA --> B"));
+  const reference = new Shell({ fs }).register(direct.createMmdcCommand(settings));
+  t.after(() => reference.dispose());
+  const expected = await reference.exec("mmdc -i /diagram.mmd -o -");
+  assert.equal(expected.exitCode, 0, expected.stderr);
+  settings.theme.mode = "dark";
+  settings.limits.maxNodes = 0;
+  for (const definition of [command, family[0]!]) {
+    const shell = new Shell({ fs }).register(definition);
+    t.after(() => shell.dispose());
+    assert.deepEqual(await shell.exec("mmdc -i /diagram.mmd -o -"), expected);
+  }
+  const shell = new Shell({ fs }).use(plugin);
+  t.after(() => shell.dispose());
+  assert.deepEqual(await shell.exec("mmdc -i /diagram.mmd -o -"), expected);
+});

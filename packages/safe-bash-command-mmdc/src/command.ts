@@ -43,7 +43,7 @@ import {
 } from "./contracts.js";
 import { verifySceneGeometry } from "./geometry.js";
 import { serializeSceneToSvgSteps } from "./svg.js";
-import { resolveMermaidTheme } from "./theme.js";
+import { snapshotMmdcSettings } from "./settings.js";
 
 const encoder = new TextEncoder();
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: false });
@@ -96,29 +96,6 @@ export function* renderMermaidPdfSteps(source: string, options?: MermaidPngRende
 }
 
 export type MmdcPlugin = VirtualShellPlugin & readonly CommandDefinition[];
-
-function snapshotSettings(settings?: MmdcSettings): MmdcSettings {
-  if (!settings) return Object.freeze({});
-  const limits = settings.limits ? admitMermaidLimits(settings.limits) : undefined;
-  const light = settings.theme?.light ? Object.freeze({ ...settings.theme.light }) : undefined;
-  const dark = settings.theme?.dark ? Object.freeze({ ...settings.theme.dark }) : undefined;
-  const theme = settings.theme
-    ? Object.freeze({
-        mode: settings.theme.mode,
-        light,
-        dark
-      })
-    : undefined;
-  // Validate theme snapshot upfront
-  if (theme) {
-    resolveMermaidTheme({ settings: { theme } });
-  }
-  return Object.freeze({
-    theme,
-    limits,
-    replace: settings.replace
-  });
-}
 
 function normalizeVfsPath(cwd: string, target: string): string {
   const combined = target.startsWith("/") ? target : `${cwd}/${target}`;
@@ -448,7 +425,7 @@ export async function runMmdc(
   context: CommandContext,
   options: MmdcRunOptions = {}
 ): Promise<MmdcResult> {
-  const snapSettings = snapshotSettings(options);
+  const snapSettings = snapshotMmdcSettings(options);
   const hostLimits = admitMermaidLimits(snapSettings.limits, defaultMermaidLimits);
   const controller = new AbortController();
   const signal = controller.signal;
@@ -769,7 +746,7 @@ export async function runMmdc(
 }
 
 export function createMmdcCommand(settings?: MmdcSettings): CommandDefinition {
-  const captured = snapshotSettings(settings);
+  const captured = snapshotMmdcSettings(settings);
   return Object.freeze({
     name: "mmdc",
     runtimeIdentity: commandRuntimeIdentity,

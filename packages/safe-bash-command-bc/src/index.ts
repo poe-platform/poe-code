@@ -742,6 +742,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     description: "Arbitrary-precision calculator language",
     runtimeIdentity: commandRuntimeIdentity,
     async execute(context: CommandContext): Promise<CommandResult> {
+      context.signal.throwIfAborted();
       try {
     let mathlib = false;
     const files: string[] = [];
@@ -797,6 +798,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
           sources.push(decoder.decode(await collectSourceBytes(context.stdin, context.signal, maxInputBytes)));
         } else {
           const raw = await context.fs.readFile(pathPosix.resolve(context.cwd, file));
+          context.signal.throwIfAborted();
           if (raw.byteLength > maxInputBytes) throw new Error(`bc program exceeds maximum input size (${maxInputBytes} bytes)`);
           sources.push(decoder.decode(raw));
         }
@@ -831,6 +833,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
     };
 
     const tick = (): Promise<void> | undefined => {
+      context.signal.throwIfAborted();
       if (++steps > maxSteps) throw new Error(`bc execution exceeded maximum step limit (${maxSteps})`);
       if ((steps & 4095) === 0) {
         return yieldTurn(context.signal);
@@ -1105,14 +1108,19 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       }
     }
 
+    context.signal.throwIfAborted();
     if (outBuffer.length > 0) {
       await writeText(context.stdout, outBuffer);
+      context.signal.throwIfAborted();
     }
     return { exitCode: 0 };
       } catch (err) {
+        context.signal.throwIfAborted();
+        if (err instanceof Error && err.name === "AbortError") throw err;
         const msg = err instanceof Error ? err.message : String(err);
         const code = err instanceof UsageError ? 2 : 1;
         await writeText(context.stderr, `bc: ${msg}\n`);
+        context.signal.throwIfAborted();
         return { exitCode: code };
       }
     },

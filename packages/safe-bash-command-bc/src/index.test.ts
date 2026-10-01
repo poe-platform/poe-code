@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import type { CommandContext } from "safe-bash-contracts";
 import { createBcCommand, settings } from "./index.js";
 
 test("bc command definition exports standard contract", () => {
@@ -40,7 +41,12 @@ test("bc evaluates exponents above the former implicit ceiling", async () => {
   assert.equal(Buffer.concat(chunks).toString("utf8"), `${2n ** 20000n}\n0\n`);
 });
 
-async function evaluate(program: string, options: Parameters<typeof createBcCommand>[0] = {}, args: string[] = []) {
+async function evaluate(
+  program: string,
+  options: Parameters<typeof createBcCommand>[0] = {},
+  args: string[] = [],
+  context: Partial<CommandContext> = {},
+) {
   const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
   const { createBytePipe, createCommandArguments } = await import("safe-bash-contracts");
   const stdin = createBytePipe(), stdout = createBytePipe(), stderr = createBytePipe();
@@ -50,6 +56,7 @@ async function evaluate(program: string, options: Parameters<typeof createBcComm
     command: "bc", args: createCommandArguments(args).args, cwd: "/", env: {},
     fs: createMemoryFileSystem(), stdin: stdin.readable,
     stdout: stdout.writable, stderr: stderr.writable, signal: new AbortController().signal,
+    ...context,
   });
   await stdout.close();
   await stderr.close();
@@ -60,6 +67,114 @@ async function evaluate(program: string, options: Parameters<typeof createBcComm
   };
   return { exitCode: result.exitCode, stdout: await read(stdout.readable), stderr: await read(stderr.readable) };
 }
+
+test("bc rejects pre-aborted execution before input access or output", async (t) => {
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+  const fs = createMemoryFileSystem();
+  const readFile = t.mock.method(fs, "readFile");
+  const write = t.mock.fn(async () => {});
+  const iterator = t.mock.fn(async function* () { yield new TextEncoder().encode("1+1"); });
+  for (const reason of [undefined, new Error("cancelled"), { cancelled: true }]) {
+    const controller = new AbortController();
+    controller.abort(reason);
+    for (const args of [[], ["--expression", "1+1"], ["program.bc"]]) {
+      await assert.rejects(evaluate("", {}, args, {
+        fs, stdin: { [Symbol.asyncIterator]: iterator },
+        signal: controller.signal, stdout: { write }, stderr: { write },
+      }), error => error === controller.signal.reason);
+    }
+  }
+  assert.equal(iterator.mock.callCount(), 0);
+  assert.equal(readFile.mock.callCount(), 0);
+  assert.equal(write.mock.callCount(), 0);
+});
+
+test("bc propagates cancellation during stdin collection and closes the iterator", async (t) => {
+  const controller = new AbortController();
+  const reason = new Error("input cancelled");
+  const write = t.mock.fn(async () => {});
+  let closed = false;
+  const stdin = { async *[Symbol.asyncIterator]() {
+    try {
+      yield new TextEncoder().encode("1+");
+      controller.abort(reason);
+      yield new TextEncoder().encode("1");
+    } finally { closed = true; }
+  } };
+  await assert.rejects(evaluate("", {}, [], {
+    stdin, signal: controller.signal, stdout: { write }, stderr: { write },
+  }), error => error === reason);
+  assert.equal(closed, true);
+  assert.equal(write.mock.callCount(), 0);
+});
+
+test("bc checks cancellation after reading a program file", async (t) => {
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+  const fs = createMemoryFileSystem();
+  const controller = new AbortController();
+  const reason = new Error("file read cancelled");
+  t.mock.method(fs, "readFile", async () => {
+    controller.abort(reason);
+    return new TextEncoder().encode("1+1");
+  });
+  const write = t.mock.fn(async () => {});
+  await assert.rejects(evaluate("", {}, ["program.bc"], {
+    fs, signal: controller.signal, stdout: { write }, stderr: { write },
+  }), error => error === reason);
+  assert.equal(write.mock.callCount(), 0);
+});
+
+test("bc propagates cancellation at a cooperative execution yield", async (t) => {
+  const controller = new AbortController();
+  const reason = new Error("execution cancelled");
+  const write = t.mock.fn(async () => {});
+  const stdin = { async *[Symbol.asyncIterator]() {
+    yield new TextEncoder().encode("while (1) { x++ }");
+    const timer = setTimeout(() => controller.abort(reason), 0);
+    t.after(() => clearTimeout(timer));
+  } };
+  await assert.rejects(evaluate("", { maxSteps: 20000 }, [], {
+    stdin, signal: controller.signal, stdout: { write }, stderr: { write },
+  }), error => error === reason);
+  assert.equal(write.mock.callCount(), 0);
+});
+
+for (const destination of ["stdout", "stderr"] as const) {
+  test(`bc propagates cancellation during ${destination} writes`, async (t) => {
+    const controller = new AbortController();
+    const reason = new Error("output cancelled");
+    const write = t.mock.fn(async () => { controller.abort(reason); });
+    const otherWrite = t.mock.fn(async () => {});
+    await assert.rejects(evaluate(destination === "stdout" ? "1+1" : "1/0", {}, [], {
+      signal: controller.signal,
+      stdout: { write: destination === "stdout" ? write : otherWrite },
+      stderr: { write: destination === "stderr" ? write : otherWrite },
+    }), error => error === reason);
+    assert.equal(write.mock.callCount(), 1);
+    assert.equal(otherWrite.mock.callCount(), 0);
+  });
+}
+
+for (const source of ["stdin", "stdout"] as const) {
+  test(`bc propagates ${source} AbortError without a diagnostic`, async (t) => {
+    const reason = new DOMException("I/O cancelled", "AbortError");
+    const write = t.mock.fn(async () => {});
+    const io: Partial<CommandContext> = source === "stdin"
+      ? { stdin: { [Symbol.asyncIterator]() { throw reason; } } }
+      : { stdout: { async write() { throw reason; } } };
+    await assert.rejects(evaluate("1+1", {}, [], { ...io, stderr: { write } }), error => error === reason);
+    assert.equal(write.mock.callCount(), 0);
+  });
+}
+
+test("bc still reports ordinary usage and evaluation errors", async () => {
+  assert.deepEqual(await evaluate("", {}, ["--invalid"]), {
+    exitCode: 2, stdout: "", stderr: "bc: invalid option -- '-'\n",
+  });
+  assert.deepEqual(await evaluate("1/0"), {
+    exitCode: 1, stdout: "", stderr: "bc: Runtime error (func=(main), adr=0): Divide by zero\n",
+  });
+});
 
 for (const [program, stdout] of [
   ["123", "123\n"],
@@ -94,6 +209,7 @@ test("bc checks output quota before executing subsequent statements", async () =
 });
 
 for (const [program, expected] of [
+  ["(++x) + sqrt(4); x", "3\n1\n"],
   ["x=0; x++ + sqrt(4); x", "2\n1\n"],
   ["x=0; ++x + a[0]; x", "1\n1\n"],
   ["x=1; (x+=10) + length(123); x", "14\n11\n"],
@@ -107,6 +223,12 @@ for (const [program, expected] of [
     assert.deepEqual(await evaluate(program), { exitCode: 0, stdout: expected, stderr: "" });
   });
 }
+
+test("bc evaluates each mutation once across cooperative execution yields", async () => {
+  const program = Array.from({ length: 1100 }, () => "(++x)+1").join(";") + ";x";
+  const stdout = Array.from({ length: 1100 }, (_, index) => `${index + 2}\n`).join("") + "1100\n";
+  assert.deepEqual(await evaluate(program), { exitCode: 0, stdout, stderr: "" });
+});
 
 for (const [program, expected] of [
   ["1.5^4", "5.0"],

@@ -8,4 +8,6 @@ explicit `Infinity` disables an individual quota. `maxExponent` bounds the absol
 
 `maxOutputBytes` counts UTF-8 bytes across all standard output, including strings, `print`, and numeric results. Exceeding it stops evaluation before adding the overflowing text to the output buffer; the command returns an error without emitting buffered output.
 
+Cancellation rejects with the original abort reason instead of returning an error exit code or writing a diagnostic.
+
 Use `bc -l` for decimal sine, cosine, arctangent, logarithm, exponential and integer-order Bessel functions. Results truncate to `scale` (20 by default with `-l`), retaining decimal precision beyond JavaScript floating-point numbers.

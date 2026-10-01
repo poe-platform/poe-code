@@ -534,7 +534,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const dependency = specifier.startsWith("@") ? specifier.split("/").slice(0, 2).join("/") : specifier.split("/")[0];
       if (dependency === `@poe-platform/${name}`) return;
       if (companionPeers.has(dependency)) return;
-      if (name === "safe-bash" && optional && dependency === "yaml") return;
+      if ((name === "safe-bash" || name === "safe-js") && optional && dependency === "yaml") return;
       if (dependency === "@poe-platform/safe-js" || dependency === "@poe-platform/safe-fs") { dependencies[dependency] = version; return; }
       if (dependency === "poe-code" || privateNames.has(dependency)) throw new Error(`Private or CLI dependency leaked: ${specifier}`);
       const range = ranges[dependency];
@@ -593,16 +593,17 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
     }
     // Core tools may need YAML internally, while yq must still require its
     // explicitly installed optional peer. Keep that parser outside node resolution.
-    const bundledYaml = path.join(rootDir, "packages/safe-bash/dist/bundled-yaml/index.js");
+    const bundledYaml = path.join(rootDir, `packages/${name}/dist/bundled-yaml/index.js`);
+    const yamlPeerVersion = workspaces.find(workspace => workspace.dir === "safe-bash")?.pkg.peerDependencies?.yaml;
     while (pending.length) {
       const filename = pending.pop();
       if (excluded(filename)) throw new Error(`Excluded package file referenced: ${path.relative(packageDir, filename)}`);
       if (copied.has(filename)) continue;
       copied.add(filename);
-      if (name === "safe-bash" && filename === bundledYaml) {
+      if ((name === "safe-bash" || name === "safe-js") && filename === bundledYaml) {
         const yamlRoot = path.join(rootDir, "node_modules/yaml");
         const yaml = await readJson(path.join(yamlRoot, "package.json"));
-        if (yaml.name !== "yaml" || yaml.version !== source.peerDependencies.yaml) throw new Error("Bundled YAML must match the qualified optional peer version");
+        if (yaml.name !== "yaml" || yaml.version !== yamlPeerVersion) throw new Error("Bundled YAML must match the qualified optional peer version");
         const result = await bundle({ absWorkingDir: rootDir,
           stdin: { contents: 'export * from "yaml";', resolveDir: rootDir },
           outfile: bundledYaml, bundle: true, platform: "browser", format: "esm", target: "es2022", write: false });
@@ -652,7 +653,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
           const sharedRuntime = specifier.startsWith(".")
             ? rootSharedRuntimeEntries.get(path.resolve(path.dirname(filename), specifier)) : undefined;
           let publicName = publicSpecifier(sharedRuntime ?? specifier, name);
-          if (name === "safe-bash" && optional && !declaration && publicName === "yaml") {
+          if ((name === "safe-bash" || name === "safe-js") && optional && !declaration && publicName === "yaml") {
             pending.push(bundledYaml);
             const relative = path.relative(path.dirname(destination), path.join(directory, artifactPath(rootDir, bundledYaml))).split(path.sep).join("/");
             return relative.startsWith(".") ? relative : "./" + relative;

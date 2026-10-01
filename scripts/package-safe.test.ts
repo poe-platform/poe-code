@@ -1591,12 +1591,17 @@ describe("explicit optional safe package artifact", () => {
     volume.writeFileSync("/repo/packages/safe-bash-command-pandoc/dist/defaults.js", 'export { parseDocument } from "yaml";');
     volume.mkdirSync("/repo/packages/safe-bash-command-yq/dist", { recursive: true });
     volume.writeFileSync("/repo/packages/safe-bash-command-yq/dist/comments.d.ts", 'import type { CST, Node } from "yaml"; export type { CST, Node };');
+    volume.writeFileSync("/repo/packages/safe-js/dist/index.js", 'export { parse } from "yaml";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { parseDocument } from "yaml"; export * from "../../safe-bash-command-pandoc/dist/defaults.js";');
     const bundle = vi.fn(async (recipe: BuildOptions) => recipe.outfile?.endsWith("/bundled-yaml/index.js")
       ? build({ ...recipe, absWorkingDir: path.resolve(import.meta.dirname, ".."),
         stdin: { ...recipe.stdin!, resolveDir: path.resolve(import.meta.dirname, "..") } })
       : options.bundle(recipe));
     await packageSafeLibraries({ ...options, bundle, outDir: "/output" });
+    const jsManifest = JSON.parse(volume.readFileSync("/output/safe-js/package.json", "utf8").toString());
+    expect(jsManifest.dependencies.yaml).toBeUndefined();
+    expect(volume.readFileSync("/output/safe-js/dist/safe-js/index.js", "utf8")).toContain('"./bundled-yaml/index.js"');
+    expect(volume.readFileSync("/output/safe-js/dist/safe-js/bundled-yaml/LICENSE", "utf8")).toBe("YAML fixture license");
     const manifest = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
     expect(manifest.dependencies.yaml).toBeUndefined();
     expect(manifest.peerDependencies.yaml).toBe("2.9.0");

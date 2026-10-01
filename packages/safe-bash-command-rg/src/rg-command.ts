@@ -772,6 +772,11 @@ function tryExecuteRgFastSync(
     runner.abortedToSlow = false;
     const walkRes = runner.walker.walkTargetsSyncOrAsync(selPaths, selImplicit, runner.boundOnTarget, true);
     if (runner.abortedToSlow || walkRes !== undefined) {
+      const pending = walkRes ?? limits.tick();
+      if (pending) {
+        pendingFlush = true;
+        return pending.finally(runner.release).then(() => executeRgSlow(context, executor, options));
+      }
       return undefined;
     }
     if (

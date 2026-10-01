@@ -133,8 +133,13 @@ export class Limits {
       this.outBuf = null;
     }
   }
-  tick(): Promise<void> | undefined {
+  tick(): Promise<void> | undefined;
+  tick(syncOnly: true): true | undefined;
+  tick(syncOnly: boolean): Promise<void> | true | undefined;
+  tick(syncOnly = false): Promise<void> | true | undefined {
     if (this.context.signal.aborted) throw this.context.signal.reason;
+    // A synchronous probe must leave the due checkpoint for its async fallback.
+    if (syncOnly && ((this.ticks + 1) & (this.hasExtYield ? 127 : 2047)) === 0) return true;
     if (this.hasExtYield) {
       runYieldCheckpoint(this.context.signal);
       if ((++this.ticks & 127) === 0) return yieldTurn(this.context.signal);
@@ -589,7 +594,7 @@ export function trySyncLineBatches(
   crlf = false,
   reusePool = false,
 ): Line[][] | undefined {
-  if (limits.tick() !== undefined) return undefined;
+  if (limits.tick(true) !== undefined) return undefined;
   const chunk = source;
   if (state.bytesRead + chunk.length > limits.maxFileBytes) throw new SearchError("input file byte limit exceeded");
   const delimiter = nullData ? 0 : 10;

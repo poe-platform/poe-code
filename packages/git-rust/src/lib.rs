@@ -124,3 +124,4 @@ pub use cli::*;
 pub use http::{GitHttpRequest, GitHttpResponse, HttpClient, MockHttpServer};
 
 mod cli_rebase;
+mod cli_blame;

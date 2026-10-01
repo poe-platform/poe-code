@@ -327,7 +327,7 @@ fn lcs_row(old: &[&str], new: &[&str]) -> Vec<usize> {
 }
 
 // Hirschberg alignment keeps memory linear in line count, including large files.
-fn matching_lines(old: &[&str], new: &[&str], a: usize, b: usize, pairs: &mut Vec<(usize, usize)>) {
+pub(crate) fn matching_lines(old: &[&str], new: &[&str], a: usize, b: usize, pairs: &mut Vec<(usize, usize)>) {
     let mut prefix = 0;
     while prefix < old.len().min(new.len()) && old[prefix] == new[prefix] {
         pairs.push((a + prefix, b + prefix));

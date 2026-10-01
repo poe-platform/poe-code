@@ -3186,63 +3186,10 @@ pub fn execute_git_cli_with_input(
                 CliResult::err(1, "")
             }
         }
-        "blame" => {
-            let long_rev = sub_args.contains(&"-l");
-            let mut range: Option<(usize, usize)> = None;
-            let mut blame_pos: Vec<&str> = Vec::new();
-            let mut i = 0;
-            while i < sub_args.len() {
-                if sub_args[i] == "-L" && i + 1 < sub_args.len() {
-                    if let Some((s, e)) = sub_args[i + 1].split_once(',')
-                        && let (Ok(start), Ok(end)) = (s.parse::<usize>(), e.parse::<usize>())
-                    {
-                        range = Some((start, end));
-                    }
-                    i += 2;
-                    continue;
-                }
-                if !sub_args[i].starts_with('-') {
-                    blame_pos.push(sub_args[i]);
-                }
-                i += 1;
-            }
-            let Some(&filepath_arg) = blame_pos.last() else {
-                return CliResult::err(128, "fatal: missing file path\n");
-            };
-            let rel_path = repository_path(&repo_root, &effective_cwd, filepath_arg);
-            let Some(current_content) = fs.read_str(&join(&[&repo_root, &rel_path])) else {
-                return CliResult::err(128, format!("fatal: no such path '{rel_path}' in HEAD\n"));
-            };
-            let commits = crate::commands::plumbing::log(fs, &gitdir, Some("HEAD"), Some(&rel_path), None, None, false, true).unwrap_or_default();
-            let fallback_commit = commits.first();
-            let mut out = String::new();
-            for (idx, line) in current_content.lines().enumerate() {
-                let line_no = idx + 1;
-                if let Some((start, end)) = range
-                    && (line_no < start || line_no > end)
-                {
-                    continue;
-                }
-                let mut chosen = fallback_commit;
-                for c in commits.iter().rev() {
-                    if let Ok(blob_res) = crate::commands::plumbing::read_blob(fs, &gitdir, &c.oid, Some(&rel_path))
-                        && let Ok(text) = String::from_utf8(blob_res.blob)
-                        && text.lines().any(|l| l == line)
-                    {
-                        chosen = Some(c);
-                        break;
-                    }
-                }
-                if let Some(c) = chosen {
-                    let rev_str = if long_rev { &c.oid[..] } else { &c.oid[..8.min(c.oid.len())] };
-                    out.push_str(&format!(
-                        "{} ({} {} {:>3}) {}\n",
-                        rev_str, c.commit.author.name, c.commit.author.timestamp, line_no, line
-                    ));
-                }
-            }
-            CliResult::ok(out)
-        }
+        "blame" => match crate::cli_blame::run(fs, &repo_root, &effective_cwd, &gitdir, sub_args) {
+            Ok(output) => CliResult::ok(output),
+            Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
+        },
         "revert" => {
             let no_commit = sub_args.contains(&"-n") || sub_args.contains(&"--no-commit");
             let Some(&target_rev) = positionals.last() else {

@@ -2,6 +2,16 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const names = ["csvcut", "csvgrep", "csvkit", "diff3", "exiftool", "fmt", "fold", "htmlq", "imagemagick", "mmdc", "op", "pandoc", "pdfimages", "pdfinfo", "pdftk", "pdftoppm", "pdftotext", "qpdf", "sips", "soffice", "ssconvert", "unrtf", "wkhtmltopdf", "xmllint", "xz"];
+test("core exposes zero-argument command, collection and plugin factories", async () => {
+  const core: Record<string, unknown> = await import("../../src/core.js");
+  for (const name of [...names, "ffmpeg"]) {
+    const title = name[0]!.toUpperCase() + name.slice(1);
+    for (const symbol of [`create${title}Command`, `create${title}Commands`, `${name}Commands`]) {
+      assert.equal(typeof core[symbol], "function", symbol);
+      assert.ok((core[symbol] as () => unknown)(), symbol);
+    }
+  }
+});
 for (const name of names) {
   test(`${name} package exposes command, list and plugin factories`, async () => {
     const entry = await import(`safe-bash-command-${name}`);

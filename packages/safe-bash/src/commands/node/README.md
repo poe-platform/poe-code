@@ -5,6 +5,12 @@ It shares the shell's virtual filesystem, stdin, stdout, stderr, cwd, exported
 environment, and cancellation signal. No engine is loaded implicitly and no
 native subprocess is started.
 
+Calling the Node command, collection, or plugin factory without arguments is
+supported. It registers an unconfigured `node` command that exits with status 2
+and a configuration diagnostic when invoked. Pass an explicit runtime or trusted
+provider to execute JavaScript; an explicitly supplied options object is still
+validated at construction.
+
 JavaScript integration registers only `node`, never `safejs` or `js`. The legacy
 SDK names `safeJsCommands` and `createSafeJsCommands` expose the portable SafeJS
 registration factories; they use the same Node-style arguments

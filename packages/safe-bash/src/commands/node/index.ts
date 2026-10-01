@@ -8,6 +8,7 @@ import { NodeHost } from "./host.js";
 import { NodeOwner } from "./lifecycle.js";
 import { buildNodeProgram } from "./program.js";
 import { createSafeJsNodeCommand } from "./safejs.js";
+import { unconfiguredNodeCommand } from "./unconfigured.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
 import { NODE_PROFILE, NodeProfileError, NodeUsageError, nodeLimits, resolveNodeLimits, type NodeCommandOptions, type NodeCompletion, type NodeHostServices, type NodeReason, type NodeRuntimeProvider, type NodeSourceRequest } from "./types.js";
 import { environment, grants, record, text } from "./values.js";
@@ -21,7 +22,8 @@ export type NodeCommandsOptions<Budget = unknown> = NodeCommandOptions<Budget> &
   readonly replace?: boolean;
 }
 
-function commandConfiguration<Budget>(options: NodeCommandsOptions<Budget>): { readonly definitions: readonly CommandDefinition[]; readonly replace: boolean } {
+function commandConfiguration<Budget>(options?: NodeCommandsOptions<Budget>): { readonly definitions: readonly CommandDefinition[]; readonly replace: boolean } {
+  if (options === undefined) return { definitions: Object.freeze([unconfiguredNodeCommand]), replace: false };
   const settings = record(options, [], ["provider", "grants", "runtime", "limits", "replace"]);
   if (Object.hasOwn(settings, "replace") && typeof settings.replace !== "boolean") throw new TypeError("node replace must be boolean");
   const { replace, ...commandOptions } = settings;
@@ -29,11 +31,11 @@ function commandConfiguration<Budget>(options: NodeCommandsOptions<Budget>): { r
   return { definitions: Object.freeze([definition]), replace: replace === true };
 }
 
-export function createNodeCommands<Budget = unknown>(options: NodeCommandsOptions<Budget>): readonly CommandDefinition[] {
+export function createNodeCommands<Budget = unknown>(options?: NodeCommandsOptions<Budget>): readonly CommandDefinition[] {
   return commandConfiguration(options).definitions;
 }
 
-export function nodeCommands<Budget = unknown>(options: NodeCommandsOptions<Budget>): VirtualShellPlugin {
+export function nodeCommands<Budget = unknown>(options?: NodeCommandsOptions<Budget>): VirtualShellPlugin {
   const { definitions, replace } = commandConfiguration(options);
   return {
     name: "node-commands",
@@ -50,7 +52,8 @@ function providerValue(value: unknown): NodeRuntimeProvider {
   if (provider.profile !== NODE_PROFILE || typeof provider.prepare !== "function" || text(provider.identity, nodeLimits.metadataBytes, "provider identity").length === 0) throw new TypeError("node requires an explicit qualifying provider");
   return Object.freeze(provider) as unknown as NodeRuntimeProvider;
 }
-export function createNodeCommand<Budget = unknown>(options: NodeCommandOptions<Budget>): CommandDefinition {
+export function createNodeCommand<Budget = unknown>(options?: NodeCommandOptions<Budget>): CommandDefinition {
+  if (options === undefined) return unconfiguredNodeCommand;
   const selected = record(options, [], ["provider", "grants", "runtime", "limits"]);
   if (Object.hasOwn(selected, "runtime")) {
     const settings = record(selected, ["runtime"], ["limits"]);

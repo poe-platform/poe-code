@@ -17,10 +17,12 @@ import type { Invocation } from "../safejs/options.js";
 import type { SafeJsHostFunction } from "../safejs/types.js";
 import type { NodeSafeJsCommandOptions } from "./types.js";
 import { nodeEnvironment } from "./environment.js";
+import { unconfiguredNodeCommand } from "./unconfigured.js";
 
 export type SafeJsNodeCommandsOptions<Budget = unknown> = NodeSafeJsCommandOptions<Budget> & { readonly replace?: boolean };
 
-export function createSafeJsNodeCommands<Budget>(options: SafeJsNodeCommandsOptions<Budget>): readonly CommandDefinition[] {
+export function createSafeJsNodeCommands<Budget = unknown>(options?: SafeJsNodeCommandsOptions<Budget>): readonly CommandDefinition[] {
+  if (options === undefined) return Object.freeze([unconfiguredNodeCommand]);
   const settings = record(options, "node options");
   onlyKeys(settings, ["runtime", "limits", "replace"]);
   if (Object.hasOwn(settings, "replace") && typeof settings.replace !== "boolean") throw new TypeError("node replace must be boolean");
@@ -28,9 +30,9 @@ export function createSafeJsNodeCommands<Budget>(options: SafeJsNodeCommandsOpti
   return Object.freeze([createSafeJsNodeCommand(settings as unknown as NodeSafeJsCommandOptions<Budget>)]);
 }
 
-export function safeJsNodeCommands<Budget>(options: SafeJsNodeCommandsOptions<Budget>): VirtualShellPlugin {
+export function safeJsNodeCommands<Budget = unknown>(options?: SafeJsNodeCommandsOptions<Budget>): VirtualShellPlugin {
   const definitions = createSafeJsNodeCommands(options);
-  const replace = options.replace ?? false;
+  const replace = options?.replace ?? false;
   return { name: "node-commands", setup(host) {
     if (!replace && host.commands.has("node")) throw new Error("Command already registered: node");
     for (const definition of definitions) host.commands.register(definition, { replace });
@@ -117,7 +119,8 @@ function invocation(args: readonly string[], metadata: import("../safejs/types.j
   return { file: args[index] ?? "-", args: args.slice(index + 1), print: false, help: false, check, preloads, sourceMaps, nodeOptions, envFiles, ...(inputType ? { inputType } : {}) };
 }
 
-export function createSafeJsNodeCommand<Budget>(options: NodeSafeJsCommandOptions<Budget>): CommandDefinition {
+export function createSafeJsNodeCommand<Budget = unknown>(options?: NodeSafeJsCommandOptions<Budget>): CommandDefinition {
+  if (options === undefined) return unconfiguredNodeCommand;
   const settings = record(options, "node options");
   onlyKeys(settings, ["runtime", "limits"]);
   if (settings.runtime === undefined || settings.runtime === null) throw new TypeError("node requires an injected SafeJS runtime");

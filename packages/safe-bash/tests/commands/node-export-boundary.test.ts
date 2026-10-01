@@ -6,6 +6,31 @@ import { build } from "esbuild";
 import ts from "typescript";
 import * as nodeCommands from "../../src/commands/node/index.js";
 import * as root from "../../src/index.js";
+import { createSafeJsNodeCommand, createSafeJsNodeCommands, safeJsNodeCommands } from "../../src/commands/node/safejs.js";
+import { MemoryFileSystem } from "../../src/fs/memory/index.js";
+
+test("zero-argument Node factories register without granting a runtime", async () => {
+  for (const [single, collection, plugin] of [
+    [nodeCommands.createNodeCommand, nodeCommands.createNodeCommands, nodeCommands.nodeCommands],
+    [createSafeJsNodeCommand, createSafeJsNodeCommands, safeJsNodeCommands],
+  ] as const) {
+    assert.equal(single().name, "node");
+    assert.deepEqual(collection().map(command => command.name), ["node"]);
+    for (const factory of [single, collection, plugin]) {
+      for (const invalid of [null, {}, { runtime: undefined }]) {
+        assert.throws(() => Reflect.apply(factory, undefined, [invalid]), TypeError);
+      }
+    }
+    const shell = new root.Shell({ fs: new MemoryFileSystem() }).use(plugin());
+    try {
+      assert.throws(() => plugin().setup({ commands: { has: () => true } } as Parameters<root.VirtualShellPlugin["setup"]>[0]), /already registered/);
+      const result = await shell.exec("node -e 'throw new Error(\"must not execute\")'");
+      assert.equal(result.exitCode, 2);
+      assert.equal(result.stdout, "");
+      assert.ok(result.stderr.includes("requires an injected runtime or provider"));
+    } finally { await shell.dispose(); }
+  }
+});
 
 test("node command entry and root omit the host-only Worker provider", () => {
   assert.equal(Object.hasOwn(nodeCommands, "createNodeWorkerProvider"), false);
@@ -44,6 +69,14 @@ test("host provider remains available exclusively through the explicit workspace
 });
 
 for (const condition of ["node", "workerd", "worker", "browser"]) {
+  test(`public Node factory declarations accept omitted options under ${condition}`, () => {
+    assert.deepEqual(platformDiagnostics([
+      'import { nodeCommands, createNodeCommands, createNodeCommand } from "@poe-platform/safe-bash";',
+      'import { nodeCommands as portableNode } from "@poe-platform/safe-bash/core";',
+      'nodeCommands(); createNodeCommands(); createNodeCommand(); portableNode();',
+    ].join("\n"), condition), []);
+  });
+
   test(`workspace host declarations enforce the ${condition} platform boundary`, () => {
     const diagnostics = platformDiagnostics([
       'import { createNodeWorkerProvider as privateHost } from "@poe-platform/safe-bash/commands/node/host";',

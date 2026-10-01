@@ -722,6 +722,7 @@ function assertSource7Discovery(files) {
     "tests/commands/node-fs-promises.test.ts",
     "tests/commands/node-buffer.test.ts",
     "tests/commands/node-export-boundary.test.ts",
+    "tests/plugins/command-factories.test.ts",
     "tests/commands/input.test.ts",
     "tests/commands/network/mounted-output.test.ts",
     "tests/commands/network/multiple-output.test.ts",

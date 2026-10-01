@@ -112,7 +112,7 @@ export interface NodeSafeJsCommandOptions<Budget = unknown> {
   readonly grants?: never;
 }
 export type NodeCommandOptions<Budget = unknown> = NodeProviderCommandOptions | NodeSafeJsCommandOptions<Budget>;
-export type NodeCommandFactory = (options: NodeCommandOptions) => CommandDefinition;
+export type NodeCommandFactory = (options?: NodeCommandOptions) => CommandDefinition;
 
 export class NodeProfileError extends Error {
   readonly code = "ERR_VNODE_PROFILE";

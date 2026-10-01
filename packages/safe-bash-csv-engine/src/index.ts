@@ -105,14 +105,14 @@ export class CsvBudget {
     if (this.usage.retainedBytes > this.usage.peakRetainedBytes)
       this.usage.peakRetainedBytes = this.usage.retainedBytes;
   }
-  chargeAppend(newFieldLen: number): void {
+  chargeAppend(newFieldLen: number, appendedUnits: number): void {
     if (this.disposed) throw new CsvError("INPUT", "CSV budget is disposed");
     if (this.aborted || (this.pollSignal && this.signal.aborted))
       this.signal.throwIfAborted();
-    const bytes = newFieldLen * 2;
-    if (bytes > this.limits.fieldBytes) throw new CsvError("LIMIT", "Field byte limit exceeded");
-    if (newFieldLen > this.limits.work - this.usage.work) throw new CsvError("LIMIT", "work limit exceeded");
-    this.usage.work += newFieldLen;
+    const bytes = appendedUnits * 2;
+    if (newFieldLen * 2 > this.limits.fieldBytes) throw new CsvError("LIMIT", "Field byte limit exceeded");
+    if (appendedUnits > this.limits.work - this.usage.work) throw new CsvError("LIMIT", "work limit exceeded");
+    this.usage.work += appendedUnits;
     if (bytes > this.limits.retainedBytes - this.usage.retainedBytes) throw new CsvError("LIMIT", "retainedBytes limit exceeded");
     this.usage.retainedBytes += bytes;
     if (this.usage.retainedBytes > this.usage.peakRetainedBytes)
@@ -289,7 +289,7 @@ export class CsvParser {
   }
   private append(char: string): void {
     if (++this.fieldCharacters > (this.dialect.fieldCharacters ?? Infinity)) throw new CsvError("INPUT", "Field character limit exceeded");
-    this.budget.chargeAppend(this.field.length + char.length);
+    this.budget.chargeAppend(this.field.length + char.length, char.length);
     this.field += char;
   }
   private finishField(): void {
@@ -537,24 +537,24 @@ export function serializeRow(cells: readonly string[], budget: CsvBudget): strin
     if (simple) {
       const n = raw.length;
       if (n > 0) {
-        budget.chargeWorkAndRetained((n * (n + 1)) / 2, n * (n + 1));
+        budget.chargeWorkAndRetained(n, n * 2);
       }
       field = raw;
     } else {
       quoted = false;
       for (const original of raw) {
-        budget.charge("work", field.length + 1);
+        budget.charge("work", original.length);
         const char = original === "\r" ? "\n" : original;
         if (char === "," || char === '"' || char === "\n") quoted = true;
         const addition = char === '"' ? '""' : char;
-        budget.charge("retainedBytes", (field.length + addition.length) * 2);
+        budget.charge("retainedBytes", addition.length * 2);
         field += addition;
       }
     }
     if (cells.length === 1 && field === "") quoted = true;
     const addition = (i ? "," : "") + (quoted ? '"' + field + '"' : field);
-    budget.charge("retainedBytes", (result.length + addition.length) * 2);
-    budget.charge("work", result.length + addition.length);
+    budget.charge("retainedBytes", addition.length * 2);
+    budget.charge("work", addition.length);
     result += addition;
   }
   budget.charge("retainedBytes", (result.length + 1) * 2);

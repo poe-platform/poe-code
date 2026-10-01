@@ -21,6 +21,8 @@ Browser resources and action duration are unlimited by default. Each optional co
 | `limits.maxSnapshotRefs`  | Unlimited |
 | `limits.maxArtifactBytes` | Unlimited |
 
+Explicit `Infinity` also disables each limit; `actionTimeoutMs: 0` disables the action timeout.
+
 Snapshots have no byte limit. Legacy `limits.maxSnapshotBytes` values are ignored.
 
 `billing` is unsupported and rejected. Invocations provide `args`, `env`, `signal`,

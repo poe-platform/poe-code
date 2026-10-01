@@ -241,7 +241,7 @@ test('invalid arguments, unsupported engines/options and invalid limits have no 
   assert.deepEqual(f.events, []);
   assert.throws(() => createPlaywrightController({ adapter: f.adapter, limits: { maxSessions: 0 } }));
   for (const key of ['maxSnapshotRefs']) {
-    for (const value of [0, -1, 1.5, Infinity, NaN]) assert.throws(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }), /Invalid Playwright limit/);
+    for (const value of [0, -1, 1.5, -Infinity, NaN]) assert.throws(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }), /Invalid Playwright limit/);
   }
 });
 
@@ -708,7 +708,7 @@ for (const limits of [undefined, { maxSessions: 1 }, { maxArtifactBytes: 17 }]) 
 for (const key of ['maxSessions', 'maxTabs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'actionTimeoutMs'] as const) test(`${key === 'maxSnapshotBytes' ? 'ignored legacy setting' : 'positive safe explicit limit'}: ${key}`, () => {
   const f = fixture();
   for (const value of [0, -1, 1.5, Infinity, NaN]) {
-    if (key === 'maxSnapshotBytes') assert.doesNotThrow(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }));
+    if (key === 'maxSnapshotBytes' || value === Infinity || (key === 'actionTimeoutMs' && value === 0)) assert.doesNotThrow(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }));
     else assert.throws(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }), /Invalid Playwright limit/);
   }
 });
@@ -735,4 +735,28 @@ test('explicit action timeout and artifact boundary are forwarded and honored ex
     assert.deepEqual(timeouts, [1234, 1234]);
     assert.equal(f.leases[0]!.releases, 0);
   } finally { await controller.dispose(); }
+});
+
+for (const actionTimeoutMs of [0, Infinity, 123]) test(`explicit unlimited limits normalize action timeout ${actionTimeoutMs}`, async () => {
+  const f = fixture();
+  const original = f.adapter.acquire.bind(f.adapter);
+  const timeouts: number[] = [];
+  f.adapter.acquire = async request => {
+    const lease = await original(request);
+    const page = lease.context.pages()[0]!;
+    page.goto = async (_url, options) => { timeouts.push(options!.timeout!); };
+    page.frames = () => [];
+    page.on = () => {};
+    page.off = () => {};
+    return lease;
+  };
+  const controller = createPlaywrightController({ adapter: f.adapter, limits: {
+    maxSessions: Infinity, maxTabs: Infinity, maxArtifactBytes: Infinity, maxSnapshotRefs: Infinity, actionTimeoutMs,
+  } });
+  const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, write: async () => {} });
+  try {
+    await run(['open', 'https://example.com']);
+    await run(['snapshot']);
+    assert.deepEqual(timeouts, [actionTimeoutMs === Infinity ? 0 : actionTimeoutMs]);
+  } finally { await controller.dispose(); await f.controller.dispose(); }
 });

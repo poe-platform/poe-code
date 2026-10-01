@@ -61,12 +61,12 @@ export function createPlaywrightController(options: PlaywrightControllerOptions)
   if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs'].includes(key)))) throw new TypeError('Unsupported Playwright limits');
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
   const maxSessions = options.limits?.maxSessions ?? Infinity;
-  const actionTimeoutMs = options.limits?.actionTimeoutMs ?? 0;
+  const actionTimeoutMs = options.limits?.actionTimeoutMs === Infinity ? 0 : options.limits?.actionTimeoutMs ?? 0;
   const maxSnapshotRefs = options.limits?.maxSnapshotRefs;
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? Infinity;
   const maxTabs = options.limits?.maxTabs ?? Infinity;
   let refSequence = 0;
-  for (const [key, value] of Object.entries(options.limits ?? {})) if (key !== 'maxSnapshotBytes' && value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
+  for (const [key, value] of Object.entries(options.limits ?? {})) if (key !== 'maxSnapshotBytes' && value !== undefined && value !== Infinity && !(key === 'actionTimeoutMs' && value === 0) && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid Playwright limit');
   const sessions = new Map<string, Session>();
   const tails = new Map<string, Promise<void>>();
   const work = new Set<Promise<unknown>>();

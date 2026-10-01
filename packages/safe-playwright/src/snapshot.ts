@@ -13,7 +13,7 @@ export class SnapshotLimitError extends Error {}
  * Guest text is never compiled or evaluated as a locator or browser program.
  */
 export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => string) {
-  for (const value of [limits?.maxSnapshotRefs]) if (value !== undefined && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
+  for (const value of [limits?.maxSnapshotRefs]) if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError('Invalid snapshot limit');
   const { maxSnapshotRefs = Infinity } = limits;
   let sequence = 0;
   let epoch = 0;

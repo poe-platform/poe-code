@@ -150,24 +150,25 @@ test("od aligns mixed item sizes and printable trailers on full and partial rows
   });
 });
 
-for (const [width, types, rounded] of [
-  [5, ["x4"], 8], [1, ["x2", "x8", "x4"], 8], [9, ["x4", "x8"], 16],
+for (const [width, types, fallback] of [
+  [5, ["x4"], 4], [1, ["x2", "x8", "x4"], 8], [9, ["x4", "x8"], 8],
+  [3, ["x2"], 2], [5, ["x2"], 2], [Number.MAX_SAFE_INTEGER, ["x4"], 4],
 ] as const) {
-  test(`od rounds width ${width} up to ${rounded} for ${types.join(",")}`, async () => {
+  test(`od uses format alignment ${fallback} for invalid width ${width} and ${types.join(",")}`, async () => {
     const fs = createMemoryFileSystem();
     await fs.writeFile("/input", new TextEncoder().encode("0123456789abcdefHELLO"));
     const args = types.flatMap(type => ["-t", type]);
-    const expected = await run([...args, `-w${rounded}`, "/input"], fs);
+    const expected = await run([...args, `-w${fallback}`, "/input"], fs);
     assert.equal(expected.exitCode, 0, expected.stderr);
     for (const option of [`-w${width}`, `--width=${width}`]) {
       const result = await run([...args, option, "/input"], fs);
-      assert.deepEqual(result, { ...expected, stderr: `od: warning: invalid width ${width}; using ${rounded} instead\n` });
+      assert.deepEqual(result, { ...expected, stderr: `od: warning: invalid width ${width}; using ${fallback} instead\n` });
     }
   });
 }
 
-test("od rejects zero width and rounding beyond the safe integer range", async () => {
-  for (const width of [0, Number.MAX_SAFE_INTEGER]) {
+test("od rejects zero width and input beyond the safe integer range", async () => {
+  for (const width of [0, Number.MAX_SAFE_INTEGER + 1]) {
     const result = await run(["-tx4", `-w${width}`], createMemoryFileSystem());
     assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");

@@ -290,7 +290,7 @@ test("od: concatenate files, skip/count and suppress duplicates", async () => {
 test("od: multiple types preserve order and reject unknown encodings", async () => {
   assert.equal((await run("od", ["-An", "-tx1u1"], Uint8Array.of(15))).stdout, "  0f\n  15\n");
   assert.equal((await run("od", ["-An", "-b", "-tx1"], Uint8Array.of(15))).stdout, " 017\n  0f\n");
-  for (const args of [["-tf2"], ["-ta2"], ["-tx3"], ["-Aq"], ["-Aq", "-An"], ["--endian=middle"], ["--endian=middle", "--endian=big"], ["-e", "big"], ["-j-1"], ["-N08"], ["-w0"], ["-w0", "-w16"], ["-w3", "-tx2"], ["--type="], ["-j9007199254740992"]]) {
+  for (const args of [["-tf2"], ["-ta2"], ["-tx3"], ["-Aq"], ["-Aq", "-An"], ["--endian=middle"], ["--endian=middle", "--endian=big"], ["-e", "big"], ["-j-1"], ["-N08"], ["-w0"], ["-w0", "-w16"], ["--type="], ["-j9007199254740992"]]) {
     assert.equal((await run("od", args)).exitCode, 2, args.join(" "));
   }
 });
@@ -339,8 +339,6 @@ test("options: every supplied value validates before input is read", async () =>
     ["od", ["--address-radix=q", "-An"]],
     ["od", ["--endian=middle", "--endian=little"]],
     ["od", ["-w0", "-w16"]],
-    ["od", ["-w4097", "-w16"]],
-    ["od", ["-w3", "-w16", "-tx2"]],
     ["od", ["-jbad", "-j0"]],
     ["od", ["-N08", "-N0"]],
     ["od", ["-tbad", "-tx1"]],
@@ -362,6 +360,21 @@ test("options: valid scalar repeats retain the last value", async () => {
   assert.deepEqual((await run("xxd", xxdArgs, allBytes)).bytes, (await run("xxd", ["-c4", "-g1", "-s2", "-l2", "-o2"], allBytes)).bytes);
   const odArgs = ["-Ad", "-An", "--endian=big", "--endian=little", "-w2", "-w4", "-j1", "-j2", "-N1", "-N2", "-tx2"];
   assert.deepEqual((await run("od", odArgs, allBytes)).bytes, (await run("od", ["-An", "-w4", "-j2", "-N2", "-tx2"], allBytes)).bytes);
+  for (const width of [3, 4097]) {
+    const result = await run("od", ["-An", `-w${width}`, "-w16", "-tx2"], Uint8Array.of(1, 2, 3, 4));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, " 0201 0403\n");
+    assert.equal(result.stderr, "");
+  }
+});
+
+test("od: misaligned widths warn and use the selected format alignment", async () => {
+  for (const width of [3, 5]) {
+    const result = await run("od", ["-An", `-w${width}`, "-tx2"], Uint8Array.of(1, 2, 3, 4));
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stdout, " 0201\n 0403\n");
+    assert.equal(result.stderr, `od: warning: invalid width ${width}; using 2 instead\n`);
+  }
 });
 
 for (const { name, args, input, expected } of [

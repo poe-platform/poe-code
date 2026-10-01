@@ -693,8 +693,7 @@ export function createOdCommand(optionsOrMaxBytes?: number | OdCommandOptions): 
     );
     // Supported item sizes are powers of two, so the largest is their LCM.
     const alignment = selected.reduce((size, format) => Math.max(size, format.size), 1);
-    const width = Math.ceil(requestedWidth / alignment) * alignment;
-    if (!Number.isSafeInteger(width)) throw new UsageError("rounded width exceeds safe integer range");
+    const width = requestedWidth % alignment === 0 ? requestedWidth : alignment;
     if (width !== requestedWidth) {
       await writeDiagnostic(context.stderr, `${context.command}: warning: invalid width ${requestedWidth}; using ${width} instead\n`, context.signal);
     }

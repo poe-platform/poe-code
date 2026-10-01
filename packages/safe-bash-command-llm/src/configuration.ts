@@ -21,8 +21,8 @@ export interface LlmConfiguration {
   resolveAlias(name: string): Promise<string>;
   setAlias(name: string, model: string): Promise<void>;
   removeAlias(name: string): Promise<void>;
-  defaultModel(): Promise<string | undefined>;
-  setDefaultModel(model: string): Promise<void>;
+  defaultModel(filename?: string): Promise<string | undefined>;
+  setDefaultModel(model: string | null, filename?: string): Promise<void>;
   allModelOptions(): Promise<Options>;
   modelOptions(model: string): Promise<Record<string, string>>;
   setModelOption(model: string, name: string, value: string): Promise<void>;
@@ -38,6 +38,12 @@ export function createLlmConfiguration(context: Context): LlmConfiguration {
   const base = context.env.XDG_CONFIG_HOME ?? `${context.env.HOME ?? "/"}/.config`;
   const directory = pathOf(context, context.env.LLM_USER_PATH ?? `${base}/io.datasette.llm`);
   const filename = (name: string): string => `${directory}/${name}`;
+  const defaultFilename = (name = "default_model.txt"): string => {
+    if (!name.endsWith(".txt") || name.includes("/") || name.includes("\\") || name.includes("\0")) {
+      throw new TypeError("A model default filename must be a .txt basename");
+    }
+    return name;
+  };
   const stat = async (path: string): Promise<FileStat | null> => {
     try {
       const result = await fs.lstat(path, { signal });
@@ -162,8 +168,19 @@ export function createLlmConfiguration(context: Context): LlmConfiguration {
       delete values[name];
       await write("aliases.json", JSON.stringify(values, null, 4) + "\n", expected);
     }),
-    defaultModel: () => read("default_model.txt"),
-    setDefaultModel: model => serialized(() => write("default_model.txt", model)),
+    defaultModel: async name => (await read(defaultFilename(name)))?.trim(),
+    setDefaultModel: (model, name) => serialized(async () => {
+      const target = defaultFilename(name);
+      if (model !== null) {
+        await write(target, model);
+        return;
+      }
+      const path = filename(target), expected = await stat(path);
+      if (!expected) return;
+      if (!fs.removeFileConditional) throw new FsError("ENOTSUP", {path,message:"Clearing LLM defaults requires atomic conditional removal"});
+      const parent = await fs.stat(directory, {signal});
+      await fs.removeFileConditional(path, {parent,expected,signal});
+    }),
     modelOptions: async model => { const values = await options(); return Object.hasOwn(values, model) ? values[model]! : {}; },
     setModelOption,
     clearModelOption: (model, name) => serialized(async () => {

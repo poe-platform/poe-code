@@ -420,6 +420,16 @@ async def qualify_libraries():
   configuration = await client.configuration()
   assert configuration.default_model == 'saved' and configuration.aliases == {'saved':'fake'}
   assert configuration.model_options == {'fake':{'mode':'saved'}}
+  assert llm.get_default_model() == 'saved'
+  llm.set_default_model('  fake  ', filename='python-profile.txt')
+  assert llm.get_default_model('python-profile.txt') == 'fake'
+  llm.set_default_model(None, filename='python-profile.txt')
+  assert llm.get_default_model('python-profile.txt', None) is None
+  llm.set_default_embedding_model('fake')
+  assert llm.get_default_embedding_model() == 'fake'
+  llm.set_default_embedding_model(None)
+  assert llm.get_default_embedding_model() is None
+  assert llm.get_default_model() == 'saved'
   import os
   original_cwd = os.getcwd()
   original_user_path = os.environ.get('LLM_USER_PATH')

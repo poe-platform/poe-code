@@ -564,16 +564,50 @@ def get_async_model_aliases():
     return result
 
 
-def get_default_model():
+def _effective_default_model():
     async def read():
         async with _core.Client() as client:
             return await client._run(lambda: client._bridge.call("resolve_model", _core._configuration_context()), client._timeout)
     return _sync(read())
 
 
+DEFAULT_MODEL = "gpt-4o-mini"
+
+
+def get_default_model(filename="default_model.txt", default=DEFAULT_MODEL):
+    filename = os.fspath(filename)
+    async def read():
+        async with _core.Client() as client:
+            payload = {**_core._configuration_context(), "action": "get", "filename": filename}
+            return await client._run(lambda: client._bridge.call("default_model", payload), client._timeout)
+    value = _sync(read())
+    return default if value is None else value
+
+
+def set_default_model(model, filename="default_model.txt"):
+    if model is not None and not isinstance(model, str):
+        raise TypeError("data must be str, not " + type(model).__name__)
+    filename = os.fspath(filename)
+    async def write():
+        async with _core.Client() as client:
+            payload = {**_core._configuration_context(), "action": "set", "filename": filename, "model": model}
+            return await client._run(lambda: client._bridge.call("default_model", payload), client._timeout)
+    result = _sync(write())
+    if result is not None and result.get("missing"):
+        raise TypeError("data must be str, not NoneType")
+
+
+def get_default_embedding_model():
+    return get_default_model("default_embedding_model.txt", None)
+
+
+def set_default_embedding_model(model):
+    set_default_model(model, "default_embedding_model.txt")
+
+
 def get_model(name=None, _skip_async=False):
     aliases = get_model_aliases()
-    name = name or get_default_model()
+    name = name or _effective_default_model()
     try:
         return aliases[name]
     except KeyError:
@@ -582,7 +616,7 @@ def get_model(name=None, _skip_async=False):
 
 def get_async_model(name=None):
     aliases = get_async_model_aliases()
-    name = name or get_default_model()
+    name = name or _effective_default_model()
     try:
         return aliases[name]
     except KeyError:

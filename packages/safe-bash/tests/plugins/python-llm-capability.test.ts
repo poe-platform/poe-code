@@ -604,3 +604,16 @@ test('Python discovery preserves canonical option declarations', async () => {
   const models = await capability.call!({operation:'models',payload:{}},{signal}) as {metadata:{options:unknown}}[];
   assert.deepEqual(models[0]!.metadata.options,options);
 });
+
+test('reference defaults use canonical named files without exposing other configuration', async () => {
+  const {fs,service} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/'},service);
+  const base = {configuration_env:{LLM_USER_PATH:'/settings'},filename:'profile.txt'};
+  assert.equal(await capability.call!({operation:'default_model',payload:{...base,action:'get'}},{signal}),null);
+  assert.equal(await capability.call!({operation:'default_model',payload:{...base,action:'set',model:' future-model \n'}},{signal}),null);
+  assert.equal(await capability.call!({operation:'default_model',payload:{...base,action:'get'}},{signal}),'future-model');
+  assert.equal(new TextDecoder().decode(await fs.readFile('/settings/profile.txt')),' future-model \n');
+  await capability.call!({operation:'default_model',payload:{...base,action:'set',model:null}},{signal});
+  assert.deepEqual(await capability.call!({operation:'default_model',payload:{...base,action:'set',model:null}},{signal}),{missing:true});
+  await assert.rejects(capability.call!({operation:'default_model',payload:{...base,action:'get',filename:'keys.json'}},{signal}),/default filename/);
+});

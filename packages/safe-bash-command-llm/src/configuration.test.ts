@@ -65,3 +65,34 @@ test("configuration treats prototype names as owned data and propagates cancella
   const stored = JSON.parse(new TextDecoder().decode(await fs.readFile("/settings/aliases.json"))) as Record<string, string>;
   assert.deepEqual(Object.keys(stored), ["__proto__"]);
 });
+
+test("named model defaults share bounded canonical storage and clear atomically", async () => {
+  const fs = new MemoryFileSystem();
+  const signal = new AbortController().signal;
+  const configuration = createLlmConfiguration({fs,cwd:"/",env:{LLM_USER_PATH:"/settings"},signal});
+  await configuration.setDefaultModel(" chat \n");
+  await configuration.setDefaultModel("embedding","default_embedding_model.txt");
+  await configuration.setDefaultModel("custom","profile.txt");
+  assert.equal(await configuration.defaultModel(),"chat");
+  assert.equal(await configuration.defaultModel("default_embedding_model.txt"),"embedding");
+  assert.equal(await configuration.defaultModel("profile.txt"),"custom");
+  await configuration.setDefaultModel(null,"default_embedding_model.txt");
+  assert.equal(await configuration.defaultModel("default_embedding_model.txt"),undefined);
+  assert.equal(await configuration.defaultModel(),"chat");
+  for (const name of ["keys.json","../private.txt","/private.txt"]) {
+    await assert.rejects(configuration.defaultModel(name),/default filename/);
+  }
+});
+
+test("clearing a default does not delete a concurrent replacement", async () => {
+  const fs = new MemoryFileSystem();
+  const configuration = createLlmConfiguration({fs,cwd:"/",env:{LLM_USER_PATH:"/settings"},signal:new AbortController().signal});
+  await configuration.setDefaultModel("original");
+  const remove = fs.removeFileConditional.bind(fs);
+  fs.removeFileConditional = async (path, options) => {
+    await fs.writeFile(path,new TextEncoder().encode("replacement"));
+    return remove(path,options);
+  };
+  await assert.rejects(configuration.setDefaultModel(null), (error: unknown) => (error as {code?:string}).code === "EAGAIN");
+  assert.equal(await configuration.defaultModel(),"replacement");
+});

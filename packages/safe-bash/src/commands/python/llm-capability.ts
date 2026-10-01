@@ -384,6 +384,21 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         jsonBytes(models,bufferedLimit);
         return models;
       }
+      if (operation.operation === 'default_model') {
+        const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
+        if (typeof payload.filename !== 'string') throw new TypeError('Default filename must be a string');
+        if (payload.action === 'get') {
+          const value = await configuration.defaultModel(payload.filename) ?? null;
+          jsonBytes(value,bufferedLimit);
+          return value;
+        }
+        if (payload.action !== 'set' || (payload.model !== null && typeof payload.model !== 'string')) {
+          throw new TypeError('Invalid default model mutation');
+        }
+        if (payload.model === null && await configuration.defaultModel(payload.filename) === undefined) return {missing:true};
+        await configuration.setDefaultModel(payload.model,payload.filename);
+        return null;
+      }
       if (operation.operation === 'configure') {
         const configuration = createLlmConfiguration(configurationContext(context,payload,signal));
         const required = (name:string):string => {

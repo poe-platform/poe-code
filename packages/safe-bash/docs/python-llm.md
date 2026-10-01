@@ -34,6 +34,15 @@ identities and raise `UnknownModelError` during lookup. Omitting the name uses
 the canonical configuration and the service's effective default; Python does
 not choose a provider or substitute a hardcoded model.
 
+The standard get_default_model, set_default_model, get_default_embedding_model
+and set_default_embedding_model helpers share the canonical configuration files.
+The text getter accepts filename and default, trims stored whitespace, and exposes
+the reference DEFAULT_MODEL fallback; embedding defaults fall back to None.
+Setting an existing default to None removes it atomically. Named defaults must be
+.txt basenames inside the configuration directory; these helpers cannot read
+credential JSON or paths outside that directory. Model lookup without a name
+continues to use the host service's effective default.
+
 Text embeddings use `llm.get_embedding_model("your-embedding-model").embed("text")`
 and return a list of floats. `embed_multi(items, batch_size=...)` consumes an
 iterable lazily in batches and yields one vector per input. Binary embedding

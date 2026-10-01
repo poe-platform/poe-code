@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import { installPythonLlmModule } from '../../src/commands/python/llm-module.js';
 
 const testPython = process.env.LLM_TEST_PYTHON ?? process.env.LLM_REFERENCE_PYTHON ?? 'python3';
-const pydanticAvailable = spawnSync(testPython, ['-c', 'import pydantic'], {timeout: 5000}).status === 0;
+const pydanticAvailable = spawnSync(testPython, ['-B', '-c', 'import pydantic'], {timeout: 5000}).status === 0;
 const pythonDependency = pydanticAvailable ? false : 'Requires Python with Pydantic 2; set LLM_TEST_PYTHON or LLM_REFERENCE_PYTHON';
 
 const snippet = `
@@ -272,8 +272,20 @@ assert "llm" not in sys.modules
 calls = []
 histories = []
 embedding_calls = []
+default_files = {}
 class Bridge:
  async def call(self, operation, payload):
+  if operation == "default_model":
+   name = payload["filename"]
+   if payload["action"] == "get":
+    return default_files[name].strip() if name in default_files else None
+   if payload["model"] is None:
+    if name not in default_files:
+     return {"missing": True}
+    del default_files[name]
+   else:
+    default_files[name] = payload["model"]
+   return None
   if operation == "schema_dsl":
    assert payload["schema"] == "name, age int: in years"
    schema = {"type": "object", "properties": {"name": {"type": "string"}, "age": {"type": "integer", "description": "in years"}}, "required": ["name", "age"]}
@@ -475,5 +487,70 @@ assert model.prompt("typed", temperature="0.5", count="2", enabled=True, label=N
     });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stdout + result.stderr);
+  }
+});
+
+test('reference default helpers preserve named files, fallbacks and removal behavior', {skip: pythonDependency}, () => {
+  const program = `
+import llm
+assert llm.DEFAULT_MODEL == "gpt-4o-mini"
+assert llm.get_default_model() == llm.DEFAULT_MODEL
+assert llm.get_default_model(default="fallback") == "fallback"
+assert llm.get_default_embedding_model() is None
+llm.set_default_model("  alias \\n")
+llm.set_default_embedding_model("embedding")
+llm.set_default_model("profile", filename="profile.txt")
+assert llm.get_default_model() == "alias"
+assert llm.get_default_embedding_model() == "embedding"
+assert llm.get_default_model("profile.txt") == "profile"
+llm.set_default_model(None)
+assert llm.get_default_model(default=None) is None
+assert llm.get_default_embedding_model() == "embedding"
+llm.set_default_embedding_model(None)
+assert llm.get_default_embedding_model() is None
+try:
+ llm.set_default_model(None)
+ raise AssertionError("removing an absent default accepted None")
+except TypeError:
+ pass
+try:
+ llm.set_default_model(123)
+ raise AssertionError("non-string default accepted")
+except TypeError:
+ pass
+`;
+  const globals = new Map<string, unknown>();
+  let source: unknown;
+  let registration = '';
+  installPythonLlmModule({globals,runPython(value) {source=globals.get('_safe_llm_source');registration=value;}});
+  const bundled = spawnSync(testPython, ['-B','-c',bundledSetup + program], {
+    input:JSON.stringify({source,registration}),encoding:'utf8',timeout:5000,
+  });
+  assert.ifError(bundled.error);
+  assert.equal(bundled.status,0,bundled.stdout + bundled.stderr);
+  if (process.env.LLM_REFERENCE_PYTHON) {
+    const setup = `
+import llm
+class MemoryPath:
+ files = {}
+ def __init__(self, name=""):
+  self.name = name
+ def __truediv__(self, name):
+  return MemoryPath(name)
+ def exists(self):
+  return self.name in self.files
+ def read_text(self):
+  return self.files[self.name]
+ def write_text(self, text):
+  if not isinstance(text, str):
+   raise TypeError("data must be str")
+  self.files[self.name] = text
+ def unlink(self):
+  del self.files[self.name]
+llm.user_dir = lambda: MemoryPath()
+`;
+    const reference = spawnSync(process.env.LLM_REFERENCE_PYTHON,['-B','-c',setup + program], {encoding:'utf8',timeout:5000});
+    assert.ifError(reference.error);
+    assert.equal(reference.status,0,reference.stdout + reference.stderr);
   }
 });

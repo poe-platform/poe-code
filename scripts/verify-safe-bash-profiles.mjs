@@ -78,7 +78,7 @@ shell.use(yesCommands());
 await shell.exec("true");
 for (const name of ["ln", "readlink"]) shell.commands.unregister(name);`,
     smoke: `check(JSON.stringify(shell.commands.list().filter(command => command.name !== "probe").map(command => command.name).sort()) === JSON.stringify(["[", "apply_patch", "awk", "base32", "base64", "basename", "bc", "bunzip2", "bzcat", "bzip2", "cat", "chmod", "cksum", "cmp", "column", "comm", "cp", "csplit", "csvcut", "csvgrep", "cut", "date", "dd", "diff", "diff3", "dirname", "dos2unix", "du", "echo", "egrep", "env", "expand", "expr", "factor", "false", "fd", "fgrep", "file", "find", "fmt", "fold", "getopt", "grep", "gunzip", "gzip", "hd", "head", "hexdump", "html-to-markdown", "htmlq", "iconv", "join", "jq", "less", "ls", "lzcat", "lzma", "md5sum", "mdq", "mkdir", "mktemp", "more", "mv", "nl", "numfmt", "od", "paste", "patch", "pr", "printenv", "printf", "pwd", "realpath", "rev", "rg", "rm", "rmdir", "sed", "seq", "sha1sum", "sha224sum", "sha256sum", "sha384sum", "sha512sum", "shuf", "sleep", "sort", "split", "stat", "strings", "tac", "tail", "tar", "tee", "test", "timeout", "touch", "tr", "tree", "true", "truncate", "tsort", "unexpand", "uniq", "unix2dos", "unlzma", "unrtf", "unxz", "unzip", "unzstd", "wc", "which", "xargs", "xmllint", "xq", "xxd", "xz", "xzcat", "yes", "yq", "zcat", "zip", "zstd", "zstdcat"]), "enabled consumer inventory");`, forbidden: ["pdf", "spreadsheet", "ffmpeg", "git", "op"] },
-  full: { imports: `import * as full from "@poe-platform/safe-bash/full";\n${shell}`,
+  full: { embeddedPython: true, imports: `import * as full from "@poe-platform/safe-bash/full";\n${shell}`,
     setup: "shell.use(full.agentCommands()); globalThis.fullProfile = full;",
     smoke: `check((await shell.exec("printf full | cat")).stdout === "full", "full registry");
 check((await shell.exec("echo $(gh version)")).stdout.includes("gh version"), "selected GH synchronous evaluator");
@@ -123,13 +123,14 @@ export const safeBashProfileBaselines = {
   "git": 9866010,
   "baseRegistry": 6014924,
   "registryWithRegex": 6014961,
-  "enabledConsumer": 6079876,
-  "full": 25001199,
+  // Full yq is selected by enabledConsumer; full also retains the CSV Python worker.
+  "enabledConsumer": 6248326,
+  "full": 58978229,
   "rootPythonLlm": 4780517,
-  "splitCore": 4434552,
+  "splitCore": 4590785,
   "splitPythonLlm": 4695775,
-  "splitEnabledConsumer": 5995120,
-  "splitFull": 24845451
+  "splitEnabledConsumer": 6161754,
+  "splitFull": 58803031
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));
@@ -170,6 +171,8 @@ export default { async fetch() {
     const javascript = result.outputFiles.filter(output => output.path.endsWith(".js")).map(output => output.text).join("\n");
     const contributing = Object.values(result.metafile.outputs).flatMap(output => Object.entries(output.inputs)
       .filter(([, input]) => input.bytesInOutput > 0).map(([filename]) => filename));
+    assert.equal(contributing.some(filename => path.basename(filename).startsWith("python-worker-source")),
+      profile.embeddedPython ?? false, `${name}: embedded CSV Python worker selection`);
     for (const engine of profile.forbidden) {
       assert.ok(!javascript.includes(engineMarkers[engine]), `${name}: unused ${engine} engine code`);
       assert.ok(!result.outputFiles.some(output => output.path.includes(engineMarkers[engine])), `${name}: unused ${engine} asset`);

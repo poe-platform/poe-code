@@ -57,6 +57,36 @@ test("numfmt scales zero with --to=iec, --to=si, and --to=iec-i without (error)"
 });
 
 
+for (const input of ["arguments", "stdin"] as const) {
+  test(`numfmt emits each ${input} record once and awaits flush backpressure`, async () => {
+    const values = Array.from({ length: 12000 }, (_, index) => String((index % 9 + 1) * 1024));
+    const expected = values.map((_, index) => `${index % 9 + 1}.0K\n`).join("");
+    const output: Uint8Array[] = [];
+    let writing = false;
+    const result = await createNumfmtCommand().execute({
+      command: "numfmt",
+      args: ["--to=iec", ...(input === "arguments" ? values : [])],
+      cwd: "/", env: {}, fs: createMemoryFileSystem(),
+      stdin: { async *[Symbol.asyncIterator]() {
+        if (input === "stdin") yield Buffer.from(values.join("\n") + "\n");
+      } },
+      stdout: { async write(chunk) {
+        assert.equal(writing, false, "previous flush must settle before the next write");
+        writing = true;
+        await new Promise<void>(resolve => setImmediate(resolve));
+        output.push(chunk.slice());
+        writing = false;
+      } },
+      stderr: { async write(chunk) { assert.fail(new TextDecoder().decode(chunk)); } },
+      signal: new AbortController().signal,
+    });
+    assert.equal(result.exitCode, 0);
+    assert.equal(writing, false, "command must await its final write");
+    assert.ok(output.length > 1, "exercise multiple output flushes");
+    assert.equal(Buffer.concat(output).toString(), expected);
+  });
+}
+
 test("numfmt admits input chunks larger than the former 32 MiB ceiling", async () => {
   const input = new Uint8Array(32 * 1024 * 1024 + 1);
   input.set(new TextEncoder().encode("1\n"));

@@ -122,3 +122,5 @@ pub fn is_ignored(fs: &MemoryFs, dir: &str, gitdir: Option<&str>, filepath: &str
 pub use commands::*;
 pub use cli::*;
 pub use http::{GitHttpRequest, GitHttpResponse, HttpClient, MockHttpServer};
+
+mod cli_rebase;

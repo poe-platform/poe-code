@@ -3397,144 +3397,10 @@ pub fn execute_git_cli_with_input(
             }
             CliResult::ok("")
         }
-        "rebase" => {
-            let rebase_dir = join(&[&gitdir, "rebase-merge"]);
-            if sub_args.contains(&"--abort") {
-                let Some(orig_head) = fs.read_str(&join(&[&rebase_dir, "orig-head"])) else {
-                    return CliResult::err(128, "fatal: no rebase in progress?\n");
-                };
-                let head_name = fs.read_str(&join(&[&rebase_dir, "head-name"])).unwrap_or_default();
-                let orig_oid = orig_head.trim();
-                let head_ref = head_name.trim();
-                if !head_ref.is_empty() {
-                    let _ = crate::write_ref(fs, &gitdir, head_ref, orig_oid, true, false);
-                    fs.write_str(&join(&[&gitdir, "HEAD"]), &format!("ref: {head_ref}\n"));
-                } else {
-                    let _ = crate::write_ref(fs, &gitdir, "HEAD", orig_oid, true, false);
-                }
-                let _ = checkout(fs, &repo_root, Some(&gitdir), Some(orig_oid), None, None, true, false, false, true, false);
-                let _ = fs.rmdir(&rebase_dir);
-                return CliResult::ok("");
-            }
-            if sub_args.contains(&"--continue") || sub_args.contains(&"--skip") {
-                let _ = fs.rmdir(&rebase_dir);
-                return CliResult::ok("Successfully rebased.\n");
-            }
-            let mut onto_arg: Option<&str> = None;
-            let mut rb_pos: Vec<&str> = Vec::new();
-            let mut i = 0;
-            while i < sub_args.len() {
-                if sub_args[i] == "--onto" && i + 1 < sub_args.len() {
-                    onto_arg = Some(sub_args[i + 1]);
-                    i += 2;
-                    continue;
-                }
-                if !sub_args[i].starts_with('-') {
-                    rb_pos.push(sub_args[i]);
-                }
-                i += 1;
-            }
-            let Some(&upstream_ref) = rb_pos.first() else {
-                return CliResult::err(128, "fatal: no upstream specified\n");
-            };
-            let pre_rb = crate::hooks::run_hook(
-                fs,
-                &repo_root,
-                &gitdir,
-                "pre-rebase",
-                &rb_pos,
-                None,
-            );
-            if pre_rb.ran && pre_rb.exit_code != 0 {
-                return CliResult::err(pre_rb.exit_code, format!("{}{}", pre_rb.stdout, pre_rb.stderr));
-            }
-            if let Some(&branch_arg) = rb_pos.get(1)
-                && let Err(e) = checkout(fs, &repo_root, Some(&gitdir), Some(branch_arg), None, None, true, false, false, true, false)
-            {
-                return CliResult::err(128, format!("fatal: {}\n", e.message));
-            }
-            let Ok(orig_head) = resolve_ref(fs, &gitdir, "HEAD", None) else {
-                return CliResult::err(128, "fatal: needed a single revision\n");
-            };
-            let Ok(upstream_oid) = crate::cli_history::resolve(fs, &gitdir, upstream_ref) else {
-                return CliResult::err(128, format!("fatal: invalid upstream '{upstream_ref}'\n"));
-            };
-            let onto_oid = if let Some(o) = onto_arg {
-                match crate::cli_history::resolve(fs, &gitdir, o) {
-                    Ok(id) => id,
-                    Err(_) => return CliResult::err(128, format!("fatal: invalid onto '{o}'\n")),
-                }
-            } else {
-                upstream_oid.clone()
-            };
-            let cur_branch = current_branch(fs, &gitdir, true, false).ok().flatten();
-            let _ = fs.mkdir(&rebase_dir);
-            fs.write_str(&join(&[&rebase_dir, "orig-head"]), &format!("{orig_head}\n"));
-            if let Some(ref b) = cur_branch {
-                fs.write_str(&join(&[&rebase_dir, "head-name"]), &format!("{b}\n"));
-            }
-            let mb = crate::commands::plumbing::find_merge_base(fs, &gitdir, &[orig_head.clone(), upstream_oid.clone()])
-                .ok()
-                .and_then(|v| v.into_iter().next());
-            if mb.as_deref() == Some(orig_head.as_str()) {
-                if let Some(ref b) = cur_branch {
-                    let _ = crate::write_ref(fs, &gitdir, b, &onto_oid, true, false);
-                }
-                let _ = checkout(fs, &repo_root, Some(&gitdir), Some(&onto_oid), None, None, true, false, false, true, false);
-                let _ = fs.rmdir(&rebase_dir);
-                return CliResult::ok(format!("Fast-forwarded to {upstream_ref}.\n"));
-            }
-            let head_commits = crate::commands::plumbing::log(fs, &gitdir, Some(&orig_head), None, None, None, false, false).unwrap_or_default();
-            let up_commits = crate::commands::plumbing::log(fs, &gitdir, Some(&upstream_oid), None, None, None, false, false).unwrap_or_default();
-            let up_set: std::collections::HashSet<String> = up_commits.into_iter().map(|c| c.oid).collect();
-            let mut to_replay: Vec<String> = head_commits
-                .into_iter()
-                .take_while(|c| !up_set.contains(&c.oid))
-                .map(|c| c.oid)
-                .collect();
-            to_replay.reverse();
-
-            if let Some(ref b) = cur_branch {
-                let _ = crate::write_ref(fs, &gitdir, b, &onto_oid, true, false);
-            } else {
-                let _ = crate::write_ref(fs, &gitdir, "HEAD", &onto_oid, true, false);
-            }
-            let _ = checkout(fs, &repo_root, Some(&gitdir), Some(&onto_oid), None, None, true, false, false, true, false);
-            let author = Author {
-                name: get_config(fs, &gitdir, "user.name")
-                    .map(|v| v.as_str().to_string())
-                    .unwrap_or_else(|| "Git User".to_string()),
-                email: get_config(fs, &gitdir, "user.email")
-                    .map(|v| v.as_str().to_string())
-                    .unwrap_or_else(|| "user@example.com".to_string()),
-                timestamp: 1502484200,
-                timezone_offset: 0.0,
-            };
-            let mut rewritten_lines = String::new();
-            for c_oid in to_replay {
-                match cherry_pick(fs, Some(&repo_root), &gitdir, &c_oid, false, false, true, None, Some(author.clone()), None) {
-                    Ok(new_oid) => {
-                        rewritten_lines.push_str(&format!("{c_oid} {new_oid}\n"));
-                    }
-                    Err(e) => {
-                        return CliResult::err(1, format!("error: could not apply {c_oid}: {}\n", e.message));
-                    }
-                }
-            }
-            if !rewritten_lines.is_empty() {
-                let _ = crate::hooks::run_hook(
-                    fs,
-                    &repo_root,
-                    &gitdir,
-                    "post-rewrite",
-                    &["rebase"],
-                    Some(&rewritten_lines),
-                );
-            }
-            let _ = fs.rmdir(&rebase_dir);
-            let target_label = cur_branch.unwrap_or_else(|| "HEAD".to_string());
-            CliResult::ok(format!("Successfully rebased and updated {target_label}.\n"))
-        }
+        "rebase" => match crate::cli_rebase::run(fs, &repo_root, &gitdir, sub_args) {
+            Ok(output) => CliResult::ok(output),
+            Err(e) => CliResult::err(1, format!("error: {}\n", e.message)),
+        },
         "reflog" => {
             let action = positionals.first().copied().unwrap_or("show");
             if action == "expire" || action == "delete" {
@@ -5454,7 +5320,7 @@ pub(crate) fn repository_path(root: &str, cwd: &str, path: &str) -> String {
     }
 }
 
-fn reset_repository(
+pub(crate) fn reset_repository(
     fs: &MemoryFs,
     root: &str,
     gitdir: &str,

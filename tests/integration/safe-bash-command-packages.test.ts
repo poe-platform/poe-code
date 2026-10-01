@@ -1,5 +1,6 @@
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
+import ts from "typescript";
 import { describe, expect, it } from "vitest";
 
 const root = path.resolve(import.meta.dirname, "../..");
@@ -26,5 +27,34 @@ describe("standalone Safe Bash command packaging", () => {
     expect(pkg.devDependencies["safe-bash-contracts"]).toBe("*");
     expect(existsSync(path.join(directory, "README.md"))).toBe(true);
     expect(manifest.exports[`./commands/${command}`]).toBeDefined();
+  });
+});
+
+const extractedAdapters = [
+  "xan", "html-to-markdown", "column", "du", "file", "tree", "split", "csplit",
+  "pr", "tsort", "factor", "getopt", "hexdump", "iconv", "line-endings", "which",
+  "timeout", "apply-patch",
+];
+
+describe("extracted command ownership", () => {
+  it.each(extractedAdapters)("keeps %s implementation in its command workspace", adapter => {
+    const workspace = `safe-bash-command-${adapter === "line-endings" ? "dos2unix" : adapter}`;
+    const file = path.join(root, "packages/safe-bash/src/commands", adapter, "index.ts");
+    const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true);
+    let forwardsWorkspace = false;
+    for (const statement of source.statements) {
+      if (ts.isImportDeclaration(statement)) {
+        // Some portable adapters initialize the shared Buffer compatibility layer.
+        expect(statement.importClause).toBeUndefined();
+        expect((statement.moduleSpecifier as ts.StringLiteral).text).toBe("../../portable-buffer.js");
+      } else {
+        expect(ts.isExportDeclaration(statement), `${adapter}: implementation must live in ${workspace}`).toBe(true);
+        if (!ts.isExportDeclaration(statement)) continue;
+        expect(statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)).toBe(true);
+        expect((statement.moduleSpecifier as ts.StringLiteral).text).toBe(workspace);
+        if (!statement.exportClause) forwardsWorkspace = true;
+      }
+    }
+    expect(forwardsWorkspace, `${adapter}: missing workspace facade`).toBe(true);
   });
 });

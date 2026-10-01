@@ -7,6 +7,27 @@ import { standardCommands } from "../../src/commands/index.js";
 import { Capture } from "../../src/shell/runtime.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 
+test("find pipelines retain async pattern reads and execute deletion once", async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dir");
+  await fs.writeFile("/dir/a.txt", new TextEncoder().encode("hello\n"));
+  await fs.writeFile("/patterns.txt", new TextEncoder().encode("a.txt\n"));
+  const shell = new Shell({ fs }).use(standardCommands());
+  context.after(() => shell.dispose());
+  await shell.exec("");
+  const matched = await shell.exec('find /dir -name "*.txt" | grep -f /patterns.txt');
+  assert.equal(matched.stdout, "/dir/a.txt\n");
+  assert.equal(matched.stderr, "");
+  assert.equal(matched.exitCode, 0);
+  const remove = context.mock.method(fs, "rm");
+  const deleted = await shell.exec("find /dir -type f -delete | wc -l");
+  assert.equal(deleted.stdout, "0\n");
+  assert.equal(deleted.stderr, "");
+  assert.equal(deleted.exitCode, 0);
+  assert.equal(remove.mock.callCount(), 1);
+  assert.deepEqual(await fs.readdir("/dir"), []);
+});
+
 for (const [source, expected] of [
   ['arr=(one two three); echo hi | grep ^h; echo "after: ${arr[@]}"', 'hi\nafter: one two three\n'],
   ['export x=outer; f() { local x=inner; env | grep ^x=; }; f; echo "after-f: $x"', 'x=inner\nafter-f: outer\n'],

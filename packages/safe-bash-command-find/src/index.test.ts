@@ -17,6 +17,32 @@ async function run(command: CommandDefinition, args: string[], input = "") {
   return { ...result, stdout, stderr };
 }
 
+for (const option of ["-name", "-iname"]) {
+  test(`find ${option} counts astral characters as one wildcard character`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/dir");
+    for (const name of ["😀.txt", "ab.txt", "x.txt"]) {
+      await fs.writeFile(`/dir/${name}`, new Uint8Array());
+    }
+    for (const extra of [[], ["-type", "f"]]) {
+      for (const pattern of ["?.txt", "??.txt"]) {
+        let stdout = "", stderr = "";
+        const result = await createFindCommand().execute({
+          ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true, _chargeFastFsOp() {} },
+          command: "find", args: ["/dir", ...extra, option, pattern], cwd: "/", env: {}, fs,
+          stdin: toByteSource(""), signal: new AbortController().signal,
+          stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+          stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        });
+        assert.equal(result.exitCode, 0, stderr);
+        assert.equal(stderr, "");
+        assert.deepEqual(stdout.trimEnd().split("\n").sort(),
+          pattern === "?.txt" ? ["/dir/\\360\\237\\230\\200.txt", "/dir/x.txt"] : ["/dir/ab.txt"]);
+      }
+    }
+  });
+}
+
 test("standalone find works with only portable filesystem and command contracts", async () => {
   assert.equal(createFindCommand().name, "find");
   assert.ok(createFindCommands().some(command => command.name === "find"));

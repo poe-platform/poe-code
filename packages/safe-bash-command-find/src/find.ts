@@ -46,7 +46,7 @@ function getCachedFindPattern(pattern: string, caseInsensitive: boolean): ((text
         else rxSrc += ch;
       }
       rxSrc += "$";
-      const rx = new RegExp(rxSrc, caseInsensitive ? "si" : "s");
+      const rx = new RegExp(rxSrc, caseInsensitive ? "siu" : "su");
       fn = (text: string) => rx.test(text);
     }
     map.set(pattern, fn);

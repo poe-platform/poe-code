@@ -501,9 +501,13 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             if (admitted) {
               const effectiveMode = backingMem.capabilities.permissions !== false ? 0o777 & ~umask : undefined;
               let allCreated = true;
+              ended = false;
               for (let i = 0; i < rawArgs.length; i++) {
                 const a = rawArgs[i]!;
-                if (a === "--" || a === "-p" || a === "--parents") continue;
+                if (!ended) {
+                  if (a === "--") { ended = true; continue; }
+                  if (a === "-p" || a === "--parents") continue;
+                }
                 if (!backingMem.tryMkdirFastSync(pathOf(context, a), recursive, effectiveMode)) {
                   allCreated = false;
                   break;

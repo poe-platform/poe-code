@@ -170,6 +170,7 @@ test("variable presence and sync state regressions remain in active discovery", 
 test("cached fast-path soundness regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/cached-fast-path-soundness.test.ts"));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/filesystem-mkdir-modes.test.ts"));
 });
 
 test("issue 3813 Bash parity regressions remain in active discovery", () => {

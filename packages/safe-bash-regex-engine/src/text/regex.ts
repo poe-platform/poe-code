@@ -351,16 +351,18 @@ function matchChainAt(
       cursor += val.length;
     } else if (step.kind === "char") {
       if (cursor >= textEnd) return -1;
-      const code = text.charCodeAt(cursor);
-      if (code < 128 ? step.ascii[code] === 0 : !step.accepts(text[cursor]!)) return -1;
-      cursor++;
+      const code = text.codePointAt(cursor)!;
+      if (code < 128 ? step.ascii[code] === 0 : !step.accepts(String.fromCodePoint(code))) return -1;
+      cursor += code > 0xffff ? 2 : 1;
     } else {
+      let count = 0;
       while (cursor < textEnd) {
-        const code = text.charCodeAt(cursor);
-        if (code < 128 ? step.ascii[code] === 0 : !step.accepts(text[cursor]!)) break;
-        cursor++;
+        const code = text.codePointAt(cursor)!;
+        if (code < 128 ? step.ascii[code] === 0 : !step.accepts(String.fromCodePoint(code))) break;
+        cursor += code > 0xffff ? 2 : 1;
+        count++;
       }
-      if (cursor - stepStart < step.minimum) return -1;
+      if (count < step.minimum) return -1;
     }
     if (step.group > 0) {
       outOffsets[step.group * 2] = stepStart;
@@ -444,7 +446,8 @@ export class Pattern {
       accepts: candidate => ignoreCase ? candidate.toLowerCase() === character.toLowerCase() : candidate === character,
     });
     const escaped = (): string => {
-      const character = source[offset++];
+      const character = offset < source.length ? String.fromCodePoint(source.codePointAt(offset)!) : undefined;
+      offset += character?.length ?? 1;
       if (character === undefined) throw new ProgramError("trailing backslash in regular expression");
       if (dialect === "awk") {
         const octal = "01234567".includes(character);
@@ -475,7 +478,8 @@ export class Pattern {
         }
         if (source.startsWith("[.", offset) || source.startsWith("[=", offset)) throw new ProgramError("collating and equivalence classes are not supported");
         const readBracketChar = (): string => {
-          const ch = source[offset++]!;
+          const ch = String.fromCodePoint(source.codePointAt(offset)!);
+          offset += ch.length;
           if (ch !== "\\") return ch;
           if (dialect === "sed") {
             const next = source[offset];
@@ -502,7 +506,7 @@ export class Pattern {
       } };
     };
     const atom = (atStart: boolean, afterBegin: boolean): Node => {
-      const token = dialect === "jq" && offset < source.length ? String.fromCodePoint(source.codePointAt(offset)!) : source[offset];
+      const token = offset < source.length ? String.fromCodePoint(source.codePointAt(offset)!) : source[offset];
       offset += token?.length ?? 1;
       if (token === "[") return bracket();
       if (token === "\\") {
@@ -924,18 +928,20 @@ export class Pattern {
         let searchFrom = from;
         while (searchFrom < textEnd) {
           while (searchFrom < textEnd) {
-            const c = text.charCodeAt(searchFrom);
-            if (c < 128 ? headAscii[c] !== 0 : headAccepts(text[searchFrom]!)) break;
-            searchFrom++;
+            const c = text.codePointAt(searchFrom)!;
+            if (c < 128 ? headAscii[c] !== 0 : headAccepts(String.fromCodePoint(c))) break;
+            searchFrom += c > 0xffff ? 2 : 1;
           }
           if (searchFrom >= textEnd) break;
-          let runEnd = searchFrom + 1;
+          let runEnd = searchFrom + (text.codePointAt(searchFrom)! > 0xffff ? 2 : 1);
+          let count = 1;
           while (runEnd < textEnd) {
-            const c = text.charCodeAt(runEnd);
-            if (c < 128 ? headAscii[c] === 0 : !headAccepts(text[runEnd]!)) break;
-            runEnd++;
+            const c = text.codePointAt(runEnd)!;
+            if (c < 128 ? headAscii[c] === 0 : !headAccepts(String.fromCodePoint(c))) break;
+            runEnd += c > 0xffff ? 2 : 1;
+            count++;
           }
-          if (runEnd - searchFrom >= headMin) {
+          if (count >= headMin) {
             const end = matchChainAt(steps, 0, anchoredEnd, text, searchFrom, outOffsets, this.groupCount, textEnd, 0);
             if (end >= 0) {
               found = searchFrom;
@@ -943,7 +949,7 @@ export class Pattern {
               break;
             }
           }
-          searchFrom = runEnd + 1;
+          searchFrom = runEnd + ((text.codePointAt(runEnd) ?? 0) > 0xffff ? 2 : 1);
         }
       }
       const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : textEnd - from + 1;
@@ -964,12 +970,14 @@ export class Pattern {
         if (textStart + prefix.length <= textEnd && text.startsWith(prefix, textStart)) {
           const pos = textStart + prefix.length;
           let cursor = pos;
+          let count = 0;
           while (cursor < textEnd) {
-            const code = text.charCodeAt(cursor);
-            if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
-            cursor++;
+            const code = text.codePointAt(cursor)!;
+            if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
+            cursor += code > 0xffff ? 2 : 1;
+            count++;
           }
-          if (cursor - pos >= minimum && (!anchoredEnd || cursor === textEnd)) {
+          if (count >= minimum && (!anchoredEnd || cursor === textEnd)) {
             found = textStart;
             matchEnd = cursor;
             groupStart = pos;
@@ -980,26 +988,28 @@ export class Pattern {
         let searchFrom = from;
         const maxStart = textEnd - minimum;
         while (searchFrom <= maxStart) {
-          const c0 = text.charCodeAt(searchFrom);
-          if (c0 < 128 ? ascii[c0] === 0 : !accepts(text[searchFrom]!)) {
-            searchFrom++;
+          const c0 = text.codePointAt(searchFrom)!;
+          if (c0 < 128 ? ascii[c0] === 0 : !accepts(String.fromCodePoint(c0))) {
+            searchFrom += c0 > 0xffff ? 2 : 1;
             continue;
           }
           const idx = searchFrom;
-          let cursor = idx + 1;
+          let cursor = idx + (c0 > 0xffff ? 2 : 1);
+          let count = 1;
           while (cursor < textEnd) {
-            const code = text.charCodeAt(cursor);
-            if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
-            cursor++;
+            const code = text.codePointAt(cursor)!;
+            if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
+            cursor += code > 0xffff ? 2 : 1;
+            count++;
           }
-          if (cursor - idx >= minimum && (!anchoredEnd || cursor === textEnd)) {
+          if (count >= minimum && (!anchoredEnd || cursor === textEnd)) {
             found = idx;
             matchEnd = cursor;
             groupStart = idx;
             groupEnd = cursor;
             break;
           }
-          searchFrom = cursor + 1;
+          searchFrom = cursor + ((text.codePointAt(cursor) ?? 0) > 0xffff ? 2 : 1);
         }
       } else {
         let searchFrom = from;
@@ -1008,12 +1018,14 @@ export class Pattern {
           if (idx < 0 || idx > textEnd - prefix.length) break;
           const pos = idx + prefix.length;
           let cursor = pos;
+          let count = 0;
           while (cursor < textEnd) {
-            const code = text.charCodeAt(cursor);
-            if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
-            cursor++;
+            const code = text.codePointAt(cursor)!;
+            if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
+            cursor += code > 0xffff ? 2 : 1;
+            count++;
           }
-          if (cursor - pos >= minimum && (!anchoredEnd || cursor === textEnd)) {
+          if (count >= minimum && (!anchoredEnd || cursor === textEnd)) {
             found = idx;
             matchEnd = cursor;
             groupStart = pos;
@@ -1187,12 +1199,14 @@ export class Pattern {
       if (text.startsWith(prefix)) {
         const pos = prefix.length;
         let cursor = pos;
+        let count = 0;
         while (cursor < text.length) {
-          const code = text.charCodeAt(cursor);
-          if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
-          cursor++;
+          const code = text.codePointAt(cursor)!;
+          if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
+          cursor += code > 0xffff ? 2 : 1;
+          count++;
         }
-        if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
+        if (count >= minimum && (!anchoredEnd || cursor === text.length)) {
           found = 0;
           matchEnd = cursor;
           groupStart = pos;
@@ -1206,19 +1220,21 @@ export class Pattern {
         if (idx < 0) break;
         const pos = idx + prefix.length;
         let cursor = pos;
+        let count = 0;
         while (cursor < text.length) {
-          const code = text.charCodeAt(cursor);
-          if (code < 128 ? ascii[code] === 0 : !accepts(text[cursor]!)) break;
-          cursor++;
+          const code = text.codePointAt(cursor)!;
+          if (code < 128 ? ascii[code] === 0 : !accepts(String.fromCodePoint(code))) break;
+          cursor += code > 0xffff ? 2 : 1;
+          count++;
         }
-        if (cursor - pos >= minimum && (!anchoredEnd || cursor === text.length)) {
+        if (count >= minimum && (!anchoredEnd || cursor === text.length)) {
           found = idx;
           matchEnd = cursor;
           groupStart = pos;
           groupEnd = cursor;
           break;
         }
-        searchFrom = idx + 1;
+        searchFrom = idx + ((text.codePointAt(idx) ?? 0) > 0xffff ? 2 : 1);
       }
     }
     const positionsTried = anchoredStart ? 1 : found >= 0 ? found - from + 1 : text.length - from + 1;
@@ -1292,14 +1308,16 @@ export class Pattern {
       return (budget.checkpointSync ? budget.checkpointSync() : budget.checkpoint());
     };
     if (this.linear) {
-      for (let start = from; start <= text.length && (!this.anchored || start === 0); start++) {
+      for (let start = from; start <= text.length && (!this.anchored || start === 0); start += (text.codePointAt(start) ?? 0) > 0xffff ? 2 : 1) {
         let position = start;
         for (const instruction of this.code) {
           const paused = work(2);
           if (paused) await paused;
           if (instruction.kind === "character") {
-            if (position >= text.length || !instruction.accepts(text[position]!)) break;
-            position++;
+            if (position >= text.length) break;
+            const character = String.fromCodePoint(text.codePointAt(position)!);
+            if (!instruction.accepts(character)) break;
+            position += character.length;
           } else if (instruction.kind === "begin" && position !== 0 || instruction.kind === "end" && position !== text.length) break;
           else if (instruction.kind === "match") {
             if (position - start > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
@@ -1342,7 +1360,7 @@ export class Pattern {
           pending.push({ pc: 0, start: position, captures: [], bytes: 72 });
         }
         if (!pending && !positions.size) break;
-        if (!pending) { position++; continue; }
+        if (!pending) { position += (text.codePointAt(position) ?? 0) > 0xffff ? 2 : 1; continue; }
         const reversed = work(pending.length);
         if (reversed) await reversed;
         pending.reverse();
@@ -1400,7 +1418,10 @@ export class Pattern {
             visited.set(state, thread.start);
             const instruction = this.code[thread.pc]!;
             if (instruction.kind === "character") {
-              if (position < text.length && instruction.accepts(text[position]!)) enqueue(position + 1, thread.pc + 1, thread.start, thread.captures);
+              if (position < text.length) {
+                const character = String.fromCodePoint(text.codePointAt(position)!);
+                if (instruction.accepts(character)) enqueue(position + character.length, thread.pc + 1, thread.start, thread.captures);
+              }
             } else if (instruction.kind === "backreference") {
               const begin = thread.captures[instruction.index * 2];
               const end = thread.captures[instruction.index * 2 + 1];
@@ -1456,8 +1477,9 @@ export class Pattern {
           // Captured text changes backreference transitions. Admit starts
           // serially to avoid retaining every start's distinct capture history.
           if (bestStart !== undefined || this.anchored) break;
-          position = ++nextStart;
-        } else position++;
+          nextStart += (text.codePointAt(nextStart) ?? 0) > 0xffff ? 2 : 1;
+          position = nextStart;
+        } else position += (text.codePointAt(position) ?? 0) > 0xffff ? 2 : 1;
       }
       if (bestStart !== undefined && bestEnd !== undefined) {
         let characters = bestEnd - bestStart;

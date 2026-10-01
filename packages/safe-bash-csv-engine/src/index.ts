@@ -40,6 +40,7 @@ export class CsvBudget {
   private disposed = false;
   private lastYieldWork = 0;
   private aborted = false;
+  private readonly onAbort = (): void => { this.aborted = true; };
   private readonly pollSignal: boolean;
   readonly limits: Readonly<CsvLimits>;
   private readonly usage = {
@@ -85,7 +86,7 @@ export class CsvBudget {
     if (typeof signal.addEventListener === "function") {
       this.pollSignal = false;
       if (!this.aborted) {
-        signal.addEventListener("abort", () => { this.aborted = true; }, { once: true });
+        signal.addEventListener("abort", this.onAbort, { once: true });
       }
     } else {
       this.pollSignal = true;
@@ -141,6 +142,7 @@ export class CsvBudget {
     this.charge("retainedBytes", text.length * 2);
   }
   dispose(): void {
+    this.signal.removeEventListener?.("abort", this.onAbort);
     this.disposed = true;
     this.usage.retainedBytes = 0;
   }

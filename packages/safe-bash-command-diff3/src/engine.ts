@@ -18,7 +18,7 @@ export function createDiff3Engine(limits: Partial<Diff3Limits> = {}, options: Di
   const dispose = (): void => {
     closed = true;
     for (const file of fileNames) { files[file].chunks = []; files[file].lines = []; files[file].size = 0; }
-    budget.retainedBytes = budget.tokens = budget.graphCells = 0;
+    budget.dispose();
   };
   const execute = <T>(operation: () => T): T => {
     if (closed) throw new Diff3Error('CLOSED', 'Diff3 engine is closed');

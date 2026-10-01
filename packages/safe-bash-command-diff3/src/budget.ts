@@ -2,6 +2,7 @@ import { Diff3Error, type Diff3Accounting, type Diff3Limits } from './contracts.
 export class Budget {
   readonly limits: Diff3Limits;
   private aborted = false;
+  private readonly onAbort = (): void => { this.aborted = true; };
   readonly pollSignal: boolean;
   inputBytes = 0; retainedBytes = 0; peakRetainedBytes = 0;
   tokens = 0; graphCells = 0; peakGraphCells = 0; work = 0;
@@ -13,7 +14,7 @@ export class Budget {
     this.aborted = Boolean(signal?.aborted);
     this.pollSignal = Boolean(signal && (typeof signal.addEventListener !== "function" || Object.prototype.hasOwnProperty.call(signal, "aborted")));
     if (signal && !this.aborted && !this.pollSignal) {
-      signal.addEventListener("abort", () => { this.aborted = true; }, { once: true });
+      signal.addEventListener("abort", this.onAbort, { once: true });
     }
   }
   admit(resource: keyof Diff3Limits, amount: number): void {
@@ -26,6 +27,10 @@ export class Budget {
     this[resource] += amount;
     if (resource === "retainedBytes" && this.retainedBytes > this.peakRetainedBytes) this.peakRetainedBytes = this.retainedBytes;
     else if (resource === "graphCells" && this.graphCells > this.peakGraphCells) this.peakGraphCells = this.graphCells;
+  }
+  dispose(): void {
+    this.signal?.removeEventListener?.("abort", this.onAbort);
+    this.retainedBytes = this.tokens = this.graphCells = 0;
   }
   snapshot(): Diff3Accounting {
     return { inputBytes: this.inputBytes, retainedBytes: this.retainedBytes, peakRetainedBytes: this.peakRetainedBytes, tokens: this.tokens, graphCells: this.graphCells, peakGraphCells: this.peakGraphCells, work: this.work };

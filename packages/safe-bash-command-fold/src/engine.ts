@@ -45,9 +45,10 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
   let lastBlank = 0, peakRetained = 0;
   let emitted: Uint8Array[] = [];
   let aborted = Boolean(signal?.aborted);
+  const onAbort = (): void => { aborted = true; };
   const pollSignal = Boolean(signal && typeof signal.addEventListener !== "function");
   if (signal && !aborted && !pollSignal) {
-    signal.addEventListener("abort", () => { aborted = true; }, { once: true });
+    signal.addEventListener("abort", onAbort, { once: true });
   }
   const check = (amount = 1): void => {
     if (closed) throw new FoldError('CLOSED', 'Fold engine is closed');
@@ -122,7 +123,7 @@ export function createFoldEngine(options: FoldOptions, locale: string, configura
       pending.splice(0, unit.length);
     }
   };
-  const dispose = (): void => { closed = true; used = lastBlank = 0; pending.length = 0; emitted = []; line.fill(0); };
+  const dispose = (): void => { signal?.removeEventListener?.("abort", onAbort); closed = true; used = lastBlank = 0; pending.length = 0; emitted = []; line.fill(0); };
   const singleByte = [0];
   return {
     push(bytes) {

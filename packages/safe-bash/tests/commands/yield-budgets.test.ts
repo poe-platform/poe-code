@@ -99,7 +99,9 @@ for (const [name, factory] of frozenFactories) {
 }
 
 for (const [name, factory] of factories) {
-  test(`${name} invokes each caller checkpoint once per quantum`, async () => {
+  test(`${name} invokes each caller checkpoint once per quantum with a frozen clock`, async t => {
+    t.mock.method(performance, "now", () => 0);
+    t.mock.method(Date, "now", () => 0);
     const controller = new AbortController();
     let checkpoints = 0;
     registerYieldCheckpoint(controller.signal, () => { checkpoints++; });

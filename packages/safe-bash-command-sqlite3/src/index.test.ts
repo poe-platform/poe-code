@@ -872,3 +872,26 @@ for (const [name, sql, expected] of [
     assert.equal(result.stdout, expected);
   });
 }
+
+for (const limits of [undefined, { maxInputBytes: Infinity, maxOutputBytes: Infinity, maxRows: Infinity }]) {
+  test(`sqlite3 executes beyond former byte and row ceilings with ${limits ? "explicit Infinity" : "defaults"}`, async () => {
+    const payload = "x".repeat(16 * 1024 * 1024 + 1);
+    const sql = `SELECT '${payload}';`;
+    const large = await runSqlite3(createMemoryFileSystem(), [":memory:", sql], "", {
+      limits,
+      engine: { exec: (query: string) => {
+        assert.equal(query.length, sql.length - 1);
+        assert.ok(query === sql.slice(0, -1));
+        return [{ columns: ["value"], rows: [[payload]] }];
+      } }
+    });
+    assert.equal(large.code, 0, large.stderr);
+    assert.equal(large.stdout, payload + "\n");
+    const rows = await runSqlite3(createMemoryFileSystem(), [":memory:", "SELECT value;"], "", {
+      limits,
+      engine: { exec: () => [{ columns: ["value"], rows: Array.from({ length: 100_001 }, () => [1]) }] }
+    });
+    assert.equal(rows.code, 0, rows.stderr);
+    assert.equal(rows.stdout, "1\n".repeat(100_001));
+  });
+}

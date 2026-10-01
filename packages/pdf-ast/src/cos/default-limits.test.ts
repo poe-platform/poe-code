@@ -42,3 +42,16 @@ it("enforces object and decompression budgets for classic and repaired object st
   expect(() => serializeCosDocument({ objects, rootRef: cosRef(1), maxObjects: 1 })).toThrow();
   expect(() => serializeCosDocument({ objects, rootRef: cosRef(1), maxOutputBytes: 1 })).toThrow();
 });
+it.each([undefined, Infinity])("reads literal strings beyond the former token ceiling with limit %s", limit => {
+  const size = 16_000_001;
+  const bytes = new Uint8Array(size + 2).fill(0x61);
+  bytes[0] = 0x28;
+  bytes[bytes.length - 1] = 0x29;
+  const token = new CosByteLexer(bytes, 0, bytes.length, limit).nextToken();
+  expect(token?.kind).toBe("string");
+  if (token?.kind !== "string") throw new Error("Expected literal string");
+  expect(token.bytes.length).toBe(size);
+  expect(token.bytes[0]).toBe(0x61);
+  expect(token.bytes[size - 1]).toBe(0x61);
+  expect(() => new CosByteLexer(bytes, 0, bytes.length, 3).nextToken()).toThrow(/maximum byte length/);
+});

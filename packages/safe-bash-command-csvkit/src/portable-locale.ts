@@ -1,11 +1,36 @@
 import type { LocaleServices } from "./contracts.js";
+import { Decimal } from "./types/decimal.js";
 import { CsvkitBlocked } from "./errors.js";
 
-/** C locale has no grouping separator and always uses a decimal point. */
+/** C printf formats are ungrouped; decimal patterns opt into comma grouping. */
 export const portableLocale: LocaleServices = Object.freeze<LocaleServices>({
   profile: "C",
   timezone: "UTC",
-  formatNumber(value, _locale, format) {
+  formatNumber(value, _locale, format, grouping) {
+    if (format === "#,##0.###") {
+      const decimal = Decimal.parse(value);
+      if (decimal.special) return decimal.toString();
+      let coefficient = decimal.coefficient;
+      const shift = decimal.exponent + 3;
+      if (shift >= 0) coefficient *= 10n ** BigInt(shift);
+      else if (-shift > coefficient.toString().length) coefficient = 0n;
+      else {
+        const divisor = 10n ** BigInt(-shift);
+        const remainder = coefficient % divisor;
+        coefficient /= divisor;
+        if (remainder * 2n > divisor || remainder * 2n === divisor && coefficient % 2n !== 0n) coefficient++;
+      }
+      const digits = coefficient.toString().padStart(4, "0");
+      const whole = digits.slice(0, -3);
+      let fraction = digits.slice(-3);
+      while (fraction.endsWith("0")) fraction = fraction.slice(0, -1);
+      let integer = "";
+      for (let index = 0; index < whole.length; index++) {
+        if (grouping && index && (whole.length - index) % 3 === 0) integer += ",";
+        integer += whole[index];
+      }
+      return (decimal.negative ? "-" : "") + integer + (fraction ? "." + fraction : "");
+    }
     const number = Number(value);
     if (format === "%d" || format === "%i") {
       if (!Number.isFinite(number)) throw new CsvkitBlocked("non-finite integer formatting");

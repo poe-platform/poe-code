@@ -22,6 +22,8 @@ configuration. The `csvkitCommands()` plugin and `createCsvkitCommands()` factor
 work without options: they use portable UTF-8/Python codecs, gzip compression, a C/UTC
 locale, a clock, a noninteractive 80×24 terminal and the built-in SQL dialects.
 The C locale formats decimals with `%f` or `%.Nf` and integers with `%d`/`%i`.
+`--decimal-format '#,##0.###'` uses exact decimal rounding and comma grouping;
+`-G` disables grouping. The same format is available through the SDK settings.
 Portable commands normalize unnamed and duplicate headers with warnings suppressed;
 supply `columnWarnings` metadata for native warning text. Match files use the supplied
 virtual filesystem by default. Work-count checkpoints yield even with a frozen clock.

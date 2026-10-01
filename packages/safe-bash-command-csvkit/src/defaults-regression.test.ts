@@ -76,8 +76,8 @@ test("match files and CSV input share the configured byte budget", async () => {
 });
 
 
-test.each(["csvlook", "csvstat", "csvjson", "csvsort", "csvjoin", "csvsql"])("%s accepts a numeric single-column CSV with portable defaults", async name => {
-  const result = await invoke(name, "x\n2\n4\n", []);
+test.each(["csvlook", "csvstat", "csvjson", "csvsort", "csvjoin", "csvsql", "in2csv"])("%s accepts a numeric single-column CSV with portable defaults", async name => {
+  const result = await invoke(name, "x\n2\n4\n", name === "in2csv" ? ["-f", "csv"] : []);
   expect(result.exitCode).toBe(0);
   expect(result.stdout.length).toBeGreaterThan(0);
   expect(result.stderr).toBe("");
@@ -86,6 +86,7 @@ test.each(["csvlook", "csvstat", "csvjson", "csvsort", "csvjoin", "csvsql"])("%s
 
 test.each([
   ["latin1", new Uint8Array([120, 10, 233, 10]), "x\né\n"],
+  ["cp1252", new Uint8Array([120, 10, 128, 10]), "x\n€\n"],
   ["ascii", new TextEncoder().encode("x\nvalue\n"), "x\nvalue\n"],
   ["utf-16", new Uint8Array([255, 254, 120, 0, 10, 0, 233, 0, 10, 0]), "x\né\n"]
 ] as const)("portable csvcut includes the %s codec", async (encoding, bytes, expected) => {
@@ -95,4 +96,10 @@ test.each([
   expect(result.stderr).toBe("");
   expect(result.stdout.length).toBeGreaterThan(0);
   if (encoding === "ascii") expect(result.stdout).toBe(expected);
+});
+
+
+test.each([[[], "1,230\n"], [["-G"], "1230\n"]] as const)("csvstat preserves integer zeroes with decimal patterns (%s)", async (args, stdout) => {
+  expect(await invoke("csvstat", "a\n1230\n", ["--min", "--decimal-format", "#,##0.###", ...args]))
+    .toEqual({ exitCode: 0, stdout, stderr: "" });
 });

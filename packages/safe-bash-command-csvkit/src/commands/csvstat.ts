@@ -64,7 +64,7 @@ function compare(a: TableValue, b: TableValue, runtime: Runtime): number {
 function format(value: TableValue, runtime: Runtime): TableValue {
   if (typeof value !== "object" || !value || value.kind !== "decimal" || Decimal.parse(value.value).special) return value;
   let result = runtime.context.locale.formatNumber(value.value, runtime.context.locale.profile, String(runtime.options.decimal_format), !runtime.options.no_grouping_separator);
-  while (result.endsWith("0")) { runtime.step(); result = result.slice(0, -1); }
+  while (result.includes(".") && result.endsWith("0")) { runtime.step(); result = result.slice(0, -1); }
   while (result.endsWith(".")) { runtime.step(); result = result.slice(0, -1); }
   return result;
 }

@@ -98,9 +98,9 @@ test("literal memory-file search accounts for each line and stops quiet searches
   let release!: () => void;
   const yielding = new Promise<void>(resolve => { entered = resolve; });
   const gate = new Promise<void>(resolve => { release = resolve; });
-  context.mock.method(Limits.prototype, "tick", function(this: Limits) {
+  context.mock.method(Limits.prototype, "tick", function(this: Limits, syncOnly = false) {
     if (++ticks === yieldAt) { entered(); return gate; }
-    return tick.call(this);
+    return tick.call(this, syncOnly);
   });
   try {
     const inventory = await shell.exec("rg --files /work");

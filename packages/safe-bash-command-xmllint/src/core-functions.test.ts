@@ -56,6 +56,24 @@ for (const [query, expected] of [
   assert.equal(result.output, expected + "\n");
 });
 
+for (const [query, expected] of [
+  ["sum(//price)", "30"],
+  ["number(//price[1])", "10"],
+  ["normalize-space(//title[1])", "XML Guide"],
+  ["concat(//title[1], ' - ', //title[2])", "  XML  Guide  - Reference"],
+  ["contains(//title[1], 'XML')", "true"],
+  ["starts-with(//title[2], 'Ref')", "true"],
+  ["substring(//title[2], 2, 3)", "efe"],
+  ["string-length(//title[2])", "9"],
+  ["name(/*)", "books"],
+  ["local-name(/*)", "books"],
+] as const) test(`core functions on element node sets: ${query}`, async () => {
+  const result = await run(["--xpath", query],
+    "<books><title>  XML  Guide </title><title>Reference</title><price>10</price><price>20</price></books>");
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
 test("namespace naming functions", async () => {
   const result = await run(["--xpath", 'concat(name(/*), "|", local-name(/*), "|", namespace-uri(/*))'], '<p:root xmlns:p="urn:p"/>');
   assert.equal(result.exitCode, 0, result.errors);

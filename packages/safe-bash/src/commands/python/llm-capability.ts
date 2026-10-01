@@ -373,7 +373,13 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         const aliases = await configuration.aliases();
         const models = service.models.map(entry => ({
           id:entry.model.id,aliases:getLlmModelAliases(entry,aliases),capabilities:[...entry.model.capabilities ?? []],
-          metadata:{...(entry.model.options === undefined ? {} : {options:entry.model.options}),provider:entry.provider.name,attachmentTypes:[...entry.model.attachmentTypes ?? []],outputType:entry.model.outputType ?? 'text/plain'},
+          metadata:{...(entry.model.options === undefined ? {} : {options:Object.fromEntries(Object.entries(entry.model.options).map(([name, option]) => [name, {
+            type:option.type,
+            ...(option.minimum === undefined ? {} : {minimum:option.minimum}),
+            ...(option.maximum === undefined ? {} : {maximum:option.maximum}),
+            ...(option.nullable === undefined ? {} : {nullable:option.nullable}),
+            ...(option.description === undefined ? {} : {description:option.description}),
+          }]))}),provider:entry.provider.name,attachmentTypes:[...entry.model.attachmentTypes ?? []],outputType:entry.model.outputType ?? 'text/plain'},
         }));
         jsonBytes(models,bufferedLimit);
         return models;

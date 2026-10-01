@@ -1,5 +1,6 @@
 import { FsError, isFsError } from "../../contracts/errors.js";
 import type {
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions, RenameOptions,
   CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStat, FileSystem,
   FsOptions, ChmodOptions, MkdirOptions, PublishStagedFileOptions, RemoveOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
@@ -175,6 +176,121 @@ export class OverlayMemoryPublication {
     };
   }
 
+  prepareWrite(path: string, options: ConditionalWriteFileOptions): () => true {
+    this.stores();
+    this.path(path);
+    const ancestors = this.capture(path);
+    return () => {
+      options.signal?.throwIfAborted();
+      this.stores();
+      this.check(ancestors);
+      this.expect(dirname(path), options.parent);
+      const current = this.inspect(path);
+      if (options.expected === null) {
+        if (current) throw new FsError("EAGAIN", { path });
+      } else {
+        this.expect(path, options.expected, true);
+        if (current?.type !== "file") throw new FsError("EINVAL", { path });
+      }
+      return true;
+    };
+  }
+
+  async writeFile(path: string, data: Uint8Array, options: ConditionalWriteFileOptions, maxBytes: number, guard?: () => void): Promise<FileStat> {
+    const check = this.prepareWrite(path, options);
+    check();
+    const current = this.inspect(path);
+    if (current && ((current.mode >> 6) & 2) !== 2) throw new FsError("EACCES", { path });
+    if (current && !this.observation(path).upper && current.nlink !== 1) throw new FsError("ENOTSUP", { path, message: "ambiguous hardlink copy-up" });
+    const controls: FsOptions = options.signal ? { signal: options.signal } : {};
+    let bytes = data;
+    if (options.append && current && !this.observation(path).upper) {
+      const previous = await this.lower.readFile(path, { ...controls, ...(maxBytes === Infinity ? {} : { maxBytes }) });
+      if (previous.byteLength + data.byteLength > maxBytes) throw new FsError("EFBIG", { path });
+      bytes = new Uint8Array(previous.byteLength + data.byteLength);
+      bytes.set(previous); bytes.set(data, previous.byteLength);
+    }
+    const ancestors = this.capture(path);
+    await this.copyParents(ancestors, controls);
+    guard?.();
+    check();
+    const upper = this.observation(path).upper;
+    if (data.byteLength + (options.append ? current?.size ?? 0 : 0) > maxBytes) throw new FsError("EFBIG", { path });
+    const pending = this.upper.writeFileConditional!(path, bytes, {
+      ...options, parent: this.observation(dirname(path)).upper!, expected: upper ?? null,
+      append: options.append === true && upper !== undefined,
+      ...(current ? { mode: current.mode & 0o7777 } : {}),
+      ...(options.atimeMs === undefined && current ? { atimeMs: current.atimeMs } : {}),
+    });
+    // Retain the result before another caller can alter the upper store.
+    const result = this.inspect(path);
+    const receipt = result ? this.stat(path, result) : undefined;
+    await pending;
+    return receipt!;
+  }
+
+  async removeFile(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
+    this.prepareWrite(path, options)();
+    const parent = this.inspect(dirname(path))!;
+    if (((parent.mode >> 6) & 3) !== 3) throw new FsError("EACCES", { path });
+    const upper = this.observation(path).upper;
+    const removal = upper ? this.upper.removeFileConditional!(path, {
+      ...options, parent: this.observation(dirname(path)).upper!, expected: upper,
+    }) : undefined;
+    if (!upper || !this.physical(this.stores().upper, path)) this.whiteouts.add(path);
+    await removal;
+  }
+
+  prepareRename(source: string, destination: string): () => void {
+    const ancestors = [...this.capture(source), ...this.capture(destination)];
+    const target = this.observation(destination);
+    const entries: Observation[] = [];
+    const pending = [source];
+    const stores = this.stores();
+    while (pending.length) {
+      const path = pending.pop()!;
+      const entry = this.observation(path);
+      const visible = this.visible(entry);
+      if (!visible) continue;
+      entries.push(entry);
+      if (visible.type !== "directory") continue;
+      const names = new Set([
+        ...(entry.upper?.type === "directory" ? stores.upper.names(path) : []),
+        ...(entry.lower?.type === "directory" && !this.opaque.has(path) ? stores.lower.names(path) : []),
+      ]);
+      for (const name of names) pending.push(`${path}/${name}`);
+    }
+    return () => {
+      this.stores();
+      this.check(ancestors);
+      const current = this.observation(destination);
+      if (!this.same(current.upper, target.upper, true) || !this.same(current.lower, target.lower, true)) {
+        throw new FsError("EAGAIN", { path: destination });
+      }
+      for (const entry of entries) {
+        const actual = this.observation(entry.path);
+        // Copy-up may add upper entries; it never changes the lower store.
+        if (!this.same(actual.lower, entry.lower, true)
+          || (entry.upper && !this.same(actual.upper, entry.upper, entry.upper.type !== "directory"))) {
+          throw new FsError("EAGAIN", { path: entry.path });
+        }
+      }
+    };
+  }
+
+  async rename(source: string, destination: string, options: RenameOptions, guard: () => void): Promise<void> {
+    options.signal?.throwIfAborted();
+    this.stores();
+    const current = this.inspect(destination);
+    if (options.noReplace && current) throw new FsError("EEXIST", { path: destination });
+    guard();
+    if (!this.observation(source).upper) throw new FsError("ENOENT", { path: source });
+    const moved = this.upper.rename(source, destination, options);
+    // Stock Memory commits synchronously; publish the whiteout in that same turn.
+    if (!this.physical(this.stores().upper, source)) this.whiteouts.add(source);
+    await moved;
+  }
+
   private async copyParents(entries: readonly FileStagingEntry[], options: FsOptions): Promise<void> {
     for (const entry of entries) {
       options.signal?.throwIfAborted();
@@ -243,7 +359,7 @@ export class OverlayMemoryPublication {
     this.stages.delete(staging);
   }
 
-  confine(roots: readonly string[], options: FsOptions, run: <T>(options: FsOptions, operation: () => Promise<T>) => Promise<T>, fs: FileSystem): FileSystem {
+  confine(roots: readonly string[], options: FsOptions, run: <T>(options: FsOptions, operation: () => Promise<T>) => Promise<T>, fs: FileSystem, maxBytes: number): FileSystem {
     options.signal?.throwIfAborted();
     const retained = new Map<string, FileStat>();
     for (const root of roots) {
@@ -257,6 +373,21 @@ export class OverlayMemoryPublication {
     return new Proxy(fs, {
       get: (target, property) => {
         if (property === "confineExtraction" || property === "objects") return undefined;
+        if (property === "writeFileConditional") return async (path: string, data: Uint8Array, mutation: ConditionalWriteFileOptions) => {
+          mutation.signal?.throwIfAborted();
+          if (!(data instanceof Uint8Array)) throw new TypeError("Overlay files require Uint8Array data");
+          if (data.byteLength > maxBytes) throw new FsError("EFBIG", { path });
+          const bytes = new Uint8Array(data), captured = { ...mutation };
+          return run(captured, async () => {
+            const guard = () => {
+              this.path(path);
+              if (!roots.some(root => isPathWithin(root, path))) throw new FsError("EPERM", { path });
+              this.check([...retained].filter(([root]) => isPathWithin(root, path)).map(([path, stat]) => ({ path, stat })));
+            };
+            guard();
+            return this.writeFile(path, bytes, captured, maxBytes, guard);
+          });
+        };
         if (["mkdir", "rm", "rmdir"].includes(String(property))) return (path: string, mutation: MkdirOptions & RemoveOptions = {}) => run(mutation, async () => {
           mutation.signal?.throwIfAborted();
           this.path(path);

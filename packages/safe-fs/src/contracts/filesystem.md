@@ -1248,8 +1248,12 @@ existing operation budget and lifetime rules.
 Stock Memory-backed overlays compose owned staging with synchronous cross-layer
 checks. Their owned stat receipts bind layer selection and both directory
 identities; publication requires the complete `ancestors` sequence. Confined
-views permit `mkdir`, `rm`, and `rmdir` with retained roots and no symlink
-ancestry, and explicitly refuse other mutations. This profile supports patch
+views permit `mkdir`, `rm`, `rmdir`, and `writeFileConditional` with retained roots
+and no symlink ancestry, and explicitly refuse other mutations. Conditional writes
+retain upper file identity, enforce the overlay buffer limit, and reject stale
+layer or parent receipts. Conditional removal publishes its whiteout in the same
+turn as the upper mutation. Qualified overlays also provide atomic rename and
+no-replace rename, checking lower-layer destinations at commit. This profile supports patch
 create/replace/delete/reverse without changing the lower store. A wrapper,
 subclass, or customized Memory implementation does not qualify, including
 customization after admission. Failed publication and cancellation leave owned

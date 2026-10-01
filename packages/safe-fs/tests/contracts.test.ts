@@ -62,7 +62,7 @@ const adapters: Array<{ name: string; create: () => FileSystem; overlayAppend: b
   { name: "mount", create: () => new MountFileSystem({ root: new MemoryFileSystem() }), overlayAppend: true },
   {
     name: "overlay",
-    overlayAppend: false,
+    overlayAppend: true,
     create: () =>
       new OverlayFileSystem({ lower: new MemoryFileSystem(), upper: new MemoryFileSystem() })
   }

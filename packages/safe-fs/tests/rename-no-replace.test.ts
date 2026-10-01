@@ -150,7 +150,7 @@ describe("atomic no-replace rename", () => {
       new RealFileSystem("/nonexistent-no-replace-root"),
       new S3FileSystem({ bucket: "bucket", transport: new MockS3Client({ buckets: ["bucket"] }), allowNonAtomicRename: true }),
       new WebDavFileSystem({ baseUrl: "https://example.invalid/dav/", fetch }),
-      new OverlayFileSystem({ upper, lower }),
+      new OverlayFileSystem({ upper, lower: new MountFileSystem({ root: lower }) }),
     ];
     for (const fs of adapters) {
       expect(fs.capabilities.atomicRenameNoReplace).toBe(false);

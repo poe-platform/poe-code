@@ -12,6 +12,7 @@ import { compareEntries, registerEntryView } from "../mount/comparison.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import type { FileDescriptor, OpenFileOptions } from "../../contracts/descriptor.js";
 import type {
+  ConditionalWriteFileOptions, ConditionalRemoveFileOptions,
   CreateStagedFileOptions, FileStaging, PublishStagedFileOptions, StagedFileContent,
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, OpenReadFileOptions,
   FileReadHandle, FileStat, FileSystem, FileSystemCapabilities, FsOptions, ChmodOptions, RenameOptions, MkdirOptions,
@@ -177,13 +178,13 @@ export class OverlayFileSystem implements FileSystem {
       ...semantics,
       open: false,
       conditionalChmod: this.publication.supported(),
-      atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: this.publication.supported(), atomicStagingAncestry: this.publication.supported(), atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+      atomicFilePublication: false, atomicFileMutation: this.publication.supported(), atomicEntryRemoval: false, atomicEntryRemovalReceipt: false, atomicFileStaging: this.publication.supported(), atomicStagingAncestry: this.publication.supported(), atomicDirectoryMetadata: false, trustedOwnedStaging: false,
       implicitDirectories: false,
       readlink: upper.readlink === true && this.#lower.capabilities.readlink === true ? true
         : upper.readlink === false && this.#lower.capabilities.readlink === false ? false : undefined,
       ...(upper.readOnly === undefined ? {} : { readOnly: upper.readOnly }),
       ...(effectiveAppend === undefined ? {} : { append: effectiveAppend }),
-      atomicRename: false, atomicRenameNoReplace: false,
+      atomicRename: this.publication.supported(), atomicRenameNoReplace: this.publication.supported(),
       descriptorWriteStream: false,
       retainedResize: false, atomicResize: false,
       hardlinks: false,
@@ -201,7 +202,7 @@ export class OverlayFileSystem implements FileSystem {
 
   confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
     return this.run(options, async () => this.publication.confine(roots, options,
-      (options, operation) => this.run(options, operation, false), this), false);
+      (options, operation) => this.run(options, operation, false), this, this.maxBufferBytes), false);
   }
 
   createStagedFile(directory: string, name: string, content: StagedFileContent, options: CreateStagedFileOptions): Promise<FileStaging> {
@@ -696,10 +697,32 @@ export class OverlayFileSystem implements FileSystem {
       const location = await this.writeLocation(path, options);
       const append = options.flag === "a" || options.flag === "ax";
       if (append && (location.entry?.stat.size ?? 0) + bytes.byteLength > this.maxBufferBytes) fail("EFBIG", path);
-      await this.replace(location, options, async (temporary) => {
-        await this.#upper.writeFile(temporary, bytes, { ...options, flag: append ? "a" : "w" });
-      });
+      if (this.publication.supported() && location.entry?.backend === this.#upper) {
+        const parent = await this.required(dirname(location.path), options);
+        await this.publication.writeFile(location.path, bytes, {
+          ...options, parent: this.publication.stat(parent.path, parent.stat),
+          expected: this.publication.stat(location.path, location.entry.stat), append,
+        }, this.maxBufferBytes);
+      } else {
+        await this.replace(location, options, async (temporary) => {
+          await this.#upper.writeFile(temporary, bytes, { ...options, flag: append ? "a" : "w" });
+        });
+      }
     });
+  }
+
+  async writeFileConditional(path: string, data: Uint8Array, options: ConditionalWriteFileOptions): Promise<FileStat> {
+    options.signal?.throwIfAborted();
+    if (!(data instanceof Uint8Array)) throw new TypeError("Overlay files require Uint8Array data");
+    const bytes = new Uint8Array(data);
+    if (bytes.byteLength > this.maxBufferBytes) fail("EFBIG", path);
+    const captured = { ...options };
+    return this.run(captured, () => this.publication.writeFile(path, bytes, captured, this.maxBufferBytes), false);
+  }
+
+  removeFileConditional(path: string, options: ConditionalRemoveFileOptions): Promise<void> {
+    const captured = { ...options };
+    return this.run(captured, () => this.publication.removeFile(path, captured), false);
   }
 
   async appendFile(path: string, data: Uint8Array, options: AppendFileOptions = {}): Promise<void> {
@@ -828,10 +851,11 @@ export class OverlayFileSystem implements FileSystem {
 
   async rename(source: string, destination: string, options: RenameOptions = {}): Promise<void> {
     return this.run(options, async () => {
-      if (options.noReplace) fail("ENOTSUP", source, "atomic no-replace rename is unsupported");
+      if (options.noReplace && !this.publication.supported()) fail("ENOTSUP", source, "atomic no-replace rename is unsupported");
       this.writable(source);
       const original = await this.required(source, options, false);
       const target = await this.resolve(destination, options, false, true);
+      if (options.noReplace && target.entry) fail("EEXIST", destination);
       if (original.path === target.path) return;
       if (original.path === "/" || target.path === "/") fail("EBUSY", source);
       if (original.stat.type === "directory" && isPathWithin(original.path, target.path)) fail("EINVAL", destination);
@@ -840,6 +864,7 @@ export class OverlayFileSystem implements FileSystem {
         if (original.stat.type !== "directory" && target.entry.stat.type === "directory") fail("EISDIR", destination);
         if (target.entry.stat.type === "directory" && (await this.listing(target.entry, options)).length) fail("ENOTEMPTY", destination);
       }
+      const guard = this.capabilities.atomicRename ? this.publication.prepareRename(original.path, target.path) : undefined;
       await this.parent(original.path, options);
       await this.parent(target.path, options);
       await this.materialize(original, options);
@@ -856,7 +881,8 @@ export class OverlayFileSystem implements FileSystem {
         movedOrigins.push([destination, { ...origin, moves }]);
       }
       options.signal?.throwIfAborted();
-      await this.#upper.rename(original.path, target.path, options);
+      if (this.capabilities.atomicRename) await this.publication.rename(original.path, target.path, options, guard!);
+      else await this.#upper.rename(original.path, target.path, options);
       this.whiteouts.add(original.path);
       if (original.stat.type === "directory") this.opaque.add(target.path);
       const moved = [...this.linkMetadata].filter(([path]) => isPathWithin(original.path, path));
@@ -1046,9 +1072,18 @@ export class OverlayFileSystem implements FileSystem {
           const location = await this.writeLocation(path, options);
           const append = options.flag === "a" || options.flag === "ax";
           if (append && (location.entry?.stat.size ?? 0) + size > this.maxBufferBytes) fail("EFBIG", path);
-          await this.replace(location, options, async (temporary) => {
-            await this.streamToUpper(temporary, this.#upper.readStream!(incoming, options), { ...options, flag: append ? "a" : "w" });
-          }, true);
+          if (this.publication.supported() && location.entry?.backend === this.#upper) {
+            const bytes = await this.#upper.readFile(incoming, options);
+            const parent = await this.required(dirname(location.path), options);
+            await this.publication.writeFile(location.path, bytes, {
+              ...options, parent: this.publication.stat(parent.path, parent.stat),
+              expected: this.publication.stat(location.path, location.entry.stat), append,
+            }, this.maxBufferBytes);
+          } else {
+            await this.replace(location, options, async (temporary) => {
+              await this.streamToUpper(temporary, this.#upper.readStream!(incoming, options), { ...options, flag: append ? "a" : "w" });
+            }, true);
+          }
         });
       });
       return;

@@ -125,7 +125,7 @@ async function lotusFormat(fmt: number, context: CapabilityContext): Promise<str
   return "";
 }
 
-type LotusNamedRange = { first: { row: number; column: number; sheet: number }; last: { row: number; column: number; sheet: number } };
+type LotusNamedRange = { name: string; first: { row: number; column: number; sheet: number }; last: { row: number; column: number; sheet: number } };
 
 function lotusExternalVariable(name: string): string | undefined {
   if (!name.startsWith("<<")) return;
@@ -277,7 +277,7 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
       let name = await lmbcs(bytes.subarray(start, at), group, context); at++;
       // Only absolute-name tokens carry a '$' marker (Calc FindRel/FindAbs).
       if (op === 8 && name.startsWith("$")) name = name.slice(1);
-      const range = names?.get(name);
+      const range = names?.get(name.toUpperCase());
       const external = range ? undefined : lotusExternalVariable(name);
       if (external !== undefined) stack.push(external);
       else {
@@ -286,7 +286,7 @@ async function lotusFormula(bytes: Uint8Array, format: "wk1" | "wk3" | "123", gr
         // Retain identity and copy mode even when the declaration is missing,
         // so adding or editing it later can bind this same formula reference.
         const fixedSheet = range && (range.first.sheet !== sheetIndex || range.last.sheet !== sheetIndex);
-        stack.push(name ? `@name.${op === 7 ? "relative" : "absolute"}${fixedSheet ? ".fixed-sheet" : ""}[0,0,0]:` + quoteFormulaString(name, '"', gnumericGrammar) : "#NAME?");
+        stack.push(name ? `@name.${op === 7 ? "relative" : "absolute"}${fixedSheet ? ".fixed-sheet" : ""}[0,0,0]:` + quoteFormulaString(range?.name ?? name, '"', gnumericGrammar) : "#NAME?");
       }
     } else if (modern && op >= 9 && op <= 11) {
       const length = op === 9 ? 4 : op === 10 ? 5 : 11;
@@ -490,9 +490,9 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
       if (first.column >= 256 || last.column >= 256 || first.sheet < 0 || last.sheet < 0) {
         await warn(`Ignoring invalid Lotus named range '${name}'.`); continue;
       }
-      if (names.has(name)) { await warn(`Ignoring duplicate Lotus name '${name}'.`); continue; }
+      if (names.has(name.toUpperCase())) { await warn(`Ignoring duplicate Lotus name '${name}'.`); continue; }
       sheet(first.sheet); sheet(last.sheet);
-      names.set(name, { first, last }); continue;
+      names.set(name.toUpperCase(), { name, first, last }); continue;
     }
     if (modern && id >= 0x800 && id <= 0x804) {
       const runSize = version >= 0x1005 ? 4 : 2;
@@ -800,7 +800,7 @@ export async function readLotus(bytes: Uint8Array, context: CapabilityContext): 
     const owner = sheet(pending.index), key = `${pending.cell.row}:${pending.cell.column}`;
     if (owner.cells.get(key) === pending.cell) { chargeExpressionText(formula); owner.cells.set(key, { ...pending.cell, formula }); }
   }
-  const importedNames = [...names].map(([name, { first, last }]) => {
+  const importedNames = [...names.values()].map(({ name, first, last }) => {
     consumeOperation(); chargeExpressionText(name); chargeExpressionText("=");
     const qualifier = (index: number) => {
       chargeExpressionText("''!"); chargeExpressionText(sheets[index]!.name, true);

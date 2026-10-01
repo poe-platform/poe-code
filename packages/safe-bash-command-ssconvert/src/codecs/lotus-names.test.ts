@@ -43,11 +43,11 @@ it("preserves a reversed physical sheet span without sorting source endpoints", 
   const book = await readLotus(modern(newName("Back", [0, 2, 0], [0, 0, 0])), context);
   expect(book.names).toEqual([{ name: "Back", expression: "='Sheet3'!$A$1:'Sheet1'!$A$1" }]);
 });
-it("retains exact-case names and keeps the first exact duplicate", async () => {
+it("preserves original spelling and keeps the first case-insensitive duplicate", async () => {
   const warnings: string[] = [];
   const book = await readLotus(old(oldName("N"), oldName("n", [1, 0]), oldName("N", [2, 0])), { ...context, async diagnostic(d) { warnings.push(d.message); } });
-  expect(book.names).toEqual([{ name: "N", expression: "='A'!$A$1" }, { name: "n", expression: "='A'!$B$1" }]);
-  expect(warnings).toEqual(["Ignoring duplicate Lotus name 'N'."]);
+  expect(book.names).toEqual([{ name: "N", expression: "='A'!$A$1" }]);
+  expect(warnings).toEqual(["Ignoring duplicate Lotus name 'n'.", "Ignoring duplicate Lotus name 'N'."]);
 });
 it("decodes bounded LMBCS names and sixteen-byte names without a terminator", async () => {
   const book = await readLotus(old(oldName("abcdefghijklmnop"), oldName(String.fromCharCode(0x82))), context);
@@ -214,9 +214,9 @@ it("preserves cancellation raised by the final unterminated-name diagnostic", as
   const controller = new AbortController(), reason = new Error("token cancellation");
   await expect(readLotus(modern(record(40, [0, 0, 0, 1, ...Array<number>(8).fill(0), 7, 88])), { ...context, signal: controller.signal, async diagnostic() { controller.abort(reason); } })).rejects.toBe(reason);
 });
-it("decodes exact-case and LMBCS token names without selecting a duplicate", async () => {
+it("binds case-insensitive and LMBCS token names to the first declaration", async () => {
   const book = await readLotus(modern(newName("N"), newName("n", [0, 0, 2]), newName(String.fromCharCode(0x82), [1, 0, 0]), newName("N", [0, 0, 3]), formulaRecord([...namedToken("N", 8), ...namedToken("n", 8), 15, ...namedToken(String.fromCharCode(0x82), 8), 15])), context);
-  expect(book.sheets[0]?.cells[0]?.formula).toBe('=((@name.absolute[0,0,0]:"N"+@name.absolute[0,0,0]:"n")+@name.absolute[0,0,0]:"é")');
+  expect(book.sheets[0]?.cells[0]?.formula).toBe('=((@name.absolute[0,0,0]:"N"+@name.absolute[0,0,0]:"N")+@name.absolute[0,0,0]:"é")');
 });
 it("qualifies a final apostrophe-containing named endpoint from another sheet", async () => {
   const book = await readLotus(modern(formulaRecord(namedToken("Value", 8), 0, 1, 1), newName("Value"), record(0x204, [...Array<number>(10).fill(0), 79, 39, 66, 0])), context);
@@ -335,4 +335,20 @@ it("keeps live names beside relative-sheet tokens in internal OpenFormula", asyn
   const changed = { ...book, names: [{ name: "Value", expression: "='Sheet1'!$B$1" }] };
   expect(recalculateWorkbook(changed, context, true).sheets[0]!.cells.find(cell => cell.formula)?.value)
     .toEqual({ kind: "number", value: 24 });
+});
+
+
+it.each([7, 8])("resolves mixed-case token %i with the declaration's physical sheet", async opcode => {
+  for (const [declared, referenced] of [["SALES", "sales"], ["sales", "SALES"], ["Été", "éTÉ"]]) {
+    const warnings: string[] = [];
+    const encoded = (text: string) => text.replaceAll("É", String.fromCharCode(0x90)).replaceAll("é", String.fromCharCode(0x82));
+    const book = await readLotus(modern(newName(encoded(declared!), [0, 1, 0]),
+      formulaRecord(namedToken((opcode === 8 ? "$" : "") + encoded(referenced!), opcode)),
+      record(24, [0, 0, 1, 0, 22, 0])),
+      { ...context, async diagnostic(d) { warnings.push(d.message); } });
+    expect(book.names?.map(name => name.name)).toEqual([declared]);
+    expect(book.sheets[0]!.cells[0]!.formula).toContain(".fixed-sheet");
+    expect(recalculateWorkbook(book, context, true).sheets[0]!.cells[0]!.value).toEqual({ kind: "number", value: 11 });
+    expect(warnings).toEqual([]);
+  }
 });

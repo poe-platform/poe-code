@@ -55,14 +55,29 @@ export function registerBrowserSocketClose(socket: WebSocket, alias = socket) {
 		};
 		const closed = (event: CloseEvent) => {
 			cleanup();
-			finish(
-				event.code === 1000 || event.code === 1005
-					? undefined
-					: new Error(
-							`Owned browser upstream closed: ${event.code} ${event.reason}`,
-							{ cause: eof },
-						),
+			if (event.code === 1000 || event.code === 1005) {
+				finish();
+				return;
+			}
+			const error = new Error(
+				`Owned browser upstream closed: ${event.code} ${event.reason}`,
+				{ cause: eof },
 			);
+			// A provider may drop TCP without a Close frame during shutdown.
+			// Require both physical closure and successful owned-session deletion.
+			if (
+				event.code === 1006 &&
+				event.isTrusted &&
+				socket.readyState === WebSocket.CLOSED &&
+				(closure!.ownerClosing || closure!.closing)
+			) {
+				eof = error;
+				eofDuringClose = true;
+				if (closure!.ownerTerminated !== undefined)
+					closure!.finalizeOwnerTermination(closure!.ownerTerminated);
+				return;
+			}
+			finish(error);
 		};
 		const failOperation = (error: unknown) => {
 			cleanup();

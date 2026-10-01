@@ -98,7 +98,7 @@ test('open resolves native device context options, standard defaults, and explic
   assert.deepEqual(resolved, { browser: 'chromium', headless: true, idleTimeoutMs: 0, contextOptions: {
     userAgent: 'mobile-agent', viewport: { width: 393, height: 727 }, deviceScaleFactor: 2.75, isMobile: true, hasTouch: true,
   } });
-  assert.equal((await resolvePlaywrightOpenOptions({}, invocation, adapter, 4096)).idleTimeoutMs, 3_600_000);
+  assert.equal((await resolvePlaywrightOpenOptions({}, invocation, adapter, 4096)).idleTimeoutMs, 0);
   await assert.rejects(resolvePlaywrightOpenOptions({ mobile: true, device: 'Pixel 7' }, invocation, adapter, 4096), /Cannot use --mobile together/);
   await assert.rejects(resolvePlaywrightOpenOptions({ mobile: true }, invocation, adapter, 4096), /Unknown device: Pixel 10/);
 });

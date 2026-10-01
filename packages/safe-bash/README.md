@@ -730,7 +730,11 @@ disables a limit. Shell helpers expose `maxCdWork`, `maxCdProbes`,
 `execution.envSplitLimits`; env shebangs use `maxEnvSplitBytes`, `maxEnvSplitArguments`, `maxEnvSplitExpansions`, and `maxEnvSplitWork` in Shell limits; truncate uses `metadata.limits.maxArguments`.
 Browser controller structural ceilings (configuration, snapshots, output files,
 recording, traces, routes and WebMCP) are also optional `limits`; WebMCP discovery uses the optional `webMCPDiscoveryTimeoutMs` deadline, disabled by default; viewport dimensions and operation receipt count/age use `maxViewportDimension`, `maxOperationOutcomes`, and `maxOperationOutcomeAgeMs`, also unlimited by default; network and
-route-policy byte/count ceilings default to `Infinity`. `xargs -s Infinity` and `--max-chars=Infinity` explicitly remove
+route-policy byte/count ceilings default to `Infinity`. Browser action, snapshot,
+navigation, and code execution deadlines are disabled by default; configure
+`limits.actionTimeoutMs`, `limits.codeExecutionTimeoutMs`, or session timeouts
+to bound them. `Infinity` disables host deadlines and maps to the native
+Playwright timeout value `0`. `xargs -s Infinity` and `--max-chars=Infinity` explicitly remove
 the command-size quota. Stream chunk sizes and polling intervals control execution
 independently of these quotas. `diff -u /dev/null FILE` and its reverse produce
 creation/deletion patches; top-level readable character and FIFO inputs are

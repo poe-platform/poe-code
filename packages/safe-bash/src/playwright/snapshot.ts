@@ -1,3 +1,4 @@
+import { playwrightNativeTimeout } from "./resource-limit.js";
 import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightSnapshotHandle, PlaywrightSnapshotJSONCapture, PlaywrightFrame, PlaywrightSnapshotReferenceCapture, PlaywrightSnapshotReferenceBatch } from './adapter.js';
 import { createFrameSnapshot } from './frame-snapshot.js';
 import { captureNativePlaywrightSnapshot } from './native-snapshot.js';
@@ -30,7 +31,7 @@ async function nativeConnected(handle: PlaywrightElementHandle): Promise<boolean
 
 function snapshotSignal(timeout: number, signal?: AbortSignal): AbortSignal {
   const signals = signal ? [signal] : [];
-  if (timeout !== 0) signals.push(AbortSignal.timeout(timeout));
+  if (timeout !== 0 && timeout !== Infinity) signals.push(AbortSignal.timeout(timeout));
   return AbortSignal.any(signals);
 }
 
@@ -59,7 +60,7 @@ class SnapshotStaleCaptureError extends Error {
 }
 
 async function captureStable<Result, Options extends { timeout?: number; root?: PlaywrightElementHandle }>(capture: (options: Options) => Promise<Result>, options: Options, signal?: AbortSignal): Promise<Result> {
-  const timeout = options.timeout ?? 5000;
+  const timeout = playwrightNativeTimeout(options.timeout);
   const deadline = timeout === 0 ? undefined : Date.now() + timeout;
   try { return await capture(options); }
   catch (error) {
@@ -256,14 +257,14 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     if (!page.ariaSnapshot && !page._snapshotForAI && (options.root || options.depth || options.boxes)) throw new Error('Native snapshot options unsupported by this browser');
     if (page.ariaSnapshot || page._snapshotForAI) {
       const capturedEpoch = epoch;
-      const native = prepareNativeCapture(page, options.captureReferences, options.timeout ?? 5000, signal);
+      const native = prepareNativeCapture(page, options.captureReferences, playwrightNativeTimeout(options.timeout), signal);
       const captured = await captureNativePlaywrightSnapshot(page, { maxRefs: maxSnapshotRefs,
         nextRef: native.nextRef, ...(native.prepareRefs ? { prepareRefs: native.prepareRefs } : {}), ...(signal ? { signal } : {}),
         ...options,
       });
       signal?.throwIfAborted();
       if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
-      await publishNative(page, captured.refs, capturedEpoch, options.timeout ?? 5000, signal, native.binding);
+      await publishNative(page, captured.refs, capturedEpoch, playwrightNativeTimeout(options.timeout), signal, native.binding);
       if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
       return captured.text;
     }
@@ -383,7 +384,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
     }
     return reference.native;
   };
-  const resolve = async (ref: string, timeout = 5000, signal?: AbortSignal): Promise<PlaywrightElementHandle> => {
+  const resolve = async (ref: string, timeout = 0, signal?: AbortSignal): Promise<PlaywrightElementHandle> => {
     const actionSignal = snapshotSignal(timeout, signal);
     actionSignal.throwIfAborted();
     try { return await waitForSnapshot(resolveReference(ref, actionSignal), actionSignal); }
@@ -396,12 +397,12 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
   };
   const captureJSON = async (page: PlaywrightPage, signal?: AbortSignal, options: { depth?: number; boxes?: boolean; root?: PlaywrightElementHandle; timeout?: number; captureJSON?: PlaywrightSnapshotJSONCapture; captureReferences?: PlaywrightSnapshotReferenceCapture } = {}) => captureStable(async options => {
     const capturedEpoch = epoch;
-    const native = prepareNativeCapture(page, options.captureReferences, options.timeout ?? 5000, signal);
+    const native = prepareNativeCapture(page, options.captureReferences, playwrightNativeTimeout(options.timeout), signal);
     const captured = await captureNativePlaywrightJSON(page, { maxDepth: limits.maxSnapshotDepth, maxRefs: maxSnapshotRefs,
       nextRef: native.nextRef, ...(native.prepareRefs ? { prepareRefs: native.prepareRefs } : {}), ...(signal ? { signal } : {}), ...options });
     signal?.throwIfAborted();
     if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
-    await publishNative(page, captured.refs, capturedEpoch, options.timeout ?? 5000, signal, native.binding);
+    await publishNative(page, captured.refs, capturedEpoch, playwrightNativeTimeout(options.timeout), signal, native.binding);
     if (capturedEpoch !== epoch) throw new SnapshotStaleCaptureError();
     return captured.tree;
   }, options, signal).catch(async error => {

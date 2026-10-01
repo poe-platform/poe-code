@@ -159,9 +159,9 @@ export async function resolvePlaywrightOpenOptions(options: Readonly<Record<stri
   const timeouts = config.timeouts === undefined ? {} : object(config.timeouts, 'Playwright timeouts');
   keys(timeouts, new Set(['idle', 'action', 'snapshot', 'navigation', 'settle', 'expect']), 'Playwright timeout');
   for (const [name, key] of [['PLAYWRIGHT_MCP_TIMEOUT_ACTION', 'action'], ['PLAYWRIGHT_MCP_TIMEOUT_NAVIGATION', 'navigation'], ['PLAYWRIGHT_MCP_TIMEOUT_SETTLE', 'settle']] as const) if (stringEnv(name) !== undefined) timeouts[key] = Number(stringEnv(name));
-  const idle = options['idle-timeout'] ?? stringEnv('PLAYWRIGHT_MCP_IDLE_TIMEOUT') ?? timeouts.idle ?? (headless ? 3_600_000 : 0);
+  const idle = options['idle-timeout'] ?? stringEnv('PLAYWRIGHT_MCP_IDLE_TIMEOUT') ?? timeouts.idle ?? 0;
   const idleTimeoutMs = typeof idle === 'string' && idle.trim() !== '' ? Number(idle) : idle;
-  if (typeof idleTimeoutMs !== 'number' || !Number.isSafeInteger(idleTimeoutMs) || idleTimeoutMs < 0) throw new Error('Invalid idle timeout');
+  if (typeof idleTimeoutMs !== 'number' || (idleTimeoutMs !== Infinity && !Number.isSafeInteger(idleTimeoutMs)) || idleTimeoutMs < 0) throw new Error('Invalid idle timeout');
   const effective: Record<string, unknown> = {};
   if (selectedConfig !== undefined || Object.keys(local).length) effective.configFile = filename;
   for (const name of ['testIdAttribute', 'outputDir', 'outputMaxSize', 'codegen']) if (config[name] !== undefined) effective[name] = config[name];
@@ -207,7 +207,7 @@ export async function resolvePlaywrightOpenOptions(options: Readonly<Record<stri
       pages.push({ filename, source: new TextDecoder('utf-8', { fatal: true }).decode(bytes) });
     }
   }
-  return { browser, headless, contextOptions: parsePlaywrightContextOptions(context, maxBytes), idleTimeoutMs,
+  return { browser, headless, contextOptions: parsePlaywrightContextOptions(context, maxBytes), idleTimeoutMs: idleTimeoutMs === Infinity ? 0 : idleTimeoutMs,
     ...(Object.keys(effective).length ? { configuration: parsePlaywrightSessionConfiguration(effective, maxBytes) } : {}),
   };
 }

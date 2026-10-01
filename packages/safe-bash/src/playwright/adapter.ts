@@ -605,7 +605,7 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             executionOptions.signal.throwIfAborted();
             if (typeof executionOptions.source !== 'string' || !executionOptions.source.trim()
-              || !Number.isSafeInteger(executionOptions.timeoutMs) || executionOptions.timeoutMs <= 0 || (executionOptions.maxOutputBytes !== Infinity && (!Number.isSafeInteger(executionOptions.maxOutputBytes) || executionOptions.maxOutputBytes <= 0))
+              || (executionOptions.timeoutMs !== Infinity && (!Number.isSafeInteger(executionOptions.timeoutMs) || executionOptions.timeoutMs <= 0)) || (executionOptions.maxOutputBytes !== Infinity && (!Number.isSafeInteger(executionOptions.maxOutputBytes) || executionOptions.maxOutputBytes <= 0))
               || (executionOptions.maxPages !== Infinity && (!Number.isSafeInteger(executionOptions.maxPages) || executionOptions.maxPages < 1))) return Promise.reject(new TypeError('Invalid Playwright code execution options'));
             const ownedOptions = Object.freeze({ ...executionOptions });
             const operation = Promise.resolve().then(async () => {

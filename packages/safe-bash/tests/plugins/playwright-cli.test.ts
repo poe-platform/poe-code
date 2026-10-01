@@ -349,7 +349,7 @@ test('screenshots are path-free bytes copied before awaited canonical VFS writes
   assert.equal(settled, true);
   assert.deepEqual([...await f.fs.readFile('/artifacts/a b.png')], [0, 255, 128, 10]);
   assert.deepEqual([...f.volume.readFileSync('/work/a b.png') as Buffer], [0, 255, 128, 10]);
-  assert.deepEqual(f.screenshotOptions, { type: 'png', fullPage: true, timeout: 5000, scale: 'css', clip: { x: 0, y: 0, width: 1280, height: 720 } });
+  assert.deepEqual(f.screenshotOptions, { type: 'png', fullPage: true, timeout: 0, scale: 'css', clip: { x: 0, y: 0, width: 1280, height: 720 } });
   await f.shell.dispose();
   const bounded = interactiveFixture({ maxArtifactBytes: 1000 }); await bounded.fs.mkdir('/work');
   const rejected = await bounded.shell.exec('playwright-cli open; playwright-cli screenshot --filename=x.png');

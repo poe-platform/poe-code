@@ -25,14 +25,14 @@ export function parsePlaywrightSessionConfiguration(value: unknown, maxBytes = I
   if (candidate.headless !== undefined && typeof candidate.headless !== 'boolean') throw new Error('Invalid configured headless mode');
   if (candidate.timeouts !== undefined) {
     if (!candidate.timeouts || typeof candidate.timeouts !== 'object' || Array.isArray(candidate.timeouts)) throw new Error('Invalid Playwright timeouts');
-    for (const [key, timeout] of Object.entries(candidate.timeouts)) if (!['action', 'snapshot', 'navigation', 'settle', 'expect'].includes(key) || typeof timeout !== 'number' || !Number.isSafeInteger(timeout) || timeout < 0) throw new Error(`Invalid Playwright timeout: ${key}`);
+    for (const [key, timeout] of Object.entries(candidate.timeouts)) if (!['action', 'snapshot', 'navigation', 'settle', 'expect'].includes(key) || typeof timeout !== 'number' || ((key === 'settle' || timeout !== Infinity) && !Number.isSafeInteger(timeout)) || timeout < 0) throw new Error(`Invalid Playwright timeout: ${key}`);
   }
   if (candidate.initScripts !== undefined && (!Array.isArray(candidate.initScripts) || candidate.initScripts.some(script => typeof script !== 'string'))) throw new Error('Invalid Playwright init scripts');
   if (candidate.initScriptFiles !== undefined && (!Array.isArray(candidate.initScriptFiles) || candidate.initScriptFiles.some(path => typeof path !== 'string' || path.includes('\0')))) throw new Error('Invalid Playwright init script files');
   if (candidate.initPages !== undefined && (!Array.isArray(candidate.initPages) || candidate.initPages.some(page => !page || typeof page !== 'object' || Object.keys(page).some(key => !['filename', 'source'].includes(key)) || typeof page.filename !== 'string' || typeof page.source !== 'string'))) throw new Error('Invalid Playwright init page modules');
   for (const name of ['testIdAttribute', 'outputDir', 'configFile']) if (candidate[name] !== undefined && (typeof candidate[name] !== 'string' || !candidate[name] || candidate[name].includes('\0'))) throw new Error(`Invalid Playwright ${name}`);
   if (candidate.codegen !== undefined && !['typescript', 'python', 'java', 'csharp', 'none'].includes(candidate.codegen as string)) throw new Error('Invalid Playwright codegen language');
-  if (candidate.outputMaxSize !== undefined && (typeof candidate.outputMaxSize !== 'number' || !Number.isSafeInteger(candidate.outputMaxSize) || candidate.outputMaxSize < 0)) throw new Error('Invalid Playwright outputMaxSize');
+  if (candidate.outputMaxSize !== undefined && (typeof candidate.outputMaxSize !== 'number' || (candidate.outputMaxSize !== Infinity && !Number.isSafeInteger(candidate.outputMaxSize)) || candidate.outputMaxSize < 0)) throw new Error('Invalid Playwright outputMaxSize');
   for (const [name, fields] of [['network', ['allowedOrigins', 'blockedOrigins']], ['console', ['level']], ['snapshot', ['mode', 'boxes']]] as const) {
     const setting = candidate[name];
     if (setting === undefined) continue;
@@ -44,5 +44,8 @@ export function parsePlaywrightSessionConfiguration(value: unknown, maxBytes = I
     }
   }
   if (new TextEncoder().encode(JSON.stringify(candidate)).byteLength > maxBytes) throw new PlaywrightResourceLimitError('Playwright session configuration byte limit exceeded');
-  return structuredClone(candidate) as PlaywrightSessionConfiguration;
+  const configuration = { ...structuredClone(candidate) } as { -readonly [Key in keyof PlaywrightSessionConfiguration]: PlaywrightSessionConfiguration[Key] };
+  if (configuration.timeouts) configuration.timeouts = Object.fromEntries(Object.entries(configuration.timeouts).map(([key, value]) => [key, value === Infinity ? 0 : value]));
+  if (configuration.outputMaxSize === Infinity) delete configuration.outputMaxSize;
+  return configuration;
 }

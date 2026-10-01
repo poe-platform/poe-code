@@ -1,3 +1,4 @@
+import { playwrightNativeTimeout } from "./resource-limit.js";
 import { PlaywrightResourceLimitError } from './resource-limit.js';
 import type { PlaywrightAbility, PlaywrightAbilityRequest } from './abilities.js';
 import type { PlaywrightContext, PlaywrightDialog, PlaywrightFileChooser, PlaywrightPage } from './adapter.js';
@@ -106,7 +107,7 @@ const upload: PlaywrightAbility = { scope: 'session', async execute(request) {
     if (!(buffer instanceof Uint8Array) || buffer.byteLength !== file.buffer.byteLength) throw new Error('Invalid native Playwright file buffer');
     return { ...file, buffer };
   });
-  await modal.fileChooser.setFiles(nativeFiles, { timeout: request.limits?.actionTimeoutMs ?? 30000 });
+  await modal.fileChooser.setFiles(nativeFiles, { timeout: playwrightNativeTimeout(request.limits?.actionTimeoutMs) });
   if (getPlaywrightModal(page) === modal) update(page, undefined);
   return capabilityResult(`await fileChooser.setFiles(${JSON.stringify(request.args)})`);
 } };

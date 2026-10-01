@@ -1,3 +1,4 @@
+import { playwrightNativeTimeout } from "./resource-limit.js";
 import type { PlaywrightElementHandle, PlaywrightPage, PlaywrightSnapshotJSONCapture, PlaywrightSnapshotJSONNode, SnapshotNode } from './adapter.js';
 import { PlaywrightSnapshotLimitError } from './resource-limit.js';
 import { isPlaywrightSnapshotRef } from './targets.js';
@@ -16,8 +17,8 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   signal.throwIfAborted();
   if (!page.ariaSnapshotJSON && !options.captureJSON) throw new Error('Native JSON accessibility snapshots unsupported by this browser');
   const tree = page.ariaSnapshotJSON
-    ? await page.ariaSnapshotJSON({ mode: 'ai', timeout: options.timeout ?? 5000, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) })
-    : await options.captureJSON!(page, { signal, timeoutMs: options.timeout ?? 5000, maxBytes: Infinity, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
+    ? await page.ariaSnapshotJSON({ mode: 'ai', timeout: playwrightNativeTimeout(options.timeout), ...(options.boxes === undefined ? {} : { boxes: options.boxes }) })
+    : await options.captureJSON!(page, { signal, timeoutMs: playwrightNativeTimeout(options.timeout), maxBytes: Infinity, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
   signal.throwIfAborted();
   const encoded = JSON.stringify(tree);
   if (typeof encoded !== 'string') throw new Error('Invalid native JSON snapshot');
@@ -46,7 +47,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
       if (typeof node === 'string') { if (inherited) output.push(node); continue; }
       let included = inherited;
       if (node.ref) {
-        const handle = await page.locator(`aria-ref=${node.ref}`).elementHandle?.({ timeout: options.timeout ?? 5000 });
+        const handle = await page.locator(`aria-ref=${node.ref}`).elementHandle?.({ timeout: playwrightNativeTimeout(options.timeout) });
         if (!handle) throw new Error('Snapshot stale while selecting root');
         try { included = await handle.evaluate((element, root) => (root as unknown as { contains(node: SnapshotNode): boolean }).contains(element), options.root!); }
         catch (error) { if (!(error instanceof Error) || !error.message.includes('context they were created')) throw error; }

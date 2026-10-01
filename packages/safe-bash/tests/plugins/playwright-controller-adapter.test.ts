@@ -74,7 +74,7 @@ for (const maxPages of [Infinity, 65, 2]) test(`code execution forwards page lim
   const signal = new AbortController().signal;
   const lease = await adapter.acquire({ acquisitionId: 'page-limit', session: 'demo', browser: 'chromium', headless: true, signal });
   try {
-    assert.equal(await lease.executeCode!({ page, source: 'async page => 1', signal, timeoutMs: 1000, maxOutputBytes: 1024, maxPages }), 'complete');
+    assert.equal(await lease.executeCode!({ page, source: 'async page => 1', signal, timeoutMs: Infinity, maxOutputBytes: 1024, maxPages }), 'complete');
     assert.equal(received, maxPages);
     for (const invalid of [0, -1, NaN, -Infinity, 1.5]) await assert.rejects(lease.executeCode!({ page, source: 'async page => 1', signal, timeoutMs: 1000, maxOutputBytes: 1024, maxPages: invalid }), /Invalid Playwright code execution options/);
   } finally { await lease.release(); }

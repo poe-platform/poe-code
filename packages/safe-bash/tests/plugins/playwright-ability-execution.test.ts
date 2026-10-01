@@ -568,3 +568,12 @@ test('virtual paths are forwarded literally without native file access', async (
   assert.deepEqual(reads, paths);
   assert.deepEqual(writes, [...paths, undefined]);
 });
+
+for (const timeout of [undefined, Infinity]) test(`ability resource deadlines are disabled with ${timeout}`,  async () => {
+  const setup = fixture(async request => {
+    assert.equal(request.limits!.actionTimeoutMs, 0);
+    assert.equal(request.limits!.navigationTimeoutMs, 0);
+    assert.equal(request.limits!.codeExecutionTimeoutMs, Infinity);
+  });
+  await executePlaywrightAbility(setup.ability, setup.parsed, setup.invocation, {...setup.context, ...(timeout === undefined ? {} : {actionTimeoutMs: timeout, navigationTimeoutMs: timeout, codeExecutionTimeoutMs: timeout})});
+});

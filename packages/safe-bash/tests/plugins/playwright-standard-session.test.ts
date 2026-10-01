@@ -94,15 +94,15 @@ for (const args of [[], ['#save'], ['--depth=1']]) test(`JSON snapshot omits pag
   } finally { await f.controller.dispose(); }
 });
 
-test('default action and navigation use standard CLI timeouts across built-in and ability commands', async () => {
+test('default action and navigation deadlines are disabled across built-in and ability commands', async () => {
   const f = fixture();
   try {
     await f.run('open', 'https://example.com');
     await f.run('reload');
     await f.run('goto', 'https://example.org');
     await f.run('click', 'button');
-    assert.deepEqual(f.navigationTimeouts, [60000, 60000, 60000]);
-    assert.deepEqual(f.clicks, { timeout: 5000 });
+    assert.deepEqual(f.navigationTimeouts, [0, 0, 0]);
+    assert.deepEqual(f.clicks, { timeout: 0 });
   } finally { await f.controller.dispose(); }
 });
 
@@ -122,7 +122,7 @@ test('configured output directory and retention preserve current artifacts and e
     const config = JSON.parse(await f.run('config-print', '--json')).result;
     assert.equal(config.outputDir, 'artifacts');
     assert.equal(config.codegen, 'typescript');
-    assert.deepEqual(config.timeouts, { action: 5000, snapshot: 30000, navigation: 60000, expect: 5000, settle: 500, idle: 3600000 });
+    assert.deepEqual(config.timeouts, { action: 0, snapshot: 0, navigation: 0, expect: 0, settle: 500, idle: 0 });
     assert.deepEqual(config.snapshot, { mode: 'full' });
     assert.equal(config.testIdAttribute, 'data-qa');
     assert.equal(config.skillMode, true);
@@ -223,7 +223,7 @@ test('selectors retain native strictness, click options and cleanup; fill submit
   try {
     await f.run('open');
     await f.run('click', '#save', 'right', '--modifiers=Shift');
-    assert.deepEqual(f.clicks, { timeout: 5_000, button: 'right', modifiers: ['Shift'] });
+    assert.deepEqual(f.clicks, { timeout: 0, button: 'right', modifiers: ['Shift'] });
     assert.ok(f.events.includes('dispose-target'));
     await f.run('fill', '#input', 'typed', '--submit');
     assert.ok(f.events.includes('fill:typed'));

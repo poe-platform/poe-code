@@ -54,3 +54,8 @@ export const playwrightStructureDefaults: Required<PlaywrightStructureLimits> = 
   webMCPDiscoveryTimeoutMs: Infinity, maxTraceFiles: Infinity, maxWebMCPFrames: Infinity, maxWebMCPMetadataBytes: Infinity,
   maxWebMCPMetadataEntries: Infinity, maxWebMCPMetadataDepth: Infinity,
 });
+
+/** Playwright uses zero, rather than Infinity, to disable native timeouts. */
+export function playwrightNativeTimeout(timeout = Infinity): number {
+  return timeout === Infinity ? 0 : timeout;
+}

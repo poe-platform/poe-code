@@ -246,7 +246,7 @@ test('route retirement failure preserves its cause and still releases the contex
   await assert.rejects(f.controller.dispose(), error => error instanceof AggregateError && error.errors[0] === failure);
 });
 
-for (const actionTimeout of [0, 1500]) test(`init-page and run-code keep action timeout ${actionTimeout} separate from the whole-program deadline`, async () => {
+for (const actionTimeout of [0, 1500, Infinity]) test(`init-page and run-code keep action timeout ${actionTimeout} separate from the whole-program deadline`, async () => {
   const f = fixture();
   const actionTimeouts: number[] = [];
   const codeTimeouts: number[] = [];
@@ -261,13 +261,13 @@ for (const actionTimeout of [0, 1500]) test(`init-page and run-code keep action 
     } };
   } } });
   const run = (args: string[]) => controller.run({ args, env: {}, signal: new AbortController().signal, async write() {}, async readArtifact(path) {
-    return new TextEncoder().encode(path === 'config.ini' ? `timeouts.action=${actionTimeout}\nbrowser.initPage[]=init.cjs` : 'exports.default = async ({ page }) => page.title();');
+    return new TextEncoder().encode(path === 'config.ini' ? `timeouts.action=${actionTimeout}\ntimeouts.idle=Infinity\nbrowser.initPage[]=init.cjs` : 'exports.default = async ({ page }) => page.title();');
   } });
   try {
     await run(['open', '--config=config.ini']);
     await run(['run-code', 'async page => page.title()']);
-    assert.deepEqual(actionTimeouts, [actionTimeout]);
-    assert.deepEqual(codeTimeouts, [30000, 30000]);
+    assert.deepEqual(actionTimeouts, [actionTimeout === Infinity ? 0 : actionTimeout]);
+    assert.deepEqual(codeTimeouts, [Infinity, Infinity]);
     assert.deepEqual(pageLimits, [Infinity, Infinity]);
   } finally { await controller.dispose(); await f.controller.dispose(); }
 });
@@ -945,7 +945,7 @@ test('screenshots fix CSS geometry before calling the native producer', async ()
   Object.assign(page, { evaluate: async () => ({ width: 8, height: 8 }) });
   page.screenshot = async options => { captures.push(options); return new Uint8Array([1]); };
   await current.run(['screenshot'], { writeArtifact: async () => {} });
-  assert.deepEqual(captures, [{ type: 'png', fullPage: false, timeout: 5000, scale: 'css', clip: { x: 0, y: 0, width: 8, height: 8 } }]);
+  assert.deepEqual(captures, [{ type: 'png', fullPage: false, timeout: 0, scale: 'css', clip: { x: 0, y: 0, width: 8, height: 8 } }]);
   await current.controller.dispose();
 });
 

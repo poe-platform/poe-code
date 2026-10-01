@@ -1,3 +1,4 @@
+import { playwrightNativeTimeout } from "./resource-limit.js";
 import { playwrightStructureDefaults, type PlaywrightStructureLimits } from './resource-limit.js';
 import type { PlaywrightAdapter, PlaywrightCodegenAction, PlaywrightContext, PlaywrightContextOptions, PlaywrightLease, PlaywrightPage } from './adapter.js';
 import { createSnapshotEngine, SnapshotCleanupError } from './snapshot.js';
@@ -182,9 +183,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   if (options.limits !== undefined && (!options.limits || typeof options.limits !== 'object' || Object.keys(options.limits).some(key => !['maxSessions', 'actionTimeoutMs', 'codeExecutionTimeoutMs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'maxTabs', 'maxCommandBytes', ...Object.keys(playwrightStructureDefaults)].includes(key)))) throw new TypeError('Unsupported Playwright limits');
   if (options.billing !== undefined) throw new Error('Live billing is not implemented');
   const maxSessions = options.limits?.maxSessions ?? Infinity;
-  const actionTimeoutMs = options.limits?.actionTimeoutMs ?? 5_000;
+  const actionTimeoutMs = options.limits?.actionTimeoutMs ?? Infinity;
   // Isolated startup and multiple native actions share this host budget, not one action's timeout.
-  const codeExecutionTimeoutMs = options.limits?.codeExecutionTimeoutMs ?? 30_000;
+  const codeExecutionTimeoutMs = options.limits?.codeExecutionTimeoutMs ?? Infinity;
   const maxSnapshotRefs = options.limits?.maxSnapshotRefs ?? Infinity;
   const snapshotLimits = { maxSnapshotDepth: options.limits?.maxSnapshotDepth, ...(options.limits?.maxSnapshotRefs === undefined ? {} : { maxSnapshotRefs }) };
   const maxArtifactBytes = options.limits?.maxArtifactBytes ?? Infinity;
@@ -217,9 +218,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   const lifetime = new AbortController();
   let generation = 0;
   let disposal: Promise<void> | undefined;
-  const sessionActionTimeout = (session?: Session) => session?.configuration?.timeouts?.action ?? actionTimeoutMs;
-  const sessionSnapshotTimeout = (session?: Session) => session?.configuration?.timeouts?.snapshot ?? session?.configuration?.timeouts?.action ?? options.limits?.actionTimeoutMs ?? 30_000;
-  const sessionNavigationTimeout = (session?: Session) => session?.configuration?.timeouts?.navigation ?? options.limits?.actionTimeoutMs ?? 60_000;
+  const sessionActionTimeout = (session?: Session) => playwrightNativeTimeout(session?.configuration?.timeouts?.action ?? actionTimeoutMs);
+  const sessionSnapshotTimeout = (session?: Session) => playwrightNativeTimeout(session?.configuration?.timeouts?.snapshot ?? session?.configuration?.timeouts?.action ?? options.limits?.actionTimeoutMs);
+  const sessionNavigationTimeout = (session?: Session) => playwrightNativeTimeout(session?.configuration?.timeouts?.navigation ?? options.limits?.actionTimeoutMs);
   const initializeContext = async (session: Session) => {
     if (session.configuration?.codegen && !['typescript', 'none'].includes(session.configuration.codegen) && !session.lease?.generateActionCode) throw new Error('Configured codegen language requires native action generation');
     await installPlaywrightConfiguredNetwork(session.lease!.context, session.configuration);
@@ -624,7 +625,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     validatePlaywrightSessionName(request.name);
     if (request.recovery !== undefined && request.recovery !== 'saved-storage') throw new TypeError('Invalid Playwright recovery mode');
     if (request.expiresAt !== undefined && (!Number.isSafeInteger(request.expiresAt) || request.expiresAt < 0)) throw new TypeError('Invalid Playwright session expiry');
-    if (request.idleTimeoutMs !== undefined && (!Number.isSafeInteger(request.idleTimeoutMs) || request.idleTimeoutMs < 0)) throw new TypeError('Invalid Playwright idle timeout');
+    if (request.idleTimeoutMs !== undefined && request.idleTimeoutMs !== Infinity && (!Number.isSafeInteger(request.idleTimeoutMs) || request.idleTimeoutMs < 0)) throw new TypeError('Invalid Playwright idle timeout');
     const { name, expiresAt, acquire } = request;
     const signal = request.signal ? AbortSignal.any([request.signal, lifetime.signal]) : lifetime.signal;
     const check = () => {
@@ -645,7 +646,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         ...(request.recovery === undefined ? {} : { recovery: request.recovery }),
         snapshot: createSnapshotEngine(snapshotLimits, () => `e${epoch}${++refSequence}`),
         ...(expiresAt === undefined ? {} : { expiresAt }),
-        ...(request.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: request.idleTimeoutMs }),
+        ...(request.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: playwrightNativeTimeout(request.idleTimeoutMs) }),
         ...(request.contextOptions === undefined ? {} : { contextOptions: parsePlaywrightContextOptions(request.contextOptions, maxArtifactBytes) }),
         ...(request.configuration === undefined ? {} : { configuration: parsePlaywrightSessionConfiguration(request.configuration, maxArtifactBytes) }),
       };
@@ -1419,7 +1420,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
                 ...(session.configuration?.initScriptFiles ? { initScript: session.configuration.initScriptFiles } : {}),
                 ...(session.configuration?.initPages ? { initPage: session.configuration.initPages.map(page => page.filename) } : {}),
               }, codegen: session.configuration?.codegen ?? 'typescript',
-                timeouts: { action: sessionActionTimeout(session), snapshot: sessionSnapshotTimeout(session), navigation: sessionNavigationTimeout(session), expect: session.configuration?.timeouts?.expect ?? 5000, settle: session.configuration?.timeouts?.settle ?? 500, idle: session.idleTimeoutMs ?? 0 },
+                timeouts: { action: sessionActionTimeout(session), snapshot: sessionSnapshotTimeout(session), navigation: sessionNavigationTimeout(session), expect: playwrightNativeTimeout(session.configuration?.timeouts?.expect), settle: session.configuration?.timeouts?.settle ?? 500, idle: session.idleTimeoutMs ?? 0 },
                 snapshot: { mode: 'full', ...session.configuration?.snapshot }, skillMode: true,
                 ...Object.fromEntries(['network', 'console', 'outputDir', 'outputMaxSize', 'testIdAttribute', 'configFile'].flatMap(key => {
                   const value = session.configuration?.[key as keyof PlaywrightSessionConfiguration]; return value === undefined ? [] : [[key, value]];

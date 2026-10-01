@@ -1,3 +1,4 @@
+import { playwrightNativeTimeout } from "./resource-limit.js";
 import type { PlaywrightStructureLimits } from './resource-limit.js';
 import type { PlaywrightAbilityRequest, RegisteredPlaywrightAbility } from './abilities.js';
 import type { PlaywrightPage } from './adapter.js';
@@ -46,7 +47,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
   const browserSession = context.browserSession;
   const request: PlaywrightAbilityRequest = Object.freeze({
     command: parsed.command, session: parsed.session, args: parsed.args, options: parsed.options, signal: context.signal,
-    limits: Object.freeze({ ...context.structureLimits, maxCommandBytes: context.maxCommandBytes, maxArtifactBytes: context.maxArtifactBytes, actionTimeoutMs: context.actionTimeoutMs ?? 5000, codeExecutionTimeoutMs: context.codeExecutionTimeoutMs ?? 30000, navigationTimeoutMs: context.navigationTimeoutMs ?? 60000, maxPages: context.maxPages ?? Infinity }),
+    limits: Object.freeze({ ...context.structureLimits, maxCommandBytes: context.maxCommandBytes, maxArtifactBytes: context.maxArtifactBytes, actionTimeoutMs: playwrightNativeTimeout(context.actionTimeoutMs), codeExecutionTimeoutMs: context.codeExecutionTimeoutMs ?? Infinity, navigationTimeoutMs: playwrightNativeTimeout(context.navigationTimeoutMs), maxPages: context.maxPages ?? Infinity }),
     ...(browserSession ? { browserSession: Object.freeze({
       context: browserSession.context,
       page: browserSession.page,
@@ -73,7 +74,7 @@ export async function executePlaywrightAbility(ability: RegisteredPlaywrightAbil
         // Invocation tracking here would wait on the dialog it must first return.
         return browserSession.executeCode!({ ...options,
           signal: AbortSignal.any([context.signal, options.signal]),
-          timeoutMs: Math.min(options.timeoutMs, context.codeExecutionTimeoutMs ?? 30000),
+          timeoutMs: Math.min(options.timeoutMs, context.codeExecutionTimeoutMs ?? Infinity),
           maxOutputBytes: Math.min(options.maxOutputBytes, budget.remaining),
           maxPages: Math.min(options.maxPages, context.maxPages ?? Infinity),
         });

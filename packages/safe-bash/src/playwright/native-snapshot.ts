@@ -1,3 +1,4 @@
+import { playwrightNativeTimeout } from "./resource-limit.js";
 import type { PlaywrightPage, PlaywrightElementHandle, SnapshotNode } from './adapter.js';
 import { isPlaywrightSnapshotRef } from './targets.js';
 
@@ -13,9 +14,9 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
 }): Promise<{ text: string; refs: Map<string, string> }> {
   options.signal?.throwIfAborted();
   let source: unknown;
-  if (page.ariaSnapshot) source = await page.ariaSnapshot({ mode: 'ai', timeout: options.timeout ?? 5000, ...(options.depth === undefined || options.root ? {} : { depth: options.depth }), ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
+  if (page.ariaSnapshot) source = await page.ariaSnapshot({ mode: 'ai', timeout: playwrightNativeTimeout(options.timeout), ...(options.depth === undefined || options.root ? {} : { depth: options.depth }), ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
   else {
-    const result: unknown = await page._snapshotForAI!({ timeout: options.timeout ?? 5000 });
+    const result: unknown = await page._snapshotForAI!({ timeout: playwrightNativeTimeout(options.timeout) });
     if (!result || typeof result !== 'object' || !('full' in result) || typeof result.full !== 'string') throw new Error('Incompatible native snapshot protocol result');
     source = result.full;
   }
@@ -41,7 +42,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
       if (native) {
         if (++measured > options.maxRefs) throw new PlaywrightSnapshotLimitError('Snapshot ref limit exceeded');
         if (!isPlaywrightSnapshotRef(native)) throw new Error('Invalid native snapshot reference');
-        const handle = await page.locator(`aria-ref=${native}`).elementHandle?.({ timeout: options.timeout ?? 5000 });
+        const handle = await page.locator(`aria-ref=${native}`).elementHandle?.({ timeout: playwrightNativeTimeout(options.timeout) });
         if (!handle) throw new Error('Snapshot stale while selecting root');
         try {
           selected = await handle.evaluate((node, root) => (root as unknown as { contains(node: SnapshotNode): boolean }).contains(node), options.root);
@@ -83,7 +84,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
     start = end;
     if (options.boxes && !page.ariaSnapshot) {
       options.signal?.throwIfAborted();
-      const handle = await page.locator(`aria-ref=${native}`).elementHandle?.({ timeout: options.timeout ?? 5000 });
+      const handle = await page.locator(`aria-ref=${native}`).elementHandle?.({ timeout: playwrightNativeTimeout(options.timeout) });
       if (!handle) throw new Error('Snapshot stale while reading bounding boxes');
       try {
         if (!handle.boundingBox) throw new Error('Element bounding boxes unsupported');

@@ -1,3 +1,4 @@
+import { playwrightNativeTimeout } from "./resource-limit.js";
 import type { PlaywrightAbility } from './abilities.js';
 import type { PlaywrightActionOptions, PlaywrightMouseButton } from './adapter.js';
 import type { PlaywrightCommand } from './catalog.js';
@@ -26,7 +27,7 @@ const navigation: PlaywrightAbility = { scope: 'session', async execute(request)
   const method = request.command === 'go-back' ? 'goBack' : request.command === 'go-forward' ? 'goForward' : 'reload';
   if (!page[method]) unsupported(method);
   await requireSession(request).invalidateTargets?.();
-  await capabilityAction(request, async () => { await page[method]!({ timeout: request.limits?.navigationTimeoutMs ?? 60000 }); });
+  await capabilityAction(request, async () => { await page[method]!({ timeout: playwrightNativeTimeout(request.limits?.navigationTimeoutMs) }); });
   return capabilityResult(`await page.${method}();`);
 } };
 
@@ -66,11 +67,11 @@ const element: PlaywrightAbility = { scope: 'session', options: 'all', async exe
   const method = request.command as 'dblclick' | 'hover' | 'check' | 'uncheck' | 'select';
   if (method === 'select') {
     if (!target.selectOption) unsupported('selectOption');
-    await capabilityAction(request, async () => { await target.selectOption!(request.args[1]!, { timeout: request.limits?.actionTimeoutMs ?? 30000 }); });
+    await capabilityAction(request, async () => { await target.selectOption!(request.args[1]!, { timeout: playwrightNativeTimeout(request.limits?.actionTimeoutMs) }); });
     return capabilityResult(capabilityActionCode(request, { name: 'select', selector, options: [request.args[1]!] }, `await ${locator}.selectOption(${JSON.stringify(request.args[1])});`));
   }
   if (!target[method]) unsupported(method);
-  const options: PlaywrightActionOptions = { timeout: request.limits?.actionTimeoutMs ?? 30000 };
+  const options: PlaywrightActionOptions = { timeout: playwrightNativeTimeout(request.limits?.actionTimeoutMs) };
   if (method === 'dblclick') {
     options.button = button(request.args[1]);
     if (request.options.modifiers) {
@@ -176,7 +177,7 @@ export const playwrightStandardAbilities: Partial<Record<PlaywrightCommand, Play
     let output: string | undefined;
     await capabilityAction(request, async () => {
       const result = await session.executeCode!({ page, source, signal: request.signal,
-        timeoutMs: request.limits?.codeExecutionTimeoutMs ?? 30000, maxOutputBytes, maxPages: request.limits?.maxPages ?? Infinity });
+        timeoutMs: request.limits?.codeExecutionTimeoutMs ?? Infinity, maxOutputBytes, maxPages: request.limits?.maxPages ?? Infinity });
       if (result !== undefined) {
         output = JSON.stringify(result);
         if (output !== undefined && new TextEncoder().encode(output).byteLength > maxOutputBytes) throw new PlaywrightResourceLimitError('Playwright code result byte limit exceeded');

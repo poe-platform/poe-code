@@ -118,7 +118,7 @@ test("csvkit executes SDK operations through shell pipes, cwd and redirection", 
   } finally { await shell.dispose(); }
 });
 test("help and blocked operations do not acquire stdin", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(options));
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands({ ...options, databases: [] }));
   try {
     const stdin = { async *[Symbol.asyncIterator]() { assert.fail("unexpected stdin acquisition"); yield new Uint8Array(); } };
     assert.equal((await shell.exec("csvcut --help", { stdin })).exitCode, 0);

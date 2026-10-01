@@ -97,3 +97,15 @@ for (const synchronous of [false, true]) test(`sql2csv ${synchronous ? "synchron
   } finally { await shell.dispose(); }
   assert.equal(connects, 1);
 });
+
+test("sql2csv default SQLite capability executes without consuming supplied query stdin", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(csvkitCommands(bindings));
+  try {
+    const result = await shell.exec("sql2csv --db sqlite:///:memory: --query 'SELECT 1'", {
+      stdin: { async *[Symbol.asyncIterator]() { assert.fail("explicit query must not advance stdin"); yield new Uint8Array(); } }
+    });
+    assert.deepEqual({ stdout: result.stdout, stderr: result.stderr, status: result.exitCode }, {
+      stdout: "1\n1\n", stderr: "", status: 0
+    });
+  } finally { await shell.dispose(); }
+});

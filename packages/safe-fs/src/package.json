@@ -5,21 +5,25 @@
       "types": "./native/loader.d.ts",
       "workerd": "./node/native-seek-unavailable.js",
       "browser": null,
+      "worker": null,
       "default": "./native/loader.mjs"
     },
     "#safe-fs-platform": {
       "workerd": "./platform/browser.js",
       "browser": "./platform/browser.js",
+      "worker": "./platform/browser.js",
       "default": "./platform/node.js"
     },
     "#safe-fs-platform-path": {
       "workerd": "./platform/browser-path.js",
       "browser": "./platform/browser-path.js",
+      "worker": "./platform/browser-path.js",
       "default": "./platform/node-path.js"
     },
     "#safe-fs-s3-request": {
       "workerd": "./fs/s3/http/request-fetch.js",
       "browser": "./fs/s3/http/request-fetch.js",
+      "worker": "./fs/s3/http/request-fetch.js",
       "default": "./fs/s3/http/request-node.js"
     }
   }

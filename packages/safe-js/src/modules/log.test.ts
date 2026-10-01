@@ -254,3 +254,15 @@ it("logs JSON through console when the host has no process", () => {
     output.mockRestore();
   }
 });
+
+it("logs JSON through console when process has no writable stdout", () => {
+  const output = vi.spyOn(console, "log").mockImplementation(() => {});
+  vi.stubGlobal("process", { stdout: {} });
+  try {
+    makeLogModule().info("portable");
+    expect(JSON.parse(output.mock.calls[0]![0] as string)).toMatchObject({ type: "info", args: ["portable"] });
+  } finally {
+    vi.unstubAllGlobals();
+    output.mockRestore();
+  }
+});

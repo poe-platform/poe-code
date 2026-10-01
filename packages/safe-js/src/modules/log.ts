@@ -58,7 +58,7 @@ export function makeLogModule(sink: LogModuleSink = createJsonlStdoutSink()): {
 
 function createJsonlStdoutSink(): LogModuleSink {
   const stream = typeof process !== "undefined" ? process.stdout : undefined;
-  if (stream === undefined) {
+  if (stream == null || typeof stream.write !== "function") {
     return (entry) => console.log(JSON.stringify(toJsonValue(entry, new WeakSet())));
   }
   const existing = stdoutSinks.get(stream);

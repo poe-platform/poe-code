@@ -8,21 +8,25 @@
       "types": "./dist/native/fs-seek/loader.d.ts",
       "workerd": null,
       "browser": null,
+      "worker": null,
       "default": "./dist/native/fs-seek/loader.mjs"
     },
     "#safe-js-platform": {
       "types": {
         "workerd": "./dist/platform/workerd.d.ts",
         "browser": "./dist/platform/workerd.d.ts",
+        "worker": "./dist/platform/workerd.d.ts",
         "default": "./dist/platform/node.d.ts"
       },
       "workerd": "./dist/platform/workerd.js",
       "browser": "./dist/platform/workerd.js",
+      "worker": "./dist/platform/workerd.js",
       "default": "./dist/platform/node.js"
     },
     "#safe-js-atomic-wait": {
       "workerd": "./dist/platform/atomic-wait-workerd.js",
       "browser": "./dist/platform/atomic-wait-workerd.js",
+      "worker": "./dist/platform/atomic-wait-workerd.js",
       "default": "./dist/platform/atomic-wait-node.js"
     }
   },
@@ -37,10 +41,12 @@
       "types": {
         "workerd": "./dist/workerd.d.ts",
         "browser": "./dist/core.d.ts",
+        "worker": "./dist/core.d.ts",
         "default": "./dist/index.d.ts"
       },
       "workerd": "./dist/workerd.js",
       "browser": "./dist/core.js",
+      "worker": "./dist/core.js",
       "poe-code-source": "./src/index.ts",
       "import": "./dist/index.js"
     },
@@ -56,10 +62,12 @@
       "types": {
         "workerd": "./dist/workerd.d.ts",
         "browser": "./dist/node-unavailable.d.ts",
+        "worker": "./dist/node-unavailable.d.ts",
         "default": "./dist/workerd.d.ts"
       },
       "workerd": "./dist/workerd.js",
       "browser": null,
+      "worker": null,
       "import": "./dist/workerd.js"
     },
     "./modules/fs": {

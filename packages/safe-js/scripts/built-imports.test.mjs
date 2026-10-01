@@ -36,19 +36,27 @@ test("Workerd public entry bundles without native filesystem authority", async (
   assert.equal(Object.keys(result.metafile.inputs).some(name => name.includes("native-seek")), false);
 });
 
-test("portable SDK executes without Node globals or shared memory", async () => {
+for (const condition of ["workerd", "worker", "browser"]) {
+test(`portable SDK executes without Node globals or shared memory under ${condition}`, async () => {
   const directory = new URL("../dist/", import.meta.url).pathname;
   const result = await build({
-    stdin: { contents: `import { run, makeFsModule } from "@poe-code/safe-js";
+    stdin: { contents: `import { run, makeFsModule, makeEnvModule, makeLogModule } from "@poe-code/safe-js";
       import { createRealm, createRootedSourceResolver } from "./core.js";
       import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-      export { run, makeFsModule, createRealm, createRootedSourceResolver, MemoryFileSystem };`, resolveDir: directory },
-    bundle: true, platform: "neutral", format: "esm", conditions: ["workerd"], write: false
+      export { run, makeFsModule, makeEnvModule, makeLogModule, createRealm, createRootedSourceResolver, MemoryFileSystem };`, resolveDir: directory },
+    bundle: true, platform: "neutral", format: "esm", conditions: [condition], write: false
   });
   const url = "data:text/javascript;base64," + Buffer.from(result.outputFiles[0].text).toString("base64");
   const script = `globalThis.process = undefined; globalThis.Buffer = undefined;
     globalThis.SharedArrayBuffer = undefined;
-    const { run, createRealm, createRootedSourceResolver, makeFsModule, MemoryFileSystem } = await import(${JSON.stringify(url)});
+    const { run, createRealm, createRootedSourceResolver, makeFsModule, makeEnvModule, makeLogModule, MemoryFileSystem } = await import(${JSON.stringify(url)});
+    if (makeEnvModule(["MISSING"]).get("MISSING") !== undefined) throw new Error("Missing env failed");
+    if (makeEnvModule({ allow: ["TOKEN"], values: { TOKEN: "explicit" } }).get("TOKEN") !== "explicit") throw new Error("Explicit env failed");
+    const lines = [];
+    console.log = line => lines.push(JSON.parse(line));
+    const log = makeLogModule();
+    log.info("portable"); log.error("failure"); log.event("ready", { ok: true });
+    if (JSON.stringify(lines.map(line => line.type)) !== '["info","error","event"]') throw new Error("Portable logging failed");
     const fs = new MemoryFileSystem();
     await fs.writeFile("/value", new TextEncoder().encode("portable"));
     const modules = { fs: makeFsModule({ adapter: fs, readFileMaxBytes: Infinity, hostReadMemoryLimit: Infinity }) };
@@ -69,6 +77,8 @@ test("portable SDK executes without Node globals or shared memory", async () => 
   const execution = spawnSync(process.execPath, ["--input-type=module"], { input: script, encoding: "utf8", timeout: nativeProbeTimeoutMs, maxBuffer: 10 * 1024 * 1024 });
   assert.equal(execution.status, 0, execution.stderr.slice(-4000) || String(execution.error));
 });
+
+}
 
 // Load each complete module graph in a fresh native realm using the same
 // external startup budget as the portable subprocess probes.

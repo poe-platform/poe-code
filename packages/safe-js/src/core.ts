@@ -21,3 +21,5 @@ export * from "./modules/fs.js";
 export * from "./modules/harness.js";
 export * from "./modules/metric.js";
 export * from "./modules/time.js";
+
+export { makeLogModule, type LogModuleEntry, type LogModuleSink } from "./modules/log.js";

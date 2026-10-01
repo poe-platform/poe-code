@@ -17,7 +17,7 @@ describe("@poe-code/safe-js/core", () => {
         "admitNativePromiseProperties", "createRealm", "createReplayableRandom",
         "createRootedSourceResolver", "defineExtension", "lint", "makeEnvModule",
         "makeFailModule", "makeFsModule", "makeHarnessModule", "makeMetricModule",
-        "makeTimeModule", "parseEnvConfig", "run"
+        "makeTimeModule", "makeLogModule", "parseEnvConfig", "run"
       ].sort()
     );
   });

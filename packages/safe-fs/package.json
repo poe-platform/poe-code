@@ -10,27 +10,32 @@
       "types": "./src/native/loader.d.ts",
       "workerd": "./src/node/native-seek-unavailable.ts",
       "browser": null,
+      "worker": null,
       "default": "./dist/native/fs-seek/loader.mjs"
     },
     "#safe-fs-platform": {
       "workerd": "./src/platform/browser.ts",
       "browser": "./src/platform/browser.ts",
+      "worker": "./src/platform/browser.ts",
       "default": "./src/platform/node.ts"
     },
     "#safe-fs-platform-path": {
       "types": {
         "workerd": "./src/platform/browser-path.ts",
         "browser": "./src/platform/browser-path.ts",
+        "worker": "./src/platform/browser-path.ts",
         "default": "./src/platform/node-path.ts"
       },
       "workerd": "./dist/platform/browser-path.js",
       "browser": "./dist/platform/browser-path.js",
+      "worker": "./dist/platform/browser-path.js",
       "default": "./dist/platform/node-path.js"
     },
     "#safe-fs-s3-request": {
       "types": "./src/fs/s3/http/request-node.ts",
       "workerd": "./dist/fs/s3/http/request-fetch.js",
       "browser": "./dist/fs/s3/http/request-fetch.js",
+      "worker": "./dist/fs/s3/http/request-fetch.js",
       "default": "./dist/fs/s3/http/request-node.js"
     }
   },
@@ -39,10 +44,12 @@
       "types": {
         "workerd": "./dist/core.d.ts",
         "browser": "./dist/core.d.ts",
+        "worker": "./dist/core.d.ts",
         "default": "./dist/index.d.ts"
       },
       "workerd": "./dist/core.js",
       "browser": "./dist/core.js",
+      "worker": "./dist/core.js",
       "import": "./dist/index.js"
     },
     "./contracts": {
@@ -61,12 +68,14 @@
       "types": "./dist/testing/atomic-filesystem.d.ts",
       "workerd": "./dist/testing/atomic-filesystem.js",
       "browser": "./dist/testing/atomic-filesystem.js",
+      "worker": "./dist/testing/atomic-filesystem.js",
       "import": "./dist/testing/atomic-filesystem.js"
     },
     "./testing/object-publication": {
       "types": "./dist/testing/object-publication.d.ts",
       "workerd": "./dist/testing/object-publication.js",
       "browser": "./dist/testing/object-publication.js",
+      "worker": "./dist/testing/object-publication.js",
       "import": "./dist/testing/object-publication.js"
     },
     "./node": {
@@ -77,10 +86,12 @@
       "types": {
         "workerd": "./dist/node-unavailable.d.ts",
         "browser": "./dist/node-unavailable.d.ts",
+        "worker": "./dist/node-unavailable.d.ts",
         "default": "./dist/node/filesystem.d.ts"
       },
       "workerd": null,
       "browser": null,
+      "worker": null,
       "import": "./dist/node/filesystem.js"
     },
     "./fs/memory": {

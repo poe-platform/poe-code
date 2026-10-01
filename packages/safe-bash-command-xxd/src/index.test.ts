@@ -144,4 +144,12 @@ test("xxd seeks beyond EOF successfully and resets zero columns", async () => {
  const before = await run(["-s", "-4", "/a"], fs);
  assert.equal(before.exitCode, 4);
  assert.equal(before.stdout, "");
+ assert.equal(before.stderr, "xxd: Sorry, cannot seek.\n");
+});
+
+test("xxd zero columns selects the display mode default", async () => {
+  const input = new Uint8Array([65, 66, 67]);
+  for (const mode of [["-i"], ["-b"]]) {
+    assert.equal(await runParity([...mode, "-c", "0"], input), await runParity(mode, input));
+  }
 });

@@ -13,13 +13,6 @@ const MISSING_PATH_CODES: readonly string[] = ["ENOENT", "ENOTDIR"];
 // filesystem merely refused to read as though it named itself.
 const NOT_A_SYMLINK_CODES: readonly string[] = [...MISSING_PATH_CODES, "EINVAL"];
 
-// A conforming realpath raises ELOOP for a cycle before the walk below can follow
-// one, so this cap is only reached by a filesystem that reports a cycle as a
-// missing path. Following one of those forever would hang the sandbox, so the walk
-// gives up the way the platform does — at SYMLOOP_MAX, which is 32 on darwin and
-// Linux alike.
-const MAX_SYMLINK_FOLLOWS = 32;
-
 type Realpath = (path: string) => Promise<string>;
 
 // A symlink's target exactly as stored, which is how node keeps it: relative
@@ -49,11 +42,16 @@ export type Stat = (path: string) => Promise<PathIdentity>;
 // link's own path and call a link out of a caller's root contained.
 export async function resolveCanonicalPath(
   { realpath, readlink }: CanonicalPathFs,
-  path: string
+  path: string,
+  maxSymlinkFollows = Infinity
 ): Promise<string> {
+  if (maxSymlinkFollows !== Infinity && (!Number.isSafeInteger(maxSymlinkFollows) || maxSymlinkFollows < 0)) {
+    throw new RangeError("maxSymlinkFollows must be a nonnegative safe integer or Infinity");
+  }
   const missingSegments: string[] = [];
   let current = path;
   let follows = 0;
+  const visited = new Set<string>();
 
   while (true) {
     try {
@@ -67,9 +65,11 @@ export async function resolveCanonicalPath(
       const target = await readSymlinkTarget(readlink, current);
 
       if (target !== undefined) {
-        if (++follows > MAX_SYMLINK_FOLLOWS) {
+        if (++follows > maxSymlinkFollows || visited.has(current)) {
           throw createLoopError(path);
         }
+
+        visited.add(current);
 
         // node resolves a relative target against the link's own directory. Any
         // segments already collected still hang off whatever the target resolves to,

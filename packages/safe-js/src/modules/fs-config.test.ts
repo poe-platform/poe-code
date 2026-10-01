@@ -25,9 +25,9 @@ describe("SafeJS filesystem configuration SDK", () => {
   });
 
   it("resolves configured filesystem read limits from CLI JSON", async () => {
-    const config = { ...memory, readFileMaxBytes: 128, hostReadMemoryLimit: 4096 };
+    const config = { ...memory, readFileMaxBytes: 128, hostReadMemoryLimit: 4096, maxSymlinkFollows: 50 };
     expect(parseFsConfig(JSON.stringify(config))).toEqual(config);
-    expect(await resolveFsConfig(config)).toEqual({ adapter: filesystem, readFileMaxBytes: 128, hostReadMemoryLimit: 4096 });
+    expect(await resolveFsConfig(config)).toEqual({ adapter: filesystem, readFileMaxBytes: 128, hostReadMemoryLimit: 4096, maxSymlinkFollows: 50 });
   });
 
   it.each([-1, 1.5, null, "128"])("rejects invalid read limits %j before constructing storage", async limit => {

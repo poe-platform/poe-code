@@ -14,11 +14,12 @@ export type FsConfig = {
   readonly cwd?: string;
   readonly readFileMaxBytes?: number;
   readonly hostReadMemoryLimit?: number;
+  readonly maxSymlinkFollows?: number;
 };
 export type ResolveFsConfigOptions = { readonly registry?: FileSystemAdapterRegistry };
 
 function validateFsConfig(value: unknown): FsConfig {
-  const config = readConfigRecord(value, "fs config", ["adapter", "root", "cwd", "readFileMaxBytes", "hostReadMemoryLimit"]);
+  const config = readConfigRecord(value, "fs config", ["adapter", "root", "cwd", "readFileMaxBytes", "hostReadMemoryLimit", "maxSymlinkFollows"]);
   const paths: { root?: string; cwd?: string } = {};
   for (const key of ["root", "cwd"] as const) {
     const path = config[key];
@@ -28,8 +29,8 @@ function validateFsConfig(value: unknown): FsConfig {
     }
     paths[key] = path;
   }
-  const limits: Pick<FsConfig, "readFileMaxBytes" | "hostReadMemoryLimit"> = {};
-  for (const key of ["readFileMaxBytes", "hostReadMemoryLimit"] as const) {
+  const limits: Pick<FsConfig, "readFileMaxBytes" | "hostReadMemoryLimit" | "maxSymlinkFollows"> = {};
+  for (const key of ["readFileMaxBytes", "hostReadMemoryLimit", "maxSymlinkFollows"] as const) {
     const value = config[key];
     if (value === undefined) continue;
     if (value !== Infinity && (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0))

@@ -316,6 +316,8 @@ type StatOptions = {
 };
 
 export type FsModuleOptions = {
+  /** Dangling-symlink canonicalization quota; unlimited by default. */
+  maxSymlinkFollows?: number;
   hostReadMemoryLimit?: number;
   readFileMaxBytes?: number;
 } & (
@@ -363,9 +365,10 @@ export type FsModuleExports = FsModule & { default: FsModuleExports; promises: F
 
 export function makeFsModule(options: FsModuleOptions = {}): FsModuleExports {
   assertSupportedPlatform();
+  const maxSymlinkFollows = options.maxSymlinkFollows ?? Infinity;
   const hostReadMemoryLimit = options.hostReadMemoryLimit ?? Infinity;
   const readFileMaxBytes = options.readFileMaxBytes ?? Infinity;
-  for (const limit of [hostReadMemoryLimit, readFileMaxBytes]) {
+  for (const limit of [hostReadMemoryLimit, readFileMaxBytes, maxSymlinkFollows]) {
     if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0))
       throw new TypeError("Filesystem read limits must be non-negative safe integers or Infinity.");
   }
@@ -404,7 +407,7 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModuleExports {
   const fs =
     options.root === undefined
       ? implementation
-      : makeRootedFs(implementation, options.root, options.adapter, options.cwd, options.signal);
+      : makeRootedFs(implementation, options.root, options.adapter, options.cwd, options.signal, maxSymlinkFollows);
 
   let readFile = bindStringResult(fs, "readFile");
   if (options.adapter !== undefined) {
@@ -435,7 +438,7 @@ export function makeFsModule(options: FsModuleOptions = {}): FsModuleExports {
       });
       const portable = bridge as unknown as FsImplementation;
       const boundedFs = options.root === undefined ? portable
-        : makeRootedFs(portable, options.root, options.adapter, options.cwd, options.signal);
+        : makeRootedFs(portable, options.root, options.adapter, options.cwd, options.signal, maxSymlinkFollows);
       return await invoke(boundedFs, "readFile", args) as string;
     };
     // Direct host calls must use the same reservation pool.
@@ -575,7 +578,8 @@ function makeRootedFs(
   root: string,
   adapter?: FileSystem,
   cwd?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  maxSymlinkFollows = Infinity
 ): FsImplementation {
   if (root.trim().length === 0) {
     throw new Error("fs module root must be a non-empty string.");
@@ -599,7 +603,7 @@ function makeRootedFs(
         return await invoke(
           fs,
           name,
-          await resolvePathArguments(fs, resolvedRoot, name, args, adapter, cwd, signal)
+          await resolvePathArguments(fs, resolvedRoot, name, args, adapter, cwd, signal, maxSymlinkFollows)
         );
       } finally {
         release();
@@ -635,9 +639,10 @@ async function resolvePathArguments(
   args: readonly unknown[],
   adapter?: FileSystem,
   cwd?: string,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  maxSymlinkFollows = Infinity
 ): Promise<readonly unknown[]> {
-  const canonicalRoot = await resolveCanonicalPath(readCanonicalPathFs(fs), resolve(root));
+  const canonicalRoot = await resolveCanonicalPath(readCanonicalPathFs(fs), resolve(root), maxSymlinkFollows);
   const base = cwd ?? canonicalRoot;
   const resolved = [...args];
 
@@ -668,7 +673,7 @@ async function resolvePathArguments(
     await assertInsideRoot(fs, canonicalRoot, name, [checkedTarget, linkPath], adapter, signal, [
       targetPath,
       linkPath
-    ]);
+    ], maxSymlinkFollows);
     return resolved;
   }
 
@@ -678,12 +683,12 @@ async function resolvePathArguments(
     return path;
   });
 
-  await assertInsideRoot(fs, canonicalRoot, name, paths, adapter, signal);
+  await assertInsideRoot(fs, canonicalRoot, name, paths, adapter, signal, paths, maxSymlinkFollows);
   if (name === "mkdtemp") {
     const prefix = args[0] as string;
     const absolutePrefix = isAbsolute(prefix) ? prefix : `${base}${sep}${prefix}`;
     const parent = absolutePrefix.endsWith(sep) ? absolutePrefix : dirname(absolutePrefix);
-    await assertInsideRoot(fs, canonicalRoot, name, [parent], adapter, signal, paths);
+    await assertInsideRoot(fs, canonicalRoot, name, [parent], adapter, signal, paths, maxSymlinkFollows);
     resolved[0] = absolutePrefix;
   }
   if (adapter !== undefined && name === "mkdir") {
@@ -711,10 +716,11 @@ async function assertInsideRoot(
   paths: readonly string[],
   adapter?: FileSystem,
   signal?: AbortSignal,
-  reportedPaths: readonly string[] = paths
+  reportedPaths: readonly string[] = paths,
+  maxSymlinkFollows = Infinity
 ): Promise<void> {
   for (const path of paths) {
-    if (await escapesRoot(fs, canonicalRoot, path, adapter, signal)) {
+    if (await escapesRoot(fs, canonicalRoot, path, adapter, signal, maxSymlinkFollows)) {
       throw createAccessDeniedError(name, reportedPaths[0]!, reportedPaths[1]);
     }
   }
@@ -725,9 +731,10 @@ async function escapesRoot(
   canonicalRoot: string,
   path: string,
   adapter?: FileSystem,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  maxSymlinkFollows = Infinity
 ): Promise<boolean> {
-  const canonicalPath = await resolveCanonicalPath(readCanonicalPathFs(fs), path);
+  const canonicalPath = await resolveCanonicalPath(readCanonicalPathFs(fs), path, maxSymlinkFollows);
 
   return !(await (adapter === undefined
     ? containsPath(readStat(fs), canonicalRoot, canonicalPath)

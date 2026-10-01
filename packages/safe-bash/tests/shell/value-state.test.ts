@@ -45,6 +45,21 @@ test("shrinking positional strings fits their existing finite arena reservation"
   arena.close();
 });
 
+test("positional publication can invalidate the old view without releasing its reused reservation", () => {
+  const { arena, store } = fixture(12);
+  store.replaceStrings(["aa", "bbbb"], () => {});
+  const reason = new Error("publication failed");
+  assert.throws(() => store.replaceStrings(["x"], () => { store.invalidate(); throw reason; }), error => error === reason);
+  assert.deepEqual(arena.usage, { bytes: 12, slots: 0 });
+  store.replaceStrings(["bbbb"], () => { store.invalidate(); });
+  assert.deepEqual(arena.usage, { bytes: 8, slots: 0 });
+  store.replaceStrings(["x"], () => { store.invalidate(); });
+  assert.deepEqual(arena.usage, { bytes: 2, slots: 0 });
+  store.close();
+  assert.deepEqual(arena.usage, { bytes: 0, slots: 0 });
+  arena.close();
+});
+
 test("positional string replacement keeps a cloned reservation independent", () => {
   const { arena, store } = fixture(24);
   store.replaceStrings(["aa", "bbbb"], () => {});

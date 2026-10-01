@@ -743,7 +743,10 @@ navigation, and code execution deadlines are disabled by default; configure
 `limits.actionTimeoutMs`, `limits.codeExecutionTimeoutMs`, or session timeouts
 to bound them. `Infinity` disables host deadlines and maps to the native
 Playwright timeout value `0`. `xargs -s Infinity` and `--max-chars=Infinity` explicitly remove
-the command-size quota. Stream chunk sizes and polling intervals control execution
+the command-size quota. Without `-n`, argument count does not split `xargs` batches;
+command-size and explicit line limits still apply. `-I` followed by `-n 1` preserves
+replacement mode; `-L` and other `-n` values select the last requested batching mode.
+Stream chunk sizes and polling intervals control execution
 independently of these quotas. `diff -u /dev/null FILE` and its reverse produce
 creation/deletion patches; top-level readable character and FIFO inputs are
 read to EOF. Regular files retain identity-checked reads.

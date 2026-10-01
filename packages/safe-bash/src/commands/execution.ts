@@ -113,8 +113,8 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       const longOptions = { "arg-file": "a", "max-lines": "L", null: "0", "no-run-if-empty": "r", "max-args": "n", "max-chars": "s", replace: "I", delimiter: "d", verbose: "t", "max-procs": "P", exit: "x", eof: "E", "process-slot-var": "process-slot-var:" };
       const parsed = options(argumentValues.args, shortOptions, longOptions, true, index => { operandIndices.push(index); },
         (key, index, offset) => { if (key === "I") replacementOrigin = { index, offset }; },
-        key => {
-          if (key === "I" || key === "L" || key === "n") batching = key;
+        (key, optionValue) => {
+          if (key === "I" || key === "L" || key === "n" && !(batching === "I" && integer(optionValue!, 1) === 1)) batching = key;
           if (key === "0" || key === "d") lastDelimMode = key;
         });
       const requested = integer(value(parsed, "P") ?? "1");
@@ -132,7 +132,7 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
       const argumentFile = value(parsed, "a");
       const childInput = argumentFile === undefined ? emptyInput() : context.stdin;
       const childInputIsDefault = argumentFile === undefined ? true : context.stdinIsDefault;
-      const maxArgs = replacement === undefined ? integer(batching === "n" ? value(parsed, "n")! : (maxLines === undefined ? "5000" : String(Number.MAX_SAFE_INTEGER)), 1) : 1;
+      const maxArgs = replacement !== undefined ? 1 : batching === "n" ? integer(value(parsed, "n")!, 1) : Infinity;
       const size = value(parsed, "s");
       const maxBytes = size === undefined || size === "Infinity" ? Infinity : integer(size, 1);
       let delimiter = parsed.flags.has("0") ? "\0" : undefined;
@@ -529,7 +529,8 @@ export function evalSyncXargs(
       if (a.startsWith("--max-args=")) {
         const v = a.slice(11);
         if (!/^[1-9][0-9]*$/.test(v)) return undefined;
-        maxArgs = Number(v); replaceStr = undefined; maxLines = undefined; i++; continue;
+        if (replaceStr === undefined || Number(v) !== 1) { maxArgs = Number(v); replaceStr = undefined; maxLines = undefined; }
+        i++; continue;
       }
       if (a.startsWith("--max-lines=")) {
         const v = a.slice(12);
@@ -548,9 +549,11 @@ export function evalSyncXargs(
       if (a.startsWith("-n") || a === "--max-args") {
         const v = a.startsWith("-n") && a.length > 2 ? a.slice(2) : opArgs[++i];
         if (!v || !/^[1-9][0-9]*$/.test(v)) return undefined;
-        maxArgs = Number(v);
-        replaceStr = undefined;
-        maxLines = undefined;
+        if (replaceStr === undefined || Number(v) !== 1) {
+          maxArgs = Number(v);
+          replaceStr = undefined;
+          maxLines = undefined;
+        }
         i++;
         continue;
       }
@@ -597,7 +600,7 @@ export function evalSyncXargs(
             const rest = a.slice(j + 1);
             const v = rest.length > 0 ? rest : opArgs[++i];
             if (!v || !/^[1-9][0-9]*$/.test(v)) { ok = false; break; }
-            maxArgs = Number(v); replaceStr = undefined; maxLines = undefined;
+            if (replaceStr === undefined || Number(v) !== 1) { maxArgs = Number(v); replaceStr = undefined; maxLines = undefined; }
             break;
           } else if (ch === "L") {
             const rest = a.slice(j + 1);
@@ -836,7 +839,7 @@ export function evalSyncXargs(
       }
       if (batch.length > 0) runEcho(batch);
     } else {
-      const limit = maxArgs ?? 5000;
+      const limit = maxArgs ?? Infinity;
       for (let k = 0; k < tokens.length; k += limit) {
         runEcho(tokens.slice(k, k + limit));
       }

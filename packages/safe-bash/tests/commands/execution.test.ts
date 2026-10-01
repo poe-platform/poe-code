@@ -6,6 +6,7 @@ import { createStandardCommands } from "../../src/commands/index.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
 import { options as commandOptions } from "../../src/commands/internal.js";
 import { chunks, fixture, run } from "./helpers.js";
+import { evalSyncXargs } from "../../src/commands/execution.js";
 
 for (const entry of [
   { name: "env direct fallback", command: "env", values: ["-i", "capture", [255], [254]], stdin: "", invoke: false, expected: [[[255], [254]]] },
@@ -179,7 +180,9 @@ for (const entry of [
   { options: ["-n", "1", "-I", "{}"], expected: "a b\nc d\n" },
   { options: ["-L", "2", "-I", "{}"], expected: "a b\nc d\n" },
   { options: ["-I", "{}", "-n", "2"], expected: "{} a b\n{} c d\n" },
-  { options: ["-I", "{}", "-n", "1"], expected: "{} a\n{} b\n{} c\n{} d\n" },
+  { options: ["-I", "{}", "-n", "1"], expected: "a b\nc d\n" },
+  { options: ["-I{}", "--max-args=1"], expected: "a b\nc d\n" },
+  { options: ["-I{}", "-rn1"], expected: "a b\nc d\n" },
   { options: ["-I", "{}", "-L", "2"], expected: "{} a b c d\n" },
   { options: ["-n", "1", "-L", "1"], expected: "{} a b\n{} c d\n" },
   { options: ["-L", "2", "-n", "1"], expected: "{} a\n{} b\n{} c\n{} d\n" },
@@ -189,6 +192,24 @@ for (const entry of [
   const result = await run("xargs", [...entry.options, "echo", "{}"], { stdin: "a b\nc d\n" });
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, entry.expected);
+  assert.equal(evalSyncXargs(new TextEncoder().encode("a b\nc d\n"), [...entry.options, "echo", "{}"]), entry.expected);
+});
+
+test("xargs default invocation does not split at 5000 arguments", async () => {
+  const words = Array.from({ length: 5001 }, () => "a").join(" ");
+  const calls: number[] = [];
+  const result = await run("xargs", ["capture"], { stdin: words, execute(context) {
+    calls.push(context.args.length);
+    return { exitCode: 0 };
+  } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(calls, [5001]);
+  assert.equal(evalSyncXargs(new TextEncoder().encode(words), ["echo"]), words + "\n");
+});
+
+test("xargs replacement does not hide an invalid max-args value", async () => {
+  const result = await run("xargs", ["-I{}", "-n", "1.0", "echo", "{}"], { stdin: "a\n" });
+  assert.equal(result.exitCode, 2);
 });
 
 test("xargs maps child failures and stops on status 255", async () => {

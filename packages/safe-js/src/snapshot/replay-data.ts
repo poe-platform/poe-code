@@ -1,4 +1,5 @@
 import { MAX_DATA_DEPTH } from "../graph-depth.js";
+import { dataCopyIterable, runDataCopy, type DataCopyOperation } from "../interp/data-copy.js";
 import { importedPromises, importedPromiseSnapshots, importedPromisePropertySnapshots, promiseStates } from "../interp/promise-state.js";
 import { Budget } from "../interp/budget.js";
 import { isSandboxSharedArrayBuffer } from "../interp/shared-array-buffer.js";
@@ -6,13 +7,13 @@ import { decodeSharedArrayBufferStorage, encodeSharedArrayBufferStorage, type Sh
 import { moduleFunctionOrigins } from "../interp/module-function-origin.js";
 import { hostFunctionMetadata } from "../interp/host-function-metadata.js";
 import { createModuleNamespace, isSandboxModuleNamespace } from "../interp/module-namespace.js";
-import { serializeCollectionProperties } from "./collection-properties.js";
+import { serializeCollectionPropertiesOperation } from "./collection-properties.js";
 import { restorePropertyDescriptors, type PropertyDescriptorData } from "./property-descriptors.js";
 import { getCollectionProperties } from "../interp/collection-properties.js";
 import { validateBigIntData } from "./bigint.js";
-import { serializeRegexProperties, restoreRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
+import { serializeRegexPropertiesOperation, restoreRegexProperties, type RegexPropertyData } from "./regexp-properties.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
-import { symbolData, serializeSymbolProperties, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
+import { symbolData, serializeSymbolPropertiesOperation, type SerializedSymbol, type SerializedSymbolProperty } from "./symbols.js";
 import { isSandboxCollectionIterator, restoreSandboxCollectionIterator, snapshotCollectionIterator, type CollectionIterationMethod } from "../interp/collection-iterator.js";
 import { isSandboxRegExpIterator, regexpIteratorState, restoreSandboxRegExpIterator } from "../interp/regexp-iterator.js";
 import { hasExplicitSandboxPrototype, hasGuestObjectState, hasNullObjectPrototype, hostFunctionPropertyTables, isGuestClosure, setSandboxPrototype } from "../interp/object-model.js";
@@ -59,7 +60,7 @@ import {
   type SandboxPromise,
   type SandboxValue
 } from "../interp/values.js";
-import { serializeArguments, type SerializedArguments } from "./arguments.js";
+import { serializeArgumentsOperation, type SerializedArguments } from "./arguments.js";
 import { validateArgumentsProperties, validateSnapshotData } from "./validation.js";
 
 type Atom =
@@ -152,7 +153,7 @@ export function encodeReplayData(
   if (context.failed) throw new TypeError("Cannot extend an incomplete graph.");
   const { nodes, seen, symbols, float32Buffers, sharedBlocks } = context;
   const initialNodeCount = nodes.length;
-  const encode = (entry: SandboxValue, depth: number, path: readonly ReplayPathSegment[], capabilityProperties = false): Atom => {
+  const encode = function* (entry: SandboxValue, depth: number, path: readonly ReplayPathSegment[], capabilityProperties = false): DataCopyOperation<Atom> {
     if (depth > MAX_DATA_DEPTH) throw new TypeError("Replay data exceeds the nesting limit.");
     if (entry === null || typeof entry === "boolean" || typeof entry === "string") return entry;
     if (entry === undefined) return { tag: "undefined" };
@@ -190,7 +191,7 @@ export function encodeReplayData(
         nodes.push(undefined as unknown as DataNode);
         options.onValueEncoded?.(index, entry);
         nodes[index] = { kind: "promise-capability", id,
-          properties: encode(properties, depth + 1, [...path, "properties"], true) };
+          properties: yield encode(properties, depth + 1, [...path, "properties"], true) };
         return { tag: "ref", id: index };
       }
       const snapshot = importedPromiseSnapshots.get(entry);
@@ -211,13 +212,13 @@ export function encodeReplayData(
         const scheduleId = options.identifyScheduledPromise?.(entry);
         const properties = importedPromisePropertySnapshots.get(entry) ?? getPromiseProperties(entry);
         const propertyData = Reflect.ownKeys(properties as object).length === 0 && Object.isExtensible(properties)
-          ? {} : { properties: encode(properties, depth + 1, [...path, "properties"], true) };
+          ? {} : { properties: yield encode(properties, depth + 1, [...path, "properties"], true) };
         nodes[index] = state === undefined ? { kind: "pending-imported-promise",
           ...propertyData,
           ...(scheduleId === undefined ? {} : { scheduleId }) } : { kind: "settled-imported-promise", status: state.status,
           ...(scheduleId === undefined ? {} : { scheduleId }),
           ...propertyData,
-          outcome: encode(state.value, depth + 1, [...path, "<settlement>"]) };
+          outcome: yield encode(state.value, depth + 1, [...path, "<settlement>"]) };
         return { tag: "ref", id: index };
       }
     }
@@ -245,33 +246,35 @@ export function encodeReplayData(
     options.onValueEncoded?.(id, entry);
     const child = (value: SandboxValue, key: string) => encode(value, depth + 1, [...path, key]);
     if (isSandboxModuleNamespace(entry)) {
-      nodes[id] = {kind:"module-namespace",entries:Object.keys(entry).map(key => [key,child((entry as Record<string,SandboxValue>)[key],key)])};
+      const entries: Array<[string, Atom]> = [];
+      for (const key of Object.keys(entry)) entries.push([key, yield child((entry as Record<string, SandboxValue>)[key]!, key)]);
+      nodes[id] = { kind: "module-namespace", entries };
     } else if (isSandboxClosure(entry)) {
       nodes[id] = {
         kind: "capability",
         id: capabilityId!,
-        properties: encode(entry.properties, depth + 1, [...path, "properties"], true)
+        properties: yield encode(entry.properties, depth + 1, [...path, "properties"], true)
       };
     } else if (isRawJson(entry)) {
       nodes[id] = { kind: "raw-json", text: entry.rawJSON };
     } else if (nativeBoxedValue(entry) !== undefined) {
       const properties: Properties = Object.create(null);
       let symbolIndex = 0;
-      const symbolEntries = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
-      nodes[id] = { kind: "boxed", value: child(nativeBoxedValue(entry)!, "<payload>"), properties, extensible: Object.isExtensible(entry), ...(symbolEntries.length === 0 ? {} : { symbolEntries }) };
+      const symbolEntries = yield* dataCopyIterable(serializeSymbolPropertiesOperation(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }])));
+      nodes[id] = { kind: "boxed", value: yield child(nativeBoxedValue(entry)!, "<payload>"), properties, extensible: Object.isExtensible(entry), ...(symbolEntries.length === 0 ? {} : { symbolEntries }) };
       for (const [key, descriptor] of boxedDataProperties(entry)) {
         if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
-        properties[key] = { value: child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
+        properties[key] = { value: yield child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
       }
     } else if (isSandboxTemporalPlainYearMonth(entry) || isSandboxTemporalPlainMonthDay(entry) || isSandboxTemporalInstant(entry) || isSandboxTemporalDuration(entry) || isSandboxTemporalPlainTime(entry) || isSandboxTemporalPlainDateTime(entry) || isSandboxTemporalPlainDate(entry) || isSandboxTemporalZonedDateTime(entry)) {
       const properties: Properties = Object.create(null);
       for (const key of Object.getOwnPropertyNames(entry)) {
         const descriptor = Object.getOwnPropertyDescriptor(entry, key)!;
         if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
-        properties[key] = { value: child(descriptor.value, key), enumerable: descriptor.enumerable === true, writable: descriptor.writable === true, configurable: descriptor.configurable === true };
+        properties[key] = { value: yield child(descriptor.value, key), enumerable: descriptor.enumerable === true, writable: descriptor.writable === true, configurable: descriptor.configurable === true };
       }
       let symbolIndex = 0;
-      const symbolProperties = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
+      const symbolProperties = yield* dataCopyIterable(serializeSymbolPropertiesOperation(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }])));
       nodes[id] = {
         ...(isSandboxTemporalZonedDateTime(entry)
           ? { kind: "temporal-zoned-date-time" as const, slots: {
@@ -299,10 +302,10 @@ export function encodeReplayData(
       const properties: Properties = Object.create(null);
       for (const [key, descriptor] of dateDataProperties(entry)) {
         if (typeof key === "symbol") continue;
-        properties[key] = { value: child(descriptor.value, key), enumerable: descriptor.enumerable === true, writable: descriptor.writable === true, configurable: descriptor.configurable === true };
+        properties[key] = { value: yield child(descriptor.value, key), enumerable: descriptor.enumerable === true, writable: descriptor.writable === true, configurable: descriptor.configurable === true };
       }
       let symbolIndex = 0;
-      const symbolProperties = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
+      const symbolProperties = yield* dataCopyIterable(serializeSymbolPropertiesOperation(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }])));
       nodes[id] = {
         kind: "date", time: serializedDateTime(entry),
         ...(hasNullObjectPrototype(entry) ? { nullPrototype: true as const } : {}),
@@ -311,25 +314,25 @@ export function encodeReplayData(
         ...(Object.isExtensible(entry) ? {} : { extensible: false })
       };
     } else if (isSandboxArrayBuffer(entry) || isSandboxSharedArrayBuffer(entry) || isSandboxDataView(entry)) {
-      const storage = isSandboxDataView(entry) ? { ...encodeDataViewLayout(entry), buffer: child(dataViewBuffer(entry), "<buffer>") }
+      const storage = isSandboxDataView(entry) ? { ...encodeDataViewLayout(entry), buffer: yield child(dataViewBuffer(entry), "<buffer>") }
         : isSandboxSharedArrayBuffer(entry) ? encodeSharedArrayBufferStorage(entry, id, sharedBlocks, id => ({ tag: "ref" as const, id }))
         : encodeArrayBufferStorage(entry, id, float32Buffers, id => ({ tag: "ref" as const, id }));
       const properties: Properties = Object.create(null);
       for (const [key, descriptor] of isSandboxDataView(entry) ? dataViewDataProperties(entry) : arrayBufferDataProperties(entry)) {
         if (typeof key === "symbol") continue;
-        properties[key] = { value: child(descriptor.value, key), configurable: descriptor.configurable === true,
+        properties[key] = { value: yield child(descriptor.value, key), configurable: descriptor.configurable === true,
           enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
       }
       let symbolIndex = 0;
-      const symbolEntries = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
+      const symbolEntries = yield* dataCopyIterable(serializeSymbolPropertiesOperation(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }])));
       nodes[id] = { ...storage, properties, extensible: Object.isExtensible(entry), symbolEntries };
     } else if (isNumericTypedArray(entry)) {
       const backing = typedArrayStorage(entry);
-      const storage: TypedArrayData<Atom> = { ...encodeTypedArrayLayout(entry), buffer: child(backing.buffer, "<buffer>") };
+      const storage: TypedArrayData<Atom> = { ...encodeTypedArrayLayout(entry), buffer: yield child(backing.buffer, "<buffer>") };
       const properties: Properties = Object.create(null);
       for (const [key, descriptor] of typedArrayDataProperties(entry)) {
         properties[key] = {
-          value: child(descriptor.value, key),
+          value: yield child(descriptor.value, key),
           configurable: descriptor.configurable === true,
           enumerable: descriptor.enumerable === true,
           writable: descriptor.writable === true
@@ -341,45 +344,41 @@ export function encodeReplayData(
       const properties: Properties = Object.create(null);
       for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(entry))) {
         if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
-        properties[key] = { value: child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
+        properties[key] = { value: yield child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
       }
       let symbolIndex = 0;
-      const symbolEntries = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
-      nodes[id] = { kind: "regexp-iterator", matcher: child(snapshot.matcher, "<matcher>"), input: child(snapshot.input, "<input>"), exhausted: snapshot.exhausted, properties, extensible: Object.isExtensible(entry), symbolEntries,
+      const symbolEntries = yield* dataCopyIterable(serializeSymbolPropertiesOperation(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }])));
+      nodes[id] = { kind: "regexp-iterator", matcher: yield child(snapshot.matcher, "<matcher>"), input: yield child(snapshot.input, "<input>"), exhausted: snapshot.exhausted, properties, extensible: Object.isExtensible(entry), symbolEntries,
         ...(snapshot.global === undefined ? {} : { global: snapshot.global, unicode: snapshot.unicode }) };
     } else if (isSandboxCollectionIterator(entry)) {
       const snapshot = snapshotCollectionIterator(entry);
       const properties: Properties = Object.create(null);
       for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(entry))) {
         if (!("value" in descriptor)) throw new TypeError(`Cannot record replay data accessor '${key}'.`);
-        properties[key] = { value: child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
+        properties[key] = { value: yield child(descriptor.value, JSON.stringify(["property", key])), configurable: descriptor.configurable === true, enumerable: descriptor.enumerable === true, writable: descriptor.writable === true };
       }
-      nodes[id] = { kind: "collection-iterator", collectionKind: snapshot.collectionKind, method: snapshot.method, collection: child(snapshot.collection, "<collection>"), index: snapshot.index, exhausted: snapshot.exhausted, properties, extensible: Object.isExtensible(entry) };
+      nodes[id] = { kind: "collection-iterator", collectionKind: snapshot.collectionKind, method: snapshot.method, collection: yield child(snapshot.collection, "<collection>"), index: snapshot.index, exhausted: snapshot.exhausted, properties, extensible: Object.isExtensible(entry) };
     } else if (isSandboxMap(entry)) {
-      nodes[id] = {
-        kind: "map",
-        ...serializeCollectionProperties(entry, value => child(value as SandboxValue, "<collection-property>"), true),
-        entries: [...entry.entries].map(([key, value], index) => [
-          child(key, `key:${index}`),
-          child(value, `value:${index}`)
-        ])
-      };
+      const properties = yield* dataCopyIterable(serializeCollectionPropertiesOperation(entry, value => child(value as SandboxValue, "<collection-property>"), true));
+      const entries: Array<[Atom, Atom]> = [];
+      for (const [index, [key, value]] of [...entry.entries].entries())
+        entries.push([yield child(key, `key:${index}`), yield child(value, `value:${index}`)]);
+      nodes[id] = { kind: "map", ...properties, entries };
     } else if (isSandboxSet(entry)) {
-      nodes[id] = {
-        kind: "set",
-        ...serializeCollectionProperties(entry, value => child(value as SandboxValue, "<collection-property>"), true),
-        values: [...entry.values].map((value, index) => child(value, String(index)))
-      };
+      const properties = yield* dataCopyIterable(serializeCollectionPropertiesOperation(entry, value => child(value as SandboxValue, "<collection-property>"), true));
+      const values: Atom[] = [];
+      for (const [index, value] of [...entry.values].entries()) values.push(yield child(value, String(index)));
+      nodes[id] = { kind: "set", ...properties, values };
     } else if (isSandboxRegex(entry)) {
       nodes[id] = {
         kind: "regex",
         source: entry.source,
         flags: entry.flags,
-        lastIndex: child(entry.lastIndex, "lastIndex"),
-        ...serializeRegexProperties(entry, value => child(value as SandboxValue, "<regex-property>"))
+        lastIndex: yield child(entry.lastIndex, "lastIndex"),
+        ...yield* dataCopyIterable(serializeRegexPropertiesOperation(entry, value => child(value as SandboxValue, "<regex-property>")))
       };
     } else if (isSandboxArguments(entry)) {
-      nodes[id] = { kind: "arguments", data: serializeArguments(entry, child) };
+      nodes[id] = { kind: "arguments", data: yield* dataCopyIterable(serializeArgumentsOperation(entry, (value, key) => child(value, key))) };
     } else {
       const prototype = Object.getPrototypeOf(entry);
       if (
@@ -389,13 +388,13 @@ export function encodeReplayData(
       }
       const properties: Properties = Object.create(null);
       let symbolIndex = 0;
-      const symbolProperties = serializeSymbolProperties(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }]));
+      const symbolProperties = yield* dataCopyIterable(serializeSymbolPropertiesOperation(entry, value => encode(value as SandboxValue, depth + 1, [...path, { symbol: Math.floor(symbolIndex++ / 2) }])));
       const errorType = sandboxErrorTypes.get(entry);
       for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(entry))) {
         if (!("value" in descriptor))
           throw new TypeError(`Cannot record replay data accessor '${key}'.`);
         properties[key] = {
-          value: child(descriptor.value, key),
+          value: yield child(descriptor.value, key),
           configurable: descriptor.configurable === true,
           enumerable: descriptor.enumerable === true,
           writable: descriptor.writable === true
@@ -414,7 +413,7 @@ export function encodeReplayData(
     return { tag: "ref", id };
   };
   try {
-    return { root: encode(value, 0, options.path ?? []), nodes };
+    return { root: runDataCopy(encode(value, 0, options.path ?? [])), nodes };
   } catch (error) {
     context.failed = true;
     nodes.length = initialNodeCount;
@@ -1013,19 +1012,23 @@ export function decodeReplayData(
       if (kind === "map") {
         const result = createSandboxMap();
         restored.set(id, result);
-        restoreCollectionDataProperties(result, node, child);
-        for (const pair of list(own(node, "entries"))) {
-          const entries = list(pair);
-          if (entries.length !== 2) throw new TypeError("Invalid replay map entry.");
-          result.entries.set(child(entries[0]), child(entries[1]));
-        }
+        initializeValues.push(() => {
+          restoreCollectionDataProperties(result, node, child);
+          for (const pair of list(own(node, "entries"))) {
+            const entries = list(pair);
+            if (entries.length !== 2) throw new TypeError("Invalid replay map entry.");
+            result.entries.set(child(entries[0]), child(entries[1]));
+          }
+        });
         return result;
       }
       if (kind === "set") {
         const result = createSandboxSet();
         restored.set(id, result);
-        restoreCollectionDataProperties(result, node, child);
-        for (const value of list(own(node, "values"))) result.values.add(child(value));
+        initializeValues.push(() => {
+          restoreCollectionDataProperties(result, node, child);
+          for (const value of list(own(node, "values"))) result.values.add(child(value));
+        });
         return result;
       }
       if (kind === "regex") {
@@ -1038,8 +1041,10 @@ export function decodeReplayData(
         }
         const result = createSandboxRegex(node.source, node.flags, 0, compilation);
         restored.set(id, result);
-        result.lastIndex = child(own(node, "lastIndex"));
-        restoreRegexProperties(result, node as RegexPropertyData<Atom>, child);
+        initializeValues.push(() => {
+          result.lastIndex = child(own(node, "lastIndex"));
+          restoreRegexProperties(result, node as RegexPropertyData<Atom>, child);
+        });
         return result;
       }
       if (kind === "arguments") {
@@ -1048,15 +1053,17 @@ export function decodeReplayData(
         if (data.kind !== "arguments") throw new TypeError("Invalid replay arguments.");
         const args = createSandboxArguments([]);
         restored.set(id, args);
-        if (!data.lengthBeforeCallee) delete args.length;
-        defineProperties(args, record(data.properties), child);
-        if (data.iterator === null) Reflect.deleteProperty(args, Symbol.iterator);
-        else
-          Object.defineProperty(args, Symbol.iterator, {
-            ...record(data.iterator),
-            value: Array.prototype.values
-          });
-        if (!data.extensible) Object.preventExtensions(args);
+        initializeValues.push(() => {
+          if (!data.lengthBeforeCallee) delete args.length;
+          defineProperties(args, record(data.properties), child);
+          if (data.iterator === null) Reflect.deleteProperty(args, Symbol.iterator);
+          else
+            Object.defineProperty(args, Symbol.iterator, {
+              ...record(data.iterator),
+              value: Array.prototype.values
+            });
+          if (!data.extensible) Object.preventExtensions(args);
+        });
         return args;
       }
       if (kind !== "array" && kind !== "object") throw new TypeError("Invalid replay data node.");
@@ -1074,9 +1081,11 @@ export function decodeReplayData(
       }
       if (kind === "array" && node.nullPrototype) Object.setPrototypeOf(result, null);
       restored.set(id, result);
-      defineProperties(result, record(own(node, "properties")), child, node.symbolProperties);
-      if (kind === "array") compilation.owner?.budget.allocateArrayLength(result.length);
-      if (!node.extensible) Object.preventExtensions(result);
+      initializeValues.push(() => {
+        defineProperties(result, record(own(node, "properties")), child, node.symbolProperties);
+        if (kind === "array") compilation.owner?.budget.allocateArrayLength(result.length);
+        if (!node.extensible) Object.preventExtensions(result);
+      });
       return result;
     };
     const result = decode(own(graph, "root"));

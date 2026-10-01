@@ -2,6 +2,7 @@ import { accessorAdapter, accessorClosure } from "../interp/accessors.js";
 import { internalSymbols } from "../interp/internal-symbols.js";
 import { markDescriptorObject } from "../interp/object-model.js";
 import { isSandboxClosure } from "../interp/values.js";
+import { runDataCopy, type DataCopyOperation } from "../interp/data-copy.js";
 
 type Descriptor<T> = { enumerable: boolean; configurable: boolean } & (
   { kind: "data"; value: T; writable: boolean } |
@@ -14,14 +15,21 @@ export type PropertyDescriptorData<T> = {
 };
 
 export function serializePropertyDescriptors<T>(target: object, encode: (value: unknown) => T): PropertyDescriptorData<T> {
+  // eslint-disable-next-line require-yield
+  return runDataCopy(serializePropertyDescriptorsOperation(target, function* (value): DataCopyOperation<T> { return encode(value); }));
+}
+
+export function* serializePropertyDescriptorsOperation<T>(target: object, encode: (value: unknown) => DataCopyOperation<T>): DataCopyOperation<T, PropertyDescriptorData<T>> {
+  const properties: PropertyDescriptorData<T>["properties"] = [];
+  for (const key of Reflect.ownKeys(target).filter(key => typeof key !== "symbol" || !internalSymbols.has(key))) {
+    const descriptor = Object.getOwnPropertyDescriptor(target, key)!;
+    const flags = { enumerable: descriptor.enumerable === true, configurable: descriptor.configurable === true };
+    properties.push([yield encode(key), "value" in descriptor
+      ? { kind: "data", ...flags, value: yield encode(descriptor.value), writable: descriptor.writable === true }
+      : { kind: "accessor", ...flags, get: yield encode(accessorClosure(descriptor.get)), set: yield encode(accessorClosure(descriptor.set)) }]);
+  }
   return {
-    properties: Reflect.ownKeys(target).filter(key => typeof key !== "symbol" || !internalSymbols.has(key)).map(key => {
-      const descriptor = Object.getOwnPropertyDescriptor(target, key)!;
-      const flags = { enumerable: descriptor.enumerable === true, configurable: descriptor.configurable === true };
-      return [encode(key), "value" in descriptor
-        ? { kind: "data", ...flags, value: encode(descriptor.value), writable: descriptor.writable === true }
-        : { kind: "accessor", ...flags, get: encode(accessorClosure(descriptor.get)), set: encode(accessorClosure(descriptor.set)) }];
-    }),
+    properties,
     extensible: Object.isExtensible(target)
   };
 }

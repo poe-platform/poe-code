@@ -1,5 +1,6 @@
 import { getRegexProperties, type SandboxRegex } from "../interp/values.js";
-import { restoreSymbolProperties, serializeSymbolProperties, type SerializedSymbolProperty } from "./symbols.js";
+import { restoreSymbolProperties, serializeSymbolPropertiesOperation, type SerializedSymbolProperty } from "./symbols.js";
+import { dataCopyIterable, runDataCopy, type DataCopyOperation } from "../interp/data-copy.js";
 
 type DataProperty<T> = { value: T; enumerable: boolean; writable: boolean; configurable: boolean };
 export type RegexPropertyData<T> = {
@@ -15,16 +16,21 @@ export function hasCustomRegexProperties(value: SandboxRegex): boolean {
 }
 
 export function serializeRegexProperties<T>(value: SandboxRegex, encode: (entry: unknown) => T): RegexPropertyData<T> {
+  // eslint-disable-next-line require-yield
+  return runDataCopy(serializeRegexPropertiesOperation(value, function* (entry): DataCopyOperation<T> { return encode(entry); }));
+}
+
+export function* serializeRegexPropertiesOperation<T>(value: SandboxRegex, encode: (entry: unknown) => DataCopyOperation<T>): DataCopyOperation<T, RegexPropertyData<T>> {
   if (!hasCustomRegexProperties(value)) return {};
   const source = getRegexProperties(value);
   const properties: Record<string, DataProperty<T>> = Object.create(null);
   for (const key of Object.getOwnPropertyNames(source)) {
     const descriptor = Object.getOwnPropertyDescriptor(source, key)!;
     if (!("value" in descriptor)) throw new TypeError("RegExp accessor properties cannot be serialized as data.");
-    properties[key] = { value: encode(descriptor.value), enumerable: descriptor.enumerable === true,
+    properties[key] = { value: yield encode(descriptor.value), enumerable: descriptor.enumerable === true,
       configurable: descriptor.configurable === true, writable: descriptor.writable === true };
   }
-  const symbolEntries = serializeSymbolProperties(source, encode);
+  const symbolEntries = yield* dataCopyIterable(serializeSymbolPropertiesOperation(source, encode));
   return { properties, ...(symbolEntries.length === 0 ? {} : { symbolEntries }),
     ...(Object.isExtensible(source) ? {} : { extensible: false }) };
 }

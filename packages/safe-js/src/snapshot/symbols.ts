@@ -1,5 +1,6 @@
 import { internalSymbols } from "../interp/internal-symbols.js";
 import { wellKnownSymbols } from "../interp/symbols.js";
+import { runDataCopy, type DataCopyOperation } from "../interp/data-copy.js";
 
 export type SerializedSymbol = { kind: "symbol"; description?: string; wellKnown?: string };
 export type SerializedSymbolProperty<T> = [T, { value: T; enumerable: boolean; writable: boolean; configurable: boolean }];
@@ -32,11 +33,18 @@ export function ownSerializableSymbolKeys(value: object): symbol[] {
 }
 
 export function serializeSymbolProperties<T>(value: object, encode: (value: unknown) => T): Array<SerializedSymbolProperty<T>> {
-  return ownSerializableSymbolKeys(value).map(key => {
+  // eslint-disable-next-line require-yield
+  return runDataCopy(serializeSymbolPropertiesOperation(value, function* (entry): DataCopyOperation<T> { return encode(entry); }));
+}
+
+export function* serializeSymbolPropertiesOperation<T>(value: object, encode: (value: unknown) => DataCopyOperation<T>): DataCopyOperation<T, Array<SerializedSymbolProperty<T>>> {
+  const properties: Array<SerializedSymbolProperty<T>> = [];
+  for (const key of ownSerializableSymbolKeys(value)) {
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
     if (!("value" in descriptor)) throw new TypeError("Symbol accessor properties cannot be serialized.");
-    return [encode(key), { value: encode(descriptor.value), enumerable: descriptor.enumerable === true, writable: descriptor.writable === true, configurable: descriptor.configurable === true }];
-  });
+    properties.push([yield encode(key), { value: yield encode(descriptor.value), enumerable: descriptor.enumerable === true, writable: descriptor.writable === true, configurable: descriptor.configurable === true }]);
+  }
+  return properties;
 }
 
 export function restoreSymbolProperties<T>(target: object, entries: Array<SerializedSymbolProperty<T>> | undefined, decode: (value: T) => unknown): void {

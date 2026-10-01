@@ -1,4 +1,5 @@
 import type { SandboxObject, SandboxValue } from "../interp/values.js";
+import { runDataCopy, type DataCopyOperation } from "../interp/data-copy.js";
 
 type PropertyFlags = {
   configurable: boolean;
@@ -18,6 +19,14 @@ export function serializeArguments<TValue>(
   value: SandboxObject,
   serializeValue: (entry: SandboxValue, key: string) => TValue
 ): SerializedArguments<TValue> {
+  // eslint-disable-next-line require-yield
+  return runDataCopy(serializeArgumentsOperation(value, function* (entry, key): DataCopyOperation<TValue> { return serializeValue(entry, key); }));
+}
+
+export function* serializeArgumentsOperation<TValue>(
+  value: SandboxObject,
+  serializeValue: (entry: SandboxValue, key: string) => DataCopyOperation<TValue>
+): DataCopyOperation<TValue, SerializedArguments<TValue>> {
   const properties: SerializedArguments<TValue>["properties"] = Object.create(null);
   for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
     if (!("value" in descriptor)) {
@@ -25,7 +34,7 @@ export function serializeArguments<TValue>(
       continue;
     }
     properties[key] = {
-      value: serializeValue(descriptor.value, key),
+      value: yield serializeValue(descriptor.value, key),
       configurable: descriptor.configurable === true,
       enumerable: descriptor.enumerable === true,
       writable: descriptor.writable === true

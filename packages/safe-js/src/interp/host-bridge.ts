@@ -1,7 +1,8 @@
 import { captureJobScheduler, suspendJob } from "./jobs.js";
 import { resolveSandboxValue } from "./promise.js";
 import { readNativeMap, readNativeSet } from "./native-collections.js";
-import { copyCollectionProperties, getCollectionProperties } from "./collection-properties.js";
+import { copyCollectionPropertiesOperation, getCollectionProperties } from "./collection-properties.js";
+import { runDataCopy, type DataCopyOperation } from "./data-copy.js";
 import { runResources } from "./resources.js";
 import { nativeConstructorName } from "./native-constructor-name.js";
 import { types } from "#safe-js-platform";
@@ -1137,17 +1138,29 @@ function wrapHostPromiseWithSignal<TValue>(
   });
 }
 
+type HostCopyState = {
+  seen: WeakMap<object, SandboxValue>;
+  float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
+  promiseIdentities?: WeakMap<object, SandboxValue>;
+};
+
 export function copyHostValueToSandbox(
   value: unknown,
   stackFrames: readonly string[],
   options: HostBridgeOptions & { errorData?: boolean },
-  state: {
-    seen: WeakMap<object, SandboxValue>;
-    float32Buffers?: WeakMap<ArrayBufferLike, ArrayBufferLike>;
-    promiseIdentities?: WeakMap<object, SandboxValue>;
-  },
+  state: HostCopyState,
   path: string
 ): SandboxValue {
+  return runDataCopy(copyHostValueNode(value, stackFrames, options, state, path));
+}
+
+function* copyHostValueNode(
+  value: unknown,
+  stackFrames: readonly string[],
+  options: HostBridgeOptions & { errorData?: boolean },
+  state: HostCopyState,
+  path: string
+): DataCopyOperation<SandboxValue> {
   const { budget } = options;
 
   if (isLiveCapability(value)) {
@@ -1202,7 +1215,7 @@ export function copyHostValueToSandbox(
       const existing = state.seen.get(value) ?? state.promiseIdentities?.get(value);
       if (existing !== undefined) return existing;
       observeSandboxPromise(value);
-      const copied = copyHostValueToSandbox(value.promise, stackFrames, options, state, path);
+      const copied = yield copyHostValueNode(value.promise, stackFrames, options, state, path);
       if (!isSandboxPromise(copied)) throw new TypeError("Invalid copied imported Promise.");
       options.promiseReplacements.set(value, copied);
       state.seen.set(value, copied);
@@ -1213,7 +1226,7 @@ export function copyHostValueToSandbox(
         if (!("value" in descriptor)) throw new TypeError("Imported Promise accessors require an explicit capability.");
         if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
         Object.defineProperty(getPromiseProperties(copied), typeof key === "string" ? budget.allocateString(key) : key, { ...descriptor,
-          value: copyHostValueToSandbox(descriptor.value, stackFrames, options, state, joinPath(path, String(key))) });
+          value: yield copyHostValueNode(descriptor.value, stackFrames, options, state, joinPath(path, String(key))) });
       }
       if (!Object.isExtensible(properties)) Object.preventExtensions(getPromiseProperties(copied));
       return copied;
@@ -1237,7 +1250,7 @@ export function copyHostValueToSandbox(
         if (typeof key !== "string") throw new TypeError("Host RegExp symbol properties require an explicit capability path.");
         Object.defineProperty(getRegexProperties(copy), budget.allocateString(key), {
           ...descriptor,
-          value: copyHostValueToSandbox(descriptor.value, stackFrames,
+          value: yield copyHostValueNode(descriptor.value, stackFrames,
             { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state,
             joinPath(path, key))
         });
@@ -1297,7 +1310,7 @@ export function copyHostValueToSandbox(
       if (typeof key === "symbol" && key.description !== undefined) budget.allocateString(key.description);
       Object.defineProperty(copy, typeof key === "string" ? budget.allocateString(key) : key, {
         ...descriptor,
-        value: copyHostValueToSandbox(descriptor.value, stackFrames,
+        value: yield copyHostValueNode(descriptor.value, stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment))
       });
     }
@@ -1340,7 +1353,7 @@ export function copyHostValueToSandbox(
       const descriptor = Object.getOwnPropertyDescriptor(original, key)!;
       if (!("value" in descriptor)) throw new TypeError(`Unsupported sandbox value at ${joinPath(path, key)}: accessor property`);
       Object.defineProperty(copy, budget.allocateString(key), { ...descriptor,
-        value: copyHostValueToSandbox(descriptor.value, stackFrames,
+        value: yield copyHostValueNode(descriptor.value, stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
     }
     if (!Object.isExtensible(original)) Object.preventExtensions(copy);
@@ -1365,12 +1378,12 @@ export function copyHostValueToSandbox(
     budget.provisionDataUsage(length + 2)();
     const copy = copyDataViewStorage(value, state);
     state.seen.set(value, copy);
-    copyHostValueToSandbox(buffer, stackFrames,
+    yield copyHostValueNode(buffer, stackFrames,
       { ...options, capabilityPath: [...(options.capabilityPath ?? []), "buffer"] }, state, `${path}.buffer`);
     for (const [key, descriptor] of dataViewDataProperties(value)) {
       if (typeof key !== "string") throw new TypeError("Host DataView symbol properties require an explicit capability path.");
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyHostValueToSandbox(descriptor.value, stackFrames,
+        value: yield copyHostValueNode(descriptor.value, stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
@@ -1389,7 +1402,7 @@ export function copyHostValueToSandbox(
     for (const [key, descriptor] of arrayBufferDataProperties(value)) {
       if (typeof key === "symbol") throw new TypeError("Host ArrayBuffer symbol properties require an explicit capability path.");
       Object.defineProperty(copy, key, { ...descriptor,
-        value: copyHostValueToSandbox(descriptor.value, stackFrames,
+        value: yield copyHostValueNode(descriptor.value, stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] }, state, joinPath(path, key)) });
     }
     if (!Object.isExtensible(value)) Object.preventExtensions(copy);
@@ -1405,12 +1418,12 @@ export function copyHostValueToSandbox(
     checkTypedArrayAllocation(Math.ceil(storage.byteLength / storage.elementSize), budget, storage.elementSize);
     const copy = copyTypedArrayStorage(value, state, true);
     state.seen.set(value, copy);
-    copyHostValueToSandbox(typedArrayStorage(value).buffer, stackFrames,
+    yield copyHostValueNode(typedArrayStorage(value).buffer, stackFrames,
       { ...options, capabilityPath: [...(options.capabilityPath ?? []), "buffer"] }, state, `${path}.buffer`);
     for (const [key, descriptor] of typedArrayDataProperties(value)) {
       Object.defineProperty(copy, key, {
         ...descriptor,
-        value: copyHostValueToSandbox(
+        value: yield copyHostValueNode(
           descriptor.value,
           stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), key] },
@@ -1474,7 +1487,7 @@ export function copyHostValueToSandbox(
         const segment = hasSymbols
           ? JSON.stringify(typeof key === "symbol" ? ["symbol", index] : ["property", key]) : key as string;
         Object.defineProperty(properties, typeof key === "string" ? budget.allocateString(key) : key, { ...descriptor,
-          value: copyHostValueToSandbox(descriptor.value, stackFrames,
+          value: yield copyHostValueNode(descriptor.value, stackFrames,
             { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, String(key))) });
       }
       if (!Object.isExtensible(value)) Object.preventExtensions(properties);
@@ -1514,7 +1527,7 @@ export function copyHostValueToSandbox(
       defineOwnDataProperty(
         copy,
         typeof key === "symbol" || indexed ? key : budget.allocateString(key),
-        copyHostValueToSandbox(
+        yield copyHostValueNode(
           descriptor.value,
           stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] },
@@ -1540,25 +1553,25 @@ export function copyHostValueToSandbox(
     budget.allocateCollectionEntries(isSandboxMap(value) ? value.entries.size : native!.size);
     if (runResources.getStore()?.hostDataMetadata !== false) {
       let propertyIndex = 0;
-      copyCollectionProperties(value, getCollectionProperties(copy), (entry, key) => {
+      yield copyCollectionPropertiesOperation(value, getCollectionProperties(copy), (entry, key) => {
         if (typeof key === "string") budget.allocateString(key);
         else if (key.description !== undefined) budget.allocateString(key.description);
         const segment = JSON.stringify(["property", typeof key === "symbol" ? ["symbol", propertyIndex++] : ["string", key]]);
-        return copyHostValueToSandbox(entry, stackFrames,
+        return copyHostValueNode(entry, stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment));
       });
     }
     for (const [key, entry] of entries) {
       const ordinal = copy.entries.size;
       copy.entries.set(
-        copyHostValueToSandbox(
+        yield copyHostValueNode(
           key,
           stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), `key:${ordinal}`] },
           state,
           `${path}.<key>`
         ),
-        copyHostValueToSandbox(
+        yield copyHostValueNode(
           entry,
           stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), `value:${ordinal}`] },
@@ -1583,17 +1596,17 @@ export function copyHostValueToSandbox(
     budget.allocateCollectionEntries(isSandboxSet(value) ? value.values.size : native!.size);
     if (runResources.getStore()?.hostDataMetadata !== false) {
       let propertyIndex = 0;
-      copyCollectionProperties(value, getCollectionProperties(copy), (entry, key) => {
+      yield copyCollectionPropertiesOperation(value, getCollectionProperties(copy), (entry, key) => {
         if (typeof key === "string") budget.allocateString(key);
         else if (key.description !== undefined) budget.allocateString(key.description);
         const segment = JSON.stringify(["property", typeof key === "symbol" ? ["symbol", propertyIndex++] : ["string", key]]);
-        return copyHostValueToSandbox(entry, stackFrames,
+        return copyHostValueNode(entry, stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] }, state, joinPath(path, segment));
       });
     }
     for (const entry of entries) {
       copy.values.add(
-        copyHostValueToSandbox(
+        yield copyHostValueNode(
           entry,
           stackFrames,
           {
@@ -1639,7 +1652,7 @@ export function copyHostValueToSandbox(
         enumerable: true,
         configurable: true,
         writable: true,
-        value: copyHostValueToSandbox(
+        value: yield copyHostValueNode(
           descriptor.value,
           stackFrames,
           { ...options, capabilityPath: [...(options.capabilityPath ?? []), segment] },

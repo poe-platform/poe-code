@@ -9,12 +9,68 @@ import {
   isSandboxArguments,
   isSandboxMap,
   isSandboxRegex,
-  isSandboxSet
+  isSandboxSet,
+  getRegexProperties,
+  type SandboxValue
 } from "../interp/values.js";
 import { decodeReplayData, encodeReplayData } from "./replay-data.js";
 import { setSandboxPrototype } from "../interp/object-model.js";
+import { getCollectionProperties } from "../interp/collection-properties.js";
 
 describe("replay result data", () => {
+  it("keeps serialization operations private when native generator methods are replaced", () => {
+    const prototype = Object.getPrototypeOf(Object.getPrototypeOf((function* () {})()));
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, "next")!;
+    let exposed = false;
+    Object.defineProperty(prototype, "next", { ...descriptor, value() {
+      exposed = true;
+      throw new Error("Private serialization operation exposed");
+    } });
+    let encoded: ReturnType<typeof encodeReplayData>;
+    try { encoded = encodeReplayData({ child: 7 }); }
+    finally { Object.defineProperty(prototype, "next", descriptor); }
+    expect(exposed).toBe(false);
+    expect(decodeReplayData(encoded)).toEqual({ child: 7 });
+  });
+
+  it("records and restores deeply nested data without native recursion", () => {
+    let input: { child?: object } = {};
+    for (let depth = 0; depth < 2500; depth++) input = { child: input };
+    const encoded = encodeReplayData(input);
+    expect(encoded.nodes).toHaveLength(2501);
+    let restored = decodeReplayData(encoded) as { child?: object };
+    for (let depth = 0; depth < 2500; depth++) {
+      expect(restored).toHaveProperty("child");
+      restored = restored.child as typeof restored;
+    }
+    expect(restored).toEqual({});
+  });
+
+  it.each(["symbol", "collection", "regexp", "arguments"])("records deep %s property chains without native recursion", kind => {
+    const depth = 2500;
+    let input: SandboxValue = "leaf";
+    for (let index = 0; index < depth; index++) {
+      if (kind === "symbol") input = { [Symbol.iterator]: input };
+      else if (kind === "collection") {
+        const collection = index % 2 === 0 ? createSandboxMap() : createSandboxSet();
+        getCollectionProperties(collection).child = input;
+        input = collection;
+      } else if (kind === "regexp") {
+        const regex = createSandboxRegex("a", "");
+        getRegexProperties(regex).child = input;
+        input = regex;
+      } else input = createSandboxArguments([input]);
+    }
+    let restored = decodeReplayData(encodeReplayData(input));
+    for (let index = 0; index < depth; index++) {
+      if (isSandboxMap(restored) || isSandboxSet(restored)) restored = getCollectionProperties(restored).child;
+      else if (isSandboxRegex(restored)) restored = getRegexProperties(restored).child;
+      else if (isSandboxArguments(restored)) restored = restored[0];
+      else restored = (restored as { [Symbol.iterator]: SandboxValue })[Symbol.iterator];
+    }
+    expect(restored).toBe("leaf");
+  });
+
   it("does not discard an unsupported prototype on a capability property table", () => {
     const closure = createSandboxClosure({call: () => 7, properties: {extra: 1}});
     setSandboxPrototype(closure.properties!, {inherited: 7});

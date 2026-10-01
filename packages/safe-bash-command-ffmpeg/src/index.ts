@@ -384,8 +384,12 @@ function* lavfiSteps(
   const parsed = parseMp4(mp4Bytes);
   return {
     ...parsed,
+    duration: Math.round(frameCount / fps * parsed.timescale),
+    durationSeconds: frameCount / fps,
     tracks: parsed.tracks.map((t) =>
-      t.type === "video" ? { ...t, samples: [], decodedVideoFrames: frames } : t
+      t.type === "video"
+        ? { ...t, duration: Math.round(frameCount / fps * t.timescale), samples: [], decodedVideoFrames: frames }
+        : t
     )
   };
 }

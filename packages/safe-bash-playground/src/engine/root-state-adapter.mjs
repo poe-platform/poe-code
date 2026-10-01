@@ -138,9 +138,22 @@ export function instrumentRootState(source) {
         countRoots(selection.elseStatement);
         const constructedIndex = constructed.findIndex(child => isConstructedRoot(assignedValue(child, "currentState")));
         if (roots !== 1 || constructedIndex < 0) return undefined;
-        const published = assignedValue(constructed[constructedIndex + 1], "state");
+        let observationIndex = constructedIndex + 1;
+        const initialization = constructed[observationIndex];
+        const assignment = initialization && ts.isExpressionStatement(initialization) ? initialization.expression : undefined;
+        // Admit only the shell-owned process-substitution counter before root publication.
+        if (assignment && ts.isBinaryExpression(assignment) && assignment.operatorToken.kind === ts.SyntaxKind.EqualsToken
+          && ts.isPropertyAccessExpression(assignment.left) && !assignment.left.questionDotToken
+          && ts.isIdentifier(assignment.left.expression) && assignment.left.expression.text === "currentState"
+          && assignment.left.name.text === "processSubstitutionIds"
+          && ts.isPropertyAccessExpression(assignment.right) && !assignment.right.questionDotToken
+          && assignment.right.expression.kind === ts.SyntaxKind.ThisKeyword
+          && ts.isPrivateIdentifier(assignment.right.name) && assignment.right.name.text === "#processSubstitutionIds") {
+          observationIndex++;
+        }
+        const published = assignedValue(constructed[observationIndex], "state");
         if (!published || !ts.isIdentifier(published) || published.text !== "currentState") return undefined;
-        return { name: "currentState", selection, constructedIndex };
+        return { name: "currentState", selection, observationIndex };
       };
       const rootStateBinding = (statement) => {
         if (ts.isVariableStatement(statement)) {
@@ -174,7 +187,7 @@ export function instrumentRootState(source) {
               const selection = binding.selection;
               const reused = selection.thenStatement;
               const constructed = selection.elseStatement;
-              const coldIndex = binding.constructedIndex + 1;
+              const coldIndex = binding.observationIndex;
               const observedSelection = factory.updateIfStatement(
                 selection,
                 selection.expression,

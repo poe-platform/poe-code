@@ -237,6 +237,7 @@ describe("pinned browser source adapters", () => {
       }
       export class Shell {
         warm;
+        #processSubstitutionIds = { next: 0 };
         run(options) { return this.#execute(options, this.warm); }
         async #execute(options, warm) {
           let state = warm?.currentState;
@@ -249,6 +250,7 @@ describe("pinned browser source adapters", () => {
             } else {
               const cwd = "/", variables = {}, exported = new Set();
               currentState = new RootShellState(cwd, variables, exported, {});
+              currentState.processSubstitutionIds = this.#processSubstitutionIds;
               state = currentState;
               runtime = {};
             }
@@ -268,8 +270,11 @@ describe("pinned browser source adapters", () => {
     const shell = new Shell();
     const earlier: unknown[] = [], current: unknown[] = [];
     await shell.run({ cwd: "/first", onCwd: (cwd: string) => earlier.push(cwd), onRootState: (root: unknown) => earlier.push(root) });
+    const ids = shell.warm.currentState.processSubstitutionIds;
+    expect(ids).toEqual({ next: 0 });
     expect(earlier).toEqual(["/first", "/first/finished", { cwd: "/first/finished" }]);
     await shell.run({ cwd: "/unobserved" });
+    expect(shell.warm.currentState.processSubstitutionIds).toBe(ids);
     expect(earlier).toHaveLength(3);
     const result = shell.run({
       cwd: "/current", fail, events: current,
@@ -301,6 +306,10 @@ describe("pinned browser source adapters", () => {
       body.replace("runtime = warm.runtime;", "runtime = other;"),
       body.replace("new RootShellState(cwd,", "new RootShellState(other,"),
       body.replace("state = currentState;", "state = other;"),
+      body.replace("state = currentState;", "currentState.processSubstitutionIds = other; state = currentState;"),
+      body.replace("state = currentState;", "currentState.other = this.#processSubstitutionIds; state = currentState;"),
+      body.replace("state = currentState;", "currentState.processSubstitutionIds = this.processSubstitutionIds; state = currentState;"),
+      body.replace("state = currentState;", "currentState.processSubstitutionIds = this.#processSubstitutionIds; currentState.processSubstitutionIds = this.#processSubstitutionIds; state = currentState;"),
       body.replace("state = currentState;", "state = currentState; currentState = new RootShellState(cwd, variables, exported, extensions);"),
       body.replace("state = currentState;", "state = currentState; if (other) { currentState = new RootShellState(cwd, variables, exported, extensions); }"),
       `${body} const state = { cwd };`,

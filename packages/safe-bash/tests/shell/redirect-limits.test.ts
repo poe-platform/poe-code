@@ -17,6 +17,24 @@ function fixture(t: TestContext, limits: ShellLimits = {}) {
 
 const redirectLimit = (error: unknown): boolean => error instanceof ShellLimitError && error.limit === "maxRedirects";
 
+for (const streaming of [true, false]) {
+  for (const command of ["sort -o /out /input", "uniq /input /out"]) {
+    test(`${command} shares the output budget (streaming=${streaming})`, async t => {
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/input", new TextEncoder().encode("a\nb\n"));
+      if (!streaming) Object.defineProperty(fs, "writeStream", { value: undefined });
+      const shell = new Shell({ fs }).use(standardCommands());
+      t.after(() => shell.dispose());
+      assert.equal((await shell.exec(command, { limits: { maxOutputBytes: 4 } })).exitCode, 0);
+      assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "a\nb\n");
+      await assert.rejects(shell.exec(command, { limits: { maxOutputBytes: 3 } }),
+        error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+      await assert.rejects(shell.exec(`printf x; ${command}`, { limits: { maxOutputBytes: 4 } }),
+        error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+    });
+  }
+}
+
 for (const name of ["fd-writer", "wc"]) {
   test(`direct and admitted writes share a finite output budget for ${name}`, async t => {
     const { shell, fs } = fixture(t, { maxOutputBytes: 5 });

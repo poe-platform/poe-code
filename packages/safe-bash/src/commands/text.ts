@@ -8,6 +8,7 @@ import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../contracts/
 import { RecordBuffer } from "./record-buffer.js";
 import { SortRecordBudget } from "./sort-admission.js";
 import { compareObservedEntries } from "./copy-identity.js";
+import { openFileOutput, writeFileOutput } from "../contracts/filesystem-output.js";
 
 function sortCollator(env: Readonly<Record<string, string>>): Intl.Collator | undefined {
   const locale = env.LC_ALL || env.LC_COLLATE || env.LANG || "C";
@@ -931,17 +932,28 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
     finally { if (!context.signal.aborted) await buffered.flush(); }
     return;
   }
+  void context.registerCleanup;
   await admitTextOutput(context, destination);
   const capabilities = await context.fs.capabilitiesFor?.(pathOf(context, destination), { signal: context.signal }) ?? context.fs.capabilities;
-  if (context.fs.writeStream && capabilities.streamingWrite !== false) await context.fs.writeStream(pathOf(context, destination), records, { signal: context.signal });
+  if (context.fs.writeStream && capabilities.streamingWrite !== false) {
+    const destinationOutput = await openFileOutput(context, pathOf(context, destination), "w");
+    try {
+      for await (const bytes of records) await destinationOutput.sink.write(bytes);
+      await destinationOutput.finish();
+    } catch (error) {
+      await destinationOutput.abort(error);
+      throw error;
+    }
+  }
   else {
     if (capabilities.write === false) throw new FsError("ENOTSUP", { syscall: "writeFile", path: pathOf(context, destination) });
     let size = 0;
     const chunks: Uint8Array[] = [];
     for await (const bytes of records) {
-      size += bytes.length;
-      if (size > bufferLimit) throw new FsError("EFBIG", { message: "output buffer limit exceeded" });
-      chunks.push(bytes);
+      await writeFileOutput(context, bytes, async chunk => {
+        size += chunk.length;
+        chunks.push(new Uint8Array(chunk));
+      });
     }
     await context.fs.writeFile(pathOf(context, destination), concatenate(chunks, size), { signal: context.signal });
   }

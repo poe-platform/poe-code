@@ -201,7 +201,7 @@ async function requestTokens(input: {
     typeof refreshToken === "string" && refreshToken.trim().length > 0
       ? refreshToken.trim()
       : undefined;
-  const normalizedScope = normalizeOAuthScope(scope);
+  const normalizedScope = scope === "" ? "" : normalizeOAuthScope(scope);
   if (scope !== undefined && normalizedScope === undefined)
     throw new Error("Invalid OAuth scope syntax in token response");
   return {

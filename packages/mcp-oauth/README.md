@@ -57,7 +57,8 @@ alone do not establish either native error type.
 - `browser.readLine()` optional
 - `browser.createServer()` optional
 - `browser.landingPage` optional
-- `browser.redirectUri` optional exact registered HTTP loopback callback with a fixed port
+- `browser.redirectUri` exact registered HTTP loopback callback with a fixed port, or HTTPS callback when `waitForCallback` is supplied
+- `browser.waitForCallback({ authorizationUrl, redirectUri, signal })` lets a web host receive its HTTPS callback. Return the complete callback URL; the client checks its redirect, fixed query, state and issuer before exchanging the PKCE code. The host owns navigation and callback routing; no local listener starts. Observe `signal` to release canceled or timed-out host work.
 - `browser.signal` optional cancellation signal
 - `browser.timeoutMs` optional authorization deadline (default 120,000 ms)
 - `sessionStore` optional
@@ -342,3 +343,10 @@ HTTP 403) are nonretryable `invalid_response` errors; authorization fails withou
 waiting for consent that never started. Raw server errors remain transient.
 `outcomeKnown: false` still withholds an uncertain rotating refresh family: a
 nonretryable HTTP status alone does not prove a refresh token was unconsumed.
+
+A host can use `browser: { redirectUri: "https://poe.com/oauth/mcp/callback", waitForCallback }`
+with its registered OAuth app. The authorization server must allow that exact URL;
+a desktop-only Google app still needs a web-client registration. Existing loopback
+callbacks keep their local-listener behavior. Token responses with `scope: ""`
+(such as Notion MCP) preserve an explicit empty grant, including on refresh and
+reload; they never inherit a configured nonempty requested scope.

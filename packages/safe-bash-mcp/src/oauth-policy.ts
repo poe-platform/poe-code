@@ -9,7 +9,7 @@ export function snapshotOAuthBindingOptions(oauth: NonNullable<ConfigurationBind
 }
 
 export function snapshotOAuthBrowserOptions(browser: DefaultOAuthClientProviderOptions["browser"]): DefaultOAuthClientProviderOptions["browser"] {
-  return { ...browser, openBrowser: browser.openBrowser?.bind(browser), readLine: browser.readLine?.bind(browser), createServer: browser.createServer?.bind(browser),
+  return { ...browser, openBrowser: browser.openBrowser?.bind(browser), readLine: browser.readLine?.bind(browser), waitForCallback: browser.waitForCallback?.bind(browser), createServer: browser.createServer?.bind(browser),
     redirectUri: browser.redirectUri, signal: browser.signal, timeoutMs: browser.timeoutMs,
     ...(browser.landingPage === undefined ? {} : { landingPage: { ...browser.landingPage, title: browser.landingPage.title, body: browser.landingPage.body } }) };
 }

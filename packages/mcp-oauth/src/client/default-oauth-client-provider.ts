@@ -22,7 +22,7 @@ import {
   createAuthStoreSessionStore,
   assertPersistenceNamespace
 } from "./auth-store-session-store.js";
-import { createLoopbackAuthorizationSession, loopbackTarget, snapshotLoopbackAuthorizationOptions } from "./loopback-authorization.js";
+import { createLoopbackAuthorizationSession, validateAuthorizationRedirect, snapshotLoopbackAuthorizationOptions } from "./loopback-authorization.js";
 import { createAuthorizationState } from "./authorization-state.js";
 import { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
 import {
@@ -56,7 +56,7 @@ export function createDefaultOAuthClientProvider(
   const clientMode = options.client.mode;
   const interactiveEnabled = options.allowInteractive !== false;
   const sessionLockTimeoutMs = options.sessionLockTimeoutMs;
-  loopbackTarget(browser);
+  validateAuthorizationRedirect(browser);
   assertPersistenceNamespace(options.persistenceNamespace);
   const clientMetadata = getClientMetadata(options.client);
   const requestedScope = clientMetadata?.scope;
@@ -798,7 +798,7 @@ function normalizeStoredTokens(value: unknown): StoredOAuthTokens | undefined {
   const scope = getOwnEntry(value, "scope");
   const normalizedAccessToken = accessToken?.trim();
   const normalizedRefreshToken = typeof refreshToken === "string" ? refreshToken.trim() : undefined;
-  const normalizedScope = normalizeOAuthScope(scope);
+  const normalizedScope = scope === "" ? "" : normalizeOAuthScope(scope);
 
   if (
     accessToken === undefined ||
@@ -825,7 +825,7 @@ function normalizeStoredTokens(value: unknown): StoredOAuthTokens | undefined {
     tokenType,
     expiresAt,
     ...(normalizedRefreshToken === undefined ? {} : { refreshToken: normalizedRefreshToken }),
-    ...(normalizedScope === undefined || normalizedScope.length === 0
+    ...(normalizedScope === undefined
       ? {}
       : { scope: normalizedScope })
   };

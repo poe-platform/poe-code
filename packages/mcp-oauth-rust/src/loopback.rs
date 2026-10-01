@@ -168,11 +168,14 @@ pub fn valid_target(value: &mcp_protocol_rust::json::Value, fixed: bool) -> bool
     let equals = |key: &str, expected: &str| matches!(value.get(key),Some(Value::String(actual))if actual==&expected.encode_utf16().collect::<Vec<_>>());
     let flag = |key: &str| value.get(key) == Some(&Value::Bool(true));
     if fixed {
-        equals("protocol", "http:")
-            && ["localhost", "127.0.0.1", "[::1]"]
-                .iter()
-                .any(|host| equals("hostname", host))
-            && !flag("credentials")
+        (if flag("hosted") {
+            equals("protocol", "https:")
+        } else {
+            equals("protocol", "http:")
+                && ["localhost", "127.0.0.1", "[::1]"]
+                    .iter()
+                    .any(|host| equals("hostname", host))
+        }) && !flag("credentials")
             && !flag("fragment")
             && !equals("port", "0")
             && !flag("forbiddenQuery")

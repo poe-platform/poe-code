@@ -1,4 +1,4 @@
-import { loopbackTarget } from "./loopback.js";
+import { loopbackTarget, validateHostedOAuthRedirect } from "./loopback.js";
 import { createRequire } from "node:module";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
 export function parseOAuthClientRegistration(value) {
@@ -31,7 +31,8 @@ export function normalizeStoredOAuthClient(value) {
   if (redirect !== undefined) {
     try {
       if (typeof redirect !== "string") throw new Error("Invalid redirect identity");
-      loopbackTarget({ redirectUri: redirect });
+      if (new URL(redirect).protocol === "https:") validateHostedOAuthRedirect(redirect);
+      else loopbackTarget({ redirectUri: redirect });
     } catch {
       throw new Error("Invalid stored OAuth registration redirect identity");
     }

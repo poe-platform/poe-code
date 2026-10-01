@@ -92,6 +92,6 @@ it("reuses a compatible caller-owned registration without converting it into a n
   expect(f.fetch).toHaveBeenCalledOnce();
   expect(f.session()?.client).toMatchObject({ clientId: "old", registrationOwnership: "caller" });
 });
-it.each(["https://evil.example/callback", "http://user@localhost:49152/callback", 7])("rejects malformed persisted requested callback identity: %#", requestedRedirectUri => {
+it.each(["http://evil.example/callback", "http://user@localhost:49152/callback", 7])("rejects malformed persisted requested callback identity: %#", requestedRedirectUri => {
   expect(() => normalizeStoredOAuthClient({ clientId: "old", requestedRedirectUri })).toThrow("redirect");
 });

@@ -80,7 +80,12 @@ discovery. Explicit instructions take precedence over discovered guidance.
 | `parseRemoteMcpArtifact(value, options)` | Validate artifact size, digest and configuration/schema agreement |
 | `remoteMcpArtifactPlugin(artifact, options)` | Bind credentials and register artifact commands without rediscovery |
 
-Use `headers` or the client's `oauth` options for credentials. URLs must use
+Use `headers` or the client's `oauth` options for credentials. A web host can set
+`oauth.browser.redirectUri` to its registered HTTPS callback and supply
+`oauth.browser.waitForCallback({ authorizationUrl, redirectUri, signal })` returning
+the full callback URL. The client validates redirect, state and issuer and performs
+PKCE code exchange; the host owns navigation and callback routing. CLI-only callers
+continue to use HTTP loopback callbacks. URLs must use
 HTTP or HTTPS without embedded credentials or fragments.
 Fragment rejection includes trailing empty `#`; percent-escaped hashes in paths
 and queries remain literal URL data. Discovery supports

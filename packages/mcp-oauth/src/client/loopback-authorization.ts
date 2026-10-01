@@ -12,6 +12,8 @@ export interface OAuthLandingPage {
 export interface LoopbackAuthorizationOptions {
   openBrowser?: (url: string) => Promise<void>;
   readLine?: () => Promise<string>;
+  /** Host receives the full callback URL; this mode never opens a local listener. */
+  waitForCallback?: (request: { authorizationUrl: string; redirectUri: string; signal: AbortSignal }) => Promise<string>;
   createServer?: () => http.Server;
   landingPage?: OAuthLandingPage;
   callbackPath?: string;
@@ -30,7 +32,7 @@ export interface LoopbackAuthorizationSession {
 
 /** Capture declared configuration regardless of property enumerability. */
 export function snapshotLoopbackAuthorizationOptions(options: LoopbackAuthorizationOptions): LoopbackAuthorizationOptions {
-  return { ...options, openBrowser: options.openBrowser?.bind(options), readLine: options.readLine?.bind(options), createServer: options.createServer?.bind(options),
+  return { ...options, openBrowser: options.openBrowser?.bind(options), readLine: options.readLine?.bind(options), waitForCallback: options.waitForCallback?.bind(options), createServer: options.createServer?.bind(options),
     callbackPath: options.callbackPath, redirectUri: options.redirectUri, signal: options.signal, timeoutMs: options.timeoutMs,
     landingPage: options.landingPage === undefined ? undefined : { ...options.landingPage, title: options.landingPage.title, body: options.landingPage.body } };
 }
@@ -45,6 +47,7 @@ export async function createLoopbackAuthorizationSession(
   const timeoutMs = options.timeoutMs ?? 120_000;
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 2_147_483_647)
     throw new Error("OAuth authorization timeoutMs must be a positive supported timer interval");
+  if (options.waitForCallback !== undefined) return createHostedAuthorizationSession(options, timeoutMs);
   const target = loopbackTarget(options);
   const server = options.createServer ? options.createServer() : http.createServer();
   const controller = new AbortController();
@@ -103,6 +106,70 @@ export function loopbackTarget(options: LoopbackAuthorizationOptions): { port: n
   if (!callbackPath.startsWith("/") || parsed.origin !== "http://127.0.0.1" || parsed.pathname !== callbackPath || parsed.search || parsed.hash)
     throw new Error("Invalid OAuth loopback callback path");
   return { port: 0, host: "127.0.0.1", callbackPath };
+}
+
+/** Hosted redirects are explicit HTTPS URLs; local redirects retain loopback policy. */
+export function validateAuthorizationRedirect(options: LoopbackAuthorizationOptions): void {
+  if (options.waitForCallback === undefined) { loopbackTarget(options); return; }
+  if (typeof options.waitForCallback !== "function" || options.redirectUri === undefined)
+    throw new Error("Hosted OAuth callbacks require redirectUri and waitForCallback");
+  validateHostedOAuthRedirect(options.redirectUri, options.callbackPath);
+}
+
+export function validateHostedOAuthRedirect(redirectUri: string, callbackPath?: string): void {
+  const url = new URL(redirectUri);
+  if (url.protocol !== "https:" || url.username || url.password || url.href.includes("#") || url.port === "0"
+    || oauthCallbackParameters.some(name => url.searchParams.has(name))
+    || [...redirectUri].some(char => char.codePointAt(0)! <= 32)
+    || (callbackPath !== undefined && callbackPath !== url.pathname))
+    throw new Error("Invalid hosted OAuth redirect URI");
+}
+
+function createHostedAuthorizationSession(options: LoopbackAuthorizationOptions, timeoutMs: number): LoopbackAuthorizationSession {
+  validateAuthorizationRedirect(options);
+  const redirectUri = options.redirectUri!, controller = new AbortController();
+  let used = false;
+  const aborted = () => controller.abort(options.signal?.reason);
+  const timer = setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
+  timer.unref?.();
+  const cleanup = () => { clearTimeout(timer); options.signal?.removeEventListener("abort", aborted); };
+  controller.signal.addEventListener("abort", cleanup, { once: true });
+  options.signal?.addEventListener("abort", aborted, { once: true });
+  if (options.signal?.aborted) aborted();
+  return {
+    redirectUri,
+    async waitForCode(authorizationUrl) {
+      controller.signal.throwIfAborted();
+      if (used) throw new Error("OAuth authorization session has already been used");
+      used = true;
+      try {
+        const authorization = new URL(authorizationUrl);
+        if (authorization.searchParams.getAll("redirect_uri").length !== 1 || authorization.searchParams.get("redirect_uri") !== redirectUri)
+          throw new Error("OAuth authorization redirect mismatch");
+        const callback = await new Promise<string>((resolve, reject) => {
+          const onAbort = () => reject(controller.signal.reason);
+          controller.signal.addEventListener("abort", onAbort, { once: true });
+          void Promise.resolve().then(() => {
+            controller.signal.throwIfAborted();
+            return options.waitForCallback!({ authorizationUrl, redirectUri, signal: controller.signal });
+          }).then(resolve, reject).finally(() => controller.signal.removeEventListener("abort", onAbort));
+        });
+        controller.signal.throwIfAborted();
+        const url = new URL(callback), base = new URL(redirectUri);
+        if (url.origin !== base.origin || url.pathname !== base.pathname || url.username || url.password || url.href.includes("#")
+          || [...callback].some(char => char.codePointAt(0)! <= 32)) throw new Error("OAuth callback redirect mismatch");
+        const params = readAuthorizationCallbackParameters(url);
+        for (const name of oauthCallbackParameters) url.searchParams.delete(name);
+        if (url.searchParams.toString() !== base.searchParams.toString()) throw new Error("OAuth callback redirect mismatch");
+        const expected = readExpectedAuthorizationCallback(authorizationUrl);
+        if (expected.state === null) throw new Error("OAuth authorization missing state");
+        validateAuthorizationCallbackBinding(params, expected);
+        if (params.error !== null) throw new OAuthAuthorizationError(params.error, params.errorDescription ?? params.error);
+        return validateAuthorizationCallbackParameters(params, expected);
+      } finally { controller.abort(new Error("OAuth authorization session closed")); }
+    },
+    close() { controller.abort(new Error("OAuth authorization session closed")); }
+  };
 }
 
 async function startServer(server: http.Server, port: number, host: string, signal: AbortSignal): Promise<number> {

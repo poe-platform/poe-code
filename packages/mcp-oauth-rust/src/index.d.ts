@@ -194,6 +194,8 @@ export interface OAuthLandingPage {
   body: string;
 }
 export interface LoopbackAuthorizationOptions {
+  /** Return the full hosted HTTPS callback URL for client validation. */
+  waitForCallback?: (request: { authorizationUrl: string; redirectUri: string; signal: AbortSignal }) => Promise<string>;
   openBrowser?: (url: string) => Promise<void>;
   readLine?: () => Promise<string>;
   createServer?: () => import("node:http").Server;

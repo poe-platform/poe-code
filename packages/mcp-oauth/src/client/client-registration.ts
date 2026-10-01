@@ -1,6 +1,6 @@
 import { copyBoundedOAuthJson } from "./bounded-json.js";
 import type { OAuthClientRegistration, StoredOAuthClient } from "./types.js";
-import { loopbackTarget } from "./loopback-authorization.js";
+import { loopbackTarget, validateHostedOAuthRedirect } from "./loopback-authorization.js";
 import { normalizeOAuthScope } from "./scope.js";
 import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 
@@ -41,7 +41,9 @@ export function normalizeStoredOAuthClient(value: unknown): StoredOAuthClient | 
   if (requestedRedirectUri !== undefined) {
     try {
       if (typeof requestedRedirectUri !== "string") throw new Error("Invalid redirect identity");
-      loopbackTarget({ redirectUri: requestedRedirectUri });
+      if (new URL(requestedRedirectUri).protocol === "https:")
+        validateHostedOAuthRedirect(requestedRedirectUri);
+      else loopbackTarget({ redirectUri: requestedRedirectUri });
     } catch { throw new Error("Invalid stored OAuth registration redirect identity"); }
     client.requestedRedirectUri = requestedRedirectUri as string;
   }

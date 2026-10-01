@@ -302,3 +302,16 @@ it("allows silent refresh in headless mode and preserves the registered client",
   expect(fixture.createServer).not.toHaveBeenCalled();
   expect(fixture.openBrowser).not.toHaveBeenCalled();
 });
+
+it("preserves an empty grant through storage without granting a requested scope", async () => {
+  const f = interaction();
+  f.fetch.mockImplementation(async url => Response.json(String(url).endsWith("/register")
+    ? { client_id: "registered-client" } : { access_token: "token", token_type: "Bearer", scope: "" }));
+  expect(await f.run()).toEqual({ action: "retry" });
+  expect(f.session()?.tokens?.scope).toBe("");
+  expect((await f.authorize()).get("authorization")).toBe("Bearer token");
+  expect(f.session()?.tokens?.scope).toBe("");
+  const scoped = interaction({ scope: "read" });
+  scoped.fetch.mockImplementation(f.fetch.getMockImplementation()!);
+  expect(await scoped.run()).toMatchObject({ action: "fail", error: { message: expect.stringContaining("does not match the requested OAuth scope") } });
+});

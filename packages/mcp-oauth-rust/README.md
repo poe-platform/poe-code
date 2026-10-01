@@ -183,3 +183,11 @@ client ID and secret before token reuse, refresh or recovery of a pending grant.
 Mismatches reject without attaching authorization headers, fetching token endpoints,
 opening a browser or mutating persistence. Dynamic registration without explicit
 client credentials continues to own and reuse its registered application.
+
+Hosted OAuth callbacks use `browser.redirectUri` with an exact registered HTTPS
+URL and `browser.waitForCallback({ authorizationUrl, redirectUri, signal })`.
+Return the full callback URL from your web host; redirect, state, issuer and PKCE
+checks remain enforced, and no local HTTP listener starts. Observe the supplied
+signal for cancellation and timeout. Desktop loopback authorization remains
+available without this hook. Notion's explicit empty token scope is preserved as
+an empty grant and cannot satisfy a configured nonempty requested scope.

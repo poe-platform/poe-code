@@ -100,7 +100,10 @@ impl TokenFields {
         if let Some(refresh) = refresh {
             fields.push(property("refreshToken", Value::String(refresh)));
         }
-        let scope = crate::scope::normalize(self.scope.as_ref())?;
+        let scope = match self.scope.as_ref() {
+            Some(Value::String(value)) if value.is_empty() => Some(vec![]),
+            value => crate::scope::normalize(value)?,
+        };
         if self.scope.is_some() && scope.is_none() {
             return Err("Invalid OAuth scope syntax in token response");
         }

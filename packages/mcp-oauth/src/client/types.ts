@@ -179,6 +179,8 @@ export interface DefaultOAuthClientProviderOptions {
   };
   browser: {
     openBrowser?(url: string): Promise<void>;
+    /** Return the full hosted HTTPS callback URL; the client validates redirect, state and issuer. */
+    waitForCallback?(request: { authorizationUrl: string; redirectUri: string; signal: AbortSignal }): Promise<string>;
     /** Exact registered HTTP loopback redirect URI. */
     redirectUri?: string;
     signal?: AbortSignal;

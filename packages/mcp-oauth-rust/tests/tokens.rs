@@ -244,3 +244,22 @@ fn invalid_clock_anchor_cannot_be_repaired_by_a_positive_lifetime() {
         "OAuth token response has invalid refresh_token"
     );
 }
+
+#[test]
+fn notion_empty_scope_is_an_explicit_empty_grant() {
+    let fields = TokenFields::parse(&value(
+        r#"{"access_token":"t","token_type":"Bearer","scope":""}"#,
+    ))
+    .unwrap();
+    assert_eq!(
+        fields.complete(None).unwrap().get("scope"),
+        Some(&Value::String(vec![]))
+    );
+    assert!(
+        mcp_oauth_rust::scope::assert_authorization(
+            Some(&value(r#""""#)),
+            Some(&value(r#""read""#))
+        )
+        .is_err()
+    );
+}

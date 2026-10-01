@@ -17,7 +17,7 @@ import {
 } from "./session-store.js";
 import {
   createLoopbackAuthorizationSession,
-  loopbackTarget,
+  validateAuthorizationRedirect,
   snapshotLoopbackAuthorizationOptions
 } from "./loopback.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
@@ -148,7 +148,7 @@ export function createDefaultOAuthClientProvider(options) {
         : snapshotOAuthPersistenceOptions(options.authStore)
   };
   assertPersistenceNamespace(options.persistenceNamespace);
-  loopbackTarget(options.browser);
+  validateAuthorizationRedirect(options.browser);
   const resolvedClientMetadata = clientMetadata(options.client);
   const requestedScope = resolvedClientMetadata?.scope;
   const requestedTokenMethod =

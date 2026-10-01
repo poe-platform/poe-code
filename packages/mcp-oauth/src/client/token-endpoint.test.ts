@@ -52,12 +52,19 @@ describe("token endpoint parsing", () => {
       : exchangeAuthorizationCode({ ...common, code: "code", codeVerifier: "verifier", redirectUri: "http://127.0.0.1/callback" });
     await expect(result).resolves.toMatchObject({ accessToken: "negotiated-access" });
   });
-  it.each(["read\n", "\tread", "\n", "", " ", null, 7, ["read"]])("rejects malformed explicit token scope %j", async scope => {
+  it.each(["read\n", "\tread", "\n", " ", null, 7, ["read"]])("rejects malformed explicit token scope %j", async scope => {
     await expect(exchangeAuthorizationCode({
       tokenEndpoint: "https://auth.example.test/token", clientId: "client", code: "code", codeVerifier: "verifier",
       redirectUri: "http://127.0.0.1/callback", resource: "https://resource.example.test/",
       fetch: async () => jsonResponse({ access_token: "access", token_type: "Bearer", scope }), now: () => 1000
     })).rejects.toThrow("OAuth scope");
+  });
+  it.each(["authorization_code", "refresh_token"])("preserves Notion's explicit empty scope for %s without inheriting requested scopes", async grantType => {
+    const common = { tokenEndpoint: "https://auth.example/token", clientId: "client", resource: "https://resource.example/",
+      fetch: async () => jsonResponse({ access_token: "access", token_type: "Bearer", scope: "" }), now: () => 1000 };
+    const tokens = await (grantType === "refresh_token" ? refreshAccessToken({ ...common, refreshToken: "refresh" })
+      : exchangeAuthorizationCode({ ...common, code: "code", codeVerifier: "verifier", redirectUri: "http://localhost/callback" }));
+    expect(tokens.scope).toBe("");
   });
   it("normalizes surrounding whitespace from token strings before storing them", async () => {
     await expect(

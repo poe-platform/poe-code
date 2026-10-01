@@ -99,6 +99,7 @@ export function snapshotLoopbackAuthorizationOptions(options) {
     ...options,
     openBrowser: options.openBrowser?.bind(options),
     readLine: options.readLine?.bind(options),
+    waitForCallback: options.waitForCallback?.bind(options),
     createServer: options.createServer?.bind(options),
     callbackPath: options.callbackPath,
     redirectUri: options.redirectUri,
@@ -120,6 +121,7 @@ export async function createLoopbackAuthorizationSession(options = {}) {
   const timeout = options.timeoutMs ?? 120_000;
   if (!native.authorizationTimerValid(typeof timeout === "number" ? timeout : NaN))
     throw Error("OAuth authorization timeoutMs must be a positive supported timer interval");
+  if (options.waitForCallback !== undefined) return createHostedAuthorizationSession(options, timeout);
   const target = loopbackTarget(options),
     server = options.createServer ? options.createServer() : http.createServer(),
     controller = new AbortController(),
@@ -261,5 +263,66 @@ export async function createLoopbackAuthorizationSession(options = {}) {
     close() {
       controller.abort(Error("OAuth authorization session closed"));
     }
+  };
+}
+
+export function validateAuthorizationRedirect(options) {
+  if (options.waitForCallback === undefined) { loopbackTarget(options); return; }
+  if (typeof options.waitForCallback !== "function" || options.redirectUri === undefined)
+    throw new Error("Hosted OAuth callbacks require redirectUri and waitForCallback");
+  validateHostedOAuthRedirect(options.redirectUri, options.callbackPath);
+}
+export function validateHostedOAuthRedirect(redirectUri, callbackPath) {
+  const url = new URL(redirectUri);
+  const descriptor = { protocol: url.protocol, hostname: url.hostname, port: url.port,
+    credentials: !!(url.username || url.password), fragment: url.href.includes("#"),
+    forbiddenQuery: callbackFields.some(name => url.searchParams.has(name)),
+    controls: [...redirectUri].some(char => char.codePointAt(0) <= 32),
+    pathMatches: callbackPath === undefined || callbackPath === url.pathname, hosted: true };
+  if (!native.loopbackTargetAllowed(JSON.stringify(descriptor), true)) throw new Error("Invalid hosted OAuth redirect URI");
+}
+function createHostedAuthorizationSession(options, timeoutMs) {
+  validateAuthorizationRedirect(options);
+  const redirectUri = options.redirectUri, controller = new AbortController(), lifecycle = new native.NativeLoopbackLifecycle();
+  const aborted = () => controller.abort(options.signal?.reason);
+  const timer = setTimeout(() => controller.abort(new Error("OAuth authorization timed out")), timeoutMs);
+  timer.unref?.();
+  const cleanup = () => { lifecycle.close(); clearTimeout(timer); options.signal?.removeEventListener("abort", aborted); };
+  controller.signal.addEventListener("abort", cleanup, { once: true });
+  options.signal?.addEventListener("abort", aborted, { once: true });
+  if (options.signal?.aborted) aborted();
+  return {
+    redirectUri,
+    async waitForCode(authorizationUrl) {
+      controller.signal.throwIfAborted();
+      if (!lifecycle.begin()) throw new Error("OAuth authorization session has already been used");
+      try {
+        const authorization = new URL(authorizationUrl);
+        if (authorization.searchParams.getAll("redirect_uri").length !== 1 || authorization.searchParams.get("redirect_uri") !== redirectUri)
+          throw new Error("OAuth authorization redirect mismatch");
+        const callback = await new Promise((resolve, reject) => {
+          const onAbort = () => reject(controller.signal.reason);
+          controller.signal.addEventListener("abort", onAbort, { once: true });
+          void Promise.resolve().then(() => {
+            controller.signal.throwIfAborted();
+            return options.waitForCallback({ authorizationUrl, redirectUri, signal: controller.signal });
+          }).then(resolve, reject).finally(() => controller.signal.removeEventListener("abort", onAbort));
+        });
+        controller.signal.throwIfAborted();
+        const url = new URL(callback), base = new URL(redirectUri);
+        if (url.origin !== base.origin || url.pathname !== base.pathname || url.username || url.password || url.href.includes("#")
+          || [...callback].some(char => char.codePointAt(0) <= 32)) throw new Error("OAuth callback redirect mismatch");
+        const params = callbackParameters(url);
+        for (const name of callbackFields) url.searchParams.delete(name);
+        if (url.searchParams.toString() !== base.searchParams.toString()) throw new Error("OAuth callback redirect mismatch");
+        const state = authorization.searchParams.get("state");
+        if (state === null) throw new Error("OAuth authorization missing state");
+        const result = new native.NativeCallbackBinding(state).resolve(JSON.stringify(params));
+        if (Object.hasOwn(result, "authorizationError")) throw new OAuthAuthorizationError(result.authorizationError, result.authorizationErrorDescription);
+        if (Object.hasOwn(result, "error")) throw new Error(result.error);
+        return result.code;
+      } finally { controller.abort(new Error("OAuth authorization session closed")); }
+    },
+    close() { controller.abort(new Error("OAuth authorization session closed")); }
   };
 }

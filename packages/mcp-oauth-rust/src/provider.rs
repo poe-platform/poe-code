@@ -65,7 +65,10 @@ pub fn normalize_tokens(value: &Value) -> Option<Value> {
     if let Some(refresh) = refresh {
         fields.push(property("refreshToken", Value::String(refresh)));
     }
-    if let Some(scope) = crate::scope::normalize(value.get("scope")).ok()? {
+    if let Some(scope) = match value.get("scope") {
+        Some(Value::String(scope)) if scope.is_empty() => Some(vec![]),
+        scope => crate::scope::normalize(scope).ok()?,
+    } {
         fields.push(property("scope", Value::String(scope)));
     }
     Some(Value::Object(fields))

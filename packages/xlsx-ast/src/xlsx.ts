@@ -461,14 +461,15 @@ export async function readXlsx(bytes: Uint8Array, context: CapabilityContext): P
       if (importedName.startsWith("_xlnm.") && name === "Print_Area" && node.text === "!#REF!") continue;
       const sheetIndex = attr(node, "localSheetId"), sheet = sheetIndex === undefined ? undefined : sheets[integer(sheetIndex)];
       const position = { sheet: sheet?.id ?? sheets[0]?.id ?? "sheet-1", row: 0, column: 0 };
-      if (node.text && !parseExpression("=" + node.text, { maximumDepth: context.limits.formulaDepth, grammar: excelGrammar, position, signal: context.signal }).ok) {
-        const message = `At A1: '${node.text}' Invalid expression\n`;
+      const expression = decodeXlsxString(node.text);
+      if (expression && !parseExpression("=" + expression, { maximumDepth: context.limits.formulaDepth, grammar: excelGrammar, position, signal: context.signal }).ok) {
+        const message = `At A1: '${expression}' Invalid expression\n`;
         await context.diagnostic?.({ code: "xlsx-name-expression", severity: "warning", message,
           bytes: warningBytes(message, context) }); continue;
       }
       const semantics = readFormulaSemantics(node);
       const openFormula = readOpenFormula(node);
-      const imported = { name, ...(openFormula?.position ? { position: { ...openFormula.position, sheet: sheets.find(s => s.name === openFormula.position!.sheet)?.id ?? openFormula.position.sheet } } : {}), expression: openFormula?.source ?? (node.text ? formula(node.text, position.sheet, 0, 0, context, semantics.arrayStringLiterals) : "=#REF!"), ...semantics, ...(sheet ? { sheet: sheet.id } : {}) };
+      const imported = { name, ...(openFormula?.position ? { position: { ...openFormula.position, sheet: sheets.find(s => s.name === openFormula.position!.sheet)?.id ?? openFormula.position.sheet } } : {}), expression: openFormula?.source ?? (expression ? formula(expression, position.sheet, 0, 0, context, semantics.arrayStringLiterals) : "=#REF!"), ...semantics, ...(sheet ? { sheet: sheet.id } : {}) };
       opc.charge(names.length);
       const existing = names.findIndex(n => n.name === name && n.sheet === sheet?.id);
       if (existing < 0) names.push(imported); else names[existing] = imported;
@@ -740,12 +741,12 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
       const sheet = book.sheets[index < 0 ? 0 : index]; if (!sheet) continue;
       names += xml("definedName", { name: ["Print_Area", "Sheet_Title"].includes(name.name) ? "_xlnm." + name.name : name.name,
         localSheetId: index < 0 ? undefined : index, ...formulaSemanticsAttributes(name.arrayStringLiterals, true, name.expression, name.position ? { ...name.position, sheet: book.sheets.find(s => s.id === name.position!.sheet)?.name ?? name.position.sheet } : undefined) },
-        escapeXlsx(exportXlsxFormula(book, name.expression, sheet, name.position?.row ?? 0, name.position?.column ?? 0, context, name.arrayStringLiterals)));
+        escapeXlsx(encodeXlsxString(exportXlsxFormula(book, name.expression, sheet, name.position?.row ?? 0, name.position?.column ?? 0, context, name.arrayStringLiterals))));
     }
     for (const [index, sheet] of book.sheets.entries()) {
       for (const [name, expression] of [["Sheet_Title", '"' + sheet.name.split('"').join('""') + '"'], ["Print_Area", "#REF!"]])
         if (!book.names?.some(n => n.name === name && n.sheet === sheet.id))
-          names += xml("definedName", { name: "_xlnm." + name, localSheetId: index }, escapeXlsx(expression!));
+          names += xml("definedName", { name: "_xlnm." + name, localSheetId: index }, escapeXlsx(encodeXlsxString(expression!)));
     }
     await add("xl/workbook.xml", xml("workbook", { xmlns: namespace, "xmlns:r": relationships },
       xml("fileVersion", { lastEdited: 4, lowestEdited: 4, rupBuild: 3820 }) + xml("workbookPr", { date1904: book.dateSystem === "1904" ? 1 : 0 }) +

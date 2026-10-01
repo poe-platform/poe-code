@@ -31,11 +31,12 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
     operation = outputOperation(context, args.output !== undefined && !args.help);
     budget.signal = operation.signal;
     scope = new InputScope(context, budget);
-    const selection = args.command === "select" && !args.help
+    const selection = (args.command === "select" || args.command === "drop") && !args.help
       ? args.evaluate || args.evaluateFile
         ? await parseColumnExpression(args.evaluateFile ? await scope.expression(args.selection) : args.selection, budget)
         : await parseSelection(args.selection, budget)
       : undefined;
+    if (selection && args.command === "drop") selection.complement = !selection.complement;
     const destination = args.help ? undefined : await preflight(context, args, budget);
     const writer = new Writer(inferDelimiter(args.output ?? "-"), budget);
     source = managedOutput(await prepareRows(args, selection, scope, budget, writer), scope, budget);
@@ -105,7 +106,7 @@ async function execute(context: CommandContext, limits: XanLimits): Promise<Comm
 }
 export function createXanCommand(options?: XanCommandsOptions): CommandDefinition {
   const { limits } = validateOptions(options);
-  return { name: "xan", description: "Bounded byte-stream CSV headers, count, select and slice", execute: context => execute(context, limits) };
+  return { name: "xan", description: "Bounded CSV selection, search, sorting, statistics and joins", execute: context => execute(context, limits) };
 }
 export function createXanCommands(options?: XanCommandsOptions): readonly CommandDefinition[] { return [registerDefaultExecutor(createXanCommand(options), options)]; }
 export function xanCommands(options?: XanCommandsOptions): VirtualShellPlugin {

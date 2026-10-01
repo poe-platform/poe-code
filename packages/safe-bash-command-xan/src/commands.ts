@@ -7,6 +7,8 @@ import type { InputScope } from "./io.js";
 import type { Selection } from "./selector.js";
 import { resolveSelection } from "./selector.js";
 import { Writer } from "./writer.js";
+import { condition } from "./condition.js";
+import { transformRows } from "./transform.js";
 import { boundedSort } from "./sort.js";
 
 async function* emitted(bytes: Uint8Array, budget: Budget): ByteSource {
@@ -16,7 +18,8 @@ function width(row: RecordRow, expected: number): void {
   if (row.width !== expected) throw new XanError(`CSV error: record ${row.number} (byte: ${row.offset}): found record with ${row.width} fields, but the previous record has ${expected} fields`);
 }
 export async function prepareRows(args: Arguments, selection: Selection | undefined, scope: InputScope, budget: Budget, writer: Writer): Promise<ByteSource> {
-  if (args.help) return emitted(await writer.text("xan: bounded CSV headers (h), count, select, slice\nCommon: -h --help, -d --delimiter BYTE, -o --output PATH\nheaders: -j --just-names, --csv, -s --start N, --color auto|never\ncount/select/slice: -n --no-headers\ncount: -H/--human-readable, -c/--check-alignment, -a/--approx, -p/--parallel, -t/--threads N\nselect: literal selection or -e/--evaluate COLUMN, -f/--evaluate-file PATH;\nslice: -s/--start, --skip, -e/--end, -l/--len, -i/--index, -I/--indices, -L/--last\nslice bytes: -B/--byte-offset N, --end-byte N, --raw\nslice conditions: -S/--start-condition EXPR, -E/--end-condition EXPR\nConditions: named column comparisons with string/number literals.\nOther expressions, advanced formats and forced color are unsupported.\nCount execution options use exact sequential counting.\n"), budget);
+  if (args.help) return emitted(await writer.text("xan: CSV tools for virtual files and byte streams\nCommands: headers (h), count, select, slice, head, tail, sort, search,\n          filter, reverse, rename, drop, stats, freq (frequency), join\nCommon: -h --help, -d --delimiter BYTE, -o --output PATH\nheaders: -j --just-names, --csv, -s --start N, --color auto|never\ncount/select/slice: -n --no-headers\ncount: -H/--human-readable, -c/--check-alignment, -a/--approx, -p/--parallel, -t/--threads N\nselect: literal selection or -e/--evaluate COLUMN, -f/--evaluate-file PATH;\nslice: -s/--start, --skip, -e/--end, -l/--len, -i/--index, -I/--indices, -L/--last\nslice bytes: -B/--byte-offset N, --end-byte N, --raw\nslice conditions: -S/--start-condition EXPR, -E/--end-condition EXPR\nConditions: named column comparisons with string/number literals.\nhead/tail: -l/--limit N (default 10)\nsort: -s/--select COLUMNS, -N/--numeric, -R/--reverse, -u/--uniq\nsearch: PATTERN; -s/--select, -e/--exact, -i/--ignore-case, -v/--invert-match\nfilter: COLUMN comparison LITERAL; -v/--invert-match\nrename: NAMES; -s/--select COLUMNS; drop: SELECTION\nstats/freq: -s/--select COLUMNS; freq: -l/--limit N, -A/--all, -N/--no-extra\njoin: COLUMNS LEFT [RIGHT_COLUMNS] RIGHT; --left/--right/--full/--semi/--anti/--cross\n      --drop-key none|left|right|both, --nulls, -i/--ignore-case\nSearch uses literal substrings; filter supports the comparisons above.\nAdvanced expressions, formats and forced color are unsupported.\nCount execution options use exact sequential counting.\n"), budget);
+  if (!["headers", "count", "select", "drop", "slice"].includes(args.command)) return transformRows(args, scope, budget, writer);
   if (args.command === "headers") return prepareHeaders(args, scope, budget, writer);
   if (args.command === "slice" && !args.raw && args.noHeaders && args.last === 0) return emitted(new Uint8Array(0), budget);
   let scanner = scope.open(args.inputs[0]!, args);
@@ -78,7 +81,7 @@ async function* rows(args: Arguments, scanner: Scanner, first: RecordRow | undef
   let current = first;
   if (args.byteOffset !== undefined && args.last === undefined) current = undefined;
   let started = !startCondition;
-  const raw = args.command === "select" && !args.evaluate && !args.evaluateFile && (args.delimiter ?? inferDelimiter(args.inputs[0]!)) === 44 && writer.delimiter === 44;
+  const raw = (args.command === "select" || args.command === "drop") && !args.evaluate && !args.evaluateFile && (args.delimiter ?? inferDelimiter(args.inputs[0]!)) === 44 && writer.delimiter === 44;
   try {
     if (!args.noHeaders) {
       yield* emitted(await writer.row(first?.cells ?? [], positions), budget);
@@ -98,7 +101,7 @@ async function* rows(args: Arguments, scanner: Scanner, first: RecordRow | undef
         if (!started) { current.free(); current = undefined; continue; }
       }
       if (endCondition && await endCondition(current)) break;
-      if (args.command === "select") yield* emitted(await writer.row(current.cells, positions, raw), budget);
+      if ((args.command === "select" || args.command === "drop")) yield* emitted(await writer.row(current.cells, positions, raw), budget);
       else if (args.last !== undefined) {
         if (ring.length < args.last) { budget.hold(32); ring.push(current); }
         else { ring[ringCursor]!.free(); ring[ringCursor] = current; ringCursor = (ringCursor + 1) % args.last; }
@@ -272,68 +275,3 @@ async function* headerOutput(args: Arguments, headers: Header[], budget: Budget,
 }
 
 // Deliberately bounded Moonblade subset; never evaluates JavaScript or shell code.
-async function condition(expression: string | undefined, headers: RecordRow | undefined, noHeaders: boolean, budget: Budget, scope: InputScope): Promise<((row: RecordRow) => Promise<boolean>) | undefined> {
-  if (expression === undefined) return undefined;
-  budget.bound('maxSelectorBytes', await budget.textSize(expression));
-  let split = -1;
-  let operator = '';
-  for (let offset = 0; offset < expression.length; offset++) {
-    budget.work();
-    if (['=', '!', '<', '>'].includes(expression[offset]!)) {
-      split = offset;
-      operator = expression[offset]!;
-      if (expression[offset + 1] === '=') operator += '=';
-      break;
-    }
-  }
-  if (split < 0 || !['==', '!=', '<', '<=', '>', '>='].includes(operator)) throw new XanError('unsupported condition: expected COLUMN comparison LITERAL');
-  const name = expression.slice(0, split).trim();
-  const literal = expression.slice(split + operator.length).trim();
-  if (noHeaders) throw new XanError('named conditions require headers');
-  const nameBytes = await budget.encode(name);
-  let position = -1;
-  try {
-    for (let index = 0; index < (headers?.cells.length ?? 0); index++) {
-      const bytes = headers!.cells[index]!.decoded.view();
-      if (bytes.length !== nameBytes.length) continue;
-      let same = true;
-      for (let offset = 0; offset < bytes.length; offset++) { budget.work(); if (bytes[offset] !== nameBytes[offset]) same = false; }
-      if (same) { position = index; break; }
-    }
-  } finally { budget.release(nameBytes.length); }
-  if (position < 0) throw new XanError(`unknown condition column: ${name}`);
-  let text: string;
-  let numeric = false;
-  if (literal.startsWith('"')) {
-    try { const value: unknown = JSON.parse(literal); if (typeof value !== 'string') throw new Error(); text = value; }
-    catch { throw new XanError('invalid condition string literal'); }
-  } else if (literal.startsWith("'") && literal.endsWith("'") && literal.length >= 2) text = literal.slice(1, -1);
-  else {
-    if (!literal || !Number.isFinite(Number(literal))) throw new XanError('unsupported condition literal');
-    text = literal; numeric = true;
-  }
-  const right = await budget.encode(text);
-  scope.own(() => budget.release(right.length));
-  return async row => {
-    const left = row.cells[position]!.decoded.view();
-    let order = 0;
-    if (numeric) {
-      budget.hold(left.length * 2);
-      try {
-        let value = '';
-        for (let offset = 0; offset < left.length; offset++) { budget.work(); value += String.fromCharCode(left[offset]!); if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; } }
-        const number = Number(value);
-        if (!value.trim() || !Number.isFinite(number)) throw new XanError('condition requires a numeric cell');
-        order = number < Number(text) ? -1 : number > Number(text) ? 1 : 0;
-      } finally { budget.release(left.length * 2); }
-    } else {
-      for (let offset = 0; offset < Math.min(left.length, right.length); offset++) {
-        budget.work();
-        if (left[offset] !== right[offset]) { order = left[offset]! < right[offset]! ? -1 : 1; break; }
-        if ((offset & 1023) === 0) { const c = budget.checkpoint(); if (c) await c; }
-      }
-      if (!order) order = left.length < right.length ? -1 : left.length > right.length ? 1 : 0;
-    }
-    return operator === '==' ? order === 0 : operator === '!=' ? order !== 0 : operator === '<' ? order < 0 : operator === '<=' ? order <= 0 : operator === '>' ? order > 0 : order >= 0;
-  };
-}

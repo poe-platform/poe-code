@@ -26,32 +26,38 @@ test("standalone find works with only portable filesystem and command contracts"
   assert.equal(result.stdout, ".\n");
 });
 
-test("find omits non-tail tombstones in traversal, matching and count-only output", async () => {
-  const fs = createMemoryFileSystem();
-  await fs.mkdir("/d");
-  await fs.writeFile("/d/a", new Uint8Array());
-  await fs.writeFile("/d/b", new Uint8Array());
-  await fs.unlink("/d/a");
-  for (const args of [["/d"], ["/d", "-type", "f"], ["/d", "-name", "*"], ["/d", "-iname", "*"]]) {
-    for (const countOnly of [false, true]) {
-      let stdout = "", stderr = "", count: number | undefined;
-      const result = await createFindCommand().execute({
-        ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true, _chargeFastFsOp() {} },
-        command: "find", args, cwd: "/", env: {}, fs, stdin: toByteSource(""),
-        stdout: {
-          ...(countOnly ? { lineCountOnly: 0, writeLineCountSync(value: number) { count = value; return true; } } : {}),
-          async write(bytes) { stdout += new TextDecoder().decode(bytes); },
-        },
-        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
-        signal: new AbortController().signal,
-      });
-      assert.equal(result.exitCode, 0, stderr);
-      const expected = args[1] === "-type" ? "/d/b\n" : "/d\n/d/b\n";
-      if (count !== undefined) assert.equal(count, 2);
-      else assert.equal(stdout, expected);
+for (const mutation of ["unlink", "rename", "replace"] as const) {
+  test(`find omits tombstones after ${mutation} in traversal, matching and count-only output`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.mkdir("/d");
+    await fs.writeFile("/d/a", new Uint8Array());
+    await fs.writeFile("/d/b", new Uint8Array());
+    if (mutation === "unlink") await fs.unlink("/d/a");
+    else if (mutation === "rename") await fs.rename("/d/a", "/moved");
+    else await fs.rename("/d/a", "/d/b");
+    for (const args of [["/d"], ["/d", "-type", "f"], ["/d", "-name", "*"], ["/d", "-iname", "*"]]) {
+      for (const countOnly of [false, true]) {
+        let stdout = "", stderr = "", count: number | undefined;
+        const result = await createFindCommand().execute({
+          ...{ _fastMemoryBackingFs: fs, _hasInfiniteFsOpsLimit: true, _chargeFastFsOp() {} },
+          command: "find", args, cwd: "/", env: {}, fs, stdin: toByteSource(""),
+          stdout: {
+            ...(countOnly ? { lineCountOnly: 0, writeLineCountSync(value: number) { count = value; return true; } } : {}),
+            async write(bytes) { stdout += new TextDecoder().decode(bytes); },
+          },
+          stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+          signal: new AbortController().signal,
+        });
+        assert.equal(result.exitCode, 0, stderr);
+        assert.equal(stderr, "");
+        const expected = args[1] === "-type" ? "/d/b\n" : "/d\n/d/b\n";
+        if (count !== undefined) assert.equal(count, 2);
+        else assert.equal(stdout, expected);
+      }
     }
-  }
-});
+  });
+
+}
 
 test("find -exec preserves raw argument bytes through host invocation", async () => {
   const raw = new Uint8Array([0xff]);

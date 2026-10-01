@@ -1,8 +1,8 @@
 import { decodeFoldUnit, portableWidth, type FoldUnit } from "./index.js";
-import type { ByteSource, CommandDefinition } from "safe-bash-contracts";
+import type { CommandDefinition } from "safe-bash-contracts";
 import { integer } from "safe-bash-io-engine/internal";
 import { numericOptions } from "safe-bash-text-stream-engine/stream-inspection/numeric-options";
-import { command, RecordBuffer, type Session, type StreamInspectionLimits } from "safe-bash-text-stream-engine/stream-inspection/shared";
+import { command, RecordBuffer, type StreamInspectionLimits } from "safe-bash-text-stream-engine/stream-inspection/shared";
 
 export function createFoldCommand(limits: StreamInspectionLimits): CommandDefinition {
   return command("fold", limits, async session => {
@@ -16,7 +16,7 @@ export function createFoldCommand(limits: StreamInspectionLimits): CommandDefini
     });
     let width = 80;
     for (const specification of parsed.values.get("w") ?? []) width = integer(specification, 1);
-    const locale = (session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C").toUpperCase().split("@")[0]!;
+    const locale = (session.context.env.LC_ALL || session.context.env.LC_CTYPE || session.context.env.LANG || "C.UTF-8").toUpperCase().split("@")[0]!;
     const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
     const adjust = (column: number, unit: FoldUnit): number => {
       if (mode === "bytes") return column + unit.length;

@@ -550,3 +550,18 @@ test('coalescing charges copy work before delivering output', async () => {
   assert.equal(f.stdout.length, 0);
   await Promise.all(f.cleanups.map(cleanup => cleanup()));
 });
+
+test('agent family defaults to UTF-8 and respects explicit C locale', async () => {
+  const { createFoldCommand: familyFold } = await import('./family.js');
+  const { settings } = await import('safe-bash-text-stream-engine/stream-inspection/shared');
+  const input = '🚀🔥✨🎉🌟💡\n';
+  for (const env of [{}, { LANG: 'C.UTF-8' }, { LC_ALL: 'C', LANG: 'C.UTF-8' }]) {
+    const f = fixture(['-w20'], input);
+    assert.equal((await familyFold(settings({})).execute({ ...f.context, env })).exitCode, 0);
+    if (env.LC_ALL === 'C') {
+      const source = encoder.encode(input);
+      assert.deepEqual(f.stdout, [...source.subarray(0, 20), 10, ...source.subarray(20)]);
+    } else assert.equal(f.text(), input);
+    await Promise.all(f.cleanups.map(cleanup => cleanup()));
+  }
+});

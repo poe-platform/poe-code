@@ -17,7 +17,7 @@ export interface FoldAccounting {
   readonly work: number;
 }
 export interface FoldEngine {
-  /** At most 4096 bytes per bounded call. Returned chunks own their storage. */
+  /** Calls honor configured chunk and input limits. Returned chunks own their storage. */
   push(bytes: Uint8Array): readonly Uint8Array[];
   /** Flush incomplete decoding and reset file column, preserving prior glyph width. */
   endFile(): readonly Uint8Array[];

@@ -579,3 +579,32 @@ describe("generated remote MCP safe-bash commands", () => {
   });
 
 });
+
+
+it.each([{ code: "ERR_BUDGET_EXCEEDED" }, { name: "BudgetExceededError" }])(
+  "preserves shell budget errors and stops chunked stdin at the limit: %j", async identity => {
+    const fixture = remote();
+    const definition = await command(fixture);
+    const input = invocation(["search_items", "--raw=-"]);
+    const failure = Object.assign(new Error("input limit"), identity);
+    const totals: number[] = [];
+    let reads = 0;
+    let closed = false;
+    const stdin = (async function* () {
+      try {
+        for (const part of ['{"query":"', "世界", '"}']) {
+          reads++;
+          yield new TextEncoder().encode(part);
+        }
+      } finally { closed = true; }
+    })();
+    await expect(definition.execute({ ...input.context, stdin, inputBudget: {
+      maxBytes: 14, check(total) { totals.push(total); if (total > 14) throw failure; }
+    } })).rejects.toBe(failure);
+    expect(totals).toEqual([10, 16]);
+    expect(reads).toBe(2);
+    expect(closed).toBe(true);
+    expect(input.error()).toBe("");
+    expect(fixture.fetch).not.toHaveBeenCalled();
+  }
+);

@@ -155,3 +155,28 @@ it("documents prefix policies in offline server and tool help", async () => {
     expect(host.fetch).not.toHaveBeenCalled();
   } finally { await host.shell.dispose(); }
 });
+
+
+it.each(["--raw -", "--raw=-"])("reports the shell input limit for %s before connecting", async raw => {
+  const host = await fixture();
+  try {
+    const json = JSON.stringify({ query: "世界".repeat(30) });
+    await expect(host.shell.exec(`catalog echo ${raw}`, { stdin: json, limits: { maxInputBytes: 64 } }))
+      .rejects.toMatchObject({ name: "ShellLimitError", limit: "maxInputBytes" });
+    expect(host.fetch).not.toHaveBeenCalled();
+  } finally { await host.shell.dispose(); }
+});
+
+
+it.each(["--raw -", "--raw=-"])("accepts stdin exactly at the shell byte limit for %s", async raw => {
+  const host = await fixture();
+  try {
+    const query = "世界";
+    const stdin = JSON.stringify({ query });
+    const result = await host.shell.exec(`catalog echo ${raw}`, {
+      stdin, limits: { maxInputBytes: new TextEncoder().encode(stdin).byteLength }
+    });
+    expect(result.exitCode).toBe(0);
+    expect(host.inputs).toEqual([{ query }]);
+  } finally { await host.shell.dispose(); }
+});

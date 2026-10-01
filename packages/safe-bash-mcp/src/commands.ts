@@ -1,6 +1,6 @@
 import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
 import {
-  collectBytes, commandRuntimeIdentity, createOutputOperation, getCommandArguments,
+  collectBytes, readBytes, commandRuntimeIdentity, createOutputOperation, getCommandArguments,
   type CommandContext, type CommandDefinition, type OutputOperation, type VirtualShellPlugin
 } from "@poe-platform/safe-bash/contracts";
 import { OAuthAuthorizationError, OAuthError } from "mcp-oauth";
@@ -191,7 +191,15 @@ async function stdinArguments(context: CommandContext, args: readonly string[], 
   const inline = meaningful.length === 1 && meaningful[0] === "--raw=-";
   const separated = meaningful.length === 2 && meaningful[0] === "--raw" && meaningful[1] === "-";
   if (!inline && !separated) return args;
-  const bytes = await collectBytes(context.stdin, { signal, maxBytes });
+  const source = (async function* () {
+    let totalBytes = 0;
+    for await (const chunk of readBytes(context.stdin, signal)) {
+      totalBytes += chunk.byteLength;
+      context.inputBudget?.check(totalBytes);
+      yield chunk;
+    }
+  })();
+  const bytes = await collectBytes(source, { signal, maxBytes });
   let json: string;
   try { json = new TextDecoder("utf-8", { fatal: true }).decode(bytes); }
   catch (cause) { throw new Error("MCP JSON stdin must be valid UTF-8", { cause }); }
@@ -272,6 +280,9 @@ export async function createRemoteMcpCommands(
             }
           } catch (error) {
             operation.signal.throwIfAborted();
+            if (typeof error === "object" && error !== null &&
+              (("code" in error && error.code === "ERR_BUDGET_EXCEEDED") ||
+                ("name" in error && error.name === "BudgetExceededError"))) throw error;
             await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, outputLimit);
             return { exitCode: 2 };
           }

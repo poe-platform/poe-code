@@ -5690,12 +5690,6 @@ async function executeVfsMagickTool(
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (existingSnap.get(key) !== val) {
         const abs = resolveVfsPath(key);
-        const parentDir = abs.slice(0, abs.lastIndexOf("/")) || "/";
-        try {
-          await context.fs.mkdir(parentDir, { recursive: true, signal: invocation.signal });
-        } catch {
-          // Directory already exists
-        }
         await writeFileOutput(context, val, data => context.fs.writeFile(abs, data, { signal: invocation.signal }));
       }
     }

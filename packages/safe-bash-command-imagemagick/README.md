@@ -16,6 +16,8 @@ const info = await shell.exec("magick identify -format '%m %wx%h' /banner.png");
 console.log(info.stdout); // PNG 60x40
 ```
 
+Output parent directories must already exist, including directories selected with `mogrify -path`.
+
 ## Available Commands
 
 | Command | Highlights |

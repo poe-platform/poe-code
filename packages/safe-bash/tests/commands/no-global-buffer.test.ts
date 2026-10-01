@@ -15,8 +15,9 @@ const cases: readonly [string, string, number?, string?][] = [
   ['sort month', `printf 'Feb\\nJan\\n' | sort -M`, 0, 'Jan\nFeb\n'],
   ['cut output delimiter', `printf 'a:b:c\\nd:e:f\\n' | cut -d: -f1,3 --output-delimiter=,`, 0, 'a,c\nd,f\n'],
   ['xargs end marker', `printf 'a\\nEND\\nb\\n' | xargs -E END echo`, 0, 'a\n'],
-  ['jq', `jq '.b' /data.json`], ['yq', `yq '.b' /data.json`], ['awk', `awk '{ print $1 }' /in.txt`],
-  ['sed', `sed 's/hello/hi/' /in.txt`], ['rg', 'rg hello /in.txt'],
+  ['jq', `jq '.b' /data.json`, 0, '"héllo"\n'], ['yq', `yq '.b' /data.json`, 0, '"héllo"\n'],
+  ['awk', `awk '{ print $1 }' /in.txt`, 0, 'hello\nworld\n'],
+  ['sed', `sed 's/hello/hi/' /in.txt`, 0, 'hi\nworld\n'], ['rg', 'rg hello /in.txt', 0, 'hello\n'],
   ['rg capture replacement', `rg '(?<word>hello)' -r '$word/$1/$$' /in.txt`, 0, 'hello/hello/$\n'],
   ['rg glob and numbered matches', `rg -n -g '*.txt' hello /`, 0, '/in.txt:1:hello\n'],
   ['grep extended matches', `grep -Eo '[a-z]+' /in.txt`, 0, 'hello\nworld\n'],
@@ -24,10 +25,10 @@ const cases: readonly [string, string, number?, string?][] = [
   ['fgrep', `fgrep hello /in.txt`, 0, 'hello\n'],
   ['find', `find / -maxdepth 1 -printf '%p\\n'`],
   ['find batched exec', `find / -name 'in.txt' -exec echo {} +`, 0, '/in.txt\n'],
-  ['tar', 'tar -cf /out.tar in.txt; tar -tf /out.tar'],
-  ['zip', 'zip -q /out.zip in.txt; unzip -p /out.zip in.txt'],
+  ['tar', 'tar -cf /out.tar in.txt && tar -xOf /out.tar in.txt', 0, 'hello\nworld\n'],
+  ['zip', 'zip -q /out.zip in.txt && unzip -p /out.zip in.txt', 0, 'hello\nworld\n'],
   ['diff', 'diff -u /f1.txt /f2.txt', 1],
-  ['patch', `printf '%s\\n' '--- /f1.txt' '+++ /f1.txt' '@@ -1,2 +1,2 @@' ' a' '-b' '+c' | patch /f1.txt`],
+  ['patch', `printf '%s\\n' '--- /f1.txt' '+++ /f1.txt' '@@ -1,2 +1,2 @@' ' a' '-b' '+c' | patch -s /f1.txt && cat /f1.txt`, 0, 'a\nc\n'],
   ['apply_patch', `printf '%s\\n' '*** Begin Patch' '*** Update File: /f1.txt' '@@' ' a' '-b' '+c' '*** End Patch' | apply_patch`],
   ['shuf', 'shuf -e hello world'],
   ['split', 'split -l 1 /in.txt /part_'], ['tree', 'tree /'],
@@ -48,23 +49,23 @@ const cases: readonly [string, string, number?, string?][] = [
   ['mapfile', 'mapfile -t arr < /in.txt; echo "${arr[0]}"'],
   ['read', `printf 'hello\\nworld\\n' | { read a; read b; echo "$a:$b"; }`],
   ['trap', `trap 'echo hi' EXIT; trap -p`],
-  ['comparison', 'a=abc; b=def; [[ "$a" < "$b" ]] | cat'],
-  ['case conversion', 'x="héllo"; y="${x^^}"; echo "$y"'],
+  ['comparison', '[[ a < b ]] && echo ordered', 0, 'ordered\n'],
+  ['case conversion', 'x="héllo"; y="${x^^}"; echo "$y"', 0, 'HÉLLO\n'],
   ['associative keys', 'declare -A m; m["é"]=42; echo "${m[é]}"'],
 ];
 
 for (const [name, script, exitCode = 0, stdout] of cases) test(`${name} works without global Buffer`, async context => {
-  const fs = createMemoryFileSystem();
-  const encoder = new TextEncoder();
-  for (const [path, value] of Object.entries({
-    '/in.txt': 'hello\nworld\n', '/f1.txt': 'a\nb\n', '/f2.txt': 'a\nc\n',
-    '/data.json': '{"a":1,"b":"héllo"}\n',
-  })) await fs.writeFile(path, encoder.encode(value));
-  const shell = new Shell({ fs }).use(agentCommands()).use(yqCommands());
-  context.after(() => shell.dispose());
   const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'Buffer')!;
   try {
     Reflect.deleteProperty(globalThis, 'Buffer');
+    const fs = createMemoryFileSystem();
+    const encoder = new TextEncoder();
+    for (const [path, value] of Object.entries({
+      '/in.txt': 'hello\nworld\n', '/f1.txt': 'a\nb\n', '/f2.txt': 'a\nc\n',
+      '/data.json': '{"a":1,"b":"héllo"}\n',
+    })) await fs.writeFile(path, encoder.encode(value));
+    const shell = new Shell({ fs }).use(agentCommands()).use(yqCommands());
+    context.after(() => shell.dispose());
     const result = await shell.exec(script);
     assert.equal(globalThis.Buffer, undefined);
     assert.equal(result.stderr, '', `${name}: ${result.stderr}`);

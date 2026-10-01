@@ -255,3 +255,55 @@ test('rg count does not reuse a same-length pattern with different middle bytes 
   assert.equal(result.stderr, '');
   assert.equal(result.exitCode, 1);
 });
+
+
+test('reported asynchronous and oversized pipelines settle before context reuse', async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir('/workspace');
+  await fs.writeFile('/workspace/nums.txt', enc.encode('10\n2\n30\n1\n'));
+  const largeLine = 'a'.repeat(70000) + '\n';
+  await fs.writeFile('/workspace/big.txt', enc.encode(largeLine));
+  const shell = new Shell({ fs, cwd: '/workspace' }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const cases = [
+    ['sort -n nums.txt | head -n 2', '1\n2\n'],
+    ['sort -u nums.txt | head -n 2', '1\n10\n'],
+    ['sort -k 1,1n nums.txt | head -n 2', '1\n2\n'],
+    ['grep -E "^(1|2)$" nums.txt | head -n 2', '2\n1\n'],
+    ['grep -i A big.txt | head -n 1', largeLine],
+    ['grep a big.txt | head -n 1', largeLine],
+    ['grep a /workspace/big.txt | head -n 1', largeLine],
+    ['cut -z -c 1 nums.txt | head -n 1', '1\0'],
+  ] as const;
+  for (let iteration = 0; iteration < 2; iteration++) {
+    for (const [command, expected] of cases) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, command + ': ' + result.stderr);
+      assert.equal(result.stdout, expected, command);
+      assert.equal(result.stderr, '', command);
+    }
+    for (const command of ['grep a /nonexistent | head -n 1', 'head -c 4 /nonexistent | wc -c']) {
+      const result = await shell.exec('set -o pipefail; ' + command);
+      assert.notEqual(result.exitCode, 0, command);
+      assert.match(result.stderr, /nonexistent/);
+      assert.equal(result.stdout.trim(), command.startsWith('head') ? '0' : '');
+    }
+  }
+});
+
+test('overlapping async pure pipelines keep output, diagnostics and budgets isolated', async context => {
+  const shells = await Promise.all(['left', 'right'].map(async value => {
+    const fs = new MemoryFileSystem();
+    await fs.mkdir('/workspace');
+    await fs.writeFile('/workspace/data', enc.encode('key:' + value + '\n' + 'x'.repeat(1050) + '\n'));
+    const shell = new Shell({ fs }).use(standardCommands({ regexExecutor: createNodeRegexProvider() }));
+    context.after(() => shell.dispose());
+    return shell;
+  }));
+  for (let iteration = 0; iteration < 3; iteration++) {
+    const results = await Promise.all(shells.map(shell => shell.exec('grep key /workspace/data | cut -d: -f2 | sort', { limits: { maxInputBytes: 1100, maxOutputBytes: 22 } })));
+    assert.deepEqual(results.map(result => result.stdout), ['left\n', 'right\n']);
+    assert.deepEqual(results.map(result => result.stderr), ['', '']);
+    assert.deepEqual(results.map(result => result.exitCode), [0, 0]);
+  }
+});

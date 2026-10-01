@@ -204,6 +204,15 @@ function archivedCliSpellingSource(): Buffer {
   return bytes;
 }
 
+function archivedSplitSpellingSource(): Buffer {
+  // 408f126bbd corrected the live split arity cases. Keep the original spelling
+  // migration authenticated independently of those current regressions.
+  const bytes = readFileSync(new URL("./split-before-arity-correction.ts.txt", import.meta.url));
+  assert.equal(bytes.length, 5456, "immutable pre-arity split image size");
+  assert.equal(digest(bytes), "5e2a483d525454288b5737f8e70377b143de5a47c185423ff3982ad0383e2e9d", "immutable pre-arity split image digest");
+  return bytes;
+}
+
 function archivedStreamingSource(): Buffer {
   const bytes = readFileSync(new URL("./streaming-before-input-modes.ts.txt", import.meta.url));
   assert.equal(bytes.length, 9023, "immutable pre-input-modes streaming image size");
@@ -303,8 +312,15 @@ test("frozen historical evidence and retained non-native canonical seals remain 
     assert.ok(!compared.has(path), "duplicate current comparison");
     let current = path === resourceDepthMigration.path ? archivedHazardStartupSource()
       : path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource()
+      : path === "tests/commands/structured-stress/split-increment/command.test.ts" ? archivedSplitSpellingSource()
       : path === "tests/commands/structured/streaming.test.ts" ? archivedStreamingSource()
       : path === "tests/commands/structured-stress/raw-input-safety.test.ts" ? archivedRawInputSource() : readFileSync(path);
+    if (path === "tests/commands/structured-stress/join-safety.test.ts") {
+      // 408f126bbd corrected split arity; reconstruct the unchanged historical seal.
+      assert.equal(digest(current), "60658b8a6ce5c2f8d45e56e0d05b3f4e3c4dab586111ec5585f0e520da63bdbb");
+      current = Buffer.from(current.toString("utf8").replace('split(",";"g";0)', 'split(",";"g")'));
+      assert.equal(digest(current), expected, "unchanged original join-safety seal");
+    }
     if (path === "tests/commands/structured-stress/safety.test.ts") {
       // 66fbeb9c304 corrected assignment preflight cases and added named-input
       // coverage. Authenticate that exact update and reconstruct the old seal.
@@ -383,7 +399,7 @@ test("frozen historical evidence and retained non-native canonical seals remain 
       assertCurrent(path, hash);
     }
   }
-  assert.equal(compared.size, 140, "136 current comparisons and four immutable test images");
+  assert.equal(compared.size, 140, "135 current comparisons and five immutable test images");
   assert.deepEqual([...migrated].sort(), spellingMigrations.map(entry => entry.path).sort(), "only the four approved migrations");
   assert.equal(compared.size - migrated.size, 136, "retained comparisons outside spelling migrations, including archived resource and streaming images");
   assert.equal(snapshots.size, 23, "all original historical snapshots");
@@ -395,7 +411,7 @@ test("frozen historical evidence and retained non-native canonical seals remain 
   assert.deepEqual([...numericAsyncMigrated], [numericAsyncMigration.path], "only the reviewed numeric async migration");
   const unchangedComparisons = compared.size - migrated.size - bindingMigrated.size - depthMigrated.size - numericAsyncMigrated.size - optionalHazardLimitsMigrated.size - optionalRawInputLimitMigrated.size;
   assert.equal(unchangedComparisons, 131, "130 byte-unchanged current comparisons and one archived streaming image");
-  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 4, archivedCliImages: 1, archivedResourceImages: 1, archivedStreamingImages: 1, archivedRawInputImages: 1, unchangedLiveComparisons: unchangedComparisons - 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, optionalHazardLimitsMigrations: optionalHazardLimitsMigrated.size, optionalRawInputLimitMigrations: optionalRawInputLimitMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
+  context.diagnostic(JSON.stringify({ liveComparisons: compared.size - 5, archivedSplitImages: 1, archivedCliImages: 1, archivedResourceImages: 1, archivedStreamingImages: 1, archivedRawInputImages: 1, unchangedLiveComparisons: unchangedComparisons - 1, unchangedComparisons, spellingMigrations: migrated.size, historicalSnapshots: snapshots.size, unusedBindingMigrations: bindingMigrated.size, resourceDepthMigrations: depthMigrated.size, hazardStartupMigrations: hazardStartupMigrated.size, numericAsyncMigrations: numericAsyncMigrated.size, optionalHazardLimitsMigrations: optionalHazardLimitsMigrated.size, optionalRawInputLimitMigrations: optionalRawInputLimitMigrated.size, byteUnchangedComparisons: unchangedComparisons }));
 });
 
 type MigrationControl = { migration: SpellingMigration; expected: string; current: Buffer; receipt: Buffer };
@@ -428,7 +444,8 @@ for (const migration of spellingMigrations) for (const [name, mutate] of spellin
   const input: MigrationControl = {
     migration: { ...migration, deletions: [...migration.deletions] },
     expected,
-    current: migration.path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource() : readFileSync(migration.path),
+    current: migration.path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource()
+      : migration.path === "tests/commands/structured-stress/split-increment/command.test.ts" ? archivedSplitSpellingSource() : readFileSync(migration.path),
     receipt: readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)),
   };
   if (mutate) {
@@ -446,7 +463,8 @@ for (const migration of spellingMigrations.slice(0, 2)) test("reviewed spelling 
   const firstByte = snapshot[0];
   assert.ok(firstByte !== undefined, "historical snapshot mutation requires a byte");
   snapshot[0] = firstByte ^ 1;
-  const current = migration.path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource() : readFileSync(migration.path);
+  const current = migration.path === "tests/commands/structured/cli.test.ts" ? archivedCliSpellingSource()
+      : migration.path === "tests/commands/structured-stress/split-increment/command.test.ts" ? archivedSplitSpellingSource() : readFileSync(migration.path);
   const restored = assertSpellingMigration(migration, original.afterSha256, current, readFileSync(new URL("./" + repairReceipts[migration.receipt].filename, import.meta.url)));
   assert.throws(() => assert.deepEqual(restored, snapshot), { code: "ERR_ASSERTION" });
 });

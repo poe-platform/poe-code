@@ -14,3 +14,10 @@ await shell.dispose();
 ```
 
 Also available: `createApplyPatchCommand`, `createApplyPatchCommands`, and typed options and limits.
+
+`limits.maxLines` counts patch input lines plus tokenized target lines; copying
+those records into the result does not count them again. `maxHunks` counts each
+update hunk once, including hunks with context anchors. Host
+`capabilities.commandLimits.applyPatch` limits can further restrict configured
+limits. Shell input limits include the patch and physical target reads, including
+the safety rechecks before publication.

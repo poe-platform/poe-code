@@ -3,7 +3,7 @@ import {
   createOutputOperation, dirname, readBytes, writeBytes,
   type CommandContext, type FileStat, type FileSystem,
 } from "safe-bash-contracts";
-import type { ApplyPatchLimits } from "./options.js";
+import { settings, type ApplyPatchLimits } from "./options.js";
 import { parse, type PatchFile } from "./parser.js";
 import { contents } from "./matcher.js";
 import { diagnostic, FileFailure, PatchError, Work } from "./shared.js";
@@ -26,6 +26,7 @@ class Invocation {
   private readonly initial = new Map<string, FileStat | undefined>();
   private ordinal: number | undefined;
   private fs: FileSystem;
+  private inputBytes = 0;
 
   constructor(readonly context: CommandContext, limits: ApplyPatchLimits) {
     this.work = new Work(context, limits);
@@ -61,7 +62,8 @@ class Invocation {
     if (context.args.length > 1) throw new PatchError("expected stdin or one literal patch argument", 2);
     if (context.args.length === 1) {
       const text = context.args[0]!;
-      await work.utf8(text, work.limits.maxPatchBytes, 2);
+      const bytes = await work.utf8(text, work.limits.maxPatchBytes, 2);
+      context.inputBudget?.check(this.inputBytes += bytes);
       return text;
     }
     const chunks: Uint8Array[] = [];
@@ -69,6 +71,7 @@ class Invocation {
     for await (const chunk of readBytes(context.stdin, context.signal)) {
       work.count("maxInputChunks", 1);
       if (chunk.byteLength > work.limits.maxPatchBytes - bytes) throw new PatchError("maxPatchBytes limit exceeded");
+      context.inputBudget?.check(this.inputBytes += chunk.byteLength);
       await work.charge(1);
       if (chunk.byteLength) chunks.push(await work.copy(chunk));
       bytes += chunk.byteLength;
@@ -126,10 +129,11 @@ class Invocation {
   }
 
   private async read(path: string): Promise<Uint8Array> {
-    const maximum = Math.min(this.work.limits.maxFileBytes, this.work.remaining("maxReadBytes"));
+    const maximum = Math.min(this.work.limits.maxFileBytes, this.work.remaining("maxReadBytes"), (this.context.inputBudget?.maxBytes ?? Infinity) - this.inputBytes);
     const bytes = await this.work.fs(path, () => this.fs.readFile(path, { signal: this.context.signal, ...(Number.isFinite(maximum) ? { maxBytes: maximum } : {})}));
     if (!(bytes instanceof Uint8Array)) throw new TypeError("FileSystem.readFile must return Uint8Array");
     if (bytes.length > maximum) throw new PatchError("target read byte limit exceeded");
+    this.context.inputBudget?.check(this.inputBytes += bytes.length);
     this.work.count("maxReadBytes", bytes.length);
     return this.work.copy(bytes);
   }
@@ -266,5 +270,11 @@ class Invocation {
 }
 
 export function execute(context: CommandContext, limits: ApplyPatchLimits): Promise<{ exitCode: number }> {
-  return new Invocation(context, limits).run();
+  const profile = (context.capabilities?.commandLimits as { applyPatch?: Partial<ApplyPatchLimits> } | undefined)?.applyPatch;
+  const effective = { ...limits };
+  if (profile) {
+    settings({ limits: profile });
+    for (const key of Object.keys(profile) as (keyof ApplyPatchLimits)[]) effective[key] = Math.min(effective[key], profile[key]!);
+  }
+  return new Invocation(context, effective).run();
 }

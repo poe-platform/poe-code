@@ -28,6 +28,23 @@ test("standalone diff works with only portable filesystem and command contracts"
   assert.equal(result.stdout, "");
 });
 
+test("forced text side-by-side preserves UTF-8 column boundaries", async () => {
+ const fs = createMemoryFileSystem();
+ await fs.writeFile("/left", new TextEncoder().encode("éééééééé\n"));
+ await fs.writeFile("/right", new TextEncoder().encode("øøøøøøøø\n"));
+ const render = async (text: boolean) => {
+  const output: Uint8Array[] = [];
+  const result = await createDiffCommand().execute({
+   command: "diff", args: [...(text ? ["-a"] : []), "-y", "-W", "15", "/left", "/right"], cwd: "/", env: {}, fs,
+   stdin: toByteSource(""), signal: new AbortController().signal,
+   stdout: { async write(bytes) { output.push(bytes.slice()); } }, stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 1);
+  return Buffer.concat(output);
+ };
+ assert.deepEqual(await render(true), await render(false));
+});
+
 for (const [name, args, left, right] of [
   ["computation", ["-u"], Array.from({ length: 1200 }, (_, i) => `old${i}\n`).join(""), Array.from({ length: 1200 }, (_, i) => `new${i}\n`).join("")],
   ["normal comparison", [], "old\n".repeat(800), "new\n".repeat(800)],

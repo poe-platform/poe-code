@@ -114,16 +114,19 @@ export class Budget {
 
   async read(path: string, encoding: "utf8" | "latin1" = "utf8"): Promise<string> {
     this.context.signal.throwIfAborted();
-    const remaining = this.limits.maxInputBytes - this.inputBytes;
+    const remaining = Math.min(this.limits.maxInputBytes, this.context.inputBudget?.maxBytes ?? Infinity) - this.inputBytes;
     const capabilities = path === "-" ? undefined : await host(this.context, async () =>
       await this.context.fs.capabilitiesFor?.(path, { signal: this.context.signal }) ?? this.context.fs.capabilities);
+    const streamed = path === "-" || this.context.fs.readStream && capabilities?.streamingRead !== false;
     const bytes = path === "-"
       ? await collectBytes(this.chunks(this.context.stdin), { signal: this.context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) })
       : this.context.fs.readStream && capabilities?.streamingRead !== false
         ? await collectBytes(this.chunks(this.context.fs.readStream(path, { signal: this.context.signal })), { signal: this.context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) })
         : await host(this.context, () => this.context.fs.readFile(path, { signal: this.context.signal, ...(Number.isFinite(remaining) ? { maxBytes: remaining } : {}) }));
-    this.inputBytes += bytes.byteLength;
-    if (this.inputBytes > this.limits.maxInputBytes) throw new ToolError("input byte limit exceeded");
+    if (!streamed) {
+      this.input(bytes.byteLength);
+      if (this.inputBytes > this.limits.maxInputBytes) throw new ToolError("input byte limit exceeded");
+    }
     return encoding === "latin1" ? decodeBytes(encodeBytes(bytes), "latin1") : this.text(bytes);
   }
 
@@ -151,7 +154,7 @@ export class Budget {
       if (!sameIdentity(stat, expected) || stat.size !== expected.size || stat.revision !== expected.revision)
         throw new ToolError("diff input changed while opening");
       await verifyAncestors();
-      const remaining = this.limits.maxInputBytes - this.inputBytes;
+      const remaining = Math.min(this.limits.maxInputBytes, this.context.inputBudget?.maxBytes ?? Infinity) - this.inputBytes;
       if (stat.size > remaining) throw new ToolError("input byte limit exceeded");
       const chunks: Uint8Array[] = [];
       let position = 0;
@@ -161,14 +164,14 @@ export class Budget {
         const size = Math.min(65536, stat.size - position);
         const chunk = await handle.read(position, size, { signal });
         if (!chunk.length || chunk.length > size) throw new ToolError("diff input changed while reading");
-        chunks.push(chunk);
+        this.input(chunk.length);
+        chunks.push(new Uint8Array(chunk));
         position += chunk.length;
       }
       const after = await handle.stat({ signal });
       if (!sameIdentity(after, stat) || after.size !== stat.size || after.revision !== stat.revision)
         throw new ToolError("diff input changed while reading");
       const bytes = concatBytes(chunks, position);
-      this.inputBytes += position;
       return encoding === "latin1" ? decodeBytes(bytes, "latin1") : this.text(bytes);
     } finally { await handle.close(); }
   }
@@ -177,8 +180,15 @@ export class Budget {
     for await (const chunk of readBytes(source, this.context.signal)) {
       this.step();
       { const c = this.checkpoint(); if (c) await c; }
+      this.input(chunk.byteLength);
       yield chunk;
     }
+  }
+
+  private input(bytes: number): void {
+    const total = this.inputBytes + bytes;
+    this.context.inputBudget?.check(total);
+    this.inputBytes = total;
   }
 
   output(text: string, encoding: "utf8" | "latin1" = "utf8"): void {

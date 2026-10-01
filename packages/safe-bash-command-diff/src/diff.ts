@@ -336,7 +336,7 @@ async function run(context: CommandContext, budget: Budget): Promise<number> {
     }
     let oldText = oldBytes, newText = newBytes;
     encoding = "latin1";
-    if (!options.text) {
+    {
       const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
       try {
         const oldDecoded = decoder.decode(encodeBytes(oldBytes, "latin1"));

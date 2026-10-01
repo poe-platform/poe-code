@@ -5,7 +5,34 @@ import { decodeHeaderPath, safeTarget } from "../../../src/commands/diff-patch/p
 import { unwrapPatch } from "../../../src/commands/diff-patch/patch-envelope.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";
-import { run } from "./helpers.js";
+import { filesystem, run } from "./helpers.js";
+import { Shell } from "../../../src/shell/index.js";
+import { createDiffPatchCommands } from "../../../src/commands/diff-patch/index.js";
+import { createApplyPatchCommand } from "../../../src/commands/apply-patch/index.js";
+
+for (const [command, patch] of [
+  ["diff /work/left /work/right", ""],
+  ["patch /work/left", "--- left\n+++ left\n@@ -1 +1 @@\n-old\n+new\n"],
+  ["apply_patch", "*** Begin Patch\n*** Update File: /work/left\n@@\n-old\n+new\n*** End Patch\n"],
+] as const) test(`Shell maxInputBytes bounds ${command}`, async () => {
+  const fs = await filesystem({ left: "old\n", right: "new\n" });
+  const shell = new Shell({ fs, cwd: "/work" });
+  for (const definition of createDiffPatchCommands()) shell.register(definition);
+  shell.register(createApplyPatchCommand());
+  try {
+    const limit = Buffer.byteLength(patch) + 7;
+    const rejected = shell.exec(command, { stdin: patch, limits: { maxInputBytes: limit } });
+    if (command.startsWith("patch ")) await assert.rejects(rejected, { name: "ShellLimitError", limit: "maxInputBytes" });
+    else {
+      const result = await rejected;
+      if (command.startsWith("diff ")) assert.equal(result.exitCode, 2);
+      else assert.notEqual(result.exitCode, 0);
+    }
+    assert.equal(new TextDecoder().decode(await fs.readFile("/work/left")), "old\n");
+    const admitted = await shell.exec(command, { stdin: patch, limits: { maxInputBytes: limit + 1 } });
+    assert.equal(admitted.exitCode, command.startsWith("diff ") ? 1 : 0, admitted.stderr);
+  } finally { await shell.dispose(); }
+});
 
 function context(): CommandContext {
   return { command: "diff", args: [], cwd: "/", env: {}, fs: new MemoryFileSystem(),

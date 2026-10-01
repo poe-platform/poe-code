@@ -27,3 +27,11 @@ test("standalone patch works with only portable filesystem and command contracts
   assert.equal(result.exitCode, 0, result.stderr);
   assert.ok(result.stdout.length > 0);
 });
+
+test("one unified hunk counts once, with physical target rechecks in the input quota", async () => {
+ const patch = "--- a/file\n+++ b/file\n@@ -1 +1 @@\n-old\n+new\n";
+ // Five patch lines and one target line; publication rereads the four-byte target.
+ const options = { maxHunks: 1, maxLines: 6, maxInputBytes: Buffer.byteLength(patch) + 8 };
+ assert.equal((await run(createPatchCommand(options), ["/file"], patch)).exitCode, 0);
+ assert.notEqual((await run(createPatchCommand({ ...options, maxInputBytes: options.maxInputBytes - 1 }), ["/file"], patch)).exitCode, 0);
+});

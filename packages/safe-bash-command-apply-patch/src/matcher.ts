@@ -61,7 +61,6 @@ async function encode(lines: readonly RecordLine[], work: Work): Promise<Uint8Ar
 export async function contents(file: PatchFile, original: Uint8Array | undefined, work: Work): Promise<Uint8Array | undefined> {
   if (file.kind === "delete") return undefined;
   if (file.kind === "add") {
-    work.count("maxLines", file.added.length);
     const added: RecordLine[] = [];
     for (const text of file.added) { work.step(); added.push({ text, ending: "\n" }); await work.checkpoint(); }
     return encode(added, work);
@@ -96,9 +95,9 @@ export async function contents(file: PatchFile, original: Uint8Array | undefined
     let matched = start;
     for (const line of hunk.lines) {
       work.step();
-      if (line.kind === " ") { work.count("maxLines", 1); replacement.push({ ...old[matched++]! }); }
+      if (line.kind === " ") { replacement.push({ ...old[matched++]! }); }
       else if (line.kind === "-") matched++;
-      else { work.count("maxLines", 1); replacement.push({ text: line.text, ending }); }
+      else { replacement.push({ text: line.text, ending }); }
       await work.checkpoint();
     }
     replacements.push({ start, end: start + pattern.length, lines: replacement });
@@ -110,7 +109,7 @@ export async function contents(file: PatchFile, original: Uint8Array | undefined
   for (const replacement of replacements) {
     if (replacement.start < position) throw new PatchError("overlapping update hunks");
     while (position < replacement.start) {
-      work.step(); work.count("maxLines", 1);
+      work.step();
       result.push({ ...old[position++]! });
       await work.checkpoint();
     }
@@ -118,7 +117,7 @@ export async function contents(file: PatchFile, original: Uint8Array | undefined
     position = replacement.end;
   }
   while (position < old.length) {
-    work.step(); work.count("maxLines", 1);
+    work.step();
     result.push({ ...old[position++]! });
     await work.checkpoint();
   }

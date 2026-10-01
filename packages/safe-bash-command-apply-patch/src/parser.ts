@@ -102,7 +102,7 @@ export async function parse(text: string, work: Work): Promise<PatchFile[]> {
           current = { anchors: [], lines: [], eof: false };
           hunks.push(current);
         }
-        if (named) { work.count("maxHunks", 1); current.anchors.push(line.slice(3)); }
+        if (named) current.anchors.push(line.slice(3));
       } else if (line === "*** End of File") {
         if (!current?.lines.length) throw new PatchError("EOF requires a nonempty hunk", 2);
         current.eof = true;

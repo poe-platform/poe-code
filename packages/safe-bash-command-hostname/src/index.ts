@@ -255,7 +255,7 @@ export function createHostnameCommand(options: HostnameCommandsOptions = {}): Co
         if (!isFsError(error, "ENOENT")) throw error;
       }
 
-      const rawHost = context.env.HOSTNAME || vfsHost || sessionHostnames.get(context.fs) || options.hostname || "sandbox";
+      const rawHost = sessionHostnames.get(context.fs) || vfsHost || context.env.HOSTNAME || options.hostname || "sandbox";
       const dotIdx = rawHost.indexOf(".");
       const shortName = dotIdx >= 0 ? rawHost.slice(0, dotIdx) : rawHost;
       const domainName = dotIdx >= 0 ? rawHost.slice(dotIdx + 1) : (options.domain ?? "vfs.local");

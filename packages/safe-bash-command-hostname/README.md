@@ -22,4 +22,4 @@ const res = await shell.exec("hostname -f");
 
 Resource limits are disabled (`Infinity`) by default. Pass `limits` to the command factory or plugin to enforce bounds; omitted limits remain disabled.
 
-Hostname changes are scoped to the filesystem, including when it is read-only. Oversized hostname files fail with a diagnostic; cancellation and shell output budget errors propagate.
+Hostname changes are scoped to the filesystem, including when it is read-only, and take precedence over an inherited `HOSTNAME` or an older hostname file. Oversized hostname files fail with a diagnostic; cancellation and shell output budget errors propagate.

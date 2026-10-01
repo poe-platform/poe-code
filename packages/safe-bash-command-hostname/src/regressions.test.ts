@@ -74,3 +74,17 @@ test("read-only hostname fallback belongs to the filesystem", async () => {
   assert.equal((await run(command, { ...ctx, fs, args: createCommandArguments([]).args })).stdout, "changed\n");
   assert.equal((await run(command, context())).stdout, "sandbox\n");
 });
+
+test("hostname changes override a stale HOSTNAME environment on writable and read-only filesystems", async () => {
+  for (const readonly of [false, true]) {
+    const command = createHostnameCommand({ allowSet: true });
+    const ctx = context(["changed"]);
+    await ctx.fs.mkdir("/etc");
+    await ctx.fs.writeFile("/etc/hostname", new TextEncoder().encode("old-file\n"));
+    const fs = readonly ? { ...ctx.fs, readFile: ctx.fs.readFile.bind(ctx.fs), async mkdir() { throw new FsError("EROFS"); } } : ctx.fs;
+    const tenant = { ...ctx, fs, env: { HOSTNAME: "old-env" } };
+    assert.equal((await run(command, tenant)).exitCode, 0);
+    assert.equal((await run(command, { ...tenant, args: [] })).stdout, "changed\n");
+    assert.equal((await run(command, { ...context(), env: { HOSTNAME: "other-tenant" } })).stdout, "other-tenant\n");
+  }
+});

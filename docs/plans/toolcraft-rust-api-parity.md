@@ -1264,3 +1264,24 @@ native wrapping and excluding TTY I/O. No performance gate passed. The remaining
 selection subclasses, wrappers/namespace, broader ports and compatibility gates
 remain required. Text/password commit 613c5d797c is verified on remote main;
 release 36986392323 is pending, with publication still unverified.
+
+`selectPrompt` and `findNonDisabled` now expose the `prompts/interactive/select`
+subpath. Rust owns admission, enabled-option traversal, cursor event decisions,
+non-TTY defaults and rendering. Node retains options/typed-value identity,
+array callbacks and live property/method lookup. Cases cover disabled/sparse
+options, wraparound, initial selection, arbitrary truthy results from overridden
+array methods, mutable options, cancellation and full frame/event parity.
+
+All 254 native host cases, 1,222 selected original design cases and ten spinner
+wrapper cases pass, plus Rust/binding/JS lint, generic option/helper types and
+packed standalone runtime/declarations. The shared cancellation type identity
+gate remains explicit. Screenshots of active, submitted and cancelled selections
+were inspected, with identical ANSI bytes. No dependencies changed.
+
+Five warmed alternating rounds of 500 active four-option renders measured median
+0.93578 ms native versus 0.12532 ms reference (7.47x), excluding TTY I/O. No
+performance gate passed. Multiselect and public wrappers/namespace are still
+required, alongside dashboard/explorer and the broader parity qualifications.
+Confirmation release 36985857838 completed but skipped publication. Pagination
+commit 6a271f3db1 is pushed; release 36986761254 completed but skipped validation
+and publication. Workflow success is not evidence of a published release.

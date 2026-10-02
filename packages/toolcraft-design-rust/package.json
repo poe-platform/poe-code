@@ -335,6 +335,10 @@
     "./prompts/interactive/pagination": {
       "types": "./dist/prompt-pagination.d.ts",
       "import": "./dist/prompt-pagination.js"
+    },
+    "./prompts/interactive/select": {
+      "types": "./dist/prompt-select.d.ts",
+      "import": "./dist/prompt-select.js"
     }
   },
   "scripts": {

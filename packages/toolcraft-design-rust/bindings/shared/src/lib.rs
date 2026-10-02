@@ -480,3 +480,5 @@ mod prompt_components;
 pub use prompt_components::*;
 mod prompt_pagination;
 pub use prompt_pagination::*;
+mod prompt_selection;
+pub use prompt_selection::*;

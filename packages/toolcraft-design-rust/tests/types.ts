@@ -578,6 +578,17 @@ const paginationOriginal: typeof originalPromptPagination = promptPagination;
 const paginationNative: typeof promptPagination = null as unknown as typeof originalPromptPagination;
 void [paginationOriginal, paginationNative];
 
+import * as promptSelect from "toolcraft-design-rust/prompts/interactive/select";
+import type * as originalPromptSelect from "toolcraft-design/prompts/interactive/select";
+const findOriginal: typeof originalPromptSelect.findNonDisabled = promptSelect.findNonDisabled;
+const findNative: typeof promptSelect.findNonDisabled = null as unknown as typeof originalPromptSelect.findNonDisabled;
+const selectOptionsOriginal: originalPromptSelect.SelectOptions<{key: string}> = null as unknown as promptSelect.SelectOptions<{key: string}>;
+const selectOptionsNative: promptSelect.SelectOptions<{key: string}> = selectOptionsOriginal;
+const selectResult: Promise<{key: string} | typeof CANCEL> = promptSelect.selectPrompt(selectOptionsNative);
+// @ts-expect-error Separate cancellation declarations remain a nominal swap gate.
+const selectPromptOriginal: typeof originalPromptSelect.selectPrompt = promptSelect.selectPrompt;
+void [findOriginal, findNative, selectResult, selectPromptOriginal];
+
 import {Prompt as NativePrompt,type PromptOptions as NativePromptOptions,type PromptState as NativePromptState} from "toolcraft-design-rust/prompts/interactive/core";
 import type {PromptState as OriginalPromptState} from "toolcraft-design/prompts/interactive/core";
 import * as nativePromptKeys from "toolcraft-design-rust/prompts/interactive/keys";

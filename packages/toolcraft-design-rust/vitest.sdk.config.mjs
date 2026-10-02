@@ -10,6 +10,7 @@ export default defineConfig({
       resolveId(name, importer) {
         if (!importer) return;
         if (importer.startsWith(path("../toolcraft-design/src/prompts/interactive/"))) {
+          if (name === "./select.js") return path("dist/prompt-select.js");
           if (name === "./pagination.js") return path("dist/prompt-pagination.js");
           if (name === "./text.js") return path("dist/prompt-text.js");
           if (name === "./password.js") return path("dist/prompt-password.js");

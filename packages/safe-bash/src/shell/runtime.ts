@@ -2793,7 +2793,7 @@ export function warmDefaultRuntimeContextFs(sourceFs: FileSystem, backingFs: Fil
   void created.rm;
   reusableDefaultContextFsBySourceFs.set(sourceFs, { scoped: created, inUseBy: undefined });
 }
-import { abortManagedController, addAbortSignalWaiter, combineManagedSignals, releaseCombinedSignal, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerRuntimeBackingFileSystem, removeAbortSignalWaiter, toNativeAbortSignal, type ManagedControlController } from "safe-bash-contracts/runtime-control";
+import { abortManagedController, combineManagedSignals, releaseCombinedSignal, createManagedControlController, getRuntimeBackingFileSystem, interruptible, isSyncResolved, registerRuntimeBackingFileSystem, toNativeAbortSignal, type ManagedControlController } from "safe-bash-contracts/runtime-control";
 export { getRuntimeBackingFileSystem, interruptible, registerRuntimeBackingFileSystem };
 const emptyWords: readonly Word[] = [];
 const emptyShellValues: readonly ShellValue[] = [];
@@ -8614,7 +8614,7 @@ export class Runtime {
       if (plan.fastSingleInt === undefined) {
         let intSlots = 0;
         let intSlot: ConjunctSlot | undefined;
-        let invVarsSet = new Set<string>();
+        const invVarsSet = new Set<string>();
         let allOtherSucceeded = true;
         let totalInvUnits = 2;
         for (let k = 0; k < slots.length; k++) {

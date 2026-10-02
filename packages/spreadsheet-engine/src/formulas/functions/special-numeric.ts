@@ -1,3 +1,4 @@
+import { capturedBesselSeries } from "./captured-bessel-series.js";
 import { capturedCbrt } from "./captured-cbrt.js";
 import { capturedBesselTransition } from "./captured-bessel-transition.js";
 import { numericResult, sum } from "../values.js";
@@ -213,8 +214,9 @@ function bessel(name: string, x: number, order: number, host: FunctionHost): num
   if (name === "BESSELI") return x > 709 ? Infinity : order === 0 && x * x >= 100 ? capturedBesselI0(x, host) : series(x, order, true, host);
   if (name === "BESSELK" && x > 705.342) return 0;
   if (name === "BESSELK" && x > 1e-10) return capturedBesselK(x, order, host);
-  if (name === "BESSELJ" && x * x < 10 * (order + 10)) return order === Math.floor(order) && order < 99999 ? capturedIntegerBesselJ(x, order, host) : series(x, order, false, host);
+  if (name === "BESSELJ" && x > 0 && x * x < 10 * (order + 10)) return order === Math.floor(order) && order < 99999 ? capturedIntegerBesselJ(x, order, host) : capturedBesselSeries(x, order, false, host);
   if (name === "BESSELY" && x * x < 10 * (order + 10) && order === Math.floor(order) && order < 99999) return capturedIntegerBesselY(x, order, host);
+  if (name === "BESSELY" && x > 0 && x * x < 10 * (order + 10)) return capturedBesselSeries(x, order, true, host);
   if ((name === "BESSELJ" || name === "BESSELY") && order === 0 && x >= 17 && x <= 1e6) return capturedZeroOrderHankel(x, name === "BESSELY", host);
   if ((name === "BESSELJ" || name === "BESSELY") && order === 0 && x >= 9 && x < 17) return capturedHankelIntegral(x, name === "BESSELY", host);
   if ((name === "BESSELJ" || name === "BESSELY") && order > 0 && x >= 17 && x <= 1e6 && (x - order) / capturedCbrt(x) >= 6.5) return capturedHankel(x, order, name === "BESSELY", host);

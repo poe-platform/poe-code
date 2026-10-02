@@ -81,7 +81,7 @@ const coefficients = {
   qs21: [29.533362906052385, 252.98154998219053, 757.5028348686454, 739.3932053204672, 155.94900333666612, -4.959498988226282],
 } as const;
 
-function amplitude(x: number, order: 0 | 1, correction: boolean, host: FunctionHost): number {
+function amplitude(x: number, order: 0 | 1, correction: boolean, host: Pick<FunctionHost, "tick">): number {
   const anchor = correction ? order === 0 ? -.125 : .375 : 1;
   if (x >= 2 ** 28) return correction ? anchor / x : 1;
   const view = new DataView(new ArrayBuffer(8)); view.setFloat64(0, x); const high = view.getUint32(0);
@@ -99,7 +99,7 @@ function amplitude(x: number, order: 0 | 1, correction: boolean, host: FunctionH
 }
 
 /** Captured glibc binary64 base functions for positive x. */
-export function capturedBesselBase(x: number, order: 0 | 1, secondKind: boolean, host: FunctionHost): number {
+export function capturedBesselBase(x: number, order: 0 | 1, secondKind: boolean, host: Pick<FunctionHost, "tick">): number {
   if (x < 2) {
     const z = x * x, z2 = z * z, z4 = z2 * z2;
     if (secondKind) {
@@ -112,7 +112,7 @@ export function capturedBesselBase(x: number, order: 0 | 1, secondKind: boolean,
       const denominator = fusedMultiplyAdd(z4, order === 0 ? v[3] : fusedMultiplyAdd(z, v[4]!, v[3]), fusedMultiplyAdd(z2, v2, v1));
       const base = capturedBesselBase(x, order, false, host);
       return order === 0 ? fusedMultiplyAdd(.6366197723675814, base * Math.log(x), numerator / denominator)
-        : fusedMultiplyAdd(.6366197723675814, fusedMultiplyAdd(base, Math.log(x), -1 / x), x * (numerator / denominator));
+        : fusedMultiplyAdd(x, numerator / denominator, .6366197723675814 * fusedMultiplyAdd(base, Math.log(x), -1 / x));
     }
     if (order === 0 && x < 2 ** -13) return x < 2 ** -27 ? 1 : fusedMultiplyAdd(-.25 * x, x, 1);
     if (order === 1 && x < 2 ** -27) return .5 * x;
@@ -167,7 +167,7 @@ export function capturedIntegerBesselJ(x: number, order: number, host: FunctionH
   return Math.abs(base0) >= Math.abs(base1) ? t * base0 / b : t * base1 / a;
 }
 
-export function capturedIntegerBesselY(x: number, order: number, host: FunctionHost): number {
+export function capturedIntegerBesselY(x: number, order: number, host: Pick<FunctionHost, "tick">): number {
   if (order <= 1) return capturedBesselBase(x, order as 0 | 1, true, host);
   let a = capturedBesselBase(x, 0, true, host), b = capturedBesselBase(x, 1, true, host);
   for (let n = 1; n < order && Number.isFinite(b); n++) {

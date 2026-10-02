@@ -41,7 +41,9 @@
     "src/formulas/functions/captured-log-NOTICE.md",
     "src/formulas/functions/captured-bessel-transition.ts",
     "src/formulas/functions/captured-bessel-transition-NOTICE.md",
-    "src/formulas/functions/captured-cbrt.ts"
+    "src/formulas/functions/captured-cbrt.ts",
+    "src/formulas/functions/captured-bessel-series.ts",
+    "src/formulas/functions/captured-quad.ts"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
@@ -84,7 +86,9 @@
         "./src/formulas/functions/captured-log-NOTICE.md",
         "./src/formulas/functions/captured-bessel-transition.ts",
         "./src/formulas/functions/captured-bessel-transition-NOTICE.md",
-        "./src/formulas/functions/captured-cbrt.ts"
+        "./src/formulas/functions/captured-cbrt.ts",
+        "./src/formulas/functions/captured-bessel-series.ts",
+        "./src/formulas/functions/captured-quad.ts"
       ]
     }
   }

@@ -3971,7 +3971,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Algorithm A2 adds 82 exact native holdouts per public route; Algorithm A4 adds 142 native matches per route. The 912-case corpus retains 30 numerical differences and 8 budget failures; 12 independent boundary series differences also remain. See besselNearOrder for the current full-application checks. See currentQualification20261002.besselHighOrder."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Algorithm A2 adds 82 exact native holdouts per public route; Algorithm A4 adds 142 native matches per route. The latest fractional-series repair matches all 912 original cases and all 264 boundary cases without work failures. Additional fractional/near-integer and baseline cohorts bring full native matches to 3296 per compiled SDK/command route. See besselFractionalSeries for current full-application evidence; broader profiles remain open. See currentQualification20261002.besselHighOrder."
     },
     {
       "id": "format-record-roundtrip",
@@ -4655,6 +4655,30 @@
         "checks": "Engine lint/source/test types; maintained selected 18-build closure; actual compiled SDK and runCommand XLSX; independent count/formula-identity/binary64 checks. Integer holdouts use a fixed random seed and orders 0,1,2,3,5,10,20,50,100."
       },
       "remaining": "The bounded 912-case corpus produces 904 values with 28 numerical differences and 8 budget failures. Fractional series, wider profile qualification and all 19 families remain open. No release claim."
+    },
+    "besselFractionalSeries": {
+      "profile": "Authenticated full Gnumeric 1.12.61 / GOffice 0.10.61 application on Debian arm64; same activation environment and source archive as besselTransition.",
+      "sources": {
+        "sfGammaSha256": "c547063bd22c65e923ab6771e739549e36d3d26905d2be4c2f736aff964be4f0",
+        "goQuadSha256": "ed7b083ad8b427c90eb0ad256ce66edc267739da90d714964f9e3692f93fac72"
+      },
+      "implementation": "Shared native paired arithmetic; scaled fractional powers and factorial/Pochhammer decomposition; at most 199 series terms; bounded paired sine/cosine Taylor evaluation. Native seven-node (six for large orders) Chebyshev interpolation reuses node values near integer Y orders. Native finite Y1 disassembly establishes the unfused log-term multiplication followed by fused rational-term accumulation. Work ticks preserve original interruption identity.",
+      "reproducers": "All 36 retained fractional numerical/budget reproducers failed before repair and pass afterward. Independent holdouts exposed near-integer Y work exhaustion and a Y1 center rounding difference; both have failing-before/passing-after regressions.",
+      "qualification": {
+        "originalCorpusNativeMatchesPerRoute": 912,
+        "originalCorpusBudgetFailures": 0,
+        "boundaryNativeMatchesPerRoute": 264,
+        "fractionalHoldoutNativeMatchesPerRoute": 1112,
+        "nearIntegerNativeMatchesPerRoute": 288,
+        "integerNativeMatchesPerRoute": 514,
+        "baselineNativeMatchesPerRoute": 206,
+        "totalNativeMatchesPerRoute": 3296,
+        "baselineWarningsPerRoute": 200,
+        "engineTests": 168,
+        "neighborTests": 104,
+        "checks": "Engine maintained tests and lint/source/test types; selected 18-build dependency closure; compiled SDK and runCommand XLSX exports. Independent ZIP/XML extraction checks exact counts, normalized formula arguments and binary64/error values across populated sheets. Holdouts include factorial regime boundaries, underflow/overflow, both sides of near-integer dispatch and negative-order reflection."
+      },
+      "remaining": "These captured Linux arm64 cohorts have no remaining mismatches or work failures. This does not establish all numerical domains, cross-runtime or registry profiles; those and the other compatibility/qualification requirements remain open. No family closure or release claim."
     }
   },
   "history": {

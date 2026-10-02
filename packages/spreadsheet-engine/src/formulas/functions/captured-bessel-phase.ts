@@ -5,38 +5,11 @@ import { fusedMultiplyAdd } from "./numeric-arithmetic.js";
 import { capturedTrig } from "./captured-trigonometry.js";
 import type { FunctionHost } from "./types.js";
 
-type Pair = readonly [number, number];
+import { add, subtract, product, multiply, divide, type Pair } from "./captured-quad.js";
 const pi: Pair = [Math.PI, 1.2246467991473532e-16];
 const piParts = [Math.PI, 1.2246467991473525e-16, 7.096094005475149e-32,
   2.337498945872879e-47, 1.6964756225906639e-62, 2.3330058546990757e-78,
   4.1561276376542085e-94, 1.7472360971449637e-109, 4.601452500437483e-125, 1.752534108156407e-140];
-function add(a: Pair, b: Pair): Pair {
-  const r = a[0] + b[0], s = Math.abs(a[0]) > Math.abs(b[0]) ? a[0] - r + b[0] + b[1] + a[1] : b[0] - r + a[0] + a[1] + b[1];
-  const h = r + s; return [h, r - h + s];
-}
-function subtract(a: Pair, b: Pair): Pair {
-  const r = a[0] - b[0], s = Math.abs(a[0]) > Math.abs(b[0]) ? a[0] - r - b[0] - b[1] + a[1] : -b[0] - r + a[0] + a[1] - b[1];
-  const h = r + s; return [h, r - h + s];
-}
-function split(x: number): Pair {
-  let p = x * 134217729, scale = 1;
-  if (!Number.isFinite(p) && Number.isFinite(x)) { x *= Number.EPSILON; p = x * 134217729; scale = 1 / Number.EPSILON; }
-  const h = x - p + p;
-  return [h * scale, (x - h) * scale];
-}
-function product(x: number, y: number): Pair {
-  const [xh, xl] = split(x), [yh, yl] = split(y), p = xh * yh;
-  const q = fusedMultiplyAdd(xh, yl, xl * yh), h = p + q;
-  return [h, fusedMultiplyAdd(xl, yl, p - h + q)];
-}
-function multiply(a: Pair, b: Pair): Pair {
-  const c = product(a[0], b[0]), l = fusedMultiplyAdd(a[0], b[1], a[1] * b[0]) + c[1], h = c[0] + l;
-  return [h, c[0] - h + l];
-}
-function divide(a: Pair, b: Pair): Pair {
-  const c = a[0] / b[0], u = product(c, b[0]), l = fusedMultiplyAdd(-c, b[1], a[0] - u[0] - u[1] + a[1]) / b[0], h = c + l;
-  return [h, c - h + l];
-}
 function reduce(a: Pair, host: FunctionHost): readonly [Pair, number] {
   if (a[0] < 0) { const [r, k] = reduce([-a[0], -a[1]], host); return [[-r[0], -r[1]], (-k) & 7]; }
   if (a[0] > 1 / Number.EPSILON) host.diagnostic?.({ code: "numeric-warning", severity: "warning", message: "Reduced accuracy for very large trigonometric arguments" });

@@ -107,10 +107,6 @@ function isQuietGitInit(args: readonly string[]): boolean {
   return sub === "init" && quiet;
 }
 
-function gitArgsNeedStdin(args: readonly string[]): boolean {
-  return args.some(a => a === "--stdin" || a === "--stdin-paths" || a === "-" || a === "mktree" || a === "stripspace" || a === "mailinfo" || a === "apply" || a === "am" || a === "commit-tree" || a === "fast-import" || a === "unpack-objects");
-}
-
 const CROSS_REPO_COMMANDS = new Set([
   "clone", "init", "submodule", "worktree", "remote", "fetch", "pull", "push", "bundle", "archive", "daemon", "verify-commit", "verify-tag"
 ]);

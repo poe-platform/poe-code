@@ -4985,6 +4985,9 @@ export class Runtime {
     return binding.keyIndex(resolvedValue, owner, this.signal, create);
   }
   private tryFastArraySubscriptWriteSync(state: State, name: string, sub: string, val: string): boolean {
+    this._lastSyncArrayWriteName = name;
+    this._lastSyncArrayWriteKey = sub;
+    this._lastSyncArrayWriteVal = val;
     if (hasUnpreparedLocal(state, name)) return false;
     this._syncArithTouched?.delete(name);
     const monitor = stateMonitor(state);
@@ -5068,11 +5071,32 @@ export class Runtime {
       const index = Number(sub);
       if (index > 2147483647) return false;
       const existingSlot = current.values.get(index);
-      if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLen) {
+      if (existingSlot !== undefined && existingSlot.text.references === 1 && (existingSlot.text.bytes === valByteLen || current.owner.ledger.bytes === Infinity)) {
         try {
           current.owner.chargeWork(valByteLen + 9);
           const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
           existingSlot.text.shellValue = val;
+          existingSlot.text.bytes = valByteLen;
+          delete rawState.variables[name];
+          monitor.epoch = tickets.epoch;
+          store.revise(name, current, tickets);
+          return true;
+        } catch (error) {
+          if (error instanceof ArrayFailure) return false;
+          throw error;
+        }
+      }
+      const stashedSlot = existingSlot === undefined ? current._stashValues?.get(index) : undefined;
+      if (stashedSlot !== undefined && stashedSlot.text.references === 1 && current.owner.ledger.bytes === Infinity) {
+        try {
+          current.owner.chargeWork(valByteLen + 9);
+          const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+          current._stashValues!.delete(index);
+          stashedSlot.text.shellValue = val;
+          stashedSlot.text.bytes = valByteLen;
+          current.values.set(index, stashedSlot);
+          current.assigned = true;
+          if (index > current.maximum) current.maximum = index;
           delete rawState.variables[name];
           monitor.epoch = tickets.epoch;
           store.revise(name, current, tickets);
@@ -5423,8 +5447,12 @@ export class Runtime {
         if (!target) return false;
         try {
           if (!assignment.append && target.values.size > 0) {
-            for (const [id, ek] of target.keys.entries()) {
-              if (!keepIds.has(id)) target.remove(ek.index);
+            if (pairs.length === 0 && target.references === 1 && target.owner.ledger.bytes === Infinity && target.owner.ledger.fields === Infinity) {
+              target.softClearForReuse();
+            } else {
+              for (const [id, ek] of target.keys.entries()) {
+                if (!keepIds.has(id)) target.remove(ek.index);
+              }
             }
           }
           for (let i = 0; i < pairs.length; i++) {
@@ -5539,12 +5567,16 @@ export class Runtime {
         }
         try {
           if (!assignment.append && target.values.size > 0) {
-            for (const k of target.values.keys()) {
-              if (!keepIndices.has(k)) target.remove(k);
+            if (resolved.length === 0 && target.references === 1 && target.owner.ledger.bytes === Infinity && target.owner.ledger.fields === Infinity) {
+              target.softClearForReuse();
+            } else {
+              for (const k of target.values.keys()) {
+                if (!keepIndices.has(k)) target.remove(k);
+              }
+              let newMax = -1;
+              for (const k of target.values.keys()) { if (k > newMax) newMax = k; }
+              target.maximum = newMax;
             }
-            let newMax = -1;
-            for (const k of target.values.keys()) { if (k > newMax) newMax = k; }
-            target.maximum = newMax;
           }
           for (let i = 0; i < resolved.length; i++) {
             const { idx, val, bLen } = resolved[i]!;
@@ -5579,10 +5611,14 @@ export class Runtime {
       }
     }
     if ( assignment.kind === "element" && !associative && (!current || !current.associative)) {
-      const subSrc = (assignment.index.source ?? assignment.index.decimal).trim();
+      const rawSubSrc = assignment.index.source ?? assignment.index.decimal;
+      const subSrc = rawSubSrc.trim();
       const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
       let idxNum: number | undefined;
-      if (/^(?:0|[1-9][0-9]{0,8})$/.test(subSrc)) {
+      const directSubVar = (this._syncArithRawWriteOnly && syncTouched?.has(subSrc)) ? rawState.variables[subSrc] : undefined;
+      if (directSubVar !== undefined && /^(?:0|[1-9][0-9]{0,8})$/.test(directSubVar)) {
+        idxNum = Number(directSubVar);
+      } else if (/^(?:0|[1-9][0-9]{0,8})$/.test(subSrc)) {
         idxNum = Number(subSrc);
       } else {
         idxNum = resolveSimpleArithOperand(subSrc, rawState, monitor, store, syncTouched);
@@ -5594,13 +5630,61 @@ export class Runtime {
       if (idxNum !== undefined && idxNum >= 0 && idxNum <= 2147483647) {
         let val: ShellValue | undefined;
         try {
-          val = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+          const vp0 = assignment.value.parts.length === 1 ? assignment.value.parts[0]! : undefined;
+          if (vp0?.kind === "arithmetic" && !vp0.expression.error && !vp0.expression.hasMutation && !vp0.expression.hasSubscript && isSafeSmiProgram(vp0.expression)) {
+            val = this.syncShellArithmeticString(vp0.expression, rawState, diagnosticLine);
+          } else {
+            val = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+          }
         } catch (error) {
           this.signal.throwIfAborted();
           if (error instanceof ShellLimitError) throw error;
           return false;
         }
         if (typeof val !== "string") return false;
+        this._lastSyncArrayWriteName = name;
+        this._lastSyncArrayWriteSubSrc = rawSubSrc;
+        this._lastSyncArrayWriteKey = String(idxNum);
+        this._lastSyncArrayWriteVal = val;
+        if (current && !assignment.append && current.owner.ledger.bytes === Infinity) {
+          const valByteLen = shellValueByteLength(val);
+          const existingSlot = current.values.get(idxNum);
+          if (existingSlot !== undefined && existingSlot.text.references === 1) {
+            try {
+              current.owner.chargeWork(valByteLen + 9);
+              const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+              existingSlot.text.shellValue = val;
+              existingSlot.text.bytes = valByteLen;
+              delete rawState.variables[name];
+              monitor.epoch = tickets.epoch;
+              store.revise(name, current, tickets);
+              return true;
+            } catch (error) {
+              if (error instanceof ArrayFailure) return false;
+              throw error;
+            }
+          }
+          const stashedSlot = existingSlot === undefined ? current._stashValues?.get(idxNum) : undefined;
+          if (stashedSlot !== undefined && stashedSlot.text.references === 1) {
+            try {
+              current.owner.chargeWork(valByteLen + 9);
+              const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+              current._stashValues!.delete(idxNum);
+              stashedSlot.text.shellValue = val;
+              stashedSlot.text.bytes = valByteLen;
+              current.values.set(idxNum, stashedSlot);
+              current.assigned = true;
+              if (idxNum > current.maximum) current.maximum = idxNum;
+              delete rawState.variables[name];
+              monitor.epoch = tickets.epoch;
+              store.revise(name, current, tickets);
+              return true;
+            } catch (error) {
+              if (error instanceof ArrayFailure) return false;
+              throw error;
+            }
+          }
+        }
         const scalar = !current ? rawState.variables[name] : undefined;
         const target = ensureBinding(false);
         if (!target) return false;
@@ -5622,9 +5706,20 @@ export class Runtime {
       let keyVal: ShellValue | undefined;
       let val: ShellValue | undefined;
       try {
-        keyVal = this.fastValueWord(word, rawState, io, false, false, false, false, undefined, diagnosticLine);
+        const kp0 = word.parts.length === 2 ? word.parts[0]! : undefined;
+        const kp1 = word.parts.length === 2 ? word.parts[1]! : undefined;
+        if (kp0?.kind === "text" && !kp0.byteValue && kp1?.kind === "variable" && this._syncArithRawWriteOnly && this._syncArithTouched?.has(kp1.name) && !kp1.indirect && !kp1.prefixNames && !kp1.specialParameter && !kp1.length && !kp1.substring && !kp1.transform && kp1.operator === undefined && getArraySelector(kp1) === undefined) {
+          keyVal = kp0.value + (rawState.variables[kp1.name] ?? "");
+        } else {
+          keyVal = this.fastValueWord(word, rawState, io, false, false, false, false, undefined, diagnosticLine);
+        }
         if (typeof keyVal !== "string" || keyVal.length === 0) return false;
-        val = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+        const vp0 = assignment.value.parts.length === 1 ? assignment.value.parts[0]! : undefined;
+        if (vp0?.kind === "variable" && this._syncArithRawWriteOnly && this._syncArithTouched?.has(vp0.name) && !vp0.indirect && !vp0.prefixNames && !vp0.specialParameter && !vp0.length && !vp0.substring && !vp0.transform && vp0.operator === undefined && getArraySelector(vp0) === undefined) {
+          val = rawState.variables[vp0.name] ?? "";
+        } else {
+          val = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
+        }
       } catch (error) {
         this.signal.throwIfAborted();
         if (error instanceof ShellLimitError) throw error;
@@ -5645,9 +5740,13 @@ export class Runtime {
       }
       const valByteLenUpdated = assignment.append ? shellValueByteLength(val) : valByteLen;
       if (valByteLenUpdated > this.budget.limits.maxExpansionBytes) return false;
+      this._lastSyncArrayWriteName = name;
+      this._lastSyncArrayWriteSubSrc = assignment.index.source ?? assignment.index.decimal;
+      this._lastSyncArrayWriteKey = keyVal;
+      this._lastSyncArrayWriteVal = val;
       if (existingKey !== undefined) {
         const existingSlot = current.values.get(existingKey.index);
-        if (existingSlot !== undefined && existingSlot.text.references === 1 && existingSlot.text.bytes === valByteLenUpdated) {
+        if (existingSlot !== undefined && existingSlot.text.references === 1 && (existingSlot.text.bytes === valByteLenUpdated || current.owner.ledger.bytes === Infinity)) {
           let tickets: ReturnType<typeof store.owner.charge>;
           try {
             current.owner.chargeWork(valByteLenUpdated + 9);
@@ -5657,6 +5756,34 @@ export class Runtime {
             throw error;
           }
           existingSlot.text.shellValue = val;
+          existingSlot.text.bytes = valByteLenUpdated;
+          delete rawState.variables[name];
+          monitor.epoch = tickets.epoch;
+          store.revise(name, current, tickets);
+          return true;
+        }
+      } else if (current._stashKeys !== undefined && current.owner.ledger.bytes === Infinity) {
+        const stashedKey = current._stashKeys.get(identity);
+        const stashedSlot = stashedKey !== undefined ? current._stashValues?.get(stashedKey.index) : undefined;
+        if (stashedKey !== undefined && stashedSlot !== undefined && stashedKey.index > current.maximum && stashedSlot.text.references === 1) {
+          let tickets: ReturnType<typeof store.owner.charge>;
+          try {
+            current.owner.chargeWork(valByteLenUpdated + 9);
+            tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+          } catch (error) {
+            if (error instanceof ArrayFailure) return false;
+            throw error;
+          }
+          current._stashKeys.delete(identity);
+          current._stashKeyByIndex?.delete(stashedKey.index);
+          current._stashValues!.delete(stashedKey.index);
+          current.keys.set(identity, stashedKey);
+          current.keyByIndex.set(stashedKey.index, identity);
+          stashedSlot.text.shellValue = val;
+          stashedSlot.text.bytes = valByteLenUpdated;
+          current.values.set(stashedKey.index, stashedSlot);
+          current.assigned = true;
+          current.maximum = stashedKey.index;
           delete rawState.variables[name];
           monitor.epoch = tickets.epoch;
           store.revise(name, current, tickets);
@@ -11638,6 +11765,15 @@ export class Runtime {
     const initializer = command.expressions[0]?.tree;
     if (initializer?.kind !== "binary" || initializer.operator !== "=" || initializer.left.kind !== "name") return undefined;
     const induction = initializer.left.name;
+    const isNonNegAsc =
+      initializer.right.kind === "literal" &&
+      initializer.right.value >= 0n &&
+      command.expressions[1]?.tree?.kind === "binary" &&
+      (command.expressions[1].tree.operator === "<" || command.expressions[1].tree.operator === "<=") &&
+      command.expressions[1].tree.right.kind === "literal" &&
+      command.expressions[1].tree.right.value <= 100000n &&
+      command.expressions[2]?.tree?.kind === "unary" &&
+      command.expressions[2].tree.operator === "++";
     const dynamicNames = new Set(["PIPESTATUS", "LINENO", "_", "FUNCNAME", "DIRSTACK", "BASH_SUBSHELL", "BASHPID"]);
     type Assignment = { name: string; value: Word; append: boolean } | ArrayAssignment;
     const assignments: Assignment[] = [];
@@ -11662,7 +11798,7 @@ export class Runtime {
         const binding = store.get(assignment.name);
         if (!binding || binding.references !== 1 || state.exported.has(assignment.name)) return undefined;
         if (assignment.kind === "element") {
-          if (!binding.associative || assignment.append) return undefined;
+          if (assignment.append || (!binding.associative && (!isNonNegAsc || (assignment.index.source ?? assignment.index.decimal).trim() !== induction))) return undefined;
         } else {
           if (binding.associative || !assignment.append || assignment.entries.some(entry => entry.index || entry.append)) return undefined;
           appends.set(assignment.name, (appends.get(assignment.name) ?? 0) + assignment.entries.length);
@@ -11688,7 +11824,7 @@ export class Runtime {
     };
     const integerArrays = new Set<string>();
     for (const [name, { binding }] of store.bindings) {
-      if (!binding.associative) continue;
+      if (!binding.associative && !isNonNegAsc) continue;
       if (![...binding.values.values()].every(slot => typeof slot.text.shellValue === "string" && decimal(slot.text.shellValue))) continue;
       const writesInteger = assignments.every(assignment => {
         if (assignment.name !== name || !("kind" in assignment) || assignment.kind !== "element") return true;
@@ -11735,7 +11871,7 @@ export class Runtime {
             if (part.indirect || part.specialParameter || part.prefixNames || part.length || part.substring || part.transform || part.keys || dynamicNames.has(part.name)) return undefined;
             const selector = getArraySelector(part);
             if (selector) {
-              if (key || selector.kind !== "element" || !store.get(part.name)?.associative || monitor.hasOverlay(part.name) || controlNames.has(part.name)) return undefined;
+              if (key || selector.kind !== "element" || !store.get(part.name) || (!store.get(part.name)!.associative && (!isNonNegAsc || (selector.index.source ?? selector.index.decimal).trim() !== induction)) || monitor.hasOverlay(part.name) || controlNames.has(part.name)) return undefined;
               const index = this.syncArraySubscriptWord(selector.index, state);
               if (!index || !shapeWord(index, true)) return undefined;
               shape = { min: 0, max: integerArrays.has(part.name) ? 20 : Infinity, integer: integerArrays.has(part.name) };
@@ -12579,8 +12715,7 @@ export class Runtime {
           if (cmd.redirects.length === 0) {
             if (
               !cmd.expression.error &&
-              isSafeSmiProgram(cmd.expression) &&
-              (!cmd.expression.hasSubscript || this.canSyncReadOnlyArraySubscripts(cmd.expression.tree, rawState)) &&
+              (cmd.expression.hasSubscript ? this.canSyncReadOnlyArraySubscripts(cmd.expression.tree, rawState) : isSafeSmiProgram(cmd.expression)) &&
               this.canSyncArithmeticWithoutFault(cmd.expression.tree, rawState, cmd.line ?? 1)
             ) {
               continue;
@@ -12839,7 +12974,7 @@ export class Runtime {
           if (arrAssign.kind === "element") {
             // Only the whole-loop proof can admit associative keys. Indexed
             // arithmetic and relative subscripts retain normal evaluation.
-            const index = curArr.associative ? this.syncArraySubscriptWord(arrAssign.index, rawState) : undefined;
+            const index = this.syncArraySubscriptWord(arrAssign.index, rawState);
             if (!index || !this._activeSyncArrayLoopWords?.has(index) || !this.isPureSyncValueWord(index, rawState) || !this.isPureSyncValueWord(arrAssign.value, rawState)) return false;
             continue;
           }
@@ -13830,6 +13965,33 @@ export class Runtime {
           }
         }
       }
+      if (!hasDeferredSteps && isSimpleLiteralAsc && arrayLoop !== undefined && bodyAssignments.length >= 2) {
+        const lastIdx = bodyAssignments.length - 1;
+        const lastStep = bodyAssignments[lastIdx]!;
+        if (
+          !lastStep.append &&
+          lastStep.targetWord === undefined &&
+          lastStep.name !== undefined &&
+          lastStep.value !== undefined &&
+          arrayLoop.words.has(lastStep.value) &&
+          lastStep.name !== inductionName &&
+          !arithNames.has(lastStep.name) &&
+          !paramReadNames.has(lastStep.name)
+        ) {
+          let readAnywhere = false;
+          for (let b2 = 0; b2 < bodyAssignments.length; b2++) {
+            const other = bodyAssignments[b2]!;
+            if (other.value?.parts.some(p => p.kind === "variable" && p.name === lastStep.name) || other.targetWord?.parts.some(p => p.kind === "variable" && p.name === lastStep.name)) {
+              readAnywhere = true;
+              break;
+            }
+          }
+          if (!readAnywhere) {
+            deferredMask |= (1 << lastIdx);
+            hasDeferredSteps = true;
+          }
+        }
+      }
       let allIntStepsReady = isSimpleLiteralAsc;
       const touchedSet = new Set<string>([inductionName]);
       for (let b = 0; b < bodyAssignments.length; b++) {
@@ -13972,7 +14134,7 @@ export class Runtime {
           // Keep checkpoint fallback outside the already admitted synchronous loop.
           this._syncReturnDepth++;
           try {
-            const fb = this.runSyncArithForFallback( e0, e1, e2, inductionName, hasDeferredSteps, deferredMask, bodyAssignments, rawState, io, monitor, touched, mode, diagnosticLine, );
+            const fb = this.runSyncArithForFallback( e0, e1, e2, inductionName, isSimpleLiteralAsc, startVal, limitVal, isLe, hasDeferredSteps, deferredMask, bodyAssignments, rawState, io, monitor, touched, mode, diagnosticLine, );
             loopStatus = rawState.status;
             lastCmd = fb.lastCmd;
             lastArg = fb.lastArg;
@@ -15382,13 +15544,47 @@ export class Runtime {
     const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, io);
     tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, append, mode, this.commandSignal);
   }
-  private runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): SyncLoopProgress & { lastInductionVal: string | undefined } {
+  private runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, isSimpleLiteralAsc: boolean, startVal: number, limitVal: number, isLe: boolean, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): SyncLoopProgress & { lastInductionVal: string | undefined } {
     let enteredBody = false;
     const progress: SyncLoopProgress = { lastCmd: undefined, lastArg: rawState.lastArgument ?? "", pipelineStatus: undefined };
     let lastInductionVal: string | undefined;
     touched.add(inductionName);
-    this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
     let loopTurn = 0;
+    if (isSimpleLiteralAsc) {
+      let curInd = startVal;
+      const limit = isLe ? limitVal + 1 : limitVal;
+      if (curInd >= limit) {
+        this.budget.loop();
+        this.budget.parsing.admit(4);
+        rawState.variables[inductionName] = intToStr(curInd);
+        this.flushSyncStdoutBatch(io);
+        rawState.status = 0;
+        return { ...progress, lastInductionVal };
+      }
+      enteredBody = true;
+      for (; curInd < limit; curInd++) {
+        this.budget.loop();
+        if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
+        this.budget.parsing.admit(4);
+        const curStr = intToStr(curInd);
+        rawState.variables[inductionName] = curStr;
+        if (hasDeferredSteps) lastInductionVal = curStr;
+        this.execSyncLoopSteps(bodyAssignments, rawState, io, monitor, touched, mode, progress, deferredMask);
+        if (this._syncLoopAction !== undefined) {
+          const act = this._syncLoopAction;
+          this._syncLoopAction = undefined;
+          if (act === "break") break;
+        }
+      }
+      if (curInd === limit) {
+        this.budget.loop();
+        this.budget.parsing.admit(2);
+        rawState.variables[inductionName] = intToStr(curInd);
+      }
+      this.flushSyncStdoutBatch(io);
+      return { ...progress, lastInductionVal };
+    }
+    this.syncShellArithmeticNonZero(e0, rawState, diagnosticLine);
     while (true) {
       this.budget.loop();
       if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
@@ -15408,6 +15604,10 @@ export class Runtime {
     return { ...progress, lastInductionVal };
   }
   private _syncLoopFnCheckDepth = 0;
+  private _lastSyncArrayWriteName: string | undefined;
+  private _lastSyncArrayWriteSubSrc: string | undefined;
+  private _lastSyncArrayWriteKey: string | undefined;
+  private _lastSyncArrayWriteVal: string | undefined;
   private canSyncReadOnlyArraySubscripts(tree: ArithmeticProgram["tree"], rawState: State): boolean {
     if (!tree || this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity) return false;
     const monitor = stateMonitor(rawState);
@@ -15416,7 +15616,7 @@ export class Runtime {
     const check = (node: NonNullable<ArithmeticProgram["tree"]>): boolean => {
       switch (node.kind) {
         case "literal":
-          return true;
+          return node.value >= -94906265n && node.value <= 94906265n;
         case "name": {
           if (node.subscript === undefined) return true;
           if (node.name === "BASH_REMATCH" && /^[0-9]{1,3}$/.test(node.subscript) && !rawState.readonlyVariables?.has("BASH_REMATCH") && !store.watches.has("BASH_REMATCH") && !monitor.hasOverlay("BASH_REMATCH")) return true;
@@ -15435,9 +15635,19 @@ export class Runtime {
           return true;
         }
         case "unary":
-          return check(node.operand);
+          if (node.operator === "++" || node.operator === "--") return node.operand.kind === "name" && node.operand.subscript === undefined && check(node.operand);
+          return (node.operator === "+" || node.operator === "-" || node.operator === "!" || node.operator === "~") && check(node.operand);
         case "binary":
-          return check(node.left) && check(node.right);
+          if (node.operator === "=" || node.operator === "+=" || node.operator === "-=" || node.operator === "*=") {
+            return node.left.kind === "name" && node.left.subscript === undefined && check(node.left) && check(node.right);
+          }
+          if (node.operator === "/" || node.operator === "%") {
+            return node.right.kind === "literal" && node.right.value !== 0n && check(node.left) && check(node.right);
+          }
+          if (node.operator === "+" || node.operator === "-" || node.operator === "*" || node.operator === "<" || node.operator === "<=" || node.operator === ">" || node.operator === ">=" || node.operator === "==" || node.operator === "!=" || node.operator === "&" || node.operator === "|" || node.operator === "^" || node.operator === "&&" || node.operator === "||") {
+            return check(node.left) && check(node.right);
+          }
+          return false;
         case "conditional":
           return check(node.condition) && check(node.yes) && check(node.no);
       }
@@ -15474,7 +15684,33 @@ export class Runtime {
   }
   private evalSyncLoopArithStmt(expr: ArithmeticProgram, rawState: State, io: IO, touched: Set<string>, line: number): boolean | undefined {
     try {
-      if (!expr.error) return this.syncShellArithmeticNonZero(expr, rawState, line);
+      if (!expr.error && !expr.hasSubscript) return this.syncShellArithmeticNonZero(expr, rawState, line);
+      if (
+        !expr.error &&
+        expr.tree?.kind === "binary" &&
+        (expr.tree.operator === "+=" || expr.tree.operator === "-=" || expr.tree.operator === "*=" || expr.tree.operator === "=") &&
+        expr.tree.left.kind === "name" &&
+        expr.tree.left.subscript === undefined &&
+        expr.tree.right.kind === "name" &&
+        expr.tree.right.subscript !== undefined &&
+        expr.tree.right.name === this._lastSyncArrayWriteName &&
+        expr.tree.right.subscript === this._lastSyncArrayWriteSubSrc &&
+        this._lastSyncArrayWriteVal !== undefined
+      ) {
+        const varName = resolveSyncNameref(rawState, expr.tree.left.name);
+        const elemNum = fastSafeInt(this._lastSyncArrayWriteVal, this.budget.parsing);
+        const curNum = fastSafeInt(rawState.variables[varName], this.budget.parsing);
+        if (elemNum !== undefined && curNum !== undefined) {
+          const binOp = expr.tree.operator;
+          const nextNum = binOp === "=" ? elemNum : binOp === "+=" ? curNum + elemNum : binOp === "-=" ? curNum - elemNum : curNum * elemNum;
+          if (Number.isSafeInteger(nextNum)) {
+            this.budget.parsing.admit(4);
+            rawState.variables[varName] = intToStr(nextNum);
+            touched.add(varName);
+            return nextNum !== 0;
+          }
+        }
+      }
       const cachedExpr = expr as { _cachedArithWord?: Word | null };
       const expWord = cachedExpr._cachedArithWord ?? parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
       cachedExpr._cachedArithWord = expWord;
@@ -15496,6 +15732,39 @@ export class Runtime {
             rawState.variables[varName] = intToStr(nextNum);
             touched.add(varName);
             return nextNum !== 0;
+          }
+        }
+      }
+      if (fastSrc.length <= 96 && fastSrc.includes("[")) {
+        const arrMutMatch = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+=|-=|\*=|=)\s*([a-zA-Z_][a-zA-Z0-9_]*)\[(?:"([^"\\]*)"|\x27([^\x27]*)\x27|([a-zA-Z0-9_.\-/:@]+))\]\s*$/.exec(fastSrc);
+        if (arrMutMatch) {
+          const varName = resolveSyncNameref(rawState, arrMutMatch[1]!);
+          const binOp = arrMutMatch[2]!;
+          const arrName = resolveSyncNameref(rawState, arrMutMatch[3]!);
+          const keyStr = arrMutMatch[4] ?? arrMutMatch[5] ?? arrMutMatch[6]!;
+          const arrB = arrayStore(rawState)?.get(arrName);
+          if (arrB && keyStr.length > 0) {
+            let elemStr: ShellValue | undefined;
+            if (arrName === this._lastSyncArrayWriteName && keyStr === this._lastSyncArrayWriteKey && this._lastSyncArrayWriteVal !== undefined) {
+              elemStr = this._lastSyncArrayWriteVal;
+            } else if (arrB.associative) {
+              const ek = arrB.keys.get(fastStringHexIdentity(keyStr));
+              elemStr = ek !== undefined ? (arrB.getValue(ek.index) ?? "0") : "0";
+            } else if (/^(?:0|[1-9][0-9]{0,8})$/.test(keyStr)) {
+              elemStr = arrB.getValue(Number(keyStr)) ?? "0";
+            }
+            const curVal = rawState.variables[varName] ?? "0";
+            if (typeof elemStr === "string" && (elemStr === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(elemStr)) && (curVal === "" || /^-?(?:0|[1-9][0-9]{0,12})$/.test(curVal))) {
+              const rhsNum = elemStr === "" ? 0 : Number(elemStr);
+              const curNum = curVal === "" ? 0 : Number(curVal);
+              const nextNum = binOp === "=" ? rhsNum : binOp === "+=" ? curNum + rhsNum : binOp === "-=" ? curNum - rhsNum : curNum * rhsNum;
+              if (Number.isSafeInteger(nextNum)) {
+                this.budget.parsing.admit(6);
+                rawState.variables[varName] = intToStr(nextNum);
+                touched.add(varName);
+                return nextNum !== 0;
+              }
+            }
           }
         }
       }
@@ -22281,16 +22550,25 @@ export class Runtime {
           if (selector.kind === "element") {
             const subWord = this.syncArraySubscriptWord(selector.index, rawState);
             if (!subWord) return undefined;
-            const subVal = this.fastValueWord(subWord, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
+            const subVal = (subWord.parts.length === 1 && subWord.parts[0]!.kind === "text" && !subWord.parts[0]!.quoted && !subWord.parts[0]!.byteValue)
+              ? subWord.parts[0]!.value
+              : this.fastValueWord(subWord, rawState, io, false, false, false, false, undefined, part.line ?? overrideDiagnosticLine);
             if (typeof subVal !== "string") return undefined;
             let elemVal: ShellValue | undefined;
             if (arrayBinding.associative) {
               if (subVal.length === 0 || subVal.length > 4096) return undefined;
-              const existingKey = arrayBinding.keys.get(fastStringHexIdentity(subVal));
-              elemVal = existingKey !== undefined ? arrayBinding.getValue(existingKey.index) : undefined;
+              if (part.name === this._lastSyncArrayWriteName && subVal === this._lastSyncArrayWriteKey && this._lastSyncArrayWriteVal !== undefined) {
+                elemVal = this._lastSyncArrayWriteVal;
+              } else {
+                const existingKey = arrayBinding.keys.get(fastStringHexIdentity(subVal));
+                elemVal = existingKey !== undefined ? arrayBinding.getValue(existingKey.index) : undefined;
+              }
             } else {
               let subIdx: number | undefined;
-              if (/^(?:0|[1-9][0-9]{0,8})$/.test(subVal)) {
+              const directVarVal = (!monitor || (this._syncArithRawWriteOnly && this._syncArithTouched?.has(subVal))) ? rawVars[subVal] : undefined;
+              if (directVarVal !== undefined && /^(?:0|[1-9][0-9]{0,8})$/.test(directVarVal)) {
+                subIdx = Number(directVarVal);
+              } else if (/^(?:0|[1-9][0-9]{0,8})$/.test(subVal)) {
                 subIdx = Number(subVal);
               } else {
                 const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
@@ -22304,7 +22582,9 @@ export class Runtime {
                 }
               }
               if (subIdx === undefined || subIdx > 2147483647) return undefined;
-              elemVal = arrayBinding.getValue(subIdx);
+              elemVal = (part.name === this._lastSyncArrayWriteName && String(subIdx) === this._lastSyncArrayWriteKey && this._lastSyncArrayWriteVal !== undefined)
+                ? this._lastSyncArrayWriteVal
+                : arrayBinding.getValue(subIdx);
             }
             if (elemVal !== undefined && typeof elemVal !== "string") return undefined;
             if (part.substring) {

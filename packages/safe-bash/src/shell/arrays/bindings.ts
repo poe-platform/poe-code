@@ -11,7 +11,7 @@ export const controlNames: ReadonlySet<string> = new Set([
 export class OwnedText {
   references = 1;
 
-  constructor(public shellValue: ShellValue, readonly bytes: number, readonly admission: Admission) {}
+  constructor(public shellValue: ShellValue, public bytes: number, readonly admission: Admission) {}
 
   get value(): string { return shellValueText(this.shellValue); }
 
@@ -118,6 +118,34 @@ export class IndexedBinding {
   readonly values = new Map<number, Element>();
   readonly keys = new Map<string, { index: number; text: OwnedText; admission: Admission }>();
   readonly keyByIndex = new Map<number, string>();
+  _stashValues?: Map<number, Element> | undefined;
+  _stashKeys?: Map<string, { index: number; text: OwnedText; admission: Admission }> | undefined;
+  _stashKeyByIndex?: Map<number, string> | undefined;
+
+  softClearForReuse(): void {
+    if (this.values.size === 0 && this.keys.size === 0) return;
+    if (!this._stashValues) {
+      this._stashValues = new Map(this.values);
+      this.values.clear();
+    } else {
+      for (const [k, v] of this.values) this._stashValues.set(k, v);
+      this.values.clear();
+    }
+    if (this.associative) {
+      if (!this._stashKeys) {
+        this._stashKeys = new Map(this.keys);
+        this._stashKeyByIndex = new Map(this.keyByIndex);
+        this.keys.clear();
+        this.keyByIndex.clear();
+      } else {
+        for (const [k, v] of this.keys) this._stashKeys.set(k, v);
+        for (const [k, v] of this.keyByIndex) this._stashKeyByIndex!.set(k, v);
+        this.keys.clear();
+        this.keyByIndex.clear();
+      }
+    }
+    this.maximum = -1;
+  }
   maximum = -1;
   generation = 0;
   version = 0;

@@ -154,6 +154,24 @@ export function stageConsumerDependencies(root, temporary, packageRoots, artifac
   return [...staged.values()].map(({ name, directory, files }) => ({ name, directory, files }));
 }
 
+export function copyConsumerDependencies(dependencies, sourceRoot, destinationRoot) {
+  return dependencies.map(dependency => {
+    assert.ok(within(join(sourceRoot, "node_modules"), dependency.directory), "dependency must belong to the staged installation");
+    const directory = join(destinationRoot, relative(sourceRoot, dependency.directory));
+    for (const [path, expected] of dependency.files) {
+      const source = join(dependency.directory, path), destination = join(directory, path);
+      assert.ok(within(dependency.directory, source) && within(directory, destination), "dependency declaration path must stay within its package");
+      const stat = lstatSync(source);
+      assert.ok(stat.isFile() && !stat.isSymbolicLink() && stat.size <= 16 * 1024 * 1024, `dependency declaration must be a bounded regular file: ${source}`);
+      const bytes = readFileSync(source);
+      assert.equal(sha256(bytes), expected, `dependency declaration bytes changed: ${source}`);
+      mkdirSync(dirname(destination), { recursive: true });
+      writeFileSync(destination, bytes);
+    }
+    return { ...dependency, directory };
+  });
+}
+
 export function privateWorkspaceDeclarationPaths(root, candidate, privateAliases) {
   const paths = {};
   for (const name of privateAliases) {
@@ -421,6 +439,8 @@ export function checkCurrentConsumerTypes(root, temporary, compile, binding = cr
       cpSync(source, join(peer, path));
     }
   }
+  // Dependencies must resolve the same filesystem installed for this consumer.
+  binding = { ...binding, dependencies: copyConsumerDependencies(binding.dependencies ?? [], temporary, consumer) };
   assert.equal(existsSync(join(installed, "src")), false);
   writeFileSync(join(consumer, "package.json"), JSON.stringify({ private: true, type: "module" }));
   const groups = [], negativeTypes = [];

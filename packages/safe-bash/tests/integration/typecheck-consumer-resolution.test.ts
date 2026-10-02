@@ -27,13 +27,14 @@ interface Binding {
     publicAliases?: string[];
   };
 }
-const { createBuiltPackageBinding, assertBuiltConsumerResolution, publicDeclarationEntries, stageConsumerDependencies } = await import(
+const { createBuiltPackageBinding, assertBuiltConsumerResolution, publicDeclarationEntries, stageConsumerDependencies, copyConsumerDependencies } = await import(
   new URL("../../scripts/typecheck-consumers.mjs", import.meta.url).href
 ) as {
   createBuiltPackageBinding(root: string, options: { includePeer: boolean }): Binding;
   assertBuiltConsumerResolution(trace: string, consumer: string, root: string, binding: Binding): void;
   publicDeclarationEntries(binding: { exports: Record<string, { types: string }>; declarations: Map<string, string> }): Map<string, string>;
-  stageConsumerDependencies(root: string, temporary: string, packageRoots: string[], artifacts?: string[]): DependencyBinding[];
+  stageConsumerDependencies(root: string, temporary: string, packageRoots: string[], artifactRoots?: string[]): DependencyBinding[];
+  copyConsumerDependencies(dependencies: DependencyBinding[], source: string, destination: string): DependencyBinding[];
 };
 const hash = (bytes: string | Buffer): string => createHash("sha256").update(bytes).digest("hex");
 const resolution = (specifier: string, target: string, importer: string): string =>
@@ -231,11 +232,12 @@ function dependencyFixture(t: TestContext) {
   for (const name of ["existsSync", "lstatSync", "readFileSync", "readdirSync", "realpathSync", "mkdirSync", "writeFileSync"] as const) t.mock.method(fs, name, memory[name]);
   syncBuiltinESMExports();
   t.after(() => { t.mock.restoreAll(); syncBuiltinESMExports(); });
-  const diagnostics = () => {
+  const diagnostics = (trace?: string[]) => {
     const options: ts.CompilerOptions = { module: ts.ModuleKind.NodeNext, moduleResolution: ts.ModuleResolutionKind.NodeNext,
-      strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, skipLibCheck: false, noLib: true, noEmit: true, types: [] };
+      strict: true, noUncheckedIndexedAccess: true, exactOptionalPropertyTypes: true, skipLibCheck: false, noLib: true, noEmit: true, types: [], traceResolution: trace !== undefined };
     const host: ts.CompilerHost = {
       ...ts.createCompilerHost(options),
+      trace: message => trace?.push(message),
       fileExists: path => memory.existsSync(path),
       readFile: path => memory.existsSync(path) ? memory.readFileSync(path, "utf8") as string : undefined,
       directoryExists: path => memory.existsSync(path) && memory.statSync(path).isDirectory(),
@@ -363,4 +365,43 @@ test("consumer dependency staging uses generated publication artifacts without a
   assert.equal(f.memory.readFileSync(join(staged.directory,"node_modules/shape-types/index.d.ts"),"utf8"),'export interface Shape { readonly label: string; }');
   f.memory.writeFileSync(join(artifact,"package.json"),JSON.stringify({name:"@poe-platform/safe-js",version:"2.0.0",types:"dist/index.d.ts"}));
   assert.throws(() => f.stage([artifact]),/dependency version does not satisfy/);
+});
+
+test("packed sibling declarations resolve through the same installed filesystem", t => {
+  const f = dependencyFixture(t);
+  const filesystem = "/consumer/node_modules/@poe-platform/safe-fs";
+  const sibling = "/artifacts/safe-js";
+  const filesystemMetadata = JSON.stringify({ name: "@poe-platform/safe-fs", version: "1.0.0", type: "module",
+    exports: { ".": { types: "./dist/index.d.ts" } } });
+  const filesystemTypes = "export declare class FileSystem { private readonly identity; }";
+  for (const directory of [filesystem, sibling]) f.memory.mkdirSync(join(directory, "dist"), { recursive: true });
+  f.memory.writeFileSync(join(filesystem, "package.json"), filesystemMetadata);
+  f.memory.writeFileSync(join(filesystem, "dist/index.d.ts"), filesystemTypes);
+  f.memory.writeFileSync(join(sibling, "package.json"), JSON.stringify({ name: "@poe-platform/safe-js", version: "1.0.0", type: "module",
+    exports: { ".": { types: "./dist/index.d.ts" } }, dependencies: { "@poe-platform/safe-fs": "1.0.0", "pdf-lib": "1.17.1" } }));
+  f.memory.writeFileSync(join(sibling, "dist/index.d.ts"),
+    'import type { FileSystem } from "@poe-platform/safe-fs"; import type { PDFContext } from "pdf-lib"; export declare function evaluate(filesystem: FileSystem, context: PDFContext): void;');
+  f.memory.writeFileSync(join(sibling, "dist/index.js"), 'throw new Error("runtime must not be staged");');
+  f.memory.writeFileSync(join(f.candidate, "package.json"), JSON.stringify({ name: "@poe-platform/safe-bash", version: "1.0.0", type: "module",
+    exports: { ".": { types: "./dist/index.d.ts" } }, dependencies: { "@poe-platform/safe-fs": "1.0.0", "@poe-platform/safe-js": "1.0.0" } }));
+  f.memory.writeFileSync(join(f.candidate, "dist/index.d.ts"),
+    'export { FileSystem } from "@poe-platform/safe-fs"; export { evaluate } from "@poe-platform/safe-js";');
+  f.memory.writeFileSync("/consumer/check.mts",
+    'import { FileSystem, evaluate } from "@poe-platform/safe-bash"; evaluate(new FileSystem(), { shape: { id: 1 } });');
+  assert.ok(f.diagnostics().some(diagnostic => diagnostic.code === 2307));
+  const dependencies = stageConsumerDependencies("/checkout/packages/safe-bash", "/staging", [f.candidate, filesystem], [sibling]);
+  const binding = createBuiltPackageBinding(f.candidate, { includePeer: false });
+  binding.dependencies = copyConsumerDependencies(dependencies, "/staging", "/consumer");
+  binding.peer = { name: "@poe-platform/safe-fs", metadataSha256: hash(filesystemMetadata),
+    declarations: new Map([["dist/index.d.ts", hash(filesystemTypes)]]),
+    publicEntries: new Map([["@poe-platform/safe-fs", "dist/index.d.ts"]]), privateEntries: new Map() };
+  const trace: string[] = [];
+  assert.deepEqual(f.diagnostics(trace).map(diagnostic => ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")), []);
+  assertBuiltConsumerResolution(trace.join("\n"), "/consumer", f.candidate, binding);
+  assert.equal(f.memory.existsSync("/consumer/node_modules/@poe-platform/safe-js/dist/index.js"), false);
+  assert.equal(f.memory.existsSync("/consumer/node_modules/@poe-platform/safe-js/node_modules/@poe-platform/safe-fs"), false);
+  f.memory.writeFileSync(join(sibling, "package.json"), JSON.stringify({ name: "@poe-platform/safe-js", version: "2.0.0" }));
+  assert.throws(() => stageConsumerDependencies("/checkout/packages/safe-bash", "/other", [f.candidate, filesystem], [sibling]), /dependency version/);
+  f.memory.writeFileSync("/staging/node_modules/@poe-platform/safe-js/dist/index.d.ts", "export {};");
+  assert.throws(() => copyConsumerDependencies(dependencies, "/staging", "/other"), /dependency declaration bytes changed/);
 });

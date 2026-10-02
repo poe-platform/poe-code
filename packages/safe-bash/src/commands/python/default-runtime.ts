@@ -68,8 +68,10 @@ async function runWasiPythonWorker(
   const { Worker } = await import(workerMod);
   const workerScript = `
     const fs = require("node:fs");
+    const { createRequire } = require("node:module");
     const { parentPort, workerData } = require("node:worker_threads");
-    const { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, Directory } = require("@bjorn3/browser_wasi_shim");
+    const pkgRequire = createRequire(workerData.moduleUrl);
+    const { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, Directory } = pkgRequire("@bjorn3/browser_wasi_shim");
 
     function insertFile(map, relPath, bytes) {
       const parts = relPath.split("/").filter(Boolean);
@@ -101,7 +103,7 @@ async function runWasiPythonWorker(
 
     (async () => {
       try {
-        const wasmPath = require.resolve("@antonz/python-wasi/dist/python.wasm");
+        const wasmPath = pkgRequire.resolve("@antonz/python-wasi/dist/python.wasm");
         const wasmBytes = fs.readFileSync(wasmPath);
         const mod = await WebAssembly.compile(wasmBytes);
 
@@ -203,6 +205,7 @@ async function runWasiPythonWorker(
     const worker = new Worker(workerScript, {
       eval: true,
       workerData: {
+        moduleUrl: import.meta.url,
         cwd: context.cwd,
         args: [...args],
         env: { ...context.env, PWD: context.cwd, HOME: context.env.HOME ?? context.cwd },

@@ -36,3 +36,18 @@ with open("summary.txt", "w") as f:
     "service,latency_ms,health\nedge,245.0,CRITICAL\nauth,19.4,HEALTHY\nanalyzed-ok\n"
   );
 });
+
+test("defaultPythonCommands resolves WASI dependencies independent of process.cwd()", async () => {
+  const prevCwd = process.cwd();
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, cwd: "/work" });
+  await shell.use(pythonCommands());
+  process.chdir("/tmp");
+  try {
+    const res = await shell.exec("python3 -c \"print(6 * 7)\"");
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout.trim(), "42");
+  } finally {
+    process.chdir(prevCwd);
+  }
+});

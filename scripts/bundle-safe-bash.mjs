@@ -162,6 +162,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
       "commands/file/index.browser": path.join(directory, "src/commands/file/index.ts"),
       "commands/grep-aliases/index.browser": path.join(directory, "src/commands/grep-aliases/index.ts"),
       "commands/column/index.browser": path.join(directory, "src/commands/column/index.ts"),
+      "commands/caller/index.browser": path.join(directory, "src/commands/caller/index.ts"),
       "commands/html-to-markdown/index.browser": path.join(directory, "src/commands/html-to-markdown/index.ts"),
       "commands/du/index.browser": path.join(directory, "src/commands/du/index.ts"),
       "commands/expr/index.browser": path.join(directory, "src/commands/expr/index.ts"),

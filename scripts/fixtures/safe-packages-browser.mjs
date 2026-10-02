@@ -12,10 +12,10 @@ import "./safe-packages-atomic.mjs";
 import "./safe-packages-mkdir.mjs";
 
 const browserCore = await import("@poe-platform/safe-bash");
-for (const name of ["arraysExtension", "jobsExtension", "mapfileExtension", "readExtension", "trapExtension"]) {
+for (const name of ["arraysExtension", "jobsExtension", "trapExtension"]) {
   if (Object.hasOwn(browserCore, name)) throw new Error(`Optional factory entered the browser core: ${name}`);
 }
-for (const name of ["createYesCommand", "createDdCommand", "createShufCommand", "createCmpCommand", "createTruncateCommand", "createInstallCommand"]) {
+for (const name of ["mapfileExtension", "readExtension", "createCallerCommand", "createYesCommand", "createDdCommand", "createShufCommand", "createCmpCommand", "createTruncateCommand", "createInstallCommand"]) {
   if (typeof browserCore[name] !== "function") throw new Error(`Browser command factory is missing: ${name}`);
 }
 if (typeof browserCore.createYqCommand !== "function") throw new Error("Restricted core YAML/TOML factory is missing");
@@ -67,6 +67,8 @@ try {
     ...nullDeviceWorkflows,
     ['arr=(10 20); (( arr[0] += 1 )); echo "${arr[0]}"', "11\n"],
     ['declare -A map; map[key]=value; echo "${map[key]}"', "value\n"],
+    ["read -r value <<<'read'; printf '%s\\n' \"$value\"", "read\n"],
+    ["mapfile -t rows <<<'row'; printf '<%s>\\n' \"${rows[@]}\"", "<row>\n"],
     ['eval "echo hi"', "hi\n"],
     ['echo "hello" | cut -c1-2', "he\n"],
     ['tar --help > /tar-help; test -s /tar-help', ""],

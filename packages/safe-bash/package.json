@@ -2638,6 +2638,12 @@
     "./commands/node/quickjs": {
       "types": "./dist/commands/node/quickjs.d.ts",
       "import": "./dist/commands/node/quickjs.js"
+    },
+    "./commands/caller": {
+      "types": "./dist/commands/caller/index.d.ts",
+      "workerd": "./dist/commands/caller/index.browser.js",
+      "browser": "./dist/commands/caller/index.browser.js",
+      "import": "./dist/commands/caller/index.js"
     }
   },
   "sideEffects": [

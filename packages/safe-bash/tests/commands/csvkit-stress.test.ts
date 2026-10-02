@@ -573,7 +573,7 @@ test("csvkit shell consumes owned byte arguments through literal command invocat
   } });
   try {
     const result = await shell.exec("owned-cut");
-    assert.equal(result.exitCode, 0);
+    assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, "b\ny\n");
     assert.equal(result.stderr, "");
   } finally { await shell.dispose(); }
@@ -610,7 +610,7 @@ test("csvkit shell preserves distinct malformed raw argv bytes instead of displa
   try {
     for (const [byte, escaped] of [[255, "\\udcff"], [254, "\\udcfe"]] as const) {
       const result = await shell.exec(`raw-skip ${byte}`);
-      assert.equal(result.exitCode, 2);
+      assert.equal(result.exitCode, 2, result.stderr);
       assert.equal(result.stdout, "");
       assert.ok(result.stderr.endsWith(`csvcut: error: argument -K/--skip-lines: invalid int value: '${escaped}'\n`));
       assert.equal(result.stderr.includes("�"), false);

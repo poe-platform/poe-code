@@ -1,3 +1,4 @@
+import { tryExecFast } from "./sync-extra-evaluators.js";
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
 import { writeDiagnostic } from "../escaping.js";
@@ -35,7 +36,6 @@ const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
 const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const sharedUtf8Encoder = new TextEncoder();
 const EMPTY_SHELL_BYTES = new Uint8Array(0);
-export const shellWarmHooks: { tryExecFast?: (shell: any, source: string, options: ShellExecOptions) => Promise<ShellResult> | undefined } = {};
 const SHARED_EMPTY_DONE = Promise.resolve({ done: true as const, value: undefined });
 const SHARED_EMPTY_ITERATOR: AsyncIterableIterator<Uint8Array> = {
   next() { return SHARED_EMPTY_DONE; },
@@ -563,8 +563,8 @@ export class Shell implements PluginHost {
   }
 
   exec(source: string, options: ShellExecOptions = EMPTY_EXEC_OPTIONS): Promise<ShellResult> {
-    if (!this._disposed && shellWarmHooks.tryExecFast && typeof source === "string" && (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options))) {
-      const fast = shellWarmHooks.tryExecFast(this, source, options);
+    if (!this._disposed && typeof source === "string" && (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options))) {
+      const fast = tryExecFast(this, source, options);
       if (fast !== undefined) return fast;
     }
     return this.#execAsync(source, options);

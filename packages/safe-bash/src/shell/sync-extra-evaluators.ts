@@ -23,7 +23,7 @@ import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import type { AndOr, HereDocument, Pipeline, Redirect, Script, Word } from "./parser.js";
 import { compoundEntryWords, parseArithmeticExpansion, parseArraySubscript, parseCompoundArrayValue, parseShellUnit } from "./parser.js";
 import { ShellLimitError } from "./types.js";
-import type { ShellCommandContext, ShellInvokeOptions, ShellResult } from "./types.js";
+import type { ShellCommandContext, ShellExecOptions, ShellInvokeOptions, ShellResult } from "./types.js";
 import { ShellInput } from "./input.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { isCleanAbsolutePath, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryWriteMemoryFileInDirSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/runtime-core";
@@ -26041,7 +26041,7 @@ import { combineManagedSignals, toNativeAbortSignal } from "safe-bash-contracts/
 const defaultCommandPath = "/usr/local/bin:/usr/bin:/bin";
 
 
-import { getOrParseUnitFromCache, shellWarmHooks, syntaxDiagnostic } from "./shell.js";
+import { getOrParseUnitFromCache, syntaxDiagnostic } from "./shell.js";
 import { isSyncResolved } from "../fs/creation-mask.js";
 import { throwCleanupFailures } from "./cleanup.js";
 
@@ -26298,7 +26298,7 @@ function execWarmSyncOrFallback(shell: any, source: string, options: any, source
   }
 }
 
-shellWarmHooks.tryExecFast = (shell: any, source: string, options: any) => {
+export function tryExecFast(shell: any, source: string, options: ShellExecOptions): Promise<ShellResult> | undefined {
   if (
     source.length <= 64 &&
     shell._options.deviceView !== "provided" &&
@@ -26343,4 +26343,4 @@ shellWarmHooks.tryExecFast = (shell: any, source: string, options: any) => {
     }
   }
   return undefined;
-};
+}

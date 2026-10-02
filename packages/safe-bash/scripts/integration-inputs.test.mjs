@@ -1381,13 +1381,13 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/commands/network/private-addresses.test.ts"));
   assert.ok(files.includes("tests/commands/pr-worker-startup.test.ts"));
   assert.ok(files.includes("tests/commands/llm/workspace.test.ts"));
-  assert.ok(files.includes("tests/commands/llm/service.test.ts"));
+  assert.ok(!files.includes("tests/commands/llm/service.test.ts")); // Owned by safe-bash-command-llm.
   assert.ok(files.includes("tests/commands/llm/command.test.ts"));
   assert.ok(files.includes("tests/commands/llm/openai.test.ts"));
-  assert.ok(files.includes("tests/commands/llm/elevenlabs.test.ts"));
+  assert.ok(!files.includes("tests/commands/llm/elevenlabs.test.ts")); // Owned by safe-bash-command-llm.
   assert.ok(files.includes("tests/commands/llm/exports.test.ts"));
   assert.ok(files.includes("tests/commands/llm/review.test.ts"));
-  assert.ok(files.includes("tests/commands/llm/provider-acceptance.test.ts"));
+  assert.ok(!files.includes("tests/commands/llm/provider-acceptance.test.ts")); // Owned by safe-bash-command-llm.
   assert.ok(files.includes("tests/commands/network/private-address-integration.test.ts"));
   assert.ok(files.includes("tests/commands/network/address-policy.test.ts"));
   assert.ok(files.includes("tests/commands/network/dns-pinning.test.ts"));
@@ -3022,7 +3022,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/line-endings/native.test.ts"));
   assert.ok(files.includes("tests/commands/llm/core.test.ts"));
   assert.ok(files.includes("tests/commands/llm/core-lifecycle.test.ts"));
-  assert.ok(files.includes("tests/commands/llm/providers.test.ts"));
+  assert.ok(!files.includes("tests/commands/llm/providers.test.ts")); // Owned by safe-bash-command-llm.
   assert.ok(files.includes("tests/commands/llm/exports.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings/extra-native.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings/safety.test.ts"));

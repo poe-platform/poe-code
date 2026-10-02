@@ -1,7 +1,7 @@
 import type {PrivateSqliteSession} from './sqlite-session.js';
 import {withSqliteStatement} from './sqlite-statement.js';
 // Fresh history database catalog from Simon Willison llm 0.27.1.
-const statements = [
+export const historySchemaStatements = [
   "CREATE TABLE \"_llm_migrations\" (\n   \"name\" TEXT PRIMARY KEY,\n   \"applied_at\" TEXT\n)",
   "CREATE TABLE \"conversations\" (\n   \"id\" TEXT PRIMARY KEY,\n   \"name\" TEXT,\n   \"model\" TEXT\n)",
   "CREATE TABLE \"attachments\" (\n   \"id\" TEXT PRIMARY KEY,\n   \"type\" TEXT,\n   \"path\" TEXT,\n   \"url\" TEXT,\n   \"content\" BLOB\n)",
@@ -25,7 +25,7 @@ const statements = [
   "CREATE TRIGGER \"responses_au\" AFTER UPDATE ON \"responses\" BEGIN\n  INSERT INTO \"responses_fts\" (\"responses_fts\", rowid, \"prompt\", \"response\") VALUES('delete', old.rowid, old.\"prompt\", old.\"response\");\n  INSERT INTO \"responses_fts\" (rowid, \"prompt\", \"response\") VALUES (new.rowid, new.\"prompt\", new.\"response\");\nEND",
   "CREATE TABLE \"tool_results_attachments\" (\n   \"tool_result_id\" INTEGER REFERENCES \"tool_results\"(\"id\"),\n   \"attachment_id\" TEXT REFERENCES \"attachments\"(\"id\"),\n   \"order\" INTEGER,\n   PRIMARY KEY (\"tool_result_id\", \"attachment_id\")\n)"
 ];
-const migrations = [
+export const historyMigrationNames = [
   "m001_initial",
   "m002_id_primary_key",
   "m003_chat_id_foreign_key",
@@ -57,9 +57,9 @@ export async function createLlmHistorySchema(session: PrivateSqliteSession, sign
   signal.throwIfAborted();
   await session.execute('SAVEPOINT llm_history_schema');
   try {
-    for (const sql of statements) { signal.throwIfAborted(); await session.execute(sql); }
+    for (const sql of historySchemaStatements) { signal.throwIfAborted(); await session.execute(sql); }
     await withSqliteStatement(session.module, {...session, signal, sql: 'INSERT INTO _llm_migrations(name, applied_at) VALUES (?, ?)'}, async insert => {
-      for (const name of migrations) for await (const ignoredRow of insert.rows([name, appliedAt], [])) { /* Execute each migration marker. */ }
+      for (const name of historyMigrationNames) for await (const ignoredRow of insert.rows([name, appliedAt], [])) { /* Execute each migration marker. */ }
     });
     await session.execute('RELEASE llm_history_schema');
   } catch (error) {

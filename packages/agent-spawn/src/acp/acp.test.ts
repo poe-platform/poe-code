@@ -59,7 +59,7 @@ vi.mock("toolcraft-design", () => {
   };
 });
 
-vi.mock("@poe-code/agent-skill-config", () => ({
+vi.mock("@poe-code/agent-skill-config/node", () => ({
   bridgeActiveSkills: skillBridgeMock.bridgeActiveSkills,
   cleanupBridgedSkills: skillBridgeMock.cleanupBridgedSkills
 }));

@@ -362,14 +362,6 @@ await Promise.all([
   copyFile(
     path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "terminal-pilot.md"),
     path.join(skillTemplateDir, "terminal-pilot.md")
-  ),
-  copyFile(
-    path.join(rootDir, "packages", "experiment-loop", "src", "config", "default-instructions.md"),
-    path.join(distDir, "default-instructions.md")
-  ),
-  copyFile(
-    path.join(rootDir, "packages", "experiment-loop", "src", "config", "default-run.yaml"),
-    path.join(distDir, "default-run.yaml")
   )
 ]);
 

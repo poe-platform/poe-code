@@ -1,7 +1,5 @@
-import { FrontmatterKindError } from "@poe-code/frontmatter";
-import matter from "gray-matter";
-import { randomUUID } from "node:crypto";
-import { dirname } from "node:path";
+import { FrontmatterKindError, parseFrontmatter } from "@poe-code/frontmatter";
+import { dirname } from "@poe-code/safe-fs/runtime-core";
 import { stringify } from "yaml";
 import { hasOwnErrorCode } from "../errors.js";
 import type { ExperimentFileSystem, MetricDef } from "../types.js";
@@ -151,11 +149,11 @@ export function parseExperimentFrontmatter(content: string): {
   frontmatter: ExperimentFrontmatter;
   body: string;
 } {
-  const parsed = matter(content);
+  const parsed = parseFrontmatter(content);
 
   return {
-    frontmatter: parseExperimentFrontmatterData(parsed.data),
-    body: parsed.content
+    frontmatter: parseExperimentFrontmatterData(parsed.frontmatter),
+    body: parsed.body
   };
 }
 
@@ -172,7 +170,7 @@ export async function writeExperimentFrontmatter(
   const content =
     body.endsWith("\n") || !serialized.endsWith("\n") ? serialized : serialized.slice(0, -1);
 
-  const temporaryPath = `${docPath}.${process.pid}.${randomUUID()}.tmp`;
+  const temporaryPath = `${docPath}.${crypto.randomUUID()}.tmp`;
   let temporaryCreated = false;
   try {
     await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });

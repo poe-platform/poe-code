@@ -1,15 +1,21 @@
-import { randomUUID } from "node:crypto";
-import { dirname, join, parse, resolve, sep } from "node:path";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { experimentFileSystem } from "../filesystem.js";
+import { path } from "../portable-path.js";
+const { dirname, join, resolve, sep } = path;
 import { hasOwnErrorCode } from "../errors.js";
 import type { ExperimentFileSystem, JournalEntry } from "../types.js";
 
 const TSV_HEADER = ["commit", "status", "scores", "durationMs", "timestamp", "output", "agentOutput"].join("\t");
 
 export class ExperimentJournal {
+  private readonly fs: ExperimentFileSystem;
+
   constructor(
     private readonly journalPath: string,
-    private readonly fs: ExperimentFileSystem
-  ) {}
+    fs: ExperimentFileSystem | FileSystem
+  ) {
+    this.fs = experimentFileSystem(fs);
+  }
 
   async init(): Promise<void> {
     await this.assertRegularPath();
@@ -95,7 +101,7 @@ export class ExperimentJournal {
 
   private async publish(entries: JournalEntry[]): Promise<void> {
     await this.assertRegularPath();
-    const temporaryPath = `${this.journalPath}.${process.pid}.${randomUUID()}.tmp`;
+    const temporaryPath = `${this.journalPath}.${crypto.randomUUID()}.tmp`;
     let temporaryCreated = false;
 
     try {
@@ -117,7 +123,7 @@ export class ExperimentJournal {
 
   private async assertRegularPath(): Promise<void> {
     const absolutePath = resolve(this.journalPath);
-    const rootPath = parse(absolutePath).root;
+    const rootPath = "/";
     let currentPath = rootPath;
 
     for (const segment of absolutePath.slice(rootPath.length).split(sep).filter(Boolean)) {

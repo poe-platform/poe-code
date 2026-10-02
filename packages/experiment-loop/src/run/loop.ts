@@ -1,6 +1,6 @@
-import "@poe-code/agent-spawn/register-factories";
-import * as fsPromises from "node:fs/promises";
-import path from "node:path";
+import { hostCwd, hostEnv } from "#experiment-platform";
+import { experimentFileSystem } from "../filesystem.js";
+import { path } from "../portable-path.js";
 import {
   ensureSafeRunLogDir,
   makeRunLogFileName,
@@ -22,7 +22,6 @@ import type {
   AgentRunResult,
   EvalResult,
   ExecFn,
-  ExperimentFileSystem,
   ExperimentRunOptions,
   ExperimentCallbackResult,
   ExperimentRunResult,
@@ -31,56 +30,14 @@ import type {
   RunConfig
 } from "../types.js";
 
-function createDefaultFs(): ExperimentFileSystem {
-  const fs = {
-    readFile: fsPromises.readFile as ExperimentFileSystem["readFile"],
-    writeFile: (
-      filePath: string,
-      content: string,
-      options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
-    ) => fsPromises.writeFile(filePath, content, options ?? { encoding: "utf8" }),
-    readdir: fsPromises.readdir,
-    stat: async (filePath: string) => {
-      const stat = await fsPromises.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: stat.mtimeMs
-      };
-    },
-    lstat: async (filePath: string) => {
-      const stat = await fsPromises.lstat(filePath);
-      return { isSymbolicLink: () => stat.isSymbolicLink() };
-    },
-    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
-      await fsPromises.mkdir(filePath, options);
-    },
-    rmdir: async (filePath: string) => {
-      await fsPromises.rmdir(filePath);
-    },
-    appendFile: async (filePath: string, content: string) => {
-      await fsPromises.appendFile(filePath, content, "utf8");
-    },
-    rename: async (oldPath: string, newPath: string) => {
-      await fsPromises.rename(oldPath, newPath);
-    },
-    unlink: async (filePath: string) => {
-      await fsPromises.unlink(filePath);
-    },
-    realpath: fsPromises.realpath
-  };
-
-  return fs as ExperimentFileSystem;
-}
-
 function createDefaultExec(homeDir: string): ExecFn {
   return async (command, options) => {
-    const cwd = options?.cwd ?? process.cwd();
-    const shell = process.env.SHELL ?? "sh";
+    const cwd = options?.cwd ?? hostCwd();
+    const shell = hostEnv().SHELL ?? "sh";
     const argv = [shell, "-lc", command];
     const execution = await resolvePoeCommandExecution({
       cwd,
-      env: process.env as Record<string, string>,
+      env: hostEnv() as Record<string, string>,
       argv,
       tool: "experiment-loop",
       context: { homeDir },
@@ -359,7 +316,7 @@ async function notifyCompletedState(
 export async function runExperimentLoop(
   options: ExperimentRunOptions
 ): Promise<ExperimentRunResult> {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = experimentFileSystem(options.fs);
   const exec = options.exec ?? createDefaultExec(options.homeDir);
   const runAgent = options.runAgent;
 

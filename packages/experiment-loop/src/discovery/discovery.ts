@@ -1,4 +1,4 @@
-import * as fsPromises from "node:fs/promises";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import { discoverPlans, formatPlanReadinessLabel } from "@poe-code/agent-harness-tools";
 
 type DiscoveryFileStat = {
@@ -14,19 +14,15 @@ export interface DiscoverExperimentDocsOptions {
   cwd: string;
   homeDir: string;
   planDirectory?: string;
-  fs?: ExperimentDiscoveryFs;
+  fs?: ExperimentDiscoveryFs | FileSystem;
 }
 
 type SharedDiscoverPlansFs = NonNullable<Parameters<typeof discoverPlans>[0]["fs"]>;
 
-function createDefaultFs(): SharedDiscoverPlansFs {
-  return fsPromises as unknown as SharedDiscoverPlansFs;
-}
-
 export const discoverExperimentDocs = async (
   options: DiscoverExperimentDocsOptions
 ): Promise<Array<{ path: string; displayPath: string }>> => {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = options.fs;
   const plans = await discoverPlans({
     cwd: options.cwd,
     homeDir: options.homeDir,

@@ -1,5 +1,6 @@
-import path from "node:path";
-import { Volume, createFsFromVolume } from "memfs";
+import { path } from "../portable-path.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
+import { experimentFileSystem } from "../filesystem.js";
 import { resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { stringify } from "yaml";
 import { hasOwnErrorCode } from "../errors.js";
@@ -34,7 +35,7 @@ type MetricResultQueue = Record<string, SimulationMetricResult | SimulationMetri
 
 type GitSnapshot = Record<string, string>;
 
-type RawFs = ReturnType<typeof createFsFromVolume>["promises"];
+type RawFs = ExperimentFileSystem;
 
 export type SimulationExecCall = {
   command: string;
@@ -110,14 +111,14 @@ function normalizeMetricResult(result: SimulationMetricResult | SimulationMetric
   };
 }
 
-function createSimulationFs(options: ExperimentLoopSimulationOptions): {
+async function createSimulationFs(options: ExperimentLoopSimulationOptions): Promise<{
   fs: SimulationFs;
   cwd: string;
   homeDir: string;
   rawFs: RawFs;
   docPath: string;
   journalPath: string;
-} {
+}> {
   const cwd = "/repo";
   const homeDir = "/home/test";
   const docPath = resolveWorkflowPath(
@@ -135,8 +136,11 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
       ])
     )
   };
-  const volume = Volume.fromJSON(files, "/");
-  const rawFs = createFsFromVolume(volume).promises;
+  const rawFs = experimentFileSystem(new MemoryFileSystem());
+  for (const [filePath, content] of Object.entries(files)) {
+    await rawFs.mkdir(path.dirname(filePath), { recursive: true });
+    await rawFs.writeFile(filePath, content);
+  }
 
   const fs = {
     readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
@@ -161,13 +165,13 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
     mkdir: async (filePath, mkdirOptions) => {
       await rawFs.mkdir(filePath, mkdirOptions);
     },
-    realpath: (filePath: string) => rawFs.realpath(filePath) as Promise<string>,
+    realpath: rawFs.realpath?.bind(rawFs),
     rmdir: async (filePath) => {
       await rawFs.rmdir(filePath);
     },
     appendFile: async (filePath, content) => {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
-      await rawFs.appendFile(filePath, content, { encoding: "utf8" });
+      await rawFs.appendFile(filePath, content);
     },
     rename: async (oldPath, newPath) => {
       await rawFs.mkdir(path.dirname(newPath), { recursive: true });
@@ -492,7 +496,7 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
 } {
   return {
     async run(): Promise<SimulationResult> {
-      const { fs, cwd, homeDir, rawFs, docPath, journalPath } = createSimulationFs(options);
+      const { fs, cwd, homeDir, rawFs, docPath, journalPath } = await createSimulationFs(options);
       const turns = [...options.turns];
       const prompts: string[] = [];
       const runs: AgentRunInput[] = [];

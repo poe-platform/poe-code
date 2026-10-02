@@ -1,3 +1,4 @@
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import type { WorkflowFileStat, WorkflowFileSystem } from "@poe-code/agent-harness-tools";
 
 export interface ExperimentFileStat extends WorkflowFileStat {
@@ -11,6 +12,7 @@ export interface ExperimentLinkStat {
 }
 
 export interface ExperimentFileSystem extends WorkflowFileSystem {
+  realpath?(path: string): Promise<string>;
   writeFile(
     path: string,
     content: string,
@@ -91,7 +93,7 @@ export interface ExperimentRunOptions {
   mountPoeCode?: boolean;
   runnerSync?: "both" | "upload" | "none";
   maxExperiments?: number;
-  fs?: ExperimentFileSystem;
+  fs?: ExperimentFileSystem | FileSystem;
   git?: ExperimentGit;
   exec?: ExecFn;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;

@@ -1,8 +1,9 @@
-import * as fsPromises from "node:fs/promises";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import path from "node:path";
 import { mapSourcePathIntoWorktree, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import {
   ExperimentJournal,
+  experimentFileSystem,
   runExperimentLoop as runWorkspaceExperimentLoop,
   runExperimentSequence as runWorkspaceSequence,
   type ExperimentFileSystem,
@@ -67,44 +68,7 @@ export interface ExperimentJournalOptions {
   cwd: string;
   homeDir: string;
   docPath: string;
-  fs?: ExperimentFileSystem;
-}
-
-function createDefaultFs(): ExperimentFileSystem {
-  return {
-    readFile: fsPromises.readFile as ExperimentFileSystem["readFile"],
-    writeFile: async (filePath, content, options) => {
-      await fsPromises.writeFile(filePath, content, options ?? { encoding: "utf8" });
-    },
-    readdir: fsPromises.readdir,
-    stat: async (filePath: string) => {
-      const stat = await fsPromises.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: stat.mtimeMs
-      };
-    },
-    lstat: async (filePath: string) => {
-      const stat = await fsPromises.lstat(filePath);
-      return { isSymbolicLink: () => stat.isSymbolicLink() };
-    },
-    mkdir: async (filePath, options) => {
-      await fsPromises.mkdir(filePath, options);
-    },
-    rmdir: async (filePath) => {
-      await fsPromises.rmdir(filePath);
-    },
-    appendFile: async (filePath, content) => {
-      await fsPromises.appendFile(filePath, content, "utf8");
-    },
-    rename: async (oldPath, newPath) => {
-      await fsPromises.rename(oldPath, newPath);
-    },
-    unlink: async (filePath) => {
-      await fsPromises.unlink(filePath);
-    }
-  };
+  fs?: ExperimentFileSystem | FileSystem;
 }
 
 function resolveJournalPath(docPath: string): string {
@@ -180,7 +144,7 @@ function resolveWorktreeAgent(agent: WorkspaceExperimentRunOptions["agent"]): st
 export async function readExperimentJournal(
   options: ExperimentJournalOptions
 ): Promise<JournalEntry[]> {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = experimentFileSystem(options.fs);
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   return await journal.readAll();
@@ -193,7 +157,7 @@ export interface AppendJournalEntryOptions extends ExperimentJournalOptions {
 export async function appendExperimentJournalEntry(
   options: AppendJournalEntryOptions
 ): Promise<void> {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = experimentFileSystem(options.fs);
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
   await journal.init();

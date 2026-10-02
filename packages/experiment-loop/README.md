@@ -2,6 +2,8 @@
 
 Karpathy-style autonomous experiment loop. An agent makes a change, a metric script scores it, the loop keeps or discards via git, logs to a journal, and repeats.
 
+For Workers without `nodejs_compat`, pass a SafeFS `FileSystem` as `fs` to `runExperimentLoop`, with explicit `cwd`, `homeDir`, `exec`, `git`, and `runAgent` capabilities. Journals accept the same filesystem. Simulations run entirely in portable memory storage; default prompts are bundled with the runtime. Node callers can omit `fs` to use the host filesystem.
+
 ## Quickstart
 
 ```bash

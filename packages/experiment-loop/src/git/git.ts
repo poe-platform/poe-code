@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "../portable-path.js";
 import type { ExecFn, ExperimentGit } from "../types.js";
 
 const EXPERIMENT_DOCS_PATH = ".poe-code/experiments";

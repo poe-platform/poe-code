@@ -1,6 +1,5 @@
-import path from "node:path";
-import { readFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import { path } from "../portable-path.js";
+import { defaultRunYaml, defaultInstructions } from "./defaults.js";
 import { resolve } from "@poe-code/config-extends";
 import { parse } from "yaml";
 import { hasOwnErrorCode } from "../errors.js";
@@ -28,7 +27,7 @@ async function readOptionalFile(
 
 async function assertNoSymbolicLinks(fs: RunConfigFileSystem, filePath: string): Promise<void> {
   const absolutePath = path.resolve(filePath);
-  const rootPath = path.parse(absolutePath).root;
+  const rootPath = "/";
   let currentPath = rootPath;
 
   for (const segment of absolutePath.slice(rootPath.length).split(path.sep).filter(Boolean)) {
@@ -92,13 +91,8 @@ function parseRunConfigDocument(filePath: string, content: string): RunConfig | 
   return parseRunConfigData(filePath, parseRunConfigYaml(filePath, content));
 }
 
-async function readBundledFile(name: string): Promise<string> {
-  const filePath = fileURLToPath(new URL(`./${name}`, import.meta.url));
-  return readFile(filePath, "utf8");
-}
-
 async function readDefaultRunConfig(): Promise<RunConfig> {
-  const content = await readBundledFile("default-run.yaml");
+  const content = defaultRunYaml;
   const config = parseRunConfigDocument("default-run.yaml", content);
 
   if (!config) {
@@ -112,12 +106,12 @@ function createRunConfigResolveFs(
   fs: RunConfigFileSystem,
   globalConfigDir: string
 ): Pick<ExperimentFileSystem, "readFile"> {
-  const bundledRunPath = fileURLToPath(new URL("./run.yaml", import.meta.url));
+  const bundledRunPath = "/poe-code-builtin/experiments/run.yaml";
 
   return {
     async readFile(filePath, encoding) {
       if (filePath === bundledRunPath) {
-        return readBundledFile("default-run.yaml");
+        return defaultRunYaml;
       }
 
       if (isPathInside(globalConfigDir, filePath)) {
@@ -130,7 +124,7 @@ function createRunConfigResolveFs(
 }
 
 export async function loadInstructions(): Promise<string> {
-  return readBundledFile("default-instructions.md");
+  return defaultInstructions;
 }
 
 export async function loadRunConfig(options: {
@@ -150,7 +144,7 @@ export async function loadRunConfig(options: {
     return readDefaultRunConfig();
   }
 
-  const bundledConfigDir = path.resolve(fileURLToPath(new URL(".", import.meta.url)));
+  const bundledConfigDir = "/poe-code-builtin/experiments";
   const globalConfigDir = path.resolve(path.join(options.homeDir, ".poe-code", "experiments"));
   const resolved = await resolve(
     [

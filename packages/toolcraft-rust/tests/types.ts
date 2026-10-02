@@ -1,5 +1,13 @@
 import * as native from "../dist/index.js";
 import * as cliPolicy from "../dist/cli-policy.js";
+import * as cliFields from "../dist/cli-fields.js";
+const collectedCLI=cliFields.collectFields(native.S.Object({path:native.S.String(),names:native.S.Array(native.S.String())}),"kebab",new Set(["--yes"]));
+const positionalCLI:cliFields.FieldDefinition[]=cliFields.assignPositionals(collectedCLI.fields,["path","names"]);
+cliFields.validateUniqueOptionFlags(positionalCLI,new Set());
+const flagsCLI:string=cliFields.formatOptionFlags(positionalCLI[0]!,new Set());
+// @ts-expect-error CLI traversal starts from an object schema
+cliFields.collectFields(native.S.String(),"kebab",new Set());
+void flagsCLI;
 import type * as referenceCLI from "toolcraft/cli";
 const cliControlsNative: cliPolicy.CLIControls = {} as referenceCLI.CLIControls;
 const cliControlsReference: referenceCLI.CLIControls = {} as cliPolicy.CLIControls;

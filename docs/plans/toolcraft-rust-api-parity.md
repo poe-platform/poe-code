@@ -2953,3 +2953,49 @@ on Node 18.20.8, 20.20.0, 22.23.2 and 24.14.0; Node 22 uses the maintained SafeJ
 postbuild command. Scoped ESLint passes. No runtime code or dependencies changed.
 This repairs demonstrated release prerequisites; Node 18.18 and successful
 publication still require CI confirmation.
+
+### CLI schema-field checkpoint
+
+The internal field module now uses Rust policies for nested schema traversal,
+optional/default admission, discriminated and ordinary union selectors, branch
+fingerprints and required-field metadata, dynamic record/object-array admission,
+CLI aliases and attributes, positional mutation, reserved flag handling and
+duplicate flag diagnostics. Node retains live collection/string operations,
+iteration, callbacks, opaque schema/default identity, property reads and writes,
+and caller-realm errors. No public CLI entry point or dependency was added.
+Command-tree assembly, dynamic help rows, parsing and execution remain open.
+
+Five missing-module tests preceded implementation. Ten final field comparisons
+exercise the actual private reference functions extracted in memory with the
+existing TypeScript parser. The same extraction helper also serves the earlier
+control-policy comparisons. Coverage includes nested variants, changing
+discriminators, schema/default/path identities, repeated getters, positional
+setters and duplicates, conflicting aliases, malformed inputs and methods,
+callback metadata, abrupt iterator closing, arbitrary throws and reentrancy.
+Three additional failing comparisons exposed set-method lookup order,
+variant-array method lookup before metadata reads, and path-method TypeError
+wording; the host boundaries now preserve each original expression/order.
+
+Build, Rust/binding lint, scoped ESLint and the maintained Toolcraft package unit
+route pass: 154 native tests, 1,721 reference/integration cases across 45 files,
+and declaration checks. Packed field policies execute with the packed own native
+schema dependency and other external ESM packages blocked. Packed declarations
+compile with `types: []`; checkout contract-type resolution still prevents a claim
+of completely isolated type packaging. The inspected parameter/flag table preview
+is byte-identical for native/reference field data. Full CLI/help integration is
+not yet available. Existing adapter recursion guards still need complete resource
+qualification before a swap.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 100 calls per fixture and
+32 retained results, measured 1,289.090/20.508 microseconds native/reference for
+nested fields plus uniqueness validation (62.86 times slower), and
+2,644.675/41.899 for discriminated/ordinary union collection (63.12 times slower).
+These comparisons do not pass the performance gate; JavaScript remains default.
+
+The Node 18 probe repair is verified on remote main at
+c3112b01b8059440e0af74fbb8a7b7c6905c55cc. Its main Release workflow 37055408248
+completed successfully but skipped publication after queue supersession, so it
+does not establish a release. A fresh Toolcraft workflow was dispatched at
+119999784433470b15b05b6352c2964ab8d21335, which contains that repair. Workflow
+37055529265 last showed all four Node matrix jobs running. Later REST polling
+hit a rate limit; no new terminal status or publication is inferred.

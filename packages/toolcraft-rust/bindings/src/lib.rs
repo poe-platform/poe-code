@@ -10,6 +10,7 @@ pub mod approval_plan;
 pub mod approval_runner;
 pub mod approval_tasks;
 pub mod branch_validation;
+pub mod cli_fields;
 pub mod cli_policy;
 pub mod definitions;
 pub mod error_report;

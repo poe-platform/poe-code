@@ -1,22 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {readFileSync} from "node:fs";
-import ts from "typescript";
-import {ToolcraftBugError} from "../../toolcraft/dist/index.js";
-import {LOG_LEVELS} from "../../toolcraft/dist/runtime-logging.js";
-
-// Exercise the actual private CLI functions without copying their algorithms or
-// adding test exports to the JavaScript implementation. Nothing is written.
-const source=ts.createSourceFile("cli.ts",readFileSync(new URL("../../toolcraft/src/cli.ts",import.meta.url),"utf8"),ts.ScriptTarget.Latest,true);
-const names=["splitWords","formatCLIName","resolveCLIControls","validateOutputFormats","outputFormatNames","getGlobalLongOptionFlags","createGlobalSnapshotOptions"];
-const printer=ts.createPrinter();
-const declarations=source.statements.flatMap(node=>{
-  if(ts.isFunctionDeclaration(node)&&names.includes(node.name?.text))return [printer.printNode(ts.EmitHint.Unspecified,ts.factory.updateFunctionDeclaration(node,node.modifiers?.filter(modifier=>modifier.kind!==ts.SyntaxKind.ExportKeyword),node.asteriskToken,node.name,node.typeParameters,node.parameters,node.type,node.body),source)];
-  if(ts.isVariableStatement(node)&&node.declarationList.declarations.some(declaration=>ts.isIdentifier(declaration.name)&&declaration.name.text==="BUILT_IN_OUTPUT_FORMATS"))return [printer.printNode(ts.EmitHint.Unspecified,node,source)];
-  return [];
-});
-assert.equal(declarations.length,names.length+1);
-const original=new Function("ToolcraftBugError","LOG_LEVELS",ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,LOG_LEVELS);
+import {loadCLIReference} from "./cli-reference.mjs";
+const original=loadCLIReference(["splitWords","formatCLIName","resolveCLIControls","validateOutputFormats","outputFormatNames","getGlobalLongOptionFlags","createGlobalSnapshotOptions"],["BUILT_IN_OUTPUT_FORMATS"]);
 const native=()=>import("../dist/cli-policy.js");
 function outcome(operation){try{return {value:operation()};}catch(error){return {error:{name:error?.name,message:error?.message}};}}
 

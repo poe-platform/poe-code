@@ -89,7 +89,13 @@ const overlappingDefaults = new Set(["yes", "cmp", "dd", "shuf", "truncate", "in
 for (const [name] of factories) {
   assert.equal(defaultNames.includes(name), overlappingDefaults.has(name), name);
 }
-for (const name of [...extensionNames, "createDeviceFileSystem"]) {
+// read/mapfile are public core factories; their opt-in paths must reuse the
+// canonical function as well as the runtime identity.
+for (const name of ["mapfileExtension", "readExtension"]) {
+  assert.equal(typeof core[name], "function", name);
+  assert.equal(core[name], optional[name], name);
+}
+for (const name of ["arraysExtension", "jobsExtension", "trapExtension", "createDeviceFileSystem"]) {
   assert.equal(Object.hasOwn(core, name), false, name);
 }
 // Public factories and default registration are separate contracts. The promoted

@@ -1,4 +1,5 @@
 import { Shell, CommandRegistry, agentCommands } from "@poe-platform/safe-bash";
+import { mapfileExtension as publicMapfileExtension, readExtension as publicReadExtension, type ReadExtensionOptions as PublicReadExtensionOptions } from "@poe-platform/safe-bash";
 import {
   createYesCommand as publicYesCommand, createYesCommands as publicYesCommands, yesCommands as publicYesPlugin,
   createDdCommand as publicDdCommand, createDdCommands as publicDdCommands, ddCommands as publicDdPlugin,
@@ -46,6 +47,9 @@ type Same<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends (<Val
 type Assert<Condition extends true> = Condition;
 type PublicExtension = NonNullable<ShellOptions["extensions"]>[number];
 export type InstalledIdentity = [
+  Assert<Same<typeof publicMapfileExtension, typeof mapfileExtension>>,
+  Assert<Same<typeof publicReadExtension, typeof readExtension>>,
+  Assert<Same<PublicReadExtensionOptions, ReadExtensionOptions>>,
   Assert<Same<typeof Shell, typeof OptionalShell>>,
   Assert<Same<typeof agentCommands, typeof optionalAgentCommands>>,
   Assert<Same<ShellExtension, HostExtension>>,

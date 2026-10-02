@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createOpenAiProvider, createElevenLabsProvider } from "../../../src/commands/llm/providers/index.js";
-import type { LlmRequest, LlmProvider } from "../../../src/commands/llm/types.js";
-import type { HttpRequest, HttpTransport } from "../../../src/commands/network/types.js";
+import { createOpenAiProvider, createElevenLabsProvider } from "./providers/index.js";
+import type { LlmRequest, LlmProvider } from "./types.js";
+import type { HttpRequest, HttpTransport } from "safe-bash-contracts/http";
 
 const encode = (text: string): Uint8Array => new TextEncoder().encode(text);
 function fixture(replies: (string | Uint8Array | readonly Uint8Array[])[], status = 200) {
@@ -190,8 +190,8 @@ test("transport ownership survives cancellation at every response adoption micro
 });
 
 test("provider paths expose identical canonical factories", async () => {
-  const openai = await import("../../../src/commands/llm/openai.js");
-  const elevenlabs = await import("../../../src/commands/llm/elevenlabs.js");
+  const openai = await import("./openai.js");
+  const elevenlabs = await import("./elevenlabs.js");
   assert.equal(createOpenAiProvider, openai.createOpenAiProvider);
   assert.equal(createElevenLabsProvider, elevenlabs.createElevenLabsProvider);
 });

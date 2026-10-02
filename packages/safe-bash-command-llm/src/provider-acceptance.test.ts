@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createLlmCommands } from "../../../src/commands/llm/command.js";
-import { createOpenAiProvider, type OpenAiModel } from "../../../src/commands/llm/openai.js";
-import { createElevenLabsProvider, type ElevenLabsModel } from "../../../src/commands/llm/elevenlabs.js";
-import { acceptsMimeType } from "../../../src/commands/llm/mime.js";
-import type { LlmProvider } from "../../../src/commands/llm/types.js";
-import type { HttpRequest, HttpResponse, HttpTransport } from "../../../src/commands/network/types.js";
-import { toByteSource, type InvocationCleanup } from "../../../src/contracts/index.js";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { createLlmCommands } from "./command.js";
+import { createOpenAiProvider, type OpenAiModel } from "./openai.js";
+import { createElevenLabsProvider, type ElevenLabsModel } from "./elevenlabs.js";
+import { acceptsMimeType } from "./mime.js";
+import type { LlmProvider } from "./types.js";
+import type { HttpRequest, HttpResponse, HttpTransport } from "safe-bash-contracts/http";
+import { toByteSource, type InvocationCleanup } from "safe-bash-contracts";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 
 const image = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10, 0, 255);
 const video = Uint8Array.of(0, 0, 0, 20, 102, 116, 121, 112, 0, 255);

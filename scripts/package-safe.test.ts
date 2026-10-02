@@ -58,9 +58,9 @@ it.each([false, true])("treats bare relative asset URLs as URLs rather than depe
 });
 
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
-it("keeps portable public command adapters linked to their canonical owner", async () => {
+it.each(["csplit", "llm"])("keeps portable %s adapters linked to their canonical owner", async command => {
   const { volume, options } = optionalLeftovers();
-  const name = "safe-bash-command-csplit";
+  const name = `safe-bash-command-${command}`;
   const manifest = structuredClone(bashManifest);
   manifest.poeCode.integration.privateWorkspaces[name] = { version: "0.0.1", dependencies: {}, devDependencies: {} };
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
@@ -74,7 +74,7 @@ it("keeps portable public command adapters linked to their canonical owner", asy
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const recipe = options.bundle.mock.calls.map(([settings]) => settings as BuildOptions)
     .find(settings => Object.hasOwn(settings.entryPoints ?? {}, "core.browser"))!;
-  const filename = (recipe.entryPoints as Record<string, string>)["commands/csplit/index.browser"]!;
+  const filename = (recipe.entryPoints as Record<string, string>)[`commands/${command}/index.browser`]!;
   const root = fileURLToPath(new URL("../", import.meta.url));
   const result = await build({
     entryPoints: [filename.replace("/repo/", root)], bundle: true, write: false,
@@ -84,7 +84,7 @@ it("keeps portable public command adapters linked to their canonical owner", asy
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect(imports.length).toBeGreaterThan(0);
   for (const imported of imports) expect(imported).toEqual({ path: name, kind: "import-statement", external: true });
-  expect(Object.keys(result.metafile!.inputs)).toEqual(["packages/safe-bash/src/commands/csplit/index.ts"]);
+  expect(Object.keys(result.metafile!.inputs)).toEqual([`packages/safe-bash/src/commands/${command}/index.ts`]);
 });
 
 it("bundles xan runtime and declarations behind its public export", async () => {

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { createLlmService } from '../../../src/commands/llm/service.js';
-import type { LlmRequest, LlmResponseMetadata } from '../../../src/commands/llm/types.js';
+import { createLlmService } from './service.js';
+import type { LlmRequest, LlmResponseMetadata } from './types.js';
 
 const signal = new AbortController().signal;
 const input = { prompt: 'hello', attachments: [], options: {}, signal };

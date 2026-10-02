@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import test from "node:test";
-import { createElevenLabsProvider, type ElevenLabsModel } from "../../../src/commands/llm/elevenlabs.js";
-import type { LlmRequest } from "../../../src/commands/llm/types.js";
-import type { HttpRequest, HttpResponse, HttpTransport } from "../../../src/commands/network/types.js";
+import { createElevenLabsProvider, type ElevenLabsModel } from "./elevenlabs.js";
+import type { LlmRequest } from "./types.js";
+import type { HttpRequest, HttpResponse, HttpTransport } from "safe-bash-contracts/http";
 
 const audio = [new Uint8Array([0xff, 0xfb, 0, 0x80]), new Uint8Array([0, 13, 10, 255])];
 const models: readonly ElevenLabsModel[] = [

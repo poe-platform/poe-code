@@ -89,3 +89,41 @@ All rows require deterministic differential fixtures against the pinned distribu
 | Embeddings/collections/similarity | Shared embedding contract delivered, including leased UTF-8 source requests and bounded OpenAI request JSON with wire quotas and cancellation cleanup. Embedding CLI execution, collection storage, import and similarity incomplete. |
 | Keys/plugins/install/configuration | Virtual key storage and --key alias resolution are delivered. Plugin/tool installation and final qualified host implementations remain incomplete. No ambient host access permitted. |
 | Packed consumer/workerd/Miniflare/hosted Poe | Required final acceptance, not established by unit tests. |
+
+
+## Private command ownership
+
+Revalidated extraction against remote main `c8f7ac43fb` on 2026-10-02.
+Commit `f99b28f57c` already moved the implementation into the private
+`safe-bash-command-llm` workspace. Safe Bash retains compatibility facades,
+public root/command/provider exports, explicit registration and canonical
+`safe-bash-contracts` identities. The workspace is bundled into the parent;
+consumers never install its private name. The existing optional YAML peer remains
+unchanged. This ownership work does not change the compatibility inventory above.
+
+Standalone service, ElevenLabs, provider and provider-acceptance suites now live
+beside the implementation, with unchanged assertions and leaf-contract imports.
+Shell-specific OpenAI, command, lifecycle and public-export tests remain in Safe
+Bash to avoid a dependency back from the command package. Moving the service
+suite first reproduced its invalid old source imports before they were repaired.
+
+Verification uses the maintained selected-workspace build closure, LLM unit and
+lint/typecheck scripts, Safe Bash LLM integration suites, memfs package-safe
+adapter coverage and scoped package-lint rules. The installed public tarball
+fixture covers root/subpath identity, registration replacement, text and binary
+pipes, VFS scripts, canonical byte argv, error identity and cancellation cleanup;
+its declarations are checked with strict NodeNext. Browser and workerd conditions
+use the same packed fixture. All provider and transport calls are synthetic.
+
+Final verification after rebasing through `f9d76811f8`: 335 LLM workspace tests,
+180 Safe Bash LLM integration tests, 234 packaging tests, selected-workspace
+builds, and LLM lint/source/test typechecks passed. Nine package-lint privacy,
+resolution, bundling and asset rules reported no violations for LLM, Safe Bash or
+contracts; five findings outside that scope remain outside this verification.
+The independently installed public tarball passed Node execution and strict
+NodeNext declarations without private workspace resolution. Browser and workerd
+export-condition bundles passed in realms without filesystem, process or network
+capabilities. The realm shares Error identity with its injected Web APIs.
+No command output/help or registration defaults changed; no visual CLI changes
+required screenshot validation. All four migrated suites were compared against
+their original sources and differ only in import paths.

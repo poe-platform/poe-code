@@ -60,7 +60,8 @@ describe("writeFileAtomically", () => {
       ) {
         tempPath = pathText;
         vol.symlinkSync(outsidePath, pathText);
-        expect(options).toEqual({ encoding: "utf8", flag: "wx" });
+        expect(options).toMatchObject({ flag: "wx" });
+        expect(data).toBeInstanceOf(Uint8Array);
       }
 
       await writeFile(targetPath, data, options);

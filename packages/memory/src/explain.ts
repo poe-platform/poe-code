@@ -1,13 +1,14 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
-import { countTokens } from "tokenfill";
-import { spawn } from "@poe-code/agent-spawn";
-import { resolveAgent } from "@poe-code/poe-code-config/core";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import { countTokens as defaultCountTokens } from "#memory-platform";
+import { defaultSpawn } from "#memory-platform";
+import { resolveAgent } from "@poe-code/poe-code-config/memory";
 import { MEMORY_AGENT_JSON_CONTRACT, parseMemoryAgentResponse } from "./agent-response.js";
 import { hasOwnErrorCode } from "./errors.js";
 import { readPage } from "./pages.js";
 import { selectQueryContext } from "./query.js";
-import type { MemoryConfigOptions } from "@poe-code/poe-code-config/core";
+import type { MemoryConfigOptions } from "@poe-code/poe-code-config/memory";
 import type { ExplainResult, MemoryPage, MemoryRoot, SourceRef } from "./types.js";
 
 export type ExplainOptions = {
@@ -19,9 +20,12 @@ export type ExplainOptions = {
 
 export async function explainPage(
   root: MemoryRoot,
-  options: ExplainOptions
+  options: ExplainOptions, runtime: MemoryRuntime = {}
 ): Promise<ExplainResult> {
-  const targetPage = await readPageIfPresent(root, options.relPath);
+  const countTokens = runtime.countTokens ?? defaultCountTokens;
+  const fs = memoryFileSystem(runtime);
+  const spawn = runtime.spawn ?? defaultSpawn;
+  const targetPage = await readPageIfPresent(root, options.relPath, runtime);
   if (targetPage === undefined) {
     return {
       answer: "",
@@ -34,7 +38,7 @@ export async function explainPage(
     };
   }
 
-  const allContext = await selectQueryContext(root, options.relPath, Number.MAX_SAFE_INTEGER);
+  const allContext = await selectQueryContext(root, options.relPath, Number.MAX_SAFE_INTEGER, runtime);
   const relatedPages = collectRelatedPages(allContext.selectedPages, targetPage.relPath, targetPage.frontmatter.sources ?? []);
   const prompt = buildExplainPrompt(targetPage.relPath, relatedPages);
   const tokensUsed = countTokens(prompt);
@@ -99,9 +103,9 @@ function buildExplainPrompt(targetRelPath: string, pages: MemoryPage[]): string 
   ].join("\n\n");
 }
 
-async function readPageIfPresent(root: MemoryRoot, relPath: string): Promise<MemoryPage | undefined> {
+async function readPageIfPresent(root: MemoryRoot, relPath: string, runtime: MemoryRuntime = {}): Promise<MemoryPage | undefined> {
   try {
-    return await readPage(root, relPath);
+    return await readPage(root, relPath, runtime);
   } catch (error) {
     if (hasOwnErrorCode(error, "ENOENT")) {
       return undefined;

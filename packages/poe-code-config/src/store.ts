@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { resolve, type FileSystem as ResolveFileSystem } from "@poe-code/config-extends";
 import { createTimestamp, isNotFound, type FileSystem } from "@poe-code/config-mutations";
 import { hasOwnErrorCode } from "./errors.js";
@@ -251,7 +250,7 @@ async function writeInvalidBackup(fs: FileSystem, filePath: string, content: str
 }
 
 async function writeFileAtomically(fs: FileSystem, filePath: string, content: string): Promise<void> {
-  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  const tempPath = `${filePath}.${crypto.randomUUID()}.tmp`;
   let tempCreated = false;
 
   try {

@@ -167,37 +167,37 @@ describe("openMemory", () => {
     });
     await handle.auditClaims({ repoRoot: "/repo", rejectUntagged: true });
 
-    expect(pages.listPages).toHaveBeenCalledWith("/repo/.poe-code/memory");
-    expect(pages.listMemoryFiles).toHaveBeenCalledWith("/repo/.poe-code/memory");
-    expect(pages.readPage).toHaveBeenCalledWith("/repo/.poe-code/memory", "pages/a.md");
-    expect(search.searchMemory).toHaveBeenCalledWith("/repo/.poe-code/memory", "alpha");
-    expect(status.statusOf).toHaveBeenCalledWith("/repo/.poe-code/memory");
-    expect(tokens.computeTokenStats).toHaveBeenCalledWith("/repo/.poe-code/memory");
+    expect(pages.listPages).toHaveBeenCalledWith("/repo/.poe-code/memory", expect.objectContaining({ root: "/repo/.poe-code/memory" }));
+    expect(pages.listMemoryFiles).toHaveBeenCalledWith("/repo/.poe-code/memory", expect.objectContaining({ root: "/repo/.poe-code/memory" }));
+    expect(pages.readPage).toHaveBeenCalledWith("/repo/.poe-code/memory", "pages/a.md", expect.objectContaining({ root: "/repo/.poe-code/memory" }));
+    expect(search.searchMemory).toHaveBeenCalledWith("/repo/.poe-code/memory", "alpha", expect.objectContaining({ root: "/repo/.poe-code/memory" }));
+    expect(status.statusOf).toHaveBeenCalledWith("/repo/.poe-code/memory", expect.objectContaining({ root: "/repo/.poe-code/memory" }));
+    expect(tokens.computeTokenStats).toHaveBeenCalledWith("/repo/.poe-code/memory", expect.objectContaining({ root: "/repo/.poe-code/memory" }));
     expect(explain.explainPage).toHaveBeenCalledWith("/repo/.poe-code/memory", {
       relPath: "pages/a.md",
       budget: 128
-    });
+    }, expect.objectContaining({ root: "/repo/.poe-code/memory" }));
     expect(write.writePage).toHaveBeenCalledWith("/repo/.poe-code/memory", "pages/a.md", "# A\n", {
       reason: "create page"
-    });
+    }, expect.objectContaining({ root: "/repo/.poe-code/memory" }));
     expect(write.appendToPage).toHaveBeenCalledWith(
       "/repo/.poe-code/memory",
       "pages/a.md",
       "\nMore\n",
-      { reason: "append detail" }
+      { reason: "append detail" }, expect.objectContaining({ root: "/repo/.poe-code/memory" })
     );
-    expect(write.clearMemory).toHaveBeenCalledWith("/repo/.poe-code/memory");
+    expect(write.clearMemory).toHaveBeenCalledWith("/repo/.poe-code/memory", expect.objectContaining({ root: "/repo/.poe-code/memory" }));
     expect(query.queryMemory).toHaveBeenCalledWith("/repo/.poe-code/memory", {
       question: "alpha?",
       budget: 256
-    });
+    }, expect.objectContaining({ root: "/repo/.poe-code/memory" }));
     expect(ingest.ingest).toHaveBeenCalledWith("/repo/.poe-code/memory", {
       source: { kind: "file", absPath: "/repo/docs/a.md" },
       reason: "capture docs"
-    });
+    }, undefined, expect.objectContaining({ root: "/repo/.poe-code/memory" }));
     expect(audit.auditClaims).toHaveBeenCalledWith("/repo/.poe-code/memory", "/repo", {
       rejectUntagged: true
-    });
+    }, expect.objectContaining({ root: "/repo/.poe-code/memory" }));
   });
 
   it("isolates writes and reads across two handles with different roots", async () => {
@@ -241,7 +241,7 @@ describe("openMemory", () => {
       question: "who?",
       budget: 512,
       agent: "call-agent"
-    });
+    }, expect.objectContaining({ root: "/repo/.poe-code/memory" }));
   });
 
   it("uses the handle default agent when the call does not provide one", async () => {
@@ -274,7 +274,7 @@ describe("openMemory", () => {
       source: { kind: "file", absPath: "/repo/docs/source.md" },
       reason: "capture docs",
       agent: "handle-agent"
-    });
+    }, undefined, expect.objectContaining({ root: "/repo/.poe-code/memory" }));
   });
 
   it("leaves agent resolution untouched when neither the handle nor the call sets it", async () => {
@@ -300,6 +300,6 @@ describe("openMemory", () => {
     expect(explain.explainPage).toHaveBeenCalledWith("/repo/.poe-code/memory", {
       relPath: "pages/a.md",
       budget: 1024
-    });
+    }, expect.objectContaining({ root: "/repo/.poe-code/memory" }));
   });
 });

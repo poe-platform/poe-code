@@ -1,6 +1,8 @@
-import { createHash } from "node:crypto";
-import * as fs from "node:fs/promises";
-import path from "node:path";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { writeFileAtomically } from "./atomic-write.js";
 import { parseClaims } from "./confidence.js";
 import { hasOwnErrorCode } from "./errors.js";
@@ -22,10 +24,11 @@ import type {
   SourceRef
 } from "./types.js";
 
-export async function snapshot(root: MemoryRoot): Promise<MemorySnapshot> {
+export async function snapshot(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<MemorySnapshot> {
+  const fs = memoryFileSystem(runtime);
   const pages = Object.fromEntries(
     await Promise.all(
-      (await collectMarkdownRelPaths(root, MEMORY_PAGES_DIR_RELPATH)).map(async (relPath) => [
+      (await collectMarkdownRelPaths(root, MEMORY_PAGES_DIR_RELPATH, runtime)).map(async (relPath) => [
         relPath,
         hashContent(await fs.readFile(path.join(root, relPath), "utf8"))
       ])
@@ -39,17 +42,18 @@ export async function reconcile(
   root: MemoryRoot,
   before: MemorySnapshot,
   _verb: LogVerb,
-  detail: string
+  detail: string, runtime: MemoryRuntime = {}
 ): Promise<MemoryDiff> {
-  await assertNoSymlinkSegments(root, MEMORY_INDEX_RELPATH);
-  await assertNoSymlinkSegments(root, MEMORY_LOG_RELPATH);
-  const originalIndex = await readFileIfPresent(path.join(root, MEMORY_INDEX_RELPATH));
-  const originalLog = await readFileIfPresent(path.join(root, MEMORY_LOG_RELPATH));
-  await initMemory(root);
+  const fs = memoryFileSystem(runtime);
+  await assertNoSymlinkSegments(root, MEMORY_INDEX_RELPATH, runtime);
+  await assertNoSymlinkSegments(root, MEMORY_LOG_RELPATH, runtime);
+  const originalIndex = await readFileIfPresent(path.join(root, MEMORY_INDEX_RELPATH), runtime);
+  const originalLog = await readFileIfPresent(path.join(root, MEMORY_LOG_RELPATH), runtime);
+  await initMemory(root, runtime);
 
   const timestamp = new Date().toISOString();
   const currentPages = await Promise.all(
-    (await collectMarkdownRelPaths(root, MEMORY_PAGES_DIR_RELPATH)).map(async (relPath) => {
+    (await collectMarkdownRelPaths(root, MEMORY_PAGES_DIR_RELPATH, runtime)).map(async (relPath) => {
       const absPath = path.join(root, relPath);
       const markdown = await fs.readFile(absPath, "utf8");
       const parsed = parsePageMarkdown(relPath, markdown);
@@ -79,21 +83,21 @@ export async function reconcile(
     await Promise.all(
       currentPages
         .filter((page) => page.currentMarkdown !== page.nextMarkdown)
-        .map((page) => writeFileAtomically(path.join(root, page.relPath), page.nextMarkdown))
+        .map((page) => writeFileAtomically(path.join(root, page.relPath), page.nextMarkdown, runtime))
     );
 
-    const diff = diffSnapshots(before, await snapshot(root));
-    await writeIndex(root);
-    await appendLogEntries(root, diff, detail, timestamp);
+    const diff = diffSnapshots(before, await snapshot(root, runtime));
+    await writeIndex(root, runtime);
+    await appendLogEntries(root, diff, detail, timestamp, runtime);
     return diff;
   } catch (error) {
     await Promise.all(
       currentPages
         .filter((page) => page.currentMarkdown !== page.nextMarkdown)
-        .map((page) => writeFileAtomically(path.join(root, page.relPath), page.currentMarkdown).catch(() => undefined))
+        .map((page) => writeFileAtomically(path.join(root, page.relPath), page.currentMarkdown, runtime).catch(() => undefined))
     );
-    await restoreGeneratedFile(path.join(root, MEMORY_INDEX_RELPATH), originalIndex);
-    await restoreGeneratedFile(path.join(root, MEMORY_LOG_RELPATH), originalLog);
+    await restoreGeneratedFile(path.join(root, MEMORY_INDEX_RELPATH), originalIndex, runtime);
+    await restoreGeneratedFile(path.join(root, MEMORY_LOG_RELPATH), originalLog, runtime);
     throw error;
   }
 }
@@ -121,8 +125,9 @@ export async function appendLogEntries(
   root: MemoryRoot,
   diff: MemoryDiff,
   detail: string,
-  timestamp = new Date().toISOString()
+  timestamp = new Date().toISOString(), runtime: MemoryRuntime = {}
 ): Promise<void> {
+  const fs = memoryFileSystem(runtime);
   const entries = [
     ...diff.updated.map((relPath) => formatLogLine(timestamp, "update", relPath, detail)),
     ...diff.deleted.map((relPath) => formatLogLine(timestamp, "delete", relPath, detail)),
@@ -133,11 +138,11 @@ export async function appendLogEntries(
     return;
   }
 
-  await assertNoSymlinkSegments(root, MEMORY_LOG_RELPATH);
+  await assertNoSymlinkSegments(root, MEMORY_LOG_RELPATH, runtime);
   const logPath = path.join(root, MEMORY_LOG_RELPATH);
   const existing = await fs.readFile(logPath, "utf8");
   const separator = existing.length === 0 || existing.endsWith("\n") ? "" : "\n";
-  await writeFileAtomically(logPath, `${existing}${separator}${entries.join("\n")}\n`);
+  await writeFileAtomically(logPath, `${existing}${separator}${entries.join("\n")}\n`, runtime);
 }
 
 export function denormalizeSources(markdown: string): SourceRef[] {
@@ -157,19 +162,20 @@ export function denormalizeSources(markdown: string): SourceRef[] {
     .map(([, source]) => source);
 }
 
-async function writeIndex(root: MemoryRoot): Promise<void> {
-  await assertNoSymlinkSegments(root, MEMORY_INDEX_RELPATH);
+async function writeIndex(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<void> {
+  await assertNoSymlinkSegments(root, MEMORY_INDEX_RELPATH, runtime);
   const index = renderIndex(
-    (await listPages(root)).map((page) => ({
+    (await listPages(root, runtime)).map((page) => ({
       relPath: page.relPath,
       description: page.frontmatter.description ?? ""
     }))
   );
 
-  await writeFileAtomically(path.join(root, MEMORY_INDEX_RELPATH), index);
+  await writeFileAtomically(path.join(root, MEMORY_INDEX_RELPATH), index, runtime);
 }
 
-async function readFileIfPresent(filePath: string): Promise<string | undefined> {
+async function readFileIfPresent(filePath: string, runtime: MemoryRuntime = {}): Promise<string | undefined> {
+  const fs = memoryFileSystem(runtime);
   try {
     return await fs.readFile(filePath, "utf8");
   } catch (error) {
@@ -181,13 +187,14 @@ async function readFileIfPresent(filePath: string): Promise<string | undefined> 
   }
 }
 
-async function restoreGeneratedFile(filePath: string, content: string | undefined): Promise<void> {
+async function restoreGeneratedFile(filePath: string, content: string | undefined, runtime: MemoryRuntime = {}): Promise<void> {
+  const fs = memoryFileSystem(runtime);
   if (content === undefined) {
     await fs.unlink(filePath).catch(() => undefined);
     return;
   }
 
-  await writeFileAtomically(filePath, content).catch(() => undefined);
+  await writeFileAtomically(filePath, content, runtime).catch(() => undefined);
 }
 
 function parsePageMarkdown(
@@ -248,7 +255,7 @@ function formatLogLine(
 }
 
 function hashContent(content: string): string {
-  return createHash("sha256").update(content).digest("hex");
+  return bytesToHex(sha256(new TextEncoder().encode(content)));
 }
 
 function isMissing(error: unknown): boolean {

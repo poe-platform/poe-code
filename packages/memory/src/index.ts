@@ -56,3 +56,5 @@ export type {
   OpenMemoryOptions,
   StatusInfo
 } from "./handle.js";
+
+export type { MemoryRuntime } from "./filesystem.js";

@@ -28,6 +28,17 @@
     "@poe-code/poe-code-config": "*",
     "@poe-code/user-error": "*",
     "tiny-stdio-mcp-server": "*",
-    "tokenfill": "*"
+    "tokenfill": "*",
+    "@poe-code/safe-fs": "*",
+    "@noble/hashes": "2.4.0"
+  },
+  "imports": {
+    "#memory-platform": {
+      "types": "./src/platform.ts",
+      "workerd": "./dist/platform.workerd.js",
+      "browser": "./dist/platform.workerd.js",
+      "worker": "./dist/platform.workerd.js",
+      "default": "./dist/platform.js"
+    }
   }
 }

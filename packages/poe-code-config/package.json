@@ -25,6 +25,10 @@
     "./resolve": {
       "types": "./dist/resolve.d.ts",
       "import": "./dist/resolve.js"
+    },
+    "./memory": {
+      "types": "./dist/memory.d.ts",
+      "import": "./dist/memory.js"
     }
   },
   "scripts": {

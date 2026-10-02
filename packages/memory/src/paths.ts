@@ -1,5 +1,6 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { hasOwnErrorCode } from "./errors.js";
 import type { MemoryRoot } from "./types.js";
 
@@ -27,11 +28,11 @@ export function assertSafeRelPath(input: string): string {
   }
 
   const slashNormalized = trimmed.replaceAll("\\", "/");
-  if (path.posix.isAbsolute(slashNormalized) || path.win32.isAbsolute(slashNormalized)) {
+  if (path.isAbsolute(slashNormalized) || (slashNormalized.length >= 3 && slashNormalized[1] === ":" && slashNormalized[2] === "/")) {
     throw new MemoryPathError(`Expected a relative path, received absolute path "${input}".`);
   }
 
-  const normalized = path.posix.normalize(slashNormalized);
+  const normalized = path.normalize(slashNormalized);
   if (normalized === "." || normalized.length === 0) {
     throw new MemoryPathError("Expected a relative path to a file or directory.");
   }
@@ -43,9 +44,10 @@ export function assertSafeRelPath(input: string): string {
   return normalized;
 }
 
-export async function assertNoSymlinkSegments(root: MemoryRoot, relPath: string): Promise<void> {
+export async function assertNoSymlinkSegments(root: MemoryRoot, relPath: string, runtime: MemoryRuntime = {}): Promise<void> {
+  const fs = memoryFileSystem(runtime);
   const normalizedRelPath = assertSafeRelPath(relPath);
-  await assertMemoryRootIsNotSymlink(root);
+  await assertMemoryRootIsNotSymlink(root, runtime);
   let currentPath = root;
 
   for (const segment of normalizedRelPath.split("/")) {
@@ -66,9 +68,10 @@ export async function assertNoSymlinkSegments(root: MemoryRoot, relPath: string)
   }
 }
 
-export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<void> {
+export async function assertMemoryRootIsNotSymlink(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<void> {
+  const fs = memoryFileSystem(runtime);
   const absoluteRoot = path.resolve(root);
-  const pathRoot = path.parse(absoluteRoot).root;
+  const pathRoot = "/";
   let currentPath = pathRoot;
 
   for (const segment of absoluteRoot.slice(pathRoot.length).split(path.sep).filter(Boolean)) {
@@ -77,7 +80,7 @@ export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<vo
     try {
       const stat = await fs.lstat(currentPath);
       if (stat.isSymbolicLink()) {
-        if (await isAllowedMacSystemAlias(currentPath)) {
+        if (await isAllowedMacSystemAlias(currentPath, runtime)) {
           continue;
         }
         throw new MemoryPathError(`Memory root "${root}" cannot be a symbolic link.`);
@@ -92,7 +95,8 @@ export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<vo
   }
 }
 
-async function isAllowedMacSystemAlias(currentPath: string): Promise<boolean> {
+async function isAllowedMacSystemAlias(currentPath: string, runtime: MemoryRuntime = {}): Promise<boolean> {
+  const fs = memoryFileSystem(runtime);
   if (currentPath !== "/var") {
     return false;
   }

@@ -1,5 +1,6 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { hasOwnErrorCode } from "./errors.js";
 import {
   assertMemoryRootIsNotSymlink,
@@ -9,11 +10,12 @@ import {
 } from "./paths.js";
 import type { MemoryRoot } from "./types.js";
 
-export async function initMemory(root: MemoryRoot): Promise<void> {
-  await assertMemoryRootIsNotSymlink(root);
-  const rootExisted = await pathExists(root);
+export async function initMemory(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<void> {
+  const fs = memoryFileSystem(runtime);
+  await assertMemoryRootIsNotSymlink(root, runtime);
+  const rootExisted = await pathExists(root, runtime);
   const pagesPath = path.join(root, MEMORY_PAGES_DIR_RELPATH);
-  const pagesExisted = await pathExists(pagesPath);
+  const pagesExisted = await pathExists(pagesPath, runtime);
   const indexPath = path.join(root, MEMORY_INDEX_RELPATH);
   const logPath = path.join(root, MEMORY_LOG_RELPATH);
   let indexCreated = false;
@@ -21,9 +23,9 @@ export async function initMemory(root: MemoryRoot): Promise<void> {
 
   try {
     await fs.mkdir(pagesPath, { recursive: true });
-    await assertMemoryRootIsNotSymlink(root);
-    indexCreated = await writeFileIfMissing(indexPath, "# Memory index\n");
-    logCreated = await writeFileIfMissing(logPath, "");
+    await assertMemoryRootIsNotSymlink(root, runtime);
+    indexCreated = await writeFileIfMissing(indexPath, "# Memory index\n", runtime);
+    logCreated = await writeFileIfMissing(logPath, "", runtime);
   } catch (error) {
     if (logCreated) {
       await fs.unlink(logPath).catch(() => undefined);
@@ -42,7 +44,8 @@ export async function initMemory(root: MemoryRoot): Promise<void> {
   }
 }
 
-async function writeFileIfMissing(filePath: string, content: string): Promise<boolean> {
+async function writeFileIfMissing(filePath: string, content: string, runtime: MemoryRuntime = {}): Promise<boolean> {
+  const fs = memoryFileSystem(runtime);
   try {
     await fs.writeFile(filePath, content, { encoding: "utf8", flag: "wx" });
     return true;
@@ -56,7 +59,8 @@ async function writeFileIfMissing(filePath: string, content: string): Promise<bo
   }
 }
 
-async function pathExists(targetPath: string): Promise<boolean> {
+async function pathExists(targetPath: string, runtime: MemoryRuntime = {}): Promise<boolean> {
+  const fs = memoryFileSystem(runtime);
   try {
     await fs.stat(targetPath);
     return true;

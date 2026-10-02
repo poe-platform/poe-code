@@ -28,7 +28,7 @@ const { resolveAgent, configuredTimeout, cacheEnabled } = vi.hoisted(() => ({
   cacheEnabled: vi.fn()
 }));
 
-vi.mock("@poe-code/poe-code-config/core", () => ({
+vi.mock("@poe-code/poe-code-config/memory", () => ({
   resolveAgent,
   configuredTimeout,
   cacheEnabled
@@ -150,7 +150,7 @@ describe("ingest", () => {
 
     expect(fetchMock).toHaveBeenCalledWith("https://example.test/notes.md");
     expect(computeIngestKeyMock).toHaveBeenCalledWith(
-      expect.objectContaining({ sourceBytes: Buffer.from("remote notes") })
+      expect.objectContaining({ sourceBytes: new TextEncoder().encode("remote notes") })
     );
     expect(log).toHaveBeenCalledWith(expect.stringContaining("Source: https://example.test/notes.md"));
     expect(log).toHaveBeenCalledWith(expect.stringContaining("remote notes"));
@@ -213,12 +213,12 @@ describe("ingest", () => {
         prompt: expect.stringContaining(`Prompt version: ${INGEST_PROMPT_VERSION}`)
       })
     );
-    expect(snapshotMock).toHaveBeenCalledWith("/repo/.poe-code/memory");
+    expect(snapshotMock).toHaveBeenCalledWith("/repo/.poe-code/memory", {});
     expect(reconcileMock).toHaveBeenCalledWith(
       "/repo/.poe-code/memory",
       { pages: {} },
       "ingest",
-      "capture docs"
+      "capture docs", {}
     );
     expect(writeCacheEntryMock).toHaveBeenCalledWith(
       "/repo/.poe-code/memory",
@@ -232,7 +232,7 @@ describe("ingest", () => {
         agentId: "claude-code",
         memoryTokens: 10,
         sourceTokens: 100
-      })
+      }), {}
     );
     expect(result).toMatchObject({
       cacheHit: false,

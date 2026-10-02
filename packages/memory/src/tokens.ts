@@ -1,12 +1,15 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
-import { countTokens } from "tokenfill";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import { countTokens as defaultCountTokens } from "#memory-platform";
 import { hasOwnErrorCode } from "./errors.js";
 import { listPages } from "./pages.js";
 import type { MemoryRoot, TokenStats } from "./types.js";
 
-export async function computeTokenStats(root: MemoryRoot): Promise<TokenStats> {
-  if (!(await pathExists(root))) {
+export async function computeTokenStats(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<TokenStats> {
+  const countTokens = runtime.countTokens ?? defaultCountTokens;
+  const fs = memoryFileSystem(runtime);
+  if (!(await pathExists(root, runtime))) {
     return {
       memoryTokens: 0,
       sourceTokens: 0,
@@ -15,7 +18,7 @@ export async function computeTokenStats(root: MemoryRoot): Promise<TokenStats> {
     };
   }
 
-  const pages = await listPages(root);
+  const pages = await listPages(root, runtime);
 
   let memoryTokens = 0;
   const sourcePaths = new Set<string>();
@@ -81,7 +84,8 @@ export async function computeTokenStats(root: MemoryRoot): Promise<TokenStats> {
   };
 }
 
-async function pathExists(targetPath: string): Promise<boolean> {
+async function pathExists(targetPath: string, runtime: MemoryRuntime = {}): Promise<boolean> {
+  const fs = memoryFileSystem(runtime);
   try {
     await fs.stat(targetPath);
     return true;

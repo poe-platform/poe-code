@@ -17,7 +17,7 @@ const resolveAgentSupport = vi.fn((agent: string) => {
     : { status: "supported", input: agent, id: agent, config };
 });
 
-vi.mock("@poe-code/agent-skill-config", () => ({
+vi.mock("@poe-code/agent-skill-config/runtime", () => ({
   installSkill
 }));
 

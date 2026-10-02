@@ -1,3 +1,4 @@
+import { type MemoryRuntime } from "./filesystem.js";
 import parseDuration from "parse-duration";
 import { cacheStatus, clearCache } from "./cache.js";
 import type { MemoryRoot } from "./types.js";
@@ -7,8 +8,8 @@ type CacheLog = (message: string) => void;
 export async function runMemoryCacheStatus(input: {
   root: MemoryRoot;
   log?: CacheLog;
-}): Promise<void> {
-  const status = await cacheStatus(input.root);
+}, runtime: MemoryRuntime = {}): Promise<void> {
+  const status = await cacheStatus(input.root, runtime);
   const log = input.log ?? console.log;
   log(`${status.entries} cache ${status.entries === 1 ? "entry" : "entries"} (${status.bytes} bytes)`);
 }
@@ -19,7 +20,7 @@ export async function runMemoryCacheClear(input: {
   yes?: boolean;
   dryRun?: boolean;
   log?: CacheLog;
-}): Promise<{ removed: number }> {
+}, runtime: MemoryRuntime = {}): Promise<{ removed: number }> {
   if (!input.yes) {
     throw new Error("Refusing to clear cache without --yes.");
   }
@@ -31,7 +32,7 @@ export async function runMemoryCacheClear(input: {
     return { removed: 0 };
   }
 
-  const result = await clearCache(input.root, olderThanMs === undefined ? {} : { olderThanMs });
+  const result = await clearCache(input.root, olderThanMs === undefined ? {} : { olderThanMs }, runtime);
   log(`removed ${result.removed} cache ${result.removed === 1 ? "entry" : "entries"}`);
   return result;
 }

@@ -1,5 +1,6 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { parseClaims } from "./confidence.js";
 import { hasOwnErrorCode } from "./errors.js";
 import { serializeSourceRef } from "./frontmatter.js";
@@ -28,7 +29,7 @@ type SourceFileMeta =
 export async function auditClaims(
   root: MemoryRoot,
   repoRoot: string,
-  options: AuditClaimsOptions = {}
+  options: AuditClaimsOptions = {}, runtime: MemoryRuntime = {}
 ): Promise<PageAudit[]> {
   const minInferredConfidence =
     options.minInferredConfidence ?? DEFAULT_MIN_INFERRED_CONFIDENCE;
@@ -37,7 +38,7 @@ export async function auditClaims(
     options.untaggedBodyThresholdChars ?? DEFAULT_UNTAGGED_BODY_THRESHOLD_CHARS;
   const sourceCache = new Map<string, Promise<SourceFileMeta>>();
 
-  const pages = await listPages(root);
+  const pages = await listPages(root, runtime);
   const audits: PageAudit[] = [];
 
   for (const page of pages) {
@@ -75,7 +76,7 @@ export async function auditClaims(
       const serializedSource = serializeSourceRef(source);
       inlineSources.add(serializedSource);
 
-      const sourceIssue = await auditSourceRef(source, claim.lineNumber, repoRoot, sourceCache);
+      const sourceIssue = await auditSourceRef(source, claim.lineNumber, repoRoot, sourceCache, runtime);
       if (sourceIssue !== undefined) {
         issues.push(sourceIssue);
       }
@@ -95,7 +96,7 @@ async function auditSourceRef(
   source: SourceRef,
   claimLineNumber: number,
   repoRoot: string,
-  sourceCache: Map<string, Promise<SourceFileMeta>>
+  sourceCache: Map<string, Promise<SourceFileMeta>>, runtime: MemoryRuntime = {}
 ): Promise<string | undefined> {
   if (isUrlLike(source.path)) {
     return undefined;
@@ -110,7 +111,7 @@ async function auditSourceRef(
     return `Claim on line ${claimLineNumber} cites "${serializeSourceRef(source)}", which resolves outside the repo root.`;
   }
 
-  const meta = await readSourceFile(absPath, repoRoot, sourceCache);
+  const meta = await readSourceFile(absPath, repoRoot, sourceCache, runtime);
   if (!meta.exists && meta.symbolicLinkEscape === true) {
     return `Claim on line ${claimLineNumber} cites "${serializeSourceRef(source)}", but the source traverses a symbolic link outside the repo root.`;
   }
@@ -147,8 +148,9 @@ function auditFrontmatterSources(frontmatterSources: SourceRef[], inlineSources:
 function readSourceFile(
   absPath: string,
   repoRoot: string,
-  sourceCache: Map<string, Promise<SourceFileMeta>>
+  sourceCache: Map<string, Promise<SourceFileMeta>>, runtime: MemoryRuntime = {}
 ): Promise<SourceFileMeta> {
+  const fs = memoryFileSystem(runtime);
   const cached = sourceCache.get(absPath);
   if (cached !== undefined) {
     return cached;

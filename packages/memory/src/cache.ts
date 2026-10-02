@@ -1,6 +1,8 @@
-import { createHash } from "node:crypto";
-import * as fs from "node:fs/promises";
-import path from "node:path";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { writeFileAtomically } from "./atomic-write.js";
 import { hasOwnErrorCode } from "./errors.js";
 import {
@@ -12,28 +14,29 @@ import {
 import type { IngestCacheEntry, IngestCacheKey, MemoryRoot } from "./types.js";
 
 export function computeIngestKey(input: {
-  sourceBytes: Buffer;
-  indexMdBytes: Buffer;
+  sourceBytes: Uint8Array;
+  indexMdBytes: Uint8Array;
   promptTemplateVersion: string;
   agentId: string;
 }): IngestCacheKey {
-  const hash = createHash("sha256");
+  const hash = sha256.create();
   hash.update(input.sourceBytes);
-  hash.update("\0");
+  hash.update(new TextEncoder().encode("\0"));
   hash.update(input.indexMdBytes);
-  hash.update("\0");
-  hash.update(input.promptTemplateVersion);
-  hash.update("\0");
-  hash.update(input.agentId);
-  return hash.digest("hex");
+  hash.update(new TextEncoder().encode("\0"));
+  hash.update(new TextEncoder().encode(input.promptTemplateVersion));
+  hash.update(new TextEncoder().encode("\0"));
+  hash.update(new TextEncoder().encode(input.agentId));
+  return bytesToHex(hash.digest());
 }
 
 export async function readCacheEntry(
   root: MemoryRoot,
-  key: IngestCacheKey
+  key: IngestCacheKey, runtime: MemoryRuntime = {}
 ): Promise<IngestCacheEntry | null> {
+  const fs = memoryFileSystem(runtime);
   const safeKey = assertSafeRelPath(key);
-  await assertIngestCachePathIsNotSymlink(root);
+  await assertIngestCachePathIsNotSymlink(root, runtime);
   const cachePath = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${safeKey}.json`);
 
   let raw: string;
@@ -56,21 +59,23 @@ export async function readCacheEntry(
   }
 }
 
-export async function writeCacheEntry(root: MemoryRoot, entry: IngestCacheEntry): Promise<void> {
+export async function writeCacheEntry(root: MemoryRoot, entry: IngestCacheEntry, runtime: MemoryRuntime = {}): Promise<void> {
+  const fs = memoryFileSystem(runtime);
   const key = assertSafeRelPath(entry.key);
-  await assertIngestCachePathIsNotSymlink(root);
+  await assertIngestCachePathIsNotSymlink(root, runtime);
   await fs.mkdir(path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH), { recursive: true });
-  await assertIngestCachePathIsNotSymlink(root);
+  await assertIngestCachePathIsNotSymlink(root, runtime);
   await writeFileAtomically(
     path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${key}.json`),
-    `${JSON.stringify(entry)}\n`
+    `${JSON.stringify(entry)}\n`, runtime
   );
 }
 
-export async function cacheStatus(root: MemoryRoot): Promise<{ entries: number; bytes: number }> {
-  await assertIngestCachePathIsNotSymlink(root);
+export async function cacheStatus(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<{ entries: number; bytes: number }> {
+  const fs = memoryFileSystem(runtime);
+  await assertIngestCachePathIsNotSymlink(root, runtime);
   const ingestDir = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
-  const fileNames = await readCacheFileNames(ingestDir);
+  const fileNames = await readCacheFileNames(ingestDir, runtime);
   const sizes = await Promise.all(
     fileNames.map(async (fileName) => (await fs.stat(path.join(ingestDir, fileName))).size)
   );
@@ -83,12 +88,13 @@ export async function cacheStatus(root: MemoryRoot): Promise<{ entries: number; 
 
 export async function clearCache(
   root: MemoryRoot,
-  opts: { olderThanMs?: number } = {}
+  opts: { olderThanMs?: number } = {}, runtime: MemoryRuntime = {}
 ): Promise<{ removed: number }> {
-  await assertIngestCachePathIsNotSymlink(root);
+  const fs = memoryFileSystem(runtime);
+  await assertIngestCachePathIsNotSymlink(root, runtime);
   const ingestDir = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
   const cacheDir = path.join(root, MEMORY_CACHE_DIR_RELPATH);
-  const fileNames = await readCacheFileNames(ingestDir);
+  const fileNames = await readCacheFileNames(ingestDir, runtime);
 
   if (fileNames.length === 0) {
     if (opts.olderThanMs === undefined) {
@@ -108,7 +114,7 @@ export async function clearCache(
 
   for (const fileName of fileNames) {
     const key = fileName.slice(0, -".json".length);
-    const entry = await readCacheEntry(root, key);
+    const entry = await readCacheEntry(root, key, runtime);
 
     if (entry === null || Date.parse(entry.ingestedAt) > cutoff) {
       continue;
@@ -124,19 +130,19 @@ export async function clearCache(
     }
   } catch (error) {
     await Promise.all(
-      expiredEntries.map((entry) => writeFileAtomically(entry.filePath, entry.content).catch(() => undefined))
+      expiredEntries.map((entry) => writeFileAtomically(entry.filePath, entry.content, runtime).catch(() => undefined))
     );
     throw error;
   }
 
-  await removeEmptyDirectory(ingestDir);
-  await removeEmptyDirectory(cacheDir);
+  await removeEmptyDirectory(ingestDir, runtime);
+  await removeEmptyDirectory(cacheDir, runtime);
 
   return { removed: expiredEntries.length };
 }
 
-async function assertIngestCachePathIsNotSymlink(root: MemoryRoot): Promise<void> {
-  await assertNoSymlinkSegments(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
+async function assertIngestCachePathIsNotSymlink(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<void> {
+  await assertNoSymlinkSegments(root, MEMORY_INGEST_CACHE_DIR_RELPATH, runtime);
 }
 
 function parseCacheEntry(value: unknown, requestedKey: string): IngestCacheEntry {
@@ -209,10 +215,11 @@ function getOwnEntry(record: Record<string, unknown>, key: string): unknown {
   return Object.prototype.hasOwnProperty.call(record, key) ? record[key] : undefined;
 }
 
-async function readCacheFileNames(ingestDir: string): Promise<string[]> {
+async function readCacheFileNames(ingestDir: string, runtime: MemoryRuntime = {}): Promise<string[]> {
+  const fs = memoryFileSystem(runtime);
   try {
     return (await fs.readdir(ingestDir))
-      .filter((fileName) => path.posix.extname(fileName).toLowerCase() === ".json")
+      .filter((fileName) => path.extname(fileName).toLowerCase() === ".json")
       .sort((left, right) => left.localeCompare(right));
   } catch (error) {
     if (isMissing(error)) {
@@ -223,7 +230,8 @@ async function readCacheFileNames(ingestDir: string): Promise<string[]> {
   }
 }
 
-async function removeEmptyDirectory(directoryPath: string): Promise<void> {
+async function removeEmptyDirectory(directoryPath: string, runtime: MemoryRuntime = {}): Promise<void> {
+  const fs = memoryFileSystem(runtime);
   try {
     const remainingEntries = await fs.readdir(directoryPath);
     if (remainingEntries.length === 0) {

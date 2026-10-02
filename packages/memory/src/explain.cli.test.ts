@@ -35,7 +35,7 @@ describe("runMemoryExplain", () => {
       relPath: "pages/packages/superintendent.md",
       budget: 2048,
       agent: "claude-code"
-    });
+    }, {});
     expect(result.answer).toBe("summary");
   });
 });

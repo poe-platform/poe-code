@@ -1,5 +1,7 @@
-import path from "node:path";
-import { installSkill } from "@poe-code/agent-skill-config";
+import type { FileSystem as SafeFileSystem } from "@poe-code/safe-fs/contracts";
+import { memoryFileSystem } from "./filesystem.js";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import { installSkill } from "@poe-code/agent-skill-config/runtime";
 import { configure, resolveAgentSupport } from "@poe-code/agent-mcp-config";
 import type { ApplyOptions as McpApplyOptions } from "@poe-code/agent-mcp-config";
 import type { FileSystem, MutationObservers } from "@poe-code/config-mutations";
@@ -8,7 +10,7 @@ import type { MemoryInstallResult } from "./types.js";
 export type MemoryInstallOptions = {
   agent: string;
   skillContent: string;
-  fs: FileSystem;
+  fs: FileSystem | SafeFileSystem;
   cwd: string;
   homeDir: string;
   platform: McpApplyOptions["platform"];
@@ -27,6 +29,7 @@ const SKILL_NAME = "poe-code-memory";
 export async function installMemory(
   options: MemoryInstallOptions
 ): Promise<MemoryInstallResult> {
+  const fs = "capabilities" in options.fs ? memoryFileSystem({ fs: options.fs }) : options.fs;
   if (options.skillOnly && options.mcpOnly) {
     throw new Error("--skill-only and --mcp-only cannot be combined.");
   }
@@ -42,7 +45,7 @@ export async function installMemory(
         content: options.skillContent
       },
       {
-        fs: options.fs,
+        fs,
         cwd: options.cwd,
         homeDir: options.homeDir,
         scope,
@@ -70,7 +73,7 @@ export async function installMemory(
           }
         },
         {
-          fs: options.fs,
+          fs,
           homeDir: options.homeDir,
           platform: options.platform,
           dryRun: options.dryRun,
@@ -79,7 +82,7 @@ export async function installMemory(
       );
     } catch (error) {
       if (skillPath !== undefined && options.dryRun !== true) {
-        await removeInstalledSkill(options, skillPath).catch(() => undefined);
+        await removeInstalledSkill({ ...options, fs }, skillPath).catch(() => undefined);
       }
       throw error;
     }
@@ -113,7 +116,7 @@ function resolveMcpConfigPath(
 }
 
 async function removeInstalledSkill(
-  options: Pick<MemoryInstallOptions, "fs" | "cwd" | "homeDir" | "scope">,
+  options: Pick<MemoryInstallOptions, "cwd" | "homeDir" | "scope"> & { fs: FileSystem },
   skillPath: string
 ): Promise<void> {
   const baseDir = options.scope === "global" ? options.homeDir : options.cwd;

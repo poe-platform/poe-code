@@ -1,14 +1,15 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
-import { spawn } from "@poe-code/agent-spawn";
-import { cacheEnabled, configuredTimeout, resolveAgent } from "@poe-code/poe-code-config/core";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import { defaultSpawn } from "#memory-platform";
+import { cacheEnabled, configuredTimeout, resolveAgent } from "@poe-code/poe-code-config/memory";
 import { UserError } from "@poe-code/user-error";
 import { computeIngestKey, readCacheEntry, writeCacheEntry } from "./cache.js";
 import { hasOwnErrorCode } from "./errors.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
 import { reconcile, snapshot } from "./reconcile.js";
 import { computeTokenStats } from "./tokens.js";
-import type { MemoryConfigOptions } from "@poe-code/poe-code-config/core";
+import type { MemoryConfigOptions } from "@poe-code/poe-code-config/memory";
 import type { IngestOptions, IngestResult, MemoryRoot } from "./types.js";
 
 export const INGEST_PROMPT_VERSION = "v1";
@@ -45,10 +46,12 @@ function resolveRunners(overrides?: IngestRunners): ResolvedIngestRunners {
 export async function ingest(
   root: MemoryRoot,
   opts: IngestOptions,
-  runners?: IngestRunners
+  runners?: IngestRunners, runtime: MemoryRuntime = {}
 ): Promise<IngestResult> {
+  const spawn = runtime.spawn ?? defaultSpawn;
+  const fs = memoryFileSystem(runtime);
   const resolved = resolveRunners(runners);
-  const source = await materializeSource(opts.source);
+  const source = await materializeSource(opts.source, runtime);
   const indexMdBytes = await fs.readFile(path.join(root, MEMORY_INDEX_RELPATH));
   const configOptions = {
     fs: fs as MemoryConfigOptions["fs"],
@@ -65,14 +68,14 @@ export async function ingest(
   });
 
   if (!opts.force && (await cacheEnabled(configOptions))) {
-    const hit = await resolved.readCacheEntry(root, key);
+    const hit = await resolved.readCacheEntry(root, key, runtime);
     if (hit !== null) {
       return {
         diff: { created: [], updated: [], deleted: [] },
         exitCode: 0,
         durationMs: 0,
         cacheHit: true,
-        tokens: await resolved.computeTokenStats(root)
+        tokens: await resolved.computeTokenStats(root, runtime)
       };
     }
   }
@@ -85,11 +88,11 @@ export async function ingest(
       exitCode: 0,
       durationMs: 0,
       cacheHit: false,
-      tokens: await resolved.computeTokenStats(root)
+      tokens: await resolved.computeTokenStats(root, runtime)
     };
   }
 
-  const before = await resolved.snapshot(root);
+  const before = await resolved.snapshot(root, runtime);
 
   let exitCode = 1;
   let durationMs = 0;
@@ -108,8 +111,8 @@ export async function ingest(
     timeoutError = error instanceof Error ? error : new Error(String(error));
   }
 
-  const diff = await resolved.reconcile(root, before, "ingest", opts.reason ?? `ingest ${source.label}`);
-  const tokens = await resolved.computeTokenStats(root);
+  const diff = await resolved.reconcile(root, before, "ingest", opts.reason ?? `ingest ${source.label}`, runtime);
+  const tokens = await resolved.computeTokenStats(root, runtime);
 
   if (timeoutError !== undefined) {
     throw timeoutError;
@@ -127,7 +130,7 @@ export async function ingest(
       sourceTokens: tokens.sourceTokens,
       promptTemplateVersion: INGEST_PROMPT_VERSION,
       agentId
-    });
+    }, runtime);
   }
 
   return { diff, exitCode, durationMs, cacheHit: false, tokens };
@@ -145,11 +148,12 @@ function buildIngestPrompt(root: string, sourceLabel: string, sourceText: string
   ].join("\n");
 }
 
-async function materializeSource(source: IngestOptions["source"]): Promise<{
+async function materializeSource(source: IngestOptions["source"], runtime: MemoryRuntime = {}): Promise<{
   label: string;
-  bytes: Buffer;
+  bytes: Uint8Array;
   text: string;
 }> {
+  const fs = memoryFileSystem(runtime);
   if (source.kind === "file") {
     const bytes = await fs.readFile(source.absPath).catch((error: unknown) => {
       if (hasOwnErrorCode(error, "ENOENT")) {
@@ -160,7 +164,7 @@ async function materializeSource(source: IngestOptions["source"]): Promise<{
     return {
       label: source.absPath,
       bytes,
-      text: bytes.toString("utf8")
+      text: new TextDecoder().decode(bytes)
     };
   }
 
@@ -169,11 +173,11 @@ async function materializeSource(source: IngestOptions["source"]): Promise<{
     throw new Error(`Unable to fetch memory ingest source (${response.status}): ${source.url}`);
   }
 
-  const bytes = Buffer.from(await response.arrayBuffer());
+  const bytes = new Uint8Array(await response.arrayBuffer());
   return {
     label: source.url,
     bytes,
-    text: bytes.toString("utf8")
+    text: new TextDecoder().decode(bytes)
   };
 }
 

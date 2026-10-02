@@ -28,7 +28,7 @@ describe("runMemoryCacheStatus", () => {
 
     await runMemoryCacheStatus({ root: "/repo/.poe-code/memory" });
 
-    expect(cacheStatus).toHaveBeenCalledWith("/repo/.poe-code/memory");
+    expect(cacheStatus).toHaveBeenCalledWith("/repo/.poe-code/memory", {});
     expect(log).toHaveBeenCalledWith("2 cache entries (42 bytes)");
   });
 });
@@ -65,7 +65,7 @@ describe("runMemoryCacheClear", () => {
 
     expect(clearCache).toHaveBeenCalledWith("/repo/.poe-code/memory", {
       olderThanMs: 90 * 60 * 1000
-    });
+    }, {});
     expect(log).toHaveBeenCalledWith("removed 3 cache entr" + "ies");
   });
 
@@ -77,7 +77,7 @@ describe("runMemoryCacheClear", () => {
       yes: true
     });
 
-    expect(clearCache).toHaveBeenCalledWith("/repo/.poe-code/memory", {});
+    expect(clearCache).toHaveBeenCalledWith("/repo/.poe-code/memory", {}, {});
   });
 
   it("logs dry-run cache clears without deleting entries", async () => {

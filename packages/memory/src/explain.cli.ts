@@ -1,3 +1,4 @@
+import { type MemoryRuntime } from "./filesystem.js";
 import { explainPage } from "./explain.js";
 import type { ExplainResult } from "./types.js";
 
@@ -6,10 +7,10 @@ export async function runMemoryExplain(input: {
   relPath: string;
   budget: number;
   agent?: string;
-}): Promise<ExplainResult> {
+}, runtime: MemoryRuntime = {}): Promise<ExplainResult> {
   return explainPage(input.root, {
     relPath: input.relPath,
     budget: input.budget,
     agent: input.agent
-  });
+  }, runtime);
 }

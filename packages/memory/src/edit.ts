@@ -1,5 +1,6 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { hasOwnErrorCode } from "./errors.js";
 import { parseFrontmatter } from "./frontmatter.js";
 import { assertNoSymlinkSegments, assertSafeRelPath } from "./paths.js";
@@ -19,13 +20,14 @@ export type EditPageResult = {
 export async function editPage(
   root: MemoryRoot,
   relPath: string,
-  opts: EditPageOptions
+  opts: EditPageOptions, runtime: MemoryRuntime = {}
 ): Promise<EditPageResult> {
+  const fs = memoryFileSystem(runtime);
   const normalizedRelPath = assertSafeRelPath(relPath);
   const pagePath = path.join(root, normalizedRelPath);
-  const original = await readIfPresent(pagePath);
+  const original = await readIfPresent(pagePath, runtime);
   const tempRoot = path.join(root, ".tmp");
-  await assertNoSymlinkSegments(root, ".tmp");
+  await assertNoSymlinkSegments(root, ".tmp", runtime);
   await fs.mkdir(tempRoot, { recursive: true });
   const tempDir = await fs.mkdtemp(path.join(tempRoot, "poe-code-memory-edit-"));
   const tempPath = path.join(tempDir, path.basename(normalizedRelPath));
@@ -43,7 +45,7 @@ export async function editPage(
     const diff = await writePage(root, normalizedRelPath, parsed.body, {
       frontmatter: parsed.frontmatter as PageFrontmatter,
       reason: opts.reason
-    });
+    }, runtime);
 
     return {
       changed: true,
@@ -54,7 +56,8 @@ export async function editPage(
   }
 }
 
-async function readIfPresent(filePath: string): Promise<string | undefined> {
+async function readIfPresent(filePath: string, runtime: MemoryRuntime = {}): Promise<string | undefined> {
+  const fs = memoryFileSystem(runtime);
   try {
     return await fs.readFile(filePath, "utf8");
   } catch (error) {

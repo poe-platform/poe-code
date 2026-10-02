@@ -5,3 +5,5 @@ export type { DiscoveredSkill } from "./discover-skills-async.js";
 export { bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync } from "./bridge-active-skills-async.js";
 export type { BridgeEntry, BridgeManifest, BridgeWarning, BridgeWarningKind } from "./bridge-active-skills.js";
 export { appendExcludeBlockAsync, removeExcludeBlockAsync } from "./git-exclude-async.js";
+export { configure, unconfigure, installSkill, UnsupportedAgentError } from "./apply.js";
+export type { ApplyOptions, SkillFile } from "./types.js";

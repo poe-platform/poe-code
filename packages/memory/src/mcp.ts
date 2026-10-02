@@ -1,4 +1,5 @@
-import { createServer, defineSchema } from "tiny-stdio-mcp-server";
+import { createServer } from "#memory-platform";
+import { defineSchema } from "tiny-stdio-mcp-server/core";
 import type { JSONSchema, Server } from "tiny-stdio-mcp-server";
 import type { MemoryHandle } from "./handle.js";
 

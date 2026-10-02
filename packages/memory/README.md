@@ -2,6 +2,24 @@
 
 Repo-scoped persistent memory for poe-code projects. Memory lives at `<repo>/.poe-code/memory/` and stays agent-neutral: plain markdown pages, a generated index, an append-only log, an ingest cache, CLI commands, and an optional stdio MCP server.
 
+Use `openMemory({ root, fs })` with a `@poe-code/safe-fs` provider to keep pages, indexes, logs, and caches in that provider. Separate handles may use the same root with independent providers. Free storage functions accept a final `MemoryRuntime` argument, such as `snapshot(root, { fs })`.
+
+In Cloudflare Workers, supply `fs` explicitly. Agent operations also accept a `spawn` runner, and token-budget operations accept a `countTokens(text)` function. Node callers retain the host filesystem, agent runner, and tokenizer defaults. The MCP server exposes the portable protocol server in Workers and the stdio-capable server in Node.
+
+```ts
+import { openMemory } from "@poe-code/memory";
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
+
+const memory = openMemory({
+  root: "/project/.poe-code/memory",
+  fs: new MemoryFileSystem()
+});
+await memory.writePage("pages/architecture.md", "The API uses HTTP.", {
+  reason: "Record the interface"
+});
+const page = await memory.readPage("pages/architecture.md");
+```
+
 ## On-disk layout
 
 ```text

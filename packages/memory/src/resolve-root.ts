@@ -1,6 +1,8 @@
-import path from "node:path";
+import type { FileSystem as SafeFileSystem } from "@poe-code/safe-fs/contracts";
+import { memoryFileSystem } from "./filesystem.js";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import type { FileSystem } from "@poe-code/config-mutations";
-import { readMergedDocumentReadonly } from "@poe-code/poe-code-config/core";
+import { readMergedDocumentReadonly } from "@poe-code/poe-code-config/memory";
 import { resolveMemoryRoot } from "./paths.js";
 import type { MemoryRoot } from "./types.js";
 
@@ -9,7 +11,7 @@ export const MEMORY_ROOT_ENV_VAR = "POE_CODE_MEMORY_ROOT";
 export interface ResolveConfiguredMemoryRootOptions {
   cwd: string;
   env: Record<string, string | undefined>;
-  fs: FileSystem;
+  fs: FileSystem | SafeFileSystem;
   configPath: string;
   projectConfigPath?: string;
 }
@@ -17,13 +19,14 @@ export interface ResolveConfiguredMemoryRootOptions {
 export async function resolveConfiguredMemoryRoot(
   options: ResolveConfiguredMemoryRootOptions
 ): Promise<MemoryRoot> {
+  const fs = "capabilities" in options.fs ? memoryFileSystem({ fs: options.fs }) : options.fs;
   const envOverride = readOptionalString(options.env, MEMORY_ROOT_ENV_VAR)?.trim();
   if (envOverride && envOverride.length > 0) {
     return resolveAgainstCwd(options.cwd, envOverride);
   }
 
   const configOverride = readMemoryRoot(
-    await readMergedDocumentReadonly(options.fs, options.configPath, options.projectConfigPath)
+    await readMergedDocumentReadonly(fs, options.configPath, options.projectConfigPath)
   )?.trim();
   if (configOverride && configOverride.length > 0) {
     return resolveAgainstCwd(options.cwd, configOverride);

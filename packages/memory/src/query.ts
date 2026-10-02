@@ -1,12 +1,13 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
-import { countTokens } from "tokenfill";
-import { spawn } from "@poe-code/agent-spawn";
-import { resolveAgent } from "@poe-code/poe-code-config/core";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import { countTokens as defaultCountTokens } from "#memory-platform";
+import { defaultSpawn } from "#memory-platform";
+import { resolveAgent } from "@poe-code/poe-code-config/memory";
 import { MEMORY_AGENT_JSON_CONTRACT, parseMemoryAgentResponse } from "./agent-response.js";
 import { listPages } from "./pages.js";
 import { MEMORY_INDEX_RELPATH } from "./paths.js";
-import type { MemoryConfigOptions } from "@poe-code/poe-code-config/core";
+import type { MemoryConfigOptions } from "@poe-code/poe-code-config/memory";
 import type { MemoryPage, MemoryRoot, QueryOptions, QueryResult } from "./types.js";
 
 /**
@@ -22,8 +23,10 @@ export type QueryContext = {
   truncated: boolean;
 };
 
-export async function queryMemory(root: MemoryRoot, options: QueryOptions): Promise<QueryResult> {
-  const pages = await listPages(root);
+export async function queryMemory(root: MemoryRoot, options: QueryOptions, runtime: MemoryRuntime = {}): Promise<QueryResult> {
+  const fs = memoryFileSystem(runtime);
+  const spawn = runtime.spawn ?? defaultSpawn;
+  const pages = await listPages(root, runtime);
   if (pages.length === 0) {
     return {
       answer: "",
@@ -41,7 +44,7 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
   } satisfies MemoryConfigOptions;
   const agentId =
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
-  const context = await selectQueryContext(root, options.question, options.budget);
+  const context = await selectQueryContext(root, options.question, options.budget, runtime);
   const spawned = await spawn(agentId, {
     prompt: context.prompt,
     model: options.model,
@@ -61,15 +64,17 @@ export async function queryMemory(root: MemoryRoot, options: QueryOptions): Prom
 export async function selectQueryContext(
   root: MemoryRoot,
   question: string,
-  budget: number
+  budget: number, runtime: MemoryRuntime = {}
 ): Promise<QueryContext> {
+  const countTokens = runtime.countTokens ?? defaultCountTokens;
+  const fs = memoryFileSystem(runtime);
   if (!Number.isFinite(budget) || budget < 0) {
     throw new Error("budget must be a finite non-negative number");
   }
 
   const [indexText, pages] = await Promise.all([
     fs.readFile(path.join(root, MEMORY_INDEX_RELPATH), "utf8"),
-    listPages(root)
+    listPages(root, runtime)
   ]);
 
   const indexTokens = countTokens(indexText);

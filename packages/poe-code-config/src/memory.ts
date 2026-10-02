@@ -134,3 +134,5 @@ function readOptionalBoolean(value: unknown, field: string): boolean | undefined
   }
   return value;
 }
+
+export { readMergedDocumentReadonly } from "./store.js";

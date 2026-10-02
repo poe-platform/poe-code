@@ -1,5 +1,6 @@
-import * as fs from "node:fs/promises";
-import path from "node:path";
+import { memoryFileSystem, type MemoryRuntime } from "./filesystem.js";
+
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { hasOwnErrorCode } from "./errors.js";
 import { parseFrontmatter } from "./frontmatter.js";
 import {
@@ -11,26 +12,27 @@ import {
 } from "./paths.js";
 import type { MemoryPage, MemoryRoot } from "./types.js";
 
-export async function listPages(root: MemoryRoot): Promise<MemoryPage[]> {
-  return await readMarkdownFilesUnder(root, MEMORY_PAGES_DIR_RELPATH);
+export async function listPages(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<MemoryPage[]> {
+  return await readMarkdownFilesUnder(root, MEMORY_PAGES_DIR_RELPATH, runtime);
 }
 
-export async function listMemoryFiles(root: MemoryRoot): Promise<MemoryPage[]> {
-  return await readMarkdownFilesUnder(root, "");
+export async function listMemoryFiles(root: MemoryRoot, runtime: MemoryRuntime = {}): Promise<MemoryPage[]> {
+  return await readMarkdownFilesUnder(root, "", runtime);
 }
 
 async function readMarkdownFilesUnder(
   root: MemoryRoot,
-  startRelPath: string
+  startRelPath: string, runtime: MemoryRuntime = {}
 ): Promise<MemoryPage[]> {
-  const relPaths = await collectMarkdownRelPaths(root, startRelPath);
-  const pages = await Promise.all(relPaths.map(async (relPath) => readPage(root, relPath)));
+  const relPaths = await collectMarkdownRelPaths(root, startRelPath, runtime);
+  const pages = await Promise.all(relPaths.map(async (relPath) => readPage(root, relPath, runtime)));
   return pages.sort((left, right) => left.relPath.localeCompare(right.relPath));
 }
 
-export async function readPage(root: MemoryRoot, relPath: string): Promise<MemoryPage> {
+export async function readPage(root: MemoryRoot, relPath: string, runtime: MemoryRuntime = {}): Promise<MemoryPage> {
+  const fs = memoryFileSystem(runtime);
   const normalizedRelPath = assertMarkdownRelPath(relPath);
-  await assertNoSymlinkSegments(root, normalizedRelPath);
+  await assertNoSymlinkSegments(root, normalizedRelPath, runtime);
   const absPath = path.join(root, normalizedRelPath);
   const [content, stat] = await Promise.all([fs.readFile(absPath, "utf8"), fs.stat(absPath)]);
 
@@ -40,7 +42,7 @@ export async function readPage(root: MemoryRoot, relPath: string): Promise<Memor
       relPath: normalizedRelPath,
       frontmatter: parsed.frontmatter,
       body: parsed.body,
-      bytes: Buffer.byteLength(content),
+      bytes: new TextEncoder().encode(content).byteLength,
       mtimeMs: stat.mtimeMs
     };
   } catch (error) {
@@ -50,7 +52,7 @@ export async function readPage(root: MemoryRoot, relPath: string): Promise<Memor
       relPath: normalizedRelPath,
       frontmatter: {},
       body: content,
-      bytes: Buffer.byteLength(content),
+      bytes: new TextEncoder().encode(content).byteLength,
       mtimeMs: stat.mtimeMs
     };
   }
@@ -58,26 +60,27 @@ export async function readPage(root: MemoryRoot, relPath: string): Promise<Memor
 
 export async function collectMarkdownRelPaths(
   root: MemoryRoot,
-  startRelPath = ""
+  startRelPath = "", runtime: MemoryRuntime = {}
 ): Promise<string[]> {
   const normalizedStartRelPath = startRelPath.length === 0 ? "" : assertSafeRelPath(startRelPath);
-  await assertMemoryRootIsNotSymlink(root);
+  await assertMemoryRootIsNotSymlink(root, runtime);
   if (normalizedStartRelPath.length > 0) {
-    await assertNoSymlinkSegments(root, normalizedStartRelPath);
+    await assertNoSymlinkSegments(root, normalizedStartRelPath, runtime);
   } else {
-    await assertNoSymlinkSegments(root, MEMORY_PAGES_DIR_RELPATH);
+    await assertNoSymlinkSegments(root, MEMORY_PAGES_DIR_RELPATH, runtime);
   }
 
   const relPaths: string[] = [];
-  await collectMarkdownRelPathsInto(root, normalizedStartRelPath, relPaths);
+  await collectMarkdownRelPathsInto(root, normalizedStartRelPath, relPaths, runtime);
   return relPaths.sort((left, right) => left.localeCompare(right));
 }
 
 async function collectMarkdownRelPathsInto(
   root: MemoryRoot,
   currentRelPath: string,
-  relPaths: string[]
+  relPaths: string[], runtime: MemoryRuntime = {}
 ): Promise<void> {
+  const fs = memoryFileSystem(runtime);
   const absPath = path.join(root, currentRelPath);
 
   let entryNames: string[];
@@ -93,7 +96,7 @@ async function collectMarkdownRelPathsInto(
 
   for (const entryName of entryNames.sort((left, right) => left.localeCompare(right))) {
     const entryRelPath =
-      currentRelPath.length === 0 ? entryName : path.posix.join(currentRelPath, entryName);
+      currentRelPath.length === 0 ? entryName : path.join(currentRelPath, entryName);
     const entryAbsPath = path.join(root, entryRelPath);
     const entryStat = await fs.lstat(entryAbsPath);
 
@@ -106,7 +109,7 @@ async function collectMarkdownRelPathsInto(
         continue;
       }
 
-      await collectMarkdownRelPathsInto(root, entryRelPath, relPaths);
+      await collectMarkdownRelPathsInto(root, entryRelPath, relPaths, runtime);
       continue;
     }
 
@@ -133,7 +136,7 @@ function assertMarkdownRelPath(relPath: string): string {
 }
 
 function isMarkdownPath(relPath: string): boolean {
-  return path.posix.extname(relPath).toLowerCase() === ".md";
+  return path.extname(relPath).toLowerCase() === ".md";
 }
 
 function isMissing(error: unknown): boolean {

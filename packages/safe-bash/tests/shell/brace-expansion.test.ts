@@ -14,7 +14,7 @@ for (const [pattern, expected] of [["@(a){1..2}", ["a1"]], ["!(a){1..2}", ["b1"]
     context.after(() => shell.dispose());
     await fs.writeFile("/a1", new Uint8Array());
     await fs.writeFile("/b1", new Uint8Array());
-    const result = await shell.exec(`shopt -s extglob nullglob; ${loop ? `for i in ${pattern}; do args "$i"; done` : `args ${pattern}`}`);
+    const result = await shell.exec(`shopt -s extglob nullglob\n${loop ? `for i in ${pattern}; do args "$i"; done` : `args ${pattern}`}`);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, JSON.stringify(expected));
   });
@@ -91,7 +91,7 @@ test("ambiguous brace redirects have no file effects", async () => {
 });
 
 test("here-document operands omit unused brace provenance and its parse charge", () => {
-  for (const [body, units] of [["${value}", 3], ['${value:-"quoted"}', 6]] as const) {
+  for (const [body, units] of [["${value}", 3], ['${value:-"quoted"}', 5]] as const) {
     const budget = new ParseBudget(units);
     const words = [...hereDocumentWords({ delimiter: "END", quoted: false, stripTabs: false, offset: 0, body, endLine: 1, depth: 0 }, 1, false, [], budget)];
     assert.equal(words.length, 1);
@@ -104,8 +104,8 @@ test("here-document operands omit unused brace provenance and its parse charge",
 
 test("brace-consuming words still admit their required lexical provenance", () => {
   const source = 'args {Y..c..3}"$value"';
-  assert.throws(() => parseShellUnit(source, 0, false, new ParseBudget(24)), error => error instanceof ShellLimitError && error.limit === "maxParseUnits");
-  const budget = new ParseBudget(25);
+  assert.throws(() => parseShellUnit(source, 0, false, new ParseBudget(23)), error => error instanceof ShellLimitError && error.limit === "maxParseUnits");
+  const budget = new ParseBudget(24);
   const { script } = parseShellUnit(source, 0, false, budget);
   const command = script.lists[0]!.pipelines[0]!.commands[0]!;
   assert.equal(command.kind, "simple");

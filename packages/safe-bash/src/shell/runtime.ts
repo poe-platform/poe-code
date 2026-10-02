@@ -16684,7 +16684,7 @@ export class Runtime {
             const s0 = specs[0]!;
             const s1 = sLen === 2 ? specs[1]! : undefined;
             const lastSt = bodyAssignments[sLen - 1]!;
-            const lastStArg = lastSt.cmd.kind === "simple" ? (lastSt.cmd.words[lastSt.cmd.words.length - 1]?.plain ?? "]") : "";
+            const lastStArg = lastSt.cmd.kind === "simple" ? (lastSt.cmd.words[lastSt.cmd.words.length - 1]?.plain ?? "]") : progress.lastArg;
             if (s1 === undefined || s0.intVar === undefined) {
               const rem = limit - (curInd + 1);
               const lastK = limit - 1;

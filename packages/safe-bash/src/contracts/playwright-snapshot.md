@@ -24,14 +24,14 @@ status, count, node identities and rendered text cross the transport; actions un
 node for a ref, not a fresh name-based locator. Renaming or duplicate names do not
 change ref identity. A failed capture publishes no partial snapshot or refs.
 
-Controller snapshots use a 30-second native capture deadline by default, including
+Controller snapshots have no native capture deadline by default, including
 snapshots returned after actions. Set `timeouts.snapshot` in the JSON or INI browser
 configuration to choose a separate snapshot deadline; `0` disables that deadline.
 Without this override, an explicitly configured `timeouts.action` or SDK
 `limits.actionTimeoutMs` remains the snapshot deadline. `config-print` reports the
 effective snapshot timeout. Caller cancellation still applies, including when the
 deadline is disabled. Optional reference limits are independent of this timeout.
-Snapshots have no byte limit; legacy `maxSnapshotBytes` values are ignored.
+Snapshot bytes are unlimited by default. Set `maxSnapshotBytes` to enforce an explicit UTF-8 output budget; a limit refusal leaves the healthy browser session usable.
 
 A timeout does not mean the browser or agent loop has stopped. Inspect the session
 and page before retrying; a warm retry alone does not verify cold-capture behavior.

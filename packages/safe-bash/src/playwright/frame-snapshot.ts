@@ -1,13 +1,13 @@
 import type { SnapshotContentNode, SnapshotNode } from './adapter.js';
 
 export interface FrameSnapshotInput {
-  /** @deprecated Ignored. Snapshots have no byte limit. */
+  /** Optional UTF-8 snapshot output budget; omission means unlimited. */
   readonly maxSnapshotBytes?: number;
   readonly maxSnapshotRefs: number;
 }
 
 export type FrameSnapshotStatus = 'ok' | 'ref-limit' | 'invalid-input' | 'failed';
-export type FrameSnapshotRenderStatus = FrameSnapshotStatus | 'invalid-refs';
+export type FrameSnapshotRenderStatus = FrameSnapshotStatus | 'invalid-refs' | 'byte-limit';
 
 export interface FrameSnapshotRenderResult {
   readonly status: FrameSnapshotRenderStatus;
@@ -28,6 +28,7 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
     querySelectorAll(selector: string): ArrayLike<SnapshotNode>;
   };
   const maxSnapshotRefs = input?.maxSnapshotRefs;
+  const maxSnapshotBytes = input?.maxSnapshotBytes ?? Infinity;
   const nodes: SnapshotNode[] = [];
   let document: SnapshotDocument;
   const capsule = {
@@ -202,6 +203,7 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
           }
           output.append('\n');
         }
+        if (maxSnapshotBytes !== Infinity && new TextEncoder().encode(text).byteLength > maxSnapshotBytes) return { status: 'byte-limit', text: '' };
         return { status: 'ok', text };
       } catch {
         return { status: 'failed', text: '' };
@@ -209,7 +211,7 @@ export function createFrameSnapshot(input: FrameSnapshotInput): FrameSnapshotCap
     },
   };
   try {
-    if ((maxSnapshotRefs !== Infinity && !Number.isSafeInteger(maxSnapshotRefs)) || maxSnapshotRefs < 0) {
+    if ((maxSnapshotBytes !== Infinity && !Number.isSafeInteger(maxSnapshotBytes)) || maxSnapshotBytes < 0 || (maxSnapshotRefs !== Infinity && !Number.isSafeInteger(maxSnapshotRefs)) || maxSnapshotRefs < 0) {
       capsule.status = 'invalid-input';
       return capsule;
     }

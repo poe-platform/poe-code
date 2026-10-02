@@ -206,8 +206,9 @@ has a separate first-build incompatibility with unused peer Electron assets in
 the qualified versions. See the [runtime qualification](docs/runtime-qualification.md)
 for the tested versions, restart results and diagnostic boundaries.
 
-Text and structured snapshots have no byte limit, including when an older caller
-passes `maxSnapshotBytes` or snapshot-capture `maxBytes`. Structured snapshots
+Text and structured snapshots are unlimited by default. Explicit `maxSnapshotBytes`
+or snapshot-capture `maxBytes` budgets limit UTF-8 output and preserve the healthy
+browser session on refusal. Structured snapshots
 traverse all captured frames and transfer JSON as text so large trees avoid CDP
 per-property serialization overhead. Native reference identities remain actionable.
 

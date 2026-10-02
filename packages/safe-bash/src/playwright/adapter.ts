@@ -1,4 +1,4 @@
-import { PlaywrightResourceLimitError } from './resource-limit.js';
+import { PlaywrightResourceLimitError, PlaywrightSnapshotLimitError } from './resource-limit.js';
 import { canonicalPlaywrightDevices } from './devices.js';
 import { bindPlaywrightStorageContext } from './native-storage-replacement.js';
 import type { FrameSnapshotCapsule, FrameSnapshotInput } from './frame-snapshot.js';
@@ -362,8 +362,8 @@ export interface PlaywrightSnapshotJSONNode {
   readonly cursor?: 'pointer';
   readonly box?: { readonly x: number; readonly y: number; readonly width: number; readonly height: number };
 }
-/** Snapshot byte limits are ignored. Providers receive maxBytes: Infinity for compatibility. */
-export type PlaywrightSnapshotJSONCapture = (page: PlaywrightPage, options: { readonly signal: AbortSignal; readonly timeoutMs: number; readonly maxBytes: number; readonly boxes?: boolean }) => Promise<readonly PlaywrightSnapshotJSONNode[]>;
+/** Providers honor explicit snapshot output budgets; omission means unlimited. */
+export type PlaywrightSnapshotJSONCapture = (page: PlaywrightPage, options: { readonly signal: AbortSignal; readonly timeoutMs: number; readonly maxBytes?: number | undefined; readonly boxes?: boolean }) => Promise<readonly PlaywrightSnapshotJSONNode[]>;
 
 /** Host-owned immutable identity witnesses, in requested ref order. No browser resources
  * may be retained by the batch. resolve returns an owned handle only if it still denotes
@@ -539,11 +539,14 @@ export function createPlaywrightAdapter(sources: Partial<Record<BrowserEngine, P
           ...(resource.captureSnapshotJSON ? { captureSnapshotJSON: ((page, captureOptions) => {
             if (closed || releasing) return Promise.reject(new Error('Playwright lease is closed'));
             captureOptions.signal.throwIfAborted();
-            const ownedOptions = Object.freeze({ ...captureOptions, maxBytes: Infinity });
+            const maxBytes = captureOptions.maxBytes ?? Infinity;
+            if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) return Promise.reject(new TypeError('Invalid Playwright snapshot byte limit'));
+            const ownedOptions = Object.freeze({ ...captureOptions, maxBytes });
             const operation = Promise.resolve().then(async () => {
               ownedOptions.signal.throwIfAborted();
               const result = await resource.captureSnapshotJSON!(page, ownedOptions);
               ownedOptions.signal.throwIfAborted();
+              if (maxBytes !== Infinity && new TextEncoder().encode(JSON.stringify(result)).byteLength > maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
               return result;
             });
             captures.add(operation);

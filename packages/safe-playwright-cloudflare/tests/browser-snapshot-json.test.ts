@@ -22,7 +22,7 @@ for (const nested of [false, true]) test(`JSON serialization admits more than 20
 	expect(buttons).toHaveLength(20001);
 	expect(buttons[0]).toMatchObject({ name: "Probe0", ref: "e0" });
 	expect(buttons[20000]).toMatchObject({ name: "Probe20000", ref: "e20000" });
-  expect(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false })).toEqual(serializeNativeSnapshot(injected, { maxBytes: Infinity, boxes: false }));
+  expect(() => serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false })).toThrow("Snapshot byte limit exceeded");
 });
 
 test.each([0, Infinity])("unlimited snapshot timeout %s allows asynchronous capture and preserves caller cancellation", async timeoutMs => {
@@ -69,11 +69,11 @@ test("does not impose a frame count cap before native snapshot work", async () =
 	expect(snapshot).toHaveBeenCalledOnce();
 });
 
-for (const nested of [false, true]) test(`JSON capture retains later siblings beyond legacy byte limits with nested=${nested}`, () => {
+for (const nested of [false, true]) test(`JSON capture retains later siblings with omitted byte limits with nested=${nested}`, () => {
   const children = ["oversized first child".repeat(100)];
   children.push("last child");
   const node = { role: "group", name: "", props: {}, box: {}, children };
   const injected = { _lastAriaSnapshotForQuery: { root: { children: nested ? [node] : children }, iframeRefs: [] } } as unknown as NativeSnapshotScript;
-  const result = JSON.parse(serializeNativeSnapshot(injected, { maxBytes: 128, boxes: false }));
+  const result = JSON.parse(serializeNativeSnapshot(injected, { boxes: false }));
   expect(result.nodes).toEqual(nested ? [{ role: "group", children }] : children.map(text => ({ role: "text", text })));
 });

@@ -626,7 +626,7 @@ for (const limits of [undefined, { maxArtifactBytes: 1024 }]) test(`omitted sess
 });
 
 for (const kind of ['bytes', 'refs'] as const) {
-  for (const profile of ['omitted', 'partial', 'explicit']) test(`snapshot ${kind === 'bytes' ? 'byte limits are ignored' : 'ref limits are opt-in'}: ${profile}`, async () => {
+  for (const profile of ['omitted', 'partial', 'explicit']) test(`snapshot ${kind} limits are opt-in: ${profile}`, async () => {
     const limited = profile === 'explicit';
     const f = fixture();
     let visible = kind === 'refs' ? 1001 : 1;
@@ -656,8 +656,8 @@ for (const kind of ['bytes', 'refs'] as const) {
     try {
       await run(['open']);
       output = '';
-      if (limited && kind === 'refs') {
-        await assert.rejects(run(['snapshot']), /Snapshot ref limit exceeded/);
+      if (limited) {
+        await assert.rejects(run(['snapshot']), /Snapshot (byte|ref) limit exceeded/);
         assert.equal(output, '');
         assert.equal(disposed.length, handles.length);
         name = 'Recovered'; visible = 1;
@@ -705,10 +705,10 @@ for (const limits of [undefined, { maxSessions: 1 }, { maxArtifactBytes: 17 }]) 
   } finally { await controller.dispose(); }
 });
 
-for (const key of ['maxSessions', 'maxTabs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'actionTimeoutMs'] as const) test(`${key === 'maxSnapshotBytes' ? 'ignored legacy setting' : 'positive safe explicit limit'}: ${key}`, () => {
+for (const key of ['maxSessions', 'maxTabs', 'maxSnapshotBytes', 'maxSnapshotRefs', 'maxArtifactBytes', 'actionTimeoutMs'] as const) test(`positive safe explicit limit: ${key}`, () => {
   const f = fixture();
   for (const value of [0, -1, 1.5, Infinity, NaN]) {
-    if (key === 'maxSnapshotBytes' || value === Infinity || (key === 'actionTimeoutMs' && value === 0)) assert.doesNotThrow(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }));
+    if (value === Infinity || (key === 'actionTimeoutMs' && value === 0)) assert.doesNotThrow(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }));
     else assert.throws(() => createPlaywrightController({ adapter: f.adapter, limits: { [key]: value } }), /Invalid Playwright limit/);
   }
 });

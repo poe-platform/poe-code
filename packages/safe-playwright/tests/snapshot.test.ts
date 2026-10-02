@@ -28,13 +28,13 @@ test('shared snapshot binds identical elements and frames to distinct handles, w
   await assert.rejects(engine.resolve('e1'), /stale/);
 });
 
-test('legacy snapshot byte limits allow full text and actionable refs', async () => {
+test('explicit snapshot byte limits reject text and dispose unpublished refs', async () => {
   const f = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1, maxSnapshotRefs: 10 });
-  assert.equal(await engine.capture(f.page), '- button "Same" [ref=e1]\n- button "Same" [ref=e2]\n- button "Same" [ref=e3]\n');
-  await (await engine.resolve('e3')).click();
+  await assert.rejects(engine.capture(f.page), /Snapshot byte limit exceeded/);
+  await assert.rejects(engine.resolve('e3'), /stale/);
   await engine.invalidate();
-  assert.equal(f.actions.filter(a => a.startsWith('dispose:')).length, 3);
+  assert.deepEqual(f.actions.filter(a => a.startsWith('dispose:')), ['dispose:0', 'dispose:1']);
   await assert.rejects(engine.resolve('e1'), /stale/);
   const refs = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 1 });
   await assert.rejects(refs.capture(f.page), /limit/);

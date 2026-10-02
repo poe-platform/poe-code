@@ -23,7 +23,7 @@ Browser resources and action duration are unlimited by default. Each optional co
 
 Explicit `Infinity` also disables each limit; `actionTimeoutMs: 0` disables the action timeout.
 
-Snapshots have no byte limit. Legacy `limits.maxSnapshotBytes` values are ignored.
+Snapshot bytes are unlimited by default. Set `limits.maxSnapshotBytes` to enforce an explicit UTF-8 output budget; a limit refusal leaves the healthy browser session usable.
 
 `billing` is unsupported and rejected. Invocations provide `args`, `env`, `signal`,
 `write(text)` and optional `writeArtifact(bytes, filename)` and `registerCleanup`.

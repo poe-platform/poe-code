@@ -452,10 +452,11 @@ test('middleware denial prevents effects and preserves command and pipeline stat
   await f.shell.dispose();
 });
 
-test('initial snapshots ignore legacy byte limits and tab limits leave sessions usable', async () => {
+test('initial snapshot byte limits and tab limits leave sessions usable', async () => {
   const limited = interactiveFixture({ maxSnapshotBytes: 1 }); await limited.fs.mkdir('/work');
   const opened = await limited.shell.exec('playwright-cli open');
-  assert.equal(opened.exitCode, 0, opened.stderr);
+  assert.equal(opened.exitCode, 1, opened.stderr);
+  assert.match(opened.stderr, /Snapshot byte limit exceeded/);
   assert.equal(limited.controller.inspectSessions().length, 1);
   assert.equal(limited.events.filter(event => event === 'release').length, 0);
   assert.equal((await limited.shell.exec('playwright-cli tab-list')).exitCode, 0);

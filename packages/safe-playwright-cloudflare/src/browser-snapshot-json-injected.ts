@@ -96,5 +96,6 @@ export function serializeNativeSnapshot(
 		entry.parent.push(result);
 		if (result.children) pending.push({ children: node.children, index: 0, parent: result.children });
 	}
+	if (options.maxBytes !== undefined && options.maxBytes !== Infinity && new TextEncoder().encode(JSON.stringify(nodes)).byteLength > options.maxBytes) throw new Error('Snapshot byte limit exceeded');
 	return JSON.stringify({ nodes, iframeRefs: snapshot.iframeRefs });
 }

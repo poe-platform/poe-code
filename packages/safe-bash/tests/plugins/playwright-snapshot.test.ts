@@ -63,12 +63,12 @@ test('snapshot reports native input roles, checked states and current values, bu
   assert.ok(text.includes('- searchbox "" [ref=e7] [value="query"]'));
 });
 
-test('readable content ignores legacy byte limits and retires previously issued refs', async () => {
+test('readable content enforces UTF-8 byte limits and retires previously issued refs', async () => {
   const node = { tagName: 'BUTTON', textContent: 'Save', getAttribute: () => null };
   const fixture = contentFixture([node], '');
   const engine = createSnapshotEngine({ maxSnapshotBytes: 64, maxSnapshotRefs: 1 });
   await engine.capture(fixture.page);
-  assert.equal(await engine.capture(contentFixture([], '😀'.repeat(20)).page), `- text "${'😀'.repeat(20)}"\n`);
+  await assert.rejects(engine.capture(contentFixture([], '😀'.repeat(20)).page), /Snapshot byte limit exceeded/);
   assert.deepEqual(fixture.disposed, []);
   assert.deepEqual(fixture.snapshot.acquiredElements, []);
   assert.deepEqual(fixture.snapshot.disposedCapsules, fixture.snapshot.capsules);
@@ -142,9 +142,9 @@ test('shared snapshot binds identical elements and frames to distinct handles, w
   await assert.rejects(engine.resolve('e1'), /not found|stale/);
 });
 
-test('legacy snapshot byte limits permit complete output and actionable refs', async () => {
+test('omitted snapshot byte limits permit complete output and actionable refs', async () => {
   const f = fixture();
-  const engine = createSnapshotEngine({ maxSnapshotBytes: 1, maxSnapshotRefs: 10 });
+  const engine = createSnapshotEngine({ maxSnapshotRefs: 10 });
   assert.equal(await engine.capture(f.page), '- button "Same" [ref=e1]\n- button "Same" [ref=e2]\n- button "Same" [ref=e3]\n');
   await (await engine.resolve('e3')).click();
   assert.deepEqual(f.actions, ['click:2']);

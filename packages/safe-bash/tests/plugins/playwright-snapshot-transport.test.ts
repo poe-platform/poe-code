@@ -34,7 +34,7 @@ test('snapshot keeps nodes in a non-node capsule and unwraps only the selected a
   const current = fixture();
   const engine = createSnapshotEngine({ maxSnapshotBytes: 1024, maxSnapshotRefs: 3 });
   assert.equal(await engine.capture(current.page), '- button "Save" [ref=e1]\n');
-  assert.deepEqual(current.inputs, [{ maxSnapshotRefs: 3 }]);
+  assert.deepEqual(current.inputs, [{ maxSnapshotBytes: 1024, maxSnapshotRefs: 3 }]);
   assert.deepEqual(current.events, []);
   await (await engine.resolve('e1')).click();
   await engine.resolve('e1');
@@ -44,12 +44,12 @@ test('snapshot keeps nodes in a non-node capsule and unwraps only the selected a
   assert.equal(current.events.filter(event => event === 'native-dispose').length, 1);
 });
 
-test('snapshot admits each frame against remaining refs without a byte budget', async () => {
+test('snapshot admits each frame against remaining byte and ref budgets', async () => {
   const first = fixture('first\n'); const second = fixture('second\n');
   const page = { frames: () => [first.frame, second.frame] } as unknown as PlaywrightPage;
-  const engine = createSnapshotEngine({ maxSnapshotBytes: 1, maxSnapshotRefs: 2 });
+  const engine = createSnapshotEngine({ maxSnapshotBytes: 13, maxSnapshotRefs: 2 });
   assert.equal(await engine.capture(page), 'first\nsecond\n');
-  assert.deepEqual(second.inputs, [{ maxSnapshotRefs: 1 }]);
+  assert.deepEqual(second.inputs, [{ maxSnapshotBytes: 7, maxSnapshotRefs: 1 }]);
   await engine.invalidate();
   assert.deepEqual(first.events, ['capsule-dispose']);
   assert.deepEqual(second.events, ['capsule-dispose']);
@@ -64,11 +64,11 @@ test('browser capture failure disposes capsules without exporting nodes or parti
   await assert.rejects(engine.resolve('e1'), /not found|stale/);
 });
 
-test('host accepts complete UTF-8 output and validates capsule counts', async () => {
+test('host enforces UTF-8 output budgets and validates capsule counts', async () => {
   for (const text of ['x'.repeat(33), '😀'.repeat(9)]) {
     const current = fixture(text);
     const engine = createSnapshotEngine({ maxSnapshotBytes: 32, maxSnapshotRefs: 1 });
-    assert.equal(await engine.capture(current.page), text);
+    await assert.rejects(engine.capture(current.page), /Snapshot byte limit exceeded/);
     await engine.invalidate();
     assert.deepEqual(current.events, ['capsule-dispose']);
   }

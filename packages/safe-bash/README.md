@@ -744,8 +744,9 @@ including an authenticated agent ID different from the target name. Explicit
 [host capability contract](src/contracts/playwright-sessions.md#persistence).
 Hosts accepting direct browser activity can call `renewSession({ name, context })`
 to renew that exact retained session's idle deadline without browser commands.
-Browser snapshots have no byte limit, including automatic snapshots after
-navigation. Legacy `maxSnapshotBytes` settings are ignored.
+Browser snapshots are unlimited by default, including automatic snapshots after
+navigation. Set `maxSnapshotBytes` to enforce a UTF-8 output budget; refusal keeps
+the healthy browser session available for inspection and scoped snapshots.
 Pass `onSnapshot` to `createPlaywrightCli` or `createPlaywrightController` to inspect
 navigation response headers and call `recapture()` before publishing YAML or JSON.
 Page URL, title and console events reflect changes made by the hook. Recaptures

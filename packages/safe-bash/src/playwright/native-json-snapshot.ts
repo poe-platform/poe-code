@@ -5,7 +5,7 @@ import { isPlaywrightSnapshotRef } from './targets.js';
 
 /** Serialize the native accessibility tree, keeping controller-issued refs. */
 export async function captureNativePlaywrightJSON(page: PlaywrightPage, options: {
-  /** @deprecated Ignored. Snapshots have no byte limit. */
+  /** Optional UTF-8 snapshot output budget; omission means unlimited. */
   maxBytes?: number;
   maxDepth?: number | undefined;
   maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
@@ -18,7 +18,7 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   if (!page.ariaSnapshotJSON && !options.captureJSON) throw new Error('Native JSON accessibility snapshots unsupported by this browser');
   const tree = page.ariaSnapshotJSON
     ? await page.ariaSnapshotJSON({ mode: 'ai', timeout: playwrightNativeTimeout(options.timeout), ...(options.boxes === undefined ? {} : { boxes: options.boxes }) })
-    : await options.captureJSON!(page, { signal, timeoutMs: playwrightNativeTimeout(options.timeout), maxBytes: Infinity, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
+    : await options.captureJSON!(page, { signal, timeoutMs: playwrightNativeTimeout(options.timeout), maxBytes: options.root || options.depth ? Infinity : options.maxBytes ?? Infinity, ...(options.boxes === undefined ? {} : { boxes: options.boxes }) });
   signal.throwIfAborted();
   const encoded = JSON.stringify(tree);
   if (typeof encoded !== 'string') throw new Error('Invalid native JSON snapshot');
@@ -88,5 +88,6 @@ export async function captureNativePlaywrightJSON(page: PlaywrightPage, options:
   };
   const result = rewrite(selected, 0).filter((node): node is PlaywrightSnapshotJSONNode => typeof node !== 'string');
   signal.throwIfAborted();
+  if (options.maxBytes !== undefined && options.maxBytes !== Infinity && new TextEncoder().encode(JSON.stringify(result)).byteLength > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   return { tree: result, refs };
 }

@@ -228,7 +228,7 @@ test('large id, class and unrelated attributes never enter snapshot extraction',
 });
 
 for (const field of ['body', 'aria-label', 'value', 'role', 'text', 'labels', 'labelledby', 'title', 'placeholder']) {
-  test(`complete ${field} survives a legacy byte limit without truncation`, () => {
+  test(`complete ${field} survives omitted byte limits without truncation`, () => {
     const huge = 'x'.repeat(300 * 1024);
     const attributes = ['aria-label', 'role', 'title', 'placeholder'].includes(field) ? { [field]: huge } : {};
     if (field === 'labelledby') attributes['aria-labelledby'] = 'label';
@@ -239,30 +239,30 @@ for (const field of ['body', 'aria-label', 'value', 'role', 'text', 'labels', 'l
       ...(field === 'labels' ? { labels: [{ textContent: huge }] } : {}),
       ...(field === 'labelledby' ? { ownerDocument: { defaultView: null, getElementById: () => ({ textContent: huge }) } } : {}),
     });
-    const current = fixture([original], field === 'body' ? huge : '', { maxSnapshotBytes: 64, maxSnapshotRefs: 1 });
+    const current = fixture([original], field === 'body' ? huge : '', { maxSnapshotRefs: 1 });
     const rendered = current.render(['e1']);
     assert.equal(rendered.status, 'ok');
     assert.ok(rendered.text.includes(huge));
   });
 }
 
-test('complete escaped UTF-8 output and state survive legacy byte budgets', () => {
+test('explicit byte budgets measure complete escaped UTF-8 output', () => {
   const original = element({ role: 'custom"\n', 'aria-label': '  é😀"\\\n  ' });
   const body = 'hé😀\u0000';
   const expected = `- text ${JSON.stringify(body)}\n- ${JSON.stringify('custom"\n').slice(1, -1)} ${JSON.stringify('é😀"\\')} [ref=e123456]\n`;
   const bytes = Buffer.byteLength(expected);
   assert.equal(fixture([original], body, { maxSnapshotBytes: bytes, maxSnapshotRefs: 1 }).render(['e123456']).text, expected);
-  assert.equal(fixture([original], body, { maxSnapshotBytes: 1, maxSnapshotRefs: 1 }).render(['e123456']).text, expected);
+  assert.equal(fixture([original], body, { maxSnapshotBytes: bytes - 1, maxSnapshotRefs: 1 }).render(['e123456']).status, 'byte-limit');
   const input = element({}, { tagName: 'INPUT', value: '\u0000é😀"\\' });
   const rendered = fixture([input]).render(['e1']).text;
   assert.equal(fixture([input], '', { maxSnapshotBytes: Buffer.byteLength(rendered), maxSnapshotRefs: 1 }).render(['e1']).text, rendered);
-  assert.equal(fixture([input], '', { maxSnapshotBytes: 1, maxSnapshotRefs: 1 }).render(['e1']).text, rendered);
+  assert.equal(fixture([input], '', { maxSnapshotBytes: Buffer.byteLength(rendered) - 1, maxSnapshotRefs: 1 }).render(['e1']).status, 'byte-limit');
 });
 
-test('aggregate output includes every element regardless of legacy byte budget', () => {
+test('explicit byte budgets apply to aggregate output', () => {
   const single = fixture([element()]).render(['e1']).text;
   const current = fixture([element(), element()], '', { maxSnapshotBytes: Buffer.byteLength(single), maxSnapshotRefs: 2 });
-  assert.deepEqual(current.render(['e1', 'e2']), { status: 'ok', text: single + single.replace('e1', 'e2') });
+  assert.deepEqual(current.render(['e1', 'e2']), { status: 'byte-limit', text: '' });
 });
 
 test('R+1 count rejects without retaining or inspecting any candidate nodes', () => {
@@ -278,22 +278,22 @@ test('R+1 count rejects without retaining or inspecting any candidate nodes', ()
   assert.equal(fixture([element()], '', { maxSnapshotBytes: 1024, maxSnapshotRefs: 1 }).capsule.count, 1);
 });
 
-test('zero legacy byte budgets permit text while zero ref budgets reject refs', () => {
+test('zero remaining byte and ref budgets reject additional output', () => {
   const limits = { maxSnapshotBytes: 0, maxSnapshotRefs: 0 };
   assert.deepEqual(fixture([], '', limits).render([]), { status: 'ok', text: '' });
-  assert.deepEqual(fixture([], 'text', limits).render([]), { status: 'ok', text: '- text "text"\n' });
+  assert.deepEqual(fixture([], 'text', limits).render([]), { status: 'byte-limit', text: '' });
   assert.equal(fixture([element()], '', limits).capsule.status, 'ref-limit');
 });
 
 test('invalid limits and mismatched refs return fixed statuses without page strings', () => {
   for (const value of [-1, 0.5, NaN, Number.MAX_SAFE_INTEGER + 1]) {
-    for (const key of ['maxSnapshotRefs']) {
+    for (const key of ['maxSnapshotBytes', 'maxSnapshotRefs']) {
       const current = fixture([], '', { maxSnapshotBytes: 1024, maxSnapshotRefs: 1, [key]: value });
       assert.equal(current.capsule.status, 'invalid-input');
       assert.deepEqual(current.render([]), { status: 'invalid-input', text: '' });
     }
   }
-  const current = fixture([element()]);
+  const current = fixture([element()], '', { maxSnapshotRefs: 1 });
   assert.deepEqual(current.render([]), { status: 'invalid-refs', text: '' });
   assert.deepEqual(current.render(['e1', 'e2']), { status: 'invalid-refs', text: '' });
   assert.equal(current.render(['x'.repeat(8192)]).text, `- button "Save" [ref=${'x'.repeat(8192)}]\n`);
@@ -311,7 +311,7 @@ test('retained identity survives replacement and preserves complete later field 
   const attributes = { 'aria-label': 'Original' };
   const original = element(attributes);
   const nodes = [original];
-  const current = fixture(nodes, '', { maxSnapshotBytes: 64, maxSnapshotRefs: 1 });
+  const current = fixture(nodes, '', { maxSnapshotRefs: 1 });
   nodes[0] = element({ 'aria-label': 'Replacement' });
   assert.equal(current.capsule.nodes[0], original);
   assert.equal(current.render(['e1']).text, '- button "Original" [ref=e1]\n');

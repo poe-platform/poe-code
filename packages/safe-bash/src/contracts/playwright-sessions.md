@@ -37,8 +37,9 @@ the user to a dashboard or login window through that command. The standard
 command vocabulary is retained; a configured dashboard ability is reported as
 supported without implying an authenticated website profile.
 
-Snapshots have no byte limit. Legacy `limits.maxSnapshotBytes` values are ignored,
-including on automatic snapshots after navigation. Reference counts are unlimited
+Snapshot bytes are unlimited by default. Explicit `limits.maxSnapshotBytes` budgets
+apply to UTF-8 output, including automatic snapshots after navigation; refusal
+preserves the healthy browser session. Reference counts are unlimited
 by default; `limits.maxSnapshotRefs` remains an optional reference cap. Other
 controller and provider resource limits still apply.
 

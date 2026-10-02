@@ -5,7 +5,7 @@ import { isPlaywrightSnapshotRef } from './targets.js';
 /** Use the pinned provider's own accessibility tree; externally issued refs stay
  * scoped to the controller even when native engines reuse short e1-style IDs. */
 export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, options: {
-  /** @deprecated Ignored. Snapshots have no byte limit. */
+  /** Optional UTF-8 snapshot output budget; omission means unlimited. */
   maxBytes?: number;
   maxRefs: number; nextRef(native?: string): string; signal?: AbortSignal;
   prepareNextRef?: () => Promise<(native?: string) => string>;
@@ -99,6 +99,7 @@ export async function captureNativePlaywrightSnapshot(page: PlaywrightPage, opti
     }
   }
   text += snapshot.slice(start);
+  if (options.maxBytes !== undefined && options.maxBytes !== Infinity && new TextEncoder().encode(text).byteLength > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
   return { text, refs };
 }
 

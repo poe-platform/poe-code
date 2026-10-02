@@ -18,18 +18,18 @@ test("native text retains compact leaf and mixed-child representations", () => {
   expect(JSON.parse(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: Infinity, boxes: false })).nodes).toEqual([
     { role: "generic", children: ["Before", { role: "paragraph", text: "Hello" }, "After"] },
   ]);
-  expect(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: 10, boxes: false })).toEqual(serializeNativeSnapshot(snapshot([mixed]), { maxBytes: Infinity, boxes: false }));
+  expect(() => serializeNativeSnapshot(snapshot([mixed]), { maxBytes: 10, boxes: false })).toThrow("Snapshot byte limit exceeded");
 });
 
-test("legacy JSON byte budgets do not truncate or reject snapshots", () => {
+test("explicit JSON byte budgets admit exactly the selected UTF-8 size", () => {
   const tree = snapshot([{ role: "generic", name: "", props: {}, box: {}, children: ["Before", { role: "button", name: "Save", props: {}, box: {}, children: [] }, "After"] }]);
   const result = serializeNativeSnapshot(tree, { maxBytes: Infinity, boxes: false });
   const bytes = new TextEncoder().encode(JSON.stringify(JSON.parse(result).nodes)).length;
   expect(serializeNativeSnapshot(tree, { maxBytes: bytes, boxes: false })).toEqual(result);
-  expect(serializeNativeSnapshot(tree, { maxBytes: 1, boxes: false })).toEqual(result);
+  expect(() => serializeNativeSnapshot(tree, { maxBytes: bytes - 1, boxes: false })).toThrow("Snapshot byte limit exceeded");
 });
 
-test.each([Infinity, 1])("snapshot traversal admits 129 child frames with byte budget %s", async maxBytes => {
+test.each([Infinity, undefined])("snapshot traversal admits 129 child frames with byte budget %s", async maxBytes => {
   const refs = Array.from({ length: 129 }, (_, index) => `frame-${index}`);
   const frame = (tree: NativeSnapshotScript) => ({
     _utilityContext: async () => ({ injectedScript: async () => ({
@@ -50,7 +50,7 @@ test.each([Infinity, 1])("snapshot traversal admits 129 child frames with byte b
   expect(result.every(node => node.children?.length === 1)).toBe(true);
 });
 
-test("public capture ignores legacy output byte budgets", async () => {
+test("public capture enforces explicit output byte budgets", async () => {
   const tree = snapshot([{ role: "button", name: "Save", children: [], props: {}, box: {} }]);
   const root = { _utilityContext: async () => ({ injectedScript: async () => ({
     evaluate: async (fn: typeof serializeNativeSnapshot, options: { maxBytes: number; boxes: boolean }) => fn(tree, options),
@@ -60,7 +60,7 @@ test("public capture ignores legacy output byte budgets", async () => {
   const result = await captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, options);
   const bytes = new TextEncoder().encode(JSON.stringify(result)).length;
   expect(await captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, { ...options, maxBytes: bytes })).toEqual(result);
-  expect(await captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, { ...options, maxBytes: 1 })).toEqual(result);
+  await expect(captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, { ...options, maxBytes: bytes - 1 })).rejects.toThrow("Snapshot byte limit exceeded");
   expect(await captureBrowserSnapshotJSON(page as unknown as PlaywrightPage, options)).toEqual(result);
 });
 

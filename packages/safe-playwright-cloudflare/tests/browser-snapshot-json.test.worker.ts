@@ -97,8 +97,8 @@ export default {
 				} else {
 					for (const args of [["snapshot"], ["snapshot", "--json"]]) {
 						output = "";
-						await run(args);
-						assert.ok(output.includes("x".repeat(2048)));
+						await assert.rejects(run(args), /Snapshot byte limit exceeded/);
+						assert.equal(output, "");
 					}
 				}
 				await run(["tab-list"]);
@@ -187,12 +187,10 @@ export default {
 				await page.setContent(
 					'<iframe srcdoc="<button>Child</button>"></iframe>'.repeat(128),
 				);
-				await (page as unknown as Page).waitForFunction(
-					() =>
-						Array.from(document.querySelectorAll("iframe")).every(
-							frame => frame.contentDocument?.querySelector("button") !== null,
-						),
-				);
+				const nativePage = page as unknown as Page;
+				const children = nativePage.frames().filter(frame => frame !== nativePage.mainFrame());
+				assert.equal(children.length, 128);
+				await Promise.all(children.map(frame => frame.getByRole("button").waitFor()));
 				const tree = await lease.captureSnapshotJSON!(page, {
 					signal: new AbortController().signal,
 					timeoutMs: 15000,
@@ -234,7 +232,6 @@ export default {
 			const options = {
 				signal: new AbortController().signal,
 				timeoutMs: 20000,
-				maxBytes: 65536,
 			};
 			switch (new URL(request.url).pathname) {
 				case "/fidelity": {
@@ -303,9 +300,9 @@ export default {
 					break;
 				}
 				case "/bounds":
-					assert.deepEqual(
-						await captureBrowserSnapshotJSON(page, { ...options, maxBytes: 1 }),
-						await captureBrowserSnapshotJSON(page, options),
+					await assert.rejects(
+						captureBrowserSnapshotJSON(page, { ...options, maxBytes: 1 }),
+						/Snapshot byte limit exceeded/,
 					);
 					assert.ok((await captureBrowserSnapshotJSON(page, options)).length);
 					break;

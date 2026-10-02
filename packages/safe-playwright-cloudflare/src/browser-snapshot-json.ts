@@ -1,4 +1,4 @@
-import type { PlaywrightSnapshotJSONCapture } from "@poe-platform/safe-bash/playwright";
+import { PlaywrightSnapshotLimitError, type PlaywrightSnapshotJSONCapture } from "@poe-platform/safe-bash/playwright";
 import {
 	type SnapshotNode,
 	type NativeSnapshotResult,
@@ -36,6 +36,8 @@ export const captureBrowserSnapshotJSON: PlaywrightSnapshotJSONCapture = async (
 	page,
 	options,
 ) => {
+	const maxBytes = options.maxBytes ?? Infinity;
+	if (maxBytes !== Infinity && (!Number.isSafeInteger(maxBytes) || maxBytes < 1)) throw new TypeError('Invalid snapshot byte limit');
 	const native = page as typeof page & NativeSnapshotPage;
 	const signal = (options.timeoutMs === 0 || !Number.isFinite(options.timeoutMs)) ? options.signal : AbortSignal.any([
 		options.signal,
@@ -94,6 +96,7 @@ async function capture(
 		);
 		for (const child of children) if (child) pending.push(child);
 	}
+	if (options.maxBytes !== undefined && options.maxBytes !== Infinity && new TextEncoder().encode(JSON.stringify(forest)).byteLength > options.maxBytes) throw new PlaywrightSnapshotLimitError('Snapshot byte limit exceeded');
 	return forest;
 }
 

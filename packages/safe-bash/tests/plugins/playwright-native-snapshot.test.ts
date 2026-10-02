@@ -148,12 +148,13 @@ for (const [width, maxRefs, scoped] of [[150001, Infinity, false], [5001, 1, fal
   });
 }
 
-test('native JSON ignores legacy byte limits, retains ref limits and validates the last child of a wide tree', async () => {
+test('native JSON enforces explicit byte and ref limits and validates the last child of a wide tree', async () => {
   const children = Array.from({ length: 5001 }, () => ({ role: 'text' }));
   let tree: unknown = [{ role: 'main', ref: 'e1', children }];
   const page = { async ariaSnapshotJSON() { return tree; } } as unknown as PlaywrightPage;
   const options = { maxBytes: Infinity, maxRefs: 1, nextRef: () => 'e101' };
-  assert.equal((await captureNativePlaywrightJSON(page, { ...options, maxBytes: 32 })).tree[0]!.children!.length, 5001);
+  await assert.rejects(captureNativePlaywrightJSON(page, { ...options, maxBytes: 32 }), /Snapshot byte limit exceeded/);
+  assert.equal((await captureNativePlaywrightJSON(page, options)).tree[0]!.children!.length, 5001);
   tree = [{ role: 'main', ref: 'e1', children: [...children, { role: 'button', ref: 'e2' }] }];
   await assert.rejects(captureNativePlaywrightJSON(page, options), /ref limit/);
   tree = [{ role: 'main', ref: 'e1', children: [...children, { role: 42 }] }];
@@ -216,7 +217,7 @@ test('native JSON fallback uses the provider tree with depth and bounded atomic 
   const captureJSON = async () => { calls++; return [{ role: 'main', ref: 'e1', children: [{ role: 'region', ref: 'e2', children: [{ role: 'button', ref: 'e3' }] }] }]; };
   assert.deepEqual(await f.engine.captureJSON(f.page, undefined, { captureJSON, depth: 1 }), [{ role: 'main', ref: 'e101', children: [{ role: 'region', ref: 'e102' }] }]);
   assert.equal(calls, 1);
-  assert.deepEqual(await f.engine.captureJSON(f.page, undefined, { captureJSON: async () => [{ role: 'button', name: 'x'.repeat(1024), ref: 'e4' }] }), [{ role: 'button', name: 'x'.repeat(1024), ref: 'e103' }]);
+  await assert.rejects(f.engine.captureJSON(f.page, undefined, { captureJSON: async () => [{ role: 'button', name: 'x'.repeat(1024), ref: 'e4' }] }), /Snapshot byte limit exceeded/);
   await assert.rejects(f.engine.resolve('e102'), /not found|stale/);
 });
 
@@ -278,10 +279,10 @@ test('unquoted YAML text values never become native references or affect followi
   assert.deepEqual(f.selected, ['aria-ref=e2', 'aria-ref=e3']);
 });
 
-test('native snapshots ignore legacy byte budgets and enforce reference budgets', async () => {
+test('native snapshots enforce explicit byte and reference budgets', async () => {
   const f = fixture();
   f.setSnapshot({ full: 'x'.repeat(1025) });
-  assert.equal(await f.engine.capture(f.page), 'x'.repeat(1025));
+  await assert.rejects(f.engine.capture(f.page), /Snapshot byte limit exceeded/);
   f.setSnapshot({ full: Array.from({ length: 9 }, (_, i) => `- button [ref=e${i}]`).join('\n') });
   await assert.rejects(f.engine.capture(f.page), /ref limit/);
   await assert.rejects(f.engine.resolve('e101'), /not found|stale/);
@@ -508,4 +509,19 @@ for (const format of ['yaml', 'json'] as const) test(`${format} fallback witness
   await result;
   await f.engine.invalidate();
   assert.equal(outcome, 'rejected');
+});
+
+for (const format of ['yaml', 'json'] as const) test(`explicit ${format} bytes count UTF-8 and rewritten refs exactly`, async () => {
+  const page = {
+    ariaSnapshot: async () => '- button "é😀" [ref=e1]\n',
+    ariaSnapshotJSON: async () => [{ role: 'button', name: 'é😀', ref: 'e1' }],
+  } as unknown as PlaywrightPage;
+  const expected = format === 'yaml' ? '- button "é😀" [ref=e123456]\n'
+    : JSON.stringify([{ role: 'button', name: 'é😀', ref: 'e123456' }]);
+  const maxBytes = new TextEncoder().encode(expected).byteLength;
+  const capture = (budget: number) => format === 'yaml'
+    ? captureNativePlaywrightSnapshot(page, { maxBytes: budget, maxRefs: Infinity, nextRef: () => 'e123456' })
+    : captureNativePlaywrightJSON(page, { maxBytes: budget, maxRefs: Infinity, nextRef: () => 'e123456' });
+  await capture(maxBytes);
+  await assert.rejects(capture(maxBytes - 1), /Snapshot byte limit exceeded/);
 });

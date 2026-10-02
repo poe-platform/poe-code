@@ -185,7 +185,7 @@ unsupported. The limits and defaults are:
 | `maxArtifactBytes` | 16777216 | Each artifact read/write |
 | `maxCommandBytes` | 16777216 | Per-invocation aggregate text/artifact output (including help, version and response framing), custom-handler artifact input and generated code |
 
-Snapshots have no byte limit. Legacy `maxSnapshotBytes` settings are ignored.
+Snapshot bytes are unlimited by default. Explicit `maxSnapshotBytes` limits apply to UTF-8 output and preserve the healthy session on refusal.
 All active limits are positive safe integers. These are admission/transfer limits, not
 an isolation or memory ceiling for arbitrary client code. Client handlers must
 honor cancellation and implement their backend's action timeout policy. Opaque,

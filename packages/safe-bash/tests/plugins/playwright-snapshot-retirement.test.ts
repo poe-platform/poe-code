@@ -60,12 +60,13 @@ test('completed YAML capture preserves session after artifact budget refusal', a
     await f.run(['snapshot']);
   } finally { await f.controller.dispose(); }
 });
-for (const args of [['snapshot'], ['snapshot', '--json'], ['find', 'x']]) test(`legacy snapshot byte limits allow capture and preserve session: ${args.join(' ')}`, async () => {
+for (const args of [['snapshot'], ['snapshot', '--json'], ['find', 'x']]) test(`explicit snapshot byte limits reject output and preserve session: ${args.join(' ')}`, async () => {
   const f = fixture({ maxSnapshotBytes: 32 });
   try {
     await f.run(['open']); f.setSource('x'.repeat(64));
-    await f.run(args);
+    await assert.rejects(f.run(args), /Snapshot byte limit exceeded/);
     assert.equal(f.releases, 0);
+    await f.run(['tab-list']);
     f.setSource('- main'); await f.run(['snapshot']);
   } finally { await f.controller.dispose(); }
 });

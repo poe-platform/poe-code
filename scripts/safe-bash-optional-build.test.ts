@@ -162,6 +162,23 @@ describe("optional-owned compiled graph", () => {
     expect(result.files).not.toContain("entrypoints/agent.js");
   });
 
+  it("retains read and mapfile aliases when their extensions move into core", async () => {
+    const { volume, options } = fixture();
+    const runtime = 'export { mapfileExtension, readExtension } from "./core.js";\n';
+    const types = 'export type { ReadExtensionOptions } from "./core.js";\n';
+    volume.writeFileSync(core + "/dist/core.js", "export const mapfileExtension = () => {}; export const readExtension = () => {};\n");
+    volume.writeFileSync(core + "/dist/core.d.ts", "export declare function mapfileExtension(): void; export declare function readExtension(): void; export interface ReadExtensionOptions {}\n");
+    volume.writeFileSync(core + "/dist/optional.js", runtime);
+    volume.writeFileSync(core + "/dist/optional.d.ts", runtime + types);
+    const result = await buildOptionalPackage(options);
+    for (const name of ["read", "mapfile"]) for (const extension of ["js", "d.ts"]) {
+      const target = "entrypoints/" + name + "." + extension;
+      expect(result.files).toContain(target);
+      expect(volume.readFileSync(core + "/dist/opt-in/" + target, "utf8").toString()).toContain(name + "Extension");
+    }
+    expect(volume.readFileSync(core + "/dist/opt-in/entrypoints/read.d.ts", "utf8").toString()).toContain("ReadExtensionOptions");
+  });
+
   it("keeps optional jobs exports bound to the core host after jobs enter the default shell", async () => {
     const { volume, options } = fixture();
     volume.mkdirSync(core + "/dist/shell/extensions/jobs", { recursive: true });

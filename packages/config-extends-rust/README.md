@@ -10,6 +10,9 @@ TypeScript declarations and a self-contained napi-rs addon. It needs no npm
 runtime dependencies. Existing package tests check these functions against the
 current TypeScript SDK, including observable getter ordering, sparse/custom
 array maps, opaque value identity and safe prototype-named keys.
+Discovery and resolution accept both Node-style text readers and SafeFS byte
+readers, including `MemoryFileSystem`. SafeFS documents are decoded as UTF-8;
+rooted prompt resolution also uses the supplied filesystem's `realpath`.
 Ordinary records and dense arrays use one binary snapshot/native call. Getters,
 proxies and custom array behavior use foreign handles so observable operations
 stay in JavaScript. Recursive foreign array mapping is capped at 32; ordinary

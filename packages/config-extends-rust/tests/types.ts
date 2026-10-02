@@ -5,4 +5,7 @@ const merge:typeof sdk.mergeLayers=native.mergeLayers;
 const discovery:typeof sdk.findBase=native.findBase;
 const resolution:typeof sdk.resolve=native.resolve;
 const prompt:typeof sdk.resolvePromptDocument=native.resolvePromptDocument;
-void [parse,merge,discovery,resolution,prompt];
+const nativeDiscovery:typeof native.findBase=sdk.findBase;
+const nativeResolution:typeof native.resolve=sdk.resolve;
+const nativePrompt:typeof native.resolvePromptDocument=sdk.resolvePromptDocument;
+void [parse,merge,discovery,resolution,prompt,nativeDiscovery,nativeResolution,nativePrompt];

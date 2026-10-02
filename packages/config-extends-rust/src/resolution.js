@@ -60,7 +60,15 @@ async function drive(mode,config,fs,view){
   machine.reset(mode,encode(config),hook);let result=machine.advance();
   while(result.request){
    let response;
-   try{const value=result.request==='read'?await fs.readFile(result.path,'utf8'):await fs.realpath(result.path);response={value};}
+   try{
+    let value;
+    if(result.request==='read'){
+     value='capabilities' in fs
+      ?new TextDecoder().decode(await fs.readFile(result.path))
+      :await fs.readFile(result.path,'utf8');
+    }else value=await fs.realpath(result.path);
+    response={value};
+   }
    catch(error){const id=errors.push(error)-1;response=ownCode(error,'ENOENT')?{missing:id}:{error:id,notdir:ownCode(error,'ENOTDIR')};}
    result=machine.advance(encode(response));
   }

@@ -27,6 +27,14 @@
     "./components/file-changes": {
       "types": "./dist/file-changes.d.ts",
       "import": "./dist/file-changes.js"
+    },
+    "./components/help-formatter": {
+      "types": "./dist/help-formatter.d.ts",
+      "import": "./dist/help-formatter.js"
+    },
+    "./components/help-formatter-plain": {
+      "types": "./dist/help-formatter-plain.d.ts",
+      "import": "./dist/help-formatter-plain.js"
     }
   },
   "scripts": {

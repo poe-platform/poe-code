@@ -140,3 +140,17 @@ const fileOptionsOwn: files.RenderFileChangesOptions = null as unknown as origin
 const fileOriginal: originalFiles.FileChange = null as unknown as files.FileChange;
 const fileOwn: files.FileChange = null as unknown as originalFiles.FileChange;
 void [filesOriginal,filesOwn,rootFilesOriginal,rootFilesOwn,fileOptionsOriginal,fileOptionsOwn,fileOriginal,fileOwn];
+
+import * as help from "toolcraft-design-rust/components/help-formatter";
+import * as plainHelp from "toolcraft-design-rust/components/help-formatter-plain";
+import type * as originalHelp from "toolcraft-design/components/help-formatter";
+import type * as originalPlainHelp from "toolcraft-design/components/help-formatter-plain";
+const helpOriginal: typeof originalHelp = help;
+const helpOwn: typeof help = null as unknown as typeof originalHelp;
+const plainHelpOriginal: typeof originalPlainHelp = plainHelp;
+const plainHelpOwn: typeof plainHelp = null as unknown as typeof originalPlainHelp;
+const rootHelpOriginal: typeof originalHelp = design;
+const rootHelpOwn: typeof help = null as unknown as typeof originalDesign;
+const rootPlainOriginal: typeof originalPlainHelp = design.helpFormatterPlain;
+const rootPlainOwn: typeof plainHelp = null as unknown as typeof originalDesign.helpFormatterPlain;
+void [helpOriginal,helpOwn,plainHelpOriginal,plainHelpOwn,rootHelpOriginal,rootHelpOwn,rootPlainOriginal,rootPlainOwn];

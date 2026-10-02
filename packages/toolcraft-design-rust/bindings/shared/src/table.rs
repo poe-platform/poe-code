@@ -2,8 +2,8 @@ use napi::{ValueType, bindgen_prelude::*};
 use napi_derive::napi;
 use toolcraft_design_rust::table::{self, Host};
 
-struct NodeHost<'env> {
-    object: Object<'env>,
+pub(super) struct NodeHost<'env> {
+    pub(super) object: Object<'env>,
 }
 impl<'env> Host for NodeHost<'env> {
     type Value = Unknown<'env>;

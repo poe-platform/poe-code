@@ -479,6 +479,22 @@ and added/modified/deleted diff headers and lines. This retains the existing
 single-hunk algorithm, not a new diff policy. The callback depth guard and full
 design/CLI/transport replacement qualification remain outstanding.
 
+The native design root and both help-formatter component subpaths now expose
+rich and plain help columns, command/option lists, usage lines and structured
+tokens. Rust owns ANSI/OSC scanning, the help-specific Unicode width policy,
+ASCII conversion, wrapping, hanging indents, layout validation and token/list
+selection. Node retains ICU segmentation, observable array/string operations,
+styling callbacks and template coercion. Standalone declarations agree in both
+assignment directions. Differential tests cover fractional and narrow layouts,
+combining/emoji/wide glyphs, lone surrogates, incomplete controls, sparse arrays,
+changing getters, receivers, nested calls and arbitrary throws; a regression
+preserves plain depth-prefix coercion before name evaluation. The package passes
+57 native and 162 original reference tests, declarations and package lint.
+Ad hoc screenshots verify help alignment, wrapping, styles and plain/Markdown
+output; the screenshot font lacks CJK glyphs, whose strings and widths are checked
+by parity tests. Host callback depth/resource qualification remains outstanding.
+Interactive design controls, terminal Markdown, CLI and transport ports remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

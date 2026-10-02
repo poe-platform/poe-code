@@ -65,6 +65,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `renderTable`, `loggerTableWidth` | Render width-budgeted tables or detail rows in terminal, Markdown and JSON |
 | `formatCommandNotFound`, `formatCommandNotFoundPanel` | Show unknown commands, suggestions and a help hint with consistent styling |
 | `renderFileChanges` | Show file status, conflicts, rename paths or unified diffs in terminal and Markdown |
+| `helpFormatter`, `helpFormatterPlain` | Align command and option help, wrap descriptions and preserve nested hanging indents |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -212,3 +213,13 @@ added/deleted files retain their original headers. Set `format: 'markdown'` for 
 fenced block. The root and `components/file-changes` entry points share one renderer.
 Rust chooses status styles, paths, summary details and hunk ranges; Node retains
 observable array/Map/string operations and color callbacks.
+
+Use `formatColumns({rows, totalWidth})` for custom help layouts, or
+`formatCommandList(commands)` and `formatOptionList(options)` for command menus.
+Structured `nameTokens` and `flagTokens` style commands, arguments and options
+individually. `formatUsage(command, args)` formats the usage line.
+`helpFormatterPlain` provides ASCII output for plain terminals; the regular
+formatter preserves Unicode, terminal hyperlinks and ANSI styling. Both are
+also available through `components/help-formatter` and
+`components/help-formatter-plain`. Rust owns wrapping, width rules, layout
+validation and token selection; Node retains ICU segmentation and styling callbacks.

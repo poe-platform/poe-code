@@ -73,10 +73,11 @@ test('fmt output quota leaves bounded partial redirect output, without rollback 
   } finally { await shell.dispose(); }
 });
 
-test('fmt treats host paths and URLs as VFS operands and has no executable fallback', async () => {
+test('fmt keeps operands in the VFS and executable paths in the registry', async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile('/input', encode('aa bb cc dd ee'));
   const shell = new Shell({ fs, env: { LC_ALL: 'C', PATH: '/usr/bin:/bin' }, commands: new CommandRegistry([fmtCommand()]) });
+  const unregistered = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry() });
   try {
     const registered = await shell.exec('/usr/bin/fmt -w8 /input');
     assert.deepEqual([registered.exitCode, registered.stdout, registered.stderr], [0, 'aa bb cc\ndd ee\n', '']);
@@ -86,12 +87,19 @@ test('fmt treats host paths and URLs as VFS operands and has no executable fallb
       assert.equal(result.stdout, '');
       assert.match(result.stderr, /No such file or directory/);
     }
+    for (const command of ['/bin/fmt', '/usr/bin/fmt']) {
+      const result = await shell.exec(`${command} -w8`, { stdin: encode('aa bb cc dd ee') });
+      assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, 'aa bb cc\ndd ee\n', '']);
+      const missing = await unregistered.exec(command);
+      assert.equal(missing.exitCode, 127);
+      assert.equal(missing.stdout, '');
+    }
     for (const command of ['/usr/local/bin/fmt', '/usr/bin/curl https://example.invalid/', 'curl https://example.invalid/', 'node -e process.env']) {
       const result = await shell.exec(command);
       assert.equal(result.exitCode, 127);
       assert.equal(result.stdout, '');
     }
-  } finally { await shell.dispose(); }
+  } finally { await Promise.all([shell.dispose(), unregistered.dispose()]); }
 });
 
 for (const limits of [{ inputBytes: 5 }, { work: 0 }, { retainedBytes: 1 }]) test(`fmt Shell rejects ${JSON.stringify(limits)} and remains usable after cleanup`, async () => {

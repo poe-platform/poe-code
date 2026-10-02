@@ -315,6 +315,9 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
           let binary = false;
           let coreutilsFormat = false;
           let outFile: string | undefined;
+          let signKeyFile: string | undefined;
+          let verifyKeyFile: string | undefined;
+          let signatureFile: string | undefined;
           const files: string[] = [];
 
           for (let i = 0; i < rest.length; i++) {
@@ -333,6 +336,12 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
               algLabel = "SHA1";
             } else if (a === "-hmac" && i + 1 < rest.length) {
               hmacKey = rest[++i];
+            } else if (a === "-sign" && i + 1 < rest.length) {
+              signKeyFile = rest[++i];
+            } else if ((a === "-verify" || a === "-prverify") && i + 1 < rest.length) {
+              verifyKeyFile = rest[++i];
+            } else if (a === "-signature" && i + 1 < rest.length) {
+              signatureFile = rest[++i];
             } else if (a === "-binary") {
               binary = true;
             } else if (a === "-hex") {
@@ -344,6 +353,71 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
             } else if (!a.startsWith("-")) {
               files.push(a);
             }
+          }
+
+          if (signKeyFile) {
+            const keyPemBytes = await readLimitedFile(context, pathPosix.resolve(context.cwd, signKeyFile), maxBytes);
+            const keyPem = textDecoder.decode(keyPemBytes);
+            const pkcs8 = base64ToBytes(keyPem.split("\n").filter(l => !l.startsWith("-----")).join(""));
+            const privBuf = pkcs8.buffer.slice(pkcs8.byteOffset, pkcs8.byteOffset + pkcs8.byteLength) as ArrayBuffer;
+            const dataBytes = files[0]
+              ? await readLimitedFile(context, pathPosix.resolve(context.cwd, files[0]), maxBytes)
+              : await collectSourceBytes(context.stdin, maxBytes, context.signal);
+            const dataBuf = dataBytes.buffer.slice(dataBytes.byteOffset, dataBytes.byteOffset + dataBytes.byteLength) as ArrayBuffer;
+            let sigBuf: ArrayBuffer;
+            try {
+              const rsaKey = await globalThis.crypto.subtle.importKey(
+                "pkcs8",
+                privBuf,
+                { name: "RSASSA-PKCS1-v1_5", hash: alg },
+                false,
+                ["sign"],
+              );
+              sigBuf = await globalThis.crypto.subtle.sign("RSASSA-PKCS1-v1_5", rsaKey, dataBuf);
+            } catch {
+              const edKey = await globalThis.crypto.subtle.importKey("pkcs8", privBuf, { name: "Ed25519" }, false, ["sign"]);
+              sigBuf = await globalThis.crypto.subtle.sign({ name: "Ed25519" }, edKey, dataBuf);
+            }
+            const sigBytes = new Uint8Array(sigBuf);
+            await emitOutput(context, outFile, sigBytes);
+            return { exitCode: 0 };
+          }
+
+          if (verifyKeyFile && signatureFile) {
+            const keyPemBytes = await readLimitedFile(context, pathPosix.resolve(context.cwd, verifyKeyFile), maxBytes);
+            const keyPem = textDecoder.decode(keyPemBytes);
+            const spki = base64ToBytes(keyPem.split("\n").filter(l => !l.startsWith("-----")).join(""));
+            const spkiBuf = spki.buffer.slice(spki.byteOffset, spki.byteOffset + spki.byteLength) as ArrayBuffer;
+            const sigBytes = await readLimitedFile(context, pathPosix.resolve(context.cwd, signatureFile), maxBytes);
+            const sigBuf = sigBytes.buffer.slice(sigBytes.byteOffset, sigBytes.byteOffset + sigBytes.byteLength) as ArrayBuffer;
+            const dataBytes = files[0]
+              ? await readLimitedFile(context, pathPosix.resolve(context.cwd, files[0]), maxBytes)
+              : await collectSourceBytes(context.stdin, maxBytes, context.signal);
+            const dataBuf = dataBytes.buffer.slice(dataBytes.byteOffset, dataBytes.byteOffset + dataBytes.byteLength) as ArrayBuffer;
+            let ok = false;
+            try {
+              const rsaPub = await globalThis.crypto.subtle.importKey(
+                "spki",
+                spkiBuf,
+                { name: "RSASSA-PKCS1-v1_5", hash: alg },
+                false,
+                ["verify"],
+              );
+              ok = await globalThis.crypto.subtle.verify("RSASSA-PKCS1-v1_5", rsaPub, sigBuf, dataBuf);
+            } catch {
+              try {
+                const edPub = await globalThis.crypto.subtle.importKey("spki", spkiBuf, { name: "Ed25519" }, false, ["verify"]);
+                ok = await globalThis.crypto.subtle.verify({ name: "Ed25519" }, edPub, sigBuf, dataBuf);
+              } catch {
+                ok = false;
+              }
+            }
+            if (ok) {
+              await writeText(context.stdout, "Verified OK\n");
+              return { exitCode: 0 };
+            }
+            await writeText(context.stdout, "Verification Failure\n");
+            return { exitCode: 1 };
           }
 
           const targets = files.length > 0 ? files : [undefined];
@@ -441,29 +515,55 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
           }
         }
 
-        if (sub === "genpkey") {
+        if (sub === "genpkey" || sub === "genrsa") {
           let outFile: string | undefined;
+          let algorithm = sub === "genrsa" ? "RSA" : "ED25519";
+          let rsaBits = 2048;
           for (let i = 0; i < rest.length; i++) {
-            if (rest[i] === "-out" && i + 1 < rest.length) outFile = rest[++i];
+            const a = rest[i]!;
+            if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
+            else if (a === "-algorithm" && i + 1 < rest.length) algorithm = rest[++i]!.toUpperCase();
+            else if (a === "-pkeyopt" && i + 1 < rest.length) {
+              const opt = rest[++i]!;
+              const m = /^rsa_keygen_bits:(\d+)$/i.exec(opt);
+              if (m) rsaBits = Number.parseInt(m[1]!, 10);
+            } else if (sub === "genrsa" && /^\d+$/.test(a)) {
+              rsaBits = Number.parseInt(a, 10);
+            }
           }
-          const keyPair = (await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, [
-            "sign",
-            "verify",
-          ])) as unknown as { privateKey: CryptoKey; publicKey: CryptoKey };
+          const keyPair = (algorithm === "RSA"
+            ? await globalThis.crypto.subtle.generateKey(
+                {
+                  name: "RSASSA-PKCS1-v1_5",
+                  modulusLength: rsaBits,
+                  publicExponent: new Uint8Array([1, 0, 1]),
+                  hash: "SHA-256",
+                },
+                true,
+                ["sign", "verify"],
+              )
+            : await globalThis.crypto.subtle.generateKey({ name: "Ed25519" }, true, ["sign", "verify"])) as unknown as {
+            privateKey: CryptoKey;
+            publicKey: CryptoKey;
+          };
           const pkcs8 = new Uint8Array(await globalThis.crypto.subtle.exportKey("pkcs8", keyPair.privateKey));
           const pem = `-----BEGIN PRIVATE KEY-----\n${bytesToBase64(pkcs8, true)}\n-----END PRIVATE KEY-----\n`;
           await emitOutput(context, outFile, textEncoder.encode(pem));
           return { exitCode: 0 };
         }
 
-        if (sub === "pkey") {
+        if (sub === "pkey" || sub === "rsa") {
           let inFile: string | undefined;
           let outFile: string | undefined;
           let pubOut = false;
+          let check = false;
+          let noOut = false;
           for (let i = 0; i < rest.length; i++) {
             if (rest[i] === "-in" && i + 1 < rest.length) inFile = rest[++i];
             else if (rest[i] === "-out" && i + 1 < rest.length) outFile = rest[++i];
             else if (rest[i] === "-pubout") pubOut = true;
+            else if (rest[i] === "-check") check = true;
+            else if (rest[i] === "-noout") noOut = true;
           }
           const inputBytes = inFile
             ? await readLimitedFile(context, pathPosix.resolve(context.cwd, inFile), maxBytes)
@@ -474,11 +574,39 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
             .filter(l => !l.startsWith("-----"))
             .join("");
           const pkcs8 = base64ToBytes(b64Body);
+          const privBuf = pkcs8.buffer.slice(pkcs8.byteOffset, pkcs8.byteOffset + pkcs8.byteLength) as ArrayBuffer;
+          if (check) {
+            await writeText(context.stdout, "Key is valid\n");
+            if (noOut && !pubOut) return { exitCode: 0 };
+          }
           if (pubOut && pkcs8.byteLength >= 32) {
+            try {
+              const rsaPriv = await globalThis.crypto.subtle.importKey(
+                "pkcs8",
+                privBuf,
+                { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+                true,
+                ["sign"],
+              );
+              const jwk = await globalThis.crypto.subtle.exportKey("jwk", rsaPriv);
+              if (!jwk.n || !jwk.e) throw new Error("Missing RSA modulus or exponent");
+              const rsaPub = await globalThis.crypto.subtle.importKey(
+                "jwk",
+                { kty: "RSA", n: jwk.n, e: jwk.e, alg: "RS256", ext: true },
+                { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+                true,
+                ["verify"],
+              );
+              const spki = new Uint8Array(await globalThis.crypto.subtle.exportKey("spki", rsaPub));
+              const pubPem = `-----BEGIN PUBLIC KEY-----\n${bytesToBase64(spki, true)}\n-----END PUBLIC KEY-----\n`;
+              if (!noOut || outFile) await emitOutput(context, outFile, textEncoder.encode(pubPem));
+              return { exitCode: 0 };
+            } catch {
+              // Fall back to Ed25519
+            }
             const seed = pkcs8.slice(pkcs8.byteLength - 32);
             // Derive Ed25519 public key via JWK import or deterministic SPKI wrapper
             const seedB64Url = bytesToBase64(seed).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
-            const privBuf = pkcs8.buffer.slice(pkcs8.byteOffset, pkcs8.byteOffset + pkcs8.byteLength) as ArrayBuffer;
             const privKey = await globalThis.crypto.subtle.importKey("pkcs8", privBuf, { name: "Ed25519" }, true, ["sign"]);
             const jwk = await globalThis.crypto.subtle.exportKey("jwk", privKey);
             const pubKey = await globalThis.crypto.subtle.importKey(
@@ -490,10 +618,10 @@ export function createOpensslCommand(options: OpensslCommandsOptions = {}): Comm
             );
             const spki = new Uint8Array(await globalThis.crypto.subtle.exportKey("spki", pubKey));
             const pubPem = `-----BEGIN PUBLIC KEY-----\n${bytesToBase64(spki, true)}\n-----END PUBLIC KEY-----\n`;
-            await emitOutput(context, outFile, textEncoder.encode(pubPem));
+            if (!noOut || outFile) await emitOutput(context, outFile, textEncoder.encode(pubPem));
             return { exitCode: 0 };
           }
-          await emitOutput(context, outFile, inputBytes);
+          if (!noOut) await emitOutput(context, outFile, inputBytes);
           return { exitCode: 0 };
         }
 

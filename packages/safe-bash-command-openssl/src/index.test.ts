@@ -170,3 +170,70 @@ test("openssl bounds pkey and x509 file inputs", async () => {
     assert.equal(result.stdout, "");
   }
 });
+
+test("openssl supports RSA-2048 genpkey/genrsa, pkey -pubout/-check, and dgst -sign/-verify", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/dossier.pdf", new TextEncoder().encode("%PDF-1.7 signed payload\n"));
+
+  const genRsa = await runOpenssl(fs, [
+    "genpkey",
+    "-algorithm",
+    "RSA",
+    "-pkeyopt",
+    "rsa_keygen_bits:2048",
+    "-out",
+    "/rsa-priv.pem",
+  ]);
+  assert.equal(genRsa.exitCode, 0, genRsa.stderr);
+  const privPem = new TextDecoder().decode(await fs.readFile("/rsa-priv.pem"));
+  assert.match(privPem, /-----BEGIN PRIVATE KEY-----/);
+  assert.ok(privPem.length > 1200, "RSA-2048 PKCS#8 PEM must be > 1200 bytes");
+
+  const checkKey = await runOpenssl(fs, ["pkey", "-in", "/rsa-priv.pem", "-check", "-noout"]);
+  assert.equal(checkKey.exitCode, 0, checkKey.stderr);
+  assert.match(checkKey.stdout, /Key is valid/);
+
+  const pubRsa = await runOpenssl(fs, ["pkey", "-in", "/rsa-priv.pem", "-pubout", "-out", "/rsa-pub.pem"]);
+  assert.equal(pubRsa.exitCode, 0, pubRsa.stderr);
+  const pubPem = new TextDecoder().decode(await fs.readFile("/rsa-pub.pem"));
+  assert.match(pubPem, /-----BEGIN PUBLIC KEY-----/);
+  assert.ok(pubPem.length > 400, "RSA-2048 SPKI PEM must be > 400 bytes");
+
+  const signRes = await runOpenssl(fs, [
+    "dgst",
+    "-sha256",
+    "-sign",
+    "/rsa-priv.pem",
+    "-out",
+    "/dossier.pdf.sig",
+    "/dossier.pdf",
+  ]);
+  assert.equal(signRes.exitCode, 0, signRes.stderr);
+  const sigBytes = await fs.readFile("/dossier.pdf.sig");
+  assert.equal(sigBytes.byteLength, 256, "RSA-2048 signature must be 256 bytes");
+
+  const verifyOk = await runOpenssl(fs, [
+    "dgst",
+    "-sha256",
+    "-verify",
+    "/rsa-pub.pem",
+    "-signature",
+    "/dossier.pdf.sig",
+    "/dossier.pdf",
+  ]);
+  assert.equal(verifyOk.exitCode, 0, verifyOk.stderr);
+  assert.match(verifyOk.stdout, /Verified OK/);
+
+  await fs.writeFile("/dossier-tampered.pdf", new TextEncoder().encode("%PDF-1.7 tampered payload\n"));
+  const verifyFail = await runOpenssl(fs, [
+    "dgst",
+    "-sha256",
+    "-verify",
+    "/rsa-pub.pem",
+    "-signature",
+    "/dossier.pdf.sig",
+    "/dossier-tampered.pdf",
+  ]);
+  assert.equal(verifyFail.exitCode, 1);
+  assert.match(verifyFail.stdout + verifyFail.stderr, /Verification Failure/);
+});

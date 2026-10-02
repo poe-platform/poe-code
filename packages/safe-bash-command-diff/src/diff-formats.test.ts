@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
-import { run } from "./helpers.js";
+import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
+import { run } from "./helpers.test-support.js";
 
 const marker = "\n\\ No newline at end of file\n";
 const normalCases = [

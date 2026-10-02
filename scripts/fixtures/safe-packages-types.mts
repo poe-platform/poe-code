@@ -1,5 +1,6 @@
 import "./safe-packages-apply-patch-types.mjs";
 import "./safe-packages-xq-types.mjs";
+import "./safe-packages-diff-types.mjs";
 import "./safe-packages-numfmt-types.mjs";
 import "./safe-packages-column-types.mjs";
 import "./safe-packages-xan-types.mjs";

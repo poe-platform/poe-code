@@ -809,8 +809,6 @@ function assertSource7Discovery(files) {
     "tests/commands/touch-compatibility.test.ts",
     "tests/contracts/value.test.ts",
     "tests/commands/diff-patch/diff-admitted-options.test.ts",
-    "tests/commands/diff-patch/diff-directory-options.test.ts",
-    "tests/commands/diff-patch/diff-ignored-context.test.ts",
     "tests/commands/diff-patch/issue-3067.test.ts",
     "tests/commands/diff-patch/exclusions.test.ts",
     "tests/commands/stream-inspection/contracts.test.ts",

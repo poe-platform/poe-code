@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { filesystem, run } from "./helpers.js";
+import { filesystem, run } from "./helpers.test-support.js";
 
 for (const suffix of ["/", "///"]) {
   for (const flags of [["-r"], ["-ru"], ["-rc"]]) {

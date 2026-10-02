@@ -1,5 +1,4 @@
 import "./cancellation.cases.js";
-import "./diff-formats.cases.js";
 import "./diff-gnu-options.cases.js";
 import "./diff.cases.js";
 import "./options-regressions.cases.js";

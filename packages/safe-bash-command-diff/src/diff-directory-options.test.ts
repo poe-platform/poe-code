@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { run } from "./helpers.js";
+import { run } from "./helpers.test-support.js";
 
 for (const [pattern, excluded, retained] of [
   ["[[:alpha:]]*.txt", "a.txt", "1.txt"],

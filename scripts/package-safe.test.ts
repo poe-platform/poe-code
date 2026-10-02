@@ -87,7 +87,7 @@ it.each(["csplit", "llm"])("keeps portable %s adapters linked to their canonical
   expect(Object.keys(result.metafile!.inputs)).toEqual([`packages/safe-bash/src/commands/${command}/index.ts`]);
 });
 
-it.each(["xan", "numfmt", "apply-patch"])("bundles %s runtime and declarations behind its public export", async command => {
+it.each(["xan", "numfmt", "apply-patch", "diff"])("bundles %s runtime and declarations behind its public export", async command => {
   const { volume, options } = optionalLeftovers();
   const name = `safe-bash-command-${command}`;
   const manifest = structuredClone(bashManifest);

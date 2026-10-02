@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { FileSystem } from "../../../src/contracts/index.js";
-import { filesystem, run } from "./helpers.js";
+import type { FileSystem } from "safe-bash-contracts";
+import { filesystem, run } from "./helpers.test-support.js";
 
 for (const type of ["character", "fifo"] as const) test(`diff reads a top-level ${type} input without relying on stat size`, async () => {
   const fs = await filesystem({ stream: "a\nb\n", file: "a\nb\n" });

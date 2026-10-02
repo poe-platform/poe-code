@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { run } from "./helpers.js";
+import { run } from "./helpers.test-support.js";
 
 // GNU diffutils 3.10: an ignored block after a change joins its hunk only
 // inside the trailing context; preceding ignored blocks use the merge distance.

@@ -302,3 +302,5 @@ import { verification as ddVerification } from "./safe-packages-dd.mjs";
 await ddVerification;
 
 await (await import("./safe-packages-csplit.mjs")).verification;
+
+await (await import("./safe-packages-diff.mjs")).verification;

@@ -135,3 +135,5 @@ await verifyLineEndingCommands();
 await (await import("./safe-packages-pr.mjs")).verification;
 
 await (await import("./safe-packages-csplit.mjs")).verification;
+
+await (await import("./safe-packages-diff.mjs")).verification;

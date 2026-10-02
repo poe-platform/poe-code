@@ -31,12 +31,28 @@ test("source census captures compression adapters without the relocated codec ma
 });
 
 test("source census admits files above one MiB within the aggregate budget", () => {
-  for (const path of ["src/shell/runtime.ts", ...adapters.map(adapter => adapter.path)]) {
+  for (const path of ["src/shell/runtime.ts", "src/shell/sync-extra-evaluators.ts", ...adapters.map(adapter => adapter.path)]) {
     const state = fixture();
     const bytes = Buffer.alloc(1048577);
     state.write(path, bytes);
     const captured = collectSourceInputs("/candidate", state.reader);
     assert.deepEqual(captured.files.get(path), bytes);
+  }
+});
+
+test("source census preserves exact file bounds for ordinary and extracted runtime sources", () => {
+  for (const [path, maximum] of [
+    ["src/ordinary.ts", 1024 * 1024],
+    ["src/shell/runtime.ts", 2 * 1024 * 1024],
+    ["src/shell/sync-extra-evaluators.ts", 2 * 1024 * 1024],
+  ] as const) {
+    const state = fixture();
+    state.write(path, Buffer.alloc(maximum));
+    assert.equal(collectSourceInputs("/candidate", state.reader).files.get(path)?.length, maximum);
+    state.write(path, Buffer.alloc(maximum + 1));
+    state.reads.length = 0;
+    assert.throws(() => collectSourceInputs("/candidate", state.reader), /unadmitted type-input file or size/);
+    assert.equal(state.reads.includes("/candidate/" + path), false);
   }
 });
 

@@ -12,6 +12,7 @@ pub mod approval_tasks;
 pub mod branch_validation;
 pub mod cli_argv;
 pub mod cli_consume;
+pub mod cli_dynamic_argv;
 pub mod cli_dynamic_paths;
 pub mod cli_dynamic_values;
 pub mod cli_fields;

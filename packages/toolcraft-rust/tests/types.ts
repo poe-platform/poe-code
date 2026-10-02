@@ -228,3 +228,11 @@ const cliValidationIssue:fieldConsumption.CLIFieldValidationError=dynamicValues.
 // @ts-expect-error collected errors must have path and message fields
 dynamicValues.finalizeDynamicValue(native.S.String(),"value","name",[{}]);
 void [finalizedCliValue,cliValidationIssue];
+
+import * as dynamicArgv from "../dist/cli-dynamic-argv.js";
+const parsedDynamicArgv:{providedFieldIds:Set<string>;values:Map<string,unknown>;positionals:string[]}=dynamicArgv.parseDynamicValues([],[],"kebab",fieldErrors);
+const nestedTarget:Record<string,unknown>={};
+const nestedAssignment:void=dynamicArgv.setNestedValue(nestedTarget,["config","name"],"value");
+// @ts-expect-error dynamic flags use CLI casing rather than SDK camel casing
+dynamicArgv.parseDynamicValues([],[],"camel",fieldErrors);
+void [parsedDynamicArgv,nestedAssignment];

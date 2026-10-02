@@ -3448,3 +3448,38 @@ CLI/prompts/help, transports and resource/platform/reentrancy/swap gates remain.
 
 Dynamic path resolution is verified on remote main at 412a868244. Its Release
 workflow 37069094544 is pending build; no new publication is claimed.
+
+### Dynamic CLI argv integration checkpoint
+
+The internal dynamic argv parser now composes native path resolution, field
+consumption and nested value assembly. Rust controls option/positional routing,
+terminators, negation, attached values, raw field stores and own-property nested
+writes. Node retains Map/Set construction and methods, array callbacks, property
+descriptors and the reference's live label replace operation. Repeated flags,
+provided-field IDs, validation errors and positional order follow the reference.
+No dependencies or default implementation changed; a public CLI entry point is
+still unavailable.
+
+Four missing-module tests preceded implementation. Eight final comparisons use
+the original extracted parser and dependencies, covering records/indexed objects,
+booleans, arrays, duplicate flags, missing and unknown arguments, terminators,
+getter order, custom Map/Set operations, final Map constructor lookup before
+filter evaluation, inherited containers, __proto__/constructor keys, property
+descriptors, reentrancy and arbitrary thrown values. The maintained package route
+passes 244 native tests, Rust tests, 1,723 reference/integration cases across
+46 files and declarations. Rust/binding and scoped JS lint pass.
+
+Packed consumers parse dynamic flags into values and positionals with only
+packed own schema and existing Commander admitted as external ESM imports.
+Packed declarations compile with types: []; existing contract declarations still
+resolve from the checkout. An inspected result/positional preview matches the
+reference ANSI output. Full CLI construction, command selection, prompting/help,
+transports and platform/resource/reentrancy/standalone-type gates remain open.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 two-job dynamic argv
+parses, retaining 32 results, measured native/reference medians of
+422.750/6.909 microseconds (61.19 times slower). This composes the current
+compatibility paths and does not pass the performance or default-swap gates.
+
+Dynamic value assembly is verified on remote main at 83f07b0782. Its Release
+workflow 37069837816 is running validate/build; publication remains unverified.

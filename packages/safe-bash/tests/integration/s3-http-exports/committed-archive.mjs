@@ -394,11 +394,11 @@ export function assertRootShellExports(manifest, rootManifest) {
     },
     "./safe-bash/image-ast": {
       "types": "./dist/types/image-ast/index.d.ts",
-      "import": "./packages/image-ast/dist/index.js"
+      "import": "./dist/image-ast.js"
     },
     "./safe-bash/sharp": {
       "types": "./dist/types/image-ast/index.d.ts",
-      "import": "./packages/image-ast/dist/index.js"
+      "import": "./dist/image-ast.js"
     },
     "./safe-bash/contracts": {
       "types": "./dist/types/safe-bash-contracts/index.d.ts",
@@ -807,7 +807,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         ...["nodes", "evaluate", "native-work", "inplace", "arguments", "mike", "formats", "native-encoder"]
           .flatMap(name => ["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/yq/${name}.${extension}`)),
         "!dist/fs/devices", "!dist/shell/extensions/arrays", "!dist/shell/extensions/trap",
-        "!dist/shell/extensions/mapfile", "!dist/shell/extensions/read", "!dist/opt-in",
+        "!dist/opt-in",
         ...["js", "js.map", "d.ts", "d.ts.map"].map(extension => `!dist/commands/op/op.test.${extension}`),
         "!dist/optional",
       ], "committed dist packaging contract drift");

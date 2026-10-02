@@ -483,7 +483,7 @@ Bridge.stream = checked_stream
 assert model.prompt("typed", temperature="0.5", count="2", enabled=True, label=None).text() == "hello"
 ` : '';
     const result = spawnSync(process.env.LLM_REFERENCE_PYTHON!, ['-B', '-c', setup + program + catalog], {
-      input: JSON.stringify({source, registration}), encoding: 'utf8', timeout: 5000,
+      input: setup === bundledSetup ? JSON.stringify({source, registration}) : undefined, encoding: 'utf8', timeout: 5000,
     });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stdout + result.stderr);
@@ -599,9 +599,191 @@ assert embeddings[0].model.model_id == "embedding"
     ...(process.env.LLM_REFERENCE_PYTHON ? [[process.env.LLM_REFERENCE_PYTHON, '', '']] : []),
   ]) {
     const result = spawnSync(python!, ['-B', '-c', setup + program + extra], {
-      input: JSON.stringify({source, registration}), encoding: 'utf8', timeout: 5000,
+      input: setup === bundledSetup ? JSON.stringify({source, registration}) : undefined, encoding: 'utf8', timeout: 5000,
     });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stdout + result.stderr);
+  }
+});
+
+test('reference tools preserve schemas, calls, results and execution hooks', {skip: pythonDependency}, () => {
+  const program = `
+import llm, asyncio, hashlib, json
+from pydantic import BaseModel
+def add(a: int, b: int = 2):
+ """Add two numbers."""
+ return a + b
+tool = llm.Tool.function(add)
+assert tool.name == "add" and tool.description == "Add two numbers."
+assert tool.input_schema == {"properties": {"a": {"type": "integer"}, "b": {"default": 2, "type": "integer"}}, "required": ["a"], "type": "object"}
+assert tool.implementation(a=3) == 5
+assert tool.hash() == hashlib.sha256(json.dumps({"name":"add","description":"Add two numbers.","input_schema":tool.input_schema}).encode()).hexdigest()
+try:
+ llm.Tool.function(lambda: None)
+ raise AssertionError("unnamed lambda accepted")
+except ValueError:
+ pass
+assert llm.Tool.function(lambda value: value, name="identity").name == "identity"
+class Args(BaseModel):
+ values: list[int]
+assert llm.Tool("typed", input_schema=Args).input_schema == {"properties":{"values":{"items":{"type":"integer"},"type":"array"}},"required":["values"],"type":"object"}
+class Box(llm.Toolbox):
+ def __init__(self, prefix="item"):
+  self.prefix = prefix
+ def label(self, value: str):
+  return self.prefix + value
+ def prepare(self):
+  self.prepared = True
+ async def prepare_async(self):
+  self.async_prepared = True
+box = Box("x")
+assert box._config == {"prefix":"x"}
+assert [item.name for item in Box.method_tools()] == ["Box_label"]
+box.add_tool(add)
+assert [item.name for item in box.tools()] == ["Box_label","add"]
+assert list(Box().tools())[0].implementation("a") == "itema"
+attachment = llm.Attachment(type="text/plain", content=b"tool")
+def attached():
+ return llm.ToolOutput({"ok":True}, [attachment])
+def broken():
+ raise ValueError("broken")
+class ToolModel(llm.Model):
+ model_id = "tool-model"
+ supports_tools = True
+ def execute(self, prompt, stream, response, conversation):
+  assert isinstance(prompt.tools[0], llm.Tool)
+  for name, args in [("add",{"a":3}),("attached",{}),("broken",{}),("missing",{}),("Box_label",{"value":"a"})]:
+   response.add_tool_call(llm.ToolCall(name,args,name+"-id"))
+  yield "tools"
+model = ToolModel()
+response = model.prompt("go", tools=[add,attached,broken,box])
+assert not response._done
+assert [item.name for item in response.tool_calls()] == ["add","attached","broken","missing","Box_label"]
+seen = []
+results = response.execute_tool_calls(after_call=lambda tool, call, result: seen.append(result.name))
+assert [item.output for item in results] == ["5", '{"ok": true}', "Error: broken", 'Error: tool "missing" does not exist', "xa"]
+assert results[1].attachments == [attachment] and isinstance(results[2].exception, ValueError)
+assert isinstance(results[3].exception, KeyError) and results[4].instance is box and box.prepared
+assert seen == ["add","attached","broken","Box_label"]
+assert results[0].tool_call_id == "add-id"
+fresh_box = Box()
+class PreparedModel(llm.Model):
+ model_id = "prepared"
+ supports_tools = True
+ def execute(self, prompt, stream, response, conversation):
+  assert fresh_box.prepared, "sync toolboxes must prepare before lazy execution"
+  response.add_tool_call(llm.ToolCall("Box_label", {"value":"ready"}))
+  yield ""
+assert PreparedModel().prompt("go", tools=[fresh_box]).execute_tool_calls()[0].output == "itemready"
+def cancel(tool, call):
+ raise llm.CancelToolCall("stop")
+assert all(item.output == "Cancelled: stop" for item in response.execute_tool_calls(before_call=cancel))
+try:
+ class NoTools(llm.Model):
+  model_id = "no-tools"
+  def execute(self, *args):
+   yield ""
+ NoTools().prompt("go",tools=[add])
+ raise AssertionError("unsupported tools accepted")
+except ValueError as error:
+ assert str(error) == "NoTools: no-tools does not support tools"
+async def async_add(a: int):
+ await asyncio.sleep(0)
+ return a + 1
+class AsyncToolModel(llm.AsyncModel):
+ model_id = "async-tools"
+ supports_tools = True
+ async def execute(self, prompt, stream, response, conversation):
+  response.add_tool_call(llm.ToolCall("async_add", {"a":3}, "async-id"))
+  response.add_tool_call(llm.ToolCall("Box_label", {"value":"b"}))
+  yield "async"
+async def check():
+ response = AsyncToolModel().prompt("go", tools=[async_add,box])
+ try:
+  response.tool_calls_or_raise()
+  raise AssertionError("unawaited tool calls accepted")
+ except ValueError:
+  pass
+ seen = []
+ async def after(tool, call, result):
+  seen.append(result.output)
+ results = await response.execute_tool_calls(after_call=after)
+ assert [item.output for item in results] == ["4","xb"]
+ assert sorted(seen) == ["4","xb"] and box.async_prepared
+ assert response.tool_calls_or_raise()[0].tool_call_id == "async-id"
+ assert (await response.to_sync_response()).tool_calls()[0].name == "async_add"
+asyncio.run(check())
+class ChainModel(llm.Model):
+ model_id = "chain-model"
+ supports_tools = True
+ def execute(self, prompt, stream, response, conversation):
+  assert conversation is not None
+  if not prompt.tool_results:
+   response.add_tool_call(llm.ToolCall("add", {"a":7}, "chain-id"))
+   yield "calling:"
+  else:
+   assert prompt.tool_results[0].tool_call_id == "chain-id"
+   yield prompt.tool_results[0].output
+chain = ChainModel().chain("go", tools=[add])
+assert chain._responses == []
+assert chain.text() == "calling:9"
+assert len(chain._responses) == 2 and len(chain.conversation.responses) == 2
+conversation = ChainModel().conversation(tools=[add], chain_limit=1)
+try:
+ conversation.chain("go").text()
+ raise AssertionError("chain limit ignored")
+except ValueError as error:
+ assert str(error) == "Chain limit of 1 exceeded."
+class AsyncChainModel(llm.AsyncModel):
+ model_id = "async-chain"
+ supports_tools = True
+ async def execute(self, prompt, stream, response, conversation):
+  if not prompt.tool_results:
+   response.add_tool_call(llm.ToolCall("async_add", {"a":8}))
+   yield "calling:"
+  else:
+   yield prompt.tool_results[0].output
+async def chain_check():
+ chain = AsyncChainModel().chain("go", tools=[async_add])
+ assert await chain.text() == "calling:9"
+ assert len(chain._responses) == 2 and len(chain.conversation.responses) == 2
+ closed = []
+ started = asyncio.Event()
+ async def waiting():
+  started.set()
+  try:
+   await asyncio.Event().wait()
+  finally:
+   closed.append(True)
+ class WaitingModel(llm.AsyncModel):
+  model_id = "waiting-model"
+  supports_tools = True
+  async def execute(self, prompt, stream, response, conversation):
+   response.add_tool_call(llm.ToolCall("waiting", {}))
+   yield ""
+ response = WaitingModel().prompt("go", tools=[waiting])
+ task = asyncio.create_task(response.execute_tool_calls())
+ await started.wait()
+ task.cancel()
+ try:
+  await task
+ except asyncio.CancelledError:
+  pass
+ assert closed == [True]
+asyncio.run(chain_check())
+`;
+  const globals = new Map<string, unknown>();
+  let source: unknown;
+  let registration = '';
+  installPythonLlmModule({globals,runPython(value) {source=globals.get('_safe_llm_source');registration=value;}});
+  for (const [python, setup] of [
+    [testPython, bundledSetup],
+    ...(process.env.LLM_REFERENCE_PYTHON ? [[process.env.LLM_REFERENCE_PYTHON, '']] : []),
+  ]) {
+    const result = spawnSync(python!, ['-B','-c',setup + program], {
+      input:setup === bundledSetup ? JSON.stringify({source,registration}) : undefined,encoding:'utf8',timeout:5000,
+    });
+    assert.ifError(result.error);
+    assert.equal(result.status,0,result.stdout+result.stderr);
   }
 });

@@ -344,6 +344,52 @@ class CustomizedAsyncModel(llm.AsyncModel):
   yield prompt.prompt.upper()
 async def check_customized_async():
  assert await CustomizedAsyncModel().prompt("async-customized").text() == "ASYNC-CUSTOMIZED"
+def tool_add(value: int):
+ return value + 1
+assert llm.Tool.function(tool_add).input_schema['properties']['value'] == {'type': 'integer'}
+class CustomizedToolModel(llm.Model):
+ model_id = 'custom-tools'
+ supports_tools = True
+ def execute(self, prompt, stream, response, conversation):
+  if prompt.tool_results:
+   yield prompt.tool_results[0].output
+  else:
+   response.add_tool_call(llm.ToolCall('tool_add', {'value': 4}, 'native-tool'))
+   yield 'tool:'
+assert CustomizedToolModel().chain('go', tools=[tool_add]).text() == 'tool:5'
+class CustomizedAsyncToolModel(llm.AsyncModel):
+ model_id = 'custom-async-tools'
+ supports_tools = True
+ async def execute(self, prompt, stream, response, conversation):
+  if prompt.tool_results:
+   yield prompt.tool_results[0].output
+  else:
+   response.add_tool_call(llm.ToolCall('async_tool_add', {'value': 5}, 'native-async-tool'))
+   yield 'async-tool:'
+async def async_tool_add(value: int):
+ await asyncio.sleep(0)
+ return value + 1
+async def check_customized_tools():
+ chain = CustomizedAsyncToolModel().chain('go', tools=[async_tool_add])
+ assert await chain.text() == 'async-tool:6'
+ assert len(chain.conversation.responses) == 2
+ started = asyncio.Event()
+ closed = []
+ async def waiting_tool(value: int):
+  started.set()
+  try:
+   await asyncio.Event().wait()
+  finally:
+   closed.append(value)
+ response = CustomizedAsyncToolModel().prompt('go', tools=[llm.Tool.function(waiting_tool, name='async_tool_add')])
+ task = asyncio.create_task(response.execute_tool_calls())
+ await started.wait()
+ task.cancel()
+ try:
+  await task
+ except asyncio.CancelledError:
+  pass
+ assert closed == [5]
 assert llm.decode(llm.encode([1, -2.5])) == (1.0, -2.5)
 assert llm.cosine_similarity([1, 0], [0, 1]) == 0.0
 model = llm.get_model('fake')
@@ -388,6 +434,7 @@ def expected_bytes(offset, count):
 
 async def qualify_libraries():
  await check_customized_async()
+ await check_customized_tools()
  reference_response = llm.get_async_model('fake').prompt('reference-async')
  assert aiter(reference_response) is reference_response
  assert await anext(reference_response) == 'reference-async'

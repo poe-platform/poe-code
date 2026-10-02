@@ -82,7 +82,7 @@ a provider request, using the reference errors.
 
 This is a partial compatibility surface, not full LLM 0.27.1 parity. Reference
 URL prompt attachments, persisted conversations, embedding collections,
-tools, persistence and the complete response interface still require
+provider tool transport, persistence and the complete response interface still require
 qualification. The existing `poe_llm` workflow API below remains available during
 that implementation.
 
@@ -96,6 +96,46 @@ supports_text and supports_binary, and implement embed_batch(items). The inherit
 embed and embed_multi methods enforce those input capabilities and batch sizes.
 Calling a discovered model from a custom workflow continues to use the shared
 JavaScript provider service.
+
+Custom models can use the standard llm.Tool, ToolCall, ToolResult, ToolOutput and
+Toolbox interfaces. Tool.function(callable) derives a JSON argument schema from
+Python type annotations and defaults. Toolboxes expose bound methods and extra
+registered functions, with prepare or prepare_async hooks. A model that declares
+supports_tools=True can call response.add_tool_call(...); response.tool_calls()
+completes the lazy response and returns its calls. Execute them with
+response.execute_tool_calls(before_call=..., after_call=...) (await both methods
+on asynchronous responses). CancelToolCall from the before hook produces a
+cancelled result. Tool exceptions become results with the original exception;
+cancelling an async execution also cancels and joins its outstanding tool tasks.
+
+Use model.chain(..., tools=[...]) or conversation.chain(...) for successive
+tool-driven turns. The chain exposes text and streaming iteration (async for
+asynchronous models), and responses() exposes each individual response. Set
+chain_limit on the conversation or its chain call to bound successive turns.
+ToolOutput can carry canonical-file attachments into the following prompt.
+
+```python
+def add_one(value: int):
+    return value + 1
+
+class Workflow(llm.Model):
+    model_id = "workflow"
+    supports_tools = True
+
+    def execute(self, prompt, stream, response, conversation):
+        if prompt.tool_results:
+            yield prompt.tool_results[0].output
+        else:
+            response.add_tool_call(llm.ToolCall("add_one", {"value": 4}))
+            yield "Result: "
+
+print(Workflow().chain("go", tools=[add_one]).text())
+```
+
+These tool workflows are qualified for Python custom models. Provider tool
+transport through discovered JavaScript models remains unfinished; unsupported
+host prompts fail explicitly instead of dropping their tools or results.
+
 
 The module ships with the authenticated runtime, without pip installation.
 

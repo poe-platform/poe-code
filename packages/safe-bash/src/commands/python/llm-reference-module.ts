@@ -1,3 +1,5 @@
+import { pythonLlmToolsModule } from "./llm-tools-module.js";
+
 /** Public Python calling conventions over the invocation-owned internal client. */
 export const pythonLlmReferenceModule = /* @__PURE__ */ (() => String.raw`
 """Lazy synchronous and asynchronous model responses backed by JavaScript."""
@@ -114,12 +116,13 @@ class Attachment:
         return cls(_id=row["id"], type=row["type"], path=row["path"], url=row["url"], content=row["content"])
 
 
+${pythonLlmToolsModule}
+
+
 class Prompt:
     def __init__(self, prompt, model, *, fragments=None, attachments=None,
                  system=None, system_fragments=None, prompt_json=None,
                  options=None, schema=None, tools=None, tool_results=None):
-        if tools or tool_results:
-            raise NotImplementedError("Tools require shared service support")
         self._prompt = prompt
         self.model = model
         self.fragments = fragments or []
@@ -131,8 +134,8 @@ class Prompt:
             schema = schema.model_json_schema()
         self.schema = schema
         self.options = options or {}
-        self.tools = []
-        self.tool_results = []
+        self.tools = _wrap_tools(tools or [])
+        self.tool_results = tool_results or []
 
     @property
     def prompt(self):
@@ -158,6 +161,8 @@ class _Response:
     def __init__(self, prompt, model, stream, conversation=None, key=None):
         if prompt.schema and not model.supports_schema:
             raise ValueError(str(model) + " does not support schemas")
+        if prompt.tools and not model.supports_tools:
+            raise ValueError(str(model) + " does not support tools")
         self.id = _new_id()
         self.prompt = prompt
         self.model = model
@@ -182,6 +187,9 @@ class _Response:
         self._start = None
         self._end = None
         self._start_utcnow = None
+
+    def add_tool_call(self, tool_call):
+        self._tool_calls.append(tool_call)
 
     def set_usage(self, *, input=None, output=None, details=None):
         self.input_tokens = input
@@ -252,6 +260,8 @@ class _Response:
                     raise StopAsyncIteration
                 self._chunks.append(chunk)
                 return chunk
+            if self.prompt.tools or self.prompt.tool_results:
+                raise NotImplementedError("Tools require shared service support")
             if self._client is None:
                 self._start = time.monotonic()
                 self._start_utcnow = _datetime.datetime.now(_datetime.timezone.utc)
@@ -293,6 +303,17 @@ class _Response:
 
 
 class Response(_Response):
+    def tool_calls(self):
+        self.text()
+        return self._tool_calls
+
+    def tool_calls_or_raise(self):
+        self.text()
+        return self._tool_calls
+
+    def execute_tool_calls(self, *, before_call=None, after_call=None):
+        return _sync(_execute_tool_calls(self, False, before_call, after_call))
+
     def __str__(self):
         return self.text()
 
@@ -348,6 +369,18 @@ class Response(_Response):
 
 
 class AsyncResponse(_Response):
+    async def tool_calls(self):
+        await self.text()
+        return self._tool_calls
+
+    def tool_calls_or_raise(self):
+        if not self._done:
+            raise ValueError("Response not yet awaited")
+        return self._tool_calls
+
+    async def execute_tool_calls(self, *, before_call=None, after_call=None):
+        return await _execute_tool_calls(self, True, before_call, after_call)
+
     def __await__(self):
         async def complete():
             await self.text()
@@ -482,6 +515,14 @@ class Model:
                                schema=schema, options=options), self, stream, key=key)
 
 
+    def chain(self, prompt=None, *, fragments=None, attachments=None, system=None,
+              system_fragments=None, stream=True, schema=None, tools=None,
+              tool_results=None, before_call=None, after_call=None, key=None, options=None):
+        conversation = self.conversation(tools=tools, before_call=before_call, after_call=after_call)
+        return conversation.chain(prompt, fragments=fragments, attachments=attachments,
+                                  system=system, system_fragments=system_fragments, stream=stream,
+                                  schema=schema, tool_results=tool_results, key=key, options=options)
+
     def conversation(self, tools=None, before_call=None, after_call=None, chain_limit=None):
         return Conversation(self, tools=tools, before_call=before_call, after_call=after_call, chain_limit=chain_limit)
 
@@ -521,6 +562,19 @@ class Conversation:
                                      stream=stream, key=key, **options)
         response.conversation = self
         return response
+
+    def chain(self, prompt=None, *, fragments=None, attachments=None, system=None,
+              system_fragments=None, stream=True, schema=None, tools=None, tool_results=None,
+              chain_limit=None, before_call=None, after_call=None, key=None, options=None):
+        self.model._validate_attachments(attachments)
+        value = Prompt(prompt, self.model, fragments=fragments, attachments=attachments,
+                       system=system, system_fragments=system_fragments, schema=schema,
+                       tools=tools or self.tools, tool_results=tool_results,
+                       options=self.model.Options(**(options or {})))
+        response_type = AsyncChainResponse if isinstance(self, AsyncConversation) else ChainResponse
+        return response_type(value, self.model, stream, self, key,
+                             chain_limit if chain_limit is not None else self.chain_limit,
+                             before_call or self.before_call, after_call or self.after_call)
 
 
 class AsyncConversation(Conversation):

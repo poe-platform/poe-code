@@ -499,6 +499,10 @@
     "./explorer/render/footer": {
       "types": "./dist/explorer-footer.d.ts",
       "import": "./dist/explorer-footer.js"
+    },
+    "./explorer/render/list": {
+      "types": "./dist/explorer-list.d.ts",
+      "import": "./dist/explorer-list.js"
     }
   },
   "scripts": {

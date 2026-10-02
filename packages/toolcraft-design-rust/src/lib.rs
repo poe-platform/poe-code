@@ -93,6 +93,7 @@ pub mod explorer_footer;
 pub mod explorer_header;
 pub mod explorer_jobs;
 pub mod explorer_layout;
+pub mod explorer_list;
 pub mod explorer_pane;
 pub mod explorer_state;
 pub mod explorer_theme;

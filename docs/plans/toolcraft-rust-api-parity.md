@@ -2100,3 +2100,34 @@ measured 593.755 µs native / 9.958 µs reference for actions/selection at 100 c
 (59.62× slower), and 177.767 µs / 3.582 µs for input-dialog controls (49.63× slower).
 No full-render performance gate passed. Remaining renderers, reducer,
 runtime/public namespace, batching and broader swap qualification remain open.
+
+### Explorer list checkpoint
+
+`explorer/render/list` exposes `renderList`, `visibleStart` and `DisplayLine`
+with the original declarations. Rust builds group/row/subtitle lines, finds
+the visible cursor region, budgets badge/focus columns and applies UTF-16 match
+positions to whole grapheme cells. Truncation ellipses remain unhighlighted.
+Rendering uses the existing native theme, pane and text-cell implementations;
+host primitives retain property/coercion order, iterable cleanup, custom cursor
+search callbacks, callback receivers and arbitrary thrown values.
+
+Four missing-export tests preceded implementation. Differential tests cover
+240 layout/state combinations, 308 cursor/height/scrolloff combinations, Unicode
+titles, missing rows, grouping, loading/empty states, live getters, clearing
+effects, iterator closing and reentrancy. Maintained checks pass 358 native host
+tests, 1,379 selected design cases, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 155 explorer cases. Existing list/integration suites now
+exercise native drawing, including Turkish/Lithuanian casing and UTF-16 emoji
+highlight spans. Rust/binding and scoped JS lint, bidirectional declarations and
+packed runtime/types pass; packed imports reject external ESM dependencies and
+types compile with `types: []`. No dependencies or default integration changed.
+
+Inspected 72-column and 32-column grouped, scrolled and empty-list screenshots.
+Native/reference original-ScreenBuffer output is byte-identical.
+
+Five warmed alternating 100-render Node 22 ARM64 rounds retaining 32 call arrays
+measured 2,442.585 µs native / 201.852 µs reference for a grouped 72×12 list
+(12.10× slower), and 3,187.551 µs / 178.890 µs for a scrolled 20-row list
+(17.82× slower). No full-render performance gate passed. Detail/modal/combined
+rendering, reducer, runtime/public namespace, batching and broader swap
+qualification remain open.

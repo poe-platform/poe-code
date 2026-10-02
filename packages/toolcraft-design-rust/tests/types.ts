@@ -928,3 +928,12 @@ const explorerFooterOriginal: typeof originalExplorerFooter = explorerFooter;
 const explorerFooterNative: typeof explorerFooter = null as unknown as typeof originalExplorerFooter;
 const explorerFooterKeys: SameKeys<typeof explorerFooter,typeof originalExplorerFooter> = true;
 void [explorerFooterOriginal,explorerFooterNative,explorerFooterKeys];
+
+import * as explorerList from "toolcraft-design-rust/explorer/render/list";
+import type * as originalExplorerList from "toolcraft-design/explorer/render/list";
+const explorerListOriginal: typeof originalExplorerList = explorerList;
+const explorerListNative: typeof explorerList = null as unknown as typeof originalExplorerList;
+const explorerListKeys: SameKeys<typeof explorerList,typeof originalExplorerList> = true;
+const displayLineOriginal: originalExplorerList.DisplayLine = null as unknown as explorerList.DisplayLine;
+const displayLineNative: explorerList.DisplayLine = null as unknown as originalExplorerList.DisplayLine;
+void [explorerListOriginal,explorerListNative,explorerListKeys,displayLineOriginal,displayLineNative];

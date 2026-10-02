@@ -643,3 +643,9 @@ display the terminal-size hint.
 available action shortcuts, running actions, selection counts and reorder hints.
 Input and confirmation dialogs replace these with their own controls. Hints are
 clipped by terminal cells to the available width.
+
+`renderList(state, screen, layout)` from `explorer/render/list` draws grouped
+rows, subtitles, selection markers, badges and grapheme-aware match highlights.
+The cursor stays visible as you move through a long list; loading and empty
+states retain the pane layout. `visibleStart(lines, height, scrolloff?)` is also
+available for custom views built from `DisplayLine` entries.

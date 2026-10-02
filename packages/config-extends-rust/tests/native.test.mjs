@@ -132,3 +132,17 @@ test('direct async admission preserves frontmatter classes, JSON diagnostics and
   assert.deepEqual(actual,expected);if(actual.data){assert.equal(actual.data.date,actual.data.first);assert.equal(actual.data.first,actual.data.list[0]);}
  }
 });
+
+test('portable byte filesystems support discovery, layered configuration and prompt documents',async()=>{
+ const own=await import('../dist/index.js'),sdk=await import('../../config-extends/dist/index.js');
+ const files=new Map([
+  ['/repo/base.yaml','enabled: true\nname: café 🦀\n'],
+  ['/repo/prompt.md','---\nname: café\n---\nReview {{name}}.']
+ ]);
+ const fs={capabilities:{},async readFile(path){if(!files.has(path))throw Object.assign(new Error('missing'),{code:'ENOENT'});return new TextEncoder().encode(files.get(path));},async realpath(path){return path;}};
+ assert.deepEqual(await own.findBase('base',['/repo'],fs),await sdk.findBase('base',['/repo'],fs));
+ const chain=[{source:'document',filePath:'/work/base.yaml',content:'extends: true\nenabled: false\n'},{source:'base',path:'/repo'}];
+ assert.deepEqual(await own.resolve(chain,{fs}),await sdk.resolve(chain,{fs}));
+ const input={cwd:'/repo',filePath:'/repo/prompt.md',variables:{name:'π'},fs};
+ assert.deepEqual(await own.resolvePromptDocument(input),await sdk.resolvePromptDocument(input));
+});

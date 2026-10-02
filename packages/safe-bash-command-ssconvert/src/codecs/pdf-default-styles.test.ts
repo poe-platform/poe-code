@@ -72,7 +72,7 @@ it("retains the native print origin,leading grid and scaled text margin", async 
 it("exports workbooks roundtripped through XLSX with default fonts from createEngine", async () => {
   const { createEngine } = await import("../engine.js");
   const engine = createEngine();
-  const csv = new TextEncoder().encode("region,revenue\nNorth,120000\nSouth,95000\n");
+  const csv = new TextEncoder().encode("region,units,revenue_usd,revenue_per_unit_usd\nNORTH,240,120000.00,500.00\nSOUTH,210,105000.00,500.00\n");
   const xlsxChunks: Uint8Array[] = [];
   await engine.convert(
     {

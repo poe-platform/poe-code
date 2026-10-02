@@ -190,13 +190,35 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
     }
     page.drawText(value, { x: x - (alignment === "left" ? 0 : width / (alignment === "center" ? 2 : 1)), y: baseline, size, font });
   };
+  const effectiveColumns = (sheet: Sheet): readonly AxisMetadata[] | undefined => {
+    const isXlsx = sheet.cells.some(c => c.style !== undefined && typeof c.style === "object" && "xlsx" in c.style);
+    const isDelimited = /\.(?:csv|tsv)$/i.test(sheet.name) || /\.(?:csv|tsv)$/i.test(context.inputFilename ?? "");
+    if (!isXlsx && !isDelimited) return sheet.columns;
+    
+    const existingByCol = new Map((sheet.columns ?? []).map(c => [c.index, c]));
+    const fallback = typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48;
+    const maxWidthByCol = new Map<number, number>();
+    for (const cell of sheet.cells) {
+      const raw = cell.displayedText ?? (cell.value.kind === "blank" ? "" : cell.value.kind === "boolean" ? (cell.value.value ? "TRUE" : "FALSE") : String(cell.value.value));
+      if (!raw || raw.includes("\n") || raw.includes("\r")) continue;
+      const needed = Math.max(fallback, raw.length * 6 + 14);
+      const prev = maxWidthByCol.get(cell.column) ?? fallback;
+      if (needed > prev) maxWidthByCol.set(cell.column, needed);
+    }
+    for (const [idx, c] of existingByCol) {
+      const cur = maxWidthByCol.get(idx) ?? fallback;
+      maxWidthByCol.set(idx, Math.max(cur, c.sizePoints ?? fallback));
+    }
+    const cols = [...maxWidthByCol.entries()].filter(([index, sizePoints]) => sizePoints > fallback || existingByCol.has(index)).sort((a, b) => a[0] - b[0]).map(([index, sizePoints]) => ({ ...existingByCol.get(index), index, sizePoints }));
+    return cols.length ? cols : sheet.columns;
+  };
   const metrics = (sheet: Sheet) => {
     const axis = (entries: readonly AxisMetadata[] | undefined, fallback: number) => (index: number) => {
       let start = index * fallback, size = fallback;
       for (const entry of entries ?? []) { tick(); if (entry.index < index) start += (entry.hidden ? 0 : entry.sizePoints ?? fallback) - fallback; if (entry.index === index) size = entry.sizePoints ?? fallback; }
       return { start, size };
     };
-    return { column: axis(sheet.columns, typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48), row: axis(sheet.rows, typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75) };
+    return { column: axis(effectiveColumns(sheet), typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48), row: axis(sheet.rows, typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75) };
   };
   const drawObject = async (page: PDFPage, object: SheetObject, x: number, y: number, width: number, height: number) => {
     tick();
@@ -310,7 +332,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const startPage = print.firstPageNumber ?? nextPageNumber;
       const layout = layoutPrintPages({ area, startPage, defaultRowPoints: typeof sheet.view?.defaultRowHeight === "number" ? sheet.view.defaultRowHeight : 12.75,
         defaultColumnPoints: typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48,
-        ...(sheet.rows ? { rows: sheet.rows } : {}), ...(sheet.columns ? { columns: sheet.columns } : {}),
+        ...(sheet.rows ? { rows: sheet.rows } : {}), ...(effectiveColumns(sheet) ? { columns: effectiveColumns(sheet)! } : {}),
         paper: { widthPoints: paper[0], heightPoints: paper[1] }, margins: print.margins,
         rowBreaks: print.rowBreaks, columnBreaks: print.columnBreaks,
         orientation: print.orientation, scale: print.scale, centerHorizontally: print.centerHorizontally,

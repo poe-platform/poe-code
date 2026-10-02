@@ -110,28 +110,29 @@ const engineMarkers = {
 };
 
 // Measured from clean installed tarballs using the exact profiles below.
+// Retain a stricter prior baseline when its measurement remains within tolerance.
 // Allow 2% total growth and 5% incremental growth (at least 16 KiB) so
 // optional-engine regressions cannot hide behind unrelated core reductions.
 // Core excludes unregistered command implementations; registries explicitly retain them.
 export const safeBashProfileBaselines = {
-  "core": 4089784,
-  "rootCore": 4123857,
-  "pythonLlm": 4322503,
-  "pdf": 5103969,
-  "multiplePdf": 5193588,
-  "csv": 5797627,
-  "csvXlsx": 6003554,
-  "git": 9406453,
-  "baseRegistry": 6239600,
-  "registryWithRegex": 6239637,
+  "core": 1715877,
+  "rootCore": 1717280,
+  "pythonLlm": 1954948,
+  "pdf": 2757392,
+  "multiplePdf": 2845674,
+  "csv": 3422780,
+  "csvXlsx": 3665124,
+  "git": 7045654,
+  "baseRegistry": 6050044,
+  "registryWithRegex": 6050081,
   // Full yq is selected by enabledConsumer; full also retains the CSV Python worker.
   "enabledConsumer": 6411704,
-  "full": 67928037,
-  "rootPythonLlm": 4356733,
-  "splitCore": 4116218,
-  "splitPythonLlm": 4244663,
+  "full": 67666817,
+  "rootPythonLlm": 1956498,
+  "splitCore": 1711634,
+  "splitPythonLlm": 1950980,
   "splitEnabledConsumer": 6319459,
-  "splitFull": 67730620
+  "splitFull": 67480666
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

@@ -23366,6 +23366,7 @@ const syncExtraRuntimeMethods = {
     let sup1 = false, sup2 = false, sup3 = false;
     let zeroTerm = false;
     let outDelim = "\t";
+    let outDelimSet = false;
     let noCheckOrder = false;
     let showTotal = false;
     let literal = false;
@@ -23382,13 +23383,15 @@ const syncExtraRuntimeMethods = {
       if (a === "--total") { showTotal = true; continue; }
       if (a === "--zero-terminated") { if (!allowZero) return undefined; zeroTerm = true; continue; }
       if (a === "--output-delimiter" && i + 1 < opArgs.length) {
-        outDelim = opArgs[++i]!;
-        if (outDelim.length === 0 || /[^\x09\x20-\x7e]/.test(outDelim)) return undefined;
+        const nextDelim = opArgs[++i]!;
+        if (nextDelim.length === 0 || /[^\x09\x20-\x7e]/.test(nextDelim) || (outDelimSet && nextDelim !== outDelim)) return undefined;
+        outDelim = nextDelim; outDelimSet = true;
         continue;
       }
       if (a.startsWith("--output-delimiter=")) {
-        outDelim = a.slice(19);
-        if (outDelim.length === 0 || /[^\x09\x20-\x7e]/.test(outDelim)) return undefined;
+        const nextDelim = a.slice(19);
+        if (nextDelim.length === 0 || /[^\x09\x20-\x7e]/.test(nextDelim) || (outDelimSet && nextDelim !== outDelim)) return undefined;
+        outDelim = nextDelim; outDelimSet = true;
         continue;
       }
       if (/^-[123z]+$/.test(a)) {
@@ -23443,11 +23446,12 @@ const syncExtraRuntimeMethods = {
 ,
   evalSyncJoin(this: any, stdinLines: readonly string[] | undefined, opArgs: readonly string[], cwd: string): string[] | undefined {
     let sep: string | undefined;
-    let f1 = 0, f2 = 0;
+    let f1 = 0, f2 = 0, f1Set: number | undefined, f2Set: number | undefined;
     let unp1 = false, unp2 = false, paired = true;
     let ignoreCase = false, headerMode = false, noCheckOrder = false;
-    let emptyRep = "";
+    let emptyRep = "", emptyRepSet: string | undefined;
     let outSpec: Array<{ file: 0 | 1 | 2; idx: number }> | undefined;
+    let outAuto = false;
     let literal = false;
     const files: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
@@ -23463,17 +23467,17 @@ const syncExtraRuntimeMethods = {
       if (a === "--check-order") { noCheckOrder = false; continue; }
       if (a === "-t" || a.startsWith("-t")) {
         const v = a === "-t" ? opArgs[++i] : a.slice(2);
-        if (!v || v.length !== 1 || /[^\x09\x20-\x7e]/.test(v)) return undefined;
+        if (!v || v.length !== 1 || /[^\x09\x20-\x7e]/.test(v) || (sep !== undefined && sep !== v)) return undefined;
         sep = v;
       } else if (/^-(?:1|2|j)[1-9][0-9]{0,2}$/.test(a)) {
         const idx = Number(a.slice(2)) - 1;
-        if (a[1] !== "2") f1 = idx;
-        if (a[1] !== "1") f2 = idx;
+        if (a[1] !== "2") { if (f1Set !== undefined && f1Set !== idx) return undefined; f1 = f1Set = idx; }
+        if (a[1] !== "1") { if (f2Set !== undefined && f2Set !== idx) return undefined; f2 = f2Set = idx; }
       } else if (a === "-1" || a === "-2" || a === "-j") {
         if (i + 1 >= opArgs.length || !/^[1-9][0-9]{0,2}$/.test(opArgs[i + 1]!)) return undefined;
         const idx = Number(opArgs[++i]!) - 1;
-        if (a !== "-2") f1 = idx;
-        if (a !== "-1") f2 = idx;
+        if (a !== "-2") { if (f1Set !== undefined && f1Set !== idx) return undefined; f1 = f1Set = idx; }
+        if (a !== "-1") { if (f2Set !== undefined && f2Set !== idx) return undefined; f2 = f2Set = idx; }
       } else if (a === "-a1" || a === "-a2" || a === "-v1" || a === "-v2") {
         if (a[2] === "1") unp1 = true; else unp2 = true;
         if (a[1] === "v") paired = false;
@@ -23484,16 +23488,21 @@ const syncExtraRuntimeMethods = {
         if (a === "-v") paired = false;
       } else if (a === "-e" || (a.startsWith("-e") && a.length > 2)) {
         if (a === "-e" && i + 1 >= opArgs.length) return undefined;
-        emptyRep = a === "-e" ? opArgs[++i]! : a.slice(2);
+        const nextRep = a === "-e" ? opArgs[++i]! : a.slice(2);
+        if (emptyRepSet !== undefined && emptyRepSet !== nextRep) return undefined;
+        emptyRep = emptyRepSet = nextRep;
       } else if (a === "-o" || (a.startsWith("-o") && a.length > 2)) {
         const rawO = a === "-o" ? opArgs[++i] : a.slice(2);
         if (!rawO) return undefined;
         if (rawO === "auto") {
+          if (outSpec !== undefined && !outAuto) return undefined;
+          outAuto = true;
           outSpec = [{ file: 0, idx: -1 }];
         } else {
-          const parts = rawO.split(/[ ,]+/).filter(Boolean);
+          if (outAuto) return undefined;
+          const parts = rawO.split(/[ ,\t]+/).filter(Boolean);
           if (parts.length === 0) return undefined;
-          outSpec = [];
+          if (!outSpec) outSpec = [];
           for (const p of parts) {
             if (p === "0") outSpec.push({ file: 0, idx: 0 });
             else {
@@ -23512,7 +23521,7 @@ const syncExtraRuntimeMethods = {
     const raw2: readonly string[] | undefined = files[1] === "-" ? stdinLines : this.readSyncMemoryLines(resolvePath(cwd, files[1]!));
     if (!raw1 || !raw2) return undefined;
     const splitRow = (line: string): string[] => sep !== undefined ? line.split(sep) : (line.trim().length === 0 ? [] : line.trim().split(/[ \t]+/));
-    const normKey = (k: string): string => ignoreCase ? k.toLowerCase() : k;
+    const normKey = (k: string): string => ignoreCase ? k.replace(/[A-Z]/g, c => String.fromCharCode(c.charCodeAt(0) + 32)) : k;
     let rows1 = raw1.map(l => { const fs = splitRow(l); const k = fs[f1] ?? ""; return { fields: fs, key: k, cmpKey: normKey(k) }; });
     let rows2 = raw2.map(l => { const fs = splitRow(l); const k = fs[f2] ?? ""; return { fields: fs, key: k, cmpKey: normKey(k) }; });
     let headerRow: { r1: (typeof rows1)[0] | undefined; r2: (typeof rows2)[0] | undefined } | undefined;
@@ -24081,8 +24090,8 @@ const syncExtraRuntimeMethods = {
     const ops = args[0] === "--" ? args.slice(1) : args;
     if (ops.length === 0) return undefined;
     let pos = 0;
-    const isInt = (s: string): boolean => /^[+-]?[0-9]{1,18}$/.test(s);
-    const isTruthy = (s: string): boolean => s !== "" && !/^[+-]?0+$/.test(s);
+    const isInt = (s: string): boolean => /^-?[0-9]{1,18}$/.test(s);
+    const isTruthy = (s: string): boolean => s !== "" && !/^-?0+$/.test(s);
     const evalRegexMatch = (targetStr: string, rawPat: string): string | undefined => {
       if (/\\[2-9]/.test(rawPat) || rawPat.includes("[:") || rawPat.includes("[.") || rawPat.includes("[=")) return undefined;
       let jsPat = "";
@@ -25949,14 +25958,14 @@ const syncExtraRuntimeMethods = {
       const sub = (checkChars === Infinity ? chars.slice(skipChars) : chars.slice(skipChars, skipChars + checkChars)).join("");
       return ignoreCase ? foldAscii(sub) : sub;
     };
+    if (allRepeated !== undefined && hasCount) return undefined;
+    if (groupMode !== undefined && (hasCount || onlyRepeated || onlyUnique || allRepeated !== undefined)) return undefined;
     const outLines: string[] = [];
     let uIdx = 0;
     while (uIdx < rawLines.length) {
       const k0 = keyOf(rawLines[uIdx]!);
       let uEnd = uIdx + 1;
       while (uEnd < rawLines.length && keyOf(rawLines[uEnd]!) === k0) uEnd++;
-      if (allRepeated !== undefined && (hasCount || onlyUnique)) return undefined;
-      if (groupMode !== undefined && (hasCount || onlyRepeated || onlyUnique || allRepeated !== undefined)) return undefined;
       const count = uEnd - uIdx;
       if (groupMode !== undefined) {
         if (groupMode === "prepend" || (groupMode === "both" && uIdx === 0) || ((groupMode === "separate" || groupMode === "both") && outLines.length > 0)) {
@@ -25967,7 +25976,7 @@ const syncExtraRuntimeMethods = {
           outLines.push("");
         }
       } else if (allRepeated !== undefined) {
-        if (count > 1) {
+        if (count > 1 && !onlyUnique) {
           if (allRepeated === "prepend" || (allRepeated === "separate" && outLines.length > 0)) outLines.push("");
           for (let ri = uIdx; ri < uEnd; ri++) outLines.push(rawLines[ri]!);
         }

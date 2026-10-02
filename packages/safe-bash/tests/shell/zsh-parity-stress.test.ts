@@ -511,3 +511,29 @@ test("32. sync sort secondary key -f folds only ASCII a-z and supports start-fie
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(res.stdout, "<1 a\n1 É\n1 é><a:2\na:10>\n");
 });
+
+test("33. sync uniq empty-input flag validation, join multi -o and conflicting options, comm conflicting delimiters, and expr +0/+1 semantics", async () => {
+  const syncSh = setup().shell.use(agentCommands());
+  const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+
+  const scripts = [
+    ": > /empty; x=$(uniq --group -c < /empty); echo \"$?:$x\"",
+    ": > /empty; x=$(uniq -D -c < /empty); echo \"$?:$x\"",
+    "printf \"1 a\\n2 b\\n\" > /j1; printf \"1 X\\n2 Y\\n\" > /j2; x=$(join -o 1.1 -o 1.2 -o 2.2 /j1 /j2); echo \"$?:$x\"",
+    "printf \"1 a\\n\" > /j1; printf \"1 X\\n\" > /j2; x=$(join -1 1 -1 2 /j1 /j2); echo \"$?:$x\"",
+    "printf \"1 a\\n\" > /j1; printf \"1 X\\n\" > /j2; x=$(join -o auto -o 1.1 /j1 /j2); echo \"$?:$x\"",
+    "printf \"1:a\\n\" > /j1; printf \"1:X\\n\" > /j2; x=$(join -t : -t , /j1 /j2); echo \"$?:$x\"",
+    "printf \"1 a\\n\" > /j1; printf \"1 X\\n\" > /j2; x=$(join -e A -e B /j1 /j2); echo \"$?:$x\"",
+    "printf \"a\\nb\\n\" > /c1; printf \"b\\nc\\n\" > /c2; x=$(comm --output-delimiter=: --output-delimiter=, /c1 /c2); echo \"$?:$x\"",
+    "x=$(expr +0); echo \"$?:$x\"",
+    "x=$(expr +1 + 2); echo \"$?:$x\"",
+    "x=$(expr +20 \\< +3); echo \"$?:$x\"",
+  ];
+  for (const script of scripts) {
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+    assert.equal(rSync.stderr, rAsync.stderr, `stderr mismatch for ${script}`);
+  }
+});

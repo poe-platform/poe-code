@@ -223,7 +223,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
     } finally {
       await invocation.close();
       if (typeof (globalThis as { gc?: () => void }).gc === "function") {
-        try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+        try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC must not override the conversion result. */ }
       }
     }
   }};

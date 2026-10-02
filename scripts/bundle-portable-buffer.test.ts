@@ -12,18 +12,29 @@ vi.mock("esbuild", async importOriginal => {
   return { ...actual, build: vi.fn(actual.build) };
 });
 
-it("emits a self-contained portable bootstrap for production consumers", async () => {
+it("keeps the legacy bootstrap importable without installing a Buffer global", async () => {
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const result = await build({ ...resolvePortableBufferBuild(root), sourcemap: false });
   expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
   const script = result.outputFiles!.find(output => output.path.endsWith("/portable-buffer.js"))!.text;
   const sandbox = createContext({ TextEncoder, TextDecoder, Uint8Array });
   runInContext(script, sandbox);
-  expect(runInContext('Buffer.from("héllo").toString("hex")', sandbox)).toBe("68c3a96c6c6f");
-  expect(runInContext('Buffer.prototype.utf8Slice.call(new TextEncoder().encode("héllo"), 1, 3)', sandbox)).toBe("é");
+  expect(runInContext('typeof Buffer', sandbox)).toBe("undefined");
   const native = createContext({ TextEncoder, TextDecoder, Uint8Array, Buffer });
   runInContext(script, native);
   expect(native.Buffer).toBe(Buffer);
+});
+
+it("keeps third-party Buffer adapters local even when a host global exists", async () => {
+  const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const result = await build({
+    entryPoints: [path.join(root, "packages/safe-bash/browser/buffer.mjs")],
+    bundle: true, platform: "browser", format: "iife", globalName: "adapter", write: false,
+  });
+  const sandbox = createContext({ TextEncoder, TextDecoder, Uint8Array, Buffer: { host: true } });
+  runInContext(result.outputFiles![0]!.text, sandbox);
+  expect(runInContext('adapter.Buffer.from("é").toString("hex")', sandbox)).toBe("c3a9");
+  expect(runInContext('Buffer.host', sandbox)).toBe(true);
 });
 
 it("preserves browser chunks when publishing the standalone bootstrap", async () => {
@@ -60,5 +71,5 @@ it("preserves browser chunks when publishing the standalone bootstrap", async ()
   const script = volume.readFileSync(path.join(root, "packages/safe-bash/dist/portable-buffer.js"), "utf8").toString();
   const realm = createContext({ TextEncoder, TextDecoder, Uint8Array });
   runInContext(script, realm);
-  expect(runInContext('Buffer.from("é").toString("hex")', realm)).toBe("c3a9");
+  expect(runInContext('typeof Buffer', realm)).toBe("undefined");
 });

@@ -1,6 +1,8 @@
 import { FrontmatterParseError, parseFrontmatter } from "@poe-code/frontmatter";
 import type { MdRange } from "../ast.js";
 
+const utf8Encoder = new TextEncoder();
+
 type ExtractedFrontmatter = {
   frontmatter?: Record<string, unknown>;
   body: string;
@@ -34,7 +36,7 @@ export function extractFrontmatter(markdown: string): ExtractedFrontmatter {
     },
     {
       start: 0,
-      end: new TextEncoder().encode(markdown.slice(0, markdown.length - parsed.body.length)).byteLength
+      end: utf8Encoder.encode(markdown.slice(0, markdown.length - parsed.body.length)).byteLength
     }
   );
 }

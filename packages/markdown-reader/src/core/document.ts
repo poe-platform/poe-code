@@ -5,6 +5,7 @@ import { FrontmatterParseError, parseFrontmatter } from "@poe-code/frontmatter";
 import { UserError } from "toolcraft/user-error";
 import { getOwnErrorCode } from "../error-codes.js";
 import { scanMarkdown, type Section } from "./scan.js";
+import { utf8Decoder, utf8Encoder } from "./encoding.js";
 
 export interface MarkdownReaderFs {
   readFile(path: string, encoding: "utf8"): Promise<string>;
@@ -45,7 +46,7 @@ export function resolveMarkdownPath(file: string, cwd = globalThis.process?.cwd?
 }
 
 export function sliceMarkdownBytes(source: string, start: number, end: number): string {
-  return new TextDecoder("utf-8", { ignoreBOM: true }).decode(new TextEncoder().encode(source).subarray(start, end));
+  return utf8Decoder.decode(utf8Encoder.encode(source).subarray(start, end));
 }
 
 async function readMarkdownFile(
@@ -55,7 +56,7 @@ async function readMarkdownFile(
 ): Promise<string> {
   try {
     return "capabilities" in fs
-      ? new TextDecoder("utf-8", { ignoreBOM: true }).decode(await fs.readFile(resolvedFile))
+      ? utf8Decoder.decode(await fs.readFile(resolvedFile))
       : await fs.readFile(resolvedFile, "utf8");
   } catch (error) {
     throw toUserError(error, originalFile);

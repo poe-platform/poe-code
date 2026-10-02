@@ -55,7 +55,8 @@ Use `caller [depth]` to inspect function/source call sites, and
 Creation modes use the filesystem's capabilities; advisory modes do not enforce
 physical permissions, and the host process mask remains unchanged.
 Core, shell, and command imports use Web-standard bytes without installing
-`globalThis.Buffer`. Workers do not need `nodejs_compat` for this.
+`globalThis.Buffer`. Workers do not need `nodejs_compat` for this. The legacy
+`portable-buffer.js` bootstrap remains importable but no longer installs a global.
 Bash `[[ value =~ pattern ]]` and `BASH_REMATCH` also work in browsers and
 Workers, using the same ERE engine with cooperative cancellation and shared
 resource accounting.

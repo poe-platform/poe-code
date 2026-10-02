@@ -30,7 +30,7 @@ export async function portableRuntime(contents: string, options: { removeBuffer?
     crypto: globalThis.crypto, structuredClone, performance, URL, FormData, Blob, Response, Request, btoa, atob });
   assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "undefined:undefined");
   const api = runInContext(`(function(){ const module = { exports: {} }; ${result.outputFiles![0]!.text}; return module.exports; })()`, realm);
-  assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), options.bootstrapBuffer ? "function:undefined" : "undefined:undefined");
+  assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "undefined:undefined");
   if (options.removeBuffer) {
     runInContext("delete globalThis.Buffer", realm);
     assert.equal(runInContext("typeof Buffer", realm), "undefined");

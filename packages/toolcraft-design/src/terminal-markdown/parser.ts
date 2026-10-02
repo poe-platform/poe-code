@@ -1,6 +1,8 @@
 import type { MdNode, MdRange } from "./ast.js";
 import { parseBlockDocument } from "./parser/block.js";
 
+const utf8Encoder = new TextEncoder();
+
 export function parse(markdown: string): { frontmatter?: Record<string, unknown>; ast: MdNode } {
   const { frontmatter, frontmatterRange, children } = parseBlockDocument(markdown);
   const ast = withRange(
@@ -13,7 +15,7 @@ export function parse(markdown: string): { frontmatter?: Record<string, unknown>
     },
     {
       start: 0,
-      end: new TextEncoder().encode(markdown).byteLength
+      end: utf8Encoder.encode(markdown).byteLength
     }
   );
 

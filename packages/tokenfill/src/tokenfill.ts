@@ -12,7 +12,7 @@ export interface TokenfillResult {
 }
 
 const builtInCorpusText = BUILT_IN_CORPUS_ARTICLES.join(CORPUS_ARTICLE_SEPARATOR);
-const builtInCorpusByteLength = Buffer.byteLength(builtInCorpusText, "utf8");
+const builtInCorpusByteLength = new TextEncoder().encode(builtInCorpusText).byteLength;
 
 type EncodingCache = {
   prefixCharLength: number;

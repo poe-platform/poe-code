@@ -28,7 +28,7 @@ import { createFactorCommand as createSubpathFactorCommand, createFactorCommands
 import { createGetoptCommand as createSubpathGetoptCommand, createGetoptCommands as createSubpathGetoptCommands, getoptCommands as subpathGetoptCommands, type GetoptCommandsOptions as SubpathGetoptCommandsOptions, type GetoptLimits as SubpathGetoptLimits } from "@poe-platform/safe-bash/commands/getopt";
 import { createHexdumpCommand as createSubpathHexdumpCommand, createHdCommand as createSubpathHdCommand, createHexdumpCommands as createSubpathHexdumpCommands, hexdumpCommands as subpathHexdumpCommands, type HexdumpCommandsOptions as SubpathHexdumpCommandsOptions, type HexdumpLimits as SubpathHexdumpLimits } from "@poe-platform/safe-bash/commands/hexdump";
 import { createNodeRegexProvider } from "@poe-platform/safe-bash/node";
-import { posix } from "node:path";
+import { posixPath as corePosixPath } from "@poe-platform/safe-fs/core";
 import { posixPath as contractPath, type CommandDefinition, type CommandInput } from "@poe-platform/safe-bash/contracts";
 import { posixPath as indexedPath, type CommandInput as IndexedCommandInput } from "@poe-platform/safe-bash/contracts/index";
 import { posixPath as directPath } from "@poe-platform/safe-bash/contracts/path";
@@ -66,10 +66,11 @@ for (const acquired of [resizing, reading]) {
   void offset;
 }
 void retainedResize;
-const nodePaths: readonly (typeof posix)[] = [contractPath, indexedPath, directPath];
-for (const paths of nodePaths) {
-  const formatted: string = paths.format(paths.parse(paths.resolve("/workspace", "file.txt")));
-  void formatted;
+const portablePaths: readonly (typeof corePosixPath)[] = [contractPath, indexedPath, directPath];
+for (const paths of portablePaths) {
+  const resolved: string = paths.resolve("/workspace", "file.txt");
+  const relative: string = paths.relative("/workspace", resolved);
+  void relative;
 }
 const agentOptions: AgentCommandsOptions = { regexExecutor: createBoundedRegexProvider(), regex: { maxWorkers: 1 } };
 const archiveOptions: ArchiveCommandsOptions = { limits: { maxMembers: 100 } };

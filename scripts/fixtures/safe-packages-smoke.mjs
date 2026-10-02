@@ -21,7 +21,6 @@ await privateCommandVerification;
 import "./safe-packages-atomic.mjs";
 import "./safe-packages-diff3.mjs";
 import "./safe-packages-mkdir.mjs";
-import { posix } from "node:path";
 import { posixPath as contractPath } from "@poe-platform/safe-bash/contracts";
 import { posixPath as indexedPath } from "@poe-platform/safe-bash/contracts/index";
 import { posixPath as directPath } from "@poe-platform/safe-bash/contracts/path";
@@ -69,18 +68,16 @@ const promiseResult = await run("const keys = Object.getOwnPropertySymbols(input
 assert.equal(promiseResult.ok, true);
 assert.deepEqual(promiseResult.returnValue, [1, true, true]);
 await verifyNullDeviceView({ createMemoryFileSystem, createDeviceFileSystem });
-for (const paths of [posixPath, nodeEntry.posixPath]) {
+for (const paths of [posixPath, nodeEntry.posixPath, contractPath, indexedPath, directPath]) {
   assert.equal(paths, corePosixPath);
   assert.equal(paths.join("/a", "..", "b"), "/b");
   assert.equal(paths.basename("/a/file.txt"), "file.txt");
   assert.equal(paths.dirname("/a/file.txt"), "/a");
   assert.equal(paths.extname("/a/file.txt"), ".txt");
   assert.equal(paths.isAbsolute("/a/file.txt"), true);
-}
-for (const paths of [contractPath, indexedPath, directPath]) {
-  assert.equal(paths, posix);
   assert.equal(paths.normalize("/a/../b"), "/b");
-  assert.equal(paths.format(paths.parse("/a/file.txt")), "/a/file.txt");
+  assert.equal(paths.resolve("workspace", "file.txt"), "/workspace/file.txt");
+  assert.equal(paths.relative("/workspace", "/workspace/file.txt"), "file.txt");
 }
 for (const [entry, options] of [[defaultEntry, {}], [nodeEntry, { regexExecutor: createNodeRegexProvider() }]]) {
   assert.deepEqual(entry.createAgentCommands().map(command => command.name).sort(), expectedAgentCommandNames);

@@ -25,3 +25,16 @@ test('mock filesystem runs the full Rust mutation SDK without physical fixture f
  await runMutations([fileMutation.ensureDirectory({path:'~/config'}),configMutation.merge({target:'~/config/agent.json',value:{enabled:true}}),fileMutation.backup({target:'~/config/agent.json',once:true}),configMutation.transform({target:'~/config/agent.json',transform:doc=>({content:{...doc,enabled:false},changed:true})}),fileMutation.restoreBackup({target:'~/config/agent.json'})],{fs,homeDir:'/home/test'});
  assert.deepEqual(parseJson(fs.getContent('~/config/agent.json')),{enabled:true});assert.deepEqual(await fs.readdir('~/config'),['agent.json']);
 });
+
+test('mock byte reads match portable SDK Uint8Arrays and writes honor view boundaries',async()=>{
+ const {createMockFs}=await import('@poe-code/config-mutations-rust/testing');
+ const fs=createMockFs({'~/file':'café 🦀'});
+ const bytes=await fs.readFile('~/file');
+ assert.equal(Buffer.isBuffer(bytes),false);
+ assert.deepEqual(bytes,new TextEncoder().encode('café 🦀'));
+ const source=new TextEncoder().encode('!café 🦀?');
+ await fs.writeFile('~/file',new DataView(source.buffer,1,source.byteLength-2));
+ assert.equal(await fs.readFile('~/file','utf8'),'café 🦀');
+ await fs.writeFile('~/file',new TextEncoder().encode('\uFEFFcafé'));
+ assert.equal(await fs.readFile('~/file','utf8'),'\uFEFFcafé');
+});

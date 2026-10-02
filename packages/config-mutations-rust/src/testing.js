@@ -3,6 +3,7 @@ import {native} from './native.js';
 import {jsonFormat} from './json.js';
 import {tomlFormat} from './toml.js';
 import {yamlFormat} from './yaml.js';
+const utf8Encoder=new TextEncoder(),utf8Decoder=new TextDecoder('utf-8',{ignoreBOM:true});
 export const parseJson=jsonFormat.parse,serializeJson=jsonFormat.serialize,
  parseToml=tomlFormat.parse,serializeToml=tomlFormat.serialize,
  parseYaml=yamlFormat.parse,serializeYaml=yamlFormat.serialize;
@@ -35,8 +36,8 @@ export function createMockFs(initialFiles,homeDir='/home/test'){
   files,directories,
   exists(input){return admission('exists',expandPath(input,homeDir)).exists;},
   getContent(input){return files[expandPath(input,homeDir)];},
-  async readFile(input,encoding){const absolute=expandPath(input,homeDir);admission('readFile',absolute);const content=files[absolute];return encoding?content:new TextEncoder().encode(content);},
-  async writeFile(input,content,options){const absolute=expandPath(input,homeDir);admission('writeFile',absolute,options);files[absolute]=typeof content==='string'?content:Buffer.isBuffer(content)?content.toString('utf8'):Buffer.from(content.buffer,content.byteOffset,content.byteLength).toString('utf8');},
+  async readFile(input,encoding){const absolute=expandPath(input,homeDir);admission('readFile',absolute);const content=files[absolute];return encoding?content:utf8Encoder.encode(content);},
+  async writeFile(input,content,options){const absolute=expandPath(input,homeDir);admission('writeFile',absolute,options);files[absolute]=typeof content==='string'?content:utf8Decoder.decode(new Uint8Array(content.buffer,content.byteOffset,content.byteLength));},
   async mkdir(input,options){const absolute=expandPath(input,homeDir),plan=admission('mkdir',absolute,options);if(plan.recursive)addDirectoryTree(absolute,directories);else directories.add(absolute);},
   async unlink(input){const absolute=expandPath(input,homeDir);admission('unlink',absolute);delete files[absolute];},
   async rename(from,to){const absolute=expandPath(from,homeDir),next=expandPath(to,homeDir);admission('rename',absolute);files[next]=files[absolute];delete files[absolute];},

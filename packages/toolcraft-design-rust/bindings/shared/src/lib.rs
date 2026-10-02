@@ -502,3 +502,6 @@ mod dashboard_border;
 pub use dashboard_border::*;
 mod dashboard_footer;
 pub use dashboard_footer::*;
+
+mod dashboard_output;
+pub use dashboard_output::*;

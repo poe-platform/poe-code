@@ -427,6 +427,10 @@
     "./dashboard/components/footer": {
       "types": "./dist/dashboard-footer.d.ts",
       "import": "./dist/dashboard-footer.js"
+    },
+    "./dashboard/components/output-pane": {
+      "types": "./dist/dashboard-output.d.ts",
+      "import": "./dist/dashboard-output.js"
     }
   },
   "scripts": {

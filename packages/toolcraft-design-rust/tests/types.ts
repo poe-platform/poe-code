@@ -762,3 +762,16 @@ const footerPublicNative: NativeFooterPublic = null as unknown as OriginalFooter
 // @ts-expect-error The buffer parameter retains the separate private-class identity gate.
 const footerNominalOriginal: typeof originalDashboardFooter.renderFooter = dashboardFooter.renderFooter;
 void [footerDefaultsOriginal,footerDefaultsNative,footerKeys,footerPublicOriginal,footerPublicNative,footerNominalOriginal];
+
+import * as dashboardOutput from "toolcraft-design-rust/dashboard/components/output-pane";
+import type * as originalDashboardOutput from "toolcraft-design/dashboard/components/output-pane";
+const outputLinesOriginal: typeof originalDashboardOutput.computeVisualLines = dashboardOutput.computeVisualLines;
+const outputLinesNative: typeof dashboardOutput.computeVisualLines = null as unknown as typeof originalDashboardOutput.computeVisualLines;
+const outputKeys: SameKeys<typeof dashboardOutput,typeof originalDashboardOutput> = true;
+type NativeOutputPublic = (buffer: BufferPublic<dashboardBuffer.ScreenBuffer>,rect: Parameters<typeof dashboardOutput.renderOutputPane>[1],items: Parameters<typeof dashboardOutput.renderOutputPane>[2],offset?: number,options?: Parameters<typeof dashboardOutput.renderOutputPane>[4]) => number;
+type OriginalOutputPublic = (buffer: BufferPublic<originalDashboardBuffer.ScreenBuffer>,rect: Parameters<typeof originalDashboardOutput.renderOutputPane>[1],items: Parameters<typeof originalDashboardOutput.renderOutputPane>[2],offset?: number,options?: Parameters<typeof originalDashboardOutput.renderOutputPane>[4]) => number;
+const outputPublicOriginal: OriginalOutputPublic = null as unknown as NativeOutputPublic;
+const outputPublicNative: NativeOutputPublic = null as unknown as OriginalOutputPublic;
+// @ts-expect-error The buffer parameter retains the separate private-class identity gate.
+const outputNominalOriginal: typeof originalDashboardOutput.renderOutputPane = dashboardOutput.renderOutputPane;
+void [outputLinesOriginal,outputLinesNative,outputKeys,outputPublicOriginal,outputPublicNative,outputNominalOriginal];

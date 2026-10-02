@@ -1606,3 +1606,30 @@ slower). No performance gate passed. Output/stats/context renderers, dashboard
 lifecycle and snapshots, explorer, native batching and broader replacement
 qualification remain open.
 
+### Dashboard output checkpoint
+
+`dashboard/components/output-pane` now exports `computeVisualLines`,
+`renderOutputPane` and `VisualLine`. Rust owns paragraph and styled-segment
+wrapping, status prefixes, viewport painting, conversation folding, duration
+labels and streamed Markdown cache decisions. Node retains observable objects,
+iteration, array operations, ICU segmentation and the weak cache; existing native
+Markdown, ANSI, width, viewport and buffer implementations supply dependencies.
+
+Four missing-export tests failed before implementation. Differential checks cover
+Unicode/ANSI/control text, narrow rectangles, preformatted rows, scroll clamping,
+conversation/details modes, getter order, drawing receivers, thrown identity and
+streamed/invalid/footnoted Markdown. Maintained checks pass 297 native host tests,
+1,322 selected original design tests, 13 prompt-wrapper tests and 14 composer
+tests; the expanded shared dashboard suite passes 69 selected tests. Rust/binding
+and scoped JS lint pass. Bidirectional structural types, packed runtime rejecting
+external imports and standalone declarations with `types: []` pass. The buffer's
+private-class nominal identity remains a separate swap gate. Inspected screenshots
+at 56 and 28 columns verify prefixes, wrapping, colors, folding and Markdown.
+No dependencies or default integration changes.
+
+Five warmed alternating 100-call Node 22 ARM64 rounds on four output items at
+56 columns measured native/reference medians of 1,563.52/16.06 µs for wrapping
+(97.34× slower) and 1,765.30/19.28 µs for rendering into a no-op surface
+(91.54× slower). No performance gate passed. Stats/context/run-view rendering,
+dashboard lifecycle and snapshots, explorer, batching and broader API/resource/
+reentrancy/platform qualification remain open.

@@ -72,3 +72,5 @@ pub mod prompt_multiselect;
 pub mod prompt_pagination;
 pub mod prompt_selection;
 pub mod with_spinner;
+
+pub mod dashboard_output;

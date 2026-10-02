@@ -9,6 +9,13 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (["output-wrapping","output-viewport","conversation-output"].some(test => importer === path(`../toolcraft-design/src/dashboard/components/${test}.test.ts`))) {
+          if (name === "./output-pane.js") return path("dist/dashboard-output.js");
+          if (name === "../buffer.js") return path("dist/dashboard-buffer.js");
+          if (name === "../terminal-width.js") return path("dist/terminal.js");
+          if (name === "../../terminal-markdown/index.js") return path("dist/markdown.js");
+          if (name === "../../internal/theme-detect.js") return path("dist/theme.js");
+        }
         if (importer === path("../toolcraft-design/src/dashboard/components/footer.test.ts")) {
           if (name === "./footer.js") return path("dist/dashboard-footer.js");
           if (name === "../buffer.js") return path("dist/dashboard-buffer.js");
@@ -160,6 +167,9 @@ export default defineConfig({
       path("../toolcraft-design/src/terminal-markdown/parser/code-highlight.test.ts"),
       path("../toolcraft-design/src/escape-terminal-text.test.ts"),
       path("../toolcraft-design/src/static/static.test.ts"),
+      path("../toolcraft-design/src/dashboard/components/output-wrapping.test.ts"),
+      path("../toolcraft-design/src/dashboard/components/output-viewport.test.ts"),
+      path("../toolcraft-design/src/dashboard/components/conversation-output.test.ts"),
       path("../toolcraft-design/src/render-performance.test.ts"),
       path("../toolcraft-design/src/task-tree.test.ts"),
       path("../toolcraft-design/src/event-groups.test.ts"),

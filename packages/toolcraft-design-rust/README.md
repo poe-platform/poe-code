@@ -132,6 +132,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/composer` | Edit multiline message or plan drafts with Unicode navigation and submission |
 | `dashboard/elapsed` | Format elapsed milliseconds as padded hours, minutes and seconds |
 | `dashboard/ansi` | Parse styled terminal lines and restore caller-supplied base styles |
+| `dashboard/components/output-pane` | Wrap styled output, scroll visible rows and render concise conversations |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -513,3 +514,15 @@ centers complete hints and highlights their keys with the current theme. Supply
 a session to show the working directory and agent/model on the bottom row;
 text clips to the available cells. `defaultHints()` returns a fresh standard
 Quit/Edit/Log/Pause/Retry hint list.
+
+`computeVisualLines(items, width, preformatted?)` from
+`dashboard/components/output-pane` wraps text and ANSI segments into terminal
+rows with status prefixes. `renderOutputPane(buffer, rect, items, offset?, options?)`
+draws the visible tail and returns the clamped scroll offset. Enable `conversation`
+for Markdown replies, folded completed actions and elapsed tool labels; enable
+`details` to expose reasoning and expanded action text. Streaming replies reuse
+their Markdown layout until text, width, theme, color or required history changes.
+The compatibility path remains additive: a warmed four-item benchmark measured
+wrapping at 1,563.52 µs versus 16.06 µs in JavaScript and rendering into a no-op
+surface at 1,765.30 µs versus 19.28 µs. Native batching is still required before
+a performance-driven replacement.

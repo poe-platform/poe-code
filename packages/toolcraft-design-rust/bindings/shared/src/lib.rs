@@ -454,6 +454,13 @@ pub fn design_agent_plan_snapshot(
 }
 
 #[napi]
+pub fn design_acp_agent_states() -> Vec<Vec<String>> {
+    toolcraft_design_rust::acp_events::agent_states()
+        .into_iter()
+        .map(|state| state.into_iter().map(str::to_owned).collect())
+        .collect()
+}
+#[napi]
 pub fn design_acp_event(
     event: String,
     markdown: bool,

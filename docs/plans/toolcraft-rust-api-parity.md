@@ -2391,3 +2391,32 @@ work with external ESM dependencies rejected, and packed declarations compile
 with `types: []`. No rendering algorithms, dependencies or default integration
 changed. Nominal cancellation types, remaining nested modules, performance and
 the broader Toolcraft swap gates remain open.
+
+### ACP agent-message checkpoint
+
+The native ACP namespace now exposes `renderAgentMessage` and `AcpOutputState`.
+Rust defines streaming/success/error glyph styles and message text composition;
+the existing native Markdown renderer supplies terminal formatting. JavaScript
+retains JSON serialization, live color property access, state-key coercion and
+inherited properties, writer lookup and async-local scopes. All four original
+ACP import paths (`index`, `components`, `plan`, `writer`) preserve their export
+sets and root namespace function identities.
+
+Four failing native cases preceded the implementation. Differential coverage
+includes three formats, state defaults and malformed/inherited state keys,
+Markdown/code blocks, raw UTF-16, coercion and JSON callback traces, arbitrary
+throws, reentrant writers and asynchronous scope restoration. All 15 original
+ACP component cases now run against the native implementation. Maintained build,
+unit and lint routes pass: 392 native host tests, 1,451 selected design cases,
+13 prompt wrappers, 132 dashboard/queue cases, 14 composer cases and 315 explorer
+cases. Scoped JS lint, bidirectional module/types and packed standalone imports
+and declarations pass. Packed ESM rejects external dependencies and declarations
+compile with `types: []`. No new dependencies or default integration changes.
+
+Inspected 100-column and 44-column streaming, completed and failed messages with
+headings, lists and code. Native/reference ANSI output is byte-identical; the
+screenshot font still lacks the CJK sample glyph. Five warmed alternating Node 22
+ARM64 rounds of 200 formatted messages with 32 retained outputs measured
+840.863 microseconds native / 123.571 microseconds JavaScript (6.80 times slower).
+This does not pass the performance gate. Remaining nested modules, nominal
+cancellation types, batching and broader Toolcraft/platform/swap gates stay open.

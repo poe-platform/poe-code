@@ -246,14 +246,19 @@ Report agent tool activity and usage through the same scoped writer:
 import { acp } from 'toolcraft-design-rust';
 
 acp.withAcpWriter(line => appendAgentOutput(line), () => {
+  acp.renderAgentMessage('Reading **package settings**');
   acp.renderToolStart('read', 'Inspect package');
   acp.renderToolComplete('read');
+  acp.renderAgentMessage('Package checked.', 'success');
   acp.renderUsage({ input: 1500, output: 350, cached: 800, costUsd: 0.01 });
 });
 ```
 
-Tool, reasoning, usage, permission and error events support terminal, Markdown
-and JSON output. Terminal agent-message Markdown rendering is still unavailable.
+Agent messages, tool, reasoning, usage, permission and error events support
+terminal, Markdown and JSON output. Agent messages render Markdown in terminals;
+the default `streaming` state shows a neutral dot, `success` a green checkmark,
+and `error` a red cross. Use `acp/index`, `acp/components`, `acp/plan` or
+`acp/writer` imports when you only need that part of the API.
 
 Render rows with the same table contract as the original design package:
 

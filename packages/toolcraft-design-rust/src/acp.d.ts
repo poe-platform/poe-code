@@ -5,4 +5,4 @@ export type AcpLineWriter=(line:string)=>void;
 export declare function getAcpWriter():AcpLineWriter;
 export declare function withAcpWriter<T>(writer:AcpLineWriter,operation:()=>Promise<T>):Promise<T>;
 
-export { renderToolStart, renderToolComplete, renderReasoning, renderUsage, renderError, renderPermissionRejected } from "./acp-events.js";
+export { renderAgentMessage, type AcpOutputState, renderToolStart, renderToolComplete, renderReasoning, renderUsage, renderError, renderPermissionRejected } from "./acp-events.js";

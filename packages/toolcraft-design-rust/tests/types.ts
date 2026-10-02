@@ -1010,3 +1010,31 @@ const singleDetailTypesOriginal: [originalSingleDetailDirect.Detail<number>,orig
 void [runExplorerDirectOriginal,runExplorerDirectNative,singleDetailDirectOriginal,singleDetailDirectNative,runExplorerConfigOriginal,singleDetailTypesOriginal];
 
 import "./subpaths-types.js";
+
+import * as nativeAcp from "toolcraft-design-rust/acp/index";
+import * as nativeAcpComponents from "toolcraft-design-rust/acp/components";
+import * as nativeAcpPlan from "toolcraft-design-rust/acp/plan";
+import * as nativeAcpWriter from "toolcraft-design-rust/acp/writer";
+import type * as referenceAcp from "toolcraft-design/acp/index";
+import type * as referenceAcpComponents from "toolcraft-design/acp/components";
+import type * as referenceAcpPlan from "toolcraft-design/acp/plan";
+import type * as referenceAcpWriter from "toolcraft-design/acp/writer";
+const acpOriginal: typeof referenceAcp = nativeAcp;
+const acpNative: typeof nativeAcp = null as unknown as typeof referenceAcp;
+const acpComponentsOriginal: typeof referenceAcpComponents = nativeAcpComponents;
+const acpComponentsNative: typeof nativeAcpComponents = null as unknown as typeof referenceAcpComponents;
+const acpPlanOriginal: typeof referenceAcpPlan = nativeAcpPlan;
+const acpPlanNative: typeof nativeAcpPlan = null as unknown as typeof referenceAcpPlan;
+const acpWriterOriginal: typeof referenceAcpWriter = nativeAcpWriter;
+const acpWriterNative: typeof nativeAcpWriter = null as unknown as typeof referenceAcpWriter;
+const acpRootOriginal: typeof referenceAcp = design.acp;
+const acpRootNative: typeof design.acp = null as unknown as typeof referenceAcp;
+const acpStateOriginal: referenceAcp.AcpOutputState = null as unknown as nativeAcp.AcpOutputState;
+const acpStateNative: nativeAcp.AcpOutputState = null as unknown as referenceAcp.AcpOutputState;
+const componentStateOriginal: referenceAcpComponents.AcpOutputState = null as unknown as nativeAcpComponents.AcpOutputState;
+const componentStateNative: nativeAcpComponents.AcpOutputState = null as unknown as referenceAcpComponents.AcpOutputState;
+const planEntryOriginal: referenceAcpPlan.AgentPlanEntry = null as unknown as nativeAcpPlan.AgentPlanEntry;
+const planEntryNative: nativeAcpPlan.AgentPlanEntry = null as unknown as referenceAcpPlan.AgentPlanEntry;
+const writerOriginal: referenceAcpWriter.AcpLineWriter = null as unknown as nativeAcpWriter.AcpLineWriter;
+const writerNative: nativeAcpWriter.AcpLineWriter = null as unknown as referenceAcpWriter.AcpLineWriter;
+void [acpOriginal,acpNative,acpComponentsOriginal,acpComponentsNative,acpPlanOriginal,acpPlanNative,acpWriterOriginal,acpWriterNative,acpRootOriginal,acpRootNative,acpStateOriginal,acpStateNative,componentStateOriginal,componentStateNative,planEntryOriginal,planEntryNative,writerOriginal,writerNative];

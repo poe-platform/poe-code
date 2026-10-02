@@ -735,6 +735,22 @@
     "./index": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./acp/index": {
+      "types": "./dist/acp.d.ts",
+      "import": "./dist/acp.js"
+    },
+    "./acp/components": {
+      "types": "./dist/acp-events.d.ts",
+      "import": "./dist/acp-events.js"
+    },
+    "./acp/plan": {
+      "types": "./dist/acp-plan.d.ts",
+      "import": "./dist/acp-plan.js"
+    },
+    "./acp/writer": {
+      "types": "./dist/acp-writer.d.ts",
+      "import": "./dist/acp-writer.js"
     }
   },
   "scripts": {

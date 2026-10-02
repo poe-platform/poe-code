@@ -5,6 +5,7 @@ export { formatAgentPlan };
 import { getAcpWriter } from "./acp-writer.js";
 export { getAcpWriter, withAcpWriter } from "./acp-writer.js";
 export {
+  renderAgentMessage,
   renderToolStart,
   renderToolComplete,
   renderReasoning,

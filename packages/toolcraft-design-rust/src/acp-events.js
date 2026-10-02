@@ -2,7 +2,11 @@ import { createRequire } from "node:module";
 import { color } from "./color.js";
 import { resolveOutputFormat } from "./logging.js";
 import { getAcpWriter } from "./acp-writer.js";
+import { renderMarkdown } from "./markdown.js";
 const native = createRequire(import.meta.url)("./toolcraft-design-rust.node");
+const STATE_GLYPHS = Object.fromEntries(native.designAcpAgentStates().map(([state,style,modifier,glyph])=>[
+  state,()=>modifier?color[style][modifier](glyph):color[style](glyph)
+]));
 function writeEvent(event, format, first, second = "", cached = "", cost = "") {
   const [style, text] = native.designAcpEvent(
     event,
@@ -13,6 +17,19 @@ function writeEvent(event, format, first, second = "", cached = "", cost = "") {
     cost
   );
   getAcpWriter()(style ? color[style](text) : text);
+}
+export function renderAgentMessage(text, state = "streaming") {
+  const format = resolveOutputFormat();
+  if (format === "json") {
+    getAcpWriter()(JSON.stringify({event:"agent_message",text}));
+    return;
+  }
+  if (format === "markdown") {
+    writeEvent("agent_message",format,`${text}`);
+    return;
+  }
+  const rendered=renderMarkdown(text).trimEnd();
+  writeEvent("agent_message",format,`${STATE_GLYPHS[state]()}`,`${rendered}`);
 }
 export function renderToolStart(kind, title) {
   const format = resolveOutputFormat();

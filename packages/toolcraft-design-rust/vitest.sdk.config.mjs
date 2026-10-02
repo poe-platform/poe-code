@@ -11,6 +11,7 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if(importer===path("../toolcraft-design/src/acp/components.test.ts")&&name==="./components.js")return path("dist/acp-events.js");
         if ([path("../toolcraft-design/src/index.test.ts"),path("../toolcraft-design/src/subpath-exports.test.ts")].includes(importer)) {
           const key=name==="./index.js"?".":name.endsWith(".js")?name.slice(0,-3):name;
           if(entrypoints[key]?.import)return path(entrypoints[key].import);
@@ -173,6 +174,7 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/acp/components.test.ts"),
       path("../toolcraft-design/src/index.test.ts"),
       path("../toolcraft-design/src/subpath-exports.test.ts"),
       path("../toolcraft-design/src/components/template.test.ts"),

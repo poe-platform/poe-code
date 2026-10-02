@@ -3,6 +3,13 @@ pub struct Event {
     pub style: &'static str,
     pub text: Vec<u16>,
 }
+pub fn agent_states() -> [[&'static str; 4]; 3] {
+    [
+        ["streaming", "dim", "", "·"],
+        ["success", "green", "bold", "✓"],
+        ["error", "red", "bold", "✗"],
+    ]
+}
 fn u(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()
 }
@@ -31,6 +38,13 @@ pub fn render(
     cost: &[u16],
 ) -> Event {
     let (style, text) = match event {
+        "agent_message" => {
+            if markdown {
+                ("", join(&[&u("- **agent:** "), first]))
+            } else {
+                ("", join(&[first, &u(" agent: "), second]))
+            }
+        }
         "tool_start" => {
             if markdown {
                 ("", join(&[&u("- *→ "), first, &u(": "), second, &u("*")]))

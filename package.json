@@ -149,11 +149,11 @@
     },
     "./safe-bash/image-ast": {
       "types": "./dist/types/image-ast/index.d.ts",
-      "import": "./packages/image-ast/dist/index.js"
+      "import": "./dist/image-ast.js"
     },
     "./safe-bash/sharp": {
       "types": "./dist/types/image-ast/index.d.ts",
-      "import": "./packages/image-ast/dist/index.js"
+      "import": "./dist/image-ast.js"
     },
     "./media": {
       "types": "./dist/media.d.ts",

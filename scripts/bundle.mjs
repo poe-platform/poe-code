@@ -13,6 +13,7 @@ import { resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-f
 import { readBuiltNativeAssets, copyNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
 import { resolveBrowserShellBuild, resolvePortableBufferBuild } from "./bundle-safe-bash.mjs";
 import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
+import { publishRootImagePackage } from "./bundle-image.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
@@ -271,6 +272,7 @@ consumerBuilds.push(
 for (const options of resolveSpreadsheetSdkBuilds(rootDir, consumerBuildOptions, packageJson)) {
   consumerBuilds.push(await esbuild.build(options));
 }
+await publishRootImagePackage(rootDir);
 
 // The superintendent MCP entry is shipped as a root bin, so inline its
 // private workspace dependencies instead of requiring them from the install.

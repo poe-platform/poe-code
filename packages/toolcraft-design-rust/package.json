@@ -80,8 +80,6 @@
   },
   "devDependencies": {
     "@napi-rs/cli": "3.10.4",
-    "fast-string-width": "3.0.2",
-    "fast-wrap-ansi": "0.2.2",
     "mcp-protocol-rust": "*",
     "toolcraft-design": "*",
     "typescript": "5.9.3",

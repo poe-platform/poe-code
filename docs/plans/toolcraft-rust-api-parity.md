@@ -14,6 +14,10 @@ capabilities), and implement Node/ECMAScript operations whose identity or runtim
 semantics are part of the contract. No adapter may import the JavaScript
 implementation at runtime. Reference imports are allowed only in tests.
 
+Do not add external runtime or development dependencies. Comparison tools may
+be installed temporarily, then uninstalled; do not retain new dependency
+declarations or lockfile entries for them.
+
 ## Implementation sequence
 
 1. Port runtime support: typo matching, requirement validation, errors, diagnostic

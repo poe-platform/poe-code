@@ -457,6 +457,8 @@ class Lexer {
       while (pPos < this.source.length) {
         const c = this.source.charCodeAt(pPos);
         if (c <= 32 || c === 59 || c === 124 || c === 38 || c === 40 || c === 41 || c === 60 || c === 62 || c === 36 || c === 96 || c === 34 || c === 39 || c === 92 || c > 127) break;
+        // Extended patterns need the full word scanner to own their parentheses.
+        if ((c === 63 || c === 42 || c === 43 || c === 64 || c === 33) && this.source.charCodeAt(pPos + 1) === 40) break;
         pPos++;
       }
       if (pPos > offset) {

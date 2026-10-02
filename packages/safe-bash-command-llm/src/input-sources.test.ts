@@ -61,7 +61,7 @@ test("OpenAI consumes streamed UTF-8 prompts and binary attachments through the 
   }})]});
   const events=[];
   for await(const event of service.streamSources!({prompt:source('new\n🐈'),system:source('system\n🙂'),messages:[{role:"assistant",content:source('prior "reply"')}],attachments:[{mimeType:"image/png",source:source("abcde")}],options:{temperature:"0.2"},schema:{type:"object"},signal:new AbortController().signal})) events.push(event);
-  assert.deepEqual(sent,{temperature:0.2,response_format:{type:"json_schema",json_schema:{name:"response",schema:{type:"object"}}},model:"fixture",messages:[{role:"system",content:'system\n🙂'},{role:"assistant",content:'prior "reply"'},{role:"user",content:[{type:"text",text:'new\n🐈'},{type:"image_url",image_url:{url:"data:image/png;base64,YWJjZGU="}}]}],stream:true});
+  assert.deepEqual(sent,{temperature:0.2,response_format:{type:"json_schema",json_schema:{name:"response",schema:{type:"object"}}},model:"fixture",messages:[{role:"system",content:'system\n🙂'},{role:"assistant",content:'prior "reply"'},{role:"user",content:[{type:"text",text:'new\n🐈'},{type:"image_url",image_url:{url:"data:image/png;base64,YWJjZGU="}}]}],stream:true,stream_options:{include_usage:true}});
   assert.equal(events[0]?.type,"text");
   assert.equal(closed,4);
 });

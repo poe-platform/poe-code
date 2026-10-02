@@ -37,7 +37,7 @@ test("OpenAI JSON mode and token bias match pinned provider request translation"
   const invoke = async () => { for await (const chunk of provider.complete({ model: "gpt-4o", prompt: "test JSON", attachments: [], options: { [fixture.option]: fixture.value }, signal: new AbortController().signal })) assert.equal(chunk, "ok"); };
   if (fixture.accepted) {
    await invoke(); assert.equal(requests.length, before + 1);
-   const { model: ignoredModel, messages: ignoredMessages, stream: ignoredStream, ...options } = requests.at(-1)!;
+   const { model: ignoredModel, messages: ignoredMessages, stream: ignoredStream, stream_options: ignoredStreamOptions, ...options } = requests.at(-1)!;
    assert.deepEqual(options, fixture.kwargs, JSON.stringify(fixture));
   } else { await assert.rejects(invoke); assert.equal(requests.length, before); }
  }

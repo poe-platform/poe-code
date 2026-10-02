@@ -21,7 +21,7 @@ test('public chat serializer carries streamed context and admitted controls', as
     text += decoder.decode(chunk, { stream: true });
   }
   assert.deepEqual(JSON.parse(text + decoder.decode()), {
-    temperature: 0.5, model: 'fixture', stream: true,
+    temperature: 0.5, model: 'fixture', stream: true, stream_options: { include_usage: true },
     messages: [{ role: 'system', content: 'system' }, { role: 'assistant', content: 'earlier' },
       { role: 'user', content: [{ type: 'text', text: 'hello\n🙂' }, { type: 'image_url', image_url: { url: 'data:image/png;base64,AAH/' } }] }],
   });

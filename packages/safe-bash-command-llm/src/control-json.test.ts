@@ -29,7 +29,7 @@ test("incremental JSON retains native omission, escaping, arrays and stable tran
     assert.ok(chunk.byteLength <= 6144);
     encoded += decoder.decode(chunk, { stream: true });
   }
-  const { model: ignoredModel, messages: ignoredMessages, stream: ignoredStream, ...controls } = JSON.parse(encoded + decoder.decode());
+  const { model: ignoredModel, messages: ignoredMessages, stream: ignoredStream, stream_options: ignoredStreamOptions, ...controls } = JSON.parse(encoded + decoder.decode());
   assert.deepEqual(controls, JSON.parse(JSON.stringify(value)));
 });
 

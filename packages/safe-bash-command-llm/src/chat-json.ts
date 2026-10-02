@@ -16,10 +16,10 @@ export type OpenAiChatSourceRequest = Omit<LlmSourceRequest, "options"> & {
 export function chatJson(request: OpenAiChatSourceRequest, limit: number): AsyncIterable<Uint8Array> {
   request.signal.throwIfAborted();
   if (limit !== Infinity && (!Number.isSafeInteger(limit) || limit < 0)) throw new RangeError("Invalid provider request byte limit");
-  for (const field of ["model", "messages", "stream"]) if (Object.hasOwn(request.options, field)) throw new TypeError(`${field} is controlled by the provider`);
+  for (const field of ["model", "messages", "stream", "stream_options"]) if (Object.hasOwn(request.options, field)) throw new TypeError(`${field} is controlled by the provider`);
   if (request.schema && Object.hasOwn(request.options, "response_format")) throw new TypeError("schema conflicts with response_format");
   for (const attachment of requestAttachments(request)) if (!acceptsMimeType(["image/*"], attachment.mimeType)) throw new TypeError("Only image attachments are supported");
-  const controls = jsonValue({ ...request.options, ...(request.schema ? { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } } : {}), model: request.model }, request.signal);
+  const controls = jsonValue({ ...request.options, ...(request.stream !== false ? { stream_options: { include_usage: true } } : {}), ...(request.schema ? { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } } : {}), model: request.model }, request.signal);
   const encoder = new TextEncoder();
   async function* body(): AsyncIterable<Uint8Array> {
     const text = (value: string) => encoder.encode(value);

@@ -1,11 +1,12 @@
+import { serializeLlmTokenUsage } from "./usage.js";
 import { createLlmInputBudget } from "./input-budget.js";
 import { loadLlmStoredSchema } from "./stored-schema.js";
-import { createOutputOperation, getCommandArguments, shellValueByteLength, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
+import { pipeBytes, createOutputOperation, getCommandArguments, shellValueByteLength, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { pathOf } from "safe-bash-contracts/path";
 import { acceptsMimeType, sniffMimeType } from "./mime.js";
-import type { LlmCommandsOptions, LlmRequest, LlmInputSource } from "./types.js";
+import type { LlmCommandsOptions, LlmRequest, LlmInputSource, LlmResponseMetadata } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters, type TemplateLoaderOptions } from "./templates.js";
@@ -33,6 +34,7 @@ interface Arguments {
   template?: string;
   save?: string;
   noStream?: boolean;
+  usage?: boolean;
   extract?: "first" | "last";
   params: Record<string, string>;
   options: Record<string, string>;
@@ -48,6 +50,7 @@ async function parse(length: number, text: (index: number) => string, step: () =
     const argument = text(index);
     if (!ended && ["--no-log", "-n"].includes(argument)) continue;
     if (!ended && ["-x", "--extract", "--xl", "--extract-last"].includes(argument)) { parsed.extract = argument === "--xl" || argument === "--extract-last" ? "last" : parsed.extract ?? "first"; parsed.noStream = true; continue; }
+    if (!ended && (argument === "-u" || argument === "--usage")) { parsed.usage = true; continue; }
     if (!ended && argument === "--no-stream") { parsed.noStream = true; continue; }
     if (ended || !argument.startsWith("-") || argument === "-") { operands.push(argument); continue; }
     if (argument === "--") { ended = true; continue; }
@@ -97,7 +100,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
   const operation = createOutputOperation(context, context.stdout);
   const signal = AbortSignal.any([operation.signal, controller.signal]);
   inheritYieldCheckpoint(context.signal, signal);
-  let iterator: AsyncIterator<string | Uint8Array> | undefined;
+  let iterator: AsyncIterator<string | Uint8Array, LlmResponseMetadata | void> | undefined;
+  let responseUsage: LlmResponseMetadata["usage"];
   let closed = false;
   let ended = false;
   operation.registerCleanup(() => {
@@ -168,7 +172,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     }
     if (argumentsValue.args.length === 1 && ["--help", "-h"].includes(argumentsValue.args[0]!)) {
       argumentText(0);
-      await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment; -- ends options\n");
+      await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment, -u/--usage; -- ends options\n");
       return { exitCode: 0 };
     }
     if (argumentsValue.args.length === 2 && argumentsValue.args[0] === "models" && ["--help", "-h"].includes(argumentsValue.args[1]!)) {
@@ -410,6 +414,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
         for await (const event of events) {
           if (event.type === "text") yield event.text;
           else if (event.type === "bytes") yield event.data;
+          else responseUsage = event.response.usage;
         }
       })()[Symbol.asyncIterator]();
     } else iterator = service.complete(request)[Symbol.asyncIterator]();
@@ -419,7 +424,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       await step();
       const result = await interrupted(() => iterator!.next(), signal);
       signal.throwIfAborted();
-      if (result.done) { ended = true; break; }
+      if (result.done) { ended = true; if (result.value?.usage) responseUsage = result.value.usage; break; }
       if (text ? typeof result.value !== "string" : !(result.value instanceof Uint8Array)) throw new Error(`Provider ${entry.provider.name} returned a response chunk incompatible with ${entry.model.outputType ?? "text/plain"}`);
       if (typeof result.value === "string") {
         let chunk = pendingSurrogate + result.value;
@@ -438,6 +443,11 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       return range && range.end > range.start ? range : undefined;
     } : undefined)) { writing = true; await operation.output.write(chunk); writing = false; }
     if (args.extract && text) await operation.output.write(Uint8Array.of(10));
+    if (args.usage) {
+      await writeDiagnostic(context.stderr, "Token usage: ", signal);
+      await pipeBytes(serializeLlmTokenUsage(responseUsage, signal), context.stderr, signal);
+      await writeDiagnostic(context.stderr, "\n", signal);
+    }
     return { exitCode: 0 };
   } catch (error) {
     context.signal.throwIfAborted();

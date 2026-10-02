@@ -1,3 +1,4 @@
+import { openAiUsage } from "./openai-usage.js";
 import { requestAttachments } from "./request-attachments.js";
 export { chatJson as serializeOpenAiChatRequest, type OpenAiChatSourceRequest } from "./chat-json.js";
 import { openAiChatOptions } from "./openai-chat-options.js";
@@ -121,7 +122,7 @@ function openAiChatJsonResult(value: Record<string, unknown>, signal: AbortSigna
   if (typeof value.model === "string") metadata.model = value.model;
   if (typeof first.finish_reason === "string") metadata.finish_reason = first.finish_reason;
   const details: LlmResponseMetadata = {
-    ...(openAiRecord(value.usage) ? { usage: value.usage } : {}),
+    ...(openAiRecord(value.usage) ? { usage: openAiUsage(value.usage) } : {}),
     ...(Object.keys(metadata).length ? { metadata } : {}),
   };
   return { ...(typeof content === "string" && content.length > 0 ? { content } : {}), details };
@@ -182,7 +183,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
           vectors[item.index as number] = item.embedding as number[];
         }
         if (vectors.some(vector => vector.length !== vectors[0]?.length)) throw new TypeError("Invalid OpenAI embedding dimensions");
-        return { model: request.model, vectors, ...(openAiRecord(body.usage) ? { usage: body.usage } : {}) };
+        return { model: request.model, vectors, ...(openAiRecord(body.usage) ? { usage: openAiUsage(body.usage) } : {}) };
       }
       throw new Error("OpenAI returned no embedding response");
     },
@@ -221,7 +222,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       if (model.endpoint === "videos" && request.attachments.length > 1) throw new Error("OpenAI videos accepts only one input_reference image");
       if (model.endpoint !== "chat" && request.system !== undefined) throw new TypeError("System prompts are supported only by chat models");
       if (request.schema !== undefined && request.options.response_format !== undefined) throw new TypeError("OpenAI option response_format conflicts with request schema");
-      const reserved = model.endpoint === "chat" ? ["model", "messages", "stream"]
+      const reserved = model.endpoint === "chat" ? ["model", "messages", "stream", "stream_options"]
         : model.endpoint === "images" ? ["model", "prompt", "image", "image[]"] : ["model", "prompt", "input_reference"];
       for (const key of Object.keys(request.options)) {
         if (reserved.includes(key)) throw new Error(`OpenAI option ${key} is controlled by the provider`);
@@ -242,7 +243,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         }
         let details: LlmResponseMetadata | undefined;
         const stream = request.stream !== false;
-        for await (const response of send("/chat/completions", "POST", jsonBody({ ...openAiChatOptions(jsonOptions(request.options, "chat")), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream }, limits.maxRequestBytes))) {
+        for await (const response of send("/chat/completions", "POST", jsonBody({ ...openAiChatOptions(jsonOptions(request.options, "chat")), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream, ...(stream ? { stream_options: { include_usage: true } } : {}) }, limits.maxRequestBytes))) {
           if (!stream) {
             const parsed = openAiChatJsonResult(await openAiJson(response, request.signal, limits.maxResponseBytes), request.signal);
             if (parsed.content !== undefined) yield parsed.content;

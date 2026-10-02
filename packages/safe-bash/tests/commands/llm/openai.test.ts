@@ -150,7 +150,7 @@ test("OpenAI routes arbitrary configured models and streams split UTF-8 SSE delt
   assert.equal(sent.signal, signal);
   assert.equal(new Headers(sent.headers.map(([name, value]): [string, string] => [name, value])).get("authorization"), "Bearer test-secret");
   assert.deepEqual(await (await wireBody(sent)).json(), {
-    model: "custom-chat", stream: true, temperature: 0.25,
+    model: "custom-chat", stream: true, stream_options: { include_usage: true }, temperature: 0.25,
     messages: [
       { role: "system", content: "be brief" },
       { role: "user", content: [{ type: "text", text: "describe" }, { type: "image_url", image_url: { url: "data:image/png;base64,iVBORw0KGgoA/w==" } }] },
@@ -773,7 +773,7 @@ test('OpenAI embeddings send typed options and restore response index order', as
   const host = fake(response({ data: [{ index: 1, embedding: [3, 4] }, { index: 0, embedding: [1, 2] }], usage: { prompt_tokens: 2 } }));
   const configured = createOpenAiProvider({ transport: host.transport, apiKey: 'synthetic', models: [{ id: 'embed', endpoint: 'embeddings' }] });
   const result = await configured.embed!({ model: 'embed', inputs: ['one', 'two'], options: { dimensions: 2 }, signal: new AbortController().signal });
-  assert.deepEqual(result, { model: 'embed', vectors: [[1, 2], [3, 4]], usage: { prompt_tokens: 2 } });
+  assert.deepEqual(result, { model: 'embed', vectors: [[1, 2], [3, 4]], usage: { prompt_tokens: 2, input: 2 } });
   assert.equal(host.calls[0]!.url, 'https://api.openai.com/v1/embeddings');
   assert.deepEqual(await (await wireBody(host.calls[0]!)).json(), { dimensions: 2, model: 'embed', input: ['one', 'two'] });
 });
@@ -784,7 +784,7 @@ test('OpenAI structured service retains streamed usage and response identity', a
   const service = createLlmService({ defaultModel: 'chat', providers: [createOpenAiProvider({ transport: host.transport, apiKey: 'synthetic', models: [{ id: 'chat', endpoint: 'chat' }] })] });
   const events = [];
   for await (const event of service.stream(request({ model: 'chat' }))) events.push(event);
-  assert.deepEqual(events.at(-1), { type: 'response', response: { model: 'chat', usage: { prompt_tokens: 3, completion_tokens: 1 }, metadata: { id: 'r1', model: 'chat' } } });
+  assert.deepEqual(events.at(-1), { type: 'response', response: { model: 'chat', usage: { prompt_tokens: 3, completion_tokens: 1, input: 3, output: 1 }, metadata: { id: 'r1', model: 'chat' } } });
 });
 
 test('OpenAI schema support is explicitly declared per model and conflicting format options make no request', async () => {

@@ -1,3 +1,4 @@
+import { openAiUsage } from "./openai-usage.js";
 import type { LlmResponseMetadata } from "./types.js";
 import type { ByteSource } from "safe-bash-contracts";
 import { openAiBytes, openAiError, openAiRecord } from "./openai-http.js";
@@ -45,7 +46,7 @@ export async function* openAiChat(source: ByteSource, signal: AbortSignal, limit
     if (parsed.error != null) throw new Error(`OpenAI: ${openAiError(parsed.error) ?? "stream failed"}`);
     if (parsed.usage !== undefined && parsed.usage !== null) {
       if (!openAiRecord(parsed.usage)) throw new Error("OpenAI SSE event has invalid usage");
-      usage = parsed.usage;
+      usage = openAiUsage(parsed.usage);
     }
     for (const key of ["id", "model", "created", "system_fingerprint"]) {
       if (parsed[key] !== undefined) metadata[key] = parsed[key];

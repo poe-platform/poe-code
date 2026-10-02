@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parsePlaywrightConfigJSON } from '../../src/playwright/config-json.js';
-import { createPlaywrightController } from '../../src/playwright/index.js';
+import { parsePlaywrightConfigJSON } from './playwright/config-json.js';
+import { createPlaywrightController } from './playwright/index.js';
 
 test('open refuses the reported 5.7 MiB object bomb without acquiring a browser', async () => {
   let acquisitions = 0;

@@ -1,2 +1,1 @@
-/** Resolving a reference failed before an element action could be dispatched. */
-export class SnapshotReferenceError extends Error {}
+export * from "safe-bash-command-playwright-cli/playwright/snapshot-reference-error";

@@ -2611,3 +2611,40 @@ it("retains private Node worker URL assets beside their provider", async () => {
   const shipped = JSON.parse(volume.readFileSync('/output/safe-bash/package.json', 'utf8').toString());
   expect(shipped.dependencies?.[name]).toBeUndefined();
 });
+
+it("admits Playwright command ownership as a private workspace", () => {
+  expect(bashManifest.poeCode.integration.privateWorkspaces).toHaveProperty("safe-bash-command-playwright-cli");
+  const manifest = JSON.parse(readFileSync(new URL("../packages/safe-bash-command-playwright-cli/package.json", import.meta.url), "utf8"));
+  expect(manifest.private).toBe(true);
+  expect(manifest.devDependencies).not.toHaveProperty("@poe-platform/safe-bash");
+  expect(readFileSync(new URL("../packages/safe-bash/src/commands/playwright/index.ts", import.meta.url), "utf8").trim())
+    .toBe('export * from "safe-bash-command-playwright-cli";');
+});
+
+it('packs Playwright controller services and MIME detection behind public routes', async () => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = {};
+  for (const [name, owner] of [["safe-bash-mime-engine", undefined], ["safe-bash-command-playwright-cli", "safe-bash-mime-engine"]] as const) {
+    const devDependencies = owner ? { [owner]: "*" } : {};
+    const pkg = { name, version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies,
+      exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
+    manifest.poeCode.integration.privateWorkspaces[name] = { version: pkg.version, dependencies: {}, devDependencies };
+    volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(pkg));
+    for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/${name}/dist/index.${suffix}`, owner
+      ? `export { identity } from "${owner}";` : suffix === "js" ? "export const identity = {};" : "export declare const identity: object;");
+  }
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/playwright/index.${suffix}`, 'export * from "safe-bash-command-playwright-cli";');
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash-command-playwright-cli/index.${suffix}`, "utf8"))
+      .toContain('"../safe-bash-mime-engine/index.js"');
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/commands/playwright/index.${suffix}`, "utf8"))
+      .toContain('"../../../safe-bash-command-playwright-cli/index.js"');
+  }
+  const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8"));
+  expect(packed.dependencies).toEqual({});
+  expect(packed.exports["./commands/playwright"].import).toBe(packed.exports["./playwright"].import);
+});

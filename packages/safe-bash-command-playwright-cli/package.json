@@ -1,0 +1,280 @@
+{
+  "name": "safe-bash-command-playwright-cli",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./playwright/abilities": {
+      "types": "./dist/playwright/abilities.d.ts",
+      "import": "./dist/playwright/abilities.js"
+    },
+    "./playwright/ability-execution": {
+      "types": "./dist/playwright/ability-execution.d.ts",
+      "import": "./dist/playwright/ability-execution.js"
+    },
+    "./playwright/adapter": {
+      "types": "./dist/playwright/adapter.d.ts",
+      "import": "./dist/playwright/adapter.js"
+    },
+    "./playwright/billing": {
+      "types": "./dist/playwright/billing.d.ts",
+      "import": "./dist/playwright/billing.js"
+    },
+    "./playwright/builtins": {
+      "types": "./dist/playwright/builtins.d.ts",
+      "import": "./dist/playwright/builtins.js"
+    },
+    "./playwright/canonical-locator-parser": {
+      "types": "./dist/playwright/canonical-locator-parser.d.ts",
+      "import": "./dist/playwright/canonical-locator-parser.js"
+    },
+    "./playwright/capability-events": {
+      "types": "./dist/playwright/capability-events.d.ts",
+      "import": "./dist/playwright/capability-events.js"
+    },
+    "./playwright/capability-result": {
+      "types": "./dist/playwright/capability-result.d.ts",
+      "import": "./dist/playwright/capability-result.js"
+    },
+    "./playwright/catalog": {
+      "types": "./dist/playwright/catalog.d.ts",
+      "import": "./dist/playwright/catalog.js"
+    },
+    "./playwright/checkpoint": {
+      "types": "./dist/playwright/checkpoint.d.ts",
+      "import": "./dist/playwright/checkpoint.js"
+    },
+    "./playwright/command-budget": {
+      "types": "./dist/playwright/command-budget.d.ts",
+      "import": "./dist/playwright/command-budget.js"
+    },
+    "./playwright/command-reference": {
+      "types": "./dist/playwright/command-reference.d.ts",
+      "import": "./dist/playwright/command-reference.js"
+    },
+    "./playwright/config-ini": {
+      "types": "./dist/playwright/config-ini.d.ts",
+      "import": "./dist/playwright/config-ini.js"
+    },
+    "./playwright/config-json": {
+      "types": "./dist/playwright/config-json.d.ts",
+      "import": "./dist/playwright/config-json.js"
+    },
+    "./playwright/controller": {
+      "types": "./dist/playwright/controller.d.ts",
+      "import": "./dist/playwright/controller.js"
+    },
+    "./playwright/devices": {
+      "types": "./dist/playwright/devices.d.ts",
+      "import": "./dist/playwright/devices.js"
+    },
+    "./playwright/download-capabilities": {
+      "types": "./dist/playwright/download-capabilities.d.ts",
+      "import": "./dist/playwright/download-capabilities.js"
+    },
+    "./playwright/drop-capability": {
+      "types": "./dist/playwright/drop-capability.d.ts",
+      "import": "./dist/playwright/drop-capability.js"
+    },
+    "./playwright/find": {
+      "types": "./dist/playwright/find.d.ts",
+      "import": "./dist/playwright/find.js"
+    },
+    "./playwright/frame-snapshot": {
+      "types": "./dist/playwright/frame-snapshot.d.ts",
+      "import": "./dist/playwright/frame-snapshot.js"
+    },
+    "./playwright/generated-locator": {
+      "types": "./dist/playwright/generated-locator.d.ts",
+      "import": "./dist/playwright/generated-locator.js"
+    },
+    "./playwright/help-reference": {
+      "types": "./dist/playwright/help-reference.d.ts",
+      "import": "./dist/playwright/help-reference.js"
+    },
+    "./playwright/help": {
+      "types": "./dist/playwright/help.d.ts",
+      "import": "./dist/playwright/help.js"
+    },
+    "./playwright/highlight": {
+      "types": "./dist/playwright/highlight.d.ts",
+      "import": "./dist/playwright/highlight.js"
+    },
+    "./playwright/index": {
+      "types": "./dist/playwright/index.d.ts",
+      "import": "./dist/playwright/index.js"
+    },
+    "./playwright/invocation": {
+      "types": "./dist/playwright/invocation.d.ts",
+      "import": "./dist/playwright/invocation.js"
+    },
+    "./playwright/locator-selector": {
+      "types": "./dist/playwright/locator-selector.d.ts",
+      "import": "./dist/playwright/locator-selector.js"
+    },
+    "./playwright/modal-capabilities": {
+      "types": "./dist/playwright/modal-capabilities.d.ts",
+      "import": "./dist/playwright/modal-capabilities.js"
+    },
+    "./playwright/native-evaluation": {
+      "types": "./dist/playwright/native-evaluation.d.ts",
+      "import": "./dist/playwright/native-evaluation.js"
+    },
+    "./playwright/native-json-snapshot": {
+      "types": "./dist/playwright/native-json-snapshot.d.ts",
+      "import": "./dist/playwright/native-json-snapshot.js"
+    },
+    "./playwright/native-snapshot": {
+      "types": "./dist/playwright/native-snapshot.d.ts",
+      "import": "./dist/playwright/native-snapshot.js"
+    },
+    "./playwright/native-storage-realm": {
+      "types": "./dist/playwright/native-storage-realm.d.ts",
+      "import": "./dist/playwright/native-storage-realm.js"
+    },
+    "./playwright/native-storage-replacement": {
+      "types": "./dist/playwright/native-storage-replacement.d.ts",
+      "import": "./dist/playwright/native-storage-replacement.js"
+    },
+    "./playwright/native-storage-sources.generated": {
+      "types": "./dist/playwright/native-storage-sources.generated.d.ts",
+      "import": "./dist/playwright/native-storage-sources.generated.js"
+    },
+    "./playwright/native-storage-targets": {
+      "types": "./dist/playwright/native-storage-targets.d.ts",
+      "import": "./dist/playwright/native-storage-targets.js"
+    },
+    "./playwright/network-policy": {
+      "types": "./dist/playwright/network-policy.d.ts",
+      "import": "./dist/playwright/network-policy.js"
+    },
+    "./playwright/open-options": {
+      "types": "./dist/playwright/open-options.d.ts",
+      "import": "./dist/playwright/open-options.js"
+    },
+    "./playwright/private-target-transport": {
+      "types": "./dist/playwright/private-target-transport.d.ts",
+      "import": "./dist/playwright/private-target-transport.js"
+    },
+    "./playwright/profile": {
+      "types": "./dist/playwright/profile.d.ts",
+      "import": "./dist/playwright/profile.js"
+    },
+    "./playwright/recording-capabilities": {
+      "types": "./dist/playwright/recording-capabilities.d.ts",
+      "import": "./dist/playwright/recording-capabilities.js"
+    },
+    "./playwright/recovery": {
+      "types": "./dist/playwright/recovery.d.ts",
+      "import": "./dist/playwright/recovery.js"
+    },
+    "./playwright/resource-limit": {
+      "types": "./dist/playwright/resource-limit.d.ts",
+      "import": "./dist/playwright/resource-limit.js"
+    },
+    "./playwright/response": {
+      "types": "./dist/playwright/response.d.ts",
+      "import": "./dist/playwright/response.js"
+    },
+    "./playwright/route-capabilities": {
+      "types": "./dist/playwright/route-capabilities.d.ts",
+      "import": "./dist/playwright/route-capabilities.js"
+    },
+    "./playwright/route-policy": {
+      "types": "./dist/playwright/route-policy.d.ts",
+      "import": "./dist/playwright/route-policy.js"
+    },
+    "./playwright/screenshot": {
+      "types": "./dist/playwright/screenshot.d.ts",
+      "import": "./dist/playwright/screenshot.js"
+    },
+    "./playwright/session-configuration": {
+      "types": "./dist/playwright/session-configuration.d.ts",
+      "import": "./dist/playwright/session-configuration.js"
+    },
+    "./playwright/session-runtime": {
+      "types": "./dist/playwright/session-runtime.d.ts",
+      "import": "./dist/playwright/session-runtime.js"
+    },
+    "./playwright/snapshot": {
+      "types": "./dist/playwright/snapshot.d.ts",
+      "import": "./dist/playwright/snapshot.js"
+    },
+    "./playwright/standard-capabilities": {
+      "types": "./dist/playwright/standard-capabilities.d.ts",
+      "import": "./dist/playwright/standard-capabilities.js"
+    },
+    "./playwright/storage-capabilities": {
+      "types": "./dist/playwright/storage-capabilities.d.ts",
+      "import": "./dist/playwright/storage-capabilities.js"
+    },
+    "./playwright/storage-state": {
+      "types": "./dist/playwright/storage-state.d.ts",
+      "import": "./dist/playwright/storage-state.js"
+    },
+    "./playwright/target-screenshot": {
+      "types": "./dist/playwright/target-screenshot.d.ts",
+      "import": "./dist/playwright/target-screenshot.js"
+    },
+    "./playwright/targets": {
+      "types": "./dist/playwright/targets.d.ts",
+      "import": "./dist/playwright/targets.js"
+    },
+    "./playwright/tracing-capabilities": {
+      "types": "./dist/playwright/tracing-capabilities.d.ts",
+      "import": "./dist/playwright/tracing-capabilities.js"
+    },
+    "./playwright/webmcp-capabilities": {
+      "types": "./dist/playwright/webmcp-capabilities.d.ts",
+      "import": "./dist/playwright/webmcp-capabilities.js"
+    },
+    "./playwright/webmcp-params": {
+      "types": "./dist/playwright/webmcp-params.d.ts",
+      "import": "./dist/playwright/webmcp-params.js"
+    },
+    "./playwright/workspace-assets": {
+      "types": "./dist/playwright/workspace-assets.d.ts",
+      "import": "./dist/playwright/workspace-assets.js"
+    },
+    "./playwright/workspace": {
+      "types": "./dist/playwright/workspace.d.ts",
+      "import": "./dist/playwright/workspace.js"
+    },
+    "./playwright/session-persistence": {
+      "types": "./dist/playwright/session-persistence.d.ts",
+      "import": "./dist/playwright/session-persistence.js"
+    },
+    "./playwright/session-selection": {
+      "types": "./dist/playwright/session-selection.d.ts",
+      "import": "./dist/playwright/session-selection.js"
+    },
+    "./playwright/snapshot-reference-error": {
+      "types": "./dist/playwright/snapshot-reference-error.d.ts",
+      "import": "./dist/playwright/snapshot-reference-error.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --test scripts/*.test.mjs && node --import tsx --test src/*.test.ts",
+    "test:unit": "node --test scripts/*.test.mjs && node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "safe-bash-mime-engine": "*",
+    "@poe-code/safe-fs": "*"
+  }
+}

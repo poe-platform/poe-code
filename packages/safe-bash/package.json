@@ -360,7 +360,8 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
             "safe-bash-byte-engine": "*",
-            "safe-bash-io-engine": "*"
+            "safe-bash-io-engine": "*",
+            "safe-bash-mime-engine": "*"
           },
           "portable": true
         },
@@ -1499,7 +1500,7 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "safe-bash-command-file": "*"
+            "safe-bash-mime-engine": "*"
           },
           "portable": true,
           "peerDependencies": {
@@ -1871,6 +1872,20 @@
             "@noble/hashes": "2.4.0"
           },
           "portable": true
+        },
+        "safe-bash-command-playwright-cli": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-mime-engine": "*",
+            "@poe-code/safe-fs": "*"
+          }
+        },
+        "safe-bash-mime-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {}
         }
       },
       "peerProfile": "checkout-root"
@@ -3297,7 +3312,9 @@
     "safe-bash-command-pdfunite": "*",
     "safe-bash-command-pdfseparate": "*",
     "safe-bash-command-qrencode": "*",
-    "safe-bash-command-python": "*"
+    "safe-bash-command-python": "*",
+    "safe-bash-command-playwright-cli": "*",
+    "safe-bash-mime-engine": "*"
   },
   "main": "./dist/index.js",
   "imports": {

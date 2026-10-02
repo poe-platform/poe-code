@@ -254,3 +254,4 @@ const mcpLimits: McpLimits = {};
 void [mediaDefinition, mcpDefinition, mediaDefinitions, mcpDefinitions, mediaLimits, mcpLimits, mediaCommands(), mcpCommands()];
 
 import "./safe-packages-expr-types.mjs";
+import "./safe-packages-playwright-types.mjs";

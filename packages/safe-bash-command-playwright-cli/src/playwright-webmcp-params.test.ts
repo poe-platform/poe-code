@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { parseWebMCPParams } from '../../src/playwright/webmcp-params.js';
-import { PlaywrightResourceLimitError } from '../../src/playwright/resource-limit.js';
+import { parseWebMCPParams } from './playwright/webmcp-params.js';
+import { PlaywrightResourceLimitError } from './playwright/resource-limit.js';
 
 test('WebMCP parameter preflight bounds nodes and depth before native parsing', () => {
   const sources = [

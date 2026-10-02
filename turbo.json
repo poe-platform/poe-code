@@ -510,6 +510,18 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-command-playwright-cli#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "safe-bash-mime-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     }
   }
 }

@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createContext, runInContext } from 'node:vm';
-import { createFrameSnapshot } from '../../src/playwright/frame-snapshot.js';
-import type { FrameSnapshotInput, FrameSnapshotCapsule, FrameSnapshotRenderResult } from '../../src/playwright/frame-snapshot.js';
-import type { SnapshotContentNode, SnapshotNode } from '../../src/playwright/adapter.js';
+import { createFrameSnapshot } from './playwright/frame-snapshot.js';
+import type { FrameSnapshotInput, FrameSnapshotCapsule, FrameSnapshotRenderResult } from './playwright/frame-snapshot.js';
+import type { SnapshotContentNode, SnapshotNode } from './playwright/adapter.js';
 
 function element(attributes: Record<string, string> = {}, properties: Partial<SnapshotNode> = {}): SnapshotNode {
   return { tagName: 'BUTTON', textContent: 'Save', firstChild: { nodeType: 3, textContent: properties.textContent ?? 'Save' }, isConnected: true, getAttribute: name => attributes[name] ?? null, ...properties };

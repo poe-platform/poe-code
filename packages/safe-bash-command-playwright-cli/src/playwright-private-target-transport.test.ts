@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { admitPlaywrightProtocolFrame, createPlaywrightPrivateTargetTransport, type PlaywrightCDPTransport, type PlaywrightPrivateTargetTransportLimits } from '../../src/playwright/private-target-transport.js';
+import { admitPlaywrightProtocolFrame, createPlaywrightPrivateTargetTransport, type PlaywrightCDPTransport, type PlaywrightPrivateTargetTransportLimits } from './playwright/private-target-transport.js';
 
 type Message = { id?: number; method?: string; sessionId?: string; params?: Record<string, any>; result?: Record<string, any>; error?: Record<string, any> };
 

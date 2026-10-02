@@ -2993,7 +2993,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/playwright-snapshot.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot-transport.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-snapshot-hook.test.ts"));
-  assert.ok(files.includes("tests/plugins/playwright-frame-snapshot.test.ts"));
+  assert.equal(files.includes("tests/plugins/playwright-frame-snapshot.test.ts"), false);
+  assert.ok(fs.lstatSync(new URL("../../safe-bash-command-playwright-cli/src/playwright-frame-snapshot.test.ts", import.meta.url)).isFile());
   assert.ok(files.includes("tests/plugins/playwright-screenshot.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-review.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-tab-limit.test.ts"));

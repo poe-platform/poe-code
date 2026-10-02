@@ -9,7 +9,6 @@ import ts from "typescript";
 import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 import { loadBoundaries, validateBoundaries } from "./integration-inputs.mjs";
 import { assertLiteralInputPath, isHeldInputPath } from "./typecheck-integration-inputs.mjs";
-import { renderNativeStorageSources } from "./generate-native-storage-sources.mjs";
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const require = createRequire(import.meta.url);
@@ -279,7 +278,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         }
         assert.ok(!Object.keys(implementation.optionalDependencies ?? {}).length, "private workspace has no implicit optional dependency closure");
         const routes = Object.entries(implementation.exports ?? {});
-        assert.ok(routes.length > 0 && routes.length <= 32, "private workspace has bounded explicit exports");
+        assert.ok(routes.length > 0 && routes.length <= 128, "private workspace has bounded explicit exports");
         for (const [route, target] of routes) {
           assert.ok(route === "." || route.startsWith("./"), "private export route must be relative");
           if (route !== ".") assertLiteralInputPath(route.slice(2));
@@ -688,12 +687,6 @@ export async function buildPackage({ root = packageRoot, args = [], profile = "d
     },
   };
   const program = ts.createProgram(parsed.fileNames, parsed.options, host);
-  const storageRealm = program.getSourceFile(join(root, "src/playwright/native-storage-realm.ts"));
-  const storageSources = program.getSourceFile(join(root, "src/playwright/native-storage-sources.generated.ts"));
-  if (storageRealm || storageSources) {
-    assert.ok(storageRealm && storageSources, "native storage realm sources are incomplete; regenerate literals");
-    assert.equal(storageSources.text, renderNativeStorageSources(storageRealm.text), "native storage realm literals are stale; run scripts/generate-native-storage-sources.mjs");
-  }
   const diagnostics = ts.getPreEmitDiagnostics(program);
   checkCancellation();
   if (optional) {

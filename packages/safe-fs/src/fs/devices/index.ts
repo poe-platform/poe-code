@@ -12,8 +12,7 @@ import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
-import { MemoryFileSystem, tryResolveMemoryDevicePath } from "../memory/index.js";
-let cachedMemoryDeviceCapabilities: FileSystemCapabilities | undefined;
+import { tryResolveMemoryDevicePath } from "../memory/index.js";
 import { createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "../capabilities.js";
 import { pathNamespace } from "../path-namespace.js";
@@ -35,16 +34,6 @@ const deviceCapabilities: FileSystemCapabilities = Object.freeze({
 });
 
 function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
-  if (filesystem instanceof MemoryFileSystem && Object.getPrototypeOf(filesystem) === MemoryFileSystem.prototype && !Object.prototype.hasOwnProperty.call(filesystem, "writeStream") && !Object.prototype.hasOwnProperty.call(filesystem, "openResizeFile")) {
-    if (cachedMemoryDeviceCapabilities) return cachedMemoryDeviceCapabilities;
-    const snap: Record<string, boolean | undefined> = { readOnly: false };
-    const dynamic = globalCapabilitiesSlow(filesystem);
-    for (const k of Object.keys(dynamic)) snap[k] = dynamic[k];
-    return (cachedMemoryDeviceCapabilities = Object.freeze(snap));
-  }
-  return globalCapabilitiesSlow(filesystem);
-}
-function globalCapabilitiesSlow(filesystem: FileSystem): FileSystemCapabilities {
   const capabilities: Record<string, boolean | undefined> = { readOnly: false };
   const optional: Record<string, readonly (keyof FileSystem)[]> = {
     open: ["open"],

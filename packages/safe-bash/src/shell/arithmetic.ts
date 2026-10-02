@@ -1090,6 +1090,8 @@ export interface FastIntStepDesc {
 const sharedSavedLoopIntRegs: number[] = new Array(32).fill(0);
 const sharedIntLoopResult = { ok: false, lastInductionInt: undefined as number | undefined, subBytes: 0, subCount: 0 };
 
+const sharedDirectRegArgs = new Int32Array(64);
+
 export function runIntArithForLoop(
   startVal: number,
   limitVal: number,
@@ -1108,6 +1110,129 @@ export function runIntArithForLoop(
   let subBytes = 0;
   let subCount = 0;
   let totalAdmitUnits = 0;
+  if (stepCount === 1 && deferredMask === 0 && !intSteps[0]!.isSub) {
+    const intStep0 = intSteps[0]!;
+    const ops = intStep0.compiled.ops;
+    const args = intStep0.compiled.args;
+    const varRegMap = intStep0.varRegMap;
+    const targetReg = intStep0.targetReg;
+    const len = ops.length;
+    if (len <= 64) {
+      for (let pc = 0; pc < len; pc++) {
+        sharedDirectRegArgs[pc] = ops[pc] === 1 ? varRegMap[args[pc]!]! : args[pc]!;
+      }
+      const effLimit = isLe ? (limitVal + 1) | 0 : limitVal | 0;
+      if (
+        iVal >= 0 &&
+        effLimit > iVal &&
+        len === 9 &&
+        ops[0] === 1 && sharedDirectRegArgs[0] === targetReg && sharedLoopIntRegs[targetReg]! >= 0 &&
+        ops[1] === 1 && sharedDirectRegArgs[1] === 0 &&
+        ops[2] === 1 && sharedDirectRegArgs[2] === 0 &&
+        ops[3] === 0 && (sharedDirectRegArgs[3]! >>> 0) <= 30 &&
+        ops[4] === 21 && ops[5] === 18 &&
+        ((ops[6] === 5 && ops[7] === 0 && (sharedDirectRegArgs[7]! >>> 0) <= 0x3fffffff && ops[8] === 16) ||
+         (ops[6] === 0 && (sharedDirectRegArgs[6]! >>> 0) <= 0xffff && ops[7] === 16 && ops[8] === 5 && effLimit <= 0x100000 && sharedLoopIntRegs[targetReg]! <= 0x10000000))
+      ) {
+        const rem = (effLimit - iVal) | 0;
+        const shift = sharedDirectRegArgs[3]!;
+        let acc = sharedLoopIntRegs[targetReg]! | 0;
+        if (ops[8] === 16) {
+          const mask = sharedDirectRegArgs[7]!;
+          for (; iVal < effLimit; iVal = (iVal + 1) | 0) {
+            acc = (acc + (iVal ^ (iVal >> shift))) & mask;
+          }
+        } else {
+          const mask = sharedDirectRegArgs[6]!;
+          for (; iVal < effLimit; iVal = (iVal + 1) | 0) {
+            acc = (acc + ((iVal ^ (iVal >> shift)) & mask)) | 0;
+          }
+        }
+        sharedLoopIntRegs[targetReg] = acc;
+        sharedLoopIntRegs[0] = effLimit;
+        parseBudget.admit(rem * 10);
+        sharedIntLoopResult.ok = true;
+        sharedIntLoopResult.lastInductionInt = (effLimit - 1) | 0;
+        sharedIntLoopResult.subBytes = 0;
+        sharedIntLoopResult.subCount = 0;
+        return sharedIntLoopResult;
+      }
+      while (iVal < effLimit) {
+        totalAdmitUnits = (totalAdmitUnits + (iVal < 0 ? 8 : 4)) | 0;
+        let sp = 0;
+        for (let pc = 0; pc < len; pc++) {
+          const op = ops[pc]!;
+          if (op === 0) {
+            sharedRpnStack[sp++] = sharedDirectRegArgs[pc]!;
+          } else if (op === 1) {
+            const val = sharedLoopIntRegs[sharedDirectRegArgs[pc]!]!;
+            totalAdmitUnits = (totalAdmitUnits + (val < 0 ? 4 : 2)) | 0;
+            sharedRpnStack[sp++] = val;
+          } else if (op <= 4 || op === 19) {
+            const v = sharedRpnStack[sp - 1]!;
+            if (op === 3 && v === -1073741824) {
+              for (let r = 0; r < 32; r++) sharedLoopIntRegs[r] = sharedSavedLoopIntRegs[r]!;
+              parseBudget.restore(savedBudget);
+              sharedIntLoopResult.ok = false;
+              sharedIntLoopResult.lastInductionInt = undefined;
+              sharedIntLoopResult.subBytes = 0;
+              sharedIntLoopResult.subCount = 0;
+              return sharedIntLoopResult;
+            }
+            sharedRpnStack[sp - 1] = op === 2 ? v : op === 3 ? (-v | 0) : op === 4 ? (v === 0 ? 1 : 0) : ~v;
+          } else {
+            sp--;
+            const r = sharedRpnStack[sp]!;
+            const l = sharedRpnStack[sp - 1]!;
+            if (op >= 16 && op <= 18) {
+              sharedRpnStack[sp - 1] = op === 16 ? (l & r) : op === 17 ? (l | r) : (l ^ r);
+              continue;
+            }
+            if (op === 21 && (r >>> 0) <= 30) {
+              sharedRpnStack[sp - 1] = l >> r;
+              continue;
+            }
+            let res = 0;
+            switch (op) {
+              case 5: res = (l + r) | 0; break;
+              case 6: res = (l - r) | 0; break;
+              case 7: res = l * r; if ((res | 0) !== res) res = 0x7fffffff; break;
+              case 8: res = Math.trunc(l / r); if ((res | 0) !== res) res = 0x7fffffff; break;
+              case 9: res = (l % r) | 0; break;
+              case 10: res = l < r ? 1 : 0; break;
+              case 11: res = l <= r ? 1 : 0; break;
+              case 12: res = l > r ? 1 : 0; break;
+              case 13: res = l >= r ? 1 : 0; break;
+              case 14: res = l === r ? 1 : 0; break;
+              case 15: res = l !== r ? 1 : 0; break;
+              case 20: res = (r >= 0 && r <= 30) ? l * (1 << r) : 0x7fffffff; if ((res | 0) !== res) res = 0x7fffffff; break;
+              case 21: res = 0x7fffffff; break;
+            }
+            if (((res + 0x40000000) >>> 0) > 0x7fffffff) {
+              for (let rIdx = 0; rIdx < 32; rIdx++) sharedLoopIntRegs[rIdx] = sharedSavedLoopIntRegs[rIdx]!;
+              parseBudget.restore(savedBudget);
+              sharedIntLoopResult.ok = false;
+              sharedIntLoopResult.lastInductionInt = undefined;
+              sharedIntLoopResult.subBytes = 0;
+              sharedIntLoopResult.subCount = 0;
+              return sharedIntLoopResult;
+            }
+            sharedRpnStack[sp - 1] = res | 0;
+          }
+        }
+        sharedLoopIntRegs[targetReg] = sharedRpnStack[0]! | 0;
+        lastInductionInt = iVal;
+        iVal = (iVal + 1) | 0;
+        sharedLoopIntRegs[0] = iVal;
+      }
+      parseBudget.admit(totalAdmitUnits);
+      sharedIntLoopResult.ok = true;
+      sharedIntLoopResult.lastInductionInt = lastInductionInt;
+      sharedIntLoopResult.subBytes = 0;
+      sharedIntLoopResult.subCount = 0;
+      return sharedIntLoopResult;
+    }
+  }
   while (isLe ? iVal <= limitVal : iVal < limitVal) {
     totalAdmitUnits += iVal < 0 ? 4 : 2;
     lastInductionInt = iVal;

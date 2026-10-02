@@ -15291,26 +15291,51 @@ export class Runtime {
             let curAcc = fastSafeInt(rawState.variables[accName], this.budget.parsing);
             if (curI !== undefined && curAcc !== undefined && Number.isSafeInteger(limit) && limit <= 1000000) {
               handledFastWhile = true;
-              while (true) {
-                this.budget.tick();
-                this.budget.parsing.admit(4);
-                const condOk = isLe ? curI <= limit : curI < limit;
+              const effLimit = isLe ? limit + 1 : limit;
+              const rem = effLimit > curI ? effLimit - curI : 0;
+              if (
+                rem >= 0 &&
+                Math.abs(curI) <= 1000000 &&
+                !hasYieldCheckpoint(this.signal) &&
+                this.budget.commands + 2 * rem + 1 <= this.budget.limits.maxCommands &&
+                this.budget.iterations + rem <= this.budget.limits.maxLoopIterations
+              ) {
+                this.budget.commands += 2 * rem + 1;
+                this.budget.iterations += rem;
+                this.budget.parsing.admit(10 * rem + 4);
+                runYieldCheckpoint(this.signal);
+                if (rem > 0) {
+                  const sumRange = rem * (curI + effLimit - 1) / 2;
+                  curAcc = accOp === "=" ? (effLimit - 1) : accOp === "+=" ? curAcc + sumRange : curAcc - sumRange;
+                  curI = effLimit;
+                  loopStatus = (effLimit - 1) !== 0 ? 0 : 1;
+                  iterCount += rem;
+                }
                 progress.lastCmd = condCmd;
-                rawState.status = condOk ? 0 : 1;
-                progress.pipelineStatus = rawState.status;
-                if (!condOk) break;
-                ++iterCount;
-                this.budget.loop();
-                if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
-                this.budget.tick();
-                this.budget.parsing.admit(6);
-                curAcc = accOp === "=" ? curI : accOp === "+=" ? curAcc + curI : curAcc - curI;
-                const postI = curI;
-                curI++;
-                progress.lastCmd = bStep!.cmd;
-                rawState.status = postI !== 0 ? 0 : 1;
-                progress.pipelineStatus = rawState.status;
-                loopStatus = rawState.status;
+                rawState.status = 1;
+                progress.pipelineStatus = 1;
+              } else {
+                while (true) {
+                  this.budget.tick();
+                  this.budget.parsing.admit(4);
+                  const condOk = isLe ? curI <= limit : curI < limit;
+                  progress.lastCmd = condCmd;
+                  rawState.status = condOk ? 0 : 1;
+                  progress.pipelineStatus = rawState.status;
+                  if (!condOk) break;
+                  ++iterCount;
+                  this.budget.loop();
+                  if ((iterCount & 127) === 0) runYieldCheckpoint(this.signal);
+                  this.budget.tick();
+                  this.budget.parsing.admit(6);
+                  curAcc = accOp === "=" ? curI : accOp === "+=" ? curAcc + curI : curAcc - curI;
+                  const postI = curI;
+                  curI++;
+                  progress.lastCmd = bStep!.cmd;
+                  rawState.status = postI !== 0 ? 0 : 1;
+                  progress.pipelineStatus = rawState.status;
+                  loopStatus = rawState.status;
+                }
               }
               rawState.variables[indName] = intToStr(curI);
               rawState.variables[accName] = intToStr(curAcc);
@@ -16564,6 +16589,33 @@ export class Runtime {
               }
             }
           }
+          if ((deferredMask === 0 || deferredMask === 2) && bodyAssignments.length === 2) {
+            const st0 = bodyAssignments[0]!;
+            const st1 = bodyAssignments[1]!;
+            if (
+              st0.listOperator === undefined &&
+              st0.condStmt?.kind === "binary" &&
+              st0.condStmt.operator === "=~" &&
+              (st0.condStmt.left.parts.every(p => p.kind === "text" && !p.byteValue) || (st0.condStmt.left.parts.length === 1 && st0.condStmt.left.parts[0]!.kind === "variable" && st0.condStmt.left.parts[0]!.name !== inductionName && st0.condStmt.left.parts[0]!.name !== "BASH_REMATCH" && st0.condStmt.left.parts[0]!.name !== st1.name)) &&
+              st0.condStmt.right.parts.every(p => p.kind === "text" && !p.byteValue) &&
+              st1.listOperator === "&&" &&
+              st1.name !== undefined &&
+              st1.name !== inductionName &&
+              st1.name !== "BASH_REMATCH" &&
+              !st1.append &&
+              st1.value !== undefined &&
+              st1.value.parts.every(p => (p.kind === "text" && !p.byteValue) || (p.kind === "variable" && p.name === "BASH_REMATCH"))
+            ) {
+              const rem = limit - (curInd + 1);
+              if (hasDeferredSteps) lastInductionVal = intToStr(limit - 1);
+              this.budget.iterations += rem;
+              this.budget.commands += rem * (rawState.status === 0 ? 2 : 1);
+              this.budget.parsing.admit(rem * 8);
+              runYieldCheckpoint(this.signal);
+              curInd = limit;
+              break;
+            }
+          }
           if (deferredMask === 0 && bodyAssignments.length === 1) {
             const st0 = bodyAssignments[0]!;
             const caseCache = st0.caseClauses !== undefined ? (st0 as { _cachedStaticCase?: { isStaticPatterns: boolean; subjVar: string | undefined; constAssignName: string | undefined; constAssignVal: string | undefined } })._cachedStaticCase : undefined;
@@ -16578,6 +16630,47 @@ export class Runtime {
             }
             if (
               st0.listOperator === undefined &&
+              curInd >= 0 &&
+              !rawState.xpg_echo &&
+              ((st0.isStdoutEcho === true && io.stdout === devNullSyncSink && st0.value !== undefined) ||
+               (st0.isDiscardDevNull === true && st0.discardWords?.length === 1 && st0.cmd.words[0]?.plain === "echo"))
+            ) {
+              const echoW = st0.value ?? st0.discardWords?.[0];
+              const isBareInd = echoW?.parts.length === 1 && echoW.parts[0]!.kind === "variable" && echoW.parts[0]!.name === inductionName && !echoW.parts[0]!.indirect && !echoW.parts[0]!.prefixNames && !echoW.parts[0]!.specialParameter && !echoW.parts[0]!.length && !echoW.parts[0]!.substring && !echoW.parts[0]!.transform && echoW.parts[0]!.operator === undefined && getArraySelector(echoW.parts[0]!) === undefined;
+              const isPrefixedInd = echoW?.parts.length === 2 && echoW.parts[0]!.kind === "text" && !echoW.parts[0]!.byteValue && echoW.parts[1]!.kind === "variable" && echoW.parts[1]!.name === inductionName && !echoW.parts[1]!.indirect && !echoW.parts[1]!.prefixNames && !echoW.parts[1]!.specialParameter && !echoW.parts[1]!.length && !echoW.parts[1]!.substring && !echoW.parts[1]!.transform && echoW.parts[1]!.operator === undefined && getArraySelector(echoW.parts[1]!) === undefined;
+              if (isBareInd || isPrefixedInd) {
+                const rem = limit - (curInd + 1);
+                if (!st0.isDiscardDevNull || this.budget._fileSystemOperations + rem <= this.budget.limits.maxFileSystemOperations) {
+                  const prefixText = isPrefixedInd ? echoW!.parts[0]!.value : "";
+                  const prefixByteLen = shellValueByteLength(prefixText);
+                  let sumDigits = 0;
+                  for (let d = 1, lo = 1, hi = 9; lo <= limit - 1; d++, lo *= 10, hi = hi * 10 + 9) {
+                    const startK = curInd + 1 > lo ? curInd + 1 : lo;
+                    const endK = limit - 1 < hi ? limit - 1 : hi;
+                    if (startK <= endK) sumDigits += (endK - startK + 1) * d;
+                  }
+                  if (curInd + 1 === 0) sumDigits += 1;
+                  const totalBytes = rem * (prefixByteLen + 1) + sumDigits;
+                  if (this.budget.bytes + totalBytes <= this.budget.limits.maxOutputBytes) {
+                    if (st0.isDiscardDevNull) this.budget._fileSystemOperations += rem;
+                    this.budget.bytes += totalBytes;
+                    this.budget.iterations += rem;
+                    this.budget.commands += rem;
+                    this.budget.parsing.admit(rem * 6);
+                    runYieldCheckpoint(this.signal);
+                    const lastVal = prefixText + intToStr(limit - 1);
+                    curInd = limit;
+                    progress.lastCmd = st0.cmd;
+                    progress.lastArg = lastVal;
+                    progress.pipelineStatus = 0;
+                    rawState.status = 0;
+                    break;
+                  }
+                }
+              }
+            }
+            if (
+              st0.listOperator === undefined &&
               st0.targetWord !== undefined && st0.value !== undefined &&
               st0.targetWord.plain !== undefined && st0.targetWord.plain.startsWith("/") && !st0.targetWord.plain.startsWith("/dev") &&
               st0.value.parts.length === 2 && st0.value.parts[0]!.kind === "text" && !st0.value.parts[0]!.byteValue &&
@@ -16587,13 +16680,26 @@ export class Runtime {
               const rem = limit - (curInd + 1);
               if (this.budget.fsOperations + rem <= this.budget.limits.maxFileSystemOperations) {
                 const prefixText = st0.value.parts[0]!.value;
-                let batchStr = "";
-                let lastVal = "";
-                for (let k = curInd + 1; k < limit; k++) {
-                  lastVal = prefixText + intToStr(k);
-                  batchStr += lastVal + "\n";
+                const stCache = st0 as { _cachedBatchStart?: number; _cachedBatchLimit?: number; _cachedBatchPrefix?: string; _cachedEncodedBatch?: Uint8Array; _cachedLastVal?: string };
+                let encodedBatch: Uint8Array;
+                let lastVal: string;
+                if (stCache._cachedBatchStart === curInd + 1 && stCache._cachedBatchLimit === limit && stCache._cachedBatchPrefix === prefixText && stCache._cachedEncodedBatch !== undefined && stCache._cachedLastVal !== undefined) {
+                  encodedBatch = stCache._cachedEncodedBatch;
+                  lastVal = stCache._cachedLastVal;
+                } else {
+                  let batchStr = "";
+                  lastVal = "";
+                  for (let k = curInd + 1; k < limit; k++) {
+                    lastVal = prefixText + intToStr(k);
+                    batchStr += lastVal + "\n";
+                  }
+                  encodedBatch = fastSharedTextEncoder.encode(batchStr).slice();
+                  stCache._cachedBatchStart = curInd + 1;
+                  stCache._cachedBatchLimit = limit;
+                  stCache._cachedBatchPrefix = prefixText;
+                  stCache._cachedEncodedBatch = encodedBatch;
+                  stCache._cachedLastVal = lastVal;
                 }
-                const encodedBatch = fastSharedTextEncoder.encode(batchStr);
                 if (this.budget.bytes + encodedBatch.byteLength <= this.budget.limits.maxOutputBytes) {
                   const targetVal = this.evalSyncRedirectWord(st0.targetWord, rawState, io);
                   if (st0.append) {

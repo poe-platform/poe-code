@@ -192,7 +192,10 @@ console.log(result.stdout);
 Agent spawn activity timeouts and parallel concurrency limits are optional; set `activityTimeoutMs` or `maxConcurrent` explicitly when needed. Autonomous spawn retries have no ceiling unless `maxTimeoutRetries` is supplied.
 
 For plugin-first agent composition, import the public agent builder from the
-`poe-code/agent` subpath:
+`poe-code/agent` subpath. In Cloudflare Workers, pass `agent({ fs, cwd, homeDir })`
+with a SafeFS provider and configure an explicit API key or model. The agent and
+`poe-code/memory` exports support Workers without `nodejs_compat`; host subprocesses
+require an injected runner where supported:
 
 ```typescript
 import { agent, openaiResponsesPlugin, systemPromptPlugin } from "poe-code/agent";

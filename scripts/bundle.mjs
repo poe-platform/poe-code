@@ -173,20 +173,26 @@ await publishBundleOutputs(portableBufferBuild, {
 });
 consumerBuilds.push(portableBufferBuild);
 
-consumerBuilds.push(
-  await esbuild.build({
-    entryPoints: [path.join(rootDir, "src/agent.ts")],
-    bundle: true,
-    platform: "node",
-    target: "node18",
-    format: "esm",
-    outfile: path.join(rootDir, "dist/agent.js"),
-    ...consumerBuildOptions,
-    sourcemap: true,
-    plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
-    loader: { ".md": "text", ".mustache": "text", ".log": "text" }
-  })
-);
+for (const platform of ["node", "browser"]) {
+  consumerBuilds.push(
+    await esbuild.build({
+      entryPoints: [path.join(rootDir, "src/agent.ts")],
+      bundle: true,
+      platform,
+      target: platform === "node" ? "node18" : "es2022",
+      conditions: platform === "browser" ? ["workerd", "browser"] : ["node"],
+      format: "esm",
+      outfile: path.join(rootDir, "dist", platform === "node" ? "agent.js" : "agent.browser.js"),
+      ...consumerBuildOptions,
+      ...(platform === "browser" ? {
+        alias: { ...workspaceAliases, "tiny-mcp-client": path.join(rootDir, "packages/tiny-mcp-client/dist/index.browser.js") }
+      } : {}),
+      sourcemap: true,
+      plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
+      loader: { ".md": "text", ".mustache": "text", ".log": "text" }
+    })
+  );
+}
 
 consumerBuilds.push(
   await esbuild.build({

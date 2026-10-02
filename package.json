@@ -94,6 +94,9 @@
     },
     "./agent": {
       "types": "./dist/agent.d.ts",
+      "workerd": "./dist/agent.browser.js",
+      "browser": "./dist/agent.browser.js",
+      "worker": "./dist/agent.browser.js",
       "import": "./dist/agent.js"
     },
     "./credentials": {

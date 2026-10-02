@@ -56,3 +56,14 @@ test("unzip owns argument and overwrite policy while ZIP selection stays shared"
   assert.ok(!shared.includes("export class Answers"));
   assert.equal(manifest("packages/safe-bash-command-unzip/package.json").private, true);
 });
+
+test("curl owns its parser while curl and wget share a lower-level transfer engine", () => {
+  const curl = manifest("packages/safe-bash-command-curl/package.json");
+  const wget = manifest("packages/safe-bash-command-wget/package.json");
+  const engine = manifest("packages/safe-bash-network-engine/package.json");
+  assert.equal(wget.devDependencies["safe-bash-command-curl"], undefined);
+  assert.equal(engine.devDependencies["safe-bash-command-curl"], undefined);
+  assert.ok(curl.exports["./args"]);
+  assert.ok(curl.exports["./input"]);
+  assert.ok(engine.exports["./transfer"]);
+});

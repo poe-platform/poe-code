@@ -275,3 +275,5 @@ import { verifyLlmCommands } from "./safe-packages-llm.mjs";
 await verifyLlmCommands();
 await verifyLineEndingCommands(defaultEntry);
 await verifyLineEndingCommands(nodeEntry);
+
+import "./safe-packages-curl.mjs";

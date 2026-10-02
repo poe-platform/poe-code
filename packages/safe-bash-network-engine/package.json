@@ -55,10 +55,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./input": {
-      "types": "./dist/input.d.ts",
-      "import": "./dist/input.js"
-    },
     "./output": {
       "types": "./dist/output.d.ts",
       "import": "./dist/output.js"
@@ -82,6 +78,10 @@
     "./url": {
       "types": "./dist/url.d.ts",
       "import": "./dist/url.js"
+    },
+    "./transfer": {
+      "types": "./dist/transfer.d.ts",
+      "import": "./dist/transfer.js"
     }
   },
   "files": [

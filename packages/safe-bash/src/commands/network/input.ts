@@ -1,1 +1,1 @@
-export * from "safe-bash-network-engine/input";
+export * from "safe-bash-command-curl/input";

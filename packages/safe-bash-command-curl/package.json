@@ -24,6 +24,14 @@
       "workerd": "./dist/index.js",
       "browser": "./dist/index.js",
       "import": "./dist/index.js"
+    },
+    "./args": {
+      "types": "./dist/args.d.ts",
+      "import": "./dist/args.js"
+    },
+    "./input": {
+      "types": "./dist/input.d.ts",
+      "import": "./dist/input.js"
     }
   },
   "files": [

@@ -2,8 +2,8 @@ import { type CommandContext } from "safe-bash-contracts";
 import { byteLength,decodeBytes,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { pathOf } from "safe-bash-io-engine/internal";
 import { flags,longValues,parseArguments,values,type CurlArguments } from "./args.js";
-import { collectNetworkBytes as collectBytes,withSignal } from "./shared.js";
-import { CurlError,type NetworkLimits } from "./types.js";
+import { collectNetworkBytes as collectBytes,withSignal } from "safe-bash-network-engine/shared";
+import { CurlError,type NetworkLimits } from "safe-bash-network-engine/types";
 
 function whitespace(character: string): boolean {
   return " \t\r\n\v\f".includes(character);

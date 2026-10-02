@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { collectBytes, toByteSource, type CommandContext } from "../../../src/contracts/index.js";
-import { createBody } from "../../../src/commands/network/body.js";
-import { parseArguments } from "../../../src/commands/network/args.js";
-import { defaultNetworkLimits } from "../../../src/commands/network/types.js";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { collectBytes, toByteSource, type CommandContext } from "safe-bash-contracts";
+import { createBody } from "safe-bash-network-engine/body";
+import { parseArguments } from "./args.js";
+import { defaultNetworkLimits } from "safe-bash-network-engine/types";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
 
 async function body(field: string, flag = "-F", headerFile = "X-Owned: file\nX-Other: second\n", maxBufferBytes = 4096) {
   const fs = new MemoryFileSystem();

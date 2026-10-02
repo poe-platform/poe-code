@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { collectBytes, toByteSource, type CommandContext } from "../../../src/contracts/index.js";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createBody } from "../../../src/commands/network/body.js";
-import { parseArguments } from "../../../src/commands/network/args.js";
-import { defaultNetworkLimits } from "../../../src/commands/network/types.js";
+import { collectBytes, toByteSource, type CommandContext } from "safe-bash-contracts";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { createBody } from "safe-bash-network-engine/body";
+import { parseArguments } from "./args.js";
+import { defaultNetworkLimits } from "safe-bash-network-engine/types";
 
 const payload = Buffer.from([0xf9, 0, 10, 0xf8]);
 

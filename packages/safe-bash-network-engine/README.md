@@ -1,6 +1,6 @@
 # safe-bash-network-engine
 
-Portable shared helpers for Safe Bash. Uses injected filesystem and stream contracts without host filesystem access.
+Portable HTTP transfer, authorization, request-body and response-stream primitives shared by Safe Bash curl and wget. Uses injected filesystem and stream contracts without host filesystem access. This private engine is bundled into Safe Bash; consumers use `@poe-platform/safe-bash/commands/network`, `@poe-platform/safe-bash/commands/curl`, or `@poe-platform/safe-bash/commands/wget`. Curl argument and config parsing belongs to the curl command workspace.
 
 `createFetchTransport()` advertises `supportsResponseHeaderTimeout`, not exact
 connection timing. Pass `HttpRequest.responseHeaderTimeoutMs` to bound the wait

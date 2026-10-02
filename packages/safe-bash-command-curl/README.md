@@ -1,6 +1,6 @@
 # curl
 
-Run `curl` against an injected virtual filesystem with portable byte streams.
+Run `curl` against an injected virtual filesystem with portable byte streams. This internal package is bundled into Safe Bash; use the public exports below without installing a separate command package.
 
 ```ts
 import { createCurlCommand, curlCommands } from "@poe-platform/safe-bash/commands/curl";

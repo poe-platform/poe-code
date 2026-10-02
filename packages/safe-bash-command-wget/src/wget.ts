@@ -1,4 +1,4 @@
-import { createTransferCommand } from "safe-bash-command-curl/curl";
+import { createTransferCommand } from "safe-bash-network-engine/transfer";
 import { getCommandArguments,type CommandContext,type CommandDefinition } from "safe-bash-contracts";
 import { shellValueByteLength,shellValueBytes } from "safe-bash-contracts/value";
 import { yieldTurn } from "safe-bash-contracts/yield";

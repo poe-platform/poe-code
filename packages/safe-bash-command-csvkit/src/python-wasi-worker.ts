@@ -3,7 +3,12 @@ import {WASI, wasi as definitions, File, OpenFile, ConsoleStdout, PreopenDirecto
 declare const PYTHON_WASM: string;
 declare const PYTHON_LIBRARIES: string;
 interface Start {shared: SharedArrayBuffer; payload: string; banner: string; workLimit: number}
-const decode = (text: string): Uint8Array<ArrayBuffer> => Uint8Array.from(atob(text), char => char.charCodeAt(0));
+const decode = (text: string): Uint8Array<ArrayBuffer> => {
+  const binary = atob(text);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
+};
 async function inflate(text: string): Promise<Uint8Array<ArrayBuffer>> {
   return new Uint8Array(await new Response(new Blob([decode(text)]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer());
 }

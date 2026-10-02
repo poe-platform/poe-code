@@ -25,3 +25,9 @@ it("generates the Python worker in a clean checkout without an existing dist dir
     vi.doUnmock("../scripts/meter-python.mjs");
   }
 });
+
+it("avoids per-byte callback allocations when decoding the Python WASI bundle", async () => {
+  const { readFileSync } = await import("node:fs");
+  const workerSource = readFileSync(new URL("./python-wasi-worker.ts", import.meta.url), "utf8");
+  expect(workerSource).not.toContain("Uint8Array.from(atob");
+});

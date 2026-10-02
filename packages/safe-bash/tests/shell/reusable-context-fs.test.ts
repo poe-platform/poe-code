@@ -101,6 +101,18 @@ test("filesystem reuse survives stdin finalization failure", async context => {
   assert.equal(await rootScope(), first);
 });
 
+test("completed warmed invocations release the filesystem scope for another shell", async context => {
+  const fs = new MemoryFileSystem();
+  const { shell, rootScope } = fixture(context, false, fs);
+  const next = new Shell({ fs, deviceView: "provided" });
+  context.after(() => next.dispose());
+  const first = await rootScope();
+  for (const target of [shell, next, shell, next, shell, next]) {
+    await target.exec("");
+    assert.equal(await rootScope(target), first);
+  }
+});
+
 test("another invocation cannot release an active filesystem scope", async context => {
   const { shell, rootScope } = fixture(context);
   let entered!: () => void;

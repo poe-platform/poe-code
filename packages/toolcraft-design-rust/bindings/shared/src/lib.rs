@@ -533,3 +533,5 @@ mod explorer_filter;
 pub use explorer_filter::*;
 mod explorer_jobs;
 pub use explorer_jobs::*;
+mod explorer_detail_content;
+pub use explorer_detail_content::*;

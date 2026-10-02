@@ -1942,3 +1942,38 @@ resolved item promises, spaced scheduling and 32 retained promises measured
 zero remaining timers. This measures scheduling overhead, not wall-clock loading
 latency. Performance batching remains open, along with detail preparation,
 theme, reducer, rendering, runtime/public namespace and broader swap qualification.
+
+### Explorer detail preparation checkpoint
+
+`explorer/detail-content` exposes `prepareDetailContent` and its original result
+type. Rust owns width/cache decisions, the UTF-16 content hash and physical-line
+grouping, calling the existing Rust Markdown renderer and ANSI-cell adapter.
+The host retains cache object identities, mutable cached results, custom string
+readers, width coercion and arbitrary exceptions. The current reference's hash
+collision behavior is preserved: `costarring` and `liquid` at the same width
+reuse the first result. This behavior requires a separate coordinated correction.
+
+Three missing-export tests preceded implementation. Differential tests cover
+54 source/width combinations, grapheme styling, blank inputs, width revisits,
+mutated results, hash collisions, getter order, patched character readers and
+malformed-input diagnostics. Maintained checks pass 337 native host tests,
+1,379 selected design tests, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 143 explorer cases, including original detail preparation
+and detail-renderer tests. Rust/binding and scoped JS lint, bidirectional types
+and packed runtime/declarations pass; the packed runtime rejects external ESM
+imports and the type consumer uses `types: []`. No dependencies or default
+integration changed.
+
+Inspected 72-column and 36-column prepared-cell screenshots. Native/reference
+preparation yields identical original-Screen frames with wrapping and styling.
+The screenshot ANSI parser counts a combining mark as an extra cursor column,
+which shifts a later absolutely positioned border one column left; this was
+reproduced independently with an original Screen frame and is not a port
+difference.
+
+Five warmed alternating Node 22 ARM64 rounds retaining 32 results measured
+2.438 µs native / 0.249 µs reference for cached preparation (5,000 calls/round,
+9.79× slower), and 281.04 µs / 84.58 µs for unique short Markdown sources
+(10 calls/round, 3.32× slower). No performance gate passed. Theme, reducer,
+remaining renderers, runtime/public namespace and broader swap qualification
+remain open.

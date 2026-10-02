@@ -618,3 +618,8 @@ debounces rapid requests by 30 ms; work still pending after 150 ms emits a
 loading event. Completion and error events retain the row ID and token so your
 reducer can discard stale results. `abort()` suppresses the current job's later
 events and clears its loading timer.
+
+`prepareDetailContent(markdown, width)` from `explorer/detail-content` returns
+rendered text and physical rows of styled grapheme cells for a detail pane.
+Widths are clamped to at least one column, trailing blank rows are removed,
+and revisiting the same content and width reuses the prepared result.

@@ -479,6 +479,10 @@
     "./explorer/jobs": {
       "types": "./dist/explorer-jobs.d.ts",
       "import": "./dist/explorer-jobs.js"
+    },
+    "./explorer/detail-content": {
+      "types": "./dist/explorer-detail-content.d.ts",
+      "import": "./dist/explorer-detail-content.js"
     }
   },
   "scripts": {

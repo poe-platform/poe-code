@@ -887,3 +887,12 @@ const explorerJobsOriginal: typeof originalExplorerJobs = explorerJobs;
 const explorerJobsNative: typeof explorerJobs = null as unknown as typeof originalExplorerJobs;
 const explorerJobsKeys: SameKeys<typeof explorerJobs,typeof originalExplorerJobs> = true;
 void [explorerJobsOriginal,explorerJobsNative,explorerJobsKeys];
+
+import * as explorerDetailContent from "toolcraft-design-rust/explorer/detail-content";
+import type * as originalExplorerDetailContent from "toolcraft-design/explorer/detail-content";
+const explorerDetailContentOriginal: typeof originalExplorerDetailContent = explorerDetailContent;
+const explorerDetailContentNative: typeof explorerDetailContent = null as unknown as typeof originalExplorerDetailContent;
+const explorerDetailContentKeys: SameKeys<typeof explorerDetailContent,typeof originalExplorerDetailContent> = true;
+const preparedContentOriginal: originalExplorerDetailContent.PreparedDetailContent = null as unknown as explorerDetailContent.PreparedDetailContent;
+const preparedContentNative: explorerDetailContent.PreparedDetailContent = null as unknown as originalExplorerDetailContent.PreparedDetailContent;
+void [explorerDetailContentOriginal,explorerDetailContentNative,explorerDetailContentKeys,preparedContentOriginal,preparedContentNative];

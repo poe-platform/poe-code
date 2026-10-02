@@ -14,7 +14,6 @@ pub mod html;
 pub mod interaction;
 pub mod layout;
 pub mod logging;
-pub mod markdown_block;
 pub mod markdown_block_scan;
 pub mod markdown_delimiter;
 pub mod markdown_inline;

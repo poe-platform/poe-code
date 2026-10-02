@@ -1250,24 +1250,6 @@ export class Interpreter {
       yield out;
       return;
     }
-    if (name === "trim" || name === "ltrim" || name === "rtrim") {
-      if (typeof input !== "string") throw new JqError(`${name} requires a string`);
-      let start = 0, end = input.length;
-      if (name !== "rtrim") {
-        while (start < end && input[start]!.trim() === "") {
-          const pending = budget.tickSync(); if (pending) await pending;
-          start++;
-        }
-      }
-      if (name !== "ltrim") {
-        while (end > start && input[end - 1]!.trim() === "") {
-          const pending = budget.tickSync(); if (pending) await pending;
-          end--;
-        }
-      }
-      yield input.slice(start, end);
-      return;
-    }
     if (["startswith", "endswith", "ltrimstr", "rtrimstr"].includes(name)) {
       for await (const value of this.run(args[0]!, input)) {
         if (typeof input !== "string" || typeof value !== "string") {

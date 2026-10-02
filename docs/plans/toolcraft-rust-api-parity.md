@@ -843,27 +843,6 @@ All 188 native tests, 237 routed reference tests, declarations and scoped lint
 pass with no dependency changes. These are internal grammar primitives; native
 block construction, mapped indentation and frontmatter integration are next.
 
-The internal Markdown body parser now constructs blocks and maps indentation in
-Rust, then applies the native inline parser after collecting recursive footnote
-labels. It covers fenced code, ATX/setext headings, thematic breaks, nested
-lists/tasks, quotes/alerts, tables, raw HTML and footnote definitions. Default
-source maps and range arithmetic stay native; JS supplies runtime Unicode classes
-and materializes hidden range descriptors. The maintained package route passed
-193 native tests and 237 routed reference tests; an additional passing adversarial
-test brings native coverage to 194 and checks nonfinite/signed offsets and
-character-host thrown identity. Types, Rust/binding/JS lint and isolated packed
-runtime checks pass without dependency changes. Wide/narrow terminal screenshots
-were inspected; terminal/HTML/plaintext fixture output matches the reference.
-Differential cases include CRLF, BOM, virtual tab indentation, escaped table-cell
-offsets, recursive definitions and 500 seeded block combinations. The 128-frame
-native/reentrancy limits, exotic input and patched-intrinsic/descriptor timing
-qualification remain open. Public document parsing still requires frontmatter
-integration and Markdown string/export wrappers. A warmed five-round median
-benchmark (300 calls/round, alternating order) measured native/reference times:
-1,365-unit plain paragraphs 0.0224/0.0583 ms (0.384x), 1,420-unit rich inline text
-0.687/0.190 ms (3.62x), and 1,310-unit mixed blocks 0.513/0.190 ms (2.70x). Plain
-input improves, but rich input remains slower; the performance gate is not passed.
-
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

@@ -3,7 +3,7 @@ import type { CommandContext } from "safe-bash-contracts/command";
 import { FsError } from "safe-bash-contracts/errors";
 import { readBytes, type ByteSource } from "safe-bash-contracts/io";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "safe-bash-contracts/command-requirements";
-import { tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
+import { tryReadMemoryFileViewSync, tryResolveMemoryDevicePath } from "@poe-code/safe-fs/runtime-core";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { pathOf } from "../../internal.js";
 import { inputRequirements } from "../../portable-requirements.js";

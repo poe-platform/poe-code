@@ -31,12 +31,6 @@ export async function deviceComparisonChecks() {
   results.push(await compareEntries(devices, "/devices", devices, "/dev"));
   results.push(await compareEntries(devices, "/null-alias", devices, "/dev/null"));
   results.push(await compareEntries(devices, "/dev", devices, "/dev/null"));
-  results.push(await devices.compareEntry("/null-alias", devices, "/dev/null"));
-  await memory.writeFile("/ordinary", new Uint8Array([1]));
-  await memory.writeFile("/other", new Uint8Array([2]));
-  const identified = createDeviceFileSystem(memory);
-  results.push(await identified.compareEntry("/ordinary", identified, "/other"));
-  results.push(await identified.compareEntry("/ordinary", memory, "/ordinary"));
   const controller = new AbortController();
   const reason = new Error("cancel comparison");
   controller.abort(reason);

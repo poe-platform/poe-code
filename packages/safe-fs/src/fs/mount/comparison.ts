@@ -59,7 +59,7 @@ export async function resolveEntryView(filesystem: FileSystem, path: string, opt
       return { filesystem: location.filesystem, path: followedPath, stat, readOnly };
     }
     let next: EntryLocation;
-    try { next = await resolve.call(location.filesystem, location.path, options); }
+    try { next = await resolve(location.path, options); }
     catch (error) { options.signal?.throwIfAborted(); throw error; }
     options.signal?.throwIfAborted();
     if (next.filesystem === location.filesystem && next.stat) {

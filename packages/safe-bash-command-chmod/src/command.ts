@@ -1,6 +1,6 @@
 import { modeChange } from "safe-bash-io-engine/commands/mode-change";
 export { modeChange } from "safe-bash-io-engine/commands/mode-change";
-import { bindConditionalMutation } from "@poe-code/safe-fs/core";
+import { bindConditionalMutation } from "@poe-code/safe-fs/runtime-core";
 import { creationUmask } from "safe-bash-contracts/runtime-control";
 import { FsError, type ChmodOptions } from "safe-bash-contracts";
 import { codeOf, diagnostic, options, pathOf, requireOperands, syncCommandEvaluators, UsageError, value } from "safe-bash-io-engine/internal";

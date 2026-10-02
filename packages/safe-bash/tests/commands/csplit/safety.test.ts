@@ -83,9 +83,9 @@ async function run(fs: FileSystem, args: string[], input = "a\nb\nc\n", options:
 }
 
 function wrap(fs: FileSystem, overrides: Partial<FileSystem>): FileSystem {
-  return new Proxy(fs, { get(target, key) {
+  return new Proxy(fs, { get(target, key, receiver) {
     if (Object.hasOwn(overrides, key)) return Reflect.get(overrides, key);
-    const value: unknown = Reflect.get(target, key, target);
+    const value: unknown = Reflect.get(target, key, receiver);
     return typeof value === "function" ? value.bind(target) : value;
   } });
 }

@@ -41,7 +41,6 @@ const precedence: Readonly<Record<string, number>> = Object.freeze({
   "+": 8, "-": 8, "*": 9, "/": 9, "%": 9,
 });
 export const functions: Readonly<Record<string, readonly number[]>> = Object.freeze({
-  trim: [0], ltrim: [0], rtrim: [0],
   path: [1], leaf_paths: [0], fabs: [0], env: [0],
   walk: [1], test: [1, 2], match: [1, 2], in: [1], IN: [1, 2], INDEX: [1, 2], isempty: [1], nth: [1, 2], pick: [1], sqrt: [0], todate: [0], fromdate: [0],
   explode: [0], implode: [0], utf8bytelength: [0], floor: [0], ceil: [0], round: [0], abs: [0], index: [1], rindex: [1],

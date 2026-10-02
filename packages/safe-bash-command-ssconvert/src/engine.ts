@@ -14,12 +14,6 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
   const codecs = supplied.codecs ?? [];
   const registry = createRegistry(codecs, formats);
   return createSpreadsheetEngine({ ...supplied, formats, codecs,
-    fonts: "fonts" in supplied ? supplied.fonts : {
-      async resolve() {
-        const { suppliedDefaultFont } = await import("@poe-code/pdf");
-        return suppliedDefaultFont().bytes;
-      }
-    },
     rendering: supplied.rendering ?? createImageRendering(),
     clipboard: supplied.clipboard ?? {
       serialize(book, target, range, context) {

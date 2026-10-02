@@ -139,21 +139,6 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       }
       continue;
     }
-    if (name === "--embed-resources" || name === "--self-contained") {
-      const value = equals < 0 ? "true" : arg.slice(equals + 1);
-      if (value !== "true" && value !== "false") fail(`Invalid boolean: ${name}`);
-      if (value === "true") {
-        options.standalone ??= true;
-        (options as { embedResources?: boolean }).embedResources = true;
-      }
-      continue;
-    }
-    if (name === "--slide-level") {
-      const value = equals < 0 ? args[++i] : arg.slice(equals + 1);
-      if (!value || value.startsWith("-")) fail(`Missing value: ${name}`);
-      metadataJson.push({ "pptx-slide-level": value! });
-      continue;
-    }
     if (name === "--bibliography" || name === "--csl") {
       const path = equals < 0 ? args[++i] : arg.slice(equals + 1);
       if (!path || path.startsWith("-")) fail(`Missing value: ${name}`);

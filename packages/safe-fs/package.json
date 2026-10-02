@@ -148,6 +148,10 @@
     "./contracts/errors": {
       "types": "./dist/contracts/errors.d.ts",
       "import": "./dist/contracts/errors.js"
+    },
+    "./runtime-core": {
+      "types": "./dist/runtime-core.d.ts",
+      "import": "./dist/runtime-core.js"
     }
   },
   "files": [

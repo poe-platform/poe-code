@@ -421,3 +421,32 @@ test("28. hoisted arithmetic-for loop plan invalidates when scalar target variab
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout.trim(), "before:scalar_4|hit\nafter:scalar_4|second|third|hit|b|c");
 });
+
+test("29. synchronous memory glob expansion matches filenames in (pattern, name) order and respects dotglob, nocaseglob, and GLOBIGNORE", async () => {
+  const { shell } = createTestShell();
+  const res = await shell.exec(`
+    mkdir -p /tmp/sb_glob_test
+    touch /tmp/sb_glob_test/F_1.TXT /tmp/sb_glob_test/f_2.txt /tmp/sb_glob_test/.dot.txt /tmp/sb_glob_test/skip.txt
+    out1=""; for f in /tmp/sb_glob_test/f_*.txt; do out1+="\$f,"; done
+    shopt -s nocaseglob
+    out2=""; for f in /tmp/sb_glob_test/f_*.txt; do out2+="\$f,"; done
+    shopt -u nocaseglob
+    shopt -s dotglob
+    out3=""; for f in /tmp/sb_glob_test/*.txt; do out3+="\$f,"; done
+    shopt -u dotglob
+    GLOBIGNORE="*/skip.txt"
+    out4=""; for f in /tmp/sb_glob_test/*.txt; do out4+="\$f,"; done
+    echo "1:\$out1"
+    echo "2:\$out2"
+    echo "3:\$out3"
+    echo "4:\$out4"
+  `);
+  assert.equal(res.exitCode, 0);
+  assert.equal(
+    res.stdout,
+    "1:/tmp/sb_glob_test/f_2.txt,\n" +
+    "2:/tmp/sb_glob_test/F_1.TXT,/tmp/sb_glob_test/f_2.txt,\n" +
+    "3:/tmp/sb_glob_test/.dot.txt,/tmp/sb_glob_test/f_2.txt,/tmp/sb_glob_test/skip.txt,\n" +
+    "4:/tmp/sb_glob_test/.dot.txt,/tmp/sb_glob_test/f_2.txt,\n"
+  );
+});

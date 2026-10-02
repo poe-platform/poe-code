@@ -1,7 +1,7 @@
 import { createTouchCommand } from "./touch/index.js";
 import { createReadlinkCommand } from "./readlink/index.js";
 import { createRealpathCommand } from "./realpath/index.js";
-import { bindConditionalMutation, tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
+import { bindConditionalMutation, tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/runtime-core";
 import {
   basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath, resolvePath,
   readBytes, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat, type FileSystem,

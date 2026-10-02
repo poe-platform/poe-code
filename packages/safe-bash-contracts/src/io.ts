@@ -1,9 +1,9 @@
 import type { CommandContext, CommandResult } from "./command.js";
 import { yieldTurn } from "./yield.js";
-import { collectBytes, readBytes, retainFileSystemCleanup } from "@poe-code/safe-fs/core";
-import type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
-export { collectBytes, readBytes, toByteSource } from "@poe-code/safe-fs/core";
-export type { ByteSource, CollectOptions } from "@poe-code/safe-fs/core";
+import { collectBytes, readBytes, retainFileSystemCleanup } from "@poe-code/safe-fs/runtime-core";
+import type { ByteSource, CollectOptions } from "@poe-code/safe-fs/runtime-core";
+export { collectBytes, readBytes, toByteSource } from "@poe-code/safe-fs/runtime-core";
+export type { ByteSource, CollectOptions } from "@poe-code/safe-fs/runtime-core";
 import { FsError } from "./errors.js";
 import { addManagedAbortWaiter, managedSignalSymbol, notifyManagedAbortWaiters, removeManagedAbortWaiter } from "./managed-abort.js";
 

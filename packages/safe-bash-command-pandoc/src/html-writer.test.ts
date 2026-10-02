@@ -127,19 +127,3 @@ it("preserves nested tables and rich cell content with security attributes and e
   const expected = '<table>\n<colgroup><col><col></colgroup>\n<tbody>\n<tr><td colspan="2"><p><img src="a.png" alt="图"><strong>&lt;&amp;</strong></p>\n<table>\n<colgroup><col><col></colgroup>\n<tbody>\n<tr><td></td><td></td></tr>\n</tbody>\n</table>\n</td></tr>\n</tbody>\n</table>\n';
   expect(actual).toBe(expected); dom(actual, expected);
 });
-
-it("supports --embed-resources and --slide-level CLI flags", async () => {
-  const { parseConversionArgs } = await import("./cli.js");
-  const parsed = parseConversionArgs(
-    ["report.md", "--standalone", "--embed-resources", "--slide-level=1", "-o", "report.html"],
-    {
-      readFile: async () => new TextEncoder().encode("# Hi\n"),
-      writeFile: async () => {},
-      cwd: "/"
-    },
-    new AbortController().signal
-  );
-  expect(parsed.options.standalone).toBe(true);
-  expect((parsed.options as { embedResources?: boolean }).embedResources).toBe(true);
-  expect(parsed.options.metadataJson).toContainEqual({ "pptx-slide-level": "1" });
-});

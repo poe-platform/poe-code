@@ -16,7 +16,7 @@ The module also exports `createXanCommand`, its command-list factory, and typed 
 Available commands: `headers` (`h`), `count`, `select`, `slice`, `head`, `tail`,
 `sort`, `search`, `filter`, `reverse`, `rename`, `drop`, `stats`, `freq`
 (`frequency`), `join`, `dedup`, `enum`, `transpose`, `agg`, `groupby`,
-`to`, `from`, `cat`, `split`, `table` (`view`), `top`, and `map`. Use `xan --help` for supported options.
+`to`, `from`, `cat`, `split`, `table`, `top`, and `map`. Use `xan --help` for supported options.
 
 ```sh
 xan sort -s score -N data.csv

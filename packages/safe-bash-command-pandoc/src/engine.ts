@@ -58,7 +58,6 @@ class Session extends ExecutionContext {
   metadataFiles: WriteOptions["metadataFiles"];
   lossy = false;
   standalone = false;
-  embedResources = false;
   yes = false;
   rawContent: WriteOptions["rawContent"];
   metadata: WriteOptions["metadata"];
@@ -79,7 +78,7 @@ class Session extends ExecutionContext {
     const allowed =
       this.operation === "read" ? ["from"] : this.operation === "write" ? ["to", "wrap", "lossy", "standalone", "metadata", "rawContent"] : ["from", "to", "wrap", "lossy", "standalone", "metadata", "rawContent"];
     if (this.operation === "convert") allowed.push("filters");
-    if (this.operation !== "read") allowed.push("columns", "numberSections", "toc", "ascii", "stripComments", "shiftHeadingLevelBy", "eol", "yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox", "embedResources");
+    if (this.operation !== "read") allowed.push("columns", "numberSections", "toc", "ascii", "stripComments", "shiftHeadingLevelBy", "eol", "yes", "failIfWarnings", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "pdfPage", "pdfFonts", "pdf", "epub", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox");
     if (Object.keys(options).some((key) => !allowed.includes(key)))
       this.fail("E_OPTION", "Unknown or inapplicable option");
     if ("wrap" in options && !["none", "auto", "preserve"].includes(options.wrap!)) this.fail("E_OPTION", "Invalid wrap policy");
@@ -108,7 +107,7 @@ class Session extends ExecutionContext {
       this.shiftHeadingLevelBy = options.shiftHeadingLevelBy ?? 0;
       this.eol = options.eol;
       this.media.configure(options);
-      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "filters", "yes", "lossy", "stripComments", "shiftHeadingLevelBy", "eol", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox", "embedResources"].includes(key) && !(key === "standalone" && options.standalone === false)));
+      this.registry.validateOptions(options.to, "write", Object.keys(options).filter(key => !["from", "to", "filters", "yes", "lossy", "stripComments", "shiftHeadingLevelBy", "eol", "failIfWarnings", "metadata", "metadataJson", "metadataFiles", "resourcePath", "extractMedia", "template", "variables", "includeInHeader", "includeBeforeBody", "includeAfterBody", "fileScope", "sandbox"].includes(key) && !(key === "standalone" && options.standalone === false)));
       if (options.yes !== undefined && typeof options.yes !== "boolean") this.fail("E_OPTION", "yes must be boolean");
       this.yes = options.yes === true;
       if (options.failIfWarnings !== undefined && typeof options.failIfWarnings !== "boolean") this.fail("E_OPTION", "failIfWarnings must be boolean");
@@ -124,8 +123,7 @@ class Session extends ExecutionContext {
       if (options.standalone !== undefined && typeof options.standalone !== "boolean") this.fail("E_OPTION", "standalone must be boolean");
       if (options.rawContent !== undefined && !["reject", "escape", "retain"].includes(options.rawContent)) this.fail("E_OPTION", "Invalid rawContent policy");
       if (options.metadata !== undefined && (options.metadata === null || typeof options.metadata !== "object" || Array.isArray(options.metadata))) this.fail("E_OPTION", "metadata must be a map of MetaValue nodes");
-      this.embedResources = Boolean((options as { embedResources?: boolean }).embedResources);
-      this.standalone = options.template ? false : options.standalone === true || this.embedResources || Boolean(options.includeInHeader?.length || options.includeBeforeBody?.length || options.includeAfterBody?.length);
+      this.standalone = options.template ? false : options.standalone === true || Boolean(options.includeInHeader?.length || options.includeBeforeBody?.length || options.includeAfterBody?.length);
       this.rawContent = options.rawContent;
       this.metadata = options.metadata;
       if (options.pdf !== undefined) {
@@ -367,7 +365,7 @@ class Session extends ExecutionContext {
       };
       await visit(document.blocks);
     }
-    return await this.media.prepare(document, this.lossy, writer.imageResources === "embed" || this.embedResources);
+    return await this.media.prepare(document, this.lossy, writer.imageResources === "embed");
   }
   async finish(serialized: SerializedDocument): Promise<ConversionResult> {
     this.checkpoint(0);

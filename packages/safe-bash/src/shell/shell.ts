@@ -1,8 +1,7 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
-import { clearRgFastRunnerPool } from "../commands/search/rg-command.js";
 import { writeDiagnostic } from "../escaping.js";
-import { createDeviceFileSystem } from "@poe-code/safe-fs/core";
+import { createDeviceFileSystem } from "@poe-code/safe-fs/runtime-core";
 import { builtInDirectContextExecutors, CommandRegistry, resolvePath, toByteSource } from "../contracts/index.js";
 import type {
   ByteSink, CommandDefinition, FileSystemFactory, Middleware, PluginHost,
@@ -1298,7 +1297,7 @@ export class Shell implements PluginHost {
     this.#parsedSourceCache.clear();
     Runtime.clearStaticPools();
     clearAwkReaderPool();
-    clearRgFastRunnerPool();
+    (globalThis as { __safeBashClearRgPool?: () => void }).__safeBashClearRgPool?.();
     this.#clearWarmedInvocation();
     const active = this.#active
       ? [...this.#active]

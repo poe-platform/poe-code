@@ -1,5 +1,5 @@
 import type { CommandDefinition, CommandHandler } from "safe-bash-contracts";
-import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/core";
+import { tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/runtime-core";
 import { basename, dirname, FsError, type CommandContext, type FileStat, type FileSystem } from "safe-bash-contracts";
 import { codeOf, define, eachOperand, options, pathOf, requireOperands, UsageError, value } from "safe-bash-io-engine/internal";
 import { admitFilesystemModes } from "safe-bash-io-engine/commands/filesystem-requirements";

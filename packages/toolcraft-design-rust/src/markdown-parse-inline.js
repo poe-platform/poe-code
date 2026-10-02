@@ -5,10 +5,6 @@ const native=createRequire(import.meta.url)("./toolcraft-design-rust.node");
 const whitespace=/\s/u,punctuation=/[\p{P}\p{S}]/u;
 let depth=0;
 
-export function classifyMarkdownUnit(text) {
-  return Number(text===""||whitespace.test(text))|Number(text!==""&&punctuation.test(text))*2;
-}
-
 export function parseInline(raw,options={}) {
   if(depth>=128)throw new RangeError("Maximum call stack size exceeded");
   depth++;
@@ -33,7 +29,7 @@ export function parseInline(raw,options={}) {
           case 2: handle=ranges.push({start:Math.min(ranges[a].start,ranges[b].start),end:Math.max(ranges[a].end,ranges[b].end)})-1;break;
           case 3: handle=ranges.push({start:ranges[a]?.start??c,end:ranges[b]?.end??d})-1;break;
           case 4: flags=Number(!!footnoteLabels.has(text));break;
-          case 5: flags=classifyMarkdownUnit(text);break;
+          case 5: flags=Number(text===""||whitespace.test(text))|Number(text!==""&&punctuation.test(text))*2;break;
         }
         return {handle,flags,error:false};
       } catch(error) {failed=true;failure=error;return {handle:0,flags:0,error:true};}

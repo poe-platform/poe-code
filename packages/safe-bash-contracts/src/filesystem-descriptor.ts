@@ -1,5 +1,5 @@
-import { FsError } from "@poe-code/safe-fs/core";
-import type { FileDescriptor, FileDescriptorCapabilities, FsOptions, OpenFileOptions } from "@poe-code/safe-fs/core";
+import { FsError } from "@poe-code/safe-fs/runtime-core";
+import type { FileDescriptor, FileDescriptorCapabilities, FsOptions, OpenFileOptions } from "@poe-code/safe-fs/runtime-core";
 import { assertCountedFileOutput, writeFileOutputCounted, type FileOutputContext } from "./filesystem-output-budget.js";
 
 import { addAbortSignalWaiter, isManagedAbortSignal, removeAbortSignalWaiter } from "./runtime-control.js";

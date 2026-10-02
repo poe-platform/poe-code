@@ -4,7 +4,7 @@ import { writeDiagnostic } from "../escaping.js";
 import { creationUmask, getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
-import { registerEntryView, tryResolveMemoryDevicePath, type OpenFileOptions, type StagedFileContent, type WriteFileOptions } from "@poe-code/safe-fs/core";
+import { registerEntryView, tryResolveMemoryDevicePath, type OpenFileOptions, type StagedFileContent, type WriteFileOptions } from "@poe-code/safe-fs/runtime-core";
 
 const creationFileSystems = new WeakMap<FileSystem, Map<number, FileSystem>>();
 const creationKeys = new Set(["writeFile", "appendFile", "writeStream", "mkdir", "open", "createStagedFile"]);

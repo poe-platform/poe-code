@@ -6,7 +6,7 @@ export * from "./contracts/filesystem.js";
 export * from "./contracts/io.js";
 export * from "./contracts/output.js";
 export * from "./contracts/plugin.js";
-export { validatePath, resolvePath, normalizePath, relativePath, isPathWithin, assertPathWithin, basename, dirname, extname, joinPath, isAbsolutePath, posixPath } from "@poe-code/safe-fs/core";
+export { validatePath, resolvePath, normalizePath, relativePath, isPathWithin, assertPathWithin, basename, dirname, extname, joinPath, isAbsolutePath, posixPath } from "@poe-code/safe-fs/runtime-core";
 export * from "./plugins/index.js";
 export { createXanCommand, createXanCommands, xanCommands, type XanCommandsOptions, type XanLimits } from "./commands/xan/index.js";
 export * from "./shell/index.js";

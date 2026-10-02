@@ -1,4 +1,4 @@
-import { tryResolveMemoryDevicePath } from "@poe-code/safe-fs/core";
+import { tryResolveMemoryDevicePath } from "@poe-code/safe-fs/runtime-core";
 import { assertCommandRequirements, type CommandFileSystemRequirement } from "safe-bash-contracts/command-requirements";
 import { dirname, FsError, type CommandContext } from "safe-bash-contracts";
 import { getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";

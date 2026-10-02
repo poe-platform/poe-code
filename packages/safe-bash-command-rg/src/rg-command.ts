@@ -609,6 +609,7 @@ class PooledRgFastRunner {
 
 let pooledRgFastRunner: PooledRgFastRunner | undefined;
 export function clearRgFastRunnerPool(): void { pooledRgFastRunner = undefined; }
+(globalThis as { __safeBashClearRgPool?: () => void }).__safeBashClearRgPool = clearRgFastRunnerPool;
 
 function tryExecuteRgFastSync(
   context: CommandContext,

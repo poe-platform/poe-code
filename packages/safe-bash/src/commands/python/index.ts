@@ -1,3 +1,4 @@
+import { defaultPythonCommands } from "./default-runtime.js";
 import { PythonFileSystem, PythonStatTranslator, type FileStat } from '@poe-code/safe-fs/core';
 import type { CommandContext, CommandDefinition, VirtualShellPlugin } from '../../contracts/index.js';
 import { validateExitCode } from '../../contracts/command.js';
@@ -78,7 +79,8 @@ export interface PythonAsyncExecutor {
   terminate(): void | Promise<void>;
 }
 
-export function createPythonCommands(options: PythonCommandsOptions): readonly CommandDefinition[] {
+export function createPythonCommands(options?: PythonCommandsOptions): readonly CommandDefinition[] {
+  if (options === undefined) return defaultPythonCommands;
   if (!options || (typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')
     || options.createWorker !== undefined && typeof options.createWorker !== 'function'
     || options.createExecutor !== undefined && typeof options.createExecutor !== 'function') throw new PythonFailure('executor-unavailable');
@@ -418,7 +420,15 @@ export function createPythonCommands(options: PythonCommandsOptions): readonly C
   return ['python', 'python3'].map(name => ({ name, description: 'Python with an explicit interpreter executor and canonical filesystem', execute }));
 }
 
-export function pythonCommands(options: PythonCommandsOptions): VirtualShellPlugin {
+export function pythonCommands(options?: PythonCommandsOptions): VirtualShellPlugin {
+  if (options === undefined) {
+    return {
+      name: "python-commands",
+      setup(host) {
+        for (const command of defaultPythonCommands) host.commands.register(command, { replace: false });
+      }
+    };
+  }
   if (!options || (typeof options.createWorker === 'function') === (typeof options.createExecutor === 'function')) throw new PythonFailure('executor-unavailable');
   if (options?.environment && options.provisioning) throw new TypeError('A borrowed Python environment cannot be combined with provisioning options');
   const { provisioning, ...configuration } = options;

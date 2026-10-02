@@ -87,6 +87,34 @@ it("keeps portable public command adapters linked to their canonical owner", asy
   expect(Object.keys(result.metafile!.inputs)).toEqual(["packages/safe-bash/src/commands/csplit/index.ts"]);
 });
 
+it("bundles xan runtime and declarations behind its public export", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-xan";
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces[name] = { version: "0.0.1", dependencies: {}, devDependencies: {} };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
+    name, private: true, type: "module", version: "0.0.1",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, "export function createXanCommand() {}\n");
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export declare function createXanCommand(): void;\n");
+  volume.mkdirSync("/repo/packages/safe-bash/dist/commands/xan", { recursive: true });
+  for (const extension of ["js", "d.ts"]) {
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/xan/index.${extension}`, `export * from "${name}";\n`);
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  for (const extension of ["js", "d.ts"]) {
+    const adapter = volume.readFileSync(`/output/safe-bash/dist/safe-bash/commands/xan/index.${extension}`, "utf8");
+    expect(adapter).toContain('"../../../safe-bash-command-xan/index.js"');
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash-command-xan/index.${extension}`, "utf8")).toContain("createXanCommand");
+  }
+  const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8") as string);
+  expect(packed.dependencies?.[name]).toBeUndefined();
+  expect(packed.exports["./commands/xan"]).toBeDefined();
+});
+
 it("omits orphaned on-disk browser chunks and wasm from safe-bash when core.browser.js is bundled", async () => {
   const { volume, options } = optionalLeftovers();
   volume.mkdirSync("/repo/packages/safe-bash/dist/chunks", { recursive: true });

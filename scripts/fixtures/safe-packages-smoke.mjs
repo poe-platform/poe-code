@@ -1,3 +1,4 @@
+import "./safe-packages-xan.mjs";
 import "./safe-packages-wget.mjs";
 import "./safe-packages-rg.mjs";
 import "./safe-packages-node.mjs";

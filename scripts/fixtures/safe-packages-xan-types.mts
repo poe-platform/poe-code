@@ -1,0 +1,10 @@
+import { createXanCommand as rootFactory, type XanCommandsOptions as RootOptions } from "@poe-platform/safe-bash";
+import { createXanCommand, createXanCommands, xanCommands, type XanCommandsOptions, type XanLimits, defaultLimits } from "@poe-platform/safe-bash/commands/xan";
+import type { CommandDefinition, VirtualShellPlugin } from "@poe-platform/safe-bash/contracts";
+const limits: XanLimits = { ...defaultLimits, maxInputBytes: 4096 };
+const options: XanCommandsOptions & RootOptions = { limits, replace: true };
+const command: CommandDefinition = createXanCommand(options);
+const rootCommand: CommandDefinition = rootFactory(options);
+const commands: readonly CommandDefinition[] = createXanCommands(options);
+const plugin: VirtualShellPlugin = xanCommands(options);
+void [command, rootCommand, commands, plugin];

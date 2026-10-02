@@ -15,6 +15,7 @@ test("synchronous text commands preserve valid UTF-8 including its BOM", () => {
 test("synchronous text commands defer invalid or split UTF-8 to the byte executor", () => {
   const invalid = new Uint8Array([0xff, 0x0a]);
   assert.equal(evalSyncTee(invalid, []), undefined);
+  assert.equal(evalSyncCat(invalid, []), undefined);
   assert.equal(evalSyncCat(invalid, ["-n"]), undefined);
   assert.equal(evalSyncHeadTail("head", invalid, []), undefined);
   assert.equal(evalSyncHeadTail("tail", invalid, []), undefined);
@@ -22,4 +23,14 @@ test("synchronous text commands defer invalid or split UTF-8 to the byte executo
   const valid = new TextEncoder().encode("雪");
   assert.equal(evalSyncHeadTail("head", valid, ["-c", "1"]), undefined);
   assert.equal(evalSyncHeadTail("tail", valid, ["-c", "1"]), undefined);
+});
+
+test("synchronous cat decodes concatenated files without replacing malformed bytes", () => {
+  const files = new Map([
+    ["first", new Uint8Array([0xe9])],
+    ["second", new Uint8Array([0x9b, 0xaa])],
+    ["invalid", new Uint8Array([0xff])],
+  ]);
+  assert.equal(evalSyncCat(undefined, ["first", "second"], path => files.get(path)), "雪");
+  assert.equal(evalSyncCat(undefined, ["second", "invalid"], path => files.get(path)), undefined);
 });

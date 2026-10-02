@@ -1503,14 +1503,19 @@ export function evalSyncCat(
     for (const c of chunks) {
       if (c.includes(0)) return undefined;
     }
-    if (chunks.length === 1) return decoder.decode(chunks[0]!);
-    const merged = new Uint8Array(totalIn);
-    let off = 0;
-    for (const c of chunks) {
-      merged.set(c, off);
-      off += c.byteLength;
+    const merged = chunks.length === 1 ? chunks[0]! : new Uint8Array(totalIn);
+    if (chunks.length !== 1) {
+      let off = 0;
+      for (const c of chunks) {
+        merged.set(c, off);
+        off += c.byteLength;
+      }
     }
-    return decoder.decode(merged);
+    try {
+      return fatalSyncDecoder.decode(merged);
+    } catch {
+      return undefined;
+    }
   }
   let lineStart = true;
   let blankCount = 0;

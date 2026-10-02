@@ -496,3 +496,5 @@ mod composer;
 pub use composer::*;
 mod dashboard_buffer;
 pub use dashboard_buffer::*;
+mod dashboard_terminal;
+pub use dashboard_terminal::*;

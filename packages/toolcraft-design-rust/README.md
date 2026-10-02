@@ -495,3 +495,10 @@ or hex colors. Use `put` or `putInRect` for Unicode text, tabs and ANSI styles;
 that still fit. `diff(previous, next)` returns changed coordinates and cells;
 `cellToAnsi(cell)` renders a styled cell. This additive compatibility surface
 is not yet suitable for a performance-driven swap.
+
+Use `createTerminalDriver({stdin, stdout})` from `dashboard/terminal` for legacy
+dashboard input and output. It controls raw mode, alternate screen, cursor and
+line wrap; batches cell changes into one write; and restores enabled modes on
+`destroy()`. Resize and keypress subscriptions each return their own cleanup
+function. Keypress input preserves split Unicode and bracketed paste.
+`parseKeypress(buffer)` exposes the original one-shot readline interpretation.

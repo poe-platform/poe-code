@@ -411,6 +411,10 @@
     "./dashboard/buffer": {
       "types": "./dist/dashboard-buffer.d.ts",
       "import": "./dist/dashboard-buffer.js"
+    },
+    "./dashboard/terminal": {
+      "types": "./dist/dashboard-terminal.d.ts",
+      "import": "./dist/dashboard-terminal.js"
     }
   },
   "scripts": {

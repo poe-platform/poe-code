@@ -1526,3 +1526,30 @@ Five warmed alternating 100-call rounds measured native/reference medians of
 path; a batched native data path is required before any performance-driven swap.
 No performance gate passed. Legacy terminal, full dashboard rendering/lifecycle,
 explorer and the broader Toolcraft replacement gates remain open.
+
+### Legacy dashboard terminal checkpoint
+
+`dashboard/terminal` now exports `createTerminalDriver`, `parseKeypress` and
+standalone driver/keypress types. Rust owns lifecycle guards, state transitions,
+sparse cursor movement, size normalization, input-event mapping and readline
+keypress classification. Node retains streams, listener collections, timers,
+readline and callback execution. Mode state changes occur after effects, retaining
+the original behavior when an effect throws or reenters. Streaming input uses the
+ported native input parser; cell rendering uses the native legacy buffer.
+
+Three missing-export tests failed before implementation. Maintained checks pass
+286 native host tests, 1,294 selected design tests (including all 12 original
+legacy terminal tests), 13 prompt-wrapper tests, 30 shared dashboard tests and
+all 14 composer tests. Scoped Rust/binding/JS lint, bidirectional declarations,
+packed runtime with external imports rejected and standalone declarations with
+`types: []` pass. The declaration explicitly references the existing Node types,
+matching its Node stream/Buffer API. An inspected screenshot checks captured
+adjacent output, colors, underline and inverse styling; captured output bytes
+also match the original driver. No dependencies or default integration changes.
+
+Five warmed alternating 100-call rounds measured native/reference medians of
+466.18/13.575 µs for a 40-cell flush (34.34× slower) and 16.129/5.677 µs for a
+modified-arrow `parseKeypress` call (2.84× slower). No performance gate passed.
+Full dashboard renderers/lifecycle, explorer and broader Toolcraft replacement
+qualification remain open, including batching, platform coverage and exhaustive
+resource/reentrancy qualification.

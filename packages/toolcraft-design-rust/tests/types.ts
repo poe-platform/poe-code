@@ -725,3 +725,10 @@ const bufferNominalOriginal: originalDashboardBuffer.ScreenBuffer = new dashboar
 // @ts-expect-error Separate private declarations remain a nominal replacement gate.
 const bufferNominalNative: dashboardBuffer.ScreenBuffer = null as unknown as originalDashboardBuffer.ScreenBuffer;
 void [bufferOriginal,bufferNative,bufferKeys,bufferAnsiOriginal,bufferAnsiNative,bufferChangesOriginal,bufferChangesNative,bufferNominalOriginal,bufferNominalNative];
+
+import * as dashboardTerminal from "toolcraft-design-rust/dashboard/terminal";
+import type * as originalDashboardTerminal from "toolcraft-design/dashboard/terminal";
+const dashboardTerminalOriginal: typeof originalDashboardTerminal = dashboardTerminal;
+const dashboardTerminalNative: typeof dashboardTerminal = null as unknown as typeof originalDashboardTerminal;
+const dashboardTerminalKeys: SameKeys<typeof dashboardTerminal, typeof originalDashboardTerminal> = true;
+void [dashboardTerminalOriginal,dashboardTerminalNative,dashboardTerminalKeys];

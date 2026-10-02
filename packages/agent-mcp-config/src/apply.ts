@@ -1,5 +1,4 @@
-import path from "node:path";
-import { isDeepStrictEqual } from "node:util";
+import { dirname } from "@poe-code/safe-fs/contracts";
 import {
   runMutations,
   configMutation,
@@ -9,10 +8,6 @@ import {
 import type { McpServerEntry, ApplyOptions } from "./types.js";
 import { getAgentConfig, resolveConfigPath, isSupported } from "./configs.js";
 import { getShapeTransformer } from "./shapes.js";
-
-function getConfigDirectory(configPath: string): string {
-  return path.dirname(configPath);
-}
 
 export class UnsupportedAgentError extends Error {
   constructor(agentId: string) {
@@ -102,7 +97,7 @@ export async function configure(
     return;
   }
 
-  const configDir = getConfigDirectory(configPath);
+  const configDir = dirname(configPath);
 
   await runMutations(
     [
@@ -123,14 +118,14 @@ export async function configure(
           const shapedServer = shaped as unknown as ConfigObject;
           const enabledShapedServer = enabledShaped as unknown as ConfigObject | undefined;
 
-          if (existingServer !== undefined && isDeepStrictEqual(existingServer, shapedServer)) {
+          if (existingServer !== undefined && sameConfiguration(existingServer, shapedServer)) {
             return { changed: false, content: document };
           }
 
           if (
             existingServer !== undefined &&
             (enabledShapedServer === undefined ||
-              !isDeepStrictEqual(existingServer, enabledShapedServer))
+              !sameConfiguration(existingServer, enabledShapedServer))
           ) {
             throw new Error(
               `MCP server "${server.name}" already exists with different configuration in ${configPath}.`
@@ -185,7 +180,7 @@ export async function unconfigure(
           }
           if (
             expectedServer !== undefined &&
-            !isDeepStrictEqual(servers[serverName], expectedServer)
+            !sameConfiguration(servers[serverName], expectedServer)
           ) {
             return { changed: false, content: document };
           }
@@ -211,4 +206,22 @@ export async function unconfigure(
       observers: options.observers
     }
   );
+}
+
+function sameConfiguration(left: unknown, right: unknown): boolean {
+  if (Object.is(left, right)) return true;
+  if (left === null || right === null || typeof left !== "object" || typeof right !== "object") {
+    return false;
+  }
+  if (Array.isArray(left) !== Array.isArray(right)) return false;
+  if (left instanceof Date || right instanceof Date) {
+    return left instanceof Date && right instanceof Date && Object.is(left.getTime(), right.getTime());
+  }
+  if (Array.isArray(left) && Array.isArray(right) && left.length !== right.length) return false;
+  const keys = Object.keys(left);
+  if (keys.length !== Object.keys(right).length) return false;
+  return keys.every(key => Object.hasOwn(right, key) && sameConfiguration(
+    (left as Record<string, unknown>)[key],
+    (right as Record<string, unknown>)[key]
+  ));
 }

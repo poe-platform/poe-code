@@ -10,6 +10,7 @@ export const invokeFeedback=createComponentPolicy(native.designFeedbackPolicy,{
   invalidCapacity(){throw new RangeError("positive capacity required");},
   plain:plainTerminalText,fit:fitToWidth,
   noticeMarker:(notice,info,success,warning,error)=>({info,success,warning,error})[notice.level],
+  markerText:marker=>`${marker}`,
   noticeText:(marker,text)=>`${marker} ${text}`,progressText:(marker,label,progress)=>`${marker} ${label} ${progress}`,
   finiteTotal:item=>!!Number.isFinite(item.total),finiteCompleted:item=>!!Number.isFinite(item.completed),finite:value=>!!Number.isFinite(value),
   percentage:item=>`${Math.round(Math.max(0,Math.min(1,item.completed/item.total))*100)}%`,

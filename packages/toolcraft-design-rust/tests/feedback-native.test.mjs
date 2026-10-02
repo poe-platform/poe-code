@@ -127,3 +127,13 @@ test("metric finite checks and notice setters retain reentrant evaluation order"
   }
   assert.deepEqual(noticeRun(native.createNotices),noticeRun(createNotices));
 });
+
+test("notice marker coercion precedes notice text getters",()=>{
+  function run(render) {
+    const trace=[],key="feedbackMarkerProbe";
+    Object.defineProperty(Object.prototype,key,{configurable:true,value:{toString(){trace.push("marker");return "M";}}});
+    try{return [render({level:key,get text(){trace.push("text");return "hello";}},20),trace];}
+    finally{delete Object.prototype[key];}
+  }
+  assert.deepEqual(run(native.renderNotice),run(renderNotice));
+});

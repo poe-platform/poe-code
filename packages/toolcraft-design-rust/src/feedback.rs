@@ -28,6 +28,7 @@ pub fn run<H: Host>(
             let warning = host.literal("▲")?;
             let error = host.literal("■")?;
             let marker = host.call("noticeMarker", vec![*notice, info, success, warning, error])?;
+            let marker = host.call("markerText", vec![marker])?;
             let text = host.get(*notice, "text")?;
             let text = host.call("plain", vec![text])?;
             let value = host.call("noticeText", vec![marker, text])?;

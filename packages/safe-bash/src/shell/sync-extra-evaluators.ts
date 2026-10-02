@@ -23,7 +23,7 @@ import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import type { AndOr, HereDocument, Pipeline, Redirect, Script, Word } from "./parser.js";
 import { compoundEntryWords, parseArithmeticExpansion, parseArraySubscript, parseCompoundArrayValue, parseShellUnit } from "./parser.js";
 import { ShellLimitError } from "./types.js";
-import type { ShellCommandContext, ShellInvokeOptions } from "./types.js";
+import type { ShellCommandContext, ShellInvokeOptions, ShellResult } from "./types.js";
 import { ShellInput } from "./input.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { isCleanAbsolutePath, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryWriteMemoryFileInDirSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/runtime-core";

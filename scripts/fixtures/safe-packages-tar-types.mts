@@ -1,0 +1,10 @@
+import { Shell, CommandRegistry, createMemoryFileSystem, createTarCommand as rootFactory } from '@poe-platform/safe-bash';
+import { createTarCommand, createTarCommands, tarCommands, type TarCommandsOptions, type TarLimits } from '@poe-platform/safe-bash/commands/tar';
+import type { CommandDefinition } from '@poe-platform/safe-bash/contracts';
+const limits: Partial<TarLimits> = { maxArchiveBytes: 4096, maxMembers: 4 };
+const options: TarCommandsOptions = { limits };
+const command: CommandDefinition = createTarCommand(options);
+const root: CommandDefinition = rootFactory(options);
+const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createTarCommands(options)) });
+new Shell({ fs: createMemoryFileSystem() }).use(tarCommands(options));
+void [command, root, shell];

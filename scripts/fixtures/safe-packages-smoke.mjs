@@ -1,4 +1,6 @@
 import "./safe-packages-grep.mjs";
+import { verification as tarVerification } from "./safe-packages-tar.mjs";
+await tarVerification;
 import "./safe-packages-awk.mjs";
 import "./safe-packages-sed-legacy.mjs";
 import "./safe-packages-jq.mjs";

@@ -1,3 +1,4 @@
+import { verification as tarVerification } from "./safe-packages-tar.mjs";
 import { verification as sedVerification } from "./safe-packages-sed.mjs";
 import { verification as privateCommandVerification } from "./safe-packages-private-command.mjs";
 import { verification as xzVerification } from "./safe-packages-xz.mjs";
@@ -8,6 +9,7 @@ import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
 import { createWkhtmltopdfCommand, wkhtmltopdfCommands } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
 
 async function verifyPublicationBoundary() {
+  await tarVerification;
   await privateCommandVerification;
   await sedVerification;
   await xzVerification;

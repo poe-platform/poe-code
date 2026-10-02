@@ -4,7 +4,7 @@ import { test } from 'vitest';
 import ts from 'typescript';
 import { adapterStatements } from './fixtures/command-adapter-statements.js';
 
-const commands = ['apply-patch', 'awk', 'cmp', 'column', 'csplit', 'docx', 'du', 'expr', 'factor', 'file', 'getopt', 'hexdump', 'html-to-markdown', 'iconv', 'install', 'pptx', 'pr', 'split', 'timeout', 'tree', 'truncate', 'tsort', 'which', 'xan'];
+const commands = ['apply-patch', 'awk', 'cmp', 'column', 'csplit', 'docx', 'du', 'expr', 'factor', 'file', 'getopt', 'hexdump', 'html-to-markdown', 'iconv', 'install', 'pptx', 'pr', 'split', 'tar', 'timeout', 'tree', 'truncate', 'tsort', 'which', 'xan'];
 const json = (path: string) => JSON.parse(readFileSync(new URL('../' + path, import.meta.url), 'utf8'));
 const root = json('package.json');
 const shell = json('packages/safe-bash/package.json');

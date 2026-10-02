@@ -1,3 +1,5 @@
+import { verification as tarVerification } from "./safe-packages-tar.mjs";
+await tarVerification;
 import { verification as selectedSpreadsheetVerification } from "./safe-packages-ssconvert-scoped.mjs";
 await selectedSpreadsheetVerification;
 import "./safe-packages-command-errors.mjs";

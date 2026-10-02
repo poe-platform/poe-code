@@ -1,4 +1,5 @@
 import "./safe-packages-grep-types.mjs";
+import "./safe-packages-tar-types.mjs";
 import "./safe-packages-awk-types.mjs";
 import "./safe-packages-sed-types.mjs";
 import "./safe-packages-jq-types.mjs";

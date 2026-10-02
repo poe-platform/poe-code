@@ -1,6 +1,5 @@
 import type { FormatProvider } from "../types.js";
 
-import { writeModelProgram } from '../model-program.js';
 
 export default {
   "id": "Gnumeric_lpsolve",
@@ -8,7 +7,7 @@ export default {
     {
       "id": "lpsolve",
       "direction": "write",
-      write: (book, _options, context) => writeModelProgram(book, context, 'lpsolve'),
+      write: async (book, _options, context) => (await import("../model-program.js")).writeModelProgram(book, context, "lpsolve"),
       "description": "LPSolve Linear Program Solver",
       "extensions": [
         "lp"

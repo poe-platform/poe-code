@@ -300,6 +300,9 @@ export function* encodeRgbaToPngSteps(
   if (typeof (filtered.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
     try { (filtered.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
   }
+  if (typeof (globalThis as { gc?: () => void }).gc === "function") {
+    try { (globalThis as { gc?: () => void }).gc!(); } catch {}
+  }
 
   const ihdr = new Uint8Array(13);
   const ihdrView = new DataView(ihdr.buffer);

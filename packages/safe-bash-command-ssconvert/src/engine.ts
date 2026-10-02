@@ -3,7 +3,6 @@ import type { Engine, EngineOptions } from "./contracts.js";
 import { sourceProviders } from "./codecs/providers.generated.js";
 import { snapshotFormats } from "./codecs/format-provider.js";
 import { createRegistry } from "./codecs/registry.js";
-import { serializeClipboard } from "./conversion/clipboard.js";
 import { createImageRendering } from "./rendering/images/index.js";
 
 export { defaultSsconvertLimits } from "@poe-code/spreadsheet-engine";
@@ -22,7 +21,8 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
     },
     rendering: supplied.rendering ?? createImageRendering(),
     clipboard: supplied.clipboard ?? {
-      serialize(book, target, range, context) {
+      async serialize(book, target, range, context) {
+        const { serializeClipboard } = await import("./conversion/clipboard.js");
         return serializeClipboard(book, target, range, context, id => registry.select("write", id));
       }
     }

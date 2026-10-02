@@ -48,15 +48,23 @@ interface ParsedSfnt extends EmbeddedFont {
 
 const cachedFonts = new Map<FontVariant, ParsedSfnt>();
 const outlineCache = new Map<string, GlyphOutline>();
-let evictionScheduled = false;
+let evictionTimer: ReturnType<typeof setTimeout> | undefined;
+export function clearMmdcFontCaches(): void {
+  if (evictionTimer !== undefined) {
+    clearTimeout(evictionTimer);
+    evictionTimer = undefined;
+  }
+  cachedFonts.clear();
+  outlineCache.clear();
+}
 function scheduleMmdcFontCacheEviction(): void {
-  if (evictionScheduled) return;
-  evictionScheduled = true;
-  queueMicrotask(() => {
-    evictionScheduled = false;
+  if (evictionTimer !== undefined) return;
+  evictionTimer = setTimeout(() => {
+    evictionTimer = undefined;
     cachedFonts.clear();
     outlineCache.clear();
-  });
+  }, 15);
+  (evictionTimer as unknown as { unref?: () => void }).unref?.();
 }
 
 function decodeBase64(encoded: string): Uint8Array {

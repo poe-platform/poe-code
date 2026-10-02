@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { probeQpro, readQpro } from "../qpro.js";
 
 export default {
   "id": "Gnumeric_QPro",
@@ -7,8 +6,8 @@ export default {
     {
       "id": "qpro",
       "direction": "read",
-      probeContent: probeQpro,
-      read: readQpro,
+      probeContent: async (bytes, context) => (await import("../qpro.js")).probeQpro(bytes, context),
+      read: async (bytes, context) => (await import("../qpro.js")).readQpro(bytes, context),
       "description": "Quattro Pro (*.wb1, *.wb2, *.wb3)",
       "extensions": [
         "wb1",

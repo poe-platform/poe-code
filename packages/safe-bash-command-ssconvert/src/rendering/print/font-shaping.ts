@@ -30,8 +30,14 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
           } catch { /* Cleanup is best effort if a WASM export fails. */ }
         }
       }
+      const mem = exports?.memory;
+      if (wasm && mem instanceof wasm.Memory) {
+        try { (mem.buffer as ArrayBuffer & { transfer?: (n?: number) => ArrayBuffer }).transfer?.(0); } catch {}
+      }
       disposed = true;
       if (--activeShapers <= 0) { activeShapers = 0; compiled = undefined; }
+      const gc = (globalThis as { gc?: () => void }).gc;
+      if (typeof gc === "function") { try { gc(); } catch {} }
     }
     exports = undefined;
     fonts.clear();

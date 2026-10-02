@@ -1,6 +1,22 @@
 export { createEngine, defaultSsconvertLimits } from "./engine.js";
 export type { RuntimeLimits as SsconvertLimits } from "./contracts.js";
-export { readXlsx, probeXlsx, createXlsxWriter } from "./codecs/xlsx.js";
+export const readXlsx: typeof import("./codecs/xlsx.js")["readXlsx"] = async (...args) => (await import("@poe-code/spreadsheet-format-xlsx/xlsx")).readXlsx(...args);
+export const probeXlsx: typeof import("./codecs/xlsx.js")["probeXlsx"] = async (...args) => (await import("@poe-code/spreadsheet-format-xlsx/xlsx")).probeXlsx(...args);
+import { snapshotWorkbook as snapshotXlsxWorkbook } from "./workbook.js";
+export const createXlsxWriter: typeof import("./codecs/xlsx.js")["createXlsxWriter"] = (edition = "2006") => async (book, options, context) => {
+  const suppliedSheets = Object.getOwnPropertyDescriptor(book, "sheets")?.value as unknown;
+  const canSnapshot = Array.isArray(suppliedSheets) && suppliedSheets.length <= context.limits.sheets && suppliedSheets.every((s) => {
+    if (s === null || typeof s !== "object") return false;
+    const cells = Object.getOwnPropertyDescriptor(s, "cells")?.value as unknown;
+    return Array.isArray(cells) && cells.every((c) => {
+      if (c === null || typeof c !== "object") return false;
+      const row = Object.getOwnPropertyDescriptor(c, "row"), column = Object.getOwnPropertyDescriptor(c, "column");
+      return !row || !column || !Object.hasOwn(row, "value") || !Object.hasOwn(column, "value") || ([row.value, column.value].every(Number.isSafeInteger) && row.value >= 0 && column.value >= 0 && row.value < 1048576 && column.value < 16384);
+    });
+  });
+  const ownedBook = canSnapshot ? snapshotXlsxWorkbook(book, context.limits) : book;
+  return (await import("@poe-code/spreadsheet-format-xlsx/xlsx")).createXlsxWriter(edition)(ownedBook, options, context);
+};
 export { referenceText } from "./cli/reference.js";
 export { exportOptionPairs } from "./cli/export-options.js";
 export { createResourceIO } from "./io/index.js";

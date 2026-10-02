@@ -1,9 +1,14 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { clearMmdcFontCaches } from "./font.js";
 
 export function drainWork<T>(work: Generator<void, T, void>): T {
-  let step = work.next();
-  while (!step.done) step = work.next();
-  return step.value;
+  try {
+    let step = work.next();
+    while (!step.done) step = work.next();
+    return step.value;
+  } finally {
+    clearMmdcFontCaches();
+  }
 }
 
 export async function runWork<T>(work: Generator<void, T, void>, signal?: AbortSignal): Promise<T> {
@@ -16,5 +21,8 @@ export async function runWork<T>(work: Generator<void, T, void>, signal?: AbortS
     }
     signal?.throwIfAborted();
     return step.value;
-  } finally { work.return(undefined as T); }
+  } finally {
+    work.return(undefined as T);
+    clearMmdcFontCaches();
+  }
 }

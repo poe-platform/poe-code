@@ -49,27 +49,18 @@ function createDefaultGitExports(): GitExports {
   return new wasm.Instance(module).exports;
 }
 
-function scheduleGitExportsIdleEviction(microtask = false): void {
+function scheduleGitExportsIdleEviction(_microtask = false): void {
   if (defaultGitExportsIdleTimer !== undefined) {
     clearTimeout(defaultGitExportsIdleTimer);
     defaultGitExportsIdleTimer = undefined;
   }
   const gen = ++defaultGitExportsMicrotaskGeneration;
-  if (microtask) {
-    queueMicrotask(() => {
-      if (defaultGitExportsMicrotaskGeneration === gen && !defaultGitExportsBusy && cachedDefaultGitExports) {
-        cachedDefaultGitExports = undefined;
-      }
-    });
-    return;
-  }
-  defaultGitExportsIdleTimer = setTimeout(() => {
-    defaultGitExportsIdleTimer = undefined;
-    if (defaultGitExportsMicrotaskGeneration === gen && !defaultGitExportsBusy && cachedDefaultGitExports) {
+  queueMicrotask(() => {
+    if (defaultGitExportsMicrotaskGeneration === gen && !defaultGitExportsBusy) {
       cachedDefaultGitExports = undefined;
+      readOnlyGitResultCache.clear();
     }
-  }, 10);
-  (defaultGitExportsIdleTimer as unknown as { unref?: () => void }).unref?.();
+  });
 }
 
 function acquireDefaultGitExports(syncMode = false): { exports: GitExports; release(failed?: boolean): void } {
@@ -609,6 +600,15 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
       context.signal.throwIfAborted();
       await writeBytes(context.stderr,encoder.encode(`fatal: ${error instanceof Error ? error.message : 'Git execution failed'}\n`),context.signal);
       return {exitCode:128};
+    } finally {
+      if (!defaultGitExportsBusy) {
+        cachedDefaultGitExports = undefined;
+      }
+      readOnlyGitResultCache.clear();
+      const gc = (globalThis as { gc?: () => void }).gc;
+      if (typeof gc === "function") {
+        try { gc(); gc(); } catch {}
+      }
     }
   }};
   gitCommandMeta.set(def.execute, { limits, hasHttp: Boolean(options.http), wasmModule: options.wasmModule });

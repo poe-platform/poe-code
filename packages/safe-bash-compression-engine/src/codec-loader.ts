@@ -85,6 +85,7 @@ export async function createCodec(
   signal.throwIfAborted();
   // Factories contain immutable generated code; module memory belongs to one
   // invocation even after bridge_destroy has released its live allocations.
+  { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { try { gc(); } catch {} } }
   let module: ReturnType<RawCodecFactory> | undefined = factory(wasi);
   const close = (): void => {
     const closing = module;
@@ -92,12 +93,18 @@ export async function createCodec(
     if (closing) {
       closing.bridge_destroy();
       const buf = closing.memory.buffer as ArrayBuffer & { transfer?: (newByteLength?: number) => ArrayBuffer };
-      scheduleTurn(() => {
-        try {
-          buf.transfer?.(0);
-        } catch {
-          // ignore if buffer is already detached
-        }
+      queueMicrotask(() => {
+        queueMicrotask(() => {
+          try {
+            buf.transfer?.(0);
+          } catch {
+            // ignore if buffer is already detached
+          }
+          const gc = (globalThis as { gc?: () => void }).gc;
+          if (typeof gc === "function") {
+            try { gc(); gc(); } catch {}
+          }
+        });
       });
     }
   };

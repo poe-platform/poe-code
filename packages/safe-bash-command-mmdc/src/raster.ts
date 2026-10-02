@@ -786,15 +786,17 @@ function* drawTextLine4x4Steps(
       );
 
       // 8x8 non-zero winding subpixel scanline rasterizer per pixel row
+      const rowHits = new Uint8Array(Math.max(0, maxX - minX + 1));
+      const crossings: { x: number; dir: number }[] = [];
       for (let py = minY; py <= maxY; py++) {
         if (++work % 4096 === 0) yield;
 
-        const rowHits = new Uint8Array(maxX - minX + 1);
+        rowHits.fill(0);
         for (let sy = 0; sy < 8; sy++) {
           if (++work % 4096 === 0) yield;
 
           const sampleY = py + TEXT_SUB_OFFSETS[sy]!;
-          const crossings: { x: number; dir: number }[] = [];
+          crossings.length = 0;
           for (const poly of polygons) {
             if (++work % 4096 === 0) yield;
 

@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { readDif, writeDif } from "../dif.js";
 
 export default {
   "id": "Gnumeric_dif",
@@ -7,7 +6,7 @@ export default {
     {
       "id": "dif",
       "direction": "read",
-      read: readDif,
+      read: async (bytes, context) => (await import("../dif.js")).readDif(bytes, context),
       "description": "Data Interchange Format (*.dif)",
       "extensions": [
         "dif"
@@ -17,7 +16,7 @@ export default {
     {
       "id": "dif",
       "direction": "write",
-      write: writeDif,
+      write: async (book, options, context) => (await import("../dif.js")).writeDif(book, options, context),
       "description": "Data Interchange Format (*.dif)",
       "extensions": [
         "dif"

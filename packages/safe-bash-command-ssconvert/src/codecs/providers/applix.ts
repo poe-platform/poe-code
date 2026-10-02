@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { readApplix, probeApplix } from "../applix.js";
 
 export default {
   "id": "Gnumeric_applix",
@@ -7,8 +6,8 @@ export default {
     {
       "id": "applix",
       "direction": "read",
-      read: readApplix,
-      probeContent: probeApplix,
+      read: async (bytes, context) => (await import("../applix.js")).readApplix(bytes, context),
+      probeContent: async (bytes, context) => (await import("../applix.js")).probeApplix(bytes, context),
       "description": "Applix (*.as)",
       "extensions": [
         "as"

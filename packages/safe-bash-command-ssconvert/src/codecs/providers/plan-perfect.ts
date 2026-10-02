@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { probePln, readPln } from "../pln.js";
 
 export default {
   "id": "Gnumeric_plan_perfect",
@@ -7,8 +6,8 @@ export default {
     {
       "id": "pln",
       "direction": "read",
-      probeContent: probePln,
-      read: readPln,
+      probeContent: async (bytes, context) => (await import("../pln.js")).probePln(bytes, context),
+      read: async (bytes, context) => (await import("../pln.js")).readPln(bytes, context),
       "description": "Plan Perfect Format (PLN) import",
       "extensions": [
         "pln"

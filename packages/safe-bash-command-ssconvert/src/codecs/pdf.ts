@@ -192,9 +192,10 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       try {
         const parsed = fontkit.create(bytes);
         if (!Number.isFinite(parsed.unitsPerEm) || parsed.unitsPerEm <= 0 || !Number.isFinite(parsed.ascent) || parsed.ascent <= 0 || !Number.isFinite(parsed.descent) || parsed.descent > 0) unsupported("supplied font metrics");
+        await shaper.addFont(bytes, parsed);
         pdf.registerFontkit({ create: () => parsed });
         const embeddedFont = await pdf.embedFont(bytes, { subset: true });
-        selected = {font: embeddedFont, metrics: parsed, bytes, shaped: false, supported: new Set(embeddedFont.getCharacterSet()),
+        selected = {font: embeddedFont, metrics: parsed, bytes, shaped: true, supported: new Set(embeddedFont.getCharacterSet()),
           ascentRatio: parsed.ascent / parsed.unitsPerEm, descentRatio: -parsed.descent / parsed.unitsPerEm};
         fonts.set(bold, selected);
       }

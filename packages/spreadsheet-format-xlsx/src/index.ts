@@ -1,5 +1,4 @@
 import type { FormatProvider } from "@poe-code/spreadsheet-engine/codecs/types";
-import { probeXlsx, readXlsx, createXlsxWriter } from "./xlsx.js";
 
 export const xlsxFormat: FormatProvider = {
   id: "Gnumeric_Excel",
@@ -8,8 +7,8 @@ export const xlsxFormat: FormatProvider = {
 {
       "id": "xlsx",
       "direction": "read",
-      probeContent: probeXlsx,
-      read: readXlsx,
+      probeContent: async (bytes, context) => (await import("./xlsx.js")).probeXlsx(bytes, context),
+      read: async (bytes, context) => (await import("./xlsx.js")).readXlsx(bytes, context),
       "description": "ECMA 376 / Office Open XML [MS Excel™ 2007/2010] (*.xlsx)",
       "extensions": [
         "xlsx",
@@ -28,7 +27,7 @@ export const xlsxFormat: FormatProvider = {
 {
       "id": "xlsx",
       "direction": "write",
-      write: createXlsxWriter("2006"),
+      write: async (book, options, context) => (await import("./xlsx.js")).createXlsxWriter("2006")(book, options, context),
       "description": "ECMA 376 1st edition (2006); [MS Excel™ 2007]",
       "extensions": [
         "xlsx"
@@ -41,7 +40,7 @@ export const xlsxFormat: FormatProvider = {
 {
       "id": "xlsx2",
       "direction": "write",
-      write: createXlsxWriter("2008"),
+      write: async (book, options, context) => (await import("./xlsx.js")).createXlsxWriter("2008")(book, options, context),
       "description": "ISO/IEC 29500:2008 & ECMA 376 2nd edition (2008); [MS Excel™ 2010]",
       "extensions": [
         "xlsx"

@@ -1,5 +1,4 @@
 import type { FormatProvider } from "@poe-code/spreadsheet-engine/codecs/types";
-import { readXbase } from "./xbase.js";
 
 export const dbfFormat: FormatProvider = {
   "id": "Gnumeric_xbase",
@@ -7,7 +6,7 @@ export const dbfFormat: FormatProvider = {
     {
       "id": "xbase",
       "direction": "read",
-      read: readXbase,
+      read: async (bytes, context) => (await import("./xbase.js")).readXbase(bytes, context),
       "description": "Xbase (*.dbf) file format",
       "extensions": [
         "dbf"

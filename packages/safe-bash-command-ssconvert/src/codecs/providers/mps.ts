@@ -1,6 +1,5 @@
 import type { FormatProvider } from "../types.js";
 
-import { readMps } from '../mps.js';
 
 export default {
   "id": "Gnumeric_mps",
@@ -8,7 +7,7 @@ export default {
     {
       "id": "mps",
       "direction": "read",
-      read: readMps,
+      read: async (bytes, context) => (await import("../mps.js")).readMps(bytes, context),
       "description": "Linear and integer program (*.mps) file format",
       "extensions": [
         "mps"

@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { probePsion, readPsion } from "../psion.js";
 
 export default {
   "id": "Gnumeric_psiconv",
@@ -7,8 +6,8 @@ export default {
     {
       "id": "psiconv",
       "direction": "read",
-      probeContent: probePsion,
-      read: readPsion,
+      probeContent: async (bytes, context) => (await import("../psion.js")).probePsion(bytes, context),
+      read: async (bytes, context) => (await import("../psion.js")).readPsion(bytes, context),
       "description": "Psion (*.psisheet)",
       "extensions": [
         "psisheet"

@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { readOleo } from "../oleo.js";
 
 export default {
   "id": "Gnumeric_oleo",
@@ -7,7 +6,7 @@ export default {
     {
       "id": "oleo",
       "direction": "read",
-      read: readOleo,
+      read: async (bytes, context) => (await import("../oleo.js")).readOleo(bytes, context),
       "description": "GNU Oleo (*.oleo)",
       "extensions": [
         "oleo"

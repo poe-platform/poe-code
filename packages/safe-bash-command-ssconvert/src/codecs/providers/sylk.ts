@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { probeSylk, readSylk, writeSylk } from "../sylk.js";
 
 export default {
   "id": "Gnumeric_sylk",
@@ -7,8 +6,8 @@ export default {
     {
       "id": "sylk",
       "direction": "read",
-      probeContent: probeSylk,
-      read: readSylk,
+      probeContent: async (bytes, context) => (await import("../sylk.js")).probeSylk(bytes, context),
+      read: async (bytes, context) => (await import("../sylk.js")).readSylk(bytes, context),
       "description": "MultiPlan (SYLK)",
       "extensions": [
         "slk",
@@ -23,7 +22,7 @@ export default {
     {
       "id": "sylk",
       "direction": "write",
-      write: writeSylk,
+      write: async (book, options, context) => (await import("../sylk.js")).writeSylk(book, options, context),
       "description": "MultiPlan (SYLK)",
       "extensions": [
         "slk"

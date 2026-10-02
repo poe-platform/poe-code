@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { readParadox, writeParadox } from "../paradox.js";
 
 export default {
   "id": "Gnumeric_paradox",
@@ -7,7 +6,7 @@ export default {
     {
       "id": "paradox",
       "direction": "read",
-      read: readParadox,
+      read: async (bytes, context) => (await import("../paradox.js")).readParadox(bytes, context),
       "description": "Paradox database or primary index file (*.db, *.px)",
       "extensions": [
         "db",
@@ -18,7 +17,7 @@ export default {
     {
       "id": "paradox",
       "direction": "write",
-      write: writeParadox,
+      write: async (book, options, context) => (await import("../paradox.js")).writeParadox(book, options, context),
       exportOptionRules: { encryption: { kind: "enum", values: ["paradox"] } },
       "description": "Paradox database (*.db)",
       "extensions": [

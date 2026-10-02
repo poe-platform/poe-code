@@ -1,5 +1,4 @@
 import type { FormatProvider } from "../types.js";
-import { readSc, probeSc } from "../sc.js";
 
 export default {
   "id": "Gnumeric_sc",
@@ -7,8 +6,8 @@ export default {
     {
       "id": "sc",
       "direction": "read",
-      read: readSc,
-      probeContent: probeSc,
+      read: async (bytes, context) => (await import("../sc.js")).readSc(bytes, context),
+      probeContent: async (bytes, context) => (await import("../sc.js")).probeSc(bytes, context),
       "description": "SC/xspread",
       "extensions": [],
       "mimeTypes": [

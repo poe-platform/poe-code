@@ -1,5 +1,5 @@
 import { PDFDocument, StandardFonts, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFFont, type PDFPage } from "pdf-lib";
-import fontkit, {type Font} from "@pdf-lib/fontkit";
+import type {Font} from "@pdf-lib/fontkit";
 import { setTextRenderingMode, TextRenderingMode, setLineWidth, setStrokingRgbColor } from "pdf-lib";
 import {admitTrueTypeFont} from "./font-admission.js";
 import {decodePng} from "./png.js";
@@ -52,7 +52,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       admitTrueTypeFont(font.bytes, unsupported, amount => charge("layoutWork", amount));
     }
   }
-  const pdf = await PDFDocument.create({updateMetadata: false}); pdf.registerFontkit(fontkit);
+  const pdf = await PDFDocument.create({updateMetadata: false});
   const textString = (text: string) => pdfTextString(text, limits.outputBytes, amount => charge("layoutWork", amount));
   charge("objects", 2); // catalog and page-tree root created by pdf-lib
   const info = pdf.context.obj({Producer: textString("poe-code PDF"), Creator: textString("poe-code PDF")});
@@ -75,7 +75,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
         fonts.set(resource.id, await pdf.embedFont(resource.standard as StandardFonts));
         await cooperate(); continue;
       }
-      const bytes = new Uint8Array(resource.bytes); const parsed = fontkit.create(bytes);
+      const fontkit = (await import("@pdf-lib/fontkit")).default; const bytes = new Uint8Array(resource.bytes); const parsed = fontkit.create(bytes);
       if (!positive(parsed.unitsPerEm) || !Number.isInteger(parsed.numGlyphs) || parsed.numGlyphs < 1 || parsed.numGlyphs > 65535) unsupported("Invalid font metrics");
       pdf.registerFontkit({create: () => parsed});
       const font = await pdf.embedFont(bytes, {subset: false}); fonts.set(resource.id, font); parsedFonts.set(font, parsed); await cooperate();

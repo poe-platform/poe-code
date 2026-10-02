@@ -1,6 +1,7 @@
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { inheritYieldCheckpoint } from "safe-bash-contracts/yield";
 import { drainWork, runWork } from "./work.js";
+import { clearMmdcFontCaches } from "./font.js";
 import { parseMermaidSteps } from "./parser.js";
 import { layoutMermaidSteps } from "./layout.js";
 import { rasterizeSceneSteps } from "./raster.js";
@@ -323,6 +324,10 @@ export function* renderMermaidPngSteps(
   const { scene, budget, renderOptions } = yield* prepareSceneSteps(source, options);
   const scale = renderOptions?.scale ?? 1;
   const raster = yield* rasterizeSceneSteps(scene, { scale, budget });
+  clearMmdcFontCaches();
+  if (typeof (globalThis as { gc?: () => void }).gc === "function") {
+    try { (globalThis as { gc?: () => void }).gc!(); } catch {}
+  }
   const png = yield* encodeRgbaToPngSteps(raster.rgba, raster.width, raster.height, budget);
 
   return {

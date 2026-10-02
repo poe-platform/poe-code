@@ -1055,6 +1055,31 @@ test("50. sync vs async parity for du child sorting/symlinks/exclude paths, tree
 });
 
 
+test("realpath substitution preserves physical symlink traversal", async context => {
+  for (const middleware of [false, true]) {
+    const { fs, shell } = setup({ cwd: "/work" });
+    shell.use(agentCommands());
+    if (middleware) shell.use(async (_ctx, next) => next());
+    context.after(() => shell.dispose());
+    await fs.mkdir("/work/sub/deep", { recursive: true });
+    await fs.writeFile("/work/sub/leaf", new TextEncoder().encode("physical"));
+    await fs.writeFile("/work/leaf", new TextEncoder().encode("logical"));
+    await fs.symlink("sub/deep", "/work/link");
+    for (const [command, expected] of [
+      ["realpath link/../leaf", "/work/sub/leaf"],
+      ["realpath -e /work/link/../leaf", "/work/sub/leaf"],
+      ["realpath --relative-to=/work/link/.. /work/sub/leaf", "leaf"],
+      ["realpath -L link/../leaf", "/work/leaf"],
+      ["realpath -s link/../leaf", "/work/leaf"],
+    ]) {
+      const result = await shell.exec(`for i in 1 2; do value=$(${command}); done; printf '%s\\n' "$value"`);
+      assert.equal(result.exitCode, 0, command);
+      assert.equal(result.stderr, "", command);
+      assert.equal(result.stdout, expected + "\n", command);
+    }
+  }
+});
+
 test("51. sync vs async parity for ls, realpath, readlink, rg, and fd semantics", async () => {
   const scripts = [
     "mkdir -p /ls51; printf z > /ls51/z; printf a > /ls51/!bang; x=$(ls /ls51 -f); y=$(ls -m /ls51 2>/dev/null; echo $?); echo \"$x|$y\"",

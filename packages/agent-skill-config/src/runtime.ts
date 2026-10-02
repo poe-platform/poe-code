@@ -7,3 +7,5 @@ export type { BridgeEntry, BridgeManifest, BridgeWarning, BridgeWarningKind } fr
 export { appendExcludeBlockAsync, removeExcludeBlockAsync } from "./git-exclude-async.js";
 export { configure, unconfigure, installSkill, UnsupportedAgentError } from "./apply.js";
 export type { ApplyOptions, SkillFile } from "./types.js";
+export { resolveAgentSupport } from "./configs.js";
+export type { SkillScope } from "./configs.js";

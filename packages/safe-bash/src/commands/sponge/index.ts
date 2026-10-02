@@ -50,6 +50,7 @@ export function evalSyncSponge(
   }
   if (append || !writeFileSync) return undefined;
   const target = files[0]!;
+  if (target.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(target)) return undefined;
   if (!writeFileSync(target, payload)) return undefined;
   return "";
 }

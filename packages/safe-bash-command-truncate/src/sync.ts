@@ -10,6 +10,7 @@ export function evalSyncTruncate(
     if (args.display || args.ioBlocks || !writeFileSync || args.files.length === 0) return undefined;
     let refSize: bigint | undefined;
     if (args.reference !== undefined) {
+      if (args.reference.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(args.reference)) return undefined;
       const refBytes = readFileSync?.(args.reference);
       if (!refBytes) return undefined;
       refSize = BigInt(refBytes.length);
@@ -17,6 +18,7 @@ export function evalSyncTruncate(
     const blockFactor = 1n;
     const planned: Array<{ file: string; out: Uint8Array }> = [];
     for (const file of args.files) {
+      if (file.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(file)) return undefined;
       const existing = readFileSync?.(file);
       if (!existing && args.noCreate) return undefined;
       const curSize = BigInt(existing?.length ?? 0);

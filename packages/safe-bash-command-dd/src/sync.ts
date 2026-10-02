@@ -134,6 +134,7 @@ export function evalSyncDd(
     if ((convert.has("block") || convert.has("unblock")) && (!Number.isSafeInteger(cbsNum) || cbsNum <= 0 || cbsNum > 4096)) return undefined;
     let sourceBytes = inBytes;
     if (input !== undefined) {
+      if (input.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(input)) return undefined;
       if (input === "/dev/null") {
         sourceBytes = new Uint8Array(0);
       } else if (input === "/dev/zero") {
@@ -227,6 +228,7 @@ export function evalSyncDd(
     }
     if (output === "/dev/null") return "";
     if (output !== undefined) {
+      if (output.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(output)) return undefined;
       if (!writeFileSync) return undefined;
       const seekBytesBig = seekBytes ? seek : seek * obs;
       if (seekBytesBig > 65536n) return undefined;

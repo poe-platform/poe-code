@@ -16,7 +16,13 @@ import { wcDisplayWidth } from "../commands/wc-width.js";
 import { byteLength, byteLength as utf8ByteLength } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { invocationScope, type InvocationScope } from "./cleanup.js";
-import { ACCESS_MODES, basename, dirname, isPathWithin, normalizePath, relativePath, resolvePath, writeText } from "../contracts/index.js";
+import { ACCESS_MODES, basename, dirname, isPathWithin, normalizePath, relativePath, resolvePath as contractResolvePath, writeText } from "../contracts/index.js";
+function resolvePath(cwd: string, p: string): string {
+  if (p.length > 1 && (p.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(p))) {
+    return p.startsWith("/") ? p : (cwd === "/" ? "/" + p : cwd + "/" + p);
+  }
+  return contractResolvePath(cwd, p);
+}
 import type { CommandArguments } from "../contracts/command.js";
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
 import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
@@ -6449,9 +6455,9 @@ const syncExtraRuntimeMethods = {
       const resolved = mem.resolve(path, "stat", follow ? undefined : { followFinal: false });
       if (charge) this.budget.fileSystemOperation();
       return resolved.node.type;
-    } catch {
+    } catch (err) {
       if (charge) this.budget.fileSystemOperation();
-      return "missing";
+      return (err as { code?: string } | null)?.code === "ENOENT" ? "missing" : undefined;
     }
   },
   tryStatMemoryNodeModeSync(path: string, charge = false): number | undefined {

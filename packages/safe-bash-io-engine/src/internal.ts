@@ -655,10 +655,17 @@ export function evalSyncTee(
   }
   const data = inBytes ?? new Uint8Array(0);
   if (data.includes(0)) return undefined;
+  let decodedData: string;
+  try {
+    decodedData = fatalSyncDecoder.decode(data);
+  } catch {
+    return undefined;
+  }
   for (const op of operands) {
+    if (op.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(op)) return undefined;
     if (!writeFileSync || !writeFileSync(op, data, append)) return undefined;
   }
-  return decoder.decode(data);
+  return decodedData;
 }
 
 export function evalSyncTouch(
@@ -1556,7 +1563,11 @@ export function evalSyncCat(
     }
   }
   if (pendingCr) out.push(13);
-  return decoder.decode(Uint8Array.from(out));
+  try {
+    return fatalSyncDecoder.decode(Uint8Array.from(out));
+  } catch {
+    return undefined;
+  }
 }
 
 export function evalSyncHeadTail(
@@ -1643,16 +1654,25 @@ export function evalSyncHeadTail(
       if (!readFileSync) return undefined;
       bytes = readFileSync(t);
     }
-    if (!bytes || (!zeroTerminated && bytes.includes(0))) return undefined;
-    const text = decoder.decode(bytes);
+    if (!bytes || bytes.includes(0)) return undefined;
+    let text: string;
+    try {
+      text = fatalSyncDecoder.decode(bytes);
+    } catch {
+      return undefined;
+    }
     if (showHeaders) {
       out += `${idx > 0 ? "\n" : ""}==> ${t === "-" ? "standard input" : t} <==\n`;
     }
     if (mode === "c") {
-      if (name === "head") {
-        out += isMinus ? (count === 0 ? text : decoder.decode(bytes.subarray(0, Math.max(0, bytes.byteLength - count)))) : decoder.decode(bytes.subarray(0, count));
-      } else {
-        out += isPlus ? decoder.decode(bytes.subarray(Math.max(0, count - 1))) : (count === 0 ? "" : decoder.decode(bytes.subarray(Math.max(0, bytes.byteLength - count))));
+      try {
+        if (name === "head") {
+          out += isMinus ? (count === 0 ? text : fatalSyncDecoder.decode(bytes.subarray(0, Math.max(0, bytes.byteLength - count)))) : fatalSyncDecoder.decode(bytes.subarray(0, count));
+        } else {
+          out += isPlus ? fatalSyncDecoder.decode(bytes.subarray(Math.max(0, count - 1))) : (count === 0 ? "" : fatalSyncDecoder.decode(bytes.subarray(Math.max(0, bytes.byteLength - count))));
+        }
+      } catch {
+        return undefined;
       }
     } else {
       // Split preserving record terminators
@@ -1825,7 +1845,11 @@ export function evalSyncWc(
     if (singleByte) {
       m = c;
     } else if (flags.has("m")) {
-      m = Array.from(decoder.decode(buf)).length;
+      try {
+        m = Array.from(fatalSyncDecoder.decode(buf)).length;
+      } catch {
+        return undefined;
+      }
     }
     const counts: Record<string, number> = { l, w, m, c, L: maxL };
     totals.l! += l;

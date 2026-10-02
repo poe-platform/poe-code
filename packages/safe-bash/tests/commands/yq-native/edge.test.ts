@@ -3,11 +3,12 @@ import { readFile } from "node:fs/promises";
 import { test } from "node:test";
 import { native, nativeOptions, run } from "./helpers.js";
 
-export const edges: readonly { args: readonly string[]; input: string }[] = [
+export const edges: readonly { args: readonly string[]; input: string; expected?: { status: number; stdout: string; stderr: string } }[] = [
   { args: ["-e", "."], input: "" },
   { args: ["-o=json", "."], input: "" },
   { args: ["-n", "."], input: "" },
-  { args: ["-n", "{a: 1}"], input: "" },
+  // Identifier map keys are an intentional extension to the captured native profile.
+  { args: ["-n", "{a: 1}"], input: "", expected: { status: 0, stdout: "a: 1\n", stderr: "" } },
   { args: ["-n", "map"], input: "" },
   { args: ["-n", "select"], input: "" },
   { args: ["-n", "length(1)"], input: "" },
@@ -27,7 +28,7 @@ export const edges: readonly { args: readonly string[]; input: string }[] = [
 
 const capture = JSON.parse(await readFile(new URL("./ORACLE_EDGE.json", import.meta.url), "utf8")) as { results: { status: number; stdout: string; stderr: string }[] };
 for (const [index, entry] of edges.entries()) test(`native edge ${index}: ${JSON.stringify(entry.args)}`, async () => {
-  assert.deepEqual(await run(entry.args, entry.input), capture.results[index]);
+  assert.deepEqual(await run(entry.args, entry.input), entry.expected ?? capture.results[index]);
 });
 test("live edge oracle confirms preserved observations", nativeOptions, async () => {
   for (const [index, entry] of edges.entries()) assert.deepEqual(await native(entry.args, entry.input), capture.results[index]);

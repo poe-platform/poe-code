@@ -67,9 +67,13 @@ export function compileExpression(source: string, security: { readonly disableEn
       const fields: { key: Expression; value: Expression }[] = [];
       while (peek().text !== "}") {
         const key = take();
-        if (key.kind === "name") throw new MikeError(`1:${key.offset + 1}: lexer: invalid input text ${JSON.stringify(source.slice(key.offset))}`);
-        if (key.kind !== "string") throw new MikeError("bad expression, please check expression syntax");
-        expect(":"); fields.push({ key: literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text), value: parse(3) });
+        if (key.kind !== "string" && key.kind !== "name") throw new MikeError("bad expression, please check expression syntax");
+        const field = literal(key.kind === "string" ? JSON.parse(key.text) as string : key.text);
+        if (key.kind === "name" && (peek().text === "," || peek().text === "}")) {
+          fields.push({ key: field, value: { kind: "field", base: { kind: "identity" }, key: field } });
+        } else {
+          expect(":"); fields.push({ key: field, value: parse(3) });
+        }
         if (peek().text !== ",") break;
         take();
       }

@@ -23,6 +23,8 @@ await shell.dispose();
 
 The default factories support `-i`, `-n`, `-e`, `ea`, `-P`, and `-I`. Both profiles
 accept attached format flags such as `-p=yaml`, `-p=toml`, and `-o=json`.
+The profile also supports maps with quoted or identifier keys (`{name: .name, count: 5}`),
+or select fields with shorthand (`{name}` means `{name: .name}`).
 The package and command entrypoints also export `createMikeYqCommand`,
 `createMikeYqCommands`, and `mikeYqCommands` explicitly.
 `@poe-platform/safe-bash/yq` exports the same Mike-yq profile. Register one profile

@@ -14,6 +14,13 @@ for (const factory of [() => createYqCommand(), () => createYqCommands()[0]!, ()
     const encoder = new TextEncoder(), decoder = new TextDecoder();
     await fs.writeFile("/data.yaml", encoder.encode("a: 1\nb: hello\n"));
     for (const [args, input, expected, status] of [
+      [["-n", "-o=json", "-I=0", '{a: 1, b: "two"}'], "", '{"a":1,"b":"two"}\n', 0],
+      [["-o=json", "-I=0", '{name: .name, count: .count}'], "name: poe-code\ncount: 5\n", '{"name":"poe-code","count":5}\n', 0],
+      [["-o=json", "-I=0", '{foo}'], "foo: value\n", '{"foo":"value"}\n', 0],
+      [["-o=json", "-I=0", '{foo, missing, nested: {foo}, "quoted": .foo}'], "foo: value\n", '{"foo":"value","missing":null,"nested":{"foo":"value"},"quoted":"value"}\n', 0],
+      [[".b", "/data.yaml"], "", "hello\n", 0],
+      [["-e", ".enabled == false"], "enabled: false\n", "true\n", 0],
+      [["-o=json", "-I=0", ".items"], "items: [1, 2]\n", "[1,2]\n", 0],
       [["-i", ".a = 2", "/data.yaml"], "", "", 0],
       [[".a", "/data.yaml"], "", "2\n", 0],
       [["-n", ".a = 1"], "", "a: 1\n", 0],

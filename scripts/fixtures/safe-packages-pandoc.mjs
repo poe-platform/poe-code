@@ -2,6 +2,12 @@ import assert from "node:assert/strict";
 import * as main from "@poe-platform/safe-bash";
 import * as core from "@poe-platform/safe-bash/core";
 import * as pandoc from "@poe-platform/safe-bash/commands/pandoc";
+import { createCommandArguments } from "@poe-platform/safe-bash/contracts/command";
+import { FsError } from "@poe-platform/safe-bash/contracts/errors";
+import { FsError as FileSystemError } from "@poe-platform/safe-fs/core";
+
+assert.throws(() => import.meta.resolve("safe-bash-command-pandoc"), { code: "ERR_MODULE_NOT_FOUND" });
+assert.equal(FsError, FileSystemError);
 
 for (const entry of [main, core]) {
   for (const name of ["createPandocCommand", "createPandocCommands", "pandocCommands"])
@@ -19,6 +25,31 @@ try {
   assert.equal(html.exitCode, 0, html.stderr);
   assert.ok(html.stdout.includes("<strong>Bold</strong>"));
   assert.throws(() => shell.commands.register(pandoc.createPandocCommand()), /already registered/);
+  shell.use(main.pandocCommands({ replace: true }));
+  shell.commands.register(main.createAgentCommands().find(command => command.name === "cat"));
+  await fs.writeFile("/convert.sh", new TextEncoder().encode("cat /input.md | pandoc -f markdown -t html | cat"));
+  const pipeline = await shell.exec("sh /convert.sh");
+  assert.deepEqual([pipeline.exitCode, pipeline.stdout, pipeline.stderr], [0, html.stdout, ""]);
+  // Invalid byte argv must not become a valid replacement-character filename.
+  await fs.writeFile("/�", new TextEncoder().encode("must not be read"));
+  for (const byte of ["377", "376"]) {
+    const invalid = await shell.exec(`pandoc -f markdown -t plain $'/\\${byte}'`);
+    assert.equal(invalid.exitCode, 2, invalid.stderr);
+    assert.ok(invalid.stderr.includes("Arguments must be valid UTF-8"));
+    assert.equal(invalid.stdout, "");
+  }
+  const missing = await shell.exec("pandoc -f markdown -t plain /missing.md");
+  assert.equal(missing.exitCode, 9, missing.stderr);
+  assert.ok(missing.stderr.includes("E_IO"));
+  const reason = new Error("packed pandoc cancellation");
+  const carrier = createCommandArguments(["-f", "markdown", "-t", "plain", "/input.md"]);
+  await assert.rejects(pandoc.createPandocCommand().execute({
+    command: "pandoc", args: carrier.args, argumentValues: carrier, cwd: "/", env: {}, fs,
+    stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout: { async write() { assert.fail("cancelled command wrote output"); } },
+    stderr: { async write() { assert.fail("cancelled command wrote diagnostics"); } },
+    signal: AbortSignal.abort(reason),
+  }), error => error === reason);
   const pdf = await shell.exec("pandoc -f markdown -t pdf /input.md -o /output.pdf");
   assert.equal(pdf.exitCode, 0, pdf.stderr);
   assert.equal(new TextDecoder().decode((await fs.readFile("/output.pdf")).slice(0, 5)), "%PDF-");

@@ -152,3 +152,33 @@ test('file owns direct classification and budget regressions with built unit pre
   const turbo = json('turbo.json');
   assert.ok(turbo.tasks['safe-bash-command-file#test:unit'].dependsOn.includes('^build'));
 });
+
+
+test('pandoc owns conversion adapters and preserves private portable admission', () => {
+  const name = 'safe-bash-command-pandoc';
+  const pkg = json(`packages/${name}/package.json`);
+  assert.equal(pkg.name, name);
+  assert.equal(pkg.private, true);
+  assert.equal(root.devDependencies[name], '*');
+  assert.equal(shell.devDependencies[name], '*');
+  const admission = shell.poeCode.integration.privateWorkspaces[name];
+  assert.equal(admission.version, pkg.version);
+  assert.equal(admission.portable, true);
+  assert.deepEqual(admission.dependencies, pkg.dependencies);
+  assert.deepEqual(admission.devDependencies, pkg.devDependencies);
+  assert.equal(pkg.devDependencies['safe-bash-contracts'], '*');
+  for (const dependencies of [pkg.dependencies, pkg.devDependencies]) {
+    assert.equal(dependencies['@poe-platform/safe-bash'], undefined);
+  }
+  for (const entry of ['cli', 'safe-bash', 'command']) {
+    const source = readFileSync(new URL(`../packages/${name}/src/${entry}.ts`, import.meta.url), 'utf8');
+    const parsed = ts.createSourceFile(`${entry}.ts`, source, ts.ScriptTarget.Latest, true);
+    assert.ok(parsed.statements.some(ts.isFunctionDeclaration), `${entry} must own implementation`);
+  }
+  const adapter = readFileSync(new URL('../packages/safe-bash/src/commands/pandoc/index.ts', import.meta.url), 'utf8');
+  const parsed = ts.createSourceFile('index.ts', adapter, ts.ScriptTarget.Latest, true);
+  assert.ok(parsed.statements.every(statement => ts.isExportDeclaration(statement)
+    && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)
+    && [name, '../../lazy-optional.js'].includes(statement.moduleSpecifier.text)));
+  assert.ok(json('turbo.json').tasks[`${name}#test:unit`].dependsOn.includes('^build'));
+});

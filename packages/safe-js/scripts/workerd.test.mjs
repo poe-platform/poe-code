@@ -11,6 +11,7 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
       import { StackContext } from "./dist/platform/context.js";
       import { types, createTrackedProxy } from "./dist/platform/types.js";
       import { attachSignalDumpHandler } from "./dist/runner/signal-dump.js";
+      import { makeAgentModule, createSpawnUsageAccumulator, runWithSpawnUsageAccumulator } from "./dist/modules/agent.js";
       export default { async fetch() {
         if (typeof Buffer !== "undefined" || typeof process !== "undefined") throw new Error("Node globals present");
         let onSignal;
@@ -24,6 +25,24 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
         await Promise.resolve();
         detach();
         if (snapshot !== "checkpoint" || onSignal !== undefined) throw new Error("Portable signal snapshot failed");
+        const accumulators = [createSpawnUsageAccumulator(), createSpawnUsageAccumulator()];
+        await Promise.all(accumulators.map((accumulator, index) => {
+          let attempts = 0;
+          const agent = makeAgentModule(async () => {
+            await Promise.resolve();
+            attempts++;
+            return { exitCode: attempts === 1 ? 1 : 0, stdout: "", stderr: "", summary: "done", durationMs: 1,
+              usage: { inputTokens: index + 1, outputTokens: 10 } };
+          });
+          return runWithSpawnUsageAccumulator(accumulator, () => agent.spawn.retry("codex", { prompt: "mock" }, {
+            maxAttempts: 2, backoffMs: 0, isRetryable: () => true
+          }));
+        }));
+        for (const [index, accumulator] of accumulators.entries()) {
+          const usage = accumulator.snapshot();
+          if (usage.inputTokens !== 2 * (index + 1) || usage.outputTokens !== 20 || usage.attemptCount !== 2)
+            throw new Error("Portable concurrent spawn accounting failed");
+        }
         const context = new StackContext();
         const resume = context.run("first", () => StackContext.snapshot());
         const later = new StackContext();

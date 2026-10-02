@@ -260,7 +260,7 @@ export function makeAgentModule(
     const input = resolveSpawnInput(agentDef, options);
     const spawnId = nextSpawnId;
     nextSpawnId += 1;
-    recordActiveSpawnStart();
+    activeUsageAccumulator.getStore()?.beginSpawn?.();
     return runObservedSpawn(moduleOptions.otelSink, input, async () => {
       return defaultRetry === undefined
         ? runSpawnAttempt(spawnAgent, input, moduleOptions.onEvent, spawnId)
@@ -279,7 +279,7 @@ export function makeAgentModule(
         const normalizedRetry = normalizeRetryOptions(retryOptions);
         const spawnId = nextSpawnId;
         nextSpawnId += 1;
-        recordActiveSpawnStart();
+        activeUsageAccumulator.getStore()?.beginSpawn?.();
         return await runObservedSpawn(moduleOptions.otelSink, input, () =>
           runSpawnRetry(
             spawnAgent,
@@ -304,7 +304,7 @@ export function makeAgentModule(
             const input = resolveSpawnInput(agentDef, spawnOptions);
             const spawnId = nextSpawnId;
             nextSpawnId += 1;
-            recordActiveSpawnStart();
+            activeUsageAccumulator.getStore()?.beginSpawn?.();
             return runObservedSpawn(moduleOptions.otelSink, input, () =>
               runSpawnRetry(
                 spawnAgent,
@@ -344,6 +344,7 @@ async function runSpawnAttempt(
   onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
   spawnId: number
 ): Promise<SpawnAgentResult> {
+  const accumulator = activeUsageAccumulator.getStore();
   const task = resolveTaskLabel(input);
   const startedAt = Date.now();
   try {
@@ -362,10 +363,10 @@ async function runSpawnAttempt(
   });
 
   try {
-    recordActiveSpawnAttempt();
+    accumulator?.beginAttempt?.();
     const result = validateSpawnResult(await spawnAgent(toProviderSpawnInput(input)));
     throwIfAborted(input.signal);
-    recordActiveSpawnUsage(result.usage);
+    accumulator?.record(result.usage);
 
     if (result.exitCode !== 0) {
       const error = new AgentSpawnError(result);
@@ -469,6 +470,7 @@ async function runSpawnRetry(
   onEvent: ((event: AgentSpawnEvent) => void | Promise<void>) | undefined,
   spawnId: number
 ): Promise<SpawnAgentResult> {
+  const accumulator = activeUsageAccumulator.getStore();
   const task = resolveTaskLabel(input);
   const startedAt = Date.now();
   for (let attempt = 1; attempt <= retryOptions.maxAttempts; attempt += 1) {
@@ -498,7 +500,7 @@ async function runSpawnRetry(
 
     let result: SpawnAgentResult;
     try {
-      recordActiveSpawnAttempt();
+      accumulator?.beginAttempt?.();
       result = validateSpawnResult(await spawnAgent(toProviderSpawnInput(input)));
       throwIfAborted(input.signal);
     } catch (error) {
@@ -591,7 +593,7 @@ async function runSpawnRetry(
       continue;
     }
 
-    recordActiveSpawnUsage(result.usage);
+    accumulator?.record(result.usage);
     if (result.exitCode === 0) {
       emitSpawnEvent(onEvent, {
         type: "spawn.succeeded",
@@ -1100,18 +1102,6 @@ function validateSpawnResult(result: unknown): SpawnAgentResult {
     ),
     ...(usage === undefined ? {} : { usage: readSpawnUsage(usage) })
   });
-}
-
-function recordActiveSpawnUsage(usage: SpawnUsage | undefined): void {
-  activeUsageAccumulator.getStore()?.record(usage);
-}
-
-function recordActiveSpawnAttempt(): void {
-  activeUsageAccumulator.getStore()?.beginAttempt?.();
-}
-
-function recordActiveSpawnStart(): void {
-  activeUsageAccumulator.getStore()?.beginSpawn?.();
 }
 
 function readSpawnUsage(value: unknown): SpawnUsage {

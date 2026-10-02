@@ -1217,6 +1217,14 @@ function formatFfprobeResult(
     paramMap.noprint_wrappers === "1" || paramMap.nw === "1";
   const noKey = paramMap.nokey === "1" || paramMap.nk === "1";
 
+  function probeEntries(section: Record<string, unknown>, tagPrefix: string): [string, unknown][] {
+    return Object.entries(section).flatMap(([key, value]) =>
+      key === "tags" && value && typeof value === "object"
+        ? Object.entries(value).map(([tag, text]): [string, unknown] => [tagPrefix + tag, text])
+        : [[key, value]]
+    );
+  }
+
   if (fmt === "csv" || fmt === "compact") {
     const sep = fmt === "csv" ? (paramMap.s ?? ",") : (paramMap.s ?? "|");
     const printSection = paramMap.p !== "0" && paramMap.print_section !== "0";
@@ -1226,7 +1234,7 @@ function formatFfprobeResult(
       for (const s of finalStreams) {
         const vals: string[] = [];
         if (printSection) vals.push("stream");
-        for (const [k, v] of Object.entries(s)) {
+        for (const [k, v] of probeEntries(s, "tag:")) {
           if (v === undefined || typeof v === "object") continue;
           vals.push(noKey || fmt === "csv" ? String(v) : `${k}=${String(v)}`);
         }
@@ -1236,7 +1244,7 @@ function formatFfprobeResult(
     if (finalFormat) {
       const vals: string[] = [];
       if (printSection) vals.push("format");
-      for (const [k, v] of Object.entries(finalFormat)) {
+      for (const [k, v] of probeEntries(finalFormat, "tag:")) {
         if (v === undefined || typeof v === "object") continue;
         vals.push(noKey || fmt === "csv" ? String(v) : `${k}=${String(v)}`);
       }
@@ -1250,14 +1258,14 @@ function formatFfprobeResult(
     const lines: string[] = [];
     if (finalStreams) {
       finalStreams.forEach((s, idx) => {
-        for (const [k, v] of Object.entries(s)) {
+        for (const [k, v] of probeEntries(s, `tags${sep}`)) {
           if (v === undefined || typeof v === "object") continue;
           lines.push(`streams${sep}stream${sep}${idx}${sep}${k}=${JSON.stringify(String(v))}`);
         }
       });
     }
     if (finalFormat) {
-      for (const [k, v] of Object.entries(finalFormat)) {
+      for (const [k, v] of probeEntries(finalFormat, `tags${sep}`)) {
         if (v === undefined || typeof v === "object") continue;
         lines.push(`format${sep}${k}=${JSON.stringify(String(v))}`);
       }

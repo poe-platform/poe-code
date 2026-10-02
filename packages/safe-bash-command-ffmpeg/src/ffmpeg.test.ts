@@ -469,3 +469,42 @@ describe("decoded audio editing", () => {
     }
   });
 });
+
+
+describe("native ffmpeg parity", () => {
+  for (const [format, expected] of [
+    ["csv=p=0", "HelloWorld\n"],
+    ["compact=p=0", "tag:title=HelloWorld\n"],
+    ["flat", 'format.tags.title="HelloWorld"\n']
+  ]) {
+    it(`retains format tags in ${format}`, async () => {
+      const vfs = createTestVfs();
+      const result = await runCmd(createFfmpegCommand(), [
+        "-f", "lavfi", "-i", "color=c=red:s=32x32:d=0.2",
+        "-metadata", "title=HelloWorld", "/tagged.mp4"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const probe = await runCmd(createFfprobeCommand(), [
+        "-show_entries", "format_tags=title", "-of", format!, "/tagged.mp4"
+      ], vfs);
+      assert.equal(probe.exitCode, 0, probe.stderr);
+      assert.equal(probe.stdout, expected);
+    });
+  }
+});
+
+for (const [format, expected] of [
+  ["csv=p=0", "eng\n"],
+  ["compact=p=0", "tag:language=eng\n"],
+  ["flat", 'streams.stream.0.tags.language="eng"\n']
+]) {
+  it(`retains selected stream tags in ${format}`, async () => {
+    const base = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 1, includeAudio: false }));
+    const bytes = serializeMp4({ ...base, tracks: base.tracks.map(track => ({ ...track, language: "eng" })) });
+    const result = await runCmd(createFfprobeCommand(), [
+      "-show_entries", "stream_tags=language", "-of", format!, "/tagged.mp4"
+    ], createTestVfs({ "/tagged.mp4": bytes }));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, expected);
+  });
+}

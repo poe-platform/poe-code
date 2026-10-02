@@ -363,6 +363,7 @@ export function evalSyncOpenssl(
       globalThis.crypto.getRandomValues(raw);
       const rendered = hex ? `${bytesToHex(raw)}\n` : `${bytesToBase64(raw, true)}\n`;
       if (outFile !== undefined) {
+        if (!outFile || outFile.endsWith("/") || outFile.endsWith("/.") || outFile.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outFile)) return undefined;
         if (!writeFileSync || !writeFileSync(outFile, syncOpensslEncoder.encode(rendered))) return undefined;
         return "";
       }
@@ -388,6 +389,7 @@ export function evalSyncOpenssl(
       if (decode) {
         const out = base64ToBytes(syncOpensslDecoder.decode(input));
         if (outFile !== undefined) {
+        if (!outFile || outFile.endsWith("/") || outFile.endsWith("/.") || outFile.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outFile)) return undefined;
           if (!writeFileSync || !writeFileSync(outFile, out)) return undefined;
           return "";
         }
@@ -396,6 +398,7 @@ export function evalSyncOpenssl(
       }
       const b64Str = noNewlines ? bytesToBase64(input, false) : `${bytesToBase64(input, true)}\n`;
       if (outFile !== undefined) {
+        if (!outFile || outFile.endsWith("/") || outFile.endsWith("/.") || outFile.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outFile)) return undefined;
         if (!writeFileSync || !writeFileSync(outFile, syncOpensslEncoder.encode(b64Str))) return undefined;
         return "";
       }
@@ -466,6 +469,7 @@ export function evalSyncOpenssl(
       const dgstOut = `${textLines.join("\n")}\n`;
       if (dgstOut.includes("\0")) return undefined;
       if (outFile !== undefined) {
+        if (!outFile || outFile.endsWith("/") || outFile.endsWith("/.") || outFile.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outFile)) return undefined;
         if (!writeFileSync) return undefined;
         if (binary) {
           if (targets.length !== 1) return undefined;
@@ -520,6 +524,7 @@ export function evalSyncOpenssl(
         payload.set(salt, 8);
         payload.set(encrypted, 16);
         if (outFile !== undefined) {
+        if (!outFile || outFile.endsWith("/") || outFile.endsWith("/.") || outFile.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outFile)) return undefined;
           const outBytes = useBase64 ? syncOpensslEncoder.encode(`${bytesToBase64(payload, true)}\n`) : payload;
           if (!writeFileSync || !writeFileSync(outFile, outBytes)) return undefined;
           return "";
@@ -533,6 +538,7 @@ export function evalSyncOpenssl(
         const derived = pbkdf2(sha256, syncOpensslEncoder.encode(password), salt, { c: iterations, dkLen: 48 });
         const plain = aesCbcDecrypt(derived.subarray(0, 32), derived.subarray(32, 48), cipherBytes);
         if (outFile !== undefined) {
+        if (!outFile || outFile.endsWith("/") || outFile.endsWith("/.") || outFile.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outFile)) return undefined;
           if (!writeFileSync || !writeFileSync(outFile, plain.slice())) return undefined;
           return "";
         }
@@ -607,7 +613,7 @@ export function evalSyncOpenssl(
       }
       if (salt.includes("\0") || pw.includes("\0")) return undefined;
       const digest = sha512(syncOpensslEncoder.encode(`${salt}:${pw}`));
-      return `$6${salt}${bytesToBase64(digest)}\n`;
+      return `$6$${salt}$${bytesToBase64(digest)}\n`;
     }
 
     return undefined;

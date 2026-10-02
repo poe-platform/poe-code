@@ -1428,3 +1428,17 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "1|2|1|9|1|renamed '/mv1.txt' -> '/mv_dst/mv1.txt'|2|no");
   });
+
+  test("77. sync openssl passwd SHA-512 crypt format parity and sqlite3 inherited stdin execution", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "pw_sync=$(openssl passwd -6 -salt mysalt secret)",
+      "pw_async=$(openssl passwd -6 -salt mysalt secret < /dev/null)",
+      "[ \"$pw_sync\" = \"$pw_async\" ] && pw_eq=yes || pw_eq=no",
+      "case \"$pw_sync\" in '$6$mysalt$'*) pw_fmt=ok ;; *) pw_fmt=bad ;; esac",
+      "sq_out=$({ sqlite3 :memory:; } <<< \"SELECT 42;\")",
+      "echo \"$pw_eq|$pw_fmt|$sq_out\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "yes|ok|42");
+  });

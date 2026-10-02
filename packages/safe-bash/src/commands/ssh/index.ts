@@ -362,6 +362,7 @@ export function evalSyncSshKeygen(
     if (removeHost !== undefined) {
       if (!writeFileSync) return undefined;
       const khRaw = fileArg ?? "/home/user/.ssh/known_hosts";
+      if (!khRaw || khRaw.endsWith("/") || khRaw.endsWith("/.") || khRaw.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(khRaw)) return undefined;
       const khPath = khRaw.startsWith("/") ? khRaw : (cwd === "/" ? "/" + khRaw : cwd + "/" + khRaw);
       const khBytes = readFileSync?.(khRaw) ?? new Uint8Array(0);
       const khText = syncSshDecoder.decode(khBytes);

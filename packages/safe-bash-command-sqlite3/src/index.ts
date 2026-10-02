@@ -1990,12 +1990,20 @@ export function evalSyncSqlite3(
           if (!processScriptSync(positional[p]!)) return undefined;
           if (state.exitRequested) break;
         }
-      } else if (inBytes !== undefined && inBytes.byteLength > 0) {
-        if (inBytes.includes(0) || !processScriptSync(fatalSyncSqliteDecoder.decode(inBytes))) return undefined;
+      } else if (inBytes !== undefined) {
+        if (inBytes.byteLength > 0 && (inBytes.includes(0) || !processScriptSync(fatalSyncSqliteDecoder.decode(inBytes)))) return undefined;
+      } else if (preCommands.length === 0 && !initFile) {
+        return undefined;
       }
     }
 
     if (state.exitCode !== 0 || out.includes("\0")) return undefined;
+    for (const save of pendingSaves) {
+      if (!save.file || save.file.endsWith("/") || save.file.endsWith("/.") || save.file.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(save.file)) return undefined;
+    }
+    if (state.dirty && state.dbPath !== ":memory:") {
+      if (!state.dbPath || state.dbPath.endsWith("/") || state.dbPath.endsWith("/.") || state.dbPath.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(state.dbPath)) return undefined;
+    }
     for (const save of pendingSaves) {
       if (!writeFileSync || !writeFileSync(save.file, save.bytes)) return undefined;
     }

@@ -223,7 +223,7 @@ export function evalSyncGpg(
       else positionals.push(a);
     }
 
-    if (quickGenKey || importKeys || verify || statusFd !== undefined || (outFile !== undefined && outFile !== "-" && !writeFileSync)) {
+    if (quickGenKey || importKeys || verify || statusFd !== undefined || (outFile !== undefined && outFile !== "-" && (!writeFileSync || !outFile || outFile.endsWith("/") || outFile.endsWith("/.") || outFile.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outFile)))) {
       return undefined;
     }
 

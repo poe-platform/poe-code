@@ -1298,3 +1298,20 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     assert.equal(r2.exitCode, 0);
     assert.equal(r2.stdout, "ab:2");
   });
+
+  test("70. sync date NUL byte filtering and mmdc NUL rejection", async () => {
+    const { shell: bash, fs } = setup();
+    bash.use(agentCommands());
+    await fs.writeFile("/bad_dates.txt", new Uint8Array([50, 48, 50, 54, 45, 48, 49, 45, 48, 49, 0, 10]));
+
+    // 1. date +$'a\0b' in command substitution and pipeline must match async date
+    const r1 = await bash.exec("x=$(date -u -d @0 +$'a\\0b'); printf '%s:%d' \"$x\" \"${#x}\"");
+    assert.equal(r1.exitCode, 0);
+    assert.equal(r1.stdout, "a:1");
+    const r1Pipe = await bash.exec("date -u -d @0 +$'a\\0b' | tr -d '\\0'");
+    assert.equal(r1Pipe.stdout.trim(), "a");
+
+    // 2. date -f on file containing NUL byte must not silently accept in sync path
+    const r2 = await bash.exec("out=$(date -u -f /bad_dates.txt +%Y 2>&1); echo $?");
+    assert.notEqual(r2.stdout.trim(), "0");
+  });

@@ -203,8 +203,8 @@ export function evalSyncDate(
     const now = (): bigint => (current ??= millisecondsInstant(clock()));
     if (parsed.file !== undefined) {
       const fBytes = parsed.file === "-" ? stdinBytes : readFileSync?.(parsed.file);
-      if (!fBytes || fBytes.byteLength > 16384) return undefined;
-      const text = new TextDecoder("utf-8", { fatal: false }).decode(fBytes);
+      if (!fBytes || fBytes.byteLength > 16384 || fBytes.includes(0)) return undefined;
+      const text = new TextDecoder("utf-8", { fatal: true }).decode(fBytes);
       const rawLines = text.endsWith("\n") ? text.slice(0, -1).split("\n") : (text.length === 0 ? [] : text.split("\n"));
       let out = "";
       for (const line of rawLines) {
@@ -213,7 +213,7 @@ export function evalSyncDate(
         out += formatDate(parsed.format, adjustDate(inst, parsed.adjustments ?? [], zone), zone, limits);
         if (utf8ByteLength(out) > limits.maxOutputBytes) return undefined;
       }
-      return out;
+      return out.includes("\0") ? undefined : out;
     }
     let instant: bigint;
     if (parsed.reference !== undefined) {
@@ -227,7 +227,7 @@ export function evalSyncDate(
       instant = parsed.input === undefined ? now() : parseDate(parsed.input, zone, now);
     }
     const out = formatDate(parsed.format, adjustDate(instant, parsed.adjustments ?? [], zone), zone, limits);
-    if (utf8ByteLength(out) > limits.maxOutputBytes) return undefined;
+    if (utf8ByteLength(out) > limits.maxOutputBytes || out.includes("\0")) return undefined;
     return out;
   } catch {
     return undefined;

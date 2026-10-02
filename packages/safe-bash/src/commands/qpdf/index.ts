@@ -58,7 +58,12 @@ export function evalSyncQpdf(
     if (res.exitCode !== 0 || res.stderr || res.stdoutBytes !== undefined || res.stdout.includes("\0")) return undefined;
     for (const [k, v] of files.entries()) {
       if (snap.get(k) !== v) {
-        if (k === "-" || !writeFileSync || !writeFileSync(k, v)) return undefined;
+        if (k === "-" || k.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(k) || !writeFileSync) return undefined;
+      }
+    }
+    for (const [k, v] of files.entries()) {
+      if (snap.get(k) !== v) {
+        if (!writeFileSync!(k, v)) return undefined;
       }
     }
     return res.stdout;

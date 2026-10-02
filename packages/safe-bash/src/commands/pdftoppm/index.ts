@@ -93,7 +93,12 @@ export function evalSyncPdftoppm(
     if (res.exitCode !== 0 || res.stderr) return undefined;
     for (const [k, v] of files.entries()) {
       if (snap.get(k) !== v) {
-        if (k === "-" || !writeFileSync || !writeFileSync(k, v)) return undefined;
+        if (k === "-" || k.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(k) || !writeFileSync) return undefined;
+      }
+    }
+    for (const [k, v] of files.entries()) {
+      if (snap.get(k) !== v) {
+        if (!writeFileSync!(k, v)) return undefined;
       }
     }
     if (res.stdoutBytes) {
@@ -149,7 +154,12 @@ export function evalSyncPdftocairo(
     if (res.exitCode !== 0 || res.stderr) return undefined;
     for (const [k, v] of files.entries()) {
       if (snap.get(k) !== v) {
-        if (k === "-" || !writeFileSync || !writeFileSync(k, v)) return undefined;
+        if (k === "-" || k.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(k) || !writeFileSync) return undefined;
+      }
+    }
+    for (const [k, v] of files.entries()) {
+      if (snap.get(k) !== v) {
+        if (!writeFileSync!(k, v)) return undefined;
       }
     }
     if (res.stdoutBytes) {

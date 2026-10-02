@@ -54,10 +54,12 @@ export function evalSyncWkhtmltopdf(
     }
     if (initial.mode === "conversion") {
       const inputs: Uint8Array[] = [];
+      let stdinUsed = false;
       for (const obj of initial.objects) {
         if (obj.input === null) return undefined;
         if (obj.input === "-") {
-          if (inBytes === undefined || inBytes.byteLength > 262144) return undefined;
+          if (stdinUsed || inBytes === undefined || inBytes.byteLength > 262144 || inBytes.includes(0)) return undefined;
+          stdinUsed = true;
           inputs.push(inBytes);
         } else {
           if (initial.output !== "-" && obj.input === initial.output) return undefined;

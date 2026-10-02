@@ -57,7 +57,7 @@ export function evalSyncMmdc(
     let cfgBg: string | undefined;
     if (parsed.configFile !== undefined) {
       const cfgBytes = readFileSync?.(parsed.configFile);
-      if (!cfgBytes) return undefined;
+      if (!cfgBytes || cfgBytes.includes(0)) return undefined;
       const cfg = JSON.parse(utf8Decoder.decode(cfgBytes)) as Record<string, unknown>;
       if (!cfg || typeof cfg !== "object" || Array.isArray(cfg)) return undefined;
       const allowedKeys = new Set(["theme", "rankGap", "nodeGap", "padding", "width", "height", "scale", "backgroundColor", "flowchart", "themeVariables"]);
@@ -68,7 +68,7 @@ export function evalSyncMmdc(
       if (typeof cfg.backgroundColor === "string") cfgBg = cfg.backgroundColor;
     }
     const rawBytes = parsed.input === "-" ? inBytes : readFileSync?.(parsed.input);
-    if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
+    if (!rawBytes || rawBytes.byteLength > 262144 || rawBytes.includes(0)) return undefined;
     const sourceText = utf8Decoder.decode(rawBytes);
     const res = renderMermaidSvg(sourceText, {
       theme: (parsed.theme ?? cfgTheme ?? "light") as "light",
@@ -77,6 +77,7 @@ export function evalSyncMmdc(
       svgId: parsed.svgId ?? cfgSvgId,
       backgroundColor: parsed.backgroundColor ?? cfgBg,
     });
+    if (res.svg.includes("\0")) return undefined;
     if (parsed.output !== "-") {
       if (!writeFileSync || !writeFileSync(parsed.output, mmdcUtf8Encoder.encode(res.svg))) return undefined;
       return "";

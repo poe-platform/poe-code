@@ -18463,7 +18463,7 @@ const syncExtraRuntimeMethods = {
               } else if (stageArgs[0] === "-w") {
                 // The split shortcut covers printable ASCII and its whitespace only.
                 // Delegate controls and locale-sensitive bytes to the wc command.
-                if (prevBuf.subarray(0, prevLen).some(byte => byte < 9 || (byte > 13 && byte < 32) || byte >= 127)) return undefined;
+                if (prevBuf.subarray(0, prevLen).some((byte: number) => byte < 9 || (byte > 13 && byte < 32) || byte >= 127)) return undefined;
                 outLines = [String(inStr.split(/[ \t\n\r\f\v]+/).filter(Boolean).length)];
               } else if (stageArgs[0] === "-m") {
                 outLines = [String(byteLocale(rawState.variables) ? prevLen : Array.from(inStr).length)];
@@ -19469,7 +19469,7 @@ const syncExtraRuntimeMethods = {
           // The text shortcut must not decode arbitrary file bytes or strip a BOM.
           // Non-ASCII file inputs use normal execution, which owns their raw ShellValue.
           const isBinaryViewTool = w0Plain === "xxd" || w0Plain === "od" || w0Plain === "hexdump" || w0Plain === "hd";
-          if (view && view.byteLength <= 16384 && (isBinaryViewTool || (!view.includes(0) && (hasSingleHereStringRedir || view.every(byte => byte < 128))))) {
+          if (view && view.byteLength <= 16384 && (isBinaryViewTool || (!view.includes(0) && (hasSingleHereStringRedir || view.every((byte: number) => byte < 128))))) {
             const fileStr = hasSingleHereStringRedir ? hereStrVal! : sharedSyncPipeDecoder.decode(view);
             // Record-based shortcuts below serialize complete newline-terminated records.
             // Let normal commands preserve partial final records when reading files.
@@ -19559,7 +19559,7 @@ const syncExtraRuntimeMethods = {
                 } else if (wcMode === "-L") {
                   count = this.wcMaxLineWidth(fileStr, byteLocale(rawState.variables));
                 } else {
-                  if (view.some(byte => byte < 9 || (byte > 13 && byte < 32) || byte >= 127)) return undefined;
+                  if (view.some((byte: number) => byte < 9 || (byte > 13 && byte < 32) || byte >= 127)) return undefined;
                   count = fileStr.split(/[ \t\n\r\f\v]+/).filter(Boolean).length;
                 }
                 fileRes = ((hasSingleStdinRedir || hasSingleHereStringRedir) ? String(count) : `${count} ${fileArg}`) + "\n";
@@ -21362,7 +21362,7 @@ const syncExtraRuntimeMethods = {
       const cleaned = ignoreGarbage ? fileStr.replace(/[^A-Za-z0-9+/=]+/g, "") : fileStr.replace(/[ \t\r\n]+/g, "");
       if (cleaned.length % 4 !== 0 || (cleaned.length > 0 && !/^[A-Za-z0-9+/]+={0,2}$/.test(cleaned))) return undefined;
       const decoded: Uint8Array = this.syncBase64DecodeBytes(cleaned);
-      if (decoded.some(byte => byte === 0 || byte >= 128)) return undefined;
+      if (decoded.some((byte: number) => byte === 0 || byte >= 128)) return undefined;
       return sharedSyncPipeDecoder.decode(decoded);
     }
     const rawB64 = this.syncBase64Encode(inBytes).replace(/\n/g, "");

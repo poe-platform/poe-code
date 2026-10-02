@@ -579,3 +579,28 @@ test("35. sync xxd negative seek address calculation, stdin seek errors, and od 
   assert.equal(r5.exitCode, 0);
   assert.equal(r5.stdout, " 61 62 0a\n");
 });
+
+test("36. sync expand/unexpand multi -t tablists, column -e vs -L and JSON column validation, and numfmt scale rounding boundaries", async () => {
+  const syncSh = setup().shell.use(agentCommands());
+  const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+  const scripts = [
+    "x=$(expand -t 4 -t 8 <<< $'a\\tb\\tc'); echo \"$?:$x\"",
+    "x=$(expand -t 4 -t 6,10 <<< $'a\\tb\\tc'); echo \"$?:$x\"",
+    "x=$(expand -t 8 -t 4 <<< $'a\\tb'); echo \"$?:$x\"",
+    "x=$(unexpand -t 4 -t 8 <<< '    a    b'); echo \"$?:$x\"",
+    "x=$(unexpand -t 8 -t 4 <<< '        a'); echo \"$?:$x\"",
+    "x=$(column -t -e <<< $'a b\\n\\nc d'); echo \"$?:$x\"",
+    "x=$(column -t -L <<< $'a b\\n   \\nc d'); echo \"$?:$x\"",
+    "x=$(column -J -N col1 <<< 'a b'); echo \"$?:$x\"",
+    "x=$(numfmt --to=si 9999); echo \"$?:$x\"",
+    "x=$(numfmt --to=si 999500); echo \"$?:$x\"",
+    "x=$(numfmt --to=iec 10239); echo \"$?:$x\"",
+    "x=$(numfmt --to=iec 1048064); echo \"$?:$x\"",
+  ];
+  for (const script of scripts) {
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

@@ -23679,7 +23679,8 @@ const syncExtraRuntimeMethods = {
       if (a === "-t" || a === "--table") tableMode = true;
       else if (a === "-J" || a === "--json") { jsonMode = true; tableMode = true; }
       else if (a === "-d" || a === "--table-noheadings") noHeadings = true;
-      else if (a === "-e" || a === "--table-empty-lines") emptyLines = true;
+      else if (a === "-L" || a === "--keep-empty-lines" || a === "--table-empty-lines") emptyLines = true;
+      else if (a === "-e" || a === "--table-header-repeat") { /* header repeat */ }
       else if (a === "-n" || a === "--table-name") {
         if (i + 1 >= opArgs.length || !opArgs[i + 1]) return undefined;
         tableName = opArgs[++i]!;
@@ -23735,10 +23736,10 @@ const syncExtraRuntimeMethods = {
         const sVal = rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i] : undefined);
         if (!sVal) return undefined;
         sepChars = new Set(Array.from(sVal));
-      } else if (/^-[tedJ]+$/.test(a)) {
+      } else if (/^-[tedJL]+$/.test(a)) {
         if (a.includes("t")) tableMode = true;
         if (a.includes("J")) { jsonMode = true; tableMode = true; }
-        if (a.includes("e")) emptyLines = true;
+        if (a.includes("L")) emptyLines = true;
         if (a.includes("d")) noHeadings = true;
       } else {
         return undefined;
@@ -23770,7 +23771,10 @@ const syncExtraRuntimeMethods = {
         }
       }
       if (sepChars || l.length > start) row.push(l.slice(start));
-      if (row.length === 0) continue;
+      if (row.length === 0) {
+        if (emptyLines) rows.push([]);
+        continue;
+      }
       if (row.length > maxCols) maxCols = row.length;
       rows.push(row);
     }
@@ -23798,6 +23802,7 @@ const syncExtraRuntimeMethods = {
     for (let c = 0; c < maxCols; c++) if (!ordered.includes(c)) ordered.push(c);
     const visibleCols = ordered.filter(c => !hideSet.has(c));
     if (jsonMode) {
+      if (visibleCols.some(c => !headers || c >= headers.length)) return undefined;
       const lower = (s: string) => s.toLowerCase();
       const keys = visibleCols.map(c => JSON.stringify(lower(headers?.[c] ?? "")));
       let jStr = `{\n   ${JSON.stringify(lower(tableName))}: [\n`;
@@ -23828,7 +23833,6 @@ const syncExtraRuntimeMethods = {
     const out: string[] = [];
     for (let r = 0; r < allRows.length; r++) {
       const row = allRows[r]!;
-      if (row.length === 0) { out.push(""); continue; }
       let line = "";
       for (let p = 0; p < visibleCols.length; p++) {
         const c = visibleCols[p]!;
@@ -23923,36 +23927,31 @@ const syncExtraRuntimeMethods = {
     let tabStop = 8;
     let tabList: number[] | undefined;
     let initialOnly = false;
+    const tabSpecs: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a === "-i" || a === "--initial") initialOnly = true;
       else if (a === "-t" || a === "--tabs") {
         if (i + 1 >= opArgs.length) return undefined;
-        const parsed = this.parseSyncTabList(opArgs[++i]!);
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(opArgs[++i]!);
       } else if (a.startsWith("-t") && a.length > 2) {
-        const parsed = this.parseSyncTabList(a.slice(2));
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(a.slice(2));
       } else if (a.startsWith("--tabs=")) {
-        const parsed = this.parseSyncTabList(a.slice(7));
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(a.slice(7));
       } else if (/^-(?:it|ti)(.*)$/.test(a)) {
         initialOnly = true;
         const rest = a.slice(3);
-        const rawSpec = rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i]! : "");
-        const parsed = this.parseSyncTabList(rawSpec);
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i]! : ""));
       } else if (/^-[1-9][0-9]{0,2}(?:,[1-9][0-9]{0,2})*$/.test(a)) {
-        const parsed = this.parseSyncTabList(a.slice(1));
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(a.slice(1));
       } else {
         return undefined;
       }
+    }
+    if (tabSpecs.length > 0) {
+      const parsed = this.parseSyncTabList(tabSpecs.join(","));
+      if (!parsed) return undefined;
+      tabStop = parsed.tabStop; tabList = parsed.tabList;
     }
     const out: string[] = [];
     for (let i = 0; i < rawLines.length; i++) {
@@ -23991,42 +23990,37 @@ const syncExtraRuntimeMethods = {
     let flagA = false;
     let flagT = false;
     let firstOnly = false;
+    const tabSpecs: string[] = [];
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
       if (a === "-a" || a === "--all") flagA = true;
       else if (a === "--first-only") firstOnly = true;
       else if (a === "-t" || a === "--tabs") {
         if (i + 1 >= opArgs.length) return undefined;
-        const parsed = this.parseSyncTabList(opArgs[++i]!);
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(opArgs[++i]!);
         flagT = true;
       } else if (a.startsWith("-t") && a.length > 2) {
-        const parsed = this.parseSyncTabList(a.slice(2));
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(a.slice(2));
         flagT = true;
       } else if (a.startsWith("--tabs=")) {
-        const parsed = this.parseSyncTabList(a.slice(7));
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(a.slice(7));
         flagT = true;
       } else if (/^-(?:at|ta)(.*)$/.test(a)) {
         flagA = true;
         flagT = true;
         const rest = a.slice(3);
-        const rawSpec = rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i]! : "");
-        const parsed = this.parseSyncTabList(rawSpec);
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(rest.length > 0 ? rest : (i + 1 < opArgs.length ? opArgs[++i]! : ""));
       } else if (/^-[1-9][0-9]{0,2}(?:,[1-9][0-9]{0,2})*$/.test(a)) {
-        const parsed = this.parseSyncTabList(a.slice(1));
-        if (!parsed) return undefined;
-        tabStop = parsed.tabStop; tabList = parsed.tabList;
+        tabSpecs.push(a.slice(1));
         flagT = true;
       } else {
         return undefined;
       }
+    }
+    if (tabSpecs.length > 0) {
+      const parsed = this.parseSyncTabList(tabSpecs.join(","));
+      if (!parsed) return undefined;
+      tabStop = parsed.tabStop; tabList = parsed.tabList;
     }
     const nextStopFn = (pos: number): number => {
       if (tabList) {
@@ -25495,12 +25489,20 @@ const syncExtraRuntimeMethods = {
         if (pIdx === 0) {
           rendered = fmtParsed?.prec !== undefined ? scaled.toFixed(fmtParsed.prec) : String(Math.trunc(applyRound(scaled)));
         } else {
-          const prec = fmtParsed?.prec !== undefined ? fmtParsed.prec : (Math.abs(scaled) < 10 ? 1 : 0);
-          const factor = Math.pow(10, prec);
+          let prec = fmtParsed?.prec !== undefined ? fmtParsed.prec : (Math.abs(scaled) < 10 ? 1 : 0);
+          let factor = Math.pow(10, prec);
           scaled = applyRound(scaled * factor) / factor;
           if (Math.abs(scaled) >= tBase && pIdx < units.length) {
             scaled /= tBase;
             pIdx++;
+            if (fmtParsed?.prec === undefined) {
+              prec = Math.abs(scaled) < 10 ? 1 : 0;
+              factor = Math.pow(10, prec);
+              scaled = applyRound(scaled * factor) / factor;
+            }
+          }
+          if (fmtParsed?.prec === undefined) {
+            prec = Math.abs(scaled) < 10 ? 1 : 0;
           }
           const numText = scaled.toFixed(prec);
           const uText = (toScale === "si" && pIdx === 1 ? "k" : units[pIdx - 1]!) + (toScale === "iec-i" ? "i" : "");

@@ -23,7 +23,7 @@ export interface CiteprocFilterOptions {
 
 export function upgradeBracketedCitationsInInlines(inlines: readonly Inline[]): Inline[] {
   const result: Inline[] = [];
-  const citeRe = /\[((?:[^\[\]@]*?-?@[A-Za-z0-9_:.#$%&\-+?<>~\/]+[^\[\];]*)(?:;[ \t]*[^\[\]@]*?-?@[A-Za-z0-9_:.#$%&\-+?<>~\/]+[^\[\];]*)*)\]/g;
+  const citeRe = /\[((?:[^[\]@]*?-?@[A-Za-z0-9_:.#$%&\-+?<>~/]+[^[\];]*)(?:;[ \t]*[^[\]@]*?-?@[A-Za-z0-9_:.#$%&\-+?<>~/]+[^[\];]*)*)\]/g;
   for (const node of inlines) {
     if (node.t === "Str" && node.c.includes("[@") || (node.t === "Str" && node.c.includes("[-@"))) {
       let lastIndex = 0;
@@ -37,7 +37,7 @@ export function upgradeBracketedCitationsInInlines(inlines: readonly Inline[]): 
         const items = rawGroup.split(";").map(part => part.trim()).filter(Boolean);
         const citations: Citation[] = [];
         for (const item of items) {
-          const keyMatch = /(-?)@([A-Za-z0-9_:.#$%&\-+?<>~\/]+)/.exec(item);
+          const keyMatch = /(-?)@([A-Za-z0-9_:.#$%&\-+?<>~/]+)/.exec(item);
           if (!keyMatch) continue;
           const suppressAuthor = keyMatch[1] === "-";
           const citationId = keyMatch[2]!;
@@ -128,7 +128,7 @@ function parseBibtexToCsl(bibtex: string): Record<string, unknown>[] {
     const body = match[3]!;
     if (rawType === "comment" || rawType === "preamble" || rawType === "string") continue;
     const fields: Record<string, string> = {};
-    const fieldRe = /([A-Za-z0-9_\-]+)\s*=\s*(?:\{((?:[^{}]|\{[^{}]*\})*)\}|"([^"]*)"|([0-9]+))/g;
+    const fieldRe = /([A-Za-z0-9_-]+)\s*=\s*(?:\{((?:[^{}]|\{[^{}]*\})*)\}|"([^"]*)"|([0-9]+))/g;
     let fMatch: RegExpExecArray | null;
     while ((fMatch = fieldRe.exec(body)) !== null) {
       const k = fMatch[1]!.toLowerCase();
@@ -227,7 +227,7 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions = 
       if (!citations.length) return originalDocument;
       document = { ...document, blocks: upgradedBlocks };
       const metadataRefs = document.metadata.references ? metaValueToCsl(document.metadata.references) : undefined;
-      let loadedBibRefs: Record<string, unknown>[] = [];
+      const loadedBibRefs: Record<string, unknown>[] = [];
       if (!options.references && !Array.isArray(metadataRefs) && document.metadata.bibliography && options.readFile) {
         const bibVal = metaValueToCsl(document.metadata.bibliography);
         const bibPaths = Array.isArray(bibVal) ? bibVal.map(String) : typeof bibVal === "string" ? [bibVal] : [];

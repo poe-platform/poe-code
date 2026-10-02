@@ -333,3 +333,11 @@ import type * as originalEscapeTerminal from "toolcraft-design/escape-terminal-t
 const escapeTerminalOriginal: typeof originalEscapeTerminal = escapeTerminal;
 const escapeTerminalOwn: typeof escapeTerminal = null as unknown as typeof originalEscapeTerminal;
 void [escapeTerminalOriginal,escapeTerminalOwn];
+
+const plaintextOriginal: typeof originalDesign.renderPlaintext = design.renderPlaintext;
+const plaintextOwn: typeof design.renderPlaintext = null as unknown as typeof originalDesign.renderPlaintext;
+const markdownNodeOriginal: originalDesign.MdNode = null as unknown as design.MdNode;
+const markdownNodeOwn: design.MdNode = null as unknown as originalDesign.MdNode;
+const plaintextOptionsOriginal: originalDesign.PlaintextRenderOptions = null as unknown as design.PlaintextRenderOptions;
+const plaintextOptionsOwn: design.PlaintextRenderOptions = null as unknown as originalDesign.PlaintextRenderOptions;
+void [plaintextOriginal,plaintextOwn,markdownNodeOriginal,markdownNodeOwn,plaintextOptionsOriginal,plaintextOptionsOwn];

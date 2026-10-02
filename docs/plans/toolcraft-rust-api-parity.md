@@ -703,6 +703,18 @@ screenshot confirms visible escape sequences for terminal controls, newlines, ta
 and directional marks. Markdown parsing/rendering and live interactive surfaces
 remain unported.
 
+Plaintext rendering from `MdNode` ASTs is now available as root `renderPlaintext`,
+with standalone AST/token and `PlaintextRenderOptions` declarations. Rust controls
+inline/block dispatch, announcements, list/table policies, footnote selection and
+separator trimming. Node retains observable collection/string methods, option
+getters, coercions and iterator cleanup. The reference parser is used only to
+supply test fixtures; no runtime import or claimed parser port is introduced.
+All 139 native and the existing 222 routed reference tests pass, as do types,
+package/JS lint and isolated packed root consumers. An inspected screenshot checks
+headings, task/ordered lists, table sentences and footnote numbering. The original
+plaintext suite still awaits native Markdown parsing; full Markdown entry points,
+deep-recursion/resource qualification and other interactive surfaces remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

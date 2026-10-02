@@ -113,3 +113,6 @@ export * from "./render-performance.js";
 export * as staticRender from "./static.js";
 export {SPINNER_FRAMES,renderSpinnerFrame,renderSpinnerStopped,renderMenu} from "./static.js";
 export type {SpinnerFrameOptions,SpinnerStoppedOptions,MenuOption,RenderMenuOptions} from "./static.js";
+export {renderPlaintext} from "./plaintext.js";
+export type {PlaintextRenderOptions} from "./plaintext.js";
+export type {MdNode,CodeToken,CodeTokenKind} from "./md-ast.js";

@@ -86,6 +86,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createRenderPerformanceMonitor`, `formatRenderPerformance` | Track repaint rates, rolling percentiles, input latency and coalesced updates |
 | `staticRender`, `renderMenu`, `renderSpinnerFrame`, `renderSpinnerStopped` | Render menus and spinner snapshots in terminal, Markdown or JSON |
 | `escape-terminal-text` | Expose terminal controls and directional marks as visible Unicode escapes |
+| `renderPlaintext` | Turn a Markdown AST into readable text with announcements, table sentences and numbered footnotes |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -330,3 +331,10 @@ final status. They follow `withOutputFormat` and are available through
 turns control characters and directional marks into visible `\uXXXX` escapes
 without hiding the original content. Ordinary Unicode, combining marks and literal
 punctuation remain unchanged, making filenames and labels safe to display.
+
+`renderPlaintext(ast, options)` renders the public `MdNode` contract as readable
+text. It supports heading/code/alert announcements, checked and ordered lists,
+header-labelled table sentences, link expansion, optional frontmatter and ordered
+footnotes. `PlaintextRenderOptions`, `MdNode` and code-token types are standalone
+root exports. This entry point accepts an AST; Markdown string parsing and
+`renderMarkdownPlaintext` are not yet available in this package.

@@ -13,6 +13,7 @@ pub mod interaction;
 pub mod layout;
 pub mod logging;
 pub mod palette;
+pub mod plaintext;
 pub mod preview;
 pub mod render_performance;
 pub mod resource_browser;

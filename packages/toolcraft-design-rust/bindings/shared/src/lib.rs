@@ -1,3 +1,5 @@
+mod plaintext;
+pub use plaintext::*;
 mod escape_terminal;
 pub use escape_terminal::*;
 mod static_render;

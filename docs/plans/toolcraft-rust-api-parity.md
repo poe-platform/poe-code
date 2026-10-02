@@ -3613,3 +3613,37 @@ reproduced SQLite private-build dependency repair 253b699e5e and packaging
 follow-up f912a37695. Rebase includes those changes; a later successful build
 must verify the combined state before treating the delivery as build-qualified.
 No new publication is claimed.
+
+### CLI variant-resolution checkpoint
+
+Rust now controls active variant selection, parent-branch admission, inactive
+branch diagnostics, selected-branch defaults and required scalar/dynamic fields.
+The adapter composes native field prompts, schema cloning and nested writes.
+Host for-of loops preserve iterator closing and await only actual prompt calls;
+own-property lookup retains the caller's live path.reduce behavior. No external
+dependencies or default implementation changed; full CLI execution remains open.
+
+Four missing-module failures preceded implementation. Nine final differential
+tests cover selectors, nested variants, defaults, custom Map/Set receivers,
+getter ordering, special property names, arbitrary prompt rejection, iterator
+closing, thenables, concurrent runs and synchronous-branch timing. Verification
+passes 263 native Node tests, Rust tests, 1,741 reference/parity cases across
+48 files, declarations, Rust/binding lint and scoped ESLint. Packed consumers
+exercise selection, cloned defaults and required prompts. Packed declaration
+checks still resolve contract types from the checkout, so standalone packaging
+is not qualified. Actual in-memory terminal comparison and the inspected
+screenshot match reference output, state and raw-mode transitions.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 selected-local-branch
+resolutions, retaining 32 results, measured native/reference medians of
+33.263/0.832 microseconds (40.00 times slower). The fixture uses a provided path,
+cloned JSON and dynamic defaults without prompting. No performance/default-swap
+gate passed. Presets, full parameter/handler execution, generated help,
+transports and platform/resource/standalone-packaging qualification remain.
+
+Field prompting is independently verified on remote main at da2a334da7. Its
+Release workflow 37074373451 completed successfully, including validate/build;
+release-stable was skipped. This verifies a later combined build after the
+earlier command-tree build failure; it does not establish that failure's exact
+cause or any new publication. Variant resolution is locally verified pending
+its atomic commit and remote delivery.

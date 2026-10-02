@@ -30,6 +30,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | CLI preparation | Native command/alias/default selection, short option clusters, help routing and dynamic flag normalization; prepared for CLI integration |
 | CLI command trees | Native scoped construction, hidden defaults, lazy field loading, global options and async action wiring through Commander; prepared for CLI integration |
 | CLI field prompts | Native enum/boolean/text routing, loaded choices, defaults, cancellation and result parsing with native design prompts; prepared for CLI integration |
+| CLI variants | Native active-branch selection, cloned defaults, required-field prompts and inactive-branch diagnostics; prepared for CLI integration |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Design           | `toolcraft-rust/design` and 72 flat helper paths backed by the native design package |
 | File changes     | `toolcraft-rust/file-changes`: native status summaries and unified diffs through standard renderers |

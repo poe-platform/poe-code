@@ -25,6 +25,7 @@ pub mod cli_prepare;
 pub mod cli_prompts;
 pub mod cli_snapshot;
 pub mod cli_values;
+pub mod cli_variants;
 pub mod definitions;
 pub mod error_report;
 mod host;

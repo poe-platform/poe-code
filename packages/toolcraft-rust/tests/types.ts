@@ -265,3 +265,10 @@ const promptOptions:{message:string}&cliPrompts.PromptStreams=cliPrompts.withPro
 // @ts-expect-error prompt stream options require a readable stream
 cliPrompts.withPromptStreams({message:"Value"},{input:17});
 void [promptedValue,promptLabel,promptOptions];
+
+import * as cliVariants from "../dist/cli-variants.js";
+const constrainedParams:Promise<void>=cliVariants.enforceVariantConstraints({},[],[],[],new Map<string,unknown>(),new Set<string>(),new Set<string>(),false,fieldErrors,{});
+const nestedFieldValue:unknown=cliVariants.getNestedValue({nested:{name:"value"}},["nested","name"]);
+// @ts-expect-error variant branch tracking uses string field IDs
+cliVariants.enforceVariantConstraints({},[],[],[],new Map<string,unknown>(),new Set<number>(),new Set<string>(),false,fieldErrors,{});
+void [constrainedParams,nestedFieldValue];

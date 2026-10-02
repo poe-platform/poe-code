@@ -28,7 +28,7 @@ Resolution is per ref. Project scope beats user scope; first hit wins.
 
 Import the asynchronous APIs from `@poe-code/agent-skill-config/runtime` in Workers without `nodejs_compat`. This entrypoint uses portable paths, Web cryptography, and the supplied filesystem.
 
-Use `resolveSkillReferenceAsync(ref, { fs, cwd, homeDir, signal? })` for a canonical safe-fs provider, including in-memory and restricted views. Read the resolved `SKILL.md` through the same provider. The synchronous `resolveSkillReference` API retains explicitly host-backed behavior.
+Use `resolveSkillReferenceAsync(ref, { fs, cwd, homeDir, signal? })` for a canonical safe-fs provider, including in-memory and restricted views. Read the resolved `SKILL.md` through the same provider. The main entrypoint also exports it as `resolveSkillReference`. Synchronous host compatibility is available from `@poe-code/agent-skill-config/node`.
 
 Bare `<name>`:
 
@@ -44,9 +44,9 @@ Per-agent skill directories come from `agentSkillConfigs` in `configs.ts`; resol
 
 ## Bridge Contract
 
-For injectable providers, use `bridgeActiveSkillsAsync(spawnAgentId, refs, runId, runtime)` and `cleanupBridgedSkillsAsync(manifest, runtime)`, where `runtime` has `{ fs, cwd, homeDir, signal? }`. Copies, ownership checks, cleanup, and Git exclude mutations use that provider without native Git or host filesystem fallback. Ownership is isolated by provider and cleanup preserves modified targets. The synchronous bridge APIs remain host-backed compatibility APIs.
+For injectable providers, use `bridgeActiveSkillsAsync(spawnAgentId, refs, runId, runtime)` and `cleanupBridgedSkillsAsync(manifest, runtime)`, where `runtime` has `{ fs, cwd, homeDir, signal? }`. Copies, ownership checks, cleanup, and Git exclude mutations use that provider without native Git or host filesystem fallback. Ownership is isolated by provider and cleanup preserves modified targets. The main entrypoint exports these asynchronous functions as `bridgeActiveSkills` and `cleanupBridgedSkills` too. Synchronous positional APIs remain available from `@poe-code/agent-skill-config/node`.
 
-At spawn time, `bridgeActiveSkills(spawnAgentId, cwd, refs, homeDir, runId)` resolves every ref, then copies each resolved source folder into the spawning agent's native local skill directory under `cwd`, keyed by source basename:
+At spawn time, `await bridgeActiveSkills(spawnAgentId, refs, runId, { fs, cwd, homeDir })` resolves every ref, then copies each resolved source folder into the spawning agent's native local skill directory under `cwd`, keyed by source basename:
 
 ```text
 <cwd>/<spawn-agent-local-skill-dir>/<source-basename>

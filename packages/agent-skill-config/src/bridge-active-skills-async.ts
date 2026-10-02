@@ -17,13 +17,14 @@ type OwnedTarget = {
   references: number;
   createdParents: string[];
 };
+type ManifestState = { fs: FileSystem; cleaned: boolean; blockId?: string; entries: BridgeEntry[] };
 const providers = new WeakMap<
   FileSystem,
-  { targets: Map<string, OwnedTarget>; queue: Promise<unknown> }
+  { targets: Map<string, OwnedTarget>; queue: Promise<unknown>; manifests: Map<string, ManifestState> }
 >();
 const manifests = new WeakMap<
   BridgeManifest,
-  { fs: FileSystem; cleaned: boolean; blockId?: string }
+  ManifestState
 >();
 const ownerFile = ".poe-code-bridge-owner";
 
@@ -34,7 +35,7 @@ async function exclusive<T>(
 ): Promise<T> {
   let state = providers.get(fs);
   if (!state) {
-    state = { targets: new Map(), queue: Promise.resolve() };
+    state = { targets: new Map(), queue: Promise.resolve(), manifests: new Map() };
     providers.set(fs, state);
   }
   const result = state.queue.then(() => action(state.targets));
@@ -144,13 +145,14 @@ export async function bridgeActiveSkillsAsync(
       if (resolution.kind !== "resolved")
         throw new Error(`Failed to resolve skill ${resolution.ref}: ${resolution.kind}`);
     const manifest: BridgeManifest = {
+      bridgeId: crypto.randomUUID(),
       spawnAgentId,
       cwd: options.cwd,
       runId,
       entries: [],
       warnings: []
     };
-    const state = { fs: options.fs, cleaned: false, blockId: undefined as string | undefined };
+    const state: ManifestState = { fs: options.fs, cleaned: false, entries: manifest.entries };
     manifests.set(manifest, state);
     const claimed = new Set<string>();
     try {
@@ -249,6 +251,7 @@ export async function bridgeActiveSkillsAsync(
         manifest.entries.map((entry) => path.relative(options.cwd, entry.targetPath))
       );
       if (state.blockId) manifest.excludeBlockId = state.blockId;
+      providers.get(options.fs)!.manifests.set(manifest.bridgeId!, state);
       return manifest;
     } catch (error) {
       await release(manifest.entries, targets, await operations({ ...options, signal: undefined }));
@@ -279,13 +282,15 @@ export async function cleanupBridgedSkillsAsync(
   manifest: BridgeManifest,
   options: SkillRuntimeOptions
 ): Promise<void> {
-  const state = manifests.get(manifest);
-  if (!state || state.fs !== options.fs)
+  const original = manifests.get(manifest);
+  if (original && original.fs !== options.fs)
     throw new Error("Bridge manifest filesystem conflicts with cleanup filesystem");
   await exclusive(options.fs, async (targets) => {
-    if (state.cleaned) return;
+    const state = original ?? (manifest.bridgeId ? providers.get(options.fs)!.manifests.get(manifest.bridgeId) : undefined);
+    if (!state || state.cleaned) return;
     if (state.blockId) await removeExcludeBlockAsync(options, state.blockId);
-    await release(manifest.entries, targets, await operations(options));
+    await release(state.entries, targets, await operations(options));
     state.cleaned = true;
+    if (manifest.bridgeId) providers.get(options.fs)!.manifests.delete(manifest.bridgeId);
   });
 }

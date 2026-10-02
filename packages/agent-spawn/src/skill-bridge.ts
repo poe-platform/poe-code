@@ -4,7 +4,7 @@ import {
   bridgeActiveSkills,
   cleanupBridgedSkills,
   type BridgeManifest
-} from "@poe-code/agent-skill-config";
+} from "@poe-code/agent-skill-config/node";
 import {
   bridgeHooks,
   cleanupBridgedHooks,

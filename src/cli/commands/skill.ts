@@ -14,7 +14,7 @@ import {
   resolveAgentSupport,
   type SkillResolutionFailure,
   type SkillScope
-} from "@poe-code/agent-skill-config";
+} from "@poe-code/agent-skill-config/node";
 import {
   announceAssumedScope,
   createExecutionResources,

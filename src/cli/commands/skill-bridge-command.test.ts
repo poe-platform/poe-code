@@ -8,8 +8,8 @@ const { resolveSkillReferenceMock } = vi.hoisted(() => {
 
 // resolveSkillReference walks the real filesystem, so the seam is mocked here:
 // its own resolution rules are covered by agent-skill-config's unit tests.
-vi.mock("@poe-code/agent-skill-config", async () => {
-  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/agent-skill-config");
+vi.mock("@poe-code/agent-skill-config/node", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("@poe-code/agent-skill-config/node");
   return {
     ...actual,
     resolveSkillReference: resolveSkillReferenceMock

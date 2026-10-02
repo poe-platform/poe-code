@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
 import path from "node:path";
-import { appendExcludeBlock, removeExcludeBlock } from "@poe-code/agent-skill-config";
+import { appendExcludeBlock, removeExcludeBlock } from "@poe-code/agent-skill-config/node";
 import {
   canTransform,
   formatSupportedTransformPairs,

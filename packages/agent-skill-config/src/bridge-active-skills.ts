@@ -34,6 +34,8 @@ export interface BridgeWarning {
 }
 
 export interface BridgeManifest {
+  /** Portable run ownership identity, preserved by JSON serialization. */
+  bridgeId?: string;
   spawnAgentId: string;
   cwd: string;
   runId: string;

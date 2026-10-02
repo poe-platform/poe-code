@@ -40,7 +40,7 @@ vi.mock("node:child_process", () => ({
   spawn: vi.fn()
 }));
 
-vi.mock("@poe-code/agent-skill-config", () => ({
+vi.mock("@poe-code/agent-skill-config/node", () => ({
   bridgeActiveSkills: skillBridgeMock.bridgeActiveSkills,
   cleanupBridgedSkills: skillBridgeMock.cleanupBridgedSkills
 }));

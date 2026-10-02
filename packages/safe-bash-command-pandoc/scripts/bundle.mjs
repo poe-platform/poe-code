@@ -27,7 +27,7 @@ await rm("dist/chunks", { recursive: true, force: true });
 await build({
   entryPoints: ["src/options.ts", "src/index.ts", "src/command.ts", "src/lua-filters.ts", "src/citeproc-filters.ts"], outdir: "dist",
   bundle: true, platform: "browser", format: "esm", target: "es2022",
-  external, splitting: true, chunkNames: "chunks/[name]-[hash]", sourcemap: true,
+  external, splitting: true, minify: true, chunkNames: "chunks/[name]-[hash]", sourcemap: true,
   define: { process: "undefined", "process.env.FENGARICONF": '"{}"' },
   plugins: [portableLuaLibraries],
   banner: { js: notices.map(notice => "/*!\n" + notice + "\n*/").join("\n") },

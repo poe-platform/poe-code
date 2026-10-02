@@ -14,7 +14,7 @@ interface RichRun extends DocxRunInput {
 }
 const attr = ["", [], []] as const;
 async function modelContext(ctx: AdapterContext): Promise<DocumentModelContext> {
-  const {DocumentBudget} = await import("docx");
+  const {DocumentBudget} = await import("docx/pandoc-adapter");
   const l = ctx.limits;
   const signal = ctx.signal ?? new AbortController().signal;
   return {signal, budget: new DocumentBudget({compressedInput: l.compressedBytes, expandedPackage: l.expandedBytes,
@@ -32,7 +32,7 @@ async function guarded<T>(ctx: AdapterContext, action: () => Promise<T>): Promis
 }
 export const docxReader: ReaderCapability = {format: "docx", async read(input, ctx) {
   return guarded(ctx, async () => {
-    const {Document: openDocument, Paragraph, Run} = await import("docx");
+    const {Document: openDocument, Paragraph, Run} = await import("docx/pandoc-adapter");
     const model = await openDocument(input.bytes, await modelContext(ctx));
     const paragraph = async (p: Paragraph): Promise<Block> => {
       const inlines: Inline[] = [];
@@ -162,7 +162,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       }
     };
     await visit(document.blocks, blocks);
-    const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor, Image} = await import("docx");
+    const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor, Image} = await import("docx/pandoc-adapter");
     const mc = await modelContext(ctx);
     const archiveContext = {signal: mc.signal!, budget: mc.budget!};
     const archive = await createDocumentArchive({content: {version: 1, blocks}}, archiveContext);

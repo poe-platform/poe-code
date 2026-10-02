@@ -3,7 +3,6 @@ import { sheetObjects, type ObjectNode } from "../objects/index.js";
 import { objectRectangle } from "../objects/layout.js";
 import { gnumericNumber } from "../codecs/gnumeric-number.js";
 import { formatA1, type CellRange, type Sheet, type ImportedValue, type UnsupportedRecord } from "../workbook.js";
-import { decodePng } from "@poe-code/pdf";
 import { encodeGraphImage } from "../rendering/images/index.js";
 
 const imageTargets = new Set(["image/png", "image/jpeg", "image/bmp", "image/svg+xml", "image/x-wmf", "image/x-emf"]);
@@ -91,6 +90,7 @@ export async function serializeClipboardObject(sheet: Sheet, target: string, ran
       if (!pixels || pixels > Math.floor(maximumWork / 16) || pixels > Math.floor(context.limits.outputBytes / 4))
         throw new SsconvertError("resource-limit", "ssconvert clipboard image raster work limit exceeded");
       let work = 0;
+      const { decodePng } = await import("@poe-code/pdf");
       const image = decodePng(bytes, amount => {
         context.signal.throwIfAborted();
         if (amount > maximumWork - work) throw new SsconvertError("resource-limit", "ssconvert clipboard image raster work limit exceeded");

@@ -115,6 +115,9 @@ export interface Element {
 }
 
 export class IndexedBinding {
+  _denseMul?: number;
+  _denseLim?: number;
+  _denseBytes?: number;
   readonly values = new Map<number, Element>();
   readonly keys = new Map<string, { index: number; text: OwnedText; admission: Admission }>();
   readonly keyByIndex = new Map<number, string>();

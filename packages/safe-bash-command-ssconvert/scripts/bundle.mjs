@@ -10,12 +10,13 @@ await build({
   entryNames: "[name]",
   chunkNames: "chunks/[name]-[hash]",
   splitting: true,
+  minify: true,
   bundle: true,
   platform: "browser",
   conditions: ["browser"],
   target: "es2022",
   format: "esm",
-  external: ["@poe-code/safe-fs", "poe-code/safe-fs", ...Object.keys(manifest.devDependencies ?? {})],
+  external: ["@poe-code/safe-fs", "poe-code/safe-fs", "@poe-code/pdf", "pdf-lib", "@pdf-lib/fontkit", "@poe-code/image-ast", "@poe-code/office-package", ...Object.keys(manifest.devDependencies ?? {})],
   sourcemap: true
 });
 

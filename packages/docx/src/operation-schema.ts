@@ -34,8 +34,6 @@ function freezeDeclaration(value: object): void {
   for (const child of Object.values(value)) if (child !== null && typeof child === "object") freezeDeclaration(child);
   Object.freeze(value);
 }
-Object.setPrototypeOf(operationDeclarations, null);
-freezeDeclaration(operationDeclarations);
 freezeDeclaration(docxCommonFields);
 freezeDeclaration(docxEnumSymbols);
 export const docxOperationSchemas = operationDeclarations;
@@ -124,14 +122,20 @@ export function splitDocxType(type: string, separator = "|"): string[] {
   result.push(type.slice(start).trim());
   return result;
 }
-const modelTypes = new Set<string>();
-for (const schema of Object.values(operationDeclarations)) {
-  if (schema.receiver) modelTypes.add(schema.receiver);
-  if (schema.resultHandle?.allowed) modelTypes.add(schema.resultHandle.type);
+let cachedModelTypes: Set<string> | undefined;
+function getModelTypes(): Set<string> {
+  if (!cachedModelTypes) {
+    cachedModelTypes = new Set<string>();
+    for (const schema of Object.values(operationDeclarations)) {
+      if (schema.receiver) cachedModelTypes.add(schema.receiver);
+      if (schema.resultHandle?.allowed) cachedModelTypes.add(schema.resultHandle.type);
+    }
+  }
+  return cachedModelTypes;
 }
 export function isDocxLiteralUnion(type: string): boolean {
   const variants = splitDocxType(type);
-  return variants.length > 1 && !type.includes(" | ") && variants.every(item => !item.includes(" ") && item !== "null" && !Object.hasOwn(docxEnumSymbols, item) && (!modelTypes.has(item) || ["string", "boolean", "integer", "number"].includes(item)));
+  return variants.length > 1 && !type.includes(" | ") && variants.every(item => !item.includes(" ") && item !== "null" && !Object.hasOwn(docxEnumSymbols, item) && (!getModelTypes().has(item) || ["string", "boolean", "integer", "number"].includes(item)));
 }
 
 function valid(type: string, value: unknown): boolean {
@@ -216,7 +220,7 @@ function valid(type: string, value: unknown): boolean {
     return closed(value, fields);
   }
   if (type === "ExpandedName") return closed(value, { namespaceURI: "string", localName: "identifier" }) && isXmlLocalName(value.localName as string);
-  if (modelTypes.has(type)) return receiver(value, type);
+  if (getModelTypes().has(type)) return receiver(value, type);
   return false;
 }
 

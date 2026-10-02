@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./pandoc-adapter": {
+      "types": "./dist/pandoc-adapter.d.ts",
+      "import": "./dist/pandoc-adapter.js"
     }
   },
   "files": [

@@ -1,6 +1,6 @@
 # mdq compatibility implementation
 
-Issue: hey-boss #1906. Oracle: yshavit/mdq v0.10.0, commit
+Oracle: yshavit/mdq v0.10.0, commit
 `c4eccd0e340ad32f966ee8675c093dabe1005ee0`.
 Linux x64 release archive SHA256:
 `de00a4dcbfb4cc2f59152b52ae774702343fdc82e6cd4f87a2a40c7be09935d7`.
@@ -51,7 +51,4 @@ Native executable is a development oracle only.
    checks, run Shell integration, maintained builds/lint/tests and packed SDK
    consumption, and inspect help/output screenshots.
 5. Record coverage, limitations, source revision and verified remote-main
-   delivery in hey-boss before closing. Release publication is separate.
-
-Temporary sources and oracle capture live in task-owned `out/issue-1906` because
-the machine does not permit creating a filesystem-root `/out` directory.
+   delivery before closing the implementation task. Release publication is separate.

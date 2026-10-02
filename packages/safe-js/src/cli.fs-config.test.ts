@@ -7,7 +7,8 @@ const sdk = vi.hoisted(() => ({
   parseFsConfig: vi.fn(),
   resolveFsConfig: vi.fn(),
   makeFsModule: vi.fn(),
-  readFile: vi.fn()
+  readFile: vi.fn(),
+  createNodeFileSystemAdapterRegistry: vi.fn()
 }));
 
 vi.mock("node:fs/promises", async () => {
@@ -22,9 +23,9 @@ vi.mock("./modules/fs-config.js", () => ({
   resolveFsConfig: sdk.resolveFsConfig
 }));
 
-vi.mock("@poe-code/safe-fs", () => {
-  throw new Error("CLI configuration tests must not load mutable filesystem adapters.");
-});
+vi.mock("@poe-code/safe-fs", () => ({
+  createNodeFileSystemAdapterRegistry: sdk.createNodeFileSystemAdapterRegistry
+}));
 
 const { runCli } = await import("./cli.js");
 
@@ -60,6 +61,7 @@ describe("SafeJS CLI filesystem configuration", () => {
   });
 
   afterEach(() => {
+    expect(sdk.createNodeFileSystemAdapterRegistry).not.toHaveBeenCalled();
     vol.reset();
     vi.restoreAllMocks();
   });

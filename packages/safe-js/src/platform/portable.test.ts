@@ -31,6 +31,39 @@ describe("portable host primitives", () => {
       expect(context.getStore()).toBeUndefined();
     });
   });
+  it("isolates captured continuations from contexts created after capture", () => {
+    const first = new StackContext<string>();
+    const resume = first.run("first", () => StackContext.snapshot());
+    const later = new StackContext<string>();
+    later.run("second", () => {
+      resume(() => {
+        expect(first.getStore()).toBe("first");
+        expect(later.getStore()).toBeUndefined();
+      });
+      expect(later.getStore()).toBe("second");
+      expect(first.getStore()).toBeUndefined();
+    });
+  });
+  it("keeps concurrent explicit continuations isolated across host awaits", async () => {
+    const context = new StackContext<string>();
+    const first = context.run("first", () => StackContext.snapshot());
+    const second = context.run("second", () => StackContext.snapshot());
+    await Promise.all([first, second].map(async (resume, index) => {
+      await Promise.resolve();
+      resume(() => expect(context.getStore()).toBe(index === 0 ? "first" : "second"));
+      expect(context.getStore()).toBeUndefined();
+    }));
+  });
+  it("restores later contexts after throws without reviving disabled contexts", () => {
+    const resume = StackContext.snapshot();
+    const later = new StackContext<string>();
+    later.run("later", () => {
+      expect(() => resume(() => { throw null; })).toThrow();
+      expect(later.getStore()).toBe("later");
+      resume(() => later.disable());
+      expect(later.getStore()).toBeUndefined();
+    });
+  });
   it("uses internal slots without invoking caller getters or coercion", () => {
     const fake = { get [Symbol.toStringTag]() { throw new Error("caller getter"); } };
     for (const check of [types.isDate, types.isRegExp, types.isArrayBuffer, types.isDataView,

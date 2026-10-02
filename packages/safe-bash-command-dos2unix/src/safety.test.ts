@@ -27,6 +27,15 @@ test('the command workspace owns synchronous line-ending registration', () => {
   assert.deepEqual(syncCommandEvaluators.evalSyncLineEndings!('dos2unix', Uint8Array.of(65, 13, 10), []), Uint8Array.of(65, 10));
 });
 
+for (const name of ['dos2unix', 'unix2dos'] as const) test(`${name}: mac conversion defers before synchronous file access`, () => {
+  for (const mode of [['-c', 'mac'], ['-cmac'], ['--convmode', 'mac'], ['--convmode=mac']]) {
+    assert.equal(evalSyncLineEndings(name, Uint8Array.of(65, 13, 10), mode), undefined);
+    assert.equal(evalSyncLineEndings(name, undefined, ['-q', ...mode, '/input'],
+      () => assert.fail('unsupported mode must defer before reading'),
+      () => assert.fail('unsupported mode must defer before writing')), undefined);
+  }
+});
+
 function deferred() {
   let resolve!: () => void;
   const promise = new Promise<void>(done => { resolve = done; });

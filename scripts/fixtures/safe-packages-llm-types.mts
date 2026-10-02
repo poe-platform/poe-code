@@ -1,6 +1,7 @@
 import { Shell, MemoryFileSystem, llmCommands, createLlmCommands, createOpenAiProvider, createElevenLabsProvider, type LlmCommandsOptions, type LlmProvider, type LlmRequest } from "@poe-platform/safe-bash";
 import { llmCommands as subpathPlugin, createLlmCommands as subpathCommands, createLlmService, type LlmService, type LlmStreamEvent, type LlmEmbeddingResponse, type LlmServiceRequest } from "@poe-platform/safe-bash/commands/llm";
 import { createOpenAiProvider as openAi, createElevenLabsProvider as elevenLabs, type OpenAiProviderOptions, type ElevenLabsProviderOptions, type LlmProviderLimits } from "@poe-platform/safe-bash/commands/llm/providers";
+import { createLlmUrlSource, getLlmAttachmentUrlId, type LlmInputSource, type LlmSourceAttachment } from "@poe-platform/safe-bash/commands/llm";
 
 const provider: LlmProvider = {
   name: "injected", models: [{ id: "text", aliases: ["short"] }],
@@ -14,6 +15,16 @@ const events: AsyncIterable<LlmStreamEvent> = service.stream({ ...request, messa
 const embeddings: Promise<LlmEmbeddingResponse> = service.embed({ inputs: ["one"], options: {}, signal: request.signal });
 const version: 1 = service.version;
 void [events, embeddings, version];
+const input: LlmInputSource = createLlmUrlSource({ url: "https://example.test/input", fetch: globalThis.fetch, signal: request.signal, maxBytes: 1024, admitBytes(bytes: number) { void bytes; } });
+const attachment: LlmSourceAttachment = { mimeType: "application/pdf", source: input, id: await getLlmAttachmentUrlId("https://example.test/input", request.signal) };
+if (service.streamSources) {
+  const streamed: AsyncIterable<LlmStreamEvent> = service.streamSources({ options: request.options, signal: request.signal, prompt: input, attachments: [attachment], messages: [{ role: "user", content: input }] });
+  void streamed;
+}
+if (service.embedSources) {
+  const streamedEmbedding: Promise<LlmEmbeddingResponse> = service.embedSources({ inputs: [input], binary: false, options: {}, signal: request.signal });
+  void streamedEmbedding;
+}
 const plugin: typeof llmCommands = subpathPlugin;
 const commands: typeof createLlmCommands = subpathCommands;
 const openAiFactory: typeof createOpenAiProvider = openAi;

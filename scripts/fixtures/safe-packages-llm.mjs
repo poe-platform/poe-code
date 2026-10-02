@@ -15,10 +15,11 @@ const assert = {
 import { CommandRegistry, commandRuntimeIdentity, getCommandArguments } from "@poe-platform/safe-bash/contracts/command";
 import { FsError } from "@poe-platform/safe-bash/contracts/errors";
 import { Shell, FsError as rootFsError, MemoryFileSystem, agentCommands, createLlmService as rootService, llmCommands as rootPlugin, createOpenAiProvider as rootOpenAi, createElevenLabsProvider as rootElevenLabs } from "@poe-platform/safe-bash";
-import { llmCommands, createLlmService, createLlmCommand } from "@poe-platform/safe-bash/commands/llm";
+import { llmCommands, createLlmService, createLlmCommand, createLlmUrlSource, getLlmAttachmentUrlId } from "@poe-platform/safe-bash/commands/llm";
 import { createOpenAiProvider, createElevenLabsProvider } from "@poe-platform/safe-bash/commands/llm/providers";
 
 export async function verifyLlmCommands() {
+  await verifyStreamedInputs();
   assert.equal(rootFsError, FsError);
   const commands = new CommandRegistry([{ name: "llm", execute: () => ({ exitCode: 7 }) }]);
   const host = { commands, use() {}, registerFileSystem() {} };
@@ -81,7 +82,8 @@ export async function verifyLlmCommands() {
     assert.equal(result.exitCode, 1);
     assert.equal(witnessed, true);
     assert.equal(result.stdout, "");
-    assert.match(result.stderr, /not valid for encoding utf-8/);
+    // TextDecoder's fatal decoding message differs between V8 and workerd.
+    assert.match(result.stderr, /not valid for encoding utf-8|Failed to decode input/);
   } finally { await boundary.dispose(); }
 
   const abort = new AbortController();
@@ -105,4 +107,87 @@ export async function verifyLlmCommands() {
     assert.equal(result.exitCode, 1);
     assert.match(result.stderr, /denied/);
   } finally { await failing.dispose(); }
+}
+
+async function verifyStreamedInputs() {
+  const signal = new AbortController().signal;
+  let disposed = 0, requests = 0;
+  const source = text => ({
+    bytes: { async *[Symbol.asyncIterator]() {
+      for (const byte of new TextEncoder().encode(text)) yield Uint8Array.of(byte);
+    } },
+    async dispose() { disposed++; },
+  });
+  const provider = createOpenAiProvider({
+    apiKey: "fixture", models: [
+      { id: "embedding", endpoint: "embeddings" },
+      { id: "chat", endpoint: "chat", attachmentTypes: ["audio/wav", "audio/mpeg", "application/pdf"] },
+    ],
+    async transport(request) {
+      requests++;
+      const decoder = new TextDecoder();
+      let text = "";
+      for await (const chunk of request.body) {
+        if (chunk.length > 16384) throw new Error("Unbounded provider input chunk");
+        text += decoder.decode(chunk, { stream: true });
+      }
+      const body = JSON.parse(text + decoder.decode());
+      if (body.model === "embedding") {
+        assert.equal(body.input[0], 'café 🦄\n"');
+      } else {
+        const parts = body.messages[0].content;
+        assert.equal(parts[1].input_audio.data, "YWJj");
+        assert.equal(parts[1].input_audio.format, "wav");
+        assert.equal(parts[2].input_audio.data, "YWJj");
+        assert.equal(parts[2].input_audio.format, "mp3");
+        assert.equal(parts[3].file.file_data, "data:application/pdf;base64,YWJj");
+        assert.equal(parts[3].file.filename, "5bea2091743e0b9949fa8d405bf621f4aeccb13a138dffe2835572a6ae6a84be.pdf");
+      }
+      return { status: 200, statusText: "OK", headers: [],
+        body: { async *[Symbol.asyncIterator]() { yield new TextEncoder().encode(body.model === "embedding"
+          ? '{"data":[{"index":0,"embedding":[1,2]}]}'
+          : '{"choices":[{"message":{"content":"received"}}]}'); } },
+        async dispose() {},
+      };
+    },
+  });
+  const service = createLlmService({ providers: [provider] });
+  const embedded = await service.embedSources({ model: "embedding", inputs: [source('café 🦄\n"')], options: {}, signal });
+  assert.equal(JSON.stringify(embedded.vectors), "[[1,2]]");
+  assert.equal(disposed, 1);
+  let downloads = 0, admitted = 0;
+  const url = "https://example.test/a";
+  const remote = createLlmUrlSource({ url, signal, maxBytes: 3,
+    admitBytes(bytes) { admitted += bytes; },
+    async fetch(input, init) {
+      downloads++;
+      assert.equal(input, url);
+      assert.equal(init.redirect, "manual");
+      return new Response("abc");
+    },
+  });
+  assert.equal(downloads, 0);
+  let output = "";
+  for await (const event of service.streamSources({ model: "chat", prompt: source("read"), stream: false, options: {}, signal,
+    attachments: [
+      { mimeType: "audio/wav", source: source("abc") },
+      { mimeType: "audio/mpeg", source: source("abc") },
+      { mimeType: "application/pdf", source: remote, id: await getLlmAttachmentUrlId(url, signal) },
+    ],
+  })) if (event.type === "text") output += event.text;
+  assert.equal(requests, 2);
+  assert.equal(disposed, 4);
+  assert.equal(downloads, 1);
+  assert.equal(admitted, 3);
+  assert.equal(output, "received");
+  const tooLarge = createLlmUrlSource({ url, signal, maxBytes: 2, async fetch() { return new Response("abc"); } });
+  try {
+    await assert.rejects((async () => { for await (const chunk of tooLarge.bytes) void chunk; })(), error => error.code === "EFBIG");
+  } finally { await tooLarge.dispose(); }
+  const abort = new AbortController();
+  const cancelled = createLlmUrlSource({ url, signal: abort.signal, async fetch() { throw new Error("Cancelled input must not fetch"); } });
+  abort.abort(new Error("installed cancellation"));
+  try {
+    await assert.rejects((async () => { for await (const chunk of cancelled.bytes) void chunk; })(), error => error === abort.signal.reason);
+  } finally { await cancelled.dispose(); }
 }

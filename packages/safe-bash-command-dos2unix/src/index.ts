@@ -5,6 +5,8 @@ import { Lifecycle, Reader, Writer } from "safe-bash-line-ending-engine/io";
 import { Files, Stage } from "safe-bash-line-ending-engine/stage";
 import { convert } from "safe-bash-line-ending-engine/convert";
 import { FileInformation } from "safe-bash-line-ending-engine/info";
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+import { evalSyncLineEndings } from "./sync.js";
 
 function definition(direction: Direction, options: LineEndingCommandsOptions): CommandDefinition {
   const limits = settings(options);
@@ -249,3 +251,4 @@ export type {
 } from "safe-bash-line-ending-engine";
 
 export * from "./sync.js";
+syncCommandEvaluators.evalSyncLineEndings = evalSyncLineEndings;

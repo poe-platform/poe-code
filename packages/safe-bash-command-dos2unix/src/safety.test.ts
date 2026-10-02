@@ -3,7 +3,13 @@ import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { toByteSource, type CommandContext, type FileSystem } from "safe-bash-contracts";
-import { createDos2unixCommand, createUnix2dosCommand, type LineEndingLimits } from "./index.js";
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+import { createDos2unixCommand, createUnix2dosCommand, evalSyncLineEndings, type LineEndingLimits } from "./index.js";
+
+test('the command workspace owns synchronous line-ending registration', () => {
+  assert.equal(syncCommandEvaluators.evalSyncLineEndings, evalSyncLineEndings);
+  assert.deepEqual(syncCommandEvaluators.evalSyncLineEndings!('dos2unix', Uint8Array.of(65, 13, 10), []), Uint8Array.of(65, 10));
+});
 
 function deferred() {
   let resolve!: () => void;

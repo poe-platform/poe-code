@@ -347,3 +347,9 @@ const htmlOwn: typeof design.renderHtml = null as unknown as typeof originalDesi
 const htmlOptionsOriginal: originalDesign.HtmlRenderOptions = null as unknown as design.HtmlRenderOptions;
 const htmlOptionsOwn: design.HtmlRenderOptions = null as unknown as originalDesign.HtmlRenderOptions;
 void [htmlOriginal,htmlOwn,htmlOptionsOriginal,htmlOptionsOwn];
+
+const renderOriginal: typeof originalDesign.render = design.render;
+const renderOwn: typeof design.render = null as unknown as typeof originalDesign.render;
+const renderOptionsOriginal: originalDesign.RenderOptions = null as unknown as design.RenderOptions;
+const renderOptionsOwn: design.RenderOptions = null as unknown as originalDesign.RenderOptions;
+void [renderOriginal,renderOwn,renderOptionsOriginal,renderOptionsOwn];

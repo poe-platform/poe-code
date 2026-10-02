@@ -770,6 +770,22 @@ bold/italic/struck text, accented code/links, image placeholders and footnotes.
 These helpers are internal; complete terminal block/table rendering and the
 public `render`/Markdown-string entry points still require implementation.
 
+Root terminal `render(ast, options)` and standalone `RenderOptions` are now
+available. Rust controls AST dispatch, width admission, heading/alert/code styles,
+list and block separation, grid/stacked table selection and alignment, frontmatter
+and expanding footnote output. The HTML frontmatter value/circular policy is
+shared internally. Host adapters preserve theme method receivers and lazy lookup,
+array species, numeric built-ins, property/coercion order and thrown identity.
+All 170 native tests, 237 currently routed reference tests, types, Rust/binding
+and scoped JS lint, and isolated packed runtime/declaration consumers pass.
+Forced-color wide/narrow screenshot fixtures are byte-equal to the original
+renderer and visually checked, including stacked tables, alerts, styled code and
+footnotes. Original code lines remain unwrapped, including when longer than the
+border. The original terminal Markdown suite still requires the unported parser
+and is not counted as routed. All three AST renderers are now present; parsing,
+Markdown string wrappers/subpaths, exotic text/intrinsic qualification and
+deep-recursion/resource/platform gates remain required.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

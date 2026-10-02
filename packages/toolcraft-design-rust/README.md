@@ -88,6 +88,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `escape-terminal-text` | Expose terminal controls and directional marks as visible Unicode escapes |
 | `renderPlaintext` | Turn a Markdown AST into readable text with announcements, table sentences and numbered footnotes |
 | `renderHtml` | Render a Markdown AST with escaped HTML, checked lists, aligned tables, footnotes and optional code highlighting |
+| `render` | Render a Markdown AST for terminals with styled blocks, width-aware wrapping, tables and code highlighting |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -355,8 +356,12 @@ for native code tokenization, `showFrontmatter: true` to include metadata, or
 `HtmlRenderOptions` is a standalone root type. Markdown string parsing and
 `renderMarkdownHtml` remain unavailable; this is an AST renderer checkpoint.
 
-Internal Markdown text helpers also prepare terminal rendering with grapheme-safe
-word splitting, formatter-preserving wrapping, whitespace/break tokens and HTML
-tag stripping. The complete terminal Markdown renderer is not yet exposed.
-Its internal inline collector handles nested styles, links, code, image
-placeholders and footnote numbering using the same wrapping helpers.
+`render(ast, options)` renders the AST for terminals with themed headings, nested
+styles, quotes, alerts, lists, tables, code blocks and numbered footnotes. Tables
+switch to stacked fields when they exceed the available width. Set `width` to a
+positive finite number, `syntaxHighlight: true` for code colors, and
+`showFrontmatter: true` to include metadata. Width defaults to the terminal width
+or the design-system fallback. The root exports standalone `RenderOptions`.
+Markdown string parsing and `renderMarkdown` remain unavailable. Exotic text
+objects, modified string intrinsics and deep-recursion/resource behavior still
+require qualification before this additive package can replace the original.

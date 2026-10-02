@@ -1,5 +1,6 @@
 import { createRequire } from "node:module";
 export {renderHtml} from "./html.js";
+export {render} from "./markdown-render.js";
 import { createTemplateEngine } from "./engine.js";
 export {color} from "./color.js";
 export { symbols } from "./symbols.js";

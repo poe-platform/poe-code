@@ -15,6 +15,8 @@ pub mod interaction;
 pub mod layout;
 pub mod logging;
 pub mod markdown_inline;
+pub mod markdown_render;
+mod markdown_table;
 pub mod markdown_text;
 pub mod palette;
 pub mod plaintext;

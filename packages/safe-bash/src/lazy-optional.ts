@@ -413,6 +413,19 @@ export const createQpdfCommands: qpdfModule["createQpdfCommands"] = (...args) =>
 };
 export type { QpdfCommandsOptions } from "./commands/qpdf/index.js";
 
+type qrencodeModule = typeof import("./commands/qrencode/index.js");
+const loadQrencode = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/qrencode/index.js"));
+const qrencodeMetadata = [{ name: "qrencode" }] as const;
+export const createQrencodeCommands: qrencodeModule["createQrencodeCommands"] = (options = {}) =>
+  createLazyCommands(qrencodeMetadata, async () => {
+    const module = await loadQrencode();
+    return () => module.createQrencodeCommands(options);
+  }, options);
+export const createQrencodeCommand: qrencodeModule["createQrencodeCommand"] = (options = {}) =>
+  createQrencodeCommands(options)[0]!;
+export const qrencodeCommands: qrencodeModule["qrencodeCommands"] = (options = {}) =>
+  lazyCommandPlugin("qrencode-commands", createQrencodeCommands(options), options.replace ?? false);
+
 type sipsModule = typeof import("./commands/sips/index.js");
 const loadsips = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/sips/index.js"));
 const sipsMetadata = [
@@ -650,6 +663,7 @@ export interface OptionalCommandConfiguration {
   readonly pdftoppm?: Parameters<pdftoppmModule["createPdftoppmCommands"]>[0];
   readonly pdftk?: Parameters<pdftkModule["createPdftkCommands"]>[0];
   readonly qpdf?: Parameters<qpdfModule["createQpdfCommands"]>[0];
+  readonly qrencode?: Parameters<qrencodeModule["createQrencodeCommands"]>[0];
   readonly sips?: Parameters<sipsModule["createSipsCommands"]>[0];
   readonly imagemagick?: Parameters<imagemagickModule["createImagemagickCommands"]>[0];
   readonly wkhtmltopdf?: Parameters<wkhtmltopdfModule["createWkhtmltopdfCommands"]>[0];
@@ -708,6 +722,10 @@ const optionalFamilies = {
   qpdf: {
     metadata: qpdfMetadata,
     create: (options: OptionalCommandConfiguration) => createQpdfCommands(options.qpdf)
+  },
+  qrencode: {
+    metadata: qrencodeMetadata,
+    create: (options: OptionalCommandConfiguration) => createQrencodeCommands(options.qrencode)
   },
   sips: {
     metadata: sipsMetadata,

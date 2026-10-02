@@ -207,3 +207,6 @@ export { touchCommands, createTouchCommand, createTouchCommands, type TouchComma
 export { unaliasCommands, createUnaliasCommand, createUnaliasCommands, type UnaliasCommandsOptions } from "./commands/unalias/index.js";
 export { unexpandCommands, createUnexpandCommand, createUnexpandCommands, type UnexpandCommandsOptions } from "./commands/unexpand/index.js";
 export { xqCommands, createXqCommand, createXqCommands, type XqCommandsOptions } from "./commands/xq/index.js";
+
+export { createQrencodeCommand, createQrencodeCommands, qrencodeCommands } from "./lazy-optional.js";
+export type { QrencodeLimits, QrencodeCommandOptions, QrencodeCommandsOptions } from "./commands/qrencode/index.js";

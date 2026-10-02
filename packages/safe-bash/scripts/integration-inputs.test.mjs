@@ -19,6 +19,11 @@ import * as typecheckInputs from "./typecheck-inputs.mjs";
 
 const owner = "fixture producer";
 
+test("QR pipeline regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/plugins/qrencode.test.ts"));
+});
+
 test("PDF command roundtrip regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/pdf-tools-integration.test.ts"));

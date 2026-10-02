@@ -1845,6 +1845,16 @@
             "safe-bash-contracts": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-qrencode": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/image-ast": "*",
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3012,6 +3022,12 @@
       "workerd": "./dist/commands/pdfseparate/index.js",
       "browser": "./dist/commands/pdfseparate/index.js",
       "import": "./dist/commands/pdfseparate/index.js"
+    },
+    "./commands/qrencode": {
+      "types": "./dist/commands/qrencode/index.d.ts",
+      "workerd": "./dist/commands/qrencode/index.js",
+      "browser": "./dist/commands/qrencode/index.js",
+      "import": "./dist/commands/qrencode/index.js"
     }
   },
   "sideEffects": [
@@ -3251,7 +3267,8 @@
     "safe-bash-pager-engine": "*",
     "safe-bash-command-more": "*",
     "safe-bash-command-pdfunite": "*",
-    "safe-bash-command-pdfseparate": "*"
+    "safe-bash-command-pdfseparate": "*",
+    "safe-bash-command-qrencode": "*"
   },
   "main": "./dist/index.js",
   "imports": {

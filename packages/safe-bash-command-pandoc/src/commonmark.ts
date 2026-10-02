@@ -1,5 +1,24 @@
+import { parseDocument } from "yaml";
 import { filterGfmHtml } from "./gfm-syntax.js";
-import type { Block, Row, Inline } from "./ast-types.js";
+import type { Block, Row, Inline, MetaValue } from "./ast-types.js";
+function toMetaValue(val: unknown): MetaValue | undefined {
+  if (typeof val === "string") return { t: "MetaString", c: val };
+  if (typeof val === "number") return { t: "MetaString", c: String(val) };
+  if (typeof val === "boolean") return { t: "MetaBool", c: val };
+  if (Array.isArray(val)) {
+    const items = val.map(toMetaValue).filter((x): x is MetaValue => x !== undefined);
+    return { t: "MetaList", c: items };
+  }
+  if (val && typeof val === "object") {
+    const map: Record<string, MetaValue> = {};
+    for (const [k, v] of Object.entries(val)) {
+      const mv = toMetaValue(v);
+      if (mv !== undefined) map[k] = mv;
+    }
+    return { t: "MetaMap", c: map };
+  }
+  return undefined;
+}
 import type { ReaderCapability } from "./types.js";
 import { parseCommonMarkBlocks, type PendingBlock } from "./commonmark-blocks.js";
 import { parseCommonMarkInlines } from "./commonmark-inlines.js";
@@ -7,7 +26,25 @@ import { decodeSyntax } from "./commonmark-syntax.js";
 
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {
   const extensions = selection?.extensions ?? {};
-  const text = input.text ?? await context.decodeUtf8([input.bytes]);
+  const rawText = input.text ?? await context.decodeUtf8([input.bytes]);
+  const metadata: Record<string, MetaValue> = {};
+  let text = rawText;
+  const fmMatch = /^---[ \t]*\r?\n((?:[A-Za-z_][A-Za-z0-9_-]*[ \t]*:[^\r\n]*\r?\n|[ \t]+[^\r\n]*\r?\n)+)(?:---|\.\.\.)[ \t]*\r?\n(?=\s*\S)/.exec(rawText);
+  if (fmMatch) {
+    try {
+      const doc = parseDocument(fmMatch[1]!);
+      if (doc.errors.length === 0) {
+        const jsVal = doc.toJS({ maxAliasCount: 32 });
+        if (jsVal && typeof jsVal === "object" && !Array.isArray(jsVal)) {
+          for (const [k, v] of Object.entries(jsVal as Record<string, unknown>)) {
+            const mv = toMetaValue(v);
+            if (mv !== undefined) metadata[k] = mv;
+          }
+          text = rawText.slice(fmMatch[0].length);
+        }
+      }
+    } catch {}
+  }
   const pending = await parseCommonMarkBlocks(text, context, input.base, extensions);
   async function assemble(blocks: readonly PendingBlock[], depth: number, tight = false): Promise<Block[]> {
     context.bound("depth", depth);
@@ -62,7 +99,7 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
     }
     return result;
   }
-  return { blocks: await assemble(pending.blocks, 1), metadata: {}, resources: [] };
+  return { blocks: await assemble(pending.blocks, 1), metadata, resources: [] };
 };
 
 export const commonmarkReader: ReaderCapability = { format: "commonmark", read: readCommonMark };

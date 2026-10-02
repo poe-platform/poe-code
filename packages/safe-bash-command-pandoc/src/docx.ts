@@ -104,7 +104,15 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           else if (node.t === "LineBreak") text = "\n";
           else if (node.t === "Code") text = node.c[1];
           else throw new PandocError("E_UNSUPPORTED_FEATURE", "write", `Unsupported DOCX inline: ${node.t}`, "docx");
-          result.push({...style, text, ...(node.t === "Code" ? {code: true} : {})});
+          const next: RichRun = {...style, text, ...(node.t === "Code" ? {code: true} : {})};
+          const prev = result.at(-1);
+          if (prev && !prev.image && !next.image && !prev.code && !next.code && prev.text !== "\n" && next.text !== "\n" &&
+              prev.bold === next.bold && prev.italic === next.italic && prev.underline === next.underline &&
+              prev.strike === next.strike && prev.baseline === next.baseline && prev.link === next.link) {
+            result[result.length - 1] = {...prev, text: prev.text + next.text};
+          } else {
+            result.push(next);
+          }
         }
       }
       return result;

@@ -65,3 +65,36 @@ it.each([{flags: ["-L", "uppercase.lua"]}, {flags: ["--lua-filter=uppercase.lua"
   expect(result.exitCode).toBe(0);
   expect(text).toBe("<p>HELLO</p>\n");
 });
+
+it("supports pandoc.walk_inline, pandoc.walk_block, and YAML frontmatter", async () => {
+  const md = "---\ntitle: Release Report\nversion: 1.0.0\n---\n\n## Release configuration\n\nBody text.\n";
+  const lua = `
+function Header(el)
+  if el.level == 2 then
+    el.content = pandoc.walk_inline(pandoc.Span(el.content), {
+      Str = function(text)
+        text.text = string.upper(text.text)
+        return text
+      end
+    }).content
+  end
+  return el
+end
+`;
+  const htmlResult = await convert([{ bytes: encoder.encode(md) }], { from: "markdown", to: "html", standalone: true, filters: [{ kind: "lua", path: "upper.lua" }] }, {
+    filters: createLuaFilterCapability(async () => encoder.encode(lua))
+  });
+  expect(htmlResult.kind).toBe("text");
+  if (htmlResult.kind === "text") {
+    expect(htmlResult.text).toContain("<title>Release Report</title>");
+    expect(htmlResult.text).toContain("<h2 id=\"release-configuration\">RELEASE CONFIGURATION</h2>");
+    expect(htmlResult.text).not.toContain("<hr>");
+  }
+  const rstResult = await convert([{ bytes: encoder.encode(md) }], { from: "markdown", to: "rst", standalone: true, filters: [{ kind: "lua", path: "upper.lua" }] }, {
+    filters: createLuaFilterCapability(async () => encoder.encode(lua))
+  });
+  expect(rstResult.kind).toBe("text");
+  if (rstResult.kind === "text") {
+    expect(rstResult.text).toContain("RELEASE CONFIGURATION");
+  }
+});

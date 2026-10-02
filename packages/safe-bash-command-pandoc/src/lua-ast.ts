@@ -2,7 +2,7 @@
 export const luaAst = `
 local check_depth = __pandoc_depth
 local ast_error = __pandoc_ast_error
-local list_mt = {__index = {insert = table.insert, remove = table.remove, extend = function(self, other) for _, x in ipairs(other) do table.insert(self, x) end end}}
+local list_mt = {__index = {insert = table.insert, remove = table.remove, extend = function(self, other) for _, x in ipairs(other) do table.insert(self, x) end end, walk = function(self, filter) return pandoc.walk_block(self, filter) end}}
 local function list(xs) return setmetatable(xs or {}, list_mt) end
 local function is_attr(value)
   if type(value) ~= "table" or #value ~= 3 or type(value[1]) ~= "string" or type(value[2]) ~= "table" or type(value[3]) ~= "table" then return false end
@@ -63,6 +63,7 @@ local element_mt = {__index = function(el, key)
   if key == "classes" then return el.attr and el.attr[2] end
   if key == "attributes" then return el.attr and el.attr[3] end
   if key == "t" then return el.tag end
+  if key == "walk" then return function(self, filter) return pandoc.walk_block(self, filter) end end
 end, __newindex = function(el, key, value)
   if key == "identifier" then el.attr[1] = value
   elseif key == "classes" then el.attr[2] = value
@@ -148,6 +149,48 @@ local function apply_callback(callback, value)
   if type(result) ~= "table" then ast_error() end
   return result
 end
+local function walk_with_filter(root_value, filter, root_kind)
+  assert(type(filter) == "table", "Lua walk filter must be a table")
+  local value = copy(root_value)
+  for _, phase in ipairs({"Inline", "Inlines", "Block", "Blocks"}) do
+    local walk
+    walk = function(cur, kind, depth)
+      depth = depth or 0; check_depth(depth)
+      if type(cur) ~= "table" then return cur end
+      if cur.tag then
+        local tag = cur.tag
+        for _, field in ipairs(schemas[tag] or {}) do
+          if field ~= "attr" then
+            local listkind
+            if field == "caption" and tag == "Image" or field == "content" and (inline[tag] and tag ~= "Note" or tag == "Plain" or tag == "Para" or tag == "Header" or tag == "MetaInlines") then listkind = "Inlines"
+            elseif field == "content" and (tag == "Note" or tag == "Div" or tag == "BlockQuote" or tag == "MetaBlocks" or tag == "Figure") then listkind = "Blocks" end
+            cur[field] = walk(cur[field], listkind, depth + 1)
+          end
+        end
+        if phase == "Inline" and inline[tag] or phase == "Block" and block[tag] then
+          return apply_callback(filter[tag] or filter[phase], cur)
+        end
+        return cur
+      end
+      local result = list({})
+      for key, child in pairs(cur) do
+        local replacement = walk(child, nil, depth + 1)
+        if type(key) == "number" and type(child) == "table" and child.tag and (inline[child.tag] or block[child.tag]) and not replacement.tag then
+          for _, item in ipairs(replacement) do result[#result+1] = item end
+        elseif type(key) == "number" then result[#result+1] = replacement
+        else result[key] = replacement end
+      end
+      if not kind and #cur > 0 and type(cur[1]) == "table" then
+        if inline[cur[1].tag] then kind = "Inlines" elseif block[cur[1].tag] then kind = "Blocks" end
+      end
+      return apply_callback(kind == phase and filter[kind] or nil, result)
+    end
+    value = walk(value, root_kind)
+  end
+  return value
+end
+pandoc.walk_inline = function(el, filter) return walk_with_filter(el, filter) end
+pandoc.walk_block = function(el, filter) return walk_with_filter(el, filter) end
 function __pandoc_run(ast, filters)
   local doc = {blocks=decode(ast.blocks), meta=decode(ast.meta)}
   for _, filter in ipairs(filters) do

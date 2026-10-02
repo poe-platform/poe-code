@@ -101,3 +101,14 @@ it("splits DOCX text runs into literal words, spaces and line breaks", async () 
   if(result.kind !== "text") throw new Error("Expected JSON");
   expect(JSON.parse(result.text).blocks).toEqual([{t: "Para", c: [{t: "Emph", c: [str("two"), {t: "Space"}, {t: "Space"}, str("words"), {t: "LineBreak"}, str("next"), {t: "Space"}, str("*literal*")]}]}]);
 });
+
+it("coalesces adjacent plain Str and Space inlines into contiguous DOCX text runs", async () => {
+  const md = "## RELEASE CONFIGURATION\n\nHello world paragraph.\n";
+  const result = await convert([{ bytes: new TextEncoder().encode(md) }], { from: "markdown", to: "docx" }, context);
+  expect(result.kind).toBe("binary");
+  if (result.kind !== "binary") throw new Error("Expected binary");
+  const parts = readZipArchiveEntries(result.bytes);
+  const docXml = new TextDecoder().decode(parts.get("word/document.xml"));
+  expect(docXml).toContain("RELEASE CONFIGURATION");
+  expect(docXml).toContain("Hello world paragraph.");
+});

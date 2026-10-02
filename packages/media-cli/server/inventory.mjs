@@ -8,7 +8,7 @@ import {grammarRevision,nativeReference}from'./options.generated.js';
 import {imageMagickGrammarRevision,imageMagickReference}from'./imagemagick.generated.js';
 const imageDigest=process.env.REMOTE_MEDIA_IMAGE_DIGEST;if(!imageDigest?.startsWith('sha256:'))throw new Error('Container identity must come from the authenticated runtime owner');
 const lock=JSON.parse(await readFile('/app/container-lock.json','utf8'));
-await verifyMediaExecutableAssets({executablePaths:lock.executablePaths,expectedExecutableDigests:lock.executables,maxExecutableBytes:lock.maxExecutableBytes});
+await verifyMediaExecutableAssets({executablePaths:lock.executablePaths,expectedExecutableDigests:lock.executables,maxExecutableBytes:lock.maxExecutableBytes,open:createReadStream});
 async function fileDigest(path){const hash=createHash('sha256');for await(const chunk of createReadStream(path))hash.update(chunk);return hash.digest('hex');}
 const files=[];async function walk(path){let stat;try{stat=await lstat(path);}catch(error){if(error.code==='ENOENT')return;throw error;}
  if(files.length>=100000)throw new Error('Native asset inventory exceeds file count bound');
@@ -41,5 +41,5 @@ const inventoryInput={
  files,records,maxFiles:100000,maxRecordBytes:16777216,
 };
 const receipt=createMediaBuildReceipt(inventoryInput);
-await verifyMediaDeploymentAssets({build:receipt.build,inventory:inventoryInput,maxAssetBytes:lock.maxExecutableBytes});
+await verifyMediaDeploymentAssets({build:receipt.build,inventory:inventoryInput,maxAssetBytes:lock.maxExecutableBytes,assets:{open:createReadStream,readlink,type:async path=>{const stat=await lstat(path);return stat.isSymbolicLink()?'symlink':stat.isFile()?'file':'other';}}});
 console.log(JSON.stringify(receipt,null,2));

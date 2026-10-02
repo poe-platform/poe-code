@@ -1,7 +1,6 @@
-import {createHash} from 'node:crypto';
-import {createReadStream} from 'node:fs';
-import {lstat, readlink} from 'node:fs/promises';
-import {isDeepStrictEqual} from 'node:util';
+import {digestAsset} from './asset-digest.js';
+import type {FileSystem} from '@poe-code/safe-fs/core';
+import {equalInventory} from './inventory-equality.js';
 import type {Build} from '@poe-code/remote-execution/wire';
 import {createMediaBuildReceipt, type MediaBuildReceiptInput} from './build-receipt.js';
 
@@ -14,6 +13,7 @@ export interface MediaDeploymentAssetStorage {
  * This does not qualify native mediation or authenticate the container runtime. */
 export async function verifyMediaDeploymentAssets(input:{
  build:Build; inventory:MediaBuildReceiptInput; maxAssetBytes:number;
+ fs?:FileSystem;
  assets?:Partial<MediaDeploymentAssetStorage>;
 }):Promise<void> {
  const maxAssetBytes=input.maxAssetBytes;
@@ -22,24 +22,21 @@ export async function verifyMediaDeploymentAssets(input:{
  // Receipt construction admits the complete metadata budget before retaining a
  // snapshot. Compare every build field, including raw inventories and policy.
  const receipt=createMediaBuildReceipt(input.inventory);
- if(!isDeepStrictEqual(receipt.build,input.build))throw new TypeError('Build inventory mismatch');
+ if(!equalInventory(receipt.build,input.build))throw new TypeError('Build inventory mismatch');
  const storage=input.assets;
- const open=storage?.open?.bind(storage)??createReadStream;
- const kind=storage?.type?.bind(storage)??(async(path:string)=>{const stat=await lstat(path);return stat.isSymbolicLink()?'symlink':stat.isFile()?'file':'other';});
- const link=storage?.readlink?.bind(storage)??readlink;
+ const fs=input.fs;
+ const open=storage?.open?.bind(storage)??fs?.readStream?.bind(fs);
+ const stat=fs?.lstat.bind(fs);
+ const kind=storage?.type?.bind(storage)??(stat?async(path:string)=>(await stat(path)).type:undefined);
+ const link=storage?.readlink?.bind(storage)??fs?.readlink?.bind(fs);
+ if(!open||!kind)throw new TypeError('Streaming asset filesystem required');
  for(const file of receipt.fileDigests) {
   if(await kind(file.path)!==file.type)throw new TypeError('Asset type mismatch: '+file.path);
   if(file.type==='symlink') {
+   if(!link)throw new TypeError('Asset filesystem readlink required');
    if(await link(file.path)!==file.target)throw new TypeError('Asset symlink mismatch: '+file.path);
   } else {
-   const hash=createHash('sha256');let size=0;
-   for await(const bytes of open(file.path)) {
-    if(!(bytes instanceof Uint8Array))throw new TypeError('Asset byte bound: '+file.path);
-    const length=Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype),'byteLength')!.get!.call(bytes) as number;
-    if(length>maxAssetBytes-size)throw new TypeError('Asset byte bound: '+file.path);
-    size+=length;hash.update(bytes);
-   }
-   if(hash.digest('hex')!==file.sha256)throw new TypeError('Asset digest mismatch: '+file.path);
+   if(await digestAsset(open(file.path),maxAssetBytes,'Asset byte bound: '+file.path)!==file.sha256)throw new TypeError('Asset digest mismatch: '+file.path);
   }
  }
 }

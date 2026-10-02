@@ -1,3 +1,4 @@
+import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {createHash} from 'node:crypto';
 import {Volume, createFsFromVolume} from 'memfs';
 import {expect, it, vi} from 'vitest';
@@ -70,4 +71,30 @@ it('retains the storage receiver and selected methods across asynchronous verifi
  await expect(verifyMediaDeploymentAssets({...f,assets})).resolves.toBeUndefined();
  expect(replacement).not.toHaveBeenCalled();
  expect(original.readlink).toHaveBeenCalledWith('/assets/library');
+});
+
+it('verifies injected safe-fs files and symlinks without Node globals',async()=>{
+ const f=fixture();const fs=new MemoryFileSystem();
+ await fs.mkdir('/assets',{recursive:true});
+ for(const file of f.inventory.files){
+  if(file.type==='file')await fs.writeFile(file.path,new Uint8Array(f.volume.readFileSync(file.path) as Uint8Array));
+  else await fs.symlink(file.target!,file.path);
+ }
+ vi.stubGlobal('Buffer',undefined);
+ try {await verifyMediaDeploymentAssets({...f,assets:undefined,fs});}
+ finally {vi.unstubAllGlobals();}
+});
+
+it('hashes intrinsic asset bytes despite overridden typed-array properties',async()=>{
+ const f=fixture();const open=f.assets.open.getMockImplementation()!;
+ const poisoned=vi.fn(()=>{throw new Error('Overridden byte view accessed');});
+ f.assets.open.mockImplementation(async function*(path:string){
+  for await(const chunk of open(path)){
+   const bytes=new Uint8Array(chunk);
+   for(const key of ['length','byteOffset','buffer','subarray'])Object.defineProperty(bytes,key,{get:poisoned});
+   yield bytes;
+  }
+ } as never);
+ await verifyMediaDeploymentAssets(f);
+ expect(poisoned).not.toHaveBeenCalled();
 });

@@ -1,6 +1,5 @@
 /** Operator-only executable owner, never imported by the local virtual CLI. */
-import {isAbsolute} from 'node:path';
-import {pathToFileURL} from 'node:url';
+import {isAbsolutePath} from '@poe-code/safe-fs/core';
 import {startMediaService, type MediaServiceOptions} from '@poe-code/remote-execution/server';
 import {createMediaDeployment, type MediaDeploymentOptions} from './server.js';
 
@@ -16,8 +15,8 @@ export async function runMediaServer(args: readonly string[], dependencies: {
 } = {}): Promise<{close(): Promise<void>}> {
   if (!Array.isArray(args) || args.length !== 1 || !Object.hasOwn(args, 0)) throw new TypeError('One absolute operator configuration module is required');
   const path = args[0];
-  if (typeof path !== 'string' || !isAbsolute(path) || path.includes('\0')) throw new TypeError('One absolute operator configuration module is required');
-  const load = dependencies.load ?? (async path => import(pathToFileURL(path).href));
+  if (typeof path !== 'string' || !isAbsolutePath(path) || path.includes('\0')) throw new TypeError('One absolute operator configuration module is required');
+  const load = dependencies.load ?? (async path => import('file://'+path.split('/').map(part=>encodeURIComponent(part)).join('/')));
   const signals = dependencies.signals ?? process;
   const report = dependencies.reportError ?? (() => {
     process.exitCode = 1;

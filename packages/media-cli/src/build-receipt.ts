@@ -1,6 +1,7 @@
-/** Node-only build capture. An inventory receipt is evidence of bytes/configuration,
+/** Portable build capture. An inventory receipt is evidence of bytes/configuration,
  * not evidence that the native bridge or frontend compatibility is qualified. */
-import {createHash} from 'node:crypto';
+import {sha256} from '@noble/hashes/sha2.js';
+import {bytesToHex} from '@noble/hashes/utils.js';
 import type {Build, FrontendContract, Outcome} from '@poe-code/remote-execution/wire';
 import {validateWire} from '@poe-code/remote-execution/protocol';
 export interface MediaAssetDigest {
@@ -27,7 +28,12 @@ function canonical(value:unknown):string {
   if(value && typeof value==='object')return '{'+Object.keys(value).sort().map(key=>JSON.stringify(key)+':'+canonical((value as Record<string,unknown>)[key])).join(',')+'}';
   return JSON.stringify(value);
 }
-function digest(value:unknown):string {return createHash('sha256').update(canonical(value)).digest('hex');}
+function digest(value:unknown):string {return bytesToHex(sha256(new TextEncoder().encode(canonical(value))));}
+function comparePaths(a:string,b:string):number {
+  const left=new TextEncoder().encode(a),right=new TextEncoder().encode(b);
+  for(let i=0;i<Math.min(left.length,right.length);i++)if(left[i]!==right[i])return left[i]-right[i];
+  return left.length-right.length;
+}
 function validDigest(value:unknown):value is string {return typeof value==='string' && value.length===64 && Array.from(value).every(c=>'0123456789abcdef'.includes(c));}
 function losslessText(value:unknown):value is string {
   if(typeof value!=='string')return false;
@@ -69,7 +75,7 @@ export function createMediaBuildReceipt(input:MediaBuildReceiptInput) {
     if(!losslessText(file.path)||!file.path.startsWith('/')||file.path.includes('\0')||file.path.slice(1).split('/').some(part=>!part||part==='.'||part==='..')||
       (file.type==='file' ? !validDigest(file.sha256)||Object.hasOwn(file,'target') : file.type==='symlink' ? !losslessText(file.target)||!file.target||file.target.includes('\0')||Object.hasOwn(file,'sha256') : true)||
       Object.keys(file).some(key=>!['path','type','sha256','target'].includes(key)))throw new TypeError('Invalid asset identity');
-    recordBytes+=Buffer.byteLength(canonical(file));if(recordBytes>input.maxRecordBytes)throw new TypeError('Inventory asset record byte bound');
+    recordBytes+=new TextEncoder().encode(canonical(file)).byteLength;if(recordBytes>input.maxRecordBytes)throw new TypeError('Inventory asset record byte bound');
     if(paths.has(file.path))throw new TypeError('Duplicate asset path');paths.add(file.path);
   }
   // Check text lengths before encoding or cloning the inventory. UTF-8 can only
@@ -81,9 +87,9 @@ export function createMediaBuildReceipt(input:MediaBuildReceiptInput) {
     let textBytes=record.stdout.length+record.stderr.length+record.query.executable.length;
     for(const arg of record.query.args){if(!losslessText(arg)||arg.includes('\0'))throw new TypeError('Invalid inventory query argv');textBytes+=arg.length;if(textBytes>input.maxRecordBytes-recordBytes)throw new TypeError('Inventory record byte bound');}
     validateWire('Outcome',record.outcome);
-    recordBytes+=Buffer.byteLength(canonical(record));if(recordBytes>input.maxRecordBytes)throw new TypeError('Inventory record byte bound');
+    recordBytes+=new TextEncoder().encode(canonical(record)).byteLength;if(recordBytes>input.maxRecordBytes)throw new TypeError('Inventory record byte bound');
   }
-  const files=admittedFiles.sort((a,b)=>Buffer.compare(Buffer.from(a.path),Buffer.from(b.path)));
+  const files=admittedFiles.sort((a,b)=>comparePaths(a.path,b.path));
   const executables:Record<string,string>={};
   for(const [name,path] of Object.entries(input.executablePaths)){
     const file=files.find(file=>file.path===path && file.type==='file');const expected=input.expectedExecutableDigests[name];

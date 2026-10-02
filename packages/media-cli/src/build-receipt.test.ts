@@ -1,4 +1,5 @@
-import {expect, it} from 'vitest';
+import {expect, it, vi} from 'vitest';
+import {createHash} from 'node:crypto';
 import {createMediaBuildReceipt} from './build-receipt.js';
 const hash = 'a'.repeat(64);
 it('pins admitted asset slots rather than an operator-supplied iterator',()=>{
@@ -131,4 +132,28 @@ it('rejects extra inventory queries and oversized argv before inspecting their c
  const args=new Array(value.maxRecordBytes+1).fill('');
  Object.defineProperty(args,0,{get(){throw new Error('argv contents accessed before admission');}});
  expect(()=>createMediaBuildReceipt({...value,records:{...value.records,codecs:{...query,query:{...query.query,args}}}})).toThrow('Inventory query argv bound');
+});
+
+it('creates identical receipts without the Node Buffer global, including UTF-8 path ordering',()=>{
+ const value=input();
+ value.files.push(...['/assets/\u{10000}', '/assets/\ue000'].map(path=>({path,type:'file' as const,sha256:hash})));
+ const expected=createMediaBuildReceipt(value);
+ expect(expected.fileDigests.slice(-2).map(file=>file.path)).toEqual(['/assets/\ue000','/assets/\u{10000}']);
+ vi.stubGlobal('Buffer',undefined);
+ try {expect(createMediaBuildReceipt(value)).toEqual(expected);}
+ finally {vi.unstubAllGlobals();}
+});
+
+it('preserves the canonical SHA-256 inventory and build digest format',()=>{
+ const receipt=createMediaBuildReceipt(input());
+ function canonical(value:unknown):string {
+  if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';
+  if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(key=>JSON.stringify(key)+':'+canonical(Reflect.get(value,key))).join(',')+'}';
+  return JSON.stringify(value);
+ }
+ const hash=(value:unknown)=>createHash('sha256').update(canonical(value)).digest('hex');
+ expect(receipt.build.assetsDigest).toBe(hash(receipt.fileDigests));
+ expect(receipt.build.inventoryDigest).toBe(hash(receipt.inventoryRecords));
+ const {digest,...identity}=receipt.build;
+ expect(digest).toBe(hash(identity));
 });

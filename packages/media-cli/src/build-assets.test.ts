@@ -1,3 +1,4 @@
+import {MemoryFileSystem} from '@poe-code/safe-fs/core';
 import {Volume, createFsFromVolume} from 'memfs';
 import {createHash} from 'node:crypto';
 import {expect, it, vi} from 'vitest';
@@ -53,4 +54,22 @@ it('retains the executable storage receiver and method through verification',asy
  await expect(verifyMediaExecutableAssets(storage)).resolves.toBeUndefined();
  expect(replacement).not.toHaveBeenCalled();
  expect(selected.mock.calls.map(([path])=>path)).toEqual(['/assets/ffmpeg','/assets/magick']);
+});
+
+it('verifies injected safe-fs streams without Node globals',async()=>{
+ const fs=new MemoryFileSystem();
+ const bytes=new TextEncoder().encode('portable executable');
+ await fs.writeFile('/tool',bytes);
+ const expected=createHash('sha256').update(bytes).digest('hex');
+ vi.stubGlobal('Buffer',undefined);
+ try {await verifyMediaExecutableAssets({executablePaths:{tool:'/tool'},expectedExecutableDigests:{tool:expected},maxExecutableBytes:bytes.length,fs});}
+ finally {vi.unstubAllGlobals();}
+});
+
+it('hashes the intrinsic byte span despite overridden typed-array properties',async()=>{
+ const bytes=new Uint8Array([0,97,98,99,0]).subarray(1,4);
+ const poisoned=vi.fn(()=>{throw new Error('Overridden byte view accessed');});
+ for(const key of ['length','byteOffset','buffer','subarray'])Object.defineProperty(bytes,key,{get:poisoned});
+ await verifyMediaExecutableAssets({executablePaths:{tool:'/tool'},expectedExecutableDigests:{tool:'ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad'},maxExecutableBytes:3,open:async function*(){yield bytes;}});
+ expect(poisoned).not.toHaveBeenCalled();
 });

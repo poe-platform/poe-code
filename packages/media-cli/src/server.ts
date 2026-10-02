@@ -1,5 +1,6 @@
 /** Node-only media deployment owner. No portable export imports this module. */
-import {isDeepStrictEqual} from 'node:util';
+import {RealFileSystem} from '@poe-code/safe-fs';
+import {equalInventory} from './inventory-equality.js';
 import{createMediaServer,type MediaServerOptions,type MediaTool}from'@poe-code/remote-execution/server';
 import type{Build}from'@poe-code/remote-execution/wire';
 import{nativeReference}from'./options.generated.js';
@@ -27,7 +28,7 @@ export interface MediaDeploymentOptions {
  maxAssetBytes:number;
  server:Omit<MediaServerOptions,'builds'|'tools'>;
 }
-export function createMediaDeployment(options:MediaDeploymentOptions,assets:Pick<MediaExecutableAssets,'open'> & Partial<MediaDeploymentAssetStorage>={}){
+export function createMediaDeployment(options:MediaDeploymentOptions,assets:Pick<MediaExecutableAssets,'open'|'fs'> & Partial<MediaDeploymentAssetStorage>={}){
  // Retain the admitted build and paths before asynchronous storage access. A
  // mutable operator configuration cannot swap the checked executable afterward.
  const build=structuredClone(options.build);
@@ -43,13 +44,14 @@ export function createMediaDeployment(options:MediaDeploymentOptions,assets:Pick
  const suppliedInventory=options.inventory;
  if(!suppliedInventory)throw new TypeError('Pinned deployment inventory required');
  // Admit receipt size before cloning operator metadata or yielding to storage.
- if(!isDeepStrictEqual(createMediaBuildReceipt(suppliedInventory).build,build))throw new TypeError('Build inventory mismatch');
+ if(!equalInventory(createMediaBuildReceipt(suppliedInventory).build,build))throw new TypeError('Build inventory mismatch');
  const inventory=structuredClone(suppliedInventory);
  if(Object.entries(executables).some(([name,path])=>!Object.hasOwn(inventory.executablePaths,name)||inventory.executablePaths[name]!==path))throw new TypeError('Executable paths do not match deployment inventory');
  const maxAssetBytes=options.maxAssetBytes;
  if(!Number.isSafeInteger(maxAssetBytes)||maxAssetBytes<1)throw new TypeError('Invalid asset byte bound');
  // Storage adapters may keep authority in their receiver or prototype. Retain
  // selected methods before yielding without discarding either ownership facet.
+ const fs=assets.fs??new RealFileSystem('/');
  const assetStorage={open:assets.open?.bind(assets),type:assets.type?.bind(assets),readlink:assets.readlink?.bind(assets)};
  const supported=new Set([...Object.keys(nativeReference.executables),...Object.entries(imageMagickReference.executables).filter(([,entry])=>entry.kind==='media').map(([name])=>name)]);
  const tools:MediaTool[]=Object.entries(executables).map(([id,executable])=>{
@@ -57,7 +59,7 @@ export function createMediaDeployment(options:MediaDeploymentOptions,assets:Pick
   return {id,executable,buildDigest:build.digest,requiredFeatures:['live-files'],requiresFrontendContract:true};
  });
  if(!tools.length)throw new TypeError('No configured media tools');
- return verifyMediaExecutableAssets({executablePaths:executables,expectedExecutableDigests:Object.fromEntries(tools.map(tool=>[tool.id,build.executables[tool.id]])),maxExecutableBytes,open:assetStorage.open})
-  .then(()=>verifyMediaDeploymentAssets({build,inventory,maxAssetBytes,assets:assetStorage}))
+ return verifyMediaExecutableAssets({executablePaths:executables,expectedExecutableDigests:Object.fromEntries(tools.map(tool=>[tool.id,build.executables[tool.id]])),maxExecutableBytes,fs,open:assetStorage.open})
+  .then(()=>verifyMediaDeploymentAssets({build,inventory,maxAssetBytes,fs,assets:assetStorage}))
   .then(()=>createMediaServer({...server,builds:[build],tools}));
 }

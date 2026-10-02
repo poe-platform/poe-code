@@ -292,7 +292,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
       }
       if (manifest.devDependencies?.["@poe-code/media-cli"] !== undefined) {
         const packages = {
-          "media-cli": { dependencies: { saxes: "^6.0.0", "@poe-code/remote-execution": "*" }, routes: { ".": "index" } },
+          "media-cli": { dependencies: { saxes: "^6.0.0", "@poe-code/remote-execution": "*", "@poe-code/safe-fs": "*", "@noble/hashes": "2.4.0" }, routes: { ".": "index" } },
           "remote-execution": { dependencies: { "@poe-code/safe-fs": "*" }, routes: { ".": "index", "./protocol": "protocol", "./binary": "binary", "./wire": "wire.generated" } },
         };
         peerPaths ??= {};

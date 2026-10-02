@@ -82,7 +82,7 @@ for (const name of ["safe-bash-command-fixture", "safe-bash-csv-engine", "safe-b
 for (const defect of ["none", "public", "closure", "source", "link", "mixed-native"]) test(`build explicit portable media declarations: ${defect}`, async () => {
   const route = { types: "./dist/index.d.ts", workerd: "./dist/index.js", browser: "./dist/index.js", node: "./dist/index.js", default: "./dist/index.js" };
   const media = { name: "@poe-code/media-cli", version: "0.0.1", private: defect !== "public", type: "module",
-    dependencies: defect === "closure" ? { forbidden: "1" } : { saxes: "^6.0.0", "@poe-code/remote-execution": "*" },
+    dependencies: defect === "closure" ? { forbidden: "1" } : { saxes: "^6.0.0", "@poe-code/remote-execution": "*", "@poe-code/safe-fs": "*", "@noble/hashes": "2.4.0" },
     exports: { ".": { ...route, ...(defect === "source" ? { types: "./src/index.d.ts" } : {}), ...(defect === "mixed-native" ? { browser: "./dist/server.js" } : {}) } } };
   const remote = { name: "@poe-code/remote-execution", version: "0.0.1", private: true, type: "module",
     dependencies: { "@poe-code/safe-fs": "*" }, exports: Object.fromEntries([".", "./protocol", "./binary", "./wire"].map(name => {

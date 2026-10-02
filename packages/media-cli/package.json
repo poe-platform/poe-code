@@ -23,6 +23,10 @@
       "browser": null,
       "node": "./dist/server.js",
       "default": null
+    },
+    "./verification": {
+      "types": "./dist/verification.d.ts",
+      "default": "./dist/verification.js"
     }
   },
   "scripts": {
@@ -40,7 +44,9 @@
   },
   "dependencies": {
     "saxes": "^6.0.0",
-    "@poe-code/remote-execution": "*"
+    "@poe-code/remote-execution": "*",
+    "@noble/hashes": "2.4.0",
+    "@poe-code/safe-fs": "*"
   },
   "files": [
     "dist",

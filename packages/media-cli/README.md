@@ -135,3 +135,25 @@ Unit tests do not establish deployed provider compatibility. Complete native
 filesystem/process behavior, production images and each cloud provider require
 their own qualification. Partial effects survive failure; uncertain outcomes
 require inspection rather than automatic command replay.
+
+### Verify deployment assets with a virtual filesystem
+
+`@poe-code/media-cli/verification` builds deterministic inventory receipts and
+verifies pinned asset digests in Workers without Node compatibility or `Buffer`.
+Pass a `@poe-code/safe-fs` filesystem with streaming reads explicitly:
+
+```ts
+import { verifyMediaExecutableAssets } from '@poe-code/media-cli/verification';
+
+await verifyMediaExecutableAssets({
+  fs,
+  executablePaths: { ffmpeg: '/assets/ffmpeg' },
+  expectedExecutableDigests: { ffmpeg: pinnedSha256 },
+  maxExecutableBytes: 64 * 1024 * 1024,
+});
+```
+
+`verifyMediaDeploymentAssets` also accepts `fs` and verifies file types and
+symlink targets. Existing streaming `open`/`assets` adapters remain supported;
+verification never implicitly reads the host filesystem. The Node-only service
+entry point supplies its host filesystem and remains separate from Worker code.

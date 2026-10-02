@@ -13,8 +13,10 @@ RUN node download.mjs \
  && dpkg -i /tmp/squashfs-tools.deb \
  && unsquashfs -o 944632 -d /opt/imagemagick /tmp/magick.AppImage \
  && rm /tmp/ffmpeg.tar.xz /tmp/magick.AppImage /tmp/squashfs-tools.deb
+COPY node_modules/@noble/hashes/ /app/node_modules/@noble/hashes/
 COPY packages/media-cli/dist/build-assets.js /app/build-assets.js
-RUN node --input-type=module -e "import{readFile}from'node:fs/promises';import{verifyMediaExecutableAssets}from'./build-assets.js';const lock=JSON.parse(await readFile('/app/container-lock.json'));await verifyMediaExecutableAssets({executablePaths:lock.executablePaths,expectedExecutableDigests:lock.executables,maxExecutableBytes:lock.maxExecutableBytes});"
+COPY packages/media-cli/dist/asset-digest.js /app/asset-digest.js
+RUN node --input-type=module -e "import{readFile}from'node:fs/promises';import{createReadStream}from'node:fs';import{verifyMediaExecutableAssets}from'./build-assets.js';const lock=JSON.parse(await readFile('/app/container-lock.json'));await verifyMediaExecutableAssets({executablePaths:lock.executablePaths,expectedExecutableDigests:lock.executables,maxExecutableBytes:lock.maxExecutableBytes,open:createReadStream});"
 
 # Explicit service target. No tool executes until an authenticated admitted job.
 # Operators mount their configuration, TLS, ledger and qualified bridge assets.

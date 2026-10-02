@@ -54,6 +54,8 @@ function paperName(value: string): string {
 function unsupported(feature: string): never { throw new SsconvertError("unsupported-feature", `Unsupported ssconvert feature: PDF ${feature}`); }
 function optionsFor(book: Workbook, options: readonly string[], context: CapabilityContext) {
   let paper: readonly [number, number] | undefined, fit = false;
+  let orientation: "portrait" | "landscape" | "reverse-portrait" | "reverse-landscape" | undefined;
+  let fitColumns: number | undefined, fitRows: number | undefined, scalePct: number | undefined;
   const objects: { sheet: Sheet; object: SheetObject }[] = [], sheets: string[] = [];
   let work = 0;
   for (const text of options) for (const [key, value] of exportOptionPairs(text)) {
@@ -69,20 +71,53 @@ function optionsFor(book: Workbook, options: readonly string[], context: Capabil
     } else if (key === "paper") {
       if (value === "fit") fit = true;
       else {
-        const name = paperName(value);
+        const lower = value.toLowerCase();
+        const landscapeSuffix = lower.endsWith("-landscape") ? "-landscape" : lower.endsWith("_landscape") ? "_landscape" : (lower === "a4l" || lower === "a3l" || lower === "a5l" || lower === "letterl") ? "l" : "";
+        const rawPaper = landscapeSuffix ? value.slice(0, -landscapeSuffix.length) : value;
+        if (landscapeSuffix && !orientation) orientation = "landscape";
+        const name = paperName(rawPaper);
         if (!Object.hasOwn(papers, name)) {
           if (value === "") throw new SsconvertError("invalid-request", "ssconvert: Unknown paper size");
           unsupported("unqualified named-paper warning profile");
         }
         paper = papers[name]!;
       }
+    } else if (key === "orientation") {
+      const norm = value.toLowerCase();
+      if (norm !== "portrait" && norm !== "landscape" && norm !== "reverse-portrait" && norm !== "reverse-landscape") {
+        throw new SsconvertError("invalid-request", `ssconvert: Invalid orientation "${value}" for format Gnumeric_pdf:pdf_assistant`);
+      }
+      orientation = norm;
+    } else if (key === "fit-width" || key === "fit_width" || key === "fit-to-pages-wide") {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isSafeInteger(parsed) || parsed < 0 || String(parsed) !== value.trim()) {
+        throw new SsconvertError("invalid-request", `ssconvert: Invalid fit-width "${value}" for format Gnumeric_pdf:pdf_assistant`);
+      }
+      fitColumns = parsed;
+    } else if (key === "fit-height" || key === "fit_height" || key === "fit-to-pages-tall") {
+      const parsed = Number.parseInt(value, 10);
+      if (!Number.isSafeInteger(parsed) || parsed < 0 || String(parsed) !== value.trim()) {
+        throw new SsconvertError("invalid-request", `ssconvert: Invalid fit-height "${value}" for format Gnumeric_pdf:pdf_assistant`);
+      }
+      fitRows = parsed;
+    } else if (key === "scale") {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        throw new SsconvertError("invalid-request", `ssconvert: Invalid scale "${value}" for format Gnumeric_pdf:pdf_assistant`);
+      }
+      scalePct = parsed;
     } else if (key === "sheet" || key === "active-sheet") {
       const sheet = key === "active-sheet" ? book.sheets.find(sheet => sheet.id === book.activeSheet) ?? book.sheets[0] : book.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(value));
       if (!sheet) throw new SsconvertError("invalid-request", `ssconvert: Unknown sheet "${value}"`);
       sheets.push(sheet.id);
     } else throw new SsconvertError("invalid-request", `ssconvert: Invalid export option "${key}" for format Gnumeric_pdf:pdf_assistant`);
   }
-  return { paper, fit, objects, sheets };
+  const scale = (fitColumns !== undefined || fitRows !== undefined)
+    ? { kind: "fit" as const, rows: fitRows ?? 0, columns: fitColumns ?? 0 }
+    : scalePct !== undefined
+      ? { kind: "percentage" as const, x: scalePct, y: scalePct }
+      : undefined;
+  return { paper, fit, orientation, scale, objects, sheets };
 }
 export async function pdfExportOptions(options: readonly string[], context: CapabilityContext, book?: Workbook): Promise<readonly string[]> {
   if (book) optionsFor(book, options, context);
@@ -335,7 +370,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         ...(sheet.rows ? { rows: sheet.rows } : {}), ...(effectiveColumns(sheet) ? { columns: effectiveColumns(sheet)! } : {}),
         paper: { widthPoints: paper[0], heightPoints: paper[1] }, margins: print.margins,
         rowBreaks: print.rowBreaks, columnBreaks: print.columnBreaks,
-        orientation: print.orientation, scale: print.scale, centerHorizontally: print.centerHorizontally,
+        orientation: settings.orientation ?? print.orientation, scale: settings.scale ?? print.scale, centerHorizontally: print.centerHorizontally,
         centerVertically: print.centerVertically, acrossThenDown: print.acrossThenDown }, context);
       tick(layout.pages.length);
       nextPageNumber = startPage + layout.pages.length;

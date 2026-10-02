@@ -41,3 +41,13 @@ it("continues native footer page numbers across workbook sheets", async () => {
     expect(draw.mock.calls.map(([value]) => value).filter(value => value.startsWith("Page "))).toEqual(["Page 1", "Page 2", "Page 3", "Page 4"]);
   } finally { draw.mockRestore(); }
 });
+
+it("applies orientation=landscape and fit-width=1 export options on Gnumeric_pdf:pdf_assistant", async () => {
+  const codec = createRegistry([]).select("write", "Gnumeric_pdf:pdf_assistant")!;
+  const input = { sheets: [{ id: "One", name: "One", cells: [{ row: 0, column: 0, value: { kind: "string" as const, value: "Region" } }] }] };
+  const bytes = await codec.write!(input, ["paper=A4 orientation=landscape fit-width=1"], context);
+  const pdf = await PDFDocument.load(bytes);
+  expect(pdf.getPageCount()).toBe(1);
+  const size = pdf.getPage(0).getSize();
+  expect(size.width).toBeGreaterThan(size.height);
+});

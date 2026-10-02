@@ -84,7 +84,7 @@ export function parseCsvcutArguments(args: readonly string[], budget: CsvBudget)
       } else if (flag === '-K' || flag === '--skip-lines') dialect.skipLines = integer(value, budget);
       else if (flag === '-u' || flag === '--quoting') {
         const mode = integer(value, budget);
-        if (mode < 0 || mode > 3) throw new CsvError('ARGUMENT', 'Invalid quoting value');
+        if (mode < 0 || mode > 5) throw new CsvError('ARGUMENT', 'Invalid quoting value');
         quoting = mode;
       } else {
         dialect.fieldCharacters = integer(value, budget);
@@ -93,12 +93,12 @@ export function parseCsvcutArguments(args: readonly string[], budget: CsvBudget)
     } while (!long && offset < raw.length);
   }
   if (quoting !== undefined) {
-    dialect.quoting = quoting as 0 | 1 | 2 | 3;
+    dialect.quoting = quoting as NonNullable<CsvDialect["quoting"]>;
   }
   options.dialect = dialect;
   return options;
 }
-const help = 'usage: csvcut [-c COLUMNS] [-C NOT_COLUMNS] [-n] [-x] [--zero] [FILE]\nProject CSV columns from stdin or a literal VFS path.\nReader profile: utf8-sig-permissive-v1; quoting 0/1/2/3.\n';
+const help = 'usage: csvcut [-c COLUMNS] [-C NOT_COLUMNS] [-n] [-x] [--zero] [FILE]\nProject CSV columns from stdin or a literal VFS path.\nReader profile: utf8-sig-permissive-v1; quoting 0/1/2/3/4/5.\n';
 const extent = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(Uint8Array.prototype), 'byteLength')!.get!;
 
 async function retireInput(retire: () => Promise<unknown>, failed: boolean): Promise<void> {

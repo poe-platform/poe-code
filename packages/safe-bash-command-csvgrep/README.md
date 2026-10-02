@@ -37,7 +37,7 @@ await csvgrep(context, { columns: 'name,city', match: 'York', any: true });
 | `-d`, `--delimiter`; `-t`, `--tabs` | Input delimiter; tabs override delimiter. Default comma; no sniffing. |
 | `-q`, `--quotechar`; `-p`, `--escapechar` | Single UTF-16-unit quote/escape characters; default quote is `"`, escape unset. |
 | `-b`, `--no-doublequote`; `-S`, `--skipinitialspace` | Disable doubled quotes; skip initial ASCII spaces. |
-| `-u`, `--quoting` | Input quoting 0 (default), 1 (ALL), 2 (NONNUMERIC), or 3 (NONE). |
+| `-u`, `--quoting` | Input quoting 0 (default), 1 (ALL), 2 (NONNUMERIC), 3 (NONE), 4 (STRINGS), or 5 (NOTNULL). |
 | `-e`, `--encoding` | UTF-8 with or without BOM stripping, ASCII, or Latin-1; never inherits host encoding. |
 
 Short flags may be grouped (`-ai`) and short-option values attached (`-cx,y`, `-ma`). Use `--` before a literal path beginning with a dash. The SDK uses `columns`, `match`, `file`, `regex`, `any`, `invert`, `headerless`, `lineNumbers`, `zero`, `names` and `filePath`; input settings live in `dialect` (`delimiter`, `tabs`, `quote`, `escape`, `doubleQuote`, `skipInitialSpace`, `quoting`, `skipLines`, `encoding`, `fieldCharacters`). Default decoding is UTF-8-sig.
@@ -57,21 +57,9 @@ Regex profile `bounded-sequence-v1` supports literals, escaped punctuation, dot,
 
 Configure invocation limits with `csvgrepCommands({ limits })` or the SDK's third argument. Input, decoded UTF-16 storage, output, scanned cells, pattern bytes, set entries/storage, arguments, parser cells and work have separate limits. Retention is a conservative cumulative allocation ledger: freed intermediates do not restore credit during an invocation. Cleanup resets live retention; peak remains available in SDK accounting. Wide fields therefore cost more than their final size. CSV and match-file input share an invocation budget. Writes await backpressure; cancellation propagates to VFS acquisition/read/write and closes acquired iterators.
 
-| Limit key | Default |
-| --- | ---: |
-| `inputBytes` | 16 MiB |
-| `decodedBytes`, `outputBytes` | 32 MiB each |
-| `retainedBytes` | 64 MiB |
-| `fieldBytes`, `setBytes` | 1 MiB each |
-| `argumentBytes` | 64 KiB |
-| `patternBytes` | 4,096 bytes |
-| `cells`, `scannedCells` | 100,000 each |
-| `setEntries` | 10,000 |
-| `work` | 16,777,216 units |
+All resource quotas default to `Infinity` (disabled). Limits accept nonnegative safe integers or `Infinity`. Decoded, field and set text storage uses UTF-16 bytes. SDK returns `{ exitCode, accounting }`; output goes to context sinks, and accounting includes `peakRetainedBytes`. Cancellation rejects with the caller's abort reason. Paths resolve through the supplied VFS and cwd: confinement is the VFS provider's responsibility, not a separate command root.
 
-Limits are nonnegative safe integers; MiB/KiB use powers of 1024. Decoded, field and set text storage uses UTF-16 bytes. SDK returns `{ exitCode, accounting }`; output goes to context sinks, and accounting includes `peakRetainedBytes`. Cancellation rejects with the caller's abort reason. Paths resolve through the supplied VFS and cwd: confinement is the VFS provider's responsibility, not a separate command root.
-
-Other codecs, quoting 1/2, compressed inputs, native field-size units, open selector ranges and additional csvkit shortcuts are explicitly unsupported. Full csvkit compatibility remains open in `docs/plans/safe-bash-csvgrep-acceptance.md`.
+`-e` / `dialect.encoding` accepts UTF-8-sig (default), UTF-8, ASCII and Latin-1. `-u` / `dialect.quoting` accepts modes 0–5: MINIMAL, ALL, NONNUMERIC, NONE, STRINGS and NOTNULL. Modes 2/4 convert nonempty unquoted fields to float text; mode 5 preserves text. Null and empty fields both serialize as empty cells. `-z` / `--maxfieldsize` / `dialect.fieldCharacters` limits Unicode characters independently of the UTF-16 `fieldBytes` quota. Other codecs, compressed inputs, open selector ranges and additional csvkit shortcuts are explicitly unsupported. Full csvkit compatibility remains open in `docs/plans/safe-bash-csvgrep-acceptance.md`.
 
 CSV profile `utf8-sig-permissive-v1` accepts unclosed quoted EOF and text after a closing quote; trailing escape at EOF inserts LF. Invalid/truncated UTF-8 fails. NUL is retained, a documented deviation from csvkit file iteration. Blank records are empty rows; embedded CRLF becomes two LF on output. This is an explicit subset of csvkit 2.2.0 / agate 1.14.2 on Python 3.9, not full compatibility with those releases or later pinned source additions.
 

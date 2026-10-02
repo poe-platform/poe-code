@@ -11,6 +11,10 @@ const cells: readonly {
   id: string; input: string; args: string[]; options: CsvgrepOptions;
   output: string; file?: string; status?: number; error?: string;
 }[] = [
+  { id: "quote-strings", input: '"name","n","empty"\n"foo",2,\n"bar","2",""\n', args: ["-cname", "-mfoo", "-u4"],
+    options: { columns: "name", match: "foo", dialect: { quoting: 4 } }, output: "name,n,empty\nfoo,2.0,\n" },
+  { id: "quote-notnull", input: 'name,n,empty\nfoo,2,\nbar,"2",""\n', args: ["-cname", "-mfoo", "--quoting=5"],
+    options: { columns: "name", match: "foo", dialect: { quoting: 5 } }, output: "name,n,empty\nfoo,2,\n" },
   { id: "names-width-three", input: "name,n\na,1\n", args: ["--names"],
     options: { names: true }, output: "  1: name\n  2: n\n" },
   { id: "names-width-three-zero", input: "name,n\na,1\n", args: ["--names", "--zero"],

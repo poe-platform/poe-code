@@ -176,9 +176,9 @@ export function parseCsvgrepArguments(args: readonly string[], b: CsvBudget): Cs
           throw new CsvError("ARGUMENT", "Invalid skip-lines value");
         dialect.skipLines = count;
       } else if (arg === "-u" || arg === "--quoting") {
-        if (!["0", "1", "2", "3"].includes(value))
+        if (!["0", "1", "2", "3", "4", "5"].includes(value))
           throw new CsvError("ARGUMENT", "Invalid quoting value");
-        dialect.quoting = Number(value) as 0 | 1 | 2 | 3;
+        dialect.quoting = Number(value) as NonNullable<CsvDialect["quoting"]>;
       } else {
         const size = Number(value);
         if (!Number.isSafeInteger(size)) throw new CsvError("ARGUMENT", "Invalid field size");

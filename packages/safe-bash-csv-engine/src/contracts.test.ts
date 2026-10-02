@@ -118,7 +118,7 @@ test("strict dialect controls, empty cells and physical skipping stay independen
   assert.deepEqual([...none.push(enc.encode('"a",x\\,y\n')), ...none.end()], [{ cells: ['"a"', "x,y"], line: 1 }]);
 });
 test("explicit unsupported quoting and profile fail before decoding", () => {
-  for (const dialect of [{ quoting: 4 }, { profile: "python-3.12" }])
+  for (const dialect of [{ quoting: 6 }, { profile: "python-3.12" }])
     assert.throws(() => new CsvParser(dialect as never, budget()), { code: "UNSUPPORTED" });
 });
 test("parser captures dialect ownership and disposed ledgers cannot be reused", () => {
@@ -224,4 +224,25 @@ test("work-count yields invoke the shell's registered checkpoint", async () => {
   await b.checkpoint();
   assert.equal(calls, 1);
   b.dispose();
+});
+
+for (const quoting of [4, 5] as const) test(`quoting mode ${quoting} preserves quoted text and handles unquoted cells across byte splits`, () => {
+  const bytes = enc.encode('"name","value","empty"\n"é,😀",2,\n"text","2",""\n');
+  for (let split = 0; split <= bytes.length; split++) {
+    const b = budget();
+    const p = new CsvParser({ quoting }, b);
+    try {
+      assert.deepEqual([...p.push(bytes.subarray(0, split)), ...p.push(bytes.subarray(split)), ...p.end()], [
+        { cells: ['name', 'value', 'empty'], line: 1 },
+        { cells: ['é,😀', quoting === 4 ? '2.0' : '2', ''], line: 2 },
+        { cells: ['text', '2', ''], line: 3 }
+      ]);
+    } finally { p.dispose(); b.dispose(); }
+  }
+  const b = budget();
+  const p = new CsvParser({ quoting }, b);
+  try {
+    if (quoting === 4) assert.throws(() => p.push(enc.encode('unquoted\n')), { code: 'INPUT' });
+    else assert.deepEqual(p.push(enc.encode('unquoted\n')), [{ cells: ['unquoted'], line: 1 }]);
+  } finally { p.dispose(); b.dispose(); }
 });

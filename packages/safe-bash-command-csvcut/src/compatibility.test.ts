@@ -5,6 +5,8 @@ import { csvcut, type CsvcutInvocation } from './command.js';
 
 // Literal controls derived from the supplied upstream contract, not candidate helpers.
 const controls: readonly [string, string[], CsvcutInvocation, string, string][] = [
+  ['quote-strings', ['-u4'], { dialect: { quoting: 4 } }, '"name","n","empty"\n"foo",2,\n"bar","2",""\n', 'name,n,empty\nfoo,2.0,\nbar,2,\n'],
+  ['quote-notnull', ['--quoting=5'], { dialect: { quoting: 5 } }, 'name,n,empty\nfoo,2,\nbar,"2",""\n', 'name,n,empty\nfoo,2,\nbar,2,\n'],
   ['duplicate-blank-exact', ['-c', 'id,,x-y,id'], { include: 'id,,x-y,id' }, 'id,,id,x-y\nA,B,C,D\n', 'id,,x-y,id\nA,B,D,A\n'],
   ['numeric-position', ['-c2,1,2'], { include: '2,1,2' }, '2,1\nx,y\n', '1,2,1\ny,x,y\n'],
   ['quoted-unicode-crlf', ['-c2,1'], { include: '2,1' }, '\ufeffa,b\r\n"é,😀","x\r\ny"\r\n', 'b,a\n"x\n\ny","é,😀"\n'],

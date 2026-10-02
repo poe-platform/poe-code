@@ -161,11 +161,12 @@ export interface CsvDialect {
   doubleQuote?: boolean;
   skipInitialSpace?: boolean;
   skipLines?: number;
-  quoting?: 0 | 1 | 2 | 3;
+  quoting?: 0 | 1 | 2 | 3 | 4 | 5;
   encoding?: string;
   fieldCharacters?: number;
 }
 export interface CsvRow {
+  /** Text representation: numeric modes use float text; null and empty fields both become empty strings. */
   readonly cells: readonly string[];
   readonly line: number;
 }
@@ -203,8 +204,8 @@ export class CsvParser {
     budget.charge("work", 0);
     if (dialect.profile !== undefined && dialect.profile !== "utf8-sig-permissive-v1" && dialect.profile !== "utf8-sig-strict-v1")
       throw new CsvError("UNSUPPORTED", "Unsupported CSV reader profile");
-    if (dialect.quoting !== undefined && ![0, 1, 2, 3].includes(dialect.quoting))
-      throw new CsvError("UNSUPPORTED", "Only quoting modes 0, 1, 2 and 3 are supported");
+    if (dialect.quoting !== undefined && ![0, 1, 2, 3, 4, 5].includes(dialect.quoting))
+      throw new CsvError("UNSUPPORTED", "Only quoting modes 0 through 5 are supported");
     for (const char of [
       this.delimiter,
       dialect.quote ?? '"',
@@ -300,7 +301,7 @@ export class CsvParser {
     this.budget.charge("cells", 1);
     this.budget.charge("retainedBytes", 32);
     let value = this.field;
-    if (this.dialect.quoting === 2 && !this.quotedField && value.length) {
+    if ((this.dialect.quoting === 2 || this.dialect.quoting === 4) && !this.quotedField && value.length) {
       this.budget.charge("work", value.length);
       const raw = value.trim().toLowerCase();
       const unsigned = raw.startsWith("+") || raw.startsWith("-") ? raw.slice(1) : raw;

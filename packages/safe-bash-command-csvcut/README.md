@@ -51,7 +51,7 @@ uses the same implementation as CLI argv and returns `{ exitCode }`.
 | `-b`, `--no-doublequote` | `dialect.doubleQuote: false` |
 | `-S`, `--skipinitialspace` | `dialect.skipInitialSpace`: skip ASCII spaces at field start |
 | `-K`, `--skip-lines INTEGER` | `dialect.skipLines`: skip physical lines; negative counts skip nothing |
-| `-u`, `--quoting INTEGER` | `dialect.quoting`: 0 MINIMAL, 1 ALL, 2 NONNUMERIC or 3 NONE |
+| `-u`, `--quoting INTEGER` | `dialect.quoting`: 0 MINIMAL, 1 ALL, 2 NONNUMERIC, 3 NONE, 4 STRINGS or 5 NOTNULL |
 | `-z`, `--maxfieldsize INTEGER` | `dialect.fieldCharacters`: maximum Unicode characters per field |
 | `-e`, `--encoding VALUE` | `encoding`: UTF-8, UTF-8-sig (default), ASCII or Latin-1 |
 | `-h`, `--help`; `-V`, `--version` | `help`, `version`: informational output without input acquisition |
@@ -75,20 +75,13 @@ dialect. Each embedded CR becomes LF, so CRLF in a cell becomes two LF.
 Short rows pad selected cells with empty strings; excess cells are discarded.
 Zero selected columns emit one LF per record (data rows disappear with `-x`).
 Ordinary empty input emits LF; selectors are ignored when the header has zero
-columns. Empty names input fails. No inference, locale or
-null conversion occurs. Unlike csvgrep physical numbering, `-l` counts emitted
+columns. Empty names input fails. Modes 2/4 convert unquoted numbers to float text;
+other modes preserve text. Null and empty fields both serialize as empty cells. Unlike csvgrep physical numbering, `-l` counts emitted
 records after deletion.
 
-| Default quota | Value |
-| --- | --- |
-| `inputBytes` / `decodedBytes` / `retainedBytes` / `outputBytes` | 16 / 32 / 64 / 32 MiB |
-| `fieldBytes` / `argumentBytes` | 1 MiB / 64 KiB |
-| `work` | 16,777,216 charged units |
-| `cells` / `scannedCells` | 100,000 each |
-| Shared-engine `patternBytes` / `setEntries` / `setBytes` | 4 KiB / 10,000 / 1 MiB |
-
-Override with `limits: Partial<CsvLimits>`; values must be nonnegative safe
-integers. Decoded/field text counts UTF-16 storage; retention/work conservatively
+All resource quotas default to `Infinity` (disabled). Override with
+`limits: Partial<CsvLimits>`; values must be nonnegative safe integers or `Infinity`.
+Decoded/field text counts UTF-16 storage; retention/work conservatively
 charge intermediates without credit reuse, rather than measuring JS heap.
 Input/output count actual byte lengths; arguments reserve up to three bytes per
 UTF-16 unit. Shared matching/set quotas are not csvcut CLI options.

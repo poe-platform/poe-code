@@ -649,3 +649,14 @@ test("default node command resolves @poe-code/safe-js/core, reports version, and
     assert.match(missing.stderr, /ENOENT|no such file or directory/i);
   } finally { await shell.dispose(); }
 });
+
+test("node strips leading shebang lines in ESM .mjs files", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/tool.mjs", Buffer.from("#!/usr/bin/env node\nconst args = process.argv.slice(2);\nconsole.log(args.join(\":\"));\n"));
+  const shell = new Shell({ fs }).use(nodeCommands());
+  try {
+    const res = await shell.exec("node /tool.mjs --operation-kind create");
+    assert.equal(res.exitCode, 0, res.stderr);
+    assert.equal(res.stdout, "--operation-kind:create\n");
+  } finally { await shell.dispose(); }
+});

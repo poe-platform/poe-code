@@ -139,11 +139,11 @@ export function createSafeJsNodeCommand<Budget = unknown>(options?: NodeSafeJsCo
     help: "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, and --enable-source-maps.\nUse --input-type=module or --input-type=commonjs and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n",
     invocation: args => invocation(args, metadata),
     transformSource(source, selected) {
-      if (selected.inputType !== "commonjs") return source;
       if (source.startsWith("#!")) {
         const newline = source.indexOf("\n");
         source = newline < 0 ? "" : source.slice(newline);
       }
+      if (selected.inputType !== "commonjs") return source;
       const filename = selected.source === undefined ? "[stdin]" : "[eval]";
       const body = selected.print ? `console.log((\n${source}\n));` : source;
       return `

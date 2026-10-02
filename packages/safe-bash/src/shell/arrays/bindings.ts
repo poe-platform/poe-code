@@ -207,7 +207,11 @@ export class IndexedBinding {
   softClearForReuse(): void {
     if (this.values.size === 0 && this.keys.size === 0) return;
     // Recycled storage may have been modified since its contents were cached.
-    if (this._denseVersion !== this.version) delete this._denseBytes;
+    if (this._denseVersion !== this.version) {
+      this._denseSlots = undefined;
+      this._denseKeyPrefix = undefined;
+      delete this._denseBytes;
+    }
     if (this._lastMapfileVer !== this.version) delete this._lastMapfileStr;
     if (this._mapfileValues && this.values === this._mapfileValues) {
       const emptyVals = this._spareEmptyValues ?? new Map<number, Element>();
@@ -359,6 +363,7 @@ export class IndexedBinding {
   remove(index: number): void {
     this._denseSlots = undefined;
     this._denseKeyPrefix = undefined;
+    delete this._denseBytes;
     this.values.get(index)?.slot.release();
     const identity = this.keyByIndex.get(index);
     if (identity !== undefined) this.keys.get(identity)?.admission.release();
@@ -383,6 +388,9 @@ export class IndexedBinding {
   }
 
   insert(index: number, text: OwnedText, preallocatedSlot?: Admission): void {
+    this._denseSlots = undefined;
+    this._denseKeyPrefix = undefined;
+    delete this._denseBytes;
     if (!text.references || text.admission.released) throw new ArrayFailure("cell ownership is released");
     const slot = preallocatedSlot ?? this.owner.reserve({ slots: 1, metadata: 32, work: 5 });
     try { this.owner.share(text.admission); }

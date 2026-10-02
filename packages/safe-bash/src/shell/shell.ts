@@ -17,7 +17,7 @@ import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
 const verifiedBuiltInRegistries = new WeakSet<CommandRegistry>();
-import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, RootShellState, Runtime, RuntimeCancellationState, warmDefaultRuntimeContextFs } from "./runtime.js";
+import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, replacedBuiltinCommands, resolveLimits, RootShellState, Runtime, RuntimeCancellationState, warmDefaultRuntimeContextFs } from "./runtime.js";
 import { ensureStateMonitor } from "./arrays/state.js";
 import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
 import { hasNativeAbortSignal } from "safe-bash-contracts/signals";
@@ -411,6 +411,9 @@ export class Shell implements PluginHost {
           commands.register = ((command: CommandDefinition, regOptions?: RegisterCommandOptions) => {
             origRegister(command, regOptions);
             onRegister(command);
+            if (regOptions?.replace && command && typeof command.execute === "function") {
+              replacedBuiltinCommands.add(command.execute);
+            }
             if (!builtInDirectContextExecutors.has(command.execute)) {
               verifiedBuiltInRegistries.delete(commands);
               customRegisteredRegistries.add(commands);
@@ -476,7 +479,10 @@ export class Shell implements PluginHost {
     if (this._disposed) throw new Error("Shell is disposed");
     this.#clearWarmedInvocation();
     this.#hasCustomCommands = true;
-    if (command && typeof command.execute === "function") customRegisteredCommands.add(command.execute);
+    if (command && typeof command.execute === "function") {
+      customRegisteredCommands.add(command.execute);
+      replacedBuiltinCommands.add(command.execute);
+    }
     if (isSyncResolved(this.#ready)) this.commands.register(command, options);
     else {
       const nextReady = this.#ready.then(() => { this.commands.register(command, options); });

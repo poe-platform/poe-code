@@ -1,4 +1,3 @@
-import { selectConditionalTarget } from "../../../scripts/package-export-target.mjs";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import { createRequire } from "node:module";
@@ -12,6 +11,17 @@ import { assertLiteralInputPath, isHeldInputPath } from "./typecheck-integration
 
 const packageRoot = fileURLToPath(new URL("../", import.meta.url));
 const require = createRequire(import.meta.url);
+
+function selectConditionalTarget(target, conditions) {
+  if (target === null || typeof target === "string") return target;
+  if (!target || typeof target !== "object" || Array.isArray(target)) return undefined;
+  for (const [condition, value] of Object.entries(target)) {
+    if (!conditions.has(condition)) continue;
+    const selected = selectConditionalTarget(value, conditions);
+    if (selected !== undefined) return selected;
+  }
+  return undefined;
+}
 
 function declarationTools(optional) {
   const nodeTypes = dirname(require.resolve("@types/node/package.json"));

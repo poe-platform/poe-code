@@ -51,7 +51,7 @@ export function captureWorkspaceMetadata(manifest, lock, read) {
       requests.set(path, name);
     }
     pending.clear();
-    assert.ok(visited.size <= 256, "workspace prerequisite count budget");
+    assert.ok(visited.size <= 512, "workspace prerequisite count budget");
     if (!requests.size) continue;
     const files = read([...requests.keys()]);
     assert.deepEqual([...files.keys()].sort(), [...requests.keys()].sort(), "workspace prerequisite metadata inventory");

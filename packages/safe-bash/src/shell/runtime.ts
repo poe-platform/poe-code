@@ -55,6 +55,7 @@ import { outputFailure } from "../contracts/io.js";
 import { defaultEchoExecutors, formatPrintf, printfCommand } from "../commands/basic.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
+export const replacedBuiltinCommands = new WeakSet<object>();
 import { builtInDirectContextExecutors, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO, UsageError } from "../commands/internal.js";
 import { cloneGetoptsState, createGetoptsInput, createGetoptsState, GetoptsError, getoptsInputAllocationSize, scanGetopts, scanGetoptsSync, withGetoptsIndex } from "./getopts.js";
 import type { GetoptsState } from "./getopts.js";
@@ -6639,7 +6640,7 @@ export class Runtime {
   hasBuiltinOverride(name: string | undefined): boolean {
     if (name !== "true" && name !== "false" && name !== "pwd") return false;
     const definition = this.commands.get(name);
-    return definition !== undefined && customRegisteredCommands.has(definition.execute);
+    return definition !== undefined && replacedBuiltinCommands.has(definition.execute);
   }
   firstInternalDiscovery(name: string, state: State, bypassFunctions = false): Discovery["kind"] | undefined {
     const isBuiltin = implementedBuiltins.has(name) || Boolean(state.extensions?.builtins.has(name));

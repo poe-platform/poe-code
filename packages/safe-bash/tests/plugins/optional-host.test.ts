@@ -19,6 +19,7 @@ import { utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, c
 import { Shell } from "../../src/shell/shell.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { portableTrapExtension } from "../../src/shell/trap.js";
+import { executeRead } from "../../src/shell/read-builtin.js";
 import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
 import { signalName } from "safe-bash-command-timeout/signal";
 import type * as Host from "../../src/optional-host.js";
@@ -62,12 +63,12 @@ for (const profile of [
 
 test("optional host preserves canonical helper and type identities", async () => {
   const host = await import("../../src/optional-host.js");
-  const expected = { UsageError, ByteInputBudget, inputRequirements, textOutputRequirements, decoder, diagnostic, encoder, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, builtInDirectContextExecutors, latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, jobsExtension, signalName, utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes };
+  const expected = { UsageError, ByteInputBudget, inputRequirements, textOutputRequirements, decoder, diagnostic, encoder, isDefaultCommandOptions, syncCommandEvaluators, registerDefaultExecutor, registerDefaultExecutors, builtInDirectContextExecutors, latin1Text, codeOf, compareCopyIdentity, compareObservedEntries, output, pathOf, EreLedger, EreSyntaxError, EreUnsupportedError, EreProfileLimitError, compileEre, prepareUtf8EreSubject, parseTomlDocument, YqLedger, Decimal, numberText, portableTrapExtension, executeRead, jobsExtension, signalName, utf8ByteLength, utf8Encoder, utf8Decoder, encodeBase64, decodeBase64, compareBytes };
   assert.deepEqual(Object.keys(host).sort(), Object.keys(expected).sort());
   for (const name of Object.keys(expected) as (keyof typeof expected)[]) {
     assert.equal(host[name], expected[name], name);
   }
-  for (const name of ["codeOf", "compareCopyIdentity", "compareObservedEntries", "output", "pathOf", "prepareUtf8EreSubject", "parseTomlDocument", "YqLedger", "Decimal", "numberText"]) assert.equal(Object.hasOwn(core, name), false, `${name} must not enter the default barrel`);
+  for (const name of ["codeOf", "compareCopyIdentity", "compareObservedEntries", "output", "pathOf", "prepareUtf8EreSubject", "parseTomlDocument", "YqLedger", "Decimal", "numberText", "executeRead"]) assert.equal(Object.hasOwn(core, name), false, `${name} must not enter the default barrel`);
   for (const name of ["EreLedger", "EreSyntaxError", "EreUnsupportedError", "EreProfileLimitError", "compileEre"] as const) assert.equal(host[name], core[name]);
   const sameTypes: Same<HostTypes, CoreTypes> = true;
   assert.equal(sameTypes, true);

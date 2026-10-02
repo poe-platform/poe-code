@@ -9,9 +9,11 @@ test("command diagnostics preserve text, suggestions and panel defaults in every
   assert.deepEqual(Object.keys(subpath), Object.keys(originalSubpath));
   assert.equal(subpath.formatCommandNotFound, native.formatCommandNotFound);
   assert.equal(subpath.formatCommandNotFoundPanel, native.formatCommandNotFoundPanel);
+  const sparseSuggestions = new Array(2);
+  sparseSuggestions[1] = "visible";
   for (const format of ["terminal", "markdown", "json"]) {
     for (const unknownCommand of ["", "confgure", "one\r\ntwo\nthree\rfour", "`\n## forged", "東京\ud800"]) {
-      for (const suggestions of [undefined, [], ["configure"], ["one", "`\n## forged"], [, "visible"]]) {
+      for (const suggestions of [undefined, [], ["configure"], ["one", "`\n## forged"], sparseSuggestions]) {
         const input = { unknownCommand, helpCommand: "tool --help", suggestions };
         for (const name of ["formatCommandNotFound", "formatCommandNotFoundPanel"]) {
           assert.deepEqual(native.withOutputFormat(format, () => native[name](input)), reference.withOutputFormat(format, () => reference[name](input)));

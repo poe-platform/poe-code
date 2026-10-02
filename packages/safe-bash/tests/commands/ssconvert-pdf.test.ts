@@ -73,11 +73,11 @@ test("PDF persisted print geometry survives XML checkpoint and command/SDK repla
       const refused = await cappedShell.exec('ssconvert -T Gnumeric_pdf:pdf_assistant /input.gnumeric /keep');
       assert.equal(refused.exitCode, 1);
       assert.equal(refused.stdout, "");
-      assert.equal(refused.stderr, "ssconvert PDF font shaping could not complete\n");
+      assert.equal(refused.stderr, "ssconvert PDF font bytes limit exceeded\n");
       let writes = 0;
       await assert.rejects(cappedEngine.convert({ input: { kind: "stream", source: [new TextEncoder().encode(input)] },
         exportType: "Gnumeric_pdf:pdf_assistant", destination: { kind: "stream", sink: { async write() { writes++; } } } },
-      { signal: new AbortController().signal }), { code: "resource-limit", message: "ssconvert PDF font shaping could not complete" });
+      { signal: new AbortController().signal }), { code: "resource-limit", message: "ssconvert PDF font bytes limit exceeded" });
       assert.equal(writes, 0);
       assert.equal(volume.readFileSync("/keep", "utf8"), "untouched");
       assert.equal(volume.readFileSync("/input.gnumeric", "utf8"), input);

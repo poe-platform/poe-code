@@ -272,7 +272,7 @@ export function instrumentRootState(source) {
           );
         }
         if (ts.isClassDeclaration(node) && node.members.some(member => ts.isMethodDeclaration(member)
-          && ts.isPrivateIdentifier(member.name) && member.name.text === "#execWarmSyncOrFallback")) {
+          && ts.isPrivateIdentifier(member.name) && member.name.text === "#execAsync")) {
           const methods = node.members.filter(member => ts.isMethodDeclaration(member)
             && ts.isIdentifier(member.name) && member.name.text === "exec");
           const method = methods[0];

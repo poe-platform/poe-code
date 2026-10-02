@@ -325,6 +325,46 @@ describe("pinned browser source adapters", () => {
     ]) expect(() => instrumentRootState(`class Shell { async #execute(options) { ${changed} } }`)).toThrow("structure changed");
   });
 
+  it("observes warmed calls when synchronous dispatch lives in an extracted helper", async () => {
+    const code = instrumentRootState(`
+      function tryExecFast(shell) {
+        shell.fastCalls++;
+        return Promise.resolve({ cwd: "/fast" });
+      }
+      export class Shell {
+        warm = false;
+        fastCalls = 0;
+        exec(source, options = {}) {
+          if (this.warm) {
+            const fast = tryExecFast(this, source, options);
+            if (fast !== undefined) return fast;
+          }
+          return this.#execAsync(source, options);
+        }
+        async #execAsync(source, options) { return this.#execute(source, options); }
+        async #execute(source, options) {
+          const cwd = source;
+          const state = { cwd };
+          this.warm = true;
+          state.cwd += "/done";
+          return state;
+        }
+      }`);
+    const { Shell } = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`);
+    for (const observer of ["onCwd", "onRootState"]) {
+      const shell = new Shell();
+      await shell.exec("/first");
+      const events: unknown[] = [];
+      expect(await shell.exec("/next", { [observer]: (value: unknown) => events.push(value) }))
+        .toEqual({ cwd: "/next/done" });
+      expect(events).toEqual(observer === "onCwd" ? ["/next/done"] : [{ cwd: "/next/done" }]);
+      expect(shell.fastCalls).toBe(0);
+      expect(await shell.exec("/plain")).toEqual({ cwd: "/fast" });
+      expect(shell.fastCalls).toBe(1);
+      expect(events).toHaveLength(1);
+    }
+  });
+
   it("refuses changed or ambiguous warm dispatch boundaries", () => {
     for (const dispatch of [
       "exec(source, changed) { return this.#execAsync(source, changed); }",

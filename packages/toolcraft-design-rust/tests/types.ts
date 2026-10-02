@@ -200,3 +200,15 @@ const tokenTypographyOwn: typeof tokenTypography = null as unknown as typeof ori
 const rootTokensOriginal: Pick<typeof originalDesign,"tokens"|"symbols"|"spacing"|"widths"> = design;
 const rootTokensOwn: Pick<typeof design,"tokens"|"symbols"|"spacing"|"widths"> = null as unknown as typeof originalDesign;
 void [symbolsOriginal,symbolsOwn,tokensOriginal,tokensOwn,tokenColorsOriginal,tokenColorsOwn,tokenBrandOriginal,tokenBrandOwn,tokenSpacingOriginal,tokenSpacingOwn,tokenWidthsOriginal,tokenWidthsOwn,tokenTypographyOriginal,tokenTypographyOwn,rootTokensOriginal,rootTokensOwn];
+
+import * as detailCard from "toolcraft-design-rust/components/detail-card";
+import * as inspectorCard from "toolcraft-design-rust/components/inspector-card";
+import type * as originalDetailCard from "toolcraft-design/components/detail-card";
+import type * as originalInspectorCard from "toolcraft-design/components/inspector-card";
+const detailOriginal: typeof originalDetailCard = detailCard;
+const detailOwn: typeof detailCard = null as unknown as typeof originalDetailCard;
+const inspectorOriginal: typeof originalInspectorCard = inspectorCard;
+const inspectorOwn: typeof inspectorCard = null as unknown as typeof originalInspectorCard;
+const rootCardsOriginal: Pick<typeof originalDesign,"renderDetailCard"|"renderInspectorCard"> = design;
+const rootCardsOwn: Pick<typeof design,"renderDetailCard"|"renderInspectorCard"> = null as unknown as typeof originalDesign;
+void [detailOriginal,detailOwn,inspectorOriginal,inspectorOwn,rootCardsOriginal,rootCardsOwn];

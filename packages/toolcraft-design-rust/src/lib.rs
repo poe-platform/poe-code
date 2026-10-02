@@ -1,4 +1,5 @@
 pub mod ansi;
+pub mod cards;
 pub mod catalog;
 pub mod color;
 pub mod command_errors;

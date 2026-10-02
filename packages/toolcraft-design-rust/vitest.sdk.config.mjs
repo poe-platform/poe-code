@@ -9,6 +9,10 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/components/detail-card.test.ts") && name === "./detail-card.js")
+          return path("dist/detail-card.js");
+        if (importer === path("../toolcraft-design/src/components/inspector-card.test.ts") && name === "./inspector-card.js")
+          return path("dist/inspector-card.js");
         if (importer === path("../toolcraft-design/src/components/catalog.test.ts") && name === "./catalog.js")
           return path("dist/catalog.js");
         if (importer === path("../toolcraft-design/src/components/resource-browser.test.ts") && name === "./resource-browser.js")
@@ -65,6 +69,8 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft-design/src/components/detail-card.test.ts"),
+      path("../toolcraft-design/src/components/inspector-card.test.ts"),
       path("../toolcraft-design/src/components/catalog.test.ts"),
       path("../toolcraft-design/src/components/resource-browser.test.ts"),
       path("../toolcraft-design/src/components/help-formatter.test.ts"),

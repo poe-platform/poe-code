@@ -40,6 +40,14 @@
       "types": "./dist/catalog.d.ts",
       "import": "./dist/catalog.js"
     },
+    "./components/detail-card": {
+      "types": "./dist/detail-card.d.ts",
+      "import": "./dist/detail-card.js"
+    },
+    "./components/inspector-card": {
+      "types": "./dist/inspector-card.d.ts",
+      "import": "./dist/inspector-card.js"
+    },
     "./components/resource-browser": {
       "types": "./dist/resource-browser.d.ts",
       "import": "./dist/resource-browser.js"

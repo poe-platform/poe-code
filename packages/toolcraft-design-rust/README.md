@@ -238,3 +238,9 @@ resource rows with optional metadata, previews and badges. Both follow
 from `components/catalog` and `components/resource-browser`. Rust controls
 format selection, optional content and group composition; Node preserves
 theme receivers, array methods, object spreads and JSON serialization.
+
+`renderDetailCard({theme, title, prose, sections, width})` presents a resource
+with badges, descriptions and aligned metadata rows. `renderInspectorCard`
+adds a preview with `maxPreviewLines` clipping and accepts sections of `fields`.
+Both preserve ANSI styling when values wrap and are available at the root and
+`components/detail-card` or `components/inspector-card`.

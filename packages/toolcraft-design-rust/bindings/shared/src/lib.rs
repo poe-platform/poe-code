@@ -7,6 +7,8 @@ mod wrap_ansi;
 pub use wrap_ansi::*;
 mod catalog;
 pub use catalog::*;
+mod cards;
+pub use cards::*;
 mod resource_browser;
 pub use resource_browser::*;
 mod help;

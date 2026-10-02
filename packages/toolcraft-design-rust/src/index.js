@@ -83,6 +83,8 @@ export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from ".
 export { formatCommandNotFound, formatCommandNotFoundPanel } from "./command-errors.js";
 export { renderFileChanges } from "./file-changes.js";
 export { renderCatalog } from "./catalog.js";
+export { renderDetailCard } from "./detail-card.js";
+export { renderInspectorCard } from "./inspector-card.js";
 export { renderResourceBrowser } from "./resource-browser.js";
 export * from "./help-formatter.js";
 export * as helpFormatterPlain from "./help-formatter-plain.js";

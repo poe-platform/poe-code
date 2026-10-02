@@ -17,6 +17,8 @@ implementation at runtime. Reference imports are allowed only in tests.
 Do not add external runtime or development dependencies. Comparison tools may
 be installed temporarily, then uninstalled; do not retain new dependency
 declarations or lockfile entries for them.
+Own Rust workspace packages are allowed; benchmark them to guide performance
+work and integration decisions.
 
 ## Implementation sequence
 
@@ -547,6 +549,28 @@ hyperlinks, changing options, coercion order, species and nested calls. All 74
 native and 168 reference tests plus declarations and package lint pass. The
 default design package is unchanged; cards still need to be wired to these
 internal prerequisites, and complete replacement qualification remains open.
+
+Detail and inspector cards now expose native composition at the design root and
+both component subpaths, using the native width/wrapping prerequisites. Rust owns
+section admission, prose selection, row composition and preview clipping. Node
+retains themes, string/array methods, iterators and option evaluation order.
+All 78 native and 173 original reference tests pass, with bidirectional standalone
+declarations and package lint. Packed imports verify both public functions and
+root/subpath identity without runtime dependencies. An ad hoc screenshot verifies
+styled headers/badges, multiline metadata alignment, ANSI wrapping and clipped
+previews. Interactive controls, terminal Markdown, CLI/transports and complete
+replacement qualification remain open.
+
+A local hot-call benchmark (Apple M5 Pro, Node 22.23.2, seven alternating-order
+samples after warmup) exposes significant callback overhead. Median microseconds
+per fixture invocation were JS/native: width 4.45/347.25, wrapping 22.61/2416.44,
+detail 37.30/3458.08, inspector 52.38/5583.76. Width and wrapping each measured a
+three-string ASCII/Unicode/ANSI cohort; card fixtures used those strings in prose,
+metadata and previews. Outputs were compared before measurement. These numbers
+describe this local candidate, not isolated production throughput. Reduce repeated
+JS/native boundary crossings and remeasure without weakening API parity before
+considering performance integration or a swap. Comparison dependencies have no
+new manifest/lock declarations; the existing repository installations were used.
 
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging

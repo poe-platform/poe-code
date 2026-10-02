@@ -9141,22 +9141,11 @@ export class Runtime {
         const origRedirects = command.redirects;
         (command as { redirects: readonly Redirect[] }).redirects = emptyStrings as unknown as readonly Redirect[];
         let status: number | undefined;
-        if (!io.descriptors) {
-          const prevStdout = io.stdout;
-          (io as { stdout: typeof devNullSyncSink }).stdout = devNullSyncSink;
-          try {
-            status = this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
-          } finally {
-            (command as { redirects: readonly Redirect[] }).redirects = origRedirects;
-            (io as { stdout: typeof prevStdout }).stdout = prevStdout;
-          }
-        } else {
-          try {
-            const { descriptors: ignoredDescriptors, ...rest } = io;
-            status = this.executeSyncPipelineBody(pipeline, command, state, { ...rest, stdout: devNullSyncSink }, ignored);
-          } finally {
-            (command as { redirects: readonly Redirect[] }).redirects = origRedirects;
-          }
+        try {
+          const { descriptors: ignoredDescriptors, ...rest } = io;
+          status = this.executeSyncPipelineBody(pipeline, command, state, { ...rest, stdout: devNullSyncSink }, ignored);
+        } finally {
+          (command as { redirects: readonly Redirect[] }).redirects = origRedirects;
         }
         // These output builtins do no filesystem work. Charge the discarded
         // redirect only after completion; fallback opens it through descriptors.

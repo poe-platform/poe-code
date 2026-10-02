@@ -325,5 +325,24 @@ describe("safe-bash-command-soffice", () => {
     assert.equal(res.exitCode, 0);
     const pdfText = new TextDecoder("latin1").decode(files.get("/deck.pdf")!);
     assert.match(pdfText, /\/Subtype\s*\/Image/);
+
+    const docxWithStyles = createStoredZipArchive({
+      "word/styles.xml": new TextEncoder().encode(
+        "<w:styles><w:style w:type=\"paragraph\" w:styleId=\"Style1\"><w:name w:val=\"heading 1\"/></w:style></w:styles>"
+      ),
+      "word/document.xml": new TextEncoder().encode(
+        "<w:document><w:body>" +
+        "<w:p><w:pPr><w:pStyle w:val=\"Title\"/></w:pPr><w:r><w:t>Report Title</w:t></w:r></w:p>" +
+        "<w:p><w:pPr><w:pStyle w:val=\"Style1\"/></w:pPr><w:r><w:t>Section One</w:t></w:r></w:p>" +
+        "<w:p><w:r><w:t>Body text.</w:t></w:r></w:p>" +
+        "</w:body></w:document>"
+      )
+    });
+    files.set("styled.docx", docxWithStyles);
+    const htmlRes = await runSofficeCli(["--headless", "--convert-to", "html", "styled.docx"], files, "/");
+    assert.equal(htmlRes.exitCode, 0);
+    const htmlOut = new TextDecoder().decode(files.get("/styled.html")!);
+    assert.match(htmlOut, /<h1>Report Title<\/h1>/);
+    assert.match(htmlOut, /<h1>Section One<\/h1>/);
   });
 });

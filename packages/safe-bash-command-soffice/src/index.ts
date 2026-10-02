@@ -58,6 +58,27 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
   const entries = readZipArchiveEntries(zipBytes);
   const docXmlBytes = entries.get("word/document.xml");
   if (!docXmlBytes) return [];
+  const headingStyleIds = new Set<string>(["title", "subtitle"]);
+  const stylesBytes = entries.get("word/styles.xml");
+  if (stylesBytes) {
+    const stylesXml = new TextDecoder().decode(stylesBytes);
+    for (const st of stylesXml.matchAll(/<w:style\b([^>]*?)>([\s\S]*?)<\/w:style>/g)) {
+      const idMatch = /\bw:styleId="([^"]+)"/.exec(st[1] ?? "");
+      const nameMatch = /<w:name\b[^>]*?\bw:val="([^"]+)"/.exec(st[2] ?? "");
+      const styleId = idMatch?.[1] ?? "";
+      const styleName = (nameMatch?.[1] ?? "").toLowerCase();
+      if (
+        styleId &&
+        (styleName.startsWith("heading") ||
+          styleName === "title" ||
+          styleName === "subtitle" ||
+          /^heading/i.test(styleId) ||
+          /^title$/i.test(styleId))
+      ) {
+        headingStyleIds.add(styleId.toLowerCase());
+      }
+    }
+  }
   const xml = new TextDecoder()
     .decode(docXmlBytes)
     .replace(/<w:tab\b[^/>]*\/>/g, "<w:t>\t</w:t>")
@@ -86,7 +107,14 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
       }
       if (rows.length > 0) blocks.push({ kind: "table", rows });
     } else {
-      const isHeading = /w:pStyle\s+w:val="Heading/i.test(chunk);
+      const styleMatch = /<w:pStyle\b[^>]*?\bw:val="([^"]+)"/i.exec(chunk);
+      const styleVal = (styleMatch?.[1] ?? "").toLowerCase();
+      const szMatch = /<w:sz\b[^>]*?\bw:val="(\d+)"/i.exec(chunk);
+      const szHalfPt = szMatch ? Number.parseInt(szMatch[1]!, 10) : 0;
+      const isHeading =
+        styleVal.startsWith("heading") ||
+        headingStyleIds.has(styleVal) ||
+        szHalfPt >= 28;
       const texts = [...chunk.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map((t) =>
         unescapeXml(t[1] ?? "")
       );
@@ -169,6 +197,14 @@ interface SlideImagePlacement {
   readonly height: number;
 }
 
+interface SlideTextBoxPlacement {
+  readonly paragraphs: string[];
+  readonly x: number;
+  readonly topY: number;
+  readonly width: number;
+  readonly fontSize: number;
+}
+
 function wrapTextLines(text: string, maxChars: number): string[] {
   const words = text.split(/\s+/).filter(Boolean);
   if (words.length === 0) return [""];
@@ -187,7 +223,7 @@ function wrapTextLines(text: string, maxChars: number): string[] {
   return lines;
 }
 
-function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: string[]; images: SlideImagePlacement[] }> {
+function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[] }> {
   const entries = readZipArchiveEntries(zipBytes);
   let slideCx = 12192000;
   let slideCy = 6858000;
@@ -205,7 +241,7 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
     .filter((k) => /^ppt\/slides\/slide\d+\.xml$/.test(k))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  const slides: Array<{ title: string; bullets: string[]; images: SlideImagePlacement[] }> = [];
+  const slides: Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[] }> = [];
   for (const key of slideKeys) {
     const xml = new TextDecoder().decode(entries.get(key)!);
     const relsKey = `ppt/slides/_rels/${key.slice("ppt/slides/".length)}.rels`;
@@ -230,16 +266,38 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
     }
 
     const shapes: string[][] = [];
+    const textBoxes: SlideTextBoxPlacement[] = [];
+    let shapeIdx = 0;
     for (const sp of xml.matchAll(/<p:sp\b[\s\S]*?<\/p:sp>/g)) {
       const paras: string[] = [];
+      let maxSz = 1800;
       for (const p of sp[0].matchAll(/<a:p\b[\s\S]*?<\/a:p>/g)) {
+        for (const szm of p[0].matchAll(/\bsz="(\d+)"/g)) {
+          const val = Number.parseInt(szm[1]!, 10);
+          if (val > 0) maxSz = val;
+        }
         const runs = [...p[0].matchAll(/<a:t(?:\s[^>]*)?>([\s\S]*?)<\/a:t>/g)].map((t) =>
           unescapeXml(t[1] ?? "")
         );
         const line = runs.join("").trim();
         if (line) paras.push(line);
       }
-      if (paras.length > 0) shapes.push(paras);
+      if (paras.length > 0) {
+        shapes.push(paras);
+        const offMatch = /<a:off\b[^>]*?\bx="(-?\d+)"[^>]*?\by="(-?\d+)"/.exec(sp[0]);
+        const extMatch = /<a:ext\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(sp[0]);
+        if (shapeIdx > 0 && offMatch) {
+          const offX = Number.parseInt(offMatch[1]!, 10);
+          const offY = Number.parseInt(offMatch[2]!, 10);
+          const extCx = extMatch ? Number.parseInt(extMatch[1]!, 10) : Math.round(slideCx * 0.85);
+          const x = Math.max(24, Math.min(660, (offX / slideCx) * 720));
+          const width = Math.max(120, Math.min(720 - x - 24, (extCx / slideCx) * 720));
+          const fontSize = Math.min(15, Math.max(10, Math.round((maxSz / 100) * 0.65)));
+          const topY = Math.max(28, Math.min(330, 405 - (offY / slideCy) * 405 - fontSize));
+          textBoxes.push({ paragraphs: paras, x, topY, width, fontSize });
+        }
+        shapeIdx++;
+      }
     }
 
     const images: SlideImagePlacement[] = [];
@@ -264,7 +322,7 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
 
     const title = shapes[0]?.[0] ?? `Slide ${slides.length + 1}`;
     const bullets = [...(shapes[0]?.slice(1) ?? []), ...shapes.slice(1).flat()];
-    slides.push({ title, bullets, images });
+    slides.push({ title, bullets, images, textBoxes });
   }
   return slides;
 }
@@ -375,7 +433,7 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
   return doc.save();
 }
 
-function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; images?: readonly SlideImagePlacement[] }[]): Uint8Array {
+function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; images?: readonly SlideImagePlacement[]; textBoxes?: readonly SlideTextBoxPlacement[] }[]): Uint8Array {
   const doc = PdfDocument.create();
   doc.setCreator("LibreOffice Impress (@poe-code/pdf-ast)");
 
@@ -407,20 +465,44 @@ function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; 
         // skip unsupported image stream
       }
     }
-    let y = 300;
-    for (const bullet of slide.bullets) {
-      const lines = wrapTextLines(bullet, 78);
-      lines.forEach((line, idx) => {
-        page.drawText(idx === 0 ? `- ${line}` : `  ${line}`, {
-          x: 52,
-          y,
-          size: 14,
-          font: "Helvetica",
-          color: rgb(0.18, 0.2, 0.24)
+    if (slide.textBoxes && slide.textBoxes.length > 0) {
+      for (const box of slide.textBoxes) {
+        let y = box.topY;
+        const maxChars = Math.max(24, Math.floor(box.width / (box.fontSize * 0.52)));
+        const lineHeight = Math.round(box.fontSize * 1.35);
+        for (const para of box.paragraphs) {
+          const lines = wrapTextLines(para, maxChars);
+          lines.forEach((line, idx) => {
+            if (y >= 14) {
+              page.drawText(idx === 0 ? `- ${line}` : `  ${line}`, {
+                x: box.x,
+                y,
+                size: box.fontSize,
+                font: "Helvetica",
+                color: rgb(0.18, 0.2, 0.24)
+              });
+              y -= lineHeight;
+            }
+          });
+          y -= 4;
+        }
+      }
+    } else {
+      let y = 300;
+      for (const bullet of slide.bullets) {
+        const lines = wrapTextLines(bullet, 78);
+        lines.forEach((line, idx) => {
+          page.drawText(idx === 0 ? `- ${line}` : `  ${line}`, {
+            x: 52,
+            y,
+            size: 14,
+            font: "Helvetica",
+            color: rgb(0.18, 0.2, 0.24)
+          });
+          y -= 20;
         });
-        y -= 20;
-      });
-      y -= 6;
+        y -= 6;
+      }
     }
   }
 

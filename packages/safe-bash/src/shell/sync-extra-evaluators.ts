@@ -1,3 +1,4 @@
+import { bytesToHex } from "../byte-encoding.js";
 import { shellWarmHooks } from "./shell.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";

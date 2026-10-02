@@ -397,6 +397,10 @@ export class Budget {
   get fileSystemOperations(): number {
     return this._fileSystemOperations;
   }
+  declare resetCountersForWarmReuse: () => void;
+  declare canFileSystemOperation: () => boolean;
+  declare enterPipelineStages: (count: number) => void;
+  declare leavePipelineStages: (count: number) => void;
   declare private readonly _cpuStarted: number;
   declare _aborted: boolean;
   declare readonly _hasExternalSignal: boolean;
@@ -1360,6 +1364,7 @@ class BudgetedPipeStageOwnedSink {
   }
 }
 export class BudgetedPipeStageSink implements ByteSink {
+  declare canWriteSync: () => boolean;
   readonly isPipeStage = true;
   declare readonly self: ByteSink;
   declare readonly budget: Budget;

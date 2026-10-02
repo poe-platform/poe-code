@@ -617,3 +617,18 @@ for (const command of [createFfmpegCommand, createFfprobeCommand]) {
     assert.equal(vfs.store.has("/out.mp4"), false);
   });
 }
+it("escapes tag separators, quotes and newlines like native ffprobe", async () => {
+  const vfs = createTestVfs();
+  const title = "Hello, \"World\"|line\nnext\\tab\tend";
+  const encoded = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", "color=s=16x16:r=1:d=1", "-metadata", "title=" + title, "/tagged.mp4"], vfs);
+  assert.equal(encoded.exitCode, 0, encoded.stderr);
+  const expected = {
+  "csv=p=0": "\"Hello, \"\"World\"\"|line\nnext\\tab\tend\"\n",
+  "compact=p=0": "tag:title=Hello, \"World\"\\|line\\nnext\\\\tab\tend\n",
+  "flat": "format.tags.title=\"Hello, \\\"World\\\"|line\\nnext\\\\tab\tend\"\n"
+};
+  for (const [format, output] of Object.entries(expected)) {
+    const result = await runCmd(createFfprobeCommand(), ["-show_entries", "format_tags=title", "-of", format, "/tagged.mp4"], vfs);
+    assert.equal(result.stdout, output, format);
+  }
+});

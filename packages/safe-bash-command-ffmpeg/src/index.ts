@@ -1256,6 +1256,23 @@ function formatFfprobeResult(
     );
   }
 
+  function probeText(value: unknown, separator = "."): string {
+    const text = String(value);
+    if (fmt === "csv") {
+      return [separator, '"', "\n", "\r"].some(character => text.includes(character))
+        ? '"' + text.replaceAll('"', '""') + '"'
+        : text;
+    }
+    let escaped = "";
+    for (const character of text) {
+      if (character === "\n") escaped += "\\n";
+      else if (character === "\r") escaped += "\\r";
+      else if (character === "\\" || (fmt === "flat" ? character === '"' : character === separator)) escaped += "\\" + character;
+      else escaped += character;
+    }
+    return fmt === "flat" ? '"' + escaped + '"' : escaped;
+  }
+
   if (fmt === "csv" || fmt === "compact") {
     const sep = fmt === "csv" ? (paramMap.s ?? ",") : (paramMap.s ?? "|");
     const printSection = paramMap.p !== "0" && paramMap.print_section !== "0";
@@ -1267,7 +1284,7 @@ function formatFfprobeResult(
         if (printSection) vals.push("stream");
         for (const [k, v] of probeEntries(s, "tag:")) {
           if (v === undefined || typeof v === "object") continue;
-          vals.push(noKey || fmt === "csv" ? String(v) : `${k}=${String(v)}`);
+          vals.push(noKey || fmt === "csv" ? probeText(v, sep) : `${k}=${probeText(v, sep)}`);
         }
         lines.push(vals.join(sep));
       }
@@ -1277,7 +1294,7 @@ function formatFfprobeResult(
       if (printSection) vals.push("format");
       for (const [k, v] of probeEntries(finalFormat, "tag:")) {
         if (v === undefined || typeof v === "object") continue;
-        vals.push(noKey || fmt === "csv" ? String(v) : `${k}=${String(v)}`);
+        vals.push(noKey || fmt === "csv" ? probeText(v, sep) : `${k}=${probeText(v, sep)}`);
       }
       lines.push(vals.join(sep));
     }
@@ -1291,14 +1308,14 @@ function formatFfprobeResult(
       finalStreams.forEach((s, idx) => {
         for (const [k, v] of probeEntries(s, `tags${sep}`)) {
           if (v === undefined || typeof v === "object") continue;
-          lines.push(`streams${sep}stream${sep}${idx}${sep}${k}=${JSON.stringify(String(v))}`);
+          lines.push(`streams${sep}stream${sep}${idx}${sep}${k}=${probeText(v)}`);
         }
       });
     }
     if (finalFormat) {
       for (const [k, v] of probeEntries(finalFormat, `tags${sep}`)) {
         if (v === undefined || typeof v === "object") continue;
-        lines.push(`format${sep}${k}=${JSON.stringify(String(v))}`);
+        lines.push(`format${sep}${k}=${probeText(v)}`);
       }
     }
     return lines.join("\n") + (lines.length > 0 ? "\n" : "");

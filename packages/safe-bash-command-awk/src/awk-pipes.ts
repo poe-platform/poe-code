@@ -18,7 +18,7 @@ export class AwkPipes {
   private readonly writes = new Map<string, CommandPipe>();
   private cleanup: Promise<void> | undefined;
 
-  constructor(private readonly context: CommandContext, private readonly budget: Budget, private readonly retention: AwkRetention) {
+  constructor(private readonly context: CommandContext, private readonly budget: Budget, private readonly retention: AwkRetention, private readonly beforeRead?: () => void | Promise<void>) {
     context.registerCleanup?.(() => this.closeAll(true));
   }
 
@@ -52,7 +52,7 @@ export class AwkPipes {
       await channel.abort(error);
       return { error };
     });
-    const pipe: CommandPipe = { channel, abort, done, ...(reading ? { reader: new Reader(channel.endpoints!.read.readable, this.budget, this.retention) } : {}) };
+    const pipe: CommandPipe = { channel, abort, done, ...(reading ? { reader: new Reader(channel.endpoints!.read.readable, this.budget, this.retention, this.beforeRead) } : {}) };
     map.set(command, pipe);
     return pipe;
   }
@@ -81,6 +81,13 @@ export class AwkPipes {
       }));
     }
     return status;
+  }
+
+  flush(command: string): number | undefined {
+    const pipe = this.writes.get(command);
+    if (!pipe) return undefined;
+    // Writes await the channel immediately; only a closing pipe cannot flush.
+    return pipe.closing ? -1 : 0;
   }
 
   private async finish(pipe: CommandPipe): Promise<number> {

@@ -35,7 +35,7 @@ export class Reader {
   private isPooledMemory = false;
   private activeReads = 0;
 
-  constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">) {
+  constructor(source: ByteSource | undefined, private budget: Budget, private retention: Pick<AwkRetention, "admit" | "replace" | "release">, private beforeRead?: (() => void | Promise<void>) | undefined) {
     this.iterator = source === undefined
       ? RELEASED_READER_ITERATOR
       : typeof (source as { tryNextSync?: unknown }).tryNextSync === "function"
@@ -140,6 +140,11 @@ export class Reader {
       const lastIdx = this.blocksLen - 1;
       this.blocks[lastIdx] = new Uint8Array(this.blocks[lastIdx]!);
     }
+    // Publish pending output before asking an upstream producer for more data.
+    const pending = this.beforeRead?.();
+    if (pending) await pending;
+    signal.throwIfAborted();
+    if (this.closed) return;
     const next = await this.iterator.next();
     signal.throwIfAborted();
     if (this.closed) return;
@@ -373,6 +378,7 @@ export class Reader {
     this.iterator = RELEASED_READER_ITERATOR;
     this.budget = undefined!;
     this.retention = undefined!;
+    this.beforeRead = undefined;
     if (this.isPooledMemory && this.activeReads === 0 && memoryReaderPool.reader === undefined) {
       this.isPooledMemory = false;
       memoryReaderPool.reader = this;
@@ -403,6 +409,7 @@ export class Reader {
     this.iterator = RELEASED_READER_ITERATOR;
     this.budget = undefined!;
     this.retention = undefined!;
+    this.beforeRead = undefined;
     if (this.isPooledMemory && this.activeReads === 0 && memoryReaderPool.reader === undefined) {
       this.isPooledMemory = false;
       memoryReaderPool.reader = this;

@@ -1102,7 +1102,7 @@ export class AwkRuntime {
   private async getline(expression: Extract<Expression, { kind: "getline" }>): Promise<Scalar> {
     if (expression.pipe) {
       const command = textDecoder.decode(latin1Bytes(this.asText(await this.scalarExpression(expression.pipe))));
-      const record = await (this.pipes ??= new AwkPipes(this.context, this.budget, this.retention)).read(command, this.varText("RS"));
+      const record = await (this.pipes ??= new AwkPipes(this.context, this.budget, this.retention, this.flushStdout)).read(command, this.varText("RS"));
       if (record === undefined) return numeric(0);
       if (expression.target) await (await this.reference(expression.target)).set(inputValue(record));
       else await this.setRecord(record);
@@ -1145,7 +1145,7 @@ export class AwkRuntime {
         }
       })();
       try {
-        reader = new Reader(source, budget, this.retention);
+        reader = new Reader(source, budget, this.retention, this.flushStdout);
         inputs.set(name, reader);
       } catch (error) { this.retention.release(shellValueByteLength(name)); throw error; }
     }
@@ -1355,6 +1355,20 @@ export class AwkRuntime {
     if (name === "index") return numeric(this.asText(first).indexOf(this.asText(values[1]!)) + 1);
     if (name === "tolower") return string(this.asText(first).replace(/[A-Z]/gu, character => character.toLowerCase()));
     if (name === "toupper") return string(this.asText(first).replace(/[a-z]/gu, character => character.toUpperCase()));
+    if (name === "fflush") {
+      const filename = this.asText(first);
+      if (args.length === 0 || filename === "" || filename === "/dev/stdout") {
+        await this.flushStdout();
+        return numeric(0);
+      }
+      // Named outputs are written eagerly; flushing must not close them.
+      if (filename === "/dev/stderr") return numeric(0);
+      const decoded = textDecoder.decode(latin1Bytes(filename));
+      const pipeStatus = this.pipes?.flush(decoded);
+      if (pipeStatus !== undefined) return numeric(pipeStatus);
+      const path = virtualPath(this.context, decoded);
+      return numeric(this.outputs?.has(path) ? 0 : -1);
+    }
     if (name === "close") {
       const pipeStatus = await this.pipes?.close(textDecoder.decode(latin1Bytes(this.asText(first))));
       if (pipeStatus !== undefined) return numeric(pipeStatus);
@@ -1376,13 +1390,13 @@ export class AwkRuntime {
   private recordChecks = 0;
   private stdoutBuffer = "";
 
-  private flushStdout(): void | Promise<void> {
+  private readonly flushStdout = (): void | Promise<void> => {
     if (this.stdoutBuffer.length === 0) return undefined;
     const chunk = this.stdoutBuffer;
     this.stdoutBuffer = "";
     const p = write(this.context, chunk);
     return isSyncResolved(p) ? undefined : p;
-  }
+  };
 
   private executeSync(statement: Statement): void | Promise<void> {
     if (!this.inspection) {
@@ -1576,7 +1590,7 @@ export class AwkRuntime {
         const destination = textDecoder.decode(latin1Bytes(this.asText(await this.scalarExpression(statement.redirect.destination))));
         if (statement.redirect.pipe) {
           if (this.stdoutBuffer.length > 0) await this.flushStdout();
-          await (this.pipes ??= new AwkPipes(this.context, this.budget, this.retention)).write(destination, output);
+          await (this.pipes ??= new AwkPipes(this.context, this.budget, this.retention, this.flushStdout)).write(destination, output);
           return;
         }
         if (destination === "/dev/stdout") {
@@ -2141,7 +2155,7 @@ export class AwkRuntime {
         if (file === undefined && !this.sawFile && !this.defaultUsed) { file = "-"; this.defaultUsed = true; }
         if (file === undefined) return undefined;
         this.set("FILENAME", string(file)); this.set("FNR", numeric(0));
-        this.mainReader = new Reader(input(this.context, decodeBytes(encodeBytes(file, "latin1"), "utf8")), this.budget, this.retention);
+        this.mainReader = new Reader(input(this.context, decodeBytes(encodeBytes(file, "latin1"), "utf8")), this.budget, this.retention, this.flushStdout);
       }
       const record = await this.mainReader.read(this.varText("RS"));
       if (record === undefined) { await this.mainReader.close(); this.mainReader = undefined; continue; }
@@ -2201,14 +2215,14 @@ export class AwkRuntime {
           }
         }
       }
-      this.mainReader = new Reader(input(this.context, utf8File), this.budget, this.retention);
+      this.mainReader = new Reader(input(this.context, utf8File), this.budget, this.retention, this.flushStdout);
       return true;
     }
     if (!this.sawFile && !this.defaultUsed) {
       this.defaultUsed = true;
       this.set("FILENAME", string("-"));
       this.set("FNR", numeric(0));
-      this.mainReader = new Reader(input(this.context, "-"), this.budget, this.retention);
+      this.mainReader = new Reader(input(this.context, "-"), this.budget, this.retention, this.flushStdout);
       return true;
     }
     return false;

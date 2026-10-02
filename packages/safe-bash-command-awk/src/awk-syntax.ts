@@ -120,7 +120,7 @@ export const builtinArities: Readonly<Record<string, readonly [number, number]>>
   length: [0, 1], substr: [2, 3], index: [2, 2], split: [2, 3], match: [2, 2],
   sub: [2, 3], gsub: [2, 3], sprintf: [1, Infinity], tolower: [1, 1], toupper: [1, 1],
   int: [1, 1], sqrt: [1, 1], exp: [1, 1], log: [1, 1], sin: [1, 1], cos: [1, 1], atan2: [2, 2], close: [1, 1],
-  rand: [0, 0], srand: [0, 1],
+  rand: [0, 0], srand: [0, 1], fflush: [0, 1],
   gensub: [3, 4], systime: [0, 0], strftime: [0, 3], mktime: [1, 2],
   asort: [1, 2], asorti: [1, 2], and: [2, Infinity], or: [2, Infinity], xor: [2, Infinity],
   lshift: [2, 2], rshift: [2, 2], compl: [1, 1],

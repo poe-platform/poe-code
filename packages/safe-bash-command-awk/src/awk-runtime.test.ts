@@ -8,6 +8,79 @@ import { AwkRuntime } from "./awk-runtime.js";
 import { AwkParser, builtinArities } from "./awk-syntax.js";
 import { AwkRetention } from "./awk-retention.js";
 
+for (const argument of ["", '""', '"/dev/stdout"']) {
+  test(`fflush(${argument}) publishes buffered output before the next statement`, async () => {
+    const writes: string[] = [];
+    const run = await runtime(`BEGIN { printf "ready"; result = fflush(${argument}); print result > "/dev/stdout" }`, output => writes.push(output));
+    assert.equal(await run.instance.runSyncOrAsync(), 0);
+    assert.deepEqual(writes, ["ready", "0\n"]);
+  });
+}
+
+for (const program of ['{ print $0 }', 'BEGIN { print "ready" } { print $0 }', 'BEGIN { while (getline > 0) print $0 }', 'BEGIN { while ((getline line < "/input") > 0) print line }']) {
+  test(`flush stdout before requesting upstream input: ${program}`, async () => {
+    const run = await runtime(program);
+    const encoder = new TextEncoder();
+    run.context.fs.readStream = () => (async function* () {
+      if (program.includes('print "ready"')) assert.equal(run.stdout(), "ready\n");
+      yield encoder.encode("first\n");
+      assert.equal(run.stdout(), program.includes('print "ready"') ? "ready\nfirst\n" : "first\n");
+      yield encoder.encode("second\n");
+    })();
+    assert.equal(await run.instance.runSyncOrAsync(), 0);
+    assert.equal(run.stdout(), program.includes('print "ready"') ? "ready\nfirst\nsecond\n" : "first\nsecond\n");
+  });
+}
+
+test("fflush preserves named output handles and reports unknown outputs", async () => {
+  const run = await runtime('BEGIN { print "first" > "/result"; print fflush("/result"); print "second" > "/result"; print fflush("/unknown"); print fflush("/input"); print fflush("/dev/stderr") }');
+  assert.equal(await run.instance.runSyncOrAsync(), 0);
+  assert.equal(run.stdout(), "0\n-1\n-1\n0\n");
+  assert.equal(new TextDecoder().decode(await run.context.fs.readFile("/result")), "first\nsecond\n");
+});
+
+test("fflush evaluates its filename exactly once and handles an empty buffer", async () => {
+  const run = await runtime('BEGIN { print fflush(); names[1]="/dev/stdout"; printf "ready"; print fflush(names[++i]); print i }');
+  assert.equal(await run.instance.runSyncOrAsync(), 0);
+  assert.equal(run.stdout(), "0\nready0\n1\n");
+  assert.throws(() => new AwkParser('BEGIN { fflush("a", "b") }', builtinArities).parse());
+});
+
+test("input-boundary flushing honors stdout backpressure before requesting input", async () => {
+  const run = await runtime('BEGIN { print "ready" } { print $0 }');
+  let started!: () => void;
+  let drained!: () => void;
+  const writing = new Promise<void>(resolve => { started = resolve; });
+  const drain = new Promise<void>(resolve => { drained = resolve; });
+  let requested = false;
+  run.context.stdout.write = async () => { started(); await drain; };
+  run.context.fs.readStream = () => (async function* () {
+    requested = true;
+    yield new TextEncoder().encode("first\n");
+  })();
+  const execution = run.instance.runSyncOrAsync();
+  await writing;
+  assert.equal(requested, false);
+  drained();
+  assert.equal(await execution, 0);
+  assert.equal(requested, true);
+});
+
+for (const program of ['BEGIN { print "ready"; fflush() }', 'BEGIN { print "ready" } { print $0 }']) {
+  test(`stdout failure stops execution before upstream reads: ${program}`, async () => {
+    const run = await runtime(program);
+    const failure = new Error("stdout failed");
+    let requested = false;
+    run.context.stdout.write = async () => { throw failure; };
+    run.context.fs.readStream = () => (async function* () {
+      requested = true;
+      yield new TextEncoder().encode("first\n");
+    })();
+    await assert.rejects(async () => await run.instance.runSyncOrAsync(), error => error === failure);
+    assert.equal(requested, false);
+  });
+}
+
 async function runtime(source: string, onOutput?: (text: string, retained: number) => void) {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/input", new TextEncoder().encode("first\nsecond\n"));

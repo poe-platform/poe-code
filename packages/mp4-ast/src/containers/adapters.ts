@@ -1,3 +1,5 @@
+import { encodeFlacPackets } from "./flac.js";
+import { serializeOggFlac, extractOggFlac } from "./ogg.js";
 import { decodeImage, encodeImage, type ImageFormat } from "@poe-code/image-ast/portable";
 import {
   BinaryReader,
@@ -753,27 +755,7 @@ export function flacAst(): MediaAstPlugin {
         byteLength: bytes.byteLength
       };
     },
-    serialize(doc) {
-      const aTrack = doc.tracks.find((t) => t.type === "audio");
-      const sr = aTrack?.codecDescriptions[0]?.sampleRate ?? 44100;
-      const ch = aTrack?.codecDescriptions[0]?.channels ?? 2;
-      const totalSamples = Math.max(1024, Math.round((doc.durationSeconds || 1) * sr));
-      const out = new Uint8Array(42);
-      out[0] = 0x66; // 'f'
-      out[1] = 0x4c; // 'L'
-      out[2] = 0x61; // 'a'
-      out[3] = 0x43; // 'C'
-      out[4] = 0x80; // last metadata block + STREAMINFO (0)
-      out[5] = 0x00;
-      out[6] = 0x00;
-      out[7] = 34; // length 34
-      out[18] = (sr >>> 12) & 0xff;
-      out[19] = (sr >>> 4) & 0xff;
-      out[20] = ((sr & 0x0f) << 4) | (((ch - 1) & 0x07) << 1);
-      out[21] = (15 << 4) | 0x00; // 16 bits per sample
-      new DataView(out.buffer, 22, 4).setUint32(0, totalSamples >>> 0, false);
-      return out;
-    },
+    serialize(doc) { return concatBytes(encodeFlacPackets(doc)); },
     probe(bytes, options) {
       const doc = this.parse(bytes, options);
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.flac", {
@@ -810,6 +792,9 @@ export function oggAst(): MediaAstPlugin {
       return false;
     },
     parse(bytes) {
+      const flac = extractOggFlac(bytes);
+      if (flac) return { ...flacAst().parse(flac), containerFormat: "ogg", byteLength: bytes.length };
+
       const sampleRate = 48000;
       const channels = 2;
       const totalSamples = 48000;
@@ -854,27 +839,7 @@ export function oggAst(): MediaAstPlugin {
         byteLength: bytes.byteLength
       };
     },
-    serialize(doc) {
-      void doc;
-      const writer = new BinaryWriter(64);
-      writer.writeFourCC("OggS");
-      writer.writeU8(0); // version
-      writer.writeU8(0x02); // BOS
-      writer.writeU64BE(0); // granulepos
-      writer.writeU32LE(1); // serial
-      writer.writeU32LE(0); // page seq
-      writer.writeU32LE(0); // crc
-      writer.writeU8(1); // 1 segment
-      writer.writeU8(19); // 19 bytes OpusHead
-      writer.writeBytes(encodeUtf8("OpusHead"));
-      writer.writeU8(1); // version
-      writer.writeU8(2); // channels
-      writer.writeU16LE(312); // pre-skip
-      writer.writeU32LE(48000); // sample rate
-      writer.writeU16LE(0); // gain
-      writer.writeU8(0); // mapping
-      return writer.toUint8Array();
-    },
+    serialize: serializeOggFlac,
     probe(bytes, options) {
       const doc = this.parse(bytes, options);
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.ogg", {

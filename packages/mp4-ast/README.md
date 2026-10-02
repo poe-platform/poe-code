@@ -11,3 +11,5 @@ For cooperative hosts, `muxMp4Steps` and `sliceMp4Steps` return generators that 
 - **Track Muxing & Remapping (`muxMp4`)**: Mixes tracks across files, strips audio (`stripAudio`) or video (`stripVideo`), updates display rotation (`0`, `90`, `180`, `270`), and relocates `moov` before `mdat` (`faststart`).
 - **Modular AST Registry (`createMediaAstRegistry`, `allMediaAsts`)**: Pluggable format descriptors consumed by `ffmpeg` and `ffprobe` to dynamically determine which container formats, extensions, demuxers, muxers, and codecs are enabled.
 - **Consumer-Defined Resource Limits (`MediaResourceLimits`, `cloudflareWorkerLimits`)**: Imposes zero default restrictions while offering a ready-made Cloudflare Worker limit preset and `MediaBudgetTracker`.
+
+FLAC output encodes decoded PCM as lossless 16-bit verbatim frames. Ogg output uses the Ogg FLAC mapping with page checksums and complete audio packets; it does not encode Vorbis or Opus. These encoders require decoded PCM instead of substituting silent audio.

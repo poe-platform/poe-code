@@ -732,3 +732,20 @@ const dashboardTerminalOriginal: typeof originalDashboardTerminal = dashboardTer
 const dashboardTerminalNative: typeof dashboardTerminal = null as unknown as typeof originalDashboardTerminal;
 const dashboardTerminalKeys: SameKeys<typeof dashboardTerminal, typeof originalDashboardTerminal> = true;
 void [dashboardTerminalOriginal,dashboardTerminalNative,dashboardTerminalKeys];
+
+import * as dashboardBorder from "toolcraft-design-rust/dashboard/components/border";
+import type * as originalDashboardBorder from "toolcraft-design/dashboard/components/border";
+import * as dashboardLayout from "toolcraft-design-rust/dashboard/layout";
+import type * as originalDashboardLayout from "toolcraft-design/dashboard/layout";
+const borderOptionsOriginal: originalDashboardBorder.BorderOptions = null as unknown as dashboardBorder.BorderOptions;
+const borderOptionsNative: dashboardBorder.BorderOptions = null as unknown as originalDashboardBorder.BorderOptions;
+const borderKeys: SameKeys<typeof dashboardBorder,typeof originalDashboardBorder> = true;
+type NativeBorderPublic = (buffer: BufferPublic<dashboardBuffer.ScreenBuffer>,layout: Parameters<typeof dashboardBorder.renderBorder>[1],opts: dashboardBorder.BorderOptions) => ReturnType<typeof dashboardBorder.renderBorder>;
+type OriginalBorderPublic = (buffer: BufferPublic<originalDashboardBuffer.ScreenBuffer>,layout: Parameters<typeof originalDashboardBorder.renderBorder>[1],opts: originalDashboardBorder.BorderOptions) => ReturnType<typeof originalDashboardBorder.renderBorder>;
+const borderPublicOriginal: OriginalBorderPublic = null as unknown as NativeBorderPublic;
+const borderPublicNative: NativeBorderPublic = null as unknown as OriginalBorderPublic;
+// @ts-expect-error The buffer parameter retains the separate private-class identity gate.
+const borderNominalOriginal: typeof originalDashboardBorder.renderBorder = dashboardBorder.renderBorder;
+const layoutSubpathOriginal: typeof originalDashboardLayout = dashboardLayout;
+const layoutSubpathNative: typeof dashboardLayout = null as unknown as typeof originalDashboardLayout;
+void [borderOptionsOriginal,borderOptionsNative,borderKeys,borderPublicOriginal,borderPublicNative,borderNominalOriginal,layoutSubpathOriginal,layoutSubpathNative];

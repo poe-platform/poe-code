@@ -415,6 +415,14 @@
     "./dashboard/terminal": {
       "types": "./dist/dashboard-terminal.d.ts",
       "import": "./dist/dashboard-terminal.js"
+    },
+    "./dashboard/components/border": {
+      "types": "./dist/dashboard-border.d.ts",
+      "import": "./dist/dashboard-border.js"
+    },
+    "./dashboard/layout": {
+      "types": "./dist/dashboard-layout.d.ts",
+      "import": "./dist/dashboard-layout.js"
     }
   },
   "scripts": {

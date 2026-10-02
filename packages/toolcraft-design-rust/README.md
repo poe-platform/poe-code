@@ -502,3 +502,8 @@ line wrap; batches cell changes into one write; and restores enabled modes on
 `destroy()`. Resize and keypress subscriptions each return their own cleanup
 function. Keypress input preserves split Unicode and bracketed paste.
 `parseKeypress(buffer)` exposes the original one-shot readline interpretation.
+
+`renderBorder(buffer, layout, options)` from `dashboard/components/border` draws
+pane borders and footer dividers, sanitizes and clips titles, and adapts junctions
+to compact or collapsed panes. Obtain the layout from `dashboard/layout` and
+pass a `ScreenBuffer` from `dashboard/buffer`.

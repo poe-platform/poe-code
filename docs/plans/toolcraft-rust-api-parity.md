@@ -1553,3 +1553,30 @@ modified-arrow `parseKeypress` call (2.84× slower). No performance gate passed.
 Full dashboard renderers/lifecycle, explorer and broader Toolcraft replacement
 qualification remain open, including batching, platform coverage and exhaustive
 resource/reentrancy qualification.
+
+### Dashboard border checkpoint
+
+`dashboard/components/border` now exports `renderBorder` and `BorderOptions`.
+Rust owns frame/title clipping, side and footer placement, pane visibility and
+junction selection. Host operations preserve numeric coercion, live getters,
+buffer method dispatch and existing native terminal-width/text behavior.
+`dashboard/layout` reexports the existing native geometry function and types;
+the root implementation is unchanged.
+
+Four missing-export tests failed before implementation. Differential checks cover
+140 compact/full/degenerate frame and title combinations, custom divider extents,
+buffer integration, style identity, getter order, reentrant drawing and thrown
+identity. Maintained checks pass 290 native host tests, 1,294 selected design tests,
+13 prompt-wrapper tests, 42 shared dashboard tests and 14 composer tests. Scoped
+Rust/binding/JS lint and packed runtime/standalone declaration checks pass. The
+structural type assertion was made concrete to avoid generic variance retaining
+the buffer's private-class identity; an explicit nominal mismatch check remains.
+Inspected screenshots show full and compact borders, junctions and title clipping.
+No dependencies or default integration changes.
+
+Five warmed alternating 100-call rounds on an 80×24 layout with a no-op drawing
+surface measured 239.994 µs native / 20.949 µs reference (11.46× slower). This
+isolates renderer overhead from buffer writes and does not pass a performance
+gate. Modified intrinsics, complete reentrancy/resource/platform qualification,
+remaining dashboard renderers/lifecycle, explorer and broader replacement gates
+remain open.

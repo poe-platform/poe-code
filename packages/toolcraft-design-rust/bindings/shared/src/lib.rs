@@ -498,3 +498,5 @@ mod dashboard_buffer;
 pub use dashboard_buffer::*;
 mod dashboard_terminal;
 pub use dashboard_terminal::*;
+mod dashboard_border;
+pub use dashboard_border::*;

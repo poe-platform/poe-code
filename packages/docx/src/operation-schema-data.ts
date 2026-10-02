@@ -568,10 +568,22 @@ function getDeclaredKeys(): string[] {
 }
 
 const proxyTarget = Object.create(null) as Record<string, DocxOperationSchema>;
+function freezeTarget(): typeof proxyTarget {
+  if (Object.isExtensible(proxyTarget)) {
+    for (const key of getDeclaredKeys()) {
+      Object.defineProperty(proxyTarget, key, {
+        get: () => getSchemaEntry(key),
+        enumerable: true
+      });
+    }
+    Object.freeze(proxyTarget);
+  }
+  return proxyTarget;
+}
+
 export const operationDeclarations: DeclarationsMap = new Proxy(proxyTarget, {
   get(_target, prop) {
-    if (typeof prop !== "string") return undefined;
-    return getSchemaEntry(prop);
+    return typeof prop === "string" ? getSchemaEntry(prop) : undefined;
   },
   has(_target, prop) {
     if (typeof prop !== "string") return false;
@@ -581,13 +593,29 @@ export const operationDeclarations: DeclarationsMap = new Proxy(proxyTarget, {
   ownKeys() {
     return getDeclaredKeys();
   },
-  getOwnPropertyDescriptor(_target, prop) {
+  getOwnPropertyDescriptor(target, prop) {
+    if (!Object.isExtensible(target)) return Reflect.getOwnPropertyDescriptor(target, prop);
     if (typeof prop !== "string") return undefined;
     ensureParsed();
     if (!(prop in parsedRoot!)) return undefined;
     return { get: () => getSchemaEntry(prop), enumerable: true, configurable: true };
   },
-  getPrototypeOf() {
-    return null;
+  isExtensible() {
+    return Reflect.isExtensible(freezeTarget());
+  },
+  preventExtensions() {
+    return Reflect.preventExtensions(freezeTarget());
+  },
+  set(_target, prop, value) {
+    return Reflect.set(freezeTarget(), prop, value);
+  },
+  defineProperty(_target, prop, descriptor) {
+    return Reflect.defineProperty(freezeTarget(), prop, descriptor);
+  },
+  deleteProperty(_target, prop) {
+    return Reflect.deleteProperty(freezeTarget(), prop);
+  },
+  setPrototypeOf(_target, prototype) {
+    return Reflect.setPrototypeOf(freezeTarget(), prototype);
   }
 }) as DeclarationsMap;

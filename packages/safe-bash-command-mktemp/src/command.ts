@@ -74,7 +74,7 @@ function sampleTemplateChars(count: number): string {
 
 export function evalSyncMktemp(
   opArgs: readonly string[],
-  env: Readonly<Record<string, string>>,
+  env: Readonly<Record<string, string | undefined>>,
   statTypeSync?: (filePath: string) => string | undefined,
   writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
   mkdirSync?: (filePath: string) => boolean,

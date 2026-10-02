@@ -203,7 +203,7 @@ describe("standalone package publish metadata", () => {
       "./ssconvert/core", "./ssconvert/commands", "./ssconvert/formats/csv", "./ssconvert/formats/dbf", "./ssconvert/formats/html", "./ssconvert/formats/xlsx", "./ssconvert/formats/ods", "./ssconvert/formats/xls", "./ssconvert/formats/spreadsheetml",
       "./remote-execution", "./remote-execution/server", "./remote-execution/providers/*",
       "./safe-fs", "./safe-fs/core", "./safe-fs/node", "./safe-fs/node/filesystem",
-      "./safe-js", "./safe-js/core", "./safe-js/cli", "./safejs", "./safejs/core", "./safejs/cli",
+      "./safe-js", "./safe-js/core", "./safe-js/cli", "./safe-js/workerd", "./safejs", "./safejs/core", "./safejs/cli",
       "./safe-playwright", "./safe-playwright/adapter"
     ].sort());
     const rootPackage = readPackageJson("package.json");
@@ -277,11 +277,23 @@ describe("standalone package publish metadata", () => {
     expect(rootPackage.files).not.toContain("packages/safe-js/dist");
     expect(rootPackage.exports?.["./safe-js"]).toEqual({
       types: {
+        workerd: "./dist/types/safe-js/workerd.d.ts",
         browser: "./dist/types/safe-fs/node-unavailable.d.ts",
         default: "./dist/types/safe-js/index.d.ts"
       },
+      workerd: "./packages/safe-js/dist/workerd.js",
       browser: null,
       import: "./dist/shared/safe-js/index.js"
+    });
+    expect(rootPackage.exports?.["./safe-js/workerd"]).toEqual({
+      types: {
+        workerd: "./dist/types/safe-js/workerd.d.ts",
+        browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+        default: "./dist/types/safe-js/workerd.d.ts"
+      },
+      workerd: "./packages/safe-js/dist/workerd.js",
+      browser: null,
+      import: "./packages/safe-js/dist/workerd.js"
     });
     expect(rootPackage.files).toContain("!packages/safe-js/dist/package.json");
     expect(rootPackage.files).not.toContain("packages/agent-script/dist");

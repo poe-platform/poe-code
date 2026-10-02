@@ -557,6 +557,7 @@ export function evalSyncInstall(
       backupNote = ` (backup: ${quote(dPath + suffix)})`;
     }
     if (!writeFileSync(dPath, sBytes, modes.file)) return false;
+    if (verbose && !backup && dType === "file") out += `removed ${quote(dPath)}\n`;
     if (verbose) out += `${quote(sPath)} -> ${quote(dPath)}${backupNote}\n`;
     return true;
   };

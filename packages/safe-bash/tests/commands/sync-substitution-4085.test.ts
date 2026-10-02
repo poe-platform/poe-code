@@ -1461,6 +1461,42 @@ test("sync substitution and pipeline fast path for split, csplit, curl, wget, an
   assert.equal(new TextDecoder().decode(await fs.readFile("/c_02")), "epsilon\nzeta\n");
 });
 
+test("install substitution preserves replacement and backup diagnostics", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/source", new TextEncoder().encode("new"));
+  const registry = new CommandRegistry();
+  for (const command of [...createStandardCommands(), ...createInstallCommands()]) {
+    registry.register(command, { replace: true });
+  }
+  const sh = new Shell({ fs, commands: registry });
+  const result = await sh.exec(`
+    for i in {1..3}; do
+      captured=$(install -v /source /dest)
+      printf '%s|' "$captured"
+    done
+    captured=$(install -vb /source /dest)
+    printf '%s|' "$captured"
+    captured=$(install -v -S .bak /source /dest)
+    printf '%s|' "$captured"
+    captured=$(install -vb /source /missing)
+    printf '%s|' "$captured"
+  `);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stderr, "");
+  assert.equal(result.stdout, [
+    "'/source' -> '/dest'",
+    "removed '/dest'\n'/source' -> '/dest'",
+    "removed '/dest'\n'/source' -> '/dest'",
+    "'/source' -> '/dest' (backup: '/dest~')",
+    "'/source' -> '/dest' (backup: '/dest.bak')",
+    "'/source' -> '/missing'",
+    "",
+  ].join("|"));
+  for (const path of ["/dest", "/dest~", "/dest.bak", "/missing"]) {
+    assert.equal(new TextDecoder().decode(await fs.readFile(path)), "new");
+  }
+});
+
 test("sync substitution and pipeline fast path for sponge, truncate, install, and apply_patch (Wave 157)", async () => {
   const fs = new MemoryFileSystem();
   const registry = new CommandRegistry();

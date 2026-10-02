@@ -118,6 +118,19 @@ export function instrumentRootState(source) {
       const isWarmProperty = (expression, name) => expression && ts.isPropertyAccessExpression(expression)
         && !expression.questionDotToken && ts.isIdentifier(expression.expression)
         && expression.expression.text === "warm" && expression.name.text === name;
+      const isWarmClockRefresh = (statement) => {
+        if (!statement || !ts.isExpressionStatement(statement)) return false;
+        const assignment = statement.expression;
+        if (!ts.isBinaryExpression(assignment) || assignment.operatorToken.kind !== ts.SyntaxKind.EqualsToken) return false;
+        const target = assignment.left, value = assignment.right;
+        return ts.isPropertyAccessExpression(target) && !target.questionDotToken
+          && ts.isIdentifier(target.expression) && target.expression.text === "currentState"
+          && target.name.text === "shellStartedAt"
+          && ts.isCallExpression(value) && !value.questionDotToken && value.arguments.length === 0
+          && ts.isPropertyAccessExpression(value.expression) && !value.expression.questionDotToken
+          && ts.isIdentifier(value.expression.expression) && value.expression.expression.text === "Date"
+          && value.expression.name.text === "now";
+      };
       const warmRootSelection = (statement) => {
         const block = statement.parent;
         if (!ts.isBlock(block)) return undefined;
@@ -126,8 +139,9 @@ export function instrumentRootState(source) {
           || selection.expression.text !== "warm" || !ts.isBlock(selection.thenStatement)
           || !selection.elseStatement || !ts.isBlock(selection.elseStatement)) return undefined;
         const reused = selection.thenStatement.statements;
-        if (reused.length !== 2 || !isWarmProperty(assignedValue(reused[0], "currentState"), "currentState")
-          || !isWarmProperty(assignedValue(reused[1], "runtime"), "runtime")) return undefined;
+        const runtimeIndex = isWarmClockRefresh(reused[1]) ? 2 : 1;
+        if (reused.length !== runtimeIndex + 1 || !isWarmProperty(assignedValue(reused[0], "currentState"), "currentState")
+          || !isWarmProperty(assignedValue(reused[runtimeIndex], "runtime"), "runtime")) return undefined;
         const constructed = selection.elseStatement.statements;
         let roots = 0;
         const countRoots = (child) => {

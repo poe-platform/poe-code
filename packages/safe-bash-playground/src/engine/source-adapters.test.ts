@@ -230,6 +230,7 @@ describe("pinned browser source adapters", () => {
 
   it.each([false, true])("observes the reused root with current callbacks after all cleanup: fail=%s", async (fail) => {
     const code = instrumentRootState(`
+      const Date = { now: () => 1234 };
       class RootShellState {
         constructor(cwd, variables, exported, extensions) {
           Object.assign(this, { cwd, variables, exported, extensions });
@@ -246,6 +247,7 @@ describe("pinned browser source adapters", () => {
             let currentState;
             if (warm) {
               currentState = warm.currentState;
+              currentState.shellStartedAt = Date.now();
               runtime = warm.runtime;
             } else {
               const cwd = "/", variables = {}, exported = new Set();
@@ -275,6 +277,7 @@ describe("pinned browser source adapters", () => {
     expect(earlier).toEqual(["/first", "/first/finished", { cwd: "/first/finished" }]);
     await shell.run({ cwd: "/unobserved" });
     expect(shell.warm.currentState.processSubstitutionIds).toBe(ids);
+    expect(shell.warm.currentState.shellStartedAt).toBe(1234);
     expect(earlier).toHaveLength(3);
     const result = shell.run({
       cwd: "/current", fail, events: current,
@@ -304,6 +307,10 @@ describe("pinned browser source adapters", () => {
       body.replace("if (warm)", "if (other)"),
       body.replace("warm.currentState", "warm.other"),
       body.replace("runtime = warm.runtime;", "runtime = other;"),
+      body.replace("runtime = warm.runtime;", "currentState.shellStartedAt = other; runtime = warm.runtime;"),
+      body.replace("runtime = warm.runtime;", "currentState.other = Date.now(); runtime = warm.runtime;"),
+      body.replace("runtime = warm.runtime;", "currentState.shellStartedAt = Date.now(1); runtime = warm.runtime;"),
+      body.replace("runtime = warm.runtime;", "currentState.shellStartedAt = Other.now(); runtime = warm.runtime;"),
       body.replace("new RootShellState(cwd,", "new RootShellState(other,"),
       body.replace("state = currentState;", "state = other;"),
       body.replace("state = currentState;", "currentState.processSubstitutionIds = other; state = currentState;"),

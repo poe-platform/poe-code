@@ -55,10 +55,16 @@ const migrations = [
  * migration before use; an error leaves this transaction uncommitted. */
 export async function createLlmHistorySchema(session: PrivateSqliteSession, signal: AbortSignal, appliedAt: string): Promise<void> {
   signal.throwIfAborted();
-  await session.execute('BEGIN');
-  for (const sql of statements) { signal.throwIfAborted(); await session.execute(sql); }
-  await withSqliteStatement(session.module, {...session, signal, sql: 'INSERT INTO _llm_migrations(name, applied_at) VALUES (?, ?)'}, async insert => {
-    for (const name of migrations) for await (const ignoredRow of insert.rows([name, appliedAt], [])) { /* Execute each migration marker. */ }
-  });
-  await session.execute('COMMIT');
+  await session.execute('SAVEPOINT llm_history_schema');
+  try {
+    for (const sql of statements) { signal.throwIfAborted(); await session.execute(sql); }
+    await withSqliteStatement(session.module, {...session, signal, sql: 'INSERT INTO _llm_migrations(name, applied_at) VALUES (?, ?)'}, async insert => {
+      for (const name of migrations) for await (const ignoredRow of insert.rows([name, appliedAt], [])) { /* Execute each migration marker. */ }
+    });
+    await session.execute('RELEASE llm_history_schema');
+  } catch (error) {
+    try { await session.execute('ROLLBACK TO llm_history_schema; RELEASE llm_history_schema'); }
+    catch (rollback) { throw new AggregateError([error, rollback], 'History schema initialization and rollback failed'); }
+    throw error;
+  }
 }

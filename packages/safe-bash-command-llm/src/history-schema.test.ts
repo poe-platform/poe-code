@@ -49,3 +49,44 @@ test('failed initialization preserves an existing private database', async () =>
     });
   });
 });
+
+test('initializes inside a canonical transaction without committing the caller transaction', async () => {
+  const { transactSqlite } = await import('./sqlite-transaction.js');
+  const fs = new MemoryFileSystem();
+  const signal = new AbortController().signal;
+  const options = { fs, path: '/logs.db', signal, maxOpenFiles: 8, maxFileBytes: 1048576, maxIndexBytes: 1048576 };
+  await assert.rejects(transactSqlite(options, async session => {
+    await createLlmHistorySchema(session, signal, '2026-10-01 00:00:00+00:00');
+    throw new Error('caller rollback');
+  }), { message: 'caller rollback' });
+  await assert.rejects(fs.stat('/logs.db'), { code: 'ENOENT' });
+  await transactSqlite(options, async session => {
+    await createLlmHistorySchema(session, signal, '2026-10-01 00:00:00+00:00');
+    await session.execute("INSERT INTO responses(id,prompt,response) VALUES ('r','apples','oranges');");
+  });
+  const result = await transactSqlite(options, async session => withSqliteStatement(session.module,
+    { ...session, signal, sql: "SELECT responses.id FROM responses JOIN responses_fts ON responses.rowid=responses_fts.rowid WHERE responses_fts MATCH 'oranges'" }, async statement => {
+      const rows = []; for await (const row of statement.rows([], ['text'])) rows.push(row); return rows;
+    }));
+  assert.deepEqual(result.value, [['r']]);
+});
+
+test('failed schema initialization rolls back its savepoint and prevents canonical publication', async () => {
+  const { transactSqlite } = await import('./sqlite-transaction.js');
+  const fs = new MemoryFileSystem();
+  const signal = new AbortController().signal;
+  await assert.rejects(transactSqlite({ fs, path: '/logs.db', signal, maxOpenFiles: 8, maxFileBytes: 1048576, maxIndexBytes: 1048576 }, async session => {
+    await session.execute('CREATE TABLE sentinel(value); INSERT INTO sentinel VALUES (42); CREATE TABLE responses(custom);');
+    await assert.rejects(createLlmHistorySchema(session, signal, '2026-10-01 00:00:00+00:00'), { code: 'EIO' });
+    await session.execute('INSERT INTO sentinel VALUES (43);');
+    await withSqliteStatement(session.module, { ...session, signal, sql: "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name" }, async statement => {
+      const rows = []; for await (const row of statement.rows([], ['text'])) rows.push(row);
+      assert.deepEqual(rows, [['responses'], ['sentinel']]);
+    });
+    await withSqliteStatement(session.module, { ...session, signal, sql: 'SELECT value FROM sentinel ORDER BY value' }, async statement => {
+      const rows = []; for await (const row of statement.rows([], ['integer'])) rows.push(row);
+      assert.deepEqual(rows, [[42n], [43n]]);
+    });
+  }), { code: 'EIO' });
+  await assert.rejects(fs.stat('/logs.db'), { code: 'ENOENT' });
+});

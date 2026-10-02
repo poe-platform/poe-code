@@ -16,7 +16,7 @@ export function createEngine(supplied: EngineOptions = {}): Engine {
   return createSpreadsheetEngine({ ...supplied, formats, codecs,
     fonts: "fonts" in supplied ? supplied.fonts : {
       async resolve() {
-        const { suppliedDefaultFont } = await import("@poe-code/pdf");
+        const { suppliedDefaultFont } = await import("safe-bash-pdf-engine");
         return suppliedDefaultFont().bytes;
       }
     },

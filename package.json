@@ -975,7 +975,10 @@
     "entities": "^6.0.1",
     "fengari": "^0.1.5",
     "parse5": "7.3.0",
-    "@sqlite.org/sqlite-wasm": "3.50.4-build1"
+    "@sqlite.org/sqlite-wasm": "3.50.4-build1",
+    "@mixmark-io/domino": "2.2.0",
+    "ipaddr.js": "^2.5.0",
+    "minimatch": "^10.2.6"
   },
   "description": "CLI tool to configure Poe API for developer workflows.",
   "packageManager": "npm@10.9.2",

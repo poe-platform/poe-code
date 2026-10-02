@@ -8,32 +8,32 @@ test("supports zsh parameter expansion flags (f) and (tP) plus print/functions/s
   await shell.use(agentCommands({ replace: true }));
   const script = `export FOO="bar baz"
 if [[ -n "\${ZDOTDIR-}" ]]; then
-  rc="\$ZDOTDIR/.zshrc"
+  rc="$ZDOTDIR/.zshrc"
 else
-  rc="\$HOME/.zshrc"
+  rc="$HOME/.zshrc"
 fi
-[[ -r "\$rc" ]] && . "\$rc"
+[[ -r "$rc" ]] && . "$rc"
 print "# Functions"
 functions
 print ""
-setopt_count=\$(setopt | wc -l | tr -d "[:space:]")
-print "# setopt (\$setopt_count)"
+setopt_count=$(setopt | wc -l | tr -d "[:space:]")
+print "# setopt ($setopt_count)"
 setopt | sed "s/^/setopt /"
 print ""
-unsetopt_count=\$(unsetopt | wc -l | tr -d "[:space:]")
-print "# unsetopt (\$unsetopt_count)"
+unsetopt_count=$(unsetopt | wc -l | tr -d "[:space:]")
+print "# unsetopt ($unsetopt_count)"
 unsetopt | sed "s/^/unsetopt /"
 print ""
-alias_count=\$(\alias -L | wc -l | tr -d "[:space:]")
-print "# aliases (\$alias_count)"
-\alias -L
+alias_count=$(alias -L | wc -l | tr -d "[:space:]")
+print "# aliases ($alias_count)"
+alias -L
 print ""
 print "#SNAPSHOT_MARKER"
-for __codex_snapshot_export_name in \${(f)"\$(typeset +x)"}; do
+for __codex_snapshot_export_name in \${(f)"$(typeset +x)"}; do
   case "\${(tP)__codex_snapshot_export_name}" in
     *hideval*|*special*) continue ;;
   esac
-  typeset -p -- "\$__codex_snapshot_export_name" 2>/dev/null || true
+  typeset -p -- "$__codex_snapshot_export_name" 2>/dev/null || true
 done`;
 
   try {

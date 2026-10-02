@@ -58,6 +58,24 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
   const entries = readZipArchiveEntries(zipBytes);
   const docXmlBytes = entries.get("word/document.xml");
   if (!docXmlBytes) return [];
+  const relTargets = new Map<string, string>();
+  const relBytes = entries.get("word/_rels/document.xml.rels");
+  if (relBytes) {
+    const relXml = new TextDecoder().decode(relBytes);
+    for (const rel of relXml.matchAll(/<(?:[A-Za-z0-9_-]+:)?Relationship\b[^>]*?>/g)) {
+      const idMatch = /\bId="([^"]+)"/.exec(rel[0]);
+      const targetMatch = /\bTarget="([^"]+)"/.exec(rel[0]);
+      if (idMatch?.[1] && targetMatch?.[1]) {
+        const rawTarget = targetMatch[1].replace(/^\/+/, "");
+        const normalized = rawTarget.startsWith("../")
+          ? rawTarget.replace(/^\.\.\//, "")
+          : rawTarget.startsWith("word/")
+            ? rawTarget
+            : `word/${rawTarget}`;
+        relTargets.set(idMatch[1], normalized);
+      }
+    }
+  }
   const headingStyleIds = new Set<string>(["title", "subtitle"]);
   const stylesBytes = entries.get("word/styles.xml");
   if (stylesBytes) {
@@ -129,6 +147,24 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
       const line = texts.join("").trim();
       if (line.length > 0) {
         blocks.push({ kind: isHeading ? "heading" : "paragraph", text: line });
+      }
+      for (const drw of chunk.matchAll(/<((?:[A-Za-z0-9_-]+:)?(?:drawing|pict))\b[\s\S]*?<\/\1>/g)) {
+        const embedMatch = /\b(?:[A-Za-z0-9_-]+:)?embed="([^"]+)"/.exec(drw[0]);
+        if (!embedMatch?.[1]) continue;
+        const mediaPath = relTargets.get(embedMatch[1]);
+        const mediaBytes = mediaPath ? entries.get(mediaPath) : undefined;
+        if (!mediaBytes) continue;
+        const extMatch = /<(?:[A-Za-z0-9_-]+:)?(?:extent|ext)\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(drw[0]);
+        const cxEmu = extMatch ? Number.parseInt(extMatch[1]!, 10) : 5486400;
+        const cyEmu = extMatch ? Number.parseInt(extMatch[2]!, 10) : 2880360;
+        let width = Math.max(24, cxEmu / 12700);
+        let height = Math.max(24, cyEmu / 12700);
+        const maxWidth = 504;
+        if (width > maxWidth) {
+          height = height * (maxWidth / width);
+          width = maxWidth;
+        }
+        blocks.push({ kind: "image", imageBytes: mediaBytes, width, height });
       }
     }
   }
@@ -435,6 +471,27 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
         y -= rowHeight;
       }
       y -= 14;
+    } else if (block.kind === "image" && block.imageBytes) {
+      const b = block.imageBytes;
+      const isPng = b.length > 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
+      const isJpg = b.length > 3 && b[0] === 0xff && b[1] === 0xd8;
+      if (isPng || isJpg) {
+        try {
+          const embedded = isPng ? doc.embedPng(b) : doc.embedJpg(b);
+          const w = block.width ?? 400;
+          const h = block.height ?? 210;
+          ensureSpace(h + 12);
+          page.drawImage(embedded, {
+            x: 54,
+            y: y - h,
+            width: w,
+            height: h
+          });
+          y -= h + 12;
+        } catch {
+          // ignore malformed embedded images
+        }
+      }
     }
   }
 

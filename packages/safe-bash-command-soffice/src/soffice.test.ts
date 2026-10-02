@@ -366,5 +366,31 @@ describe("safe-bash-command-soffice", () => {
     assert.match(docxCat.stdout, /Prefixed paragraph text/);
     const pptxCat = await runSofficeCli(["--cat", "xmldom.pptx"], files, "/");
     assert.match(pptxCat.stdout, /Unprefixed Slide Title/);
+
+    const png1x1 = Buffer.from(
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+      "base64"
+    );
+    const docxWithImage = createStoredZipArchive({
+      "word/_rels/document.xml.rels": new TextEncoder().encode(
+        "<Relationships xmlns=\"http://schemas.openxmlformats.org/package/2006/relationships\">" +
+        "<Relationship Id=\"rId2\" Type=\"http://schemas.openxmlformats.org/officeDocument/2006/relationships/image\" Target=\"media/image-1.png\"/>" +
+        "</Relationships>"
+      ),
+      "word/media/image-1.png": new Uint8Array(png1x1),
+      "word/document.xml": new TextEncoder().encode(
+        "<w:document><w:body>" +
+        "<w:p><w:r><w:t>Chart Heading</w:t></w:r></w:p>" +
+        "<w:p><w:r><w:drawing><wp:inline><wp:extent cx=\"5943600\" cy=\"3120390\"/>" +
+        "<a:graphic><a:graphicData><pic:pic><pic:blipFill><a:blip r:embed=\"rId2\"/></pic:blipFill></pic:pic></a:graphicData></a:graphic>" +
+        "</wp:inline></w:drawing></w:r></w:p>" +
+        "</w:body></w:document>"
+      )
+    });
+    files.set("with-image.docx", docxWithImage);
+    const pdfImgRes = await runSofficeCli(["--headless", "--convert-to", "pdf", "with-image.docx"], files, "/");
+    assert.equal(pdfImgRes.exitCode, 0);
+    const pdfImgStr = new TextDecoder("latin1").decode(files.get("/with-image.pdf")!);
+    assert.match(pdfImgStr, /\/Subtype\s*\/Image/);
   });
 });

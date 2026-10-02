@@ -3,9 +3,12 @@ import { parse, type DefaultTreeAdapterMap } from "parse5";
 type Node = DefaultTreeAdapterMap["node"];
 
 export interface DocBlock {
-  kind: "heading" | "paragraph" | "table";
+  kind: "heading" | "paragraph" | "table" | "image";
   text?: string;
   rows?: string[][];
+  imageBytes?: Uint8Array;
+  width?: number;
+  height?: number;
 }
 
 const hidden = new Set(["head", "script", "style", "template"]);

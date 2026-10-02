@@ -2,6 +2,8 @@
 
 Git worktree lifecycle helpers with a YAML registry.
 
+The runtime uses portable POSIX paths and Web Crypto, with no Node built-in imports. Supply absolute POSIX roots and inject filesystem and Git execution capabilities when running in Workers.
+
 This package creates, lists, reconciles, removes, and tracks poe-code managed worktrees. Callers provide filesystem and command-execution dependencies so the package can be tested without touching the real filesystem.
 
 ## Usage

@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-import { dirname, resolve } from "node:path";
+import { dirname, posixPath } from "@poe-code/safe-fs/contracts";
 import { hasOwnErrorCode } from "./error-codes.js";
 import type { WorktreeFileSystem } from "./types.js";
 
@@ -12,8 +11,8 @@ export async function withRegistryLock<Result>(
   operation: () => Promise<Result>
 ): Promise<Result> {
   await assertPathHasNoSymbolicLinks(registryFile, fs);
-  const lockPath = `${resolve(registryFile)}.lock`;
-  const ownerPath = `${lockPath}/${process.pid}-${randomUUID()}`;
+  const lockPath = `${posixPath.resolve(registryFile)}.lock`;
+  const ownerPath = `${lockPath}/${globalThis.crypto.randomUUID()}`;
   await fs.mkdir(dirname(lockPath), { recursive: true });
   const deadline = Date.now() + LOCK_WAIT_MS;
   while (true) {

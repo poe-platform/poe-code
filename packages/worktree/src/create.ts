@@ -1,4 +1,4 @@
-import { join } from "node:path";
+import { joinPath as join } from "@poe-code/safe-fs/contracts";
 import { withRegistryTransaction } from "./registry.js";
 import type { Worktree, WorktreeDeps } from "./types.js";
 

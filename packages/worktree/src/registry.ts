@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-import { dirname } from "node:path";
+import { dirname } from "@poe-code/safe-fs/contracts";
 import { parse, stringify } from "yaml";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { assertPathHasNoSymbolicLinks, withRegistryLock } from "./registry-lock.js";
@@ -61,7 +60,7 @@ async function persistRegistry(
   await fs.mkdir(dirname(registryFile), { recursive: true });
   await assertPathHasNoSymbolicLinks(registryFile, fs);
   const yaml = stringify(registry, { lineWidth: 0 });
-  const temporaryFile = `${registryFile}.tmp-${randomUUID()}`;
+  const temporaryFile = `${registryFile}.tmp-${globalThis.crypto.randomUUID()}`;
   let temporaryCreated = false;
   try {
     await assertPathHasNoSymbolicLinks(temporaryFile, fs);

@@ -20,6 +20,7 @@
   ],
   "dependencies": {
     "@poe-code/user-error": "*",
-    "yaml": "^2.8.2"
+    "yaml": "^2.8.2",
+    "@poe-code/safe-fs": "*"
   }
 }

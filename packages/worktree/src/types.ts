@@ -39,11 +39,11 @@ export type WorktreeRegistry = {
 };
 
 export type WorktreeFileSystem = {
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
   writeFile(
     path: string,
     data: string,
-    options?: { encoding?: BufferEncoding; flag?: string }
+    options?: { encoding?: "utf8"; flag?: string }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rmdir(path: string): Promise<void>;

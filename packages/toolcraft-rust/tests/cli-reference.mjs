@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import ts from "typescript";
-import {Option,InvalidArgumentError} from "commander";
+import {Command as CommanderCommand,Option,InvalidArgumentError} from "commander";
 import {ToolcraftBugError,UserError,isUserError} from "../../toolcraft/dist/index.js";
-import {LOG_LEVELS} from "../../toolcraft/dist/runtime-logging.js";
+import {LOG_LEVELS,isLogLevel} from "../../toolcraft/dist/runtime-logging.js";
 import {suggest} from "../../toolcraft/dist/suggest.js";
 import {unicodeLength,cloneDefaultValue,validate as validateSchema} from "../../toolcraft-schema/dist/index.js";
 import {getExpectedNumberDescription,isValidNumberSchemaValue} from "../../toolcraft/dist/number-schema.js";
@@ -20,5 +20,5 @@ export function loadCLIReference(names,constants=[]){
     return [];
   });
   assert.equal(declarations.length,names.length+constants.length);
-  return new Function("ToolcraftBugError","UserError","LOG_LEVELS","suggest","unicodeLength","getExpectedNumberDescription","isValidNumberSchemaValue","renderSourceSnippet","Option","InvalidArgumentError","isUserError","cloneDefaultValue","validateSchema",'"use strict";\n'+ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,UserError,LOG_LEVELS,suggest,unicodeLength,getExpectedNumberDescription,isValidNumberSchemaValue,renderSourceSnippet,Option,InvalidArgumentError,isUserError,cloneDefaultValue,validateSchema);
+  return new Function("ToolcraftBugError","UserError","LOG_LEVELS","suggest","unicodeLength","getExpectedNumberDescription","isValidNumberSchemaValue","renderSourceSnippet","Option","InvalidArgumentError","isUserError","cloneDefaultValue","validateSchema","CommanderCommand","isLogLevel",'"use strict";\n'+ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,UserError,LOG_LEVELS,suggest,unicodeLength,getExpectedNumberDescription,isValidNumberSchemaValue,renderSourceSnippet,Option,InvalidArgumentError,isUserError,cloneDefaultValue,validateSchema,CommanderCommand,isLogLevel);
 }

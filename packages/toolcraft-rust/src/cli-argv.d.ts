@@ -22,3 +22,4 @@ export declare function resolveOutputFromArgv(argv:readonly string[],formats?:CL
 export declare function toDesignSystemOutput(output:OutputMode):"terminal"|"markdown"|"json";
 export declare function resolveDebugStackMode(value:unknown):"trim"|"raw"|undefined;
 export declare function getDebugStackModeFromArgv(argv:readonly string[]):"trim"|"raw"|undefined;
+export declare function unwrapOptional(schema:import("toolcraft-schema-rust").AnySchema):import("toolcraft-schema-rust").AnySchema;

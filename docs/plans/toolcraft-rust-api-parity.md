@@ -3523,3 +3523,48 @@ Dynamic argv integration is independently verified in remote main at d67b4261af.
 Its Release workflow 37070671678 remains pending build at the latest check.
 The preceding value-assembly workflow 37069837816 completed successfully with
 release-stable skipped. Neither observation establishes new publication.
+
+### CLI command-tree construction checkpoint
+
+Native command construction now composes the existing field collector, option
+builder, numeric-array normalization and scope visibility policies. Rust selects
+commands/groups, filters scope, attaches hidden defaults with collision-free
+internal names, controls lazy field initialization, routes parsed operands and
+unknown flags, and validates global output/debug/log-level options. Node retains
+the existing Commander constructors, live collection callbacks and method lookup,
+iterator cleanup, private closure state and asynchronous action callback timing.
+The action passes the original command, declaration path, dynamic fields,
+positionals, options and raw argv into execution. No external dependencies or
+default implementation changed; full Toolcraft execution is still unfinished.
+
+Four missing-module comparisons preceded implementation. Ten final differential
+tests use extracted reference declarations and actual Commander parsing. They
+cover scoped trees, aliases, reserved child names, hidden-default collisions,
+lazy field identity, retry after collection failure, option parser diagnostics,
+getter/registration order, async receiver/timing/rejection identity, malformed
+inputs and reentrant loaders. A composition test runs native tree construction,
+argument preparation, Commander dispatch and dynamic-value parsing together.
+It does not substitute for the remaining complete CLI suites.
+
+The maintained package route passes 263 native tests, Rust tests, 1,723 original
+reference/integration cases across 46 files and declaration consumers.
+Rust/binding and scoped JS lint pass. Packed runtime consumers perform the
+composed parse/dispatch path with only packed own schema and existing Commander
+admitted as external ESM imports. Packed types compile with types: [], while
+contract declarations still resolve from the checkout. An inspected Commander
+root/leaf help screenshot matches the reference output exactly; Toolcraft's
+rich help and prompts are not yet wired to native execution.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 500 calls and 32 retained
+results, measured 771.795/50.405 microseconds native/reference for constructing
+a one-command tree, loading fields, preparing alias/dynamic/numeric-array argv,
+parsing with Commander and assembling dynamic values through an async action.
+Native is 15.31 times slower for this larger fixture. This is a different workload
+from the prior preparation-only benchmark, not evidence of a speedup. No
+performance/default-swap gate passed. Full handler/parameter execution,
+prompts/help, transports, standalone types and platform/resource/reentrancy
+qualification remain open, as does replacing/qualifying existing Commander.
+
+Argument preparation is verified on remote main at 3f66a675ff. Its Release
+workflow 37071728185 and the preceding dynamic-argv workflow 37070671678 completed
+successfully, both with release-stable skipped; no later publication is inferred.

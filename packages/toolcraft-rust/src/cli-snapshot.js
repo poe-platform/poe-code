@@ -50,3 +50,4 @@ const host={operate:protect((name,args)=>operations[name](...args)),get:protect(
 export async function createCLICommandTreeSnapshot(roots,options={}){
   return invoke("snapshot",[roots,options]);
 }
+export function isNodeVisibleInScope(node,scope){return invoke("visible",[node,scope]);}

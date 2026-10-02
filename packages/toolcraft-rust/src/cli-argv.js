@@ -24,6 +24,7 @@ const operations={
 };
 const host={operate:protect((name,args)=>operations[name](...args)),get:protect((value,key)=>value[key])};
 export function splitArrayInput(value){return invoke("split",[value]);}
+export function unwrapOptional(schema){return invoke("unwrap",[schema]);}
 export function isNegativeNumericToken(token){return invoke("negative",[token]);}
 export function isNextArrayOptionToken(token,schema){return invoke("nextOption",[token,schema]);}
 export function normalizeNumericArrayOptions(argv,options,numericArrayOptions){return invoke("normalize",[argv,options,numericArrayOptions]);}

@@ -244,3 +244,16 @@ const defaultCommandName:string|undefined=cliPreparation.getDefaultCommanderComm
 // @ts-expect-error CLI preparation requires command-keyed dynamic field loaders
 cliPreparation.prepareCliArguments(commanderProgram,[],new Map<string,()=>[]>(),"kebab",null as unknown as import("../dist/cli-policy.js").ResolvedCLIControls);
 void [preparedCliArgv,defaultCommandName];
+
+import * as cliCommands from "../dist/cli-commands.js";
+const nodeCommand:import("commander").Command|null=cliCommands.createNodeCommand(null as unknown as native.Command<{service:string},any,any,any>,"kebab",new Set(),async state=>{
+  const path:string=state.commandPath;
+  const declared:readonly string[]=state.declarationPath;
+  const fields:import("../dist/cli-fields.js").FieldDefinition[]=state.fields;
+  void [path,declared,fields];
+},false,null as unknown as import("../dist/cli-policy.js").ResolvedCLIControls,new Map());
+const debugMode:"trim"|"raw"=cliCommands.parseDebugStackMode(true);
+const parsedLogLevel:native.LogLevel=cliCommands.parseLogLevel("warn");
+// @ts-expect-error CLI execution callbacks must return a promise
+cliCommands.createNodeCommand(null as unknown as native.Group,"kebab",new Set(),()=>undefined,false,null as unknown as import("../dist/cli-policy.js").ResolvedCLIControls,new Map());
+void [nodeCommand,debugMode,parsedLogLevel];

@@ -1,15 +1,17 @@
 import assert from 'node:assert/strict';
-import * as native from 'node:fs/promises';
-import { RealFileSystem } from '@poe-platform/safe-fs/fs/real';
+// Conformance instrumentation resolves this through the installed package's
+// imports map, so cleanup is inspected in the actual recorder filesystem.
+import { artifactFileSystem } from '#safe-playwright-provider';
 import { createPlaywrightController } from '@poe-platform/safe-bash/playwright';
 import { createCloudflarePlaywrightAdapter } from '@poe-platform/safe-bash/playwright/cloudflare';
 
 // Every route is a separate Worker fetch forwarded to this same retained DO.
 export class ArchiveProof {
   constructor(_context, env) {
-    this.filesystem = new RealFileSystem({ root: '/' });
+    assert.ok(artifactFileSystem, 'Packaged Worker provider filesystem missing');
+    this.filesystem = artifactFileSystem;
     const adapter = createCloudflarePlaywrightAdapter(env.BROWSER, undefined, undefined, {
-      artifactFileSystem: this.filesystem, traceCapture: 'archive',
+      traceCapture: 'archive',
       traceLimits: { maxBytes: 16 * 1024 * 1024, maxFiles: 1024, maxArchiveBytes: 256 * 1024 },
     });
     this.artifacts = [];
@@ -27,7 +29,7 @@ export class ArchiveProof {
     });
   }
   async privateDirectories() {
-    return (await native.readdir('/tmp')).filter(name => name.startsWith('poe-browser-artifact-')).sort();
+    return (await this.filesystem.readdir('/tmp')).map(entry => entry.name).filter(name => name.startsWith('poe-browser-artifact-')).sort();
   }
   async fetch(request) {
     const route = new URL(request.url).pathname;
@@ -64,7 +66,7 @@ export class ArchiveProof {
         assert.deepEqual(await this.privateDirectories(), this.before);
       } else if (route === '/failed-producer') {
         await assert.rejects(this.lease.captureArtifact(async path => {
-          await native.writeFile(path, 'partial');
+          await this.filesystem.writeFile(path, new TextEncoder().encode('partial'));
           throw new Error('native producer failed');
         }, { signal: new AbortController().signal, maxBytes: 1024, extension: 'zip' }), error => error.message === 'native producer failed');
         assert.deepEqual(await this.privateDirectories(), this.before);

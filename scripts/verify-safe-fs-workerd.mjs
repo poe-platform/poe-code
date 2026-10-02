@@ -98,8 +98,11 @@ async function runFixture(consumerDirectory) {
   for (const fixture of ['safe-packages-fs-workerd.mjs', 'safe-packages-trace-workerd.mjs']) {
     const archive = fixture === 'safe-packages-trace-workerd.mjs';
     const contents = await readFile(new URL('./fixtures/' + fixture, import.meta.url), 'utf8');
+    // The trace fixture inspects the packaged provider's filesystem through its
+    // own imports map; there is no workspace source or replacement backend.
+    const resolveDir = archive ? resolve(consumer, 'node_modules/@poe-platform/safe-bash') : consumer;
     const options = {
-      absWorkingDir: consumer, stdin: { contents, resolveDir: consumer, sourcefile: fixture },
+      absWorkingDir: consumer, stdin: { contents, resolveDir, sourcefile: fixture },
       bundle: true, platform: 'browser', format: 'esm', target: 'es2022',
       tsconfigRaw: { compilerOptions: {} }, external: ['node:*', 'cloudflare:*', 'browser-user-code.js'], write: false, logLevel: 'silent',
     };

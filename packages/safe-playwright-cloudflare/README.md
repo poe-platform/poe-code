@@ -76,9 +76,10 @@ The fourth argument also accepts `traceCapture: "archive"`. This explicitly
 selects the standard CLI's `tracing-start` / `tracing-stop` ZIP artifact flow,
 without per-command live trace files. Omission or `"live"` preserves live
 capture, which requires authoritative pathname and retained-file identity.
-Workerd native files expose placeholder identity, so supply
+The bundled Workerd/browser provider supplies its own memory filesystem; leave
+`artifactFileSystem` unset for that provider. Native Node providers require
 `artifactFileSystem: new RealFileSystem({ root: "/" })` from
-`@poe-platform/safe-fs/fs/real` and explicitly choose `"archive"` there.
+`@poe-platform/safe-fs/fs/real` so capture reads their actual output files.
 Archive capture awaits the trusted provider in a private temporary directory,
 reads the completed file through one retained handle, and always removes the
 directory. Its artifact byte limit bounds the completed compressed output.

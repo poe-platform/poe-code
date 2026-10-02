@@ -1,6 +1,7 @@
 /** Provider plugin for the unmodified, pinned LLM Python distribution. */
 export const pythonLlmProvider = /* @__PURE__ */ (() => String.raw`"""LLM's provider interface backed by the invocation-owned host capability."""
 from contextlib import contextmanager
+from dataclasses import replace
 from itertools import islice
 from typing import Optional
 import os
@@ -61,6 +62,12 @@ def _options(descriptions):
     return create_model("Options", __base__=llm.Options, **fields)
 
 
+def _attachment_type(attachment):
+    if attachment.url and not attachment.type and not attachment.path:
+        return _call("attachment_head", {"url": attachment.url})
+    return attachment.resolve_type()
+
+
 @contextmanager
 def _request(model, prompt, stream, response, conversation):
     if response._key is not None or model.key is not None:
@@ -98,14 +105,20 @@ def _request(model, prompt, stream, response, conversation):
         if prompt.schema is not None:
             payload["schema"] = prompt.schema
         for attachment in prompt.attachments:
-            if attachment.content is not None:
+            if attachment.content or (
+                attachment.content is not None and not attachment.path and not attachment.url
+            ):
                 content = memoryview(attachment.content)
                 source = spool(content[start:start + 16384] for start in range(0, len(content), 16384))
             elif attachment.path:
                 source = {"path": os.path.abspath(attachment.path)}
+            elif attachment.url:
+                handle = _call("input_url", {**_context(), "url": attachment.url})
+                temporary_inputs.append(handle)
+                source = {"spool": handle}
             else:
-                raise llm.ModelError("This host transport requires an attachment path or content")
-            payload["attachments"].append({**source, "mimeType": attachment.resolve_type()})
+                raise llm.ModelError("Attachment requires a path, URL or content")
+            payload["attachments"].append({**source, "mimeType": _attachment_type(attachment)})
         yield payload
     finally:
         failing = sys.exc_info()[0] is not None
@@ -134,6 +147,16 @@ def _event(event, response):
 
 class _HostModel:
     can_stream = True
+
+    def _validate_attachments(self, attachments=None):
+        # Use genuine validation without changing caller-owned Attachment fields.
+        if attachments and self.attachment_types:
+            attachments = [
+                replace(item, type=_attachment_type(item))
+                if item.url and not item.type and not item.path else item
+                for item in attachments
+            ]
+        return super()._validate_attachments(attachments)
 
     def __init__(self, entry):
         self.model_id = entry["id"]

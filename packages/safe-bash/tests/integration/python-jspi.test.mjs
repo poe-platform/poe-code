@@ -434,6 +434,8 @@ test('real workerd preserves standard llm Python workflows', {timeout:120000}, a
   assert.equal(result.stdout,reference.stdout);
   await rm(referenceDirectory,{recursive:true});
   assert.deepEqual(result.calls,reference.calls);
+  assert.equal(result.attachmentResponses,12);
+  assert.equal(result.attachmentDisposals,12);
   assert.deepEqual(result.failures,[]);
   assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });

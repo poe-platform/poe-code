@@ -1,3 +1,4 @@
+import type { HttpTransport } from '../network/types.js';
 import type { CommandContext } from '../../contracts/index.js';
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from '../llm/service.js';
 import type { LlmOption, LlmInputSource } from '../llm/types.js';
@@ -95,6 +96,8 @@ function* textFragments(text: string, limit: number): Generator<string> {
 }
 
 export interface PythonLlmCapabilityOptions {
+  /** Explicit host-authorized GET/HEAD transport; no ambient network fallback. */
+  readonly attachmentTransport?: HttpTransport;
   readonly maxStreamChunkBytes?: number;
   readonly maxBufferedResponseBytes?: number;
   readonly maxBufferedInputBytes?: number;
@@ -106,7 +109,7 @@ export interface PythonLlmCapabilityOptions {
 
 /** Reuses the invocation's authorized service; Python receives only model data. */
 export function createPythonLlmCapability(context: PythonLlmContext, service: LlmService, options: PythonLlmCapabilityOptions = {}): PythonHostCapability {
-  const stagedInputs = createPythonLlmInputs(context.fs, context.inputBudget?.maxBytes ?? Infinity);
+  const stagedInputs = createPythonLlmInputs(context.fs, context.inputBudget?.maxBytes ?? Infinity, options.attachmentTransport);
   const chunkBytes = options.maxStreamChunkBytes ?? 16384;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python LLM stream chunk limit');
   const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;
@@ -376,6 +379,9 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         const result = parseLlmSchemaDsl(payload.schema, payload.multi);
         jsonBytes(result as PythonHostValue,bufferedLimit);
         return result as PythonHostValue;
+      }
+      if (operation.operation === 'attachment_head' || operation.operation === 'input_url') {
+        return stagedInputs.remote(payload.url, operation.operation === 'attachment_head' ? 'HEAD' : 'GET', configurationContext(context,payload,signal).cwd, signal);
       }
       if (operation.operation === 'input_open') return stagedInputs.open(configurationContext(context,payload,signal).cwd,signal);
       if (operation.operation === 'input_write') { await stagedInputs.write(payload.id,payload.bytes,signal); return null; }

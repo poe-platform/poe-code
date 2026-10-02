@@ -65,6 +65,8 @@ Conversations remain in memory. Schemas accept dictionaries or Pydantic model
 classes. The original `llm.schema_dsl()` helper builds schemas from compact
 field descriptions. Model options use genuine Pydantic validation. Path and byte-content
 attachments use the canonical filesystem and bounded host input transport.
+Use `llm.Attachment(url="https://example.com/report.txt")` when the host enables
+URL attachments; both sync and async model calls keep the regular syntax.
 The native reference and actual Worker conformance program compare the same
 calling code, including a prompt larger than 16 MiB and its reuse in conversation
 history with exact UTF-8 byte hashes.
@@ -84,7 +86,13 @@ assets, not vendored source. The interpreter does not download dependencies.
 Register the returned native Wasm modules with the existing static JSPI asset
 loader. Call `installPythonLlmPackages(runtime, assets.packages)` before handing
 the runtime to the executor. Enable `createPythonLlmCapability()` over the
-same invocation-owned authorized service used by the shell command.
+same invocation-owned authorized service used by the shell command. An optional
+`attachmentTransport` supplies the host-authorized GET/HEAD transport for URL
+attachments. There is no ambient Python networking fallback. The host transport
+must enforce its download policy and return redirects without following them;
+like the original library, this adapter rejects redirect responses. Embedded URL
+credentials are rejected. MIME checks, response headers, retained input bytes
+and cleanup stay bounded.
 
 Set finite interpreter, filesystem, parent input and host bridge budgets. The
 package profile requires the pinned Pyodide runtime. Hosts that omit its assets
@@ -218,7 +226,7 @@ retain response chunks or materialize data inside Python, including explicit
 attachment content reads; the interpreter's finite heap remains its memory
 boundary.
 
-URL attachments, attachments in conversation history and nonscalar option
-descriptors still need transport support. Binary embedding inputs are not
+Attachments in conversation history and nonscalar option descriptors still
+need transport support. Binary embedding inputs are not
 supported by the current transport. Worker conformance does not establish
 consumer deployment acceptance.

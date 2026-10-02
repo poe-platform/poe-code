@@ -168,9 +168,9 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
     {id:'fixture',capabilities:['messages','schema'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2}}},
     {id:'fixture-embed',capabilities:['embed']},
   ], async *complete(request) {
-    calls.push({prompt:request.prompt,stream:request.stream,messages:request.messages,options:request.options,schema:request.schema,attachments:request.attachments.map(a=>({mimeType:a.mimeType,text:new TextDecoder().decode(a.bytes)}))});
+    calls.push({prompt:request.prompt,stream:request.stream,messages:request.messages,options:request.options,schema:request.schema,attachments:request.attachments.map(a=>({mimeType:a.mimeType,text:a.receipt ?? new TextDecoder().decode(a.bytes)}))});
     if (request.prompt === 'second' && request.messages?.at(-2)?.content !== 'first') throw new Error('Conversation history missing');
-    if (request.prompt === 'rich' && (request.options.temperature !== 0.25 || request.schema?.properties?.answer?.type !== 'string' || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'attached')) throw new Error('Rich prompt changed');
+    if (request.prompt === 'rich' && (request.options.temperature !== 0.25 || request.schema?.properties?.answer?.type !== 'string' || (request.attachments[0]?.receipt ?? new TextDecoder().decode(request.attachments[0]?.bytes)) !== 'attached')) throw new Error('Rich prompt changed');
     const result = typeof request.prompt === 'string' ? request.prompt : 'large-accepted';
     if (request.stream) { yield result.slice(0,2); yield result.slice(2); }
     else yield result;
@@ -196,12 +196,27 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
     return yield* this.complete({...request,prompt:await read(request.prompt),
       ...(request.system ? {system:await read(request.system)} : {}),
       ...(request.messages ? {messages:await Promise.all(request.messages.map(async m=>({role:m.role,content:await read(m.content)})))} : {}),
-      attachments:await Promise.all(request.attachments.map(async a=>({mimeType:a.mimeType,bytes:new TextEncoder().encode(await read(a.source))})))});
+      attachments:await Promise.all(request.attachments.map(async a=>({mimeType:a.mimeType,receipt:await read(a.source)})))});
   }, async embed(request) { return {model:request.model,vectors:request.inputs.map(text=>[text.length,1])}; }};
   const service = createLlmService({providers:[provider],defaultModel:'fixture'});
+  let attachmentResponses = 0, attachmentDisposals = 0;
+  const attachmentTransport = async request => {
+    if (!['https://files.example/note.txt','https://files.example/large.txt'].includes(request.url)) throw new Error('Attachment origin denied');
+    if (!['GET','HEAD'].includes(request.method)) throw new Error('Attachment method denied');
+    attachmentResponses++;
+    return {status:200,statusText:'OK',headers:[['content-type','text/plain']],body:(async function* () {
+      if (request.method !== 'GET') throw new Error('HEAD response body was consumed');
+      const size = request.url.endsWith('/large.txt') ? 16*1024*1024+7 : 14;
+      const chunk = new Uint8Array(16384).fill(122);
+      for (let offset=0;offset<size;offset+=chunk.length) {
+        request.signal.throwIfAborted();
+        yield size === 14 ? new TextEncoder().encode('url attachment') : chunk.subarray(0,Math.min(chunk.length,size-offset));
+      }
+    })(),async dispose() {attachmentDisposals++;}};
+  };
   const shell = new Shell({fs:backend,cwd:'/work',env:{HOME:'/work',LLM_USER_PATH:'/work/llm-config'}})
     .use(pythonCommands({createExecutor,maxConcurrentWorkers:1,createCapabilities(context) {
-      return {llm:createPythonLlmCapability(context,service,{maxBufferedResponseBytes:262144,maxMetadataBytes:65536,maxBufferedInputBytes:131072})};
+      return {llm:createPythonLlmCapability(context,service,{attachmentTransport,maxBufferedResponseBytes:262144,maxMetadataBytes:65536,maxBufferedInputBytes:131072})};
     }}));
   const program = policy ? "import os\nos.environ[\"LLM_LOAD_PLUGINS\"] = \"llm\"\nimport asyncio\nimport importlib.util\nfor name in (\"pip\", \"openai\"):\n    assert importlib.util.find_spec(name) is None, name + \" is not part of the calling profile\"\nimport llm\nfor operation in (\n    lambda: llm.plugins.pm.register(object(), \"extra-provider\"),\n    lambda: llm.plugins.pm.load_setuptools_entrypoints(\"llm\"),\n):\n    try:\n        operation()\n    except llm.ModelError as error:\n        assert \"platform-configured providers\" in str(error)\n    else:\n        raise AssertionError(\"Provider registration accepted\")\nassert {model.model_id for model in llm.get_models()} == {\"fixture\"}\nassert llm.get_model().model_id == \"fixture\"\nassert llm.get_async_model().model_id == \"fixture\"\nassert {model.model_id for model in llm.get_async_models()} == {\"fixture\"}\ntry:\n    llm.get_model(\"gpt-4o-mini\")\nexcept llm.UnknownModelError:\n    pass\nelse:\n    raise AssertionError(\"An unconfigured provider became available\")\nfor operation in (\n    lambda: llm.get_model(\"fixture\").prompt(\"unauthorized-key\", key=\"synthetic-caller-key\").text(),\n):\n    try:\n        operation()\n    except llm.ModelError as error:\n        assert \"platform-managed credentials\" in str(error)\n    else:\n        raise AssertionError(\"Caller key accepted\")\nmodel = llm.get_embedding_model(\"fixture-embed\")\nmodel.key = \"synthetic-caller-key\"\ntry:\n    model.embed(\"unauthorized-key\")\nexcept llm.ModelError as error:\n    assert \"platform-managed credentials\" in str(error)\nelse:\n    raise AssertionError(\"Embedding key accepted\")\nasync def check_async():\n    try:\n        await llm.get_async_model(\"fixture\").prompt(\"unauthorized-key\", key=\"synthetic-caller-key\").text()\n    except llm.ModelError as error:\n        assert \"platform-managed credentials\" in str(error)\n    else:\n        raise AssertionError(\"Async caller key accepted\")\nasyncio.run(check_async())\nprint(\"platform-models-only\")\n" : cancel ? 'import llm\nllm.get_model("fixture").prompt("x" * 65536).text()\n' : standardLlmProgram;
   await backend.writeFile('/work/standard-llm.py',new TextEncoder().encode(program));
@@ -212,7 +227,7 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
     const retainedInputs=(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-input-')).map(entry=>entry.name);
     const cliVersion = cancel ? undefined : await shell.exec('python -m llm --version');
     const configurationFiles = cancel ? [] : (await backend.readdir('/work/llm-config')).map(entry=>entry.name);
-    return {...result, cliVersion, failure, retainedInputs, configurationFiles, calls};
+    return {...result, cliVersion, failure, retainedInputs, configurationFiles, calls, attachmentResponses, attachmentDisposals};
   } finally { await shell.dispose(); }
 }
 

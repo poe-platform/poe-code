@@ -9,10 +9,20 @@ import sys
 import os
 
 import llm
+import httpx
 from pydantic import Field
 from typing import Optional
 
 calls = []
+
+def attachment_http(method, url):
+    assert url in ("https://files.example/note.txt", "https://files.example/large.txt")
+    content = b"z" * (16 * 1024 * 1024 + 7) if url.endswith("/large.txt") else b"url attachment"
+    return httpx.Response(200, headers={"content-type": "text/plain"},
+                          content=content if method == "GET" else b"", request=httpx.Request(method, url))
+
+httpx.head = lambda url: attachment_http("HEAD", url)
+httpx.get = lambda url: attachment_http("GET", url)
 
 def text_receipt(text):
     data = text.encode()
@@ -31,7 +41,7 @@ def record(prompt, stream, response, conversation):
     calls.append({"prompt": text_receipt(prompt.prompt), "stream": stream, "messages": messages,
                   "options": prompt.options.model_dump(exclude_none=True),
                   **({"schema": prompt.schema} if prompt.schema is not None else {}),
-                  "attachments": [{"mimeType": attachment.resolve_type(), "text": attachment.content_bytes().decode()}
+                  "attachments": [{"mimeType": attachment.resolve_type(), "text": text_receipt(attachment.content_bytes().decode())}
                                   for attachment in prompt.attachments]})
     response.set_usage(input=3, output=2)
     response.response_json = {"id": "fixture-response"}

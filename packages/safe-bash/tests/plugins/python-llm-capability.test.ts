@@ -752,3 +752,94 @@ test('embedding requests reject completion-only fields before acquiring attachme
     {model:'model',vectors:[[1,2]],usage:{input:1}});
   assert.equal(embedded,1);
 });
+
+test('genuine Python URL attachments use explicit host HEAD and bounded retained GET input', async () => {
+  const {fs,service,requests} = await fixture();
+  const seen: string[] = [];
+  let disposed = 0;
+  const capability = createPythonLlmCapability({fs,cwd:'/work'},service,{
+    attachmentTransport: async request => {
+      seen.push(request.method + ' ' + request.url);
+      assert.deepEqual(request.headers,[['accept','*/*']]);
+      return {status:200,statusText:'OK',headers:[['content-type','text/plain']],body:(async function* () {
+        assert.equal(request.method,'GET','HEAD must not consume the response body');
+        const bytes = new Uint8Array(16384);
+        for (let n = 0; n < 4; n++) { bytes.fill(65+n); yield bytes; }
+      })(),async dispose() { disposed++; }};
+    },
+  });
+  assert.equal(await capability.call!({operation:'attachment_head',payload:{url:'https://files.example/note'}},{signal}),'text/plain');
+  const id = await capability.call!({operation:'input_url',payload:{url:'https://files.example/note'}},{signal});
+  await capability.call!({operation:'complete',payload:{prompt:'q',attachments:[{spool:id,mimeType:'text/plain'}]}},{signal});
+  const content = requests[0]!.attachments[0]!.bytes;
+  assert.equal(content.length,65536);
+  for (let n = 0; n < 4; n++) assert.ok(content.subarray(n*16384,(n+1)*16384).every(byte => byte === 65+n));
+  assert.deepEqual(seen,['HEAD https://files.example/note','GET https://files.example/note']);
+  assert.equal(disposed,2);
+  await capability.close!();
+  assert.deepEqual((await fs.readdir('/work')).map(entry => entry.name),['note.txt']);
+});
+
+test('URL attachment admission rejects absent authority, credentials, redirects, oversized headers and retained bytes', async () => {
+  const {fs,service,capability:disabled} = await fixture();
+  await assert.rejects(disabled.call!({operation:'input_url',payload:{url:'https://files.example/note'}},{signal}),/attachment.*disabled/i);
+  let requests = 0, disposed = 0;
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:20,check() {}}},service,{
+    attachmentTransport: async request => {
+      requests++;
+      const kind = new URL(request.url).pathname;
+      return {status:kind === '/redirect' ? 302 : 200,statusText:'fixture',
+        headers:kind === '/headers' ? [['content-type','a'.repeat(8193)]] : [['content-type','text/plain']],
+        body:(async function* () {yield new Uint8Array(13); yield new Uint8Array(8);})(),
+        async dispose() {disposed++;}};
+    },
+  });
+  for (const url of ['file:///etc/passwd','https://user:secret@files.example/a']) {
+    await assert.rejects(capability.call!({operation:'input_url',payload:{url}},{signal}),/attachment URL/);
+  }
+  assert.equal(requests,0);
+  await assert.rejects(capability.call!({operation:'input_url',payload:{url:'https://files.example/redirect'}},{signal}),/302/);
+  await assert.rejects(capability.call!({operation:'attachment_head',payload:{url:'https://files.example/headers'}},{signal}),/header.*limit/i);
+  await assert.rejects(capability.call!({operation:'input_url',payload:{url:'https://files.example/large'}},{signal}),/input byte limit/);
+  assert.equal(disposed,3);
+  await capability.close!();
+  assert.deepEqual((await fs.readdir('/work')).map(entry => entry.name),['note.txt']);
+});
+
+test('closing Python LLM capability aborts and drains a pending URL attachment', async () => {
+  const {fs,service} = await fixture();
+  let entered!: () => void;
+  const started = new Promise<void>(resolve => {entered=resolve;});
+  let disposed = false;
+  const capability = createPythonLlmCapability({fs,cwd:'/work'},service,{
+    attachmentTransport: async request => ({status:200,statusText:'OK',headers:[['content-type','text/plain']],
+      body:(async function* () {
+        entered();
+        await new Promise<void>((_resolve,reject) => {
+          request.signal.addEventListener('abort',()=>reject(request.signal.reason),{once:true});
+          if (request.signal.aborted) reject(request.signal.reason);
+        });
+        yield new Uint8Array(1);
+      })(),async dispose() {disposed=true;}}),
+  });
+  const pending = capability.call!({operation:'input_url',payload:{url:'https://files.example/wait'}},{signal});
+  const rejected = assert.rejects(pending,/retired/);
+  await started;
+  await capability.close!();
+  await rejected;
+  assert.equal(disposed,true);
+  assert.deepEqual((await fs.readdir('/work')).map(entry => entry.name),['note.txt']);
+});
+
+test('failed attachment transport cleanup releases unpublished input handles', async () => {
+  const {fs,service} = await fixture();
+  const failure = new Error('transport disposal failed');
+  const capability = createPythonLlmCapability({fs,cwd:'/work'},service,{
+    attachmentTransport: async () => ({status:200,statusText:'OK',headers:[],body:toByteSource('content'),
+      async dispose() {throw failure;}}),
+  });
+  await assert.rejects(capability.call!({operation:'input_url',payload:{url:'https://files.example/note'}},{signal}),
+    error => error instanceof AggregateError && error.errors.includes(failure));
+  assert.deepEqual((await fs.readdir('/work')).map(entry => entry.name),['note.txt']);
+  await capability.close!();
+});

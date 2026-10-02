@@ -31,6 +31,13 @@ assert response.duration_ms() >= 0
 assert model.prompt("single", stream=False).text() == "single"
 assert model.prompt("last", fragments=["first", "second"], system_fragments=["  terse  ", "helpful"]).text() == "first\nsecond\nlast"
 assert model.prompt("inline", attachments=[llm.Attachment(content=b"inline bytes", type="text/plain")]).text() == "inline"
+assert model.prompt("empty-inline", attachments=[llm.Attachment(content=b"", type="text/plain")]).text() == "empty-inline"
+url_attachment = llm.Attachment(url="https://files.example/note.txt")
+assert model.prompt("url", attachments=[url_attachment]).text() == "url"
+assert url_attachment.type is None
+assert url_attachment.url == "https://files.example/note.txt"
+assert model.prompt("empty-url-content", attachments=[llm.Attachment(url=url_attachment.url, content=b"")]).text() == "empty-url-content"
+assert model.prompt("large-url", attachments=[llm.Attachment(url="https://files.example/large.txt")]).text() == "large-url"
 conversation = model.conversation()
 assert isinstance(conversation, llm.Conversation)
 assert conversation.prompt("first", system="Be helpful").text() == "first"
@@ -44,6 +51,7 @@ class Answer(BaseModel):
 with open("attachment.txt", "wb") as output:
     output.write(b"attached")
 assert model.prompt("rich", attachments=[llm.Attachment(path="attachment.txt", type="text/plain")], schema=Answer, temperature="0.25").text() == "rich"
+assert model.prompt("empty-path-content", attachments=[llm.Attachment(path="attachment.txt", content=b"", type="text/plain")]).text() == "empty-path-content"
 try:
     model.prompt("bad", imaginary_option=True)
 except ValidationError:
@@ -64,6 +72,7 @@ assert list(embedding.embed_multi(["one", "four"])) == [[3.0, 1.0], [4.0, 1.0]]
 async def main():
     model = llm.get_async_model("fixture")
     assert isinstance(model, llm.AsyncModel)
+    assert await model.prompt("async-url", attachments=[llm.Attachment(url="https://files.example/note.txt")]).text() == "async-url"
     response = model.prompt("async")
     assert isinstance(response, llm.AsyncResponse)
     assert [chunk async for chunk in response] == ["as", "ync"]

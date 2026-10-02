@@ -1,4 +1,5 @@
 import { createLlmSpool, type LlmInputSource } from 'safe-bash-command-llm';
+import type { HttpTransport } from '../network/types.js';
 import type { FileSystem } from '../../contracts/index.js';
 import type { PythonHostValue } from './host-capabilities.js';
 
@@ -12,7 +13,7 @@ interface Entry {
 }
 
 /** Private byte handles retain canonical staging, including before Python can receive their IDs. */
-export function createPythonLlmInputs(fs: FileSystem, maxBytes: number) {
+export function createPythonLlmInputs(fs: FileSystem, maxBytes: number, transport?: HttpTransport) {
   const entries = new Map<number, Entry>();
   const pending = new Set<Promise<unknown>>();
   const controller = new AbortController();
@@ -41,7 +42,64 @@ export function createPythonLlmInputs(fs: FileSystem, maxBytes: number) {
     })();
     return entry.closing;
   };
-  return {
+  const inputs = {
+    async remote(value: PythonHostValue | undefined, method: 'HEAD' | 'GET', directory: string, signal: AbortSignal): Promise<string | number | null> {
+      signal = live(signal);
+      const send = transport;
+      if (!send) throw new Error('Python LLM URL attachments are disabled by the host');
+      if (typeof value !== 'string' || value.length > 4096 || new TextEncoder().encode(value).byteLength > 4096) throw new TypeError('Invalid attachment URL');
+      const url = new URL(value);
+      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) throw new TypeError('Invalid attachment URL');
+      // Register the whole acquisition before invoking host transport.
+      return track(Promise.resolve().then(async () => {
+        const cleanups = new Set<() => void | Promise<void>>();
+        let id: number | undefined;
+        let result: string | number | null = null;
+        let failure: {error: unknown} | undefined;
+        try {
+          signal.throwIfAborted();
+          const response = await send({url:url.href,method,headers:[['accept','*/*']],signal,
+            responseBodyMode:method === 'HEAD' ? 'omit' : 'read',
+            registerCleanup(cleanup) { cleanups.add(cleanup); }});
+          cleanups.add(response.dispose);
+          signal.throwIfAborted();
+          let headerBytes = 0, mimeType: string | null = null;
+          for (const [name, value] of response.headers) {
+            if (name.length + value.length + 4 > 8192 - headerBytes) throw new RangeError('Attachment header byte limit exceeded');
+            headerBytes += new TextEncoder().encode(name).byteLength + new TextEncoder().encode(value).byteLength + 4;
+            if (headerBytes > 8192) throw new RangeError('Attachment header byte limit exceeded');
+            if (name.toLowerCase() === 'content-type') mimeType = value;
+          }
+          // Match the reference library's default: redirects are not followed.
+          if (response.status < 200 || response.status >= 300) throw new Error(`Attachment HTTP status ${response.status}`);
+          if (method === 'HEAD') {
+            if (mimeType !== null && new TextEncoder().encode(mimeType).byteLength > 256) throw new RangeError('Attachment MIME type byte limit exceeded');
+            result = mimeType;
+          } else {
+            id = await inputs.open(directory, signal);
+            for await (const bytes of response.body) {
+              signal.throwIfAborted();
+              if (bytes.byteLength > maxBytes - retained) throw new RangeError('Python LLM input byte limit exceeded');
+              for (let offset = 0; offset < bytes.byteLength; offset += 16384) {
+                await inputs.write(id, Array.from(bytes.subarray(offset, offset + 16384)), signal);
+              }
+            }
+            signal.throwIfAborted();
+            result = id;
+          }
+        } catch (error) { failure = {error}; }
+        const results = await Promise.allSettled([...cleanups].map(cleanup => Promise.resolve().then(cleanup)));
+        const cleanupErrors = results.flatMap(item => item.status === 'rejected' ? [item.reason] : []);
+        if (cleanupErrors.length) {
+          failure = {error:new AggregateError([...(failure ? [failure.error] : []),...cleanupErrors], 'Attachment transport cleanup failed')};
+        }
+        if (failure) {
+          if (id !== undefined) await inputs.release(id);
+          throw failure.error;
+        }
+        return result;
+      }));
+    },
     async open(directory: string, signal: AbortSignal): Promise<number> {
       signal = live(signal);
       if (entries.size >= 64) throw new RangeError('Python LLM input count limit exceeded');
@@ -98,4 +156,5 @@ export function createPythonLlmInputs(fs: FileSystem, maxBytes: number) {
       return closing;
     },
   };
+  return inputs;
 }

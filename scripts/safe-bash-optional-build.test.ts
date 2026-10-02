@@ -108,6 +108,12 @@ function fixture() {
 describe("optional-owned compiled graph", () => {
   it("retains declared extension entrypoints forwarded through core", async () => {
     const { volume, options } = fixture();
+    const manifest = JSON.parse(volume.readFileSync(core + "/package.json", "utf8").toString());
+    for (const name of ["read", "mapfile"]) manifest.exports["./" + name] = {
+      types: "./dist/opt-in/entrypoints/" + name + ".d.ts",
+      import: "./dist/opt-in/entrypoints/" + name + ".js"
+    };
+    volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
     for (const suffix of ["js", "d.ts"]) {
       volume.writeFileSync(core + "/dist/core." + suffix, "export {};\n");
       volume.writeFileSync(core + "/dist/optional." + suffix,

@@ -722,7 +722,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   const admit = (path, maximum = 16 * 1024 * 1024) => {
     assertLiteralInputPath(path);
     if (path.startsWith(`${packagePrefix}/`)) assertAdmittedInputPath(path.slice(packagePrefix.length + 1), boundaries);
-    else assert.ok(workspaceMetadataPaths.has(path) || ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/safe-bash-command-op/package.json", "packages/safe-bash-command-op/tsconfig.json", "packages/safe-bash-command-pandoc/package.json", "packages/pdf/package.json"].includes(path) || path.startsWith("packages/safe-bash-command-op/src/"), `unadmitted root archive path: ${path}`);
+    else assert.ok(workspaceMetadataPaths.has(path) || ["package.json", "package-lock.json", "scripts/guard-package-dist.mjs", ...sharedPaths, "packages/safe-bash-command-op/package.json", "packages/safe-bash-command-op/tsconfig.json", "packages/safe-bash-command-pandoc/package.json", "packages/safe-bash-pdf-engine/package.json"].includes(path) || path.startsWith("packages/safe-bash-command-op/src/"), `unadmitted root archive path: ${path}`);
     const entry = tree.get(path);
     assert.ok(entry, `missing committed input: ${path}`);
     assert.ok(entry.type === "blob" && ["100644", "100755"].includes(entry.mode), `not a regular committed input: ${path}`);
@@ -738,7 +738,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
   admit("package.json", 300000);
   admit("package-lock.json");
   admit(`${packagePrefix}/README.md`);
-  for (const name of ["safe-bash-command-pandoc", "pdf"]) if (tree.has(`packages/${name}/package.json`)) admit(`packages/${name}/package.json`, 64 * 1024);
+  for (const name of ["safe-bash-command-pandoc", "safe-bash-pdf-engine"]) if (tree.has(`packages/${name}/package.json`)) admit(`packages/${name}/package.json`, 64 * 1024);
   if (tree.has(sharedPrefix + "/package.json")) {
     for (const path of sharedPaths) admit(path, 300000);
     for (const path of tree.keys()) if (path.startsWith(sharedPrefix + "/src/") && !path.endsWith(".test.ts")) {
@@ -831,7 +831,7 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
       const dependencies = assertArchiveDependencyLock(manifest, lock);
       if (manifest.devDependencies?.["safe-bash-command-pandoc"] !== undefined) {
         assert.equal(manifest.devDependencies["safe-bash-command-pandoc"], "*");
-        for (const [name, path] of [["safe-bash-command-pandoc", "packages/safe-bash-command-pandoc"], ["@poe-code/pdf", "packages/pdf"]]) {
+        for (const [name, path] of [["safe-bash-command-pandoc", "packages/safe-bash-command-pandoc"], ["safe-bash-pdf-engine", "packages/safe-bash-pdf-engine"]]) {
           assert.ok(bootstrap.has(`${path}/package.json`), `missing committed ${name} build prerequisite`);
           const metadata = JSON.parse(bootstrap.get(`${path}/package.json`));
           assert.equal(metadata.name, name);

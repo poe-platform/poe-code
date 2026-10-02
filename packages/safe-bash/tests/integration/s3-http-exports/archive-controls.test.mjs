@@ -1617,6 +1617,8 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     delete manifest.devDependencies["@poe-code/safe-playwright"];
     // This synthetic S3 fixture has no SafeJS sources or public peer entry.
     delete manifest.devDependencies["@poe-code/safe-js"];
+    // Its filesystem declarations come from the synthetic public peer below.
+    delete manifest.devDependencies["@poe-code/safe-fs"];
     // This synthetic S3 fixture has no media sources or declaration dependency.
     delete manifest.devDependencies["safe-bash-media-engine"];
     delete manifest.devDependencies["@poe-code/remote-execution"];

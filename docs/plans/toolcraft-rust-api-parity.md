@@ -1173,3 +1173,27 @@ All 235 native host cases, 625 selected design cases and ten spinner-wrapper
 cases pass. The three confirmation-wrapper cases remain explicitly unported.
 Type parity, Rust/binding/JS lint, a packed standalone runtime/type consumer and
 visual comparison of purple/blue prompt states pass. No dependencies changed.
+
+The interactive `Prompt` core and `core`, `keys`, and `wrap` subpaths now have
+a Rust policy layer. It handles admission, grapheme cursor edits, validation
+transitions, cancellation, frame replacement and line-boundary decisions. Node
+retains EventEmitter/readline/stream lifetimes, UTF-8 decoding, weak references,
+promises and callback receivers. Iterator cleanup and live property/method
+lookup order are preserved at the host boundary.
+
+All 242 native host cases, 1,222 selected original design cases and ten original
+spinner-wrapper cases pass. Original interactive subclasses exercise the native
+core, key mapping and wrapping; those subclasses themselves remain JavaScript
+and are still unported. Public helper type equivalence, a typed Prompt subclass,
+Rust/binding/JS lint, and packed standalone runtime/declarations pass. Active
+and submitted PNGs were inspected; native/reference ANSI is identical. The font
+also lacks U+754C (glyph id zero), recorded with the existing renderer follow-up.
+No new dependencies were added.
+
+Five warmed alternating rounds of 1,000 single-grapheme insertions measured
+median 0.01129 ms native versus 0.0002277 ms reference (49.61x), without actual
+TTY I/O. This exposes callback-boundary overhead; no performance gate passed.
+Interactive prompt subclasses/wrappers, dashboard/explorer surfaces and full
+platform/resource qualification remain outstanding. The root type route's
+Safe Bash environment-map and callback typing failures were repaired separately
+and verified through its maintained build closure and focused checks.

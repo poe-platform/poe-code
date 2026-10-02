@@ -538,3 +538,25 @@ import {promptTheme as directPromptTheme} from "toolcraft-design-rust/prompts/th
 const promptThemeOriginal: typeof originalDesign.promptTheme = design.promptTheme;
 const promptThemeNative: typeof design.promptTheme = null as unknown as typeof originalDesign.promptTheme;
 void [promptThemeOriginal, promptThemeNative, directPromptTheme];
+
+import {Prompt as NativePrompt,type PromptOptions as NativePromptOptions,type PromptState as NativePromptState} from "toolcraft-design-rust/prompts/interactive/core";
+import type {PromptState as OriginalPromptState} from "toolcraft-design/prompts/interactive/core";
+import * as nativePromptKeys from "toolcraft-design-rust/prompts/interactive/keys";
+import type * as originalPromptKeys from "toolcraft-design/prompts/interactive/keys";
+import * as nativePromptWrap from "toolcraft-design-rust/prompts/interactive/wrap";
+import type * as originalPromptWrap from "toolcraft-design/prompts/interactive/wrap";
+const keySdk: typeof originalPromptKeys = nativePromptKeys;
+const keyNative: typeof nativePromptKeys = null as unknown as typeof originalPromptKeys;
+const wrapSdk: typeof originalPromptWrap = nativePromptWrap;
+const wrapNative: typeof nativePromptWrap = null as unknown as typeof originalPromptWrap;
+const promptStateOriginal: OriginalPromptState<string> = null as unknown as NativePromptState<string>;
+const promptStateNative: NativePromptState<string> = promptStateOriginal;
+class PromptClient extends NativePrompt<string> {
+  protected override promptNonTty() { return this.readNonTtyLine(); }
+  replace(value: string) { this.setValue(value); this.setUserInput(value); this.setError(""); this.render(); }
+  finish() { this.clearUserInput(); this.close(); }
+}
+const promptOptions: NativePromptOptions<string> = {input:process.stdin,output:process.stdout,initialValue:"",render:p=>p.userInput,validate:value=>value?undefined:"Required"};
+const promptClient = new PromptClient(promptOptions);
+promptClient.once("submit", (value: string) => { void value; });
+void [keySdk,keyNative,wrapSdk,wrapNative,promptStateNative,promptClient];

@@ -303,6 +303,18 @@
     "./prompts/theme": {
       "types": "./dist/prompt-theme.d.ts",
       "import": "./dist/prompt-theme.js"
+    },
+    "./prompts/interactive/core": {
+      "types": "./dist/prompt-core.d.ts",
+      "import": "./dist/prompt-core.js"
+    },
+    "./prompts/interactive/keys": {
+      "types": "./dist/prompt-keys.d.ts",
+      "import": "./dist/prompt-keys.js"
+    },
+    "./prompts/interactive/wrap": {
+      "types": "./dist/prompt-wrap.d.ts",
+      "import": "./dist/prompt-wrap.js"
     }
   },
   "scripts": {

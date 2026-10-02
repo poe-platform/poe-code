@@ -26,6 +26,11 @@ elapsed-time updates and clears its timers on success or failure. It returns
 the task result and supports changing messages through a callback.
 `promptTheme` exposes prompt symbols and a live accent color that follows your
 configured brand.
+Extend `Prompt` from `toolcraft-design-rust/prompts/interactive/core` to build
+custom prompts with grapheme-aware editing, validation, cancellation and stream
+cleanup. `readNonTtyLine()` supports piped UTF-8 input and preserves remaining
+lines for the next prompt. The `keys` and `wrap` subpaths provide key aliases
+and terminal frame wrapping for custom renderers.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

@@ -474,3 +474,5 @@ pub use frontmatter_rust_napi_core::{frontmatter_inspect, frontmatter_parse};
 
 mod with_spinner;
 pub use with_spinner::*;
+mod prompt_core;
+pub use prompt_core::*;

@@ -9,6 +9,11 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer.startsWith(path("../toolcraft-design/src/prompts/interactive/"))) {
+          if (name === "./core.js") return path("dist/prompt-core.js");
+          if (name === "./keys.js") return path("dist/prompt-keys.js");
+          if (name === "./wrap.js") return path("dist/prompt-wrap.js");
+        }
         if (importer === path("../toolcraft-design/src/prompts/theme.test.ts")) {
           if (name === "./theme.js") return path("dist/prompt-theme.js");
           if (name === "../internal/theme-state.js") return path("dist/theme-state.js");
@@ -117,8 +122,8 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/prompts/interactive/*.test.ts"),
       path("../toolcraft-design/src/prompts/theme.test.ts"),
-      path("../toolcraft-design/src/prompts/interactive/cancel-symbol.test.ts"),
       path("../toolcraft-design/src/components/browser.test.ts"),
       path("../toolcraft-design/src/prompts/primitives/primitives.test.ts"),
       path("../toolcraft-design/src/terminal/driver.test.ts"),

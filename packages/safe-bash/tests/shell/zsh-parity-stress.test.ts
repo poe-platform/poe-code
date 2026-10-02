@@ -1193,4 +1193,33 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     const r5 = await bash.exec("out=\$(cp /regular.txt /newdest/ 2>&1); echo \$?");
     assert.notEqual(r5.stdout.trim(), "0");
   });
+
+  test("65. sync realpath/readlink/ls/find/du/fd/tree trailing slash and symlink/.. physical resolution", async () => {
+    const bash = new Bash({
+      files: {
+        "/regular.txt": "hello\n",
+        "/a/b/c/file.txt": "inside\n",
+      },
+    });
+    await bash.exec("ln -s /a/b/c /link_to_c");
+
+    // 1. realpath /regular.txt/ and realpath /regular.txt/.. must fail with ENOTDIR
+    const r1 = await bash.exec("out=\$(realpath /regular.txt/ 2>&1); echo \$?");
+    assert.notEqual(r1.stdout.trim(), "0");
+
+    const r2 = await bash.exec("out=\$(realpath /regular.txt/.. 2>&1); echo \$?");
+    assert.notEqual(r2.stdout.trim(), "0");
+
+    // 2. Physical realpath /link_to_c/.. must resolve symlink first (/a/b/c -> /a/b), NOT collapse lexically to /
+    const r3 = await bash.exec("echo \$(realpath /link_to_c/..)");
+    assert.equal(r3.exitCode, 0);
+    assert.equal(r3.stdout.trim(), "/a/b");
+
+    // 3. ls /regular.txt/ and find /regular.txt/ must fail with ENOTDIR
+    const r4 = await bash.exec("out=\$(ls /regular.txt/ 2>&1); echo \$?");
+    assert.notEqual(r4.stdout.trim(), "0");
+
+    const r5 = await bash.exec("out=\$(find /regular.txt/ 2>&1); echo \$?");
+    assert.notEqual(r5.stdout.trim(), "0");
+  });
 });

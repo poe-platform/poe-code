@@ -191,6 +191,10 @@ export function evalSyncDu(
   // On MemoryFileSystem, allocatedBytes is undefined so only apparent or inodes succeeds with exitCode 0
   if (!apparent && !inodes) return undefined;
   if (operands.length === 0) operands.push(".");
+  for (const op of operands) {
+    if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(op)) return undefined;
+    if (op.length > 1 && op.endsWith("/")) return undefined;
+  }
 
   const seenInodes = new Set<number>();
   const outLines: string[] = [];

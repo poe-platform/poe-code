@@ -1517,7 +1517,7 @@ function resolveCanonicalSync(
   if (mode === "s") return normalizePath(inputPath, cwd);
   let trailingSlash = inputPath.length > 1 && inputPath.endsWith("/");
   if (mode === "link") {
-    if (trailingSlash) return undefined;
+    if (trailingSlash || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(inputPath)) return undefined;
     const abs = normalizePath(inputPath, cwd);
     const st = inspectStat(abs, false);
     if (!st || st.type !== "symlink" || st.target === undefined) return undefined;
@@ -1685,12 +1685,13 @@ export function evalSyncRealpath(
   }
   if (operands.length === 0) return undefined;
   const resolveOp = (p: string): string | undefined => {
-    let path = resolvePath(cwd, p);
+    const hasTrailingSlash = p.length > 1 && p.endsWith("/");
     if (strip || logical) {
-      const lexical = normalizePath(path);
+      const rawPath = p.startsWith("/") ? p : (cwd === "/" ? "/" + p : cwd + "/" + p);
+      const lexical = normalizePath(rawPath);
       if (mode !== "m") {
         let prefix = "/";
-        const components = path.split("/");
+        const components = rawPath.split("/");
         for (let index = 1; index < components.length; index++) {
           const component = components[index]!;
           if (!component || (component === "." && index < components.length - 1)) continue;
@@ -1705,12 +1706,14 @@ export function evalSyncRealpath(
             if (index < components.length - 1 && stat !== undefined && stat.type !== "directory") return undefined;
           }
         }
-        if (mode === "e" && !inspectStat(lexical, true)) return undefined;
+        const finalStat = inspectStat(lexical, true);
+        if (mode === "e" && !finalStat) return undefined;
+        if (hasTrailingSlash && (!finalStat || finalStat.type !== "directory")) return undefined;
       }
       if (strip) return lexical;
-      path = lexical;
+      return resolveCanonicalSync(cwd, hasTrailingSlash && lexical !== "/" ? lexical + "/" : lexical, mode, inspectStat);
     }
-    return resolveCanonicalSync(cwd, path, mode, inspectStat);
+    return resolveCanonicalSync(cwd, p, mode, inspectStat);
   };
   const baseCanon = relBase !== undefined ? resolveOp(relBase) : undefined;
   if (relBase !== undefined && baseCanon === undefined) return undefined;
@@ -1799,8 +1802,11 @@ export function evalSyncLs(
   if (operands.length === 0) operands.push(".");
   if (operands.some(o => !o || /[\x00-\x1f\x7f-\x9f]/u.test(o))) return undefined;
   if (operands.length > 1 && recursive) return undefined;
-  const inspectOperandStat = (opAbs: string): SyncFsStatNode | undefined => {
-    let nodeSt = inspectStat(opAbs, followSymlinks);
+  const inspectOperandStat = (op: string, opAbs: string): SyncFsStatNode | undefined => {
+    if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(op)) return undefined;
+    const hasTrailingSlash = op.length > 1 && op.endsWith("/");
+    let nodeSt = inspectStat(opAbs, followSymlinks || hasTrailingSlash);
+    if (hasTrailingSlash && nodeSt?.type !== "directory") return undefined;
     if (nodeSt && nodeSt.type === "symlink" && !followSymlinks && !dirItself && indicator !== "classify") {
       const targetSt = inspectStat(opAbs, true);
       if (targetSt?.type === "directory") nodeSt = targetSt;
@@ -1809,7 +1815,7 @@ export function evalSyncLs(
   };
   const target = operands[0]!;
   const abs = normalizePath(target, cwd);
-  const st = inspectOperandStat(abs);
+  const st = inspectOperandStat(target, abs);
   if (!st) return undefined;
 
   const suffixFor = (type: "file" | "directory" | "symlink", mode: number): string => {
@@ -1890,7 +1896,7 @@ export function evalSyncLs(
       const dirOperands: Array<{ name: string; abs: string; stat: SyncFsStatNode; size: number; mode: number }> = [];
       for (const op of operands) {
         const opAbs = normalizePath(op, cwd);
-        const opSt = inspectOperandStat(opAbs);
+        const opSt = inspectOperandStat(op, opAbs);
         if (!opSt) return undefined;
         if (dirItself || opSt.type !== "directory") {
           fileItems.push({ name: op, type: opSt.type, size: opSt.size, mode: opSt.mode });

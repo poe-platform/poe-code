@@ -136,6 +136,9 @@ export function evalSyncTree(
     operands.push(a);
   }
   if (operands.length === 0) operands.push(".");
+  for (const op of operands) {
+    if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(op)) return undefined;
+  }
   if (fileLimit > 0) return undefined;
 
   let ascii = true;

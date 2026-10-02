@@ -108,8 +108,12 @@ export function evalSyncFd(
     const target = num * (u.includes("i") ? 1024 : 1000) ** power;
     sizeChecks.push((sz: number) => op === "+" ? sz >= target : op === "-" ? sz <= target : sz === target);
   }
+  if (a.baseDirectory !== undefined && /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(a.baseDirectory)) return undefined;
   const effectiveCwd = a.baseDirectory === undefined ? cwd : resolveSyncFdPath(cwd, a.baseDirectory);
   const roots = a.roots.length > 0 ? a.roots : ["."];
+  for (const r of roots) {
+    if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(r)) return undefined;
+  }
   const results: string[] = [];
 
   for (const rootArg of roots) {

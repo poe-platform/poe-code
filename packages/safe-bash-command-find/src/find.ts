@@ -786,6 +786,7 @@ export function evalSyncFind(
     if (roots.length === 0) roots.push(".");
     if (roots.length > 16) return undefined;
     for (let i = 0; i < roots.length; i++) {
+      if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(roots[i]!)) return undefined;
       const rp = resolvePath(cwd, roots[i]!);
       if (rp === "/dev" || rp.startsWith("/dev/")) return undefined;
     }
@@ -1024,13 +1025,15 @@ export function evalSyncFind(
       if (++visitedNodes > 1024) return false;
       const absPath = resolvePath(cwd, display);
       if (absPath === "/dev" || absPath.startsWith("/dev/")) return false;
-      const shouldFollow = follow === "-L" || (follow === "-H" && depth === 0);
+      const hasTrailingSlash = depth === 0 && display.length > 1 && display.endsWith("/");
+      const shouldFollow = follow === "-L" || (follow === "-H" && depth === 0) || hasTrailingSlash;
       let info = inspectNode(absPath, false);
       if (!info) return false;
       if (shouldFollow && info.type === "symlink") {
         const followed = inspectNode(absPath, true);
         if (followed) info = followed;
       }
+      if (hasTrailingSlash && info.type !== "directory") return false;
       const entry: SyncFindEntry = {
         display,
         root: rootDisplay,

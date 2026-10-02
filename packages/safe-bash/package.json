@@ -3028,6 +3028,12 @@
       "workerd": "./dist/commands/qrencode/index.js",
       "browser": "./dist/commands/qrencode/index.js",
       "import": "./dist/commands/qrencode/index.js"
+    },
+    "./commands/more": {
+      "types": "./dist/commands/more/index.d.ts",
+      "workerd": "./dist/commands/more/index.js",
+      "browser": "./dist/commands/more/index.js",
+      "import": "./dist/commands/more/index.js"
     }
   },
   "sideEffects": [

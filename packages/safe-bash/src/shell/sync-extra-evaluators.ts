@@ -19736,6 +19736,8 @@ const syncExtraRuntimeMethods = {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncSponge?.(view, opArgs, readFile, writeFile);
+            } else if (!hasSingleStdinRedir && !hasSingleHereStringRedir && (w0Plain === "truncate" || w0Plain === "install" || w0Plain === "mktemp" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln")) {
+              fileRes = undefined;
             } else if (w0Plain === "truncate") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };

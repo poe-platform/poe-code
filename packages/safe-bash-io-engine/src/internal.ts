@@ -788,6 +788,21 @@ export function evalSyncTouch(
   return "";
 }
 
+function normalizeSyncOperandPath(p: string): string {
+  const isAbs = p.startsWith("/");
+  const segs: string[] = [];
+  for (const part of p.split("/")) {
+    if (!part || part === ".") continue;
+    if (part === "..") {
+      if (segs.length > 0 && segs[segs.length - 1] !== "..") segs.pop();
+      else if (!isAbs) segs.push("..");
+    } else {
+      segs.push(part);
+    }
+  }
+  return (isAbs ? "/" : "") + segs.join("/") || (isAbs ? "/" : ".");
+}
+
 export function evalSyncCp(
   opArgs: readonly string[],
   statTypeSync?: (filePath: string) => string | undefined,
@@ -872,7 +887,7 @@ export function evalSyncCp(
       if (!base) return undefined;
       dst = `${destBase.replace(/\/+$/, "")}/${base}`;
     }
-    if (src === dst) return undefined;
+    if (normalizeSyncOperandPath(src) === normalizeSyncOperandPath(dst)) return undefined;
     const finalSt = statTypeSync(dst);
     if (finalSt !== "missing" && finalSt !== "file") return undefined;
     if (finalSt === "file" && noClobber) continue;
@@ -909,7 +924,7 @@ export function evalSyncMv(
     }
     if (a === "--") { ended = true; continue; }
     if (a === "-v" || a === "--verbose") { verbose = true; continue; }
-    if (a === "-f" || a === "--force") continue;
+    if (a === "-f" || a === "--force") { noClobber = false; continue; }
     if (a === "-n" || a === "--no-clobber") { noClobber = true; continue; }
     if (a === "-T" || a === "--no-target-directory") { noTargetDir = true; continue; }
     if (a === "-t" || a === "--target-directory" || a.startsWith("--target-directory=")) {
@@ -922,7 +937,7 @@ export function evalSyncMv(
       for (let j = 1; j < a.length; j++) {
         const ch = a[j]!;
         if (ch === "v") verbose = true;
-        else if (ch === "f") continue;
+        else if (ch === "f") noClobber = false;
         else if (ch === "n") noClobber = true;
         else if (ch === "T") noTargetDir = true;
         else if (ch === "t") {
@@ -966,7 +981,7 @@ export function evalSyncMv(
       if (!base) return undefined;
       dst = `${destBase.replace(/\/+$/, "")}/${base}`;
     }
-    if (src === dst) return undefined;
+    if (normalizeSyncOperandPath(src) === normalizeSyncOperandPath(dst)) return undefined;
     const finalSt = statTypeSync(dst);
     if (finalSt !== "missing" && finalSt !== "file") return undefined;
     if (finalSt === "file" && noClobber) continue;
@@ -1374,7 +1389,7 @@ export function evalSyncLn(
   let out = "";
   for (const [src, dst] of pairs) {
     if (!symbolic && statTypeSync(src) !== "file") return undefined;
-    if (src === dst) return undefined;
+    if (normalizeSyncOperandPath(src) === normalizeSyncOperandPath(dst)) return undefined;
     let linkTarget = src;
     if (relative) {
       const rel = computeRelTarget(src, dst);
@@ -1450,11 +1465,14 @@ export function evalSyncCat(
     chunks.push(inBytes);
     totalIn += inBytes.byteLength;
   } else {
+    let stdinUsed = false;
     for (const op of operands) {
       if (op === "-") {
         if (inBytes === undefined) return undefined;
-        chunks.push(inBytes);
-        totalIn += inBytes.byteLength;
+        const chunk = stdinUsed ? new Uint8Array(0) : inBytes;
+        stdinUsed = true;
+        chunks.push(chunk);
+        totalIn += chunk.byteLength;
       } else {
         if (!readFileSync) return undefined;
         const b = readFileSync(op);
@@ -1605,12 +1623,14 @@ export function evalSyncHeadTail(
   const targets = operands.length > 0 ? operands : ["-"];
   const showHeaders = headerMode === "v" || (headerMode !== "q" && targets.length > 1);
   let out = "";
+  let stdinUsed = false;
   for (let idx = 0; idx < targets.length; idx++) {
     const t = targets[idx]!;
     let bytes: Uint8Array | undefined;
     if (t === "-") {
       if (inBytes === undefined) return undefined;
-      bytes = inBytes;
+      bytes = stdinUsed ? new Uint8Array(0) : inBytes;
+      stdinUsed = true;
     } else {
       if (!readFileSync) return undefined;
       bytes = readFileSync(t);
@@ -1723,11 +1743,13 @@ export function evalSyncWc(
   const names = operands.length > 0 ? operands : ["-"];
   const buffers: Uint8Array[] = [];
   let totalBytesAll = 0;
+  let stdinUsed = false;
   for (const name of names) {
     let b: Uint8Array | undefined;
     if (name === "-") {
       if (inBytes === undefined) return undefined;
-      b = inBytes;
+      b = stdinUsed ? new Uint8Array(0) : inBytes;
+      stdinUsed = true;
     } else {
       if (!readFileSync) return undefined;
       b = readFileSync(name);

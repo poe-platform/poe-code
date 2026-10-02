@@ -735,3 +735,26 @@ test("41. sync seq -w discarded fractional width, leading-zero width, negative z
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+test("42. sync cat/head/tail/wc repeated - stdin consumption, mv -n -f precedence, and cp/mv/ln non-normalized same-file protection", async () => {
+  const scripts = [
+    "x=\$(cat - - <<< \"hello\"); echo \"\$?:\$x\"",
+    "x=\$(head -n 1 - - <<< \"hello\"); echo \"\$?:\$x\"",
+    "x=\$(tail -n 1 - - <<< \"hello\"); echo \"\$?:\$x\"",
+    "x=\$(wc -c - - <<< \"hello\"); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"new\" > /dir/a.txt; printf \"old\" > /dir/b.txt; x=\$(mv -n -f /dir/a.txt /dir/b.txt); echo \"\$?:\$(cat /dir/b.txt)\"",
+    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=\$(cp /dir/./a.txt /dir/a.txt); echo \"\$?:\$(cat /dir/a.txt)\"",
+    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=\$(mv /dir/./a.txt /dir/a.txt); echo \"\$?:\$(cat /dir/a.txt 2>/dev/null)\"",
+    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; x=\$(ln -f /dir/./a.txt /dir/a.txt); echo \"\$?:\$(cat /dir/a.txt 2>/dev/null)\"",
+    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.txt; printf \"3\" > /dir/c.txt; x=\$(cp /dir/a.txt /dir/b.txt /dir/c.txt); echo \"\$?:\$(cat /dir/b.txt)\"",
+    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.txt; printf \"3\" > /dir/c.txt; x=\$(mv /dir/a.txt /dir/b.txt /dir/c.txt); echo \"\$?:\$(cat /dir/b.txt)\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

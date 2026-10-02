@@ -93,11 +93,11 @@ const safeJsExports = Object.fromEntries(
     {
       types: {
         ...(entry === "cli" ? {} : { workerd: "./dist/types/safe-js/workerd.d.ts" }),
-        browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+        browser: entry === "core" ? "./dist/types/safe-js/core.d.ts" : "./dist/types/safe-fs/node-unavailable.d.ts",
         default: `./dist/types/safe-js/${entry}.d.ts`
       },
       ...(entry === "cli" ? {} : { workerd: "./packages/safe-js/dist/workerd.js" }),
-      browser: null,
+      browser: entry === "core" ? "./packages/safe-js/dist/core.js" : null,
       import: `./dist/shared/safe-js/${entry}.js`
     }
   ])

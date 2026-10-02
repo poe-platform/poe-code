@@ -169,11 +169,11 @@ export function canonicalBundleFixture() {
       },
       "./safe-js/core": {
         types: { workerd: "./dist/types/safe-js/workerd.d.ts",
-          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          browser: "./dist/types/safe-js/core.d.ts",
           default: "./dist/types/safe-js/core.d.ts"
         },
         workerd: "./packages/safe-js/dist/workerd.js",
-        browser: null,
+        browser: "./packages/safe-js/dist/core.js",
         import: "./dist/shared/safe-js/core.js"
       },
       "./safe-js/cli": {
@@ -195,11 +195,11 @@ export function canonicalBundleFixture() {
       },
       "./safejs/core": {
         types: { workerd: "./dist/types/safe-js/workerd.d.ts",
-          browser: "./dist/types/safe-fs/node-unavailable.d.ts",
+          browser: "./dist/types/safe-js/core.d.ts",
           default: "./dist/types/safe-js/core.d.ts"
         },
         workerd: "./packages/safe-js/dist/workerd.js",
-        browser: null,
+        browser: "./packages/safe-js/dist/core.js",
         import: "./dist/shared/safe-js/core.js"
       },
       "./safejs/cli": {

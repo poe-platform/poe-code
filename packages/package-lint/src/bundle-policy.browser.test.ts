@@ -69,7 +69,7 @@ describe("version-independent builtins retain released FS profile restrictions",
   );
 });
 
-describe("Node-only SafeJS browser boundary", () => {
+describe("SafeJS browser boundary", () => {
   const routes = [
     "./safe-js", "./safe-js/core", "./safe-js/cli",
     "./safejs", "./safejs/core", "./safejs/cli"
@@ -83,7 +83,7 @@ describe("Node-only SafeJS browser boundary", () => {
       { types: original.types.default, import: original.import },
       { ...original, browser: original.import },
       { types: original.types, import: original.import, browser: null },
-      { ...original, types: { ...original.types, browser: original.types.default } },
+      { ...original, types: { ...original.types, browser: "./missing.d.ts" } },
       { ...original, types: { ...original.types, default: "./missing.d.ts" } },
       { ...original, import: "./missing.js" }
     ];
@@ -252,4 +252,14 @@ describe("conditional canonical FS publication", () => {
       findBundleIssues(manifest, new Set(["@poe-code/safe-fs"]), metafile, packed).length
     ).toBeGreaterThan(0);
   });
+});
+
+it.each(["./safe-js/core", "./safejs/core"] as const)("accepts the portable browser core at %s", route => {
+  const { manifest, metafile, packed } = canonicalBundleFixture();
+  const original = manifest.exports[route];
+  const changed = { ...manifest, exports: { ...manifest.exports, [route]: {
+    ...original, browser: "./packages/safe-js/dist/core.js",
+    types: { ...original.types, browser: "./dist/types/safe-js/core.d.ts" }
+  } } };
+  expect(findBundleIssues(changed, new Set(), metafile, packed)).toEqual([]);
 });

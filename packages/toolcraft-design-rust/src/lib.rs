@@ -17,6 +17,7 @@ pub mod resource_browser;
 pub mod string_width;
 pub mod symbols;
 pub mod table;
+pub mod task_tree;
 pub mod template;
 pub mod terminal;
 pub mod text_cells;

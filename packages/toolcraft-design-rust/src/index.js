@@ -95,3 +95,4 @@ export { createNotices, renderNotice } from "./inline-notice.js";
 export { createMetric } from "./metric.js";
 export { renderProgressGroup } from "./progress-group.js";
 export {createEventGroups,renderEventGroupRows} from "./event-groups.js";
+export {createTaskTree,renderTaskRows} from "./task-tree.js";

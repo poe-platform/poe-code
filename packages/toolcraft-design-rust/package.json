@@ -115,6 +115,10 @@
     "./event-groups": {
       "types": "./dist/event-groups.d.ts",
       "import": "./dist/event-groups.js"
+    },
+    "./task-tree": {
+      "types": "./dist/task-tree.d.ts",
+      "import": "./dist/task-tree.js"
     }
   },
   "scripts": {

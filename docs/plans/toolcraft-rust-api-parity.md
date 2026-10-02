@@ -654,6 +654,19 @@ lint and isolated packed consumers pass with no dependency changes. An inspected
 screenshot confirms collapsed/expanded headers, error rows, clipping and scrolled
 windows. Task trees, render monitoring and full interactive surfaces remain open.
 
+Task trees now expose native hierarchy admission, cycle/capacity checks, subtree
+removal, iterative viewport traversal and rendering at the root and `task-tree`
+subpath. Node retains indexed collections, spreads, method capture and explicit
+iterator behavior. Coverage includes reparenting/insertion order, orphan parents,
+isolated snapshots, nonfinite/fractional windows, changing getters, reentrant
+snapshots, sparse/species arrays and inherited-marker coercion. A separate notice
+fix reproduces and corrects marker conversion occurring after the text getter.
+All 115 native and 199 reference tests, bidirectional declarations, package/JS
+lint and isolated packed consumers pass without dependency changes. An inspected
+screenshot verifies hierarchy indentation, collapse state, status marks, durations
+and clipping. Render monitoring, full interactive surfaces, Markdown and remaining
+Toolcraft contracts still require implementation and qualification.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

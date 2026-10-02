@@ -259,3 +259,13 @@ const rootEventGroupsOwn: typeof eventGroups = null as unknown as typeof origina
 const eventRowOriginal: originalEventGroups.EventGroupRow = null as unknown as eventGroups.EventGroupRow;
 const eventRowOwn: eventGroups.EventGroupRow = null as unknown as originalEventGroups.EventGroupRow;
 void [eventGroupsOriginal,eventGroupsOwn,rootEventGroupsOriginal,rootEventGroupsOwn,eventRowOriginal,eventRowOwn];
+
+import * as taskTree from "toolcraft-design-rust/task-tree";
+import type * as originalTaskTree from "toolcraft-design/task-tree";
+const taskTreeOriginal: typeof originalTaskTree = taskTree;
+const taskTreeOwn: typeof taskTree = null as unknown as typeof originalTaskTree;
+const rootTaskTreeOriginal: typeof originalTaskTree = design;
+const rootTaskTreeOwn: typeof taskTree = null as unknown as typeof originalDesign;
+const taskNodeOriginal: originalTaskTree.TaskNode = null as unknown as taskTree.TaskNode;
+const taskNodeOwn: taskTree.TaskNode = null as unknown as originalTaskTree.TaskNode;
+void [taskTreeOriginal,taskTreeOwn,rootTaskTreeOriginal,rootTaskTreeOwn,taskNodeOriginal,taskNodeOwn];

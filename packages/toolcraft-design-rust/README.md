@@ -82,6 +82,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
 | `createEventGroups`, `renderEventGroupRows` | Retain grouped output, expand errors and render a bounded row window |
+| `createTaskTree`, `renderTaskRows` | Index task hierarchies, collapse subtrees and render status/duration rows |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -299,3 +300,10 @@ errors; `toggle(groupId)` changes visibility. `rows(offset, height)` selects a
 window of headers and expanded children, and `renderEventGroupRows(rows, width)`
 produces clipped terminal rows. Both functions are also exported from
 `toolcraft-design-rust/event-groups`.
+
+`createTaskTree({capacity})` indexes tasks by ID, rejects cycles and caps retained
+nodes (10,000 by default). `upsert(node)` adds or reparents a task, `remove(id)`
+removes its subtree and `toggle(id)` hides or reveals descendants.
+`rows(offset, height)` returns snapshots with depth and collapse state;
+`renderTaskRows(rows, width)` adds indentation, status marks and optional durations.
+Both functions are also exported from `toolcraft-design-rust/task-tree`.

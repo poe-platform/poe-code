@@ -277,3 +277,15 @@ it.each([
     expect(consumer.outputFiles[0]!.text.includes(`function ${implementation}(`)).toBe(selected);
   }
 });
+
+it("shares the canonical filesystem for internal runtime-core imports", async () => {
+  const options = resolveBrowserShellBuild(process.cwd());
+  const result = await build({ ...options, entryPoints: undefined, outdir: undefined,
+    outfile: "/memory/runtime-core.js", splitting: false, inject: [], sourcemap: false,
+    stdin: { contents: 'export { MemoryFileSystem as internal } from "@poe-code/safe-fs/runtime-core"; export { MemoryFileSystem as publicCore } from "@poe-code/safe-fs/core";', resolveDir: process.cwd() }
+  });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect(imports.every(item => item.external)).toBe(true);
+  expect([...new Set(imports.map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);
+  expect(Object.keys(result.metafile!.inputs)).toEqual(["<stdin>"]);
+});

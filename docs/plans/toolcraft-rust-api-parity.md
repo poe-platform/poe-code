@@ -3153,3 +3153,43 @@ and the remaining replacement gates stay open.
 Argument scanning is verified on remote main at 878461e8ed. Its main Release
 workflow 37061810895 remains pending; no later publication is inferred from the
 separate successful Toolcraft 0.0.750 release.
+
+### CLI scalar and array value checkpoint
+
+The internal value module now uses Rust for scalar dispatch, nullable admission,
+boolean/enum selection, string and array bounds, pattern admission, received-value
+descriptions, JSON catch routing and missing-parameter diagnostics. It composes
+the native numeric validator, repaired Unicode helper and array scanner. Node
+retains observable Number/String/JSON/RegExp operations, iteration, callbacks,
+coercion order and caller-owned values. No public CLI entry point, dependency
+declaration or default implementation changed.
+
+Five missing-module failures preceded implementation. Nine final comparisons use
+the actual reference functions extracted in memory, now with their original
+numeric, Unicode and suggestion dependencies. They cover nullable/optional values,
+negative zero, enum choices, Unicode/lone surrogates, boxed string identity,
+patterns and invalid patterns, bounds, malformed methods, changing getters,
+custom map/find callbacks, reentrancy and arbitrary throws. JSON tests retain
+catch boundaries and errors thrown while formatting parser failures; pattern
+tests retain constructor/test receivers and nonboolean results.
+
+Build, Rust/binding lint, scoped JS lint and the maintained Toolcraft route pass:
+187 native tests, 1,723 reference/integration cases across 46 files, and declaration
+checks. Full CLI execution suites remain unported. Packed parsers run with the
+packed own schema package and other external ESM dependencies blocked. Packed
+types compile with `types: []`, but existing contract declarations still resolve
+from the checkout, so fully isolated type packaging remains open. An inspected
+diagnostic preview has reference-identical ANSI output; it is not a full CLI run.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 1,000 calls and 32 retained
+results, measured native/reference medians of 5.309/0.062 microseconds for numeric
+parsing (86.21 times slower), 42.934/0.117 for a five-number array (368.27 times
+slower) and 16.989/5.352 for an enum suggestion error (3.17 times slower). These
+fixtures do not pass the performance gate. Complete host-intrinsic/resource
+qualification, dynamic options, prompting/help, transports and swap gates remain
+open.
+
+The Unicode repair is verified on remote main at 7229db6674. Its main Release
+workflow 37062360512 is running the build job; successful publication is not yet
+claimed. The preceding argv Release workflow completed with release-stable
+skipped, so it did not establish publication of those later changes.

@@ -1,0 +1,14 @@
+import type {ArraySchema} from "toolcraft-schema-rust";
+import type {ScalarSchema,FieldDefinition} from "./cli-fields.js";
+export declare function parseBooleanText(value:string,label:string):boolean;
+export declare function parseEnumValue(value:string,values:ReadonlyArray<string|number|boolean|null>,label:string):string|number|boolean|null;
+export declare function validateStringPattern(value:string,schema:Extract<ScalarSchema,{kind:"string"}>,label:string):string;
+export declare function matchesStringPattern(value:string,pattern:string):boolean;
+export declare function parseJsonText(value:string,label:string):unknown;
+export declare function describeReceived(value:unknown):string;
+export declare function getErrorMessage(error:unknown):string;
+export declare function formatAvailableList(values:Iterable<string>):string;
+export declare function parseScalarValue(value:string,schema:ScalarSchema,label:string):string|number|boolean|null;
+export declare function parseArrayValue(value:string,schema:ArraySchema<any>,label:string):unknown[];
+export declare function validateArrayBounds(value:unknown[],schema:ArraySchema<any>,label:string):void;
+export declare function formatMissingParameterMessage(field:FieldDefinition):string;

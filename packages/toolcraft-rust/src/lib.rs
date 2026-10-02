@@ -13,6 +13,7 @@ pub mod cli_fields;
 pub mod cli_help_fields;
 pub mod cli_policy;
 pub mod cli_snapshot;
+pub mod cli_values;
 pub mod definitions;
 pub mod error_report;
 pub mod host;

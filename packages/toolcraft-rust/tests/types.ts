@@ -2,6 +2,15 @@ import * as native from "../dist/index.js";
 import * as cliPolicy from "../dist/cli-policy.js";
 import * as cliFields from "../dist/cli-fields.js";
 import * as cliHelp from "../dist/cli-help-fields.js";
+import * as cliValues from "../dist/cli-values.js";
+const parsedCLIScalar:string|number|boolean|null=cliValues.parseScalarValue("17",native.S.Number(),"value");
+const parsedCLIArray:unknown[]=cliValues.parseArrayValue("1,2",native.S.Array(native.S.Number()),"items");
+const parsedCLIJson:unknown=cliValues.parseJsonText("{}","data");
+const checkedCLIString:string=cliValues.validateStringPattern("name",native.S.String(),"value");
+cliValues.validateArrayBounds(parsedCLIArray,native.S.Array(native.S.Number()),"items");
+// @ts-expect-error scalar parsing rejects object schemas
+cliValues.parseScalarValue("{}",native.S.Object({}),"value");
+void [parsedCLIScalar,parsedCLIArray,parsedCLIJson,checkedCLIString];
 import * as cliArgv from "../dist/cli-argv.js";
 import {Option as CLIOption} from "commander";
 const numericCLIOption=new CLIOption("-n, --numbers <values...>");

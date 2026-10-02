@@ -20,6 +20,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Result rendering | Native rich cards, tables, Markdown/JSON, custom hooks and MCP error routing; prepared for CLI integration |
 | CLI snapshots    | Native command-tree assembly, scope filtering, defaults and option metadata; prepared for CLI integration |
 | CLI arguments    | Native comma-separated array scanning, negative-number option normalization and output/debug selection; prepared for CLI integration |
+| CLI values       | Native scalar/array admission, nullable values, bounds, patterns, enum choices and JSON diagnostics; prepared for CLI integration |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Design           | `toolcraft-rust/design` and 72 flat helper paths backed by the native design package |
 | File changes     | `toolcraft-rust/file-changes`: native status summaries and unified diffs through standard renderers |

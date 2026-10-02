@@ -68,6 +68,26 @@ it("routes embedded spreadsheet XML imports to the published core entry", () => 
   expect(consumer.external).toContain("poe-code/safe-fs/core");
 });
 
+it("preserves internal filesystem helpers through the public core entry", async () => {
+  const graph = resolveConsumerGraph({ alias: {
+    "@poe-code/safe-fs/runtime-core": new URL("../packages/safe-fs/src/runtime-core.ts", import.meta.url).pathname,
+  }, external: [] }, canonicalFs);
+  const output = await build({ ...graph, stdin: {
+    contents: 'export { isUnmodifiedMemoryFileSystem, retargetScopedFileSystem } from "@poe-code/safe-fs/runtime-core";',
+    resolveDir: process.cwd(),
+  }, bundle: true, write: false, platform: "node", format: "cjs", target: "node22" });
+  const module = { exports: {} as typeof filesystem };
+  runInContext(output.outputFiles[0]!.text, createContext({ module, exports: module.exports,
+    require(specifier: string) {
+      expect(specifier).toBe("poe-code/safe-fs/core");
+      return filesystem;
+    },
+  }));
+  expect(module.exports.isUnmodifiedMemoryFileSystem).toBe(filesystem.isUnmodifiedMemoryFileSystem);
+  expect(module.exports.retargetScopedFileSystem).toBe(filesystem.retargetScopedFileSystem);
+  expect(module.exports.isUnmodifiedMemoryFileSystem(new filesystem.MemoryFileSystem())).toBe(true);
+});
+
 it("preserves XML error identity for a canonical route outside the primary workspace", async () => {
   const graph = resolveConsumerGraph({ alias: {
     "@poe-code/xml-ast": new URL("../packages/xml-ast/src/index.ts", import.meta.url).pathname,

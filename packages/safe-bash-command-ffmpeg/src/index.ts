@@ -1533,7 +1533,7 @@ export function evalSyncFfmpeg(
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags };
     if (isNullMux) return "";
-    if (inputs.some(inp => isStdin(inp.target)) && !inBytes) return undefined;
+    if (inputs.some(inp => isStdin(inp.path)) && !inBytes) return undefined;
     if (!writeFileSync || !outputTarget || outputTarget.endsWith("/") || outputTarget.endsWith("/.") || outputTarget.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(outputTarget)) return undefined;
     if (/%0?\d*d/.test(outputTarget)) {
       const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";

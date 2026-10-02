@@ -869,3 +869,14 @@ const explorerActionsOriginal: typeof originalExplorerActions = explorerActions;
 const explorerActionsNative: typeof explorerActions = null as unknown as typeof originalExplorerActions;
 const explorerActionsKeys: SameKeys<typeof explorerActions,typeof originalExplorerActions> = true;
 void [explorerActionsOriginal,explorerActionsNative,explorerActionsKeys];
+
+import * as explorerFilter from "toolcraft-design-rust/explorer/filter";
+import type * as originalExplorerFilter from "toolcraft-design/explorer/filter";
+const explorerFilterOriginal: typeof originalExplorerFilter = explorerFilter;
+const explorerFilterNative: typeof explorerFilter = null as unknown as typeof originalExplorerFilter;
+const explorerFilterKeys: SameKeys<typeof explorerFilter,typeof originalExplorerFilter> = true;
+const filterMatchOriginal: originalExplorerFilter.FilterMatch = null as unknown as explorerFilter.FilterMatch;
+const filterMatchNative: explorerFilter.FilterMatch = null as unknown as originalExplorerFilter.FilterMatch;
+const filterOptionsOriginal: originalExplorerFilter.FilterRowsOptions = null as unknown as explorerFilter.FilterRowsOptions;
+const filterOptionsNative: explorerFilter.FilterRowsOptions = null as unknown as originalExplorerFilter.FilterRowsOptions;
+void [explorerFilterOriginal,explorerFilterNative,explorerFilterKeys,filterMatchOriginal,filterMatchNative,filterOptionsOriginal,filterOptionsNative];

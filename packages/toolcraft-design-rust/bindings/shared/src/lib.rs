@@ -529,3 +529,5 @@ mod explorer_layout;
 pub use explorer_layout::*;
 mod explorer_actions;
 pub use explorer_actions::*;
+mod explorer_filter;
+pub use explorer_filter::*;

@@ -1880,3 +1880,36 @@ for 20 rows with three selections and retaining 32 results, measured median
 77.14 µs native / 0.746 µs reference (103.44× slower). Callback batching and
 performance acceptance remain open along with filtering, jobs, reducer,
 rendering, runtime/public namespace and broader swap qualification.
+
+### Explorer filtering checkpoint
+
+`explorer/filter` exposes `filterRows`, `FilterMatch` and `FilterRowsOptions`.
+Rust owns subsequence scoring, lexicographic position ties and projection from
+folded text to original grapheme offsets. The best-prefix recurrence removes
+the predecessor scan while retaining a separate adjacent-character bonus.
+Node preserves whole-string locale casing, ICU segmentation, SGR stripping,
+array species/iteration and observable getter order. No dependencies or default
+integration changed.
+
+Three missing-export differential tests preceded implementation. Coverage
+includes 68,442 short-query/row comparisons, 300 seeded longer cases, sparse
+arrays, live option reads, arbitrary thrown values, reentrancy and casing-call
+traces for English, Turkish and Lithuanian. Greek context, astral characters,
+lone surrogates and expansion/contraction projection retain original behavior.
+Maintained checks pass 328 native host tests, 1,379 selected design tests,
+13 prompt wrappers, 132 dashboard/queue cases, 14 composer cases and 123
+explorer cases, including original filter, reducer and list-renderer tests.
+The explorer suite enables the reference snapshots' color environment.
+Rust/binding and scoped JS lint, bidirectional declarations and packed runtime
+and declaration consumers pass. Packed runtime rejects external ESM imports;
+packed declarations compile with `types: []`. Inspected 100-column and 70-column
+filter screenshots; native/reference results produce identical original-renderer
+frames. The screenshot font lacks emoji glyphs, but UTF-16 spans and highlighted
+cells are covered by the original renderer tests.
+
+Five warmed alternating Node 22 ARM64 rounds retaining 32 results measured
+61.10 µs native / 16.87 µs reference for 20 short labels (1,000 calls/round,
+3.62× slower), and 703.54 µs / 5,199.02 µs for 20 dense repeated labels
+(30 calls/round, 7.39× faster). This is workload-specific improvement, not a
+passed replacement gate. Jobs, detail preparation, theme, reducer, remaining
+renderers, runtime/public namespace and broader swap qualification remain open.

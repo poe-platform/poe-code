@@ -604,3 +604,10 @@ idle action for a resolved accelerator. `buildActionContext` supplies current or
 selected rows, the focused detail item, active/inactive panes and your runtime
 handles. Explicit row overrides retain their identity, and selected rows follow
 the focused pane in source order.
+
+`filterRows(query, rows, {caseSensitive?})` from `explorer/filter` ranks title and
+subtitle subsequences, favoring consecutive characters and word starts. Each
+match includes its source row index, score and UTF-16 highlight positions in the
+original text without SGR styling. Locale-sensitive casing preserves Greek
+context and projects expanded or contracted graphemes back to their original
+positions. Empty queries retain source order; equal scores use row order.

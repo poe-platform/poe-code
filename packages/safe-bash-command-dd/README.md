@@ -13,10 +13,15 @@ Copy and transform byte streams with `if=`, `of=`, `bs=`, `ibs=`, `obs=`, `count
 ## Quick Start
 
 ```ts
-import { createMemoryFileSystem, Shell, agentCommands } from "@poe-platform/safe-bash";
+import { createMemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { ddCommands } from "@poe-platform/safe-bash/dd";
 
-const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
-const res = await shell.exec("printf 'hello world' | dd bs=1 skip=6 count=5 status=none");
+const fs = createMemoryFileSystem();
+await fs.writeFile("/input", new TextEncoder().encode("hello world"));
+const shell = new Shell({ fs }).use(ddCommands());
+const res = await shell.exec("dd if=/input bs=1 skip=6 count=5 status=none");
+console.log(res.stdout); // world
+await shell.dispose();
 ```
 
 Command factories accept `limits: Partial<DdLimits>` for block size, buffer size, transferred bytes, read operations, and argument bytes. Nested limits take precedence over the corresponding top-level options. Each limit accepts `Infinity` (the default) or a positive safe integer; `maxTransferBytes` also accepts zero.

@@ -288,3 +288,5 @@ import { verification as playwrightVerification } from "./safe-packages-playwrig
 await playwrightVerification;
 
 await (await import("./safe-packages-pr.mjs")).verification;
+import { verification as ddVerification } from "./safe-packages-dd.mjs";
+await ddVerification;

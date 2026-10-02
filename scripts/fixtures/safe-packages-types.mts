@@ -257,3 +257,4 @@ import "./safe-packages-expr-types.mjs";
 import "./safe-packages-playwright-types.mjs";
 
 import "./safe-packages-pr-types.mjs";
+import "./safe-packages-dd-types.mjs";

@@ -17,6 +17,7 @@
     "src"
   ],
   "exclude": [
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/helpers.ts"
   ]
 }

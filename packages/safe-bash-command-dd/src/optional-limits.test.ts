@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { run, bytes } from "./helpers.js";
-import { createDdCommand } from "../../../src/commands/dd/index.js";
+import { createDdCommand } from "./index.js";
 
 test("dd block quota is opt-in and independent of transfer quota", async () => {
   for (const options of [{}, { maxTransferBytes: 1 }, { maxBlockBytes: 2_097_152 }, { maxBlockBytes: 1024 }]) {

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { transferReport } from "safe-bash-command-dd/report";
+import { transferReport } from "./report.js";
 import { bytes, run } from "./helpers.js";
 
 test("transfer reports use injected elapsed time and exact semantic byte counts", async () => {

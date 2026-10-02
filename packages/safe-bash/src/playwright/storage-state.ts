@@ -36,7 +36,7 @@ export function parsePlaywrightStorageStateJson(source: string, maxBytes = Infin
 /** Validate the portable native storage-state format before handing it to a browser. */
 export function parsePlaywrightStorageState(value: unknown, options: { maxBytes?: number; maxTraversalBytes?: number; maxNodes?: number | undefined; maxDepth?: number | undefined } = {}): PlaywrightStorageState {
   const maxBytes = options.maxBytes ?? Infinity;
-  const maxTraversalBytes = options.maxTraversalBytes ?? (Number.isFinite(maxBytes) ? Math.min(Number.MAX_SAFE_INTEGER, maxBytes * 4 + 65536) : Infinity);
+  const maxTraversalBytes = options.maxTraversalBytes ?? Infinity;
   const maxNodes = options.maxNodes ?? storageMaxNodes;
   const maxDepth = options.maxDepth ?? storageMaxDepth;
   if (![maxBytes, maxTraversalBytes, maxNodes, maxDepth].every(limit => limit === Infinity || (Number.isSafeInteger(limit) && limit > 0))) throw new TypeError('Invalid storage state limits');

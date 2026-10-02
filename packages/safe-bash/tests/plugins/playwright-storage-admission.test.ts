@@ -104,3 +104,13 @@ test('unlimited web storage budgets survive browser JSON transport', async t => 
   assert.ok(JSON.stringify(result).includes('key=value'));
   await assert.rejects(playwrightStorageAbilities['localstorage-list']!.execute({ ...request, limits: { maxCommandBytes: 1, maxArtifactBytes: Infinity } }), /byte limit/);
 });
+
+test('storage byte limits do not impose an omitted traversal budget', () => {
+  const state = { cookies: [], origins: [{ origin: 'https://example.com', localStorage: [], indexedDB: [{
+    name: 'db', version: 1, stores: [{ name: 'values', autoIncrement: false, indexes: [], records: [{ key: 1, value: Array(20000).fill(0) }] }],
+  }] }] };
+  const maxBytes = new TextEncoder().encode(JSON.stringify(state)).byteLength;
+  assert.deepEqual(parsePlaywrightStorageState(state, { maxBytes }), state);
+  assert.throws(() => parsePlaywrightStorageState(state, { maxBytes: maxBytes - 1 }), /byte limit/);
+  assert.throws(() => parsePlaywrightStorageState(state, { maxBytes, maxTraversalBytes: maxBytes }), /byte limit/);
+});

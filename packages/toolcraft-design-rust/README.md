@@ -659,3 +659,8 @@ render errors and the scroll percentage appear inside the pane frame.
 confirmation, input, command-palette and scrollable content dialogs. Dialogs
 adapt to the screen size, clip text by terminal cells and strip terminal escape
 sequences from their content. The palette filters available, idle actions.
+
+`renderExplorer(state, screen)` from `explorer/render/index` combines the
+header, list, detail, footer and dialogs into one screen. Dirty-region flags
+limit redraws; open dialogs stay above refreshed content and toast messages
+occupy the final row. Individual renderers are re-exported from the same module.

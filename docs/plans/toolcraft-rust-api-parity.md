@@ -2190,3 +2190,32 @@ measured 702.703 µs native / 84.208 µs reference for the command palette at 72
 (8.34× slower), and 709.905 µs / 80.374 µs for content (8.83× slower).
 No full-render performance gate passed. Combined rendering, reducer,
 runtime/public namespace, batching and broader swap qualification remain open.
+
+### Explorer composite renderer checkpoint
+
+`explorer/render/index` exposes `renderExplorer` and identity-preserving exports
+of all five regional renderers. Rust constructs the layout request, selects dirty
+regions, repaints open dialogs above partial updates and places toast messages
+last. JavaScript retains the original region-array iteration and method receivers;
+region flags come from the native explorer state module. All rendering dependencies
+now use the additive native package, with no default integration changes.
+
+Four missing-export tests preceded implementation. Differential tests cover every
+six-bit dirty mask, 18 width/focus combinations, partial-update dialog layering,
+toast clearing effects, live getters and bitwise coercion, arbitrary exceptions,
+reentrant drawing and re-export identities. Maintained checks pass 371 native host
+tests, 1,379 selected design cases, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 155 explorer cases. Existing explorer snapshots now execute
+the complete native render composition. Rust/binding and scoped JS lint,
+bidirectional types and packed runtime/declarations pass. Packed imports reject
+external ESM dependencies; declarations compile with `types: []`.
+
+Inspected 120-column split panes, 70-column focused detail and 72-column dialog
+plus toast screenshots. Native/reference original-ScreenBuffer output is
+byte-identical; the known screenshot-font loading-glyph limitation remains.
+Five warmed alternating 100-render Node 22 ARM64 rounds retaining 32 call arrays
+measured 4,758.241 µs native / 585.952 µs reference for full 120×16 rendering
+(8.12× slower), and 887.933 µs / 225.508 µs for header-only redraws (3.94× slower).
+These composed-render microbenchmarks do not pass the performance gate.
+The reducer, runtime/public explorer namespace, batching, broader Toolcraft
+coverage and final API/platform/performance qualification remain open.

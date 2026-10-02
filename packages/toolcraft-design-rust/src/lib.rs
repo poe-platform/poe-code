@@ -101,3 +101,5 @@ pub mod explorer_theme;
 pub mod explorer_detail;
 
 pub mod explorer_modal;
+
+pub mod explorer_render;

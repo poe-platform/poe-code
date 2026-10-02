@@ -4,6 +4,7 @@ const path=name=>fileURLToPath(new URL(name,import.meta.url));
 const suite=path("../toolcraft-design/src/explorer/keymap.test.ts");
 export default defineConfig({
   plugins:[{name:"rust-explorer-reference",enforce:"pre",resolveId(name,importer){
+    if(importer?.startsWith(path("../toolcraft-design/src/explorer/render/"))&&name==="./index.js")return path("dist/explorer-render.js");
     if(importer?.startsWith(path("../toolcraft-design/src/explorer/render/"))&&name==="./modal.js")return path("dist/explorer-modal.js");
     if(importer?.startsWith(path("../toolcraft-design/src/explorer/render/"))&&name==="./detail.js")return path("dist/explorer-detail.js");
     if(importer?.startsWith(path("../toolcraft-design/src/explorer/render/"))&&name==="./list.js")return path("dist/explorer-list.js");

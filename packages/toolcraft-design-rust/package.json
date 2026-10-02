@@ -511,6 +511,10 @@
     "./explorer/render/modal": {
       "types": "./dist/explorer-modal.d.ts",
       "import": "./dist/explorer-modal.js"
+    },
+    "./explorer/render/index": {
+      "types": "./dist/explorer-render.d.ts",
+      "import": "./dist/explorer-render.js"
     }
   },
   "scripts": {

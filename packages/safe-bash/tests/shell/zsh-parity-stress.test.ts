@@ -1523,3 +1523,22 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "2.0K|1.0K| 1:ok|6162\n0a|ab\ncd");
   });
+
+  test("83. sync grep, jq, sed, cut, sort, uniq, and base64 do not mistake patterns or option values for existing files", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "echo \"hello from file\" > /hello",
+      "echo \"{\\\"a\\\":999}\" > /foo",
+      "echo \"wrong\" > /2",
+      "echo \"wrong\" > /20",
+      "g_out=$({ grep hello; } <<< \"hello from stdin\")",
+      "j_out=$({ jq --arg k a -r \".foo\"; } <<< \"{\\\"foo\\\":42}\")",
+      "c_out=$({ cut -d : -f 2; } <<< \"x:right\")",
+      "s_out=$({ sort -t : -k 2; } <<< $\x27a:2\\nb:1\x27)",
+      "u_out=$({ uniq -w 2; } <<< $\x27aa1\\naa2\x27)",
+      "b_out=$({ base64 -w 20; } <<< \"hi\")",
+      "echo \"$g_out|$j_out|$c_out|$s_out|$u_out|$b_out\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "hello from stdin|42|right|b:1\na:2|aa1|aGkK");
+  });

@@ -19534,25 +19534,25 @@ const syncExtraRuntimeMethods = {
                 fileRes = syncCommandEvaluators.evalSyncHeadTail?.(w0Plain, hasSingleHereStringRedir || hasSingleStdinRedir ? view : undefined, allArgs, readFile);
               }
             } else if (w0Plain === "jq") {
-              const jqRes = this.evalSyncJq(fileStr.trim(), opArgs, rawState.cwd, fileStr) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncJq(undefined, allArgs, rawState.cwd) : undefined);
+              const jqRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncJq(fileStr.trim(), opArgs, rawState.cwd, fileStr) : this.evalSyncJq(undefined, allArgs, rawState.cwd);
               if (jqRes !== undefined) fileRes = renderLines(jqRes);
             } else if (w0Plain === "awk") {
-              const awkRes = this.evalSyncAwk(rawLines, opArgs) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("awk", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);
+              const awkRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncAwk(rawLines, opArgs) : this.evalSyncMultiFileText("awk", allArgs, rawState.cwd, byteLocale(rawState.variables));
               if (awkRes !== undefined) fileRes = renderLines(awkRes);
             } else if (w0Plain === "grep" || w0Plain === "egrep" || w0Plain === "fgrep") {
               const grepArgs = w0Plain === "grep" ? opArgs : [w0Plain === "egrep" ? "-E" : "-F", ...opArgs];
-              const grepFileLabel = !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : "(standard input)";
-              const grepRes = this.evalSyncGrep(rawLines, grepArgs, Boolean(rawState.errexit), grepFileLabel) ?? this.evalSyncGrepWithFiles(allArgs, w0Plain === "egrep", w0Plain === "fgrep", Boolean(rawState.errexit), rawState.cwd, hasSingleHereStringRedir || hasSingleStdinRedir ? rawLines : undefined);
+              const grepRes = (hasSingleHereStringRedir || hasSingleStdinRedir)
+                ? (this.evalSyncGrep(rawLines, grepArgs, Boolean(rawState.errexit), "(standard input)") ?? this.evalSyncGrepWithFiles(allArgs, w0Plain === "egrep", w0Plain === "fgrep", Boolean(rawState.errexit), rawState.cwd, rawLines))
+                : this.evalSyncGrepWithFiles(allArgs, w0Plain === "egrep", w0Plain === "fgrep", Boolean(rawState.errexit), rawState.cwd, undefined);
               if (grepRes !== undefined) {
                 exitStatus = grepRes.status;
                 fileRes = renderLines(grepRes.lines);
               }
             } else if (w0Plain === "sed") {
-              const sedRes = this.evalSyncSed(rawLines, opArgs);
-              const sedLines = sedRes !== undefined ? sedRes.lines : (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("sed", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);
+              const sedLines = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncSed(rawLines, opArgs)?.lines : this.evalSyncMultiFileText("sed", allArgs, rawState.cwd, byteLocale(rawState.variables));
               if (sedLines !== undefined) fileRes = renderLines(sedLines);
             } else if (w0Plain === "cut") {
-              const cutRes = this.evalSyncCut(rawLines, opArgs, byteLocale(rawState.variables)) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("cut", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);
+              const cutRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncCut(rawLines, opArgs, byteLocale(rawState.variables)) : this.evalSyncMultiFileText("cut", allArgs, rawState.cwd, byteLocale(rawState.variables));
               if (cutRes !== undefined) fileRes = renderLines(cutRes);
             } else if (w0Plain === "wc") {
               if (opArgs.length === 1 && this.normalizeSyncWcFlag(opArgs[0]) !== undefined) {
@@ -19576,30 +19576,37 @@ const syncExtraRuntimeMethods = {
                 fileRes = syncCommandEvaluators.evalSyncWc?.(hasSingleHereStringRedir || hasSingleStdinRedir ? view : undefined, allArgs, byteLocale(rawState.variables), readFile);
               }
             } else if (w0Plain === "sort" && !byteLocale(rawState.variables)) {
-              const sortRes = this.evalSyncSort(rawLines, opArgs, false) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("sort", allArgs, rawState.cwd, false) : undefined);
+              const sortRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncSort(rawLines, opArgs, false) : this.evalSyncMultiFileText("sort", allArgs, rawState.cwd, false);
               if (sortRes !== undefined) fileRes = renderLines(sortRes);
             } else if (w0Plain === "uniq") {
-              const uniqRes = this.evalSyncUniq(rawLines, opArgs, byteLocale(rawState.variables)) ?? (!hasSingleHereStringRedir && !hasSingleStdinRedir ? this.evalSyncMultiFileText("uniq", allArgs, rawState.cwd, byteLocale(rawState.variables)) : undefined);
+              const uniqRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncUniq(rawLines, opArgs, byteLocale(rawState.variables)) : this.evalSyncMultiFileText("uniq", allArgs, rawState.cwd, byteLocale(rawState.variables));
               if (uniqRes !== undefined) fileRes = renderLines(uniqRes);
             } else if (w0Plain === "rev") {
-              if (opArgs.length === 0) fileRes = renderLines(rawLines.map(l => Array.from(l).reverse().join("")));
-              else if (!hasSingleHereStringRedir && !hasSingleStdinRedir) {
+              if (hasSingleHereStringRedir || hasSingleStdinRedir) {
+                if (opArgs.length === 0) fileRes = renderLines(rawLines.map(l => Array.from(l).reverse().join("")));
+              } else {
                 const revRes = this.evalSyncMultiFileText("rev", allArgs, rawState.cwd, false);
                 if (revRes !== undefined) fileRes = renderLines(revRes);
               }
             } else if (w0Plain === "tac") {
-              if (opArgs.length === 0) {
-                const rev = [...rawLines].reverse();
-                if (!fileStr.endsWith("\n") && rev.length > 1) rev.splice(0, 2, rev[0]! + rev[1]!);
-                fileRes = renderLines(rev);
-              } else if (!hasSingleHereStringRedir && !hasSingleStdinRedir) {
+              if (hasSingleHereStringRedir || hasSingleStdinRedir) {
+                if (opArgs.length === 0) {
+                  const rev = [...rawLines].reverse();
+                  if (!fileStr.endsWith("\n") && rev.length > 1) rev.splice(0, 2, rev[0]! + rev[1]!);
+                  fileRes = renderLines(rev);
+                }
+              } else {
                 const tacRes = this.evalSyncMultiFileText("tac", allArgs, rawState.cwd, false);
                 if (tacRes !== undefined) fileRes = renderLines(tacRes);
               }
             } else if (w0Plain === "tr" && (hasSingleStdinRedir || hasSingleHereStringRedir)) {
               fileRes = this.evalSyncTr(fileStr, opArgs);
             } else if (w0Plain === "base64") {
-              fileRes = this.evalSyncBase64(view, opArgs);
+              if (!hasSingleHereStringRedir && !hasSingleStdinRedir && opArgs.length >= 1 && (opArgs[opArgs.length - 1] === "-w" || opArgs[opArgs.length - 1] === "--wrap")) {
+                fileRes = undefined;
+              } else {
+                fileRes = this.evalSyncBase64(view, opArgs);
+              }
             } else if (w0Plain === "nl") {
               const nlRes = (hasSingleHereStringRedir || hasSingleStdinRedir) ? this.evalSyncNl(rawLines, opArgs, rawState.cwd) : this.evalSyncNl(undefined, allArgs, rawState.cwd);
               if (nlRes !== undefined) fileRes = renderLines(nlRes);
@@ -22546,6 +22553,7 @@ const syncExtraRuntimeMethods = {
         totalBytes += fView.byteLength;
         if (totalBytes > 16384) return undefined;
         const fStr = sharedSyncPipeDecoder.decode(fView);
+        if (fStr.length > 0 && !fStr.endsWith(lineSep)) return undefined;
         const fLines = fStr.endsWith(lineSep) ? fStr.slice(0, -1).split(lineSep) : (fStr.length === 0 ? [] : fStr.split(lineSep));
         const res = this.evalSyncCut(fLines, optArgs, isByteLocale, allowZero);
         if (!res) return undefined;
@@ -22560,7 +22568,7 @@ const syncExtraRuntimeMethods = {
       totalBytes += fView.byteLength;
       if (totalBytes > 16384) return undefined;
       const fStr = sharedSyncPipeDecoder.decode(fView);
-      if (fStr.length > 0 && !fStr.endsWith(lineSep) && (cmd === "fold" || cmd === "expand" || cmd === "unexpand" || cmd === "sed")) return undefined;
+      if (fStr.length > 0 && !fStr.endsWith(lineSep) && (cmd === "fold" || cmd === "expand" || cmd === "unexpand" || cmd === "sed" || cmd === "uniq")) return undefined;
       const fLines = fStr.endsWith(lineSep) ? fStr.slice(0, -1).split(lineSep) : (fStr.length === 0 ? [] : fStr.split(lineSep));
       combinedLines.push(...fLines);
     }

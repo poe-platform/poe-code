@@ -22,6 +22,11 @@ export function fsDescriptor(error: unknown, limits: NodeLimits = nodeLimits): N
     const fields: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
     for (const key of Reflect.ownKeys(error)) {
       if (key === "stack" || key === "cause") continue;
+      if (key === Symbol.for("@poe-code/safe-fs.FsError")) {
+        const brand = Object.getOwnPropertyDescriptor(error, key);
+        if (!brand || !Object.hasOwn(brand, "value") || brand.value !== true) return undefined;
+        continue;
+      }
       if (typeof key !== "string" || !["name", "message", "code", "errno", "path", "syscall", "dest"].includes(key)) return undefined;
       const descriptor = Object.getOwnPropertyDescriptor(error, key);
       if (!descriptor || !Object.hasOwn(descriptor, "value")) return undefined;

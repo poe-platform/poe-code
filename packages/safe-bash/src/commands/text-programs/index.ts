@@ -1,3 +1,4 @@
+import "../../shell/sync-extra-evaluators.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { builtInDirectContextExecutors } from "../internal.js";
 import { sedCommand } from "./sed.js";

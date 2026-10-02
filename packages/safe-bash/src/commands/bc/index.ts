@@ -1,3 +1,4 @@
+import "../../shell/sync-extra-evaluators.js";
 import {
   createBcCommand as createRawBcCommand,
   createBcCommands as createRawBcCommands,

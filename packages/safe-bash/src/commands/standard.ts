@@ -1,3 +1,4 @@
+import "../shell/sync-extra-evaluators.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { type CommandDefinition, type CommandHandler } from "../contracts/index.js";
 import { basicCommands } from "./basic.js";

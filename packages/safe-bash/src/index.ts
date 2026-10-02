@@ -1,3 +1,4 @@
+import "./shell/sync-extra-evaluators.js";
 export * from "./core.js";
 export { Shell } from "./shell/node.js";
 export type { WorkerShellOptions, WorkerModule } from "./worker/host.js";

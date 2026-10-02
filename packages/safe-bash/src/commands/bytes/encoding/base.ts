@@ -1,3 +1,4 @@
+import "../../../shell/sync-extra-evaluators.js";
 export * from "safe-bash-base-encoding-engine/base";
 
 import { syncCommandEvaluators } from "../../internal.js";

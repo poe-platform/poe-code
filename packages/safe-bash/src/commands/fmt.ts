@@ -1,3 +1,4 @@
+import "../shell/sync-extra-evaluators.js";
 export { createFmtEngine, fmtCommand, parseFmtArguments } from "safe-bash-command-fmt";
 
 import { syncCommandEvaluators } from "./internal.js";

@@ -850,3 +850,7 @@ export function evalSyncXargs(
     return undefined;
   }
 }
+
+syncCommandEvaluators.executionCommands = executionCommands;
+syncCommandEvaluators.evalSyncEnv = evalSyncEnv;
+syncCommandEvaluators.evalSyncXargs = evalSyncXargs;

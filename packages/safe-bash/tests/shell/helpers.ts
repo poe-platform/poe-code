@@ -1,3 +1,4 @@
+import "../../src/shell/sync-extra-evaluators.js";
 import { CommandRegistry, pipeBytes, writeText } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";

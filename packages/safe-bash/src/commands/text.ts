@@ -1,3 +1,4 @@
+import "../shell/sync-extra-evaluators.js";
 import { compareByteArrays, decodeBytes, encodeBytes, indexOfBytes } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createBufferedOutput, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";

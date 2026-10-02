@@ -37,6 +37,7 @@ export async function deviceComparisonChecks() {
   const identified = createDeviceFileSystem(memory);
   results.push(await identified.compareEntry("/ordinary", identified, "/other"));
   results.push(await identified.compareEntry("/ordinary", memory, "/ordinary"));
+  results.push(await devices.compareEntry("/devices", devices, "/dev"));
   const controller = new AbortController();
   const reason = new Error("cancel comparison");
   controller.abort(reason);

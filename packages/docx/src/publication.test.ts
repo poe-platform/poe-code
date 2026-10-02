@@ -1,11 +1,30 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
+import { MemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { createMountFileSystem, ReadOnlyFileSystem, type FileStat, type FileSystem } from "@poe-code/safe-fs/core";
 import { CancellationError, DocumentBudget, createDocument, createDocumentArchive, publishDocumentArchive, publishDocumentFiles, type ArchiveContext } from "./index.js";
 import { readPackage, assertPackageLinks } from "../tests/assertions.js";
 import { assertDocumentEditable } from "./publication.js";
 import { archiveSettings, readArchive } from "./archive.js";
 import { textContext, textFixture, w } from "../tests/fixtures/text.js";
+
+it("preserves explicit input comparison through the shell filesystem scope", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/input", new Uint8Array([1]));
+  await fs.writeFile("/output", new Uint8Array([2]));
+  let comparison: Promise<unknown> | undefined;
+  const shell = new Shell({ fs }).use({ name: "publication-comparison", setup(host) {
+    host.commands.register({ name: "compare", async execute(context) {
+      comparison = Promise.resolve().then(() => context.fs.compareEntry!("/output", context.fs, "/input", { signal: context.signal }));
+      await comparison.catch(() => {});
+      return { exitCode: 0 };
+    } });
+  } });
+  try {
+    await shell.exec("compare");
+    await expect(comparison).resolves.toBe("distinct");
+  } finally { await shell.dispose(); }
+});
 
 it("keeps publication lock guards default-closed while admitting only verified unchanged control owners", async () => {
   const body = '<w:p><w:sdt><w:sdtPr><w:text/><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent><w:r><w:t>Keep</w:t></w:r></w:sdtContent></w:sdt></w:p>';

@@ -105,13 +105,13 @@ export class DeviceFileSystem implements FileSystem {
     }));
   }
 
-  async _resolveEntryView(path: string, options: FsOptions): Promise<EntryLocation> {
+  _resolveEntryView = async (path: string, options: FsOptions): Promise<EntryLocation> => {
     const resolved = await this.#resolve(path, options);
     if (resolved === nullPath || resolved === deviceDirectory) {
       return { filesystem: this, path: resolved, stat: resolved === nullPath ? this.#nullStat : this.#directoryStat, readOnly: false };
     }
     return { filesystem: this.#filesystem, path };
-  }
+  };
 
   _entryAuthority = sharedUnknownEntryAuthority;
 

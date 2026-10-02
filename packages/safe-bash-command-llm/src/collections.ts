@@ -1,5 +1,6 @@
 import {FsError, type FileSystem} from 'safe-bash-contracts';
 import {transactSqlite,withSqliteStatement,type PrivateSqliteSession} from 'safe-bash-sqlite-engine/storage';
+import {migrateLlmCollections} from './collections-migrations.js';
 
 export interface LlmCollection {readonly id:bigint;readonly name:string;readonly model:string}
 export interface LlmCollectionCatalog {
@@ -37,7 +38,8 @@ async function initialize(session:PrivateSqliteSession,signal:AbortSignal,now:()
   await withSqliteStatement(session.module,{...session,signal,sql:"SELECT name FROM pragma_table_info('embeddings') ORDER BY cid"},async query=>{
    for await(const [name]of query.rows([],['text']))columns.push(name as string);
   });
-  if(tables.length!==2||columns.join(',')!=='collection_id,id,embedding,content,content_blob,content_hash,metadata,updated')throw new Error('Embedding database requires migration to the LLM 0.27.1 collection schema');
+  if(tables.length!==2)throw new Error('Incomplete embedding database schema');
+  if(columns.join(',')!=='collection_id,id,embedding,content,content_blob,content_hash,metadata,updated')await migrateLlmCollections(session,signal,now,columns,schema[3]!,migrations);
  }
 }
 

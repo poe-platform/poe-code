@@ -18,8 +18,12 @@ Import `withLlmCollections` from that subpath; supply a retained-storage capable
 caller filesystem. Operations must be awaited and serialized within the callback.
 The receipt separates committed changes from cleanup errors. Reopening a collection
 preserves its model; `catalog.delete(name)` atomically deletes it and its embeddings.
-New databases use the pinned embedding schema. Legacy schema migrations, embedding
-writes, batch imports, similarity and collection CLI commands remain incomplete.
+New databases use the pinned embedding schema. Reference embedding schemas from
+each earlier migration upgrade atomically, preserving content, vectors, metadata,
+existing timestamps, indexes and triggers. Content hashes use incremental MD5;
+the native SQLite table rebuild still needs bounded-memory qualification for large
+records. Embedding writes, batch imports, similarity and collection CLI commands
+remain incomplete.
 This optional catalog does not store conversation or response history.
 
 Query injected language and media models through the shared LLM service. Register `llmCommands({ providers, defaultModel })` with your shell. Providers own credentials and HTTP transport. `llm --version` reports the pinned CLI reference target, also available to SDK callers as `llmReferenceVersion`. Use `limits.maxInputBytes` and `limits.maxOutputBytes` to bound per-command byte accounting.

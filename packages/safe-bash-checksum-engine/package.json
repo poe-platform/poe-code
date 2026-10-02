@@ -19,6 +19,10 @@
       "types": "./dist/sm3.d.ts",
       "import": "./dist/sm3.js"
     },
+    "./md5": {
+      "types": "./dist/md5.d.ts",
+      "import": "./dist/md5.js"
+    },
     "./sha256": {
       "types": "./dist/sha256.d.ts",
       "import": "./dist/sha256.js"

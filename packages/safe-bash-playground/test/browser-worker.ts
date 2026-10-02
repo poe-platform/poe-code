@@ -21,7 +21,7 @@ export function browserWorkerFixture(executionSource: string) {
           import { parentPort } from "node:worker_threads";
           globalThis.addEventListener = (event, handler) => parentPort.on(event, data => handler({ data }));
           globalThis.postMessage = value => parentPort.postMessage(value);
-          (() => { ${code} })();
+          ${code}
         `;
         const worker = new NodeWorker(new URL(`data:text/javascript;base64,${Buffer.from(moduleSource).toString("base64")}`));
         worker.on("message", (data) => {

@@ -63,6 +63,7 @@ export default defineConfig({
         if (importer === path("../toolcraft-design/src/dashboard/ansi.test.ts") && name === "./ansi.js") return path("dist/dashboard-ansi.js");
         if (["store-retention", "store-streaming"].some(name => importer === path(`../toolcraft-design/src/dashboard/${name}.test.ts`)) && name === "./store.js") return path("dist/dashboard-store.js");
         if (importer.startsWith(path("../toolcraft-design/src/prompts/interactive/"))) {
+          if (name === "./test-helpers.js") return path("dist/prompt-test-helpers.js");
           if (name === "./multiselect.js") return path("dist/prompt-multiselect.js");
           if (name === "./select.js") return path("dist/prompt-select.js");
           if (name === "./pagination.js") return path("dist/prompt-pagination.js");

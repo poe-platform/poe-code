@@ -17,6 +17,12 @@ output and progress into a dashboard for 30 seconds and returns an idempotent
 cleanup function. Inject timers, a clock and randomness for controlled previews.
 The same module exports `main()` to open the interactive demonstration.
 
+For controlled terminal integrations, `prompts/interactive/test-helpers` exports
+`createPromptHarness({tty?, columns?, rows?})` and `tick()`. The harness provides
+input/output streams, captured frames and raw-mode transitions.
+`FakeTerminalDriver` from `explorer/runtime.test-helpers` captures frames and
+lets you inject key presses and resizes without opening a real terminal.
+
 Render consistent agent output with callable `color` chains, `text` helpers and
 cached dark/light palettes. `configureTheme({brand: 'blue', label: 'Acme'})`
 sets your brand and live intro label. Colors follow terminal support and

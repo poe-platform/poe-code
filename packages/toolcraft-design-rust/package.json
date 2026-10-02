@@ -811,6 +811,14 @@
     "./dashboard/demo": {
       "types": "./dist/dashboard-demo.d.ts",
       "import": "./dist/dashboard-demo.js"
+    },
+    "./prompts/interactive/test-helpers": {
+      "types": "./dist/prompt-test-helpers.d.ts",
+      "import": "./dist/prompt-test-helpers.js"
+    },
+    "./explorer/runtime.test-helpers": {
+      "types": "./dist/explorer-runtime-test-helpers.d.ts",
+      "import": "./dist/explorer-runtime-test-helpers.js"
     }
   },
   "scripts": {

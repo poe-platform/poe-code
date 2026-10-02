@@ -1052,3 +1052,18 @@ import type * as originalDashboardDemo from "toolcraft-design/dashboard/demo";
 const dashboardDemoOriginal: typeof originalDashboardDemo = nativeDashboardDemo;
 const dashboardDemoNative: typeof nativeDashboardDemo = null as unknown as typeof originalDashboardDemo;
 void [dashboardDemoOriginal,dashboardDemoNative];
+
+import * as nativePromptHarness from "toolcraft-design-rust/prompts/interactive/test-helpers";
+import type * as originalPromptHarness from "toolcraft-design/prompts/interactive/test-helpers";
+import {FakeTerminalDriver as NativeFakeTerminalDriver} from "toolcraft-design-rust/explorer/runtime.test-helpers";
+import type {FakeTerminalDriver as OriginalFakeTerminalDriver} from "toolcraft-design/explorer/runtime.test-helpers";
+const promptHarnessOriginal: typeof originalPromptHarness = nativePromptHarness;
+const promptHarnessNative: typeof nativePromptHarness = null as unknown as typeof originalPromptHarness;
+const promptHarnessInstanceOriginal: originalPromptHarness.PromptHarness = null as unknown as nativePromptHarness.PromptHarness;
+const promptHarnessInstanceNative: nativePromptHarness.PromptHarness = null as unknown as originalPromptHarness.PromptHarness;
+const fakeDriverOriginal: Pick<OriginalFakeTerminalDriver,keyof OriginalFakeTerminalDriver> = new NativeFakeTerminalDriver();
+const fakeDriverNative: Pick<NativeFakeTerminalDriver,keyof NativeFakeTerminalDriver> = null as unknown as OriginalFakeTerminalDriver;
+// Private declarations remain nominally distinct until final package alias qualification.
+// @ts-expect-error Separate private cols declarations cannot be assigned across packages.
+const fakeDriverNominal: OriginalFakeTerminalDriver = new NativeFakeTerminalDriver();
+void [promptHarnessOriginal,promptHarnessNative,promptHarnessInstanceOriginal,promptHarnessInstanceNative,fakeDriverOriginal,fakeDriverNative,fakeDriverNominal];

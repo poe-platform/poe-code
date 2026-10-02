@@ -573,3 +573,5 @@ mod terminal_strings;
 pub use terminal_strings::*;
 mod dashboard_demo;
 pub use dashboard_demo::*;
+mod test_harnesses;
+pub use test_harnesses::*;

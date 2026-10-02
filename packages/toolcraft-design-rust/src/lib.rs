@@ -110,3 +110,4 @@ pub mod explorer_runtime;
 pub mod dashboard_demo;
 pub mod explorer;
 pub mod terminal_strings;
+pub mod test_harnesses;

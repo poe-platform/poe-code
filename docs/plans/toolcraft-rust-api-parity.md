@@ -2514,3 +2514,37 @@ and stats updates, finishes and repeats cleanup with injected timers. This
 isolates demo policy overhead; it is not a real-time dashboard benchmark or a
 passed performance gate. Six concrete demo/testing modules, the existing-surface
 audit, batching and broader Toolcraft/platform/swap qualification remain open.
+
+### Public terminal testing harness checkpoint
+
+`prompts/interactive/test-helpers` now exports `createPromptHarness` and `tick`;
+`explorer/runtime.test-helpers` exports `FakeTerminalDriver`. Rust owns prompt
+dimension/TTY defaults, captured-write sequencing and driver lifecycle/key-event
+policy. Node retains streams, mutable public fields, listener sets and iterator
+cleanup. Three missing-subpath failures preceded implementation. Differential
+coverage checks descriptors and function metadata, default/getter order, live
+captured arrays, tick scheduling, idempotence, listener mutation during iteration,
+coercion, arbitrary throws and abrupt iterator closing. An additional failing
+case exposed nonfunction writes-method diagnostics; the adapter now matches the
+original TypeError messages.
+
+The existing prompt suites and explorer runtime suite now use these native
+harnesses. Build, package unit, Rust/binding and scoped JS lint pass: 406 native
+host tests, 1,516 selected design cases, 13 prompt wrappers, 143 dashboard cases,
+14 composer cases and 315 explorer cases. Packed imports reject external ESM
+dependencies, standalone declaration consumers compile with `types: []`, and
+prompt declarations/public driver members assign bidirectionally. The driver's
+private declarations remain nominally distinct between packages; the explicit
+negative type assertion leaves final alias-swap qualification open. An inspected
+interactive confirmation screenshot has byte-identical reference frames.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 1,000 calls per round and
+32 retained values, measured 11.932/1.056 microseconds native/reference for
+prompt-harness construction, two writes and cleanup (11.30 times slower), and
+35.008/0.959 microseconds for driver creation, five writes/key dispatches and
+stop (36.50 times slower). Stream cleanup is drained between rounds. No
+performance gate passed and no dependencies or defaults changed. The remaining
+missing concrete design modules are `explorer/demo`, `explorer/render/test-fixtures`,
+`dashboard/testing/pipeline-scenario` and
+`terminal-markdown/testing/theme-render-fixture`; the existing-surface audit,
+batching and broader Toolcraft/platform/swap qualification remain open.

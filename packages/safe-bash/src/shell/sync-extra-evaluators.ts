@@ -2305,7 +2305,7 @@ export function evaluateArithmeticSyncNonZero(program: ArithmeticProgram, refere
     if (smi !== undefined) return smi !== 0;
     budget.restore(savedBudget);
   }
-  return evaluateArithmeticSync(program, references, budget) !== 0n;
+  return evaluateArithmeticBigInt(program, references, budget) !== 0n;
 }
 
 function fastDecimalLiteral(text: string | undefined, budget: ParseBudget): bigint | undefined {
@@ -2340,6 +2340,10 @@ export function evaluateArithmeticSync(program: ArithmeticProgram, references: A
     if (smi !== undefined) return smallBigInt(smi);
     budget.restore(savedBudget);
   }
+  return evaluateArithmeticBigInt(program, references, budget);
+}
+
+function evaluateArithmeticBigInt(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
   try {
     if (program.error) throw program.error;
     let visiting: Set<string> | undefined;
@@ -2443,7 +2447,7 @@ export function evaluateArithmeticSyncString(program: ArithmeticProgram, referen
     if (smi !== undefined) return intToStr(smi);
     budget.restore(savedBudget);
   }
-  return String(evaluateArithmeticSync(program, references, budget));
+  return String(evaluateArithmeticBigInt(program, references, budget));
 }
 
 export const sharedLoopIntRegs: number[] = new Array(32).fill(0);

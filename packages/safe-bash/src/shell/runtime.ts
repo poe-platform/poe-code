@@ -2946,7 +2946,8 @@ export class Runtime {
   canSyncPatternWordParts(_word: Word, _rawState: State): boolean { return false; }
   tryBuildSyncPatternWord(_word: Word, _rawState: State, _io: IO, _diagnosticLine?: number): string | undefined { return undefined; }
   private async shellArithmetic(program: ArithmeticProgram, state: State, io: IO, variables?: Record<string, string>): Promise<bigint> {
-    if (variables === undefined && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
+    // Array resolution may decline after earlier mutations; evaluate those programs only once.
+    if (variables === undefined && !(program.hasMutation && program.hasSubscript) && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
       const snap = this.budget.parsing.snapshot();
       try {
         return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -3016,7 +3017,7 @@ export class Runtime {
     return evaluateArithmeticReferences(program, references, this.budget.parsing);
   }
   private async expandedArithmeticValue(program: ArithmeticProgram, state: State, io: IO): Promise<bigint> {
-    if (this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
+    if (!(program.hasMutation && program.hasSubscript) && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
       const snap = this.budget.parsing.snapshot();
       try {
         return this.syncShellArithmetic(program, state, io.diagnosticLine);
@@ -3038,7 +3039,7 @@ export class Runtime {
         const fastSource = this.fastValueWord(word, state, io, false, false, true, false, undefined, io.diagnosticLine);
         if (typeof fastSource === "string") {
           program = prepareArithmetic(fastSource, this.budget.parsing);
-          if (this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
+          if (!(program.hasMutation && program.hasSubscript) && this.canSyncArithmeticOperands(program.tree, state, io.diagnosticLine)) {
             const snap = this.budget.parsing.snapshot();
             try {
               return this.syncShellArithmetic(program, state, io.diagnosticLine);

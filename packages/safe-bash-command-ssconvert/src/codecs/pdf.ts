@@ -138,7 +138,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   try {
   const pdf = await PDFDocument.create({ updateMetadata: false });
   pdf.setProducer("ssconvert JavaScript PDF writer");
-  const fonts = new Map<boolean, {font: PDFFont; metrics: Font; ascentRatio: number; descentRatio: number}>();
+  const fonts = new Map<boolean, {font: PDFFont; metrics: Font; supported: ReadonlySet<number>; ascentRatio: number; descentRatio: number}>();
   let fontBytes = 0;
   const text = async (page: PDFPage, value: string, x: number, y: number, size = 10, alignment: "left" | "center" | "right" = "left", cellBox?: { width: number; height: number; style: CellPrintStyle }) => {
     tick(value.length);
@@ -165,7 +165,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
         if (!Number.isFinite(parsed.unitsPerEm) || parsed.unitsPerEm <= 0 || !Number.isFinite(parsed.ascent) || parsed.ascent <= 0 || !Number.isFinite(parsed.descent) || parsed.descent > 0) unsupported("supplied font metrics");
         await shaper.addFont(bytes, parsed);
         pdf.registerFontkit({ create: () => parsed });
-        selected = {font: await pdf.embedFont(bytes, { subset: true }), metrics: parsed,
+        const embeddedFont = await pdf.embedFont(bytes, { subset: true });
+        selected = {font: embeddedFont, metrics: parsed, supported: new Set(embeddedFont.getCharacterSet()),
           ascentRatio: parsed.ascent / parsed.unitsPerEm, descentRatio: -parsed.descent / parsed.unitsPerEm};
         fonts.set(bold, selected);
       }
@@ -176,9 +177,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       }
       tick();
     }
-    const {font, metrics, ascentRatio, descentRatio} = selected;
+    const {font, metrics, supported, ascentRatio, descentRatio} = selected;
     if (cellBox && (value.includes("\n") || value.includes("\r"))) unsupported("default-style text layout");
-    const supported = new Set(font.getCharacterSet());
     const shapedValue = cellBox ? normalizeFontText(value, supported, tick) : value;
     for (const scalar of shapedValue) if (!supported.has(scalar.codePointAt(0)!)) unsupported("font coverage");
     let baseline = page.getHeight() - y - size;
@@ -266,7 +266,11 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const encoded = image.text.split(" ").join("").split("\n").join("").split("\r").join("").split("\t").join("");
       tick(encoded.length);
       let bytes: Uint8Array;
-      try { bytes = Uint8Array.from(atob(encoded), character => character.charCodeAt(0)); } catch { return unsupported("image encoding"); }
+      try {
+        const binary = atob(encoded);
+        bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      } catch { return unsupported("image encoding"); }
       tick();
       const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
       let rasterWidth = 0, rasterHeight = 0;

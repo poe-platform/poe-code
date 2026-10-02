@@ -53,7 +53,12 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
         try {
           if (typeof wasm?.compile === "function") {
             const {harfbuzzBase64} = await import("./harfbuzz/data.js");
-            compiled ??= wasm.compile(Uint8Array.from(atob(harfbuzzBase64), character => character.charCodeAt(0))).catch(error => {
+            compiled ??= wasm.compile((() => {
+              const binary = atob(harfbuzzBase64);
+              const decoded = new Uint8Array(binary.length);
+              for (let i = 0; i < binary.length; i++) decoded[i] = binary.charCodeAt(i);
+              return decoded;
+            })()).catch(error => {
               compiled = undefined;
               throw error;
             });

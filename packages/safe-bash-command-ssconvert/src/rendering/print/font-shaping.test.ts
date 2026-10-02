@@ -163,3 +163,21 @@ it("refuses exhausted contextual lookups without publishing partial glyphs", asy
     expect(() => shaper.shape(metrics, "Q")).toThrow("font shaping could not complete");
   } finally {shaper.dispose();}
 });
+
+
+it("avoids per-byte callback base64 decoding and caches PDFFont.getCharacterSet across cells", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { PDFFont } = await import("pdf-lib");
+  const { readGnumeric } = await import("../../codecs/gnumeric.js");
+  const { writePdf } = await import("../../codecs/pdf.js");
+  const fontShapingSource = readFileSync(new URL("./font-shaping.ts", import.meta.url), "utf8");
+  const pdfCodecSource = readFileSync(new URL("../../codecs/pdf.ts", import.meta.url), "utf8");
+  expect(fontShapingSource).not.toContain("Uint8Array.from(atob");
+  expect(pdfCodecSource).not.toContain("Uint8Array.from(atob");
+
+  const getCharSetSpy = vi.spyOn(PDFFont.prototype, "getCharacterSet");
+  const f = fixture();
+  const workbook = await readGnumeric(new TextEncoder().encode(`<g:Workbook xmlns:g="http://www.gnumeric.org/v10.dtd"><g:Sheets><g:Sheet><g:Name>S</g:Name><g:Cols DefaultSizePts="72"/><g:Rows DefaultSizePts="20"/><g:Cells><g:Cell Row="0" Col="0" ValueType="60">Alpha</g:Cell><g:Cell Row="0" Col="1" ValueType="60">Beta</g:Cell><g:Cell Row="1" Col="0" ValueType="60">Gamma</g:Cell><g:Cell Row="1" Col="1" ValueType="60">Delta</g:Cell></g:Cells></g:Sheet></g:Sheets></g:Workbook>`), f.context);
+  await writePdf(workbook, [], f.context);
+  expect(getCharSetSpy).toHaveBeenCalledTimes(1);
+});

@@ -91,6 +91,8 @@
     },
     "./node": {
       "types": "./dist/node/index.d.ts",
+      "workerd": null,
+      "browser": null,
       "import": "./dist/node/index.js"
     },
     "./node/filesystem": {
@@ -111,6 +113,8 @@
     },
     "./fs/real": {
       "types": "./dist/fs/real/index.d.ts",
+      "workerd": null,
+      "browser": null,
       "import": "./dist/fs/real/index.js"
     },
     "./fs/s3/http": {

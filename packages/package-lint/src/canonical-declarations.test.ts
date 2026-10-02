@@ -107,7 +107,7 @@ it("rejects extracted XML declarations whose canonical path leaves their package
 });
 
 it.each(["complete", "unknown-private-type", "private-runtime", "missing-policy-types"])(
-  "runs all 18 rules with exact private type edge handling: %s",
+  "runs all 19 rules with exact private type edge handling: %s",
   async (defect) => {
     const { manifest, metafile, packed } = canonicalBundleFixture();
     packed.add("LICENSE");
@@ -146,7 +146,7 @@ it.each(["complete", "unknown-private-type", "private-runtime", "missing-policy-
     });
     Object.assign(metafile, await collectCanonicalDeclarations("/repo", fs));
     const result = runRules(model, parseMetafile(metafile));
-    expect(result.evaluated).toHaveLength(18);
+    expect(result.evaluated).toHaveLength(19);
     expect(result.skipped).toEqual([]);
     expect(result.violations).toEqual(
       defect === "complete"

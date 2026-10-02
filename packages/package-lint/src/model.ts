@@ -1,4 +1,5 @@
 import path from "node:path";
+import { scanPortableRuntime, type PortableRuntimeIssue } from "./portable-runtime.js";
 import {
   canonicalXml,
   collectCanonicalDeclarations,
@@ -129,6 +130,7 @@ export interface WorkspaceModel {
 }
 
 export interface BuildView {
+  portableRuntime?: PortableRuntimeIssue[];
   /** Package dirs whose source got inlined into a bundle. */
   inlinedDirs: Set<string>;
   /** Bare specifiers left external by the bundle, reduced to package names. */
@@ -723,7 +725,7 @@ export async function loadBuildView(fs: LintFs, rootDir: string): Promise<BuildV
   ) {
     Object.assign(metafile, await collectCanonicalNativeAssets(rootDir, fs));
   }
-  return parseMetafile(metafile);
+  return { ...parseMetafile(metafile), portableRuntime: await scanPortableRuntime(fs, rootDir) };
 }
 
 /** All workspace packages plus the root package. */

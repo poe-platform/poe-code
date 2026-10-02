@@ -30,7 +30,7 @@ malformed `package.json`).
 
 | id                                      | Proves                                                                                                                                                                                                                            |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `safe-bash-command-private`             | Every `safe-bash-command-<name>` workspace is private; command implementations ship through Safe Bash rather than independent publication. |
+| `safe-bash-command-private`             | Every `safe-bash-command-<name>` workspace has a matching directory and manifest name, is private, and command facades import only admitted command, engine, filesystem, contracts, or AST owners; command implementations ship through Safe Bash rather than independent publication. |
 | `shipped-dist-deps-unresolvable`        | Every runtime dependency of a shipped, tsc-emitted bin entry resolves from the published tarball — it is in root `dependencies`, a Node builtin, or itself a shipped package.                                                     |
 | `no-published-to-private-dep`           | No published package depends (deps / peer / optional) on a private workspace package.                                                                                                                                             |
 | `published-dep-needs-version-range`     | A published → published workspace dependency uses a concrete range, never `*` / `workspace:*`, and that range includes the workspace package version.                                                                             |
@@ -102,3 +102,10 @@ included by the package/root/bundled dependency artifact surfaces that can run
 the package.
 
 Installability checks cover stale concrete workspace ranges, runtime file assets, undeclared imports from root entrypoints, and bundled packages that retain unbundled private dependencies. These checks complement the package-local README and configuration documentation requirements.
+
+The build-dependent `portable-runtime` rule follows browser/workerd exports and
+transitive runtime imports in Safe Bash, AST, safe-fs, SafeJS, and Playwright
+packages. It rejects Node builtins, alternative filesystem libraries, unresolved
+imports, and ambient Buffer usage (including mapped first-party sources).
+Explicitly blocked Node exports and optional host SDK peers remain outside the
+portable graph; host adapters must receive native capabilities explicitly.

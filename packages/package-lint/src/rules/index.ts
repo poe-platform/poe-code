@@ -18,7 +18,10 @@ import { publishedLicenseRequired } from "./published-license-required.js";
 import { noImportAttributesInShippedSource } from "./no-import-attributes-in-shipped-source.js";
 import { safeBashCommandPrivate } from "./safe-bash-command-private.js";
 
+import { portableRuntime } from "./portable-runtime.js";
+
 export const rules: Rule[] = [
+  portableRuntime,
   safeBashCommandPrivate,
   shippedDistDepsUnresolvable,
   noPublishedToPrivateDep,

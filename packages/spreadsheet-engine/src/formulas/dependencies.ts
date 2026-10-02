@@ -32,6 +32,21 @@ export function buildDependencyGraph(
   maximumDepth = Infinity
 ): DependencyGraph {
   const precedents = new Map<Cell, Set<Cell>>(), dependents = new Map<Cell, Set<Cell>>(), volatile = new Set<Cell>();
+  const coordinates = new Map<Sheet, Map<string, Cell[]>>();
+  function cellsAt(sheet: Sheet, row: number, column: number): readonly Cell[] {
+    tick();
+    let index = coordinates.get(sheet);
+    if (!index) {
+      index = new Map();
+      for (const cell of sheet.cells) {
+        tick();
+        const key = `${cell.row}:${cell.column}`, entries = index.get(key);
+        if (entries) entries.push(cell); else index.set(key, [cell]);
+      }
+      coordinates.set(sheet, index);
+    }
+    return index.get(`${row}:${column}`) ?? [];
+  }
   const link = (cell: Cell, precedent: Cell) => {
     tick();
     let parents = precedents.get(cell); if (!parents) { parents = new Set(); precedents.set(cell, parents); } parents.add(precedent);
@@ -39,9 +54,13 @@ export function buildDependencyGraph(
   };
   const range = (cell: Cell, value: CalculationRange) => {
     tick(); onRange?.(cell, value);
-    for (const sheet of value.sheets) for (const precedent of sheet.cells) {
-      tick();
-      if (precedent.row >= value.firstRow && precedent.row <= value.lastRow && precedent.column >= value.firstColumn && precedent.column <= value.lastColumn) link(cell, precedent);
+    for (const sheet of value.sheets) {
+      if (value.firstRow === value.lastRow && value.firstColumn === value.lastColumn) {
+        for (const precedent of cellsAt(sheet, value.firstRow, value.firstColumn)) link(cell, precedent);
+      } else for (const precedent of sheet.cells) {
+        tick();
+        if (precedent.row >= value.firstRow && precedent.row <= value.lastRow && precedent.column >= value.firstColumn && precedent.column <= value.lastColumn) link(cell, precedent);
+      }
     }
   };
   function named(node: Extract<FormulaNode, { kind: "name" }>, position: ParsePosition): NamedExpression | undefined {
@@ -60,7 +79,7 @@ export function buildDependencyGraph(
     if (node?.kind === "reference") {
       const value = resolve(node, position);
       if (!value || value.sheets.length !== 1 || value.firstRow !== value.lastRow || value.firstColumn !== value.lastColumn) return undefined;
-      const cell = value.sheets[0]!.cells.find(cell => { tick(); return cell.row === value.firstRow && cell.column === value.firstColumn; });
+      const cell = cellsAt(value.sheets[0]!, value.firstRow, value.firstColumn)[0];
       return cell?.formulaDirty ? undefined : cell?.cachedResult ?? cell?.value ?? { kind: "blank" };
     }
     if (node?.kind === "binary" && ![":", "intersection", "union"].includes(node.op)) {

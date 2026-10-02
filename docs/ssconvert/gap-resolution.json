@@ -2928,7 +2928,7 @@
       "validation": "23 conditional, 24 branch-reset, 10 numeric-condition and 17 alphabetic-spelling regressions failed before their repairs. Final 4705 PERL_SED tests pass, as do engine/command lint and types and root ESLint. At a1d80828a7 the maintained npm run build completes 251 declared builds across 252 workspaces plus root codegen, types and bundling. This is not a full unit-suite result. Fresh DOCX source/compiled consumer rerun passes 408 tests after a load failure in the older changing-build full-unit run.",
       "compiled": "Standalone Perl 5.34.1 supplies 24 conditional, 24 branch-reset, 8 numeric-condition and 25 alphabetic-assertion outputs, including 58a9 raw-byte results. All 81 match rebuilt poe-code/ssconvert SDK/runCommand at a1d80828a7. Three/two/six/six native syntax errors respectively remain refused. Explicit namespace absence, work exhaustion, original cancellation reason and destination preservation pass; command screenshot inspected. Artifact hashes and cohort counts: out/ssconvert-odf-settings/perl-four-cohorts-root.json.",
       "receipts": "out/ssconvert-odf-settings/perl-{conditional,branch-reset,number-conditions}-{native,compiled}.json; consumed failure logs compacted, downloaded compiler source removed after retaining hashes/excerpts; no generated evidence committed.",
-      "remaining": "Activated Gnumeric/Perl 5.40.1 has now been measured: 98 of 4250 admitted outputs differ from the existing 5.34.1 expectations. Preserve both profiles and original reproducers; version-dependent semantics, diagnostics, lifecycle, excluded inputs, installed artifacts, broader grammar and Unicode remain open. No family closure.",
+      "remaining": "Activated Gnumeric/Perl 5.40.1 has now been measured: 98 differences across the 4500-vector full fixture corpus and 100 grammar cases remain relative to existing 5.34.1 expectations. Preserve both profiles and original reproducers. All 350 inputs excluded from XML now match via native cell APIs and both public consumers. Version-dependent semantics, diagnostics, lifecycle, NUL/file transports, installed artifacts, broader grammar and Unicode remain open. No family closure.",
       "activatedRuntime": {
         "date": "2026-10-02",
         "sourceRevision": "ece080fe2d",
@@ -3161,7 +3161,34 @@
           "lines": "3585-3589;4236-4240",
           "finding": "Branch-reset compilation resets logical capture numbering; native 5.40.1 output differs from the existing 5.34.1 profile. No product semantic change inferred solely from this source excerpt."
         },
-        "remaining": "Resolve the 98 measured version-dependent differences and warning/lifecycle contracts; exercise the 350 XML-excluded inputs using a separately qualified transport. No complete optional-profile or gap-family qualification, root/installed artifact qualification, or release claim."
+        "remaining": "Resolve the 98 measured version-dependent differences across the broader corpus and grammar cohorts, plus warning/lifecycle contracts and broader input grammar. The formerly XML-excluded 350 inputs now have direct-cell native and public evidence; file-format transport and NUL input qualification remain separate. No complete optional-profile or gap-family qualification, root/installed artifact qualification, or release claim.",
+        "directCellApi": {
+          "cases": 4500,
+          "nativeMatches": 4412,
+          "nativeMismatches": 88,
+          "previouslyXmlExcludedMatches": 350,
+          "controlCharacters": [
+            "U+0001",
+            "U+0007",
+            "U+000B",
+            "U+000C"
+          ],
+          "nulInputs": 0,
+          "exitCode": 0,
+          "activationErrors": 0,
+          "stderrBytes": 1745,
+          "inputSha256": "82caa80d2c8e28808b664823d123ac1d869bfe31478f412b2cd3ff70074f8592",
+          "stdoutSha256": "2468e7986aa0b9b3278527d4bd924faadd75c7044f85a6a9318c240daa2380c2",
+          "helperSourceSha256": "c91cf46cfd8951f77ffbc5e538826e1ec2900404e5f0531991bb1638b75eb52b",
+          "procedure": "Initialize unchanged Gnumeric libraries and activate the exact declared Perl profile. Decode base64 TSV arguments, set source/pattern/replacement strings in columns A/B/C with sheet_cell_set_value and value_new_string, and set PERL_SED(Arow,Brow,Crow) in column D. Run workbook_recalc_all once; require string values and hex-encode value_peek_string bytes. This corpus has no NUL inputs; do not infer embedded-NUL preservation from its C-string transport. All 88 mismatches are already recorded in existingFixtureCorpus.mismatchIds; no new value mismatch among the 350 control-character inputs.",
+          "publicConsumers": "Both rebuilt command-package SDK and runCommand with an explicit in-memory fixture importer and CSV output match all 4500 original byte expectations. This verifies function/cell behavior, not control-character file-format roundtrips or installed registry artifacts.",
+          "diagnostics": "Native emitted experimental capturing-lookbehind warnings; public consumers emitted none. Diagnostic parity remains open."
+        },
+        "dependencyPerformance": {
+          "reproducer": "The 4500-row native comparison workbook contains three input cells and one reference-based PERL_SED formula per row. CPU profiling identifies buildDependencyGraph range scans as dominant. Each single-cell reference previously scanned all 18000 populated cells.",
+          "repair": "Build a lazy invocation-local sparse coordinate index per sheet; use it for singleton ranges and static INDIRECT/OFFSET arguments. Preserve duplicate cell identities, source order, original multi-cell range iteration and work/cancellation accounting.",
+          "validation": "Two work-budget regressions fail before repair. All 76 engine tests and 4905 affected dependency/label/Perl tests pass, as do engine lint/source/test types and the maintained selected 18-build closure. Rebuilt public SDK and command retain all 4500 outputs; observed run times 2227 ms and 1791 ms respectively. No timing assertion or full-suite claim."
+        }
       }
     },
     "perlDateEra": {"status": "Implementation delivered; 92 activated Linux date captures match compiled and installed scoped SDK/Shell",

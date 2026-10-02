@@ -450,3 +450,19 @@ test("29. synchronous memory glob expansion matches filenames in (pattern, name)
     "4:/tmp/sb_glob_test/.dot.txt,/tmp/sb_glob_test/f_2.txt,\n"
   );
 });
+
+test("30. synchronous loop conditional [[ str == \"quoted*meta?chars[1]\" ]] escapes quoted glob metacharacters accurately", async () => {
+  const { shell } = createTestShell();
+  const res = await shell.exec(`
+    s="a*b?c[1]"
+    matched=0
+    for ((i = 0; i < 10; i++)); do
+      if [[ \$s == "a*b?c[1]" && \$s != "aXbYc1" ]]; then
+        ((matched++))
+      fi
+    done
+    echo "\$matched"
+  `);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stdout, "10\n");
+});

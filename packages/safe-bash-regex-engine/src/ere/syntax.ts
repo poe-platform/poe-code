@@ -2,7 +2,7 @@ import { EreSyntaxError, EreUnsupportedError } from "./errors.js";
 import { EreLedger } from "./limits.js";
 import type { EreFragment, EreNode, EreProgram } from "./types.js";
 
-const programs = new WeakMap<EreProgram, { root: EreNode; ledger: EreLedger }>();
+const programs = /* @__PURE__ */ new WeakMap<EreProgram, { root: EreNode; ledger: EreLedger }>();
 interface CachedEreCompilation {
   readonly pattern: string;
   readonly groups: number;
@@ -12,9 +12,9 @@ interface CachedEreCompilation {
   readonly states: number;
   readonly allocationUnits: number;
 }
-const ereCompilationCache = new Map<string, CachedEreCompilation>();
+const ereCompilationCache = /* @__PURE__ */ new Map<string, CachedEreCompilation>();
 const special = "\\.^$[]()|*+?{}";
-const classes = new Set(["alnum", "alpha", "blank", "cntrl", "digit", "graph", "lower", "print", "punct", "space", "upper", "xdigit"]);
+const classes = /* @__PURE__ */ new Set(["alnum", "alpha", "blank", "cntrl", "digit", "graph", "lower", "print", "punct", "space", "upper", "xdigit"]);
 
 function classMember(name: string, code: number): boolean {
   const upper = code >= 65 && code <= 90;

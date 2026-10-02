@@ -2,7 +2,7 @@ import { FsError, isFsError } from "../../contracts/errors.js";
 import type { FileStat, FileSystem, FsOptions } from "../../contracts/filesystem.js";
 import { pathByteLength, validatePath } from "../../contracts/virtual-path.js";
 import { capturePathNamespace, pathNamespace } from "../path-namespace.js";
-import { isCleanAbsolutePath, tryResolveMemoryDevicePath } from "../memory/index.js";
+import { isCleanAbsolutePath, tryResolveMemoryDevicePath } from "../../runtime-core.js";
 
 export const nullPath = "/dev/null";
 export const deviceDirectory = "/dev";

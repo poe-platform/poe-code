@@ -3359,7 +3359,7 @@ export function tryResolveMemoryDevicePath(filesystem: FileSystem, path: string,
   }
 }
 
-const cachedMethodValuesMap = new WeakMap<readonly string[], unknown[]>();
+const cachedMethodValuesMap = /* @__PURE__ */ new WeakMap<readonly string[], unknown[]>();
 function getExpectedMethodValues(names: readonly string[]): unknown[] {
   let vals = cachedMethodValuesMap.get(names);
   if (!vals) {
@@ -3680,3 +3680,18 @@ export function tryWriteMemoryFileInDirSync(
   mem.writeMemoryFileInDirFast(dirPrefix, name, data, append, mode);
   return true;
 }
+
+const _memHooks = ((globalThis as any).__safeBashMemHooks ??= { protos: new Set(), byProto: new Map() });
+_memHooks.protos.add(MemoryFileSystem.prototype);
+_memHooks.byProto.set(MemoryFileSystem.prototype, {
+  tryGetMemoryDirectoryEntryNamesSync,
+  tryReadMemoryFileViewSync,
+  tryResolveMemoryDevicePath,
+  tryOpenMemoryRedirectHandleSync,
+  tryWriteMemoryFileSync,
+  tryMkdirMemorySync,
+  tryRmRfMemorySync,
+  tryWriteMemoryFileInDirSync,
+});
+_memHooks.isCleanAbsolutePath = isCleanAbsolutePath;
+_memHooks.bindConditionalMutation = bindConditionalMutation;

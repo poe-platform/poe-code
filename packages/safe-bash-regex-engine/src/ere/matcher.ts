@@ -39,10 +39,10 @@ interface State {
   readonly histories: readonly (History | null)[];
 }
 
-const initialCharacters = new WeakMap<EreNode, readonly boolean[]>();
-const sequenceNullNextTasks = new WeakMap<EreNode, Task>();
-const SINGLE_NULL_CAPTURES: readonly (EreSpan | null)[] = Object.freeze([null]);
-const SINGLE_NULL_HISTORIES: readonly (History | null)[] = Object.freeze([null]);
+const initialCharacters = /* @__PURE__ */ new WeakMap<EreNode, readonly boolean[]>();
+const sequenceNullNextTasks = /* @__PURE__ */ new WeakMap<EreNode, Task>();
+const SINGLE_NULL_CAPTURES: readonly (EreSpan | null)[] = /* @__PURE__ */ Object.freeze([null]);
+const SINGLE_NULL_HISTORIES: readonly (History | null)[] = /* @__PURE__ */ Object.freeze([null]);
 
 interface FastEreLiteralSeq {
   readonly anchoredStart: boolean;
@@ -51,7 +51,7 @@ interface FastEreLiteralSeq {
   readonly insensitive: boolean;
   readonly spanAtZero: EreSpan;
 }
-const fastLiteralSeqs = new WeakMap<EreNode, FastEreLiteralSeq | null>();
+const fastLiteralSeqs = /* @__PURE__ */ new WeakMap<EreNode, FastEreLiteralSeq | null>();
 
 interface FastErePrefixAlt {
   readonly anchoredStart: boolean;
@@ -59,7 +59,7 @@ interface FastErePrefixAlt {
   readonly prefix: Uint8Array;
   readonly alts: readonly Uint8Array[] | null;
 }
-const fastPrefixAlts = new WeakMap<EreNode, FastErePrefixAlt | null>();
+const fastPrefixAlts = /* @__PURE__ */ new WeakMap<EreNode, FastErePrefixAlt | null>();
 
 function extractLiteralBytes(node: EreNode): Uint8Array | null {
   if (node.kind === "literal") {
@@ -195,7 +195,7 @@ function getSequenceNullNextTask(node: Extract<EreNode, { readonly children: rea
   return cached;
 }
 
-const warmLedger = EreLedger.withPrevalidatedLimits({
+const warmLedger = /* @__PURE__ */ EreLedger.withPrevalidatedLimits({
   patternBytes: Infinity,
   subjectBytes: Infinity,
   work: Infinity,
@@ -810,7 +810,7 @@ interface CompiledEreLinearChain {
   readonly firstAtom: EreAtomNode | undefined;
 }
 
-const ereLinearChainCache = new WeakMap<EreNode, CompiledEreLinearChain | null>();
+const ereLinearChainCache = /* @__PURE__ */ new WeakMap<EreNode, CompiledEreLinearChain | null>();
 
 function ereAtomMatchesCode(atom: EreAtomNode, code: number): boolean {
   if (atom.kind === "literal") {
@@ -1007,13 +1007,13 @@ function* matchEreLinearChain(
     ledger.charge("allocationUnits", width * 4 + bytes + 6, signal);
     const captures = new Array<EreSpan | null>(width);
     const values = new Array<string>(width);
-    captures[0] = Object.freeze({ start, end: pos });
+    captures[0] = /* @__PURE__ */ Object.freeze({ start, end: pos });
     values[0] = subject.slice(start, pos);
     for (let g = 1; g < width; g++) {
       const gs = groupStarts[g]!;
       const ge = groupEnds[g]!;
       if (gs >= 0 && ge >= gs) {
-        captures[g] = Object.freeze({ start: gs, end: ge });
+        captures[g] = /* @__PURE__ */ Object.freeze({ start: gs, end: ge });
         values[g] = subject.slice(gs, ge);
       } else {
         captures[g] = null;
@@ -1037,7 +1037,7 @@ interface LinearContinuation {
 }
 
 // A declined synchronous probe hands its exact cursor to the async entrypoint.
-const linearContinuations = new WeakMap<EreLedger, LinearContinuation>();
+const linearContinuations = /* @__PURE__ */ new WeakMap<EreLedger, LinearContinuation>();
 
 export function tryMatchEreSync(program: EreProgram, subject: string, ledger: EreLedger, signal?: AbortSignal): EreResult | undefined {
   ledger.check(signal);
@@ -1152,8 +1152,8 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
   ledger.charge("work", width * 2, signal);
   ledger.charge("allocationUnits", width * 2 + 1, signal);
   { const c = ledger.checkpoint(signal); if (c) await c; }
-  const emptyCaptures: readonly (EreSpan | null)[] = Object.freeze(new Array<EreSpan | null>(width).fill(null));
-  const emptyHistories: readonly (History | null)[] = Object.freeze(new Array<History | null>(width).fill(null));
+  const emptyCaptures: readonly (EreSpan | null)[] = /* @__PURE__ */ Object.freeze(new Array<EreSpan | null>(width).fill(null));
+  const emptyHistories: readonly (History | null)[] = /* @__PURE__ */ Object.freeze(new Array<History | null>(width).fill(null));
   const pending: State[] = [];
   // Capture histories affect precedence; only group-free states are equivalent
   // solely by their position and remaining tasks.
@@ -1209,7 +1209,7 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
         ledger.charge("work", width * 2, signal);
         ledger.charge("allocationUnits", width * 2 + 6, signal);
         { const c = ledger.checkpoint(signal); if (c) await c; }
-        const span = Object.freeze({ start: current.start, end: state.position });
+        const span = /* @__PURE__ */ Object.freeze({ start: current.start, end: state.position });
         const captures = state.captures.slice();
         captures[current.group] = span;
         const histories = state.histories.slice();
@@ -1294,7 +1294,7 @@ async function runMatcher(program: EreProgram, subject: string, ledger: EreLedge
       ledger.charge("allocationUnits", width * 2 + bytes + 4, signal);
       { const c = ledger.checkpoint(signal); if (c) await c; }
       const captures = best.captures.slice();
-      captures[0] = Object.freeze({ start, end: best.position });
+      captures[0] = /* @__PURE__ */ Object.freeze({ start, end: best.position });
       const values = new Array<string>(width);
       for (let group = 0; group < width; group++) {
         ledger.charge("work", 1, signal);

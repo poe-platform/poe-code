@@ -15,7 +15,7 @@ import { wcDisplayWidth } from "../commands/wc-width.js";
 import { byteLength as utf8ByteLength } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { invocationScope, type InvocationScope } from "./cleanup.js";
-import { ACCESS_MODES, basename, dirname, normalizePath, resolvePath } from "../contracts/index.js";
+import { ACCESS_MODES, basename, dirname, normalizePath, resolvePath, writeText } from "../contracts/index.js";
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
 import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue } from "../contracts/value.js";
@@ -24,8 +24,9 @@ import { compoundEntryWords, parseArithmeticExpansion, parseArraySubscript, pars
 import { ShellLimitError } from "./types.js";
 import type { ShellCommandContext } from "./types.js";
 import { ShellInput } from "./input.js";
-import { MemoryFileSystem, isCleanAbsolutePath, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryWriteMemoryFileInDirSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/runtime-core";
-import { collectPureReadOnlySmiNames, compilePureSmiProgram, evaluateArithmeticReferences, evaluateArithmeticSync, evaluateArithmeticSyncNonZero, evaluateArithmeticSyncString, fastSafeInt, intToStr, isSafeSmiProgram, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs, type ArithmeticProgram, type CompiledSmiExpr } from "./arithmetic.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
+import { isCleanAbsolutePath, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryWriteMemoryFileInDirSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/runtime-core";
+import { arithmeticEvaluation, binaryArithmeticOp, evaluateArithmeticReferences, formatArithmeticError, parseArithmetic, precedence, prepareArithmetic, type Arithmetic, type ArithmeticProgram, type ArithmeticReferences } from "./arithmetic.js";
 import { ParseBudget } from "./parse-budget.js";
 import { tryFastExpandBraceRange } from "./brace-expansion.js";
 import { expandTildes } from "./tilde-expansion.js";
@@ -41,6 +42,10 @@ import type { ArrayAssignment } from "./arrays/syntax.js";
 import { ArrayFailure } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
 import { ensureStateMonitor, monitorSymbol, requireArrays, trackState, trySnapshotStateSync } from "./arrays/state.js";
+import { workerRuntimeContexts } from "../worker/runtime-context.js";
+import { captureIgnoredTrapSignals } from "./trap.js";
+import { functionDisplay } from "./display.js";
+import { bindFileOutputBudget } from "../contracts/filesystem-output.js";
 import { pipelineStatusTarget, publishPipelineStatus } from "./pipestatus.js";
 import { OwnedText, tryTextTokenSync } from "./arrays/bindings.js";
 import { tryCompileEreSync } from "../commands/regex-execution/ere/syntax.js";
@@ -53,7 +58,7 @@ import {
   devNullSyncSink, EMPTY_CAPTURE_BYTES, Capture, type SavedVariable, typedSavedVariables,
   syncLocalArrayVariables, valueScope, invokedValues, functionDiagnostics,
   captureCallerFrame, type IO, Flow, completedExit, CommandFailure, BudgetedSyncSink,
-  MemoryRedirectSink, BudgetedPipeStageSink, FastShellCommandContext, isFastDirectCommand,
+  MemoryRedirectSink, BudgetedPipeStageSink, bindCommandIO, declarationArrays, NEVER_ABORTED_SIGNAL, shellKeywords, signalSink,
   cloneGetoptsBinding, saveVariable, hasUnpreparedLocals, hasUnpreparedLocal,
   hasActiveVariableAttributes, resolveSyncNameref, tryRestoreVariableSync,
   isShellIdentifier, errorCode, message, mapfileCallbackStates, emptyStrings, singleStatusZero,
@@ -68,10 +73,9 @@ import { ShellSyntaxError } from "./types.js";
 import { tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryRmRfMemorySync, tryWriteMemoryFileSync } from "@poe-code/safe-fs/runtime-core";
 import { tryMatchesPatternSync } from "./pattern.js";
 import { byteLocale, cCollation } from "./locale.js";
-import { defaultEchoExecutors, extractFastPrintfSpecifiers, printfCommand, tryFastEcho, tryFastPrintf } from "../commands/basic.js";
+import { defaultEchoExecutors, printfCommand } from "../commands/basic.js";
 import { gnuInformationSync } from "../commands/gnu-information.js";
 import { executionCommands, evalSyncEnv, evalSyncXargs } from "../commands/execution.js";
-import { evalSyncLs, evalSyncReadlink, evalSyncRealpath } from "../commands/filesystem.js";
 import { builtInDirectContextExecutors } from "../commands/internal.js";
 import { arrayStore, guestArrays } from "./arrays/state.js";
 import type { Command, Script, WordPart } from "./parser.js";
@@ -749,7 +753,2385 @@ export function tryEvalSimpleExpandedArith(src: string, rawState: State, monitor
   return undefined;
 }
 
+// --- Extracted sync helpers ---
+const fastEchoDecoder = new TextDecoder();
+export function tryFastEcho(args: readonly string[]): string | undefined {
+  let newline = true;
+  let escapes = false;
+  let offset = 0;
+  while (offset < args.length && /^-[neE]+$/u.test(args[offset]!)) {
+    const flagArg = args[offset]!;
+    for (let i = 1; i < flagArg.length; i++) {
+      const ch = flagArg[i];
+      if (ch === "n") newline = false;
+      else escapes = ch === "e";
+    }
+    offset++;
+  }
+  const text = offset === 0 ? args.join(" ") : args.slice(offset).join(" ");
+  if (text.includes("\0")) return undefined;
+  if (!escapes) {
+    return newline ? `${text}\n` : text;
+  }
+  // Unicode escapes depend on the command environment, which this path lacks.
+  if (text.includes("\\u") || text.includes("\\U")) return undefined;
+  const escaped = escapeBytes(text, true);
+  for (let i = 0; i < escaped.bytes.byteLength; i++) {
+    const b = escaped.bytes[i]!;
+    if (b === 0 || b >= 128) return undefined;
+  }
+  const out = fastEchoDecoder.decode(escaped.bytes);
+  return (newline && !escaped.stop) ? `${out}\n` : out;
+}
+
+export function tryFastPrintf(args: readonly string[], allowNull = false): string | undefined {
+  const hasDoubleDash = args[0] === "--";
+  const fmtIdx = hasDoubleDash ? 1 : 0;
+  if (args.length <= fmtIdx) return undefined;
+  const format = args[fmtIdx]!;
+  if ((!hasDoubleDash && format.startsWith("-")) || format.length > 256) return undefined;
+  let result = "";
+  let argument = fmtIdx + 1;
+  do {
+    const before = argument;
+    for (let offset = 0; offset < format.length;) {
+      const ch = format.charCodeAt(offset);
+      if (ch === 92) {
+        const next = format.charCodeAt(offset + 1);
+        if (next === 110) { result += "\n"; offset += 2; continue; }
+        if (next === 116) { result += "\t"; offset += 2; continue; }
+        if (next === 114) { result += "\r"; offset += 2; continue; }
+        if (next === 92) { result += "\\"; offset += 2; continue; }
+        if (next === 97) { result += "\x07"; offset += 2; continue; }
+        if (next === 98) { result += "\b"; offset += 2; continue; }
+        if (next === 102) { result += "\f"; offset += 2; continue; }
+        if (next === 118) { result += "\v"; offset += 2; continue; }
+        if (next === 101 || next === 69) { result += "\x1b"; offset += 2; continue; }
+        if (next === 34) { result += "\""; offset += 2; continue; }
+        if (next === 39) { result += "'"; offset += 2; continue; }
+        if (next >= 48 && next <= 55) {
+          let cur = offset + 1;
+          const end = Math.min(format.length, cur + 3);
+          let val = 0;
+          while (cur < end && format.charCodeAt(cur) >= 48 && format.charCodeAt(cur) <= 55) {
+            val = val * 8 + (format.charCodeAt(cur++) - 48);
+          }
+          const byte = val & 255;
+          if ((!allowNull && byte === 0) || byte >= 128) return undefined;
+          result += String.fromCharCode(byte);
+          offset = cur;
+          continue;
+        }
+        if (next === 120) {
+          let cur = offset + 2;
+          const end = Math.min(format.length, cur + 2);
+          let val = 0;
+          let digits = 0;
+          while (cur < end) {
+            const d = format.charCodeAt(cur);
+            const n = d >= 48 && d <= 57 ? d - 48 : d >= 65 && d <= 70 ? d - 55 : d >= 97 && d <= 102 ? d - 87 : -1;
+            if (n < 0) break;
+            val = val * 16 + n;
+            digits++;
+            cur++;
+          }
+          if (digits === 0 || (!allowNull && val === 0) || val >= 128) return undefined;
+          result += String.fromCharCode(val);
+          offset = cur;
+          continue;
+        }
+        return undefined;
+      }
+      if (ch !== 37) {
+        let nextSpecial = offset + 1;
+        while (nextSpecial < format.length) {
+          const c = format.charCodeAt(nextSpecial);
+          if (c === 37 || c === 92) break;
+          nextSpecial++;
+        }
+        result += format.slice(offset, nextSpecial);
+        offset = nextSpecial;
+        continue;
+      }
+      const spec = format.charCodeAt(offset + 1);
+      if (spec === 37) { result += "%"; offset += 2; continue; }
+      let cur = offset + 1;
+      let leftAlign = false;
+      let zeroPad = false;
+      while (cur < format.length) {
+        const fc = format.charCodeAt(cur);
+        if (fc === 45) { leftAlign = true; cur++; }
+        else if (fc === 48) { zeroPad = true; cur++; }
+        else break;
+      }
+      if (leftAlign) zeroPad = false;
+      let width = 0;
+      while (cur < format.length) {
+        const dc = format.charCodeAt(cur);
+        if (dc < 48 || dc > 57) break;
+        width = width * 10 + (dc - 48);
+        if (width > 128) return undefined;
+        cur++;
+      }
+      let precision = -1;
+      if (format.charCodeAt(cur) === 46) {
+        cur++;
+        precision = 0;
+        while (cur < format.length) {
+          const dc = format.charCodeAt(cur);
+          if (dc < 48 || dc > 57) break;
+          precision = precision * 10 + (dc - 48);
+          if (precision > 128) return undefined;
+          cur++;
+        }
+      }
+      const conv = format.charCodeAt(cur);
+      if (conv === 115 && !zeroPad) {
+        const rawVal = args[argument++] ?? "";
+        if (rawVal.includes("\0")) return undefined;
+        let val = rawVal;
+        let valByteLen = rawVal.length;
+        if (precision >= 0 || width > 0) {
+          let isAscii = true;
+          for (let i = 0; i < rawVal.length; i++) {
+            if (rawVal.charCodeAt(i) >= 128) { isAscii = false; break; }
+          }
+          if (isAscii) {
+            if (precision >= 0 && precision < rawVal.length) {
+              val = rawVal.slice(0, precision);
+              valByteLen = val.length;
+            }
+          } else if (precision < 0) {
+            valByteLen = byteLength(rawVal, "utf8");
+          } else {
+            return undefined;
+          }
+        }
+        if (width > valByteLen) {
+          const pad = " ".repeat(width - valByteLen);
+          result += leftAlign ? val + pad : pad + val;
+        } else {
+          result += val;
+        }
+        offset = cur + 1;
+        continue;
+      }
+      if (conv === 99 && !zeroPad) {
+        const rawVal = args[argument++] ?? "";
+        if (rawVal.length === 0) return undefined;
+        const c0 = rawVal.charCodeAt(0);
+        if (c0 === 0 || c0 >= 128) return undefined;
+        const ch0 = rawVal[0]!;
+        if (width > 1) {
+          const pad = " ".repeat(width - 1);
+          result += leftAlign ? ch0 + pad : pad + ch0;
+        } else {
+          result += ch0;
+        }
+        offset = cur + 1;
+        continue;
+      }
+      if (conv === 100 || conv === 105) {
+        const rawVal = args[argument++] ?? "0";
+        if (rawVal.length === 0) return undefined;
+        const val = rawVal;
+        if (val.length > 15) return undefined;
+        const first = val.charCodeAt(0);
+        let start = 0;
+        if (first === 45 || first === 43) {
+          if (val.length === 1) return undefined;
+          start = 1;
+        }
+        if (val.length - start > 1 && val.charCodeAt(start) === 48) return undefined;
+        for (let i = start; i < val.length; i++) {
+          const d = val.charCodeAt(i);
+          if (d < 48 || d > 57) return undefined;
+        }
+        let numStr = val === "-0" ? "0" : first === 43 ? val.slice(1) : val;
+        if (precision >= 0) {
+          zeroPad = false;
+          if (precision === 0 && numStr === "0") numStr = "";
+          else if (numStr.charCodeAt(0) === 45) numStr = "-" + numStr.slice(1).padStart(precision, "0");
+          else numStr = numStr.padStart(precision, "0");
+        }
+        if (width > numStr.length) {
+          const padLen = width - numStr.length;
+          if (leftAlign) {
+            result += numStr + " ".repeat(padLen);
+          } else if (zeroPad) {
+            if (numStr.charCodeAt(0) === 45) {
+              result += "-" + "0".repeat(padLen) + numStr.slice(1);
+            } else {
+              result += "0".repeat(padLen) + numStr;
+            }
+          } else {
+            result += " ".repeat(padLen) + numStr;
+          }
+        } else {
+          result += numStr;
+        }
+        offset = cur + 1;
+        continue;
+      }
+      if (conv === 120 || conv === 88 || conv === 111 || conv === 117) {
+        const rawVal = args[argument++] ?? "0";
+        if (rawVal.length === 0) return undefined;
+        const val = rawVal;
+        if (val.length > 15) return undefined;
+        if (val.length > 1 && val.charCodeAt(0) === 48) return undefined;
+        for (let i = 0; i < val.length; i++) {
+          const d = val.charCodeAt(i);
+          if (d < 48 || d > 57) return undefined;
+        }
+        const n = Number(val);
+        if (!Number.isSafeInteger(n) || n < 0) return undefined;
+        let numStr = conv === 120 ? n.toString(16) : conv === 88 ? n.toString(16).toUpperCase() : conv === 111 ? n.toString(8) : String(n);
+        if (precision >= 0) {
+          zeroPad = false;
+          numStr = precision === 0 && n === 0 ? "" : numStr.padStart(precision, "0");
+        }
+        if (width > numStr.length) {
+          const padLen = width - numStr.length;
+          if (leftAlign) {
+            result += numStr + " ".repeat(padLen);
+          } else if (zeroPad) {
+            result += "0".repeat(padLen) + numStr;
+          } else {
+            result += " ".repeat(padLen) + numStr;
+          }
+        } else {
+          result += numStr;
+        }
+        offset = cur + 1;
+        continue;
+      }
+      return undefined;
+    }
+    if (argument <= before) break;
+  } while (argument < args.length);
+  return result;
+}
+
+
+export type FastPrintfSpecKind = "s" | "s_prec" | "c" | "d" | "u";
+
+export function extractFastPrintfSpecifiers(format: string): readonly FastPrintfSpecKind[] | undefined {
+  if (format.length > 256) return undefined;
+  const specs: FastPrintfSpecKind[] = [];
+  for (let offset = 0; offset < format.length;) {
+    const ch = format.charCodeAt(offset);
+    if (ch === 92) {
+      const next = format.charCodeAt(offset + 1);
+      if (
+        next === 110 || next === 116 || next === 114 || next === 92 ||
+        next === 97 || next === 98 || next === 102 || next === 118 ||
+        next === 101 || next === 69 || next === 34 || next === 39
+      ) {
+        offset += 2;
+        continue;
+      }
+      if (next >= 48 && next <= 55) {
+        let cur = offset + 1;
+        const end = Math.min(format.length, cur + 3);
+        let val = 0;
+        while (cur < end && format.charCodeAt(cur) >= 48 && format.charCodeAt(cur) <= 55) {
+          val = val * 8 + (format.charCodeAt(cur++) - 48);
+        }
+        if ((val & 255) === 0 || (val & 255) >= 128) return undefined;
+        offset = cur;
+        continue;
+      }
+      if (next === 120) {
+        let cur = offset + 2;
+        const end = Math.min(format.length, cur + 2);
+        let val = 0;
+        let digits = 0;
+        while (cur < end) {
+          const d = format.charCodeAt(cur);
+          const n = d >= 48 && d <= 57 ? d - 48 : d >= 65 && d <= 70 ? d - 55 : d >= 97 && d <= 102 ? d - 87 : -1;
+          if (n < 0) break;
+          val = val * 16 + n;
+          digits++;
+          cur++;
+        }
+        if (digits === 0 || val === 0 || val >= 128) return undefined;
+        offset = cur;
+        continue;
+      }
+      return undefined;
+    }
+    if (ch !== 37) {
+      offset++;
+      continue;
+    }
+    const spec = format.charCodeAt(offset + 1);
+    if (spec === 37) {
+      offset += 2;
+      continue;
+    }
+    let cur = offset + 1;
+    let leftAlign = false;
+    let zeroPad = false;
+    while (cur < format.length) {
+      const fc = format.charCodeAt(cur);
+      if (fc === 45) { leftAlign = true; cur++; }
+      else if (fc === 48) { zeroPad = true; cur++; }
+      else break;
+    }
+    if (leftAlign) zeroPad = false;
+    let width = 0;
+    while (cur < format.length) {
+      const dc = format.charCodeAt(cur);
+      if (dc < 48 || dc > 57) break;
+      width = width * 10 + (dc - 48);
+      if (width > 128) return undefined;
+      cur++;
+    }
+    let precision = -1;
+    if (format.charCodeAt(cur) === 46) {
+      cur++;
+      precision = 0;
+      while (cur < format.length) {
+        const dc = format.charCodeAt(cur);
+        if (dc < 48 || dc > 57) break;
+        precision = precision * 10 + (dc - 48);
+        if (precision > 128) return undefined;
+        cur++;
+      }
+    }
+    const conv = format.charCodeAt(cur);
+    if (conv === 115 && !zeroPad) {
+      specs.push(precision < 0 ? "s" : "s_prec");
+      offset = cur + 1;
+      continue;
+    }
+    if (conv === 99 && !zeroPad) {
+      specs.push("c");
+      offset = cur + 1;
+      continue;
+    }
+    if (conv === 100 || conv === 105) {
+      specs.push("d");
+      offset = cur + 1;
+      continue;
+    }
+    if (conv === 120 || conv === 88 || conv === 111 || conv === 117) {
+      specs.push("u");
+      offset = cur + 1;
+      continue;
+    }
+    return undefined;
+  }
+  return specs;
+}
+
+export interface SyncFsStatNode {
+  readonly type: "file" | "directory" | "symlink";
+  readonly size: number;
+  readonly mode: number;
+  readonly mtimeMs: number;
+  readonly target?: string;
+  readonly children?: ReadonlyArray<{
+    readonly name: string;
+    readonly type: "file" | "directory" | "symlink";
+    readonly size: number;
+    readonly mode: number;
+    readonly mtimeMs?: number;
+    readonly target?: string;
+  }>;
+}
+
+function resolveCanonicalSync(
+  cwd: string,
+  inputPath: string,
+  mode: "link" | "e" | "f" | "m" | "s",
+  inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
+): string | undefined {
+  if (mode === "s") return normalizePath(inputPath, cwd);
+  const trailingSlash = inputPath.length > 1 && inputPath.endsWith("/");
+  if (mode === "link") {
+    if (trailingSlash) return undefined;
+    const abs = normalizePath(inputPath, cwd);
+    const st = inspectStat(abs, false);
+    if (!st || st.type !== "symlink" || st.target === undefined) return undefined;
+    return st.target;
+  }
+  const rawAbs = inputPath.startsWith("/") ? inputPath : (cwd === "/" ? `/${inputPath}` : `${cwd}/${inputPath}`);
+  const parts = rawAbs.split("/").filter(Boolean);
+  let cur = "/";
+  let hops = 0;
+  let idx = 0;
+  while (idx < parts.length) {
+    const comp = parts[idx]!;
+    if (comp === ".") { idx++; continue; }
+    if (comp === "..") {
+      const curSt = inspectStat(cur, false);
+      if (curSt && curSt.type !== "directory") return undefined;
+      cur = dirname(cur);
+      idx++;
+      continue;
+    }
+    const nextPath = cur === "/" ? `/${comp}` : `${cur}/${comp}`;
+    const st = inspectStat(nextPath, false);
+    if (!st) {
+      if (mode === "e") return undefined;
+      if (mode === "f") {
+        if (idx !== parts.length - 1 || trailingSlash) return undefined;
+        const parentSt = inspectStat(cur, true);
+        if (!parentSt || parentSt.type !== "directory") return undefined;
+        return nextPath;
+      }
+      // mode === "m": continue step-by-step so subsequent ".." can resume symlink traversal
+      const curSt = inspectStat(cur, false);
+      if (curSt && curSt.type !== "directory") return undefined;
+      cur = nextPath;
+      idx++;
+      continue;
+    }
+    if (st.type === "symlink") {
+      if (st.target === undefined || ++hops > 40) return undefined;
+      const targetAbs = st.target.startsWith("/") ? st.target : (cur === "/" ? `/${st.target}` : `${cur}/${st.target}`);
+      const targetParts = targetAbs.split("/").filter(Boolean);
+      const remaining = parts.slice(idx + 1);
+      parts.splice(0, parts.length, ...targetParts, ...remaining);
+      cur = "/";
+      idx = 0;
+      continue;
+    }
+    if ((idx < parts.length - 1 || (trailingSlash && mode !== "m")) && st.type !== "directory") return undefined;
+    cur = nextPath;
+    idx++;
+  }
+  return cur;
+}
+
+export function evalSyncReadlink(
+  args: readonly string[],
+  cwd: string,
+  inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
+): string | undefined {
+  let mode: "link" | "e" | "f" | "m" = "link";
+  let noNewline = false;
+  let zero = false;
+  let quiet = false;
+  const operands: string[] = [];
+  let endOpts = false;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (!endOpts && a === "--") { endOpts = true; continue; }
+    if (!endOpts && a.startsWith("--") && a.length > 2) {
+      if (a === "--canonicalize") mode = "f";
+      else if (a === "--canonicalize-existing") mode = "e";
+      else if (a === "--canonicalize-missing") mode = "m";
+      else if (a === "--no-newline") noNewline = true;
+      else if (a === "--zero") zero = true;
+      else if (a === "--quiet" || a === "--silent") quiet = true;
+      else if (a === "--verbose") quiet = false;
+      else return undefined;
+      continue;
+    }
+    if (!endOpts && a.startsWith("-") && a.length > 1) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "f") mode = "f";
+        else if (ch === "e") mode = "e";
+        else if (ch === "m") mode = "m";
+        else if (ch === "n") noNewline = true;
+        else if (ch === "z") zero = true;
+        else if (ch === "q" || ch === "s") quiet = true;
+        else if (ch === "v") quiet = false;
+        else return undefined;
+      }
+      continue;
+    }
+    operands.push(a);
+  }
+  if (operands.length === 0 || (noNewline && operands.length > 1 && !quiet)) return undefined;
+  const out: string[] = [];
+  for (const op of operands) {
+    if (!op) return undefined;
+    const res = resolveCanonicalSync(cwd, op, mode, inspectStat);
+    if (res === undefined) return undefined;
+    out.push(res);
+  }
+  const sep = zero ? "\0" : "\n";
+  return (noNewline && operands.length === 1) ? out[0]! : out.map(x => x + sep).join("");
+}
+
+export function evalSyncRealpath(
+  args: readonly string[],
+  cwd: string,
+  inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
+): string | undefined {
+  let mode: "e" | "f" | "m" = "f";
+  let strip = false;
+  let logical = false;
+  let zero = false;
+  let relTo: string | undefined;
+  let relBase: string | undefined;
+  const operands: string[] = [];
+  let endOpts = false;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (!endOpts && a === "--") { endOpts = true; continue; }
+    if (!endOpts && (a === "--relative-to" || a.startsWith("--relative-to="))) {
+      relTo = a === "--relative-to" ? args[++i] : a.slice("--relative-to=".length);
+      if (!relTo) return undefined;
+      continue;
+    }
+    if (!endOpts && (a === "--relative-base" || a.startsWith("--relative-base="))) {
+      relBase = a === "--relative-base" ? args[++i] : a.slice("--relative-base=".length);
+      if (!relBase) return undefined;
+      continue;
+    }
+    if (!endOpts && a.startsWith("--") && a.length > 2) {
+      if (a === "--canonicalize") mode = "f";
+      else if (a === "--canonicalize-existing") mode = "e";
+      else if (a === "--canonicalize-missing") mode = "m";
+      else if (a === "--strip" || a === "--no-symlinks") strip = true;
+      else if (a === "--logical") logical = true;
+      else if (a === "--physical") { logical = false; strip = false; }
+      else if (a === "--zero") zero = true;
+      else if (a === "--quiet") { /* Failed lookup delegates diagnostics to the command. */ }
+      else return undefined;
+      continue;
+    }
+    if (!endOpts && a.startsWith("-") && a.length > 1) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "E") mode = "f";
+        else if (ch === "e") mode = "e";
+        else if (ch === "m") mode = "m";
+        else if (ch === "s") strip = true;
+        else if (ch === "L") logical = true;
+        else if (ch === "P") { logical = false; strip = false; }
+        else if (ch === "z") zero = true;
+        else if (ch === "q") { /* Failed lookup delegates diagnostics to the command. */ }
+        else return undefined;
+      }
+      continue;
+    }
+    operands.push(a);
+  }
+  if (operands.length === 0) return undefined;
+  const effectiveMode = strip ? "s" : mode;
+  const resolveOp = (p: string): string | undefined => {
+    const target = logical ? normalizePath(resolvePath(cwd, p)) : p;
+    return resolveCanonicalSync(cwd, target, effectiveMode, inspectStat);
+  };
+  const baseCanon = relBase !== undefined ? resolveOp(relBase) : undefined;
+  if (relBase !== undefined && baseCanon === undefined) return undefined;
+  const toOperand = relTo ?? relBase;
+  const toCanon = toOperand !== undefined ? resolveOp(toOperand) : undefined;
+  if (toOperand !== undefined && toCanon === undefined) return undefined;
+
+  const out: string[] = [];
+  for (const op of operands) {
+    if (!op) return undefined;
+    const resolved = resolveOp(op);
+    if (resolved === undefined) return undefined;
+    const display = toCanon !== undefined && (baseCanon === undefined || (isPathWithin(baseCanon, toCanon) && isPathWithin(baseCanon, resolved)))
+      ? (relativePath(toCanon, resolved) || ".")
+      : resolved;
+    out.push(display);
+  }
+  const sep = zero ? "\0" : "\n";
+  return out.map(x => x + sep).join("");
+}
+
+export function evalSyncLs(
+  args: readonly string[],
+  cwd: string,
+  inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
+): string | undefined {
+  let hidden: "none" | "all" | "almost-all" = "none";
+  let dirItself = false;
+  let reverse = false;
+  let recursive = false;
+  let commaStream = false;
+  let dirsFirst = false;
+  let ignoreBackups = false;
+  const ignorePatterns: RegExp[] = [];
+  let followSymlinks = false;
+  let sortMode: "name" | "size" | "extension" | "none" = "name";
+  let indicator: "none" | "slash" | "file-type" | "classify" = "none";
+  const operands: string[] = [];
+  let endOpts = false;
+
+  const globToRegExp = (pat: string): RegExp | undefined => {
+    let rx = "^";
+    for (let k = 0; k < pat.length; k++) {
+      const ch = pat[k]!;
+      if (ch === "*") rx += ".*";
+      else if (ch === "?") rx += ".";
+      else if (".^$+()[]{}|\\".includes(ch)) rx += "\\" + ch;
+      else rx += ch;
+    }
+    rx += "$";
+    try { return new RegExp(rx); } catch { return undefined; }
+  };
+
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (!endOpts && a === "--") { endOpts = true; continue; }
+    if (!endOpts && (a === "-I" || a === "--ignore" || a === "--hide")) {
+      if (i + 1 >= args.length) return undefined;
+      const re = globToRegExp(args[++i]!);
+      if (!re) return undefined;
+      ignorePatterns.push(re);
+      continue;
+    }
+    if (!endOpts && (a.startsWith("--ignore=") || a.startsWith("--hide="))) {
+      const val = a.slice(a.indexOf("=") + 1);
+      const re = globToRegExp(val);
+      if (!re) return undefined;
+      ignorePatterns.push(re);
+      continue;
+    }
+    if (!endOpts && a.startsWith("-I") && a.length > 2) {
+      const re = globToRegExp(a.slice(2));
+      if (!re) return undefined;
+      ignorePatterns.push(re);
+      continue;
+    }
+    if (!endOpts && a.startsWith("--") && a.length > 2) {
+      if (a === "--all") hidden = "all";
+      else if (a === "--almost-all") hidden = "almost-all";
+      else if (a === "--directory") dirItself = true;
+      else if (a === "--reverse") reverse = true;
+      else if (a === "--recursive") recursive = true;
+      else if (a === "--group-directories-first") dirsFirst = true;
+      else if (a === "--ignore-backups") ignoreBackups = true;
+      else if (a === "--classify") indicator = "classify";
+      else if (a === "--file-type" || a === "--indicator-style=file-type") indicator = "file-type";
+      else if (a === "--indicator-style=slash") indicator = "slash";
+      else if (a === "--indicator-style=classify") indicator = "classify";
+      else if (a === "--indicator-style=none") indicator = "none";
+      else if (a === "--dereference") followSymlinks = true;
+      else if (a === "--hide-control-chars") { /* default */ }
+      else if (a === "--sort=size") sortMode = "size";
+      else if (a === "--sort=extension") sortMode = "extension";
+      else if (a === "--sort=none") sortMode = "none";
+      else return undefined;
+      continue;
+    }
+    if (!endOpts && a.startsWith("-") && a.length > 1) {
+      for (let j = 1; j < a.length; j++) {
+        const ch = a[j]!;
+        if (ch === "1") { /* One entry per line is default in non-tty sync mode unless -m. */ }
+        else if (ch === "a") hidden = "all";
+        else if (ch === "A") hidden = "almost-all";
+        else if (ch === "B") ignoreBackups = true;
+        else if (ch === "d") dirItself = true;
+        else if (ch === "m") commaStream = true;
+        else if (ch === "r") reverse = true;
+        else if (ch === "R") recursive = true;
+        else if (ch === "S") sortMode = "size";
+        else if (ch === "X") sortMode = "extension";
+        else if (ch === "U") sortMode = "none";
+        else if (ch === "p") indicator = "slash";
+        else if (ch === "F") indicator = "classify";
+        else if (ch === "L") followSymlinks = true;
+        else if (ch === "q") { /* default */ }
+        else return undefined;
+      }
+      continue;
+    }
+    operands.push(a);
+  }
+  if (operands.length === 0) operands.push(".");
+  if (operands.some(o => !o)) return undefined;
+  if (operands.length > 1 && recursive) return undefined;
+  const target = operands[0]!;
+  const abs = normalizePath(target, cwd);
+  const st = inspectStat(abs, followSymlinks);
+  if (!st) return undefined;
+
+  const suffixFor = (type: "file" | "directory" | "symlink", mode: number): string => {
+    if (indicator === "none") return "";
+    if (type === "directory") return "/";
+    if (indicator === "slash") return "";
+    if (type === "symlink") return "@";
+    if (indicator === "classify" && type === "file" && (mode & 0o111) !== 0) return "*";
+    return "";
+  };
+
+  if (operands.length === 1 && (dirItself || st.type !== "directory")) {
+    return `${target}${suffixFor(st.type, st.mode)}\n`;
+  }
+
+  const getExt = (name: string): string => {
+    const dot = name.lastIndexOf(".");
+    return dot > 0 ? name.slice(dot + 1) : "";
+  };
+
+  const sortItems = <T extends { name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }>(items: T[]): T[] => {
+    if (sortMode === "none" && !dirsFirst) return items;
+    return [...items].sort((x, y) => {
+      if (dirsFirst && x.type !== y.type) {
+        if (x.type === "directory") return -1;
+        if (y.type === "directory") return 1;
+      }
+      if (sortMode === "none") return 0;
+      let cmp = 0;
+      if (sortMode === "size") cmp = y.size - x.size;
+      else if (sortMode === "extension") {
+        const ex = getExt(x.name);
+        const ey = getExt(y.name);
+        cmp = ex < ey ? -1 : ex > ey ? 1 : 0;
+      }
+      if (cmp === 0) cmp = x.name < y.name ? -1 : x.name > y.name ? 1 : 0;
+      return reverse ? -cmp : cmp;
+    });
+  };
+
+  const listDirItems = (dirStat: SyncFsStatNode) => {
+    if (!dirStat.children) return undefined;
+    const items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
+    if (hidden === "all") {
+      items.push({ name: ".", type: "directory", size: 0, mode: dirStat.mode });
+      items.push({ name: "..", type: "directory", size: 0, mode: dirStat.mode });
+    }
+    for (const c of dirStat.children) {
+      if (hidden === "none" && c.name.startsWith(".")) continue;
+      if (ignoreBackups && c.name.endsWith("~")) continue;
+      if (ignorePatterns.length > 0 && ignorePatterns.some(re => re.test(c.name))) continue;
+      items.push(c);
+    }
+    return sortItems(items);
+  };
+
+  const formatItems = (items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }>): string => {
+    if (items.length === 0) return "";
+    const rendered = items.map(it => `${it.name}${suffixFor(it.type, it.mode)}`);
+    return commaStream ? rendered.join(", ") + "\n" : rendered.join("\n") + "\n";
+  };
+
+  if (!recursive) {
+    if (operands.length > 1) {
+      const fileItems: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
+      const dirOperands: Array<{ name: string; stat: SyncFsStatNode; size: number; mode: number }> = [];
+      for (const op of operands) {
+        const opAbs = normalizePath(op, cwd);
+        const opSt = inspectStat(opAbs, followSymlinks);
+        if (!opSt) return undefined;
+        if (dirItself || opSt.type !== "directory") {
+          fileItems.push({ name: op, type: opSt.type, size: opSt.size, mode: opSt.mode });
+        } else {
+          dirOperands.push({ name: op, stat: opSt, size: opSt.size, mode: opSt.mode });
+        }
+      }
+      const sortedFiles = sortItems(fileItems);
+      const sortedDirs = sortItems(dirOperands.map(d => ({ name: d.name, type: "directory" as const, size: d.size, mode: d.mode })));
+      const dirMap = new Map(dirOperands.map(d => [d.name, d.stat]));
+      const blocks: string[] = [];
+      if (sortedFiles.length > 0) {
+        blocks.push(formatItems(sortedFiles).replace(/\n$/, ""));
+      }
+      for (const d of sortedDirs) {
+        const dItems = listDirItems(dirMap.get(d.name)!);
+        if (!dItems) return undefined;
+        const body = formatItems(dItems).replace(/\n$/, "");
+        blocks.push(body ? `${d.name}:\n${body}` : `${d.name}:`);
+      }
+      return blocks.length > 0 ? `${blocks.join("\n\n")}\n` : "";
+    }
+    const items = listDirItems(st);
+    if (!items) return undefined;
+    return formatItems(items);
+  }
+
+  const sections: string[] = [];
+  const walkRec = (dirAbs: string, dispPath: string, depth: number): boolean => {
+    if (depth > 32) return false;
+    const dStat = inspectStat(dirAbs, false);
+    if (!dStat || dStat.type !== "directory") return false;
+    const items = listDirItems(dStat);
+    if (!items) return false;
+    const body = formatItems(items);
+    sections.push(`${dispPath}:\n${body}`.replace(/\n$/, ""));
+    for (const it of items) {
+      if (it.name === "." || it.name === "..") continue;
+      if (it.type === "directory") {
+        const nextAbs = dirAbs === "/" ? `/${it.name}` : `${dirAbs}/${it.name}`;
+        const nextDisp = dispPath === "/" ? `/${it.name}` : `${dispPath.replace(/\/+$/, "")}/${it.name}`;
+        if (!walkRec(nextAbs, nextDisp, depth + 1)) return false;
+      }
+    }
+    return true;
+  };
+  if (!walkRec(abs, target, 0)) return undefined;
+  return sections.join("\n\n") + "\n";
+}
+const SMALL_INT_STRINGS: string[] = new Array(65537);
+for (let i = 0; i <= 4096; i++) SMALL_INT_STRINGS[i] = String(i);
+const SMALL_BIGINTS: bigint[] = Array.from({ length: 4097 }, (_, i) => BigInt(i));
+
+function smallBigInt(n: number): bigint {
+  return n >= 0 && n <= 4096 ? SMALL_BIGINTS[n]! : BigInt(n);
+}
+
+// Zero is served by SMALL_INT_STRINGS, so an empty large-cache slot cannot match.
+const LARGE_INT_KEYS = new Float64Array(16);
+const LARGE_INT_STRS = new Array<string>(16).fill("");
+
+export function intToStr(n: number): string {
+  if (n >= 0 && n <= 65536) {
+    return SMALL_INT_STRINGS[n] ??= String(n);
+  }
+  const slot = ((n | 0) ^ ((n | 0) >>> 4)) & 15;
+  if (LARGE_INT_KEYS[slot] === n) return LARGE_INT_STRS[slot]!;
+  const s = String(n);
+  LARGE_INT_KEYS[slot] = n;
+  LARGE_INT_STRS[slot] = s;
+  return s;
+}
+
+export function fastSafeInt(text: string | undefined, budget: ParseBudget): number | undefined {
+  if (text === undefined || text === "0") { budget.admit(2); return 0; }
+  if (text === "") { budget.admit(1); return 0; }
+  const len = text.length;
+  if (len > 8) return undefined;
+  let start = 0;
+  let negative = false;
+  if (text.charCodeAt(0) === 45) {
+    if (len === 1) return undefined;
+    if (text === "-0") { budget.admit(4); return 0; }
+    negative = true;
+    start = 1;
+  }
+  const first = text.charCodeAt(start);
+  if (first < 49 || first > 57) return undefined;
+  let num = first - 48;
+  for (let i = start + 1; i < len; i++) {
+    const code = text.charCodeAt(i);
+    if (code < 48 || code > 57) return undefined;
+    num = num * 10 + (code - 48);
+  }
+  budget.admit(negative ? 4 : 2);
+  return negative ? -num : num;
+}
+
+function canEvalSafeSmiTree(node: Arithmetic, depth = 0, allowMut = depth === 0, noSubscripts = false): boolean {
+  if (depth > 32) return false;
+  if (node.kind === "literal") return node.value >= -94906265n && node.value <= 94906265n;
+  if (node.kind === "name") {
+    if (noSubscripts) return node.subscript === undefined;
+    return node.subscript === undefined || /^[0-9]{1,7}$/.test(node.subscript) || /^\$?[a-zA-Z_][a-zA-Z_0-9]*$/.test(node.subscript) || /^\s*[a-zA-Z_][a-zA-Z_0-9]*\s*(?:[-+*]\s*(?:0|[1-9][0-9]{0,6})|[/%]\s*[1-9][0-9]{0,6})\s*$/.test(node.subscript);
+  }
+  if (node.kind === "unary") {
+    if (node.operator === "+" || node.operator === "-" || node.operator === "!" || node.operator === "~") return canEvalSafeSmiTree(node.operand, depth + 1, false, noSubscripts);
+    if (node.operator === "++" || node.operator === "--") return allowMut && node.operand.kind === "name" && canEvalSafeSmiTree(node.operand, depth + 1, false, noSubscripts);
+    return false;
+  }
+  if (node.kind === "binary") {
+    if (node.operator === ",") {
+      return allowMut && depth < 8 && canEvalSafeSmiTree(node.left, depth + 1, true, true) && canEvalSafeSmiTree(node.right, depth + 1, true, true);
+    }
+    if ((node.operator === "=" || node.operator === "+=" || node.operator === "-=" || node.operator === "*=" || node.operator === "&=" || node.operator === "|=" || node.operator === "^=" || node.operator === "<<=" || node.operator === ">>=") && allowMut) {
+      if ((node.operator === "<<=" || node.operator === ">>=") && (node.right.kind !== "literal" || node.right.value < 0n || node.right.value > 30n)) return false;
+      return node.left.kind === "name" && canEvalSafeSmiTree(node.left, depth + 1, false, noSubscripts) && canEvalSafeSmiTree(node.right, depth + 1, false, noSubscripts);
+    }
+    if (
+      node.operator === "+" || node.operator === "-" || node.operator === "*" ||
+      node.operator === "<" || node.operator === "<=" || node.operator === ">" ||
+      node.operator === ">=" || node.operator === "==" || node.operator === "!=" ||
+      node.operator === "&" || node.operator === "|" || node.operator === "^" ||
+      node.operator === "<<" || node.operator === ">>" ||
+      node.operator === "&&" || node.operator === "||"
+    ) {
+      if (
+        allowMut &&
+        node.left.kind === "unary" &&
+        (node.left.operator === "++" || node.left.operator === "--") &&
+        node.left.operand.kind === "name" &&
+        node.left.operand.subscript === undefined &&
+        node.right.kind === "literal" &&
+        canEvalSafeSmiTree(node.right, depth + 1, false, noSubscripts)
+      ) {
+        return true;
+      }
+      return canEvalSafeSmiTree(node.left, depth + 1, false, noSubscripts) && canEvalSafeSmiTree(node.right, depth + 1, false, noSubscripts);
+    }
+    if (node.operator === "/" || node.operator === "%") {
+      return node.right.kind === "literal" && node.right.value !== 0n && node.right.value >= -94906265n && node.right.value <= 94906265n && canEvalSafeSmiTree(node.left, depth + 1, false, noSubscripts);
+    }
+  }
+  return false;
+}
+
+function readSafeSmiRef(ref: string, refs: ArithmeticReferences, budget: ParseBudget, tx?: Array<{ ref: string; val: number }>): number | undefined {
+  if (tx !== undefined) {
+    for (let i = tx.length - 1; i >= 0; i--) {
+      if (tx[i]!.ref === ref) {
+        const v = tx[i]!.val;
+        budget.admit(v < 0 ? 4 : 2);
+        return v;
+      }
+    }
+  }
+  return fastSafeInt(refs.read(ref) as string | undefined, budget);
+}
+
+function writeSafeSmiRef(ref: string, val: number, refs: ArithmeticReferences, tx?: Array<{ ref: string; val: number }>): void {
+  if (tx !== undefined) {
+    tx.push({ ref, val });
+  } else {
+    refs.write(ref, intToStr(val));
+  }
+}
+
+function evalSafeSmiInner(node: Arithmetic, refs: ArithmeticReferences, budget: ParseBudget, tx?: Array<{ ref: string; val: number }>): number | undefined {
+  budget.admit(0);
+  if (node.kind === "literal") return Number(node.value);
+  if (node.kind === "name") {
+    const ref = refs.resolve(node.name, node.subscript) as string;
+    return readSafeSmiRef(ref, refs, budget, tx);
+  }
+  if (node.kind === "unary") {
+    if (node.operator === "++" || node.operator === "--") {
+      const target = node.operand as Extract<Arithmetic, { kind: "name" }>;
+      const ref = refs.resolve(target.name, target.subscript) as string;
+      const cur = readSafeSmiRef(ref, refs, budget, tx);
+      if (cur === undefined || cur < -94906264 || cur > 94906264) return undefined;
+      const next = node.operator === "++" ? cur + 1 : cur - 1;
+      writeSafeSmiRef(ref, next, refs, tx);
+      return node.postfix ? cur : next;
+    }
+    const v = evalSafeSmiInner(node.operand, refs, budget, tx);
+    if (v === undefined || v < -94906265 || v > 94906265) return undefined;
+    if (node.operator === "+") return v;
+    if (node.operator === "-") return v === 0 ? 0 : -v;
+    if (node.operator === "!") return v === 0 ? 1 : 0;
+    if (node.operator === "~") return ~v;
+    return undefined;
+  }
+  if (node.kind === "binary") {
+    if (node.operator === ",") {
+      const lComma = evalSafeSmiInner(node.left, refs, budget, tx);
+      if (lComma === undefined) return undefined;
+      return evalSafeSmiInner(node.right, refs, budget, tx);
+    }
+    if (node.operator === "=") {
+      const r = evalSafeSmiInner(node.right, refs, budget, tx);
+      if (r === undefined || r < -94906265 || r > 94906265) return undefined;
+      const target = node.left as Extract<Arithmetic, { kind: "name" }>;
+      const ref = refs.resolve(target.name, target.subscript) as string;
+      writeSafeSmiRef(ref, r, refs, tx);
+      return r;
+    }
+    if (
+      node.operator === "+=" || node.operator === "-=" || node.operator === "*=" ||
+      node.operator === "&=" || node.operator === "|=" || node.operator === "^=" ||
+      node.operator === "<<=" || node.operator === ">>="
+    ) {
+      const target = node.left as Extract<Arithmetic, { kind: "name" }>;
+      const ref = refs.resolve(target.name, target.subscript) as string;
+      const l = readSafeSmiRef(ref, refs, budget, tx);
+      if (l === undefined || l < -94906265 || l > 94906265) return undefined;
+      const r = evalSafeSmiInner(node.right, refs, budget, tx);
+      if (r === undefined || r < -94906265 || r > 94906265) return undefined;
+      let updated: number;
+      if (node.operator === "+=") updated = l + r;
+      else if (node.operator === "-=") updated = l - r;
+      else if (node.operator === "*=") updated = l * r;
+      else if (node.operator === "&=") updated = l & r;
+      else if (node.operator === "|=") updated = l | r;
+      else if (node.operator === "^=") updated = l ^ r;
+      else if (node.operator === "<<=") {
+        if (r < 0 || r > 30) return undefined;
+        const shifted = l * (1 << r);
+        if (shifted < -94906265 || shifted > 94906265) return undefined;
+        updated = shifted | 0;
+      } else {
+        if (r < 0 || r > 30) return undefined;
+        updated = l >> r;
+      }
+      if (updated < -94906265 || updated > 94906265) return undefined;
+      writeSafeSmiRef(ref, updated, refs, tx);
+      return updated;
+    }
+    const l = evalSafeSmiInner(node.left, refs, budget, tx);
+    if (l === undefined || l < -94906265 || l > 94906265) return undefined;
+    if (node.operator === "&&") {
+      if (l === 0) return 0;
+      const rAnd = evalSafeSmiInner(node.right, refs, budget, tx);
+      if (rAnd === undefined || rAnd < -94906265 || rAnd > 94906265) return undefined;
+      return rAnd !== 0 ? 1 : 0;
+    }
+    if (node.operator === "||") {
+      if (l !== 0) return 1;
+      const rOr = evalSafeSmiInner(node.right, refs, budget, tx);
+      if (rOr === undefined || rOr < -94906265 || rOr > 94906265) return undefined;
+      return rOr !== 0 ? 1 : 0;
+    }
+    const r = evalSafeSmiInner(node.right, refs, budget, tx);
+    if (r === undefined || r < -94906265 || r > 94906265) return undefined;
+    switch (node.operator) {
+      case "+": return l + r;
+      case "-": return l - r;
+      case "*": return l * r;
+      case "/": { const q = Math.trunc(l / r); return q === 0 ? 0 : q; }
+      case "%": { const m = (l % r) | 0; return m === 0 ? 0 : m; }
+      case "<": return l < r ? 1 : 0;
+      case "<=": return l <= r ? 1 : 0;
+      case ">": return l > r ? 1 : 0;
+      case ">=": return l >= r ? 1 : 0;
+      case "==": return l === r ? 1 : 0;
+      case "!=": return l !== r ? 1 : 0;
+      case "&": return l & r;
+      case "|": return l | r;
+      case "^": return l ^ r;
+      case "<<": {
+        if (r < 0 || r > 30) return undefined;
+        const shifted = l * (1 << r);
+        if (shifted < -94906265 || shifted > 94906265) return undefined;
+        return shifted | 0;
+      }
+      case ">>": {
+        if (r < 0 || r > 30) return undefined;
+        return l >> r;
+      }
+    }
+  }
+  return undefined;
+}
+
+function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: ParseBudget): number | undefined {
+  if (node.kind === "binary" && node.operator === ",") {
+    const tx: Array<{ ref: string; val: number }> = [];
+    const res = evalSafeSmiInner(node, refs, budget, tx);
+    if (res === undefined) return undefined;
+    for (let i = 0; i < tx.length; i++) {
+      refs.write(tx[i]!.ref, intToStr(tx[i]!.val));
+    }
+    return res;
+  }
+  return evalSafeSmiInner(node, refs, budget);
+}
+
+const safeSmiSymbol = Symbol("safe-bash.safeSmiTree");
+
+function collectPureSmiTreeNames(node: Arithmetic, names: Set<string>, depth = 1): boolean {
+  if (depth > 32) return false;
+  if (node.kind === "literal") return node.value >= -94906265n && node.value <= 94906265n;
+  if (node.kind === "name") {
+    if (node.subscript !== undefined) return false;
+    names.add(node.name);
+    return true;
+  }
+  if (node.kind === "unary") {
+    if (node.operator === "+" || node.operator === "-" || node.operator === "!" || node.operator === "~") {
+      return collectPureSmiTreeNames(node.operand, names, depth + 1);
+    }
+    return false;
+  }
+  if (node.kind === "binary") {
+    if (
+      node.operator === "+" || node.operator === "-" || node.operator === "*" ||
+      node.operator === "<" || node.operator === "<=" || node.operator === ">" ||
+      node.operator === ">=" || node.operator === "==" || node.operator === "!=" ||
+      node.operator === "&" || node.operator === "|" || node.operator === "^" ||
+      node.operator === "<<" || node.operator === ">>"
+    ) {
+      return collectPureSmiTreeNames(node.left, names, depth + 1) && collectPureSmiTreeNames(node.right, names, depth + 1);
+    }
+    if (node.operator === "/" || node.operator === "%") {
+      return node.right.kind === "literal" && node.right.value !== 0n && node.right.value >= -94906265n && node.right.value <= 94906265n && collectPureSmiTreeNames(node.left, names, depth + 1);
+    }
+  }
+  return false;
+}
+
+export function collectPureReadOnlySmiNames(program: ArithmeticProgram, names: Set<string>): boolean {
+  if (program.error || program.hasSubscript || !program.tree) return false;
+  return collectPureSmiTreeNames(program.tree, names, 1);
+}
+
+export function evalPureSmiWithInts(node: Arithmetic, intVars: Map<string, number>, budget: ParseBudget): number | undefined {
+  budget.admit(0);
+  if (node.kind === "literal") return Number(node.value) | 0;
+  if (node.kind === "name") {
+    const val = intVars.get(node.name);
+    if (val === undefined) return undefined;
+    budget.admit(val < 0 ? 4 : 2);
+    return val;
+  }
+  if (node.kind === "unary") {
+    const v = evalPureSmiWithInts(node.operand, intVars, budget);
+    if (v === undefined || v < -94906265 || v > 94906265) return undefined;
+    if (node.operator === "+") return v;
+    if (node.operator === "-") return (-v) | 0;
+    if (node.operator === "!") return v === 0 ? 1 : 0;
+    if (node.operator === "~") return ~v;
+    return undefined;
+  }
+  if (node.kind === "binary") {
+    const l = evalPureSmiWithInts(node.left, intVars, budget);
+    if (l === undefined || l < -94906265 || l > 94906265) return undefined;
+    const r = evalPureSmiWithInts(node.right, intVars, budget);
+    if (r === undefined || r < -94906265 || r > 94906265) return undefined;
+    switch (node.operator) {
+      case "+": return (l + r) | 0;
+      case "-": return (l - r) | 0;
+      case "*": return l >= -32767 && l <= 32767 && r >= -32767 && r <= 32767 ? Math.imul(l, r) | 0 : l * r;
+      case "/": return (l / r) | 0;
+      case "%": return (l % r) | 0;
+      case "<": return l < r ? 1 : 0;
+      case "<=": return l <= r ? 1 : 0;
+      case ">": return l > r ? 1 : 0;
+      case ">=": return l >= r ? 1 : 0;
+      case "==": return l === r ? 1 : 0;
+      case "!=": return l !== r ? 1 : 0;
+      case "&": return l & r;
+      case "|": return l | r;
+      case "^": return l ^ r;
+      case "<<": { if (r < 0 || r > 30) return undefined; const s = l * (1 << r); return s >= -94906265 && s <= 94906265 ? s | 0 : undefined; }
+      case ">>": return r >= 0 && r <= 30 ? l >> r : undefined;
+    }
+  }
+  return undefined;
+}
+
+export function isSafeSmiProgram(program: ArithmeticProgram): boolean {
+  if (program.error || !program.tree || program.source.length > 256) return false;
+  let cached = (program as unknown as Record<symbol, boolean | undefined>)[safeSmiSymbol];
+  if (cached === undefined) {
+    cached = canEvalSafeSmiTree(program.tree);
+    if (Object.isExtensible(program)) {
+      (program as unknown as Record<symbol, boolean>)[safeSmiSymbol] = cached;
+    }
+  }
+  return cached;
+}
+
+export function evaluateArithmeticSyncNonZero(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): boolean {
+  if (isSafeSmiProgram(program)) {
+    const savedBudget = budget.snapshot();
+    const smi = evalSafeSmi(program.tree!, references, budget);
+    if (smi !== undefined) return smi !== 0;
+    budget.restore(savedBudget);
+  }
+  return evaluateArithmeticSync(program, references, budget) !== 0n;
+}
+
+function fastDecimalLiteral(text: string | undefined, budget: ParseBudget): bigint | undefined {
+  if (text === undefined || text === "0") { budget.admit(2); return 0n; }
+  if (text === "") { budget.admit(1); return 0n; }
+  const len = text.length;
+  if (len > 16) return undefined;
+  let start = 0;
+  let negative = false;
+  if (text.charCodeAt(0) === 45) {
+    if (len === 1) return undefined;
+    if (text === "-0") { budget.admit(4); return 0n; }
+    negative = true;
+    start = 1;
+  }
+  const first = text.charCodeAt(start);
+  if (first < 49 || first > 57) return undefined;
+  let num = first - 48;
+  for (let i = start + 1; i < len; i++) {
+    const code = text.charCodeAt(i);
+    if (code < 48 || code > 57) return undefined;
+    num = num * 10 + (code - 48);
+  }
+  budget.admit(negative ? 4 : 2);
+  return BigInt(negative ? -num : num);
+}
+
+export function evaluateArithmeticSync(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): bigint {
+  if (isSafeSmiProgram(program)) {
+    const savedBudget = budget.snapshot();
+    const smi = evalSafeSmi(program.tree!, references, budget);
+    if (smi !== undefined) return smallBigInt(smi);
+    budget.restore(savedBudget);
+  }
+  try {
+    if (program.error) throw program.error;
+    let visiting: Set<string> | undefined;
+    const evalDeep = (root: Arithmetic): bigint => {
+      const evaluation = arithmeticEvaluation({ source: program.source, tree: root }, references, budget);
+      let step = evaluation.next();
+      while (!step.done) step = evaluation.next(step.value as string | undefined);
+      return step.value;
+    };
+    const evalNameValue = (node: Extract<Arithmetic, { kind: "name" }>, depth: number): bigint => {
+      const reference = references.resolve(node.name, node.subscript) as string;
+      if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
+      const text = references.read(reference) as string | undefined;
+      const fast = fastDecimalLiteral(text, budget);
+      if (fast !== undefined) return fast;
+      visiting ??= new Set();
+      visiting.add(reference);
+      try {
+        return evalNode(parseArithmetic(text ?? "0", 0, budget), depth + 1);
+      } finally {
+        visiting.delete(reference);
+      }
+    };
+    const evalName = (node: Extract<Arithmetic, { kind: "name" }>, depth: number): { reference: string; value: bigint } => {
+      const reference = references.resolve(node.name, node.subscript) as string;
+      if (visiting?.has(reference)) throw new PublicDiagnostic("Arithmetic variable recursion");
+      const text = references.read(reference) as string | undefined;
+      const fast = fastDecimalLiteral(text, budget);
+      if (fast !== undefined) return { reference, value: fast };
+      visiting ??= new Set();
+      visiting.add(reference);
+      try {
+        return { reference, value: evalNode(parseArithmetic(text ?? "0", 0, budget), depth + 1) };
+      } finally {
+        visiting.delete(reference);
+      }
+    };
+    const evalNode = (node: Arithmetic, depth: number): bigint => {
+      if (depth >= 64) return evalDeep(node);
+      budget.admit(0);
+      switch (node.kind) {
+        case "literal":
+          return node.value;
+        case "name":
+          return evalNameValue(node, depth);
+        case "conditional": {
+          const cond = evalNode(node.condition, depth + 1);
+          return evalNode(cond ? node.yes : node.no, depth + 1);
+        }
+        case "unary": {
+          if (node.operator === "+") return BigInt.asIntN(64, evalNode(node.operand, depth + 1));
+          if (node.operator === "-") return BigInt.asIntN(64, -evalNode(node.operand, depth + 1));
+          if (node.operator === "!") return BigInt(!evalNode(node.operand, depth + 1));
+          if (node.operator === "~") return BigInt.asIntN(64, ~evalNode(node.operand, depth + 1));
+          const { reference, value: operand } = evalName(node.operand as Extract<Arithmetic, { kind: "name" }>, depth + 1);
+          const updated = BigInt.asIntN(64, operand + (node.operator === "++" ? 1n : -1n));
+          references.write(reference, String(updated));
+          return node.postfix ? BigInt.asIntN(64, operand) : updated;
+        }
+        case "binary": {
+          if (node.operator === "&&" || node.operator === "||") {
+            const left = evalNode(node.left, depth + 1);
+            if (node.operator === "&&" ? left === 0n : left !== 0n) return BigInt(left !== 0n);
+            return BigInt(evalNode(node.right, depth + 1) !== 0n);
+          }
+          if (node.operator === ",") {
+            evalNode(node.left, depth + 1);
+            return evalNode(node.right, depth + 1);
+          }
+          if (node.operator === "=") {
+            const right = evalNode(node.right, depth + 1);
+            const operand = node.left as Extract<Arithmetic, { kind: "name" }>;
+            const reference = references.resolve(operand.name, operand.subscript) as string;
+            const updated = BigInt.asIntN(64, right);
+            references.write(reference, String(updated));
+            return updated;
+          }
+          if (precedence[node.operator] === 2) {
+            const { reference, value: left } = evalName(node.left as Extract<Arithmetic, { kind: "name" }>, depth + 1);
+            const right = evalNode(node.right, depth + 1);
+            const updated = BigInt.asIntN(64, binaryArithmeticOp(node.operator.slice(0, -1), left, right, node.right.start ?? 0));
+            references.write(reference, String(updated));
+            return updated;
+          }
+          const left = evalNode(node.left, depth + 1);
+          const right = evalNode(node.right, depth + 1);
+          return BigInt.asIntN(64, binaryArithmeticOp(node.operator, left, right, node.right.start ?? 0));
+        }
+      }
+    };
+    return evalNode(program.tree!, 0);
+  } catch (error) {
+    formatArithmeticError(program, error);
+  }
+}
+
+export function evaluateArithmeticSyncString(program: ArithmeticProgram, references: ArithmeticReferences, budget: ParseBudget): string {
+  if (isSafeSmiProgram(program)) {
+    const savedBudget = budget.snapshot();
+    const smi = evalSafeSmi(program.tree!, references, budget);
+    if (smi !== undefined) return intToStr(smi);
+    budget.restore(savedBudget);
+  }
+  return String(evaluateArithmeticSync(program, references, budget));
+}
+
+export const sharedLoopIntRegs: number[] = new Array(32).fill(0);
+const sharedRpnStack: number[] = new Array(32).fill(0);
+
+export interface CompiledSmiExpr {
+  readonly ops: readonly number[];
+  readonly args: readonly number[];
+  readonly varNames: readonly string[];
+}
+
+export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<string>): CompiledSmiExpr | undefined {
+  if (program.error || program.hasSubscript || !program.tree) return undefined;
+  const cached = (program as ArithmeticProgram & { _compiledSmi?: CompiledSmiExpr | null })._compiledSmi;
+  if (cached !== undefined) {
+    if (cached === null) return undefined;
+    for (let i = 0; i < cached.varNames.length; i++) namesOut.add(cached.varNames[i]!);
+    return cached;
+  }
+  const ops: number[] = [];
+  const args: number[] = [];
+  const varNames: string[] = [];
+  const visit = (node: Arithmetic, depth: number): boolean => {
+    if (depth > 32) return false;
+    if (node.kind === "literal") {
+      if (node.value < -94906265n || node.value > 94906265n) return false;
+      ops.push(0);
+      args.push(Number(node.value) | 0);
+      return true;
+    }
+    if (node.kind === "name") {
+      if (node.subscript !== undefined) return false;
+      let idx = varNames.indexOf(node.name);
+      if (idx === -1) {
+        idx = varNames.length;
+        varNames.push(node.name);
+      }
+      ops.push(1);
+      args.push(idx);
+      return true;
+    }
+    if (node.kind === "unary") {
+      if (node.operator !== "+" && node.operator !== "-" && node.operator !== "!" && node.operator !== "~") return false;
+      if (!visit(node.operand, depth + 1)) return false;
+      ops.push(node.operator === "+" ? 2 : node.operator === "-" ? 3 : node.operator === "!" ? 4 : 19);
+      args.push(0);
+      return true;
+    }
+    if (node.kind === "binary") {
+      let opCode = 0;
+      switch (node.operator) {
+        case "+": opCode = 5; break;
+        case "-": opCode = 6; break;
+        case "*": opCode = 7; break;
+        case "/": opCode = 8; break;
+        case "%": opCode = 9; break;
+        case "<": opCode = 10; break;
+        case "<=": opCode = 11; break;
+        case ">": opCode = 12; break;
+        case ">=": opCode = 13; break;
+        case "==": opCode = 14; break;
+        case "!=": opCode = 15; break;
+        case "&": opCode = 16; break;
+        case "|": opCode = 17; break;
+        case "^": opCode = 18; break;
+        case "<<": opCode = 20; break;
+        case ">>": opCode = 21; break;
+        default: return false;
+      }
+      if ((opCode === 8 || opCode === 9) && (node.right.kind !== "literal" || node.right.value === 0n || node.right.value < -94906265n || node.right.value > 94906265n)) {
+        return false;
+      }
+      if (!visit(node.left, depth + 1) || !visit(node.right, depth + 1)) return false;
+      ops.push(opCode);
+      args.push(0);
+      return true;
+    }
+    return false;
+  };
+  if (!visit(program.tree, 1)) {
+    (program as ArithmeticProgram & { _compiledSmi?: CompiledSmiExpr | null })._compiledSmi = null;
+    return undefined;
+  }
+  for (let i = 0; i < varNames.length; i++) namesOut.add(varNames[i]!);
+  const compiled: CompiledSmiExpr = {
+    ops,
+    args,
+    varNames,
+  };
+  (program as ArithmeticProgram & { _compiledSmi?: CompiledSmiExpr | null })._compiledSmi = compiled;
+  return compiled;
+}
+
+let _lastCompiledSmiAdmitUnits = 0;
+
+export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: readonly number[], budget?: ParseBudget): number {
+  const ops = compiled.ops;
+  const args = compiled.args;
+  const len = ops.length;
+  let sp = 0;
+  let admitUnits = 0;
+  for (let pc = 0; pc < len; pc++) {
+    const op = ops[pc]!;
+    if (op === 0) {
+      sharedRpnStack[sp++] = args[pc]!;
+    } else if (op === 1) {
+      const val = sharedLoopIntRegs[varRegMap[args[pc]!]!]!;
+      admitUnits += val < 0 ? 4 : 2;
+      sharedRpnStack[sp++] = val;
+    } else if (op <= 4 || op === 19) {
+      const v = sharedRpnStack[sp - 1]!;
+      if (op === 3 && v === -1073741824) return 0x7fffffff;
+      sharedRpnStack[sp - 1] = op === 2 ? v : op === 3 ? (-v | 0) : op === 4 ? (v === 0 ? 1 : 0) : ~v;
+    } else {
+      sp--;
+      const r = sharedRpnStack[sp]!;
+      const l = sharedRpnStack[sp - 1]!;
+      let res = 0;
+      switch (op) {
+        case 5: res = l + r; break;
+        case 6: res = l - r; break;
+        case 7: res = l * r; break;
+        case 8: res = Math.trunc(l / r); break;
+        case 9: res = l % r; break;
+        case 10: res = l < r ? 1 : 0; break;
+        case 11: res = l <= r ? 1 : 0; break;
+        case 12: res = l > r ? 1 : 0; break;
+        case 13: res = l >= r ? 1 : 0; break;
+        case 14: res = l === r ? 1 : 0; break;
+        case 15: res = l !== r ? 1 : 0; break;
+        case 16: res = l & r; break;
+        case 17: res = l | r; break;
+        case 18: res = l ^ r; break;
+        case 20: {
+          if (r < 0 || r > 30) return 0x7fffffff;
+          res = l * (1 << r);
+          break;
+        }
+        case 21: {
+          if (r < 0 || r > 30) return 0x7fffffff;
+          res = l >> r;
+          break;
+        }
+      }
+      if ((res | 0) !== res || res < -1073741824 || res > 1073741823) return 0x7fffffff;
+      sharedRpnStack[sp - 1] = res | 0;
+    }
+  }
+  _lastCompiledSmiAdmitUnits = admitUnits;
+  if (budget !== undefined) budget.admit(admitUnits);
+  return sharedRpnStack[0]!;
+}
+
+export interface FastIntStepDesc {
+  readonly name: string;
+  readonly compiled: CompiledSmiExpr;
+  readonly varRegMap: number[];
+  targetReg: number;
+  readonly isSub: boolean;
+  readonly extraNewlineByte: number;
+  readonly padWidth?: number | undefined;
+}
+const sharedSavedLoopIntRegs: number[] = new Array(32).fill(0);
+const sharedIntLoopResult = { ok: false, lastInductionInt: undefined as number | undefined, subBytes: 0, subCount: 0 };
+
+const sharedDirectRegArgs = new Int32Array(64);
+
+export function runIntArithForLoop(
+  startVal: number,
+  limitVal: number,
+  isLe: boolean,
+  stepCount: number,
+  deferredMask: number,
+  intSteps: readonly (FastIntStepDesc | undefined)[],
+  parseBudget: ParseBudget,
+): { ok: boolean; lastInductionInt: number | undefined; subBytes: number; subCount: number } {
+  for (let r = 0; r < 32; r++) sharedSavedLoopIntRegs[r] = sharedLoopIntRegs[r]!;
+  const savedBudget = parseBudget.snapshot();
+  let iVal = startVal | 0;
+  sharedLoopIntRegs[0] = iVal;
+  parseBudget.admit(0);
+  let lastInductionInt: number | undefined;
+  let subBytes = 0;
+  let subCount = 0;
+  let totalAdmitUnits = 0;
+  if (stepCount === 1 && deferredMask === 0 && !intSteps[0]!.isSub) {
+    const intStep0 = intSteps[0]!;
+    const ops = intStep0.compiled.ops;
+    const args = intStep0.compiled.args;
+    const varRegMap = intStep0.varRegMap;
+    const targetReg = intStep0.targetReg;
+    const len = ops.length;
+    if (len <= 64) {
+      for (let pc = 0; pc < len; pc++) {
+        sharedDirectRegArgs[pc] = ops[pc] === 1 ? varRegMap[args[pc]!]! : args[pc]!;
+      }
+      const effLimit = isLe ? (limitVal + 1) | 0 : limitVal | 0;
+      if (
+        iVal >= 0 &&
+        effLimit > iVal &&
+        len === 9 &&
+        ops[0] === 1 && sharedDirectRegArgs[0] === targetReg && sharedLoopIntRegs[targetReg]! >= 0 &&
+        ops[1] === 1 && sharedDirectRegArgs[1] === 0 &&
+        ops[2] === 1 && sharedDirectRegArgs[2] === 0 &&
+        ops[3] === 0 && (sharedDirectRegArgs[3]! >>> 0) <= 30 &&
+        ops[4] === 21 && ops[5] === 18 &&
+        ((ops[6] === 5 && ops[7] === 0 && (sharedDirectRegArgs[7]! >>> 0) <= 0x3fffffff && ops[8] === 16) ||
+         (ops[6] === 0 && (sharedDirectRegArgs[6]! >>> 0) <= 0xffff && ops[7] === 16 && ops[8] === 5 && effLimit <= 0x100000 && sharedLoopIntRegs[targetReg]! <= 0x10000000))
+      ) {
+        const rem = (effLimit - iVal) | 0;
+        const shift = sharedDirectRegArgs[3]!;
+        let acc = sharedLoopIntRegs[targetReg]! | 0;
+        if (ops[8] === 16) {
+          const mask = sharedDirectRegArgs[7]!;
+          for (; iVal < effLimit; iVal = (iVal + 1) | 0) {
+            acc = (acc + (iVal ^ (iVal >> shift))) & mask;
+          }
+        } else {
+          const mask = sharedDirectRegArgs[6]!;
+          const pBits = mask > 0 ? (32 - Math.clz32(mask)) + shift : 0;
+          const period = pBits > 0 && pBits <= 12 ? (1 << pBits) : 0;
+          if (period > 0 && (effLimit - iVal) >= (period << 1)) {
+            const pMask = period - 1;
+            while (iVal < effLimit && (iVal & pMask) !== 0) {
+              acc = (acc + ((iVal ^ (iVal >> shift)) & mask)) | 0;
+              iVal = (iVal + 1) | 0;
+            }
+            const fullPeriods = ((effLimit - iVal) / period) | 0;
+            if (fullPeriods > 0) {
+              let pSum = 0;
+              for (let r = 0; r < period; r++) {
+                pSum = (pSum + ((r ^ (r >> shift)) & mask)) | 0;
+              }
+              acc = (acc + Math.imul(fullPeriods, pSum)) | 0;
+              iVal = (iVal + Math.imul(fullPeriods, period)) | 0;
+            }
+          }
+          for (; iVal < effLimit; iVal = (iVal + 1) | 0) {
+            acc = (acc + ((iVal ^ (iVal >> shift)) & mask)) | 0;
+          }
+        }
+        sharedLoopIntRegs[targetReg] = acc;
+        sharedLoopIntRegs[0] = effLimit;
+        parseBudget.admit(rem * 10);
+        sharedIntLoopResult.ok = true;
+        sharedIntLoopResult.lastInductionInt = (effLimit - 1) | 0;
+        sharedIntLoopResult.subBytes = 0;
+        sharedIntLoopResult.subCount = 0;
+        return sharedIntLoopResult;
+      }
+      while (iVal < effLimit) {
+        totalAdmitUnits += iVal < 0 ? 8 : 4;
+        let sp = 0;
+        for (let pc = 0; pc < len; pc++) {
+          const op = ops[pc]!;
+          if (op === 0) {
+            sharedRpnStack[sp++] = sharedDirectRegArgs[pc]!;
+          } else if (op === 1) {
+            const val = sharedLoopIntRegs[sharedDirectRegArgs[pc]!]!;
+            totalAdmitUnits += val < 0 ? 4 : 2;
+            sharedRpnStack[sp++] = val;
+          } else if (op <= 4 || op === 19) {
+            const v = sharedRpnStack[sp - 1]!;
+            if (op === 3 && v === -1073741824) {
+              for (let r = 0; r < 32; r++) sharedLoopIntRegs[r] = sharedSavedLoopIntRegs[r]!;
+              parseBudget.restore(savedBudget);
+              sharedIntLoopResult.ok = false;
+              sharedIntLoopResult.lastInductionInt = undefined;
+              sharedIntLoopResult.subBytes = 0;
+              sharedIntLoopResult.subCount = 0;
+              return sharedIntLoopResult;
+            }
+            sharedRpnStack[sp - 1] = op === 2 ? v : op === 3 ? (-v | 0) : op === 4 ? (v === 0 ? 1 : 0) : ~v;
+          } else {
+            sp--;
+            const r = sharedRpnStack[sp]!;
+            const l = sharedRpnStack[sp - 1]!;
+            if (op >= 16 && op <= 18) {
+              sharedRpnStack[sp - 1] = op === 16 ? (l & r) : op === 17 ? (l | r) : (l ^ r);
+              continue;
+            }
+            if (op === 21 && (r >>> 0) <= 30) {
+              sharedRpnStack[sp - 1] = l >> r;
+              continue;
+            }
+            let res = 0;
+            switch (op) {
+              case 5: res = (l + r) | 0; break;
+              case 6: res = (l - r) | 0; break;
+              case 7: res = l * r; if ((res | 0) !== res) res = 0x7fffffff; break;
+              case 8: res = Math.trunc(l / r); if ((res | 0) !== res) res = 0x7fffffff; break;
+              case 9: res = (l % r) | 0; break;
+              case 10: res = l < r ? 1 : 0; break;
+              case 11: res = l <= r ? 1 : 0; break;
+              case 12: res = l > r ? 1 : 0; break;
+              case 13: res = l >= r ? 1 : 0; break;
+              case 14: res = l === r ? 1 : 0; break;
+              case 15: res = l !== r ? 1 : 0; break;
+              case 20: res = (r >= 0 && r <= 30) ? l * (1 << r) : 0x7fffffff; if ((res | 0) !== res) res = 0x7fffffff; break;
+              case 21: res = 0x7fffffff; break;
+            }
+            if (((res + 0x40000000) >>> 0) > 0x7fffffff) {
+              for (let rIdx = 0; rIdx < 32; rIdx++) sharedLoopIntRegs[rIdx] = sharedSavedLoopIntRegs[rIdx]!;
+              parseBudget.restore(savedBudget);
+              sharedIntLoopResult.ok = false;
+              sharedIntLoopResult.lastInductionInt = undefined;
+              sharedIntLoopResult.subBytes = 0;
+              sharedIntLoopResult.subCount = 0;
+              return sharedIntLoopResult;
+            }
+            sharedRpnStack[sp - 1] = res | 0;
+          }
+        }
+        sharedLoopIntRegs[targetReg] = sharedRpnStack[0]! | 0;
+        lastInductionInt = iVal;
+        iVal = (iVal + 1) | 0;
+        sharedLoopIntRegs[0] = iVal;
+      }
+      parseBudget.admit(totalAdmitUnits);
+      sharedIntLoopResult.ok = true;
+      sharedIntLoopResult.lastInductionInt = lastInductionInt;
+      sharedIntLoopResult.subBytes = 0;
+      sharedIntLoopResult.subCount = 0;
+      return sharedIntLoopResult;
+    }
+  }
+  if (stepCount >= 1 && stepCount <= 8 && deferredMask === 0) {
+    const effLimit = isLe ? (limitVal + 1) | 0 : limitVal | 0;
+    if (iVal >= 0 && effLimit > iVal && effLimit <= 100000) {
+      let allPureInd = true;
+      for (let b = 0; b < stepCount; b++) {
+        const st = intSteps[b]!;
+        if (st.compiled.ops.length !== 1 || st.compiled.ops[0] !== 1 || st.varRegMap[st.compiled.args[0]!] !== 0 || st.targetReg === 0) {
+          allPureInd = false;
+          break;
+        }
+      }
+      if (allPureInd) {
+        const rem = (effLimit - iVal) | 0;
+        const lastInd = (effLimit - 1) | 0;
+        let baseDigits = 0;
+        for (let d = 1, lo = 1, hi = 9; lo <= lastInd; d++, lo *= 10, hi = hi * 10 + 9) {
+          const sK = iVal > lo ? iVal : lo;
+          const eK = lastInd < hi ? lastInd : hi;
+          if (sK <= eK) baseDigits += (eK - sK + 1) * d;
+        }
+        if (iVal === 0) baseDigits += 1;
+        let totalSubB = 0;
+        let totalSubC = 0;
+        for (let b = 0; b < stepCount; b++) {
+          const st = intSteps[b]!;
+          sharedLoopIntRegs[st.targetReg] = lastInd;
+          if (st.isSub) {
+            totalSubC += rem;
+            const pw = st.padWidth ?? 0;
+            if (pw <= 1) {
+              totalSubB += baseDigits + rem * st.extraNewlineByte;
+            } else {
+              let pDigits = 0;
+              for (let d = 1, lo = 1, hi = 9; lo <= lastInd; d++, lo *= 10, hi = hi * 10 + 9) {
+                const sK = iVal > lo ? iVal : lo;
+                const eK = lastInd < hi ? lastInd : hi;
+                if (sK <= eK) pDigits += (eK - sK + 1) * (d < pw ? pw : d);
+              }
+              if (iVal === 0) pDigits += (1 < pw ? pw : 1);
+              totalSubB += pDigits + rem * st.extraNewlineByte;
+            }
+          }
+        }
+        sharedLoopIntRegs[0] = effLimit;
+        parseBudget.admit(rem * (4 + stepCount * 2));
+        sharedIntLoopResult.ok = true;
+        sharedIntLoopResult.lastInductionInt = lastInd;
+        sharedIntLoopResult.subBytes = totalSubB;
+        sharedIntLoopResult.subCount = totalSubC;
+        return sharedIntLoopResult;
+      }
+    }
+  }
+  if (stepCount <= 30 && deferredMask === ((1 << stepCount) - 1)) {
+    const effLimit = isLe ? (limitVal + 1) | 0 : limitVal | 0;
+    if (iVal >= 0 && effLimit > iVal) {
+      const rem = (effLimit - iVal) | 0;
+      sharedLoopIntRegs[0] = effLimit;
+      parseBudget.admit(rem * 4);
+      sharedIntLoopResult.ok = true;
+      sharedIntLoopResult.lastInductionInt = (effLimit - 1) | 0;
+      sharedIntLoopResult.subBytes = 0;
+      sharedIntLoopResult.subCount = 0;
+      return sharedIntLoopResult;
+    }
+  }
+  while (isLe ? iVal <= limitVal : iVal < limitVal) {
+    totalAdmitUnits += iVal < 0 ? 4 : 2;
+    lastInductionInt = iVal;
+    for (let b = 0; b < stepCount; b++) {
+      if (deferredMask & (1 << b)) continue;
+      const intStep = intSteps[b]!;
+      const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap);
+      if (res === 0x7fffffff) {
+        for (let r = 0; r < 32; r++) sharedLoopIntRegs[r] = sharedSavedLoopIntRegs[r]!;
+        parseBudget.restore(savedBudget);
+        sharedIntLoopResult.ok = false;
+        sharedIntLoopResult.lastInductionInt = undefined;
+        sharedIntLoopResult.subBytes = 0;
+        sharedIntLoopResult.subCount = 0;
+        return sharedIntLoopResult;
+      }
+      totalAdmitUnits += _lastCompiledSmiAdmitUnits;
+      sharedLoopIntRegs[intStep.targetReg] = res | 0;
+      if (intStep.isSub) {
+        let abs = res < 0 ? -res : res;
+        let digits = res < 0 ? 2 : 1;
+        while (abs >= 10) { abs = Math.trunc(abs / 10); digits++; }
+        if (intStep.padWidth !== undefined && digits < intStep.padWidth) digits = intStep.padWidth;
+        subBytes = subBytes + digits + intStep.extraNewlineByte;
+        subCount = subCount + 1;
+      }
+    }
+    totalAdmitUnits += iVal < 0 ? 4 : 2;
+    iVal = (iVal + 1) | 0;
+    sharedLoopIntRegs[0] = iVal;
+  }
+  parseBudget.admit(totalAdmitUnits);
+  sharedIntLoopResult.ok = true;
+  sharedIntLoopResult.lastInductionInt = lastInductionInt;
+  sharedIntLoopResult.subBytes = subBytes;
+  sharedIntLoopResult.subCount = subCount;
+  return sharedIntLoopResult;
+}
+
+const parsedLoopWordsCache = new WeakMap<readonly string[], (Int32Array & { _sum?: number }) | null>();
+
+function getOrParsePositiveLoopWords(words: readonly string[]): (Int32Array & { _sum?: number }) | null {
+  const cached = parsedLoopWordsCache.get(words);
+  if (cached !== undefined) return cached;
+  const len = words.length;
+  if (len === 0 || len > 65536) {
+    parsedLoopWordsCache.set(words, null);
+    return null;
+  }
+  const arr: Int32Array & { _sum?: number } = new Int32Array(len);
+  let sum = 0;
+  for (let idx = 0; idx < len; idx++) {
+    const word = words[idx]!;
+    const wLen = word.length;
+    if (wLen < 1 || wLen > 8) {
+      parsedLoopWordsCache.set(words, null);
+      return null;
+    }
+    const c0 = word.charCodeAt(0);
+    if (c0 < 49 || c0 > 57) {
+      parsedLoopWordsCache.set(words, null);
+      return null;
+    }
+    let num = c0 - 48;
+    for (let k = 1; k < wLen; k++) {
+      const ck = word.charCodeAt(k);
+      if (ck < 48 || ck > 57) {
+        parsedLoopWordsCache.set(words, null);
+        return null;
+      }
+      num = (num * 10 + (ck - 48)) | 0;
+    }
+    arr[idx] = num;
+    sum += num;
+  }
+  arr._sum = sum;
+  parsedLoopWordsCache.set(words, arr);
+  return arr;
+}
+
+export function runIntForLoop(
+  words: readonly string[],
+  stepCount: number,
+  intSteps: readonly (FastIntStepDesc | undefined)[],
+  parseBudget: ParseBudget,
+): { ok: boolean; subBytes: number; subCount: number } {
+  for (let r = 0; r < 32; r++) sharedSavedLoopIntRegs[r] = sharedLoopIntRegs[r]!;
+  const savedBudget = parseBudget.snapshot();
+  let subBytes = 0;
+  let subCount = 0;
+  let totalAdmitUnits = 0;
+  const cachedInts = getOrParsePositiveLoopWords(words);
+  if (cachedInts !== null && stepCount === 1) {
+    const s0 = intSteps[0]!;
+    const ops = s0.compiled.ops;
+    if (!s0.isSub && ops.length === 3 && ops[0] === 1 && ops[1] === 1 && ops[2] === 5) {
+      const args = s0.compiled.args;
+      const vMap = s0.varRegMap;
+      const r0 = vMap[args[0]!]!;
+      const r1 = vMap[args[1]!]!;
+      const targetReg = s0.targetReg;
+      const len = cachedInts.length;
+      if (targetReg !== 0 && ((r0 === targetReg && r1 === 0) || (r0 === 0 && r1 === targetReg)) && cachedInts._sum !== undefined) {
+        const initAcc = sharedLoopIntRegs[targetReg]!;
+        const finalAcc = initAcc + cachedInts._sum;
+        if (initAcc >= 0 && finalAcc <= 1073741823) {
+          sharedLoopIntRegs[0] = cachedInts[len - 1]!;
+          sharedLoopIntRegs[targetReg] = finalAcc | 0;
+          parseBudget.admit(len * 6);
+          sharedIntLoopResult.ok = true;
+          sharedIntLoopResult.subBytes = 0;
+          sharedIntLoopResult.subCount = 0;
+          return sharedIntLoopResult;
+        }
+      }
+      for (let idx = 0; idx < len; idx++) {
+        sharedLoopIntRegs[0] = cachedInts[idx]!;
+        const v0 = sharedLoopIntRegs[r0]!;
+        const v1 = sharedLoopIntRegs[r1]!;
+        const res = v0 + v1;
+        if ((res | 0) !== res || res < -1073741824 || res > 1073741823) {
+          for (let r = 0; r < 32; r++) sharedLoopIntRegs[r] = sharedSavedLoopIntRegs[r]!;
+          parseBudget.restore(savedBudget);
+          sharedIntLoopResult.ok = false;
+          sharedIntLoopResult.subBytes = 0;
+          sharedIntLoopResult.subCount = 0;
+          return sharedIntLoopResult;
+        }
+        totalAdmitUnits += 2 + (v0 < 0 ? 4 : 2) + (v1 < 0 ? 4 : 2);
+        sharedLoopIntRegs[targetReg] = res | 0;
+      }
+      parseBudget.admit(totalAdmitUnits);
+      sharedIntLoopResult.ok = true;
+      sharedIntLoopResult.subBytes = 0;
+      sharedIntLoopResult.subCount = 0;
+      return sharedIntLoopResult;
+    }
+  }
+  for (let idx = 0; idx < words.length; idx++) {
+    const word = words[idx]!;
+    let iVal: number | undefined;
+    const wLen = word.length;
+    if (wLen >= 1 && wLen <= 8) {
+      const c0 = word.charCodeAt(0);
+      if (c0 >= 49 && c0 <= 57) {
+        let num = c0 - 48;
+        let valid = true;
+        for (let k = 1; k < wLen; k++) {
+          const ck = word.charCodeAt(k);
+          if (ck < 48 || ck > 57) { valid = false; break; }
+          num = (num * 10 + (ck - 48)) | 0;
+        }
+        if (valid) {
+          iVal = num;
+          totalAdmitUnits += 2;
+        }
+      }
+    }
+    if (iVal === undefined) {
+      iVal = fastSafeInt(word, parseBudget);
+    }
+    if (iVal === undefined || iVal < -1073741824 || iVal > 1073741823) {
+      for (let r = 0; r < 32; r++) sharedLoopIntRegs[r] = sharedSavedLoopIntRegs[r]!;
+      parseBudget.restore(savedBudget);
+      sharedIntLoopResult.ok = false;
+      sharedIntLoopResult.subBytes = 0;
+      sharedIntLoopResult.subCount = 0;
+      return sharedIntLoopResult;
+    }
+    sharedLoopIntRegs[0] = iVal | 0;
+    for (let b = 0; b < stepCount; b++) {
+      const intStep = intSteps[b]!;
+      const res = evalCompiledSmi(intStep.compiled, intStep.varRegMap);
+      if (res === 0x7fffffff) {
+        for (let r = 0; r < 32; r++) sharedLoopIntRegs[r] = sharedSavedLoopIntRegs[r]!;
+        parseBudget.restore(savedBudget);
+        sharedIntLoopResult.ok = false;
+        sharedIntLoopResult.subBytes = 0;
+        sharedIntLoopResult.subCount = 0;
+        return sharedIntLoopResult;
+      }
+      totalAdmitUnits += _lastCompiledSmiAdmitUnits;
+      sharedLoopIntRegs[intStep.targetReg] = res | 0;
+      if (intStep.isSub) {
+        let abs = res < 0 ? -res : res;
+        let digits = res < 0 ? 2 : 1;
+        while (abs >= 10) { abs = Math.trunc(abs / 10); digits++; }
+        if (intStep.padWidth !== undefined && digits < intStep.padWidth) digits = intStep.padWidth;
+        subBytes = subBytes + digits + intStep.extraNewlineByte;
+        subCount = subCount + 1;
+      }
+    }
+  }
+  parseBudget.admit(totalAdmitUnits);
+  sharedIntLoopResult.ok = true;
+  sharedIntLoopResult.subBytes = subBytes;
+  sharedIntLoopResult.subCount = subCount;
+  return sharedIntLoopResult;
+}
+
+export class FastShellCommandContext {
+  get xpgEcho(): boolean { return !!(this._self ?? this)._state.xpg_echo; }
+  get shellStartedAt(): number { return (this._self ?? this)._state.shellStartedAt ??= Date.now(); }
+  declare stdin: ByteSource;
+  declare stdinIsDefault?: boolean | undefined;
+  declare stdout: ByteSink;
+  declare private _stderr: ByteSink | undefined;
+  declare descriptors: ReadonlyMap<number, Descriptor> | undefined;
+  declare command: string;
+  declare args: readonly string[];
+  declare private _env: Record<string, string> | undefined;
+  declare cwd: string;
+  declare private _rawSignal: AbortSignal;
+  declare private _nativeSignal: AbortSignal | undefined;
+  get signal(): AbortSignal {
+    const self = this._self ?? this;
+    return self._nativeSignal ??= toNativeAbortSignal(self._rawSignal);
+  }
+  set signal(signal: AbortSignal) {
+    const self = this._self ?? this;
+    self._rawSignal = signal;
+    self._nativeSignal = undefined;
+  }
+  declare onInternalError: CommandContext["onInternalError"];
+  declare argv0?: string | undefined;
+  declare capabilities?: import("./types.js").ShellCapabilities | undefined;
+  declare processSignals?: CommandContext["processSignals"] | undefined;
+  declare diagnosticLine?: number | undefined;
+  declare scriptName?: string | undefined;
+  declare [invocationScope]?: InvocationScope;
+  declare [valueScope]?: ValueScope;
+  declare readonly _self: FastShellCommandContext | undefined;
+  declare private _runtime: Runtime;
+  declare private _state: State;
+  declare private _io: IO;
+  declare private _scope: InvocationScope;
+  declare private _scopedSignal: AbortSignal | undefined;
+  declare private _contextFs: FileSystem | undefined;
+  declare private _cachedPredicates: NonNullable<CommandContext["shellPredicates"]> | undefined;
+  declare private _cachedInputBudget: NonNullable<CommandContext["inputBudget"]> | undefined;
+  declare private _argumentValues: CommandArguments | undefined;
+  declare private _registerCleanup: NonNullable<CommandContext["registerCleanup"]> | undefined;
+  declare private _invoke: ShellCommandContext["invoke"] | undefined;
+  constructor( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], argumentValues: CommandArguments | undefined, env: Record<string, string> | undefined, signalIsScoped: boolean, definition: NonNullable<ReturnType<CommandRegistry["get"]>>, ) {
+    const directContext = builtInDirectContextExecutors.has(definition.execute) && !customRegisteredCommands.has(definition.execute)
+      && (FAST_DIRECT_CONTEXT_COMMANDS.has(name) || (name === "find" && !args.includes("-exec") && !args.includes("-ok")));
+    if (!directContext) {
+      const { [invocationScope]: ignoredScope, [valueScope]: ignoredAllocation, [declarationArrays]: ignoredArrays, argumentValues: ignoredArguments, signal: ignoredSignal, ...publicIO } = io as IO & { argumentValues?: unknown; signal?: AbortSignal };
+      Object.defineProperties(this, Object.getOwnPropertyDescriptors(publicIO));
+    }
+    this._self = this;
+    this._runtime = runtime;
+    this._state = state;
+    this._io = io;
+    this._scope = scope;
+    this._scopedSignal = signalIsScoped ? runtime.signal : undefined;
+    this.stdin = io.stdin;
+    this.stdinIsDefault = io.stdinIsDefault;
+    this.stdout = io.stdout;
+    this._stderr = signalIsScoped ? undefined : io.stderr;
+    this.descriptors = io.descriptors;
+    this.command = name;
+    this.args = args;
+    this._argumentValues = argumentValues;
+    this._env = env;
+    this.cwd = state.cwd;
+    this.signal = runtime.commandSignal;
+    this.onInternalError = runtime.budget.onInternalError;
+    this.argv0 = io.argv0;
+    this.capabilities = io.capabilities;
+    this.processSignals = io.processSignals;
+    this.diagnosticLine = io.diagnosticLine;
+    this.scriptName = io.scriptName;
+    if (directContext) {
+      Object.defineProperty(this, "signal", {
+        ...Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, "signal"), enumerable: true,
+      });
+      return;
+    }
+    workerRuntimeContexts.set(this as unknown as CommandContext, {
+      budget: runtime.budget, umask: state.umask ?? 0o022, ignoredSignals: captureIgnoredTrapSignals(state.extensions), get fs() { return runtime.getContextFsForFast(0, combineManagedSignals(runtime.signal, scope.signal)); }, });
+    for (const [key, descriptor] of fastShellCommandAccessors) {
+      Object.defineProperty(this, key, {
+        ...descriptor, enumerable: true, get: descriptor.get!.bind(this), ...(descriptor.set ? { set: descriptor.set.bind(this) } : {}), });
+    }
+    bindCommandIO(this as unknown as CommandContext, { ...io, [invocationScope]: scope }, runtime.budget.limits);
+    void this.registerCleanup;
+  }
+  resetDirectStage( runtime: Runtime, state: State, io: IO, scope: InvocationScope, name: string, args: readonly string[], stdin: ByteSource, stdinIsDefault: boolean, stdout: ByteSink, signal: AbortSignal, ): void {
+    this._runtime = runtime;
+    this._state = state;
+    this._io = io;
+    this._scope = scope;
+    this._scopedSignal = signal;
+    this._contextFs = undefined;
+    this._cachedPredicates = undefined;
+    this._cachedInputBudget = undefined;
+    this._argumentValues = undefined;
+    this._env = undefined;
+    this._registerCleanup = undefined;
+    this._invoke = undefined;
+    this.stdin = stdin;
+    this.stdinIsDefault = stdinIsDefault;
+    this.stdout = stdout;
+    this._stderr = undefined;
+    this.descriptors = io.descriptors;
+    this.command = name;
+    this.args = args;
+    this.cwd = state.cwd;
+    this.signal = signal;
+    this.onInternalError = runtime.budget.onInternalError;
+    this.argv0 = io.argv0;
+    this.capabilities = io.capabilities;
+    this.processSignals = io.processSignals;
+    this.diagnosticLine = io.diagnosticLine;
+    this.scriptName = io.scriptName;
+  }
+  releaseDirectStage(): void {
+    this._runtime = undefined!;
+    this._state = undefined!;
+    this._io = undefined!;
+    this._scope = undefined!;
+    this._scopedSignal = undefined;
+    this._contextFs = undefined;
+    this._cachedPredicates = undefined;
+    this._cachedInputBudget = undefined;
+    this._argumentValues = undefined;
+    this._env = undefined;
+    this._registerCleanup = undefined;
+    this._invoke = undefined;
+    this.stdin = undefined!;
+    this.stdout = undefined!;
+    this._stderr = undefined;
+    this.descriptors = undefined;
+    this.args = undefined!;
+    this.signal = NEVER_ABORTED_SIGNAL;
+    this.cwd = "";
+    this.onInternalError = undefined;
+    this.argv0 = undefined;
+    this.capabilities = undefined!;
+    this.processSignals = undefined;
+    this.diagnosticLine = undefined;
+    this.scriptName = undefined;
+  }
+  static {
+    Object.assign(FastShellCommandContext.prototype, {
+      _self: undefined, _env: undefined, _scopedSignal: undefined, _contextFs: undefined, _cachedPredicates: undefined, _cachedInputBudget: undefined, _argumentValues: undefined, _registerCleanup: undefined, _invoke: undefined, descriptors: undefined, onInternalError: undefined, argv0: undefined, processSignals: undefined, diagnosticLine: undefined, scriptName: undefined, });
+  }
+  registerScopeCleanup(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): () => void {
+    return (this._self ?? this)._scope.register(cleanup);
+  }
+  registerScopeCleanupDirect(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): void {
+    (this._self ?? this)._scope.registerDirect(cleanup);
+  }
+  unregisterScopeCleanupDirect(cleanup: Parameters<NonNullable<CommandContext["registerCleanup"]>>[0]): void {
+    (this._self ?? this)._scope.unregisterDirect(cleanup);
+  }
+  get _fastMemoryBackingFs(): FileSystem | undefined {
+    const self = this._self ?? this;
+    return !self._contextFs && self._runtime._isMemoryBackingFs
+      ? (self._runtime as unknown as { backingFs: FileSystem }).backingFs
+      : undefined;
+  }
+  _chargeFastFsOp(): void {
+    const self = this._self ?? this;
+    self._getScopedSignal().throwIfAborted();
+    self._runtime.budget.fileSystemOperation();
+  }
+  get _hasInfiniteFsOpsLimit(): boolean {
+    return (this._self ?? this)._runtime.budget.hasInfiniteFsOps;
+  }
+  get argumentValues(): CommandArguments | undefined {
+    return (this._self ?? this)._argumentValues;
+  }
+  set argumentValues(replacement: CommandArguments | undefined) {
+    (this._self ?? this)._argumentValues = replacement;
+  }
+  get registerCleanup(): NonNullable<CommandContext["registerCleanup"]> {
+    const self = this._self ?? this;
+    if (!self._registerCleanup) {
+      const scope = self._scope;
+      const runtime = self._runtime;
+      self._registerCleanup = cleanup => scope.register(cleanup);
+      bindFileOutputBudget( self as unknown as Pick<CommandContext, "registerCleanup">, sink => runtime.budget.sink(sink, self._getScopedSignal()), (chunk, write) => runtime.budget.writeCounted(chunk, write, self._getScopedSignal()), );
+    }
+    return self._registerCleanup;
+  }
+  set registerCleanup(replacement: NonNullable<CommandContext["registerCleanup"]>) {
+    (this._self ?? this)._registerCleanup = replacement;
+  }
+  get invoke(): ShellCommandContext["invoke"] {
+    const self = this._self ?? this;
+    return self._invoke ??= (cmdName, cmdArgs, options) =>
+      self._runtime.invokeFromFastContext(cmdName, cmdArgs, options, self as unknown as ShellCommandContext, self._state, self._scope);
+  }
+  set invoke(replacement: ShellCommandContext["invoke"]) {
+    (this._self ?? this)._invoke = replacement;
+  }
+  private _getScopedSignal(): AbortSignal {
+    return this._scopedSignal ??= combineManagedSignals(this._runtime.signal, this._scope.signal);
+  }
+  get executionScope(): CommandContext["executionScope"] {
+    return (this._self ?? this)._runtime.budget.executionScope;
+  }
+  get stderr(): ByteSink {
+    const self = this._self ?? this;
+    return self._stderr ??= (self._scopedSignal ? signalSink(self._io.stderr, self._scopedSignal) : self._io.stderr);
+  }
+  set stderr(value: ByteSink) {
+    (this._self ?? this)._stderr = value;
+  }
+  get env(): Record<string, string> {
+    const self = this._self ?? this;
+    if (!self._env) {
+      const state = self._state;
+      const raw = (stateMonitor(state)?.raw ?? state) as State & { _exported?: Set<string> };
+      const built = Object.create(null) as Record<string, string>;
+      if (raw._exported === undefined && "_exported" in raw) {
+        const pwd = raw.variables.PWD;
+        if (pwd !== undefined) built.PWD = pwd;
+      } else {
+        for (const key of raw.exported) {
+          const value = raw.variables[key];
+          if (value !== undefined) built[key] = value;
+        }
+      }
+      if (raw.exportedFunctions) {
+        for (const key of raw.exportedFunctions) {
+          const body = raw.functions.get(key);
+          if (body) built[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+        }
+      }
+      self._env = built;
+    }
+    return self._env;
+  }
+  set env(value: Record<string, string>) {
+    (this._self ?? this)._env = value;
+  }
+  get fs(): FileSystem {
+    const self = this._self ?? this;
+    if (!self._contextFs) {
+      self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
+    }
+    return self._contextFs;
+  }
+  set fs(replacement: FileSystem) {
+    (this._self ?? this)._contextFs = replacement;
+  }
+  get commandDiscovery(): NonNullable<CommandContext["commandDiscovery"]> {
+    const self = this._self ?? this;
+    return {
+      defaultPath: self._state.variables.PATH ?? (self._state.pathUnset ? undefined : defaultCommandPath),
+      isExecutable: path => self._runtime.virtualExecutable(path) !== undefined,
+    };
+  }
+  get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
+    const self = this._self ?? this;
+    if (!self._cachedPredicates) self._cachedPredicates = self._runtime.createShellPredicatesForFast(self._state, self._io);
+    return self._cachedPredicates;
+  }
+  set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) {
+    (this._self ?? this)._cachedPredicates = replacement;
+  }
+  _checkFastInputBytes(totalBytes: number): void {
+    const self = this._self ?? this;
+    if (self._cachedInputBudget !== undefined) {
+      self._cachedInputBudget.check(totalBytes);
+      return;
+    }
+    const runtime = self._runtime;
+    runtime.commandSignal.throwIfAborted();
+    if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
+    if (totalBytes > runtime.budget.limits.maxInputBytes) runtime.budget.fail("maxInputBytes");
+  }
+  get inputBudget(): NonNullable<CommandContext["inputBudget"]> {
+    const self = this._self ?? this;
+    return self._cachedInputBudget ??= self._runtime.createInputBudgetForFast();
+  }
+  set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) {
+    (this._self ?? this)._cachedInputBudget = replacement;
+  }
+  get stdinInput(): ShellInput | undefined {
+    return this.stdin instanceof ShellInput ? this.stdin : undefined;
+  }
+  get stdoutFile(): CommandContext["stdoutFile"] {
+    const ownership = budgetedSinks.get(this.stdout);
+    return ownership?.write === this.stdout.write ? ownership.file : undefined;
+  }
+}
+Object.assign(FastShellCommandContext.prototype, {
+  _self: undefined, _stderr: undefined, stdinIsDefault: undefined, descriptors: undefined, onInternalError: undefined, argv0: undefined, capabilities: undefined, processSignals: undefined, diagnosticLine: undefined, scriptName: undefined, _scopedSignal: undefined, _contextFs: undefined, _cachedPredicates: undefined, _cachedInputBudget: undefined, _argumentValues: undefined, _registerCleanup: undefined, _invoke: undefined, });
+const FAST_DIRECT_CONTEXT_COMMANDS = new Set([
+  "rm", "mkdir", "rg", "sed", "awk", "jq", "sort", "head", "tr", "grep", "cut", "wc", "uniq", ]);
+export function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
+  if (FAST_DIRECT_CONTEXT_COMMANDS.has(name)) return true;
+  if (name !== "find") return false;
+  for (let i = 1; i < words.length; i++) {
+    const p = words[i]!.plain;
+    if (p === "-exec" || p === "-ok") return false;
+  }
+  return true;
+}
+const fastShellCommandAccessors = ["xpgEcho", "signal", "env", "fs", "commandDiscovery", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
+
 const syncExtraRuntimeMethods = {
+  collectSyncPrefixNames(prefix: string, rawState: State): string[] | undefined {
+    if (this.budget.limits.maxExpansionFields !== Infinity || this.budget.limits.maxExpansionBytes !== Infinity) return undefined;
+    const store = stateMonitor(rawState)?.store ?? arrayStore(rawState);
+    const names: string[] = [];
+    const seen = new Set<string>();
+    const consider = (name: string, assigned: boolean): void => {
+      if (!assigned || !name.startsWith(prefix) || seen.has(name) || !isShellIdentifier(name)) return;
+      seen.add(name);
+      names.push(name);
+    };
+    consider("DIRSTACK", true);
+    if (rawState.functionNames?.length) consider("FUNCNAME", true);
+    for (const name in rawState.variables) {
+      if (Object.hasOwn(rawState.variables, name)) consider(name, rawState.variables[name] !== undefined);
+    }
+    if (store) {
+      for (const [name, entry] of store.bindings) consider(name, entry.binding.assigned);
+    }
+    for (let i = 0; i < rawState.locals.length; i++) {
+      const frame = rawState.locals[i]!;
+      for (const [name, saved] of frame) {
+        consider(name, saved.value !== undefined || typedSavedVariables.get(saved)?.binding?.assigned === true);
+      }
+    }
+    names.sort();
+    return names;
+  },
+
+  syncStringLength(value: string, byteCount: boolean): number {
+    let length = 0;
+    for (let offset = 0; offset < value.length;) {
+      const point = value.codePointAt(offset)!;
+      length += byteCount ? (point <= 0x7f ? 1 : point <= 0x7ff ? 2 : point <= 0xffff ? 3 : 4) : 1;
+      offset += point > 0xffff ? 2 : 1;
+    }
+    return length;
+  },
+  isPureExternalStageCommand(command: Command, rawState: State): boolean {
+    if ( command.kind !== "simple" || command.redirects.length > 0 || command.words.length === 0 || rawState.externalInvocation || this.middleware.length > 0 || hasActiveExtensions(rawState)) {
+      return false;
+    }
+    const firstName = command.words[0]!.plain;
+    if ( firstName === undefined || !isFastDirectCommand(firstName, command.words) || hasShellFunction(rawState, firstName) || rawState.extensions?.builtins.has(firstName)) {
+      return false;
+    }
+    for (let i = 0; i < command.words.length; i++) {
+      const word = command.words[i]!;
+      if (word.parts.length === 0) return false;
+      for (let j = 0; j < word.parts.length; j++) {
+        const part = word.parts[j]!;
+        if (part.kind !== "text" || part.byteValue) return false;
+        if (!part.quoted && (part.value.includes("{") || (j === 0 && part.value.startsWith("~")) || hasGlobOrEscape(part.value, !!rawState.extglob))) {
+          return false;
+        }
+      }
+    }
+    const extDef = this.commands.get(firstName);
+    return extDef !== undefined && !customRegisteredCommands.has(extDef.execute) && !customRegisteredRegistries.has(this.commands);
+  },
+  getContextFsForFast(umask: number, signal: AbortSignal): FileSystem {
+    return this.getContextFsFor(umask, signal);
+  },
+  createShellPredicatesForFast(state: State, io: IO): NonNullable<CommandContext["shellPredicates"]> {
+    const predicates: NonNullable<CommandContext["shellPredicates"]> = {
+      variable: name => this.variable(state, name) !== undefined, reference: name => state.variableAttributes?.get(name)?.includes("n") ?? false, option: name => {
+        const extension = state.extensions?.options.get(name);
+        if (extension) return extension.enabled;
+        if (name === "braceexpand") return state.braceexpand !== false;
+        if (name === "allexport") return !!state.allexport;
+        if (["errexit", "noclobber", "noglob", "noexec", "nounset", "pipefail"].includes(name)) return !!state[name as "nounset"];
+        return false;
+      }, terminal: () => false, };
+    variablePresence.set(predicates, name => this.variablePresent(state, name, io));
+    return predicates;
+  },
+  createInputBudgetForFast(): NonNullable<CommandContext["inputBudget"]> {
+    return {
+      maxBytes: this.budget.limits.maxInputBytes, check: totalBytes => {
+        this.commandSignal.throwIfAborted();
+        if (!Number.isSafeInteger(totalBytes) || totalBytes < 0) throw new RangeError("Input byte total must be a nonnegative safe integer");
+        if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
+      }, };
+  },
+  tryFastExternalInvoke( name: string, args: readonly string[], options: ShellInvokeOptions | undefined, context: ShellCommandContext, state: State, parent: InvocationScope, ): Promise<CommandResult> | undefined {
+    if ( options?.externalInvocation !== true || this.middleware.length > 0 || hasActiveExtensions(state) || typeof name !== "string" || (name !== "echo" && name !== "printf") || !Array.isArray(args) || args.length + 1 > this.budget.limits.maxExpansionFields || state.depth >= this.budget.limits.maxSubstitutionDepth || this.cancellationDepth + 1 > this.cancellationMaxDepth || options.argv0 !== undefined || state.functions.has(name) || state.exportedFunctions?.has(name) || (options.argumentValues && !options.argumentValues.values.every((v, idx) => typeof v === "string" || (v instanceof Uint8Array && v.byteLength === args[idx]?.length && v.every(b => b > 0 && b < 128)))) || (options.env && options.env !== context.env && !Object.entries(options.env).every(([k, v]) => !k.includes("\0") && !k.includes("=") && typeof v === "string" && !v.includes("\0")))) {
+      return undefined;
+    }
+    for (let i = 0; i < args.length; i++) {
+      const a = args[i]!;
+      if (typeof a !== "string" || a.includes("\0") || shellValueByteLength(a) > this.budget.limits.maxExpansionBytes) return undefined;
+    }
+    const def = this.commands.get(name);
+    let fastOut: string | undefined;
+    if (name === "echo" && (options.env ?? context.env).POSIXLY_CORRECT === undefined && def && defaultEchoExecutors.has(def.execute) && (args.length === 0 || !args[0]!.startsWith("-"))) {
+      fastOut = args.join(" ") + "\n";
+    } else if (name === "printf" && def?.execute === printfCommand.execute && args.length >= 1 && !args[0]!.startsWith("-")) fastOut = tryFastPrintf(args);
+    if (fastOut === undefined) return undefined;
+    return Promise.resolve().then(async () => {
+      if (!this.cancellation.deliverySignal.aborted) parent.assertOpen();
+      this.cancellationOwner?.assertAdmissionOpen();
+      this.signal.throwIfAborted();
+      options.signal?.throwIfAborted();
+      this.budget.tick();
+      if (fastOut.length > 0) {
+        const targetStdout = options.stdout && options.stdout !== context.stdout ? this.budget.sink(options.stdout, this.signal) : context.stdout;
+        await writeText(targetStdout, fastOut);
+      }
+      return { exitCode: 0 };});
+  },
+  invokeFromFastContext( name: string, args: readonly string[], options: Parameters<ShellCommandContext["invoke"]>[2], context: ShellCommandContext, state: State, scope: InvocationScope, ): Promise<CommandResult> {
+    const fast = this.tryFastExternalInvoke(name, args, options, context, state, scope);
+    if (fast) {
+      void fast.catch(() => undefined);
+      return fast;
+    }
+    const invRuntime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, this.signal, this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
+    const invocation = invRuntime.invoke(name, args, options, context, state, scope);
+    void invocation.catch(() => undefined);
+    return invocation;
+  },
+  async dispatchFastCommand( name: string, definition: NonNullable<ReturnType<CommandRegistry["get"]>>, values: readonly ShellValue[], state: State, io: IO, scope: InvocationScope, ): Promise<number> {
+    this.budget.values.assertOpen();
+    const env = Object.create(null) as Record<string, string>;
+    for (const key of state.exported) {
+      const value = state.variables[key];
+      if (value !== undefined) env[key] = value;
+    }
+    if (state.exportedFunctions) {
+      for (const key of state.exportedFunctions) {
+        const body = state.functions.get(key);
+        if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
+      }
+    }
+    const context = new FastShellCommandContext(this, state, io, scope, name, values as readonly string[], undefined, env, this._isMemoryBackingFs, definition);
+    const runtimeFrame: RuntimeOutcomeFrame = {};
+    scope.enterWork();
+    this.budget.beginPathLookupSuspension();
+    try {
+      scope.assertOpen();
+      const raw = definition.execute(context as unknown as ShellCommandContext);
+      const observed = this.observeRuntimeReturn(raw, runtimeFrame);
+      const res = await interruptible(observed, this.signal);
+      return validateExitCode(res.exitCode);
+    } catch (error) {
+      if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) this.outcomeFrame.report = runtimeFrame.report;
+      throw error;
+    } finally {
+      this.budget.endPathLookupSuspension();
+      scope.leaveWork();
+    }
+  },
+  tryResolveSyncDiscovery(mode: "name" | "kind", target: string, rawState: State): { text: string; status: number } | undefined {
+    if (shellKeywords.has(target)) {
+      return { text: mode === "name" ? target : "keyword", status: 0 };
+    }
+    const kind = this.firstInternalDiscovery(target, rawState, false);
+    if (kind !== undefined) {
+      const outKind = kind === "command" ? (shellBuiltinNames.has(target) ? "builtin" : "file") : kind === "interpreter" ? "file" : kind;
+      return { text: mode === "name" ? target : outKind, status: 0 };
+    }
+    if (!target.includes("/") && target.length > 0 && this._isMemoryBackingFs && this.canFastMemoryRedirect && (this._fileWrites === undefined || this._fileWrites.size === 0) && (this._outputFiles === undefined || this._outputFiles.size === 0) && tryGetMemoryDirectoryEntryNamesSync(this.backingFs, "/") !== undefined) {
+      const rawPath = stateMonitor(rawState)?.values.get("PATH", rawState.variables.PATH ?? "/usr/local/bin:/usr/bin:/bin") ?? rawState.variables.PATH ?? "/usr/local/bin:/usr/bin:/bin";
+      if (typeof rawPath === "string" && rawPath.length <= 512) {
+        const parts = rawPath.split(":");
+        let anyHit = false;
+        for (let i = 0; i < parts.length; i++) {
+          const part = parts[i]!;
+          const dir = !part || part === "." ? rawState.cwd : pathOf(rawState, part);
+          if (!isCleanAbsolutePath(dir) || dir === "/dev" || dir.startsWith("/dev/")) {
+            anyHit = true;
+            break;
+          }
+          const entries = tryGetMemoryDirectoryEntryNamesSync(this.backingFs, dir);
+          if (entries !== undefined && entries.has(target)) {
+            anyHit = true;
+            break;
+          }
+        }
+        if (!anyHit) return { text: "", status: 1 };
+      }
+    }
+    return undefined;
+  },
   extractSimpleErePattern(this: any, pattern: Word, state?: State): { text: string; literal: boolean; isVar?: string } | undefined {
     const cached = (pattern as { _cachedSimpleEre?: { text: string; literal: boolean } | null })._cachedSimpleEre;
     if (cached !== undefined) return cached ?? undefined;
@@ -5672,7 +8054,7 @@ const syncExtraRuntimeMethods = {
           // Variable patterns can change during the loop. Only admit a static
           // pattern whose synchronous matcher is guaranteed to return a result.
           if (!expr.right.parts.every((p, idx) => p.kind === "text" && !p.byteValue && (p.quoted || idx > 0 || !p.value.startsWith("~")))) return false;
-          const pattern = expr.right.parts.map(p => p.kind === "text" ? (p.quoted ? p.value.replace(/[\\*?[\]()!^-]/g, "\\export const syncExtraRuntimeMethods = {") : p.value) : "").join("");
+          const pattern = expr.right.parts.map(p => p.kind === "text" ? (p.quoted ? p.value.replace(/[\\*?[\]()!^-]/g, "\\$&") : p.value) : "").join("");
           const work = { remaining: 4096, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
           return tryMatchesPatternSync(pattern, "", work, false, true) !== undefined;
         }
@@ -23284,3 +25666,6 @@ const syncExtraRuntimeMethods = {
 };
 
 Object.assign(Runtime.prototype, syncExtraRuntimeMethods);
+
+import { combineManagedSignals, toNativeAbortSignal } from "safe-bash-contracts/runtime-control";
+const defaultCommandPath = "/usr/local/bin:/usr/bin:/bin";

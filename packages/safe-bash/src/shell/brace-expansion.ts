@@ -5,7 +5,7 @@ import type { Word, WordPart } from "./parser.js";
 import { expansionSpellings, parseBraceWord } from "./parser.js";
 import { ShellSyntaxError } from "./types.js";
 import type { Budget } from "./runtime.js";
-import { intToStr } from "./arithmetic.js";
+const intToStr = (n: number): string => String(n);
 
 type Node = { count: number; bytes: number } & (
   | { kind: "part"; part: WordPart }

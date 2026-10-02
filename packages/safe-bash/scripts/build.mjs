@@ -343,7 +343,7 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           assert.equal(filesystem.name, "@poe-code/safe-fs", "canonical SafeFS workspace identity");
           assert.deepEqual(runtimeCore, { types: "./dist/runtime-core.d.ts", import: "./dist/runtime-core.js" }, "canonical SafeFS runtime-core routes");
           toolRoots.push(join(filesystemRoot, "dist"));
-          peerPaths = { ...peerPaths, "@poe-code/safe-fs/runtime-core": [join(filesystemRoot, "dist/runtime-core.d.ts")] };
+          peerPaths = { ...peerPaths, "@poe-code/safe-fs/runtime-core": [join(filesystemRoot, "dist/runtime-core.d.ts")], "@poe-code/safe-fs/fs/memory": [join(filesystemRoot, "dist/fs/memory/index.d.ts")] };
         }
       }
       if (manifest.peerDependencies?.["poe-code"]) {

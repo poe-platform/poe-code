@@ -8,6 +8,19 @@ function unavailable(): never { throw new Error("codec attempted an unavailable 
 
 const cachedFactories: Partial<Record<BoundedCodecOptions["format"], RawCodecFactory>> = {};
 
+export async function loadRawCodecFactory(format: BoundedCodecOptions["format"]): Promise<RawCodecFactory> {
+  let factory = cachedFactories[format];
+  if (!factory) {
+    switch (format) {
+      case "bzip2": factory = (await import("./native/generated/bz2.mjs")).default; break;
+      case "xz": factory = (await import("./native/generated/xz.mjs")).default; break;
+      case "zstd": factory = (await import("./native/generated/zstd.mjs")).default; break;
+    }
+    cachedFactories[format] = factory;
+  }
+  return factory;
+}
+
 const wasi = Object.freeze({
   fd_prestat_get: () => 8,
   fd_prestat_dir_name: unavailable,
@@ -66,15 +79,7 @@ export async function createCodec(
       !Number.isInteger(lzma.properties) || lzma.properties < 0 || lzma.properties >= 225 || lzma.properties % 9 + Math.floor(lzma.properties / 9) % 5 > 4 ||
       typeof lzma.eos !== "boolean" || !Number.isSafeInteger(lzma.size) || lzma.size < 0)) throw new PublicDiagnostic("invalid LZMA properties or dictionary limit exceeded");
   if (!factory) {
-    factory = cachedFactories[options.format];
-    if (!factory) {
-      switch (options.format) {
-        case "bzip2": factory = (await import("./native/generated/bz2.mjs")).default; break;
-        case "xz": factory = (await import("./native/generated/xz.mjs")).default; break;
-        case "zstd": factory = (await import("./native/generated/zstd.mjs")).default; break;
-      }
-      cachedFactories[options.format] = factory;
-    }
+    factory = await loadRawCodecFactory(options.format);
   }
   signal.throwIfAborted();
   // Factories contain immutable generated code; module memory belongs to one

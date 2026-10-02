@@ -106,10 +106,10 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   // Keep speculative slots local so a failed write cannot pin a tenant globally.
   _missKey = "";
   _missSlot = -1;
-  _table: Int16Array | Int32Array = new Int16Array(128).fill(-1);
-  _mask = 127;
-  _keys: string[] = new Array<string>(64).fill("");
-  _vals: MemoryNode[] = new Array<MemoryNode>(64).fill(DUMMY_POOL_FILE_NODE);
+  _table: Int16Array | Int32Array = new Int16Array(16).fill(-1);
+  _mask = 15;
+  _keys: string[] = new Array<string>(8).fill("");
+  _vals: MemoryNode[] = new Array<MemoryNode>(8).fill(DUMMY_POOL_FILE_NODE);
   _next = 0;
   size = 0;
   readonly [Symbol.toStringTag] = "Map";

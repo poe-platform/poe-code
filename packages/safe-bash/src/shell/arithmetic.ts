@@ -24,23 +24,8 @@ class ArithmeticFailure extends Error {
 
 const preparedArithmeticCache = new Map<string, { program: ArithmeticProgram; units: number }>();
 
-function treeFeatures(tree: Arithmetic): Pick<ArithmeticProgram, "hasSubscript" | "hasMutation"> {
-  const pending = [tree];
-  let hasSubscript = false;
-  let hasMutation = false;
-  while (pending.length) {
-    const node = pending.pop()!;
-    if (node.kind === "name") hasSubscript ||= node.subscript !== undefined;
-    else if (node.kind === "unary") {
-      hasMutation ||= node.operator === "++" || node.operator === "--";
-      pending.push(node.operand);
-    } else if (node.kind === "binary") {
-      hasMutation ||= precedence[node.operator] === 2;
-      pending.push(node.left, node.right);
-    } else if (node.kind === "conditional") pending.push(node.condition, node.yes, node.no);
-  }
-  return { hasSubscript, hasMutation };
-}
+let lastParsedHasSubscript = false;
+let lastParsedHasMutation = false;
 
 function fastDecimalLiteral(text: string | undefined, budget: ParseBudget): bigint | undefined {
   if (text === undefined || text === "0") { budget.admit(2); return 0n; }
@@ -75,17 +60,12 @@ export function prepareArithmetic(source: string, budget = new ParseBudget()): A
       return cached.program;
     }
   }
-  let units = 0;
-  const tracking = {
-    admit(n = 1): void {
-      budget.admit(n);
-      units += n;
-    },
-  } as ParseBudget;
-  tracking.admit();
+  const startUnits = budget.admittedUnits;
+  budget.admit();
   try {
-    const tree = parseArithmetic(source, 0, tracking);
-    const program: ArithmeticProgram = { source, tree, ...treeFeatures(tree) };
+    const tree = parseArithmetic(source, 0, budget);
+    const units = budget.admittedUnits - startUnits;
+    const program: ArithmeticProgram = { source, tree, hasSubscript: lastParsedHasSubscript, hasMutation: lastParsedHasMutation };
     if (source.length <= 256) {
       if (preparedArithmeticCache.size >= 64) {
         const oldest = preparedArithmeticCache.keys().next().value;
@@ -97,7 +77,8 @@ export function prepareArithmetic(source: string, budget = new ParseBudget()): A
   }
   catch (error) {
     if (!(error instanceof ShellSyntaxError) || /nesting/u.test(error.reason)) throw error;
-    tracking.admit();
+    budget.admit();
+    const units = budget.admittedUnits - startUnits;
     const program: ArithmeticProgram = { source, error };
     if (source.length <= 256) {
       if (preparedArithmeticCache.size >= 64) {
@@ -118,11 +99,25 @@ const precedence: Record<string, number> = {
   "<<": 11, ">>": 11, "+": 12, "-": 12, "*": 13, "/": 13, "%": 13, "**": 14,
 };
 
+const PARSE_SMALL_BIGINTS: readonly bigint[] = Array.from({ length: 1025 }, (_, i) => BigInt(i));
+
 function integer(text: string): bigint {
-  if (/^0[xX][\da-fA-F]+$/u.test(text)) return BigInt(text);
-  if (/^0[0-7]+$/u.test(text)) return BigInt(`0o${text.slice(1)}`);
+  const c0 = text.charCodeAt(0);
+  if (c0 >= 49 && c0 <= 57 && text.length <= 18) {
+    let allDec = true;
+    let val = c0 - 48;
+    for (let i = 1; i < text.length; i++) {
+      const ch = text.charCodeAt(i);
+      if (ch < 48 || ch > 57) { allDec = false; break; }
+      if (text.length <= 4) val = val * 10 + (ch - 48);
+    }
+    if (allDec) return text.length <= 4 && val <= 1024 ? PARSE_SMALL_BIGINTS[val]! : BigInt(text);
+  }
+  if (text === "0") return 0n;
+  if (/^0[xX][\da-fA-F]+$/u.test(text)) return BigInt.asIntN(64, BigInt(text));
+  if (/^0[0-7]+$/u.test(text)) return BigInt.asIntN(64, BigInt(`0o${text.slice(1)}`));
   if (/^0\d+$/u.test(text)) throw new PublicDiagnostic("Invalid octal constant");
-  if (/^\d+$/u.test(text)) return BigInt(text);
+  if (/^\d+$/u.test(text)) return BigInt.asIntN(64, BigInt(text));
   const match = /^(\d+)#([\da-zA-Z@_]+)$/u.exec(text);
   if (!match) throw new PublicDiagnostic("Invalid arithmetic constant");
   const base = Number(match[1]);
@@ -137,6 +132,8 @@ function integer(text: string): bigint {
 }
 
 export function parseArithmetic(source: string, offset = 0, budget = new ParseBudget()): Arithmetic {
+  lastParsedHasSubscript = false;
+  lastParsedHasMutation = false;
   if (source.includes("\\\n")) source = source.replace(/\\\n/gu, "");
   const tokens: { value: string; offset: number }[] = [];
   let position = 0;
@@ -160,7 +157,48 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
       tokens.push({ value: source.slice(start, position), offset: offset + start });
       continue;
     }
-    const value = /^(?:\d+#[\da-zA-Z@_]+|0[xX][\da-fA-F]+|\d+|[a-zA-Z_][a-zA-Z_0-9]*|<<=|>>=|\*\*|\+\+|--|&&|\|\||<<|>>|[+*/%&^|!<>=-]=|[()+*/%~!<>=&^|?:,\-])/u.exec(source.slice(position))?.[0];
+    let value: string | undefined;
+    const c0 = source.charCodeAt(position);
+    if (c0 >= 48 && c0 <= 57) {
+      let end = position + 1;
+      if (c0 === 48 && (source.charCodeAt(end) === 120 || source.charCodeAt(end) === 88)) {
+        end++;
+        while (end < source.length) {
+          const ch = source.charCodeAt(end);
+          if ((ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 70) || (ch >= 97 && ch <= 102)) end++;
+          else break;
+        }
+        if (end > position + 2) value = source.slice(position, end);
+      } else {
+        while (end < source.length) {
+          const ch = source.charCodeAt(end);
+          if (ch >= 48 && ch <= 57) end++;
+          else break;
+        }
+        if (source.charCodeAt(end) === 35) {
+          let bEnd = end + 1;
+          while (bEnd < source.length) {
+            const ch = source.charCodeAt(bEnd);
+            if ((ch >= 48 && ch <= 57) || (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || ch === 64 || ch === 95) bEnd++;
+            else break;
+          }
+          if (bEnd > end + 1) value = source.slice(position, bEnd);
+          else value = source.slice(position, end);
+        } else {
+          value = source.slice(position, end);
+        }
+      }
+    } else if ((c0 >= 65 && c0 <= 90) || (c0 >= 97 && c0 <= 122) || c0 === 95) {
+      let end = position + 1;
+      while (end < source.length) {
+        const ch = source.charCodeAt(end);
+        if ((ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) || (ch >= 48 && ch <= 57) || ch === 95) end++;
+        else break;
+      }
+      value = source.slice(position, end);
+    } else {
+      value = /^(?:<<=|>>=|\*\*|\+\+|--|&&|\|\||<<|>>|[+*/%&^|!<>=-]=|[()+*/%~!<>=&^|?:,\-])/u.exec(source.slice(position, position + 3))?.[0];
+    }
     if (!value) {
       const previous = tokens.at(-1)?.value;
       const quoted = source[position] === "'" || source[position] === "\\";
@@ -181,27 +219,32 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
     const start = tokens[cursor]?.offset ?? offset + source.length;
     const token = current();
     cursor++;
-    if (["+", "-", "!", "~", "++", "--"].includes(token)) {
+    const tc0 = token.charCodeAt(0);
+    if (token === "+" || token === "-" || token === "!" || token === "~" || token === "++" || token === "--") {
       budget.admit();
       const operand = expression(15);
-      if (["++", "--"].includes(token) && operand.kind !== "name") error("Arithmetic assignment requires a variable");
+      if (token === "++" || token === "--") {
+        if (operand.kind !== "name") error("Arithmetic assignment requires a variable");
+        lastParsedHasMutation = true;
+      }
       left = { kind: "unary", operator: token, operand, postfix: false };
     } else if (token === "(") {
       left = expression();
       if (current() !== ")") error("Unclosed arithmetic parenthesis");
       cursor++;
-    } else if (/^[a-zA-Z_]/u.test(token)) {
+    } else if ((tc0 >= 65 && tc0 <= 90) || (tc0 >= 97 && tc0 <= 122) || tc0 === 95) {
       budget.admit();
       left = { kind: "name", name: token };
-      if (current().startsWith("[")) {
+      if (current().charCodeAt(0) === 91) {
         left.subscript = current().slice(1, -1);
         if (!left.subscript.trim()) error("Invalid arithmetic operand");
+        lastParsedHasSubscript = true;
         cursor++;
       }
     }
     else {
       budget.admit();
-      try { left = { kind: "literal", value: BigInt.asIntN(64, integer(token)) }; }
+      try { left = { kind: "literal", value: integer(token) }; }
       catch { error("Invalid arithmetic operand"); }
     }
     left!.start = start;
@@ -209,6 +252,7 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
       const operator = current();
       if (operator === "++" || operator === "--") {
         if (left!.kind !== "name") error("Arithmetic assignment requires a variable");
+        lastParsedHasMutation = true;
         cursor++;
         budget.admit();
         left = { kind: "unary", operator, operand: left!, postfix: true, start };
@@ -225,7 +269,10 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
         left = { kind: "conditional", condition: left!, yes, no: expression(3), start };
       } else {
         const assignment = priority === 2;
-        if (assignment && left!.kind !== "name") error("Arithmetic assignment requires a variable");
+        if (assignment) {
+          if (left!.kind !== "name") error("Arithmetic assignment requires a variable");
+          lastParsedHasMutation = true;
+        }
         const right = expression(priority + (assignment || operator === "**" ? 0 : 1));
         left = { kind: "binary", operator, left: left!, right, start };
       }
@@ -243,12 +290,13 @@ export function arithmeticEnd(source: string, start: number, allowSubshell = fal
   let depth = 0;
   let quote = "";
   let ansiQuote = false;
-  const quotedSubstitutions: number[] = [];
+  let quotedSubstitutions: number[] | undefined;
   for (let position = start; position < source.length; position++) {
     const character = source[position];
     if (allowSubshell) {
       if (character === "\\" && (quote !== "'" || ansiQuote)) { position++; continue; }
       if (quote === '"' && character === "$" && source[position + 1] === "(") {
+        quotedSubstitutions ??= [];
         if (quotedSubstitutions.length >= maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${maxSyntaxDepth}`, position);
         quotedSubstitutions.push(depth);
         depth++;
@@ -277,7 +325,7 @@ export function arithmeticEnd(source: string, start: number, allowSubshell = fal
         if (allowSubshell) return -1;
         break;
       }
-      if (quotedSubstitutions.at(-1) === depth) {
+      if (quotedSubstitutions !== undefined && quotedSubstitutions.at(-1) === depth) {
         quotedSubstitutions.pop();
         quote = '"';
       }

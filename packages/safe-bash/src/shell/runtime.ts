@@ -6728,14 +6728,28 @@ export class Runtime {
       const store = monitor.store;
       if (store) {
         if (store.watches.size !== 0 || store.owner.ledger.bytes !== Infinity || store.owner.ledger.fields !== Infinity) return false;
-        for (const [bName, entry] of [...store.bindings.entries()]) {
-          if (bName === "PIPESTATUS") {
-            if (entry.binding.associative || entry.binding.references !== 1) return false;
-            this.setSyncPipeStatusCell(entry.binding, "0");
+        if (store.bindings.size === 1) {
+          const psEntry = store.bindings.get("PIPESTATUS");
+          if (psEntry) {
+            if (psEntry.binding.associative || psEntry.binding.references !== 1) return false;
+            this.setSyncPipeStatusCell(psEntry.binding, "0");
           } else {
-            if (entry.binding.references !== 1 || entry.binding.values.size > 4096) return false;
-            const tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
-            store.stashRecycled(bName, tickets);
+            for (const [bName, entry] of [...store.bindings.entries()]) {
+              if (entry.binding.references !== 1 || entry.binding.values.size > 4096) return false;
+              const tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+              store.stashRecycled(bName, tickets);
+            }
+          }
+        } else if (store.bindings.size > 1) {
+          for (const [bName, entry] of [...store.bindings.entries()]) {
+            if (bName === "PIPESTATUS") {
+              if (entry.binding.associative || entry.binding.references !== 1) return false;
+              this.setSyncPipeStatusCell(entry.binding, "0");
+            } else {
+              if (entry.binding.references !== 1 || entry.binding.values.size > 4096) return false;
+              const tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+              store.stashRecycled(bName, tickets);
+            }
           }
         }
       }
@@ -6750,10 +6764,21 @@ export class Runtime {
       rawRoot._exported.add("PWD");
     }
     this._syncTouchedPositionals = false;
-    rawRoot.variables = { PWD: expectedCwd, OPTIND: "1", OPTERR: "1", IFS: " \t\n" };
-    if (monitor) {
-      (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._variablesProxy = undefined;
-      (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._wrapped = undefined;
+    const curVars = rawRoot.variables;
+    if (curVars && !(monitor as unknown as { _wrapped?: unknown })?._wrapped) {
+      for (const k in curVars) {
+        if (k !== "PWD" && k !== "OPTIND" && k !== "OPTERR" && k !== "IFS") delete curVars[k];
+      }
+      curVars.PWD = expectedCwd;
+      curVars.OPTIND = "1";
+      curVars.OPTERR = "1";
+      curVars.IFS = " \t\n";
+    } else {
+      rawRoot.variables = { PWD: expectedCwd, OPTIND: "1", OPTERR: "1", IFS: " \t\n" };
+      if (monitor) {
+        (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._variablesProxy = undefined;
+        (monitor as unknown as { _variablesProxy?: unknown; _wrapped?: unknown })._wrapped = undefined;
+      }
     }
     rawRoot.status = 0;
     rawRoot.substitutionStatus = 0;
@@ -9110,11 +9135,20 @@ export class Runtime {
         (this._fileWrites === undefined || this._fileWrites.size === 0) &&
         (this._outputFiles === undefined || this._outputFiles.size === 0)
       ) {
-        const capture = new Capture();
-        capture.budget = this.budget;
-        capture.signal = this.signal;
-        const { descriptors: ignoredDescriptors, ...rest } = io;
-        const status = this.executeSyncPipelineBody(pipeline, { ...command, redirects: [] }, state, { ...rest, stdout: capture }, ignored);
+        const strippedCmd = (command as { _strippedRedirectsCmd?: typeof command })._strippedRedirectsCmd ??= { ...command, redirects: [] };
+        let status: number | undefined;
+        if (!io.descriptors) {
+          const prevStdout = io.stdout;
+          io.stdout = devNullSyncSink;
+          try {
+            status = this.executeSyncPipelineBody(pipeline, strippedCmd, state, io, ignored);
+          } finally {
+            io.stdout = prevStdout;
+          }
+        } else {
+          const { descriptors: ignoredDescriptors, ...rest } = io;
+          status = this.executeSyncPipelineBody(pipeline, strippedCmd, state, { ...rest, stdout: devNullSyncSink }, ignored);
+        }
         // These output builtins do no filesystem work. Charge the discarded
         // redirect only after completion; fallback opens it through descriptors.
         if (status !== undefined) this.budget.fileSystemOperation();

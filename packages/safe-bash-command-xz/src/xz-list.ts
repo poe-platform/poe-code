@@ -1,5 +1,6 @@
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import type { CommandContext, FileReadHandle, FileStat } from "safe-bash-contracts";
+import { loadRawCodecFactory } from "safe-bash-compression-engine/codec-loader";
 import { crcTable } from "safe-bash-compression-engine/crc";
 import { compareCopyIdentity } from "safe-bash-contracts/filesystem-identity";
 import { FileOperation } from "safe-bash-compression-engine/file-operation";
@@ -53,7 +54,7 @@ export async function inspectXz(context: CommandContext, plan: Operand, options:
     };
     const listing: XzListing = { streams: 0, blocks: 0, compressed: stat.size, uncompressed: 0, padding: 0, checks: new Set() };
     const memoryLimit = options.xzDecompressMemory ?? 0;
-    const module = memoryLimit || options.xzFilters ? (await import("safe-bash-compression-engine/native/generated/xz")).default(Object.freeze({})) : undefined;
+    const module = memoryLimit || options.xzFilters ? (await loadRawCodecFactory("xz"))(Object.freeze({})) : undefined;
     module?._initialize?.();
     operation.check();
     if (options.xzFilters) {

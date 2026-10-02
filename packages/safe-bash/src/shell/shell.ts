@@ -797,7 +797,7 @@ export class Shell implements PluginHost {
           scope.clearActiveBudget();
           scope.clearActiveStdin();
           if (budget.hasExecutionCleanup) await budget.executionCleanup.drain();
-          const closedStdin = stdin.close();
+          const closedStdin = stdin ? stdin.close() : SHARED_EMPTY_DONE;
           if (!isSyncResolved(closedStdin)) {
             if (failed) await closedStdin.catch(() => {});
             else await closedStdin;
@@ -1006,8 +1006,8 @@ export class Shell implements PluginHost {
               })
             : new ShellInput(SHARED_EMPTY_SOURCE, budget, budget.signal, EMPTY_STDIN_OPTIONS);
           if (options.stdin !== undefined) scope.setActiveStdin(stdin);
-        } else stdin = new ShellInput(options.stdin, budget);
-        io.stdin = stdin;
+        }
+        if (stdin) io.stdin = stdin;
         if (!readySync) {
           await interruptible(this.#ready, budget.signal);
           io.capabilities = options.capabilities === undefined && options.limits === undefined
@@ -1098,6 +1098,10 @@ export class Shell implements PluginHost {
           parseState = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
           unit = getOrParseUnitFromCache(source, 0, byteLocale(currentState.variables), sourceCache, parseState, budget, extensions.syntax, aliases);
           currentCachedUnit = parseState.currentCachedUnit;
+        }
+        if (!stdin) {
+          stdin = new ShellInput(options.stdin, budget);
+          io.stdin = stdin;
         }
         exitCode = 0;
         while (true) {

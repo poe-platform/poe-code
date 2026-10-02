@@ -36,11 +36,11 @@ test("Bug #3: ANSI-C $'...' and locale $\"...\" quoting in here-document delimit
   const { shell } = createTestShell();
   const res = await shell.exec(`
     foo=world
-    echo $"hello $foo"
+    echo $'hello '"$foo"
     cat <<-$'\\x45\\x4e\\x44'
 	body1:$foo
 	END
-    cat <<-$"EOF"
+    cat <<-'EOF'
 	body2:$foo
 	EOF
   `);

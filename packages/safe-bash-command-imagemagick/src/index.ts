@@ -4981,40 +4981,60 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "+delete" || t === "-delete") {
             if (t === "+delete") {
-                stack.pop();
+                const popped = stack.pop();
+                if (popped) detachRgbaBuffer(popped.data);
             }
             else {
                 const toDelete = new Set(parseMagickIndexSpec(tokens[++i] ?? "-1", stack.length));
-                stack = stack.filter((_, idx) => !toDelete.has(idx));
+                stack = stack.filter((im, idx) => {
+                    if (toDelete.has(idx)) {
+                        detachRgbaBuffer(im.data);
+                        return false;
+                    }
+                    return true;
+                });
             }
         }
         else if (t === "-reverse") {
             stack.reverse();
         }
         else if (t === "-append" || t === "+append") {
-            stack = [(yield* appendStackImagesSteps(stack, t === "-append", state))];
+            const oldStack = stack;
+            const appended = (yield* appendStackImagesSteps(oldStack, t === "-append", state));
+            for (const im of oldStack) {
+                if (im.data.buffer !== appended.data.buffer) detachRgbaBuffer(im.data);
+            }
+            stack = [appended];
         }
         else if (t === "-flatten" || t === "-mosaic" || (t === "-layers" && ["flatten", "merge", "mosaic"].includes((tokens[i + 1] ?? "").toLowerCase()))) {
             if (t === "-layers")
                 i++;
             if (stack.length > 0) {
-                const maxW = Math.max(...stack.map((im) => im.width));
-                const maxH = Math.max(...stack.map((im) => im.height));
+                const oldStack = stack;
+                const maxW = Math.max(...oldStack.map((im) => im.width));
+                const maxH = Math.max(...oldStack.map((im) => im.height));
                 const canvas = (yield* createSolidRgbaImageSteps(maxW, maxH, state.background));
-                const layers = stack.map((im) => rgbaToCompositeLayer(im, 0, 0, state.compose));
-                stack = [(yield* compositeImageSteps(canvas, layers))];
+                const layers = oldStack.map((im) => rgbaToCompositeLayer(im, 0, 0, state.compose));
+                const flattened = (yield* compositeImageSteps(canvas, layers));
+                if (canvas.data.buffer !== flattened.data.buffer) detachRgbaBuffer(canvas.data);
+                for (const im of oldStack) {
+                    if (im.data.buffer !== flattened.data.buffer) detachRgbaBuffer(im.data);
+                }
+                stack = [flattened];
             }
         }
         else if (t === "-composite") {
             if (stack.length >= 2) {
                 const base = stack[0]!;
-                let overlay = stack[1]!;
+                const origOverlay = stack[1]!;
+                let overlay = origOverlay;
                 let gx = 0;
                 let gy = 0;
                 if (state.geometry) {
                     const g = parseMagickGeometry(state.geometry);
                     if (g.width !== undefined || g.height !== undefined) {
-                        overlay = (yield* applyMagickResizeSteps(overlay, state.geometry, state.kernel));
+                        overlay = (yield* applyMagickResizeSteps(origOverlay, state.geometry, state.kernel));
+                        if (overlay.data.buffer !== origOverlay.data.buffer) detachRgbaBuffer(origOverlay.data);
                     }
                     gx = g.x;
                     gy = g.y;
@@ -5157,6 +5177,7 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             consumeInput: true
         } as any);
         detachRgbaBuffer(toEncode.data);
+        for (const im of stack) detachRgbaBuffer(im.data);
         if (outPath === "-" || outSpec.endsWith(":-")) {
             return {
                 exitCode: 0,
@@ -5512,15 +5533,18 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const width = Math.max(imgA.width, imgB.width);
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
-    const diffData = new Uint8Array(width * height * 4);
+    const needDiffImg = outSpec.toLowerCase() !== "null:";
+    const diffData = needDiffImg ? new Uint8Array(width * height * 4) : undefined;
     let aeCount = 0;
     let sumAbs = 0;
     let sumSq = 0;
     let maxAbs = 0;
-    const lumA = new Float64Array(totalPixels);
-    const lumB = new Float64Array(totalPixels);
     let sumLumA = 0;
     let sumLumB = 0;
+    let sumLumSqA = 0;
+    let sumLumSqB = 0;
+    let sumLumAB = 0;
+    const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
     for (let y = 0; y < height; y++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -5550,32 +5574,35 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const pdr = Math.abs(rA * alphaA - rB * alphaB);
             const pdg = Math.abs(gA * alphaA - gB * alphaB);
             const pdb = Math.abs(bA * alphaA - bB * alphaB);
-            const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
             const maxDelta = hasAlpha ? Math.max(pdr, pdg, pdb, da) : Math.max(dr, dg, db);
             if (!inBoundsA || !inBoundsB || maxDelta > state.fuzz) {
                 aeCount++;
-                diffData[outOff] = highlightColor.r;
-                diffData[outOff + 1] = highlightColor.g;
-                diffData[outOff + 2] = highlightColor.b;
-                diffData[outOff + 3] = highlightColor.a;
+                if (diffData) {
+                    diffData[outOff] = highlightColor.r;
+                    diffData[outOff + 1] = highlightColor.g;
+                    diffData[outOff + 2] = highlightColor.b;
+                    diffData[outOff + 3] = highlightColor.a;
+                }
             }
-            else if (composeSrc) {
-                diffData[outOff] = 0;
-                diffData[outOff + 1] = 0;
-                diffData[outOff + 2] = 0;
-                diffData[outOff + 3] = 0;
-            }
-            else if (lowlightColor) {
-                diffData[outOff] = lowlightColor.r;
-                diffData[outOff + 1] = lowlightColor.g;
-                diffData[outOff + 2] = lowlightColor.b;
-                diffData[outOff + 3] = lowlightColor.a;
-            }
-            else {
-                diffData[outOff] = Math.round(rA * 0.3 + 255 * 0.7);
-                diffData[outOff + 1] = Math.round(gA * 0.3 + 255 * 0.7);
-                diffData[outOff + 2] = Math.round(bA * 0.3 + 255 * 0.7);
-                diffData[outOff + 3] = 255;
+            else if (diffData) {
+                if (composeSrc) {
+                    diffData[outOff] = 0;
+                    diffData[outOff + 1] = 0;
+                    diffData[outOff + 2] = 0;
+                    diffData[outOff + 3] = 0;
+                }
+                else if (lowlightColor) {
+                    diffData[outOff] = lowlightColor.r;
+                    diffData[outOff + 1] = lowlightColor.g;
+                    diffData[outOff + 2] = lowlightColor.b;
+                    diffData[outOff + 3] = lowlightColor.a;
+                }
+                else {
+                    diffData[outOff] = Math.round(rA * 0.3 + 255 * 0.7);
+                    diffData[outOff + 1] = Math.round(gA * 0.3 + 255 * 0.7);
+                    diffData[outOff + 2] = Math.round(bA * 0.3 + 255 * 0.7);
+                    diffData[outOff + 3] = 255;
+                }
             }
             if (hasAlpha) {
                 sumAbs += pdr + pdg + pdb + da;
@@ -5589,34 +5616,25 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 maxAbs = maxDelta;
             const lA = (0.299 * rA + 0.587 * gA + 0.114 * bA) / 255;
             const lB = (0.299 * rB + 0.587 * gB + 0.114 * bB) / 255;
-            lumA[pIdx] = lA;
-            lumB[pIdx] = lB;
             sumLumA += lA;
             sumLumB += lB;
+            sumLumSqA += lA * lA;
+            sumLumSqB += lB * lB;
+            sumLumAB += lA * lB;
         }
     }
-    const numCh = imgA.hasAlpha || imgB.hasAlpha ? 4 : 3;
+    detachRgbaBuffer(imgA.data);
+    detachRgbaBuffer(imgB.data);
+    const numCh = hasAlpha ? 4 : 3;
     const maeNorm = sumAbs / (totalPixels * numCh * 255);
     const mseNorm = sumSq / (totalPixels * numCh * 255 * 255);
     const rmseNorm = Math.sqrt(mseNorm);
     const paeNorm = maxAbs / 255;
     const muA = sumLumA / totalPixels;
     const muB = sumLumB / totalPixels;
-    let varA = 0;
-    let varB = 0;
-    let covAB = 0;
-    for (let i = 0; i < totalPixels; i++) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        const dA = lumA[i]! - muA;
-        const dB = lumB[i]! - muB;
-        varA += dA * dA;
-        varB += dB * dB;
-        covAB += dA * dB;
-    }
-    varA /= totalPixels;
-    varB /= totalPixels;
-    covAB /= totalPixels;
+    const varA = Math.max(0, sumLumSqA / totalPixels - muA * muA);
+    const varB = Math.max(0, sumLumSqB / totalPixels - muB * muB);
+    const covAB = sumLumAB / totalPixels - muA * muB;
     const c1 = 0.0001;
     const c2 = 0.0009;
     const ssim = ((2 * muA * muB + c1) * (2 * covAB + c2)) /
@@ -5654,7 +5672,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             break;
     }
     const exitCode = dissimilarityThreshold !== undefined ? (rmseNorm > dissimilarityThreshold ? 1 : 0) : (aeCount > 0 ? 1 : 0);
-    if (outSpec.toLowerCase() !== "null:") {
+    if (diffData) {
         const diffImg: RgbaImage = {
             width,
             height,
@@ -5667,7 +5685,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             data: diffData
         };
         const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-        const { data: encoded } = encodeImage(diffImg, { format, quality: state.quality });
+        const { data: encoded } = encodeImage(diffImg, { format, quality: state.quality, consumeInput: true } as any);
+        detachRgbaBuffer(diffData);
         if (outPath === "-" || outSpec.endsWith(":-")) {
             return {
                 exitCode,
@@ -6260,7 +6279,13 @@ function* mapSteps<T, U>(values: readonly T[], mapper: (value: T) => Generator<v
   for (let i = 0; i < values.length; i++) {
     const val = values[i]!;
     if (mutable) mutable[i] = undefined;
-    result[i] = yield* mapper(val);
+    const mapped = yield* mapper(val);
+    const valData = (val as unknown as { data?: unknown })?.data;
+    const mappedData = (mapped as unknown as { data?: unknown })?.data;
+    if (valData instanceof Uint8Array && mappedData instanceof Uint8Array && valData.buffer !== mappedData.buffer) {
+      detachRgbaBuffer(valData);
+    }
+    result[i] = mapped;
   }
   return result;
 }

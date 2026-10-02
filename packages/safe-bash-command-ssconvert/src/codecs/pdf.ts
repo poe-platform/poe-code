@@ -257,7 +257,14 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
   const effectiveColumns = (sheet: Sheet): readonly AxisMetadata[] | undefined => {
     const isXlsx = sheet.cells.some(c => c.style !== undefined && typeof c.style === "object" && "xlsx" in c.style);
     const isDelimited = /\.(?:csv|tsv)$/i.test(sheet.name) || /\.(?:csv|tsv)$/i.test(context.inputFilename ?? "");
-    if (!isXlsx && !isDelimited) return sheet.columns;
+    const hasUnconfiguredWideCells = (!sheet.columns || sheet.columns.length === 0) &&
+      sheet.view?.defaultColumnWidth === undefined &&
+      sheet.cells.every(c => normalizePdfCellStyle(c) === undefined) &&
+      sheet.cells.some(c => {
+        const txt = c.displayedText ?? (c.value.kind === "blank" ? "" : String(c.value.value));
+        return txt.length >= 9 && !txt.includes("\n");
+      });
+    if (!isXlsx && !isDelimited && !hasUnconfiguredWideCells) return sheet.columns;
     
     const existingByCol = new Map((sheet.columns ?? []).map(c => [c.index, c]));
     const fallback = typeof sheet.view?.defaultColumnWidth === "number" ? sheet.view.defaultColumnWidth : 48;

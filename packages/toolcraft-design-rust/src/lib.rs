@@ -14,6 +14,7 @@ pub mod html;
 pub mod interaction;
 pub mod layout;
 pub mod logging;
+pub mod markdown_delimiter;
 pub mod markdown_inline;
 pub mod markdown_render;
 pub mod markdown_scan;

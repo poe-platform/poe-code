@@ -1,11 +1,8 @@
 import assert from "node:assert/strict";
-import {readFileSync} from "node:fs";
 import {createRequire} from "node:module";
 import {test} from "node:test";
+import {referenceInline as reference} from "./reference-markdown-inline.mjs";
 
-const source=readFileSync(new URL("../../toolcraft-design/dist/terminal-markdown/parser/inline.js",import.meta.url),"utf8");
-const names=["parseInlineCode","parseBracketedLabel","parseLinkDestination","parseAutolink","parseLiteralAutolink","parseInlineHtmlTag","decodeEscapes","createOffsetMap","INLINE_HTML_TAGS"];
-const reference=await import(`data:text/javascript;base64,${Buffer.from(`${source}\nexport {${names.join(",")}};`).toString("base64")}`);
 const native=createRequire(import.meta.url)("../dist/toolcraft-design-rust.node");
 
 function compare(kind,input,start=0){

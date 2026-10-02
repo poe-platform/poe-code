@@ -798,6 +798,17 @@ lint pass with no dependency changes. These are internal primitives, not a publi
 parser or completed Markdown subpath; AST assembly, delimiter matching, footnote
 membership, source-range descriptors and block parsing remain required.
 
+Inline delimiter admission and pairing now also live in Rust, including flanking,
+underscore restrictions, strike minimums, mutable run lengths, the multiple-of-
+three rule, trapped-delimiter pruning and ordered pair identity. The admission
+primitive accepts character-class flags from its caller so runtime Unicode
+classification remains a host responsibility. Tests compare original helpers
+against every two-run combination of markers/flags/lengths, adjacent positions,
+nested real syntax and 700 seeded delimiter graphs. All 178 native tests, 237
+routed reference tests, declarations and scoped lint pass without dependency
+changes. AST assembly and the actual inline/block parser adapters remain open;
+these internal native functions do not make `parseInline` publicly available.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

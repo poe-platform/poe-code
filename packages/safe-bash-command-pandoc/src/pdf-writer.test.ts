@@ -1,6 +1,8 @@
 import { expect, it } from "vitest";
+import { crc32, deflateSync } from "node:zlib";
 import { PDFDocument } from "pdf-lib";
 import { convert, writeDocument, createFormatRegistry, createStandalonePandocCommand } from "./index.js";
+import { createLuaFilterCapability } from "./lua-filters.js";
 import type { Document } from "./index.js";
 import { Volume } from "memfs";
 import {suppliedDefaultFont} from "@poe-code/pdf";
@@ -86,4 +88,26 @@ it("admits shared font bytes while streaming before retaining further chunks", a
   const source = {chunks: (async function* () {yield font.bytes; continued = true; yield new Uint8Array([0]);})()};
   await expect(writeDocument(document, {to: "pdf", pdfFonts: [source]}, {limits: {binaryBytes: font.bytes.length - 1}})).rejects.toMatchObject({code: "E_LIMIT"});
   expect(continued).toBe(false);
+});
+
+it("embeds VFS images with intrinsic dimensions and supports pandoc.List:includes in Lua filters", async () => {
+  const chunk = (name: string, payload: Uint8Array) => { const data = Buffer.concat([Buffer.from(name), payload]); const length = Buffer.alloc(4); length.writeUInt32BE(payload.length); const checksum = Buffer.alloc(4); checksum.writeUInt32BE(crc32(data)); return Buffer.concat([length, data, checksum]); }; const header = Buffer.alloc(13); header.writeUInt32BE(4); header.writeUInt32BE(2, 4); header[8] = 8; header[9] = 6; const pixels = Buffer.alloc(34, 255); pixels[0] = 0; pixels[17] = 0; const png = new Uint8Array(Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), chunk("IHDR", header), chunk("IDAT", deflateSync(pixels)), chunk("IEND", new Uint8Array())]));
+  const filters = createLuaFilterCapability(async () => new TextEncoder().encode("function Header(h) if not h.classes:includes(\"verified\") then h.classes:insert(\"verified\") end return h end"));
+  const resourceFiles = {
+    lstat: async (p: string) => p === "/" ? {type: "directory" as const} : p === "/banner.png" ? {type: "file" as const} : undefined,
+    readFile: async (p: string) => { if (p === "/banner.png") return png; throw Object.assign(new Error("ENOENT"), {code: "ENOENT"}); },
+    mkdir: async () => {},
+    writeFile: async () => {}
+  };
+  const md = new TextEncoder().encode("# Title\n\nParagraph with \"quotes\" and [@smith2024].\n\n![Banner](banner.png)\n");
+  const pdfRes = await convert([{bytes: md, base: "/"}], {from: "markdown", to: "pdf", filters: [{kind: "lua", path: "/filter.lua"}]}, {filters, resourceFiles});
+  expect(pdfRes.kind).toBe("binary");
+  if (pdfRes.kind === "binary") {
+    expect(new TextDecoder("latin1").decode(pdfRes.bytes)).toContain("/Subtype /Image");
+  }
+  const htmlRes = await convert([{bytes: md, base: "/"}], {from: "markdown", to: "html", filters: [{kind: "lua", path: "/filter.lua"}]}, {filters, resourceFiles});
+  expect(htmlRes.kind).toBe("text");
+  if (htmlRes.kind === "text") {
+    expect(htmlRes.text).toContain("verified");
+  }
 });

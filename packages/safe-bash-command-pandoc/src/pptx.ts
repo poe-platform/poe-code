@@ -93,7 +93,10 @@ function plain(nodes: readonly Inline[], context: AdapterContext): string {
       case "Space": case "SoftBreak": return " ";
       case "LineBreak": return "\v";
       case "Code": return node.c[1];
-      case "Link": case "Span": return plain(node.c[1], context);
+      case "Link": case "Span": case "Cite": return plain(node.c[1], context);
+      case "SmallCaps": return plain(node.c, context);
+      case "Math": return node.c[1];
+      case "RawInline": case "Note": return "";
       case "Emph": case "Strong": case "Strikeout": case "Superscript": case "Subscript": case "Underline": return plain(node.c, context);
       case "Quoted": return (node.c[0] === "SingleQuote" ? "‘" : "“") + plain(node.c[1], context) + (node.c[0] === "SingleQuote" ? "’" : "”");
       default: return fail(context, `Unsupported PPTX inline: ${node.t}`);
@@ -112,6 +115,9 @@ function writeInline(paragraph: Paragraph, nodes: readonly Inline[], context: Ad
       else if (node.t === "Superscript" || node.t === "Subscript") add(node.c, {...style, baseline: node.t === "Superscript" ? 30 : -25});
       else if (node.t === "Quoted") add([{t: "Str", c: node.c[0] === "SingleQuote" ? "‘" : "“"}, ...node.c[1], {t: "Str", c: node.c[0] === "SingleQuote" ? "’" : "”"}], style);
       else if (node.t === "Span" || node.t === "Cite") add(node.c[1], style);
+      else if (node.t === "SmallCaps") add(node.c, style);
+      else if (node.t === "Math") add([{t: "Str", c: node.c[1]}], style);
+      else if (node.t === "RawInline" || node.t === "Note") continue;
       else if (node.t === "Link") {
         if (!node.c[2][0] || node.c[2][0].startsWith("#")) fail(context, "Internal document links require slide target resolution");
         add(node.c[1], {...style, url: node.c[2][0]});
@@ -178,13 +184,24 @@ export const pptxWriter: WriterCapability = {
       const bullets: BulletEdit[] = [];
       for (const [index, item] of content.entries()) {
         await context.cooperate();
-        const slide = reference ? model.slides.get(index) : model.slides.add_slide(model.slide_layouts.get(0));
+        let slide = reference ? model.slides.get(index) : model.slides.add_slide(model.slide_layouts.get(0));
+        let slideNumber = reference ? index + 1 : model.slides.length;
         const layout = selectedLayouts[index];
         const body = referenceBox(layout, ["body", "obj"], {x: margin, y: 1400000, width: bodyWidth, height: height - 1900000}, width, height, context).box;
         if (reference) for (const shape of slide.shapes) if (shape instanceof Shape && shape.is_placeholder && shape.has_text_frame) shape.text_frame.clear();
         let y = body.y;
+        const canPaginate = !reference && item.blocks.some(b => b.t === "Header" || b.t === "Table" || b.t === "Figure" || ((b.t === "Para" || b.t === "Plain") && b.c.some(n => n.t === "Image")));
+        const ensureSpace = (needed: number) => {
+          if (canPaginate && y > body.y && y + needed > body.y + body.height) {
+            context.bound("pages", model.slides.length + 1);
+            slide = model.slides.add_slide(model.slide_layouts.get(0));
+            slideNumber = model.slides.length;
+            y = body.y;
+          }
+        };
         const paragraph = (nodes: readonly Inline[], level = 0, bullet?: ParagraphBullet) => {
           const text = plain(nodes, context);
+          ensureSpace(450000);
           // This is an authored-content admission ceiling, not measured text fit.
           if (text.length > 800 || y + 450000 > body.y + body.height || body.width - level * 300000 <= 0) fail(context, "PPTX content exceeds the conservative paragraph/geometry admission policy");
           context.charge("objects", 1);
@@ -192,7 +209,7 @@ export const pptxWriter: WriterCapability = {
           writeInline(shape.text_frame.paragraphs[0]!, nodes, context);
           shape.text_frame.paragraphs[0]!.level = level;
           shape.name = `Pandoc paragraph ${shape.shape_id}`;
-          if (bullet) bullets.push({slide: index + 1, shape: shape.name, level, bullet});
+          if (bullet) bullets.push({slide: slideNumber, shape: shape.name, level, bullet});
           y += 500000;
           return shape;
         };
@@ -248,10 +265,12 @@ export const pptxWriter: WriterCapability = {
                 if (attrs.height && !attrs.width) w = Math.round(h * naturalWidth / naturalHeight);
                 if (Math.abs(w / h - naturalWidth / naturalHeight) > 0.01) fail(context, "Picture dimensions must preserve aspect ratio");
                 if (attrs.width || attrs.height) {
+                  ensureSpace(h);
                   if (w > body.width || y + h > body.y + body.height) fail(context, "Explicit image dimensions overflow the slide");
                 } else {
+                  if (body.y + body.height - y < Math.min(h, 1500000)) ensureSpace(Math.min(h, body.height));
                   const scale = Math.min(1, body.width / w, (body.y + body.height - y) / h);
-                  w = Math.round(w * scale); h = Math.round(h * scale);
+                  w = Math.max(1, Math.round(w * scale)); h = Math.max(1, Math.round(h * scale));
                 }
                 context.charge("images", 1);
                 const picture = await slide.shapes.add_picture(media, new Emu(body.x), new Emu(y), new Emu(w), new Emu(h));
@@ -260,6 +279,7 @@ export const pptxWriter: WriterCapability = {
                 break;
               }
               case "Header": paragraph(block.c[2], level); break;
+              case "Figure": await blocks(block.c[2], level, firstParagraph ? bullet : undefined); firstParagraph = false; break;
               case "CodeBlock": {
                 for (const line of block.c[1].split("\n")) {paragraph([{t: "Code", c: [block.c[0], line]}], level, firstParagraph ? bullet : undefined); firstParagraph = false;}
                 break;
@@ -291,6 +311,7 @@ export const pptxWriter: WriterCapability = {
                 }), ...block.c[5][1]];
                 const count = block.c[2].length;
                 const h = rows.length * 450000;
+                ensureSpace(h);
                 if (!rows.length || !count || y + h > body.y + body.height) fail(context, "Table geometry overflows the slide");
                 const table = slide.shapes.add_table(rows.length, count, new Emu(body.x), new Emu(y), new Emu(body.width), new Emu(h)).table;
                 table.first_row = block.c[3][1].length > 0;

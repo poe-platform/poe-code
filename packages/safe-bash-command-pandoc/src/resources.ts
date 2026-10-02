@@ -126,8 +126,17 @@ export class ResourceSession {
       if (!value || typeof value !== "object" || value instanceof Uint8Array) return;
       if ("t" in value && value.t === "Image") {
         const image = value as Extract<import("./ast-types.js").Inline, {t: "Image" | "Link"}>;
-        if (!embedded.has(image.c[2][0])) {
-          localTarget(image.c[2][0], ctx);
+        const url = image.c[2][0];
+        if (this.destination === undefined && embedImages && /^data:image\/(?:png|jpe?g);base64,/i.test(url) && !embedded.has(url)) {
+          const comma = url.indexOf(",");
+          const bytes = new Uint8Array(Buffer.from(url.slice(comma + 1), "base64"));
+          ctx.charge("resources", 1);
+          ctx.charge("resourceBytes", bytes.length);
+          ctx.charge("retainedBytes", bytes.length);
+          embedded.set(url, bytes);
+        }
+        if (!embedded.has(url)) {
+          localTarget(url, ctx);
           if (!this.search) resourceDirectory(this.origins.get(image.c[2])?.base ?? ctx.context.resourceCwd ?? "/");
         }
       }

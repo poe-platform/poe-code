@@ -2,7 +2,19 @@
 export const luaAst = `
 local check_depth = __pandoc_depth
 local ast_error = __pandoc_ast_error
-local list_mt = {__index = {insert = table.insert, remove = table.remove, extend = function(self, other) for _, x in ipairs(other) do table.insert(self, x) end end, walk = function(self, filter) return pandoc.walk_block(self, filter) end}}
+local list_mt
+list_mt = {__index = {
+  insert = table.insert,
+  remove = table.remove,
+  extend = function(self, other) for _, x in ipairs(other) do table.insert(self, x) end end,
+  includes = function(self, val, init) for i = init or 1, #self do if self[i] == val then return true, i end end return false end,
+  find = function(self, val, init) for i = init or 1, #self do if self[i] == val then return self[i], i end end return nil end,
+  find_if = function(self, pred, init) for i = init or 1, #self do if pred(self[i]) then return self[i], i end end return nil end,
+  filter = function(self, pred) local out = {} for i = 1, #self do if pred(self[i]) then out[#out + 1] = self[i] end end return setmetatable(out, list_mt) end,
+  map = function(self, fn) local out = {} for i = 1, #self do out[#out + 1] = fn(self[i]) end return setmetatable(out, list_mt) end,
+  clone = function(self) local out = {} for i = 1, #self do out[i] = self[i] end return setmetatable(out, list_mt) end,
+  walk = function(self, filter) return pandoc.walk_block(self, filter) end
+}}
 local function list(xs) return setmetatable(xs or {}, list_mt) end
 local function is_attr(value)
   if type(value) ~= "table" or #value ~= 3 or type(value[1]) ~= "string" or type(value[2]) ~= "table" or type(value[3]) ~= "table" then return false end
@@ -67,7 +79,7 @@ local element_mt = {__index = function(el, key)
   if (el.tag == "MetaMap" or el.tag == "MetaList") and type(el.content) == "table" then return el.content[key] end
 end, __newindex = function(el, key, value)
   if key == "identifier" then el.attr[1] = value
-  elseif key == "classes" then el.attr[2] = value
+  elseif key == "classes" then el.attr[2] = list(value)
   elseif key == "attributes" then el.attr[3] = value
   else rawset(el, key, value) end
 end}

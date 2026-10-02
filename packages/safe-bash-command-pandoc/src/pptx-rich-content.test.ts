@@ -46,3 +46,41 @@ it("preserves rich text and hyperlinks inside PPTX table cells", async () => {
   expect(plain).toMatchObject({text: expect.stringContaining("Fruit")});
   expect(plain).toMatchObject({text: expect.stringContaining("site and old")});
 });
+
+it("renders citations and paginates multi-section decks with multiple images across continuation slides", async () => {
+  const img1 = new Uint8Array(jpeg({width: 4, height: 2, data: Buffer.alloc(32, 200)}, 80).data);
+  const img2 = new Uint8Array(jpeg({width: 2, height: 2, data: Buffer.alloc(16, 120)}, 80).data);
+  const md = [
+    "# Executive Summary",
+    "",
+    "Overview with citation [@smith2024].",
+    "",
+    "## Matrix",
+    "",
+    "| Stage | Status |",
+    "| --- | --- |",
+    "| Build | PASS |",
+    "| Test | PASS |",
+    "| Release | PASS |",
+    "| Verify | PASS |",
+    "| Audit | PASS |",
+    "",
+    "## Visual Assets",
+    "",
+    "![Banner](banner.jpg)",
+    "",
+    "![Sheet](sheet.jpg)",
+    ""
+  ].join("\n");
+  const result = await convert([{bytes: new TextEncoder().encode(md)}], {from: "markdown", to: "pptx"}, {
+    ...context,
+    resources: {resolve: async id => id === "banner.jpg" ? img1 : img2}
+  });
+  expect(result.kind).toBe("binary");
+  if (result.kind !== "binary") throw new Error("Expected PPTX");
+  const parts = readZipArchiveEntries(result.bytes);
+  const mediaCount = [...parts.keys()].filter(name => name.startsWith("ppt/media/")).length;
+  expect(mediaCount).toBe(2);
+  const slideCount = [...parts.keys()].filter(name => /^ppt\/slides\/slide\d+\.xml$/.test(name)).length;
+  expect(slideCount).toBeGreaterThanOrEqual(2);
+});

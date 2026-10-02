@@ -3,10 +3,55 @@ import { PandocError } from "./errors.js";
 import type { Block, Inline, MetaValue } from "./ast-types.js";
 import type { WriterCapability, Limits } from "./types.js";
 
+function pdfRasterDimensions(bytes: Uint8Array, media: "png" | "jpeg", fail: (message: string) => never): {width: number; height: number} {
+  if (media === "png") {
+    if (bytes.length < 24) fail("Invalid PNG image header");
+    const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    const width = view.getUint32(16, false) * 0.75;
+    const height = view.getUint32(20, false) * 0.75;
+    if (width <= 0 || height <= 0) fail("Invalid PNG dimensions");
+    return {width, height};
+  }
+  let i = 2;
+  while (i + 8 < bytes.length) {
+    if (bytes[i] !== 0xff) { i++; continue; }
+    const marker = bytes[i + 1]!;
+    if (marker === 0xff) { i++; continue; }
+    if (marker === 0xd8 || marker === 0xd9 || (marker >= 0xd0 && marker <= 0xd7)) { i += 2; continue; }
+    const len = (bytes[i + 2]! << 8) | bytes[i + 3]!;
+    if (len < 2 || i + 2 + len > bytes.length) break;
+    if ((marker >= 0xc0 && marker <= 0xc3) || (marker >= 0xc5 && marker <= 0xc7) || (marker >= 0xc9 && marker <= 0xcb) || (marker >= 0xcd && marker <= 0xcf)) {
+      const height = ((bytes[i + 5]! << 8) | bytes[i + 6]!) * 0.75;
+      const width = ((bytes[i + 7]! << 8) | bytes[i + 8]!) * 0.75;
+      if (width > 0 && height > 0) return {width, height};
+    }
+    i += 2 + len;
+  }
+  return {width: 240, height: 160};
+}
+
+function parsePdfDimension(value: string | undefined, natural: number, maxWidth: number, fail: (message: string) => never): number {
+  if (value === undefined) return natural;
+  const trimmed = value.trim();
+  const direct = Number(trimmed);
+  if (Number.isFinite(direct) && direct > 0) return direct;
+  if (trimmed.endsWith("%")) {
+    const pct = Number(trimmed.slice(0, -1));
+    if (Number.isFinite(pct) && pct > 0) return (maxWidth * pct) / 100;
+  }
+  const units: Record<string, number> = {in: 72, pt: 1, cm: 72 / 2.54, mm: 72 / 25.4, px: 0.75};
+  const unit = Object.keys(units).find(u => trimmed.endsWith(u));
+  const num = unit ? Number(trimmed.slice(0, -unit.length)) : NaN;
+  const result = unit ? num * units[unit]! : NaN;
+  if (!Number.isFinite(result) || result <= 0) fail("PDF images require numeric width and height in points");
+  return result;
+}
+
 /** AST adapter only: all geometry, font operations and pagination live in pdf. */
 export const pdfWriter: WriterCapability = {
   format: "pdf",
   math: "source",
+  imageResources: "embed",
   async write(document, ctx) {
     const { renderPdf, suppliedDefaultFont, PdfError } = await import("@poe-code/pdf");
     const fail = (message: string): never => { throw new PandocError("E_CAPABILITY", ctx.operation ?? "write", message, "pdf"); };
@@ -62,14 +107,37 @@ export const pdfWriter: WriterCapability = {
       for (const node of nodes) {
         await ctx.cooperate(); ctx.charge("references", 1); ctx.charge("retainedBytes", 64);
         if (node.t === "Para" || node.t === "Plain") {
-          if (node.c.length === 1 && node.c[0]!.t === "Image") {
-            const image = node.c[0]!; const bytes = document.resources.find(resource => resource.id === image.c[2][0])?.bytes;
+          if (node.c.length > 1 && node.c.some(child => child.t === "Image")) {
+            const fragments: Block[] = [];
+            let pending: Inline[] = [];
+            for (const child of node.c) {
+              if (child.t === "Image") {
+                if (pending.some(p => p.t !== "Space" && p.t !== "SoftBreak")) fragments.push({t: "Para", c: pending});
+                fragments.push({t: "Para", c: [child]});
+                pending = [];
+              } else pending.push(child);
+            }
+            if (pending.some(p => p.t !== "Space" && p.t !== "SoftBreak")) fragments.push({t: "Para", c: pending});
+            await visit(fragments, indent);
+          } else if (node.c.length === 1 && node.c[0]!.t === "Image") {
+            const image = node.c[0]!;
+            const bytes = document.resources.find(resource => resource.id === image.c[2][0])?.bytes
+              ?? await ctx.resources?.resolve(image.c[2][0], undefined, ctx.signal);
             if (!bytes) fail("PDF image requires a supplied resolved resource");
+            const media = bytes[0] === 137 ? "png" : bytes[0] === 255 ? "jpeg" : fail("PDF image must be PNG or JPEG");
+            const natural = pdfRasterDimensions(bytes, media, fail);
+            const maxWidth = Math.max(72, (ctx.pdfPage?.width ?? 612) - (ctx.pdfPage?.margin ?? 72) * 2 - indent);
             const attrs = new Map(image.c[0][2]);
-            const width = Number(attrs.get("width")); const height = Number(attrs.get("height"));
-            if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(height) || height <= 0) fail("PDF images require numeric width and height in points");
-            const media = bytes![0] === 137 ? "png" : bytes![0] === 255 ? "jpeg" : fail("PDF image must be PNG or JPEG");
-            blocks.push({kind: "image", bytes: bytes!, media, width, height});
+            let width = parsePdfDimension(attrs.get("width"), natural.width, maxWidth, fail);
+            let height = parsePdfDimension(attrs.get("height"), natural.height, maxWidth, fail);
+            if (attrs.has("width") && !attrs.has("height")) height = width * (natural.height / natural.width);
+            else if (attrs.has("height") && !attrs.has("width")) width = height * (natural.width / natural.height);
+            else if (!attrs.has("width") && !attrs.has("height") && width > maxWidth) {
+              const scale = maxWidth / width;
+              width *= scale;
+              height *= scale;
+            }
+            blocks.push({kind: "image", bytes, media, width, height});
           } else blocks.push({kind: "paragraph", runs: await runs(node.c), indent});
         } else if (node.t === "Header") {
           const content = await runs(node.c[2], 24 - node.c[0] * 2);

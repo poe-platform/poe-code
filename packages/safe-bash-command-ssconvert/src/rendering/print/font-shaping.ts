@@ -31,13 +31,13 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
         }
       }
       const mem = exports?.memory;
-      if (wasm && mem instanceof wasm.Memory) {
-        try { (mem.buffer as ArrayBuffer & { transfer?: (n?: number) => ArrayBuffer }).transfer?.(0); } catch {}
+      if (typeof wasm?.Memory === "function" && mem instanceof wasm.Memory) {
+        try { (mem.buffer as ArrayBuffer & { transfer?: (n?: number) => ArrayBuffer }).transfer?.(0); } catch { /* Host memory detachment is best effort. */ }
       }
       disposed = true;
       if (--activeShapers <= 0) { activeShapers = 0; compiled = undefined; }
       const gc = (globalThis as { gc?: () => void }).gc;
-      if (typeof gc === "function") { try { gc(); } catch {} }
+      if (typeof gc === "function") { try { gc(); } catch { /* Optional host collection must not prevent cleanup. */ } }
     }
     exports = undefined;
     fonts.clear();

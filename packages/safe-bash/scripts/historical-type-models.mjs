@@ -4,6 +4,7 @@ import * as fs from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
+import { selectConditionalTarget } from "../../../scripts/package-export-target.mjs";
 import { loadBoundaries } from "./integration-inputs.mjs";
 import { assertAdmittedInputPath, assertLiteralInputPath, readRegularInput } from "./typecheck-integration-inputs.mjs";
 
@@ -237,9 +238,12 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
     for (const [route, target] of routes) {
       assert.ok(route === "." || route.startsWith("./"), "private export route must be relative");
       if (route !== ".") assertLiteralInputPath(route.slice(2));
-      assert.ok(typeof target?.types === "string" && target.types.startsWith("./dist/") && target.types.endsWith(".d.ts"), "private workspace declarations must remain below dist");
-      assertLiteralInputPath(target.types.slice(2));
-      paths[name + (route === "." ? "" : route.slice(1))] = [resolve(implementationRoot, target.types)];
+      const conditions = new Set(["node", "import", "default", ...parsed.options.customConditions ?? []]);
+      if (selectConditionalTarget(target, conditions) === null) continue;
+      const types = selectConditionalTarget(target?.types, conditions);
+      assert.ok(typeof types === "string" && types.startsWith("./dist/") && types.endsWith(".d.ts"), "private workspace declarations must remain below dist");
+      assertLiteralInputPath(types.slice(2));
+      paths[name + (route === "." ? "" : route.slice(1))] = [resolve(implementationRoot, types)];
     }
   }
   const parsedOptions = incrementalFile ? { ...parsed.options, incremental: true, tsBuildInfoFile: incrementalFile } : parsed.options;

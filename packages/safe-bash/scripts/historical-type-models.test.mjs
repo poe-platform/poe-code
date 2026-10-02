@@ -651,6 +651,26 @@ test("private workspace export declarations share one nominal owner without chan
   assert.deepEqual(JSON.parse(specimen.fileSystem.readFileSync(join(root, "tsconfig.json"), "utf8")), specimen.tsconfig);
 });
 
+for (const portable of [false, true]) test(`private declaration selection honors conditional types for portable=${portable}`, () => {
+  const specimen = privateWorkspaceFixture();
+  const manifestPath = "/safe-bash-command-fixture/package.json";
+  const manifest = JSON.parse(specimen.fileSystem.readFileSync(manifestPath, "utf8"));
+  manifest.exports["./adapter"] = {
+    types: { workerd: "./dist/adapter.browser.d.ts", default: "./dist/adapter.d.ts" },
+    workerd: "./dist/adapter.browser.js", import: "./dist/adapter.js",
+  };
+  specimen.fileSystem.writeFileSync(manifestPath, JSON.stringify(manifest));
+  specimen.fileSystem.writeFileSync("/safe-bash-command-fixture/dist/adapter.browser.d.ts",
+    specimen.fileSystem.readFileSync("/safe-bash-command-fixture/dist/adapter.d.ts"));
+  if (portable) {
+    specimen.tsconfig.compilerOptions.customConditions = ["workerd"];
+    specimen.fileSystem.writeFileSync(join(root, "tsconfig.json"), JSON.stringify(specimen.tsconfig));
+  }
+  const result = checkHistoricalSources(root, { ...specimen, boundaries });
+  assert.equal(result.status, 0, ts.formatDiagnostics(result.diagnostics, specimen.baseHost));
+  assert.ok(result.program.getSourceFile(`/safe-bash-command-fixture/dist/adapter${portable ? ".browser" : ""}.d.ts`));
+});
+
 test("private declaration boundaries retain strict callers and reject unexported source wildcard imports", () => {
   const specimen = privateWorkspaceFixture();
   specimen.fileSystem.writeFileSync(join(root, "tests/check.ts"), specimen.caller + 'run(value, { limit: undefined });\nconst indexed: string = ["value"][0];\nimport { internal } from "safe-bash-command-fixture/internal.js";\n');

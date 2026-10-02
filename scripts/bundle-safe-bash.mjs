@@ -1,4 +1,5 @@
 import { build } from "esbuild";
+import { selectConditionalTarget } from "./package-export-target.mjs";
 import { privateExportStarsPlugin } from "./private-export-stars.mjs";
 import { privateRuntimeExportResolver } from "./private-runtime-exports.mjs";
 import path from "node:path";
@@ -34,18 +35,20 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
     for (const key of Object.keys(pkg.imports ?? {})) subpathImports.add(key);
     for (const [route, target] of Object.entries(pkg.exports ?? {})) {
       if (Object.hasOwn(profile.optionalModules ?? {}, route)) continue;
-      // This recipe prepares ESM import entries only. Other runtime profiles
-      // need their own qualified build before they can be admitted here.
+      // Select paired runtime and declaration routes for this build's environment.
+      const allowedConditions = portable ? ["types", "import", "default", "node", "workerd", "worker", "browser"] : ["types", "import"];
       for (const condition of Object.keys(target ?? {})) {
-        if (condition !== "types" && condition !== "import" &&
-            !(portable && ["workerd", "worker", "browser"].includes(condition) && target[condition] === target.import)) {
+        if (!allowedConditions.includes(condition)) {
           throw new Error("Unsupported private command export condition: " + name + " " + condition);
         }
       }
-      const runtime = target?.import;
+      const conditions = new Set([...(portable ? ["workerd", "worker", "browser"] : ["node"]), "import", "default"]);
+      const runtime = selectConditionalTarget(target, conditions);
+      if (runtime === null) continue;
+      const types = selectConditionalTarget(target?.types, conditions);
       if (typeof runtime !== "string" || !runtime.startsWith("./dist/") || !runtime.endsWith(".js") ||
           runtime.split("/").some(component => component === ".." || component === "" || component.includes("\\") || component.includes("*")) ||
-          target.types !== runtime.slice(0, -3) + ".d.ts") {
+          types !== runtime.slice(0, -3) + ".d.ts") {
         throw new Error("Invalid private command build entrypoint: " + name);
       }
       // Independent workspace bundles erase dependency identities. Re-enter

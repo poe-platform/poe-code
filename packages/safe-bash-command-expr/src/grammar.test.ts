@@ -1,6 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { run } from "./helpers.js";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createExprCommand } from "./index.js";
+
+async function run(args: readonly string[]) {
+  let stdout = "", stderr = "";
+  const decoder = new TextDecoder();
+  const result = await createExprCommand().execute({
+    command: "expr", args, cwd: "/", env: { LC_ALL: "C" }, fs: createMemoryFileSystem(),
+    signal: new AbortController().signal,
+    stdin: { [Symbol.asyncIterator]() { throw new Error("argv-only expr acquired stdin"); } },
+    stdout: { async write(chunk) { stdout += decoder.decode(chunk); } },
+    stderr: { async write(chunk) { stderr += decoder.decode(chunk); } },
+  });
+  return { ...result, stdout, stderr };
+}
 
 const cases: readonly [readonly string[], string, number][] = [
   [["2", "+", "3", "*", "4"], "14", 0],

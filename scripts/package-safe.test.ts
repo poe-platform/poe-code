@@ -672,7 +672,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
 });
 
 {
-  const privatePackages = ["safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
+  const privatePackages = ["safe-bash-command-expr", "safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
 
   // Build the package fixture separately from its consumer type and runtime checks.
     const fixture = optionalLeftovers();
@@ -680,7 +680,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     const repository = fileURLToPath(new URL("../", import.meta.url));
     const manifest = structuredClone(bashManifest);
     manifest.poeCode.integration.privateWorkspaces = {};
-    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut", "./commands/line-endings", "./commands/mdq", "./commands/sed", "./commands/wget"].includes(route)));
+    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut", "./commands/line-endings", "./commands/mdq", "./commands/sed", "./commands/wget", "./commands/expr"].includes(route)));
     volume.rmSync("/repo/packages/safe-bash/dist", { recursive: true });
     volume.mkdirSync("/repo/packages/safe-bash/dist", { recursive: true });
     for (const filename of ["index.d.ts", "core.d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/${filename}`, "export {};\n");
@@ -715,13 +715,13 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, dtsText);
       }
     }
-    const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "@poe-platform/safe-fs"] });
+    const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "safe-bash-command-expr", "@poe-platform/safe-fs"] });
     const [privateBuild, shell, fs, csvgrepRegex] = await Promise.all([
       build({ entryPoints: privateEntries, outdir: "/repo/packages",
         bundle: false, write: false, format: "esm", target: "es2022" }),
       build({ ...portable, splitting: false, sourcemap: false, minify: true,
         entryPoints: undefined,
-        stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
+        stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors"; export * from "safe-bash-command-expr";', resolveDir: path.join(repository, "packages/safe-bash") },
         outdir: undefined, outfile: "/repo/packages/safe-bash/dist/index.js",
       }),
       build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")],
@@ -767,13 +767,14 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       }
     }
     volume.mkdirSync("/repo/packages/safe-bash/dist/contracts", { recursive: true });
-    for (const name of ["exiftool", "csvgrep", "csvcut", "line-endings", "mdq", "sed", "wget"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
+    for (const name of ["exiftool", "csvgrep", "csvcut", "line-endings", "mdq", "sed", "wget", "expr"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
     for (const subpath of ["command", "value", "errors", "plugin"]) {
       for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
     }
-    for (const name of ["exiftool", "csvgrep", "csvcut", "mdq", "sed", "wget"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
+    for (const name of ["exiftool", "csvgrep", "csvcut", "mdq", "sed", "wget", "expr"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
     for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/line-endings/index.${suffix}`, 'export * from "safe-bash-command-dos2unix";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/line-endings/index.browser.js", 'export * from "./index.js";');
+    volume.writeFileSync("/repo/packages/safe-bash/dist/commands/expr/index.browser.js", 'export * from "./index.js";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/mdq/index.browser.js", 'export * from "./index.js";');
     const plugin: Plugin = { name: "isolated-packed-files", setup(builder: import("esbuild").PluginBuild) {
       builder.onResolve({ filter: /.*/ }, args => {
@@ -855,8 +856,8 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; await module.exports.verification; })()`, sandbox);
   });
 
-  it("executes sed through the isolated packed portable command graph", async () => {
-    const consumer = await build({ stdin: { contents: readFileSync(new URL("./fixtures/safe-packages-sed.mjs", import.meta.url), "utf8"), resolveDir: "/output" },
+  it.each(["sed", "expr"])("executes %s through the isolated packed portable command graph", async command => {
+    const consumer = await build({ stdin: { contents: readFileSync(new URL(`./fixtures/safe-packages-${command}.mjs`, import.meta.url), "utf8"), resolveDir: "/output" },
       bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022", plugins: [plugin] });
     const sandbox = createContext({ TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,
       AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance });

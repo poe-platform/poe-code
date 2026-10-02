@@ -281,3 +281,5 @@ await verifyLineEndingCommands(defaultEntry);
 await verifyLineEndingCommands(nodeEntry);
 
 import "./safe-packages-curl.mjs";
+
+await (await import("./safe-packages-expr.mjs")).verification;

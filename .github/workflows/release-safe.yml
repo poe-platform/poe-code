@@ -260,7 +260,7 @@ jobs:
             if (typeof specifier !== "string" || !specifier.startsWith("./") || specifier.slice(2).includes("/") || !specifier.endsWith(".wasm")) throw new Error("Unexpected runtime import: " + String(specifier));
             return new WebAssembly.Module(readFileSync(specifier));
           };
-          const realm = createContext({ TextEncoder, TextDecoder, atob, btoa, Uint8Array, ArrayBuffer, TypeError, TransformStream, ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, crypto: globalThis.crypto, performance, loadWasm });
+          const realm = createContext({ TextEncoder, TextDecoder, atob, btoa, Uint8Array, ArrayBuffer, TypeError, TransformStream, ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask, structuredClone, URL, crypto: globalThis.crypto, performance, loadWasm });
           await runInContext(`(async (require) => { const module = { exports: {} }; ${readFileSync("private-realm.cjs", "utf8")}; await module.exports.verification; })(loadWasm)`, realm);
           NODE
           done

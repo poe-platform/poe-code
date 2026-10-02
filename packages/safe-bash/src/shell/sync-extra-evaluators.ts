@@ -18578,10 +18578,12 @@ const syncExtraRuntimeMethods = {
               if (strRes === undefined) return undefined;
               outLines = strRes;
             } else if (isInlineComm) {
+              if (sIdx === 0 && cmd0FileStage && stageArgs.includes("-")) return undefined;
               const commRes = this.evalSyncComm(rawLines, stageArgs, rawState.cwd, true);
               if (commRes === undefined) return undefined;
               outLines = commRes;
             } else if (isInlineJoin) {
+              if (sIdx === 0 && cmd0FileStage && stageArgs.includes("-")) return undefined;
               const joinRes = this.evalSyncJoin(rawLines, stageArgs, rawState.cwd);
               if (joinRes === undefined) return undefined;
               outLines = joinRes;
@@ -18589,7 +18591,8 @@ const syncExtraRuntimeMethods = {
               let b64In: Uint8Array = prevBuf.subarray(0, prevLen);
               let b64Args = stageArgs;
               if (sIdx === 0 && cmd0FileStage) {
-                const fPath = stageArgs[stageArgs.length - 1]!;
+                const fPath = stageArgs[stageArgs.length - 1];
+                if (!fPath || fPath.startsWith("-") || (stageArgs.length >= 2 && (stageArgs[stageArgs.length - 2] === "-w" || stageArgs[stageArgs.length - 2] === "--wrap"))) return undefined;
                 const fView = this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, fPath), true, true);
                 if (!fView || fView.byteLength > 16384) return undefined;
                 b64In = fView;
@@ -18623,14 +18626,16 @@ const syncExtraRuntimeMethods = {
               outLines = jqRes;
             } else if (firstName === "bc") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const bcRes = this.evalSyncBc(inStr.trim(), stageArgs, readFile);
+              const bcRes = this.evalSyncBc(sIdx === 0 && cmd0FileStage ? undefined : inStr.trim(), stageArgs, readFile);
               if (bcRes === undefined) return undefined;
               outLines = bcRes;
             } else if (firstName === "factor") {
+              if (sIdx === 0 && cmd0FileStage && !stageArgs.some(a => !a.startsWith("-"))) return undefined;
               const fRes = this.evalSyncFactor(rawLines, stageArgs);
               if (fRes === undefined) return undefined;
               outLines = fRes;
             } else if (firstName === "tsort") {
+              if (sIdx === 0 && cmd0FileStage && !stageArgs.some(a => a !== "-" && !a.startsWith("-"))) return undefined;
               const tsRes = this.evalSyncTsort(rawLines, stageArgs, rawState.cwd);
               if (tsRes === undefined) return undefined;
               outLines = tsRes;
@@ -18638,7 +18643,7 @@ const syncExtraRuntimeMethods = {
               const rawSlice = prevBuf.subarray(0, prevLen);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const b32Bytes = firstName === "base32"
-                ? evalSyncBase32(rawSlice, stageArgs, readFile)
+                ? evalSyncBase32(sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile)
                 : firstName === "iconv"
                   ? evalSyncIconv(sIdx === 0 && cmd0FileStage ? undefined : rawSlice, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : (firstName === "gzip" || firstName === "gunzip" || firstName === "zcat" || firstName === "unzstd" || firstName === "zstdcat" || firstName === "zstd" || firstName === "bzip2" || firstName === "bunzip2" || firstName === "bzcat" || firstName === "xz" || firstName === "unxz" || firstName === "xzcat" || firstName === "lzma" || firstName === "unlzma" || firstName === "lzcat")
@@ -18655,7 +18660,7 @@ const syncExtraRuntimeMethods = {
               continue;
             } else if (firstName === "md5sum" || firstName === "sha1sum" || firstName === "sha224sum" || firstName === "sha256sum" || firstName === "sha384sum" || firstName === "sha512sum" || firstName === "cksum") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const ckStr = evalSyncChecksum(firstName, prevBuf.subarray(0, prevLen), stageArgs, readFile);
+              const ckStr = evalSyncChecksum(firstName, sIdx === 0 && cmd0FileStage ? undefined : prevBuf.subarray(0, prevLen), stageArgs, readFile);
               if (ckStr === undefined) return undefined;
               const encoded = fastSharedTextEncoder.encode(ckStr);
               const nextTotalBytes = this.budget.bytes + encoded.byteLength;
@@ -24471,7 +24476,7 @@ const syncExtraRuntimeMethods = {
   }
 ,
   evalSyncBc(this: any, 
-    input: string,
+    input: string | undefined,
     opArgs: readonly string[],
     readFileSync?: (p: string) => Uint8Array | undefined,
   ): string[] | undefined {
@@ -24488,6 +24493,7 @@ const syncExtraRuntimeMethods = {
       if (!ended && a.startsWith("-")) return undefined;
       files.push(a);
     }
+    if (files.length === 0 && input === undefined) return undefined;
     let fullInput = "";
     for (const f of files) {
       if (!readFileSync) return undefined;
@@ -24495,7 +24501,7 @@ const syncExtraRuntimeMethods = {
       if (!fb || fb.includes(0)) return undefined;
       fullInput += sharedSyncPipeDecoder.decode(fb) + "\n";
     }
-    fullInput += input;
+    fullInput += input ?? "";
     type DecVal = { c: bigint; s: number };
     const tenPow = (n: number): bigint => 10n ** BigInt(n);
     const isqrt = (n: bigint): bigint => {

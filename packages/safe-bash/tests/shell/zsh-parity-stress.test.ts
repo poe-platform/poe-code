@@ -1475,3 +1475,19 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "h1\nhello|only_line|42|77|NBUQU===|one   two|a\n9");
   });
+
+  test("80. sync pipeline stage-0 bc, base32, base64, md5sum, factor, and comm honor inherited stdin", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "echo \"20\" > /20",
+      "b64_out=$({ base64 -w 20 | cat; } <<< \"hi\")",
+      "b32_out=$({ base32 -w 20 | cat; } <<< \"hi\")",
+      "bc_out=$({ bc -l | cat; } <<< \"6*7\")",
+      "md5_out=$({ md5sum -b | cut -d\" \" -f1; } <<< \"hi\")",
+      "echo \"b\" > /f80.txt",
+      "cm_out=$({ comm -12 - /f80.txt | cat; } <<< $\x27a\\nb\x27)",
+      "echo \"$b64_out|$b32_out|$bc_out|$md5_out|$cm_out\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "aGkK|NBUQU===|42|764efa883dda1e11db47671c4a3bbd9e|b");
+  });

@@ -87,7 +87,10 @@
     },
     "./memory": {
       "types": "./dist/types/memory/index.d.ts",
-      "import": "./packages/memory/dist/index.js"
+      "workerd": "./dist/memory.browser.js",
+      "browser": "./dist/memory.browser.js",
+      "worker": "./dist/memory.browser.js",
+      "import": "./dist/memory.js"
     },
     "./agent": {
       "types": "./dist/agent.d.ts",

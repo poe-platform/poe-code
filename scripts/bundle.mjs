@@ -253,21 +253,24 @@ if (providerEntryPoints.length > 0) {
   );
 }
 
-// Bundle memory into a single esm file so consumers of poe-code/memory
-// don't need @poe-code/* workspace deps at runtime.
-consumerBuilds.push(
-  await esbuild.build({
-    entryPoints: [path.join(rootDir, "packages/memory/src/index.ts")],
-    bundle: true,
-    platform: "node",
-    target: "node18",
-    format: "esm",
-    outfile: path.join(rootDir, "packages/memory/dist/index.js"),
-    ...consumerBuildOptions,
-    sourcemap: true,
-    plugins: [...consumerBuildOptions.plugins, stripShebangPlugin]
-  })
-);
+// Publish host and Worker memory bundles without overwriting the workspace's
+// condition-aware TypeScript output.
+for (const platform of ["node", "browser"]) {
+  consumerBuilds.push(
+    await esbuild.build({
+      entryPoints: [path.join(rootDir, "packages/memory/src/index.ts")],
+      bundle: true,
+      platform,
+      target: platform === "node" ? "node18" : "es2022",
+      conditions: platform === "browser" ? ["workerd", "browser"] : ["node"],
+      format: "esm",
+      outfile: path.join(rootDir, "dist", platform === "node" ? "memory.js" : "memory.browser.js"),
+      ...consumerBuildOptions,
+      sourcemap: true,
+      plugins: [...consumerBuildOptions.plugins, stripShebangPlugin]
+    })
+  );
+}
 
 for (const options of resolveSpreadsheetSdkBuilds(rootDir, consumerBuildOptions, packageJson)) {
   consumerBuilds.push(await esbuild.build(options));

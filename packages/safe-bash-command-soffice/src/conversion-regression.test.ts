@@ -156,3 +156,20 @@ for (const extension of ["xlsx", "pptx"]) it(`rejects malformed ${extension} in 
   assert.equal(result.stdout, "");
   assert.ok(result.stderr.includes("Invalid ZIP"));
 });
+
+
+it("round-trips quoted CSV through XLSX beyond Z and ZZ columns", async () => {
+  const fields = Array.from({ length: 703 }, (_, column) => `column ${column + 1}`);
+  fields[0] = '"Smith, John"';
+  fields[26] = '"He said ""Hi"""';
+  fields[702] = '"two\nlines"';
+  const csv = fields.join(",") + "\n";
+  const files = new Map([["/wide.csv", encode(csv)]]);
+  const xlsx = await runSofficeCli(["--convert-to", "xlsx", "/wide.csv"], files);
+  assert.equal(xlsx.exitCode, 0, xlsx.stderr);
+  const sheet = decode(readZipArchiveEntries(files.get("/wide.xlsx")!).get("xl/worksheets/sheet1.xml")!);
+  for (const column of ["Z", "AA", "AZ", "BA", "ZZ", "AAA"]) assert.ok(sheet.includes(`r="${column}1"`), column);
+  const result = await runSofficeCli(["--convert-to", "csv", "--outdir", "/out", "/wide.xlsx"], files);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(decode(files.get("/out/wide.csv")!), csv);
+});

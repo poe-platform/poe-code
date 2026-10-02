@@ -760,18 +760,54 @@ function parseOdtBlocks(zipBytes: Uint8Array): DocBlock[] {
 
 function parseRtfBlocks(rtfBytes: Uint8Array): DocBlock[] {
   const raw = new TextDecoder("latin1").decode(rtfBytes);
-  const cleaned = raw
-    .replace(/\{\\(?:fonttbl|colortbl|stylesheet|info)[\s\S]*?\}/g, "")
-    .replace(/\\par\b\s*/g, "\n")
-    .replace(/\\line\b\s*/g, "\n")
-    .replace(/\\tab\b\s*/g, "\t")
-    .replace(/\\'([0-9a-fA-F]{2})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16)))
-    .replace(/\\[a-zA-Z]+-?\d*\s?/g, "")
-    .replace(/[{}]/g, "");
-  const lines = cleaned
-    .split(/\r?\n/)
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+  const groups: boolean[] = [];
+  let hidden = false;
+  let cleaned = "";
+  const isLetter = (char: string) =>
+    (char >= "a" && char <= "z") || (char >= "A" && char <= "Z");
+  for (let i = 0; i < raw.length;) {
+    const char = raw[i++]!;
+    if (char === "{") {
+      groups.push(hidden);
+    } else if (char === "}") {
+      hidden = groups.pop() ?? false;
+    } else if (char === "\\") {
+      const symbol = raw[i++] ?? "";
+      if (symbol === "*") {
+        hidden = true;
+      } else if (symbol === "\\" || symbol === "{" || symbol === "}") {
+        if (!hidden) cleaned += symbol;
+      } else if (symbol === "'") {
+        const hex = raw.slice(i, i + 2);
+        if (!hidden && hex.length === 2 && [...hex].every(ch => "0123456789abcdef".includes(ch.toLowerCase()))) {
+          cleaned += new TextDecoder("windows-1252").decode(new Uint8Array([Number.parseInt(hex, 16)]));
+        }
+        i += 2;
+      } else if (isLetter(symbol)) {
+        const start = i - 1;
+        while (i < raw.length && isLetter(raw[i]!)) i++;
+        const word = raw.slice(start, i);
+        const parameterStart = i;
+        if (raw[i] === "-") i++;
+        while (i < raw.length && raw[i]! >= "0" && raw[i]! <= "9") i++;
+        const parameter = Number(raw.slice(parameterStart, i));
+        // Only a space delimits a control word; generated paragraph breaks are data.
+        if (raw[i] === " ") i++;
+        if (["fonttbl", "colortbl", "stylesheet", "info", "pict", "object"].includes(word)) hidden = true;
+        if (word === "bin" && Number.isSafeInteger(parameter) && parameter > 0) {
+          i += parameter;
+        } else if (!hidden) {
+          if (word === "par" || word === "line") cleaned += "\n";
+          else if (word === "tab") cleaned += "\t";
+        }
+      } else if (!hidden && symbol === "~") {
+        cleaned += "\u00a0";
+      }
+    } else if (!hidden && char !== "\r" && char !== "\n") {
+      cleaned += char;
+    }
+  }
+  const lines = cleaned.split("\n").map(line => line.trim()).filter(line => line.length > 0);
   return lines.map((line, idx) =>
     idx === 0 ? { kind: "heading", text: line } : { kind: "paragraph", text: line }
   );
@@ -1295,7 +1331,7 @@ export async function soffice(context: CommandContext, options: SofficeCommandOp
   } finally {
     await invocation.close();
     if (typeof (globalThis as { gc?: () => void }).gc === "function") {
-      try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+      try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional collection must not mask command results. */ }
     }
   }
 }

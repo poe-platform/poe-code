@@ -1478,6 +1478,7 @@ describe("scoped safe package artifacts", () => {
     expected["/output/safe-bash/dist/safe-bash-sqlite-engine/LICENSE"] = data["/repo/packages/safe-bash-sqlite-engine/LICENSE"]!;
     expected["/output/safe-bash/dist/safe-bash-sqlite-engine/index.d.ts"] = "export {};\n";
     expected["/output/safe-bash/dist/safe-bash-sqlite-engine/safe-fs.d.ts"] = "export {};\n";
+    expected["/output/safe-bash/dist/safe-bash-sqlite-engine/storage.d.ts"] = "export {};\n";
     for (const asset of ["LICENSE", "callback.wasm", "native.d.mts", "native.mjs", "native.wasm", "node-assets.mjs", "sources.json", "vfs.d.mts", "vfs.mjs"]) {
       expected["/output/safe-bash/dist/safe-bash-sqlite-engine/native/" + asset] = data["/repo/packages/safe-bash-sqlite-engine/dist/native/" + asset]!;
     }

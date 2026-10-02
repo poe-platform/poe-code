@@ -363,20 +363,20 @@ export function evalSyncLess(
   if (startSearch) return undefined;
   const chunks: string[] = [];
   if (files.length === 0) {
-    if (!stdinBytes) return undefined;
+    if (!stdinBytes || stdinBytes.includes(0)) return undefined;
     try { chunks.push(syncLessDecoder.decode(stdinBytes)); } catch { return undefined; }
   } else {
     let stdinUsed = false;
     for (let i = 0; i < files.length; i++) {
       const f = files[i]!;
       if (f === "-") {
-        if (!stdinBytes) return undefined;
+        if (!stdinBytes || stdinBytes.includes(0)) return undefined;
         if (stdinUsed) continue;
         stdinUsed = true;
         try { chunks.push(syncLessDecoder.decode(stdinBytes)); } catch { return undefined; }
       } else {
         const b = readFile ? readFile(f) : undefined;
-        if (!b) return undefined;
+        if (!b || b.includes(0)) return undefined;
         try { chunks.push(syncLessDecoder.decode(b)); } catch { return undefined; }
       }
     }

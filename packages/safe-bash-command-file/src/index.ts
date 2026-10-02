@@ -338,8 +338,13 @@ export function evalSyncFile(
           hasFilesFrom = true;
           const listBytes = val === "-" ? (stdinUsed ? new Uint8Array(0) : inBytes) : readFileSync?.(val);
           if (val === "-") stdinUsed = true;
-          if (!listBytes || listBytes.byteLength > 16384) return undefined;
-          const listText = new TextDecoder("utf-8", { fatal: false }).decode(listBytes);
+          if (!listBytes || listBytes.byteLength > 16384 || listBytes.includes(0)) return undefined;
+          let listText: string;
+          try {
+            listText = new TextDecoder("utf-8", { fatal: true }).decode(listBytes);
+          } catch {
+            return undefined;
+          }
           const fromLines = listText.endsWith("\n") ? listText.slice(0, -1).split("\n") : (listText.length === 0 ? [] : listText.split("\n"));
           for (const fn of fromLines) {
             if (!fn || /[\x00-\x1f\x7f]/.test(fn)) return undefined;
@@ -362,7 +367,7 @@ export function evalSyncFile(
       }
     }
   }
-  if (names.length === 0) return undefined;
+  if (names.length === 0 || print0 > 0) return undefined;
   const outLines: string[] = [];
   for (const name of names) {
     let detected: Classification;

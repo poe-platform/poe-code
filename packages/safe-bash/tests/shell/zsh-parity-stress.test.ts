@@ -669,6 +669,22 @@ test("59. sync vs async parity for compression, sponge, diff3, and csvcut semant
   }
 });
 
+test("60. sync vs async parity for single-input command substitutions, base32 BOM, less, and file -0", async () => {
+  const scripts = [
+    "a=$(shuf -z <<< $'only\\0'); b=$(file -0 - <<< 'hello'); echo \"$a|$b\"",
+    "x=$(printf '\\xef\\xbb\\xbfhi' | base32 | base32 -d); printf '%s' \"$x\" | od -An -tx1 | tr -d ' \\n'; echo",
+    "y=$(printf 'a\\0b\\n' | less); echo \"$y\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});
+
 test("55. sync vs async parity for apply_patch, html-to-markdown, and xq semantics", async () => {
   const scripts = [
     "mkdir -p /ap55; cd /ap55; printf \"old\\n\" > a.txt; printf \"existing\\n\" > b.txt; p=$'*** Begin Patch\\n*** Update File: a.txt\\n*** Move to: b.txt\\n@@\\n-old\\n+new\\n*** End Patch'; x=$(apply_patch \"$p\" 2>/dev/null; echo $?); y=$(cat b.txt); echo \"$x|$y\"",

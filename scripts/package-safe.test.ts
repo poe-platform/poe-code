@@ -310,24 +310,25 @@ it("maps the standalone spreadsheet contracts facade to the scoped canonical run
   }
 });
 
-it("ships an explicitly declared private command SDK with its runtime graph", async () => {
+it.each(["csvkit", "zip"])("ships the private %s command SDK with its runtime graph", async name => {
+  const workspace = `safe-bash-command-${name}`;
   const { volume, options } = optionalLeftovers();
   const manifest = structuredClone(bashManifest);
-  manifest.devDependencies["safe-bash-command-csvkit"] = "*";
+  manifest.devDependencies[workspace] = "*";
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
-  volume.mkdirSync("/repo/packages/safe-bash-command-csvkit/dist", { recursive: true });
-  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/package.json", JSON.stringify({
-    ...JSON.parse(readFileSync(new URL("../packages/safe-bash-command-csvkit/package.json", import.meta.url), "utf8")),
+  volume.mkdirSync(`/repo/packages/${workspace}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${workspace}/package.json`, JSON.stringify({
+    ...JSON.parse(readFileSync(new URL(`../packages/${workspace}/package.json`, import.meta.url), "utf8")),
     exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
   }));
-  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/dist/index.js", "export const commands = ['csvcut'];");
-  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/dist/index.d.ts", "export declare const commands: string[];");
-  for (const suffix of ["js", "d.ts"]) volume.writeFileSync("/repo/packages/safe-bash/dist/commands/csvkit/index." + suffix, 'export { commands } from "safe-bash-command-csvkit";');
-  volume.writeFileSync("/repo/packages/safe-bash-command-csvkit/LICENSE", "Fixture license\n");
+  volume.writeFileSync(`/repo/packages/${workspace}/dist/index.js`, "export const commands = ['csvcut'];");
+  volume.writeFileSync(`/repo/packages/${workspace}/dist/index.d.ts`, "export declare const commands: string[];");
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export { commands } from "${workspace}";`);
+  volume.writeFileSync(`/repo/packages/${workspace}/LICENSE`, "Fixture license\n");
   await packageSafeLibraries({ ...options, outDir: "/output" });
-  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/csvkit/index.js", "utf8")).toContain('"../../../safe-bash-command-csvkit/index.js"');
-  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-command-csvkit/index.js", "utf8")).toContain("csvcut");
-  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty("safe-bash-command-csvkit");
+  expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/commands/${name}/index.js`, "utf8")).toContain(`"../../../${workspace}/index.js"`);
+  expect(volume.readFileSync(`/output/safe-bash/dist/${workspace}/index.js`, "utf8")).toContain("csvcut");
+  expect(JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8")).dependencies).not.toHaveProperty(workspace);
 });
 
 it("packages declared private Node exports and their conditional declarations", async () => {

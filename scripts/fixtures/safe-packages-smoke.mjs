@@ -1,3 +1,4 @@
+import "./safe-packages-zip.mjs";
 import "./safe-packages-grep.mjs";
 import { verification as tarVerification } from "./safe-packages-tar.mjs";
 await tarVerification;

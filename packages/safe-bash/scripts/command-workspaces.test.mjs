@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 const root = new URL("../../../", import.meta.url);
-const names = "bc fd sponge less more xxd od pandoc ssconvert op htmlq csvkit dd shuf yes xmllint apply-patch cmp column csplit du expr factor file getopt hexdump html-to-markdown iconv install pr split timeout tree truncate tsort which xan nl rev tac readlink realpath strings paste join comm expand unexpand date env printenv sleep touch egrep fgrep rg base64 md5sum sha1sum sha256sum".split(" ");
+const names = "bc fd sponge less more xxd od pandoc ssconvert op htmlq csvkit dd shuf yes xmllint apply-patch cmp column csplit du expr factor file getopt hexdump html-to-markdown iconv install pr split timeout tree truncate tsort which xan nl rev tac readlink realpath strings paste join comm expand unexpand date env printenv sleep touch egrep fgrep rg zip base64 md5sum sha1sum sha256sum".split(" ");
 const manifest = path => JSON.parse(readFileSync(new URL(path, root), "utf8"));
 for (const name of [...names, "docx", "pptx", "pdfunite", "pdfseparate"]) test(name + " has one private portable command owner", () => {
   const packageName = "safe-bash-command-" + name;

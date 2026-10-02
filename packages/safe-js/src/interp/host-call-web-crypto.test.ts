@@ -1,5 +1,11 @@
 import { afterEach, expect, it, vi } from "vitest";
 
+vi.mock("#safe-js-platform", () => import("../platform/workerd.js"));
+vi.mock("@poe-code/safe-fs/core", () => ({
+  createPortableFileSystemAdapterRegistry() {
+    throw new Error("The host-call journal must not construct filesystem adapters");
+  }
+}));
 vi.mock("node:crypto", () => { throw new Error("Node crypto is unavailable in this host"); });
 
 afterEach(() => vi.unstubAllGlobals());

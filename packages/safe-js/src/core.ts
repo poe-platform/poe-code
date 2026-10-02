@@ -23,6 +23,7 @@ export const deepCopyFromSandbox: {
   (value: SandboxValue, options?: PublicCopyOptions): unknown;
 } = copyFromSandboxInternal;
 export { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
+export { captureHostContext } from "./host-context.js";
 export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
 export { run } from "./run.js";
 export type { RunPromise } from "./run.js";

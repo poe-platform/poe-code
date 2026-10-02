@@ -44,6 +44,22 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
           if (usage.inputTokens !== 2 * (index + 1) || usage.outputTokens !== 20 || usage.attemptCount !== 2)
             throw new Error("Portable concurrent spawn accounting failed");
         }
+        await Promise.all([41, 42].map(async expected => {
+          const realm = sdk.createRealm({ grants: ["source:nested"], extensions: [sdk.defineExtension({
+            manifest: { version: 1, name: "portable-callback", capabilities: ["source:nested"], globals: ["invokeLater"] },
+            setup(context) {
+              return { globals: { invokeLater: context.nestedOperation(async callback => {
+                const resume = sdk.captureHostContext();
+                await Promise.resolve();
+                return resume(() => context.invokeCallback(callback));
+              }) } };
+            }
+          })] });
+          try {
+            const result = await realm.evaluate('return invokeLater(async () => { await 0; return ' + expected + '; });');
+            if (result.returnValue !== expected) throw new Error("Explicit host callback context failed");
+          } finally { await realm.close(); }
+        }));
         const context = new StackContext();
         const resume = context.run("first", () => StackContext.snapshot());
         const later = new StackContext();
@@ -103,6 +119,14 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
         try { await resolveFsConfig({ adapter: { type: "real", options: { root: "/" } } }); }
         catch (error) { rejectedReal = error instanceof TypeError && error.message.includes("Unknown filesystem adapter: real"); }
         if (!rejectedReal) throw new Error("Worker granted ambient filesystem authority");
+        await configured.adapter.writeFile("/outside", new TextEncoder().encode("private"));
+        await configured.adapter.symlink("/outside", "/configured/escape");
+        for (const target of ["/outside", "/configured/../outside", "/configured/escape"]) {
+          const denied = await run('import { readFile } from "fs"; try { await readFile(' + JSON.stringify(target) + ', "utf8"); } catch (error) { return error.code; }', {
+            modules: { fs: makeFsModule(configured) }
+          });
+          if (denied.returnValue !== "EACCES") throw new Error("Worker filesystem confinement failed: " + target);
+        }
         const fs = new MemoryFileSystem();
         await fs.writeFile("/value", new TextEncoder().encode("portable 😀"));
         const execution = run('import { readFile } from "fs"; return await readFile("/value", "utf8");', {
@@ -126,6 +150,12 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
           sourceType: "module", filename: await resolver.entryId(), sourceResolver: resolver
         });
         if (imported.returnValue.value !== 42) throw new Error("Source import failed");
+        await fs.writeFile("/outside.ajs", new TextEncoder().encode("export const secret = 1;"));
+        await fs.symlink("/outside.ajs", "/source/escape.ajs");
+        for (const specifier of ["../outside.ajs", "./escape.ajs"]) {
+          if (await resolver(specifier, "/source/entry.ajs", {}) !== undefined)
+            throw new Error("Worker source confinement failed: " + specifier);
+        }
         return Response.json({ ok: true, exports: Object.keys(sdk).sort() });
       }};
     ` },

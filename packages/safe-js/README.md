@@ -10,7 +10,19 @@ Complete ECMAScript conformance has not been established; see
 
 Under `workerd` and `browser` conditions, the standalone root and `/core` exports select the portable interpreter with parsing (`parse`, `parseModule`, `parseSourceModule`), checkpoints (`dump`, `restore`), sandbox copy helpers, error classes, `declareHostOperation`, `makeFsModule`, `makeEnvModule`, `makeTimeModule`, `makeFailModule`, `makeMetricModule`, and `makeHarnessModule`. The `/modules/fs` entry is also portable; supply a filesystem adapter for host file access.
 
-Without host-provided asynchronous context storage, portable context is stack-scoped: captured interpreter continuations restore it explicitly, but arbitrary host code does not retain ambient context after `await`. Portable proxy checks recognize tracked proxies, not arbitrary host-created proxies, and native Promise probes can consult constructor/species properties. Portable host-value handling therefore does not provide Node's trap-free admission guarantees.
+Worker hosts must supply trusted data, native built-ins, callbacks, and ordinary native Promises. Do not pass untrusted host Proxies or Promise constructor/species accessors into the interpreter: portable proxy checks recognize interpreter-tracked proxies, and native Promise probes may consult constructor/species properties. Guest code remains interpreted; this host contract does not make arbitrary native JavaScript a sandboxed input.
+
+Without host-provided asynchronous context storage, portable context is stack-scoped. Call `captureHostContext()` inside a host operation before awaiting or scheduling work, then use its returned function around each context-sensitive continuation. Captures keep concurrent operations isolated and preserve disabled-context retirement; they do not automatically propagate through further native `await` expressions. Release captured functions when the operation finishes.
+
+```js
+import { captureHostContext } from "@poe-platform/safe-js";
+
+async function hostOperation(callback) {
+  const resume = captureHostContext();
+  const value = await externalWork();
+  return resume(() => callback(value));
+}
+```
 
 ## Quickstart
 

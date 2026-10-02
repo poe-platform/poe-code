@@ -7,7 +7,7 @@ it.each([core, workerd])("exposes the complete portable API", api => {
     "parseModule", "parseSourceModule", "lint", "deepCopyFromSandbox", "deepCopyToSandbox",
     "Budget", "SandboxError", "SnapshotValidationError", "declareHostOperation", "makeFsModule",
     "makeEnvModule", "makeFailModule", "makeLogModule", "makeMetricModule", "makeTimeModule",
-    "createRootedSourceResolver"]) {
+    "createRootedSourceResolver", "captureHostContext"]) {
     expect(Reflect.get(api, name), name).toBeTypeOf("function");
   }
 });

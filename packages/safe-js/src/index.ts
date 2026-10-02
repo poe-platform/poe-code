@@ -1,4 +1,5 @@
 export { admitNativePromiseProperties } from "./interp/native-promise-properties.js";
+export { captureHostContext } from "./host-context.js";
 export { parse, parseModule, parseSourceModule, restore, deepCopyFromSandbox } from "./core.js";
 export type { ParsedSourceModule, SourceImport, SourceExport } from "./parse/module-syntax.js";
 export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";

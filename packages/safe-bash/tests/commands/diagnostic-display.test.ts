@@ -24,7 +24,7 @@ async function run(source: string, stdin?: string, additional?: CommandDefinitio
   await fs.mkdir("/names");
   await fs.writeFile(`/names/${marker}`, Buffer.from("payload"));
   const shell = new Shell({ fs, env: { LC_ALL: "C" } }).use(agentCommands());
-  if (additional) shell.register(additional);
+  if (additional) shell.register(additional, { replace: true });
   try { return await shell.exec(source, stdin === undefined ? {} : { stdin }); }
   finally { await shell.dispose(); }
 }

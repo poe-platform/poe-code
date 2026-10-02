@@ -1542,3 +1542,16 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "hello from stdin|42|right|b:1\na:2|aa1|aGkK");
   });
+
+  test("84. sync mkdir pre-validates parent paths across multi-dir operands and chmod rejects dot-segments on regular files", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "echo \"hi\" > /reg84.txt",
+      "m1=$(mkdir -v /dir84a /missing84/sub 2>/dev/null; echo :$?)",
+      "m2=$(mkdir -pv /dir84b /reg84.txt/sub 2>/dev/null; echo :$?)",
+      "ch_rc=$(chmod 600 /reg84.txt/. 2>/dev/null; echo $?)",
+      "echo \"$m1|$m2|$ch_rc\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "mkdir: created directory \x27/dir84a\x27\n:1|mkdir: created directory \x27/dir84b\x27\n:1|1");
+  });

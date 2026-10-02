@@ -1193,11 +1193,25 @@ export function evalSyncMkdir(
     }
   }
   for (const dir of operands) {
+    if (!dir || dir.endsWith("/.") || dir.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(dir)) return undefined;
     const st = statTypeSync(dir);
     if (parents) {
       if (st !== "missing" && st !== "directory") return undefined;
+      const parts = dir.split("/").filter(Boolean);
+      let cur = dir.startsWith("/") ? "" : ".";
+      for (const part of parts) {
+        cur = cur === "" ? "/" + part : cur === "." ? part : cur + "/" + part;
+        const pst = statTypeSync(cur);
+        if (pst !== "missing" && pst !== "directory") return undefined;
+      }
     } else {
       if (st !== "missing") return undefined;
+      const trimmed = dir.replace(/\/+$/, "");
+      const slash = trimmed.lastIndexOf("/");
+      if (slash > 0) {
+        const parent = trimmed.slice(0, slash);
+        if (statTypeSync(parent) !== "directory") return undefined;
+      }
     }
   }
   let out = "";

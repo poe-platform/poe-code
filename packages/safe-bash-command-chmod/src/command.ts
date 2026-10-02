@@ -133,7 +133,7 @@ export function evalSyncChmod(
     if (reference !== undefined) {
       if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(reference)) return undefined;
       let refType = "";
-      if (!chmodNodeSync(reference, stat => { refType = stat.type; referenceMode = stat.mode & 0o7777; return stat.mode; }) || referenceMode === undefined || (reference.endsWith("/") && refType !== "directory")) {
+      if (!chmodNodeSync(reference, stat => { refType = stat.type; referenceMode = stat.mode & 0o7777; return stat.mode; }) || referenceMode === undefined || ((reference.endsWith("/") || reference.endsWith("/.") || reference.includes("/./")) && refType !== "directory")) {
         return undefined;
       }
     }
@@ -142,7 +142,7 @@ export function evalSyncChmod(
     for (const op of parsed.operands) {
       if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(op)) return undefined;
       let opType = "";
-      if (!chmodNodeSync(op, stat => { opType = stat.type; return stat.mode; }) || (op.endsWith("/") && opType !== "directory")) return undefined;
+      if (!chmodNodeSync(op, stat => { opType = stat.type; return stat.mode; }) || ((op.endsWith("/") || op.endsWith("/.") || op.includes("/./")) && opType !== "directory")) return undefined;
     }
     let out = "";
     for (const op of parsed.operands) {

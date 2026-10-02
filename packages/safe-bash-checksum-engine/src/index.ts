@@ -18,6 +18,18 @@ const utf8 = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 type Algorithm = "sha512" | "sha384" | "sha256" | "sha224" | "sha1" | "md5" | "crc" | "bsd" | "sysv" | "crc32b" | "sm3" | "blake2b" | "sha3";
 const hashes = { sha512, sha384, sha256, sha224, sha1, md5, sm3: { create: () => new SM3() } };
 const numericAlgorithms = new Set<Algorithm>(["crc", "crc32b", "bsd", "sysv"]);
+type HashAlgorithm = keyof typeof hashes | "blake2b" | "sha3";
+interface IncrementalHash {
+  update(bytes: Uint8Array): void;
+  digest(): Uint8Array;
+  destroy(): void;
+}
+
+export function createHash(algorithm: HashAlgorithm, bits = 512): IncrementalHash {
+  if (algorithm === "blake2b") return blake2b.create({ dkLen: bits / 8 });
+  if (algorithm === "sha3") return ({ 224: sha3_224, 256: sha3_256, 384: sha3_384, 512: sha3_512 }[bits]!).create();
+  return hashes[algorithm].create();
+}
 type ReportMode = "normal" | "quiet" | "status" | "warn";
 
 interface Settings {
@@ -177,8 +189,8 @@ const crcTable = Uint32Array.from({ length: 256 }, (_, index) => {
   return remainder >>> 0;
 });
 
-async function digest(input: ByteSource, algorithm: Algorithm, signal: AbortSignal, progress?: ReadProgress, bits = 512): Promise<Digest> {
-  const hash = numericAlgorithms.has(algorithm) ? undefined : algorithm === "blake2b" ? blake2b.create({ dkLen: bits / 8 }) : algorithm === "sha3" ? ({ 224: sha3_224, 256: sha3_256, 384: sha3_384, 512: sha3_512 }[bits]!).create() : hashes[algorithm as keyof typeof hashes].create();
+export async function digest(input: ByteSource, algorithm: Algorithm, signal: AbortSignal, progress?: ReadProgress, bits = 512): Promise<Digest> {
+  const hash = numericAlgorithms.has(algorithm) ? undefined : createHash(algorithm as HashAlgorithm, bits);
   let crc = algorithm === "crc32b" ? 0xffffffff : 0;
   let length = 0n;
   try {
@@ -383,11 +395,7 @@ export function command(name: string, algorithm: Algorithm, maxInputBytes: numbe
 function digestSync(bytes: Uint8Array, algorithm: Algorithm, bits = 512): Digest {
   const length = BigInt(bytes.byteLength);
   if (!numericAlgorithms.has(algorithm)) {
-    const hash = algorithm === "blake2b"
-      ? blake2b.create({ dkLen: bits / 8 })
-      : algorithm === "sha3"
-        ? ({ 224: sha3_224, 256: sha3_256, 384: sha3_384, 512: sha3_512 }[bits]!).create()
-        : hashes[algorithm as keyof typeof hashes].create();
+    const hash = createHash(algorithm as HashAlgorithm, bits);
     hash.update(bytes);
     return { hex: bytesToHex(hash.digest()), length };
   }

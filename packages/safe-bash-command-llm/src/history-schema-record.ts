@@ -1,4 +1,4 @@
-import {blake2b} from '@noble/hashes/blake2.js';
+import {digest} from 'safe-bash-checksum-engine';
 import {toByteSource} from 'safe-bash-contracts';
 import type {PrivateSqliteSession} from './sqlite-session.js';
 import type {SqliteFinalizer} from './sqlite-finalization.js';
@@ -12,13 +12,14 @@ import {historySchemaStatements} from './history-schema.js';
  * counted/hashed once and streamed again during closed-file TEXT finalization.
  * The surrounding transaction must run the returned finalizer before publish. */
 export async function prepareLlmSchemaRecord(session:PrivateSqliteSession,json:string,signal:AbortSignal):Promise<{id:string;finalize?:(editor:SqliteFinalizer)=>Promise<void>}>{
- const encoder=new TextEncoder(),hash=blake2b.create({dkLen:16});let size=0;
- try{
+ const encoder=new TextEncoder();let size=0;
+ const {hex:id}=await digest((async function*(){
   for await(const chunk of schemaJsonChunks(json,signal,{compact:true,trailingNewline:false})){
-   const bytes=encoder.encode(chunk);hash.update(bytes);size+=bytes.length;
+   const bytes=encoder.encode(chunk);size+=bytes.length;
    if(!Number.isSafeInteger(size)||size>0x7fffffff)throw new RangeError('Schema text exceeds native SQLite record length');
+   yield bytes;
   }
-  const id=Array.from(hash.digest(),byte=>byte.toString(16).padStart(2,'0')).join('');
+ })(),'blake2b',signal,undefined,128);
   let rootPage=0;
   await withSqliteStatement(session.module,{...session,signal,sql:"SELECT type,COALESCE(sql,''),rootpage FROM sqlite_schema WHERE tbl_name='schemas'"},async query=>{
    for await(const [type,sql,page]of query.rows([],['text','text','integer'])){
@@ -38,5 +39,4 @@ export async function prepareLlmSchemaRecord(session:PrivateSqliteSession,json:s
   })()}]);
   const inserted=rowid;
   return {id,finalize:editor=>editor.rewriteRecord({rootPage,rowid:inserted,record})};
- }finally{hash.destroy();}
 }

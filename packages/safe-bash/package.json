@@ -1498,14 +1498,13 @@
         },
         "safe-bash-command-llm": {
           "version": "0.0.1",
-          "dependencies": {
-            "@noble/hashes": "2.4.0"
-          },
+          "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
             "safe-bash-command-file": "*",
-            "safe-bash-sqlite-engine": "*"
+            "safe-bash-sqlite-engine": "*",
+            "safe-bash-checksum-engine": "*"
           },
           "portable": true,
           "peerDependencies": {

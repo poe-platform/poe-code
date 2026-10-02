@@ -103,14 +103,12 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {
-    "@noble/hashes": "2.4.0"
-  },
   "devDependencies": {
     "@poe-code/safe-fs": "*",
     "safe-bash-command-file": "*",
     "safe-bash-contracts": "*",
-    "safe-bash-sqlite-engine": "*"
+    "safe-bash-sqlite-engine": "*",
+    "safe-bash-checksum-engine": "*"
   },
   "peerDependencies": {
     "yaml": "2.9.0"

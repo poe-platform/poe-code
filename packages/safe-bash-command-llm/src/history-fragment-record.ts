@@ -1,4 +1,4 @@
-import {sha256} from '@noble/hashes/sha2.js';
+import {createHash} from 'safe-bash-checksum-engine';
 import {toByteSource,type ByteSource} from 'safe-bash-contracts';
 import {yieldTurn} from 'safe-bash-contracts/yield';
 import type {PrivateSqliteSession} from './sqlite-session.js';
@@ -15,7 +15,7 @@ export async function prepareLlmFragmentRecord(session:PrivateSqliteSession,frag
  const {content,source=null}=fragment;
  let size=0,identity='';
  async function* scan(replay:boolean):AsyncGenerator<Uint8Array>{
-  const hash=sha256.create(),decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});let total=0;
+  const hash=createHash('sha256'),decoder=new TextDecoder('utf-8',{fatal:true,ignoreBOM:true});let total=0;
   try{
    for await(const chunk of sqliteSourceChunks(content(),signal)){
     if(!(chunk instanceof Uint8Array))throw new TypeError('Fragment content must yield bytes');

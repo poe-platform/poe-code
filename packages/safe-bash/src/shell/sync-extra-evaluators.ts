@@ -498,25 +498,6 @@ Object.assign(BudgetedPipeStageSink.prototype, {
   },
 });
 
-Object.assign(Runtime.prototype, {
-  setSyncPipeStatusCell(this: any, existing: any, status: string): void {
-    if (existing.values.size > 1 || existing.maximum !== 0) {
-      for (const key of existing.values.keys()) {
-        if (key > 0) existing.remove(key);
-      }
-      existing.maximum = 0;
-    }
-    const cell = existing.values.get(0);
-    if (cell && cell.text.references === 1 && cell.text.bytes === status.length) {
-      cell.text.shellValue = status;
-    } else {
-      existing.owner.chargeWork(status.length);
-      const token = new OwnedText(status, status.length, existing.owner.reserve({ payload: status.length, metadata: 32, work: 4 }));
-      try { existing.insert(0, token); }
-      catch (error) { token.release(); throw error; }
-    }
-  },
-});
 }
 const fastMkdirRmPaths: string[] = new Array<string>(32).fill("");
 const fastRedirectScratchViews: Uint8Array[] = Array.from({ length: 129 }, (_, len) => fastRedirectScratchBytes.subarray(0, len));
@@ -3342,6 +3323,23 @@ export function isFastDirectCommand(name: string, words: readonly Word[]): boole
 const fastShellCommandAccessors = ["xpgEcho", "signal", "env", "fs", "commandDiscovery", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
 
 const syncExtraRuntimeMethods = {
+  setSyncPipeStatusCell(this: any, existing: any, status: string): void {
+    if (existing.values.size > 1 || existing.maximum !== 0) {
+      for (const key of existing.values.keys()) {
+        if (key > 0) existing.remove(key);
+      }
+      existing.maximum = 0;
+    }
+    const cell = existing.values.get(0);
+    if (cell && cell.text.references === 1 && cell.text.bytes === status.length) {
+      cell.text.shellValue = status;
+    } else {
+      existing.owner.chargeWork(status.length);
+      const token = new OwnedText(status, status.length, existing.owner.reserve({ payload: status.length, metadata: 32, work: 4 }));
+      try { existing.insert(0, token); }
+      catch (error) { token.release(); throw error; }
+    }
+  },
   tryResetWarmInvocation(this: any, state: State, expectedCwd: string): boolean {
     const monitor = stateMonitor(state);
     const rawRoot = (monitor?.raw ?? state) as RootShellState & State;

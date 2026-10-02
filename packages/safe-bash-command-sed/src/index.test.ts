@@ -230,3 +230,18 @@ test("sed reuses cached non-ASCII programs across file and stdin execution", asy
   assert.equal(second.stdout, "done\n");
   assert.equal(hits, previousHits + 1);
 });
+
+test("concurrent sed file writes preserve small batches with different record widths", async () => {
+  const command = createSedCommand();
+  await Promise.all([4, 8].map(async width => {
+    const fs = createMemoryFileSystem();
+    const input = Array.from({ length: 20 }, (_, i) => `${String(i).padStart(width, "0")}\n`).join("");
+    assert.ok(input.length < 256, "exercise the uncached record batch path");
+    await fs.writeFile("/input", new TextEncoder().encode(input));
+    const result = await run(command, ["w /output", "/input"], "", fs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, input);
+    assert.equal(new TextDecoder().decode(await fs.readFile("/output")), input);
+  }));
+});

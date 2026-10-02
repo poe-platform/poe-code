@@ -46,3 +46,25 @@ test("grep reads each tenant's batched input without a global Buffer", async () 
     Object.defineProperty(globalThis, "Buffer", { value: originalBuffer, configurable: true, writable: true });
   }
 });
+
+for (const flags of [["-n"], ["-n", "--line-buffered"]]) {
+  test(`concurrent grep isolates large numbered batches (${flags.join(" ")})`, async () => {
+    const command = createGrepCommands()[0]!;
+    await Promise.all(["A", "B"].map(async tenant => {
+      const fs = createMemoryFileSystem();
+      const lines = Array.from({ length: 200 }, (_, i) => `TENANT_${tenant}_${i}_${tenant.repeat(600)}`);
+      await fs.writeFile("/input", new TextEncoder().encode(lines.join("\n") + "\n"));
+      let stdout = "", stderr = "";
+      const values = createCommandArguments([...flags, "TENANT_", "/input"]);
+      const result = await command.execute({
+        command: "grep", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+        stdin: toByteSource(""), signal: new AbortController().signal,
+        stdout: { async write(bytes) { await Promise.resolve(); stdout += new TextDecoder().decode(bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+      });
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(stderr, "");
+      assert.equal(stdout, lines.map((line, i) => `${i + 1}:${line}\n`).join(""));
+    }));
+  });
+}

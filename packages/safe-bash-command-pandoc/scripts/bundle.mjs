@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { readFile, readdir } from "node:fs/promises";
+import { readFile, readdir, rm } from "node:fs/promises";
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,6 +23,7 @@ const notices = await Promise.all(["fengari", "sprintf-js", "citeproc"].map(asyn
 
 // Prepare portable adapters and embed third-party parsers. First-party engines
 // and contracts retain their canonical workspace owners in the parent bundle.
+await rm("dist/chunks", { recursive: true, force: true });
 await build({
   entryPoints: ["src/options.ts", "src/index.ts", "src/command.ts", "src/lua-filters.ts", "src/citeproc-filters.ts"], outdir: "dist",
   bundle: true, platform: "browser", format: "esm", target: "es2022",

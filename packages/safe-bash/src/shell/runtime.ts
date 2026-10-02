@@ -9139,11 +9139,11 @@ export class Runtime {
         let status: number | undefined;
         if (!io.descriptors) {
           const prevStdout = io.stdout;
-          io.stdout = devNullSyncSink;
+          (io as { stdout: typeof devNullSyncSink }).stdout = devNullSyncSink;
           try {
             status = this.executeSyncPipelineBody(pipeline, strippedCmd, state, io, ignored);
           } finally {
-            io.stdout = prevStdout;
+            (io as { stdout: typeof prevStdout }).stdout = prevStdout;
           }
         } else {
           const { descriptors: ignoredDescriptors, ...rest } = io;

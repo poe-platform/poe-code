@@ -2,12 +2,12 @@ import { normalizeDocumentCooperatively, AstError } from "./ast.js";
 import type { MetaValue } from "./ast-types.js";
 import { createFormatRegistry } from "./formats.js";
 import { ExecutionContext } from "./execution.js";
-import {defaultPdfLimits} from "@poe-code/pdf";
 import { ResourceSession } from "./resources.js";
 import { PandocError } from "./errors.js";
 import { mergeMetadata, mergeJsonMetadata, parseMetadataJson } from "./metadata.js";
 import type { FormatSelection } from "./formats.js";
 export { PandocError } from "./errors.js";
+const defaultPdfLimits = Object.freeze({ fontBytes: Infinity, fonts: Infinity });
 import type {
   ConversionContext,
   ConversionOptions,
@@ -168,7 +168,7 @@ class Session extends ExecutionContext {
     if (this.metadata) this.metadata = (await this.document({blocks: [], metadata: this.metadata, resources: []})).metadata;
     for (const layer of this.metadataJson ?? []) await mergeJsonMetadata({}, layer, this);
     if (this.pdfFontInputs) {
-      const fonts: import("@poe-code/pdf").SuppliedFont[] = [];
+            const fonts: import("@poe-code/pdf").SuppliedFont[] = [];
       let fontBytes = 0;
       for (let i = 0; i < this.pdfFontInputs.length; i++) {
         const input = this.pdfFontInputs[i]!;

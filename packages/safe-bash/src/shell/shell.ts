@@ -1100,7 +1100,7 @@ export class Shell implements PluginHost {
           currentCachedUnit = parseState.currentCachedUnit;
         }
         if (!stdin) {
-          stdin = new ShellInput(options.stdin, budget);
+          stdin = new ShellInput(options.stdin as ConstructorParameters<typeof ShellInput>[0], budget);
           io.stdin = stdin;
         }
         exitCode = 0;

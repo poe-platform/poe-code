@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CommandRegistry, Shell, createMemoryFileSystem } from "../../../../src/index.js";
+import { CommandRegistry, createMemoryFileSystem } from "../../../../src/index.js";
+import { Shell as PortableShell } from "../../../../src/shell/shell.js";
 import { createTimeoutCommand } from "../../../../src/commands/timeout/index.js";
 import { ManualScheduler, captureContext, gate, turn } from "../fixtures.js";
 
@@ -8,7 +9,7 @@ function activeTimeouts(): number {
   return process.getActiveResourcesInfo().filter(resource => resource === "Timeout").length;
 }
 
-test("F22 default captured Node clock returns early child status through direct cleanup and actual Shell", async () => {
+test("F22 default captured Node clock returns early child status through direct cleanup and cooperative Shell", async () => {
   const before = activeTimeouts();
   let directCalls = 0;
   const direct = captureContext(["1", "child"], {
@@ -30,10 +31,12 @@ test("F22 default captured Node clock returns early child status through direct 
     name: "child",
     execute: () => ({ exitCode: 7 }),
   }]);
-  const shell = new Shell({ fs: createMemoryFileSystem(), commands });
+  // This regression exercises the cooperative deadline with an in-process child.
+  // Node worker timeouts require replayable modules for custom command closures.
+  const shell = new PortableShell({ fs: createMemoryFileSystem(), commands });
   try {
     const result = await shell.exec("timeout 1 child");
-    assert.equal(result.exitCode, 7);
+    assert.equal(result.exitCode, 7, result.stderr);
     assert.equal(result.stdout, "");
     assert.equal(result.stderr, "");
   } finally {

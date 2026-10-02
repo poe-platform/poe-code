@@ -18,3 +18,34 @@ it("does not acquire ambient database files and respects pre-acquisition cancell
   const reason = new Error("cancelled before acquisition");
   await expect(provider.connect("sqlite://", {}, AbortSignal.abort(reason))).rejects.toBe(reason);
 });
+
+
+it.each([undefined, {
+  maxWork: Infinity, maxSqlBytes: Infinity, maxValueBytes: Infinity, maxResultRows: Infinity
+}])("queries SQLite with disabled resource limits: %j", async limits => {
+  const provider = createDefaultSqliteDatabaseProvider({now: () => 0}, limits);
+  const signal = new AbortController().signal;
+  const session = await provider.connect("sqlite://", {}, signal);
+  try {
+    const result = await session.query("SELECT 1 AS value UNION ALL SELECT 2", [], {}, signal);
+    try {
+      const rows = [];
+      for await (const row of result.rows) rows.push(row);
+      expect(rows).toEqual([[1n], [2n]]);
+    } finally {await result.close();}
+  } finally {await session.close();}
+});
+
+it("enforces an explicit SQLite result row limit", async () => {
+  const provider = createDefaultSqliteDatabaseProvider({now: () => 0}, {maxResultRows: 1});
+  const signal = new AbortController().signal;
+  const session = await provider.connect("sqlite://", {}, signal);
+  try {
+    const result = await session.query("SELECT 1 AS value UNION ALL SELECT 2", [], {}, signal);
+    try {
+      await expect((async () => {
+        for await (const row of result.rows) void row;
+      })()).rejects.toThrow("SQLite result row budget exceeded");
+    } finally {await result.close();}
+  } finally {await session.close();}
+});

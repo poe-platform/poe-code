@@ -458,11 +458,11 @@ test("30. synchronous loop conditional [[ str == \"quoted*meta?chars[1]\" ]] esc
     s="a*b?c[1]"
     matched=0
     for ((i = 0; i < 10; i++)); do
-      if [[ \$s == "a*b?c[1]" && \$s != "aXbYc1" ]]; then
+      if [[ $s == "a*b?c[1]" && $s != "aXbYc1" ]]; then
         ((matched++))
       fi
     done
-    echo "\$matched"
+    echo "$matched"
   `);
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout, "10\n");

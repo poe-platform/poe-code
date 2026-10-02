@@ -2711,8 +2711,6 @@
     "./src/commands/apply-patch/index.ts",
     "./dist/commands/metadata/index.js",
     "./src/commands/metadata/index.ts",
-    "./dist/commands/python/index.js",
-    "./src/commands/python/index.ts",
     "./dist/commands/python/worker.js",
     "./src/commands/python/worker.ts",
     "./dist/commands/network/public.js",

@@ -19,8 +19,8 @@
     "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/toolcraft-openapi/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft-openapi/src",
-    "prepack": "\"$npm_node_execpath\" \"$npm_execpath\" --prefix ../.. run build:workspaces -- --workspace=\"$npm_package_name\" >&2 && node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi sisteransi yaml",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi sisteransi yaml"
+    "prepack": "\"$npm_node_execpath\" \"$npm_execpath\" --prefix ../.. run build:workspaces -- --workspace=\"$npm_package_name\" >&2 && node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare . toolcraft-schema toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi sisteransi yaml @poe-code/terminal-text",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . toolcraft-schema toolcraft-design @poe-code/frontmatter fast-string-width fast-wrap-ansi sisteransi yaml @poe-code/terminal-text"
   },
   "files": [
     "LICENSE",
@@ -47,7 +47,8 @@
   "optionalDependencies": {
     "toolcraft-schema": "*",
     "toolcraft-design": "*",
-    "@poe-code/frontmatter": "*"
+    "@poe-code/frontmatter": "*",
+    "@poe-code/terminal-text": "*"
   },
   "bundleDependencies": [
     "toolcraft-schema",
@@ -56,6 +57,7 @@
     "fast-string-width",
     "fast-wrap-ansi",
     "sisteransi",
-    "yaml"
+    "yaml",
+    "@poe-code/terminal-text"
   ]
 }

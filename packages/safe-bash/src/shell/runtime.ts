@@ -137,7 +137,7 @@ import { creationFileSystem, umaskBuiltin } from "./umask.js";
 export function hasActiveExtensions(state: State): state is State & { extensions: ShellExtensionState } {
   const ext = state.extensions;
   if (!ext) return false;
-  return !(ext as { isIdleTrapState?: boolean }).isIdleTrapState;
+  return !ext.isIdleTrapState;
 }
 const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
 const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
@@ -6622,14 +6622,14 @@ export class Runtime {
     const frame = state.extensions;
     if (!frame || frame.started) return;
     frame.started = true;
-    if ((frame as { isIdleTrapState?: boolean }).isIdleTrapState) return;
+    if (frame.isIdleTrapState) return;
     for (const [name, builtin] of frame.builtins) if (shellBuiltinNames.has(name) && builtin.replace !== true) throw new TypeError(`Extension builtin conflicts with existing builtin: ${name}`);
     for (const entry of frame.entries) if (entry.instance.start) await entry.instance.start(this.extensionContext(state, io));
   }
   private tryStartExtensionsSync(state: State): boolean {
     const frame = state.extensions;
     if (!frame || frame.started) return true;
-    if ((frame as { isIdleTrapState?: boolean }).isIdleTrapState) {
+    if (frame.isIdleTrapState) {
       frame.started = true;
       return true;
     }
@@ -6784,7 +6784,7 @@ export class Runtime {
     rawRoot.functionDepth = 0;
     rawRoot.sourceDepth = 0;
     if (rawRoot.extensions) {
-      (rawRoot.extensions as { resetToIdle?: () => void }).resetToIdle?.();
+      rawRoot.extensions.resetToIdle?.();
       rawRoot.extensions.started = true;
       rawRoot.extensions.exiting = false;
       delete rawRoot.extensions.exitStatus;

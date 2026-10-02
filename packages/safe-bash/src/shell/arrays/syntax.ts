@@ -29,7 +29,7 @@ const quoteMarkers = new WeakSet<WordPart>();
 export const prefixNameQuoteGroups = new WeakMap<WordPart, object>();
 
 export function setQuoteMarker(part: WordPart, synthetic: boolean): void {
-  (part as { _quoteMarker?: boolean | undefined })._quoteMarker = synthetic || undefined;
+  (part as { _quoteMarker?: boolean })._quoteMarker = synthetic;
 }
 
 export function isQuoteMarker(part: WordPart): boolean {

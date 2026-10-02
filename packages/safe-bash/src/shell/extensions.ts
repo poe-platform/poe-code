@@ -161,6 +161,7 @@ export interface ShellExtension {
 
 export interface ShellExtensionState {
   readonly isIdleTrapState?: boolean;
+  resetToIdle?(): void;
   readonly syntax: CapturedShellSyntax;
   readonly entries: readonly { readonly definition: ShellExtension; readonly instance: ShellExtensionInstance }[];
   readonly builtins: ReadonlyMap<string, ShellExtensionBuiltin>;
@@ -416,7 +417,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
 }
 
 export function forkExtensions(parent: ShellExtensionState | undefined, scope: ShellExtensionScope): ShellExtensionState | undefined {
-  if (parent && (parent as { isIdleTrapState?: boolean }).isIdleTrapState) {
+  if (parent?.isIdleTrapState) {
     return new LazyIdlePortableTrapExtensionState();
   }
   if (

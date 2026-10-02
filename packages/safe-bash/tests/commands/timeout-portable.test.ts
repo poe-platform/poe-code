@@ -26,13 +26,13 @@ for (const option of ["-v", "--verbose"]) {
   });
 }
 
-test("verbose timeout reports cooperative expiry only when the deadline expires", async () => {
+test("verbose Node timeout reports signal delivery only when the deadline expires", async () => {
   const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createAgentCommands()) });
   try {
     const result = await shell.exec("timeout --verbose 0.001 sleep 1");
     assert.equal(result.exitCode, 124);
     assert.equal(result.stdout, "");
-    assert.equal(result.stderr, "timeout: cooperative deadline expired for command ‘sleep’\n");
+    assert.equal(result.stderr, "timeout: sending signal TERM to command ‘sleep’\n");
     assert.equal((await shell.exec("timeout --verbose=yes 2 echo rejected")).exitCode, 125);
   } finally { await shell.dispose(); }
 });

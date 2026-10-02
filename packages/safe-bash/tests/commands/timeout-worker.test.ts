@@ -278,3 +278,64 @@ for (const operation of ["metadata", "stream"] as const) {
     }
   });
 }
+
+for (const grace of ["", "-k0", "-k inf"]) {
+  test(`timeout ${grace} preserves ignored signals without escalation`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+    try {
+      for (const [signal, child] of [
+        ["-s CONT", "sleep 0.3"],
+        ["", "bash -c 'trap \"\" TERM; sleep 0.3'"],
+      ]) {
+        const result = await shell.exec(`timeout --preserve-status ${signal} ${grace} 0.2 ${child}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+      }
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("timeout without kill-after terminates CPU-bound children with KILL", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec("timeout -s KILL 0.04 bash -c 'while :; do :; done'");
+    assert.equal(result.exitCode, 137);
+  } finally { await shell.dispose(); }
+});
+
+test("stop signals without finite escalation fail before starting a worker", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    for (const signal of ["STOP", "TSTP", "TTIN", "TTOU"]) {
+      for (const grace of ["", "-k0", "-k inf", "-k infinity"]) {
+        const controller = new AbortController();
+        const guard = setTimeout(() => controller.abort(new Error("stranded stopped worker")), 1000);
+        try {
+          const result = await shell.exec(`timeout -s ${signal} ${grace} 0.02 sleep 0.05`, { signal: controller.signal });
+          assert.equal(result.exitCode, 125);
+          assert.match(result.stderr, /stop signals require finite kill-after/);
+        } finally { clearTimeout(guard); }
+      }
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("exported functions survive the timeout worker boundary", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    for (const grace of ["", "-k1"]) {
+      const result = await shell.exec(`myfn() { printf 'from_fn:%s' "$1"; }; export -f myfn; timeout ${grace} 5 bash -c 'myfn value'`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "from_fn:value");
+    }
+  } finally { await shell.dispose(); }
+});
+
+
+test("exported functions cannot shadow the worker transport entry", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec("__timeout_worker_entry() { echo intercepted; }; export -f __timeout_worker_entry; timeout 5 echo expected");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "expected\n");
+  } finally { await shell.dispose(); }
+});

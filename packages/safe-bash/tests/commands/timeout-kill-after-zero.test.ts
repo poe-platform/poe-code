@@ -16,10 +16,25 @@ test("zero kill-after disables host escalation while retaining the initial deadl
     });
     const result = await createTimeoutCommand({
       scheduler,
-      killAfterPolicy: async () => assert.fail("disabled escalation policy invoked"),
     }).execute(capture.context);
     assert.equal(result.exitCode, preserveStatus ? 143 : 124);
     assert.equal(capture.stderr(), "");
     assert.equal(scheduler.pending, false);
   }
 });
+
+for (const grace of [[], ["-k0"], ["-k", "inf"]]) {
+  test(`signal policies receive disabled escalation for ${JSON.stringify(grace)}`, async () => {
+    const capture = captureContext([...grace, "1", "child"], {
+      invoke: async () => assert.fail("signal policy bypassed"),
+    });
+    const result = await createTimeoutCommand({
+      killAfterPolicy: async (_context, _command, _args, _options, policy) => {
+        assert.equal(policy.killAfterMilliseconds, Infinity);
+        assert.equal(policy.durationMilliseconds, 1000);
+        return { exitCode: 7 };
+      },
+    }).execute(capture.context);
+    assert.equal(result.exitCode, 7);
+  });
+}

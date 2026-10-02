@@ -71,9 +71,9 @@ test("worker admission preserves the caller's finite substitution depth ceiling"
   const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
   const limits = { maxSubstitutionDepth: 3 };
   try {
-    await assert.rejects(shell.exec(`printf "$(printf "$(timeout 2 sh -c 'printf "$(printf leaked)"')")"`, { limits }), {
-      name: "ShellLimitError", limit: "maxSubstitutionDepth",
-    });
+    const ordinary = await shell.exec(`printf "$(printf "$(timeout 2 sh -c 'printf "$(printf leaked)"')")"`, { limits });
+    assert.equal(ordinary.stdout, "");
+    assert.match(ordinary.stderr, /shared interpreter quotas/);
     const nested = await shell.exec(`printf "$(printf "$(timeout -k0.02 2 sh -c 'printf "$(printf leaked)"')")"`, { limits });
     assert.equal(nested.stdout, "");
     assert.match(nested.stderr, /shared interpreter quotas/);
@@ -88,9 +88,10 @@ test("worker admission refuses shell descriptors it cannot preserve", async () =
   const shell = new Shell({ fs }).use(agentCommands());
   try {
     const ordinary = await shell.exec("timeout 2 sh -c 'printf started; printf retained >&3' 3>/ordinary");
-    assert.equal(ordinary.exitCode, 0);
-    assert.equal(ordinary.stdout, "started");
-    assert.equal(new TextDecoder().decode(await fs.readFile("/ordinary")), "retained");
+    assert.equal(ordinary.exitCode, 125);
+    assert.equal(ordinary.stdout, "");
+    assert.match(ordinary.stderr, /retained handles/);
+    assert.equal((await fs.readFile("/ordinary")).byteLength, 0);
     const isolated = await shell.exec("timeout -k0.02 2 sh -c 'printf started; printf retained >&3' 3>/isolated");
     assert.equal(isolated.exitCode, 125);
     assert.equal(isolated.stdout, "");

@@ -21,6 +21,12 @@ const filesystemMethods = Object.keys(filesystemOptionsIndex) as (keyof typeof f
 export function createWorkerKillAfterPolicy(registry: () => CommandRegistry, configuration: WorkerShellOptions, requiresModules: () => boolean = () => false): KillAfterPolicy {
   return async (context, command, args, options, policy) => {
     context.signal.throwIfAborted();
+    // A stopped virtual child has no external process ID through which callers
+    // can resume it. Refuse an unbounded suspension before acquiring a worker.
+    if ([19, 20, 21, 22].includes(policy.signalNumber) && !Number.isFinite(policy.killAfterMilliseconds)) {
+      await writeBytes(context.stderr, new TextEncoder().encode("timeout: stop signals require finite kill-after on this host\n"), context.signal);
+      return { exitCode: 125 };
+    }
     const runtimeContext = workerRuntimeContexts.get(context);
     const fs = runtimeContext?.fs ?? context.fs;
     // These counters/leases belong to the interpreter, not to a separate Shell.

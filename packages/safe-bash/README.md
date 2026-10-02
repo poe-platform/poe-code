@@ -865,7 +865,7 @@ and credential protections remain in effect.
   not sandboxed code. Real storage and network plugins grant real access; URL
   allowlisting alone does not pin DNS or prevent access to private addresses.
 - Cancellation is cooperative; it cannot undo completed effects or stop opaque
-  host work. Node `Shell` runs active `timeout -k` / `--kill-after` children in a
+  host work. Node `Shell` runs finite, positive `timeout` children in a
   terminable worker and returns 137 after hard escalation. Custom commands,
   middleware and extensions require explicit `workerModules` factories. Portable
   hosts require their own escalation policy. Nested worker escalation and finite
@@ -875,5 +875,7 @@ and credential protections remain in effect.
   accepts Linux signal names and numbers and sets the cancellation exit status.
   `trap` supports cleanup and inherited trap inspection by default. Host signal
   delivery requires the optional trap extension signal host. Signals from `timeout`
-  use cooperative cancellation unless a kill-after worker policy is active;
+  honor ignored and trapped signals when a worker policy is active;
   signal `0` lets the child finish, and `KILL` reports status 137 on expiry.
+  STOP-family signals require a finite, positive `--kill-after` interval on Node;
+  otherwise the command returns 125 before starting a child.

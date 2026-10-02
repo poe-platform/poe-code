@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell, CommandRegistry, agentCommands, createMemoryFileSystem } from "../../src/index.js";
+import { Shell as PortableShell } from "../../src/shell/shell.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
 import { parseSignal, signalName } from "safe-bash-command-timeout/signal";
 import { captureContext, ManualScheduler } from "./timeout-author-20260828/fixtures.js";
@@ -162,7 +163,7 @@ test("timeout signal parsing is portable for aliases and realtime boundaries", (
   }
 });
 
-test("timeout options preserve byte streams and cancellation status through the registry", async () => {
+test("portable timeout options preserve byte streams and cancellation status through the registry", async () => {
   for (const [option, expected] of [["--preserve-status -s INT", 130], ["-p -s INT", 130], ["-s TERM", 124], ["-s KILL", 137]] as const) {
     const scheduler = new ManualScheduler();
     const chunks: Uint8Array[] = [];
@@ -176,7 +177,7 @@ test("timeout options preserve byte streams and cancellation status through the 
         return { exitCode: 0 };
       },
     }]);
-    const shell = new Shell({ fs: createMemoryFileSystem(), commands });
+    const shell = new PortableShell({ fs: createMemoryFileSystem(), commands });
     try {
       const result = await shell.exec(`timeout ${option} 1 child --signal 'literal argument'`, {
         stdout: { async write(chunk) { chunks.push(Uint8Array.from(chunk)); } },

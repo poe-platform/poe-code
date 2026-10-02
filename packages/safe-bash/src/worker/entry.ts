@@ -182,10 +182,17 @@ async function run(): Promise<void> {
   const arguments_ = workerData.argumentBytes
     ? createCommandArguments((workerData.argumentBytes as Uint8Array[]).map(bytes => shellValueFromBytes(bytes)))
     : createCommandArguments(workerData.args);
+  // Restore definitions through the session parser, never by executing env text.
+  const functions = Object.fromEntries(Object.entries(workerData.env as Record<string, string>)
+    .filter(([name]) => name.startsWith("BASH_FUNC_") && name.endsWith("%%"))
+    .map(([name, body]) => {
+      const functionName = name.slice(10, -2);
+      return [functionName, `${functionName} ${body}`];
+    }));
   // The transport entry is the only synthetic command. Its name never enters
   // child argv, and byte arguments do not pass through source interpolation.
   let dispatch = "__timeout_worker_entry";
-  while (shell.commands.has(dispatch)) dispatch += "-";
+  while (shell.commands.has(dispatch) || Object.hasOwn(functions, dispatch)) dispatch += "-";
   shell.register({ name: dispatch, async execute(context) {
     context.signal.throwIfAborted();
     return context.invoke!(workerData.command, arguments_.args, {
@@ -196,7 +203,7 @@ async function run(): Promise<void> {
   } });
   try {
     const result = await shell.exec(dispatch, { stdin: input, stdout, stderr, signal: cancellation.signal,
-      state: { cwd: workerData.cwd, umask: workerData.umask },
+      state: { cwd: workerData.cwd, umask: workerData.umask, functions, exportedFunctions: Object.keys(functions) },
     });
     await shell.dispose();
     port.postMessage({ kind: "result", exitCode: result.exitCode });

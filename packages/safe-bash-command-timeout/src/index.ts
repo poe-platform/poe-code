@@ -231,13 +231,13 @@ function definition(configuration: Settings): CommandDefinition {
         stderr: context.stderr,
       };
       const killAfterPolicy = configuration.killAfterPolicy ?? context.capabilities?.timeoutKillAfterPolicy as KillAfterPolicy | undefined;
-      if (killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0 && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
+      if ((typeof killAfterPolicy === "function" || killAfterMilliseconds !== undefined && killAfterMilliseconds !== 0) && parsed.milliseconds !== 0 && parsed.milliseconds !== Infinity) {
         context.signal.throwIfAborted();
         if (typeof killAfterPolicy !== "function") return status(configuration, context, records.escalationUnavailable, 125);
         let result: { readonly exitCode: number };
         try {
           result = await killAfterPolicy(context, command, args, { signal: context.signal, ...streams }, Object.freeze({
-            durationMilliseconds: parsed.milliseconds, killAfterMilliseconds, signalNumber, preserveStatus,
+            durationMilliseconds: parsed.milliseconds, killAfterMilliseconds: killAfterMilliseconds === undefined || killAfterMilliseconds === 0 ? Infinity : killAfterMilliseconds, signalNumber, preserveStatus,
             ...(foreground ? { foreground: true as const } : {}),
             ...(verbose ? { verbose: true as const } : {}),
           }));

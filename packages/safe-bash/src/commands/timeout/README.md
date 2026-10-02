@@ -50,12 +50,16 @@ or arbitrary host-error provenance claim.
 before expiry retain their output and status. Zero kill-after disables escalation.
 Children settling after cooperative cancellation retain the timeout status,
 including children rejecting with the deadline cancellation reason. The Node
-public `Shell` supplies a genuine terminable worker boundary for active kill-after.
+public `Shell` supplies a terminable worker boundary for every finite, positive deadline,
+including omitted or zero kill-after. In those cases escalation is disabled.
 Default agent commands run against the caller's filesystem and streams through
 an owned bridge. Default TERM returns 124 (143 with `--preserve-status`); ignored
-or trapped TERM gets a grace interval before worker termination returns 137.
+or trapped TERM lets the child continue; a finite, positive kill-after interval
+terminates a surviving worker with status 137. Exported shell functions are
+restored in the worker and available to child interpreters.
 KILL terminates the worker immediately. STOP-family defaults suspend its event
-loop until escalation. `--verbose` reports the actual virtual signals sent.
+loop until escalation. STOP-family signals without finite, positive kill-after
+return 125 before launch because virtual children cannot be resumed externally. `--verbose` reports the actual virtual signals sent.
 This does not create native processes, process groups or terminal control.
 
 Portable/browser hosts require an explicit policy; otherwise active escalation
@@ -70,7 +74,7 @@ The bridge exposes pathname operations and streaming reads, not retained
 descriptors or transactional publication capabilities. Finite shared interpreter
 quotas (commands, loops, source, parse, expansion, pipeline, substitution depth and CPU) are refused
 before launch rather than reset; filesystem, output and caller wall-clock limits
-remain enforced by the parent. Zero duration and zero kill-after use the ordinary
+remain enforced by the parent. Zero or infinite duration uses the ordinary
 invocation path.
 
 Hosts with actual escalation capability can supply `killAfterPolicy` to
@@ -78,7 +82,8 @@ Hosts with actual escalation capability can supply `killAfterPolicy` to
 original context, literal child command and arguments, forwarded stream options
 including the parent cancellation signal,
 and a policy containing `durationMilliseconds`, `killAfterMilliseconds`,
-`signalNumber` and `preserveStatus`, plus optional `verbose: true`. It owns deadline scheduling, truthful signal
+`signalNumber` and `preserveStatus`, plus optional `verbose: true`.
+`killAfterMilliseconds: Infinity` means no escalation, including omitted or zero `-k`. It owns deadline scheduling, truthful signal
 delivery, hard escalation, status selection and child cleanup. It must honor
 `context.signal`, register cooperative cleanup before resource acquisition, and
 settle only after owned work is retired. Supplying the callback does not confer

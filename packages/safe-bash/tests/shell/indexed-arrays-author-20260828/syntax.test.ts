@@ -3,7 +3,7 @@ import test from "node:test";
 import {
   arraySelector, compoundEntry, compoundHead, copyArraySelector, elementAssignment,
   getArrayAssignment, getArraySelector, literalIndex, numericIndex, setArrayAssignment,
-  setArraySelector,
+  setArraySelector, isQuoteMarker, setQuoteMarker,
 } from "../../../src/shell/arrays/syntax.js";
 import { parseShell } from "../../../src/shell/parser.js";
 import type { Word, WordPart } from "../../../src/shell/parser.js";
@@ -39,6 +39,20 @@ test("private syntax: typed selector metadata survives explicit quote copying", 
   assert.deepEqual(arraySelector('"2"', 0), { kind: "element", index: { decimal: "2" } });
   assert.throws(() => arraySelector('"@"', 0), ShellSyntaxError);
   assert.deepEqual(Object.keys(part), ["kind", "name", "quoted"]);
+  assert.deepEqual(Object.keys(copy), ["kind", "name", "quoted"]);
+  setArraySelector(part, arraySelector("*", 0));
+  assert.deepEqual(getArraySelector(part), { kind: "members", separator: "*" });
+});
+
+test("private syntax: quote markers stay private while toggling", () => {
+  const part: WordPart = { kind: "text", value: "", quoted: true };
+  const original = JSON.stringify(part);
+  for (const synthetic of [true, false, true]) {
+    setQuoteMarker(part, synthetic);
+    assert.equal(isQuoteMarker(part), synthetic);
+    assert.deepEqual(Object.keys(part), ["kind", "value", "quoted"]);
+    assert.equal(JSON.stringify(part), original);
+  }
 });
 
 test("private syntax: element RHS preserves parts without argv rewriting", { timeout: 1000 }, () => {
@@ -52,6 +66,7 @@ test("private syntax: element RHS preserves parts without argv rewriting", { tim
     assert.deepEqual(assignment.value.parts, [{ kind: "text", value: "value", quoted: false }]);
     setArrayAssignment(word, assignment);
     assert.equal(getArrayAssignment(word), assignment);
+    assert.equal(Object.keys(word).includes("_arrayAssign"), false);
     assert.equal(word.spelling, source);
   }
   const assignment = elementAssignment(parsedWord('items[2]+="${other:-fallback}"'));

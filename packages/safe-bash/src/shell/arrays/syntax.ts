@@ -23,13 +23,10 @@ export type ArrayAssignment =
   | { readonly kind: "element"; readonly name: string; readonly index: LiteralIndex; readonly append: boolean; readonly value: Word }
   | { readonly kind: "compound"; readonly name: string; readonly append: boolean; readonly entries: readonly ArrayEntry[] };
 
-const assignments = new WeakMap<Word, ArrayAssignment>();
-const selectors = new WeakMap<WordPart, ArraySelector>();
-const quoteMarkers = new WeakSet<WordPart>();
 export const prefixNameQuoteGroups = new WeakMap<WordPart, object>();
 
 export function setQuoteMarker(part: WordPart, synthetic: boolean): void {
-  (part as { _quoteMarker?: boolean })._quoteMarker = synthetic;
+  Object.defineProperty(part, "_quoteMarker", { value: synthetic, writable: true, configurable: true });
 }
 
 export function isQuoteMarker(part: WordPart): boolean {
@@ -69,7 +66,7 @@ export function arraySelector(source: string, offset: number, budget = new Parse
 }
 
 export function setArraySelector(part: WordPart, selector: ArraySelector): void {
-  (part as { _selector?: ArraySelector })._selector = selector;
+  Object.defineProperty(part, "_selector", { value: selector, writable: true, configurable: true });
 }
 
 export function getArraySelector(part: WordPart): ArraySelector | undefined {
@@ -86,7 +83,7 @@ export function copyArraySelector(original: WordPart, copy: WordPart): WordPart 
 }
 
 export function setArrayAssignment(word: Word, assignment: ArrayAssignment): void {
-  (word as { _arrayAssign?: ArrayAssignment })._arrayAssign = assignment;
+  Object.defineProperty(word, "_arrayAssign", { value: assignment, writable: true, configurable: true });
 }
 
 export function getArrayAssignment(word: Word): ArrayAssignment | undefined {

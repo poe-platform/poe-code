@@ -1,7 +1,7 @@
 export { createLlmInputBudget, type LlmInputLimits } from "./input-budget.js";
 export { loadLlmStoredSchema, type LlmStoredSchemaOptions } from "./stored-schema.js";
 export * from "./provider-serialization.js";
-export { createLlmCommand, createLlmCommands, llmCommands } from "./command.js";
+export { llmReferenceVersion, createLlmCommand, createLlmCommands, llmCommands } from "./command.js";
 export { createLlmService, type LlmService, type LlmServiceOptions, type LlmServiceModel, type LlmStreamEvent, type LlmServiceRequest, type LlmServiceSourceRequest } from "./service.js";
 export type { LlmInputSource, LlmSourceRequest, LlmModelOption, LlmOption, LlmCapability, LlmResponseMetadata, LlmEmbeddingRequest, LlmEmbeddingResponse, LlmLimits, LlmCommandsOptions, LlmProvider, LlmModel, LlmRequest } from "./types.js";
 export { serializeOpenAiChatRequest, type OpenAiChatSourceRequest, createOpenAiProvider, type OpenAiModel, type OpenAiProviderOptions } from "./openai.js";

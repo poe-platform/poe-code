@@ -19,6 +19,9 @@ import { listLlmModels, LlmModelsUsageError, modelsGroupHelp } from "./models-li
 
 import { selectLlmModelByQuery } from "./model-selection.js";
 
+/** Pinned reference CLI target exposed to SDK callers. */
+export const llmReferenceVersion = "0.27.1";
+
 interface Arguments {
   queries: string[];
   schema?: string;
@@ -153,6 +156,16 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       if (!bytes) throw new Error("Missing option argument");
       return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
     };
+    if (argumentsValue.args[0] === "--version") {
+      argumentText(0);
+      await emitText(`llm, version ${llmReferenceVersion}\n`);
+      return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0]?.startsWith("--version=")) {
+      argumentText(0);
+      await writeDiagnostic(context.stderr, "Error: Option '--version' does not take a value.\n", signal);
+      return { exitCode: 2 };
+    }
     if (argumentsValue.args.length === 1 && ["--help", "-h"].includes(argumentsValue.args[0]!)) {
       argumentText(0);
       await emitText("Usage: llm [prompt] [-m MODEL] [-s SYSTEM] [-o KEY VALUE] [-a PATH] [--at PATH MIMETYPE]\n       llm models\nOptions: --model, --system, --option, --attachment; -- ends options\n");

@@ -170,6 +170,12 @@ describe("optional-owned compiled graph", () => {
 
   it("retains read and mapfile aliases when their extensions move into core", async () => {
     const { volume, options } = fixture();
+    const manifest = JSON.parse(volume.readFileSync(core + "/package.json", "utf8").toString());
+    for (const name of ["read", "mapfile"]) manifest.exports["./" + name] = {
+      types: `./dist/opt-in/entrypoints/${name}.d.ts`,
+      import: `./dist/opt-in/entrypoints/${name}.js`,
+    };
+    volume.writeFileSync(core + "/package.json", JSON.stringify(manifest));
     const runtime = 'export { mapfileExtension, readExtension } from "./core.js";\n';
     const types = 'export type { ReadExtensionOptions } from "./core.js";\n';
     volume.writeFileSync(core + "/dist/core.js", "export const mapfileExtension = () => {}; export const readExtension = () => {};\n");

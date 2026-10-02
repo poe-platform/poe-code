@@ -25,7 +25,7 @@ export function basicCommands(): CommandDefinition[] {
       const external = (context as { externalInvocation?: boolean }).externalInvocation === true;
       const posix = external && context.env.POSIXLY_CORRECT !== undefined;
       let newline = true;
-      let escapes = false;
+      let escapes = !external && (context as { xpgEcho?: boolean }).xpgEcho === true;
       let offset = 0;
       while ((!posix || arguments_.args[0] === "-n") && /^-[neE]+$/u.test(arguments_.args[offset] ?? "")) {
         for (const flag of arguments_.args[offset]!.slice(1)) {

@@ -110,6 +110,7 @@ export interface ShellSessionOptionsSnapshot {
   readonly expand_aliases?: boolean | undefined;
   readonly nocaseglob?: boolean | undefined;
   readonly nocasematch?: boolean | undefined;
+  readonly xpg_echo?: boolean | undefined;
   readonly extglob?: boolean | undefined;
   readonly braceexpand?: boolean | undefined;
   readonly noglob?: boolean | undefined;

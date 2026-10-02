@@ -5,6 +5,19 @@ import { standardCommands } from "../../src/index.js";
 import { MemoryFileSystem, MountFileSystem, ReadOnlyFileSystem } from "@poe-code/safe-fs/core";
 import { Shell } from "../../src/shell/shell.js";
 
+test("xpg_echo survives session snapshots and respects explicit echo flags", async () => {
+  const { shell } = setup();
+  shell.use(standardCommands());
+  try {
+    const enabled = await shell.exec("shopt -s xpg_echo", { onState() {} });
+    assert.equal(enabled.exitCode, 0, enabled.stderr);
+    assert.equal(enabled.state?.options?.xpg_echo, true);
+    const restored = await shell.exec('echo "a\\\\nb"; echo -E "a\\\\nb"', { state: enabled.state });
+    assert.equal(restored.exitCode, 0, restored.stderr);
+    assert.equal(restored.stdout, "a\nb\na\\nb\n");
+  } finally { await shell.dispose(); }
+});
+
 test("lastpipe retains read and mapfile changes only when enabled", async () => {
   const { shell } = setup();
   shell.use(standardCommands());

@@ -6,6 +6,20 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { standardCommands } from "../../src/commands/index.js";
 
 const sources = [
+  'x=0; echo "$((x+=10))_${y:-fallback}"; echo "final x=$x"',
+  'x=0; echo "$((++x))" "${y:-fallback}"; echo "final x=$x"',
+  'x=0; echo "$((++x))" {a,b}; echo "final x=$x"',
+  'x=0; echo "$((x++))_${y:-fallback}"; echo "final x=$x"',
+  'x=0; echo "$((x=1))_${y:-fallback}"; echo "final x=$x"',
+  'x=0; n="x+=10"; echo "$((n))_${y:-fallback}"; echo "final x=$x"',
+  'shopt -s xpg_echo; echo "$(echo "a\\\\nb")"',
+  'shopt -s xpg_echo; echo -E "$(echo "a\\\\nb")"; echo -E "a\\\\nb"; shopt -u xpg_echo; echo "a\\\\nb"',
+  'shopt -s xpg_echo; echo "$(echo "a\\\\nb" | cat)"',
+  'shopt -s xpg_echo; { echo "a\\\\nb" >&3; } 3>&1',
+  'shopt -s xpg_echo; command echo "a\\\\nb"; builtin echo "a\\\\nb"; env echo "a\\\\nb"',
+  'shopt -s xpg_echo; for i in 1 2 3; do echo "a\\\\nb"; done',
+  'shopt -s xpg_echo; (shopt -u xpg_echo; echo "a\\\\nb"); echo "a\\\\nb"',
+  'f() { echo "a\\\\nb"; }; f; shopt -s xpg_echo; f; shopt -u xpg_echo; f',
   'i=0; x=$((i++))$(cat /dev/null); echo "x=$x i=$i"',
   'i=0; [[ "$((i++))" =~ ^0$ ]]; echo "status=$? i=$i"',
   'pat="[a-z]*"; i=0; case $((i++)) in $pat) echo wrong;; 0) echo "zero:$i";; 1) echo "one:$i";; esac',

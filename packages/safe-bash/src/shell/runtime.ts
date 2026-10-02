@@ -1034,6 +1034,7 @@ export interface State extends DynamicVariableState {
   processSubstitutionIds?: { next: number };
   nocaseglob?: boolean;
   nocasematch?: boolean;
+  xpg_echo?: boolean;
   braceexpand?: boolean;
   noglob?: boolean;
   noclobber?: boolean;
@@ -1715,6 +1716,7 @@ function bindCommandIO(context: CommandContext, io?: IO, limits: ShellLimits = {
     } }, });
 }
 class FastShellCommandContext {
+  get xpgEcho(): boolean { return !!(this._self ?? this)._state.xpg_echo; }
   declare stdin: ByteSource;
   declare stdinIsDefault?: boolean | undefined;
   declare stdout: ByteSink;
@@ -2008,7 +2010,7 @@ function isFastDirectCommand(name: string, words: readonly Word[]): boolean {
   }
   return true;
 }
-const fastShellCommandAccessors = ["signal", "env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
+const fastShellCommandAccessors = ["xpgEcho", "signal", "env", "fs", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
 function cloneRawState(raw: State, hasLocals: boolean): State {
   const variables = Object.assign(Object.create(null) as Record<string, string>, raw.variables);
   const exported = raw.exported.size ? new Set(raw.exported) : new Set<string>();
@@ -6635,7 +6637,7 @@ export class Runtime {
       : undefined;
     if (plan.echoVar !== undefined) {
       const def = this.commands.get("echo");
-      if (!fastSyncSink || !def || !defaultEchoExecutors.has(def.execute) || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || (io.descriptors && io.descriptors.get(1)?.output !== io.stdout)) return undefined;
+      if (!fastSyncSink || !def || (rawState.xpg_echo || !defaultEchoExecutors.has(def.execute)) || hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || (io.descriptors && io.descriptors.get(1)?.output !== io.stdout)) return undefined;
       // Every signed SMI plus a newline fits in 12 bytes. Admit the bound before
       // speculative arithmetic; smaller allowances use ordinary execution.
       if (this.budget.maxOutputBytesSmi - this.budget.bytes < 12) return undefined;
@@ -7685,7 +7687,7 @@ export class Runtime {
 
       if ( w0Plain === "echo" && !hasShellFunction(rawState, "echo") && !rawState.extensions?.builtins.has("echo")) {
         const echoDef = this.commands.get("echo");
-        if (echoDef && defaultEchoExecutors.has(echoDef.execute)) {
+        if (echoDef && (!rawState.xpg_echo && defaultEchoExecutors.has(echoDef.execute))) {
           const w1Plain = command.words[1]?.plain;
           // The synchronous executor only formats echo without options. Prove
           // the first field cannot become an option before executing a compound.
@@ -8933,7 +8935,7 @@ export class Runtime {
         return undefined;
       }
       const def = this.commands.get(w0Plain);
-      if ( !def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : !defaultEchoExecutors.has(def.execute)) || command.words.length > this.budget.maxExpansionFieldsSmi || !this.isPureArgWord(r0.target, rawState) || !this.arePureArgWords(command.words, rawState)) {
+      if ( !def || (w0Plain === "printf" ? def.execute !== printfCommand.execute : (rawState.xpg_echo || !defaultEchoExecutors.has(def.execute))) || command.words.length > this.budget.maxExpansionFieldsSmi || !this.isPureArgWord(r0.target, rawState) || !this.arePureArgWords(command.words, rawState)) {
         return undefined;
       }
       if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
@@ -9834,7 +9836,7 @@ export class Runtime {
             : undefined;
         const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
         const def = (fastSyncSink || fastPipeSink || syncOut) ? this.commands.get(w0Plain) : undefined;
-        if ( (fastSyncSink || fastPipeSink || syncOut) && def && (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.arePureArgWords(command.words, rawState) || command.words.every((w, idx) => idx === 0 ? this.isPureArgWord(w, rawState) : (this.isPureArgWord(w, rawState) || this.canSyncArrayMembersWord(w, rawState)))) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
+        if ( (fastSyncSink || fastPipeSink || syncOut) && def && (w0Plain === "printf" ? def.execute === printfCommand.execute : (!rawState.xpg_echo && defaultEchoExecutors.has(def.execute))) && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.arePureArgWords(command.words, rawState) || command.words.every((w, idx) => idx === 0 ? this.isPureArgWord(w, rawState) : (this.isPureArgWord(w, rawState) || this.canSyncArrayMembersWord(w, rawState)))) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
           if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
           let formatted: string | undefined;
           let preEncoded: Uint8Array | undefined;
@@ -12178,7 +12180,7 @@ export class Runtime {
   private isSyncEchoCallOk(cmd: Extract<Command, { kind: "simple" }>, rawState: State): boolean {
     if (cmd.words.length < 1 || cmd.words.length > 16 || cmd.words[0]!.plain !== "echo") return false;
     const def = this.commands.get("echo");
-    if (hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || !def || !defaultEchoExecutors.has(def.execute)) return false;
+    if (hasShellFunction(rawState, "echo") || rawState.extensions?.builtins.has("echo") || !def || (rawState.xpg_echo || !defaultEchoExecutors.has(def.execute))) return false;
     const stdIfs = (rawState.variables.IFS ?? " \t\n") === " \t\n";
     let inOptions = true;
     for (let i = 1; i < cmd.words.length; i++) {
@@ -16363,7 +16365,7 @@ export class Runtime {
       if ( r0.descriptor === 1 && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">>" || (r0.operator === ">|" && state.noclobber)) && !(r0.operator === ">" && state.noclobber) && (w0Plain === "echo" || w0Plain === "printf") && !hasShellFunction(state, w0Plain) && !state.extensions?.builtins.has(w0Plain)) {
         const def = this.commands.get(w0Plain);
         const rawState = stateMonitor(state)?.raw ?? state;
-        if ( def && (w0Plain === "printf" ? def.execute === printfCommand.execute : defaultEchoExecutors.has(def.execute)) && this.isPureArgWord(r0.target, rawState) && command.words.every(w => this.isPureArgWord(w, rawState))) {
+        if ( def && (w0Plain === "printf" ? def.execute === printfCommand.execute : (!rawState.xpg_echo && defaultEchoExecutors.has(def.execute))) && this.isPureArgWord(r0.target, rawState) && command.words.every(w => this.isPureArgWord(w, rawState))) {
           let targetVal: ShellValue | undefined;
           let formatted: string | undefined;
           let lastArg = w0Plain;
@@ -17844,7 +17846,7 @@ export class Runtime {
         return 0;
       } else if (name === "true" && (forceBuiltin || !this.hasBuiltinOverride(name))) return 0; else if (name === "false" && (forceBuiltin || !this.hasBuiltinOverride(name))) return 1; else if (name === "echo" && (args.length === 0 || !args[0]!.startsWith("-"))) {
         const def = this.commands.get("echo");
-        if (def && defaultEchoExecutors.has(def.execute)) {
+        if (def && (!state.xpg_echo && defaultEchoExecutors.has(def.execute))) {
           const text = args.length === 0 ? "\n" : args.length === 1 ? `${args[0]!}\n` : `${args.join(" ")}\n`;
           const targetSink = io.descriptors?.get(1)?.output ?? io.stdout;
           await writeBytes(targetSink, fastSharedTextEncoder.encode(text), this.commandSignal);
@@ -17971,7 +17973,7 @@ export class Runtime {
         if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
       }, });
     const context: ShellCommandContext = {
-      ...publicIO, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd, get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {
+      ...publicIO, ...{ xpgEcho: !!state.xpg_echo }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd, get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> { return getShellPredicates(); }, set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) { cachedPredicates = replacement; }, get fs() { return getContextFs(); }, set fs(replacement: FileSystem) { contextFs = replacement; }, signal: toNativeAbortSignal(this.commandSignal), executionScope: this.budget.executionScope, onInternalError: this.budget.onInternalError, get inputBudget(): NonNullable<CommandContext["inputBudget"]> { return getInputBudget(); }, set inputBudget(replacement: NonNullable<CommandContext["inputBudget"]>) { cachedInputBudget = replacement; }, registerCleanup: (cleanup) => { scope.register(cleanup); }, invoke: (name, args, options) => {
         const invRuntime = new Runtime( this.sourceFs, this.commands, this.middleware, this.budget, this.signal, this.fileWrites, this.outputFiles, this.commandSignal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth, this.outcomeFrame, this.inputProfile, );
         const invocation = invRuntime.invoke(name, args, options, context, state, scope);
         void invocation.catch(() => undefined);
@@ -19588,7 +19590,7 @@ export class Runtime {
       return 1;
     }
     const options = new Map<string, { enabled: boolean }>();
-    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "expand_aliases", "extglob", "failglob", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob"] as const) {
+    for (const name of setNamespace ? ["allexport", "braceexpand", "errexit", "noclobber", "noexec", "noglob", "nounset", "pipefail"] as const : ["dotglob", "expand_aliases", "extglob", "failglob", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "xpg_echo"] as const) {
       options.set(name, {
         get enabled() { return name === "braceexpand" ? state.braceexpand !== false : !!state[name]; }, set enabled(value) { state[name] = value; }, });
     }
@@ -20747,7 +20749,7 @@ export class Runtime {
             continue;
           }
         }
-        const values = await this.valueWord(word, state, io, split, false, false, false, undefined, false, true, assignmentStart);
+        const values = await this.valueWord(word, state, io, split, false, false, false, undefined, false, true, assignmentStart, true);
         if (values.length > this.budget.limits.maxExpansionFields - fields.length) this.budget.fail("maxExpansionFields");
         for (const value of values) fields.push(value);
       }
@@ -29182,6 +29184,8 @@ export class Runtime {
     return true;
   }
   private tryFastPureSubstitution(part: Extract<WordPart, { kind: "substitution" }>, state: State, rawState: State, io: IO): string | undefined {
+    // Cached and pipeline substitutions may contain echo as well as direct calls.
+    if (rawState.xpg_echo) return undefined;
     if (!cCollation(rawState.variables.LC_ALL || rawState.variables.LC_COLLATE || rawState.variables.LANG || "C")) return undefined;
     if (this.budget.limits.maxPipelineBytes !== Infinity) return undefined;
     // Synchronous evaluators do not expose cumulative source-read accounting.
@@ -31223,7 +31227,7 @@ export class Runtime {
     const def = this.commands.get(w0Plain);
     if (!def) return undefined;
     if (w0Plain === "printf" && def.execute !== printfCommand.execute) return undefined;
-    if (w0Plain === "echo" && !defaultEchoExecutors.has(def.execute)) return undefined;
+    if (w0Plain === "echo" && (rawState.xpg_echo || !defaultEchoExecutors.has(def.execute))) return undefined;
     if ((w0Plain === "dirname" || w0Plain === "basename") && (!builtInDirectContextExecutors.has(def.execute) || customRegisteredCommands.has(def.execute))) return undefined;
     if (w0Plain === "seq" && !builtInDirectContextExecutors.has(def.execute) && (customRegisteredCommands.has(def.execute) || customRegisteredRegistries.has(this.commands))) return undefined;
     if (cmd.words.length > this.budget.maxExpansionFieldsSmi && cmd.words.length > this.budget.limits.maxExpansionFields) return undefined;
@@ -31333,8 +31337,8 @@ export class Runtime {
       this._fastSubPositional = prevFastSubPos;
     }
   }
-  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number): Promise<ShellValue[]> {
-    if (!conditionalPattern && !regexAppend) {
+  private async valueWord(word: Word, state: State, io: IO, split = true, pattern = false, hereString = false, conditionalPattern = false, regexAppend?: (text: string, literal: boolean, value: ShellValue) => void, hereDocument = false, braces = split && !pattern && !hereString && !hereDocument, assignmentStart?: number, skipFast = false): Promise<ShellValue[]> {
+    if (!conditionalPattern && !regexAppend && !skipFast) {
       const fast = this.fastValueWord(word, state, io, split, pattern, hereDocument, braces, assignmentStart);
       if (fast !== undefined) return [fast];
       if (!split && !pattern && word.parts.length === 1 && !hasActiveVariableAttributes(state) && !guestArrays(state)) {

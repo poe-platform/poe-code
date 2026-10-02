@@ -311,7 +311,7 @@ jobs:
           npm install --prefix "$SAFE_BASH_PYTHON_CONSUMER_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "$PYTHON_TARBALLS"/poe-platform-safe-fs-*.tgz "$PYTHON_TARBALLS"/poe-platform-safe-js-*.tgz "$PYTHON_TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz
           node scripts/prepare-python-llm-dependencies.mjs "$SAFE_BASH_PYTHON_CONSUMER_ROOT" "$SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT"
           python3 -m venv "$(dirname "$(dirname "$SAFE_BASH_LLM_REFERENCE_PYTHON")")"
-          "$SAFE_BASH_LLM_REFERENCE_PYTHON" -m pip install --disable-pip-version-check "llm==0.27.1" "pydantic==2.12.5"
+          "$SAFE_BASH_LLM_REFERENCE_PYTHON" -m pip install --disable-pip-version-check "llm==0.27.1" "pydantic==2.12.5" "httpx==0.28.1"
           (cd "$SAFE_BASH_PYTHON_CONSUMER_ROOT" && node --input-type=module -e "import {downloadPythonLlmPackages} from '@poe-platform/safe-bash/commands/python/node'; await downloadPythonLlmPackages(process.env.SAFE_BASH_LLM_PACKAGE_DIR);")
           node --test packages/safe-bash/tests/integration/python-jspi.test.mjs
       - name: Publish SafeFS with provenance

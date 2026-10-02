@@ -10016,54 +10016,7 @@ export class Runtime {
     return shellValueFromBytes(bytes.subarray(Number(offset), Number(end)), io[valueScope]);
     } finally { scratch.close(); }
   }
-  private tryFastParameterPatternSync(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO): string | undefined {
-    if ( typeof value !== "string" || state.nocasematch || this.budget.limits.maxExpansionBytes !== Infinity || state.depth + (io.parameterDepth ?? 0) >= 60 || ValueScope.prototype.reserve !== defaultValueScopeReserve || String.prototype.codePointAt !== defaultStringCodePointAt || globalThis.Float64Array !== defaultFloat64Array) {
-      return undefined;
-    }
-    const op = part.operator;
-    if (!op) return undefined;
-    if ((op === "^" || op === "^^" || op === "," || op === ",,") && (!part.alternate || part.alternate.parts.length === 0)) {
-      for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) >= 128) return undefined;
-      if (value.length === 0) return "";
-      if (op === "^^") return value.toUpperCase();
-      if (op === ",,") return value.toLowerCase();
-      if (op === "^") return value[0]!.toUpperCase() + value.slice(1);
-      return value[0]!.toLowerCase() + value.slice(1);
-    }
-    if (part.alternate?.parts.length !== 1) return undefined;
-    const patPart = part.alternate.parts[0]!;
-    if (patPart.kind !== "text" || patPart.byteValue) return undefined;
-    const pat = patPart.value;
-    if (pat.length === 0 || (!patPart.quoted && (pat.startsWith("~") || hasGlobOrEscape(pat, !!state.extglob)))) return undefined;
-    for (let i = 0; i < value.length; i++) if (value.charCodeAt(i) >= 128) return undefined;
-    for (let i = 0; i < pat.length; i++) if (pat.charCodeAt(i) >= 128) return undefined;
-    if (op === "/" || op === "//" || op === "/#" || op === "/%") {
-      let rep = "";
-      if (part.replacement && part.replacement.parts.length > 0) {
-        if (part.replacement.parts.length !== 1) return undefined;
-        const repPart = part.replacement.parts[0]!;
-        if (repPart.kind !== "text" || repPart.byteValue) return undefined;
-        rep = repPart.value;
-        if (!repPart.quoted && (rep.startsWith("~") || rep.includes("&") || rep.includes("\\"))) return undefined;
-        for (let i = 0; i < rep.length; i++) if (rep.charCodeAt(i) >= 128) return undefined;
-      }
-      const replaced = op === "//"
-        ? (value.includes(pat) ? value.split(pat).join(rep) : value)
-        : op === "/"
-          ? (() => { const idx = value.indexOf(pat); return idx === -1 ? value : value.slice(0, idx) + rep + value.slice(idx + pat.length); })()
-          : op === "/#"
-            ? (value.startsWith(pat) ? rep + value.slice(pat.length) : value)
-            : (value.endsWith(pat) ? value.slice(0, value.length - pat.length) + rep : value);
-      if (replaced.length > this.budget.limits.maxExpansionBytes) return undefined;
-      return replaced;
-    }
-    if (op === "#" || op === "##" || op === "%" || op === "%%") {
-      return (op === "#" || op === "##")
-        ? (value.startsWith(pat) ? value.slice(pat.length) : value)
-        : (value.endsWith(pat) ? value.slice(0, value.length - pat.length) : value);
-    }
-    return undefined;
-  }
+  private tryFastParameterPatternSync(_part: Extract<WordPart, { kind: "variable" }>, _value: ShellValue, _state: State, _io: IO): string | undefined { return undefined; }
   async parameterPattern(part: Extract<WordPart, { kind: "variable" }>, value: ShellValue, state: State, io: IO, hereString: boolean): Promise<ShellValue> {
     const fastRes = this.tryFastParameterPatternSync(part, value, state, io);
     if (fastRes !== undefined) {

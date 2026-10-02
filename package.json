@@ -992,7 +992,9 @@
     "@sqlite.org/sqlite-wasm": "3.50.4-build1",
     "@mixmark-io/domino": "2.2.0",
     "ipaddr.js": "^2.5.0",
-    "minimatch": "^10.2.6"
+    "minimatch": "^10.2.6",
+    "@peculiar/x509": "2.1.0",
+    "reflect-metadata": "0.2.2"
   },
   "description": "CLI tool to configure Poe API for developer workflows.",
   "packageManager": "npm@10.9.2",

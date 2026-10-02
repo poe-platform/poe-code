@@ -33,6 +33,14 @@ it("reads XLSX sheet names, sparse cells and cached formulas as tables", async (
   expect(doc.blocks.map(b => b.t)).toEqual(["Header", "Table"]);
   expect(JSON.stringify(doc.blocks)).toContain("Apple");
   expect(JSON.stringify(doc.blocks)).toContain('"c":"3"');
+  const docx = await convert([{bytes}], {from: "xlsx", to: "docx"}, context);
+  if (docx.kind !== "binary") throw new Error("Expected DOCX");
+  const rewritten = await convert([{bytes: docx.bytes}], {from: "docx", to: "docx"}, context);
+  if (rewritten.kind !== "binary") throw new Error("Expected DOCX");
+  const roundtrip = await readDocument({bytes: rewritten.bytes}, {from: "docx"}, context);
+  expect(roundtrip.blocks.map(b => b.t)).toEqual(["Header", "Table"]);
+  expect(JSON.stringify(roundtrip.blocks)).toContain("Apple");
+  expect(JSON.stringify(roundtrip.blocks)).toContain('"c":"3"');
   await expect(readDocument({bytes}, {from: "xlsx"}, {...context, limits: {tableColumns: 1}})).rejects.toMatchObject({code: "E_LIMIT"});
   await expect(readDocument({bytes}, {from: "xlsx"}, {...context, limits: {expandedBytes: 1}})).rejects.toMatchObject({code: "E_LIMIT"});
 });

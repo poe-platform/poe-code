@@ -7,6 +7,7 @@ import {literalInlines} from "./literal-inlines.js";
 import {imageLength} from "./image-dimensions.js";
 interface RichRun extends DocxRunInput {
   readonly code?: boolean;
+  readonly raw?: string;
   readonly link?: string;
   readonly strike?: boolean;
   readonly baseline?: "superscript" | "subscript";
@@ -84,18 +85,20 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     const numbering: string[] = [];
     const w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
     const r = "http://schemas.openxmlformats.org/officeDocument/2006/relationships";
-    const runs = (nodes: readonly Inline[], style: Omit<RichRun, "text" | "image"> = {}): RichRun[] => {
-      const result: RichRun[] = [];
+    const runs = (nodes: readonly Inline[], style: Omit<RichRun, "text" | "image" | "raw"> = {}, result: RichRun[] = []): RichRun[] => {
       for (const node of nodes) {
         ctx.checkpoint();
-        if (node.t === "Strong") result.push(...runs(node.c, {...style, bold: true}));
-        else if (node.t === "Emph") result.push(...runs(node.c, {...style, italic: true}));
-        else if (node.t === "Underline") result.push(...runs(node.c, {...style, underline: true}));
-        else if (node.t === "Strikeout") result.push(...runs(node.c, {...style, strike: true}));
-        else if (node.t === "Superscript" || node.t === "Subscript") result.push(...runs(node.c, {...style, baseline: node.t === "Superscript" ? "superscript" : "subscript"}));
-        else if (node.t === "Span" || node.t === "Cite") result.push(...runs(node.c[1], style));
-        else if (node.t === "Link") result.push(...runs(node.c[1], {...style, link: node.c[2][0]}));
-        else if (node.t === "Quoted") result.push(...runs([{t: "Str", c: node.c[0] === "SingleQuote" ? "‘" : "“"}, ...node.c[1], {t: "Str", c: node.c[0] === "SingleQuote" ? "’" : "”"}], style));
+        if (node.t === "Strong") runs(node.c, {...style, bold: true}, result);
+        else if (node.t === "Emph") runs(node.c, {...style, italic: true}, result);
+        else if (node.t === "Underline") runs(node.c, {...style, underline: true}, result);
+        else if (node.t === "Strikeout") runs(node.c, {...style, strike: true}, result);
+        else if (node.t === "Superscript" || node.t === "Subscript") runs(node.c, {...style, baseline: node.t === "Superscript" ? "superscript" : "subscript"}, result);
+        else if (node.t === "Span" || node.t === "Cite") runs(node.c[1], style, result);
+        else if (node.t === "Link") runs(node.c[1], {...style, link: node.c[2][0]}, result);
+        else if (node.t === "Quoted") runs([{t: "Str", c: node.c[0] === "SingleQuote" ? "‘" : "“"}, ...node.c[1], {t: "Str", c: node.c[0] === "SingleQuote" ? "’" : "”"}], style, result);
+        else if (node.t === "RawInline") {
+          if (node.c[0] === "openxml") result.push({text: "", raw: node.c[1]});
+        }
         else if (node.t === "Image") result.push({...style, text: "", image: node});
         else {
           let text: string;
@@ -106,7 +109,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           else throw new PandocError("E_UNSUPPORTED_FEATURE", "write", `Unsupported DOCX inline: ${node.t}`, "docx");
           const next: RichRun = {...style, text, ...(node.t === "Code" ? {code: true} : {})};
           const prev = result.at(-1);
-          if (prev && !prev.image && !next.image && !prev.code && !next.code && prev.text !== "\n" && next.text !== "\n" &&
+          if (prev && prev.raw === undefined && !prev.image && !next.image && !prev.code && !next.code && prev.text !== "\n" && next.text !== "\n" &&
               prev.bold === next.bold && prev.italic === next.italic && prev.underline === next.underline &&
               prev.strike === next.strike && prev.baseline === next.baseline && prev.link === next.link) {
             result[result.length - 1] = {...prev, text: prev.text + next.text};
@@ -120,7 +123,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     const paragraph = (target: DocxBlock[], content: readonly RichRun[], properties: string, level?: number) => {
       // Sidecars keep relationship/paragraph properties out of the structured content API.
       paragraphs.push({runs: content, properties});
-      target.push({kind: "paragraph", ...(level === undefined ? {} : {level}), runs: content.map(({code: _code, link: _link, strike: _strike, baseline: _baseline, image: _image, ...run}) => run)});
+      target.push({kind: "paragraph", ...(level === undefined ? {} : {level}), runs: content.map(({code: _code, link: _link, strike: _strike, baseline: _baseline, image: _image, raw: _raw, ...run}) => run)});
     };
     const visit = async (nodes: readonly Block[], target: DocxBlock[], indent = 0, list?: {id: number; level: number; pending: boolean}): Promise<void> => {
       for (const block of nodes) {
@@ -206,6 +209,12 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
         for (const [index, run] of extra.runs.entries()) {
           ctx.checkpoint();
           const native = nativeRuns[index]!;
+          if (run.raw !== undefined) {
+            // Parse the fragment in its WordprocessingML namespace before insertion.
+            const fragment = new DocumentXmlEditor(new TextEncoder().encode(`<w:p xmlns:w="${w}" xmlns:r="${r}">${run.raw}</w:p>`), {}, undefined, mc.budget);
+            replacements.set(native, fragment.sourceXml(fragment.root, new Map(), true));
+            continue;
+          }
           const properties = native.children.find(child => child.localName === "rPr");
           const codeStyle = run.code ? '<w:rStyle w:val="VerbatimChar"/>' : "";
           const format = (run.strike ? "<w:strike/>" : "") + (run.baseline ? `<w:vertAlign w:val="${run.baseline}"/>` : "");
@@ -220,7 +229,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           }
           if (codeStyle || format || run.image || run.link !== undefined) replacements.set(native, xml);
         }
-        if (extra.properties || replacements.size) main.replaceElement(node, `<w:p xmlns:w="${w}">${!properties && extra.properties ? `<w:pPr>${extra.properties}</w:pPr>` : ""}${main.sourceXml(node, replacements, true)}</w:p>`);
+        if (extra.properties || replacements.size) main.replaceElement(node, `<w:p xmlns:w="${w}" xmlns:r="${r}">${!properties && extra.properties ? `<w:pPr>${extra.properties}</w:pPr>` : ""}${main.sourceXml(node, replacements, true)}</w:p>`);
       } else for (const child of node.children) await edit(child);
     };
     await edit(main.root);

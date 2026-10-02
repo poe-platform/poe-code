@@ -174,3 +174,49 @@ Metrics from source [@arch2026].
   const wikiToHtml = await convert([{ bytes: new TextEncoder().encode(wiki) }], { from: "mediawiki", to: "html" }, context);
   expect(wikiToHtml.kind === "text" && wikiToHtml.text).toContain("<h1");
 });
+
+
+it("converts twenty words with default limits and retains explicit work limits", async () => {
+  const text = Array.from({length: 20}, (_, i) => `word${i + 1}`).join(" ");
+  const input = [{bytes: new TextEncoder().encode(text)}];
+  const output = await convert(input, {from: "commonmark", to: "docx"}, context);
+  if (output.kind !== "binary") throw new Error("Expected DOCX");
+  expect(new TextDecoder().decode(readZipArchiveEntries(output.bytes).get("word/document.xml"))).toContain(text);
+  await expect(convert(input, {from: "commonmark", to: "docx"}, {...context, limits: {work: 1}})).rejects.toMatchObject({code: "E_LIMIT"});
+});
+
+it("coalesces equivalent formatting across nested and adjacent wrappers", async () => {
+  const output = await writeDocument({blocks: [{t: "Para", c: [
+    str("one"), {t: "Span", c: [attr, [str(" two")]]},
+    {t: "Strong", c: [str("three"), {t: "Strong", c: [str(" four")]}]},
+    {t: "Strong", c: [str(" five")]}, str("six")
+  ]}], metadata: {}, resources: []}, {to: "docx"}, context);
+  if (output.kind !== "binary") throw new Error("Expected DOCX");
+  const xml = new TextDecoder().decode(readZipArchiveEntries(output.bytes).get("word/document.xml"));
+  expect(xml).toContain("one two");
+  expect(xml).toContain("three four five");
+  const runs: string[] = [];
+  const parser = new SaxesParser({xmlns: true});
+  parser.on("opentag", tag => {if (tag.local === "r") runs.push(tag.name);});
+  parser.write(xml).close();
+  expect(runs).toHaveLength(3);
+});
+
+it("inserts raw OpenXML inlines and omits raw markup for other formats", async () => {
+  const output = await writeDocument({blocks: [{t: "Para", c: [
+    str("before"), {t: "RawInline", c: ["html", "<b>"]},
+    {t: "RawInline", c: ["openxml", '<w:r><w:rPr><w:b/></w:rPr><w:t>raw</w:t></w:r>']},
+    {t: "RawInline", c: ["html", "</b>"]}, str("after")
+  ]}], metadata: {}, resources: []}, {to: "docx"}, context);
+  if (output.kind !== "binary") throw new Error("Expected DOCX");
+  const xml = new TextDecoder().decode(readZipArchiveEntries(output.bytes).get("word/document.xml"));
+  new SaxesParser({xmlns: true}).write(xml).close();
+  expect(xml).toContain('<w:rPr><w:b/></w:rPr><w:t>raw</w:t>');
+  expect(xml).not.toContain("&lt;b&gt;");
+  expect(await convert([{bytes: output.bytes}], {from: "docx", to: "plain"}, context)).toMatchObject({text: "beforerawafter\n"});
+});
+
+
+it("rejects malformed raw OpenXML instead of producing an invalid archive", async () => {
+  await expect(writeDocument({blocks: [{t: "Para", c: [{t: "RawInline", c: ["openxml", "<w:r>"]}]}], metadata: {}, resources: []}, {to: "docx"}, context)).rejects.toMatchObject({code: "E_PARSE"});
+});

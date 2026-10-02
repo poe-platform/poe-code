@@ -22,7 +22,8 @@ accepts explicit read/write callbacks for conversion without a Shell.
 The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
 `inspectCommand`, `formatCapabilities`, and `PandocError`. Inspect format
 capabilities before conversion: support is format-specific and does not imply full native Pandoc
-compatibility. Built-in DOCX conversion preserves headings, bold/italic text, inline code, hyperlinks, lists,
+compatibility. DOCX output accepts raw `openxml` inlines and omits raw inlines for other formats.
+Built-in DOCX conversion preserves headings, bold/italic text, inline code, hyperlinks, lists,
 tables, blockquotes, horizontal rules, strikeout, superscript, subscript, quotes,
 and embedded raster images (including inline images in table cells). PPTX renders blockquotes as indented
 content, preserves code, strikeout, superscript, subscript and quotes, and accepts

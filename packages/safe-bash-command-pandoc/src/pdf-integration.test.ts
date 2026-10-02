@@ -40,6 +40,7 @@ it("infers PDF output without --yes and rejects external engines before acquisit
   const errors: string[] = [];
   const execute = (args: string[]) => createStandalonePandocCommand().execute({args, signal: new AbortController().signal, cwd: "/", stdin: [], readFile: read, writeFile: write, stdout: {write: async () => {}}, stderr: {write: async bytes => {errors.push(new TextDecoder().decode(bytes));}}});
   expect((await execute(["/owned.md", "-o", "/owned.pdf"])).exitCode).toBe(0); expect(errors).toEqual([]);
+  expect((await execute(["/owned.md", "--standalone", "--pdf-engine=wkhtmltopdf", "-V", "margin-top=18mm", "-o", "/owned.pdf"])).exitCode).toBe(0); expect(errors).toEqual([]);
   const sdk = await convert([{bytes: encode("Owned PDF text")}], {from: "commonmark", to: "pdf"}, {});
   if (sdk.kind !== "binary") throw new Error("PDF expected");
   const bytes = new Uint8Array(volume.readFileSync("/owned.pdf") as Buffer);

@@ -95,7 +95,15 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       options.variables = variables;
       continue;
     }
-    if (name === "--pdf-engine") fail("External PDF engines are forbidden; use the built-in TypeScript PDF writer");
+    if (name === "--pdf-engine") {
+      const engineValue = (equals < 0 ? args[++i] : arg.slice(equals + 1))?.trim().toLowerCase();
+      if (!engineValue) fail("Missing value: --pdf-engine");
+      if (engineValue === "wkhtmltopdf" || engineValue === "builtin" || engineValue === "internal" || engineValue === "typescript" || engineValue === "pdf") {
+        options.to ??= "pdf";
+        continue;
+      }
+      fail("External PDF engines are forbidden; use the built-in TypeScript PDF writer");
+    }
     const publication = new Map<string, readonly ["pdf" | "epub", string]>([
       ["--pdf-page-size", ["pdf", "pageSize"]], ["--pdf-orientation", ["pdf", "orientation"]],
       ["--pdf-margin", ["pdf", "margin"]], ["--pdf-font-size", ["pdf", "fontSize"]], ["--pdf-line-height", ["pdf", "lineHeight"]],

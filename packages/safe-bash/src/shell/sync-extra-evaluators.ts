@@ -18701,12 +18701,12 @@ const syncExtraRuntimeMethods = {
                   : firstName === "du"
                     ? evalSyncDu(stageArgs, rawState.cwd, exportedVariablesView(rawState), (p: string) => this.tryInspectMemoryNodeSync(p, true), true)
                   : firstName === "tree"
-                    ? evalSyncTree(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true))
+                    ? evalSyncTree(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true), exportedVariablesView(rawState))
                   : firstName === "stat"
                     ? evalSyncStat(stageArgs, rawState.cwd, (rawState.exported.has("QUOTING_STYLE") ? rawState.variables.QUOTING_STYLE : undefined), (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
                   : firstName === "fd"
                     ? evalSyncFd(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true), true)
-                  : firstName === "rg"
+                  : firstName === "rg" && !(rawState.exported.has("RIPGREP_CONFIG_PATH") && rawState.variables.RIPGREP_CONFIG_PATH)
                     ? evalSyncRg(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, true)
                   : firstName === "readlink"
                     ? evalSyncReadlink(stageArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
@@ -19158,7 +19158,7 @@ const syncExtraRuntimeMethods = {
           : w0Plain === "du"
             ? evalSyncDu(allArgs, rawState.cwd, exportedVariablesView(rawState), inspectNode)
             : w0Plain === "tree"
-              ? evalSyncTree(allArgs, rawState.cwd, inspectNode)
+              ? evalSyncTree(allArgs, rawState.cwd, inspectNode, exportedVariablesView(rawState))
               : w0Plain === "stat"
                 ? evalSyncStat(allArgs, rawState.cwd, (rawState.exported.has("QUOTING_STYLE") ? rawState.variables.QUOTING_STYLE : undefined), inspectStat)
                 : w0Plain === "fd"
@@ -19362,7 +19362,7 @@ const syncExtraRuntimeMethods = {
               ? evalSyncXan(optInBytes, allArgs, readFile)
             : (w0Plain === "less" || w0Plain === "more")
               ? evalSyncLess(optInBytes, allArgs, readFile)
-            : w0Plain === "rg"
+            : w0Plain === "rg" && !(rawState.exported.has("RIPGREP_CONFIG_PATH") && rawState.variables.RIPGREP_CONFIG_PATH)
               ? evalSyncRg(optInBytes, allArgs, readFile)
             : (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum")
               ? (() => { const cs = evalSyncChecksum(w0Plain, optInBytes, allArgs, readFile); return cs !== undefined && !cs.includes("\0") ? cs : undefined; })()
@@ -19607,256 +19607,256 @@ const syncExtraRuntimeMethods = {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const b32Out = evalSyncBase32(view, opArgs, readFile);
               if (b32Out !== undefined) fileRes = sharedSyncPipeDecoder.decode(b32Out);
-            } else if (w0Plain === "csvcut") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvcut") {
               fileRes = evalSyncCsvcut(view, opArgs);
-            } else if (w0Plain === "csvgrep") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvgrep") {
               fileRes = evalSyncCsvgrep(view, opArgs);
-            } else if (w0Plain === "csvlook") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvlook") {
               fileRes = syncCommandEvaluators.evalSyncCsvlook?.(view, opArgs);
-            } else if (w0Plain === "csvjson") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvjson") {
               fileRes = syncCommandEvaluators.evalSyncCsvjson?.(view, opArgs);
-            } else if (w0Plain === "csvsort") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvsort") {
               fileRes = syncCommandEvaluators.evalSyncCsvsort?.(view, opArgs);
-            } else if (w0Plain === "csvformat") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvformat") {
               fileRes = syncCommandEvaluators.evalSyncCsvformat?.(view, opArgs);
-            } else if (w0Plain === "csvstat") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvstat") {
               fileRes = syncCommandEvaluators.evalSyncCsvstat?.(view, opArgs);
-            } else if (w0Plain === "in2csv") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "in2csv") {
               fileRes = syncCommandEvaluators.evalSyncIn2csv?.(view, opArgs);
-            } else if (w0Plain === "csvstack") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvstack") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncCsvstack?.(view, opArgs, readFile);
-            } else if (w0Plain === "csvjoin") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvjoin") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncCsvjoin?.(view, opArgs, readFile);
-            } else if (w0Plain === "dd") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "dd") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               fileRes = evalSyncDd(view, opArgs, readFile, writeFile);
-            } else if (w0Plain === "xargs") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "xargs") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncXargs(view, opArgs, readFile);
-            } else if (w0Plain === "openssl") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "openssl") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncOpenssl?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "sqlite3") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "sqlite3") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncSqlite3?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "gpg") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "gpg") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncGpg?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "ssh") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "ssh") {
               fileRes = syncCommandEvaluators.evalSyncSsh?.(opArgs);
-            } else if (w0Plain === "ssh-keygen") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "ssh-keygen") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncSshKeygen?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, rawState.cwd);
-            } else if (w0Plain === "pdfinfo") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdfinfo") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdfinfo?.(view, opArgs, readFile);
-            } else if (w0Plain === "pdftotext") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdftotext") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdftotext?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "exiftool") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "exiftool") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncExiftool?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "pdffonts") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdffonts") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdffonts?.(view, opArgs, readFile);
-            } else if (w0Plain === "pdftohtml") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdftohtml") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdftohtml?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "qpdf") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "qpdf") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncQpdf?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "pdftk") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdftk") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdftk?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "sips") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "sips") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncSips?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "mogrify" || w0Plain === "composite" || w0Plain === "montage" || w0Plain === "compare") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncIdentify?.(w0Plain, view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "pdfimages") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdfimages") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdfimages?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "pdfdetach") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdfdetach") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdfdetach?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "ffprobe") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "ffprobe") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncFfprobe?.(view, opArgs, readFile);
-            } else if (w0Plain === "ffmpeg") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "ffmpeg") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncFfmpeg?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "gh") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "gh") {
               fileRes = syncCommandEvaluators.evalSyncGh?.(this.commands.get("gh")!.execute, opArgs, rawState.variables, rawState.cwd, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), false));
-            } else if (w0Plain === "pdftoppm") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdftoppm") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdftoppm?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "pdftocairo") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdftocairo") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdftocairo?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "mmdc") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "mmdc") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncMmdc?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "pandoc") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pandoc") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPandoc?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "soffice" || w0Plain === "libreoffice") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncSoffice?.(opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "ssconvert") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "ssconvert") {
               fileRes = syncCommandEvaluators.evalSyncSsconvert?.(this.commands.get("ssconvert")!.execute, opArgs, view, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "wkhtmltopdf") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "wkhtmltopdf") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncWkhtmltopdf?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); const dir = fp.slice(0, fp.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "op") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "op") {
               fileRes = syncCommandEvaluators.evalSyncOp?.(this.commands.get("op")!.execute, opArgs, rawState.variables);
-            } else if (w0Plain === "git") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "git") {
               fileRes = syncCommandEvaluators.evalSyncGit?.(view, opArgs, rawState.cwd, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, p === "/", follow), (p: string) => this.tryReadMemoryFileViewSync(p, false, true), this.commands.get("git")!.execute, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const dir = p.slice(0, p.lastIndexOf("/")) || "/"; tryMkdirMemorySync(this.backingFs, dir, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, p, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, p, true, 0o777 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, p, this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "tar") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "tar") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncTar(view, opArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, m ?? 0o755, this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "unzip") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "unzip") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncUnzip(opArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } }, (p: string, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, m ?? 0o755, this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "zip") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "zip") {
               fileRes = evalSyncZip(opArgs);
-            } else if (w0Plain === "timeout") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "timeout") {
               fileRes = syncCommandEvaluators.evalSyncTimeout?.(opArgs);
-            } else if (w0Plain === "split") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "split") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncSplit?.(view, opArgs, readFile, writeFile);
-            } else if (w0Plain === "csplit") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csplit") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncCsplit?.(view, opArgs, readFile, writeFile);
-            } else if (w0Plain === "curl") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "curl") {
               fileRes = syncCommandEvaluators.evalSyncCurl?.(opArgs);
-            } else if (w0Plain === "wget") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "wget") {
               fileRes = syncCommandEvaluators.evalSyncWget?.(opArgs);
-            } else if (w0Plain === "sponge") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "sponge") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncSponge?.(view, opArgs, readFile, writeFile);
             } else if (!hasSingleStdinRedir && !hasSingleHereStringRedir && (w0Plain === "truncate" || w0Plain === "install" || w0Plain === "mktemp" || w0Plain === "touch" || w0Plain === "cp" || w0Plain === "mv" || w0Plain === "rmdir" || w0Plain === "sleep" || w0Plain === "chmod" || w0Plain === "mkdir" || w0Plain === "rm" || w0Plain === "ln")) {
               fileRes = undefined;
-            } else if (w0Plain === "truncate") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "truncate") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncTruncate?.(opArgs, readFile, writeFile);
-            } else if (w0Plain === "install") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "install") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncInstall?.(opArgs, readFile, writeFile, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, m ?? 0o755, this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "apply_patch") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "apply_patch") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncApplyPatch?.(view, opArgs, readFile, writeFile, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), true, 0o755, this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "mktemp") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "mktemp") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const writeFile = (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               const mkdirFn = (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncMktemp?.(opArgs, exportedVariablesView(rawState) as Readonly<Record<string, string>>, statType, writeFile, mkdirFn);
-            } else if (w0Plain === "tee") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "tee") {
               const writeFile = (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncTee?.(view, opArgs, writeFile);
-            } else if (w0Plain === "touch") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "touch") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncTouch?.(opArgs, statType, readFile, writeFile, (p: string, upd) => this.tryUtimesMemoryNodeSync(resolvePath(rawState.cwd, p), upd, false), rawState.exported.has("TZ") ? rawState.variables.TZ : undefined);
-            } else if (w0Plain === "cp") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "cp") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const statMode = (p: string) => this.tryStatMemoryNodeModeSync(resolvePath(rawState.cwd, p), false);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, app: boolean, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncCp?.(opArgs, statType, readFile, writeFile, statMode, rawState.umask ?? 0o022);
-            } else if (w0Plain === "mv") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "mv") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const statMode = (p: string) => this.tryStatMemoryNodeModeSync(resolvePath(rawState.cwd, p), false);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, app: boolean, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } };
               const rmFn = (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncMv?.(opArgs, statType, readFile, writeFile, rmFn, statMode);
-            } else if (w0Plain === "rmdir") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "rmdir") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const listDir = (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p));
               const rmFn = (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncRmdir?.(opArgs, statType, listDir, rmFn);
-            } else if (w0Plain === "sleep") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "sleep") {
               fileRes = syncCommandEvaluators.evalSyncSleep?.(opArgs);
-            } else if (w0Plain === "chmod") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "chmod") {
               fileRes = syncCommandEvaluators.evalSyncChmod?.(opArgs, rawState.umask ?? 0o022, (p: string, chg) => this.tryChmodMemoryNodeSync(resolvePath(rawState.cwd, p), chg, false));
-            } else if (w0Plain === "patch") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "patch") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const writeFile = (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncPatch?.(view, opArgs, readFile, writeFile);
-            } else if (w0Plain === "mkdir") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "mkdir") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const mkdirFn = (p: string, rec: boolean, m: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), rec, m, this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncMkdir?.(opArgs, rawState.umask ?? 0o022, statType, mkdirFn);
-            } else if (w0Plain === "rm") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "rm") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const listDir = (p: string) => tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvePath(rawState.cwd, p));
               const rmFn = (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncRm?.(opArgs, statType, listDir, rmFn);
-            } else if (w0Plain === "ln") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "ln") {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const rmFn = (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } };
               const linkFn = (s: string, d: string, sym: boolean) => this.tryLinkMemoryNodeSync(sym ? s : resolvePath(rawState.cwd, s), resolvePath(rawState.cwd, d), sym);
               fileRes = syncCommandEvaluators.evalSyncLn?.(opArgs, statType, rmFn, linkFn);
-            } else if (w0Plain === "dos2unix" || w0Plain === "unix2dos") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && (w0Plain === "dos2unix" || w0Plain === "unix2dos")) {
               const leOut = evalSyncLineEndings(w0Plain, view, opArgs);
               if (leOut !== undefined) fileRes = sharedSyncPipeDecoder.decode(leOut);
-            } else if (w0Plain === "iconv") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "iconv") {
               const icOut = evalSyncIconv(view, opArgs);
               if (icOut !== undefined) fileRes = sharedSyncPipeDecoder.decode(icOut);
             } else if (w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const cmpOut = evalSyncCompression(w0Plain, view, opArgs, readFile);
               if (cmpOut !== undefined && !cmpOut.includes(0)) fileRes = sharedSyncPipeDecoder.decode(cmpOut);
-            } else if (w0Plain === "htmlq") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "htmlq") {
               fileRes = evalSyncHtmlq(view, opArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
-            } else if (w0Plain === "xmllint") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "xmllint") {
               fileRes = evalSyncXmllint(view, opArgs);
-            } else if (w0Plain === "xq" || w0Plain === "yq") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && (w0Plain === "xq" || w0Plain === "yq")) {
               fileRes = this.evalSyncXqOrYq(w0Plain, view, opArgs);
-            } else if (w0Plain === "mdq") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "mdq") {
               fileRes = evalSyncMdq(view, opArgs);
-            } else if (w0Plain === "shuf") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "shuf") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p));
               fileRes = evalSyncShuf(view, opArgs, readFile);
-            } else if (w0Plain === "html-to-markdown") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "html-to-markdown") {
               fileRes = evalSyncHtmlToMarkdown(view, opArgs);
-            } else if (w0Plain === "unrtf") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "unrtf") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncUnrtf(view, opArgs, readFile);
-            } else if (w0Plain === "pr") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pr") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncPr(view, opArgs, readFile);
-            } else if (w0Plain === "file") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "file") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), true);
               fileRes = evalSyncFile(view, opArgs, readFile, statType);
-            } else if (w0Plain === "diff3") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "diff3") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncDiff3(view, opArgs, readFile);
-            } else if (w0Plain === "cmp") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "cmp") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncCmp(view, opArgs, readFile);
-            } else if (w0Plain === "diff") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "diff") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncDiff(view, opArgs, readFile);
-            } else if (w0Plain === "xan") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "xan") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncXan(view, opArgs, readFile);
-            } else if (w0Plain === "less" || w0Plain === "more") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && (w0Plain === "less" || w0Plain === "more")) {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncLess(view, opArgs, readFile);
-            } else if (w0Plain === "rg") {
+            } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "rg" && !(rawState.exported.has("RIPGREP_CONFIG_PATH") && rawState.variables.RIPGREP_CONFIG_PATH)) {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = evalSyncRg(view, opArgs, readFile);
             } else if (w0Plain === "envsubst" && (hasSingleHereStringRedir || hasSingleStdinRedir)) {

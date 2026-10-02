@@ -10,20 +10,18 @@ export function evalSyncRg(
   let ignoreCase = false;
   let smartCase = false;
   let invert = false;
-  let countOnly = false;
+  let mode: "lines" | "count" | "with" | "without" = "lines";
   let onlyMatching = false;
   let wordRegexp = false;
   let lineRegexp = false;
   let lineNumber: boolean | undefined;
   let withFilename: boolean | undefined;
-  let filesWithMatches = false;
-  let filesWithoutMatch = false;
   let quiet = false;
   let nullTerminated = false;
   let maxCount = Infinity;
   const patterns: string[] = [];
-  let positionalPatternConsumed = false;
-  const paths: string[] = [];
+  let explicitPatterns = false;
+  const operands: string[] = [];
   let endOpts = false;
 
   for (let i = 0; i < args.length; i++) {
@@ -32,18 +30,15 @@ export function evalSyncRg(
     if (!endOpts && (a === "-e" || a === "--regexp")) {
       if (i + 1 >= args.length) return undefined;
       patterns.push(args[++i]!);
-      positionalPatternConsumed = true;
+      explicitPatterns = true;
       continue;
     }
     if (!endOpts && a.startsWith("--regexp=")) {
       patterns.push(a.slice(9));
-      positionalPatternConsumed = true;
+      explicitPatterns = true;
       continue;
     }
-    if (!endOpts && (a === "-r" || a === "--replace")) {
-      return undefined;
-    }
-    if (!endOpts && a.startsWith("--replace=")) {
+    if (!endOpts && (a === "-r" || a === "--replace" || a.startsWith("--replace="))) {
       return undefined;
     }
     if (!endOpts && (a === "-m" || a === "--max-count")) {
@@ -59,22 +54,26 @@ export function evalSyncRg(
     }
     if (!endOpts && a.startsWith("--") && a.length > 2) {
       if (a === "--fixed-strings") fixed = true;
+      else if (a === "--no-fixed-strings") fixed = false;
       else if (a === "--ignore-case") { ignoreCase = true; smartCase = false; }
       else if (a === "--case-sensitive") { ignoreCase = false; smartCase = false; }
       else if (a === "--smart-case") { smartCase = true; ignoreCase = false; }
       else if (a === "--invert-match") invert = true;
-      else if (a === "--count") countOnly = true;
+      else if (a === "--no-invert-match") invert = false;
+      else if (a === "--count") mode = "count";
       else if (a === "--only-matching") onlyMatching = true;
-      else if (a === "--word-regexp") wordRegexp = true;
-      else if (a === "--line-regexp") lineRegexp = true;
+      else if (a === "--no-only-matching") onlyMatching = false;
+      else if (a === "--word-regexp") { wordRegexp = true; lineRegexp = false; }
+      else if (a === "--line-regexp") { lineRegexp = true; wordRegexp = false; }
       else if (a === "--line-number") lineNumber = true;
       else if (a === "--no-line-number") lineNumber = false;
       else if (a === "--with-filename") withFilename = true;
       else if (a === "--no-filename") withFilename = false;
-      else if (a === "--files-with-matches") filesWithMatches = true;
-      else if (a === "--files-without-match") filesWithoutMatch = true;
+      else if (a === "--files-with-matches") mode = "with";
+      else if (a === "--files-without-match") mode = "without";
       else if (a === "--quiet") quiet = true;
       else if (a === "--null") nullTerminated = true;
+      else if (a === "--no-null") nullTerminated = false;
       else return undefined;
       continue;
     }
@@ -86,15 +85,15 @@ export function evalSyncRg(
         else if (ch === "s") { ignoreCase = false; smartCase = false; }
         else if (ch === "S") { smartCase = true; ignoreCase = false; }
         else if (ch === "v") invert = true;
-        else if (ch === "c") countOnly = true;
+        else if (ch === "c") mode = "count";
         else if (ch === "o") onlyMatching = true;
-        else if (ch === "w") wordRegexp = true;
-        else if (ch === "x") lineRegexp = true;
+        else if (ch === "w") { wordRegexp = true; lineRegexp = false; }
+        else if (ch === "x") { lineRegexp = true; wordRegexp = false; }
         else if (ch === "n") lineNumber = true;
         else if (ch === "N") lineNumber = false;
         else if (ch === "H") withFilename = true;
         else if (ch === "I") withFilename = false;
-        else if (ch === "l") filesWithMatches = true;
+        else if (ch === "l") mode = "with";
         else if (ch === "q") quiet = true;
         else if (ch === "0") nullTerminated = true;
         else if (ch === "e") {
@@ -104,7 +103,7 @@ export function evalSyncRg(
             if (i + 1 >= args.length) return undefined;
             patterns.push(args[++i]!);
           }
-          positionalPatternConsumed = true;
+          explicitPatterns = true;
           break;
         } else if (ch === "m") {
           const rest = a.slice(j + 1);
@@ -119,14 +118,17 @@ export function evalSyncRg(
       }
       continue;
     }
-    if (!positionalPatternConsumed) {
-      patterns.push(a);
-      positionalPatternConsumed = true;
-    } else {
-      paths.push(a);
-    }
+    operands.push(a);
   }
+  if (!explicitPatterns) {
+    if (operands.length === 0) return undefined;
+    patterns.push(operands.shift()!);
+  }
+  const paths = operands;
   if (patterns.length === 0) return undefined;
+  const countOnly = mode === "count";
+  const filesWithMatches = mode === "with";
+  const filesWithoutMatch = mode === "without";
   if (nullTerminated && (!allowNullBytes || (!filesWithMatches && !filesWithoutMatch))) return undefined;
   if (onlyMatching && (invert || countOnly || filesWithMatches || filesWithoutMatch)) return undefined;
   const effectiveIgnoreCase = ignoreCase || (smartCase && !patterns.some(p => /[A-Z]/u.test(p)));
@@ -137,7 +139,7 @@ export function evalSyncRg(
     if (fixed) {
       rawSources.push(escapeRegex(pat));
     } else {
-      if (!/^[a-zA-Z0-9_ :;,=.+*?^$\-[\]()|/{}\\]+$/u.test(pat) || /\([^)]*[+*][^)]*\)[+*?]/u.test(pat)) return undefined;
+      if (!/^[a-zA-Z0-9_ :;,=.+*?^$\-[\]()|/\{\}\\]+$/u.test(pat) || /\([^)]*[+*][^)]*\)[+*?]/u.test(pat)) return undefined;
       rawSources.push(pat);
     }
   }
@@ -162,10 +164,12 @@ export function evalSyncRg(
   const showLine = lineNumber ?? false;
   const outLines: string[] = [];
   let anyMatched = false;
+  let stdinUsed = false;
 
   for (const t of targets) {
-    const b = t === "-" ? stdinBytes : (readFile ? readFile(t) : undefined);
+    const b = t === "-" ? (stdinUsed ? new Uint8Array(0) : ((stdinUsed = true), stdinBytes)) : (readFile ? readFile(t) : undefined);
     if (!b || b.byteLength > 65536 || b.includes(0)) return undefined;
+    const label = t === "-" ? "<stdin>" : t;
     const text = syncRgDecoder.decode(b);
     const rawLines = text.length === 0 ? [] : (text.endsWith("\n") ? text.slice(0, -1).split("\n") : text.split("\n"));
     let count = 0;
@@ -179,12 +183,12 @@ export function evalSyncRg(
         }
         anyMatched = true;
         if (filesWithMatches) {
-          outLines.push(t);
+          outLines.push(label);
           break;
         }
         if (!countOnly) {
           let prefix = "";
-          if (showFile) prefix += `${t}:`;
+          if (showFile) prefix += `${label}:`;
           if (showLine) prefix += `${idx + 1}:`;
           if (onlyMatching) {
             reGlobal.lastIndex = 0;
@@ -203,10 +207,10 @@ export function evalSyncRg(
     if (filesWithoutMatch) {
       if (count === 0) {
         anyMatched = true;
-        outLines.push(t);
+        outLines.push(label);
       }
     } else if (countOnly && count > 0) {
-      outLines.push(showFile ? `${t}:${count}` : String(count));
+      outLines.push(showFile ? `${label}:${count}` : String(count));
     }
   }
   if (!anyMatched) return undefined;

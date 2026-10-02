@@ -2,7 +2,8 @@ import { utf8ByteLength, bytesFrom } from "safe-bash-byte-engine";
 import { tryReadMemoryFileViewSync } from "@poe-code/safe-fs/core";
 import { assertCommandRequirements, collectBytes, createCommandArguments, getCommandArguments, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { hasYieldCheckpoint } from "safe-bash-contracts/yield";
-import { chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
+import { builtInDirectContextExecutors, chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
+import { isDefaultCommandOptions } from "safe-bash-contracts/command";
 import { Matcher, type Match } from "safe-bash-search-engine/matcher";
 import { parse, ParsedArguments, SearchError, type Arguments, type SearchOptions } from "safe-bash-search-engine/options";
 import { data, elapsed, Printer, stats, type Stats } from "safe-bash-search-engine/output";
@@ -1077,7 +1078,7 @@ async function executeRgWithConfig(context: CommandContext, executor: RegexExecu
 }
 
 export function createRgCommand(executor: RegexExecutor, options: SearchOptions = {}): CommandDefinition {
-  return {
+  const def: CommandDefinition = {
     name: "rg",
     filesystemRequirements: searchRequirements,
     description: "Search virtual files or stdin with recursive filtering and structured results",
@@ -1089,4 +1090,6 @@ export function createRgCommand(executor: RegexExecutor, options: SearchOptions 
       return executeRgSlow(context, executor, options);
     },
   };
+  if (isDefaultCommandOptions(options)) builtInDirectContextExecutors.add(def.execute);
+  return def;
 }

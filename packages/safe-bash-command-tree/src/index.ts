@@ -44,11 +44,11 @@ export function evalSyncTree(
   args: readonly string[],
   cwd: string,
   inspectNode: (absPath: string) => SyncTreeVfsNode | undefined,
+  env?: Readonly<Record<string, string | undefined>>,
 ): string | undefined {
   let showAll = false;
   let dirsOnly = false;
   let dirsFirst = false;
-  let classify = false;
   let fullPath = false;
   let noIndent = false;
   let noReport = false;
@@ -56,7 +56,7 @@ export function evalSyncTree(
   let sortMode: "name" | "version" | "none" = "name";
   let jsonOut = false;
   let fileLimit = 0;
-  let ascii = false;
+  let explicitAscii: boolean | undefined;
   let maxLevel = Infinity;
   const includePatterns: RegExp[] = [];
   const excludePatterns: RegExp[] = [];
@@ -95,12 +95,10 @@ export function evalSyncTree(
         fileLimit = Number(v);
       } else if (a === "--filelimit" && i + 1 < args.length && /^\d+$/.test(args[i + 1]!)) {
         fileLimit = Number(args[++i]!);
-      } else if (a === "--charset=ascii" || a === "--charset=ASCII" || a === "--charset=US-ASCII" || a === "--charset=ANSI") ascii = true;
-      else if (a === "--charset=UTF-8" || a === "--charset=UTF8") ascii = false;
-      else if (a === "--charset" && i + 1 < args.length) {
-        const cs = args[++i]!;
-        if (cs === "ascii" || cs === "ASCII" || cs === "US-ASCII" || cs === "ANSI") ascii = true;
-        else if (cs === "UTF-8" || cs === "UTF8") ascii = false;
+      } else if (a.startsWith("--charset=") || a === "--charset") {
+        const cs = (a.startsWith("--charset=") ? a.slice(10) : args[++i] ?? "").toUpperCase();
+        if (cs === "ASCII" || cs === "US-ASCII") explicitAscii = true;
+        else if (cs === "UTF-8" || cs === "UTF8") explicitAscii = false;
         else return undefined;
       }
       else return undefined;
@@ -112,14 +110,12 @@ export function evalSyncTree(
         if (ch === "a") showAll = true;
         else if (ch === "d") dirsOnly = true;
         else if (ch === "f") fullPath = true;
-        else if (ch === "F") classify = true;
         else if (ch === "i") noIndent = true;
         else if (ch === "J") jsonOut = true;
         else if (ch === "r") reverseSort = true;
         else if (ch === "v") sortMode = "version";
         else if (ch === "U") sortMode = "none";
         else if (ch === "n") { /* no-op */ }
-        else if (ch === "A") ascii = false;
         else if (ch === "L") {
           const val = a.slice(j + 1) || args[++i];
           if (!val || !/^\d+$/u.test(val) || Number(val) < 1) return undefined;
@@ -140,6 +136,28 @@ export function evalSyncTree(
     operands.push(a);
   }
   if (operands.length === 0) operands.push(".");
+  if (fileLimit > 0) return undefined;
+
+  let ascii = true;
+  if (explicitAscii !== undefined) {
+    ascii = explicitAscii;
+  } else if (env) {
+    if (env.TREE_CHARSET !== undefined) {
+      const norm = env.TREE_CHARSET.toUpperCase();
+      ascii = !(norm === "UTF-8" || norm === "UTF8");
+    } else {
+      for (const k of ["LC_ALL", "LC_CTYPE", "LANG"]) {
+        const loc = env[k];
+        if (loc) {
+          const mod = loc.indexOf("@");
+          const nm = mod < 0 ? loc : loc.slice(0, mod);
+          const enc = nm.slice(nm.indexOf(".") + 1).toUpperCase();
+          ascii = !(enc === "UTF-8" || enc === "UTF8");
+          break;
+        }
+      }
+    }
+  }
 
   const branchMid = ascii ? "|-- " : "├── ";
   const branchEnd = ascii ? "`-- " : "└── ";
@@ -150,46 +168,63 @@ export function evalSyncTree(
   let fileCount = 0;
   const lines: string[] = [];
 
-  const sortEntries = <T extends { readonly name: string; readonly type: "file" | "directory" | "symlink" }>(arr: T[]): T[] => {
-    if (sortMode === "none" && !dirsFirst) return [...arr];
-    const sorted = [...arr].sort((x, y) => {
-      if (dirsFirst && x.type !== y.type) {
-        if (x.type === "directory") return -1;
-        if (y.type === "directory") return 1;
-      }
-      if (sortMode === "none") return 0;
-      const cmp = sortMode === "version" ? compareVersions(new TextEncoder().encode(x.name), new TextEncoder().encode(y.name)) : (x.name < y.name ? -1 : x.name > y.name ? 1 : 0);
-      return reverseSort ? -cmp : cmp;
+  const isEntryDirectory = (absDir: string, entry: { readonly name: string; readonly type: "file" | "directory" | "symlink" }): boolean => {
+    if (entry.type === "directory") return true;
+    if (entry.type === "symlink") {
+      const childAbs = absDir === "/" ? `/${entry.name}` : `${absDir}/${entry.name}`;
+      return inspectNode(childAbs)?.type === "directory";
+    }
+    return false;
+  };
+
+  const filterAndSort = <T extends { readonly name: string; readonly type: "file" | "directory" | "symlink"; readonly target?: string }>(absDir: string, children: readonly T[], depth: number): T[] => {
+    if (depth > maxLevel) return [];
+    const candidates = children.filter(c => {
+      if (!showAll && c.name.startsWith(".")) return false;
+      if (excludePatterns.length > 0 && excludePatterns.some(re => re.test(c.name))) return false;
+      return true;
     });
-    return sorted;
+    if (sortMode !== "none") {
+      candidates.sort((x, y) => {
+        const cmp = sortMode === "version" ? compareVersions(new TextEncoder().encode(x.name), new TextEncoder().encode(y.name)) : (x.name < y.name ? -1 : x.name > y.name ? 1 : 0);
+        return reverseSort ? -cmp : cmp;
+      });
+    }
+    const selected = candidates.filter(c => {
+      const isDir = isEntryDirectory(absDir, c);
+      if (dirsOnly && !isDir) return false;
+      if (includePatterns.length > 0 && c.type !== "directory" && !includePatterns.some(re => re.test(c.name))) return false;
+      return true;
+    });
+    if (dirsFirst) {
+      selected.sort((x, y) => Number(isEntryDirectory(absDir, y)) - Number(isEntryDirectory(absDir, x)));
+    }
+    return selected;
   };
 
   const walkDir = (absPath: string, displayPrefix: string, indent: string, depth: number): boolean => {
-    if (depth > maxLevel) return true;
     const node = inspectNode(absPath);
     if (!node || node.type !== "directory" || !node.children) return false;
-    const filtered = sortEntries(
-      node.children.filter(c => {
-        if (!showAll && c.name.startsWith(".")) return false;
-        if (dirsOnly && c.type !== "directory") return false;
-        if (excludePatterns.length > 0 && excludePatterns.some(re => re.test(c.name))) return false;
-        if (includePatterns.length > 0 && c.type !== "directory" && !includePatterns.every(re => re.test(c.name))) return false;
-        return true;
-      })
-    );
+    const filtered = filterAndSort(absPath, node.children, depth);
+    if (depth === 1 && filtered.length > 0) {
+      dirCount++;
+    }
     for (let idx = 0; idx < filtered.length; idx++) {
       const entry = filtered[idx]!;
       const isLast = idx === filtered.length - 1;
       const childAbs = absPath === "/" ? `/${entry.name}` : `${absPath}/${entry.name}`;
-      const childDisplay = displayPrefix === "/" ? `/${entry.name}` : `${displayPrefix}/${entry.name}`;
-      const typeSuffix = classify ? (entry.type === "directory" ? "/" : entry.type === "symlink" ? "@" : "") : "";
-      const label = (fullPath ? childDisplay : entry.name) + typeSuffix + (entry.type === "symlink" && entry.target !== undefined ? ` -> ${entry.target}` : "");
+      const baseDisp = displayPrefix.replace(/\/$/u, "");
+      const childDisplay = baseDisp === "" ? `/${entry.name}` : `${baseDisp}/${entry.name}`;
+      const label = (fullPath ? childDisplay : entry.name) + (entry.type === "symlink" && entry.target !== undefined ? ` -> ${entry.target}` : "");
       const prefix = noIndent ? "" : (indent + (isLast ? branchEnd : branchMid));
       lines.push(prefix + label);
-      if (entry.type === "directory") {
+      const isDir = isEntryDirectory(absPath, entry);
+      if (isDir) {
         dirCount++;
-        const nextIndent = noIndent ? "" : (indent + (isLast ? spaceCont : pipeCont));
-        if (!walkDir(childAbs, childDisplay, nextIndent, depth + 1)) return false;
+        if (entry.type === "directory") {
+          const nextIndent = noIndent ? "" : (indent + (isLast ? spaceCont : pipeCont));
+          if (!walkDir(childAbs, childDisplay, nextIndent, depth + 1)) return false;
+        }
       } else {
         fileCount++;
       }
@@ -198,7 +233,6 @@ export function evalSyncTree(
   };
 
   if (jsonOut) {
-    if (fileLimit > 0) return undefined;
     const nl = noIndent ? "" : "\n";
     const pad = (d: number) => (noIndent ? "" : "  ".repeat(d));
     let jDirCount = 0;
@@ -206,28 +240,26 @@ export function evalSyncTree(
     const buildJsonEntry = (absPath: string, dispName: string, depth: number): string | undefined => {
       const node = inspectNode(absPath);
       if (!node || node.type !== "directory" || !node.children) return undefined;
-      const filtered = depth > maxLevel ? [] : sortEntries(
-        node.children.filter(c => {
-          if (!showAll && c.name.startsWith(".")) return false;
-          if (dirsOnly && c.type !== "directory") return false;
-          if (excludePatterns.length > 0 && excludePatterns.some(re => re.test(c.name))) return false;
-          if (includePatterns.length > 0 && c.type !== "directory" && !includePatterns.every(re => re.test(c.name))) return false;
-          return true;
-        })
-      );
+      const filtered = filterAndSort(absPath, node.children, depth + 1);
+      if (depth === 0 && filtered.length > 0) {
+        jDirCount++;
+      }
       let s = `${pad(depth + 1)}` + JSON.stringify({ type: "directory", name: dispName }).slice(0, -1);
       if (filtered.length > 0) {
         const childJson: string[] = [];
+        const baseDisp = dispName.replace(/\/$/u, "");
         for (const entry of filtered) {
           const cAbs = absPath === "/" ? `/${entry.name}` : `${absPath}/${entry.name}`;
-          const cDisp = fullPath ? (dispName === "/" ? `/${entry.name}` : `${dispName}/${entry.name}`) : entry.name;
+          const cDisp = fullPath ? (baseDisp === "" ? `/${entry.name}` : `${baseDisp}/${entry.name}`) : entry.name;
+          const isDir = isEntryDirectory(absPath, entry);
           if (entry.type === "directory") {
             jDirCount++;
             const sub = buildJsonEntry(cAbs, cDisp, depth + 1);
             if (sub === undefined) return undefined;
             childJson.push(sub);
           } else {
-            jFileCount++;
+            if (isDir) jDirCount++;
+            else jFileCount++;
             const fObj: Record<string, unknown> = { type: entry.type === "symlink" ? "link" : "file", name: cDisp };
             if (entry.type === "symlink" && entry.target !== undefined) fObj.target = entry.target;
             childJson.push(`${pad(depth + 2)}${JSON.stringify(fObj)}`);
@@ -242,8 +274,7 @@ export function evalSyncTree(
     for (const op of operands) {
       if (!op) return undefined;
       const abs = resolveSyncTreePath(cwd, op);
-      const cleanDisplay = op.length > 1 && op.endsWith("/") ? op.replace(/\/+$/u, "") || "/" : op;
-      const built = buildJsonEntry(abs, cleanDisplay, 0);
+      const built = buildJsonEntry(abs, op, 0);
       if (built === undefined) return undefined;
       rootItems.push(built);
     }
@@ -253,15 +284,13 @@ export function evalSyncTree(
     }
     return `[${nl}${rootItems.join(`,${nl}`)}${nl}]\n`;
   }
-  if (fileLimit > 0) return undefined;
   for (const op of operands) {
     if (!op) return undefined;
     const abs = resolveSyncTreePath(cwd, op);
     const rootNode = inspectNode(abs);
     if (!rootNode || rootNode.type !== "directory") return undefined;
-    const cleanDisplay = op.length > 1 && op.endsWith("/") ? op.replace(/\/+$/u, "") || "/" : op;
-    lines.push(cleanDisplay + (classify ? "/" : ""));
-    if (!walkDir(abs, cleanDisplay, "", 1)) return undefined;
+    lines.push(op);
+    if (!walkDir(abs, op, "", 1)) return undefined;
   }
 
   if (!noReport) {

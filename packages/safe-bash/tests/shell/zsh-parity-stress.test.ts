@@ -796,3 +796,28 @@ test("44. sync vs async parity for find -printf (%h trailing slash, %H root, %m 
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+test("45. sync vs async parity for tree (charset, root dir count, multi -P, symlink -d, trailing slash), rg (-w/-x, -l/-c, -e order, repeated -), and cmp/diff/diff3 extra operand rejection", async () => {
+  const scripts = [
+    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=\$(tree /dir); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=\$(tree -J /dir); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.md; x=\$(tree -P \"*.txt\" -P \"*.md\" /dir); echo \"\$?:\$x\"",
+    "mkdir -p /dir /target; ln -s /target /dir/linkdir; x=\$(tree -d /dir); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=\$(tree /dir/); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"foo\\nfoo\\n\" > /dir/a.txt; x=\$(rg -l -c foo /dir/a.txt); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"foo\\n\" > /dir/a.txt; x=\$(rg --files-without-match -l foo /dir/a.txt); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"foo_line\\n\" > /dir/a.txt; x=\$(rg /dir/a.txt -e foo <<< \"other\"); echo \"\$?:\$x\"",
+    "x=\$(rg foo - - <<< \"foo\"); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=\$(cmp /dir/a.txt /dir/a.txt /dir/a.txt); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=\$(diff /dir/a.txt /dir/a.txt /dir/a.txt); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=\$(diff3 /dir/a.txt /dir/a.txt /dir/a.txt /dir/a.txt); echo \"\$?:\$x\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

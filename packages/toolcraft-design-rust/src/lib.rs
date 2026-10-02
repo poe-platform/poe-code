@@ -74,3 +74,5 @@ pub mod prompt_selection;
 pub mod with_spinner;
 
 pub mod dashboard_output;
+
+pub mod dashboard_context;

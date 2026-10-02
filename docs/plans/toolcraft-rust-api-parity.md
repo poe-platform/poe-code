@@ -1633,3 +1633,28 @@ Five warmed alternating 100-call Node 22 ARM64 rounds on four output items at
 (91.54× slower). No performance gate passed. Stats/context/run-view rendering,
 dashboard lifecycle and snapshots, explorer, batching and broader API/resource/
 reentrancy/platform qualification remain open.
+
+### Dashboard context checkpoint
+
+`dashboard/components/context-pane` now exports `renderContextPane`. Rust owns
+row reservation, active-plan versus queued-plan overflow selection, clipping and
+drawing decisions. The host preserves array map/species/flat/slice/forEach
+behavior, object spreads and live property access. Native output wrapping, ANSI
+sanitization and width helpers provide all dependencies.
+
+Two missing-export tests failed before implementation. Differential checks cover
+empty/degenerate panes, rectangle identity, short/long/Unicode/control text,
+queue overflow, array species, getter order, receivers and thrown identity.
+Maintained checks pass 299 native host tests, 1,326 selected original design
+tests (including all four context tests), 13 prompt-wrapper tests, 69 selected
+shared dashboard tests and 14 composer tests. Rust/binding and scoped JS lint,
+bidirectional structural types, packed runtime with external imports rejected
+and standalone declarations with `types: []` pass. Inspected screenshots cover
+40×12, 40×4, 30×4 and 48×2 panes with room retained for live output. No dependencies
+or default integration changes.
+
+Five warmed alternating 100-call Node 22 ARM64 rounds on three context entries in
+a 40×12 rectangle with no-op drawing measured 792.26 µs native / 14.10 µs reference
+(56.20× slower). No performance gate passed. Stats/run-view rendering, dashboard
+lifecycle and snapshots, explorer, batching, private-class nominal identity and
+broader API/resource/reentrancy/platform qualification remain open.

@@ -775,3 +775,14 @@ const outputPublicNative: NativeOutputPublic = null as unknown as OriginalOutput
 // @ts-expect-error The buffer parameter retains the separate private-class identity gate.
 const outputNominalOriginal: typeof originalDashboardOutput.renderOutputPane = dashboardOutput.renderOutputPane;
 void [outputLinesOriginal,outputLinesNative,outputKeys,outputPublicOriginal,outputPublicNative,outputNominalOriginal];
+
+import * as dashboardContext from "toolcraft-design-rust/dashboard/components/context-pane";
+import type * as originalDashboardContext from "toolcraft-design/dashboard/components/context-pane";
+const contextKeys: SameKeys<typeof dashboardContext,typeof originalDashboardContext> = true;
+type NativeContextPublic = (buffer: BufferPublic<dashboardBuffer.ScreenBuffer>,rect: Parameters<typeof dashboardContext.renderContextPane>[1],context: string[]) => ReturnType<typeof dashboardContext.renderContextPane>;
+type OriginalContextPublic = (buffer: BufferPublic<originalDashboardBuffer.ScreenBuffer>,rect: Parameters<typeof originalDashboardContext.renderContextPane>[1],context: string[]) => ReturnType<typeof originalDashboardContext.renderContextPane>;
+const contextPublicOriginal: OriginalContextPublic = null as unknown as NativeContextPublic;
+const contextPublicNative: NativeContextPublic = null as unknown as OriginalContextPublic;
+// @ts-expect-error The buffer parameter retains the separate private-class identity gate.
+const contextNominalOriginal: typeof originalDashboardContext.renderContextPane = dashboardContext.renderContextPane;
+void [contextKeys,contextPublicOriginal,contextPublicNative,contextNominalOriginal];

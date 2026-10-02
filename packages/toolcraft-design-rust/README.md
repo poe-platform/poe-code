@@ -133,6 +133,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/elapsed` | Format elapsed milliseconds as padded hours, minutes and seconds |
 | `dashboard/ansi` | Parse styled terminal lines and restore caller-supplied base styles |
 | `dashboard/components/output-pane` | Wrap styled output, scroll visible rows and render concise conversations |
+| `dashboard/components/context-pane` | Reserve plan and queue context while leaving room for live output |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -526,3 +527,8 @@ The compatibility path remains additive: a warmed four-item benchmark measured
 wrapping at 1,563.52 µs versus 16.06 µs in JavaScript and rendering into a no-op
 surface at 1,765.30 µs versus 19.28 µs. Native batching is still required before
 a performance-driven replacement.
+
+`renderContextPane(buffer, rect, context)` from `dashboard/components/context-pane`
+wraps the active plan and queued labels into at most half the available rows.
+It signals clipped text or hidden queued plans and returns the remaining output
+rectangle. Empty context and collapsed panes return the original rectangle.

@@ -9,6 +9,10 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/dashboard/components/context-pane.test.ts")) {
+          if (name === "./context-pane.js") return path("dist/dashboard-context.js");
+          if (name === "../buffer.js") return path("dist/dashboard-buffer.js");
+        }
         if (["output-wrapping","output-viewport","conversation-output"].some(test => importer === path(`../toolcraft-design/src/dashboard/components/${test}.test.ts`))) {
           if (name === "./output-pane.js") return path("dist/dashboard-output.js");
           if (name === "../buffer.js") return path("dist/dashboard-buffer.js");
@@ -168,6 +172,7 @@ export default defineConfig({
       path("../toolcraft-design/src/escape-terminal-text.test.ts"),
       path("../toolcraft-design/src/static/static.test.ts"),
       path("../toolcraft-design/src/dashboard/components/output-wrapping.test.ts"),
+      path("../toolcraft-design/src/dashboard/components/context-pane.test.ts"),
       path("../toolcraft-design/src/dashboard/components/output-viewport.test.ts"),
       path("../toolcraft-design/src/dashboard/components/conversation-output.test.ts"),
       path("../toolcraft-design/src/render-performance.test.ts"),

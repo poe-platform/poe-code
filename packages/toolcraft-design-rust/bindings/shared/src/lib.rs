@@ -505,3 +505,6 @@ pub use dashboard_footer::*;
 
 mod dashboard_output;
 pub use dashboard_output::*;
+
+mod dashboard_context;
+pub use dashboard_context::*;

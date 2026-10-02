@@ -431,6 +431,10 @@
     "./dashboard/components/output-pane": {
       "types": "./dist/dashboard-output.d.ts",
       "import": "./dist/dashboard-output.js"
+    },
+    "./dashboard/components/context-pane": {
+      "types": "./dist/dashboard-context.d.ts",
+      "import": "./dist/dashboard-context.js"
     }
   },
   "scripts": {

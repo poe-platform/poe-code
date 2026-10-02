@@ -1,8 +1,8 @@
-import "@poe-code/agent-spawn/register-factories";
 import type { SuperintendentDoc } from "../document/parse.js";
 import {
   runAutonomousAgent,
   type AutonomousOutput,
+  type AutonomousRunner,
   type McpSpawnConfig
 } from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
@@ -16,6 +16,7 @@ export type BuilderResult = {
 
 export type RunBuilderOptions = {
   promptOverride?: string;
+  runner?: AutonomousRunner;
   defaultCwd: string;
   logPath?: string;
   signal?: AbortSignal;
@@ -30,6 +31,7 @@ export async function runBuilder(
     options.promptOverride ??
     resolveTemplate(doc.frontmatter.builder.prompt, buildTemplateContext(doc, context));
   const result = await runAutonomousAgent({
+    ...(options.runner ? { runner: options.runner } : {}),
     agent: doc.frontmatter.builder.agent,
     mode: doc.frontmatter.builder.mode,
     prompt,

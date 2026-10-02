@@ -1,17 +1,18 @@
-import path from "node:path";
+import { defaultCwd } from "#superintendent-filesystem";
+import { posixPath as path } from "@poe-code/safe-fs";
 import {
   parseDocument as parseConfigDocument,
   resolve as resolveConfigExtends
 } from "@poe-code/config-extends";
 import { FrontmatterParseError, parseFrontmatterDocument } from "@poe-code/frontmatter";
-import { UserError } from "toolcraft";
+import { UserError } from "toolcraft/user-error";
 type PlanReadiness = "draft" | "ready";
 
 function parsePlanReadiness(value: unknown): PlanReadiness {
   if (value === "draft" || value === "ready") return value;
   throw new Error(`Invalid plan readiness ${JSON.stringify(value)}; expected "draft" or "ready".`);
 }
-import { TemplateParseError, getTemplatePartialNames } from "toolcraft-design";
+import { TemplateParseError, getTemplatePartialNames } from "toolcraft-design/components/template";
 export type { TaskBoard, TaskItem } from "./tasks.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
@@ -286,7 +287,7 @@ const validStatusStates = new Set<StatusBlock["state"]>(["in_progress", "review"
 const maxSuperintendentExtendsDepth = 5;
 
 export function parseSuperintendentDoc(filePath: string, content: string): SuperintendentDoc {
-  const resolvedFilePath = path.resolve(filePath);
+  const resolvedFilePath = path.resolve(defaultCwd(), filePath);
   const parsed = parseSuperintendentFrontmatterDocument(resolvedFilePath, content);
 
   return {
@@ -301,7 +302,7 @@ export async function resolveSuperintendentDoc(
   content: string,
   fs: SuperintendentDocumentFileSystem
 ): Promise<ResolvedSuperintendentDoc> {
-  const resolvedFilePath = path.resolve(filePath);
+  const resolvedFilePath = path.resolve(defaultCwd(), filePath);
   const { body } = parseSuperintendentFrontmatterDocument(resolvedFilePath, content);
   assertBodyTemplateParses(resolvedFilePath, content, body);
   const resolved = await resolveConfigExtends(
@@ -388,7 +389,7 @@ function assertSuperintendentBaseFrontmatter(
 }
 
 export function readExplicitBuilderAgent(filePath: string, content: string): string | undefined {
-  const resolvedFilePath = path.resolve(filePath);
+  const resolvedFilePath = path.resolve(defaultCwd(), filePath);
   const parsed = parseSuperintendentFrontmatterDocument(resolvedFilePath, content);
   const frontmatter = expectRecord(parsed.frontmatter, "frontmatter", resolvedFilePath);
 

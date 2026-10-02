@@ -1,4 +1,4 @@
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs";
 import type { AgentRoleConfig } from "../document/parse.js";
 
 export function resolveRoleCwd(

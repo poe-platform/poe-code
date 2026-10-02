@@ -1,13 +1,14 @@
-import path from "node:path";
-import * as fsPromises from "node:fs/promises";
-import { randomUUID } from "node:crypto";
+import { posixPath as path } from "@poe-code/safe-fs";
+import { defaultCwd, defaultHome } from "#superintendent-filesystem";
+import { superintendentFileSystem } from "../filesystem.js";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import { makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { resolveSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";
 import { updateStatus } from "../document/write.js";
 import { withDocumentStatusLock } from "../document/status-lock.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
-import { withAutonomousAgentRunner, type McpSpawnConfig } from "./agent-runner.js";
+import { type AutonomousRunner, type McpSpawnConfig } from "./agent-runner.js";
 import { runBuilder, type BuilderResult } from "./run-builder.js";
 import { runInspector, type InspectorResult } from "./run-inspector.js";
 import { runOwnerReview, type OwnerResult } from "./run-owner-review.js";
@@ -40,6 +41,7 @@ export interface SuperintendentFileSystem {
     data: string,
     options?: { encoding?: BufferEncoding; flag?: string }
   ): Promise<void>;
+  realpath?(path: string): Promise<string>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<SuperintendentFileStat>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
@@ -116,7 +118,7 @@ export type RunLoopOptions = {
   docPath: string;
   cwd: string;
   homeDir: string;
-  fs?: SuperintendentFileSystem;
+  fs?: SuperintendentFileSystem | FileSystem;
   callbacks?: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   builderAgent?: string;
@@ -171,7 +173,7 @@ export async function runLoop(
   callbacks?: LoopCallbacks
 ): Promise<SuperintendentRunResult> {
   const options = normalizeOptions(input, callbacks);
-  return withInjectedAgentRunner(options, async () => {
+  return (async () => {
     let state = createLoopState(await readDocument(options.fs, options.docPath));
     let context: TemplateLoopContext = {
       inspectors: {},
@@ -431,7 +433,7 @@ export async function runLoop(
         }
       }
     }
-  }).catch((error: unknown) => {
+  })().catch((error: unknown) => {
     if (!(error instanceof DocumentCompleted)) throw error;
     emitStateChange(options.callbacks, error.state);
     return finishLoop(options.callbacks, error.state, "completed");
@@ -444,7 +446,7 @@ function normalizeOptions(input: string | RunLoopOptions, callbacks?: LoopCallba
       docPath: resolveWorkflowPath(input.docPath, input.cwd, input.homeDir),
       cwd: input.cwd,
       homeDir: input.homeDir,
-      fs: input.fs ?? createDefaultFs(),
+      fs: superintendentFileSystem(input.fs),
       callbacks: input.callbacks ?? {},
       runners: resolveRunners(input.runners),
       ...(input.runAgent ? { runAgent: input.runAgent } : {}),
@@ -454,14 +456,14 @@ function normalizeOptions(input: string | RunLoopOptions, callbacks?: LoopCallba
     };
   }
 
-  const cwd = process.cwd();
-  const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
+  const cwd = defaultCwd();
+  const homeDir = defaultHome();
 
   return {
     docPath: resolveWorkflowPath(input, cwd, homeDir),
     cwd,
     homeDir,
-    fs: createDefaultFs(),
+    fs: superintendentFileSystem(),
     callbacks: callbacks ?? {},
     runners: resolveRunners()
   };
@@ -476,39 +478,7 @@ function resolveRunners(overrides?: LoopRunners): ResolvedRunners {
   };
 }
 
-function createDefaultFs(): SuperintendentFileSystem {
-  const fs = {
-    readFile: fsPromises.readFile as SuperintendentFileSystem["readFile"],
-    writeFile: fsPromises.writeFile as SuperintendentFileSystem["writeFile"],
-    readdir: fsPromises.readdir,
-    stat: async (filePath: string) => {
-      const stat = await fsPromises.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: stat.mtimeMs
-      };
-    },
-    lstat: async (filePath: string) => {
-      const stat = await fsPromises.lstat(filePath);
-      return { isSymbolicLink: () => stat.isSymbolicLink() };
-    },
-    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
-      await fsPromises.mkdir(filePath, options);
-    },
-    rmdir: async (filePath: string) => {
-      await fsPromises.rmdir(filePath);
-    },
-    rename: async (oldPath: string, newPath: string) => {
-      await fsPromises.rename(oldPath, newPath);
-    },
-    unlink: async (filePath: string) => {
-      await fsPromises.unlink(filePath);
-    }
-  };
 
-  return fs as SuperintendentFileSystem;
-}
 
 async function readDocument(
   fs: SuperintendentFileSystem,
@@ -550,7 +520,7 @@ async function preserveFailedRoleDocument(
 ): Promise<Error> {
   if (error instanceof DocumentCompleted) throw error;
   const failure = toError(error);
-  const recoveryPath = `${docPath}.recovery-${randomUUID()}.bak`;
+  const recoveryPath = `${docPath}.recovery-${crypto.randomUUID()}.bak`;
   try {
     await fs.writeFile(recoveryPath, content, { encoding: "utf8", flag: "wx" });
   } catch (recoveryError) {
@@ -597,7 +567,7 @@ async function writeDocumentContent(
 function createDocumentTempPath(docPath: string): string {
   return path.join(
     path.dirname(docPath),
-    `.${path.basename(docPath)}.${process.pid}.${randomUUID()}.tmp`
+    `.${path.basename(docPath)}.${crypto.randomUUID()}.tmp`
   );
 }
 
@@ -738,9 +708,10 @@ async function assertDocumentActive(options: Pick<LoopRuntime, "fs" | "docPath">
 function buildRoleOptions(
   options: LoopRuntime,
   role: string
-): { defaultCwd: string; logPath?: string; signal?: AbortSignal } {
+): { defaultCwd: string; logPath?: string; signal?: AbortSignal; runner?: AutonomousRunner } {
   return {
     defaultCwd: options.cwd,
+    ...(options.runAgent ? { runner: createAgentRunner(options) } : {}),
     ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {}),
     ...(options.signal ? { signal: options.signal } : {})
   };
@@ -842,19 +813,14 @@ function filterAutoRunInspectors(
   return Object.entries(inspectors).filter(([name]) => selected.has(name));
 }
 
-async function withInjectedAgentRunner<T>(
-  options: Pick<LoopRuntime, "runAgent" | "signal">,
-  operation: () => Promise<T>
-): Promise<T> {
-  if (!options.runAgent) {
-    return operation();
-  }
-
-  return withAutonomousAgentRunner(async (agent, input) => {
+function createAgentRunner(
+  options: Pick<LoopRuntime, "runAgent" | "signal" | "cwd">
+): AutonomousRunner {
+  return async (agent, input) => {
     const result = await options.runAgent?.({
       agent,
       prompt: input.prompt,
-      cwd: input.cwd ?? process.cwd(),
+      cwd: input.cwd ?? options.cwd,
       ...(input.mode ? { mode: input.mode } : {}),
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
       ...(input.logPath ? { logPath: input.logPath } : {}),
@@ -874,5 +840,5 @@ async function withInjectedAgentRunner<T>(
     }
 
     return result;
-  }, operation);
+  };
 }

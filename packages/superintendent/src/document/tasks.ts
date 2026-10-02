@@ -1,4 +1,5 @@
-import { parse, type MdNode } from "toolcraft-design";
+import { parse } from "toolcraft-design/terminal-markdown/parser";
+import type { MdNode } from "toolcraft-design/terminal-markdown/ast";
 
 export type TaskItem = {
   text: string;

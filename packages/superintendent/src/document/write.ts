@@ -1,4 +1,5 @@
-import path from "node:path";
+import { defaultCwd } from "#superintendent-filesystem";
+import { posixPath as path } from "@poe-code/safe-fs";
 import { isMap, parseDocument, type YAMLMap } from "yaml";
 import {
   parseSuperintendentDoc,
@@ -36,7 +37,7 @@ function updateFrontmatter(
   content: string,
   mutate: (frontmatterDocument: ReturnType<typeof parseDocument>) => void
 ): string {
-  const resolvedFilePath = path.resolve(filePath);
+  const resolvedFilePath = path.resolve(defaultCwd(), filePath);
   const parts = splitDocument(resolvedFilePath, content);
   const frontmatterDocument = parseDocument(parts.frontmatterText);
 

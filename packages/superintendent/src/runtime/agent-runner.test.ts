@@ -155,3 +155,16 @@ describe("runAutonomousAgent", () => {
     await expect(runAutonomousAgent({ agent: "codex", prompt: "outside" })).resolves.toEqual({ stdout: "done" });
   });
 });
+
+ it("isolates explicit runner capabilities across overlapping calls", async () => {
+  const { runAutonomousAgent } = await import("./agent-runner.js");
+  const gate = deferred();
+  const first = runAutonomousAgent({ agent: "first", prompt: "one", runner: async (agent, input) => {
+    await gate.promise;
+    return `${agent}:${input.prompt}`;
+  } });
+  const second = await runAutonomousAgent({ agent: "second", prompt: "two", runner: async (agent, input) => `${agent}:${input.prompt}` });
+  gate.resolve();
+  expect(await first).toBe("first:one");
+  expect(second).toBe("second:two");
+ });

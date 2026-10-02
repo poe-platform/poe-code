@@ -1,8 +1,8 @@
-import "@poe-code/agent-spawn/register-factories";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
 import {
   runAutonomousAgent,
   type AutonomousOutput,
+  type AutonomousRunner,
   type McpSpawnConfig
 } from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
@@ -44,6 +44,7 @@ const WORKFLOW_SERVER_SUBCOMMAND = "workflow-transition";
 const WORKFLOW_SERVER_TIMEOUT_SECONDS = 7200;
 
 export type RunOwnerReviewOptions = {
+  runner?: AutonomousRunner;
   defaultCwd: string;
   logPath?: string;
   signal?: AbortSignal;
@@ -60,6 +61,7 @@ export async function runOwnerReview(
   );
   const prompt = prependSystemPrompt(buildOwnerSystemPrompt(), userPrompt);
   const result = await runAutonomousAgent({
+    ...(options.runner ? { runner: options.runner } : {}),
     agent: doc.frontmatter.owner.agent,
     mode: doc.frontmatter.owner.mode,
     prompt,
@@ -296,7 +298,7 @@ function tryParseJson(value: string): unknown {
 }
 
 function encodeJson(value: unknown): string {
-  return Buffer.from(JSON.stringify(value), "utf8").toString("base64");
+  return btoa(Array.from(new TextEncoder().encode(JSON.stringify(value)), byte => String.fromCharCode(byte)).join(""));
 }
 
 function readString(value: unknown): string | undefined {

@@ -1,11 +1,10 @@
-import path from "node:path";
-import * as fsPromises from "node:fs/promises";
+import { posixPath as path } from "@poe-code/safe-fs";
+import { superintendentFileSystem } from "../filesystem.js";
 import {
   createRunQueue, makeRunLogFileName, resolveWorkflowPath, mapSourcePathIntoWorktree,
   type RunQueue, type RunQueueOutcome, type RunQueueSnapshot
 } from "@poe-code/agent-harness-tools";
 import { resolveSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
-import { withAutonomousAgentRunner } from "./agent-runner.js";
 import { runBuilder } from "./run-builder.js";
 import { runLoop, type AgentRunResult, type RunLoopOptions, type SuperintendentRunResult } from "./loop.js";
 
@@ -37,7 +36,7 @@ export async function runSuperintendentSequence(options: SuperintendentSequenceO
   const queue = options.queue ?? createRunQueue({
     plans: options.docs ?? [], afterEachPlan: options.afterEachPlan, cwd: options.cwd
   });
-  const fs = options.fs ?? fsPromises;
+  const fs = superintendentFileSystem(options.fs);
   const plans: SuperintendentSequenceResult["plans"] = [];
   const messages: SuperintendentSequenceResult["messages"] = [];
   const unsubscribe = options.onQueueChange ? queue.onChange(options.onQueueChange) : undefined;
@@ -73,15 +72,16 @@ export async function runSuperintendentSequence(options: SuperintendentSequenceO
         if (!activeDocument) throw new Error("Queued message has no target plan.");
         const docPath = activeDocument.filePath;
         let result: AgentRunResult | undefined;
-        await withAutonomousAgentRunner(async (agent, input) => {
-          result = await runAgent({ ...input, agent, cwd: input.cwd ?? options.cwd });
-          return result;
-        }, () => runBuilder(activeDocument!, {}, {
+        await runBuilder(activeDocument, {}, {
+          runner: async (agent, input) => {
+            result = await runAgent({ ...input, agent, cwd: input.cwd ?? options.cwd });
+            return result;
+          },
           defaultCwd: options.cwd,
           promptOverride: `Follow-up after completing ${docPath}:\n\n${item.text}`,
           signal: options.signal,
           ...(activeLogDir ? { logPath: path.join(activeLogDir, makeRunLogFileName(`follow-up-${item.id}`)) } : {})
-        }));
+        });
         if (!result) throw new Error("The builder did not return a result for its queued follow-up.");
         messages.push({ text: item.text, planPath: docPath, result });
         return result.exitCode === 0 ? "completed" : "failed";

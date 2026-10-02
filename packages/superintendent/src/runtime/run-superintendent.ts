@@ -1,8 +1,8 @@
-import "@poe-code/agent-spawn/register-factories";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
 import {
   runAutonomousAgent,
   type AutonomousOutput,
+  type AutonomousRunner,
   type McpSpawnConfig
 } from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
@@ -38,6 +38,7 @@ const SUPERINTENDENT_TOOLS_SERVER_SUBCOMMAND = "superintendent-tools";
 const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
 
 export type RunSuperintendentOptions = {
+  runner?: AutonomousRunner;
   defaultCwd: string;
   logPath?: string;
   signal?: AbortSignal;
@@ -58,6 +59,7 @@ export async function runSuperintendent(
   });
   const prompt = prependSystemPrompt(systemPrompt, userPrompt);
   const result = await runAutonomousAgent({
+    ...(options.runner ? { runner: options.runner } : {}),
     agent: doc.frontmatter.superintendent.agent,
     mode: doc.frontmatter.superintendent.mode,
     prompt,
@@ -286,7 +288,7 @@ function tryParseJson(value: string): unknown {
 }
 
 function encodeJson(value: unknown): string {
-  return Buffer.from(JSON.stringify(value), "utf8").toString("base64");
+  return btoa(Array.from(new TextEncoder().encode(JSON.stringify(value)), byte => String.fromCharCode(byte)).join(""));
 }
 
 function splitLines(value: string): string[] {

@@ -1,5 +1,5 @@
-import path from "node:path";
-import { UserError } from "toolcraft";
+import { posixPath as path } from "@poe-code/safe-fs";
+import { UserError } from "toolcraft/user-error";
 import { hasOwnErrorCode } from "../error-codes.js";
 
 const STATUS_LOCK_TIMEOUT_MS = 5_000;

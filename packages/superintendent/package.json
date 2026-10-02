@@ -41,6 +41,23 @@
     "toolcraft-design": "*",
     "@poe-code/poe-agent": "*",
     "@poe-code/poe-code-config": "*",
-    "@poe-code/worktree": "*"
+    "@poe-code/worktree": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#superintendent-runner": {
+      "types": "./src/runtime/agent-runner.node.ts",
+      "workerd": "./dist/runtime/agent-runner.workerd.js",
+      "browser": "./dist/runtime/agent-runner.workerd.js",
+      "worker": "./dist/runtime/agent-runner.workerd.js",
+      "default": "./dist/runtime/agent-runner.node.js"
+    },
+    "#superintendent-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
   }
 }

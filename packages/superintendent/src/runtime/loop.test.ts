@@ -187,14 +187,15 @@ describe("runLoop", () => {
       exitCode: 0
     }));
 
-    runBuilderMock.mockImplementation(async () => {
+    runBuilderMock.mockImplementation(async (_doc, _context, options) => {
       const { runAutonomousAgent } = await import("./agent-runner.js");
 
       await runAutonomousAgent({
         agent: "claude-code",
         prompt: "Build",
         cwd: "/repo",
-        logPath: "/logs/builder.jsonl"
+        logPath: "/logs/builder.jsonl",
+        runner: options.runner
       });
 
       return {
@@ -432,7 +433,7 @@ describe("runLoop", () => {
       await realWriteFile(filePath, content, options);
       if (
         !plantedSymlink &&
-        filePath.startsWith(`/repo/docs/plans/.feature.md.${process.pid}.`) &&
+        filePath.startsWith("/repo/docs/plans/.feature.md.") &&
         filePath.endsWith(".tmp")
       ) {
         plantedSymlink = true;
@@ -482,7 +483,7 @@ describe("runLoop", () => {
     vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
       if (
         !partialTempPath &&
-        filePath.startsWith(`/repo/docs/plans/.feature.md.${process.pid}.`) &&
+        filePath.startsWith("/repo/docs/plans/.feature.md.") &&
         filePath.endsWith(".tmp")
       ) {
         partialTempPath = filePath;

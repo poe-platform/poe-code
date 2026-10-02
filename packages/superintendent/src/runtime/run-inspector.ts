@@ -1,8 +1,8 @@
-import "@poe-code/agent-spawn/register-factories";
 import type { AgentRoleConfig, SuperintendentDoc } from "../document/parse.js";
 import {
   runAutonomousAgent,
   type AutonomousOutput,
+  type AutonomousRunner,
   type McpSpawnConfig
 } from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
@@ -17,6 +17,7 @@ export type InspectorResult = {
 
 export type RunInspectorOptions = {
   promptOverride?: string;
+  runner?: AutonomousRunner;
   defaultCwd: string;
   logPath?: string;
   signal?: AbortSignal;
@@ -45,6 +46,7 @@ export async function runInspector(
   });
   const prompt = prependSystemPrompt(systemPrompt, userPrompt);
   const output = await runAutonomousAgent({
+    ...(options.runner ? { runner: options.runner } : {}),
     agent: config.agent,
     mode: config.mode,
     prompt,
@@ -92,7 +94,7 @@ function buildMcpServers(
 export async function runAllInspectors(
   doc: SuperintendentDoc,
   context: Partial<TemplateContext>,
-  options: { defaultCwd: string }
+  options: RunInspectorOptions
 ): Promise<InspectorResult[]> {
   const inspectors = doc.frontmatter.inspectors;
 

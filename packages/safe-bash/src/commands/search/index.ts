@@ -25,3 +25,7 @@ export function searchCommands(options: SearchOptions = {}): VirtualShellPlugin 
 }
 
 export { evalSyncRg } from "safe-bash-command-rg";
+
+import { syncCommandEvaluators } from "../internal.js";
+import { evalSyncRg } from "safe-bash-command-rg";
+syncCommandEvaluators.evalSyncRg = evalSyncRg;

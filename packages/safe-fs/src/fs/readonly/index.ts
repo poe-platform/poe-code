@@ -234,7 +234,7 @@ export class ReadOnlyFileSystem implements FileSystem {
   }
 }
 
-const readOnlyImplementation = Object.getOwnPropertyDescriptors(ReadOnlyFileSystem.prototype);
+const readOnlyImplementation = /* @__PURE__ */ Object.getOwnPropertyDescriptors(ReadOnlyFileSystem.prototype);
 
 export function createReadOnlyFileSystem(filesystem: FileSystem): ReadOnlyFileSystem {
   return new ReadOnlyFileSystem(filesystem);

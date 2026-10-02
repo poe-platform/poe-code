@@ -208,3 +208,6 @@ export function evalSyncHtmlToMarkdown(
 }
 
 export { evalSyncShuf } from "safe-bash-command-shuf";
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncHtmlToMarkdown = evalSyncHtmlToMarkdown;

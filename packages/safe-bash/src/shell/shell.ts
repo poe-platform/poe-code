@@ -1060,7 +1060,6 @@ export class Shell implements PluginHost {
           if (!this.#defaultRuntimeFs) {
             this.#defaultRuntimeFs = this.#options.deviceView === "provided" ? filesystem : createDeviceFileSystem(filesystem);
             registerRuntimeBackingFileSystem(this.#defaultRuntimeFs, filesystem);
-            warmDefaultRuntimeContextFs(this.#defaultRuntimeFs, filesystem);
           }
           runtimeFs = this.#defaultRuntimeFs;
         } else {

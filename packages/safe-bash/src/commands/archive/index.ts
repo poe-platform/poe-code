@@ -22,3 +22,11 @@ export function archiveCommands(options: ArchiveCommandsOptions = {}): VirtualSh
 export * from "safe-bash-command-tar";
 export { createZipCommand, createZipCommands, zipCommands, evalSyncZip, type ZipCommandsOptions, type ZipLimits } from "safe-bash-command-zip";
 export { createUnzipCommand, createUnzipCommands, unzipCommands, evalSyncUnzip, type UnzipCommandsOptions, type UnzipLimits } from "safe-bash-command-unzip";
+
+import { syncCommandEvaluators } from "../internal.js";
+import { evalSyncTar } from "safe-bash-command-tar";
+import { evalSyncZip } from "safe-bash-command-zip";
+import { evalSyncUnzip } from "safe-bash-command-unzip";
+syncCommandEvaluators.evalSyncTar = evalSyncTar;
+syncCommandEvaluators.evalSyncZip = evalSyncZip;
+syncCommandEvaluators.evalSyncUnzip = evalSyncUnzip;

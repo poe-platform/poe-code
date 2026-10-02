@@ -300,3 +300,6 @@ export function evalSyncCompression(
     return undefined;
   }
 }
+
+import { syncCommandEvaluators } from "../../internal.js";
+syncCommandEvaluators.evalSyncCompression = evalSyncCompression;

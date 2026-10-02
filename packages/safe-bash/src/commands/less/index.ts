@@ -46,3 +46,7 @@ export function lessCommands(options: LessCommandsOptions = {}): VirtualShellPlu
 export function pagerCommands(options: PagerCommandsOptions = {}): VirtualShellPlugin {
   return lessCommands(options);
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+import { evalSyncLess } from "safe-bash-command-less";
+syncCommandEvaluators.evalSyncLess = evalSyncLess;

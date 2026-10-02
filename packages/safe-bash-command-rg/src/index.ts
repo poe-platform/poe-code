@@ -1,3 +1,4 @@
+import { evalSyncRg } from "./sync.js";
 import type { CommandDefinition } from "safe-bash-contracts";
 import { RegexExecutor } from "safe-bash-regex-engine/execution/portable";
 import { createBoundedRegexProvider } from "safe-bash-regex-engine/execution/bounded-provider";
@@ -18,3 +19,6 @@ export function rgCommands(options: SearchOptions = {}): VirtualShellPlugin { co
 export { createRgCommand as rgCommand };
 
 export * from "./sync.js";
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncRg = evalSyncRg;

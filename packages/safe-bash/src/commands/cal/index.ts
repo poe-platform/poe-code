@@ -49,3 +49,6 @@ export function calCommands(options: CalCommandsOptions = {}): VirtualShellPlugi
     },
   };
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncCal = evalSyncCal;

@@ -1260,4 +1260,4 @@ export class WebDavFileSystem implements FileSystem {
   async truncate(path: string, _length?: number, _options: FsOptions = {}): Promise<void> { this.unsupported("truncate", path); }
 }
 
-const originalWebDavComparison = WebDavFileSystem.prototype.compareEntry;
+const originalWebDavComparison = /* @__PURE__ */ (() => WebDavFileSystem.prototype.compareEntry)();

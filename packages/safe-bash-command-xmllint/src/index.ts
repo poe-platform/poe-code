@@ -833,3 +833,6 @@ export function xmlCommands(options: XmlCommandsOptions = {}): VirtualShellPlugi
     }
   };
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncXmllint = evalSyncXmllint;

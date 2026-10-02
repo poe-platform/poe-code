@@ -984,3 +984,6 @@ export function dfCommands(options: DfCommandsOptions = {}): VirtualShellPlugin 
     },
   };
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncDf = evalSyncDf;

@@ -1,3 +1,4 @@
+import { evalSyncXan } from "./sync.js";
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { registerDefaultExecutor } from "safe-bash-io-engine/internal";
 import type { CommandContext, CommandDefinition, CommandResult } from "safe-bash-contracts/command";
@@ -117,3 +118,6 @@ export function xanCommands(options?: XanCommandsOptions): VirtualShellPlugin {
 }
 
 export { evalSyncXan } from "./sync.js";
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncXan = evalSyncXan;

@@ -172,3 +172,6 @@ export function evalSyncFd(
   const sep = a.print0 ? "\0" : "\n";
   return capped.length === 0 ? "" : `${capped.join(sep)}${sep}`;
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncFd = evalSyncFd;

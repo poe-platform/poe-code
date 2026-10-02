@@ -131,14 +131,54 @@ function integer(text: string): bigint {
   return value;
 }
 
+const sharedTokenValues: string[] = [];
+const sharedTokenOffsets: number[] = [];
+let sharedTokensBusy = false;
+
+function matchArithOperator(source: string, pos: number): string | undefined {
+  const c0 = source.charCodeAt(pos);
+  const c1 = source.charCodeAt(pos + 1);
+  switch (c0) {
+    case 40: return "(";
+    case 41: return ")";
+    case 126: return "~";
+    case 63: return "?";
+    case 58: return ":";
+    case 44: return ",";
+    case 43: return c1 === 43 ? "++" : c1 === 61 ? "+=" : "+";
+    case 45: return c1 === 45 ? "--" : c1 === 61 ? "-=" : "-";
+    case 42: return c1 === 42 ? "**" : c1 === 61 ? "*=" : "*";
+    case 47: return c1 === 61 ? "/=" : "/";
+    case 37: return c1 === 61 ? "%=" : "%";
+    case 94: return c1 === 61 ? "^=" : "^";
+    case 33: return c1 === 61 ? "!=" : "!";
+    case 61: return c1 === 61 ? "==" : "=";
+    case 38: return c1 === 38 ? "&&" : c1 === 61 ? "&=" : "&";
+    case 124: return c1 === 124 ? "||" : c1 === 61 ? "|=" : "|";
+    case 60:
+      if (c1 === 60) return source.charCodeAt(pos + 2) === 61 ? "<<=" : "<<";
+      return c1 === 61 ? "<=" : "<";
+    case 62:
+      if (c1 === 62) return source.charCodeAt(pos + 2) === 61 ? ">>=" : ">>";
+      return c1 === 61 ? ">=" : ">";
+    default: return undefined;
+  }
+}
+
 export function parseArithmetic(source: string, offset = 0, budget = new ParseBudget()): Arithmetic {
   lastParsedHasSubscript = false;
   lastParsedHasMutation = false;
   if (source.includes("\\\n")) source = source.replace(/\\\n/gu, "");
-  const tokens: { value: string; offset: number }[] = [];
+  const useShared = !sharedTokensBusy;
+  if (useShared) sharedTokensBusy = true;
+  const tokenValues = useShared ? sharedTokenValues : [];
+  const tokenOffsets = useShared ? sharedTokenOffsets : [];
+  let tokenLen = 0;
+  try {
   let position = 0;
   while (position < source.length) {
-    if (/\s/u.test(source[position]!)) { position++; continue; }
+    const ws = source.charCodeAt(position);
+    if (ws <= 32 && (ws === 32 || ws === 9 || ws === 10 || ws === 13 || ws === 11 || ws === 12)) { position++; continue; }
     if (source[position] === "[") {
       const start = position++;
       let depth = 1;
@@ -154,7 +194,7 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
       }
       if (depth) throw new ShellSyntaxError("Unclosed arithmetic subscript", offset + start);
       budget.admit(position - start);
-      tokens.push({ value: source.slice(start, position), offset: offset + start });
+      tokenValues[tokenLen] = source.slice(start, position); tokenOffsets[tokenLen++] = offset + start;
       continue;
     }
     let value: string | undefined;
@@ -197,26 +237,28 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
       }
       value = source.slice(position, end);
     } else {
-      value = /^(?:<<=|>>=|\*\*|\+\+|--|&&|\|\||<<|>>|[+*/%&^|!<>=-]=|[()+*/%~!<>=&^|?:,\-])/u.exec(source.slice(position, position + 3))?.[0];
+      value = matchArithOperator(source, position);
     }
     if (!value) {
-      const previous = tokens.at(-1)?.value;
+      const previous = tokenLen > 0 ? tokenValues[tokenLen - 1] : undefined;
       const quoted = source[position] === "'" || source[position] === "\\";
       const operand = previous === undefined || previous === "(" || previous === ":" || previous === "!" || previous === "~" || precedence[previous] !== undefined;
       throw new ShellSyntaxError(quoted ? operand ? "Quoted arithmetic operand expected" : "Invalid quoted arithmetic operator" : "Unsupported arithmetic token", offset + position);
     }
     budget.admit();
-    tokens.push({ value, offset: offset + position });
+    tokenValues[tokenLen] = value;
+    tokenOffsets[tokenLen++] = offset + position;
     position += value.length;
   }
+  if (tokenLen === 0) { budget.admit(); return { kind: "literal", value: 0n }; }
   let cursor = 0;
   let depth = 0;
-  const current = () => tokens[cursor]?.value ?? "";
-  const error = (message: string): never => { throw new ShellSyntaxError(message, tokens[cursor]?.offset ?? offset + source.length); };
+  const current = () => cursor < tokenLen ? tokenValues[cursor]! : "";
+  const error = (message: string): never => { throw new ShellSyntaxError(message, cursor < tokenLen ? tokenOffsets[cursor]! : offset + source.length); };
   const expression = (minimum = 1): Arithmetic => {
     if (++depth > budget.maxSyntaxDepth) error(`Arithmetic nesting exceeds ${budget.maxSyntaxDepth}`);
     let left: Arithmetic;
-    const start = tokens[cursor]?.offset ?? offset + source.length;
+    const start = cursor < tokenLen ? tokenOffsets[cursor]! : offset + source.length;
     const token = current();
     cursor++;
     const tc0 = token.charCodeAt(0);
@@ -280,10 +322,12 @@ export function parseArithmetic(source: string, offset = 0, budget = new ParseBu
     depth--;
     return left!;
   };
-  if (!tokens.length) { budget.admit(); return { kind: "literal", value: 0n }; }
   const tree = expression();
-  if (cursor < tokens.length) error("Unexpected arithmetic token");
+  if (cursor < tokenLen) error("Unexpected arithmetic token");
   return tree;
+  } finally {
+    if (useShared) sharedTokensBusy = false;
+  }
 }
 
 export function arithmeticEnd(source: string, start: number, allowSubshell = false, maxSyntaxDepth = Infinity): number {

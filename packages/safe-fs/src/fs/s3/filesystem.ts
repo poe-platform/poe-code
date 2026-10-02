@@ -1044,4 +1044,4 @@ export class S3FileSystem implements FileSystem {
   }
 }
 
-const s3Comparison = S3FileSystem.prototype.compareEntry;
+const s3Comparison = /* @__PURE__ */ (() => S3FileSystem.prototype.compareEntry)();

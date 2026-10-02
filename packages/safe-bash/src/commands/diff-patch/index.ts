@@ -25,3 +25,5 @@ export function diffPatchCommands(options: DiffPatchOptions = {}): VirtualShellP
 }
 export * from "safe-bash-command-diff";
 export * from "safe-bash-command-patch";
+import { evalSyncDiff } from "safe-bash-command-diff";
+syncCommandEvaluators.evalSyncDiff = evalSyncDiff;

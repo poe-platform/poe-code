@@ -31,3 +31,7 @@ export function dfCommands(options: DfCommandsOptions = {}): VirtualShellPlugin 
     },
   };
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+import { evalSyncDf } from "safe-bash-command-df";
+syncCommandEvaluators.evalSyncDf = evalSyncDf;

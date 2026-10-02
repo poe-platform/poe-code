@@ -1,3 +1,5 @@
+import { evalSyncPrintenv } from "./printenv.js";
+import { evalSyncDate } from "./date.js";
 import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createPrintenvCommand } from "./printenv.js";
@@ -23,3 +25,7 @@ export function timeEnvCommands(options: TimeEnvCommandsOptions = {}): VirtualSh
 
 export { evalSyncDate } from "./date.js";
 export { evalSyncPrintenv } from "./printenv.js";
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncDate = evalSyncDate;
+syncCommandEvaluators.evalSyncPrintenv = evalSyncPrintenv;

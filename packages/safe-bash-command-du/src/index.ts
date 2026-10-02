@@ -223,3 +223,6 @@ export function evalSyncDu(
   const sep = nullTerminated ? "\0" : "\n";
   return outLines.length === 0 ? "" : `${outLines.join(sep)}${sep}`;
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncDu = evalSyncDu;

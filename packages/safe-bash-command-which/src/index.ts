@@ -93,3 +93,6 @@ export function evalSyncWhich(
   }
   return outLines.length === 0 ? "" : `${outLines.join("\n")}\n`;
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncWhich = evalSyncWhich;

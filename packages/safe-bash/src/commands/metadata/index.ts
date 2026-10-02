@@ -1,3 +1,4 @@
+import { evalSyncStat } from "./stat.js";
 import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createInstallCommand } from "safe-bash-command-install";
@@ -26,3 +27,6 @@ export { evalSyncStat, type SyncStatInfo } from "./stat.js";
 export { evalSyncMktemp } from "./mktemp.js";
 
 export { evalSyncTruncate } from "safe-bash-command-truncate";
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncStat = evalSyncStat;

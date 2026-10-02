@@ -92,3 +92,6 @@ export function evalSyncUnrtf(
     return undefined;
   }
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncUnrtf = evalSyncUnrtf;

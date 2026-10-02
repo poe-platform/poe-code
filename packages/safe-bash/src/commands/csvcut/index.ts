@@ -111,3 +111,6 @@ export function evalSyncCsvcut(
     budget.dispose();
   }
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncCsvcut = evalSyncCsvcut;

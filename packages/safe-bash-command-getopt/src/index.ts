@@ -224,3 +224,6 @@ export function evalSyncGetopt(
   for (const op of operands) out += quoteShell(op, quote, tcsh);
   return out;
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncGetopt = evalSyncGetopt;

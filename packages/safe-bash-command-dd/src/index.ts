@@ -1,3 +1,4 @@
+import { evalSyncDd } from "./sync.js";
 import type { CommandDefinition } from "safe-bash-contracts/command";
 import { commandRuntimeIdentity, getCommandArguments, registerDefaultExecutor } from "safe-bash-contracts/command";
 import { shellValueByteLength } from "safe-bash-contracts/value";
@@ -483,3 +484,6 @@ export function settings(options: DdCommandsOptions = {}): DdLimits {
 export type DdOptions = DdCommandsOptions;
 
 export { evalSyncDd } from "./sync.js";
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncDd = evalSyncDd;

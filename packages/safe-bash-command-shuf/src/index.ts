@@ -1,3 +1,4 @@
+import { evalSyncShuf } from "./sync.js";
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { createShufCommand } from "./shuf.js";
 import type { ShufCommandsOptions } from "./options.js";
@@ -26,3 +27,6 @@ export { settings, type ShufLimits, type ShufOptions } from "./options.js";
 export { RandomIntegers } from "./random.js";
 
 export { evalSyncShuf } from "./sync.js";
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncShuf = evalSyncShuf;

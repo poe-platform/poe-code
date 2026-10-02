@@ -165,3 +165,6 @@ export function evalSyncIconv(
   if (out.some(byte => byte === 0 || byte >= 128)) return undefined;
   return outArr;
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncIconv = evalSyncIconv;

@@ -110,3 +110,6 @@ export function evalSyncPr(
     return undefined;
   }
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncPr = evalSyncPr;

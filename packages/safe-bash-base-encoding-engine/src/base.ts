@@ -248,3 +248,6 @@ export function evalSyncBase32(
     return sliced;
   }
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncBase32 = evalSyncBase32;

@@ -1,3 +1,4 @@
+import { evalSyncZip } from "./sync.js";
 import type { CommandDefinition,VirtualShellPlugin } from "safe-bash-contracts";
 import { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 import type { ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archive/internal";
@@ -20,3 +21,6 @@ export function zipCommands(options: ArchiveCommandsOptions = {}): VirtualShellP
     for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
   } };
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncZip = evalSyncZip;

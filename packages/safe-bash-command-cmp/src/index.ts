@@ -637,3 +637,6 @@ export function cmpCommands(options: CmpCommandsOptions = {}): VirtualShellPlugi
   for (const command of commands) host.commands.register(command, { replace: options.replace ?? false });
  } };
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncCmp = evalSyncCmp;

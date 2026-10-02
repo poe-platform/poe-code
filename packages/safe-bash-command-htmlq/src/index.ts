@@ -1,3 +1,4 @@
+import { evalSyncHtmlq } from "./sync.js";
 export { defaultHtmlLimits, HtmlBudget, HtmlError, htmlqBaseline, invocationOptions } from "./contracts.js";
 export type {
   HtmlAccounting,
@@ -30,3 +31,6 @@ export { createHtmlqCommands, type HtmlqCommandsOptions } from "./command.js";
 export type { HtmlLimits as HtmlqLimits } from "./contracts.js";
 
 export { evalSyncHtmlq } from "./sync.js";
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncHtmlq = evalSyncHtmlq;

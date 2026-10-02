@@ -395,3 +395,6 @@ export function evalSyncLess(
   }
   return out;
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncLess = evalSyncLess;

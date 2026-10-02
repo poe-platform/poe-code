@@ -123,3 +123,6 @@ export function evalSyncCsvgrep(
     budget.dispose();
   }
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncCsvgrep = evalSyncCsvgrep;

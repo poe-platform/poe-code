@@ -119,3 +119,6 @@ export function evalSyncPathchk(
 
   return "";
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncPathchk = evalSyncPathchk;

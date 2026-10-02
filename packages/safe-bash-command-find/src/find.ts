@@ -1075,3 +1075,6 @@ export function evalSyncFind(
     return undefined;
   }
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncFind = evalSyncFind;

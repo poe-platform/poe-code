@@ -31,3 +31,7 @@ export function fdCommands(options: FdCommandsOptions = {}): VirtualShellPlugin 
     },
   };
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+import { evalSyncFd } from "safe-bash-command-fd";
+syncCommandEvaluators.evalSyncFd = evalSyncFd;

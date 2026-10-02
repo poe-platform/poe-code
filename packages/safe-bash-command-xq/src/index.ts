@@ -227,3 +227,6 @@ export function evalSyncXq(
   jqArgs.push(...extraJqArgs, filter);
   return { jsonStr, jqArgs };
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncXq = evalSyncXq;

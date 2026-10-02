@@ -12,7 +12,8 @@ import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
-import { tryResolveMemoryDevicePath } from "../memory/index.js";
+import { MemoryFileSystem, tryResolveMemoryDevicePath } from "../memory/index.js";
+let cachedMemoryDeviceCapabilities: FileSystemCapabilities | undefined;
 import { createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
 import { openRetainedReadFile, openRetainedResizeFile, retainedResizeCapabilities, ownedMutationCapabilities, requireOwnedMutation } from "../capabilities.js";
 import { pathNamespace } from "../path-namespace.js";
@@ -34,6 +35,16 @@ const deviceCapabilities: FileSystemCapabilities = Object.freeze({
 });
 
 function globalCapabilities(filesystem: FileSystem): FileSystemCapabilities {
+  if (filesystem instanceof MemoryFileSystem && Object.getPrototypeOf(filesystem) === MemoryFileSystem.prototype && !Object.prototype.hasOwnProperty.call(filesystem, "writeStream") && !Object.prototype.hasOwnProperty.call(filesystem, "openResizeFile")) {
+    if (cachedMemoryDeviceCapabilities) return cachedMemoryDeviceCapabilities;
+    const snap: Record<string, boolean | undefined> = { readOnly: false };
+    const dynamic = globalCapabilitiesSlow(filesystem);
+    for (const k of Object.keys(dynamic)) snap[k] = dynamic[k];
+    return (cachedMemoryDeviceCapabilities = Object.freeze(snap));
+  }
+  return globalCapabilitiesSlow(filesystem);
+}
+function globalCapabilitiesSlow(filesystem: FileSystem): FileSystemCapabilities {
   const capabilities: Record<string, boolean | undefined> = { readOnly: false };
   const optional: Record<string, readonly (keyof FileSystem)[]> = {
     open: ["open"],
@@ -89,17 +100,17 @@ export class DeviceFileSystem implements FileSystem {
       mtimeMs: 0, atimeMs: 0, ctimeMs: 0, birthtimeMs: 0, identityScope, ino: 1, dev: 0, nlink: 1 };
     this.#nullStat = Object.freeze({ ...stat, type: "character", preferredIoBlockSize: 4096 });
     this.#directoryStat = Object.freeze({ ...stat, type: "directory", mode: 0o040755, ino: 2 });
-    const methods = new Map<PropertyKey, { backing: unknown; bound: unknown }>();
+    let methods: Map<PropertyKey, { backing: unknown; bound: unknown }> | undefined;
     const view = new Proxy(this, {
       set: (_target, property, value) => Reflect.set(filesystem, property, value, filesystem),
       get(target, property) {
         const value = Reflect.get(target, property, target);
         if (typeof value !== "function" || property === "constructor") return value;
         const backing = Reflect.get(filesystem, property, filesystem);
-        const cached = methods.get(property);
+        const cached = methods?.get(property);
         if (cached && cached.backing === backing) return cached.bound;
         const bound = value.bind(target);
-        methods.set(property, { backing, bound });
+        (methods ??= new Map()).set(property, { backing, bound });
         return bound;
       },
     });

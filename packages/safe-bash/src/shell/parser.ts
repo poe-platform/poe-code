@@ -349,13 +349,19 @@ class Lexer {
   conditionalPattern: "pattern" | "regex" | undefined;
   braceReplay?: ReadonlyMap<number, ShellValue>;
   readonly hasBrace: boolean;
+  readonly singleLine: boolean;
   readonly documents: HereDocument[] = [];
   constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>, readonly byteSource = false, readonly syntax: CapturedShellSyntax = defaultSyntax, readonly aliases?: ReadonlyMap<string, string>) {
     if (depth > this.budget.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.maxSyntaxDepth}`, 0);
     this.hasBrace = source.includes("{");
+    this.singleLine = !source.includes("\n");
   }
 
   lineAt(position: number): number {
+    if (this.singleLine) {
+      this.budget.admit(0);
+      return this.lineOffset + 1;
+    }
     return this.lineOffset + this.lineIndex.lineAt(this.sourceOffset + position) - this.lineIndex.lineAt(this.sourceOffset) + 1;
   }
 
@@ -446,6 +452,24 @@ class Lexer {
     }
     const delimiterOperator = this.delimiterOperator;
     this.delimiterOperator = undefined;
+    if (!this.conditionalPattern && !delimiterOperator && !this.braceReplay && !this.sourceValues) {
+      let pPos = offset;
+      while (pPos < this.source.length) {
+        const c = this.source.charCodeAt(pPos);
+        if (c <= 32 || c === 59 || c === 124 || c === 38 || c === 40 || c === 41 || c === 60 || c === 62 || c === 36 || c === 96 || c === 34 || c === 39 || c === 92 || c > 127) break;
+        pPos++;
+      }
+      if (pPos > offset) {
+        const nextC = pPos < this.source.length ? this.source.charCodeAt(pPos) : 0;
+        if (pPos === this.source.length || nextC === 32 || nextC === 9 || nextC === 10 || nextC === 59 || nextC === 124 || nextC === 38 || nextC === 40 || nextC === 41 || ((nextC === 60 || nextC === 62) && this.source.charCodeAt(pPos + 1) !== 40)) {
+          this.budget.admit(3);
+          const str = this.source.slice(offset, pPos);
+          this.position = pPos;
+          const fastWord: Word = { parts: [{ kind: "text", value: str, quoted: false }], offset, printedNewlines: 0, plain: str, spelling: str };
+          return { kind: "word", value: str, offset, end: pPos, word: fastWord };
+        }
+      }
+    }
     const word = this.word(undefined, false, delimiterOperator !== undefined);
     if (this.position <= offset) this.error("Tokenizer made no progress");
     let document: HereDocument | undefined;
@@ -1281,8 +1305,8 @@ class Parser {
 
   private assignmentWord(compound = false): Word {
     const word = this.current.word!;
-    const bracket = word.spelling?.indexOf("[") ?? -1;
-    const prefix = word.spelling?.slice(0, bracket);
+    const bracket = word.spelling !== undefined && word.spelling.includes("[") ? word.spelling.indexOf("[") : -1;
+    const prefix = bracket >= 0 ? word.spelling!.slice(0, bracket) : undefined;
     if (bracket >= 0 && (compound && bracket === 0 || prefix && scalarAssignmentName({ offset: word.offset,
       parts: [{ kind: "text", quoted: false, value: prefix + "=" }] }) === prefix)) {
       const scanner = new Lexer(this.budget, this.lexer.source, this.lexer.depth, [], this.lexer.lineOffset, this.lexer.byteLocale, undefined, false, this.lexer.lineIndex, this.lexer.sourceOffset, this.lexer.ordinaryBacktick, this.lexer.sourceValues, this.lexer.byteSource, this.lexer.syntax);
@@ -1608,7 +1632,7 @@ class Parser {
       this.newlines();
       if (!this.is("{")) this.error("Expected brace function body");
       this.hasFunction = true; command = { kind: "function", name, body: this.command(), redirects: [] };
-    } else if (this.current.kind === "word" && !compoundHead(this.current.word!, this.budget) && this.peek().value === "(") {
+    } else if (this.current.kind === "word" && (this.lookahead !== undefined || this.lexer.source.includes("(", this.current.end)) && this.peek().value === "(" && !compoundHead(this.current.word!, this.budget)) {
       const name = this.advance().value;
       if (!/^[a-zA-Z_][a-zA-Z_0-9]*$/u.test(name)) this.error("Invalid function name");
       this.expect("(");
@@ -1621,8 +1645,11 @@ class Parser {
       const words: Word[] = [];
       const redirects: Redirect[] = [];
       let line: number | undefined;
+      let allAssignmentsSoFar = true;
+      let hasArrayAssignment = false;
+      let hasNonAssignment = false;
       while (true) {
-        if (this.aliases?.size && (this.aliasNextWords?.has(this.current) || words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)))) {
+        if (this.aliases?.size && (this.aliasNextWords?.has(this.current) || allAssignmentsSoFar)) {
           this.aliasNextWords?.delete(this.current);
           this.expandAlias();
         }
@@ -1631,8 +1658,9 @@ class Parser {
         if (redirect) { line ??= redirect.line; redirects.push(redirect); }
         else if (this.current.kind === "word") {
           line ??= wordLine;
-          let word = words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous)) || isIndexedDeclarationWords(words)
+          let word = allAssignmentsSoFar || isIndexedDeclarationWords(words)
             ? this.assignmentWord() : this.advance().word!;
+          let wordIsArrayAssign = false;
           const head = this.is("(") ? compoundHead(word, this.budget) : undefined;
           if (head) {
             this.advance();
@@ -1650,16 +1678,26 @@ class Parser {
             this.budget.admit(2);
             word = { offset: word.offset, parts: word.parts, spelling: this.lexer.source.slice(word.offset, end) };
             setArrayAssignment(word, { kind: "compound", ...head, entries });
-          } else if (word.spelling?.includes("[") && words.every(previous => getArrayAssignment(previous) || scalarAssignmentName(previous))) {
+            wordIsArrayAssign = true;
+          } else if (allAssignmentsSoFar && word.spelling !== undefined && word.spelling.includes("[")) {
             const assignment = elementAssignment(word, this.budget, source => parseArraySubscript(source, this.budget, this.lexer.byteLocale, this.lexer.depth, this.lexer.byteSource, this.lexer.syntax), (source, start) => { const lexer = new Lexer(this.budget, source, this.lexer.depth, [], 0, this.lexer.byteLocale, undefined, false, undefined, 0, false, undefined, this.lexer.byteSource, this.lexer.syntax); lexer.position = start; lexer.word("]"); return lexer.source[lexer.position] === "]" ? lexer.position : -1; });
-            if (assignment) setArrayAssignment(word, assignment);
+            if (assignment) {
+              setArrayAssignment(word, assignment);
+              wordIsArrayAssign = true;
+            }
+          }
+          const isScalarOrArrayAssign = wordIsArrayAssign || (allAssignmentsSoFar && Boolean(scalarAssignmentName(word)));
+          if (wordIsArrayAssign) hasArrayAssignment = true;
+          if (!isScalarOrArrayAssign) {
+            allAssignmentsSoFar = false;
+            hasNonAssignment = true;
           }
           words.push(word);
         }
         else break;
       }
       if (!words.length && !redirects.length) this.error("Expected command");
-      if (words.some(word => getArrayAssignment(word)) && words.some(word => !getArrayAssignment(word) && !scalarAssignmentName(word)) && !isIndexedDeclarationWords(words)) this.error("Indexed-array command prefixes are unsupported");
+      if (hasArrayAssignment && hasNonAssignment && !isIndexedDeclarationWords(words)) this.error("Indexed-array command prefixes are unsupported");
       return { kind: "simple", words, redirects, ...(line === undefined ? {} : { line }), _cachedConstArgs: undefined, _cachedConstEchoRedirect: undefined, _cachedPlainArgs: undefined, _cachedSlice1: undefined } as Command;
     }
     let redirect: Redirect | undefined;

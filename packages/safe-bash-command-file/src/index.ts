@@ -386,3 +386,6 @@ export function evalSyncFile(
   }
   return outLines.join("");
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncFile = evalSyncFile;

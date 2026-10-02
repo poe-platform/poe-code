@@ -341,3 +341,6 @@ export function evalSyncMdq(
   }
   return nodes.map(renderMdNodeMarkdown).join(breaks ? "\n\n   -----\n\n" : "\n\n") + "\n";
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncMdq = evalSyncMdq;

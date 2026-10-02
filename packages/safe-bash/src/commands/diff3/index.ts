@@ -69,3 +69,6 @@ export function evalSyncDiff3(
     return undefined;
   }
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncDiff3 = evalSyncDiff3;

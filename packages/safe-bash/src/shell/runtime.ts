@@ -59,46 +59,50 @@ import type { CommandFileDescriptor } from "../contracts/filesystem-descriptor.j
 import { outputFailure } from "../contracts/io.js";
 import { executionCommands } from "../commands/execution.js";
 import { defaultEchoExecutors, extractFastPrintfSpecifiers, formatPrintf, printfCommand, tryFastEcho, tryFastPrintf } from "../commands/basic.js";
-import { createFmtEngine, parseFmtArguments } from "../commands/fmt.js";
-import { evalSyncChecksum } from "../commands/bytes/checksums/index.js";
-import { evalSyncBase32 } from "../commands/bytes/encoding/base.js";
-import { evalSyncCsvcut } from "../commands/csvcut/index.js";
-import { evalSyncCsvgrep } from "../commands/csvgrep/index.js";
-import { evalSyncGetopt } from "../commands/getopt/index.js";
-import { evalSyncLineEndings } from "../commands/line-endings/index.js";
-import { evalSyncIconv } from "../commands/iconv/index.js";
-import { evalSyncHtmlq } from "../commands/htmlq/index.js";
-import { evalSyncCal } from "../commands/cal/index.js";
-import { evalSyncXmllint, evalSyncXq } from "../commands/xml/index.js";
-import { evalSyncYqPrep, formatSyncYqYamlLines } from "../commands/yq/index.js";
-import { evalSyncMdq } from "../commands/mdq/index.js";
-import { evalSyncShuf } from "safe-bash-command-shuf";
-import { evalSyncHtmlToMarkdown } from "../commands/html-to-markdown/index.js";
-import { evalSyncUnrtf } from "../commands/unrtf/index.js";
-import { evalSyncPr } from "../commands/pr/index.js";
-import { evalSyncPathchk } from "../commands/pathchk/index.js";
-import { evalSyncFile } from "../commands/file/index.js";
-import { evalSyncDiff3 } from "../commands/diff3/index.js";
-import { evalSyncCmp } from "../commands/cmp.js";
-import { evalSyncWhich } from "../commands/which/index.js";
-import { evalSyncFind } from "../commands/find.js";
-import { evalSyncCompression } from "../commands/bytes/compression/index.js";
 import { gnuInformationSync } from "../commands/gnu-information.js";
-import { evalSyncTar, evalSyncUnzip, evalSyncZip } from "../commands/archive/index.js";
-
-import { evalSyncDd } from "safe-bash-command-dd";
-
 import { evalSyncEnv, evalSyncXargs } from "../commands/execution.js";
-import { evalSyncDiff } from "../commands/diff-patch/index.js";
-import { evalSyncXan } from "safe-bash-command-xan";
-import { evalSyncDate, evalSyncPrintenv } from "../commands/time-env/index.js";
-import { evalSyncLess } from "../commands/less/index.js";
-import { evalSyncDf } from "../commands/df/index.js";
-import { evalSyncDu } from "../commands/du/index.js";
-import { evalSyncTree } from "../commands/tree/index.js";
-import { evalSyncStat } from "../commands/metadata/index.js";
-import { evalSyncFd } from "../commands/fd/index.js";
-import { evalSyncRg } from "../commands/search/index.js";
+const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);
+const parseFmtArguments = (...args: any[]) => syncCommandEvaluators.parseFmtArguments!(...args);
+const evalSyncChecksum = (...args: any[]) => syncCommandEvaluators.evalSyncChecksum?.(...args);
+const evalSyncBase32 = (...args: any[]) => syncCommandEvaluators.evalSyncBase32?.(...args);
+const evalSyncCsvcut = (...args: any[]) => syncCommandEvaluators.evalSyncCsvcut?.(...args);
+const evalSyncCsvgrep = (...args: any[]) => syncCommandEvaluators.evalSyncCsvgrep?.(...args);
+const evalSyncGetopt = (...args: any[]) => syncCommandEvaluators.evalSyncGetopt?.(...args);
+const evalSyncLineEndings = (...args: any[]) => syncCommandEvaluators.evalSyncLineEndings?.(...args);
+const evalSyncIconv = (...args: any[]) => syncCommandEvaluators.evalSyncIconv?.(...args);
+const evalSyncHtmlq = (...args: any[]) => syncCommandEvaluators.evalSyncHtmlq?.(...args);
+const evalSyncCal = (...args: any[]) => syncCommandEvaluators.evalSyncCal?.(...args);
+const evalSyncXmllint = (...args: any[]) => syncCommandEvaluators.evalSyncXmllint?.(...args);
+const evalSyncXq = (...args: any[]) => syncCommandEvaluators.evalSyncXq?.(...args);
+const evalSyncYqPrep = (...args: any[]) => syncCommandEvaluators.evalSyncYqPrep?.(...args);
+const formatSyncYqYamlLines = (...args: any[]) => syncCommandEvaluators.formatSyncYqYamlLines!(...args);
+const evalSyncMdq = (...args: any[]) => syncCommandEvaluators.evalSyncMdq?.(...args);
+const evalSyncShuf = (...args: any[]) => syncCommandEvaluators.evalSyncShuf?.(...args);
+const evalSyncHtmlToMarkdown = (...args: any[]) => syncCommandEvaluators.evalSyncHtmlToMarkdown?.(...args);
+const evalSyncUnrtf = (...args: any[]) => syncCommandEvaluators.evalSyncUnrtf?.(...args);
+const evalSyncPr = (...args: any[]) => syncCommandEvaluators.evalSyncPr?.(...args);
+const evalSyncPathchk = (...args: any[]) => syncCommandEvaluators.evalSyncPathchk?.(...args);
+const evalSyncFile = (...args: any[]) => syncCommandEvaluators.evalSyncFile?.(...args);
+const evalSyncDiff3 = (...args: any[]) => syncCommandEvaluators.evalSyncDiff3?.(...args);
+const evalSyncCmp = (...args: any[]) => syncCommandEvaluators.evalSyncCmp?.(...args);
+const evalSyncWhich = (...args: any[]) => syncCommandEvaluators.evalSyncWhich?.(...args);
+const evalSyncFind = (...args: any[]) => syncCommandEvaluators.evalSyncFind?.(...args);
+const evalSyncCompression = (...args: any[]) => syncCommandEvaluators.evalSyncCompression?.(...args);
+const evalSyncTar = (...args: any[]) => syncCommandEvaluators.evalSyncTar?.(...args);
+const evalSyncUnzip = (...args: any[]) => syncCommandEvaluators.evalSyncUnzip?.(...args);
+const evalSyncZip = (...args: any[]) => syncCommandEvaluators.evalSyncZip?.(...args);
+const evalSyncDd = (...args: any[]) => syncCommandEvaluators.evalSyncDd?.(...args);
+const evalSyncDiff = (...args: any[]) => syncCommandEvaluators.evalSyncDiff?.(...args);
+const evalSyncXan = (...args: any[]) => syncCommandEvaluators.evalSyncXan?.(...args);
+const evalSyncDate = (...args: any[]) => syncCommandEvaluators.evalSyncDate?.(...args);
+const evalSyncPrintenv = (...args: any[]) => syncCommandEvaluators.evalSyncPrintenv?.(...args);
+const evalSyncLess = (...args: any[]) => syncCommandEvaluators.evalSyncLess?.(...args);
+const evalSyncDf = (...args: any[]) => syncCommandEvaluators.evalSyncDf?.(...args);
+const evalSyncDu = (...args: any[]) => syncCommandEvaluators.evalSyncDu?.(...args);
+const evalSyncTree = (...args: any[]) => syncCommandEvaluators.evalSyncTree?.(...args);
+const evalSyncStat = (...args: any[]) => syncCommandEvaluators.evalSyncStat?.(...args);
+const evalSyncFd = (...args: any[]) => syncCommandEvaluators.evalSyncFd?.(...args);
+const evalSyncRg = (...args: any[]) => syncCommandEvaluators.evalSyncRg?.(...args);
 import { defaultMkdirExecutors, defaultRmExecutors, evalSyncLs, evalSyncReadlink, evalSyncRealpath } from "../commands/filesystem.js";
 export const customRegisteredCommands = new WeakSet<object>();
 export const customRegisteredRegistries = new WeakSet<CommandRegistry>();
@@ -3689,7 +3693,11 @@ export class Runtime {
     }
     // Retarget only root invocation views; command and child scopes must stay closed.
     if (this.reuseDefaultContextFs && sig === this.signal && umask === 0o022 && !this._contextFs && this._isMemoryBackingFs) {
-      const entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+      let entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+      if (!entry) {
+        warmDefaultRuntimeContextFs(this.sourceFs, this.backingFs);
+        entry = reusableDefaultContextFsBySourceFs.get(this.sourceFs);
+      }
       if (entry && (entry.inUseBy === undefined || entry.inUseBy === this)) {
         if (retargetScopedFileSystem(entry.scoped, this.budget.chargeFs, toNativeAbortSignal(sig), this.budget.cleanupChargeFs, this.budget.limits.maxPathnameComponents)) {
           registerRuntimeBackingFileSystem(entry.scoped, this.backingFs, this.budget.chargeFs);

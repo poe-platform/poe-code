@@ -10,3 +10,7 @@ export function createChecksumCommands(options: ByteInputOptions = {}): readonly
 }
 
 export { evalSyncChecksum } from "safe-bash-checksum-engine";
+
+import { syncCommandEvaluators } from "../../internal.js";
+import { evalSyncChecksum } from "safe-bash-checksum-engine";
+syncCommandEvaluators.evalSyncChecksum = evalSyncChecksum;

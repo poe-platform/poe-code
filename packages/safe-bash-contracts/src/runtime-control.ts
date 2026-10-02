@@ -8,6 +8,7 @@ export const builtInDirectContextExecutors = new WeakSet<CommandHandler>();
 type SyncCsvEvaluator = (input: Uint8Array | undefined, args: readonly string[], readFile?: (path: string) => Uint8Array | undefined) => string | undefined;
 
 export interface SyncCommandEvaluators {
+  [key: string]: ((...args: any[]) => any) | undefined;
   evalSyncCsvlook?: SyncCsvEvaluator;
   evalSyncCsvjson?: SyncCsvEvaluator;
   evalSyncCsvsort?: SyncCsvEvaluator;

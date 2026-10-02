@@ -275,3 +275,6 @@ export function evalSyncTree(
   }
   return `${lines.join("\n")}\n`;
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncTree = evalSyncTree;

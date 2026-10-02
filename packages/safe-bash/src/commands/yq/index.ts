@@ -354,3 +354,7 @@ export function formatSyncYqYamlLines(jsonLines: readonly string[]): string | un
   }
   return out.length === 0 ? "" : out.join("\n---\n") + "\n";
 }
+
+import { syncCommandEvaluators } from "../internal.js";
+syncCommandEvaluators.evalSyncYqPrep = evalSyncYqPrep;
+syncCommandEvaluators.formatSyncYqYamlLines = formatSyncYqYamlLines;

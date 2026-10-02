@@ -7567,7 +7567,7 @@ export class Runtime {
     return outcome.value;
   }
   invoke(name: string, args: readonly string[], options: ShellInvokeOptions = {}, context: ShellCommandContext, state: State, parent: InvocationScope): Promise<{ exitCode: number }> {
-    const fast = this.tryFastExternalInvoke(name, args, options, context, state, parent);
+    const fast = this.tryFastExternalInvoke?.(name, args, options, context, state, parent);
     if (fast) return fast;
     return this.invokeChild(options, state, parent, () => {
       if (typeof name !== "string" || name.includes("\0") || !Array.isArray(args)

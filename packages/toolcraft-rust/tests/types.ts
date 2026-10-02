@@ -289,3 +289,14 @@ const checkedErrors:void=cliParams.throwValidationErrors([{path:"name",message:"
 // @ts-expect-error the missing-parameter context requires output and TTY metadata
 cliParams.resolveParams([],[],[],[],{},[],"kebab",undefined,false,{commandPath:"run",params:{}},{});
 void [resolvedParams,checkedErrors];
+
+import * as cliFixtures from "../dist/cli-fixtures.js";
+const fixtureResponse:Response=cliFixtures.createFixtureResponse({body:{ok:true},status:200});
+const fixtureFetch:typeof globalThis.fetch=cliFixtures.createFixtureFetch([{request:{url:"https://fixture.invalid"},response:{body:"fixture"}}]);
+const fixtureRuntime:Promise<cliFixtures.ResolvedFixtureRuntime<{service:string}>>=cliFixtures.resolveFixtureRuntime(null as unknown as native.Command<{service:string},any,any,any>,{service:"value"},{},fixtureFetch);
+const fixtureScenario:Promise<cliFixtures.FixtureScenario>=cliFixtures.loadFixtureScenario(null as unknown as native.Command<any,any,any,any>,"1");
+// @ts-expect-error fixture fetch response status must be numeric
+cliFixtures.createFixtureResponse({status:"200"});
+// @ts-expect-error fixture mode does not accept arbitrary embedded selectors
+cliFixtures.resolveFixtureRuntime(null as unknown as native.Command<any,any,any,any>,{},{},fixtureFetch,undefined,undefined,"yes");
+void [fixtureResponse,fixtureFetch,fixtureRuntime,fixtureScenario];

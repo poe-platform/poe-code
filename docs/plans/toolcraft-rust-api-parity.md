@@ -3681,8 +3681,8 @@ Full parameter/handler execution, generated help, transports, standalone
 packaging and platform/resource/reentrancy/default-swap gates remain open.
 
 Preset loading is independently verified on remote main at ed612f5713. Its
-Release workflow 37076564082 is pending validate/build with no runner steps at
-the latest check. No publication is inferred from remote delivery.
+Release workflow 37076564082 completed successfully with validate/build passing
+and release-stable skipped; this is build verification, not publication.
 
 ### CLI parameter-resolution checkpoint
 
@@ -3721,3 +3721,44 @@ variant validation, with no file read or interactive wait. An earlier measuremen
 overlapped local checks and was superseded. No performance/default-swap gate
 passed. Full execution/fixture runtime, generated help, transports and complete
 platform/resource/reentrancy/standalone-packaging qualification remain open.
+
+Parameter resolution is independently verified on remote main at 371895e848.
+Release workflow 37077825873 completed successfully with validate/build passing
+and release-stable skipped. No new publication is claimed.
+
+### CLI fixture-runtime checkpoint
+
+The native fixture runtime now loads and selects named/indexed scenarios, matches
+request arguments, supplies service proxies, constructs fetch responses and
+filesystem fixtures, and selects normal or fixture capabilities. Rust controls
+matching, read/write defaults, scenario/runtime admission, diagnostic policy and
+continuations. Host loops preserve iterator cleanup; Node retains actual file
+reads, Request/Response/Headers, proxies, environment access, live collection
+methods and promise lookup/assimilation. Embedded execution bypasses fixture mode
+and retains injected capability identity. Existing native source metadata,
+secrets, runtime I/O, numeric-selector and JSON-diagnostic modules are reused.
+No external dependencies or default implementation changed.
+
+Five missing-module failures preceded implementation. Ten final differential
+tests use the extracted reference and memfs, covering partial/prefix/array
+matching, response identity, synchronous errors versus async proxy rejection,
+fetch headers/status/body semantics, own-property filesystem maps, named/indexed
+scenarios, read/JSON diagnostics, normal/embedded runtime, synthetic credentials,
+getter and promise lookup order, arbitrary thrown identity, iterator closing,
+read timing and concurrent loads. Tests inspect only synthetic environment values.
+The maintained route passes 263 native Node tests, Rust tests, 1,772 reference/
+parity cases in 51 files and declarations; Rust/binding and scoped JS lint pass.
+
+Packed runtime consumers load an actual scenario file and exercise service,
+fetch/filesystem adapters and embedded bypass. Packed declarations compile with
+types: [], while contract types still resolve from the checkout. The inspected
+fixture result/scenario diagnostic screenshot matches reference output exactly.
+Full command execution and public CLI integration remain unfinished.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 300 calls, retaining 32
+results, measured native/reference medians of 705.338/543.963 microseconds
+(1.30 times slower). The fixture includes a real warmed scenario-file read,
+runtime/environment construction, a service match, fixture filesystem read and
+fixture fetch JSON response. It does not pass the performance/default-swap gate.
+Full execution, generated help, transports and complete platform/resource/
+reentrancy/standalone-packaging qualification remain open.

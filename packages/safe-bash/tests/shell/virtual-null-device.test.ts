@@ -676,3 +676,19 @@ test("device identity cannot alias an ordinary file with matching inode numbers"
   });
   assert.equal(result.exitCode, 1);
 });
+
+for (const [script, expected] of [
+  ["for x in a b; do printf %s \"$x\"; done >/dev/null", "ab"],
+  ["for x in a b; do printf %s \"$x\" >/dev/null; done", "b"],
+  ["while read x; do printf %s \"$x\"; done </dev/null >/copy", "provided\n"],
+] as const) test(`provided null remains an ordinary file in loops: ${script}`, async context => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/dev");
+  await fs.writeFile("/dev/null", new TextEncoder().encode("provided\n"));
+  const shell = new Shell({ fs, deviceView: "provided" }).use(standardCommands());
+  context.after(() => shell.dispose());
+  const result = await shell.exec(script);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/dev/null")), expected);
+  if (script.includes("/copy")) assert.equal(new TextDecoder().decode(await fs.readFile("/copy")), "provided");
+});

@@ -9427,7 +9427,7 @@ const syncExtraRuntimeMethods = {
           !rIn.document &&
           (rIn.descriptor === undefined || rIn.descriptor === 1) &&
           (rIn.operator === ">" || rIn.operator === ">>" || rIn.operator === ">|") &&
-          rIn.target.plain === "/dev/null"
+          rIn.target.plain === "/dev/null" && this.sourceFs !== this.backingFs
         ) {
           if (!this.budget.canRedirect1 || !this.budget.canFileSystemOperation()) return undefined;
           const res = this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, { ...io, stdout: devNullSyncSink }, diagnosticLine);
@@ -9460,7 +9460,7 @@ const syncExtraRuntimeMethods = {
           if (typeof inTargetVal !== "string" || inTargetVal.length === 0) return undefined;
           const inResolvedPath = pathOf(rawState, inTargetVal);
           if (inResolvedPath.startsWith("/dev/") && inResolvedPath !== "/dev/null") return undefined;
-          const inBytes = inResolvedPath === "/dev/null" ? EMPTY_CAPTURE_BYTES : this.tryReadMemoryFileViewSync(inResolvedPath, false);
+          const inBytes = inResolvedPath === "/dev/null" && this.sourceFs !== this.backingFs ? EMPTY_CAPTURE_BYTES : this.tryReadMemoryFileViewSync(inResolvedPath, false);
           if (!inBytes || inBytes.byteLength > 262144) return undefined;
           const taggedIn = inBytes as Uint8Array & { _decodedAscii?: string };
           syncReadInputText = taggedIn._decodedAscii ?? (taggedIn._decodedAscii = sharedSyncPipeDecoder.decode(inBytes));
@@ -9719,7 +9719,7 @@ const syncExtraRuntimeMethods = {
       }
       if ((preEncoded === undefined && formatted === undefined) || typeof targetVal !== "string" || targetVal.length === 0 || targetVal.includes("\0")) return undefined;
       const path = isCleanAbsolutePath(targetVal) ? targetVal : pathOf(rawState, targetVal);
-      if ((path.startsWith("/dev/") && path !== "/dev/null") || path === "/dev") return undefined;
+      if ((path.startsWith("/dev/") && (path !== "/dev/null" || this.sourceFs === this.backingFs)) || path === "/dev") return undefined;
       const encoded = preEncoded ?? encodeRedirectTextToScratch(formatted!);
       const byteLength = encoded.byteLength;
       if (this.budget.bytes + byteLength > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) return undefined;

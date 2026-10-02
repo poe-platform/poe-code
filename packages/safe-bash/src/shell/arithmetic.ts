@@ -1234,6 +1234,24 @@ export function runIntArithForLoop(
           }
         } else {
           const mask = sharedDirectRegArgs[6]!;
+          const pBits = mask > 0 ? (32 - Math.clz32(mask)) + shift : 0;
+          const period = pBits > 0 && pBits <= 12 ? (1 << pBits) : 0;
+          if (period > 0 && (effLimit - iVal) >= (period << 1)) {
+            const pMask = period - 1;
+            while (iVal < effLimit && (iVal & pMask) !== 0) {
+              acc = (acc + ((iVal ^ (iVal >> shift)) & mask)) | 0;
+              iVal = (iVal + 1) | 0;
+            }
+            const fullPeriods = ((effLimit - iVal) / period) | 0;
+            if (fullPeriods > 0) {
+              let pSum = 0;
+              for (let r = 0; r < period; r++) {
+                pSum = (pSum + ((r ^ (r >> shift)) & mask)) | 0;
+              }
+              acc = (acc + Math.imul(fullPeriods, pSum)) | 0;
+              iVal = (iVal + Math.imul(fullPeriods, period)) | 0;
+            }
+          }
           for (; iVal < effLimit; iVal = (iVal + 1) | 0) {
             acc = (acc + ((iVal ^ (iVal >> shift)) & mask)) | 0;
           }
@@ -1323,6 +1341,72 @@ export function runIntArithForLoop(
       return sharedIntLoopResult;
     }
   }
+  if (stepCount >= 1 && stepCount <= 8 && deferredMask === 0) {
+    const effLimit = isLe ? (limitVal + 1) | 0 : limitVal | 0;
+    if (iVal >= 0 && effLimit > iVal && effLimit <= 100000) {
+      let allPureInd = true;
+      for (let b = 0; b < stepCount; b++) {
+        const st = intSteps[b]!;
+        if (st.compiled.ops.length !== 1 || st.compiled.ops[0] !== 1 || st.varRegMap[st.compiled.args[0]!] !== 0 || st.targetReg === 0) {
+          allPureInd = false;
+          break;
+        }
+      }
+      if (allPureInd) {
+        const rem = (effLimit - iVal) | 0;
+        const lastInd = (effLimit - 1) | 0;
+        let baseDigits = 0;
+        for (let d = 1, lo = 1, hi = 9; lo <= lastInd; d++, lo *= 10, hi = hi * 10 + 9) {
+          const sK = iVal > lo ? iVal : lo;
+          const eK = lastInd < hi ? lastInd : hi;
+          if (sK <= eK) baseDigits += (eK - sK + 1) * d;
+        }
+        if (iVal === 0) baseDigits += 1;
+        let totalSubB = 0;
+        let totalSubC = 0;
+        for (let b = 0; b < stepCount; b++) {
+          const st = intSteps[b]!;
+          sharedLoopIntRegs[st.targetReg] = lastInd;
+          if (st.isSub) {
+            totalSubC += rem;
+            const pw = st.padWidth ?? 0;
+            if (pw <= 1) {
+              totalSubB += baseDigits + rem * st.extraNewlineByte;
+            } else {
+              let pDigits = 0;
+              for (let d = 1, lo = 1, hi = 9; lo <= lastInd; d++, lo *= 10, hi = hi * 10 + 9) {
+                const sK = iVal > lo ? iVal : lo;
+                const eK = lastInd < hi ? lastInd : hi;
+                if (sK <= eK) pDigits += (eK - sK + 1) * (d < pw ? pw : d);
+              }
+              if (iVal === 0) pDigits += (1 < pw ? pw : 1);
+              totalSubB += pDigits + rem * st.extraNewlineByte;
+            }
+          }
+        }
+        sharedLoopIntRegs[0] = effLimit;
+        parseBudget.admit(rem * (4 + stepCount * 2));
+        sharedIntLoopResult.ok = true;
+        sharedIntLoopResult.lastInductionInt = lastInd;
+        sharedIntLoopResult.subBytes = totalSubB;
+        sharedIntLoopResult.subCount = totalSubC;
+        return sharedIntLoopResult;
+      }
+    }
+  }
+  if (stepCount <= 30 && deferredMask === ((1 << stepCount) - 1)) {
+    const effLimit = isLe ? (limitVal + 1) | 0 : limitVal | 0;
+    if (iVal >= 0 && effLimit > iVal) {
+      const rem = (effLimit - iVal) | 0;
+      sharedLoopIntRegs[0] = effLimit;
+      parseBudget.admit(rem * 4);
+      sharedIntLoopResult.ok = true;
+      sharedIntLoopResult.lastInductionInt = (effLimit - 1) | 0;
+      sharedIntLoopResult.subBytes = 0;
+      sharedIntLoopResult.subCount = 0;
+      return sharedIntLoopResult;
+    }
+  }
   while (isLe ? iVal <= limitVal : iVal < limitVal) {
     totalAdmitUnits += iVal < 0 ? 4 : 2;
     lastInductionInt = iVal;
@@ -1362,9 +1446,9 @@ export function runIntArithForLoop(
   return sharedIntLoopResult;
 }
 
-const parsedLoopWordsCache = new WeakMap<readonly string[], Int32Array | null>();
+const parsedLoopWordsCache = new WeakMap<readonly string[], (Int32Array & { _sum?: number }) | null>();
 
-function getOrParsePositiveLoopWords(words: readonly string[]): Int32Array | null {
+function getOrParsePositiveLoopWords(words: readonly string[]): (Int32Array & { _sum?: number }) | null {
   const cached = parsedLoopWordsCache.get(words);
   if (cached !== undefined) return cached;
   const len = words.length;
@@ -1372,7 +1456,8 @@ function getOrParsePositiveLoopWords(words: readonly string[]): Int32Array | nul
     parsedLoopWordsCache.set(words, null);
     return null;
   }
-  const arr = new Int32Array(len);
+  const arr: Int32Array & { _sum?: number } = new Int32Array(len);
+  let sum = 0;
   for (let idx = 0; idx < len; idx++) {
     const word = words[idx]!;
     const wLen = word.length;
@@ -1395,7 +1480,9 @@ function getOrParsePositiveLoopWords(words: readonly string[]): Int32Array | nul
       num = (num * 10 + (ck - 48)) | 0;
     }
     arr[idx] = num;
+    sum += num;
   }
+  arr._sum = sum;
   parsedLoopWordsCache.set(words, arr);
   return arr;
 }
@@ -1422,6 +1509,19 @@ export function runIntForLoop(
       const r1 = vMap[args[1]!]!;
       const targetReg = s0.targetReg;
       const len = cachedInts.length;
+      if (targetReg !== 0 && ((r0 === targetReg && r1 === 0) || (r0 === 0 && r1 === targetReg)) && cachedInts._sum !== undefined) {
+        const initAcc = sharedLoopIntRegs[targetReg]!;
+        const finalAcc = initAcc + cachedInts._sum;
+        if (initAcc >= 0 && finalAcc <= 1073741823) {
+          sharedLoopIntRegs[0] = cachedInts[len - 1]!;
+          sharedLoopIntRegs[targetReg] = finalAcc | 0;
+          parseBudget.admit(len * 6);
+          sharedIntLoopResult.ok = true;
+          sharedIntLoopResult.subBytes = 0;
+          sharedIntLoopResult.subCount = 0;
+          return sharedIntLoopResult;
+        }
+      }
       for (let idx = 0; idx < len; idx++) {
         sharedLoopIntRegs[0] = cachedInts[idx]!;
         const v0 = sharedLoopIntRegs[r0]!;

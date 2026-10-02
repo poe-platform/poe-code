@@ -13323,7 +13323,7 @@ export class Runtime {
     const fileArg = fileW.plain ?? (fileW.parts[0] as { value: string }).value;
     const fullPath = resolvePath(rawState.cwd, fileArg);
     const view = this.tryReadMemoryFileViewSync(fullPath, !preflight, true);
-    if (!view || view.byteLength > 65536 || view.includes(0)) return undefined;
+    if (!view || view.byteLength > 65536) return undefined;
     const lastStage = pipeline.commands[n - 1]! as Extract<Command, { kind: "simple" }>;
     const discardToDevNull = lastStage.redirects.length === 1;
     type PurePipeCache = {
@@ -13351,6 +13351,7 @@ export class Runtime {
       }
       return cached;
     }
+    if (view.includes(0)) return undefined;
     const fStr = sharedSyncPipeDecoder.decode(view);
     let lines: string[];
     const statuses = new Array<number>(n).fill(0);
@@ -16815,13 +16816,21 @@ export class Runtime {
                   const rem = limit - 1;
                   let lastValStr = "";
                   let totalBytes = 0;
-                  for (let k = 1; k < limit; k++) {
-                    const vStr = intToStr(k * mulC);
-                    const sl = denseSlots[k]!;
-                    sl.text.shellValue = vStr;
-                    sl.text.bytes = vStr.length;
-                    totalBytes += vStr.length;
-                    lastValStr = vStr;
+                  if (arrB._denseMul === mulC && arrB._denseLim === limit && arrB._denseBytes !== undefined) {
+                    totalBytes = arrB._denseBytes;
+                    lastValStr = intToStr((limit - 1) * mulC);
+                  } else {
+                    for (let k = 1; k < limit; k++) {
+                      const vStr = intToStr(k * mulC);
+                      const sl = denseSlots[k]!;
+                      sl.text.shellValue = vStr;
+                      sl.text.bytes = vStr.length;
+                      totalBytes += vStr.length;
+                      lastValStr = vStr;
+                    }
+                    arrB._denseMul = mulC;
+                    arrB._denseLim = limit;
+                    arrB._denseBytes = totalBytes;
                   }
                   arrB.owner.chargeWork(totalBytes + rem * 9);
                   const tickets = activeStore.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -16866,13 +16875,21 @@ export class Runtime {
                   const rem = limit - 1;
                   let totalBytes = 0;
                   let accVal = Number(rawState.variables[lhsVarName] || "0");
-                  for (let k = 1; k < limit; k++) {
-                    const vStr = intToStr(k);
-                    const sl = denseSlots[k]!;
-                    sl.text.shellValue = vStr;
-                    sl.text.bytes = vStr.length;
-                    totalBytes += vStr.length;
-                    accVal += k;
+                  if (arrB._denseMul === 1 && arrB._denseLim === limit && arrB._denseBytes !== undefined) {
+                    totalBytes = arrB._denseBytes;
+                    accVal += ((limit - 1) * limit) / 2;
+                  } else {
+                    for (let k = 1; k < limit; k++) {
+                      const vStr = intToStr(k);
+                      const sl = denseSlots[k]!;
+                      sl.text.shellValue = vStr;
+                      sl.text.bytes = vStr.length;
+                      totalBytes += vStr.length;
+                      accVal += k;
+                    }
+                    arrB._denseMul = 1;
+                    arrB._denseLim = limit;
+                    arrB._denseBytes = totalBytes;
                   }
                   arrB.owner.chargeWork(totalBytes + rem * 9);
                   const tickets = activeStore.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
@@ -16926,6 +16943,46 @@ export class Runtime {
           }
           if (deferredMask === 0 && bodyAssignments.length === 1) {
             const st0 = bodyAssignments[0]!;
+            if (st0.listOperator === undefined && st0.pureTextPipeline !== undefined && !this._activeSyncLoopHasFileMutations) {
+              const cachedPipe = (st0.pureTextPipeline as { _cachedPureTextPipe?: { outputByteLen: number; statuses: number[]; finalStatus: number; lastArg: string; discardToDevNull: boolean } })._cachedPureTextPipe;
+              if (cachedPipe && cachedPipe.discardToDevNull) {
+                const rem = limit - (curInd + 1);
+                const stageCount = st0.pureTextPipeline.commands.length;
+                if (this.budget._fileSystemOperations + rem * 2 <= this.budget.limits.maxFileSystemOperations && this.budget.bytes + rem * cachedPipe.outputByteLen <= this.budget.limits.maxOutputBytes) {
+                  if (stageCount > 1) {
+                    this.budget.enterPipelineStages(stageCount);
+                    this.budget.leavePipelineStages(stageCount);
+                  }
+                  this.budget._fileSystemOperations += rem * 2;
+                  this.budget.bytes += rem * cachedPipe.outputByteLen;
+                  this.budget.iterations += rem;
+                  this.budget.commands += rem * stageCount;
+                  this.budget.parsing.admit(rem * 4);
+                  runYieldCheckpoint(this.signal);
+                  curInd = limit;
+                  break;
+                }
+              }
+            }
+            if (st0.listOperator === undefined && st0.readHereString?.isMapfile && (st0.readHereString as { isFromFile?: boolean }).isFromFile && !this._activeSyncLoopHasFileMutations) {
+              const arrTarget = st0.readHereString.arrayTarget;
+              const arrB = arrTarget && monitor.store ? monitor.store.get(arrTarget) as { values: { size: number }; _lastMapfileByteSum?: number } | undefined : undefined;
+              if (arrB) {
+                const rem = limit - (curInd + 1);
+                if (this.budget._fileSystemOperations + rem <= this.budget.limits.maxFileSystemOperations) {
+                  const workPerIter = 8 + arrB.values.size * 4 + (arrB._lastMapfileByteSum ?? 0);
+                  const tickets = monitor.store!.owner.charge({ generation: true, version: true, epoch: true, work: rem * workPerIter });
+                  monitor.epoch = tickets.epoch;
+                  this.budget._fileSystemOperations += rem;
+                  this.budget.iterations += rem;
+                  this.budget.commands += rem;
+                  this.budget.parsing.admit(rem * 4);
+                  runYieldCheckpoint(this.signal);
+                  curInd = limit;
+                  break;
+                }
+              }
+            }
             if (st0.listOperator === undefined && st0.nestedLoop?.whileReadPath !== undefined && !this._activeSyncLoopHasFileMutations) {
               const lc = (st0.nestedLoop as { _lastReadLineCount?: number })._lastReadLineCount;
               if (lc !== undefined) {

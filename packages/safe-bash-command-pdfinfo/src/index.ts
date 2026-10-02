@@ -11,7 +11,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, dictGet, decodePdfString, parseContentStream, resolveDestinationPageIndex, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
+import { PdfDocument, dictGet, decodePdfString, parseContentStream, type PdfPage, type PdfCosNode, type PdfCosDict, type ParsedCosDocument } from "@poe-code/pdf-ast";
 
 export interface PdfinfoLimits {
   readonly maxInputBytes: number;
@@ -1232,382 +1232,10 @@ export function createPdfinfoCommand(options: PdfinfoCommandOptions = {}): Comma
 
 export const pdfinfoCommand: CommandDefinition = createPdfinfoCommand();
 
-function copyDocumentMetadata(srcDoc: PdfDocument, dstDoc: PdfDocument): void {
-  const meta = srcDoc.getMetadata();
-  if (meta.title) dstDoc.setTitle(meta.title);
-  if (meta.author) dstDoc.setAuthor(meta.author);
-  if (meta.subject) dstDoc.setSubject(meta.subject);
-  if (meta.keywords) dstDoc.setKeywords(meta.keywords);
-  if (meta.creator) dstDoc.setCreator(meta.creator);
-  if (meta.producer) dstDoc.setProducer(meta.producer);
-}
-
-function* runPdfuniteCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-}, void> {
-    let cooperativeWork = 63;
-    const positionals: string[] = [];
-    let password = "";
-    for (let i = 0; i < argv.length; i++) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        const arg = argv[i]!;
-        if (arg === "-v" || arg === "--version") {
-            return { exitCode: 0, stdout: "pdfunite version 24.08.0\n", stderr: "" };
-        }
-        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-            return {
-                exitCode: 0,
-                stdout: "Usage: pdfunite [options] <PDF-sourcefile-1>..<PDF-sourcefile-n> <PDF-destfile>\n",
-                stderr: ""
-            };
-        }
-        if (arg === "-upw" || arg === "-opw") {
-            password = argv[++i] ?? "";
-            continue;
-        }
-        if (!arg.startsWith("-"))
-            positionals.push(arg);
-    }
-    if (positionals.length < 3) {
-        return {
-            exitCode: 99,
-            stdout: "",
-            stderr: "Syntax Error: pdfunite requires at least two input files and one output file.\n"
-        };
-    }
-    const destPath = positionals[positionals.length - 1]!;
-    const sourcePaths = positionals.slice(0, -1);
-    const merged = PdfDocument.create();
-    let copiedMeta = false;
-    const mergedOutlineItems: Array<{
-        title: string;
-        targetPageIdx: number;
-    }> = [];
-    const mergedAttachments: DetachedEmbeddedFile[] = [];
-    const seenAttachmentNames = new Set<string>();
-    const mergedPageLabelNums: PdfCosNode[] = [];
-    let pageOffset = 0;
-    for (const srcPath of sourcePaths) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        const srcBytes = files.get(srcPath);
-        if (!srcBytes) {
-            return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
-    }
-    let srcDoc: PdfDocument;
-    try {
-      srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
-    } catch (err) {
-      return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
-        }
-        if (!copiedMeta) {
-            copyDocumentMetadata(srcDoc, merged);
-            copiedMeta = true;
-        }
-        for (const att of collectEmbeddedAttachments(srcDoc)) {
-            if (++cooperativeWork % 64 === 0)
-                yield;
-            if (!seenAttachmentNames.has(att.name)) {
-                seenAttachmentNames.add(att.name);
-                mergedAttachments.push(att);
-            }
-        }
-        const srcCat = srcDoc.cos.resolveDict(srcDoc.cos.rootRef);
-        const collectSrcPageLabels = (plNode: PdfCosDict | undefined, visited = new Set<number>()) => {
-            if (!plNode)
-                return;
-            const numsArr = srcDoc.cos.resolveArray(dictGet(plNode, "Nums"));
-            if (numsArr) {
-                for (let idx = 0; idx + 1 < numsArr.items.length; idx += 2) {
-                    const kNode = srcDoc.cos.resolve(numsArr.items[idx]);
-                    const vDict = srcDoc.cos.resolveDict(numsArr.items[idx + 1]);
-                    if (kNode?.kind === "number" && vDict) {
-                        const clonedEntries: Record<string, PdfCosNode> = {};
-                        const sNode = srcDoc.cos.resolve(dictGet(vDict, "S"));
-                        const stNode = srcDoc.cos.resolve(dictGet(vDict, "St"));
-                        const pNode = srcDoc.cos.resolve(dictGet(vDict, "P"));
-                        if (sNode?.kind === "name")
-                            clonedEntries.S = cosName(sNode.decoded);
-                        if (stNode?.kind === "number")
-                            clonedEntries.St = cosNumber(stNode.value);
-                        if (pNode?.kind === "string")
-                            clonedEntries.P = { kind: "string", bytes: new Uint8Array(pNode.bytes), format: pNode.format };
-                        mergedPageLabelNums.push(cosNumber(pageOffset + kNode.value), cosDict(clonedEntries));
-                    }
-                }
-            }
-            const kidsArr = srcDoc.cos.resolveArray(dictGet(plNode, "Kids"));
-            if (kidsArr) {
-                for (const kid of kidsArr.items) {
-                    if (kid.kind === "ref") {
-                        if (visited.has(kid.objectNumber))
-                            continue;
-                        visited.add(kid.objectNumber);
-                    }
-                    collectSrcPageLabels(srcDoc.cos.resolveDict(kid), visited);
-                }
-            }
-        };
-        if (srcCat) {
-            collectSrcPageLabels(srcDoc.cos.resolveDict(dictGet(srcCat, "PageLabels")));
-        }
-        const srcOutlines = srcCat ? srcDoc.cos.resolveDict(dictGet(srcCat, "Outlines")) : undefined;
-        const collectOutlinesFromSrc = (nodeOrRef: PdfCosNode | undefined, visited = new Set<number>()) => {
-            let cur = nodeOrRef;
-            while (cur) {
-                if (cur.kind === "ref") {
-                    if (visited.has(cur.objectNumber))
-                        break;
-                    visited.add(cur.objectNumber);
-                }
-                const d = srcDoc.cos.resolveDict(cur);
-                if (!d)
-                    break;
-                const tNode = srcDoc.cos.resolve(dictGet(d, "Title"));
-                const title = tNode?.kind === "string" ? decodePdfString(tNode) : "";
-                const localPage = resolveDestinationPageIndex(srcDoc, dictGet(d, "Dest") ?? dictGet(d, "A")) ?? 0;
-                if (title) {
-                    mergedOutlineItems.push({ title, targetPageIdx: pageOffset + localPage });
-                }
-                const firstChild = dictGet(d, "First");
-                if (firstChild)
-                    collectOutlinesFromSrc(firstChild, visited);
-                cur = dictGet(d, "Next");
-            }
-        };
-        if (srcOutlines)
-            collectOutlinesFromSrc(dictGet(srcOutlines, "First"));
-        const indices = Array.from({ length: srcDoc.pageCount }, (_, idx) => idx);
-        merged.copyPagesFrom(srcDoc, indices);
-        pageOffset += srcDoc.pageCount;
-    }
-    if (mergedOutlineItems.length > 0 && merged.pageCount > 0) {
-        const dstCat = merged.cos.resolveDict(merged.cos.rootRef);
-        if (dstCat) {
-            const outlinesDict = cosDict({});
-            const outlinesRef = merged.cos.allocateObject(outlinesDict);
-            const itemRefs: Array<{
-                ref: ReturnType<typeof merged.cos.allocateObject>;
-                dict: PdfCosDict;
-            }> = [];
-            for (const bm of mergedOutlineItems) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                const pRef = merged.getPage(Math.min(merged.pageCount - 1, Math.max(0, bm.targetPageIdx))).ref;
-                const iDict = cosDict({
-                    Title: { kind: "string", bytes: new TextEncoder().encode(bm.title), format: "literal" },
-                    Parent: outlinesRef,
-                    Dest: cosArray([pRef, cosName("Fit")]),
-                });
-                const iRef = merged.cos.allocateObject(iDict);
-                const prev = itemRefs[itemRefs.length - 1];
-                if (prev) {
-                    prev.dict.entries.push({ key: cosName("Next"), value: iRef });
-                    iDict.entries.push({ key: cosName("Prev"), value: prev.ref });
-                }
-                else {
-                    outlinesDict.entries.push({ key: cosName("First"), value: iRef });
-                }
-                itemRefs.push({ ref: iRef, dict: iDict });
-            }
-            const lastItem = itemRefs[itemRefs.length - 1];
-            if (lastItem) {
-                outlinesDict.entries.push({ key: cosName("Last"), value: lastItem.ref });
-                outlinesDict.entries.push({ key: cosName("Count"), value: cosNumber(itemRefs.length) });
-                dstCat.entries.push({ key: cosName("Outlines"), value: outlinesRef });
-            }
-        }
-    }
-    const finalDstCat = merged.cos.resolveDict(merged.cos.rootRef);
-    if (finalDstCat) {
-        if (mergedAttachments.length > 0) {
-            const namesPairs: PdfCosNode[] = [];
-            for (const att of mergedAttachments) {
-                if (++cooperativeWork % 64 === 0)
-                    yield;
-                const efRef = merged.cos.allocateObject(cosStream(att.data, {
-                    dict: cosDict({ Type: cosName("EmbeddedFile") }),
-                    compress: true,
-                }));
-                const fnBytes = new TextEncoder().encode(att.name);
-                const fsRef = merged.cos.allocateObject(cosDict({
-                    Type: cosName("Filespec"),
-                    F: { kind: "string", bytes: fnBytes, format: "literal" },
-                    UF: { kind: "string", bytes: fnBytes, format: "literal" },
-                    EF: cosDict({ F: efRef, UF: efRef }),
-                }));
-                namesPairs.push({ kind: "string", bytes: fnBytes, format: "literal" }, fsRef);
-            }
-            const efTreeRef = merged.cos.allocateObject(cosDict({ Names: cosArray(namesPairs) }));
-            finalDstCat.entries.push({
-                key: cosName("Names"),
-                value: merged.cos.allocateObject(cosDict({ EmbeddedFiles: efTreeRef })),
-            });
-        }
-        if (mergedPageLabelNums.length > 0) {
-            finalDstCat.entries.push({
-                key: cosName("PageLabels"),
-                value: merged.cos.allocateObject(cosDict({ Nums: cosArray(mergedPageLabelNums) })),
-            });
-        }
-    }
-    files.set(destPath, merged.save());
-    return { exitCode: 0, stdout: "", stderr: "" };
-}
-export async function runPdfuniteCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-}> {
-    return drainSteps(runPdfuniteCliSteps(argv, files, signal), signal);
-}
-
-function parsePdfseparateSpec(pattern: string): {
-  readonly hasPageSpec: boolean;
-  format(pageNumber: number): string;
-} {
-  let hasPageSpec = false;
-  for (let i = 0; i < pattern.length; i++) {
-    if (pattern[i] !== "%") continue;
-    if (pattern[i + 1] === "%") {
-      i++;
-      continue;
-    }
-    let j = i + 1;
-    while (j < pattern.length && pattern[j]! >= "0" && pattern[j]! <= "9") j++;
-    if (pattern[j] === "d") {
-      hasPageSpec = true;
-      break;
-    }
-  }
-  return {
-    hasPageSpec,
-    format(pageNumber: number): string {
-      let out = "";
-      let replaced = false;
-      for (let i = 0; i < pattern.length; i++) {
-        if (pattern[i] !== "%") {
-          out += pattern[i]!;
-          continue;
-        }
-        if (pattern[i + 1] === "%") {
-          out += "%";
-          i++;
-          continue;
-        }
-        if (!replaced) {
-          let j = i + 1;
-          let digits = "";
-          while (j < pattern.length && pattern[j]! >= "0" && pattern[j]! <= "9") {
-            digits += pattern[j]!;
-            j++;
-          }
-          if (pattern[j] === "d") {
-            const width = digits.length > 0 ? Number.parseInt(digits, 10) || 0 : 0;
-            const padChar = digits.startsWith("0") ? "0" : " ";
-            out += width > 0 ? String(pageNumber).padStart(width, padChar) : String(pageNumber);
-            replaced = true;
-            i = j;
-            continue;
-          }
-        }
-        out += "%";
-      }
-      return out;
-    },
-  };
-}
-
-function* runPdfseparateCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Generator<void, {
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-}, void> {
-    let cooperativeWork = 63;
-    let firstPage = 1;
-    let lastPage = 0;
-    let password = "";
-    const positionals: string[] = [];
-    for (let i = 0; i < argv.length; i++) {
-        if (++cooperativeWork % 64 === 0)
-            yield;
-        const arg = argv[i]!;
-        if (arg === "-v" || arg === "--version") {
-            return { exitCode: 0, stdout: "pdfseparate version 24.08.0\n", stderr: "" };
-        }
-        if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
-            return {
-                exitCode: 0,
-                stdout: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n  -f <int> / -l <int>\n",
-                stderr: ""
-            };
-        }
-        if (arg === "-f")
-            firstPage = Math.max(1, Number(argv[++i] ?? "1") || 1);
-        else if (arg === "-l")
-            lastPage = Math.max(0, Number(argv[++i] ?? "0") || 0);
-        else if (arg === "-upw" || arg === "-opw")
-            password = argv[++i] ?? "";
-        else if (!arg.startsWith("-"))
-            positionals.push(arg);
-    }
-    if (positionals.length < 2) {
-        return {
-            exitCode: 99,
-            stdout: "",
-            stderr: "Usage: pdfseparate [options] <PDF-sourcefile> <PDF-pattern-destfile>\n"
-        };
-    }
-    const srcPath = positionals[0]!;
-    const pattern = positionals[1]!;
-    const srcBytes = files.get(srcPath);
-    if (!srcBytes) {
-        return { exitCode: 1, stdout: "", stderr: `I/O Error: Couldn't open file '${srcPath}'\n` };
-  }
-  let srcDoc: PdfDocument;
-  try {
-    srcDoc = PdfDocument.load(srcBytes, password ? { password } : undefined);
-  } catch (err) {
-    return { exitCode: 1, stdout: "", stderr: `PDF Error: ${(err as Error).message}\n` };
-    }
-    const endPage = lastPage > 0 ? Math.min(srcDoc.pageCount, lastPage) : srcDoc.pageCount;
-    if (firstPage > srcDoc.pageCount ||
-        (lastPage > 0 && (lastPage > srcDoc.pageCount || firstPage > lastPage))) {
-        return {
-            exitCode: 99,
-            stdout: "",
-            stderr: `Command Line Error: Wrong page range given: the first page (${firstPage}) can not be after the last page (${endPage}).\n`
-        };
-    }
-    const spec = parsePdfseparateSpec(pattern);
-    const hasPageSpec = spec.hasPageSpec;
-    if (endPage > firstPage && !hasPageSpec) {
-        return {
-            exitCode: 99,
-            stdout: "",
-            stderr: `Error: '${pattern}' must contain '%d' if more than one page should be extracted\n`
-        };
-    }
-    for (let p = firstPage; p <= endPage; p++) {
-        yield;
-        const singleDoc = PdfDocument.create();
-        copyDocumentMetadata(srcDoc, singleDoc);
-        singleDoc.copyPagesFrom(srcDoc, [p - 1]);
-        const outPath = spec.format(p);
-        files.set(outPath, singleDoc.save());
-    }
-    return { exitCode: 0, stdout: "", stderr: "" };
-}
-export async function runPdfseparateCli(argv: readonly string[], files: Map<string, Uint8Array>, signal?: AbortSignal): Promise<{
-    exitCode: number;
-    stdout: string;
-    stderr: string;
-}> {
-    return drainSteps(runPdfseparateCliSteps(argv, files, signal), signal);
-}
+import { createPdfuniteCommand } from "safe-bash-command-pdfunite";
+import { createPdfseparateCommand } from "safe-bash-command-pdfseparate";
+export * from "safe-bash-command-pdfunite";
+export * from "safe-bash-command-pdfseparate";
 
 function isSubsetFontTag(fontName: string): boolean {
   if (fontName.length < 8 || fontName[6] !== "+") return false;
@@ -2259,7 +1887,7 @@ async function executePopplerFileTool(
       }
     }
 
-    for (const token of new Set(runner === runPdfuniteCli ? positionals.slice(0, -1) : positionals.slice(0, 1))) {
+    for (const token of new Set(positionals.slice(0, 1))) {
       if (++cooperativeWork % 64 === 0) await yieldTurn(context.signal);
       if (token === "-") continue;
       try {
@@ -2294,8 +1922,8 @@ async function executePopplerFileTool(
         } catch (error) {
           invocation.signal.throwIfAborted();
           if (!(error instanceof Error) || !("code" in error)) throw error;
-          await writeBytes(context.stderr, new TextEncoder().encode(`I/O Error: ${runner === runPdfdetachCli ? "Error saving embedded file as" : runner === runPdfuniteCli ? "Could not open file" : "Couldn't open file"} '${key}'\n`), invocation.signal);
-          return { exitCode: runner === runPdfuniteCli ? 255 : runner === runPdfseparateCli ? 99 : 2 };
+          await writeBytes(context.stderr, new TextEncoder().encode(`I/O Error: ${runner === runPdfdetachCli ? "Error saving embedded file as" : "Couldn't open file"} '${key}'\n`), invocation.signal);
+          return { exitCode: 2 };
         }
       }
     }
@@ -2305,37 +1933,6 @@ async function executePopplerFileTool(
   }
 }
 
-export function createPdfuniteCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
-  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
-  return Object.freeze({
-    name: "pdfunite",
-    runtimeIdentity: commandRuntimeIdentity,
-    description: "Merge multiple PDF documents into a single PDF via @poe-code/pdf-ast",
-    execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executePopplerFileTool(context, runPdfuniteCli);
-      });
-    }
-  });
-}
-
-export const pdfuniteCommand: CommandDefinition = createPdfuniteCommand();
-
-export function createPdfseparateCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
-  const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
-  return Object.freeze({
-    name: "pdfseparate",
-    runtimeIdentity: commandRuntimeIdentity,
-    description: "Split PDF pages into individual PDF files via @poe-code/pdf-ast",
-    execute(context: CommandContext) {
-      return new InputByteBudget(maxInputBytes).run(context, async context => {
-        return executePopplerFileTool(context, runPdfseparateCli);
-      });
-    }
-  });
-}
-
-export const pdfseparateCommand: CommandDefinition = createPdfseparateCommand();
 
 export function createPdffontsCommand(options: PdfinfoCommandOptions = {}): CommandDefinition {
   const maxInputBytes = InputByteBudget.limit(options.limits?.maxInputBytes);
@@ -2393,5 +1990,3 @@ export type PdfinfoCommandsOptions = PdfinfoCommandOptions;
 export function createPdfinfoCommands(options: PdfinfoCommandsOptions = {}): readonly CommandDefinition[] {
     return [createPdfinfoCommand(options), createPdfuniteCommand(options), createPdfseparateCommand(options), createPdffontsCommand(options), createPdfdetachCommand(options)];
 }
-
-

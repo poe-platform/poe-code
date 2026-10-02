@@ -13,7 +13,7 @@ import {
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { DomUtils, parseDocument } from "htmlparser2";
-import { Shell, createMemoryFileSystem } from "../../src/index.js";
+import { Shell, createMemoryFileSystem, standardCommands, pdfuniteCommands, pdfseparateCommands } from "../../src/index.js";
 import { pdfinfoCommands } from "../../src/commands/pdfinfo/index.js";
 import { pdftoppmPlugin } from "../../src/commands/pdftoppm/index.js";
 import { pdfimagesPlugin } from "../../src/commands/pdfimages/index.js";
@@ -25,6 +25,28 @@ import { exiftoolCommands } from "../../src/commands/exiftool/index.js";
 import { pdfAstWkhtmltopdfCommands } from "../../src/commands/wkhtmltopdf/index.js";
 
 describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtmltopdf, exiftool)", () => {
+  it("roundtrips selected pages through separate, unite, and pdfinfo in a shell pipeline", async () => {
+    const fs = createMemoryFileSystem();
+    const doc = PdfDocument.create();
+    for (let page = 1; page <= 3; page++) {
+      doc.addPage([100 + page, 200]).drawText(`Page ${page}`, { x: 10, y: 20 });
+    }
+    await fs.writeFile("/source.pdf", doc.save());
+    const shell = new Shell({ fs }).use(standardCommands()).use(pdfinfoCommands())
+      .use(pdfuniteCommands({ replace: true })).use(pdfseparateCommands({ replace: true }));
+    try {
+      const result = await shell.exec("pdfseparate -f 2 -l 3 /source.pdf /page-%03d.pdf && pdfunite /page-002.pdf /page-003.pdf /joined.pdf && pdfinfo /joined.pdf | cat");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout.split("\n").find(line => line.startsWith("Pages:"))?.slice(6).trim(), "2");
+      const joined = PdfDocument.load(await fs.readFile("/joined.pdf"));
+      assert.deepEqual(joined.getPage(0).getSize(), { width: 102, height: 200 });
+      assert.deepEqual(joined.getPage(1).getSize(), { width: 103, height: 200 });
+      assert.ok(joined.extractText().includes("Page 2"));
+      assert.ok(joined.extractText().includes("Page 3"));
+      assert.equal((await shell.exec("pdfunite /missing.pdf /source.pdf /bad.pdf")).exitCode, 255);
+      assert.equal((await shell.exec("pdfseparate -f invalid /source.pdf /bad-%d.pdf")).exitCode, 99);
+    } finally { await shell.dispose(); }
+  });
   it("runs soffice -> pdfinfo -> pdftotext -> qpdf -> exiftool -> wkhtmltopdf pipeline inside virtual Shell", async () => {
     const fs = createMemoryFileSystem();
     const shell = new Shell({ fs })

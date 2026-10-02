@@ -1,5 +1,5 @@
 {
-  "name": "safe-bash-command-pdfinfo",
+  "name": "safe-bash-command-pdfunite",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -28,11 +28,7 @@
   "dependencies": {},
   "devDependencies": {
     "@poe-code/pdf-ast": "*",
-    "safe-bash-contracts": "*",
-    "safe-bash-command-pdftoppm": "*",
-    "safe-bash-command-pdfimages": "*",
-    "safe-bash-command-pdfunite": "*",
-    "safe-bash-command-pdfseparate": "*"
+    "safe-bash-contracts": "*"
   },
   "sideEffects": false
 }

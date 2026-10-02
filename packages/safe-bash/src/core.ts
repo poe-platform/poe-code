@@ -150,6 +150,10 @@ export type { WkhtmltopdfLimits } from "./commands/wkhtmltopdf/index.js";
 export type { XzLimits } from "./commands/xz/index.js";
 export { createConvertCommand, createMogrifyCommand, createCompositeCommand, createMontageCommand, createIdentifyCommand, createCompareCommand } from "./lazy-optional.js";
 export { createPdfuniteCommand, createPdfseparateCommand, createPdffontsCommand, createPdfdetachCommand, createPdftocairoCommand } from "./lazy-optional.js";
+export { createPdfseparateCommands, pdfseparateCommands } from "./lazy-optional.js";
+export type { PdfseparateLimits, PdfseparateCommandOptions, PdfseparateCommandsOptions } from "./commands/pdfseparate/index.js";
+export { createPdfuniteCommands, pdfuniteCommands } from "./lazy-optional.js";
+export type { PdfuniteLimits, PdfuniteCommandOptions, PdfuniteCommandsOptions } from "./commands/pdfunite/index.js";
 export { createLibreofficeCommand } from "./lazy-optional.js";
 export { createFormatInspectionCommand } from "./lazy-optional.js";
 

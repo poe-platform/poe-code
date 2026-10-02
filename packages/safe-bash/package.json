@@ -1298,7 +1298,9 @@
             "@poe-code/pdf-ast": "*",
             "safe-bash-contracts": "*",
             "safe-bash-command-pdftoppm": "*",
-            "safe-bash-command-pdfimages": "*"
+            "safe-bash-command-pdfimages": "*",
+            "safe-bash-command-pdfunite": "*",
+            "safe-bash-command-pdfseparate": "*"
           },
           "portable": true
         },
@@ -1823,6 +1825,24 @@
             "safe-bash-contracts": "*",
             "safe-bash-pager-engine": "*",
             "@poe-code/safe-fs": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pdfunite": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-pdfseparate": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/pdf-ast": "*",
+            "safe-bash-contracts": "*"
           },
           "portable": true
         }
@@ -2980,6 +3000,18 @@
       "workerd": "./dist/contracts/node-path.js",
       "browser": "./dist/contracts/node-path.js",
       "import": "./dist/contracts/node-path.js"
+    },
+    "./commands/pdfunite": {
+      "types": "./dist/commands/pdfunite/index.d.ts",
+      "workerd": "./dist/commands/pdfunite/index.js",
+      "browser": "./dist/commands/pdfunite/index.js",
+      "import": "./dist/commands/pdfunite/index.js"
+    },
+    "./commands/pdfseparate": {
+      "types": "./dist/commands/pdfseparate/index.d.ts",
+      "workerd": "./dist/commands/pdfseparate/index.js",
+      "browser": "./dist/commands/pdfseparate/index.js",
+      "import": "./dist/commands/pdfseparate/index.js"
     }
   },
   "sideEffects": [
@@ -3217,7 +3249,9 @@
     "safe-bash-sqlite-engine": "*",
     "safe-bash-command-mcp": "*",
     "safe-bash-pager-engine": "*",
-    "safe-bash-command-more": "*"
+    "safe-bash-command-more": "*",
+    "safe-bash-command-pdfunite": "*",
+    "safe-bash-command-pdfseparate": "*"
   },
   "main": "./dist/index.js",
   "imports": {

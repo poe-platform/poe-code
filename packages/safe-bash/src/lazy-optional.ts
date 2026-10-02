@@ -195,6 +195,22 @@ export const createSsconvertCommands: ssconvertModule["createSsconvertCommands"]
 };
 
 type pdfinfoModule = typeof import("./commands/pdfinfo/index.js");
+
+export const createPdfseparateCommands: pdfinfoModule["createPdfseparateCommands"] = (...args) =>
+  createLazyCommands(pdfinfoMetadata.filter(item => item.name === "pdfseparate"), async () => {
+    const module = await loadpdfinfo();
+    return () => module.createPdfseparateCommands(...args);
+  });
+export const pdfseparateCommands: pdfinfoModule["pdfseparateCommands"] = (options = {}) =>
+  lazyCommandPlugin("pdfseparate", createPdfseparateCommands(options), options.replace ?? false);
+
+export const createPdfuniteCommands: pdfinfoModule["createPdfuniteCommands"] = (...args) =>
+  createLazyCommands(pdfinfoMetadata.filter(item => item.name === "pdfunite"), async () => {
+    const module = await loadpdfinfo();
+    return () => module.createPdfuniteCommands(...args);
+  });
+export const pdfuniteCommands: pdfinfoModule["pdfuniteCommands"] = (options = {}) =>
+  lazyCommandPlugin("pdfunite", createPdfuniteCommands(options), options.replace ?? false);
 const loadpdfinfo = /* @__PURE__ */ createLazyCommandLoader(() => import("./commands/pdfinfo/index.js"));
 const pdfinfoMetadata = [
   {

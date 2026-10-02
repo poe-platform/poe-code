@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import type { CapabilityContext } from "../../contracts.js";
 import { recalculateWorkbook } from "../evaluator.js";
-import { timezoneOffset } from "./timezones.js";
+import { timezonePeriod } from "./timezones.js";
 import { perlSampleFunctions } from "../optional-providers.js";
 
 function date(timezone: string, milliseconds: number) {
@@ -42,9 +42,9 @@ it.each([
   ['America/Nuuk', 2531955599, -7200], ['America/Nuuk', 2531955600, -3600],
   ['Australia/Lord_Howe', 2532524399, 39600], ['Australia/Lord_Howe', 2532524400, 37800]
 ] as const)("matches future transition %s at %s", (zone, seconds, expected) => {
-  expect(timezoneOffset(zone, seconds * 1000, () => {})).toBe(expected);
+  expect(timezonePeriod(zone, seconds * 1000, () => {})?.[0]).toBe(expected);
 });
 it("charges lookups to the caller's work and cancellation callback", () => {
   const reason = new Error('cancelled by caller');
-  expect(() => timezoneOffset('Europe/Amsterdam', 0, () => { throw reason; })).toThrow(reason);
+  expect(() => timezonePeriod('Europe/Amsterdam', 0, () => { throw reason; })).toThrow(reason);
 });

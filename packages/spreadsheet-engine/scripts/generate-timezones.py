@@ -1,4 +1,4 @@
-"""Generate portable offset facts from the authenticated reference TZif directory."""
+"""Generate portable offset and abbreviation facts from the authenticated reference TZif directory."""
 import argparse
 import hashlib
 import json
@@ -18,6 +18,7 @@ def future(text):
             while at < len(text) and text[at].isalpha():
                 at += 1
         assert at > start
+        return text[start + 1:at - 1] if text[start] == "<" else text[start:at]
 
     def number():
         nonlocal at
@@ -61,15 +62,15 @@ def future(text):
         assert 1 <= month <= 12 and 1 <= week <= 5 and 0 <= day <= 6
         return [month, week, day, time]
 
-    name()
+    standard_name = name()
     standard = -seconds()
     if at == len(text):
-        return standard
-    name()
+        return [standard, standard_name]
+    daylight_name = name()
     daylight = standard + 3600 if text[at] == ',' else -seconds()
     start, end = rule(), rule()
     assert at == len(text), text
-    return [standard, daylight, start, end]
+    return [[standard, standard_name], [daylight, daylight_name], start, end]
 
 
 def read(data):
@@ -86,11 +87,17 @@ def read(data):
     at += count * 8
     indexes = data[at:at + count]
     at += count
-    offsets = [struct.unpack_from('>i', data, at + i * 6)[0] for i in range(types)]
+    table = data[at + types * 6:at + types * 6 + chars]
+    periods = []
+    for i in range(types):
+        offset, daylight, index = struct.unpack_from('>iBB', data, at + i * 6)
+        assert daylight in (0, 1) and index < chars
+        end = table.index(0, index)
+        periods.append([offset, table[index:end].decode('ascii')])
     at += types * 6 + chars + leap * 12 + std + ut
     tail = data[at:].decode('ascii')
     assert tail.startswith('\n') and tail.endswith('\n') and leap == 0
-    return [offsets[0], [[time, offsets[index]] for time, index in zip(transitions, indexes)], future(tail[1:-1])]
+    return [periods[0], [[time, periods[index]] for time, index in zip(transitions, indexes)], future(tail[1:-1])]
 
 
 def main():

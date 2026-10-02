@@ -24,13 +24,23 @@ it.each([
   expect(glossaryTimestamp(Date.parse(iso), zone, () => {})).toBe(expected);
 });
 
-it.each(["Europe/London", "Asia/Calcutta", "invalid", "toString", "__proto__"])("refuses uncaptured timezone %s explicitly", zone => {
+it.each(["Asia/Calcutta", "invalid", "toString", "__proto__"])("refuses uncaptured timezone %s explicitly", zone => {
   expect(() => glossaryTimestamp(1768912440000, zone, () => {})).toThrow(expect.objectContaining({ code: "capability-denied" }));
 });
-it.each([-1, Date.UTC(2038, 0, 1), 8.64e15])("refuses dates outside the source profile: %s", time => {
-  expect(() => glossaryTimestamp(time, "UTC", () => {})).toThrow(expect.objectContaining({ code: "capability-denied" }));
+it.each([
+  ["Europe/Amsterdam", -2203891201000, "1900-03-01 00:19AMT"],
+  ["Europe/London", 1768912440000, "2026-01-20 12:34GMT"],
+  ["Australia/Lord_Howe", 2532524400000, "2050-04-03 01:30+1030"],
+  ["Pacific/Apia", 1325239200000, "2011-12-31 00:00+14"],
+  ["UTC", -1, "1969-12-31 23:59UTC"],
+  ["UTC", 2145916800000, "2038-01-01 00:00UTC"],
+  ["UTC", 8640000000000000, "275760-09-13 00:00UTC"],
+  ["America/Los_Angeles", -8640000000000000, "-271821-04-19 16:07LMT"],
+  ["Asia/Kathmandu", 8640000000000000, "275760-09-13 05:45+0545"]
+] as const)("matches expanded libc profile %s at %s", (zone, time, expected) => {
+  expect(glossaryTimestamp(time, zone, () => {})).toBe(expected);
 });
-it.each([NaN, Infinity, -Infinity])("retains invalid-clock errors: %s", time => {
+it.each([NaN, Infinity, -Infinity, -8640000000000001, 8640000000000001])("retains invalid-clock errors: %s", time => {
   expect(() => glossaryTimestamp(time, "UTC", () => {})).toThrow(expect.objectContaining({ code: "invalid-request" }));
 });
 it("admits bounded transition search and preserves cancellation reasons", () => {

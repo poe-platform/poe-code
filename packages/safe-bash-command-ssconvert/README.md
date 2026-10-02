@@ -198,8 +198,8 @@ The command supports streaming and buffered virtual filesystems and honors
 `limits.inputBytes` on both paths.
 
 Gnome Glossary PO timestamps use the injected `clock.now()` and explicit
-`environment.timezone`, with source TZif abbreviations (`PST`/`PDT`, `IST`,
-`CET`/`CEST`, `UTC`). Supported zones are `America/Los_Angeles`, `Asia/Kolkata`,
-`Europe/Warsaw`, and `UTC`, for UTC instants from 1970 through 2037. Other zone
-names, aliases, and dates return `capability-denied`. Rules are pinned to tzdb
-2026b; header parity does not qualify the full native Python glossary plugin.
+`environment.timezone`, with native TZif abbreviations such as `PST`/`PDT`
+and `+0545`. All 485 zones and aliases captured in the pinned Debian tzdb 2026c
+profile support historical and future dates throughout the JavaScript Date range.
+Uncaptured names return `capability-denied`; invalid clocks return `invalid-request`.
+Header parity does not qualify the full native Python glossary plugin.

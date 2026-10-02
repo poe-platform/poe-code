@@ -86,8 +86,7 @@
     "src/codecs/odf-blowfish-profile.ts",
     "src/rendering/print/harfbuzz",
     "scripts/harfbuzz",
-    "src/codecs/glossary-timezones-NOTICE.md",
-    "src/codecs/glossary-timezones.ts"
+    "src/codecs/glossary-timezones-NOTICE.md"
   ],
   "scripts": {
     "build": "node scripts/harfbuzz/verify.mjs && node scripts/generate-providers.mjs && node ../../scripts/guard-package-dist.mjs && tsc && node scripts/bundle.mjs",

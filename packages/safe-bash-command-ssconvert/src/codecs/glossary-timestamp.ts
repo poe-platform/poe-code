@@ -1,22 +1,19 @@
 import { SsconvertError } from "../contracts.js";
-import { glossaryTimezones, glossaryTimezoneEnd } from "./glossary-timezones.js";
+import { timezonePeriod } from "@poe-code/spreadsheet-engine/formulas/functions/timezones";
 
-/** Gnumeric's localtime + strftime %Z, within the pinned source TZif profile. */
+/** Gnumeric's localtime + strftime %Z, using the pinned native TZif profile. */
 export function glossaryTimestamp(time: number, timezone: string, tick: () => void): string {
-  if (!Number.isFinite(time)) throw new SsconvertError("invalid-request", "Invalid ssconvert glossary clock");
-  const transitions = Object.hasOwn(glossaryTimezones, timezone) ? glossaryTimezones[timezone] : undefined;
-  if (!transitions || time < 0 || time >= glossaryTimezoneEnd)
-    throw new SsconvertError("capability-denied", "ssconvert glossary timezone/date outside supported TZif profile (UTC, America/Los_Angeles, Asia/Kolkata, Europe/Warsaw; 1970–2037 UTC)");
-  let low = 0, high = transitions.length;
-  while (low + 1 < high) {
-    tick();
-    const middle = Math.floor((low + high) / 2);
-    if (transitions[middle]![0] * 1000 <= time) low = middle;
-    else high = middle;
-  }
-  tick();
-  const [, offset, abbreviation] = transitions[low]!;
-  const local = new Date(Math.floor(time) + offset * 1000);
+  if (!Number.isFinite(time) || Math.abs(time) > 8640000000000000)
+    throw new SsconvertError("invalid-request", "Invalid ssconvert glossary clock");
+  const period = timezonePeriod(timezone, time, tick);
+  if (!period) throw new SsconvertError("capability-denied", "ssconvert glossary timezone outside supported TZif profile");
+  const [offset, abbreviation] = period;
+  // Reduce the civil year before adding the offset, so local times beyond
+  // either Date boundary remain representable. Gregorian rules repeat in 400 years.
+  const local = new Date(Math.floor(time));
+  const era = Math.floor(local.getUTCFullYear() / 400);
+  local.setUTCFullYear(local.getUTCFullYear() - era * 400);
+  local.setTime(local.getTime() + offset * 1000);
   const pad = (n: number) => String(n).padStart(2, "0");
-  return `${local.getUTCFullYear()}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())} ${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}${abbreviation}`;
+  return `${local.getUTCFullYear() + era * 400}-${pad(local.getUTCMonth() + 1)}-${pad(local.getUTCDate())} ${pad(local.getUTCHours())}:${pad(local.getUTCMinutes())}${abbreviation}`;
 }

@@ -1,4 +1,4 @@
-import { timezoneOffset } from "./timezones.js";
+import { timezonePeriod } from "./timezones.js";
 import { SsconvertError } from "../../contracts.js";
 import { error, numericResult } from "../values.js";
 import { collect, numberArg, textArg } from "./common.js";
@@ -83,7 +83,7 @@ function zonedDate(now: number, host: FunctionHost): LocalDate {
   if (host.context.environment.timezone === "UTC") return {
     year: instant.getUTCFullYear(), month: instant.getUTCMonth() + 1, day: instant.getUTCDate(), time: instant.getTime()
   };
-  const offset = timezoneOffset(host.context.environment.timezone, instant.getTime(), host.tick);
+  const offset = timezonePeriod(host.context.environment.timezone, instant.getTime(), host.tick)?.[0];
   if (offset !== undefined) {
     const era = Math.floor(instant.getUTCFullYear() / 400);
     const local = gregorian(instant.getUTCFullYear() - era * 400, instant.getUTCMonth() + 1, instant.getUTCDate());

@@ -2764,21 +2764,22 @@
       "qa": "../plans/ssconvert-audit-qa.md#qa-command-factory-defaults",
       "remaining": "Defaults are delivered. Standard package ownership and public bundle verification continue under commandPackageOwnership; publication remains separate."
     },
-    "glossaryTimestampProfile": {"source": "Gnumeric 1.12.61 plugins/gnome-glossary/gnome_glossary.py",
+    "glossaryTimestampProfile": {
+      "source": "Gnumeric 1.12.61 plugins/gnome-glossary/gnome_glossary.py",
       "sourceSha256": "81f5e170bb384f60d492b6e7923cddb050a791f9d21ebfc403778b62fd532618",
-      "timezoneData": "Pinned tzdb 2026b TZif; input SHA256 and extractor in packages/safe-bash-command-ssconvert/scripts/generate-glossary-timezones.py",
-      "zones": [
-        "UTC",
-        "America/Los_Angeles",
-        "Asia/Kolkata",
-        "Europe/Warsaw"
-      ],
-      "utcInterval": {
-        "startInclusive": "1970-01-01T00:00:00Z",
-        "endExclusive": "2038-01-01T00:00:00Z"
+      "timezoneData": "Shared spreadsheet-engine TZif offsets and abbreviations, pinned Debian tzdb 2026c-0+deb13u1; provenance in perlDateTimezone. Deterministic generator: packages/spreadsheet-engine/scripts/generate-timezones.py.",
+      "zones": 485,
+      "deduplicatedProfiles": 436,
+      "utcMilliseconds": {
+        "startInclusive": -8640000000000000,
+        "endInclusive": 8640000000000000
       },
-      "qualification": "Source-expression header parity only. Eight independently captured winter/summer libc headers, DST boundaries and historical-rule controls; memory conversion fixtures and built public SDK consumers. Does not qualify activation of the complete native glossary plugin. Independent libc comparison matched all 4054 monthly/transition-boundary observations across the admitted interval, including fractional-clock and civil-date rollover controls.",
-      "remaining": "Other zones and aliases, instants outside the captured range, exact optional native Python activation, and full native glossary exporter qualification remain open under optional-profiles and format-record-roundtrip."
+      "generatedDataSha256": "71349d73da7adc096b9b1ea81e2a3021689345c04bd7882d0eb321f44a4ed37b",
+      "nativeHeadersSha256": "818d73aab30c2673368813507a4b9f8e256b4269c739ba637408bb792c76fa25",
+      "qualification": "All 99677 independent libc offset/abbreviation/strftime observations match compiled TypeScript: all captured historical boundaries and independently located future boundaries in 2038/2050/2100/2400/2800, epoch and both Date limits, across all 485 zones. Compiled package and root SDK/runCommand each match 1940 headers (all zones at epoch, 2050 and both Date limits), with no diagnostics. Eleven failing-before regressions now pass; 139 engine/glossary and 128 neighboring date/optional tests pass. All 184 retained activated PERL_DATE scenarios also match both routes in both builds. Six public invalid-clock/unknown-zone controls publish no destination bytes. Unknown names still fail without ambient TZ access; original cancellation identity and bounded output/work remain covered.",
+      "remaining": "Exact optional native Python activation, full native glossary exporter and installed-registry qualification remain open. Names absent from the pinned profile remain explicitly refused; future rules reflect this tzdb version rather than subsequent legislation.",
+      "checks": "Engine and command-package lint/source/test/public-consumer types pass. Selected 18-build closure and maintained full npm run build pass: 289 declared builds across 290 workspaces plus root suffix stages. The Python workspace has no declared build and is not counted as a pass.",
+      "integrationLimit": "Repository-wide ESLint exhausted its configured 1 GiB heap; the same maintained script completed with 4 GiB and reported 4203 errors in six unchanged files (4195 in vendored media runtime). Changed packages have no lint errors. Full issue integration and release qualification are not claimed."
     },
     "commandPackageOwnership": {"status": "implemented and locally qualified; full integration and delivery pending",
       "implemented": "Singular/plural/plugin factories and options/limits types belong to safe-bash-command-ssconvert; core is a one-line re-export. Private workspace bundles share private contracts and filesystem runtimes. The root builds its public SDK separately at dist/ssconvert/index.js, with the unchanged poe-code/ssconvert API and shared public contracts/FS routes; root packages include private declarations only. Scoped packaging maps contracts and filesystem imports to canonical runtimes.",
@@ -3975,7 +3976,7 @@
     {
       "id": "format-record-roundtrip",
       "status": "open",
-      "glossaryTimestampFinding": "Source qualification records source-derived glossary timestamp parity for four explicit TZif profiles (1970–2037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open.",
+      "glossaryTimestampFinding": "Glossary headers now use shared tzdb 2026c offsets and abbreviations across 485 captured zones and the full Date range, matching 99677 libc headers and 3880 compiled package SDK/command outputs. Native glossary plugin activation and installed-registry qualification remain open; see glossaryTimestampProfile.",
       "currentFinding": "All 48 directional services have implementation owners; public listings expose 20 importers and 27 exporters. Registration is not semantic completion. Version/subformat/record preservation and independent roundtrip closure remain open. XLSX formula string caches encode/decode ST_Xstring and preserve empty cached results without forced recalculation; the 139-test cohort and 32 compiled SDK/command observations passed. Comment author/text escapes and VML type references are repaired; rich comment metadata and native rendering remain open. At 89dd9aa4ba, rich cell font names use rFont with XString decoding/encoding, rather than treating numeric family classification as a typeface. LibreOffice bce0998a stylesbuffer.cxx:605-617 establishes this correction; it intentionally replaces the old Gnumeric-family-handler expectation. Seven failing-before checks become 111 passing focused checks, with package and root lint passing. Current compiled/native font qualification and raw-NUL formula text remain open.",
       "richFontEvidence": {
         "source": "out/ssconvert-xlsx-metadata/rich-font-source.json",
@@ -4015,7 +4016,7 @@
     {
       "id": "optional-profiles",
       "status": "open",
-      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json. Source qualification records source-derived glossary timestamp parity for four explicit TZif profiles (1970–2037); wider timezone/date profiles and native glossary plugin activation/format qualification remain open."
+      "currentFinding": "Retained Linux ARM64 receipts authenticate all eight declared activation profiles. Six enumerate their exact plugin sets cleanly; GDA activates with a GLib cleanup diagnostic, and GNOME-DB activates only 46/47 plugins because ui.xml is missing. Functional qualification of all eight environments and fourteen capability obligations remains open. Registration is not parity; source/receipt hashes and distinct outcomes are recorded in optional-runtime-extension-coverage.json. Glossary headers now use shared tzdb 2026c offsets and abbreviations across 485 captured zones and the full Date range, matching 99677 libc headers and 3880 compiled package SDK/command outputs. Native glossary plugin activation and installed-registry qualification remain open; see glossaryTimestampProfile."
     },
     {
       "id": "public-packed-artifacts",

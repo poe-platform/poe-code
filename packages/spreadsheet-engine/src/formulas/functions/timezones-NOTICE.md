@@ -1,4 +1,4 @@
-# Timezone offset data
+# Timezone offset and abbreviation data
 
 `timezone-data.ts` contains public-domain timezone facts from IANA tzdb 2026c,
 compiled in Debian `tzdata` version `2026c-0+deb13u1`. No native code executes
@@ -14,13 +14,14 @@ Sources: <https://www.iana.org/time-zones> and
 
 Regenerate using `scripts/generate-timezones.py` with the authenticated
 `/usr/share/zoneinfo` directory and the output `src/formulas/functions/timezone-data.ts`.
-The generator decodes TZif with `struct`, preserves initial offsets and all
+The generator decodes TZif with `struct`, preserves initial offsets, TZif abbreviations and all
 64-bit transitions, and parses the trailing POSIX rules into numeric descriptors.
 It excludes leap-second (`right`) files, duplicate `posix` trees and host-specific
 `localtime`/`posixrules` entries. All 485 available named zones and aliases are
-retained in 434 distinct profiles. Source names are matched case-insensitively,
+retained in 436 distinct profiles. Source names are matched case-insensitively,
 consistent with the existing Intl-based interface. Names outside this captured
-profile retain the host Intl behavior.
+profile retain the host Intl behavior for date formulas; glossary export requires
+a captured abbreviation and refuses other names.
 
 The sorted name-to-TZif-SHA256 JSON inventory hash is
 `c5d2b3e05c4a76362ebd3c5e8884680d0a696fe872277303acb268f5c4e99b3e`.

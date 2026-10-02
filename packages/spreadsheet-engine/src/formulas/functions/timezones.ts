@@ -1,15 +1,16 @@
 import { timezoneNames, timezoneProfiles } from "./timezone-data.js";
 
 type TransitionRule = readonly [month: number, week: number, weekday: number, seconds: number];
+type TimezonePeriod = readonly [offset: number, abbreviation: string];
 export type TimezoneProfile = readonly [
-  initial: number,
-  transitions: readonly (readonly [seconds: number, offset: number])[],
-  future: number | readonly [standard: number, daylight: number, start: TransitionRule, end: TransitionRule]
+  initial: TimezonePeriod,
+  transitions: readonly (readonly [seconds: number, period: TimezonePeriod])[],
+  future: TimezonePeriod | readonly [standard: TimezonePeriod, daylight: TimezonePeriod, start: TransitionRule, end: TransitionRule]
 ];
 const names = new Map(Object.entries(timezoneNames).map(([name, index]) => [name.toLowerCase(), index]));
 
-/** Offset facts from the pinned native TZif profile, independent of host ICU. */
-export function timezoneOffset(name: string, milliseconds: number, tick: () => void): number | undefined {
+/** Offset and abbreviation facts from the pinned native TZif profile, independent of host ICU. */
+export function timezonePeriod(name: string, milliseconds: number, tick: () => void): TimezonePeriod | undefined {
   tick();
   const index = names.get(name.toLowerCase());
   if (index === undefined) return undefined;
@@ -21,7 +22,7 @@ export function timezoneOffset(name: string, milliseconds: number, tick: () => v
     if (transitions[middle]![0] <= seconds) low = middle + 1; else high = middle;
   }
   if (transitions.length && low < transitions.length) return low ? transitions[low - 1]![1] : initial;
-  if (typeof future === "number") return future;
+  if (future.length === 2) return future;
   const [standard, daylight, startRule, endRule] = future;
   const year = new Date(milliseconds).getUTCFullYear();
   const transition = (rule: TransitionRule, offset: number): number => {
@@ -36,7 +37,7 @@ export function timezoneOffset(name: string, milliseconds: number, tick: () => v
     date.setUTCFullYear(year - era * 400, rule[0] - 1, day);
     return date.getTime() / 1000 + era * 146097 * 86400 + rule[3] - offset;
   };
-  const start = transition(startRule, standard), end = transition(endRule, daylight);
+  const start = transition(startRule, standard[0]), end = transition(endRule, daylight[0]);
   const inDaylight = start < end ? seconds >= start && seconds < end : seconds >= start || seconds < end;
   return inDaylight ? daylight : standard;
 }

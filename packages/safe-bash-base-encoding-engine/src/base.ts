@@ -142,7 +142,7 @@ export function createBaseCommand(name: "base64" | "base32", maxInputBytes: numb
 }
 
 export function evalSyncBase32(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (p: string) => Uint8Array | undefined,
 ): Uint8Array | undefined {
@@ -181,7 +181,7 @@ export function evalSyncBase32(
     if (!fb) return undefined;
     sourceBytes = fb;
   }
-  if (sourceBytes.byteLength > 16384) return undefined;
+  if (!sourceBytes || sourceBytes.byteLength > 16384) return undefined;
   const alphabet = alphabets.base32;
   if (!isDecode) {
     let carry = 0, bits = 0, symbols = 0, column = 0;

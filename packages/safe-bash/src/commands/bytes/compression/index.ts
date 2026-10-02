@@ -226,9 +226,12 @@ export function evalSyncCompression(
     const outChunks: Uint8Array[] = [];
     let totalLen = 0;
 
+    let stdinUsed = false;
     for (const op of options.operands) {
       let srcBytes: Uint8Array | undefined;
       if (op === "-") {
+        if (stdinUsed) return undefined;
+        stdinUsed = true;
         srcBytes = inBytes;
       } else {
         if (!readFileSync) return undefined;

@@ -167,7 +167,7 @@ export function evalSyncIconv(
   }
   const outArr = new Uint8Array(out);
   if (outputFile !== undefined) {
-    if (!writeFileSync || !writeFileSync(outputFile, outArr)) return undefined;
+    if (!writeFileSync || outputFile.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(outputFile) || !writeFileSync(outputFile, outArr)) return undefined;
     return new Uint8Array(0);
   }
   // Text-only shortcuts cannot retain binary ShellValue provenance.

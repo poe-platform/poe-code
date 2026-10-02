@@ -397,7 +397,7 @@ export function evalSyncTar(
         }
       } else if (mode === "x") {
         const relClean = displayEntryName.replace(/\/+$/u, "");
-        if (!relClean || relClean.split("/").includes("..")) return undefined;
+        if (!relClean || relClean.startsWith("/") || relClean.split("/").includes("..")) return undefined;
         const destPath = targetDir ? `${targetDir.replace(/\/+$/u, "")}/${relClean}` : relClean;
         if (entry.type === "5") {
           extractActions.push({ isDir: true, path: destPath, bytes: new Uint8Array(0), mode: entry.mode || 0o755 });
@@ -418,7 +418,8 @@ export function evalSyncTar(
     if (mode === "x" && !toStdout) {
       const normArchive = archive === "-" ? undefined : archive.replace(/^\.\/+/u, "").replace(/\/+$/u, "");
       if (normArchive) {
-        for (const act of extractActions) {
+        if (targetDir && !mkdir!(targetDir.replace(/\/+$/u, "") || "/", -1)) return undefined;
+      for (const act of extractActions) {
           if (act.path.replace(/^\.\/+/u, "").replace(/\/+$/u, "") === normArchive) {
             return undefined;
           }

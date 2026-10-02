@@ -59,8 +59,9 @@ export function evalSyncLineEndings(
     } else {
       for (const f of files) pairs.push([f, f]);
     }
+    const plannedWrites: Array<[string, Uint8Array]> = [];
     for (const [inPath, outPath] of pairs) {
-      if (inPath === "-" || outPath === "-") return undefined;
+      if (inPath === "-" || outPath === "-" || outPath.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(outPath)) return undefined;
       const b = readFileSync(inPath);
       if (!b || b.byteLength > 16384) return undefined;
       const subArgs = [
@@ -71,7 +72,11 @@ export function evalSyncLineEndings(
         ...(bomMode === "remove" ? ["-r"] : bomMode === "add" ? ["-m"] : ["-b"]),
       ];
       const converted = evalSyncLineEndings(cmdName, b, subArgs);
-      if (!converted || !writeFileSync(outPath, converted)) return undefined;
+      if (!converted) return undefined;
+      plannedWrites.push([outPath, converted]);
+    }
+    for (const [outPath, converted] of plannedWrites) {
+      if (!writeFileSync(outPath, converted)) return undefined;
     }
     return new Uint8Array(0);
   }

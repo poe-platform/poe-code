@@ -1354,3 +1354,21 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "2|2|1");
   });
+
+  test("73. sync base32 extra operand rejection, dos2unix multi-file atomic failure, and tar -C missing directory rejection", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "printf \"hello\\n\" > /f1.txt",
+      "printf \"world\\n\" > /f2.txt",
+      "out1=$(base32 /f1.txt /f2.txt 2>/dev/null); s1=$?",
+      "printf \"line\\r\\n\" > /d1.txt",
+      "unix2dos -q -l /d1.txt /missing_d2.txt 2>/dev/null; s2=$?",
+      "lines1=$(wc -l < /d1.txt)",
+      "tar -cf /test.tar -C / f1.txt 2>/dev/null",
+      "tar -xf /test.tar -C /missing_tar_dir 2>/dev/null; s3=$?",
+      "[ -d /missing_tar_dir ] && tar_dir=yes || tar_dir=no",
+      "echo \"$s1|$s2|$lines1|$s3|$tar_dir\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "2|0|2|2|no");
+  });

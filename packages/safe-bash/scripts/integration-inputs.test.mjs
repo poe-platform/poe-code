@@ -3098,7 +3098,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/csplit/extended.test.ts"));
   assert.ok(files.includes("tests/commands/csplit/safety.test.ts"));
   assert.ok(files.includes("tests/commands/csplit/api.test.ts"));
-  assert.ok(files.includes("tests/commands/csplit/work.test.ts"));
+  assert.ok(!files.includes("tests/commands/csplit/work.test.ts")); // Owned by safe-bash-command-csplit.
+  assert.ok(!files.includes("tests/commands/csplit/optional-limits.test.ts"));
   assert.ok(files.includes("tests/commands/csplit-review/engine.test.ts"));
   assert.ok(files.includes("tests/commands/csplit-review/native-command.test.ts"));
   assert.ok(files.includes("tests/commands/csplit-review/lifecycle.test.ts"));

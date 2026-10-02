@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { settings, type CsplitLimits } from "safe-bash-command-csplit/internal";
-import { Budget } from "safe-bash-command-csplit/internal";
-import { parseOptions, suffixFormatter } from "safe-bash-command-csplit/options";
-import { createCsplitCommand } from "../../../src/commands/csplit/index.js";
-import { toByteSource } from "../../../src/contracts/index.js";
-import { createMemoryFileSystem } from "poe-code/safe-fs";
+import { settings, type CsplitLimits } from "./internal.js";
+import { Budget } from "./internal.js";
+import { parseOptions, suffixFormatter } from "./options.js";
+import { createCsplitCommand } from "./index.js";
+import { toByteSource } from "safe-bash-contracts";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 
 test("csplit omitted quotas stay unlimited with an independent explicit limit", () => {
   const limits = settings({ limits: { maxFiles: 2 } });

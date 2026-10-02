@@ -290,3 +290,5 @@ await playwrightVerification;
 await (await import("./safe-packages-pr.mjs")).verification;
 import { verification as ddVerification } from "./safe-packages-dd.mjs";
 await ddVerification;
+
+await (await import("./safe-packages-csplit.mjs")).verification;

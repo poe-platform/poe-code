@@ -437,18 +437,12 @@
       "tests/commands/csplit/fixtures.ts": "90601b13fc5336078af9ccc476ba6081761895556f5b8eab8f9da8cee41aa1a7",
       "tests/commands/csplit/numeric.test.ts": "4d2726257f7b935eb3dc6730db206238ce21b78dd6b1a850825e9fead81ba06c"
     },
-    "tests/commands/csplit/optional-limits.test.ts": {
-      "tests/commands/csplit/optional-limits.test.ts": "b629ebf2679770915da737a8e48424a0d0b920a0782fbb7cb548d91455585ae6"
-    },
     "tests/commands/csplit/regex.test.ts": {
       "tests/commands/csplit/fixtures.ts": "90601b13fc5336078af9ccc476ba6081761895556f5b8eab8f9da8cee41aa1a7",
       "tests/commands/csplit/regex.test.ts": "5ea8045e851414be3c65c3091b3f2b767238682e6e1b714e079eee8958841935"
     },
     "tests/commands/csplit/safety.test.ts": {
       "tests/commands/csplit/safety.test.ts": "0eb45703431688a0d10f3c356a0e23db595d0fc3c5b21fb390b5cadd5820213c"
-    },
-    "tests/commands/csplit/work.test.ts": {
-      "tests/commands/csplit/work.test.ts": "eb11d143a1a722f5381d88d32f764f208cf7da7f17890ab625c11ded17244e2e"
     },
     "tests/commands/csvclean-stress.test.ts": {
       "tests/commands/csvclean-stress.test.ts": "c7c2564f48eb7d2a253af6b81f8e6d2fac642160b48bc9587bded9919ba93d47"

@@ -1,14 +1,14 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { toByteSource, type CommandContext } from "../../../src/contracts/index.js";
-import { registerYieldCheckpoint } from "../../../src/contracts/yield.js";
-import { Budget, settings } from "safe-bash-command-csplit/internal";
-import { Lifecycle, Lines } from "safe-bash-command-csplit/io";
-import { createCsplitCommand } from "../../../src/commands/csplit/index.js";
-import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
-import type { BoundedRegexProvider, RegexWorkerRequest } from "../../../src/commands/regex-execution/provider.js";
-import { exprMatchCeilings } from "../../../src/commands/regex-execution/protocol.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { toByteSource, type CommandContext } from "safe-bash-contracts";
+import { registerYieldCheckpoint } from "safe-bash-contracts/yield";
+import { Budget, settings } from "./internal.js";
+import { Lifecycle, Lines } from "./io.js";
+import { createCsplitCommand } from "./index.js";
+import { createBoundedRegexProvider } from "safe-bash-regex-engine/execution/bounded-provider";
+import type { BoundedRegexProvider, RegexWorkerRequest } from "safe-bash-regex-engine/execution/provider";
+import { exprMatchCeilings } from "safe-bash-regex-engine/execution/protocol";
 
 function context(fs: MemoryFileSystem, args: string[], input: string): CommandContext {
   return { fs, command: "csplit", args, cwd: "/", env: { LC_ALL: "C" }, signal: new AbortController().signal,

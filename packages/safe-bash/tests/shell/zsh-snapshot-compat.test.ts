@@ -47,3 +47,21 @@ done`;
     await shell.dispose();
   }
 });
+
+test("supports zsh virtual interpreter invocation via exec '/tmp/zsh' -c and '/bin/zsh' -c", async () => {
+  const { shell } = setup();
+  await shell.use(agentCommands({ replace: true }));
+  try {
+    const res1 = await shell.exec("export SNAP='hello'; exec '/tmp/zsh' -c 'printf \"%s\\n\" \"$SNAP\"'");
+    assert.equal(res1.exitCode, 0);
+    assert.equal(res1.stderr, "");
+    assert.equal(res1.stdout, "hello\n");
+
+    const res2 = await shell.exec("/bin/zsh -lc 'printf ok'");
+    assert.equal(res2.exitCode, 0);
+    assert.equal(res2.stderr, "");
+    assert.equal(res2.stdout, "ok");
+  } finally {
+    await shell.dispose();
+  }
+});

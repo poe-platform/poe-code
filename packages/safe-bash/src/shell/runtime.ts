@@ -20613,7 +20613,7 @@ export class Runtime {
         }
         if (!definition) {
           ensureRuntimeContext();
-          if (context.command === "bash" || context.command === "sh" || virtualName === "bash" || virtualName === "sh") {
+          if (context.command === "bash" || context.command === "sh" || context.command === "zsh" || virtualName === "bash" || virtualName === "sh" || virtualName === "zsh") {
             return { exitCode: await this.interpreter(virtualName ? this.virtualExecutionContext(context, virtualName) : context, state, io) };
           }
           if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
@@ -20686,9 +20686,10 @@ export class Runtime {
     path = resolvePath("/", path);
     const slash = path.lastIndexOf("/");
     const directory = path.slice(0, slash);
-    if (directory !== "/bin" && directory !== "/usr/bin") return undefined;
     const name = path.slice(slash + 1);
-    return this.commands.has(name) || name === "bash" || name === "sh" ? name : undefined;
+    if ((name === "zsh" || name === "bash" || name === "sh") && (directory === "/bin" || directory === "/usr/bin" || directory === "/tmp")) return name;
+    if (directory !== "/bin" && directory !== "/usr/bin") return undefined;
+    return this.commands.has(name) || name === "bash" || name === "sh" || name === "zsh" ? name : undefined;
   }
 
   internalDiscovery(name: string, state: State, bypassFunctions = false): Discovery[] {
@@ -20696,7 +20697,7 @@ export class Runtime {
     if (!bypassFunctions && state.functions.has(name)) matches.push({ kind: "function", name });
     if (implementedBuiltins.has(name) || state.extensions?.builtins.has(name)) matches.push({ kind: "builtin", name });
     else if (this.commands.has(name)) matches.push({ kind: "command", name });
-    else if (name === "bash" || name === "sh") matches.push({ kind: "interpreter", name });
+    else if (name === "bash" || name === "sh" || name === "zsh") matches.push({ kind: "interpreter", name });
     if (state.profile === "sh" && (specialBuiltinNames.has(name) || state.extensions?.builtins.get(name)?.special)) matches.sort((left, right) => Number(right.kind === "builtin") - Number(left.kind === "builtin"));
     return matches;
   }
@@ -20743,7 +20744,7 @@ export class Runtime {
     if (!bypassFunctions && state.functions.has(name)) return "function";
     if (isBuiltin) return "builtin";
     if (this.commands.has(name)) return "command";
-    if (name === "bash" || name === "sh") return "interpreter";
+    if (name === "bash" || name === "sh" || name === "zsh") return "interpreter";
     return undefined;
   }
   async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>, inheritedDefaultPath = false): Promise<number> {
@@ -20935,7 +20936,9 @@ export class Runtime {
     try {
     if (source !== undefined) {
       this.budget.source(shellValueByteLength(source));
-      return await this.finishShell(child, childIO, await this.runCommandString(source, child, childIO));
+      const exitCode = await this.finishShell(child, childIO, await this.runCommandString(source, child, childIO));
+      if ((context as { externalInvocation?: boolean }).externalInvocation) state.cwd = child.cwd;
+      return exitCode;
     }
     const input = new ShellInput(context.stdin, this.budget, this.signal);
     const descriptors = new Map(childIO.descriptors);
@@ -21116,7 +21119,7 @@ export class Runtime {
     }, (runtime, scope) => runtime.shebangTargetScoped(context, state, io, command, args, options, target, loadedSource, scope));
   }
   private async shebangTargetScoped(context: CommandContext, state: State, io: IO, command: string, args: readonly string[], options: ShellInvokeOptions, target: string, loadedSource: { path: string; source: string }, scope: InvocationScope): Promise<CommandResult> {
-    const reserved = command === "bash" || command === "sh";
+    const reserved = command === "bash" || command === "sh" || command === "zsh";
     const direct = command.includes("/");
     const definition = this.commands.get(command);
     const child = await this.shebangState(context, state);
@@ -21221,13 +21224,13 @@ export class Runtime {
         const interpreter = source.split("\n", 1)[0]!.slice(2).replace(/^[ \t]+|[ \t]+$/gu, "");
         environmentInterpreter = /^\/usr\/bin\/env(?:[ \t]+([^\n]*))?$/u.exec(interpreter);
         if (!environmentInterpreter) {
-          const shell = /^\/(?:usr\/)?bin\/(bash|sh)(?:[ \t]+([-+]e+))?$/u.exec(interpreter);
+          const shell = /^\/(?:usr\/)?bin\/(bash|sh|zsh)(?:[ \t]+([-+]e+))?$/u.exec(interpreter);
           if (!shell) {
             const split = Array.from(interpreter).findIndex(character => character === " " || character === "\t");
             const executable = split < 0 ? interpreter : interpreter.slice(0, split);
             const name = executable.slice(executable.lastIndexOf("/") + 1);
             const directory = executable.slice(0, executable.lastIndexOf("/"));
-            if ((directory !== "/bin" && directory !== "/usr/bin") || name === "sh" || name === "bash" || !this.commands.has(name)) {
+            if ((directory !== "/bin" && directory !== "/usr/bin") || name === "sh" || name === "bash" || name === "zsh" || !this.commands.has(name)) {
               throw new CommandFailure(`${target}: unsupported interpreter: ${interpreter}`, 126);
             }
             const argument = split < 0 ? undefined : interpreter.slice(split).trimStart();
@@ -22296,7 +22299,7 @@ export class Runtime {
           continue;
         }
         const [resolved] = await this.searchPaths(name, state, false, true, false);
-        if (resolved !== undefined) table.set(name, resolved); else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh") {
+        if (resolved !== undefined) table.set(name, resolved); else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh" && name !== "zsh") {
           await this.diagnostic(context, `hash: ${name}: not found`);
           status = 1;
         }

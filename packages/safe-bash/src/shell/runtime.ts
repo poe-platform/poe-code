@@ -2835,7 +2835,7 @@ export function clearRuntimePools(): void {
   }
 }
 const fixedGlobParamRegexCache = new Map<string, RegExp | null>();
-function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): RegExp | undefined {
+export function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): RegExp | undefined {
   if (pat.length === 0 || pat.length > 64) return undefined;
   if (extglob && pat.includes("(")) return undefined;
   const key = `${op}:${pat}`;
@@ -2887,7 +2887,7 @@ function tryCompileFixedGlobToRegex(pat: string, op: string, extglob: boolean): 
   return compiled ?? undefined;
 }
 const trimGlobParamRegexCache = new Map<string, RegExp | null>();
-function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", extglob: boolean): RegExp | undefined {
+export function tryCompileTrimGlobToRegex(pat: string, op: "#" | "##" | "%" | "%%", extglob: boolean): RegExp | undefined {
   if (pat.length === 0 || pat.length > 64) return undefined;
   if (extglob && pat.includes("(")) return undefined;
   const key = op + ":" + pat;

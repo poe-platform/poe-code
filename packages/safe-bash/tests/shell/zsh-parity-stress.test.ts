@@ -654,3 +654,34 @@ test("38. sync ls -U lexical directory order, symlink-to-dir operand dereference
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+test("39. sync grep -q -c/-L suppression, -h/-H and -l/-L option precedence, and multi-file rev without trailing newline", async () => {
+  const syncSh = setup().shell.use(agentCommands());
+  const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+  const init = `
+    mkdir -p /dir
+    printf "alpha\n" > /dir/a.txt
+    printf "one\n" > /dir/b.txt
+    printf "ab" > /dir/no_nl.txt
+    printf "cd\nef\n" > /dir/with_nl.txt
+  `;
+  await syncSh.exec(init);
+  await asyncSh.exec(init);
+  const scripts = [
+    "x=$(grep -q -c \"z\" <<< \"alpha\"); echo \"$?:$x\"",
+    "x=$(grep -q -c \"z\" /dir/a.txt); echo \"$?:$x\"",
+    "x=$(grep -h -H \"a\" <<< \"alpha\"); echo \"$?:$x\"",
+    "x=$(grep --with-filename --no-filename \"a\" /dir/a.txt); echo \"$?:$x\"",
+    "x=$(grep --no-filename --with-filename \"a\" /dir/a.txt); echo \"$?:$x\"",
+    "x=$(grep --files-with-matches --files-without-match \"a\" /dir/a.txt /dir/b.txt); echo \"$?:$x\"",
+    "x=$(grep --files-without-match --files-with-matches \"a\" /dir/a.txt /dir/b.txt); echo \"$?:$x\"",
+    "x=$(grep -q -L \"z\" /dir/a.txt); echo \"$?:$x\"",
+    "x=$(rev /dir/no_nl.txt /dir/with_nl.txt); echo \"$?:$x\"",
+  ];
+  for (const script of scripts) {
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

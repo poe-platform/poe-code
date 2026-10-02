@@ -22069,7 +22069,7 @@ const syncExtraRuntimeMethods = {
     }
     if (rawPatterns.length === 0 || !/^[vicFEonxwqhsH]*$/.test(mode)) return undefined;
     const isQuiet = mode.includes("q");
-    const isWithFilename = mode.includes("H") && !mode.includes("h");
+    const isWithFilename = mode.lastIndexOf("H") > mode.lastIndexOf("h");
     const isLineNumber = mode.includes("n");
     const isLineRegexp = mode.includes("x");
     const isWordRegexp = mode.includes("w");
@@ -22271,6 +22271,7 @@ const syncExtraRuntimeMethods = {
       }
       return { lines: outCtx, status: 0 };
     }
+    if (isQuiet) return { lines: [], status: matched.length > 0 ? 0 : 1 };
     return {
       lines: isCount ? [(isWithFilename ? `${fileLabel}:` : "") + String(matched.length)] : matched,
       status: matched.length > 0 ? 0 : 1,
@@ -22355,10 +22356,10 @@ const syncExtraRuntimeMethods = {
         coreArgs.push(a);
         continue;
       }
-      if (a === "--with-filename") { withFilename = true; continue; }
-      if (a === "--no-filename") { noFilename = true; continue; }
-      if (a === "--files-with-matches") { filesWithMatches = true; continue; }
-      if (a === "--files-without-match") { filesWithoutMatch = true; continue; }
+      if (a === "--with-filename") { withFilename = true; noFilename = false; continue; }
+      if (a === "--no-filename") { noFilename = true; withFilename = false; continue; }
+      if (a === "--files-with-matches") { filesWithMatches = true; filesWithoutMatch = false; continue; }
+      if (a === "--files-without-match") { filesWithoutMatch = true; filesWithMatches = false; continue; }
       if (a === "--null") { if (!allowZero) return undefined; nullFileSep = true; continue; }
       if (a === "--quiet" || a === "--silent") { quiet = true; continue; }
       if (a === "--no-messages" || a === "--text" || a === "--color=never" || a === "--colour=never") continue;
@@ -22445,6 +22446,7 @@ const syncExtraRuntimeMethods = {
         }
       }
     }
+    if (quiet) return { lines: [], status: anyMatch ? 0 : 1 };
     const status = filesWithoutMatch ? (anyWithoutMatch ? 0 : 1) : (anyMatch ? 0 : 1);
     return { lines: outLines, status };
   }
@@ -22542,6 +22544,7 @@ const syncExtraRuntimeMethods = {
         totalB += fView.byteLength;
         if (totalB > 16384) return undefined;
         const fStr = sharedSyncPipeDecoder.decode(fView);
+        if (cmd === "rev" && fStr.length > 0 && !fStr.endsWith("\n")) return undefined;
         const fLines = fStr.endsWith("\n") ? fStr.slice(0, -1).split("\n") : (fStr.length === 0 ? [] : fStr.split("\n"));
         if (cmd === "rev") {
           for (const l of fLines) out.push(Array.from(l).reverse().join(""));

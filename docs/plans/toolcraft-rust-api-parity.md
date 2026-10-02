@@ -1221,3 +1221,25 @@ median 0.06214 ms native versus 0.03845 ms reference (1.62x slower), without TTY
 I/O. No performance gate passed. Text/password/select/multiselect subclasses,
 public wrappers and namespace, dashboard/explorer and full platform/resource
 qualification still require completion.
+
+The `prompts/interactive/text` and `password` subpaths now use native cursor,
+fallback, validation-finalization and presentation policy. Node preserves
+constructor fields, optional callback receivers, grapheme segmentation and
+string operations. Differential cases cover Unicode edits, multi-character and
+empty masks, placeholder/default values, state/property lookup order, arbitrary
+validation throws, cancellation and piped UTF-8 input.
+
+All 249 native host cases, 1,222 selected original design cases and ten spinner
+wrapper cases pass. Rust/binding/JS lint, public option types, local cancellation
+unions and packed standalone runtime/declarations pass. Initial, active, error,
+submitted and cancelled screenshots were inspected; ANSI is reference-identical.
+Separate cancellation-symbol declarations remain an explicit type swap gate.
+No external dependencies changed.
+
+Five warmed alternating rounds of 1,000 active renders measured native/reference
+medians of 0.09914/0.02048 ms for text (4.84x) and 0.12524/0.02046 ms for passwords
+(6.12x), excluding TTY I/O. Neither passes a performance gate. Select/multiselect,
+pagination, public wrappers/namespace and the broader remaining ports and
+qualification are still required. Prompt-core release 36984849384 completed its
+queue check, but skipped build execution, validation and publication; it is not
+evidence of a published release. Confirmation release 36985857838 is pending.

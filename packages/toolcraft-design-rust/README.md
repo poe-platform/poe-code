@@ -37,6 +37,11 @@ keys and Y/N shortcuts. Cancellation returns the shared cancellation symbol;
 non-TTY callers can set `POE_NO_PROMPT=1` to accept the initial value.
 The `prompts/interactive/glyphs` subpath exposes terminal-aware `GLYPHS`,
 `UNICODE`, `symbol` and `symbolBar` for matching custom prompt layouts.
+`textPrompt` and `passwordPrompt` are available from the corresponding
+`prompts/interactive/text` and `prompts/interactive/password` subpaths. Both
+accept validation callbacks and piped input; text supports placeholders and
+default values, while passwords mask each grapheme and retain masking in the
+submitted or cancelled display.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

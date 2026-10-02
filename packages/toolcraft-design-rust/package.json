@@ -323,6 +323,14 @@
     "./prompts/interactive/confirm": {
       "types": "./dist/prompt-confirm.d.ts",
       "import": "./dist/prompt-confirm.js"
+    },
+    "./prompts/interactive/text": {
+      "types": "./dist/prompt-text.d.ts",
+      "import": "./dist/prompt-text.js"
+    },
+    "./prompts/interactive/password": {
+      "types": "./dist/prompt-password.d.ts",
+      "import": "./dist/prompt-password.js"
     }
   },
   "scripts": {

@@ -57,4 +57,5 @@ pub mod terminal_driver;
 
 pub mod prompt_components;
 pub mod prompt_core;
+pub mod prompt_inputs;
 pub mod with_spinner;

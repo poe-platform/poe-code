@@ -556,6 +556,22 @@ const confirmOriginal: typeof originalPromptConfirm = promptConfirm;
 const confirmNative: typeof promptConfirm = null as unknown as typeof originalPromptConfirm;
 void [glyphsOriginal, glyphsNative, confirmOriginal, confirmNative, confirmResult];
 
+import * as promptText from "toolcraft-design-rust/prompts/interactive/text";
+import type * as originalPromptText from "toolcraft-design/prompts/interactive/text";
+import * as promptPassword from "toolcraft-design-rust/prompts/interactive/password";
+import type * as originalPromptPassword from "toolcraft-design/prompts/interactive/password";
+const textOptionsOriginal: originalPromptText.TextOptions = null as unknown as promptText.TextOptions;
+const textOptionsNative: promptText.TextOptions = textOptionsOriginal;
+const passwordOptionsOriginal: originalPromptPassword.PasswordOptions = null as unknown as promptPassword.PasswordOptions;
+const passwordOptionsNative: promptPassword.PasswordOptions = passwordOptionsOriginal;
+const textResult: Promise<string | typeof CANCEL> = promptText.textPrompt(textOptionsNative);
+const passwordResult: Promise<string | typeof CANCEL> = promptPassword.passwordPrompt(passwordOptionsNative);
+// @ts-expect-error Separate cancellation declarations remain a nominal swap gate.
+const textPromptOriginal: typeof originalPromptText = promptText;
+// @ts-expect-error Separate cancellation declarations remain a nominal swap gate.
+const passwordPromptOriginal: typeof originalPromptPassword = promptPassword;
+void [textResult, passwordResult, textPromptOriginal, passwordPromptOriginal];
+
 import {Prompt as NativePrompt,type PromptOptions as NativePromptOptions,type PromptState as NativePromptState} from "toolcraft-design-rust/prompts/interactive/core";
 import type {PromptState as OriginalPromptState} from "toolcraft-design/prompts/interactive/core";
 import * as nativePromptKeys from "toolcraft-design-rust/prompts/interactive/keys";

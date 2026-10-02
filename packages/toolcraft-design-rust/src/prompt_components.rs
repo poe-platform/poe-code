@@ -48,7 +48,7 @@ fn unicode<H: Host>(host: &mut H) -> Result<bool, H::Error> {
     Ok(false)
 }
 
-fn color_glyph<H: Host>(
+pub(crate) fn color_glyph<H: Host>(
     host: &mut H,
     color: &'static str,
     glyph: &'static str,
@@ -58,11 +58,19 @@ fn color_glyph<H: Host>(
     host.call("colorGlyph", vec![color, glyph])
 }
 
-fn append<H: Host>(host: &mut H, left: H::Value, right: H::Value) -> Result<H::Value, H::Error> {
+pub(crate) fn append<H: Host>(
+    host: &mut H,
+    left: H::Value,
+    right: H::Value,
+) -> Result<H::Value, H::Error> {
     host.call("append", vec![left, right])
 }
 
-fn suffix<H: Host>(host: &mut H, left: H::Value, text: &'static str) -> Result<H::Value, H::Error> {
+pub(crate) fn suffix<H: Host>(
+    host: &mut H,
+    left: H::Value,
+    text: &'static str,
+) -> Result<H::Value, H::Error> {
     let text = host.literal(text)?;
     append(host, left, text)
 }
@@ -214,6 +222,6 @@ pub fn run<H: Host>(
             )
         }
         ("confirmFrame", [prompt, opts]) => confirm_frame(host, *prompt, *opts),
-        _ => host.call("invalidOperation", vec![]),
+        _ => crate::prompt_inputs::run(host, operation, args),
     }
 }

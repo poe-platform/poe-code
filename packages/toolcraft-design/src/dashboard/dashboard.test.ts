@@ -1786,21 +1786,17 @@ describe("createDashboard", () => {
     });
   });
 
-  it("keeps the divider row clean and the stats pane aligned after repeated updates", () => {
-    withOutputFormat("terminal", () => {
-      const actions = [
-        "Planning next step",
-        "Executing tool call",
-        "Reviewing tool results",
-        "Updating working memory",
-        "Preparing final response"
-      ];
-      const sizes = [
-        { cols: 120, rows: 32 },
-        { cols: 160, rows: 50 }
-      ];
-
-      for (const size of sizes) {
+  it.each([{ cols: 120, rows: 32 }, { cols: 160, rows: 50 }])("keeps the divider row clean and the stats pane aligned after repeated updates at $cols×$rows", (size) => {
+    vi.useFakeTimers();
+    try {
+      withOutputFormat("terminal", () => {
+        const actions = [
+          "Planning next step",
+          "Executing tool call",
+          "Reviewing tool results",
+          "Updating working memory",
+          "Preparing final response"
+        ];
         const stdin = new TestDashboardStdin();
         const stdout = new TestDashboardStdout(size.cols, size.rows);
         const dashboard = createDashboard({
@@ -1831,6 +1827,7 @@ describe("createDashboard", () => {
             currentAction:
               iteration === 30 ? "Completed" : actions[(iteration - 1) % actions.length]
           });
+          if (iteration % 10 === 0) vi.advanceTimersByTime(16);
         }
 
         const screen = renderTerminalOutput(
@@ -1859,8 +1856,10 @@ describe("createDashboard", () => {
         ]);
 
         dashboard.destroy();
-      }
-    });
+      });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 

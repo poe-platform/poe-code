@@ -8874,6 +8874,23 @@ export class Runtime {
         const resolved = dereference ? this.referenceName(state, name) : name;
         if (!dereference && !state.variableAttributes?.get(name)?.includes("n")) continue;
         if (state.readonlyVariables?.has(resolved)) { await this.diagnostic(context, `unset: ${resolved}: cannot unset: readonly variable`); status = 1; continue; }
+        // Unsetting a caller's local removes that binding entirely. A local in
+        // the current frame instead remains an unset shadow until return.
+        let enclosingFrame: Map<string, SavedVariable> | undefined;
+        if (!state.locals.at(-1)?.has(resolved)) {
+          for (let index = state.locals.length - 2; index >= 0; index--) {
+            if (state.locals[index]!.has(resolved)) {
+              enclosingFrame = state.locals[index];
+              break;
+            }
+          }
+        }
+        if (enclosingFrame) {
+          const saved = enclosingFrame.get(resolved)!;
+          enclosingFrame.delete(resolved);
+          await restoreVariable(state, resolved, saved);
+          continue;
+        }
         if (resolved === "PATH") state.pathUnset = true;
         if (arrayStore(state)?.get(resolved)) await this.unsetIndexed(state, resolved);
         else this.unsetVariable(state, resolved, false, dereference);

@@ -6,7 +6,23 @@ import { standardCommands } from "../../src/commands/index.js";
 import * as publicApi from "../../src/index.js";
 
 for (const [name, source, stdout] of [
+  ["unset enclosing local frames", `
+v=GLOBAL
+inner1() { unset v; }
+inner2() { unset v; unset v; }
+same_scope() { local v=SAME; unset v; echo "same:\${v-UNSET}"; }
+outer1() { local v=L1; inner1; echo "o1:\${v-UNSET}"; }
+outer2() { local v=L2; outer1; echo "o2:\${v-UNSET}"; }
+outer2_double() { local v=L2; local_o1() { local v=L1; inner2; echo "o1_d:\${v-UNSET}"; }; local_o1; echo "o2_d:\${v-UNSET}"; }
+same_scope; outer2; outer2_double; echo "global:\${v-UNSET}"
+`, "same:UNSET\no1:L2\no2:L2\no1_d:GLOBAL\no2_d:GLOBAL\nglobal:GLOBAL\n"],
   ["exec descriptors", "exec 3>/f; echo hi >&3; exec 3>&-; cat /f", "hi\n"],
+  ["unset enclosing array", 'v=(global second); inner() { unset v; }; outer() { local -a v=(local); inner; echo "${v[*]}"; }; outer; echo "${v[*]}"', "global second\nglobal second\n"],
+  ["unset enclosing attributes", 'declare -i v=7; inner() { unset v; }; outer() { local v=local; inner; v=2+3; echo "$v"; }; outer; echo "$v"', "5\n5\n"],
+  ["unset enclosing absent binding", 'inner() { unset v; }; outer() { local v=local; inner; echo "${v-UNSET}"; v=new; }; outer; echo "$v"', "UNSET\nnew\n"],
+  ["exec login argv0", "exec -cl -a custom bash -c 'echo \"$0:${KEEP-unset}\"'", "-custom:unset\n"],
+  ["read here-string descriptor", '{ read -u 3 x; echo "got:$x"; } 3<<< "from_fd3"', "got:from_fd3\n"],
+  ["mapfile here-string descriptor", "{ mapfile -t -u 3 arr; echo \"arr:${arr[*]}\"; } 3<<< $'one\\ntwo'", "arr:one two\n"],
   ["exec replacement", "(exec echo replaced; echo unreachable); echo parent", "replaced\nparent\n"],
   ["exec empty environment", "export KEEP=secret; exec -c bash -c 'echo \"${KEEP-unset}\"'", "unset\n"],
   ["exec argv0", "exec -a custom bash -c 'echo \"$0\"'", "custom\n"],

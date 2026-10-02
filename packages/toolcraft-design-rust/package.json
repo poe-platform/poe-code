@@ -823,6 +823,10 @@
     "./terminal-markdown/testing/theme-render-fixture": {
       "types": "./dist/theme-render-fixture.d.ts",
       "import": "./dist/theme-render-fixture.js"
+    },
+    "./explorer/demo": {
+      "types": "./dist/explorer-demo.d.ts",
+      "import": "./dist/explorer-demo.js"
     }
   },
   "scripts": {

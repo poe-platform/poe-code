@@ -25,6 +25,12 @@ lets you inject key presses and resizes without opening a real terminal.
 Loading `terminal-markdown/testing/theme-render-fixture` renders dark and light
 Markdown samples, validates their ANSI output and leaves the light theme active.
 
+`explorer/demo` exposes `parseExplorerDemoOptions`, `buildExplorerDemoConfig` and
+`main`, with single-preview and review-list sample data, delayed detail loading
+and action callbacks. Its legacy demo `key` bindings currently match the
+JavaScript reference and are rejected by the explorer runtime; previews must
+adapt those bindings to `accelerator` before opening the view.
+
 Render consistent agent output with callable `color` chains, `text` helpers and
 cached dark/light palettes. `configureTheme({brand: 'blue', label: 'Acme'})`
 sets your brand and live intro label. Colors follow terminal support and

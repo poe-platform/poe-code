@@ -1073,3 +1073,13 @@ import type * as originalThemeFixture from "toolcraft-design/terminal-markdown/t
 const themeFixtureOriginal: typeof originalThemeFixture = null as unknown as typeof nativeThemeFixture;
 const themeFixtureNative: typeof nativeThemeFixture = null as unknown as typeof originalThemeFixture;
 void [themeFixtureOriginal,themeFixtureNative];
+
+import * as nativeExplorerDemo from "toolcraft-design-rust/explorer/demo";
+import type * as originalExplorerDemo from "toolcraft-design/explorer/demo";
+const explorerDemoOriginal: typeof originalExplorerDemo = nativeExplorerDemo;
+const explorerDemoNative: typeof nativeExplorerDemo = null as unknown as typeof originalExplorerDemo;
+const explorerDemoOptionsOriginal: originalExplorerDemo.ExplorerDemoOptions = null as unknown as nativeExplorerDemo.ExplorerDemoOptions;
+const explorerDemoOptionsNative: nativeExplorerDemo.ExplorerDemoOptions = null as unknown as originalExplorerDemo.ExplorerDemoOptions;
+const explorerDemoBuildOriginal: originalExplorerDemo.BuildExplorerDemoConfigOptions = null as unknown as nativeExplorerDemo.BuildExplorerDemoConfigOptions;
+const explorerDemoBuildNative: nativeExplorerDemo.BuildExplorerDemoConfigOptions = null as unknown as originalExplorerDemo.BuildExplorerDemoConfigOptions;
+void [explorerDemoOriginal,explorerDemoNative,explorerDemoOptionsOriginal,explorerDemoOptionsNative,explorerDemoBuildOriginal,explorerDemoBuildNative];

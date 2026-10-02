@@ -2575,3 +2575,41 @@ gate. No dependencies or default integration changed. Three concrete design
 modules remain missing: `explorer/demo`, `explorer/render/test-fixtures` and
 `dashboard/testing/pipeline-scenario`. The complete existing-surface audit,
 native batching and broader Toolcraft/platform/swap qualification remain open.
+
+### Explorer demonstration checkpoint
+
+`explorer/demo` now exposes the reference option parser, configuration builder,
+option interfaces and `main`. Rust owns parsing, sample data, detail shaping and
+action-message policy; Node retains live callbacks, shared row arrays, promises,
+timer/signal behavior and direct entry. Three missing-import failures preceded
+implementation. Five final native comparisons cover export/function metadata,
+shared identities, changing getters, inherited record keys, coercion order,
+arbitrary throws and runtime admission. Thirteen lifecycle comparisons cover
+fast/slow detail resolution, cancellation (including already-aborted signals),
+signal failures and main success/rejection. The three original demo tests now
+run against native exports.
+
+Build, Rust/binding and scoped JS lint, standalone and bidirectional declarations,
+and the maintained package unit route pass. The full run passed 410 native-host
+cases, 1,521 selected design cases, 13 prompt wrappers, 143 dashboard cases,
+14 composer cases and 331 explorer cases. An additional admission comparison
+was then added and all five final demo native cases passed in a focused rerun.
+Packed imports reject external ESM dependencies. Real direct-entry runs match
+reference non-TTY and invalid-option stdout/stderr/exit behavior.
+
+The original demo's refresh/archive/resolve actions still emit legacy `key`
+fields that current `createInitialState` rejects. Both original modes and their
+native equivalents reject with the same bare-key diagnostic. This additive port
+preserves that behavior; unchanged interactive demo admission is not qualified.
+Screenshots of both data modes were inspected with explicit preview-only
+`key`-to-`accelerator` adaptation applied equally to both implementations, and
+the resulting frames are byte-identical. This is visual/data evidence, not proof
+that the unmodified demo starts successfully.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 500 cycles each and 32 retained
+outputs, measured 98.320 microseconds native / 2.667 microseconds JavaScript
+(36.87 times slower) for option parsing, config/rows/detail creation and all
+review-mode action callbacks. No performance gate passed. No dependencies or
+default integration changed. `explorer/render/test-fixtures` and
+`dashboard/testing/pipeline-scenario` remain missing; the existing-surface audit,
+batching and broader Toolcraft/platform/swap qualification remain open.

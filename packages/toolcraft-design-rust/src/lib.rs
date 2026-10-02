@@ -109,6 +109,7 @@ pub mod explorer_runtime;
 
 pub mod dashboard_demo;
 pub mod explorer;
+pub mod explorer_demo;
 pub mod terminal_strings;
 pub mod test_harnesses;
 pub mod theme_fixture;

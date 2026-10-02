@@ -577,3 +577,5 @@ mod test_harnesses;
 pub use test_harnesses::*;
 mod theme_fixture;
 pub use theme_fixture::*;
+mod explorer_demo;
+pub use explorer_demo::*;

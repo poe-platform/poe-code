@@ -12,6 +12,7 @@ function isSyncResolved(promise: unknown): boolean {
   return promise === resolvedVoid || Boolean(promise && typeof promise === "object" && (promise as Record<symbol, unknown>)[syncResolved]);
 }
 const closedSessionError = new RegexExecutionError("CLOSED", "invocation is closed");
+const closedSessionSignal = AbortSignal.abort(closedSessionError);
 const idleProviderSlots = new WeakMap<object, Set<() => void>>();
 
 interface Pending {
@@ -791,6 +792,8 @@ export class RegexSession {
       this.executor.closeSync();
       if (!this.pending && !this.retirements && !this.controller && !this.executor._pooledSession) {
         this.onUse = undefined;
+        this.signal = closedSessionSignal;
+        this.requestSignal = closedSessionSignal;
         this.executor._pooledSession = this;
       }
     }

@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
+import { adapterStatements } from "../../scripts/fixtures/command-adapter-statements.js";
 
 const root = path.resolve(import.meta.dirname, "../..");
 const commands = [
@@ -42,7 +43,8 @@ describe("extracted command ownership", () => {
     const file = path.join(root, "packages/safe-bash/src/commands", adapter, "index.ts");
     const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true);
     let forwardsWorkspace = false;
-    for (const statement of source.statements) {
+    const evaluator = "evalSync" + adapter.split("-").map(part => part[0]!.toUpperCase() + part.slice(1)).join("");
+    for (const statement of adapterStatements(source, workspace, evaluator)) {
       if (ts.isImportDeclaration(statement)) {
         // Some portable adapters initialize the shared Buffer compatibility layer.
         expect(statement.importClause).toBeUndefined();

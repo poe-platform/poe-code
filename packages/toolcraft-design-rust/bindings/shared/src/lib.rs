@@ -548,3 +548,6 @@ pub use explorer_list::*;
 
 mod explorer_detail;
 pub use explorer_detail::*;
+
+mod explorer_modal;
+pub use explorer_modal::*;

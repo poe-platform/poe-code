@@ -944,3 +944,10 @@ const explorerDetailOriginal: typeof originalExplorerDetail = explorerDetail;
 const explorerDetailNative: typeof explorerDetail = null as unknown as typeof originalExplorerDetail;
 const explorerDetailKeys: SameKeys<typeof explorerDetail,typeof originalExplorerDetail> = true;
 void [explorerDetailOriginal,explorerDetailNative,explorerDetailKeys];
+
+import * as explorerModal from "toolcraft-design-rust/explorer/render/modal";
+import type * as originalExplorerModal from "toolcraft-design/explorer/render/modal";
+const explorerModalOriginal: typeof originalExplorerModal = explorerModal;
+const explorerModalNative: typeof explorerModal = null as unknown as typeof originalExplorerModal;
+const explorerModalKeys: SameKeys<typeof explorerModal,typeof originalExplorerModal> = true;
+void [explorerModalOriginal,explorerModalNative,explorerModalKeys];

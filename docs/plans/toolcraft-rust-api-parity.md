@@ -2163,3 +2163,30 @@ measured 2,442.585 µs native / 201.852 µs reference for a grouped 72×12 list
 (17.82× slower). No full-render performance gate passed. Detail/modal/combined
 rendering, reducer, runtime/public namespace, batching and broader swap
 qualification remain open.
+
+### Explorer modal checkpoint
+
+`explorer/render/modal` exposes `renderModal` with the original declaration.
+Rust owns dialog dimensions, centering, titles, help/confirmation/input/content
+lines, command-palette filtering, cursor markers and drawing order. Native ANSI,
+theme and text helpers handle stripping, styling and cell-aware fitting. Host
+operations preserve custom iterators, locale casing, callback receivers, repeated
+property reads and arbitrary exceptions.
+
+Four missing-export tests preceded implementation. Differential tests cover
+270 modal/geometry combinations, 16 strict action-eligibility combinations,
+ANSI/OSC and Unicode content, custom truthy search results, mutable getters,
+iterator closing and reentrant drawing. Maintained checks pass 367 native host
+tests, 1,379 selected design cases, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 155 explorer cases. Rust/binding and scoped JS lint,
+bidirectional declarations and packed runtime/types pass; packed imports reject
+external ESM dependencies and declarations compile with `types: []`.
+No dependencies or default integration changed.
+
+Inspected 72-column help/palette/content and 36-column input/confirmation/palette
+screenshots. Native/reference original-ScreenBuffer output is byte-identical.
+Five warmed alternating 200-render Node 22 ARM64 rounds retaining 32 call arrays
+measured 702.703 µs native / 84.208 µs reference for the command palette at 72×14
+(8.34× slower), and 709.905 µs / 80.374 µs for content (8.83× slower).
+No full-render performance gate passed. Combined rendering, reducer,
+runtime/public namespace, batching and broader swap qualification remain open.

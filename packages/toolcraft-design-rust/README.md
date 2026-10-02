@@ -654,3 +654,8 @@ available for custom views built from `DisplayLine` entries.
 scrollable Markdown preview or a list of titled detail items with subtitles,
 badges and selection markers. Custom row titles, loading and empty states,
 render errors and the scroll percentage appear inside the pane frame.
+
+`renderModal(state, screen)` from `explorer/render/modal` draws help,
+confirmation, input, command-palette and scrollable content dialogs. Dialogs
+adapt to the screen size, clip text by terminal cells and strip terminal escape
+sequences from their content. The palette filters available, idle actions.

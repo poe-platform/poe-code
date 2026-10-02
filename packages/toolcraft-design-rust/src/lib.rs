@@ -99,3 +99,5 @@ pub mod explorer_state;
 pub mod explorer_theme;
 
 pub mod explorer_detail;
+
+pub mod explorer_modal;

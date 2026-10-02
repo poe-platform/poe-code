@@ -507,6 +507,10 @@
     "./explorer/render/detail": {
       "types": "./dist/explorer-detail.d.ts",
       "import": "./dist/explorer-detail.js"
+    },
+    "./explorer/render/modal": {
+      "types": "./dist/explorer-modal.d.ts",
+      "import": "./dist/explorer-modal.js"
     }
   },
   "scripts": {

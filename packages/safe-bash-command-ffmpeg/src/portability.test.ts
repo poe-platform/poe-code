@@ -19,5 +19,17 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
     .filter(([path, input]) => path.includes("/image-ast/") && input.bytesInOutput > 0);
   assert.equal(imageImplementations.length, 1);
   assert.ok(imageImplementations[0]![0].endsWith("/dist/index.js"));
-  assert.ok(result.outputFiles[0]!.contents.byteLength < 1_500_000);
+  const codecImplementations = Object.values(result.metafile.outputs)
+    .flatMap(output => Object.entries(output.inputs))
+    .filter(([path, input]) => path.includes("/media-codecs/") && input.bytesInOutput > 0);
+  assert.equal(codecImplementations.length, 1);
+  const codecBytes = codecImplementations[0]![1].bytesInOutput;
+  assert.ok(codecBytes < 6_000_000, "the focused portable codec must remain bounded");
+  const otherCodeBytes = Object.values(result.metafile.outputs)
+    .flatMap(output => Object.entries(output.inputs))
+    .filter(([path]) => !path.includes("/media-codecs/"))
+    .reduce((total, [, input]) => total + input.bytesInOutput, 0);
+  assert.ok(otherCodeBytes < 1_550_000, "non-codec command code, including streaming parsers, remains bounded");
+  // Legal notices are emitted outside per-input byte accounting.
+  assert.ok(result.outputFiles[0]!.contents.byteLength < 7_500_000);
 });

@@ -1,5 +1,6 @@
+import { encodeOggAudio } from "@poe-code/media-codecs";
 import { concatBytes } from "../binary.js";
-import type { MediaDocument } from "../types.js";
+import type { MediaDocument, SerializeMediaOptions } from "../types.js";
 import { encodeFlacPackets } from "./flac.js";
 
 function page(packet: Uint8Array, sequence: number, flags: number, granule: number): Uint8Array {
@@ -83,4 +84,22 @@ export function extractOggFlac(bytes: Uint8Array): Uint8Array | undefined {
   if (!first) return undefined;
   if (first.length !== 51 || first[5] !== 1) throw new Error("Unsupported Ogg FLAC mapping");
   return concatBytes([first.subarray(9), ...packets.slice(1)]);
+}
+
+
+export function serializeOgg(doc: MediaDocument, options: SerializeMediaOptions = {}): Uint8Array {
+  const codec = options.audioCodec ?? (options.format === "opus" ? "opus" : "vorbis");
+  if (codec === "flac") return serializeOggFlac(doc);
+  const audio = doc.tracks.find(track => track.type === "audio")?.decodedAudio;
+  if (!audio) throw new Error("Ogg encoding requires decoded PCM audio");
+  if (codec !== "vorbis" && codec !== "libvorbis" && codec !== "opus" && codec !== "libopus") {
+    throw new Error(`Unsupported Ogg audio codec: ${codec}`);
+  }
+  const encoded = encodeOggAudio(codec === "opus" || codec === "libopus" ? "opus" : "vorbis", audio.sampleRate, audio.channelData);
+  const pages = encoded.headers.map((header, index) => page(header, index, index === 0 ? 2 : 0, 0));
+  for (let index = 0; index < encoded.packets.length; index++) {
+    const packet = encoded.packets[index]!;
+    pages.push(page(packet.data, index + encoded.headers.length, index === encoded.packets.length - 1 ? 4 : 0, packet.granule));
+  }
+  return concatBytes(pages);
 }

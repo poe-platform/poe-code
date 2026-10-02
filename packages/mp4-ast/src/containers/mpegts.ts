@@ -1,3 +1,4 @@
+import { decodeH264Samples } from "../h264.js";
 import {
   BinaryWriter,
   concatBytes
@@ -10,7 +11,6 @@ import {
   buildEsdsBox,
   buildH264SpsPps,
   createSilentAacFrame,
-  decodeH264FrameToRgba,
   encodeH264IdrFrame,
   parseAdtsStream,
   parseAvcC,
@@ -287,14 +287,7 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
 
       let decodedVideoFrames: MediaVideoFrame[] | undefined;
       if (options.decodeFrames) {
-        decodedVideoFrames = samples.map((s) => ({
-          width,
-          height,
-          data: decodeH264FrameToRgba(s.data, width, height, 4),
-          ptsSeconds: s.pts / 90000,
-          durationSeconds: s.duration / 90000,
-          keyframe: s.isKeyframe
-        }));
+        decodedVideoFrames = [...decodeH264Samples(samples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], width, height, 90000)];
       }
 
       tracks.push({

@@ -27,7 +27,7 @@ it("writes playable Ogg FLAC with separate header and audio pages", () => {
   const bytes = oggAst().serialize({
     ...base,
     tracks: [{ ...audio, decodedAudio: { sampleRate: 44100, channels: 1, channelData: [new Float32Array(4410)] } }]
-  });
+  }, { audioCodec: "flac" });
   assert.equal(new TextDecoder().decode(bytes.subarray(0, 4)), "OggS");
   assert.equal(bytes[5], 2);
   assert.notEqual(new DataView(bytes.buffer, bytes.byteOffset).getUint32(22, true), 0);
@@ -52,7 +52,7 @@ it("rejects corrupted Ogg audio page checksums", () => {
   const audio = base.tracks.find(track => track.type === "audio")!;
   const bytes = oggAst().serialize({
     ...base, tracks: [{ ...audio, decodedAudio: { sampleRate: 44100, channels: 1, channelData: [new Float32Array(4097)] } }]
-  });
+  }, { audioCodec: "flac" });
   bytes[bytes.length - 1] = bytes[bytes.length - 1]! ^ 1;
   assert.throws(() => oggAst().parse(bytes), /CRC mismatch/);
 });

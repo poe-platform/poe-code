@@ -1,3 +1,4 @@
+import { decodeH264 } from "@poe-code/media-codecs";
 import {
   BinaryReader,
   BinaryWriter,
@@ -1015,16 +1016,32 @@ export function encodeH264IdrFrame(
 
 /**
  * Decode an H.264 AVCC or Annex-B sample into an RGBA image buffer (`width * height * 4`).
- * Supports `I_PCM` (`mb_type = 25`) macroblocks as well as flat/DC `I_16x16` intra slices,
- * with fallback deterministic color reconstruction for external inter-predicted P/B frames.
+ * Supply SPS/PPS configuration for external access units. Use decodeH264Samples for
+ * inter-predicted streams and delayed B frames. The legacy reference buffer supports
+ * only the synthetic encoder's I_PCM/P-skip subset; unsupported data is rejected.
  */
 export function decodeH264FrameToRgba(
   sampleData: Uint8Array,
   width: number,
   height: number,
   lengthSize = 4,
-  refBuffer?: H264ReferenceBuffer
+  refBuffer?: H264ReferenceBuffer,
+  configuration?: Mp4AvcCConfig
 ): Uint8Array {
+  if (configuration || !refBuffer) {
+    const synthetic = buildH264SpsPps(width, height);
+    const parameters = configuration ?? { sps: [synthetic.sps], pps: [synthetic.pps] };
+    const isAnnexB = sampleData[0] === 0 && sampleData[1] === 0 &&
+      (sampleData[2] === 1 || (sampleData[2] === 0 && sampleData[3] === 1));
+    const converted = isAnnexB ? annexBToAvcc(sampleData).avccData : sampleData;
+    const packet = avccToAnnexB(converted, isAnnexB ? 4 : lengthSize, parameters);
+    const pictures = [...decodeH264([{ data: packet, pts: 0, dts: 0, duration: 1 }], new Uint8Array(), Math.ceil(width / 16) * Math.ceil(height / 16) * 256)];
+    const picture = pictures[0];
+    if (pictures.length !== 1 || !picture || picture.width !== width || picture.height !== height) {
+      throw new Error("H.264 access unit did not produce the requested frame; decode the complete stream with decodeH264Samples");
+    }
+    return picture.data;
+  }
   const mbWidth = Math.max(1, Math.ceil(width / 16));
   const mbHeight = Math.max(1, Math.ceil(height / 16));
   const paddedWidth = mbWidth * 16;
@@ -1192,34 +1209,14 @@ export function decodeH264FrameToRgba(
       }
     }
 
-    if (refBuffer && decodedMbs > 0) {
-      refBuffer.y = yPlane;
-      refBuffer.u = uPlane;
-      refBuffer.v = vPlane;
+    if (decodedMbs !== mbWidth * mbHeight) {
+      throw new Error("Unsupported or truncated H.264 reference-buffer sample; use decodeH264Samples with SPS/PPS");
     }
-
-    if (decodedMbs === 0) {
-      // Synthesize a deterministic visual frame from compressed bitstream entropy
-      for (let mbY = 0; mbY < mbHeight; mbY++) {
-        for (let mbX = 0; mbX < mbWidth; mbX++) {
-          const idx = (mbY * mbWidth + mbX) % Math.max(1, rbsp.byteLength);
-          const yVal = 16 + ((rbsp[idx]! * 219) >>> 8);
-          const uVal = 16 + ((rbsp[(idx + 7) % rbsp.byteLength]! * 224) >>> 8);
-          const vVal = 16 + ((rbsp[(idx + 13) % rbsp.byteLength]! * 224) >>> 8);
-          for (let dy = 0; dy < 16; dy++) {
-            for (let dx = 0; dx < 16; dx++) {
-              yPlane[(mbY * 16 + dy) * paddedWidth + (mbX * 16 + dx)] = yVal;
-            }
-          }
-          for (let dy = 0; dy < 8; dy++) {
-            for (let dx = 0; dx < 8; dx++) {
-              uPlane[(mbY * 8 + dy) * uvWidth + (mbX * 8 + dx)] = uVal;
-              vPlane[(mbY * 8 + dy) * uvWidth + (mbX * 8 + dx)] = vVal;
-            }
-          }
-        }
-      }
-    }
+    refBuffer.y = yPlane;
+    refBuffer.u = uPlane;
+    refBuffer.v = vPlane;
+  } else {
+    throw new Error("H.264 sample contains no slice");
   }
 
   const fullRgba = yuv420pToRgba(yPlane, uPlane, vPlane, paddedWidth, paddedHeight);

@@ -1,7 +1,9 @@
+import { parseAudio } from "@poe-code/audio-ast";
+import { decodeH264Samples } from "../h264.js";
 import { encodeFlacPackets } from "./flac.js";
-import { serializeOggFlac, extractOggFlac } from "./ogg.js";
 
 import { parseStreamingDocument, serializeDashDocument } from "./streaming.js";
+import { serializeOgg, extractOggFlac } from "./ogg.js";
 import { decodeImage, encodeImage, type ImageFormat } from "@poe-code/image-ast/portable";
 import {
   BinaryReader,
@@ -17,7 +19,6 @@ import {
   buildAudioSpecificConfig,
   buildEsdsBox,
   createSilentAacFrame,
-  decodeH264FrameToRgba,
   parseAdtsStream,
   wrapAdtsFrame
 } from "../codecs.js";
@@ -65,17 +66,11 @@ function extractVideoFramesFromDoc(doc: MediaDocument, maxFrames?: number): {
     };
   }
   const ts = vTrack.timescale || 90000;
-  const lengthSize = (vTrack.codecDescriptions[0]?.avcC?.lengthSizeMinusOne ?? 3) + 1;
-  const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
-  const targetSamples = maxFrames !== undefined ? vTrack.samples.slice(0, maxFrames) : vTrack.samples;
-  const frames: MediaVideoFrame[] = targetSamples.map((s) => ({
-    width,
-    height,
-    data: decodeH264FrameToRgba(s.data, width, height, lengthSize, refBuffer),
-    ptsSeconds: s.pts / ts,
-    durationSeconds: s.duration / ts,
-    keyframe: s.isKeyframe
-  }));
+  const frames: MediaVideoFrame[] = [];
+  for (const frame of decodeH264Samples(vTrack.samples, vTrack.codecDescriptions, width, height, ts)) {
+    frames.push(frame);
+    if (maxFrames !== undefined && frames.length >= maxFrames) break;
+  }
   const fps =
     frames.length > 0 && doc.durationSeconds > 0
       ? Math.max(1, Math.round(frames.length / doc.durationSeconds))
@@ -795,14 +790,15 @@ export function oggAst(): MediaAstPlugin {
       const flac = extractOggFlac(bytes);
       if (flac) return { ...flacAst().parse(flac), containerFormat: "ogg", byteLength: bytes.length };
 
-      const sampleRate = 48000;
-      const channels = 2;
-      const totalSamples = 48000;
+      const parsed = parseAudio(bytes);
+      const stream = parsed.streams[0];
+      if (!stream) throw new Error("Ogg input contains no audio stream");
+      const { sampleRate, channels, samples: totalSamples, codec } = stream;
       return {
         containerFormat: "ogg",
         timescale: sampleRate,
         duration: totalSamples,
-        durationSeconds: 1.0,
+        durationSeconds: stream.duration,
         tracks: [
           {
             id: 1,
@@ -814,8 +810,8 @@ export function oggAst(): MediaAstPlugin {
             enabled: true,
             codecDescriptions: [
               {
-                formatFourCC: "Opus",
-                codecName: "opus",
+                formatFourCC: codec === "opus" ? "Opus" : "vorb",
+                codecName: codec,
                 sampleRate,
                 channels,
                 bitsPerSample: 16
@@ -839,7 +835,7 @@ export function oggAst(): MediaAstPlugin {
         byteLength: bytes.byteLength
       };
     },
-    serialize: serializeOggFlac,
+    serialize: serializeOgg,
     probe(bytes, options) {
       const doc = this.parse(bytes, options);
       return buildProbeResultFromDoc(doc, bytes.byteLength, options?.filename ?? "input.ogg", {

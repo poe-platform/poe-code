@@ -7,3 +7,5 @@ export * from "./containers/mpegts.js";
 export * from "./containers/avi.js";
 export * from "./containers/adapters.js";
 export * from "./containers/streaming.js";
+
+export { decodeH264Samples } from "./h264.js";

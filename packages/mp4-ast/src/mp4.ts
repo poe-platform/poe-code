@@ -1,3 +1,4 @@
+import { decodeH264Samples } from "./h264.js";
 import { drainWork } from "./work.js";
 import {
   BinaryReader,
@@ -23,7 +24,6 @@ import {
   buildEsdsBox,
   buildH264SpsPps,
   createSilentAacFrame,
-  decodeH264FrameToRgba,
   encodeH264IdrFrame,
   parseAv1C,
   parseAvcC,
@@ -963,7 +963,7 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
               trunFlags & 0x000004 ? trunReader.readU32BE() : undefined;
 
             let cursor = dataOffset;
-            for (let s = 0; s < trunSampleCount && !trunReader.eof; s++) {
+            for (let s = 0; s < trunSampleCount; s++) {
               const duration =
                 trunFlags & 0x000100 ? trunReader.readU32BE() : defaultSampleDuration;
               const size = trunFlags & 0x000200 ? trunReader.readU32BE() : defaultSampleSize;
@@ -1026,20 +1026,10 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
 
     let decodedVideoFrames: MediaVideoFrame[] | undefined;
     if (options.decodeFrames && type === "video" && width && height) {
-      const lengthSize = (firstCodec?.avcC?.lengthSizeMinusOne ?? 3) + 1;
       decodedVideoFrames = [];
-      const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
-      for (const sample of samples) {
-        budget.recordFrame(width, height);
-        const rgba = decodeH264FrameToRgba(sample.data, width, height, lengthSize, refBuffer);
-        decodedVideoFrames.push({
-          width,
-          height,
-          data: rgba,
-          ptsSeconds: sample.pts / Math.max(1, timescale),
-          durationSeconds: sample.duration / Math.max(1, timescale),
-          keyframe: sample.isKeyframe
-        });
+      for (const frame of decodeH264Samples(samples, codecDescriptions, width, height, Math.max(1, timescale))) {
+        budget.recordFrame(frame.width, frame.height);
+        decodedVideoFrames.push(frame);
       }
     }
 
@@ -2201,11 +2191,13 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       }
       const w = track.width ?? materialized.codecDescriptions[0]?.width ?? 64;
       const h = track.height ?? materialized.codecDescriptions[0]?.height ?? 64;
-      const lengthSize = (materialized.codecDescriptions[0]?.avcC?.lengthSizeMinusOne ?? 3) + 1;
-      const refBuf: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
       let rgba: Uint8Array | undefined;
-      for (let k = keyIdx; k <= actualStartIdx; k++) {
-        rgba = decodeH264FrameToRgba(materialized.samples[k]!.data, w, h, lengthSize, refBuf);
+      const target = materialized.samples[actualStartIdx]!;
+      for (const frame of decodeH264Samples(materialized.samples.slice(keyIdx), materialized.codecDescriptions, w, h, track.timescale)) {
+        if (Math.abs(frame.ptsSeconds - target.pts / track.timescale) < 1 / track.timescale) {
+          rgba = frame.data;
+          break;
+        }
       }
       if (rgba) {
         promotedFirstSampleData = encodeH264IdrFrame(rgba, w, h, 0);

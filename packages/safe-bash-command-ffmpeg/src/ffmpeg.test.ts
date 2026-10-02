@@ -617,6 +617,38 @@ for (const command of [createFfmpegCommand, createFfprobeCommand]) {
     assert.equal(vfs.store.has("/out.mp4"), false);
   });
 }
+
+it("extracts real pixels from native CABAC H.264", async () => {
+  const { decodeImage } = await import("@poe-code/image-ast/portable");
+  const native = Buffer.from("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", "base64");
+  const vfs = createTestVfs({ "/native.mp4": native });
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/native.mp4", "-frames:v", "1", "/frame.png"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const image = decodeImage(vfs.store.get("/frame.png")!);
+  assert.equal(image.width, 64);
+  assert.equal(image.height, 48);
+  assert.deepEqual(Array.from(image.data.slice(0, 4)), [254, 0, 0, 255]);
+});
+
+for (const [extension, flags, codec, sampleRate] of [
+  ["ogg", [], "vorbis", 44100],
+  ["ogg", ["-c:a", "libopus"], "opus", 48000],
+  ["opus", [], "opus", 48000]
+] as const) {
+  it(`encodes ${extension} with ${flags.join(" ") || "default codec"}`, async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), ["-f", "lavfi", "-i", "sine=f=440:r=44100:d=0.1", ...flags, "/audio." + extension], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const probe = await runCmd(createFfprobeCommand(), ["-show_streams", "-of", "json", "/audio." + extension], vfs);
+    assert.equal(probe.exitCode, 0, probe.stderr);
+    const stream = JSON.parse(probe.stdout).streams[0];
+    assert.equal(stream.codec_name, codec);
+    assert.equal(Number(stream.sample_rate), sampleRate);
+    assert.equal(Number(stream.duration), 0.1);
+  });
+}
+
+
 it("escapes tag separators, quotes and newlines like native ffprobe", async () => {
   const vfs = createTestVfs();
   const title = "Hello, \"World\"|line\nnext\\tab\tend";

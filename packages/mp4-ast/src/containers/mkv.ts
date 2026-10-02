@@ -1,3 +1,4 @@
+import { decodeH264Samples } from "../h264.js";
 import { readVint, writeVintSize } from "./ebml.js";
 import {
   BinaryWriter,
@@ -11,7 +12,6 @@ import {
   buildEsdsBox,
   buildH264SpsPps,
   createSilentAacFrame,
-  decodeH264FrameToRgba,
   encodeH264IdrFrame,
   parseAudioSpecificConfig,
   parseAvcC,
@@ -442,15 +442,7 @@ export function parseMkv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
 
     let decodedVideoFrames: MediaVideoFrame[] | undefined;
     if (options.decodeFrames && type === "video" && width && height) {
-      const lengthSize = (avcC?.lengthSizeMinusOne ?? 3) + 1;
-      decodedVideoFrames = rawSamples.map((s) => ({
-        width: width!,
-        height: height!,
-        data: decodeH264FrameToRgba(s.data, width!, height!, lengthSize),
-        ptsSeconds: s.pts / timescale,
-        durationSeconds: s.duration / timescale,
-        keyframe: s.isKeyframe
-      }));
+      decodedVideoFrames = [...decodeH264Samples(rawSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], width, height, timescale)];
     }
 
     const desc: MediaCodecDescription = {

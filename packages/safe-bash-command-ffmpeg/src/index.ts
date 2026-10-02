@@ -29,7 +29,7 @@ import {
   concatMp4,
   createMediaAstRegistry,
   createSyntheticMp4,
-  decodeH264FrameToRgba,
+  decodeH264Samples,
   decodeUtf8,
   encodeUtf8,
   parseSubtitleDocument,
@@ -450,20 +450,14 @@ async function ensureDecodedFrames(
   const width = track.width ?? track.codecDescriptions[0]?.width ?? 64;
   const height = track.height ?? track.codecDescriptions[0]?.height ?? 64;
   const ts = track.timescale || 90000;
-  const lengthSize = (track.codecDescriptions[0]?.avcC?.lengthSizeMinusOne ?? 3) + 1;
-
-  const refBuffer: { y?: Uint8Array; u?: Uint8Array; v?: Uint8Array } = {};
-  return await mapWork(track.samples, async (s) => {
-    budget.recordFrame(width, height);
-    return {
-      width,
-      height,
-      data: decodeH264FrameToRgba(s.data, width, height, lengthSize, refBuffer),
-      ptsSeconds: s.pts / ts,
-      durationSeconds: s.duration / ts,
-      keyframe: s.isKeyframe
-    };
-  }, signal);
+  const frames: MediaVideoFrame[] = [];
+  for (const frame of decodeH264Samples(track.samples, track.codecDescriptions, width, height, ts)) {
+    await yieldTurn(signal);
+    signal?.throwIfAborted();
+    budget.recordFrame(frame.width, frame.height);
+    frames.push(frame);
+  }
+  return frames;
 }
 
 function evalScaleDim(expr: string, iw: number, ih: number): number {
@@ -1621,7 +1615,7 @@ export function evalSyncFfmpeg(
     const outPlugin = outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget);
     if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
-    const serializedBytes = outPlugin.serialize(workingDoc, { format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
+    const serializedBytes = outPlugin.serialize(workingDoc, { audioCodec, format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
     if (isStdout(outputTarget)) return undefined;
     if (!writeFileSync!(outputTarget, serializedBytes)) return undefined;
     return "";
@@ -3007,6 +3001,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const outExt = outputTarget.split(".").pop()?.toLowerCase();
         const serializedBytes = outPlugin.serialize(workingDoc, {
           format: outputFormat ?? outExt,
+          audioCodec,
           faststart,
           fragmented,
           metadata: metaTags,

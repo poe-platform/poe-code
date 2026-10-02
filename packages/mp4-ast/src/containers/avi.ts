@@ -1,3 +1,4 @@
+import { decodeH264Samples } from "../h264.js";
 import {
   BinaryReader,
   BinaryWriter,
@@ -14,7 +15,6 @@ import {
   buildEsdsBox,
   buildH264SpsPps,
   createSilentAacFrame,
-  decodeH264FrameToRgba,
   encodeH264IdrFrame,
   parseAudioSpecificConfig,
   parseAvcC,
@@ -268,14 +268,7 @@ export function parseAvi(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
         ],
         samples: convertedSamples,
         decodedVideoFrames: options.decodeFrames
-          ? convertedSamples.map((s) => ({
-              width: w,
-              height: h,
-              data: decodeH264FrameToRgba(s.data, w, h, 4),
-              ptsSeconds: s.pts / timescale,
-              durationSeconds: s.duration / timescale,
-              keyframe: s.isKeyframe
-            }))
+          ? [...decodeH264Samples(convertedSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], w, h, timescale)]
           : undefined
       });
     } else if (info.fccType === "auds") {
@@ -721,14 +714,7 @@ export function parseFlv(bytes: Uint8Array, options: ParseMediaOptions = {}): Me
       ],
       samples: videoSamples,
       decodedVideoFrames: options.decodeFrames
-        ? videoSamples.map((s) => ({
-            width,
-            height,
-            data: decodeH264FrameToRgba(s.data, width, height, 4),
-            ptsSeconds: s.pts / 1000,
-            durationSeconds: s.duration / 1000,
-            keyframe: s.isKeyframe
-          }))
+        ? [...decodeH264Samples(videoSamples, [{ formatFourCC: "avc1", codecName: "h264", avcC }], width, height, 1000)]
         : undefined
     });
   }

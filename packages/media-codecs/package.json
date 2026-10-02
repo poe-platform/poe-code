@@ -1,9 +1,9 @@
 {
-  "name": "@poe-code/mp4-ast",
+  "name": "@poe-code/media-codecs",
   "version": "0.0.1",
   "private": true,
-  "description": "Pure TypeScript MP4/ISOBMFF, MKV/WebM, MPEG-TS, AVI, FLV, Y4M and multimedia container AST engine",
-  "license": "MIT",
+  "description": "Portable in-memory H.264 decoding and Ogg audio encoding",
+  "license": "LGPL-2.1-or-later AND BSD-3-Clause",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,10 +15,12 @@
   },
   "files": [
     "dist",
-    "LICENSE"
+    "vendor",
+    "scripts",
+    "README.md"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "build": "node scripts/verify.mjs && node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --minify --platform=browser --format=esm --target=es2022 --outfile=dist/index.js",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "node --import tsx --test src/*.test.ts",
@@ -26,9 +28,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@poe-code/audio-ast": "*",
-    "@poe-code/image-ast": "*",
-    "@poe-code/xml-ast": "*",
-    "@poe-code/media-codecs": "*"
+    "acorn": "8.17.0"
   }
 }

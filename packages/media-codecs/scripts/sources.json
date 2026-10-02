@@ -1,0 +1,77 @@
+{
+  "toolchain": {
+    "versionLine": "emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 4.0.13 (2659582941bef14008476903f48941909db1b196)"
+  },
+  "archives": [
+    {
+      "name": "ffmpeg-7.1.1",
+      "url": "https://ffmpeg.org/releases/ffmpeg-7.1.1.tar.xz",
+      "path": "vendor/sources/ffmpeg-7.1.1.tar.xz",
+      "bytes": 11019500,
+      "sha256": "733984395e0dbbe5c046abda2dc49a5544e7e0e1e2366bba849222ae9e3a03b1"
+    },
+    {
+      "name": "libogg-1.3.5",
+      "url": "https://downloads.xiph.org/releases/ogg/libogg-1.3.5.tar.xz",
+      "path": "vendor/sources/libogg-1.3.5.tar.xz",
+      "bytes": 429076,
+      "sha256": "c4d91be36fc8e54deae7575241e03f4211eb102afb3fc0775fbbc1b740016705"
+    },
+    {
+      "name": "libvorbis-1.3.7",
+      "url": "https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz",
+      "path": "vendor/sources/libvorbis-1.3.7.tar.xz",
+      "bytes": 1203792,
+      "sha256": "b33cc4934322bcbf6efcbacf49e3ca01aadbea4114ec9589d1b1e9d20f72954b"
+    },
+    {
+      "name": "opus-1.5.2",
+      "url": "https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz",
+      "path": "vendor/sources/opus-1.5.2.tar.gz",
+      "bytes": 7839412,
+      "sha256": "65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1"
+    }
+  ],
+  "inputs": [
+    {
+      "path": "scripts/codec.c",
+      "bytes": 9081,
+      "sha256": "d59b1d90f6f0fa979c75a46a3b9cdb8e8437ead2f8a52cd25132dd1335e61bd9"
+    },
+    {
+      "path": "scripts/build.mjs",
+      "bytes": 5366,
+      "sha256": "f2bb972647f8873abd156835ad451154e8a203f6987dc0ba5302ed5e788940d9"
+    },
+    {
+      "path": "scripts/normalize-runtime.mjs",
+      "bytes": 1614,
+      "sha256": "b45849ea889a2d7eb30cb5f29c97945c5dfbb49efd8f183cd947b032af9b2661"
+    },
+    {
+      "path": "vendor/LICENSE.ffmpeg",
+      "bytes": 26526,
+      "sha256": "b634ab5640e258563c536e658cad87080553df6f34f62269a21d554844e58bfe"
+    },
+    {
+      "path": "vendor/LICENSE.libogg",
+      "bytes": 1466,
+      "sha256": "d2ab5758336489da61c12cc5bb757da5339c4ae9001f9bb0562b4370249af814"
+    },
+    {
+      "path": "vendor/LICENSE.libvorbis",
+      "bytes": 1470,
+      "sha256": "ec1815db59fcd302846df949d7424876cb2e2dc5ed1606c5fb0b36787b1cf43a"
+    },
+    {
+      "path": "vendor/LICENSE.libopus",
+      "bytes": 1945,
+      "sha256": "01e1167d54a096d123cf6dfbbeb19587278845c6481d2d66d545669846079551"
+    }
+  ],
+  "artifact": {
+    "path": "vendor/runtime.js",
+    "bytes": 5954992,
+    "sha256": "6a29cdef8ffb4be7913f3488352ea090ba90bcd166a72f0673dc2ab9c2bbf617"
+  }
+}

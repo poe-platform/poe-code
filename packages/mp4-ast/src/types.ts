@@ -523,6 +523,8 @@ export interface ParseMediaOptions {
 }
 
 export interface SerializeMediaOptions {
+  /** Audio codec selection for containers with multiple encoders (e.g. Ogg). */
+  readonly audioCodec?: string | undefined;
   readonly format?: string | undefined;
   readonly faststart?: boolean | undefined;
   readonly fragmented?: boolean | undefined;

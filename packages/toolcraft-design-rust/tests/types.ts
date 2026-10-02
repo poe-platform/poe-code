@@ -880,3 +880,10 @@ const filterMatchNative: explorerFilter.FilterMatch = null as unknown as origina
 const filterOptionsOriginal: originalExplorerFilter.FilterRowsOptions = null as unknown as explorerFilter.FilterRowsOptions;
 const filterOptionsNative: explorerFilter.FilterRowsOptions = null as unknown as originalExplorerFilter.FilterRowsOptions;
 void [explorerFilterOriginal,explorerFilterNative,explorerFilterKeys,filterMatchOriginal,filterMatchNative,filterOptionsOriginal,filterOptionsNative];
+
+import * as explorerJobs from "toolcraft-design-rust/explorer/jobs";
+import type * as originalExplorerJobs from "toolcraft-design/explorer/jobs";
+const explorerJobsOriginal: typeof originalExplorerJobs = explorerJobs;
+const explorerJobsNative: typeof explorerJobs = null as unknown as typeof originalExplorerJobs;
+const explorerJobsKeys: SameKeys<typeof explorerJobs,typeof originalExplorerJobs> = true;
+void [explorerJobsOriginal,explorerJobsNative,explorerJobsKeys];

@@ -475,6 +475,10 @@
     "./explorer/filter": {
       "types": "./dist/explorer-filter.d.ts",
       "import": "./dist/explorer-filter.js"
+    },
+    "./explorer/jobs": {
+      "types": "./dist/explorer-jobs.d.ts",
+      "import": "./dist/explorer-jobs.js"
     }
   },
   "scripts": {

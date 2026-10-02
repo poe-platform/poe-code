@@ -1913,3 +1913,32 @@ Five warmed alternating Node 22 ARM64 rounds retaining 32 results measured
 (30 calls/round, 7.39× faster). This is workload-specific improvement, not a
 passed replacement gate. Jobs, detail preparation, theme, reducer, remaining
 renderers, runtime/public namespace and broader swap qualification remain open.
+
+### Explorer detail jobs checkpoint
+
+`explorer/jobs` exposes `createDetailJobs`, `LOADING_INDICATOR_MS` and
+`DETAIL_DEBOUNCE_MS` with the original declarations. Rust controls scheduling,
+debounce decisions, abort suppression, loading/completion/error event payloads,
+and timer/listener cleanup. The host preserves async turns, callback receivers,
+AbortController instances, timers, context spread and arbitrary thrown values.
+Replacement jobs still emit stale completions for the reducer to discard;
+explicit abort suppresses them. Reentrant abort retains the reference cleanup
+and error ordering.
+
+Four missing-export differential tests preceded implementation. Tests cover
+five replacement gaps, 21 clock/abort combinations, arbitrary rejection values,
+emit failures, thrown coercion identity, context getters and reentrant abort.
+Maintained checks pass 332 native host tests, 1,379 selected design tests,
+13 prompt wrappers, 132 dashboard/queue cases, 14 composer cases and 130 explorer
+cases, including all seven original jobs cases. Rust/binding and scoped JS lint,
+bidirectional declarations and packed runtime/type consumers pass. Inspected
+120×16 loading and completion screenshots; the original reducer and renderer
+produce identical frames from native/reference job events. No dependencies or
+default integration changed.
+
+Five warmed alternating 500-call Node 22 ARM64 rounds with controlled timers,
+resolved item promises, spaced scheduling and 32 retained promises measured
+13.816 µs native / 0.588 µs reference (23.49× slower), with all 5,200 events and
+zero remaining timers. This measures scheduling overhead, not wall-clock loading
+latency. Performance batching remains open, along with detail preparation,
+theme, reducer, rendering, runtime/public namespace and broader swap qualification.

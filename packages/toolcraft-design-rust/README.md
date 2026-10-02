@@ -611,3 +611,10 @@ match includes its source row index, score and UTF-16 highlight positions in the
 original text without SGR styling. Locale-sensitive casing preserves Greek
 context and projects expanded or contracted graphemes back to their original
 positions. Empty queries retain source order; equal scores use row order.
+
+`createDetailJobs(emit)` from `explorer/jobs` schedules asynchronous detail
+loading. `schedule(rowId, token, items, context)` aborts the previous signal and
+debounces rapid requests by 30 ms; work still pending after 150 ms emits a
+loading event. Completion and error events retain the row ID and token so your
+reducer can discard stale results. `abort()` suppresses the current job's later
+events and clears its loading timer.

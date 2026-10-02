@@ -3078,3 +3078,45 @@ Help-field policies are verified on remote main at 41b75114ff. The earlier Toolc
 release workflow 37055529265 has successful schema, Toolcraft and OpenAPI publish
 steps and packed-signature verification. Registry/attestation and installed-signature
 verification remain in progress; a completed verified release is not yet claimed.
+
+### CLI argument-scanning checkpoint
+
+The internal argv module now uses Rust for comma-separated array tokenization,
+negative-number recognition, array option boundaries, numeric-array normalization,
+output/help format precedence and debug-mode selection. Node retains observable
+indexing, string/collection methods, numeric conversion, callback metadata and
+caller-realm errors. Optional schema wrappers retain native traversal. No public
+CLI entry point, dependency declaration or default implementation changed.
+
+Four missing-module failures preceded implementation. Eight final comparisons use
+the actual reference functions extracted in memory. They cover attached/aliased
+options, required/optional values, negative lists, `--` termination, custom formats,
+Unicode/lone surrogates, empty slots, identity, nonboolean method results, live
+Number replacement, changing getters, reentrant calls and arbitrary throws.
+Two failing regressions caught optional-token and array-push TypeError wording;
+explicit host expressions now preserve the original diagnostics. The maintained
+Toolcraft route passes 178 native tests and 1,723 reference/integration cases in
+46 files, plus declarations. The canonical full CLI execution suites are still
+unported; private-function comparisons do not establish their coverage.
+
+Build, Rust/binding lint and scoped JS lint pass. Packed argv helpers execute
+with all external ESM imports blocked; packed declarations compile with `types: []`
+but still resolve existing contract types from the checkout. An inspected
+normalization-preview screenshot has reference-identical ANSI output; it is not
+a complete CLI execution screenshot. Fully isolated type packaging and current
+adapter reentrancy limits remain unqualified.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 invocations with
+32 retained results measured native/reference medians of 53.130/0.247 microseconds
+for numeric-array normalization (215.21 times slower) and 13.801/0.068 for output
+scanning (201.97 times slower). These local fixtures do not pass the performance
+gate. Full parsing, dynamic options, prompting, help integration, transports and
+resource/platform/swap qualification remain open.
+
+Command-tree snapshots are verified on remote main at f9d76811f8. Its main Release
+workflow 37060818999 is pending. Separately, Toolcraft package workflow 37055529265
+completed successfully on 1199997844, including actual publication of
+`toolcraft-schema@0.0.750`, `toolcraft@0.0.750` and `toolcraft-openapi@0.0.750`,
+registry/attestation availability and installed-signature checks. That release
+verifies the earlier Node 18 repair; it does not publish these later private Rust
+CLI changes or authorize switching the default implementation.

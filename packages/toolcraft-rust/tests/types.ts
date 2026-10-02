@@ -2,6 +2,17 @@ import * as native from "../dist/index.js";
 import * as cliPolicy from "../dist/cli-policy.js";
 import * as cliFields from "../dist/cli-fields.js";
 import * as cliHelp from "../dist/cli-help-fields.js";
+import * as cliArgv from "../dist/cli-argv.js";
+import {Option as CLIOption} from "commander";
+const numericCLIOption=new CLIOption("-n, --numbers <values...>");
+const normalizedCLIArgv:string[]=cliArgv.normalizeNumericArrayOptions(["--numbers","-1","-2"],[numericCLIOption],new Set([numericCLIOption]));
+const numericCLIToken:boolean=cliArgv.isNextArrayOptionToken("-1",native.S.Array(native.S.Number()));
+const splitCLI:string[]=cliArgv.splitArrayInput("one,two");
+const cliOutputMode:import("../dist/renderer.js").OutputMode=cliArgv.resolveOutputFromArgv(["--output=compact"],{compact:()=>""});
+const debugCLI:"trim"|"raw"|undefined=cliArgv.getDebugStackModeFromArgv(["node","app","--debug=raw"]);
+// @ts-expect-error array option scanning requires an array schema
+cliArgv.isNextArrayOptionToken("-1",native.S.Number());
+void [normalizedCLIArgv,numericCLIToken,splitCLI,cliOutputMode,debugCLI];
 const collectedCLI=cliFields.collectFields(native.S.Object({path:native.S.String(),names:native.S.Array(native.S.String())}),"kebab",new Set(["--yes"]));
 const positionalCLI:cliFields.FieldDefinition[]=cliFields.assignPositionals(collectedCLI.fields,["path","names"]);
 cliFields.validateUniqueOptionFlags(positionalCLI,new Set());

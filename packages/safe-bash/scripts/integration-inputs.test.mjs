@@ -3175,6 +3175,7 @@ test("Python native JSPI qualification inputs remain admitted without claiming e
     "tests/commands/python/jspi-scheduler.test.ts",
     "tests/commands/python/jspi.test.ts", "src/commands/python/jspi.ts",
     "tests/integration/python-jspi.test.mjs", "tests/integration/python-jspi.worker.mjs",
+    "tests/integration/llm-standard.py", "tests/integration/llm-reference.py",
     "tests/integration/python-jspi-catalog.mjs", "tests/integration/python-jspi-catalog.test.mjs",
     "tests/integration/python-jspi-errors.mjs",
     "tests/integration/python-object-io-781.test.mjs", "tests/integration/python-object-io-781.worker.mjs",

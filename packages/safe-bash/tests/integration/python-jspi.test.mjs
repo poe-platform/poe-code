@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { lstatSync, readFileSync } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { after, before, test } from 'node:test';
 import { build } from 'esbuild';
 import ts from 'typescript';
+
 import { createPythonJspiCallbackCatalog } from './python-jspi-catalog.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -87,6 +89,18 @@ const dependencyNative = dependencyRoot ? pythonLlmDependencies.nativeModules.ma
 }) : [];
 
 
+const {readPythonLlmAssets} = await import(pathToFileURL(consumerRoot
+  ? resolve(consumerPackage, JSON.parse(readFileSync(resolve(consumerPackage, 'package.json'), 'utf8')).exports['./commands/python/node'].import)
+  : resolve(root, 'packages/safe-bash/src/commands/python/llm-assets-node.ts')).href);
+const llmDirectory = process.env.SAFE_BASH_LLM_PACKAGE_DIR;
+assert.ok(llmDirectory, 'Set SAFE_BASH_LLM_PACKAGE_DIR to the explicitly provisioned pinned LLM wheels');
+const llmAssets = await readPythonLlmAssets(llmDirectory);
+const llmWheels = llmAssets.packages.map(asset=>({distribution:{file:asset.file},contents:asset.bytes}));
+const llmNative = llmAssets.modules.map(asset=>asset.bytes);
+const llmWheelNames = llmWheels.map((_, index) => 'llm-wheel-' + index + '.bin');
+const llmNativeNames = llmNative.map((_, index) => 'llm-native-' + index + '.wasm');
+const llmNativeBytesNames = llmNative.map((_, index) => 'llm-native-' + index + '.bin');
+
 async function createNativeFixture(context) {
   const injection = `
 import main from 'main.wasm';
@@ -98,8 +112,13 @@ import ccall from 'ccall.wasm';
 import empty from 'empty.wasm';
 ${callbackFiles.map((name, index) => `import callback${index} from '${name}';`).join('\n')}
 import stdlib from 'stdlib.bin';
+${llmNativeNames.map((name, index) => `import llmNative${index} from '${name}';`).join('\n')}
+${llmNativeBytesNames.map((name, index) => `import llmNativeBytes${index} from '${name}';`).join('\n')}
+${llmWheelNames.map((name, index) => `import llmWheel${index} from '${name}';`).join('\n')}
+export const llmPackageAssets = [${llmWheels.map(({distribution}, index) => `{file:${JSON.stringify(distribution.file)},bytes:new Uint8Array(llmWheel${index})}`).join(',')}];
 import { createPythonJspiAssets, installPythonLlmDependencies } from '@poe-platform/safe-bash/commands/python';
 const assets = createPythonJspiAssets({ main, stdlib:new Uint8Array(stdlib), modules:[
+${llmNativeNames.map((name, index) => ` {module:llmNative${index},bytes:new Uint8Array(llmNativeBytes${index})},`).join('\n')}
 ${dependencyNative.map((_, index) => ` {module:native${index},bytes:new Uint8Array(nativeBytes${index})},`).join('\n')}
  { module:helper,bytes:new Uint8Array(${JSON.stringify(Array.from(helper))}) },
  { module:ccall,bytes:new Uint8Array(${JSON.stringify(Array.from(ccall))}) },
@@ -117,7 +136,7 @@ export async function installStaticPackages(runtime) {
   const bundle = await build({ entryPoints: [fileURLToPath(new URL('./python-jspi.worker.mjs', import.meta.url))],
     outfile:resolve(outputRoot, 'main.mjs'), loader:{'.wasm':'copy'},
     bundle: true, write: false, metafile: true, platform: 'browser', mainFields: ['browser', 'module', 'main'], format: 'esm', target: 'es2022', conditions: ['workerd', 'browser'],
-    external: [...dependencyArchives.map(archive => archive.asset), ...dependencyNative.flatMap(native => [native.wasm,native.data]), 'main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws', ...callbackFiles],
+    external: [...dependencyArchives.map(archive => archive.asset), ...dependencyNative.flatMap(native => [native.wasm,native.data]), 'main.wasm', 'helper.wasm', 'ccall.wasm', 'empty.wasm', 'trampoline.wasm', 'native-call.wasm', 'stat-result.wasm', 'stdlib.bin', 'node:*', 'ws', ...callbackFiles, ...llmWheelNames, ...llmNativeNames, ...llmNativeBytesNames],
     define: { 'globalThis.process': 'undefined', process: 'undefined' },
     alias: { 'pinned-pyodide-loader': resolve(runtimeRoot, 'pyodide.mjs'),
       'pinned-pyodide-module': resolve(runtimeRoot, 'pyodide.asm.mjs'),
@@ -137,6 +156,8 @@ export async function installStaticPackages(runtime) {
         if (args.pluginData?.consumer) return;
         return plugin.resolve(args.path, {resolveDir:consumerRoot, kind:'import-statement', pluginData:{consumer:true}});
       });
+      plugin.onResolve({filter:/^standard-llm-program$/},()=>({path:'standard',namespace:'standard-llm-program'}));
+      plugin.onLoad({filter:/.*/,namespace:'standard-llm-program'},()=>({loader:'text',contents:readFileSync(resolve(root,'packages/safe-bash/tests/integration/llm-standard.py'),'utf8')}));
       plugin.onResolve({ filter: /^python-library-examples$/ }, () => ({path:'examples', namespace:'python-library-examples'}));
       plugin.onLoad({ filter: /.*/, namespace:'python-library-examples' }, () => ({loader:'json', contents:JSON.stringify(Object.fromEntries(
         ['llm-single.py', 'llm-stream.py', 'llm-customize.py', 'shell-tools.py'].map(name => [name, readFileSync(resolve(root, 'packages/safe-bash/docs/examples', name), 'utf8')])))}));
@@ -159,6 +180,8 @@ export async function installStaticPackages(runtime) {
   }
   const modules = [
     { type: 'ESModule', path: resolve(outputRoot, 'main.mjs'), contents: bundle.outputFiles.find(file => file.path.endsWith('.mjs')).text },
+    ...llmWheels.map(({contents}, index) => ({type:'Data',path:resolve(outputRoot,llmWheelNames[index]),contents})),
+    ...llmNative.flatMap((contents, index) => [{type:'CompiledWasm',path:resolve(outputRoot,llmNativeNames[index]),contents},{type:'Data',path:resolve(outputRoot,llmNativeBytesNames[index]),contents}]),
     ...bundle.outputFiles.filter(file => file.path.endsWith('.wasm')).map(file => ({type:'CompiledWasm', path:file.path, contents:file.contents})),
     ...[['main.wasm', files['pyodide.asm.wasm']], ['helper.wasm', helper], ['ccall.wasm', ccall],
       ['empty.wasm', empty], ['trampoline.wasm', createPythonJspiTrampoline()], ['native-call.wasm', createPythonJspiNativeCall()],
@@ -377,4 +400,64 @@ export default { async fetch(request) {
   } finally {
     await miniflare.dispose();
   }
+});
+
+test('real workerd provides the original llm Python package', {timeout:120000}, async () => {
+  const {miniflare, runtimeErrors} = nativeFixture;
+  const response = await miniflare.dispatchFetch('http://fixture/llm-standard');
+  const result = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(result));
+  assert.equal(result.exitCode, 0, new TextDecoder().decode(Uint8Array.from(result.stderr)));
+  assert.equal(new TextDecoder().decode(Uint8Array.from(result.stdout.slice(3))), 'llm-reference-api\n');
+  assert.deepEqual(result.failures, []);
+  assert.deepEqual(runtimeErrors, []);
+});
+
+test('real workerd preserves standard llm Python workflows', {timeout:120000}, async () => {
+  const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/llm-api');
+  const result = await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.equal(result.exitCode,0,result.stderr);
+  assert.equal(result.stderr,'');
+  assert.deepEqual(result.retainedInputs,[]);
+  assert.equal(result.cliVersion.exitCode,0,result.cliVersion.stderr);
+  assert.equal(result.cliVersion.stdout,'python -m llm, version 0.27.1\n');
+  assert.deepEqual(result.configurationFiles,[], 'Model calls must not persist configuration, history or logs');
+  assert.deepEqual(JSON.parse(result.stdout),{package:'0.27.1',sync:true,async:true,responses:true,conversations:true,schema:true,attachments:true,options:true,embeddings:true});
+  const referencePython = process.env.SAFE_BASH_LLM_REFERENCE_PYTHON;
+  assert.ok(referencePython, 'Set SAFE_BASH_LLM_REFERENCE_PYTHON to a CPython environment with pinned llm==0.27.1');
+  const referenceDirectory = await mkdtemp(resolve(process.env.TMPDIR,'llm-reference-'));
+  const reference = JSON.parse(execFileSync(referencePython,[
+    resolve(root,'packages/safe-bash/tests/integration/llm-reference.py'),
+    resolve(root,'packages/safe-bash/tests/integration/llm-standard.py'),
+  ],{cwd:referenceDirectory,encoding:'utf8',timeout:30000}));
+  assert.equal(result.stdout,reference.stdout);
+  await rm(referenceDirectory,{recursive:true});
+  assert.deepEqual(result.calls,reference.calls);
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(nativeFixture.runtimeErrors,[]);
+});
+
+test('real workerd retires standard llm inputs after cancellation', {timeout:120000}, async () => {
+  const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/llm-api-cancel');
+  const result = await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.match(result.failure,/LLM input cancelled/);
+  assert.deepEqual(result.retainedInputs,[]);
+  assert.deepEqual(result.calls,[]);
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(nativeFixture.runtimeErrors,[]);
+});
+
+test('real workerd confines original llm calls to platform models and credentials', {timeout:120000}, async () => {
+  const response = await nativeFixture.miniflare.dispatchFetch('http://fixture/llm-policy');
+  const result = await response.json();
+  assert.equal(response.status,200,JSON.stringify(result));
+  assert.equal(result.exitCode,0,result.stderr);
+  assert.equal(result.stdout,'platform-models-only\n');
+  assert.deepEqual(result.configurationFiles,[], 'Model lookup must not create configuration, history or log files');
+  assert.deepEqual(result.calls,[]);
+  assert.deepEqual(result.retainedInputs,[]);
+  assert.deepEqual(result.failures,[]);
+  assert.deepEqual(nativeFixture.runtimeErrors,[]);
 });

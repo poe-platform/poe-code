@@ -458,7 +458,22 @@ asyncio.run(check())
     source = globals.get('_safe_llm_source');
     registration = value;
   } });
-  for (const setup of [bundledSetup, 'import asyncio\n']) {
+  const originalSetup = `import asyncio
+import json, sys
+bundle = json.load(sys.stdin)
+_safe_llm_source = bundle["source"]
+exec(bundle["registration"])
+import llm
+from importlib.metadata import version
+from llm.models import Model, Response
+from llm.templates import Template
+assert version("llm") == "0.27.1"
+assert Model is llm.Model and Response is llm.Response
+assert Model.__module__ == Response.__module__ == "llm.models"
+assert Template.__module__ == "llm.templates"
+assert not llm.__spec__.origin.endswith("poe_llm.py")
+`;
+  for (const setup of [bundledSetup, originalSetup]) {
     const catalog = setup === bundledSetup ? `
 import llm
 from pydantic import ValidationError
@@ -482,8 +497,9 @@ def checked_stream(self, payload):
 Bridge.stream = checked_stream
 assert model.prompt("typed", temperature="0.5", count="2", enabled=True, label=None).text() == "hello"
 ` : '';
-    const result = spawnSync(process.env.LLM_REFERENCE_PYTHON!, ['-B', '-c', setup + program + catalog], {
-      input: setup === bundledSetup ? JSON.stringify({source, registration}) : undefined, encoding: 'utf8', timeout: 5000,
+    const python = setup === bundledSetup ? testPython : process.env.LLM_REFERENCE_PYTHON!;
+    const result = spawnSync(python, ['-B', '-c', setup + program + catalog], {
+      input: JSON.stringify({source, registration}), encoding: 'utf8', timeout: 5000,
     });
     assert.ifError(result.error);
     assert.equal(result.status, 0, result.stdout + result.stderr);

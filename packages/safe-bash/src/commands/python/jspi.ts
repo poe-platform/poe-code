@@ -102,6 +102,9 @@ export function createPythonJspiExecutor(options: PythonJspiExecutorOptions): Py
       });
       if (!importsBound || !instanceBound || !schedulerBound || runtime.version !== '314.0.6' || !runtime._module.jspiSupported) throw new PythonFailure('runtime-abi');
       qualified = true;
+      // The pinned WebLoop implements ordinary asyncio.run() through JSPI.
+      // Callers should not need to import Pyodide or write run_sync themselves.
+      runtime._api.config.enableRunUntilComplete = true;
       signal.throwIfAborted();
       runtime.runPython('import sys, os, json, runpy, traceback, types, warnings, textwrap, io, struct, linecache, importlib.machinery, shutil, stat, pyodide.ffi');
       runtime.globals.set('_safe_runtime_mount', start.runtimeMount);
@@ -219,6 +222,8 @@ _safe_stat_type = _safe_native_stat_type
       installPythonShellModule(runtime);
       installPythonJspiRunSync(runtime);
       runtime.runPython(pythonLibraryAdapter);
+      // Bootstrap temp paths belong to the private runtime, not the canonical filesystem.
+      runtime.runPython('import tempfile; tempfile.tempdir = None');
       runtime.globals.set('_safe_invocation_json', JSON.stringify(start.invocation));
       runtime.globals.set('_safe_execution_code', pythonExecution);
       runtime.globals.set('_safe_is_cancelled', () => signal.aborted);

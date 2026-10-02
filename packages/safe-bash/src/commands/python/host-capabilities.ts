@@ -1,6 +1,8 @@
 /** Only data crosses the interpreter boundary; credentials and authority stay in closures. */
 export type PythonHostValue = null | boolean | number | string | readonly PythonHostValue[] | { readonly [name: string]: PythonHostValue };
 export interface PythonHostCapability {
+  /** Invocation-owned cleanup, awaited after calls and streams retire. */
+  close?(): Promise<void>;
   call?(value: PythonHostValue, context: { readonly signal: AbortSignal }): Promise<PythonHostValue>;
   stream?(value: PythonHostValue, context: { readonly signal: AbortSignal }): AsyncIterable<string | Uint8Array | PythonHostValue>;
 }
@@ -242,7 +244,9 @@ export function createPythonHostBridge(capabilities: Readonly<Record<string, Pyt
       jobs.clear();
       activeCalls.clear();
       const results = await Promise.allSettled([...streams.keys()].map(handle => release(handle)));
+      const cleanup = await Promise.allSettled([...new Set(registry.values())].map(capability => Promise.resolve().then(() => capability.close?.())));
       registry.clear();
+      results.push(...cleanup);
       for (const result of results) if (result.status === 'rejected') throw result.reason;
       if (cleanupFailures.length) throw cleanupFailures[0];
     })();

@@ -290,3 +290,19 @@ test('concurrent async pulls reserve a stream before host jobs start', async () 
     await bridge.close();
   }
 });
+
+test('retirement closes every unique capability after a synchronous cleanup failure', async () => {
+  const failure = new Error('capability cleanup failed');
+  let closed = 0;
+  const shared = {async close() { closed++; }};
+  const bridge = createPythonHostBridge({
+    failed: {close(): Promise<void> { throw failure; }},
+    first: shared,
+    alias: shared,
+  }, {signal:new AbortController().signal});
+  await assert.rejects(bridge.close(), error => error === failure);
+  assert.equal(closed,1);
+  await assert.rejects(bridge.close(), error => error === failure);
+  assert.equal(closed,1);
+  await assert.rejects(bridge.request({version:1,operation:'call',capability:'first',value:null}),/retired/);
+});

@@ -1,29 +1,16 @@
-"""Run with the Safe Bash JSPI launcher and an invocation LLM capability."""
-from dataclasses import replace
-from poe_llm import Client
-from pyodide.ffi import run_sync
+"""Run with the authenticated Safe Bash Python launcher."""
+import llm
+
+model = llm.get_model()
 
 
-def normalize(request):
-    return replace(request, prompt=request.prompt.strip())
+def explain(topic):
+    return model.prompt(
+        f"Explain {topic}".strip(), system="Be concise", temperature=0.2
+    ).text().upper()
 
 
-def uppercase(response):
-    return replace(response, text=response.text.upper())
-
-
-async def main():
-    async with Client(
-        system="Be concise",
-        options={"temperature": 0.2},
-        request_transform=normalize,
-        response_transform=uppercase,
-    ) as client:
-        explain = client.prompt(lambda topic: f"  Explain {topic}  ")
-        print((await explain("gravity")).text)
-        chat = client.conversation()
-        await chat.complete("First")
-        print((await chat.complete("Second")).text)
-
-
-run_sync(main())
+print(explain("gravity"))
+chat = model.conversation()
+chat.prompt("First", system="Be concise").text()
+print(chat.prompt("Second").text().upper())

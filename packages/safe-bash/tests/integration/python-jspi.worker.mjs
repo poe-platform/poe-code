@@ -1,7 +1,8 @@
 import storedSchemas from '../../../safe-bash-command-llm/src/fixtures/stored-schemas.json' with {type:'json'};
 import { standardCommands } from '@poe-platform/safe-bash/core';
 import libraryExamples from 'python-library-examples';
-import { installStaticPackages } from 'python-static-assets';
+import { installStaticPackages, llmPackageAssets } from 'python-static-assets';
+import standardLlmProgram from 'standard-llm-program';
 import { loadPyodide } from 'pinned-pyodide-loader';
 import createPyodideModule from 'pinned-pyodide-module';
 import lockFileContents from 'pinned-pyodide-lock';
@@ -9,7 +10,7 @@ import trampoline from 'trampoline.wasm';
 import nativeCall from 'native-call.wasm';
 import statResult from 'stat-result.wasm';
 import { createDeviceFileSystem, MemoryFileSystem, PythonFileSystem, PythonStatTranslator, withObjectFileDescriptors } from '@poe-platform/safe-fs/core';
-import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability } from '@poe-platform/safe-bash/commands/python';
+import { createPythonJspiExecutor, pythonCommands, createPythonExecutorPool, createPythonShellCapability, createPythonLlmCapability, installPythonLlmPackages } from '@poe-platform/safe-bash/commands/python';
 import { Shell, createSearchCommands } from '@poe-platform/safe-bash/search';
 import { createLlmService, llmCommands } from '@poe-platform/safe-bash/commands/llm';
 import { observePythonJspiUnhandledErrors } from './python-jspi-errors.mjs';
@@ -160,6 +161,61 @@ async function qualifyShells(backend, createExecutor) {
   }
 }
 
+async function qualifyStandardLlm(backend, createExecutor, cancel = false, policy = false) {
+  const calls = [];
+  const controller = new AbortController();
+  const provider = {name:'fixture',models:[
+    {id:'fixture',capabilities:['messages','schema'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2}}},
+    {id:'fixture-embed',capabilities:['embed']},
+  ], async *complete(request) {
+    calls.push({prompt:request.prompt,stream:request.stream,messages:request.messages,options:request.options,schema:request.schema,attachments:request.attachments.map(a=>({mimeType:a.mimeType,text:new TextDecoder().decode(a.bytes)}))});
+    if (request.prompt === 'second' && request.messages?.at(-2)?.content !== 'first') throw new Error('Conversation history missing');
+    if (request.prompt === 'rich' && (request.options.temperature !== 0.25 || request.schema?.properties?.answer?.type !== 'string' || new TextDecoder().decode(request.attachments[0]?.bytes) !== 'attached')) throw new Error('Rich prompt changed');
+    const result = typeof request.prompt === 'string' ? request.prompt : 'large-accepted';
+    if (request.stream) { yield result.slice(0,2); yield result.slice(2); }
+    else yield result;
+    return {usage:{input:3,output:2},metadata:{id:'fixture-response'}};
+  }, async *completeSources(request) {
+    const read = async source => {
+      const digest = new crypto.DigestStream('SHA-256'), writer = digest.getWriter();
+      let text='', total=0;
+      const decoder = new TextDecoder();
+      try {
+        for await (const bytes of source.bytes) {
+          if (bytes.byteLength > 16384) throw new Error('Unbounded LLM input chunk');
+          total += bytes.byteLength;
+          if (cancel) { controller.abort(new Error('LLM input cancelled')); request.signal.throwIfAborted(); }
+          if (total <= 1024) text += decoder.decode(bytes,{stream:true}); else text='';
+          await writer.write(bytes);
+        }
+        await writer.close();
+        const sha256 = Array.from(new Uint8Array(await digest.digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+        return total > 1024 ? {bytes:total,sha256} : text+decoder.decode();
+      } catch(error) { await writer.abort(error).catch(()=>{}); throw error; }
+    };
+    return yield* this.complete({...request,prompt:await read(request.prompt),
+      ...(request.system ? {system:await read(request.system)} : {}),
+      ...(request.messages ? {messages:await Promise.all(request.messages.map(async m=>({role:m.role,content:await read(m.content)})))} : {}),
+      attachments:await Promise.all(request.attachments.map(async a=>({mimeType:a.mimeType,bytes:new TextEncoder().encode(await read(a.source))})))});
+  }, async embed(request) { return {model:request.model,vectors:request.inputs.map(text=>[text.length,1])}; }};
+  const service = createLlmService({providers:[provider],defaultModel:'fixture'});
+  const shell = new Shell({fs:backend,cwd:'/work',env:{HOME:'/work',LLM_USER_PATH:'/work/llm-config'}})
+    .use(pythonCommands({createExecutor,maxConcurrentWorkers:1,createCapabilities(context) {
+      return {llm:createPythonLlmCapability(context,service,{maxBufferedResponseBytes:262144,maxMetadataBytes:65536,maxBufferedInputBytes:131072})};
+    }}));
+  const program = policy ? "import os\nos.environ[\"LLM_LOAD_PLUGINS\"] = \"llm\"\nimport asyncio\nimport importlib.util\nfor name in (\"pip\", \"openai\"):\n    assert importlib.util.find_spec(name) is None, name + \" is not part of the calling profile\"\nimport llm\nfor operation in (\n    lambda: llm.plugins.pm.register(object(), \"extra-provider\"),\n    lambda: llm.plugins.pm.load_setuptools_entrypoints(\"llm\"),\n):\n    try:\n        operation()\n    except llm.ModelError as error:\n        assert \"platform-configured providers\" in str(error)\n    else:\n        raise AssertionError(\"Provider registration accepted\")\nassert {model.model_id for model in llm.get_models()} == {\"fixture\"}\nassert llm.get_model().model_id == \"fixture\"\nassert llm.get_async_model().model_id == \"fixture\"\nassert {model.model_id for model in llm.get_async_models()} == {\"fixture\"}\ntry:\n    llm.get_model(\"gpt-4o-mini\")\nexcept llm.UnknownModelError:\n    pass\nelse:\n    raise AssertionError(\"An unconfigured provider became available\")\nfor operation in (\n    lambda: llm.get_model(\"fixture\").prompt(\"unauthorized-key\", key=\"synthetic-caller-key\").text(),\n):\n    try:\n        operation()\n    except llm.ModelError as error:\n        assert \"platform-managed credentials\" in str(error)\n    else:\n        raise AssertionError(\"Caller key accepted\")\nmodel = llm.get_embedding_model(\"fixture-embed\")\nmodel.key = \"synthetic-caller-key\"\ntry:\n    model.embed(\"unauthorized-key\")\nexcept llm.ModelError as error:\n    assert \"platform-managed credentials\" in str(error)\nelse:\n    raise AssertionError(\"Embedding key accepted\")\nasync def check_async():\n    try:\n        await llm.get_async_model(\"fixture\").prompt(\"unauthorized-key\", key=\"synthetic-caller-key\").text()\n    except llm.ModelError as error:\n        assert \"platform-managed credentials\" in str(error)\n    else:\n        raise AssertionError(\"Async caller key accepted\")\nasyncio.run(check_async())\nprint(\"platform-models-only\")\n" : cancel ? 'import llm\nllm.get_model("fixture").prompt("x" * 65536).text()\n' : standardLlmProgram;
+  await backend.writeFile('/work/standard-llm.py',new TextEncoder().encode(program));
+  try {
+    let result, failure;
+    try { result = await shell.exec('python standard-llm.py',{signal:controller.signal}); }
+    catch(error) { if (!cancel) throw error; failure=String(error); }
+    const retainedInputs=(await backend.readdir('/work')).filter(entry=>entry.name.startsWith('.llm-input-')).map(entry=>entry.name);
+    const cliVersion = cancel ? undefined : await shell.exec('python -m llm --version');
+    const configurationFiles = cancel ? [] : (await backend.readdir('/work/llm-config')).map(entry=>entry.name);
+    return {...result, cliVersion, failure, retainedInputs, configurationFiles, calls};
+  } finally { await shell.dispose(); }
+}
+
 async function qualifyHostServices(backend, createExecutor) {
   let shellStreamCancelled = 0;
   let released = 0;
@@ -169,7 +225,7 @@ async function qualifyHostServices(backend, createExecutor) {
   let inputSourceBytes = 0;
   let retiredBridge;
   const provider = { name:'fake', models:[
-    {id:'fake',capabilities:['messages','schema','embed'],attachmentTypes:['text/plain']},
+    {id:'fake',capabilities:['messages','schema','embed'],attachmentTypes:['text/plain'],options:{temperature:{type:'number',minimum:0,maximum:2},mode:{type:'string'},enabled:{type:'boolean'},count:{type:'integer'},nullable:{type:'string',nullable:true}}},
     {id:'binary',outputType:'application/octet-stream'},
   ], async *complete(request) {
     if (request.prompt === 'cancel-call') {
@@ -821,6 +877,18 @@ assert run_sync(stream.__anext__()) == 42
 run_sync(asyncio.sleep(0))
 `;
 
+const standardLlm = `
+import llm
+from importlib.metadata import version
+assert version('llm') == '0.27.1'
+assert llm.Response.__module__ == 'llm.models'
+assert llm.AsyncResponse.__module__ == 'llm.models'
+assert callable(llm.get_model)
+assert callable(llm.get_async_model)
+assert callable(llm.get_embedding_model)
+print('llm-reference-api')
+`;
+
 const cancelled = `
 import atexit
 atexit.register(_record_finalization_called)
@@ -875,7 +943,9 @@ export default {
           return module;
         }, jsglobals: configuration.jsglobals, args: configuration.args, env: configuration.env,
         enableRunUntilComplete: false });
-      await installStaticPackages(runtime);
+      // Keep the legacy adapter contract separate from the genuine calling profile.
+      if (mode === '/host') await installStaticPackages(runtime);
+      else installPythonLlmPackages(runtime, llmPackageAssets);
       version = runtime.version;
       memory = runtime._module.HEAPU8.byteLength;
       if (mode === '/proxy') retainedProxy = runtime.globals;
@@ -895,6 +965,11 @@ export default {
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
       finally { clearInterval(timer); await filesystem.close(); }
     }
+    if (mode === '/llm-api' || mode === '/llm-api-cancel' || mode === '/llm-policy') {
+      try { return Response.json({...await qualifyStandardLlm(backend,createExecutor,mode === '/llm-api-cancel',mode === '/llm-policy'),failures}); }
+      catch(error) { return Response.json({error:String(error),stack:error.stack,failures},{status:500}); }
+      finally {clearInterval(timer);await filesystem.close();}
+    }
     if (mode === '/host') {
       try { return Response.json({...await qualifyHostServices(backend, createExecutor), failures, ticks}); }
       catch (error) { return Response.json({error:String(error), stack:error.stack, failures}, {status:500}); }
@@ -907,7 +982,7 @@ export default {
     }
     const executor = createExecutor();
     try {
-      const exitCode = await executor.run({ invocation: { args: ['-c', program + (mode === '/finalization' ? finalization : mode === '/background' ? background : mode === '/tasks' ? tasks : mode === '/cancel' ? cancelled : '')], cwd: '/work', env: {} },
+      const exitCode = await executor.run({ invocation: { args: ['-c', program + (mode === '/llm-standard' ? standardLlm : mode === '/finalization' ? finalization : mode === '/background' ? background : mode === '/tasks' ? tasks : mode === '/cancel' ? cancelled : '')], cwd: '/work', env: {} },
         signal: controller.signal, runtimeMount: '/.runtime', maxTransferBytes: 32, onReady() {},
         async dispatch(operation) {
           activeRequests++;

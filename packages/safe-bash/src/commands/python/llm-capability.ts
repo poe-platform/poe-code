@@ -5,6 +5,7 @@ import { parseLlmSchemaDsl, loadLlmStoredSchema, selectLlmModelByQuery, getLlmMo
 import { sniffMimeType } from '../llm/mime.js';
 import { pathOf } from '../internal.js';
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
+import { createPythonLlmInputs } from './llm-inputs.js';
 
 function record(value: PythonHostValue): {readonly [key:string]:PythonHostValue} {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new TypeError('Expected a structured Python LLM request');
@@ -105,6 +106,7 @@ export interface PythonLlmCapabilityOptions {
 
 /** Reuses the invocation's authorized service; Python receives only model data. */
 export function createPythonLlmCapability(context: PythonLlmContext, service: LlmService, options: PythonLlmCapabilityOptions = {}): PythonHostCapability {
+  const stagedInputs = createPythonLlmInputs(context.fs, context.inputBudget?.maxBytes ?? Infinity);
   const chunkBytes = options.maxStreamChunkBytes ?? 16384;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python LLM stream chunk limit');
   const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;
@@ -176,99 +178,146 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     const sources: LlmInputSource[] = [];
     const inputLimit = context.inputBudget?.maxBytes ?? Infinity;
     let admitted = 0, consumed = 0;
+    const admit = (size: number): void => {
+      if (!Number.isSafeInteger(size) || size < 0 || size > inputLimit - admitted) throw new RangeError('LLM input byte limit exceeded');
+      admitted += size;
+      context.inputBudget?.check(admitted);
+    };
+    const consume = (size: number): void => {
+      if (size > inputLimit - consumed) throw new RangeError('LLM input byte limit exceeded');
+      consumed += size;
+      context.inputBudget?.check(consumed);
+    };
     const textSource = (text: string): LlmInputSource => {
       if (typeof text !== 'string') throw new TypeError('Invalid LLM text input');
+      for (const fragment of textFragments(text, 16384)) admit(new TextEncoder().encode(fragment).byteLength);
       const controller = new AbortController();
       const bytes = (async function* () {
-        for (const fragment of textFragments(text, 16384)) { signal.throwIfAborted(); controller.signal.throwIfAborted(); yield new TextEncoder().encode(fragment); }
+        for (const fragment of textFragments(text, 16384)) {
+          signal.throwIfAborted(); controller.signal.throwIfAborted();
+          const chunk = new TextEncoder().encode(fragment);
+          consume(chunk.byteLength);
+          yield chunk;
+        }
       })();
-      return {bytes, async dispose() { controller.abort(); await bytes.return(); }};
+      const source = {bytes, async dispose() { controller.abort(); await bytes.return(); }};
+      sources.push(source);
+      return source;
+    };
+    const fileSource = async (value: PythonHostValue, sniff = false): Promise<{source:LlmInputSource;mimeType?:string}> => {
+      const input = record(value);
+      if (Object.keys(input).some(key => key !== 'path' && (key !== 'mimeType' || !sniff))) throw new TypeError('Invalid LLM file source');
+      if (typeof input.path !== 'string' || !input.path || input.path.includes('\0') || input.path.includes('://')) throw new TypeError('LLM source requires a canonical filesystem path');
+      if (input.mimeType !== undefined && typeof input.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
+      const path = pathOf(requestContext, input.path);
+      const capabilities = await context.fs.capabilitiesFor?.(path, {signal}) ?? context.fs.capabilities;
+      signal.throwIfAborted();
+      if (capabilities.retainedRead !== true || !context.fs.openReadFile) throw new TypeError('Canonical LLM filesystem requires retained reads');
+      const handle = await context.fs.openReadFile(path, {signal});
+      const controller = new AbortController();
+      const readSignal = AbortSignal.any([signal, controller.signal]);
+      let closing: Promise<void> | undefined;
+      const source: LlmInputSource = {bytes:(async function* () {
+        for (let offset = 0;;) {
+          readSignal.throwIfAborted();
+          const chunk = await handle.read(offset, Math.min(16384, inputLimit - consumed + 1), {signal:readSignal});
+          readSignal.throwIfAborted();
+          if (!chunk.byteLength) break;
+          consume(chunk.byteLength);
+          offset += chunk.byteLength;
+          yield chunk;
+        }
+      })(), dispose() { controller.abort(); return closing ??= handle.close(); }};
+      sources.push(source);
+      const stat = await handle.stat({signal});
+      admit(stat.size);
+      let mimeType = input.mimeType as string | undefined;
+      if (sniff && mimeType === undefined) {
+        const remaining = inputLimit - (admitted - stat.size);
+        const prefix = await handle.read(0, Math.min(4096, remaining + 1), {signal});
+        if (prefix.byteLength > remaining) throw new RangeError('LLM input byte limit exceeded');
+        mimeType = sniffMimeType(path, prefix);
+      }
+      signal.throwIfAborted();
+      return {source,...(mimeType === undefined ? {} : {mimeType})};
+    };
+    const inputSource = async (value: PythonHostValue): Promise<LlmInputSource> => {
+      if (typeof value === 'string') return textSource(value);
+      const input = record(value);
+      if (!Object.hasOwn(input, 'spool')) return (await fileSource(value)).source;
+      if (Object.keys(input).length !== 1) throw new TypeError('Invalid Python LLM input handle');
+      const retained = stagedInputs.source(input.spool!, signal);
+      sources.push(retained);
+      admit(retained.size);
+      return {bytes:(async function* () {
+        for await (const chunk of retained.bytes) { consume(chunk.byteLength); yield chunk; }
+      })(), dispose:retained.dispose};
     };
     const inputs = payload.attachments ?? [];
     if (!Array.isArray(inputs)) throw new TypeError('Expected canonical LLM attachments');
+    const messages = payload.messages === undefined ? undefined : payload.messages;
+    if (messages !== undefined && !Array.isArray(messages)) throw new TypeError('Invalid LLM messages');
+    const sourceInputs = inputs.length > 0 || typeof (payload.prompt ?? '') !== 'string'
+      || payload.system !== undefined && typeof payload.system !== 'string'
+      || messages?.some(message => typeof record(message).content !== 'string');
     try {
-      if (inputs.length) {
-        if (!service.streamSources) throw new TypeError('Shared LLM service does not support streamed attachments');
+      if (sourceInputs) {
+        if (!service.streamSources) throw new TypeError('Shared LLM service does not support streamed inputs');
         const {model,provider} = service.resolve(payload.model == null ? undefined : payload.model as string);
         if (!provider.completeSources || model.inputSources === false) throw new Error(`Model ${model.id} does not support streamed inputs`);
-      }
-      for (const value of inputs) {
-        const attachment = record(value);
-        if (attachment.content !== undefined) {
-          const content = attachment.content;
-          if (!Array.isArray(content) || !content.every(byte => typeof byte === 'number' && Number.isInteger(byte) && byte >= 0 && byte <= 255)) throw new TypeError('Invalid inline attachment bytes');
-          if (attachment.path !== undefined || attachment.url !== undefined) throw new TypeError('Invalid inline attachment location');
-          if (attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
-          if (content.length > inputLimit - admitted) throw new RangeError('LLM input byte limit exceeded');
-          admitted += content.length;
-          context.inputBudget?.check(admitted);
-          const bytes = Uint8Array.from(content as number[]);
-          const controller = new AbortController();
-          const source: LlmInputSource = {bytes:(async function* () {
-            for (let offset = 0; offset < bytes.length; offset += 16384) {
-              signal.throwIfAborted();
-              controller.signal.throwIfAborted();
-              const chunk = bytes.subarray(offset, offset + 16384);
-              if (chunk.byteLength > inputLimit - consumed) throw new RangeError('LLM input byte limit exceeded');
-              consumed += chunk.byteLength;
-              context.inputBudget?.check(consumed);
-              yield chunk;
-            }
-          })(), async dispose() { controller.abort(); }};
-          sources.push(source);
-          attachments.push({mimeType:attachment.mimeType as string | undefined ?? sniffMimeType('', bytes.subarray(0,4096)),source});
-          continue;
-        }
-        if (typeof attachment.path !== 'string' || !attachment.path || attachment.path.includes('\0') || attachment.path.includes('://')) throw new TypeError('Attachment requires a canonical filesystem path');
-        if (attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
-        const path = pathOf(requestContext, attachment.path);
-        const capabilities = await context.fs.capabilitiesFor?.(path, {signal}) ?? context.fs.capabilities;
-        signal.throwIfAborted();
-        if (capabilities.retainedRead !== true || !context.fs.openReadFile) throw new TypeError('Canonical attachment filesystem requires retained reads');
-        const handle = await context.fs.openReadFile(path, {signal});
-        const controller = new AbortController();
-        const readSignal = AbortSignal.any([signal, controller.signal]);
-        let closing: Promise<void> | undefined;
-        const source: LlmInputSource = {bytes:(async function* () {
-          for (let offset = 0;;) {
-            readSignal.throwIfAborted();
-            const chunk = await handle.read(offset, Math.min(16384, inputLimit - consumed + 1), {signal:readSignal});
-            readSignal.throwIfAborted();
-            if (!chunk.byteLength) break;
-            if (chunk.byteLength > inputLimit - consumed) throw new RangeError('LLM input byte limit exceeded');
-            consumed += chunk.byteLength;
-            context.inputBudget?.check(consumed);
-            offset += chunk.byteLength;
-            yield chunk;
+        for (const input of inputs) {
+          const attachment = record(input);
+          if (attachment.content !== undefined) {
+            const content = attachment.content;
+            if (!Array.isArray(content) || !content.every(byte => typeof byte === 'number' && Number.isInteger(byte) && byte >= 0 && byte <= 255)) throw new TypeError('Invalid inline attachment bytes');
+            if (attachment.path !== undefined || attachment.url !== undefined || attachment.spool !== undefined) throw new TypeError('Invalid inline attachment location');
+            if (attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
+            if (content.length > inputLimit - admitted) throw new RangeError('LLM input byte limit exceeded');
+            admitted += content.length;
+            context.inputBudget?.check(admitted);
+            const bytes = Uint8Array.from(content as number[]);
+            const controller = new AbortController();
+            const source: LlmInputSource = {bytes:(async function* () {
+              for (let offset = 0; offset < bytes.length; offset += 16384) {
+                signal.throwIfAborted();
+                controller.signal.throwIfAborted();
+                const chunk = bytes.subarray(offset, offset + 16384);
+                if (chunk.byteLength > inputLimit - consumed) throw new RangeError('LLM input byte limit exceeded');
+                consumed += chunk.byteLength;
+                context.inputBudget?.check(consumed);
+                yield chunk;
+              }
+            })(), async dispose() { controller.abort(); }};
+            sources.push(source);
+            attachments.push({mimeType:attachment.mimeType as string | undefined ?? sniffMimeType('', bytes.subarray(0,4096)),source});
+            continue;
           }
-        })(), dispose() {
-          controller.abort();
-          return closing ??= handle.close();
-        }};
-        sources.push(source);
-        const stat = await handle.stat({signal});
-        if (stat.size > inputLimit - admitted) throw new RangeError('LLM input byte limit exceeded');
-        admitted += stat.size;
-        context.inputBudget?.check(admitted);
-        let mimeType = attachment.mimeType as string | undefined;
-        if (mimeType === undefined) {
-          const remaining = inputLimit - (admitted - stat.size);
-          const prefix = await handle.read(0, Math.min(4096, remaining + 1), {signal});
-          if (prefix.byteLength > remaining) throw new RangeError('LLM input byte limit exceeded');
-          mimeType = sniffMimeType(path, prefix);
+          if (Object.hasOwn(attachment,'spool')) {
+            if (Object.keys(attachment).some(key => key !== 'spool' && key !== 'mimeType') || typeof attachment.mimeType !== 'string') throw new TypeError('Invalid Python LLM attachment input');
+            attachments.push({mimeType:attachment.mimeType,source:await inputSource({spool:attachment.spool!})});
+          } else {
+            const {source,mimeType} = await fileSource(input, true);
+            attachments.push({mimeType:mimeType!,source});
+          }
         }
-        signal.throwIfAborted();
-        attachments.push({mimeType,source});
+        const prompt = await inputSource(payload.prompt ?? '');
+        const system = payload.system === undefined ? undefined : await inputSource(payload.system);
+        const history: {role:'system'|'user'|'assistant';content:LlmInputSource}[] = [];
+        for (const value of messages ?? []) {
+          const message = record(value);
+          if (!['system','user','assistant'].includes(message.role as string)) throw new TypeError('Invalid LLM message role');
+          history.push({role:message.role as 'system'|'user'|'assistant',content:await inputSource(message.content!)});
+        }
+        return {
+          prompt,
+          ...(payload.model == null ? {} : {model:payload.model as string}),
+          ...(system === undefined ? {} : {system}),
+          ...(messages === undefined ? {} : {messages:history}),
+          ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
+          options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
+          attachments, signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
+        };
       }
-      if (attachments.length) return {
-        prompt:textSource(payload.prompt === undefined ? '' : payload.prompt as string),
-        ...(payload.model == null ? {} : {model:payload.model as string}),
-        ...(payload.system === undefined ? {} : {system:textSource(payload.system as string)}),
-        ...(payload.messages === undefined ? {} : {messages:(payload.messages as unknown as {role:'system'|'user'|'assistant';content:string}[]).map(message => ({role:message.role,content:textSource(message.content)}))}),
-        ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
-        options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
-        attachments, signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
-      };
     } catch (error) {
       await Promise.allSettled(sources.map(source => source.dispose()));
       throw error;
@@ -316,6 +365,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     }
   };
   return {
+    close:stagedInputs.close,
     async call(value, {signal}) {
       signal.throwIfAborted();
       const operation = record(value);
@@ -327,6 +377,9 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         jsonBytes(result as PythonHostValue,bufferedLimit);
         return result as PythonHostValue;
       }
+      if (operation.operation === 'input_open') return stagedInputs.open(configurationContext(context,payload,signal).cwd,signal);
+      if (operation.operation === 'input_write') { await stagedInputs.write(payload.id,payload.bytes,signal); return null; }
+      if (operation.operation === 'input_close') { await stagedInputs.release(payload.id); return null; }
       if (operation.operation === 'attachment_type') {
         const prefix = payload.prefix;
         if (typeof payload.path !== 'string' || !Array.isArray(prefix) || prefix.length > 4096

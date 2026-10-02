@@ -505,9 +505,18 @@ class _SafeLlmLoader:
   self._source = source
   self._spec = spec
  def find_spec(self, fullname, path=None, target=None):
+  if fullname == 'llm':
+   # A bundled original distribution always owns its public API and submodules.
+   from importlib.machinery import PathFinder
+   if PathFinder.find_spec(fullname, path) is not None:
+    return None
   if fullname in ('poe_llm', 'llm'):
    return self._spec(fullname, self, origin=fullname + '.py', is_package=fullname == 'llm')
   if fullname in self._submodules:
+   import sys
+   package = sys.modules.get('llm')
+   if package is None or package.__loader__ is not self:
+    return None
    return self._spec(fullname, self, origin=fullname + '.py')
  def create_module(self, spec):
   return None

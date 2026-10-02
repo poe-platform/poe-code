@@ -445,3 +445,6 @@ export type { PythonJspiAssetsOptions } from './jspi-assets.js';
 export { createPythonJspiTrampoline, createPythonJspiNativeCall, createPythonJspiStatResult } from './jspi-trampoline.js';
 export { PythonFailure, inspectPythonCapabilities } from './diagnostics.js';
 export type { PythonFailureCategory, PythonDiagnostic, PythonDiagnosticObserver, PythonFileSystemRequirement, PythonCapabilityOptions, PythonCapabilityReport } from './diagnostics.js';
+
+export { pythonLlmPackages, installPythonLlmPackages } from './llm-packages.js';
+export type { PythonLlmPackageAsset } from './llm-packages.js';

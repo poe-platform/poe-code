@@ -297,17 +297,22 @@ jobs:
           SAFE_BASH_PYTHON_RUNTIME_ROOT: ${{ github.workspace }}/out/python-host-qualification/tooling/node_modules/pyodide
           SAFE_BASH_PYTHON_CONSUMER_ROOT: ${{ github.workspace }}/out/python-host-qualification/consumer
           SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT: ${{ github.workspace }}/out/python-host-qualification/llm-dependencies
+          SAFE_BASH_LLM_PACKAGE_DIR: ${{ github.workspace }}/out/python-host-qualification/wheels
+          SAFE_BASH_LLM_REFERENCE_PYTHON: ${{ github.workspace }}/out/python-host-qualification/reference/bin/python
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$TMPDIR" "$SAFE_BASH_CF_RUNTIME_ROOT" "$SAFE_BASH_PYTHON_CONSUMER_ROOT"
-          trap 'rm -rf "$TMPDIR" "$SAFE_BASH_CF_RUNTIME_ROOT" "$SAFE_BASH_PYTHON_CONSUMER_ROOT" "$SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT"' EXIT
+          trap 'rm -rf "$TMPDIR" "$SAFE_BASH_CF_RUNTIME_ROOT" "$SAFE_BASH_PYTHON_CONSUMER_ROOT" "$SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT" "$SAFE_BASH_LLM_PACKAGE_DIR" "$(dirname "$(dirname "$SAFE_BASH_LLM_REFERENCE_PYTHON")")"' EXIT
           for PYTHON_PACKAGE_DIR in "$SAFE_BASH_CF_RUNTIME_ROOT" "$SAFE_BASH_PYTHON_CONSUMER_ROOT"; do
             printf '{"private":true,"type":"module"}\n' > "$PYTHON_PACKAGE_DIR/package.json"
           done
           npm install --prefix "$SAFE_BASH_CF_RUNTIME_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund miniflare@5.20260917.0-alpha workerd@1.20260917.1 pyodide@314.0.6
           npm install --prefix "$SAFE_BASH_PYTHON_CONSUMER_ROOT" --no-save --package-lock=false --ignore-scripts --no-audit --no-fund "$PYTHON_TARBALLS"/poe-platform-safe-fs-*.tgz "$PYTHON_TARBALLS"/poe-platform-safe-js-*.tgz "$PYTHON_TARBALLS"/poe-platform-safe-bash-[0-9]*.tgz
           node scripts/prepare-python-llm-dependencies.mjs "$SAFE_BASH_PYTHON_CONSUMER_ROOT" "$SAFE_BASH_PYTHON_LLM_DEPENDENCIES_ROOT"
+          python3 -m venv "$(dirname "$(dirname "$SAFE_BASH_LLM_REFERENCE_PYTHON")")"
+          "$SAFE_BASH_LLM_REFERENCE_PYTHON" -m pip install --disable-pip-version-check "llm==0.27.1" "pydantic==2.12.5"
+          (cd "$SAFE_BASH_PYTHON_CONSUMER_ROOT" && node --input-type=module -e "import {downloadPythonLlmPackages} from '@poe-platform/safe-bash/commands/python/node'; await downloadPythonLlmPackages(process.env.SAFE_BASH_LLM_PACKAGE_DIR);")
           node --test packages/safe-bash/tests/integration/python-jspi.test.mjs
       - name: Publish SafeFS with provenance
         if: steps.post-build-queue-check.outputs.publish == 'true'

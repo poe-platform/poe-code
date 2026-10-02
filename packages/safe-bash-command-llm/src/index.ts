@@ -15,3 +15,5 @@ export { parseLlmSchemaDsl } from "./schemas.js";
 export { resolveLlmSchemaInput, type LlmSchemaInputOptions } from "./schema-input.js";
 
 export { getLlmModelAliases, selectLlmModelByQuery } from "./model-selection.js";
+
+export { createLlmSpool } from "./retained-spool.js";

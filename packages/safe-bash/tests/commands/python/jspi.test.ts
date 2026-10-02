@@ -181,6 +181,7 @@ test('distinguishes drained native descriptor close failures from incomplete ter
             };
             return {
               version: '314.0.6',
+              _api: { config: {} },
               _module: mod,
               globals: new Map(),
               FS: {

@@ -7,6 +7,7 @@ import { createLlmCommands } from '../../src/commands/llm/command.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 import { toByteSource } from '../../src/contracts/index.js';
 import type { CommandContext } from '../../src/contracts/index.js';
+import type { PythonHostValue } from '../../src/commands/python/host-capabilities.js';
 import type { LlmRequest, LlmProvider } from '../../src/commands/llm/types.js';
 
 const signal = new AbortController().signal;
@@ -567,6 +568,109 @@ test('Python attachment type lookup reuses bounded shared MIME inference', async
   assert.deepEqual(requests, []);
 });
 
+test('prompt, system and history source paths bypass buffered controls without whole-file reads', async () => {
+  const {fs} = await fixture();
+  await fs.writeFile('/work/large.txt',new Uint8Array(16 * 1024 * 1024 + 7).fill(120));
+  let open = 0, closed = 0, largest = 0, bytes = 0;
+  const retained = fs.openReadFile.bind(fs);
+  const files = new Proxy(fs, {get(target,key) {
+    if (key === 'openReadFile') return async (...args: Parameters<typeof retained>) => {
+      open++;
+      const handle = await retained(...args);
+      return {...handle, async read(position:number,maxBytes:number,options?: {signal?:AbortSignal}) {
+        largest = Math.max(largest,maxBytes);
+        return handle.read(position,maxBytes,options);
+      }, async close() { closed++; await handle.close(); }};
+    };
+    if (key === 'readFile') return (path:string,options?:{signal?:AbortSignal}) => {
+      assert.notEqual(path,'/work/large.txt','large source must not be buffered');
+      return target.readFile(path,options);
+    };
+    const value = Reflect.get(target,key,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const service = createLlmService({providers:[{name:'source',models:[{id:'source',capabilities:['messages']}],
+    complete() { assert.fail('source request reached buffered provider'); },
+    async *completeSources(request) {
+      for (const source of [request.prompt,request.system!,request.messages![0]!.content]) {
+        for await (const chunk of source.bytes) bytes += chunk.byteLength;
+      }
+      yield 'accepted';
+    },
+  }]});
+  const capability = createPythonLlmCapability({fs:files,cwd:'/work',inputBudget:{maxBytes:64*1024*1024,check(total) {assert.ok(total<=64*1024*1024);}}},service,{maxBufferedInputBytes:1024});
+  const response = await capability.call!({operation:'complete',payload:{
+    model:'source',prompt:{path:'large.txt'},system:{path:'large.txt'},messages:[{role:'user',content:{path:'large.txt'}}],
+  }},{signal}) as {text:string};
+  assert.equal(response.text,'accepted');
+  assert.equal(bytes,3*(16*1024*1024+7));
+  assert.equal(largest,16384);
+  assert.equal(open,3);
+  assert.equal(closed,3);
+});
+
+test('invocation-owned Python input spools stream and retire without guest unlink calls', async () => {
+  const {fs, service, requests} = await fixture();
+  const {createPythonHostBridge} = await import('../../src/commands/python/host-capabilities.js');
+  const controller = new AbortController();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:32768,check(bytes) {assert.ok(bytes <= 32768);}}},service,{maxBufferedInputBytes:131072});
+  const bridge = createPythonHostBridge({llm:capability},{signal:controller.signal,maxMessageBytes:131072});
+  const invoke = (operation:string,payload:Record<string,PythonHostValue> = {}) => bridge.request({version:1,operation:'call',capability:'llm',value:{operation,payload}});
+  const id = await invoke('input_open');
+  await invoke('input_write',{id,bytes:[104,101,108,108,111]});
+  const response = await invoke('complete',{prompt:{spool:id}});
+  assert.equal((response as {text:string}).text,'answer!');
+  assert.equal(requests[0]!.prompt,'hello');
+  assert.deepEqual((await fs.readdir('/work')).map(entry=>entry.name),['note.txt']);
+  // A second abandoned input has no Python finally block available after cancellation.
+  const abandoned = await invoke('input_open');
+  await invoke('input_write',{id:abandoned,bytes:[1,2,3]});
+  controller.abort(new Error('invocation cancelled'));
+  await bridge.close();
+  assert.deepEqual((await fs.readdir('/work')).map(entry=>entry.name),['note.txt']);
+});
+
+test('Python input spools bound chunk and live-byte admission before retaining data', async () => {
+  const {fs,service} = await fixture();
+  const capability = createPythonLlmCapability({fs,cwd:'/work',inputBudget:{maxBytes:5,check(bytes) {assert.ok(bytes <= 5);}}},service);
+  const invoke = (operation:string,payload:Record<string,PythonHostValue> = {}) => capability.call!({operation,payload},{signal});
+  const id = await invoke('input_open');
+  await invoke('input_write',{id,bytes:[1,2,3,4,5]});
+  await assert.rejects(invoke('input_write',{id,bytes:[6]}),/input.*limit/);
+  await assert.rejects(invoke('input_write',{id,bytes:Array(16385).fill(0)}),/chunk/);
+  await invoke('input_close',{id});
+  await invoke('input_close',{id});
+  assert.deepEqual((await fs.readdir('/work')).map(entry=>entry.name),['note.txt']);
+});
+
+test('Python input retirement waits for admitted staging before releasing its ownership', async () => {
+  const {fs:backing,service} = await fixture();
+  const {createPythonHostBridge} = await import('../../src/commands/python/host-capabilities.js');
+  let entered!:()=>void, release!:()=>void;
+  const started = new Promise<void>(resolve=>{entered=resolve;});
+  const held = new Promise<void>(resolve=>{release=resolve;});
+  const fs = new Proxy(backing,{get(target,key) {
+    if (key === 'createStagedFile') return async (...args:Parameters<typeof target.createStagedFile>) => {
+      const result=await target.createStagedFile(...args);
+      entered(); await held; return result;
+    };
+    const value=Reflect.get(target,key,target);
+    return typeof value === 'function' ? value.bind(target) : value;
+  }});
+  const controller = new AbortController();
+  const bridge=createPythonHostBridge({llm:createPythonLlmCapability({fs,cwd:'/work'},service)},{signal:controller.signal});
+  const opening=bridge.request({version:1,operation:'call',capability:'llm',value:{operation:'input_open'}}).catch(error=>error);
+  await started;
+  controller.abort(new Error('retire during staging'));
+  let settled=false;
+  const closing=bridge.close().then(()=>{settled=true;});
+  await Promise.resolve();
+  assert.equal(settled,false);
+  release();
+  await closing;
+  assert.match(String(await opening),/retire during staging/);
+  assert.deepEqual((await backing.readdir('/work')).map(entry=>entry.name),['note.txt']);
+});
 
 test('inline Python attachments preserve bytes and share aggregate attachment admission', async () => {
   const {fs,service,requests,capability} = await fixture();

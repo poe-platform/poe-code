@@ -38,3 +38,5 @@ export function createNodePythonWorker(options: NodePythonWorkerOptions): Python
     async terminate() { await worker.terminate(); },
   };
 }
+
+export { downloadPythonLlmPackages, readPythonLlmAssets } from './llm-assets-node.js';

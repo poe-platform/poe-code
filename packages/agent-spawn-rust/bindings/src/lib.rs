@@ -1,3 +1,4 @@
+pub use toolcraft_design_rust_napi_core::*;
 use mcp_protocol_rust::json::{self, Value};
 use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::{Error, bindgen_prelude::*};

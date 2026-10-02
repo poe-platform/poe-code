@@ -78,7 +78,7 @@ export default {
     const results = [];
     const errors: string[] = [];
     try {
-      for (let command of [
+      const commands = new URL(request.url).pathname === "/capacity" ? [
         `PLAYWRIGHT_CLI_SESSION=first playwright-cli open; playwright-cli -s first tab-new ${origin}/set-cookies`,
         "PLAYWRIGHT_CLI_SESSION=ignored playwright-cli -s second open; playwright-cli -s second tab-list",
         "playwright-cli -s third open",
@@ -87,6 +87,7 @@ export default {
         `export PLAYWRIGHT_CLI_SESSION=authenticated-owner; playwright-cli -s second goto ${origin}/cookies; playwright-cli -s second snapshot; playwright-cli detach`,
         "playwright-cli close-all",
         "playwright-cli list",
+      ] : [
         `playwright-cli open ${origin}/; playwright-cli tab-new ${origin}/`,
         "playwright-cli snapshot",
         "playwright-cli close",
@@ -95,7 +96,8 @@ export default {
         "playwright-cli click <upload-ref>",
         "for i in $(seq 1 30); do playwright-cli snapshot > /upload-progress.txt || exit 1; if grep -q 'Uploads finished' /upload-progress.txt; then cat /upload-progress.txt; exit 0; fi; done; cat /upload-progress.txt; exit 1",
         "playwright-cli close-all"
-      ]) {
+      ];
+      for (let command of commands) {
         if (command === "playwright-cli click <upload-ref>") {
           const snapshot = results.at(-1)!.stdout;
           const start = snapshot.indexOf("[ref=");

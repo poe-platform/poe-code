@@ -1,13 +1,20 @@
 import { createServer } from "node:http";
 import { once } from "node:events";
-import { expect, test } from "vitest";
+import { beforeAll, expect, test } from "vitest";
 import { Miniflare } from "miniflare";
 import { buildNativeFixture } from "./browser-native-fixture.js";
 
-test("native named sessions preserve tabs and cookies after capacity rejection", async () => {
-  const script = await buildNativeFixture(
+let script: string;
+beforeAll(async () => {
+  script = await buildNativeFixture(
     new URL("./browser-session-capacity.test.worker.ts", import.meta.url)
   );
+});
+
+test.each([
+  { scenario: "capacity", name: "native named sessions preserve tabs and cookies after capacity rejection" },
+  { scenario: "uploads", name: "native sessions persist across shell calls and allow uncapped uploads" },
+])("$name", async ({ scenario }) => {
   let uploadedBytes = 0;
   let uploads = 0;
   const server = createServer((request, response) => {
@@ -58,7 +65,7 @@ test("native named sessions preserve tabs and cookies after capacity rejection",
   });
   try {
     await worker.ready;
-    const response = await worker.dispatchFetch("http://fixture/capacity", {
+    const response = await worker.dispatchFetch(`http://fixture/${scenario}`, {
       method: "POST",
       body: `http://127.0.0.1:${address.port}`
     });
@@ -72,13 +79,24 @@ test("native named sessions preserve tabs and cookies after capacity rejection",
       }[];
     };
     expect(response.status, JSON.stringify(report)).toBe(200);
+    if (scenario === "uploads") {
+      expect(report.results.map(result => result.exitCode), JSON.stringify(report)).toEqual(Array(8).fill(0));
+      expect(report.results.map(result => result.stderr)).toEqual(Array(8).fill(""));
+      expect(report.results.slice(0, 2).map(result => result.sessions.length)).toEqual([1, 1]);
+      expect(report.results[2]!.sessions).toEqual([]);
+      expect(report.results[6]!.stdout).toContain("Uploads finished: 33; capped: false");
+      expect(uploads).toBe(33);
+      expect(uploadedBytes).toBe(66 * 1024 * 1024);
+      expect(report.results[7]!.sessions).toEqual([]);
+      return;
+    }
     expect(
       report.results.map((result) => result.exitCode),
       JSON.stringify(report)
-    ).toEqual([0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
+    ).toEqual([0, 0, 1, 0, 0, 0, 0, 0]);
     expect(
       report.results.filter((result) => result.exitCode === 0).map((result) => result.stderr)
-    ).toEqual(Array(15).fill(""));
+    ).toEqual(Array(7).fill(""));
     expect(report.results[2]!.stderr).toContain("session capacity exceeded");
     expect(report.results[2]!.requests).toEqual([]);
     expect(report.results[3]!.stdout).toContain("/set-cookies)");
@@ -99,12 +117,6 @@ test("native named sessions preserve tabs and cookies after capacity rejection",
     }
     expect(report.results[7]!.stdout).toContain("(no browsers)");
     expect(report.results[6]!.sessions).toEqual([]);
-    expect(report.results.slice(8, 10).map((result) => result.sessions.length)).toEqual([1, 1]);
-    expect(report.results[10]!.sessions).toEqual([]);
-    expect(report.results[14]!.stdout).toContain("Uploads finished: 33; capped: false");
-    expect(uploads).toBe(33);
-    expect(uploadedBytes).toBe(66 * 1024 * 1024);
-    expect(report.results[15]!.sessions).toEqual([]);
   } finally {
     try {
       await worker.dispose();

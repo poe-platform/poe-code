@@ -1,7 +1,6 @@
 import { embeddingModelsCommand } from './embed-models-command.js';
 import { serializeLlmTokenUsage } from "./usage.js";
 import { createLlmInputBudget } from "./input-budget.js";
-import { loadLlmStoredSchema } from "./stored-schema.js";
 import { pipeBytes, createOutputOperation, getCommandArguments, shellValueByteLength, FsError, type CommandContext, type CommandDefinition, type VirtualShellPlugin } from "safe-bash-contracts";
 import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
@@ -14,8 +13,6 @@ import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, vali
 import { createLlmSpool } from "./retained-spool.js";
 import { findExtractedRange } from "./extract-range.js";
 import { fileSource } from "./file-source.js";
-import { listSchemaCommand, schemasHelp } from "./schema-list-command.js";
-import { showSchemaCommand } from "./schema-show-command.js";
 import { parseLlmSchemaDsl } from "./schemas.js";
 import { resolveLlmSchemaInput } from "./schema-input.js";
 import { configurationCommand } from "./configuration-command.js";
@@ -184,20 +181,9 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       await emitText(modelsGroupHelp);
       return { exitCode: 0 };
     }
-    if (argumentsValue.args[0] === "schemas" && !["show", "dsl"].includes(argumentsValue.args[1] ?? "")) {
-      const grouped = argumentsValue.args[1] !== "list";
-      const start = grouped ? 1 : 2;
-      const tokens = Array.from({length: argumentsValue.args.length - start}, (_, index) => argumentText(index + start));
-      if (grouped && tokens.length === 1 && ["--help", "-h"].includes(tokens[0]!)) {
-        await emitText(schemasHelp); return {exitCode: 0};
-      }
-      const maxBytes = Math.min(limits?.maxConfigurationBytes ?? Infinity,input.remaining(true));
-      return {exitCode: await listSchemaCommand({...context,signal},tokens,emitText,text => writeDiagnostic(context.stderr,text,signal),{maxBytes,admitBytes:admitBuffered})};
-    }
-    if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] === "show") {
-      const tokens = Array.from({ length: argumentsValue.args.length - 2 }, (_, index) => argumentText(index + 2));
-      const maxBytes = Math.min(limits?.maxConfigurationBytes ?? Infinity,input.remaining(true));
-      return { exitCode: await showSchemaCommand({...context,signal},tokens,emitText,text => writeDiagnostic(context.stderr,text,signal),{maxBytes,admitBytes:admitBuffered}) };
+    if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] !== "dsl") {
+      await writeDiagnostic(context.stderr, "Error: Stored schema history is host-owned. Use an inline schema, file, template, or 'llm schemas dsl'.\n", signal);
+      return { exitCode: 2 };
     }
     if (argumentsValue.args[0] === "schemas" && argumentsValue.args[1] === "dsl") {
       const tokens = Array.from({ length: argumentsValue.args.length - 2 }, (_, index) => argumentText(index + 2));
@@ -259,7 +245,6 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     let schema = schemaInput ? await resolveLlmSchemaInput({...context, signal}, schemaInput, {
       multi: Boolean(args.schemaMulti), maxBytes: input.remaining(true), admitBytes: admitBuffered,
       loadTemplate: name => templateStore.load(name),
-      loadSchema: id => loadLlmStoredSchema({...context, signal}, id, { maxBytes: input.remaining(true), admitBytes: admitBuffered }),
     }) : undefined;
     if (args.save && args.template) throw new Error("Error: --save cannot be used with --template");
     let stored;

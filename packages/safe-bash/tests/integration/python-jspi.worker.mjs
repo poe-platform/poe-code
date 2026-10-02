@@ -1,4 +1,3 @@
-import storedSchemas from '../../../safe-bash-command-llm/src/fixtures/stored-schemas.json' with {type:'json'};
 import { standardCommands } from '@poe-platform/safe-bash/core';
 import libraryExamples from 'python-library-examples';
 import { installStaticPackages, llmPackageAssets } from 'python-static-assets';
@@ -321,7 +320,6 @@ async function qualifyHostServices(backend, createExecutor) {
   await backend.writeFile('/guest/config/model_options.json',new TextEncoder().encode(JSON.stringify({fake:{mode:'guest'}})));
   await backend.writeFile('/guest/config/templates/review.yaml',new TextEncoder().encode('prompt: "Guest $input"\nsystem: guest\nattachments:\n  - note.txt\n'));
   await backend.mkdir('/settings/templates',{recursive:true});
-  await backend.writeFile('/settings/logs.db',Uint8Array.from(atob(storedSchemas.database),value => value.charCodeAt(0)));
   await backend.writeFile('/settings/default_model.txt',new TextEncoder().encode('saved'));
   await backend.writeFile('/settings/aliases.json',new TextEncoder().encode(JSON.stringify({saved:'fake'})));
   await backend.writeFile('/settings/model_options.json',new TextEncoder().encode(JSON.stringify({fake:{mode:'saved'}})));
@@ -538,9 +536,7 @@ async def qualify_libraries():
  assert await async_conversation.prompt('reference-second').text() == 'reference-second'
  assert len(async_conversation.responses) == 2
  async with LlmClient() as client:
-  stored_schema = await client.load_schema('unicode')
-  assert stored_schema == {'type':'object','properties':{'☃':{'type':'string','description':'🙂'}}}
-  assert await client.load_schema('missing') is None
+  assert not hasattr(client, 'load_schema')
   response = await client.complete('library', options={'enabled': True, 'count': 2, 'nullable': None})
   assert response.text == 'library' and response.usage['input'] == 3 and response.metadata['id'] == 'fake-response'
   response = await client.complete('attached', messages=[Message('assistant','prior')], schema={'type':'object'}, attachments=[Attachment('/work/shared.txt')], options={'temperature':0.7})

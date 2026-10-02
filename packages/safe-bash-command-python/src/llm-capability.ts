@@ -2,7 +2,7 @@ import type { HttpTransport } from "safe-bash-network-engine/types";
 import type { CommandContext } from "safe-bash-contracts";
 import type { LlmService, LlmServiceRequest, LlmServiceSourceRequest } from "safe-bash-command-llm/service";
 import type { LlmOption, LlmInputSource } from "safe-bash-command-llm/types";
-import { parseLlmSchemaDsl, createLlmInputBudget, loadLlmStoredSchema, selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
+import { parseLlmSchemaDsl, createLlmInputBudget, selectLlmModelByQuery, getLlmModelAliases, createLlmConfiguration, createLlmTemplateStore, evaluateLlmTemplate, findExtractedRange, llmTemplateUsesInput, validateLlmTemplateParameters, type LlmTemplateLoader } from 'safe-bash-command-llm';
 import { sniffMimeType } from "safe-bash-command-llm/mime";
 import { pathOf } from "safe-bash-io-engine/internal";
 import type { PythonHostCapability, PythonHostValue } from './host-capabilities.js';
@@ -424,20 +424,6 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         const result = sniffMimeType(payload.path, Uint8Array.from(prefix as number[]));
         jsonBytes(result,bufferedLimit);
         return result;
-      }
-      if (operation.operation === 'load_schema') {
-        const id = payload.schema_id;
-        if (typeof id !== 'string' || !id || id.includes('\0')) throw new TypeError('Stored schema ID must be a nonempty string');
-        const database = payload.database;
-        if (database !== undefined && (typeof database !== 'string' || !database || database.includes('\0'))) throw new TypeError('Schema database must be a nonempty canonical path');
-        const input = createLlmInputBudget(inputLimits, context.inputBudget);
-        const result = await loadLlmStoredSchema(configurationContext(context,payload,signal),id,{
-          ...(database === undefined ? {} : {database:database as string}),
-          maxBytes:Math.min(bufferedLimit,input.remaining(true)),
-          admitBytes(size) { input.admit(size, true); },
-        }) ?? null;
-        jsonBytes(result as PythonHostValue,bufferedLimit);
-        return result as PythonHostValue;
       }
       if (operation.operation === 'resolve_model') {
         const configuration = createLlmConfiguration(configurationContext(context,payload,signal));

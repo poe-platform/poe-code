@@ -1,6 +1,5 @@
 export { serializeLlmTokenUsage } from "./usage.js";
 export { createLlmInputBudget, type LlmInputLimits } from "./input-budget.js";
-export { loadLlmStoredSchema, loadLlmStoredSchemaJson, type LlmStoredSchemaOptions } from "./stored-schema.js";
 export * from "./provider-serialization.js";
 export { llmReferenceVersion, createLlmCommand, createLlmCommands, llmCommands } from "./command.js";
 export { createLlmService, type LlmService, type LlmServiceOptions, type LlmServiceModel, type LlmStreamEvent, type LlmServiceRequest, type LlmServiceSourceRequest } from "./service.js";
@@ -20,5 +19,3 @@ export { getLlmModelAliases, selectLlmModelByQuery } from "./model-selection.js"
 
 export { createLlmSpool } from "./retained-spool.js";
 export { openAiChatOptions } from "./openai-chat-options.js";
-
-export { visitLlmStoredSchemas, type LlmStoredSchemaUsage } from './history-schema-list.js';

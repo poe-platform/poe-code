@@ -9,7 +9,6 @@ export interface LlmSchemaInputOptions {
   readonly maxBytes?: number;
   readonly admitBytes?: (size: number) => void;
   readonly loadTemplate: (name: string) => Promise<LlmTemplate>;
-  readonly loadSchema?: (id: string) => Promise<Record<string, unknown> | undefined>;
 }
 
 /** Schemas are provider control objects; file reads retain identity and obey caller admission. */
@@ -49,7 +48,7 @@ export async function resolveLlmSchemaInput(
         } finally { await source.dispose(); }
         try { schema = JSON.parse(text); }
         catch { throw new Error('Schema file contained invalid JSON'); }
-      } else schema = await options.loadSchema?.(input);
+      }
     }
   }
   context.signal.throwIfAborted();

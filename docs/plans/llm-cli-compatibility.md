@@ -1,6 +1,8 @@
 # LLM CLI compatibility
 
-Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tree on 2026-09-28. Provider plugins are versioned independently. The target includes tools, fragments and schemas as well as the original issue feature families. A row marked incomplete remains required. Command rows track complete end-to-end parity; partial upstream delivery is recorded in the acceptance matrix below.
+Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tree on 2026-09-28. Provider plugins are versioned independently. The target includes tools, fragments and schemas as well as the original issue feature families. A row marked incomplete remains required within the user-defined boundary below. Command rows track complete end-to-end parity; partial upstream delivery is recorded in the acceptance matrix below.
+
+The LLM library must not own history or persistence, including through an optional history adapter. This requirement supersedes earlier full-parity plans for logs.db, history migrations, stored-schema lookup and persisted conversation continuation. Caller-supplied messages and schemas remain request data. Configuration/templates and stateless provider, model, Python and embedding behavior remain in scope.
 
 ## Command and flag inventory
 
@@ -34,13 +36,13 @@ Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tre
 | `llm keys list` |  | incomplete |
 | `llm keys path` |  | incomplete |
 | `llm keys set` | name; --value | incomplete |
-| `llm logs` |  | incomplete |
-| `llm logs backup` | path | incomplete |
-| `llm logs list` | -n/--count; -p/--path; -d/--database; -m/--model; -q/--query; --fragment/-f (repeatable); -T/--tool (repeatable); --tools; --schema; --schema-multi; -l/--latest; --data; --data-array; --data-key; --data-ids; -t/--truncate; -s/--short; -u/--usage; -r/--response; -x/--extract; --xl/--extract-last; -c/--current; --cid/--conversation; --id-gt; --id-gte; --json; --expand/-e | incomplete |
-| `llm logs off` |  | incomplete |
-| `llm logs on` |  | incomplete |
-| `llm logs path` |  | incomplete |
-| `llm logs status` |  | incomplete |
+| `llm logs` |  | Excluded: history belongs to the host |
+| `llm logs backup` | path | Excluded: history belongs to the host |
+| `llm logs list` | -n/--count; -p/--path; -d/--database; -m/--model; -q/--query; --fragment/-f (repeatable); -T/--tool (repeatable); --tools; --schema; --schema-multi; -l/--latest; --data; --data-array; --data-key; --data-ids; -t/--truncate; -s/--short; -u/--usage; -r/--response; -x/--extract; --xl/--extract-last; -c/--current; --cid/--conversation; --id-gt; --id-gte; --json; --expand/-e | Excluded: history belongs to the host |
+| `llm logs off` |  | Excluded: history belongs to the host |
+| `llm logs on` |  | Excluded: history belongs to the host |
+| `llm logs path` |  | Excluded: history belongs to the host |
+| `llm logs status` |  | Excluded: history belongs to the host |
 | `llm models` |  | incomplete |
 | `llm models default` | model | incomplete |
 | `llm models list` | --options; --async; --schemas; --tools; -q/--query (repeatable); -m/--model (repeatable) | incomplete |
@@ -53,10 +55,10 @@ Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tre
 | `llm openai models` | --json; --key | incomplete |
 | `llm plugins` | --all; --hook (repeatable) | incomplete |
 | `llm prompt` | prompt; -s/--system; -m/--model; -d/--database; -q/--query (repeatable); -a/--attachment (repeatable); --at/--attachment-type ×2 (repeatable); -T/--tool (repeatable); --functions (repeatable); --td/--tools-debug; --ta/--tools-approve; --cl/--chain-limit; -o/--option ×2 (repeatable); --schema; --schema-multi; -f/--fragment (repeatable); --sf/--system-fragment (repeatable); -t/--template; -p/--param ×2 (repeatable); --no-stream; -n/--no-log; --log; -c/--continue; --cid/--conversation; --key; --save; --async; -u/--usage; -x/--extract; --xl/--extract-last | incomplete |
-| `llm schemas` |  | incomplete |
+| `llm schemas` |  | Excluded: history belongs to the host |
 | `llm schemas dsl` | input; --multi | incomplete |
-| `llm schemas list` | -p/--path; -d/--database; -q/--query (repeatable); --full; --json; --nl | native usage listing, default group, summary/JSON outputs and public visitor delivered; 27 pinned CLI fixtures and bounded field reads qualified; external host remains incomplete |
-| `llm schemas show` | schema_id; -p/--path; -d/--database | native display, migration/WAL recovery and pinned output/error fixtures delivered; scalar JSON, large integers, float formatting and ordered keys qualified against pinned CLI; external-host qualification incomplete |
+| `llm schemas list` | -p/--path; -d/--database; -q/--query (repeatable); --full; --json; --nl | Excluded: history belongs to the host |
+| `llm schemas show` | schema_id; -p/--path; -d/--database | Excluded: history belongs to the host |
 | `llm similar` | collection; id; -i/--input; -c/--content; --binary; -n/--number; -p/--plain; -d/--database; --prefix | incomplete |
 | `llm templates` |  | incomplete |
 | `llm templates edit` | name | incomplete |
@@ -80,10 +82,10 @@ All rows require deterministic differential fixtures against the pinned distribu
 | Help, diagnostics, status | Leading `--version` and its value-rejection diagnostic now have pinned differential fixtures and an SDK reference-version export. Prompt `-u`/`--usage` now emits canonical token counts and details to stderr after successful completion, with bounded SDK/CLI serialization and pinned-reference fixtures. OpenAI JSON/SSE responses retain native fields and add canonical usage; streamed requests request usage explicitly. Command-tree inventory above; remaining differential formatting and exit status are incomplete. |
 | Streaming/binary/cancellation | Existing suites; partial errors and cleanup must remain covered. Shared structured events delivered. |
 | Templates/fragments | Named templates, parameters, saved attachment paths/types, loader callbacks and template schema propagation are delivered in canonical virtual storage. Fragments and final host qualification remain incomplete. |
-| Conversations/chat | Message contract delivered; persisted continuation and interactive chat incomplete. |
-| Schemas/tools | Per-model provider schemas, CLI schema DSL, prompt --schema/--schema-multi, template schema references and the shared SDK resolver are delivered. Stored schema IDs now resolve through bounded retained reads of checkpointed native logs.db in CLI and SDK, with selected-content admission and UTF-8/UTF-16 coverage. Schema show now calls the public loader with migration enabled, applies pinned migrations, recovers WAL/hot journals and reads native TEXT incrementally in at most 16 KiB transfers. Reference fixtures cover Unicode output, help, path/database aliases, diagnostics and UTF-16; a schema larger than 128 KiB exceeds scalar binding sizes without native whole-field reads. Schema writing/list, broader formatting/host qualification, remaining history, tools and chains remain incomplete. |
+| Conversations/chat | Caller-supplied messages are supported request data. Persistent continuation and conversation storage are host-owned and excluded from the library. Interactive chat remains incomplete. |
+| Schemas/tools | Per-model provider schemas, CLI schema DSL, prompt --schema/--schema-multi, template schema references and the shared SDK resolver are delivered. Stored-history schema ID lookup/list/show and migrations are removed by explicit user direction. Hosts supply schema objects, files or templates. Remaining tools, chains and hosted qualification remain incomplete. |
 | Input admission | CLI and Python now distinguish aggregate materialized-input admission (`maxBufferedInputBytes`) from total input (`maxInputBytes` plus the parent budget). Retained attachment and staged-stdin bytes bypass only the materialization allowance. Buffered fallbacks, schema/config/template acquisition and template expansion are admitted before retention. Caller-owned loaders still own pre-return acquisition; full streamed template/save preparation and final hosted qualification remain incomplete. |
-| Logs/history | Database capability and actual host implementation incomplete. A bounded SQLite record serializer now preserves native TEXT/BLOB serial types and signed integer widths (26 native fixtures). An isolated native SQLite probe read two streamed 16 MiB TEXT fields with 16 KiB serializer chunks and a fixed 17,432,576-byte WASM heap. Bounded retained-snapshot table/overflow reads now cover 47 native rows including signed rowid extremes, short reads, page-one schema records and corrupt chains; a 32 MiB native TEXT record reads through safe-fs with 4 KiB maximum reads. Atomic fixed-size snapshot patch publication and lazy native field decoding are delivered; schema-ID reads now use bounded table iteration. A source-set publication path now streams snapshot patches into caller-owned retained staging and validates the database plus WAL, rollback journal and shared-memory sidecars in one MemoryFileSystem commit. Stale sidecars preserve the entire destination set, and original retained readers survive retirement. Device and scoped views now forward this operation with source-route guards, operation/path admission, composed cancellation and preserved commit receipts. Quota and mount forwarding remain unqualified. Coherent retained source acquisition now uses authoritative synchronous binding guards, revalidates all four paths around bounded reads, and owns cleanup after partial acquisition. Its composition with the WAL reader matches native committed-row fixtures. Owned private storage now conditionally creates native files, verifies descriptor identity, and removes only matching entries through retained cleanup after cancellation. Native commit/rollback and active-transaction cancellation are covered; the native VFS path capacity accommodates generated private directory names. Canonical transaction orchestration now copies acquired source sets into owned native storage, recovers committed WAL pages and hot rollback journals, and atomically publishes guarded snapshots. WAL mode survives private DELETE-mode execution; cleanup failures after publication retain an explicit committed receipt. Native fixture, conflict, cancellation and quota regressions cover this path. Pinned history migrations now upgrade all 25 historical reference states through native SQL, retaining legacy logs, foreign keys, response search, unrelated data and custom indexed columns without materializing record payloads in JavaScript. Repeated migration, failure and cancellation are covered. External-backend qualification, transactional command wiring, indexing workflows, the remaining shared persistence APIs and Worker qualification remain required; this is not a delivered logging feature. |
+| Logs/history | Explicitly excluded by the user. LLM-owned history persistence, SQLite migrations, response/fragment/tool/attachment history storage and history-backed schema APIs are removed. The host owns persistence; the library accepts caller-supplied messages without retaining them for subsequent requests. |
 | Embeddings/collections/similarity | Shared embedding contract delivered; collection storage, import and similarity incomplete. |
 | Keys/plugins/install/configuration | Virtual key storage and --key alias resolution are delivered. Plugin/tool installation and final qualified host implementations remain incomplete. No ambient host access permitted. |
 | Packed consumer/workerd/Miniflare/hosted Poe | Required final acceptance, not established by unit tests. |

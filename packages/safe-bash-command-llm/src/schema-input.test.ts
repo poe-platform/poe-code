@@ -27,13 +27,11 @@ test('schema file admission rejects oversize controls before reading and always 
   assert.equal(closes, opens);
 });
 
-test('shared schema resolver supports host history lookup and rejects malformed controls and cancellation', async () => {
+test('shared schema resolver rejects unknown IDs, malformed controls and cancellation', async () => {
   const fs = new MemoryFileSystem();
   const controller = new AbortController();
   const context = {fs, cwd: '/', signal: controller.signal};
-  const schema = {type: 'object'};
-  const options = {loadTemplate: async () => ({name: 'empty'}), loadSchema: async (id: string) => id === 'stored-id' ? schema : undefined};
-  assert.deepEqual(await resolveLlmSchemaInput(context, 'stored-id', options), schema);
+  const options = {loadTemplate: async () => ({name: 'empty'})};
   await assert.rejects(resolveLlmSchemaInput(context, 'missing', options), /Invalid schema/);
   await assert.rejects(resolveLlmSchemaInput(context, 't:empty', options), /has no schema/);
   await fs.writeFile('/array', new TextEncoder().encode('[]'));

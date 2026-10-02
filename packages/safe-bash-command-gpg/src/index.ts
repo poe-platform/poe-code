@@ -446,7 +446,11 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         } else if (a === "--status-fd" && i + 1 < args.length) statusFd = args[++i];
         else if (a.startsWith("--status-fd=")) statusFd = a.slice("--status-fd=".length);
         else if ((a === "-o" || a === "--output") && i + 1 < args.length) outFile = args[++i];
-        else if (a.startsWith("-")) continue;
+        else if (a === "-a" || a === "--armor" || a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-q" || a === "--quiet" || a === "-s" || a === "--sign") continue;
+        else if (a.startsWith("-")) {
+          await writeText(context.stderr, `gpg: unknown option: ${a}\n`);
+          return { exitCode: 2 };
+        }
         else positionals.push(a);
       }
 

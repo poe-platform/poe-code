@@ -59,6 +59,13 @@ test("gpg command exports standard contract and settings", () => {
   assert.equal(settings().maxBufferedBytes, Infinity);
 });
 
+test("gpg rejects unknown options instead of reporting success", async () => {
+  const result = await runGpg(createMemoryFileSystem(), ["--unknown-nonexistent-flag"]);
+  assert.equal(result.exitCode, 2);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "gpg: unknown option: --unknown-nonexistent-flag\n");
+});
+
 test("gpg generates Ed25519 keys, lists keys, signs detached PGP signatures, and verifies them", async () => {
   const fs = createMemoryFileSystem();
 

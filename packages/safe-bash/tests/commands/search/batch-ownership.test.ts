@@ -28,6 +28,32 @@ test("rg flush gives output sinks bytes that survive reuse by another invocation
   assert.equal(Buffer.from(retained[0]!).toString(), "TENANT_FIRST\n");
 });
 
+test("concurrent search flushes preserve retained chunks from a private buffer", async () => {
+  const retained: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: "rg", args: [], cwd: "/", env: {}, fs: new MemoryFileSystem(),
+    stdin: toByteSource(""), signal: new AbortController().signal,
+    stdout: { async write(chunk) { retained.push(chunk); } },
+    stderr: { async write() {} },
+  };
+  const first = new Limits(context, {});
+  const second = new Limits(context, {});
+  // Keep the shared buffer occupied so the second invocation allocates its own.
+  await first.output("shared buffer occupied\n");
+  try {
+    for (const character of ["a", "b", "c"]) {
+      await second.output(character.repeat(65536));
+      await second.flush();
+    }
+    assert.deepEqual(retained.map(chunk => Buffer.from(chunk).toString()), [
+      "a".repeat(65536), "b".repeat(65536), "c".repeat(65536),
+    ]);
+  } finally {
+    await first.flush();
+    await second.flush();
+  }
+});
+
 test("text record offsets remain owned while another generator advances", async () => {
   const context: CommandContext = {
     command: "sed", args: [], cwd: "/", env: {}, fs: new MemoryFileSystem(),

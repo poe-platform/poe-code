@@ -2178,12 +2178,16 @@
       "import": "./dist/jobs.js"
     },
     "./mapfile": {
-      "types": "./dist/opt-in/entrypoints/mapfile.d.ts",
-      "import": "./dist/opt-in/entrypoints/mapfile.js"
+      "types": "./dist/shell/extensions/mapfile/index.d.ts",
+      "workerd": "./dist/shell/extensions/mapfile/index.js",
+      "browser": "./dist/shell/extensions/mapfile/index.js",
+      "import": "./dist/shell/extensions/mapfile/index.js"
     },
     "./read": {
-      "types": "./dist/opt-in/entrypoints/read.d.ts",
-      "import": "./dist/opt-in/entrypoints/read.js"
+      "types": "./dist/shell/extensions/read/index.d.ts",
+      "workerd": "./dist/shell/extensions/read/index.js",
+      "browser": "./dist/shell/extensions/read/index.js",
+      "import": "./dist/shell/extensions/read/index.js"
     },
     "./trap": {
       "types": "./dist/opt-in/entrypoints/trap.d.ts",

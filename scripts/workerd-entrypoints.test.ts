@@ -52,6 +52,7 @@ describe("built portable entrypoints", () => {
     "@poe-platform/safe-bash/contracts", "@poe-platform/safe-bash/contracts/index",
     "@poe-platform/safe-bash/contracts/path", "@poe-platform/safe-bash/commands/op",
     "@poe-platform/safe-bash/trap", "@poe-platform/safe-bash/shuf",
+    "@poe-platform/safe-bash/read", "@poe-platform/safe-bash/mapfile",
     "@poe-platform/safe-bash/yes", "@poe-platform/safe-bash/dd",
     "safe-bash-command-xz", "@poe-code/image-ast",
     "auth-store", "auth-store/portable", "mcp-oauth", "tiny-mcp-client",

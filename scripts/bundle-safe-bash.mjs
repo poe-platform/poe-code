@@ -1,4 +1,3 @@
-import { selectConditionalTarget } from "./package-export-target.mjs";
 import { build } from "esbuild";
 import { privateExportStarsPlugin } from "./private-export-stars.mjs";
 import { privateRuntimeExportResolver } from "./private-runtime-exports.mjs";
@@ -39,17 +38,14 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
       // need their own qualified build before they can be admitted here.
       for (const condition of Object.keys(target ?? {})) {
         if (condition !== "types" && condition !== "import" &&
-            !(portable && ["workerd", "worker", "browser", "node", "default"].includes(condition))) {
+            !(portable && ["workerd", "worker", "browser"].includes(condition) && target[condition] === target.import)) {
           throw new Error("Unsupported private command export condition: " + name + " " + condition);
         }
       }
-      const conditions = new Set(["workerd", "worker", "browser", "import", "default"]);
-      const runtime = portable ? selectConditionalTarget(target, conditions) : target?.import;
-      if (portable && runtime === null) continue;
-      const types = portable ? selectConditionalTarget(target?.types, conditions) : target?.types;
+      const runtime = target?.import;
       if (typeof runtime !== "string" || !runtime.startsWith("./dist/") || !runtime.endsWith(".js") ||
           runtime.split("/").some(component => component === ".." || component === "" || component.includes("\\") || component.includes("*")) ||
-          types !== runtime.slice(0, -3) + ".d.ts") {
+          target.types !== runtime.slice(0, -3) + ".d.ts") {
         throw new Error("Invalid private command build entrypoint: " + name);
       }
       // Independent workspace bundles erase dependency identities. Re-enter
@@ -127,6 +123,10 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     "safe-bash-regex-engine": path.join(rootDir, "packages/safe-bash-regex-engine/src"),
     "safe-bash-network-engine": path.join(rootDir, "packages/safe-bash-network-engine/src"),
     "safe-bash-command-op": path.join(rootDir, "packages/safe-bash-command-op/src/index.ts"),
+    "safe-bash-command-mcp": path.join(rootDir, "packages/safe-bash-command-mcp/src/index.browser.ts"),
+    "auth-store": path.join(rootDir, "packages/auth-store/src/index.browser.ts"),
+    "mcp-oauth": path.join(rootDir, "packages/mcp-oauth/src/index.browser.ts"),
+    "tiny-mcp-client": path.join(rootDir, "packages/tiny-mcp-client/src/index.browser.ts"),
     // Pandoc prepares its portable third-party adapters in the workspace build.
     "safe-bash-command-pandoc": path.join(rootDir, "packages/safe-bash-command-pandoc/dist"),
     "@poe-code/safe-fs": "poe-code/safe-fs",

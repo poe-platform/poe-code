@@ -361,3 +361,44 @@ test("25. arithmetic-for function call with unquoted induction variable argument
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout.trim(), "19|10");
 });
+
+test("26. fast-forwarded glob loop enforces maxFileSystemOperations budget instead of treating pattern as literal", async () => {
+  const env = createTestShell({ limits: { maxFileSystemOperations: 25 } });
+  await env.shell.exec("mkdir -p /work && touch /work/f_1.txt /work/f_2.txt /work/f_3.txt");
+  await assert.rejects(
+    () =>
+      env.shell.exec(`
+        for ((r=0; r<20; r++)); do
+          for f in /work/f_*.txt; do
+            :
+          done
+        done
+      `),
+    /maxFileSystemOperations/
+  );
+});
+
+test("27. static case fast-forward respects shopt nocasematch, declare -u/-l attributes, and namerefs", async () => {
+  const env = createTestShell();
+  const res = await env.shell.exec(`
+    shopt -s nocasematch
+    x="FOO"
+    for ((i=0; i<5; i++)); do
+      case "$x" in
+        foo) out="matched_nocase" ;;
+        *) out="missed" ;;
+      esac
+    done
+    declare -n ref=target
+    shopt -u nocasematch
+    y="bar"
+    for ((i=0; i<5; i++)); do
+      case "$y" in
+        bar) ref="via_nameref" ;;
+      esac
+    done
+    echo "$out|$target"
+  `);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stdout.trim(), "matched_nocase|via_nameref");
+});

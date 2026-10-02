@@ -12893,24 +12893,20 @@ export class Runtime {
       cachedGlob.found.length < this.budget.limits.maxExpansionFields &&
       cachedGlob.totalBytes <= this.budget.limits.maxExpansionBytes
     ) {
-      if (dryRun) {
-        if (this.budget.limits.maxFileSystemOperations - this.budget.fileSystemOperations < (entries.size + 2) * 256) return undefined;
-        return [];
-      }
-      if ((this.budget.fileSystemOperations + entries.size + 4) >= this.budget.limits.maxFileSystemOperations) return undefined;
-      this.budget._fileSystemOperations += 1 + cachedGlob.matchedCount;
+      if (dryRun) return [];
+      const nextFsOps = this.budget._fileSystemOperations + 1 + cachedGlob.matchedCount;
+      if (nextFsOps > this.budget.limits.maxFileSystemOperations) this.budget.fail("maxFileSystemOperations");
+      this.budget._fileSystemOperations = nextFsOps;
       return cachedGlob.found;
     }
     const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
     if (dryRun) {
-      if (this.budget.limits.maxFileSystemOperations - this.budget.fileSystemOperations < (entries.size + 2) * 256) return undefined;
       for (const name of entries.keys()) {
         for (let c = 0; c < name.length; c++) if (name.charCodeAt(c) >= 128) return undefined;
         if (tryMatchesPatternSync(name, globSeg, work) === undefined) return undefined;
       }
       return [];
     }
-    if ((this.budget.fileSystemOperations + entries.size + 4) >= this.budget.limits.maxFileSystemOperations) return undefined;
     this.budget.fileSystemOperation();
     const found: string[] = [];
     let totalBytes = 0;
@@ -16944,7 +16940,9 @@ export class Runtime {
             }
             if (
               st0.listOperator === undefined &&
-              st0.caseClauses !== undefined
+              st0.caseClauses !== undefined &&
+              !rawState.nocasematch &&
+              !rawState.extglob
             ) {
               const cCache = (st0 as { _cachedStaticCase?: { isStaticPatterns: boolean; subjVar: string | undefined; constAssignName: string | undefined; constAssignVal: string | undefined } })._cachedStaticCase;
               if (
@@ -16952,9 +16950,11 @@ export class Runtime {
                 cCache.isStaticPatterns &&
                 cCache.subjVar !== undefined &&
                 cCache.subjVar !== inductionName &&
+                !rawState.variableAttributes?.get(cCache.subjVar) &&
                 cCache.constAssignName !== undefined &&
                 cCache.constAssignName !== cCache.subjVar &&
-                cCache.constAssignName !== inductionName
+                cCache.constAssignName !== inductionName &&
+                !rawState.variableAttributes?.get(cCache.constAssignName)
               ) {
                 const rem = limit - (curInd + 1);
                 this.budget.iterations += rem;
@@ -16976,8 +16976,10 @@ export class Runtime {
               const noOpCount = (st0.nestedLoop as { _lastNoOpWordCount?: number })._lastNoOpWordCount;
               if (noOpCount !== undefined) {
                 const rem = limit - (curInd + 1);
-                if (this.budget._fileSystemOperations + rem <= this.budget.limits.maxFileSystemOperations) {
-                  this.budget._fileSystemOperations += rem;
+                const fsOpsNeeded = rem * (1 + noOpCount);
+                if (this.budget._fileSystemOperations + fsOpsNeeded > this.budget.limits.maxFileSystemOperations) this.budget.fail("maxFileSystemOperations");
+                {
+                  this.budget._fileSystemOperations += fsOpsNeeded;
                   this.budget.iterations += rem * (1 + noOpCount);
                   this.budget.commands += rem * (1 + noOpCount * st0.nestedLoop.steps.length);
                   this.budget.parsing.admit(rem * 4);
@@ -17661,7 +17663,7 @@ export class Runtime {
       cache = { isStaticPatterns, subjVar, lastSubj: undefined, lastChosen: undefined, constAssignName: undefined, constAssignVal: undefined };
       (step as { _cachedStaticCase?: StaticCaseCache })._cachedStaticCase = cache;
     }
-    const subj = (cache.subjVar !== undefined && this._syncArithRawWriteOnly)
+    const subj = (cache.subjVar !== undefined && this._syncArithRawWriteOnly && !rawState.variableAttributes?.get(cache.subjVar))
       ? (this.budget.parsing.admit(2), rawState.variables[cache.subjVar] ?? "")
       : (this.fastValueWord(step.caseSubject!, rawState, io, false, false, false, false, 0, step.line) as string);
     let chosen: readonly SyncLoopStep[] | undefined;
@@ -17673,19 +17675,19 @@ export class Runtime {
         const cl = step.caseClauses![ci]!;
         for (let pi = 0; pi < cl.patterns.length; pi++) {
           const pattern = this.tryBuildSyncPatternWord(cl.patterns[pi]!, rawState, io, step.line);
-          if (pattern !== undefined && tryMatchesPatternSync(pattern, subj, work, false, false)) {
+          if (pattern !== undefined && tryMatchesPatternSync(pattern, subj, work, Boolean(rawState.nocasematch), Boolean(rawState.extglob))) {
             chosen = cl.steps;
             break;
           }
         }
         if (chosen) break;
       }
-      if (cache.isStaticPatterns) {
+      if (cache.isStaticPatterns && !rawState.nocasematch && !rawState.extglob) {
         cache.lastSubj = subj;
         cache.lastChosen = chosen;
         const c0 = chosen?.length === 1 ? chosen[0]! : undefined;
         if (c0 && c0.listOperator === undefined && c0.name !== undefined && !c0.append && c0.value?.plain !== undefined && c0.targetWord === undefined) {
-          cache.constAssignName = c0.name;
+          cache.constAssignName = resolveSyncNameref(rawState, c0.name);
           cache.constAssignVal = c0.value.plain;
         } else {
           cache.constAssignName = undefined;

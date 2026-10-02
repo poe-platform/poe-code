@@ -1,4 +1,11 @@
 export * from "./runtime-core.js";
+export {
+  MemoryFileSystem, MemoryRedirectHandle, createMemoryFileSystem, defaultMemoryFileSystemLimits,
+  bindConditionalMutation, getLastReadMemoryFileSourceRef, isCleanAbsolutePath,
+  tryGetMemoryDirectoryEntryNamesSync, tryMkdirMemorySync, tryOpenMemoryRedirectHandleSync,
+  tryReadMemoryFileViewSync, tryResolveMemoryDevicePath, tryRmRfMemorySync,
+  tryWriteMemoryFileInDirSync, tryWriteMemoryFileSync, utf8ByteLength
+} from "./fs/memory/index.js";
 export * from "./fs/readonly/index.js";
 export * from "./fs/mount/index.js";
 export * from "./fs/overlay/index.js";

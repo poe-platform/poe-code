@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import * as shared from "@poe-code/safe-fs";
+import * as core from "@poe-code/safe-fs/core";
 import * as contracts from "@poe-code/safe-fs/contracts";
 import * as memory from "@poe-code/safe-fs/fs/memory";
 import * as real from "@poe-code/safe-fs/fs/real";
@@ -17,6 +18,13 @@ const manifest: { dependencies?: Record<string, string> } = JSON.parse(
 );
 
 describe("public package boundary", () => {
+  it("preserves the complete memory API through root and portable entries", () => {
+    for (const name of Object.keys(memory)) {
+      expect(Reflect.get(shared, name), `root ${name}`).toBe(Reflect.get(memory, name));
+      expect(Reflect.get(core, name), `core ${name}`).toBe(Reflect.get(memory, name));
+    }
+  });
+
   it("is a private ESM extraction using shared portable XML and signing libraries", () => {
     expect(manifest).toMatchObject({
       name: "@poe-code/safe-fs",

@@ -9,14 +9,20 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./xz-list": {
       "types": "./dist/xz-list.d.ts",
+      "workerd": "./dist/xz-list.js",
+      "browser": "./dist/xz-list.js",
       "import": "./dist/xz-list.js"
     }
   },

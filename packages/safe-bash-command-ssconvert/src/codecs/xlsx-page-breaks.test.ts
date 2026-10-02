@@ -1,6 +1,6 @@
 import { expect, it, vi } from "vitest";
 import { createZipCodec } from "@poe-code/office-package";
-import { suppliedDefaultFont } from "@poe-code/pdf";
+import { suppliedDefaultFont } from "safe-bash-pdf-engine";
 import { PDFDocument, PDFPage } from "pdf-lib";
 import type { CapabilityContext } from "../contracts.js";
 import type { ImportedValue, Workbook } from "../workbook.js";

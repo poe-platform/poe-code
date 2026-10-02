@@ -9,30 +9,44 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./io": {
       "types": "./dist/io.d.ts",
+      "workerd": "./dist/io.js",
+      "browser": "./dist/io.js",
       "import": "./dist/io.js"
     },
     "./names": {
       "types": "./dist/names.d.ts",
+      "workerd": "./dist/names.js",
+      "browser": "./dist/names.js",
       "import": "./dist/names.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./outputs": {
       "types": "./dist/outputs.d.ts",
+      "workerd": "./dist/outputs.js",
+      "browser": "./dist/outputs.js",
       "import": "./dist/outputs.js"
     },
     "./split": {
       "types": "./dist/split.d.ts",
+      "workerd": "./dist/split.js",
+      "browser": "./dist/split.js",
       "import": "./dist/split.js"
     }
   },

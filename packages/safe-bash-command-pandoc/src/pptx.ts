@@ -5,7 +5,7 @@ import {
   readLayouts, removeSlides, addSlide, readImages, Shape, PP_PLACEHOLDER_TYPE,
   type PresentationContext, type SelectionContext, type ParagraphBullet, type LayoutRecord, type Paragraph,
   OfficeError
-} from "pptx";
+} from "safe-bash-pptx-engine";
 import type { Attr, Block, Inline, Row } from "./ast-types.js";
 import type { AdapterContext, Document, ReaderCapability, WriterCapability } from "./types.js";
 import { PandocError } from "./errors.js";

@@ -9,18 +9,26 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./classify": {
       "types": "./dist/classify.d.ts",
+      "workerd": "./dist/classify.js",
+      "browser": "./dist/classify.js",
       "import": "./dist/classify.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./shared": {
       "types": "./dist/shared.d.ts",
+      "workerd": "./dist/shared.js",
+      "browser": "./dist/shared.js",
       "import": "./dist/shared.js"
     }
   },

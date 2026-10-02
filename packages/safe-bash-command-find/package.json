@@ -9,18 +9,26 @@
   "exports": {
     "./find-format": {
       "types": "./dist/find-format.d.ts",
+      "workerd": "./dist/find-format.js",
+      "browser": "./dist/find-format.js",
       "import": "./dist/find-format.js"
     },
     "./find": {
       "types": "./dist/find.d.ts",
+      "workerd": "./dist/find.js",
+      "browser": "./dist/find.js",
       "import": "./dist/find.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     }
   },

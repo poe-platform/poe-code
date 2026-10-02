@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test, { after, before, mock } from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, readMedia } from "pptx";
-import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
-import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
+import { createPptxCommandEngine, readMedia } from "safe-bash-pptx-engine";
+import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

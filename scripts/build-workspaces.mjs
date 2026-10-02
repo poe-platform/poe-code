@@ -636,8 +636,8 @@ function unitChildEnvironment(rootDirectory, environment) {
 }
 
 const priorityUnitWorkspaces = new Map([
-  ["@poe-code/safe-js", 1], ["docx", 2], ["safe-bash-command-ssconvert", 3],
-  ["safe-bash-command-pandoc", 4], ["xlsx", 5], ["pptx", 6], ["@poe-code/safe-playwright-cloudflare", 7]
+  ["@poe-code/safe-js", 1], ["safe-bash-docx-engine", 2], ["safe-bash-command-ssconvert", 3],
+  ["safe-bash-command-pandoc", 4], ["xlsx", 5], ["safe-bash-pptx-engine", 6], ["@poe-code/safe-playwright-cloudflare", 7]
 ]);
 
 export async function testWorkspaces(rootDirectory, options = {}) {

@@ -233,7 +233,7 @@
         "^build"
       ]
     },
-    "docx#test:unit": {
+    "safe-bash-docx-engine#test:unit": {
       "dependsOn": [
         "build"
       ],

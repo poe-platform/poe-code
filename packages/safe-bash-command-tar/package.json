@@ -9,42 +9,62 @@
   "exports": {
     "./create": {
       "types": "./dist/create.d.ts",
+      "workerd": "./dist/create.js",
+      "browser": "./dist/create.js",
       "import": "./dist/create.js"
     },
     "./extract": {
       "types": "./dist/extract.d.ts",
+      "workerd": "./dist/extract.js",
+      "browser": "./dist/extract.js",
       "import": "./dist/extract.js"
     },
     "./format": {
       "types": "./dist/format.d.ts",
+      "workerd": "./dist/format.js",
+      "browser": "./dist/format.js",
       "import": "./dist/format.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./listing": {
       "types": "./dist/listing.d.ts",
+      "workerd": "./dist/listing.js",
+      "browser": "./dist/listing.js",
       "import": "./dist/listing.js"
     },
     "./modes": {
       "types": "./dist/modes.d.ts",
+      "workerd": "./dist/modes.js",
+      "browser": "./dist/modes.js",
       "import": "./dist/modes.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./stream": {
       "types": "./dist/stream.d.ts",
+      "workerd": "./dist/stream.js",
+      "browser": "./dist/stream.js",
       "import": "./dist/stream.js"
     },
     "./transform": {
       "types": "./dist/transform.d.ts",
+      "workerd": "./dist/transform.js",
+      "browser": "./dist/transform.js",
       "import": "./dist/transform.js"
     }
   },

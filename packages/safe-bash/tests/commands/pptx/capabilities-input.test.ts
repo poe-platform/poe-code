@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test, { after, before, mock } from "node:test";
 import { Volume } from "memfs";
-import { createPresentation, createPptxCommandEngine } from "pptx";
-import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
-import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
-import { parseXmlPart } from "../../../../pptx/src/xml.js";
+import { createPresentation, createPptxCommandEngine } from "safe-bash-pptx-engine";
+import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
+import { parseXmlPart } from "../../../../safe-bash-pptx-engine/src/xml.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, toByteSource } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

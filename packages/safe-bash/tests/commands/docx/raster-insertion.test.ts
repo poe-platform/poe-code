@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createDocxInspectionCommandEngine } from "../../../../docx/src/inspection-command.js";
-import { paragraph, table, textFixture, textContext } from "../../../../docx/tests/fixtures/text.js";
-import { rasterPng, rasterJpeg, rasterGif } from "../../../../docx/tests/fixtures/raster.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
+import { paragraph, table, textFixture, textContext } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
+import { rasterPng, rasterJpeg, rasterGif } from "../../../../safe-bash-docx-engine/tests/fixtures/raster.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { FsError } from "../../../src/contracts/errors.js";

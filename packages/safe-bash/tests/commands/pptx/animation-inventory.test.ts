@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
-import { createPresentation, createPptxCommandEngine, readAnimations } from "pptx";
-import { readPackage } from "../../../../pptx/src/package-reader.js";
-import { writePackageArchive } from "../../../../pptx/src/package-writer.js";
-import { parseXmlPart } from "../../../../pptx/src/xml.js";
+import { createPresentation, createPptxCommandEngine, readAnimations } from "safe-bash-pptx-engine";
+import { readPackage } from "../../../../safe-bash-pptx-engine/src/package-reader.js";
+import { writePackageArchive } from "../../../../safe-bash-pptx-engine/src/package-writer.js";
+import { parseXmlPart } from "../../../../safe-bash-pptx-engine/src/xml.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

@@ -23,7 +23,7 @@ import {
   mutatePresentationSettings,
   readPresentationSettings,
   readSelectionIndex
-} from "pptx";
+} from "safe-bash-pptx-engine";
 
 test("pptx groups retain geometry and identities through a quoted shell script and byte SDK", async () => {
   const f = fixture();
@@ -72,8 +72,8 @@ test("pptx shapes uses quoted names and explicit units with SDK-equivalent publi
   assert.equal(invalid.exitCode, 2);
   assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/changed.pptx") as Buffer), output);
 });
-import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
-import { readPackage } from "../../../../pptx/src/package-reader.js";
+import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { readPackage } from "../../../../safe-bash-pptx-engine/src/package-reader.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -1086,7 +1086,7 @@ test("pptx sections and shows preserve quoted empty names and shell pipeline byt
 });
 
 test("pptx images add carries explicit bytes and sizing through virtual scripts and the SDK", async () => {
-  const { addImage, readImages } = await import("pptx");
+  const { addImage, readImages } = await import("safe-bash-pptx-engine");
   const f = fixture();
   const input = await createPresentation({ slides: [{}] }, context);
   const image = new Uint8Array([71,73,70,56,57,97,1,0,1,0,128,0,0,0,0,0,255,255,255,33,249,4,1,0,0,0,0,44,0,0,0,0,1,0,1,0,0,2,2,68,1,0,59]);

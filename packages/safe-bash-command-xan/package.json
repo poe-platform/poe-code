@@ -9,46 +9,68 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./argv": {
       "types": "./dist/argv.d.ts",
+      "workerd": "./dist/argv.js",
+      "browser": "./dist/argv.js",
       "import": "./dist/argv.js"
     },
     "./budget": {
       "types": "./dist/budget.d.ts",
+      "workerd": "./dist/budget.js",
+      "browser": "./dist/budget.js",
       "import": "./dist/budget.js"
     },
     "./commands": {
       "types": "./dist/commands.d.ts",
+      "workerd": "./dist/commands.js",
+      "browser": "./dist/commands.js",
       "import": "./dist/commands.js"
     },
     "./csv": {
       "types": "./dist/csv.d.ts",
+      "workerd": "./dist/csv.js",
+      "browser": "./dist/csv.js",
       "import": "./dist/csv.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./io": {
       "types": "./dist/io.d.ts",
+      "workerd": "./dist/io.js",
+      "browser": "./dist/io.js",
       "import": "./dist/io.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./selector": {
       "types": "./dist/selector.d.ts",
+      "workerd": "./dist/selector.js",
+      "browser": "./dist/selector.js",
       "import": "./dist/selector.js"
     },
     "./sort": {
       "types": "./dist/sort.d.ts",
+      "workerd": "./dist/sort.js",
+      "browser": "./dist/sort.js",
       "import": "./dist/sort.js"
     },
     "./writer": {
       "types": "./dist/writer.d.ts",
+      "workerd": "./dist/writer.js",
+      "browser": "./dist/writer.js",
       "import": "./dist/writer.js"
     }
   },

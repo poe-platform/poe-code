@@ -11,38 +11,56 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./budget": {
       "types": "./dist/budget.d.ts",
+      "workerd": "./dist/budget.js",
+      "browser": "./dist/budget.js",
       "import": "./dist/budget.js"
     },
     "./entities": {
       "types": "./dist/entities.d.ts",
+      "workerd": "./dist/entities.js",
+      "browser": "./dist/entities.js",
       "import": "./dist/entities.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./input": {
       "types": "./dist/input.d.ts",
+      "workerd": "./dist/input.js",
+      "browser": "./dist/input.js",
       "import": "./dist/input.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./parser": {
       "types": "./dist/parser.d.ts",
+      "workerd": "./dist/parser.js",
+      "browser": "./dist/parser.js",
       "import": "./dist/parser.js"
     },
     "./render": {
       "types": "./dist/render.d.ts",
+      "workerd": "./dist/render.js",
+      "browser": "./dist/render.js",
       "import": "./dist/render.js"
     },
     "./text": {
       "types": "./dist/text.d.ts",
+      "workerd": "./dist/text.js",
+      "browser": "./dist/text.js",
       "import": "./dist/text.js"
     }
   },

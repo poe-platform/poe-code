@@ -2,7 +2,7 @@ import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import type { CapabilityContext } from "../contracts.js";
 import { createZipCodec } from "@poe-code/office-package";
-import { suppliedDefaultFont } from "@poe-code/pdf";
+import { suppliedDefaultFont } from "safe-bash-pdf-engine";
 import { createEngine, runCommand } from "../index.js";
 import { createXlsxWriter, readXlsx } from "./xlsx.js";
 import { readGnumeric } from "./gnumeric.js";

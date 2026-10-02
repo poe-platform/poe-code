@@ -60,7 +60,7 @@ test("committed workspace build metadata is authenticated with the source archiv
     }
     throw error;
   }
-  const names = new Set(["safe-bash-command-pandoc", "@poe-code/pdf", ...Object.keys(candidate.manifest.poeCode.integration.privateWorkspaces)]);
+  const names = new Set(["safe-bash-command-pandoc", "safe-bash-pdf-engine", ...Object.keys(candidate.manifest.poeCode.integration.privateWorkspaces)]);
   for (const name of names) {
     const path = `${candidate.lock.packages[`node_modules/${name}`].resolved}/package.json`;
     assert.ok(candidate.blobReads.includes(path), `missing committed build metadata: ${path}`);
@@ -1618,7 +1618,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     // This synthetic S3 fixture has no SafeJS sources or public peer entry.
     delete manifest.devDependencies["@poe-code/safe-js"];
     // This synthetic S3 fixture has no media sources or declaration dependency.
-    delete manifest.devDependencies["@poe-code/media-cli"];
+    delete manifest.devDependencies["safe-bash-media-engine"];
     delete manifest.devDependencies["@poe-code/remote-execution"];
     // This synthetic S3 fixture has no Pandoc sources or declaration dependency.
     delete manifest.devDependencies["safe-bash-command-pandoc"];
@@ -1627,7 +1627,7 @@ async function withRepository(change, run, { localTypes = false } = {}) {
     // This synthetic S3 fixture has no spreadsheet sources or public peer entry.
     delete manifest.devDependencies["@poe-code/ssconvert"];
     // This synthetic S3 fixture has no PDF SDK sources or declaration dependency.
-    delete manifest.devDependencies["@poe-code/pdf"];
+    delete manifest.devDependencies["safe-bash-pdf-engine"];
     // Its synthetic S3 sources do not import private command contracts or implementations.
     for (const name of Object.keys(manifest.poeCode?.integration?.privateWorkspaces ?? {})) {
       delete manifest.devDependencies[name];

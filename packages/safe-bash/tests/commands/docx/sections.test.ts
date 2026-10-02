@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createDocumentArchive, parseDocumentXml, writeArchive, type XmlElement } from "../../../../docx/src/index.js";
-import { createDocxInspectionCommandEngine } from "../../../../docx/src/inspection-command.js";
+import { createDocumentArchive, parseDocumentXml, writeArchive, type XmlElement } from "../../../../safe-bash-docx-engine/src/index.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import type { FileStat, FileSystem } from "../../../src/contracts/filesystem.js";
 import { FsError } from "../../../src/contracts/errors.js";
@@ -242,7 +242,7 @@ test("docx list creation and restarts publish through the optional Shell with in
     assert.equal(append.exitCode, 0, append.stderr);
     const restart = await shell.exec('docx lists set source.docx --paragraph 4 --restart true --start 4 --output restarted.docx --json');
     assert.equal(restart.exitCode, 0, restart.stderr);
-    const { readDocumentArchive } = await import("../../../../docx/src/index.js");
+    const { readDocumentArchive } = await import("../../../../safe-bash-docx-engine/src/index.js");
     const archive = await readDocumentArchive(new Uint8Array(volume.readFileSync("/work/restarted.docx") as Uint8Array), context);
     const edge = archive.package.relationships("/" + archive.mainPart).find(e => e.reltype.endsWith("/numbering"))!;
     const numbering = parseDocumentXml(edge.target_part.bytes).root;

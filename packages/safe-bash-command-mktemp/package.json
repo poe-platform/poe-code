@@ -9,10 +9,14 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./command": {
       "types": "./dist/command.d.ts",
+      "workerd": "./dist/command.js",
+      "browser": "./dist/command.js",
       "import": "./dist/command.js"
     }
   },

@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { signatureFixture } from "../../../../docx/tests/fixtures/signatures.js";
-import { textContext } from "../../../../docx/tests/fixtures/text.js";
-import { inspectDocumentSignatures } from "../../../../docx/src/index.js";
-import { createDocxInspectionCommandEngine } from "../../../../docx/src/inspection-command.js";
+import { signatureFixture } from "../../../../safe-bash-docx-engine/tests/fixtures/signatures.js";
+import { textContext } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
+import { inspectDocumentSignatures } from "../../../../safe-bash-docx-engine/src/index.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { agentCommands } from "../../../src/plugins/index.js";

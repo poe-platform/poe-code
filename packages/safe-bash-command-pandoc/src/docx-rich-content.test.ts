@@ -1,4 +1,4 @@
-import "docx";
+import "safe-bash-docx-engine";
 import {expect, it} from "vitest";
 import {encode as jpeg} from "jpeg-js";
 import {readZipArchiveEntries} from "@poe-code/office-package/zip-sync";

@@ -9,34 +9,50 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./column": {
       "types": "./dist/column.d.ts",
+      "workerd": "./dist/column.js",
+      "browser": "./dist/column.js",
       "import": "./dist/column.js"
     },
     "./display": {
       "types": "./dist/display.d.ts",
+      "workerd": "./dist/display.js",
+      "browser": "./dist/display.js",
       "import": "./dist/display.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./internal": {
       "types": "./dist/internal.d.ts",
+      "workerd": "./dist/internal.js",
+      "browser": "./dist/internal.js",
       "import": "./dist/internal.js"
     },
     "./layout": {
       "types": "./dist/layout.d.ts",
+      "workerd": "./dist/layout.js",
+      "browser": "./dist/layout.js",
       "import": "./dist/layout.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./table": {
       "types": "./dist/table.d.ts",
+      "workerd": "./dist/table.js",
+      "browser": "./dist/table.js",
       "import": "./dist/table.js"
     }
   },

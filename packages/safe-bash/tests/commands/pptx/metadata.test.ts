@@ -1,12 +1,12 @@
 import assert from "node:assert/strict";
 import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, createPresentation, mutateProperty, mutateTags, readProperties, readTags } from "pptx";
+import { createPptxCommandEngine, createPresentation, mutateProperty, mutateTags, readProperties, readTags } from "safe-bash-pptx-engine";
 import { compileJsonSchema } from "toolcraft-schema";
 import { SaxesParser } from "saxes";
-import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
-import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
-import { parseXmlPart } from "../../../../pptx/src/xml.js";
+import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
+import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { parseXmlPart } from "../../../../safe-bash-pptx-engine/src/xml.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

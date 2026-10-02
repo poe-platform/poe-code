@@ -290,14 +290,14 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         }
         toolRoots.push(join(implementationRoot, "dist"));
       }
-      if (manifest.devDependencies?.["@poe-code/media-cli"] !== undefined) {
+      if (manifest.devDependencies?.["safe-bash-media-engine"] !== undefined) {
         const packages = {
-          "media-cli": { dependencies: { saxes: "^6.0.0", "@poe-code/remote-execution": "*", "@poe-code/safe-fs": "*", "@noble/hashes": "2.4.0" }, routes: { ".": "index" } },
-          "remote-execution": { dependencies: { "@poe-code/safe-fs": "*" }, routes: { ".": "index", "./protocol": "protocol", "./binary": "binary", "./wire": "wire.generated" } },
+          "safe-bash-media-engine": { dependencies: { saxes: "^6.0.0", "@poe-code/remote-execution": "*", "@poe-code/safe-fs": "*", "@noble/hashes": "2.4.0" }, routes: { ".": "index" } },
+          "@poe-code/remote-execution": { dependencies: { "@poe-code/safe-fs": "*" }, routes: { ".": "index", "./protocol": "protocol", "./binary": "binary", "./wire": "wire.generated" } },
         };
         peerPaths ??= {};
-        for (const [directory, profile] of Object.entries(packages)) {
-          const name = "@poe-code/" + directory;
+        for (const [name, profile] of Object.entries(packages)) {
+          const directory = name.split("/").at(-1);
           assert.equal(manifest.devDependencies[name], "*", "media declarations require explicit local build dependencies");
           const implementationRoot = resolve(root, "../" + directory);
           const metadata = join(implementationRoot, "package.json");
@@ -461,32 +461,32 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           }
         }
       }
-      if (manifest.devDependencies?.["@poe-code/pdf"] !== undefined) {
+      if (manifest.devDependencies?.["safe-bash-pdf-engine"] !== undefined) {
         assert.equal(manifest.private, true, "PDF SDK build dependency is internal only");
-        assert.equal(manifest.devDependencies["@poe-code/pdf"], "*", "PDF SDK build dependency must be the local workspace");
+        assert.equal(manifest.devDependencies["safe-bash-pdf-engine"], "*", "PDF SDK build dependency must be the local workspace");
         const exports = { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } };
         const packageExports = {
-          pdf: exports,
-          "pdf-ast": exports,
+          "safe-bash-pdf-engine": exports,
+          "@poe-code/pdf-ast": exports,
         };
         const packages = {
-          pdf: { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1" },
-          "pdf-ast": { pako: "3.0.1" },
+          "safe-bash-pdf-engine": { "pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1" },
+          "@poe-code/pdf-ast": { pako: "3.0.1" },
         };
         peerPaths ??= {};
         for (const [name, dependencies] of Object.entries(packages)) {
-          const dependencyRoot = resolve(root, "../" + name);
+          const dependencyRoot = resolve(root, "../" + name.split("/").at(-1));
           const metadataPath = join(dependencyRoot, "package.json");
           peerMetadata.add(metadataPath);
           const dependency = JSON.parse(read(metadataPath, 64 * 1024));
-          assert.equal(dependency.name, "@poe-code/" + name, "PDF SDK dependency identity");
+          assert.equal(dependency.name, name, "PDF SDK dependency identity");
           assert.equal(dependency.version, "0.0.1", "PDF SDK dependency version");
           assert.equal(dependency.private, true, "PDF SDK implementation must remain private");
           assert.deepEqual(dependency.dependencies, dependencies, "PDF SDK dependency closure");
           assert.deepEqual(dependency.exports, packageExports[name], "PDF SDK declaration exports");
           toolRoots.push(join(dependencyRoot, "dist"));
           for (const [subpath, entry] of Object.entries(packageExports[name])) {
-            peerPaths["@poe-code/" + name + (subpath === "." ? "" : subpath.slice(1))] = [resolve(dependencyRoot, entry.types)];
+            peerPaths[name + (subpath === "." ? "" : subpath.slice(1))] = [resolve(dependencyRoot, entry.types)];
           }
         }
       }

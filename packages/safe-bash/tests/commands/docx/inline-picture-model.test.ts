@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { Document } from "../../../../docx/src/index.js";
-import { paragraph, textFixture, textContext } from "../../../../docx/tests/fixtures/text.js";
-import { rasterPng } from "../../../../docx/tests/fixtures/raster.js";
-import { createDocxInspectionCommandEngine } from "../../../../docx/src/inspection-command.js";
+import { Document } from "../../../../safe-bash-docx-engine/src/index.js";
+import { paragraph, textFixture, textContext } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
+import { rasterPng } from "../../../../safe-bash-docx-engine/tests/fixtures/raster.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { agentCommands } from "../../../src/plugins/index.js";

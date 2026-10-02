@@ -1,4 +1,4 @@
-import "docx/pandoc-adapter";
+import "safe-bash-docx-engine/pandoc-adapter";
 import {expect, it} from "vitest";
 import {Volume} from "memfs";
 import {createStoredZipArchive, readZipArchiveEntries} from "@poe-code/office-package/zip-sync";

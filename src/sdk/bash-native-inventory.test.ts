@@ -1,7 +1,7 @@
 import { beforeAll, expect, it } from 'vitest';
 import { MemoryFileSystem } from '@poe-platform/safe-bash';
 import { runBash } from './bash.js';
-import { createTransport, fixtureDigest } from '../../packages/media-cli/fixtures/transport.js';
+import { createTransport, fixtureDigest } from '../../packages/safe-bash-media-engine/fixtures/transport.js';
 
 const commands = [
   'animate', 'compare', 'composite', 'conjure', 'convert', 'display', 'ffmpeg', 'ffprobe',

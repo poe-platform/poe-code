@@ -6,20 +6,20 @@ Use the smallest command that proves the change.
 
 ```sh
 npm test
-npm test -- --workspace=docx
-npm test -- --workspace=docx --workspace=pptx
+npm test -- --workspace=safe-bash-docx-engine
+npm test -- --workspace=safe-bash-docx-engine --workspace=safe-bash-pptx-engine
 npm test -- --workspace=. -- scripts/build-workspaces.test.ts
 npm run lint
 npm run typecheck
 ```
 
-Use `npm test -- --workspace=<exact-package-name>` for a focused workspace run. The argument after `--` belongs to the maintained runner; `npm test --workspace=docx` instead invokes the workspace's own script. Repeat the runner option to select several workspaces, or use `--workspace=.` for root tests. Selected runs retain declared build dependencies, native npm pre/post hooks, environment scoping and uncached execution. They do not schedule unrelated Safe Bash or SafeJS suites.
+Use `npm test -- --workspace=<exact-package-name>` for a focused workspace run. The argument after `--` belongs to the maintained runner; `npm test --workspace=safe-bash-docx-engine` instead invokes the workspace's own script. Repeat the runner option to select several workspaces, or use `--workspace=.` for root tests. Selected runs retain declared build dependencies, native npm pre/post hooks, environment scoping and uncached execution. They do not schedule unrelated Safe Bash or SafeJS suites.
 
-Pass test-tool arguments after a second `--`, for example `npm test -- --workspace=docx -- --testNamePattern=bookmarks`. A file filter alone does not select workspace tasks: the default runner forwards it to every declared task. `npm test` remains the complete suite, and its root posttest lint stress check still runs for selected tests.
+Pass test-tool arguments after a second `--`, for example `npm test -- --workspace=safe-bash-docx-engine -- --testNamePattern=bookmarks`. A file filter alone does not select workspace tasks: the default runner forwards it to every declared task. `npm test` remains the complete suite, and its root posttest lint stress check still runs for selected tests.
 
-For an exact file run, use `npm test -- --workspace=docx --test-file=packages/docx/src/fields.test.ts`. Repeat `--test-file` for more files in the same workspace. This option uses the maintained shared Vitest route and verifies that every file belongs to the selected unit task. Missing, nonregular or clearly foreign files fail before builds; Vitest verifies actual discovery before tests. It requires one exact workspace and rejects native hooks, custom pools and extra test-tool arguments. DOCX's declared build runs first so child-process public consumers use fresh artifacts. Adding a positional file to DOCX's native directory selector does not narrow it: Vitest matches positional filters as alternatives.
+For an exact file run, use `npm test -- --workspace=safe-bash-docx-engine --test-file=packages/safe-bash-docx-engine/src/fields.test.ts`. Repeat `--test-file` for more files in the same workspace. This option uses the maintained shared Vitest route and verifies that every file belongs to the selected unit task. Missing, nonregular or clearly foreign files fail before builds; Vitest verifies actual discovery before tests. It requires one exact workspace and rejects native hooks, custom pools and extra test-tool arguments. DOCX's declared build runs first so child-process public consumers use fresh artifacts. Adding a positional file to DOCX's native directory selector does not narrow it: Vitest matches positional filters as alternatives.
 
-Preview scheduling with `npm run test:workspaces -- --workspace=docx --dry-run`. Preview output lists planned tasks; it does not report test passes.
+Preview scheduling with `npm run test:workspaces -- --workspace=safe-bash-docx-engine --dry-run`. Preview output lists planned tasks; it does not report test passes.
 
 Use `npm test -- --changed-since=<commit-or-ref>` to select changed workspaces and their declared transitive consumers, plus root tests. The comparison includes tracked working-tree changes, staged changes and unignored untracked files. For example, `--changed-since=HEAD~1` tests changes since the preceding commit; `--changed-since=HEAD` tests pending changes. Isolated test-file edits stay in their workspace. Package test helpers and fixtures may serve other suites, so their edits select the full suite. Shared configuration, root production code or unknown package ownership selects the full suite. Markdown changes that are not declared test/global inputs, and empty comparisons, schedule no unit tasks. Non-Markdown files under `docs` select the full suite because that tree includes live test data and executable harnesses. Declared Turbo global inputs select the full suite; `$TURBO_ROOT$/...` unit-task inputs retain their task across workspace boundaries (for example, Bash source changes retain DOCX Shell cases). Older Node hosts without native glob matching and ambiguous inputs outside a workspace conservatively select the full suite. This option cannot be combined with exact workspace selection, CI partitions or the Node20 exclusion.
 

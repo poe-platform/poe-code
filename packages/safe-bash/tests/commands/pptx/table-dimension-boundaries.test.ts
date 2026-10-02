@@ -7,7 +7,7 @@ import {
   createPresentation,
   createPptxCommandEngine,
   type TableUpdate
-} from "pptx";
+} from "safe-bash-pptx-engine";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

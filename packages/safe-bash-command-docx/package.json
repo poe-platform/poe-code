@@ -9,10 +9,14 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./io": {
       "types": "./dist/io.d.ts",
+      "workerd": "./dist/io.js",
+      "browser": "./dist/io.js",
       "import": "./dist/io.js"
     }
   },
@@ -31,6 +35,6 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "docx": "*"
+    "safe-bash-docx-engine": "*"
   }
 }

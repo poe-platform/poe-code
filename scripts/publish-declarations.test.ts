@@ -82,17 +82,17 @@ it("refuses explicitly blocked workspace exports instead of guessing a dist path
 
 it("preserves ESM and CommonJS declaration extensions for vendor type imports", async () => {
   const volume = Volume.fromJSON({
-    "/repo/dist/index.d.ts": 'export type Font = import("../packages/pdf/dist/vendor/font.mjs").Font; export type Image = import("../packages/pdf/dist/vendor/image.cjs").Image;',
-    "/repo/packages/pdf/dist/vendor/font.d.mts": "export interface Font {}",
-    "/repo/packages/pdf/dist/vendor/image.d.cts": "export interface Image {}",
+    "/repo/dist/index.d.ts": 'export type Font = import("../packages/safe-bash-pdf-engine/dist/vendor/font.mjs").Font; export type Image = import("../packages/safe-bash-pdf-engine/dist/vendor/image.cjs").Image;',
+    "/repo/packages/safe-bash-pdf-engine/dist/vendor/font.d.mts": "export interface Font {}",
+    "/repo/packages/safe-bash-pdf-engine/dist/vendor/image.d.cts": "export interface Image {}",
   });
   await publishDeclarations("/repo", { exports: { ".": { types: "./dist/index.d.ts" } } }, [], {
     files: createFsFromVolume(volume).promises,
   });
-  expect(volume.readFileSync("/repo/dist/index.d.ts", "utf8")).toContain('import("./types/pdf/vendor/font.mjs")');
-  expect(volume.readFileSync("/repo/dist/index.d.ts", "utf8")).toContain('import("./types/pdf/vendor/image.cjs")');
-  expect(volume.existsSync("/repo/dist/types/pdf/vendor/font.d.mts")).toBe(true);
-  expect(volume.existsSync("/repo/dist/types/pdf/vendor/image.d.cts")).toBe(true);
+  expect(volume.readFileSync("/repo/dist/index.d.ts", "utf8")).toContain('import("./types/safe-bash-pdf-engine/vendor/font.mjs")');
+  expect(volume.readFileSync("/repo/dist/index.d.ts", "utf8")).toContain('import("./types/safe-bash-pdf-engine/vendor/image.cjs")');
+  expect(volume.existsSync("/repo/dist/types/safe-bash-pdf-engine/vendor/font.d.mts")).toBe(true);
+  expect(volume.existsSync("/repo/dist/types/safe-bash-pdf-engine/vendor/image.d.cts")).toBe(true);
 });
 
 it.each(["symlink", "held-identity"])("rejects %s source declarations before copying their bytes", async defect => {

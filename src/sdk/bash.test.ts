@@ -2,12 +2,12 @@ import { expect, it, vi } from 'vitest';
 import { MemoryFileSystem, type CommandContext } from '@poe-platform/safe-bash';
 import type { NativeInvocation } from '@poe-code/remote-execution';
 import { runBash } from './bash.js';
-import { createTransport, fixtureDigest } from '../../packages/media-cli/fixtures/transport.js';
-import { grammarRevision, nativeReference } from '../../packages/media-cli/src/options.generated.js';
-import { imageMagickGrammarRevision, imageMagickReference } from '../../packages/media-cli/src/imagemagick.generated.js';
+import { createTransport, fixtureDigest } from '../../packages/safe-bash-media-engine/fixtures/transport.js';
+import { grammarRevision, nativeReference } from '../../packages/safe-bash-media-engine/src/options.generated.js';
+import { imageMagickGrammarRevision, imageMagickReference } from '../../packages/safe-bash-media-engine/src/imagemagick.generated.js';
 
 it('awaits the explicitly loaded media provider disposer before SDK settlement', async () => {
-  const fixture = await import('../../packages/media-cli/fixtures/native-provider.js');
+  const fixture = await import('../../packages/safe-bash-media-engine/fixtures/native-provider.js');
   let disposed = false;
   const factory = vi.spyOn(fixture, 'createMediaProvider').mockImplementation(() => ({
     fetch: createTransport(),
@@ -18,7 +18,7 @@ it('awaits the explicitly loaded media provider disposer before SDK settlement',
     const result = await runBash({ fs: new MemoryFileSystem(), source: 'ffmpeg -version', media: {
       service: 'https://media.test', authToken: 'fixture', buildDigest: fixtureDigest,
       resource: { namespaceId: 'work', logicalRoot: '/', rights: ['read'], grantId: 'g', profile: 'live' },
-      provider: { module: new URL('../../packages/media-cli/fixtures/native-provider.ts', import.meta.url).href },
+      provider: { module: new URL('../../packages/safe-bash-media-engine/fixtures/native-provider.ts', import.meta.url).href },
     } });
     expect(result.exitCode).toBe(0);
     expect(factory).toHaveBeenCalledOnce();

@@ -3266,10 +3266,10 @@ test("published root exposes supported shell SDKs while preserving private works
     import: "./dist/commands/pptx/index.js",
   });
   assert.equal(root.exports["./pptx"], undefined);
-  assert.equal(root.devDependencies.pptx, "*");
+  assert.equal(root.devDependencies["safe-bash-pptx-engine"], "*");
   assert.equal(root.dependencies.saxes, "^6.0.0");
-  assert.equal(root.files.includes("packages/pptx/dist"), false);
-  assert.equal(root.files.includes("packages/pptx/LICENSE"), false);
+  assert.equal(root.files.includes("packages/safe-bash-pptx-engine/dist"), false);
+  assert.equal(root.files.includes("packages/safe-bash-pptx-engine/LICENSE"), false);
   assert.equal(root.dependencies["@poe-platform/safe-bash"], undefined);
   assert.equal(root.devDependencies["@poe-platform/safe-bash"], "*");
   assert.equal(root.files.includes("packages/safe-bash/dist"), true);

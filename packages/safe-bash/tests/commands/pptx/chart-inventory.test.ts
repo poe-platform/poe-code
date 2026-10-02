@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, readCharts, type ChartRecord } from "pptx";
+import { createPptxCommandEngine, readCharts, type ChartRecord } from "safe-bash-pptx-engine";
 import { compileJsonSchema } from "toolcraft-schema";
-import { createDeckFixture } from "../../../../pptx/tests/fixtures/decks.js";
-import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
-import { parseXmlPart } from "../../../../pptx/src/xml.js";
+import { createDeckFixture } from "../../../../safe-bash-pptx-engine/tests/fixtures/decks.js";
+import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { parseXmlPart } from "../../../../safe-bash-pptx-engine/src/xml.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

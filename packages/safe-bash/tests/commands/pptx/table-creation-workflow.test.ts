@@ -8,8 +8,8 @@ import {
   GraphicFrame,
   createPresentation,
   createPptxCommandEngine
-} from "pptx";
-import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
+} from "safe-bash-pptx-engine";
+import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

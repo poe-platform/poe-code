@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
-import { createPresentation, createPptxCommandEngine, mutateEquations, readEquations, getXmlPart } from "pptx";
+import { createPresentation, createPptxCommandEngine, mutateEquations, readEquations, getXmlPart } from "safe-bash-pptx-engine";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

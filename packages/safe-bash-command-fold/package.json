@@ -11,10 +11,14 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./family": {
       "types": "./dist/family.d.ts",
+      "workerd": "./dist/family.js",
+      "browser": "./dist/family.js",
       "import": "./dist/family.js"
     }
   },

@@ -1,5 +1,5 @@
 import {afterAll, beforeAll, expect, it, vi} from "vitest";
-import {readArchive, readDocumentArchive, DocumentXmlEditor, type XmlElement} from "docx";
+import {readArchive, readDocumentArchive, DocumentXmlEditor, type XmlElement} from "safe-bash-docx-engine";
 import {SaxesParser} from "saxes";
 import {PDFDocument, PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import {convert, readDocument} from "./index.js";

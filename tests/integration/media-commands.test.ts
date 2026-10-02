@@ -1,10 +1,10 @@
 import { expect, it, vi } from 'vitest';
 import { CommandRegistry, MemoryFileSystem, Shell, agentCommands, createCommandArguments } from '@poe-platform/safe-bash';
 import { mediaCommands } from '@poe-platform/safe-bash/commands/media';
-import { grammarRevision, nativeReference } from '@poe-code/media-cli';
-import { imageMagickGrammarRevision, imageMagickReference } from '@poe-code/media-cli';
-import type { MediaEngineRequest } from '@poe-code/media-cli';
-import type { ImageMagickDiscovery } from '@poe-code/media-cli';
+import { grammarRevision, nativeReference } from 'safe-bash-media-engine';
+import { imageMagickGrammarRevision, imageMagickReference } from 'safe-bash-media-engine';
+import type { MediaEngineRequest } from 'safe-bash-media-engine';
+import type { ImageMagickDiscovery } from 'safe-bash-media-engine';
 
 it('passes invocation cancellation to ImageMagick advisory filesystem operations', async () => {
   const fs = new MemoryFileSystem();

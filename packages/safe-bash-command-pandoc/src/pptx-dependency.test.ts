@@ -1,10 +1,10 @@
 import { expect, it } from "vitest";
-import { createPresentation, Presentation, readPresentationText, Shape } from "pptx";
+import { createPresentation, Presentation, readPresentationText, Shape } from "safe-bash-pptx-engine";
 
 it("admits original presentation bytes through the public presentation engine", async () => {
   const model = await Presentation();
   const slide = model.slides.add_slide(model.slide_layouts.get(0));
-  const { Inches } = await import("pptx");
+  const { Inches } = await import("safe-bash-pptx-engine");
   slide.shapes.add_textbox(new Inches(1), new Inches(1), new Inches(4), new Inches(1)).text = "Orchard survey";
   const bytes = await model.save();
   const reopened = await Presentation(bytes);

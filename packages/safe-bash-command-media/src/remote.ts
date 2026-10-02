@@ -5,10 +5,10 @@ import { readBytes } from '@poe-code/safe-fs/core';
 import type { CommandContext } from 'safe-bash-contracts/command';
 import type { VirtualShellPlugin } from 'safe-bash-contracts/plugin';
 import { mediaCommands } from './plugin.js';
-import { grammarRevision, nativeReference } from '@poe-code/media-cli';
-import { imageMagickGrammarRevision, imageMagickReference } from '@poe-code/media-cli';
-import type { MediaEngineRequest } from '@poe-code/media-cli';
-import { mediaFrontendContract } from '@poe-code/media-cli';
+import { grammarRevision, nativeReference } from 'safe-bash-media-engine';
+import { imageMagickGrammarRevision, imageMagickReference } from 'safe-bash-media-engine';
+import type { MediaEngineRequest } from 'safe-bash-media-engine';
+import { mediaFrontendContract } from 'safe-bash-media-engine';
 
 export { mediaFrontendContract };
 

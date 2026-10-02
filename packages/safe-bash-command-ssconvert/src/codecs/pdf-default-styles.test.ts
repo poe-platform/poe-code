@@ -1,5 +1,5 @@
 import {expect, it} from "vitest";
-import {suppliedDefaultFont} from "@poe-code/pdf";
+import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 import type {CapabilityContext} from "../contracts.js";
 import {readGnumeric} from "./gnumeric.js";
 import {cellPrintStyle} from "../rendering/print/cell-style.js";

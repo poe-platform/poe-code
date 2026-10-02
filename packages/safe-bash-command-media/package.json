@@ -9,18 +9,26 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./plugin": {
       "types": "./dist/plugin.d.ts",
+      "workerd": "./dist/plugin.js",
+      "browser": "./dist/plugin.js",
       "import": "./dist/plugin.js"
     },
     "./remote": {
       "types": "./dist/remote.d.ts",
+      "workerd": "./dist/remote.js",
+      "browser": "./dist/remote.js",
       "import": "./dist/remote.js"
     },
     "./settings": {
       "types": "./dist/settings.d.ts",
+      "workerd": "./dist/settings.js",
+      "browser": "./dist/settings.js",
       "import": "./dist/settings.js"
     }
   },
@@ -39,7 +47,7 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "@poe-code/media-cli": "*",
+    "safe-bash-media-engine": "*",
     "@poe-code/remote-execution": "*"
   }
 }

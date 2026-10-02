@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, createPresentation } from "pptx";
-import { opaqueContext, opaqueDeck } from "../../../../pptx/tests/fixtures/opaque-deck.js";
-import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
-import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
-import { parseXmlPart } from "../../../../pptx/src/xml.js";
+import { createPptxCommandEngine, createPresentation } from "safe-bash-pptx-engine";
+import { opaqueContext, opaqueDeck } from "../../../../safe-bash-pptx-engine/tests/fixtures/opaque-deck.js";
+import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
+import { parseXmlPart } from "../../../../safe-bash-pptx-engine/src/xml.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

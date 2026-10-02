@@ -61,7 +61,7 @@ export function createDocxCommand(options: DocxCommandOptions = {}): CommandDefi
         if (bytes > maxArgumentBytes - argumentBytes) throw new FsError("EFBIG", { message: "document argument limit exceeded" });
         argumentBytes += bytes;
       }
-      engine ??= (await import("docx")).createDocxInspectionCommandEngine();
+      engine ??= (await import("safe-bash-docx-engine")).createDocxInspectionCommandEngine();
       const result = await engine.execute({
         args: Object.freeze(arguments_.args.map((_, index) => arguments_.bytes(index)!)),
         cwd: context.cwd,

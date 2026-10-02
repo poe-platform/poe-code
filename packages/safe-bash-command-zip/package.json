@@ -9,18 +9,26 @@
   "exports": {
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./sync": {
       "types": "./dist/sync.d.ts",
+      "workerd": "./dist/sync.js",
+      "browser": "./dist/sync.js",
       "import": "./dist/sync.js"
     },
     "./zip": {
       "types": "./dist/zip.d.ts",
+      "workerd": "./dist/zip.js",
+      "browser": "./dist/zip.js",
       "import": "./dist/zip.js"
     }
   },

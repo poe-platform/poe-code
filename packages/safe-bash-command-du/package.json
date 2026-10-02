@@ -9,34 +9,50 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./arguments": {
       "types": "./dist/arguments.d.ts",
+      "workerd": "./dist/arguments.js",
+      "browser": "./dist/arguments.js",
       "import": "./dist/arguments.js"
     },
     "./budget": {
       "types": "./dist/budget.d.ts",
+      "workerd": "./dist/budget.js",
+      "browser": "./dist/budget.js",
       "import": "./dist/budget.js"
     },
     "./du": {
       "types": "./dist/du.d.ts",
+      "workerd": "./dist/du.js",
+      "browser": "./dist/du.js",
       "import": "./dist/du.js"
     },
     "./exclude": {
       "types": "./dist/exclude.d.ts",
+      "workerd": "./dist/exclude.js",
+      "browser": "./dist/exclude.js",
       "import": "./dist/exclude.js"
     },
     "./format": {
       "types": "./dist/format.d.ts",
+      "workerd": "./dist/format.js",
+      "browser": "./dist/format.js",
       "import": "./dist/format.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     }
   },

@@ -9,30 +9,44 @@
   "exports": {
     "./diff-format": {
       "types": "./dist/diff-format.d.ts",
+      "workerd": "./dist/diff-format.js",
+      "browser": "./dist/diff-format.js",
       "import": "./dist/diff-format.js"
     },
     "./diff-options": {
       "types": "./dist/diff-options.d.ts",
+      "workerd": "./dist/diff-options.js",
+      "browser": "./dist/diff-options.js",
       "import": "./dist/diff-options.js"
     },
     "./diff-output": {
       "types": "./dist/diff-output.d.ts",
+      "workerd": "./dist/diff-output.js",
+      "browser": "./dist/diff-output.js",
       "import": "./dist/diff-output.js"
     },
     "./diff": {
       "types": "./dist/diff.d.ts",
+      "workerd": "./dist/diff.js",
+      "browser": "./dist/diff.js",
       "import": "./dist/diff.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./sync": {
       "types": "./dist/sync.d.ts",
+      "workerd": "./dist/sync.js",
+      "browser": "./dist/sync.js",
       "import": "./dist/sync.js"
     }
   },

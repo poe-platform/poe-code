@@ -6,20 +6,20 @@ the [deferred backlog](../plans/docx-deferred-audit.md).
 
 | Behavior | Maintained tests |
 | --- | --- |
-| Operation discovery, feature joins, closed CLI/SDK schemas | [discovery-map-contract.test.ts](../../packages/docx/src/discovery-map-contract.test.ts) |
-| Comment ownership and exact source preservation | [comments.test.ts](../../packages/docx/src/comments.test.ts), [comments-exact-source-witnesses.test.ts](../../packages/docx/src/comments-exact-source-witnesses.test.ts) |
-| Revision decisions and overlapping structural history | [revisions.test.ts](../../packages/docx/src/revisions.test.ts), [review-complex-complete-variants-public.test.ts](../../packages/docx/src/review-complex-complete-variants-public.test.ts) |
-| Native revision depth through SDK, CLI, and batches | [revision-decision-selected-native-depth-public.test.ts](../../packages/docx/src/revision-decision-selected-native-depth-public.test.ts) |
-| Settings and protection | [settings.test.ts](../../packages/docx/src/settings.test.ts), [protection-carriers.test.ts](../../packages/docx/src/protection-carriers.test.ts) |
-| Batch failure indexing and publication | [batch-schema-failure-index-public.test.ts](../../packages/docx/src/batch-schema-failure-index-public.test.ts), [ordered-batch-boundaries-public.test.ts](../../packages/docx/src/ordered-batch-boundaries-public.test.ts) |
-| XML replacement and package retention | [raw-custom-xml-boundaries-public.test.ts](../../packages/docx/src/raw-custom-xml-boundaries-public.test.ts) |
-| Image insertion and scalar removal | [images.test.ts](../../packages/docx/src/images.test.ts), [removal.test.ts](../../packages/docx/src/removal.test.ts) |
+| Operation discovery, feature joins, closed CLI/SDK schemas | [discovery-map-contract.test.ts](../../packages/safe-bash-docx-engine/src/discovery-map-contract.test.ts) |
+| Comment ownership and exact source preservation | [comments.test.ts](../../packages/safe-bash-docx-engine/src/comments.test.ts), [comments-exact-source-witnesses.test.ts](../../packages/safe-bash-docx-engine/src/comments-exact-source-witnesses.test.ts) |
+| Revision decisions and overlapping structural history | [revisions.test.ts](../../packages/safe-bash-docx-engine/src/revisions.test.ts), [review-complex-complete-variants-public.test.ts](../../packages/safe-bash-docx-engine/src/review-complex-complete-variants-public.test.ts) |
+| Native revision depth through SDK, CLI, and batches | [revision-decision-selected-native-depth-public.test.ts](../../packages/safe-bash-docx-engine/src/revision-decision-selected-native-depth-public.test.ts) |
+| Settings and protection | [settings.test.ts](../../packages/safe-bash-docx-engine/src/settings.test.ts), [protection-carriers.test.ts](../../packages/safe-bash-docx-engine/src/protection-carriers.test.ts) |
+| Batch failure indexing and publication | [batch-schema-failure-index-public.test.ts](../../packages/safe-bash-docx-engine/src/batch-schema-failure-index-public.test.ts), [ordered-batch-boundaries-public.test.ts](../../packages/safe-bash-docx-engine/src/ordered-batch-boundaries-public.test.ts) |
+| XML replacement and package retention | [raw-custom-xml-boundaries-public.test.ts](../../packages/safe-bash-docx-engine/src/raw-custom-xml-boundaries-public.test.ts) |
+| Image insertion and scalar removal | [images.test.ts](../../packages/safe-bash-docx-engine/src/images.test.ts), [removal.test.ts](../../packages/safe-bash-docx-engine/src/removal.test.ts) |
 
 Run a focused selection through the maintained runner:
 
 ```sh
-npm test -- --workspace=docx --test-file=packages/docx/src/discovery-map-contract.test.ts
-npm run lint --workspace=docx
+npm test -- --workspace=safe-bash-docx-engine --test-file=packages/safe-bash-docx-engine/src/discovery-map-contract.test.ts
+npm run lint --workspace=safe-bash-docx-engine
 ```
 
 Add regression cases as small XML fragments and assertions in unit tests. Build

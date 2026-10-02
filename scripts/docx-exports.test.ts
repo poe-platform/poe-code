@@ -1,18 +1,18 @@
 import { beforeAll, expect, it } from "vitest";
 import type { BuildResult } from "esbuild";
-import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
-import { rasterPng } from "../packages/docx/tests/fixtures/raster.js";
-import { chartContext, chartFixture, chartSpace, series } from "../packages/docx/tests/fixtures/charts.js";
-import { diagramContext, diagramFixture, diagramCarrier } from "../packages/docx/tests/fixtures/diagrams.js";
+import { textContext, textFixture } from "../packages/safe-bash-docx-engine/tests/fixtures/text.js";
+import { rasterPng } from "../packages/safe-bash-docx-engine/tests/fixtures/raster.js";
+import { chartContext, chartFixture, chartSpace, series } from "../packages/safe-bash-docx-engine/tests/fixtures/charts.js";
+import { diagramContext, diagramFixture, diagramCarrier } from "../packages/safe-bash-docx-engine/tests/fixtures/diagrams.js";
 import { MemoryFileSystem } from "../packages/safe-fs/src/fs/memory/index.js";
 
-let runtime: typeof import("../packages/docx/src/index.js");
+let runtime: typeof import("../packages/safe-bash-docx-engine/src/index.js");
 
 let result: BuildResult;
 beforeAll(async () => {
   const { build } = await import("esbuild");
   result = await build({
-    entryPoints: [new URL("../packages/docx/src/index.ts", import.meta.url).pathname],
+    entryPoints: [new URL("../packages/safe-bash-docx-engine/src/index.ts", import.meta.url).pathname],
     bundle: true,
     platform: "browser",
     conditions: ["workerd", "worker", "browser"],

@@ -1,1 +1,1 @@
-export * from '@poe-code/media-cli';
+export * from 'safe-bash-media-engine';

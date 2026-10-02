@@ -1,7 +1,7 @@
 import {expect, it, vi} from "vitest";
 import * as fontShaping from "../rendering/print/font-shaping.js";
 import {PDFArray, PDFHexString, PDFRawStream, decodePDFRawStream} from "pdf-lib";
-import {suppliedDefaultFont} from "@poe-code/pdf";
+import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 import type {CapabilityContext} from "../contracts.js";
 import {readGnumeric} from "./gnumeric.js";
 import {writePdf} from "./pdf.js";

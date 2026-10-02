@@ -1,4 +1,4 @@
-import "docx/pandoc-adapter";
+import "safe-bash-docx-engine/pandoc-adapter";
 import {expect, it, vi, beforeAll, afterAll} from "vitest";
 import {PDFDocument} from "pdf-lib";
 import {convert, readDocument, writeDocument} from "./index.js";

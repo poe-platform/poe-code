@@ -9,50 +9,74 @@
   "exports": {
     "./awk-pipes": {
       "types": "./dist/awk-pipes.d.ts",
+      "workerd": "./dist/awk-pipes.js",
+      "browser": "./dist/awk-pipes.js",
       "import": "./dist/awk-pipes.js"
     },
     "./awk-inspection": {
       "types": "./dist/awk-inspection.d.ts",
+      "workerd": "./dist/awk-inspection.js",
+      "browser": "./dist/awk-inspection.js",
       "import": "./dist/awk-inspection.js"
     },
     "./awk-pretty": {
       "types": "./dist/awk-pretty.d.ts",
+      "workerd": "./dist/awk-pretty.js",
+      "browser": "./dist/awk-pretty.js",
       "import": "./dist/awk-pretty.js"
     },
     "./awk-quote": {
       "types": "./dist/awk-quote.d.ts",
+      "workerd": "./dist/awk-quote.js",
+      "browser": "./dist/awk-quote.js",
       "import": "./dist/awk-quote.js"
     },
     "./awk-reader": {
       "types": "./dist/awk-reader.d.ts",
+      "workerd": "./dist/awk-reader.js",
+      "browser": "./dist/awk-reader.js",
       "import": "./dist/awk-reader.js"
     },
     "./awk-retention": {
       "types": "./dist/awk-retention.d.ts",
+      "workerd": "./dist/awk-retention.js",
+      "browser": "./dist/awk-retention.js",
       "import": "./dist/awk-retention.js"
     },
     "./awk-runtime": {
       "types": "./dist/awk-runtime.d.ts",
+      "workerd": "./dist/awk-runtime.js",
+      "browser": "./dist/awk-runtime.js",
       "import": "./dist/awk-runtime.js"
     },
     "./awk-syntax": {
       "types": "./dist/awk-syntax.d.ts",
+      "workerd": "./dist/awk-syntax.js",
+      "browser": "./dist/awk-syntax.js",
       "import": "./dist/awk-syntax.js"
     },
     "./awk-values": {
       "types": "./dist/awk-values.d.ts",
+      "workerd": "./dist/awk-values.js",
+      "browser": "./dist/awk-values.js",
       "import": "./dist/awk-values.js"
     },
     "./awk": {
       "types": "./dist/awk.d.ts",
+      "workerd": "./dist/awk.js",
+      "browser": "./dist/awk.js",
       "import": "./dist/awk.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     }
   },

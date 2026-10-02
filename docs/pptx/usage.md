@@ -101,7 +101,7 @@ pptx text 'final deck.pptx'
 ## Public SDK imports
 
 The exact declared ESM entry points are `pptx` and `pptx/bytes`. No deep source
-imports are public. The [package entry point](../../packages/pptx/src/index.ts) declares runtime
+imports are public. The [package entry point](../../packages/safe-bash-pptx-engine/src/index.ts) declares runtime
 and type-only exports. Returned and inherited members are also part of the SDK.
 These examples use the following named imports:
 
@@ -113,7 +113,7 @@ import {
   Inches, OfficeError,
   type SelectionContext, type ByteSink, type PresentationContext,
   type PptxCommandEngineOptions, type TemplateBinding
-} from "pptx";
+} from "safe-bash-pptx-engine";
 import { readBinary, writeBinary } from "pptx/bytes";
 ```
 

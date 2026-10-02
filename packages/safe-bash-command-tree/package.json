@@ -9,38 +9,56 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./arguments": {
       "types": "./dist/arguments.d.ts",
+      "workerd": "./dist/arguments.js",
+      "browser": "./dist/arguments.js",
       "import": "./dist/arguments.js"
     },
     "./charset": {
       "types": "./dist/charset.d.ts",
+      "workerd": "./dist/charset.js",
+      "browser": "./dist/charset.js",
       "import": "./dist/charset.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./io": {
       "types": "./dist/io.d.ts",
+      "workerd": "./dist/io.js",
+      "browser": "./dist/io.js",
       "import": "./dist/io.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./pattern": {
       "types": "./dist/pattern.d.ts",
+      "workerd": "./dist/pattern.js",
+      "browser": "./dist/pattern.js",
       "import": "./dist/pattern.js"
     },
     "./sort": {
       "types": "./dist/sort.d.ts",
+      "workerd": "./dist/sort.js",
+      "browser": "./dist/sort.js",
       "import": "./dist/sort.js"
     },
     "./tree": {
       "types": "./dist/tree.d.ts",
+      "workerd": "./dist/tree.js",
+      "browser": "./dist/tree.js",
       "import": "./dist/tree.js"
     }
   },

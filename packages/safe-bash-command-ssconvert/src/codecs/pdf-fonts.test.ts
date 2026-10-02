@@ -1,6 +1,6 @@
 import {expect, it, vi} from "vitest";
 import {PDFDocument} from "pdf-lib";
-import {suppliedDefaultFont} from "@poe-code/pdf";
+import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 import type {CapabilityContext, FontCapability} from "../contracts.js";
 import {createEngine} from "../engine.js";
 import {writePdf} from "./pdf.js";

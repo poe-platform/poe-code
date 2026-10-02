@@ -9,14 +9,20 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./printenv": {
       "types": "./dist/printenv.d.ts",
+      "workerd": "./dist/printenv.js",
+      "browser": "./dist/printenv.js",
       "import": "./dist/printenv.js"
     }
   },

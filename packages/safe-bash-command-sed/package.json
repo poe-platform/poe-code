@@ -9,18 +9,26 @@
   "exports": {
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./inplace": {
       "types": "./dist/inplace.d.ts",
+      "workerd": "./dist/inplace.js",
+      "browser": "./dist/inplace.js",
       "import": "./dist/inplace.js"
     },
     "./sed": {
       "types": "./dist/sed.d.ts",
+      "workerd": "./dist/sed.js",
+      "browser": "./dist/sed.js",
       "import": "./dist/sed.js"
     }
   },

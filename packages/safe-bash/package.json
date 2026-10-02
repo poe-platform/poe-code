@@ -535,9 +535,9 @@
             "@poe-code/pdf-ast": "*",
             "saxes": "6.0.0",
             "@poe-code/office-package": "*",
-            "@poe-code/pdf": "0.0.1",
+            "safe-bash-pdf-engine": "0.0.1",
             "jsonc-parser": "^3.3.1",
-            "docx": "*",
+            "safe-bash-docx-engine": "*",
             "sprintf-js": "^1.1.3",
             "yaml": "2.9.0",
             "parse5": "7.3.0",
@@ -545,7 +545,7 @@
             "@poe-code/image-ast": "*",
             "citeproc": "2.4.63",
             "safe-bash-command-ssconvert": "*",
-            "pptx": "*"
+            "safe-bash-pptx-engine": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",
@@ -941,7 +941,7 @@
             "@pdf-lib/fontkit": "1.1.1",
             "@poe-code/image-ast": "*",
             "@poe-code/office-package": "*",
-            "@poe-code/pdf": "*",
+            "safe-bash-pdf-engine": "*",
             "@poe-code/safe-fs": "*",
             "htmlparser2": "^10.0.0",
             "pdf-lib": "1.17.1",
@@ -1474,7 +1474,7 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "docx": "*"
+            "safe-bash-docx-engine": "*"
           },
           "portable": true
         },
@@ -1485,7 +1485,7 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
             "safe-bash-io-engine": "*",
-            "pptx": "*"
+            "safe-bash-pptx-engine": "*"
           },
           "portable": true
         },
@@ -1698,7 +1698,7 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "@poe-code/media-cli": "*",
+            "safe-bash-media-engine": "*",
             "@poe-code/remote-execution": "*"
           },
           "portable": true
@@ -1979,6 +1979,8 @@
     },
     "./commands/timeout": {
       "types": "./dist/commands/timeout/index.d.ts",
+      "workerd": "./dist/commands/timeout/index.js",
+      "browser": "./dist/commands/timeout/index.js",
       "import": "./dist/commands/timeout/index.js"
     },
     "./commands/apply-patch": {
@@ -1989,6 +1991,8 @@
     },
     "./commands/which": {
       "types": "./dist/commands/which/index.d.ts",
+      "workerd": "./dist/commands/which/index.js",
+      "browser": "./dist/commands/which/index.js",
       "import": "./dist/commands/which/index.js"
     },
     "./commands/xml": {
@@ -2195,14 +2199,20 @@
     },
     "./commands/wkhtmltopdf": {
       "types": "./dist/commands/wkhtmltopdf/index.d.ts",
+      "workerd": "./dist/commands/wkhtmltopdf/index.js",
+      "browser": "./dist/commands/wkhtmltopdf/index.js",
       "import": "./dist/commands/wkhtmltopdf/index.js"
     },
     "./commands/exiftool": {
       "types": "./dist/commands/exiftool/index.d.ts",
+      "workerd": "./dist/commands/exiftool/index.js",
+      "browser": "./dist/commands/exiftool/index.js",
       "import": "./dist/commands/exiftool/index.js"
     },
     "./commands/fmt": {
       "types": "./dist/commands/fmt/index.d.ts",
+      "workerd": "./dist/commands/fmt/index.js",
+      "browser": "./dist/commands/fmt/index.js",
       "import": "./dist/commands/fmt/index.js"
     },
     "./commands/csvkit": {
@@ -2240,66 +2250,98 @@
     },
     "./commands/fold": {
       "types": "./dist/commands/fold/index.d.ts",
+      "workerd": "./dist/commands/fold/index.js",
+      "browser": "./dist/commands/fold/index.js",
       "import": "./dist/commands/fold/index.js"
     },
     "./commands/diff3": {
       "types": "./dist/commands/diff3/index.d.ts",
+      "workerd": "./dist/commands/diff3/index.js",
+      "browser": "./dist/commands/diff3/index.js",
       "import": "./dist/commands/diff3/index.js"
     },
     "./commands/unrtf": {
       "types": "./dist/commands/unrtf/index.d.ts",
+      "workerd": "./dist/commands/unrtf/index.js",
+      "browser": "./dist/commands/unrtf/index.js",
       "import": "./dist/commands/unrtf/index.js"
     },
     "./commands/csvgrep": {
       "types": "./dist/commands/csvgrep/index.d.ts",
+      "workerd": "./dist/commands/csvgrep/index.js",
+      "browser": "./dist/commands/csvgrep/index.js",
       "import": "./dist/commands/csvgrep/index.js"
     },
     "./commands/csvcut": {
       "types": "./dist/commands/csvcut/index.d.ts",
+      "workerd": "./dist/commands/csvcut/index.js",
+      "browser": "./dist/commands/csvcut/index.js",
       "import": "./dist/commands/csvcut/index.js"
     },
     "./commands/htmlq": {
       "types": "./dist/commands/htmlq/index.d.ts",
+      "workerd": "./dist/commands/htmlq/index.js",
+      "browser": "./dist/commands/htmlq/index.js",
       "import": "./dist/commands/htmlq/index.js"
     },
     "./commands/mmdc": {
       "types": "./dist/commands/mmdc/index.d.ts",
+      "workerd": "./dist/commands/mmdc/index.js",
+      "browser": "./dist/commands/mmdc/index.js",
       "import": "./dist/commands/mmdc/index.js"
     },
     "./commands/pdfinfo": {
       "types": "./dist/commands/pdfinfo/index.d.ts",
+      "workerd": "./dist/commands/pdfinfo/index.js",
+      "browser": "./dist/commands/pdfinfo/index.js",
       "import": "./dist/commands/pdfinfo/index.js"
     },
     "./commands/pdftoppm": {
       "types": "./dist/commands/pdftoppm/index.d.ts",
+      "workerd": "./dist/commands/pdftoppm/index.js",
+      "browser": "./dist/commands/pdftoppm/index.js",
       "import": "./dist/commands/pdftoppm/index.js"
     },
     "./commands/pdfimages": {
       "types": "./dist/commands/pdfimages/index.d.ts",
+      "workerd": "./dist/commands/pdfimages/index.js",
+      "browser": "./dist/commands/pdfimages/index.js",
       "import": "./dist/commands/pdfimages/index.js"
     },
     "./commands/pdftotext": {
       "types": "./dist/commands/pdftotext/index.d.ts",
+      "workerd": "./dist/commands/pdftotext/index.js",
+      "browser": "./dist/commands/pdftotext/index.js",
       "import": "./dist/commands/pdftotext/index.js"
     },
     "./commands/pdftk": {
       "types": "./dist/commands/pdftk/index.d.ts",
+      "workerd": "./dist/commands/pdftk/index.js",
+      "browser": "./dist/commands/pdftk/index.js",
       "import": "./dist/commands/pdftk/index.js"
     },
     "./commands/qpdf": {
       "types": "./dist/commands/qpdf/index.d.ts",
+      "workerd": "./dist/commands/qpdf/index.js",
+      "browser": "./dist/commands/qpdf/index.js",
       "import": "./dist/commands/qpdf/index.js"
     },
     "./commands/soffice": {
       "types": "./dist/commands/soffice/index.d.ts",
+      "workerd": "./dist/commands/soffice/index.js",
+      "browser": "./dist/commands/soffice/index.js",
       "import": "./dist/commands/soffice/index.js"
     },
     "./commands/sips": {
       "types": "./dist/commands/sips/index.d.ts",
+      "workerd": "./dist/commands/sips/index.js",
+      "browser": "./dist/commands/sips/index.js",
       "import": "./dist/commands/sips/index.js"
     },
     "./commands/imagemagick": {
       "types": "./dist/commands/imagemagick/index.d.ts",
+      "workerd": "./dist/commands/imagemagick/index.js",
+      "browser": "./dist/commands/imagemagick/index.js",
       "import": "./dist/commands/imagemagick/index.js"
     },
     "./commands/bc": {
@@ -2310,98 +2352,146 @@
     },
     "./commands/sponge": {
       "types": "./dist/commands/sponge/index.d.ts",
+      "workerd": "./dist/commands/sponge/index.js",
+      "browser": "./dist/commands/sponge/index.js",
       "import": "./dist/commands/sponge/index.js"
     },
     "./commands/fd": {
       "types": "./dist/commands/fd/index.d.ts",
+      "workerd": "./dist/commands/fd/index.js",
+      "browser": "./dist/commands/fd/index.js",
       "import": "./dist/commands/fd/index.js"
     },
     "./commands/less": {
       "types": "./dist/commands/less/index.d.ts",
+      "workerd": "./dist/commands/less/index.js",
+      "browser": "./dist/commands/less/index.js",
       "import": "./dist/commands/less/index.js"
     },
     "./commands/xxd": {
       "types": "./dist/commands/xxd/index.d.ts",
+      "workerd": "./dist/commands/xxd/index.js",
+      "browser": "./dist/commands/xxd/index.js",
       "import": "./dist/commands/xxd/index.js"
     },
     "./commands/od": {
       "types": "./dist/commands/od/index.d.ts",
+      "workerd": "./dist/commands/od/index.js",
+      "browser": "./dist/commands/od/index.js",
       "import": "./dist/commands/od/index.js"
     },
     "./commands/ffmpeg": {
       "types": "./dist/commands/ffmpeg/index.d.ts",
+      "workerd": "./dist/commands/ffmpeg/index.js",
+      "browser": "./dist/commands/ffmpeg/index.js",
       "import": "./dist/commands/ffmpeg/index.js"
     },
     "./commands/xz": {
       "types": "./dist/commands/xz/index.d.ts",
+      "workerd": "./dist/commands/xz/index.js",
+      "browser": "./dist/commands/xz/index.js",
       "import": "./dist/commands/xz/index.js"
     },
     "./worker-entry": {
       "types": "./dist/worker/entry.d.ts",
+      "workerd": null,
+      "browser": null,
       "import": "./dist/worker/entry.js"
     },
     "./commands/id": {
       "types": "./dist/commands/id/index.d.ts",
+      "workerd": "./dist/commands/id/index.js",
+      "browser": "./dist/commands/id/index.js",
       "import": "./dist/commands/id/index.js"
     },
     "./commands/whoami": {
       "types": "./dist/commands/whoami/index.d.ts",
+      "workerd": "./dist/commands/whoami/index.js",
+      "browser": "./dist/commands/whoami/index.js",
       "import": "./dist/commands/whoami/index.js"
     },
     "./commands/uname": {
       "types": "./dist/commands/uname/index.d.ts",
+      "workerd": "./dist/commands/uname/index.js",
+      "browser": "./dist/commands/uname/index.js",
       "import": "./dist/commands/uname/index.js"
     },
     "./commands/hostname": {
       "types": "./dist/commands/hostname/index.d.ts",
+      "workerd": "./dist/commands/hostname/index.js",
+      "browser": "./dist/commands/hostname/index.js",
       "import": "./dist/commands/hostname/index.js"
     },
     "./commands/nproc": {
       "types": "./dist/commands/nproc/index.d.ts",
+      "workerd": "./dist/commands/nproc/index.js",
+      "browser": "./dist/commands/nproc/index.js",
       "import": "./dist/commands/nproc/index.js"
     },
     "./commands/numfmt": {
       "types": "./dist/commands/numfmt/index.d.ts",
+      "workerd": "./dist/commands/numfmt/index.js",
+      "browser": "./dist/commands/numfmt/index.js",
       "import": "./dist/commands/numfmt/index.js"
     },
     "./commands/envsubst": {
       "types": "./dist/commands/envsubst/index.d.ts",
+      "workerd": "./dist/commands/envsubst/index.js",
+      "browser": "./dist/commands/envsubst/index.js",
       "import": "./dist/commands/envsubst/index.js"
     },
     "./commands/cal": {
       "types": "./dist/commands/cal/index.d.ts",
+      "workerd": "./dist/commands/cal/index.js",
+      "browser": "./dist/commands/cal/index.js",
       "import": "./dist/commands/cal/index.js"
     },
     "./commands/pathchk": {
       "types": "./dist/commands/pathchk/index.d.ts",
+      "workerd": "./dist/commands/pathchk/index.js",
+      "browser": "./dist/commands/pathchk/index.js",
       "import": "./dist/commands/pathchk/index.js"
     },
     "./commands/getconf": {
       "types": "./dist/commands/getconf/index.d.ts",
+      "workerd": "./dist/commands/getconf/index.js",
+      "browser": "./dist/commands/getconf/index.js",
       "import": "./dist/commands/getconf/index.js"
     },
     "./commands/sha512sum": {
       "types": "./dist/commands/sha512sum/index.d.ts",
+      "workerd": "./dist/commands/sha512sum/index.js",
+      "browser": "./dist/commands/sha512sum/index.js",
       "import": "./dist/commands/sha512sum/index.js"
     },
     "./commands/bzip2": {
       "types": "./dist/commands/bzip2/index.d.ts",
+      "workerd": "./dist/commands/bzip2/index.js",
+      "browser": "./dist/commands/bzip2/index.js",
       "import": "./dist/commands/bzip2/index.js"
     },
     "./commands/locale": {
       "types": "./dist/commands/locale/index.d.ts",
+      "workerd": "./dist/commands/locale/index.js",
+      "browser": "./dist/commands/locale/index.js",
       "import": "./dist/commands/locale/index.js"
     },
     "./commands/df": {
       "types": "./dist/commands/df/index.d.ts",
+      "workerd": "./dist/commands/df/index.js",
+      "browser": "./dist/commands/df/index.js",
       "import": "./dist/commands/df/index.js"
     },
     "./commands/sqlite3": {
       "types": "./dist/commands/sqlite3/index.d.ts",
+      "workerd": "./dist/commands/sqlite3/index.js",
+      "browser": "./dist/commands/sqlite3/index.js",
       "import": "./dist/commands/sqlite3/index.js"
     },
     "./commands/git": {
       "types": "./dist/commands/git/index.d.ts",
+      "workerd": "./dist/commands/git/index.js",
+      "browser": "./dist/commands/git/index.js",
       "import": "./dist/commands/git/index.js"
     },
     "./commands/mdq": {
@@ -2412,158 +2502,236 @@
     },
     "./commands/openssl": {
       "types": "./dist/commands/openssl/index.d.ts",
+      "workerd": "./dist/commands/openssl/index.js",
+      "browser": "./dist/commands/openssl/index.js",
       "import": "./dist/commands/openssl/index.js"
     },
     "./commands/ssh": {
       "types": "./dist/commands/ssh/index.d.ts",
+      "workerd": "./dist/commands/ssh/index.js",
+      "browser": "./dist/commands/ssh/index.js",
       "import": "./dist/commands/ssh/index.js"
     },
     "./commands/gpg": {
       "types": "./dist/commands/gpg/index.d.ts",
+      "workerd": "./dist/commands/gpg/index.js",
+      "browser": "./dist/commands/gpg/index.js",
       "import": "./dist/commands/gpg/index.js"
     },
     "./commands/gh": {
       "types": "./dist/commands/gh/index.d.ts",
+      "workerd": "./dist/commands/gh/index.js",
+      "browser": "./dist/commands/gh/index.js",
       "import": "./dist/commands/gh/index.js"
     },
     "./commands/cmp": {
       "types": "./dist/opt-in/entrypoints/cmp.d.ts",
+      "workerd": "./dist/opt-in/entrypoints/cmp.js",
+      "browser": "./dist/opt-in/entrypoints/cmp.js",
       "import": "./dist/opt-in/entrypoints/cmp.js"
     },
     "./commands/install": {
       "types": "./dist/opt-in/entrypoints/install.d.ts",
+      "workerd": "./dist/opt-in/entrypoints/install.js",
+      "browser": "./dist/opt-in/entrypoints/install.js",
       "import": "./dist/opt-in/entrypoints/install.js"
     },
     "./commands/truncate": {
       "types": "./dist/opt-in/entrypoints/truncate.d.ts",
+      "workerd": "./dist/opt-in/entrypoints/truncate.js",
+      "browser": "./dist/opt-in/entrypoints/truncate.js",
       "import": "./dist/opt-in/entrypoints/truncate.js"
     },
     "./commands/xan": {
       "types": "./dist/commands/xan/index.d.ts",
+      "workerd": "./dist/commands/xan/index.js",
+      "browser": "./dist/commands/xan/index.js",
       "import": "./dist/commands/xan/index.js"
     },
     "./commands/nl": {
       "types": "./dist/commands/nl/index.d.ts",
+      "workerd": "./dist/commands/nl/index.js",
+      "browser": "./dist/commands/nl/index.js",
       "import": "./dist/commands/nl/index.js"
     },
     "./commands/rev": {
       "types": "./dist/commands/rev/index.d.ts",
+      "workerd": "./dist/commands/rev/index.js",
+      "browser": "./dist/commands/rev/index.js",
       "import": "./dist/commands/rev/index.js"
     },
     "./commands/seq": {
       "types": "./dist/commands/seq/index.d.ts",
+      "workerd": "./dist/commands/seq/index.js",
+      "browser": "./dist/commands/seq/index.js",
       "import": "./dist/commands/seq/index.js"
     },
     "./commands/unexpand": {
       "types": "./dist/commands/unexpand/index.d.ts",
+      "workerd": "./dist/commands/unexpand/index.js",
+      "browser": "./dist/commands/unexpand/index.js",
       "import": "./dist/commands/unexpand/index.js"
     },
     "./commands/expand": {
       "types": "./dist/commands/expand/index.d.ts",
+      "workerd": "./dist/commands/expand/index.js",
+      "browser": "./dist/commands/expand/index.js",
       "import": "./dist/commands/expand/index.js"
     },
     "./commands/strings": {
       "types": "./dist/commands/strings/index.d.ts",
+      "workerd": "./dist/commands/strings/index.js",
+      "browser": "./dist/commands/strings/index.js",
       "import": "./dist/commands/strings/index.js"
     },
     "./commands/tac": {
       "types": "./dist/commands/tac/index.d.ts",
+      "workerd": "./dist/commands/tac/index.js",
+      "browser": "./dist/commands/tac/index.js",
       "import": "./dist/commands/tac/index.js"
     },
     "./commands/comm": {
       "types": "./dist/commands/comm/index.d.ts",
+      "workerd": "./dist/commands/comm/index.js",
+      "browser": "./dist/commands/comm/index.js",
       "import": "./dist/commands/comm/index.js"
     },
     "./commands/join": {
       "types": "./dist/commands/join/index.d.ts",
+      "workerd": "./dist/commands/join/index.js",
+      "browser": "./dist/commands/join/index.js",
       "import": "./dist/commands/join/index.js"
     },
     "./commands/paste": {
       "types": "./dist/commands/paste/index.d.ts",
+      "workerd": "./dist/commands/paste/index.js",
+      "browser": "./dist/commands/paste/index.js",
       "import": "./dist/commands/paste/index.js"
     },
     "./commands/date": {
       "types": "./dist/commands/date/index.d.ts",
+      "workerd": "./dist/commands/date/index.js",
+      "browser": "./dist/commands/date/index.js",
       "import": "./dist/commands/date/index.js"
     },
     "./commands/printenv": {
       "types": "./dist/commands/printenv/index.d.ts",
+      "workerd": "./dist/commands/printenv/index.js",
+      "browser": "./dist/commands/printenv/index.js",
       "import": "./dist/commands/printenv/index.js"
     },
     "./commands/sleep": {
       "types": "./dist/commands/sleep/index.d.ts",
+      "workerd": "./dist/commands/sleep/index.js",
+      "browser": "./dist/commands/sleep/index.js",
       "import": "./dist/commands/sleep/index.js"
     },
     "./commands/touch": {
       "types": "./dist/commands/touch/index.d.ts",
+      "workerd": "./dist/commands/touch/index.js",
+      "browser": "./dist/commands/touch/index.js",
       "import": "./dist/commands/touch/index.js"
     },
     "./commands/readlink": {
       "types": "./dist/commands/readlink/index.d.ts",
+      "workerd": "./dist/commands/readlink/index.js",
+      "browser": "./dist/commands/readlink/index.js",
       "import": "./dist/commands/readlink/index.js"
     },
     "./commands/realpath": {
       "types": "./dist/commands/realpath/index.d.ts",
+      "workerd": "./dist/commands/realpath/index.js",
+      "browser": "./dist/commands/realpath/index.js",
       "import": "./dist/commands/realpath/index.js"
     },
     "./commands/env": {
       "types": "./dist/commands/env/index.d.ts",
+      "workerd": "./dist/commands/env/index.js",
+      "browser": "./dist/commands/env/index.js",
       "import": "./dist/commands/env/index.js"
     },
     "./commands/rg": {
       "types": "./dist/commands/rg/index.d.ts",
+      "workerd": "./dist/commands/rg/index.js",
+      "browser": "./dist/commands/rg/index.js",
       "import": "./dist/commands/rg/index.js"
     },
     "./commands/egrep": {
       "types": "./dist/commands/egrep/index.d.ts",
+      "workerd": "./dist/commands/egrep/index.js",
+      "browser": "./dist/commands/egrep/index.js",
       "import": "./dist/commands/egrep/index.js"
     },
     "./commands/fgrep": {
       "types": "./dist/commands/fgrep/index.d.ts",
+      "workerd": "./dist/commands/fgrep/index.js",
+      "browser": "./dist/commands/fgrep/index.js",
       "import": "./dist/commands/fgrep/index.js"
     },
     "./commands/xq": {
       "types": "./dist/commands/xq/index.d.ts",
+      "workerd": "./dist/commands/xq/index.js",
+      "browser": "./dist/commands/xq/index.js",
       "import": "./dist/commands/xq/index.js"
     },
     "./commands/grep": {
       "types": "./dist/commands/grep/index.d.ts",
+      "workerd": "./dist/commands/grep/index.js",
+      "browser": "./dist/commands/grep/index.js",
       "import": "./dist/commands/grep/index.js"
     },
     "./commands/jq": {
       "types": "./dist/commands/jq/index.d.ts",
+      "workerd": "./dist/commands/jq/index.js",
+      "browser": "./dist/commands/jq/index.js",
       "import": "./dist/commands/jq/index.js"
     },
     "./commands/base64": {
       "types": "./dist/commands/base64/index.d.ts",
+      "workerd": "./dist/commands/base64/index.js",
+      "browser": "./dist/commands/base64/index.js",
       "import": "./dist/commands/base64/index.js"
     },
     "./commands/base32": {
       "types": "./dist/commands/base32/index.d.ts",
+      "workerd": "./dist/commands/base32/index.js",
+      "browser": "./dist/commands/base32/index.js",
       "import": "./dist/commands/base32/index.js"
     },
     "./commands/md5sum": {
       "types": "./dist/commands/md5sum/index.d.ts",
+      "workerd": "./dist/commands/md5sum/index.js",
+      "browser": "./dist/commands/md5sum/index.js",
       "import": "./dist/commands/md5sum/index.js"
     },
     "./commands/sha1sum": {
       "types": "./dist/commands/sha1sum/index.d.ts",
+      "workerd": "./dist/commands/sha1sum/index.js",
+      "browser": "./dist/commands/sha1sum/index.js",
       "import": "./dist/commands/sha1sum/index.js"
     },
     "./commands/sha256sum": {
       "types": "./dist/commands/sha256sum/index.d.ts",
+      "workerd": "./dist/commands/sha256sum/index.js",
+      "browser": "./dist/commands/sha256sum/index.js",
       "import": "./dist/commands/sha256sum/index.js"
     },
     "./commands/dd": {
       "types": "./dist/opt-in/entrypoints/dd.d.ts",
+      "workerd": "./dist/opt-in/entrypoints/dd.js",
+      "browser": "./dist/opt-in/entrypoints/dd.js",
       "import": "./dist/opt-in/entrypoints/dd.js"
     },
     "./commands/shuf": {
       "types": "./dist/opt-in/entrypoints/shuf.d.ts",
+      "workerd": "./dist/opt-in/entrypoints/shuf.js",
+      "browser": "./dist/opt-in/entrypoints/shuf.js",
       "import": "./dist/opt-in/entrypoints/shuf.js"
     },
     "./commands/yes": {
       "types": "./dist/opt-in/entrypoints/yes.d.ts",
+      "workerd": "./dist/opt-in/entrypoints/yes.js",
+      "browser": "./dist/opt-in/entrypoints/yes.js",
       "import": "./dist/opt-in/entrypoints/yes.js"
     },
     "./shell": {
@@ -2586,58 +2754,86 @@
     },
     "./commands/dos2unix": {
       "types": "./dist/commands/dos2unix/index.d.ts",
+      "workerd": "./dist/commands/dos2unix/index.js",
+      "browser": "./dist/commands/dos2unix/index.js",
       "import": "./dist/commands/dos2unix/index.js"
     },
     "./commands/sed": {
       "types": "./dist/commands/sed/index.d.ts",
+      "workerd": "./dist/commands/sed/index.js",
+      "browser": "./dist/commands/sed/index.js",
       "import": "./dist/commands/sed/index.js"
     },
     "./commands/awk": {
       "types": "./dist/commands/awk/index.d.ts",
+      "workerd": "./dist/commands/awk/index.js",
+      "browser": "./dist/commands/awk/index.js",
       "import": "./dist/commands/awk/index.js"
     },
     "./commands/diff": {
       "types": "./dist/commands/diff/index.d.ts",
+      "workerd": "./dist/commands/diff/index.js",
+      "browser": "./dist/commands/diff/index.js",
       "import": "./dist/commands/diff/index.js"
     },
     "./commands/patch": {
       "types": "./dist/commands/patch/index.d.ts",
+      "workerd": "./dist/commands/patch/index.js",
+      "browser": "./dist/commands/patch/index.js",
       "import": "./dist/commands/patch/index.js"
     },
     "./commands/tar": {
       "types": "./dist/commands/tar/index.d.ts",
+      "workerd": "./dist/commands/tar/index.js",
+      "browser": "./dist/commands/tar/index.js",
       "import": "./dist/commands/tar/index.js"
     },
     "./commands/zip": {
       "types": "./dist/commands/zip/index.d.ts",
+      "workerd": "./dist/commands/zip/index.js",
+      "browser": "./dist/commands/zip/index.js",
       "import": "./dist/commands/zip/index.js"
     },
     "./commands/unzip": {
       "types": "./dist/commands/unzip/index.d.ts",
+      "workerd": "./dist/commands/unzip/index.js",
+      "browser": "./dist/commands/unzip/index.js",
       "import": "./dist/commands/unzip/index.js"
     },
     "./commands/find": {
       "types": "./dist/commands/find/index.d.ts",
+      "workerd": "./dist/commands/find/index.js",
+      "browser": "./dist/commands/find/index.js",
       "import": "./dist/commands/find/index.js"
     },
     "./commands/curl": {
       "types": "./dist/commands/curl/index.d.ts",
+      "workerd": "./dist/commands/curl/index.js",
+      "browser": "./dist/commands/curl/index.js",
       "import": "./dist/commands/curl/index.js"
     },
     "./commands/wget": {
       "types": "./dist/commands/wget/index.d.ts",
+      "workerd": "./dist/commands/wget/index.js",
+      "browser": "./dist/commands/wget/index.js",
       "import": "./dist/commands/wget/index.js"
     },
     "./commands/gzip": {
       "types": "./dist/commands/gzip/index.d.ts",
+      "workerd": "./dist/commands/gzip/index.js",
+      "browser": "./dist/commands/gzip/index.js",
       "import": "./dist/commands/gzip/index.js"
     },
     "./commands/alias": {
       "types": "./dist/commands/alias/index.d.ts",
+      "workerd": "./dist/commands/alias/index.js",
+      "browser": "./dist/commands/alias/index.js",
       "import": "./dist/commands/alias/index.js"
     },
     "./commands/unalias": {
       "types": "./dist/commands/unalias/index.d.ts",
+      "workerd": "./dist/commands/unalias/index.js",
+      "browser": "./dist/commands/unalias/index.js",
       "import": "./dist/commands/unalias/index.js"
     },
     "./commands/node/quickjs": {
@@ -2655,6 +2851,18 @@
       "workerd": "./dist/commands/python/executor.browser.js",
       "browser": "./dist/commands/python/executor.browser.js",
       "import": "./dist/commands/python/executor.js"
+    },
+    "./contracts/node": {
+      "types": "./dist/contracts/node.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/contracts/node.js"
+    },
+    "./contracts/node-path": {
+      "types": "./dist/contracts/node-path.d.ts",
+      "workerd": null,
+      "browser": null,
+      "import": "./dist/contracts/node-path.js"
     }
   },
   "sideEffects": [
@@ -2719,7 +2927,7 @@
     "safe-bash-command-mktemp": "*",
     "safe-bash-command-imagemagick": "*",
     "safe-bash-command-printenv": "*",
-    "@poe-code/media-cli": "*",
+    "safe-bash-media-engine": "*",
     "@poe-code/remote-execution": "*",
     "safe-bash-text-stream-engine": "*",
     "safe-bash-command-jq": "*",
@@ -2764,7 +2972,7 @@
     "safe-bash-command-xq": "*",
     "safe-bash-byte-engine": "*",
     "safe-bash-command-expr": "*",
-    "@poe-code/pdf": "*",
+    "safe-bash-pdf-engine": "*",
     "safe-bash-command-soffice": "*",
     "memfs": "4.56.10",
     "safe-bash-command-ffmpeg": "*",
@@ -2800,7 +3008,7 @@
     "safe-bash-command-diff3": "*",
     "safe-bash-command-factor": "*",
     "safe-bash-command-realpath": "*",
-    "pptx": "*",
+    "safe-bash-pptx-engine": "*",
     "safe-bash-command-cmp": "*",
     "safe-bash-command-pathchk": "*",
     "safe-bash-command-md5sum": "*",
@@ -2852,7 +3060,7 @@
     "safe-bash-command-yq": "*",
     "@poe-code/safe-fs": "*",
     "safe-bash-line-ending-engine": "*",
-    "docx": "*",
+    "safe-bash-docx-engine": "*",
     "safe-bash-command-truncate": "*",
     "safe-bash-command-base64": "*",
     "safe-bash-command-xan": "*",

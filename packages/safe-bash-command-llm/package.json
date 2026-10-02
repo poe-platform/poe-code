@@ -9,58 +9,86 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./openai-sse": {
       "types": "./dist/openai-sse.d.ts",
+      "workerd": "./dist/openai-sse.js",
+      "browser": "./dist/openai-sse.js",
       "import": "./dist/openai-sse.js"
     },
     "./elevenlabs": {
       "types": "./dist/elevenlabs.d.ts",
+      "workerd": "./dist/elevenlabs.js",
+      "browser": "./dist/elevenlabs.js",
       "import": "./dist/elevenlabs.js"
     },
     "./openai": {
       "types": "./dist/openai.d.ts",
+      "workerd": "./dist/openai.js",
+      "browser": "./dist/openai.js",
       "import": "./dist/openai.js"
     },
     "./types": {
       "types": "./dist/types.d.ts",
+      "workerd": "./dist/types.js",
+      "browser": "./dist/types.js",
       "import": "./dist/types.js"
     },
     "./command": {
       "types": "./dist/command.d.ts",
+      "workerd": "./dist/command.js",
+      "browser": "./dist/command.js",
       "import": "./dist/command.js"
     },
     "./openai-http": {
       "types": "./dist/openai-http.d.ts",
+      "workerd": "./dist/openai-http.js",
+      "browser": "./dist/openai-http.js",
       "import": "./dist/openai-http.js"
     },
     "./mime": {
       "types": "./dist/mime.d.ts",
+      "workerd": "./dist/mime.js",
+      "browser": "./dist/mime.js",
       "import": "./dist/mime.js"
     },
     "./service": {
       "types": "./dist/service.d.ts",
+      "workerd": "./dist/service.js",
+      "browser": "./dist/service.js",
       "import": "./dist/service.js"
     },
     "./elevenlabs-stream": {
       "types": "./dist/elevenlabs-stream.d.ts",
+      "workerd": "./dist/elevenlabs-stream.js",
+      "browser": "./dist/elevenlabs-stream.js",
       "import": "./dist/elevenlabs-stream.js"
     },
     "./providers/elevenlabs": {
       "types": "./dist/providers/elevenlabs.d.ts",
+      "workerd": "./dist/providers/elevenlabs.js",
+      "browser": "./dist/providers/elevenlabs.js",
       "import": "./dist/providers/elevenlabs.js"
     },
     "./providers/openai": {
       "types": "./dist/providers/openai.d.ts",
+      "workerd": "./dist/providers/openai.js",
+      "browser": "./dist/providers/openai.js",
       "import": "./dist/providers/openai.js"
     },
     "./providers/shared": {
       "types": "./dist/providers/shared.d.ts",
+      "workerd": "./dist/providers/shared.js",
+      "browser": "./dist/providers/shared.js",
       "import": "./dist/providers/shared.js"
     },
     "./providers/index": {
       "types": "./dist/providers/index.d.ts",
+      "workerd": "./dist/providers/index.js",
+      "browser": "./dist/providers/index.js",
       "import": "./dist/providers/index.js"
     }
   },

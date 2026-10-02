@@ -9,15 +9,15 @@ export async function prepareContainerImage(
  await fs.access(options.deployment);
  const assets=[
   ['packages/remote-execution/cloudflare/bootstrap.mjs','bootstrap.mjs'],
-  ['packages/media-cli/server/download.mjs','download.mjs'],
-  ['packages/media-cli/server/container-lock.json','container-lock.json'],
+  ['packages/safe-bash-media-engine/server/download.mjs','download.mjs'],
+  ['packages/safe-bash-media-engine/server/container-lock.json','container-lock.json'],
   ['packages/remote-execution/native/execve.c','execve.c'],
  ] as const;
  for(const [source] of assets)await fs.access(join(options.root,source));
  // Exclusive creation keeps unrelated files and earlier contexts intact.
  await fs.mkdir(options.output);
  for(const [source,target] of assets)await fs.copyFile(join(options.root,source),join(options.output,target));
- await bundle(join(options.root,'packages/media-cli/src/server.ts'),join(options.output,'media-server.mjs'));
+ await bundle(join(options.root,'packages/safe-bash-media-engine/src/server.ts'),join(options.output,'media-server.mjs'));
  await bundle(join(options.root,'packages/remote-execution/src/http-server.ts'),join(options.output,'http-server.mjs'));
  await bundle(join(options.root,'packages/remote-execution/src/container-lifecycle.ts'),join(options.output,'container-lifecycle.mjs'));
  await bundle(options.deployment,join(options.output,'deployment.mjs'));

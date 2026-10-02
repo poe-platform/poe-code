@@ -1,5 +1,5 @@
 import {encodeXML} from "entities";
-import type {Paragraph, DocxBlock, DocxRunInput, DocumentModelContext} from "docx";
+import type {Paragraph, DocxBlock, DocxRunInput, DocumentModelContext} from "safe-bash-docx-engine";
 import type {Block, Inline, Row} from "./ast-types.js";
 import type {AdapterContext, ReaderCapability, WriterCapability} from "./types.js";
 import {PandocError} from "./errors.js";
@@ -14,7 +14,7 @@ interface RichRun extends DocxRunInput {
 }
 const attr = ["", [], []] as const;
 async function modelContext(ctx: AdapterContext): Promise<DocumentModelContext> {
-  const {DocumentBudget} = await import("docx/pandoc-adapter");
+  const {DocumentBudget} = await import("safe-bash-docx-engine/pandoc-adapter");
   const l = ctx.limits;
   const signal = ctx.signal ?? new AbortController().signal;
   return {signal, budget: new DocumentBudget({compressedInput: l.compressedBytes, expandedPackage: l.expandedBytes,
@@ -32,7 +32,7 @@ async function guarded<T>(ctx: AdapterContext, action: () => Promise<T>): Promis
 }
 export const docxReader: ReaderCapability = {format: "docx", async read(input, ctx) {
   return guarded(ctx, async () => {
-    const {Document: openDocument, Paragraph, Run} = await import("docx/pandoc-adapter");
+    const {Document: openDocument, Paragraph, Run} = await import("safe-bash-docx-engine/pandoc-adapter");
     const model = await openDocument(input.bytes, await modelContext(ctx));
     const paragraph = async (p: Paragraph): Promise<Block> => {
       const inlines: Inline[] = [];
@@ -162,7 +162,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       }
     };
     await visit(document.blocks, blocks);
-    const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor, Image} = await import("docx/pandoc-adapter");
+    const {createDocumentArchive, writeDocumentArchive, DocumentXmlEditor, Image} = await import("safe-bash-docx-engine/pandoc-adapter");
     const mc = await modelContext(ctx);
     const archiveContext = {signal: mc.signal!, budget: mc.budget!};
     const archive = await createDocumentArchive({content: {version: 1, blocks}}, archiveContext);
@@ -170,7 +170,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     const relationships = new DocumentXmlEditor(archive.members.find(member => member.name === "word/_rels/document.xml.rels")!.bytes, {}, undefined, mc.budget);
     let paragraphIndex = 0, relationshipId = 2;
     const linkRelationships: string[] = [];
-    const media = new Map<string, {name: string; bytes: Uint8Array; type: string; id: string; asset: import("docx").Image}>();
+    const media = new Map<string, {name: string; bytes: Uint8Array; type: string; id: string; asset: import("safe-bash-docx-engine").Image}>();
     let drawingId = 0;
     const drawing = async (node: Extract<Inline, {t: "Image" | "Link"}>): Promise<string> => {
       ctx.charge("images", 1);
@@ -194,12 +194,12 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
       const a = "http://schemas.openxmlformats.org/drawingml/2006/main", pic = "http://schemas.openxmlformats.org/drawingml/2006/picture";
       return `<w:drawing xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="${a}" xmlns:pic="${pic}" xmlns:r="${r}"><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${width}" cy="${height}"/><wp:docPr id="${++drawingId}" name="Image ${drawingId}" descr="${alt}" title="${encodeXML(node.c[2][1])}"/><wp:cNvGraphicFramePr><a:graphicFrameLocks noChangeAspect="1"/></wp:cNvGraphicFramePr><a:graphic><a:graphicData uri="${pic}"><pic:pic><pic:nvPicPr><pic:cNvPr id="0" name="Image ${drawingId}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${entry.id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${width}" cy="${height}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing>`;
     };
-    const edit = async (node: import("docx").XmlElement): Promise<void> => {
+    const edit = async (node: import("safe-bash-docx-engine").XmlElement): Promise<void> => {
       await ctx.cooperate();
       if (node.namespace === w && node.localName === "p") {
         const extra = paragraphs[paragraphIndex++];
         if (!extra) return;
-        const replacements = new Map<import("docx").XmlElement, string>();
+        const replacements = new Map<import("safe-bash-docx-engine").XmlElement, string>();
         const properties = node.children.find(child => child.localName === "pPr");
         if (properties && extra.properties) replacements.set(properties, `<w:pPr>${main.sourceXml(properties, new Map(), true)}${extra.properties}</w:pPr>`);
         const nativeRuns = node.children.filter(child => child.localName === "r");
@@ -209,7 +209,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
           const properties = native.children.find(child => child.localName === "rPr");
           const codeStyle = run.code ? '<w:rStyle w:val="VerbatimChar"/>' : "";
           const format = (run.strike ? "<w:strike/>" : "") + (run.baseline ? `<w:vertAlign w:val="${run.baseline}"/>` : "");
-          const edits = new Map<import("docx").XmlElement, string>();
+          const edits = new Map<import("safe-bash-docx-engine").XmlElement, string>();
           if (properties && (codeStyle || format)) edits.set(properties, `<w:rPr>${codeStyle}${main.sourceXml(properties, new Map(), true)}${format}</w:rPr>`);
           let xml = run.image ? `<w:r>${await drawing(run.image)}</w:r>` : `<w:r>${!properties && (codeStyle || format) ? `<w:rPr>${codeStyle}${format}</w:rPr>` : ""}${main.sourceXml(native, edits, true)}</w:r>`;
           if (run.link !== undefined) {

@@ -9,22 +9,32 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./codecs/utf8": {
       "types": "./dist/codecs/utf8.d.ts",
+      "workerd": "./dist/codecs/utf8.js",
+      "browser": "./dist/codecs/utf8.js",
       "import": "./dist/codecs/utf8.js"
     },
     "./codecs/python": {
       "types": "./dist/codecs/python.d.ts",
+      "workerd": "./dist/codecs/python.js",
+      "browser": "./dist/codecs/python.js",
       "import": "./dist/codecs/python.js"
     },
     "./sync-support": {
       "types": "./dist/sync-support.d.ts",
+      "workerd": "./dist/sync-support.js",
+      "browser": "./dist/sync-support.js",
       "import": "./dist/sync-support.js"
     },
     "./python-regex": {
       "types": "./dist/python-regex.d.ts",
+      "workerd": "./dist/python-regex.js",
+      "browser": "./dist/python-regex.js",
       "import": "./dist/python-regex.js"
     }
   },

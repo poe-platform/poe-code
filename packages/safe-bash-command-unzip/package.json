@@ -9,22 +9,32 @@
   "exports": {
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./sync": {
       "types": "./dist/sync.d.ts",
+      "workerd": "./dist/sync.js",
+      "browser": "./dist/sync.js",
       "import": "./dist/sync.js"
     },
     "./unzip/safety": {
       "types": "./dist/unzip/safety.d.ts",
+      "workerd": "./dist/unzip/safety.js",
+      "browser": "./dist/unzip/safety.js",
       "import": "./dist/unzip/safety.js"
     },
     "./unzip": {
       "types": "./dist/unzip.d.ts",
+      "workerd": "./dist/unzip.js",
+      "browser": "./dist/unzip.js",
       "import": "./dist/unzip.js"
     }
   },

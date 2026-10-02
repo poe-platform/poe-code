@@ -1,13 +1,13 @@
 # DOCX usage
 
 `docx` is a private TypeScript ESM workspace for document inspection and editing.
-It has no standalone executable. See the [package README](../../packages/docx/README.md),
+It has no standalone executable. See the [package README](../../packages/safe-bash-docx-engine/README.md),
 [proposed contract](../specs/docx.md), and [test index](acceptance-matrix.md).
 
 ## Discover operations
 
 ```js
-import { parseDocxArguments, getDocxDiscovery } from "docx";
+import { parseDocxArguments, getDocxDiscovery } from "safe-bash-docx-engine";
 
 const encode = value => new TextEncoder().encode(value);
 const invocation = parseDocxArguments(["schema", "text", "replace"].map(encode));

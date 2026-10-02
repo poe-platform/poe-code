@@ -65,7 +65,7 @@ class Session extends ExecutionContext {
   pdfPage: WriteOptions["pdfPage"];
   pdf: WriteOptions["pdf"];
   epub: WriteOptions["epub"];
-  pdfFonts: readonly import("@poe-code/pdf").SuppliedFont[] | undefined;
+  pdfFonts: readonly import("safe-bash-pdf-engine").SuppliedFont[] | undefined;
   pdfFontInputs: WriteOptions["pdfFonts"];
   wrap: WriteOptions["wrap"];
   columns: number | undefined;
@@ -170,7 +170,7 @@ class Session extends ExecutionContext {
     if (this.metadata) this.metadata = (await this.document({blocks: [], metadata: this.metadata, resources: []})).metadata;
     for (const layer of this.metadataJson ?? []) await mergeJsonMetadata({}, layer, this);
     if (this.pdfFontInputs) {
-            const fonts: import("@poe-code/pdf").SuppliedFont[] = [];
+            const fonts: import("safe-bash-pdf-engine").SuppliedFont[] = [];
       let fontBytes = 0;
       for (let i = 0; i < this.pdfFontInputs.length; i++) {
         const input = this.pdfFontInputs[i]!;

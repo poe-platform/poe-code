@@ -33,22 +33,32 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./lua-filters": {
       "types": "./dist/lua-filters.d.ts",
+      "workerd": "./dist/lua-filters.js",
+      "browser": "./dist/lua-filters.js",
       "import": "./dist/lua-filters.js"
     },
     "./citeproc-filters": {
       "types": "./dist/citeproc-filters.d.ts",
+      "workerd": "./dist/citeproc-filters.js",
+      "browser": "./dist/citeproc-filters.js",
       "import": "./dist/citeproc-filters.js"
     },
     "./command": {
       "types": "./dist/command.d.ts",
+      "workerd": "./dist/command.js",
+      "browser": "./dist/command.js",
       "import": "./dist/command.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     }
   },
@@ -58,9 +68,9 @@
     "@poe-code/pdf-ast": "*",
     "saxes": "6.0.0",
     "@poe-code/office-package": "*",
-    "@poe-code/pdf": "0.0.1",
+    "safe-bash-pdf-engine": "0.0.1",
     "jsonc-parser": "^3.3.1",
-    "docx": "*",
+    "safe-bash-docx-engine": "*",
     "sprintf-js": "^1.1.3",
     "yaml": "2.9.0",
     "parse5": "7.3.0",
@@ -68,7 +78,7 @@
     "@poe-code/image-ast": "*",
     "citeproc": "2.4.63",
     "safe-bash-command-ssconvert": "*",
-    "pptx": "*"
+    "safe-bash-pptx-engine": "*"
   },
   "private": true,
   "types": "dist/index.d.ts",

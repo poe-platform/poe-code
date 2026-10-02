@@ -1,6 +1,6 @@
 import type { FormatSelection } from "./formats.js";
 import type { Block, Inline, MetaValue } from "./ast-types.js";
-import type {PageBox, SuppliedFont} from "@poe-code/pdf";
+import type {PageBox, SuppliedFont} from "safe-bash-pdf-engine";
 export type Node = Block | Inline;
 export interface Resource {
   readonly id: string;

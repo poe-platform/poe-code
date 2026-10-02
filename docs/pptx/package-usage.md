@@ -5,7 +5,7 @@ These transport primitives do not validate ZIP or PPTX. See [usage](usage.md)
 for presentation operations, model examples and host configuration.
 
 ```typescript
-import type { ByteContext, ByteSink } from "pptx";
+import type { ByteContext, ByteSink } from "safe-bash-pptx-engine";
 import { readBinary, writeBinary } from "pptx/bytes";
 
 const context: ByteContext = {

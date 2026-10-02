@@ -9,30 +9,44 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./apply": {
       "types": "./dist/apply.d.ts",
+      "workerd": "./dist/apply.js",
+      "browser": "./dist/apply.js",
       "import": "./dist/apply.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./matcher": {
       "types": "./dist/matcher.d.ts",
+      "workerd": "./dist/matcher.js",
+      "browser": "./dist/matcher.js",
       "import": "./dist/matcher.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./parser": {
       "types": "./dist/parser.d.ts",
+      "workerd": "./dist/parser.js",
+      "browser": "./dist/parser.js",
       "import": "./dist/parser.js"
     },
     "./shared": {
       "types": "./dist/shared.d.ts",
+      "workerd": "./dist/shared.js",
+      "browser": "./dist/shared.js",
       "import": "./dist/shared.js"
     }
   },

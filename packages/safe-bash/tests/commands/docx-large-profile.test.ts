@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createDocumentArchive, writeDocumentArchive, createDocxInspectionCommandEngine } from "../../../docx/src/index.js";
+import { createDocumentArchive, writeDocumentArchive, createDocxInspectionCommandEngine } from "../../../safe-bash-docx-engine/src/index.js";
 import { docxCommands } from "../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";

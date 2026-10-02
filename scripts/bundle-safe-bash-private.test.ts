@@ -289,3 +289,12 @@ it("shares the canonical filesystem for internal runtime-core imports", async ()
   expect([...new Set(imports.map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);
   expect(Object.keys(result.metafile!.inputs)).toEqual(["<stdin>"]);
 });
+
+it("accepts identical browser and workerd targets for a qualified portable command", () => {
+  const name = "safe-bash-command-example";
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable: true };
+  const pkg = { name, ...profile, private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", workerd: "./dist/index.js", browser: "./dist/index.js", import: "./dist/index.js" } } };
+  expect(resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg }],
+    { alias: {}, external: [], portable: true })?.platform).toBe("browser");
+});

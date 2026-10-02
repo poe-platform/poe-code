@@ -9,46 +9,68 @@
   "exports": {
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./patch-envelope": {
       "types": "./dist/patch-envelope.d.ts",
+      "workerd": "./dist/patch-envelope.js",
+      "browser": "./dist/patch-envelope.js",
       "import": "./dist/patch-envelope.js"
     },
     "./patch-formats": {
       "types": "./dist/patch-formats.d.ts",
+      "workerd": "./dist/patch-formats.js",
+      "browser": "./dist/patch-formats.js",
       "import": "./dist/patch-formats.js"
     },
     "./patch-gnu-paths": {
       "types": "./dist/patch-gnu-paths.d.ts",
+      "workerd": "./dist/patch-gnu-paths.js",
+      "browser": "./dist/patch-gnu-paths.js",
       "import": "./dist/patch-gnu-paths.js"
     },
     "./patch-gnu-reject": {
       "types": "./dist/patch-gnu-reject.d.ts",
+      "workerd": "./dist/patch-gnu-reject.js",
+      "browser": "./dist/patch-gnu-reject.js",
       "import": "./dist/patch-gnu-reject.js"
     },
     "./patch-path": {
       "types": "./dist/patch-path.d.ts",
+      "workerd": "./dist/patch-path.js",
+      "browser": "./dist/patch-path.js",
       "import": "./dist/patch-path.js"
     },
     "./patch-publication": {
       "types": "./dist/patch-publication.d.ts",
+      "workerd": "./dist/patch-publication.js",
+      "browser": "./dist/patch-publication.js",
       "import": "./dist/patch-publication.js"
     },
     "./patch": {
       "types": "./dist/patch.d.ts",
+      "workerd": "./dist/patch.js",
+      "browser": "./dist/patch.js",
       "import": "./dist/patch.js"
     },
     "./sync": {
       "types": "./dist/sync.d.ts",
+      "workerd": "./dist/sync.js",
+      "browser": "./dist/sync.js",
       "import": "./dist/sync.js"
     },
     "./unified": {
       "types": "./dist/unified.d.ts",
+      "workerd": "./dist/unified.js",
+      "browser": "./dist/unified.js",
       "import": "./dist/unified.js"
     }
   },

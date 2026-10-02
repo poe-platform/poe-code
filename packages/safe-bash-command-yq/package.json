@@ -9,10 +9,14 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./accounting": {
       "types": "./dist/accounting.d.ts",
+      "workerd": "./dist/accounting.js",
+      "browser": "./dist/accounting.js",
       "import": "./dist/accounting.js"
     },
     "./arguments": {
@@ -25,10 +29,14 @@
     },
     "./encoder": {
       "types": "./dist/encoder.d.ts",
+      "workerd": "./dist/encoder.js",
+      "browser": "./dist/encoder.js",
       "import": "./dist/encoder.js"
     },
     "./errors": {
       "types": "./dist/errors.d.ts",
+      "workerd": "./dist/errors.js",
+      "browser": "./dist/errors.js",
       "import": "./dist/errors.js"
     },
     "./evaluate": {
@@ -65,18 +73,26 @@
     },
     "./parser": {
       "types": "./dist/parser.d.ts",
+      "workerd": "./dist/parser.js",
+      "browser": "./dist/parser.js",
       "import": "./dist/parser.js"
     },
     "./toml": {
       "types": "./dist/toml.d.ts",
+      "workerd": "./dist/toml.js",
+      "browser": "./dist/toml.js",
       "import": "./dist/toml.js"
     },
     "./bytes": {
       "types": "./dist/bytes.d.ts",
+      "workerd": "./dist/bytes.js",
+      "browser": "./dist/bytes.js",
       "import": "./dist/bytes.js"
     },
     "./query": {
       "types": "./dist/query.d.ts",
+      "workerd": "./dist/query.js",
+      "browser": "./dist/query.js",
       "import": "./dist/query.js"
     }
   },

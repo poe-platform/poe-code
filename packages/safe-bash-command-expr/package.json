@@ -9,30 +9,44 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./bre-engine": {
       "types": "./dist/bre-engine.d.ts",
+      "workerd": "./dist/bre-engine.js",
+      "browser": "./dist/bre-engine.js",
       "import": "./dist/bre-engine.js"
     },
     "./command": {
       "types": "./dist/command.d.ts",
+      "workerd": "./dist/command.js",
+      "browser": "./dist/command.js",
       "import": "./dist/command.js"
     },
     "./evaluate": {
       "types": "./dist/evaluate.d.ts",
+      "workerd": "./dist/evaluate.js",
+      "browser": "./dist/evaluate.js",
       "import": "./dist/evaluate.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./internal": {
       "types": "./dist/internal.d.ts",
+      "workerd": "./dist/internal.js",
+      "browser": "./dist/internal.js",
       "import": "./dist/internal.js"
     },
     "./syntax": {
       "types": "./dist/syntax.d.ts",
+      "workerd": "./dist/syntax.js",
+      "browser": "./dist/syntax.js",
       "import": "./dist/syntax.js"
     }
   },

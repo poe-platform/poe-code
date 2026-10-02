@@ -9,10 +9,14 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./settings": {
       "types": "./dist/settings.d.ts",
+      "workerd": "./dist/settings.js",
+      "browser": "./dist/settings.js",
       "import": "./dist/settings.js"
     }
   },

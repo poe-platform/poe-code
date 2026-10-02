@@ -81,7 +81,7 @@ for (const name of ["safe-bash-command-fixture", "safe-bash-csv-engine", "safe-b
 
 for (const defect of ["none", "public", "closure", "source", "link", "mixed-native"]) test(`build explicit portable media declarations: ${defect}`, async () => {
   const route = { types: "./dist/index.d.ts", workerd: "./dist/index.js", browser: "./dist/index.js", node: "./dist/index.js", default: "./dist/index.js" };
-  const media = { name: "@poe-code/media-cli", version: "0.0.1", private: defect !== "public", type: "module",
+  const media = { name: "safe-bash-media-engine", version: "0.0.1", private: defect !== "public", type: "module",
     dependencies: defect === "closure" ? { forbidden: "1" } : { saxes: "^6.0.0", "@poe-code/remote-execution": "*", "@poe-code/safe-fs": "*", "@noble/hashes": "2.4.0" },
     exports: { ".": { ...route, ...(defect === "source" ? { types: "./src/index.d.ts" } : {}), ...(defect === "mixed-native" ? { browser: "./dist/server.js" } : {}) } } };
   const remote = { name: "@poe-code/remote-execution", version: "0.0.1", private: true, type: "module",
@@ -90,11 +90,11 @@ for (const defect of ["none", "public", "closure", "source", "link", "mixed-nati
       return [name, Object.fromEntries(Object.entries(route).map(([condition, value]) => [condition, value.replace("index", file)]))];
     })) };
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: { "@poe-code/media-cli": "*", "@poe-code/remote-execution": "*" } }),
-    "src/index.ts": 'export { answer } from "@poe-code/media-cli";',
-    "../media-cli/package.json": JSON.stringify(media),
-    "../media-cli/dist/index.d.ts": "export declare const answer: number;",
-    "../media-cli/src/index.d.ts": "SOURCE sentinel",
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: { "safe-bash-media-engine": "*", "@poe-code/remote-execution": "*" } }),
+    "src/index.ts": 'export { answer } from "safe-bash-media-engine";',
+    "../safe-bash-media-engine/package.json": JSON.stringify(media),
+    "../safe-bash-media-engine/dist/index.d.ts": "export declare const answer: number;",
+    "../safe-bash-media-engine/src/index.d.ts": "SOURCE sentinel",
     "../remote-execution/package.json": JSON.stringify(remote),
     "../safe-fs/package.json": JSON.stringify({ name: "@poe-code/safe-fs", exports: {
       "./contracts": { types: "./dist/contracts/index.d.ts" },
@@ -102,8 +102,8 @@ for (const defect of ["none", "public", "closure", "source", "link", "mixed-nati
     } }),
   });
   if (defect === "link") {
-    owned.memory.unlinkSync(root + "/../media-cli/dist/index.d.ts");
-    owned.memory.symlinkSync(root + "/../media-cli/src/index.d.ts", root + "/../media-cli/dist/index.d.ts");
+    owned.memory.unlinkSync(root + "/../safe-bash-media-engine/dist/index.d.ts");
+    owned.memory.symlinkSync(root + "/../safe-bash-media-engine/src/index.d.ts", root + "/../safe-bash-media-engine/dist/index.d.ts");
   }
   if (defect === "none") assert.equal((await owned.run()).status, 0, owned.output.join(""));
   else await assert.rejects(owned.run());
@@ -113,22 +113,22 @@ for (const defect of ["none", "public", "closure", "source", "link", "mixed-nati
 
 for (const defect of ["none", "pin", "name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version", "link", "source-import", "runtime-import", "unapproved-import", "fengari-import"]) test(`build explicit Pandoc SDK declaration admission: ${defect}`, async () => {
   const exports = {".": {types: "./dist/index.d.ts", import: "./dist/index.js"}};
-  const pandoc = {name: "safe-bash-command-pandoc", version: "0.0.1", private: true, type: "module", exports: { ...exports, "./command": { types: "./dist/command.d.ts", import: "./dist/command.js" }, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } }, dependencies: {"@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "@poe-code/image-ast": "*", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "@poe-code/pdf": "0.0.1", "@poe-code/pdf-ast": "*", pptx: "*", docx: "*", "safe-bash-command-ssconvert": "*", "safe-bash-markdown-engine": "*"}};
-  const pdf = {name: "@poe-code/pdf", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1"}};
+  const pandoc = {name: "safe-bash-command-pandoc", version: "0.0.1", private: true, type: "module", exports: { ...exports, "./command": { types: "./dist/command.d.ts", import: "./dist/command.js" }, "./lua-filters": { types: "./dist/lua-filters.d.ts", import: "./dist/lua-filters.js" }, "./citeproc-filters": { types: "./dist/citeproc-filters.d.ts", import: "./dist/citeproc-filters.js" } }, dependencies: {"@poe-code/office-package": "*", citeproc: "2.4.63", entities: "^6.0.1", fengari: "^0.1.5", "@poe-code/image-ast": "*", "jsonc-parser": "^3.3.1", parse5: "7.3.0", saxes: "6.0.0", yaml: "2.9.0", "safe-bash-pdf-engine": "0.0.1", "@poe-code/pdf-ast": "*", "safe-bash-pptx-engine": "*", "safe-bash-docx-engine": "*", "safe-bash-command-ssconvert": "*", "safe-bash-markdown-engine": "*"}};
+  const pdf = {name: "safe-bash-pdf-engine", version: "0.0.1", private: true, type: "module", exports, dependencies: {"pdf-lib": "1.17.1", "@pdf-lib/fontkit": "1.1.1", pako: "3.0.1"}};
   const profile = {version: "0.0.1", dependencies: structuredClone(pandoc.dependencies), devDependencies: {}};
   const owned = fixture({
-    "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"safe-bash-command-pandoc": defect === "pin" ? "unapproved" : "*", "@poe-code/pdf": "*"}, poeCode: {integration: {privateWorkspaces: {"safe-bash-command-pandoc": profile}}}}),
+    "package.json": JSON.stringify({name: "virtual-bash", private: true, type: "module", devDependencies: {"safe-bash-command-pandoc": defect === "pin" ? "unapproved" : "*", "safe-bash-pdf-engine": "*"}, poeCode: {integration: {privateWorkspaces: {"safe-bash-command-pandoc": profile}}}}),
     "src/index.ts": 'import type { Page } from "safe-bash-command-pandoc"; export const page: Page = { width: 12 };',
     "../safe-bash-command-pandoc/package.json": JSON.stringify(pandoc),
     "../safe-bash-command-pandoc/dist/command.d.ts": "export declare function createPandocCommand(): void;",
     "../safe-bash-command-pandoc/dist/lua-filters.d.ts": "export declare function filter(): void;",
     "../safe-bash-command-pandoc/dist/citeproc-filters.d.ts": "export declare function citeprocFilter(): void;",
-    "../safe-bash-command-pandoc/dist/index.d.ts": 'export type { Page } from "@poe-code/pdf"; export type { PdfNode } from "@poe-code/pdf-ast";',
+    "../safe-bash-command-pandoc/dist/index.d.ts": 'export type { Page } from "safe-bash-pdf-engine"; export type { PdfNode } from "@poe-code/pdf-ast";',
     "../pdf-ast/package.json": JSON.stringify({name: "@poe-code/pdf-ast", version: "0.0.1", private: true, type: "module", exports, dependencies: {pako: "3.0.1"}}),
     "../pdf-ast/dist/index.d.ts": 'export interface PdfNode { text: string; }',
-    "../pdf/package.json": JSON.stringify(pdf),
-    "../pdf/dist/index.d.ts": 'export type { Page } from "./model.js";',
-    "../pdf/dist/model.d.ts": 'export interface Page { width: number; }',
+    "../safe-bash-pdf-engine/package.json": JSON.stringify(pdf),
+    "../safe-bash-pdf-engine/dist/index.d.ts": 'export type { Page } from "./model.js";',
+    "../safe-bash-pdf-engine/dist/model.d.ts": 'export interface Page { width: number; }',
     "../safe-bash-command-pandoc/src/private.d.ts": 'export declare const hidden: number;',
     "../safe-bash-command-pandoc/dist/runtime.js": 'export const hidden = 12;',
     "node_modules/unapproved/index.d.ts": 'export declare const hidden: number;',
@@ -142,16 +142,16 @@ for (const defect of ["none", "pin", "name", "version", "export", "lua-export", 
   if (defect === "lua-dependency") pandoc.dependencies.fengari = "^0.2.0";
   if (defect === "pdf-export") pdf.exports = pandoc.exports;
   if (defect === "closure") pandoc.dependencies.extra = "1.0.0";
-  if (defect === "missing-docx") delete pandoc.dependencies.docx;
+  if (defect === "missing-docx") delete pandoc.dependencies["safe-bash-docx-engine"];
   if (defect === "missing-ssconvert") delete pandoc.dependencies["safe-bash-command-ssconvert"];
   if (defect === "fengari-version") pandoc.dependencies.fengari = "^0.2.0";
   if (["name", "version", "export", "lua-export", "lua-dependency", "pdf-export", "closure", "missing-docx", "missing-ssconvert", "fengari-version"].includes(defect)) {
     owned.memory.writeFileSync(root + "/../safe-bash-command-pandoc/package.json", JSON.stringify(pandoc));
-    owned.memory.writeFileSync(root + "/../pdf/package.json", JSON.stringify(pdf));
+    owned.memory.writeFileSync(root + "/../safe-bash-pdf-engine/package.json", JSON.stringify(pdf));
   }
   if (defect === "link") {
-    owned.memory.unlinkSync(root + "/../pdf/dist/model.d.ts");
-    owned.memory.symlinkSync(root + "/../safe-bash-command-pandoc/src/private.d.ts", root + "/../pdf/dist/model.d.ts");
+    owned.memory.unlinkSync(root + "/../safe-bash-pdf-engine/dist/model.d.ts");
+    owned.memory.symlinkSync(root + "/../safe-bash-command-pandoc/src/private.d.ts", root + "/../safe-bash-pdf-engine/dist/model.d.ts");
   }
   if (["source-import", "runtime-import", "unapproved-import", "fengari-import"].includes(defect)) {
     const target = defect === "source-import" ? "../src/private.js" : defect === "runtime-import" ? "./runtime.js" : defect === "fengari-import" ? "fengari" : "unapproved";
@@ -160,7 +160,7 @@ for (const defect of ["none", "pin", "name", "version", "export", "lua-export", 
     assert.equal(owned.reads.some(path => path.endsWith("/src/private.d.ts") || path.endsWith("/dist/runtime.js") || path.includes("/unapproved/") || path.includes("/fengari/")), false);
   } else if (defect === "none") {
     assert.equal((await owned.run()).status, 0, owned.output.join(""));
-    assert.ok(owned.reads.includes("/owned/pdf/dist/model.d.ts"));
+    assert.ok(owned.reads.includes("/owned/safe-bash-pdf-engine/dist/model.d.ts"));
     assert.ok(owned.reads.includes("/owned/pdf-ast/dist/index.d.ts"));
   } else await assert.rejects(owned.run(), defect === "link" ? /symlink/ : /private workspace|PDF SDK/);
   assert.equal(owned.reads.some(path => path.endsWith("/safe-bash-command-pandoc/src/private.d.ts")), false);

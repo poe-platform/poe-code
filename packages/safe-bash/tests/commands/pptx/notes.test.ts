@@ -9,10 +9,10 @@ import {
   readNotes,
   readPresentationSettings,
   replacePresentationText
-} from "pptx";
-import { parseXmlPart } from "../../../../pptx/src/xml.js";
-import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
-import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
+} from "safe-bash-pptx-engine";
+import { parseXmlPart } from "../../../../safe-bash-pptx-engine/src/xml.js";
+import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
+import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

@@ -11,15 +11,15 @@ it('packages server protocol, pinned assets and explicit operator configuration'
  const volume=Volume.fromJSON({
   '/operator.mjs':'export default configuration;',
   '/repo/packages/remote-execution/cloudflare/bootstrap.mjs':'bootstrap',
-  '/repo/packages/media-cli/server/download.mjs':'download',
-  '/repo/packages/media-cli/server/container-lock.json':'{"version":1}',
+  '/repo/packages/safe-bash-media-engine/server/download.mjs':'download',
+  '/repo/packages/safe-bash-media-engine/server/container-lock.json':'{"version":1}',
   '/repo/packages/remote-execution/native/execve.c':'native execve source',
  });
  const fs=createFsFromVolume(volume).promises;
  const bundle=vi.fn(async(_entry:string,output:string)=>{await fs.writeFile(output,'bundled');});
  await prepareContainerImage({root:'/repo',output:'/image',deployment:'/operator.mjs'},{fs:fs as never,bundle});
  expect(bundle.mock.calls).toEqual([
-  ['/repo/packages/media-cli/src/server.ts','/image/media-server.mjs'],
+  ['/repo/packages/safe-bash-media-engine/src/server.ts','/image/media-server.mjs'],
   ['/repo/packages/remote-execution/src/http-server.ts','/image/http-server.mjs'],
   ['/repo/packages/remote-execution/src/container-lifecycle.ts','/image/container-lifecycle.mjs'],
   ['/operator.mjs','/image/deployment.mjs'],

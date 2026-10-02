@@ -9,6 +9,8 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     }
   },
@@ -28,6 +30,6 @@
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
     "safe-bash-io-engine": "*",
-    "pptx": "*"
+    "safe-bash-pptx-engine": "*"
   }
 }

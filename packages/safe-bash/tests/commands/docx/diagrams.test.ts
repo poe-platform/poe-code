@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { paragraph, textFixture, textContext } from "../../../../docx/tests/fixtures/text.js";
-import { createDocxInspectionCommandEngine } from "../../../../docx/src/inspection-command.js";
+import { paragraph, textFixture, textContext } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { agentCommands } from "../../../src/plugins/index.js";
 import { Shell } from "../../../src/shell/index.js";
-import { diagramFixture, diagramCarrier, diagramContext } from "../../../../docx/tests/fixtures/diagrams.js";
-import { inspectDocumentDiagrams } from "../../../../docx/src/index.js";
+import { diagramFixture, diagramCarrier, diagramContext } from "../../../../safe-bash-docx-engine/tests/fixtures/diagrams.js";
+import { inspectDocumentDiagrams } from "../../../../safe-bash-docx-engine/src/index.js";
 
 test("actual Shell retains native and unknown physical records and precisely refuses destructive graphics edits", async () => {
   const input = await diagramFixture({ body: '<w:p><w:r><w:t>Original passage</w:t></w:r>' + diagramCarrier() + '</w:p><w:p>' + diagramCarrier(false, "urn:original:graphics").replace('id="1"', 'id="2"') + '</w:p>' });

@@ -9,14 +9,20 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./rg-command": {
       "types": "./dist/rg-command.d.ts",
+      "workerd": "./dist/rg-command.js",
+      "browser": "./dist/rg-command.js",
       "import": "./dist/rg-command.js"
     }
   },

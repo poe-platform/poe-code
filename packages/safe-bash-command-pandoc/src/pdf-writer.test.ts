@@ -5,7 +5,7 @@ import { convert, writeDocument, createFormatRegistry, createStandalonePandocCom
 import { createLuaFilterCapability } from "./lua-filters.js";
 import type { Document } from "./index.js";
 import { Volume } from "memfs";
-import {suppliedDefaultFont} from "@poe-code/pdf";
+import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 const document: Document = {blocks: [{t: "Para", c: [{t: "Str", c: "Hello PDF"}]}], resources: [], metadata: {}};
 it.each(["**bold**", "*italic*", "~~strikeout~~", "before\n\n---\n\nafter", "| Left | Center | Right |\n| :--- | :---: | ---: |\n| a | b | c |"])("renders basic Markdown PDF content: %s", async source => {
   const result = await convert([{bytes: new TextEncoder().encode(source)}], {from: "gfm", to: "pdf"}, {yield: async () => {}});

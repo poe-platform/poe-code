@@ -7,11 +7,11 @@ beforeEach(() => vi.mocked(execFileSync).mockReset());
 
 it("resolves a comparison commit and includes both rename sides and untracked files", () => {
   vi.mocked(execFileSync).mockReturnValueOnce("123abc\n")
-    .mockReturnValueOnce("packages/docx/src/old.ts\0packages/docx/src/new.ts\0packages/js/src/pending.ts\0")
-    .mockReturnValueOnce("packages/docx/src/new.ts\0packages/docx/src/untracked file.ts\0");
+    .mockReturnValueOnce("packages/safe-bash-docx-engine/src/old.ts\0packages/safe-bash-docx-engine/src/new.ts\0packages/js/src/pending.ts\0")
+    .mockReturnValueOnce("packages/safe-bash-docx-engine/src/new.ts\0packages/safe-bash-docx-engine/src/untracked file.ts\0");
   const environment = { PATH: "/bin", CUSTOM: "unchanged" };
   expect(changedFilesSince("/repo", "HEAD~1", environment)).toEqual([
-    "packages/docx/src/old.ts", "packages/docx/src/new.ts", "packages/js/src/pending.ts", "packages/docx/src/untracked file.ts"
+    "packages/safe-bash-docx-engine/src/old.ts", "packages/safe-bash-docx-engine/src/new.ts", "packages/js/src/pending.ts", "packages/safe-bash-docx-engine/src/untracked file.ts"
   ]);
   expect(vi.mocked(execFileSync).mock.calls.map(call => call[1])).toEqual([
     ["rev-parse", "--verify", "--end-of-options", "HEAD~1^{commit}"],

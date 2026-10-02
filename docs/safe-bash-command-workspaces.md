@@ -99,8 +99,8 @@ an explicitly requested command integration.
 canonical relative private artifacts. Do not add per-command branching or ship
 bare unpublished imports. All entries within a platform profile must share the
 same canonical owner; separately bundling contracts into each command breaks
-brands. Keep current types/import-only command profiles until additional export
-conditions are qualified.
+brands. Portable profiles may declare `workerd`, `worker`, and `browser`
+conditions when each resolves to the same prepared artifact as `import`.
 
 For an existing optional profile, `privateWorkspaces.optionalModules` maps
 explicit private export routes to their existing optional-owned dist paths.
@@ -195,5 +195,6 @@ verification remain unresolved and block completion. No unrelated runtime code
 or deadlines were changed. No commit, remote delivery or release was performed.
 
 An admitted `portable: true` private profile builds its canonical runtime with
-the parent Buffer shim for browser and workerd consumers. Engines may use this
+a locally imported Buffer implementation for browser and workerd consumers,
+without installing or reading a global Buffer. Engines may use this
 profile too; optional-owned modules remain in their existing opt-in artifact.

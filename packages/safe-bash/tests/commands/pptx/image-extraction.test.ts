@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test, { before, after, mock } from "node:test";
 import { Volume } from "memfs";
-import { addImage, createPresentation, createPptxCommandEngine } from "pptx";
+import { addImage, createPresentation, createPptxCommandEngine } from "safe-bash-pptx-engine";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

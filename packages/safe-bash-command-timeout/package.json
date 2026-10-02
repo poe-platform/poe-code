@@ -9,22 +9,32 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./duration": {
       "types": "./dist/duration.d.ts",
+      "workerd": "./dist/duration.js",
+      "browser": "./dist/duration.js",
       "import": "./dist/duration.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./scheduler": {
       "types": "./dist/scheduler.d.ts",
+      "workerd": "./dist/scheduler.js",
+      "browser": "./dist/scheduler.js",
       "import": "./dist/scheduler.js"
     },
     "./signal": {
       "types": "./dist/signal.d.ts",
+      "workerd": "./dist/signal.js",
+      "browser": "./dist/signal.js",
       "import": "./dist/signal.js"
     }
   },

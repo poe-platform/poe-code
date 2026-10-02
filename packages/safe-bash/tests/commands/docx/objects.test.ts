@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { extractDocumentObjects, inspectDocumentObjects } from "../../../../docx/src/objects.js";
-import { createDocxInspectionCommandEngine } from "../../../../docx/src/inspection-command.js";
-import { chartFixture, chartContext, sheetMime } from "../../../../docx/tests/fixtures/charts.js";
-import { publication } from "../../../../docx/tests/fixtures/object-publication.js";
-import { r } from "../../../../docx/tests/fixtures/text.js";
+import { extractDocumentObjects, inspectDocumentObjects } from "../../../../safe-bash-docx-engine/src/objects.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
+import { chartFixture, chartContext, sheetMime } from "../../../../safe-bash-docx-engine/tests/fixtures/charts.js";
+import { publication } from "../../../../safe-bash-docx-engine/tests/fixtures/object-publication.js";
+import { r } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { Shell } from "../../../src/shell/index.js";

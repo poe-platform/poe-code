@@ -1,4 +1,4 @@
-import type { LayoutBlock, Paragraph, TextRun, PdfLimits, PdfMetadata, StandardFontName, StandardFont } from "@poe-code/pdf";
+import type { LayoutBlock, Paragraph, TextRun, PdfLimits, PdfMetadata, StandardFontName, StandardFont } from "safe-bash-pdf-engine";
 import { PandocError } from "./errors.js";
 import type { Block, Inline, MetaValue } from "./ast-types.js";
 import type { WriterCapability, Limits } from "./types.js";
@@ -53,7 +53,7 @@ export const pdfWriter: WriterCapability = {
   math: "source",
   imageResources: "embed",
   async write(document, ctx) {
-    const { renderPdf, suppliedDefaultFont, PdfError } = await import("@poe-code/pdf");
+    const { renderPdf, suppliedDefaultFont, PdfError } = await import("safe-bash-pdf-engine");
     const fail = (message: string): never => { throw new PandocError("E_CAPABILITY", ctx.operation ?? "write", message, "pdf"); };
     if (document.direction === "rtl" || document.direction === "auto") fail("PDF profile requires explicit LTR text");
     const styledFonts = new Map<StandardFontName, StandardFont>();

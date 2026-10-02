@@ -1,6 +1,6 @@
 import { PDFDocument, PDFHexString, PDFName, PDFOperator, PDFOperatorNames, rgb, pushGraphicsState, popGraphicsState, concatTransformationMatrix, rectangle as pdfRectangle, clip, endPath, drawObject as drawPdfObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFPage, type PDFFont } from "pdf-lib";
 import fontkit, {type Font} from "@pdf-lib/fontkit";
-import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "@poe-code/pdf";
+import { admitTrueTypeFont, suppliedDefaultFont, serializePdf, decodePng, PdfError } from "safe-bash-pdf-engine";
 import { SsconvertError, type CapabilityContext } from "../contracts.js";
 import { createFormattingCapability } from "../formatting.js";
 import { exportOptionPairs } from "../cli/export-options.js";

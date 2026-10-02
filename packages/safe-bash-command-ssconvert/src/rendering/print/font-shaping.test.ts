@@ -1,6 +1,6 @@
 import {afterEach, expect, it, vi} from "vitest";
 import fontkit from "@pdf-lib/fontkit";
-import {suppliedDefaultFont} from "@poe-code/pdf";
+import {suppliedDefaultFont} from "safe-bash-pdf-engine";
 import type {CapabilityContext} from "../../contracts.js";
 import {createFontShaper, type FontShapingWebAssembly} from "./font-shaping.js";
 

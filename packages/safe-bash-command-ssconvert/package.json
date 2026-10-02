@@ -9,34 +9,50 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./core": {
       "types": "./dist/core.d.ts",
+      "workerd": "./dist/core.js",
+      "browser": "./dist/core.js",
       "import": "./dist/core.js"
     },
     "./formats/xlsx": {
       "types": "./dist/formats/xlsx.d.ts",
+      "workerd": "./dist/formats/xlsx.js",
+      "browser": "./dist/formats/xlsx.js",
       "import": "./dist/formats/xlsx.js"
     },
     "./formats/csv": {
       "types": "./dist/formats/csv.d.ts",
+      "workerd": "./dist/formats/csv.js",
+      "browser": "./dist/formats/csv.js",
       "import": "./dist/formats/csv.js"
     },
     "./formats/ods": {
       "types": "./dist/formats/ods.d.ts",
+      "workerd": "./dist/formats/ods.js",
+      "browser": "./dist/formats/ods.js",
       "import": "./dist/formats/ods.js"
     },
     "./formats/xls": {
       "types": "./dist/formats/xls.d.ts",
+      "workerd": "./dist/formats/xls.js",
+      "browser": "./dist/formats/xls.js",
       "import": "./dist/formats/xls.js"
     },
     "./formats/spreadsheetml": {
       "types": "./dist/formats/spreadsheetml.d.ts",
+      "workerd": "./dist/formats/spreadsheetml.js",
+      "browser": "./dist/formats/spreadsheetml.js",
       "import": "./dist/formats/spreadsheetml.js"
     },
     "./commands": {
       "types": "./dist/commands.d.ts",
+      "workerd": "./dist/commands.js",
+      "browser": "./dist/commands.js",
       "import": "./dist/commands.js"
     }
   },
@@ -88,7 +104,7 @@
     "@pdf-lib/fontkit": "1.1.1",
     "@poe-code/image-ast": "*",
     "@poe-code/office-package": "*",
-    "@poe-code/pdf": "*",
+    "safe-bash-pdf-engine": "*",
     "@poe-code/safe-fs": "*",
     "htmlparser2": "^10.0.0",
     "pdf-lib": "1.17.1",

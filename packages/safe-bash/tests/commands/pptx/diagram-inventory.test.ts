@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import test, { after, before, mock } from "node:test";
 import { Volume } from "memfs";
-import { createPptxCommandEngine, readSelectionIndex } from "pptx";
-import { storedArchive } from "../../../../pptx/tests/fixtures/archive.js";
-import { createDeckFixture } from "../../../../pptx/tests/fixtures/decks.js";
-import { inspectZip } from "../../../../pptx/tests/zip-reader.js";
-import { parseXmlPart } from "../../../../pptx/src/xml.js";
+import { createPptxCommandEngine, readSelectionIndex } from "safe-bash-pptx-engine";
+import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { createDeckFixture } from "../../../../safe-bash-pptx-engine/tests/fixtures/decks.js";
+import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
+import { parseXmlPart } from "../../../../safe-bash-pptx-engine/src/xml.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

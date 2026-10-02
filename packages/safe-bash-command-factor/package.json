@@ -9,26 +9,38 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./command": {
       "types": "./dist/command.d.ts",
+      "workerd": "./dist/command.js",
+      "browser": "./dist/command.js",
       "import": "./dist/command.js"
     },
     "./factor": {
       "types": "./dist/factor.d.ts",
+      "workerd": "./dist/factor.js",
+      "browser": "./dist/factor.js",
       "import": "./dist/factor.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./internal": {
       "types": "./dist/internal.d.ts",
+      "workerd": "./dist/internal.js",
+      "browser": "./dist/internal.js",
       "import": "./dist/internal.js"
     },
     "./io": {
       "types": "./dist/io.d.ts",
+      "workerd": "./dist/io.js",
+      "browser": "./dist/io.js",
       "import": "./dist/io.js"
     }
   },

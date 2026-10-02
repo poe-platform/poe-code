@@ -9,38 +9,56 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./codec": {
       "types": "./dist/codec.d.ts",
+      "workerd": "./dist/codec.js",
+      "browser": "./dist/codec.js",
       "import": "./dist/codec.js"
     },
     "./command": {
       "types": "./dist/command.d.ts",
+      "workerd": "./dist/command.js",
+      "browser": "./dist/command.js",
       "import": "./dist/command.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./internal": {
       "types": "./dist/internal.d.ts",
+      "workerd": "./dist/internal.js",
+      "browser": "./dist/internal.js",
       "import": "./dist/internal.js"
     },
     "./lifecycle": {
       "types": "./dist/lifecycle.d.ts",
+      "workerd": "./dist/lifecycle.js",
+      "browser": "./dist/lifecycle.js",
       "import": "./dist/lifecycle.js"
     },
     "./options": {
       "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
       "import": "./dist/options.js"
     },
     "./reader": {
       "types": "./dist/reader.d.ts",
+      "workerd": "./dist/reader.js",
+      "browser": "./dist/reader.js",
       "import": "./dist/reader.js"
     },
     "./transliterations": {
       "types": "./dist/transliterations.d.ts",
+      "workerd": "./dist/transliterations.js",
+      "browser": "./dist/transliterations.js",
       "import": "./dist/transliterations.js"
     }
   },

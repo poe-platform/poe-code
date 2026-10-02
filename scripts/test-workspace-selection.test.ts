@@ -10,8 +10,8 @@ vi.mock("node:child_process", () => ({ execFileSync: vi.fn(() => "GIT_DIR\n"), s
 function fixture() {
   const files = {
     "package.json": { name: "root", workspaces: ["packages/*"], scripts: { "test:unit": "root-tests" } },
-    "turbo.json": { tasks: { build: { dependsOn: ["^build"] }, "docx#test:unit": { dependsOn: ["build"] }, "virtual-bash#test:unit": { dependsOn: ["build"] } } },
-    "packages/docx/package.json": { name: "docx", scripts: { build: "docx-build", "test:unit": "docx-tests" }, dependencies: { portable: "*" }, poeCode: { build: { dependencies: { portable: "build:portable" } } } },
+    "turbo.json": { tasks: { build: { dependsOn: ["^build"] }, "safe-bash-docx-engine#test:unit": { dependsOn: ["build"] }, "virtual-bash#test:unit": { dependsOn: ["build"] } } },
+    "packages/safe-bash-docx-engine/package.json": { name: "safe-bash-docx-engine", scripts: { build: "docx-build", "test:unit": "docx-tests" }, dependencies: { portable: "*" }, poeCode: { build: { dependencies: { portable: "build:portable" } } } },
     "packages/portable/package.json": { name: "portable", scripts: { build: "full-build", "build:portable": "portable-build" }, dependencies: { leaf: "*" } },
     "packages/leaf/package.json": { name: "leaf", scripts: { build: "leaf-build" } },
     "packages/bash/package.json": { name: "virtual-bash", scripts: { build: "bash-build", "test:unit": "bash-tests" } },
@@ -23,16 +23,16 @@ function fixture() {
 
 describe("explicit maintained unit selection", () => {
   it("runs DOCX and its portable build closure without unrelated suites", () => {
-    const plan = createWorkspaceTestPlan("/repo", { ...fixture(), workspaces: ["docx"] });
-    expect(plan.testStages.map(stage => stage.name)).toEqual(["docx"]);
-    expect(plan.buildStages.map(stage => [stage.name, stage.event ?? "build"])).toEqual([["leaf", "build"], ["portable", "build:portable"], ["docx", "build"]]);
-    expect(plan.selectedWorkspaces).toEqual(["docx"]);
+    const plan = createWorkspaceTestPlan("/repo", { ...fixture(), workspaces: ["safe-bash-docx-engine"] });
+    expect(plan.testStages.map(stage => stage.name)).toEqual(["safe-bash-docx-engine"]);
+    expect(plan.buildStages.map(stage => [stage.name, stage.event ?? "build"])).toEqual([["leaf", "build"], ["portable", "build:portable"], ["safe-bash-docx-engine", "build"]]);
+    expect(plan.selectedWorkspaces).toEqual(["safe-bash-docx-engine"]);
   });
 
   it("rebuilds the actual DOCX public package used by child-process consumer tests", () => {
     const root = path.resolve(import.meta.dirname, "..");
-    const plan = createWorkspaceTestPlan(root, { workspaces: ["docx"] });
-    expect(plan.buildStages.some(stage => stage.name === "docx")).toBe(true);
+    const plan = createWorkspaceTestPlan(root, { workspaces: ["safe-bash-docx-engine"] });
+    expect(plan.buildStages.some(stage => stage.name === "safe-bash-docx-engine")).toBe(true);
     expect(plan.buildStages.find(stage => stage.name === "@poe-code/safe-fs")?.event).toBe("build:portable");
     expect(plan.buildStages.map(stage => stage.name)).not.toContain("virtual-bash");
     expect(plan.buildStages.map(stage => stage.name)).not.toContain("@poe-code/safe-js");
@@ -40,7 +40,7 @@ describe("explicit maintained unit selection", () => {
 
   it("keeps the complete suite when selection is omitted", () => {
     const plan = createWorkspaceTestPlan("/repo", fixture());
-    expect(plan.testStages.map(stage => stage.name)).toEqual(["root", "virtual-bash", "docx", "safe-js"]);
+    expect(plan.testStages.map(stage => stage.name)).toEqual(["root", "virtual-bash", "safe-js", "safe-bash-docx-engine"]);
   });
 
   it("selects root explicitly and deduplicates repeated workspace roots", () => {
@@ -49,7 +49,7 @@ describe("explicit maintained unit selection", () => {
     expect(plan.buildStages).toEqual([]);
   });
 
-  for (const workspaces of [[], ["unknown"], ["leaf"], ["packages/docx"], ["*"]]) {
+  for (const workspaces of [[], ["unknown"], ["leaf"], ["packages/safe-bash-docx-engine"], ["*"]]) {
     it(`refuses invalid or testless selection ${JSON.stringify(workspaces)}`, () => {
       expect(() => createWorkspaceTestPlan("/repo", { ...fixture(), workspaces })).toThrow();
     });
@@ -57,13 +57,13 @@ describe("explicit maintained unit selection", () => {
 
   it("rejects selections combined with CI partitions or exclusions", () => {
     for (const extra of [{ ciGroup: "fresh" }, { excludeWorkspace: "virtual-bash" }]) {
-      expect(() => createWorkspaceTestPlan("/repo", { ...fixture(), workspaces: ["docx"], ...extra })).toThrow();
+      expect(() => createWorkspaceTestPlan("/repo", { ...fixture(), workspaces: ["safe-bash-docx-engine"], ...extra })).toThrow();
     }
   });
 
   it("parses repeated exact names and reserves the argument boundary for child options", () => {
-    expect(parseWorkspaceArguments(["--test-unit", "--workspace=docx", "--workspace=@poe-code/safe-js", "--", "--reporter=json"]))
-      .toMatchObject({ workspaces: ["docx", "@poe-code/safe-js"], testArguments: ["--reporter=json"] });
+    expect(parseWorkspaceArguments(["--test-unit", "--workspace=safe-bash-docx-engine", "--workspace=@poe-code/safe-js", "--", "--reporter=json"]))
+      .toMatchObject({ workspaces: ["safe-bash-docx-engine", "@poe-code/safe-js"], testArguments: ["--reporter=json"] });
     expect(parseWorkspaceArguments(["--test-unit", "--", "--workspace=child"]).testArguments).toEqual(["--workspace=child"]);
     for (const selector of ["", "*", "../docx", "docx?", "docx\u0000"]) {
       expect(() => parseWorkspaceArguments(["--test-unit", "--workspace=" + selector])).toThrow();
@@ -72,22 +72,22 @@ describe("explicit maintained unit selection", () => {
 
   it("previews selected tasks without executing or counting them as passes", async () => {
     const spawn = vi.fn();
-    const result = await testWorkspaces("/repo", { ...fixture(), workspaces: ["docx"], dryRun: true, spawn, environment: { npm_execpath: "/npm-cli.js" } });
+    const result = await testWorkspaces("/repo", { ...fixture(), workspaces: ["safe-bash-docx-engine"], dryRun: true, spawn, environment: { npm_execpath: "/npm-cli.js" } });
     expect(spawn).not.toHaveBeenCalled();
     expect(result).toMatchObject({ dryRun: true, plannedTests: 1, plannedBuilds: 3 });
     expect(result).not.toHaveProperty("tests");
     expect(result).not.toHaveProperty("builds");
-    expect(result.testStages.map(stage => stage.name)).toEqual(["docx"]);
-    expect(parseWorkspaceArguments(["--test-unit", "--workspace=docx", "--dry-run"]).dryRun).toBe(true);
+    expect(result.testStages.map(stage => stage.name)).toEqual(["safe-bash-docx-engine"]);
+    expect(parseWorkspaceArguments(["--test-unit", "--workspace=safe-bash-docx-engine", "--dry-run"]).dryRun).toBe(true);
   });
 
   it("parses exact focused files without broadening native workspace filters", () => {
-    expect(parseWorkspaceArguments(["--test-unit", "--workspace=docx", "--test-file=packages/docx/src/fields.test.ts"]))
-      .toMatchObject({ workspaces: ["docx"], testFiles: ["packages/docx/src/fields.test.ts"] });
+    expect(parseWorkspaceArguments(["--test-unit", "--workspace=safe-bash-docx-engine", "--test-file=packages/safe-bash-docx-engine/src/fields.test.ts"]))
+      .toMatchObject({ workspaces: ["safe-bash-docx-engine"], testFiles: ["packages/safe-bash-docx-engine/src/fields.test.ts"] });
     for (const file of ["../outside.test.ts", "/absolute.test.ts", "packages/*/test.ts", "bad\\path.test.ts"]) {
-      expect(() => parseWorkspaceArguments(["--test-unit", "--workspace=docx", "--test-file=" + file])).toThrow();
+      expect(() => parseWorkspaceArguments(["--test-unit", "--workspace=safe-bash-docx-engine", "--test-file=" + file])).toThrow();
     }
-    for (const options of [{ testFiles: ["packages/docx/src/fields.test.ts"] }, { workspaces: ["docx", "safe-js"], testFiles: ["packages/docx/src/fields.test.ts"] }]) {
+    for (const options of [{ testFiles: ["packages/safe-bash-docx-engine/src/fields.test.ts"] }, { workspaces: ["safe-js", "safe-bash-docx-engine"], testFiles: ["packages/safe-bash-docx-engine/src/fields.test.ts"] }]) {
       expect(() => createWorkspaceTestPlan("/repo", { ...fixture(), ...options })).toThrow();
     }
   });

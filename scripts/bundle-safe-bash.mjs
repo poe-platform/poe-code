@@ -37,7 +37,8 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
       // This recipe prepares ESM import entries only. Other runtime profiles
       // need their own qualified build before they can be admitted here.
       for (const condition of Object.keys(target ?? {})) {
-        if (condition !== "types" && condition !== "import") {
+        if (condition !== "types" && condition !== "import" &&
+            !(portable && ["workerd", "worker", "browser"].includes(condition) && target[condition] === target.import)) {
           throw new Error("Unsupported private command export condition: " + name + " " + condition);
         }
       }

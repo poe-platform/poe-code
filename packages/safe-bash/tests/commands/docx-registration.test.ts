@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
-import { createDocumentArchive, readDocumentArchive, writeDocumentArchive, createDocxCommandEngine, DocxUsageError } from "../../../docx/src/index.js";
+import { createDocumentArchive, readDocumentArchive, writeDocumentArchive, createDocxCommandEngine, DocxUsageError } from "../../../safe-bash-docx-engine/src/index.js";
 import { createDocxCommand, docxCommands, type DocxCommandEngine } from "../../src/commands/docx/index.js";
 import { collectBytes, writeBytes } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
@@ -16,7 +16,7 @@ const decoder = new TextDecoder();
 const limits = { maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536, maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 1024, maxCommentBytes: 1024, maxRetainedBytes: 500000, chunkSize: 1024 };
 
 async function packFixture() {
-  const { createDocxInspectionCommandEngine } = await import("../../../docx/src/inspection-command.js");
+  const { createDocxInspectionCommandEngine } = await import("../../../safe-bash-docx-engine/src/inspection-command.js");
   const archive = await createDocumentArchive({ kind: "dotx", dialect: "strict", content: { version: 1, blocks: [{ kind: "paragraph", text: "  Coast café 日本語  " }] } }, { limits, signal: new AbortController().signal });
   const directory = "/work/coast café 日本語";
   const volume = Volume.fromJSON({ "/work/existing.dotx": "Preserve destination", [directory]: null });
@@ -374,8 +374,8 @@ test("docx human source diagnostics escape terminal controls while JSON remains 
 });
 
 test("docx read-only engine inspects stdin through Shell without filesystem mutation", async () => {
-  const { createDocxInspectionCommandEngine } = await import("../../../docx/src/inspection-command.js");
-  const { inspectDocument } = await import("../../../docx/src/inspection.js");
+  const { createDocxInspectionCommandEngine } = await import("../../../safe-bash-docx-engine/src/inspection-command.js");
+  const { inspectDocument } = await import("../../../safe-bash-docx-engine/src/inspection.js");
   const signal = new AbortController().signal;
   const context = { limits, signal };
   const archive = await createDocumentArchive({}, context);

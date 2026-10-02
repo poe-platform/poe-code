@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { writeArchive } from "../../../../docx/src/index.js";
-import { createDocxInspectionCommandEngine } from "../../../../docx/src/inspection-command.js";
-import { textFixture, run, textContext, w, r } from "../../../../docx/tests/fixtures/text.js";
+import { writeArchive } from "../../../../safe-bash-docx-engine/src/index.js";
+import { createDocxInspectionCommandEngine } from "../../../../safe-bash-docx-engine/src/inspection-command.js";
+import { textFixture, run, textContext, w, r } from "../../../../safe-bash-docx-engine/tests/fixtures/text.js";
 import { docxCommands } from "../../../src/commands/docx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

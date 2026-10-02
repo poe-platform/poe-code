@@ -1,11 +1,11 @@
 import { getCommandArguments } from 'safe-bash-contracts/command';
 import type { CommandContext, CommandDefinition } from 'safe-bash-contracts/command';
 import type { VirtualShellPlugin } from 'safe-bash-contracts/plugin';
-import { createFFmpegShims, type NativeBinding } from '@poe-code/media-cli';
-import { createImageMagickShims, type ImageMagickBinding } from '@poe-code/media-cli';
-import { imageMagickReference, imageMagickGrammarRevision } from '@poe-code/media-cli';
-import { nativeReference, grammarRevision } from '@poe-code/media-cli';
-import type { MediaEngineRequest } from '@poe-code/media-cli';
+import { createFFmpegShims, type NativeBinding } from 'safe-bash-media-engine';
+import { createImageMagickShims, type ImageMagickBinding } from 'safe-bash-media-engine';
+import { imageMagickReference, imageMagickGrammarRevision } from 'safe-bash-media-engine';
+import { nativeReference, grammarRevision } from 'safe-bash-media-engine';
+import type { MediaEngineRequest } from 'safe-bash-media-engine';
 
 export interface MediaCommandsOptions {
   readonly engine?: { execute(request: MediaEngineRequest): Promise<{ exitCode: number }> };

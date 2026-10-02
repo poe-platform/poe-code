@@ -530,6 +530,31 @@ values. Detail/inspector cards, their width/wrapping dependencies, interactive
 controls, terminal Markdown, CLI/transports and complete replacement qualification
 remain open.
 
+### Dashboard footer checkpoint
+
+`dashboard/components/footer` now exports `renderFooter`, `defaultHints` and
+`FooterHint`. Rust owns hint selection, fallback clipping, centering, session
+column allocation, theme style selection and default hint content. Node retains
+array mapping/species/iteration, observable callbacks and string operations.
+The renderer uses the existing native theme, terminal-width and buffer surfaces.
+
+Three missing-export tests failed before implementation. Differential checks
+cover complete-hint fitting, fresh defaults, control sanitization, Unicode cells,
+session rows, active brands, getter order, array species, method receivers and
+thrown identity. Maintained checks pass 293 native host tests, 1,299 selected design
+tests (including five original session-footer cases), 13 prompt-wrapper tests,
+50 shared dashboard tests and all 14 composer tests. Scoped Rust/binding/JS lint,
+bidirectional public structural types and packed standalone runtime/declarations
+pass. The separate private buffer type remains an explicit nominal swap gate.
+Inspected screenshots verify hints and session clipping at 72, 40 and 12 columns;
+Unicode is covered differentially. No dependencies or default integration changes.
+
+Five warmed alternating 100-call rounds on an 80-column session footer with a
+no-op drawing surface measured 457.788 µs native / 28.154 µs reference (16.26×
+slower). No performance gate passed. Output/stats/context renderers, dashboard
+lifecycle and snapshots, explorer, native batching and broader replacement
+qualification remain open.
+
 The internal `fast-string-width` replacement now runs scan order, block
 accumulation and unmatched-codepoint width policy in Rust. Node retains its
 Unicode RegExp tables, sticky matching, string operations, iterators and numeric

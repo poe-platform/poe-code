@@ -9,6 +9,10 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/dashboard/components/footer.test.ts")) {
+          if (name === "./footer.js") return path("dist/dashboard-footer.js");
+          if (name === "../buffer.js") return path("dist/dashboard-buffer.js");
+        }
         if (importer === path("../toolcraft-design/src/dashboard/terminal.test.ts")) {
           if (name === "./terminal.js") return path("dist/dashboard-terminal.js");
           if (name === "./buffer.js") return path("dist/dashboard-buffer.js");
@@ -135,6 +139,7 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/dashboard/components/footer.test.ts"),
       path("../toolcraft-design/src/dashboard/terminal.test.ts"),
       path("../toolcraft-design/src/dashboard/ansi.test.ts"),
       path("../toolcraft-design/src/dashboard/store-retention.test.ts"),

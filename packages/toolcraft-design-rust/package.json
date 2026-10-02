@@ -423,6 +423,10 @@
     "./dashboard/layout": {
       "types": "./dist/dashboard-layout.d.ts",
       "import": "./dist/dashboard-layout.js"
+    },
+    "./dashboard/components/footer": {
+      "types": "./dist/dashboard-footer.d.ts",
+      "import": "./dist/dashboard-footer.js"
     }
   },
   "scripts": {

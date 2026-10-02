@@ -749,3 +749,16 @@ const borderNominalOriginal: typeof originalDashboardBorder.renderBorder = dashb
 const layoutSubpathOriginal: typeof originalDashboardLayout = dashboardLayout;
 const layoutSubpathNative: typeof dashboardLayout = null as unknown as typeof originalDashboardLayout;
 void [borderOptionsOriginal,borderOptionsNative,borderKeys,borderPublicOriginal,borderPublicNative,borderNominalOriginal,layoutSubpathOriginal,layoutSubpathNative];
+
+import * as dashboardFooter from "toolcraft-design-rust/dashboard/components/footer";
+import type * as originalDashboardFooter from "toolcraft-design/dashboard/components/footer";
+const footerDefaultsOriginal: typeof originalDashboardFooter.defaultHints = dashboardFooter.defaultHints;
+const footerDefaultsNative: typeof dashboardFooter.defaultHints = null as unknown as typeof originalDashboardFooter.defaultHints;
+const footerKeys: SameKeys<typeof dashboardFooter,typeof originalDashboardFooter> = true;
+type NativeFooterPublic = (buffer: BufferPublic<dashboardBuffer.ScreenBuffer>,rect: Parameters<typeof dashboardFooter.renderFooter>[1],hints: dashboardFooter.FooterHint[],session?: Parameters<typeof dashboardFooter.renderFooter>[3]) => ReturnType<typeof dashboardFooter.renderFooter>;
+type OriginalFooterPublic = (buffer: BufferPublic<originalDashboardBuffer.ScreenBuffer>,rect: Parameters<typeof originalDashboardFooter.renderFooter>[1],hints: originalDashboardFooter.FooterHint[],session?: Parameters<typeof originalDashboardFooter.renderFooter>[3]) => ReturnType<typeof originalDashboardFooter.renderFooter>;
+const footerPublicOriginal: OriginalFooterPublic = null as unknown as NativeFooterPublic;
+const footerPublicNative: NativeFooterPublic = null as unknown as OriginalFooterPublic;
+// @ts-expect-error The buffer parameter retains the separate private-class identity gate.
+const footerNominalOriginal: typeof originalDashboardFooter.renderFooter = dashboardFooter.renderFooter;
+void [footerDefaultsOriginal,footerDefaultsNative,footerKeys,footerPublicOriginal,footerPublicNative,footerNominalOriginal];

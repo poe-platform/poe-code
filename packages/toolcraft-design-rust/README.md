@@ -507,3 +507,9 @@ function. Keypress input preserves split Unicode and bracketed paste.
 pane borders and footer dividers, sanitizes and clips titles, and adapts junctions
 to compact or collapsed panes. Obtain the layout from `dashboard/layout` and
 pass a `ScreenBuffer` from `dashboard/buffer`.
+
+`renderFooter(buffer, rect, hints, session?)` from `dashboard/components/footer`
+centers complete hints and highlights their keys with the current theme. Supply
+a session to show the working directory and agent/model on the bottom row;
+text clips to the available cells. `defaultHints()` returns a fresh standard
+Quit/Edit/Log/Pause/Retry hint list.

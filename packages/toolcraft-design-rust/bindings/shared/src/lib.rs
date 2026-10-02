@@ -500,3 +500,5 @@ mod dashboard_terminal;
 pub use dashboard_terminal::*;
 mod dashboard_border;
 pub use dashboard_border::*;
+mod dashboard_footer;
+pub use dashboard_footer::*;

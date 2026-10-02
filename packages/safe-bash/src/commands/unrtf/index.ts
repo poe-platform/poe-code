@@ -77,7 +77,7 @@ export function evalSyncUnrtf(
   const cached = unrtfCache.get(cacheKey);
   if (cached !== undefined) return cached;
   try {
-    let out = renderRtfSync(srcBytes, {
+    const out = renderRtfSync(srcBytes, {
       format,
       signal: syncUnrtfSignal(),
       ...(quiet === undefined ? {} : { quiet }),

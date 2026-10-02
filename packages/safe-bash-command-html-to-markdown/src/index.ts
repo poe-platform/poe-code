@@ -90,21 +90,16 @@ const syncHtmlMdDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: tru
 let lastHtmlMdInput: string | undefined;
 let lastHtmlMdOutput: string | undefined;
 
-function decodeHtmlEntitiesSync(s: string): string | undefined {
-  if (s.includes("&")) return undefined;
-  return s;
-}
-
 function convertSimpleInlineHtmlSync(html: string): string | undefined {
   if (html.includes("&") || /<br\b/i.test(html)) return undefined;
   let out = html;
-  out = out.replace(/<img\s+[^>]*src="(https?:\/\/[a-zA-Z0-9._~:\/?#@!$&*+,;=%-]+)"[^>]*alt="([a-zA-Z0-9 ,:;\/?\"]*)?"[^>]*\/?>/gi, "![$2](<$1>)");
-  out = out.replace(/<img\s+[^>]*alt="([a-zA-Z0-9 ,:;\/?\"]*)?"[^>]*src="(https?:\/\/[a-zA-Z0-9._~:\/?#@!$&*+,;=%-]+)"[^>]*\/?>/gi, "![$1](<$2>)");
-  out = out.replace(/<(strong|b)>([a-zA-Z0-9 ,:;\/?\"]+)<\/\1>/g, "**$2**");
-  out = out.replace(/<(em|i)>([a-zA-Z0-9 ,:;\/?\"]+)<\/\1>/g, "*$2*");
-  out = out.replace(/<(del|s)>([a-zA-Z0-9 ,:;\/?\"]+)<\/\1>/g, "~~$2~~");
-  out = out.replace(/<code>([a-zA-Z0-9 ,:;\/?\"]+)<\/code>/g, "`$1`");
-  out = out.replace(/<a\s+href="(https?:\/\/[a-zA-Z0-9._~:\/?#@!$&*+,;=%-]+)">([a-zA-Z0-9 ,:;\/?\"]+)<\/a>/g, "[$2](<$1>)");
+  out = out.replace(/<img\s+[^>]*src="(https?:\/\/[a-zA-Z0-9._~:/?#@!$&*+,;=%-]+)"[^>]*alt="([a-zA-Z0-9 ,:;/?"]*)?"[^>]*\/?>/gi, "![$2](<$1>)");
+  out = out.replace(/<img\s+[^>]*alt="([a-zA-Z0-9 ,:;/?"]*)?"[^>]*src="(https?:\/\/[a-zA-Z0-9._~:/?#@!$&*+,;=%-]+)"[^>]*\/?>/gi, "![$1](<$2>)");
+  out = out.replace(/<(strong|b)>([a-zA-Z0-9 ,:;/?"]+)<\/\1>/g, "**$2**");
+  out = out.replace(/<(em|i)>([a-zA-Z0-9 ,:;/?"]+)<\/\1>/g, "*$2*");
+  out = out.replace(/<(del|s)>([a-zA-Z0-9 ,:;/?"]+)<\/\1>/g, "~~$2~~");
+  out = out.replace(/<code>([a-zA-Z0-9 ,:;/?"]+)<\/code>/g, "`$1`");
+  out = out.replace(/<a\s+href="(https?:\/\/[a-zA-Z0-9._~:/?#@!$&*+,;=%-]+)">([a-zA-Z0-9 ,:;/?"]+)<\/a>/g, "[$2](<$1>)");
   if (out.includes("<") || out.includes(">")) return undefined;
   const plainCheck = out
     .replace(/!\[[^\]]*\]\(<https?:\/\/[^>]+>\)/g, "x")

@@ -1,4 +1,4 @@
-import * as fsPromises from "node:fs/promises";
+import { taskListFileSystem } from "./filesystem.js";
 import { ghIssuesBackend } from "./backends/gh-issues.js";
 import { resolveAuth, resolveEndpoint } from "./backends/gh-issues-client.js";
 import { markdownDirBackend } from "./backends/markdown-dir.js";
@@ -12,8 +12,7 @@ import type {
   OpenMarkdownDirOptions,
   OpenTaskListOptions,
   OpenYamlFileOptions,
-  TaskList,
-  TaskListFs
+  TaskList
 } from "./types.js";
 
 type FileBackendOptions = OpenMarkdownDirOptions | OpenYamlFileOptions;
@@ -22,10 +21,6 @@ export const backendFactories: Record<FileBackendOptions["type"], BackendFactory
   "markdown-dir": markdownDirBackend,
   "yaml-file": yamlFileBackend
 };
-
-function createDefaultFs(): TaskListFs {
-  return fsPromises as unknown as TaskListFs;
-}
 
 export async function openTaskList(options: OpenTaskListOptions): Promise<TaskList> {
   const type = getOwnProperty(options, "type");
@@ -67,7 +62,7 @@ async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
             "frontmatterMode"
           ) as OpenMarkdownDirOptions["frontmatterMode"]) ?? "strict"),
     create: (getOwnProperty(options, "create") as boolean | undefined) ?? false,
-    fs: (getOwnProperty(options, "fs") as TaskListFs | undefined) ?? createDefaultFs(),
+    fs: taskListFileSystem(getOwnProperty(options, "fs") as FileBackendOptions["fs"]),
     stateMachine
   };
 

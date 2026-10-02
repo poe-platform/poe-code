@@ -14,6 +14,8 @@ Multi-list task manager with pluggable storage backends.
 
 The task lifecycle is `draft -> planned -> in-progress -> done -> archived`. `archived` is terminal.
 
+In Workers or browsers, pass a `@poe-code/safe-fs` filesystem through `fs` for Markdown and YAML stores. It must support exclusive writes, rename, unlink, and rmdir for atomic updates and locks. Node uses its host filesystem by default. GitHub stores work with an explicit `auth.token`; automatic `gh` authentication requires a host runner.
+
 ## Public API
 
 - `openTaskList(options)`: opens a task store and returns a `TaskList`

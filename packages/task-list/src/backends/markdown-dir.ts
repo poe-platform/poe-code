@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "../paths.js";
 import { parseDocument, stringify } from "yaml";
 import { TASK_SCHEMA_ID } from "../schema/ids.js";
 import { eventsFromState, findEvent } from "../state-machine.js";
@@ -793,7 +793,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
         const fromPath = path.join(listDirectoryPath, entry.filename);
         const stagingPath = path.join(
           listDirectoryPath,
-          `${desiredFilename}.staging-${process.pid}-${index}`
+          `${desiredFilename}.staging-${crypto.randomUUID()}-${index}`
         );
         const targetPath = path.join(listDirectoryPath, desiredFilename);
         try {

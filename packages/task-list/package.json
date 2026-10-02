@@ -29,6 +29,16 @@
   "dependencies": {
     "@poe-code/process-runner": "^0.0.1",
     "@poe-code/user-error": "*",
-    "yaml": "*"
+    "yaml": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#task-list-host": {
+      "types": "./src/default-host.ts",
+      "workerd": "./dist/default-host.workerd.js",
+      "browser": "./dist/default-host.workerd.js",
+      "worker": "./dist/default-host.workerd.js",
+      "default": "./dist/default-host.js"
+    }
   }
 }

@@ -1,5 +1,5 @@
-import { text } from "node:stream/consumers";
-import { createHostRunner, type Runner } from "@poe-code/process-runner";
+import type { Runner } from "@poe-code/process-runner";
+import { createDefaultRunner } from "#task-list-host";
 import { UserError } from "@poe-code/user-error";
 
 const DEFAULT_ENDPOINT = "https://api.github.com/graphql";
@@ -71,7 +71,7 @@ export async function resolveAuth(options: ResolveAuthOptions): Promise<string> 
     return options.explicitToken;
   }
 
-  const runner = options.runner ?? createHostRunner();
+  const runner = options.runner ?? createDefaultRunner();
   const handle = runner.exec({
     command: "gh",
     args: ["auth", "token"],
@@ -98,7 +98,7 @@ export interface ResolveEndpointOptions {
 }
 
 export function resolveEndpoint(options: ResolveEndpointOptions = {}): string {
-  const env = options.env ?? process.env;
+  const env = options.env ?? globalThis.process?.env ?? {};
   const host = env.GH_HOST;
 
   if (host !== undefined && host !== "" && host !== "github.com") {
@@ -106,4 +106,13 @@ export function resolveEndpoint(options: ResolveEndpointOptions = {}): string {
   }
 
   return DEFAULT_ENDPOINT;
+}
+
+async function text(stream: AsyncIterable<string | Uint8Array>): Promise<string> {
+  const decoder = new TextDecoder();
+  let result = "";
+  for await (const chunk of stream) {
+    result += typeof chunk === "string" ? decoder.decode() + chunk : decoder.decode(chunk, { stream: true });
+  }
+  return result + decoder.decode();
 }

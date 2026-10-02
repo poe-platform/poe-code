@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "../paths.js";
 import { isMap, parseDocument, type Document, type YAMLMap } from "yaml";
 import { STORE_SCHEMA_ID, TASK_SCHEMA_ID } from "../schema/ids.js";
 import { eventsFromState, findEvent } from "../state-machine.js";

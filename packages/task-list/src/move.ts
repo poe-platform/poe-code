@@ -1,5 +1,5 @@
-import * as fsPromises from "node:fs/promises";
-import path from "node:path";
+import { taskListFileSystem } from "./filesystem.js";
+import { path } from "./paths.js";
 import { findEvent } from "./state-machine.js";
 import { openTaskList } from "./open.js";
 import type {
@@ -169,7 +169,7 @@ function readOnlyTargetOptions(
     ...options,
     create: true,
     fs: createDryRunFs(
-      options.fs ?? (fsPromises as unknown as TaskListFs),
+      taskListFileSystem(options.fs),
       options.path,
       options.type
     )

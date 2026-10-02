@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-import path from "node:path";
+import { path } from "../paths.js";
 import type { ListFilter, Task, TaskListFs } from "../types.js";
 
 const LOCK_WAIT_MS = 30_000;
@@ -117,9 +116,8 @@ export async function rejectSymbolicLinkComponents(
   filePath: string
 ): Promise<void> {
   const resolvedPath = path.resolve(filePath);
-  const rootPath = path.parse(resolvedPath).root;
-  const components = resolvedPath.slice(rootPath.length).split(path.sep).filter(Boolean);
-  let currentPath = rootPath;
+  const components = resolvedPath.slice(1).split("/").filter(Boolean);
+  let currentPath = "/";
 
   for (const component of components) {
     currentPath = path.join(currentPath, component);
@@ -146,7 +144,7 @@ export async function writeAtomically(
   filePath: string,
   content: string
 ): Promise<void> {
-  const tempPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  const tempPath = `${filePath}.${crypto.randomUUID()}.tmp`;
   let tempCreated = false;
 
   await fs.mkdir(path.dirname(filePath), { recursive: true });
@@ -178,7 +176,7 @@ export async function withFileLock<T>(
 ): Promise<T> {
   await rejectSymbolicLinkComponents(fs, lockPath);
   await fs.mkdir(path.dirname(lockPath), { recursive: true });
-  const ownerPath = path.join(lockPath, `${process.pid}-${randomUUID()}`);
+  const ownerPath = path.join(lockPath, crypto.randomUUID());
   const deadline = Date.now() + LOCK_WAIT_MS;
 
   for (;;) {

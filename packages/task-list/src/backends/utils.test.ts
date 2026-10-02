@@ -5,6 +5,7 @@ import {
   applyOrder,
   compareCreated,
   hasErrorCode,
+  rejectSymbolicLinkComponents,
   statIfExists,
   withFileLock,
   writeAtomically,
@@ -250,4 +251,11 @@ describe("backend utilities", () => {
     expect(kill).not.toHaveBeenCalled();
     await expect(rawFs.readFile(lockPath, "utf8")).resolves.toBe(content);
   });
+});
+
+it("checks relative path symlinks against the host working directory", async () => {
+  const { fs, rawFs } = createFs({ "/outside/task.md": "external" });
+  await rawFs.mkdir(process.cwd(), { recursive: true });
+  await rawFs.symlink("/outside", `${process.cwd()}/tasks-link`);
+  await expect(rejectSymbolicLinkComponents(fs, "tasks-link/task.md")).rejects.toThrow("symbolic link");
 });

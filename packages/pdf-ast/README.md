@@ -147,11 +147,14 @@ Circular indirect-reference chains raise a PDF parse error; long acyclic referen
 chains resolve without recursive JavaScript calls.
 
 Resource limits default to `Infinity`. Set `maxObjects`, `maxDecompressedBytes`,
-`maxRecursionDepth`, or save-time `maxOutputBytes` to enforce explicit budgets.
+or `maxRecursionDepth` when parsing to enforce explicit budgets. For serialization,
+pass `maxObjects`, `maxOutputBytes`, or `maxRecursionDepth` to `serializeCosDocument`.
 `maxObjects` also bounds cross-reference entries before object loading (with one
 additional slot for the reserved free object zero).
 The depth limit covers indirect-reference chains and nested COS arrays/dictionaries,
 including repaired files and compressed object streams.
+Writing and encryption dictionary traversal have no default depth ceiling.
+Serialization budgets include generated object streams and linearization objects.
 `maxDecompressedBytes` bounds each decoded stream and image RGBA buffer, including
 masks and codec header dimensions. It is a per-buffer limit, not a total document
 memory limit; codec working memory can exceed the final pixel buffer size.

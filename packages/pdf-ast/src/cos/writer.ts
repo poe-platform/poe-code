@@ -30,13 +30,17 @@ export interface SerializeCosOptions {
   readonly linearize?: boolean | undefined;
   readonly maxOutputBytes?: number | undefined;
   readonly maxObjects?: number | undefined;
+  readonly maxRecursionDepth?: number | undefined;
 }
 
 const textEncoder = new TextEncoder();
 
-export function serializeCosNodeBytes(node: PdfCosNode, depth = 0): Uint8Array {
-  if (depth > 128) {
-    throw new PdfError("E_CAPABILITY", "PDF object graph nesting depth exceeded");
+export function serializeCosNodeBytes(node: PdfCosNode, depth = 0, maxRecursionDepth = Infinity): Uint8Array {
+  if (maxRecursionDepth !== Infinity && (!Number.isSafeInteger(maxRecursionDepth) || maxRecursionDepth < 1)) {
+    throw new RangeError("maxRecursionDepth must be a positive safe integer or Infinity");
+  }
+  if (depth > maxRecursionDepth) {
+    throw new PdfError("E_LIMIT", "PDF object graph nesting depth exceeded");
   }
   switch (node.kind) {
     case "null":
@@ -110,7 +114,7 @@ export function serializeCosNodeBytes(node: PdfCosNode, depth = 0): Uint8Array {
     case "array": {
       const parts: Uint8Array[] = [textEncoder.encode("[ ")];
       for (let i = 0; i < node.items.length; i++) {
-        parts.push(serializeCosNodeBytes(node.items[i]!, depth + 1));
+        parts.push(serializeCosNodeBytes(node.items[i]!, depth + 1, maxRecursionDepth));
         parts.push(textEncoder.encode(" "));
       }
       parts.push(textEncoder.encode("]"));
@@ -119,9 +123,9 @@ export function serializeCosNodeBytes(node: PdfCosNode, depth = 0): Uint8Array {
     case "dict": {
       const parts: Uint8Array[] = [textEncoder.encode("<<\n")];
       for (const entry of node.entries) {
-        parts.push(serializeCosNodeBytes(entry.key, depth + 1));
+        parts.push(serializeCosNodeBytes(entry.key, depth + 1, maxRecursionDepth));
         parts.push(textEncoder.encode(" "));
-        parts.push(serializeCosNodeBytes(entry.value, depth + 1));
+        parts.push(serializeCosNodeBytes(entry.value, depth + 1, maxRecursionDepth));
         parts.push(textEncoder.encode("\n"));
       }
       parts.push(textEncoder.encode(">>"));
@@ -139,7 +143,7 @@ export function serializeCosNodeBytes(node: PdfCosNode, depth = 0): Uint8Array {
       if (!dictGet(dictClone, "Length")) {
         dictSet(dictClone, "Length", cosNumber(node.rawBytes.length));
       }
-      const dictBytes = serializeCosNodeBytes(dictClone, depth + 1);
+      const dictBytes = serializeCosNodeBytes(dictClone, depth + 1, maxRecursionDepth);
       return concatByteArrays([
         dictBytes,
         textEncoder.encode("\nstream\n"),
@@ -204,6 +208,9 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
     if (packable.length > 0) {
       const objStmNum = maxObjectNumber + 1;
       const xrefStmNum = maxObjectNumber + 2;
+      if (xrefStmNum > maxObjects) {
+        throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
+      }
       const bodyChunks: Uint8Array[] = [];
       const headerPairs: string[] = [];
       let relOffset = 0;
@@ -211,7 +218,7 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
         if (++work % 16 === 0) yield;
 
         headerPairs.push(`${pObj.objectNumber} ${relOffset}`);
-        const bBytes = serializeCosNodeBytes(pObj.value);
+        const bBytes = serializeCosNodeBytes(pObj.value, 0, options.maxRecursionDepth);
         const nl = textEncoder.encode("\n");
         bodyChunks.push(bBytes, nl);
         relOffset += bBytes.length + nl.length;
@@ -239,9 +246,12 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
 
         directOffsets.set(dObj.objectNumber, { offset, generation: dObj.generationNumber });
         const prefix = textEncoder.encode(`${dObj.objectNumber} ${dObj.generationNumber} obj\n`);
-        const body = serializeCosNodeBytes(dObj.value);
+        const body = serializeCosNodeBytes(dObj.value, 0, options.maxRecursionDepth);
         const suffix = textEncoder.encode("\nendobj\n\n");
         offset += prefix.length + body.length + suffix.length;
+        if (offset > maxOutputBytes) {
+          throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
+        }
         chunks.push(prefix, body, suffix);
       }
       const compressedMap = new Map<number, number>();
@@ -293,8 +303,11 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
         compress: false,
       });
       const xrefPrefix = textEncoder.encode(`${xrefStmNum} 0 obj\n`);
-      const xrefBody = serializeCosNodeBytes(xrefStreamNode);
+      const xrefBody = serializeCosNodeBytes(xrefStreamNode, 0, options.maxRecursionDepth);
       const xrefSuffix = textEncoder.encode(`\nendobj\n\nstartxref\n${xrefOffset}\n%%EOF`);
+      if (offset + xrefPrefix.length + xrefBody.length + xrefSuffix.length > maxOutputBytes) {
+        throw new PdfError("E_LIMIT", "PDF output byte limit exceeded");
+      }
       chunks.push(xrefPrefix, xrefBody, xrefSuffix);
       return concatByteArrays(chunks);
     }
@@ -341,6 +354,9 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
     }
     if (nextObjNum - 1 > maxObjectNumber) {
       maxObjectNumber = nextObjNum - 1;
+    }
+    if (maxObjectNumber > maxObjects) {
+      throw new PdfError("E_LIMIT", "PDF largest object number exceeds limit");
     }
 
     // Find first Page object and total Page count
@@ -418,7 +434,7 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
       };
     }
     const prefix = textEncoder.encode(`${obj.objectNumber} ${obj.generationNumber} obj\n`);
-    const body = serializeCosNodeBytes(value);
+    const body = serializeCosNodeBytes(value, 0, options.maxRecursionDepth);
     const suffix = textEncoder.encode("\nendobj\n\n");
     offset += prefix.length + body.length + suffix.length;
     if (offset > maxOutputBytes) {
@@ -451,7 +467,7 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
   const trailerBytes = concatByteArrays([
     textEncoder.encode(xrefText),
     textEncoder.encode("trailer\n"),
-    serializeCosNodeBytes(trailerDict),
+    serializeCosNodeBytes(trailerDict, 0, options.maxRecursionDepth),
     textEncoder.encode(`\n\nstartxref\n${xrefOffset}\n%%EOF`),
   ]);
 
@@ -505,7 +521,7 @@ export function* serializeCosDocumentSteps(options: SerializeCosOptions): Genera
       T: fixedNum(xrefOffset),
     });
     const prefix = textEncoder.encode(`${linObjAfter.objectNumber} ${linObjAfter.generationNumber} obj\n`);
-    const updatedBody = serializeCosNodeBytes(updatedLinDict);
+    const updatedBody = serializeCosNodeBytes(updatedLinDict, 0, options.maxRecursionDepth);
     if (linEntry) {
       fullBytes.set(updatedBody, linEntry.offset + prefix.length);
     }

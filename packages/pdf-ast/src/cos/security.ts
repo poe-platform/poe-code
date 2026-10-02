@@ -126,14 +126,14 @@ export function derivePdfEncryptionKey(
   password = "",
   options: {
     resolve?: (node: PdfCosNode) => PdfCosNode | undefined;
-    maxRecursionDepth?: number;
+    maxRecursionDepth?: number | undefined;
   } = {}
 ): PdfEncryptionState {
   const plaintextObjects = new Set<number>();
   const converted = new Map<PdfCosNode, unknown>();
   const convert = (node: PdfCosNode, depth = 0): unknown => {
     if (converted.has(node)) return converted.get(node);
-    if (depth > (options.maxRecursionDepth ?? 128)) throw new PdfError("E_LIMIT", "PDF encryption dictionary recursion limit exceeded");
+    if (depth > (options.maxRecursionDepth ?? Infinity)) throw new PdfError("E_LIMIT", "PDF encryption dictionary recursion limit exceeded");
     switch (node.kind) {
       case "ref": {
         plaintextObjects.add(node.objectNumber);

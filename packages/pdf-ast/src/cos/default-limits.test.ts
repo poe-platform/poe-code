@@ -1,9 +1,32 @@
 import { expect, it } from "vitest";
 import { CosByteLexer } from "./lexer.js";
 import { ParsedCosDocument, parseCosDocument } from "./parser.js";
-import { cosRef, cosNumber, cosDict, cosName } from "../ast.js";
-import { serializeCosDocument } from "./writer.js";
+import { cosRef, cosNumber, cosDict, cosName, cosArray, type PdfCosNode } from "../ast.js";
+import { serializeCosDocument, serializeCosNodeBytes } from "./writer.js";
 import { decodePdfFilter, encodeFlate } from "./filters.js";
+
+it.each([-Infinity, NaN, -1, 0, 0.5, Number.MAX_SAFE_INTEGER + 1])("rejects invalid writer recursion limits: %s", maxRecursionDepth => {
+  expect(() => serializeCosNodeBytes(cosNumber(42), 0, maxRecursionDepth)).toThrow(RangeError);
+});
+
+it.each(["disable", "generate"] as const)("round-trips nested objects beyond the former writer ceiling with object streams %s", objectStreams => {
+  let value: PdfCosNode = cosNumber(42);
+  for (let depth = 0; depth < 160; depth++) value = cosArray([value]);
+  const objects = [
+    { objectNumber: 1, generationNumber: 0, value: cosDict({ Type: cosName("Catalog") }) },
+    { objectNumber: 2, generationNumber: 0, value },
+  ];
+  const bytes = serializeCosDocument({ objects, rootRef: cosRef(1), objectStreams });
+  expect(() => serializeCosDocument({ objects, rootRef: cosRef(1), objectStreams, maxRecursionDepth: 8 }))
+    .toThrow(expect.objectContaining({ code: "E_LIMIT" }));
+  let parsed = parseCosDocument(bytes).resolve(cosRef(2))!;
+  for (let depth = 0; depth < 160; depth++) {
+    expect(parsed.kind).toBe("array");
+    if (parsed.kind !== "array") throw new Error("Expected array");
+    parsed = parsed.items[0]!;
+  }
+  expect(parsed).toMatchObject({ kind: "number", value: 42 });
+});
 
 it("defaults lexer and document resource limits to Infinity and preserves explicit limits", () => {
   const bytes = new TextEncoder().encode("(hello)");
@@ -41,6 +64,21 @@ it("enforces object and decompression budgets for classic and repaired object st
   expect(() => parseCosDocument(damaged, { recovery: "repair", maxDecompressedBytes: 1 })).toThrow(/decoded byte budget/);
   expect(() => serializeCosDocument({ objects, rootRef: cosRef(1), maxObjects: 1 })).toThrow();
   expect(() => serializeCosDocument({ objects, rootRef: cosRef(1), maxOutputBytes: 1 })).toThrow();
+});
+
+it.each([{ objectStreams: "generate" as const }, { linearize: true }])("retains finite output and object budgets when generating PDF structures: %j", mode => {
+  const objects = [
+    { objectNumber: 1, generationNumber: 0, value: cosDict({ Type: cosName("Catalog") }) },
+    { objectNumber: 2, generationNumber: 0, value: cosNumber(42) },
+  ];
+  const options = { objects, rootRef: cosRef(1), ...mode };
+  const bytes = serializeCosDocument(options);
+  expect(serializeCosDocument({ ...options, maxOutputBytes: Infinity, maxObjects: Infinity })).toEqual(bytes);
+  expect(serializeCosDocument({ ...options, maxOutputBytes: bytes.length, maxObjects: 4 })).toEqual(bytes);
+  for (const maxOutputBytes of [1, bytes.length - 1]) {
+    expect(() => serializeCosDocument({ ...options, maxOutputBytes })).toThrow(expect.objectContaining({ code: "E_LIMIT" }));
+  }
+  expect(() => serializeCosDocument({ ...options, maxObjects: 2 })).toThrow(expect.objectContaining({ code: "E_LIMIT" }));
 });
 it.each([undefined, Infinity])("reads literal strings beyond the former token ceiling with limit %s", limit => {
   const size = 16_000_001;

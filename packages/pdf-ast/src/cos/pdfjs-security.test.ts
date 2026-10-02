@@ -34,6 +34,14 @@ const authenticationCases: Array<[string, string, boolean]> = [
 ];
 
 describe("PDF.js standard security authentication", () => {
+  it.each([undefined, Infinity])("does not impose an encryption dictionary depth ceiling with %s", maxRecursionDepth => {
+    let nested = cosDict({});
+    for (let i = 0; i < 160; i++) nested = cosDict({ Nested: nested });
+    const entries = Object.fromEntries(dictionary("aes256IsoDict").entries.map(entry => [entry.key.decoded, entry.value]));
+    expect(derivePdfEncryptionKey(cosDict({ ...entries, Extra: nested }), Buffer.from(vectors.fileId1, "hex"), "user", { maxRecursionDepth }).fileKey.length)
+      .toBe(32);
+  });
+
   it("enforces the configured encryption dictionary recursion limit", () => {
     let nested = cosDict({});
     for (let i = 0; i < 12; i++) nested = cosDict({ Nested: nested });

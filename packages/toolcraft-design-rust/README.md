@@ -670,3 +670,9 @@ filtering, selection, reordering, detail updates and dialogs. It returns the nex
 state and effects for your host to execute. Stale detail results are ignored,
 destructive actions request confirmation, and action handlers remain deferred
 until you execute their suspend effect.
+
+`runExplorer(config)` from `explorer/runtime` opens an interactive list and detail
+view, loads rows and previews asynchronously, and resolves when the view exits.
+Actions can refresh data, reload previews, open dialogs, show toasts and suspend
+the terminal for external work. Exit restores terminal modes and waits for pending
+actions and content before running your completion callback. A TTY is required.

@@ -519,6 +519,10 @@
     "./explorer/reducer": {
       "types": "./dist/explorer-reducer.d.ts",
       "import": "./dist/explorer-reducer.js"
+    },
+    "./explorer/runtime": {
+      "types": "./dist/explorer-runtime.d.ts",
+      "import": "./dist/explorer-runtime.js"
     }
   },
   "scripts": {

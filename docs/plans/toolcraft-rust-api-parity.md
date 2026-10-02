@@ -2258,3 +2258,42 @@ movement (1,000 calls/round, 174.45× slower), and 201.017 µs / 2.575 µs for r
 20 rows (200 calls/round, 78.08× slower). No performance gate passed. Explorer
 runtime/public namespace, host-call batching, broader Toolcraft coverage and
 final API/platform/performance qualification remain open.
+
+### Explorer runtime checkpoint
+
+`explorer/runtime` now exposes `runExplorer(config)` with the original generic
+result declaration. Rust owns terminal lifecycle decisions, input routing,
+row/detail event dispatch, rendering coalescence, effect routing, stale request
+checks, reorder rollback, modal/toast state, suspension and exit cleanup.
+JavaScript retains promises, timers, iteration, callback receivers, exception
+identity and filesystem tracing. All runtime rendering and state dependencies
+use the additive native implementation; JavaScript remains the default and no
+external dependencies were added.
+
+Ten missing-export reference cases preceded implementation. Twenty-one additional
+differential cases compare frames, getter order, callback receivers, stale loads,
+asynchronous detail failures, live reload callbacks, confirmation/input cleanup,
+suspension, action failures, toast expiry, reorder races, after-exit rejection and
+trace records. Negative tests caught and corrected three invalid-callback message
+mismatches. A native-host integration case runs actual terminal input, screen and
+frame-writer composition without driver mocks. The previously omitted overhaul
+and wrapped-preview reducer suites now run against native reducer/render/cache
+modules, including shared Markdown preparation and physical scroll bounds.
+
+The maintained package build, unit and lint routes pass: 381 native host tests,
+1,379 selected design cases, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 209 explorer cases. Scoped JS lint, bidirectional runtime
+declarations and packed runtime/types pass. Packed imports reject external ESM
+dependencies and the declaration consumer compiles with `types: []`.
+
+Inspected actual runtime screenshots after navigation/focus changes at 120 and
+70 columns and text-input/palette opening at 72 columns. Native/reference terminal
+screen output is byte-identical. Five warmed alternating Node 22 ARM64 rounds of
+10 cycles, retaining 32 outputs, measured 180.336 ms native / 7.393 ms reference
+(24.39× slower) for 100×20 startup, initial detail completion, focus/palette input,
+repainting and Ctrl+C cleanup. No performance gate passed.
+
+Public explorer namespace/root exports, host-call batching, remaining concrete
+wildcard subpaths, broader Toolcraft coverage and final API/platform/performance
+qualification remain open. The root export audit also identified the existing
+native `createDashboard` function still needing its direct root re-export.

@@ -965,3 +965,10 @@ const explorerReducerOriginal: typeof originalExplorerReducer = explorerReducer;
 const explorerReducerNative: typeof explorerReducer = null as unknown as typeof originalExplorerReducer;
 const explorerReducerKeys: SameKeys<typeof explorerReducer,typeof originalExplorerReducer> = true;
 void [explorerReducerOriginal,explorerReducerNative,explorerReducerKeys];
+
+import * as explorerRuntime from "toolcraft-design-rust/explorer/runtime";
+import type * as originalExplorerRuntime from "toolcraft-design/explorer/runtime";
+const explorerRuntimeOriginal: typeof originalExplorerRuntime = explorerRuntime;
+const explorerRuntimeNative: typeof explorerRuntime = null as unknown as typeof originalExplorerRuntime;
+const explorerRuntimeKeys: SameKeys<typeof explorerRuntime,typeof originalExplorerRuntime> = true;
+void [explorerRuntimeOriginal,explorerRuntimeNative,explorerRuntimeKeys];

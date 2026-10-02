@@ -39,3 +39,21 @@ test('directory diagnostics and retained stack bytes have optional ceilings', as
     assert.match(stack.stderr, /directory stack byte limit/);
   } finally { await shell.dispose(); }
 });
+
+test('shell round-trips all default limits through construction and execution', async () => {
+  const limits = resolveLimits();
+  assert.deepEqual(resolveLimits(limits), limits);
+  for (const key of Object.keys(limits)) {
+    if (key === 'pipeHighWaterMark') continue;
+    assert.equal(resolveLimits({ [key]: 1 }, { [key]: Infinity })[key as keyof typeof limits], Infinity);
+    for (const value of [-Infinity, NaN, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+      assert.throws(() => resolveLimits({ [key]: value }), RangeError, key);
+    }
+  }
+  const { shell } = setup({ limits });
+  try {
+    const result = await shell.exec(':', { limits });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, '');
+  } finally { await shell.dispose(); }
+});

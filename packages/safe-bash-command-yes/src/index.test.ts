@@ -37,3 +37,32 @@ test("yes yields through the host checkpoint between chunks and propagates cance
   assert.equal(writes, 2);
   assert.equal(checkpoints, 1);
 });
+
+test("yes command accepts unlimited and large finite record ceilings", () => {
+  for (const maxRecordBytes of [Infinity, 16 * 1024 * 1024 + 1, Number.MAX_SAFE_INTEGER]) {
+    assert.doesNotThrow(() => createYesCommand({ maxRecordBytes }));
+  }
+  for (const maxRecordBytes of [-Infinity, NaN, 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => createYesCommand({ maxRecordBytes }), RangeError);
+  }
+  assert.throws(() => createYesCommand({ chunkBytes: Infinity }), RangeError);
+});
+
+test("yes emits records larger than one MiB with omitted or explicit unlimited ceiling", async () => {
+  for (const options of [{}, { maxRecordBytes: Infinity }]) {
+    const controller = new AbortController();
+    const reason = new Error("consumer finished");
+    let written = 0;
+    const context = {
+      command: "yes", args: ["x".repeat(1024 * 1024 + 1)], env: {}, signal: controller.signal,
+      stdout: { async write(bytes: Uint8Array) {
+        written += bytes.length;
+        assert.equal(bytes[0], 120);
+        controller.abort(reason);
+      } },
+      stderr: { async write() { assert.fail("unexpected record limit diagnostic"); } },
+    } as unknown as CommandContext;
+    await assert.rejects(async () => createYesCommand(options).execute(context), error => error === reason);
+    assert.ok(written > 0);
+  }
+});

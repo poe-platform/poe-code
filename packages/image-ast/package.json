@@ -47,6 +47,9 @@
         "./image-ast": ".",
         "./sharp": "."
       }
+    },
+    "bundle": {
+      "prebuilt": true
     }
   }
 }

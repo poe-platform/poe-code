@@ -8,6 +8,7 @@ it.each([
   ["workerd", "safe-bash-command-mcp"],
   ["browser", "safe-bash-command-mcp"],
   ["workerd", "@poe-code/safe-js"],
+  ["browser", "@poe-code/image-ast"],
 ])("keeps desktop OAuth outside the %s %s workspace bundle", async (condition, entry) => {
   const root = path.resolve(import.meta.dirname, "..");
   const packages = [];

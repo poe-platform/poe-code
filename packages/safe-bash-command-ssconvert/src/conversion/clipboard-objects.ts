@@ -90,7 +90,7 @@ export async function serializeClipboardObject(sheet: Sheet, target: string, ran
       if (!pixels || pixels > Math.floor(maximumWork / 16) || pixels > Math.floor(context.limits.outputBytes / 4))
         throw new SsconvertError("resource-limit", "ssconvert clipboard image raster work limit exceeded");
       let work = 0;
-      const { decodePng } = await import("@poe-code/pdf");
+      const { decodePng } = await import("safe-bash-pdf-engine");
       const image = decodePng(bytes, amount => {
         context.signal.throwIfAborted();
         if (amount > maximumWork - work) throw new SsconvertError("resource-limit", "ssconvert clipboard image raster work limit exceeded");

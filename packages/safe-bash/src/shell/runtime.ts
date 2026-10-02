@@ -14996,7 +14996,7 @@ export class Runtime {
       const valueParts = w.parts.filter(part => part.kind !== "text" || part.value.length > 0);
       const part = valueParts[0];
       const stdIfsForInt = rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n";
-      if ((spec === "d" || spec === "u") && valueParts.length === 1 && (part?.quoted || stdIfsForInt)) {
+      if ((spec === "d" || spec === "u") && valueParts.length === 1 && part !== undefined && (part.quoted || stdIfsForInt)) {
         if (part.kind === "variable" && part.name === effInductionName && !part.indirect && !part.length && !part.substring && !part.transform && part.operator === undefined && getArraySelector(part) === undefined) {
           args.push("0");
           continue;

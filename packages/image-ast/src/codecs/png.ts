@@ -200,7 +200,8 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     colorType === 6 ? 4 : colorType === 4 ? 2 : colorType === 2 ? 3 : 1;
   const bitsPerPixel = samplesPerPixel * bitDepth;
   const bytesPerPixel = Math.max(1, Math.ceil(bitsPerPixel / 8));
-  const rgba = new Uint8Array(width * height * 4);
+  const directRgbaInPlace = !meta.isProgressive && bitDepth === 8 && colorType === 6 && !trns;
+  let rgba = directRgbaInPlace ? new Uint8Array(0) : new Uint8Array(width * height * 4);
 
   const decodePass = (
     subW: number,
@@ -213,7 +214,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
   ): number => {
     if (subW <= 0 || subH <= 0) return inOffset;
     const rowBytes = Math.ceil((subW * bitsPerPixel) / 8);
-    const rawData = new Uint8Array(subH * rowBytes);
+    const rawData = inflated.subarray(inOffset, inOffset + subH * rowBytes);
     let curOffset = inOffset;
 
     for (let y = 0; y < subH; y++) {
@@ -234,6 +235,10 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
       }
     }
 
+    if (directRgbaInPlace) {
+      rgba = rawData;
+      return curOffset;
+    }
     for (let y = 0; y < subH; y++) {
       const rowStart = y * rowBytes;
       const dstY = y0 + y * dy;
@@ -345,9 +350,6 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
           }
         }
       }
-    }
-    if (typeof (rawData.buffer as any).transfer === "function") {
-      try { (rawData.buffer as any).transfer(0); } catch {}
     }
     return curOffset;
   };

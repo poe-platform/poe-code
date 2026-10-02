@@ -55,6 +55,7 @@ export interface LlmRequest {
   key?: string | undefined;
 }
 export interface LlmLimits {
+  readonly maxConfigurationBytes?: number;
   readonly maxInputBytes: number;
   readonly maxOutputBytes: number;
 }

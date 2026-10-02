@@ -195,18 +195,18 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     if (configurationInvocation) {
       try {
         const tokens = Array.from({ length: argumentsValue.args.length }, (_, index) => argumentText(index));
-        if (await configurationCommand(context, service, tokens, emitText, text => writeDiagnostic(context.stderr, text, signal))) return { exitCode: 0 };
+        if (await configurationCommand(context, service, tokens, emitText, text => writeDiagnostic(context.stderr, text, signal), limits?.maxConfigurationBytes)) return { exitCode: 0 };
       } catch (error) {
         throw new Error(`Error: ${error instanceof Error ? error.message : "Configuration failed"}`);
       }
     }
     if (argumentsValue.args[0] === "models") {
-      await listLlmModels(context, service, Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, step);
+      await listLlmModels(context, service, Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1)), emitText, step, limits?.maxConfigurationBytes);
       return { exitCode: 0 };
     }
     const promptOffset = argumentsValue.args[0] === "prompt" ? 1 : 0;
     const args = await parse(argumentsValue.args.length - promptOffset, index => argumentText(index + promptOffset), step);
-    const configuration = createLlmConfiguration(context);
+    const configuration = createLlmConfiguration(context, limits?.maxConfigurationBytes);
     if (args.model === undefined && args.queries.length) {
       try { args.model = (await selectLlmModelByQuery(service.models, args.queries, await configuration.aliases(), signal)).model.id; }
       catch (error) { throw new Error(`Error: ${error instanceof Error ? error.message : "Model selection failed"}`); }
@@ -438,7 +438,7 @@ export function createLlmCommand(options: LlmCommandsOptions = {}): CommandDefin
   }
   const limits = options.limits === undefined ? undefined : Object.freeze({ ...options.limits });
   if (options.service && (options.providers !== undefined || options.defaultModel !== undefined)) throw new TypeError("Configure providers and defaultModel on the injected LLM service");
-  const maxRemoteBytes = options.maxRemoteTemplateBytes ?? limits?.maxInputBytes ?? 1_048_576;
+  const maxRemoteBytes = options.maxRemoteTemplateBytes ?? limits?.maxInputBytes ?? Infinity;
   const templateLoaderOptions: TemplateLoaderOptions = { maxRemoteBytes, ...(options.templateLoaders ? { loaders: options.templateLoaders } : {}) };
   const service = options.service ?? createLlmService({ ...options, providers: options.providers ?? [] });
   return { name: "llm", description: "Query injected language and media models", execute: context => execute(context, service, limits, templateLoaderOptions) };

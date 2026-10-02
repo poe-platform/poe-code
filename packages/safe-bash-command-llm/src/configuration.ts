@@ -2,8 +2,6 @@ import { FsError, toByteSource, type CommandContext, type FileStat, type FileSys
 import { pathOf } from "safe-bash-contracts/path";
 import { publishConfiguration } from "./configuration-publication.js";
 
-/** Configuration is bounded control state; prompts and attachments use separate accounting. */
-const maxConfigurationBytes = 1024 * 1024;
 const locks = new WeakMap<FileSystem, Map<string, Promise<void>>>();
 type Context = Pick<CommandContext, "fs" | "cwd" | "env" | "signal">;
 type Options = Record<string, Record<string, string>>;
@@ -33,7 +31,8 @@ export interface LlmConfiguration {
   resolveKey(keyOrAlias: string): Promise<string>;
 }
 
-export function createLlmConfiguration(context: Context): LlmConfiguration {
+export function createLlmConfiguration(context: Context, maxConfigurationBytes = Infinity): LlmConfiguration {
+  if (maxConfigurationBytes !== Infinity && (!Number.isSafeInteger(maxConfigurationBytes) || maxConfigurationBytes < 0)) throw new TypeError("Invalid llm configuration byte limit");
   const { fs, signal } = context;
   const base = context.env.XDG_CONFIG_HOME ?? `${context.env.HOME ?? "/"}/.config`;
   const directory = pathOf(context, context.env.LLM_USER_PATH ?? `${base}/io.datasette.llm`);
@@ -59,7 +58,7 @@ export function createLlmConfiguration(context: Context): LlmConfiguration {
     if (!await stat(path)) return undefined;
     const decoder = new TextDecoder("utf-8", { fatal: true });
     let bytes = 0, text = "";
-    const source = fs.readStream?.(path, { signal, chunkSize: 16_384 }) ?? toByteSource(await fs.readFile(path, { signal, maxBytes: maxConfigurationBytes }));
+    const source = fs.readStream?.(path, { signal, chunkSize: 16_384 }) ?? toByteSource(await fs.readFile(path, { signal, ...(maxConfigurationBytes === Infinity ? {} : { maxBytes: maxConfigurationBytes }) }));
     for await (const chunk of source) {
       signal.throwIfAborted();
       if (chunk.byteLength > maxConfigurationBytes - bytes) throw new FsError("EFBIG", { path, message: "LLM configuration byte limit exceeded" });

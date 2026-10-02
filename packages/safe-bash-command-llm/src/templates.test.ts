@@ -180,3 +180,30 @@ test("templates CLI subcommands match reference loader listing, YAML formatting,
   assert.equal(promptViaLoader.exitCode, 0);
   assert.equal(promptViaLoader.stdout, "a:hello\n");
 });
+
+test("remote template command defaults are unlimited and finite caps remain enforced", async () => {
+  const prompt = "x".repeat(1_048_577);
+  for (const maxRemoteTemplateBytes of [undefined, Infinity, 1_048_576]) {
+    let stdout = "", stderr = "";
+    const command = createLlmCommand({
+      ...(maxRemoteTemplateBytes === undefined ? {} : { maxRemoteTemplateBytes }),
+      providers: [{ name: "fixture", models: [{ id: "fixture-chat" }], async *complete(request) { yield request.prompt; } }],
+      defaultModel: "fixture-chat",
+    });
+    const result = await command.execute({
+      command: "llm", args: ["-t", "https://fixture.test/template", "--no-log"],
+      fs: new MemoryFileSystem(), cwd: "/", env: {}, signal: new AbortController().signal,
+      stdin: toByteSource(""), ...{ fetch: async () => new Response(`prompt: ${prompt}\n`) },
+      stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    });
+    if (maxRemoteTemplateBytes === 1_048_576) {
+      assert.equal(result.exitCode, 1);
+      assert.match(stderr, /Template URL exceeds byte limit/);
+      assert.equal(stdout, "");
+    } else {
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(stdout.trimEnd(), prompt);
+    }
+  }
+});

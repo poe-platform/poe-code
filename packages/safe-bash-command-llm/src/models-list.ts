@@ -28,7 +28,7 @@ function wrapDescription(description: string): string {
 }
 
 /** Reference model-list query semantics for the configured host catalog. */
-export async function listLlmModels(context: CommandContext, service: LlmService, tokens: readonly string[], emit: (text: string) => Promise<void>, step: () => Promise<void>): Promise<void> {
+export async function listLlmModels(context: CommandContext, service: LlmService, tokens: readonly string[], emit: (text: string) => Promise<void>, step: () => Promise<void>, maxConfigurationBytes = Infinity): Promise<void> {
   const explicit = tokens[0] === "list";
   const terminator = tokens.indexOf("--");
   const groupFlags = terminator < 0 ? tokens : tokens.slice(0, terminator);
@@ -66,7 +66,7 @@ export async function listLlmModels(context: CommandContext, service: LlmService
     return;
   }
   if (unexpected.length) throw new LlmModelsUsageError(`Got unexpected extra argument${unexpected.length === 1 ? "" : "s"} (${unexpected.join(" ")})`);
-  const configuration = createLlmConfiguration(context);
+  const configuration = createLlmConfiguration(context, maxConfigurationBytes);
   const configuredAliases = await configuration.aliases();
   const shownDescriptions = new Set<string>();
   for (const { provider, model } of service.models) {

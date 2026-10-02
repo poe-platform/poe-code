@@ -5,7 +5,7 @@ import type { LlmService } from "./service.js";
 
 export async function configurationCommand(
   context: CommandContext, service: LlmService, args: readonly string[],
-  output: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>,
+  output: (text: string) => Promise<void>, diagnostic: (text: string) => Promise<void>, maxConfigurationBytes = Infinity,
 ): Promise<boolean> {
   if (args.length === 1 && args[0] === "--version") { await output("llm, version 0.27.1\n"); return true; }
   const keysCmd = args[0] === "keys";
@@ -13,7 +13,7 @@ export async function configurationCommand(
   const defaults = args[0] === "models" && args[1] === "default";
   const options = args[0] === "models" && args[1] === "options";
   if (!keysCmd && !aliases && !defaults && !options) return false;
-  const configuration = createLlmConfiguration(context);
+  const configuration = createLlmConfiguration(context, maxConfigurationBytes);
   if (keysCmd) {
     const tokens = args.slice(1), sub = tokens[0];
     if (sub === "path" && tokens.length === 1) {

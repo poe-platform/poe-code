@@ -53,7 +53,7 @@ test("command limits reject unsafe, fractional and negative values at constructi
 
 test("command byte limits accept explicit Infinity and undefined", async () => {
   const { createLlmCommand } = await import("./index.js");
-  for (const key of ["maxInputBytes", "maxOutputBytes"]) {
+  for (const key of ["maxInputBytes", "maxOutputBytes", "maxConfigurationBytes"]) {
     for (const value of [undefined, Infinity]) {
       assert.doesNotThrow(() => createLlmCommand({ providers: [], limits: { [key]: value } }));
     }
@@ -77,4 +77,23 @@ test("validated command limits are retained when the caller mutates its configur
   assert.equal((await command.execute(context)).exitCode, 1);
   assert.equal(requests, 0);
   assert.match(Buffer.concat(errors).toString(), /input byte limit exceeded/);
+});
+
+test("command configuration uses its optional byte quota", async () => {
+  const { createLlmCommand } = await import("./index.js");
+  for (const maxConfigurationBytes of [Infinity, 4]) {
+    const fs = new MemoryFileSystem();
+    const errors: Uint8Array[] = [];
+    const command = createLlmCommand({ limits: { maxConfigurationBytes }, providers: [{
+      name: "fixture", models: [{ id: "fixture-chat" }], complete() { throw new Error("configuration must not call the provider"); },
+    }] });
+    const result = await command.execute({
+      command: "llm", args: ["models", "default", "fixture-chat"], fs, cwd: "/", env: { LLM_USER_PATH: "/settings" },
+      signal: new AbortController().signal, stdin: toByteSource(""),
+      stdout: { async write() {} }, stderr: { async write(bytes) { errors.push(bytes.slice()); } },
+    });
+    assert.equal(result.exitCode, maxConfigurationBytes === Infinity ? 0 : 1, Buffer.concat(errors).toString());
+    if (maxConfigurationBytes === Infinity) assert.equal(Buffer.from(await fs.readFile("/settings/default_model.txt")).toString(), "fixture-chat");
+    else assert.match(Buffer.concat(errors).toString(), /configuration byte limit exceeded/);
+  }
 });

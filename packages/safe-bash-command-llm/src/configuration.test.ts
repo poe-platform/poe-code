@@ -96,3 +96,24 @@ test("clearing a default does not delete a concurrent replacement", async () => 
   await assert.rejects(configuration.setDefaultModel(null), (error: unknown) => (error as {code?:string}).code === "EAGAIN");
   assert.equal(await configuration.defaultModel(),"replacement");
 });
+
+for (const buffered of [false, true]) test(`configuration has no implicit byte cap (buffered=${buffered})`, async () => {
+  const fs = new MemoryFileSystem();
+  if (buffered) Object.defineProperty(fs, "readStream", { value: undefined });
+  const configuration = createLlmConfiguration({ fs, cwd: "/", env: { LLM_USER_PATH: "/settings" }, signal: new AbortController().signal });
+  const value = "x".repeat(1_048_577);
+  await configuration.setModelOption("fixture", "large", value);
+  assert.deepEqual(await configuration.modelOptions("fixture"), { large: value });
+});
+
+test("configuration enforces explicit byte limits on reads and writes", async () => {
+  const fs = new MemoryFileSystem();
+  const context = { fs, cwd: "/", env: { LLM_USER_PATH: "/settings" }, signal: new AbortController().signal };
+  const unlimited = createLlmConfiguration(context, Infinity);
+  await unlimited.setDefaultModel("fixture-chat");
+  const bounded = createLlmConfiguration(context, 4);
+  await assert.rejects(bounded.defaultModel(), { code: "EFBIG" });
+  await assert.rejects(bounded.setDefaultModel("other-model"), { code: "EFBIG" });
+  assert.equal(await unlimited.defaultModel(), "fixture-chat");
+  for (const value of [-1, NaN, 1.5]) assert.throws(() => createLlmConfiguration(context, value), /Invalid llm configuration byte limit/);
+});

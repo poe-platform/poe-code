@@ -69,7 +69,7 @@ interface Binding {
   disposeAbort?: () => void;
 }
 
-export function createBindingManager(source: Map<string, OpObject[]>, policy: OpAuthenticationPolicy, clock: OpClock, hasHook: (command: string, context: OpBackendContext) => boolean, defaultVault?: string) {
+export function createBindingManager(source: Map<string, OpObject[]>, policy: OpAuthenticationPolicy, clock: OpClock, hasHook: (command: string, context: OpBackendContext) => boolean, maxRequests: number, defaultVault?: string) {
   const backendId = opCrypto.randomUUID();
   let generation = 0;
   const bindings = new WeakMap<OpBindingHandle, Binding>();
@@ -129,6 +129,7 @@ export function createBindingManager(source: Map<string, OpObject[]>, policy: Op
     async prepareBinding(requests: readonly OpBackendRequest[], context: OpBindingPrepareContext): Promise<OpPreparedBinding> {
       context.signal.throwIfAborted();
       if (context.binding) throw new Error("Invalid binding plan");
+      if (requests.length > maxRequests) throw new Error(`Binding plan exceeds maximum request count of ${maxRequests}`);
       context = Object.freeze({ ...context,
         ...(context.authentication === undefined ? {} : { authentication: structuredClone(context.authentication) }),
         ...(context.pluginScope === undefined ? {} : { pluginScope: structuredClone(context.pluginScope) }),

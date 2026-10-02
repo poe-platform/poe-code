@@ -267,15 +267,35 @@ test("shell adapter preserves explicitly supplied file callbacks over VFS fallba
   assert.equal(Buffer.concat(run.output).toString(), "/host/output\n");
 });
 
-test('op zero-argument factories and plugin use a default backend', async () => {
+test("op factories and plugin share a working default backend within each instance", async () => {
   const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
-  for (const command of [createOp(), createOpCommand(), ...createOpCommands()]) {
-    const run = fixture(['--help']);
-    assert.equal((await command.execute({ args: run.context.args, env: run.context.env, signal: run.context.signal, stdin: run.context.stdin, stdout: run.context.stdout, stderr: run.context.stderr, command: "op", cwd: "/", fs: createMemoryFileSystem() })).exitCode, 0);
-    assert.ok(run.output.length > 0);
+  const { CommandRegistry } = await import("safe-bash-contracts");
+  for (const options of [undefined, {}, { version: "1.2.3" }]) {
+    const commands = new CommandRegistry();
+    const plugin = options === undefined ? opCommands() : opCommands(options);
+    await plugin.setup({ commands, use() {}, registerFileSystem() {} });
+    const registered = commands.get("op");
+    assert.ok(registered);
+    const factories = options === undefined
+      ? [createOp(), createOpCommand(), ...createOpCommands(), registered]
+      : [createOp(options), createOpCommand(options), ...createOpCommands(options), registered];
+    for (const command of factories) {
+      const fs = createMemoryFileSystem();
+      const execute = async (args: string[]) => {
+        const run = fixture(args);
+        const { env, signal, stdin, stdout, stderr } = run.context;
+        assert.equal((await command.execute({ args, env, signal, stdin, stdout, stderr, command: "op", cwd: "/", fs })).exitCode, 0, Buffer.concat(run.errors).toString());
+        assert.equal(run.errors.length, 0);
+        return Buffer.concat(run.output).toString();
+      };
+      assert.deepEqual(JSON.parse(await execute(["vault", "list", "--format=json"])), []);
+      assert.deepEqual(JSON.parse(await execute(["item", "list", "--format=json"])), []);
+      await execute(["vault", "create", "Demo"]);
+      await execute(["item", "create", "--vault", "Demo", "--category", "LOGIN", "--title", "Service", "password=test-secret"]);
+      const items = JSON.parse(await execute(["item", "list", "--format=json"]));
+      assert.equal(items.length, 1);
+      assert.equal(items[0].title, "Service");
+      assert.equal(await execute(["read", "op://Demo/Service/password"]), "test-secret\n");
+    }
   }
-  const { CommandRegistry } = await import('safe-bash-contracts');
-  const commands = new CommandRegistry();
-  await opCommands().setup({ commands, use() {}, registerFileSystem() {} });
-  assert.equal(commands.has('op'), true);
 });

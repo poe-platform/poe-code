@@ -51,6 +51,8 @@ export interface OpLimits {
 }
 
 export interface OpCommandOptions {
+  /** Cumulative stdin/file input limit; omitted or Infinity means unlimited. */
+  readonly maxBytes?: number;
   readonly limits?: Partial<OpLimits>;
   backend?: OpBackend;
   version?: string;
@@ -358,8 +360,10 @@ function approvalManifest(request: OpBackendRequest, requests: readonly OpBacken
 }
 
 export function createOpCommand(options: OpCommandOptions = {}): { name: "op"; execute(context: OpCommandContext): Promise<{ exitCode: number }> } {
-  const maxInputBytes = options.limits?.maxInputBytes ?? Infinity;
-  if (maxInputBytes !== Infinity && (!Number.isSafeInteger(maxInputBytes) || maxInputBytes < 1)) throw new RangeError("Invalid op limit: maxInputBytes");
+  for (const [name, value] of [["maxBytes", options.maxBytes], ["maxInputBytes", options.limits?.maxInputBytes]] as const) {
+    if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid op limit: ${name}`);
+  }
+  const maxInputBytes = Math.min(options.maxBytes ?? Infinity, options.limits?.maxInputBytes ?? Infinity);
   const { backend = createObjectBackend(), authorize, approve, authorizeResolution, approveResolved, approvalMode = "resolved", version = "0.0.1", channel = "stable" } = options;
   const handlers = { ...options.handlers };
   const planners = new Map(Object.entries(handlers).flatMap(([key, handler]) => typeof (handler as Partial<OpPreparedHandler>).prepare === "function" ? [[key, (handler as OpPreparedHandler).prepare.bind(handler)] as const] : []));

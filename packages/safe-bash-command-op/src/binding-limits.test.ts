@@ -5,15 +5,43 @@ import type { OpBackendRequest } from "./types.js";
 
 const request: OpBackendRequest = { resource: "vault", action: "list", args: [], flags: {} };
 
-test("binding preparation accepts more than 1024 planned requests", async () => {
-  const backend = createObjectBackend();
+for (const maxRequests of [undefined, Infinity]) {
+  test(`binding preparation accepts more than 1024 planned requests with maxRequests=${maxRequests}`, async () => {
+    const backend = createObjectBackend(maxRequests === undefined ? {} : { maxRequests });
+    const context = { signal: new AbortController().signal };
+    const requests = Array.from({ length: 1025 }, () => request);
+    const prepared = await backend.prepareBinding(requests, context);
+    assert.equal(prepared.metadata.length, requests.length);
+    assert.equal(prepared.targets.length, requests.length);
+    assert.deepEqual(await backend.execute(request, { ...context, binding: prepared.handle }), []);
+    backend.cancelBinding(prepared.handle);
+  });
+}
+
+test("binding request limits reject oversized plans and accept the exact boundary", async () => {
+  const backend = createObjectBackend({ maxRequests: 2 });
   const context = { signal: new AbortController().signal };
-  const requests = Array.from({ length: 1025 }, () => request);
-  const prepared = await backend.prepareBinding(requests, context);
-  assert.equal(prepared.metadata.length, requests.length);
-  assert.equal(prepared.targets.length, requests.length);
+  await assert.rejects(backend.prepareBinding([request, request, request], context), { message: "Binding plan exceeds maximum request count of 2" });
+  const prepared = await backend.prepareBinding([request, request], context);
+  assert.equal(prepared.metadata.length, 2);
+  assert.deepEqual(await backend.execute(request, { ...context, binding: prepared.handle }), []);
   assert.deepEqual(await backend.execute(request, { ...context, binding: prepared.handle }), []);
   backend.cancelBinding(prepared.handle);
+  const empty = await backend.prepareBinding([], context);
+  backend.cancelBinding(empty.handle);
+});
+
+test("binding request limits validate configuration before use", () => {
+  assert.doesNotThrow(() => createObjectBackend({ maxRequests: 1 }));
+  for (const maxRequests of [0, -1, NaN, 1.5, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
+    assert.throws(() => createObjectBackend({ maxRequests }), { name: "RangeError", message: "Invalid op limit: maxRequests" });
+  }
+});
+
+test("backend snapshots preserve configured binding request limits", async () => {
+  const backend = createObjectBackend({ maxRequests: 1 });
+  const restored = createObjectBackend(backend.snapshot());
+  await assert.rejects(restored.prepareBinding([request, request], { signal: new AbortController().signal }), { message: "Binding plan exceeds maximum request count of 1" });
 });
 
 for (const expiresAt of [undefined, Infinity]) {

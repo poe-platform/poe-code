@@ -20,8 +20,9 @@ The document handler now leaves omitted vault selection to the backend contract.
 The private `safe-bash-command-op` implementation uses standard Web Crypto
 (`globalThis.crypto`) in Node 22+, browsers and Workers. The standalone Node host
 has been removed; filesystem access and command invocation use the injected Safe
-Bash capabilities. Document and prepared-source byte limits default to `Infinity`;
-explicit finite document limits remain enforced.
+Bash capabilities. Command input (`maxBytes` or `limits.maxInputBytes`), document
+and prepared-source byte limits default to `Infinity`; explicit finite limits
+remain enforced. When both command input limits are supplied, the smaller applies.
 
 ## Current scope clarification: object seeds and recordings
 
@@ -593,8 +594,11 @@ nullable `accountId`, opaque `handle`, `targets`, and request-aligned `metadata`
 `account`, `parentId`. Request metadata can describe environment names,
 `unsetNames`, `scope`, and `dependenciesComplete`. The prepare context optionally
 accepts `expiresAt` in milliseconds on the injected clock. The object backend
-accepts any number of planned requests in one account scope. Binding lifetimes
-default to `Infinity` (no timeout), also accepted explicitly as `expiresAt`.
+accepts any number of planned requests in one account scope by default;
+`createObjectBackend({ maxRequests })` sets a positive safe-integer limit per
+plan, or explicitly accepts `Infinity`. Finite limits persist in snapshots.
+Binding lifetimes default to `Infinity` (no timeout), also accepted explicitly
+as `expiresAt`.
 Finite deadlines must be later than the current backend clock and remain
 enforced during validation and execution; no CLI/env setting is exposed.
 

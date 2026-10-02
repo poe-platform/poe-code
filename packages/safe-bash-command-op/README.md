@@ -46,9 +46,11 @@ is the fully composed shell adapter. The standalone workspace entry point uses
 the same adapter: it bridges VFS input/output relative to the shell cwd and
 preserves explicitly supplied `readFile` and `writeFile` callbacks.
 
-`OpLimits` exposes `maxInputBytes`. Set `limits: { maxInputBytes: 1048576 }`
-to bound buffered stdin before parsing or backend execution; omission defaults to
-`Infinity`.
+Set `maxBytes: 1048576` to bound cumulative stdin and file input before parsing
+or backend execution, including item templates. `OpLimits` also exposes
+`limits: { maxInputBytes: 1048576 }`; when both are supplied, the smaller limit
+applies. Both accept a positive safe integer or `Infinity` and default to
+`Infinity` when omitted.
 
 `OpCommandsOptions` extends the internal `OpCommandOptions` documented below:
 optional `backend` (an empty object backend by default), policy callbacks/mode, handlers, version and channel, plus
@@ -141,6 +143,7 @@ adapter. Both create an empty object backend when `backend` is omitted.
 | Option | Meaning |
 | --- | --- |
 | `backend` | Optional `OpBackend`; defaults to a fresh empty object backend. `execute(request, context)` returns a promise of the result. |
+| `maxBytes` | Cumulative stdin/file input limit, default `Infinity`; combines with `limits.maxInputBytes` using the smaller limit. |
 | `authorize` | Returns `allow`, `deny` or `ask`, synchronously or asynchronously. Omitted means direct allow, not default deny. |
 | `approvalMode` | `resolved` by default for `ask`; explicit `literal` opts into legacy selector-only approval. |
 | `authorizeResolution` | Grants metadata/input preparation for resolved `ask`; not execution approval. |
@@ -162,6 +165,10 @@ handles. `EnvironmentCommandContext` additionally accepts `restoreEnvironment`.
 
 `defaultVault?: string` is an existing vault ID, matched case-insensitively and
 stored canonically. Snapshots retain it; removal of that vault is rejected.
+
+`maxRequests?: number` limits the number of requests in each binding plan.
+It accepts a positive safe integer or `Infinity` and defaults to `Infinity`.
+Oversized plans reject before metadata resolution. Snapshots retain finite limits.
 
 `createObjectBackend(options)` accepts:
 
@@ -203,7 +210,8 @@ Resolved `ask` requires both approval stages and backend `prepareBinding`,
 closed, without fallback to literal mode. Preparation fixes IDs, account/backend,
 mutation and effect intent; stale state invalidates the approval. The object
 backend uses coarse generation invalidation and accepts any number of planned
-requests within one account scope. Bindings have no timeout by default;
+requests within one account scope unless `maxRequests` is configured. Bindings
+have no timeout by default;
 `prepareBinding(requests, { signal, expiresAt })` accepts an explicit deadline
 in milliseconds on the backend clock, or `Infinity` for no timeout.
 Completed and empty bindings retain no abort listener; cancellation, expiry and

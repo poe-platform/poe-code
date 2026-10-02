@@ -164,6 +164,8 @@ function select<T extends OpObject>(objects: readonly T[], selector: string): T 
 }
 
 export function createObjectBackend(options: OpObjectBackendOptions = {}): OpObjectBackend {
+  const maxRequests = options.maxRequests ?? Infinity;
+  if (maxRequests !== Infinity && (!Number.isSafeInteger(maxRequests) || maxRequests < 1)) throw new RangeError("Invalid op limit: maxRequests");
   const resources = new Map<string, OpObject[]>();
   const adminHooks = { ...options.adminHooks };
   const authenticationPolicy = { ...options.authentication ?? { mode: "object-store" as const } };
@@ -204,7 +206,7 @@ export function createObjectBackend(options: OpObjectBackendOptions = {}): OpObj
   for (const item of resources.get("item") ?? []) item.vault = vaultReference(item.vault);
   for (const document of resources.get("document") ?? []) if (document.vault !== undefined) document.vault = vaultReference(document.vault);
 
-  const bindings = createBindingManager(resources, authenticationPolicy, clock, (command, context) => Object.hasOwn(adminHooks, command) || Object.hasOwn((context as OpAdminContext).adminHooks ?? {}, command), defaultVault);
+  const bindings = createBindingManager(resources, authenticationPolicy, clock, (command, context) => Object.hasOwn(adminHooks, command) || Object.hasOwn((context as OpAdminContext).adminHooks ?? {}, command), maxRequests, defaultVault);
 
   return {
     prepareBinding: bindings.prepareBinding,
@@ -212,7 +214,7 @@ export function createObjectBackend(options: OpObjectBackendOptions = {}): OpObj
     cancelBinding: bindings.cancelBinding,
     snapshot() {
       const { vault, item, document, account, ...extensions } = Object.fromEntries(resources);
-      return structuredClone({ vaults: vault, items: item, documents: document, accounts: account, resources: extensions, ...(defaultVault === undefined ? {} : { defaultVault }), ...(authenticationPolicy.mode === "managed" ? { authentication: authenticationPolicy } : {}) }) as unknown as OpObjectBackendOptions;
+      return structuredClone({ vaults: vault, items: item, documents: document, accounts: account, resources: extensions, ...(maxRequests === Infinity ? {} : { maxRequests }), ...(defaultVault === undefined ? {} : { defaultVault }), ...(authenticationPolicy.mode === "managed" ? { authentication: authenticationPolicy } : {}) }) as unknown as OpObjectBackendOptions;
     },
     async execute(request, context) {
       context.signal.throwIfAborted();

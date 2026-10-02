@@ -191,6 +191,8 @@ export interface OpDocument extends OpObject {
 }
 
 export interface OpObjectBackendOptions {
+  /** Maximum requests per binding plan; omitted or Infinity means unlimited. */
+  maxRequests?: number;
   defaultVault?: string;
   authentication?: OpAuthenticationPolicy;
   clock?: OpClock;

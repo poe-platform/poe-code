@@ -1,7 +1,20 @@
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { test } from "node:test";
-import { addAbortSignalWaiter, removeAbortSignalWaiter, combineManagedSignals, releaseCombinedSignal } from "./signals.js";
+import { addAbortSignalWaiter, removeAbortSignalWaiter, combineManagedSignals, releaseCombinedSignal, createManagedControlController, hasNativeAbortSignal, toNativeAbortSignal } from "./signals.js";
+
+test("managed signal reuse ends when a host signal is materialized", () => {
+  for (const materialize of [toNativeAbortSignal, (signal: AbortSignal) => AbortSignal.any([signal])]) {
+    const controller = createManagedControlController();
+    assert.equal(hasNativeAbortSignal(controller.signal), false);
+    const native = materialize(controller.signal);
+    assert.equal(hasNativeAbortSignal(controller.signal), true);
+    assert.equal(hasNativeAbortSignal(native), true);
+    const reason = Object.freeze({ cancelled: true });
+    controller.abort(reason);
+    assert.equal(native.reason, reason);
+  }
+});
 
 for (const frozen of [false, true]) {
   test(`external waiters drain and resubscribe without mutating signals, frozen=${frozen}`, () => {

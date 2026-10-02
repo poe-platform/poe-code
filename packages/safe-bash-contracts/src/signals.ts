@@ -34,6 +34,10 @@ class ManagedControlSignalImpl implements ManagedControlController {
     return this as unknown as AbortSignal;
   }
 
+  get hasNativeSignal(): boolean {
+    return this._nativeController !== undefined;
+  }
+
   _ensureNativeSignal(): AbortSignal {
     let ctrl = this._nativeController;
     if (!ctrl) {
@@ -178,6 +182,11 @@ export function toNativeAbortSignal(signal: AbortSignal): AbortSignal {
   const native = signal._ensureNativeSignal();
   inheritYieldCheckpoint(signal, native);
   return native;
+}
+
+/** Native cancellation state belongs to the host request that materialized it. */
+export function hasNativeAbortSignal(signal: AbortSignal): boolean {
+  return !(signal instanceof ManagedControlSignalImpl) || signal.hasNativeSignal;
 }
 
 export function isManagedControlSignal(value: unknown): value is AbortSignal {

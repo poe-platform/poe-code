@@ -20,6 +20,7 @@ const verifiedBuiltInRegistries = new WeakSet<CommandRegistry>();
 import { Budget, Capture, customRegisteredCommands, customRegisteredRegistries, interruptible, registerRuntimeBackingFileSystem, resolveLimits, RootShellState, Runtime, RuntimeCancellationState, warmDefaultRuntimeContextFs } from "./runtime.js";
 import { ensureStateMonitor } from "./arrays/state.js";
 import { combineManagedSignals, isSyncResolved } from "../fs/creation-mask.js";
+import { hasNativeAbortSignal } from "safe-bash-contracts/signals";
 import type { State } from "./runtime.js";
 import { captureShellSessionState, restoreShellSessionState } from "./session-state.js";
 import { ShellLimitError, ShellSyntaxError } from "./types.js";
@@ -904,9 +905,11 @@ export class Shell implements PluginHost {
         stdin &&
         stdin.canReuseWarmEmpty() &&
         runtime &&
-        // Host runtimes own native signals tied to the current Worker request.
-        // Only the direct memory path can retain an invocation for a later call.
+        // Commands can materialize native signals even with a memory filesystem.
+        // Retire that request-bound state before returning to the host.
         runtime._isMemoryBackingFs &&
+        !hasNativeAbortSignal(runtime.signal) &&
+        !hasNativeAbortSignal(runtime.commandSignal) &&
         state &&
         this.#isDefaultExecOptions(options, scope) &&
         ((source === "" || source === "x=0" || ++this._execCount >= 2) && runtime.tryResetWarmInvocation(state, expectedCwd))

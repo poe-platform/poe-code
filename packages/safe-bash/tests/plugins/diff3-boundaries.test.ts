@@ -8,7 +8,7 @@ const merged = 'a\n<<<<<<< /ours\nours\n||||||| /base\nbase\n=======\ntheirs\n>>
 async function fixture() {
   const fs = createMemoryFileSystem();
   for (const [path, text] of [['/ours', 'a\nours\nz\n'], ['/base', 'a\nbase\nz\n'], ['/theirs', 'a\ntheirs\nz\n']]) await fs.writeFile(path!, bytes(text!));
-  const shell = new Shell({ fs }).use(agentCommands()).use(diff3Commands());
+  const shell = new Shell({ fs }).use(agentCommands()).use(diff3Commands({ replace: true }));
   return { fs, shell };
 }
 
@@ -67,7 +67,8 @@ test('missing VFS operands and executable selection cannot acquire host or netwo
     const result = await shell.exec(`diff3 '${option}' /ours /base /theirs`);
     assert.equal(result.exitCode, 2); assert.equal(result.stdout, '');
   }
-  assert.equal((await shell.exec('/usr/bin/diff3 /ours /base /theirs')).exitCode, 127);
+  assert.deepEqual(await shell.exec('/usr/bin/diff3 -m /etc/passwd /base /theirs'), await shell.exec('diff3 -m /etc/passwd /base /theirs'));
+  assert.equal((await shell.exec('/usr/local/bin/diff3 /ours /base /theirs')).exitCode, 127);
   await fs.mkdir('/directory');
   assert.equal((await shell.exec('diff3 /directory /base /theirs')).exitCode, 2);
   assert.equal(network.mock.callCount(), 0);

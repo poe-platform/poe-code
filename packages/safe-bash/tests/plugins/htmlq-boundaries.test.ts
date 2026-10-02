@@ -24,7 +24,7 @@ test('saved independent fixtures qualify CLI status, bytes and read-only effects
 
 test('independent htmlq extraction composes with sort/uniq and jq without VFS effects', async t => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(htmlqCommands());
+  const shell = new Shell({ fs }).use(agentCommands()).use(htmlqCommands({ replace: true }));
   t.after(() => shell.dispose());
   await fs.writeFile('/saved.html', encoder.encode('<p>B</p><p>A</p><p>B</p><a href="/b"></a><a href="/a"></a>'));
   const before = await fs.readFile('/saved.html');
@@ -42,7 +42,7 @@ test('independent htmlq extraction composes with sort/uniq and jq without VFS ef
 
 test('htmlq actual pipeline, redirect and VFS script agree with typed SDK', async t => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(htmlqCommands());
+  const shell = new Shell({ fs }).use(agentCommands()).use(htmlqCommands({ replace: true }));
   t.after(() => shell.dispose());
   await fs.writeFile('/input', encoder.encode('<p>A<b>B</b></p><p>C</p>'));
   await fs.writeFile('/run.sh', encoder.encode('cat /input | htmlq p -t > /output; cat /output'));
@@ -118,7 +118,8 @@ test('htmlq denied host paths and URLs never fetch or execute inert HTML', async
     assert.equal(result.stdout, '');
     assert.equal(result.stderr, 'htmlq: E_IO\n');
   }
-  assert.equal((await shell.exec('/usr/bin/htmlq')).exitCode, 127);
+  assert.deepEqual(await shell.exec('/usr/bin/htmlq -f /etc/passwd'), await shell.exec('htmlq -f /etc/passwd'));
+  assert.equal((await shell.exec('/usr/local/bin/htmlq')).exitCode, 127);
   await fs.writeFile('/input', encoder.encode('<script>fetch("https://example.invalid/")</script><a href="javascript:SECRET">X</a>'));
   const raw = await shell.exec('htmlq script -t -f /input');
   assert.equal(raw.stdout, 'fetch("https://example.invalid/")\n');
@@ -175,7 +176,7 @@ test('disposing a Shell cancels htmlq pending parsing and awaits producer cleanu
 
 test('htmlq substitutions preserve inherited stdin and explicit input sources', async t => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(htmlqCommands());
+  const shell = new Shell({ fs }).use(agentCommands()).use(htmlqCommands({ replace: true }));
   t.after(() => shell.dispose());
   await fs.writeFile('/input.html', encoder.encode('<p>File</p>'));
   for (const [source, expected] of [

@@ -5,7 +5,7 @@ import { csvcut, csvcutCommands } from '../../src/commands/csvcut/index.js';
 
 const enc = new TextEncoder();
 test('csvcut VFS script, pipeline and redirect match typed SDK bytes', async (t) => {
-  const fs = createMemoryFileSystem(), shell = new Shell({ fs, env: {} }).use(agentCommands()).use(csvcutCommands());
+  const fs = createMemoryFileSystem(), shell = new Shell({ fs, env: {} }).use(agentCommands()).use(csvcutCommands({ replace: true }));
   t.after(() => shell.dispose());
   await fs.writeFile('/input', enc.encode('id,id,note\na,b,\nshort\nx,y,0\n'));
   await fs.writeFile('/run.sh', enc.encode('cat /input | csvcut -xc note,id,note > /output; cat /output'));
@@ -18,7 +18,7 @@ test('csvcut VFS script, pipeline and redirect match typed SDK bytes', async (t)
 });
 
 test('csvcut quota failure leaves an opened redirect empty and prevents conditional publication', async (t) => {
-  const fs = createMemoryFileSystem(), shell = new Shell({ fs }).use(agentCommands()).use(csvcutCommands({ limits: { outputBytes: 3 } }));
+  const fs = createMemoryFileSystem(), shell = new Shell({ fs }).use(agentCommands()).use(csvcutCommands({ replace: true, limits: { outputBytes: 3 } }));
   t.after(() => shell.dispose());
   await fs.writeFile('/input', enc.encode('a\nx\n'));
   await fs.writeFile('/published', enc.encode('previous'));
@@ -49,7 +49,8 @@ test('csvcut treats host paths and URLs as absent VFS operands and never dispatc
     const result = await shell.exec(`csvcut '${operand}'`);
     assert.equal(result.exitCode, 1); assert.equal(result.stdout, '');
   }
-  for (const command of ['/usr/bin/csvcut', 'python -m csvkit', 'curl https://example.invalid']) {
+  assert.deepEqual(await shell.exec('/usr/bin/csvcut /etc/passwd'), await shell.exec('csvcut /etc/passwd'));
+  for (const command of ['/usr/local/bin/csvcut', 'python -m csvkit', 'curl https://example.invalid']) {
     const result = await shell.exec(command);
     assert.equal(result.exitCode, 127); assert.equal(result.stdout, '');
   }

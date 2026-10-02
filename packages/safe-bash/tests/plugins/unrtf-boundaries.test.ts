@@ -7,7 +7,7 @@ const encoder = new TextEncoder();
 
 test('unrtf runs actual pipelines, redirects and VFS scripts with SDK parity', async t => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(unrtfCommands());
+  const shell = new Shell({ fs }).use(agentCommands()).use(unrtfCommands({ replace: true }));
   t.after(() => shell.dispose());
   await fs.writeFile('/input', encoder.encode('{\\rtf1 A{\\b B}\\par C}'));
   await fs.writeFile('/run.sh', encoder.encode('cat /input | unrtf --text > /output; cat /output'));
@@ -51,7 +51,8 @@ test('unrtf cannot fall back to host paths, executables, credentials or network'
     assert.equal(result.stdout, '');
     assert.match(result.stderr, /ENOENT/);
   }
-  assert.equal((await shell.exec('/usr/bin/unrtf')).exitCode, 127);
+  assert.deepEqual(await shell.exec('/usr/bin/unrtf --text /etc/passwd'), await shell.exec('unrtf --text /etc/passwd'));
+  assert.equal((await shell.exec('/usr/local/bin/unrtf')).exitCode, 127);
   await fs.writeFile('/inert', encoder.encode('{\\rtf1{\\field{\\*\\fldinst HYPERLINK "https://example.invalid"}{\\fldrslt label}}{\\object{\\objdata dead}}}'));
   const inert = await shell.exec('UNRTF_SEARCH_PATH=/etc AWS_SECRET_ACCESS_KEY=sentinel unrtf --text /inert');
   assert.equal(inert.exitCode, 0);

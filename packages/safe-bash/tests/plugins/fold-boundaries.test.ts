@@ -48,6 +48,7 @@ test('fold cannot resolve an absent VFS path using host files, URLs or executabl
     const result = await shell.exec(`fold '${operand}'`);
     assert.equal(result.exitCode, 1); assert.equal(result.stdout, ''); assert.match(result.stderr, /No such file/);
   }
-  assert.equal((await shell.exec('/usr/bin/fold')).exitCode, 127);
+  assert.deepEqual(await shell.exec('/usr/bin/fold /etc/passwd'), await shell.exec('fold /etc/passwd'));
+  assert.equal((await shell.exec('/usr/local/bin/fold')).exitCode, 127);
   assert.equal(denied.mock.callCount(), 0);
 });

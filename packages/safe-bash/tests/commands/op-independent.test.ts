@@ -59,7 +59,8 @@ for (const [source, stdout] of [
 
 test("independent op child dispatch masks both streams and preserves parent environment", async () => {
   const reference = "op://Team/Login/password";
-  const shell = new Shell({ fs: createMemoryFileSystem(), env: { TOKEN: reference, KEEP: "parent" } }).use(standardCommands());
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, env: { TOKEN: reference, KEEP: "parent" } }).use(standardCommands());
   let children = 0;
   shell.register({ name: "inspect-child", async execute(context) {
     children++;
@@ -79,7 +80,14 @@ test("independent op child dispatch masks both streams and preserves parent envi
   const parent = await shell.exec('printf "%s|%s" "$TOKEN" "$KEEP"');
   assert.equal(parent.exitCode, 0, parent.stderr);
   assert.equal(parent.stdout, reference + "|parent");
-  const unavailable = await shell.exec("op run -- /bin/sh -c 'printf HOST_ESCAPE'");
+  const virtual = await shell.exec("op run -- /bin/sh -c 'printf VFS_ONLY > /virtual-child; cat /virtual-child'");
+  assert.equal(virtual.exitCode, 0, virtual.stderr);
+  assert.equal(virtual.stdout, "VFS_ONLY");
+  assert.deepEqual(await fs.readFile("/virtual-child"), encode("VFS_ONLY"));
+  const hostRead = await shell.exec("op run -- /bin/sh -c 'cat /etc/passwd'");
+  assert.notEqual(hostRead.exitCode, 0);
+  assert.equal(hostRead.stdout, "");
+  const unavailable = await shell.exec("op run -- /usr/local/bin/sh -c 'printf HOST_ESCAPE'");
   assert.notEqual(unavailable.exitCode, 0);
   assert.equal(unavailable.stdout, "");
   assert.equal(children, 1);

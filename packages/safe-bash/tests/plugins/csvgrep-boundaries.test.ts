@@ -4,7 +4,7 @@ import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js
 import { csvgrep, csvgrepCommands } from "../../src/commands/csvgrep/index.js";
 test("csvgrep quota failure preserves a partial redirect and blocks conditional publication", async (t) => {
   const fs = createMemoryFileSystem();
-  const shell = new Shell({ fs }).use(agentCommands()).use(csvgrepCommands({ limits: { outputBytes: 2 } }));
+  const shell = new Shell({ fs }).use(agentCommands()).use(csvgrepCommands({ replace: true, limits: { outputBytes: 2 } }));
   t.after(() => shell.dispose());
   const enc = new TextEncoder();
   await fs.writeFile("/input", enc.encode("x\na\n"));
@@ -34,7 +34,8 @@ test("csvgrep same-file redirects through symlink aliases are destructive, not a
 test("csvgrep has no host executable or network command fallback", async (t) => {
   const shell = new Shell({ fs: createMemoryFileSystem(), env: {} }).use(csvgrepCommands());
   t.after(() => shell.dispose());
-  for (const command of ["/usr/bin/csvgrep", "python -m csvkit", "curl https://example.invalid"]) {
+  assert.deepEqual(await shell.exec("/usr/bin/csvgrep -c x -m a /etc/passwd"), await shell.exec("csvgrep -c x -m a /etc/passwd"));
+  for (const command of ["/usr/local/bin/csvgrep", "python -m csvkit", "curl https://example.invalid"]) {
     const result = await shell.exec(command);
     assert.equal(result.exitCode, 127);
     assert.equal(result.stdout, "");
@@ -42,7 +43,7 @@ test("csvgrep has no host executable or network command fallback", async (t) => 
 });
 test("csvgrep opt-in dispatch uses VFS scripts, pipes, redirects and SDK parity", async (t) => {
   const fs = createMemoryFileSystem(),
-    shell = new Shell({ fs }).use(agentCommands()).use(csvgrepCommands());
+    shell = new Shell({ fs }).use(agentCommands()).use(csvgrepCommands({ replace: true }));
   t.after(() => shell.dispose());
   const enc = new TextEncoder();
   await fs.writeFile("/input", enc.encode("x,y\na,b\nb,a\n"));

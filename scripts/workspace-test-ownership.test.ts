@@ -41,6 +41,8 @@ describe("workspace test ownership", () => {
 
   it.each([
     "node --test src/*.test.ts scripts/*.test.mjs",
+    "node --expose-gc --test src/*.test.ts scripts/*.test.mjs",
+    "node --expose-gc --import tsx --test src/*.test.ts scripts/*.test.mjs",
     "node --import tsx --test src/*.test.ts scripts/*.test.mjs",
     'node --import tsx --test --test-concurrency=1 "src/*.test.ts" "scripts/*.test.mjs"'
   ])("keeps declared Node suites in their native workspace task: %s", script => {

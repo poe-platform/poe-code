@@ -138,7 +138,7 @@ describe("native Vitest workspace result cache", () => {
     expect(runCiBashShard(process.cwd(), { environment: { ...env, SAFE_BASH_TEST_SHARD: "3/4" }, spawn, cacheStore: state.cacheStore })).toBe(0);
     expect(spawn).toHaveBeenCalledTimes(2);
   });
-  it("admits all repository workspace builds to prepareBuildCache and all non-safe-bash native unit stages to prepareNativeUnitCache", async () => {
+  it("admits repository builds and cache-enabled native unit stages while preserving fresh checks", async () => {
     const { createWorkspaceTestPlan } = await import("./build-workspaces.mjs");
     const { sharedVitestStages } = await import("./test-vitest-workspaces.mjs");
     const { prepareBuildCache, prepareNativeUnitCache } = await import("./check-cache.mjs");
@@ -162,7 +162,8 @@ describe("native Vitest workspace result cache", () => {
     const unitCache = prepareNativeUnitCache(plan, stages, { cacheStore: fakeStore, cacheFiles: ["package.json"], environment: {}, fileSystem: realFs });
     for (const stage of stages) {
       if (stage.event === "test:unit:shared" || stage.name === "@poe-platform/safe-bash") continue;
-      expect(unitCache?.restore(stage), "Uncached native unit stage: " + stage.name).toBe(true);
+      const settings = { ...plan.configuration.tasks["test:unit"], ...plan.configuration.tasks[stage.name + "#test:unit"] };
+      expect(unitCache?.restore(stage), "Native unit cache policy: " + stage.name).toBe(settings.cache !== false);
     }
   });
 

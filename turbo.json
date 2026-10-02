@@ -491,6 +491,9 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-jq#test:unit": {
+      "cache": false
     }
   }
 }

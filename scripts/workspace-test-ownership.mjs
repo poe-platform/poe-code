@@ -6,6 +6,7 @@ import ts from "typescript";
 function nodeTestPatterns(tokens) {
   if (tokens[0] !== "node") return undefined;
   let index = 1;
+  if (tokens[index] === "--expose-gc") index++;
   if (tokens[index] === "--import" && tokens[index + 1] === "tsx") index += 2;
   if (tokens[index++] !== "--test") return undefined;
   if (typeof tokens[index] === "string" && tokens[index].startsWith("--test-concurrency=")) {

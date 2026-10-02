@@ -528,3 +528,23 @@ for (const [format, expected] of [
     assert.equal(result.stdout, expected);
   });
 }
+
+
+it("preserves solid lavfi pixels across multiple H.264 frames", async () => {
+  const vfs = createTestVfs();
+  const result = await runCmd(createFfmpegCommand(), [
+    "-f", "lavfi", "-i", "color=c=red:s=64x48:r=10:d=1", "-c:v", "libx264", "/red.mp4"
+  ], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const doc = parseMp4(vfs.store.get("/red.mp4")!, { decodeFrames: true });
+  const frames = doc.tracks[0]!.decodedVideoFrames!;
+  assert.equal(frames.length, 10);
+  for (const frame of frames) {
+    for (let i = 0; i < frame.data.length; i += 4) {
+      assert.ok(frame.data[i]! >= 250, `red at ${i / 4}: ${frame.data.slice(i, i + 4)}`);
+      assert.ok(frame.data[i + 1]! <= 3);
+      assert.ok(frame.data[i + 2]! <= 3);
+      assert.equal(frame.data[i + 3], 255);
+    }
+  }
+});

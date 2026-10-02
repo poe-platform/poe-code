@@ -103,7 +103,7 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
           if (publication.inPlace ? !input || input !== output : input === output) throw new FsError("EINVAL");
           const capabilities = await fs.capabilitiesFor?.(output, { signal }) ?? fs.capabilities;
           signal.throwIfAborted();
-          if (capabilities.readOnly === true || capabilities.write === false || !capabilities.atomicFileMutation || !fs.writeFileConditional) throw new FsError("ENOTSUP");
+          if (capabilities.readOnly === true || capabilities.write === false || (!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !fs.writeFileConditional) throw new FsError("ENOTSUP");
           let destination: FileStat | null;
           try { destination = await fs.lstat(output, { signal }); }
           catch (error) {

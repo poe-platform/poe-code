@@ -161,7 +161,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
       let parent: FileStat | undefined;
       if (destination !== undefined) {
         const capabilities = await invocation.acquire(async () => await context.fs.capabilitiesFor?.(destination, {signal: invocation.signal}) ?? context.fs.capabilities, () => {});
-        if (!capabilities.atomicFileMutation || !context.fs.writeFileConditional || capabilities.write === false || capabilities.readOnly)
+        if ((!capabilities.atomicFileMutation && !capabilities.trustedOwnedStaging) || !context.fs.writeFileConditional || capabilities.write === false || capabilities.readOnly)
           throw new PandocError("E_CAPABILITY", "convert", "Command -o requires atomic conditional file publication on this provider");
         try {expected = await invocation.acquire(() => context.fs.lstat(destination, {signal: invocation.signal}), () => {});}
         catch (error) {if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;}

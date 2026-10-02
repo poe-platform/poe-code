@@ -275,7 +275,7 @@ export async function htmlq(
         const streaming = caps.atomicFilePublication
           ? context.fs.publishFileConditional
           : undefined;
-        const buffered = caps.atomicFileMutation ? context.fs.writeFileConditional : undefined;
+        const buffered = (caps.atomicFileMutation || caps.trustedOwnedStaging) ? context.fs.writeFileConditional : undefined;
         if (caps.write === false || caps.readOnly || (!streaming && !buffered))
           throw new HtmlError(
             "E_UNSUPPORTED",

@@ -22,3 +22,31 @@ it("converts markdown with the default standalone VFS adapter", async () => {
   expect(errors).toEqual([]);
   expect(new TextDecoder().decode(Buffer.concat(output))).toBe("<p>hello</p>\n");
 });
+
+it("publishes -o output on filesystems with trustedOwnedStaging", async () => {
+  const backing = new MemoryFileSystem();
+  await backing.writeFile("/input.md", new TextEncoder().encode("# Hello\n"));
+  const fs = new Proxy(backing, {
+    get(target, prop, receiver) {
+      if (prop === "capabilities") {
+        return { ...target.capabilities, atomicFileMutation: false, trustedOwnedStaging: true };
+      }
+      if (prop === "capabilitiesFor") {
+        return async () => ({ ...target.capabilities, atomicFileMutation: false, trustedOwnedStaging: true });
+      }
+      const val = Reflect.get(target, prop, receiver);
+      return typeof val === "function" ? val.bind(target) : val;
+    }
+  });
+  const errors: Uint8Array[] = [];
+  const result = await createPandocCommand({}).execute({
+    command: "pandoc", args: ["/input.md", "-o", "/output.html"], cwd: "/", env: {},
+    fs, signal: new AbortController().signal,
+    stdin: (async function* () {})(),
+    stdout: { write: async () => {} },
+    stderr: { write: async bytes => { errors.push(bytes); } }
+  });
+  expect(result).toEqual({ exitCode: 0 });
+  expect(errors).toEqual([]);
+  expect(new TextDecoder().decode(await backing.readFile("/output.html"))).toBe("<h1 id=\"hello\">Hello</h1>\n");
+});

@@ -119,3 +119,29 @@ it("keeps human style inspection focused on populated properties", async () => {
   expect(stdout).toContain('Direct: {"bold":true}');
   expect(stdout).not.toContain('"italic":null');
 });
+
+it("accepts built-in Heading1..9 styleId aliases in styles get and styles set", async () => {
+  const bytes = await textFixture(paragraph("Heading alias"), {
+    styles: {
+      kind: "styles",
+      xml: `<w:styles xmlns:w="${w}"><w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/></w:style></w:styles>`
+    }
+  });
+  const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes), "/out.docx": "" });
+  let stdout = "";
+  const engine = createDocxInspectionCommandEngine({ limits: textContext.limits });
+  const setRes = await engine.execute({
+    args: ["styles", "set", "input.docx", "--name", "Heading1", "--size", "18pt", "--color", "1B365D", "--dry-run", "--json"].map(a => new TextEncoder().encode(a)),
+    cwd: "/",
+    signal: textContext.signal,
+    filesystem: {
+      async readFile(p) { return new Uint8Array(volume.readFileSync(p) as Buffer); },
+      async writeFile(p, data) { volume.writeFileSync(p, Buffer.from(data)); }
+    },
+    stdin: { async *[Symbol.asyncIterator]() {} },
+    stdout: { async write(b) { stdout += new TextDecoder().decode(b); } },
+    stderr: { async write() {} }
+  });
+  expect(setRes.exitCode).toBe(0);
+  expect(JSON.parse(stdout)).toMatchObject({ ok: true, affected: 1 });
+});

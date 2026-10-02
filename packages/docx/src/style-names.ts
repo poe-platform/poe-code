@@ -8,6 +8,7 @@ export function styleDisplayName(name: string, builtin = true): string {
   return builtin ? displayNames.find(value => value.toLowerCase() === name) ?? name : name;
 }
 export function styleStoredName(name: string, builtin = true): string {
+  if (builtin && /^Heading[1-9]$/.test(name)) return `heading ${name.slice(7)}`;
   return builtin && displayNames.includes(name) ? name.toLowerCase() : name;
 }
 

@@ -193,7 +193,7 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
   }
   const inflated = inflate(compressed);
   if (typeof (compressed.buffer as any).transfer === "function") {
-    try { (compressed.buffer as any).transfer(0); } catch {}
+    try { (compressed.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   }
 
   const samplesPerPixel =
@@ -403,7 +403,7 @@ function makeChunk(type: string, data: Uint8Array): Uint8Array {
   out.set(data, 8);
   view.setUint32(8 + data.length, crc32(typeBytes, data), false);
   if (type === "IDAT" && data.byteOffset === 0 && typeof (data.buffer as any).transfer === "function") {
-    try { (data.buffer as any).transfer(0); } catch {}
+    try { (data.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   }
   return out;
 }
@@ -482,7 +482,7 @@ export function encodePngImage(
     }
   }
   if (options?.consumeInput && !canFilterInPlace && data.byteOffset === 0 && data.byteLength === data.buffer.byteLength && typeof (data.buffer as any).transfer === "function") {
-    try { (data.buffer as any).transfer(0); } catch {}
+    try { (data.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   }
 
   const level = Math.max(0, Math.min(9, options?.compressionLevel ?? 6)) as
@@ -498,7 +498,7 @@ export function encodePngImage(
     | 9;
   const compressed = deflate(raw, { level });
   if (typeof (raw.buffer as any).transfer === "function" && (options?.consumeInput || (raw.byteOffset === 0 && raw.byteLength === raw.buffer.byteLength))) {
-    try { (raw.buffer as any).transfer(0); } catch {}
+    try { (raw.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   }
 
   const ihdr = new Uint8Array(13);

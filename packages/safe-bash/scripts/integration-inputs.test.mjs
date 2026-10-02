@@ -1200,6 +1200,11 @@ function assertSource7Discovery(files) {
     assert.ok(fs.existsSync(new URL(`../../safe-bash-command-html-to-markdown/src/${name}.test.ts`, import.meta.url)), `html-to-markdown workspace suite missing: ${name}`);
   }
   for (const path of [
+    "tests/commands/dd/io.test.ts",
+    "tests/commands/dd/optional-limits.test.ts",
+    "tests/commands/dd/report.test.ts",
+  ]) assert.ok(!files.includes(path), "extracted dd test remains in safe-bash discovery: " + path);
+  for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",
     "tests/fs/devices/review.test.ts",

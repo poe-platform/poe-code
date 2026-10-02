@@ -600,18 +600,6 @@
       "tests/commands/dd/descriptor.test.ts": "b9594a00a785b1931b2188442f63c79d3ead5a999f3246f2ff5b0c461cbc7bae",
       "tests/commands/dd/helpers.ts": "21dad1a6d5fd15b34dce7adc3c3ff3104d02651798b88c8dfd22d43a55baf39a"
     },
-    "tests/commands/dd/io.test.ts": {
-      "tests/commands/dd/helpers.ts": "21dad1a6d5fd15b34dce7adc3c3ff3104d02651798b88c8dfd22d43a55baf39a",
-      "tests/commands/dd/io.test.ts": "f5ffc9a893951f4636627e3caee8dc9612e17ef127017daf6a79fab47712c52d"
-    },
-    "tests/commands/dd/optional-limits.test.ts": {
-      "tests/commands/dd/helpers.ts": "21dad1a6d5fd15b34dce7adc3c3ff3104d02651798b88c8dfd22d43a55baf39a",
-      "tests/commands/dd/optional-limits.test.ts": "ea8ea9a2c227c7eb30bfe93c1ba009afeb91e9e4efc426d0e5c1b6666f2bcdbc"
-    },
-    "tests/commands/dd/report.test.ts": {
-      "tests/commands/dd/helpers.ts": "21dad1a6d5fd15b34dce7adc3c3ff3104d02651798b88c8dfd22d43a55baf39a",
-      "tests/commands/dd/report.test.ts": "bd8d0b8d8fd62a8a095ba63a5278abcc757add3713d1629732f56164f6cbc187"
-    },
     "tests/commands/device-metadata.test.ts": {
       "tests/commands/device-metadata.test.ts": "ff2cfebd2c1c99f4282ec388f7d6d725ff55bb48f036ab3f1789420fc4811781"
     },

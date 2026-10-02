@@ -34,23 +34,21 @@ export function attachSignalDumpHandler(
     writeFile?: WriteDumpFile;
   } = {}
 ): () => void {
-  const signalProcess = options.process ?? process;
-  const stderr = options.stderr ?? process.stderr;
-  const io = options.adapter ? createFsBridge(options.adapter, {codec: fsCodec}) : hostFs;
-  const writeDumpFile = options.writeFile ?? io.writeFile.bind(io);
+  const signalProcess = options.process ?? (typeof process === "undefined" ? undefined : process);
+  if (signalProcess === undefined) throw new TypeError("A signal source is required on this host.");
+  const stderr = options.stderr ?? (typeof process === "undefined" ? undefined : process.stderr);
 
   const onSigusr1 = () => {
     void writeDump("SIGUSR1");
+  };
+  const cleanup = () => {
+    signalProcess.off("SIGUSR1", onSigusr1);
   };
 
   signalProcess.on("SIGUSR1", onSigusr1);
   Promise.resolve(result).then(cleanup, cleanup);
 
   return cleanup;
-
-  function cleanup(): void {
-    signalProcess.off("SIGUSR1", onSigusr1);
-  }
 
   async function writeDump(signal: SignalName): Promise<void> {
     try {
@@ -59,6 +57,8 @@ export function attachSignalDumpHandler(
           ? await dump(result, { mode: "replay" })
           : await options.dumpResult(result);
       if (options.dumpPath !== undefined) {
+        const io = options.adapter ? createFsBridge(options.adapter, {codec: fsCodec}) : hostFs;
+        const writeDumpFile = options.writeFile ?? io.writeFile.bind(io);
         const parentPath = dirname(options.dumpPath);
         const tempPath = join(parentPath, `.${basename(options.dumpPath)}.${globalThis.crypto.randomUUID()}.tmp`);
         await io.mkdir(parentPath, { recursive: true });
@@ -77,9 +77,9 @@ export function attachSignalDumpHandler(
       await options.onSnapshot?.(snapshot, signal);
     } catch (error) {
       await options.onError?.(error, signal);
-      stderr.write(
-        `Failed to write ${signal} dump to ${options.dumpPath ?? "<memory>"}: ${readErrorMessage(error)}\n`
-      );
+      const message = `Failed to write ${signal} dump to ${options.dumpPath ?? "<memory>"}: ${readErrorMessage(error)}`;
+      if (stderr !== undefined) stderr.write(`${message}\n`);
+      else console.error(message);
     }
   }
 }

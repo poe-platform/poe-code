@@ -10,8 +10,20 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
       import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
       import { StackContext } from "./dist/platform/context.js";
       import { types, createTrackedProxy } from "./dist/platform/types.js";
+      import { attachSignalDumpHandler } from "./dist/runner/signal-dump.js";
       export default { async fetch() {
         if (typeof Buffer !== "undefined" || typeof process !== "undefined") throw new Error("Node globals present");
+        let onSignal;
+        const signals = { on(_name, callback) { onSignal = callback; }, off() { onSignal = undefined; } };
+        let snapshot;
+        const detach = attachSignalDumpHandler(new Promise(() => {}), {
+          process: signals, dumpResult: async () => "checkpoint",
+          onSnapshot: value => { snapshot = value; }
+        });
+        onSignal();
+        await Promise.resolve();
+        detach();
+        if (snapshot !== "checkpoint" || onSignal !== undefined) throw new Error("Portable signal snapshot failed");
         const context = new StackContext();
         const resume = context.run("first", () => StackContext.snapshot());
         const later = new StackContext();

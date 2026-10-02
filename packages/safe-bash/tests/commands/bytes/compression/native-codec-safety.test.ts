@@ -20,10 +20,26 @@ async function collect(source: AsyncIterable<Uint8Array>): Promise<Buffer> {
 }
 function tracked() {
   const modules: RawCodecModule[] = [];
+  const destructions = new Map<RawCodecModule, number>();
   const create: CodecFactory = (options, signal) => createCodec(options, signal, wasi => {
-    const module = factories[options.format](wasi); modules.push(module); return module;
+    const module = factories[options.format](wasi);
+    const destroy = module.bridge_destroy;
+    module.bridge_destroy = () => {
+      destroy();
+      // Read accounting while the codec still owns an attached heap.
+      assert.equal(module.bridge_used(), 0);
+      destructions.set(module, (destructions.get(module) ?? 0) + 1);
+    };
+    modules.push(module);
+    return module;
   });
-  return { create, modules, released() { assert.ok(modules.length); for (const module of modules) assert.equal(module.bridge_used(), 0); } };
+  return { create, modules, released() {
+    assert.ok(modules.length);
+    for (const module of modules) {
+      assert.equal(destructions.get(module), 1);
+      if (module.memory.buffer.byteLength) assert.equal(module.bridge_used(), 0);
+    }
+  } };
 }
 function reader(bytes: Uint8Array, signal: AbortSignal) {
   return new CodecReader((async function* () { yield bytes; })(), signal);

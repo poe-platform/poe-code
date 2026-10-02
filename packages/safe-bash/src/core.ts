@@ -211,3 +211,5 @@ export { xqCommands, createXqCommand, createXqCommands, type XqCommandsOptions, 
 
 export { createQrencodeCommand, createQrencodeCommands, qrencodeCommands } from "./lazy-optional.js";
 export type { QrencodeLimits, QrencodeCommandOptions, QrencodeCommandsOptions } from "./commands/qrencode/index.js";
+
+export { createCpCommand, createCpCommands, cpCommands, type CpCommandsOptions, type CpLimits } from "./commands/cp/index.js";

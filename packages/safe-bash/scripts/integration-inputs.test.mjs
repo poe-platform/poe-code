@@ -1316,7 +1316,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/contracts/diagnostic-escaping.test.ts"));
   assert.ok(files.includes("tests/commands/xargs-parallel.test.ts"));
   assert.ok(files.includes("tests/contracts/missing-target.test.ts"));
-  assert.ok(files.includes("tests/commands/copy-preflight-canonicalization.test.ts"));
+  assert.ok(!files.includes("tests/commands/copy-preflight-canonicalization.test.ts")); // Owned and tested by safe-bash-command-cp.
   assert.ok(files.includes("tests/commands/join-render-budget.test.ts"));
   assert.ok(files.includes("tests/commands/join-null-data.test.ts"));
   assert.ok(files.includes("tests/commands/ere-work-accounting.test.ts"));

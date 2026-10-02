@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, toByteSource, type FileSystem } from "../../src/contracts/index.js";
-import { filesystemCommands } from "../../src/commands/filesystem.js";
-import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
+import { FsError, toByteSource, type FileSystem } from "safe-bash-contracts";
+import { createCpCommand } from "./index.js";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
 
 async function fixture() {
   const fs = createMemoryFileSystem();
@@ -12,7 +12,7 @@ async function fixture() {
 }
 
 async function execute(fs: FileSystem, destination = "/d", signal = new AbortController().signal) {
-  const definition = filesystemCommands().find(command => command.name === "cp");
+  const definition = createCpCommand();
   assert.ok(definition);
   let stdout = "", stderr = "";
   const decoder = new TextDecoder();

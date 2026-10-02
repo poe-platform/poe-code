@@ -1914,6 +1914,16 @@
             "safe-bash-io-engine": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-cp": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3111,6 +3121,12 @@
       "workerd": "./dist/commands/zstd/index.js",
       "browser": "./dist/commands/zstd/index.js",
       "import": "./dist/commands/zstd/index.js"
+    },
+    "./commands/cp": {
+      "types": "./dist/commands/cp/index.d.ts",
+      "workerd": "./dist/commands/cp/index.js",
+      "browser": "./dist/commands/cp/index.js",
+      "import": "./dist/commands/cp/index.js"
     }
   },
   "sideEffects": [
@@ -3356,7 +3372,8 @@
     "safe-bash-command-playwright-cli": "*",
     "safe-bash-mime-engine": "*",
     "safe-bash-command-unix2dos": "*",
-    "safe-bash-command-zstd": "*"
+    "safe-bash-command-zstd": "*",
+    "safe-bash-command-cp": "*"
   },
   "main": "./dist/index.js",
   "imports": {

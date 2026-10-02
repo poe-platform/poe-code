@@ -1,4 +1,6 @@
 import "./safe-packages-bzip2.mjs";
+import { verifyCp } from "./safe-packages-cp.mjs";
+await verifyCp();
 import { verification as gzipVerification } from "./safe-packages-gzip.mjs";
 await gzipVerification;
 import { verification as xqVerification } from "./safe-packages-xq.mjs";

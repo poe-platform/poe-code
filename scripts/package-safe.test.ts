@@ -353,7 +353,7 @@ it("maps the standalone spreadsheet contracts facade to the scoped canonical run
   }
 });
 
-it.each(["csvkit", "zip"])("ships the private %s command SDK with its runtime graph", async name => {
+it.each(["csvkit", "zip", "cp"])("ships the private %s command SDK with its runtime graph", async name => {
   const workspace = `safe-bash-command-${name}`;
   const { volume, options } = optionalLeftovers();
   const manifest = structuredClone(bashManifest);

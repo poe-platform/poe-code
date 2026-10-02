@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 const root = new URL("../../../", import.meta.url);
-const names = "bc fd sponge less more xxd od pandoc ssconvert op htmlq csvkit dd shuf yes xmllint apply-patch cmp column csplit du expr factor file getopt hexdump html-to-markdown iconv install pr split timeout tree truncate tsort which xan nl rev tac readlink realpath strings paste join comm expand unexpand date env printenv sleep touch egrep fgrep rg zip base64 md5sum sha1sum sha256sum".split(" ");
+const names = "cp bc fd sponge less more xxd od pandoc ssconvert op htmlq csvkit dd shuf yes xmllint apply-patch cmp column csplit du expr factor file getopt hexdump html-to-markdown iconv install pr split timeout tree truncate tsort which xan nl rev tac readlink realpath strings paste join comm expand unexpand date env printenv sleep touch egrep fgrep rg zip base64 md5sum sha1sum sha256sum".split(" ");
 const manifest = path => JSON.parse(readFileSync(new URL(path, root), "utf8"));
 for (const name of [...names, "docx", "pptx", "pdfunite", "pdfseparate"]) test(name + " has one private portable command owner", () => {
   const packageName = "safe-bash-command-" + name;
@@ -94,5 +94,22 @@ test("apply_patch unit graph builds its canonical contracts and engines", async 
   const plan = createWorkspaceTestPlan(fileURLToPath(root), { workspaces: ["safe-bash-command-apply-patch"] });
   for (const name of ["safe-bash-contracts", "safe-bash-byte-engine", "safe-bash-io-engine", "@poe-code/safe-fs"]) {
     assert.ok(plan.buildStages.some(stage => stage.name === name), `${name} must build before apply_patch unit tests`);
+  }
+});
+
+test("cp implementation leaves filesystem composition and shares retained copying below commands", () => {
+  const source = path => readFileSync(new URL(path, root), "utf8");
+  assert.ok(source("packages/safe-bash-command-cp/src/index.ts").includes('define("cp"'));
+  assert.ok(!source("packages/safe-bash/src/commands/filesystem.ts").includes('define("cp"'));
+  assert.ok(source("packages/safe-bash-io-engine/src/commands/copy-source.ts").includes("export async function copyCheckedSource"));
+  assert.equal(manifest("packages/safe-bash-command-cp/package.json").devDependencies["@poe-platform/safe-bash"], undefined);
+});
+
+test("cp unit graph builds canonical contracts and shared copy helpers", async () => {
+  const { createWorkspaceTestPlan } = await import("../../../scripts/build-workspaces.mjs");
+  const { fileURLToPath } = await import("node:url");
+  const plan = createWorkspaceTestPlan(fileURLToPath(root), { workspaces: ["safe-bash-command-cp"] });
+  for (const name of ["safe-bash-contracts", "safe-bash-io-engine", "@poe-code/safe-fs"]) {
+    assert.ok(plan.buildStages.some(stage => stage.name === name), `${name} must build before cp unit tests`);
   }
 });

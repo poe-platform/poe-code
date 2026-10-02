@@ -1,6 +1,9 @@
 import "./safe-packages-bzip2.mjs";
 import { verification as zstdVerification } from "./safe-packages-zstd.mjs";
 await zstdVerification;
+import { verifyCp } from "./safe-packages-cp.mjs";
+await verifyCp();
+assert.throws(() => import.meta.resolve("safe-bash-command-cp"), { code: "ERR_MODULE_NOT_FOUND" });
 import "./safe-packages-patch.mjs";
 import { verification as gzipVerification } from "./safe-packages-gzip.mjs";
 await gzipVerification;

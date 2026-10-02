@@ -16,12 +16,15 @@ export async function buildBrowserProvider(): Promise<void> {
   const polyfills = join(dirname(require.resolve('@jspm/core/nodelibs/buffer')), '../browser');
   const transport = join(dirname(provider), 'cloudflare/webSocketTransport.js');
   const builtins = new Set(builtinModules.map(name => name.startsWith('node:') ? name.slice(5) : name));
+  // Select the host adapter at build time only. The plugin below replaces its
+  // native filesystem imports with the provider's private in-memory filesystem;
+  // the public safe-fs Node entrypoint stays unavailable to portable consumers.
   const result = await build({
     stdin: {
       contents: `export { acquire, connect } from ${JSON.stringify(provider)};
         import { Buffer } from ${JSON.stringify(join(polyfills, 'buffer.js'))};
         import { fs } from "memfs";
-        import { RealFileSystem } from "@poe-code/safe-fs/fs/real";
+        import { RealFileSystem } from ${JSON.stringify(fileURLToPath(import.meta.resolve("@poe-code/safe-fs/fs/real")))};
         fs.mkdirSync("/tmp", { recursive: true });
         export const artifactFileSystem = new RealFileSystem({ root: "/" });
         export function prepareFileBytes(bytes) { return Buffer.from(bytes); }`,

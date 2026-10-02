@@ -18,3 +18,13 @@ test('the adapter graph bundles for workerd without Node builtins', async () => 
   expect([...new Set(imports.filter(entry => entry.external).map(entry => entry.path))]).toEqual(['cloudflare:workers']);
   expect(Object.keys(result.metafile!.inputs).some(input => input.includes('browser-trace-archive.ts'))).toBe(true);
 });
+
+test('the generated provider bundles without native runtime imports', async () => {
+  const result = await build({
+    entryPoints: [path.join(root, 'packages/safe-playwright-cloudflare/src/browser-provider.generated.js')],
+    bundle: true, write: false, metafile: true, platform: 'browser', conditions: ['workerd', 'browser'],
+    format: 'esm', target: 'es2022', external: ['cloudflare:workers'], logLevel: 'silent',
+  });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect([...new Set(imports.filter(entry => entry.external).map(entry => entry.path))]).toEqual(['cloudflare:workers']);
+});

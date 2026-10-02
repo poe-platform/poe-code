@@ -1067,3 +1067,9 @@ const fakeDriverNative: Pick<NativeFakeTerminalDriver,keyof NativeFakeTerminalDr
 // @ts-expect-error Separate private cols declarations cannot be assigned across packages.
 const fakeDriverNominal: OriginalFakeTerminalDriver = new NativeFakeTerminalDriver();
 void [promptHarnessOriginal,promptHarnessNative,promptHarnessInstanceOriginal,promptHarnessInstanceNative,fakeDriverOriginal,fakeDriverNative,fakeDriverNominal];
+
+import type * as nativeThemeFixture from "toolcraft-design-rust/terminal-markdown/testing/theme-render-fixture";
+import type * as originalThemeFixture from "toolcraft-design/terminal-markdown/testing/theme-render-fixture";
+const themeFixtureOriginal: typeof originalThemeFixture = null as unknown as typeof nativeThemeFixture;
+const themeFixtureNative: typeof nativeThemeFixture = null as unknown as typeof originalThemeFixture;
+void [themeFixtureOriginal,themeFixtureNative];

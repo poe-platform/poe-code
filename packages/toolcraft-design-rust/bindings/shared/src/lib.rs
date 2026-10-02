@@ -575,3 +575,5 @@ mod dashboard_demo;
 pub use dashboard_demo::*;
 mod test_harnesses;
 pub use test_harnesses::*;
+mod theme_fixture;
+pub use theme_fixture::*;

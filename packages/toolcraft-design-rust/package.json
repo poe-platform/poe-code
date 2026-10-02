@@ -819,6 +819,10 @@
     "./explorer/runtime.test-helpers": {
       "types": "./dist/explorer-runtime-test-helpers.d.ts",
       "import": "./dist/explorer-runtime-test-helpers.js"
+    },
+    "./terminal-markdown/testing/theme-render-fixture": {
+      "types": "./dist/theme-render-fixture.d.ts",
+      "import": "./dist/theme-render-fixture.js"
     }
   },
   "scripts": {

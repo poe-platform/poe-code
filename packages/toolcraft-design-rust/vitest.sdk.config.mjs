@@ -241,7 +241,8 @@ export default defineConfig({
       path("../toolcraft-design/src/components/components.test.ts"),
       path("../toolcraft-design/src/components/file-changes.test.ts"),
       path("../toolcraft-design/src/tokens/colors.test.ts"),
-      path("../toolcraft-design/src/internal/theme-state.test.ts")
+      path("../toolcraft-design/src/internal/theme-state.test.ts"),
+      path("tests/theme-render-fixture.vitest.mjs")
     ],
     environment: "node",
     fileParallelism: false,

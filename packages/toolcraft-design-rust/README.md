@@ -22,6 +22,8 @@ For controlled terminal integrations, `prompts/interactive/test-helpers` exports
 input/output streams, captured frames and raw-mode transitions.
 `FakeTerminalDriver` from `explorer/runtime.test-helpers` captures frames and
 lets you inject key presses and resizes without opening a real terminal.
+Loading `terminal-markdown/testing/theme-render-fixture` renders dark and light
+Markdown samples, validates their ANSI output and leaves the light theme active.
 
 Render consistent agent output with callable `color` chains, `text` helpers and
 cached dark/light palettes. `configureTheme({brand: 'blue', label: 'Acme'})`

@@ -2548,3 +2548,30 @@ missing concrete design modules are `explorer/demo`, `explorer/render/test-fixtu
 `dashboard/testing/pipeline-scenario` and
 `terminal-markdown/testing/theme-render-fixture`; the existing-surface audit,
 batching and broader Toolcraft/platform/swap qualification remain open.
+
+### Markdown theme fixture checkpoint
+
+`terminal-markdown/testing/theme-render-fixture` now reproduces the original
+side-effect-only import. Rust owns the two sample documents, theme/render/output
+ordering and validation branches; Node supplies environment access, native
+Markdown rendering, streams and process exit. Five missing-module failures
+preceded implementation. The same differential cases cover successful output,
+both missing-ANSI diagnostics, equal outputs and arbitrary rendering failures.
+They also caught an unbound-render/reset receiver mismatch, fixed in the host
+adapter. The module exports no public values or types, matching the reference.
+
+Build, package unit, Rust/binding and scoped JS lint pass: 406 native host cases,
+1,521 selected design cases, 13 prompt wrappers, 143 dashboard cases, 14 composer
+cases and 315 explorer cases. Packed imports pass with external ESM dependencies
+blocked; standalone and bidirectional declaration checks pass. Real child
+processes produce identical stdout, empty stderr and successful exit. The
+combined dark/light Markdown screenshot was inspected.
+
+Five alternating rounds after two warmup pairs on Node 22.23.2 ARM64 measured
+258.405 ms native / 239.918 ms JavaScript for complete process startup, imports,
+theme rendering and validation (1.08 times slower), retaining all 14 outputs.
+This small process benchmark does not isolate rendering or pass a performance
+gate. No dependencies or default integration changed. Three concrete design
+modules remain missing: `explorer/demo`, `explorer/render/test-fixtures` and
+`dashboard/testing/pipeline-scenario`. The complete existing-surface audit,
+native batching and broader Toolcraft/platform/swap qualification remain open.

@@ -14661,7 +14661,7 @@ export class Runtime {
     const touched = this._syncArithRawWriteOnly ? new Set<string>() : sharedSyncLoopTouched;
     touched.clear();
     let lastCmd: SyncLoopProgress["lastCmd"];
-    let lastArg = "";
+    let lastArg = bodyAssignments.every(step => step.arithStmt !== undefined) ? rawState.lastArgument ?? "" : "";
     let lastPipelineStatus: number | undefined;
     const mode = 0o666 & ~(rawState.umask ?? 0o022);
     if (command.kind === "arithmetic-for") {

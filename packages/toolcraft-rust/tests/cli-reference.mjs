@@ -15,5 +15,5 @@ export function loadCLIReference(names,constants=[]){
     return [];
   });
   assert.equal(declarations.length,names.length+constants.length);
-  return new Function("ToolcraftBugError","UserError","LOG_LEVELS",ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,UserError,LOG_LEVELS);
+  return new Function("ToolcraftBugError","UserError","LOG_LEVELS",'"use strict";\n'+ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,UserError,LOG_LEVELS);
 }

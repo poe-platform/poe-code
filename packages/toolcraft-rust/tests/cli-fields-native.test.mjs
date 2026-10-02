@@ -139,3 +139,11 @@ test("CLI union callbacks retain metadata and positional setters observe ordered
   }
   assert.deepEqual(positional(api),positional(original));
 });
+
+test("CLI positional metadata retains strict module assignment semantics",async()=>{
+  const api=await native();
+  for(const module of [original,api]){
+    const frozen=Object.freeze({displayPath:"name",schema:{kind:"string"}});
+    assert.throws(()=>module.assignPositionals([frozen],["name"]),{name:"TypeError"});
+  }
+});

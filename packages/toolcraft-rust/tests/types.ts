@@ -1,10 +1,18 @@
 import * as native from "../dist/index.js";
 import * as cliPolicy from "../dist/cli-policy.js";
 import * as cliFields from "../dist/cli-fields.js";
+import * as cliHelp from "../dist/cli-help-fields.js";
 const collectedCLI=cliFields.collectFields(native.S.Object({path:native.S.String(),names:native.S.Array(native.S.String())}),"kebab",new Set(["--yes"]));
 const positionalCLI:cliFields.FieldDefinition[]=cliFields.assignPositionals(collectedCLI.fields,["path","names"]);
 cliFields.validateUniqueOptionFlags(positionalCLI,new Set());
 const flagsCLI:string=cliFields.formatOptionFlags(positionalCLI[0]!,new Set());
+const cliHelpFlags:string=cliHelp.formatHelpFieldFlags(positionalCLI[0]!,new Set());
+const cliHelpTokens:import("toolcraft-design").HelpToken[]=cliHelp.tokenizeHelpFlags(cliHelpFlags);
+const cliHelpDescription:string=cliHelp.formatHelpFieldDescription(positionalCLI[0]!);
+const cliDynamicRows:cliHelp.HelpOptionRow[]=collectedCLI.dynamicFields.flatMap(field=>cliHelp.formatDynamicHelpFields(field,"kebab"));
+// @ts-expect-error enum choice lists require an enum schema
+cliHelp.formatCLIEnumChoices(native.S.String());
+void [cliHelpTokens,cliHelpDescription,cliDynamicRows];
 // @ts-expect-error CLI traversal starts from an object schema
 cliFields.collectFields(native.S.String(),"kebab",new Set());
 void flagsCLI;

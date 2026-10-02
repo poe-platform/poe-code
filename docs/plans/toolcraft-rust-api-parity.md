@@ -2999,3 +2999,44 @@ does not establish a release. A fresh Toolcraft workflow was dispatched at
 119999784433470b15b05b6352c2964ab8d21335, which contains that repair. Workflow
 37055529265 last showed all four Node matrix jobs running. Later REST polling
 hit a rate limit; no new terminal status or publication is inferred.
+
+### CLI field-help checkpoint
+
+The internal help-field module now uses Rust for positional/boolean/value flag
+policies, name/format/pattern hints, compact enum signatures, echo suppression,
+required/default metadata, nested record/object-array help rows, enum choices,
+JSON help types and lexical help-token roles. Node retains observable string and
+collection methods, iteration, coercion, JSON serialization and caller-owned
+values. Public CLI entry points and defaults are unchanged; full help documents,
+command-tree assembly, parsing and execution remain open.
+
+Four missing-module tests preceded the port. Seven final native comparisons cover
+scalar/array hints, compact/oversized enums, defaults and serialization failures,
+dynamic nested rows, whitespace/brackets/arguments/Unicode tokenization, repeated
+indexed reads, method receivers, coercible closing offsets, callback metadata,
+normalization iterator closing, arbitrary throws and reentrancy. A separate frozen
+positional-field regression exposed a test-harness mismatch: extracted reference
+functions lacked the strict semantics of their source ES module. The extraction
+helper now explicitly enables strict mode; existing field/control comparisons and
+the new help comparisons all pass against that corrected reference.
+
+Build, Rust/binding lint, scoped ESLint and the maintained Toolcraft package route
+pass: 162 native tests, 1,721 reference/integration cases across 45 files, and
+declaration checks. Packed helpers execute with the packed own schema dependency
+and other external ESM imports blocked. Packed types compile with `types: []` but
+still resolve existing contract declarations from the checkout, so fully isolated
+type packaging remains open. The inspected help-row preview renders native token
+roles and matches reference ANSI bytes; it is not a complete CLI help screen.
+Adapter recursion and complete platform/resource behavior remain unqualified.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 100 calls per fixture and
+32 retained results, measured native/reference medians of 949.615/14.955
+microseconds for field help rows (63.50 times slower), and 176.377/0.370 for a
+mixed option/argument token string (476.15 times slower). These measurements do
+not pass the performance gate; JavaScript remains default.
+
+Field collection is verified on remote main at 7996cd0f00. GraphQL monitoring
+recovered release visibility after REST throttling: fresh Toolcraft workflow
+37055529265 has passed every Node 18.18/20/22/24 matrix job, confirming the earlier
+Node 18 probe repair in CI. Its publish job is still running; successful npm
+publication is not yet claimed.

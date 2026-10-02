@@ -902,7 +902,7 @@ export function tryFastPrintf(args: readonly string[], allowNull = false): strin
               valByteLen = val.length;
             }
           } else if (precision < 0) {
-            valByteLen = byteLength(rawVal, "utf8");
+            valByteLen = utf8ByteLength(rawVal, "utf8");
           } else {
             return undefined;
           }

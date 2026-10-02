@@ -927,10 +927,11 @@ function assertSource7Discovery(files) {
   for (const path of [
     "tests/commands/install/behavior.test.ts",
     "tests/commands/install/budget.test.ts",
-    "tests/commands/install/grammar.test.ts",
     "tests/commands/install/safety.test.ts",
     "tests/commands/install/review.test.ts",
   ]) assert.ok(files.includes(path), "optional install test is missing: " + path);
+  assert.ok(!files.includes("tests/commands/install/grammar.test.ts"), "extracted install grammar test remains in safe-bash discovery");
+  assert.ok(fs.existsSync(new URL("../../safe-bash-command-install/src/grammar.test.ts", import.meta.url)), "install workspace grammar suite missing");
   for (const path of [
     "tests/shell/extensions/trap/builtin.test.ts",
     "tests/shell/extensions/trap/host.test.ts",

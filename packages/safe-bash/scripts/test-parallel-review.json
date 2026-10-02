@@ -1271,10 +1271,6 @@
       "tests/commands/install/budget.test.ts": "c31c24a943a698806373a61e6d7bbad4fe45b8616c89348a5754b853def4f904",
       "tests/commands/install/helpers.ts": "fcf21d4bc3ec015afe9ea64b6c426858152044e2fd9b4be40ed744210b5dfed2"
     },
-    "tests/commands/install/grammar.test.ts": {
-      "tests/commands/install/grammar.test.ts": "d323a05bf51948ef2df795db78471ad823d23dff83024e521a40911d4a6e9ada",
-      "tests/commands/install/helpers.ts": "fcf21d4bc3ec015afe9ea64b6c426858152044e2fd9b4be40ed744210b5dfed2"
-    },
     "tests/commands/install/safety.test.ts": {
       "tests/commands/install/helpers.ts": "fcf21d4bc3ec015afe9ea64b6c426858152044e2fd9b4be40ed744210b5dfed2",
       "tests/commands/install/safety.test.ts": "d545f9b5e7233fa511cb203ee42167d67c53777a9d06b19605e6f5d5c103887b"

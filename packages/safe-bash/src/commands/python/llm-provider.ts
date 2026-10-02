@@ -50,7 +50,7 @@ def _catalog():
 
 def _options(descriptions):
     fields = {}
-    types = {"number": float, "integer": int, "boolean": bool, "string": str}
+    types = {"number": float, "integer": int, "boolean": bool, "string": str, "object": dict, "array": list}
     for name, description in descriptions.items():
         annotation = Optional[types[description["type"]]]
         constraints = {}
@@ -88,23 +88,9 @@ def _request(model, prompt, stream, response, conversation):
         return spool(text[start:start + 4096].encode("utf-8")
                      for start in range(0, len(text), 4096))
 
-    try:
-        messages = []
-        for previous in conversation.responses if conversation else ():
-            if previous.prompt.system:
-                messages.append({"role": "system", "content": text_input(previous.prompt.system)})
-            messages.append({"role": "user", "content": text_input(previous.prompt.prompt)})
-            messages.append({"role": "assistant", "content": text_input(previous.text_or_raise())})
-            if previous.prompt.attachments:
-                raise llm.ModelError("This host transport does not support attachments in conversation history")
-        payload = {**_context(), "model": model.model_id, "prompt": text_input(prompt.prompt),
-                   "messages": messages, "stream": stream, "attachments": [], "retain_response": True,
-                   "options": prompt.options.model_dump(exclude_none=True)}
-        if prompt.system:
-            payload["system"] = text_input(prompt.system)
-        if prompt.schema is not None:
-            payload["schema"] = prompt.schema
-        for attachment in prompt.attachments:
+    def attachment_inputs(attachments):
+        result = []
+        for attachment in attachments:
             if attachment.content or (
                 attachment.content is not None and not attachment.path and not attachment.url
             ):
@@ -118,7 +104,27 @@ def _request(model, prompt, stream, response, conversation):
                 source = {"spool": handle}
             else:
                 raise llm.ModelError("Attachment requires a path, URL or content")
-            payload["attachments"].append({**source, "mimeType": _attachment_type(attachment)})
+            result.append({**source, "mimeType": _attachment_type(attachment)})
+        return result
+
+    try:
+        messages = []
+        for previous in conversation.responses if conversation else ():
+            if previous.prompt.system:
+                messages.append({"role": "system", "content": text_input(previous.prompt.system)})
+            message = {"role": "user", "content": text_input(previous.prompt.prompt)}
+            if previous.prompt.attachments:
+                message["attachments"] = attachment_inputs(previous.prompt.attachments)
+            messages.append(message)
+            messages.append({"role": "assistant", "content": text_input(previous.text_or_raise())})
+        payload = {**_context(), "model": model.model_id, "prompt": text_input(prompt.prompt),
+                   "messages": messages, "stream": stream, "attachments": [], "retain_response": True,
+                   "options": prompt.options.model_dump(exclude_none=True)}
+        if prompt.system:
+            payload["system"] = text_input(prompt.system)
+        if prompt.schema is not None:
+            payload["schema"] = prompt.schema
+        payload["attachments"] = attachment_inputs(prompt.attachments)
         yield payload
     finally:
         failing = sys.exc_info()[0] is not None

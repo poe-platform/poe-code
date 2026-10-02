@@ -28,3 +28,25 @@ test("portable shell runs default network factories and all WinZip AES strengths
     }
   }
 });
+
+test("portable network accepts default and explicit unlimited quotas without Buffer", async context => {
+  const { api } = await portableRuntime(`
+    globalThis.fetch = async request => new Response(new URL(request.url).searchParams.get("message") ?? "download");
+    export { Shell } from "./packages/safe-bash/src/shell/index.ts";
+    export { MemoryFileSystem } from "./packages/safe-bash/src/fs/memory/index.ts";
+    export * from "./packages/safe-bash/src/commands/network/public.ts";
+  `);
+  for (const limits of [undefined, { maxUrls: Infinity, maxBufferBytes: Infinity }]) {
+    const options = { authorize: () => true, ...(limits ? { limits } : {}) };
+    assert.equal(api.createCurlCommand(options).name, "curl");
+    assert.equal(api.createWgetCommand(options).name, "wget");
+    const shell = new api.Shell({ fs: new api.MemoryFileSystem() }).use(api.networkCommands(options));
+    context.after(() => shell.dispose());
+    const query = await shell.exec("curl -G --data-urlencode 'message=héllo世界' https://example.test/");
+    assert.equal(query.exitCode, 0, query.stderr);
+    assert.equal(query.stdout, "héllo世界");
+    const download = await shell.exec("wget -q -O - https://example.test/");
+    assert.equal(download.exitCode, 0, download.stderr);
+    assert.equal(download.stdout, "download");
+  }
+});

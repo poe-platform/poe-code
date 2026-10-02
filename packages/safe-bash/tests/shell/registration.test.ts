@@ -13,6 +13,7 @@ function replacement(name: string): CommandDefinition {
 test("both shell constructors require an explicit filesystem", () => {
   for (const Constructor of [Shell, NodeShell]) {
     assert.throws(() => new Constructor(), { name: "TypeError", message: "Shell requires an explicit filesystem" });
+    assert.throws(() => new Constructor(undefined), { name: "TypeError", message: "Shell requires an explicit filesystem" });
   }
 });
 

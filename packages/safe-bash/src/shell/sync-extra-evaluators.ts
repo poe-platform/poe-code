@@ -5,7 +5,7 @@ import { writeDiagnostic } from "../escaping.js";
 import { validateExitCode } from "../contracts/index.js";
 import { cloneGetoptsState } from "./getopts.js";
 import { nextCodePointOffset } from "./string-operations.js";
-import { interruptible } from "./runtime.js";
+import { defaultCommandPath, interruptible } from "./runtime.js";
 const resolvedVoid = Promise.resolve();
 import { EreLedger } from "../commands/regex-execution/ere/limits.js";
 import { utf8Locale } from "./locale.js";
@@ -26217,7 +26217,6 @@ const syncExtraRuntimeMethods = {
 Object.assign(Runtime.prototype, syncExtraRuntimeMethods);
 
 import { combineManagedSignals, toNativeAbortSignal } from "safe-bash-contracts/runtime-control";
-const defaultCommandPath = "/usr/local/bin:/usr/bin:/bin";
 
 
 import { getOrParseUnitFromCache, syntaxDiagnostic } from "./shell.js";

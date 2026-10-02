@@ -535,6 +535,202 @@
     "./single-detail": {
       "types": "./dist/single-detail.d.ts",
       "import": "./dist/single-detail.js"
+    },
+    "./components/template": {
+      "types": "./dist/template.d.ts",
+      "import": "./dist/template.js"
+    },
+    "./brand": {
+      "types": "./dist/public-brand.d.ts",
+      "import": "./dist/public-brand.js"
+    },
+    "./brands": {
+      "types": "./dist/public-brands.d.ts",
+      "import": "./dist/public-brands.js"
+    },
+    "./color": {
+      "types": "./dist/public-color.d.ts",
+      "import": "./dist/public-color.js"
+    },
+    "./configure-theme": {
+      "types": "./dist/public-configure-theme.d.ts",
+      "import": "./dist/public-configure-theme.js"
+    },
+    "./create-dashboard": {
+      "types": "./dist/public-create-dashboard.d.ts",
+      "import": "./dist/public-create-dashboard.js"
+    },
+    "./create-logger": {
+      "types": "./dist/public-create-logger.d.ts",
+      "import": "./dist/public-create-logger.js"
+    },
+    "./dark": {
+      "types": "./dist/public-dark.d.ts",
+      "import": "./dist/public-dark.js"
+    },
+    "./format-columns": {
+      "types": "./dist/public-format-columns.d.ts",
+      "import": "./dist/public-format-columns.js"
+    },
+    "./format-command-list": {
+      "types": "./dist/public-format-command-list.d.ts",
+      "import": "./dist/public-format-command-list.js"
+    },
+    "./format-command-not-found-panel": {
+      "types": "./dist/public-format-command-not-found-panel.d.ts",
+      "import": "./dist/public-format-command-not-found-panel.js"
+    },
+    "./format-command-not-found": {
+      "types": "./dist/public-format-command-not-found.d.ts",
+      "import": "./dist/public-format-command-not-found.js"
+    },
+    "./format-command": {
+      "types": "./dist/public-format-command.d.ts",
+      "import": "./dist/public-format-command.js"
+    },
+    "./format-option-list": {
+      "types": "./dist/public-format-option-list.d.ts",
+      "import": "./dist/public-format-option-list.js"
+    },
+    "./format-option": {
+      "types": "./dist/public-format-option.d.ts",
+      "import": "./dist/public-format-option.js"
+    },
+    "./format-usage": {
+      "types": "./dist/public-format-usage.d.ts",
+      "import": "./dist/public-format-usage.js"
+    },
+    "./get-template-partial-names": {
+      "types": "./dist/public-get-template-partial-names.d.ts",
+      "import": "./dist/public-get-template-partial-names.js"
+    },
+    "./get-theme-config": {
+      "types": "./dist/public-get-theme-config.d.ts",
+      "import": "./dist/public-get-theme-config.js"
+    },
+    "./get-theme": {
+      "types": "./dist/public-get-theme.d.ts",
+      "import": "./dist/public-get-theme.js"
+    },
+    "./help-formatter-plain": {
+      "types": "./dist/public-help-formatter-plain.d.ts",
+      "import": "./dist/public-help-formatter-plain.js"
+    },
+    "./help-formatter": {
+      "types": "./dist/public-help-formatter.d.ts",
+      "import": "./dist/public-help-formatter.js"
+    },
+    "./light": {
+      "types": "./dist/public-light.d.ts",
+      "import": "./dist/public-light.js"
+    },
+    "./logger": {
+      "types": "./dist/public-logger.d.ts",
+      "import": "./dist/public-logger.js"
+    },
+    "./parse": {
+      "types": "./dist/public-parse.d.ts",
+      "import": "./dist/public-parse.js"
+    },
+    "./primitives": {
+      "types": "./dist/public-primitives.d.ts",
+      "import": "./dist/public-primitives.js"
+    },
+    "./prompt-cancelled-error": {
+      "types": "./dist/public-prompt-cancelled-error.d.ts",
+      "import": "./dist/public-prompt-cancelled-error.js"
+    },
+    "./prompt-theme": {
+      "types": "./dist/public-prompt-theme.d.ts",
+      "import": "./dist/public-prompt-theme.js"
+    },
+    "./render-catalog": {
+      "types": "./dist/public-render-catalog.d.ts",
+      "import": "./dist/public-render-catalog.js"
+    },
+    "./render-detail-card": {
+      "types": "./dist/public-render-detail-card.d.ts",
+      "import": "./dist/public-render-detail-card.js"
+    },
+    "./render-html": {
+      "types": "./dist/public-render-html.d.ts",
+      "import": "./dist/public-render-html.js"
+    },
+    "./render-inspector-card": {
+      "types": "./dist/public-render-inspector-card.d.ts",
+      "import": "./dist/public-render-inspector-card.js"
+    },
+    "./render-markdown-html": {
+      "types": "./dist/public-render-markdown-html.d.ts",
+      "import": "./dist/public-render-markdown-html.js"
+    },
+    "./render-markdown": {
+      "types": "./dist/public-render-markdown.d.ts",
+      "import": "./dist/public-render-markdown.js"
+    },
+    "./render-resource-browser": {
+      "types": "./dist/public-render-resource-browser.d.ts",
+      "import": "./dist/public-render-resource-browser.js"
+    },
+    "./render-template": {
+      "types": "./dist/public-render-template.d.ts",
+      "import": "./dist/public-render-template.js"
+    },
+    "./render": {
+      "types": "./dist/public-render.d.ts",
+      "import": "./dist/public-render.js"
+    },
+    "./reset-output-format-cache": {
+      "types": "./dist/public-reset-output-format-cache.d.ts",
+      "import": "./dist/public-reset-output-format-cache.js"
+    },
+    "./reset-theme-cache": {
+      "types": "./dist/public-reset-theme-cache.d.ts",
+      "import": "./dist/public-reset-theme-cache.js"
+    },
+    "./reset-theme": {
+      "types": "./dist/public-reset-theme.d.ts",
+      "import": "./dist/public-reset-theme.js"
+    },
+    "./resolve-output-format": {
+      "types": "./dist/public-resolve-output-format.d.ts",
+      "import": "./dist/public-resolve-output-format.js"
+    },
+    "./resolve-template-partials": {
+      "types": "./dist/public-resolve-template-partials.d.ts",
+      "import": "./dist/public-resolve-template-partials.js"
+    },
+    "./resolve-theme-name": {
+      "types": "./dist/public-resolve-theme-name.d.ts",
+      "import": "./dist/public-resolve-theme-name.js"
+    },
+    "./spacing": {
+      "types": "./dist/public-spacing.d.ts",
+      "import": "./dist/public-spacing.js"
+    },
+    "./strip-ansi": {
+      "types": "./dist/public-strip-ansi.d.ts",
+      "import": "./dist/public-strip-ansi.js"
+    },
+    "./symbols": {
+      "types": "./dist/public-symbols.d.ts",
+      "import": "./dist/public-symbols.js"
+    },
+    "./text": {
+      "types": "./dist/public-text.d.ts",
+      "import": "./dist/public-text.js"
+    },
+    "./typography": {
+      "types": "./dist/public-typography.d.ts",
+      "import": "./dist/public-typography.js"
+    },
+    "./widths": {
+      "types": "./dist/public-widths.d.ts",
+      "import": "./dist/public-widths.js"
+    },
+    "./with-output-format": {
+      "types": "./dist/public-with-output-format.d.ts",
+      "import": "./dist/public-with-output-format.js"
     }
   },
   "scripts": {

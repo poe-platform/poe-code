@@ -1,5 +1,7 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
+const entrypoints=JSON.parse(readFileSync(new URL("./package.json",import.meta.url),"utf8")).exports;
 const root = new URL("./", import.meta.url),
   path = (name) => fileURLToPath(new URL(name, root));
 export default defineConfig({
@@ -9,6 +11,11 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if ([path("../toolcraft-design/src/index.test.ts"),path("../toolcraft-design/src/subpath-exports.test.ts")].includes(importer)) {
+          const key=name==="./index.js"?".":name.endsWith(".js")?name.slice(0,-3):name;
+          if(entrypoints[key]?.import)return path(entrypoints[key].import);
+        }
+        if(importer===path("../toolcraft-design/src/components/template.test.ts")&&name==="./template.js")return path("dist/template.js");
         if (importer === path("../toolcraft-design/src/dashboard/compact-layout.test.ts")) {
           if (name === "./snapshot.js") return path("dist/dashboard-snapshot.js");
           if (name === "./layout.js") return path("dist/dashboard-layout.js");
@@ -166,6 +173,9 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/index.test.ts"),
+      path("../toolcraft-design/src/subpath-exports.test.ts"),
+      path("../toolcraft-design/src/components/template.test.ts"),
       path("../toolcraft-design/src/dashboard/compact-layout.test.ts"),
       path("../toolcraft-design/src/dashboard/components/footer.test.ts"),
       path("../toolcraft-design/src/dashboard/terminal.test.ts"),

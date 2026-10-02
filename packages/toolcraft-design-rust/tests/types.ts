@@ -1008,3 +1008,5 @@ const singleDetailDirectNative: typeof singleDetailDirect = null as unknown as t
 const runExplorerConfigOriginal: originalRunExplorerDirect.ExplorerConfig<number> = null as unknown as runExplorerDirect.ExplorerConfig<number>;
 const singleDetailTypesOriginal: [originalSingleDetailDirect.Detail<number>,originalSingleDetailDirect.DetailCtx,originalSingleDetailDirect.DetailItem,originalSingleDetailDirect.Row] = null as unknown as [singleDetailDirect.Detail<number>,singleDetailDirect.DetailCtx,singleDetailDirect.DetailItem,singleDetailDirect.Row];
 void [runExplorerDirectOriginal,runExplorerDirectNative,singleDetailDirectOriginal,singleDetailDirectNative,runExplorerConfigOriginal,singleDetailTypesOriginal];
+
+import "./subpaths-types.js";

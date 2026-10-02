@@ -2343,3 +2343,34 @@ original design suites still require auditing. Those suites are ACP components,
 templates, dashboard demo/output-preview/pipeline-scenario, explorer demo/import
 boundaries, root exports, internal helpers and subpath exports. Host-call batching,
 broader Toolcraft and final API/platform/performance qualification remain open.
+
+### Flat design subpath checkpoint
+
+Added the 48 missing flat re-export entry points, preserving each original
+runtime and declaration export set. Re-exports retain the existing native
+function/object identities without wrapper calls. Template initialization and
+its declarations now live in a dedicated native template module shared by the
+root, direct helpers and `components/template`.
+
+A missing-import test preceded the additions. The maintained native test derives
+all 74 pure flat re-export modules from the original source and compares export
+names, module property descriptors and root/plain-formatter identities. The
+standalone escape helper has no second root identity; its existing native
+behavior tests remain applicable. Bidirectional declaration checks cover all
+74 modules and their explicitly exported types. Existing cancellation-symbol
+nominal differences remain asserted as a swap gate rather than silently widened.
+The original root, representative subpath and template suites now run against
+native module resolution, adding 57 reference cases.
+
+Build, scoped JS lint and the maintained package unit route pass: 385 native host
+tests, 1,436 selected design cases, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 315 explorer cases. All 74 flat imports work through a
+packed-package self-reference with external ESM imports rejected. Their packed
+declarations compile with `types: []`; template rendering and root/subpath
+function identity pass in the packed consumer. These aliases introduce no new
+per-call implementation, dependency or default integration.
+
+The root symbol audit finds no missing names but still finds seven extra native
+runtime exports and three extra layout types. Nested subpaths, demos and remaining
+reference suites still need qualification. Cancellation-symbol nominal alignment,
+performance, broader Toolcraft and final platform/swap gates remain open.

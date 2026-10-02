@@ -1,8 +1,7 @@
-import { createRequire } from "node:module";
+export {TemplateParseError,renderTemplate,getTemplatePartialNames,resolveTemplatePartials} from "./template.js";
 export {parse,renderMarkdown,renderMarkdownHtml,renderMarkdownPlaintext} from "./markdown.js";
 export {renderHtml} from "./html.js";
 export {render} from "./markdown-render.js";
-import { createTemplateEngine } from "./engine.js";
 export {color} from "./color.js";
 export { symbols } from "./symbols.js";
 export { spacing } from "./spacing.js";
@@ -12,10 +11,7 @@ export {brands,brand,dark,light,getTheme,resolveThemeName,resetThemeCache} from 
 export {text,typography} from "./text.js";
 export * as acp from "./acp.js";
 export { renderTable, loggerTableWidth } from "./table.js";
-export { TemplateParseError } from "./engine.js";
-const native = createRequire(import.meta.url)("./toolcraft-design-rust.node");
-export const { renderTemplate, getTemplatePartialNames, resolveTemplatePartials } =
-  createTemplateEngine(native);
+
 
 export {computeDashboardLayout} from "./dashboard-layout.js";
 

@@ -1,4 +1,4 @@
-export type TemplateEscape = "html" | "none";
+export {TemplateParseError,renderTemplate,getTemplatePartialNames,resolveTemplatePartials,type RenderTemplateOptions,type TemplateEscape} from "./template.js";
 export {renderHtml} from "./html.js";
 export type {HtmlRenderOptions} from "./html.js";
 export {render} from "./markdown-render.js";
@@ -15,28 +15,6 @@ export {text,typography} from "./text.js";
 export * as acp from "./acp.js";
 export { renderTable, loggerTableWidth } from "./table.js";
 export type { TableColumn, RenderTableOptions } from "./table.js";
-export interface RenderTemplateOptions {
-  escape?: TemplateEscape;
-  partials?: Record<string, string>;
-  validate?: boolean;
-  yield?: string;
-}
-export declare class TemplateParseError extends Error {
-  readonly description: string;
-  readonly line: number;
-  readonly column: number;
-  constructor(description: string, position: { line: number; column: number });
-}
-export declare function getTemplatePartialNames(template: string): string[];
-export declare function resolveTemplatePartials(
-  template: string,
-  partials: Record<string, string>
-): string;
-export declare function renderTemplate(
-  template: string,
-  view: Record<string, unknown>,
-  options?: RenderTemplateOptions
-): string;
 
 export interface Rect {
   x: number;

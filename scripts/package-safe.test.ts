@@ -398,8 +398,14 @@ it("preserves public contract exports when the browser bundle externalizes their
     plugin: ["composeMiddleware"],
   };
   const forwarding = Object.keys(publicContracts).map(name => `export * from "safe-bash-contracts/${name}";`).join("\n");
+  const coreEntry = readFileSync(new URL("../packages/safe-bash/src/core.ts", import.meta.url), "utf8");
+  const coreParsed = ts.createSourceFile("core.ts", coreEntry, ts.ScriptTarget.Latest, true);
+  const contractExports = coreParsed.statements.filter(ts.isExportDeclaration).filter(statement =>
+    statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)
+      && statement.moduleSpecifier.text.startsWith("safe-bash-contracts/") && !statement.isTypeOnly)
+    .map(statement => statement.getText(coreParsed)).join("\n");
   const modules = new Map([
-    ["shell", forwarding + "\n" + coreNames.map(name => `export const ${name} = {};`).join("\n")],
+    ["shell", forwarding + "\n" + contractExports + "\n" + coreNames.map(name => `export const ${name} = {};`).join("\n")],
     ["safe-bash-contracts", forwarding + '\nexport const shellValueBytes = {};'],
     ...Object.entries(publicContracts).map(([subpath, names]) => [
       "safe-bash-contracts/" + subpath, names.map(name => `export const ${name} = {};`).join("\n"),

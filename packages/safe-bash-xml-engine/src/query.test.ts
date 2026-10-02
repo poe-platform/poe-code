@@ -3,7 +3,7 @@ import test from "node:test";
 import { parseXml } from "@poe-code/safe-fs/core";
 import { XmlBudget, resolveXmlQueryLimits, XmlQueryLimitError } from "./limits.js";
 import { parseQuery } from "./query.js";
-import { evaluate } from "./evaluate.js";
+import { evaluate, evaluateScalar } from "./evaluate.js";
 
 test("shared engine evaluates bounded XPath with the canonical XML tree", async () => {
   const budget = new XmlBudget(
@@ -93,3 +93,25 @@ test("XPath prefixes use root bindings and reject undeclared prefixes", async ()
   assert.equal((await evaluate(await parseQuery("//n:item", budget), root, budget)).length, 1);
   await assert.rejects(evaluate(await parseQuery("//missing:item", budget), root, budget), /undefined XPath namespace prefix/);
 });
+
+for (const [source, expected] of [
+  ["-1 + 2", "1"], ["-number(/root/@n)", "-10"],
+  ["--number(/root/@n)", "10"], ["-(1 + 2) - 3", "-6"],
+  ["1-2-3", "-4"], ["1--2", "3"], ["-1 + 2 = 1", "true"],
+  ["number(/root/@n)+2", "12"], ["- /root/@n", "-10"],
+  ["-number(/root/@missing)", "NaN"], ["-(-2)", "2"],
+  ["count(/root/item[-@n + 2 = 1])", "1"],
+] as const) {
+  test(`XPath arithmetic ${source}`, async () => {
+    const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+    const root = parseXml('<root n="10"><item n="1"/><item n="2"/></root>');
+    assert.equal(await evaluateScalar(await parseQuery(source, budget), root, budget), expected);
+  });
+}
+
+for (const source of ["-", "1 +", "-(1 +)", "number(1 +)"]) {
+  test(`XPath rejects incomplete arithmetic ${source}`, async () => {
+    const budget = new XmlBudget(resolveXmlQueryLimits(), new AbortController().signal, async () => {});
+    await assert.rejects(parseQuery(source, budget), /unsupported XPath/);
+  });
+}

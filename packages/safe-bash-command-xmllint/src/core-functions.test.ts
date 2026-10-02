@@ -182,3 +182,12 @@ for (const [query, expected] of [
   assert.equal(result.exitCode, 0, result.errors);
   assert.equal(result.output, expected + "\n");
 });
+
+for (const [query, expected] of [["-1 + 2", "1\n"], ["-number(/root/item[1]/@n)", "-10\n"]]) {
+  test(`XPath accepts unary minus: ${query}`, async () => {
+    const result = await run(["--xpath", query!]);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, expected);
+  });
+}
+

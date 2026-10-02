@@ -77,6 +77,10 @@ async function parseSyntax(source: string, budget: XmlBudget): Promise<Query> {
   };
   space();
   const start = at;
+  const first = source[at] ?? "";
+  if (first === "-" || first === "(" || first === "\"" || first === "'" ||
+      first >= "0" && first <= "9" || first === "." && source[at + 1]! >= "0" && source[at + 1]! <= "9")
+    return { paths: [], expression: parsePredicate(source, budget) };
   if (nameStart(source[at] ?? "")) {
     while (namePart(source[at] ?? "")) at++;
     const selected = source.slice(start, at);

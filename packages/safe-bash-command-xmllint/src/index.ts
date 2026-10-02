@@ -105,7 +105,7 @@ async function argumentsFor(
       index++;
       if (args[index] === "--") index++;
       const source = args[index];
-      if (source === undefined || source.startsWith("-"))
+      if (source === undefined)
         throw new XmlQueryError("expected QUERY [FILE|-]", 2);
       xpathIndex = index++;
     } else break;

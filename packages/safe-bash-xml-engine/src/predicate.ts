@@ -4,14 +4,15 @@ import { stringValue, type Node } from "./evaluate.js";
 
 type Selected = { text: string; node: Node };
 export type Value = string | number | boolean | Selected[];
-type Operator = "or" | "and" | "=" | "!=" | "<" | "<=" | ">" | ">=";
+type Operator = "+" | "-" | "or" | "and" | "=" | "!=" | "<" | "<=" | ">" | ">=";
 type FunctionName = keyof typeof arity;
 export type Instruction =
   | { kind: "path"; source: string; query?: Query }
+  | { kind: "negate" }
   | { kind: "literal"; value: string | number }
   | { kind: "operator"; name: Operator }
   | { kind: "function"; name: FunctionName; count: number };
-const precedence: Record<Operator, number> = { or: 1, and: 2, "=": 3, "!=": 3, "<": 4, "<=": 4, ">": 4, ">=": 4 };
+const precedence: Record<Operator, number> = { "+": 5, "-": 5, or: 1, and: 2, "=": 3, "!=": 3, "<": 4, "<=": 4, ">": 4, ">=": 4 };
 const arity = {
   contains: [2], "starts-with": [2], "normalize-space": [0, 1], not: [1],
   position: [0], last: [0], concat: [2, Infinity], substring: [2, 3],
@@ -29,7 +30,7 @@ const namePart = (c: string): boolean => nameStart(c) || digit(c) || c === "-" |
 /** Shunting-yard compilation keeps adversarial expression nesting off the JS stack. */
 export function parsePredicate(source: string, budget: XmlBudget): readonly Instruction[] {
   const output: Instruction[] = [];
-  const stack: ({ kind: "operator"; name: Operator } | { kind: "group"; name?: FunctionName; commas: number })[] = [];
+  const stack: ({ kind: "negate" } | { kind: "operator"; name: Operator } | { kind: "group"; name?: FunctionName; commas: number })[] = [];
   let at = 0, expecting = true, depth = 0;
   const fail = (): never => { throw new XmlQueryError(`unsupported XPath predicate at offset ${at}`, 10); };
   const space = (): void => { while (whitespace(source[at] ?? "")) at++; };
@@ -40,13 +41,14 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
     return source.slice(start, at);
   };
   const flush = (): void => {
-    while (stack.at(-1)?.kind === "operator") output.push(stack.pop()! as Instruction);
+    while (stack.at(-1)?.kind === "operator" || stack.at(-1)?.kind === "negate") output.push(stack.pop()! as Instruction);
   };
   while (true) {
     space();
     if (at === source.length) break;
     const c = source[at]!;
     if (c === ")") {
+      if (expecting && stack.at(-1)?.kind !== "group") fail();
       flush();
       const group = stack.pop();
       if (!group || group.kind !== "group") return fail();
@@ -67,19 +69,22 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
     }
     if (!expecting) {
       let operator: string;
-      if (c === "=" || c === "!" || c === "<" || c === ">") {
+      if (c === "+" || c === "-") { operator = c; at++; }
+      else if (c === "=" || c === "!" || c === "<" || c === ">") {
         operator = c; at++;
         if (source[at] === "=") { operator += "="; at++; }
       } else operator = name();
       if (!Object.hasOwn(precedence, operator)) fail();
       const selected = operator as Operator;
-      while (stack.at(-1)?.kind === "operator") {
+      while (stack.at(-1)?.kind === "operator" || stack.at(-1)?.kind === "negate") {
+        if (stack.at(-1)?.kind === "negate") { output.push(stack.pop()! as Instruction); continue; }
         const top = stack.at(-1)! as { kind: "operator"; name: Operator };
         if (precedence[top.name] < precedence[selected]) break;
         output.push(stack.pop()! as Instruction);
       }
       stack.push({ kind: "operator", name: selected }); expecting = true; continue;
     }
+    if (c === "-") { stack.push({ kind: "negate" }); at++; continue; }
     let probe = at;
     while (namePart(source[probe] ?? "")) probe++;
     while (whitespace(source[probe] ?? "")) probe++;
@@ -96,7 +101,7 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
         else if (ch === "]") brackets--;
         else if (!brackets && ch === "(") parentheses++;
         else if (!brackets && ch === ")") { if (!parentheses) break; parentheses--; }
-        else if (!brackets && !parentheses && (ch === "," || ch === "=" || ch === "!" || ch === "<" || ch === ">" )) break;
+        else if (!brackets && !parentheses && (ch === "+" || ch === "," || ch === "=" || ch === "!" || ch === "<" || ch === ">" )) break;
         if (!quote && !brackets && !parentheses && whitespace(ch)) {
           let next = at;
           while (whitespace(source[next] ?? "")) next++;
@@ -116,9 +121,8 @@ export function parsePredicate(source: string, budget: XmlBudget): readonly Inst
       while (at < source.length && source[at] !== c) at++;
       if (at === source.length) fail();
       output.push({ kind: "literal", value: source.slice(start, at++) }); expecting = false;
-    } else if (digit(c) || c === "-" || c === "." && digit(source[at + 1] ?? "")) {
+    } else if (digit(c) || c === "." && digit(source[at + 1] ?? "")) {
       const start = at;
-      if (c === "-") at++;
       let digits = 0;
       while (digit(source[at] ?? "")) { at++; digits++; }
       if (source[at] === ".") { at++; while (digit(source[at] ?? "")) { at++; digits++; } }
@@ -206,8 +210,17 @@ export async function evaluateExpression(program: readonly Instruction[], node: 
       const selected: Selected[] = [];
       for (const item of await select(instruction.query!, instruction.source.startsWith("/"))) selected.push({ text: "", node: item });
       values.push(selected);
+    } else if (instruction.kind === "negate") {
+      const value = values.pop()!;
+      await materialize(value);
+      values.push(-number(value));
     } else if (instruction.kind === "operator") {
       const right = values.pop()!, left = values.pop()!;
+      if (instruction.name === "+" || instruction.name === "-") {
+        await materialize(left); await materialize(right);
+        values.push(instruction.name === "+" ? number(left) + number(right) : number(left) - number(right));
+        continue;
+      }
       if (instruction.name !== "and" && instruction.name !== "or" &&
           !(["=", "!="].includes(instruction.name) && (typeof left === "boolean" || typeof right === "boolean"))) {
         await materialize(left, true); await materialize(right, true);

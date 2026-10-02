@@ -11,6 +11,7 @@ Access XML functionality through `@poe-platform/safe-bash/commands/xml` and its
 it requires no separate installation and has no external runtime dependency.
 
 XML input also respects the shell execution input-byte limit for stdin and files.
+XPath scalar expressions and predicates support unary negation, addition, and subtraction.
 XPath supports the built-in `xml:` prefix (for example, `/root/@xml:lang`).
 Other query prefixes resolve through namespace declarations on the document root;
 matching uses namespace URIs, so aliases for the same URI select the same nodes.

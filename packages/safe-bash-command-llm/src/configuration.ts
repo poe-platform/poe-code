@@ -61,7 +61,7 @@ export function createLlmConfiguration(context: Context, maxConfigurationBytes =
     if (stored.size > limit) throw new FsError("EFBIG", {path,message:"LLM configuration byte limit exceeded"});
     const decoder = new TextDecoder("utf-8", { fatal: true });
     let bytes = 0, text = "";
-    const source = fs.readStream?.(path, { signal, chunkSize: 16_384 }) ?? toByteSource(await fs.readFile(path, { signal, maxBytes: limit }));
+    const source = fs.readStream?.(path, { signal, chunkSize: 16_384 }) ?? toByteSource(await fs.readFile(path, { signal, ...(limit === Infinity ? {} : { maxBytes: limit }) }));
     for await (const chunk of source) {
       signal.throwIfAborted();
       if (chunk.byteLength > limit - bytes) throw new FsError("EFBIG", { path, message: "LLM configuration byte limit exceeded" });

@@ -473,7 +473,7 @@ class Model:
                 self.Options = create_model("Options", __base__=type(self).Options, __config__=ConfigDict(extra="allow"))
             else:
                 from typing import Optional
-                types = {"number": float, "integer": int, "boolean": bool, "string": str}
+                types = {"number": float, "integer": int, "boolean": bool, "string": str, "object": dict, "array": list}
                 fields = {}
                 for name, declaration in metadata["options"].items():
                     value_type = types[declaration["type"]]

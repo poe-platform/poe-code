@@ -4,6 +4,27 @@ import { createPythonLlmCapability } from '../../src/commands/python/llm-capabil
 import { createLlmService } from '../../src/commands/llm/service.js';
 import { MemoryFileSystem } from '../../src/fs/memory/index.js';
 
+test('Python combines inline historical attachments with retained current attachments', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/current.txt', new Uint8Array([68]));
+  const received: number[] = [];
+  const service = createLlmService({ defaultModel: 'fixture', providers: [{ name: 'fixture', models: [{ id: 'fixture', capabilities: ['messages'], attachmentTypes: ['text/plain'] }],
+    complete() { return assert.fail('attachments require source transport'); },
+    async *completeSources(request) {
+      for (const attachment of [...request.messages![0]!.attachments!, ...request.attachments]) {
+        for await (const chunk of attachment.source.bytes) received.push(...chunk);
+      }
+      yield 'ok';
+    },
+  }] });
+  const capability = createPythonLlmCapability({ fs, cwd: '/' }, service, { maxInputBytes: 1024, maxBufferedInputBytes: 512 });
+  await capability.call!({ operation: 'complete', payload: {
+    messages: [{ role: 'user', content: 'before', attachments: [{ content: [65,66,67], mimeType: 'text/plain' }] }],
+    attachments: [{ path: '/current.txt', mimeType: 'text/plain' }],
+  } }, { signal: new AbortController().signal });
+  assert.deepEqual(received, [65,66,67,68]);
+});
+
 for (const current of [false, true]) test(`Python preserves history attachments with current attachments=${current}`, async () => {
   const original = new MemoryFileSystem();
   await original.writeFile('/history.txt', new Uint8Array(20_000).fill(65));

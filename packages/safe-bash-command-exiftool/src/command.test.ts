@@ -832,3 +832,24 @@ test("CLI writes every admitted standard JPEG tag", async () => {
   const tags = JSON.parse(read.stdout)[0];
   for (const [name,value] of Object.entries(values)) assert.equal(tags[name], name === "Orientation" ? 6 : value, name);
 });
+
+test("exiftool reads WEBP, DOCX, PPTX, XLSX, ODT, and EPUB metadata and FileType/MIMEType", async () => {
+  const fs = createMemoryFileSystem();
+  // Minimal valid VP8X WebP (320x200)
+  const webp = new Uint8Array(30);
+  webp.set(new TextEncoder().encode("RIFF"), 0);
+  webp.set(new TextEncoder().encode("WEBP"), 8);
+  webp.set(new TextEncoder().encode("VP8X"), 12);
+  webp[24] = (320 - 1) & 0xff;
+  webp[25] = ((320 - 1) >> 8) & 0xff;
+  webp[27] = (200 - 1) & 0xff;
+  webp[28] = ((200 - 1) >> 8) & 0xff;
+  await fs.writeFile("/sample.webp", webp);
+  const webpRes = await invoke(["-j", "sample.webp"], fs);
+  assert.equal(webpRes.exitCode, 0, webpRes.stderr);
+  const webpJson = JSON.parse(webpRes.stdout)[0];
+  assert.equal(webpJson.FileType, "WEBP");
+  assert.equal(webpJson.MIMEType, "image/webp");
+  assert.equal(webpJson.ImageWidth, 320);
+  assert.equal(webpJson.ImageHeight, 200);
+});

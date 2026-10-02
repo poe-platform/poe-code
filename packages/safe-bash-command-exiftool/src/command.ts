@@ -1,3 +1,4 @@
+import { inspectContainerOrWebp } from "./containers.js";
 import { systemTags } from "./system-tags.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { commandRuntimeIdentity, getCommandArguments, type CommandDefinition } from "safe-bash-contracts/command";
@@ -200,8 +201,8 @@ export function createExiftoolCommand(options: ExiftoolCommandOptions = {}): Com
               continue;
             }
             // Unrecognized nonempty formats match the validated no-selected-tag control.
-            if (!png && !isPdf && !jpeg && ["XMP", "DOCX", "PPTX", "XLSX", "JPG", "JPEG", "TIF", "TIFF"].includes(extension)) throw new Error(extension + " reader not yet supported");
-            tags = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : isPdf ? inspectPdf(bytes, resources).tags : [];
+            if (!png && !isPdf && !jpeg && ["XMP", "JPG", "JPEG", "TIF", "TIFF"].includes(extension)) throw new Error(extension + " reader not yet supported");
+            tags = jpeg ? inspectJpeg(bytes, resources).tags : png ? inspectPng(bytes, resources).tags : isPdf ? inspectPdf(bytes, resources).tags : (inspectContainerOrWebp(bytes, extension, resources)?.tags ?? []);
             tags = [...systemTags(file, bytes.length, tags, invocation, resources), ...tags];
           } catch (error) {
             context.signal.throwIfAborted();

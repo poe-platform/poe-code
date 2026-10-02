@@ -10,3 +10,4 @@ type DemoRuntime={
 };
 export declare function startDashboardDemo(dashboard:DemoDashboard,runtime?:Partial<DemoRuntime>):()=>void;
 export declare function main():Promise<void>;
+export {};

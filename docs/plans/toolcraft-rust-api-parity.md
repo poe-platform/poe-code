@@ -2680,3 +2680,32 @@ surface, original-suite admission, native batching, nominal types and broader
 Toolcraft SDK/CLI/HTTP/MCP/platform/resource/swap gates remain open. The prior
 fixture commit's build succeeded, but its release step was skipped and its
 follow-on Release run was cancelled; publication is not verified.
+
+
+### Complete design export-name inventory checkpoint
+
+A source/tsconfig-derived inventory now covers 207 public design paths rather
+than a hand-maintained module list. Its runtime comparison loads 205 modules and
+checks namespace keys, value kinds and function names/arities; the two import-time
+scenario modules retain their dedicated lifecycle comparisons. The declaration
+comparison uses the TypeScript checker to resolve named exports from all 207
+reference/native declaration pairs. This checks names, not complete assignability
+of every exported type or the behavior of every value.
+
+The first regression run passed the runtime check and failed declaration parity
+on eleven paths. Ten native declaration files lacked explicit empty export
+boundaries, allowing helper types to become importable in declaration modules;
+the shared dashboard-mode declaration affected two public paths. Added `export {}`
+to preserve only the explicit exports, matching the reference. No function,
+parameter, return type, runtime or dependency changes were needed. Build, the new
+two-case native inventory suite, existing bidirectional declaration checks and
+scoped JS lint pass. The test reads declarations/config in memory and writes no
+fixtures. No new screenshot or performance claim applies to these type boundaries.
+
+The maintained selection currently includes 106 of the original 107 design test
+files. The remaining `explorer/imports.test.ts` examines the original TypeScript
+source graph and its local parser helpers rather than an imported runtime API;
+running it unchanged would not establish native import architecture. Native
+import/packaging architecture and the remaining whole-surface behavior/type/swap
+gates still need qualification. The pipeline port is verified on remote main at
+b3cda6bb18399a79eac4a0d2c596c7c116868eac; its release publication remains pending.

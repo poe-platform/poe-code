@@ -39,3 +39,4 @@ export declare class Screen {
     private index;
     private inBounds;
 }
+export {};

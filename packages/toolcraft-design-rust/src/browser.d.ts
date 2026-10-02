@@ -10,3 +10,4 @@ export interface OpenExternalOptions {
   spawnProcess?: SpawnBrowserProcess;
 }
 export declare function openExternal(url: string, options?: OpenExternalOptions): Promise<void>;
+export {};

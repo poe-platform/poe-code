@@ -24,3 +24,4 @@ export declare function resolveBindings<R>(config: ExplorerConfig<R>, defaults?:
 export declare function assertNoBareLetterBindings<R>(config: ExplorerConfig<R>): void;
 export declare function assertAcceleratorsFree<R>(config: ExplorerConfig<R>): void;
 export declare function keymapToHelp<R>(config: ExplorerConfig<R>): HelpSection[];
+export {};

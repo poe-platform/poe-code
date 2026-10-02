@@ -6,3 +6,4 @@ export declare function shouldUseInteractiveDashboard(
   enabled: boolean | undefined,
   io?: DashboardIo
 ): boolean;
+export {};

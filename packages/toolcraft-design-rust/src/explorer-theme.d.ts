@@ -18,3 +18,4 @@ export interface ExplorerStyles {
 }
 export declare function getExplorerTheme(): ExplorerTheme;
 export declare function getExplorerStyles(): ExplorerStyles;
+export {};

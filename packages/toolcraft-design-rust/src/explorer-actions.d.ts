@@ -14,3 +14,4 @@ export type ActionRuntimeHandles = {
 };
 export declare function resolveAction<R>(state:ExplorerState,keyEvent:ExplorerKeypressEvent):Action<R>|null;
 export declare function buildActionContext<R>(state:ExplorerState,_action:Action<R>,source:ActionSource,runtimeHandles:ActionRuntimeHandles,rowsOverride?:Row[]):ActionContext<R>;
+export {};

@@ -46,6 +46,12 @@ test("POSIX helpers remain available without platform-specific separators", asyn
   assert.equal(posixPath.resolve("/a", "../b"), "/b");
   assert.equal(posixPath.relative("/a", "/b"), "../b");
   assert.equal(posixPath.join(posixPath.dirname("/a/file.txt"), posixPath.basename("/a/file.txt")), "/a/file.txt");
+  assert.equal(posixPath.resolve("file.txt"), "/file.txt");
+  assert.equal(posixPath.relative("a", "b/file.txt"), "../b/file.txt");
+  assert.deepEqual(Object.keys(posixPath).sort(), [
+    "basename", "delimiter", "dirname", "extname", "isAbsolute", "join",
+    "normalize", "relative", "resolve", "sep",
+  ]);
 });
 
 test("internal path helpers share the canonical portable POSIX object", () => {
@@ -59,8 +65,7 @@ test("Node contracts and the root share canonical portable POSIX identity", asyn
     import("../../src/contracts/node-path.js"),
     import("../../src/index.js"),
   ]);
-  for (const entry of [contracts, paths]) assert.equal(entry.posixPath, canonicalPortablePath);
-  assert.equal(root.posixPath, canonicalPortablePath);
+  for (const entry of [contracts, paths, root]) assert.equal(entry.posixPath, canonicalPortablePath);
   assert.equal(paths.normalizePath, normalizePath);
   assert.equal(contracts.normalizePath, normalizePath);
   assert.deepEqual(Object.keys(paths).sort(), [

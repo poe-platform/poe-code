@@ -605,9 +605,9 @@ function listModuleExports(moduleExports: ModuleExports): string[] {
 }
 
 function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined, homeDir?: string): string {
+  if (snapshotPath !== undefined) return posixPath.resolve(cwd(), snapshotPath);
   const documentKey = bytesToHex(sha256(new TextEncoder().encode(posixPath.resolve(cwd(), mdPath)))).slice(0, 12);
   return (
-    snapshotPath ??
     join(
       resolveRunLogDir({
         planPath: mdPath,

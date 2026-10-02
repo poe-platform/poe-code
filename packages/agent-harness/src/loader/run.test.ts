@@ -123,6 +123,19 @@ const expectedCoverageDemoReturnValue = {
 };
 
 describe("runHarnessPair", () => {
+  it("removes a relative snapshot from the same working directory as its journal", async () => {
+    const absoluteSnapshotPath = `${process.cwd()}/relative-snapshot.json`;
+    vol.fromJSON({
+      "/repo/probe.md": "---\nkind: probe\n---\n",
+      "/repo/probe.ajs": "export default (frontmatter) => frontmatter.kind;",
+      [absoluteSnapshotPath]: "old snapshot"
+    });
+    await runHarnessPair("/repo/probe.md", {
+      modulesFor: () => ({}), snapshotPath: "relative-snapshot.json", resume: false
+    });
+    expect(vol.existsSync(absoluteSnapshotPath)).toBe(false);
+  });
+
   it("persists completed migrated checkpoints instead of deleting their history", async () => {
     const source = "return 1;";
     const original = run(source);

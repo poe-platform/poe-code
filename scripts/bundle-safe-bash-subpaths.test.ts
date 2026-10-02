@@ -76,17 +76,19 @@ test("each command subpath resolves and executes in workerd without Node compati
     ],
   });
   try {
-    const response = await runtime.dispatchFetch("http://localhost/");
-    expect(response.status).toBe(200);
-    const results = await response.json() as { name: string; exitCode: number; stdout: string; stderr: string; fileEffect?: unknown }[];
-    expect(results.length).toBeGreaterThanOrEqual(Object.keys(families).length);
-    for (const result of results) {
-      expect(result.exitCode, `${result.name}: ${result.stderr}`).toBe(0);
-      if (result.name === "chmod") expect(result.fileEffect).toBe(0o600);
-      else if (result.name === "split") expect(result.fileEffect).toBe("portable\n");
-      else expect(result.stdout.length, result.name).toBeGreaterThan(0);
-      if (result.name === "expr") expect(result.stdout).toBe("5\n");
-      if (result.name === "mktemp") expect(result.fileEffect).toBe(true);
+    for (let invocation = 0; invocation < 2; invocation++) {
+      const response = await runtime.dispatchFetch("http://localhost/");
+      expect(response.status).toBe(200);
+      const results = await response.json() as { name: string; exitCode: number; stdout: string; stderr: string; fileEffect?: unknown }[];
+      expect(results.length).toBeGreaterThanOrEqual(Object.keys(families).length);
+      for (const result of results) {
+        expect(result.exitCode, `${result.name}: ${result.stderr}`).toBe(0);
+        if (result.name === "chmod") expect(result.fileEffect).toBe(0o600);
+        else if (result.name === "split") expect(result.fileEffect).toBe("portable\n");
+        else expect(result.stdout.length, result.name).toBeGreaterThan(0);
+        if (result.name === "expr") expect(result.stdout).toBe("5\n");
+        if (result.name === "mktemp") expect(result.fileEffect).toBe(true);
+      }
     }
   } finally { await runtime.dispose(); }
 }, 30_000);

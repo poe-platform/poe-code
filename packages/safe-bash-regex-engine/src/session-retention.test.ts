@@ -11,6 +11,8 @@ test("pooled sessions release invocation signals and reset for reuse", async () 
     session.closeSync();
     assert.notEqual(session.signal, controller.signal);
     assert.notEqual(Reflect.get(session, "requestSignal"), controller.signal);
+    assert.equal(session.signal.aborted, true);
+    assert.throws(() => session.signal.throwIfAborted(), { code: "CLOSED" });
     const next = new AbortController();
     const reused = executor.open(next.signal);
     assert.equal(reused, session);

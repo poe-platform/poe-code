@@ -605,6 +605,23 @@ test("36. sync expand/unexpand multi -t tablists, column -e vs -L and JSON colum
   }
 });
 
+test("56. sync vs async parity for xan, stat, mktemp, and BOM-preserving command substitutions", async () => {
+  const scripts = [
+    "a=\$(xan slice -l 1 -e 2 <<< $'a,b\\n1,2\\n3,4\\n' 2>/dev/null; echo \$?); b=\$(xan select a <<< $'a,b,a\\n1,2,3\\n'); echo \"\$a|\$b\"",
+    "mkdir -p /st56/dir; printf \"hi\" > /st56/f; ln -s /st56/dir /st56/link; a=\$(stat -c %F /st56/link/); b=\$(stat -c %F /st56/f/ 2>/dev/null; echo \$?); echo \"\$a|\$b\"",
+    "mkdir -p /tmp /custom56; TMPDIR=/custom56; p=\$(mktemp | cat); echo \"\${p%/*}\"",
+    "x=\$(unix2dos -m <<< \"hi\"); printf \"%s\" \"\$x\" | od -An -tx1 | tr -d ' \\n'; echo",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});
+
 test("55. sync vs async parity for apply_patch, html-to-markdown, and xq semantics", async () => {
   const scripts = [
     "mkdir -p /ap55; cd /ap55; printf \"old\\n\" > a.txt; printf \"existing\\n\" > b.txt; p=$'*** Begin Patch\\n*** Update File: a.txt\\n*** Move to: b.txt\\n@@\\n-old\\n+new\\n*** End Patch'; x=$(apply_patch \"$p\" 2>/dev/null; echo $?); y=$(cat b.txt); echo \"$x|$y\"",

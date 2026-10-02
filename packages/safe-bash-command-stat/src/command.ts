@@ -20,6 +20,7 @@ function allocSpaces(length: number): Uint8Array {
 }
 import { FsError, type CommandContext, type FileStat } from "safe-bash-contracts";
 import { codeOf, diagnostic, pathOf, requireOperands, UsageError } from "safe-bash-io-engine/internal";
+import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { MetadataBudget, metadataCommand, permissionString, settings, type MetadataCommandsOptions } from "safe-bash-metadata-engine";
 
 function parse(args: readonly string[]) {
@@ -322,7 +323,7 @@ export interface SyncStatInfo extends FileStat {
   readonly target?: string;
 }
 
-const syncStatDecoder = new TextDecoder("utf-8", { fatal: false });
+const syncStatDecoder = new TextDecoder("utf-8", { fatal: true });
 
 function renderSync(
   path: string,
@@ -457,6 +458,8 @@ export function evalSyncStat(
   quotingStyle: string | undefined,
   inspectStat: (absPath: string, follow: boolean) => SyncStatInfo | undefined,
 ): string | undefined {
+  const gnuInfo = gnuInformationSync("stat", args);
+  if (gnuInfo !== undefined) return gnuInfo;
   let parsed: ReturnType<typeof parse>;
   try {
     parsed = parse(args);
@@ -465,10 +468,12 @@ export function evalSyncStat(
   }
   const outChunks: Uint8Array[] = [];
   for (const name of parsed.paths) {
-    if (!name) return undefined;
+    if (!name || name.includes("\0")) return undefined;
     const abs = resolveSyncStatPath(cwd, name);
-    const stat = inspectStat(abs, parsed.follow || parsed.filesystem);
+    const hasTrailingSlash = name.length > 1 && name.endsWith("/");
+    const stat = inspectStat(abs, parsed.follow || parsed.filesystem || hasTrailingSlash);
     if (!stat) return undefined;
+    if (hasTrailingSlash && stat.type !== "directory") return undefined;
     const terse = parsed.terse && parsed.format === undefined;
     if (terse && parsed.filesystem) return undefined;
     const format = parsed.format ?? (parsed.filesystem ? "  File: %n\n  Type: %T" : terse
@@ -481,5 +486,11 @@ export function evalSyncStat(
       return undefined;
     }
   }
-  return syncStatDecoder.decode(concatBytes(outChunks));
+  const merged = concatBytes(outChunks);
+  if (merged.includes(0)) return undefined;
+  try {
+    return syncStatDecoder.decode(merged);
+  } catch {
+    return undefined;
+  }
 }

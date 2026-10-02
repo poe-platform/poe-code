@@ -1,4 +1,4 @@
-const syncXanDecoder = new TextDecoder("utf-8", { fatal: false });
+const syncXanDecoder = new TextDecoder("utf-8", { fatal: true });
 
 function parseSyncCsvRows(text: string, delim: string): string[][] | undefined {
   const rows: string[][] = [];
@@ -18,16 +18,22 @@ function parseSyncCsvRows(text: string, delim: string): string[][] | undefined {
         }
         inQuotes = false;
         i++;
+        if (i < n && text[i] !== delim && text[i] !== "\r" && text[i] !== "\n") {
+          return undefined;
+        }
         continue;
       }
       field += ch;
       i++;
       continue;
     }
-    if (ch === "\"" && field.length === 0) {
-      inQuotes = true;
-      i++;
-      continue;
+    if (ch === "\"") {
+      if (field.length === 0) {
+        inQuotes = true;
+        i++;
+        continue;
+      }
+      return undefined;
     }
     if (ch === delim) {
       row.push(field);
@@ -87,6 +93,12 @@ export function evalSyncXan(
   let endCondExpr: string | undefined;
   let delim: string | undefined;
   const positionals: string[] = [];
+  const seenOpts = new Set<string>();
+  const markOpt = (name: string): boolean => {
+    if (seenOpts.has(name)) return false;
+    seenOpts.add(name);
+    return true;
+  };
 
   for (let i = 1; i < args.length; i++) {
     const a = args[i]!;
@@ -95,50 +107,52 @@ export function evalSyncXan(
       break;
     }
     if (a === "-j" || a === "--just-names") {
-      if (sub !== "headers") return undefined;
+      if (sub !== "headers" || !markOpt("just-names")) return undefined;
       justNames = true;
     } else if (a === "-n" || a === "--no-headers") {
-      if (sub === "headers") return undefined;
+      if (sub === "headers" || !markOpt("no-headers")) return undefined;
       noHeaders = true;
     } else if (a === "-H" || a === "--human-readable") {
-      if (sub !== "count") return undefined;
+      if (sub !== "count" || !markOpt("human-readable")) return undefined;
       humanReadable = true;
     } else if (a === "-d" || a === "--delimiter" || a.startsWith("-d") || a.startsWith("--delimiter=")) {
+      if (!markOpt("delimiter")) return undefined;
       const d = (a === "-d" || a === "--delimiter") ? args[++i] : (a.startsWith("--delimiter=") ? a.slice(12) : a.slice(2));
       if (!d || d.length !== 1) return undefined;
       delim = d;
     } else if (a === "-s" || a === "--start" || a === "--skip" || a.startsWith("--start=") || a.startsWith("--skip=")) {
-      if (sub !== "headers" && sub !== "slice") return undefined;
+      const optKey = a === "--skip" || a.startsWith("--skip=") ? "skip" : "start";
+      if ((sub !== "headers" && sub !== "slice") || !markOpt(optKey)) return undefined;
       const raw = (a === "-s" || a === "--start" || a === "--skip") ? args[++i] : a.slice(a.indexOf("=") + 1);
       const v = Number(raw);
       if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       startNum = v;
     } else if (a === "-l" || a === "--len" || a.startsWith("--len=")) {
-      if (sub !== "slice") return undefined;
+      if (sub !== "slice" || !markOpt("len")) return undefined;
       const raw = (a === "-l" || a === "--len") ? args[++i] : a.slice(6);
       const v = Number(raw);
       if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       lenNum = v;
     } else if (a === "-e" || a === "--end" || a.startsWith("--end=")) {
-      if (sub !== "slice") return undefined;
+      if (sub !== "slice" || !markOpt("end")) return undefined;
       const raw = (a === "-e" || a === "--end") ? args[++i] : a.slice(6);
       const v = Number(raw);
       if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       endNum = v;
     } else if (a === "-i" || a === "--index" || a.startsWith("--index=")) {
-      if (sub !== "slice") return undefined;
+      if (sub !== "slice" || !markOpt("index")) return undefined;
       const raw = (a === "-i" || a === "--index") ? args[++i] : a.slice(8);
       const v = Number(raw);
       if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       indexNum = v;
     } else if (a === "-L" || a === "--last" || a.startsWith("--last=")) {
-      if (sub !== "slice") return undefined;
+      if (sub !== "slice" || !markOpt("last")) return undefined;
       const raw = (a === "-L" || a === "--last") ? args[++i] : a.slice(7);
       const v = Number(raw);
       if (!raw || !Number.isSafeInteger(v) || v < 0) return undefined;
       lastNum = v;
     } else if (a === "-I" || a === "--indices" || a.startsWith("--indices=")) {
-      if (sub !== "slice") return undefined;
+      if (sub !== "slice" || !markOpt("indices")) return undefined;
       const raw = (a === "-I" || a === "--indices") ? args[++i] : a.slice(10);
       if (!raw) return undefined;
       const parts = raw.split(",");
@@ -152,22 +166,24 @@ export function evalSyncXan(
       parsedIdx.sort((x, y) => x - y);
       indicesList = parsedIdx.filter((v, idx, arr) => idx === 0 || arr[idx - 1] !== v);
     } else if (a === "--csv") {
-      if (sub !== "headers") return undefined;
+      if (sub !== "headers" || !markOpt("csv")) return undefined;
       csvHeaders = true;
     } else if (a === "-c" || a === "--check-alignment" || a === "-a" || a === "--approx") {
       if (sub !== "count") return undefined;
+      const optKey = (a === "-c" || a === "--check-alignment") ? "check-alignment" : "approx";
+      if (!markOpt(optKey)) return undefined;
       if (a === "-c" || a === "--check-alignment") checkAlignment = true;
     } else if (a === "-t" || a === "--threads" || a.startsWith("--threads=")) {
-      if (sub !== "count") return undefined;
+      if (sub !== "count" || !markOpt("threads")) return undefined;
       const raw = (a === "-t" || a === "--threads") ? args[++i] : a.slice(10);
       if (!raw || !/^\d+$/.test(raw)) return undefined;
     } else if (a === "-S" || a === "--start-condition" || a.startsWith("--start-condition=")) {
-      if (sub !== "slice") return undefined;
+      if (sub !== "slice" || !markOpt("start-condition")) return undefined;
       const raw = (a === "-S" || a === "--start-condition") ? args[++i] : a.slice(18);
       if (!raw) return undefined;
       startCondExpr = raw;
     } else if (a === "-E" || a === "--end-condition" || a.startsWith("--end-condition=")) {
-      if (sub !== "slice") return undefined;
+      if (sub !== "slice" || !markOpt("end-condition")) return undefined;
       const raw = (a === "-E" || a === "--end-condition") ? args[++i] : a.slice(16);
       if (!raw) return undefined;
       endCondExpr = raw;
@@ -176,6 +192,14 @@ export function evalSyncXan(
     } else {
       positionals.push(a);
     }
+  }
+  if (sub === "slice") {
+    const hasRange = seenOpts.has("start") || seenOpts.has("skip") || seenOpts.has("end") || seenOpts.has("len") || seenOpts.has("index");
+    if (seenOpts.has("indices") && (seenOpts.has("start-condition") || seenOpts.has("end-condition"))) return undefined;
+    if ((seenOpts.has("last") && (seenOpts.has("indices") || hasRange)) || (seenOpts.has("indices") && hasRange)) return undefined;
+    if (seenOpts.has("index") && (seenOpts.has("start") || seenOpts.has("skip") || seenOpts.has("end") || seenOpts.has("len"))) return undefined;
+    if (seenOpts.has("end") && seenOpts.has("len")) return undefined;
+    if (endNum !== undefined && startNum > endNum) return undefined;
   }
 
   let inputPath = "-";
@@ -190,9 +214,14 @@ export function evalSyncXan(
   }
 
   const bytes = inputPath === "-" ? stdinBytes : (readFile ? readFile(inputPath) : undefined);
-  if (!bytes || bytes.byteLength > 262144) return undefined;
+  if (!bytes || bytes.byteLength > 262144 || bytes.includes(0)) return undefined;
   const effectiveDelim = delim ?? (inputPath.endsWith(".tsv") || inputPath.endsWith(".tab") ? "\t" : ",");
-  const text = syncXanDecoder.decode(bytes);
+  let text: string;
+  try {
+    text = syncXanDecoder.decode(bytes);
+  } catch {
+    return undefined;
+  }
   const rows = parseSyncCsvRows(text, effectiveDelim);
   if (!rows || rows.length === 0) return undefined;
   if ((sub === "count" && checkAlignment) || sub === "select" || sub === "slice") {
@@ -236,6 +265,9 @@ export function evalSyncXan(
   if (sub === "slice") {
     if (rows.length === 0) return "";
     const hdr = rows[0]!;
+    if ((startCondExpr !== undefined || endCondExpr !== undefined) && !noHeaders && new Set(hdr).size !== hdr.length) {
+      return undefined;
+    }
     const compileCond = (expr: string | undefined): ((row: string[]) => boolean | undefined) | null | undefined => {
       if (expr === undefined) return null;
       if (noHeaders || lastNum !== undefined) return undefined;
@@ -349,6 +381,7 @@ export function evalSyncXan(
   // select
   if (rows.length === 0) return "";
   const hdr = rows[0]!;
+  if (!noHeaders && new Set(hdr).size !== hdr.length) return undefined;
   const complement = selectionSpec.startsWith("!");
   const rawBody = complement ? selectionSpec.slice(1) : selectionSpec;
   const resolveColEndpoint = (ep: string): number | undefined => {
@@ -417,4 +450,3 @@ export function evalSyncXan(
   }
   return outLines.join("\n") + "\n";
 }
-

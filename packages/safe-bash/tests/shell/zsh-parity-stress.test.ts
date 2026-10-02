@@ -1334,3 +1334,23 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "<h1 id=\"piped-title\">Piped Title</h1>|ab|1|1|no");
   });
+
+  test("72. sync apply_patch empty hunk and trailing slash rejection, and pathchk symlink-before-dotdot resolution", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "printf \"hello\\n\" > /a.txt",
+      "cd /",
+      "apply_patch <<< $'*** Begin Patch\n*** Update File: a.txt\n@@\n*** End Patch' 2>/dev/null",
+      "s1=$?",
+      "apply_patch <<< $'*** Begin Patch\n*** Add File: bad_dir/\n+hi\n*** End Patch' 2>/dev/null",
+      "s2=$?",
+      "mkdir -p /real/sub",
+      "printf \"file\\n\" > /real/not_a_dir",
+      "ln -s /real/sub /sym_sub",
+      "pathchk /sym_sub/../not_a_dir/child 2>/dev/null",
+      "s3=$?",
+      "echo \"$s1|$s2|$s3\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "2|2|1");
+  });

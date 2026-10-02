@@ -124,7 +124,7 @@ export function evalSyncPathchk(
       for (let k = 0; k < parts.length - 1; k++) {
         if (!parts[k]) continue;
         current += "/" + parts[k]!;
-        const st = statTypeSync(resolveVfsPath("/", current));
+        const st = statTypeSync(current);
         if (st === undefined) return undefined;
         if (st === "missing") break;
         if (st !== "directory") return undefined;

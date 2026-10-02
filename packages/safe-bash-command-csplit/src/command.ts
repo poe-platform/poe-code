@@ -101,7 +101,7 @@ export function evalSyncCsplit(
     };
   }
   const inputArg = operands[0]!;
-  const src = inputArg === "-" ? (inBytes ?? new Uint8Array(0)) : readFileSync?.(inputArg);
+  const src = inputArg === "-" ? inBytes : readFileSync?.(inputArg);
   if (!src) return undefined;
   if (src.includes(0)) return undefined;
   const lines: Uint8Array[] = [];
@@ -261,11 +261,16 @@ export function evalSyncCsplit(
     const restLines = lines.slice(nextIdx - 1);
     pieces.push(mergeLines(restLines));
   }
-  const sizes: number[] = [];
+  const planned: Array<[string, Uint8Array]> = [];
   let fileIdx = 0;
   for (const piece of pieces) {
     if (elide && piece.length === 0) continue;
     const name = `${prefix}${formatSuffix(fileIdx++)}`;
+    if (!name || name === "-" || name.includes("\0") || name.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(name)) return undefined;
+    planned.push([name, piece]);
+  }
+  const sizes: number[] = [];
+  for (const [name, piece] of planned) {
     if (!writeFileSync(name, piece)) return undefined;
     sizes.push(piece.length);
   }

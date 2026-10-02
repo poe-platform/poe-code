@@ -33,6 +33,7 @@ export function evalSyncApplyPatch(
   const actions: { kind: "write" | "delete" | "move"; path: string; dest?: string; bytes?: Uint8Array; summary: string }[] = [];
   const seenPaths: string[] = [];
   const registerPatchPath = (rawPath: string): boolean => {
+    if (!rawPath || rawPath.endsWith("/") || rawPath.split("/").at(-1) === "." || /[\x00-\x1f\x7f]/.test(rawPath)) return false;
     const norm = rawPath.replace(/^\.\/+/u, "").replace(/\/+$/u, "");
     if (!norm) return false;
     for (const prev of seenPaths) {
@@ -114,6 +115,7 @@ export function evalSyncApplyPatch(
           else return undefined;
           idx++;
         }
+        if (oldChunk.length === 0 && newChunk.length === 0) return undefined;
         let matchIdx = -1;
         for (let c = searchPos; c <= fileLines.length - oldChunk.length; c++) {
           let ok = true;

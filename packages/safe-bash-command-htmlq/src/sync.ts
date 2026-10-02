@@ -117,7 +117,7 @@ export function evalSyncHtmlq(
     }
     if (out.includes("\0")) return undefined;
     if (args.output !== "-") {
-      if (!args.output || !writeFileSync || !writeFileSync(args.output, syncHtmlEncoder.encode(out))) return undefined;
+      if (!args.output || args.output.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(args.output) || !writeFileSync || !writeFileSync(args.output, syncHtmlEncoder.encode(out))) return undefined;
       return "";
     }
     return out;

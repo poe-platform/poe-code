@@ -466,7 +466,11 @@ export function evalSyncExiftool(
         }
       }
     }
-    if (pendingWrites.length > 0 && writeFileSync) {
+    if (pendingWrites.length > 0) {
+      if (!writeFileSync) return undefined;
+      for (const pw of pendingWrites) {
+        if (!pw.path || pw.path === "-" || pw.path.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(pw.path)) return undefined;
+      }
       for (const pw of pendingWrites) {
         if (!writeFileSync(pw.path, pw.bytes)) return undefined;
       }

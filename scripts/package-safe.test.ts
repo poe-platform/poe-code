@@ -42,6 +42,21 @@ it("packages isolated root SafeJS exports from canonical workspace artifacts", a
   expect(volume.existsSync("/output/safe-js/dist/shared")).toBe(false);
 });
 
+it.each([false, true])("treats bare relative asset URLs as URLs rather than dependencies (asset present: %s)", async present => {
+  const { volume, options } = optionalLeftovers();
+  const source = 'export const locate = () => new URL("runtime.wasm", import.meta.url);';
+  volume.writeFileSync("/repo/packages/safe-js/dist/index.js", source);
+  const bytes = Buffer.from([0, 97, 115, 109, 1, 0, 0, 0]);
+  if (present) volume.writeFileSync("/repo/packages/safe-js/dist/runtime.wasm", bytes);
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const manifest = JSON.parse(volume.readFileSync("/output/safe-js/package.json", "utf8") as string);
+  expect(manifest.dependencies?.["runtime.wasm"]).toBeUndefined();
+  expect(volume.readFileSync("/output/safe-js/dist/safe-js/index.js", "utf8")).toBe(
+    present ? source.replace('"runtime.wasm"', '"./runtime.wasm"') : source,
+  );
+  if (present) expect(volume.readFileSync("/output/safe-js/dist/safe-js/runtime.wasm")).toEqual(bytes);
+});
+
 const bashManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash/package.json", import.meta.url), "utf8"));
 it("keeps portable public command adapters linked to their canonical owner", async () => {
   const { volume, options } = optionalLeftovers();

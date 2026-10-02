@@ -624,7 +624,27 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       let contents = bundled.has(filename) ? Buffer.from(bundled.get(filename)) : await files.readFile(await exists(filename) ? filename : filename.replace("/dist/", "/src/"));
       if (filename.endsWith(".js") || filename.endsWith(".mjs") || filename.endsWith(".ts")) {
         const declaration = filename.endsWith(".d.ts") || filename.endsWith(".d.mts");
-        contents = rewriteModuleSpecifiers(filename, contents.toString(), specifier => {
+        // A bare URL is relative to this module, not an npm dependency. Generated
+        // runtimes can retain fallback URLs even when their payload is embedded.
+        // Copy existing assets; preserve unresolved fallback/external URLs as authored.
+        const assetUrls = new Map();
+        const text = contents.toString();
+        rewriteModuleSpecifiers(filename, text, (specifier, kind) => {
+          if (kind === "url" && !specifier.startsWith(".")) assetUrls.set(specifier, specifier);
+          return specifier;
+        });
+        for (const specifier of assetUrls.keys()) {
+          if (specifier.startsWith("/") || URL.canParse(specifier)) continue;
+          const url = new URL(specifier, pathToFileURL(filename));
+          const target = fileURLToPath(url);
+          if (!await exists(target)) continue;
+          const asset = path.join(directory, artifactPath(rootDir, target));
+          pending.push(target);
+          const relative = path.relative(path.dirname(destination), asset).split(path.sep).map(encodeURIComponent).join("/");
+          assetUrls.set(specifier, (relative.startsWith(".") ? relative : "./" + relative) + url.search + url.hash);
+        }
+        contents = rewriteModuleSpecifiers(filename, text, (specifier, kind) => {
+          if (kind === "url" && assetUrls.has(specifier)) return assetUrls.get(specifier);
           if (specifier === 'cloudflare:workers') return specifier;
           if (specifier.startsWith("node:") || builtinModules.includes(specifier)) {
             if (declaration && ranges["@types/node"]) addDependency("@types/node");

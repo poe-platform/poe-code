@@ -761,10 +761,11 @@ export class MemoryFileSystem implements FileSystem {
     return (this.#identityScopeSym ??= Symbol());
   }
   get capabilities(): FileSystemCapabilities {
-    if (stockRetainedResize(this) && stockDescriptorWrite(this)) {
-      return SHARED_STOCK_MEMORY_CAPABILITIES;
+    if (!this.#customCapabilities) {
+      this.#customCapabilities = customMemoryCapabilities(this);
+      this._owner.capabilities = this.#customCapabilities;
     }
-    return this.#customCapabilities ??= customMemoryCapabilities(this);
+    return this.#customCapabilities;
   }
 
   private nextInode = 1;
@@ -2842,7 +2843,10 @@ export class MemoryFileSystem implements FileSystem {
         ?? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
       if (!descriptor || !("value" in descriptor) || descriptor.value !== memoryImplementation[name]?.value) unsupported();
     }
-    const retainedRead = Object.getOwnPropertyDescriptor(this, "capabilities")?.value?.retainedRead;
+    const capabilities = Object.getOwnPropertyDescriptor(this, "capabilities");
+    const retainedRead = capabilities === undefined
+      ? Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, "capabilities")?.get === memoryImplementation.capabilities?.get
+      : capabilities.value?.retainedRead;
     signal?.throwIfAborted();
     if (retainedRead !== true) unsupported();
     const selected = allowDirectory ? this.resolve(path, "openReadFile").node! : this.file(path, "openReadFile");
@@ -2983,7 +2987,7 @@ function stockDescriptorWrite(filesystem: MemoryFileSystem): boolean {
   if (!isStockMemoryMethods(filesystem, stockDescriptorWriteMethodNames, true)) return false;
   const owner = ownedStores.get(filesystem)!;
   const capDesc = Object.getOwnPropertyDescriptor(filesystem, "capabilities");
-  return (capDesc === undefined && Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, "capabilities")?.get !== undefined) || (!!capDesc && "value" in capDesc && capDesc.value === owner.capabilities);
+  return (capDesc === undefined && Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, "capabilities")?.get === memoryImplementation.capabilities?.get) || (!!capDesc && "value" in capDesc && capDesc.value === owner.capabilities);
 }
 
 function stockRetainedResize(filesystem: MemoryFileSystem): boolean {

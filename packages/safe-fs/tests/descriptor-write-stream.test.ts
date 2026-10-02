@@ -31,6 +31,20 @@ describe("stock descriptor stream admission", () => {
     expect(Object.isFrozen(filesystem.capabilities)).toBe(true);
   });
 
+  it("keeps captured capabilities live and isolated when stock methods change", () => {
+    const filesystem = new MemoryFileSystem();
+    const other = new MemoryFileSystem();
+    const capabilities = filesystem.capabilities;
+    Object.defineProperty(filesystem, "writeFile", { value: vi.fn(), configurable: true });
+    expect(capabilities.descriptorWriteStream).toBe(false);
+    expect(capabilities.retainedResize).toBe(false);
+    expect(other.capabilities.descriptorWriteStream).toBe(true);
+    Reflect.deleteProperty(filesystem, "writeFile");
+    expect(capabilities.descriptorWriteStream).toBe(true);
+    expect(capabilities.retainedResize).toBe(true);
+    expect(filesystem.capabilities).toBe(capabilities);
+  });
+
   it.each(["writeStream", "writeFile", "appendFile", "access", "stat", "lstat", "realpath",
     "openWrite", "resolve", "permission", "validatePath", "mode", "bytes", "allocate", "changed", "metadata", "integer", "writeAt", "fail"])(
     "withdraws stock support after replacing %s", (method) => {

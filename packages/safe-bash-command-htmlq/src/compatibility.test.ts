@@ -145,7 +145,7 @@ test("htmlq standard attribute and whitespace flags and selector operands", asyn
 
 test("htmlq help advertises standard flag spellings and input operand", async () => {
   const help = await run("", ["--help"]);
-  assert.ok(help.includes("[SELECTOR] [FILE]"));
+  assert.ok(help.includes("[SELECTOR]..."));
   assert.ok(help.includes("-w, --ignore-whitespace"));
   assert.ok(help.includes("-a, --attribute"));
 });

@@ -667,8 +667,8 @@ test("retaining sinks preserve htmlq output across batch reuse", async () => {
   assert.equal(chunks.map(bytes => new TextDecoder().decode(bytes)).join(""), values.join("\n") + "\n");
 });
 
-test("positional files read VFS input in CLI and SDK argv", async () => {
-  for (const argv of [["p", "--text", "in"], ["p", "--text", "/vfs/in"], ["p", "--attribute", "data-id", "in"]]) {
+test("explicit files read VFS input in CLI and SDK argv", async () => {
+  for (const argv of [["p", "--text", "-f", "in"], ["p", "--text", "-f", "/vfs/in"], ["p", "--attribute", "data-id", "-f", "in"]]) {
     const cli = fixture(argv, '<p data-id="42">File</p>'), sdk = fixture([], '<p data-id="42">File</p>');
     const stdin = { [Symbol.asyncIterator](): AsyncIterator<Uint8Array> { throw new Error("must read file"); } };
     assert.equal((await createHtmlqCommand().execute({ ...cli.context, stdin })).exitCode, 0);
@@ -687,8 +687,8 @@ test("native aliases and selector operands agree across CLI and SDK argv", async
       [["-t", flag, "div"], "<div> <b>hello</b> </div>", "hello\n\n"] as const),
     [["-tw", "div"], "<div> <b>hello</b> </div>", "hello\n\n"],
     [["a", "--attribute=href"], '<a href="/x">link</a>', "/x\n"],
-    [["-t", "h1, h2"], "<h1>One</h1><h2>Two</h2>", "One\nTwo\n"],
-    [["-t", "--", ".subtitle, .title, .title"],
+    [["-t", "h1", "h2"], "<h1>One</h1><h2>Two</h2>", "One\nTwo\n"],
+    [["-t", "--", ".subtitle", ".title", ".title"],
       '<h1 class="title">One</h1><h2 class="subtitle">Two</h2>', "One\nTwo\n"]
   ];
   for (const [argv, input, expected] of cases) {

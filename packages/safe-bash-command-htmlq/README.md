@@ -99,9 +99,9 @@ htmlq --version                        # safe-bash implementation and compatibil
 
 Short flags can be grouped (`-tip`); short value options accept attached values
 (`-aid`, `-a=id`). Long value options accept `=VALUE`.
-The first operand is a CSS selector (use commas for a union in document order);
-the optional second operand is the input file, as in `htmlq h2 --text /page.html`.
-Do not combine a file operand with `-f`. With no selector, the default is `html`.
+Positional operands are CSS selectors, combined as a union in document order,
+as in `htmlq h1 p --text -f /page.html`. Use `-f` to select an input file.
+With no selector, the default is `html`.
 Input/output default to `-`. Unknown flags and
 abbreviations fail. `--` ends option parsing.
 Help and version return status 0 without reading stdin or accessing VFS paths,

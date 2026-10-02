@@ -630,6 +630,20 @@ confirms alignment, centering, clipping, tabs and combining marks. The complete
 dashboard/explorer, dependent task/event/notice renderers, Markdown and the
 remaining Toolcraft surfaces still require implementation and qualification.
 
+Notices, metrics and progress groups now expose native policy at the design root
+and `inline-notice`, `metric` and `progress-group` subpaths. Rust controls capacity
+validation, eviction/expiry decisions, status selection, progress admission and
+spark selection. Node retains host collections, clocks, spreads, numeric methods
+and observable expressions. Differential coverage includes changing getters,
+inherited notice levels, sparse/species arrays, nonfinite/fractional widths,
+clock receivers, setter capture and reentrant finite checks. All 99 native and
+189 reference tests, bidirectional declarations, package/JS lint and isolated
+packed consumers pass with no new dependency declarations. An inspected screenshot
+confirms markers, percentages, clipping and sparklines; the screenshot font lacks
+some CJK/emoji glyphs, whose outputs are covered by string parity tests. Task/event
+groups, performance monitoring, full interactive rendering and the other remaining
+Toolcraft surfaces are still open. No default integration or speedup is claimed.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

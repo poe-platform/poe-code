@@ -4,6 +4,7 @@ pub mod catalog;
 pub mod color;
 pub mod command_errors;
 pub mod data;
+pub mod feedback;
 pub mod file_changes;
 pub mod help;
 pub mod interaction;

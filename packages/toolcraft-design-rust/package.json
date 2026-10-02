@@ -99,6 +99,18 @@
     "./tokens/typography": {
       "types": "./dist/typography.d.ts",
       "import": "./dist/typography.js"
+    },
+    "./inline-notice": {
+      "types": "./dist/inline-notice.d.ts",
+      "import": "./dist/inline-notice.js"
+    },
+    "./metric": {
+      "types": "./dist/metric.d.ts",
+      "import": "./dist/metric.js"
+    },
+    "./progress-group": {
+      "types": "./dist/progress-group.d.ts",
+      "import": "./dist/progress-group.js"
     }
   },
   "scripts": {

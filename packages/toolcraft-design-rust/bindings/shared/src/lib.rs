@@ -13,6 +13,8 @@ mod interaction;
 pub use interaction::*;
 mod text_cells;
 pub use text_cells::*;
+mod feedback;
+pub use feedback::*;
 mod resource_browser;
 pub use resource_browser::*;
 mod help;

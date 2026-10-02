@@ -91,3 +91,6 @@ export * as helpFormatterPlain from "./help-formatter-plain.js";
 export { createCommandRegistry } from "./command-registry.js";
 export { createOverlayManager } from "./overlay-manager.js";
 export { createViewport, selectViewportTail } from "./viewport.js";
+export { createNotices, renderNotice } from "./inline-notice.js";
+export { createMetric } from "./metric.js";
+export { renderProgressGroup } from "./progress-group.js";

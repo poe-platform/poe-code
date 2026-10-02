@@ -104,3 +104,6 @@ export * from "./command-registry.js";
 export * from "./overlay-manager.js";
 export * from "./viewport.js";
 export type { FileChange, FileChangeKind, FileChangeDisplayMode, FileChangeOutputFormat, RenderFileChangesOptions } from "./file-changes.js";
+export * from "./inline-notice.js";
+export * from "./metric.js";
+export * from "./progress-group.js";

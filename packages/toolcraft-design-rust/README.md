@@ -78,6 +78,9 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createViewport`, `selectViewportTail` | Retain live items, hold scrollback and select wrapped rows without rendering the full history |
 | `explorer/render/text` | Fit, center and pad text by terminal cells while retaining grapheme offsets |
 | `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
+| `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
+| `createMetric` | Retain rolling samples and render compact sparklines |
+| `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -278,3 +281,13 @@ start/end offsets. `dashboard/terminal-width` exposes `graphemes`, `graphemeWidt
 `displayWidth`, `expandTabs` and `truncateToWidth` with the same width rules.
 Rust owns width classification and layout; Node supplies ICU segmentation,
 observable string/array methods and numeric coercions.
+
+`createNotices({capacity, now})` coalesces notices by ID, expires them during reads
+and returns isolated snapshots. Use `put(id, notice, durationMs)`, `dismiss(id)`
+and `list()` to manage them; `renderNotice(notice, width)` clips the visible row.
+`createMetric({capacity, unit})` retains the latest samples, treats nonfinite values
+as missing and renders a cell-limited sparkline. `renderProgressGroup(items, width)`
+combines labels, status marks and bounded percentages. These APIs are available
+from the root and `inline-notice`, `metric` and `progress-group` subpaths. Rust owns
+validation, selection, eviction and rendering policy; Node retains clocks, host
+collections, observable methods and reentrant callbacks.

@@ -225,3 +225,27 @@ const inspectorOwn: typeof inspectorCard = null as unknown as typeof originalIns
 const rootCardsOriginal: Pick<typeof originalDesign,"renderDetailCard"|"renderInspectorCard"> = design;
 const rootCardsOwn: Pick<typeof design,"renderDetailCard"|"renderInspectorCard"> = null as unknown as typeof originalDesign;
 void [detailOriginal,detailOwn,inspectorOriginal,inspectorOwn,rootCardsOriginal,rootCardsOwn];
+
+import * as notices from "toolcraft-design-rust/inline-notice";
+import type * as originalNotices from "toolcraft-design/inline-notice";
+const noticesOriginal: typeof originalNotices = notices;
+const noticesOwn: typeof notices = null as unknown as typeof originalNotices;
+const rootNoticesOriginal: typeof originalNotices = design;
+const rootNoticesOwn: typeof notices = null as unknown as typeof originalDesign;
+void [noticesOriginal, noticesOwn, rootNoticesOriginal, rootNoticesOwn];
+
+import * as metrics from "toolcraft-design-rust/metric";
+import type * as originalMetrics from "toolcraft-design/metric";
+const metricsOriginal: typeof originalMetrics = metrics;
+const metricsOwn: typeof metrics = null as unknown as typeof originalMetrics;
+const rootMetricsOriginal: typeof originalMetrics = design;
+const rootMetricsOwn: typeof metrics = null as unknown as typeof originalDesign;
+void [metricsOriginal, metricsOwn, rootMetricsOriginal, rootMetricsOwn];
+
+import * as progress from "toolcraft-design-rust/progress-group";
+import type * as originalProgress from "toolcraft-design/progress-group";
+const progressOriginal: typeof originalProgress = progress;
+const progressOwn: typeof progress = null as unknown as typeof originalProgress;
+const rootProgressOriginal: typeof originalProgress = design;
+const rootProgressOwn: typeof progress = null as unknown as typeof originalDesign;
+void [progressOriginal, progressOwn, rootProgressOriginal, rootProgressOwn];

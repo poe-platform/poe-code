@@ -19079,7 +19079,7 @@ const syncExtraRuntimeMethods = {
           : (w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat")
             ? evalSyncCompression(w0Plain, inBytes, allArgs, readFile)
             : evalSyncLineEndings(w0Plain, inBytes, allArgs, readFile, writeFile);
-        if (convBytes !== undefined && convBytes.every(byte => byte !== 0 && byte < 128)) {
+        if (convBytes !== undefined && convBytes.every((byte: number) => byte !== 0 && byte < 128)) {
           let convStr = sharedSyncPipeDecoder.decode(convBytes);
           const outBytes = convBytes.byteLength;
           let end = convStr.length;
@@ -19811,14 +19811,14 @@ const syncExtraRuntimeMethods = {
               fileRes = syncCommandEvaluators.evalSyncLn?.(opArgs, statType, rmFn, linkFn);
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && (w0Plain === "dos2unix" || w0Plain === "unix2dos")) {
               const leOut = evalSyncLineEndings(w0Plain, view, opArgs);
-              if (leOut !== undefined && leOut.every(byte => byte !== 0 && byte < 128)) fileRes = sharedSyncPipeDecoder.decode(leOut);
+              if (leOut !== undefined && leOut.every((byte: number) => byte !== 0 && byte < 128)) fileRes = sharedSyncPipeDecoder.decode(leOut);
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "iconv") {
               const icOut = evalSyncIconv(view, opArgs);
-              if (icOut !== undefined && icOut.every(byte => byte !== 0 && byte < 128)) fileRes = sharedSyncPipeDecoder.decode(icOut);
+              if (icOut !== undefined && icOut.every((byte: number) => byte !== 0 && byte < 128)) fileRes = sharedSyncPipeDecoder.decode(icOut);
             } else if (w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const cmpOut = evalSyncCompression(w0Plain, view, opArgs, readFile);
-              if (cmpOut !== undefined && cmpOut.every(byte => byte !== 0 && byte < 128)) fileRes = sharedSyncPipeDecoder.decode(cmpOut);
+              if (cmpOut !== undefined && cmpOut.every((byte: number) => byte !== 0 && byte < 128)) fileRes = sharedSyncPipeDecoder.decode(cmpOut);
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "htmlq") {
               fileRes = evalSyncHtmlq(view, opArgs, (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true), (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "xmllint") {

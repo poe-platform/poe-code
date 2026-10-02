@@ -127,3 +127,34 @@ test("rg empty replacement matches advance by bytes within UTF-8 input", async (
     { stdout: "[]\n[]\n[]\n", stderr: "", exitCode: 0 },
   );
 });
+
+const multilineInput = "line1 foo\n  bar line2\nline3\n";
+for (const [flags, expected] of [
+  [["-U", "-r", "REPL"], "line1 REPL line2\n"],
+  [["-U", "-c"], "1\n"],
+  [["-U", "-n", "-o"], "1:foo\n2:  bar\n"],
+  [["-U", "-b", "-o"], "6:foo\n6:  bar\n"],
+] as const) {
+  test(`rg cross-line parity: ${flags.join(" ")}`, async () => {
+    assert.deepEqual(await replace([...flags, "foo\\n  bar"], multilineInput),
+      { stdout: expected, stderr: "", exitCode: 0 });
+  });
+}
+
+test("rg replacement expands numbered, braced, whole-match and dollar captures", async () => {
+  assert.deepEqual(await replace(["-r", "[$1-$2]/${1}/$0/$$", "([a-z]+)([0-9]+)"], "abc123def\n"),
+    { stdout: "[abc-123]/abc/abc123/$def\n", stderr: "", exitCode: 0 });
+});
+
+for (const [flags, pattern, input, expected] of [
+  [["-Uc"], "a\\nb", "a\nba\nb\na\nb\n", "3\n"],
+  [["-Uc"], "a\\nb|z", "a\nbz\n", "2\n"],
+  [["-Uc"], "a", "aa\na\n", "2\n"],
+  [["-Uvc"], "a\\nb", "a\nb\nz\n", "1\n"],
+  [["-Uc", "--include-zero"], "a\\nb", "z\n", "0\n"],
+] as const) {
+  test(`rg multiline count parity: ${flags.join(" ")} ${pattern} ${JSON.stringify(input)}`, async () => {
+    assert.deepEqual(await replace([...flags, pattern], input),
+      { stdout: expected, stderr: "", exitCode: expected === "0\n" ? 1 : 0 });
+  });
+}

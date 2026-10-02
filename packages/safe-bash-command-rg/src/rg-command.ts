@@ -513,7 +513,8 @@ async function searchFile(context: CommandContext, args: Arguments, limits: Limi
   if (!args.quiet) {
     if ((args.mode === "with" || args.mode === "without") && found) await printer.filename(target.label);
     if ((args.mode === "count" || args.mode === "matches") && (matched || args.includeZero) && !state.skipped) {
-      const amount = !args.invert && (args.mode === "matches" || args.onlyMatching) ? totals.matches : totals.matched_lines;
+      // Cross-line searches count occurrences, not the records they span.
+      const amount = !args.invert && (crossLineMatches !== undefined || args.mode === "matches" || args.onlyMatching) ? totals.matches : totals.matched_lines;
       await printer.count(target.label, amount, filename);
     }
     if (begun && args.mode === "json") {

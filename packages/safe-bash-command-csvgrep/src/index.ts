@@ -8,7 +8,7 @@ export {
   type CsvgrepCommandOptions,
   type CsvgrepResult
 } from "./command.js";
-export { createMatcher, matchesRow, type MatchOptions } from "./match.js";
+export { createMatcher, matchesRow, pythonRstrip, type MatchOptions } from "./match.js";
 export {
   CsvBudget,
   CsvError,

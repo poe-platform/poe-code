@@ -864,3 +864,22 @@ test("47. sync vs async parity for less repeated -, pr/unrtf pipeline newlines, 
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+
+test("48. sync vs async parity for csvgrep -f pythonRstrip/empty lines, csvstack --filenames <stdin>/empty rows/surplus cells, and csvjoin --right/null keys", async () => {
+  const scripts = [
+    'mkdir -p /dir; printf "foo  \n\nbar\r\n" > /dir/pats.txt; printf "k,v\nfoo,1\n,2\nbar,3\nbaz,4\n" > /dir/in.csv; x=$(csvgrep -c k -f /dir/pats.txt /dir/in.csv); echo "$?:$x"',
+    'mkdir -p /dir; printf "a,b\n1,2\n" > /dir/f1.csv; x=$(csvstack --filenames - /dir/f1.csv <<< $"a,b\n3,4\n"); echo "$?:$x"',
+    'mkdir -p /dir; printf "a,b\n1,2\n\n3,4\n" > /dir/f1.csv; x=$(csvstack /dir/f1.csv); echo "$?:$x"',
+    'mkdir -p /dir; printf "a,b\n1,2,3\n" > /dir/bad.csv; x=$(csvstack /dir/bad.csv 2>/dev/null); echo "$?:$x"',
+    'mkdir -p /dir; printf "id,lval\n1,L1\n,LN\n" > /dir/l.csv; printf "id,rval\n1,R1\n2,R2\n,RN\n" > /dir/r.csv; x=$(csvjoin --right -c "id, id" /dir/l.csv /dir/r.csv); y=$(csvjoin -c id /dir/l.csv /dir/r.csv); echo "$?:$x|$y"',
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

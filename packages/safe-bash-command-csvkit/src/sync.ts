@@ -1223,6 +1223,7 @@ export function evalSyncCsvstack(
     const parsedFiles: { group: string; headers: string[]; rows: string[][] }[] = [];
     const unionHeaders: string[] = [];
     const seen = new Set<string>();
+    if (files.filter(f => f === "-").length > 1) return undefined;
     for (let idx = 0; idx < files.length; idx++) {
       const f = files[idx]!;
       const bytes = f === "-" ? inBytes : readFileSync ? readFileSync(f) : undefined;
@@ -1231,19 +1232,28 @@ export function evalSyncCsvstack(
       if (text.charCodeAt(0) === 0xfeff) text = text.slice(1);
       const recs = [...readCsv(text, { delimiter: tabs ? "\t" : delimiter, quotechar: "\"", doublequote: true, skipinitialspace: false })];
       const hdr = recs[0] ? recs[0].cells.map(c => pythonValueText(c)) : [];
+      if (new Set(hdr).size !== hdr.length) return undefined;
       for (const h of hdr) {
         if (!seen.has(h)) {
           seen.add(h);
           unionHeaders.push(h);
         }
       }
-      const groupVal = groups ? groups[idx]! : f.split("/").at(-1)!;
+      const dataRows: string[][] = [];
+      for (let rIdx = 1; rIdx < recs.length; rIdx++) {
+        const rawCells = recs[rIdx]!.cells;
+        if (rawCells.length === 0) continue;
+        if (rawCells.length > hdr.length) return undefined;
+        dataRows.push(rawCells.map(c => pythonValueText(c)));
+      }
+      const groupVal = groups ? groups[idx]! : (f === "-" ? "<stdin>" : f.split("/").at(-1)!);
       parsedFiles.push({
         group: groupVal,
         headers: hdr,
-        rows: recs.slice(1).map(r => r.cells.map(c => pythonValueText(c))),
+        rows: dataRows,
       });
     }
+    if (grouped && seen.has(groupName)) return undefined;
     const outHeaders = grouped ? [groupName, ...unionHeaders] : [...unionHeaders];
     const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
     let out = addBom ? "\ufeff" : "";
@@ -1272,7 +1282,9 @@ export function evalSyncCsvjoin(
 ): string | undefined {
   try {
     let columnsSpec: string | undefined;
-    let joinMode: "inner" | "left" | "right" | "outer" = "inner";
+    let leftJoin = false;
+    let rightJoin = false;
+    let outerJoin = false;
     let noInference = false;
     let addBom = false;
     let delimiter: string | undefined;
@@ -1283,9 +1295,9 @@ export function evalSyncCsvjoin(
       const a = opArgs[i]!;
       if (!posDone && a === "--") { posDone = true; continue; }
       if (!posDone && a.startsWith("-") && a !== "-") {
-        if (a === "--left") { joinMode = "left"; continue; }
-        if (a === "--right") { joinMode = "right"; continue; }
-        if (a === "--outer") { joinMode = "outer"; continue; }
+        if (a === "--left") { leftJoin = true; continue; }
+        if (a === "--right") { rightJoin = true; continue; }
+        if (a === "--outer") { outerJoin = true; continue; }
         if (a === "-I" || a === "--no-inference") { noInference = true; continue; }
         if (a === "--add-bom") { addBom = true; continue; }
         if (a === "-t" || a === "--tabs") { tabs = true; continue; }
@@ -1306,6 +1318,9 @@ export function evalSyncCsvjoin(
       files.push(a);
     }
     if (files.length !== 2) return undefined;
+    if (files[0] === "-" && files[1] === "-") return undefined;
+    if (leftJoin && rightJoin) return undefined;
+    if ((leftJoin || rightJoin || outerJoin) && !columnsSpec) return undefined;
     const leftOpts: ParsedSyncCsvkitOptions = {
       ...(delimiter === undefined ? {} : { delimiter }), tabs, noDoublequote: false, skipInitialSpace: false, noHeaderRow: false,
       skipLines: 0, lineNumbers: false, addBom: false, noInference, blanks: false,
@@ -1313,23 +1328,22 @@ export function evalSyncCsvjoin(
       indent: null, key: null, streamOutput: false, filePath: files[0]!,
     };
     const rightOpts: ParsedSyncCsvkitOptions = { ...leftOpts, filePath: files[1]! };
-    const leftTable = loadSyncTypedTable(inBytes, leftOpts, readFileSync);
-    const rightTable = loadSyncTypedTable(inBytes, rightOpts, readFileSync);
-    if (!leftTable || !rightTable) return undefined;
+    const t0 = loadSyncTypedTable(inBytes, leftOpts, readFileSync);
+    const t1 = loadSyncTypedTable(inBytes, rightOpts, readFileSync);
+    if (!t0 || !t1) return undefined;
     if (!columnsSpec) {
-      if (joinMode !== "inner") return undefined;
       const outHeaders = [
-        ...leftTable.headers,
-        ...rightTable.headers.map(h => (leftTable.headers.includes(h) ? h + "2" : h)),
+        ...t0.headers,
+        ...t1.headers.map(h => (t0.headers.includes(h) ? h + "2" : h)),
       ];
       if (new Set(outHeaders).size !== outHeaders.length) return undefined;
-      const maxRows = Math.max(leftTable.rows.length, rightTable.rows.length);
+      const maxRows = Math.max(t0.rows.length, t1.rows.length);
       const outDialect: CsvDialect = { delimiter: ",", quotechar: "\"", doublequote: true, lineterminator: "\n" };
       let out = addBom ? "\ufeff" : "";
       out += writeCsvRow(outHeaders, outDialect);
       for (let r = 0; r < maxRows; r++) {
-        const lRow = leftTable.rows[r] ?? leftTable.headers.map(() => null);
-        const rRow = rightTable.rows[r] ?? rightTable.headers.map(() => null);
+        const lRow = t0.rows[r] ?? t0.headers.map(() => null);
+        const rRow = t1.rows[r] ?? t1.headers.map(() => null);
         out += writeCsvRow(
           [...lRow, ...rRow].map(v => (v === null ? "" : typeof v === "object" && v.kind === "datetime" ? v.value.replace(" ", "T") : pythonValueText(v))),
           outDialect,
@@ -1337,30 +1351,49 @@ export function evalSyncCsvjoin(
       }
       return out;
     }
-    const colParts = columnsSpec.split(",");
+    const colParts = columnsSpec.split(",").map(s => s.trim());
     if (colParts.length !== 1 && colParts.length !== 2) return undefined;
-    const leftKey = matchColumnIdentifier(leftTable.headers, colParts[0]!, 1);
-    const rightKey = matchColumnIdentifier(rightTable.headers, colParts[1] ?? colParts[0]!, 1);
-    const full = joinMode === "outer" || joinMode === "right";
-    const inner = joinMode === "inner";
-    const keyVal = (v: TableValue): string => {
+    const k0 = matchColumnIdentifier(t0.headers, colParts[0]!, 1);
+    const k1 = matchColumnIdentifier(t1.headers, colParts[1] ?? colParts[0]!, 1);
+    const leftTable = rightJoin ? t1 : t0;
+    const rightTable = rightJoin ? t0 : t1;
+    const leftKey = rightJoin ? k1 : k0;
+    const rightKey = rightJoin ? k0 : k1;
+    const full = Boolean(outerJoin && !leftJoin && !rightJoin);
+    const inner = Boolean(!outerJoin && !leftJoin && !rightJoin);
+    const keyVal = (v: TableValue): string | symbol => {
       if (v === null) return "null";
       if (typeof v === "string") return "text:" + v;
       if (typeof v === "boolean") return v ? "number:1:0" : "number:0";
       if (v.kind === "decimal") {
-        const d = Decimal.parse(v.value).normalized();
-        return "number:" + d.toString();
+        const d = Decimal.parse(v.value);
+        if (d.special === "NaN") return Symbol("NaN");
+        if (d.special) return "number:" + v.value;
+        if (d.coefficient === 0n) return "number:0";
+        const digits = d.coefficient.toString();
+        let end = digits.length;
+        while (digits[end - 1] === "0") end--;
+        return "number:" + (d.negative ? "-" : "") + digits.slice(0, end) + ":" + (d.exponent + digits.length - end);
       }
       return "other:" + pythonValueText(v);
     };
-    const includedRight = rightTable.headers.map((_, idx) => idx).filter(idx => full || idx !== rightKey);
+    let omittedKey = rightKey;
+    if (!full) {
+      for (let index = 0; index < rightKey; index++) {
+        if (rightTable.rows.every(row => row[index] === row[rightKey] || keyVal(row[index]!) === keyVal(row[rightKey]!))) {
+          omittedKey = index;
+          break;
+        }
+      }
+    }
+    const includedRight = rightTable.headers.map((_, idx) => idx).filter(idx => full || idx !== omittedKey);
     const outHeaders = [
       ...leftTable.headers,
       ...includedRight.map(idx => (leftTable.headers.includes(rightTable.headers[idx]!) ? rightTable.headers[idx]! + "2" : rightTable.headers[idx]!)),
     ];
     if (new Set(outHeaders).size !== outHeaders.length) return undefined;
-    const rightHash = new Map<string, (readonly TableValue[])[]>();
-    const rightKeys: string[] = [];
+    const rightHash = new Map<string | symbol, (readonly TableValue[])[]>();
+    const rightKeys: (string | symbol)[] = [];
     for (const row of rightTable.rows) {
       const k = keyVal(row[rightKey]!);
       rightKeys.push(k);
@@ -1369,23 +1402,23 @@ export function evalSyncCsvjoin(
       else rightHash.set(k, [row]);
     }
     const joinedRows: TableValue[][] = [];
-    const seenKeys = new Set<string>();
+    const seenKeys = new Set<string | symbol>();
     for (const lRow of leftTable.rows) {
       const k = keyVal(lRow[leftKey]!);
-      const matches = k === "null" ? undefined : rightHash.get(k);
+      seenKeys.add(k);
+      const matches = rightHash.get(k);
       if (matches) {
-        seenKeys.add(k);
         for (const rRow of matches) {
           joinedRows.push([...lRow, ...includedRight.map(idx => rRow[idx]!)]);
         }
-      } else if (!inner && joinMode !== "right") {
+      } else if (!inner) {
         joinedRows.push([...lRow, ...includedRight.map(() => null)]);
       }
     }
     if (full) {
       for (let i = 0; i < rightTable.rows.length; i++) {
         const k = rightKeys[i]!;
-        if (k === "null" || !seenKeys.has(k)) {
+        if (!seenKeys.has(k)) {
           const rRow = rightTable.rows[i]!;
           joinedRows.push([...leftTable.headers.map(() => null), ...includedRight.map(idx => rRow[idx]!)]);
         }

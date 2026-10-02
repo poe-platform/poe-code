@@ -65,13 +65,25 @@ export function evalSyncCsvgrep(
       if (modes !== 1) return undefined;
     }
     if (options.names && options.headerless) return undefined;
-    let fileMatchSet = new Set<string>();
-    if (options.file !== undefined) {
-      if (!readFileSync) return undefined;
+    const fileMatchSet = new Set<string>();
+    if (!options.names && !options.regex && options.file !== undefined) {
+      if (options.file === "-" || !readFileSync) return undefined;
       const patBytes = readFileSync(options.file);
       if (!patBytes || patBytes.byteLength > 16384) return undefined;
-      const patText = new TextDecoder("utf-8", { fatal: false }).decode(patBytes);
-      fileMatchSet = new Set(patText.split(/\r?\n/).filter(l => l.length > 0));
+      const patText = new TextDecoder("utf-8", { fatal: true }).decode(patBytes);
+      let line = "";
+      let cr = false;
+      for (const char of patText) {
+        if (char === "\r" || char === "\n") {
+          if (!(char === "\n" && cr)) fileMatchSet.add(pythonRstrip(line));
+          line = "";
+          cr = char === "\r";
+        } else {
+          cr = false;
+          line += char;
+        }
+      }
+      if (line) fileMatchSet.add(pythonRstrip(line));
     }
     let sourceBytes = inBytes;
     if (options.filePath !== undefined && options.filePath !== "-") {
@@ -82,7 +94,8 @@ export function evalSyncCsvgrep(
     }
     if (sourceBytes === undefined) return undefined;
     const parser = new CsvParser(options.dialect ?? {}, budget);
-    const rows = [...parser.push(sourceBytes), ...parser.end()];
+    const pushed = parser.push(sourceBytes);
+    const rows = options.names && pushed.length > 0 ? pushed : [...pushed, ...parser.end()];
     const matcher = options.names ? undefined : createMatcher(options, fileMatchSet, budget);
     let headers: readonly string[] | undefined;
     let columns: readonly number[] = [];

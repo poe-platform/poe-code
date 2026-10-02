@@ -1,9 +1,8 @@
 import { Deflate, Inflate } from "pako";
 
-function detachZStreamBuffers(strm: unknown): void {
-  const state = (strm as { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } | undefined)?.state;
+function detachZStreamState(state: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> | undefined | null): void {
   if (!state) return;
-  for (const key of ["window", "prev", "head", "pending_buf"]) {
+  for (const key of ["window", "prev", "head", "pending_buf", "dyn_ltree", "dyn_dtree", "bl_tree", "bl_count", "heap", "depth"]) {
     const buf = state[key]?.buffer;
     if (buf && typeof buf.transfer === "function") {
       try { buf.transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
@@ -13,6 +12,7 @@ function detachZStreamBuffers(strm: unknown): void {
 
 function inflatePngIdat(compressed: Uint8Array, target: Uint8Array): Uint8Array {
   const inf = new Inflate();
+  const state = (inf as unknown as { strm?: { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } }).strm?.state;
   let written = 0;
   let overflow = null as Uint8Array[] | null;
   (inf as unknown as { onStart: (strm: { output: Uint8Array; next_out: number; avail_out: number }) => void }).onStart = (strm) => {
@@ -35,7 +35,7 @@ function inflatePngIdat(compressed: Uint8Array, target: Uint8Array): Uint8Array 
   };
   inf.onEnd = () => {};
   inf.push(compressed, true);
-  detachZStreamBuffers((inf as unknown as { strm?: unknown }).strm);
+  detachZStreamState(state);
   if (inf.err) throw new Error(inf.msg || "PNG inflate failed");
   if (!overflow) return target.subarray(0, written);
   const total = overflow.reduce((s, c) => s + c.length, 0);
@@ -50,8 +50,9 @@ function inflatePngIdat(compressed: Uint8Array, target: Uint8Array): Uint8Array 
 
 function deflatePngScanlines(raw: Uint8Array, level: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Uint8Array {
   const def = new Deflate({ level });
+  const state = (def as unknown as { strm?: { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } }).strm?.state;
   def.push(raw, true);
-  detachZStreamBuffers((def as unknown as { strm?: unknown }).strm);
+  detachZStreamState(state);
   if (def.err) throw new Error(def.msg || "PNG deflate failed");
   return def.result;
 }
@@ -525,16 +526,34 @@ export function encodePngImage(
   const colorType = isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
   const bpp = isBw ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
   const rowBytes = width * bpp;
-  const canFilterInPlace = Boolean(options?.consumeInput && bpp <= 3 && width >= 1 && data.length >= height * (rowBytes + 1));
-  const raw = canFilterInPlace ? data.subarray(0, height * (rowBytes + 1)) : new Uint8Array(height * (rowBytes + 1));
+  let activeData = data;
+  const totalScanlineBytes = height * (rowBytes + 1);
+  if (
+    options?.consumeInput &&
+    bpp === 4 &&
+    width >= 1 &&
+    activeData.byteOffset === 0 &&
+    activeData.byteLength === activeData.buffer.byteLength &&
+    typeof (activeData.buffer as any).transfer === "function"
+  ) {
+    try {
+      activeData = new Uint8Array((activeData.buffer as any).transfer(totalScanlineBytes));
+    } catch {
+      // Fall back to separate allocation if buffer transfer is unavailable.
+    }
+  }
+  const canFilterInPlace = Boolean(options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);
+  const raw = canFilterInPlace ? activeData.subarray(0, totalScanlineBytes) : new Uint8Array(totalScanlineBytes);
   const rowScratch = canFilterInPlace ? new Uint8Array(width * 4) : undefined;
+  const reverseRows = canFilterInPlace && bpp === 4;
 
-  for (let y = 0; y < height; y++) {
+  for (let step = 0; step < height; step++) {
+    const y = reverseRows ? height - 1 - step : step;
     const dstRow = y * (rowBytes + 1);
-    let srcRowData = data;
+    let srcRowData = activeData;
     let rowBase = y * width * 4;
     if (rowScratch) {
-      rowScratch.set(data.subarray(rowBase, rowBase + width * 4));
+      rowScratch.set(activeData.subarray(rowBase, rowBase + width * 4));
       srcRowData = rowScratch;
       rowBase = 0;
     }
@@ -682,6 +701,7 @@ export function decodePngToCanvas(
   let anyTransparent = false;
 
   const inf = new Inflate({ chunkSize: 65536 });
+  const state = (inf as unknown as { strm?: { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } }).strm?.state;
   inf.onData = (chunk: Uint8Array) => {
     let cOff = 0;
     while (cOff < chunk.length && y < height) {
@@ -750,7 +770,7 @@ export function decodePngToCanvas(
     inf.push(idatChunks[i]!, i === idatChunks.length - 1);
     if (inf.err) break;
   }
-  detachZStreamBuffers((inf as unknown as { strm?: unknown }).strm);
+  detachZStreamState(state);
   if (inf.err || y < height) return undefined;
   return { width, height, anyTransparent };
 }

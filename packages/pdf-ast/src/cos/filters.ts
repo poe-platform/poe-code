@@ -1,9 +1,8 @@
 import { Deflate, Inflate, Z_BUF_ERROR } from "pako";
 
-function detachPakoStream(strm: unknown): void {
-  const state = (strm as { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } | undefined)?.state;
+function detachPakoState(state: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> | undefined | null): void {
   if (!state) return;
-  for (const key of ["window", "prev", "head", "pending_buf"]) {
+  for (const key of ["window", "prev", "head", "pending_buf", "dyn_ltree", "dyn_dtree", "bl_tree", "bl_count", "heap", "depth"]) {
     const buf = state[key]?.buffer;
     if (buf && typeof buf.transfer === "function") {
       try { buf.transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
@@ -30,8 +29,9 @@ const DEFAULT_MAX_DECODED_BYTES = Infinity;
 
 export function encodeFlate(bytes: Uint8Array): Uint8Array {
   const def = new Deflate();
+  const state = (def as unknown as { strm?: { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } }).strm?.state;
   def.push(bytes, true);
-  detachPakoStream((def as unknown as { strm?: unknown }).strm);
+  detachPakoState(state);
   if (def.err) throw new Error(def.msg || "Flate encode failed");
   return def.result;
 }

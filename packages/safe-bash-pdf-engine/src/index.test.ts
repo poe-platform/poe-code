@@ -87,3 +87,13 @@ it("charges layout work for measuring empty table cells", async () => {
   const result = await renderPdf({fonts: [font], blocks: [{kind: "table", widths: [0.5, 0.5], rows: [[empty, empty]]}]}, {limits: {layoutWork: 1}}).then(() => "accepted", error => error.code as string);
   expect(result).toBe("E_LIMIT");
 });
+
+it("renders standard PDF fonts without registering fontkit", async () => {
+  const { StandardFonts } = await import("pdf-lib");
+  const bytes = await renderPdf({
+    fonts: [{ id: "sans", standard: StandardFonts.Helvetica }],
+    blocks: [{ kind: "paragraph", runs: [{ text: "Standard Font PDF", font: "sans", size: 12 }] }]
+  });
+  const pdf = await PDFDocument.load(bytes);
+  expect(pdf.getPageCount()).toBe(1);
+});

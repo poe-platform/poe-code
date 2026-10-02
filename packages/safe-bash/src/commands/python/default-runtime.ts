@@ -118,6 +118,7 @@ async function runWasiPythonWorker(
     }
 
     const { mod, shim } = await getWasiPythonDeps();
+    cachedWasiDepsPromise = undefined;
     const { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, Directory } = shim;
 
     const root = new Map<string, any>();

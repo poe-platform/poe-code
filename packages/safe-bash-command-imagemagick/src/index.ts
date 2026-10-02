@@ -2909,7 +2909,7 @@ function escapeXml(s: string): string {
 }
 
 function detachRgbaBuffer(u8: Uint8Array): void {
-  if (u8.byteOffset === 0 && u8.byteLength === u8.buffer.byteLength && typeof (u8.buffer as any).transfer === "function") {
+  if (u8.byteOffset === 0 && typeof (u8.buffer as any).transfer === "function") {
     try { (u8.buffer as any).transfer(0); } catch {}
   }
 }

@@ -1,4 +1,4 @@
-import { inflateRawSync } from "node:zlib";
+import { inflateDeflateRaw } from "./pdf.js";
 import type { MetadataTag } from "./png.js";
 import type { Resources } from "./resources.js";
 
@@ -55,7 +55,7 @@ function readZipEntries(bytes: Uint8Array, resources: Resources): Map<string, Ui
           resources.admit("work", compSize + 64);
           if (method === 0) entries.set(name, slice);
           else if (method === 8 && (name.endsWith(".xml") || name.endsWith(".opf") || name === "mimetype")) {
-            try { entries.set(name, new Uint8Array(inflateRawSync(slice))); } catch {}
+            try { entries.set(name, new Uint8Array(inflateDeflateRaw(slice, 0))); } catch {}
           }
         }
       }

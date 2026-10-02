@@ -54,7 +54,7 @@ function buildHuffman(lengths: Uint8Array): { counts: Uint16Array; symbols: Uint
   return { counts, symbols };
 }
 
-function inflateDeflateRaw(src: Uint8Array, startOffset = 0): Uint8Array {
+export function inflateDeflateRaw(src: Uint8Array, startOffset = 0): Uint8Array {
   let bitPos = startOffset * 8;
   const readBits = (n: number): number => {
     let val = 0;

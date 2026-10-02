@@ -497,6 +497,7 @@ let browserRealm: ReturnType<typeof createContext>;
 let filesystem: CoreFs;
 let browserConsumerSource: string;
 let byteOperationsSource: string;
+let networkArchiveSource: string;
 
 beforeAll(async () => {
   filesystemBuild = await build({
@@ -547,6 +548,11 @@ beforeAll(async () => {
     export { createCurlCommand, createWgetCommand, networkCommands, createFetchTransport } from "@poe-platform/safe-bash/commands/network";
     export { trapExtension as PortableTrapExtension } from "@poe-platform/safe-bash/trap";
     ${["sed", "awk", "jq", "diff", "tar", "zip", "date", "printenv", "du"].map(name => `export { create${name[0].toUpperCase() + name.slice(1)}Command as leaf_${name} } from "@poe-platform/safe-bash/commands/${name}";`).join("\n")}
+  `);
+  networkArchiveSource = await bundlePublicConsumer(`
+    export { Shell } from "@poe-platform/safe-bash/shell";
+    export { archiveCommands } from "@poe-platform/safe-bash/commands/archive";
+    export { createCurlCommand, createWgetCommand, networkCommands, createFetchTransport } from "@poe-platform/safe-bash/commands/network";
   `);
 });
 
@@ -857,7 +863,7 @@ it("runs default network factories, Fetch deadlines and every WinZip AES mode in
     modules: true, compatibilityDate: "2026-07-01", cf: false,
     script: `
       const canonical = (() => { const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })();
-      const browser = (() => { const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${byteOperationsSource}; return module.exports; })();
+      const browser = (() => { const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${networkArchiveSource}; return module.exports; })();
       export default { async fetch() {
         const names = [browser.createCurlCommand().name, browser.createWgetCommand().name, browser.networkCommands().name];
         const originalFetch = globalThis.fetch;

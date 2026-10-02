@@ -1,5 +1,5 @@
-import path from "node:path";
-import * as fsPromises from "node:fs/promises";
+import { path } from "../portable-path.js";
+import { createPipelineFileSystem } from "../filesystem.js";
 import { loadResolvedSteps } from "../config/loader.js";
 import {
   archivePlan as archivePlanShared,
@@ -16,7 +16,6 @@ import { resolvePipelineVars } from "../vars/resolve.js";
 import { validateResolvedPromptVars } from "../vars/validate.js";
 import type {
   AgentRunResult,
-  PipelineFileStat,
   PipelineFileSystem,
   PipelineMetrics,
   PipelinePlan,
@@ -32,36 +31,8 @@ import { getAbortUsage } from "./abort-usage.js";
 import { setTerminalTabName } from "@poe-code/terminal-name";
 
 type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
-type ResolvedPipelineRunOptions = PipelineRunOptions & Required<Pick<PipelineRunOptions, "fs" | "plan" | "runAgent">>;
+type ResolvedPipelineRunOptions = Omit<PipelineRunOptions, "fs"> & { fs: PipelineFileSystem } & Required<Pick<PipelineRunOptions, "plan" | "runAgent">>;
 
-function createDefaultFs(): PipelineFileSystem {
-  const fs = {
-    readFile: fsPromises.readFile as PipelineFileSystem["readFile"],
-    writeFile: fsPromises.writeFile as PipelineFileSystem["writeFile"],
-    readdir: fsPromises.readdir,
-    stat: async (filePath: string) => {
-      const stat = await fsPromises.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: stat.mtimeMs
-      } satisfies PipelineFileStat;
-    },
-    lstat: async (filePath: string) => {
-      const stat = await fsPromises.lstat(filePath);
-      return { isSymbolicLink: () => stat.isSymbolicLink() };
-    },
-    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
-      await fsPromises.mkdir(filePath, options);
-    },
-    rmdir: fsPromises.rmdir,
-    rename: fsPromises.rename,
-    unlink: fsPromises.unlink,
-    realpath: fsPromises.realpath
-  };
-
-  return fs as PipelineFileSystem;
-}
 
 function isTaskDone(status: PipelineTask["status"]): boolean {
   if (typeof status === "string") {
@@ -114,7 +85,7 @@ function planIdFromArchivePath(absolutePlanPath: string): string {
 }
 
 export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = options.fs && !("capabilities" in options.fs) ? options.fs : createPipelineFileSystem(options.fs);
   const cwd = options.cwd;
   const homeDir = options.homeDir;
   const configuredPlanDirectory = options.planDirectory;

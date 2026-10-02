@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "../portable-path.js";
 import type {
   ExecutionSelection,
   PipelinePlan,
@@ -44,7 +44,7 @@ const FILE_INCLUDE_PATTERN = /\{\{file\s+['"]([^'"]+)['"]\s*\}\}/g;
 export async function resolveFileIncludes(
   template: string,
   cwd: string,
-  readFile: (filePath: string, encoding: BufferEncoding) => Promise<string>
+  readFile: (filePath: string, encoding: "utf8") => Promise<string>
 ): Promise<string> {
   const matches = [...template.matchAll(FILE_INCLUDE_PATTERN)];
   if (matches.length === 0) {

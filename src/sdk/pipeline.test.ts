@@ -1,3 +1,4 @@
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createFsFromVolume, fs, vol, Volume } from "memfs";
 import type { PipelineFileSystem, PipelineRunOptions, PipelineRunResult } from "@poe-code/pipeline";
@@ -211,6 +212,17 @@ describe("SDK pipeline", () => {
 
     expect(result).toEqual(workspaceResult);
     expect(workspaceRunPipelineMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("reads explicit plans from a SafeFS byte filesystem during preflight", async () => {
+    seedFs({});
+    const injectedFs = new MemoryFileSystem();
+    await injectedFs.mkdir("/virtual", { recursive: true });
+    await injectedFs.writeFile("/virtual/feature.md", new TextEncoder().encode(initializedPlan()));
+    workspaceRunPipelineMock.mockResolvedValue(workspaceResult);
+    await expect(runPipeline({ cwd: "/virtual", homeDir, plan: "feature.md", agent: "codex", fs: injectedFs })).resolves.toMatchObject({ stopReason: "completed" });
+    expect(sdkSpawnAutonomousMock).not.toHaveBeenCalled();
+    expect(workspaceRunPipelineMock).toHaveBeenCalledWith(expect.objectContaining({ fs: injectedFs }));
   });
 
   it("supports home-relative explicit plan paths during initialization preflight", async () => {

@@ -9,6 +9,9 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.workerd.js",
+      "browser": "./dist/index.workerd.js",
+      "worker": "./dist/index.workerd.js",
       "import": "./dist/index.js"
     }
   },

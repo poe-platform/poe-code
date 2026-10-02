@@ -8,7 +8,7 @@ import { setTerminalTabName } from "@poe-code/terminal-name";
 await setTerminalTabName("Fix login");
 ```
 
-In tmux, this renames the window containing the calling pane, leaving the pane title unchanged. Outside tmux, iTerm receives its tab-title escape sequence (OSC 1) when stdout is a TTY. Other terminals and redirected output are left alone.
+In tmux, this renames the window containing the calling pane, leaving the pane title unchanged. Outside tmux, iTerm receives its tab-title escape sequence (OSC 1) when stdout is a TTY. Other terminals and redirected output are left alone. Browser and Worker imports require no Node capabilities and safely skip terminal naming.
 
 Control characters are stripped from names. Empty names are ignored. The tmux process has a 500 ms timeout; launch errors, command failures and terminal write exceptions are ignored so naming cannot fail the caller's operation.
 

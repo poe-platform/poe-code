@@ -1,5 +1,6 @@
-import path from "node:path";
-import { Volume, createFsFromVolume } from "memfs";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
+import { createPipelineFileSystem } from "../filesystem.js";
 import { stringify } from "yaml";
 import { loadResolvedSteps } from "../config/loader.js";
 import { parsePlan, pipelineDocumentSchemaId } from "../plan/parser.js";
@@ -72,7 +73,7 @@ export type SimulationResult = {
   getTask: (taskId: string) => Promise<PipelineTask | undefined>;
 };
 
-function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; planPath: string } {
+async function createSimulationFs(options: SimulationOptions): Promise<{ fs: SimulationFs; planPath: string }> {
   const planPath = "/repo/docs/plans/plan.md";
   const files: Record<string, string> = {
     [planPath]: [
@@ -109,31 +110,11 @@ function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; pla
     });
   }
 
-  const volume = Volume.fromJSON(files, "/");
-  const rawFs = createFsFromVolume(volume).promises;
-  const fs = {
-    readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
-    writeFile: (filePath, data, writeOptions) =>
-      rawFs.writeFile(filePath, data, writeOptions) as Promise<void>,
-    readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
-    stat: async (filePath) => {
-      const stat = await rawFs.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: Number(stat.mtimeMs)
-      };
-    },
-    lstat: async (filePath) => {
-      const stat = await rawFs.lstat(filePath);
-      return { isSymbolicLink: () => stat.isSymbolicLink() };
-    },
-    mkdir: (filePath, mkdirOptions) => rawFs.mkdir(filePath, mkdirOptions) as Promise<void>,
-    realpath: (filePath: string) => rawFs.realpath(filePath) as Promise<string>,
-    rmdir: (filePath) => rawFs.rmdir(filePath) as Promise<void>,
-    rename: (oldPath, newPath) => rawFs.rename(oldPath, newPath) as Promise<void>,
-    unlink: (filePath) => rawFs.unlink(filePath) as Promise<void>
-  } as SimulationFs;
+  const fs = createPipelineFileSystem(new MemoryFileSystem());
+  for (const [filePath, content] of Object.entries(files)) {
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await fs.writeFile(filePath, content);
+  }
 
   return { fs, planPath };
 }
@@ -185,7 +166,7 @@ export function createPipelineSimulation(options: SimulationOptions): {
 } {
   return {
     async run(): Promise<SimulationResult> {
-      const { fs, planPath } = createSimulationFs(options);
+      const { fs, planPath } = await createSimulationFs(options);
       const turns = [...options.turns];
       const prompts: string[] = [];
       const runs: SimulationRun[] = [];

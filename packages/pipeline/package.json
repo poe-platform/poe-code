@@ -29,6 +29,16 @@
     "@poe-code/terminal-name": "*",
     "@poe-code/user-error": "*",
     "toolcraft-design": "*",
-    "yaml": "^2.8.2"
+    "yaml": "^2.8.2",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#pipeline-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
   }
 }

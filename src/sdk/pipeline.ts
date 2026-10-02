@@ -2,6 +2,7 @@ import * as fsPromises from "node:fs/promises";
 import { parse as parseYaml } from "yaml";
 import {
   resolveAbsolutePlanPath,
+  createPipelineFileSystem,
   includePipelineInitialization,
   cancelPipelineInitialization,
   runPipeline as runWorkspacePipeline,
@@ -217,7 +218,9 @@ async function runPipelineDirect(options: PipelineRunOptions): Promise<PipelineR
   const userRunAgent = options.runAgent ?? runDefaultPipelineAgent;
 
   if (options.plan) {
-    const planFs = options.fs ?? fsPromises;
+    const planFs = options.fs && "capabilities" in options.fs
+      ? createPipelineFileSystem(options.fs)
+      : options.fs ?? fsPromises;
     const planAbsolutePath = resolveAbsolutePlanPath(options.plan, options.cwd, options.homeDir);
     if (await planNeedsInit(planAbsolutePath, planFs)) {
       const initializationStartedAt = Date.now();

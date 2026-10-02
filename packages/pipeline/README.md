@@ -2,6 +2,8 @@
 
 Step-based task pipeline for running task plans through the existing agent spawn infrastructure.
 
+Pass a SafeFS `FileSystem` as `fs` to `runPipeline` or plan discovery to use memory or remote storage in Workers, along with a `runAgent` implementation. Node applications use the host filesystem by default. Simulation helpers also run without Node dependencies.
+
 ## Quickstart
 
 ```bash

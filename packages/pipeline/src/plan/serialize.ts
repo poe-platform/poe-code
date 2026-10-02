@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "../portable-path.js";
 import { assertNotAborted, createAbortError } from "../utils.js";
 
 const pending = new Map<string, Promise<void>>();

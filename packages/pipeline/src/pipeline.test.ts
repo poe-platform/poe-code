@@ -2304,7 +2304,7 @@ describe("writeTaskStatus", () => {
       ) {
         if (
           temporaryPath === undefined &&
-          filePath.startsWith(`/repo/plan.yaml.${process.pid}.`) &&
+          filePath.startsWith("/repo/plan.yaml.") &&
           filePath.endsWith(".tmp")
         ) {
           temporaryPath = filePath;

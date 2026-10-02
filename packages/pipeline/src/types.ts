@@ -1,3 +1,4 @@
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 export type PipelineStatus = "open" | "done" | "failed";
 export type PipelineFinalizationStatus = "pending" | "teardown_completed" | "completed";
 export const PIPELINE_STEP_MODES = ["yolo", "auto", "edit", "read"] as const;
@@ -76,11 +77,11 @@ export interface PipelineFileStat {
 }
 
 export interface PipelineFileSystem {
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
   writeFile(
     path: string,
     data: string,
-    options?: { encoding?: BufferEncoding; flag?: string }
+    options?: { encoding?: "utf8"; flag?: string }
   ): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<PipelineFileStat>;
@@ -186,7 +187,7 @@ export interface PipelineRunOptions {
   task?: string;
   maxRuns?: number;
   assumeYes?: boolean;
-  fs?: PipelineFileSystem;
+  fs?: PipelineFileSystem | FileSystem;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   selectPlan?: (input: {
     message: string;

@@ -44,3 +44,5 @@ export { includePipelineInitialization, cancelPipelineInitialization } from "./r
 export { interpolatePipelineVars } from "./vars/interpolate.js";
 export { resolvePipelineVars } from "./vars/resolve.js";
 export { validateResolvedPromptVars } from "./vars/validate.js";
+
+export { createPipelineFileSystem } from "./filesystem.js";

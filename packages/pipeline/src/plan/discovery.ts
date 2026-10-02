@@ -1,9 +1,10 @@
-import path from "node:path";
-import * as fsPromises from "node:fs/promises";
+import { path } from "../portable-path.js";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { createPipelineFileSystem } from "../filesystem.js";
 import { discoverPlans, formatPlanReadinessLabel } from "@poe-code/agent-harness-tools";
 import { UserError } from "@poe-code/user-error";
 import { parsePlan } from "./parser.js";
-import type { PipelineFileStat, PipelineFileSystem } from "../types.js";
+import type { PipelineFileSystem } from "../types.js";
 import { isNotFound } from "../utils.js";
 
 type DiscoveryFs = Pick<PipelineFileSystem, "readFile" | "readdir" | "stat">;
@@ -17,20 +18,6 @@ type PlanCandidate = {
 
 type DiscoverPlansFs = NonNullable<Parameters<typeof discoverPlans>[0]["fs"]>;
 
-function createDefaultFs(): DiscoveryFs {
-  return {
-    readFile: fsPromises.readFile as DiscoveryFs["readFile"],
-    readdir: fsPromises.readdir,
-    stat: async (filePath: string) => {
-      const stat = await fsPromises.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: stat.mtimeMs
-      } satisfies PipelineFileStat;
-    }
-  };
-}
 
 function countCompletedTasks(planPath: string, content: string, ready = false): PlanCandidate {
   const plan = parsePlan(content);
@@ -130,7 +117,7 @@ export async function resolvePlanPath(options: {
   plans?: string[];
   planDirectory?: string;
   assumeYes?: boolean;
-  fs?: DiscoveryFs;
+  fs?: DiscoveryFs | FileSystem;
   selectPlan?: (input: {
     message: string;
     options: Array<{ label: string; value: string }>;
@@ -142,7 +129,7 @@ export async function resolvePlanPath(options: {
   }) => Promise<string[] | null>;
   promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
 }): Promise<string | null> {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = options.fs && !("capabilities" in options.fs) ? options.fs : createPipelineFileSystem(options.fs);
 
   const planPaths = await resolvePlanPaths({
     ...options,
@@ -159,7 +146,7 @@ export async function resolvePlanPaths(options: {
   plans?: string[];
   planDirectory?: string;
   assumeYes?: boolean;
-  fs?: DiscoveryFs;
+  fs?: DiscoveryFs | FileSystem;
   selectPlan?: (input: {
     message: string;
     options: Array<{ label: string; value: string }>;
@@ -171,7 +158,7 @@ export async function resolvePlanPaths(options: {
   }) => Promise<string[] | null>;
   promptForPath?: (input: { message: string; placeholder: string }) => Promise<string | null>;
 }): Promise<string[] | null> {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = options.fs && !("capabilities" in options.fs) ? options.fs : createPipelineFileSystem(options.fs);
 
   const explicitPlans = [...(options.plan ? [options.plan] : []), ...(options.plans ?? [])]
     .map((planPath) => planPath.trim())

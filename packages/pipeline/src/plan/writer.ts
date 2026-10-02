@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
 import { hasOwnErrorCode } from "../error-codes.js";
 import type { PipelineFileSystem, PipelineFinalizationStatus, PipelineStatus } from "../types.js";
@@ -289,7 +288,7 @@ async function persistPlanDocument(
 
   canonicalizeDocument(document);
 
-  const tempPath = `${options.planPath}.${process.pid}.${randomUUID()}.tmp`;
+  const tempPath = `${options.planPath}.${crypto.randomUUID()}.tmp`;
   let tempCreated = false;
   try {
     await options.fs.writeFile(tempPath, serializeDocument(parts, document), {

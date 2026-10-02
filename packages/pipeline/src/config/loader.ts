@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "../portable-path.js";
 import { resolve } from "@poe-code/config-extends";
 import { parse } from "yaml";
 import {

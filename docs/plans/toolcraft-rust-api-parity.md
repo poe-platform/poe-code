@@ -2420,3 +2420,37 @@ ARM64 rounds of 200 formatted messages with 32 retained outputs measured
 840.863 microseconds native / 123.571 microseconds JavaScript (6.80 times slower).
 This does not pass the performance gate. Remaining nested modules, nominal
 cancellation types, batching and broader Toolcraft/platform/swap gates stay open.
+
+### Nested utility import checkpoint
+
+Added thirteen original nested entry points: the component barrel and its color,
+text and logger modules; dashboard line buffers and output previews; explorer
+event types; color support, output format, ANSI stripping, theme detection and
+state; and the interactive prompt barrel. Named re-exports preserve the existing
+function and cancellation-symbol identities. The component barrel imports its
+individual component modules. Added standalone color-support/theme-state types
+and corrected both preview constants to their original literal declaration types.
+
+Missing-import and declaration tests preceded the changes. The new checks compare
+runtime export sets, module descriptors, implementation identities and every
+exported declaration name for all thirteen modules. Bidirectional assignments
+cover modules and named types; the existing nominal cancellation-symbol difference
+remains an explicit swap gate for the interactive barrel. Original internal-utility
+and output-preview suites now use native resolution, adding 65 cases.
+
+Build, scoped JS lint and the maintained package unit route pass: 394 native host
+tests, 1,516 selected design cases, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 315 explorer cases. Final component-barrel adjustments also
+pass focused runtime and declaration checks. Packed self-imports, shared theme
+state and cancellation identity pass with external ESM dependencies rejected;
+packed declarations including the preview literal types compile with `types: []`.
+These aliases add no per-call wrappers, algorithms or dependencies; no rendering
+or default integration changes, and no new performance claim.
+
+Source plus the original tsconfig (which excludes only `*.test.ts`) still identify
+eight missing concrete modules: dashboard demo/terminal strings, explorer demo
+and runtime test helpers, dashboard pipeline scenario, explorer render fixtures,
+prompt test helpers and Markdown theme fixture. Four original suites remain
+unselected: dashboard demo/pipeline scenario and explorer demo/import boundaries.
+Already-exposed modules still require the complete package-wide swap audit.
+Broader Toolcraft, nominal typing, performance and platform gates remain open.

@@ -1038,3 +1038,5 @@ const planEntryNative: nativeAcpPlan.AgentPlanEntry = null as unknown as referen
 const writerOriginal: referenceAcpWriter.AcpLineWriter = null as unknown as nativeAcpWriter.AcpLineWriter;
 const writerNative: nativeAcpWriter.AcpLineWriter = null as unknown as referenceAcpWriter.AcpLineWriter;
 void [acpOriginal,acpNative,acpComponentsOriginal,acpComponentsNative,acpPlanOriginal,acpPlanNative,acpWriterOriginal,acpWriterNative,acpRootOriginal,acpRootNative,acpStateOriginal,acpStateNative,componentStateOriginal,componentStateNative,planEntryOriginal,planEntryNative,writerOriginal,writerNative];
+
+import "./nested-subpaths-types.js";

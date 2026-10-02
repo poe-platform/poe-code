@@ -751,6 +751,58 @@
     "./acp/writer": {
       "types": "./dist/acp-writer.d.ts",
       "import": "./dist/acp-writer.js"
+    },
+    "./components/color": {
+      "types": "./dist/public-components-color.d.ts",
+      "import": "./dist/public-components-color.js"
+    },
+    "./components/text": {
+      "types": "./dist/public-components-text.d.ts",
+      "import": "./dist/public-components-text.js"
+    },
+    "./components/logger": {
+      "types": "./dist/public-components-logger.d.ts",
+      "import": "./dist/public-components-logger.js"
+    },
+    "./components/index": {
+      "types": "./dist/public-components-index.d.ts",
+      "import": "./dist/public-components-index.js"
+    },
+    "./dashboard/output-preview": {
+      "types": "./dist/public-dashboard-output-preview.d.ts",
+      "import": "./dist/public-dashboard-output-preview.js"
+    },
+    "./internal/output-format": {
+      "types": "./dist/public-internal-output-format.d.ts",
+      "import": "./dist/public-internal-output-format.js"
+    },
+    "./internal/strip-ansi": {
+      "types": "./dist/public-internal-strip-ansi.d.ts",
+      "import": "./dist/public-internal-strip-ansi.js"
+    },
+    "./internal/theme-detect": {
+      "types": "./dist/public-internal-theme-detect.d.ts",
+      "import": "./dist/public-internal-theme-detect.js"
+    },
+    "./dashboard/line-buffer": {
+      "types": "./dist/line-buffer.d.ts",
+      "import": "./dist/line-buffer.js"
+    },
+    "./explorer/events": {
+      "types": "./dist/explorer-events.d.ts",
+      "import": "./dist/explorer-events.js"
+    },
+    "./internal/color-support": {
+      "types": "./dist/color-support.d.ts",
+      "import": "./dist/color-support.js"
+    },
+    "./internal/theme-state": {
+      "types": "./dist/theme-state.d.ts",
+      "import": "./dist/theme-state.js"
+    },
+    "./prompts/interactive/index": {
+      "types": "./dist/prompt-interactive.d.ts",
+      "import": "./dist/prompt-interactive.js"
     }
   },
   "scripts": {

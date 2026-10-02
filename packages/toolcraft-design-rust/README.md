@@ -4,6 +4,14 @@ Compose agent prompts and configuration templates with an own Rust core and no
 npm runtime dependencies. This private additive package keeps your current design
 system integrations intact.
 
+Use the root import or the original flat helper paths, such as
+`toolcraft-design-rust/render-table`. Components also expose `components/index`,
+`components/color`, `components/text` and `components/logger`. Dashboard line
+buffers and output previews are available through `dashboard/line-buffer` and
+`dashboard/output-preview`; theme, color-support and output-format utilities
+retain their `internal/*` paths. `prompts/interactive/index` collects the lower
+level prompt functions and shared cancellation symbol.
+
 Render consistent agent output with callable `color` chains, `text` helpers and
 cached dark/light palettes. `configureTheme({brand: 'blue', label: 'Acme'})`
 sets your brand and live intro label. Colors follow terminal support and

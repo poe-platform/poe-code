@@ -11,6 +11,14 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if(importer===path("../toolcraft-design/src/internal/internal.test.ts")){
+          const modules={"./output-format.js":"public-internal-output-format","./theme-detect.js":"public-internal-theme-detect","./color-support.js":"color-support","../tokens/colors.js":"tokens-colors","./theme-state.js":"theme-state"};
+          if(modules[name])return path(`dist/${modules[name]}.js`);
+        }
+        if(importer===path("../toolcraft-design/src/dashboard/output-preview.test.ts")){
+          const modules={"./output-preview.js":"public-dashboard-output-preview","./ansi.js":"dashboard-ansi","./line-buffer.js":"line-buffer"};
+          if(modules[name])return path(`dist/${modules[name]}.js`);
+        }
         if(importer===path("../toolcraft-design/src/acp/components.test.ts")&&name==="./components.js")return path("dist/acp-events.js");
         if ([path("../toolcraft-design/src/index.test.ts"),path("../toolcraft-design/src/subpath-exports.test.ts")].includes(importer)) {
           const key=name==="./index.js"?".":name.endsWith(".js")?name.slice(0,-3):name;
@@ -174,6 +182,8 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/internal/internal.test.ts"),
+      path("../toolcraft-design/src/dashboard/output-preview.test.ts"),
       path("../toolcraft-design/src/acp/components.test.ts"),
       path("../toolcraft-design/src/index.test.ts"),
       path("../toolcraft-design/src/subpath-exports.test.ts"),

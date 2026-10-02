@@ -1104,6 +1104,10 @@ export class ShellInput implements ByteSource, CommandInput {
     }
   }
 
+  canReuseWarmEmpty(): boolean {
+    return this._lazyCursor === undefined && !this._viewClosed && this._reads === undefined && this._closing === undefined;
+  }
+
   private get _cursor(): InputCursor {
     let c = this._lazyCursor;
     if (!c) {

@@ -37,6 +37,15 @@ export class ParseBudget {
     return this.remainingNum;
   }
 
+  reset(): void {
+    this.totalAdmitted = 0;
+    if (!this.unlimited) {
+      this.remainingNum = defaultMaxParseUnits;
+      this.remainingSmi = 0x3fffffff;
+    }
+    this.failure = undefined;
+  }
+
   restore(saved: number): void {
     if (!this.unlimited && !this.failure) {
       this.remainingNum = saved;

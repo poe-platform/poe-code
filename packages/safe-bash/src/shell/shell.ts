@@ -368,12 +368,13 @@ export class Shell implements PluginHost {
   #singleActiveOwner: RootInvocationCancellationOwner | undefined;
   #active: Set<{ scope: InvocationScope; budget: Budget; owner: RootInvocationCancellationOwner }> | undefined;
   #warmedInvocation: WarmedInvocation | undefined;
+  #execCount = 0;
   readonly #parsedSourceCache = new Map<string, SourceParseCache>();
 
   #getSourceParseCache(source: string): SourceParseCache {
     let entry = this.#parsedSourceCache.get(source);
     if (!entry) {
-      if (this.#parsedSourceCache.size >= 64) {
+      if (this.#parsedSourceCache.size >= 32) {
         const oldest = this.#parsedSourceCache.keys().next().value;
         if (oldest !== undefined) this.#parsedSourceCache.delete(oldest);
       }
@@ -665,11 +666,26 @@ export class Shell implements PluginHost {
       if (!runtime.tryFinishShellSync(currentState) || budget.hasExecutionCleanup || scope.hasFailures || budget.signal.aborted) {
         return this.#continueWarmAsync(source, options, warm, sourceCache, undefined, undefined, currentCachedUnit, exitCode);
       }
+      const stdoutOutput = stdout.takeUtf8Output();
+      const stderrOutput = stderr.takeUtf8Output();
+      const expectedCwd = this.#options.cwd ?? "/";
+      if (
+        !this.#disposed &&
+        !this.#warmedInvocation &&
+        budget.limits.maxParseUnits === Infinity &&
+        budget.limits.maxCpuMs === Infinity &&
+        budget.limits.maxWallClockMs === Infinity &&
+        scope.canReuseWarm() &&
+        stdin.canReuseWarmEmpty() &&
+        runtime.tryResetWarmInvocation(currentState, expectedCwd)
+      ) {
+        io.descriptors = undefined;
+        this.#warmedInvocation = warm;
+        return Promise.resolve(new FastShellResult(stdoutOutput, stderrOutput, exitCode));
+      }
       scope.clearActiveBudget();
       scope.clearActiveStdin();
       void stdin.close();
-      const stdoutOutput = stdout.takeUtf8Output();
-      const stderrOutput = stderr.takeUtf8Output();
       budget.close();
       if (scope.canFastWarmClose()) {
         owner.closeWarmSync();
@@ -1124,8 +1140,8 @@ export class Shell implements PluginHost {
       throw error;
     }
     finally {
+      const expectedCwd = this.#options.cwd ?? "/";
       if (
-        source === "" &&
         !failed &&
         // A retained invocation keeps its parse admissions and clock origins.
         // Bounded executions must create their own budget and deadline instead.
@@ -1136,14 +1152,18 @@ export class Shell implements PluginHost {
         !budget.hasExecutionCleanup &&
         !scope.hasFailures &&
         !budget.signal.aborted &&
+        scope.canReuseWarm() &&
         stdin &&
+        stdin.canReuseWarmEmpty() &&
         runtime &&
         // Host runtimes own native signals tied to the current Worker request.
         // Only the direct memory path can retain an invocation for a later call.
         runtime._isMemoryBackingFs &&
         state &&
-        this.#isDefaultExecOptions(options, scope)
+        this.#isDefaultExecOptions(options, scope) &&
+        (source === "" || (++this.#execCount >= 2 && runtime.tryResetWarmInvocation(state, expectedCwd)))
       ) {
+        io.descriptors = undefined;
         if (state.extensions) {
           state.extensions.started = true;
           state.extensions.exiting = false;
@@ -1152,7 +1172,6 @@ export class Shell implements PluginHost {
         rawVars.__w0 = ""; rawVars.__w1 = ""; rawVars.__w2 = ""; rawVars.__w3 = ""; rawVars.__w4 = "";
         delete rawVars.__w0; delete rawVars.__w1; delete rawVars.__w2; delete rawVars.__w3; delete rawVars.__w4;
         const monitor = ensureStateMonitor(state, budget, scope);
-        void monitor.proxy.variables;
         monitor.values.prewarm();
         stdout.enableScratchBuffer();
         stderr.enableScratchBuffer();

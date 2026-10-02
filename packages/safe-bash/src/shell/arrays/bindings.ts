@@ -121,6 +121,71 @@ export class IndexedBinding {
   _stashValues?: Map<number, Element> | undefined;
   _stashKeys?: Map<string, { index: number; text: OwnedText; admission: Admission }> | undefined;
   _stashKeyByIndex?: Map<number, string> | undefined;
+  _denseSlots?: Element[] | undefined;
+  _denseKeyPrefix?: string | undefined;
+
+  restoreStashedDense(limit: number, keyPrefix?: string): Element[] | undefined {
+    if (this.values.size !== 1 || !this._stashValues || this._stashValues.size !== limit - 1) return undefined;
+    const slot0 = this.values.get(0);
+    if (!slot0 || slot0.text.references !== 1) return undefined;
+    if (!this.associative) {
+      if (!this._denseSlots || this._denseSlots.length !== limit || this._denseSlots[0] !== slot0) {
+        const arr = new Array<Element>(limit);
+        arr[0] = slot0;
+        for (let k = 1; k < limit; k++) {
+          const sl = this._stashValues.get(k);
+          if (!sl || sl.text.references !== 1) return undefined;
+          arr[k] = sl;
+        }
+        this._denseSlots = arr;
+      }
+      this._stashValues.set(0, slot0);
+      this.values.clear();
+      const fullVals = this._stashValues;
+      this._stashValues = this.values;
+      (this as { values: Map<number, Element> }).values = fullVals;
+      this.maximum = limit - 1;
+      this.assigned = true;
+      return this._denseSlots;
+    }
+    if (keyPrefix === undefined || this.keys.size !== 1 || !this._stashKeys || this._stashKeys.size !== limit - 1 || !this._stashKeyByIndex || this._stashKeyByIndex.size !== limit - 1) {
+      return undefined;
+    }
+    const id0 = this.keyByIndex.get(0);
+    const k0 = id0 !== undefined ? this.keys.get(id0) : undefined;
+    if (!k0 || k0.text.shellValue !== keyPrefix + "0") return undefined;
+    if (!this._denseSlots || this._denseSlots.length !== limit || this._denseSlots[0] !== slot0 || this._denseKeyPrefix !== keyPrefix) {
+      const arr = new Array<Element>(limit);
+      arr[0] = slot0;
+      for (let k = 1; k < limit; k++) {
+        const sl = this._stashValues.get(k);
+        const kid = this._stashKeyByIndex.get(k);
+        const ke = kid !== undefined ? this._stashKeys.get(kid) : undefined;
+        if (!sl || sl.text.references !== 1 || !ke || ke.index !== k || ke.text.shellValue !== keyPrefix + String(k)) return undefined;
+        arr[k] = sl;
+      }
+      this._denseSlots = arr;
+      this._denseKeyPrefix = keyPrefix;
+    }
+    this._stashValues.set(0, slot0);
+    this._stashKeys.set(id0!, k0);
+    this._stashKeyByIndex.set(0, id0!);
+    this.values.clear();
+    this.keys.clear();
+    this.keyByIndex.clear();
+    const fullVals = this._stashValues;
+    const fullKeys = this._stashKeys;
+    const fullKeyByIdx = this._stashKeyByIndex;
+    this._stashValues = this.values;
+    this._stashKeys = this.keys;
+    this._stashKeyByIndex = this.keyByIndex;
+    (this as { values: Map<number, Element> }).values = fullVals;
+    (this as { keys: typeof fullKeys }).keys = fullKeys;
+    (this as { keyByIndex: typeof fullKeyByIdx }).keyByIndex = fullKeyByIdx;
+    this.maximum = limit - 1;
+    this.assigned = true;
+    return this._denseSlots;
+  }
 
   softClearForReuse(): void {
     if (this.values.size === 0 && this.keys.size === 0) return;
@@ -268,6 +333,8 @@ export class IndexedBinding {
   }
 
   remove(index: number): void {
+    this._denseSlots = undefined;
+    this._denseKeyPrefix = undefined;
     this.values.get(index)?.slot.release();
     const identity = this.keyByIndex.get(index);
     if (identity !== undefined) this.keys.get(identity)?.admission.release();
@@ -565,8 +632,11 @@ export class BindingStore {
     this.bindings.delete(name);
     this.changed(tickets, name);
     if (!previous) return;
-    if (previous.binding.references === 1 && previous.binding.values.size <= 32 && (this.recycledBindings ??= new Map()).size < 16) {
+    if (previous.binding.references === 1 && (previous.binding.values.size <= 32 || (this.owner.ledger.bytes === Infinity && this.owner.ledger.fields === Infinity && previous.binding.values.size <= 4096)) && (this.recycledBindings ??= new Map()).size < 16) {
       this.releaseRecycled(name);
+      if (this.owner.ledger.bytes === Infinity && this.owner.ledger.fields === Infinity) {
+        previous.binding.softClearForReuse();
+      }
       (this.recycledBindings ??= new Map()).set(name, previous);
       return;
     }
@@ -587,7 +657,11 @@ export class BindingStore {
     }
     // A recycled binding belongs to an unset variable; only its storage is reusable.
     if (rec.binding.values.size > 0) {
-      for (const k of rec.binding.values.keys()) rec.binding.remove(k);
+      if (this.owner.ledger.bytes === Infinity && this.owner.ledger.fields === Infinity) {
+        rec.binding.softClearForReuse();
+      } else {
+        for (const k of rec.binding.values.keys()) rec.binding.remove(k);
+      }
     }
     rec.binding.maximum = -1;
     rec.binding.assigned = false;

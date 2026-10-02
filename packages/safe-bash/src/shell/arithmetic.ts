@@ -87,7 +87,7 @@ export function prepareArithmetic(source: string, budget = new ParseBudget()): A
     const tree = parseArithmetic(source, 0, tracking);
     const program: ArithmeticProgram = { source, tree, ...treeFeatures(tree) };
     if (source.length <= 256) {
-      if (preparedArithmeticCache.size >= 512) {
+      if (preparedArithmeticCache.size >= 64) {
         const oldest = preparedArithmeticCache.keys().next().value;
         if (oldest !== undefined) preparedArithmeticCache.delete(oldest);
       }
@@ -100,7 +100,7 @@ export function prepareArithmetic(source: string, budget = new ParseBudget()): A
     tracking.admit();
     const program: ArithmeticProgram = { source, error };
     if (source.length <= 256) {
-      if (preparedArithmeticCache.size >= 512) {
+      if (preparedArithmeticCache.size >= 64) {
         const oldest = preparedArithmeticCache.keys().next().value;
         if (oldest !== undefined) preparedArithmeticCache.delete(oldest);
       }

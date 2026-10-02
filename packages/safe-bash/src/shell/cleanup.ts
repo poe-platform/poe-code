@@ -298,6 +298,23 @@ export class InvocationScope {
     ]);
   }
 
+  canReuseWarm(): boolean {
+    const monitors = (this._arraySession as { monitors?: Set<unknown> } | undefined)?.monitors;
+    return (
+      !this._closed &&
+      !this._singleSealCallback &&
+      (!this._finalizers || this._finalizers.length <= 1) &&
+      !this._singleCallback &&
+      !this._callbacks?.size &&
+      !this._firstChildOwner &&
+      !this._childOwners?.size &&
+      !this._children?.size &&
+      this._activeWork === 0 &&
+      (!this._controller || !this._controller.signal.aborted) &&
+      (!monitors || monitors.size <= 1)
+    );
+  }
+
   canFastWarmClose(): boolean {
     return (
       !this._singleSealCallback &&

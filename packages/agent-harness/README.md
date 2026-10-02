@@ -18,13 +18,15 @@ A harness is a Markdown document plus a sibling `.ajs` script. The Markdown fron
 
 ## Snapshots and resume
 
+Pass a SafeFS `FileSystem` as `fs` to run in Workers without `nodejs_compat`, with `homeDir` or an explicit `snapshotPath`. The same filesystem holds the pair, snapshots, and replay journal. Node callers can omit `fs` to use the host filesystem.
+
 Pass `snapshotPath` to control where snapshots are read and written. `resume` defaults to `true`; set `resume: false` to remove a completed snapshot and force a fresh run. If a snapshot exists, the underlying SafeJS source hash must still match the `.ajs` source.
 
 The former `poe-code harness` CLI is unavailable. Use the workspace API directly.
 
 ## Built-in templates
 
-`listBuiltinTemplates()` exposes template metadata with `kind`, `mdPath`, and `ajsPath`.
+`listBuiltinTemplates(directory?)` exposes template metadata with `kind`, `mdPath`, and `ajsPath`. Supply a directory when storing templates in a portable filesystem. `runHarnessCodegen({ fs, repoRoot, templateDirectory })` reads templates and publishes schemas through that filesystem; `sourceFs` optionally selects a separate template filesystem. `assertReplayEquivalent(path, modulesFor, { fs, temporaryDirectory })` verifies replay using the same portable storage.
 
 ## Environment Variables
 

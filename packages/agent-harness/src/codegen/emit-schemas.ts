@@ -1,7 +1,7 @@
-import { randomUUID } from "node:crypto";
-import * as nodeFs from "node:fs/promises";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { fileURLToPath } from "#harness-platform";
+import { harnessFileSystem, type HarnessFileSystem } from "../filesystem.js";
 
 import { toJsonSchema } from "toolcraft-schema";
 
@@ -20,8 +20,10 @@ interface HarnessSchemaFileSystem {
   ): Promise<unknown>;
 }
 
-interface RunHarnessCodegenOptions {
-  fs?: HarnessSchemaFileSystem;
+export interface RunHarnessCodegenOptions {
+  fs?: HarnessSchemaFileSystem | FileSystem;
+  sourceFs?: FileSystem;
+  templateDirectory?: string;
   repoRoot?: string;
 }
 
@@ -49,15 +51,16 @@ const publicHarnessSchemaBaseUrl = "https://poe-platform.github.io/poe-code/sche
 export async function runHarnessCodegen(
   options: RunHarnessCodegenOptions = {}
 ): Promise<void> {
-  const fs = options.fs ?? nodeFs;
+  const fs = options.fs === undefined || "capabilities" in options.fs ? harnessFileSystem(options.fs) : options.fs;
+  const sourceFs = harnessFileSystem(options.sourceFs ?? (options.fs && "capabilities" in options.fs ? options.fs : undefined));
   const repoRoot = options.repoRoot ?? resolveRepoRoot();
   const outputDirectory = path.join(repoRoot, "docs", "schemas", "harnesses");
 
   await fs.mkdir(outputDirectory, { recursive: true });
   const documents: HarnessSchemaDocument[] = [];
 
-  for (const template of await listBuiltinTemplateSchemaSources()) {
-    const ajsSource = await nodeFs.readFile(template.ajsPath, "utf8");
+  for (const template of await listBuiltinTemplateSchemaSources(sourceFs, options.templateDirectory)) {
+    const ajsSource = await sourceFs.readFile(template.ajsPath, "utf8");
     const schema = await extractSchema(ajsSource, template.ajsPath);
 
     if (schema === undefined) {
@@ -71,8 +74,8 @@ export async function runHarnessCodegen(
       ...toJsonSchema(schema)
     };
     const outputPath = path.join(outputDirectory, fileName);
-    const backupPath = path.join(outputDirectory, `.${fileName}.${randomUUID()}.bak`);
-    const stagedPath = path.join(outputDirectory, `.${fileName}.${randomUUID()}.tmp`);
+    const backupPath = path.join(outputDirectory, `.${fileName}.${crypto.randomUUID()}.bak`);
+    const stagedPath = path.join(outputDirectory, `.${fileName}.${crypto.randomUUID()}.tmp`);
 
     await assertSafeSchemaOutput(repoRoot, outputPath, fs);
     await assertSafeSchemaOutput(repoRoot, backupPath, fs);
@@ -235,9 +238,9 @@ function resolveRepoRoot(): string {
   return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../../..");
 }
 
-async function listBuiltinTemplateSchemaSources(): Promise<Array<{ ajsPath: string; kind: string }>> {
-  const templateDirectory = fileURLToPath(new URL("../templates/", import.meta.url));
-  const entries = await nodeFs.readdir(templateDirectory, { withFileTypes: true });
+async function listBuiltinTemplateSchemaSources(fs: HarnessFileSystem, directory?: string): Promise<Array<{ ajsPath: string; kind: string }>> {
+  const templateDirectory = directory ?? fileURLToPath(new URL("../templates/", import.meta.url));
+  const entries = await fs.readdir(templateDirectory, { withFileTypes: true });
 
   return entries
     .filter((entry) => entry.isDirectory())

@@ -1,4 +1,5 @@
-import { fileURLToPath } from "node:url";
+import { joinPath } from "@poe-code/safe-fs/runtime-core";
+import { fileURLToPath } from "#harness-platform";
 
 export type BuiltinTemplate = {
   kind: string;
@@ -6,20 +7,20 @@ export type BuiltinTemplate = {
   mdPath: string;
 };
 
-export function listBuiltinTemplates(): readonly BuiltinTemplate[] {
+export function listBuiltinTemplates(directory?: string): readonly BuiltinTemplate[] {
   return [
-    template("ralph-demo"),
-    template("coverage-demo"),
-    template("experiment-demo"),
-    template("pipeline-demo"),
-    template("superintendent-demo")
+    template("ralph-demo", directory),
+    template("coverage-demo", directory),
+    template("experiment-demo", directory),
+    template("pipeline-demo", directory),
+    template("superintendent-demo", directory)
   ];
 }
 
-function template(kind: string): BuiltinTemplate {
+function template(kind: string, directory?: string): BuiltinTemplate {
   return {
     kind,
-    ajsPath: fileURLToPath(new URL(`${kind}/${kind}.ajs`, import.meta.url)),
-    mdPath: fileURLToPath(new URL(`${kind}/${kind}.md`, import.meta.url))
+    ajsPath: directory ? joinPath(directory, kind, `${kind}.ajs`) : fileURLToPath(new URL(`${kind}/${kind}.ajs`, import.meta.url)),
+    mdPath: directory ? joinPath(directory, kind, `${kind}.md`) : fileURLToPath(new URL(`${kind}/${kind}.md`, import.meta.url))
   };
 }

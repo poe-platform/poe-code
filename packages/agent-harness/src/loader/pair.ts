@@ -1,5 +1,6 @@
-import nodeFs from "node:fs/promises";
-import { basename as pathBasename, dirname, extname, join } from "node:path";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { harnessFileSystem } from "../filesystem.js";
+import { basename as pathBasename, dirname, extname, joinPath as join } from "@poe-code/safe-fs/runtime-core";
 
 import { UserError } from "@poe-code/user-error";
 
@@ -53,7 +54,8 @@ export class InvalidPairExtensionError extends Error {
   }
 }
 
-export async function resolvePair(inputPath: string, fs: HarnessFs = nodeFs): Promise<HarnessPair> {
+export async function resolvePair(inputPath: string, inputFs?: HarnessFs | FileSystem): Promise<HarnessPair> {
+  const fs = inputFs === undefined || "capabilities" in inputFs ? harnessFileSystem(inputFs) : inputFs;
   const extension = extname(inputPath);
 
   if (extension !== ".md" && extension !== ".ajs") {

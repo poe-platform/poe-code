@@ -1,7 +1,10 @@
-import { createHash, randomUUID } from "node:crypto";
-import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
-import os from "node:os";
-import { dirname, join, parse, resolve, sep } from "node:path";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
+import { posixPath } from "@poe-code/safe-fs/runtime-core";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { createDefaultFileSystem, cwd, hostEnvironment } from "#harness-platform";
+import { harnessFileSystem, type HarnessFileSystem } from "../filesystem.js";
+const { dirname, join, sep } = posixPath;
 
 import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import {
@@ -50,6 +53,8 @@ export type HarnessImportMeta = {
 };
 
 export type RunHarnessPairOptions = {
+  fs?: FileSystem;
+  homeDir?: string;
   allowedGlobals?: LintOptions["allowedGlobals"];
   budget?: RunOptions["budget"];
   clock?: {
@@ -85,11 +90,13 @@ export async function runHarnessPair(
   mdPath: string,
   options: RunHarnessPairOptions
 ): Promise<RunResult> {
-  const pair = await resolvePair(mdPath);
+  const adapter = options.fs ?? createDefaultFileSystem();
+  const fs = harnessFileSystem(adapter);
+  const pair = await resolvePair(mdPath, adapter);
   {
     const [ajsSource, mdSource] = await Promise.all([
-      readTextFile(pair.ajsPath),
-      readTextFile(pair.mdPath)
+      readTextFile(pair.ajsPath, fs),
+      readTextFile(pair.mdPath, fs)
     ]);
     const { frontmatter, body } = splitFrontmatter(mdSource);
     const merged =
@@ -107,16 +114,16 @@ export async function runHarnessPair(
       dirname: dirname(pair.mdPath),
       body
     };
-    const snapshotPath = resolveSnapshotPath(pair.mdPath, options.snapshotPath);
+    const snapshotPath = resolveSnapshotPath(pair.mdPath, options.snapshotPath, options.homeDir);
     const guardDefaultSnapshotPath =
       options.snapshotPath === undefined || options.snapshotPathIsDefault === true;
     if (guardDefaultSnapshotPath) {
-      await assertDefaultSnapshotPathIsRegular(snapshotPath);
+      await assertDefaultSnapshotPathIsRegular(snapshotPath, fs);
     }
-    const snapshotBackend = options.snapshotBackend ?? new FileSnapshotBackend(snapshotPath);
+    const snapshotBackend = options.snapshotBackend ?? new FileSnapshotBackend(snapshotPath, { adapter });
     const shouldResume = options.resume ?? true;
     if (!shouldResume) {
-      await cleanupCompletedSnapshot(snapshotBackend, snapshotPath);
+      await cleanupCompletedSnapshot(snapshotBackend, snapshotPath, fs);
     }
     const snapshot = shouldResume ? await snapshotBackend.read() : undefined;
     const runtimeClock = createReplayableClock({
@@ -157,7 +164,7 @@ export async function runHarnessPair(
               snapshot: runtimeRandom.snapshot
             }
           },
-      { guardDefaultSnapshotPath }
+      { guardDefaultSnapshotPath, fs }
     );
     const modules = hostCallReplay.wrapModules(withBuiltinModules(suppliedModules, time));
 
@@ -180,7 +187,7 @@ export async function runHarnessPair(
     if (!Array.isArray(lintDiagnostics)) {
       executableSource = lintDiagnostics.fixed;
       if (executableSource !== ajsSource) {
-        await writeTextFileAtomically(pair.ajsPath, executableSource);
+        await writeTextFileAtomically(pair.ajsPath, executableSource, fs);
       }
     }
 
@@ -191,7 +198,7 @@ export async function runHarnessPair(
     throwOnLintErrors(diagnostics);
 
     if (options.snapshotBackend === undefined) {
-      await mkdir(dirname(snapshotPath), { recursive: true });
+      await fs.mkdir(dirname(snapshotPath), { recursive: true });
     }
 
     const usageAccumulator = createSpawnUsageAccumulator();
@@ -223,7 +230,7 @@ export async function runHarnessPair(
     if (result.ok && result.snapshot.migration !== undefined) {
       await snapshotBackend.write(result.snapshot);
     } else if (result.ok && options.preserveSnapshotOnSuccess !== true) {
-      await cleanupCompletedSnapshot(snapshotBackend, snapshotPath);
+      await cleanupCompletedSnapshot(snapshotBackend, snapshotPath, fs);
     }
 
     const usage = usageAccumulator.snapshot();
@@ -362,13 +369,14 @@ type StatefulHostBinding = {
 async function createHostCallReplay(
   snapshotPath: string,
   statefulBindings: Record<string, StatefulHostBinding> = {},
-  opts: { guardDefaultSnapshotPath?: boolean } = {}
+  opts: { guardDefaultSnapshotPath?: boolean; fs: HarnessFileSystem }
 ): Promise<HostCallReplay> {
+  const fs = opts.fs;
   const storePath = hostCallStorePath(snapshotPath);
   if (opts.guardDefaultSnapshotPath === true) {
-    await assertDefaultSnapshotPathIsRegular(storePath);
+    await assertDefaultSnapshotPathIsRegular(storePath, fs);
   }
-  const records = await readHostCallRecords(storePath);
+  const records = await readHostCallRecords(storePath, fs);
   const pendingWrites = new Set<Promise<void>>();
   let writeQueue = Promise.resolve();
   let cursor = 0;
@@ -485,7 +493,7 @@ async function createHostCallReplay(
       state: statefulBindings[key]?.snapshot()
     });
     cursor = records.length;
-    const write = writeQueue.then(() => writeHostCallRecords(storePath, records));
+    const write = writeQueue.then(() => writeHostCallRecords(storePath, records, fs));
     writeQueue = write.catch(() => undefined);
     pendingWrites.add(write);
     try {
@@ -496,9 +504,9 @@ async function createHostCallReplay(
   }
 }
 
-async function readHostCallRecords(storePath: string): Promise<HostCallRecord[]> {
+async function readHostCallRecords(storePath: string, fs: HarnessFileSystem): Promise<HostCallRecord[]> {
   try {
-    const parsed = JSON.parse(await readFile(storePath, "utf8")) as unknown;
+    const parsed = JSON.parse(await fs.readFile(storePath, "utf8")) as unknown;
     return Array.isArray(parsed) ? (parsed as HostCallRecord[]) : [];
   } catch (error) {
     if (hasErrorCode(error, "ENOENT")) {
@@ -511,7 +519,8 @@ async function readHostCallRecords(storePath: string): Promise<HostCallRecord[]>
 
 async function writeHostCallRecords(
   storePath: string,
-  records: readonly HostCallRecord[]
+  records: readonly HostCallRecord[],
+  fs: HarnessFileSystem
 ): Promise<void> {
   let serialized: string;
   try {
@@ -520,20 +529,20 @@ async function writeHostCallRecords(
     return;
   }
 
-  await mkdir(dirname(storePath), { recursive: true });
-  await writeTextFileAtomically(storePath, serialized);
+  await fs.mkdir(dirname(storePath), { recursive: true });
+  await writeTextFileAtomically(storePath, serialized, fs);
 }
 
-async function writeTextFileAtomically(filePath: string, content: string): Promise<void> {
-  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+async function writeTextFileAtomically(filePath: string, content: string, fs: HarnessFileSystem): Promise<void> {
+  const temporaryPath = `${filePath}.${crypto.randomUUID()}.tmp`;
   let temporaryCreated = false;
   try {
-    await writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
     temporaryCreated = true;
-    await rename(temporaryPath, filePath);
+    await fs.rename(temporaryPath, filePath);
   } catch (error) {
     if (temporaryCreated || !isAlreadyExistsError(error)) {
-      await unlinkIfExists(temporaryPath).catch(() => undefined);
+      await unlinkIfExists(temporaryPath, fs).catch(() => undefined);
     }
     throw error;
   }
@@ -541,14 +550,15 @@ async function writeTextFileAtomically(filePath: string, content: string): Promi
 
 async function cleanupCompletedSnapshot(
   snapshotBackend: SnapshotBackend,
-  snapshotPath: string
+  snapshotPath: string,
+  fs: HarnessFileSystem
 ): Promise<void> {
-  await Promise.all([snapshotBackend.remove(), unlinkIfExists(hostCallStorePath(snapshotPath))]);
+  await Promise.all([snapshotBackend.remove(), unlinkIfExists(hostCallStorePath(snapshotPath), fs)]);
 }
 
-async function unlinkIfExists(path: string): Promise<void> {
+async function unlinkIfExists(path: string, fs: HarnessFileSystem): Promise<void> {
   try {
-    await unlink(path);
+    await fs.unlink(path);
   } catch (error) {
     if (!hasErrorCode(error, "ENOENT")) {
       throw error;
@@ -594,31 +604,31 @@ function listModuleExports(moduleExports: ModuleExports): string[] {
     .sort((left, right) => left.localeCompare(right));
 }
 
-function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined): string {
-  const documentKey = createHash("sha256").update(resolve(mdPath)).digest("hex").slice(0, 12);
+function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined, homeDir?: string): string {
+  const documentKey = bytesToHex(sha256(new TextEncoder().encode(posixPath.resolve(cwd(), mdPath)))).slice(0, 12);
   return (
     snapshotPath ??
     join(
       resolveRunLogDir({
         planPath: mdPath,
         runner: "harness",
-        homeDir: os.homedir()
+        homeDir: homeDir ?? hostEnvironment.homedir()
       }),
       `snapshot-${documentKey}.json`
     )
   );
 }
 
-async function assertDefaultSnapshotPathIsRegular(snapshotPath: string): Promise<void> {
-  const absolutePath = resolve(snapshotPath);
-  const rootPath = parse(absolutePath).root;
+async function assertDefaultSnapshotPathIsRegular(snapshotPath: string, fs: HarnessFileSystem): Promise<void> {
+  const absolutePath = posixPath.resolve(cwd(), snapshotPath);
+  const rootPath = "/";
   let currentPath = rootPath;
 
   for (const segment of absolutePath.slice(rootPath.length).split(sep).filter(Boolean)) {
     currentPath = join(currentPath, segment);
 
     try {
-      if ((await lstat(currentPath)).isSymbolicLink()) {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
         throw new Error("Default harness snapshot path must not contain symbolic links.");
       }
     } catch (error) {
@@ -631,8 +641,8 @@ async function assertDefaultSnapshotPathIsRegular(snapshotPath: string): Promise
   }
 }
 
-async function readTextFile(path: string): Promise<string> {
-  const source = await readFile(path, "utf8");
+async function readTextFile(path: string, fs: HarnessFileSystem): Promise<string> {
+  const source = await fs.readFile(path, "utf8");
   return source.startsWith("\uFEFF") ? source.slice(1) : source;
 }
 

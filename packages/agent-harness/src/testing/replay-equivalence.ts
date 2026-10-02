@@ -1,7 +1,8 @@
-import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
-import { join } from "node:path";
-import { isDeepStrictEqual } from "node:util";
+import { joinPath as join } from "@poe-code/safe-fs/runtime-core";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import isEqual from "lodash-es/isEqual.js";
+import { hostEnvironment } from "#harness-platform";
+import { harnessFileSystem, type HarnessFileSystem } from "../filesystem.js";
 
 import type { Snapshot, SnapshotBackend } from "@poe-code/safe-js";
 
@@ -10,15 +11,17 @@ import { runHarnessPair, type RunHarnessPairOptions, type RunResult } from "../l
 
 type ModulesFor = RunHarnessPairOptions["modulesFor"];
 
-let nextReplayId = 0;
+export type ReplayEquivalenceOptions = { fs?: FileSystem; temporaryDirectory?: string };
 
-export async function assertReplayEquivalent(path: string, modulesFor: ModulesFor): Promise<void> {
-  const snapshotPath = await createSnapshotPath();
+export async function assertReplayEquivalent(path: string, modulesFor: ModulesFor, options: ReplayEquivalenceOptions = {}): Promise<void> {
+  const fs = harnessFileSystem(options.fs);
+  const snapshotPath = await createSnapshotPath(fs, options.temporaryDirectory);
   const hostCallStorePath = `${snapshotPath}.host-calls.json`;
   const originalBackend = new MemorySnapshotBackend();
 
   try {
     const original = await runHarnessPair(path, {
+      fs: options.fs,
       clock: createDeterministicClock(),
       modulesFor,
       preserveSnapshotOnSuccess: true,
@@ -29,14 +32,15 @@ export async function assertReplayEquivalent(path: string, modulesFor: ModulesFo
       snapshotPath
     });
     const originalReturnValue = readReturnValue(original, "original");
-    const originalHostCalls = await readOptionalTextFile(hostCallStorePath);
+    const originalHostCalls = await readOptionalTextFile(hostCallStorePath, fs);
     const snapshots = [...originalBackend.writes, original.snapshot];
 
     for (let index = 0; index < snapshots.length; index += 1) {
       const replaySnapshot = snapshots[index];
-      await restoreOptionalTextFile(hostCallStorePath, originalHostCalls);
+      await restoreOptionalTextFile(hostCallStorePath, originalHostCalls, fs);
       const replayReturnValue = readReturnValue(
         await runHarnessPair(path, {
+          fs: options.fs,
           clock: createDeterministicClock(),
           modulesFor,
           preserveSnapshotOnSuccess: true,
@@ -47,7 +51,7 @@ export async function assertReplayEquivalent(path: string, modulesFor: ModulesFo
         `replay ${index + 1}`
       );
 
-      if (!isDeepStrictEqual(replayReturnValue, originalReturnValue)) {
+      if (!isEqual(replayReturnValue, originalReturnValue)) {
         throw new Error(
           [
             `Replay equivalence failed: non-deterministic return value from snapshot ${index + 1}/${snapshots.length}.`,
@@ -59,9 +63,9 @@ export async function assertReplayEquivalent(path: string, modulesFor: ModulesFo
     }
   } finally {
     await Promise.all([
-      rm(snapshotPath, { force: true }),
-      rm(hostCallStorePath, { force: true }),
-      rm(`${snapshotPath}.tmp`, { force: true })
+      fs.rm(snapshotPath, { force: true }),
+      fs.rm(hostCallStorePath, { force: true }),
+      fs.rm(`${snapshotPath}.tmp`, { force: true })
     ]);
   }
 }
@@ -106,16 +110,15 @@ function createDeterministicClock(): { now: () => number } {
   };
 }
 
-async function createSnapshotPath(): Promise<string> {
-  const tempRoot = os.tmpdir();
-  await mkdir(tempRoot, { recursive: true });
-  nextReplayId += 1;
-  return join(tempRoot, `poe-harness-replay-${process.pid}-${nextReplayId}.json`);
+async function createSnapshotPath(fs: HarnessFileSystem, directory?: string): Promise<string> {
+  const tempRoot = directory ?? hostEnvironment.tmpdir();
+  await fs.mkdir(tempRoot, { recursive: true });
+  return join(tempRoot, `poe-harness-replay-${crypto.randomUUID()}.json`);
 }
 
-async function readOptionalTextFile(path: string): Promise<string | undefined> {
+async function readOptionalTextFile(path: string, fs: HarnessFileSystem): Promise<string | undefined> {
   try {
-    return await readFile(path, "utf8");
+    return await fs.readFile(path, "utf8");
   } catch (error) {
     if (hasErrorCode(error, "ENOENT")) {
       return undefined;
@@ -125,13 +128,13 @@ async function readOptionalTextFile(path: string): Promise<string | undefined> {
   }
 }
 
-async function restoreOptionalTextFile(path: string, content: string | undefined): Promise<void> {
+async function restoreOptionalTextFile(path: string, content: string | undefined, fs: HarnessFileSystem): Promise<void> {
   if (content === undefined) {
-    await rm(path, { force: true });
+    await fs.rm(path, { force: true });
     return;
   }
 
-  await writeFile(path, content);
+  await fs.writeFile(path, content);
 }
 
 function copySnapshot(snapshot: Snapshot): Snapshot {

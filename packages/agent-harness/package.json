@@ -27,6 +27,18 @@
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/user-error": "*",
     "toolcraft-schema": "*",
-    "@poe-code/safe-js": "*"
+    "@poe-code/safe-js": "*",
+    "@poe-code/safe-fs": "*",
+    "@noble/hashes": "2.4.0",
+    "lodash-es": "^4.17.21"
+  },
+  "imports": {
+    "#harness-platform": {
+      "types": "./src/platform.ts",
+      "workerd": "./dist/platform.workerd.js",
+      "browser": "./dist/platform.workerd.js",
+      "worker": "./dist/platform.workerd.js",
+      "default": "./dist/platform.js"
+    }
   }
 }

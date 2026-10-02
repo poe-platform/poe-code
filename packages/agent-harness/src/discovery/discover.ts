@@ -1,5 +1,6 @@
-import nodeFs from "node:fs/promises";
-import { join } from "node:path";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { harnessFileSystem } from "../filesystem.js";
+import { joinPath as join } from "@poe-code/safe-fs/runtime-core";
 
 import { hasOwnErrorCode } from "../error-codes.js";
 import { MissingPairError, resolvePair, type HarnessFs, type HarnessPair } from "../loader/pair.js";
@@ -12,8 +13,9 @@ function isMissingDirectory(error: unknown): boolean {
 
 export async function discoverHarnesses(
   rootDir: string,
-  fs: HarnessFs = nodeFs
+  inputFs?: HarnessFs | FileSystem
 ): Promise<HarnessPair[]> {
+  const fs = inputFs === undefined || "capabilities" in inputFs ? harnessFileSystem(inputFs) : inputFs;
   if (!fs.readdir) {
     throw new Error("discoverHarnesses requires a filesystem with readdir support");
   }

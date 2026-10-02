@@ -1,4 +1,5 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "./types.js";
 import { findBase } from "./discover.js";
@@ -36,6 +37,16 @@ async function withObjectPrototypeProperties<T>(
 }
 
 describe("findBase", () => {
+  it("reads UTF-8 bytes from a SafeFS without passing a Node encoding", async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/review.md", new TextEncoder().encode("# Résumé"));
+    const readFile = vi.fn((path: string) => fs.readFile(path));
+    await expect(findBase("review", ["/"], { capabilities: fs.capabilities, readFile })).resolves.toEqual({
+      content: "# Résumé", filePath: "/review.md"
+    });
+    expect(readFile).toHaveBeenCalledWith("/review.md");
+  });
+
   it("finds .md in first directory", async () => {
     const fs = createMemFs({
       "/first/review.md": "# Review"

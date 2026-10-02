@@ -386,3 +386,33 @@ it.each([
   expect(out.exitCode).toBe(2);
   expect(f.readInput).not.toHaveBeenCalled();
 });
+
+it("formats all runs inside a uniquely selected shape without requiring --all", async () => {
+  const f = await fixture();
+  const created = await f.run([
+    "create",
+    "--output",
+    "/multiline.pptx",
+    "--slides-json",
+    JSON.stringify([{ name: "Overview", shapes: [{ name: "Body", text: "Line one\nLine two\nLine three", x: 1000, y: 1000, width: 5000, height: 2000 }] }])
+  ]);
+  expect(created.exitCode).toBe(0);
+  const updated = await f.run([
+    "text",
+    "runs",
+    "set",
+    "/multiline.pptx",
+    "--slide",
+    "1",
+    "--shape",
+    "Body",
+    "--font",
+    "Arial",
+    "--size",
+    "24pt",
+    "--in-place",
+    "--json"
+  ]);
+  expect(updated.exitCode, decode(updated.stderr)).toBe(0);
+  expect(JSON.parse(decode(updated.stdout)).affected).toBe(3);
+});

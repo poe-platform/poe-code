@@ -451,7 +451,8 @@ export async function mutateTextRuns(
     }
   }
   if (!affected && !options.allowEmpty) throw new SelectionError("missing-selection");
-  if (affected > 1 && !options.all) throw new SelectionError("ambiguous-selection");
+  const singleShapeFormatting = options.text === undefined && options.shape !== undefined && options.paragraph === undefined && options.run === undefined && bodies.length === 1;
+  if (affected > 1 && !options.all && !singleShapeFormatting) throw new SelectionError("ambiguous-selection");
   for (const [part, edit] of edits) {
     const paths: number[][] = [];
     const visit = (node: XmlElement, path: number[]) => {

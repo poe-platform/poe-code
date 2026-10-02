@@ -2,11 +2,7 @@ import { defaultPredicateExecutors } from "../commands/predicates.js";
 import { syncCommandEvaluators } from "../commands/internal.js";
 const executionCommands = (...args: any[]) => syncCommandEvaluators.executionCommands!(...args);
 import { bytesToHex, latin1Text, byteLength as utf8ByteLength } from "../byte-encoding.js";
-export const emptyByteArray = new Uint8Array(0);
-const sharedCaptureDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
-const cachedCaptureAsciiBytes = new Uint8Array(4096);
-let cachedCaptureAsciiLen = 0;
-let cachedCaptureAsciiStr = "";
+
 import type { InternalErrorHandler } from "../contracts/command.js";
 import { PublicDiagnostic, publicDiagnosticMessage } from "../diagnostics.js";
 import { workerRuntimeContexts, shellDescriptorAdmissions } from "../worker/runtime-context.js";
@@ -93,7 +89,6 @@ export function hasActiveExtensions(state: State): state is State & { extensions
 }
 const memberPatternOperators = ["#", "##", "%", "%%", "/", "//", "/#", "/%", "^", "^^", ",", ",,"];
 export const defaultParameterOperators = ["-", "+", "=", "?", ":-", ":+", ":=", ":?"];
-export const printfSlowTargets = new Set([...controlNames, "FUNCNAME", "RANDOM", "SECONDS", "PIPESTATUS", "_"]);
 async function signedLong(argument: string, budget: Budget, signal: AbortSignal): Promise<bigint | "overflow" | undefined> {
   const checkpoint = async (): Promise<void> => {
     budget.cpuCheckpoint();
@@ -402,18 +397,6 @@ export class Budget {
   get fileSystemOperations(): number {
     return this._fileSystemOperations;
   }
-  resetCountersForWarmReuse(): void {
-    this.commands = 0;
-    this.iterations = 0;
-    this.bytes = 0;
-    this.sourceBytes = 0;
-    this.globstarEntries = 0;
-    this.globstarStates = 0;
-    this._fileSystemOperations = 0;
-    this._pipelineStages = 0;
-    this.pipelineBytes = 0;
-    this.parsing.reset();
-  }
   declare private readonly _cpuStarted: number;
   declare _aborted: boolean;
   declare readonly _hasExternalSignal: boolean;
@@ -585,9 +568,6 @@ export class Budget {
     if (this._fileSystemOperations >= this.maxFileSystemOperationsSmi && this._fileSystemOperations >= this.limits.maxFileSystemOperations) this.fail("maxFileSystemOperations");
     this._fileSystemOperations++;
   }
-  canFileSystemOperation(): boolean {
-    return this._fileSystemOperations < this.maxFileSystemOperationsSmi || this._fileSystemOperations < this.limits.maxFileSystemOperations;
-  }
   get fsOperations(): number {
     return this._fileSystemOperations;
   }
@@ -611,19 +591,6 @@ export class Budget {
       if (released) return;
       released = true;
       this._pipelineStages -= count;};
-  }
-  enterPipelineStages(count: number): void {
-    this.signal.throwIfAborted();
-    const next = (this._pipelineStages + (count | 0)) | 0;
-    if ((count | 0) === count && count >= 0 && next >= this._pipelineStages && next <= this.maxPipelineStagesSmi) {
-      this._pipelineStages = next;
-      return;
-    }
-    if (count > this.limits.maxPipelineStages - this._pipelineStages) this.fail("maxPipelineStages");
-    this._pipelineStages += count;
-  }
-  leavePipelineStages(count: number): void {
-    this._pipelineStages -= count;
   }
   loop(): void {
     if (this._aborted || (this._hasExternalSignal && this.signal.aborted)) this.signal.throwIfAborted();
@@ -894,44 +861,6 @@ export class Capture implements ByteSink {
     this._tail = undefined;
     this._tailLength = 0;
     return bytes;
-  }
-  takeUtf8Output(): string | Uint8Array {
-    if (this.length === 0) return "";
-    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
-      const len = this._scratchLen;
-      const buf = this._scratch4k;
-      this._scratchLen = 0;
-      this.length = 0;
-      for (let i = 0; i < len; i++) {
-        if (buf[i]! >= 0x80) return new Uint8Array(buf.subarray(0, len));
-      }
-      if (len === cachedCaptureAsciiLen) {
-        let same = true;
-        for (let i = 0; i < len; i++) {
-          if (buf[i] !== cachedCaptureAsciiBytes[i]) {
-            same = false;
-            break;
-          }
-        }
-        if (same) return cachedCaptureAsciiStr;
-      }
-      const decoded = sharedCaptureDecoder.decode(buf.subarray(0, len));
-      if (len <= 4096) {
-        for (let i = 0; i < len; i++) cachedCaptureAsciiBytes[i] = buf[i]!;
-        cachedCaptureAsciiLen = len;
-        cachedCaptureAsciiStr = decoded;
-      }
-      return decoded;
-    }
-    return this.takeBytes();
-  }
-  resetEmpty(): void {
-    if (this._chunks) this._chunks.length = 0;
-    this._first = undefined;
-    this._scratchLen = 0;
-    this.length = 0;
-    this._tail = undefined;
-    this._tailLength = 0;
   }
 }
 Object.assign(Capture.prototype, {
@@ -1477,20 +1406,6 @@ export class BudgetedPipeStageSink implements ByteSink {
       return Promise.reject(this.signal.aborted ? this.signal.reason : error);
     }
   }
-  canWriteSync(): boolean {
-    if (this.signal.aborted) return false;
-    const w = this.writable as unknown as {
-      open?: boolean;
-      _pipe?: {
-        failed?: boolean;
-        signal?: AbortSignal;
-        readerReferences?: number;
-        writes?: { size: number };
-        availableBytes?: number;
-        highWaterMark?: number;};};
-    const pipe = w._pipe;
-    return Boolean( w.open && pipe && !pipe.failed && !pipe.signal?.aborted && pipe.readerReferences && (!pipe.writes || pipe.writes.size === 0) && (pipe.availableBytes ?? 0) < (pipe.highWaterMark ?? 0), );
-  }
   writeSync(chunk: Uint8Array): void {
     this.budget.assertPipelineInput(chunk.byteLength);
     this.budget.bytes += chunk.byteLength;
@@ -1785,19 +1700,7 @@ export function saveVariable(state: State, name: string): SavedVariable {
   const heldValue = state.variables[name] !== undefined && value !== undefined ? monitor!.values.scope.hold(value) : undefined;
   return { attributes: state.variableAttributes?.get(name), value: state.variables[name], ...(heldValue ? { heldValue } : {}), exported: state.exported.has(name), readOnly: state.readonlyVariables?.has(name) ?? false, ...(name === "OPTIND" ? { getopts: cloneGetoptsBinding(state) } : {}) };
 }
-export function hasUnpreparedLocals(state: State): boolean {
-  for (const frame of state.locals) for (const saved of frame.values()) {
-    if (!typedSavedVariables.has(saved) && !syncLocalArrayVariables.has(saved)) return true;
-  }
-  return false;
-}
-export function hasUnpreparedLocal(state: State, name: string): boolean {
-  for (const frame of state.locals) {
-    const saved = frame.get(name);
-    if (saved && !typedSavedVariables.has(saved) && !syncLocalArrayVariables.has(saved)) return true;
-  }
-  return false;
-}
+
 export function hasActiveVariableAttributes(state: State): boolean {
   const attrs = state.variableAttributes;
   if (!attrs || attrs.size === 0) return false;
@@ -1805,26 +1708,6 @@ export function hasActiveVariableAttributes(state: State): boolean {
     if (val.length > 0) return true;
   }
   return false;
-}
-export function hasNonNamerefAttributes(state: State): boolean {
-  const attrs = state.variableAttributes;
-  if (!attrs || attrs.size === 0) return false;
-  for (const [k, val] of attrs.entries()) {
-    if (val.length === 0 || val === "i" || val === "l" || val === "u") continue;
-    if (val !== "n") return true;
-    const ref = state.variables[k];
-    if (!ref || !isShellIdentifier(ref) || ref === k || attrs.get(ref)) return true;
-  }
-  return false;
-}
-export function resolveSyncNameref(state: State, name: string): string {
-  const attrs = state.variableAttributes;
-  if (!attrs || attrs.size === 0) return name;
-  if (attrs.get(name) === "n") {
-    const ref = state.variables[name];
-    if (ref && isShellIdentifier(ref) && ref !== name && !attrs.get(ref)) return ref;
-  }
-  return name;
 }
 export function publishVariable(state: State, name: string, value: ShellValue): void {
   const monitor = stateMonitor(state);
@@ -2479,11 +2362,6 @@ const emptyInputs = new Set<{ close(): void | Promise<void> }>();
 const emptyOutputs = new Set<OutputFinalizer>();
 export const singleStatusZero: readonly number[] = [0];
 export const singleStatusOne: readonly number[] = [1];
-export const syncRestorationCharge = { epoch: true, metadata: 64, work: 8 } as const;
-export const syncRestorationTickets = { generation: 0, version: 0, epoch: 0 };
-export const syncPipeStatusCharge = { generation: true, version: true, epoch: true, work: 8 } as const;
-export const syncPipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
-export const predicateScratchWords: string[] = [];
 const fastSharedTextEncoder = new TextEncoder();
 let _sharedEmptyMemoryFs: FileSystem | undefined;
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
@@ -2497,38 +2375,11 @@ const assignmentCache = {
       (word as { _cachedAssign?: { name: string; value: Word; append: boolean } | null })._cachedAssign = value;
     } else (fallbackAssignmentCache ??= new WeakMap()).set(word, value);
   }, };
-export function hasGlobOrEscape(text: string, extglob = false): boolean {
-  for (let i = 0; i < text.length; i++) {
-    const code = text.charCodeAt(i);
-    if (code === 42 || code === 63 || code === 91 || code === 92) return true;
-    if (extglob && code === 40) {
-      // A word fragment can complete an extglob operator from the previous part.
-      // Let normal expansion preserve quoting when that boundary is ambiguous.
-      if (i === 0) return true;
-      const prev = text.charCodeAt(i - 1);
-      if (prev === 63 || prev === 42 || prev === 43 || prev === 64 || prev === 33) return true;
-    }
-  }
-  return false;
-}
-
-export const fastSubScratchArgs: string[] = [];
-export const defaultValueScopeReserve = ValueScope.prototype.reserve;
-export const defaultStringCodePointAt = String.prototype.codePointAt;
-export const defaultFloat64Array = globalThis.Float64Array;
-export const fastRedirectScratchBytes = new Uint8Array(8192);
 export const SYNC_UNIT_ZERO: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 0, terminated: false });
 export const SYNC_UNIT_ONE: { readonly exitCode: number; readonly terminated: boolean } = Object.freeze({ exitCode: 1, terminated: false });
-export const EMPTY_BYTES = new Uint8Array(0);
-export const syncPurePipelineSlotState = { inUse: false };
 export const syncPipePools = { clear: undefined as (() => void) | undefined };
 export function clearRuntimePools(): void {
   syncPipePools.clear?.();
-  if (cachedCaptureAsciiLen > 0) {
-    cachedCaptureAsciiBytes.fill(0, 0, cachedCaptureAsciiLen);
-    cachedCaptureAsciiLen = 0;
-    cachedCaptureAsciiStr = "";
-  }
 }
 export function arithTreeTouchesArray(tree: ArithmeticProgram["tree"], store: ReturnType<typeof arrayStore>, depth = 0): boolean {
   if (!tree || !store || store.bindings.size === 0) return false;
@@ -2547,19 +2398,6 @@ export function arithTreeTouchesArray(tree: ArithmeticProgram["tree"], store: Re
     default:
       return false;
   }
-}
-const HEX_BYTE_TABLE: readonly string[] = /* @__PURE__ */ Array.from({ length: 128 }, (_, i) => i.toString(16).padStart(2, "0"));
-export function fastStringHexIdentity(str: string): string {
-  if (str.length <= 64) {
-    let out = "";
-    for (let i = 0; i < str.length; i++) {
-      const c = str.charCodeAt(i);
-      if (c >= 128) return bytesToHex(fastSharedTextEncoder.encode(str));
-      out += HEX_BYTE_TABLE[c]!;
-    }
-    return out;
-  }
-  return bytesToHex(fastSharedTextEncoder.encode(str));
 }
 export interface CachedSingleEvalUnit {
   readonly script: Script;
@@ -4498,23 +4336,6 @@ export class Runtime {
     }
   }
   trySyncPipeline(..._args: any[]): number | undefined { return undefined; }
-  setSyncPipeStatusCell(existing: NonNullable<ReturnType<NonNullable<ReturnType<typeof guestArrays>>["get"]>>, status: string): void {
-    if (existing.values.size > 1 || existing.maximum !== 0) {
-      for (const key of existing.values.keys()) {
-        if (key > 0) existing.remove(key);
-      }
-      existing.maximum = 0;
-    }
-    const cell = existing.values.get(0);
-    if (cell && cell.text.references === 1 && cell.text.bytes === status.length) {
-      cell.text.shellValue = status;
-    } else {
-      existing.owner.chargeWork(status.length);
-      const token = new OwnedText(status, status.length, existing.owner.reserve({ payload: status.length, metadata: 32, work: 4 }));
-      try { existing.insert(0, token); }
-      catch (error) { token.release(); throw error; }
-    }
-  }
   executeSyncPipelineBody(..._args: any[]): number | undefined { return undefined; }
   isPureSyncValueWord(..._args: any[]): boolean { return false; }
   async script(script: Script, state: State, io: IO, startListIndex = 0, startPipelineIndex = 0, skipFirstSync = false): Promise<number> {

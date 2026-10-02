@@ -1,3 +1,4 @@
+import { shellWarmHooks } from "./shell.js";
 import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
@@ -236,20 +237,16 @@ import { tryMatchEreSync } from "../commands/regex-execution/ere/matcher.js";
 import type { EreFragment } from "../commands/regex-execution/ere/types.js";
 import { creationFileSystem } from "./umask.js";
 import {
-  emptyByteArray, printfSlowTargets, shellBuiltinNames, implementedBuiltins,
+  shellBuiltinNames, implementedBuiltins,
   specialBuiltinNames, commandSpelling, publishCommandSpelling, budgetedSinks, syncSinks,
   devNullSyncSink, EMPTY_CAPTURE_BYTES, Capture, type SavedVariable, typedSavedVariables,
   syncLocalArrayVariables, valueScope, invokedValues, functionDiagnostics,
   captureCallerFrame, type IO, type RuntimeOutcomeFrame, Flow, completedExit, CommandFailure, BudgetedSyncSink,
   MemoryRedirectSink, BudgetedPipeStageSink, bindCommandIO, declarationArrays, NEVER_ABORTED_SIGNAL, shellKeywords, signalSink,
-  cloneGetoptsBinding, saveVariable, hasUnpreparedLocals, hasUnpreparedLocal,
-  hasActiveVariableAttributes, resolveSyncNameref, tryRestoreVariableSync,
+  cloneGetoptsBinding, saveVariable, hasActiveVariableAttributes, tryRestoreVariableSync,
   isShellIdentifier, errorCode, message, mapfileCallbackStates, emptyStrings, singleStatusZero,
-  singleStatusOne, syncRestorationCharge, syncRestorationTickets, syncPipeStatusCharge,
-  syncPipeStatusTickets, predicateScratchWords, hasGlobOrEscape, fastRedirectScratchBytes,
-  SYNC_UNIT_ZERO, SYNC_UNIT_ONE, arithTreeTouchesArray, fastStringHexIdentity, type CachedSingleEvalUnit,
-  isDefaultShellSyntax, getOrParseSingleEvalUnit, syncPipePools, defaultParameterOperators, ExpansionFailure, NounsetFailure, NounsetDiagnosticFailure, ExtensionCheckpointFailure, publishVariable, restoreVariable, defaultValueScopeReserve, defaultStringCodePointAt, defaultFloat64Array
-} from "./runtime.js";
+  singleStatusOne, SYNC_UNIT_ZERO, SYNC_UNIT_ONE, arithTreeTouchesArray, type CachedSingleEvalUnit,
+  isDefaultShellSyntax, getOrParseSingleEvalUnit, syncPipePools, defaultParameterOperators, ExpansionFailure, NounsetFailure, NounsetDiagnosticFailure, ExtensionCheckpointFailure, publishVariable, restoreVariable, } from "./runtime.js";
 
 import { hasYieldCheckpoint, runYieldCheckpoint } from "../contracts/yield.js";
 import { ShellSyntaxError } from "./types.js";
@@ -263,7 +260,7 @@ import { builtInDirectContextExecutors } from "../commands/internal.js";
 import { arrayStore, guestArrays } from "./arrays/state.js";
 import type { Command, WordPart } from "./parser.js";
 import type { CommandDefinition } from "../contracts/index.js";
-import { customRegisteredCommands, customRegisteredRegistries, hasActiveExtensions, hasNonNamerefAttributes, hasShellFunction, fastSubScratchArgs, EMPTY_BYTES, syncPurePipelineSlotState } from "./runtime.js";
+import { customRegisteredCommands, customRegisteredRegistries, hasActiveExtensions, hasShellFunction, } from "./runtime.js";
 
 syncCommandEvaluators.executionCommands = executionCommands;
 syncCommandEvaluators.gnuInformationSync = gnuInformationSync;
@@ -312,8 +309,8 @@ import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expressio
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { stateMonitor } from "./arrays/state.js";
-import type { Budget, RootShellState, State } from "./runtime.js";
-import { Runtime } from "./runtime.js";
+import type { RootShellState, State } from "./runtime.js";
+import { Budget, Runtime } from "./runtime.js";
 
 const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);
 const parseFmtArguments = (...args: any[]) => syncCommandEvaluators.parseFmtArguments!(...args);
@@ -332,6 +329,188 @@ const syncAwkItemPat = `(?:${syncAwkTernaryPat}|int\\(\\$(?:[0-9]+|NF)\\)|(?:tou
 const syncAwkPrintRe = new RegExp(`^\\{\\s*(?:(g?sub)\\(\\s*\\/(\\^?(?:[a-zA-Z0-9_ :;,=-]|\\[[0-9a-zA-Z_ \\t-]+\\][+*?]?)+\\$?)\\/\\s*,\\s*"([^"\\\\]*)"(?:\\s*,\\s*\\$([0-9]+|NF))?\\s*\\)\\s*;\\s*)?(?:(?:([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*)?split\\(\\s*\\$([0-9]+|NF)\\s*,\\s*([a-zA-Z_][a-zA-Z0-9_]*)\\s*,\\s*"([^"\\\\])"\\s*\\)\\s*;\\s*)?(?:print(?:\\s+(${syncAwkItemPat}(?:\\s*,?\\s*${syncAwkItemPat})*))?|printf\\s+"([^"$\\\\]*(?:\\\\[nt\\\\"][^"$\\\\]*)*)"\\s*,\\s*(${syncAwkItemPat}(?:\\s*,\\s*${syncAwkItemPat})*))\\s*;?\\s*\\}\\s*$`);
 const syncAwkTokenRe = new RegExp(`(${syncAwkTernaryPat})|int\\(\\$([0-9]+|NF)\\)|(toupper|tolower)\\(\\$([0-9]+|NF)\\)|substr\\(\\$([0-9]+|NF)\\s*,\\s*([0-9]+)(?:\\s*,\\s*([0-9]+))?\\)|index\\(\\$([0-9]+|NF)\\s*,\\s*"([^"$\\\\]*)"\\)|(${syncAwkArithPat})|\\$\\(NF\\s*-\\s*([0-9]+)\\)|\\$([0-9]+|NF)|length\\b(?:\\(\\$([0-9]+|NF)\\))?|(NR|NF)\\b|"([^"$\\\\]*)"|([a-zA-Z_][a-zA-Z0-9_]*)\\[([1-9][0-9]{0,3})\\]|([a-zA-Z_][a-zA-Z0-9_]*)|(,)`, "g");
 
+
+
+const emptyByteArray = new Uint8Array(0);
+const EMPTY_BYTES = emptyByteArray;
+const sharedCaptureDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
+const cachedCaptureAsciiBytes = new Uint8Array(4096);
+let cachedCaptureAsciiLen = 0;
+let cachedCaptureAsciiStr = "";
+const printfSlowTargets = new Set([...controlNames, "FUNCNAME", "RANDOM", "SECONDS", "PIPESTATUS", "_"]);
+const syncRestorationCharge = { epoch: true, metadata: 64, work: 8 } as const;
+const syncRestorationTickets = { generation: 0, version: 0, epoch: 0 };
+const syncPipeStatusCharge = { generation: true, version: true, epoch: true, work: 8 } as const;
+const syncPipeStatusTickets = { generation: 0, version: 0, epoch: 0 };
+const predicateScratchWords: string[] = [];
+const fastSubScratchArgs: string[] = [];
+const defaultValueScopeReserve = ValueScope.prototype.reserve;
+const defaultStringCodePointAt = String.prototype.codePointAt;
+const defaultFloat64Array = globalThis.Float64Array;
+const fastRedirectScratchBytes = new Uint8Array(8192);
+const syncPurePipelineSlotState = { inUse: false };
+
+function fastStringHexIdentity(str: string): string {
+  if (str.length <= 64) {
+    let out = "";
+    for (let i = 0; i < str.length; i++) {
+      const c = str.charCodeAt(i);
+      if (c >= 128) return bytesToHex(fastSharedTextEncoder.encode(str));
+      out += HEX_BYTE_TABLE[c]!;
+    }
+    return out;
+  }
+  return bytesToHex(fastSharedTextEncoder.encode(str));
+}
+
+function hasGlobOrEscape(text: string, extglob = false): boolean {
+  for (let i = 0; i < text.length; i++) {
+    const code = text.charCodeAt(i);
+    if (code === 42 || code === 63 || code === 91 || code === 92) return true;
+    if (extglob && code === 40) {
+      if (i === 0) return true;
+      const prev = text.charCodeAt(i - 1);
+      if (prev === 63 || prev === 42 || prev === 43 || prev === 64 || prev === 33) return true;
+    }
+  }
+  return false;
+}
+
+function hasUnpreparedLocals(state: State): boolean {
+  for (const frame of state.locals) for (const saved of frame.values()) {
+    if (!typedSavedVariables.has(saved) && !syncLocalArrayVariables.has(saved)) return true;
+  }
+  return false;
+}
+
+function hasUnpreparedLocal(state: State, name: string): boolean {
+  for (const frame of state.locals) {
+    const saved = frame.get(name);
+    if (saved && !typedSavedVariables.has(saved) && !syncLocalArrayVariables.has(saved)) return true;
+  }
+  return false;
+}
+
+function hasNonNamerefAttributes(state: State): boolean {
+  const attrs = state.variableAttributes;
+  if (!attrs || attrs.size === 0) return false;
+  for (const [k, val] of attrs.entries()) {
+    if (val.length === 0 || val === "i" || val === "l" || val === "u") continue;
+    if (val !== "n") return true;
+    const ref = state.variables[k];
+    if (!ref || !isShellIdentifier(ref) || ref === k || attrs.get(ref)) return true;
+  }
+  return false;
+}
+
+function resolveSyncNameref(state: State, name: string): string {
+  const attrs = state.variableAttributes;
+  if (!attrs || attrs.size === 0) return name;
+  if (attrs.get(name) === "n") {
+    const ref = state.variables[name];
+    if (ref && isShellIdentifier(ref) && ref !== name && !attrs.get(ref)) return ref;
+  }
+  return name;
+}
+
+let syncPrototypesInitialized = false;
+queueMicrotask(ensureSyncPrototypes);
+function ensureSyncPrototypes(): void {
+  if (syncPrototypesInitialized) return;
+  syncPrototypesInitialized = true;
+  Object.assign(Budget.prototype, {
+  resetCountersForWarmReuse(this: any): void {
+    this.commands = 0;
+    this.iterations = 0;
+    this.bytes = 0;
+    this.sourceBytes = 0;
+    this.globstarEntries = 0;
+    this.globstarStates = 0;
+    this._fileSystemOperations = 0;
+    this._pipelineStages = 0;
+    this.pipelineBytes = 0;
+    this.parsing.reset();
+  },
+  canFileSystemOperation(this: any): boolean {
+    return this._fileSystemOperations < this.maxFileSystemOperationsSmi || this._fileSystemOperations < this.limits.maxFileSystemOperations;
+  },
+  enterPipelineStages(this: any, count: number): void {
+    this.signal.throwIfAborted();
+    const next = (this._pipelineStages + (count | 0)) | 0;
+    if ((count | 0) === count && count >= 0 && next >= this._pipelineStages && next <= this.maxPipelineStagesSmi) {
+      this._pipelineStages = next;
+      return;
+    }
+    if (count > this.limits.maxPipelineStages - this._pipelineStages) this.fail("maxPipelineStages");
+    this._pipelineStages += count;
+  },
+  leavePipelineStages(this: any, count: number): void {
+    this._pipelineStages -= count;
+  },
+});
+
+Object.assign(Capture.prototype, {
+  takeUtf8Output(this: any): string | Uint8Array {
+    if (this.length === 0) return "";
+    if (this._scratchLen > 0 && this._scratch4k && !this._chunks && !this._first) {
+      const len = this._scratchLen;
+      const buf = this._scratch4k;
+      this._scratchLen = 0;
+      this.length = 0;
+      for (let i = 0; i < len; i++) {
+        if (buf[i]! >= 0x80) return new Uint8Array(buf.subarray(0, len));
+      }
+      if (len === cachedCaptureAsciiLen) {
+        let same = true;
+        for (let i = 0; i < len; i++) {
+          if (buf[i] !== cachedCaptureAsciiBytes[i]) {
+            same = false;
+            break;
+          }
+        }
+        if (same) return cachedCaptureAsciiStr;
+      }
+      const decoded = sharedCaptureDecoder.decode(buf.subarray(0, len));
+      if (len <= 4096) {
+        for (let i = 0; i < len; i++) cachedCaptureAsciiBytes[i] = buf[i]!;
+        cachedCaptureAsciiLen = len;
+        cachedCaptureAsciiStr = decoded;
+      }
+      return decoded;
+    }
+    return this.takeBytes();
+  },
+});
+
+Object.assign(BudgetedPipeStageSink.prototype, {
+  canWriteSync(this: any): boolean {
+    if (this.signal.aborted) return false;
+    const w = this.writable;
+    const pipe = w._pipe;
+    return Boolean(w.open && pipe && !pipe.failed && !pipe.signal?.aborted && pipe.readerReferences && (!pipe.writes || pipe.writes.size === 0) && (pipe.availableBytes ?? 0) < (pipe.highWaterMark ?? 0));
+  },
+});
+
+Object.assign(Runtime.prototype, {
+  setSyncPipeStatusCell(this: any, existing: any, status: string): void {
+    if (existing.values.size > 1 || existing.maximum !== 0) {
+      for (const key of existing.values.keys()) {
+        if (key > 0) existing.remove(key);
+      }
+      existing.maximum = 0;
+    }
+    const cell = existing.values.get(0);
+    if (cell && cell.text.references === 1 && cell.text.bytes === status.length) {
+      cell.text.shellValue = status;
+    } else {
+      existing.owner.chargeWork(status.length);
+      const token = new OwnedText(status, status.length, existing.owner.reserve({ payload: status.length, metadata: 32, work: 4 }));
+      try { existing.insert(0, token); }
+      catch (error) { token.release(); throw error; }
+    }
+  },
+});
+}
 const fastMkdirRmPaths: string[] = new Array<string>(32).fill("");
 const fastRedirectScratchViews: Uint8Array[] = Array.from({ length: 129 }, (_, len) => fastRedirectScratchBytes.subarray(0, len));
 function encodeRedirectTextToScratch(formatted: string): Uint8Array {
@@ -26359,3 +26538,7 @@ export function tryExecFast(shell: any, source: string, options: ShellExecOption
   }
   return undefined;
 }
+
+shellWarmHooks.tryExecFast = tryExecFast;
+
+

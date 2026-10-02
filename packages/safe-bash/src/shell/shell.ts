@@ -1,4 +1,4 @@
-import { tryExecFast } from "./sync-extra-evaluators.js";
+export const shellWarmHooks: { tryExecFast?: (shell: any, source: string, options: ShellExecOptions) => Promise<ShellResult> | undefined } = {};
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { clearAwkReaderPool } from "../commands/text-programs/awk-reader.js";
 import { writeDiagnostic } from "../escaping.js";
@@ -564,7 +564,7 @@ export class Shell implements PluginHost {
 
   exec(source: string, options: ShellExecOptions = EMPTY_EXEC_OPTIONS): Promise<ShellResult> {
     if (!this._disposed && typeof source === "string" && (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options))) {
-      const fast = tryExecFast(this, source, options);
+      const fast = shellWarmHooks.tryExecFast?.(this, source, options);
       if (fast !== undefined) return fast;
     }
     return this.#execAsync(source, options);

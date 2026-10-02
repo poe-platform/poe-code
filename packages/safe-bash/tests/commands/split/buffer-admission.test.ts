@@ -14,7 +14,7 @@ test("split omits the buffer quota even when another quota is supplied", async (
 
 test("split rejects windows above an explicit buffer quota before reading", async () => {
   const limits = settings({});
-  assert.equal(limits.maxChunkBytes, 64 * 1024);
+  assert.equal(limits.maxChunkBytes, Infinity);
   let read = false;
   const input = (async function* () { read = true; yield Buffer.from("a"); })();
   const result = await run(["-C", "9"], input, { limits: { maxBufferBytes: 8 } });

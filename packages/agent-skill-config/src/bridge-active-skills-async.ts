@@ -1,10 +1,12 @@
-import { createHash, randomUUID } from "node:crypto";
-import { posix as path } from "node:path";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
+import { skillOperations } from "./filesystem.js";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import type { FileSystem } from "@poe-code/safe-fs";
 import { getAgentConfig, resolveAgentSupport, resolveSkillDir } from "./configs.js";
 import { hasOwnErrorCode } from "./error-codes.js";
-import { appendExcludeBlockAsync, removeExcludeBlockAsync } from "./git-exclude.js";
-import { resolveSkillReferenceAsync, type SkillRuntimeOptions } from "./resolve-skill-reference.js";
+import { appendExcludeBlockAsync, removeExcludeBlockAsync } from "./git-exclude-async.js";
+import { resolveSkillReferenceAsync, type SkillRuntimeOptions } from "./resolve-skill-reference-async.js";
 import type { BridgeEntry, BridgeManifest, BridgeWarningKind } from "./bridge-active-skills.js";
 
 type OwnedTarget = {
@@ -41,12 +43,7 @@ async function exclusive<T>(
 }
 
 async function operations(options: SkillRuntimeOptions) {
-  const { createNodeFsBridge } = await import("@poe-code/safe-fs");
-  const fs = createNodeFsBridge(options.fs, {
-    cwd: options.cwd,
-    root: "/",
-    signal: options.signal
-  });
+  const fs = skillOperations(options);
   async function exists(target: string): Promise<boolean> {
     try {
       await fs.lstat(target);
@@ -73,20 +70,20 @@ async function operations(options: SkillRuntimeOptions) {
     }
   }
   async function fingerprint(target: string): Promise<string> {
-    const hash = createHash("sha256");
+    const hash = sha256.create();
     async function visit(current: string, relative: string): Promise<void> {
       const stat = await fs.lstat(current);
       if (stat.isDirectory()) {
-        hash.update(`d:${relative}\n`);
+        hash.update(new TextEncoder().encode(`d:${relative}\n`));
         for (const name of (await fs.readdir(current)).sort())
           await visit(path.join(current, name), path.join(relative, name));
       } else if (stat.isFile()) {
-        hash.update(`f:${relative}\n`);
+        hash.update(new TextEncoder().encode(`f:${relative}\n`));
         hash.update(await fs.readFile(current));
       } else throw new Error(`Unsupported skill entry or symbolic link: ${current}`);
     }
     await visit(target, ".");
-    return hash.digest("hex");
+    return bytesToHex(hash.digest());
   }
   async function copy(source: string, target: string): Promise<void> {
     await fs.mkdir(target);
@@ -220,7 +217,7 @@ export async function bridgeActiveSkillsAsync(
             else if (entry.isFile()) await io.fs.copyFile(from, to);
             else throw new Error(`Unsupported skill entry or symbolic link: ${from}`);
           }
-          const token = randomUUID();
+          const token = crypto.randomUUID();
           await io.fs.writeFile(path.join(target, ownerFile), token, {
             encoding: "utf8",
             flag: "wx"

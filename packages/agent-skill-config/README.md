@@ -26,6 +26,8 @@ The agent token accepts canonical ids, aliases, and any casing. It is normalized
 
 Resolution is per ref. Project scope beats user scope; first hit wins.
 
+Import the asynchronous APIs from `@poe-code/agent-skill-config/runtime` in Workers without `nodejs_compat`. This entrypoint uses portable paths, Web cryptography, and the supplied filesystem.
+
 Use `resolveSkillReferenceAsync(ref, { fs, cwd, homeDir, signal? })` for a canonical safe-fs provider, including in-memory and restricted views. Read the resolved `SKILL.md` through the same provider. The synchronous `resolveSkillReference` API retains explicitly host-backed behavior.
 
 Bare `<name>`:

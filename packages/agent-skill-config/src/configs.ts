@@ -1,5 +1,5 @@
-import os from "node:os";
-import nativePath from "node:path";
+import { homedir } from "#skill-platform";
+import { posixPath as nativePath } from "@poe-code/safe-fs/runtime-core";
 import { resolveAgentId } from "@poe-code/agent-defs";
 
 export interface AgentSkillConfig {
@@ -73,7 +73,7 @@ export function getAgentConfig(agentId: string): AgentSkillConfig | undefined {
   return support.status === "supported" ? support.config : undefined;
 }
 
-function expandHome(targetPath: string, homeDir: string = os.homedir(), path = nativePath): string {
+function expandHome(targetPath: string, homeDir: string = homedir(), path = nativePath): string {
   if (!targetPath?.startsWith("~")) {
     return targetPath;
   }

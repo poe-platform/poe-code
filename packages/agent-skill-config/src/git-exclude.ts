@@ -1,4 +1,4 @@
-import type { SkillRuntimeOptions } from "./resolve-skill-reference.js";
+import { assertSingleLine, removeBlock, appendBlock, nextBlockId } from "./exclude-text.js";
 import { execFileSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import * as fs from "node:fs";
@@ -40,18 +40,7 @@ function resolveExcludePath(cwd: string): string | undefined {
   return path.join(path.isAbsolute(gitDir) ? gitDir : path.resolve(cwd, gitDir), "info/exclude");
 }
 
-function markers(runId: string, markerPrefix: string): { begin: string; end: string } {
-  return {
-    begin: `# ${markerPrefix}:${runId} begin`,
-    end: `# ${markerPrefix}:${runId} end`
-  };
-}
 
-function assertSingleLine(value: string, label: string): void {
-  if (value.includes("\n") || value.includes("\r")) {
-    throw new Error(`${label} must be a single line`);
-  }
-}
 
 function readExcludeFile(excludePath: string): string | undefined {
   try {
@@ -113,49 +102,8 @@ function writeExcludeFile(excludePath: string, content: string): void {
   }
 }
 
-function removeBlock(content: string, runId: string, markerPrefix: string): string {
-  const { begin, end } = markers(runId, markerPrefix);
-  const lines = content.split("\n");
-  const result: string[] = [];
 
-  for (let index = 0; index < lines.length; index += 1) {
-    if (lines[index] === begin) {
-      const endIndex = lines.indexOf(end, index + 1);
-      if (endIndex !== -1) {
-        index = endIndex;
-        continue;
-      }
-    }
 
-    result.push(lines[index]);
-  }
-
-  return result.join("\n");
-}
-
-function appendBlock(
-  content: string | undefined,
-  runId: string,
-  entries: string[],
-  markerPrefix: string
-): string {
-  const { begin, end } = markers(runId, markerPrefix);
-  const existing = content ?? "";
-  const prefix = existing.length === 0 || existing.endsWith("\n") ? existing : `${existing}\n`;
-  return `${prefix}${[begin, ...entries, end, ""].join("\n")}`;
-}
-
-function nextBlockId(content: string | undefined, runId: string, markerPrefix: string): string {
-  if (content === undefined || !content.includes(markers(runId, markerPrefix).begin)) {
-    return runId;
-  }
-
-  let suffix = 1;
-  while (content.includes(markers(`${runId}:${suffix}`, markerPrefix).begin)) {
-    suffix += 1;
-  }
-  return `${runId}:${suffix}`;
-}
 
 export function appendExcludeBlock(
   cwd: string,
@@ -201,73 +149,5 @@ export function removeExcludeBlock(
   writeExcludeFile(excludePath, removeBlock(content, runId, opts?.markerPrefix ?? defaultMarkerPrefix));
 }
 
-async function findExcludePath(options: SkillRuntimeOptions): Promise<string | undefined> {
-  const { createNodeFsBridge } = await import("@poe-code/safe-fs");
-  const fs = createNodeFsBridge(options.fs, { cwd: options.cwd, root: "/", signal: options.signal });
-  const path = (await import("node:path")).posix;
-  let directory = options.cwd;
-  while (true) {
-    const gitPath = path.join(directory, ".git");
-    try {
-      const stat = await fs.lstat(gitPath);
-      if (stat.isSymbolicLink()) throw new Error("Refusing symbolic Git directory");
-      if (stat.isDirectory()) return path.join(gitPath, "info/exclude");
-      const contents = await fs.readFile(gitPath, "utf8");
-      if (!contents.startsWith("gitdir: ")) throw new Error("Invalid Git directory file");
-      const gitDir = path.resolve(directory, contents.slice(8).trim());
-      return path.join(gitDir, "info/exclude");
-    } catch (error) {
-      if (!hasOwnErrorCode(error, "ENOENT")) throw error;
-    }
-    const parent = path.dirname(directory);
-    if (parent === directory) return undefined;
-    directory = parent;
-  }
-}
 
-async function mutateExclude(options: SkillRuntimeOptions, transform: (content: string | undefined) => { content: string; blockId?: string } | undefined): Promise<string | undefined> {
-  const path = (await import("node:path")).posix;
-  const excludePath = await findExcludePath(options);
-  if (!excludePath) return undefined;
-  const { createNodeFsBridge } = await import("@poe-code/safe-fs");
-  const fs = createNodeFsBridge(options.fs, { cwd: options.cwd, root: "/", signal: options.signal });
-  let content: string | undefined;
-  try { content = await fs.readFile(excludePath, "utf8"); }
-  catch (error) { if (!hasOwnErrorCode(error, "ENOENT")) throw error; }
-  const result = transform(content);
-  if (!result) return undefined;
-  // Inspect all ancestors before mutation; never follow symlinks in Git metadata.
-  let current = excludePath;
-  while (true) {
-    try { if ((await fs.lstat(current)).isSymbolicLink()) throw new Error("Refusing symbolic Git exclude path"); }
-    catch (error) { if (!hasOwnErrorCode(error, "ENOENT")) throw error; }
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
-  }
-  await fs.mkdir(path.dirname(excludePath), { recursive: true });
-  const temporary = `${excludePath}.${randomUUID()}.tmp`;
-  let created = false;
-  try {
-    await fs.writeFile(temporary, result.content, { encoding: "utf8", flag: "wx" });
-    created = true;
-    await fs.rename(temporary, excludePath);
-  } finally { if (created) await fs.rm(temporary, { force: true }); }
-  return result.blockId;
-}
-
-export async function appendExcludeBlockAsync(options: SkillRuntimeOptions, runId: string, entries: string[], opts?: { markerPrefix?: string }): Promise<string | undefined> {
-  const prefix = opts?.markerPrefix ?? defaultMarkerPrefix;
-  assertSingleLine(runId, "runId"); assertSingleLine(prefix, "markerPrefix");
-  for (const entry of entries) assertSingleLine(entry, "exclude entry");
-  return mutateExclude(options, content => {
-    const blockId = nextBlockId(content, runId, prefix);
-    return { content: appendBlock(content, blockId, entries, prefix), blockId };
-  });
-}
-
-export async function removeExcludeBlockAsync(options: SkillRuntimeOptions, runId: string, opts?: { markerPrefix?: string }): Promise<void> {
-  const prefix = opts?.markerPrefix ?? defaultMarkerPrefix;
-  assertSingleLine(runId, "runId"); assertSingleLine(prefix, "markerPrefix");
-  await mutateExclude(options, content => content === undefined ? undefined : { content: removeBlock(content, runId, prefix) });
-}
+export { appendExcludeBlockAsync, removeExcludeBlockAsync } from "./git-exclude-async.js";

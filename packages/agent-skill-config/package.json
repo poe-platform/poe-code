@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
     }
   },
   "scripts": {
@@ -23,12 +27,20 @@
     "@poe-code/agent-defs": "*",
     "@poe-code/config-mutations": "*",
     "@poe-code/user-error": "*",
-    "@poe-code/safe-fs": "*"
+    "@poe-code/safe-fs": "*",
+    "@noble/hashes": "2.4.0"
   },
   "imports": {
     "#skill-templates": {
       "types": "./src/template-data.d.ts",
       "default": "./dist/template-data.js"
+    },
+    "#skill-platform": {
+      "types": "./src/platform.ts",
+      "workerd": "./dist/platform.workerd.js",
+      "browser": "./dist/platform.workerd.js",
+      "worker": "./dist/platform.workerd.js",
+      "default": "./dist/platform.js"
     }
   }
 }

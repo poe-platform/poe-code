@@ -1,6 +1,7 @@
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import { skillOperations } from "./filesystem.js";
 import { hasOwnErrorCode } from "./error-codes.js";
-import type { SkillRuntimeOptions } from "./resolve-skill-reference.js";
+import type { SkillRuntimeOptions } from "./resolve-skill-reference-async.js";
 
 export interface DiscoveredSkill {
   name: string;
@@ -13,11 +14,8 @@ export async function discoverSkillsAsync(
   directories: readonly string[],
   options: SkillRuntimeOptions & { nativePaths?: boolean }
 ): Promise<DiscoveredSkill[]> {
-  const { createNodeFsBridge } = await import("@poe-code/safe-fs");
-  const paths = options.nativePaths ? path : path.posix;
-  const fs = options.nativePaths ? options.fs : createNodeFsBridge(options.fs, {
-    cwd: options.cwd, root: "/", signal: options.signal
-  });
+  const paths = path;
+  const fs = options.nativePaths ? options.fs : skillOperations(options);
   const skills: DiscoveredSkill[] = [];
   const seen = new Set<string>();
   for (const directory of directories) {

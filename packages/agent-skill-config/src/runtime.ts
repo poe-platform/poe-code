@@ -1,0 +1,7 @@
+export { resolveSkillReferenceAsync } from "./resolve-skill-reference-async.js";
+export type { SkillRuntimeOptions, SkillResolution, SkillResolutionFailure, SkillSource } from "./resolve-skill-reference-async.js";
+export { discoverSkillsAsync } from "./discover-skills-async.js";
+export type { DiscoveredSkill } from "./discover-skills-async.js";
+export { bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync } from "./bridge-active-skills-async.js";
+export type { BridgeEntry, BridgeManifest, BridgeWarning, BridgeWarningKind } from "./bridge-active-skills.js";
+export { appendExcludeBlockAsync, removeExcludeBlockAsync } from "./git-exclude-async.js";

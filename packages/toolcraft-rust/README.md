@@ -17,6 +17,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
 | Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation; prepared for CLI integration |
+| Result rendering | Native rich cards, tables, Markdown/JSON, custom hooks and MCP error routing; prepared for CLI integration |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Design           | `toolcraft-rust/design` and 72 flat helper paths backed by the native design package |
 | File changes     | `toolcraft-rust/file-changes`: native status summaries and unified diffs through standard renderers |
@@ -176,6 +177,8 @@ const renderers = createFileChangeRenderers({ mode: 'diff' });
 ```
 
 Deep graph resource limits still require compatibility qualification before a swap.
+Result rendering uses the own Rust YAML codec; YAML-library Document/node inputs
+and complete CLI integration remain under qualification.
 
 The CLI, transports and
 remaining subpaths are not yet available. Declarations currently use the existing

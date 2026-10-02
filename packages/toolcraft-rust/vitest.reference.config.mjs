@@ -23,6 +23,7 @@ export default defineConfig({
           if (resolved === path("../toolcraft/src/json-schema-converter.js")) return path("dist/json-schema-converter.js");
           if (resolved === path("../toolcraft/src/mcp-proxy.js")) return path("dist/mcp-proxy.js");
           if (resolved === path("../toolcraft/src/sdk.js")) return path("dist/sdk.js");
+          if (resolved === path("../toolcraft/src/renderer.js")) return path("dist/renderer.js");
           if (resolved === path("../toolcraft/src/human-in-loop/plan-hash.js")) return path("dist/approval-plan.js");
           if (resolved === path("../toolcraft/src/human-in-loop/approval-tasks.js")) return path("dist/approval-tasks.js");
           if (resolved === path("../toolcraft/src/human-in-loop/state-machine.js")) return path("dist/approval-state-machine.js");
@@ -46,7 +47,7 @@ export default defineConfig({
           if (name === "toolcraft-design") return path("../toolcraft-design-rust/dist/index.js");
         }
         if (
-          ["clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "error-report", "sdk-validation", "sdk-runtime-options"].some(
+          ["renderer", "clone-command-node", "toolcraft", "mcp-result", "stream", "stream-lifecycle", "schema-scope-exhausted", "schema-member-collisions", "discriminator-validation", "union-validation", "applied-default-validation", "error-report", "sdk-validation", "sdk-runtime-options"].some(
             (suite) => importer === path(`../toolcraft/src/${suite}.test.ts`)
           ) &&
           name === "./index.js"
@@ -74,6 +75,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft/src/renderer.test.ts"),
       path("../toolcraft/src/design-subpath-exports.test.ts"),
       path("../toolcraft/src/file-change-renderer.test.ts"),
       path("tests/package-metadata-parity.test.ts"),

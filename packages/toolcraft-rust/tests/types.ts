@@ -108,3 +108,11 @@ import type * as referenceNumberSchema from "../../toolcraft/dist/number-schema.
 const numberSchemaOriginal: typeof referenceNumberSchema = numberSchema;
 const numberSchemaNative: typeof numberSchema = null as unknown as typeof referenceNumberSchema;
 void [numberSchemaOriginal,numberSchemaNative];
+
+import * as renderer from "../dist/renderer.js";
+import type * as referenceRenderer from "../../toolcraft/dist/renderer.js";
+const rendererOriginal: typeof referenceRenderer = renderer;
+const rendererNative: typeof renderer = null as unknown as typeof referenceRenderer;
+const outputMode: referenceRenderer.OutputMode = null as unknown as import("../dist/renderer.js").OutputMode;
+const renderStatus: referenceRenderer.RenderResultStatus = null as unknown as import("../dist/renderer.js").RenderResultStatus;
+void [rendererOriginal,rendererNative,outputMode,renderStatus];

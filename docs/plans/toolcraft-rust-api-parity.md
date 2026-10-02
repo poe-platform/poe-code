@@ -2834,3 +2834,58 @@ integration. No performance claim applies to the error-path correction.
 Numeric validation is verified on remote main at
 f938732656d536dff0bbf26ff5758f4263f7933f. Its Release run 37049166253 is pending;
 publication remains unverified.
+
+### Result renderer checkpoint
+
+The internal renderer now exposes `renderResult`, `renderObjectTable` and
+`renderArrayTable` with the reference declarations. Rust owns result-mode and
+custom-hook selection, MCP payload/error routing, label disambiguation, nested
+row/section admission and scalar presentation. Node retains object identities,
+observable collection/string/JSON operations, callbacks and stream writes. Rich
+cards and tables use the native design workspace. The existing own
+`@poe-code/config-mutations-rust` workspace is now a declared runtime dependency
+for YAML fallback; no external dependency was added. No default implementation
+or public CLI entry point changed.
+
+Four missing-module failures preceded implementation. Eight final differential
+tests cover ordinary values and output modes, cyclic/mixed YAML arrays, BigInt,
+marked MCP ownership, error-stream routing, custom callback identity/receivers,
+getter order, repeated table reads, named filter callbacks, arbitrary write
+failures, default process-stream receivers and reentrant rendering. An additional
+failing comparison caught V8 error-text differences from dynamic custom-member
+calls; explicit host member calls now retain those diagnostics. All 150 original
+renderer tests run against native imports. The maintained Toolcraft route passed
+136 native tests and 1,721 reference/integration cases across 45 files, plus
+bidirectional declarations. The final default-stream/reentrancy test was then
+added and all eight renderer comparisons passed in a focused rerun. Build,
+Rust/binding lint and scoped JS lint pass.
+
+Packed Toolcraft, native design and native YAML artifacts execute the renderer
+with other external ESM imports blocked. The packed type consumer compiles with
+`types: []`; existing contract dependencies still resolve from the checkout, so
+this is not complete standalone type packaging evidence. An inspected screenshot
+covers a nested rich card, Markdown table, JSON and mixed-array YAML output;
+native/reference ANSI text is byte-identical.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 100 calls each, retaining
+32 results, measured native/reference medians of 1,249.696/155.745 microseconds
+for the rich card (8.02 times slower), 37.522/2.581 for the Markdown table
+(14.54 times slower), 13.980/0.965 for JSON (14.48 times slower), and
+17.989/17.459 for mixed-array YAML (1.03 times slower). These are local fixture
+measurements, not a performance-gate pass. YAML-library Document/node inputs,
+all host-intrinsic behavior, complete resource/platform qualification and full
+CLI/transport/swap gates remain open.
+
+Release publication remains unverified. API access recovered after rate limits;
+the numeric commit's Release run 37049166253 and the YAML fix's Release run
+37049781865 both still report pending validation jobs. The browser also requires
+organization SSO before showing the run. No failed or completed release is inferred.
+
+The selected maintained dependency build subsequently passed:
+`npm run build:workspaces -- --workspace=toolcraft-rust`. Missing links for
+already-declared local workspaces were restored without installing dependencies.
+Safe Bash's private LLM workspace profile was corrected to reflect its existing
+hash dependency; its build and postbuild passed. The identical metadata correction
+arrived independently on remote main, so rebase dropped the duplicate local fix.
+The selected build covered 230 build tasks from the derived 290-workspace closure;
+this is build evidence, not additional test or release-publication evidence.

@@ -364,6 +364,7 @@
     "commander": "^13.1.0",
     "tiny-mcp-client-rust": "*",
     "@poe-code/task-list-rust": "*",
-    "@poe-code/agent-human-in-loop-rust": "*"
+    "@poe-code/agent-human-in-loop-rust": "*",
+    "@poe-code/config-mutations-rust": "*"
   }
 }

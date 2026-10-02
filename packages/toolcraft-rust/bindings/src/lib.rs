@@ -19,6 +19,7 @@ pub mod mcp_result;
 pub mod number_schema;
 pub mod package_metadata;
 pub mod redaction;
+pub mod renderer;
 pub mod runtime_policy;
 pub mod schema_members;
 pub mod schema_scope;

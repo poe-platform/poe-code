@@ -572,6 +572,23 @@ JS/native boundary crossings and remeasure without weakening API parity before
 considering performance integration or a swap. Comparison dependencies have no
 new manifest/lock declarations; the existing repository installations were used.
 
+The width binding now retains numeric/boolean intermediates and block identifiers
+in Rust instead of calling JavaScript for primitive arithmetic and comparisons.
+Nonprimitive values still use the host coercion path; Math, RegExp, string and
+iterator operations remain observable. IEEE arithmetic tests cover signed zero,
+NaN, infinities and rounded increments. All 78 native and 173 reference tests,
+standalone declarations and package lint pass without dependency changes.
+A same-process comparison of the previous and new native binaries (same machine,
+Node 22.23.2, 20 warmups, seven alternating-order samples, outputs checked first)
+measured median microseconds per invocation as JS/previous/new: width
+2.84/216.21/92.64, wrapping 18.67/1960.61/1553.16, detail
+43.78/4294.67/3915.13, inspector 42.02/3856.12/3250.29. Width/wrap each use the
+three-string cohort above; cards use those strings as prose/metadata or preview
+and metadata, at width 48 with identity header/muted styling. Width uses 2,000
+iterations per sample; the others use 100. This is a 2.33x native width speedup,
+but it remains 32.6x slower than JavaScript on this local fixture. More substantial
+boundary reduction and fresh measurements remain necessary for swap qualification.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

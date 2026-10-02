@@ -2,6 +2,33 @@
 //! the host so its Unicode tables, coercions and UTF-16 semantics remain exact.
 use crate::table::Host;
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum NumericResult {
+    Number(f64),
+    Boolean(bool),
+}
+
+/// Only primitive numbers enter this kernel. Other ECMAScript values retain
+/// their host coercions, including repeated coercion and arbitrary throws.
+pub fn numeric_operation(operation: &str, args: &[f64]) -> Option<NumericResult> {
+    use NumericResult::{Boolean, Number};
+    Some(match (operation, args) {
+        ("zero", []) => Number(0.0),
+        ("one", []) => Number(1.0),
+        ("two", []) => Number(2.0),
+        ("add", [a, b]) => Number(a + b),
+        ("subtract", [a, b]) => Number(a - b),
+        ("multiply", [a, b]) => Number(a * b),
+        ("increment", [a]) => Number(a + 1.0),
+        ("gt", [a, b]) => Boolean(a > b),
+        ("ge", [a, b]) => Boolean(a >= b),
+        ("truthy", [a]) => Boolean(*a != 0.0 && !a.is_nan()),
+        ("overLimit", [a, b, limit]) => Boolean(a + b > *limit),
+        ("overInfinity", [a, b]) => Boolean(a + b > f64::INFINITY),
+        _ => return None,
+    })
+}
+
 pub fn point_kind(x: f64) -> &'static str {
     if x == 0x3000 as f64
         || (0xff01 as f64..=0xff60 as f64).contains(&x)

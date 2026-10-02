@@ -46,6 +46,8 @@ function compileSimpleFdMatcher(pattern: string, mode: "regex" | "glob" | "fixed
     return (s: string) => (isSensitive ? s : s.toLowerCase()).includes(needle);
   }
   if (mode === "glob") {
+    // Character classes, brace alternatives, and escapes use the shared glob parser.
+    if (["[", "]", "{", "}", "\\"].some(character => pattern.includes(character))) return undefined;
     let rx = "^";
     for (let i = 0; i < pattern.length; i++) {
       const ch = pattern[i]!;

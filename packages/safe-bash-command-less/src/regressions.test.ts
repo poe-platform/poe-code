@@ -157,3 +157,19 @@ for (const factory of [createLessCommand, createMoreCommand]) {
     });
   }
 }
+
+for (const [factory, args] of [
+  [createLessCommand, ["-p", "^Chapter [0-9]+:"]],
+  [createLessCommand, ["+/^Chapter [0-9]+:"]],
+  [createMoreCommand, ["+/^Chapter [0-9]+:"]],
+] as const) {
+  test(`${factory.name} starts at a chapter regex match: ${args.join(" ")}`, async () => {
+    const run = fixture([...args], "Preface\nChapter 1: Intro\nBody\n");
+    let output = "";
+    run.context.stdout.write = async bytes => { output += new TextDecoder().decode(bytes); };
+    assert.equal((await factory().execute(run.context)).exitCode, 0);
+    assert.equal(output, "Chapter 1: Intro\nBody\n");
+    assert.equal(run.diagnostic(), "");
+    assert.equal(evalSyncLess(new TextEncoder().encode("Preface\nChapter 1: Intro\n"), args), undefined);
+  });
+}

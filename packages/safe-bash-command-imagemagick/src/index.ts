@@ -5013,7 +5013,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     gy = g.y;
                 }
                 const grav = resolveGravityOffset(base.width - overlay.width, base.height - overlay.height, state.gravity);
-                const composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, grav.left + gx, grav.top + gy, state.composeArgs, signal));
+                let composed: RgbaImage;
+                if (state.composeRaw.toLowerCase() === "over") {
+                    yield* blitOverRgbaInPlaceSteps(base, overlay, grav.left + gx, grav.top + gy);
+                    detachRgbaBuffer(overlay.data);
+                    composed = base;
+                } else {
+                    composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, grav.left + gx, grav.top + gy, state.composeArgs, signal));
+                    if (composed !== base) detachRgbaBuffer(base.data);
+                    if (composed !== overlay) detachRgbaBuffer(overlay.data);
+                }
                 stack = [composed, ...stack.slice(2)];
             }
         }
@@ -5123,8 +5132,10 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const { data: encoded } = encodeImage(toEncode, {
             format,
             quality: state.quality,
-            ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : {})
-        });
+            ...(encodePageHeight !== undefined ? { pageHeight: encodePageHeight } : {}),
+            consumeInput: true
+        } as any);
+        detachRgbaBuffer(toEncode.data);
         if (outPath === "-" || outSpec.endsWith(":-")) {
             return {
                 exitCode: 0,

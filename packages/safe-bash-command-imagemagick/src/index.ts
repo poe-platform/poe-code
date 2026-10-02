@@ -3232,11 +3232,42 @@ function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickSta
             const ry = Math.min(y0, y1);
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-            if (fill !== "none") {
-                svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}"/>`);
-            }
-            if (stroke !== "none" && strokeWidth > 0) {
-                svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+            if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
+                const fc = parseColor(fill);
+                const xStart = Math.max(0, Math.floor(rx));
+                const yStart = Math.max(0, Math.floor(ry));
+                const xEnd = Math.min(img.width, Math.ceil(rx + rw));
+                const yEnd = Math.min(img.height, Math.ceil(ry + rh));
+                const dst = img.data;
+                for (let py = yStart; py < yEnd; py++) {
+                    const rowOff = py * img.width * 4;
+                    for (let px = xStart; px < xEnd; px++) {
+                        const dIdx = rowOff + px * 4;
+                        if (fc.a === 255) {
+                            dst[dIdx] = fc.r;
+                            dst[dIdx + 1] = fc.g;
+                            dst[dIdx + 2] = fc.b;
+                            dst[dIdx + 3] = 255;
+                        } else if (fc.a > 0) {
+                            const sA = fc.a / 255;
+                            const dA = dst[dIdx + 3]! / 255;
+                            const outA = sA + dA * (1 - sA);
+                            if (outA > 0) {
+                                dst[dIdx] = Math.round((fc.r * sA + dst[dIdx]! * dA * (1 - sA)) / outA);
+                                dst[dIdx + 1] = Math.round((fc.g * sA + dst[dIdx + 1]! * dA * (1 - sA)) / outA);
+                                dst[dIdx + 2] = Math.round((fc.b * sA + dst[dIdx + 2]! * dA * (1 - sA)) / outA);
+                                dst[dIdx + 3] = Math.round(outA * 255);
+                            }
+                        }
+                    }
+                }
+            } else {
+                if (fill !== "none") {
+                    svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${fill}"/>`);
+                }
+                if (stroke !== "none" && strokeWidth > 0) {
+                    svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+                }
             }
         }
         else if (cmd === "roundrectangle") {
@@ -3376,6 +3407,7 @@ function blendOverlayInPlace(img: RgbaImage, overlay: RgbaImage, offsetX: number
             }
         }
     }
+    detachRgbaBuffer(overlay.data);
 }
 
 function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {

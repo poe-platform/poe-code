@@ -13,6 +13,7 @@ pub mod layout;
 pub mod logging;
 pub mod palette;
 pub mod preview;
+pub mod render_performance;
 pub mod resource_browser;
 pub mod string_width;
 pub mod symbols;

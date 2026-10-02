@@ -83,6 +83,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
 | `createEventGroups`, `renderEventGroupRows` | Retain grouped output, expand errors and render a bounded row window |
 | `createTaskTree`, `renderTaskRows` | Index task hierarchies, collapse subtrees and render status/duration rows |
+| `createRenderPerformanceMonitor`, `formatRenderPerformance` | Track repaint rates, rolling percentiles, input latency and coalesced updates |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -307,3 +308,11 @@ removes its subtree and `toggle(id)` hides or reveals descendants.
 `rows(offset, height)` returns snapshots with depth and collapse state;
 `renderTaskRows(rows, width)` adds indentation, status marks and optional durations.
 Both functions are also exported from `toolcraft-design-rust/task-tree`.
+
+`createRenderPerformanceMonitor({now, sampleSize})` tracks repaint dispatches,
+render duration, pending input latency and coalesced requests. Call
+`request(kind)`, `begin()` and `end(startedAt, {changedCells})` around rendering;
+`snapshot()` returns bounded rolling percentiles and cumulative hitch counts.
+`formatRenderPerformance(stats, width)` creates a clipped diagnostics row. The
+`render-performance` subpath exports both functions and their snapshot types.
+Frame rate measures dispatch activity, not terminal presentation.

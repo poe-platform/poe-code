@@ -109,3 +109,4 @@ export * from "./metric.js";
 export * from "./progress-group.js";
 export * from "./event-groups.js";
 export * from "./task-tree.js";
+export * from "./render-performance.js";

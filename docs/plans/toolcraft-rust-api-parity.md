@@ -667,6 +667,19 @@ screenshot verifies hierarchy indentation, collapse state, status marks, duratio
 and clipping. Render monitoring, full interactive surfaces, Markdown and remaining
 Toolcraft contracts still require implementation and qualification.
 
+Render-performance monitoring now exposes native capacity validation, repaint
+admission, hitch accounting, frame-rate bucket traversal and percentile selection
+at the root and `render-performance` subpath. Node retains clocks, typed-array
+operations, Math lookups, compound assignments and formatting methods. Tests cover
+rolling eviction, zero/nonfinite durations, repeated getters, clock receivers,
+typed-array sorting, detached methods and reentrant clock/Math/frame callbacks.
+All 123 native and 205 reference tests, bidirectional declarations, package/JS lint
+and isolated packed consumers pass without dependency changes. An inspected
+screenshot confirms diagnostics at wide, medium and narrow widths. This port
+preserves monitoring semantics and makes no performance improvement claim. Full
+interactive rendering, Markdown, CLI/transports and complete swap qualification
+remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

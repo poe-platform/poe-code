@@ -1,3 +1,5 @@
+mod render_performance;
+pub use render_performance::*;
 mod task_tree;
 pub use task_tree::*;
 mod event_groups;

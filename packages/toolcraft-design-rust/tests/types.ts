@@ -269,3 +269,13 @@ const rootTaskTreeOwn: typeof taskTree = null as unknown as typeof originalDesig
 const taskNodeOriginal: originalTaskTree.TaskNode = null as unknown as taskTree.TaskNode;
 const taskNodeOwn: taskTree.TaskNode = null as unknown as originalTaskTree.TaskNode;
 void [taskTreeOriginal,taskTreeOwn,rootTaskTreeOriginal,rootTaskTreeOwn,taskNodeOriginal,taskNodeOwn];
+
+import * as renderPerformance from "toolcraft-design-rust/render-performance";
+import type * as originalRenderPerformance from "toolcraft-design/render-performance";
+const renderPerformanceOriginal: typeof originalRenderPerformance = renderPerformance;
+const renderPerformanceOwn: typeof renderPerformance = null as unknown as typeof originalRenderPerformance;
+const rootRenderPerformanceOriginal: typeof originalRenderPerformance = design;
+const rootRenderPerformanceOwn: typeof renderPerformance = null as unknown as typeof originalDesign;
+const performanceSnapshotOriginal: originalRenderPerformance.RenderPerformanceSnapshot = null as unknown as renderPerformance.RenderPerformanceSnapshot;
+const performanceSnapshotOwn: renderPerformance.RenderPerformanceSnapshot = null as unknown as originalRenderPerformance.RenderPerformanceSnapshot;
+void [renderPerformanceOriginal,renderPerformanceOwn,rootRenderPerformanceOriginal,rootRenderPerformanceOwn,performanceSnapshotOriginal,performanceSnapshotOwn];

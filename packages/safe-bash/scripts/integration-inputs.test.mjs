@@ -904,12 +904,13 @@ function assertSource7Discovery(files) {
   ]) assert.ok(files.includes(path), "optional yes test is missing: " + path);
   for (const path of [
     "tests/commands/cmp/cmp.test.ts",
-    "tests/commands/cmp/blocks.test.ts",
     "tests/commands/cmp/native.test.ts",
     "tests/commands/cmp/parity.test.ts",
     "tests/commands/cmp/oracle-lifecycle.test.ts",
     "tests/commands/cmp/review.test.ts",
   ]) assert.ok(files.includes(path), "optional cmp test is missing: " + path);
+  assert.ok(!files.includes("tests/commands/cmp/blocks.test.ts"), "extracted cmp blocks test remains in safe-bash discovery");
+  assert.ok(fs.existsSync(new URL("../../safe-bash-command-cmp/src/blocks.test.ts", import.meta.url)), "cmp workspace blocks suite missing");
   for (const path of [
     "tests/commands/shuf/behavior.test.ts",
     "tests/commands/shuf/lifecycle.test.ts",
@@ -3055,17 +3056,17 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/iconv/translit-streams.test.ts"));
   assert.ok(files.includes("tests/commands/streams.test.ts"));
   assert.ok(!files.includes("tests/commands/iconv/translit.test.ts"));
-  assert.ok(files.includes("tests/commands/hexdump/fresh.test.ts"));
-  assert.ok(files.includes("tests/commands/hexdump/native.test.ts"));
-  assert.ok(files.includes("tests/commands/hexdump/path.test.ts"));
+  assert.ok(!files.includes("tests/commands/hexdump/fresh.test.ts"));
+  assert.ok(!files.includes("tests/commands/hexdump/native.test.ts"));
+  assert.ok(!files.includes("tests/commands/hexdump/path.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/safety.test.ts"));
-  assert.ok(files.includes("tests/commands/hexdump-independent/admission.test.ts"));
+  assert.ok(!files.includes("tests/commands/hexdump-independent/admission.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump-independent/native-errors.test.ts"));
-  assert.ok(files.includes("tests/commands/hexdump-independent/extent.test.ts"));
+  assert.ok(!files.includes("tests/commands/hexdump-independent/extent.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump-independent/snapshot.test.ts"));
-  assert.ok(files.includes("tests/commands/hexdump-independent/lifecycle.test.ts"));
-  assert.ok(files.includes("tests/commands/hexdump-independent/synchronous-close.test.ts"));
-  assert.ok(files.includes("tests/commands/hexdump-independent/acquisition-close.test.ts"));
+  assert.ok(!files.includes("tests/commands/hexdump-independent/lifecycle.test.ts"));
+  assert.ok(!files.includes("tests/commands/hexdump-independent/synchronous-close.test.ts"));
+  assert.ok(!files.includes("tests/commands/hexdump-independent/acquisition-close.test.ts"));
   assert.ok(files.includes("tests/commands/getopt/native.test.ts"));
   assert.ok(files.includes("tests/commands/getopt/safety.test.ts"));
   assert.ok(files.includes("tests/commands/getopt-independent/native.test.ts"));

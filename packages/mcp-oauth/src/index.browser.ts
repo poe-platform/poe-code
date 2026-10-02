@@ -19,8 +19,8 @@ export function createAuthStoreSessionStore(): never {
   throw new Error("Desktop OAuth persistence is unavailable in Worker MCP");
 }
 
-export { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./client/resumable.js";
-export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "./client/resumable.js";
+export { prepareRemoteMcpAuthorization, beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./client/resumable.js";
+export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, PrepareRemoteMcpAuthorizationOptions, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "./client/resumable.js";
 
 export { normalizeOAuthScope } from "./client/scope.js";
 export { waitForOAuthOperation } from "./client/cancellable-operation.js";
@@ -33,3 +33,5 @@ export function createResourceBoundOAuthStores(): never {
 }
 
 export { generateCodeChallenge, generateCodeVerifier } from "./client/pkce.js";
+
+export { exchangeAuthorizationCode, refreshAccessToken } from "./client/token-endpoint.js";

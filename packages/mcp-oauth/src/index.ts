@@ -64,5 +64,7 @@ export type {
 export { readBoundedResponseText } from "./http-response.js";
 export { fetchMcpResponse } from "./http-fetch.js";
 
-export { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./client/resumable.js";
-export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "./client/resumable.js";
+export { prepareRemoteMcpAuthorization, beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./client/resumable.js";
+export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, PrepareRemoteMcpAuthorizationOptions, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "./client/resumable.js";
+
+export { exchangeAuthorizationCode, refreshAccessToken } from "./client/token-endpoint.js";

@@ -50,6 +50,22 @@ or pending callback promise. Supply a statically registered client and trusted
 discovery. See [the public MCP example](../safe-bash-command-mcp/README.md#resumable-https-oauth)
 for callback routing and the required atomic storage contract.
 
+Hosts with an existing durable issuance journal can use
+`prepareRemoteMcpAuthorization` to obtain `{ authorizationUrl, transaction }`
+without persisting or exchanging. Store the sensitive transaction before
+exposing the URL. Optional `statePrefix` (at most 32 ASCII letters, digits,
+underscores or hyphens) adds a routing hint to a fresh 256-bit nonce; it never
+identifies or authorizes the caller. `beginRemoteMcpAuthorization` uses the same
+preparation before calling `store.create`.
+
+`exchangeAuthorizationCode`, `refreshAccessToken`, and `discoverOAuthMetadata`
+are also available through the bundled MCP API. They use the existing protocol
+implementation; token operations return normalized `StoredOAuthTokens` and never
+persist or retry the exchange. Supply a policy-checked fetch and signal. A host
+using these operations owns one-use callback validation, issuer/redirect/expiry
+checks, durable dispatch/settlement, and credential generation fences. Returned
+tokens and `OAuthError` diagnostics are private; redact them at user boundaries.
+
 ## Configuration
 
 `createDefaultOAuthClientProvider(options)` accepts:

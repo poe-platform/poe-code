@@ -15,11 +15,20 @@ pub fn diff_indices<T: AsRef<[u16]>>(
     for y in 0..height {
         for x in 0..width {
             let before = if x < previous_width {
-                previous.get(y * previous_width + x).map(AsRef::as_ref).unwrap_or(blank)
-            } else { blank };
+                previous
+                    .get(y * previous_width + x)
+                    .map(AsRef::as_ref)
+                    .unwrap_or(blank)
+            } else {
+                blank
+            };
             let after = if x < next_width {
-                next.get(y * next_width + x).map(AsRef::as_ref).unwrap_or(blank)
-            } else { blank };
+                next.get(y * next_width + x)
+                    .map(AsRef::as_ref)
+                    .unwrap_or(blank)
+            } else {
+                blank
+            };
             if before != after {
                 changes.push((y * width + x) as u32);
             }

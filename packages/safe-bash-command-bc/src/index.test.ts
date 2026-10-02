@@ -510,3 +510,22 @@ test("bc input exceeds the former default ceiling unless explicitly limited", as
     assert.equal(result.stderr, "bc: input exceeds maximum size (8388608 bytes)\n");
   }
 });
+
+// Reference values from native bc -l with scale=50 and BC_LINE_LENGTH=0.
+test("bc math library matches native bc at scale 50", async () => {
+  const program = "scale=50; 4*a(1); s(1); c(1); a(1); l(2); e(1); j(0,1); j(1,1); j(2,10)";
+  assert.deepEqual(await evaluate(program, {}, ["-l"]), {
+    exitCode: 0, stderr: "", stdout: [
+      "3.14159265358979323846264338327950288419716939937508",
+      ".84147098480789650665250232163029899962256306079837",
+      ".54030230586813971740093660744297660373231042061792",
+      ".78539816339744830961566084581987572104929234984377",
+      ".69314718055994530941723212145817656807550013436025",
+      "2.71828182845904523536028747135266249775724709369995",
+      ".76519768655796655144971752610266322090927428975532",
+      ".44005058574493351595968220371891491312737230199276",
+      ".25463031368512062253171061609050061149085464625028",
+      "",
+    ].join("\n"),
+  });
+});

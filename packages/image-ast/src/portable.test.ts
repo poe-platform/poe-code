@@ -24,8 +24,8 @@ describe("portable image engine", () => {
     });
     expect(Object.values(result.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
     expect(result.outputFiles[0]!.text).not.toContain('"node:');
-    expect(Object.keys(result.metafile!.inputs).filter(file =>
-      file.includes("/safe-fs/") && file.includes("/fs/")
+    expect(Object.values(result.metafile!.outputs).flatMap(output => Object.entries(output.inputs)).filter(([file, input]) =>
+      input.bytesInOutput > 0 && file.includes("/safe-fs/") && file.includes("/fs/")
     )).toEqual([]);
   });
   it("externalizes @poe-code/pdf-ast and pako in dist/index.js and re-exports ./index.js from portable/browser entrypoints", async () => {

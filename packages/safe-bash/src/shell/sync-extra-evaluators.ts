@@ -25524,7 +25524,7 @@ const syncExtraRuntimeMethods = {
       for (const c of chunks) { merged.set(c, pos); pos += c.byteLength; }
       view = merged;
     }
-    if (skipBytes > view.byteLength) return undefined;
+    if (!view || skipBytes > view.byteLength) return undefined;
     if (skipBytes > 0 || readBytes !== undefined) {
       const sOff = Math.min(view.byteLength, skipBytes);
       const eOff = readBytes !== undefined ? Math.min(view.byteLength, sOff + readBytes) : view.byteLength;

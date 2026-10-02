@@ -116,6 +116,19 @@ function getPortableCodecModule(factory: typeof zstdFactory): ReturnType<typeof 
   return mod;
 }
 
+const syncCrc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
+  for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
+  return value >>> 0;
+});
+
+function computeCrc32(bytes: Uint8Array): number {
+  let crc = 0xffffffff;
+  for (let i = 0; i < bytes.byteLength; i++) {
+    crc = (crc >>> 8) ^ syncCrc32Table[(crc ^ bytes[i]!) & 0xff]!;
+  }
+  return (crc ^ 0xffffffff) >>> 0;
+}
+
 function runPortableCodecSync(
   factory: typeof zstdFactory,
   decompress: boolean,
@@ -140,6 +153,7 @@ function runPortableCodecSync(
     const chunks: Uint8Array[] = [];
     let total = 0;
     let offset = 0;
+    let finished = false;
     for (let step = 0; step < 64; step++) {
       const slice = srcBytes.subarray(offset, Math.min(srcBytes.byteLength, offset + 65536));
       new Uint8Array(module.memory.buffer, inputPointer, slice.byteLength).set(slice);
@@ -159,8 +173,13 @@ function runPortableCodecSync(
         if (total > 131072) return undefined;
         chunks.push(new Uint8Array(module.memory.buffer, outputPointer, produced).slice());
       }
-      if (status === 1 && offset >= srcBytes.byteLength) break;
+      if (status === 1) {
+        if (offset < srcBytes.byteLength) return undefined;
+        finished = true;
+        break;
+      }
     }
+    if (!finished) return undefined;
     let out: Uint8Array;
     if (chunks.length === 0) out = new Uint8Array(0);
     else if (chunks.length === 1) out = chunks[0]!;
@@ -220,11 +239,18 @@ export function evalSyncCompression(
       let outChunk: Uint8Array;
       if (options.format === "gzip") {
         if (options.decompress) {
-          if (srcBytes.byteLength === 0) {
-            outChunk = new Uint8Array(0);
-          } else {
-            if (srcBytes.byteLength < 18 || srcBytes[0] !== 0x1f || srcBytes[1] !== 0x8b) return undefined;
-            outChunk = pakoUngzip(srcBytes);
+          if (srcBytes.byteLength < 18 || srcBytes[0] !== 0x1f || srcBytes[1] !== 0x8b || srcBytes[2] !== 0x08 || (srcBytes[3]! & 0xe0) !== 0) {
+            return undefined;
+          }
+          for (let k = 10; k + 2 < srcBytes.byteLength; k++) {
+            if (srcBytes[k] === 0x1f && srcBytes[k + 1] === 0x8b && srcBytes[k + 2] === 0x08) return undefined;
+          }
+          outChunk = pakoUngzip(srcBytes);
+          const trailerView = new DataView(srcBytes.buffer, srcBytes.byteOffset, srcBytes.byteLength);
+          const expectedCrc = trailerView.getUint32(srcBytes.byteLength - 8, true);
+          const expectedIsize = trailerView.getUint32(srcBytes.byteLength - 4, true);
+          if (expectedIsize !== (outChunk.byteLength >>> 0) || expectedCrc !== computeCrc32(outChunk)) {
+            return undefined;
           }
         } else {
           const gz = new Uint8Array(pakoGzip(srcBytes, { level: options.level as 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 }));
@@ -233,14 +259,10 @@ export function evalSyncCompression(
         }
       } else if (options.format === "bzip2") {
         if (options.decompress) {
-          if (srcBytes.byteLength === 0) {
-            outChunk = new Uint8Array(0);
-          } else {
-            if (srcBytes.byteLength < 4 || srcBytes[0] !== 0x42 || srcBytes[1] !== 0x5a || srcBytes[2] !== 0x68) return undefined;
-            const dec = runPortableCodecSync(bz2Factory, true, options.level, options.small ? 1 : 0, false, srcBytes);
-            if (!dec) return undefined;
-            outChunk = dec;
-          }
+          if (srcBytes.byteLength < 4 || srcBytes[0] !== 0x42 || srcBytes[1] !== 0x5a || srcBytes[2] !== 0x68) return undefined;
+          const dec = runPortableCodecSync(bz2Factory, true, options.level, options.small ? 1 : 0, false, srcBytes);
+          if (!dec) return undefined;
+          outChunk = dec;
         } else {
           const enc = runPortableCodecSync(bz2Factory, false, options.level, 0, false, srcBytes);
           if (!enc) return undefined;
@@ -249,14 +271,11 @@ export function evalSyncCompression(
       } else if (options.format === "xz") {
         const isLzma = options.xzFormat === "lzma";
         if (options.decompress) {
-          if (srcBytes.byteLength === 0) {
-            outChunk = new Uint8Array(0);
-          } else {
-            if (!isLzma && (srcBytes.byteLength < 6 || srcBytes[0] !== 0xfd || srcBytes[1] !== 0x37 || srcBytes[2] !== 0x7a || srcBytes[3] !== 0x58 || srcBytes[4] !== 0x5a || srcBytes[5] !== 0x00)) return undefined;
-            const dec = runPortableCodecSync(xzFactory, true, options.level, options.xzCheck ?? 4, isLzma, srcBytes);
-            if (!dec) return undefined;
-            outChunk = dec;
-          }
+          if (srcBytes.byteLength === 0) return undefined;
+          if (!isLzma && (srcBytes.byteLength < 6 || srcBytes[0] !== 0xfd || srcBytes[1] !== 0x37 || srcBytes[2] !== 0x7a || srcBytes[3] !== 0x58 || srcBytes[4] !== 0x5a || srcBytes[5] !== 0x00)) return undefined;
+          const dec = runPortableCodecSync(xzFactory, true, options.level, options.xzCheck ?? 4, isLzma, srcBytes);
+          if (!dec) return undefined;
+          outChunk = dec;
         } else {
           const enc = runPortableCodecSync(xzFactory, false, options.extreme ? (options.level | 0x80000000) : options.level, options.xzCheck ?? 4, isLzma, srcBytes);
           if (!enc) return undefined;
@@ -265,14 +284,10 @@ export function evalSyncCompression(
       } else {
         // zstd
         if (options.decompress) {
-          if (srcBytes.byteLength === 0) {
-            outChunk = new Uint8Array(0);
-          } else if (srcBytes.byteLength >= 4 && srcBytes[0] === 0x28 && srcBytes[1] === 0xb5 && srcBytes[2] === 0x2f && srcBytes[3] === 0xfd) {
+          if (srcBytes.byteLength >= 4 && srcBytes[0] === 0x28 && srcBytes[1] === 0xb5 && srcBytes[2] === 0x2f && srcBytes[3] === 0xfd) {
             const dec = runPortableCodecSync(zstdFactory, true, 3, 0, false, srcBytes);
             if (!dec) return undefined;
             outChunk = dec;
-          } else if (cmdName === "zstdcat" && srcBytes.byteLength >= 18 && srcBytes[0] === 0x1f && srcBytes[1] === 0x8b) {
-            outChunk = pakoUngzip(srcBytes);
           } else {
             return undefined;
           }

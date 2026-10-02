@@ -61,7 +61,7 @@ export function evalSyncDiff3(
       inputs.push(srcBytes);
     }
     const rendered = compareDiff3(inputs, options, diff3DefaultLimits, syncDiff3Signal());
-    if (rendered.exitCode !== 0 || rendered.stderr.byteLength !== 0) return undefined;
+    if (rendered.exitCode !== 0 || rendered.stderr.byteLength !== 0 || rendered.stdout.includes(0)) return undefined;
     return syncDiff3Decoder.decode(rendered.stdout);
   } catch {
     return undefined;

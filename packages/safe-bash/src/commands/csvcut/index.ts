@@ -73,7 +73,7 @@ export function evalSyncCsvcut(
     if (supplied.names && supplied.headerless) return undefined;
     const dialect: CsvDialect = { ...supplied.dialect, profile: supplied.dialect?.profile ?? "utf8-sig-permissive-v1" };
     if (Number.isSafeInteger(dialect.skipLines) && dialect.skipLines! < 0) dialect.skipLines = 0;
-    if (sourceBytes === undefined) return undefined;
+    if (sourceBytes === undefined || sourceBytes.includes(0)) return undefined;
     const parser = new CsvParser(dialect, budget);
     const rows: CsvRow[] = [...parser.push(sourceBytes), ...parser.end()];
     const first = rows[0];
@@ -104,7 +104,7 @@ export function evalSyncCsvcut(
       if (supplied.lineNumbers) cells.unshift(String(++number));
       out += serializeRow(cells, budget);
     }
-    return out;
+    return out.includes("\0") ? undefined : out;
   } catch {
     return undefined;
   } finally {

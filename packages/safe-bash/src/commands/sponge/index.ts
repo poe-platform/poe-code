@@ -44,18 +44,13 @@ export function evalSyncSponge(
   }
   if (files.length > 1) return undefined;
   const payload = inBytes ?? new Uint8Array(0);
-  if (files.length === 0 || files[0] === "-") return decoder.decode(payload);
-  if (!writeFileSync) return undefined;
-  const target = files[0]!;
-  if (append) {
-    const existing = readFileSync?.(target) ?? new Uint8Array(0);
-    const combined = new Uint8Array(existing.length + payload.length);
-    combined.set(existing, 0);
-    combined.set(payload, existing.length);
-    if (!writeFileSync(target, combined)) return undefined;
-  } else {
-    if (!writeFileSync(target, payload)) return undefined;
+  if (files.length === 0 || files[0] === "-") {
+    if (payload.some(b => b === 0 || b >= 128)) return undefined;
+    return decoder.decode(payload);
   }
+  if (append || !writeFileSync) return undefined;
+  const target = files[0]!;
+  if (!writeFileSync(target, payload)) return undefined;
   return "";
 }
 

@@ -59,7 +59,7 @@ export function evalSyncPdftotext(
     let isHelpOrVer = false;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a === "-listenc" || a === "-v" || a === "--version" || a === "-h" || a === "--help" || a === "-?") {
+      if (a === "-listenc" || a === "-v" || a === "--version" || a === "-h" || a === "-help" || a === "--help" || a === "-?") {
         isHelpOrVer = true;
       } else if (
         a === "-f" || a === "-l" || a === "-r" || a === "-x" || a === "-y" ||
@@ -76,14 +76,14 @@ export function evalSyncPdftotext(
     }
     if (isHelpOrVer) {
       const res = extractPdfToTextBytes(new Uint8Array(0), opArgs);
-      if (res.exitCode !== 0 || res.stderr) return undefined;
+      if (res.exitCode !== 0 || res.stderr || res.output.includes("\0")) return undefined;
       return res.output;
     }
     const target = positionals[0] ?? "-";
     const pdfBytes = target === "-" ? inBytes : readFileSync?.(target);
     if (!pdfBytes || pdfBytes.byteLength > 262144) return undefined;
     const res = extractPdfToTextBytes(pdfBytes, opArgs);
-    if (res.exitCode !== 0 || res.stderr) return undefined;
+    if (res.exitCode !== 0 || res.stderr || res.output.includes("\0")) return undefined;
     if (res.outputPath !== "-") {
       if (!res.outputPath || !writeFileSync || !writeFileSync(res.outputPath, pdfTxtEncoder.encode(res.output))) return undefined;
       return "";
@@ -117,10 +117,10 @@ export function evalSyncPdftohtml(
     }
     const snap = new Map(files);
     const res = runPdftohtmlCliSync(opArgs, files);
-    if (res.exitCode !== 0 || res.stderr) return undefined;
+    if (res.exitCode !== 0 || res.stderr || res.stdout.includes("\0")) return undefined;
     for (const [k, v] of files.entries()) {
       if (snap.get(k) !== v) {
-        if (!writeFileSync || !writeFileSync(k, v)) return undefined;
+        if (k === "-" || !writeFileSync || !writeFileSync(k, v)) return undefined;
       }
     }
     return res.stdout;

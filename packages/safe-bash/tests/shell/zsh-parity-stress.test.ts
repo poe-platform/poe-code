@@ -654,6 +654,21 @@ test("58. sync vs async parity for yq, mdq, xargs, and env -S semantics", async 
   }
 });
 
+test("59. sync vs async parity for compression, sponge, diff3, and csvcut semantics", async () => {
+  const scripts = [
+    "a=$(printf '' | gunzip 2>/dev/null; echo $?); b=$( (printf 'a\\n' | bzip2; printf 'b\\n' | bzip2) | bunzip2 | tr '\\n' ':' ); c=$( (printf 'x\\n' | gzip; printf 'trailing') | gunzip 2>/dev/null; echo \":$?\" ); echo \"$a|$b|$c\"",
+    "x=$(printf 'a\\0b' | sponge); echo \"$x\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});
+
 test("55. sync vs async parity for apply_patch, html-to-markdown, and xq semantics", async () => {
   const scripts = [
     "mkdir -p /ap55; cd /ap55; printf \"old\\n\" > a.txt; printf \"existing\\n\" > b.txt; p=$'*** Begin Patch\\n*** Update File: a.txt\\n*** Move to: b.txt\\n@@\\n-old\\n+new\\n*** End Patch'; x=$(apply_patch \"$p\" 2>/dev/null; echo $?); y=$(cat b.txt); echo \"$x|$y\"",

@@ -78,11 +78,12 @@ test("batch writes preserve live entries after LIFO churn", async () => {
     entries: Map<string, { entries: { _table: Int16Array | Int32Array } }>;
   };
   const table = root.entries.get("dir")!.entries._table;
-  assert.ok([...table].filter(slot => slot === -1).length > batch.length,
-    "batch insertion must leave an empty probe slot");
+  assert.ok(table.includes(-1), "churn must retain an empty probe slot before insertion");
   const payloads = batch.map(() => payload);
   fs.writeMemoryFilesInDirBatchFast("anchor", "/dir/", batch, Int32Array.from(batch, hash), payloads,
     batch.reduce((sum, name) => sum + name.length, 0), batch.length * payload.byteLength, 0o666);
+  assert.ok(root.entries.get("dir")!.entries._table.includes(-1),
+    "batch insertion must leave an empty probe slot");
   assert.deepEqual((await fs.readdir("/dir")).map(entry => entry.name).sort(), ["anchor", ...batch].sort());
   for (const name of ["anchor", ...batch]) assert.deepEqual(await fs.readFile(`/dir/${name}`), payload);
   await assert.rejects(fs.stat("/dir/missing"), { code: "ENOENT" });

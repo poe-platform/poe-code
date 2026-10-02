@@ -786,6 +786,18 @@ and is not counted as routed. All three AST renderers are now present; parsing,
 Markdown string wrappers/subpaths, exotic text/intrinsic qualification and
 deep-recursion/resource/platform gates remain required.
 
+The Markdown parser's lexical prerequisites now have an own Rust UTF-16 core:
+code spans, bracketed labels, escaped link destinations/titles, angle and literal
+autolinks, inline HTML, escape decoding and byte-offset maps. Differential tests
+expose the reference's original private scanners without copying their algorithms,
+cover every admitted HTML tag, malformed attributes, URL/email boundaries,
+surrogate halves, fractional/large offsets and seeded malformed input. Literal
+autolink trailing-bracket accounting scans once instead of rescanning each suffix.
+All 175 native tests, 237 currently routed reference tests, declarations and scoped
+lint pass with no dependency changes. These are internal primitives, not a public
+parser or completed Markdown subpath; AST assembly, delimiter matching, footnote
+membership, source-range descriptors and block parsing remain required.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

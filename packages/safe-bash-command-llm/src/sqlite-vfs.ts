@@ -2,12 +2,14 @@ import { FsError, type FileSystem } from 'safe-bash-contracts';
 import type { FileDescriptor } from '@poe-code/safe-fs/contracts';
 import { readSqliteFile, writeSqliteFile } from './sqlite-file-io.js';
 
+export type SqliteFileSystem = Pick<FileSystem, 'open' | 'stat' | 'unlink'>;
+
 /** Native SQLite callbacks for one connection in an exclusively owned private
  * directory. Pass a caller-confined filesystem: these callbacks do not lock or
  * modify canonical database paths. The transaction owns staging and publication.
  * Assign these async callbacks to the native engine's FacadeVFS instance. */
 export function createSqliteVfs(options: {
-  fs: FileSystem; directory: string; signal: AbortSignal;
+  fs: SqliteFileSystem; directory: string; signal: AbortSignal;
   maxOpenFiles: number; maxFileBytes: number;
 }) {
   const { fs, directory, signal, maxOpenFiles, maxFileBytes } = options;

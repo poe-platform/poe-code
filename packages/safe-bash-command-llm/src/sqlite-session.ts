@@ -1,6 +1,6 @@
-import {FsError, type FileSystem} from 'safe-bash-contracts';
+import {FsError} from 'safe-bash-contracts';
 import type {SqliteRuntime} from 'safe-bash-sqlite-engine';
-import {createSqliteVfs} from './sqlite-vfs.js';
+import {createSqliteVfs, type SqliteFileSystem} from './sqlite-vfs.js';
 import {withSqliteDatabase} from './sqlite-native.js';
 
 export interface PrivateSqliteSession extends SqliteRuntime {
@@ -13,7 +13,7 @@ export interface PrivateSqliteSession extends SqliteRuntime {
  * operation. The caller owns the private directory and canonical publication.
  * Serialize all native calls and keep session resources within the callback. */
 export async function withPrivateSqliteSession<T>(options: {
-  fs: FileSystem; directory: string; path: string; signal: AbortSignal;
+  fs: SqliteFileSystem; directory: string; path: string; signal: AbortSignal;
   maxOpenFiles: number; maxFileBytes: number;
 }, operation: (session: PrivateSqliteSession) => Promise<T>): Promise<T> {
   const {directory, path, signal} = options;
@@ -29,7 +29,10 @@ export async function withPrivateSqliteSession<T>(options: {
     const {createSqliteRuntime, FacadeVFS} = await import('safe-bash-sqlite-engine');
     const runtime = await createSqliteRuntime({signal});
     const vfs = 'llm-private';
-    const code = runtime.module.vfs_register(Object.assign(new FacadeVFS(vfs, runtime.module), callbacks), true);
+    // The facade defaults to 64 bytes, shorter than an owned UUID directory.
+    // Include room for SQLite journal/temp names and longer caller prefixes.
+    const mxPathname = Math.max(4096, new TextEncoder().encode(path).length + 256);
+    const code = runtime.module.vfs_register(Object.assign(new FacadeVFS(vfs, runtime.module), callbacks, {mxPathname}), true);
     if (code !== 0) throw new FsError('EIO', {message: `SQLite VFS registration failed (${code})`});
     value = await withSqliteDatabase(runtime.module, {path, vfs, signal, check: callbacks.throwIfFailed}, connection =>
       operation({...runtime, ...connection, check: callbacks.throwIfFailed}));

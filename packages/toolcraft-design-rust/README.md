@@ -126,6 +126,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `explorer/render/text` | Fit, center and pad text by terminal cells while retaining grapheme offsets |
 | `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
 | `explorer/state` | Normalize list/detail panes and seed explorer rows, bindings and responsive state |
+| `explorer/layout` | Compute responsive pane rectangles and inset content areas |
 | `explorer/keymap` | Resolve navigation and action accelerators while preserving printable filtering keys |
 | `dashboard/keymap` | Resolve default or custom keyboard commands and canonicalize binding labels |
 | `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
@@ -590,3 +591,9 @@ list supplies selectable detail items and shares configured actions. Legacy
 `createInitialState(config, {cols, rows})` seeds initial rows and filtering,
 resolves bindings and action ownership, and selects a responsive layout.
 `resolveExplorerLayoutMode` and the `REGION_*` masks support custom views.
+
+`computeExplorerLayout({cols, rows, focused, detailHidden})` from `explorer/layout`
+returns header, list, detail and footer rectangles. Wide terminals show adjacent
+panes, intermediate widths stack them, and narrow terminals show the focused
+pane. `paneBodyRect(rect)` returns the inset content area. Rust calculates the
+geometry while preserving option access order and JavaScript coordinate coercion.

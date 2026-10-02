@@ -855,3 +855,10 @@ const explorerStateOriginal: typeof originalExplorerState = explorerState;
 const explorerStateNative: typeof explorerState = null as unknown as typeof originalExplorerState;
 const explorerStateKeys: SameKeys<typeof explorerState,typeof originalExplorerState> = true;
 void [explorerStateOriginal,explorerStateNative,explorerStateKeys];
+
+import * as explorerLayout from "toolcraft-design-rust/explorer/layout";
+import type * as originalExplorerLayout from "toolcraft-design/explorer/layout";
+const explorerLayoutOriginal: typeof originalExplorerLayout = explorerLayout;
+const explorerLayoutNative: typeof explorerLayout = null as unknown as typeof originalExplorerLayout;
+const explorerLayoutKeys: SameKeys<typeof explorerLayout,typeof originalExplorerLayout> = true;
+void [explorerLayoutOriginal,explorerLayoutNative,explorerLayoutKeys];

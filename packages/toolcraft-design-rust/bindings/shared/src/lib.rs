@@ -525,3 +525,5 @@ pub use explorer_keymap::*;
 
 mod explorer_state;
 pub use explorer_state::*;
+mod explorer_layout;
+pub use explorer_layout::*;

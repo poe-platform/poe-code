@@ -1832,3 +1832,28 @@ Five warmed alternating 500-call Node 22 ARM64 rounds, with two panes and 20
 seeded rows at 120×24, measured median 298.02 µs native / 5.54 µs reference
 (53.82× slower). No performance gate passed. Explorer runtime/public namespace,
 remaining dependencies and broader swap/performance qualification remain open.
+
+### Explorer geometry checkpoint
+
+`explorer/layout` now exposes `computeExplorerLayout`, `paneBodyRect` and all
+original public geometry types. Rust calculates responsive geometry in one
+native batch; the binding retains conditional option reads, arbitrary thrown
+values and JavaScript coordinate coercion. No external dependencies were added.
+
+Three missing-export tests preceded implementation. Differential coverage checks
+2,496 viewport/option combinations, non-finite and malformed dimensions,
+getter order, reentrancy, UTF-independent coordinate coercion and exact errors.
+All ten original layout cases run against the native port, including the legacy
+pane re-export identity check. Maintained checks pass 322 native host tests,
+1,379 selected design tests, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 25 explorer cases. Rust/binding and scoped JS lint and
+bidirectional declaration checks pass. Inspected 120×18, 90×18, 70×12 and 45×8
+screenshots; original renderers given native/reference geometry emit identical
+frames.
+
+Five warmed alternating 10,000-call Node 22 ARM64 rounds, cycling 64 viewport
+options and retaining 64 result objects, measured median 2.855 µs native /
+0.0417 µs reference (68.45× slower). The batch reduces absolute callback cost,
+but this remains API-parity work, not a passed performance gate. Explorer
+filtering/actions/jobs/reducer/render/runtime, public namespace and the broader
+swap qualification remain open.

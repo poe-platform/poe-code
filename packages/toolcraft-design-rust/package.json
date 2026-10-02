@@ -463,6 +463,10 @@
     "./explorer/state": {
       "types": "./dist/explorer-state.d.ts",
       "import": "./dist/explorer-state.js"
+    },
+    "./explorer/layout": {
+      "types": "./dist/explorer-layout.d.ts",
+      "import": "./dist/explorer-layout.js"
     }
   },
   "scripts": {

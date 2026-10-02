@@ -178,15 +178,15 @@ test("bc still reports ordinary usage and evaluation errors", async () => {
   });
 });
 
-for (const [program, stdout] of [
-  ["123", "123\n"],
-  ["print 123", "123"],
-  ['"é🙂"', "é🙂"],
-  ['print "é", "🙂"', "é🙂"],
-  ['x="é"; x="🙂"', "é🙂"],
-  ['1; print "é"; "🙂"', "1\né🙂"],
-  ["obase=1001; 1002", " 0001 0001\n"],
-  ['define f() { print "é"; return (1); }\nf(); halt; "unused"', "é1\n"],
+for (const [program, stdout, prefix] of [
+  ["123", "123\n", "123"],
+  ["print 123", "123", ""],
+  ['"é🙂"', "é🙂", ""],
+  ['print "é", "🙂"', "é🙂", "é"],
+  ['x="é"; x="🙂"', "é🙂", "é"],
+  ['1; print "é"; "🙂"', "1\né🙂", "1\né"],
+  ["obase=1001; 1002", " 0001 0001\n", " 0001 0001"],
+  ['define f() { print "é"; return (1); }\nf(); halt; "unused"', "é1\n", "é1"],
 ] as const) {
   test(`bc enforces cumulative UTF-8 output bytes: ${program}`, async () => {
     const bytes = new TextEncoder().encode(stdout).byteLength;
@@ -195,7 +195,7 @@ for (const [program, stdout] of [
       const short = nested ? { limits: { maxOutputBytes: bytes - 1 } } : { maxOutputBytes: bytes - 1 };
       assert.deepEqual(await evaluate(program, exact), { exitCode: 0, stdout, stderr: "" });
       assert.deepEqual(await evaluate(program, short), {
-        exitCode: 1, stdout: "", stderr: `bc: output exceeds maximum size (${bytes - 1} bytes)\n`,
+        exitCode: 1, stdout: prefix, stderr: `bc: output exceeds maximum size (${bytes - 1} bytes)\n`,
       });
     }
   });
@@ -454,3 +454,26 @@ test("bc keeps small series corrections that affect final truncation", async () 
     exitCode: 0, stdout: '0\n0\n.99999999999999999999\n.99999999999999999999\n', stderr: '',
   });
 });
+
+for (const obase of [2, 10, 16, 100]) {
+  test(`bc prints scaled zero in base ${obase}`, async () => {
+    assert.deepEqual(await evaluate(`scale=6; obase=${obase}; 0.000000; 0/1; s(0)`, {}, ["-l"]), {
+      exitCode: 0, stdout: "0\n0\n0\n", stderr: "",
+    });
+  });
+}
+
+test("bc Bessel function handles zero argument at default scale", async () => {
+  assert.deepEqual(await evaluate("j(0,0); j(1,0)", {}, ["-l"]), {
+    exitCode: 0, stdout: "1.00000000000000000000\n0\n", stderr: "",
+  });
+});
+
+for (const program of ["2; missing(0)", 'print "prefix"; 1/0', 'define f() { print "prefix"; return 1/0; }\nf()']) {
+  test(`bc preserves output before runtime failure: ${program}`, async () => {
+    const result = await evaluate(program);
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stdout, program.startsWith("2;") ? "2\n" : "prefix");
+    assert.notEqual(result.stderr, "");
+  });
+}

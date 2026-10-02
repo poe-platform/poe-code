@@ -1090,13 +1090,15 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       }
     };
 
+    let executionFailure: { error: unknown } | undefined;
     try {
       for (const s of stmts) {
         await execStmt(s);
       }
     } catch (sig) {
       if (!(sig instanceof FlowSignal && sig.kind === "halt")) {
-        throw sig;
+        if (sig instanceof Error && (sig.name === "AbortError" || sig.name === "BudgetExceededError")) throw sig;
+        executionFailure = { error: sig };
       }
     }
 
@@ -1105,6 +1107,7 @@ export function createBcCommand(options: BcCommandsOptions = {}): CommandDefinit
       await writeText(context.stdout, outBuffer);
       context.signal.throwIfAborted();
     }
+    if (executionFailure) throw executionFailure.error;
     return { exitCode: 0 };
       } catch (err) {
         context.signal.throwIfAborted();

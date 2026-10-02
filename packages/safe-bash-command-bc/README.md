@@ -6,7 +6,7 @@ Input, output, work, scale, exponent, recursion and output-base limits default t
 `maxRecursionDepth` or `maxObase` values when needed, either directly in command options or under `limits`;
 explicit `Infinity` disables an individual quota. `maxExponent` bounds the absolute integer exponent; `maxRecursionDepth` bounds active user-function calls. Output bases above 16 use space-separated decimal digits; `maxObase` bounds assigned output bases.
 
-`maxOutputBytes` counts UTF-8 bytes across all standard output, including strings, `print`, numeric results, and line continuations. Exceeding it stops evaluation before adding the overflowing text to the output buffer; the command returns an error without emitting buffered output.
+`maxOutputBytes` counts UTF-8 bytes across all standard output, including strings, `print`, numeric results, and line continuations. Exceeding it stops evaluation before adding the overflowing text to the output buffer; the command returns an error and emits the output already admitted within the limit. Output from earlier statements is also preserved when a later statement fails.
 
 Cancellation rejects with the original abort reason instead of returning an error exit code or writing a diagnostic.
 

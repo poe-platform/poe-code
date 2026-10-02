@@ -240,6 +240,20 @@ persistence or browser I/O. Existing custom attachment abilities retain their
 own behavior; the named capability governs built-in attachment only. Hosts that
 omit the capability continue to receive the unsupported broker diagnostic.
 
+Hosts can set `persistence.resumeAfterIdle: true` to retain logical sessions
+across live-browser expiry. Ordinary commands restore the last checkpoint and
+renew its idle deadline. Explicit close and deletion still suppress restoration.
+The controller checkpoints a new blank session before its first navigation,
+so a failed first page load does not discard the session. On reconstructed pages,
+`snapshot` can inspect the blank recovery page; other page actions still require
+a known document. Invalid old references return a fresh snapshot without replaying
+the element action. Host-authorized profile initialization can restore saved URLs.
+
+`persistence.selection.read/write` can persist `{ name, selection }` within the
+same authenticated owner, where `selection` is the environment default. The
+controller reads selection before dispatch and persists attach/detach/close
+changes. This metadata does not acquire a browser or transfer ownership.
+
 Optional persistence callbacks operate within the host's trusted owner scope:
 
 - `checkpoint` receives the current context, selected page, validated context

@@ -1,3 +1,7 @@
+import { SnapshotReferenceError } from './snapshot-reference-error.js';
+import { createPlaywrightSessionSelection } from './session-selection.js';
+import type { PlaywrightSessionPersistence } from './session-persistence.js';
+export type { PlaywrightSessionPersistence } from './session-persistence.js';
 import { playwrightNativeTimeout } from "./resource-limit.js";
 import { playwrightStructureDefaults, type PlaywrightStructureLimits } from './resource-limit.js';
 import type { PlaywrightAdapter, PlaywrightCodegenAction, PlaywrightContext, PlaywrightContextOptions, PlaywrightLease, PlaywrightPage } from './adapter.js';
@@ -26,7 +30,7 @@ import { initializePlaywrightWorkspace } from './workspace.js';
 import { parsePlaywrightSessionConfiguration, type PlaywrightSessionConfiguration } from './session-configuration.js';
 import { installPlaywrightConfiguredNetwork, playwrightInitPageSource } from './session-runtime.js';
 import { flushPlaywrightTrace, preparePlaywrightTraceRelease } from './tracing-capabilities.js';
-import { PlaywrightCheckpointError, PlaywrightStorageReadError, type PlaywrightCheckpointOutcome } from './checkpoint.js';
+import { PlaywrightCheckpointError, PlaywrightStorageReadError } from './checkpoint.js';
 import { resolvePath } from '../contracts/path.js';
 import { parsePlaywrightOperationOutcome, type PlaywrightOperationOutcome, type PlaywrightRecoveryResult } from './recovery.js';
 
@@ -103,43 +107,6 @@ export interface PlaywrightSessionCheckpoint {
   readonly contextOptions?: PlaywrightContextOptions;
   readonly configuration?: PlaywrightSessionConfiguration;
 }
-export interface PlaywrightSessionPersistence {
-  /** Authoritative metadata-only read, including receipt eviction and expiry.
-   * The controller does not cache receipts when this hook is installed.
-   * Must not acquire, navigate or execute browser code. */
-  inspectRecovery?(request: { readonly name: string; readonly signal: AbortSignal }): Promise<{
-    readonly hasStorage: boolean; readonly operation?: PlaywrightOperationOutcome;
-  }>;
-  /** Host must durably commit running before returning; never include command payloads.
-   * Terminal updates must atomically match an existing receipt's operationId;
-   * ignore absent or superseded receipts rather than inserting them.
-   * Successful delete-data retires the receipt without a terminal callback.
-   */
-  recordOperation?(request: { readonly name: string; readonly operation: PlaywrightOperationOutcome }, signal: AbortSignal): Promise<void>;
-  /** Enumerates only this owner's resumable profiles; never allocates browsers. */
-  list?(signal: AbortSignal): Promise<readonly { readonly name: string; readonly expiresAt?: number }[]>;
-  restore(request: { readonly name: string; readonly signal: AbortSignal }): Promise<{
-    readonly recovery?: 'saved-storage';
-    readonly livePageStateLost?: true;
-    readonly lease: PlaywrightLease;
-    readonly selectedPage?: PlaywrightPage;
-    readonly expiresAt?: number;
-    readonly idleTimeoutMs?: number;
-    readonly contextOptions?: PlaywrightContextOptions;
-    readonly configuration?: PlaywrightSessionConfiguration;
-    initialize?(options: { readonly signal: AbortSignal }): Promise<void>;
-  } | undefined>;
-  /** Commit atomically only after a complete profile read. A failed read must
-   * leave the previous committed profile unchanged. Restore returns that last
-   * committed profile, never the live state from an unsuccessful checkpoint.
-   * Legacy void means committed; a trusted reader may throw StorageReadError.
-   */
-  checkpoint(session: PlaywrightSessionCheckpoint, signal: AbortSignal): Promise<void | PlaywrightCheckpointOutcome>;
-  /** Explicit closure suppresses automatic resume without deleting saved state. */
-  close?(name: string | undefined, signal: AbortSignal): Promise<void>;
-  /** Delete saved data and its operation receipt before returning successfully. */
-  delete(name: string, signal: AbortSignal): Promise<void>;
-}
 class PlaywrightPageUnavailableError extends Error {}
 
 interface Session {
@@ -180,6 +147,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
   if (options.operationClock !== undefined && typeof options.operationClock !== 'function') throw new TypeError('Invalid Playwright operation clock');
   if (options.namedSessionAttachment !== undefined && typeof options.namedSessionAttachment !== 'boolean') throw new TypeError('Invalid named session attachment capability');
   if (options.persistence && ['restore', 'checkpoint', 'delete'].some(key => typeof Reflect.get(options.persistence!, key) !== 'function')) throw new TypeError('Invalid Playwright persistence');
+  if (options.persistence?.resumeAfterIdle !== undefined && typeof options.persistence.resumeAfterIdle !== 'boolean') throw new TypeError('Invalid Playwright persistence idle policy');
   if (options.persistence?.close !== undefined && typeof options.persistence.close !== 'function') throw new TypeError('Invalid Playwright persistence close');
   if (options.persistence?.list !== undefined && typeof options.persistence.list !== 'function') throw new TypeError('Invalid Playwright persistence list');
   for (const key of ['inspectRecovery', 'recordOperation'] as const) if (options.persistence?.[key] !== undefined && typeof options.persistence[key] !== 'function') throw new TypeError('Invalid Playwright recovery persistence');
@@ -214,7 +182,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     for (const [name, receipt] of outcomes) if (receipt.expiresAt <= now) outcomes.delete(name);
   };
   const explicitlyClosed = new Set<string>();
-  let attachedSession: { name: string; selection: string } | undefined;
+  const selection = createPlaywrightSessionSelection(options.persistence?.selection);
   let suppressUnknownRestores = false;
   const tails = new Map<string, Promise<void>>();
   const work = new Set<Promise<unknown>>();
@@ -246,7 +214,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       validatePlaywrightSessionName(entry.name);
       if (entry.expiresAt !== undefined && (!Number.isSafeInteger(entry.expiresAt) || entry.expiresAt < 0)) throw new Error('Invalid persisted session expiry');
     }
-    return entries.filter(entry => !explicitlyClosed.has(entry.name) && (!suppressUnknownRestores || sessions.get(entry.name)?.state === 'open') && (entry.expiresAt === undefined || entry.expiresAt > Date.now()));
+    return entries.filter(entry => !explicitlyClosed.has(entry.name) && (!suppressUnknownRestores || sessions.get(entry.name)?.state === 'open') && (options.persistence?.resumeAfterIdle || entry.expiresAt === undefined || entry.expiresAt > Date.now()));
   };
   const checkpoint = async (session: Session, signal: AbortSignal, activity = true, retireOnCancellation = true) => {
     if (activity && session.idleTimeoutMs) session.expiresAt = Date.now() + session.idleTimeoutMs;
@@ -408,7 +376,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     const expired = [...sessions.values()].filter(session => session.state === 'open' && !session.idlePaused && session.expiresAt !== undefined && session.expiresAt <= now);
     if (!expired.length) return undefined;
     return Promise.allSettled(expired.map(session => {
-      explicitlyClosed.add(session.name);
+      if (!options.persistence?.resumeAfterIdle) explicitlyClosed.add(session.name);
       session.failure = new Error(`Session expired: ${session.name}; reopen explicitly`);
       return release(session);
     })).then(results => {
@@ -720,8 +688,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     signal.throwIfAborted();
     if (!options.persistence || explicitlyClosed.has(name) || suppressUnknownRestores && !sessions.has(name)) return;
     const current = sessions.get(name);
-    if (current && current.state !== 'closed') return;
     if (current?.releasing) await current.releasing;
+    if (current && current.state !== 'closed') return;
     if (occupiedSessions(name) >= maxSessions) throw new PlaywrightResourceLimitError('Playwright session capacity exceeded');
     pendingRestores.add(name);
     try {
@@ -731,7 +699,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       try {
         await restoreSession({ name, signal,
           ...(restored.recovery === undefined ? {} : { recovery: restored.recovery }),
-          ...(restored.expiresAt === undefined ? {} : { expiresAt: restored.expiresAt }),
+          ...(options.persistence.resumeAfterIdle
+            ? (restored.idleTimeoutMs ? { expiresAt: Date.now() + restored.idleTimeoutMs } : {})
+            : restored.expiresAt === undefined ? {} : { expiresAt: restored.expiresAt }),
           ...(restored.idleTimeoutMs === undefined ? {} : { idleTimeoutMs: restored.idleTimeoutMs }),
           ...(restored.contextOptions === undefined ? {} : { contextOptions: restored.contextOptions }),
           ...(restored.configuration === undefined ? {} : { configuration: restored.configuration }),
@@ -757,7 +727,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
     if (lifetime.signal.aborted) throw new Error('Playwright controller is disposed');
     const parsed = parseInvocation(invocation, abilities, options.adapter, options.limits?.maxSessionNameBytes);
     const defaultSelection = invocation.env.PLAYWRIGHT_CLI_SESSION ?? 'default';
-    if ('session' in parsed && options.namedSessionAttachment && parsed.command !== 'attach' && !parsed.explicitSession && attachedSession?.selection === defaultSelection) parsed.session = attachedSession.name;
+    if (options.namedSessionAttachment) await selection.load(invocation.signal);
+    if ('session' in parsed && options.namedSessionAttachment && parsed.command !== 'attach' && !parsed.explicitSession && selection.current?.selection === defaultSelection) parsed.session = selection.current.name;
     if (invocation.operationId !== undefined) validatePlaywrightSessionName(invocation.operationId);
     const operationId = invocation.operationId ?? (options.persistence?.recordOperation ? crypto.randomUUID() : undefined);
     invocation.signal.throwIfAborted();
@@ -909,8 +880,9 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       throw new PlaywrightPageUnavailableError(`Previous page is unavailable. Saved browser state was restored, but the page action was not executed. Use playwright-cli -s ${session.name} goto <url> to visit a normal page and verify any earlier action before repeating it. Do not reuse a one-time login URL.`);
     };
     const pageResult = async (session: Session, code: string | undefined, snapshot: 'none' | 'inline' | 'file' = 'none', filename?: string): Promise<PlaywrightCommandResult> => {
-      assertPageAvailable(session);
+      if (parsed.command !== 'snapshot' || !options.persistence?.resumeAfterIdle) assertPageAvailable(session);
       const sections: PlaywrightResultSection[] = [];
+      if (session.page && session.pagesNeedingNavigation?.has(session.page)) sections.push({ title: 'Result', content: 'Browser session restored. The previous page state was lost; this is a fresh blank page. The interrupted action was not replayed. Verify its outcome before repeating it.' });
       if (code) sections.push({ title: 'Ran Playwright code', content: code, codeframe: 'js' });
       const page = session.page;
       if (!page) return { sections };
@@ -1005,7 +977,13 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       checkSession(session);
       if (!session.page) throw new Error('Selected tab closed; select a tab explicitly');
       const handle = await resolvePlaywrightTarget({ target, page: session.page, timeout: sessionActionTimeout(session), signal: local.signal,
-        resolveRef: ref => session.snapshot.resolve(ref, sessionActionTimeout(session), local.signal), own: handle => ownedTargets.add(handle) });
+        resolveRef: async ref => {
+          try { return await session.snapshot.resolve(ref, sessionActionTimeout(session), local.signal); }
+          catch (error) {
+            if (error instanceof SnapshotReferenceError && session.livePageStateLost) await writeResult(await pageResult(session, undefined, 'inline'));
+            throw error;
+          }
+        }, own: handle => ownedTargets.add(handle) });
       checkSession(session);
       if (!targetLocators.has(target)) {
         const reference = isPlaywrightSnapshotRef(target);
@@ -1139,7 +1117,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           // Selection owns no lease and does not reset or checkpoint live state.
           await write(parsed.json ? JSON.stringify({ session: name, status: 'attached' }, null, 2) + '\n' : `Browser '${name}' attached.\n`);
           checkSession(session);
-          attachedSession = { name, selection: defaultSelection };
+          await selection.set({ name, selection: defaultSelection }, local.signal);
           retained = true;
         });
         return;
@@ -1148,10 +1126,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         if (options.namedSessionAttachment) {
           await enqueue(parsed.session, async () => {
             check();
-            const attached = attachedSession?.name === parsed.session;
+            const attached = selection.current?.name === parsed.session;
             await write(parsed.json ? JSON.stringify({ session: parsed.session, status: attached ? 'detached' : 'not-attached' }, null, 2) + '\n'
               : `Browser '${parsed.session}' is ${attached ? 'detached' : 'not attached'}.\n`);
-            if (attachedSession?.name === parsed.session) attachedSession = undefined;
+            if (selection.current?.name === parsed.session) await selection.set(undefined, local.signal);
           });
           return;
         }
@@ -1189,13 +1167,13 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
       if ((parsed.command === 'close-all' || parsed.command === 'kill-all') && !ability.execute) {
         const saved = await savedSessions(local.signal);
         suppressUnknownRestores = true;
-        attachedSession = undefined;
+        await selection.set(undefined, local.signal);
         const closed = [...new Set([...saved.map(session => session.name), ...[...sessions.values()].filter(session => session.state === 'open').map(session => session.name)])];
         if (parsed.command === 'kill-all') for (const session of sessions.values()) void release(session).catch(() => {});
         const results = await Promise.allSettled([...new Set([...sessions.keys(), ...tails.keys()])].map(name => enqueue(name, async () => {
           check();
           explicitlyClosed.add(name);
-          if (attachedSession?.name === name) attachedSession = undefined;
+          if (selection.current?.name === name) await selection.set(undefined, local.signal);
           const session = sessions.get(name);
           if (session) await retireForCommand(session, parsed.command === 'kill-all');
         })));
@@ -1228,6 +1206,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         await recordOutcome('running', local.signal);
         let paused: Session | undefined;
         let commandFailure: { error: unknown } | undefined;
+        let commandAdmitted = false;
         await (async () => {
           check();
           if (ability.scope === 'session' && !['open', 'close', 'close-all', 'list', 'delete-data'].includes(parsed.command)) {
@@ -1235,7 +1214,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             check();
           }
           const current = sessions.get(parsed.session);
-          if (current?.state === 'open' && !['goto', 'open', 'close', 'delete-data', 'list', 'config-print', 'tab-list', 'tab-select', 'tab-new', 'tab-close'].includes(parsed.command)) assertPageAvailable(current);
+          if (current?.state === 'open' && !(parsed.command === 'snapshot' && options.persistence?.resumeAfterIdle) && !['goto', 'open', 'close', 'delete-data', 'list', 'config-print', 'tab-list', 'tab-select', 'tab-new', 'tab-close'].includes(parsed.command)) assertPageAvailable(current);
           if (current?.state === 'open' && current.idleTimeoutMs) {
             paused = current;
             current.idlePaused = true;
@@ -1246,6 +1225,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             retained = true;
             throw new Error(`Tool "${parsed.command}" does not handle the modal state.`);
           }
+          commandAdmitted = true;
           if (ability.execute) {
             let browserSession: PlaywrightAbilityRequest['browserSession'];
             if (ability.scope === 'session') {
@@ -1344,7 +1324,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             const session = sessions.get(parsed.session);
             const wasOpen = session?.state === 'open' || (await savedSessions(local.signal)).some(saved => saved.name === parsed.session);
             explicitlyClosed.add(parsed.session);
-            if (attachedSession?.name === parsed.session) attachedSession = undefined;
+            if (selection.current?.name === parsed.session) await selection.set(undefined, local.signal);
             const errors: unknown[] = [];
             try { if (session) await retireForCommand(session); } catch (error) { errors.push(error); }
             try { await options.persistence?.close?.(parsed.session, local.signal); } catch (error) { errors.push(error); }
@@ -1358,7 +1338,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
           if (parsed.command === 'delete-data') {
             const session = sessions.get(parsed.session);
             explicitlyClosed.add(parsed.session);
-            if (attachedSession?.name === parsed.session) attachedSession = undefined;
+            if (selection.current?.name === parsed.session) await selection.set(undefined, local.signal);
             const errors: unknown[] = [];
             try { if (session && session.state !== 'closed') await release(session); } catch (error) { errors.push(error); }
             try {
@@ -1399,6 +1379,10 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
             await selectPage(session, await session.lease.context.newPage(), () => checkSession(session));
             session.pages = [...session.lease.context.pages()];
             checkSession(session);
+            if (options.persistence?.resumeAfterIdle) {
+              session.state = 'open';
+              await checkpoint(session, local.signal);
+            }
             if (parsed.url) await runAction(session, async () => { await session.page!.goto(parsed.url!, { timeout: sessionNavigationTimeout(session) }); });
             checkSession(session);
             session.state = 'open';
@@ -1619,7 +1603,7 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
         if (active && !retained) await release(active).catch(() => {});
         // A lost-page refusal proves no page action was attempted; it must not
         // turn an ordinary saved profile into an interrupted-operation profile.
-        const uncertainFailure = commandFailure && !(commandFailure.error instanceof PlaywrightPageUnavailableError);
+        const uncertainFailure = commandAdmitted && commandFailure && !(commandFailure.error instanceof PlaywrightPageUnavailableError) && !(commandFailure.error instanceof SnapshotReferenceError);
         await recordOutcome(uncertainFailure || traceFailure || reportedError || local.signal.aborted ? 'unknown' : 'completed', new AbortController().signal);
         if (traceFailure) {
           if (commandFailure) throw new AggregateError([commandFailure.error, traceFailure.error], 'Playwright command and trace flush failed');

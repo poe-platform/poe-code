@@ -2963,6 +2963,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/plugins/zip-commands.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-adapter.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-controller.test.ts"));
+  assert.ok(files.includes("tests/plugins/playwright-auto-restore.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-standard-output.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-standard-session.test.ts"));
   assert.ok(files.includes("tests/plugins/playwright-modal-session.test.ts"));

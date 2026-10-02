@@ -1,3 +1,4 @@
+import { SnapshotReferenceError } from './snapshot-reference-error.js';
 import { playwrightNativeTimeout } from "./resource-limit.js";
 import type { PlaywrightPage, PlaywrightElementHandle, PlaywrightSnapshotHandle, PlaywrightSnapshotJSONCapture, PlaywrightFrame, PlaywrightSnapshotReferenceCapture, PlaywrightSnapshotReferenceBatch } from './adapter.js';
 import { createFrameSnapshot } from './frame-snapshot.js';
@@ -337,7 +338,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
   const resolveReference = async (ref: string, signal: AbortSignal): Promise<PlaywrightElementHandle> => {
     signal.throwIfAborted();
     const reference = refs.get(ref);
-    if (!reference) throw new Error(`Ref ${ref} not found in the current page snapshot. Try capturing new snapshot.`);
+    if (!reference) throw new SnapshotReferenceError(`Ref ${ref} not found in the current page snapshot. Try capturing new snapshot.`);
     const capturedEpoch = epoch;
     if (reference.kind === 'native') {
       if (!reference.native && reference.witness) {
@@ -350,7 +351,7 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
             const identity = reference.witness!.batch.identities[reference.witness!.index];
             const currentIdentity = current?.kind === 'native' && current.witness ? current.witness.batch.identities[current.witness.index] : undefined;
             const same = current === reference || identity && currentIdentity?.scope === identity.scope && currentIdentity.value === identity.value;
-            if (signal.aborted || capturedEpoch !== epoch || !same) { await retire([handle]); signal.throwIfAborted(); throw new Error(`Snapshot ref stale: ${ref}; snapshot again`); }
+            if (signal.aborted || capturedEpoch !== epoch || !same) { await retire([handle]); signal.throwIfAborted(); throw new SnapshotReferenceError(`Snapshot ref stale: ${ref}; snapshot again`); }
             resources.add(handle);
             reference.native = handle;
             if (current?.kind === 'native') current.native = handle;
@@ -365,9 +366,9 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
           if (current?.kind === 'native' && current.resolving === resolving) delete current.resolving;
         }
       }
-      if (!reference.native || !await nativeConnected(reference.native) || capturedEpoch !== epoch) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+      if (!reference.native || !await nativeConnected(reference.native) || capturedEpoch !== epoch) throw new SnapshotReferenceError(`Snapshot ref stale: ${ref}; snapshot again`);
       const current = refs.get(ref);
-      if (current?.kind !== 'native' || current.native !== reference.native) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+      if (current?.kind !== 'native' || current.native !== reference.native) throw new SnapshotReferenceError(`Snapshot ref stale: ${ref}; snapshot again`);
       return reference.native;
     }
     let connected = false;
@@ -378,14 +379,14 @@ export function createSnapshotEngine(limits: SnapshotLimits, nextRef?: () => str
       }, reference.slot);
     } catch { connected = false; }
     signal.throwIfAborted();
-    if (!connected || capturedEpoch !== epoch) throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+    if (!connected || capturedEpoch !== epoch) throw new SnapshotReferenceError(`Snapshot ref stale: ${ref}; snapshot again`);
     if (!reference.native) {
       const handle = await reference.capsule.evaluateHandle((capsule, slot) => capsule.nodes[slot], reference.slot);
       const native = handle.asElement();
       if (!native || signal.aborted || capturedEpoch !== epoch) {
         await retire([handle]);
         signal.throwIfAborted();
-        throw new Error(`Snapshot ref stale: ${ref}; snapshot again`);
+        throw new SnapshotReferenceError(`Snapshot ref stale: ${ref}; snapshot again`);
       }
       resources.add(handle);
       reference.native = native;

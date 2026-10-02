@@ -15,6 +15,8 @@ export async function portableRuntime(contents: string, options: { removeBuffer?
       "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"),
       "@poe-code/safe-fs": filesystem,
       "@poe-code/safe-fs/core": filesystem,
+      "@poe-code/safe-fs/runtime-core": filesystem,
+      "@poe-code/safe-fs/fs/memory": filesystem,
       "@poe-code/safe-fs/xml": filesystem,
       "@poe-code/safe-fs/contracts/errors": filesystem,
       "@poe-code/safe-fs/contracts/object": filesystem,

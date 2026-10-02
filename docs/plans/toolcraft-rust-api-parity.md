@@ -2810,3 +2810,27 @@ pairs per round and 32 retained results, measured 4.946 microseconds native /
 performance gate. Full CLI/renderer/transports and resource/platform/swap gates
 remain open. The preceding stack commit is verified on remote main; its release
 build remains pending, with no publication verified.
+
+### Renderer YAML dependency investigation
+
+Direct comparisons of the existing own Rust YAML serializer against
+`YAML.stringify` matched ordinary scalar/mixed-array output, nonfinite numbers,
+BigInt, repeated references, cycles, Date values and Unicode/lone-surrogate
+strings. They exposed different errors for symbols and functions: the native
+snapshot used stringified values instead of constructor names. Two differential
+regressions failed before the fix, including missing constructor getter calls.
+
+The host snapshot now retains the first unsupported scalar in traversal order
+and resolves its constructor name only after all source hooks finish. Host error
+construction preserves UTF-16 names, template coercion and arbitrary thrown
+values. A third regression verifies that a later source-hook failure takes
+precedence over unsupported-scalar diagnostics. All nine YAML native comparisons
+pass, along with the maintained configuration and embedding frontmatter package
+unit/declaration routes and scoped JS lint. No dependency declarations changed.
+This fixes a demonstrated prerequisite defect; it does not qualify arbitrary YAML
+Document/node values, all host intrinsics, complete renderer behavior or a default
+integration. No performance claim applies to the error-path correction.
+
+Numeric validation is verified on remote main at
+f938732656d536dff0bbf26ff5758f4263f7933f. Its Release run 37049166253 is pending;
+publication remains unverified.

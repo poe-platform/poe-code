@@ -1,6 +1,6 @@
 import {Snapshot} from './snapshot.js';
 export function graphSnapshot(root,aliasDuplicateObjects=true){
- const nodes=[],sources=new WeakMap();let anchor=0;
+ const nodes=[],sources=new WeakMap();let anchor=0,unsupported;
  function allocate(){const id=nodes.length;nodes.push({anchor:null});return id;}
  const rootId=allocate(),tasks=[{kind:'visit',value:root,id:rootId,depth:0}];
  try{while(tasks.length){
@@ -34,7 +34,10 @@ export function graphSnapshot(root,aliasDuplicateObjects=true){
    else iterator=(function*(){for(const key of Object.keys(value))yield [key,value[key]];})();
    nodes[id].tag=mapping?10:9;nodes[id].items=[];
    tasks.push({kind:'next',id,iterator,mapping,depth});
-  }else{nodes[id].value=value;nodes[id].tag=value===null?0:typeof value==='undefined'?1:typeof value==='boolean'?value?3:2:typeof value==='number'?4:typeof value==='string'?5:typeof value==='bigint'?6:8;}
+  }else{
+   nodes[id].value=value;nodes[id].tag=value===null?0:typeof value==='undefined'?1:typeof value==='boolean'?value?3:2:typeof value==='number'?4:typeof value==='string'?5:typeof value==='bigint'?6:8;
+   if(nodes[id].tag===8&&unsupported===undefined)unsupported=value;
+  }
  }
  }catch(error){
   for(let i=tasks.length-1;i>=0;i--){const task=tasks[i];if(task.kind!=='next')continue;
@@ -42,13 +45,20 @@ export function graphSnapshot(root,aliasDuplicateObjects=true){
   }
   throw error;
  }
+ // YAML resolves unsupported scalar tags after building the complete graph.
+ // Keep constructor getters, template coercion and thrown identity in the host;
+ // resolving names while visiting nodes would precede later toJSON/getter calls.
+ if(unsupported!==undefined){
+  const name=unsupported?.constructor?.name??typeof unsupported;
+  throw new Error(`Tag not resolved for ${name} value`);
+ }
  const output=new Snapshot();output.count(rootId);output.count(nodes.length);
  for(const node of nodes){
   output.tag(node.anchor===null?0:1);if(node.anchor!==null)output.text(node.anchor);
   output.tag(node.tag);
   if(node.tag===4)output.number(node.value);
   else if(node.tag===5)output.text(node.value);
-  else if(node.tag===6||node.tag===8)output.text(String(node.value));
+  else if(node.tag===6)output.text(String(node.value));
   else if(node.tag===9){output.count(node.items.length);for(const id of node.items)output.count(id);}
   else if(node.tag===10){output.count(node.items.length);for(const[key,value]of node.items){output.count(key);output.count(value);}}
   else if(node.tag===11)output.count(node.target);

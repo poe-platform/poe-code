@@ -36,3 +36,36 @@ test('YAML native closes active iterators when a child host hook throws',()=>{
  function fixture(events){return {*[Symbol.iterator](){try{events.push('start');yield {toJSON(){events.push('child');throw new Error('hook failure');}};}finally{events.push('close');}}};}
  const a=[],b=[];assert.throws(()=>original.serialize(fixture(a)),/hook failure/);assert.throws(()=>yamlFormat.serialize(fixture(b)),/hook failure/);assert.deepEqual(b,a);
 });
+
+test('YAML unsupported values retain constructor names and exact diagnostic text',()=>{
+ for(const value of [Symbol('value'),()=>1,async()=>1,function*(){yield 1;}]){
+  let expected;try{original.serialize([1,value]);}catch(error){expected=error;}
+  assert.throws(()=>yamlFormat.serialize([1,value]),error=>error.name===expected.name&&error.message===expected.message);
+ }
+ for(const name of [undefined,null,'','Custom','\ud800',Symbol('name'),{toString(){return 'Named';}}]){
+  const value=()=>1;Object.defineProperty(value,'constructor',{value:{name}});
+  let expected;try{original.serialize(value);}catch(error){expected=error;}
+  assert.throws(()=>yamlFormat.serialize(value),error=>error.name===expected.name&&error.message===expected.message);
+ }
+});
+
+test('YAML resolves only the first unsupported type after all source hooks',()=>{
+ function run(codec){
+  const trace=[],failure={failure:true};
+  const first=()=>1,second=()=>2;
+  Object.defineProperty(first,'constructor',{get(){trace.push('first constructor');return {get name(){trace.push('first name');throw failure;}};}});
+  Object.defineProperty(second,'constructor',{get(){trace.push('second constructor');throw new Error('must not reach second');}});
+  const value=new Map([[{nested:first},second],['last',{toJSON(){trace.push('last toJSON');return 1;}}]]);
+  let thrown;try{codec.serialize(value);}catch(error){thrown=error;}
+  return {trace,sameFailure:thrown===failure};
+ }
+ assert.deepEqual(run(yamlFormat),run(original));
+});
+
+test('YAML source failures take precedence over unsupported scalar diagnostics',()=>{
+ for(const codec of [original,yamlFormat])for(const failure of [undefined,null,false,17,Symbol('failure')]){
+  const value=()=>1;
+  Object.defineProperty(value,'constructor',{get(){throw new Error('name inspected before graph completion');}});
+  assert.throws(()=>codec.serialize([value,{toJSON(){throw failure;}}]),error=>error===failure);
+ }
+});

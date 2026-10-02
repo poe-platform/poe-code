@@ -60,7 +60,8 @@ Node retains JavaScript object identities during merge and prune.
 YAML supports block and flow collections, multiline strings, YAML 1.1 scalar
 resolution, merge keys, binary and temporal tags, and safe own properties.
 Serialization preserves shared references and circular objects as YAML anchors;
-host getters, `toJSON`, Maps and iterators retain JavaScript behavior. Parsed Date
+host getters, `toJSON`, Maps and iterators retain JavaScript behavior. Unsupported
+scalar errors preserve constructor names and occur after source hooks finish. Parsed Date
 and Symbol aliases retain scalar identity. YAML configuration nesting is bounded
 to 512 levels, with alias expansion checks before cloning; cyclic input rejects
 promptly instead of overflowing the original configuration clone.

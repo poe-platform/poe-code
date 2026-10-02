@@ -15,6 +15,10 @@ delimiters and flatten newlines.
 Markdown, or emits a JSON record. Pass a writer to capture the output in your UI.
 `openExternal(url, options?)` opens a URL with the platform browser launcher and
 rejects failed launches. Supply `spawnProcess` to control process creation.
+Use `intro`, `introPlain`, `outro`, `cancel` and `log` for consistent prompt
+messages in terminal, Markdown and JSON output. `log.message` also controls
+guide symbols, spacing and continuation lines. `isCancel` recognizes the shared
+prompt cancellation symbol across module instances.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

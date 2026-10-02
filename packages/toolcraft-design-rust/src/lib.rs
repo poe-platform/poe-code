@@ -7,6 +7,7 @@ pub mod code_highlight;
 pub mod color;
 pub mod command_errors;
 pub mod markdown_demo;
+pub mod prompt_output;
 pub mod screen;
 pub mod screen_style;
 pub use toolcraft_template_rust::{data, template};

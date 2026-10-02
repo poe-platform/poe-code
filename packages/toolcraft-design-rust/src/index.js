@@ -111,3 +111,5 @@ export {Screen} from "./screen.js";
 export {createTerminalDriver} from "./terminal-driver.js";
 export {note} from "./note.js";
 export {openExternal} from "./browser.js";
+export {intro,introPlain,outro,cancel,log} from "./prompt-output.js";
+export {isCancel} from "./cancel-symbol.js";

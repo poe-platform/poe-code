@@ -1,4 +1,6 @@
 mod browser;
+mod prompt_output;
+pub use prompt_output::*;
 mod note;
 pub use browser::*;
 pub use note::*;

@@ -1097,3 +1097,26 @@ Five warmed alternating rounds of 10,000 mocked launches measured median
 0.001915 ms native versus 0.0003121 ms reference (6.14x). This measures binding and
 promise overhead without actual process/browser cost, while other builds were
 running. It does not pass a performance gate or qualify real platform launchers.
+
+The browser launcher is delivered in 4f877dbe66. The maintained full unit retry
+reached 247 passing root files, 5,927 passing tests and 65 unexecuted cases in a
+failed collection, with three files failing overall. Two Workerd probes still
+fail. The third failure came from missing relative package-resolution context
+in the public built-shell consumer plugin; assigning the owning chunk directory
+restores all 65 tests without changing their public package assertions.
+
+Prompt output now includes `intro`, `introPlain`, `outro`, `cancel`, `log`, and
+`isCancel`, with their original direct and primitive subpaths. Rust owns format
+selection, guide layout and output sequencing. Node retains writable streams,
+live colors, arrays/iterators, string coercion and the shared cancellation-symbol
+identity. Differential tests check all three formats, blank lines, custom spacing,
+option getters, custom split iterators, arbitrary writer throws and writer lookup
+order. The selected native host checks cover 227 cases and all 624 selected
+original tests pass. Public declarations, Rust/binding/JS lint and a standalone
+packed runtime/types consumer pass. The rendered screenshot was inspected and
+its ANSI bytes equal the reference. No external dependencies changed.
+
+Five warmed alternating rounds of 1,000 two-line `log.message` calls measured
+median 0.02267 ms native versus 0.01173 ms reference (1.93x). Binding costs remain
+visible; this does not pass a performance gate. Interactive prompts, live
+spinners, dashboards and complete platform/resource qualification remain open.

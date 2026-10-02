@@ -243,6 +243,50 @@
     "./components/browser": {
       "types": "./dist/browser.d.ts",
       "import": "./dist/browser.js"
+    },
+    "./intro": {
+      "types": "./dist/prompt-intro.d.ts",
+      "import": "./dist/prompt-intro.js"
+    },
+    "./intro-plain": {
+      "types": "./dist/prompt-intro-plain.d.ts",
+      "import": "./dist/prompt-intro-plain.js"
+    },
+    "./outro": {
+      "types": "./dist/prompt-outro.d.ts",
+      "import": "./dist/prompt-outro.js"
+    },
+    "./cancel": {
+      "types": "./dist/prompt-cancel.d.ts",
+      "import": "./dist/prompt-cancel.js"
+    },
+    "./log": {
+      "types": "./dist/prompt-log.d.ts",
+      "import": "./dist/prompt-log.js"
+    },
+    "./prompts/primitives/intro": {
+      "types": "./dist/prompt-intro.d.ts",
+      "import": "./dist/prompt-intro.js"
+    },
+    "./prompts/primitives/outro": {
+      "types": "./dist/prompt-outro.d.ts",
+      "import": "./dist/prompt-outro.js"
+    },
+    "./prompts/primitives/cancel": {
+      "types": "./dist/prompt-cancel-primitive.d.ts",
+      "import": "./dist/prompt-cancel-primitive.js"
+    },
+    "./is-cancel": {
+      "types": "./dist/is-cancel.d.ts",
+      "import": "./dist/is-cancel.js"
+    },
+    "./prompts/primitives/log": {
+      "types": "./dist/prompt-log-primitive.d.ts",
+      "import": "./dist/prompt-log-primitive.js"
+    },
+    "./prompts/interactive/cancel-symbol": {
+      "types": "./dist/cancel-symbol.d.ts",
+      "import": "./dist/cancel-symbol.js"
     }
   },
   "scripts": {

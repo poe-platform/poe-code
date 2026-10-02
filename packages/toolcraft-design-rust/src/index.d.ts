@@ -130,3 +130,5 @@ export {Screen, type Cell as ScreenCell, type ScreenSize, type ScreenSurface} fr
 export {createTerminalDriver,type TerminalDriver,type TerminalInputEvent,type Size as TerminalSize} from "./terminal-driver.js";
 export {note} from "./note.js";
 export {openExternal} from "./browser.js";
+export {intro,introPlain,outro,cancel,log} from "./prompt-output.js";
+export {isCancel} from "./cancel-symbol.js";

@@ -507,3 +507,17 @@ const browserReverse:typeof browserModule=null as unknown as typeof originalBrow
 const browserRoot:typeof browserModule.openExternal=design.openExternal;
 const browserSubpath:typeof browserRoot=openExternalSubpath;
 void [browserForward,browserReverse,browserRoot,browserSubpath];
+
+import * as promptLog from "toolcraft-design-rust/prompts/primitives/log";
+import type * as originalPromptLog from "toolcraft-design/prompts/primitives/log";
+const promptLogForward:typeof originalPromptLog=promptLog;
+const promptLogReverse:typeof promptLog=null as unknown as typeof originalPromptLog;
+const introForward:typeof import("toolcraft-design/intro").intro=design.intro;
+const introReverse:typeof design.intro=null as unknown as typeof import("toolcraft-design/intro").intro;
+const plainForward:typeof import("toolcraft-design/intro-plain").introPlain=design.introPlain;
+const outroForward:typeof import("toolcraft-design/outro").outro=design.outro;
+const cancelForward:typeof import("toolcraft-design/cancel").cancel=design.cancel;
+import {CANCEL,isCancel} from "toolcraft-design-rust/prompts/interactive/cancel-symbol";
+const cancellation:unknown=CANCEL;
+if(isCancel(cancellation)){const symbol:typeof CANCEL=cancellation;void symbol;}
+void [promptLogForward,promptLogReverse,introForward,introReverse,plainForward,outroForward,cancelForward];

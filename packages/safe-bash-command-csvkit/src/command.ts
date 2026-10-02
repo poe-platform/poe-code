@@ -60,7 +60,8 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
   const codecs = Object.freeze([...(options.codecs ?? [utf8Codec, ...pythonCodecs])]);
   const compression = Object.freeze([...(options.compression ?? [createGzipCompressionProvider(createCompressionCodec())])]);
   const clock = options.clock ?? { now: Date.now };
-  const databases = Object.freeze([...(options.databases ?? [createDefaultSqliteDatabaseProvider(clock, {maxWork: limits.maxWork, maxSqlBytes: limits.maxRetainedBytes, maxValueBytes: limits.maxRetainedBytes, maxResultRows: limits.maxDatabaseResultRows})])]);
+  const sqliteLimits = Object.freeze({maxWork: limits.maxWork, maxSqlBytes: limits.maxRetainedBytes, maxValueBytes: limits.maxRetainedBytes, maxResultRows: limits.maxDatabaseResultRows});
+  const databases = Object.freeze([...(options.databases ?? [createDefaultSqliteDatabaseProvider(clock, sqliteLimits)])]);
   const sqlDialects = Object.freeze([...(options.sqlDialects ?? databaseDialects)]);
   const locale = options.locale ?? portableLocale;
   const interpreter = options.interpreter, openMatchFile = options.openMatchFile;
@@ -110,10 +111,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
           if (inputBytes > limits.maxInputBytes) throw new CsvkitBlocked("input byte budget exceeded");
           return bytes;
         };
-        result = await execute(descriptor.name, {
-          argv,
-          cwd: context.cwd,
-          fs: {
+        const fsAdapter: CsvkitContext["fs"] = {
             exists: async (path, settings) => {
               try { await context.fs.stat(path, settings); settings.signal.throwIfAborted(); return true; }
               catch (failure) { settings.signal.throwIfAborted(); if (isFsError(failure)) return false; throw failure; }
@@ -160,7 +158,14 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
               const file = await openFileOutput({ ...context, signal: settings.signal }, path, { flag: "w", descriptor: capabilities.open !== false });
               return { write: file.sink.write.bind(file.sink), close: file.finish.bind(file) };
             } })
-          },
+          };
+        const invocationDatabases = options.databases !== undefined
+          ? databases
+          : Object.freeze([createDefaultSqliteDatabaseProvider(clock, sqliteLimits, { readFile: fsAdapter.readFile, writeFile: fsAdapter.writeFile, maxBytes: limits.maxRetainedBytes })]);
+        result = await execute(descriptor.name, {
+          argv,
+          cwd: context.cwd,
+          fs: fsAdapter,
           stdin: { [Symbol.asyncIterator]() {
             const operation = output();
             operation.signal.throwIfAborted();
@@ -177,7 +182,7 @@ export function createCsvkitCommands(options: CsvkitCommandsOptions = {}): reado
           } },
           stdinIsDefault: context.stdinIsDefault ?? false,
           stdout: { write: bytes => output().output.write(bytes) }, stderr: context.stderr, terminal, env: Object.freeze({ ...context.env }),
-          codecs, compression, locale, clock, databases,
+          codecs, compression, locale, clock, databases: invocationDatabases,
           sqlDialects,
           interpreter: interpreter ?? createCsvpyInterpreter({stdin: context.stdin, admitInput: account}),
           openMatchFile: openMatchFile ?? (async (path, settings) => {

@@ -16,7 +16,8 @@ async function invoke(name: string, input: string | Uint8Array, args: string[], 
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
     fs: { capabilities: { read: true, streamingRead: true },
       async stat(path: string) { if (!(path in files)) throw new FsError("ENOENT", { path }); return { type: "file" }; },
-      async readFile(path: string) { const value = files[path]!; return typeof value === "string" ? encoder.encode(value) : value; },
+      async readFile(path: string) { if (!(path in files)) throw new FsError("ENOENT", { path }); const value = files[path]!; return typeof value === "string" ? encoder.encode(value) : value; },
+      async writeFile(path: string, bytes: Uint8Array) { files[path] = new Uint8Array(bytes); },
       readStream(path: string) { return (async function* () { const value = files[path]!; yield typeof value === "string" ? encoder.encode(value) : value; })(); }
     }
   } as unknown as CommandContext;
@@ -129,4 +130,15 @@ test("portable csvsql executes a query with its default SQLite provider", async 
 test("portable csvcut decompresses gzip with its default provider", async () => {
   expect(await invoke("csvcut", "", ["-c", "name", "/scores.csv.gz"], { "/scores.csv.gz": gzipSync("name,score\nAlice,95.5\n") }))
     .toEqual({ exitCode: 0, stdout: "name\nAlice\n", stderr: "" });
+});
+
+test("portable csvsql and sql2csv persist and query SQLite database files in the VFS", async () => {
+  const files: Record<string, string | Uint8Array> = {
+    "/scores.csv": "id,name,score\n1,Alice,95.5\n2,Bob,82.0\n"
+  };
+  expect(await invoke("csvsql", "", ["--db", "sqlite:///audit.db", "--tables", "cluster_audit", "--insert", "/scores.csv"], files))
+    .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+  expect(files["/audit.db"]).toBeInstanceOf(Uint8Array);
+  expect(await invoke("sql2csv", "", ["--db", "sqlite:///audit.db", "--query", "SELECT name, score FROM cluster_audit WHERE score > 85"], files))
+    .toEqual({ exitCode: 0, stdout: "name,score\nAlice,95.5\n", stderr: "" });
 });

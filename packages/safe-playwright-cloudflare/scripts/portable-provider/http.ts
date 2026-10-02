@@ -16,6 +16,7 @@ type ResponseCallback = (response: IncomingResponse) => void;
 /** The pinned SDK retains cookies, redirects, auth and retries. This bridge
  * supplies its HTTP stream using Fetch, without sockets or ambient location. */
 export class ClientRequest extends Writable {
+  aborted = false;
   private readonly controller = new AbortController();
   private readonly chunks: Buffer[] = [];
   private readonly headers = new Map<string, HeaderValue>();
@@ -32,6 +33,12 @@ export class ClientRequest extends Writable {
   setHeader(name: string, value: HeaderValue): this { this.headers.set(name.toLowerCase(), value); return this; }
   getHeader(name: string): HeaderValue | undefined { return this.headers.get(name.toLowerCase()); }
   removeHeader(name: string): void { this.headers.delete(name.toLowerCase()); }
+  abort(): void {
+    if (this.aborted) return;
+    this.aborted = true;
+    queueMicrotask(() => this.emit('abort'));
+    this.destroy();
+  }
   setTimeout(milliseconds: number, callback?: () => void): this {
     if (milliseconds !== Infinity && (!Number.isFinite(milliseconds) || milliseconds < 0 || milliseconds > 2147483647))
       throw new RangeError('Invalid HTTP request timeout');

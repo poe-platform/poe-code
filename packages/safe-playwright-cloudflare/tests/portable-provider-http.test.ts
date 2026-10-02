@@ -91,3 +91,25 @@ test.each([undefined, Infinity, 0])('HTTP timeout %s does not schedule a timer',
     pending.destroy();
   } finally { timer.mockRestore(); }
 });
+
+test('SDK socket timeout aborts the request and emits one abort event', async () => {
+  vi.useFakeTimers();
+  let signal: AbortSignal | undefined;
+  const fetch = vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, options) => {
+    signal = options?.signal ?? undefined;
+    return new Promise((_resolve, reject) => signal!.addEventListener('abort', () => reject(signal!.reason), { once: true }));
+  });
+  try {
+    const pending = request('https://api.test/');
+    const aborted = vi.fn();
+    pending.on('abort', aborted);
+    pending.setTimeout(20, () => pending.abort());
+    pending.end();
+    expect(signal?.aborted).toBe(false);
+    await vi.advanceTimersByTimeAsync(20);
+    expect(pending.aborted).toBe(true);
+    expect(signal?.aborted).toBe(true);
+    pending.abort();
+    expect(aborted).toHaveBeenCalledTimes(1);
+  } finally { fetch.mockRestore(); vi.useRealTimers(); }
+});

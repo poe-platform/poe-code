@@ -415,6 +415,17 @@ describe("virtual null device", () => {
     expect((await view.capabilitiesFor("/dev/null")).descriptorWriteStream).toBe(true);
   });
 
+  for (const restrictedFirst of [false, true]) it(`keeps memory backing capabilities local (${restrictedFirst ? "restricted" : "complete"} first)`, () => {
+    const complete = new MemoryFileSystem();
+    const restricted = new MemoryFileSystem();
+    Object.defineProperty(restricted, "open", { value: undefined });
+    const backings = restrictedFirst ? [restricted, complete] : [complete, restricted];
+    const views = backings.map(backing => createDeviceFileSystem(backing));
+    for (const [index, backing] of backings.entries()) {
+      expect(views[index]!.capabilities.open).toBe(backing === complete ? true : undefined);
+    }
+  });
+
   for (const flag of ["w", "a"] as const) it(`supports null descriptor ${flag} streams across interleaved writes without backing mutation`, async () => {
     const { backing, view, assertUntouched } = await fixture(true);
     expect((await view.capabilitiesFor("/dev/null")).descriptorWriteStream).toBe(true);

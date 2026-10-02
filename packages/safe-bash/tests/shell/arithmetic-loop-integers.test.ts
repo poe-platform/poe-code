@@ -92,6 +92,31 @@ test("integer string cache converts negative one on its first lookup", () => {
   assert.equal(intToStr(-1), "-1");
 });
 
+for (const route of ["arithmetic", "words"]) {
+  for (const expression of ["s + i", "s - i"]) {
+    for (const isSub of [false, true]) {
+      test(`${route} ${expression} counts signed operands above a 32-bit budget (substitution=${isSub})`, () => {
+        const units = route === "arithmetic" ? 52 : 24;
+        const prior = 2147483647;
+        for (const maximum of [Infinity, prior + units]) {
+          const budget = new ParseBudget(maximum);
+          budget.admit(prior);
+          const compiled = compilePureSmiProgram(prepareArithmetic(expression), new Set())!;
+          sharedLoopIntRegs.fill(0);
+          sharedLoopIntRegs[1] = -10;
+          const steps = [{ name: "s", compiled, varRegMap: [1, 0], targetReg: 1, isSub, extraNewlineByte: 0 }];
+          const result = route === "arithmetic"
+            ? runIntArithForLoop(-2, 2, false, 1, 0, steps, budget)
+            : runIntForLoop(["1", "2", "3"], 1, steps, budget);
+          assert.equal(result.ok, true);
+          assert.equal(budget.admittedUnits, prior + units);
+          if (maximum !== Infinity) assert.throws(() => budget.admit(), ShellLimitError);
+        }
+      });
+    }
+  }
+}
+
 for (const [condition, expected] of [
   ["$(say 0)", ""],
   ["$(say $((i < 2)))", "0\n1\n"],

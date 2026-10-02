@@ -1122,7 +1122,7 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: readonly n
       sharedRpnStack[sp++] = args[pc]!;
     } else if (op === 1) {
       const val = sharedLoopIntRegs[varRegMap[args[pc]!]!]!;
-      admitUnits = (admitUnits + (val < 0 ? 4 : 2)) | 0;
+      admitUnits += val < 0 ? 4 : 2;
       sharedRpnStack[sp++] = val;
     } else if (op <= 4 || op === 19) {
       const v = sharedRpnStack[sp - 1]!;
@@ -1266,7 +1266,7 @@ export function runIntArithForLoop(
         return sharedIntLoopResult;
       }
       while (iVal < effLimit) {
-        totalAdmitUnits = (totalAdmitUnits + (iVal < 0 ? 8 : 4)) | 0;
+        totalAdmitUnits += iVal < 0 ? 8 : 4;
         let sp = 0;
         for (let pc = 0; pc < len; pc++) {
           const op = ops[pc]!;
@@ -1274,7 +1274,7 @@ export function runIntArithForLoop(
             sharedRpnStack[sp++] = sharedDirectRegArgs[pc]!;
           } else if (op === 1) {
             const val = sharedLoopIntRegs[sharedDirectRegArgs[pc]!]!;
-            totalAdmitUnits = (totalAdmitUnits + (val < 0 ? 4 : 2)) | 0;
+            totalAdmitUnits += val < 0 ? 4 : 2;
             sharedRpnStack[sp++] = val;
           } else if (op <= 4 || op === 19) {
             const v = sharedRpnStack[sp - 1]!;
@@ -1535,7 +1535,7 @@ export function runIntForLoop(
           sharedIntLoopResult.subCount = 0;
           return sharedIntLoopResult;
         }
-        totalAdmitUnits = (totalAdmitUnits + 2 + (v0 < 0 ? 4 : 2) + (v1 < 0 ? 4 : 2)) | 0;
+        totalAdmitUnits += 2 + (v0 < 0 ? 4 : 2) + (v1 < 0 ? 4 : 2);
         sharedLoopIntRegs[targetReg] = res | 0;
       }
       parseBudget.admit(totalAdmitUnits);
@@ -1561,7 +1561,7 @@ export function runIntForLoop(
         }
         if (valid) {
           iVal = num;
-          totalAdmitUnits = (totalAdmitUnits + 2) | 0;
+          totalAdmitUnits += 2;
         }
       }
     }
@@ -1588,7 +1588,7 @@ export function runIntForLoop(
         sharedIntLoopResult.subCount = 0;
         return sharedIntLoopResult;
       }
-      totalAdmitUnits = (totalAdmitUnits + _lastCompiledSmiAdmitUnits) | 0;
+      totalAdmitUnits += _lastCompiledSmiAdmitUnits;
       sharedLoopIntRegs[intStep.targetReg] = res | 0;
       if (intStep.isSub) {
         let abs = res < 0 ? -res : res;

@@ -1,8 +1,12 @@
-import assert from 'node:assert/strict';
 import type { BrowserWorker, Page } from '@cloudflare/playwright';
-import { createMemoryFileSystem } from '@poe-platform/safe-bash';
+import { createMemoryFileSystem } from '@poe-code/safe-fs/core';
 import { createPlaywrightController } from '@poe-platform/safe-bash/playwright';
 import { createCloudflarePlaywrightAdapter } from '../src/index.js';
+import { failureText } from './browser-native-failure.js';
+
+function assert(condition: unknown, message = 'Upload assertion failed'): asserts condition {
+  if (!condition) throw new Error(message);
+}
 
 export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker }) {
   const controller = createPlaywrightController({ adapter: createCloudflarePlaywrightAdapter(env.BROWSER) });
@@ -18,22 +22,24 @@ export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker })
     await controller.run({ args, env: {}, signal: AbortSignal.timeout(10000),
       async readArtifact(filename, maxBytes) {
         const bytes = await fs.readFile(filename);
-        assert.ok(bytes.byteLength <= maxBytes);
+        assert(bytes.byteLength <= maxBytes);
         return bytes;
       },
       async write(text) { output += text; },
     });
     return output;
   }
+  let result: Response | undefined;
+  let failure: unknown;
   try {
     await run('open');
     const page = controller.inspectSessions()[0]?.context.pages()[0] as Page | undefined;
-    assert.ok(page);
+    assert(page);
     await page.setContent(`<input id="files" type="file" multiple><button onclick="document.querySelector('#files').click()">Choose files</button>`);
     const snapshot = await run('snapshot');
     const button = snapshot.split('\n').find(line => line.includes('button "Choose files"'));
     const ref = button?.match(/\[ref=(e\d+)\]/)?.[1];
-    assert.ok(ref, snapshot);
+    assert(ref, snapshot);
     await run('click', ref);
     await run('upload', ...files.keys());
     const received = await page.evaluate(async () => Promise.all(
@@ -42,8 +48,12 @@ export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker })
         bytes: Array.from(new Uint8Array(await file.arrayBuffer())),
       })),
     ));
-    return Response.json({ received });
+    result = Response.json({ received });
   } catch (error) {
-    return Response.json({ error: String(error) }, { status: 500 });
-  } finally { await controller.dispose(); }
+    failure = error;
+  } finally {
+    try { await controller.dispose(); }
+    catch (error) { failure = new AggregateError([failure, error], 'Upload and cleanup failed'); }
+  }
+  return failure ? Response.json({ error: failureText(failure) }, { status: 500 }) : result!;
 } };

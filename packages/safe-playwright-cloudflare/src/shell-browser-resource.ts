@@ -15,20 +15,33 @@ import { createBrowserStorageControl } from "./browser-storage-control.js";
 import { createBrowserSnapshotScheduler } from "./browser-snapshot-scheduler.js";
 
 const BROWSER_IDLE_MS = 600_000;
-const BROWSER_RELEASE_MS = 5_000;
+
+/** Local deadlines are disabled unless explicitly configured. */
+export interface BrowserResourceLimits {
+	releaseTimeoutMs?: number;
+	storageTimeoutMs?: number;
+}
+
+function validateDeadline(value: number | undefined): void {
+	if (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1 || value > 2147483647))
+		throw new RangeError("Invalid browser resource deadline");
+}
 
 /** O(1): retain only the session created by this acquisition, never guest aliases. */
 export async function acquireCloudflareBrowser(options: {
 	binding: BrowserWorker;
 	signal: AbortSignal;
   transportLimits?: BrowserPrivateTransportOptions;
+  limits?: BrowserResourceLimits;
 }) {
 	const { binding, signal } = options;
 	signal.throwIfAborted();
-	const { acquire, connect } = await import("@cloudflare/playwright");
+	validateDeadline(options.limits?.releaseTimeoutMs);
+	validateDeadline(options.limits?.storageTimeoutMs);
+	const { acquire, connect, prepareFileBytes, artifactFileSystem } = await import("#safe-playwright-provider");
 	signal.throwIfAborted();
 	const { sessionId } = await acquire(binding, { keep_alive: BROWSER_IDLE_MS });
-	const owned = createOwnedConnections(binding, sessionId, options.transportLimits);
+	const owned = createOwnedConnections(binding, sessionId, options.transportLimits, options.limits);
 	const canceled = Promise.withResolvers<never>();
 	const onAbort = () => {
 		canceled.reject(signal.reason);
@@ -42,7 +55,7 @@ export async function acquireCloudflareBrowser(options: {
 			canceled.promise,
 		]);
 		signal.throwIfAborted();
-		return resource;
+		return { ...resource, prepareFileBytes, artifactFileSystem };
 	} catch (error) {
 		try {
 			await owned.release();
@@ -58,13 +71,15 @@ export async function acquireCloudflareBrowser(options: {
 	}
 }
 
-function createOwnedConnections(binding: BrowserWorker, sessionId: string, transportLimits: BrowserPrivateTransportOptions = {}) {
+function createOwnedConnections(binding: BrowserWorker, sessionId: string, transportLimits: BrowserPrivateTransportOptions = {}, limits: BrowserResourceLimits = {}) {
 	const sessionURL = `http://fake.host/v1/devtools/browser/${encodeURIComponent(sessionId)}`;
 	const privacy = createBrowserPrivateTransport(transportLimits);
 	const upstreams = new Set<WebSocket>();
 	const clients = new AbortController();
 	const snapshots = createBrowserSnapshotScheduler();
-	const deleteBrowser = createCloudflareBrowserRelease({ binding, sessionId });
+	const releaseTimeoutMs = limits.releaseTimeoutMs ?? Infinity;
+	const storageTimeoutMs = limits.storageTimeoutMs ?? Infinity;
+	const deleteBrowser = createCloudflareBrowserRelease({ binding, sessionId, releaseTimeoutMs });
 	let control: ReturnType<typeof createBrowserStorageControl> | undefined;
 	let browser: Browser | undefined;
 	let released = false;
@@ -159,7 +174,7 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string, trans
 						);
 				})],
 			],
-			AbortSignal.timeout(BROWSER_RELEASE_MS),
+			releaseTimeoutMs === Infinity ? new AbortController().signal : AbortSignal.timeout(releaseTimeoutMs),
 		);
 		return releasing;
 	}
@@ -191,7 +206,7 @@ function createOwnedConnections(binding: BrowserWorker, sessionId: string, trans
 			prepareStorageOrigin: createPlaywrightStorageOriginPreparer(
 				control,
 				privacy,
-				{ timeoutMs: 10_000 },
+				{ timeoutMs: storageTimeoutMs },
 			),
 			async interrupt() {
 				disconnect();
@@ -260,7 +275,9 @@ async function finishOwnedBrowserCleanup(
 export function createCloudflareBrowserRelease(options: {
 	binding: BrowserWorker;
 	sessionId: string;
+	releaseTimeoutMs?: number;
 }) {
+	validateDeadline(options.releaseTimeoutMs);
 	let releasing: Promise<void> | undefined;
 	return () => {
 		releasing ??= deleteOwnedBrowser(options);
@@ -271,10 +288,12 @@ export function createCloudflareBrowserRelease(options: {
 async function deleteOwnedBrowser(options: {
 	binding: BrowserWorker;
 	sessionId: string;
+	releaseTimeoutMs?: number;
 }) {
+	const timeout = options.releaseTimeoutMs ?? Infinity;
 	const response = await options.binding.fetch(
 		`http://fake.host/v1/devtools/browser/${encodeURIComponent(options.sessionId)}`,
-		{ method: "DELETE", signal: AbortSignal.timeout(BROWSER_RELEASE_MS) },
+		{ method: "DELETE", signal: timeout === Infinity ? new AbortController().signal : AbortSignal.timeout(timeout) },
 	);
 	await response.body?.cancel();
 	if (!response.ok)

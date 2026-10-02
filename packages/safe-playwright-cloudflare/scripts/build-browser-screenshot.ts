@@ -11,15 +11,27 @@ export function screenshotPreparationModule(source: string): string {
   const method = owner?.members.find((node): node is ts.MethodDeclaration => ts.isMethodDeclaration(node) && node.name.getText(ast) === '_preparePageForScreenshot');
   if (!callback || !method) throw new Error('Pinned screenshot preparation changed');
   const calls: ts.CallExpression[] = [];
+  const fontGuards: ts.IfStatement[] = [];
   const visit = (node: ts.Node) => {
     if (ts.isCallExpression(node) && node.expression.getText(ast) === 'inPagePrepareForScreenshots.toString') calls.push(node);
+    if (ts.isIfStatement(node) && node.expression.getText(ast) === '!process.env.PW_TEST_SCREENSHOT_NO_FONTS_READY') fontGuards.push(node);
     ts.forEachChild(node, visit);
   };
   visit(method);
   if (calls.length !== 1) throw new Error('Pinned screenshot serialization changed');
+  if (fontGuards.length !== 1 || fontGuards[0]!.elseStatement) throw new Error('Pinned screenshot font preparation changed');
   const call = calls[0]!;
   const start = method.getStart(ast);
-  const body = source.slice(start, call.getStart(ast)) + JSON.stringify(callback.getText(ast)) + source.slice(call.end, method.end);
+  // The provider's private test environment switch has no meaning in browser
+  // hosts. Always preserve the normal font-readiness wait without Node globals.
+  const guard = fontGuards[0]!;
+  const replacements = [
+    { start: call.getStart(ast), end: call.end, text: JSON.stringify(callback.getText(ast)) },
+    { start: guard.getStart(ast), end: guard.end, text: guard.thenStatement.getText(ast) },
+  ];
+  let body = source.slice(start, method.end);
+  for (const replacement of replacements.sort((a, b) => b.start - a.start))
+    body = body.slice(0, replacement.start - start) + replacement.text + body.slice(replacement.end - start);
   const sizes = ['_originalViewportSize', '_fullPageSize'].map(name => {
     const sizeMethod = owner!.members.find((node): node is ts.MethodDeclaration => ts.isMethodDeclaration(node) && node.name.getText(ast) === name);
     if (!sizeMethod) throw new Error('Pinned screenshot dimensions changed');

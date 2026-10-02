@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { resolve, dirname, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export async function buildNativeFixture(entry: URL) {
+export async function buildNativeFixture(entry: URL, conditions?: string[]) {
   const installed = process.env.SAFE_PLAYWRIGHT_INSTALLED_ROOT;
   const plugins: import('esbuild').Plugin[] = [];
   if (installed) {
@@ -36,6 +36,7 @@ export async function buildNativeFixture(entry: URL) {
     // Resolve dependencies consistently through their package exports instead.
     tsconfigRaw: { compilerOptions: {} },
     target: 'es2022', external: ['node:*', 'cloudflare:*', 'browser-user-code.js'], write: false, plugins,
+    conditions,
   });
   const source = result.outputFiles[0]?.text;
   if (!source) throw new Error('Native browser fixture bundle missing');

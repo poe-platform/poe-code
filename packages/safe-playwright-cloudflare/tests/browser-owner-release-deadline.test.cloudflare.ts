@@ -17,6 +17,7 @@ test.each([
 	const resource = await acquireCloudflareBrowser({
 		binding: provider.binding,
 		signal: provider.controller.signal,
+		limits: { releaseTimeoutMs: 5_000 },
 	});
 	const upstream = provider.upstreams[0]!;
 	const physicallyClosed = waitForBrowserSocketClose(upstream);

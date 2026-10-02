@@ -1,5 +1,6 @@
 import { WorkerEntrypoint } from "cloudflare:workers";
-import { type Browser, connect, type Page } from "@cloudflare/playwright";
+import { type Browser, type Page } from "@cloudflare/playwright";
+import { connect } from "#safe-playwright-provider";
 import { createRunCodeBinding } from "./browser-run-code-binding.js";
 import { restoreRunCodeContextState } from "./browser-run-code-context-state.js";
 import {

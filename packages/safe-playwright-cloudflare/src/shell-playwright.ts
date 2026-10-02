@@ -21,7 +21,7 @@ import {
 import { captureBrowserSnapshotJSON } from "./browser-snapshot-json.js";
 import { captureBrowserSnapshotReferences } from './browser-snapshot-references.js';
 import { captureBrowserTrace } from "./browser-trace.js";
-import { acquireCloudflareBrowser } from "./shell-browser-resource.js";
+import { acquireCloudflareBrowser, type BrowserResourceLimits } from "./shell-browser-resource.js";
 import { browserProfileRuntime } from './browser-profile-runtime.js';
 import { prepareBrowserScreenshots } from './browser-screenshot.js';
 import { prepareBrowserTraceBudget, validateTraceLimits, type TraceLimits } from './browser-trace-budget.js';
@@ -43,12 +43,10 @@ export function createCloudflarePlaywrightAdapter(
 		): Promise<BrowserStorageState | undefined>;
 	},
   runtime?: BrowserCodeRuntime,
-  limits: { transportLimits?: BrowserPrivateTransportOptions; maxStorageBytes?: number; artifactFileSystem?: FileSystem; traceCapture?: "live" | "archive"; traceLimits?: TraceLimits } = {},
+  limits: { transportLimits?: BrowserPrivateTransportOptions; resourceLimits?: BrowserResourceLimits; maxStorageBytes?: number; artifactFileSystem?: FileSystem; traceCapture?: "live" | "archive"; traceLimits?: TraceLimits } = {},
 ): PlaywrightAdapter {
-  const nativeBuffer = globalThis.Buffer;
   if (limits.maxStorageBytes !== undefined && limits.maxStorageBytes !== Infinity && (!Number.isSafeInteger(limits.maxStorageBytes) || limits.maxStorageBytes < 1)) throw new TypeError('Invalid Cloudflare storage byte limit');
 	const maxStorageBytes = limits.maxStorageBytes ?? Infinity;
- const artifactFileSystem = limits.artifactFileSystem;
   if (limits.traceCapture !== undefined && limits.traceCapture !== "live" && limits.traceCapture !== "archive") throw new TypeError("Invalid Cloudflare trace capture mode");
   const traceLimits = limits.traceLimits === undefined ? undefined : validateTraceLimits(limits.traceLimits);
 	const adapter = createPlaywrightAdapter({
@@ -59,7 +57,8 @@ export function createCloudflarePlaywrightAdapter(
 				if (!binding)
 					throw new Error("Playwright is unavailable: BROWSER binding missing");
 				const { generateBrowserActionCode } = await import("./browser-codegen.js");
-				const resource = await acquireCloudflareBrowser({ binding, signal, transportLimits: limits.transportLimits });
+				const resource = await acquireCloudflareBrowser({ binding, signal, transportLimits: limits.transportLimits, limits: limits.resourceLimits });
+				const artifactFileSystem = resource.artifactFileSystem ?? limits.artifactFileSystem;
 				const traces = new Map<object, ReturnType<typeof prepareBrowserTraceBudget>>();
 				return {
 					prepareStorageOrigin: resource.prepareStorageOrigin,
@@ -85,9 +84,7 @@ export function createCloudflarePlaywrightAdapter(
 							"Cloudflare Browser Run does not support download artifact retrieval",
 						);
 					},
-					// Native SDK uploads require its ambient Buffer; portable callers receive
-					// independent Uint8Array bytes without importing any Node builtin.
-					prepareFileBytes: (bytes: Uint8Array) => nativeBuffer ? nativeBuffer.from(bytes) : bytes.slice(),
+					prepareFileBytes: resource.prepareFileBytes,
 					interrupt: resource.interrupt,
 					async release() {
             const results = await Promise.allSettled([...traces.values()].map(trace => trace.release()));

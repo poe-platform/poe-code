@@ -4,9 +4,11 @@ import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { buildBrowserCodegen } from "./build-browser-codegen.js";
 import { buildBrowserScreenshot } from './build-browser-screenshot.js';
+import { buildBrowserProvider } from './build-browser-provider.js';
 
 /** Bundle the pinned native client once; guest source is data in the host bundle. */
 export async function buildBrowserRunCodeGuest() {
+	await buildBrowserProvider();
 	await buildBrowserCodegen();
 	await buildBrowserScreenshot();
 	const output = join(
@@ -22,9 +24,11 @@ export async function buildBrowserRunCodeGuest() {
 		],
 		bundle: true,
 		format: "esm",
-		platform: "node",
+		platform: "browser",
+		conditions: ["workerd"],
+		alias: { "#safe-playwright-provider": join(dirname(fileURLToPath(import.meta.url)), "../src/browser-provider.generated.js") },
 		target: "es2022",
-		external: ["node:*", "cloudflare:*", "browser-user-code.js"],
+		external: ["cloudflare:*", "browser-user-code.js"],
 		write: false,
 		minify: true,
 		legalComments: "inline",

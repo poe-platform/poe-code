@@ -293,6 +293,7 @@ function policyConfig(safeBashInputs, compatibility = []) {
       'vscode-extension/node_modules/**',
       '**/*.d.ts',
       'packages/safe-playwright-cloudflare/src/browser-codegen.generated.js',
+      'packages/safe-playwright-cloudflare/src/browser-provider.generated.js',
       'packages/safe-bash-command-git/src/wasm.generated.ts',
       'packages/git-rust/target/**',
       'packages/safe-bash/src/commands/xan',

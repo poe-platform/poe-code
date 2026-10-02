@@ -8,6 +8,8 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     }
   },
@@ -30,7 +32,9 @@
     "@poe-code/office-package": "*",
     "@poe-code/safe-fs": "*",
     "@poe-platform/safe-bash": "*",
-    "miniflare": "4.20260708.1"
+    "miniflare": "4.20260708.1",
+    "@jspm/core": "2.1.0",
+    "memfs": "4.56.10"
   },
   "peerDependencies": {
     "@cloudflare/playwright": "1.3.6"
@@ -42,12 +46,54 @@
   },
   "poeCode": {
     "safeLibraryNotices": {
-      "safe-bash": ["./third-party/playwright/LICENSE", "./third-party/playwright/NOTICE"]
+      "safe-bash": [
+        "./third-party/glob-to-regex.js/LICENSE",
+        "./third-party/glob-to-regex.js/NOTICE",
+        "./third-party/jsonjoy.com-base64/LICENSE",
+        "./third-party/jsonjoy.com-base64/NOTICE",
+        "./third-party/jsonjoy.com-buffers/LICENSE",
+        "./third-party/jsonjoy.com-buffers/NOTICE",
+        "./third-party/jsonjoy.com-fs-core/LICENSE",
+        "./third-party/jsonjoy.com-fs-core/NOTICE",
+        "./third-party/jsonjoy.com-fs-node/LICENSE",
+        "./third-party/jsonjoy.com-fs-node/NOTICE",
+        "./third-party/jsonjoy.com-fs-node-builtins/LICENSE",
+        "./third-party/jsonjoy.com-fs-node-builtins/NOTICE",
+        "./third-party/jsonjoy.com-fs-node-utils/LICENSE",
+        "./third-party/jsonjoy.com-fs-node-utils/NOTICE",
+        "./third-party/jsonjoy.com-fs-print/LICENSE",
+        "./third-party/jsonjoy.com-fs-print/NOTICE",
+        "./third-party/jsonjoy.com-fs-snapshot/LICENSE",
+        "./third-party/jsonjoy.com-fs-snapshot/NOTICE",
+        "./third-party/jsonjoy.com-json-pack/LICENSE",
+        "./third-party/jsonjoy.com-json-pack/NOTICE",
+        "./third-party/jspm-core/LICENSE",
+        "./third-party/jspm-core/NOTICE",
+        "./third-party/memfs/LICENSE",
+        "./third-party/memfs/NOTICE",
+        "./third-party/playwright/LICENSE",
+        "./third-party/playwright/NOTICE",
+        "./third-party/thingies/LICENSE",
+        "./third-party/thingies/NOTICE",
+        "./third-party/tree-dump/LICENSE",
+        "./third-party/tree-dump/NOTICE",
+        "./third-party/tslib/CopyrightNotice.txt",
+        "./third-party/tslib/LICENSE.txt",
+        "./third-party/tslib/NOTICE"
+      ]
     },
     "safeLibraryExports": {
       "safe-bash": {
         "./playwright/cloudflare": "."
       }
+    }
+  },
+  "imports": {
+    "#safe-playwright-provider": {
+      "types": "./dist/browser-provider.node.d.ts",
+      "workerd": "./dist/browser-provider.generated.js",
+      "browser": "./dist/browser-provider.generated.js",
+      "default": "./dist/browser-provider.node.js"
     }
   }
 }

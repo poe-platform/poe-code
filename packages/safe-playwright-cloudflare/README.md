@@ -19,8 +19,10 @@ const adapter = createCloudflarePlaywrightAdapter(
 const cli = createPlaywrightCli({ adapter, limits: { maxSessions: 2, maxTabs: 8 } });
 ```
 
-Provide a Browser Run binding and install exactly `@cloudflare/playwright@1.3.6`
-in the Worker host. Enable `nodejs_compat` and a Worker Loader binding. The public
+Provide a Browser Run binding. The `workerd` and `browser` exports include the
+qualified provider and run without `nodejs_compat`, including binary uploads.
+Node hosts install exactly `@cloudflare/playwright@1.3.6`.
+Supply a Worker Loader binding for `run-code`. The public
 types target Worker projects using TypeScript's `Bundler` module resolution and
 Cloudflare Workers types. `run-code` reports an unavailable binding if no loader
 is supplied; other browser commands remain available.
@@ -49,23 +51,25 @@ select sessions inside that owner's instance. The library never constructs an
 authenticated owner key, routes Durable Objects, admits owners, stores profiles,
 or schedules automatic persistence.
 
+Browser cleanup and storage preparation have no local deadline by default.
+The fourth argument accepts `resourceLimits: { releaseTimeoutMs: 5000,
+storageTimeoutMs: 10000 }` to opt into deadlines; both accept `Infinity`.
+Cloudflare's own session lifetime constraints still apply.
 Owned browser release errors name failed cleanup phases and phases still pending
-at the five-second deadline. The aggregate retains the original errors; its
+at an explicitly configured deadline. The aggregate retains the original errors; its
 message contains only fixed phase names, without session IDs or protocol data.
 
 An optional second argument supplies `loadState(session, signal)`. Explicit
 `contextOptions.storageState`, including an empty state, overrides that callback.
 The fourth argument optionally bounds storage restoration bytes; omitted limits
 and explicit `Infinity` are unlimited. It also accepts `artifactFileSystem`, a
-safe-fs `FileSystem` supplied by the host that accesses the **same Worker-local
-`/tmp` files** written by the pinned Playwright provider. Trace capture requires
-this binding and retained reads (`openReadFile`); without it tracing reports an
-unavailable filesystem. Screenshots and PDFs return provider bytes directly.
-A separate memory filesystem cannot read native Playwright output. Capture
-performs its file I/O through safe-fs. The pinned Cloudflare provider still
-requires its documented `nodejs_compat` support for browser sessions. Loading
-the adapter, generating action code, and exporting trace archives through an
-injected safe-fs filesystem work without that flag or a global `Buffer`.
+safe-fs `FileSystem` supplied by the host that accesses the **same local
+`/tmp` files** written by the native Playwright provider. The browser provider
+automatically supplies its own memory-backed filesystem for trace capture.
+Native trace capture requires the host binding and retained reads (`openReadFile`);
+without it tracing reports an unavailable filesystem. Screenshots and PDFs
+return provider bytes directly. A separate memory filesystem cannot read native
+Playwright output. Capture performs its file I/O through safe-fs.
 
 The fourth argument also accepts `traceCapture: "archive"`. This explicitly
 selects the standard CLI's `tracing-start` / `tracing-stop` ZIP artifact flow,
@@ -182,11 +186,10 @@ states (`empty`, `about:blank`, or `other`);
 it omits URLs and titles. These observations come from successive CDP calls,
 so they describe admission evidence rather than an atomic lifecycle snapshot.
 
-Large handle enumerations wait for private CDP transport capacity instead of
-closing the browser at 1,024 concurrent commands. The transport admits up to
-16,384 waiting commands within a shared 4 MiB command budget. Waiting time counts
-toward command deadlines; queue exhaustion, timeouts, and native cleanup errors
-remain visible failures.
+Large handle enumerations wait for explicitly configured private CDP transport
+capacity. Queue and command-byte budgets are unlimited by default. Waiting time
+counts toward configured command deadlines; queue exhaustion, timeouts, and
+native cleanup errors remain visible failures.
 
 Browser traffic, redirects, fetch/request APIs, WebSockets, and workers
 remain enabled. Remote downloads report unsupported artifact retrieval through

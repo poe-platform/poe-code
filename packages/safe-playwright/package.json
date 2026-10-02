@@ -8,10 +8,14 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
+      "workerd": "./dist/index.js",
+      "browser": "./dist/index.js",
       "import": "./dist/index.js"
     },
     "./adapter": {
       "types": "./dist/adapter.d.ts",
+      "workerd": "./dist/adapter.js",
+      "browser": "./dist/adapter.js",
       "import": "./dist/adapter.js"
     }
   },

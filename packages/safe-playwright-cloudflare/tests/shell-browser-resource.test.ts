@@ -1,8 +1,22 @@
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 import {
 	acquireCloudflareBrowser,
 	createCloudflareBrowserRelease,
 } from "../src/shell-browser-resource";
+
+test.each([undefined, Infinity, 1234])("browser deletion deadlines are opt-in: %s", async releaseTimeoutMs => {
+  const timeout = vi.spyOn(AbortSignal, "timeout");
+  try {
+    const release = createCloudflareBrowserRelease({
+      sessionId: "owned",
+      releaseTimeoutMs,
+      binding: { fetch: async () => new Response(null) } as never,
+    });
+    await release();
+    if (releaseTimeoutMs === 1234) expect(timeout).toHaveBeenCalledWith(1234);
+    else expect(timeout).not.toHaveBeenCalled();
+  } finally { timeout.mockRestore(); }
+});
 
 test("an already canceled acquisition retains its reason without loading the browser runtime", async () => {
 	let requests = 0;

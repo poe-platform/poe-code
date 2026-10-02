@@ -7,7 +7,7 @@ import { expect, test, vi } from 'vitest';
 import { screenshotPreparationModule } from '../scripts/build-browser-screenshot';
 import type { prepareBrowserScreenshot, browserScreenshotMethods } from '../src/browser-screenshot.generated.js';
 
-test('identifier-minified screenshot preparation restores caret styles and waits for fonts', async () => {
+test('identifier-minified screenshot preparation restores caret styles and waits for fonts without Node globals', async () => {
   const root = dirname(dirname(createRequire(import.meta.url).resolve('@cloudflare/playwright')));
   const source = await readFile(join(root, 'lib/playwright-core/src/server/screenshotter.js'), 'utf8');
   const module = screenshotPreparationModule(source).replaceAll('export const', 'const');
@@ -16,11 +16,11 @@ test('identifier-minified screenshot preparation restores caret styles and waits
   const element = { style };
   const document = { querySelectorAll: () => [element] };
   Object.assign(document, { createTreeWalker: () => ({ currentNode: document, nextNode: () => false }) });
-  const sandbox = { document, NodeFilter: { SHOW_ELEMENT: 1 }, Element: class {}, window: {}, process: { env: {} } };
+  const sandbox = { document, NodeFilter: { SHOW_ELEMENT: 1 }, Element: class {}, window: {} };
   runInNewContext(code, sandbox);
   const evaluate = vi.fn(async (script: string) => runInNewContext(script, sandbox));
   const fonts = vi.fn(async () => undefined);
-  const native = { _page: { delegate: { shouldToggleStyleSheetToSyncAnimations: () => false }, safeNonStallingEvaluateInAllFrames: evaluate } };
+  const native = { _page: { delegate: { shouldToggleStyleSheetToSyncAnimations: () => false }, safeNonStallingEvaluateInAllFrames: evaluate }, _restorePageAfterScreenshot: vi.fn() };
   await (sandbox as typeof sandbox & { prepare: typeof prepareBrowserScreenshot }).prepare.call(native, { log: vi.fn(), race: (p: Promise<unknown>) => p }, { nonStallingEvaluateInExistingContext: fonts }, undefined, true, false);
   expect(style.setProperty).toHaveBeenCalledWith('caret-color', 'transparent', 'important');
   expect(fonts).toHaveBeenCalledWith('document.fonts.ready', 'utility');

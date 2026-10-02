@@ -306,7 +306,7 @@ async function runGuest(
 		: `export default async (page) => {\nconst result = (${input.source}\n);\nreturn typeof result === "function" ? await result(page) : result;\n};`;
 	const worker = options.loader.load({
 		compatibilityDate: "2026-07-08",
-		compatibilityFlags: ["nodejs_compat"],
+		compatibilityFlags: [],
 		mainModule: "guest.js",
 		modules: {
 			"guest.js": options.guestSource,

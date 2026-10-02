@@ -1,6 +1,7 @@
 import { expect, it, vi } from 'vitest';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
+import { Buffer as NativeBuffer } from 'node:buffer';
 import { createCloudflarePlaywrightAdapter } from '../src/shell-playwright.js';
 
 vi.mock('@poe-platform/safe-bash/playwright', () => ({
@@ -11,6 +12,7 @@ vi.mock('@poe-platform/safe-bash/playwright', () => ({
 }));
 vi.mock('../src/shell-browser-resource.js', () => ({
   acquireCloudflareBrowser: async () => ({
+    prepareFileBytes: (bytes: Uint8Array) => NativeBuffer.from(bytes),
     browser: { isConnected() { return true; }, on() {}, off() {} },
     prepareSnapshots() {}, interrupt() {}, release() {},
   }),
@@ -50,7 +52,7 @@ it.each(['toBase64', 'buffer'])('prepares independent upload bytes accepted by t
   expect(original[1]).toBe(128);
 });
 
-it('prepares portable upload bytes when no Buffer exists at adapter creation', async () => {
+it('prepares upload bytes when no ambient Buffer exists at adapter creation', async () => {
   vi.stubGlobal('Buffer', undefined);
   try {
     const adapter = createCloudflarePlaywrightAdapter({} as never);

@@ -623,7 +623,19 @@ export function evalSyncGit(
       exports.git_free(ptr, input.length);
     }
     if (result.exitCode !== 0 || result.stderr !== "" || result.request) return undefined;
-    const outStr = typeof result.stdoutBytes === "string" ? decoder.decode(decode(result.stdoutBytes)) : result.stdout;
+    let outStr: string;
+    if (typeof result.stdoutBytes === "string") {
+      const rawBytes = decode(result.stdoutBytes);
+      if (rawBytes.includes(0)) return undefined;
+      try {
+        outStr = new TextDecoder("utf-8", { fatal: true }).decode(rawBytes);
+      } catch {
+        return undefined;
+      }
+    } else {
+      outStr = result.stdout;
+    }
+    if (outStr.includes("\0")) return undefined;
     if (entriesUnchanged(entries, result.entries)) {
       if (readOnly && inputJson.length <= 65536) {
         if (readOnlyGitResultCache.size >= 16) {

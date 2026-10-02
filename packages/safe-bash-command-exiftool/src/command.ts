@@ -340,6 +340,13 @@ export function evalSyncExiftool(
     if (invocation.csv && invocation.files.length > 1) {
       return undefined;
     }
+    if (invocation.destination !== undefined && invocation.files.length > 1) {
+      return undefined;
+    }
+    const stdinCount = invocation.files.filter(f => f === "-").length + (invocation.tagsFromFile === "-" ? 1 : 0);
+    if (stdinCount > 1) {
+      return undefined;
+    }
     let out = "";
     const emit = (text: string) => {
       out += text;
@@ -470,7 +477,7 @@ export function evalSyncExiftool(
     if (updated || unchanged) emit(String(updated).padStart(5) + " image files updated\n");
     if (created) emit(String(created).padStart(5) + " image files created\n");
     if (unchanged) emit(String(unchanged).padStart(5) + " image files unchanged\n");
-    return out;
+    return out.includes("\0") ? undefined : out;
   } catch {
     return undefined;
   }

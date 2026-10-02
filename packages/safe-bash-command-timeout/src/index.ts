@@ -405,6 +405,7 @@ export function evalSyncTimeout(args: readonly string[]): string | undefined {
   if (subCmd === "true") return "";
   if (subCmd === "dirname" && subArgs.length >= 1 && subArgs.every(x => !x.startsWith("-"))) {
     return subArgs.map(p => {
+      if (!p) return ".";
       const s = p.replace(/\/+$/, "");
       if (!s) return "/";
       const sl = s.lastIndexOf("/");
@@ -413,6 +414,7 @@ export function evalSyncTimeout(args: readonly string[]): string | undefined {
     }).join("\n") + "\n";
   }
   if (subCmd === "basename" && subArgs.length >= 1 && subArgs.length <= 2 && subArgs.every(x => !x.startsWith("-"))) {
+    if (!subArgs[0]) return "\n";
     const clean = subArgs[0]!.replace(/\/+$/, "");
     if (!clean) return "/\n";
     let base = clean.slice(clean.lastIndexOf("/") + 1);

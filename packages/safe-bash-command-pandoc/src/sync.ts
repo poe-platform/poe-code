@@ -55,8 +55,9 @@ export function evalSyncPandoc(
       return "";
     }
     if (serialized.kind === "text") {
-      return serialized.text;
+      return serialized.text.includes("\0") ? undefined : serialized.text;
     }
+    if (serialized.bytes.includes(0)) return undefined;
     return new TextDecoder("utf-8", { fatal: true }).decode(serialized.bytes);
   } catch {
     return undefined;

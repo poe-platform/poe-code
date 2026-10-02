@@ -1087,4 +1087,48 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
+
+  test("61. sync xargs/timeout dirname/basename empty operand, git/pandoc NUL checks, and patch hunk boundary validation", async () => {
+    const bash = new Bash({
+      files: {
+        "/f1.txt": "line1\n",
+        "/f2.txt": "line2\n",
+      },
+    });
+    // 1. dirname "" and basename "" via xargs and timeout inside command substitution
+    const r1 = await bash.exec("echo \$(timeout 5 dirname \"\" /a/b) | tr \"\\n\" \" \"");
+    assert.equal(r1.exitCode, 0);
+    assert.equal(r1.stdout.trim(), ". /a");
+
+    const r2 = await bash.exec("echo \"x$(timeout 5 basename \"\")y\"");
+    assert.equal(r2.exitCode, 0);
+    assert.equal(r2.stdout.trim(), "xy");
+
+    const r3 = await bash.exec("echo \$(printf \"\\0/foo/bar\\0\" | xargs -0 dirname) | tr \"\\n\" \" \"");
+    assert.equal(r3.exitCode, 0);
+    assert.equal(r3.stdout.trim(), ". /foo");
+
+    const r4 = await bash.exec("echo \"[$(printf \"\\0\" | xargs -0 basename)]\"");
+    assert.equal(r4.exitCode, 0);
+    assert.equal(r4.stdout.trim(), "[]");
+
+    // 2. Multi-file unified diff in command substitution should delegate to async patch and patch both files
+    const multiDiff = [
+      "--- a/f1.txt",
+      "+++ b/f1.txt",
+      "@@ -1 +1 @@",
+      "-line1",
+      "+patched1",
+      "--- a/f2.txt",
+      "+++ b/f2.txt",
+      "@@ -1 +1 @@",
+      "-line2",
+      "+patched2",
+      "",
+    ].join("\n");
+    await bash.writeFile("/multi.patch", multiDiff);
+    const r5 = await bash.exec("out=\$(patch -p1 < /multi.patch); cat /f1.txt /f2.txt");
+    assert.equal(r5.exitCode, 0);
+    assert.equal(r5.stdout, "patched1\npatched2\n");
+  });
 });

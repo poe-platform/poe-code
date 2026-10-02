@@ -1,4 +1,4 @@
-const syncDiffDecoder = new TextDecoder("utf-8", { fatal: false });
+const syncDiffDecoder = new TextDecoder("utf-8", { fatal: true });
 import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { encoder } from "safe-bash-io-engine/internal";
 
@@ -77,15 +77,23 @@ export function evalSyncPatch(
   const patchFileArg = inputPath ?? operands[1];
   const patchBytes = patchFileArg && patchFileArg !== "-" ? readFileSync(patchFileArg) : inBytes;
   if (!patchBytes || patchBytes.includes(0)) return undefined;
-  const patchText = syncDiffDecoder.decode(patchBytes);
+  let patchText: string;
+  try {
+    patchText = syncDiffDecoder.decode(patchBytes);
+  } catch {
+    return undefined;
+  }
+  if (patchText.includes("\r")) return undefined;
   const lines = patchText.split("\n");
   let headerOld: string | undefined;
   let headerNew: string | undefined;
   let idx = 0;
   while (idx < lines.length && !lines[idx]!.startsWith("@@ ")) {
     if (lines[idx]!.startsWith("--- ")) {
+      if (headerOld !== undefined) return undefined;
       headerOld = lines[idx]!.slice(4).split("\t")[0]!.trim();
     } else if (lines[idx]!.startsWith("+++ ")) {
+      if (headerNew !== undefined) return undefined;
       headerNew = lines[idx]!.slice(4).split("\t")[0]!.trim();
     }
     idx++;
@@ -108,7 +116,15 @@ export function evalSyncPatch(
   if (origBytes && origBytes.includes(0)) return undefined;
   const isNewFile = !origBytes && (reverse ? headerNew === "/dev/null" : headerOld === "/dev/null");
   if (!origBytes && !isNewFile) return undefined;
-  const origText = origBytes ? syncDiffDecoder.decode(origBytes) : "";
+  let origText = "";
+  if (origBytes) {
+    try {
+      origText = syncDiffDecoder.decode(origBytes);
+    } catch {
+      return undefined;
+    }
+  }
+  if (origText.includes("\r")) return undefined;
   let hasTrailingNewline = origText === "" ? true : origText.endsWith("\n");
   const origLines = origText === "" ? [] : (origText.endsWith("\n") ? origText.slice(0, -1).split("\n") : origText.split("\n"));
   const outLines: string[] = [];
@@ -122,6 +138,10 @@ export function evalSyncPatch(
     }
     const m = /^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/.exec(line);
     if (!m) return undefined;
+    const rawOldCount = m[2] !== undefined ? Number(m[2]) : 1;
+    const rawNewCount = m[4] !== undefined ? Number(m[4]) : 1;
+    let remOld = reverse ? rawNewCount : rawOldCount;
+    let remNew = reverse ? rawOldCount : rawNewCount;
     const startLineNum = Number(reverse ? m[3]! : m[1]!);
     const oldStart = startLineNum === 0 ? 0 : startLineNum - 1;
     if (oldStart < origPos || oldStart > origLines.length) return undefined;
@@ -129,22 +149,28 @@ export function evalSyncPatch(
     idx++;
     while (idx < lines.length && !lines[idx]!.startsWith("@@ ")) {
       const hl = lines[idx]!;
+      if (remOld === 0 && remNew === 0 && !hl.startsWith("\\ No newline")) break;
       if (hl === "" && idx === lines.length - 1) { idx++; break; }
       const rawPrefix = hl[0];
       const prefix = reverse ? (rawPrefix === "+" ? "-" : rawPrefix === "-" ? "+" : rawPrefix) : rawPrefix;
       const body = hl.slice(1);
       if (prefix === " ") {
-        if (origLines[origPos] !== body) return undefined;
+        if (remOld <= 0 || remNew <= 0 || origLines[origPos] !== body) return undefined;
         outLines.push(body);
         origPos++;
+        remOld--;
+        remNew--;
         lastHunkOp = " ";
       } else if (prefix === "-") {
-        if (origLines[origPos] !== body) return undefined;
+        if (remOld <= 0 || origLines[origPos] !== body) return undefined;
         origPos++;
+        remOld--;
         if (origPos === origLines.length) hasTrailingNewline = true;
         lastHunkOp = "-";
       } else if (prefix === "+") {
+        if (remNew <= 0) return undefined;
         outLines.push(body);
+        remNew--;
         if (origPos === origLines.length) hasTrailingNewline = true;
         lastHunkOp = "+";
       } else if (hl.startsWith("\\ No newline")) {
@@ -156,6 +182,7 @@ export function evalSyncPatch(
       }
       idx++;
     }
+    if (remOld !== 0 || remNew !== 0) return undefined;
   }
   while (origPos < origLines.length) outLines.push(origLines[origPos++]!);
   const resultText = outLines.length === 0 ? "" : outLines.join("\n") + (hasTrailingNewline ? "\n" : "");

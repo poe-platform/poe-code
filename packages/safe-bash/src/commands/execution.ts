@@ -737,6 +737,7 @@ export function evalSyncXargs(
       if (cmd === "dirname") {
         if (args.length === 0) return undefined;
         return args.map(p => {
+          if (!p) return ".";
           const s = p.replace(/\/+$/, "");
           if (!s) return "/";
           const sl = s.lastIndexOf("/");
@@ -761,6 +762,7 @@ export function evalSyncXargs(
         if (ops.length === 0 || (!multi && ops.length > 2)) return undefined;
         if (!multi && ops.length === 2) suffix = ops.pop();
         return ops.map(p => {
+          if (!p) return "";
           const clean = p.replace(/\/+$/, "");
           if (!clean) return "/";
           const sl = clean.lastIndexOf("/");

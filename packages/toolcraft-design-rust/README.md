@@ -125,6 +125,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createViewport`, `selectViewportTail` | Retain live items, hold scrollback and select wrapped rows without rendering the full history |
 | `explorer/render/text` | Fit, center and pad text by terminal cells while retaining grapheme offsets |
 | `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
+| `dashboard/keymap` | Resolve default or custom keyboard commands and canonicalize binding labels |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -154,7 +155,7 @@ and custom iterators use the host callback environment. Standalone Rust callers
 can use `data::Graph` and a fresh `data::DataEnvironment` for each render.
 
 This supplies template composition, dashboard geometry, bounded output ownership and log formatting. The complete dashboard
-renderer, interactive controls and existing application integrations remain in
+renderer, dashboard lifecycle and existing application integrations remain in
 the original package. Rendering remains slower than the JavaScript implementation. In one Node 22
 ARM64 measurement, a 256-item section takes about 216 µs through the data path,
 765 µs through callbacks and 38 µs in JavaScript. Small views can cost more to
@@ -439,3 +440,10 @@ style, and `styleToSgrDelta(previous, next, colors?)` emits the ANSI changes nee
 to move between styles. The default respects `NO_COLOR` and `TERM=dumb`.
 The `screen/style` subpath also exposes the four flag constants and
 `foreground`/`background` channel readers. `PackedStyle` is a standalone type.
+
+Use `createKeymap` from `toolcraft-design-rust/dashboard/keymap` to resolve
+keypress events into dashboard commands. Override individual bindings or supply
+`commands` and `defaultBindings` for your own typed command set. Single keys take
+priority over sequences such as `gg`; interrupted sequences reset automatically.
+`canonicalizeBinding` normalizes aliases and modifier labels. This subpath does
+not start a dashboard or read terminal input.

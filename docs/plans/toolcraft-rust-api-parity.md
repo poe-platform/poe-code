@@ -1334,3 +1334,30 @@ Safe Bash build closure, 66 CSV tests and scoped lint passed. Multiselect releas
 dos2unix sync adapter; the separate repair preserves non-ASCII fallback and passes
 its maintained build closure, lint/type checks and all 81 package tests.
 Publication remains unverified.
+
+### Dashboard keymap checkpoint
+
+`dashboard/keymap` now exposes `createKeymap` and `canonicalizeBinding` with
+standalone overloads and bidirectional declaration compatibility. Rust owns the
+default inventory, parsing decisions, modifier normalization, matching and
+sequence transitions. Node retains observable string/array methods, Map/Set
+storage, live command arrays, getter ordering and iterator cleanup. Explorer has
+an independent key resolver and is not covered by this checkpoint.
+
+Missing-subpath differential tests failed before implementation. The maintained
+package route passes 264 native host tests, 1,222 selected design tests, all 13
+prompt-wrapper tests and the five original dashboard-keymap tests; the other
+107 tests in the shared dashboard suite are explicitly excluded. Rust/binding/JS
+lint, packed runtime with external imports rejected and standalone declarations
+with `types: []` pass. An inspected screenshot shows default keys, a two-key
+sequence, modifiers and an unbound input with reference-equal command results.
+No external dependencies were added.
+
+Five warmed alternating rounds of 14,000 events measured a median 57.81 µs/event
+native versus 0.206 µs/event reference (280.79× slower) on this Node 22 ARM64 host.
+The fine-grained host callback path requires batching before a performance swap;
+no performance gate passed. The repository-wide `npm run lint:types` begun at
+the prior prompt checkpoint completed successfully, including dependency builds
+and contracts; keymap inputs were edited during that run, so its result is not
+an exact-head keymap qualification. Focused keymap checks ran after those edits.
+Full dashboard/explorer, remaining Toolcraft surfaces and swap gates remain open.

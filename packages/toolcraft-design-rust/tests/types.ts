@@ -655,3 +655,14 @@ const promptOptions: NativePromptOptions<string> = {input:process.stdin,output:p
 const promptClient = new PromptClient(promptOptions);
 promptClient.once("submit", (value: string) => { void value; });
 void [keySdk,keyNative,wrapSdk,wrapNative,promptStateNative,promptClient];
+
+import * as dashboardKeymap from "toolcraft-design-rust/dashboard/keymap";
+import type * as originalDashboardKeymap from "toolcraft-design/dashboard/keymap";
+const keymapOriginal: typeof originalDashboardKeymap = dashboardKeymap;
+const keymapNative: typeof dashboardKeymap = null as unknown as typeof originalDashboardKeymap;
+const genericKeymap = dashboardKeymap.createKeymap(undefined, {
+  commands: ["go", "stop"] as const,
+  defaultBindings: {go: ["gg"], stop: ["q"]}
+});
+const genericCommand: "go" | "stop" | undefined = genericKeymap({ch: "g", ctrl: false, meta: false, shift: false});
+void [keymapOriginal, keymapNative, genericCommand];

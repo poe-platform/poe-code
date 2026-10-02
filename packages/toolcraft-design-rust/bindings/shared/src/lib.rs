@@ -482,3 +482,5 @@ mod prompt_pagination;
 pub use prompt_pagination::*;
 mod prompt_selection;
 pub use prompt_selection::*;
+mod dashboard_keymap;
+pub use dashboard_keymap::*;

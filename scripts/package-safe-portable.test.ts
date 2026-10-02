@@ -122,7 +122,7 @@ it("portable Node command artifact initializes without native provider imports o
   const recipe = resolveBrowserShellBuild(root);
   const artifact = await build({ ...recipe,
     entryPoints: { "commands/node/index.browser": recipe.entryPoints["commands/node/index.browser"] },
-    alias: { ...recipe.alias, "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"), "@poe-code/safe-fs": path.join(root, "packages/safe-fs/src"), "poe-code/safe-fs": path.join(root, "packages/safe-fs/src") },
+    alias: { ...recipe.alias, "@poe-code/safe-fs/runtime-core": path.join(root, "packages/safe-fs/src/runtime-core.ts"), "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"), "@poe-code/safe-fs": path.join(root, "packages/safe-fs/src"), "poe-code/safe-fs": path.join(root, "packages/safe-fs/src") },
     external: [], splitting: false, format: "cjs", sourcemap: false,
   });
   expect(Object.values(artifact.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);

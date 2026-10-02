@@ -9,7 +9,7 @@ beforeAll(async () => {
   const options = resolveBrowserShellBuild(process.cwd());
   const { entryPoints: ignoredEntries, ...recipe } = options;
   const result = await build({
-    ...recipe, inject: [], external: [], alias: { ...recipe.alias, "@poe-code/safe-fs": path.resolve("packages/safe-fs/src"), "@poe-code/xml-ast": path.resolve("packages/xml-ast/src/index.ts") }, splitting: false, sourcemap: false, format: "iife", globalName: "ere",
+    ...recipe, inject: [], external: [], alias: { ...recipe.alias, "@poe-code/safe-fs/runtime-core": path.resolve("packages/safe-fs/src/runtime-core.ts"), "@poe-code/safe-fs": path.resolve("packages/safe-fs/src"), "@poe-code/xml-ast": path.resolve("packages/xml-ast/src/index.ts") }, splitting: false, sourcemap: false, format: "iife", globalName: "ere",
     stdin: { contents: 'export { EreTransportRoot } from "./packages/safe-bash/src/commands/regex-execution/ere/transport/root.js"; export { randomBytes } from "./packages/safe-bash-network-engine/src/platform-portable.ts";', resolveDir: process.cwd() },
     outdir: path.join(process.cwd(), "out"),
   });

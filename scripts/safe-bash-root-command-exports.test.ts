@@ -35,6 +35,7 @@ function exportedNames(file: string, visited = new Set<string>()): Set<string> {
 }
 
 const core = exportedNames(resolve(root, "packages/safe-bash/src/core.ts"));
+const index = exportedNames(resolve(root, "packages/safe-bash/src/index.ts"));
 describe("root command API", () => {
   for (const { name: workspace } of commands) {
     const name = workspace.slice("safe-bash-command-".length);
@@ -42,7 +43,8 @@ describe("root command API", () => {
     const pluginName = title[0]!.toLowerCase() + title.slice(1);
     it(`${name} exposes its public command contract from the root`, () => {
       for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) {
-        expect(core.has(symbol), symbol).toBe(true);
+        expect(core.has(symbol), `core: ${symbol}`).toBe(true);
+        expect(index.has(symbol), `root: ${symbol}`).toBe(true);
       }
     });
   }
@@ -58,4 +60,21 @@ it("registers every command and engine as a qualified portable workspace", () =>
       devDependencies: manifest.devDependencies ?? {},
     });
   }
+});
+
+it("inherits portable path helpers from core without a root override", () => {
+  const file = resolve(root, "packages/safe-bash/src/index.ts");
+  const source = ts.createSourceFile(file, readFileSync(file, "utf8"), ts.ScriptTarget.Latest, true);
+  const exports = source.statements.filter(ts.isExportDeclaration);
+  expect(exports.some(entry => !entry.exportClause && entry.moduleSpecifier &&
+    ts.isStringLiteral(entry.moduleSpecifier) && entry.moduleSpecifier.text === "./core.js")).toBe(true);
+  for (const entry of exports) {
+    if (entry.exportClause && ts.isNamedExports(entry.exportClause)) {
+      expect(entry.exportClause.elements.map(element => element.name.text)).not.toContain("posixPath");
+    }
+    if (entry.moduleSpecifier && ts.isStringLiteral(entry.moduleSpecifier)) {
+      expect(["path", "node:path"]).not.toContain(entry.moduleSpecifier.text);
+    }
+  }
+  expect(core.has("posixPath")).toBe(true);
 });

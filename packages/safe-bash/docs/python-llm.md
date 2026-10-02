@@ -226,10 +226,14 @@ retain response chunks or materialize data inside Python, including explicit
 attachment content reads; the interpreter's finite heap remains its memory
 boundary.
 
-Attachments in conversation history and nonscalar option descriptors still
-need transport support. Binary embedding inputs are not
-supported by the current transport. Worker conformance does not establish
-consumer deployment acceptance.
+Conversation history preserves attachments from completed responses, including
+restored responses. Historical and current attachments share retained input
+transport, cleanup and the total input budget. Declared object and array options
+are validated by generated Pydantic classes and retain their structured values
+through JavaScript validation.
+
+Binary embedding inputs are not supported by the current transport. Worker
+conformance does not establish consumer deployment acceptance.
 
 `createPythonLlmCapability` accepts `maxInputBytes` for total input admission and
 `maxBufferedInputBytes` for aggregate materialized request controls. Retained

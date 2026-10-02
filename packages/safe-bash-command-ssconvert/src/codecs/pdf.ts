@@ -18,6 +18,23 @@ import { createFontShaper } from "../rendering/print/font-shaping.js";
 
 // Native default display DPI for the admitted materialized Gnumeric style profile.
 const printDisplayScale = 72 / 96;
+function normalizePdfCellStyle(cell: Workbook["sheets"][number]["cells"][number]): NonNullable<Workbook["sheets"][number]["cells"][number]["style"]> | undefined {
+  const style = cell.style;
+  if (!style) return undefined;
+  if (Object.keys(style).length === 2 && Object.hasOwn(style, "xlsx") && Object.hasOwn(style, "gnumeric")) {
+    const g = style.gnumeric as Record<string, any> | undefined;
+    if (g && typeof g === "object" && !Array.isArray(g) && Array.isArray(g.attributes)) {
+      const hasFormat = g.attributes.some((a: any) => a && typeof a === "object" && a.name === "Format");
+      return {
+        gnumeric: hasFormat
+          ? g
+          : { ...g, attributes: [...g.attributes, { name: "Format", namespace: "", value: "General" }] }
+      };
+    }
+  }
+  return style;
+}
+
 
 // Explicit GTK names in the measured C profile; no ambient paper discovery.
 const papers: Readonly<Record<string, readonly [number, number]>> = {
@@ -267,7 +284,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       for (const cell of sheet.cells) if (cell.style) {
         tick();
         if (!context.fonts) unsupported("styled or merged cells");
-        cellPrintStyle(cell.style, tick);
+        cellPrintStyle(normalizePdfCellStyle(cell)!, tick);
       }
       const storedPaper = print.paper === undefined ? undefined : papers[paperName(print.paper)];
       if (settings.paper === undefined && print.paper !== undefined && storedPaper === undefined) unsupported("persisted paper size");
@@ -326,7 +343,7 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           tick();
           const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
           const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
-          const style = cell.style ? cellPrintStyle(cell.style, tick) : undefined;
+          const style = cell.style ? cellPrintStyle(normalizePdfCellStyle(cell)!, tick) : undefined;
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
           if (style?.background) page.drawRectangle({x: x + 2, y: page.getHeight() - y - height - 0.2,
             width: width + 0.2, height: height + 0.2, color: rgb(...style.background)});

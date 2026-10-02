@@ -124,3 +124,53 @@ test('tool definitions and response links participate in the same atomic history
  await assert.rejects(persistLlmHistoryResponse(options(fs),{...third,tools:failed}),/tool source failed/);
  assert.deepEqual(await fs.readFile('/logs.db'),before);
 });
+test('calls and results resolve the last supplied tool with a matching name and persist result attachments',async()=>{
+ const fs=new MemoryFileSystem();
+ const tools={async *[Symbol.asyncIterator](){
+  yield {name:'lookup',description:'first',inputSchemaJson:'{}'};
+  yield {name:'lookup',description:'last',inputSchemaJson:'{}'};
+ }};
+ const source=(value:string)=>{const bytes=new TextEncoder().encode(value);return {size:bytes.length,bytes:toByteSource(bytes)};};
+ const toolCalls={async *[Symbol.asyncIterator](){
+  yield {name:'lookup',toolCallId:'call',arguments:source('{"query": "test"}')};
+  yield {name:'missing',arguments:source('{}')};
+ }};
+ const toolResults={async *[Symbol.asyncIterator](){yield {
+  name:'lookup',toolCallId:'call',output:source('é'.repeat(40000)),exception:'ValueError: example',
+  instance:{name:'lookup',plugin:'fixture',arguments:source('{"mode": "read"}')},
+  attachments:{async *[Symbol.asyncIterator](){yield {id:'result-file',content:{size:2,bytes:toByteSource(Uint8Array.of(7,9))}};}},
+ };}};
+ await persistLlmHistoryResponse(options(fs),{...input(),tools,toolCalls,toolResults});
+ assert.deepEqual(await rows(fs,"SELECT name,COALESCE(tool_id,-1) FROM tool_calls ORDER BY id",['text','integer']),[['lookup',2n],['missing',-1n]]);
+ assert.deepEqual(await rows(fs,'SELECT tool_id,length(output),instance_id,exception FROM tool_results',['integer','integer','integer','text']),[[2n,40000n,1n,'ValueError: example']]);
+ assert.deepEqual(await rows(fs,'SELECT plugin,name,arguments FROM tool_instances',['text','text','text']),[['fixture','lookup','{"mode": "read"}']]);
+ assert.deepEqual(await rows(fs,'SELECT a.id,hex(a.content),l."order" FROM tool_results_attachments l JOIN attachments a ON l.attachment_id=a.id',['text','text','integer']),[['result-file','0709',0n]]);
+ assert.deepEqual(await rows(fs,"SELECT name FROM sqlite_schema WHERE name GLOB 'llm_pending*'",['text']),[]);
+ assert.deepEqual(await rows(fs,'PRAGMA foreign_key_check',['text','integer','text','integer']),[]);
+});
+test('tool lookup follows response-local declaration order when stored IDs are reversed',async()=>{
+ const fs=new MemoryFileSystem();
+ const tools=(reverse:boolean)=>({async *[Symbol.asyncIterator](){
+  for(const description of reverse?['last','first']:['first','last'])yield {name:'lookup',description,inputSchemaJson:'{}'};
+ }});
+ await persistLlmHistoryResponse(options(fs),{...input(),tools:tools(false)});
+ const second=input();second.response.id='second';
+ const calls={async *[Symbol.asyncIterator](){yield {name:'lookup',arguments:{size:2,bytes:toByteSource('{}')}};}};
+ await persistLlmHistoryResponse(options(fs),{...second,tools:tools(true),toolCalls:calls});
+ assert.deepEqual(await rows(fs,'SELECT tool_id FROM tool_calls',['integer']),[[1n]]);
+});
+test('cancelling a result payload retires its source and rolls back its instance and attachments',async()=>{
+ const fs=new MemoryFileSystem();await persistLlmHistoryResponse(options(fs),input());const before=await fs.readFile('/logs.db');
+ const controller=new AbortController();let ready!:()=>void,closed=0;
+ const started=new Promise<void>(resolve=>{ready=resolve;});
+ const bytes={ [Symbol.asyncIterator](){return {next(){ready();return new Promise<IteratorResult<Uint8Array>>(()=>{});},async return(){closed++;return {done:true as const,value:undefined};}};}};
+ const results={async *[Symbol.asyncIterator](){yield {
+  name:'lookup',output:{size:1,bytes},instance:{name:'lookup',arguments:{size:2,bytes:toByteSource('{}')}},
+  attachments:{async *[Symbol.asyncIterator](){yield {id:'unpublished',content:{size:1,bytes:toByteSource(Uint8Array.of(1))}};}},
+ };}};
+ const next=input();next.response.id='cancelled';
+ const pending=persistLlmHistoryResponse({...options(fs),signal:controller.signal},{...next,toolResults:results});
+ await started;controller.abort(new Error('cancel result'));await assert.rejects(pending);
+ assert.equal(closed,1);assert.deepEqual(await fs.readFile('/logs.db'),before);
+ assert.deepEqual((await fs.readdir('/')).map(entry=>entry.name),['logs.db']);
+});

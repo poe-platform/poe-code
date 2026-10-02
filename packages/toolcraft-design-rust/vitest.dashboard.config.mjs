@@ -3,10 +3,13 @@ import {fileURLToPath} from "node:url";
 const path = name => fileURLToPath(new URL(name, import.meta.url));
 const suite = path("../toolcraft-design/src/dashboard/dashboard.test.ts");
 const demoSuite = path("../toolcraft-design/src/dashboard/demo.test.ts");
+const pipelineSuite = path("../toolcraft-design/src/dashboard/testing/pipeline-scenario.test.ts");
 export default defineConfig({
   plugins: [{
     name: "rust-dashboard-reference", enforce: "pre",
     resolveId(name, importer) {
+      if (importer === pipelineSuite && name === "./pipeline-scenario.js") return path("dist/pipeline-scenario.js");
+      if (importer === pipelineSuite && name === "../dashboard.js") return path("dist/dashboard-runtime.js");
       if (importer === demoSuite && name === "./demo.js") return path("dist/dashboard-demo.js");
       if ([suite, path("../toolcraft-design/src/dashboard/queue-interaction.test.ts")].includes(importer)) {
         if (name === "./dashboard.js") return path("dist/dashboard-runtime.js");
@@ -26,7 +29,7 @@ export default defineConfig({
     }
   }],
   test: {
-    include: [suite, demoSuite, path("../toolcraft-design/src/dashboard/queue-interaction.test.ts"), path("tests/dashboard-demo-main.vitest.mjs")],
+    include: [suite, demoSuite, pipelineSuite, path("../toolcraft-design/src/dashboard/queue-interaction.test.ts"), path("tests/dashboard-demo-main.vitest.mjs"), path("tests/pipeline-scenario.vitest.mjs")],
     environment: "node", fileParallelism: false, maxWorkers: 1, pool: "forks", testTimeout: 3000, cache: false
   }
 });

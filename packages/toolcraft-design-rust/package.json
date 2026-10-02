@@ -831,6 +831,10 @@
     "./explorer/render/test-fixtures": {
       "types": "./dist/explorer-test-fixtures.d.ts",
       "import": "./dist/explorer-test-fixtures.js"
+    },
+    "./dashboard/testing/pipeline-scenario": {
+      "types": "./dist/pipeline-scenario.d.ts",
+      "import": "./dist/pipeline-scenario.js"
     }
   },
   "scripts": {

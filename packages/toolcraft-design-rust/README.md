@@ -17,6 +17,11 @@ output and progress into a dashboard for 30 seconds and returns an idempotent
 cleanup function. Inject timers, a clock and randomness for controlled previews.
 The same module exports `main()` to open the interactive demonstration.
 
+Loading `dashboard/testing/pipeline-scenario` opens fake pipeline output using
+`process.argv[2]` (default `streaming`). Scenarios include burst output, empty and
+failed runs, Unicode/control sequences, oversized output and resumed queues.
+Quit with q or SIGINT/SIGTERM; this module has no exports.
+
 For controlled terminal integrations, `prompts/interactive/test-helpers` exports
 `createPromptHarness({tty?, columns?, rows?})` and `tick()`. The harness provides
 input/output streams, captured frames and raw-mode transitions.

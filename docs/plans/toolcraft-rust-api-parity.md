@@ -2641,3 +2641,42 @@ review-mode action callbacks. No performance gate passed. No dependencies or
 default integration changed. `explorer/render/test-fixtures` and
 `dashboard/testing/pipeline-scenario` remain missing; the existing-surface audit,
 batching and broader Toolcraft/platform/swap qualification remain open.
+
+
+### Pipeline scenario checkpoint
+
+`dashboard/testing/pipeline-scenario` now matches the reference side-effect-only
+import and empty declaration namespace. Rust owns options, scenario selection,
+stats, counters, output data/loops and timer policy; Node retains dashboard and
+line-buffer objects, callbacks, interval handles and process signals. Eighteen
+missing-module comparisons failed before implementation. The final 33 differential
+cases cover every named scenario, null/default and arbitrary scenario inputs,
+method receivers/getter order, repeat calls/failures, arbitrary thrown values,
+callback metadata, reentrant append getters, synchronous/undefined timer returns,
+repeated non-idempotent shutdown and retained timer callbacks. All six original
+pipeline tests now run with native imports and the real native line buffer.
+
+Build, package unit, Rust/binding and scoped JS lint pass: 414 native host tests,
+1,521 selected design cases, 13 prompt wrappers, 182 dashboard cases, 14 composer
+cases and 331 explorer cases. Standalone packed imports pass with external ESM
+dependencies blocked and exercise real dashboard setup/cleanup; packed declarations
+compile with `types: []`, and the empty namespace assigns in both directions.
+Empty, Unicode, cursor-control and queued-run snapshot screenshots were inspected;
+reference/native ANSI output is byte-identical. The known screenshot font lacks
+some CJK/emoji glyphs. Real line-buffer scenario output also matches, including
+the newline-free case. Snapshot previews use the snapshot renderer's layout and
+footer defaults; they do not qualify the entire interactive scenario lifecycle.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 200 simulated streaming
+lifecycles each with 32 retained outputs, measured 1,135.652 microseconds native /
+9.039 microseconds JavaScript (125.64 times slower). A lifecycle includes initial
+202 messages, one timer tick and repeated cleanup with injected dashboard/timers;
+module loading and real dashboard rendering are excluded. No performance gate
+passed. No dependencies or default integration changed.
+
+All previously inventoried concrete design modules now have native entry points.
+This is not a completed package parity audit. The complete export/type/import
+surface, original-suite admission, native batching, nominal types and broader
+Toolcraft SDK/CLI/HTTP/MCP/platform/resource/swap gates remain open. The prior
+fixture commit's build succeeded, but its release step was skipped and its
+follow-on Release run was cancelled; publication is not verified.

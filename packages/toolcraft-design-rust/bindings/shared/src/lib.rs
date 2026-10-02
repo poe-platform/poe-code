@@ -581,3 +581,6 @@ mod explorer_demo;
 pub use explorer_demo::*;
 mod explorer_fixtures;
 pub use explorer_fixtures::*;
+
+mod pipeline_scenario;
+pub use pipeline_scenario::*;

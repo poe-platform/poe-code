@@ -1094,3 +1094,10 @@ const explorerFixtureDumpOriginal: typeof originalExplorerFixtures.dumpScreen = 
 // @ts-expect-error The private buffer declarations also differ in the reverse direction.
 const explorerFixtureDumpNative: typeof nativeExplorerFixtures.dumpScreen = null as unknown as typeof originalExplorerFixtures.dumpScreen;
 void [explorerFixturesOriginal,explorerFixturesNative,explorerFixtureDumpOriginal,explorerFixtureDumpNative];
+
+import type * as nativePipelineScenario from "toolcraft-design-rust/dashboard/testing/pipeline-scenario";
+import type * as originalPipelineScenario from "toolcraft-design/dashboard/testing/pipeline-scenario";
+const pipelineScenarioOriginal: typeof originalPipelineScenario = null as unknown as typeof nativePipelineScenario;
+const pipelineScenarioNative: typeof nativePipelineScenario = null as unknown as typeof originalPipelineScenario;
+const pipelineScenarioKeys: SameKeys<typeof nativePipelineScenario, typeof originalPipelineScenario> = true;
+void [pipelineScenarioOriginal, pipelineScenarioNative, pipelineScenarioKeys];

@@ -114,3 +114,5 @@ pub mod explorer_fixtures;
 pub mod terminal_strings;
 pub mod test_harnesses;
 pub mod theme_fixture;
+
+pub mod pipeline_scenario;

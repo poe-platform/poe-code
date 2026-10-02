@@ -1,3 +1,5 @@
+mod static_render;
+pub use static_render::*;
 mod render_performance;
 pub use render_performance::*;
 mod task_tree;

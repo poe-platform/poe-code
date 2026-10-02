@@ -84,6 +84,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createEventGroups`, `renderEventGroupRows` | Retain grouped output, expand errors and render a bounded row window |
 | `createTaskTree`, `renderTaskRows` | Index task hierarchies, collapse subtrees and render status/duration rows |
 | `createRenderPerformanceMonitor`, `formatRenderPerformance` | Track repaint rates, rolling percentiles, input latency and coalesced updates |
+| `staticRender`, `renderMenu`, `renderSpinnerFrame`, `renderSpinnerStopped` | Render menus and spinner snapshots in terminal, Markdown or JSON |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -316,3 +317,10 @@ render duration, pending input latency and coalesced requests. Call
 `formatRenderPerformance(stats, width)` creates a clipped diagnostics row. The
 `render-performance` subpath exports both functions and their snapshot types.
 Frame rate measures dispatch activity, not terminal presentation.
+
+Use `renderMenu({message, options, selectedIndex})` to render a menu snapshot with
+optional hints. `renderSpinnerFrame({message, frame, timer})` cycles the frozen
+`SPINNER_FRAMES`; `renderSpinnerStopped({message, code, timer, subtext})` shows the
+final status. They follow `withOutputFormat` and are available through
+`staticRender`, `static/index`, `static/menu`, `static/spinner` and the matching
+`render-*` entry points. These renderers do not start timers or read input.

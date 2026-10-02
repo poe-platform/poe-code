@@ -123,6 +123,34 @@
     "./render-performance": {
       "types": "./dist/render-performance.d.ts",
       "import": "./dist/render-performance.js"
+    },
+    "./static/index": {
+      "types": "./dist/static.d.ts",
+      "import": "./dist/static.js"
+    },
+    "./static/spinner": {
+      "types": "./dist/static-spinner.d.ts",
+      "import": "./dist/static-spinner.js"
+    },
+    "./static/menu": {
+      "types": "./dist/static-menu.d.ts",
+      "import": "./dist/static-menu.js"
+    },
+    "./spinner-frames": {
+      "types": "./dist/spinner-frames.d.ts",
+      "import": "./dist/spinner-frames.js"
+    },
+    "./render-spinner-frame": {
+      "types": "./dist/render-spinner-frame.d.ts",
+      "import": "./dist/render-spinner-frame.js"
+    },
+    "./render-spinner-stopped": {
+      "types": "./dist/render-spinner-stopped.d.ts",
+      "import": "./dist/render-spinner-stopped.js"
+    },
+    "./render-menu": {
+      "types": "./dist/render-menu.d.ts",
+      "import": "./dist/render-menu.js"
     }
   },
   "scripts": {

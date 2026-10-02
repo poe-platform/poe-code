@@ -279,3 +279,51 @@ const rootRenderPerformanceOwn: typeof renderPerformance = null as unknown as ty
 const performanceSnapshotOriginal: originalRenderPerformance.RenderPerformanceSnapshot = null as unknown as renderPerformance.RenderPerformanceSnapshot;
 const performanceSnapshotOwn: renderPerformance.RenderPerformanceSnapshot = null as unknown as originalRenderPerformance.RenderPerformanceSnapshot;
 void [renderPerformanceOriginal,renderPerformanceOwn,rootRenderPerformanceOriginal,rootRenderPerformanceOwn,performanceSnapshotOriginal,performanceSnapshotOwn];
+
+import * as staticRender from "toolcraft-design-rust/static/index";
+import type * as originalStaticRender from "toolcraft-design/static/index";
+const staticRenderOriginal: typeof originalStaticRender = staticRender;
+const staticRenderOwn: typeof staticRender = null as unknown as typeof originalStaticRender;
+void [staticRenderOriginal,staticRenderOwn];
+
+import * as staticSpinner from "toolcraft-design-rust/static/spinner";
+import type * as originalStaticSpinner from "toolcraft-design/static/spinner";
+const staticSpinnerOriginal: typeof originalStaticSpinner = staticSpinner;
+const staticSpinnerOwn: typeof staticSpinner = null as unknown as typeof originalStaticSpinner;
+void [staticSpinnerOriginal,staticSpinnerOwn];
+
+import * as staticMenu from "toolcraft-design-rust/static/menu";
+import type * as originalStaticMenu from "toolcraft-design/static/menu";
+const staticMenuOriginal: typeof originalStaticMenu = staticMenu;
+const staticMenuOwn: typeof staticMenu = null as unknown as typeof originalStaticMenu;
+void [staticMenuOriginal,staticMenuOwn];
+
+import * as spinnerFrames from "toolcraft-design-rust/spinner-frames";
+import type * as originalSpinnerFrames from "toolcraft-design/spinner-frames";
+const spinnerFramesOriginal: typeof originalSpinnerFrames = spinnerFrames;
+const spinnerFramesOwn: typeof spinnerFrames = null as unknown as typeof originalSpinnerFrames;
+void [spinnerFramesOriginal,spinnerFramesOwn];
+
+import * as spinnerFrame from "toolcraft-design-rust/render-spinner-frame";
+import type * as originalSpinnerFrame from "toolcraft-design/render-spinner-frame";
+const spinnerFrameOriginal: typeof originalSpinnerFrame = spinnerFrame;
+const spinnerFrameOwn: typeof spinnerFrame = null as unknown as typeof originalSpinnerFrame;
+void [spinnerFrameOriginal,spinnerFrameOwn];
+
+import * as spinnerStopped from "toolcraft-design-rust/render-spinner-stopped";
+import type * as originalSpinnerStopped from "toolcraft-design/render-spinner-stopped";
+const spinnerStoppedOriginal: typeof originalSpinnerStopped = spinnerStopped;
+const spinnerStoppedOwn: typeof spinnerStopped = null as unknown as typeof originalSpinnerStopped;
+void [spinnerStoppedOriginal,spinnerStoppedOwn];
+
+import * as menu from "toolcraft-design-rust/render-menu";
+import type * as originalMenu from "toolcraft-design/render-menu";
+const menuOriginal: typeof originalMenu = menu;
+const menuOwn: typeof menu = null as unknown as typeof originalMenu;
+void [menuOriginal,menuOwn];
+
+const rootStaticOriginal: typeof originalStaticRender = design;
+const rootStaticOwn: typeof staticRender = null as unknown as typeof originalDesign;
+const staticNamespaceOriginal: typeof originalStaticRender = design.staticRender;
+const staticNamespaceOwn: typeof staticRender = null as unknown as typeof originalDesign.staticRender;
+void [rootStaticOriginal,rootStaticOwn,staticNamespaceOriginal,staticNamespaceOwn];

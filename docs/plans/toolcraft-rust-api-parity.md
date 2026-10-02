@@ -680,6 +680,19 @@ preserves monitoring semantics and makes no performance improvement claim. Full
 interactive rendering, Markdown, CLI/transports and complete swap qualification
 remain open.
 
+Static menus and spinner snapshots now expose native selection, format dispatch,
+status/timer admission and immutable frame policy. Root exports, `staticRender`,
+`static/index`, `static/menu`, `static/spinner`, `spinner-frames` and the matching
+`render-*` subpaths share identities. Host operations retain color/theme receivers,
+JSON serialization, string methods, repeated getters and sparse/species array
+behavior. A custom-forEach differential case caught and fixed an unintended
+callback return value before delivery. All 129 native and 218 reference tests,
+bidirectional declarations, package/JS lint and isolated packed consumers pass
+with no dependency changes. An inspected screenshot verifies active/inactive menu
+items, hints and success/failure stopped states. The screenshot font lacks the
+animated spinner glyph; its exact output is covered by string parity tests. Live
+spinner/prompt lifecycle, full dashboard/explorer and terminal Markdown remain open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

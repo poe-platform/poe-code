@@ -110,3 +110,6 @@ export * from "./progress-group.js";
 export * from "./event-groups.js";
 export * from "./task-tree.js";
 export * from "./render-performance.js";
+export * as staticRender from "./static.js";
+export {SPINNER_FRAMES,renderSpinnerFrame,renderSpinnerStopped,renderMenu} from "./static.js";
+export type {SpinnerFrameOptions,SpinnerStoppedOptions,MenuOption,RenderMenuOptions} from "./static.js";

@@ -1,5 +1,6 @@
 import { PublicDiagnostic, UsageError } from "safe-bash-contracts/diagnostics";
 import {
+  builtInDirectContextExecutors,
   commandRuntimeIdentity,
   withInputByteBudget,
   type CommandDefinition,
@@ -47,7 +48,7 @@ function createNamedBzip2Command(
   options: Bzip2CommandsOptions = {}
 ): CommandDefinition {
   const limits = settings(options);
-  return {
+  const command: CommandDefinition = {
     name,
     description: `${name} block-sorting file compressor`,
     runtimeIdentity: commandRuntimeIdentity,
@@ -112,6 +113,10 @@ function createNamedBzip2Command(
       }
     }),
   };
+  if (options.maxDecodedBytes === undefined && options.limits?.maxDecodedBytes === undefined) {
+    builtInDirectContextExecutors.add(command.execute);
+  }
+  return command;
 }
 
 export function createBzip2Command(options: Bzip2CommandsOptions = {}): CommandDefinition {

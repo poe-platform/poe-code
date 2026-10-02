@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createBytePipe, createCommandArguments, toByteSource } from "safe-bash-contracts";
+import { builtInDirectContextExecutors, createBytePipe, createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createBzip2Command, createBunzip2Command, createBzcatCommand, createBzip2Commands, bzip2Commands } from "./index.js";
 
 test("bzip2 command roundtrips data through compress and decompress", async () => {
@@ -57,4 +57,18 @@ test("bunzip2 preserves corruption status across later operand errors", async ()
     signal: new AbortController().signal,
   });
   assert.equal(result.exitCode, 2);
+});
+
+
+test("private bzip2 factories retain the public default executor policy", () => {
+  for (const factory of [createBzip2Command, createBunzip2Command, createBzcatCommand]) {
+    assert.equal(builtInDirectContextExecutors.has(factory().execute), true);
+    assert.equal(builtInDirectContextExecutors.has(factory({ replace: true }).execute), true);
+    assert.equal(builtInDirectContextExecutors.has(factory({ maxDecodedBytes: 8 }).execute), false);
+    assert.equal(builtInDirectContextExecutors.has(factory({ limits: { maxDecodedBytes: 8 } }).execute), false);
+    assert.equal(builtInDirectContextExecutors.has(factory({ maxDecodedBytes: Infinity }).execute), false);
+  }
+  for (const command of createBzip2Commands()) {
+    assert.equal(builtInDirectContextExecutors.has(command.execute), true);
+  }
 });

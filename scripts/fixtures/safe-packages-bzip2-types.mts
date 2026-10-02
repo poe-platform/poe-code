@@ -1,0 +1,10 @@
+import { Shell, createMemoryFileSystem, createBzip2Command, bzip2Commands, type Bzip2CommandsOptions, type Bzip2Limits } from '@poe-platform/safe-bash';
+import { createBzip2Commands, createBunzip2Command, createBzcatCommand, type Bzip2Options, type CompressionCommandOptions } from '@poe-platform/safe-bash/commands/bzip2';
+import type { CommandDefinition } from '@poe-platform/safe-bash/contracts';
+const limits: Bzip2Limits = { maxDecodedBytes: 1024 };
+const options: Bzip2CommandsOptions & Bzip2Options & CompressionCommandOptions = { limits, replace: true };
+const commands: readonly CommandDefinition[] = [createBzip2Command(options), createBunzip2Command(options), createBzcatCommand(options), ...createBzip2Commands(options)];
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(bzip2Commands(options));
+void commands;
+await shell.exec('bzip2 -c | bzcat', { stdin: new Uint8Array([0, 255]) });
+await shell.dispose();

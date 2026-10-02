@@ -302,14 +302,17 @@ export function evalSyncFile(
   inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (path: string) => Uint8Array | undefined,
-  statTypeSync?: (path: string) => "file" | "directory" | "symlink" | "missing" | undefined,
+  statTypeSync?: (path: string, follow?: boolean) => "file" | "directory" | "symlink" | "missing" | undefined,
 ): string | undefined {
   let brief = false;
+  let follow = false;
   let mimeType = false;
   let mimeEncoding = false;
   let print0 = 0;
   let separator = ":";
   let options = true;
+  let stdinUsed = false;
+  let hasFilesFrom = false;
   const names: string[] = [];
   for (let i = 0; i < opArgs.length; i++) {
     const arg = opArgs[i]!;
@@ -331,7 +334,10 @@ export function evalSyncFile(
         if (flag === "-F" || flag === "--separator") {
           separator = val;
         } else {
-          const listBytes = val === "-" ? inBytes : readFileSync?.(val);
+          if (names.length > 0) return undefined;
+          hasFilesFrom = true;
+          const listBytes = val === "-" ? (stdinUsed ? new Uint8Array(0) : inBytes) : readFileSync?.(val);
+          if (val === "-") stdinUsed = true;
           if (!listBytes || listBytes.byteLength > 16384) return undefined;
           const listText = new TextDecoder("utf-8", { fatal: false }).decode(listBytes);
           const fromLines = listText.endsWith("\n") ? listText.slice(0, -1).split("\n") : (listText.length === 0 ? [] : listText.split("\n"));
@@ -343,9 +349,11 @@ export function evalSyncFile(
         break;
       }
       if (long && eq >= 0) return undefined;
+      if (hasFilesFrom) return undefined;
       switch (flag) {
         case "-b": case "--brief": brief = true; break;
-        case "-L": case "--dereference": case "-h": case "--no-dereference": break;
+        case "-L": case "--dereference": follow = true; break;
+        case "-h": case "--no-dereference": follow = false; break;
         case "-i": case "--mime": mimeType = mimeEncoding = true; break;
         case "--mime-type": mimeType = true; break;
         case "--mime-encoding": mimeEncoding = true; break;
@@ -355,7 +363,6 @@ export function evalSyncFile(
     }
   }
   if (names.length === 0) return undefined;
-  let stdinUsed = false;
   const outLines: string[] = [];
   for (const name of names) {
     let detected: Classification;
@@ -368,7 +375,8 @@ export function evalSyncFile(
         detected = classify(inBytes, true);
       }
     } else {
-      const st = statTypeSync?.(name);
+      const st = statTypeSync?.(name, follow);
+      if (st === "symlink") return undefined;
       if (st === "directory") {
         detected = { description: "directory", mime: "inode/directory", encoding: "binary" };
       } else {

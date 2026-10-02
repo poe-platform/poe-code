@@ -84,7 +84,6 @@ export function evalSyncUnrtf(
       ...(noremap === undefined ? {} : { noremap }),
       ...(profile === undefined ? {} : { profile }),
     });
-    if (out.endsWith("\n")) out = out.slice(0, -1);
     if (unrtfCache.size >= 8) unrtfCache.clear();
     unrtfCache.set(cacheKey, out);
     return out;

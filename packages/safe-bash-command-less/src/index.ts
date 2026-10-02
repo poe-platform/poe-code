@@ -366,11 +366,19 @@ export function evalSyncLess(
     if (!stdinBytes) return undefined;
     try { chunks.push(syncLessDecoder.decode(stdinBytes)); } catch { return undefined; }
   } else {
+    let stdinUsed = false;
     for (let i = 0; i < files.length; i++) {
       const f = files[i]!;
-      const b = f === "-" ? stdinBytes : (readFile ? readFile(f) : undefined);
-      if (!b) return undefined;
-      try { chunks.push(syncLessDecoder.decode(b)); } catch { return undefined; }
+      if (f === "-") {
+        if (!stdinBytes) return undefined;
+        if (stdinUsed) continue;
+        stdinUsed = true;
+        try { chunks.push(syncLessDecoder.decode(stdinBytes)); } catch { return undefined; }
+      } else {
+        const b = readFile ? readFile(f) : undefined;
+        if (!b) return undefined;
+        try { chunks.push(syncLessDecoder.decode(b)); } catch { return undefined; }
+      }
     }
   }
   const combined = chunks.join("");

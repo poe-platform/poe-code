@@ -55,8 +55,8 @@ function parseSyncCsvRows(text: string, delim: string): string[][] | undefined {
   return rows;
 }
 
-function formatSyncCsvCell(cell: string, delim: string): string {
-  if (cell.includes(delim) || cell.includes("\"") || cell.includes("\n") || cell.includes("\r")) {
+function formatSyncCsvCell(cell: string, delim: string, singleCol = false): string {
+  if ((singleCol && cell.length === 0) || cell.includes(delim) || cell.includes("\"") || cell.includes("\n") || cell.includes("\r")) {
     return `"${cell.replaceAll("\"", "\"\"")}"`;
   }
   return cell;
@@ -76,6 +76,7 @@ export function evalSyncXan(
   let csvHeaders = false;
   let noHeaders = false;
   let humanReadable = false;
+  let checkAlignment = false;
   let startNum = 0;
   let lenNum: number | undefined;
   let endNum: number | undefined;
@@ -155,6 +156,7 @@ export function evalSyncXan(
       csvHeaders = true;
     } else if (a === "-c" || a === "--check-alignment" || a === "-a" || a === "--approx") {
       if (sub !== "count") return undefined;
+      if (a === "-c" || a === "--check-alignment") checkAlignment = true;
     } else if (a === "-t" || a === "--threads" || a.startsWith("--threads=")) {
       if (sub !== "count") return undefined;
       const raw = (a === "-t" || a === "--threads") ? args[++i] : a.slice(10);
@@ -192,7 +194,13 @@ export function evalSyncXan(
   const effectiveDelim = delim ?? (inputPath.endsWith(".tsv") || inputPath.endsWith(".tab") ? "\t" : ",");
   const text = syncXanDecoder.decode(bytes);
   const rows = parseSyncCsvRows(text, effectiveDelim);
-  if (!rows) return undefined;
+  if (!rows || rows.length === 0) return undefined;
+  if ((sub === "count" && checkAlignment) || sub === "select" || sub === "slice") {
+    const expectedWidth = rows[0]!.length;
+    for (let rIdx = 1; rIdx < rows.length; rIdx++) {
+      if (rows[rIdx]!.length !== expectedWidth) return undefined;
+    }
+  }
 
   if (sub === "headers") {
     if (csvHeaders) {
@@ -335,7 +343,7 @@ export function evalSyncXan(
       }
     }
     if (outRows.length === 0) return "";
-    return outRows.map(r => r.map(c => formatSyncCsvCell(c, ",")).join(",")).join("\n") + "\n";
+    return outRows.map(r => r.map(c => formatSyncCsvCell(c, ",", r.length === 1)).join(",")).join("\n") + "\n";
   }
 
   // select
@@ -404,7 +412,7 @@ export function evalSyncXan(
   const outLines: string[] = [];
   for (let r = 0; r < rows.length; r++) {
     const row = rows[r]!;
-    const picked = positions.map(p => formatSyncCsvCell(row[p] ?? "", ","));
+    const picked = positions.map(p => formatSyncCsvCell(row[p] ?? "", ",", positions.length === 1));
     outLines.push(picked.join(","));
   }
   return outLines.join("\n") + "\n";

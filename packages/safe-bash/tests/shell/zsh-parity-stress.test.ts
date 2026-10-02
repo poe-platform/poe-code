@@ -842,3 +842,25 @@ test("46. sync vs async parity for diff (-e missing newline, --strip-trailing-cr
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+
+test("47. sync vs async parity for less repeated -, pr/unrtf pipeline newlines, file symlink default -h vs -L and -f -, and xan single-col empty/alignment", async () => {
+  const scripts = [
+    'x=$(less - - <<< "hello"); echo "$?:$x"',
+    'mkdir -p /dir; printf "line1\nline2\n" > /dir/a.txt; x=$(pr -t /dir/a.txt | wc -l); y=$(pr -t /dir/a.txt | wc -c); echo "$x:$y"',
+    'x=$(pr -t - - <<< "hello"); echo "$?:$x"',
+    'mkdir -p /dir; printf "{\\rtf1\\ansi hello}" > /dir/doc.rtf; x=$(unrtf --text /dir/doc.rtf | wc -l); y=$(unrtf --text /dir/doc.rtf | wc -c); echo "$x:$y"',
+    'mkdir -p /dir; printf "hello\n" > /dir/a.txt; ln -s /dir/a.txt /dir/link.txt; x=$(file /dir/link.txt); y=$(file -L /dir/link.txt); echo "$x|$y"',
+    'mkdir -p /dir; printf "hello\n" > /dir/a.txt; x=$(file -f - <<< $"/dir/a.txt\n-"); echo "$?:$x"',
+    'mkdir -p /dir; printf "a,b\n,1\n" > /dir/c.csv; x=$(xan select a /dir/c.csv); echo "$?:$x"',
+    'mkdir -p /dir; printf "a,b\n1\n2,3\n" > /dir/bad.csv; x=$(xan count -c /dir/bad.csv 2>/dev/null); echo "$?:$x"',
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

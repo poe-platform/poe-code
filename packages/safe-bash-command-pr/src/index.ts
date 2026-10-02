@@ -78,13 +78,16 @@ export function evalSyncPr(
       return `${year}-${month}-${day} ${time}`;
     };
     let totalOut = "";
+    let stdinUsed = false;
     for (const group of groups) {
       const formatter = new Formatter({ ...parsed }, lifecycle, group.length);
       const readers: Reader[] = [];
       for (const name of group) {
         let srcBytes: Uint8Array | undefined;
         if (name === "-") {
-          srcBytes = inBytes;
+          if (inBytes === undefined) return undefined;
+          srcBytes = stdinUsed ? new Uint8Array(0) : inBytes;
+          stdinUsed = true;
         } else {
           if (parsed.extremities && parsed.dateFormat === undefined) return undefined;
           if (!readFileSync) return undefined;
@@ -100,7 +103,7 @@ export function evalSyncPr(
       if (!formatter.runSync(readers, stamp, title)) return undefined;
       totalOut += lifecycle.takeStdoutSync();
     }
-    const res = totalOut.endsWith("\n") ? totalOut.slice(0, -1) : totalOut;
+    const res = totalOut;
     if (cacheKey !== undefined) {
       if (prSyncCache.size >= 8) prSyncCache.clear();
       prSyncCache.set(cacheKey, res);

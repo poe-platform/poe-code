@@ -6444,14 +6444,14 @@ const syncExtraRuntimeMethods = {
       return false;
     }
   },
-  tryStatMemoryNodeTypeSync(path: string, charge = true): "file" | "directory" | "symlink" | "missing" | undefined {
+  tryStatMemoryNodeTypeSync(path: string, charge = true, follow = true): "file" | "directory" | "symlink" | "missing" | undefined {
     if (!this.canFastMemoryRedirect || this.budget.limits.maxFileSystemOperations < 1000 || !this.budget.canFileSystemOperation()) return undefined;
     if (!this._isMemoryBackingFs || !this.backingFs || this.backingFs.capabilitiesFor !== undefined || (this._fileWrites !== undefined && this._fileWrites.size > 0)) return undefined;
     try {
       const mem = this.backingFs as unknown as {
-        resolve: (p: string, s: string) => { node: { type: "file" | "directory" | "symlink" } };
+        resolve: (p: string, s: string, o?: { followFinal?: boolean }) => { node: { type: "file" | "directory" | "symlink" } };
       };
-      const resolved = mem.resolve(path, "stat");
+      const resolved = mem.resolve(path, "stat", follow ? undefined : { followFinal: false });
       if (charge) this.budget.fileSystemOperation();
       return resolved.node.type;
     } catch {
@@ -18683,7 +18683,7 @@ const syncExtraRuntimeMethods = {
                   : firstName === "pr"
                     ? evalSyncPr(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "file"
-                    ? evalSyncFile(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), true))
+                    ? evalSyncFile(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, follow = true) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), true, follow))
                   : firstName === "diff3"
                     ? evalSyncDiff3(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "cmp"
@@ -19351,7 +19351,7 @@ const syncExtraRuntimeMethods = {
             : w0Plain === "pr"
               ? evalSyncPr(optInBytes, allArgs, readFile)
             : w0Plain === "file"
-              ? evalSyncFile(optInBytes, allArgs, readFile, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), true))
+              ? evalSyncFile(optInBytes, allArgs, readFile, (p: string, follow = true) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), true, follow))
             : w0Plain === "diff3"
               ? evalSyncDiff3(optInBytes, allArgs, readFile)
             : w0Plain === "cmp"
@@ -19839,7 +19839,7 @@ const syncExtraRuntimeMethods = {
               fileRes = evalSyncPr(view, opArgs, readFile);
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "file") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), true);
+              const statType = (p: string, follow = true) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), true, follow);
               fileRes = evalSyncFile(view, opArgs, readFile, statType);
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "diff3") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);

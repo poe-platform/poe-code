@@ -2779,3 +2779,34 @@ calls with 32 retained results measured 50.384 microseconds native / 1.416
 microseconds JavaScript (35.57 times slower). This does not pass the performance
 gate. Callback reentrancy uses the current adapter guard; full stack/resource and
 platform qualification remains open with the broader replacement gates.
+
+### Shared numeric schema checkpoint
+
+The internal `number-schema` module now owns number/integer admission, ordered
+bounds checks and expected-value descriptions in Rust. Node retains live
+`Number` member calls, comparison/template coercion and array methods. Native SDK
+validation uses the shared helper, removing duplicate validation and description
+logic. It remains an internal module, matching the reference export boundary.
+
+Four failures preceded implementation: three missing-module comparisons and an
+SDK regression proving that captured Number predicates ignored later changes.
+Five helper comparisons and nine SDK comparisons now pass, covering nonboolean
+short-circuit results, getter order, changing bounds, method receivers, array
+callback metadata/overrides, string/numeric coercion, reentrancy and arbitrary
+thrown values. The shared literal host capability also retains all five stack
+diagnostic comparisons. The complete maintained Toolcraft package unit route
+passes 129 native tests and 1,571 reference/integration cases across 44 files,
+plus bidirectional declarations. Build, Rust/binding lint and scoped JS lint pass.
+
+The packed helper loads with external ESM dependencies blocked. A packed helper
+type consumer compiles with `types: []`, resolving the existing native schema
+declarations from the checkout. This is not full isolated dependency packaging
+qualification. Inspected numeric-description output is reference-identical.
+No new dependencies or default integration changes.
+
+Five alternating warmed rounds on Node 22.23.2 ARM64, 2,000 validation/description
+pairs per round and 32 retained results, measured 4.946 microseconds native /
+0.082 microseconds JavaScript (60.32 times slower). This does not pass the
+performance gate. Full CLI/renderer/transports and resource/platform/swap gates
+remain open. The preceding stack commit is verified on remote main; its release
+build remains pending, with no publication verified.

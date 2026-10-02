@@ -16,6 +16,7 @@ mod host;
 pub mod json_schema_converter;
 pub mod mcp_proxy;
 pub mod mcp_result;
+pub mod number_schema;
 pub mod package_metadata;
 pub mod redaction;
 pub mod runtime_policy;

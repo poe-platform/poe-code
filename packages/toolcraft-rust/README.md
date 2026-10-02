@@ -25,6 +25,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Member validation | Nested SDK/MCP name collisions, discriminator aliases and formatter callbacks   |
 | Branch validation | Discriminator selection, exclusive-union matching and branch diagnostics         |
 | Applied defaults | Canonical cloned defaults, original-schema validation and ordered diagnostics     |
+| Numeric validation | Shared Rust bounds and integer checks, live Number predicates and matching SDK diagnostics |
 | SDK arguments    | Native casing, nested validation, defaults, aliases and JSON-schema normalization |
 | SDK              | `toolcraft-rust/sdk`: native member trees, invocation routing, streams and deferred MCP discovery |
 | Runtime wiring   | Reserved service names, injected I/O and approval runtime admission              |

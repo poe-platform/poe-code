@@ -102,3 +102,9 @@ const stackTrimOriginal: typeof referenceStackTrim = stackTrim;
 const stackTrimNative: typeof stackTrim = null as unknown as typeof referenceStackTrim;
 const stackMode: referenceStackTrim.DebugStackMode = null as unknown as import("../dist/stack-trim.js").DebugStackMode;
 void [stackTrimOriginal,stackTrimNative,stackMode];
+
+import * as numberSchema from "../dist/number-schema.js";
+import type * as referenceNumberSchema from "../../toolcraft/dist/number-schema.js";
+const numberSchemaOriginal: typeof referenceNumberSchema = numberSchema;
+const numberSchemaNative: typeof numberSchema = null as unknown as typeof referenceNumberSchema;
+void [numberSchemaOriginal,numberSchemaNative];

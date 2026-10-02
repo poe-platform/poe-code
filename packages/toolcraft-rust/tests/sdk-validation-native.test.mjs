@@ -11,6 +11,17 @@ function capture(validate, schema, value, label = "") {
   catch (error) { return { error: [error?.name, error?.message], errors }; }
 }
 
+test("SDK numeric validation observes Number predicates changed after module loading",()=>{
+  const finite=Number.isFinite,integer=Number.isInteger;
+  function run(validate,method,result){
+    const trace=[];
+    Number[method]=function(value){trace.push([method,this===Number,value]);return result;};
+    try{return {...capture(validate,{kind:"object",shape:{value:{kind:"number",jsonType:"integer"}}},{value:1.5}),trace};}
+    finally{Number.isFinite=finite;Number.isInteger=integer;}
+  }
+  for(const method of ["isFinite","isInteger"])for(const result of [true,false,"truthy",0])assert.deepEqual(run(native,method,result),run(reference,method,result));
+});
+
 test("SDK validation preserves all canonical kinds, defaults, casing and ordered errors", () => {
   const kinds = [S.String({ minLength: 2, maxLength: 3, pattern: "^a" }),
     S.Number({ jsonType: "integer", minimum: 1, maximum: 3 }), S.Boolean(),

@@ -1,11 +1,7 @@
 //! Stack sections and framework-frame filtering with caller-realm string methods.
-use crate::host::Host;
+use crate::host::TextHost;
 
-pub trait StackHost: Host {
-    fn literal(&mut self, text: &'static str) -> Result<Self::Value, Self::Error>;
-}
-
-pub fn run<H: StackHost>(
+pub fn run<H: TextHost>(
     host: &mut H,
     operation: &str,
     args: &[H::Value],

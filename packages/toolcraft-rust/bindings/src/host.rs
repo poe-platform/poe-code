@@ -1,9 +1,15 @@
 use napi::{Env, ValueType, bindgen_prelude::*};
-use toolcraft_rust::host::Host;
+use toolcraft_rust::host::{Host, TextHost};
 
 pub(crate) struct NodeHost<'env> {
     pub(crate) env: Env,
     pub(crate) object: Object<'env>,
+}
+impl TextHost for NodeHost<'_> {
+    fn literal(&mut self, text: &'static str) -> Result<Self::Value> {
+        let value = unsafe { String::to_napi_value(self.env.raw(), text.to_owned()) }?;
+        unsafe { Unknown::from_napi_value(self.env.raw(), value) }
+    }
 }
 impl<'env> Host for NodeHost<'env> {
     type Value = Unknown<'env>;

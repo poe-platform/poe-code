@@ -240,21 +240,7 @@ fn value<H: Host>(
             }
         }
     } else if host.is_kind(kind, "number")? {
-        let mut valid = yes(host, "isNumber", vec![value])? && yes(host, "finite", vec![value])?;
-        if valid {
-            let json_type = host.get(schema, "jsonType")?;
-            valid = !host.is_kind(json_type, "integer")? || yes(host, "integer", vec![value])?;
-        }
-        for (key, compare) in [("minimum", "gte"), ("maximum", "lte")] {
-            if valid {
-                let bound = host.get(schema, key)?;
-                if !host.is_undefined(bound)? {
-                    let bound = host.get(schema, key)?;
-                    valid = yes(host, compare, vec![value, bound])?;
-                }
-            }
-        }
-        if !valid {
+        if !yes(host, "validNumber", vec![value, schema])? {
             host.call("invalidNumber", vec![errors, label, value, schema])?;
         }
     } else if host.is_kind(kind, "boolean")? {

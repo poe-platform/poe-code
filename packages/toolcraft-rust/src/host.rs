@@ -10,3 +10,7 @@ pub trait Host {
     fn is_kind(&self, value: Self::Value, kind: &str) -> Result<bool, Self::Error>;
     fn same(&self, left: Self::Value, right: Self::Value) -> Result<bool, Self::Error>;
 }
+
+pub trait TextHost: Host {
+    fn literal(&mut self, text: &'static str) -> Result<Self::Value, Self::Error>;
+}

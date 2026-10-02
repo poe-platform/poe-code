@@ -4,6 +4,7 @@ import { suggest, UserError } from "./index.js";
 import { validateAppliedDefault } from "./applied-default.js";
 import { resolveDiscriminatedBranch, validateUnionSchema } from "./branch-validation.js";
 import { callNative, protect } from "./host-errors.js";
+import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 
 const native = createRequire(import.meta.url)("./toolcraft-rust.node");
 const lower = protect(value => value.toLowerCase());
@@ -33,13 +34,6 @@ function describeReceived(value) {
   return String(value);
 }
 
-function expectedNumber(schema) {
-  const type = schema.jsonType === "integer" ? "an integer" : "a number";
-  const bounds = [schema.minimum === undefined ? undefined : `greater than or equal to ${schema.minimum}`,
-    schema.maximum === undefined ? undefined : `less than or equal to ${schema.maximum}`].filter(bound => bound !== undefined);
-  return bounds.length === 0 ? type : `${type} ${bounds.join(" and ")}`;
-}
-
 function enumError(value, schema, label) {
   let suggestionLine = " ";
   if (typeof value === "string") {
@@ -58,15 +52,11 @@ const operations = {
   isJson: isJsonValue,
   isNull: value => value === null,
   isString: value => typeof value === "string",
-  isNumber: value => typeof value === "number",
+  validNumber: isValidNumberSchemaValue,
   isBoolean: value => typeof value === "boolean",
   isArray: Array.isArray,
-  finite: Number.isFinite,
-  integer: Number.isInteger,
   lt: (left, right) => left < right,
   gt: (left, right) => left > right,
-  gte: (left, right) => left >= right,
-  lte: (left, right) => left <= right,
   empty: value => value.length === 0,
   fieldLabel: (label, key) => `${label}.${key}`,
   hasOwn: (value, key) => Object.prototype.hasOwnProperty.call(value, key),
@@ -112,7 +102,7 @@ const operations = {
   invalidBoolean: (errors, label, value) => errors.push({ path: label, message: `Invalid value for "${label}". Expected a boolean, got ${describeReceived(value)}.` }),
   invalidArray: (errors, label, value) => errors.push({ path: label, message: `Invalid value for "${label}". Expected an array, got ${describeReceived(value)}.` }),
   invalidJson: (errors, label) => errors.push({ path: label, message: `Invalid value for "${label}". Expected a JSON value.` }),
-  invalidNumber: (errors, label, value, schema) => errors.push({ path: label, message: `Invalid value for "${label}". Expected ${expectedNumber(schema)}, got ${describeReceived(value)}.` }),
+  invalidNumber: (errors, label, value, schema) => errors.push({ path: label, message: `Invalid value for "${label}". Expected ${getExpectedNumberDescription(schema)}, got ${describeReceived(value)}.` }),
   invalidEnum: (errors, label, value, schema) => errors.push({ path: label, message: enumError(value, schema, label) }),
   patternError: (errors, label, value, schema) => errors.push({ path: label, message: `Invalid value for "${label}": "${value}" does not match pattern "${schema.pattern}".` }),
   shortString: (errors, label, schema, length) => errors.push({ path: label, message: `Invalid value for "${label}". Expected a string with length at least ${schema.minLength}, got string with length ${length}.` }),

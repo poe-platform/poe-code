@@ -20,6 +20,7 @@ pub mod cli_json_errors;
 pub mod cli_options;
 pub mod cli_policy;
 pub mod cli_prepare;
+pub mod cli_prompts;
 pub mod cli_snapshot;
 pub mod cli_values;
 pub mod definitions;

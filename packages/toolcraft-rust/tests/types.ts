@@ -257,3 +257,11 @@ const parsedLogLevel:native.LogLevel=cliCommands.parseLogLevel("warn");
 // @ts-expect-error CLI execution callbacks must return a promise
 cliCommands.createNodeCommand(null as unknown as native.Group,"kebab",new Set(),()=>undefined,false,null as unknown as import("../dist/cli-policy.js").ResolvedCLIControls,new Map());
 void [nodeCommand,debugMode,parsedLogLevel];
+
+import * as cliPrompts from "../dist/cli-prompts.js";
+const promptedValue:Promise<unknown>=cliPrompts.promptForField(null as unknown as import("../dist/cli-fields.js").FieldDefinition,{});
+const promptLabel:string=cliPrompts.fieldPromptLabel(null as unknown as import("../dist/cli-fields.js").FieldDefinition);
+const promptOptions:{message:string}&cliPrompts.PromptStreams=cliPrompts.withPromptStreams({message:"Value"},{input:process.stdin,output:process.stdout});
+// @ts-expect-error prompt stream options require a readable stream
+cliPrompts.withPromptStreams({message:"Value"},{input:17});
+void [promptedValue,promptLabel,promptOptions];

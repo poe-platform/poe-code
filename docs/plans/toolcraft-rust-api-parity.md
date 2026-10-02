@@ -3568,3 +3568,48 @@ qualification remain open, as does replacing/qualifying existing Commander.
 Argument preparation is verified on remote main at 3f66a675ff. Its Release
 workflow 37071728185 and the preceding dynamic-argv workflow 37070671678 completed
 successfully, both with release-stable skipped; no later publication is inferred.
+
+### CLI field-prompt checkpoint
+
+Native field prompting now uses a Rust continuation engine for enum option
+loading, enum/boolean/text selection, labels/defaults, stream merging,
+cancellation and returned-value parsing. The adapter uses native design prompts
+and native schema default cloning. Node retains promises/thenables, callback
+receivers, live method access, object spread and terminal streams. Each reference
+await has one matching continuation boundary; concurrent option loaders keep
+independent state. No external dependencies or default implementation changed.
+
+Four missing-module failures preceded implementation. Nine differential tests
+extract the actual private reference declarations and inject only prompt I/O
+capabilities. They cover loaded/static choices, scalar/array/JSON parsing,
+cloned defaults, cancellation, getter and thenable order, arbitrary thrown
+identity, spread descriptors/symbols, malformed helpers and concurrent loaders
+resolving out of order. A cold dynamic import initially exhausted the per-test
+timeout; static module import removed that work from the test body without
+increasing the timeout. The maintained package route passes 263 native Node
+tests, Rust tests, 1,732 reference/parity cases in 47 files and declaration
+consumers. Rust/binding and scoped JS lint pass.
+
+Actual in-memory TTY input separately verified text, boolean, enum selection,
+invalid numeric input and Ctrl-C against reference output, errors and raw-mode
+transitions. The inspected screenshot matches the reference. Packed consumers
+exercise a real numeric prompt with only packed own schema/design dependencies
+admitted as external ESM imports. Packed declarations compile with types: [];
+contract types still resolve from the checkout, leaving standalone type
+qualification open. Full CLI execution suites are still not redirected.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 non-interactive enum
+default prompts, retaining 32 results, measured 15.034/1.528 microseconds
+native/reference (9.84 times slower). This fixture includes the native design
+prompt path but no human input wait; it does not pass the performance/default
+swap gate. Parameter resolution, variants/presets, full handler execution,
+rich help, transports and platform/resource/reentrancy qualification remain.
+
+Command construction is independently verified in remote main at ccd30abfdb.
+Its Release workflow 37073128505 failed in Build workspace and CLI outputs.
+GraphQL confirms the failing step; REST logs are rate-limited, and the root cause
+of that exact run remains unverified. Later main includes the independently
+reproduced SQLite private-build dependency repair 253b699e5e and packaging
+follow-up f912a37695. Rebase includes those changes; a later successful build
+must verify the combined state before treating the delivery as build-qualified.
+No new publication is claimed.

@@ -11,7 +11,7 @@ import {renderSourceSnippet} from "../../toolcraft/dist/source-snippet.js";
 
 // Select actual reference declarations in memory, without copying algorithms,
 // writing generated fixtures, or adding exports to the JavaScript implementation.
-export function loadCLIReference(names,constants=[]){
+export function loadCLIReference(names,constants=[],capabilities={}){
   const source=ts.createSourceFile("cli.ts",readFileSync(new URL("../../toolcraft/src/cli.ts",import.meta.url),"utf8"),ts.ScriptTarget.Latest,true);
   const printer=ts.createPrinter();
   const declarations=source.statements.flatMap(node=>{
@@ -20,5 +20,5 @@ export function loadCLIReference(names,constants=[]){
     return [];
   });
   assert.equal(declarations.length,names.length+constants.length);
-  return new Function("ToolcraftBugError","UserError","LOG_LEVELS","suggest","unicodeLength","getExpectedNumberDescription","isValidNumberSchemaValue","renderSourceSnippet","Option","InvalidArgumentError","isUserError","cloneDefaultValue","validateSchema","CommanderCommand","isLogLevel",'"use strict";\n'+ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,UserError,LOG_LEVELS,suggest,unicodeLength,getExpectedNumberDescription,isValidNumberSchemaValue,renderSourceSnippet,Option,InvalidArgumentError,isUserError,cloneDefaultValue,validateSchema,CommanderCommand,isLogLevel);
+  return new Function("ToolcraftBugError","UserError","LOG_LEVELS","suggest","unicodeLength","getExpectedNumberDescription","isValidNumberSchemaValue","renderSourceSnippet","Option","InvalidArgumentError","isUserError","cloneDefaultValue","validateSchema","CommanderCommand","isLogLevel",...Object.keys(capabilities),'"use strict";\n'+ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,UserError,LOG_LEVELS,suggest,unicodeLength,getExpectedNumberDescription,isValidNumberSchemaValue,renderSourceSnippet,Option,InvalidArgumentError,isUserError,cloneDefaultValue,validateSchema,CommanderCommand,isLogLevel,...Object.values(capabilities));
 }

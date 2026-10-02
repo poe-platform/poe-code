@@ -13,6 +13,7 @@ class HtmlWriter {
   private readonly chunks: string[] = [];
   private length = 0;
   private readonly reserved = new Set<string>();
+  private readonly embeddedResources = new Map<string, Uint8Array>();
   private readonly headings = new Set<string>();
   private readonly notes: {blocks: readonly Block[]; id: string; ref: string; path: string}[] = [];
   private readonly sections: {node: Extract<Block, {t: "Header"}>; id: string; number: string}[] = [];
@@ -143,7 +144,18 @@ class HtmlWriter {
           this.add("<span"); this.attrs(node.c[0]); this.add(">"); await this.inlines(node.c[1], `${p}.c[1]`); this.add("</span>"); break;
         }
         case "Link": case "Image": {
-          const image = node.t === "Image"; this.add(image ? "<img" : "<a"); this.attribute(image ? "src" : "href", this.url(node.c[2][0]));
+          const image = node.t === "Image";
+          let targetUrl = this.url(node.c[2][0]);
+          if (image && (this.context as { embedResources?: boolean }).embedResources) {
+            const embedded = this.embeddedResources.get(node.c[2][0]);
+            if (embedded) {
+              const mime = embedded[0] === 0x89 && embedded[1] === 0x50 ? "image/png" : embedded[0] === 0xff && embedded[1] === 0xd8 ? "image/jpeg" : embedded[0] === 0x47 && embedded[1] === 0x49 ? "image/gif" : "application/octet-stream";
+              let bin = "";
+              for (let i = 0; i < embedded.length; i++) bin += String.fromCharCode(embedded[i]!);
+              targetUrl = `data:${mime};base64,${btoa(bin)}`;
+            }
+          }
+          this.add(image ? "<img" : "<a"); this.attribute(image ? "src" : "href", targetUrl);
           if(image) this.attribute("alt", this.plain(node.c[1]));
           if(node.c[2][1]) this.attribute("title", node.c[2][1]);
           if(node.c[0][2].some(([key]) => key === "title") && node.c[2][1]) this.fail("Duplicate HTML title attribute", p);
@@ -270,6 +282,7 @@ class HtmlWriter {
     this.fail(`${key} metadata must be text or inlines`, undefined, "E_OPTION");
   }
   async write(document: Document): Promise<SerializedDocument> {
+    for (const r of document.resources) this.embeddedResources.set(r.id, r.bytes);
     this.reserve(document.blocks);
     if (this.context.toc) {
       const visit = async (value: unknown): Promise<void> => {

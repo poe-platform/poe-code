@@ -68,3 +68,33 @@ it("retains the native print origin,leading grid and scaled text margin", async 
   const {runs} = await pdfText(await writePdf(await fixture("v"), [], context));
   expect(runs.map(run => run.glyphs[0]!.x)).toEqual([76.75, 124.75, 76.75, 124.75]);
 });
+
+it("exports workbooks roundtripped through XLSX with default fonts from createEngine", async () => {
+  const { createEngine } = await import("../engine.js");
+  const engine = createEngine();
+  const csv = new TextEncoder().encode("region,revenue\nNorth,120000\nSouth,95000\n");
+  const xlsxChunks: Uint8Array[] = [];
+  await engine.convert(
+    {
+      input: { kind: "stream", source: [csv], filename: "sales.csv" },
+      destination: { kind: "stream", sink: { async write(bytes) { xlsxChunks.push(bytes); } } }, exportType: "Gnumeric_Excel:xlsx"
+    },
+    { signal: new AbortController().signal }
+  );
+  const xlsxBytes = new Uint8Array(xlsxChunks.reduce((n, c) => n + c.byteLength, 0));
+  let offset = 0;
+  for (const chunk of xlsxChunks) {
+    xlsxBytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  const pdfChunks: Uint8Array[] = [];
+  const res = await engine.convert(
+    {
+      input: { kind: "stream", source: [xlsxBytes], filename: "sales.xlsx" },
+      destination: { kind: "stream", sink: { async write(bytes) { pdfChunks.push(bytes); } } }, exportType: "Gnumeric_pdf:pdf_assistant"
+    },
+    { signal: new AbortController().signal }
+  );
+  expect(res.exitCode).toBe(0);
+  expect(pdfChunks.reduce((n, c) => n + c.byteLength, 0)).toBeGreaterThan(100);
+});

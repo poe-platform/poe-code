@@ -108,7 +108,7 @@ const allowed: Record<Subcommand, Set<string>> = {
 export async function parseArguments(args: readonly string[], cwd: string, budget: Budget): Promise<Arguments> {
   budget.bound("maxArgs", args.length);
   for (const arg of args) { const size = await budget.textSize(arg); budget.add("maxArgumentBytes", size); }
-  const first = args[0] === "h" ? "headers" : args[0] === "frequency" ? "freq" : args[0];
+  const first = args[0] === "h" ? "headers" : args[0] === "frequency" ? "freq" : args[0] === "view" ? "table" : args[0];
   if (first === "--help" || first === "-h") {
     if (args.length !== 1) throw new XanError("unexpected argument after help");
     return { command: "headers", inputs: [], noHeaders: false, justNames: false, csv: false, help: true, selection: "", start: 0n };

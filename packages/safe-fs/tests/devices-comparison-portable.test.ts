@@ -5,7 +5,7 @@ import { build } from "esbuild";
 import { expect, it } from "vitest";
 import { deviceComparisonChecks } from "./helpers/device-comparison-checks.js";
 
-const expected = ["unknown", "unknown", "unknown", "unknown", "same", "same", "distinct"];
+const expected = ["unknown", "unknown", "unknown", "unknown", "same", "same", "distinct", "same", "distinct", "same"];
 
 it("compares devices with identity-less backends in the native graph", async () => {
   expect(await deviceComparisonChecks()).toEqual(expected);

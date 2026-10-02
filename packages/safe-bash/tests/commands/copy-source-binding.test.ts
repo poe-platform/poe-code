@@ -364,7 +364,7 @@ for (const command of ["cp", "mv"]) for (const existing of [false, true]) {
     const fs = await fixture({ source: "ordinary", ...(existing ? { target: "old" } : {}) });
     if (command === "mv") fs.rename = async () => { throw new FsError("EXDEV"); };
     // This cohort exercises providers that cannot bind staged destination ancestry.
-    if (refused) Object.defineProperty(fs, "capabilities", { value: { ...fs.capabilities, atomicStagingAncestry: false } });
+    if (refused) Object.defineProperty(fs, "capabilities", { configurable: true, value: { ...fs.capabilities, atomicStagingAncestry: false } });
     const capabilities = { ...fs.capabilities, copy: false, exclusiveCopy: false };
     const operations: string[] = [];
     const view = new Proxy(fs, {

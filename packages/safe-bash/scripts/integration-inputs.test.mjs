@@ -3259,7 +3259,12 @@ test("published root exposes supported shell SDKs while preserving private works
   assert.equal(root.dependencies.pako, "3.0.1");
   assert.equal(root.files.includes("packages/office-package/dist"), false);
   assert.equal(root.files.includes("packages/office-package/LICENSE"), false);
-  assert.deepEqual(source.exports["./commands/pptx"], { types: "./dist/commands/pptx/index.d.ts", import: "./dist/commands/pptx/index.js" });
+  assert.deepEqual(source.exports["./commands/pptx"], {
+    types: "./dist/commands/pptx/index.d.ts",
+    workerd: "./dist/commands/pptx/index.browser.js",
+    browser: "./dist/commands/pptx/index.browser.js",
+    import: "./dist/commands/pptx/index.js",
+  });
   assert.equal(root.exports["./pptx"], undefined);
   assert.equal(root.devDependencies.pptx, "*");
   assert.equal(root.dependencies.saxes, "^6.0.0");

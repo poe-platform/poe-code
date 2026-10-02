@@ -12,9 +12,7 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
       import { StackContext } from "./dist/platform/context.js";
       import { types, createTrackedProxy } from "./dist/platform/types.js";
       import { attachSignalDumpHandler } from "./dist/runner/signal-dump.js";
-      import { makeAgentModule, createSpawnUsageAccumulator, runWithSpawnUsageAccumulator } from "./dist/modules/agent.js";
-      import { runHarness } from "./dist/runner/run-harness.js";
-      import { migrateSnapshotFile } from "./dist/migration-file.js";
+      import { makeAgentModule, createSpawnUsageAccumulator, runWithSpawnUsageAccumulator, runHarness, migrateSnapshotFile } from "@poe-code/safe-js";
       export default { async fetch() {
         if (typeof Buffer !== "undefined" || typeof process !== "undefined") throw new Error("Node globals present");
         let onSignal;

@@ -23397,7 +23397,7 @@ const syncExtraRuntimeMethods = {
         if (!fl) return undefined;
         if (!hasFileOperand) rawLines = [];
         hasFileOperand = true;
-        rawLines = [...rawLines, ...fl];
+        rawLines = [...(rawLines ?? []), ...fl];
       } else {
         return undefined;
       }

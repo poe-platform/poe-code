@@ -90,22 +90,16 @@ for (const mode of ["disabled", "absent"] as const) {
     });
   }
 
-  test(`${mode}: tar requires retained creation reads but extracts with buffered I/O`, async () => {
+  test(`${mode}: tar creates and extracts with buffered I/O`, async () => {
     for (const maxBufferedFileBytes of [undefined, 1024 * 1024]) {
       const state = await fixture(mode);
       try {
         if (maxBufferedFileBytes !== undefined)
           state.shell.use(archiveCommands({ replace: true, limits: { maxBufferedFileBytes } }));
-        const refused = await state.shell.exec("tar -cf /denied.tar /input.txt");
-        assert.equal(refused.exitCode, 2);
-        assert.ok(refused.stderr.includes("openReadFile"), refused.stderr);
+        const created = await state.shell.exec("tar -cf /bundle.tar /input.txt");
+        assert.equal(created.exitCode, 0, created.stderr);
         assert.equal(new TextDecoder().decode(await state.memory.readFile("/input.txt")), "first\nsecond\n");
-        assert.equal(state.reads.length, 0);
-        const producer = new Shell({ fs: state.memory }).use(archiveCommands());
-        try {
-          const created = await producer.exec("tar -cf /bundle.tar /input.txt");
-          assert.equal(created.exitCode, 0, created.stderr);
-        } finally { await producer.dispose(); }
+        assert.ok(state.reads.some(read => read.path === "/input.txt"));
         for (const command of ["tar -tf /bundle.tar", "tar -xf /bundle.tar -C /out"]) {
           const result = await state.shell.exec(command);
           assert.equal(result.exitCode, 0, `${command}: ${result.stderr}`);

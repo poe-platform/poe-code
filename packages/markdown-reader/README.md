@@ -19,7 +19,7 @@ Workers and browsers use the portable SDK entrypoint without Node compatibility.
 
 ```ts
 import { createReadSection } from "@poe-code/markdown-reader";
-import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 
 const fs = new MemoryFileSystem();
 await fs.writeFile("/guide.md", new TextEncoder().encode("# Welcome\nHello!"));

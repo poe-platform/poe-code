@@ -473,6 +473,9 @@ export function encodePngImage(
     | 8
     | 9;
   const compressed = deflate(raw, { level });
+  if (raw.byteOffset === 0 && raw.byteLength === raw.buffer.byteLength && typeof (raw.buffer as any).transfer === "function") {
+    try { (raw.buffer as any).transfer(0); } catch {}
+  }
 
   const ihdr = new Uint8Array(13);
   const ihdrView = new DataView(ihdr.buffer);

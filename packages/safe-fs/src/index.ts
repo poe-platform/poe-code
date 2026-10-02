@@ -26,3 +26,5 @@ export type {
   FileSystemAdapterRegistry
 } from "./config.js";
 export { createNodeFileSystemAdapterRegistry } from "./config.node.js";
+
+export { createPortableFileSystemAdapterRegistry } from "./config.portable.js";

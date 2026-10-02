@@ -53,3 +53,6 @@ export { deepCopyToSandbox } from "./interp/values.js";
 export { SandboxError } from "./interp/budget.js";
 export { SnapshotValidationError } from "./snapshot/validation.js";
 export { declareHostOperation } from "./interp/host-bridge.js";
+
+export { parseFsConfig, resolveFsConfig } from "./modules/fs-config.js";
+export type { FsConfig, ResolveFsConfigOptions } from "./modules/fs-config.js";

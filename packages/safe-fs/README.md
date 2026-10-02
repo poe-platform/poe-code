@@ -253,7 +253,7 @@ console.log(new TextDecoder().decode(await catalog.readFile("/welcome.txt")));
 
 Output: `Hello from the catalog`. `readFile` returns a copy so callers cannot mutate the stored snapshot. Reads check cancellation and `maxBytes`; required mutations always reject with `EROFS`. `stat` and `lstat` share an implementation because this adapter has no symlinks.
 
-`createFileSystem` validates options before calling the factory. The Node registry includes `memory` and `real`, accepts new names, and rejects attempts to replace those defaults. For an explicit allowlist without either default, pass `new Map([["catalog", catalogAdapter]])` directly as `registry`. Names select registered factories; they do not load modules from config.
+`createFileSystem` validates options before calling the factory. For Workers, import `createPortableFileSystemAdapterRegistry` and `createFileSystem` from `@poe-code/safe-fs/core`; the portable registry includes `memory` and caller-supplied adapters, without ambient filesystem access. The Node registry includes `memory` and `real`, accepts new names, and rejects attempts to replace those defaults. For an explicit allowlist without either default, pass `new Map([["catalog", catalogAdapter]])` directly as `registry`. Names select registered factories; they do not load modules from config.
 
 For a mutable backend, preserve exclusive-create behavior, return independent byte buffers, handle cancellation and size limits, and declare only capabilities you actually provide. Use `FsError` for filesystem failures. Do not invent entry identity from matching paths or metadata; omit `compareEntry` when identity is unknown.
 

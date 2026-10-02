@@ -43,3 +43,5 @@ export function inspect(value: unknown, _options?: { depth?: number }): string {
   if (typeof value === "object" && value !== null) return Array.isArray(value) ? "[Array]" : "[Object]";
   return String(value);
 }
+
+export { createPortableFileSystemAdapterRegistry as createFileSystemAdapterRegistry } from "@poe-code/safe-fs/core";

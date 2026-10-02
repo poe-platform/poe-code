@@ -1,11 +1,11 @@
+import { createFileSystemAdapterRegistry } from "#safe-js-platform";
 import {
   createFileSystem,
-  createNodeFileSystemAdapterRegistry,
   readConfigRecord,
   validateFileSystemConfig,
   type FileSystemAdapterRegistry,
   type FileSystemConfig
-} from "@poe-code/safe-fs";
+} from "@poe-code/safe-fs/core";
 import type { FsModuleOptions } from "./fs.js";
 
 export type FsConfig = {
@@ -54,7 +54,7 @@ export async function resolveFsConfig(
 ): Promise<Required<Pick<FsModuleOptions, "adapter">> & Omit<FsConfig, "adapter">> {
   const { adapter: adapterConfig, ...paths } = validateFsConfig(config);
   const resolution = readConfigRecord(options, "fs resolution option", ["registry"]);
-  const registry = createNodeFileSystemAdapterRegistry(
+  const registry = createFileSystemAdapterRegistry(
     resolution.registry as FileSystemAdapterRegistry | undefined
   );
   const adapter = await createFileSystem(adapterConfig, { registry });

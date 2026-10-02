@@ -6,7 +6,7 @@ import { Miniflare } from "miniflare";
 test("portable interpreter executes in workerd without Node compatibility", { timeout: 30000 }, async () => {
   const result = await build({
     stdin: { resolveDir: new URL("../", import.meta.url).pathname, contents: `
-      import { run, makeFsModule, createRootedSourceResolver, dump, restore } from "@poe-code/safe-js";
+      import { run, makeFsModule, createRootedSourceResolver, dump, restore, parseFsConfig, resolveFsConfig } from "@poe-code/safe-js";
       import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
       import { StackContext } from "./dist/platform/context.js";
       import { types, createTrackedProxy } from "./dist/platform/types.js";
@@ -59,6 +59,23 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
         }
         if (!types.isProxy(createTrackedProxy({}, {}))) throw new Error("Tracked proxy lost");
         if (!types.isPromise(Promise.resolve(1))) throw new Error("Promise brand lost");
+        const configured = await resolveFsConfig(parseFsConfig(JSON.stringify({
+          adapter: { type: "memory" }, root: "/configured", readFileMaxBytes: 128
+        })));
+        await configured.adapter.mkdir("/configured");
+        await configured.adapter.writeFile("/configured/value", new TextEncoder().encode("configured"));
+        const configuredResult = await run('import { readFile } from "fs"; return await readFile("/configured/value", "utf8");', {
+          modules: { fs: makeFsModule(configured) }
+        });
+        if (configuredResult.returnValue !== "configured") throw new Error("Portable filesystem configuration failed");
+        const supplied = new MemoryFileSystem();
+        const registry = new Map([["custom", { validateOptions() {}, create: async () => supplied }]]);
+        if ((await resolveFsConfig({ adapter: { type: "custom" } }, { registry })).adapter !== supplied)
+          throw new Error("Explicit filesystem registry lost");
+        let rejectedReal = false;
+        try { await resolveFsConfig({ adapter: { type: "real", options: { root: "/" } } }); }
+        catch (error) { rejectedReal = error instanceof TypeError && error.message.includes("Unknown filesystem adapter: real"); }
+        if (!rejectedReal) throw new Error("Worker granted ambient filesystem authority");
         const fs = new MemoryFileSystem();
         await fs.writeFile("/value", new TextEncoder().encode("portable 😀"));
         const execution = run('import { readFile } from "fs"; return await readFile("/value", "utf8");', {

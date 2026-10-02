@@ -69,3 +69,5 @@ export const hostFs = nativeFsPromises;
 export const hostCwd = process.cwd.bind(process);
 export const hostPlatform = process.platform;
 export const hostEnv = (): Readonly<Record<string, string | undefined>> => process.env;
+
+export { createNodeFileSystemAdapterRegistry as createFileSystemAdapterRegistry } from "@poe-code/safe-fs";

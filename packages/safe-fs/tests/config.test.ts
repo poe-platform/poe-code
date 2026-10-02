@@ -5,6 +5,7 @@ import {
   validateFileSystemConfig,
   type FileSystemAdapterDescriptor
 } from "../src/config.js";
+import { createPortableFileSystemAdapterRegistry } from "../src/config.portable.js";
 import { createNodeFileSystemAdapterRegistry } from "../src/config.node.js";
 import { createMemoryFileSystemAdapter } from "../src/config/memory.js";
 import { createRealFileSystemAdapter } from "../src/config/real.js";
@@ -217,6 +218,26 @@ describe("filesystem configuration", () => {
       await createFileSystem({ type: "real", options: { root: "/host/data" } }, { registry })
     ).toBe(filesystem);
     expect(factories.real).toHaveBeenCalledExactlyOnceWith({ root: "/host/data" });
+  });
+
+  it("offers only memory by default on portable hosts", async () => {
+    const registry = createPortableFileSystemAdapterRegistry();
+    expect([...registry.keys()]).toEqual(["memory"]);
+    expect(await createFileSystem({ type: "memory" }, { registry })).toBe(filesystem);
+    await expect(createFileSystem({ type: "real", options: { root: "/" } }, { registry }))
+      .rejects.toThrow("Unknown filesystem adapter: real");
+    expect(factories.real).not.toHaveBeenCalled();
+  });
+
+  it("extends portable defaults without replacing memory or mutating the caller registry", async () => {
+    const custom = { validateOptions: vi.fn(), create: vi.fn<FileSystemFactory>().mockReturnValue(filesystem) };
+    const extensions = new Map([["custom", custom]]);
+    const registry = createPortableFileSystemAdapterRegistry(extensions);
+    expect([...registry.keys()]).toEqual(["memory", "custom"]);
+    expect([...extensions.keys()]).toEqual(["custom"]);
+    expect(await createFileSystem({ type: "custom" }, { registry })).toBe(filesystem);
+    expect(() => createPortableFileSystemAdapterRegistry(new Map([["memory", custom]])))
+      .toThrow("Filesystem adapter already registered: memory");
   });
 
   it("extends Node defaults without mutating the caller registry", async () => {

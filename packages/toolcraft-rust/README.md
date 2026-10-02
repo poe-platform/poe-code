@@ -17,6 +17,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
+| Design           | `toolcraft-rust/design` and 72 flat helper paths backed by the native design package |
 | File changes     | `toolcraft-rust/file-changes`: native status summaries and unified diffs through standard renderers |
 | Managed streams  | Lazy creation, event validation, status callbacks, cancellation and cleanup       |
 | Schema scoping   | Recursive field/branch filtering, required scopes and original schema identity   |
@@ -69,6 +70,18 @@ import { createHumanInLoop, osascriptProvider } from "toolcraft-rust/human-in-lo
 const humanInLoop = createHumanInLoop({ provider: osascriptProvider() });
 // Pass { humanInLoop } when creating the SDK for commands with humanInLoop config.
 ```
+
+Import terminal design helpers through the same Toolcraft paths:
+
+```ts
+import { renderMarkdown } from "toolcraft-rust/design/render-markdown";
+import { renderTable, type TableColumn } from "toolcraft-rust/design/render-table";
+import { createDashboard } from "toolcraft-rust/design/create-dashboard";
+```
+
+These entry points share the native design package's function, theme and
+cancellation identities. They retain its current compatibility and performance
+limitations; JavaScript remains the default for existing applications.
 
 Show a source location with surrounding lines:
 

@@ -2709,3 +2709,40 @@ running it unchanged would not establish native import architecture. Native
 import/packaging architecture and the remaining whole-surface behavior/type/swap
 gates still need qualification. The pipeline port is verified on remote main at
 b3cda6bb18399a79eac4a0d2c596c7c116868eac; its release publication remains pending.
+
+
+### Toolcraft design entry-point checkpoint
+
+`toolcraft-rust/design` and all 72 existing flat `toolcraft/design/*` helper paths
+now forward declaratively to `toolcraft-design-rust`. The native design dependency
+was already declared; no dependencies or default integrations changed. These
+modules preserve type-only exports, explicit named exports, wildcard exports and
+namespace exports. They add no function wrappers or per-call work.
+
+Two failing public-import/declaration tests preceded implementation. The maintained
+native tests derive the path list and re-export clauses from the reference source,
+compare runtime keys, value kinds and function metadata, and verify exact native
+implementation and namespace identities. Explicit namespace exports retain their
+precedence over wildcard exports. The TypeScript checker compares every public
+export name, including type-only names, across all 73 modules. Consumer checks cover
+table options/rendering, Markdown, theme functions, typed selection and explorer
+configuration, including rejection of invalid selection values. The original
+Toolcraft design-subpath suite is selected with its runtime design import remapped;
+its source-text bridge assertion still inspects the original source as written.
+
+Build, Rust/binding lint, scoped JS lint and the maintained Toolcraft package unit
+route pass: 118 native tests and 1,566 reference/integration cases in 43 files,
+plus declaration checks. Initial unit verification caught a missing reference
+`runtime-platform.js`; the reference package's maintained build regenerated it and
+all checks then passed. The broader selected workspace dependency build stopped
+on an already-declared but uninstalled `@peculiar/x509` package in the OpenSSL
+workspace; this checkpoint does not claim that dependency closure build passed.
+
+Packed Toolcraft/native-design artifacts load all 73 imports with other external
+ESM packages blocked. Packed standalone declarations compile with `types: []`.
+A table rendered through the public Toolcraft imports was inspected as a screenshot
+and has byte-identical reference/native ANSI output. Direct re-export identities
+establish zero added per-call wrapper overhead; no new benchmark or underlying
+design performance improvement is claimed. Full Toolcraft CLI, transport and other
+subpath ports, declaration standalone/nominal swap qualification and broader
+resource/platform/performance gates remain open.

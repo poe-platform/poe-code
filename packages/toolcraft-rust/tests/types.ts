@@ -75,3 +75,23 @@ native.createRuntimeLogger({
 });
 // @ts-expect-error diagnostic events cannot use silent as an event level
 native.createRuntimeLogger().emit({ level: "silent", message: "silent" });
+
+
+import * as design from "toolcraft-rust/design";
+import {renderTable as designTable, type TableColumn} from "toolcraft-rust/design/render-table";
+import {renderMarkdownPlaintext as designPlaintext} from "toolcraft-rust/design/render-markdown-plaintext";
+import {singleDetail as designSingleDetail, type Row as DesignRow} from "toolcraft-rust/design/single-detail";
+import type {SelectOptions as DesignSelectOptions} from "toolcraft-rust/design/select";
+import type {ExplorerConfig as DesignExplorerConfig} from "toolcraft-rust/design/run-explorer";
+const designTableOriginal: typeof import("toolcraft/design/render-table").renderTable = designTable;
+const designTableOwn: typeof designTable = null as unknown as typeof import("toolcraft/design/render-table").renderTable;
+const designColumns: TableColumn[] = [{name:"name",title:"Name",alignment:"left",maxLen:40}];
+const designRendered: string = designTable({theme:design.getTheme(),rows:[{name:"Example"}],columns:designColumns});
+const designPlain: string = designPlaintext("# Heading");
+const designTheme: typeof import("toolcraft-design-rust").getTheme = design.getTheme;
+const designSelection: DesignSelectOptions<"one"|"two"> = {message:"Pick",options:[{value:"one",label:"One"},{value:"two",label:"Two"}]};
+const designRows: DesignRow[] = [{id:"a",title:"A"}];
+const designExplorer: DesignExplorerConfig<{title:string}> = {title:"Example",actions:[],rows:async()=>designRows,detail:designSingleDetail(row=>row.title)};
+// @ts-expect-error selection values must preserve the caller's option type
+const invalidDesignSelection: DesignSelectOptions<"one"> = {message:"Pick",options:[{value:"two",label:"Two"}]};
+void [designTableOriginal,designTableOwn,designRendered,designPlain,designTheme,designSelection,designExplorer,invalidDesignSelection];

@@ -31,6 +31,298 @@
     "./file-changes": {
       "types": "./dist/file-changes.d.ts",
       "import": "./dist/file-changes.js"
+    },
+    "./design": {
+      "types": "./dist/design.d.ts",
+      "import": "./dist/design.js"
+    },
+    "./design/brand": {
+      "types": "./dist/design-brand.d.ts",
+      "import": "./dist/design-brand.js"
+    },
+    "./design/brands": {
+      "types": "./dist/design-brands.d.ts",
+      "import": "./dist/design-brands.js"
+    },
+    "./design/cancel": {
+      "types": "./dist/design-cancel.d.ts",
+      "import": "./dist/design-cancel.js"
+    },
+    "./design/color": {
+      "types": "./dist/design-color.d.ts",
+      "import": "./dist/design-color.js"
+    },
+    "./design/configure-theme": {
+      "types": "./dist/design-configure-theme.d.ts",
+      "import": "./dist/design-configure-theme.js"
+    },
+    "./design/confirm-or-cancel": {
+      "types": "./dist/design-confirm-or-cancel.d.ts",
+      "import": "./dist/design-confirm-or-cancel.js"
+    },
+    "./design/confirm": {
+      "types": "./dist/design-confirm.d.ts",
+      "import": "./dist/design-confirm.js"
+    },
+    "./design/create-dashboard": {
+      "types": "./dist/design-create-dashboard.d.ts",
+      "import": "./dist/design-create-dashboard.js"
+    },
+    "./design/create-logger": {
+      "types": "./dist/design-create-logger.d.ts",
+      "import": "./dist/design-create-logger.js"
+    },
+    "./design/dark": {
+      "types": "./dist/design-dark.d.ts",
+      "import": "./dist/design-dark.js"
+    },
+    "./design/format-columns": {
+      "types": "./dist/design-format-columns.d.ts",
+      "import": "./dist/design-format-columns.js"
+    },
+    "./design/format-command-list": {
+      "types": "./dist/design-format-command-list.d.ts",
+      "import": "./dist/design-format-command-list.js"
+    },
+    "./design/format-command-not-found-panel": {
+      "types": "./dist/design-format-command-not-found-panel.d.ts",
+      "import": "./dist/design-format-command-not-found-panel.js"
+    },
+    "./design/format-command-not-found": {
+      "types": "./dist/design-format-command-not-found.d.ts",
+      "import": "./dist/design-format-command-not-found.js"
+    },
+    "./design/format-command": {
+      "types": "./dist/design-format-command.d.ts",
+      "import": "./dist/design-format-command.js"
+    },
+    "./design/format-option-list": {
+      "types": "./dist/design-format-option-list.d.ts",
+      "import": "./dist/design-format-option-list.js"
+    },
+    "./design/format-option": {
+      "types": "./dist/design-format-option.d.ts",
+      "import": "./dist/design-format-option.js"
+    },
+    "./design/format-usage": {
+      "types": "./dist/design-format-usage.d.ts",
+      "import": "./dist/design-format-usage.js"
+    },
+    "./design/get-template-partial-names": {
+      "types": "./dist/design-get-template-partial-names.d.ts",
+      "import": "./dist/design-get-template-partial-names.js"
+    },
+    "./design/get-theme-config": {
+      "types": "./dist/design-get-theme-config.d.ts",
+      "import": "./dist/design-get-theme-config.js"
+    },
+    "./design/get-theme": {
+      "types": "./dist/design-get-theme.d.ts",
+      "import": "./dist/design-get-theme.js"
+    },
+    "./design/help-formatter-plain": {
+      "types": "./dist/design-help-formatter-plain.d.ts",
+      "import": "./dist/design-help-formatter-plain.js"
+    },
+    "./design/help-formatter": {
+      "types": "./dist/design-help-formatter.d.ts",
+      "import": "./dist/design-help-formatter.js"
+    },
+    "./design/intro-plain": {
+      "types": "./dist/design-intro-plain.d.ts",
+      "import": "./dist/design-intro-plain.js"
+    },
+    "./design/intro": {
+      "types": "./dist/design-intro.d.ts",
+      "import": "./dist/design-intro.js"
+    },
+    "./design/is-cancel": {
+      "types": "./dist/design-is-cancel.d.ts",
+      "import": "./dist/design-is-cancel.js"
+    },
+    "./design/light": {
+      "types": "./dist/design-light.d.ts",
+      "import": "./dist/design-light.js"
+    },
+    "./design/log": {
+      "types": "./dist/design-log.d.ts",
+      "import": "./dist/design-log.js"
+    },
+    "./design/logger": {
+      "types": "./dist/design-logger.d.ts",
+      "import": "./dist/design-logger.js"
+    },
+    "./design/multiselect": {
+      "types": "./dist/design-multiselect.d.ts",
+      "import": "./dist/design-multiselect.js"
+    },
+    "./design/note": {
+      "types": "./dist/design-note.d.ts",
+      "import": "./dist/design-note.js"
+    },
+    "./design/open-external": {
+      "types": "./dist/design-open-external.d.ts",
+      "import": "./dist/design-open-external.js"
+    },
+    "./design/outro": {
+      "types": "./dist/design-outro.d.ts",
+      "import": "./dist/design-outro.js"
+    },
+    "./design/parse": {
+      "types": "./dist/design-parse.d.ts",
+      "import": "./dist/design-parse.js"
+    },
+    "./design/password": {
+      "types": "./dist/design-password.d.ts",
+      "import": "./dist/design-password.js"
+    },
+    "./design/prompt-cancelled-error": {
+      "types": "./dist/design-prompt-cancelled-error.d.ts",
+      "import": "./dist/design-prompt-cancelled-error.js"
+    },
+    "./design/prompt-text": {
+      "types": "./dist/design-prompt-text.d.ts",
+      "import": "./dist/design-prompt-text.js"
+    },
+    "./design/prompt-theme": {
+      "types": "./dist/design-prompt-theme.d.ts",
+      "import": "./dist/design-prompt-theme.js"
+    },
+    "./design/render-catalog": {
+      "types": "./dist/design-render-catalog.d.ts",
+      "import": "./dist/design-render-catalog.js"
+    },
+    "./design/render-detail-card": {
+      "types": "./dist/design-render-detail-card.d.ts",
+      "import": "./dist/design-render-detail-card.js"
+    },
+    "./design/render-html": {
+      "types": "./dist/design-render-html.d.ts",
+      "import": "./dist/design-render-html.js"
+    },
+    "./design/render-inspector-card": {
+      "types": "./dist/design-render-inspector-card.d.ts",
+      "import": "./dist/design-render-inspector-card.js"
+    },
+    "./design/render-markdown-html": {
+      "types": "./dist/design-render-markdown-html.d.ts",
+      "import": "./dist/design-render-markdown-html.js"
+    },
+    "./design/render-markdown-plaintext": {
+      "types": "./dist/design-render-markdown-plaintext.d.ts",
+      "import": "./dist/design-render-markdown-plaintext.js"
+    },
+    "./design/render-markdown": {
+      "types": "./dist/design-render-markdown.d.ts",
+      "import": "./dist/design-render-markdown.js"
+    },
+    "./design/render-menu": {
+      "types": "./dist/design-render-menu.d.ts",
+      "import": "./dist/design-render-menu.js"
+    },
+    "./design/render-resource-browser": {
+      "types": "./dist/design-render-resource-browser.d.ts",
+      "import": "./dist/design-render-resource-browser.js"
+    },
+    "./design/render-spinner-frame": {
+      "types": "./dist/design-render-spinner-frame.d.ts",
+      "import": "./dist/design-render-spinner-frame.js"
+    },
+    "./design/render-spinner-stopped": {
+      "types": "./dist/design-render-spinner-stopped.d.ts",
+      "import": "./dist/design-render-spinner-stopped.js"
+    },
+    "./design/render-table": {
+      "types": "./dist/design-render-table.d.ts",
+      "import": "./dist/design-render-table.js"
+    },
+    "./design/render-template": {
+      "types": "./dist/design-render-template.d.ts",
+      "import": "./dist/design-render-template.js"
+    },
+    "./design/render": {
+      "types": "./dist/design-render.d.ts",
+      "import": "./dist/design-render.js"
+    },
+    "./design/reset-output-format-cache": {
+      "types": "./dist/design-reset-output-format-cache.d.ts",
+      "import": "./dist/design-reset-output-format-cache.js"
+    },
+    "./design/reset-theme-cache": {
+      "types": "./dist/design-reset-theme-cache.d.ts",
+      "import": "./dist/design-reset-theme-cache.js"
+    },
+    "./design/reset-theme": {
+      "types": "./dist/design-reset-theme.d.ts",
+      "import": "./dist/design-reset-theme.js"
+    },
+    "./design/resolve-output-format": {
+      "types": "./dist/design-resolve-output-format.d.ts",
+      "import": "./dist/design-resolve-output-format.js"
+    },
+    "./design/resolve-template-partials": {
+      "types": "./dist/design-resolve-template-partials.d.ts",
+      "import": "./dist/design-resolve-template-partials.js"
+    },
+    "./design/resolve-theme-name": {
+      "types": "./dist/design-resolve-theme-name.d.ts",
+      "import": "./dist/design-resolve-theme-name.js"
+    },
+    "./design/run-explorer": {
+      "types": "./dist/design-run-explorer.d.ts",
+      "import": "./dist/design-run-explorer.js"
+    },
+    "./design/select": {
+      "types": "./dist/design-select.d.ts",
+      "import": "./dist/design-select.js"
+    },
+    "./design/should-use-interactive-dashboard": {
+      "types": "./dist/design-should-use-interactive-dashboard.d.ts",
+      "import": "./dist/design-should-use-interactive-dashboard.js"
+    },
+    "./design/single-detail": {
+      "types": "./dist/design-single-detail.d.ts",
+      "import": "./dist/design-single-detail.js"
+    },
+    "./design/spacing": {
+      "types": "./dist/design-spacing.d.ts",
+      "import": "./dist/design-spacing.js"
+    },
+    "./design/spinner-frames": {
+      "types": "./dist/design-spinner-frames.d.ts",
+      "import": "./dist/design-spinner-frames.js"
+    },
+    "./design/spinner": {
+      "types": "./dist/design-spinner.d.ts",
+      "import": "./dist/design-spinner.js"
+    },
+    "./design/strip-ansi": {
+      "types": "./dist/design-strip-ansi.d.ts",
+      "import": "./dist/design-strip-ansi.js"
+    },
+    "./design/symbols": {
+      "types": "./dist/design-symbols.d.ts",
+      "import": "./dist/design-symbols.js"
+    },
+    "./design/text": {
+      "types": "./dist/design-text.d.ts",
+      "import": "./dist/design-text.js"
+    },
+    "./design/typography": {
+      "types": "./dist/design-typography.d.ts",
+      "import": "./dist/design-typography.js"
+    },
+    "./design/widths": {
+      "types": "./dist/design-widths.d.ts",
+      "import": "./dist/design-widths.js"
+    },
+    "./design/with-output-format": {
+      "types": "./dist/design-with-output-format.d.ts",
+      "import": "./dist/design-with-output-format.js"
+    },
+    "./design/with-spinner": {
+      "types": "./dist/design-with-spinner.d.ts",
+      "import": "./dist/design-with-spinner.js"
     }
   },
   "scripts": {

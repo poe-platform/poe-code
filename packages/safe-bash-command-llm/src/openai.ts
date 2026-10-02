@@ -1,3 +1,4 @@
+import { requestAttachments } from "./request-attachments.js";
 export { chatJson as serializeOpenAiChatRequest, type OpenAiChatSourceRequest } from "./chat-json.js";
 import { openAiChatOptions } from "./openai-chat-options.js";
 import { chatJson } from "./chat-json.js";
@@ -211,11 +212,13 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       if (!model) throw new Error(`Unknown model: ${request.model}`);
       if (model.endpoint === "embeddings") throw new TypeError("Embedding models require embed()");
       if (model.endpoint !== "chat" && (request.messages?.length || request.schema !== undefined)) throw new TypeError("Messages and schemas require a chat model");
-      if (request.attachments.some(attachment => !acceptsMimeType(["image/*"], attachment.mimeType))) {
-        throw new Error(`OpenAI ${model.endpoint} endpoint only supports image attachments`);
+      let attachmentBytes = 0;
+      for (const attachment of requestAttachments(request)) {
+        if (!acceptsMimeType(["image/*"], attachment.mimeType)) throw new Error(`OpenAI ${model.endpoint} endpoint only supports image attachments`);
+        attachmentBytes += attachment.bytes.byteLength;
+        if (attachmentBytes > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       }
       if (model.endpoint === "videos" && request.attachments.length > 1) throw new Error("OpenAI videos accepts only one input_reference image");
-      if (request.attachments.reduce((size, file) => size + file.bytes.byteLength, 0) > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       if (model.endpoint !== "chat" && request.system !== undefined) throw new TypeError("System prompts are supported only by chat models");
       if (request.schema !== undefined && request.options.response_format !== undefined) throw new TypeError("OpenAI option response_format conflicts with request schema");
       const reserved = model.endpoint === "chat" ? ["model", "messages", "stream"]
@@ -230,11 +233,13 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       if (model.endpoint === "chat") {
         const messages: unknown[] = [];
         if (request.system !== undefined) messages.push({ role: "system", content: request.system });
-        messages.push(...request.messages ?? []);
-        messages.push({ role: "user", content: request.attachments.length === 0 ? request.prompt : [
-          { type: "text", text: request.prompt },
-          ...request.attachments.map(attachment => ({ type: "image_url", image_url: { url: `data:${attachment.mimeType};base64,${base64(attachment.bytes)}` } })),
-        ] });
+        for (const message of [...request.messages ?? [], { role: "user", content: request.prompt, attachments: request.attachments }]) {
+          const attachments = message.attachments ?? [];
+          messages.push({ role: message.role, content: attachments.length === 0 ? message.content : [
+            { type: "text", text: message.content },
+            ...attachments.map(attachment => ({ type: "image_url", image_url: { url: `data:${attachment.mimeType};base64,${base64(attachment.bytes)}` } })),
+          ] });
+        }
         let details: LlmResponseMetadata | undefined;
         const stream = request.stream !== false;
         for await (const response of send("/chat/completions", "POST", jsonBody({ ...openAiChatOptions(jsonOptions(request.options, "chat")), ...(request.schema === undefined ? {} : { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } }), model: request.model, messages, stream }, limits.maxRequestBytes))) {

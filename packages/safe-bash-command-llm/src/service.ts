@@ -1,3 +1,4 @@
+import { requestAttachments } from "./request-attachments.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { validateModelOptions } from "./model-options.js";
 import { acceptsMimeType } from "./mime.js";
@@ -188,7 +189,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
         if (!entry.model.capabilities?.includes("schema")) throw new Error(`Model ${entry.model.id} does not support schema`);
         if (!request.schema || typeof request.schema !== "object" || Array.isArray(request.schema)) throw new TypeError("Invalid LLM schema");
       }
-      for (const attachment of request.attachments) {
+      for (const attachment of requestAttachments(request)) {
         if (!acceptsMimeType(entry.model.attachmentTypes ?? [], attachment.mimeType)) {
           throw new Error(`Model ${entry.model.id} does not accept ${attachment.mimeType}`);
         }
@@ -201,7 +202,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       yield* streamResult(() => this.complete(request), entry.model, request);
     },
     async *streamSources(request: LlmServiceSourceRequest): AsyncGenerator<LlmStreamEvent> {
-      const sources = new Set<LlmInputSource>([request.prompt, ...request.system === undefined ? [] : [request.system], ...request.messages?.map(message => message.content) ?? [], ...request.attachments.map(attachment => attachment.source)]);
+      const sources = new Set<LlmInputSource>([request.prompt, ...request.system === undefined ? [] : [request.system], ...request.messages?.map(message => message.content) ?? [], ...Array.from(requestAttachments(request), attachment => attachment.source)]);
       let closing: Promise<void> | undefined, failed = false;
       const close = (): Promise<void> => closing ??= Promise.allSettled([...sources].map(source => Promise.resolve().then(() => source.dispose()))).then(results => {
         const rejected = results.find(result => result.status === "rejected");
@@ -221,7 +222,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
           if (!entry.model.capabilities?.includes("schema")) throw new Error(`Model ${entry.model.id} does not support schema`);
           if (!request.schema || typeof request.schema !== "object" || Array.isArray(request.schema)) throw new TypeError("Invalid LLM schema");
         }
-        for (const attachment of request.attachments) if (!acceptsMimeType(entry.model.attachmentTypes ?? [], attachment.mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${attachment.mimeType}`);
+        for (const attachment of requestAttachments(request)) if (!acceptsMimeType(entry.model.attachmentTypes ?? [], attachment.mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${attachment.mimeType}`);
         const { maxOutputBytes: ignoredMaxOutputBytes, ...input } = request;
         yield* streamResult(() => entry.provider.completeSources!({ ...input, model: entry.model.id, options: validateModelOptions(entry.model, request.options) }), entry.model, request);
       } catch (error) {

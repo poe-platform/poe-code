@@ -3193,3 +3193,41 @@ The Unicode repair is verified on remote main at 7229db6674. Its main Release
 workflow 37062360512 is running the build job; successful publication is not yet
 claimed. The preceding argv Release workflow completed with release-stable
 skipped, so it did not establish publication of those later changes.
+
+### Suggestion host-semantics repair
+
+Value-parser dependency inspection reproduced three gaps in the original native
+suggestion adapter: custom map callbacks saw records without distances, boxed or
+indexed strings were rejected by UTF-16 ingress, and live Array/Math methods were
+bypassed. Rust now controls suggestion admission, default selection, distance
+matrix traversal and sort branching. Node retains the original chained collection
+calls, matrix allocation/access/assignment, coercion and locale comparison.
+The public function's name, arity, signature and original candidate identity are
+preserved. No dependencies or default integration changed.
+
+Six final regressions cover those failures plus sparse candidates, matrix proxy
+access order, repeated comparator reads, NaN strict comparison, limits, malformed
+sources, arbitrary throws and reentrancy. The maintained Toolcraft route passes
+193 native tests, all 1,723 reference/integration cases in 46 files and declaration
+checks. Rust/binding and scoped JS lint pass. Existing CLI parser comparisons
+also pass with the corrected dependency.
+
+Packed public suggestions preserve custom/boxed sources with only the packed own
+schema dependency admitted as external ESM. Packed declarations compile with
+`types: []`; checkout contract-type resolution still prevents a claim of fully
+isolated type packaging. An inspected suggestion preview has reference-identical
+ANSI output. Complete host/resource/platform and swap qualification remain open.
+
+This correctness repair has a substantial performance cost. Five alternating
+warmed Node 22.23.2 ARM64 rounds of 100 five-candidate lookups, retaining 32 results,
+measured native/reference/previous-native medians of 1,237.673/21.056/2.748
+microseconds. The corrected path is 58.78 times slower than JavaScript and 450.40
+times slower than the previous native path, which failed the compatibility tests.
+The earlier scalar-checkpoint enum timing is superseded by a fresh five-round,
+100-call comparison: 218.771/7.387 microseconds native/reference (29.62 times
+slower). Reducing native/host crossings while retaining semantics remains necessary
+before a swap; these measurements do not pass the performance gate.
+
+Scalar/array parsing is verified on remote main at 746d31522e. GraphQL confirms
+its main Release workflow 37063531308 completed but skipped release-stable;
+this is not publication. REST monitoring hit a rate limit; GraphQL remains usable.

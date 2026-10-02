@@ -6,7 +6,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 
 | Capability       | Current support                                                                  |
 | ---------------- | -------------------------------------------------------------------------------- |
-| Suggestions      | UTF-16 typo distance, Node locale ordering, thresholds and result limits         |
+| Suggestions      | UTF-16 typo distance, live source methods, Node locale ordering and result limits |
 | Diagnostics      | Log levels, filtering, function and object sinks                                 |
 | Redaction        | Sensitive field/header policies, JSON bodies, serializers and cyclic references  |
 | Errors           | Toolcraft user/bug errors and HTTP status subclasses                             |

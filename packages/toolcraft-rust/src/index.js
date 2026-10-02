@@ -1,4 +1,6 @@
 import { createRequire } from "node:module";
+import { suggest } from "./suggest.js";
+export { suggest };
 
 export { isSensitiveName, redactHttpBody } from "./redaction.js";
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
@@ -18,27 +20,6 @@ export {
 const native = createRequire(import.meta.url)("./toolcraft-rust.node");
 
 export const { isLogLevel, shouldEmitDiagnostic } = native;
-
-export function suggest(input, candidates, opts = {}) {
-  if (input.length === 0) return [];
-  const max = opts.max ?? 3;
-  const threshold = opts.threshold ?? Math.max(1, Math.floor(input.length / 4));
-  const entries = candidates.map((candidate) => ({ candidate })).filter(() => true);
-  const distances = native.candidateDistances(
-    input,
-    entries.map((entry) => entry.candidate)
-  );
-  // Collation belongs to the caller's Node/ICU locale, not Rust's byte ordering.
-  return entries
-    .map(({ candidate }, index) => ({ candidate, distance: distances[index] }))
-    .filter(({ distance }) => distance <= threshold)
-    .sort(
-      (left, right) =>
-        left.distance - right.distance || left.candidate.localeCompare(right.candidate)
-    )
-    .slice(0, max)
-    .map(({ candidate }) => candidate);
-}
 
 export function createRuntimeLogger(options = {}) {
   const level = options.level ?? "warn";

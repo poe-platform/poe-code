@@ -34,6 +34,7 @@ pub mod sdk_validation;
 pub mod source_snippet;
 pub mod stack_trim;
 pub mod stream;
+pub mod suggest;
 
 #[napi]
 pub fn candidate_distances(input: Utf16String, candidates: Vec<Utf16String>) -> Vec<f64> {

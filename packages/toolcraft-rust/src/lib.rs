@@ -32,6 +32,7 @@ pub mod sdk_validation;
 pub mod source_snippet;
 pub mod stack_trim;
 pub mod stream;
+pub mod suggest;
 
 /// Optimal string alignment distance over JavaScript UTF-16 code units.
 /// Three rows retain adjacent-transposition semantics without a quadratic matrix.

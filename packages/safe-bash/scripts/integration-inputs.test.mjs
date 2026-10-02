@@ -69,9 +69,12 @@ test("shell option and alias regressions remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/shopt-runtime.test.ts"));
 });
 
-test("node path host-operation regression remains in active discovery", () => {
-  const root = fileURLToPath(new URL("../", import.meta.url));
-  assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/commands/node-path-host-operations.test.ts"));
+test("node path host-operation regression remains owned by its command workspace", () => {
+  const root = fileURLToPath(new URL("../../../", import.meta.url));
+  const directory = "packages/safe-bash-command-node";
+  const manifest = JSON.parse(readRegularInput(root, directory + "/package.json", 65536));
+  assert.ok(manifest.scripts["test:unit"].includes("src/*.test.ts"));
+  assert.ok(readRegularInput(root, directory + "/src/node-path-host-operations.test.ts", 65536).length > 0);
 });
 
 test("compound replay and function depth regressions remain in active discovery", () => {

@@ -1,3 +1,4 @@
+import "./safe-packages-apply-patch.mjs";
 import { verification as xqVerification } from "./safe-packages-xq.mjs";
 await xqVerification;
 for (const name of ["safe-bash-command-xq", "safe-bash-command-jq", "safe-bash-xml-engine", "safe-bash-query-engine"]) {

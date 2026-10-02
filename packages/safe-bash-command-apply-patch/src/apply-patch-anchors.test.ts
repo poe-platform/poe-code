@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createApplyPatchCommands } from "../../src/commands/apply-patch/index.js";
-import { fixture, run } from "./helpers.js";
+import { createApplyPatchCommands } from "./index.js";
+import { fixture, run } from "./helpers.test-support.js";
 
 for (const [name, body, expected] of [
   ["anchored insertion", "@@ first\n+inserted", "first\ninserted\nsecond\nthird\n"],

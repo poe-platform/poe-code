@@ -82,3 +82,17 @@ test("pr unit graph builds its canonical contracts and engines", async () => {
     assert.ok(plan.buildStages.some(stage => stage.name === name), `${name} must build before pr unit tests`);
   }
 });
+
+test("apply_patch owns its anchor and blank-context regressions", () => {
+  const owned = readdirSync(new URL("packages/safe-bash-command-apply-patch/src/", root));
+  for (const file of ["apply-patch-anchors.test.ts", "apply-patch-blank-context.test.ts"]) assert.ok(owned.includes(file), file);
+});
+
+test("apply_patch unit graph builds its canonical contracts and engines", async () => {
+  const { createWorkspaceTestPlan } = await import("../../../scripts/build-workspaces.mjs");
+  const { fileURLToPath } = await import("node:url");
+  const plan = createWorkspaceTestPlan(fileURLToPath(root), { workspaces: ["safe-bash-command-apply-patch"] });
+  for (const name of ["safe-bash-contracts", "safe-bash-byte-engine", "safe-bash-io-engine", "@poe-code/safe-fs"]) {
+    assert.ok(plan.buildStages.some(stage => stage.name === name), `${name} must build before apply_patch unit tests`);
+  }
+});

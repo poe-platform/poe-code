@@ -556,6 +556,11 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-command-apply-patch#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

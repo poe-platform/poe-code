@@ -28,4 +28,15 @@ describe("portable image engine", () => {
       file.includes("/safe-fs/") && file.includes("/fs/")
     )).toEqual([]);
   });
+  it("externalizes @poe-code/pdf-ast and pako in dist/index.js and re-exports ./index.js from portable/browser entrypoints", async () => {
+    const fsNode = await import("node:fs");
+    const distIndex = fsNode.readFileSync(new URL("../dist/index.js", import.meta.url), "utf8");
+    const distPortable = fsNode.readFileSync(new URL("../dist/portable.js", import.meta.url), "utf8");
+    const distBrowser = fsNode.readFileSync(new URL("../dist/index.browser.js", import.meta.url), "utf8");
+    expect(distIndex).toContain('"@poe-code/pdf-ast"');
+    expect(distIndex).toContain('"pako"');
+    expect(distIndex.length).toBeLessThan(600_000);
+    expect(distPortable).toContain('from "./index.js"');
+    expect(distBrowser).toContain('from "./index.js"');
+  });
 });

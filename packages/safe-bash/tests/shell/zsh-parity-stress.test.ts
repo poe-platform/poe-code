@@ -761,12 +761,12 @@ test("42. sync cat/head/tail/wc repeated - stdin consumption, mv -n -f precedenc
 
 test("43. sync commands respect exported-only environment boundaries (stat QUOTING_STYLE, df DF_BLOCK_SIZE, mktemp TMPDIR, and pre-set-a variables in envsubst/getopt/cal)", async () => {
   const scripts = [
-    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; QUOTING_STYLE=literal; x=\$(stat -c %N /dir/a.txt); echo \"\$?:\$x\"",
-    "DF_BLOCK_SIZE=1M; x=\$(df /); echo \"\$?:\$x\"",
-    "mkdir -p /dir; TMPDIR=/dir; x=\$(mktemp -u); echo \"\$?:\${x%/tmp.*}\"",
-    "FOO=secret; set -a; x=\$(envsubst <<< \"\\\$FOO\"); echo \"\$?:\$x\"",
-    "POSIXLY_CORRECT=1; set -a; x=\$(getopt -o ab -- -a foo -b); echo \"\$?:\$x\"",
-    "SOURCE_DATE_EPOCH=0; set -a; x=\$(cal); y=\$(cal -m 1 1970); echo \"\$?:\$([[ \"\$x\" == \"\$y\" ]] && echo eq || echo ne)\"",
+    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; QUOTING_STYLE=literal; x=$(stat -c %N /dir/a.txt); echo \"$?:$x\"",
+    "DF_BLOCK_SIZE=1M; x=$(df /); echo \"$?:$x\"",
+    "mkdir -p /dir; TMPDIR=/dir; x=$(mktemp -u); echo \"$?:${x%/tmp.*}\"",
+    "FOO=secret; set -a; x=$(envsubst <<< \"\\$FOO\"); echo \"$?:$x\"",
+    "POSIXLY_CORRECT=1; set -a; x=$(getopt -o ab -- -a foo -b); echo \"$?:$x\"",
+    "SOURCE_DATE_EPOCH=0; set -a; x=$(cal); y=$(cal -m 1 1970); echo \"$?:$([[ \"$x\" == \"$y\" ]] && echo eq || echo ne)\"",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());
@@ -781,11 +781,11 @@ test("43. sync commands respect exported-only environment boundaries (stat QUOTI
 
 test("44. sync vs async parity for find -printf (%h trailing slash, %H root, %m error) and fd (directory slash, --prune, -L follow)", async () => {
   const scripts = [
-    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=\$(find /dir/ -maxdepth 0 -printf \"%h|%f|%H\"); y=\$(find /dir/sub/ -maxdepth 0 -printf \"%h|%f|%H\"); echo \"\$x::\$y\"",
-    "mkdir -p /dir; x=\$(find /dir -maxdepth 0 -printf \"%m\\n\" 2>/dev/null); echo \"\$?:\$x\"",
-    "mkdir -p /dir/sub; printf \"hello\\n\" > /dir/sub/a.txt; x=\$(fd -t d . /dir); echo \"\$?:\$x\"",
-    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=\$(fd --prune . /dir); echo \"\$?:\$x\"",
-    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=\$(fd -L in-target.txt /dir); echo \"\$?:\$x\"",
+    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=$(find /dir/ -maxdepth 0 -printf \"%h|%f|%H\"); y=$(find /dir/sub/ -maxdepth 0 -printf \"%h|%f|%H\"); echo \"$x::$y\"",
+    "mkdir -p /dir; x=$(find /dir -maxdepth 0 -printf \"%m\\n\" 2>/dev/null); echo \"$?:$x\"",
+    "mkdir -p /dir/sub; printf \"hello\\n\" > /dir/sub/a.txt; x=$(fd -t d . /dir); echo \"$?:$x\"",
+    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=$(fd --prune . /dir); echo \"$?:$x\"",
+    "mkdir -p /dir/sub /target; printf \"hello\\n\" > /dir/sub/a.txt; printf \"world\\n\" > /target/in-target.txt; ln -s /target /dir/linkdir; x=$(fd -L in-target.txt /dir); echo \"$?:$x\"",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());
@@ -799,18 +799,18 @@ test("44. sync vs async parity for find -printf (%h trailing slash, %H root, %m 
 
 test("45. sync vs async parity for tree (charset, root dir count, multi -P, symlink -d, trailing slash), rg (-w/-x, -l/-c, -e order, repeated -), and cmp/diff/diff3 extra operand rejection", async () => {
   const scripts = [
-    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=\$(tree /dir); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=\$(tree -J /dir); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.md; x=\$(tree -P \"*.txt\" -P \"*.md\" /dir); echo \"\$?:\$x\"",
-    "mkdir -p /dir /target; ln -s /target /dir/linkdir; x=\$(tree -d /dir); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=\$(tree /dir/); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"foo\\nfoo\\n\" > /dir/a.txt; x=\$(rg -l -c foo /dir/a.txt); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"foo\\n\" > /dir/a.txt; x=\$(rg --files-without-match -l foo /dir/a.txt); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"foo_line\\n\" > /dir/a.txt; x=\$(rg /dir/a.txt -e foo <<< \"other\"); echo \"\$?:\$x\"",
-    "x=\$(rg foo - - <<< \"foo\"); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=\$(cmp /dir/a.txt /dir/a.txt /dir/a.txt); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=\$(diff /dir/a.txt /dir/a.txt /dir/a.txt); echo \"\$?:\$x\"",
-    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=\$(diff3 /dir/a.txt /dir/a.txt /dir/a.txt /dir/a.txt); echo \"\$?:\$x\"",
+    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=$(tree /dir); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=$(tree -J /dir); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"1\" > /dir/a.txt; printf \"2\" > /dir/b.md; x=$(tree -P \"*.txt\" -P \"*.md\" /dir); echo \"$?:$x\"",
+    "mkdir -p /dir /target; ln -s /target /dir/linkdir; x=$(tree -d /dir); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"hi\" > /dir/a.txt; x=$(tree /dir/); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"foo\\nfoo\\n\" > /dir/a.txt; x=$(rg -l -c foo /dir/a.txt); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"foo\\n\" > /dir/a.txt; x=$(rg --files-without-match -l foo /dir/a.txt); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"foo_line\\n\" > /dir/a.txt; x=$(rg /dir/a.txt -e foo <<< \"other\"); echo \"$?:$x\"",
+    "x=$(rg foo - - <<< \"foo\"); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=$(cmp /dir/a.txt /dir/a.txt /dir/a.txt); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=$(diff /dir/a.txt /dir/a.txt /dir/a.txt); echo \"$?:$x\"",
+    "mkdir -p /dir; printf \"same\\n\" > /dir/a.txt; x=$(diff3 /dir/a.txt /dir/a.txt /dir/a.txt /dir/a.txt); echo \"$?:$x\"",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());

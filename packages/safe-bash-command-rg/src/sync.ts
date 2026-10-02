@@ -139,7 +139,7 @@ export function evalSyncRg(
     if (fixed) {
       rawSources.push(escapeRegex(pat));
     } else {
-      if (!/^[a-zA-Z0-9_ :;,=.+*?^$\-[\]()|/\{\}\\]+$/u.test(pat) || /\([^)]*[+*][^)]*\)[+*?]/u.test(pat)) return undefined;
+      if (!/^[a-zA-Z0-9_ :;,=.+*?^$\-[\]()|/{}\\]+$/u.test(pat) || /\([^)]*[+*][^)]*\)[+*?]/u.test(pat)) return undefined;
       rawSources.push(pat);
     }
   }

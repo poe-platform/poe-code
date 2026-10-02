@@ -26,9 +26,23 @@ it("publishes the op entry and live compression chunks in one browser output gra
   }, createFsFromVolume(volume).promises);
   expect(volume.existsSync(path.join(options.outdir, "commands/op/index.browser.js"))).toBe(true);
   expect(volume.existsSync(path.join(options.outdir, "chunks/stale.js"))).toBe(false);
-  const imports = Object.values(portableBuild.metafile!.outputs).flatMap(output => output.imports).filter(item => !item.external);
-  expect(imports.some(item => path.basename(item.path).startsWith("zstd-"))).toBe(true);
-  for (const item of imports) expect(volume.existsSync(path.resolve(root, item.path)), item.path).toBe(true);
+  const entries = new Set(Object.values(options.entryPoints).map(entry => path.resolve(root, entry)));
+  const outputs = portableBuild.metafile!.outputs;
+  const pending = Object.keys(outputs).filter(name => {
+    const entry = outputs[name]!.entryPoint;
+    return entry !== undefined && entries.has(path.resolve(root, entry));
+  });
+  expect(pending).toHaveLength(entries.size);
+  const visited = new Set<string>();
+  while (pending.length) {
+    const name = pending.pop()!;
+    if (visited.has(name)) continue;
+    visited.add(name);
+    expect(volume.existsSync(path.resolve(root, name)), name).toBe(true);
+    expect(outputs[name], name).toBeDefined();
+    for (const item of outputs[name]!.imports) if (!item.external) pending.push(item.path);
+  }
+  expect([...visited].some(name => path.basename(name).startsWith("zstd-"))).toBe(true);
 });
 
 it("exposes the complete default shell under browser conditions without Node builtins", async () => {

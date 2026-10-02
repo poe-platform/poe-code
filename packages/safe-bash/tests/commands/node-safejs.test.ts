@@ -703,3 +703,34 @@ test("node process global and node:process expose version, versions, platform, a
     await shell.dispose();
   }
 });
+
+test("node supports os, crypto, util, url, and assert/strict builtins", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), cwd: "/work" }).use(nodeCommands());
+  try {
+    const result = await shell.exec("node -e " + quote(String.raw`
+      const os = require("node:os");
+      const crypto = require("node:crypto");
+      const util = require("node:util");
+      const url = require("node:url");
+      const assert = require("node:assert/strict");
+      assert.strictEqual(os.platform(), "linux");
+      assert.strictEqual(os.EOL, "\n");
+      const digest = crypto.createHash("sha256").update("safe-bash").digest("hex");
+      const hmac = crypto.createHmac("sha256", "secret").update("safe-bash").digest("hex");
+      const uuid = crypto.randomUUID();
+      assert.strictEqual(digest.length, 64);
+      assert.strictEqual(hmac.length, 64);
+      assert.strictEqual(uuid.length, 36);
+      assert.strictEqual(util.format("hello %s %d", "world", 42), "hello world 42");
+      assert.strictEqual(url.fileURLToPath("file:///work/data.json"), "/work/data.json");
+      console.log(JSON.stringify({ digest, hmac, platform: os.platform(), eol: os.EOL === "\n" }));
+    `));
+    assert.equal(result.exitCode, 0, result.stderr);
+    const parsed = JSON.parse(result.stdout);
+    assert.equal(parsed.platform, "linux");
+    assert.equal(parsed.eol, true);
+    assert.equal(parsed.digest, "eae986056f8783cec14e6b8a1275b4b87acb17bd6c9da71ac0e5b2b60f877900");
+  } finally {
+    await shell.dispose();
+  }
+});

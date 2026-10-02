@@ -1,5 +1,8 @@
 export const NODE_HELP_TEXT = "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, and --enable-source-maps.\nUse --input-type=module or --input-type=commonjs and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n";
-import { byteLength } from "../../byte-encoding.js";
+import { hmac as nobleHmac } from "@noble/hashes/hmac.js";
+import { md5, sha1 } from "@noble/hashes/legacy.js";
+import { sha256, sha384, sha512 } from "@noble/hashes/sha2.js";
+import { byteLength, decodeBytes, encodeBytes } from "../../byte-encoding.js";
 import { dirname, resolvePath } from "../../contracts/path.js";
 import type { CommandDefinition } from "../../contracts/command.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
@@ -209,7 +212,142 @@ ${selected.check ? body : `eval(${JSON.stringify(body)});`}
       };
       modules.fs = { ...nodeFs, default: nodeFs };
       const path = createNodePathModule(options.runtime, command.cwd as string);
-      const requiredModules = new Map<string, SafeJsModule>([["fs", nodeFs], ["node:fs", nodeFs], ["fs/promises", fs], ["node:fs/promises", fs], ["path", path], ["node:path", path], ["process", processModule], ["node:process", processModule]]);
+      const osModule: SafeJsModule = {
+        EOL: "\n",
+        devNull: "/dev/null",
+        platform: options.runtime.declareHostOperation(() => "linux", "read-side-effect"),
+        arch: options.runtime.declareHostOperation(() => "x64", "read-side-effect"),
+        type: options.runtime.declareHostOperation(() => "Linux", "read-side-effect"),
+        release: options.runtime.declareHostOperation(() => "6.1.0", "read-side-effect"),
+        hostname: options.runtime.declareHostOperation(() => "localhost", "read-side-effect"),
+        endianness: options.runtime.declareHostOperation(() => "LE", "read-side-effect"),
+        tmpdir: options.runtime.declareHostOperation(() => (env as Record<string, string>).TMPDIR || "/tmp", "read-side-effect"),
+        homedir: options.runtime.declareHostOperation(() => (env as Record<string, string>).HOME || "/home/user", "read-side-effect"),
+        cpus: options.runtime.declareHostOperation(() => [{ model: "Virtual CPU", speed: 2400, times: { user: 0, nice: 0, sys: 0, idle: 0, irq: 0 } }], "read-side-effect"),
+      };
+      const toHostBytes = (data: unknown, encoding?: unknown): Uint8Array => {
+        if (typeof data === "string") return encodeBytes(data, typeof encoding === "string" ? encoding as BufferEncoding : "utf8");
+        if (data instanceof Uint8Array) return data;
+        if (Array.isArray(data)) return Uint8Array.from(data as number[]);
+        if (data && typeof data === "object" && "data" in data && Array.isArray((data as { data: number[] }).data)) return Uint8Array.from((data as { data: number[] }).data);
+        throw new TypeError("crypto input must be a string or byte array");
+      };
+      const selectHash = (algorithm: unknown) => {
+        const alg = typeof algorithm === "string" ? algorithm.toLowerCase().replace("-", "") : "";
+        if (alg === "sha256") return sha256;
+        if (alg === "sha384") return sha384;
+        if (alg === "sha512") return sha512;
+        if (alg === "sha1") return sha1;
+        if (alg === "md5") return md5;
+        throw new TypeError(`Unsupported hash algorithm: ${String(algorithm)}`);
+      };
+      const formatDigest = (digestBytes: Uint8Array, encoding?: unknown): string | number[] => {
+        if (encoding === "hex") return decodeBytes(digestBytes, "hex");
+        if (encoding === "base64") return decodeBytes(digestBytes, "base64");
+        if (encoding === "base64url") return decodeBytes(digestBytes, "base64").replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/u, "");
+        return Array.from(digestBytes);
+      };
+      const concatChunks = (chunks: readonly Uint8Array[]): Uint8Array => {
+        const total = chunks.reduce((sum, c) => sum + c.byteLength, 0);
+        const out = new Uint8Array(total);
+        let offset = 0;
+        for (const c of chunks) { out.set(c, offset); offset += c.byteLength; }
+        return out;
+      };
+      const cryptoModule: SafeJsModule = {
+        randomUUID: options.runtime.declareHostOperation(() => globalThis.crypto.randomUUID(), "read-side-effect"),
+        randomBytes: options.runtime.declareHostOperation((size: unknown) => {
+          if (typeof size !== "number" || !Number.isInteger(size) || size < 0 || size > 65536) throw new RangeError("Invalid randomBytes size");
+          const bytes = globalThis.crypto.getRandomValues(new Uint8Array(size));
+          return { type: "Buffer", data: Array.from(bytes), hex: decodeBytes(bytes, "hex"), base64: decodeBytes(bytes, "base64") };
+        }, "read-side-effect"),
+        createHash: options.runtime.declareHostOperation((algorithm: unknown) => {
+          const hashFn = selectHash(algorithm);
+          const chunks: Uint8Array[] = [];
+          const hasher: SafeJsModule = {
+            update: options.runtime.declareHostOperation((data: unknown, encoding?: unknown) => {
+              chunks.push(toHostBytes(data, encoding));
+              return hasher;
+            }, "read-side-effect"),
+            digest: options.runtime.declareHostOperation((encoding?: unknown) => formatDigest(hashFn(concatChunks(chunks)), encoding), "read-side-effect"),
+          };
+          return hasher;
+        }, "read-side-effect"),
+        createHmac: options.runtime.declareHostOperation((algorithm: unknown, key: unknown) => {
+          const hashFn = selectHash(algorithm);
+          const keyBytes = toHostBytes(key);
+          const chunks: Uint8Array[] = [];
+          const hmac: SafeJsModule = {
+            update: options.runtime.declareHostOperation((data: unknown, encoding?: unknown) => {
+              chunks.push(toHostBytes(data, encoding));
+              return hmac;
+            }, "read-side-effect"),
+            digest: options.runtime.declareHostOperation((encoding?: unknown) => formatDigest(nobleHmac(hashFn, keyBytes, concatChunks(chunks)), encoding), "read-side-effect"),
+          };
+          return hmac;
+        }, "read-side-effect"),
+      };
+      const formatValue = (v: unknown): string => typeof v === "object" && v !== null ? JSON.stringify(v) : String(v);
+      const utilModule: SafeJsModule = {
+        format: options.runtime.declareHostOperation((fmt: unknown, ...args: unknown[]) => {
+          if (typeof fmt !== "string") return [fmt, ...args].map(formatValue).join(" ");
+          let i = 0;
+          let out = fmt.replace(/%[sdifjoO%]/gu, token => {
+            if (token === "%%") return "%";
+            if (i >= args.length) return token;
+            const val = args[i++];
+            if (token === "%s") return String(val);
+            if (token === "%d" || token === "%i") return String(Math.trunc(Number(val)));
+            if (token === "%f") return String(Number(val));
+            return formatValue(val);
+          });
+          while (i < args.length) out += " " + formatValue(args[i++]);
+          return out;
+        }, "read-side-effect"),
+        inspect: options.runtime.declareHostOperation((val: unknown) => formatValue(val), "read-side-effect"),
+      };
+      const urlModule: SafeJsModule = {
+        fileURLToPath: options.runtime.declareHostOperation((u: unknown) => {
+          const href = typeof u === "string" ? u : (u as { href: string }).href;
+          if (!href.startsWith("file://")) throw new TypeError("The URL must be of scheme file");
+          const raw = href.slice(7);
+          return decodeURIComponent(raw.startsWith("localhost/") ? raw.slice(9) : raw);
+        }, "read-side-effect"),
+        pathToFileURL: options.runtime.declareHostOperation((p: unknown) => ({ href: "file://" + encodeURI(resolvePath(command.cwd as string, String(p))) }), "read-side-effect"),
+      };
+      const deepEq = (a: unknown, b: unknown): boolean => {
+        if (Object.is(a, b)) return true;
+        if (typeof a !== "object" || a === null || typeof b !== "object" || b === null) return false;
+        if (Array.isArray(a) !== Array.isArray(b)) return false;
+        const ka = Object.keys(a as Record<string, unknown>);
+        const kb = Object.keys(b as Record<string, unknown>);
+        return ka.length === kb.length && ka.every(k => Object.hasOwn(b as object, k) && deepEq((a as Record<string, unknown>)[k], (b as Record<string, unknown>)[k]));
+      };
+      const assertFail = (m?: unknown): never => {
+        throw Object.assign(new Error(typeof m === "string" && m ? m : "Assertion failed"), { name: "AssertionError", code: "ERR_ASSERTION" });
+      };
+      const assertModule: SafeJsModule = {
+        ok: options.runtime.declareHostOperation((v: unknown, m?: unknown) => { if (!v) assertFail(m); }, "read-side-effect"),
+        equal: options.runtime.declareHostOperation((a: unknown, b: unknown, m?: unknown) => { if (a != b) assertFail(m); }, "read-side-effect"),
+        strictEqual: options.runtime.declareHostOperation((a: unknown, b: unknown, m?: unknown) => { if (!Object.is(a, b)) assertFail(m); }, "read-side-effect"),
+        notEqual: options.runtime.declareHostOperation((a: unknown, b: unknown, m?: unknown) => { if (a == b) assertFail(m); }, "read-side-effect"),
+        notStrictEqual: options.runtime.declareHostOperation((a: unknown, b: unknown, m?: unknown) => { if (Object.is(a, b)) assertFail(m); }, "read-side-effect"),
+        deepEqual: options.runtime.declareHostOperation((a: unknown, b: unknown, m?: unknown) => { if (!deepEq(a, b)) assertFail(m); }, "read-side-effect"),
+        deepStrictEqual: options.runtime.declareHostOperation((a: unknown, b: unknown, m?: unknown) => { if (!deepEq(a, b)) assertFail(m); }, "read-side-effect"),
+        fail: options.runtime.declareHostOperation((m?: unknown) => { assertFail(m); }, "read-side-effect"),
+      };
+      const requiredModules = new Map<string, SafeJsModule>([
+        ["fs", nodeFs], ["node:fs", nodeFs],
+        ["fs/promises", fs], ["node:fs/promises", fs],
+        ["path", path], ["node:path", path],
+        ["process", processModule], ["node:process", processModule],
+        ["os", osModule], ["node:os", osModule],
+        ["crypto", cryptoModule], ["node:crypto", cryptoModule],
+        ["util", utilModule], ["node:util", utilModule],
+        ["url", urlModule], ["node:url", urlModule],
+        ["assert", assertModule], ["node:assert", assertModule],
+        ["assert/strict", assertModule], ["node:assert/strict", assertModule],
+      ]);
       for (const [name, module] of requiredModules) modules[name] = { ...module, default: module };
       const prefix = bufferSource + timerSource + (directory === undefined ? "" : "let __dirname = __safeBashDirectory;\n") + nodeRequireSource;
       const printing = selected.print && selected.inputType !== "commonjs";

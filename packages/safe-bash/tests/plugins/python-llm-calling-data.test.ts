@@ -52,6 +52,23 @@ for value in [{"nested":float("inf")}, {"nested":9007199254740992}, cycle, {"nes
  assert len(payloads) == before
 `));
 
+test('declared dictionary and list options retain Python validation and transport', () => run(`
+model = llm.Model("fixture", metadata={"options": {
+ "logit_bias": {"type":"object"}, "stop": {"type":"array"}
+}})
+assert model.Options.model_json_schema()["properties"]["logit_bias"]["type"] == "object"
+assert model.Options.model_json_schema()["properties"]["stop"]["type"] == "array"
+assert model.prompt("hello", logit_bias={42:5}, stop=["end"]).text() == "ok"
+assert payloads[-1]["options"] == {"logit_bias":{"42":5},"stop":["end"]}
+for options in [{"logit_bias":[]}, {"stop":{}}, {"unknown":True}]:
+ before = len(payloads)
+ try:
+  model.prompt("invalid", **options).text()
+  raise AssertionError("invalid declared option accepted")
+ except ValueError: pass
+ assert len(payloads) == before
+`));
+
 test('ordinary sync and async conversations preserve completed response attachments', () => run(`
 model = llm.get_model("fixture")
 conversation = model.conversation()

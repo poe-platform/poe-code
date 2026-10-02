@@ -8,16 +8,31 @@ import {
 import { shellValueFromBytes } from "safe-bash-contracts/value";
 import { FsError } from "safe-bash-contracts/errors";
 import { createHtmlqCommand, htmlq, htmlqCommands, HtmlError } from "./index.js";
-import { defaultHtmlLimits } from "./contracts.js";
+import { defaultHtmlLimits, HtmlBudget } from "./contracts.js";
 
-test("htmlq accepts explicitly undefined limit overrides", async () => {
-  for (const key of Object.keys(defaultHtmlLimits)) {
-    const sample = fixture(["-t", "p"]);
-    const result = await createHtmlqCommand({ limits: { [key]: undefined } }).execute(sample.context);
-    assert.equal(result.exitCode, 0, key);
-    assert.equal(sample.text(), "X\n");
+test("every htmlq quota defaults to unlimited in the engine", () => {
+  const budget = new HtmlBudget({ signal: new AbortController().signal });
+  for (const key of Object.keys(defaultHtmlLimits) as (keyof typeof defaultHtmlLimits)[]) {
+    assert.equal(budget.limits[key], Infinity, key);
+    assert.doesNotThrow(() => budget.charge(key, Number.MAX_SAFE_INTEGER), key);
   }
 });
+
+for (const value of [undefined, Infinity, Number.MAX_SAFE_INTEGER]) {
+  test(`htmlq accepts ${value} for every limit in CLI and SDK execution`, async () => {
+    for (const key of Object.keys(defaultHtmlLimits)) {
+      for (const api of ["cli", "sdk"]) {
+        const sample = fixture(["-t", "p"]);
+        const options = { limits: { [key]: value } };
+        const result = api === "cli"
+          ? await createHtmlqCommand(options).execute(sample.context)
+          : await htmlq(sample.context, options);
+        assert.equal(result.exitCode, 0, `${api}: ${key}`);
+        assert.equal(sample.text(), "X\n");
+      }
+    }
+  });
+}
 function fixture(argv: readonly string[], input = "<p>X</p>") {
   const carrier = createCommandArguments(argv),
     output: Uint8Array[] = [],

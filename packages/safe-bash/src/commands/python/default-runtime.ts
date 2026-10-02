@@ -37,47 +37,108 @@ async function collectVfsSnapshot(
   }
 }
 
+let cachedWasiDepsPromise: Promise<{
+  mod: unknown;
+  shim: any;
+}> | undefined;
+
+async function getWasiPythonDeps(): Promise<{ mod: unknown; shim: any }> {
+  if (!cachedWasiDepsPromise) {
+    cachedWasiDepsPromise = (async () => {
+      const moduleMod = ["node", "module"].join(":");
+      const fsMod = ["node", "fs"].join(":");
+      const [{ createRequire }, nodeFs] = await Promise.all([
+        import(moduleMod),
+        import(fsMod),
+      ]);
+      const pkgRequire = createRequire(import.meta.url);
+      const shim = pkgRequire("@bjorn3/browser_wasi_shim");
+      const wasmPath = pkgRequire.resolve("@antonz/python-wasi/dist/python.wasm");
+      const wasmBytes = nodeFs.readFileSync(wasmPath);
+      const mod = await (globalThis as any).WebAssembly.compile(wasmBytes);
+      return { mod, shim };
+    })();
+  }
+  return cachedWasiDepsPromise;
+}
+
+function insertWasiFile(Directory: any, File: any, map: Map<string, any>, relPath: string, bytes: Uint8Array): void {
+  const parts = relPath.split("/").filter(Boolean);
+  let cur = map;
+  for (let i = 0; i < parts.length - 1; i++) {
+    const seg = parts[i]!;
+    let child = cur.get(seg);
+    if (!child || !(child instanceof Directory)) {
+      child = new Directory(new Map());
+      cur.set(seg, child);
+    }
+    cur = child.contents;
+  }
+  if (parts.length > 0) {
+    cur.set(parts[parts.length - 1]!, new File(new Uint8Array(bytes)));
+  }
+}
+
+function collectWasiFiles(Directory: any, File: any, map: Map<string, any>, prefix: string, out: [string, Uint8Array][]): void {
+  for (const [name, inode] of map.entries()) {
+    const p = prefix ? prefix + "/" + name : name;
+    if (inode instanceof File) {
+      out.push([p, new Uint8Array(inode.data)]);
+    } else if (inode instanceof Directory) {
+      collectWasiFiles(Directory, File, inode.contents, p, out);
+    }
+  }
+}
+
 async function runWasiPythonWorker(
   context: CommandContext,
   args: readonly string[]
 ): Promise<CommandResult> {
-  const stdinBytes = context.stdinIsDefault
-    ? new Uint8Array(0)
-    : await collectBytes(context.stdin, { signal: context.signal });
+  try {
+    const stdinBytes = context.stdinIsDefault
+      ? new Uint8Array(0)
+      : await collectBytes(context.stdin, { signal: context.signal });
 
-  const initialFiles = new Map<string, Uint8Array>();
-  const budget = { bytes: 0, maxBytes: 32 * 1024 * 1024 };
-  await collectVfsSnapshot(context, context.cwd, "", initialFiles, budget);
+    const initialFiles = new Map<string, Uint8Array>();
+    const budget = { bytes: 0, maxBytes: 32 * 1024 * 1024 };
+    await collectVfsSnapshot(context, context.cwd, "", initialFiles, budget);
 
-  // Also check if any arg references an external VFS file (e.g. /tmp/script.py)
-  for (const arg of args) {
-    if (arg.startsWith("/") && !arg.startsWith(context.cwd + "/")) {
-      try {
-        const data = await context.fs.readFile(arg, { signal: context.signal });
-        if (budget.bytes + data.byteLength <= budget.maxBytes) {
-          budget.bytes += data.byteLength;
-          initialFiles.set(`__abs__${arg}`, new Uint8Array(data));
+    for (const arg of args) {
+      if (arg.startsWith("/") && !arg.startsWith(context.cwd + "/")) {
+        try {
+          const data = await context.fs.readFile(arg, { signal: context.signal });
+          if (budget.bytes + data.byteLength <= budget.maxBytes) {
+            budget.bytes += data.byteLength;
+            initialFiles.set(`__abs__${arg}`, new Uint8Array(data));
+          }
+        } catch {
+          // ignore non-existent path args
         }
-      } catch {
-        // ignore non-existent path args
       }
     }
-  }
 
-  const workerMod = ["node", "worker_threads"].join(":");
-  const { Worker } = await import(workerMod);
-  const workerScript = `
-    const fs = require("node:fs");
-    const { createRequire } = require("node:module");
-    const { parentPort, workerData } = require("node:worker_threads");
-    const pkgRequire = createRequire(workerData.moduleUrl);
-    const { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, Directory } = pkgRequire("@bjorn3/browser_wasi_shim");
+    const { mod, shim } = await getWasiPythonDeps();
+    const { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, Directory } = shim;
 
-    function insertFile(map, relPath, bytes) {
-      const parts = relPath.split("/").filter(Boolean);
-      let cur = map;
-      for (let i = 0; i < parts.length - 1; i++) {
-        const seg = parts[i];
+    const root = new Map<string, any>();
+    const cwdMap = new Map<string, any>();
+    for (const [relPath, bytes] of initialFiles.entries()) {
+      if (relPath.startsWith("__abs__/")) {
+        insertWasiFile(Directory, File, root, relPath.slice("__abs__/".length), bytes);
+      } else {
+        insertWasiFile(Directory, File, cwdMap, relPath, bytes);
+      }
+    }
+    initialFiles.clear();
+
+    for (const [k, v] of cwdMap.entries()) {
+      root.set(k, v);
+    }
+    if (context.cwd && context.cwd !== "/") {
+      const cwdParts = context.cwd.split("/").filter(Boolean);
+      let cur = root;
+      for (let i = 0; i < cwdParts.length - 1; i++) {
+        const seg = cwdParts[i]!;
         let child = cur.get(seg);
         if (!child || !(child instanceof Directory)) {
           child = new Directory(new Map());
@@ -85,183 +146,91 @@ async function runWasiPythonWorker(
         }
         cur = child.contents;
       }
-      if (parts.length > 0) {
-        cur.set(parts[parts.length - 1], new File(new Uint8Array(bytes)));
+      if (cwdParts.length > 0) {
+        cur.set(cwdParts[cwdParts.length - 1]!, new Directory(cwdMap));
       }
     }
-
-    function collectFiles(map, prefix, out) {
-      for (const [name, inode] of map.entries()) {
-        const p = prefix ? prefix + "/" + name : name;
-        if (inode instanceof File) {
-          out.push([p, new Uint8Array(inode.data)]);
-        } else if (inode instanceof Directory) {
-          collectFiles(inode.contents, p, out);
-        }
-      }
+    if (!root.has("tmp")) {
+      root.set("tmp", new Directory(new Map()));
     }
 
-    (async () => {
-      try {
-        const wasmPath = pkgRequire.resolve("@antonz/python-wasi/dist/python.wasm");
-        const wasmBytes = fs.readFileSync(wasmPath);
-        const mod = await WebAssembly.compile(wasmBytes);
-
-        const root = new Map();
-        const cwdMap = new Map();
-        for (const [relPath, bytes] of workerData.files) {
-          if (relPath.startsWith("__abs__/")) {
-            insertFile(root, relPath.slice("__abs__/".length), bytes);
-          } else {
-            insertFile(cwdMap, relPath, bytes);
-          }
-        }
-        // Mirror cwdMap entries into root so relative paths work from "/"
-        for (const [k, v] of cwdMap.entries()) {
-          root.set(k, v);
-        }
-        // Also mount cwdMap at workerData.cwd so absolute paths inside cwd resolve to the same inodes
-        if (workerData.cwd && workerData.cwd !== "/") {
-          const cwdParts = workerData.cwd.split("/").filter(Boolean);
-          let cur = root;
-          for (let i = 0; i < cwdParts.length - 1; i++) {
-            const seg = cwdParts[i];
-            let child = cur.get(seg);
-            if (!child || !(child instanceof Directory)) {
-              child = new Directory(new Map());
-              cur.set(seg, child);
-            }
-            cur = child.contents;
-          }
-          cur.set(cwdParts[cwdParts.length - 1], new Directory(cwdMap));
-        }
-        if (!root.has("tmp")) {
-          root.set("tmp", new Directory(new Map()));
-        }
-
-        const outChunks = [];
-        const errChunks = [];
-        const envVars = Object.entries(workerData.env || {}).map(([k, v]) => k + "=" + v);
-        if (!envVars.some(e => e.startsWith("PYTHONPATH="))) envVars.push("PYTHONPATH=/");
-        if (!envVars.some(e => e.startsWith("PYTHONIOENCODING="))) envVars.push("PYTHONIOENCODING=utf-8");
-
-        const wasi = new WASI(
-          ["python3", "-B", ...workerData.args],
-          envVars,
-          [
-            new OpenFile(new File(new Uint8Array(workerData.stdin))),
-            new ConsoleStdout(b => outChunks.push(new Uint8Array(b))),
-            new ConsoleStdout(b => errChunks.push(new Uint8Array(b))),
-            new PreopenDirectory("/", root),
-          ],
-          { debug: false }
-        );
-        const inst = await WebAssembly.instantiate(mod, { wasi_snapshot_preview1: wasi.wasiImport });
-        const exitCode = wasi.start(inst);
-
-        const finalFiles = [];
-        const topExclude = new Set(["tmp", ...(workerData.cwd && workerData.cwd !== "/" ? [workerData.cwd.split("/").filter(Boolean)[0]] : [])]);
-        for (const [name, inode] of root.entries()) {
-          if (topExclude.has(name) && !cwdMap.has(name)) continue;
-          if (inode instanceof File) {
-            finalFiles.push([name, new Uint8Array(inode.data)]);
-          } else if (inode instanceof Directory) {
-            collectFiles(inode.contents, name, finalFiles);
-          }
-        }
-
-        const concat = (arr) => {
-          const total = arr.reduce((s, c) => s + c.byteLength, 0);
-          const res = new Uint8Array(total);
-          let off = 0;
-          for (const c of arr) { res.set(c, off); off += c.byteLength; }
-          return res;
-        };
-
-        parentPort.postMessage({
-          ok: true,
-          exitCode: typeof exitCode === "number" ? exitCode : 0,
-          stdout: concat(outChunks),
-          stderr: concat(errChunks),
-          files: finalFiles,
-        });
-      } catch (err) {
-        parentPort.postMessage({
-          ok: false,
-          message: err instanceof Error ? err.message : String(err),
-        });
-      }
-    })();
-  `;
-
-  const result = await new Promise<{
-    ok: boolean;
-    exitCode?: number;
-    stdout?: Uint8Array;
-    stderr?: Uint8Array;
-    files?: [string, Uint8Array][];
-    message?: string;
-  }>((resolve, reject) => {
-    const worker = new Worker(workerScript, {
-      eval: true,
-      workerData: {
-        moduleUrl: import.meta.url,
-        cwd: context.cwd,
-        args: [...args],
-        env: { ...context.env, PWD: context.cwd, HOME: context.env.HOME ?? context.cwd },
-        stdin: stdinBytes,
-        files: [...initialFiles.entries()],
-      },
-    });
-    const onAbort = () => {
-      void worker.terminate();
-      reject(context.signal.reason ?? new Error("aborted"));
+    const outChunks: Uint8Array[] = [];
+    const errChunks: Uint8Array[] = [];
+    const envObj: Record<string, string> = {
+      ...context.env,
+      PWD: context.cwd,
+      HOME: context.env.HOME ?? context.cwd,
     };
-    context.signal.addEventListener("abort", onAbort, { once: true });
-    worker.once("message", async (msg: any) => {
-      context.signal.removeEventListener("abort", onAbort);
-      await worker.terminate();
-      resolve(msg);
-    });
-    worker.once("error", async (err: unknown) => {
-      context.signal.removeEventListener("abort", onAbort);
-      await worker.terminate();
-      reject(err);
-    });
-  });
+    const envVars = Object.entries(envObj).map(([k, v]) => `${k}=${v}`);
+    if (!envVars.some((e) => e.startsWith("PYTHONPATH="))) envVars.push("PYTHONPATH=/");
+    if (!envVars.some((e) => e.startsWith("PYTHONIOENCODING="))) envVars.push("PYTHONIOENCODING=utf-8");
 
-  if (!result.ok) {
+    const wasi = new WASI(
+      ["python3", "-B", ...args],
+      envVars,
+      [
+        new OpenFile(new File(new Uint8Array(stdinBytes))),
+        new ConsoleStdout((b: Uint8Array) => outChunks.push(new Uint8Array(b))),
+        new ConsoleStdout((b: Uint8Array) => errChunks.push(new Uint8Array(b))),
+        new PreopenDirectory("/", root),
+      ],
+      { debug: false }
+    );
+    const inst = await (globalThis as any).WebAssembly.instantiate(mod, { wasi_snapshot_preview1: wasi.wasiImport });
+    const exitCode = wasi.start(inst);
+
+    const finalFiles: [string, Uint8Array][] = [];
+    const topExclude = new Set([
+      "tmp",
+      ...(context.cwd && context.cwd !== "/" ? [context.cwd.split("/").filter(Boolean)[0]!] : []),
+    ]);
+    for (const [name, inode] of root.entries()) {
+      if (topExclude.has(name) && !cwdMap.has(name)) continue;
+      if (inode instanceof File) {
+        finalFiles.push([name, new Uint8Array(inode.data)]);
+      } else if (inode instanceof Directory) {
+        collectWasiFiles(Directory, File, inode.contents, name, finalFiles);
+      }
+    }
+
+    for (const [relPath, bytes] of finalFiles) {
+      const targetPath = resolvePath(context.cwd, relPath);
+      const slashIdx = targetPath.lastIndexOf("/");
+      if (slashIdx > 0) {
+        await context.fs.mkdir(targetPath.slice(0, slashIdx), { recursive: true, signal: context.signal });
+      }
+      await context.fs.writeFile(targetPath, bytes, { signal: context.signal });
+    }
+
+    const concat = (arr: Uint8Array[]) => {
+      const total = arr.reduce((s, c) => s + c.byteLength, 0);
+      const res = new Uint8Array(total);
+      let off = 0;
+      for (const c of arr) {
+        res.set(c, off);
+        off += c.byteLength;
+      }
+      return res;
+    };
+
+    const stdout = concat(outChunks);
+    const stderr = concat(errChunks);
+    if (stdout.byteLength > 0) {
+      await writeBytes(context.stdout, stdout, context.signal);
+    }
+    if (stderr.byteLength > 0) {
+      await writeBytes(context.stderr, stderr, context.signal);
+    }
+
+    return { exitCode: typeof exitCode === "number" ? exitCode : 0 };
+  } catch (err) {
     await writeBytes(
       context.stderr,
-      encoder.encode(`python3: ${result.message ?? "execution failed"}\n`),
+      encoder.encode(`python3: ${err instanceof Error ? err.message : String(err)}\n`),
       context.signal
     );
     return { exitCode: 1 };
   }
-
-  for (const [relPath, bytes] of result.files ?? []) {
-    const prev = initialFiles.get(relPath);
-    const unchanged =
-      prev !== undefined &&
-      prev.byteLength === bytes.byteLength &&
-      prev.every((b, idx) => b === bytes[idx]);
-    if (!unchanged) {
-      const targetPath = resolvePath(context.cwd, relPath);
-      const slash = targetPath.lastIndexOf("/");
-      if (slash > 0) {
-        await context.fs.mkdir(targetPath.slice(0, slash), { recursive: true, signal: context.signal });
-      }
-      await context.fs.writeFile(targetPath, bytes, { signal: context.signal });
-    }
-  }
-
-  if (result.stdout && result.stdout.byteLength > 0) {
-    await writeBytes(context.stdout, result.stdout, context.signal);
-  }
-  if (result.stderr && result.stderr.byteLength > 0) {
-    await writeBytes(context.stderr, result.stderr, context.signal);
-  }
-  return { exitCode: result.exitCode ?? 0 };
 }
 
 async function executeDefaultPython(context: CommandContext): Promise<CommandResult> {

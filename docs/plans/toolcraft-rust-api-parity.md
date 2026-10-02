@@ -2454,3 +2454,36 @@ prompt test helpers and Markdown theme fixture. Four original suites remain
 unselected: dashboard demo/pipeline scenario and explorer demo/import boundaries.
 Already-exposed modules still require the complete package-wide swap audit.
 Broader Toolcraft, nominal typing, performance and platform gates remain open.
+
+### Public terminal-string tail checkpoint
+
+`dashboard/terminal-strings` now exposes its original two functions. The stream
+filter retains its existing implementation identity; `terminalControlTailStart`
+uses a new Rust control-boundary policy with host operations for observable
+index/length reads, comparisons, character methods and the live `Math.min` call.
+The no-control ingress path returns the original start value without coercion.
+It does not expose the bounded internal preview helper as the public function;
+that helper's numeric-only contract and loop bound would change observations.
+
+Four missing-subpath cases preceded implementation. Five final differential cases
+cover ordinary and boxed strings, CSI/C1 and incomplete escapes, UTF-16, fractional
+and nonnumber starts, repeated coercion, live getters/method overrides, error
+messages, arbitrary thrown values and reentrancy. Public export names, descriptors,
+function metadata and filter identity match. The original nonterminating public
+scan for infinite control-bearing starts has not been exercised; complete resource
+and performance qualification remains open.
+
+Build, Rust/binding and scoped JS lint, package unit and bidirectional declaration
+checks pass: 399 native host tests, 1,516 selected design cases, 13 prompt wrappers,
+132 dashboard/queue cases, 14 composer cases and 315 explorer cases. Packed imports
+run with external ESM dependencies blocked and standalone declarations compile
+with `types: []`. A control-trimming screenshot was inspected; its full-style,
+partial-parameter, post-parameter and incomplete-control output is byte-identical
+to the reference. No dependencies or default integration changed.
+
+Five warmed alternating Node 22 ARM64 rounds with 32 retained results measured
+0.01537 microseconds native / 0.01455 microseconds JavaScript for plain text
+(100,000 calls/round), and 9.6193 / 0.03813 microseconds for a short control-boundary
+scan (1,000 calls/round, 252.31 times slower). No performance gate passed.
+Seven concrete demo/testing modules, the complete existing-surface audit, batching
+and broader Toolcraft/platform/swap qualification remain open.

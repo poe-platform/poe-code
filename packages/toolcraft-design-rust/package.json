@@ -803,6 +803,10 @@
     "./prompts/interactive/index": {
       "types": "./dist/prompt-interactive.d.ts",
       "import": "./dist/prompt-interactive.js"
+    },
+    "./dashboard/terminal-strings": {
+      "types": "./dist/terminal-strings.d.ts",
+      "import": "./dist/terminal-strings.js"
     }
   },
   "scripts": {

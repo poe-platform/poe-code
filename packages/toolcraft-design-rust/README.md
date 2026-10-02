@@ -217,6 +217,11 @@ chunks; Node supplies string ingress and returned snapshots. Input and temporary
 conversion memory are outside the retained-state budget. Unlike the original
 helper, a negative-infinite tail budget terminates safely for ANSI text.
 
+`toolcraft-design-rust/dashboard/terminal-strings` exports the streaming
+`createTerminalStringFilter()` and `terminalControlTailStart(text, start)`.
+Use the latter to move a UTF-16 tail boundary past an escape sequence instead
+of displaying its remaining parameters as text.
+
 ```ts
 import { logger, withOutputFormat } from 'toolcraft-design-rust';
 

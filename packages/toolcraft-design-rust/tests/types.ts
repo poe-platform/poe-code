@@ -1040,3 +1040,9 @@ const writerNative: nativeAcpWriter.AcpLineWriter = null as unknown as reference
 void [acpOriginal,acpNative,acpComponentsOriginal,acpComponentsNative,acpPlanOriginal,acpPlanNative,acpWriterOriginal,acpWriterNative,acpRootOriginal,acpRootNative,acpStateOriginal,acpStateNative,componentStateOriginal,componentStateNative,planEntryOriginal,planEntryNative,writerOriginal,writerNative];
 
 import "./nested-subpaths-types.js";
+
+import * as nativeTerminalStrings from "toolcraft-design-rust/dashboard/terminal-strings";
+import type * as originalTerminalStrings from "toolcraft-design/dashboard/terminal-strings";
+const terminalStringsOriginal: typeof originalTerminalStrings = nativeTerminalStrings;
+const terminalStringsNative: typeof nativeTerminalStrings = null as unknown as typeof originalTerminalStrings;
+void [terminalStringsOriginal,terminalStringsNative];

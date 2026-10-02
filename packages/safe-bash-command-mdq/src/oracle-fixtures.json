@@ -1545,5 +1545,1011 @@
     "stdout": "This text has both\n[an inline link](https://example.com/inline) and a\n[referenced link][1]. It also has an image:\n\n![image alt text](https://example.com/hylas-and-nymphs.png)\n\n> We can also have text that wraps within quoted\n> text.\n\n- Or we can have text that wraps within ordered\n  lists\n\n  - including sublists, which should take the\n    indentation into account\n  - and even if there are multiple items that are\n    in there\n\n[1]: https://example.com/referenced\n",
     "stderr": "",
     "exitCode": 0
+  },
+  {
+    "id": "semantic-audit/corpus/headings//markdown",
+    "stdin": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\nSetext\n======\n\nS.\n\nSub\n---\n\nT.",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\n# Setext\n\nS.\n\n## Sub\n\nT.\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/headings//json",
+    "stdin": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\nSetext\n======\n\nS.\n\nSub\n---\n\nT.",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"A.\"},{\"section\":{\"depth\":3,\"title\":\"Child\",\"body\":[{\"paragraph\":\"C.\"}]}},{\"section\":{\"depth\":2,\"title\":\"Beta\",\"body\":[{\"paragraph\":\"B.\"}]}}]}},{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"D.\"}]}},{\"section\":{\"depth\":1,\"title\":\"\",\"body\":[{\"paragraph\":\"Empty.\"}]}},{\"section\":{\"depth\":1,\"title\":\"Setext\",\"body\":[{\"paragraph\":\"S.\"},{\"section\":{\"depth\":2,\"title\":\"Sub\",\"body\":[{\"paragraph\":\"T.\"}]}}]}}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/headings/# /Alpha|Beta//markdown",
+    "stdin": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\nSetext\n======\n\nS.\n\nSub\n---\n\nT.",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n   -----\n\n# Alpha\n\nD.\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/headings/# /Alpha|Beta//json",
+    "stdin": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\nSetext\n======\n\nS.\n\nSub\n---\n\nT.",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"A.\"},{\"section\":{\"depth\":3,\"title\":\"Child\",\"body\":[{\"paragraph\":\"C.\"}]}},{\"section\":{\"depth\":2,\"title\":\"Beta\",\"body\":[{\"paragraph\":\"B.\"}]}}]}},{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"D.\"}]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/headings/# Alpha | # Child/markdown",
+    "stdin": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\nSetext\n======\n\nS.\n\nSub\n---\n\nT.",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# Alpha | # Child"
+    ],
+    "exitCode": 0,
+    "stdout": "### Child\n\nC.\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/code//markdown",
+    "stdin": "# Alpha\n\n```md\n# Fake\n```\n\n    # Indented\n\n\\# Escaped\n\n~~~\n# Also fake\n~~~\n\n## Real\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n```md\n# Fake\n```\n\n```\n# Indented\n```\n\n# Escaped\n\n```\n# Also fake\n```\n\n## Real\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/code//json",
+    "stdin": "# Alpha\n\n```md\n# Fake\n```\n\n    # Indented\n\n\\# Escaped\n\n~~~\n# Also fake\n~~~\n\n## Real\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"code_block\":{\"code\":\"# Fake\",\"type\":\"code\",\"language\":\"md\"}},{\"code_block\":{\"code\":\"# Indented\",\"type\":\"code\"}},{\"paragraph\":\"# Escaped\"},{\"code_block\":{\"code\":\"# Also fake\",\"type\":\"code\"}},{\"section\":{\"depth\":2,\"title\":\"Real\",\"body\":[]}}]}}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/code/# /Alpha|Beta//markdown",
+    "stdin": "# Alpha\n\n```md\n# Fake\n```\n\n    # Indented\n\n\\# Escaped\n\n~~~\n# Also fake\n~~~\n\n## Real\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n```md\n# Fake\n```\n\n```\n# Indented\n```\n\n# Escaped\n\n```\n# Also fake\n```\n\n## Real\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/code/# /Alpha|Beta//json",
+    "stdin": "# Alpha\n\n```md\n# Fake\n```\n\n    # Indented\n\n\\# Escaped\n\n~~~\n# Also fake\n~~~\n\n## Real\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"code_block\":{\"code\":\"# Fake\",\"type\":\"code\",\"language\":\"md\"}},{\"code_block\":{\"code\":\"# Indented\",\"type\":\"code\"}},{\"paragraph\":\"# Escaped\"},{\"code_block\":{\"code\":\"# Also fake\",\"type\":\"code\"}},{\"section\":{\"depth\":2,\"title\":\"Real\",\"body\":[]}}]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/containers//markdown",
+    "stdin": "> # Alpha\n>\n> A\n>\n> ## Child\n> B\n\n- # Alpha\n\n  Body\n\n  - ## Child\n\n    nested\n\n1. # Ordered\n\n   text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "> # Alpha\n>\n> A\n>\n> ## Child\n>\n> B\n\n- # Alpha\n\n  Body\n\n  - ## Child\n\n    nested\n\n1. # Ordered\n\n   text\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/containers//json",
+    "stdin": "> # Alpha\n>\n> A\n>\n> ## Child\n> B\n\n- # Alpha\n\n  Body\n\n  - ## Child\n\n    nested\n\n1. # Ordered\n\n   text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"block_quote\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"A\"},{\"section\":{\"depth\":2,\"title\":\"Child\",\"body\":[{\"paragraph\":\"B\"}]}}]}}]},{\"list\":[{\"item\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"Body\"},{\"list\":[{\"item\":[{\"section\":{\"depth\":2,\"title\":\"Child\",\"body\":[{\"paragraph\":\"nested\"}]}}]}]}]}}]}]},{\"list\":[{\"item\":[{\"section\":{\"depth\":1,\"title\":\"Ordered\",\"body\":[{\"paragraph\":\"text\"}]}}],\"index\":1}]}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/containers/#/json",
+    "stdin": "> # Alpha\n>\n> A\n>\n> ## Child\n> B\n\n- # Alpha\n\n  Body\n\n  - ## Child\n\n    nested\n\n1. # Ordered\n\n   text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "#"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"A\"},{\"section\":{\"depth\":2,\"title\":\"Child\",\"body\":[{\"paragraph\":\"B\"}]}}]}},{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"Body\"},{\"list\":[{\"item\":[{\"section\":{\"depth\":2,\"title\":\"Child\",\"body\":[{\"paragraph\":\"nested\"}]}}]}]}]}},{\"section\":{\"depth\":1,\"title\":\"Ordered\",\"body\":[{\"paragraph\":\"text\"}]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/containers/# /Alpha|Beta//markdown",
+    "stdin": "> # Alpha\n>\n> A\n>\n> ## Child\n> B\n\n- # Alpha\n\n  Body\n\n  - ## Child\n\n    nested\n\n1. # Ordered\n\n   text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\nA\n\n## Child\n\nB\n\n   -----\n\n# Alpha\n\nBody\n\n- ## Child\n\n  nested\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/containers/# /Alpha|Beta//json",
+    "stdin": "> # Alpha\n>\n> A\n>\n> ## Child\n> B\n\n- # Alpha\n\n  Body\n\n  - ## Child\n\n    nested\n\n1. # Ordered\n\n   text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"A\"},{\"section\":{\"depth\":2,\"title\":\"Child\",\"body\":[{\"paragraph\":\"B\"}]}}]}},{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"Body\"},{\"list\":[{\"item\":[{\"section\":{\"depth\":2,\"title\":\"Child\",\"body\":[{\"paragraph\":\"nested\"}]}}]}]}]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/unicode//markdown",
+    "stdin": "# Café\n\ncafé Straße STRASSE σ ς Σ 😀\n\n# Café\n\ncombining\n\n# İıI i\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "# Café\n\ncafé Straße STRASSE σ ς Σ 😀\n\n# Café\n\ncombining\n\n# İıI i\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/unicode//json",
+    "stdin": "# Café\n\ncafé Straße STRASSE σ ς Σ 😀\n\n# Café\n\ncombining\n\n# İıI i\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"Café\",\"body\":[{\"paragraph\":\"café Straße STRASSE σ ς Σ 😀\"}]}},{\"section\":{\"depth\":1,\"title\":\"Café\",\"body\":[{\"paragraph\":\"combining\"}]}},{\"section\":{\"depth\":1,\"title\":\"İıI i\",\"body\":[]}}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/unicode/# /Alpha|Beta//markdown",
+    "stdin": "# Café\n\ncafé Straße STRASSE σ ς Σ 😀\n\n# Café\n\ncombining\n\n# İıI i\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/unicode/# /Alpha|Beta//json",
+    "stdin": "# Café\n\ncafé Straße STRASSE σ ς Σ 😀\n\n# Café\n\ncombining\n\n# İıI i\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "{\"items\":[]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/crlf//markdown",
+    "stdin": "﻿# Alpha\r\n\r\n## Child\r\n\r\nlast",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n## Child\n\nlast\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/crlf//json",
+    "stdin": "﻿# Alpha\r\n\r\n## Child\r\n\r\nlast",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"section\":{\"depth\":2,\"title\":\"Child\",\"body\":[{\"paragraph\":\"last\"}]}}]}}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/crlf/#/markdown",
+    "stdin": "﻿# Alpha\r\n\r\n## Child\r\n\r\nlast",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "#"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n## Child\n\nlast\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/crlf/# /Alpha|Beta//markdown",
+    "stdin": "﻿# Alpha\r\n\r\n## Child\r\n\r\nlast",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n## Child\n\nlast\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/crlf/# /Alpha|Beta//json",
+    "stdin": "﻿# Alpha\r\n\r\n## Child\r\n\r\nlast",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"section\":{\"depth\":2,\"title\":\"Child\",\"body\":[{\"paragraph\":\"last\"}]}}]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/malformed//markdown",
+    "stdin": "[unclosed](foo\n\n```js\n# code\n\n**broken _text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "[unclosed](foo\n\n```js\n# code\n\n**broken _text\n```\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/malformed//json",
+    "stdin": "[unclosed](foo\n\n```js\n# code\n\n**broken _text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"paragraph\":\"[unclosed](foo\"},{\"code_block\":{\"code\":\"# code\\n\\n**broken _text\",\"type\":\"code\",\"language\":\"js\"}}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/malformed/# /Alpha|Beta//markdown",
+    "stdin": "[unclosed](foo\n\n```js\n# code\n\n**broken _text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/malformed/# /Alpha|Beta//json",
+    "stdin": "[unclosed](foo\n\n```js\n# code\n\n**broken _text\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "{\"items\":[]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/empty//markdown",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/empty//json",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/empty/# /Alpha|Beta//markdown",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/empty/# /Alpha|Beta//json",
+    "stdin": "",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "{\"items\":[]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/whitespace//markdown",
+    "stdin": " \n\t\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/whitespace//json",
+    "stdin": " \n\t\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/whitespace/# /Alpha|Beta//markdown",
+    "stdin": " \n\t\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/whitespace/# /Alpha|Beta//json",
+    "stdin": " \n\t\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "{\"items\":[]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/punctuation//markdown",
+    "stdin": "#\n\n---\n\n***\n\n\\* escaped &amp; &#65;\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "#\n\n   -----\n\n* escaped & A\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/punctuation//json",
+    "stdin": "#\n\n---\n\n***\n\n\\* escaped &amp; &#65;\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"\",\"body\":[{\"thematic_break\":null},{\"thematic_break\":null},{\"paragraph\":\"* escaped & A\"}]}}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/punctuation/# /Alpha|Beta//markdown",
+    "stdin": "#\n\n---\n\n***\n\n\\* escaped &amp; &#65;\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/punctuation/# /Alpha|Beta//json",
+    "stdin": "#\n\n---\n\n***\n\n\\* escaped &amp; &#65;\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "{\"items\":[]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/links//markdown",
+    "stdin": "# Alpha\n\n[a](https://a.test \"A\") ![alt](img.png) [ref][r] <https://b.test> [^n]\n\n[r]: /one \"T\"\n[r]: /two\n[unused]: /unused\n\n[^n]: note\n\n# Beta\n\n[ref][r] [^n]\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n[a][1] ![alt][2] [ref][r] <https://b.test> [^1]\n\n[1]: https://a.test \"A\"\n[2]: img.png\n[r]: /one \"T\"\n[^1]: note\n\n# Beta\n\n[ref][r] [^1]\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/links//json",
+    "stdin": "# Alpha\n\n[a](https://a.test \"A\") ![alt](img.png) [ref][r] <https://b.test> [^n]\n\n[r]: /one \"T\"\n[r]: /two\n[unused]: /unused\n\n[^n]: note\n\n# Beta\n\n[ref][r] [^n]\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"[a][1] ![alt][2] [ref][r] <https://b.test> [^1]\"}]}},{\"section\":{\"depth\":1,\"title\":\"Beta\",\"body\":[{\"paragraph\":\"[ref][r] [^1]\"}]}}]}],\"links\":{\"1\":{\"url\":\"https://a.test\",\"title\":\"A\"},\"r\":{\"url\":\"/one\",\"title\":\"T\"},\"2\":{\"url\":\"img.png\"}},\"footnotes\":{\"1\":[{\"paragraph\":\"note\"}]}}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/links/# /Alpha|Beta//markdown",
+    "stdin": "# Alpha\n\n[a](https://a.test \"A\") ![alt](img.png) [ref][r] <https://b.test> [^n]\n\n[r]: /one \"T\"\n[r]: /two\n[unused]: /unused\n\n[^n]: note\n\n# Beta\n\n[ref][r] [^n]\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n[a][1] ![alt][2] [ref][r] <https://b.test> [^1]\n\n[1]: https://a.test \"A\"\n[2]: img.png\n[r]: /one \"T\"\n[^1]: note\n\n   -----\n\n# Beta\n\n[ref][r] [^1]\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/links/# /Alpha|Beta//json",
+    "stdin": "# Alpha\n\n[a](https://a.test \"A\") ![alt](img.png) [ref][r] <https://b.test> [^n]\n\n[r]: /one \"T\"\n[r]: /two\n[unused]: /unused\n\n[^n]: note\n\n# Beta\n\n[ref][r] [^n]\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"[a][1] ![alt][2] [ref][r] <https://b.test> [^1]\"}]}},{\"section\":{\"depth\":1,\"title\":\"Beta\",\"body\":[{\"paragraph\":\"[ref][r] [^1]\"}]}}],\"links\":{\"1\":{\"url\":\"https://a.test\",\"title\":\"A\"},\"2\":{\"url\":\"img.png\"},\"r\":{\"url\":\"/one\",\"title\":\"T\"}},\"footnotes\":{\"1\":[{\"paragraph\":\"note\"}]}}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/links/[]()/json",
+    "stdin": "# Alpha\n\n[a](https://a.test \"A\") ![alt](img.png) [ref][r] <https://b.test> [^n]\n\n[r]: /one \"T\"\n[r]: /two\n[unused]: /unused\n\n[^n]: note\n\n# Beta\n\n[ref][r] [^n]\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "[]()"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"link\":{\"display\":\"a\",\"url\":\"https://a.test\",\"title\":\"A\"}},{\"link\":{\"display\":\"ref\",\"url\":\"/one\",\"title\":\"T\",\"reference\":\"r\"}},{\"link\":{\"display\":\"https://b.test\",\"url\":\"https://b.test\"}},{\"link\":{\"display\":\"ref\",\"url\":\"/one\",\"title\":\"T\",\"reference\":\"r\"}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/tables//markdown",
+    "stdin": "| Name | Value |\n| :--- | ---: |\n| Alice | **one** |\n| Bob | two |\n\n- [x] completed\n- [ ] pending\n- [?] unknown\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "| Name  |   Value |\n|:------|--------:|\n| Alice | **one** |\n| Bob   |     two |\n\n- [x] completed\n- [ ] pending\n- [?] unknown\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/tables//json",
+    "stdin": "| Name | Value |\n| :--- | ---: |\n| Alice | **one** |\n| Bob | two |\n\n- [x] completed\n- [ ] pending\n- [?] unknown\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"table\":{\"alignments\":[\"left\",\"right\"],\"rows\":[[\"Name\",\"Value\"],[\"Alice\",\"**one**\"],[\"Bob\",\"two\"]]}},{\"list\":[{\"item\":[{\"paragraph\":\"completed\"}],\"checked\":true},{\"item\":[{\"paragraph\":\"pending\"}],\"checked\":false},{\"item\":[{\"paragraph\":\"[?] unknown\"}]}]}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/tables/# /Alpha|Beta//markdown",
+    "stdin": "| Name | Value |\n| :--- | ---: |\n| Alice | **one** |\n| Bob | two |\n\n- [x] completed\n- [ ] pending\n- [?] unknown\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/tables/# /Alpha|Beta//json",
+    "stdin": "| Name | Value |\n| :--- | ---: |\n| Alice | **one** |\n| Bob | two |\n\n- [x] completed\n- [ ] pending\n- [?] unknown\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 1,
+    "stdout": "{\"items\":[]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/tables/:-: * :-: */json",
+    "stdin": "| Name | Value |\n| :--- | ---: |\n| Alice | **one** |\n| Bob | two |\n\n- [x] completed\n- [ ] pending\n- [?] unknown\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ":-: * :-: *"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"table\":{\"alignments\":[\"left\",\"right\"],\"rows\":[[\"Name\",\"Value\"],[\"Alice\",\"**one**\"],[\"Bob\",\"two\"]]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/tables/- [x]/markdown",
+    "stdin": "| Name | Value |\n| :--- | ---: |\n| Alice | **one** |\n| Bob | two |\n\n- [x] completed\n- [ ] pending\n- [?] unknown\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "- [x]"
+    ],
+    "exitCode": 0,
+    "stdout": "- [x] completed\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/yaml//markdown",
+    "stdin": "---\ntitle: Alpha\nitems: [one, two]\n---\n\n# Alpha\n\n<div>hello</div>\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "---\ntitle: Alpha\nitems: [one, two]\n---\n\n# Alpha\n\n<div>hello</div>\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/yaml//json",
+    "stdin": "---\ntitle: Alpha\nitems: [one, two]\n---\n\n# Alpha\n\n<div>hello</div>\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"front_matter\":{\"body\":\"title: Alpha\\nitems: [one, two]\",\"variant\":\"yaml\"}},{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"html\":{\"value\":\"<div>hello</div>\"}}]}}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/yaml/# /Alpha|Beta//markdown",
+    "stdin": "---\ntitle: Alpha\nitems: [one, two]\n---\n\n# Alpha\n\n<div>hello</div>\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n<div>hello</div>\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/yaml/# /Alpha|Beta//json",
+    "stdin": "---\ntitle: Alpha\nitems: [one, two]\n---\n\n# Alpha\n\n<div>hello</div>\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"html\":{\"value\":\"<div>hello</div>\"}}]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/toml//markdown",
+    "stdin": "+++\ntitle = \"Alpha\"\n+++\n\n# Alpha\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "+++\ntitle = \"Alpha\"\n+++\n\n# Alpha\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/toml//json",
+    "stdin": "+++\ntitle = \"Alpha\"\n+++\n\n# Alpha\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"front_matter\":{\"body\":\"title = \\\"Alpha\\\"\",\"variant\":\"toml\"}},{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[]}}]}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/toml/# /Alpha|Beta//markdown",
+    "stdin": "+++\ntitle = \"Alpha\"\n+++\n\n# Alpha\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/toml/# /Alpha|Beta//json",
+    "stdin": "+++\ntitle = \"Alpha\"\n+++\n\n# Alpha\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/formatting//markdown",
+    "stdin": "# *Alpha* `code` [link](/url)\n\n**bold** _italic_ ~~strike~~ \\*literal\\*  \nnext\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "# _Alpha_ `code` [link][1]\n\n**bold** _italic_ ~~strike~~ *literal*\nnext\n\n[1]: /url\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/formatting//json",
+    "stdin": "# *Alpha* `code` [link](/url)\n\n**bold** _italic_ ~~strike~~ \\*literal\\*  \nnext\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"document\":[{\"section\":{\"depth\":1,\"title\":\"_Alpha_ `code` [link][1]\",\"body\":[{\"paragraph\":\"**bold** _italic_ ~~strike~~ *literal*\\nnext\"}]}}]}],\"links\":{\"1\":{\"url\":\"/url\"}}}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/formatting/# /Alpha|Beta//markdown",
+    "stdin": "# *Alpha* `code` [link](/url)\n\n**bold** _italic_ ~~strike~~ \\*literal\\*  \nnext\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "# _Alpha_ `code` [link][1]\n\n**bold** _italic_ ~~strike~~ *literal*\nnext\n\n[1]: /url\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/corpus/formatting/# /Alpha|Beta//json",
+    "stdin": "# *Alpha* `code` [link](/url)\n\n**bold** _italic_ ~~strike~~ \\*literal\\*  \nnext\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# /Alpha|Beta/"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"_Alpha_ `code` [link][1]\",\"body\":[{\"paragraph\":\"**bold** _italic_ ~~strike~~ *literal*\\nnext\"}]}}],\"links\":{\"1\":{\"url\":\"/url\"}}}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/seed-1907cafe/0/#/json",
+    "stdin": "# Alpha\n\nA.\n\nAlpha\n===\n\n***\n\n# Alpha\n\nA.\n\n    # code\n\n```md\n# Fake\n```\n\n> # Beta\n>\n> B.\n\n***\n\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "#"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"A.\"}]}},{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"thematic_break\":null}]}},{\"section\":{\"depth\":1,\"title\":\"Alpha\",\"body\":[{\"paragraph\":\"A.\"},{\"code_block\":{\"code\":\"# code\",\"type\":\"code\"}},{\"code_block\":{\"code\":\"# Fake\",\"type\":\"code\",\"language\":\"md\"}},{\"block_quote\":[{\"section\":{\"depth\":1,\"title\":\"Beta\",\"body\":[{\"paragraph\":\"B.\"}]}}]},{\"thematic_break\":null}]}}]}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/seed-1907cafe/31/P:/markdown",
+    "stdin": "Alpha\n===\n\n***\n\n### Child\n\nC.\n\n    # code\n\n- [x] done\n- [ ] wait\n\n# Alpha\n\nA.\n\n***\n\n[a][r]\n\n[r]: /url\n\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "markdown",
+      "--",
+      "P:"
+    ],
+    "exitCode": 0,
+    "stdout": "C.\n\n   -----\n\ndone\n\n   -----\n\nwait\n\n   -----\n\nA.\n\n   -----\n\n[a][r]\n\n[r]: /url\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/seed-1907cafe/63/# Alpha | P:/json",
+    "stdin": "    # code\n\nAlpha\n===\n\nAlpha\n===\n\n```md\n# Fake\n```\n\n**é** café 😀\n\n**é** café 😀\n\n***\n\n[a][r]\n\n[r]: /url\n\n",
+    "files": {},
+    "argv": [
+      "-o",
+      "json",
+      "--",
+      "# Alpha | P:"
+    ],
+    "exitCode": 0,
+    "stdout": "{\"items\":[{\"paragraph\":\"**é** café 😀\"},{\"paragraph\":\"**é** café 😀\"},{\"paragraph\":\"[a][r]\"}],\"links\":{\"r\":{\"url\":\"/url\"}}}",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/typed-format",
+    "stdin": "# Alpha\n\n[a](https://a.test \"A\") ![alt](img.png) [ref][r] <https://b.test> [^n]\n\n[r]: /one \"T\"\n[r]: /two\n[unused]: /unused\n\n[^n]: note\n\n# Beta\n\n[ref][r] [^n]\n",
+    "files": {},
+    "argv": [
+      "--output",
+      "plain",
+      "--link-format",
+      "inline",
+      "--link-pos",
+      "doc",
+      "--footnote-pos",
+      "doc",
+      "--renumber-footnotes",
+      "false",
+      "--no-br",
+      "--wrap-width",
+      "30",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "Alpha\na alt ref https://b.test \nBeta\nref \n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/typed-format-other",
+    "stdin": "# Alpha\n\n[a](https://a.test \"A\") ![alt](img.png) [ref][r] <https://b.test> [^n]\n\n[r]: /one \"T\"\n[r]: /two\n[unused]: /unused\n\n[^n]: note\n\n# Beta\n\n[ref][r] [^n]\n",
+    "files": {},
+    "argv": [
+      "--output",
+      "md",
+      "--link-format",
+      "keep",
+      "--link-pos",
+      "section",
+      "--footnote-pos",
+      "section",
+      "--renumber-footnotes",
+      "true",
+      "--br",
+      "--allow-unknown-markdown",
+      ""
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\n[a](https://a.test \"A\") ![alt](img.png) [ref][r] <https://b.test> [^1]\n\n[r]: /one \"T\"\n[^1]: note\n\n# Beta\n\n[ref][r] [^1]\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/typed-file",
+    "stdin": "",
+    "files": {
+      "input space.md": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\nSetext\n======\n\nS.\n\nSub\n---\n\nT."
+    },
+    "argv": [
+      "# Alpha",
+      "input space.md"
+    ],
+    "exitCode": 0,
+    "stdout": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n   -----\n\n# Alpha\n\nD.\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/quoted-apostrophe",
+    "stdin": "# Alice's chapter\n\nbody\n",
+    "files": {},
+    "argv": [
+      "# \"Alice's chapter\""
+    ],
+    "exitCode": 0,
+    "stdout": "# Alice's chapter\n\nbody\n",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/match/# /\\p{Greek}+/",
+    "stdin": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\nSetext\n======\n\nS.\n\nSub\n---\n\nT.\n# Café\n\ncafé Straße STRASSE σ ς Σ 😀\n\n# Café\n\ncombining\n\n# İıI i\n",
+    "files": {},
+    "argv": [
+      "--",
+      "# /\\p{Greek}+/"
+    ],
+    "exitCode": 1,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "id": "semantic-audit/match/# !s/Alpha/Omega/",
+    "stdin": "# Alpha\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n# Alpha\n\nD.\n\n#\n\nEmpty.\n\nSetext\n======\n\nS.\n\nSub\n---\n\nT.\n# Café\n\ncafé Straße STRASSE σ ς Σ 😀\n\n# Café\n\ncombining\n\n# İıI i\n",
+    "files": {},
+    "argv": [
+      "--",
+      "# !s/Alpha/Omega/"
+    ],
+    "exitCode": 0,
+    "stdout": "# Omega\n\nA.\n\n### Child\n\nC.\n\n## Beta\n\nB.\n\n   -----\n\n# Omega\n\nD.\n",
+    "stderr": ""
   }
 ]

@@ -2698,3 +2698,36 @@ it('packs Playwright controller services and MIME detection behind public routes
   expect(packed.dependencies).toEqual({});
   expect(packed.exports["./commands/playwright"].import).toBe(packed.exports["./playwright"].import);
 });
+
+it("keeps cmp private and builds its canonical prerequisites before unit tests", () => {
+  const manifest = JSON.parse(readFileSync(new URL("../packages/safe-bash-command-cmp/package.json", import.meta.url), "utf8"));
+  const tasks = JSON.parse(readFileSync(new URL("../turbo.json", import.meta.url), "utf8")).tasks;
+  expect(manifest.private).toBe(true);
+  expect(manifest.dependencies).toEqual({});
+  expect(manifest.devDependencies).not.toHaveProperty("@poe-platform/safe-bash");
+  expect(tasks["safe-bash-command-cmp#test:unit"]?.dependsOn).toContain("^build");
+});
+
+it("packs cmp declarations behind public routes without a private install dependency", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-cmp";
+  const manifest = JSON.parse(readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8"));
+  expect(bashManifest.poeCode.integration.privateWorkspaces[name].devDependencies).toEqual(manifest.devDependencies);
+  volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(manifest));
+  volume.writeFileSync(`/repo/packages/${name}/LICENSE`, "MIT\n");
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(`/repo/packages/${name}/dist/index.${suffix}`, 'export { limits } from "./options.js";');
+    volume.writeFileSync(`/repo/packages/${name}/dist/options.${suffix}`, suffix === "js" ? "export const limits = Infinity;" : "export declare const limits: number;");
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/core.${suffix}`, `export * from "${name}";`);
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(packed.dependencies?.[name]).toBeUndefined();
+  expect(packed.exports["./commands/cmp"].import).toBe(packed.exports["./cmp"].import);
+  expect(packed.exports["./commands/cmp"].types).toBe(packed.exports["./cmp"].types);
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/core.${suffix}`, "utf8")).toContain('../safe-bash-command-cmp/index.js');
+    expect(volume.existsSync(`/output/safe-bash/dist/${name}/options.${suffix}`)).toBe(true);
+  }
+});

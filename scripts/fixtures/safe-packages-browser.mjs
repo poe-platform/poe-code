@@ -1,5 +1,7 @@
 import { verification as timeoutVerification } from "./safe-packages-timeout-portable.mjs";
 await timeoutVerification;
+import { verifyCmp } from "./safe-packages-cmp.mjs";
+await verifyCmp({ portable: true });
 import "./safe-packages-bzip2.mjs";
 import { verifyCp } from "./safe-packages-cp.mjs";
 await verifyCp();

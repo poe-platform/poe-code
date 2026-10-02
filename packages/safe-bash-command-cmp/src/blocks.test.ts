@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError, type ByteSource } from "../../../src/contracts/index.js";
-import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { run } from "./helpers.js";
-import { createCmpCommand } from "../../../src/commands/cmp/index.js";
+import { FsError, type ByteSource } from "safe-bash-contracts";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { run } from "./test-helpers.js";
+import { createCmpCommand } from "./index.js";
 
 test("GNU comparison blocks are independent of retained producer fragments", async () => {
   for (const chunkSize of [1, 3, 11, 65536]) {

@@ -1,3 +1,8 @@
+import { verification as xqVerification } from "./safe-packages-xq.mjs";
+await xqVerification;
+for (const name of ["safe-bash-command-xq", "safe-bash-command-jq", "safe-bash-xml-engine", "safe-bash-query-engine"]) {
+  assert.throws(() => import.meta.resolve(name), { code: "ERR_MODULE_NOT_FOUND" });
+}
 import { verification as numfmtVerification } from "./safe-packages-numfmt.mjs";
 await numfmtVerification;
 import "./safe-packages-column.mjs";

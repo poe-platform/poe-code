@@ -4,8 +4,6 @@ import test from "node:test";
 import * as api from "../../src/index.js";
 import { MockS3Client, S3FileSystem } from "@poe-code/safe-fs";
 import { createXmlCommands, createXmllintCommands, xmlCommands, type XmlQueryLimits } from "../../src/commands/xml/index.js";
-import { createCommandArguments, toByteSource } from "../../src/contracts/index.js";
-import { shellValueFromBytes } from "../../src/contracts/value.js";
 
 for (const [name, xml, diagnostic] of [
   ["empty children", "<r>" + "<a/>".repeat(10_000) + "</r>", "resource limit"],
@@ -69,17 +67,6 @@ for (const [command, xml, limits, status, diagnostic] of [
   } finally { await shell.dispose(); }
 });
 
-test("xq preserves output failure identity instead of reporting an XML parse failure", async () => {
-  const command = createXmlCommands().find(command => command.name === "xq")!;
-  const failure = new SyntaxError("sink failed");
-  await assert.rejects(Promise.resolve(command.execute({
-    command: "xq", args: ["."], cwd: "/", env: {}, fs: api.createMemoryFileSystem(),
-    signal: new AbortController().signal, stdin: toByteSource("<a/>"),
-    stdout: { async write() { throw failure; } },
-    stderr: { async write() { assert.fail("output failure must not become an XML diagnostic"); } },
-  })), error => error === failure);
-});
-
 test("xq counts original XML bytes across files rather than JSON expansion", async () => {
   const fs = api.createMemoryFileSystem();
   await fs.writeFile("/a", Buffer.from("<a/>"));
@@ -93,22 +80,6 @@ test("xq counts original XML bytes across files rather than JSON expansion", asy
     assert.equal(multiple.exitCode, 5, multiple.stderr);
     assert.ok(multiple.stderr.includes("maxInputBytes"));
   } finally { await shell.dispose(); }
-});
-
-for (const operand of ["filter", "filename"] as const) test(`xq rejects lossy UTF-8 ${operand} before input reads`, async () => {
-  const raw = shellValueFromBytes(Buffer.from(operand === "filter" ? '.["\xff"]' : "/\xff.xml", "latin1"));
-  const carrier = createCommandArguments(operand === "filter" ? [raw] : [".", raw]);
-  const command = createXmlCommands().find(command => command.name === "xq")!;
-  let reads = 0;
-  const result = await command.execute({
-    command: "xq", args: carrier.args, argumentValues: carrier,
-    cwd: "/", env: {}, fs: api.createMemoryFileSystem(), signal: new AbortController().signal,
-    stdin: (async function* () { reads++; yield Buffer.from("<a/>"); })(),
-    stdout: { async write() { assert.fail("invalid arguments must not emit output"); } },
-    stderr: { async write() {} },
-  });
-  assert.equal(result.exitCode, 2);
-  assert.equal(reads, 0);
 });
 
 test("xq observes cancellation and closes its XML input", async () => {

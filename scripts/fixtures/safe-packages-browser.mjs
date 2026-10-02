@@ -1,3 +1,5 @@
+import { verification as xqVerification } from "./safe-packages-xq.mjs";
+await xqVerification;
 import "./safe-packages-wget.mjs";
 import { verification as tarVerification } from "./safe-packages-tar.mjs";
 await tarVerification;

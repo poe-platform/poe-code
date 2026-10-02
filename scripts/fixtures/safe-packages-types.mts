@@ -1,3 +1,4 @@
+import "./safe-packages-xq-types.mjs";
 import "./safe-packages-numfmt-types.mjs";
 import "./safe-packages-column-types.mjs";
 import "./safe-packages-xan-types.mjs";

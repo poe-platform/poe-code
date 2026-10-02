@@ -2097,7 +2097,7 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
 for (const [specifier, target, failure] of [
   ["private-runtime", "./dist/index.js", "Private or CLI dependency leaked"],
   ["@poe-code/office-package/missing", "./dist/index.js", "Missing private workspace runtime entrypoint"],
-  ["@poe-code/office-package", "../../outside.js", "Not a built package file: /repo/outside.js"],
+  ["@poe-code/office-package", "../../outside.js", '@poe-code/office-package export "." must target ./dist/*.js'],
 ]) it(`keeps scoped private runtime admission bounded: ${specifier} ${target}`, async () => {
   const { volume, options } = optionalLeftovers();
   const name = specifier.startsWith("@poe-code/office-package") ? "@poe-code/office-package" : specifier;
@@ -2473,4 +2473,31 @@ it("preserves portable private command conditions in packed root imports", async
     expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/index.${suffix}`, "utf8")).toContain(`"#private/${name}"`);
     expect(volume.existsSync(`/output/safe-bash/dist/${name}/index.browser.${suffix}`)).toBe(true);
   }
+});
+
+
+it("uses portable dependency aliases when packaging private portable commands", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-portable-probe";
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces[name] = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable: true };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  for (const [dir, pkg] of [
+    [name, { name, version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies: {}, exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } }],
+    ["conditional-host", { name: "conditional-host", private: true, type: "module", exports: { ".": { browser: "./dist/index.browser.js", import: "./dist/index.js" } } }],
+  ] as const) {
+    volume.mkdirSync(`/repo/packages/${dir}/dist`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${dir}/package.json`, JSON.stringify(pkg));
+    volume.writeFileSync(`/repo/packages/${dir}/dist/index.js`, "export {};\n");
+    volume.writeFileSync(`/repo/packages/${dir}/dist/index.d.ts`, "export {};\n");
+  }
+  let portable: BuildOptions | undefined;
+  await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (settings: BuildOptions) => {
+    if (Object.hasOwn(settings.entryPoints ?? {}, name + "/dist/index")) portable = settings;
+    return options.bundle(settings);
+  } });
+  expect(portable).toBeDefined();
+  expect(portable!.alias?.["conditional-host"]).toBe("/repo/packages/conditional-host/src/index.browser.ts");
+  expect(portable!.alias).not.toHaveProperty(name);
+  expect(portable!.external).toContain(name);
 });

@@ -352,7 +352,15 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       alias["poe-code/safe-fs"] = "@poe-platform/safe-fs";
       const commands = resolvePrivateCommandBuild(rootDir, source.poeCode?.integration?.privateWorkspaces ?? {}, workspaces, { alias, external });
       if (commands) recipes.push(commands);
-      const portableCommands = resolvePrivateCommandBuild(rootDir, source.poeCode?.integration?.privateWorkspaces ?? {}, workspaces, { alias, external, portable: true });
+      const portableGraph = await resolveBundleGraph(rootDir, workspaces, files, ["workerd", "worker", "browser"]);
+      const portableAlias = Object.fromEntries(Object.entries(portableGraph.alias)
+        .filter(([specifier]) => !canonical.some(name => specifier === name || specifier.startsWith(name + "/")))
+        .map(([specifier, target]) => [specifier, publicSpecifier(specifier) !== specifier ? publicSpecifier(specifier) : target]));
+      portableAlias["poe-code/safe-bash/contracts"] = "safe-bash-contracts";
+      portableAlias["poe-code/safe-fs"] = "@poe-platform/safe-fs";
+      const portableCommands = resolvePrivateCommandBuild(rootDir, source.poeCode?.integration?.privateWorkspaces ?? {}, workspaces, {
+        alias: portableAlias, external: [...portableGraph.external, "@poe-platform/safe-fs", ...canonical], portable: true,
+      });
       if (portableCommands) recipes.push(portableCommands);
       if (Object.values(source.exports).some(value => value?.browser?.endsWith(".browser.js") || value?.workerd?.endsWith(".browser.js"))) {
         const browser = resolveBrowserShellBuild(rootDir, { external: ["@poe-platform/safe-fs", ...canonical] });

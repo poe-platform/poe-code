@@ -10,8 +10,8 @@ import { settings, type MetadataCommandsOptions } from "./internal.js";
 export type { MetadataCommandsOptions, MetadataLimits } from "./internal.js";
 
 export function createMetadataCommands(options: MetadataCommandsOptions = {}): readonly CommandDefinition[] {
-  settings(options);
-  return registerDefaultExecutors([createChmodCommand(options), createStatCommand(options), createMktempCommand(options), truncateCommand(options), createInstallCommand()], options);
+  const normalized = settings(options);
+  return registerDefaultExecutors([createChmodCommand(options), createStatCommand(options), createMktempCommand(options), truncateCommand({ ...options, ...normalized }), createInstallCommand()], options);
 }
 
 export function metadataCommands(options: MetadataCommandsOptions = {}): VirtualShellPlugin {

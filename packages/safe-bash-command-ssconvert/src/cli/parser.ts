@@ -242,6 +242,28 @@ export function parseCommand(supplied: readonly CommandArgument[], profile?: Com
       return terminal(`Unsupported ssconvert feature: --${name} (virtual runtime parity blocker)\n`);
   if (flags.has("export-file-per-sheet") && scalars["merge-to"] !== undefined)
     return terminal("--export-file-per-sheet and --merge-to are incompatible\n");
+  const exportOptionsQuery = scalars["export-options"]?.trim().toLowerCase();
+  if (exportOptionsQuery === "help" || exportOptionsQuery === "?" || exportOptionsQuery === "list") {
+    return terminal(
+      "",
+      0,
+      [
+        "Export options (-O 'key=value ...'):",
+        "  sheet=<name>             Export named worksheet (repeatable)",
+        "  active-sheet=<name>      Select active worksheet",
+        "  paper=A4|letter|legal|fit Paper size (Gnumeric_pdf:pdf_assistant)",
+        "  orientation=portrait|landscape Page orientation (Gnumeric_pdf:pdf_assistant)",
+        "  fit-width=<pages>        Fit sheet width to N pages (Gnumeric_pdf:pdf_assistant)",
+        "  fit-height=<pages>       Fit sheet height to N pages (Gnumeric_pdf:pdf_assistant)",
+        "  scale=<percent>          Explicit print scale percentage (Gnumeric_pdf:pdf_assistant)",
+        "  object=<name>            Export named sheet object (Gnumeric_pdf:pdf_assistant)",
+        "  separator=<char>         Field separator (Gnumeric_stf:stf_assistant)",
+        "  quoting-mode=auto|always|never Quoting mode (Gnumeric_stf:stf_assistant)",
+        "  format=automatic|raw|preserve Value formatting (Gnumeric_stf:stf_assistant)",
+        ""
+      ].join("\n")
+    );
+  }
   // Upstream derives splitting only after checking the explicit split/merge conflict.
   if (flags.has("export-graphs")) flags.add("export-file-per-sheet");
   const action = flags.has("list-exporters")

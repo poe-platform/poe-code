@@ -1,3 +1,4 @@
+import { parseCommand } from "../cli/parser.js";
 import { expect, it, vi } from "vitest";
 import { PDFDocument, PDFPage } from "pdf-lib";
 import { createRegistry } from "./registry.js";
@@ -50,4 +51,20 @@ it("applies orientation=landscape and fit-width=1 export options on Gnumeric_pdf
   expect(pdf.getPageCount()).toBe(1);
   const size = pdf.getPage(0).getSize();
   expect(size.width).toBeGreaterThan(size.height);
+});
+
+test("ssconvert -O help lists supported PDF and STF export options", () => {
+  const withoutFiles = parseCommand(["-T", "Gnumeric_pdf:pdf_assistant", "-O", "help"]);
+  expect(withoutFiles.kind).toBe("terminal");
+  if (withoutFiles.kind === "terminal") {
+    expect(withoutFiles.exitCode).toBe(0);
+    expect(withoutFiles.stdout).toContain("orientation=portrait|landscape");
+    expect(withoutFiles.stdout).toContain("fit-width=<pages>");
+  }
+  const withFiles = parseCommand(["-T", "Gnumeric_pdf:pdf_assistant", "-O", "help", "sales.csv", "sales.pdf"]);
+  expect(withFiles.kind).toBe("terminal");
+  if (withFiles.kind === "terminal") {
+    expect(withFiles.exitCode).toBe(0);
+    expect(withFiles.stdout).toContain("paper=A4|letter|legal|fit");
+  }
 });

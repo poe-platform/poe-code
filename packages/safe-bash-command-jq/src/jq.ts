@@ -19,16 +19,6 @@ const JQ_LONG_FLAGS: Readonly<Record<string, string>> = {
   "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e",
   "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M",
 };
-const jqAstCache = new Map<string, Ast>();
-const NEVER_ABORTED_SIGNAL = Object.freeze({
-  aborted: false,
-  reason: undefined,
-  onabort: null,
-  throwIfAborted(): void {},
-  addEventListener(): void {},
-  removeEventListener(): void {},
-  dispatchEvent(): boolean { return true; },
-}) as unknown as AbortSignal;
 const OUT_BUF_SIZE = 64 * 1024;
 let sharedJqOutBuf: Uint8Array | null = null;
 let sharedJqOutBufInUse = false;
@@ -155,8 +145,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   const source = args[1]!;
   const file = args[2]!;
   if (source.startsWith("-") || file.startsWith("-") || file === "-" || source.includes("$")) return undefined;
-  let cachedAst = jqAstCache.get(source);
-  if (!cachedAst && (limits.maxSourceBytes < source.length * 4 || limits.maxAstDepth < 256 || limits.maxSteps < 1000)) return undefined;
+  if (limits.maxSourceBytes < source.length * 4 || limits.maxAstDepth < 256 || limits.maxSteps < 1000) return undefined;
   const syncSink = typeof (context.stdout as { writeSync?: unknown }).writeSync === "function"
     ? (context.stdout as unknown as { writeSync(chunk: Uint8Array): boolean; writeRangeSync?(src: Uint8Array, len: number): boolean; writeImmutableSync?(data: Uint8Array): boolean })
     : undefined;
@@ -185,12 +174,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
   if (!rawBytes || rawBytes.byteLength === 0 || rawBytes[0] !== 123 || rawBytes[rawBytes.byteLength - 1] !== 10) {
     return undefined;
   }
-  let budget = sharedFastBudget;
-  if (!budget || budget.limits !== limits) {
-    budget = sharedFastBudget = new Budget(limits, context.signal);
-  } else {
-    budget.resetForSyncFastRun(context.signal);
-  }
+  const budget = sharedFastBudget = new Budget(limits, context.signal);
   let interpreter: Interpreter | undefined;
   let committing = false;
   try {
@@ -199,17 +183,15 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
       if (argBytes + rawBytes.byteLength > limits.maxInputBytes) return undefined;
     }
     // Parse only after eligibility, retaining its work in this invocation's budget.
-    // A declined synchronous attempt must not populate the slow route's AST cache.
-    if (!cachedAst) {
-      try { cachedAst = parse(source, EMPTY_VARS_MAP, budget); }
-      catch { return undefined; }
-    }
+    let ast: Ast;
+    try { ast = parse(source, EMPTY_VARS_MAP, budget); }
+    catch { return undefined; }
     if (budget.needsYield()) return undefined;
     if (Interpreter.prototype.run !== DEFAULT_INTERPRETER_RUN) return undefined;
     const outBuf = (sharedJqOutBuf ??= filledBytes(OUT_BUF_SIZE));
     sharedFastInUse = true;
     sharedJqOutBufInUse = true;
-    sharedFastJqAst = cachedAst;
+    sharedFastJqAst = ast;
     sharedFastJqLimits = limits;
     sharedFastJqOutPos = 0;
     sharedFastJqAborted = false;
@@ -219,7 +201,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
     budget.inputLocation.name = file;
     budget.inputLocation.line = 0;
     budget.inputLocation.complete = false;
-    const spPlan = getFastSelectProjectPlan(cachedAst);
+    const spPlan = getFastSelectProjectPlan(ast);
     const fastPos = spPlan
       ? tryProcessFlatSelectProjectChunkSync(rawBytes, budget, spPlan.condKey, spPlan.outKeys, spPlan.srcKeys, outBuf, spPlan)
       : -1;
@@ -229,12 +211,7 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
       // Select/project may already have charged work or requested a yield. Let
       // the normal route restart with its own budget instead of charging twice.
       if (spPlan) return undefined;
-      interpreter = sharedFastInterpreter;
-      if (!interpreter) {
-        interpreter = sharedFastInterpreter = new Interpreter(budget, EMPTY_VARS_MAP);
-      } else {
-        interpreter.resetForRun(budget, EMPTY_VARS_MAP);
-      }
+      interpreter = sharedFastInterpreter = new Interpreter(budget, EMPTY_VARS_MAP);
       if (interpreter.run !== DEFAULT_INTERPRETER_RUN) return undefined;
       const ok = tryProcessFlatJsonChunkSync(rawBytes, budget, sharedFastJqOnValue);
       if (!ok || sharedFastJqAborted) return undefined;
@@ -253,16 +230,17 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
         return writeBytes(context.stdout, bytes, context.signal).then(() => ({ exitCode: 0 }));
       }
     }
-    if (jqAstCache.size < 64) jqAstCache.set(source, cachedAst);
     return RESOLVED_EXIT_ZERO;
   } catch (error) {
     if (committing) throw error;
     return undefined;
   } finally {
     if (interpreter) interpreter.releaseScratch();
+    sharedFastInterpreter = undefined;
+    sharedJqOutBuf = null;
     sharedFastJqAst = undefined;
     sharedFastJqLimits = undefined;
-    (budget as unknown as { signal: AbortSignal }).signal = NEVER_ABORTED_SIGNAL;
+    sharedFastBudget = undefined;
     sharedJqOutBufInUse = false;
     sharedFastInUse = false;
   }
@@ -730,7 +708,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
   const releaseOutBuf = (): void => {
     if (usingSharedOutBuf) {
       // Cancellation can finish writeBytes while the sink still borrows this buffer.
-      if (stdoutWriteFailed) sharedJqOutBuf = null;
+      sharedJqOutBuf = null;
       usingSharedOutBuf = false;
       sharedJqOutBufInUse = false;
       outBuf = null;
@@ -773,14 +751,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     const options = optionsOrPromise instanceof Promise ? await optionsOrPromise : optionsOrPromise;
     const source = options.programFile === undefined ? options.source! : await readProgram(context, options.programFile, limits);
     let ast: Ast;
-    if (!options.moduleDirectories.length && options.variables.size === 0 && !source.includes("$") && budget.limits.maxSourceBytes >= source.length * 4 && budget.limits.maxAstDepth >= 256 && budget.limits.maxSteps >= 1000) {
-      let cachedAst = jqAstCache.get(source);
-      if (!cachedAst) {
-        cachedAst = parse(source, options.variables, budget);
-        if (jqAstCache.size < 64) jqAstCache.set(source, cachedAst);
-      }
-      ast = cachedAst;
-    } else if (!options.moduleDirectories.length) {
+    if (!options.moduleDirectories.length) {
       ast = parse(source, options.variables, budget);
     } else {
       ast = await compileProgram(context, options, source, budget);
@@ -945,7 +916,7 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
     options.variables.clear();
     options.files.length = 0;
     interpreter.releaseScratch();
-    (budget as unknown as { signal: AbortSignal }).signal = NEVER_ABORTED_SIGNAL;
+    sharedFastBudget = undefined;
     return { exitCode: options.exitStatus && lastTruth === undefined && status === 0 ? 4 : status };
   } catch (error) {
     if (diagnosticWriteFailed) throw error;

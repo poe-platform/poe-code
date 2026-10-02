@@ -38,17 +38,15 @@ for (const nested of [false, true]) for (const condition of [".active == true", 
   }
 });
 
-for (const decline of [false, true]) test(`shared budget releases its signal after fast execution, decline=${decline}`, async context => {
+for (const decline of [false, true]) test(`fast execution releases its budget and signal, decline=${decline}`, { skip: !globalThis.gc }, async context => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/items", bytes('{"id":1,"active":true,"padding":"' + "x".repeat(80) + '"}\n'));
   const command = createJqCommand();
-  const captured: Budget[] = [];
-  let signal: AbortSignal | undefined;
+  const captured: WeakRef<object>[] = [];
   const original = Budget.prototype.needsYield;
-  context.mock.method(Budget.prototype, "needsYield", function (this: Budget, checkTime?: boolean) {
+  const mocked = context.mock.method(Budget.prototype, "needsYield", function (this: Budget, checkTime?: boolean) {
     if (captured.length === 0) {
-      captured.push(this);
-      signal = this.signal;
+      captured.push(new WeakRef(this), new WeakRef(this.signal));
       if (decline) return true;
     }
     return original.call(this, checkTime);
@@ -57,7 +55,12 @@ for (const decline of [false, true]) test(`shared budget releases its signal aft
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, '{"id":1}\n');
   assert.ok(captured[0]);
-  assert.notEqual(captured[0].signal, signal, "the cached budget must release the completed request signal");
+  mocked.mock.resetCalls();
+  for (let attempt = 0; attempt < 3; attempt++) {
+    await new Promise<void>(resolve => setImmediate(resolve));
+    globalThis.gc!();
+  }
+  assert.deepEqual(captured.map(ref => ref.deref()), [undefined, undefined]);
 });
 
 for (const asyncOptions of [false, true]) test(`unary filters (async options=${asyncOptions})`, async () => {

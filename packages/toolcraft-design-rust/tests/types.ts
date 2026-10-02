@@ -921,3 +921,10 @@ const explorerHeaderOriginal: typeof originalExplorerHeader = explorerHeader;
 const explorerHeaderNative: typeof explorerHeader = null as unknown as typeof originalExplorerHeader;
 const explorerHeaderKeys: SameKeys<typeof explorerHeader,typeof originalExplorerHeader> = true;
 void [explorerHeaderOriginal,explorerHeaderNative,explorerHeaderKeys];
+
+import * as explorerFooter from "toolcraft-design-rust/explorer/render/footer";
+import type * as originalExplorerFooter from "toolcraft-design/explorer/render/footer";
+const explorerFooterOriginal: typeof originalExplorerFooter = explorerFooter;
+const explorerFooterNative: typeof explorerFooter = null as unknown as typeof originalExplorerFooter;
+const explorerFooterKeys: SameKeys<typeof explorerFooter,typeof originalExplorerFooter> = true;
+void [explorerFooterOriginal,explorerFooterNative,explorerFooterKeys];

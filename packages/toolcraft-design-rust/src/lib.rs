@@ -89,6 +89,7 @@ pub mod explorer_keymap;
 pub mod explorer_actions;
 pub mod explorer_detail_content;
 pub mod explorer_filter;
+pub mod explorer_footer;
 pub mod explorer_header;
 pub mod explorer_jobs;
 pub mod explorer_layout;

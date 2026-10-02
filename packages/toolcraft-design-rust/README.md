@@ -638,3 +638,8 @@ The module also re-exports `paneBodyRect` for positioning pane content.
 title, active filter, row counts, selection count and loading indicator. A
 focused companion list uses its own filter and item counts; narrow layouts
 display the terminal-size hint.
+
+`renderFooter(state, screen, layout)` from `explorer/render/footer` displays
+available action shortcuts, running actions, selection counts and reorder hints.
+Input and confirmation dialogs replace these with their own controls. Hints are
+clipped by terminal cells to the available width.

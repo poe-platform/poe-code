@@ -541,3 +541,5 @@ mod explorer_pane;
 pub use explorer_pane::*;
 mod explorer_header;
 pub use explorer_header::*;
+mod explorer_footer;
+pub use explorer_footer::*;

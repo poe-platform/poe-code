@@ -2069,3 +2069,34 @@ header (4.41× slower), and 684.508 µs / 133.758 µs for a companion-list heade
 (5.12× slower). No full-render performance gate passed. Other explorer renderers,
 reducer, runtime/public namespace, batching and broader swap qualification
 remain open.
+
+### Explorer footer checkpoint
+
+`explorer/render/footer` exposes `renderFooter` with the original declaration.
+Rust owns modal/action hint selection, accelerator fallbacks, bulk-selection
+labels, running-action styles, reorder checks and clipped drawing. Host
+operations preserve iterable/destructuring cleanup, callback receivers, live
+property reads, string coercions and arbitrary thrown values. Reorder readers
+retain JavaScript truthiness and short-circuit behavior. Existing Rust theme and
+text-cell helpers provide styling and width calculations.
+
+Four missing-export tests preceded implementation; a fifth reproduced and
+corrected custom reorder readers returning nonboolean truthy values. Differential
+tests cover 98 layout/state combinations, lazy label coercion, action-key
+fallbacks, malformed fields, iterator closing and reentrant drawing. Maintained
+checks pass 354 native host tests, 1,379 selected design cases, 13 prompt wrappers,
+132 dashboard/queue cases, 14 composer cases and 155 explorer cases, including
+all original footer snapshots. Rust/binding and scoped JS lint, bidirectional
+types and packed runtime/declarations pass; packed runtime imports reject
+external ESM dependencies and declarations compile with `types: []`.
+No dependencies or default integration changed.
+
+Inspected 140-column and 45-column footer screenshots for actions, selection,
+running state, detail focus, input/confirmation controls and reorder hints.
+Native/reference original-ScreenBuffer output is byte-identical.
+
+Five warmed alternating 500-render Node 22 ARM64 rounds retaining 32 call arrays
+measured 593.755 µs native / 9.958 µs reference for actions/selection at 100 columns
+(59.62× slower), and 177.767 µs / 3.582 µs for input-dialog controls (49.63× slower).
+No full-render performance gate passed. Remaining renderers, reducer,
+runtime/public namespace, batching and broader swap qualification remain open.

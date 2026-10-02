@@ -7,7 +7,7 @@ without requiring the Node.js `Buffer` global. Queries support recursive and
 lexically scoped `def` filters, `test`/`match` regex queries, capture-based
 `sub`/`gsub` replacements, flagged `scan`/`split`/`splits`, membership and `INDEX`
 lookups, lazy `isempty`/`nth` selection, `pick` projections, repeated
-`combinations`, Unicode `explode`/`implode`, basic math including `fabs` and `sqrt`, `path` extraction, the jq 1.6
+`combinations`, Unicode `explode`/`implode`, whitespace `trim`/`ltrim`/`rtrim`, basic math including `fabs` and `sqrt`, `path` extraction, the jq 1.6
 `leaf_paths` alias for `paths(scalars)`, and UTC
 `gmtime`, `mktime`, `strftime`, and `strptime` date conversions. Date formats use
 English names and POSIX format directives; `strftime` takes one format argument,
@@ -21,3 +21,7 @@ standalone query sessions default to an empty environment.
 Use `structuredCommands` from `@poe-platform/safe-bash` and `yqCommands` from
 `@poe-platform/safe-bash/commands/yq` to register commands. This private
 workspace is bundled into Safe Bash and does not need a separate installation.
+
+`trim`, `ltrim` and `rtrim` remove whitespace from both ends, the start or the
+end of a string, respectively. They use ECMAScript whitespace (including Unicode
+spaces and line separators), preserve interior whitespace, and reject nonstrings.

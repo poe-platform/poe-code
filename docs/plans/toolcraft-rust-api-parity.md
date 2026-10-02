@@ -1165,3 +1165,11 @@ reference (1.14x). These measurements include binding and output formatting
 overhead on a shared machine; no performance gate passed. Interactive prompts,
 dashboard/explorer surfaces and full runtime/platform/resource qualification
 remain outstanding.
+
+`promptTheme` now exposes the original root and `prompts/theme` contracts. Its
+symbol data comes from Rust; its mutable objects and live accent getter retain
+JavaScript identity and follow the active brand, including mutated brand colors.
+All 235 native host cases, 625 selected design cases and ten spinner-wrapper
+cases pass. The three confirmation-wrapper cases remain explicitly unported.
+Type parity, Rust/binding/JS lint, a packed standalone runtime/type consumer and
+visual comparison of purple/blue prompt states pass. No dependencies changed.

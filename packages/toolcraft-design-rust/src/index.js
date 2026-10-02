@@ -116,3 +116,4 @@ export {isCancel} from "./cancel-symbol.js";
 export {spinner} from "./spinner.js";
 
 export {withSpinner} from "./with-spinner.js";
+export {promptTheme} from "./prompt-theme.js";

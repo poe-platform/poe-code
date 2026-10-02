@@ -299,6 +299,10 @@
     "./with-spinner": {
       "types": "./dist/with-spinner.d.ts",
       "import": "./dist/with-spinner.js"
+    },
+    "./prompts/theme": {
+      "types": "./dist/prompt-theme.d.ts",
+      "import": "./dist/prompt-theme.js"
     }
   },
   "scripts": {

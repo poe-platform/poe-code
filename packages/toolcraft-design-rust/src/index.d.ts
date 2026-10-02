@@ -135,3 +135,4 @@ export {isCancel} from "./cancel-symbol.js";
 export {spinner,type SpinnerOptions} from "./spinner.js";
 
 export {withSpinner,type WithSpinnerOptions} from "./with-spinner.js";
+export {promptTheme} from "./prompt-theme.js";

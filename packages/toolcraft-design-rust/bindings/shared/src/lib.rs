@@ -101,6 +101,20 @@ pub fn design_tokens(name: String) -> NativeJson {
     ))
 }
 #[napi]
+pub fn design_prompt_theme_symbols() -> NativeJson {
+    NativeJson(Value::Object(
+        toolcraft_design_rust::symbols::prompt_symbols()
+            .iter()
+            .map(|(key, value)| {
+                (
+                    key.encode_utf16().collect(),
+                    Value::String(value.encode_utf16().collect()),
+                )
+            })
+            .collect(),
+    ))
+}
+#[napi]
 pub fn design_color_names() -> Vec<String> {
     toolcraft_design_rust::color::style_names()
         .iter()

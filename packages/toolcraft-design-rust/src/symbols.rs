@@ -32,6 +32,15 @@ pub fn symbol(name: &str, format: &str) -> (&'static str, &'static str) {
     }
 }
 
+pub fn prompt_symbols() -> &'static [(&'static str, &'static str)] {
+    &[
+        ("initial", "◆"),
+        ("active", "◆"),
+        ("inactive", "○"),
+        ("success", "◇"),
+    ]
+}
+
 pub fn tokens(name: &str) -> &'static [(&'static str, u32)] {
     match name {
         "spacing" => &[("sm", 1), ("md", 2), ("lg", 4), ("xl", 8)],

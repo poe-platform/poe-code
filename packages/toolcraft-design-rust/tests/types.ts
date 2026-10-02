@@ -533,3 +533,8 @@ const withSpinnerOriginal: typeof originalDesign.withSpinner = design.withSpinne
 const withSpinnerNative: typeof design.withSpinner = null as unknown as typeof originalDesign.withSpinner;
 const spinnerResult: Promise<{answer: number}> = design.withSpinner({message: () => "Working", fn: async () => ({answer: 42}), stopMessage: result => String(result.answer), subtext: result => String(result.answer)});
 void [withSpinnerOriginal, withSpinnerNative, spinnerResult];
+
+import {promptTheme as directPromptTheme} from "toolcraft-design-rust/prompts/theme";
+const promptThemeOriginal: typeof originalDesign.promptTheme = design.promptTheme;
+const promptThemeNative: typeof design.promptTheme = null as unknown as typeof originalDesign.promptTheme;
+void [promptThemeOriginal, promptThemeNative, directPromptTheme];

@@ -24,6 +24,8 @@ plain non-TTY output and Markdown/JSON formats. It follows `POE_NO_SPINNER`.
 `withSpinner({message, fn, stopMessage?, subtext?})` runs asynchronous work with
 elapsed-time updates and clears its timers on success or failure. It returns
 the task result and supports changing messages through a callback.
+`promptTheme` exposes prompt symbols and a live accent color that follows your
+configured brand.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

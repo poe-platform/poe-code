@@ -2,58 +2,13 @@ import {
   createSpongeCommand as createRawSpongeCommand,
   createSpongeCommands as createRawSpongeCommands,
   spongeCommands as rawSpongeCommands,
-  settings,
   type SpongeCommandsOptions,
-  type SpongeLimits,
-  type SpongeOptions,
 } from "safe-bash-command-sponge";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import { builtInDirectContextExecutors, isDefaultCommandOptions, decoder, syncCommandEvaluators } from "../internal.js";
+import { builtInDirectContextExecutors, isDefaultCommandOptions, syncCommandEvaluators } from "../internal.js";
 
-export { settings, type SpongeCommandsOptions, type SpongeLimits, type SpongeOptions };
-
-export function evalSyncSponge(
-  inBytes: Uint8Array | undefined,
-  opArgs: readonly string[],
-  readFileSync?: (filePath: string) => Uint8Array | undefined,
-  writeFileSync?: (filePath: string, bytes: Uint8Array) => boolean,
-): string | undefined {
-  let append = false;
-  const files: string[] = [];
-  let endOfOptions = false;
-  for (const arg of opArgs) {
-    if (!endOfOptions && arg === "--") {
-      endOfOptions = true;
-      continue;
-    }
-    if (!endOfOptions && arg === "--append") { append = true; continue; }
-    if (!endOfOptions && (arg === "--help" || arg === "-h")) {
-      return "Usage: sponge [-a] [FILE]\nSoak up standard input and write to FILE (or stdout).\n";
-    }
-    if (!endOfOptions && arg === "--version") {
-      return "sponge (virtual-bash)\n";
-    }
-    if (!endOfOptions && arg.startsWith("-") && arg.length > 1) {
-      for (let i = 1; i < arg.length; i++) {
-        if (arg[i] === "a") append = true;
-        else return undefined;
-      }
-      continue;
-    }
-    files.push(arg);
-  }
-  if (files.length > 1 || inBytes === undefined) return undefined;
-  const payload = inBytes;
-  if (files.length === 0 || files[0] === "-") {
-    if (payload.some(b => b === 0 || b >= 128)) return undefined;
-    return decoder.decode(payload);
-  }
-  if (append || !writeFileSync) return undefined;
-  const target = files[0]!;
-  if (target.endsWith("/") || target.endsWith("/.") || target.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/.test(target)) return undefined;
-  if (!writeFileSync(target, payload)) return undefined;
-  return "";
-}
+export * from "safe-bash-command-sponge";
+import { evalSyncSponge } from "safe-bash-command-sponge";
 
 syncCommandEvaluators.evalSyncSponge = evalSyncSponge;
 

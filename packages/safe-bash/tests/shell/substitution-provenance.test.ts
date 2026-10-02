@@ -25,8 +25,10 @@ for (const { source, form, quoted } of [
 ] as const) {
   test(`substitution provenance: ${form}, quoted=${quoted}`, () => {
     const word = simpleCommand(parseShell(source)).words[1]!;
+    const nested = parseShell("printf value");
+    const script = { ...nested, printedLines: new Map([[simpleCommand(nested), 1]]), printedNewlines: 0 };
     assert.deepEqual(substitution(word), {
-      kind: "substitution", form, script: parseShell("printf value"), line: 1,
+      kind: "substitution", form, script, line: 1,
       ...(form === "dollar-parenthesis" ? { sourceLine: 1 } : {}), quoted,
     });
     assert.equal(word.offset, 7);

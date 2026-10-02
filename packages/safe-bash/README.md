@@ -1,6 +1,6 @@
 # safe-bash
 
-Run shell scripts and command-line tools in your application against an explicit filesystem, without launching a host shell. The root and contract `posixPath` exports share the portable safe-fs helpers in every runtime, with `/` as the working directory for `resolve` and `relative`.
+Run shell scripts and command-line tools in your application against an explicit filesystem, without launching a host shell. The root and contract `posixPath` exports, including `contracts/node` and `contracts/node-path`, share the portable safe-fs helpers in every runtime, with `/` as the working directory for `resolve` and `relative`.
 
 Import `ffmpegCommands` from `@poe-platform/safe-bash` and register
 it with `shell.use(ffmpegCommands())` for in-memory media conversion and probing.

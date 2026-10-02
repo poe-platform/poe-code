@@ -10,6 +10,9 @@ const builtins = new Set(builtinModules.flatMap(name => [name, `node:${name}`]))
 describe("portable runtime entrypoints", () => {
   for (const entry of [
     "packages/safe-bash/src/shell/extensions/trap/index.ts",
+    "packages/safe-bash/src/contracts/node.ts",
+    "packages/safe-bash/src/contracts/node-path.ts",
+    "packages/safe-bash/src/commands/node/browser.ts",
     "packages/safe-bash-command-shuf/src/random.ts",
     "packages/safe-bash/src/commands/regex-execution/matching.ts",
     "packages/safe-bash-zip-engine/src/zip/aes.ts",
@@ -51,6 +54,8 @@ describe("built portable entrypoints", () => {
   for (const specifier of [
     "@poe-platform/safe-bash/contracts", "@poe-platform/safe-bash/contracts/index",
     "@poe-platform/safe-bash/contracts/path", "@poe-platform/safe-bash/commands/op",
+    "@poe-platform/safe-bash/contracts/node", "@poe-platform/safe-bash/contracts/node-path",
+    "@poe-platform/safe-bash/commands/node",
     "@poe-platform/safe-bash/trap", "@poe-platform/safe-bash/shuf",
     "@poe-platform/safe-bash/read", "@poe-platform/safe-bash/mapfile",
     "@poe-platform/safe-bash/yes", "@poe-platform/safe-bash/dd",

@@ -2885,14 +2885,14 @@
     },
     "./contracts/node": {
       "types": "./dist/contracts/node.d.ts",
-      "workerd": null,
-      "browser": null,
+      "workerd": "./dist/contracts/node.js",
+      "browser": "./dist/contracts/node.js",
       "import": "./dist/contracts/node.js"
     },
     "./contracts/node-path": {
       "types": "./dist/contracts/node-path.d.ts",
-      "workerd": null,
-      "browser": null,
+      "workerd": "./dist/contracts/node-path.js",
+      "browser": "./dist/contracts/node-path.js",
       "import": "./dist/contracts/node-path.js"
     }
   },

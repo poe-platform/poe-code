@@ -279,7 +279,7 @@ class _Response:
                     for response in self.conversation.responses:
                         if response.prompt.system:
                             messages.append(_core.Message("system", response.prompt.system))
-                        messages.extend((_core.Message("user", response.prompt.prompt or ""),
+                        messages.extend((_core.Message("user", response.prompt.prompt or "", tuple(response.attachments)),
                                          _core.Message("assistant", "".join(response._chunks))))
                     values.update(messages=messages)
                 if not self.stream:

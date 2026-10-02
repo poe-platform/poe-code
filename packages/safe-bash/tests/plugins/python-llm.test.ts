@@ -292,7 +292,7 @@ class LibraryTests(unittest.IsolatedAsyncioTestCase):
  async def test_invalid_option_types_fail_before_transport(self):
   bridge = FakeBridge()
   client = Client(bridge=bridge, model='provider/model')
-  for value in [object(), float('nan'), {'nested': 1}]:
+  for value in [object(), float('nan'), {'nested': object()}]:
    with self.assertRaises((TypeError, ValueError)):
     await client.complete('hello', options={'bad': value})
   self.assertEqual(bridge.calls, [])

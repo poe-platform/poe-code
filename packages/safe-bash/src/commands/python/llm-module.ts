@@ -8,12 +8,13 @@ from __future__ import annotations
 import asyncio
 import copy
 import inspect
+import json
 import math
 import os
 from dataclasses import dataclass, field, replace
 from typing import Any, AsyncIterator, Callable, Mapping, Optional, Protocol, Sequence, Union
 
-Option = Union[str, int, float, bool, None]
+Option = Union[str, int, float, bool, None, list["Option"], dict[Union[str, int, float, bool, None], "Option"]]
 
 class LlmError(Exception):
     def __init__(self, code: str, message: str):
@@ -49,6 +50,7 @@ class Configuration:
 class Message:
     role: str
     content: str
+    attachments: Sequence["Attachment"] = ()
 
 @dataclass(frozen=True)
 class Attachment:
@@ -66,15 +68,40 @@ class Attachment:
 
 def _options(values):
     result = dict(values)
+    ancestors = set()
+    def normalize(value):
+        if value is None or type(value) in (str, bool):
+            return value
+        if type(value) is int:
+            if abs(value) > 9007199254740991:
+                raise ValueError("Integer model options must fit the JavaScript safe integer range")
+            return value
+        if type(value) is float:
+            if not math.isfinite(value):
+                raise ValueError("Model options must be finite")
+            return value
+        if type(value) not in (dict, list):
+            raise TypeError("Model options must contain JSON data")
+        if id(value) in ancestors:
+            raise ValueError("Model options must be acyclic")
+        ancestors.add(id(value))
+        try:
+            if type(value) is dict:
+                normalized = {}
+                for key, item in value.items():
+                    if not isinstance(key, str):
+                        if key is not None and type(key) not in (int, float, bool):
+                            raise TypeError("Structured option keys must be JSON keys")
+                        key = json.dumps(key, allow_nan=False)
+                    normalized[key] = normalize(item)
+                return normalized
+            return [normalize(item) for item in value]
+        finally:
+            ancestors.remove(id(value))
     for key, value in result.items():
         if not isinstance(key, str) or not key:
             raise TypeError("Option names must be nonempty strings")
-        if value is not None and type(value) not in (str, int, float, bool):
-            raise TypeError("Model options must be strings, numbers, booleans or None")
-        if type(value) is int and abs(value) > 9007199254740991:
-            raise ValueError("Integer model options must fit the JavaScript safe integer range")
-        if type(value) is float and not math.isfinite(value):
-            raise ValueError("Model options must be finite")
+        result[key] = normalize(value)
     return result
 
 def _configuration_context():
@@ -109,7 +136,10 @@ class Request:
         for message in self.messages:
             if not isinstance(message, Message) or not isinstance(message.role, str) or not isinstance(message.content, str):
                 raise TypeError("Messages must contain typed Message values")
-            messages.append({"role": message.role, "content": message.content})
+            item = {"role": message.role, "content": message.content}
+            if message.attachments:
+                item["attachments"] = [attachment.payload() for attachment in message.attachments]
+            messages.append(item)
         result = {**_configuration_context(), "prompt": self.prompt, "messages": messages,
                   "attachments": [attachment.payload() for attachment in self.attachments],
                   "options": _options(self.options)}

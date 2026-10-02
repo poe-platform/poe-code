@@ -13,7 +13,9 @@ export function privateRuntimeExportResolver(rootDir, external, files, recipe, b
         const pkg = JSON.parse(await files.readFile(path.join(directory, "package.json"), "utf8"));
         for (const [route, target] of Object.entries(pkg.exports ?? {})) {
           if (typeof target.import !== "string" || !target.import.startsWith("./dist/")) throw new Error("Unqualified private export: " + name + " " + route);
-          entries.set(name + (route === "." ? "" : route.slice(1)), path.resolve(directory, target.import));
+          const input = pkg.poeCode?.bundle?.prebuilt === true
+            ? target.import : "./src/" + target.import.slice("./dist/".length, -3) + ".ts";
+          entries.set(name + (route === "." ? "" : route.slice(1)), path.resolve(directory, input));
         }
       }
       const result = await bundle({ ...recipe, entryPoints: Object.fromEntries(entries), outdir: path.join(rootDir, "packages/safe-bash/dist"),

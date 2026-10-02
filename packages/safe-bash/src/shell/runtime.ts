@@ -278,6 +278,8 @@ const syncSinks = {
   }, };
 const syncResolved = Symbol.for("safe-bash.syncResolved");
 const resolvedVoid: Promise<void> = Object.defineProperty(Promise.resolve(), syncResolved, { value: true });
+const devNullSyncSink: ByteSink = { write: () => resolvedVoid };
+syncSinks.set(devNullSyncSink, () => {});
 async function sortExpansionStrings(values: string[], work: StringWork, utf8 = false): Promise<void> {
   if (values.length <= 1) return;
   const compareSyncOrAsync = (left: string, right: string): number | Promise<number> => {
@@ -2876,6 +2878,8 @@ interface IntLoopStep {
   targetReg: number;
   readonly isSub: boolean;
   readonly extraNewlineByte: number;
+  readonly isArithStmt?: boolean;
+  readonly statusBias?: number;
 }
 function sameRedirectTargetWord(a: Word, b: Word): boolean {
   if (a === b) return true;
@@ -8755,9 +8759,24 @@ export class Runtime {
     }
     if (command.kind === "arithmetic-for" || command.kind === "for" || command.kind === "while" || command.kind === "until") {
       if (command.redirects.length > 0) {
+        const rIn = command.redirects[0]!;
+        if (
+          command.redirects.length === 1 &&
+          !rIn.move &&
+          !rIn.document &&
+          (rIn.descriptor === undefined || rIn.descriptor === 1) &&
+          (rIn.operator === ">" || rIn.operator === ">>" || rIn.operator === ">|") &&
+          rIn.target.plain === "/dev/null"
+        ) {
+          if (!this.budget.canRedirect1 || !this.budget.canFileSystemOperation()) return undefined;
+          const res = this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, { ...io, stdout: devNullSyncSink }, diagnosticLine);
+          if (res !== undefined) {
+            this.budget.fileSystemOperation();
+          }
+          return res;
+        }
         // File writes must be visible to commands inside the loop.
         // The ordinary redirect executor publishes each write as it happens.
-        const rIn = command.redirects[0]!;
         if (command.kind !== "while" || command.redirects.length !== 1 || rIn.move || rIn.document ||
           (rIn.descriptor !== undefined && rIn.descriptor !== 0) || (rIn.operator !== "<" && rIn.operator !== "<<<")) return undefined;
         let syncReadInputText: string | undefined;
@@ -12128,7 +12147,7 @@ export class Runtime {
         }
         inOptions = false;
       }
-      if (!w.parts.every(p => p.quoted || (p.kind === "arithmetic" && stdIfs) || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
+      if (!w.parts.every(p => p.quoted || (p.kind === "arithmetic" && stdIfs) || (p.kind === "variable" && stdIfs && ((p.name === this._activePrintfInductionName && !p.indirect && !p.prefixNames && !p.substring && p.operator === undefined && getArraySelector(p) === undefined) || p.length)) || (p.kind === "text" && p.value.length > 0 && !p.value.includes(" ") && !p.value.includes("\t") && !p.value.includes("\n") && !p.value.includes("{") && !hasGlobOrEscape(p.value, true)))) {
         return false;
       }
     }
@@ -12534,7 +12553,7 @@ export class Runtime {
           return false;
         }
         if (cmd.redirects.length === 0 && cmd.words.length >= 1 && cmd.words[0]!.plain === "echo") {
-          const fastSinkOk = io && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && ( (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) || (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync()));
+          const fastSinkOk = io && (io.stdout === devNullSyncSink || ((!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && ( (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) || (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync()))));
           if (!fastSinkOk || !this.isSyncEchoCallOk(cmd, rawState)) {
             return false;
           }
@@ -12568,7 +12587,7 @@ export class Runtime {
           cmd.words[0]!.plain === "printf" &&
           cmd.words[1]!.plain !== "-v"
         ) {
-          const fastSinkOk = io && (!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && ( (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) || (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync()));
+          const fastSinkOk = io && (io.stdout === devNullSyncSink || ((!io.descriptors || io.descriptors.get(1)?.output === io.stdout) && ( (io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write) || (io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync()))));
           if (fastSinkOk && this.isSyncPrintfCallOk(cmd, 1, rawState, printfInductionName)) {
             continue;
           }
@@ -12661,16 +12680,55 @@ export class Runtime {
       readonly cmd: Extract<Command, { kind: "simple" }>;
       readonly name: string | undefined;
       readonly value: Word | undefined;
+      readonly arithStmt?: ArithmeticProgram | undefined;
       readonly targetWord: Word | undefined;
       readonly append?: boolean;
     }, rawState: State, ): IntLoopStep | undefined {
-    if (step.listOperator !== undefined || step.targetWord !== undefined || step.name === undefined || step.value === undefined || step.append) return undefined;
+    if (step.listOperator !== undefined || step.targetWord !== undefined || step.append) return undefined;
     const cached = intLoopStepCache.get(step.cmd);
     if (cached !== undefined) {
       if (cached === null) return undefined;
       if (cached.isSub && (this.middleware.length > 0 || rawState.depth >= this.budget.maxSubstitutionDepthSmi)) return undefined;
       return cached;
     }
+    if (step.arithStmt !== undefined && step.name === undefined && step.value === undefined) {
+      const prog = step.arithStmt;
+      if (!prog.error && !prog.hasSubscript && prog.tree) {
+        const tree = prog.tree;
+        let targetName: string | undefined;
+        let synthTree: Arithmetic | undefined;
+        let statusBias = 0;
+        if (tree.kind === "binary" && tree.left.kind === "name" && tree.left.subscript === undefined) {
+          if (tree.operator === "=") {
+            targetName = tree.left.name;
+            synthTree = tree.right;
+          } else if (
+            tree.operator === "+=" || tree.operator === "-=" || tree.operator === "*=" ||
+            tree.operator === "&=" || tree.operator === "|=" || tree.operator === "^=" ||
+            tree.operator === "<<=" || tree.operator === ">>="
+          ) {
+            targetName = tree.left.name;
+            synthTree = { kind: "binary", operator: tree.operator.slice(0, -1) as Extract<Arithmetic, { kind: "binary" }>["operator"], left: tree.left, right: tree.right, start: tree.start };
+          }
+        } else if (tree.kind === "unary" && (tree.operator === "++" || tree.operator === "--") && tree.operand.kind === "name" && tree.operand.subscript === undefined) {
+          targetName = tree.operand.name;
+          synthTree = { kind: "binary", operator: tree.operator === "++" ? "+" : "-", left: tree.operand, right: { kind: "literal", value: 1n, start: tree.start }, start: tree.start };
+          statusBias = tree.postfix ? (tree.operator === "++" ? -1 : 1) : 0;
+        }
+        if (targetName && synthTree) {
+          const synthProg: ArithmeticProgram = { source: prog.source, tree: synthTree, hasMutation: false, hasSubscript: false };
+          const compiled = compilePureSmiProgram(synthProg, sharedSyncLoopArithNames);
+          if (compiled) {
+            const res: IntLoopStep = { name: targetName, program: prog, compiled, varRegMap: new Array(compiled.varNames.length).fill(0), targetReg: 0, isSub: false, extraNewlineByte: 0, isArithStmt: true, statusBias };
+            intLoopStepCache.set(step.cmd, res);
+            return res;
+          }
+        }
+      }
+      intLoopStepCache.set(step.cmd, null);
+      return undefined;
+    }
+    if (step.name === undefined || step.value === undefined) return undefined;
     const parts = step.value.parts;
     const p0 = parts.length === 1
         ? parts[0]!
@@ -13115,6 +13173,10 @@ export class Runtime {
         if (rawState.allexport) monitor.proxy.exported.add(varName);
       }
     }
+    const lastFastStep = forPlan.intSteps[forPlan.bodyStepCount - 1];
+    const fastLoopStatus = lastFastStep?.isArithStmt
+      ? (((sharedLoopIntRegs[lastFastStep.targetReg]! + (lastFastStep.statusBias ?? 0)) | 0) !== 0 ? 0 : 1)
+      : 0;
     if (forPlan.lastCmd) {
       if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(forPlan.lastCmd));
       rawState.substitutionStatus = 0;
@@ -13122,18 +13184,18 @@ export class Runtime {
       rawState.lastArgument = "";
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       if (!existing) {
-        monitor.lazyPipeStatus = singleStatusZero;
+        monitor.lazyPipeStatus = fastLoopStatus === 0 ? singleStatusZero : [fastLoopStatus];
         monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
       } else {
-        this.setSyncPipeStatusCell(existing!, "0");
+        this.setSyncPipeStatusCell(existing!, String(fastLoopStatus));
         store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
       }
     }
-    rawState.status = 0;
+    rawState.status = fastLoopStatus;
     const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
     monitor.epoch = restEpoch;
     if (store) store.epoch = restEpoch;
-    return 0;
+    return fastLoopStatus;
   }
   private trySyncLoop( command: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>, pipeline: Pipeline, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, existing: ReturnType<NonNullable<ReturnType<typeof arrayStore>>["get"]>, elem0: { text: { shellValue: ShellValue } } | undefined, canMutatePipeStatus: boolean, io: IO, diagnosticLine: number, syncReadInputText?: string, ): number | undefined {
     // A signal needs event-loop turns even when a loop has a finite work bound.
@@ -13149,7 +13211,7 @@ export class Runtime {
       elem0 = existing?.values.get(0);
       if (!existing || !elem0) return undefined;
     }
-    if ( (syncReadInputText === undefined && command.redirects.length !== 0) || pipeline.negate || !canMutatePipeStatus || rawState.errexit || rawState.nounset || rawState.readonlyVariables?.size || rawState.extensions?.checkpoints.length || hasYieldCheckpoint(this.signal)) {
+    if ( (syncReadInputText === undefined && io.stdout !== devNullSyncSink && command.redirects.length !== 0) || pipeline.negate || !canMutatePipeStatus || rawState.errexit || rawState.nounset || rawState.readonlyVariables?.size || rawState.extensions?.checkpoints.length || hasYieldCheckpoint(this.signal)) {
       return undefined;
     }
     if (command.kind === "for") {
@@ -13306,14 +13368,14 @@ export class Runtime {
       const startLiteral = e0.tree.right.kind === "literal" ? e0.tree.right.value : undefined;
       const limitLiteral = e1.tree.right.kind === "literal" ? e1.tree.right.value : undefined;
       const isSimpleLiteralAsc =
-        startLiteral !== undefined && startLiteral >= 0n && startLiteral <= 2000n &&
+        startLiteral !== undefined && startLiteral >= 0n && startLiteral <= 100000n &&
         (e1.tree.operator === "<" || e1.tree.operator === "<=") &&
-        limitLiteral !== undefined && limitLiteral >= 0n && limitLiteral <= 2000n &&
+        limitLiteral !== undefined && limitLiteral >= 0n && limitLiteral <= 100000n &&
         e2.tree.kind === "unary" && e2.tree.operator === "++";
       const iterations = isSimpleLiteralAsc
         ? Math.max(0, Number(limitLiteral - startLiteral) + (e1.tree.operator === "<=" ? 1 : 0))
         : 0;
-      if (iterations * bodyAssignments.length > 24000) {
+      if (iterations * bodyAssignments.length > 200000) {
         (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = null;
         return undefined;
       }
@@ -13496,11 +13558,13 @@ export class Runtime {
       if (arithNamesList.length > 0) {
         for (let a = 0; a < arithNamesList.length; a++) {
           const refName = arithNamesList[a]!;
-          if (store?.get(refName)) return undefined;
+          if (store?.get(refName) || monitor.hasOverlay(refName) || hasUnpreparedLocal(rawState, refName) || rawState.readonlyVariables?.has(refName) || rawState.variableAttributes?.get(refName) || controlNames.has(refName) || refName === "OPTIND") return undefined;
           if (refName === inductionName) continue;
           const initial = rawState.variables[refName];
           if (initial !== undefined && initial !== "" && !/^-?[0-9]+$/.test(initial)) return undefined;
-          if (syncStepsMayWriteName(bodyAssignments, refName)) return undefined;
+          if (syncStepsMayWriteName(bodyAssignments, refName)) {
+            if (!allIntStepsReady) return undefined;
+          }
         }
       }
       monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets);
@@ -13569,7 +13633,16 @@ export class Runtime {
           const { ok, lastInductionInt, subBytes, subCount } = runIntArithForLoop( startVal, limitVal, isLe, bodyAssignments.length, deferredMask, intSteps, this.budget.parsing, );
           if (!ok) canUseIntRegisters = false; else {
             usedFastIntPath = true;
-            if (iterations > 0) lastPipelineStatus = 0;
+            if (iterations > 0) {
+              const lastIntStep = intSteps[bodyAssignments.length - 1];
+              if (lastIntStep?.isArithStmt) {
+                const finalExprVal = (sharedLoopIntRegs[lastIntStep.targetReg]! + (lastIntStep.statusBias ?? 0)) | 0;
+                lastPipelineStatus = finalExprVal !== 0 ? 0 : 1;
+                loopStatus = lastPipelineStatus;
+              } else {
+                lastPipelineStatus = 0;
+              }
+            }
             this.budget.parsing.admit(limitVal < 0 ? 4 : 2);
             this.budget.iterations += iterations + 1;
             this.budget.commands += iterations * bodyAssignments.length + subCount;
@@ -14176,7 +14249,7 @@ export class Runtime {
     }
     const braceReservation = activeValScope ? this._lastBraceReservation : undefined;
     if (activeValScope) this._lastBraceReservation = undefined;
-    if ( !fastLoopWords || fastLoopWords.length > 1500 || fastLoopWords.length * bodyAssignments.length > 24000 || (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands || (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations || (redirectCount > 0 && (this.budget.fileSystemOperations + fastLoopWords.length * redirectCount) >= this.budget.limits.maxFileSystemOperations)) {
+    if ( !fastLoopWords || fastLoopWords.length > 16384 || fastLoopWords.length * bodyAssignments.length > 100000 || (this.budget.commands + fastLoopWords.length * 4) >= this.budget.limits.maxCommands || (this.budget.iterations + fastLoopWords.length) >= this.budget.limits.maxLoopIterations || (redirectCount > 0 && (this.budget.fileSystemOperations + fastLoopWords.length * redirectCount) >= this.budget.limits.maxFileSystemOperations)) {
       braceReservation?.release();
       return undefined;
     }
@@ -14243,7 +14316,7 @@ export class Runtime {
           }
         }
       }
-      const fastReady = isStaticBraceWords && regOk && allIntStepsReady && !hasSubIntStep && redirectCount === 0 && !activeValScope && fastLoopWords.length <= 1500 && fastLoopWords.length * bodyAssignments.length <= 1600;
+      const fastReady = isStaticBraceWords && regOk && allIntStepsReady && !hasSubIntStep && redirectCount === 0 && !activeValScope && fastLoopWords.length <= 16384 && fastLoopWords.length * bodyAssignments.length <= 32768;
       forPlan = {
         intSteps, allIntStepsReady, hasSubIntStep, arithNamesList, touchedIntNamesList, fastReady, regNames, fastLoopWords, bodyStepCount: bodyAssignments.length, lastCmd: bodyAssignments[bodyAssignments.length - 1]?.cmd, };
       (command as { _cachedForPlan?: CachedForPlan })._cachedForPlan = forPlan;
@@ -14297,7 +14370,16 @@ export class Runtime {
         const { ok, subBytes, subCount } = runIntForLoop(fastLoopWords, bodyAssignments.length, intSteps, this.budget.parsing);
         if (!ok) canUseIntRegisters = false; else {
           usedFastIntFor = true;
-          if (fastLoopWords.length > 0) lastPipelineStatus = 0;
+          if (fastLoopWords.length > 0) {
+            const lastIntStep = intSteps[bodyAssignments.length - 1];
+            if (lastIntStep?.isArithStmt) {
+              const finalExprVal = (sharedLoopIntRegs[lastIntStep.targetReg]! + (lastIntStep.statusBias ?? 0)) | 0;
+              lastPipelineStatus = finalExprVal !== 0 ? 0 : 1;
+              loopStatus = lastPipelineStatus;
+            } else {
+              lastPipelineStatus = 0;
+            }
+          }
           lastCmd = bodyAssignments[bodyAssignments.length - 1]?.cmd;
           this.budget.iterations += fastLoopWords.length;
           this.budget.commands += fastLoopWords.length * bodyAssignments.length + subCount;
@@ -14867,6 +14949,13 @@ export class Runtime {
   private _syncLoopAction: "break" | "continue" | undefined = undefined;
   private flushSyncStdoutBatch(io: IO): void {
     if (this._syncStdoutBatch.length === 0) return;
+    if (io.stdout === devNullSyncSink) {
+      const byteLen = Buffer.byteLength(this._syncStdoutBatch);
+      this._syncStdoutBatch = "";
+      if (byteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+      this.budget.bytes += byteLen;
+      return;
+    }
     const chunk = fastSharedTextEncoder.encode(this._syncStdoutBatch);
     this._syncStdoutBatch = "";
     if ((io.stdout instanceof BudgetedSyncSink && io.stdout.write === BudgetedSyncSink.prototype.write) || (io.stdout instanceof Capture && io.stdout.write === Capture.prototype.write)) {

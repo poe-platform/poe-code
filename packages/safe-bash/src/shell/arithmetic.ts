@@ -388,109 +388,160 @@ export function fastSafeInt(text: string | undefined, budget: ParseBudget): numb
   return negative ? -num : num;
 }
 
-function canEvalSafeSmiTree(node: Arithmetic, depth = 0): boolean {
+function canEvalSafeSmiTree(node: Arithmetic, depth = 0, allowMut = depth === 0, noSubscripts = false): boolean {
   if (depth > 32) return false;
   if (node.kind === "literal") return node.value >= -94906265n && node.value <= 94906265n;
-  if (node.kind === "name") return node.subscript === undefined || /^[0-9]{1,7}$/.test(node.subscript) || /^\$?[a-zA-Z_][a-zA-Z_0-9]*$/.test(node.subscript) || /^\s*[a-zA-Z_][a-zA-Z_0-9]*\s*(?:[-+*]\s*(?:0|[1-9][0-9]{0,6})|[/%]\s*[1-9][0-9]{0,6})\s*$/.test(node.subscript);
+  if (node.kind === "name") {
+    if (noSubscripts) return node.subscript === undefined;
+    return node.subscript === undefined || /^[0-9]{1,7}$/.test(node.subscript) || /^\$?[a-zA-Z_][a-zA-Z_0-9]*$/.test(node.subscript) || /^\s*[a-zA-Z_][a-zA-Z_0-9]*\s*(?:[-+*]\s*(?:0|[1-9][0-9]{0,6})|[/%]\s*[1-9][0-9]{0,6})\s*$/.test(node.subscript);
+  }
   if (node.kind === "unary") {
-    if (node.operator === "+" || node.operator === "-" || node.operator === "!") return canEvalSafeSmiTree(node.operand, depth + 1);
-    if (node.operator === "++" || node.operator === "--") return node.operand.kind === "name" && canEvalSafeSmiTree(node.operand, depth + 1) && depth === 0;
+    if (node.operator === "+" || node.operator === "-" || node.operator === "!" || node.operator === "~") return canEvalSafeSmiTree(node.operand, depth + 1, false, noSubscripts);
+    if (node.operator === "++" || node.operator === "--") return allowMut && node.operand.kind === "name" && canEvalSafeSmiTree(node.operand, depth + 1, false, noSubscripts);
     return false;
   }
   if (node.kind === "binary") {
-    // A comma can publish a mutation before a later operand needs the general
-    // evaluator. Keep the whole sequence there so fallback cannot replay writes.
-    if (node.operator === ",") return false;
-    if ((node.operator === "=" || node.operator === "+=" || node.operator === "-=" || node.operator === "*=") && depth === 0) {
-      return node.left.kind === "name" && canEvalSafeSmiTree(node.left, depth + 1) && canEvalSafeSmiTree(node.right, depth + 1);
+    if (node.operator === ",") {
+      return allowMut && depth < 8 && canEvalSafeSmiTree(node.left, depth + 1, true, true) && canEvalSafeSmiTree(node.right, depth + 1, true, true);
+    }
+    if ((node.operator === "=" || node.operator === "+=" || node.operator === "-=" || node.operator === "*=" || node.operator === "&=" || node.operator === "|=" || node.operator === "^=" || node.operator === "<<=" || node.operator === ">>=") && allowMut) {
+      if ((node.operator === "<<=" || node.operator === ">>=") && (node.right.kind !== "literal" || node.right.value < 0n || node.right.value > 30n)) return false;
+      return node.left.kind === "name" && canEvalSafeSmiTree(node.left, depth + 1, false, noSubscripts) && canEvalSafeSmiTree(node.right, depth + 1, false, noSubscripts);
     }
     if (
       node.operator === "+" || node.operator === "-" || node.operator === "*" ||
       node.operator === "<" || node.operator === "<=" || node.operator === ">" ||
       node.operator === ">=" || node.operator === "==" || node.operator === "!=" ||
       node.operator === "&" || node.operator === "|" || node.operator === "^" ||
+      node.operator === "<<" || node.operator === ">>" ||
       node.operator === "&&" || node.operator === "||"
     ) {
       if (
-        depth === 0 &&
+        allowMut &&
         node.left.kind === "unary" &&
         (node.left.operator === "++" || node.left.operator === "--") &&
         node.left.operand.kind === "name" &&
         node.left.operand.subscript === undefined &&
         node.right.kind === "literal" &&
-        canEvalSafeSmiTree(node.right, depth + 1)
+        canEvalSafeSmiTree(node.right, depth + 1, false, noSubscripts)
       ) {
         return true;
       }
-      return canEvalSafeSmiTree(node.left, depth + 1) && canEvalSafeSmiTree(node.right, depth + 1);
+      return canEvalSafeSmiTree(node.left, depth + 1, false, noSubscripts) && canEvalSafeSmiTree(node.right, depth + 1, false, noSubscripts);
     }
     if (node.operator === "/" || node.operator === "%") {
-      return node.right.kind === "literal" && node.right.value !== 0n && node.right.value >= -94906265n && node.right.value <= 94906265n && canEvalSafeSmiTree(node.left, depth + 1);
+      return node.right.kind === "literal" && node.right.value !== 0n && node.right.value >= -94906265n && node.right.value <= 94906265n && canEvalSafeSmiTree(node.left, depth + 1, false, noSubscripts);
     }
   }
   return false;
 }
 
-function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: ParseBudget): number | undefined {
+function readSafeSmiRef(ref: string, refs: ArithmeticReferences, budget: ParseBudget, tx?: Array<{ ref: string; val: number }>): number | undefined {
+  if (tx !== undefined) {
+    for (let i = tx.length - 1; i >= 0; i--) {
+      if (tx[i]!.ref === ref) {
+        const v = tx[i]!.val;
+        budget.admit(v < 0 ? 4 : 2);
+        return v;
+      }
+    }
+  }
+  return fastSafeInt(refs.read(ref) as string | undefined, budget);
+}
+
+function writeSafeSmiRef(ref: string, val: number, refs: ArithmeticReferences, tx?: Array<{ ref: string; val: number }>): void {
+  if (tx !== undefined) {
+    tx.push({ ref, val });
+  } else {
+    refs.write(ref, intToStr(val));
+  }
+}
+
+function evalSafeSmiInner(node: Arithmetic, refs: ArithmeticReferences, budget: ParseBudget, tx?: Array<{ ref: string; val: number }>): number | undefined {
   budget.admit(0);
   if (node.kind === "literal") return Number(node.value);
   if (node.kind === "name") {
     const ref = refs.resolve(node.name, node.subscript) as string;
-    const text = refs.read(ref) as string | undefined;
-    return fastSafeInt(text, budget);
+    return readSafeSmiRef(ref, refs, budget, tx);
   }
   if (node.kind === "unary") {
     if (node.operator === "++" || node.operator === "--") {
       const target = node.operand as Extract<Arithmetic, { kind: "name" }>;
       const ref = refs.resolve(target.name, target.subscript) as string;
-      const cur = fastSafeInt(refs.read(ref) as string | undefined, budget);
+      const cur = readSafeSmiRef(ref, refs, budget, tx);
       if (cur === undefined || cur < -94906264 || cur > 94906264) return undefined;
       const next = node.operator === "++" ? cur + 1 : cur - 1;
-      refs.write(ref, intToStr(next));
+      writeSafeSmiRef(ref, next, refs, tx);
       return node.postfix ? cur : next;
     }
-    const v = evalSafeSmi(node.operand, refs, budget);
+    const v = evalSafeSmiInner(node.operand, refs, budget, tx);
     if (v === undefined || v < -94906265 || v > 94906265) return undefined;
     if (node.operator === "+") return v;
     if (node.operator === "-") return v === 0 ? 0 : -v;
     if (node.operator === "!") return v === 0 ? 1 : 0;
+    if (node.operator === "~") return ~v;
     return undefined;
   }
   if (node.kind === "binary") {
+    if (node.operator === ",") {
+      const lComma = evalSafeSmiInner(node.left, refs, budget, tx);
+      if (lComma === undefined) return undefined;
+      return evalSafeSmiInner(node.right, refs, budget, tx);
+    }
     if (node.operator === "=") {
-      const r = evalSafeSmi(node.right, refs, budget);
+      const r = evalSafeSmiInner(node.right, refs, budget, tx);
       if (r === undefined || r < -94906265 || r > 94906265) return undefined;
       const target = node.left as Extract<Arithmetic, { kind: "name" }>;
       const ref = refs.resolve(target.name, target.subscript) as string;
-      refs.write(ref, intToStr(r));
+      writeSafeSmiRef(ref, r, refs, tx);
       return r;
     }
-    if (node.operator === "+=" || node.operator === "-=" || node.operator === "*=") {
+    if (
+      node.operator === "+=" || node.operator === "-=" || node.operator === "*=" ||
+      node.operator === "&=" || node.operator === "|=" || node.operator === "^=" ||
+      node.operator === "<<=" || node.operator === ">>="
+    ) {
       const target = node.left as Extract<Arithmetic, { kind: "name" }>;
       const ref = refs.resolve(target.name, target.subscript) as string;
-      const l = fastSafeInt(refs.read(ref) as string | undefined, budget);
+      const l = readSafeSmiRef(ref, refs, budget, tx);
       if (l === undefined || l < -94906265 || l > 94906265) return undefined;
-      const r = evalSafeSmi(node.right, refs, budget);
+      const r = evalSafeSmiInner(node.right, refs, budget, tx);
       if (r === undefined || r < -94906265 || r > 94906265) return undefined;
-      const updated = node.operator === "+=" ? l + r : node.operator === "-=" ? l - r : l * r;
-      refs.write(ref, intToStr(updated));
+      let updated: number;
+      if (node.operator === "+=") updated = l + r;
+      else if (node.operator === "-=") updated = l - r;
+      else if (node.operator === "*=") updated = l * r;
+      else if (node.operator === "&=") updated = l & r;
+      else if (node.operator === "|=") updated = l | r;
+      else if (node.operator === "^=") updated = l ^ r;
+      else if (node.operator === "<<=") {
+        if (r < 0 || r > 30) return undefined;
+        const shifted = l * (1 << r);
+        if (shifted < -94906265 || shifted > 94906265) return undefined;
+        updated = shifted | 0;
+      } else {
+        if (r < 0 || r > 30) return undefined;
+        updated = l >> r;
+      }
+      if (updated < -94906265 || updated > 94906265) return undefined;
+      writeSafeSmiRef(ref, updated, refs, tx);
       return updated;
     }
-    const l = evalSafeSmi(node.left, refs, budget);
+    const l = evalSafeSmiInner(node.left, refs, budget, tx);
     if (l === undefined || l < -94906265 || l > 94906265) return undefined;
     if (node.operator === "&&") {
       if (l === 0) return 0;
-      const rAnd = evalSafeSmi(node.right, refs, budget);
+      const rAnd = evalSafeSmiInner(node.right, refs, budget, tx);
       if (rAnd === undefined || rAnd < -94906265 || rAnd > 94906265) return undefined;
       return rAnd !== 0 ? 1 : 0;
     }
     if (node.operator === "||") {
       if (l !== 0) return 1;
-      const rOr = evalSafeSmi(node.right, refs, budget);
+      const rOr = evalSafeSmiInner(node.right, refs, budget, tx);
       if (rOr === undefined || rOr < -94906265 || rOr > 94906265) return undefined;
       return rOr !== 0 ? 1 : 0;
     }
-    const r = evalSafeSmi(node.right, refs, budget);
+    const r = evalSafeSmiInner(node.right, refs, budget, tx);
     if (r === undefined || r < -94906265 || r > 94906265) return undefined;
     switch (node.operator) {
       case "+": return l + r;
@@ -507,9 +558,32 @@ function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: Parse
       case "&": return l & r;
       case "|": return l | r;
       case "^": return l ^ r;
+      case "<<": {
+        if (r < 0 || r > 30) return undefined;
+        const shifted = l * (1 << r);
+        if (shifted < -94906265 || shifted > 94906265) return undefined;
+        return shifted | 0;
+      }
+      case ">>": {
+        if (r < 0 || r > 30) return undefined;
+        return l >> r;
+      }
     }
   }
   return undefined;
+}
+
+function evalSafeSmi(node: Arithmetic, refs: ArithmeticReferences, budget: ParseBudget): number | undefined {
+  if (node.kind === "binary" && node.operator === ",") {
+    const tx: Array<{ ref: string; val: number }> = [];
+    const res = evalSafeSmiInner(node, refs, budget, tx);
+    if (res === undefined) return undefined;
+    for (let i = 0; i < tx.length; i++) {
+      refs.write(tx[i]!.ref, intToStr(tx[i]!.val));
+    }
+    return res;
+  }
+  return evalSafeSmiInner(node, refs, budget);
 }
 
 const safeSmiSymbol = Symbol("safe-bash.safeSmiTree");
@@ -523,7 +597,7 @@ function collectPureSmiTreeNames(node: Arithmetic, names: Set<string>, depth = 1
     return true;
   }
   if (node.kind === "unary") {
-    if (node.operator === "+" || node.operator === "-" || node.operator === "!") {
+    if (node.operator === "+" || node.operator === "-" || node.operator === "!" || node.operator === "~") {
       return collectPureSmiTreeNames(node.operand, names, depth + 1);
     }
     return false;
@@ -533,7 +607,8 @@ function collectPureSmiTreeNames(node: Arithmetic, names: Set<string>, depth = 1
       node.operator === "+" || node.operator === "-" || node.operator === "*" ||
       node.operator === "<" || node.operator === "<=" || node.operator === ">" ||
       node.operator === ">=" || node.operator === "==" || node.operator === "!=" ||
-      node.operator === "&" || node.operator === "|" || node.operator === "^"
+      node.operator === "&" || node.operator === "|" || node.operator === "^" ||
+      node.operator === "<<" || node.operator === ">>"
     ) {
       return collectPureSmiTreeNames(node.left, names, depth + 1) && collectPureSmiTreeNames(node.right, names, depth + 1);
     }
@@ -564,6 +639,7 @@ export function evalPureSmiWithInts(node: Arithmetic, intVars: Map<string, numbe
     if (node.operator === "+") return v;
     if (node.operator === "-") return (-v) | 0;
     if (node.operator === "!") return v === 0 ? 1 : 0;
+    if (node.operator === "~") return ~v;
     return undefined;
   }
   if (node.kind === "binary") {
@@ -586,6 +662,8 @@ export function evalPureSmiWithInts(node: Arithmetic, intVars: Map<string, numbe
       case "&": return l & r;
       case "|": return l | r;
       case "^": return l ^ r;
+      case "<<": { if (r < 0 || r > 30) return undefined; const s = l * (1 << r); return s >= -94906265 && s <= 94906265 ? s | 0 : undefined; }
+      case ">>": return r >= 0 && r <= 30 ? l >> r : undefined;
     }
   }
   return undefined;
@@ -889,9 +967,9 @@ export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<
       return true;
     }
     if (node.kind === "unary") {
-      if (node.operator !== "+" && node.operator !== "-" && node.operator !== "!") return false;
+      if (node.operator !== "+" && node.operator !== "-" && node.operator !== "!" && node.operator !== "~") return false;
       if (!visit(node.operand, depth + 1)) return false;
-      ops.push(node.operator === "+" ? 2 : node.operator === "-" ? 3 : 4);
+      ops.push(node.operator === "+" ? 2 : node.operator === "-" ? 3 : node.operator === "!" ? 4 : 19);
       args.push(0);
       return true;
     }
@@ -912,6 +990,8 @@ export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<
         case "&": opCode = 16; break;
         case "|": opCode = 17; break;
         case "^": opCode = 18; break;
+        case "<<": opCode = 20; break;
+        case ">>": opCode = 21; break;
         default: return false;
       }
       if ((opCode === 8 || opCode === 9) && (node.right.kind !== "literal" || node.right.value === 0n || node.right.value < -94906265n || node.right.value > 94906265n)) {
@@ -954,10 +1034,10 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: readonly n
       const val = sharedLoopIntRegs[varRegMap[args[pc]!]!]!;
       admitUnits = (admitUnits + (val < 0 ? 4 : 2)) | 0;
       sharedRpnStack[sp++] = val;
-    } else if (op <= 4) {
+    } else if (op <= 4 || op === 19) {
       const v = sharedRpnStack[sp - 1]!;
       if (op === 3 && v === -1073741824) return 0x7fffffff;
-      sharedRpnStack[sp - 1] = op === 2 ? v : op === 3 ? (-v | 0) : (v === 0 ? 1 : 0);
+      sharedRpnStack[sp - 1] = op === 2 ? v : op === 3 ? (-v | 0) : op === 4 ? (v === 0 ? 1 : 0) : ~v;
     } else {
       sp--;
       const r = sharedRpnStack[sp]!;
@@ -978,6 +1058,16 @@ export function evalCompiledSmi(compiled: CompiledSmiExpr, varRegMap: readonly n
         case 16: res = l & r; break;
         case 17: res = l | r; break;
         case 18: res = l ^ r; break;
+        case 20: {
+          if (r < 0 || r > 30) return 0x7fffffff;
+          res = l * (1 << r);
+          break;
+        }
+        case 21: {
+          if (r < 0 || r > 30) return 0x7fffffff;
+          res = l >> r;
+          break;
+        }
       }
       if ((res | 0) !== res || res < -1073741824 || res > 1073741823) return 0x7fffffff;
       sharedRpnStack[sp - 1] = res | 0;

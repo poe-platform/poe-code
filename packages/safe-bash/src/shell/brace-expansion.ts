@@ -119,7 +119,7 @@ export function tryFastExpandBraceRange(
     return undefined;
   }
   const count = Math.abs(end - start) + 1;
-  if (count > 2048) {
+  if (count > 16384) {
     braceRangeWordCache.set(word, null);
     return undefined;
   }

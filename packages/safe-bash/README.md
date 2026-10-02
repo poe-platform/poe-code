@@ -91,6 +91,9 @@ For a lightweight registry, import `baseAgentCommands` and
 family limits and regex options. It preserves the base shell inventory without
 the default registry’s GH/Git integration; add `ghCommands` explicitly where needed.
 The registry subpath supports ESM splitting without visiting the full aggregate.
+Configure the included `dd` command through `bytes.dd` on `agentCommands()` or
+`baseAgentCommands()`, or through `dd` on `byteCommands()`. These options accept
+the command's block, buffer, transfer and read-operation limits.
 Its exports do not select the optional
 `op`, `node` or `safejs` plugins; add those only through their command entrypoints.
 Only registered commands are available; adding search commands does not enable unrelated tools.

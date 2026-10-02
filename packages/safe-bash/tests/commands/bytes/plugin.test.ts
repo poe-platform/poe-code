@@ -11,6 +11,8 @@ import {
 import { byteCommands, createByteCommands } from "../../../src/commands/bytes/index.js";
 import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell, ShellLimitError } from "../../../src/shell/index.js";
+import { baseAgentCommands } from "../../../src/registry-entry.js";
+import type { DdCommandsOptions } from "../../../src/dd.js";
 
 const names = ["base64", "base32", "xxd", "od", "sha512sum", "sha384sum", "sha256sum", "sha224sum", "sha1sum", "md5sum", "cksum", "gzip", "gunzip", "zcat", "bzip2", "bunzip2", "bzcat", "xz", "unxz", "xzcat", "lzma", "unlzma", "lzcat", "zstd", "unzstd", "zstdcat", "dd"];
 const binary = Uint8Array.from({ length: 1025 }, (_, index) => index % 256);
@@ -54,6 +56,29 @@ test("byte factory returns the complete command inventory in family order", () =
   assert.equal(new Set(definitions.map((definition) => definition.name)).size, names.length);
   for (const definition of definitions) assert.equal(typeof definition.execute, "function");
 });
+
+for (const [name, createPlugin] of [
+  ["byte", (dd: DdCommandsOptions) => byteCommands({ dd })],
+  ["base agent", (dd: DdCommandsOptions) => baseAgentCommands({ bytes: { dd } })],
+] as const) {
+  test(`${name} composition enforces configured dd limits before file mutation`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/input", new TextEncoder().encode("abcdef"));
+    await fs.writeFile("/output", new TextEncoder().encode("keep"));
+    const shell = new Shell({ fs }).use(createPlugin({
+      maxBlockBytes: 2, maxBufferBytes: 2, maxTransferBytes: 4, maxReadOperations: 2,
+    }));
+    try {
+      const rejected = await shell.exec("dd if=/input of=/output bs=3 count=1 status=none");
+      assert.equal(rejected.exitCode, 1);
+      assert.equal(rejected.stderr, "dd: block size limit exceeded\n");
+      assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "keep");
+      const accepted = await shell.exec("dd if=/input of=/output bs=2 count=2 status=none");
+      assert.equal(accepted.exitCode, 0, accepted.stderr);
+      assert.equal(new TextDecoder().decode(await fs.readFile("/output")), "abcd");
+    } finally { await shell.dispose(); }
+  });
+}
 
 test("byte factories return fresh arrays and command definitions", () => {
   const first = createByteCommands();

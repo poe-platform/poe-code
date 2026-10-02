@@ -1,5 +1,5 @@
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
-import { createDdCommand } from "../../dd.js";
+import { createDdCommand, type DdCommandsOptions } from "../../dd.js";
 import { createEncodingCommands } from "./encoding/index.js";
 import { createChecksumCommands } from "./checksums/index.js";
 import { createCompressionCommands } from "./compression/index.js";
@@ -16,10 +16,12 @@ export interface ByteCommandsOptions {
   readonly encoding?: ByteInputOptions;
   /** Input limits for checksum commands only; manifests and referenced files share one invocation budget. */
   readonly checksums?: ByteInputOptions;
+  /** dd transfer limits and explicitly supplied file capabilities. */
+  readonly dd?: Omit<DdCommandsOptions, "replace">;
 }
 
 export function createByteCommands(options: Omit<ByteCommandsOptions, "replace"> = {}): readonly CommandDefinition[] {
-  return [...createEncodingCommands(options.encoding), ...createChecksumCommands(options.checksums), ...createCompressionCommands(options.compression), createDdCommand()];
+  return [...createEncodingCommands(options.encoding), ...createChecksumCommands(options.checksums), ...createCompressionCommands(options.compression), createDdCommand(options.dd)];
 }
 
 export function byteCommands(options: ByteCommandsOptions = {}): VirtualShellPlugin {

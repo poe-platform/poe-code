@@ -1737,7 +1737,9 @@
           "dependencies": {},
           "devDependencies": {
             "memfs": "4.56.10",
-            "esbuild": "0.28.1"
+            "esbuild": "0.28.1",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*"
           },
           "assets": [
             "./dist/native/sources.json",

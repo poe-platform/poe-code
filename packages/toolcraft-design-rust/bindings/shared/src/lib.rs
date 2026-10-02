@@ -484,3 +484,5 @@ mod prompt_selection;
 pub use prompt_selection::*;
 mod dashboard_keymap;
 pub use dashboard_keymap::*;
+mod dashboard_mode;
+pub use dashboard_mode::*;

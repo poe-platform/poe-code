@@ -126,6 +126,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `explorer/render/text` | Fit, center and pad text by terminal cells while retaining grapheme offsets |
 | `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
 | `dashboard/keymap` | Resolve default or custom keyboard commands and canonicalize binding labels |
+| `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -447,3 +448,8 @@ keypress events into dashboard commands. Override individual bindings or supply
 priority over sequences such as `gg`; interrupted sequences reset automatically.
 `canonicalizeBinding` normalizes aliases and modifier labels. This subpath does
 not start a dashboard or read terminal input.
+
+`shouldUseInteractiveDashboard(enabled, io?)` returns true only for explicit
+`true`, terminal output format, and TTY stdin/stdout. It defaults to `process`
+and respects `withOutputFormat` scopes. The root, dashboard namespace and
+`should-use-interactive-dashboard` subpath expose the same function.

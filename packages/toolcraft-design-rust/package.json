@@ -375,6 +375,14 @@
     "./dashboard/keymap": {
       "types": "./dist/dashboard-keymap.d.ts",
       "import": "./dist/dashboard-keymap.js"
+    },
+    "./should-use-interactive-dashboard": {
+      "types": "./dist/dashboard-mode.d.ts",
+      "import": "./dist/dashboard-mode.js"
+    },
+    "./dashboard/should-use-dashboard": {
+      "types": "./dist/dashboard-mode.d.ts",
+      "import": "./dist/dashboard-mode.js"
     }
   },
   "scripts": {

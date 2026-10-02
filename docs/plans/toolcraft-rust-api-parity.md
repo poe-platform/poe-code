@@ -1361,3 +1361,22 @@ the prior prompt checkpoint completed successfully, including dependency builds
 and contracts; keymap inputs were edited during that run, so its result is not
 an exact-head keymap qualification. Focused keymap checks ran after those edits.
 Full dashboard/explorer, remaining Toolcraft surfaces and swap gates remain open.
+
+### Dashboard admission checkpoint
+
+Root `shouldUseInteractiveDashboard`, the dashboard namespace, and direct
+`should-use-interactive-dashboard` / `dashboard/should-use-dashboard` subpaths
+now share a native policy. Rust preserves strict enablement, format resolution
+and stdin/stdout getter short-circuit order; Node supplies process defaults,
+async output-format scope and Boolean coercion. Standalone declarations preserve
+the existing IO shape and bidirectional function compatibility.
+
+Two missing-API tests failed before implementation. All 266 native host tests,
+1,222 selected design tests, 13 prompt-wrapper tests and five original keymap
+tests pass, as do Rust/binding/JS lint and packed runtime/declarations with
+external imports rejected and `types: []`. An inspected mode-selection screenshot
+shows reference-equal enabled, disabled, JSON and non-TTY cases. No dependency
+changes. Five warmed alternating 10,000-call rounds measured 1.989 µs/call native
+versus 0.0309 µs reference (64.46× slower); no performance gate passed. Five
+original root dashboard/explorer exports remain absent, along with broader
+Toolcraft and platform/resource/type-identity qualification.

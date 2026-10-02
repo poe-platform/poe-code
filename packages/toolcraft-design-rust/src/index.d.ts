@@ -70,6 +70,7 @@ export declare function retainOutputTail(text: string, maxChars: number): string
 export declare function createOutputPreviewBuffer(): { push(text: string): void; text(): string };
 
 export declare namespace dashboard {
+  const shouldUseInteractiveDashboard: typeof import("./dashboard-mode.js").shouldUseInteractiveDashboard;
   const createDashboardLineBuffer: typeof import("./line-buffer.js").createDashboardLineBuffer;
   const createStreamingDashboardLineBuffer: typeof import("./line-buffer.js").createStreamingDashboardLineBuffer;
   function limitOutputPreview(text: string): string;
@@ -139,3 +140,5 @@ export {promptTheme} from "./prompt-theme.js";
 export * as prompts from "./prompts.js";
 export {select, multiselect, text as promptText, confirm, confirmOrCancel, password, PromptCancelledError} from "./prompts.js";
 export type {SelectOptions, MultiselectOptions, TextOptions, ConfirmOptions, PasswordOptions} from "./prompts.js";
+
+export {shouldUseInteractiveDashboard} from "./dashboard-mode.js";

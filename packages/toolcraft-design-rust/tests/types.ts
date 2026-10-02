@@ -666,3 +666,10 @@ const genericKeymap = dashboardKeymap.createKeymap(undefined, {
 });
 const genericCommand: "go" | "stop" | undefined = genericKeymap({ch: "g", ctrl: false, meta: false, shift: false});
 void [keymapOriginal, keymapNative, genericCommand];
+
+import * as dashboardMode from "toolcraft-design-rust/should-use-interactive-dashboard";
+import type * as originalDashboardMode from "toolcraft-design/should-use-interactive-dashboard";
+const dashboardModeOriginal: typeof originalDashboardMode = dashboardMode;
+const dashboardModeNative: typeof dashboardMode = null as unknown as typeof originalDashboardMode;
+const ttyMode: boolean = dashboardMode.shouldUseInteractiveDashboard(true, {stdin: {}, stdout: {isTTY: true}});
+void [dashboardModeOriginal, dashboardModeNative, ttyMode];

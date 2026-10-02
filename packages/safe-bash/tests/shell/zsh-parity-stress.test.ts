@@ -1222,4 +1222,23 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     const r5 = await bash.exec("out=\$(find /regular.txt/ 2>&1); echo \$?");
     assert.notEqual(r5.stdout.trim(), "0");
   });
+
+  test("66. sync command substitution trailing-newline stripping in expr and NUL filtering in jq/awk/printf", async () => {
+    const bash = new Bash();
+
+    // 1. expr command substitution must strip trailing newlines
+    const r1 = await bash.exec("x=$(expr hello\\n\\n' : '\\(.*\\)'); printf '<%s>' \"$x\"");
+    assert.equal(r1.exitCode, 0);
+    assert.equal(r1.stdout, "<hello>");
+
+    // 2. jq -rn command substitution with NUL byte must strip NUL
+    const r2 = await bash.exec("x=$(jq -rn '\"a\\u0000b\"'); printf '%s:%d' \"$x\" \"${#x}\"");
+    assert.equal(r2.exitCode, 0);
+    assert.equal(r2.stdout, "ab:2");
+
+    // 3. awk BEGIN command substitution with NUL byte must strip NUL
+    const r3 = await bash.exec("x=$(awk 'BEGIN { printf \"x\\0y\\n\" }'); printf '%s:%d' \"$x\" \"${#x}\"");
+    assert.equal(r3.exitCode, 0);
+    assert.equal(r3.stdout, "xy:2");
+  });
 });

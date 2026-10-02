@@ -19061,7 +19061,7 @@ const syncExtraRuntimeMethods = {
           GETOPT_COMPATIBLE: getEnvVar("GETOPT_COMPATIBLE"),
           POSIXLY_CORRECT: getEnvVar("POSIXLY_CORRECT"),
         });
-        if (goOut !== undefined) {
+        if (goOut !== undefined && !goOut.includes("\0")) {
           let res = goOut;
           const outBytes = shellValueByteLength(goOut) + 1;
           let end = res.length;
@@ -19104,6 +19104,7 @@ const syncExtraRuntimeMethods = {
         const awkBegin = this.evalSyncAwk([], allArgs);
         if (awkBegin !== undefined) {
           let res = awkBegin.join("\n") + (awkBegin.length > 0 ? "\n" : "");
+          if (res.includes("\0")) return undefined;
           const outBytes = shellValueByteLength(res);
           let end = res.length;
           while (end > 0 && res.charCodeAt(end - 1) === 10) end--;
@@ -19194,7 +19195,7 @@ const syncExtraRuntimeMethods = {
       }
       if (fOk && w0Plain === "which" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
         const wOut = evalSyncWhich(allArgs, rawState.cwd, rawState.exported.has("PATH") && typeof rawState.variables.PATH === "string" ? rawState.variables.PATH : undefined, (p: string) => this.tryCheckMemoryExecutableFileSync(p, true));
-        if (wOut !== undefined) {
+        if (wOut !== undefined && !wOut.includes("\0")) {
           let res = wOut;
           const outBytes = shellValueByteLength(res);
           let end = res.length;
@@ -19396,15 +19397,19 @@ const syncExtraRuntimeMethods = {
       }
       if (fOk && w0Plain === "expr" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
         const exprRes = this.evalSyncExpr(allArgs);
-        if (exprRes !== undefined) {
+        if (exprRes !== undefined && !exprRes.value.includes("\0")) {
           const outBytes = shellValueByteLength(exprRes.value) + 1;
+          let res = exprRes.value;
+          let end = res.length;
+          while (end > 0 && res.charCodeAt(end - 1) === 10) end--;
+          if (end < res.length) res = res.slice(0, end);
           const nextTotalBytes = this.budget.bytes + outBytes;
           if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
           this.budget.bytes = nextTotalBytes;
           this.budget.tick();
           rawState.substitutionStatus = exprRes.status;
           rawState.status = exprRes.status;
-          return exprRes.value;
+          return res;
         }
       }
       if (fOk && (w0Plain === "comm" || w0Plain === "join" || w0Plain === "paste" || w0Plain === "factor" || w0Plain === "tsort" || (w0Plain === "jq" && !hasSingleHereStringRedir) || (w0Plain === "envsubst" && !hasSingleHereStringRedir) || (w0Plain === "numfmt" && !hasSingleHereStringRedir)) && !hasSingleStdinRedir) {
@@ -19435,6 +19440,7 @@ const syncExtraRuntimeMethods = {
         }
         if (cjLines !== undefined) {
           let fileRes = cjLines.length === 0 ? "" : cjLines.join("\n") + "\n";
+          if (fileRes.includes("\0")) return undefined;
           const outBytes = shellValueByteLength(fileRes);
           let end = fileRes.length;
           while (end > 0 && fileRes.charCodeAt(end - 1) === 10) end--;
@@ -19986,7 +19992,7 @@ const syncExtraRuntimeMethods = {
         dbArgs.push(v);
       }
       let res = w0Plain === "dirname" ? this.evalSyncDirname(dbArgs) : this.evalSyncBasename(dbArgs);
-      if (res === undefined) return undefined;
+      if (res === undefined || res.includes("\0")) return undefined;
       const byteLength = shellValueByteLength(res) + 1;
       while (res.endsWith("\n")) res = res.slice(0, -1);
       const nextBytes = this.budget.bytes + byteLength;
@@ -20006,7 +20012,7 @@ const syncExtraRuntimeMethods = {
         seqArgs.push(sv);
       }
       const rawSeq = this.evalSyncSeq(seqArgs);
-      if (rawSeq === undefined) return undefined;
+      if (rawSeq === undefined || rawSeq.includes("\0")) return undefined;
       const byteLength = shellValueByteLength(rawSeq);
       let res = rawSeq;
       while (res.endsWith("\n")) res = res.slice(0, -1);
@@ -20065,7 +20071,7 @@ const syncExtraRuntimeMethods = {
       formatted = `${subArgs.join(" ")}\n`;
       if (formatted.includes("\0")) return undefined;
     }
-    if (formatted === undefined) return undefined;
+    if (formatted === undefined || formatted.includes("\0")) return undefined;
     const byteLength = shellValueByteLength(formatted);
     const nextBytes = this.budget.bytes + byteLength;
     if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");

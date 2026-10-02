@@ -306,3 +306,56 @@ test('Rust WASM exposes corrected log, range, status and branch semantics', asyn
   assert.equal((await run(['branch', '-D', 'main'])).exitCode, 1);
   assert.equal((await run(['branch', '--show-current'])).stdout, 'main\n');
 });
+
+test("git log supports --decorate and repository-scoped snapshots skip sibling directories", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/repo", { recursive: true });
+  await fs.mkdir("/sibling", { recursive: true });
+  await fs.writeFile("/sibling/untouched.bin", new Uint8Array([1, 2, 3, 4]));
+  const readPaths: string[] = [];
+  const origReadFile = fs.readFile.bind(fs);
+  fs.readFile = async (path, options) => {
+    readPaths.push(path);
+    return origReadFile(path, options);
+  };
+  const command = createGitCommand();
+  const run = async (args: string[]) => {
+    let stdout = "", stderr = "";
+    const result = await command.execute({
+      command: "git",
+      args,
+      cwd: "/repo",
+      env: {},
+      fs,
+      signal: new AbortController().signal,
+      stdin: (async function* () {})(),
+      stdout: { write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+    } as CommandContext);
+    return { exitCode: result.exitCode, stdout, stderr };
+  };
+  assert.equal((await run(["init", "-b", "main"])).exitCode, 0);
+  await fs.writeFile("/repo/file.txt", new TextEncoder().encode("v1\n"));
+  assert.equal((await run(["add", "."])).exitCode, 0);
+  assert.equal((await run(["commit", "-m", "init commit"])).exitCode, 0);
+  assert.equal((await run(["tag", "v1.0.0"])).exitCode, 0);
+  assert.equal((await run(["branch", "feature/demo"])).exitCode, 0);
+
+  readPaths.length = 0;
+  const decorated = await run(["log", "--graph", "--oneline", "--decorate", "--all"]);
+  assert.equal(decorated.exitCode, 0, decorated.stderr);
+  assert.match(decorated.stdout, /HEAD -> main/);
+  assert.match(decorated.stdout, /tag: v1\.0\.0/);
+  assert.match(decorated.stdout, /feature\/demo/);
+  assert.ok(!readPaths.some(p => p.startsWith("/sibling")), "should not read sibling directories outside /repo");
+
+  const fullDecorated = await run(["log", "-1", "--decorate=full", "--oneline"]);
+  assert.equal(fullDecorated.exitCode, 0, fullDecorated.stderr);
+  assert.match(fullDecorated.stdout, /HEAD -> refs\/heads\/main/);
+  assert.match(fullDecorated.stdout, /tag: refs\/tags\/v1\.0\.0/);
+
+  const formatD = await run(["log", "-1", "--format=%h%d %s"]);
+  assert.equal(formatD.exitCode, 0, formatD.stderr);
+  assert.match(formatD.stdout, /\(HEAD -> main.*\) init commit/);
+  assert.deepEqual(await origReadFile("/sibling/untouched.bin"), new Uint8Array([1, 2, 3, 4]));
+});

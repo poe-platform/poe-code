@@ -232,6 +232,13 @@ fn touches_paths(
     Ok(true)
 }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum DecorateMode {
+    None,
+    Short,
+    Full,
+}
+
 pub(crate) struct HistoryOutput<'a> {
     pub format: &'a str,
     pub abbrev: bool,
@@ -240,6 +247,69 @@ pub(crate) struct HistoryOutput<'a> {
     pub skip_merge_diff: bool,
     pub graph: bool,
     pub show_signature: bool,
+    pub decorate: DecorateMode,
+}
+
+fn collect_decorations(
+    fs: &MemoryFs,
+    gitdir: &str,
+    mode: DecorateMode,
+) -> BTreeMap<String, Vec<String>> {
+    let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
+    if mode == DecorateMode::None {
+        return map;
+    }
+    let full = mode == DecorateMode::Full;
+    let head_raw = fs.read_str(&format!("{gitdir}/HEAD")).unwrap_or_default();
+    let head_sym = head_raw
+        .trim()
+        .strip_prefix("ref:")
+        .map(str::trim)
+        .filter(|s| !s.is_empty());
+    if let Some(target) = head_sym {
+        if let Ok(oid) = resolve_commit(fs, gitdir, target) {
+            let label = if full {
+                format!("HEAD -> {target}")
+            } else {
+                format!("HEAD -> {}", target.strip_prefix("refs/heads/").unwrap_or(target))
+            };
+            map.entry(oid).or_default().push(label);
+        }
+    } else if let Ok(oid) = resolve_commit(fs, gitdir, "HEAD") {
+        map.entry(oid).or_default().push("HEAD".to_string());
+    }
+    for r in crate::list_refs(fs, gitdir, "refs") {
+        let full_ref = format!("refs/{r}");
+        if head_sym == Some(full_ref.as_str()) || full_ref == "refs/stash" {
+            continue;
+        }
+        let Ok(oid) = resolve_commit(fs, gitdir, &full_ref) else {
+            continue;
+        };
+        let label = if let Some(tag) = r.strip_prefix("tags/") {
+            if full {
+                format!("tag: {full_ref}")
+            } else {
+                format!("tag: {tag}")
+            }
+        } else if let Some(branch) = r.strip_prefix("heads/") {
+            if full {
+                full_ref
+            } else {
+                branch.to_string()
+            }
+        } else if let Some(remote) = r.strip_prefix("remotes/") {
+            if full {
+                full_ref
+            } else {
+                remote.to_string()
+            }
+        } else {
+            full_ref
+        };
+        map.entry(oid).or_default().push(label);
+    }
+    map
 }
 
 pub(crate) fn render_history(
@@ -251,6 +321,14 @@ pub(crate) fn render_history(
     paths: &[String],
 ) -> Result<String, GitError> {
     let mut out = String::new();
+    let effective_decorate = if output.decorate != DecorateMode::None {
+        output.decorate
+    } else if output.format.contains("%d") || output.format.contains("%D") {
+        DecorateMode::Short
+    } else {
+        DecorateMode::None
+    };
+    let decorations = collect_decorations(fs, gitdir, effective_decorate);
     for (i, c) in commits.iter().enumerate() {
         if i > 0
             && (matches!(output.format, "short" | "medium" | "full")
@@ -262,6 +340,7 @@ pub(crate) fn render_history(
             std::slice::from_ref(c),
             output.format,
             output.abbrev,
+            Some(&decorations),
         );
         let rendered = if output.show_signature && let Some(ref sig) = c.commit.gpgsig {
             let allowed = crate::commands::plumbing::get_config(fs, gitdir, "gpg.ssh.allowedSignersFile")
@@ -358,7 +437,9 @@ pub(crate) fn execute(
         skip_merge_diff: !show,
         graph: false,
         show_signature: false,
+        decorate: DecorateMode::None,
     };
+    let mut ref_prefixes: Vec<&str> = Vec::new();
     let mut reverse = false;
     let mut patch = None;
     let mut paths = Vec::new();
@@ -382,7 +463,8 @@ pub(crate) fn execute(
         } else if arg == "--" {
             separator = true;
         } else if arg == "--oneline" {
-            output.format = "%h %s";
+            output.format = "oneline";
+            output.abbrev = true;
             output.abbrev = true;
         } else if matches!(arg, "--format" | "--pretty") {
             i += 1;
@@ -452,6 +534,25 @@ pub(crate) fn execute(
             skip_count = args[i].parse::<usize>().unwrap_or(0);
         } else if arg == "--graph" {
             output.graph = true;
+        } else if matches!(arg, "--decorate" | "--decorate=short" | "--decorate=auto") {
+            output.decorate = DecorateMode::Short;
+        } else if arg == "--decorate=full" {
+            output.decorate = DecorateMode::Full;
+        } else if matches!(arg, "--no-decorate" | "--decorate=no") {
+            output.decorate = DecorateMode::None;
+        } else if arg == "--branches" || arg.starts_with("--branches=") {
+            ref_prefixes.push("refs/heads");
+        } else if arg == "--tags" || arg.starts_with("--tags=") {
+            ref_prefixes.push("refs/tags");
+        } else if arg == "--remotes" || arg.starts_with("--remotes=") {
+            ref_prefixes.push("refs/remotes");
+        } else if matches!(arg, "--topo-order" | "--date-order" | "--author-date-order" | "--full-history" | "--simplify-merges" | "--ancestry-path" | "--color" | "--no-color")
+            || arg.starts_with("--color=")
+            || arg.starts_with("--date=")
+        {
+            // Accept display/order flags for agent compatibility.
+        } else if arg == "--date" && i + 1 < args.len() {
+            i += 1;
         } else if arg == "--show-signature" {
             output.show_signature = true;
         } else if arg == "--abbrev-commit" {
@@ -583,6 +684,11 @@ pub(crate) fn execute(
                 if let Ok(list) = history(&format!("refs/{r}")) { commits.extend(list); }
             }
         }
+        for prefix in &ref_prefixes {
+            for r in crate::list_refs(fs, gitdir, prefix) {
+                if let Ok(list) = history(&format!("{prefix}/{r}")) { commits.extend(list); }
+            }
+        }
         if walk_range {
             commits.extend(log_revision_range(fs, gitdir, revision, None)?);
         } else {
@@ -596,7 +702,7 @@ pub(crate) fn execute(
             }
         }
         commits.retain(|c| !excluded.contains(&c.oid));
-        if all_refs || (!walk_range && revision.contains("...")) {
+        if all_refs || !ref_prefixes.is_empty() || (!walk_range && revision.contains("...")) {
             commits.sort_by_key(|c| std::cmp::Reverse(c.commit.committer.timestamp));
         }
         let mut seen = BTreeSet::new();
@@ -639,15 +745,31 @@ pub(crate) fn execute(
     }
 }
 
-fn render(commits: &[ReadCommitResult], format: &str, abbrev: bool) -> String {
+fn render(
+    commits: &[ReadCommitResult],
+    format: &str,
+    abbrev: bool,
+    decorations: Option<&BTreeMap<String, Vec<String>>>,
+) -> String {
     let mut out = String::new();
     let preset = matches!(format, "oneline" | "short" | "medium" | "full");
     for (i, c) in commits.iter().enumerate() {
+        let deco_raw = decorations
+            .and_then(|m| m.get(&c.oid))
+            .filter(|v| !v.is_empty())
+            .map(|v| v.join(", "))
+            .unwrap_or_default();
+        let deco_suffix = if deco_raw.is_empty() {
+            String::new()
+        } else {
+            format!(" ({deco_raw})")
+        };
         if preset {
             if format == "oneline" {
                 out.push_str(&format!(
-                    "{} {}\n",
+                    "{}{} {}\n",
                     if abbrev { &c.oid[..7] } else { &c.oid },
+                    deco_suffix,
                     subject(&c.commit.message)
                 ));
                 continue;
@@ -656,8 +778,9 @@ fn render(commits: &[ReadCommitResult], format: &str, abbrev: bool) -> String {
                 out.push('\n');
             }
             out.push_str(&format!(
-                "commit {}\n",
+                "commit {}{}\n",
                 if abbrev { &c.oid[..7] } else { &c.oid },
+                deco_suffix,
             ));
             if c.commit.parent.len() > 1 {
                 out.push_str(&format!(
@@ -701,7 +824,12 @@ fn render(commits: &[ReadCommitResult], format: &str, abbrev: bool) -> String {
                 .strip_prefix("format:")
                 .or_else(|| format.strip_prefix("tformat:"))
                 .unwrap_or(format);
-            out.push_str(&format_commit(c, template));
+            let expanded_template = if template.contains("%d") || template.contains("%D") {
+                template.replace("%d", &deco_suffix).replace("%D", &deco_raw)
+            } else {
+                template.to_string()
+            };
+            out.push_str(&format_commit(c, &expanded_template));
             if terminate {
                 out.push('\n');
             }

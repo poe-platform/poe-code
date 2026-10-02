@@ -21,10 +21,124 @@ function createDefaultGitExports(): GitExports {
   return new wasm.Instance(module).exports;
 }
 
-async function snapshot(fs:FileSystem, limits:GitLimits, signal:AbortSignal):Promise<Entry[]> {
-  const entries:Entry[]=[];
-  let total=0;
-  const pending=[{path:'/',depth:0}];
+const CROSS_REPO_COMMANDS = new Set([
+  "clone", "init", "submodule", "worktree", "remote", "fetch", "pull", "push", "bundle", "archive", "daemon", "verify-commit", "verify-tag"
+]);
+
+function canScopeGitToRepoRoot(args: readonly string[], env?: Readonly<Record<string, string | undefined>>): boolean {
+  if (env && (env.GIT_DIR || env.GIT_WORK_TREE || env.GIT_COMMON_DIR || env.GIT_OBJECT_DIRECTORY || env.GIT_INDEX_FILE || env.GIT_CONFIG_GLOBAL || env.GIT_CONFIG_SYSTEM)) {
+    return false;
+  }
+  if (args.length === 0) return false;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (CROSS_REPO_COMMANDS.has(a)) return false;
+    if (a === "--global" || a === "--system" || a === "--bare" || a === "-C" || a === "--git-dir" || a === "--work-tree" || a === "-S" || a === "--gpg-sign" || a.startsWith("-S") || a.startsWith("--gpg-sign=")) return false;
+    if (a.startsWith("--git-dir=") || a.startsWith("--work-tree=") || a.startsWith("-C")) return false;
+    if (a.includes("..") || a.startsWith("/")) return false;
+  }
+  return true;
+}
+
+function ancestorDirs(targetPath: string): string[] {
+  const parts = targetPath.split("/").filter(Boolean);
+  const dirs: string[] = [];
+  let cur = "";
+  for (let i = 0; i < parts.length; i++) {
+    cur += "/" + parts[i]!;
+    dirs.push(cur);
+  }
+  return dirs;
+}
+
+async function resolveAsyncScopedRepoRoot(
+  fs: FileSystem,
+  cwd: string,
+  args: readonly string[],
+  env: Readonly<Record<string, string | undefined>>,
+  signal: AbortSignal,
+): Promise<string | undefined> {
+  if (!canScopeGitToRepoRoot(args, env) || !cwd.startsWith("/") || cwd === "/") return undefined;
+  let cur = cwd;
+  while (cur && cur !== "/") {
+    try {
+      const gitStat = await fs.lstat(`${cur}/.git`, { signal });
+      if (gitStat.type === "directory") {
+        let hasExternal = false;
+        try { await fs.lstat(`${cur}/.git/commondir`, { signal }); hasExternal = true; } catch {}
+        if (!hasExternal) {
+          try { await fs.lstat(`${cur}/.git/objects/info/alternates`, { signal }); hasExternal = true; } catch {}
+        }
+        return hasExternal ? undefined : cur;
+      }
+      return undefined;
+    } catch {
+      const idx = cur.lastIndexOf("/");
+      cur = idx > 0 ? cur.slice(0, idx) : "/";
+    }
+  }
+  return undefined;
+}
+
+function resolveSyncScopedRepoRoot(
+  inspectNode: (path: string, follow: boolean) => SyncGitNodeInfo | undefined,
+  cwd: string,
+  args: readonly string[],
+): string | undefined {
+  if (!canScopeGitToRepoRoot(args) || !cwd.startsWith("/") || cwd === "/") return undefined;
+  let cur = cwd;
+  while (cur && cur !== "/") {
+    const gitNode = inspectNode(`${cur}/.git`, false);
+    if (gitNode) {
+      if (gitNode.type === "directory" && !inspectNode(`${cur}/.git/commondir`, false) && !inspectNode(`${cur}/.git/objects/info/alternates`, false)) {
+        return cur;
+      }
+      return undefined;
+    }
+    const idx = cur.lastIndexOf("/");
+    cur = idx > 0 ? cur.slice(0, idx) : "/";
+  }
+  return undefined;
+}
+
+async function snapshot(
+  fs: FileSystem,
+  limits: GitLimits,
+  signal: AbortSignal,
+  cwd = "/",
+  args: readonly string[] = [],
+  env: Readonly<Record<string, string | undefined>> = {},
+): Promise<Entry[]> {
+  const entries: Entry[] = [];
+  let total = 0;
+  const unbounded = limits.maxEntries === Infinity && limits.maxBytes === Infinity && limits.maxDepth === Infinity;
+  const scopedRoot = unbounded ? await resolveAsyncScopedRepoRoot(fs, cwd, args, env, signal) : undefined;
+  const seenPaths = new Set<string>();
+  if (scopedRoot) {
+    for (const dir of ancestorDirs(scopedRoot)) {
+      seenPaths.add(dir);
+      entries.push({ path: dir, kind: "directory", mode: 0o755, data: "" });
+    }
+    const globalConfigs = ["/.gitconfig", ...(env.HOME && env.HOME.startsWith("/") && env.HOME !== "/" ? [`${env.HOME}/.gitconfig`] : [])];
+    for (const cfg of globalConfigs) {
+      try {
+        const bytes = await fs.readFile(cfg, { signal });
+        for (const dir of ancestorDirs(cfg.slice(0, cfg.lastIndexOf("/")) || "/")) {
+          if (!seenPaths.has(dir)) {
+            seenPaths.add(dir);
+            entries.push({ path: dir, kind: "directory", mode: 0o755, data: "" });
+          }
+        }
+        if (!seenPaths.has(cfg)) {
+          seenPaths.add(cfg);
+          entries.push({ path: cfg, kind: "file", mode: 0o644, data: encode(bytes) });
+        }
+      } catch {}
+    }
+  }
+  const startRoot = scopedRoot ?? "/";
+  const startDepth = scopedRoot ? scopedRoot.split("/").filter(Boolean).length : 0;
+  const pending = [{ path: startRoot, depth: startDepth }];
   while(pending.length) {
     const {path,depth}=pending.pop()!;
     signal.throwIfAborted();
@@ -33,6 +147,16 @@ async function snapshot(fs:FileSystem, limits:GitLimits, signal:AbortSignal):Pro
       signal.throwIfAborted();
       if(entries.length>=limits.maxEntries) throw new Error('Git filesystem entry limit exceeded');
       const full=path==='/' ? `/${child.name}` : `${path}/${child.name}`;
+      if (unbounded && child.type === "directory") {
+        pending.push({ path: full, depth: depth + 1 });
+        entries.push({ path: full, kind: "directory", mode: 0o755, data: "" });
+        continue;
+      }
+      if (unbounded && child.type === "file" && full.includes("/.git/") && !full.includes("/.git/hooks/")) {
+        const bytes = await fs.readFile(full, { signal });
+        entries.push({ path: full, kind: "file", mode: 0o644, data: encode(bytes) });
+        continue;
+      }
       const stat=await fs.lstat(full,{signal});
       if(stat.type==='character') continue;
       total+=encoder.encode(full).length;
@@ -84,7 +208,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
     try {
       let stdin: string | undefined;
       const env = {...context.env, POE_GIT_TIMESTAMP: String(Math.floor(Date.now()/1000))};
-      const before=await snapshot(context.fs,limits,context.signal);
+      const before=await snapshot(context.fs,limits,context.signal,context.cwd,context.args,env);
       const exports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : createDefaultGitExports();
       const responses: {status:number;headers:Readonly<Record<string,string>>;body:string}[]=[];
       let httpBytes=0;
@@ -276,7 +400,29 @@ export function evalSyncGit(
 
   const entries: Entry[] = [];
   let totalBytes = 0;
-  const pending: Array<{ path: string; depth: number }> = [{ path: "/", depth: 0 }];
+  const scopedRoot = resolveSyncScopedRepoRoot(inspectNode, cwd, args);
+  const seenPaths = new Set<string>();
+  if (scopedRoot) {
+    for (const dir of ancestorDirs(scopedRoot)) {
+      seenPaths.add(dir);
+      entries.push({ path: dir, kind: "directory", mode: 0o755, data: "" });
+    }
+    for (const cfg of ["/.gitconfig", "/root/.gitconfig"]) {
+      const fb = readFile(cfg);
+      if (fb) {
+        const parent = cfg.slice(0, cfg.lastIndexOf("/")) || "/";
+        if (parent !== "/" && !seenPaths.has(parent)) {
+          seenPaths.add(parent);
+          entries.push({ path: parent, kind: "directory", mode: 0o755, data: "" });
+        }
+        seenPaths.add(cfg);
+        entries.push({ path: cfg, kind: "file", mode: 0o644, data: encode(fb) });
+      }
+    }
+  }
+  const startRoot = scopedRoot ?? "/";
+  const startDepth = scopedRoot ? scopedRoot.split("/").filter(Boolean).length : 0;
+  const pending: Array<{ path: string; depth: number }> = [{ path: startRoot, depth: startDepth }];
   while (pending.length > 0) {
     const { path, depth } = pending.pop()!;
     if (depth > 32) return undefined;
@@ -284,7 +430,7 @@ export function evalSyncGit(
     if (!dirNode || dirNode.type !== "directory" || !dirNode.children) return undefined;
     for (let i = 0; i < dirNode.children.length; i++) {
       const child = dirNode.children[i]!;
-      if (entries.length >= 512) return undefined;
+      if (entries.length >= 4096) return undefined;
       const full = path === "/" ? `/${child.name}` : `${path}/${child.name}`;
       const stat = inspectNode(full, false);
       if (!stat) continue;
@@ -302,7 +448,7 @@ export function evalSyncGit(
         return undefined;
       }
       totalBytes += full.length + bytes.byteLength;
-      if (totalBytes > 2 * 1024 * 1024) return undefined;
+      if (totalBytes > 16 * 1024 * 1024) return undefined;
       entries.push({ path: full, kind: stat.type, mode: stat.mode, data: encode(bytes) });
     }
   }

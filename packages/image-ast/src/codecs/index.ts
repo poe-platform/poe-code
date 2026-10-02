@@ -587,6 +587,7 @@ export function encodeImage(
         ...(options.compressionLevel !== undefined
           ? { compressionLevel: options.compressionLevel }
           : {}),
+        ...(options.consumeInput ? { consumeInput: true } : {}),
         density: options.density ?? img.density,
         ...(options.orientation !== undefined ? { orientation: options.orientation } : img.orientation !== undefined ? { orientation: img.orientation } : {})
       });

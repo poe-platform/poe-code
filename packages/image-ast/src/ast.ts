@@ -422,6 +422,7 @@ export type ImageAstNode =
     };
 
 export interface OutputEncodeOptions {
+  readonly consumeInput?: boolean;
   readonly format?: ImageFormat;
   readonly rawDepth?: string;
   readonly quality?: number;

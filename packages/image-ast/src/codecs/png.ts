@@ -192,6 +192,9 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
     offset += c.length;
   }
   const inflated = inflate(compressed);
+  if (typeof (compressed.buffer as any).transfer === "function") {
+    try { (compressed.buffer as any).transfer(0); } catch {}
+  }
 
   const samplesPerPixel =
     colorType === 6 ? 4 : colorType === 4 ? 2 : colorType === 2 ? 3 : 1;
@@ -342,6 +345,9 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
           }
         }
       }
+    }
+    if (typeof (rawData.buffer as any).transfer === "function") {
+      try { (rawData.buffer as any).transfer(0); } catch {}
     }
     return curOffset;
   };

@@ -16,6 +16,13 @@ function timestamp(now) {
         throw new Error();
     return value;
 }
+function tokenAuthMethod(value) {
+    const result = native.providerTokenMethod(JSON.stringify({
+        method: typeof value === "string" || value == null ? value : false
+    }));
+    if (Object.hasOwn(result, "error")) throw new Error(result.error);
+    return result.value;
+}
 /** Prepare consent for a host-owned durable journal; the transaction contains private secrets. */
 export async function prepareRemoteMcpAuthorization(options) {
     try {
@@ -28,16 +35,13 @@ export async function prepareRemoteMcpAuthorization(options) {
         const client = structuredClone(options.client);
         if (typeof client.clientId !== "string" || !client.clientId.trim())
             throw new Error();
-        const method = client.tokenEndpointAuthMethod ?? (client.clientSecret === undefined ? "none" : "client_secret_post");
+        const method = tokenAuthMethod(client.tokenEndpointAuthMethod) ?? (client.clientSecret === undefined ? "none" : "client_secret_post");
         if (client.clientSecret !== undefined && (typeof client.clientSecret !== "string" || !client.clientSecret.trim()))
-            throw new Error();
-        if (method !== "none" && client.clientSecret === undefined)
             throw new Error();
         if (client.registration !== undefined && (client.registration.client_id !== client.clientId ||
             (client.registration.client_secret != null && client.registration.client_secret !== client.clientSecret) ||
             (client.registration.token_endpoint_auth_method != null && client.registration.token_endpoint_auth_method !== method)))
             throw new Error();
-        native.tokenAuthPlan("{}", client.clientId, client.clientSecret, method);
         client.tokenEndpointAuthMethod = method;
         if (client.requestedRedirectUri !== undefined && client.requestedRedirectUri !== redirect.href)
             throw new Error();
@@ -88,6 +92,9 @@ export async function prepareRemoteMcpAuthorization(options) {
 export async function beginRemoteMcpAuthorization(options) {
     try {
         const { store, signal } = options;
+        const method = tokenAuthMethod(options.client.tokenEndpointAuthMethod);
+        if (method != null && method !== "none" && options.client.clientSecret === undefined)
+            throw new Error();
         const { authorizationUrl, transaction } = await prepareRemoteMcpAuthorization(options);
         signal?.throwIfAborted();
         await store.create(transaction);

@@ -51,7 +51,9 @@ listeners and rejects pending waits; close is idempotent and code waits are sing
 
 `prepareRemoteMcpAuthorization` returns a private transaction and consent URL
 for host-owned durable journals; an optional state prefix retains fresh nonce
-entropy. `beginRemoteMcpAuthorization` and `completeRemoteMcpAuthorization` support hosted
+entropy. Confidential clients can prepare consent before supplying their exchange
+secret; durable `beginRemoteMcpAuthorization` still requires that secret.
+`beginRemoteMcpAuthorization` and `completeRemoteMcpAuthorization` support hosted
 HTTPS callbacks across process restarts. A host-bound store atomically creates and
 consumes authorization state and conditionally commits credentials against reset
 or replacement races. Native PKCE, scope and token-exchange primitives retain the

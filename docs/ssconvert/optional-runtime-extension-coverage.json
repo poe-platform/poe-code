@@ -1737,15 +1737,15 @@
     },
     {
       "capability": "PERL_DATE",
-      "status": "implemented; activated Linux frozen-clock controls qualified, broader qualification open",
+      "status": "implemented; expanded activated Linux date controls qualified, broader qualification open",
       "implementation": "perlSampleFunctions uses the explicit clock and selected timezone through shared date conversion; no ambient clock fallback.",
-      "oracle": "UTC and America/Los_Angeles controls at Unix time 1709166600 match native bytes through public SDK and Shell. See gap-resolution.json#reference.perlActivatedLinux; broader date/DST and lifecycle qualification remains open."
+      "oracle": "All 184 retained activated PERL_DATE scenarios match compiled root/package SDK and command. The shared pinned timezone implementation also matches 99677 independent libc offset/abbreviation observations across 485 zones. See gap-resolution.json#reference.perlDateTimezone and #reference.glossaryTimestampProfile. Other locale/runtime profiles and current registry artifacts remain open."
     },
     {
       "capability": "PERL_SED",
-      "status": "bounded implementation; activated Linux cohort qualified, broader qualification open",
+      "status": "bounded implementation; activated Linux evidence includes a confirmed reference-state defect and unresolved semantic differences",
       "implementation": "Bounded compatible substitution interpreter with capture, lookbehind, class and raw-byte result support for the qualified grammar; wider grammar remains open.",
-      "oracle": "625 PERL_SED rows within the full 633-row activated Linux cohort match current compiled SDK/Shell byte-for-byte. Thirteen malformed UTF-8 output cases are excluded from this cohort. See gap-resolution.json#reference.perlActivatedLinux; preserve separate historical proofs and remaining scope."
+      "oracle": "Expanded activated Perl 5.40.1 cohorts supersede the historical 625-row subset. The full 4150-case standalone and Gnumeric processes reproduce 88 differences; isolated per-case runs hide ten warning-sensitive atomic-lookbehind differences. A separate diagnostic initialization proves uninitialized native state, but is not a replacement golden; 86 diagnostic differences remain. See gap-resolution.json#currentQualification20261002.perlReferenceStateDefect and #reference.perlPatternGrammar. Original expectations and production defaults remain unchanged; wider grammar and installed artifacts remain open."
     },
     {
       "capability": "PY_BITAND",
@@ -1757,7 +1757,7 @@
       "capability": "PY_CAPWORDS",
       "status": "implemented versioned Unicode rules; selected activated Linux cohort qualified, broader qualification open",
       "implementation": "createPythonSampleFunctions explicitly selects frozen Unicode 15.0/15.1/16.0, default 16.0; typed split exceptions and C-string NUL boundaries are preserved. Invalid native byte acquisition remains a portable refusal.",
-      "oracle": "153 controls in the authenticated Linux Python sample cohort match current source SDK/runCommand with Unicode 15.1. Prior Unicode 16/context/browser evidence and the 139 version differences remain in gap-resolution.json#reference.pythonUnicodeProfiles. Complete applicable capability/environment closure across the eight declared profiles and final artifacts remain open.",
+      "oracle": "Activated Gnumeric 1.12.61 / Python 3.13.5 / Unicode 15.1.0 has all 48 expected plugins active with no activation diagnostics. All 11637 native values match compiled package SDK and command, covering 3877 selected Unicode code points in three contexts plus scalar/error controls. See gap-resolution.json#currentQualification20261002.pythonCapwordsActivated. Explicit Unicode selection remains required; default Unicode 16 is unchanged. Malformed native UTF-8 crashes, other profiles and registry qualification remain open.",
       "history": [
         {
           "status": "partial ASCII implementation; Unicode and oracle unresolved",
@@ -1768,9 +1768,9 @@
     },
     {
       "capability": "PY_PRINTF",
-      "status": "scalar/array and stable RangeRef prefixes implemented; address-bearing and exact optional profiles unresolved",
+      "status": "scalar/array and stable RangeRef prefixes implemented; expanded activated Linux formatting qualified, address-bearing output unresolved",
       "implementation": "bounded Python percent-format interpreter, native exception/result conversion and precision<=22 RangeRef prefixes; address digits remain explicitly refused",
-      "oracle": "784 scalar/array cases in the authenticated Linux Python sample cohort match current source SDK/runCommand with Unicode 15.1, including exact warning multiplicity. Prior 18 precision-limited RangeRef controls remain recorded in python-printf-range-prefix-gap-proof.json. Address-bearing representations, custom reference services and final artifacts remain open.",
+      "oracle": "Activated Python 3.13.5 / Unicode 15.1.0: compiled root/package SDK and command each match 10391 native CSV values, 60 loader cases and 36 loader warnings. Native XLSX drops 32 control-containing outputs and emits raw XML-invalid U+FFFF; these exporter differences are not parity passes. See gap-resolution.json#currentQualification20261002.pythonPrintfActivated. Address-bearing representations, other reference services and registry artifacts remain open.",
       "history": [
         {
           "status": "unresolved",
@@ -1781,27 +1781,27 @@
     },
     {
       "capability": "EXECSQL / READDBTABLE",
-      "status": "unresolved",
+      "status": "implemented explicit host port; activated Linux GDA/SQLite cohorts qualified with retained provider and CLI differences",
       "implementation": "Explicit cooperative createDatabaseFunctions host port supplies EXECSQL/READDBTABLE, bounded typed arrays, value formats and exact host diagnostics; the host owns SQL parsing, read-only enforcement and connections.",
-      "oracle": "Supplemental Darwin native GDA 6 / SQLite 13-column application cohort measured, including actual GTK connection dialog and cleanup; exact frozen Linux optional profile and broader coverage remain unresolved. See gap-resolution.json#reference.databaseLive."
+      "oracle": "Exact Linux optional-gda profile activates all 47 plugins with zero errors/stderr using unmodified libgda 6.0.0. A GTK-initialized Gnumeric workbook probe qualifies 10 INDEX/empty-recordset controls; root/package SDK and command match all ten. The broader 34-case cohort retains five provider differences. Real explicit Node SQLite hosts pass read-only refusal, post-query cancellation and connection retirement; synchronous in-flight preemption is unqualified. Native ssconvert crashes opening the connection dialog without initialized GTK and is not a pass. See gap-resolution.json#currentQualification20261002.gdaIndexEmpty. Other providers, transactions and registry artifacts remain open."
     },
     {
       "capability": "ATL_LAST",
-      "status": "unresolved",
+      "status": "implemented; activated Linux FIFO phase controls qualified, wider watch lifecycle open",
       "implementation": "Explicit invocation-owned datasource transport, partial-record parsing, dependency links, rebinding, recalculation and cleanup are implemented; wider lifecycle and native scheduling qualification remain open.",
-      "oracle": "unmeasured in matching activated optional profile"
+      "oracle": "Exact Linux optional-sample-datasource profile activates all 47 plugins without diagnostics. Actual nonblocking FIFO and Gnumeric event-loop phases cover successive values, a late feed, a partial record and its completion: eight cell/dependent values match the compiled session; native exits without diagnostics and removes its FIFO. Public root/package SDK and command preserve cleanup/cancellation with zero output on abort. Four regressions cover cancellation/cleanup across recalculation awaits. See gap-resolution.json#currentQualification20261002.datasourceRecalculationCleanup. Broader read boundaries, watcher mutation and registry artifacts remain open."
     },
     {
       "capability": "Gnumeric_GnomeGlossary:po",
-      "status": "existing separate format coverage; optional loader/profile unresolved",
+      "status": "implemented format/header behavior; expanded component evidence, exact optional exporter activation unresolved",
       "implementation": "format service, not GUI; gnome-glossary Python binding/header/time/filename and stdout effects need comparison",
-      "oracle": "unmeasured in matching activated optional profile"
+      "oracle": "Pinned timezone data now supplies deterministic native abbreviations. Compiled root/package SDK and command each match 1940 independent libc-derived headers across all 485 zones at epoch, 2050 and both Date limits. See gap-resolution.json#reference.glossaryTimestampProfile. This is component evidence, not full activated Python glossary-exporter qualification; native filename/stdout effects and registry artifacts remain open."
     },
     {
       "capability": "Perl/Python loaders",
       "status": "partial trusted JS port contract; native/interpreted loading unresolved",
       "implementation": "do not load arbitrary language modules or launch subprocesses",
-      "oracle": "unmeasured in matching activated optional profile"
+      "oracle": "Activated Python sample loader evidence now includes 60 array/blank/error/reference cases and 36 matching warnings through compiled root/package SDK and command; see gap-resolution.json#currentQualification20261002.pythonPrintfActivated. Activated Perl sample results and its confirmed interpreter-state defect are recorded separately. These sample-service observations do not qualify arbitrary module loading, custom reference services or general loader lifecycle."
     },
     {
       "capability": "Excel external function plugins",

@@ -2958,10 +2958,10 @@
       "execution": "Signed soffice CLI from read-only mounted image, isolated temporary profiles. Bundled Python executables fail macOS launch constraints; use the normal CLI without changing signing or platform protections.",
       "scope": "Native formula-generated ODF label readback and subsequent gap edit verified. Availability does not establish other families or platform/optional profiles."
     },
-    "glossaryTimestamp": {"status": "open; source-confirmed mismatch",
+    "glossaryTimestamp": {"status": "historical source-confirmed mismatch; timezone repair delivered, full optional exporter qualification open",
       "source": "Gnumeric GNUMERIC_1_12_61 plugins/gnome-glossary/gnome_glossary.py",
       "sourceSha256": "81f5e170bb384f60d492b6e7923cddb050a791f9d21ebfc403778b62fd532618",
-      "finding": "Native source uses strftime %Z. Current Intl en-GB short display names differ for PST/PDT/IST (4 of8 host-Python component comparisons); UTC and Warsaw controls match. This is not full activated plugin qualification.",
+      "finding": "The historical Intl en-GB short-name implementation differed from native strftime %Z for PST/PDT/IST in four of eight host-Python component comparisons. The pinned timezone repair and expanded current evidence supersede this mismatch; see reference.glossaryTimestampProfile. Exact activated glossary-exporter qualification remains open.",
       "receipt": "out/ssconvert-release-investigation/glossary-timestamp-repro.json"
     },
     "perlPatternGrammar": {

@@ -16,10 +16,10 @@ function timestamp(now) {
         throw new Error();
     return value;
 }
-/** Start consent without a listener or a pending callback promise. Only the URL leaves private storage. */
-export async function beginRemoteMcpAuthorization(options) {
+/** Prepare consent for a host-owned durable journal; the transaction contains private secrets. */
+export async function prepareRemoteMcpAuthorization(options) {
     try {
-        const { store, signal, discover } = options;
+        const { signal, discover } = options;
         const now = options.now?.bind(options) ?? Date.now;
         const resource = httpsUrl(options.resource).href;
         const redirect = httpsUrl(options.redirectUri);
@@ -43,6 +43,10 @@ export async function beginRemoteMcpAuthorization(options) {
             throw new Error();
         if (client.registration?.redirect_uris != null && !client.registration.redirect_uris.includes(redirect.href))
             throw new Error();
+        const statePrefix = options.statePrefix ?? "";
+        if (typeof statePrefix !== "string" || statePrefix.length > 32 || [...statePrefix].some(c =>
+            !(c >= "a" && c <= "z") && !(c >= "A" && c <= "Z") && !(c >= "0" && c <= "9") && c !== "_" && c !== "-"))
+            throw new Error();
         const scope = normalizeOAuthScope(options.scope);
         const ttl = options.ttlMs ?? 600_000;
         if (!Number.isSafeInteger(ttl) || ttl < 1 || ttl > 600_000)
@@ -58,7 +62,7 @@ export async function beginRemoteMcpAuthorization(options) {
         httpsUrl(server.issuer);
         httpsUrl(server.token_endpoint);
         const authorization = httpsUrl(server.authorization_endpoint);
-        const state = generateCodeVerifier();
+        const state = statePrefix + generateCodeVerifier();
         const codeVerifier = generateCodeVerifier();
         const challenge = generateCodeChallenge(codeVerifier);
         const expiresAt = timestamp(now) + ttl;
@@ -73,14 +77,23 @@ export async function beginRemoteMcpAuthorization(options) {
         if (scope !== undefined)
             authorization.searchParams.set("scope", scope);
         signal?.throwIfAborted();
-        await store.create({ state, expiresAt, redirectUri: redirect.href, codeVerifier,
-            requireIssuer: server.authorization_response_iss_parameter_supported === true, session });
-        signal?.throwIfAborted();
-        return { authorizationUrl: authorization.href, expiresAt };
+        return { authorizationUrl: authorization.href, transaction: { state, expiresAt, redirectUri: redirect.href, codeVerifier,
+            requireIssuer: server.authorization_response_iss_parameter_supported === true, session } };
     }
     catch {
-        throw new Error("Unable to begin MCP authorization");
+        throw new Error("Unable to prepare MCP authorization");
     }
+}
+/** Persist prepared consent before returning its public authorization URL. */
+export async function beginRemoteMcpAuthorization(options) {
+    try {
+        const { store, signal } = options;
+        const { authorizationUrl, transaction } = await prepareRemoteMcpAuthorization(options);
+        signal?.throwIfAborted();
+        await store.create(transaction);
+        signal?.throwIfAborted();
+        return { authorizationUrl, expiresAt: transaction.expiresAt };
+    } catch { throw new Error("Unable to begin MCP authorization"); }
 }
 /** Redeem once after any process restart, then conditionally persist. Returns no tokens or callback secrets. */
 export async function completeRemoteMcpAuthorization(options) {

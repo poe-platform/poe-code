@@ -68,26 +68,14 @@ export async function refreshAccessToken(input) {
 }
 async function requestTokens(input, grant) {
   const resource = canonicalizeResourceIndicator(input.resource);
-  let plan;
-  try {
-    plan = native.tokenAuthPlan(
-      JSON.stringify({ ...grant, resource }),
-      input.clientId,
-      input.clientSecret,
-      input.tokenEndpointAuthMethod
-    );
-  } catch (error) {
-    throw new Error(error.message);
-  }
-  const headers = new Headers({ Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" });
-  if (Object.hasOwn(plan, "authorization")) headers.set("Authorization", plan.authorization);
+  const { body, headers } = createOAuthFormRequest(input, { ...grant, resource });
   input.signal?.throwIfAborted();
   const deadline = AbortSignal.timeout(30_000),
     signal = input.signal === undefined ? deadline : AbortSignal.any([input.signal, deadline]);
   const response = await fetchMcpResponse(input.fetch, input.tokenEndpoint, {
     method: "POST",
     headers,
-    body: plan.body,
+    body,
     signal
   });
   const payload = await readOAuthJsonObjectResponse(response, signal);
@@ -111,4 +99,35 @@ async function requestTokens(input, grant) {
     expiresAt: result.expiresAt,
     scope: Object.hasOwn(result, "scope") ? result.scope : undefined
   };
+}
+
+function createOAuthFormRequest(input, params) {
+  let plan;
+  try {
+    plan = native.tokenAuthPlan(
+      JSON.stringify(params),
+      input.clientId,
+      input.clientSecret,
+      input.tokenEndpointAuthMethod
+    );
+  } catch (error) {
+    throw new Error(error.message);
+  }
+  const headers = new Headers({ Accept: "application/json", "Content-Type": "application/x-www-form-urlencoded" });
+  if (Object.hasOwn(plan, "authorization")) headers.set("Authorization", plan.authorization);
+  return { body: plan.body, headers };
+}
+
+export async function revokeOAuthToken(input) {
+  if (typeof input.token !== "string" || input.token.trim() === "")
+    throw new Error("OAuth revocation requires a token");
+  const { body, headers } = createOAuthFormRequest(input, {
+    token: input.token, ...(input.tokenTypeHint === undefined ? {} : { token_type_hint: input.tokenTypeHint })
+  });
+  input.signal?.throwIfAborted();
+  const deadline = AbortSignal.timeout(30_000);
+  const signal = input.signal === undefined ? deadline : AbortSignal.any([input.signal, deadline]);
+  const response = await fetchMcpResponse(input.fetch, input.revocationEndpoint, { method: "POST", headers, body, signal });
+  if (!response.ok) await readOAuthJsonObjectResponse(response, signal);
+  await readBoundedResponseText(response, 1024 * 1024, undefined, signal);
 }

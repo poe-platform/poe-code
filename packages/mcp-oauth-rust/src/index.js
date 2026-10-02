@@ -1,6 +1,6 @@
 export { generateCodeChallenge, generateCodeVerifier } from "./pkce.js";
 export { fetchMcpResponse, readBoundedResponseText } from "./http.js";
-export { OAuthError, isRetryableOAuthError } from "./tokens.js";
+export { OAuthError, isRetryableOAuthError, exchangeAuthorizationCode, refreshAccessToken, revokeOAuthToken } from "./tokens.js";
 export {
   buildSuccessPage,
   extractCodeFromInput,
@@ -24,4 +24,4 @@ export { normalizeOAuthScope } from "./scope.js";
 export { waitForOAuthOperation } from "./cancellable-operation.js";
 export { snapshotOAuthPersistenceOptions } from "./session-store.js";
 
-export { beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./resumable.js";
+export { prepareRemoteMcpAuthorization, beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./resumable.js";

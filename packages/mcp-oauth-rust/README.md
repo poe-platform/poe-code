@@ -15,14 +15,17 @@ const challenge = generateCodeChallenge(verifier);
 ```
 
 The Rust authorization-state core creates opaque nonce payloads and validates
-issuer/flag fields. Its decoder preserves Node-compatible base64url and UTF-16
-behavior. Host bindings supply operating-system randomness; protocol logic stays
+issuer/flag fields. Its decoder preserves Web base64url and UTF-16 behavior, rejecting junk
+and non-ASCII input. Host bindings supply operating-system randomness; protocol logic stays
 in Rust.
 
 Token exchange and refresh validate token fields and expiry in Rust, encode OAuth
 form bodies and classify protocol errors. Token helpers support public clients,
 POST secrets and HTTP Basic authentication with form-encoded credentials.
-Explicit public-client authentication never sends an available secret. Caller
+Explicit public-client authentication never sends an available secret.
+`exchangeAuthorizationCode`, `refreshAccessToken` and `revokeOAuthToken` expose
+these primitives without managing persistence; revocation accepts empty successful
+responses and never retries. Caller
 cancellation combines with the request deadline. Scope sets reject invalid syntax,
 retain case, sort and deduplicate printable ASCII tokens. Token-response scopes
 must be nonempty when supplied; invalid scopes reject after expiry validation. The host adapter bounds token responses
@@ -44,7 +47,9 @@ including hidden properties and prototype getters, before browser callbacks run.
 server denials across package copies. Closing a session disposes its
 listeners and rejects pending waits; close is idempotent and code waits are single-use.
 
-`beginRemoteMcpAuthorization` and `completeRemoteMcpAuthorization` support hosted
+`prepareRemoteMcpAuthorization` returns a private transaction and consent URL
+for host-owned durable journals; an optional state prefix retains fresh nonce
+entropy. `beginRemoteMcpAuthorization` and `completeRemoteMcpAuthorization` support hosted
 HTTPS callbacks across process restarts. A host-bound store atomically creates and
 consumes authorization state and conditionally commits credentials against reset
 or replacement races. Native PKCE, scope and token-exchange primitives retain the

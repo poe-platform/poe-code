@@ -6,6 +6,7 @@ const referenceRoot = fileURLToPath(new URL("../mcp-oauth/src/", import.meta.url
 const redirects = new Map(
   [
     ["index.js", "index.js"],
+    ["index.browser.js", "index.js"],
     ["client/resumable.js", "resumable.js"],
     ["http-fetch.js", "http.js"],
     ["http-response.js", "http.js"],
@@ -15,6 +16,7 @@ const redirects = new Map(
     ["client/resource-bound-store.js", "resource-store.js"],
     ["client/loopback-authorization.js", "loopback.js"],
     ["client/token-endpoint.js", "tokens.js"],
+    ["client/revoke-token.js", "tokens.js"],
     ["client/token-grant.js", "token-grant.js"],
     ["client/authorization-state.js", "state.js"],
     ["client/pkce.js", "pkce.js"],
@@ -84,6 +86,9 @@ export default defineConfig({
   ],
   test: {
     include: ["packages/mcp-oauth/src/**/*.test.ts"],
+    // Browser bundling and desktop-API rejection are platform-specific, not Rust Node contracts.
+    // These remain covered by mcp-oauth's own unit suite; shared browser API tests run here too.
+    exclude: ["packages/mcp-oauth/src/client/portable-crypto.test.ts", "packages/mcp-oauth/src/portable-provider.test.ts"],
     cache: false,
     testTimeout: 2000
   }

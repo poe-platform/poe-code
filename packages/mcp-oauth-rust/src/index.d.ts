@@ -332,12 +332,12 @@ export interface RemoteMcpAuthorizationStore {
 }
 
 
-export interface BeginRemoteMcpAuthorizationOptions {
+export interface PrepareRemoteMcpAuthorizationOptions {
   readonly resource: string;
   readonly redirectUri: string;
   readonly client: StoredOAuthClient;
   readonly scope?: string;
-  readonly store: RemoteMcpAuthorizationStore;
+  readonly statePrefix?: string;
   /** Host-validated discovery, including issuer trust and network policy. No implicit network access. */
   readonly discover: (resource: string, signal?: AbortSignal) => Promise<OAuthDiscoveryResult>;
   readonly signal?: AbortSignal;
@@ -345,6 +345,11 @@ export interface BeginRemoteMcpAuthorizationOptions {
   /** Transaction lifetime, at most ten minutes. */
   readonly ttlMs?: number;
 }
+
+export interface BeginRemoteMcpAuthorizationOptions extends PrepareRemoteMcpAuthorizationOptions {
+  readonly store: RemoteMcpAuthorizationStore;
+}
+export declare function prepareRemoteMcpAuthorization(options: PrepareRemoteMcpAuthorizationOptions): Promise<{ authorizationUrl: string; transaction: RemoteMcpAuthorizationTransaction }>;
 
 export interface CompleteRemoteMcpAuthorizationOptions {
   readonly callbackUrl: string;
@@ -357,3 +362,30 @@ export interface CompleteRemoteMcpAuthorizationOptions {
 
 export declare function beginRemoteMcpAuthorization(options: BeginRemoteMcpAuthorizationOptions): Promise<{ authorizationUrl: string; expiresAt: number }>;
 export declare function completeRemoteMcpAuthorization(options: CompleteRemoteMcpAuthorizationOptions): Promise<{ resource: string }>;
+
+interface OAuthTokenRequestOptions {
+  tokenEndpoint: string;
+  clientId: string;
+  clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  resource: string;
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+  now: () => number;
+}
+export declare function exchangeAuthorizationCode(input: OAuthTokenRequestOptions & {
+  code: string; codeVerifier: string; redirectUri: string;
+}): Promise<StoredOAuthTokens>;
+export declare function refreshAccessToken(input: OAuthTokenRequestOptions & {
+  refreshToken: string;
+}): Promise<StoredOAuthTokens>;
+export declare function revokeOAuthToken(input: {
+  revocationEndpoint: string;
+  clientId: string;
+  clientSecret?: string;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  token: string;
+  tokenTypeHint?: "access_token" | "refresh_token";
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+}): Promise<void>;

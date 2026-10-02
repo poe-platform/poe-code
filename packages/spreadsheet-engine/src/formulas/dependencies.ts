@@ -47,6 +47,7 @@ export function buildDependencyGraph(
   function named(node: Extract<FormulaNode, { kind: "name" }>, position: ParsePosition): NamedExpression | undefined {
     if (node.workbook !== undefined && node.workbook !== "") return undefined;
     const sheet = node.workbook === "" && node.sheet === undefined ? undefined : node.sheet === undefined ? position.sheet : book.sheets.find(s => foldSheetName(s.name) === foldSheetName(node.sheet!))?.id;
+    if (node.sheet !== undefined && sheet === undefined) return undefined;
     const matches = (name: NamedExpression) => name.name === node.name;
     return book.names?.find(name => name.sheet === sheet && matches(name)) ?? book.names?.find(name => name.sheet === undefined && matches(name));
   }

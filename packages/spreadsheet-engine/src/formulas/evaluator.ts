@@ -142,6 +142,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
     if (node.kind === "parentheses") return indirectRange(node.child, position, names, depth + 1);
     if (node.kind !== "name" || node.workbook !== undefined && node.workbook !== "") return error("#REF!");
     const sheet = node.workbook === "" && node.sheet === undefined ? undefined : node.sheet === undefined ? position.sheet : book.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(node.sheet!))?.id;
+    if (node.sheet !== undefined && sheet === undefined) return error("#REF!");
     const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
     const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
     if (!name || names.has(name)) return error("#REF!");
@@ -205,6 +206,7 @@ export function* recalculateWorkbookSteps(input: Workbook, context: CapabilityCo
         if (node.workbook !== undefined && node.workbook !== "") return external({ kind: "name", workbook: node.workbook, name: node.name,
           ...(node.sheet !== undefined ? { sheet: node.sheet } : {}), position });
         const sheet = node.workbook === "" && node.sheet === undefined ? undefined : node.sheet === undefined ? position.sheet : book.sheets.find(s => foldSheetName(s.name) === foldSheetName(node.sheet!))?.id;
+        if (node.sheet !== undefined && sheet === undefined) return error("#NAME?");
         const matches = (entry: NonNullable<Workbook["names"]>[number]) => entry.name === node.name;
         const name = book.names?.find(entry => entry.sheet === sheet && matches(entry)) ?? book.names?.find(entry => entry.sheet === undefined && matches(entry));
         if (!name || names.has(name)) return error("#NAME?");

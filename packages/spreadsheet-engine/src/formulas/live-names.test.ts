@@ -95,3 +95,24 @@ it.each(['=@name.relative[0,0]:"N"', '=@name.relative[0,0,1.5]:"N"', '=@name.abs
   '=@name.relative[9007199254740992,0,0]:"N"', '=@name.relative[0,0,0]:""'])("rejects invalid live name spelling %s", source => {
   expect(parseExpression(source, { position }).ok).toBe(false);
 });
+
+it.each(["='Missing'!$Value", '=INDIRECT("Missing!$Value")', '=@name.relative[0,0,0]:"Nested"'])("does not bind a missing qualified sheet to a global name: %s", formula => {
+  const input = { ...book, names: [...book.names!, { name: "Nested", expression: "='Missing'!$Value" }] };
+  expect(result(formula, input)).toEqual({ kind: "error", value: formula.startsWith("=INDIRECT") ? "#REF!" : "#NAME?" });
+  const restored = { ...input, sheets: [...input.sheets, { id: "missing", name: "Missing", cells: [] }] };
+  expect(result(formula, restored)).toEqual({ kind: "number", value: 11 });
+  const scoped = { ...restored, names: [...restored.names, { name: "$Value", sheet: "missing", expression: "=29" }] };
+  if (!formula.startsWith("=INDIRECT")) expect(result(formula, scoped)).toEqual({ kind: "number", value: 29 });
+});
+it.each(["='Missing'!$Value", '=INDIRECT("Missing!$Value")', '=@name.relative[0,0,0]:"Nested"'])("does not discover global precedents through a missing qualified sheet: %s", formula => {
+  const cell = { row: 2, column: 2, formula, value: { kind: "blank" as const } };
+  const input = { ...book, names: [...book.names!, { name: "Nested", expression: "='Missing'!$Value" }], sheets: book.sheets.map(sheet => sheet.id === "s0" ? { ...sheet, cells: [...sheet.cells, cell] } : sheet) };
+  const parse = (source: string, at: typeof position) => {
+    const parsed = parseExpression(source, { position: at, workbook: input });
+    if (!parsed.ok) throw new Error(parsed.diagnostic.message);
+    return parsed.document.root;
+  };
+  const graph = buildDependencyGraph(input, new Map([[cell, parse(cell.formula, position)]]),
+    (node, at) => localReferenceRange(input, node, at), parse, () => {});
+  expect([...graph.precedents.get(cell) ?? []]).toEqual([]);
+});

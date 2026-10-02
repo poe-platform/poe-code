@@ -44,6 +44,8 @@ export function parseNamedExpression(
       const bound = inherited ? { ...node, relocation: inherited } : node;
       if (node.workbook === "" && node.sheet === undefined) return bound;
       const scope = node.sheet === undefined ? name.sheet : book.sheets.find(sheet => foldSheetName(sheet.name) === foldSheetName(node.sheet!))?.id;
+      // Preserve an unresolved qualifier so it cannot bind to a global name.
+      if (node.sheet !== undefined && scope === undefined) return bound;
       const target = resolveName(book, node.name, scope);
       if (target?.sheet === undefined) {
         const { sheet: ignoredSheet, ...global } = bound;

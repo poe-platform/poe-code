@@ -5,6 +5,7 @@ import { gamma } from "./scientific.js";
 import { capturedTrig } from "./captured-trigonometry.js";
 import { capturedExp } from "./numeric-arithmetic.js";
 import { preciseLog1p } from "./log1p.js";
+import { capturedAcos } from "./captured-acos.js";
 import type { FunctionHost, FunctionImplementation, SpecialForm } from "./types.js";
 
 function fakeCeil(x: number): number { return x === Math.floor(x) ? x : Math.ceil(nextAfter(x, -Infinity)); }
@@ -92,7 +93,7 @@ export function preciseHypot(x: number, y: number, host?: Pick<FunctionHost, "ti
 const unary: Readonly<Record<string, (x: number) => number>> = {
   ABS: Math.abs, SIGN: Math.sign, SQRT: Math.sqrt, SQRTPI: x => Math.sqrt(Math.PI * x),
   INT: fakeFloor, CEIL: fakeCeil, SIN: Math.sin, COS: Math.cos, TAN: Math.tan,
-  ASIN: Math.asin, ACOS: Math.acos, ATAN: Math.atan, ACOT: x => Math.atan(1 / x),
+  ASIN: Math.asin, ATAN: Math.atan, ACOT: x => Math.atan(1 / x),
   SINH: Math.sinh, COSH: Math.cosh, TANH: Math.tanh, ASINH: Math.asinh, ACOSH: Math.acosh,
   ATANH: x => Math.abs(x) >= 1 ? NaN : Math.atanh(x), ACOTH: x => Math.abs(x) <= 1 ? NaN : Math.abs(x) > 2 ? Math.log1p(2 / (x - 1)) / 2 : Math.sign(x) * Math.log((Math.abs(x) - 1) / (Math.abs(x) + 1)) / -2,
   SEC: x => 1 / Math.cos(x), CSC: x => 1 / Math.sin(x), COT: x => 1 / Math.tan(x),
@@ -128,6 +129,7 @@ function binomial(n: number, k: number, host: FunctionHost): number {
 }
 export const mathFunctions: Readonly<Record<string, FunctionImplementation>> = {
   ...Object.fromEntries(Object.entries(unary).map(([name, fn]) => [name, ((args, host) => numericResult(fn(numberArg(args, 0, host)))) satisfies FunctionImplementation])),
+  ACOS: (args, host) => numericResult(capturedAcos(numberArg(args, 0, host), host)),
   LN1P: (args, host) => numericResult(preciseLog1p(numberArg(args, 0, host), host)),
   PI: () => numericResult(Math.PI),
   ATAN2: (args, host) => {

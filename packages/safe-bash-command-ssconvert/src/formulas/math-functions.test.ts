@@ -39,3 +39,29 @@ it.each<[string, string]>([
 ])("preserves mathematical domain/overflow %s", (formula, expected) => {
   expect(evaluate(formula)).toEqual(expected === 'zero' ? { kind: "number", value: 0 } : { kind: "error", value: expected });
 });
+
+// Exact Gnumeric 1.12.61 / AArch64 glibc 2.41 application observations.
+it.each<[string, number]>([
+  ["=ACOS(0.47684653539842481)", 1.0737327342644212],
+  ["=ACOS(-0.18961580202624795)", 1.761567161793718],
+  ["=ACOS(-0.24189748519466425)", 1.8151172644569062],
+  ["=ACOS(-0.99058806694854473)", 3.0042847200959666],
+  ["=ACOS(-0.17515426099665632)", 1.7468587759368865],
+  ["=ACOS(-0.64395899271713875)", 2.2704581424078163],
+  ["=ACOS(0.34306401337314196)", 1.2206193882018537],
+  ["=ACOS(0.45133428199645276)", 1.1025363153251002],
+  ["=ACOS(-0.86781127009276182)", 2.6215767353142634],
+  ["=ACOS(-0.29783221995591802)", 1.8732173393349238],
+  ["=ACOS(0.40524757444538073)", 1.1535467045540078],
+  ["=ACOS(-0.38763370140682363)", 1.9688595260439332],
+  ["=ACOS(-1)", 3.141592653589793],
+  ["=ACOS(-0)", 1.5707963267948966],
+  ["=ACOS(0)", 1.5707963267948966],
+  ["=ACOS(1)", 0],
+  ["=ACOS(0.99999999999999989)", 1.4901161193847656e-08]
+])("retains native ACOS rounding %s", (formula, expected) => {
+  expect(evaluate(formula)).toEqual({ kind: "number", value: expected });
+});
+it.each(["=ACOS(1.0000000000000002)", "=ACOS(-1.0000000000000002)", "=ACOS(2)", "=ACOS(-2)"])("rejects ACOS outside its domain %s", formula => {
+  expect(evaluate(formula)).toEqual({ kind: "error", value: "#NUM!" });
+});

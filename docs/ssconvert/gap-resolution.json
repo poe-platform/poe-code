@@ -4572,6 +4572,14 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "publicAcos": {
+      "finding": "Public ACOS still used JavaScript Math.acos although Bessel already used the captured AArch64 glibc implementation. A deterministic 2060-value native application cohort reproduced144 one-ULP differences.",
+      "implementation": "Route public ACOS through capturedAcos with the existing work/cancellation host; retain numeric argument coercion and domain errors. The captured primitive is unchanged.",
+      "reference": "Unmodified Gnumeric1.12.61 gnumeric_acos delegates to gnm_acos/acos. fn-math/functions.c SHA256 f5509cad1dd24a8b3162b48d729f4a0ef5428f49f3045296a0dba0c1f20eec64; native harness SHA256034bd7b3055c72b78d0075aeac29990b3525d92e9ce940c46022cfeb9b262d73. Existing Linux AArch64 glibc2.41 profile,47 expected datasource-profile plugins activated without errors.",
+      "validation": "Twelve original native regressions fail before and pass after;212 focused math tests pass. Engine lint/source/test types and changed command-test lint/types pass. Selected18-workspace build passes. Compiled package SDK and command each match all3180 native HEXREP values with zero diagnostics:2060 original/random values plus1120 interval-boundary, tiny and subnormal holdouts.",
+      "nativeOutputSha256": "00154c7ac95c1330cc1ff6f6a89330bb4e06aa947df92fa845b0182eff5f3638",
+      "limits": "Exact captured Linux profile parity, not a claim of identical host-libm output on all platforms or correctly rounded mathematical results everywhere. Installed artifacts and other numerical-family requirements remain open."
+    },
     "datasourceRecalculationCleanup": {
       "finding": "Both initial watcher recalculation and fed-value recalculation could return a workbook after invocation cleanup or cancellation while the awaited calculation settled.",
       "implementation": "Check invocation state after both awaited recalculations, before transport acquisition or successful return; preserve the original cancellation reason.",

@@ -17,7 +17,7 @@ const DEFAULT_INTERPRETER_RUN = Interpreter.prototype.run;
 const JQ_LONG_FLAGS: Readonly<Record<string, string>> = {
   "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c",
   "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e",
-  "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M",
+  "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M", "--version": "V", "--help": "h",
 };
 const OUT_BUF_SIZE = 64 * 1024;
 let sharedJqOutBuf: Uint8Array | null = null;
@@ -247,6 +247,8 @@ function tryExecuteJqFastSync(context: CommandContext, limits: JqLimits): Promis
 }
 
 interface Options {
+  version?: boolean;
+  help?: boolean;
   stream: boolean;
   streamErrors: boolean;
   sequence: boolean;
@@ -327,9 +329,11 @@ function argumentsFor(context: CommandContext, budget: Budget): Options | Promis
     const positionalOperand = (positionalMode !== undefined || (options.source === undefined && options.programFile === undefined)) && flagStart !== "-" && !(flagStart >= "a" && flagStart <= "z") && !(flagStart >= "A" && flagStart <= "Z");
     if (!ended && argument.startsWith("-") && argument !== "-" && !positionalOperand) {
       const flags = Object.hasOwn(JQ_LONG_FLAGS, argument) ? JQ_LONG_FLAGS[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
-      if (!flags || [...flags].some(flag => !"rRjcSsneaCM".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
+      if (!flags || [...flags].some(flag => !"rRjcSsneaCMVh".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
       for (const flag of flags) {
-        if (flag === "r") options.raw = true;
+        if (flag === "V") { options.version = true; return options; }
+        else if (flag === "h") { options.help = true; return options; }
+        else if (flag === "r") options.raw = true;
         else if (flag === "R") options.rawInput = true;
         else if (flag === "j") { options.joinOutput = true; options.raw = true; }
         else if (flag === "c") options.format.indent = "";
@@ -429,15 +433,17 @@ async function argumentsForAsync(context: CommandContext, budget: Budget): Promi
     if (!ended && argument === "--raw-output0") { options.rawOutput0 = true; options.raw = true; continue; }
     // Each result already reaches the awaited sink before the next input is read.
     if (!ended && argument === "--unbuffered") continue;
-    const long: Readonly<Record<string, string>> = { "--raw-output": "r", "--raw-input": "R", "--join-output": "j", "--compact-output": "c", "--sort-keys": "S", "--slurp": "s", "--null-input": "n", "--exit-status": "e", "--ascii-output": "a", "--color-output": "C", "--monochrome-output": "M" };
+    const long: Readonly<Record<string, string>> = JQ_LONG_FLAGS;
     const flagStart = argument[1] ?? "";
     // jq treats negative numbers and punctuation after '-' as operands.
     const positionalOperand = (positionalMode !== undefined || (options.source === undefined && options.programFile === undefined)) && flagStart !== "-" && !(flagStart >= "a" && flagStart <= "z") && !(flagStart >= "A" && flagStart <= "Z");
     if (!ended && argument.startsWith("-") && argument !== "-" && !positionalOperand) {
       const flags = Object.hasOwn(long, argument) ? long[argument]! : argument.startsWith("--") ? "" : argument.slice(1);
-      if (!flags || [...flags].some(flag => !"rRjcSsneaCM".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
+      if (!flags || [...flags].some(flag => !"rRjcSsneaCMVh".includes(flag))) throw new JqError(`unsupported option ${argument}`, 2);
       for (const flag of flags) {
-        if (flag === "r") options.raw = true;
+        if (flag === "V") { options.version = true; return options; }
+        else if (flag === "h") { options.help = true; return options; }
+        else if (flag === "r") options.raw = true;
         else if (flag === "R") options.rawInput = true;
         else if (flag === "j") { options.joinOutput = true; options.raw = true; }
         else if (flag === "c") options.format.indent = "";
@@ -749,6 +755,17 @@ async function executeJqAsync(context: CommandContext, limits: JqLimits, convert
   try {
     const optionsOrPromise = argumentsFor(context, budget);
     const options = optionsOrPromise instanceof Promise ? await optionsOrPromise : optionsOrPromise;
+    if (options.version || options.help) {
+      const text = options.version
+        ? "jq-1.7.1\n"
+        : "jq - commandline JSON processor [version 1.7.1]\n\nUsage:\tjq [options] <jq filter> [file...]\n\tjq [options] --args <jq filter> [strings...]\n\tjq [options] --jsonargs <jq filter> [JSON_TEXTS...]\n";
+      const chunkBuf = bytesFrom(text);
+      if (chunkBuf.byteLength > limits.maxOutputBytes - budget.outputBytes) throw new JqLimitError("maxOutputBytes");
+      budget.outputBytes += chunkBuf.byteLength;
+      try { await writeBytes(context.stdout, chunkBuf, context.signal); }
+      catch (error) { stdoutWriteFailed = true; throw error; }
+      return { exitCode: 0 };
+    }
     const source = options.programFile === undefined ? options.source! : await readProgram(context, options.programFile, limits);
     let ast: Ast;
     if (!options.moduleDirectories.length) {

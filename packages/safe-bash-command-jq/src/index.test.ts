@@ -238,3 +238,27 @@ test("jq declines a spent select/project budget before trying another synchronou
  assert.ok(didDecline, "must exercise a charged speculative attempt");
  assert.equal(chargedAfterDecline, false, "a declined attempt must not charge another parser to its budget");
 });
+
+test("jq supports --version, -V, --help, and -h", async () => {
+ const fsMem = createMemoryFileSystem();
+ const command = createJqCommand();
+ for (const [flag, expectedPrefix] of [
+  ["--version", "jq-1.7.1\n"],
+  ["-V", "jq-1.7.1\n"],
+  ["--help", "jq - commandline JSON processor"],
+  ["-h", "jq - commandline JSON processor"],
+ ] as const) {
+  const values = createCommandArguments([flag]);
+  let stdout = "";
+  let stderr = "";
+  const result = await command.execute({
+   command: "jq", args: values.args, argumentValues: values, cwd: "/", env: {}, fs: fsMem,
+   stdin: toByteSource(""), signal: new AbortController().signal,
+   stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+   stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(stderr, "");
+  assert.ok(stdout.startsWith(expectedPrefix), `expected ${flag} stdout to start with ${expectedPrefix}, got ${stdout}`);
+ }
+});

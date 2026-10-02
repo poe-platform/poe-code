@@ -4,7 +4,7 @@ import { test } from 'vitest';
 import ts from 'typescript';
 import { adapterStatements } from './fixtures/command-adapter-statements.js';
 
-const commands = ['apply-patch', 'awk', 'cmp', 'column', 'csplit', 'docx', 'du', 'expr', 'factor', 'file', 'getopt', 'hexdump', 'html-to-markdown', 'iconv', 'install', 'pptx', 'pr', 'split', 'tar', 'timeout', 'tree', 'truncate', 'tsort', 'which', 'xan'];
+const commands = ['apply-patch', 'awk', 'cmp', 'column', 'csplit', 'docx', 'du', 'expr', 'factor', 'file', 'find', 'getopt', 'hexdump', 'html-to-markdown', 'iconv', 'install', 'pptx', 'pr', 'split', 'tar', 'timeout', 'tree', 'truncate', 'tsort', 'which', 'xan'];
 const json = (path: string) => JSON.parse(readFileSync(new URL('../' + path, import.meta.url), 'utf8'));
 const root = json('package.json');
 const shell = json('packages/safe-bash/package.json');
@@ -104,4 +104,15 @@ test('install owns its argument regressions and builds canonical prerequisites',
   assert.ok(files.includes('grammar.test.ts'));
   const turbo = json('turbo.json');
   assert.ok(turbo.tasks['safe-bash-command-install#test:unit'].dependsOn.includes('^build'));
+});
+
+
+test('find owns direct option regressions while Shell retains integration coverage', () => {
+  const files = readdirSync(new URL('../packages/safe-bash-command-find/src/', import.meta.url));
+  for (const name of ['options.test.ts', 'expression.test.ts', 'expression.ts', 'invocation.ts', 'find-format.ts', 'find.ts']) {
+    assert.ok(files.includes(name), `Missing find ownership: ${name}`);
+  }
+  const shellTests = readdirSync(new URL('../packages/safe-bash/tests/commands/', import.meta.url));
+  assert.ok(!shellTests.includes('find-options.test.ts'));
+  for (const name of ['find-printf.test.ts', 'find-time-delete.test.ts', 'find-deleted-entry.test.ts']) assert.ok(shellTests.includes(name));
 });

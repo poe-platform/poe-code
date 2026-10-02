@@ -1,3 +1,4 @@
+import "./safe-packages-find-types.mjs";
 import "./safe-packages-bzip2-types.mjs";
 import "./safe-packages-cp-types.mjs";
 import "./safe-packages-patch-types.mjs";

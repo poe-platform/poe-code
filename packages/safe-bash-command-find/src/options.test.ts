@@ -1,6 +1,30 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { fixture, run } from "./helpers.js";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { toByteSource, type FileSystem } from "safe-bash-contracts";
+import { createFindCommand } from "./index.js";
+
+async function fixture(files: Record<string, string> = {}) {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  for (const [path, contents] of Object.entries(files)) {
+    const absolute = `/work/${path}`;
+    await fs.mkdir(absolute.slice(0, absolute.lastIndexOf("/")), { recursive: true });
+    await fs.writeFile(absolute, new TextEncoder().encode(contents));
+  }
+  return fs;
+}
+
+async function run(command: string, args: readonly string[], options: { fs?: FileSystem } = {}) {
+  let stdout = "", stderr = "";
+  const result = await createFindCommand().execute({
+    command, args, cwd: "/work", env: {}, fs: options.fs ?? await fixture(),
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  });
+  return { ...result, stdout, stderr };
+}
 
 for (const predicate of ["-name", "-iname"]) test(`find ${predicate} treats all-slash roots as /`, async () => {
   const result = await run("find", ["///", "-maxdepth", "0", predicate, "/"]);
@@ -85,7 +109,7 @@ for (const [type, mode] of [["b", 0o060000], ["p", 0o010000], ["s", 0o140000]] a
 
 test("find -links reports unavailable metadata instead of guessing", async context => {
   const fs = await fixture({ file: "" });
-  const { nlink: _nlink, ...stat } = await fs.lstat("/work/file");
+  const { nlink: ignoredNlink, ...stat } = await fs.lstat("/work/file");
   context.mock.method(fs, "lstat", async () => stat);
   const result = await run("find", ["file", "-links", "1"], { fs });
   assert.equal(result.exitCode, 1);

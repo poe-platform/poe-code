@@ -715,7 +715,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
 });
 
 {
-  const privatePackages = ["safe-bash-command-xq", "safe-bash-command-jq", "safe-bash-xml-engine", "safe-bash-command-html-to-markdown", "safe-bash-command-shuf", "safe-bash-command-expr", "safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-command-unix2dos", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
+  const privatePackages = ["safe-bash-command-find", "safe-bash-command-xq", "safe-bash-command-jq", "safe-bash-xml-engine", "safe-bash-command-html-to-markdown", "safe-bash-command-shuf", "safe-bash-command-expr", "safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-command-unix2dos", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
 
   // Build the package fixture separately from its consumer type and runtime checks.
     const fixture = optionalLeftovers();
@@ -723,12 +723,12 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     const repository = fileURLToPath(new URL("../", import.meta.url));
     const manifest = structuredClone(bashManifest);
     manifest.poeCode.integration.privateWorkspaces = {};
-    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut", "./commands/line-endings", "./commands/mdq", "./commands/sed", "./commands/wget", "./commands/expr", "./commands/html-to-markdown", "./commands/xq"].includes(route)));
+    manifest.exports = Object.fromEntries(Object.entries(manifest.exports).filter(([route]) => [".", "./contracts/*", "./commands/exiftool", "./commands/csvgrep", "./commands/csvcut", "./commands/line-endings", "./commands/mdq", "./commands/sed", "./commands/wget", "./commands/expr", "./commands/html-to-markdown", "./commands/find", "./commands/xq"].includes(route)));
     volume.rmSync("/repo/packages/safe-bash/dist", { recursive: true });
     volume.mkdirSync("/repo/packages/safe-bash/dist", { recursive: true });
     const rootSource = ts.createSourceFile("core.ts", readFileSync(path.join(repository, "packages/safe-bash/src/core.ts"), "utf8"), ts.ScriptTarget.Latest, true);
-    const xqRootExport = rootSource.statements.find(statement => ts.isExportDeclaration(statement) && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier) && statement.moduleSpecifier.text === "./commands/xq/index.js")!.getText(rootSource);
-    for (const filename of ["index.d.ts", "core.d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/${filename}`, xqRootExport);
+    const commandRootExports = rootSource.statements.filter(statement => ts.isExportDeclaration(statement) && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier) && ["./commands/xq/index.js", "./commands/find/index.js"].includes(statement.moduleSpecifier.text)).map(statement => statement.getText(rootSource)).join("\n");
+    for (const filename of ["index.d.ts", "core.d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/${filename}`, commandRootExports);
     const privateEntries: Record<string, string> = {};
     for (const name of privatePackages) {
       const directory = path.join(repository, "packages", name);
@@ -760,13 +760,13 @@ it.each([false, true])("admits asset-only contract owners against the full priva
         volume.writeFileSync(`/repo/packages/${name}/dist/${filename.slice(0, -3)}.d.ts`, dtsText);
       }
     }
-    const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "safe-bash-command-xq", "safe-bash-command-expr", "@poe-platform/safe-fs"] });
+    const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "safe-bash-command-find", "safe-bash-command-xq", "safe-bash-command-expr", "@poe-platform/safe-fs"] });
     const [privateBuild, shell, fs, csvgrepRegex] = await Promise.all([
       build({ entryPoints: privateEntries, outdir: "/repo/packages",
         bundle: false, write: false, format: "esm", target: "es2022" }),
       build({ ...portable, splitting: false, sourcemap: false, minify: true,
         entryPoints: undefined,
-        stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors"; export * from "safe-bash-command-expr"; export * from "safe-bash-command-xq";', resolveDir: path.join(repository, "packages/safe-bash") },
+        stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors"; export * from "safe-bash-command-expr"; export * from "safe-bash-command-find"; export * from "safe-bash-command-xq";', resolveDir: path.join(repository, "packages/safe-bash") },
         outdir: undefined, outfile: "/repo/packages/safe-bash/dist/index.js",
       }),
       build({ entryPoints: [path.join(repository, "packages/safe-fs/src/core.ts")],
@@ -812,11 +812,11 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       }
     }
     volume.mkdirSync("/repo/packages/safe-bash/dist/contracts", { recursive: true });
-    for (const name of ["html-to-markdown", "exiftool", "csvgrep", "csvcut", "line-endings", "mdq", "sed", "wget", "expr", "xq"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
+    for (const name of ["html-to-markdown", "exiftool", "csvgrep", "csvcut", "line-endings", "mdq", "sed", "wget", "expr", "find", "xq"]) volume.mkdirSync(`/repo/packages/safe-bash/dist/commands/${name}`, { recursive: true });
     for (const subpath of ["command", "value", "errors", "plugin"]) {
       for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
     }
-    for (const name of ["html-to-markdown", "exiftool", "csvgrep", "csvcut", "mdq", "sed", "wget", "expr", "xq"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
+    for (const name of ["html-to-markdown", "exiftool", "csvgrep", "csvcut", "mdq", "sed", "wget", "expr", "find", "xq"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
     const lineEndingAdapter = readFileSync(new URL("../packages/safe-bash/src/commands/line-endings/index.ts", import.meta.url), "utf8");
     for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/line-endings/index.${suffix}`,
       suffix === "js" ? ts.transpileModule(lineEndingAdapter, { compilerOptions: { module: ts.ModuleKind.ES2022 } }).outputText : lineEndingAdapter);
@@ -888,7 +888,8 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/output/mdq-consumer.mts", 'import { createMdqCommand, createMdqCommands, mdq, mdqCommands, type MdqCommandsOptions, type MdqLimits, type MdqRunOptions, type MdqResult } from "@poe-platform/safe-bash/commands/mdq"; import type { CommandContext, CommandDefinition } from "@poe-platform/safe-bash/contracts/command"; const limits: MdqLimits = { inputBytes: 1024 }; const commandOptions: MdqCommandsOptions = { limits }; const options: MdqRunOptions = { selectors: "# Title", files: ["/document.md"], output: "json", limits }; const command: CommandDefinition = createMdqCommand(commandOptions); const commands: readonly CommandDefinition[] = createMdqCommands(commandOptions); async function invoke(context: CommandContext): Promise<MdqResult> { return mdq(context, options); } void command; void commands; void invoke; void mdqCommands(commandOptions);');
     volume.writeFileSync("/output/sed-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-sed-types.mts", import.meta.url)));
     volume.writeFileSync("/output/xq-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-xq-types.mts", import.meta.url)));
-    const program = ts.createProgram(["/output/xq-consumer.mts", "/output/html-to-markdown-consumer.mts", "/output/sed-consumer.mts", "/output/csvcut-consumer.mts", "/output/dos2unix-consumer.mts", "/output/mdq-consumer.mts"], compilerOptions, host);
+    volume.writeFileSync("/output/find-consumer.mts", readFileSync(new URL("./fixtures/safe-packages-find-types.mts", import.meta.url)));
+    const program = ts.createProgram(["/output/find-consumer.mts", "/output/xq-consumer.mts", "/output/html-to-markdown-consumer.mts", "/output/sed-consumer.mts", "/output/csvcut-consumer.mts", "/output/dos2unix-consumer.mts", "/output/mdq-consumer.mts"], compilerOptions, host);
     expect(ts.getPreEmitDiagnostics(program).map(diagnostic => `${diagnostic.file?.fileName ?? "compiler"}:${diagnostic.start ?? 0}: ${ts.flattenDiagnosticMessageText(diagnostic.messageText, "\n")}`)).toEqual([]);
   });
 
@@ -907,7 +908,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     await runInContext(`(async () => { const module = { exports: {} }; ${consumer.outputFiles[0]!.text}; await module.exports.verification; })()`, sandbox);
   });
 
-  it.each(["sed", "expr", "html-to-markdown", "xq"])("executes %s through the isolated packed portable command graph", async command => {
+  it.each(["sed", "expr", "html-to-markdown", "find", "xq"])("executes %s through the isolated packed portable command graph", async command => {
     const consumer = await build({ stdin: { contents: readFileSync(new URL(`./fixtures/safe-packages-${command}.mjs`, import.meta.url), "utf8"), resolveDir: "/output" },
       bundle: true, write: false, platform: "browser", format: "cjs", target: "es2022", plugins: [plugin] });
     const sandbox = createContext({ URL, TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream, ReadableStream, WritableStream,

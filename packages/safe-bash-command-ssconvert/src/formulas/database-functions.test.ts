@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import * as publicApi from "../index.js";
 import type { CapabilityContext } from "../contracts.js";
-import type { Workbook } from "../workbook.js";
+import type { CellValue, Workbook } from "../workbook.js";
 import { recalculateWorkbook } from "./evaluator.js";
 
 // Authenticated plugins/gda/plugin-gda.c: four string arguments, read-only
@@ -99,4 +99,22 @@ it("keeps independently supplied capabilities isolated between registrations", (
     .toEqual({ kind: "number", value: 4 });
   expect(calculate('=EXECSQL("owned","","","SELECT 1")', () => ({ kind: "recordset", rows: [[{ kind: "number", value: 9 }]] })))
     .toEqual({ kind: "number", value: 9 });
+});
+
+it.each<[string, CellValue]>([
+  ["INDEX(%s,1,1)", { kind: "number", value: 0 }],
+  ["ISBLANK(INDEX(%s,1,1))", { kind: "boolean", value: false }],
+  ["TYPE(INDEX(%s,1,1))", { kind: "number", value: 1 }],
+  ["ISNUMBER(INDEX(%s,1,1))", { kind: "boolean", value: true }],
+  ["COUNTA(INDEX(%s,1,1))", { kind: "number", value: 1 }],
+  ["COUNT(INDEX(%s,1,1))", { kind: "number", value: 1 }],
+  ["LEN(INDEX(%s,1,1))", { kind: "number", value: 1 }],
+  ["%s", { kind: "blank" }],
+  ["ISBLANK(%s)", { kind: "boolean", value: true }],
+  ["ISBLANK(INDEX(B1:C2,1,1))", { kind: "boolean", value: true }]
+])("matches native empty database array selection for %s", (template, expected) => {
+  const source = 'EXECSQL("owned","","","SELECT NULL")';
+  expect(calculate("=" + template.replace("%s", source), () => ({
+    kind: "recordset", rows: [[{ kind: "blank" }]]
+  }))).toEqual(expected);
 });

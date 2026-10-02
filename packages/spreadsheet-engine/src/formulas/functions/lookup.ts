@@ -259,7 +259,10 @@ export const lookupSpecialForms: Readonly<Record<string, SpecialForm>> = {
     const row = offsets[0]!, column = offsets[1]!, dims = dimensions(value);
     if (row < 0 || column < 0 || row >= dims.height || column >= dims.width) return error("#REF!");
     if (value.kind === "range") return { ...value, firstRow: value.firstRow + row, lastRow: value.firstRow + row, firstColumn: value.firstColumn + column, lastColumn: value.firstColumn + column };
-    return value.kind === "matrix" ? entry(value, row, column, host) : error("#REF!");
+    if (value.kind !== "matrix") return error("#REF!");
+    // Native value_area_fetch_x_y converts an empty array element to zero.
+    const selected = entry(value, row, column, host);
+    return selected.kind === "blank" ? numericResult(0) : selected;
   },
   ARRAY: (args, host) => {
     const values: CellValue[] = [];

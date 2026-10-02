@@ -2,7 +2,7 @@ import { expect, it, vi } from "vitest";
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { CommandRegistry } from "@poe-platform/safe-bash/contracts";
 import type { HttpTransportFetch } from "tiny-mcp-client";
-import { createRemoteMcpCommands, generateRemoteMcpArtifact, initRemoteMcpConfiguration, remoteMcpArtifactPlugin } from "./index.js";
+import { createRemoteMcpCommands, generateRemoteMcpArtifact, initRemoteMcpConfiguration, remoteMcpArtifactPlugin, type RemoteMcpCommandOptions } from "./index.js";
 
 async function artifact() {
   return (await generateRemoteMcpArtifact(initRemoteMcpConfiguration([{
@@ -26,6 +26,34 @@ function resource() {
     return Response.json({ jsonrpc: "2.0", id: request.id, result });
   });
 }
+
+it.each(["command", "recreation"])("captures a hidden result hook during %s generation", async route => {
+  const transformToolResult = vi.fn<NonNullable<RemoteMcpCommandOptions["transformToolResult"]>>(result => ({
+    ...result, content: [{ type: "resource_link", uri: "file:///exports/result", name: "Result" }]
+  }));
+  const replacement = vi.fn();
+  const commands = Object.defineProperty({ fetch: resource() }, "transformToolResult", {
+    value: transformToolResult, writable: true, enumerable: false
+  });
+  const generated = await artifact();
+  const shell = new Shell({ fs: createMemoryFileSystem() });
+  try {
+    const definitions = route === "command" ? await createRemoteMcpCommands([{
+      name: "catalog", url: "https://catalog.example/mcp", protocolVersion: "2025-03-26", tools: generated.schemas[0].tools
+    }], commands) : [];
+    if (route === "command") shell.use({ name: "fixture", setup(host) {
+      for (const command of definitions) host.commands.register(command);
+    } });
+    if (route === "recreation") shell.use(await remoteMcpArtifactPlugin(generated, {
+      binding: { env: { APP_ID: "original-app" }, oauth: { sessionStore: () => ({ load: async () => null, save: async () => {}, clear: async () => {} }) } }, commands
+    }));
+    Object.defineProperty(commands, "transformToolResult", { value: replacement });
+    const result = await shell.exec("catalog find --query 005930");
+    expect(result.exitCode).toBe(0);
+    expect(JSON.parse(result.stdout).content).toEqual([{ type: "resource_link", uri: "file:///exports/result", name: "Result" }]);
+    expect(transformToolResult).toHaveBeenCalledOnce(); expect(replacement).not.toHaveBeenCalled();
+  } finally { await shell.dispose(); }
+});
 
 it.each((["command", "recreation"] as const).flatMap(route => (["yes", "maxInputBytes", "maxOutputBytes"] as const).map(field => ({ route, field }))))(
   "retains hidden command $field through $route", async ({ route, field }) => {

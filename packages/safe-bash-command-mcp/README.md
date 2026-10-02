@@ -245,6 +245,17 @@ HTTP status when available. HTTP errors also retain `rpcMethod` when the native
 client identifies a handshake or request phase. Output writes are awaited and
 cancellation closes owned requests. Set `maxOutputBytes` to bound command output
 (default `Infinity`).
+Hosts can supply `transformToolResult(result, { serverName, toolName, signal })`
+to save image, audio or embedded-resource bytes in their own filesystem and
+return a result containing file references before JSON serialization. The hook
+receives the SDK's parsed `RemoteMcpToolResult`, including partial tool errors;
+retain source links, structured content and metadata when replacing blocks.
+The original provider result determines schema validation and the exit status;
+the transformed output still obeys `maxOutputBytes`. Hook failures return a
+fixed diagnostic without retrying the remote call. Cancellation discards late
+results; host file work must honor the supplied signal and own its cleanup.
+This host callback is also supported in `remoteMcpArtifactPlugin`'s `commands`
+options and is never serialized into an artifact.
 Output schemas and external schema registrations are captured during generation.
 Registration checks all command conflicts before registering any of them.
 Keep an agent's command surface small by passing only its selected server entries

@@ -1,4 +1,5 @@
 import { snapshotRemoteMcpSchemaOptions } from "./schema-options.js";
+import { interruptible } from "safe-bash-contracts/runtime-control";
 import {
   collectBytes, readBytes, commandRuntimeIdentity, createOutputOperation, getCommandArguments,
   type CommandContext, type CommandDefinition, type OutputOperation, type VirtualShellPlugin
@@ -13,6 +14,16 @@ import { resolveRemoteMcpSchemas, snapshotRemoteMcpServer, type RemoteMcpServer,
 export interface RemoteMcpCommandOptions extends SchemaFetchOptions, ToolArgumentParseOptions, RemoteMcpToolLifecycleOptions {
   readonly maxOutputBytes?: number;
   readonly schemaValidation?: CompileJsonSchemaOptions;
+  /** Replace the parsed result before stdout serialization, e.g. save binary blocks as host files. */
+  readonly transformToolResult?: (result: RemoteMcpToolResult, context: RemoteMcpToolResultContext) => RemoteMcpToolResult | Promise<RemoteMcpToolResult>;
+}
+
+export type RemoteMcpToolResult = CallToolResult;
+
+export interface RemoteMcpToolResultContext {
+  readonly serverName: string;
+  readonly toolName: string;
+  readonly signal: AbortSignal;
 }
 
 export function commandLimit(value: number, name: string): number {
@@ -221,6 +232,7 @@ export async function createRemoteMcpCommands(
     ...snapshotRemoteMcpSchemaOptions(options),
     onToolStart: options.onToolStart,
     onToolProgress: options.onToolProgress,
+    transformToolResult: options.transformToolResult,
     maxProgressEvents: commandLimit(options.maxProgressEvents ?? Infinity, "maxProgressEvents"),
     maxProgressMessageBytes: commandLimit(options.maxProgressMessageBytes ?? Infinity, "maxProgressMessageBytes"),
     yes: options.yes,
@@ -306,16 +318,29 @@ export async function createRemoteMcpCommands(
             await emit(errors, `${JSON.stringify({ error: errorDetails(error) })}\n`, outputLimit);
             return { exitCode: 1 };
           }
-          await emit(operation, `${JSON.stringify(result)}\n`, outputLimit);
-          if (result.isError) return { exitCode: 1 };
-          if (selected.output) {
-            const validation = selected.output.validate(result.structuredContent);
-            if (!validation.ok) {
-              await emit(errors, `${JSON.stringify({ error: { message: `Invalid tool output: ${formatIssues(validation.issues)}` } })}\n`, outputLimit);
+          // Capture the provider outcome before a trusted host can transform or mutate the result.
+          const failed = Boolean(result.isError);
+          const validation = failed ? undefined : selected.output?.validate(result.structuredContent);
+          const invalidOutput = validation !== undefined && !validation.ok ? formatIssues(validation.issues) : undefined;
+          if (settings.transformToolResult !== undefined) {
+            operation.signal.throwIfAborted();
+            try {
+              result = await interruptible(Promise.resolve(settings.transformToolResult(result, Object.freeze({
+                serverName: server.name, toolName: selected.tool.name, signal: operation.signal
+              }))), operation.signal);
+            } catch {
+              operation.signal.throwIfAborted();
+              await emit(errors, `${JSON.stringify({ error: { message: "MCP tool result callback failed" } })}\n`, outputLimit);
               return { exitCode: 1 };
             }
+            operation.signal.throwIfAborted();
           }
-          return { exitCode: 0 };
+          await emit(operation, `${JSON.stringify(result)}\n`, outputLimit);
+          if (invalidOutput !== undefined) {
+            await emit(errors, `${JSON.stringify({ error: { message: `Invalid tool output: ${invalidOutput}` } })}\n`, outputLimit);
+            return { exitCode: 1 };
+          }
+          return { exitCode: failed ? 1 : 0 };
         } catch (error) {
           operation.signal.throwIfAborted();
           if (!(error instanceof CommandOutputLimitError)) throw error;

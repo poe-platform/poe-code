@@ -3,7 +3,7 @@ import { createReadlinkCommand } from "./readlink/index.js";
 import { createRealpathCommand } from "./realpath/index.js";
 import { bindConditionalMutation, tryGetMemoryDirectoryEntryNamesSync } from "@poe-code/safe-fs/runtime-core";
 import {
-  basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath, resolvePath,
+  basename, dirname, FsError, isPathWithin, joinPath, normalizePath, relativePath,
   readBytes, writeBytes, type CommandContext, type CommandDefinition, type CommandHandler, type FileStat, type FileSystem,
 } from "../contracts/index.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
@@ -21,10 +21,7 @@ import { admitFilesystemModes, filesystemCommandRequirements } from "./filesyste
 import { createDirectoryReader, type DirectoryReader } from "./directory-admission.js";
 import { yieldTurn } from "../contracts/yield.js";
 import { PublicDiagnostic } from "../diagnostics.js";
-import { touchTimes } from "./touch-times.js";
-import { touchTarget } from "./touch-target.js";
 import { canonicalizeReadlinkMissing } from "./readlink-missing.js";
-import { canonicalizeExistingParent } from "./canonicalize-existing-parent.js";
 import { modeChange } from "./metadata/chmod.js";
 import { creationUmask, getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 import { backupCopyTarget, copyOptions, matchBackupMode, normalizeBackupSuffix } from "./copy-backup.js";
@@ -33,7 +30,6 @@ import { admitCopyPreservation, preserveCopyMetadata, type CopyOptions } from ".
 // Operand directories start at depth zero; files inside the last admitted
 // directory do not consume another directory-recursion level.
 const MKDIR_LONG_OPTIONS = Object.freeze({ parents: "p", mode: "m", verbose: "v" } as const);
-const TOUCH_LONG_OPTIONS = Object.freeze({ "no-create": "c", "no-dereference": "h", reference: "r", date: "d", time: "time:" } as const);
 const MV_LONG_OPTIONS = Object.freeze({
   force: "f", interactive: "i", "no-clobber": "n", update: "u", verbose: "v", backup: "backup:", suffix: "S",
   "no-target-directory": "T", "target-directory": "t",

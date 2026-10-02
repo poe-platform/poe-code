@@ -1,0 +1,151 @@
+{
+  "reference": "llm==0.27.1",
+  "files": {
+    "input.txt": "610d0a620d630a",
+    "raw.bin": "00ff"
+  },
+  "cases": [
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-i",
+        "input.txt"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdout": "[1.0, 0.25]\n",
+      "stderr": "",
+      "inputs": [
+        {
+          "binary": false,
+          "value": "a\nb\nc\n"
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-i",
+        "raw.bin",
+        "--binary"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdout": "[1.0, 0.25]\n",
+      "stderr": "",
+      "inputs": [
+        {
+          "binary": true,
+          "value": "00ff"
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-i",
+        "missing",
+        "-c",
+        "content"
+      ],
+      "stdin": "",
+      "code": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: Invalid value for '-i' / '--input': Path 'missing' does not exist.\n",
+      "inputs": []
+    },
+    {
+      "args": [
+        "-m",
+        "fixture"
+      ],
+      "stdin": "a\r\nb\rc\n",
+      "code": 0,
+      "stdout": "[1.0, 0.25]\n",
+      "stderr": "",
+      "inputs": [
+        {
+          "binary": false,
+          "value": "a\nb\nc\n"
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "--binary"
+      ],
+      "stdin": "a\r\nb\rc\n",
+      "code": 0,
+      "stdout": "[1.0, 0.25]\n",
+      "stderr": "",
+      "inputs": [
+        {
+          "binary": true,
+          "value": "610d0a620d630a"
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "--binary",
+        "-c",
+        "a\r\nb"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdout": "[1.0, 0.25]\n",
+      "stderr": "",
+      "inputs": [
+        {
+          "binary": false,
+          "value": "a\r\nb"
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-i",
+        "input.txt",
+        "-c",
+        "overrides"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdout": "[1.0, 0.25]\n",
+      "stderr": "",
+      "inputs": [
+        {
+          "binary": false,
+          "value": "overrides"
+        }
+      ]
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-i",
+        "-"
+      ],
+      "stdin": "hello",
+      "code": 0,
+      "stdout": "[1.0, 0.25]\n",
+      "stderr": "",
+      "inputs": [
+        {
+          "binary": false,
+          "value": "hello"
+        }
+      ]
+    }
+  ]
+}

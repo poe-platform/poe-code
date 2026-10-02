@@ -2,7 +2,7 @@ import type { ByteSource } from "safe-bash-contracts";
 import type { LlmService } from "./service.js";
 import type { LlmTemplateLoader } from "./templates.js";
 export type LlmOption = string | number | boolean | null | readonly LlmOption[] | { readonly [key: string]: LlmOption };
-export type LlmCapability = "messages" | "schema" | "embed";
+export type LlmCapability = "messages" | "schema" | "embed" | "embed-binary";
 export interface LlmResponseMetadata {
   readonly usage?: Readonly<Record<string, unknown>>;
   readonly metadata?: Readonly<Record<string, unknown>>;
@@ -39,8 +39,9 @@ export interface LlmEmbeddingRequest {
   readonly signal: AbortSignal;
   readonly key?: string | undefined;
 }
-/** UTF-8 text inputs borrowed until the request settles; the service disposes each lease. */
+/** UTF-8 text (or explicitly binary) inputs borrowed until the request settles. */
 export interface LlmEmbeddingSourceRequest extends Omit<LlmEmbeddingRequest, "inputs"> {
+  readonly binary?: boolean;
   readonly inputs: readonly LlmInputSource[];
 }
 export interface LlmEmbeddingResponse extends LlmResponseMetadata {

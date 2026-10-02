@@ -253,6 +253,8 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
         validateOptions(request.options);
         const entry = this.resolve(request.model);
         if (!entry.model.capabilities?.includes("embed") || !entry.provider.embedSources) throw new Error(`Model ${entry.model.id} does not support streamed embeddings`);
+        if (request.binary !== undefined && typeof request.binary !== "boolean") throw new TypeError("Invalid embedding binary flag");
+        if (request.binary && !entry.model.capabilities?.includes("embed-binary")) throw new Error(`Model ${entry.model.id} does not support binary embeddings`);
         if (!Array.isArray(request.inputs) || [...sources].some(source => !source || typeof source.dispose !== "function" || typeof source.bytes?.[Symbol.asyncIterator] !== "function")) throw new TypeError("Invalid embedding input source");
         const result = await abortable(() => entry.provider.embedSources!({ ...request, model: entry.model.id, options: validateModelOptions(entry.model, request.options) }), request.signal);
         request.signal.throwIfAborted();

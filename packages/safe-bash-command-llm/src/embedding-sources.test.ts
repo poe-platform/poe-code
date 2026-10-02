@@ -101,3 +101,14 @@ test('materialized embedding requests retain their OpenAI wire values', async ()
   } });
   assert.deepEqual((await createLlmService({ providers: [provider] }).embed({ model: 'embedding', inputs: ['a', 'b'], options: { user: 'example' }, signal: new AbortController().signal })).vectors, [[1], [2]]);
 });
+
+test('binary embedding sources require explicit model admission and preserve bytes', async () => {
+ let disposed=0,calls=0;
+ const input: LlmInputSource={bytes:{async *[Symbol.asyncIterator](){yield Uint8Array.of(0,255);}},async dispose(){disposed++;}};
+ const provider:LlmProvider={name:'binary',models:[{id:'binary',capabilities:['embed','embed-binary']},{id:'text',capabilities:['embed']}],complete(){throw Error('unexpected');},async embedSources(request){calls++;assert.equal(request.binary,true);for await(const bytes of request.inputs[0]!.bytes)assert.deepEqual(bytes,Uint8Array.of(0,255));return {model:request.model,vectors:[[1]]};}};
+ const service=createLlmService({providers:[provider]});
+ await assert.rejects(service.embedSources!({model:'text',inputs:[input],binary:true,options:{},signal:new AbortController().signal}),/does not support binary/);
+ assert.equal(calls,0);
+ await service.embedSources!({model:'binary',inputs:[input],binary:true,options:{},signal:new AbortController().signal});
+ assert.equal(calls,1);assert.equal(disposed,2);
+});

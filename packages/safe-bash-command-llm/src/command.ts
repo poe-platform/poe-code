@@ -1,3 +1,4 @@
+import { embeddingCommand } from "./embed-command.js";
 import { embeddingModelsCommand } from './embed-models-command.js';
 import { serializeLlmTokenUsage } from "./usage.js";
 import { createLlmInputBudget } from "./input-budget.js";
@@ -209,6 +210,10 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       }
       await emitText(JSON.stringify(parseLlmSchemaDsl(inputs[0]!, multi), null, 2) + "\n");
       return { exitCode: 0 };
+    }
+    if (argumentsValue.args[0] === "embed") {
+      const tokens = Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1));
+      return { exitCode: await embeddingCommand({...context,signal},service,tokens,write,text => writeDiagnostic(context.stderr,text,signal),step,admitInput,limits?.maxConfigurationBytes) };
     }
     if (argumentsValue.args[0] === "embed-models") {
       const tokens = Array.from({ length: argumentsValue.args.length - 1 }, (_, index) => argumentText(index + 1));

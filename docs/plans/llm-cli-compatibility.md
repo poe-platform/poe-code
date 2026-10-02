@@ -19,7 +19,7 @@ The LLM library must not own history or persistence, including through an option
 | `llm collections delete` | collection; -d/--database | incomplete |
 | `llm collections list` | -d/--database; --json | incomplete |
 | `llm collections path` |  | incomplete |
-| `llm embed` | collection; id; -i/--input; -m/--model; --store; -d/--database; -c/--content; --binary; --metadata; -f/--format | incomplete |
+| `llm embed` | collection; id; -i/--input; -m/--model; --store; -d/--database; -c/--content; --binary; --metadata; -f/--format | stateless text/binary input and all four formats implemented with pinned fixtures; collections/store/database operations incomplete |
 | `llm embed-models` |  | implemented; pinned catalog/help fixtures |
 | `llm embed-models default` | model; --remove-default | implemented; canonical caller configuration, separate embedding default |
 | `llm embed-models list` | -q/--query (repeatable) | implemented; case-insensitive AND queries, declared/configured aliases |
@@ -86,7 +86,7 @@ All rows require deterministic differential fixtures against the pinned distribu
 | Schemas/tools | Per-model provider schemas, CLI schema DSL, prompt --schema/--schema-multi, template schema references and the shared SDK resolver are delivered. Stored-history schema ID lookup/list/show and migrations are removed by explicit user direction. Hosts supply schema objects, files or templates. Remaining tools, chains and hosted qualification remain incomplete. |
 | Input admission | CLI and Python now distinguish aggregate materialized-input admission (`maxBufferedInputBytes`) from total input (`maxInputBytes` plus the parent budget). Retained attachment and staged-stdin bytes bypass only the materialization allowance. Buffered fallbacks, schema/config/template acquisition and template expansion are admitted before retention. Caller-owned loaders still own pre-return acquisition; full streamed template/save preparation and final hosted qualification remain incomplete. |
 | Logs/history | Explicitly excluded by the user. LLM-owned history persistence, SQLite migrations, response/fragment/tool/attachment history storage and history-backed schema APIs are removed. The host owns persistence; the library accepts caller-supplied messages without retaining them for subsequent requests. |
-| Embeddings/collections/similarity | Shared embedding contract delivered, including leased UTF-8 source requests and bounded OpenAI request JSON with wire quotas and cancellation cleanup. Embedding CLI execution, collection storage, import and similarity incomplete. |
+| Embeddings/collections/similarity | Shared embedding contract delivered, including leased UTF-8 source requests and bounded OpenAI request JSON with wire quotas and cancellation cleanup. Stateless embed CLI handles content, retained files, staged stdin, explicit binary-capable models and four output formats. 29 pinned differential cases cover values, bytes, help/errors and text newlines. Collection storage, import and similarity remain incomplete; installed Worker/consumer qualification remains required. |
 | Keys/plugins/install/configuration | Virtual key storage and --key alias resolution are delivered. Plugin/tool installation and final qualified host implementations remain incomplete. No ambient host access permitted. |
 | Packed consumer/workerd/Miniflare/hosted Poe | Required final acceptance, not established by unit tests. |
 

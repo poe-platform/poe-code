@@ -1,0 +1,236 @@
+{
+  "reference": "llm==0.27.1",
+  "vectors": [
+    1.0,
+    -0.0,
+    1e-07,
+    1e+16,
+    0.25
+  ],
+  "cases": [
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-c",
+        "hello"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdoutHex": "5b312e302c202d302e302c2031652d30372c2031652b31362c20302e32355d0a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-mfixture",
+        "-c",
+        "hello",
+        "-f",
+        "blob"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdoutHex": "0000803f0000008095bfd633ca1b0e5a0000803e0a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-f",
+        "hex"
+      ],
+      "stdin": "hello",
+      "code": 0,
+      "stdoutHex": "303030303830336630303030303038303935626664363333636131623065356130303030383033650a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-f",
+        "base64"
+      ],
+      "stdin": "hello",
+      "code": 0,
+      "stdoutHex": "4141434150774141414943567639597a7968734f576741416744343d0a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "-c",
+        ""
+      ],
+      "stdin": "stdin fallback",
+      "code": 0,
+      "stdoutHex": "5b312e302c202d302e302c2031652d30372c2031652b31362c20302e32355d0a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-m",
+        "fixture"
+      ],
+      "stdin": "",
+      "code": 1,
+      "stdoutHex": "",
+      "stderr": "Error: No content provided\n"
+    },
+    {
+      "args": [],
+      "stdin": "",
+      "code": 1,
+      "stdoutHex": "",
+      "stderr": "Error: You need to specify an embedding model (no default model is set)\n"
+    },
+    {
+      "args": [
+        "--help"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdoutHex": "55736167653a206c6c6d20656d626564205b4f5054494f4e535d205b434f4c4c454354494f4e5d205b49445d0a0a2020456d626564207465787420616e642073746f7265206f722072657475726e2074686520726573756c740a0a4f7074696f6e733a0a20202d692c202d2d696e70757420504154482020202020202020202020202020202046696c6520746f20656d6265640a20202d6d2c202d2d6d6f64656c205445585420202020202020202020202020202020456d62656464696e67206d6f64656c20746f207573650a20202d2d73746f72652020202020202020202020202020202020202020202020202053746f726520746865207465787420697473656c6620696e207468652064617461626173650a20202d642c202d2d64617461626173652046494c450a20202d632c202d2d636f6e74656e7420544558542020202020202020202020202020436f6e74656e7420746f20656d6265640a20202d2d62696e617279202020202020202020202020202020202020202020202020547265617420696e7075742061732062696e61727920646174610a20202d2d6d65746164617461205445585420202020202020202020202020202020204a534f4e206f626a656374206d6574616461746120746f2073746f72650a20202d662c202d2d666f726d6174205b6a736f6e7c626c6f627c6261736536347c6865785d0a202020202020202020202020202020202020202020202020202020202020202020204f757470757420666f726d61740a20202d682c202d2d68656c702020202020202020202020202020202020202020202053686f772074686973206d65737361676520616e6420657869742e0a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "collection"
+      ],
+      "stdin": "",
+      "code": 1,
+      "stdoutHex": "",
+      "stderr": "Error: Must provide both collection and id\n"
+    },
+    {
+      "args": [
+        "--store"
+      ],
+      "stdin": "",
+      "code": 1,
+      "stdoutHex": "",
+      "stderr": "Error: Must provide collection when using --store\n"
+    },
+    {
+      "args": [
+        "--what"
+      ],
+      "stdin": "",
+      "code": 2,
+      "stdoutHex": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: No such option: --what\n"
+    },
+    {
+      "args": [
+        "-m"
+      ],
+      "stdin": "",
+      "code": 2,
+      "stdoutHex": "",
+      "stderr": "Error: Option '-m' requires an argument.\n"
+    },
+    {
+      "args": [
+        "-f",
+        "nope"
+      ],
+      "stdin": "",
+      "code": 2,
+      "stdoutHex": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: Invalid value for '-f' / '--format': 'nope' is not one of 'json', 'blob', 'base64', 'hex'.\n"
+    },
+    {
+      "args": [
+        "-m",
+        "missing",
+        "-c",
+        "hello"
+      ],
+      "stdin": "",
+      "code": 1,
+      "stdoutHex": "",
+      "stderr": "Error: You need to specify an embedding model (no default model is set)\n"
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "--metadata",
+        "oops",
+        "-c",
+        "hello"
+      ],
+      "stdin": "",
+      "code": 2,
+      "stdoutHex": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: Invalid value for '--metadata': metadata must be valid JSON\n"
+    },
+    {
+      "args": [
+        "-m",
+        "fixture",
+        "--metadata",
+        "[]",
+        "-c",
+        "hello"
+      ],
+      "stdin": "",
+      "code": 2,
+      "stdoutHex": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: Invalid value for '--metadata': metadata must be a JSON object\n"
+    },
+    {
+      "args": [
+        "--format=json",
+        "-mfixture",
+        "-chello"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdoutHex": "5b312e302c202d302e302c2031652d30372c2031652b31362c20302e32355d0a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--help=yes"
+      ],
+      "stdin": "",
+      "code": 2,
+      "stdoutHex": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "args": [
+        "-hc",
+        "hello"
+      ],
+      "stdin": "",
+      "code": 0,
+      "stdoutHex": "55736167653a206c6c6d20656d626564205b4f5054494f4e535d205b434f4c4c454354494f4e5d205b49445d0a0a2020456d626564207465787420616e642073746f7265206f722072657475726e2074686520726573756c740a0a4f7074696f6e733a0a20202d692c202d2d696e70757420504154482020202020202020202020202020202046696c6520746f20656d6265640a20202d6d2c202d2d6d6f64656c205445585420202020202020202020202020202020456d62656464696e67206d6f64656c20746f207573650a20202d2d73746f72652020202020202020202020202020202020202020202020202053746f726520746865207465787420697473656c6620696e207468652064617461626173650a20202d642c202d2d64617461626173652046494c450a20202d632c202d2d636f6e74656e7420544558542020202020202020202020202020436f6e74656e7420746f20656d6265640a20202d2d62696e617279202020202020202020202020202020202020202020202020547265617420696e7075742061732062696e61727920646174610a20202d2d6d65746164617461205445585420202020202020202020202020202020204a534f4e206f626a656374206d6574616461746120746f2073746f72650a20202d662c202d2d666f726d6174205b6a736f6e7c626c6f627c6261736536347c6865785d0a202020202020202020202020202020202020202020202020202020202020202020204f757470757420666f726d61740a20202d682c202d2d68656c702020202020202020202020202020202020202020202053686f772074686973206d65737361676520616e6420657869742e0a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "a",
+        "b",
+        "c"
+      ],
+      "stdin": "",
+      "code": 2,
+      "stdoutHex": "",
+      "stderr": "Usage: llm embed [OPTIONS] [COLLECTION] [ID]\nTry 'llm embed -h' for help.\n\nError: Got unexpected extra argument (c)\n"
+    },
+    {
+      "args": [
+        "--",
+        "-m"
+      ],
+      "stdin": "",
+      "code": 1,
+      "stdoutHex": "",
+      "stderr": "Error: Must provide both collection and id\n"
+    }
+  ]
+}

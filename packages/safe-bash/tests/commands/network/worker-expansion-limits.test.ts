@@ -16,7 +16,7 @@ test("portable network registration permits disabled and explicit expansion quot
   const root = path.resolve(recipe.absWorkingDir!);
   const core = path.join(root, "packages/safe-fs/src/core.ts");
   const result = await build({ ...recipe, entryPoints: [recipe.entryPoints["commands/network/index.browser"]], external: [], alias: {
-    ...recipe.alias, "@poe-code/safe-fs/core": core, "@poe-code/safe-fs": core,
+    ...recipe.alias, "@poe-code/safe-fs/runtime-core": core, "@poe-code/safe-fs/fs/memory": core, "@poe-code/safe-fs/core": core, "@poe-code/safe-fs": core,
     "poe-code/safe-fs/core": core, "poe-code/safe-fs": core,
     "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"),
   }, write: false, sourcemap: false });

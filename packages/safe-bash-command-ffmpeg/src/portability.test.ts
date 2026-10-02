@@ -11,10 +11,13 @@ test("ffmpeg bundles for Workers with one image codec implementation", async () 
   });
   const text = result.outputFiles[0]!.text;
   assert.ok(!text.includes('"node:'));
-  // Production minification changes private identifiers. Track the shared
-  // codec module instead of a function's spelling to detect duplicate bundles.
+  // Count emitted implementations; the portable entry is a zero-byte re-export.
   const imageInputs = Object.keys(result.metafile.inputs).filter(path => path.includes("/image-ast/"));
-  assert.equal(imageInputs.length, 1);
-  assert.ok(imageInputs[0]!.endsWith("/dist/portable.js"));
+  assert.ok(imageInputs.some(path => path.endsWith("/dist/portable.js")));
+  const imageImplementations = Object.values(result.metafile.outputs)
+    .flatMap(output => Object.entries(output.inputs))
+    .filter(([path, input]) => path.includes("/image-ast/") && input.bytesInOutput > 0);
+  assert.equal(imageImplementations.length, 1);
+  assert.ok(imageImplementations[0]![0].endsWith("/dist/index.js"));
   assert.ok(result.outputFiles[0]!.contents.byteLength < 1_500_000);
 });

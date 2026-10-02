@@ -10,3 +10,18 @@ const runtime = await createSqliteRuntime({ signal });
 const vfs = Object.assign(new FacadeVFS('private', runtime.module), callbacks);
 runtime.module.vfs_register(vfs, true);
 ```
+
+For a caller-owned private directory, `safe-bash-sqlite-engine/safe-fs` provides
+`createSqliteVfs({ fs, directory, signal, maxOpenFiles, maxFileBytes })`. Assign
+its callbacks to `FacadeVFS` as above. The filesystem must support positioned
+descriptor reads/writes, truncate and sync. Transfers use owned buffers of at
+most 16 KiB, retry short transfers, and preserve the original filesystem or
+cancellation error through `callbacks.throwIfFailed()`. Close the native
+connection before awaiting `callbacks.dispose()` to release remaining handles.
+
+The caller must exclusively own the directory for the connection's lifetime;
+the adapter does not lock shared database paths or publish staged databases.
+Only direct child files are admitted, temporary files are exclusively created
+and removed on close, and file growth and open handles are budgeted. Use this
+adapter for private transaction working files, with the caller responsible for
+retained source acquisition, atomic publication and removal of the directory.

@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./safe-fs": {
+      "types": "./dist/safe-fs.d.ts",
+      "import": "./dist/safe-fs.js"
     }
   },
   "files": [
@@ -29,7 +33,9 @@
   "dependencies": {},
   "devDependencies": {
     "memfs": "4.56.10",
-    "esbuild": "0.28.1"
+    "esbuild": "0.28.1",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-contracts": "*"
   },
   "imports": {
     "#sqlite-assets": {

@@ -5,6 +5,7 @@ import { admitNativePromiseProperties } from "./interp/native-promise-properties
 import { admitNativePromiseProperties as admitCorePromiseProperties } from "./core.js";
 import { admitNativePromiseProperties as admitWorkerdPromiseProperties } from "./workerd.js";
 import { dump } from "./dump.js";
+import { captureHostContext } from "./host-context.js";
 import { extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
 import { formatInterpreterError } from "./error/format.js";
@@ -56,6 +57,7 @@ describe("@poe-code/safe-js public exports", () => {
     expect(api.admitNativePromiseProperties).toBe(admitNativePromiseProperties);
     expect(admitCorePromiseProperties).toBe(admitNativePromiseProperties);
     expect(admitWorkerdPromiseProperties).toBe(admitNativePromiseProperties);
+    expect(api.captureHostContext).toBe(captureHostContext);
     expect(api.Budget).toBe(Budget);
     expect(api.SandboxError).toBe(SandboxError);
     expect(api.AgentSpawnError).toBe(AgentSpawnError);
@@ -104,6 +106,7 @@ describe("@poe-code/safe-js public exports", () => {
       "SandboxError",
       "SnapshotValidationError",
       "admitNativePromiseProperties",
+      "captureHostContext",
       "createRealm",
       "createReplayableRandom",
       "createRootedSourceResolver",

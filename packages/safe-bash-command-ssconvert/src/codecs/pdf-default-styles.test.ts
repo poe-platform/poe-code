@@ -98,3 +98,35 @@ it("exports workbooks roundtripped through XLSX with default fonts from createEn
   expect(res.exitCode).toBe(0);
   expect(pdfChunks.reduce((n, c) => n + c.byteLength, 0)).toBeGreaterThan(100);
 });
+
+it("exports workbooks roundtripped through Gnumeric XML with Format-only StyleRegions to PDF", async () => {
+  const { createEngine } = await import("../engine.js");
+  const engine = createEngine();
+  const csv = new TextEncoder().encode("region,availability_pct,latency_ms\nUS-EAST,99.98,12.4\nEU-WEST,99.95,18.2\n");
+  const xmlChunks: Uint8Array[] = [];
+  await engine.convert(
+    {
+      input: { kind: "stream", source: [csv], filename: "summary.csv" },
+      destination: { kind: "stream", sink: { async write(bytes) { xmlChunks.push(bytes); } } },
+      exportType: "Gnumeric_XmlIO:sax"
+    },
+    { signal: new AbortController().signal }
+  );
+  const xmlBytes = new Uint8Array(xmlChunks.reduce((n, c) => n + c.byteLength, 0));
+  let offset = 0;
+  for (const chunk of xmlChunks) {
+    xmlBytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  const pdfChunks: Uint8Array[] = [];
+  const res = await engine.convert(
+    {
+      input: { kind: "stream", source: [xmlBytes], filename: "summary.gnumeric" },
+      destination: { kind: "stream", sink: { async write(bytes) { pdfChunks.push(bytes); } } },
+      exportType: "Gnumeric_pdf:pdf_assistant"
+    },
+    { signal: new AbortController().signal }
+  );
+  expect(res.exitCode).toBe(0);
+  expect(pdfChunks.reduce((n, c) => n + c.byteLength, 0)).toBeGreaterThan(100);
+});

@@ -21,14 +21,43 @@ const printDisplayScale = 72 / 96;
 function normalizePdfCellStyle(cell: Workbook["sheets"][number]["cells"][number]): NonNullable<Workbook["sheets"][number]["cells"][number]["style"]> | undefined {
   const style = cell.style;
   if (!style) return undefined;
+  const g = style.gnumeric as Record<string, any> | undefined;
+  if (
+    Object.keys(style).length === 1 &&
+    Object.hasOwn(style, "gnumeric") &&
+    g &&
+    typeof g === "object" &&
+    !Array.isArray(g) &&
+    g.name === "Style" &&
+    g.namespace === "http://www.gnumeric.org/v10.dtd" &&
+    typeof g.text === "string" &&
+    g.text.trim() === "" &&
+    Array.isArray(g.children) &&
+    g.children.length === 0 &&
+    Array.isArray(g.attributes) &&
+    g.attributes.every((a: any) => a && typeof a === "object" && a.namespace === "" && a.name === "Format" && typeof a.value === "string")
+  ) {
+    return undefined;
+  }
   if (Object.keys(style).length === 2 && Object.hasOwn(style, "xlsx") && Object.hasOwn(style, "gnumeric")) {
-    const g = style.gnumeric as Record<string, any> | undefined;
     if (g && typeof g === "object" && !Array.isArray(g) && Array.isArray(g.attributes)) {
       const hasFormat = g.attributes.some((a: any) => a && typeof a === "object" && a.name === "Format");
+      const normalizedAttrs = hasFormat
+        ? g.attributes.map((a: any) => a && typeof a === "object" && a.name === "Format" ? { ...a, value: "General" } : a)
+        : [...g.attributes, { name: "Format", namespace: "", value: "General" }];
       return {
-        gnumeric: hasFormat
-          ? g
-          : { ...g, attributes: [...g.attributes, { name: "Format", namespace: "", value: "General" }] }
+        gnumeric: { ...g, attributes: normalizedAttrs }
+      };
+    }
+  }
+  if (Object.keys(style).length === 1 && Object.hasOwn(style, "gnumeric") && g && typeof g === "object" && !Array.isArray(g) && Array.isArray(g.attributes)) {
+    const hasCustomFormat = g.attributes.some((a: any) => a && typeof a === "object" && a.name === "Format" && a.value !== "General");
+    if (hasCustomFormat) {
+      return {
+        gnumeric: {
+          ...g,
+          attributes: g.attributes.map((a: any) => a && typeof a === "object" && a.name === "Format" ? { ...a, value: "General" } : a)
+        }
       };
     }
   }
@@ -342,10 +371,13 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
       const print = sheetPrintSettings(sheet, context);
       if (!chosen && print.doNotPrint) continue;
       if (sheet.merges?.length || sheet.cells.some(cell => cell.richText)) unsupported("styled or merged cells");
-      for (const cell of sheet.cells) if (cell.style) {
-        tick();
-        if (!context.fonts) unsupported("styled or merged cells");
-        cellPrintStyle(normalizePdfCellStyle(cell)!, tick);
+      for (const cell of sheet.cells) {
+        const normalizedStyle = normalizePdfCellStyle(cell);
+        if (normalizedStyle) {
+          tick();
+          if (!context.fonts) unsupported("styled or merged cells");
+          cellPrintStyle(normalizedStyle, tick);
+        }
       }
       const storedPaper = print.paper === undefined ? undefined : papers[paperName(print.paper)];
       if (settings.paper === undefined && print.paper !== undefined && storedPaper === undefined) unsupported("persisted paper size");
@@ -404,7 +436,8 @@ export async function writePdf(book: Workbook, options: readonly string[], conte
           tick();
           const x = geometry.originX + positions.column(cell.column).start - positions.column(geometry.area.startColumn).start;
           const y = geometry.originY + positions.row(cell.row).start - positions.row(geometry.area.startRow).start;
-          const style = cell.style ? cellPrintStyle(normalizePdfCellStyle(cell)!, tick) : undefined;
+          const normalizedStyle = normalizePdfCellStyle(cell);
+          const style = normalizedStyle ? cellPrintStyle(normalizedStyle, tick) : undefined;
           const width = positions.column(cell.column).size, height = positions.row(cell.row).size;
           if (style?.background) page.drawRectangle({x: x + 2, y: page.getHeight() - y - height - 0.2,
             width: width + 0.2, height: height + 0.2, color: rgb(...style.background)});

@@ -19368,7 +19368,7 @@ const syncExtraRuntimeMethods = {
             : (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum")
               ? (() => { const cs = evalSyncChecksum(w0Plain, optInBytes, allArgs, readFile); return cs !== undefined && !cs.includes("\0") ? cs : undefined; })()
             : w0Plain === "base32"
-              ? (() => { const b32 = evalSyncBase32(inBytes, allArgs, readFile); return b32 !== undefined && b32.every(byte => byte !== 0 && byte < 128) ? sharedSyncPipeDecoder.decode(b32) : undefined; })()
+              ? (() => { const b32 = evalSyncBase32(inBytes, allArgs, readFile); return b32 !== undefined && b32.every((byte: number) => byte !== 0 && byte < 128) ? sharedSyncPipeDecoder.decode(b32) : undefined; })()
             : (w0Plain === "xq" || w0Plain === "yq")
               ? this.evalSyncXqOrYq(w0Plain, inBytes, allArgs, readFile)
             : w0Plain === "xmllint"
@@ -19607,7 +19607,7 @@ const syncExtraRuntimeMethods = {
             } else if (w0Plain === "base32") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const b32Out = evalSyncBase32(view, opArgs, readFile);
-              if (b32Out !== undefined && b32Out.every(byte => byte !== 0 && byte < 128)) fileRes = sharedSyncPipeDecoder.decode(b32Out);
+              if (b32Out !== undefined && b32Out.every((byte: number) => byte !== 0 && byte < 128)) fileRes = sharedSyncPipeDecoder.decode(b32Out);
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvcut") {
               fileRes = evalSyncCsvcut(view, opArgs);
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "csvgrep") {

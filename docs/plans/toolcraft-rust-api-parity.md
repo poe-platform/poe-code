@@ -864,6 +864,38 @@ benchmark (300 calls/round, alternating order) measured native/reference times:
 0.687/0.190 ms (3.62x), and 1,310-unit mixed blocks 0.513/0.190 ms (2.70x). Plain
 input improves, but rich input remains slower; the performance gate is not passed.
 
+Public Markdown document parsing and string wrappers are now available at the
+root and matching parser/renderer subpaths: `parse`, `renderMarkdown`,
+`renderMarkdownHtml` and `renderMarkdownPlaintext`. Frontmatter embeds the own
+Rust YAML/configuration implementation and retains metadata identity and hidden
+UTF-8 ranges. Embedding exposed a design/frontmatter/config dependency cycle;
+the existing template core, binding and JS host now live in the private own
+`toolcraft-template-rust` workspace, with design retaining its Rust module paths.
+Configuration adapters copy the shared engine from that package. No external
+npm packages, Cargo packages or registry versions were added.
+
+The new standalone engine also preserves arbitrary thrown host values through
+explicit callback failure signaling, including getters, partials, coercion,
+lambdas and iterator cleanup. Validation passed 11 Rust template tests and three
+standalone host tests; design passed 197 native host tests and 567 selected
+original tests (demo-content fixture tests still use the original fixture).
+Config mutations and frontmatter maintained suites pass, as do the four adapted
+dependent package suites: agent MCP config, agent skill config, config extends
+and Poe config. Bidirectional Markdown subpath declarations and namespace keys,
+packed standalone runtime/types consumers, Rust/binding lint and scoped JS lint
+pass. Wide/narrow screenshots match the original byte-for-byte and were inspected.
+Repository-wide unit and type routes are still running. Repository ESLint reports
+zero errors after correcting redundant shell-fixture escapes, but its completeness
+check rejects unrelated checkout symlink boundaries; that is not a full lint pass.
+
+An indicative public-parser benchmark during concurrent builds (five warmed
+rounds, 300 calls/round, alternating order) measured 1,350-unit plain input at
+0.126/0.109 ms native/reference and 1,189-unit mixed/frontmatter input at
+0.515/0.251 ms. Concurrent load limits these timings; no performance gate passed.
+Remaining Markdown qualification includes demo-content/testing wildcard subpaths,
+complex YAML diagnostics, embedded error-constructor identity, patched intrinsics,
+exotic inputs and deep-resource behavior. Default JavaScript exports remain active.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

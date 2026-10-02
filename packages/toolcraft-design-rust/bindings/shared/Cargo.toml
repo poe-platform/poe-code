@@ -6,6 +6,8 @@ rust-version = "1.88"
 license = "MIT"
 
 [dependencies]
+toolcraft-template-rust-napi-core = { path = "../../../toolcraft-template-rust/bindings/shared" }
+frontmatter-rust-napi-core = { path = "../../../frontmatter-rust/bindings/shared" }
 toolcraft-design-rust = { path = "../.." }
 mcp-protocol-rust = { path = "../../../mcp-protocol-rust" }
 mcp-protocol-rust-napi-core = { path = "../../../mcp-protocol-rust/bindings/shared" }

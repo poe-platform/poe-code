@@ -30,3 +30,9 @@ const invoke=createComponentPolicy(native.designPlaintextPolicy,{
 export function renderPlaintext(ast,options) {
   return invoke("block",[ast,{announceHeadings:options?.announceHeadings??true,announceCode:options?.announceCode??true,announceAlerts:options?.announceAlerts??true,showLinks:options?.showLinks??false,expandLinks:options?.expandLinks??false,includeFrontmatter:options?.includeFrontmatter??false,footnoteDefinitions:new Map(),footnoteOrder:[]}]);
 }
+import {parse} from "./markdown-parser.js";
+
+export function renderMarkdownPlaintext(markdown,options) {
+  const {ast}=parse(markdown);
+  return renderPlaintext(ast,options);
+}

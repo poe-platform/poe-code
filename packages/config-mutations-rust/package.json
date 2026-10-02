@@ -45,8 +45,8 @@
     "yaml": "^2.9.0",
     "memfs": "4.56.10",
     "@poe-code/config-mutations": "*",
-    "toolcraft-design-rust": "*",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "toolcraft-template-rust": "*"
   },
   "files": [
     "dist",

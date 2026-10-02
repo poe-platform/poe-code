@@ -1,4 +1,4 @@
-use toolcraft_design_rust::{
+use toolcraft_template_rust::{
     data::{DataEnvironment, DataHost, Graph, Node},
     template::{self, Partials, RenderOptions},
 };
@@ -75,20 +75,20 @@ fn owned_array_coercion_retains_js_cycle_and_null_rules() {
 #[test]
 fn snapshot_decoder_rejects_truncation_overcounts_invalid_tags_and_references() {
     let valid = [0, 0, 0, 0, 1, 0, 0, 0, 0];
-    assert!(toolcraft_design_rust::data::decode(&valid).is_ok());
+    assert!(toolcraft_template_rust::data::decode(&valid).is_ok());
     for end in 0..valid.len() {
-        assert!(toolcraft_design_rust::data::decode(&valid[..end]).is_err());
+        assert!(toolcraft_template_rust::data::decode(&valid[..end]).is_err());
     }
     let mut extra = valid.to_vec();
     extra.push(0);
-    assert!(toolcraft_design_rust::data::decode(&extra).is_err());
+    assert!(toolcraft_template_rust::data::decode(&extra).is_err());
     let mut bad = valid;
     bad[8] = 255;
-    assert!(toolcraft_design_rust::data::decode(&bad).is_err());
+    assert!(toolcraft_template_rust::data::decode(&bad).is_err());
     let mut bad = valid;
     bad[4] = 255;
-    assert!(toolcraft_design_rust::data::decode(&bad).is_err());
+    assert!(toolcraft_template_rust::data::decode(&bad).is_err());
     let mut bad = valid;
     bad[0] = 255;
-    assert!(toolcraft_design_rust::data::decode(&bad).is_err());
+    assert!(toolcraft_template_rust::data::decode(&bad).is_err());
 }

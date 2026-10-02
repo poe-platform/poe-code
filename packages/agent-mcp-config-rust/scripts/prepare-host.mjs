@@ -6,6 +6,6 @@ const config=new URL('config/',dist),configSource=new URL('../config-mutations-r
 mkdirSync(config,{recursive:true});
 for(const filename of readdirSync(configSource))if(filename.endsWith('.js')||filename.endsWith('.d.ts'))copyFileSync(new URL(filename,configSource),new URL(filename,config));
 writeFileSync(new URL('native.js',config),"export {native} from '../native.js';\n");
-const design=new URL('design/',config),designSource=new URL('../toolcraft-design-rust/src/',root);
+const design=new URL('design/',config),designSource=new URL('../toolcraft-template-rust/src/',root);
 mkdirSync(design,{recursive:true});
 for(const filename of ['engine.js','data.js'])copyFileSync(new URL(filename,designSource),new URL(filename,design));

@@ -1,4 +1,5 @@
 import { createRequire } from "node:module";
+export {parse,renderMarkdown,renderMarkdownHtml,renderMarkdownPlaintext} from "./markdown.js";
 export {renderHtml} from "./html.js";
 export {render} from "./markdown-render.js";
 import { createTemplateEngine } from "./engine.js";

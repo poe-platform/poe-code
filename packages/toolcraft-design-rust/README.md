@@ -338,13 +338,13 @@ punctuation remain unchanged, making filenames and labels safe to display.
 text. It supports heading/code/alert announcements, checked and ordered lists,
 header-labelled table sentences, link expansion, optional frontmatter and ordered
 footnotes. `PlaintextRenderOptions`, `MdNode` and code-token types are standalone
-root exports. This entry point accepts an AST; Markdown string parsing and
-`renderMarkdownPlaintext` are not yet available in this package.
+root exports. Use `renderMarkdownPlaintext(markdown, options)` to parse and render
+a Markdown string directly.
 
 The internal Markdown code highlighter now tokenizes the supported lexical,
 data, style, line and markup languages in Rust, preserving source code units and
-supplied token arrays. It prepares the remaining renderers; it does not add a
-public highlighting API. Non-string source objects and modified built-ins remain
+supplied token arrays. `terminal-markdown/parser/code-highlight` exposes
+`highlightCodeBlock`. Non-string source objects and modified built-ins remain
 outside the verified parity scope. End-to-end tokenization is currently slower
 than the JavaScript implementation, so this checkpoint is not a performance swap.
 
@@ -353,8 +353,8 @@ text and attributes, applies the existing URL-scheme policy, and supports task
 lists, aligned tables, alerts and linked footnotes. Set `syntaxHighlight: true`
 for native code tokenization, `showFrontmatter: true` to include metadata, or
 `allowRawHtml: true` to include raw HTML nodes. All three default to false.
-`HtmlRenderOptions` is a standalone root type. Markdown string parsing and
-`renderMarkdownHtml` remain unavailable; this is an AST renderer checkpoint.
+`HtmlRenderOptions` is a standalone root type. Use
+`renderMarkdownHtml(markdown, options)` to parse and render a string directly.
 
 `render(ast, options)` renders the AST for terminals with themed headings, nested
 styles, quotes, alerts, lists, tables, code blocks and numbered footnotes. Tables
@@ -362,6 +362,20 @@ switch to stacked fields when they exceed the available width. Set `width` to a
 positive finite number, `syntaxHighlight: true` for code colors, and
 `showFrontmatter: true` to include metadata. Width defaults to the terminal width
 or the design-system fallback. The root exports standalone `RenderOptions`.
-Markdown string parsing and `renderMarkdown` remain unavailable. Exotic text
-objects, modified string intrinsics and deep-recursion/resource behavior still
+`renderMarkdown(markdown, options)` parses and renders a string directly. Exotic
+text objects, modified string intrinsics and deep-recursion/resource behavior still
 require qualification before this additive package can replace the original.
+
+`parse(markdown)` returns `{ast, frontmatter?}` with hidden UTF-8 source ranges.
+YAML frontmatter uses the own Rust configuration parser, preserving shared
+metadata identity in the returned document and frontmatter AST node. Missing
+closing delimiters remain ordinary Markdown. Parser and renderer helpers are
+available under the matching `terminal-markdown/*` subpaths, and
+`render-markdown-plaintext` exposes the plaintext functions and options.
+
+```ts
+import {parse, renderMarkdownHtml} from 'toolcraft-design-rust';
+
+const {ast, frontmatter} = parse('---\ntitle: Status\n---\n# Ready');
+const html = renderMarkdownHtml('# Ready\n\n- [x] Complete');
+```

@@ -10,4 +10,5 @@ description = "Own std-only UTF-16 template and design primitives"
 path = "src/lib.rs"
 
 [dependencies]
+toolcraft-template-rust = { path = "../toolcraft-template-rust" }
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }

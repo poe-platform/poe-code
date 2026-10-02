@@ -12,7 +12,7 @@ mkdirSync(config,{recursive:true});mkdirSync(design,{recursive:true});
 copyFileSync(new URL("../frontmatter-rust/src/index.js",root),new URL("index.js",frontmatter));
 writeFileSync(new URL("native.js",frontmatter),"export {native} from '../native.js';\n");
 for(const name of ["yaml-snapshot.js","snapshot.js"])copyFileSync(new URL("../config-mutations-rust/src/"+name,root),new URL(name,config));
-for(const name of ["engine.js","data.js"])copyFileSync(new URL("../toolcraft-design-rust/src/"+name,root),new URL(name,design));
+for(const name of ["engine.js","data.js"])copyFileSync(new URL("../toolcraft-template-rust/src/"+name,root),new URL(name,design));
 copyFileSync(new URL("src/provider-types.d.ts",root),new URL("provider-types.d.ts",dist));
 
 copyFileSync(new URL("../config-mutations-rust/src/snapshot.js",root),new URL("snapshot.js",dist));

@@ -1,13 +1,7 @@
 import {createRequire} from "node:module";
+import {classifyMarkdownUnit} from "./markdown-characters.js";
 const native=createRequire(import.meta.url)("./toolcraft-design-rust.node");
-// Character properties stay with the JS runtime's Unicode version; no regex engine
-// or Unicode package is added to the native scanner or matcher.
-const whitespace=/\s/u,punctuation=/[\p{P}\p{S}]/u;
 let depth=0;
-
-export function classifyMarkdownUnit(text) {
-  return Number(text===""||whitespace.test(text))|Number(text!==""&&punctuation.test(text))*2;
-}
 
 export function parseInline(raw,options={}) {
   if(depth>=128)throw new RangeError("Maximum call stack size exceeded");

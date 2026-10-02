@@ -8,4 +8,4 @@ for(const name of ['yaml-snapshot.js','snapshot.js'])copyFileSync(new URL('../co
 
 const design=new URL('design/',dist);
 mkdirSync(design,{recursive:true});
-for(const name of ['engine.js','data.js'])copyFileSync(new URL('../toolcraft-design-rust/src/'+name,root),new URL(name,design));
+for(const name of ['engine.js','data.js'])copyFileSync(new URL('../toolcraft-template-rust/src/'+name,root),new URL(name,design));

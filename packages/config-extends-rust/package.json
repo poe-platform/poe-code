@@ -7,7 +7,12 @@
   "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "exports": {".": {"types": "./dist/index.d.ts", "import": "./dist/index.js"}},
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
     "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build",
     "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && tsc --project tsconfig.types.json && vitest run --config vitest.sdk.config.mjs",
@@ -19,10 +24,23 @@
     "@poe-code/frontmatter-rust": "*",
     "mcp-protocol-rust": "*",
     "typescript": "5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "toolcraft-template-rust": "*"
   },
-  "files": ["dist", "LICENSE", "THIRD_PARTY_NOTICES.md"],
-  "engines": {"node": ">=18.18"},
-  "napi": {"binaryName": "config-extends-rust"},
-  "repository": {"type": "git", "url": "git+https://github.com/poe-platform/poe-code.git", "directory": "packages/config-extends-rust"}
+  "files": [
+    "dist",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "napi": {
+    "binaryName": "config-extends-rust"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/config-extends-rust"
+  }
 }

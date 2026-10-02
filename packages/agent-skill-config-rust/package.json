@@ -27,7 +27,8 @@
     "typescript": "5.9.3",
     "vitest": "4.1.11",
     "@poe-code/config-mutations-rust": "*",
-    "mcp-oauth-rust": "*"
+    "mcp-oauth-rust": "*",
+    "toolcraft-template-rust": "*"
   },
   "files": [
     "dist",

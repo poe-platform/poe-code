@@ -11,4 +11,12 @@ name = "toolcraft-design-rust"
 version = "0.1.0"
 dependencies = [
  "mcp-protocol-rust",
+ "toolcraft-template-rust",
+]
+
+[[package]]
+name = "toolcraft-template-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
 ]

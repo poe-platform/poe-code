@@ -8,3 +8,4 @@ export interface PlaintextRenderOptions {
     includeFrontmatter?: boolean;
 }
 export declare function renderPlaintext(ast: MdNode, options?: PlaintextRenderOptions): string;
+export declare function renderMarkdownPlaintext(markdown:string,options?:PlaintextRenderOptions):string;

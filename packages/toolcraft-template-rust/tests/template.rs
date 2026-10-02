@@ -1,4 +1,4 @@
-use toolcraft_design_rust::template;
+use toolcraft_template_rust::template;
 fn u(text: &str) -> Vec<u16> {
     text.encode_utf16().collect()
 }

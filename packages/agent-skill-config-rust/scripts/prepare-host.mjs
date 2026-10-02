@@ -5,5 +5,5 @@ mkdirSync(mutations,{recursive:true});
 for(const name of readdirSync(mutationSource))if((name.endsWith('.js')||name.endsWith('.d.ts'))&&name!=='native.js')copyFileSync(new URL(name,mutationSource),new URL(name,mutations));
 copyFileSync(new URL('src/mutations/native.js',root),new URL('native.js',mutations));
 const design=new URL('design/',mutations);mkdirSync(design,{recursive:true});
-for(const name of ['engine.js','data.js'])copyFileSync(new URL('../toolcraft-design-rust/src/'+name,root),new URL(name,design));
+for(const name of ['engine.js','data.js'])copyFileSync(new URL('../toolcraft-template-rust/src/'+name,root),new URL(name,design));
 const templates=new URL('templates/',dist);mkdirSync(templates,{recursive:true});for(const name of readdirSync(new URL('src/templates/',root)))copyFileSync(new URL('src/templates/'+name,root),new URL(name,templates));

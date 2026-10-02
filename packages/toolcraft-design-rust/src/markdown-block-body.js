@@ -1,5 +1,5 @@
 import {createRequire} from "node:module";
-import {classifyMarkdownUnit} from "./markdown-parse-inline.js";
+import {classifyMarkdownUnit} from "./markdown-characters.js";
 const native=createRequire(import.meta.url)("./toolcraft-design-rust.node");
 let depth=0;
 

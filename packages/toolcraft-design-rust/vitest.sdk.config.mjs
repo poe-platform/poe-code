@@ -9,6 +9,16 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (["terminal-markdown", "html-renderer", "plaintext-renderer"].some((name) => importer === path(`../toolcraft-design/src/terminal-markdown/${name}.test.ts`))) {
+          const modules = {
+            "./index.js": "markdown", "./parser.js": "markdown-parser",
+            "./parser/block.js": "markdown-block", "./parser/frontmatter.js": "markdown-frontmatter",
+            "./parser/inline.js": "markdown-parse-inline", "./plaintext-renderer.js": "plaintext",
+            "../components/symbols.js": "symbols", "../internal/strip-ansi.js": "logging",
+            "../internal/theme-detect.js": "theme", "../tokens/typography.js": "typography"
+          };
+          if (modules[name]) return path(`dist/${modules[name]}.js`);
+        }
         if (importer === path("../toolcraft-design/src/terminal-markdown/parser/code-highlight.test.ts") && name === "./code-highlight.js")
           return path("dist/code-highlight.js");
         if (importer === path("../toolcraft-design/src/static/static.test.ts")) {
@@ -79,7 +89,11 @@ export default defineConfig({
     }
   ],
   test: {
+    env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/terminal-markdown/terminal-markdown.test.ts"),
+      path("../toolcraft-design/src/terminal-markdown/html-renderer.test.ts"),
+      path("../toolcraft-design/src/terminal-markdown/plaintext-renderer.test.ts"),
       path("../toolcraft-design/src/terminal-markdown/parser/code-highlight.test.ts"),
       path("../toolcraft-design/src/escape-terminal-text.test.ts"),
       path("../toolcraft-design/src/static/static.test.ts"),

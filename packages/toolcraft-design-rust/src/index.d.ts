@@ -120,3 +120,4 @@ export type {SpinnerFrameOptions,SpinnerStoppedOptions,MenuOption,RenderMenuOpti
 export {renderPlaintext} from "./plaintext.js";
 export type {PlaintextRenderOptions} from "./plaintext.js";
 export type {MdNode,CodeToken,CodeTokenKind} from "./md-ast.js";
+export {parse,renderMarkdown,renderMarkdownHtml,renderMarkdownPlaintext} from "./markdown.js";

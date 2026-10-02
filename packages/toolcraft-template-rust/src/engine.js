@@ -4,15 +4,27 @@ export class TemplateParseError extends Error{
 }
 export function createTemplateEngine(native){
 function unwrap(result){if(result.error){const{description,line,column}=result.error;throw line===null?new Error(description):new TemplateParseError(description,{line,column});}return result.value;}
-function replies(){return {hit:false,truthy:false,nullish:true,kind:0,handle:0,empty:false,done:false,text:''};}
+function replies(){return {hit:false,truthy:false,nullish:true,kind:0,handle:0,empty:false,done:false,text:'',error:false};}
+function callHost(method,source,callback,options,snapshot){
+ let failed=false,failure;
+ const host=(...args)=>{
+  try{return callback(...args);}
+  catch(error){if(!failed){failed=true;failure=error;}return {...replies(),error:true};}
+ };
+ let result;
+ try{result=snapshot===undefined?method(source,host,options):method(source,snapshot,host,options);}
+ catch(error){if(failed)throw failure;throw error;}
+ if(failed)throw failure;
+ return unwrap(result);
+}
 function partialCallback(partials){return function(op,handle,context,name){const reply=replies();if(op===6)reply.hit=Object.hasOwn(partials,name);else if(op===7)reply.text=partials[name];return reply;};}
 function getTemplatePartialNames(template){return unwrap(native.templatePartialNames(template));}
-function resolveTemplatePartials(template,partials){return unwrap(native.templateExpand(template,partialCallback(partials)));}
+function resolveTemplatePartials(template,partials){return callHost(native.templateExpand,template,partialCallback(partials));}
 function renderTemplate(template,view,options={}){
  const data=template.includes('{{')?dataSnapshot(view,options):null;
- if(data){const partial=partialCallback(options.partials??{});return unwrap(native.templateRenderData(template,data.buffer,(op,handle,context,name)=>{
+ if(data){const partial=partialCallback(options.partials??{});return callHost(native.templateRenderData,template,(op,handle,context,name)=>{
    if(op===6||op===7)return partial(op,handle,context,name);const reply=replies();reply.text=String(data.values[handle]);return reply;
-  },{context:0,escapeNone:options.escape==='none',validate:options.validate===true,yieldText:options.yield,inContext:false,stack:[]}));}
+  },{context:0,escapeNone:options.escape==='none',validate:options.validate===true,yieldText:options.yield,inContext:false,stack:[]},data.buffer);}
  const contexts=[{view,parent:null}],values=[],iterators=[],partial=partialCallback(options.partials??{});
  function store(value){const handle=values.length;values.push(value);return handle;}
  function lookup(context,name){
@@ -24,7 +36,7 @@ function renderTemplate(template,view,options={}){
   return {hit:false,value:undefined};
  }
  function call(value,view){return typeof value==='function'?value.call(view):value;}
- function invoke(template,context,inContext,stack){return unwrap(native.templateRender(template,callback,{context,escapeNone:options.escape==='none',validate:options.validate===true,yieldText:options.yield,inContext,stack}));}
+ function invoke(template,context,inContext,stack){return callHost(native.templateRender,template,callback,{context,escapeNone:options.escape==='none',validate:options.validate===true,yieldText:options.yield,inContext,stack});}
  function callback(op,handle,context,name,stack){
   if(op===6||op===7)return partial(op,handle,context,name);
   const reply=replies();

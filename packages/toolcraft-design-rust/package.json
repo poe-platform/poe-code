@@ -155,11 +155,55 @@
     "./escape-terminal-text": {
       "types": "./dist/escape-terminal-text.d.ts",
       "import": "./dist/escape-terminal-text.js"
+    },
+    "./terminal-markdown/index": {
+      "types": "./dist/markdown.d.ts",
+      "import": "./dist/markdown.js"
+    },
+    "./terminal-markdown/ast": {
+      "types": "./dist/md-ast.d.ts",
+      "import": "./dist/md-ast.js"
+    },
+    "./terminal-markdown/parser": {
+      "types": "./dist/markdown-parser.d.ts",
+      "import": "./dist/markdown-parser.js"
+    },
+    "./terminal-markdown/parser/block": {
+      "types": "./dist/markdown-block.d.ts",
+      "import": "./dist/markdown-block.js"
+    },
+    "./terminal-markdown/parser/inline": {
+      "types": "./dist/markdown-parse-inline.d.ts",
+      "import": "./dist/markdown-parse-inline.js"
+    },
+    "./terminal-markdown/parser/frontmatter": {
+      "types": "./dist/markdown-frontmatter.d.ts",
+      "import": "./dist/markdown-frontmatter.js"
+    },
+    "./terminal-markdown/parser/code-highlight": {
+      "types": "./dist/code-highlight.d.ts",
+      "import": "./dist/code-highlight.js"
+    },
+    "./terminal-markdown/renderer": {
+      "types": "./dist/markdown-render.d.ts",
+      "import": "./dist/markdown-render.js"
+    },
+    "./terminal-markdown/html-renderer": {
+      "types": "./dist/html.d.ts",
+      "import": "./dist/html.js"
+    },
+    "./terminal-markdown/plaintext-renderer": {
+      "types": "./dist/plaintext.d.ts",
+      "import": "./dist/plaintext.js"
+    },
+    "./render-markdown-plaintext": {
+      "types": "./dist/render-markdown-plaintext.d.ts",
+      "import": "./dist/render-markdown-plaintext.js"
     }
   },
   "scripts": {
-    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/*.d.ts dist/",
-    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/toolcraft-design-rust/vitest.sdk.config.mjs",
+    "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/*.d.ts dist/",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/toolcraft-design-rust/vitest.sdk.config.mjs",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint && node scripts/lint-bindings.mjs"
   },
   "devDependencies": {
@@ -167,11 +211,14 @@
     "mcp-protocol-rust": "*",
     "toolcraft-design": "*",
     "typescript": "5.9.3",
-    "vitest": "4.1.11"
+    "vitest": "4.1.11",
+    "@poe-code/frontmatter-rust": "*",
+    "toolcraft-template-rust": "*"
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md"
   ],
   "engines": {
     "node": ">=18.18"

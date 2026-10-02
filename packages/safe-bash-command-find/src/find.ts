@@ -4,7 +4,7 @@ import { basename,FsError,getCommandArguments,resolvePath,type CommandDefinition
 import { assertCommandRequirements } from "safe-bash-contracts/command-requirements";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { escapeText } from "safe-bash-contracts/escaping";
-import { getRuntimeBackingFileSystem,isSyncResolved } from "safe-bash-contracts/runtime-control";
+import { chargeRuntimeFileSystemOperation,getRuntimeBackingFileSystem,isSyncResolved } from "safe-bash-contracts/runtime-control";
 import { byteLength,writeEncodedBytes } from "safe-bash-io-engine/byte-encoding";
 import { createDirectoryReader } from "safe-bash-io-engine/commands/directory-admission";
 import { filesystemCommandRequirements } from "safe-bash-io-engine/commands/filesystem-requirements";
@@ -177,6 +177,7 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
                     assertCommandRequirements(context, filesystemCommandRequirements.ls, FIND_DIR_REQUIREMENTS, backing.capabilities);
                     if (stdoutPipe.writeLineCountSync(matchCount, totalBytes)) {
                       if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
+                      else chargeRuntimeFileSystemOperation(context.fs);
                       return RESOLVED_EXIT_ZERO;
                     }
                   }
@@ -188,6 +189,7 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
                 try {
                   assertCommandRequirements(context, filesystemCommandRequirements.ls, FIND_DIR_REQUIREMENTS, backing.capabilities);
                   if (fastBacking !== undefined) (context as unknown as { _chargeFastFsOp(): void })._chargeFastFsOp();
+                  else chargeRuntimeFileSystemOperation(context.fs);
                   let parent = rootDisplay;
                   while (parent.endsWith("/") && parent.length > 1) parent = parent.slice(0, -1);
                   const escapedParent = escapeText(parent === "/" ? "" : parent, "display");
@@ -627,6 +629,7 @@ export function createFindDefinitions(execute: CommandHandler, maxDirectoryEntri
         let stat: FileStat;
         let symlink: boolean;
         if (memDirEntries !== undefined) {
+          chargeRuntimeFileSystemOperation(context.fs);
           if (!uniformDirAdmitted) {
             assertCommandRequirements(context, filesystemCommandRequirements.ls, ["directory"]);
             uniformDirAdmitted = true;

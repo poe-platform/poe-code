@@ -1,8 +1,80 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { registerRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
+import { createDirectoryReader } from "safe-bash-io-engine/commands/directory-admission";
+import { FindFormatBudget } from "./find-format.js";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, shellValueFromBytes, shellValueBytes, type CommandDefinition } from "safe-bash-contracts";
 import { createFindCommand, createFindCommands, findCommands } from "./index.js";
+
+for (const route of ["recursive", "name", "count"] as const) {
+test(`find accounts for direct memory directory reads through ${route}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/tree/child", { recursive: true });
+  await fs.writeFile("/tree/child/file", new Uint8Array());
+  let operations = 0;
+  registerRuntimeBackingFileSystem(fs, fs, () => { operations++; });
+  let stdout = "";
+  const result = await createFindCommand().execute({
+    ...{ _hasInfiniteFsOpsLimit: true },
+    command: "find", args: route === "recursive" ? ["/tree"] : ["/tree/child", "-name", "*"], cwd: "/", env: {}, fs,
+    stdin: toByteSource(""), signal: new AbortController().signal,
+    stdout: {
+      ...(route === "count" ? { lineCountOnly: 0, writeLineCountSync(count: number) { assert.equal(count, 2); return true; } } : {}),
+      async write(bytes) { stdout += new TextDecoder().decode(bytes); },
+    },
+    stderr: { async write() {} },
+  });
+  assert.equal(result.exitCode, 0);
+  assert.equal(stdout, route === "recursive" ? "/tree\n/tree/child\n/tree/child/file\n" : route === "name" ? "/tree/child\n/tree/child/file\n" : "");
+  assert.equal(operations, route === "recursive" ? 2 : 1);
+});
+}
+
+test("find formatting has no implicit work or output quota", async () => {
+  let bytes = 0;
+  const result = await run({ name: "find", async execute(context) {
+    const budget = new FindFormatBudget({ ...context, stdout: { async write(chunk) { bytes += chunk.length; } } });
+    await budget.step(32 * 1024 * 1024 + 1);
+    await budget.write(new Uint8Array(8 * 1024 * 1024 + 1));
+    await budget.flush();
+    return { exitCode: 0 };
+  } }, []);
+  assert.equal(result.exitCode, 0);
+  assert.equal(bytes, 8 * 1024 * 1024 + 1);
+});
+
+test("directory admission omits unlimited bounds and retains finite enforcement", async () => {
+  await run({ name: "find", async execute(context) {
+    const entries = Array.from({ length: 10001 }, (_, index) => ({ name: String(index), type: "file" as const }));
+    const bounds: unknown[] = [];
+    context.fs.readdir = async (_path, options) => { bounds.push(options?.maxEntries); return entries; };
+    assert.equal((await createDirectoryReader()(context, "/")).length, 10001);
+    assert.equal((await createDirectoryReader(Infinity)(context, "/")).length, 10001);
+    await assert.rejects(createDirectoryReader(10000)(context, "/"), /directory entry limit/);
+    assert.deepEqual(bounds, [undefined, undefined, 10000]);
+    return { exitCode: 0 };
+  } }, []);
+});
+
+test("find walks beyond depth 1024 by default", async () => {
+  await run({ name: "find", async execute(context) {
+    const directory = await context.fs.lstat("/");
+    let deepest = 0;
+    context.fs.lstat = async () => directory;
+    context.fs.realpath = async path => path;
+    context.fs.readdir = async path => {
+      const depth = path.split("/").length - 2;
+      deepest = Math.max(deepest, depth);
+      return depth >= 1025 ? [] : [{ name: "d", type: "directory" }];
+    };
+    const values = createCommandArguments(["/tree", "-type", "f"]);
+    const result = await createFindCommand().execute({ ...context, args: values.args, argumentValues: values });
+    assert.equal(result.exitCode, 0);
+    assert.equal(deepest, 1025);
+    return result;
+  } }, []);
+});
 
 async function run(command: CommandDefinition, args: string[], input = "") {
   const values = createCommandArguments(args);

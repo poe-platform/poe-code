@@ -71,7 +71,7 @@ for (const id of [7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, "R8"] as const) {
         if (ready && !released.has(gate.fd)) { released.add(gate.fd); gates.get(gate.fd)!.resolve(); }
       }
     };
-    const fs: FileSystem = new Proxy(memory, { get(target, property, receiver) {
+    const fs: FileSystem = new Proxy(memory, { get(target, property) {
       if (property === "open") return async (...args: Parameters<NonNullable<FileSystem["open"]>>) => {
         const [path] = args;
         const descriptor = await target.open!(...args);
@@ -94,7 +94,7 @@ for (const id of [7, 8, 9, 10, 11, 13, 14, 15, 16, 17, 18, "R8"] as const) {
           return typeof value === "function" ? value.bind(retained) : value;
         } });
       };
-      const value: unknown = Reflect.get(target, property, receiver);
+      const value: unknown = Reflect.get(target, property);
       return typeof value === "function" ? value.bind(target) : value;
     } });
     const controller = new AbortController();

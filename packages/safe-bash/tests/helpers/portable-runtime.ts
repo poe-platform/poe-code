@@ -18,6 +18,7 @@ export async function portableRuntime(contents: string, options: { removeBuffer?
       "@poe-code/safe-fs/runtime-core": filesystem,
       "@poe-code/safe-fs/fs/memory": filesystem,
       "@poe-code/safe-fs/xml": filesystem,
+      "@poe-code/safe-fs/contracts": filesystem,
       "@poe-code/safe-fs/contracts/errors": filesystem,
       "@poe-code/safe-fs/contracts/object": filesystem,
       "poe-code/safe-fs/core": filesystem,

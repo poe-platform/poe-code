@@ -1,6 +1,7 @@
 export * from "./contracts/errors.js";
 export * from "./contracts/filesystem.js";
 export * from "./contracts/io.js";
+export { compareIdentity, compareFileVersion } from "./fs/mount/identity.js";
 export { openFileDescriptor } from "./fs/descriptor.js";
 export type { DescriptorBackend, DescriptorOpenOptions } from "./fs/descriptor.js";
 export {

@@ -638,7 +638,7 @@ beforeAll(async () => {
           }
           return { contents: output.exports.map(name => `export const ${name} = globalThis.browser.${name};`).join("\n"), loader: "js" };
         });
-        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|fs\/memory|xml|contracts\/(?:errors|object))|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/(?:core|runtime-core)|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
+        builder.onResolve({ filter: /^(?:@poe-code\/safe-fs\/(?:core|runtime-core|fs\/memory|xml|contracts(?:\/(?:errors|object))?)|poe-code\/safe-fs\/core|@poe-platform\/(?:safe-fs\/(?:core|runtime-core)|safe-js\/fs\/core))$/ }, () => ({ path: "core", namespace: "evaluated-fs" }));
         builder.onLoad({ filter: /.*/, namespace: "evaluated-fs" }, () => ({
           contents: Object.keys(filesystem).map(name => `export const ${name} = globalThis.canonical.${name};`).join("\n"), loader: "js",
         }));

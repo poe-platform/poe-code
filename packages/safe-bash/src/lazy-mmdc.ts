@@ -10,7 +10,7 @@ export const createMmdcCommands: MmdcModule["createMmdcCommands"] = (settings) =
   return createLazyCommands(metadata, async () => {
     const module = await loadMmdc();
     return () => module.createMmdcCommands(captured);
-  });
+  }, settings);
 };
 
 export const createMmdcCommand: MmdcModule["createMmdcCommand"] = (settings) => {
@@ -18,7 +18,8 @@ export const createMmdcCommand: MmdcModule["createMmdcCommand"] = (settings) => 
   return createLazyCommands(metadata, async () => {
     const module = await loadMmdc();
     return () => [module.createMmdcCommand(captured)];
-  })[0]!;
+  }, settings)[0]!;
+
 };
 
 export const mmdcCommands: MmdcModule["mmdcCommands"] = (settings = {}) => {

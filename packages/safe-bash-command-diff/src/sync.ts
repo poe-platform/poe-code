@@ -20,10 +20,9 @@ function normalizeSyncDiffLines(text: string, opts: ReturnType<typeof flags>): s
     let line = rawLines[i]!;
     if (opts.stripTrailingCr && line.endsWith("\r\n")) {
       line = line.slice(0, -2) + "\n";
-    } else if (opts.stripTrailingCr && line.endsWith("\r")) {
-      line = line.slice(0, -1);
     }
     let body = line.endsWith("\n") ? line.slice(0, -1) : line;
+    if (opts.ignoreBlank && (body === "" || (opts.whitespace !== "exact" && /^[ \t\v\f\r]*$/u.test(body)))) continue;
     if (opts.ignoreTabs) body = expandTabs(body);
     if (opts.whitespace !== "exact") {
       body = body.replace(/[ \t\v\f\r]+/gu, opts.whitespace === "all" ? "" : " ");
@@ -34,7 +33,6 @@ function normalizeSyncDiffLines(text: string, opts: ReturnType<typeof flags>): s
     if (opts.ignoreCase) {
       body = body.replace(/[A-Z]/gu, letter => letter.toLowerCase());
     }
-    if (opts.ignoreBlank && body === "") continue;
     const suffix = (opts.whitespace !== "exact" || opts.ignoreTrailing || opts.ignoreTabs) ? "" : (line.endsWith("\n") ? "\n" : "");
     out.push(body + suffix);
   }
@@ -64,6 +62,7 @@ export function evalSyncDiff(
     !pairFiles ||
     opts.recursive ||
     opts.paginate ||
+    opts.noDereference ||
     (opts.format === "side" && !opts.suppressCommon) ||
     opts.format === "ifdef"
   ) {
@@ -71,15 +70,20 @@ export function evalSyncDiff(
   }
   const left = pairFiles[0]!;
   const right = pairFiles[1]!;
-  if (left === "-" && right === "-") return opts.reportSame ? `Files ${opts.labels[0] ?? left} and ${opts.labels[1] ?? right} are identical\n` : "";
   const resolveOperand = (op: string): Uint8Array | undefined => {
-    if (op === "-" || op === "/dev/stdin" || op === "/dev/fd/0") return stdinBytes;
+    if (op === "-" || op === "/dev/stdin" || op === "/dev/fd/0") return stdinBytes ?? new Uint8Array(0);
     if (!readFile) return undefined;
     return readFile(op);
   };
   const b1 = resolveOperand(left);
   const b2 = resolveOperand(right);
   if (!b1 || !b2) return undefined;
+  if (opts.format === "ed" && !opts.brief) {
+    if ((b1.byteLength > 0 && b1[b1.byteLength - 1] !== 10) || (b2.byteLength > 0 && b2[b2.byteLength - 1] !== 10)) {
+      return undefined;
+    }
+  }
+  if (left === "-" && right === "-") return opts.reportSame ? `Files ${opts.labels[0] ?? left} and ${opts.labels[1] ?? right} are identical\n` : "";
 
   let same = false;
   if (b1.byteLength === b2.byteLength) {

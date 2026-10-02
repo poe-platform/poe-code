@@ -1,7 +1,8 @@
 import type { CommandDefinition } from "safe-bash-contracts";
+import { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-control";
 
 export function alias(name: "egrep" | "fgrep", grep: CommandDefinition): CommandDefinition {
-  return {
+  const def: CommandDefinition = {
     name,
     execute: context => {
       const stdinIsDefault = context.stdinIsDefault;
@@ -24,6 +25,8 @@ export function alias(name: "egrep" | "fgrep", grep: CommandDefinition): Command
       });
     },
   };
+  if (builtInDirectContextExecutors.has(grep.execute)) builtInDirectContextExecutors.add(def.execute);
+  return def;
 }
 
 

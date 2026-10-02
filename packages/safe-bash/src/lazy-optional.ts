@@ -28,7 +28,7 @@ export const createFfmpegCommand: ffmpegModule["createFfmpegCommand"] = (...args
   return createLazyCommands([metadata], async () => {
     const module = await loadffmpeg();
     return () => [module.createFfmpegCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const createFfprobeCommand: ffmpegModule["createFfprobeCommand"] = (...args) => {
   const metadata = ffmpegMetadata.find((item) => item.name === "ffprobe");
@@ -36,13 +36,13 @@ export const createFfprobeCommand: ffmpegModule["createFfprobeCommand"] = (...ar
   return createLazyCommands([metadata], async () => {
     const module = await loadffmpeg();
     return () => [module.createFfprobeCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const createFfmpegCommands: ffmpegModule["createFfmpegCommands"] = (...args) => {
   const definitions = createLazyCommands(ffmpegMetadata, async () => {
     const module = await loadffmpeg();
     return () => module.createFfmpegCommands(...args);
-  });
+  }, args[0]);
   return Object.freeze(
     Object.assign([definitions[0]!, definitions[1]!] as const, {
       ffmpeg: definitions[0]!,
@@ -69,7 +69,7 @@ export const createGitCommands: gitModule["createGitCommands"] = (...args) => {
   const definitions = createLazyCommands(gitMetadata, async () => {
     const module = await loadgit();
     return () => module.createGitCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export const createGitCommand: gitModule["createGitCommand"] = (...args) => {
@@ -78,7 +78,7 @@ export const createGitCommand: gitModule["createGitCommand"] = (...args) => {
   return createLazyCommands([metadata], async () => {
     const module = await loadgit();
     return () => [module.createGitCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export type { GitCommandsOptions } from "./commands/git/index.js";
 
@@ -102,7 +102,7 @@ export const createSofficeCommand: sofficeModule["createSofficeCommand"] = (...a
   return createLazyCommands([metadata], async () => {
     const module = await loadsoffice();
     return () => [module.createSofficeCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const sofficeCommands: sofficeModule["sofficeCommands"] = (options = {}) =>
   lazyCommandPlugin("soffice", createSofficeCommands(options), options.replace ?? false);
@@ -111,7 +111,7 @@ export const createSofficeCommands: sofficeModule["createSofficeCommands"] = (..
   const definitions = createLazyCommands(sofficeMetadata, async () => {
     const module = await loadsoffice();
     return () => module.createSofficeCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { SofficeCommandsOptions } from "./commands/soffice/index.js";
@@ -140,7 +140,7 @@ export const createPandocCommands: pandocModule["createPandocCommands"] = (...ar
   const definitions = createLazyCommands(pandocMetadata, async () => {
     const module = await loadpandoc();
     return () => module.createPandocCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export const createPandocCommand: pandocModule["createPandocCommand"] = (...args) => {
@@ -150,7 +150,7 @@ export const createPandocCommand: pandocModule["createPandocCommand"] = (...args
   return createLazyCommands([metadata], async () => {
     const module = await loadpandoc();
     return () => [module.createPandocCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export type { PandocCommandsOptions } from "safe-bash-command-pandoc";
 export type { PandocLimits } from "safe-bash-command-pandoc";
@@ -174,7 +174,7 @@ export const createSsconvertCommand: ssconvertModule["createSsconvertCommand"] =
       ? loadssconvert()
       : loadSelectedSsconvert());
     return () => [module.createSsconvertCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const ssconvertCommands: ssconvertModule["ssconvertCommands"] = (options = {}) =>
   lazyCommandPlugin(
@@ -190,7 +190,7 @@ export const createSsconvertCommands: ssconvertModule["createSsconvertCommands"]
       ? loadssconvert()
       : loadSelectedSsconvert());
     return () => module.createSsconvertCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 
@@ -225,7 +225,7 @@ export const createPdfinfoCommand: pdfinfoModule["createPdfinfoCommand"] = (...a
   return createLazyCommands([metadata], async () => {
     const module = await loadpdfinfo();
     return () => [module.createPdfinfoCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const pdfinfoCommands: pdfinfoModule["pdfinfoCommands"] = (options = {}) =>
   lazyCommandPlugin("pdfinfo", createPdfinfoCommands(options), options.replace ?? false);
@@ -234,7 +234,7 @@ export const createPdfinfoCommands: pdfinfoModule["createPdfinfoCommands"] = (..
   const definitions = createLazyCommands(pdfinfoMetadata, async () => {
     const module = await loadpdfinfo();
     return () => module.createPdfinfoCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { PdfinfoCommandsOptions } from "./commands/pdfinfo/index.js";
@@ -257,7 +257,7 @@ export const createPdftotextCommand: pdftotextModule["createPdftotextCommand"] =
   return createLazyCommands([metadata], async () => {
     const module = await loadpdftotext();
     return () => [module.createPdftotextCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const pdftotextCommands: pdftotextModule["pdftotextCommands"] = (options = {}) =>
   lazyCommandPlugin(
@@ -270,7 +270,7 @@ export const createPdftotextCommands: pdftotextModule["createPdftotextCommands"]
   const definitions = createLazyCommands(pdftotextMetadata, async () => {
     const module = await loadpdftotext();
     return () => module.createPdftotextCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { PdftotextCommandsOptions } from "./commands/pdftotext/index.js";
@@ -289,7 +289,7 @@ export const createPdfimagesCommand: pdfimagesModule["createPdfimagesCommand"] =
   return createLazyCommands([metadata], async () => {
     const module = await loadpdfimages();
     return () => [module.createPdfimagesCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const pdfimagesCommands: pdfimagesModule["pdfimagesCommands"] = (options = {}) =>
   lazyCommandPlugin(
@@ -302,7 +302,7 @@ export const createPdfimagesCommands: pdfimagesModule["createPdfimagesCommands"]
   const definitions = createLazyCommands(pdfimagesMetadata, async () => {
     const module = await loadpdfimages();
     return () => module.createPdfimagesCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { PdfimagesCommandsOptions } from "./commands/pdfimages/index.js";
@@ -325,7 +325,7 @@ export const createPdftoppmCommand: pdftoppmModule["createPdftoppmCommand"] = (.
   return createLazyCommands([metadata], async () => {
     const module = await loadpdftoppm();
     return () => [module.createPdftoppmCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const pdftoppmCommands: pdftoppmModule["pdftoppmCommands"] = (options = {}) =>
   lazyCommandPlugin("pdftoppm", createPdftoppmCommands(options), options.replace ?? false);
@@ -334,7 +334,7 @@ export const createPdftoppmCommands: pdftoppmModule["createPdftoppmCommands"] = 
   const definitions = createLazyCommands(pdftoppmMetadata, async () => {
     const module = await loadpdftoppm();
     return () => module.createPdftoppmCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { PdftoppmCommandsOptions } from "./commands/pdftoppm/index.js";
@@ -354,7 +354,7 @@ export const createPdftkCommand: pdftkModule["createPdftkCommand"] = (...args) =
   return createLazyCommands([metadata], async () => {
     const module = await loadpdftk();
     return () => [module.createPdftkCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const pdftkCommands: pdftkModule["pdftkCommands"] = (options = {}) =>
   lazyCommandPlugin("pdftk", createPdftkCommands(options), options.replace ?? false);
@@ -363,7 +363,7 @@ export const createPdftkCommands: pdftkModule["createPdftkCommands"] = (...args)
   const definitions = createLazyCommands(pdftkMetadata, async () => {
     const module = await loadpdftk();
     return () => module.createPdftkCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { PdftkCommandsOptions } from "./commands/pdftk/index.js";
@@ -383,7 +383,7 @@ export const createQpdfCommand: qpdfModule["createQpdfCommand"] = (...args) => {
   return createLazyCommands([metadata], async () => {
     const module = await loadqpdf();
     return () => [module.createQpdfCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const qpdfCommands: qpdfModule["qpdfCommands"] = (options = {}) =>
   lazyCommandPlugin("qpdf", createQpdfCommands(options), options.replace ?? false);
@@ -392,7 +392,7 @@ export const createQpdfCommands: qpdfModule["createQpdfCommands"] = (...args) =>
   const definitions = createLazyCommands(qpdfMetadata, async () => {
     const module = await loadqpdf();
     return () => module.createQpdfCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { QpdfCommandsOptions } from "./commands/qpdf/index.js";
@@ -411,7 +411,7 @@ export const createSipsCommand: sipsModule["createSipsCommand"] = (...args) => {
   return createLazyCommands([metadata], async () => {
     const module = await loadsips();
     return () => [module.createSipsCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const sipsCommands: sipsModule["sipsCommands"] = (options = {}) =>
   lazyCommandPlugin("sips", createSipsCommands(options), options.replace ?? false);
@@ -420,7 +420,7 @@ export const createSipsCommands: sipsModule["createSipsCommands"] = (...args) =>
   const definitions = createLazyCommands(sipsMetadata, async () => {
     const module = await loadsips();
     return () => module.createSipsCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { SipsCommandsOptions } from "./commands/sips/index.js";
@@ -463,7 +463,7 @@ export const createMagickCommand: imagemagickModule["createMagickCommand"] = (..
   return createLazyCommands([metadata], async () => {
     const module = await loadimagemagick();
     return () => [module.createMagickCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const imagemagickCommands: imagemagickModule["imagemagickCommands"] = (options = {}) =>
   lazyCommandPlugin(
@@ -478,7 +478,7 @@ export const createImagemagickCommands: imagemagickModule["createImagemagickComm
   const definitions = createLazyCommands(imagemagickMetadata, async () => {
     const module = await loadimagemagick();
     return () => module.createImagemagickCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export const createImagemagickCommand: imagemagickModule["createImagemagickCommand"] = (
@@ -489,7 +489,7 @@ export const createImagemagickCommand: imagemagickModule["createImagemagickComma
   return createLazyCommands([metadata], async () => {
     const module = await loadimagemagick();
     return () => [module.createImagemagickCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export type { ImagemagickCommandsOptions } from "./commands/imagemagick/index.js";
 
@@ -509,7 +509,7 @@ export const createWkhtmltopdfCommand: wkhtmltopdfModule["createWkhtmltopdfComma
   return createLazyCommands([metadata], async () => {
     const module = await loadwkhtmltopdf();
     return () => [module.createWkhtmltopdfCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export const wkhtmltopdfCommands: wkhtmltopdfModule["wkhtmltopdfCommands"] = (options = {}) =>
   lazyCommandPlugin(
@@ -524,7 +524,7 @@ export const createWkhtmltopdfCommands: wkhtmltopdfModule["createWkhtmltopdfComm
   const definitions = createLazyCommands(wkhtmltopdfMetadata, async () => {
     const module = await loadwkhtmltopdf();
     return () => module.createWkhtmltopdfCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export type { WkhtmltopdfCommandsOptions } from "./commands/wkhtmltopdf/index.js";
@@ -597,7 +597,7 @@ export const createCsvkitCommands: csvkitModule["createCsvkitCommands"] = (...ar
   const definitions = createLazyCommands(csvkitMetadata, async () => {
     const module = await loadcsvkit();
     return () => module.createCsvkitCommands(...args);
-  });
+  }, args[0]);
   return definitions;
 };
 export const createCsvkitCommand: csvkitModule["createCsvkitCommand"] = (...args) => {
@@ -606,7 +606,7 @@ export const createCsvkitCommand: csvkitModule["createCsvkitCommand"] = (...args
   return createLazyCommands([metadata], async () => {
     const module = await loadcsvkit();
     return () => [module.createCsvkitCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 export type { CsvkitCommandsOptions } from "./commands/csvkit/index.js";
 
@@ -767,7 +767,7 @@ export const createConvertCommand: imagemagickModule["createConvertCommand"] = (
   return createLazyCommands([metadata], async () => {
     const module = await loadimagemagick();
     return () => [module.createConvertCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createMogrifyCommand: imagemagickModule["createMogrifyCommand"] = (...args) => {
@@ -776,7 +776,7 @@ export const createMogrifyCommand: imagemagickModule["createMogrifyCommand"] = (
   return createLazyCommands([metadata], async () => {
     const module = await loadimagemagick();
     return () => [module.createMogrifyCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createCompositeCommand: imagemagickModule["createCompositeCommand"] = (...args) => {
@@ -785,7 +785,7 @@ export const createCompositeCommand: imagemagickModule["createCompositeCommand"]
   return createLazyCommands([metadata], async () => {
     const module = await loadimagemagick();
     return () => [module.createCompositeCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createMontageCommand: imagemagickModule["createMontageCommand"] = (...args) => {
@@ -794,7 +794,7 @@ export const createMontageCommand: imagemagickModule["createMontageCommand"] = (
   return createLazyCommands([metadata], async () => {
     const module = await loadimagemagick();
     return () => [module.createMontageCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createIdentifyCommand: imagemagickModule["createIdentifyCommand"] = (...args) => {
@@ -803,7 +803,7 @@ export const createIdentifyCommand: imagemagickModule["createIdentifyCommand"] =
   return createLazyCommands([metadata], async () => {
     const module = await loadimagemagick();
     return () => [module.createIdentifyCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createCompareCommand: imagemagickModule["createCompareCommand"] = (...args) => {
@@ -812,7 +812,7 @@ export const createCompareCommand: imagemagickModule["createCompareCommand"] = (
   return createLazyCommands([metadata], async () => {
     const module = await loadimagemagick();
     return () => [module.createCompareCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createPdfuniteCommand: pdfinfoModule["createPdfuniteCommand"] = (...args) => {
@@ -821,7 +821,7 @@ export const createPdfuniteCommand: pdfinfoModule["createPdfuniteCommand"] = (..
   return createLazyCommands([metadata], async () => {
     const module = await loadpdfinfo();
     return () => [module.createPdfuniteCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createPdfseparateCommand: pdfinfoModule["createPdfseparateCommand"] = (...args) => {
@@ -830,7 +830,7 @@ export const createPdfseparateCommand: pdfinfoModule["createPdfseparateCommand"]
   return createLazyCommands([metadata], async () => {
     const module = await loadpdfinfo();
     return () => [module.createPdfseparateCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createPdffontsCommand: pdfinfoModule["createPdffontsCommand"] = (...args) => {
@@ -839,7 +839,7 @@ export const createPdffontsCommand: pdfinfoModule["createPdffontsCommand"] = (..
   return createLazyCommands([metadata], async () => {
     const module = await loadpdfinfo();
     return () => [module.createPdffontsCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createPdfdetachCommand: pdfinfoModule["createPdfdetachCommand"] = (...args) => {
@@ -848,7 +848,7 @@ export const createPdfdetachCommand: pdfinfoModule["createPdfdetachCommand"] = (
   return createLazyCommands([metadata], async () => {
     const module = await loadpdfinfo();
     return () => [module.createPdfdetachCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createPdftocairoCommand: pdfinfoModule["createPdftocairoCommand"] = (...args) => {
@@ -857,7 +857,7 @@ export const createPdftocairoCommand: pdfinfoModule["createPdftocairoCommand"] =
   return createLazyCommands([metadata], async () => {
     const module = await loadpdfinfo();
     return () => [module.createPdftocairoCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createLibreofficeCommand: sofficeModule["createLibreofficeCommand"] = (...args) => {
@@ -866,7 +866,7 @@ export const createLibreofficeCommand: sofficeModule["createLibreofficeCommand"]
   return createLazyCommands([metadata], async () => {
     const module = await loadsoffice();
     return () => [module.createLibreofficeCommand(...args)];
-  })[0]!;
+  }, args[0])[0]!;
 };
 
 export const createFormatInspectionCommand: pandocModule["createFormatInspectionCommand"] = (...args) => ({

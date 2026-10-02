@@ -1,5 +1,5 @@
 import type { CommandDefinition, CommandContext, VirtualShellPlugin } from "../contracts/index.js";
-import { commandRuntimeIdentity } from "../contracts/command.js";
+import { commandRuntimeIdentity, registerDefaultExecutors } from "../contracts/command.js";
 
 /** A static, trusted loader. Share code, never invocation context or authority. */
 export function createLazyCommandLoader<T>(load: () => Promise<T>): () => Promise<T> {
@@ -33,9 +33,10 @@ async function waitForCode<T>(pending: Promise<T>, signal: AbortSignal): Promise
 /** Factories run per invocation; only the loader's immutable code is shared. */
 export function createLazyCommands(
   metadata: readonly LazyCommandMetadata[],
-  load: () => Promise<LazyCommandFactory>
+  load: () => Promise<LazyCommandFactory>,
+  options?: unknown
 ): readonly CommandDefinition[] {
-  return Object.freeze(
+  const definitions = Object.freeze(
     metadata.map((item) =>
       Object.freeze({
         ...item,
@@ -51,6 +52,7 @@ export function createLazyCommands(
       })
     )
   );
+  return registerDefaultExecutors(definitions, options);
 }
 
 export function lazyCommandPlugin(

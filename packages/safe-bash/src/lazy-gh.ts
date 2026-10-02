@@ -29,7 +29,8 @@ export const createGhCommand: ghModule["createGhCommand"] = (options = {}) => {
         return module.createGhCommand({ ...options, backend }).execute(context);
       },
     }];
-  })[0]!;
+  }, options)[0]!;
+
 };
 export const createGhCommands: ghModule["createGhCommands"] = (options = {}) =>
   [createGhCommand(options)];

@@ -821,3 +821,24 @@ test("45. sync vs async parity for tree (charset, root dir count, multi -P, syml
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+
+
+test("46. sync vs async parity for diff (-e missing newline, --strip-trailing-cr, -Z -B, --no-dereference), diff3 pipeline newline, and yq default Mike Farah YAML vs JSON", async () => {
+  const scripts = [
+    'mkdir -p /dir; printf "abc" > /dir/a.txt; printf "abc" > /dir/b.txt; x=$(diff -e /dir/a.txt /dir/b.txt 2>/dev/null); echo "$?:$x"',
+    'mkdir -p /dir; printf "hello\r" > /dir/a.txt; printf "hello" > /dir/b.txt; x=$(diff --strip-trailing-cr /dir/a.txt /dir/b.txt); echo "$?:$x"',
+    'mkdir -p /dir; printf "a\n   \nb\n" > /dir/a.txt; printf "a\nb\n" > /dir/b.txt; x=$(diff -Z -B /dir/a.txt /dir/b.txt); echo "$?:$x"',
+    'mkdir -p /dir; printf "same\n" > /dir/a.txt; ln -s /dir/a.txt /dir/link.txt; x=$(diff --no-dereference /dir/link.txt /dir/a.txt); echo "$?:$x"',
+    'mkdir -p /dir; printf "l1\nl2\n" > /dir/a.txt; x=$(diff3 -m /dir/a.txt /dir/a.txt /dir/a.txt | wc -l); y=$(diff3 -m /dir/a.txt /dir/a.txt /dir/a.txt | wc -c); echo "$x:$y"',
+    'mkdir -p /dir; printf "a: 1\nb: hello\n" > /dir/data.yaml; x=$(yq "." /dir/data.yaml); y=$(yq -o json "." /dir/data.yaml); echo "$x|$y"',
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

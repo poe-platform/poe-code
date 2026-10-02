@@ -89,6 +89,7 @@ class JobRegistry implements JobState {
   #finished = false;
   #waiters = 0;
   #terminal: Promise<void> | undefined;
+  #latest: JobHandle | undefined;
 
   constructor(readonly limits: JobLimits, options: JobStateOptions) {
     this.#owner = options.signal;
@@ -141,6 +142,7 @@ class JobRegistry implements JobState {
     }
     this.retireNotified();
     record.listed = true;
+    this.#latest = handle;
     this.#jobs.set(jobId, record);
     this.#notify();
     queueMicrotask(() => { void this.#execute(record, run!); });
@@ -309,12 +311,20 @@ class JobRegistry implements JobState {
     try {
       if (selected === undefined) {
         const records = [...this.#records.values()].filter(record => !record.disowned);
+        const activelyWaited = new Set<JobRecord>();
         for (const record of records) {
+          if (record.state !== "done") activelyWaited.add(record);
           while (record.state !== "done") { signal?.throwIfAborted(); await this.#changed(signal); }
           if (record.outcome!.kind === "failure") failure ??= record.outcome;
         }
         signal?.throwIfAborted();
-        for (const record of records) this.#forget(record);
+        for (const record of records) {
+          // Bash keeps the latest unnotified child only if wait did not have
+          // to join it. Keep it in the registry so quotas still account for it.
+          if (record.handle === this.#latest && !record.notified && !record.saved
+            && !activelyWaited.has(record) && record.outcome?.kind === "status") continue;
+          this.#forget(record);
+        }
       } else for (const target of selected) {
         signal?.throwIfAborted();
         const record = this.#lookup(target);

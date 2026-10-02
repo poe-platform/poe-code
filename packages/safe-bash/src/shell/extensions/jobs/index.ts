@@ -295,7 +295,8 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
       if (offset === context.args.length) {
         const result = await ordinaryWait();
         if (result.kind === "interrupted") return result.status;
-        children.clear();
+        const retained = new Set(jobs!.snapshot().map(entry => entry.handle));
+        for (const [processId, handle] of children) if (!retained.has(handle)) children.delete(processId);
         return status(result.value.outcome);
       }
       const waitOperands = async (signal: AbortSignal) => {

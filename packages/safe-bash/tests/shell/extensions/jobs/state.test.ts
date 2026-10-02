@@ -108,13 +108,86 @@ test("job-number wait marks notified without immediately deleting lookup", async
   assert.deepEqual((await state.wait([{ handle }])).outcome, status(7));
 });
 
-test("bare wait returns zero and forgets retained handles", async context => {
+test("bare wait returns zero and forgets explicitly notified handles", async context => {
   const state = setup(context);
   const first = await state.start(() => ({ run: () => 7 }));
   const second = await state.start(() => ({ run: () => 9 }));
+  await state.wait([{ handle: second }]);
   assert.deepEqual((await state.wait()).outcome, status(0));
   assert.deepEqual((await state.wait([{ handle: first }, { handle: second }])).outcome, status(127));
   assert.equal(state.snapshot().length, 0);
+});
+
+test("bare wait preserves only the latest completed unnotified child within the record quota", async context => {
+  const state = setup(context, { maxJobs: 2 });
+  const first = await state.start(() => ({ run: () => 7 }));
+  const second = await state.start(() => ({ run: () => 9 }));
+  await Promise.all([first.completion, second.completion]);
+  assert.deepEqual((await state.wait()).outcome, status(0));
+  assert.deepEqual((await state.wait()).outcome, status(0));
+  assert.deepEqual(state.snapshot().map(entry => entry.handle), [second]);
+  assert.deepEqual((await state.wait([{ handle: first }])).outcome, status(127));
+  const third = await state.start(() => ({ run: () => 3 }));
+  await third.completion;
+  await assert.rejects(state.start(() => ({ run: () => 0 })), /maxJobs/u);
+  assert.deepEqual((await state.wait([{ handle: second }])).outcome, status(9));
+  await state.wait();
+  assert.deepEqual(state.snapshot().map(entry => entry.handle), [third]);
+});
+
+test("bare wait forgets actively waited children but leaves later admissions owned", async context => {
+  const state = setup(context);
+  const pending = deferred<number>();
+  const later = deferred<number>();
+  let cleaned = 0;
+  const first = await state.start(() => ({ run: () => pending.promise }));
+  const waiting = state.wait();
+  const second = await state.start(owner => {
+    owner.registerCleanup(() => { cleaned++; later.resolve(0); });
+    return { run: () => later.promise };
+  });
+  pending.resolve(7);
+  assert.deepEqual((await waiting).outcome, status(0));
+  assert.deepEqual((await state.wait([{ handle: first }])).outcome, status(127));
+  assert.deepEqual(state.snapshot().map(entry => entry.handle), [second]);
+  await state.close(false);
+  assert.equal(cleaned, 1);
+  assert.deepEqual(await second.completion, { kind: "failure", reason: false });
+});
+
+test("bare wait does not fall back to an older unnotified child", async context => {
+  const state = setup(context);
+  const first = await state.start(() => ({ run: () => 7 }));
+  const second = await state.start(() => ({ run: () => 9 }));
+  await Promise.all([first.completion, second.completion]);
+  await state.wait([{ handle: second }]);
+  await state.wait();
+  assert.deepEqual(state.snapshot(), []);
+});
+
+test("interrupted bare wait preserves ownership and drains cleanup before retaining a completed child", async context => {
+  const state = setup(context);
+  const pending = deferred<number>();
+  const cleanup = deferred<void>();
+  let cleaned = 0;
+  const first = await state.start(() => ({ run: () => pending.promise }));
+  const second = await state.start(owner => {
+    owner.registerCleanup(async () => { await cleanup.promise; cleaned++; });
+    return { run: () => 9 };
+  });
+  const controller = new AbortController();
+  const waiting = state.wait(undefined, { signal: controller.signal });
+  controller.abort(false);
+  await assert.rejects(waiting, reason => reason === false);
+  assert.equal(state.snapshot().length, 2);
+  assert.equal(cleaned, 0);
+  pending.resolve(7);
+  cleanup.resolve();
+  await Promise.all([first.completion, second.completion]);
+  await state.wait();
+  assert.deepEqual(state.snapshot().map(entry => entry.handle), [second]);
+  await state.finish();
+  assert.equal(cleaned, 1);
 });
 
 test("specified wait returns last status and reports every unknown target", async context => {

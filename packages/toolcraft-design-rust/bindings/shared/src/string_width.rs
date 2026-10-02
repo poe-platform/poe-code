@@ -7,14 +7,14 @@ use toolcraft_design_rust::{
 };
 
 #[derive(Clone, Copy)]
-enum Value<'env> {
+pub(super) enum Value<'env> {
     Numeric(NumericResult),
     Block(&'static str),
     Host(Unknown<'env>),
 }
 
 impl<'env> Value<'env> {
-    fn from_host(value: Unknown<'env>) -> Result<Self> {
+    pub(super) fn from_host(value: Unknown<'env>) -> Result<Self> {
         Ok(match value.get_type()? {
             ValueType::Number => Self::Numeric(NumericResult::Number(unsafe { value.cast()? })),
             ValueType::Boolean => Self::Numeric(NumericResult::Boolean(unsafe { value.cast()? })),
@@ -22,7 +22,7 @@ impl<'env> Value<'env> {
         })
     }
 
-    fn to_host(self, env: &Env) -> Result<Unknown<'env>> {
+    pub(super) fn to_host(self, env: &Env) -> Result<Unknown<'env>> {
         // These handles live only inside this invocation's active N-API scope.
         unsafe {
             let raw = match self {
@@ -40,12 +40,12 @@ impl<'env> Value<'env> {
     }
 }
 
-struct WidthHost<'env> {
-    env: Env,
-    host: NodeHost<'env>,
+pub(super) struct PrimitiveHost<'env> {
+    pub(super) env: Env,
+    pub(super) host: NodeHost<'env>,
 }
 
-impl<'env> Host for WidthHost<'env> {
+impl<'env> Host for PrimitiveHost<'env> {
     type Value = Value<'env>;
     type Error = napi::Error;
 
@@ -126,7 +126,7 @@ pub fn design_string_width_policy<'env>(
         .map(Value::from_host)
         .collect::<Result<Vec<_>>>()?;
     string_width::run(
-        &mut WidthHost {
+        &mut PrimitiveHost {
             env,
             host: NodeHost { object: host },
         },

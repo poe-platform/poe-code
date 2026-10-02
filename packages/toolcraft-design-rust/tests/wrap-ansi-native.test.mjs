@@ -46,3 +46,21 @@ test("ANSI wrapping retains array species and nested invocations",async()=>{
     assert.equal(fn("longwords here",4,options),reference("longwords here",4,{hard:true}));
   }
 });
+
+test("numeric wrapping retains observable Math operations and thrown identity",async()=>{
+  const {wrapAnsi}=await import("../dist/wrap-ansi.js");
+  function run(fn) {
+    const trace=[],floor=Math.floor;
+    Math.floor=value=>{trace.push(value);return floor(value);};
+    try {return [fn("one abcdefghijklmnop next",5,{hard:true}),trace];}
+    finally {Math.floor=floor;}
+  }
+  const expected=run(reference);
+  assert.ok(expected[1].length>0);
+  assert.deepEqual(run(wrapAnsi),expected);
+  const floor=Math.floor,thrown={};
+  Math.floor=()=>{throw thrown;};
+  try {
+    for(const fn of [wrapAnsi,reference]) assert.throws(()=>fn("one abcdefghijklmnop next",5,{hard:true}),error=>error===thrown);
+  } finally {Math.floor=floor;}
+});

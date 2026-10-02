@@ -49,3 +49,28 @@ fn numeric_width_operations_preserve_ieee_arithmetic() {
     assert_eq!(numeric_operation("slice", &[1.0, 2.0]), None);
     assert_eq!(numeric_operation("add", &[1.0]), None);
 }
+
+#[test]
+fn numeric_wrap_operations_keep_strict_comparisons_and_rounding() {
+    use NumericResult::{Boolean, Number};
+    for (operation, args, expected) in [
+        ("lt", vec![f64::NAN, 2.0], Boolean(false)),
+        ("le", vec![-0.0, 0.0], Boolean(true)),
+        ("same", vec![f64::NAN, f64::NAN], Boolean(false)),
+        ("same", vec![-0.0, 0.0], Boolean(true)),
+        ("isZero", vec![-0.0], Boolean(true)),
+        ("isFalse", vec![0.0], Boolean(false)),
+        ("endCode", vec![39.0], Boolean(true)),
+        ("endCode", vec![f64::NAN], Boolean(false)),
+        ("decrement", vec![1.5], Number(0.5)),
+        ("decrement", vec![f64::INFINITY], Number(f64::INFINITY)),
+    ] {
+        assert_eq!(
+            numeric_operation(operation, &args),
+            Some(expected),
+            "{operation}"
+        );
+    }
+    // Math.floor stays observable; it cannot enter the primitive kernel.
+    assert_eq!(numeric_operation("breaksNext", &[5.0, 2.0]), None);
+}

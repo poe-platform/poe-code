@@ -589,6 +589,17 @@ iterations per sample; the others use 100. This is a 2.33x native width speedup,
 but it remains 32.6x slower than JavaScript on this local fixture. More substantial
 boundary reduction and fresh measurements remain necessary for swap qualification.
 
+ANSI wrapping now shares the primitive host representation, retaining numeric
+comparisons, strict equality and increments in Rust while preserving nonnumeric
+coercions and observable Math calls. The package passes 79 native and 173
+reference tests, declarations and lint. With the same card/cohort fixtures and
+seven alternating samples of 100 invocations, median microseconds JS/before/after
+were wrapping 28.54/2104.99/1558.11, detail 57.43/4654.75/3219.31,
+inspector 51.24/4164.81/3049.32. The baseline already includes the width improvement.
+That gives additional native speedups of 1.35x, 1.45x and 1.37x, respectively;
+these fixtures still run 54.6–59.5x slower than JavaScript. Cross-run timings vary
+with shared host load; only each same-process comparison supports its speedup.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

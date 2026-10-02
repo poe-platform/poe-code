@@ -218,8 +218,8 @@ export async function resolveCodeReviewRolePrompt(input: {
     filePath: relativePath,
     optional: true,
     fs: {
-      readFile: async (filePath, _encoding) => await readRegularAssetFile(filePath),
-      realpath: async (filePath) => await realpath(filePath)
+      readFile: async (filePath: string) => await readRegularAssetFile(filePath),
+      realpath: async (filePath: string) => await realpath(filePath)
     },
     baseDocuments: [
       {

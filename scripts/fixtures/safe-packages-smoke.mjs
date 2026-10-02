@@ -1,5 +1,6 @@
 import { verification as findVerification } from "./safe-packages-find.mjs";
 await findVerification;
+import "./safe-packages-truncate.mjs";
 import "./safe-packages-bzip2.mjs";
 import { verification as zstdVerification } from "./safe-packages-zstd.mjs";
 await zstdVerification;

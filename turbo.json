@@ -578,6 +578,11 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-command-truncate#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

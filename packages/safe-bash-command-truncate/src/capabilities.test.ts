@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError } from "../../../src/contracts/index.js";
-import { createMemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { run, withoutBlockMetadata, wrapped } from "./helpers.js";
+import { FsError } from "safe-bash-contracts";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { run, withoutBlockMetadata, wrapped } from "./fixtures.js";
 
 for (const [size, expected] of [["2", 1024], ["+2", 1029], ["-2", 0], ["<2", 5], [">2", 1024], ["/2", 0], ["%2", 1024], ["0", 0]] as const) {
   test(`block units ${size} are scaled before relative arithmetic`, async () => {

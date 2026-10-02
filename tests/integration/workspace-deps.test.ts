@@ -57,6 +57,14 @@ describe("workspace dependency completeness", () => {
     expect(stages.find(stage => stage.event === "test:unit:shared")?.phases.some(phase => phase.name === name)).toBe(false);
   });
 
+  it("builds truncate's canonical runtime prerequisites before its standalone unit task", () => {
+    const config = readJson(path.join(ROOT, "turbo.json")) as { tasks: Record<string, { dependsOn?: string[] }> };
+    expect(config.tasks["safe-bash-command-truncate#test:unit"]?.dependsOn).toContain("^build");
+    expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-truncate")).toEqual([
+      { id: "safe-bash-command-truncate#test:unit", name: "safe-bash-command-truncate", path: "packages/safe-bash-command-truncate", event: "test:unit" }
+    ]);
+  });
+
   it("runs csvcut node:test files once through their declared workspace task", () => {
     expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-csvcut/src/*.test.ts");
     expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-csvcut")).toEqual([

@@ -115,6 +115,28 @@ it.each(["xan", "numfmt", "apply-patch", "diff", "patch", "gzip"])("bundles %s r
   expect(packed.exports[`./commands/${command}`]).toBeDefined();
 });
 
+it("keeps truncate declarations private behind both established public routes", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-truncate";
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = { [name]: { version: "0.0.1", dependencies: {}, devDependencies: {} } };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
+    name, private: true, type: "module", version: "0.0.1",
+    exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+  }));
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.js`, "export function createTruncateCommand() {}\n");
+  volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export declare function createTruncateCommand(): void;\n");
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.d.ts", `export * from "${name}";\n`);
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8") as string);
+  expect(packed.dependencies?.[name]).toBeUndefined();
+  expect(packed.exports["./commands/truncate"]).toEqual(expect.objectContaining(packed.exports["./truncate"]));
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/index.d.ts", "utf8")).toContain("../safe-bash-command-truncate/index.js");
+  expect(volume.readFileSync("/output/safe-bash/dist/safe-bash-command-truncate/index.d.ts", "utf8")).toContain("createTruncateCommand");
+});
+
 it("omits orphaned on-disk browser chunks and wasm from safe-bash when core.browser.js is bundled", async () => {
   const { volume, options } = optionalLeftovers();
   volume.mkdirSync("/repo/packages/safe-bash/dist/chunks", { recursive: true });

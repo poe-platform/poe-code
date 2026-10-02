@@ -920,10 +920,12 @@ function assertSource7Discovery(files) {
   ]) assert.ok(files.includes(path), "optional shuf test is missing: " + path);
   for (const path of [
     "tests/commands/truncate/behavior.test.ts",
-    "tests/commands/truncate/capabilities.test.ts",
-    "tests/commands/truncate/grammar.test.ts",
     "tests/commands/truncate/review.test.ts",
   ]) assert.ok(files.includes(path), "optional truncate test is missing: " + path);
+  for (const suite of ["grammar", "capabilities"]) {
+    assert.ok(!files.includes(`tests/commands/truncate/${suite}.test.ts`), "extracted truncate suite remains in safe-bash discovery");
+    assert.ok(fs.existsSync(new URL(`../../safe-bash-command-truncate/src/${suite}.test.ts`, import.meta.url)), "truncate workspace suite missing");
+  }
   for (const path of [
     "tests/commands/install/behavior.test.ts",
     "tests/commands/install/budget.test.ts",

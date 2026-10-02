@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { run } from "./helpers.js";
-import { parseArguments } from "safe-bash-command-truncate/arguments";
+import { run } from "./fixtures.js";
+import { parseArguments } from "./arguments.js";
 
 for (const [args, diagnostic] of [
   [["--siz"], "option '--size' requires an argument"],

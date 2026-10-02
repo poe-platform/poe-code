@@ -14,7 +14,7 @@ export default defineConfig({
         }
         if (importer === path("../toolcraft-design/src/explorer/render/text.test.ts") && name === "./text.js")
           return path("dist/explorer-text.js");
-        for (const module of ["command-registry", "overlay-manager", "viewport", "inline-notice", "metric", "progress-group", "event-groups", "task-tree", "render-performance"]) {
+        for (const module of ["command-registry", "overlay-manager", "viewport", "inline-notice", "metric", "progress-group", "event-groups", "task-tree", "render-performance", "escape-terminal-text"]) {
           if (importer === path(`../toolcraft-design/src/${module}.test.ts`) && name === `./${module}.js`)
             return path(`dist/${module}.js`);
         }
@@ -78,6 +78,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft-design/src/escape-terminal-text.test.ts"),
       path("../toolcraft-design/src/static/static.test.ts"),
       path("../toolcraft-design/src/render-performance.test.ts"),
       path("../toolcraft-design/src/task-tree.test.ts"),

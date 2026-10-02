@@ -1,3 +1,5 @@
+mod escape_terminal;
+pub use escape_terminal::*;
 mod static_render;
 pub use static_render::*;
 mod render_performance;

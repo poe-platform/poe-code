@@ -85,6 +85,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createTaskTree`, `renderTaskRows` | Index task hierarchies, collapse subtrees and render status/duration rows |
 | `createRenderPerformanceMonitor`, `formatRenderPerformance` | Track repaint rates, rolling percentiles, input latency and coalesced updates |
 | `staticRender`, `renderMenu`, `renderSpinnerFrame`, `renderSpinnerStopped` | Render menus and spinner snapshots in terminal, Markdown or JSON |
+| `escape-terminal-text` | Expose terminal controls and directional marks as visible Unicode escapes |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -324,3 +325,8 @@ optional hints. `renderSpinnerFrame({message, frame, timer})` cycles the frozen
 final status. They follow `withOutputFormat` and are available through
 `staticRender`, `static/index`, `static/menu`, `static/spinner` and the matching
 `render-*` entry points. These renderers do not start timers or read input.
+
+`escapeTerminalText(text)` from `toolcraft-design-rust/escape-terminal-text`
+turns control characters and directional marks into visible `\uXXXX` escapes
+without hiding the original content. Ordinary Unicode, combining marks and literal
+punctuation remain unchanged, making filenames and labels safe to display.

@@ -327,3 +327,9 @@ const rootStaticOwn: typeof staticRender = null as unknown as typeof originalDes
 const staticNamespaceOriginal: typeof originalStaticRender = design.staticRender;
 const staticNamespaceOwn: typeof staticRender = null as unknown as typeof originalDesign.staticRender;
 void [rootStaticOriginal,rootStaticOwn,staticNamespaceOriginal,staticNamespaceOwn];
+
+import * as escapeTerminal from "toolcraft-design-rust/escape-terminal-text";
+import type * as originalEscapeTerminal from "toolcraft-design/escape-terminal-text";
+const escapeTerminalOriginal: typeof originalEscapeTerminal = escapeTerminal;
+const escapeTerminalOwn: typeof escapeTerminal = null as unknown as typeof originalEscapeTerminal;
+void [escapeTerminalOriginal,escapeTerminalOwn];

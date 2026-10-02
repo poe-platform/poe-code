@@ -151,6 +151,10 @@
     "./render-menu": {
       "types": "./dist/render-menu.d.ts",
       "import": "./dist/render-menu.js"
+    },
+    "./escape-terminal-text": {
+      "types": "./dist/escape-terminal-text.d.ts",
+      "import": "./dist/escape-terminal-text.js"
     }
   },
   "scripts": {

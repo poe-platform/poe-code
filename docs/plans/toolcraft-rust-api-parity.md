@@ -693,6 +693,16 @@ items, hints and success/failure stopped states. The screenshot font lacks the
 animated spinner glyph; its exact output is covered by string parity tests. Live
 spinner/prompt lifecycle, full dashboard/explorer and terminal Markdown remain open.
 
+The `escape-terminal-text` subpath now uses native control/directional-code-point
+classification, retaining host iteration, codePointAt, numeric comparisons and
+hex/padding methods. Differential coverage includes every C0/C1 control, direction
+marks, surrogate halves, exotic iterables, coercion order and arbitrary throws.
+All 132 native and 222 reference tests, bidirectional declarations, package/JS lint
+and isolated packed consumers pass without dependency changes. An inspected
+screenshot confirms visible escape sequences for terminal controls, newlines, tabs
+and directional marks. Markdown parsing/rendering and live interactive surfaces
+remain unported.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

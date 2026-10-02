@@ -364,7 +364,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     const streamed = request as LlmServiceSourceRequest;
     try { for await (const event of service.streamSources!(streamed)) yield {event,signal:request.signal}; }
     finally {
-      await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.flatMap(message => [message.content, ...message.attachments?.map(attachment => attachment.source) ?? []]) ?? [], ...streamed.attachments.map(attachment => attachment.source)].map(source => source.dispose()));
+      await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.flatMap(message => [message.content, ...message.attachments?.map(attachment => attachment.source) ?? []]) ?? [], ...streamed.attachments.map(attachment => attachment.source)].filter(source => source !== undefined).map(source => source.dispose()));
     }
   };
   const events = async function* (value:PythonHostValue, {signal}:{readonly signal:AbortSignal}):AsyncGenerator<PythonHostValue> {
@@ -524,7 +524,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         if (size > bufferedLimit - envelopeBytes - textBytes - dataBytes) throw new RangeError('Python LLM buffered response limit exceeded');
       };
       let extract:'first'|'last'|undefined = payload.extract_last ? 'last' : payload.extract ? 'first' : undefined;
-      for await (const {event,signal:operationSignal} of (async function* () { const prepared = await prepare(payload, signal); extract = prepared.extract; const request = {...prepared, maxOutputBytes:Math.min(prepared.maxOutputBytes ?? Infinity, bufferedLimit)}; if (typeof request.prompt === 'string') { for await (const event of service.stream(request as LlmServiceRequest)) yield {event,signal:request.signal,extract}; return; } const streamed = request as LlmServiceSourceRequest; try { for await (const event of service.streamSources!(streamed)) yield {event,signal:request.signal,extract}; } finally { await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.flatMap(message => [message.content, ...message.attachments?.map(attachment => attachment.source) ?? []]) ?? [], ...streamed.attachments.map(attachment => attachment.source)].map(source => source.dispose())); } })()) {
+      for await (const {event,signal:operationSignal} of (async function* () { const prepared = await prepare(payload, signal); extract = prepared.extract; const request = {...prepared, maxOutputBytes:Math.min(prepared.maxOutputBytes ?? Infinity, bufferedLimit)}; if (typeof request.prompt === 'string') { for await (const event of service.stream(request as LlmServiceRequest)) yield {event,signal:request.signal,extract}; return; } const streamed = request as LlmServiceSourceRequest; try { for await (const event of service.streamSources!(streamed)) yield {event,signal:request.signal,extract}; } finally { await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.flatMap(message => [message.content, ...message.attachments?.map(attachment => attachment.source) ?? []]) ?? [], ...streamed.attachments.map(attachment => attachment.source)].filter(source => source !== undefined).map(source => source.dispose())); } })()) {
         operationSignal.throwIfAborted();
         if (++received > eventLimit) throw new RangeError('Python LLM buffered event limit exceeded');
         if (event.type === 'text') {

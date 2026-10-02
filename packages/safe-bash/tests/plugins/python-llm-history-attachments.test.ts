@@ -12,7 +12,7 @@ test('Python combines inline historical attachments with retained current attach
     complete() { return assert.fail('attachments require source transport'); },
     async *completeSources(request) {
       for (const attachment of [...request.messages![0]!.attachments!, ...request.attachments]) {
-        for await (const chunk of attachment.source.bytes) received.push(...chunk);
+        for await (const chunk of attachment.source!.bytes) received.push(...chunk);
       }
       yield 'ok';
     },
@@ -43,8 +43,8 @@ for (const current of [false, true]) test(`Python preserves history attachments 
     async *completeSources(request) {
       const attachments = request.messages?.[0]?.attachments;
       assert.equal(attachments?.length, 1);
-      for await (const chunk of attachments![0]!.source.bytes) { assert.ok(chunk.length <= 16384); historical += chunk.length; }
-      for (const attachment of request.attachments) for await (const chunk of attachment.source.bytes) latest += chunk.length;
+      for await (const chunk of attachments![0]!.source!.bytes) { assert.ok(chunk.length <= 16384); historical += chunk.length; }
+      for (const attachment of request.attachments) for await (const chunk of attachment.source!.bytes) latest += chunk.length;
       yield 'ok';
     },
   }] });

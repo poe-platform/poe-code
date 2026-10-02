@@ -19,7 +19,7 @@ const errors: Uint8Array[] = [];
 const command = createLlmCommand({ limits: {maxInputBytes:20 * 1024 * 1024,maxBufferedInputBytes:8 * 1024 * 1024}, defaultModel: 'fixture', providers: [{
   name: 'fixture', models: [{ id: 'fixture', attachmentTypes: ['image/png'] }],
   complete() { throw new Error('buffered provider must not run'); },
-  async *completeSources(request) { streamedCalls++; for await (const bytes of request.attachments[0]!.source.bytes) assert.ok(bytes.byteLength <= 16384); yield 'answer'; }
+  async *completeSources(request) { streamedCalls++; for await (const bytes of request.attachments[0]!.source!.bytes) assert.ok(bytes.byteLength <= 16384); yield 'answer'; }
 }] });
 const result = await command.execute({ command: 'llm', args: ['hello', '--at', '/image.png', 'image/png'], cwd: '/', env: {}, fs,
   signal: new AbortController().signal, stdin: toByteSource(''), stdout: {async write() {}}, stderr: {async write(bytes) {errors.push(bytes.slice());}} });
@@ -40,6 +40,7 @@ for (const state of ['disposed', 'already consumed'] as const) {
       complete() { throw new Error('buffered provider must not run'); },
       async *completeSources(request) {
         const source = request.attachments[0]!.source;
+        assert.ok(source);
         if (state === 'disposed') await source.dispose();
         else {
           const first = source.bytes[Symbol.asyncIterator]();

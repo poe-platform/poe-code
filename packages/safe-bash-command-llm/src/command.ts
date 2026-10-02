@@ -1,3 +1,4 @@
+import { resolveUrlAttachment } from "./url-attachment.js";
 import { embeddingCommand } from "./embed-command.js";
 import { embeddingModelsCommand } from './embed-models-command.js';
 import { serializeLlmTokenUsage } from "./usage.js";
@@ -7,7 +8,7 @@ import { inheritYieldCheckpoint, yieldTurn } from "safe-bash-contracts/yield";
 import { writeDiagnostic } from "safe-bash-contracts/escaping";
 import { pathOf } from "safe-bash-contracts/path";
 import { acceptsMimeType, sniffMimeType } from "./mime.js";
-import type { LlmCommandsOptions, LlmRequest, LlmInputSource, LlmResponseMetadata } from "./types.js";
+import type { LlmCommandsOptions, LlmRequest, LlmInputSource, LlmResponseMetadata, LlmAttachment, LlmSourceAttachment } from "./types.js";
 import { createLlmService, type LlmService } from "./service.js";
 import { createLlmConfiguration } from "./configuration.js";
 import { createLlmTemplateStore, evaluateLlmTemplate, llmTemplateUsesInput, validateLlmTemplateParameters, type TemplateLoaderOptions } from "./templates.js";
@@ -347,8 +348,8 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       ...(stored?.attachment_types ?? []).map(item => ({ path: item.value, mimeType: item.type })),
       ...args.attachments.filter(item => item.mimeType !== undefined),
     ];
-    const attachments: { mimeType: string; bytes: Uint8Array }[] = [];
-    const sourceAttachments: { mimeType: string; source: LlmInputSource }[] = [];
+    const attachments: LlmAttachment[] = [];
+    const sourceAttachments: LlmSourceAttachment[] = [];
     const textSource = (value: string): LlmInputSource => ({
       async dispose() {},
       bytes: { async *[Symbol.asyncIterator]() {
@@ -364,7 +365,14 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     });
     for (const attachment of args.attachments) {
       await step();
-      if (attachment.path.includes("://")) throw new Error("URL attachments are not supported");
+      if (attachment.path.includes("://")) {
+        if (!entry.model.attachmentUrls) throw new Error(`Model ${entry.model.id} does not support URL attachments`);
+        const reference = await resolveUrlAttachment({...context, signal}, attachment.path, attachment.mimeType);
+        if (attachment.mimeType === undefined) admitInput(shellValueByteLength(reference.mimeType), true);
+        if (!acceptsMimeType(entry.model.attachmentTypes ?? [], reference.mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${reference.mimeType}`);
+        if (streamed) sourceAttachments.push(reference); else attachments.push(reference);
+        continue;
+      }
       const path = pathOf(context, attachment.path);
       const stat = await interrupted(() => context.fs.stat(path, { signal }), signal);
       context.inputBudget?.check(shellInputBytes + stat.size);

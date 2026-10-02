@@ -11,7 +11,7 @@ test('Python input materialization and streamed attachment budgets are independe
   const service = createLlmService({defaultModel:'fixture',providers:[{
     name:'fixture',models:[{id:'fixture',attachmentTypes:['text/plain']}],
     async *complete(){calls++;yield 'answer';},
-    async *completeSources(request){calls++;for await(const bytes of request.attachments[0]!.source.bytes)received += bytes.length;yield 'answer';},
+    async *completeSources(request){calls++;for await(const bytes of request.attachments[0]!.source!.bytes)received += bytes.length;yield 'answer';},
   }]});
   const options = {maxInputBytes:4096,maxBufferedInputBytes:128};
   const capability = createPythonLlmCapability({fs,cwd:'/'},service,options);
@@ -58,7 +58,7 @@ test('Python source requests charge materialized text only once', async () => {
       calls++;
       let bytes = 0;
       for await (const chunk of request.prompt.bytes) bytes += chunk.byteLength;
-      for await (const chunk of request.attachments[0]!.source.bytes) bytes += chunk.byteLength;
+      for await (const chunk of request.attachments[0]!.source!.bytes) bytes += chunk.byteLength;
       assert.equal(bytes, 37);
       yield 'ok';
     },

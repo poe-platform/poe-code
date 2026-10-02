@@ -1,3 +1,4 @@
+import { validateAttachmentUrl } from "./url-attachment.js";
 import { requestAttachments } from "./request-attachments.js";
 import { jsonString } from "./json-string.js";
 import { base64Stream } from "./base64-stream.js";
@@ -42,6 +43,13 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
         yield text("}");
         for (const attachment of attachments) {
           request.signal.throwIfAborted();
+          if (attachment.url !== undefined) {
+            validateAttachmentUrl(attachment.url);
+            yield text(',{"type":"image_url","image_url":{"url":');
+            yield* jsonValue(attachment.url, request.signal);
+            yield text('}}');
+            continue;
+          }
           yield text(',{"type":"image_url","image_url":{"url":' + JSON.stringify(`data:${attachment.mimeType};base64,`).slice(0, -1));
           for await (const part of base64Stream(attachment.source.bytes, request.signal)) yield text(part);
           yield text('"}}');

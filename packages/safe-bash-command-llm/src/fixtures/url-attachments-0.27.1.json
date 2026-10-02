@@ -1,0 +1,55 @@
+{
+  "reference": "llm==0.27.1 OpenAI image attachment serialization",
+  "cases": [
+    {
+      "url": "https://example.test/image.png",
+      "mimeType": "image/png",
+      "part": {
+        "type": "image_url",
+        "image_url": {
+          "url": "https://example.test/image.png"
+        }
+      }
+    },
+    {
+      "url": "https://example.test/a?x=1&signature=a%2Bb",
+      "mimeType": "image/jpeg",
+      "part": {
+        "type": "image_url",
+        "image_url": {
+          "url": "https://example.test/a?x=1&signature=a%2Bb"
+        }
+      }
+    },
+    {
+      "url": "http://example.test/image#part",
+      "mimeType": "image/webp",
+      "part": {
+        "type": "image_url",
+        "image_url": {
+          "url": "http://example.test/image#part"
+        }
+      }
+    },
+    {
+      "url": "https://example.test/\u65e5\u672c.png",
+      "mimeType": "image/png",
+      "part": {
+        "type": "image_url",
+        "image_url": {
+          "url": "https://example.test/\u65e5\u672c.png"
+        }
+      }
+    },
+    {
+      "url": "https://example.test/image?x=\"quoted\"",
+      "mimeType": "image/gif",
+      "part": {
+        "type": "image_url",
+        "image_url": {
+          "url": "https://example.test/image?x=\"quoted\""
+        }
+      }
+    }
+  ]
+}

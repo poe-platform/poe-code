@@ -25,6 +25,8 @@ export interface LlmModelOption {
 export interface LlmModel {
   /** Source input support for this model; otherwise inferred from the provider hook. */
   readonly inputSources?: boolean;
+  /** Provider accepts HTTP(S) attachment references without materializing their payloads. */
+  readonly attachmentUrls?: boolean;
   readonly id: string;
   readonly aliases?: readonly string[];
   readonly attachmentTypes?: readonly string[];
@@ -48,13 +50,19 @@ export interface LlmEmbeddingResponse extends LlmResponseMetadata {
   readonly model: string;
   readonly vectors: readonly (readonly number[])[];
 }
+export type LlmAttachment = { readonly mimeType: string } & (
+  { readonly bytes: Uint8Array; readonly url?: never } | { readonly url: string; readonly bytes?: never }
+);
+export type LlmSourceAttachment = { readonly mimeType: string } & (
+  { readonly source: LlmInputSource; readonly url?: never } | { readonly url: string; readonly source?: never }
+);
 export interface LlmRequest {
   model: string;
   prompt: string;
   system?: string;
   messages?: readonly { readonly role: "system" | "user" | "assistant"; readonly content: string; readonly attachments?: LlmRequest["attachments"] }[];
   schema?: Readonly<Record<string, unknown>>;
-  attachments: readonly { mimeType: string; bytes: Uint8Array }[];
+  attachments: readonly LlmAttachment[];
   options: Readonly<Record<string, LlmOption>>;
   signal: AbortSignal;
   stream?: boolean | undefined;
@@ -87,5 +95,5 @@ export interface LlmSourceRequest extends Omit<LlmRequest, "prompt" | "system" |
   readonly prompt: LlmInputSource;
   readonly system?: LlmInputSource;
   readonly messages?: readonly { readonly role: "system" | "user" | "assistant"; readonly content: LlmInputSource; readonly attachments?: LlmSourceRequest["attachments"] }[];
-  readonly attachments: readonly { readonly mimeType: string; readonly source: LlmInputSource }[];
+  readonly attachments: readonly LlmSourceAttachment[];
 }

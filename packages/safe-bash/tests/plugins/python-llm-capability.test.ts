@@ -37,7 +37,7 @@ async function fixture(binary = false) {
       requests.push({...fields,prompt:new TextDecoder().decode(await read(prompt)),
         ...(system ? {system:new TextDecoder().decode(await read(system))} : {}),
         ...(messages ? {messages:await Promise.all(messages.map(async message => ({role:message.role,content:new TextDecoder().decode(await read(message.content))})))} : {}),
-        attachments:await Promise.all(attachments.map(async attachment => ({mimeType:attachment.mimeType,bytes:await read(attachment.source)})))});
+        attachments:await Promise.all(attachments.map(async attachment => ({mimeType:attachment.mimeType,bytes:await read(attachment.source!)})))});
       try { yield 'answer'; yield '!'; return {usage:{input:3},metadata:{id:'response-1'}}; }
       finally {closed++;}
     },
@@ -173,7 +173,7 @@ test('large canonical attachments stream bounded chunks with exact bytes and rel
     return typeof value === 'function' ? value.bind(target) : value;
   }});
   const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['application/octet-stream']}],async *complete() {yield 'buffered'; assert.fail('Buffered path forbidden');},async *completeSources(request) {
-    for await (const chunk of request.attachments[0]!.source.bytes) {
+    for await (const chunk of request.attachments[0]!.source!.bytes) {
       assert.ok(chunk.length <= 16384);
       assert.ok(chunk.every(byte => byte === 173));
       observed += chunk.length;
@@ -218,7 +218,7 @@ test('cancellation during a retained attachment read closes its lease without a 
     return typeof value === 'function' ? value.bind(target) : value;
   }});
   const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['text/plain']}],async *complete() {yield 'wrong path';},async *completeSources(request) {
-    for await (const ignoredChunk of request.attachments[0]!.source.bytes) yield 'unexpected';
+    for await (const ignoredChunk of request.attachments[0]!.source!.bytes) yield 'unexpected';
   }}]});
   const controller = new AbortController();
   const operation = createPythonLlmCapability({fs,cwd:'/'},service).call!({operation:'complete',payload:{attachments:[{path:'/pending.txt',mimeType:'text/plain'}]}},{signal:controller.signal});
@@ -242,7 +242,7 @@ test('streamed attachment admission also checks actual read bytes against the ho
     return typeof value === 'function' ? value.bind(target) : value;
   }});
   const service = createLlmService({defaultModel:'m',providers:[{name:'test',models:[{id:'m',attachmentTypes:['text/plain']}],async *complete() {yield 'wrong path';},async *completeSources(request) {
-    for await (const ignoredChunk of request.attachments[0]!.source.bytes) yield 'unexpected';
+    for await (const ignoredChunk of request.attachments[0]!.source!.bytes) yield 'unexpected';
   }}]});
   const payload = {attachments:[{path:'/changed.txt',mimeType:'text/plain'}]};
   await assert.rejects(createPythonLlmCapability({fs,cwd:'/',inputBudget:{maxBytes:4 + Buffer.byteLength(JSON.stringify(payload)),check() {}}},service).call!({operation:'complete',payload},{signal}),/input byte limit/);
@@ -763,6 +763,7 @@ test('genuine Python URL attachments use explicit host HEAD and bounded retained
   const id = await capability.call!({operation:'input_url',payload:{url:'https://files.example/note'}},{signal});
   await capability.call!({operation:'complete',payload:{prompt:'q',attachments:[{spool:id,mimeType:'text/plain'}]}},{signal});
   const content = requests[0]!.attachments[0]!.bytes;
+  assert.ok(content);
   assert.equal(content.length,65536);
   for (let n = 0; n < 4; n++) assert.ok(content.subarray(n*16384,(n+1)*16384).every(byte => byte === 65+n));
   assert.deepEqual(seen,['HEAD https://files.example/note','GET https://files.example/note']);

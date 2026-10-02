@@ -1,3 +1,4 @@
+import { validateAttachmentUrl } from "./url-attachment.js";
 import { embeddingJson } from "./embedding-json.js";
 import { openAiUsage } from "./openai-usage.js";
 import { requestAttachments } from "./request-attachments.js";
@@ -143,6 +144,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
   const configured = options.models.map(model => Object.freeze({
     ...model,
     inputSources: model.endpoint === "chat",
+    attachmentUrls: model.endpoint === "chat",
     capabilities: Object.freeze(model.capabilities ?? (model.endpoint === "chat" ? ["messages"] as const : model.endpoint === "embeddings" ? ["embed"] as const : [])),
     ...(model.aliases === undefined ? {} : { aliases: Object.freeze([...model.aliases]) }),
     ...(model.attachmentTypes === undefined ? {} : { attachmentTypes: Object.freeze([...model.attachmentTypes]) }),
@@ -219,7 +221,10 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       let attachmentBytes = 0;
       for (const attachment of requestAttachments(request)) {
         if (!acceptsMimeType(["image/*"], attachment.mimeType)) throw new Error(`OpenAI ${model.endpoint} endpoint only supports image attachments`);
-        attachmentBytes += attachment.bytes.byteLength;
+        if (attachment.url !== undefined) {
+          validateAttachmentUrl(attachment.url);
+          if (model.endpoint !== "chat") throw new Error(`OpenAI ${model.endpoint} endpoint does not support URL attachments`);
+        } else attachmentBytes += attachment.bytes.byteLength;
         if (attachmentBytes > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       }
       if (model.endpoint === "videos" && request.attachments.length > 1) throw new Error("OpenAI videos accepts only one input_reference image");
@@ -241,7 +246,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
           const attachments = message.attachments ?? [];
           messages.push({ role: message.role, content: attachments.length === 0 ? message.content : [
             { type: "text", text: message.content },
-            ...attachments.map(attachment => ({ type: "image_url", image_url: { url: `data:${attachment.mimeType};base64,${base64(attachment.bytes)}` } })),
+            ...attachments.map(attachment => ({ type: "image_url", image_url: { url: attachment.url ?? `data:${attachment.mimeType};base64,${base64(attachment.bytes!)}` } })),
           ] });
         }
         let details: LlmResponseMetadata | undefined;
@@ -262,7 +267,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         if (request.options.output_format !== undefined && request.options.output_format !== outputFormat) throw new TypeError("output_format conflicts with model outputType");
         const values: Record<string, string | number | boolean | null> = { ...jsonOptions(request.options, "images"), output_format: outputFormat, model: request.model, prompt: request.prompt };
         if (values.stream === true) throw new TypeError("Image event streaming is not supported by this reference provider");
-        const body = editing ? multipart({ ...values, ...request.options }, request.attachments.map(file => ({ ...file, field: "image[]" })), limits.maxRequestBytes) : jsonBody(values, limits.maxRequestBytes);
+        const body = editing ? multipart({ ...values, ...request.options }, request.attachments.map(file => ({ mimeType: file.mimeType, bytes: file.bytes!, field: "image[]" })), limits.maxRequestBytes) : jsonBody(values, limits.maxRequestBytes);
         for await (const response of send(editing ? "/images/edits" : "/images/generations", "POST", body)) {
           const value = await openAiJson(response, request.signal, limits.maxResponseBytes);
           if (value.error != null) throw new Error(`OpenAI: ${openAiError(value.error) ?? "image generation failed"}`);
@@ -290,7 +295,7 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         }
       } else {
         let current: { id: string; status: string } | undefined;
-        for await (const response of send("/videos", "POST", multipart({ ...request.options, model: request.model, prompt: request.prompt }, request.attachments.map(file => ({ ...file, field: "input_reference" })), limits.maxRequestBytes))) {
+        for await (const response of send("/videos", "POST", multipart({ ...request.options, model: request.model, prompt: request.prompt }, request.attachments.map(file => ({ mimeType: file.mimeType, bytes: file.bytes!, field: "input_reference" })), limits.maxRequestBytes))) {
           current = job(await openAiJson(response, request.signal, limits.maxResponseBytes));
         }
         if (!current) throw new Error("OpenAI video creation returned no job");

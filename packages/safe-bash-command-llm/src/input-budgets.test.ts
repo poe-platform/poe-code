@@ -21,7 +21,7 @@ for (const streamed of [false, true]) {
       name:'fixture',models:[{id:'fixture',attachmentTypes:['text/plain']}],
       async *complete() { received++; yield 'buffered'; },
       ...(streamed ? {async *completeSources(request: import('./types.js').LlmSourceRequest) {
-        for await (const chunk of request.attachments[0]!.source.bytes) received += chunk.length;
+        for await (const chunk of request.attachments[0]!.source!.bytes) received += chunk.length;
         yield 'source';
       }} : {}),
     }]});
@@ -118,7 +118,7 @@ for (const streamed of [false, true]) {
         calls++;
         let promptBytes = 0, attachmentBytes = 0;
         for await(const chunk of request.prompt.bytes) promptBytes += chunk.length;
-        for await(const chunk of request.attachments[0]!.source.bytes) attachmentBytes += chunk.length;
+        for await(const chunk of request.attachments[0]!.source!.bytes) attachmentBytes += chunk.length;
         assert.equal(promptBytes,7);
         assert.equal(attachmentBytes,2);
         yield 'ok';

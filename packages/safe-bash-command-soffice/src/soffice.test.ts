@@ -392,5 +392,30 @@ describe("safe-bash-command-soffice", () => {
     assert.equal(pdfImgRes.exitCode, 0);
     const pdfImgStr = new TextDecoder("latin1").decode(files.get("/with-image.pdf")!);
     assert.match(pdfImgStr, /\/Subtype\s*\/Image/);
+
+    const pptxWithTable = createStoredZipArchive({
+      "ppt/slides/slide1.xml": new TextEncoder().encode(
+        "<p:sld><p:cSld><p:spTree>" +
+        "<p:sp><p:spPr><a:xfrm><a:off x=\"609600\" y=\"400000\"/><a:ext cx=\"10972800\" cy=\"800000\"/></a:xfrm></p:spPr>" +
+        "<p:txBody><a:p><a:r><a:t>Cluster comparison</a:t></a:r></a:p></p:txBody></p:sp>" +
+        "<p:graphicFrame><p:xfrm><a:off x=\"609600\" y=\"1400000\"/><a:ext cx=\"10972800\" cy=\"2250000\"/></p:xfrm>" +
+        "<a:graphic><a:graphicData uri=\"http://schemas.openxmlformats.org/drawingml/2006/table\">" +
+        "<a:tbl><a:tr><a:tc><a:txBody><a:p><a:r><a:t>cl-ap-northeast-1c</a:t></a:r></a:p></a:txBody></a:tc>" +
+        "<a:tc><a:txBody><a:p><a:r><a:t>240</a:t></a:r></a:p></a:txBody></a:tc></a:tr></a:tbl>" +
+        "</a:graphicData></a:graphic></p:graphicFrame>" +
+        "</p:spTree></p:cSld></p:sld>"
+      )
+    });
+    files.set("with-table.pptx", pptxWithTable);
+    const pptxTableCatRes = await runSofficeCli(["--cat", "with-table.pptx"], files, "/");
+    assert.equal(pptxTableCatRes.exitCode, 0);
+    assert.match(pptxTableCatRes.stdout, /cl-ap-northeast-1c\t240/);
+    const pptxTablePdfRes = await runSofficeCli(["--headless", "--convert-to", "pdf", "with-table.pptx"], files, "/");
+    assert.equal(pptxTablePdfRes.exitCode, 0);
+    const pptxPdfToTxtRes = await runSofficeCli(["--headless", "--convert-to", "txt", "/with-table.pdf"], files, "/");
+    assert.equal(pptxPdfToTxtRes.exitCode, 0);
+    const extractedPdfTxt = new TextDecoder().decode(files.get("/with-table.txt")!);
+    assert.match(extractedPdfTxt, /cl-ap-northeast-1c/);
+    assert.match(extractedPdfTxt, /240/);
   });
 });

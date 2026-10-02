@@ -249,6 +249,13 @@ interface SlideTextBoxPlacement {
   readonly fontSize: number;
 }
 
+interface SlideTablePlacement {
+  readonly rows: string[][];
+  readonly x: number;
+  readonly topY: number;
+  readonly width: number;
+}
+
 function wrapTextLines(text: string, maxChars: number): string[] {
   const words = text.split(/\s+/).filter(Boolean);
   if (words.length === 0) return [""];
@@ -267,7 +274,7 @@ function wrapTextLines(text: string, maxChars: number): string[] {
   return lines;
 }
 
-function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[] }> {
+function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[]; tables: SlideTablePlacement[] }> {
   const entries = readZipArchiveEntries(zipBytes);
   let slideCx = 12192000;
   let slideCy = 6858000;
@@ -285,7 +292,7 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
     .filter((k) => /^ppt\/slides\/slide\d+\.xml$/.test(k))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  const slides: Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[] }> = [];
+  const slides: Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[]; tables: SlideTablePlacement[] }> = [];
   for (const key of slideKeys) {
     const xml = new TextDecoder().decode(entries.get(key)!);
     const relsKey = `ppt/slides/_rels/${key.slice("ppt/slides/".length)}.rels`;
@@ -364,9 +371,41 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
       images.push({ bytes: mediaBytes, x, y, width, height });
     }
 
+    const tables: SlideTablePlacement[] = [];
+    const tableLines: string[] = [];
+    for (const gf of xml.matchAll(/<((?:[A-Za-z0-9_-]+:)?graphicFrame)\b[\s\S]*?<\/\1>/g)) {
+      const tblMatch = /<((?:[A-Za-z0-9_-]+:)?tbl)\b[\s\S]*?<\/\1>/.exec(gf[0]);
+      if (!tblMatch) continue;
+      const rows: string[][] = [];
+      for (const tr of tblMatch[0].matchAll(/<((?:[A-Za-z0-9_-]+:)?tr)\b[\s\S]*?<\/\1>/g)) {
+        const cells: string[] = [];
+        for (const tc of tr[0].matchAll(/<((?:[A-Za-z0-9_-]+:)?tc)\b[\s\S]*?<\/\1>/g)) {
+          const runs = [...tc[0].matchAll(/<((?:[A-Za-z0-9_-]+:)?t)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/g)].map((t) =>
+            unescapeXml(t[2] ?? "")
+          );
+          cells.push(runs.join("").trim());
+        }
+        if (cells.length > 0) {
+          rows.push(cells);
+          tableLines.push(cells.join("\t"));
+        }
+      }
+      if (rows.length > 0) {
+        const offMatch = /<(?:[A-Za-z0-9_-]+:)?off\b[^>]*?\bx="(-?\d+)"[^>]*?\by="(-?\d+)"/.exec(gf[0]);
+        const extMatch = /<(?:[A-Za-z0-9_-]+:)?ext\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(gf[0]);
+        const offX = offMatch ? Number.parseInt(offMatch[1]!, 10) : Math.round(slideCx * 0.08);
+        const offY = offMatch ? Number.parseInt(offMatch[2]!, 10) : Math.round(slideCy * 0.22);
+        const extCx = extMatch ? Number.parseInt(extMatch[1]!, 10) : Math.round(slideCx * 0.84);
+        const x = Math.max(24, Math.min(640, (offX / slideCx) * 720));
+        const width = Math.max(180, Math.min(720 - x - 24, (extCx / slideCx) * 720));
+        const topY = Math.max(60, Math.min(325, 405 - (offY / slideCy) * 405));
+        tables.push({ rows, x, topY, width });
+      }
+    }
+
     const title = shapes[0]?.[0] ?? `Slide ${slides.length + 1}`;
-    const bullets = [...(shapes[0]?.slice(1) ?? []), ...shapes.slice(1).flat()];
-    slides.push({ title, bullets, images, textBoxes });
+    const bullets = [...(shapes[0]?.slice(1) ?? []), ...shapes.slice(1).flat(), ...tableLines];
+    slides.push({ title, bullets, images, textBoxes, tables });
   }
   return slides;
 }
@@ -498,7 +537,7 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
   return doc.save();
 }
 
-function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; images?: readonly SlideImagePlacement[]; textBoxes?: readonly SlideTextBoxPlacement[] }[]): Uint8Array {
+function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; images?: readonly SlideImagePlacement[]; textBoxes?: readonly SlideTextBoxPlacement[]; tables?: readonly SlideTablePlacement[] }[]): Uint8Array {
   const doc = PdfDocument.create();
   doc.setCreator("LibreOffice Impress (@poe-code/pdf-ast)");
 
@@ -530,9 +569,12 @@ function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; 
         // skip unsupported image stream
       }
     }
+    let cursorY = 330;
+    let prevBoxX: number | undefined;
     if (slide.textBoxes && slide.textBoxes.length > 0) {
       for (const box of slide.textBoxes) {
-        let y = box.topY;
+        let y = prevBoxX !== undefined && Math.abs(box.x - prevBoxX) < 40 ? Math.min(box.topY, cursorY) : box.topY;
+        prevBoxX = box.x;
         const maxChars = Math.max(24, Math.floor(box.width / (box.fontSize * 0.52)));
         const lineHeight = Math.round(box.fontSize * 1.35);
         for (const para of box.paragraphs) {
@@ -551,8 +593,9 @@ function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; 
           });
           y -= 4;
         }
+        cursorY = y - 4;
       }
-    } else {
+    } else if (!slide.tables || slide.tables.length === 0) {
       let y = 300;
       for (const bullet of slide.bullets) {
         const lines = wrapTextLines(bullet, 78);
@@ -568,6 +611,59 @@ function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; 
         });
         y -= 6;
       }
+    }
+    for (const tbl of slide.tables ?? []) {
+      const colCount = Math.max(1, ...tbl.rows.map((r) => r.length));
+      const colWidth = tbl.width / colCount;
+      const rowHeight = 22;
+      let rowTop = Math.min(tbl.topY, cursorY);
+      for (let rIdx = 0; rIdx < tbl.rows.length; rIdx++) {
+        const row = tbl.rows[rIdx]!;
+        const rowBottom = rowTop - rowHeight;
+        if (rowBottom < 14) break;
+        if (rIdx === 0) {
+          page.drawRect({
+            x: tbl.x,
+            y: rowBottom,
+            width: tbl.width,
+            height: rowHeight,
+            fill: rgb(0.92, 0.94, 0.97),
+            stroke: rgb(0.5, 0.55, 0.62),
+            strokeWidth: 0.75
+          });
+        } else {
+          page.drawRect({
+            x: tbl.x,
+            y: rowBottom,
+            width: tbl.width,
+            height: rowHeight,
+            stroke: rgb(0.7, 0.72, 0.75),
+            strokeWidth: 0.5
+          });
+        }
+        row.forEach((cellText, cIdx) => {
+          const cellX = tbl.x + cIdx * colWidth;
+          if (cIdx > 0) {
+            page.drawLine({
+              x1: cellX,
+              y1: rowBottom,
+              x2: cellX,
+              y2: rowTop,
+              stroke: rgb(0.7, 0.72, 0.75),
+              strokeWidth: 0.5
+            });
+          }
+          page.drawText(cellText, {
+            x: cellX + 6,
+            y: rowBottom + 6,
+            size: 10,
+            font: rIdx === 0 ? "Helvetica-Bold" : "Helvetica",
+            color: rgb(0.15, 0.15, 0.15)
+          });
+        });
+        rowTop -= rowHeight;
+      }
+      cursorY = rowTop - 8;
     }
   }
 

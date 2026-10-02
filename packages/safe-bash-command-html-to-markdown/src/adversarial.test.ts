@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import { setImmediate as pause } from "node:timers/promises";
 import test from "node:test";
-import { createHtmlToMarkdownCommand, htmlToMarkdownCommands } from "../../../src/commands/html-to-markdown/index.js";
-import { CommandRegistry, toByteSource, type ByteSource } from "../../../src/contracts/index.js";
-import { byteChunks, convert } from "./helpers.js";
+import { createHtmlToMarkdownCommand, htmlToMarkdownCommands } from "./index.js";
+import { CommandRegistry, toByteSource, type ByteSource } from "safe-bash-contracts";
+import { byteChunks, convert } from "./fixtures.js";
 
 for (const name of ["script", "style"]) test(`${name} cannot inject through raw malformed neighbors`, async () => {
   for (const tail of ["<", "</s", `</${name}x>`, "<!--", "'\"><img src=x>", "<&amp;"]) {

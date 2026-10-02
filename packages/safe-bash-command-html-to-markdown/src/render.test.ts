@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { byteChunks, convert } from "./helpers.js";
+import { byteChunks, convert } from "./fixtures.js";
 
 const cases: readonly [string, string, string][] = [
   ["empty", "", ""],

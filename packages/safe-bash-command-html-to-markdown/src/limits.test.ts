@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createHtmlToMarkdownCommand, type HtmlToMarkdownLimits } from "../../../src/commands/html-to-markdown/index.js";
-import { convert } from "./helpers.js";
+import { createHtmlToMarkdownCommand, type HtmlToMarkdownLimits } from "./index.js";
+import { convert } from "./fixtures.js";
 
 const cases: readonly [keyof HtmlToMarkdownLimits, number, string][] = [
   ["maxInputBytes", 3, "abcd"], ["maxOutputBytes", 3, "abcd"], ["maxTokenBytes", 5, "<strong>x</strong>"],

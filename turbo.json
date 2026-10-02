@@ -528,6 +528,11 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-command-html-to-markdown#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

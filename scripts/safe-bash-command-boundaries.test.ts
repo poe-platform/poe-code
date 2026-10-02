@@ -8,6 +8,12 @@ const commands = ['apply-patch', 'awk', 'cmp', 'column', 'csplit', 'docx', 'du',
 const json = (path: string) => JSON.parse(readFileSync(new URL('../' + path, import.meta.url), 'utf8'));
 const root = json('package.json');
 const shell = json('packages/safe-bash/package.json');
+test('html-to-markdown owns its rendering and limit regression suites and builds unit prerequisites', () => {
+  const files = readdirSync(new URL('../packages/safe-bash-command-html-to-markdown/src/', import.meta.url));
+  for (const name of ['render', 'limits', 'repair', 'adversarial']) assert.ok(files.includes(`${name}.test.ts`), `Missing owned ${name} suite`);
+  const turbo = json('turbo.json');
+  assert.ok(turbo.tasks['safe-bash-command-html-to-markdown#test:unit'].dependsOn.includes('^build'));
+});
 for (const command of commands) {
   test(`${command} ships through a registered private workspace and public adapter`, () => {
     const name = `safe-bash-command-${command}`;

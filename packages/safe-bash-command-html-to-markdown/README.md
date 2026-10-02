@@ -9,8 +9,22 @@ import { htmlToMarkdownCommands } from "@poe-platform/safe-bash/commands/html-to
 const shell = new Shell({ fs: createMemoryFileSystem() });
 shell.use(htmlToMarkdownCommands());
 const result = await shell.exec("html-to-markdown --help");
+await shell.dispose();
 ```
 
 The module also exports `createHtmlToMarkdownCommand`, its command-list factory, and typed options and limits.
 
 `maxInputBytes` bounds cumulative source bytes. `maxWorkUnits` bounds processing across decoding, parsing, attribute handling and rendering, so its cost can exceed the input size. Discarded comments use constant parser storage while remaining subject to input, token-count and work limits.
+
+Pass VFS filenames or `-` for shared stdin; `--` ends option parsing. The converter
+supports headings, paragraphs, emphasis, links, images, lists, quotes, code and
+tables. Scripts, styles and comments are discarded without fetching or executing
+anything. Malformed input follows the supported HTML subset; this is not a
+browser HTML5 parser or a sanitizer.
+
+Factory limits default to `Infinity`; configure finite limits for untrusted
+input. Shell command limits can tighten them. Output limits count UTF-8 bytes,
+and cancellation preserves the caller's abort reason. The public module supports
+the parent package's Node, browser and workerd profiles with supplied virtual IO.
+This workspace is internal and bundled into Safe Bash; use the public imports
+above without installing a separate command package.

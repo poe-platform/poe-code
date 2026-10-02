@@ -1,4 +1,5 @@
 import { Shell, type CommandDefinition } from "@poe-platform/safe-bash";
+import "./safe-packages-html-to-markdown-types.mjs";
 import { getCommandArguments, type CommandArguments } from "@poe-platform/safe-bash/contracts/command";
 import { shellValueFromBytes } from "@poe-platform/safe-bash/contracts/value";
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";

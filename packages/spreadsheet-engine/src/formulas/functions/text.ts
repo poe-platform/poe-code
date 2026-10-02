@@ -208,7 +208,7 @@ export const textFunctions: Readonly<Record<string, FunctionImplementation>> = {
     const n = numberArg(args, 0, host), point = Math.trunc(n), mapped = point >= 128 && point < 160 ? cp1252[point - 128] : point;
     return n >= 1 && n < 256 && mapped ? str(String.fromCodePoint(mapped)) : error("#VALUE!");
   },
-  UNICHAR: (args, host) => { const n = numberArg(args, 0, host), point = Math.trunc(n); return n >= 0 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff) && !(point >= 0xfdd0 && point <= 0xfdef) && (point & 0xffff) < 0xfffe ? str(point === 0 ? "" : String.fromCodePoint(point)) : error("#VALUE!"); },
+  UNICHAR: (args, host) => { const n = numberArg(args, 0, host), point = Math.trunc(n); return n >= 0 && point <= 0x10ffff && !(point >= 0xd800 && point <= 0xdfff) ? str(point === 0 ? "" : String.fromCodePoint(point)) : error("#VALUE!"); },
   CODE: (args, host) => {
     const bytes = sliceByteText(byteTextArg(args, 0, host), "left", 1, 1, host.tick)!;
     let point: number | undefined;

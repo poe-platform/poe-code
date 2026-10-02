@@ -55,7 +55,7 @@ it.each<[string, CellValue]>([
   ['=SEARCH("?b","😀B")', n(1)], ['=SEARCHB("é","aé",2)', n(2)],
   ['=ASC("ガパＡ￥’")', s("ｶﾞﾊﾟA\\'")], ['=JIS("ｶﾞﾊﾟ")', s("ガ゛パ゜")],
   ['=CODE(CHAR(128))', n(128)], ['=CHAR(129)', e("#VALUE!")],
-  ['=UNICHAR(65534)', e("#VALUE!")], ['=UNICODE("😀a")', n(128512)],
+  ['=UNICHAR(65534)', s("\ufffe")], ['=UNICODE("😀a")', n(128512)],
   ['=UPPER("straße")', s("STRASSE")], ['=LOWER("ÉA")', s("éa")],
   ['=TRIM(" a  b ")', s("a  b")], ['=PROPER("a2BC")', s("A2Bc")],
   ['=ENCODEURL("é/?")', s("%C3%A9%2F%3F")], ['=CLEAN("a"&CHAR(7))', s("a")],
@@ -201,4 +201,21 @@ it.each<[string, CellValue]>([
   ['=TEXT(0.5,"0 ?/?")', s("0 1/2")]
 ])("preserves fraction placeholder and denominator contracts for %s", (formula, expected) => {
   expect(calculate(formula)).toEqual(expected);
+});
+
+// Activated Gnumeric 1.12.61 accepts every Unicode scalar, including noncharacters.
+it.each([
+  ...Array.from({ length: 32 }, (_, index) => 0xfdd0 + index),
+  ...Array.from({ length: 17 }, (_, plane) => [plane * 65536 + 65534, plane * 65536 + 65535]).flat()
+])("preserves native UNICHAR noncharacter %i", point => {
+  expect(calculate(`=UNICHAR(${point})`)).toEqual(s(String.fromCodePoint(point)));
+  expect(calculate(`=UNICODE(UNICHAR(${point}))`)).toEqual(n(point));
+});
+
+it.each<[number, CellValue]>([
+  [0, s("")], [0.9, s("")], [-0.1, e("#VALUE!")], [65.9, s("A")],
+  [55295, s("\ud7ff")], [55296, e("#VALUE!")], [57343, e("#VALUE!")],
+  [57344, s("\ue000")], [1114111.9, s("\u{10ffff}")], [1114112, e("#VALUE!")]
+])("retains native UNICHAR boundary %s", (point, expected) => {
+  expect(calculate(`=UNICHAR(${point})`)).toEqual(expected);
 });

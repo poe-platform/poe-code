@@ -4724,6 +4724,34 @@
       },
       "repair": "Native Python float/bool capwords errors exposed missing custom-error XLSX quoting. Native value_get_as_gstring/go_strescape emits # plus a backslash-escaped quoted message for nonstandard errors. Eight failing writer regressions now pass, alongside fourteen standard-error controls across both XLSX editions. Native raw-cache import behavior is preserved and documented; it retains the quoted wire text rather than decoding it.",
       "remaining": "Other Python conversion/reference/diagnostic cases, malformed-UTF8 native crashes, other optional services and installed/registry qualification remain distinct. All 19 families remain open; no release claim."
+    },
+    "pythonPrintfActivated": {
+      "profile": "Same activated Gnumeric 1.12.61 / GOffice 0.10.61 Debian arm64 Python 3.13.5 / Unicode 15.1.0 profile as pythonCapwordsActivated.",
+      "repair": "UNICHAR now accepts all Unicode scalar values, including 66 noncharacters, matching native g_unichar_validate. Surrogates, negative inputs and values beyond U+10FFFF remain invalid; fractional values truncate after the nonnegative check; NUL becomes an empty string.",
+      "qualification": {
+        "unicharNativeMatchesPerPublicRoute": 78,
+        "unicharNativeStderrBytes": 0,
+        "printfNativeMatchesPerPublicRoute": 10391,
+        "printfNativeCsvStderrBytes": 0,
+        "productDiagnosticsPerRoute": 0,
+        "failingBeforeTests": 68,
+        "focusedPassingTests": 1408,
+        "checks": "Native full-application UNICODE(UNICHAR(...)) caches match compiled SDK and command for all noncharacters and scalar boundaries. Formatting covers 448 flag/width/precision/conversion combinations over 22 typed values, 384 seeded binary64 cases, malformed/arity controls, Unicode and controls. Native CSV values match both routes exactly; independent XLSX decoding checks all formula identities after namespace and equivalent binary64 literal normalization.",
+        "loaderNativeMatchesPerPublicRoute": 60,
+        "matchingLoaderWarningsPerRoute": 36,
+        "loaderScope": "Column-major numeric/bool/Unicode arrays, transposed blanks, scalar blanks, error-to-None conversion and precision-limited reference representations; native output caches, formula identities and all diagnostic messages/counts match SDK and command.",
+        "publicRoutes": "Compiled command-package SDK/command and rebuilt root SDK/command all match the three native cohorts. Engine and command-package lint/source/test/consumer types, selected workspace build and maintained full root build pass."
+      },
+      "xlsxDifference": "32 outputs containing U+0001 or U+007F are dropped by the native XLSX writer, with 10 warnings. Product preserves their values using XML-safe encoding. Native also emits XML-invalid U+FFFF where product uses OOXML escaping. These exporter differences are retained explicitly; they are not Python formatting mismatches or an XLSX parity pass.",
+      "hashes": {
+        "python-unichar.gnumeric": "dc7e6e0897d57208330cfdf1773e4d2863fc1fe8d87f43399279725a853097df",
+        "python-unichar-native.xlsx": "94fb7662f06917c21c059f90a1f4b2da1408847bbfb0925fe0c08a3a441dee3a",
+        "python-printf.gnumeric": "131220bfc808eeaaa17228b2b1a4fbf5d7c34abef3df43479f749370eb608628",
+        "python-printf-native.xlsx": "e16c17668cdf942de92d258fd56cc23b120cc27bc62c51e2413d41da2337ac49",
+        "python-printf-native.csv": "da79e36ec819e08470f191284d2415f21cc2eeb02a712389db0d81ae17404b44",
+        "gnumeric-1.12.61/plugins/fn-string/functions.c": "9b89954f5c4419be33a0d7cd3182129204662be81ed36933226afc1cb444eb90"
+      },
+      "remaining": "Other optional profiles, diagnostics, address-bearing RangeRef output, cross-runtime and installed/registry qualification remain open. All 19 families remain open; no release claim."
     }
   },
   "history": {

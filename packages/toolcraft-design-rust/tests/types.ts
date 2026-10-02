@@ -154,3 +154,17 @@ const rootHelpOwn: typeof help = null as unknown as typeof originalDesign;
 const rootPlainOriginal: typeof originalPlainHelp = design.helpFormatterPlain;
 const rootPlainOwn: typeof plainHelp = null as unknown as typeof originalDesign.helpFormatterPlain;
 void [helpOriginal,helpOwn,plainHelpOriginal,plainHelpOwn,rootHelpOriginal,rootHelpOwn,rootPlainOriginal,rootPlainOwn];
+
+import * as catalog from "toolcraft-design-rust/components/catalog";
+import * as resources from "toolcraft-design-rust/components/resource-browser";
+import type * as originalCatalog from "toolcraft-design/components/catalog";
+import type * as originalResources from "toolcraft-design/components/resource-browser";
+const catalogOriginal: typeof originalCatalog = catalog;
+const catalogOwn: typeof catalog = null as unknown as typeof originalCatalog;
+const resourcesOriginal: typeof originalResources = resources;
+const resourcesOwn: typeof resources = null as unknown as typeof originalResources;
+const rootCatalogOriginal: typeof originalCatalog = design;
+const rootResourcesOriginal: typeof originalResources = design;
+const rootCatalogOwn: typeof catalog = null as unknown as typeof originalDesign;
+const rootResourcesOwn: typeof resources = null as unknown as typeof originalDesign;
+void [catalogOriginal,catalogOwn,resourcesOriginal,resourcesOwn,rootCatalogOriginal,rootResourcesOriginal,rootCatalogOwn,rootResourcesOwn];

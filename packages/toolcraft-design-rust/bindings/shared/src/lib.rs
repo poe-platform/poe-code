@@ -1,6 +1,10 @@
 use mcp_protocol_rust::json::Value;
 mod ansi;
 pub use ansi::*;
+mod catalog;
+pub use catalog::*;
+mod resource_browser;
+pub use resource_browser::*;
 mod help;
 pub use help::*;
 mod file_changes;

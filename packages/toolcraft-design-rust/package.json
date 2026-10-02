@@ -35,6 +35,14 @@
     "./components/help-formatter-plain": {
       "types": "./dist/help-formatter-plain.d.ts",
       "import": "./dist/help-formatter-plain.js"
+    },
+    "./components/catalog": {
+      "types": "./dist/catalog.d.ts",
+      "import": "./dist/catalog.js"
+    },
+    "./components/resource-browser": {
+      "types": "./dist/resource-browser.d.ts",
+      "import": "./dist/resource-browser.js"
     }
   },
   "scripts": {

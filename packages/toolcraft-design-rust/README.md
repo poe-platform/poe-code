@@ -66,6 +66,8 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `formatCommandNotFound`, `formatCommandNotFoundPanel` | Show unknown commands, suggestions and a help hint with consistent styling |
 | `renderFileChanges` | Show file status, conflicts, rename paths or unified diffs in terminal and Markdown |
 | `helpFormatter`, `helpFormatterPlain` | Align command and option help, wrap descriptions and preserve nested hanging indents |
+| `renderCatalog` | Present grouped values with metrics, optional descriptions and per-item tones |
+| `renderResourceBrowser` | Browse grouped resources with metadata, previews, badges, empty hints and footer actions |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -223,3 +225,11 @@ formatter preserves Unicode, terminal hyperlinks and ANSI styling. Both are
 also available through `components/help-formatter` and
 `components/help-formatter-plain`. Rust owns wrapping, width rules, layout
 validation and token selection; Node retains ICU segmentation and styling callbacks.
+
+`renderCatalog({theme, title, metrics, groups})` aligns labels and values within
+each group. `renderResourceBrowser({theme, title, groups, footer})` presents
+resource rows with optional metadata, previews and badges. Both follow
+`withOutputFormat` for terminal, Markdown and JSON output and are also available
+from `components/catalog` and `components/resource-browser`. Rust controls
+format selection, optional content and group composition; Node preserves
+theme receivers, array methods, object spreads and JSON serialization.

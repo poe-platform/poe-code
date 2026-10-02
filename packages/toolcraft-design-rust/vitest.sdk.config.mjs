@@ -9,6 +9,10 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/components/catalog.test.ts") && name === "./catalog.js")
+          return path("dist/catalog.js");
+        if (importer === path("../toolcraft-design/src/components/resource-browser.test.ts") && name === "./resource-browser.js")
+          return path("dist/resource-browser.js");
         if (importer === path("../toolcraft-design/src/components/help-formatter.test.ts") && name === "./help-formatter.js")
           return path("dist/help-formatter.js");
         if (importer === path("../toolcraft-design/src/components/help-formatter-plain.test.ts") && name === "./help-formatter-plain.js")
@@ -60,6 +64,8 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft-design/src/components/catalog.test.ts"),
+      path("../toolcraft-design/src/components/resource-browser.test.ts"),
       path("../toolcraft-design/src/components/help-formatter.test.ts"),
       path("../toolcraft-design/src/components/help-formatter-plain.test.ts"),
       path("../toolcraft-design/src/dashboard/streaming-line-buffer.test.ts"),

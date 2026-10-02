@@ -495,6 +495,22 @@ output; the screenshot font lacks CJK glyphs, whose strings and widths are check
 by parity tests. Host callback depth/resource qualification remains outstanding.
 Interactive design controls, terminal Markdown, CLI and transport ports remain open.
 
+Catalog and resource-browser rendering now have native policies at the design
+root and both component subpaths. Rust controls format selection, optional
+content, tone admission, empty groups, item spacing and group composition.
+Node retains observable arrays, theme receivers, string templates, spreads and
+JSON serialization. Native ANSI cleanup now has a host-observable scanning path
+for changing/nonprimitive values as well as the existing primitive UTF-16 path;
+this preserves a catalog metric getter that changes from string to number.
+Differential coverage includes getter order, receivers, sparse/species arrays,
+toJSON, arbitrary throws, nested callbacks and push-before-join evaluation.
+The package passes 64 native and 168 original reference tests, standalone
+declarations and package lint. Packed imports verify root/component identity,
+Markdown, JSON and ANSI cleanup; screenshots verify grouped terminal styling,
+metadata, previews, empty hints and Markdown output. Detail/inspector cards, their wrapping dependencies,
+interactive controls and terminal Markdown remain open, as do resource and
+cross-package qualification for a complete replacement.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

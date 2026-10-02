@@ -1,4 +1,5 @@
 pub mod ansi;
+pub mod catalog;
 pub mod color;
 pub mod command_errors;
 pub mod data;
@@ -8,6 +9,7 @@ pub mod layout;
 pub mod logging;
 pub mod palette;
 pub mod preview;
+pub mod resource_browser;
 pub mod table;
 pub mod template;
 pub mod terminal;

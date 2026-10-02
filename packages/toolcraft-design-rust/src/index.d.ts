@@ -90,6 +90,8 @@ export declare function resetTheme(): void;
 export { createDashboardLineBuffer, createStreamingDashboardLineBuffer } from "./line-buffer.js";
 export { formatCommandNotFound, formatCommandNotFoundPanel } from "./command-errors.js";
 export { renderFileChanges } from "./file-changes.js";
+export * from "./catalog.js";
+export * from "./resource-browser.js";
 export * from "./help-formatter.js";
 export * as helpFormatterPlain from "./help-formatter-plain.js";
 export type { FileChange, FileChangeKind, FileChangeDisplayMode, FileChangeOutputFormat, RenderFileChangesOptions } from "./file-changes.js";

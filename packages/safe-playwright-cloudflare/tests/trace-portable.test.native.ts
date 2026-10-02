@@ -59,7 +59,7 @@ test.each([
         return Response.json({ failures, files: await fs.readdir("/tmp"), code, contents, admitted, adapter: typeof adapter.acquire, buffer: typeof globalThis.Buffer, bytes: bytes.length });
       } };
     ` },
-    bundle: true, platform: "browser", format: "esm", target: "es2022", write: false,
+    bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", target: "es2022", write: false,
     // The optional browser provider is loaded only when acquiring a browser.
     // Exercise the complete adapter-owned graph without mocking its modules.
     external: ["@cloudflare/playwright", "cloudflare:workers"],

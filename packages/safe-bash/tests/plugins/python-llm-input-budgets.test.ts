@@ -43,3 +43,29 @@ test('Python materialized controls reach a dynamic parent budget even without a 
   await assert.rejects(capability.call!({operation:'complete',payload:{prompt:'x'.repeat(64)}},{signal:new AbortController().signal}),/parent input budget/);
   assert.equal(calls,0);
 });
+
+
+test('Python source requests charge materialized text only once', async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/file.txt', new Uint8Array(32).fill(97));
+  const payload = {model: 'fixture', options: {}, prompt: 'hello', attachments: [{path: '/file.txt', mimeType: 'text/plain'}]};
+  const controlBytes = new TextEncoder().encode(JSON.stringify(payload)).byteLength;
+  let calls = 0;
+  const service = createLlmService({defaultModel: 'fixture', providers: [{
+    name: 'fixture', models: [{id: 'fixture', attachmentTypes: ['text/plain']}],
+    complete() { return assert.fail('retained input was buffered'); },
+    async *completeSources(request) {
+      calls++;
+      let bytes = 0;
+      for await (const chunk of request.prompt.bytes) bytes += chunk.byteLength;
+      for await (const chunk of request.attachments[0]!.source.bytes) bytes += chunk.byteLength;
+      assert.equal(bytes, 37);
+      yield 'ok';
+    },
+  }]});
+  const capability = createPythonLlmCapability({fs, cwd: '/'}, service, {
+    maxBufferedInputBytes: controlBytes, maxInputBytes: controlBytes + 32,
+  });
+  await capability.call!({operation: 'complete', payload}, {signal: new AbortController().signal});
+  assert.equal(calls, 1);
+});

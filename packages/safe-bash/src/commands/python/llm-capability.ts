@@ -202,13 +202,12 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     };
     const textSource = (text: string): LlmInputSource => {
       if (typeof text !== 'string') throw new TypeError('Invalid LLM text input');
-      for (const fragment of textFragments(text, 16384)) admit(new TextEncoder().encode(fragment).byteLength);
+      // Materialized text was admitted with the serialized request controls.
       const controller = new AbortController();
       const bytes = (async function* () {
         for (const fragment of textFragments(text, 16384)) {
           signal.throwIfAborted(); controller.signal.throwIfAborted();
           const chunk = new TextEncoder().encode(fragment);
-          consume(chunk.byteLength);
           yield chunk;
         }
       })();
@@ -288,40 +287,40 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
           const attachments: {mimeType:string;source:LlmInputSource}[] = [];
           attachmentGroups.push(attachments);
           for (const input of inputs as readonly PythonHostValue[]) {
-          const attachment = record(input);
-          if (attachment.content !== undefined) {
-            const content = attachment.content;
-            if (!Array.isArray(content) || !content.every(byte => typeof byte === 'number' && Number.isInteger(byte) && byte >= 0 && byte <= 255)) throw new TypeError('Invalid inline attachment bytes');
-            if (attachment.path !== undefined || attachment.url !== undefined || attachment.spool !== undefined) throw new TypeError('Invalid inline attachment location');
-            if (attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
-            if (content.length > inputLimit - admitted) throw new RangeError('LLM input byte limit exceeded');
-            admitted += content.length;
-            context.inputBudget?.check(prefixBytes + admitted);
-            const bytes = Uint8Array.from(content as number[]);
-            const controller = new AbortController();
-            const source: LlmInputSource = {bytes:(async function* () {
-              for (let offset = 0; offset < bytes.length; offset += 16384) {
-                signal.throwIfAborted();
-                controller.signal.throwIfAborted();
-                const chunk = bytes.subarray(offset, offset + 16384);
-                if (chunk.byteLength > inputLimit - consumed) throw new RangeError('LLM input byte limit exceeded');
-                consumed += chunk.byteLength;
-                context.inputBudget?.check(prefixBytes + consumed);
-                yield chunk;
-              }
-            })(), async dispose() { controller.abort(); }};
-            sources.push(source);
-            attachments.push({mimeType:attachment.mimeType as string | undefined ?? sniffMimeType('', bytes.subarray(0,4096)),source});
-            continue;
+            const attachment = record(input);
+            if (attachment.content !== undefined) {
+              const content = attachment.content;
+              if (!Array.isArray(content) || !content.every(byte => typeof byte === 'number' && Number.isInteger(byte) && byte >= 0 && byte <= 255)) throw new TypeError('Invalid inline attachment bytes');
+              if (attachment.path !== undefined || attachment.url !== undefined || attachment.spool !== undefined) throw new TypeError('Invalid inline attachment location');
+              if (attachment.mimeType !== undefined && typeof attachment.mimeType !== 'string') throw new TypeError('Invalid attachment MIME type');
+              if (content.length > inputLimit - admitted) throw new RangeError('LLM input byte limit exceeded');
+              admitted += content.length;
+              context.inputBudget?.check(prefixBytes + admitted);
+              const bytes = Uint8Array.from(content as number[]);
+              const controller = new AbortController();
+              const source: LlmInputSource = {bytes:(async function* () {
+                for (let offset = 0; offset < bytes.length; offset += 16384) {
+                  signal.throwIfAborted();
+                  controller.signal.throwIfAborted();
+                  const chunk = bytes.subarray(offset, offset + 16384);
+                  if (chunk.byteLength > inputLimit - consumed) throw new RangeError('LLM input byte limit exceeded');
+                  consumed += chunk.byteLength;
+                  context.inputBudget?.check(prefixBytes + consumed);
+                  yield chunk;
+                }
+              })(), async dispose() { controller.abort(); }};
+              sources.push(source);
+              attachments.push({mimeType:attachment.mimeType as string | undefined ?? sniffMimeType('', bytes.subarray(0,4096)),source});
+              continue;
+            }
+            if (Object.hasOwn(attachment,'spool')) {
+              if (Object.keys(attachment).some(key => key !== 'spool' && key !== 'mimeType') || typeof attachment.mimeType !== 'string') throw new TypeError('Invalid Python LLM attachment input');
+              attachments.push({mimeType:attachment.mimeType,source:await inputSource({spool:attachment.spool!})});
+            } else {
+              const {source,mimeType} = await fileSource(input, true);
+              attachments.push({mimeType:mimeType!,source});
+            }
           }
-          if (Object.hasOwn(attachment,'spool')) {
-            if (Object.keys(attachment).some(key => key !== 'spool' && key !== 'mimeType') || typeof attachment.mimeType !== 'string') throw new TypeError('Invalid Python LLM attachment input');
-            attachments.push({mimeType:attachment.mimeType,source:await inputSource({spool:attachment.spool!})});
-          } else {
-            const {source,mimeType} = await fileSource(input, true);
-            attachments.push({mimeType:mimeType!,source});
-          }
-        }
         }
         const prompt = await inputSource(payload.prompt ?? '');
         const system = payload.system === undefined ? undefined : await inputSource(payload.system);

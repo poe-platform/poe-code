@@ -66,3 +66,23 @@ test("xargs refuses to split a line that exceeds its command size bound", async 
     assert.equal(result.stdout, "");
   } finally { await shell.dispose(); }
 });
+
+for (const fixture of [
+  { options: "-I {} -n 1", input: "a\\nb\\n", expected: "item=a\nitem=b\n", utility: "echo item={}" },
+  { options: "-n 1 -I {}", input: "a\\nb\\n", expected: "item=a\nitem=b\n", utility: "echo item={}" },
+  { options: "-i", input: "a\\nb\\n", expected: "item=a\nitem=b\n", utility: "echo item={}" },
+  { options: "--replace", input: "a\\nb\\n", expected: "item=a\nitem=b\n", utility: "echo item={}" },
+  { options: "--replace=%", input: "a\\nb\\n", expected: "item=a\nitem=b\n", utility: "echo item=%" },
+  { options: "-l1", input: "a b\\nc d\\n", expected: "a b\nc d\n", utility: "echo" },
+  { options: "-l", input: "a b\\nc d\\n", expected: "a b\nc d\n", utility: "echo" },
+  { options: "--max-lines", input: "a b\\nc d\\n", expected: "a b\nc d\n", utility: "echo" },
+  { options: "-E END --eof", input: "a\\nEND\\nb\\n", expected: "a END b\n", utility: "echo" },
+]) test(`xargs pipeline optional and combined options: ${fixture.options}`, async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands());
+  try {
+    const result = await shell.exec(`printf '${fixture.input}' | xargs ${fixture.options} ${fixture.utility}`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, fixture.expected);
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});

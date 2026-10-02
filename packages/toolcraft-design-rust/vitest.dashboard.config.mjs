@@ -6,6 +6,10 @@ export default defineConfig({
   plugins: [{
     name: "rust-dashboard-reference", enforce: "pre",
     resolveId(name, importer) {
+      if ([suite, path("../toolcraft-design/src/dashboard/queue-interaction.test.ts")].includes(importer)) {
+        if (name === "./dashboard.js") return path("dist/dashboard-runtime.js");
+        if (name === "../internal/output-format.js") return path("dist/logging.js");
+      }
       if (importer === path("../toolcraft-design/src/dashboard/components/stats-pane.ts") && name === "../elapsed.js") return path("dist/dashboard-elapsed.js");
       if (importer === suite && name === "./components/footer.js") return path("dist/dashboard-footer.js");
       if (importer === suite && name === "./components/output-pane.js") return path("dist/dashboard-output.js");
@@ -20,7 +24,7 @@ export default defineConfig({
     }
   }],
   test: {
-    include: [suite], testNamePattern: "^(keymap|store|ScreenBuffer|diff|cellToAnsi|renderBorder|computeDashboardLayout|footer|output pane|stats pane) ",
+    include: [suite, path("../toolcraft-design/src/dashboard/queue-interaction.test.ts")],
     environment: "node", fileParallelism: false, maxWorkers: 1, pool: "forks", testTimeout: 3000, cache: false
   }
 });

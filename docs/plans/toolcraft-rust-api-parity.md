@@ -1740,3 +1740,37 @@ snapshot measured 45,919.65 µs native / 2,926.19 µs reference (15.69× slower)
 No performance gate passed. Dashboard lifecycle, explorer, batching, private-class
 nominal identity and broader API/resource/reentrancy/platform qualification
 remain open.
+
+
+### Dashboard lifecycle checkpoint
+
+`dashboard.createDashboard`, `dashboard/dashboard` and `dashboard/index` now
+expose the complete dashboard runtime and namespace declarations. Rust owns
+creation defaults, lifecycle transitions, render scheduling, history holding,
+queue navigation, submission outcomes, responsive component orchestration and
+cleanup order. Node retains live getters, stream/timer registration, array
+callback semantics, promise turns, callback receivers and thrown-value identity.
+The existing native component ports supply rendering and input editing. No new
+dependencies or default integration changes.
+
+The original dashboard and queue suites first failed on the missing native
+runtime. Five differential tests cover byte-identical frames, restart and
+idempotent teardown, subscriptions, fallback getter order, arbitrary thrown
+values, live handler iteration, reentrant teardown, callback receivers and
+submission promise turns (including rejection after destroy). Full dashboard
+namespace keys and bidirectional declarations match the current API. The
+repeated-update layout test now uses a controlled clock and an explicit repaint
+cadence, with separate terminal-size cases; it previously exceeded the 3-second
+timeout because real native frame time triggered extra synchronous paints.
+
+Maintained checks pass 313 native host tests, 1,379 selected original design
+tests, 13 prompt-wrapper tests, all 132 dashboard/queue cases and 14 composer
+tests. Rust/binding and scoped JS/TS lint, packed runtime with external imports
+rejected, and packed declarations with `types: []` pass. Inspected screenshots
+cover 80×20 panels, 120×28 conversation input and 40×12 compact editing.
+
+Five warmed alternating five-cycle Node 22 ARM64 rounds, each cycle starting an
+80×20 dashboard, forcing four status paints and destroying it, measured median
+275,821.72 µs native / 3,474.87 µs reference (79.38× slower). No performance gate
+passed. Explorer, CLI/transports/testing, batching, private-class nominal
+identity and broader API/resource/reentrancy/platform qualification remain open.

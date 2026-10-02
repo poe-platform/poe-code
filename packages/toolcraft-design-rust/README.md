@@ -136,6 +136,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/components/context-pane` | Reserve plan and queue context while leaving room for live output |
 | `dashboard/components/stats-pane` | Format metrics and keep task progress visible in compact or sidebar layouts |
 | `dashboard/components/run-view` | Arrange conversation, plans, tasks, composer and controls for the available terminal |
+| `dashboard.createDashboard` | Run panel or conversation views with live output, queue input and terminal cleanup |
 | `dashboard.renderDashboardSnapshot` | Render an ANSI dashboard at a fixed size without starting an interactive terminal |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
@@ -165,9 +166,9 @@ nonfinite numbers and BigInt survive the transfer. Getters, functions, proxies
 and custom iterators use the host callback environment. Standalone Rust callers
 can use `data::Graph` and a fresh `data::DataEnvironment` for each render.
 
-This supplies template composition, dashboard geometry, bounded output ownership and log formatting. The complete dashboard
-renderer, dashboard lifecycle and existing application integrations remain in
-the original package. Rendering remains slower than the JavaScript implementation. In one Node 22
+This supplies template composition, dashboard rendering and lifecycle, bounded
+output ownership and log formatting. Existing application integrations continue
+to use the original package. Rendering remains slower than the JavaScript implementation. In one Node 22
 ARM64 measurement, a 256-item section takes about 216 µs through the data path,
 765 µs through callbacks and 38 µs in JavaScript. Small views can cost more to
 capture than callbacks save. No speedup over JavaScript or memory reduction is
@@ -554,3 +555,19 @@ returns a complete ANSI screen without a trailing newline. The default 80×20
 screen includes sample output and statistics; narrow screens use a compact
 summary. The same function and `SnapshotOptions` type are available from
 `toolcraft-design-rust/dashboard/snapshot`.
+
+`dashboard.createDashboard({title, stdin, stdout, appearance, onSubmit, onPerformance})`
+manages live terminal output, statistics, scrollback and cleanup. Call `start()` to
+enter the terminal view, `appendOutput()` and `updateStats()` to feed it, and
+`destroy()` when the run ends. `stop()` restores the terminal while retaining
+state for a later restart. `onCommand()` receives run commands; scrolling and
+render diagnostics are handled by the view. Markdown and JSON scopes write
+fallback output without starting terminal input.
+
+Supply `onSubmit` for editable message and plan drafts. Accepted submissions
+clear the draft; rejected submissions keep it editable and show the error.
+`getPerformance()` returns bounded render statistics, and `onPerformance` observes
+completed frames. The function and its types are also available through
+`dashboard/index` and `dashboard/dashboard`. This additive implementation is not
+yet a performance replacement: an 80×20 start/four-update/destroy benchmark took
+about 276 ms per native cycle versus 3.47 ms in JavaScript on Node 22 ARM64.

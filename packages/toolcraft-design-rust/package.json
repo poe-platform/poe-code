@@ -447,6 +447,14 @@
     "./dashboard/snapshot": {
       "types": "./dist/dashboard-snapshot.d.ts",
       "import": "./dist/dashboard-snapshot.js"
+    },
+    "./dashboard/index": {
+      "types": "./dist/dashboard.d.ts",
+      "import": "./dist/dashboard.js"
+    },
+    "./dashboard/dashboard": {
+      "types": "./dist/dashboard-runtime.d.ts",
+      "import": "./dist/dashboard-runtime.js"
     }
   },
   "scripts": {

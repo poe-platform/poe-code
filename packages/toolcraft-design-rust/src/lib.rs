@@ -81,3 +81,5 @@ pub mod dashboard_stats;
 
 pub mod dashboard_run_view;
 pub mod dashboard_snapshot;
+
+pub mod dashboard_runtime;

@@ -62,22 +62,10 @@ export interface DashboardLayout {
 }
 export declare function computeDashboardLayout(options: LayoutOptions): DashboardLayout;
 
-export declare const MAX_OUTPUT_PREVIEW_CHARS: number;
-export declare const OUTPUT_TRUNCATION_NOTICE: string;
-export declare function createTerminalStringFilter(): { push(text: string): string };
-export declare function limitOutputPreview(text: string): string;
-export declare function retainOutputTail(text: string, maxChars: number): string;
-export declare function createOutputPreviewBuffer(): { push(text: string): void; text(): string };
+export * from "./output-preview.js";
 
-export declare namespace dashboard {
-  const renderDashboardSnapshot: typeof import("./dashboard-snapshot.js").renderDashboardSnapshot;
-  type SnapshotOptions = import("./dashboard-snapshot.js").SnapshotOptions;
-  const shouldUseInteractiveDashboard: typeof import("./dashboard-mode.js").shouldUseInteractiveDashboard;
-  const createDashboardLineBuffer: typeof import("./line-buffer.js").createDashboardLineBuffer;
-  const createStreamingDashboardLineBuffer: typeof import("./line-buffer.js").createStreamingDashboardLineBuffer;
-  function limitOutputPreview(text: string): string;
-  function createOutputPreviewBuffer(): { push(text: string): void; text(): string };
-}
+export * as dashboard from "./dashboard.js";
+
 export type OutputFormat = "terminal" | "markdown" | "json";
 export interface LoggerOutput {
   info(message: string): void;

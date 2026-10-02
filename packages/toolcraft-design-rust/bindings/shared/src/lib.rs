@@ -516,3 +516,6 @@ mod dashboard_run_view;
 pub use dashboard_run_view::*;
 mod dashboard_snapshot;
 pub use dashboard_snapshot::*;
+
+mod dashboard_runtime;
+pub use dashboard_runtime::*;

@@ -827,3 +827,17 @@ const snapshotKeys: SameKeys<typeof dashboardSnapshot,typeof originalDashboardSn
 const snapshotOptionsOriginal: originalDashboardSnapshot.SnapshotOptions = null as unknown as import("toolcraft-design-rust").dashboard.SnapshotOptions;
 const snapshotOptionsNative: import("toolcraft-design-rust").dashboard.SnapshotOptions = null as unknown as originalDashboardSnapshot.SnapshotOptions;
 void [snapshotOriginal,snapshotNative,snapshotKeys,snapshotOptionsOriginal,snapshotOptionsNative];
+
+import * as dashboardRuntime from "toolcraft-design-rust/dashboard/dashboard";
+import type * as originalDashboardRuntime from "toolcraft-design/dashboard/dashboard";
+import * as dashboardNamespace from "toolcraft-design-rust/dashboard/index";
+import type * as originalDashboardNamespace from "toolcraft-design/dashboard/index";
+const dashboardRuntimeOriginal: typeof originalDashboardRuntime = dashboardRuntime;
+const dashboardRuntimeNative: typeof dashboardRuntime = null as unknown as typeof originalDashboardRuntime;
+const dashboardRuntimeKeys: SameKeys<typeof dashboardRuntime,typeof originalDashboardRuntime> = true;
+const dashboardNamespaceOriginal: typeof originalDashboardNamespace = dashboardNamespace;
+const dashboardNamespaceNative: typeof dashboardNamespace = null as unknown as typeof originalDashboardNamespace;
+const dashboardNamespaceKeys: SameKeys<typeof dashboardNamespace,typeof originalDashboardNamespace> = true;
+const dashboardRootOriginal: typeof originalDashboardNamespace = null as unknown as typeof import("toolcraft-design-rust").dashboard;
+const dashboardRootNative: typeof import("toolcraft-design-rust").dashboard = null as unknown as typeof originalDashboardNamespace;
+void [dashboardRuntimeOriginal,dashboardRuntimeNative,dashboardRuntimeKeys,dashboardNamespaceOriginal,dashboardNamespaceNative,dashboardNamespaceKeys,dashboardRootOriginal,dashboardRootNative];

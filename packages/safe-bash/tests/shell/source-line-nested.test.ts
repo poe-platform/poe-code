@@ -1,3 +1,4 @@
+import { SourceLineIndex } from "../../src/shell/source-line-index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { parseShellUnit } from "../../src/shell/parser.js";
@@ -12,19 +13,26 @@ for (const count of [2, 4, 8]) {
     for (let index = 0; index < count; index++) sources.add(source.slice(7 + index * 6));
     const indexOf = String.prototype.indexOf;
     const charCodeAt = String.prototype.charCodeAt;
+    const lineAt = SourceLineIndex.prototype.lineAt;
+    let indexing = false;
+    SourceLineIndex.prototype.lineAt = function (position) {
+      indexing = true;
+      try { return lineAt.call(this, position); }
+      finally { indexing = false; }
+    };
     let matches = 0;
     String.prototype.indexOf = function (search, position) {
       const result = indexOf.call(this, search, position);
-      if (sources.has(String(this)) && search === "\n" && result !== -1) matches++;
+      if (indexing && sources.has(String(this)) && search === "\n" && result !== -1) matches++;
       return result;
     };
     String.prototype.charCodeAt = function (position) {
       const result = charCodeAt.call(this, position);
-      if (sources.has(String(this)) && result === 10) matches++;
+      if (indexing && sources.has(String(this)) && result === 10) matches++;
       return result;
     };
     try { assert.throws(() => parseShellUnit(source), ShellSyntaxError); }
-    finally { String.prototype.indexOf = indexOf; String.prototype.charCodeAt = charCodeAt; }
+    finally { String.prototype.indexOf = indexOf; String.prototype.charCodeAt = charCodeAt; SourceLineIndex.prototype.lineAt = lineAt; }
     assert.equal(matches, count);
   });
 }

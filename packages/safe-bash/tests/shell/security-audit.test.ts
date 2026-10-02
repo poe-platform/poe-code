@@ -1,3 +1,4 @@
+import { SourceLineIndex } from "../../src/shell/source-line-index.js";
 import assert from "node:assert/strict";
 import { performance } from "node:perf_hooks";
 import { test } from "node:test";
@@ -164,15 +165,22 @@ test("IFS reuses a whole retained scalar without charging its payload twice", as
 });
 
 test("parser line lookup scans token-heavy input once", () => {
-  const source = "a;".repeat(1_000);
+  const source = "a;".repeat(1_000) + "\n";
   const charCodeAt = String.prototype.charCodeAt;
+  const lineAt = SourceLineIndex.prototype.lineAt;
+  let indexing = false;
+  SourceLineIndex.prototype.lineAt = function (position) {
+    indexing = true;
+    try { return lineAt.call(this, position); }
+    finally { indexing = false; }
+  };
   let reads = 0;
   String.prototype.charCodeAt = function (position) {
-    if (String(this) === source) reads++;
+    if (indexing && String(this) === source) reads++;
     return charCodeAt.call(this, position);
   };
   try { parseShellUnit(source, 0, false, new ParseBudget()); }
-  finally { String.prototype.charCodeAt = charCodeAt; }
+  finally { String.prototype.charCodeAt = charCodeAt; SourceLineIndex.prototype.lineAt = lineAt; }
   assert.ok(reads > source.length / 2, "token line lookups must use the source index");
   assert.ok(reads <= source.length, `scanned ${reads} characters for ${source.length} input characters`);
 });

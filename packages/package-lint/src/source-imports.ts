@@ -118,7 +118,10 @@ function extractImportsFromAst(text: string, fileName: string): RawImport[] {
   }
 
   // Dynamic `import("x")` and `require("x")` anywhere in the file.
-  const visit = (node: ts.Node): void => {
+  // Minifiers can create binary-expression chains deeper than the JS call stack.
+  const pending: ts.Node[] = [sourceFile];
+  while (pending.length > 0) {
+    const node = pending.pop()!;
     if (ts.isCallExpression(node)) {
       const isDynamicImport = node.expression.kind === ts.SyntaxKind.ImportKeyword;
       const isRequire = ts.isIdentifier(node.expression) && node.expression.text === "require";
@@ -127,9 +130,12 @@ function extractImportsFromAst(text: string, fileName: string): RawImport[] {
         out.push({ specifier: arg.text, typeOnly: false, importAttributes: false });
       }
     }
-    ts.forEachChild(node, visit);
-  };
-  visit(sourceFile);
+    const children: ts.Node[] = [];
+    ts.forEachChild(node, child => { children.push(child); });
+    for (let index = children.length - 1; index >= 0; index--) {
+      pending.push(children[index]!);
+    }
+  }
 
   return out;
 }

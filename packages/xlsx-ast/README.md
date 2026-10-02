@@ -3,6 +3,8 @@
 Read and write XLSX workbooks using the shared spreadsheet model and explicit
 resource limits, cancellation and host capabilities. The implementation covers
 worksheet cells, formulas, styles, names, comments and workbook metadata.
+Formula exports preserve control characters and literal escape tokens in cells,
+defined names, validation rules and conditional formatting.
 
 ```ts
 import { createEngine } from "@poe-code/spreadsheet-engine";

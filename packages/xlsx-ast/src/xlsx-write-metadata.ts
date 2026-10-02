@@ -176,7 +176,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
         await context.diagnostic?.({ code: "xlsx-write-loss", severity: "warning", message: `XLSX writer does not export sheet '${sheet.name}' validation type/operator '${typeKey}/${opKey}'` });
       let content = "";
       for (const [source, target] of [["Expression0", "formula1"], ["Expression1", "formula2"]] as const) {
-        const expr = child(validation, source); if (expr) content += xml(target, {}, escapeXlsx(formula(expr.text, sheet, row, column, context)));
+        const expr = child(validation, source); if (expr) content += xml(target, {}, escapeXlsx(encodeXlsxString(formula(expr.text, sheet, row, column, context))));
       }
       validations += xml("dataValidation", { type: Object.hasOwn(typeNames, typeKey) ? typeNames[typeKey] : undefined,
         operator: Object.hasOwn(opNames, opKey) ? opNames[opKey] : undefined, errorStyle: v.Style?.endsWith("WARNING") ? "warning" : v.Style?.endsWith("INFO") ? "information" : undefined,
@@ -201,7 +201,7 @@ export async function writeXlsxSheetMetadata(sheet: Sheet, number: number, xml: 
         message: `XLSX writer does not export sheet '${sheet.name}' differential style fields '${missing.join(", ")}'` });
       let content = "";
       for (const source of op < 2 ? ["Expression0", "Expression1"] : ["Expression0"]) {
-        const expr = child(condition, source); if (expr) content += xml("formula", {}, escapeXlsx(formula(expr.text, sheet, row, column, context)));
+        const expr = child(condition, source); if (expr) content += xml("formula", {}, escapeXlsx(encodeXlsxString(formula(expr.text, sheet, row, column, context))));
       }
       cf += xml("cfRule", { type: op === 8 ? "expression" : "cellIs", dxfId: styles.differential(overlay), priority: 1, stopIfTrue: 1, operator: operators[op] }, content);
     }

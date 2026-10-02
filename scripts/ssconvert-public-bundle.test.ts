@@ -77,7 +77,7 @@ it.each([
     // Root public artifacts are built independently of private workspace outputs.
     // The VM compiles the same canonical portable filesystem source because a
     // workspace SafeJS rebuild can remove that root-generated filesystem entry.
-    alias: { [filesystem]: new URL("../packages/safe-fs/src/core.ts", import.meta.url).pathname },
+    alias: { [filesystem]: new URL("../packages/safe-fs/src/core.ts", import.meta.url).pathname, "poe-code/safe-fs": resolve(root, "packages/safe-fs/src/core.ts") },
     plugins: [{ name: "in-memory-publication", setup(builder) {
       builder.onResolve({ filter: /.*/ }, args => {
         const exported = args.path.startsWith("poe-code/") ? manifest.exports["./" + args.path.slice("poe-code/".length)]?.import : undefined;
@@ -189,7 +189,7 @@ it("shares AST errors and preserves CSV fallback bytes across public entrypoints
         } finally { await engine.dispose(); }
       })();`, resolveDir: root },
     bundle: true, platform: "browser", format: "iife", write: false,
-    alias: { "poe-code/safe-fs/core": resolve(root, "packages/safe-fs/src/core.ts") },
+    alias: { "poe-code/safe-fs/core": resolve(root, "packages/safe-fs/src/core.ts"), "poe-code/safe-fs": resolve(root, "packages/safe-fs/src/core.ts") },
     plugins: [{ name: "modular-sdk-artifacts", setup(builder) {
       builder.onResolve({ filter: /.*/ }, args => {
         if (!args.path.startsWith(".") && !isAbsolute(args.path)) return undefined;

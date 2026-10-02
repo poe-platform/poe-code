@@ -2,6 +2,8 @@ import { expect, test, vi } from "vitest";
 import { createCloudflarePlaywrightAdapter } from "../src/index.js";
 import { createPlaywrightAdapter } from "@poe-platform/safe-bash/playwright";
 
+const prepareFileBytes = vi.hoisted(() => vi.fn((bytes: Uint8Array) => bytes.slice()));
+
 vi.mock("@poe-platform/safe-bash/playwright", async importOriginal => ({
   ...await importOriginal<typeof import("@poe-platform/safe-bash/playwright")>(),
   createPlaywrightAdapter: vi.fn(() => ({ acquire: vi.fn() })),
@@ -9,6 +11,7 @@ vi.mock("@poe-platform/safe-bash/playwright", async importOriginal => ({
 vi.mock("../src/shell-browser-resource.js", () => ({
   acquireCloudflareBrowser: async () => ({
     browser: { isConnected() { return true; }, on() {}, off() {} },
+    prepareFileBytes,
     prepareSnapshots() {}, prepareStorageOrigin() {}, interrupt() {}, release() {},
   }),
 }));
@@ -37,16 +40,12 @@ test("partial and unlimited trace configuration can be created before a filesyst
   expect(() => createCloudflarePlaywrightAdapter(undefined, undefined, undefined, { traceLimits: { maxArchiveBytes: Infinity } })).not.toThrow();
 });
 
-test("upload byte conversion is an explicit host capability", async () => {
+test("upload byte conversion preserves the acquired provider capability", async () => {
   createCloudflarePlaywrightAdapter({} as Parameters<typeof createCloudflarePlaywrightAdapter>[0]);
-  let configuration = vi.mocked(createPlaywrightAdapter).mock.calls.at(-1)![0];
-  let resource = await configuration.chromium!.acquireBrowser!({ signal: new AbortController().signal });
-  expect(resource.prepareFileBytes).toBeUndefined();
-  const prepareFileBytes = vi.fn((bytes: Uint8Array) => bytes.slice());
-  createCloudflarePlaywrightAdapter({} as Parameters<typeof createCloudflarePlaywrightAdapter>[0], undefined, undefined, { prepareFileBytes });
-  configuration = vi.mocked(createPlaywrightAdapter).mock.calls.at(-1)![0];
-  resource = await configuration.chromium!.acquireBrowser!({ signal: new AbortController().signal });
+  const configuration = vi.mocked(createPlaywrightAdapter).mock.calls.at(-1)![0];
+  const resource = await configuration.chromium!.acquireBrowser!({ signal: new AbortController().signal });
   const bytes = new Uint8Array([1, 2, 3]);
+  expect(resource.prepareFileBytes).toBe(prepareFileBytes);
   expect(resource.prepareFileBytes!(bytes)).toEqual(bytes);
   expect(prepareFileBytes).toHaveBeenCalledWith(bytes);
 });

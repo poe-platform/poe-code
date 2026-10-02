@@ -135,6 +135,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/components/output-pane` | Wrap styled output, scroll visible rows and render concise conversations |
 | `dashboard/components/context-pane` | Reserve plan and queue context while leaving room for live output |
 | `dashboard/components/stats-pane` | Format metrics and keep task progress visible in compact or sidebar layouts |
+| `dashboard/components/run-view` | Arrange conversation, plans, tasks, composer and controls for the available terminal |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -539,3 +540,10 @@ aligned status, progress, elapsed-time and token rows. `renderStatsPane` draws
 these in a sidebar, prioritizing task progress and current action when space is
 short; `renderCompactStatsPane` presents a one- or two-row summary. The subpath
 also exposes `formatNumber` and the shared `formatElapsed` function.
+
+`renderRunView(buffer, options)` from `dashboard/components/run-view` composes a
+complete run screen. Pass statistics, output and an optional composer; enable
+`showQueue` to browse plans and tasks, or `showDetails` to expand action details.
+The result reports the visible output rectangle, clamped output/work offsets,
+and editor cursor when focused. Wide screens show a work sidebar; shorter screens
+retain activity, progress, editing and complete navigation shortcuts.

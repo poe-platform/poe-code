@@ -511,3 +511,6 @@ pub use dashboard_context::*;
 
 mod dashboard_stats;
 pub use dashboard_stats::*;
+
+mod dashboard_run_view;
+pub use dashboard_run_view::*;

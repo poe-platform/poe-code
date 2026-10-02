@@ -1686,3 +1686,30 @@ formatting (14.33× slower), 1,797.54/103.90 µs for a 13-row no-op sidebar (17.
 and 505.95/76.19 µs for a two-row no-op compact pane (6.64×). No performance gate
 passed. Run-view rendering, dashboard lifecycle and snapshots, explorer, batching,
 private-class nominal identity and broader replacement qualification remain open.
+
+### Dashboard run-view checkpoint
+
+`dashboard/components/run-view` now exports `renderRunView` and `RunViewOptions`.
+Rust owns responsive geometry, plan/task windows, follow-up labels, metrics,
+composer placement, cursor coordinates and hint wrapping. Host operations retain
+observable getters, array iteration/callbacks, string coercion and drawing
+receivers. Existing native output, composer layout, theme and stats modules
+supply the component dependencies. Hidden work-list titles and step names remain
+unread until visible.
+
+Three missing-export tests failed before implementation. Differential checks
+cover 48 layout/mode combinations, ten real-buffer status/Unicode combinations,
+draw sequences, return values, getter order, receivers and thrown identity.
+Maintained checks pass 305 native host tests, 1,376 selected original design tests
+(including all 41 run-view tests), 13 prompt-wrapper tests, 78 selected shared
+dashboard tests and 14 composer tests. Rust/binding and scoped JS lint,
+bidirectional structural types, packed runtime rejecting external imports and
+standalone declarations with `types: []` pass. Inspected screenshots verify
+120×28 sidebar, 40×12 compact editing and 80×20 scrolled work-list layouts.
+No dependencies or default integration changes.
+
+Five warmed alternating 100-call Node 22 ARM64 rounds on a 120×28 no-op drawing
+surface with conversation, composer and 30 tasks measured 2,909.12 µs native /
+291.19 µs reference (9.99× slower). No performance gate passed. Dashboard lifecycle
+and snapshots, explorer, batching, private-class nominal identity and broader
+API/resource/reentrancy/platform qualification remain open.

@@ -805,3 +805,16 @@ const statsCompactNative: NativeCompactStatsPublic = null as unknown as Original
 // @ts-expect-error The buffer parameter retains the separate private-class identity gate.
 const statsNominalOriginal: typeof originalDashboardStats.renderStatsPane = dashboardStats.renderStatsPane;
 void [statsKeys,statsLinesOriginal,statsLinesNative,statsNumberOriginal,statsNumberNative,statsPublicOriginal,statsPublicNative,statsCompactOriginal,statsCompactNative,statsNominalOriginal];
+
+import * as dashboardRunView from "toolcraft-design-rust/dashboard/components/run-view";
+import type * as originalDashboardRunView from "toolcraft-design/dashboard/components/run-view";
+const runViewKeys: SameKeys<typeof dashboardRunView,typeof originalDashboardRunView> = true;
+const runViewOptionsOriginal: originalDashboardRunView.RunViewOptions = null as unknown as dashboardRunView.RunViewOptions;
+const runViewOptionsNative: dashboardRunView.RunViewOptions = null as unknown as originalDashboardRunView.RunViewOptions;
+type NativeRunViewPublic = (buffer: BufferPublic<dashboardBuffer.ScreenBuffer>,options: dashboardRunView.RunViewOptions) => ReturnType<typeof dashboardRunView.renderRunView>;
+type OriginalRunViewPublic = (buffer: BufferPublic<originalDashboardBuffer.ScreenBuffer>,options: originalDashboardRunView.RunViewOptions) => ReturnType<typeof originalDashboardRunView.renderRunView>;
+const runViewPublicOriginal: OriginalRunViewPublic = null as unknown as NativeRunViewPublic;
+const runViewPublicNative: NativeRunViewPublic = null as unknown as OriginalRunViewPublic;
+// @ts-expect-error The buffer parameter retains the separate private-class identity gate.
+const runViewNominalOriginal: typeof originalDashboardRunView.renderRunView = dashboardRunView.renderRunView;
+void [runViewKeys,runViewOptionsOriginal,runViewOptionsNative,runViewPublicOriginal,runViewPublicNative,runViewNominalOriginal];

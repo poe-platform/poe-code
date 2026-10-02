@@ -78,3 +78,5 @@ pub mod dashboard_output;
 pub mod dashboard_context;
 
 pub mod dashboard_stats;
+
+pub mod dashboard_run_view;

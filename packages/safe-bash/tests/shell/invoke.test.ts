@@ -423,20 +423,20 @@ test("invoke isolates child cwd, environment, functions and exit flow", async ()
 for (const externalInvocation of [undefined, false, true]) test(`invoke external mode is explicit and resets in nested children: ${externalInvocation}`, async () => {
   const { shell, commands } = setup();
   const options = externalInvocation === undefined ? {} : { externalInvocation };
-  commands.register({ name: "pwd", async execute(context) {
+  commands.register({ name: "umask", async execute(context) {
     await writeText(context.stdout, `registered:${context.args.join("|")}\n`);
     return { exitCode: 0 };
   } });
-  commands.register({ name: "nested", execute: context => context.invoke!("pwd", ["-L"], options) });
+  commands.register({ name: "nested", execute: context => context.invoke!("umask", ["-p"], options) });
   commands.register({ name: "forward", async execute(context) {
-    assert.equal((await context.invoke!("pwd", ["-L"], options)).exitCode, 0);
+    assert.equal((await context.invoke!("umask", ["-p"], options)).exitCode, 0);
     return context.invoke!("nested", [], { externalInvocation: true });
   } });
   try {
-    const result = await shell.exec("forward; pwd");
+    const result = await shell.exec("forward; umask");
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
-    assert.equal(result.stdout, (externalInvocation ? "registered:-L\n" : "/\n").repeat(2) + "/\n");
+    assert.equal(result.stdout, (externalInvocation ? "registered:-p\n" : "umask 0022\n").repeat(2) + "0022\n");
   } finally { await shell.dispose(); }
 });
 

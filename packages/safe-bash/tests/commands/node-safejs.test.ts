@@ -636,3 +636,16 @@ test("node rejects completion injection in runtime capability names", () => {
     node: { options: { "--bad'$(command)": "boolean" } },
   } }), /runtime.node.options/);
 });
+
+test("default node command resolves @poe-code/safe-js/core, reports version, and reports missing files cleanly", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(nodeCommands());
+  try {
+    const version = await shell.exec("node --version");
+    assert.equal(version.exitCode, 0, version.stderr);
+    assert.equal(version.stdout, "v22.0.0\n");
+    const missing = await shell.exec("node container_tools/mark_artifact_operation_started.mjs");
+    assert.equal(missing.exitCode, 1);
+    assert.match(missing.stderr, /ENOENT|no such file or directory/i);
+  } finally { await shell.dispose(); }
+});

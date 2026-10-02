@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "vitest";
+import { createDeviceFileSystem } from "../src/fs/devices/index.js";
 import { scopeFileSystem } from "../src/fs/scoped.js";
 import { withFileSystemQuota } from "../src/fs/quota/index.js";
 import { createMemoryFileSystem } from "../src/fs/memory/index.js";
@@ -115,8 +116,123 @@ test("reserves publication metadata before modifying any source entry", async ()
 });
 
 
-test("scope and quota wrappers withhold unsupported source-set mutation", async () => {
+test("quota wrappers withhold unsupported source-set mutation", async () => {
   const { fs } = await fixture();
-  assert.equal(scopeFileSystem(fs, () => {}, new AbortController().signal).publishStagedFileSet, undefined);
   assert.equal(withFileSystemQuota(fs, { maxBytes: 100 }).publishStagedFileSet, undefined);
+});
+
+
+test("scoped source-set publication charges admission and preserves its receipt", async () => {
+  const { fs, staged, options } = await fixture();
+  let charges = 0;
+  const scoped = scopeFileSystem(fs, () => { charges++; }, new AbortController().signal);
+  assert.ok(scoped.publishStagedFileSet);
+  const receipt = await scoped.publishStagedFileSet(staged, "/db/logs.db", options);
+  assert.equal(charges, 1);
+  assert.deepEqual(receipt, await fs.lstat("/db/logs.db"));
+  await assert.rejects(fs.lstat("/db/logs.db-wal"), { code: "ENOENT" });
+});
+
+test("scoped publication observes scope cancellation at the atomic commit guard", async () => {
+  const { fs, staged, options } = await fixture();
+  const controller = new AbortController();
+  const reason = new Error("scope retired");
+  const view = new Proxy(fs, { get(target, key) {
+    if (key === "publishStagedFileSet") return async (...args: Parameters<typeof fs.publishStagedFileSet>) => {
+      controller.abort(reason);
+      return target.publishStagedFileSet(...args);
+    };
+    const value: unknown = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const scoped = scopeFileSystem(view, () => {}, controller.signal);
+  assert.ok(scoped.publishStagedFileSet);
+  await assert.rejects(scoped.publishStagedFileSet(staged, "/db/logs.db", options), error => error === reason);
+  assert.deepEqual(await fs.readFile("/db/logs.db"), Uint8Array.of(1));
+  assert.deepEqual(await fs.readFile("/db/logs.db-wal"), Uint8Array.of(2));
+});
+
+test("scoped publication returns its committed receipt despite subsequent cancellation", async () => {
+  const { fs, staged, options } = await fixture();
+  const controller = new AbortController();
+  const view = new Proxy(fs, { get(target, key) {
+    if (key === "publishStagedFileSet") return async (...args: Parameters<typeof fs.publishStagedFileSet>) => {
+      const receipt = await target.publishStagedFileSet(...args);
+      controller.abort(new Error("after commit"));
+      return receipt;
+    };
+    const value: unknown = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const scoped = scopeFileSystem(view, () => {}, controller.signal);
+  assert.ok(scoped.publishStagedFileSet);
+  const receipt = await scoped.publishStagedFileSet(staged, "/db/logs.db", options);
+  assert.deepEqual(receipt, await fs.lstat("/db/logs.db"));
+});
+
+
+test("device and scope views preserve the complete source-set transaction", async () => {
+  const { fs, staged, options } = await fixture();
+  const scoped = scopeFileSystem(createDeviceFileSystem(fs), () => {}, new AbortController().signal);
+  assert.ok(scoped.publishStagedFileSet);
+  await scoped.publishStagedFileSet(staged, "/db/logs.db", options);
+  assert.deepEqual(await fs.readFile("/db/logs.db"), Uint8Array.of(3));
+  await assert.rejects(fs.lstat("/db/logs.db-wal"), { code: "ENOENT" });
+});
+
+test("device views refuse publication into the virtual device namespace", async () => {
+  const { fs, staged, options } = await fixture();
+  const view = createDeviceFileSystem(fs);
+  assert.ok(view.publishStagedFileSet);
+  await assert.rejects(view.publishStagedFileSet(staged, "/dev/null", options));
+  assert.deepEqual(await fs.readFile("/db/logs.db"), Uint8Array.of(1));
+  assert.deepEqual(await fs.readFile(staged.file.path), Uint8Array.of(3));
+});
+
+
+test("scope snapshots companion guards before a delayed backend observes them", async () => {
+  const { fs, staged, options } = await fixture();
+  const view = new Proxy(fs, { get(target, key) {
+    if (key === "publishStagedFileSet") return async (...args: Parameters<typeof fs.publishStagedFileSet>) => {
+      await Promise.resolve();
+      options.companions[0]!.remove = false;
+      return target.publishStagedFileSet(...args);
+    };
+    const value: unknown = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const scoped = scopeFileSystem(view, () => {}, new AbortController().signal);
+  await scoped.publishStagedFileSet!(staged, "/db/logs.db", options);
+  await assert.rejects(fs.lstat("/db/logs.db-wal"), { code: "ENOENT" });
+});
+
+test("scope budget and path admission failures preserve all source entries", async () => {
+  for (const limitedPath of [true, false]) {
+    const { fs, staged, options } = await fixture();
+    const scoped = scopeFileSystem(fs, () => { if (!limitedPath) throw new Error("operation limit"); }, new AbortController().signal,
+      () => {}, { maxPathComponents: 2 });
+    await assert.rejects(scoped.publishStagedFileSet!(staged, "/db/logs.db", options));
+    assert.deepEqual(await fs.readFile("/db/logs.db"), Uint8Array.of(1));
+    assert.deepEqual(await fs.readFile("/db/logs.db-wal"), Uint8Array.of(2));
+  }
+});
+
+test("device source routes cannot change into virtual devices before commit", async () => {
+  const { fs, staged, options } = await fixture();
+  await fs.symlink("/db", "/alias");
+  const backend = new Proxy(fs, { get(target, key) {
+    if (key === "publishStagedFileSet") return async (...args: Parameters<typeof fs.publishStagedFileSet>) => {
+      await target.rm("/alias");
+      await target.symlink("/dev", "/alias");
+      return target.publishStagedFileSet(...args);
+    };
+    const value: unknown = Reflect.get(target, key);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const view = createDeviceFileSystem(backend);
+  await assert.rejects(view.publishStagedFileSet!(staged, "/alias/logs.db", {
+    ...options, companions: options.companions.map(entry => ({ ...entry, path: entry.path.replace("/db/", "/alias/") })),
+  }), { code: "EAGAIN" });
+  assert.deepEqual(await fs.readFile("/db/logs.db"), Uint8Array.of(1));
+  assert.deepEqual(await fs.readFile("/db/logs.db-wal"), Uint8Array.of(2));
 });

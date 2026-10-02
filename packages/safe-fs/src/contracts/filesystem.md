@@ -1284,8 +1284,10 @@ unchanged. Existing retained readers keep their original objects. The caller
 still owns cleanup of the now-empty staging directory. The returned `FileStat`
 is the committed replacement receipt, captured inside the atomic operation.
 
-MemoryFileSystem implements this operation without copying file payloads. Other
-hosts and forwarding views must omit it until they can preserve the entire
+MemoryFileSystem implements this operation without copying file payloads. Scoped
+views admit the operation budget and paths and compose cancellation into the
+commit guard; device views revalidate every source route at commit. Both preserve
+a committed receipt even if cancellation arrives afterward. Other hosts and forwarding views must omit it until they can preserve the entire
 source-set transaction, including path translation and resource accounting;
 separate check/rename/unlink calls are not an implementation of this contract.
 

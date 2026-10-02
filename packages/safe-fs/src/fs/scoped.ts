@@ -1,4 +1,4 @@
-import type { CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, RenameOptions } from "../contracts/filesystem.js";
+import type { CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, FileStat, FileReadHandle, FileResizeHandle, FileSystem, FsOptions, OpenResizeFileOptions, PublishStagedFileOptions, PublishStagedFileSetOptions, RenameOptions } from "../contracts/filesystem.js";
 import type { FileDescriptor, OpenFileOptions } from "../contracts/descriptor.js";
 import { FsError, toFsError } from "../contracts/errors.js";
 import { validatePath } from "../contracts/virtual-path.js";
@@ -35,7 +35,7 @@ export function retargetScopedFileSystem(
   return true;
 }
 const operations = new Set<keyof FileSystem>([
-  "prepareDirectoryAncestry", "prepareStagingResolution",
+  "prepareDirectoryAncestry", "prepareStagingResolution", "publishStagedFileSet",
   "publishFileConditional", "removeEntryConditional", "removeTreeConditional", "writeFileConditional", "removeFileConditional", "createStagedFile", "publishStagedFile", "removeStagedFile", "prepareDirectory",
   "confineExtraction", "access", "appendFile", "canonicalizeMissingTarget", "capabilitiesFor", "chmod", "compareEntry",
   "copyFile", "link", "lstat", "mkdir", "openReadFile", "openResizeFile", "readFile", "readStream", "readdir",
@@ -214,7 +214,6 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       return Reflect.set(original, property, value, original);
     },
     get(_target, property) {
-      if (property === "publishStagedFileSet") return undefined;
       if (property === retainedCleanupSymbol) return cleanupBinding;
       if (property === "capabilities") {
         const rawCaps = original.capabilities;
@@ -241,7 +240,7 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
       const executeDispatch = (args: unknown[]): unknown => {
         if (property === "removeEntryConditional") args[1] = resizeOptions({ ...args[1] as FsOptions });
         let stagingSignal: AbortSignal | undefined;
-        if (property === "createStagedFile" || property === "publishStagedFile") {
+        if (property === "createStagedFile" || property === "publishStagedFile" || property === "publishStagedFileSet") {
           signal.throwIfAborted();
           if (property === "createStagedFile") args[3] = snapshotStagingCreation(args[3] as CreateStagedFileOptions, args[0] as string);
           const callerSignal = (args[property === "createStagedFile" ? 3 : 2] as FsOptions | undefined)?.signal;
@@ -255,6 +254,34 @@ export function scopeFileSystem(filesystem: FileSystem, charge: () => void, sign
           if (property !== "symlink" && typeof args[0] === "string") validatePath(args[0], maxPathComponents);
           if (["copyFile", "rename", "link", "compareEntry"].includes(String(property)) && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
           if (property === "symlink" && typeof args[1] === "string") validatePath(args[1], maxPathComponents);
+        }
+        if (property === "publishStagedFileSet") {
+          if (original.capabilities.readOnly === true) throw new FsError("EROFS", { path: args[1] as string });
+          const supplied = args[2] as PublishStagedFileSetOptions;
+          const callerGuard = supplied.commitGuard;
+          const entry = (value: FileStagingEntry): FileStagingEntry => ({ path: value.path, stat: { ...value.stat } });
+          const input = args[0] as FileStaging;
+          const staging = { ...input, parent: entry(input.parent), directory: entry(input.directory), file: entry(input.file) };
+          const controls: PublishStagedFileSetOptions = {
+            ...supplied,
+            signal: stagingSignal!,
+            parent: { ...supplied.parent },
+            destination: supplied.destination === null ? null : { ...supplied.destination },
+            companions: supplied.companions.map(value => ({ ...value, expected: value.expected === null ? null : { ...value.expected } })),
+            ...(supplied.ancestors === undefined ? {} : { ancestors: snapshotDirectoryAncestry(supplied.ancestors) }),
+            commitGuard: () => {
+              assertOpen({ signal: stagingSignal! });
+              if (callerGuard !== undefined) runStagingGuard(callerGuard);
+              assertOpen({ signal: stagingSignal! });
+              return true;
+            },
+          };
+          for (const path of [staging.parent.path, staging.directory.path, staging.file.path, args[1] as string,
+            ...controls.companions.map(value => value.path), ...(controls.ancestors ?? []).map(value => value.path)]) {
+            validatePath(path, maxPathComponents);
+          }
+          assertOpen(controls);
+          return Reflect.apply(method, original, [staging, args[1], controls]);
         }
         if (["writeFile", "appendFile", "writeStream", "mkdir"].includes(String(property))) {
           const index = property === "mkdir" ? 1 : 2;

@@ -6,7 +6,7 @@ import type {
   AppendFileOptions, CapabilityQueryOptions, CopyFileOptions, DirectoryEntry, FileReadHandle, FileResizeHandle, FileResizeOperation, FileResizeOptions, FileStat, FileSystem, OpenReadFileOptions, OpenResizeFileOptions,
   FileSystemCapabilities, FsOptions, RenameOptions, MkdirOptions, ReadDirectoryOptions, ReadFileOptions,
   ReadStreamOptions, RemoveOptions, WriteFileOptions,
-  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, PublishStagedFileOptions, PrepareDirectoryOptions, StagedFileContent,
+  ConditionalFilePublicationOptions, ConditionalWriteFileOptions, ConditionalRemoveFileOptions, ConditionalRemoveEntryOptions, ConditionalRemoveEntryReceiptOptions, CreateStagedFileOptions, FileStaging, FileStagingEntry, FileStagingResolution, PublishStagedFileOptions, PublishStagedFileSetOptions, PrepareDirectoryOptions, StagedFileContent,
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
@@ -604,6 +604,42 @@ export class DeviceFileSystem implements FileSystem {
     if (!this.#filesystem.publishStagedFile) throw new FsError("ENOTSUP", { path: destination });
     if (options.commitGuard !== undefined) await requireOwnedMutation(this.#filesystem, destination, "guardedStagingPublication", options, options.destination === null);
     await this.#filesystem.publishStagedFile(staging, destination, options);
+  }
+
+  async publishStagedFileSet(receipt: FileStaging, destination: string, supplied: PublishStagedFileSetOptions): Promise<FileStat> {
+    const publish = this.#filesystem.publishStagedFileSet;
+    if (!publish) throw new FsError("ENOTSUP", { path: destination });
+    const entry = (value: FileStagingEntry): FileStagingEntry => ({ path: value.path, stat: { ...value.stat } });
+    const staging = { ...receipt, parent: entry(receipt.parent), directory: entry(receipt.directory), file: entry(receipt.file) };
+    const options: PublishStagedFileSetOptions = {
+      ...supplied,
+      parent: { ...supplied.parent },
+      destination: supplied.destination === null ? null : { ...supplied.destination },
+      companions: supplied.companions.map(value => ({ ...value, expected: value.expected === null ? null : { ...value.expected } })),
+      ...(supplied.ancestors === undefined ? {} : { ancestors: snapshotDirectoryAncestry(supplied.ancestors) }),
+    };
+    options.signal?.throwIfAborted();
+    const capabilities = await this.#filesystem.capabilitiesFor?.(destination, { ...options, create: options.destination === null }) ?? this.#filesystem.capabilities;
+    if (capabilities.readOnly === true) throw new FsError("EROFS", { path: destination });
+    for (const path of [staging.parent.path, staging.directory.path]) await this.#mutable(path, options, false);
+    const guards: (() => true)[] = [];
+    if (options.ancestors) guards.push(await this.prepareDirectoryAncestry(options.ancestors, options));
+    for (const path of [staging.file.path, destination, ...options.companions.map(value => value.path)]) {
+      await this.#mutable(path, options, false);
+      const resolution = await this.prepareStagingResolution(path, options);
+      guards.push(resolution.validate);
+    }
+    const callerGuard = options.commitGuard;
+    options.signal?.throwIfAborted();
+    return publish.call(this.#filesystem, staging, destination, { ...options, commitGuard: () => {
+      options.signal?.throwIfAborted();
+      if (callerGuard !== undefined) runStagingGuard(callerGuard);
+      // Recheck every route in the backend's atomic commit, so a source cannot
+      // cross into the virtual device namespace after asynchronous admission.
+      for (const guard of guards) runStagingGuard(guard);
+      options.signal?.throwIfAborted();
+      return true;
+    } });
   }
 
   async prepareDirectoryAncestry(ancestors: readonly FileStagingEntry[], options: FsOptions = {}): Promise<() => true> {

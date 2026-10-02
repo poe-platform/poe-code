@@ -45,14 +45,15 @@ export async function evaluateExpression(args: readonly string[], budget: Budget
     budget.check(depth, budget.limits.maxDepth, "AST depth");
     await budget.yield();
   }
-  async function literal(text: string, active: boolean): Promise<Operand> {
+  async function literal(index: number, active: boolean): Promise<Operand> {
     await node(1);
-    return active ? { active, value: budget.encode(text), depth: 1 } : { active, depth: 1 };
+    return active ? { active, value: budget.argument(index), depth: 1 } : { active, depth: 1 };
   }
   async function prefix(depth: number, active: boolean): Promise<Operand> {
     budget.check(depth, budget.limits.maxDepth, "parser depth");
     if (position === args.length) fail(`syntax error: missing argument after ${quote(args[position - 1]!)}`);
-    const token = args[position++]!;
+    const tokenIndex = position++;
+    const token = args[tokenIndex]!;
     if (token === ")") fail("syntax error: unexpected ')'");
     if (token === "(") {
       const result = await expression(1, depth + 1, active);
@@ -64,7 +65,7 @@ export async function evaluateExpression(args: readonly string[], budget: Budget
     if (token === "+") {
       const text = args[position++];
       if (text === undefined) fail("syntax error: missing argument after '+'");
-      return literal(text, active);
+      return literal(position - 1, active);
     }
     const arity = arities.get(token);
     if (arity !== undefined) {
@@ -80,7 +81,7 @@ export async function evaluateExpression(args: readonly string[], budget: Budget
       return active ? { active, value: await evaluateCall(token, values, budget, match), depth: resultDepth }
         : { active, depth: resultDepth };
     }
-    return literal(token, active);
+    return literal(tokenIndex, active);
   }
   async function expression(minimum: number, depth: number, active: boolean): Promise<Operand> {
     let left = await prefix(depth, active);

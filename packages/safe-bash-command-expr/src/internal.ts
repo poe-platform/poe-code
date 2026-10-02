@@ -1,6 +1,6 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import type { CommandContext } from "safe-bash-contracts";
+import { getCommandArguments, shellValueByteLength, type CommandArguments, type CommandContext } from "safe-bash-contracts";
 import type { RegexExecutionOptions } from "safe-bash-regex-engine/execution/protocol";
 import type { BoundedRegexProvider } from "safe-bash-regex-engine/execution/provider";
 import { exprMatchCeilings } from "safe-bash-regex-engine/execution/protocol";
@@ -47,7 +47,10 @@ export function settings(options: ExprCommandsOptions): ExprLimits {
 export class Budget {
   private steps = 0;
   private checkpoint = 0;
-  constructor(readonly context: CommandContext, readonly limits: ExprLimits) {}
+  private readonly argv: CommandArguments;
+  constructor(readonly context: CommandContext, readonly limits: ExprLimits) {
+    this.argv = getCommandArguments(context);
+  }
   remaining(): number { return this.limits.maxSteps - this.steps; }
   check(size: number, maximum: number, label: string): void {
     if (!Number.isSafeInteger(size) || size > maximum) throw new ExprError(`${label} limit exceeded`, 3);
@@ -72,10 +75,11 @@ export class Budget {
   arguments(): void {
     this.check(this.context.args.length, this.limits.maxNodes * 4, "argument count");
     let total = 0;
-    for (const argument of this.context.args) {
+    for (let index = 0; index < this.context.args.length; index++) {
+      const argument = this.context.args[index]!;
       this.charge();
       this.check(argument.length, this.limits.maxArgumentBytes - total, "aggregate argument bytes");
-      total += utf8ByteLength(argument);
+      total += shellValueByteLength(this.argv.values[index]!);
       this.check(total, this.limits.maxArgumentBytes, "aggregate argument bytes");
       this.charge(argument.length);
       if (argument.includes("\0")) throw new ExprError("NUL is not supported in argv");
@@ -87,6 +91,12 @@ export class Budget {
         } else if (unit >= 0xdc00 && unit <= 0xdfff) throw new ExprError("argv must contain well-formed Unicode");
       }
     }
+  }
+  argument(index: number): Uint8Array {
+    const value = this.argv.values[index]!;
+    if (typeof value === "string") return this.encode(value);
+    this.allocation(shellValueByteLength(value));
+    return this.argv.bytes(index)!;
   }
   encode(text: string): Uint8Array {
     this.allocation(utf8ByteLength(text));

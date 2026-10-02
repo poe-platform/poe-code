@@ -120,19 +120,22 @@ export const safeBashProfileBaselines = {
   "pythonLlm": 1954948,
   "pdf": 2757392,
   "multiplePdf": 2845674,
-  "csv": 3422780,
-  "csvXlsx": 3665124,
+  // One canonical spreadsheet engine, including pinned timezone/Bessel support.
+  "csv": 3494546,
+  "csvXlsx": 3742758,
   "git": 7045654,
-  "baseRegistry": 6050044,
-  "registryWithRegex": 6050081,
+  // Registry profiles retain the expanded portable OpenSSL command graph.
+  "baseRegistry": 6253466,
+  "registryWithRegex": 6253503,
   // Full yq is selected by enabledConsumer; full also retains the CSV Python worker.
-  "enabledConsumer": 6411704,
-  "full": 67666817,
+  "enabledConsumer": 6638155,
+  // Full additionally selects the portable media codecs and spreadsheet engine.
+  "full": 71202380,
   "rootPythonLlm": 1956498,
   "splitCore": 1711634,
   "splitPythonLlm": 1950980,
-  "splitEnabledConsumer": 6319459,
-  "splitFull": 67480666
+  "splitEnabledConsumer": 6550905,
+  "splitFull": 70809403
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

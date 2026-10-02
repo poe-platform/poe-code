@@ -343,7 +343,12 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
       const recipes = [];
       // One canonical relative runtime owns command/value brands across entrypoints.
       // Keep it out of independently built browser and opt-in command bundles.
-      const canonical = Object.keys(source.poeCode?.integration?.privateWorkspaces ?? {});
+      const canonical = [...new Set([
+        ...Object.keys(source.poeCode?.integration?.privateWorkspaces ?? {}),
+        // Public companion entries and commands must use the same runtime.
+        // Inlining a companion into a command duplicates its engine and state.
+        ...companions.filter(({ pkg }) => Object.hasOwn(source.devDependencies ?? {}, pkg.name)).map(({ pkg }) => pkg.name),
+      ])];
       for (const specifier of Object.keys(alias)) {
         if (canonical.some(name => specifier === name || specifier.startsWith(name + "/"))) delete alias[specifier];
       }

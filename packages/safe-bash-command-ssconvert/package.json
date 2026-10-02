@@ -122,6 +122,9 @@
     "jpeg-js": "0.4.4"
   },
   "poeCode": {
+    "bundle": {
+      "prebuilt": true
+    },
     "safeLibraryExports": {
       "safe-bash": {
         "./ssconvert/commands": "./commands"

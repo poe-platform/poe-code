@@ -139,8 +139,21 @@ it("omits orphaned on-disk browser chunks and wasm from safe-bash when core.brow
   expect(volume.existsSync("/output/safe-bash/dist/safe-bash/core.browser.js")).toBe(true);
 });
 
-it("keeps canonical command functions external in the actual scoped browser recipe", async () => {
-  const { options } = optionalLeftovers();
+it.each(["contract", "companion"])("keeps canonical %s functions external in the actual scoped browser recipe", async kind => {
+  const { volume, options } = optionalLeftovers();
+  const specifier = kind === "contract" ? "safe-bash-contracts/command" : "@poe-code/spreadsheet-engine";
+  const binding = kind === "contract" ? "getCommandArguments" : "createEngine";
+  if (kind === "companion") {
+    const directory = "/repo/packages/spreadsheet-engine";
+    volume.mkdirSync(directory + "/dist", { recursive: true });
+    volume.writeFileSync(directory + "/package.json", JSON.stringify({
+      name: specifier, private: true, type: "module",
+      exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } },
+      poeCode: { safeLibraryExports: { "safe-bash": { "./ssconvert/core": "." } } },
+    }));
+    volume.writeFileSync(directory + "/dist/index.js", "export function createEngine() {}\n");
+    volume.writeFileSync(directory + "/dist/index.d.ts", "export declare function createEngine(): void;\n");
+  }
   let browser: BuildOptions | undefined;
   await packageSafeLibraries({ ...options, outDir: "/output", bundle: async (recipe: BuildOptions) => {
     if (Object.hasOwn(recipe.entryPoints ?? {}, "core.browser")) browser = recipe;
@@ -152,22 +165,24 @@ it("keeps canonical command functions external in the actual scoped browser reci
     alias: Object.fromEntries(Object.entries(browser!.alias ?? {}).map(([name, target]) => [name, target.replace("/repo/", repository)])),
     inject: browser!.inject?.map(filename => filename.replace("/repo/", repository)),
     entryPoints: undefined, splitting: false, sourcemap: false,
-    stdin: { contents: 'export { getCommandArguments } from "safe-bash-contracts/command";', resolveDir: repository },
+    stdin: { contents: `export { ${binding} } from ${JSON.stringify(specifier)};`, resolveDir: repository },
   });
+  expect(Object.values(artifact.metafile!.outputs).flatMap(output => output.imports))
+    .toContainEqual({ path: specifier, kind: "import-statement", external: true });
   const consumer = await build({ stdin: { contents: artifact.outputFiles[0]!.text, resolveDir: repository },
     bundle: true, write: false, platform: "browser", format: "cjs",
     plugins: [{ name: "canonical-runtime", setup(builder) {
       builder.onResolve({ filter: /^@poe-platform\/safe-fs\/core$/ }, () => ({ path: "fs", namespace: "canonical" }));
-      builder.onResolve({ filter: /^safe-bash-contracts\/command$/ }, () => ({ path: "command", namespace: "canonical" }));
+      builder.onResolve({ filter: /^(safe-bash-contracts\/command|@poe-code\/spreadsheet-engine)$/ }, () => ({ path: "command", namespace: "canonical" }));
       builder.onLoad({ filter: /.*/, namespace: "canonical" }, args => ({ contents: args.path === "fs"
         ? "export class FsError extends Error {} export const posixPath = {};"
-        : "export const getCommandArguments = globalThis.canonicalArguments;" }));
+        : `export const ${binding} = globalThis.canonicalArguments;` }));
     } }],
   });
   const canonicalArguments = () => undefined;
   const realm = createContext({ canonicalArguments, TextEncoder, TextDecoder, module: { exports: {} } });
   runInContext(consumer.outputFiles[0]!.text, realm);
-  expect(realm.module.exports.getCommandArguments).toBe(canonicalArguments);
+  expect(realm.module.exports[binding]).toBe(canonicalArguments);
 });
 it.each(["workspace", "root", "undeclared-root"])("admits only declared portable ffmpeg %s contract edges", async runtime => {
   const { volume, options } = optionalLeftovers();

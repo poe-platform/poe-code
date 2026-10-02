@@ -1,3 +1,4 @@
+import "./safe-packages-grep.mjs";
 import "./safe-packages-awk.mjs";
 import "./safe-packages-sed-legacy.mjs";
 import "./safe-packages-jq.mjs";

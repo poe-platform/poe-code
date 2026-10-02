@@ -2,7 +2,7 @@ import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts"
 import { RegexExecutor, type RegexExecutionOptions } from "safe-bash-regex-engine/execution/portable";
 import { createBoundedRegexProvider } from "safe-bash-regex-engine/execution/bounded-provider";
 import type { BoundedRegexProvider } from "safe-bash-regex-engine/execution/provider";
-import { createGrepCommands as createSearchCommands, type GrepLimits } from "safe-bash-search-engine/grep";
+import { createGrepCommands as createSearchCommands, type GrepLimits } from "./grep.js";
 
 export interface GrepCommandsOptions extends RegexExecutionOptions, GrepLimits {
   readonly regexExecutor?: BoundedRegexProvider;
@@ -21,7 +21,7 @@ export function createGrepCommand(options: GrepCommandsOptions = {}): CommandDef
   })[0]!;
 }
 
-export type { GrepLimits } from "safe-bash-search-engine/grep";
+export type { GrepLimits } from "./grep.js";
 export function createGrepCommands(options: GrepCommandsOptions = {}): readonly CommandDefinition[] {
   return [createGrepCommand(options)];
 }

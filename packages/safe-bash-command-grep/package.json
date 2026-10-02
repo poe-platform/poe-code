@@ -18,6 +18,30 @@
       "workerd": "./dist/index.js",
       "browser": "./dist/index.js",
       "import": "./dist/index.js"
+    },
+    "./grep": {
+      "types": "./dist/grep.d.ts",
+      "workerd": "./dist/grep.js",
+      "browser": "./dist/grep.js",
+      "import": "./dist/grep.js"
+    },
+    "./grep-files": {
+      "types": "./dist/grep-files.d.ts",
+      "workerd": "./dist/grep-files.js",
+      "browser": "./dist/grep-files.js",
+      "import": "./dist/grep-files.js"
+    },
+    "./aliases": {
+      "types": "./dist/aliases.d.ts",
+      "workerd": "./dist/aliases.js",
+      "browser": "./dist/aliases.js",
+      "import": "./dist/aliases.js"
+    },
+    "./alias-options": {
+      "types": "./dist/alias-options.d.ts",
+      "workerd": "./dist/alias-options.js",
+      "browser": "./dist/alias-options.js",
+      "import": "./dist/alias-options.js"
     }
   },
   "files": [
@@ -35,6 +59,8 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "safe-bash-search-engine": "*",
-    "safe-bash-regex-engine": "*"
+    "safe-bash-regex-engine": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-io-engine": "*"
   }
 }

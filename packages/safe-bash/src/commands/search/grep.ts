@@ -1,1 +1,1 @@
-export * from "safe-bash-search-engine/grep";
+export * from "safe-bash-command-grep/grep";

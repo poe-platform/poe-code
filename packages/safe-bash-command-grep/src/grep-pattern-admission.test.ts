@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import test from "node:test";
-import { toByteSource, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { RegexExecutor } from "../../../src/commands/regex-execution/portable.js";
-import type { RegexWorkerRequest } from "../../../src/commands/regex-execution/provider.js";
-import { createGrepCommands, type GrepLimits } from "../../../src/commands/search/grep.js";
+import { toByteSource, type ByteSource, type CommandContext } from "safe-bash-contracts";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { RegexExecutor } from "safe-bash-regex-engine/execution/portable";
+import type { RegexWorkerRequest } from "safe-bash-regex-engine/execution/provider";
+import { createGrepCommands, type GrepLimits } from "./grep.js";
 
 const patternByteLimit = 32 * 1024 * 1024;
 

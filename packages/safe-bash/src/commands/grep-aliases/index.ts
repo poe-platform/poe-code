@@ -1,9 +1,9 @@
 import { registerDefaultExecutors } from "../internal.js";
 import type { CommandDefinition, VirtualShellPlugin } from "../../contracts/index.js";
 import { createGrepCommands } from "safe-bash-command-grep";
-import { createGrepAliases } from "safe-bash-io-engine/commands/grep-aliases/aliases";
-import type { GrepAliasOptions } from "safe-bash-search-engine/alias-options";
-export type { GrepAliasOptions } from "safe-bash-search-engine/alias-options";
+import { createGrepAliases } from "safe-bash-command-grep/aliases";
+import type { GrepAliasOptions } from "safe-bash-command-grep/alias-options";
+export type { GrepAliasOptions } from "safe-bash-command-grep/alias-options";
 export { createEgrepCommand as egrepCommand } from "../egrep/index.js";
 export { createFgrepCommand as fgrepCommand } from "../fgrep/index.js";
 export function createGrepAliasCommands(options: GrepAliasOptions = {}): readonly CommandDefinition[] {

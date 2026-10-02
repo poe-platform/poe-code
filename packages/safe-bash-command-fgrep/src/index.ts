@@ -1,7 +1,7 @@
 import type { CommandDefinition, VirtualShellPlugin } from "safe-bash-contracts";
 import { createGrepCommands } from "safe-bash-command-grep/index";
-import { alias } from "safe-bash-io-engine/commands/grep-aliases/aliases";
-import type { GrepAliasOptions } from "safe-bash-search-engine/alias-options";
+import { alias } from "safe-bash-command-grep/aliases";
+import type { GrepAliasOptions } from "safe-bash-command-grep/alias-options";
 export type FgrepCommandsOptions = GrepAliasOptions;
 export interface FgrepLimits { readonly maxPatternBytes: number; }
 export function createFgrepCommand(options: FgrepCommandsOptions = {}): CommandDefinition { return alias("fgrep", createGrepCommands({ ...options.regex, ...(options.regexExecutor === undefined ? {} : { regexExecutor: options.regexExecutor }) })[0]!); }

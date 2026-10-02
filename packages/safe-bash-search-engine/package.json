@@ -11,10 +11,6 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./alias-options": {
-      "types": "./dist/alias-options.d.ts",
-      "import": "./dist/alias-options.js"
-    },
     "./ergonomic-regex": {
       "types": "./dist/ergonomic-regex.d.ts",
       "import": "./dist/ergonomic-regex.js"
@@ -26,14 +22,6 @@
     "./glob": {
       "types": "./dist/glob.d.ts",
       "import": "./dist/glob.js"
-    },
-    "./grep-files": {
-      "types": "./dist/grep-files.d.ts",
-      "import": "./dist/grep-files.js"
-    },
-    "./grep": {
-      "types": "./dist/grep.d.ts",
-      "import": "./dist/grep.js"
     },
     "./index": {
       "types": "./dist/index.d.ts",

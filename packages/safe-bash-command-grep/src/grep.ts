@@ -11,8 +11,8 @@ import { builtInDirectContextExecutors, RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN
 import { RecordBuffer } from "safe-bash-io-engine/record-buffer";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "safe-bash-regex-engine/execution/portable";
 import { inProcessRegexProviders, trustedInputRows, type GrepDescriptor } from "safe-bash-regex-engine/execution/protocol";
-import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-regex.js";
-import { SearchError } from "./options.js";
+import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "safe-bash-search-engine/ergonomic-regex";
+import { SearchError } from "safe-bash-search-engine/options";
 import { grepRequirements, requiredFileInput } from "safe-bash-io-engine/commands/search/requirements";
 import { grepFiles } from "./grep-files.js";
 

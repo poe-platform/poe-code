@@ -67,9 +67,7 @@
           "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "safe-bash-search-engine": "*",
-            "safe-bash-command-grep": "*",
-            "safe-bash-io-engine": "*"
+            "safe-bash-command-grep": "*"
           },
           "portable": true
         },
@@ -178,9 +176,7 @@
           "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "safe-bash-search-engine": "*",
-            "safe-bash-command-grep": "*",
-            "safe-bash-io-engine": "*"
+            "safe-bash-command-grep": "*"
           },
           "portable": true
         },
@@ -1261,7 +1257,9 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "safe-bash-search-engine": "*",
-            "safe-bash-regex-engine": "*"
+            "safe-bash-regex-engine": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
           },
           "portable": true
         },

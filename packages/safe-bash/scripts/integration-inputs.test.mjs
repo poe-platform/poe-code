@@ -3110,7 +3110,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/regex-execution/reply-admission.test.ts"));
   assert.ok(files.includes("tests/commands/regex-execution/worker-range-admission.test.ts"));
   assert.ok(files.includes("tests/commands/search/capability-requirements.test.ts"));
-  assert.ok(files.includes("tests/commands/search/grep-pattern-admission.test.ts"));
+  assert.ok(!files.includes("tests/commands/search/grep-pattern-admission.test.ts"));
+  assert.ok(fs.existsSync(resolve(root, "../safe-bash-command-grep/src/grep-pattern-admission.test.ts")));
   assert.ok(files.includes("tests/commands/search/grep-context.test.ts"));
   assert.ok(files.includes("tests/commands/search/grep-options.test.ts"));
   assert.ok(files.includes("tests/commands/xan-select-expression.test.ts"));

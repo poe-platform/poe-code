@@ -73,3 +73,22 @@ test('awk legacy modules forward to the private owner without a return dependenc
     assert.equal(statement.moduleSpecifier.text, `${name}/${entry.slice(0, -3)}`);
   }
 });
+
+
+test('grep owns matching, file selection and aliases above an independent search leaf', () => {
+  const owner = 'safe-bash-command-grep';
+  const pkg = json(`packages/${owner}/package.json`);
+  assert.equal(pkg.private, true);
+  for (const entry of ['grep', 'grep-files', 'aliases', 'alias-options']) {
+    const source = readFileSync(new URL(`../packages/${owner}/src/${entry}.ts`, import.meta.url), 'utf8');
+    assert.ok(source.length > 100, `${entry} must own its implementation`);
+  }
+  for (const name of ['safe-bash-search-engine', 'safe-bash-command-rg', 'safe-bash-io-engine']) {
+    const manifest = json(`packages/${name}/package.json`);
+    assert.ok(!manifest.devDependencies[owner], `${name} must not depend on grep`);
+  }
+  for (const entry of ['grep', 'grep-files']) {
+    const source = readFileSync(new URL(`../packages/safe-bash/src/commands/search/${entry}.ts`, import.meta.url), 'utf8');
+    assert.equal(source.trim(), `export * from "${owner}/${entry}";`);
+  }
+});

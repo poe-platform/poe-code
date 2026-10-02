@@ -31,10 +31,6 @@
       "types": "./dist/commands/filesystem-requirements.d.ts",
       "import": "./dist/commands/filesystem-requirements.js"
     },
-    "./commands/grep-aliases/aliases": {
-      "types": "./dist/commands/grep-aliases/aliases.d.ts",
-      "import": "./dist/commands/grep-aliases/aliases.js"
-    },
     "./commands/readlink-missing": {
       "types": "./dist/commands/readlink-missing.d.ts",
       "import": "./dist/commands/readlink-missing.js"

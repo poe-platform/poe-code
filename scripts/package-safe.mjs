@@ -437,6 +437,7 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
         const exported = pkg.exports?.[entry];
         if (!exported || typeof exported.import !== 'string' || !exported.types) throw new Error('Missing companion entry: ' + entry);
         const companionTarget = target => {
+          if (target === null) return null;
           if (target && typeof target === 'object' && !Array.isArray(target)) return Object.fromEntries(Object.entries(target).map(([condition, value]) => [condition, companionTarget(value)]));
           if (typeof target !== 'string' || !target.startsWith('./dist/') || target.split('/').includes('..') || target.includes('*')) throw new Error('Invalid companion entry target: ' + target);
           return enqueueExport('./packages/' + dir + '/' + target.slice(2));

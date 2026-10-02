@@ -161,7 +161,7 @@ it.each(["workspace", "root", "undeclared-root"])("admits only declared portable
   }
   await packageSafeLibraries({ ...options, outDir: "/output" });
   const read = (file: string) => volume.readFileSync("/output/safe-bash/" + file, "utf8");
-  expect(JSON.parse(read("package.json")).exports["./commands/ffmpeg"]).toEqual({ types: "./dist/safe-bash/commands/ffmpeg/index.d.ts", import: "./dist/safe-bash/commands/ffmpeg/index.js" });
+  expect(JSON.parse(read("package.json")).exports["./commands/ffmpeg"]).toEqual({ types: "./dist/safe-bash/commands/ffmpeg/index.d.ts", workerd: "./dist/safe-bash/commands/ffmpeg/index.js", browser: "./dist/safe-bash/commands/ffmpeg/index.js", import: "./dist/safe-bash/commands/ffmpeg/index.js" });
   for (const suffix of ["js", "d.ts"]) {
     expect(read(`dist/safe-bash/commands/ffmpeg/index.${suffix}`)).toContain('"../../../safe-bash-command-ffmpeg/index.js"');
     expect(read(`dist/${name}/index.${suffix}`)).toContain('"../safe-bash-contracts/command.js"');
@@ -484,7 +484,7 @@ it("ships the ExifTool implementation and declarations without an unpublished de
   const name = "safe-bash-command-exiftool";
   const manifest = structuredClone(bashManifest);
   manifest.poeCode.integration.privateWorkspaces = {
-    [name]: { version: "0.0.1", dependencies: {}, devDependencies: { "safe-bash-contracts": "*", "@poe-code/safe-fs": "*" }, assets: ["./dist/profile.bin"] },
+    [name]: { version: "0.0.1", portable: true, dependencies: {}, devDependencies: { "safe-bash-contracts": "*", "@poe-code/safe-fs": "*" }, assets: ["./dist/profile.bin"] },
   };
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
   const commandManifest = JSON.parse(readFileSync(new URL("../packages/safe-bash-command-exiftool/package.json", import.meta.url), "utf8"));
@@ -507,7 +507,7 @@ it("ships the ExifTool implementation and declarations without an unpublished de
   expect(shipped.dependencies).toEqual({});
   expect(read("dist/" + name + "/LICENSE")).toBe("Original first-party implementation\n");
   expect(volume.readFileSync("/output/safe-bash/dist/" + name + "/profile.bin")).toEqual(Buffer.from([0, 255, 254]));
-  expect(shipped.exports["./commands/exiftool"]).toEqual({ types: "./dist/safe-bash/commands/exiftool/index.d.ts", import: "./dist/safe-bash/commands/exiftool/index.js" });
+  expect(shipped.exports["./commands/exiftool"]).toEqual({ types: "./dist/safe-bash/commands/exiftool/index.d.ts", workerd: "./dist/safe-bash/commands/exiftool/index.js", browser: "./dist/safe-bash/commands/exiftool/index.js", import: "./dist/safe-bash/commands/exiftool/index.js" });
   expect(read("dist/safe-bash/commands/exiftool/index.js")).toContain('"../../../safe-bash-command-exiftool/index.js"');
   expect(read("dist/safe-bash/commands/exiftool/index.d.ts")).toContain('"../../../safe-bash-command-exiftool/index.js"');
   const consumer = await import("data:text/javascript;base64," + Buffer.from(read("dist/safe-bash-command-exiftool/scalar.js")).toString("base64"));
@@ -521,7 +521,7 @@ it("ships the ExifTool implementation and declarations without an unpublished de
   const name = "safe-bash-command-exiftool";
   const manifest = structuredClone(bashManifest);
   manifest.poeCode.integration.privateWorkspaces = {
-    [name]: { version: "0.0.1", dependencies: {}, devDependencies: { "safe-bash-contracts": "*", "@poe-code/safe-fs": "*" } },
+    [name]: { version: "0.0.1", portable: true, dependencies: {}, devDependencies: { "safe-bash-contracts": "*", "@poe-code/safe-fs": "*" } },
   };
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
   volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
@@ -538,6 +538,8 @@ it("ships the ExifTool implementation and declarations without an unpublished de
     { module: ts.ModuleKind.ES2022, target: ts.ScriptTarget.ES2022 },
   ));
   for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/exiftool/index.${suffix}`, `export * from "${name}";`);
+  volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-bash/browser/buffer.mjs", "export {};\n");
   const bundle = async (settings: BuildOptions) => {
     if (settings.outdir !== "/repo/packages") return options.bundle(settings);
     return build({ ...settings, plugins: [{ name: "private-build-inputs", setup(builder) {
@@ -893,7 +895,7 @@ it.each([["wkhtmltopdf", "index"], ["xz", "index"], ["pandoc", "index"]])("packs
   const commandSpecifier = commandName + (entry === "index" ? "" : "/" + entry);
   const commandManifest = JSON.parse(readFileSync(new URL(`../packages/${commandName}/package.json`, import.meta.url), "utf8"));
   expect(commandManifest.private).toBe(true);
-  expect(commandManifest.exports[entry === "index" ? "." : "./" + entry]).toEqual({ types: `./dist/${entry}.d.ts`, import: `./dist/${entry}.js` });
+  expect(commandManifest.exports[entry === "index" ? "." : "./" + entry]).toEqual({ types: `./dist/${entry}.d.ts`, workerd: `./dist/${entry}.js`, browser: `./dist/${entry}.js`, import: `./dist/${entry}.js` });
   expect(bashManifest.poeCode.integration.privateWorkspaces[commandName]).toBeDefined();
   const facade = ts.createSourceFile("index.ts", readFileSync(new URL(`../packages/safe-bash/src/commands/${command}/index.ts`, import.meta.url), "utf8"), ts.ScriptTarget.Latest, true);
   expect(facade.statements.some(statement => (ts.isExportDeclaration(statement) || ts.isImportDeclaration(statement))
@@ -934,10 +936,8 @@ it.each([["wkhtmltopdf", "index"], ["xz", "index"], ["pandoc", "index"]])("packs
   expect(shipped.dependencies).toEqual({});
   expect(shipped.exports[`./commands/${command}`]).toEqual({
     types: `./dist/safe-bash/commands/${command}/index.d.ts`,
-    ...(command === "pandoc" ? {
-      workerd: `./dist/safe-bash/commands/${command}/index.browser.js`,
-      browser: `./dist/safe-bash/commands/${command}/index.browser.js`,
-    } : {}),
+    workerd: `./dist/safe-bash/commands/${command}/${command === "pandoc" ? "index.browser" : "index"}.js`,
+    browser: `./dist/safe-bash/commands/${command}/${command === "pandoc" ? "index.browser" : "index"}.js`,
     import: `./dist/safe-bash/commands/${command}/index.js`,
   });
   volume.writeFileSync(`/repo/packages/${commandName}/package.json`, JSON.stringify({
@@ -1208,7 +1208,7 @@ it('preserves companion conditional types and internal platform imports', async 
   volume.writeFileSync(directory + '/package.json', JSON.stringify({
     name: 'image-companion', private: true, type: 'module',
     imports: { '#image-streams': { types, workerd: './dist/web.js', browser: './dist/web.js', default: './dist/node.js' } },
-    exports: { '.': { types, workerd: './dist/web.js', browser: './dist/web.js', import: './dist/node.js' } },
+    exports: { '.': { types, workerd: './dist/web.js', browser: null, import: './dist/node.js' } },
     poeCode: { safeLibraryExports: { 'safe-bash': { './sharp': '.' } } },
   }));
   for (const profile of ['node', 'web']) {
@@ -1221,6 +1221,8 @@ it('preserves companion conditional types and internal platform imports', async 
   expect(manifest.imports['#image-streams'].browser).toBe('./dist/image-companion/web.js');
   expect(manifest.imports['#image-streams'].types.default).toBe('./dist/image-companion/node.d.ts');
   expect(volume.readFileSync('/output/safe-bash/dist/image-companion/web.js', 'utf8').toString()).toContain('"web"');
+  expect(manifest.exports['./sharp'].browser).toBeNull();
+  expect(manifest.exports['./sharp'].workerd).toBe('./dist/image-companion/web.js');
 });
 
 it('refuses companion private imports outside their built distribution', async () => {

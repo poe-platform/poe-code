@@ -4642,6 +4642,19 @@
       },
       "referenceCorrection": "Standalone Gnumeric numeric calls before gnm_init produce invalid oscillatory references because GOffice nonfinite constants are not initialized. Those captures were superseded by actual ssconvert output. Empty-sheet extraction is not accepted: the boundary collector asserts all 264 formula/value pairs across populated worksheets.",
       "remaining": "The entire 912-formula corpus now produces 904 results with 30 numerical mismatches and 8 budget failures. The repaired domains match, but remaining series paths and broader qualification are open. The independent boundary matrix retains 12 small-series differences. All 19 families remain open; no release claim."
+    },
+    "besselIntegerTrig": {
+      "profile": "Authenticated full Gnumeric 1.12.61 / GOffice 0.10.61 application, Debian arm64; same source identities as besselTransition.",
+      "implementation": "Integer Bessel base functions use the existing captured sine/cosine profile, including cancellation recovery at twice the argument.",
+      "reproducer": "BESSELJ(9.99613777740196,1) and BESSELY(9.99613777740196,1) both failed exact native regressions with host Math trigonometry; both pass after repair.",
+      "qualification": {
+        "integerNativeMatchesPerRoute": 514,
+        "baselineNativeMatchesPerRoute": 206,
+        "baselineWarningsPerRoute": 200,
+        "focusedTests": 34,
+        "checks": "Engine lint/source/test types; maintained selected 18-build closure; actual compiled SDK and runCommand XLSX; independent count/formula-identity/binary64 checks. Integer holdouts use a fixed random seed and orders 0,1,2,3,5,10,20,50,100."
+      },
+      "remaining": "The bounded 912-case corpus produces 904 values with 28 numerical differences and 8 budget failures. Fractional series, wider profile qualification and all 19 families remain open. No release claim."
     }
   },
   "history": {

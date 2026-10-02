@@ -123,10 +123,10 @@ export function capturedBesselBase(x: number, order: 0 | 1, secondKind: boolean,
     if (order === 1) return fusedMultiplyAdd(x, .5, numerator * x / denominator);
     return x < 1 ? fusedMultiplyAdd(z, -.25 + numerator / denominator, 1) : fusedMultiplyAdd(z, numerator / denominator, (1 + .5 * x) * (1 - .5 * x));
   }
-  const s = Math.sin(x), c = Math.cos(x);
+  const s = capturedTrig(x, false), c = capturedTrig(x, true);
   let ss = order === 0 ? s - c : -s - c, cc = order === 0 ? s + c : s - c;
   if (x < 2 ** 1023) {
-    const doubleCos = (order === 0 ? -1 : 1) * Math.cos(x + x);
+    const doubleCos = (order === 0 ? -1 : 1) * capturedTrig(x + x, true);
     if (order === 0 ? s * c < 0 : s * c > 0) cc = doubleCos / ss;
     else ss = doubleCos / cc;
   }

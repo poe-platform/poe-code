@@ -39,7 +39,7 @@ test("each command subpath resolves and executes in workerd without Node compati
   const core = path.join(root, "packages/safe-fs/src/core.ts");
   entryPoints.filesystem = core;
   const result = await build({ ...recipe, entryPoints, sourcemap: false, external: [], alias: {
-    ...recipe.alias, "@poe-code/safe-fs/core": core, "@poe-code/safe-fs": core,
+    ...recipe.alias, "@poe-code/safe-fs/runtime-core": core, "@poe-code/safe-fs/core": core, "@poe-code/safe-fs": core,
     "poe-code/safe-fs/core": core, "poe-code/safe-fs": core,
     "@poe-code/xml-ast": path.join(root, "packages/xml-ast/src/index.ts"),
   } });
@@ -71,6 +71,7 @@ test("each command subpath resolves and executes in workerd without Node compati
           stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
           stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         });
+        if (result.exitCode !== 0) throw new Error(command.name + ": " + stderr);
         let fileEffect;
         if (command.name === "chmod") fileEffect = (await fs.stat("/input")).mode & 0o777;
         if (command.name === "split") fileEffect = new TextDecoder().decode(await fs.readFile("/partaa"));
@@ -88,7 +89,7 @@ test("each command subpath resolves and executes in workerd without Node compati
   try {
     for (let invocation = 0; invocation < 2; invocation++) {
       const response = await runtime.dispatchFetch("http://localhost/");
-      expect(response.status).toBe(200);
+      expect(response.status, await response.clone().text()).toBe(200);
       const results = await response.json() as { name: string; exitCode: number; stdout: string; stderr: string; fileEffect?: unknown }[];
       expect(results.length).toBeGreaterThanOrEqual(Object.keys(families).length);
       for (const result of results) {

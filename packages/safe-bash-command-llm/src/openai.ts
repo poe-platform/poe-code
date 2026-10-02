@@ -1,3 +1,4 @@
+import { embeddingJson } from "./embedding-json.js";
 import { openAiUsage } from "./openai-usage.js";
 import { requestAttachments } from "./request-attachments.js";
 export { chatJson as serializeOpenAiChatRequest, type OpenAiChatSourceRequest } from "./chat-json.js";
@@ -5,7 +6,7 @@ import { openAiChatOptions } from "./openai-chat-options.js";
 import { chatJson } from "./chat-json.js";
 import { parseLlmNumericOption } from "./numeric-option.js";
 import type { HttpRequest, HttpTransport } from "safe-bash-contracts/http";
-import type { LlmModel, LlmProvider, LlmRequest, LlmResponseMetadata, LlmOption } from "./types.js";
+import type { LlmEmbeddingRequest, LlmEmbeddingSourceRequest, LlmEmbeddingResponse, LlmModel, LlmProvider, LlmRequest, LlmResponseMetadata, LlmOption } from "./types.js";
 import { openAiBytes, openAiError, openAiJson, openAiRecord, openAiResponse } from "./openai-http.js";
 import { openAiChat } from "./openai-sse.js";
 import { acceptsMimeType } from "./mime.js";
@@ -155,38 +156,39 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
     if (model.endpoint === "chat" && model.outputType !== undefined && !acceptsMimeType(["text/*"], model.outputType)) throw new TypeError("Chat models require a text outputType");
     byId.set(model.id, model);
   }
+  async function embed(request: LlmEmbeddingRequest | LlmEmbeddingSourceRequest): Promise<LlmEmbeddingResponse> {
+    request.signal.throwIfAborted();
+    const model = byId.get(request.model);
+    if (!model || model.endpoint !== "embeddings") throw new Error(`Model ${request.model} does not support embeddings`);
+    const values: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(request.options)) {
+      if (key === "dimensions") {
+        const number = parseLlmNumericOption(value, "integer");
+        if (number === undefined || !Number.isSafeInteger(number) || number < 1) throw new TypeError("Invalid OpenAI dimensions: expected a positive integer");
+        values[key] = number;
+      } else if (key === "user" && typeof value === "string") values[key] = value;
+      else throw new TypeError(`Unsupported OpenAI embedding option: ${key}`);
+    }
+    for await (const response of openAiResponse(transport, {
+      url: `${baseUrl}/embeddings`, method: "POST", signal: request.signal,
+      body: embeddingJson(request, values, limits.maxRequestBytes),
+      headers: [["authorization", `Bearer ${request.key ? credential(request.key) : apiKey}`], ["content-type", "application/json"]],
+    }, limits.maxResponseBytes)) {
+      const body = await openAiJson(response, request.signal, limits.maxResponseBytes);
+      if (!Array.isArray(body.data) || body.data.length !== request.inputs.length) throw new TypeError("Invalid OpenAI embedding response");
+      const vectors: number[][] = new Array(request.inputs.length);
+      for (const item of body.data) {
+        if (!openAiRecord(item) || !Number.isSafeInteger(item.index) || (item.index as number) < 0 || (item.index as number) >= vectors.length || vectors[item.index as number] !== undefined || !Array.isArray(item.embedding) || !item.embedding.length || item.embedding.some(value => typeof value !== "number" || !Number.isFinite(value))) throw new TypeError("Invalid OpenAI embedding response");
+        vectors[item.index as number] = item.embedding as number[];
+      }
+      if (vectors.some(vector => vector.length !== vectors[0]?.length)) throw new TypeError("Invalid OpenAI embedding dimensions");
+      return { model: request.model, vectors, ...(openAiRecord(body.usage) ? { usage: openAiUsage(body.usage) } : {}) };
+    }
+    throw new Error("OpenAI returned no embedding response");
+  }
   return {
     name: "openai", models: Object.freeze(configured),
-    async embed(request) {
-      request.signal.throwIfAborted();
-      const model = byId.get(request.model);
-      if (!model || model.endpoint !== "embeddings") throw new Error(`Model ${request.model} does not support embeddings`);
-      const values: Record<string, unknown> = {};
-      for (const [key, value] of Object.entries(request.options)) {
-        if (key === "dimensions") {
-          const number = parseLlmNumericOption(value, "integer");
-          if (number === undefined || !Number.isSafeInteger(number) || number < 1) throw new TypeError("Invalid OpenAI dimensions: expected a positive integer");
-          values[key] = number;
-        } else if (key === "user" && typeof value === "string") values[key] = value;
-        else throw new TypeError(`Unsupported OpenAI embedding option: ${key}`);
-      }
-      for await (const response of openAiResponse(transport, {
-        url: `${baseUrl}/embeddings`, method: "POST", signal: request.signal,
-        ...jsonBody({ ...values, model: request.model, input: request.inputs }, limits.maxRequestBytes),
-        headers: [["authorization", `Bearer ${request.key ? credential(request.key) : apiKey}`], ["content-type", "application/json"]],
-      }, limits.maxResponseBytes)) {
-        const body = await openAiJson(response, request.signal, limits.maxResponseBytes);
-        if (!Array.isArray(body.data) || body.data.length !== request.inputs.length) throw new TypeError("Invalid OpenAI embedding response");
-        const vectors: number[][] = new Array(request.inputs.length);
-        for (const item of body.data) {
-          if (!openAiRecord(item) || !Number.isSafeInteger(item.index) || (item.index as number) < 0 || (item.index as number) >= vectors.length || vectors[item.index as number] !== undefined || !Array.isArray(item.embedding) || !item.embedding.length || item.embedding.some(value => typeof value !== "number" || !Number.isFinite(value))) throw new TypeError("Invalid OpenAI embedding response");
-          vectors[item.index as number] = item.embedding as number[];
-        }
-        if (vectors.some(vector => vector.length !== vectors[0]?.length)) throw new TypeError("Invalid OpenAI embedding dimensions");
-        return { model: request.model, vectors, ...(openAiRecord(body.usage) ? { usage: openAiUsage(body.usage) } : {}) };
-      }
-      throw new Error("OpenAI returned no embedding response");
-    },
+    embed, embedSources: embed,
     async *completeSources(request) {
       request.signal.throwIfAborted();
       const model = byId.get(request.model);

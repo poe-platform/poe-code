@@ -2,7 +2,7 @@ import { requestAttachments } from "./request-attachments.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { validateModelOptions } from "./model-options.js";
 import { acceptsMimeType } from "./mime.js";
-import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingResponse, LlmOption, LlmResponseMetadata, LlmSourceRequest, LlmInputSource } from "./types.js";
+import type { LlmModel, LlmProvider, LlmRequest, LlmEmbeddingRequest, LlmEmbeddingSourceRequest, LlmEmbeddingResponse, LlmOption, LlmResponseMetadata, LlmSourceRequest, LlmInputSource } from "./types.js";
 
 export interface LlmServiceOptions {
   readonly providers: readonly LlmProvider[];
@@ -134,6 +134,11 @@ async function* streamResult(completion: () => AsyncIterable<string | Uint8Array
       }
 }
 
+function validateEmbeddingResponse(result: LlmEmbeddingResponse, model: string, count: number): void {
+  if (!result || result.model !== model || !Array.isArray(result.vectors) || result.vectors.length !== count || Array.from(result.vectors).some(vector => !Array.isArray(vector) || !vector.length || Array.from(vector).some(value => typeof value !== "number" || !Number.isFinite(value)) || vector.length !== result.vectors[0]?.length)) throw new TypeError("Invalid embedding response");
+  validateMetadata(result);
+}
+
 /** Structured host API shared by shell and other language front ends. */
 export interface LlmService {
   readonly version: 1;
@@ -142,6 +147,7 @@ export interface LlmService {
   complete(request: LlmServiceRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>;
   stream(request: LlmServiceRequest): AsyncIterable<LlmStreamEvent>;
   streamSources?(request: LlmServiceSourceRequest): AsyncIterable<LlmStreamEvent>;
+  embedSources?(request: Omit<LlmEmbeddingSourceRequest, "model"> & { readonly model?: string }): Promise<LlmEmbeddingResponse>;
   embed(request: Omit<LlmEmbeddingRequest, "model"> & { readonly model?: string }): Promise<LlmEmbeddingResponse>;
 }
 
@@ -233,6 +239,33 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
         await close().catch(error => { if (!failed) throw error; });
       }
     },
+    async embedSources(request: Omit<LlmEmbeddingSourceRequest, "model"> & { readonly model?: string }): Promise<LlmEmbeddingResponse> {
+      const sources = new Set(request.inputs);
+      let closing: Promise<void> | undefined, failed = false;
+      const close = (): Promise<void> => closing ??= Promise.allSettled([...sources].map(source => Promise.resolve().then(() => source.dispose()))).then(results => {
+        const rejected = results.find(result => result.status === "rejected");
+        if (rejected?.status === "rejected") throw rejected.reason;
+      });
+      const abort = (): void => { void close().catch(() => undefined); };
+      request.signal.addEventListener("abort", abort, { once: true });
+      try {
+        request.signal.throwIfAborted();
+        validateOptions(request.options);
+        const entry = this.resolve(request.model);
+        if (!entry.model.capabilities?.includes("embed") || !entry.provider.embedSources) throw new Error(`Model ${entry.model.id} does not support streamed embeddings`);
+        if (!Array.isArray(request.inputs) || [...sources].some(source => !source || typeof source.dispose !== "function" || typeof source.bytes?.[Symbol.asyncIterator] !== "function")) throw new TypeError("Invalid embedding input source");
+        const result = await abortable(() => entry.provider.embedSources!({ ...request, model: entry.model.id, options: validateModelOptions(entry.model, request.options) }), request.signal);
+        request.signal.throwIfAborted();
+        validateEmbeddingResponse(result, entry.model.id, request.inputs.length);
+        return result;
+      } catch (error) {
+        failed = true;
+        throw request.signal.aborted ? request.signal.reason : error;
+      } finally {
+        request.signal.removeEventListener("abort", abort);
+        await close().catch(error => { if (!failed) throw error; });
+      }
+    },
     async embed(request: Omit<LlmEmbeddingRequest, "model"> & { readonly model?: string }): Promise<LlmEmbeddingResponse> {
       request.signal.throwIfAborted();
       validateOptions(request.options);
@@ -242,8 +275,7 @@ export function createLlmService(options: LlmServiceOptions): LlmService {
       const embed = entry.provider.embed.bind(entry.provider);
       const result = await abortable(() => embed({ ...request, model: entry.model.id, options: validateModelOptions(entry.model, request.options) }), request.signal);
       request.signal.throwIfAborted();
-      if (result.model !== entry.model.id || !Array.isArray(result.vectors) || result.vectors.length !== request.inputs.length || Array.from(result.vectors).some(vector => !Array.isArray(vector) || !vector.length || Array.from(vector).some(value => typeof value !== "number" || !Number.isFinite(value)) || vector.length !== result.vectors[0]?.length)) throw new TypeError("Invalid embedding response");
-      validateMetadata(result);
+      validateEmbeddingResponse(result, entry.model.id, request.inputs.length);
       return result;
     },
   });

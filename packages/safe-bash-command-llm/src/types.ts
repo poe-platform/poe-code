@@ -13,6 +13,7 @@ export interface LlmProvider {
   complete(request: LlmRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>;
   completeSources?(request: LlmSourceRequest): AsyncIterable<string | Uint8Array, LlmResponseMetadata | void>;
   embed?(request: LlmEmbeddingRequest): Promise<LlmEmbeddingResponse>;
+  embedSources?(request: LlmEmbeddingSourceRequest): Promise<LlmEmbeddingResponse>;
 }
 export interface LlmModelOption {
   readonly description?: string;
@@ -37,6 +38,10 @@ export interface LlmEmbeddingRequest {
   readonly options: Readonly<Record<string, LlmOption>>;
   readonly signal: AbortSignal;
   readonly key?: string | undefined;
+}
+/** UTF-8 text inputs borrowed until the request settles; the service disposes each lease. */
+export interface LlmEmbeddingSourceRequest extends Omit<LlmEmbeddingRequest, "inputs"> {
+  readonly inputs: readonly LlmInputSource[];
 }
 export interface LlmEmbeddingResponse extends LlmResponseMetadata {
   readonly model: string;

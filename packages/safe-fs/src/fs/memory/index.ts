@@ -8,7 +8,7 @@ import type {
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { normalizePath, validatePath, pathByteLength } from "../../contracts/virtual-path.js";
-import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
+import { assertCallbackAuthorityAllowed, compareEntries } from "../mount/comparison.js";
 import type { EntryAuthority } from "../mount/comparison.js";
 import { getOwnedS3Entry } from "../s3/registry.js";
 import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
@@ -18,7 +18,6 @@ import { directoryAncestryPaths, runStagingGuard, snapshotDirectoryAncestry, sna
 import { compareIdentity } from "../mount/identity.js";
 import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
 import { resolveMissingTarget } from "./missing-target.js";
-import { registerMemoryAtomicView } from "./atomic-view.js";
 import { snapshotConditionalChmod } from "../conditional-chmod.js";
 import { MemoryAllocation, MemoryLedger } from "./ledger.js";
 import { normalizeMemoryFileSystemLimits, type MemoryFileSystemOptions } from "./limits.js";
@@ -527,7 +526,6 @@ class MemoryCache {
 const typeModes = { file: 0o100000, directory: 0o040000, symlink: 0o120000 } as const;
 const emptyResolveOptions: ResolveOptions = Object.freeze({});
 const noFollowResolveOptions: ResolveOptions = Object.freeze({ followFinal: false });
-const sharedMkdirResolveOptions: ResolveOptions = { createDirectories: 0o777 };
 const sharedAllowMissingNoFollowOptions: ResolveOptions = Object.freeze({ allowMissing: true, followFinal: false });
 const sharedFastLocation: Location = { node: undefined, parent: DUMMY_POOL_DIR_NODE, name: "", path: "" };
 const resolvedVoid = Promise.resolve();
@@ -614,7 +612,6 @@ const STREAM_DONE_RESULT: IteratorResult<Uint8Array> = Object.freeze({ done: tru
 const STREAM_RESOLVED_DONE: Promise<IteratorResult<Uint8Array>> = Promise.resolve(STREAM_DONE_RESULT);
 
 class MemoryReadStream implements ByteSource, AsyncIterableIterator<Uint8Array> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   declare readonly fs: any;
   declare readonly path: string;
   declare readonly options: ReadStreamOptions;
@@ -748,6 +745,14 @@ const SHARED_STOCK_MEMORY_CAPABILITIES: FileSystemCapabilities = Object.freeze({
   descriptorWriteStream: true,
 });
 
+function customMemoryCapabilities(filesystem: MemoryFileSystem): FileSystemCapabilities {
+  return Object.freeze({
+    ...SHARED_STOCK_MEMORY_CAPABILITIES,
+    get retainedResize() { return stockRetainedResize(filesystem); },
+    get descriptorWriteStream() { return stockDescriptorWrite(filesystem); },
+  });
+}
+
 export class MemoryFileSystem implements FileSystem {
   capabilitiesFor?: NonNullable<FileSystem["capabilitiesFor"]>;
   #customCapabilities: FileSystemCapabilities | undefined;
@@ -759,13 +764,7 @@ export class MemoryFileSystem implements FileSystem {
     if (stockRetainedResize(this) && stockDescriptorWrite(this)) {
       return SHARED_STOCK_MEMORY_CAPABILITIES;
     }
-    if (this.#customCapabilities) return this.#customCapabilities;
-    const filesystem = this;
-    return (this.#customCapabilities = Object.freeze({
-      ...SHARED_STOCK_MEMORY_CAPABILITIES,
-      get retainedResize() { return stockRetainedResize(filesystem); },
-      get descriptorWriteStream() { return stockDescriptorWrite(filesystem); },
-    }));
+    return this.#customCapabilities ??= customMemoryCapabilities(this);
   }
 
   private nextInode = 1;

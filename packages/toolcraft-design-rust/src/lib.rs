@@ -14,6 +14,7 @@ pub mod html;
 pub mod interaction;
 pub mod layout;
 pub mod logging;
+pub mod markdown_text;
 pub mod palette;
 pub mod plaintext;
 pub mod preview;

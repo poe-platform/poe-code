@@ -354,3 +354,7 @@ for native code tokenization, `showFrontmatter: true` to include metadata, or
 `allowRawHtml: true` to include raw HTML nodes. All three default to false.
 `HtmlRenderOptions` is a standalone root type. Markdown string parsing and
 `renderMarkdownHtml` remain unavailable; this is an AST renderer checkpoint.
+
+Internal Markdown text helpers also prepare terminal rendering with grapheme-safe
+word splitting, formatter-preserving wrapping, whitespace/break tokens and HTML
+tag stripping. The complete terminal Markdown renderer is not yet exposed.

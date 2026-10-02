@@ -746,6 +746,20 @@ unported parser/terminal entry points and is not claimed as routed. Full Markdow
 subpaths, highlighter exotic-input qualification, recursion/resource limits and
 interactive surfaces remain open.
 
+The terminal Markdown renderer's internal text prerequisites are now ported:
+whitespace/break tokenization, trailing-space trimming, grapheme word splitting,
+wrapping with formatter callbacks and HTML-tag stripping. Rust owns token ranges,
+wrapping decisions and state transitions; Node retains ICU, array methods,
+formatter receivers, numeric coercions and iterator cleanup. Differential tests
+load the original renderer's private functions with only import-specifier and
+export adjustments, rather than copying their implementations. All 157 native
+tests, the existing 237 routed reference tests, types and scoped lint pass.
+The inspected terminal screenshot confirms wrapping and nested styles; its font
+lacks the CJK/emoji sample glyphs, so Unicode boundaries are verified by the
+differential cases. The public terminal renderer is still unported. Text
+tokenization currently accepts primitive strings; exotic source objects and
+modified split/collection intrinsics remain an explicit qualification gap.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

@@ -524,6 +524,16 @@ values. Detail/inspector cards, their width/wrapping dependencies, interactive
 controls, terminal Markdown, CLI/transports and complete replacement qualification
 remain open.
 
+The internal `fast-string-width` replacement now runs scan order, block
+accumulation and unmatched-codepoint width policy in Rust. Node retains its
+Unicode RegExp tables, sticky matching, string operations, iterators and numeric
+coercions. No npm runtime dependency is added. Differential checks cover Unicode
+samples, emoji sequences, lone surrogates, ANSI/OSC, exact 1,000-unit block
+arithmetic, custom widths, nested scans, iterator closure and thrown identity.
+All 71 native and 168 reference tests, standalone declarations and package lint
+pass. This internal prerequisite is not wired into cards yet; `fast-wrap-ansi`,
+detail/inspector cards and the remaining replacement gates still require work.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

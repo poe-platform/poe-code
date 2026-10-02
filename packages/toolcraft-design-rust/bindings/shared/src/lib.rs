@@ -1,6 +1,8 @@
 use mcp_protocol_rust::json::Value;
 mod ansi;
 pub use ansi::*;
+mod string_width;
+pub use string_width::*;
 mod catalog;
 pub use catalog::*;
 mod resource_browser;

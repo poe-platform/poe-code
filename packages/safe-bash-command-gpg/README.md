@@ -8,6 +8,9 @@ OpenPGP encryption and signing command (`gpg`) for `@poe-platform/safe-bash`.
 - **Detached & inline signatures**: Produce RFC 4880 ASCII-armored detached signatures (`gpg --detach-sign -a -u <uid>`) with CRC24 checksums compatible with Git commit/tag signing (`git commit -S`, `git tag -s`).
 - **Verification & status protocol**: Verify detached signatures (`gpg --verify <sig> <file>`) and emit `[GNUPG:] GOODSIG` / `VALIDSIG` machine-readable lines when `--status-fd` is requested. Verification requires the signing public key to be generated or imported into the current keyring and checks that the signature key ID matches that key.
 
+Unknown options return an error before reading or writing files. Use `--` before
+filenames that start with a dash.
+
 ## Usage
 
 ```ts

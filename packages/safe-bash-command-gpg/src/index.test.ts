@@ -66,6 +66,36 @@ test("gpg rejects unknown options instead of reporting success", async () => {
   assert.equal(result.stderr, "gpg: unknown option: --unknown-nonexistent-flag\n");
 });
 
+for (const args of [
+  ["--unknown-nonexistent-flag"],
+  ["--unknown-nonexistent-flag", "--version"],
+  ["--version", "--unknown-nonexistent-flag"],
+  ["--quick-generate-key", "--unknown-nonexistent-flag", "Alice"],
+  ["--detach-sign", "--output", "/output", "--unknown-nonexistent-flag", "/payload"],
+]) test(`gpg rejects unknown options before effects: ${args.join(" ")}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/payload", new TextEncoder().encode("message"));
+  const before = await fs.readdir("/");
+  let reads = 0;
+  const readFile = fs.readFile.bind(fs);
+  fs.readFile = (...parameters) => { reads++; return readFile(...parameters); };
+  const result = await runGpg(fs, args);
+  assert.deepEqual(result, { exitCode: 2, stdout: "", stderr: "gpg: unknown option: --unknown-nonexistent-flag\n" });
+  assert.equal(reads, 0);
+  assert.deepEqual(await fs.readdir("/"), before);
+});
+
+test("gpg preserves noninteractive armor options and literal option-like filenames", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/-payload", new TextEncoder().encode("message"));
+  const result = await runGpg(fs, ["--batch", "--yes", "--no-tty", "--armor", "--detach-sign", "--", "-payload"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.match(result.stdout, /-----BEGIN PGP SIGNATURE-----/);
+  await fs.writeFile("/signature", new TextEncoder().encode(result.stdout));
+  const verified = await runGpg(fs, ["--verify", "/signature", "/-payload"]);
+  assert.equal(verified.exitCode, 0, verified.stderr);
+});
+
 test("gpg generates Ed25519 keys, lists keys, signs detached PGP signatures, and verifies them", async () => {
   const fs = createMemoryFileSystem();
 

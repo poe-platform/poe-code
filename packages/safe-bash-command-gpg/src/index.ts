@@ -414,11 +414,7 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         (context as { limits?: { maxInputBytes?: number } }).limits?.maxInputBytes ?? limits.maxBufferedBytes,
       );
 
-      if (args.includes("--version")) {
-        await writeText(context.stdout, "gpg (GnuPG) 2.4.5 (safe-bash)\nlibgcrypt 1.11.0\n");
-        return { exitCode: 0 };
-      }
-
+      let version = false;
       let detachSign = false;
       let verify = false;
       let listKeys = false;
@@ -432,7 +428,9 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
 
       for (let i = 0; i < args.length; i++) {
         const a = args[i]!;
-        if (a === "--detach-sign" || a === "-b" || a === "-bsau" || a === "-bsa") detachSign = true;
+        if (a === "--") { positionals.push(...args.slice(i + 1)); break; }
+        else if (a === "--version") version = true;
+        else if (a === "--detach-sign" || a === "-b" || a === "-bsau" || a === "-bsa") detachSign = true;
         else if (a === "--verify") verify = true;
         else if (a === "--list-keys" || a === "-k" || a === "--list-secret-keys" || a === "-K") listKeys = true;
         else if (a === "--quick-generate-key" || a === "--quick-gen-key" || a === "--gen-key" || a === "--full-generate-key")
@@ -446,12 +444,17 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         } else if (a === "--status-fd" && i + 1 < args.length) statusFd = args[++i];
         else if (a.startsWith("--status-fd=")) statusFd = a.slice("--status-fd=".length);
         else if ((a === "-o" || a === "--output") && i + 1 < args.length) outFile = args[++i];
-        else if (a === "-a" || a === "--armor" || a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-q" || a === "--quiet" || a === "-s" || a === "--sign") continue;
+        else if (a === "-a" || a === "--armor" || a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-q" || a === "--quiet" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
         else if (a.startsWith("-")) {
           await writeText(context.stderr, `gpg: unknown option: ${a}\n`);
           return { exitCode: 2 };
         }
         else positionals.push(a);
+      }
+
+      if (version) {
+        await writeText(context.stdout, "gpg (GnuPG) 2.4.5 (safe-bash)\nlibgcrypt 1.11.0\n");
+        return { exitCode: 0 };
       }
 
       try {

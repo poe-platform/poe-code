@@ -9,6 +9,8 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/components/browser.test.ts") && name === "./browser.js")
+          return path("dist/browser.js");
         if (importer === path("../toolcraft-design/src/prompts/primitives/primitives.test.ts") && name === "./note.js")
           return path("dist/note.js");
         if (importer === path("../toolcraft-design/src/terminal/driver.test.ts") && name === "./driver.js")
@@ -105,6 +107,7 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/components/browser.test.ts"),
       path("../toolcraft-design/src/prompts/primitives/primitives.test.ts"),
       path("../toolcraft-design/src/terminal/driver.test.ts"),
       path("../toolcraft-design/src/terminal/input.test.ts"),

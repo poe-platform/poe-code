@@ -498,3 +498,12 @@ const noteForward:typeof originalNote=noteModule;
 const noteReverse:typeof noteModule=null as unknown as typeof originalNote;
 const noteRoot:typeof notePrimitive.note=design.note;
 void [noteForward,noteReverse,noteRoot];
+
+import * as browserModule from "toolcraft-design-rust/components/browser";
+import type * as originalBrowser from "toolcraft-design/components/browser";
+import {openExternal as openExternalSubpath} from "toolcraft-design-rust/open-external";
+const browserForward:typeof originalBrowser=browserModule;
+const browserReverse:typeof browserModule=null as unknown as typeof originalBrowser;
+const browserRoot:typeof browserModule.openExternal=design.openExternal;
+const browserSubpath:typeof browserRoot=openExternalSubpath;
+void [browserForward,browserReverse,browserRoot,browserSubpath];

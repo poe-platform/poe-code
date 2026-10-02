@@ -1,4 +1,6 @@
+mod browser;
 mod note;
+pub use browser::*;
 pub use note::*;
 mod terminal_driver;
 pub use terminal_driver::*;

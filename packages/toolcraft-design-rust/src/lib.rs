@@ -1,5 +1,6 @@
 pub mod ansi;
 pub mod ansi_cells;
+pub mod browser;
 pub mod cards;
 pub mod catalog;
 pub mod code_highlight;

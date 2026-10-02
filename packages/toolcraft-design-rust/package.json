@@ -235,6 +235,14 @@
     "./prompts/primitives/note": {
       "types": "./dist/note.d.ts",
       "import": "./dist/note.js"
+    },
+    "./open-external": {
+      "types": "./dist/open-external.d.ts",
+      "import": "./dist/browser.js"
+    },
+    "./components/browser": {
+      "types": "./dist/browser.d.ts",
+      "import": "./dist/browser.js"
     }
   },
   "scripts": {

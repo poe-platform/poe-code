@@ -13,6 +13,8 @@ delimiters and flatten newlines.
 
 `note(message, title?, write?)` frames multiline terminal notes, quotes them in
 Markdown, or emits a JSON record. Pass a writer to capture the output in your UI.
+`openExternal(url, options?)` opens a URL with the platform browser launcher and
+rejects failed launches. Supply `spawnProcess` to control process creation.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

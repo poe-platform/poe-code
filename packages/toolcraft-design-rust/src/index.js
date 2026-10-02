@@ -110,3 +110,4 @@ export {Screen} from "./screen.js";
 
 export {createTerminalDriver} from "./terminal-driver.js";
 export {note} from "./note.js";
+export {openExternal} from "./browser.js";

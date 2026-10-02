@@ -1075,3 +1075,25 @@ median 0.14095 ms native versus 0.10933 ms reference (1.29x). Other builds were
 active on the machine; these figures are informational and no performance gate
 passed. Prompts, cancellation, live spinners, dashboards and remaining public
 surfaces still require implementation and full qualification before a swap.
+
+The note implementation is delivered in a9dbf6c40e. All 36 root suites that had
+failed collection now pass (1,453 tests). The broad test/type retries stopped at a
+missing Safe Bash ShellResult import, already fixed independently in 98360168cd;
+the maintained full unit route is running again against that fix. Release runs
+36977537868 (driver), 36977763016 (cache), and 36978348923 (note) completed their
+builds but skipped validation and release-stable. No publication is verified.
+
+`openExternal` now has root, `open-external`, and `components/browser` exports.
+Rust selects platform commands and handles launcher exit status; Node retains
+URL parsing, process creation, events and promises. Mocked process tests compare
+normalized URLs, separate Windows command arguments, option getter ordering,
+strict platform/status comparisons and arbitrary process-error identity.
+No real browsers are launched by these tests. All 223 native host tests and
+623 selected original tests pass, together with public type parity,
+Rust/binding/JS lint and the packed standalone runtime/types consumer.
+No dependencies changed.
+
+Five warmed alternating rounds of 10,000 mocked launches measured median
+0.001915 ms native versus 0.0003121 ms reference (6.14x). This measures binding and
+promise overhead without actual process/browser cost, while other builds were
+running. It does not pass a performance gate or qualify real platform launchers.

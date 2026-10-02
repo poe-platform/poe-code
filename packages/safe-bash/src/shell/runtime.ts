@@ -3863,7 +3863,6 @@ export class Runtime {
         const tickets = existingStore.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
         existingRematch.generation = tickets.generation;
         existingRematch.version = tickets.version;
-        existingStore.version = tickets.version;
         existingStore.epoch = tickets.epoch;
         monitor.epoch = tickets.epoch;
         patEreCache._lastEreRematchVersion = tickets.version;
@@ -5691,7 +5690,6 @@ export class Runtime {
               delete rawState.variables[name];
               current.generation = tickets.generation;
               current.version = tickets.version;
-              store.version = tickets.version;
               store.epoch = tickets.epoch;
               monitor.epoch = tickets.epoch;
               return true;
@@ -5714,7 +5712,6 @@ export class Runtime {
               delete rawState.variables[name];
               current.generation = tickets.generation;
               current.version = tickets.version;
-              store.version = tickets.version;
               store.epoch = tickets.epoch;
               monitor.epoch = tickets.epoch;
               return true;
@@ -5799,7 +5796,6 @@ export class Runtime {
           delete rawState.variables[name];
           current.generation = tickets.generation;
           current.version = tickets.version;
-          store.version = tickets.version;
           store.epoch = tickets.epoch;
           monitor.epoch = tickets.epoch;
           return true;
@@ -5829,7 +5825,6 @@ export class Runtime {
           delete rawState.variables[name];
           current.generation = tickets.generation;
           current.version = tickets.version;
-          store.version = tickets.version;
           store.epoch = tickets.epoch;
           monitor.epoch = tickets.epoch;
           return true;

@@ -9532,6 +9532,8 @@ export const syncExtraRuntimeMethods = {
       needsFastSink?: boolean;
       requiredArrayNames?: string[];
       requiredArrayAssoc?: boolean[];
+      touchedIntNamesList?: string[];
+      cachedStoreBindingCount?: number;
     };
     const hoistedPlan = command.kind === "arithmetic-for" ? (command as { _cachedArithPlan?: CachedArithPlanHoisted | null })._cachedArithPlan : undefined;
     if (hoistedPlan === null) return undefined;
@@ -9558,6 +9560,19 @@ export const syncExtraRuntimeMethods = {
       !(guestArrays(rawState) && (guestArrays(rawState)!.watches.size > 0 || this.budget.limits.maxExpansionBytes < 65536))
     ) {
       canReuseHoisted = true;
+      const activeArrStore0 = store ?? monitor.store;
+      const curBindingCount = (activeArrStore0?.bindings.size ?? 0) - (activeArrStore0?.bindings.has("PIPESTATUS") ? 1 : 0) - (activeArrStore0?.bindings.has("BASH_REMATCH") ? 1 : 0);
+      if (curBindingCount !== (hoistedPlan.cachedStoreBindingCount ?? 0)) {
+        canReuseHoisted = false;
+      } else if (hoistedPlan.touchedIntNamesList) {
+        for (let ti = 0; ti < hoistedPlan.touchedIntNamesList.length; ti++) {
+          const tn = hoistedPlan.touchedIntNamesList[ti]!;
+          if (activeArrStore0?.get(tn) || monitor.hasOverlay(tn) || rawState.readonlyVariables?.has(tn)) {
+            canReuseHoisted = false;
+            break;
+          }
+        }
+      }
       const reqNames = hoistedPlan.requiredArrayNames!;
       const reqAssoc = hoistedPlan.requiredArrayAssoc!;
       if (reqNames.length > 0) {
@@ -10033,6 +10048,7 @@ export const syncExtraRuntimeMethods = {
         needsFastSink,
         requiredArrayNames: reqArrNames,
         requiredArrayAssoc: reqArrAssoc,
+        cachedStoreBindingCount: ((store ?? monitor.store)?.bindings.size ?? 0) - ((store ?? monitor.store)?.bindings.has("PIPESTATUS") ? 1 : 0) - ((store ?? monitor.store)?.bindings.has("BASH_REMATCH") ? 1 : 0),
       } as CachedArithPlan;
       (command as { _cachedArithPlan?: CachedArithPlan | null })._cachedArithPlan = plan;
       }

@@ -402,3 +402,22 @@ test("27. static case fast-forward respects shopt nocasematch, declare -u/-l att
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout.trim(), "matched_nocase|via_nameref");
 });
+
+test("28. hoisted arithmetic-for loop plan invalidates when scalar target variable becomes an array between calls", async () => {
+  const env = createTestShell();
+  const res = await env.shell.exec([
+    "run_scalar() { for ((i=0; i<5; i++)); do x=\"scalar_$i\"; done; }",
+    "run_case() { k=foo; for ((i=0; i<3; i++)); do case \"$k\" in foo) z=\"hit\" ;; esac; done; }",
+    "run_scalar",
+    "run_case",
+    "echo \"before:$x|$z\"",
+    "unset x z",
+    "x=(first second third)",
+    "z=(a b c)",
+    "run_scalar",
+    "run_case",
+    "echo \"after:${x[0]}|${x[1]}|${x[2]}|${z[0]}|${z[1]}|${z[2]}\"",
+  ].join("\n"));
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stdout.trim(), "before:scalar_4|hit\nafter:scalar_4|second|third|hit|b|c");
+});

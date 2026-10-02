@@ -107,6 +107,7 @@ export async function openDatasourceSession(capability: DatasourceCapability, co
         observed.delete(cell);
       }
       book = await recalculateWithDiagnostics(book, calculationContext, !linked);
+      tick();
       linked = true;
       if (!transport) return book;
       let source: ByteSource;
@@ -156,7 +157,9 @@ export async function openDatasourceSession(capability: DatasourceCapability, co
         tick();
         return changed.has(JSON.stringify([sheet.id, cell.row, cell.column])) ? { ...cell, formulaDirty: true } : cell;
       }) })) };
-      return await recalculateWithDiagnostics(dirty, calculationContext);
+      const result = await recalculateWithDiagnostics(dirty, calculationContext);
+      tick();
+      return result;
     } finally { polling = false; }
   } });
 }

@@ -244,3 +244,51 @@ it("preserves native ERANGE when a tiny decimal rounds up to the normal minimum"
   try { expect((await convert(engine, true, new AbortController().signal, sourceInput)).csv).toBe("1,2,3,#N/A,#N/A\n"); }
   finally { await engine.dispose(); }
 });
+
+it.each(["cleanup", "abort"])("rejects %s during the initial recalculation before polling transport", async action => {
+  const { openDatasourceSession } = await import("./datasource.js");
+  const controller = new AbortController();
+  const cleanups: (() => void | Promise<void>)[] = [];
+  let closed = 0, polled = 0;
+  const session = await openDatasourceSession({ async open() { return {
+    async poll() { polled++; return []; }, close() { closed++; }
+  }; } }, { ...config, signal: controller.signal,
+    own(cleanup: () => void | Promise<void>) { cleanups.push(cleanup); } });
+  const pending = session.poll({ sheets: [] });
+  if (action === "abort") controller.abort(false);
+  const cleanup = Promise.all(cleanups.map(release => release()));
+  try {
+    if (action === "abort") await expect(pending).rejects.toBe(false);
+    else await expect(pending).rejects.toMatchObject({ code: "invalid-request", message: "ssconvert datasource session is closed" });
+  } finally { await cleanup; }
+  expect(polled).toBe(0);
+  expect(closed).toBe(1);
+});
+
+it.each(["cleanup", "abort"])("rejects %s while settling fed-value recalculation", async action => {
+  const { openDatasourceSession } = await import("./datasource.js");
+  const controller = new AbortController();
+  const cleanups: (() => void | Promise<void>)[] = [];
+  let closed = 0, evaluations = 0;
+  let cleanup: Promise<unknown> | undefined;
+  const session = await openDatasourceSession({ async open() { return {
+    async poll() { return [encode("stock:23\n")]; }, close() { closed++; }
+  }; } }, { ...config, signal: controller.signal,
+    own(release: () => void | Promise<void>) { cleanups.push(release); },
+    runtimeFunctions: { OBSERVE: { signature: "", implementation() {
+      if (++evaluations === 2) queueMicrotask(() => {
+        if (action === "abort") controller.abort(false);
+        cleanup = Promise.all(cleanups.map(release => release()));
+      });
+      return { kind: "number", value: 0 };
+    } } } });
+  const pending = session.poll({ sheets: [{ id: "s", name: "S", cells: [
+    { row: 0, column: 0, formula: '=OBSERVE()+ATL_LAST("stock")', value: { kind: "blank" } }
+  ] }] });
+  try {
+    if (action === "abort") await expect(pending).rejects.toBe(false);
+    else await expect(pending).rejects.toMatchObject({ code: "invalid-request", message: "ssconvert datasource session is closed" });
+  } finally { await cleanup; }
+  expect(evaluations).toBe(2);
+  expect(closed).toBe(1);
+});

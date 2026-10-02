@@ -4572,6 +4572,20 @@
     "remaining": "All19 gap families remain open. CSVKit still imports SheetJS; xlsx-ast extraction, workbook migration, Lotus live names, fontkit shaping and full format/service qualification remain. Shared spreadsheet model/format extraction4091 is delivered; it is no longer a prerequisite blocker."
   },
   "currentQualification20261002": {
+    "datasourceRecalculationCleanup": {
+      "finding": "Both initial watcher recalculation and fed-value recalculation could return a workbook after invocation cleanup or cancellation while the awaited calculation settled.",
+      "implementation": "Check invocation state after both awaited recalculations, before transport acquisition or successful return; preserve the original cancellation reason.",
+      "validation": "Four memory-only regressions failed before repair; all 48 datasource lifecycle and numeric tests pass. Engine/command lint, source/test/consumer types and full root build pass. Compiled root/package SDK/command normal feeds return 23 and dependent 24, with one close per session; cancellation preserves false and publishes zero bytes.",
+      "limits": "Host lifecycle contract repair, not native scheduling parity. Broader FIFO late-feed/read-boundary qualification, other service profiles, installed artifacts and all 19 families remain open.",
+      "nativeFifo": {
+        "profile": "gnumeric-1.12.61-optional-sample-datasource; exact 47 active plugins; zero activation errors/stderr",
+        "sourceSha256": "3a9b524a516ba549b5356ac180749ea1bcdc12129c01e7fdcc7a07ad878466c8",
+        "pluginSha256": "e6798be86f482b60b905e5cf0cf6c325bfc3043c94cb9833a6334a9f224227f6",
+        "probeSha256": "a402fc87b04cc6d2d7feac9973c511117018359439ccbfd3a53a647f0b38c1da",
+        "stdoutSha256": "b7cd688120cc1461464f1badb88352562aead98049d431d98f5a8da657df04a0",
+        "observed": "Unmodified plugin, actual nonblocking FIFO and Gnumeric event loop: stock17/23 ->23/24; late41 ->41/42; partial stock: ->41/42; completion52 ->52/53. Exit0, stderr0, FIFO removed on shutdown. Compiled engine session matches all eight values and closes once. This does not qualify every read boundary, scheduling or watcher mutation."
+      }
+    },
     "sourceBase": "eee1582deb96e17f2d8c66b7433c34cba72883cf",
     "xlsxRuleStrings": "Validation formula1/formula2 and conditional-format formula text now use ST_Xstring encoding. Six original failures across both editions become eight passing regressions; the 40-test focused cohort, package lint/types, selected build and compiled API checks pass.",
     "nativeInputs": "The pinned Debian image, all 539 package archive sizes/SHA256 values and all installed package versions/architectures match reference-profile.json. Gnumeric 1.12.61 and GOffice 0.10.61 source archives match their recorded hashes. Rebuilt ssconvert SHA256 d7b57fbb10a99097326d381f6e8c6ab9150092fca78cd03d7f41e5c968d64e82; libspreadsheet SHA256 ca39117ebf8467c855cf0031f869a2bba4baf27b343f1730063eb943fe1b7d15. These differ from historical binaries; no exact-binary equivalence claimed.",

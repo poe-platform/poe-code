@@ -10,7 +10,7 @@ import type {
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { admitDirectoryEntries, directoryEntryLimit } from "../directory-admission.js";
-import { compareEntries, registerEntryAuthority, registerEntryView } from "../mount/comparison.js";
+import { compareEntries, type EntryLocation } from "../mount/comparison.js";
 import { deviceDirectory, lexicalDevicePath, nullPath, resolveDevicePath } from "./path.js";
 import { tryResolveMemoryDevicePath } from "../memory/index.js";
 import { createDeviceYield, deviceReadStream, drainDeviceFile, drainDeviceInput } from "./stream.js";
@@ -105,7 +105,7 @@ export class DeviceFileSystem implements FileSystem {
     }));
   }
 
-  async _resolveEntryView(path: string, options: FsOptions) {
+  async _resolveEntryView(path: string, options: FsOptions): Promise<EntryLocation> {
     const resolved = await this.#resolve(path, options);
     if (resolved === nullPath || resolved === deviceDirectory) {
       return { filesystem: this, path: resolved, stat: resolved === nullPath ? this.#nullStat : this.#directoryStat, readOnly: false };

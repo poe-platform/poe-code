@@ -1143,8 +1143,8 @@ export class Shell implements PluginHost {
         // Capture syntax before parsing, but defer host extension getters and factories.
         if (!warm) currentState.extensions = extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension);
         // Caller iterators may acquire resources; admit the initial syntax first.
-        if (!stdin) {
-          stdin = new ShellInput(options.stdin as ConstructorParameters<typeof ShellInput>[0], budget);
+        if (!stdin && options.stdin !== undefined && typeof options.stdin !== "string" && !(options.stdin instanceof Uint8Array)) {
+          stdin = new ShellInput(options.stdin, budget);
           io.stdin = stdin;
         }
         exitCode = 0;

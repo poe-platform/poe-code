@@ -15281,7 +15281,7 @@ export class Runtime {
         const bStep = bodyAssignments.length === 1 && bodyAssignments[0]!.listOperator === undefined ? bodyAssignments[0]! : undefined;
         const bTree = bStep?.arithStmt && !bStep.arithStmt.error ? bStep.arithStmt.tree : undefined;
         if (
-          wTree.kind === "binary" &&
+          wTree?.kind === "binary" &&
           (wTree.operator === "<" || wTree.operator === "<=") &&
           wTree.left.kind === "name" && wTree.left.subscript === undefined &&
           wTree.right.kind === "literal" &&

@@ -1148,3 +1148,20 @@ timers and a sink writer measured median 0.003817 ms native versus 0.0001481 ms
 reference (25.77x). This isolates binding overhead, not terminal latency; no
 performance gate passed. `withSpinner`, interactive prompts, dashboard/explorer
 surfaces and full runtime/platform/resource qualification remain outstanding.
+
+`withSpinner` now has root and `with-spinner` exports. Rust chooses output
+branches, callback order, elapsed labels and final presentation; Node retains
+async execution, timers, stream access and thrown-value identity. The native
+host suite passes 234 tests and 634 selected original tests pass (624 existing
+cases plus the ten original `withSpinner` cases). The three `confirmOrCancel`
+cases remain explicitly unported. Public type parity, Rust/binding/JS lint,
+packed runtime with external imports rejected, and standalone `types: []`
+consumption pass. The inspected PNG and ANSI transcript match the reference.
+No external dependencies changed.
+
+Five warmed alternating rounds of 1,000 non-TTY calls, including stop/subtext
+callbacks and a sink writer, measured median 0.01554 ms native versus 0.01367 ms
+reference (1.14x). These measurements include binding and output formatting
+overhead on a shared machine; no performance gate passed. Interactive prompts,
+dashboard/explorer surfaces and full runtime/platform/resource qualification
+remain outstanding.

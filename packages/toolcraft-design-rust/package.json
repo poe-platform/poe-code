@@ -295,11 +295,15 @@
     "./prompts/primitives/spinner": {
       "types": "./dist/spinner.d.ts",
       "import": "./dist/spinner.js"
+    },
+    "./with-spinner": {
+      "types": "./dist/with-spinner.d.ts",
+      "import": "./dist/with-spinner.js"
     }
   },
   "scripts": {
     "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/*.d.ts dist/",
-    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/toolcraft-design-rust/vitest.sdk.config.mjs",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/toolcraft-design-rust/vitest.sdk.config.mjs && vitest run --config packages/toolcraft-design-rust/vitest.prompts.config.mjs",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint && node scripts/lint-bindings.mjs"
   },
   "devDependencies": {

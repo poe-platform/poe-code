@@ -133,3 +133,5 @@ export {openExternal} from "./browser.js";
 export {intro,introPlain,outro,cancel,log} from "./prompt-output.js";
 export {isCancel} from "./cancel-symbol.js";
 export {spinner,type SpinnerOptions} from "./spinner.js";
+
+export {withSpinner,type WithSpinnerOptions} from "./with-spinner.js";

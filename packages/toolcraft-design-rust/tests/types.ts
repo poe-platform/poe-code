@@ -528,3 +528,8 @@ const liveSpinnerForward:typeof originalLiveSpinner=liveSpinner;
 const liveSpinnerReverse:typeof liveSpinner=null as unknown as typeof originalLiveSpinner;
 const liveSpinnerOptions:design.SpinnerOptions=liveSpinner.spinner();
 void [liveSpinnerForward,liveSpinnerReverse,liveSpinnerOptions];
+
+const withSpinnerOriginal: typeof originalDesign.withSpinner = design.withSpinner;
+const withSpinnerNative: typeof design.withSpinner = null as unknown as typeof originalDesign.withSpinner;
+const spinnerResult: Promise<{answer: number}> = design.withSpinner({message: () => "Working", fn: async () => ({answer: 42}), stopMessage: result => String(result.answer), subtext: result => String(result.answer)});
+void [withSpinnerOriginal, withSpinnerNative, spinnerResult];

@@ -19,8 +19,8 @@ for (const [source, status, stdout = "", files = []] of [
   ["say ran >marker; false && pass <<EOF\n${bad\nEOF\n", 1, "", ["marker"]],
   ["say ran >marker; pass <<EOF\nbody\nEOF\nif true; then", 2, "body\n", ["marker"]],
   ["say ran >marker; say \"$(pass <<EOF)\"", 2],
-  ["say ran >marker; pass <<$'EOF'\ntext\n$EOF\n", 2],
-  ['say ran >marker; pass <<$"EOF"\ntext\n$EOF\n', 2],
+  ["say ran >marker; pass <<$'EOF'\ntext\n$EOF\n", 0, "text\n$EOF\n", ["marker"]],
+  ['say ran >marker; pass <<$"EOF"\ntext\n$EOF\n', 0, "text\n$EOF\n", ["marker"]],
 ] as const) {
   test(`heredoc collection versus deferred body error timing: ${JSON.stringify(source)}`, async () => {
     const { shell, fs } = setup();

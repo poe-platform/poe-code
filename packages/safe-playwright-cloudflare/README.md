@@ -21,7 +21,8 @@ const cli = createPlaywrightCli({ adapter, limits: { maxSessions: 2, maxTabs: 8 
 
 Provide a Browser Run binding. The `workerd` and `browser` exports include the
 qualified provider and run without `nodejs_compat`, including binary uploads.
-Node hosts install exactly `@cloudflare/playwright@1.3.6`.
+Install exactly `@cloudflare/playwright@1.3.6` for the Node route or provider
+TypeScript declarations.
 Supply a Worker Loader binding for `run-code`. The public
 types target Worker projects using TypeScript's `Bundler` module resolution and
 Cloudflare Workers types. `run-code` reports an unavailable binding if no loader
@@ -88,8 +89,9 @@ integers or `Infinity`. Each omitted trace limit defaults to `Infinity`.
 `maxPathBytes`, `maxDepth`, `maxPaxBytes`, and `maxTextBytes` optionally bound
 archive paths, nesting, extended headers, and text through the ZIP codec; ZIP
 format constraints still apply.
-Trace budgeting requires `artifactFileSystem` to access the provider’s trace
-files; use a filesystem backed by the same storage as the native recorder.
+Trace budgeting uses the browser provider's memory filesystem automatically.
+For the native route, `artifactFileSystem` must access the same storage as the
+native recorder.
 Omitting `traceLimits` preserves the existing provider behavior.
 `maxBytes` admits raw trace files, queued replacement versions, and retained
 call-stack, request, and page-metadata records. `maxFiles` bounds those retained

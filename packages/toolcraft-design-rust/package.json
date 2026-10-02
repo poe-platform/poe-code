@@ -8,6 +8,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    "./explorer/render/text": {
+      "types": "./dist/explorer-text.d.ts",
+      "import": "./dist/explorer-text.js"
+    },
+    "./dashboard/terminal-width": {
+      "types": "./dist/terminal-width.d.ts",
+      "import": "./dist/terminal-width.js"
+    },
     "./command-registry": {
       "types": "./dist/command-registry.d.ts",
       "import": "./dist/command-registry.js"

@@ -1,32 +1,19 @@
 import { createRequire } from "node:module";
 import { types } from "node:util";
+import {graphemes,simpleGraphemes} from "./graphemes.js";
+import {invokeTextCells} from "./text-cells.js";
+export {graphemes} from "./graphemes.js";
 const native = createRequire(import.meta.url)("./toolcraft-design-rust.node"),
-  segmenter = new Intl.Segmenter(undefined, { granularity: "grapheme" }),
   originalCharCodeAt = String.prototype.charCodeAt;
-function simpleGraphemes(value) {
-  for (let i = 0; i < value.length; i++) {
-    const code = value.charCodeAt(i);
-    if ((code < 32 || code > 126) && code !== 9 && code !== 10 && (code < 0x4e00 || code > 0x9fff))
-      return false;
-  }
-  return true;
-}
-export function graphemes(value) {
-  return simpleGraphemes(value)
-    ? value.split("")
-    : Array.from(segmenter.segment(value), ({ segment }) => segment);
-}
-export const graphemeWidth = native.designGraphemeWidth;
+export function graphemeWidth(segment) {return invokeTextCells("grapheme",[segment]);}
 export function displayWidth(value, start = 0) {
-  return native.designDisplayWidth(graphemes(value), start);
+  return invokeTextCells("display",[value,start]);
 }
 export function expandTabs(value, start = 0) {
-  return value.includes("\t") ? native.designExpandTabs(graphemes(value), start) : value;
+  return invokeTextCells("expand",[value,start]);
 }
 export function truncateToWidth(value, width) {
-  if (width <= 0) return "";
-  if (native.designDisplayWidth(graphemes(value), 0) <= width) return value;
-  return native.designTruncateWidth(graphemes(value), width);
+  return invokeTextCells("truncate",[value,width]);
 }
 export function plainTerminalText(value) {
   for (let i = 0; i < value.length; i++) {

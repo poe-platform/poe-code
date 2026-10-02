@@ -27,6 +27,15 @@ void layout;
 
 import * as design from "../dist/index.js";
 import type * as originalDesign from "toolcraft-design";
+import * as cellText from "toolcraft-design-rust/explorer/render/text";
+import type * as originalCellText from "toolcraft-design/explorer/render/text";
+import * as terminalWidth from "toolcraft-design-rust/dashboard/terminal-width";
+import type * as originalTerminalWidth from "toolcraft-design/dashboard/terminal-width";
+const cellsSdk: typeof originalCellText = cellText;
+const nativeCells: typeof cellText = null as unknown as typeof originalCellText;
+const widthsSdk: typeof originalTerminalWidth = terminalWidth;
+const nativeWidths: typeof terminalWidth = null as unknown as typeof originalTerminalWidth;
+void [cellsSdk, nativeCells, widthsSdk, nativeWidths];
 type Interaction = Pick<typeof originalDesign, "createCommandRegistry" | "createOverlayManager" | "createViewport" | "selectViewportTail">;
 const interactionSdk: Interaction = design;
 const nativeInteraction: Pick<typeof design, keyof Interaction> = null as unknown as Interaction;

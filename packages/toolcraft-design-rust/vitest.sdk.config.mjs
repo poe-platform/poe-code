@@ -9,6 +9,8 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/explorer/render/text.test.ts") && name === "./text.js")
+          return path("dist/explorer-text.js");
         for (const module of ["command-registry", "overlay-manager", "viewport"]) {
           if (importer === path(`../toolcraft-design/src/${module}.test.ts`) && name === `./${module}.js`)
             return path(`dist/${module}.js`);
@@ -73,6 +75,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft-design/src/explorer/render/text.test.ts"),
       path("../toolcraft-design/src/command-registry.test.ts"),
       path("../toolcraft-design/src/overlay-manager.test.ts"),
       path("../toolcraft-design/src/viewport.test.ts"),

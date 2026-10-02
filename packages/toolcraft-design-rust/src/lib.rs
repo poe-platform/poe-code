@@ -17,6 +17,7 @@ pub mod symbols;
 pub mod table;
 pub mod template;
 pub mod terminal;
+pub mod text_cells;
 pub mod wrap_ansi;
 
 pub mod line_buffer;

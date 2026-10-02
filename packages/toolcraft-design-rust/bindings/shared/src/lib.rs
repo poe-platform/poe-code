@@ -11,6 +11,8 @@ mod cards;
 pub use cards::*;
 mod interaction;
 pub use interaction::*;
+mod text_cells;
+pub use text_cells::*;
 mod resource_browser;
 pub use resource_browser::*;
 mod help;

@@ -615,6 +615,21 @@ were added. Task/event groups, metrics/notices, the complete interactive control
 dashboard/explorer, terminal Markdown, CLI/transports and replacement qualification
 remain open; this checkpoint does not switch existing consumers.
 
+Explorer text-cell fitting, centering, padding and grapheme-offset splitting now
+have native policies at `explorer/render/text`. The `dashboard/terminal-width`
+subpath exports the five original helpers. Existing numeric-only ingress for
+terminal widths was replaced with host-aware policy after reproducing its
+string/object starting-column mismatch. Rust controls code-point range order,
+flag/variation selection, tab arithmetic and cell layout; Node retains ICU,
+coercions, string/array methods and iterator cleanup. Tests cover fractional and
+nonfinite widths, lone surrogates, changing code-point values, tab starts,
+arbitrary throws and early iterator closure. All 91 native and 183 reference
+tests, bidirectional declarations and package/JS lint pass. Packed exports and
+standalone declarations pass without runtime dependencies. An inspected screenshot
+confirms alignment, centering, clipping, tabs and combining marks. The complete
+dashboard/explorer, dependent task/event/notice renderers, Markdown and the
+remaining Toolcraft surfaces still require implementation and qualification.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

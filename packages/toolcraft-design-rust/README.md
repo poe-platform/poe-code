@@ -76,6 +76,8 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createCommandRegistry` | Share command discovery and enabled keyboard dispatch, rejecting duplicate IDs and keys |
 | `createOverlayManager` | Track overlay focus and abort each overlay's signal when it closes |
 | `createViewport`, `selectViewportTail` | Retain live items, hold scrollback and select wrapped rows without rendering the full history |
+| `explorer/render/text` | Fit, center and pad text by terminal cells while retaining grapheme offsets |
+| `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -259,3 +261,20 @@ to the live items. Held arrays and item objects preserve their original identity
 `selectViewportTail(items, height, offset, renderRows)` renders from newest to
 oldest and stops once the requested viewport is filled. These APIs are also
 available from `command-registry`, `overlay-manager` and `viewport` subpaths.
+
+Compose terminal-cell layouts with the explorer text helpers:
+
+```ts
+import {fitToWidth, padEndCells, splitGraphemeCells} from 'toolcraft-design-rust/explorer/render/text';
+
+const label = fitToWidth('Compile documentation', 16);
+const row = padEndCells(label, 20, ' ');
+const cells = splitGraphemeCells('e\u0301 status');
+```
+
+`cellWidth`, `fitToWidth`, `centerCells`, `padEndCells` and `splitGraphemeCells`
+accept a starting column for tab alignment. Grapheme records preserve UTF-16
+start/end offsets. `dashboard/terminal-width` exposes `graphemes`, `graphemeWidth`,
+`displayWidth`, `expandTabs` and `truncateToWidth` with the same width rules.
+Rust owns width classification and layout; Node supplies ICU segmentation,
+observable string/array methods and numeric coercions.

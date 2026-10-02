@@ -26,6 +26,12 @@ describe("portable runtime dependency policy", () => {
     const source = 'const text = "Buffer.from node:fs"; const object = { Buffer: 1 }; function encode(Buffer) { return Buffer.from(text); }';
     expect(await scanPortableRuntime(fixture(source), "/repo")).toEqual([]);
   });
+  it("finds ambient Buffer inside deeply nested minified expressions", async () => {
+    const source = 'export const value = ' + '0+'.repeat(15000) + 'Buffer.from("x");';
+    expect(await scanPortableRuntime(fixture(source), "/repo")).toEqual([
+      expect.objectContaining({ reason: "ambient-buffer" })
+    ]);
+  });
   it("follows transitive relative imports and stops cycles", async () => {
     const fs = fixture('export * from "./nested.js";', {
       "/repo/packages/safe-bash-command-example/dist/nested.js": 'import "./index.js"; import "node:fs";',

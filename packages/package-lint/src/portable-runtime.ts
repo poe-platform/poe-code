@@ -58,8 +58,10 @@ function ambientBuffer(text: string, filename: string): boolean {
   host.readFile = file => file === filename ? text : undefined;
   const checker = ts.createProgram([filename], { allowJs: true, noLib: true, noResolve: true }, host).getTypeChecker();
   let found = false;
-  const visit = (node: ts.Node): void => {
-    if (found || ts.isTypeNode(node)) return;
+  const pending: ts.Node[] = [source];
+  while (pending.length && !found) {
+    const node = pending.pop()!;
+    if (ts.isTypeNode(node)) continue;
     if (ts.isIdentifier(node) && node.text === "Buffer") {
       const parent = node.parent;
       const property = ts.isPropertyAccessExpression(parent) && parent.name === node;
@@ -70,9 +72,8 @@ function ambientBuffer(text: string, filename: string): boolean {
     }
     if (ts.isElementAccessExpression(node) && ts.isIdentifier(node.expression) && ["globalThis", "global"].includes(node.expression.text) &&
         ts.isStringLiteralLike(node.argumentExpression) && node.argumentExpression.text === "Buffer" && !checker.getSymbolAtLocation(node.expression)?.declarations?.length) found = true;
-    ts.forEachChild(node, visit);
-  };
-  visit(source);
+    ts.forEachChild(node, child => { pending.push(child); });
+  }
   return found;
 }
 

@@ -165,3 +165,8 @@ describe("scanSourceImports", () => {
     ]);
   });
 });
+
+it("finds imports inside deeply nested minified expressions without overflowing", () => {
+  const source = 'export const value = ' + '0+'.repeat(15000) + 'import("node:fs");';
+  expect(extractRelevantImports(source, "bundle.js")).toContainEqual({ specifier: "node:fs", typeOnly: false, importAttributes: false });
+});

@@ -343,6 +343,34 @@
     "./prompts/interactive/multiselect": {
       "types": "./dist/prompt-multiselect.d.ts",
       "import": "./dist/prompt-multiselect.js"
+    },
+    "./prompts/index": {
+      "types": "./dist/prompts.d.ts",
+      "import": "./dist/prompts.js"
+    },
+    "./select": {
+      "types": "./dist/public-select.d.ts",
+      "import": "./dist/public-select.js"
+    },
+    "./multiselect": {
+      "types": "./dist/public-multiselect.d.ts",
+      "import": "./dist/public-multiselect.js"
+    },
+    "./prompt-text": {
+      "types": "./dist/public-prompt-text.d.ts",
+      "import": "./dist/public-prompt-text.js"
+    },
+    "./confirm": {
+      "types": "./dist/public-confirm.d.ts",
+      "import": "./dist/public-confirm.js"
+    },
+    "./confirm-or-cancel": {
+      "types": "./dist/public-confirm-or-cancel.d.ts",
+      "import": "./dist/public-confirm-or-cancel.js"
+    },
+    "./password": {
+      "types": "./dist/public-password.d.ts",
+      "import": "./dist/public-password.js"
     }
   },
   "scripts": {

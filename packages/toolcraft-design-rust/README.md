@@ -52,6 +52,11 @@ terminal-aware pagination. The subpath also exports `findNonDisabled`.
 `multiselectPrompt` from `prompts/interactive/multiselect` supports initial
 selections, disabled choices, required selection, SPACE to toggle, A to select
 all, and I to invert. Submitted selections show labels or a compact count.
+The root exports `select`, `multiselect`, `promptText`, `confirm`, `password`
+and `confirmOrCancel`, with the same functions available through `prompts`
+(`prompts.text` for text input). `confirmOrCancel` reports cancellation and throws
+`PromptCancelledError`; other prompts return the cancellation symbol for
+`isCancel` to check. Direct function subpaths and `prompts/index` share identities.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

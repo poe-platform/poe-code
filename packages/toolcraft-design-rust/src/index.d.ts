@@ -136,3 +136,6 @@ export {spinner,type SpinnerOptions} from "./spinner.js";
 
 export {withSpinner,type WithSpinnerOptions} from "./with-spinner.js";
 export {promptTheme} from "./prompt-theme.js";
+export * as prompts from "./prompts.js";
+export {select, multiselect, text as promptText, confirm, confirmOrCancel, password, PromptCancelledError} from "./prompts.js";
+export type {SelectOptions, MultiselectOptions, TextOptions, ConfirmOptions, PasswordOptions} from "./prompts.js";

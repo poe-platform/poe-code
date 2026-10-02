@@ -598,6 +598,42 @@ const multiselectResult: Promise<{key: string}[] | typeof CANCEL> = promptMultis
 const multiselectPromptOriginal: typeof originalPromptMultiselect.multiselectPrompt = promptMultiselect.multiselectPrompt;
 void [multiselectResult, multiselectPromptOriginal];
 
+import * as publicPrompts from "toolcraft-design-rust/prompts/index";
+import type * as originalPublicPrompts from "toolcraft-design/prompts/index";
+import {confirm as directConfirm} from "toolcraft-design-rust/confirm";
+import {confirmOrCancel as directConfirmOrCancel} from "toolcraft-design-rust/confirm-or-cancel";
+import {select as directSelect} from "toolcraft-design-rust/select";
+import {multiselect as directMultiselect} from "toolcraft-design-rust/multiselect";
+import {promptText as directPromptText} from "toolcraft-design-rust/prompt-text";
+import {password as directPassword} from "toolcraft-design-rust/password";
+const publicNamespaceOriginal: Record<keyof typeof originalPublicPrompts, unknown> = publicPrompts;
+const publicNamespaceNative: Record<keyof typeof publicPrompts, unknown> = null as unknown as typeof originalPublicPrompts;
+const promptErrorOriginal: typeof originalPublicPrompts.PromptCancelledError = design.PromptCancelledError;
+const promptErrorNative: typeof design.PromptCancelledError = null as unknown as typeof originalPublicPrompts.PromptCancelledError;
+const confirmOrCancelOriginal: typeof originalPublicPrompts.confirmOrCancel = design.confirmOrCancel;
+const confirmOrCancelNative: typeof design.confirmOrCancel = null as unknown as typeof originalPublicPrompts.confirmOrCancel;
+const publicTextOptionsOriginal: originalPublicPrompts.TextOptions = null as unknown as design.TextOptions;
+const publicTextOptionsNative: design.TextOptions = publicTextOptionsOriginal;
+const publicPasswordOptionsOriginal: originalPublicPrompts.PasswordOptions = null as unknown as design.PasswordOptions;
+const publicPasswordOptionsNative: design.PasswordOptions = publicPasswordOptionsOriginal;
+const publicConfirmOptionsOriginal: originalPublicPrompts.ConfirmOptions = null as unknown as design.ConfirmOptions;
+const publicConfirmOptionsNative: design.ConfirmOptions = publicConfirmOptionsOriginal;
+const publicSelect: typeof publicPrompts.select = design.select;
+const publicMultiselect: typeof publicPrompts.multiselect = design.multiselect;
+const publicText: typeof publicPrompts.text = design.promptText;
+const publicPassword: typeof publicPrompts.password = design.password;
+const publicConfirm: typeof publicPrompts.confirm = design.confirm;
+const publicNamespace: typeof publicPrompts = design.prompts;
+const selectedObject: Promise<{key: string} | typeof CANCEL> = directSelect({message: "Pick", options: [{label: "One", value: {key: "one"}}]});
+const selectedObjects: Promise<{key: string}[] | typeof CANCEL> = directMultiselect({message: "Pick", options: [{label: "One", value: {key: "one"}}]});
+const textInput: Promise<string | typeof CANCEL> = directPromptText(publicTextOptionsNative);
+const passwordInput: Promise<string | typeof CANCEL> = directPassword(publicPasswordOptionsNative);
+const confirmationInput: Promise<boolean | typeof CANCEL> = directConfirm(publicConfirmOptionsNative);
+const confirmation: Promise<boolean> = directConfirmOrCancel(publicConfirmOptionsNative);
+// @ts-expect-error Public password options omit the internal mask option.
+directPassword({message: "Secret", mask: "*"});
+void [publicNamespaceOriginal, publicNamespaceNative, promptErrorOriginal, promptErrorNative, confirmOrCancelOriginal, confirmOrCancelNative, publicSelect, publicMultiselect, publicText, publicPassword, publicConfirm, publicNamespace, selectedObject, selectedObjects, textInput, passwordInput, confirmationInput, confirmation];
+
 import {Prompt as NativePrompt,type PromptOptions as NativePromptOptions,type PromptState as NativePromptState} from "toolcraft-design-rust/prompts/interactive/core";
 import type {PromptState as OriginalPromptState} from "toolcraft-design/prompts/interactive/core";
 import * as nativePromptKeys from "toolcraft-design-rust/prompts/interactive/keys";

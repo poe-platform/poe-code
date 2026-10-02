@@ -1305,3 +1305,32 @@ performance gate passed. Public prompt wrappers/namespace, dashboard/explorer an
 the broader port/qualification work remain required. Select release 36987354672
 failed on two missing pythonRstrip references in the Safe Bash CSV adapter; the
 existing helper import is being repaired separately and its build is running.
+
+The public prompt API now exposes root/direct-subpath `select`, `multiselect`,
+`promptText`, `confirm`, `password`, `confirmOrCancel` and `PromptCancelledError`,
+plus the genuine ESM `prompts` namespace and `prompts/index`. Existing primitives
+and spinner functions retain shared identities. Rust controls confirmation
+cancellation/result policy; Node preserves async/thenable adoption, error
+construction/stack hooks and arbitrary thrown-value identity.
+
+All 261 native host cases, 1,222 selected original design cases and all 13 original
+prompt-wrapper cases pass with no wrapper exclusions. Public option/helper and
+constructor types, Rust/binding/JS lint, packed runtime with external imports
+rejected and standalone declarations pass. Interactive selection/cancellation
+screenshots were inspected and their ANSI is reference-identical. No dependencies
+changed. Independent cancellation declarations remain a nominal type swap gate.
+
+Five warmed alternating rounds of 1,000 non-TTY `confirmOrCancel` calls measured
+median 0.01183 ms native versus 0.003248 ms reference (3.64x). No performance gate
+passed. Root inventory is 107 native versus 106 reference exports: six missing
+dashboard/explorer exports and seven additional native preview/layout helpers.
+Full export/type/resource/platform qualification and the broader Toolcraft
+CLI/transport/testing surfaces still require completion.
+
+Multiselect is delivered in 18c9a36e27. The CSV helper import landed independently
+in 51482a101f; the duplicate local repair was dropped during rebase. Its maintained
+Safe Bash build closure, 66 CSV tests and scoped lint passed. Multiselect release
+36988631335 then failed on unreachable Mac-mode comparisons in the ASCII-only
+dos2unix sync adapter; the separate repair preserves non-ASCII fallback and passes
+its maintained build closure, lint/type checks and all 81 package tests.
+Publication remains unverified.

@@ -167,6 +167,21 @@ pub fn run<H: Host>(
     args: &[H::Value],
 ) -> Result<H::Value, H::Error> {
     match (operation, args) {
+        ("confirmResult", [result]) => {
+            if predicate(host, "isCancel", vec![*result])? {
+                let message = host.literal("Operation cancelled.")?;
+                host.call("cancel", vec![message])?;
+                return host.call("cancelled", vec![]);
+            }
+            host.call(
+                if host.is_true(*result)? {
+                    "true"
+                } else {
+                    "false"
+                },
+                vec![],
+            )
+        }
         ("unicode", []) => {
             let enabled = unicode(host)?;
             host.call(if enabled { "true" } else { "false" }, vec![])

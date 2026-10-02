@@ -20,7 +20,22 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
   activeShapers++;
   let exports: Awaited<ReturnType<FontShapingWebAssembly["instantiate"]>>["exports"] | undefined, disposed = false, fallback = false;
   const fonts = new Map<Font, {font: number; data: number} | null>();
-  const dispose = () => { if (!disposed) { disposed = true; if (--activeShapers <= 0) { activeShapers = 0; compiled = undefined; } } exports = undefined; fonts.clear(); };
+  const dispose = () => {
+    if (!disposed) {
+      for (const entry of fonts.values()) {
+        if (entry && exports) {
+          try {
+            if (typeof exports.hb_font_destroy === "function") (exports.hb_font_destroy as (p: number) => void)(entry.font);
+            if (typeof exports.free === "function") (exports.free as (p: number) => void)(entry.data);
+          } catch {}
+        }
+      }
+      disposed = true;
+      if (--activeShapers <= 0) { activeShapers = 0; compiled = undefined; }
+    }
+    exports = undefined;
+    fonts.clear();
+  };
   context.own(dispose); // Register before asynchronous compilation or acquisition.
   const fail = (): never => { dispose(); throw new SsconvertError("resource-limit", "ssconvert PDF font shaping could not complete"); };
   const call = (name: string, ...args: number[]): number => {
@@ -53,15 +68,19 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
         try {
           if (typeof wasm?.compile === "function") {
             const {harfbuzzBase64} = await import("./harfbuzz/data.js");
-            compiled ??= wasm.compile((() => {
+            compiled ??= (() => {
               const binary = atob(harfbuzzBase64);
               const decoded = new Uint8Array(binary.length);
               for (let i = 0; i < binary.length; i++) decoded[i] = binary.charCodeAt(i);
-              return decoded;
-            })()).catch(error => {
-              compiled = undefined;
-              throw error;
-            });
+              return wasm.compile(decoded).finally(() => {
+                if (typeof (decoded.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
+                  try { (decoded.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+                }
+              }).catch(error => {
+                compiled = undefined;
+                throw error;
+              });
+            })();
             module = await compiled;
           }
         } catch (error) {

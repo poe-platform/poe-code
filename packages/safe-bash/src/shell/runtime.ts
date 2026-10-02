@@ -16640,8 +16640,9 @@ export class Runtime {
               const isPrefixedInd = echoW?.parts.length === 2 && echoW.parts[0]!.kind === "text" && !echoW.parts[0]!.byteValue && echoW.parts[1]!.kind === "variable" && echoW.parts[1]!.name === inductionName && !echoW.parts[1]!.indirect && !echoW.parts[1]!.prefixNames && !echoW.parts[1]!.specialParameter && !echoW.parts[1]!.length && !echoW.parts[1]!.substring && !echoW.parts[1]!.transform && echoW.parts[1]!.operator === undefined && getArraySelector(echoW.parts[1]!) === undefined;
               if (isBareInd || isPrefixedInd) {
                 const rem = limit - (curInd + 1);
-                if (!st0.isDiscardDevNull || this.budget._fileSystemOperations + rem <= this.budget.limits.maxFileSystemOperations) {
-                  const prefixText = isPrefixedInd ? echoW!.parts[0]!.value : "";
+                if (!st0.isDiscardDevNull || this.budget.fsOperations + rem <= this.budget.limits.maxFileSystemOperations) {
+                  const prefixPart = echoW?.parts[0];
+                  const prefixText = isPrefixedInd && prefixPart?.kind === "text" ? prefixPart.value : "";
                   const prefixByteLen = shellValueByteLength(prefixText);
                   let sumDigits = 0;
                   for (let d = 1, lo = 1, hi = 9; lo <= limit - 1; d++, lo *= 10, hi = hi * 10 + 9) {
@@ -16652,7 +16653,7 @@ export class Runtime {
                   if (curInd + 1 === 0) sumDigits += 1;
                   const totalBytes = rem * (prefixByteLen + 1) + sumDigits;
                   if (this.budget.bytes + totalBytes <= this.budget.limits.maxOutputBytes) {
-                    if (st0.isDiscardDevNull) this.budget._fileSystemOperations += rem;
+                    if (st0.isDiscardDevNull) this.budget.fsOperations += rem;
                     this.budget.bytes += totalBytes;
                     this.budget.iterations += rem;
                     this.budget.commands += rem;

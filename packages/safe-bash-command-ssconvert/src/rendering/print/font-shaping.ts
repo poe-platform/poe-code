@@ -1,6 +1,5 @@
 import type {Font, Glyph, GlyphRun} from "@pdf-lib/fontkit";
 import {SsconvertError, type CapabilityContext} from "../../contracts.js";
-import {harfbuzzBase64} from "./harfbuzz/data.js";
 
 // The native surface used here is also available in Node without DOM globals.
 // Loading DOM libraries here changes Node consumers' global fetch declarations.
@@ -16,10 +15,12 @@ const wasm = (globalThis as unknown as { readonly WebAssembly?: FontShapingWebAs
 // Only immutable compiled code is shared. Font data, native handles and failure
 // state belong to one conversion and are discarded together on any failure.
 let compiled: ReturnType<FontShapingWebAssembly["compile"]> | undefined;
+let activeShapers = 0;
 export function createFontShaper(context: CapabilityContext, tick: (amount?: number) => void) {
+  activeShapers++;
   let exports: Awaited<ReturnType<FontShapingWebAssembly["instantiate"]>>["exports"] | undefined, disposed = false, fallback = false;
   const fonts = new Map<Font, {font: number; data: number} | null>();
-  const dispose = () => { disposed = true; exports = undefined; fonts.clear(); };
+  const dispose = () => { if (!disposed) { disposed = true; if (--activeShapers <= 0) { activeShapers = 0; compiled = undefined; } } exports = undefined; fonts.clear(); };
   context.own(dispose); // Register before asynchronous compilation or acquisition.
   const fail = (): never => { dispose(); throw new SsconvertError("resource-limit", "ssconvert PDF font shaping could not complete"); };
   const call = (name: string, ...args: number[]): number => {
@@ -51,6 +52,7 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
         let module: object | undefined;
         try {
           if (typeof wasm?.compile === "function") {
+            const {harfbuzzBase64} = await import("./harfbuzz/data.js");
             compiled ??= wasm.compile(Uint8Array.from(atob(harfbuzzBase64), character => character.charCodeAt(0))).catch(error => {
               compiled = undefined;
               throw error;

@@ -21,7 +21,7 @@ export interface MutationObservers{
  onError?(details:MutationDetails,error:unknown):void;
 }
 export interface MutationContext{
- paths?:typeof import("node:path");
+ paths?:Pick<typeof import("node:path"),"join"|"resolve"|"relative"|"isAbsolute"|"dirname"|"basename">&{readonly sep:string};
  fs:FileSystem;
  homeDir:string;
  dryRun?:boolean;

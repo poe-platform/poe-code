@@ -1,12 +1,11 @@
-import type {Buffer} from 'node:buffer';
 import type {FileSystem,ConfigObject} from './index.js';
 export interface MockFileSystem extends FileSystem{
  files:Record<string,string>;
  directories:Set<string>;
  exists(path:string):boolean;
  getContent(path:string):string|undefined;
- readFile(path:string,encoding:BufferEncoding):Promise<string>;
- readFile(path:string):Promise<Buffer>;
+ readFile(path:string,encoding:'utf8'):Promise<string>;
+ readFile(path:string):Promise<Uint8Array>;
 }
 export function createMockFs(initialFiles?:Record<string,string>,homeDir?:string):MockFileSystem;
 export function parseJson(content:string):ConfigObject;

@@ -32,6 +32,9 @@ void read;void exists;void timestamp;
 
 const testingApi:typeof import('../../config-mutations/dist/testing/index.js')=await import('../dist/testing.js');
 const mock=testingApi.createMockFs({'~/config':'content'});
-const buffer:Promise<Buffer>=mock.readFile('~/config');
-void buffer;
+const bytes:Promise<Uint8Array>=mock.readFile('~/config');
+void bytes;
 rootApi.runMutations([rootApi.configMutation.merge({target:'~/agent.json',value:{enabled:true}})],{fs:mock,homeDir:'/home/test'});
+
+declare const paths:NonNullable<import('../../config-mutations/dist/index.js').MutationContext['paths']>;
+runMutations([],{fs,homeDir:'/home/test',paths});

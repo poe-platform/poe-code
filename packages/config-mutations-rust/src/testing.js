@@ -35,7 +35,7 @@ export function createMockFs(initialFiles,homeDir='/home/test'){
   files,directories,
   exists(input){return admission('exists',expandPath(input,homeDir)).exists;},
   getContent(input){return files[expandPath(input,homeDir)];},
-  async readFile(input,encoding){const absolute=expandPath(input,homeDir);admission('readFile',absolute);const content=files[absolute];return encoding?content:Buffer.from(content,'utf8');},
+  async readFile(input,encoding){const absolute=expandPath(input,homeDir);admission('readFile',absolute);const content=files[absolute];return encoding?content:new TextEncoder().encode(content);},
   async writeFile(input,content,options){const absolute=expandPath(input,homeDir);admission('writeFile',absolute,options);files[absolute]=typeof content==='string'?content:Buffer.isBuffer(content)?content.toString('utf8'):Buffer.from(content.buffer,content.byteOffset,content.byteLength).toString('utf8');},
   async mkdir(input,options){const absolute=expandPath(input,homeDir),plan=admission('mkdir',absolute,options);if(plan.recursive)addDirectoryTree(absolute,directories);else directories.add(absolute);},
   async unlink(input){const absolute=expandPath(input,homeDir);admission('unlink',absolute);delete files[absolute];},

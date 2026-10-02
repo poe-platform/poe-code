@@ -113,7 +113,7 @@ remain host adapters over your injected filesystem; own Rust formats timestamps.
 The `./testing` API supplies `createMockFs` and parse/serialize helpers for each
 format. Its mutable `files` record and `directories` Set stay in memory; Rust
 owns admission, exclusive-write collisions, stat modes and filesystem errors.
-It preserves the SDK's path expansion and Buffer/view behavior and supports
+It preserves the SDK's path expansion, Uint8Array reads and Buffer/view writes, and supports
 running the complete mutation API without disk fixtures.
 
 ```ts

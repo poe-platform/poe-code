@@ -25,3 +25,5 @@ export { waitForOAuthOperation } from "./cancellable-operation.js";
 export { snapshotOAuthPersistenceOptions } from "./session-store.js";
 
 export { prepareRemoteMcpAuthorization, beginRemoteMcpAuthorization, completeRemoteMcpAuthorization } from "./resumable.js";
+
+export { registerOAuthClient } from "./register-client.js";

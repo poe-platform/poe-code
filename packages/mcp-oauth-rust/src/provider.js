@@ -21,12 +21,11 @@ import {
   snapshotLoopbackAuthorizationOptions
 } from "./loopback.js";
 import { canonicalizeResourceIndicator } from "./resource.js";
-import { fetchMcpResponse } from "./http.js";
+import { registerOAuthClient } from "./register-client.js";
 import { waitForOAuthOperation } from "./cancellable-operation.js";
 import {
   exchangeAuthorizationCode,
   refreshAccessToken,
-  readOAuthJsonObjectResponse,
   OAuthError
 } from "./tokens.js";
 const native = createRequire(import.meta.url)("./mcp-oauth-rust.node");
@@ -734,24 +733,15 @@ export function createDefaultOAuthClientProvider(options) {
       return plan;
     }
     if (!Object.hasOwn(plan, "action") || plan.action !== "register") return plan;
-    const body = native.providerRegistrationBody(JSON.stringify(resolvedClientMetadata), redirect);
     const registrationMethod = unwrap(
       native.providerRegistrationMethod(
         JSON.stringify({ metadata: project(metadata, METADATA), method: requestedTokenMethod })
       )
     );
-    body.token_endpoint_auth_method = registrationMethod;
-    const deadline = AbortSignal.timeout(30_000);
-    const signal =
-      parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
-    const response = await fetchMcpResponse(fetch, registration, {
-      method: "POST",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal
+    const registrationValue = await registerOAuthClient({
+      registrationEndpoint: registration, redirectUri: redirect, metadata: resolvedClientMetadata ?? undefined,
+      tokenEndpointAuthMethod: registrationMethod, fetch, signal: parentSignal
     });
-    const payload = await readOAuthJsonObjectResponse(response, signal);
-    const registrationValue = parseOAuthClientRegistration(payload);
     const normalized = unwrap(native.providerRegisteredClient(JSON.stringify(registrationValue)));
     const responseMethod =
       unwrap(

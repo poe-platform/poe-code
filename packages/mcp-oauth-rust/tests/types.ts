@@ -203,3 +203,9 @@ const beginAuthorizationB: typeof beginRemoteMcpAuthorization = referenceBeginAu
 const completeAuthorizationA: typeof referenceCompleteAuthorization = completeRemoteMcpAuthorization;
 const completeAuthorizationB: typeof completeRemoteMcpAuthorization = referenceCompleteAuthorization;
 void [beginAuthorizationA, beginAuthorizationB, completeAuthorizationA, completeAuthorizationB];
+
+import { registerOAuthClient } from "../dist/index.js";
+import { registerOAuthClient as referenceRegisterClient } from "../../mcp-oauth/src/client/register-client.js";
+const registerClientA: typeof referenceRegisterClient = registerOAuthClient;
+const registerClientB: typeof registerOAuthClient = referenceRegisterClient;
+void [registerClientA, registerClientB];

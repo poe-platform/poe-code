@@ -37,3 +37,5 @@ export { generateCodeChallenge, generateCodeVerifier } from "./client/pkce.js";
 export { exchangeAuthorizationCode, refreshAccessToken } from "./client/token-endpoint.js";
 
 export { revokeOAuthToken } from "./client/revoke-token.js";
+
+export { registerOAuthClient, type RegisterOAuthClientOptions } from "./client/register-client.js";

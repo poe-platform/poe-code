@@ -389,3 +389,13 @@ export declare function revokeOAuthToken(input: {
   fetch: OAuthMetadataFetch;
   signal?: AbortSignal;
 }): Promise<void>;
+
+export interface RegisterOAuthClientOptions {
+  registrationEndpoint: string;
+  redirectUri: string;
+  metadata?: OAuthClientMetadata;
+  tokenEndpointAuthMethod?: OAuthTokenEndpointAuthMethod;
+  fetch: OAuthMetadataFetch;
+  signal?: AbortSignal;
+}
+export declare function registerOAuthClient(input: RegisterOAuthClientOptions): Promise<OAuthClientRegistration>;

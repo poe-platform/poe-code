@@ -58,7 +58,8 @@ underscores or hyphens) adds a routing hint to a fresh 256-bit nonce; it never
 identifies or authorizes the caller. `beginRemoteMcpAuthorization` uses the same
 preparation before calling `store.create`.
 
-`exchangeAuthorizationCode`, `refreshAccessToken`, `revokeOAuthToken`, and `discoverOAuthMetadata`
+`registerOAuthClient`, `exchangeAuthorizationCode`, `refreshAccessToken`,
+`revokeOAuthToken`, and `discoverOAuthMetadata`
 are also available through the bundled MCP API. They use the existing protocol
 implementation; token operations return normalized `StoredOAuthTokens` and never
 persist or retry the exchange. Supply a policy-checked fetch and signal. A host
@@ -68,6 +69,11 @@ tokens and `OAuthError` diagnostics are private; redact them at user boundaries.
 Revocation uses RFC 7009 form authentication, accepts empty success bodies, and
 never clears host credentials or retries a request. It shares token-operation
 authentication and has a 30-second deadline and a 1 MiB response limit.
+Registration accepts a host-approved `registrationEndpoint`, `redirectUri`, optional
+`metadata` and `tokenEndpointAuthMethod`, plus the policy-checked fetch. It reuses
+the native client registration path without consent or persistence; it bounds the
+request to 64 KiB and response to 1 MiB with a 30-second deadline, and never
+retries. Bind and store the returned registration privately before starting consent.
 
 ## Configuration
 

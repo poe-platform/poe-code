@@ -4,7 +4,7 @@ import { normalizeStoredOAuthClient, parseOAuthClientRegistration, registrationM
 import { normalizeOAuthScope } from "./scope.js";
 import { normalizeOAuthTokenEndpointAuthMethod } from "./token-auth-method.js";
 import { isIP } from "node:net";
-import { fetchMcpResponse } from "../http-fetch.js";
+import { registerOAuthClient } from "./register-client.js";
 import { URL } from "node:url";
 import type {
   DefaultOAuthClientProviderOptions,
@@ -29,8 +29,7 @@ import {
   exchangeAuthorizationCode,
   OAuthError,
   refreshAccessToken,
-  isRetryableOAuthError,
-  readOAuthJsonObjectResponse
+  isRetryableOAuthError
 } from "./token-endpoint.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 import { withOAuthSessionTransaction } from "./session-transaction.js";
@@ -575,24 +574,11 @@ export function createDefaultOAuthClientProvider(
       ["none", "client_secret_basic", "client_secret_post"].find(method => supported.includes(method)));
     if (registrationMethod === undefined || (supported !== undefined && !supported.includes(registrationMethod)))
       throw new Error("Authorization server does not support the requested OAuth token endpoint authentication");
-    const registrationBody = buildClientRegistrationBody(
-      clientMetadata,
-      redirectUri,
-      registrationMethod
-    );
-    const deadline = AbortSignal.timeout(30_000);
-    const signal = parentSignal === undefined ? deadline : AbortSignal.any([parentSignal, deadline]);
-    const response = await fetchMcpResponse(fetch, registrationEndpoint, {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(registrationBody),
-      signal
+    const registration = await registerOAuthClient({
+      registrationEndpoint, redirectUri, metadata: clientMetadata,
+      tokenEndpointAuthMethod: normalizeOAuthTokenEndpointAuthMethod(registrationMethod),
+      fetch, signal: parentSignal
     });
-    const payload = await readOAuthJsonObjectResponse(response, signal);
-    const registration = parseOAuthClientRegistration(payload);
     const registeredSecret = getOwnString(registration, "client_secret");
     const responseMethod = normalizeOAuthTokenEndpointAuthMethod(getOwnEntry(registration, "token_endpoint_auth_method")) ??
       requestedTokenMethod ?? (supported === undefined ? undefined : normalizeOAuthTokenEndpointAuthMethod(registrationMethod));
@@ -1041,42 +1027,6 @@ function assertTokenEndpointAuthentication(client: StoredOAuthSession["client"],
   const supported = getSupportedTokenAuthMethods(metadata);
   if (supported !== undefined && !supported.includes(method))
     throw new Error("Authorization server does not support the requested OAuth token endpoint authentication");
-}
-
-function buildClientRegistrationBody(
-  metadata: OAuthClientMetadata | undefined,
-  redirectUri: string,
-  tokenEndpointAuthMethod: string
-): Record<string, unknown> {
-  const body: Record<string, unknown> = {
-    redirect_uris: [redirectUri],
-    grant_types: ["authorization_code", "refresh_token"],
-    response_types: ["code"],
-    token_endpoint_auth_method: tokenEndpointAuthMethod
-  };
-  const clientName = metadata === undefined ? undefined : getOwnString(metadata, "clientName");
-  const scope = metadata === undefined ? undefined : getOwnString(metadata, "scope");
-  const softwareId = metadata === undefined ? undefined : getOwnString(metadata, "softwareId");
-  const softwareVersion =
-    metadata === undefined ? undefined : getOwnString(metadata, "softwareVersion");
-
-  if (clientName !== undefined && clientName.length > 0) {
-    body.client_name = clientName;
-  }
-
-  if (scope !== undefined && scope.length > 0) {
-    body.scope = scope;
-  }
-
-  if (softwareId !== undefined && softwareId.length > 0) {
-    body.software_id = softwareId;
-  }
-
-  if (softwareVersion !== undefined && softwareVersion.length > 0) {
-    body.software_version = softwareVersion;
-  }
-
-  return body;
 }
 
 function toStoredDiscovery(discovery: OAuthDiscoveryResult): StoredOAuthSession["discovery"] {

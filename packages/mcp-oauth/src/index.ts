@@ -70,3 +70,5 @@ export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, Pr
 export { exchangeAuthorizationCode, refreshAccessToken } from "./client/token-endpoint.js";
 
 export { revokeOAuthToken } from "./client/revoke-token.js";
+
+export { registerOAuthClient, type RegisterOAuthClientOptions } from "./client/register-client.js";

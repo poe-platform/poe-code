@@ -1521,9 +1521,9 @@ function resolveCanonicalSync(
   inspectStat: (absPath: string, follow: boolean) => SyncFsStatNode | undefined,
 ): string | undefined {
   if (mode === "s") return normalizePath(inputPath, cwd);
-  let trailingSlash = inputPath.length > 1 && inputPath.endsWith("/");
+  let trailingSlash = inputPath.length > 1 && (inputPath.endsWith("/") || inputPath.endsWith("/.") || inputPath.includes("/./"));
   if (mode === "link") {
-    if (trailingSlash || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(inputPath)) return undefined;
+    if (trailingSlash || /(?:^|\/)\.\.(?:\/|$)/u.test(inputPath)) return undefined;
     const abs = normalizePath(inputPath, cwd);
     const st = inspectStat(abs, false);
     if (!st || st.type !== "symlink" || st.target === undefined) return undefined;
@@ -1536,7 +1536,14 @@ function resolveCanonicalSync(
   let idx = 0;
   while (idx < parts.length) {
     const comp = parts[idx]!;
-    if (comp === ".") { idx++; continue; }
+    if (comp === ".") {
+      if (mode !== "m") {
+        const curSt = inspectStat(cur, false);
+        if (!curSt || curSt.type !== "directory") return undefined;
+      }
+      idx++;
+      continue;
+    }
     if (comp === "..") {
       if (mode !== "m") {
         const curSt = inspectStat(cur, false);
@@ -1691,7 +1698,7 @@ export function evalSyncRealpath(
   }
   if (operands.length === 0) return undefined;
   const resolveOp = (p: string): string | undefined => {
-    const hasTrailingSlash = p.length > 1 && p.endsWith("/");
+    const hasTrailingSlash = p.length > 1 && (p.endsWith("/") || p.endsWith("/.") || p.includes("/./"));
     if (strip || logical) {
       const rawPath = p.startsWith("/") ? p : (cwd === "/" ? "/" + p : cwd + "/" + p);
       const lexical = normalizePath(rawPath);
@@ -1700,7 +1707,7 @@ export function evalSyncRealpath(
         const components = rawPath.split("/");
         for (let index = 1; index < components.length; index++) {
           const component = components[index]!;
-          if (!component || (component === "." && index < components.length - 1)) continue;
+          if (!component) continue;
           if (component === ".." || component === ".") {
             const parent = inspectStat(prefix, true);
             if (!parent || parent.type !== "directory") return undefined;
@@ -7307,7 +7314,7 @@ const syncExtraRuntimeMethods = {
         let cachedFile = (r0 as { _cachedRedirectFile?: { path: string } })._cachedRedirectFile;
         let resolved: string;
         if (cachedFile !== undefined && r0.target.plain !== undefined && r0.target.plain.charCodeAt(0) === 47 && cachedFile.path === r0.target.plain) resolved = cachedFile.path; else {
-          resolved = normalizePath(targetVal, rawState.cwd);
+          resolved = resolvePath(rawState.cwd, targetVal);
           if (resolved === "/dev" || resolved.startsWith("/dev/")) return undefined;
           if (!cachedFile || cachedFile.path !== resolved) {
             cachedFile = Object.freeze({ path: resolved });
@@ -16641,7 +16648,7 @@ const syncExtraRuntimeMethods = {
     if (step.targetDirPrefix !== undefined && step.targetNamePrefix !== undefined) {
       const fileName = this.evalSyncRedirectSuffix(step.targetWord!, step.targetDirPrefix, step.targetNamePrefix, rawState, io);
       if (!fileName.includes("/") && fileName !== "." && fileName !== ".." && tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) return;
-      tryWriteMemoryFileSync(this.backingFs, normalizePath(step.targetDirPrefix + fileName, rawState.cwd), encoded, append, mode, this.commandSignal);
+      tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, step.targetDirPrefix + fileName), encoded, append, mode, this.commandSignal);
       return;
     }
     const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, io);
@@ -19614,13 +19621,17 @@ const syncExtraRuntimeMethods = {
                 : this.evalSyncBc("", allArgs, readFile);
               if (bcRes !== undefined) fileRes = renderLines(bcRes);
             } else if (w0Plain === "xxd") {
-              fileRes = this.evalSyncXxd(view, opArgs, undefined, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              fileRes = this.evalSyncXxd(view, opArgs, readFile, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
             } else if (w0Plain === "od") {
-              fileRes = this.evalSyncOd(view, opArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              fileRes = this.evalSyncOd((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : EMPTY_BYTES, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile);
             } else if (w0Plain === "hexdump" || w0Plain === "hd") {
-              fileRes = this.evalSyncHexdump(view, opArgs, w0Plain === "hd");
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              fileRes = this.evalSyncHexdump((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : EMPTY_BYTES, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, w0Plain === "hd", readFile);
             } else if (w0Plain === "fmt") {
-              fileRes = this.evalSyncFmt(view, opArgs);
+              const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
+              fileRes = this.evalSyncFmt((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : EMPTY_BYTES, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile);
             } else if (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const csOut = evalSyncChecksum(w0Plain, view, opArgs, readFile, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
@@ -19698,7 +19709,7 @@ const syncExtraRuntimeMethods = {
               fileRes = syncCommandEvaluators.evalSyncSips?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if (w0Plain === "identify" || w0Plain === "magick" || w0Plain === "convert" || w0Plain === "mogrify" || w0Plain === "composite" || w0Plain === "montage" || w0Plain === "compare") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = syncCommandEvaluators.evalSyncIdentify?.(w0Plain, view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
+              fileRes = syncCommandEvaluators.evalSyncIdentify?.(w0Plain, (hasSingleStdinRedir || hasSingleHereStringRedir) ? view : undefined, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
             } else if ((hasSingleStdinRedir || hasSingleHereStringRedir) && w0Plain === "pdfimages") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               fileRes = syncCommandEvaluators.evalSyncPdfimages?.(view, opArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });

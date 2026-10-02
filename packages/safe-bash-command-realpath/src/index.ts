@@ -130,10 +130,11 @@ export function createRealpathCommand(configuration: RealpathCommandsOptions = {
             const components = path.split("/");
             for (let index = 1; index < components.length; index++) {
               const component = components[index]!;
-              if (!component || component === "." && index < components.length - 1) continue;
-              if (component === ".." || component === ".") {
+              if (!component && index < components.length - 1) continue;
+              if (!component || component === ".." || component === ".") {
                 const parent = await context.fs.stat(prefix, { signal: context.signal });
                 if (parent.type !== "directory") throw new FsError("ENOTDIR", { path: prefix });
+                if (!component || component === ".") continue;
               }
               prefix = normalizePath(component, prefix);
               if (mode === "e" || index < components.length - 1) {

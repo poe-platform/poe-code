@@ -1388,3 +1388,22 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "1|1|1|1|1|1");
   });
+
+  test("75. sync redirect parent-segment check, realpath/readlink dot-segment on regular files, and multi-file identify/od in command substitution", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "true > /missing_dir/../out_redir.txt 2>/dev/null; s1=$?",
+      "[ -e /out_redir.txt ] && r_ex=yes || r_ex=no",
+      "printf \"abc\\n\" > /reg2.txt",
+      "realpath /reg2.txt/. 2>/dev/null; s2=$?",
+      "realpath -s /reg2.txt/./ 2>/dev/null; s3=$?",
+      "readlink -f /reg2.txt/. 2>/dev/null; s4=$?",
+      "printf \"P3\\n1 1\\n255\\n255 0 0\\n\" > /i1.ppm",
+      "printf \"P3\\n2 2\\n255\\n0 255 0 0 255 0 0 255 0 0 255 0\\n\" > /i2.ppm",
+      "id_lines=$(identify /i1.ppm /i2.ppm | wc -l)",
+      "od_out=$(od -An -tx1 /reg2.txt /reg2.txt)",
+      "echo \"$s1|$r_ex|$s2|$s3|$s4|$id_lines|$(echo $od_out)\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "1|no|1|1|1|2|61 62 63 0a 61 62 63 0a");
+  });

@@ -96,9 +96,8 @@ export function evalSyncIdentify(
     let hasWrites = false;
     for (const [key, val] of vfsFiles.entries()) {
       if (existingSnap.get(key) !== val) {
-        if (key === "-") return undefined;
+        if (!key || key === "-" || key.endsWith("/") || key.endsWith("/.") || key.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(key)) return undefined;
         hasWrites = true;
-        break;
       }
     }
     if (hasWrites && !writeFileSync) return undefined;

@@ -1,8 +1,8 @@
 import { encodeBytes } from "../../byte-encoding.js";
 import { writeBytes, type CommandDefinition } from "../../contracts/index.js";
 import { createSafeJsNodeCommand, NODE_HELP_TEXT } from "./safejs.js";
+import { createDefaultSafeJsRuntime, DEFAULT_NODE_VERSION } from "safe-bash-command-node/safejs-runtime";
 
-const DEFAULT_NODE_VERSION = "v22.0.0";
 let cachedCommand: CommandDefinition | undefined;
 
 export const defaultNodeCommand: CommandDefinition = Object.freeze<CommandDefinition>({
@@ -33,18 +33,7 @@ export const defaultNodeCommand: CommandDefinition = Object.freeze<CommandDefini
       return { exitCode: 0 };
     }
     if (cachedCommand === undefined) {
-      let mod: typeof import("poe-code/safe-js/core");
-      try {
-        mod = await import("poe-code/safe-js/core");
-      } catch {
-        mod = await import("@poe-code/safe-js/core");
-      }
-      const { Budget, run, makeFsModule, declareHostOperation, parseSourceModule } = mod;
-      cachedCommand = createSafeJsNodeCommand({ runtime: {
-        run, makeFsModule, declareHostOperation, parseSourceModule,
-        createBudget: options => new Budget(options),
-        node: { version: DEFAULT_NODE_VERSION },
-      } });
+      cachedCommand = createSafeJsNodeCommand({ runtime: await createDefaultSafeJsRuntime() });
     }
     context.signal.throwIfAborted();
     return cachedCommand.execute(context);

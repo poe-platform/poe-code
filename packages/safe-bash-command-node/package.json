@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./safejs-runtime": {
+      "types": "./dist/safejs-runtime.d.ts",
+      "import": "./dist/safejs-runtime.js"
     }
   },
   "files": [
@@ -29,6 +33,7 @@
     "quickjs-emscripten": "0.31.0"
   },
   "devDependencies": {
+    "@poe-code/safe-js": "*",
     "@poe-code/safe-fs": "*",
     "safe-bash-contracts": "*"
   },

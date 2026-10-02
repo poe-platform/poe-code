@@ -1709,6 +1709,7 @@
             "quickjs-emscripten": "0.31.0"
           },
           "devDependencies": {
+            "@poe-code/safe-js": "*",
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*"
           },

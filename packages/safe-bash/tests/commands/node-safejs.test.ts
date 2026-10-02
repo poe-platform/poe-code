@@ -28,6 +28,17 @@ test("node and safeJs registration use the default SafeJS adapter", async () => 
   }
 });
 
+test("default SafeJS runtime preserves virtual filesystem effects", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(nodeCommands());
+  try {
+    const result = await shell.exec("node -e " + quote(`const fs = require("node:fs"); fs.writeFileSync("/answer", "42"); console.log(fs.readFileSync("/answer", "utf8"));`));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "42\n");
+    assert.equal(new TextDecoder().decode(await fs.readFile("/answer")), "42");
+  } finally { await shell.dispose(); }
+});
+
 test("builtin require followed by a guest error does not fail snapshot serialization", async context => {
   const errors: unknown[][] = [];
   const replayErrors: unknown[] = [];

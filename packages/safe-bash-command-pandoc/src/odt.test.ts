@@ -87,11 +87,11 @@ it("rejects malformed ODT and observes cancellation and output limits", async ()
   await expect(convert([{bytes: encode(source)}], {from: "gfm", to: "odt"}, {...context, signal: AbortSignal.abort()})).rejects.toMatchObject({code: "E_CANCELLED"});
 });
 
-it("loads docx/pandoc-adapter in odt-writer and defers fengari/citeproc chunks from dist/index.js", async () => {
+it("loads safe-bash-docx-engine/pandoc-adapter in odt-writer and defers fengari/citeproc chunks from dist/index.js", async () => {
   const fsNode = await import("node:fs");
   const odtWriterSrc = fsNode.readFileSync(new URL("./odt-writer.ts", import.meta.url), "utf8");
-  expect(odtWriterSrc).toContain('import("docx/pandoc-adapter")');
-  expect(odtWriterSrc).not.toContain('import("docx")');
+  expect(odtWriterSrc).toContain('import("safe-bash-docx-engine/pandoc-adapter")');
+  expect(odtWriterSrc).not.toContain('import("safe-bash-docx-engine")');
   const distIndex = fsNode.readFileSync(new URL("../dist/index.js", import.meta.url), "utf8");
   expect(distIndex).not.toMatch(/from\s*["'][^"']*(?:fengari|citeproc)[^"']*["']/);
 });

@@ -87,3 +87,14 @@ it("closes a still-open SSE response after the tool result", async () => {
   expect(await callRemoteMcpTool(server, request, { fetch: f.fetch })).toEqual({ content: [{ type: "text", text: "streamed result" }] });
   expect(cancel).toHaveBeenCalledOnce();
 });
+
+
+it.each([301, 302, 303, 307, 308])("rejects manual HTTP %s without retrying the tool or reading redirect content", async status => {
+  const cancel = vi.fn();
+  const f = remote(rpc => rpc.method === "tools/call" ? new Response(new ReadableStream({ cancel }), {
+    status, headers: { location: "https://other.example/mcp" }
+  }) : undefined);
+  await expect(callRemoteMcpTool(server, request, { fetch: f.fetch, requestTimeoutMs: 50 })).rejects.toThrow("redirect");
+  expect(f.calls.filter(call => call.method === "tools/call")).toHaveLength(1);
+  expect(cancel).toHaveBeenCalledOnce();
+});

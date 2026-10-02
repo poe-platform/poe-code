@@ -26,7 +26,7 @@ export async function fetchMcpResponse(
         if (!settled) abort();
         return;
       }
-      if (response.redirected || response.type === "opaqueredirect") {
+      if (response.redirected || response.type === "opaqueredirect" || (response.status >= 300 && response.status < 400)) {
         void response.body?.cancel().catch(() => undefined);
         finish(new Error("MCP HTTP redirects are not allowed"));
       } else finish(undefined, response);

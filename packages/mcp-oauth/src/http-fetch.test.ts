@@ -1,12 +1,12 @@
 import { expect, it, vi } from "vitest";
 import { fetchMcpResponse } from "./http-fetch.js";
 
-it.each(["redirected", "opaqueredirect"])("rejects %s responses even when body cancellation stalls", async (kind) => {
+it.each(["redirected", "opaqueredirect", 301, 302, 303, 307, 308])("rejects %s responses even when body cancellation stalls", async (kind) => {
   let completeCancellation!: () => void;
   const cancellation = new Promise<void>((resolve) => { completeCancellation = resolve; });
   const cancel = vi.fn(() => cancellation);
-  const response = new Response(new ReadableStream({ cancel }));
-  Object.defineProperty(response, kind === "redirected" ? "redirected" : "type", {
+  const response = new Response(new ReadableStream({ cancel }), { status: typeof kind === "number" ? kind : 200 });
+  if (typeof kind === "string") Object.defineProperty(response, kind === "redirected" ? "redirected" : "type", {
     value: kind === "redirected" ? true : "opaqueredirect"
   });
   let failure: unknown;

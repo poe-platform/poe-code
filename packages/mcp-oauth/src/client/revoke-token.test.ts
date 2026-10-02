@@ -39,8 +39,12 @@ describe("revokeOAuthToken", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 
-  it.each([302, 503])("rejects HTTP %s without a valid OAuth error", async status => {
+  it.each([503])("rejects HTTP %s without a valid OAuth error", async status => {
     await expect(api.revokeOAuthToken({ ...common, fetch: async () => new Response("", { status }) })).rejects.toMatchObject({ status, outcomeKnown: false });
+  });
+
+  it("rejects manual redirects before reading revocation content", async () => {
+    await expect(api.revokeOAuthToken({ ...common, fetch: async () => new Response("", { status: 302 }) })).rejects.toThrow("redirect");
   });
 
   it("rejects missing confidential credentials before dispatch", async () => {

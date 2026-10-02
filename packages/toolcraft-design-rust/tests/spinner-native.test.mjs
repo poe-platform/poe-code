@@ -38,7 +38,7 @@ test("spinner preserves repeated start, timer truthiness and exit code decisions
 test("spinner propagates writer and timer failures without inventing cleanup",async()=>{
   const spinner=await load();const failure={};
   for(const operation of ["start","message","stop"]){
-    const action=(s,trace)=>{s.start("ready");const saved=process.stdout.write;Object.defineProperty(process.stdout,"write",{configurable:true,value(){throw failure;}});try{assert.throws(()=>s[operation]("next"),error=>error===failure);}finally{Object.defineProperty(process.stdout,"write",{configurable:true,value:saved});}s.stop("recovered");};
+    const action=s=>{s.start("ready");const saved=process.stdout.write;Object.defineProperty(process.stdout,"write",{configurable:true,value(){throw failure;}});try{assert.throws(()=>s[operation]("next"),error=>error===failure);}finally{Object.defineProperty(process.stdout,"write",{configurable:true,value:saved});}s.stop("recovered");};
     assert.deepEqual(run(spinner,withOutputFormat,{},action),run(original,originalFormat,{},action));
   }
   const action=(s,trace)=>{globalThis.setInterval=()=>{trace.push("interval throw");throw failure;};assert.throws(()=>s.start("start"),error=>error===failure);s.stop("recovered");};

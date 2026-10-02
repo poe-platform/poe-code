@@ -4,7 +4,7 @@ import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
 
-export async function portableRuntime(contents: string, options: { removeBuffer?: boolean } = {}) {
+export async function portableRuntime(contents: string, options: { removeBuffer?: boolean; bootstrapBuffer?: boolean } = {}) {
   const root = fileURLToPath(new URL("../../../../", import.meta.url));
   const { resolveBrowserShellBuild } = await import(new URL("../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href);
   const buildOptions = resolveBrowserShellBuild(root);
@@ -23,7 +23,7 @@ export async function portableRuntime(contents: string, options: { removeBuffer?
       "poe-code/safe-fs/core": filesystem,
       "poe-code/safe-fs": filesystem,
     },
-    stdin: { contents, resolveDir: root },
+    stdin: { contents: (options.bootstrapBuffer ? 'import "./packages/safe-bash/src/portable-buffer.ts";\n' : '') + contents, resolveDir: root },
   });
   assert.deepEqual(Object.values(result.metafile!.outputs).flatMap(output => output.imports), []);
   // Injected Web APIs throw host TypeErrors, so preserve their error identity too.

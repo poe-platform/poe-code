@@ -1475,7 +1475,7 @@ function *renderDisplayListLayerSteps(
     }
   }
   if (typeof (globalThis as { gc?: () => void }).gc === "function") {
-    try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+    try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt rendering. */ }
   }
   const rgba = backdrop ? backdrop.slice() : new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
   // PDFBox GroupGraphics keeps the group's alpha separate from its backdrop.
@@ -1510,7 +1510,7 @@ function *renderDisplayListLayerSteps(
   let opIdx = 0;
   for (const original of paintOperations(displayList)) {
     if (++opIdx % 96 === 0 && typeof (globalThis as { gc?: () => void }).gc === "function") {
-      try { (globalThis as { gc?: () => void }).gc?.(); } catch {}
+      try { (globalThis as { gc?: () => void }).gc?.(); } catch { /* Optional host GC hints must not interrupt rendering. */ }
     }
     if (++work % 16384 === 0) yield;
     if (original.kind === "glyph" && (original.value.renderMode === 3 || (!original.value.outline && !original.value.unicode.trim()))) continue;

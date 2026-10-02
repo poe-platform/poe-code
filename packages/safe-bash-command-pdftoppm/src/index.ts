@@ -477,7 +477,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         if (singleFile)
             break;
         if (typeof (globalThis as { gc?: () => void }).gc === "function") {
-            try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch {}
+            try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt page conversion. */ }
         }
     }
     const stderrText = progressLines.length > 0 ? progressLines.join("\n") + "\n" : "";
@@ -1110,4 +1110,3 @@ export type PdftoppmCommandsOptions = PdftoppmCommandOptions;
 export function createPdftoppmCommands(options: PdftoppmCommandsOptions = {}): readonly CommandDefinition[] {
   return Object.freeze([createPdftoppmCommand(options), createPdftocairoCommand(options)]);
 }
-

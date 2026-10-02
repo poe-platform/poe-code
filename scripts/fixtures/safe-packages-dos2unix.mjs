@@ -1,10 +1,12 @@
 import { Shell, getCommandArguments, createCommandArguments, CommandArgumentIdentityError, FsError } from "@poe-platform/safe-bash";
-import { createDos2unixCommand, createUnix2dosCommand } from "@poe-platform/safe-bash/commands/line-endings";
+import { createDos2unixCommand, createUnix2dosCommand, createDos2unixCommands, createLineEndingCommands, dos2unixCommands, lineEndingCommands } from "@poe-platform/safe-bash/commands/line-endings";
 import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
 
 function assert(condition, message) { if (!condition) throw new Error(message); }
 
 export async function verifyDos2unix() {
+  assert(createLineEndingCommands === createDos2unixCommands, "packed line-ending collection alias changed");
+  assert(lineEndingCommands === dos2unixCommands, "packed line-ending plugin alias changed");
   const fs = new MemoryFileSystem();
   await fs.writeFile("/\ufeffinput", Uint8Array.of(239, 187, 191, 65, 13, 10, 66, 10), { mode: 0o640 });
   await fs.writeFile("/script.sh", new TextEncoder().encode('dos2unix -q -b -k "$1"; unix2dos -q -b -n "$1" /output; dos2unix -q -b -O /output | unix2dos -b\n'));

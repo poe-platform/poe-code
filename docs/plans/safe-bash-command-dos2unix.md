@@ -1,6 +1,6 @@
 # Extract dos2unix into a private command workspace
 
-Issue: 998. Ownership revalidated at main
+Ownership revalidated at main
 `2ce65ebb46d30fdc955e85f233fba0f18d6508a3`: the implementation was in
 `packages/safe-bash/src/commands/line-endings`; neither requested workspace
 existed. Preserve the existing byte/UTF-16 profile and all public imports.
@@ -44,10 +44,10 @@ The boundary test was added before implementation and failed with
   private workspace packages or source resolution.
 - Run full maintained build, unit and lint routes for the shared contract move,
   package-lint, and inspect their completion evidence.
-- Review the final diff, commit the issue's changes, push to main and verify the
+- Review the final diff, commit the changes, push to main and verify the
   commit is contained in remote main. Close only after every requirement passes.
   The user explicitly does not require waiting for release publication.
 
-Temporary logs are kept in the checkout's `out/issue-998` and removed after use;
+Temporary logs are kept in the checkout's `out/line-endings` and removed after use;
 the host's absolute `/out` is unavailable to this user (mkdir denied and sudo
 requires a password). No generated evidence belongs in this plan directory.

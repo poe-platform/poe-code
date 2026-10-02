@@ -3128,6 +3128,7 @@ export function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, pa
   return entry;
 }
 export class Runtime {
+  [key: string]: any;
   private persistentIO(state: State, io: IO): IO {
     const frame = execDescriptorFrames.get(stateMonitor(state)?.raw ?? state);
     if (!frame || io.execFrame === frame && io.execVersion === frame.version) return io;

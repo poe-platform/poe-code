@@ -1500,7 +1500,9 @@
         },
         "safe-bash-command-llm": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "@noble/hashes": "2.4.0"
+          },
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",

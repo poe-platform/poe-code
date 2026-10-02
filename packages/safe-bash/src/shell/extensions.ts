@@ -160,6 +160,7 @@ export interface ShellExtension {
 }
 
 export interface ShellExtensionState {
+  readonly isIdleTrapState?: boolean;
   readonly syntax: CapturedShellSyntax;
   readonly entries: readonly { readonly definition: ShellExtension; readonly instance: ShellExtensionInstance }[];
   readonly builtins: ReadonlyMap<string, ShellExtensionBuiltin>;

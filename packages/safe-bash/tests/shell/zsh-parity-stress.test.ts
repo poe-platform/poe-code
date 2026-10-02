@@ -605,6 +605,23 @@ test("36. sync expand/unexpand multi -t tablists, column -e vs -L and JSON colum
   }
 });
 
+test("55. sync vs async parity for apply_patch, html-to-markdown, and xq semantics", async () => {
+  const scripts = [
+    "mkdir -p /ap55; cd /ap55; printf \"old\\n\" > a.txt; printf \"existing\\n\" > b.txt; p=\$'*** Begin Patch\\n*** Update File: a.txt\\n*** Move to: b.txt\\n@@\\n-old\\n+new\\n*** End Patch'; x=\$(apply_patch \"\$p\" 2>/dev/null; echo \$?); y=\$(cat b.txt); echo \"\$x|\$y\"",
+    "mkdir -p /ap55b; cd /ap55b; printf \"line1\\r\\nline2\\r\\n\" > crlf.txt; p=\$'*** Begin Patch\\n*** Update File: crlf.txt\\n@@\\n-line1\\n+mod1\\n*** End Patch'; apply_patch \"\$p\" >/dev/null; od -An -tx1 crlf.txt | tr -d ' \\n'; echo",
+    "a=\$(html-to-markdown <<< $'<p>\\n  hello\\n  world\\n</p>'); b=\$(html-to-markdown <<< '<p>line1<br>line2</p>'); echo \"\$a|\$b\"",
+    "mkdir -p /xq55; cd /xq55; printf '<root><x>42</x></root>' > doc.xml; xq -n 'inputs.root.x' doc.xml",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});
+
 test("54. sync vs async parity for pr, iconv, dos2unix, and chmod semantics", async () => {
   const scripts = [
     "mkdir -p /pr54; cd /pr54; printf \"from_file\\n\" > -- -f.txt; touch -d 2020-01-02T03:04:05Z -- -f.txt; a=\$(pr -t <<< \"from_stdin\"); b=\$(pr -t -- -f.txt <<< \"from_stdin\"); c=\$(pr -D \"%Y-%m-%d\" -- -f.txt | head -n 4); echo \"\$a|\$b|\$c\"",

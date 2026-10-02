@@ -34,7 +34,7 @@ export function unrtfCommands(options: UnrtfCommandsOptions = {}): VirtualShellP
 }
 let _syncUnrtfSignal: AbortSignal | undefined;
 const syncUnrtfSignal = (): AbortSignal => (_syncUnrtfSignal ??= new AbortController().signal);
-const syncUnrtfDecoder = new TextDecoder("utf-8", { fatal: false });
+const syncUnrtfDecoder = new TextDecoder("latin1");
 const unrtfCache = new Map<string, string>();
 
 export function evalSyncUnrtf(

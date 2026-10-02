@@ -184,6 +184,7 @@ export function evalSyncXq(
   const filter = positional[0] ?? ".";
   const fileArg = positional[1];
   if (positional.length > 2) return undefined;
+  if (nullInput && (fileArg !== undefined || /\binputs?\b/u.test(filter))) return undefined;
   let srcBytes = inBytes;
   if (fileArg !== undefined && fileArg !== "-") {
     if (!readFileSync) return undefined;

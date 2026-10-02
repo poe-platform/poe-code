@@ -96,8 +96,8 @@ function decodeHtmlEntitiesSync(s: string): string | undefined {
 }
 
 function convertSimpleInlineHtmlSync(html: string): string | undefined {
-  if (html.includes("&")) return undefined;
-  let out = html.replace(/<br\s*\/?>/gi, "\n");
+  if (html.includes("&") || /<br\b/i.test(html)) return undefined;
+  let out = html;
   out = out.replace(/<img\s+[^>]*src="(https?:\/\/[a-zA-Z0-9._~:\/?#@!$&*+,;=%-]+)"[^>]*alt="([a-zA-Z0-9 ,:;\/?\"]*)?"[^>]*\/?>/gi, "![$2](<$1>)");
   out = out.replace(/<img\s+[^>]*alt="([a-zA-Z0-9 ,:;\/?\"]*)?"[^>]*src="(https?:\/\/[a-zA-Z0-9._~:\/?#@!$&*+,;=%-]+)"[^>]*\/?>/gi, "![$1](<$2>)");
   out = out.replace(/<(strong|b)>([a-zA-Z0-9 ,:;\/?\"]+)<\/\1>/g, "**$2**");
@@ -114,7 +114,7 @@ function convertSimpleInlineHtmlSync(html: string): string | undefined {
     .replace(/~~[^~]+~~/g, "x")
     .replace(/`[^`]+`/g, "x");
   if (/[\\`*_{}[\]<>!|#+\-&~=.)\x00-\x1f\x7f-\x9f]/u.test(plainCheck)) return undefined;
-  return out.split("\n").map(line => line.replace(/[ \t\r]+/g, " ").trim()).join("\n").trim();
+  return out.replace(/[ \t\r\n\f]+/g, " ").trim();
 }
 
 function renderSingleHtmlDocumentSync(html: string): string | undefined {

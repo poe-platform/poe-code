@@ -20,12 +20,23 @@ export function evalSyncApplyPatch(
     return undefined;
   }
   const actions: { kind: "write" | "delete" | "move"; path: string; dest?: string; bytes?: Uint8Array; summary: string }[] = [];
+  const seenPaths: string[] = [];
+  const registerPatchPath = (rawPath: string): boolean => {
+    const norm = rawPath.replace(/^\.\/+/u, "").replace(/\/+$/u, "");
+    if (!norm) return false;
+    for (const prev of seenPaths) {
+      if (norm === prev || norm.startsWith(prev + "/") || prev.startsWith(norm + "/")) return false;
+    }
+    seenPaths.push(norm);
+    return true;
+  };
   let idx = 1;
   while (idx < lines.length - 1) {
     const header = lines[idx]!;
     if (header.startsWith("*** Add File: ")) {
       const target = header.slice("*** Add File: ".length);
-      if (!target || target.includes("..")) return undefined;
+      if (!target || target.includes("..") || !registerPatchPath(target)) return undefined;
+      if (readFileSync(target) !== undefined) return undefined;
       idx++;
       const added: string[] = [];
       while (idx < lines.length - 1 && !lines[idx]!.startsWith("*** ")) {
@@ -42,7 +53,7 @@ export function evalSyncApplyPatch(
       });
     } else if (header.startsWith("*** Delete File: ")) {
       const target = header.slice("*** Delete File: ".length);
-      if (!target || target.includes("..") || !removeFileSync) return undefined;
+      if (!target || target.includes("..") || !removeFileSync || !registerPatchPath(target)) return undefined;
       if (!readFileSync(target)) return undefined;
       idx++;
       actions.push({
@@ -52,26 +63,32 @@ export function evalSyncApplyPatch(
       });
     } else if (header.startsWith("*** Update File: ")) {
       const target = header.slice("*** Update File: ".length);
-      if (!target || target.includes("..")) return undefined;
+      if (!target || target.includes("..") || !registerPatchPath(target)) return undefined;
       const origBytes = readFileSync(target);
       if (!origBytes) return undefined;
+      if (origBytes.includes(13) || origBytes.includes(0) || (origBytes.length > 0 && origBytes[origBytes.length - 1] !== 10)) {
+        return undefined;
+      }
       const fileLines = decoder.decode(origBytes).replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
       idx++;
       let moveDest: string | undefined;
       if (idx < lines.length - 1 && lines[idx]!.startsWith("*** Move to: ")) {
         moveDest = lines[idx]!.slice("*** Move to: ".length);
-        if (!moveDest || moveDest.includes("..") || !removeFileSync) return undefined;
+        if (!moveDest || moveDest.includes("..") || !removeFileSync || !registerPatchPath(moveDest)) return undefined;
+        if (readFileSync(moveDest) !== undefined) return undefined;
         idx++;
       }
       let searchPos = 0;
+      let hunkCount = 0;
       while (idx < lines.length - 1 && !lines[idx]!.startsWith("*** ")) {
-        if (!lines[idx]!.startsWith("@@")) return undefined;
+        if (lines[idx] !== "@@") return undefined;
+        hunkCount++;
         idx++;
         const oldChunk: string[] = [];
         const newChunk: string[] = [];
         while (idx < lines.length - 1 && !lines[idx]!.startsWith("@@") && !lines[idx]!.startsWith("*** ")) {
           const hl = lines[idx]!;
-          if (hl === "*** End of File") { idx++; break; }
+          if (hl === "*** End of File") return undefined;
           const prefix = hl[0];
           const content = hl.slice(1);
           if (prefix === " ") { oldChunk.push(content); newChunk.push(content); }
@@ -92,6 +109,7 @@ export function evalSyncApplyPatch(
         fileLines.splice(matchIdx, oldChunk.length, ...newChunk);
         searchPos = matchIdx + newChunk.length;
       }
+      if (hunkCount === 0 && !moveDest) return undefined;
       const outBytes = encoder.encode(fileLines.join("\n") + "\n");
       if (moveDest && moveDest !== target) {
         actions.push({

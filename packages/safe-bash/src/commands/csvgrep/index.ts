@@ -70,7 +70,7 @@ export function evalSyncCsvgrep(
     if (!options.names && !options.regex && options.file !== undefined) {
       if (options.file === "-" || !readFileSync) return undefined;
       const patBytes = readFileSync(options.file);
-      if (!patBytes || patBytes.byteLength > 16384) return undefined;
+      if (!patBytes || patBytes.byteLength > 16384 || patBytes.includes(0)) return undefined;
       const patText = new TextDecoder("utf-8", { fatal: true }).decode(patBytes);
       let line = "";
       let cr = false;

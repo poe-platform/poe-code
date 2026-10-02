@@ -7,12 +7,14 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
   const result = await build({
     stdin: { resolveDir: new URL("../", import.meta.url).pathname, contents: `
       import * as sdk from "@poe-code/safe-js";
-      import { run, makeFsModule, createRootedSourceResolver, dump, restore, parseFsConfig, resolveFsConfig, makeMcpModule, inspectSnapshotMigration } from "@poe-code/safe-js";
+      import { run, makeFsModule, createRootedSourceResolver, dump, restore, parseFsConfig, resolveFsConfig, makeMcpModule, inspectSnapshotMigration, captureHostContext, FileSnapshotBackend } from "@poe-code/safe-js";
       import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
       import { StackContext } from "./dist/platform/context.js";
       import { types, createTrackedProxy } from "./dist/platform/types.js";
       import { attachSignalDumpHandler } from "./dist/runner/signal-dump.js";
       import { makeAgentModule, createSpawnUsageAccumulator, runWithSpawnUsageAccumulator } from "./dist/modules/agent.js";
+      import { runHarness } from "./dist/runner/run-harness.js";
+      import { migrateSnapshotFile } from "./dist/migration-file.js";
       export default { async fetch() {
         if (typeof Buffer !== "undefined" || typeof process !== "undefined") throw new Error("Node globals present");
         let onSignal;
@@ -35,13 +37,19 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
             return { exitCode: attempts === 1 ? 1 : 0, stdout: "", stderr: "", summary: "done", durationMs: 1,
               usage: { inputTokens: index + 1, outputTokens: 10 } };
           });
-          return runWithSpawnUsageAccumulator(accumulator, () => agent.spawn.retry("codex", { prompt: "mock" }, {
-            maxAttempts: 2, backoffMs: 0, isRetryable: () => true
-          }));
+          return runWithSpawnUsageAccumulator(accumulator, async () => {
+            const resume = captureHostContext();
+            await Promise.resolve();
+            await resume(() => agent.spawn.retry("codex", { prompt: "mock" }, {
+              maxAttempts: 2, backoffMs: 0, isRetryable: () => true
+            }));
+            await Promise.resolve();
+            return resume(() => agent.spawn("codex", { prompt: "mock" }));
+          });
         }));
         for (const [index, accumulator] of accumulators.entries()) {
           const usage = accumulator.snapshot();
-          if (usage.inputTokens !== 2 * (index + 1) || usage.outputTokens !== 20 || usage.attemptCount !== 2)
+          if (usage.inputTokens !== 3 * (index + 1) || usage.outputTokens !== 30 || usage.attemptCount !== 3 || usage.spawnCount !== 2)
             throw new Error("Portable concurrent spawn accounting failed");
         }
         await Promise.all([41, 42].map(async expected => {
@@ -75,6 +83,15 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
           if (check(fake)) throw new Error("False intrinsic brand");
         }
         if (!types.isProxy(createTrackedProxy({}, {}))) throw new Error("Tracked proxy lost");
+        for (const [check, value] of [
+          [types.isDate, new Date(0)], [types.isRegExp, /value/],
+          [types.isArrayBuffer, new ArrayBuffer(0)], [types.isDataView, new DataView(new ArrayBuffer(0))],
+          [types.isMap, new Map()], [types.isBooleanObject, Object(true)],
+          [types.isNumberObject, Object(1)], [types.isStringObject, Object("value")],
+          [types.isBigIntObject, Object(1n)], [types.isSymbolObject, Object(Symbol("value"))],
+          [types.isAsyncFunction, async function() {}], [types.isGeneratorFunction, function*() { yield 1; }],
+          [types.isNativeError, new Error("value")]
+        ]) if (!check(value)) throw new Error("Trusted intrinsic brand lost");
         if (!types.isPromise(Promise.resolve(1))) throw new Error("Promise brand lost");
         if (typeof inspectSnapshotMigration !== "function") throw new Error("Worker SDK export missing");
         let mcpClosed = 0;
@@ -142,7 +159,32 @@ test("portable interpreter executes in workerd without Node compatibility", { ti
         const source = 'return await Promise.resolve(42);';
         const pending = run(source);
         if ((await pending).returnValue !== 42) throw new Error("Promise evaluation failed");
-        restore(JSON.parse(await dump(pending)), { source });
+        const saved = JSON.parse(await dump(pending));
+        restore(saved, { source });
+        await fs.mkdir("/snapshots");
+        const backend = new FileSnapshotBackend("/snapshots/value.json", { adapter: fs });
+        await backend.write(saved);
+        if ((await backend.read()).sourceHash !== saved.sourceHash) throw new Error("Portable snapshot backend changed data");
+        await backend.remove();
+        if (await backend.read() !== undefined) throw new Error("Portable snapshot removal failed");
+        await fs.writeFile("/harness.ajs", new TextEncoder().encode("export default function () { return 42; }"));
+        const harness = await runHarness("/harness.ajs", { adapter: fs, modulesFor: () => ({}) });
+        if (!harness.ok || harness.returnValue !== 42) throw new Error("Portable harness failed");
+        const old = run("return 1;");
+        await old;
+        const encode = value => new TextEncoder().encode(value);
+        await fs.writeFile("/old.ajs", encode("return 1;"));
+        await fs.writeFile("/old.json", encode(await dump(old)));
+        await fs.writeFile("/new.ajs", encode("return import.meta.migration.count;"));
+        const migration = { adapter: fs, cwd: "/", snapshotPath: "old.json", sourcePath: "old.ajs" };
+        const { inspection } = await migrateSnapshotFile({ ...migration, inspect: true });
+        await fs.writeFile("/plan.json", encode(JSON.stringify({ state: { count: 2 }, reconciliation: {
+          checkpointDigest: inspection.checkpointDigest, quiescent: true, calls: []
+        }})));
+        await migrateSnapshotFile({ ...migration, targetSourcePath: "new.ajs", planPath: "plan.json", outputPath: "next.json" });
+        const migrated = JSON.parse(new TextDecoder().decode(await fs.readFile("/next.json")));
+        if ((await run("return import.meta.migration.count;", { snapshot: migrated })).returnValue !== 2)
+          throw new Error("Portable file migration failed");
         await fs.mkdir("/source");
         await fs.writeFile("/source/value.ajs", new TextEncoder().encode("export const value = 42;"));
         const resolver = await createRootedSourceResolver("/source", fs);

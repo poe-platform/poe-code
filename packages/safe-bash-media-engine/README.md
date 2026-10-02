@@ -138,12 +138,12 @@ require inspection rather than automatic command replay.
 
 ### Verify deployment assets with a virtual filesystem
 
-`@poe-code/media-cli/verification` builds deterministic inventory receipts and
+`safe-bash-media-engine/verification` builds deterministic inventory receipts and
 verifies pinned asset digests in Workers without Node compatibility or `Buffer`.
 Pass a `@poe-code/safe-fs` filesystem with streaming reads explicitly:
 
 ```ts
-import { verifyMediaExecutableAssets } from '@poe-code/media-cli/verification';
+import { verifyMediaExecutableAssets } from 'safe-bash-media-engine/verification';
 
 await verifyMediaExecutableAssets({
   fs,

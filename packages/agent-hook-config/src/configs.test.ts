@@ -9,7 +9,7 @@ import {
   supportedHookAgents,
   supportedTransformPairs,
   type AgentHookConfig
-} from "./index.js";
+} from "./node.js";
 
 describe("getAgentConfig", () => {
   it("exposes the agents with hook registry entries", () => {

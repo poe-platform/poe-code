@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getEventMappings, getHandlerTypeRules, getPlaceholderRewrites } from "./index.js";
+import { getEventMappings, getHandlerTypeRules, getPlaceholderRewrites } from "./node.js";
 
 describe("getEventMappings", () => {
   it("maps claude-code events to codex-supported hooks", () => {

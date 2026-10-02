@@ -2,6 +2,26 @@
 
 `@poe-code/agent-hook-config` is a per-run, per-spawn bridge that materializes a source agent's hooks into a target agent's hook file: it uses a symlink when source and target formats match and transforms hooks when they do not; every transformed entry carries a `statusMessage` prefix of `[generated:poe-code:<runId>] ` so cleanup can identify only what the bridge wrote.
 
+The main entrypoint provides asynchronous operations. Pass `{ fs, signal? }` as
+the final argument to use a SafeFS provider in Workers without Node compatibility:
+
+```ts
+import { bridgeHooks, cleanupBridgedHooks } from "@poe-code/agent-hook-config";
+
+const runtime = { fs };
+const manifest = await bridgeHooks(
+  "claude-code", "codex", "/repo", "/home/user", "run-id",
+  { strategy: "auto" }, runtime
+);
+// Run the agent using the bridged hooks, then release this run's ownership.
+await cleanupBridgedHooks(manifest, runtime);
+```
+
+Ownership and cleanup are isolated by provider. Concurrent runs share generated
+symlinks until their final owner finishes. JSON-cloned manifests can be cleaned
+within the same runtime. Synchronous host compatibility is available from
+`@poe-code/agent-hook-config/node`.
+
 ## Supported Pairs
 
 | Source      | Target      | Strategy  | Notes                                                    |

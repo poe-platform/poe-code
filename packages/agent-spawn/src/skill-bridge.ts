@@ -9,7 +9,7 @@ import {
   bridgeHooks,
   cleanupBridgedHooks,
   type BridgeHookManifest
-} from "@poe-code/agent-hook-config";
+} from "@poe-code/agent-hook-config/node";
 import { logger } from "toolcraft-design";
 import type { HookBridgeOptions } from "./types.js";
 

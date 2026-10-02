@@ -1,5 +1,5 @@
-import os from "node:os";
-import path from "node:path";
+import { homedir } from "#hook-platform";
+import { posixPath as path } from "@poe-code/safe-fs";
 import { resolveAgentId } from "@poe-code/agent-defs";
 
 export type HookFormat = "claude-settings-json" | "codex-hooks-json" | "codex-config-toml";
@@ -186,7 +186,7 @@ function cloneAgentHookConfig(config: AgentHookConfig): AgentHookConfig {
   };
 }
 
-function expandHome(targetPath: string, homeDir: string = os.homedir()): string {
+function expandHome(targetPath: string, homeDir: string = homedir()): string {
   if (!targetPath?.startsWith("~")) {
     return targetPath;
   }

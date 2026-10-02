@@ -45,7 +45,7 @@ vi.mock("@poe-code/agent-skill-config/node", () => ({
   cleanupBridgedSkills: skillBridgeMock.cleanupBridgedSkills
 }));
 
-vi.mock("@poe-code/agent-hook-config", () => ({
+vi.mock("@poe-code/agent-hook-config/node", () => ({
   bridgeHooks: hookBridgeMock.bridgeHooks,
   cleanupBridgedHooks: hookBridgeMock.cleanupBridgedHooks
 }));

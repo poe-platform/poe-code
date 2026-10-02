@@ -39,7 +39,7 @@ vi.mock("./configs.js", async (importOriginal) => {
   };
 });
 
-const { symlinkHooks } = await import("./index.js");
+const { symlinkHooks } = await import("./node.js");
 const { userAuthoredHookFileCode } = await import("./symlink-hooks.js");
 
 const cwd = "/repo/project";

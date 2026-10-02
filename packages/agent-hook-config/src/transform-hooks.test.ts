@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { transformHooks, type SourceHookEntry } from "./index.js";
+import { transformHooks, type SourceHookEntry } from "./node.js";
 
 const runId = "bridge-run";
 

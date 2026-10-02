@@ -8,7 +8,7 @@ vi.mock("node:fs", async () => {
   return fs;
 });
 
-const { readClaudeHooks } = await import("./index.js");
+const { readClaudeHooks } = await import("./node.js");
 
 const cwd = "/repo/project";
 const homeDir = "/home/tester";

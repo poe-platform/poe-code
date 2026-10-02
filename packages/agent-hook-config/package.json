@@ -10,6 +10,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "import": "./dist/node.js"
     }
   },
   "scripts": {
@@ -23,6 +27,16 @@
   "dependencies": {
     "@poe-code/agent-defs": "*",
     "@poe-code/agent-skill-config": "*",
-    "@poe-code/user-error": "*"
+    "@poe-code/user-error": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#hook-platform": {
+      "types": "./src/platform.ts",
+      "workerd": "./dist/platform.workerd.js",
+      "browser": "./dist/platform.workerd.js",
+      "worker": "./dist/platform.workerd.js",
+      "default": "./dist/platform.js"
+    }
   }
 }

@@ -7,7 +7,7 @@ vi.mock("node:fs", async () => {
   return fs;
 });
 
-const { writeCodexHooks } = await import("./index.js");
+const { writeCodexHooks } = await import("./node.js");
 
 const targetPath = "/repo/.codex/hooks.json";
 

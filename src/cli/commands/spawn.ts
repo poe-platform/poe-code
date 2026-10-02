@@ -32,7 +32,7 @@ import {
   isTransformSupported,
   resolveAgentSupport,
   type BridgeHookManifest
-} from "@poe-code/agent-hook-config";
+} from "@poe-code/agent-hook-config/node";
 import { text, select, isCancel, resolveOutputFormat, renderMarkdown } from "toolcraft-design";
 import {
   createExecutionResources,

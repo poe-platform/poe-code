@@ -805,8 +805,14 @@ export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8
   }
 
   const compressed = encodeFlate(rawScanlines);
+  if (typeof (rawScanlines.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && rawScanlines.byteOffset === 0 && rawScanlines.byteLength === rawScanlines.buffer.byteLength) {
+    try { (rawScanlines.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+  }
   const ihdrChunk = (yield* makePngChunkSteps("IHDR", ihdr));
   const idatChunk = (yield* makePngChunkSteps("IDAT", compressed));
+  if (typeof (compressed.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && compressed.byteOffset === 0 && compressed.byteLength === compressed.buffer.byteLength) {
+    try { (compressed.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+  }
   const iendChunk = (yield* makePngChunkSteps("IEND", new Uint8Array(0)));
 
   const total = signature.length + ihdrChunk.length + idatChunk.length + iendChunk.length;
@@ -816,6 +822,9 @@ export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8
     if (++work % 16384 === 0) yield;
     out.set(part, offset);
     offset += part.length;
+  }
+  if (typeof (idatChunk.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && idatChunk.byteOffset === 0 && idatChunk.byteLength === idatChunk.buffer.byteLength) {
+    try { (idatChunk.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
   }
   return out;
 }
@@ -1330,6 +1339,7 @@ function *renderDisplayListLayerSteps(
   // Reuse adjacent paints without retaining a page-sized mask for every clip.
   let cachedClips: readonly PdfClipPath[] | undefined;
   let cachedClipMask: Uint8Array | undefined;
+  let scratchClipLayer: Uint8Array | undefined;
   let cachedSoftMask: PdfSoftMask | undefined;
   let cachedSoftMaskPixels: Uint8Array | undefined;
   const imageClipMasks = new Map<readonly PdfEvaluatedImage[], Uint8Array>();
@@ -1353,16 +1363,17 @@ function *renderDisplayListLayerSteps(
     const clips = original.value.clipPaths;
     let clipMask = clips && clips === cachedClips ? cachedClipMask : undefined;
     if (clips && !clipMask) {
-      clipMask = new Uint8Array(width * height * 4).fill(255);
+      clipMask = cachedClipMask ?? (cachedClipMask = new Uint8Array(width * height * 4));
+      clipMask.fill(255);
       for (const clip of clips) {
     if (++work % 16384 === 0) yield;
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
-        const layer = new Uint8Array(width * height * 4);
+        const layer = scratchClipLayer ?? (scratchClipLayer = new Uint8Array(width * height * 4));
+        layer.fill(0);
         (yield* fillEdgesScanline4x4Steps(layer, width, height, (yield* pathsToEdgesSteps((yield* segmentsToScreenPathsSteps(segments, displayList.height, scale, toScreen)), true)), { r: 1, g: 1, b: 1 }, 1, fillRule));
         for (let i = 3; i < layer.length; i += 4) { if (++work % 16384 === 0) yield; clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255); }
       }
       cachedClips = clips;
-      cachedClipMask = clipMask;
     }
     const softMask = original.value.softMask;
     if (softMask) {
@@ -1519,6 +1530,11 @@ function *renderDisplayListLayerSteps(
       rgba[i + 1] = Math.round(rgba[i + 1]! * alpha + bg.g * 255 * (1 - alpha));
       rgba[i + 2] = Math.round(rgba[i + 2]! * alpha + bg.b * 255 * (1 - alpha));
       rgba[i + 3] = 255;
+    }
+  }
+  for (const scratch of [cachedClipMask, scratchClipLayer, cachedSoftMaskPixels, ...imageClipMasks.values()]) {
+    if (scratch && typeof (scratch.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && scratch.byteOffset === 0 && scratch.byteLength === scratch.buffer.byteLength) {
+      try { (scratch.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
     }
   }
   return { width, height, data: rgba };

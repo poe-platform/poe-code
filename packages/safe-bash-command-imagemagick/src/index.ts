@@ -3282,7 +3282,41 @@ function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickSta
         return img;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}">${svgElements.join("")}</svg>`;
     const overlay = decodeImage(new TextEncoder().encode(svg), { density: state.density });
-    return (yield* compositeImageSteps(img, [rgbaToCompositeLayer(overlay, 0, 0, "over")]));
+    blendOverlayInPlace(img, overlay, 0, 0);
+    return img;
+}
+
+function blendOverlayInPlace(img: RgbaImage, overlay: RgbaImage, offsetX: number, offsetY: number): void {
+    const dst = img.data;
+    const src = overlay.data;
+    for (let oy = 0; oy < overlay.height; oy++) {
+        const dy = offsetY + oy;
+        if (dy < 0 || dy >= img.height) continue;
+        for (let ox = 0; ox < overlay.width; ox++) {
+            const sIdx = (oy * overlay.width + ox) * 4;
+            const sa = src[sIdx + 3]!;
+            if (sa === 0) continue;
+            const dx = offsetX + ox;
+            if (dx < 0 || dx >= img.width) continue;
+            const dIdx = (dy * img.width + dx) * 4;
+            if (sa === 255) {
+                dst[dIdx] = src[sIdx]!;
+                dst[dIdx + 1] = src[sIdx + 1]!;
+                dst[dIdx + 2] = src[sIdx + 2]!;
+                dst[dIdx + 3] = 255;
+            } else {
+                const da = dst[dIdx + 3]! / 255;
+                const sAlpha = sa / 255;
+                const outA = sAlpha + da * (1 - sAlpha);
+                if (outA > 0) {
+                    dst[dIdx] = Math.round((src[sIdx]! * sAlpha + dst[dIdx]! * da * (1 - sAlpha)) / outA);
+                    dst[dIdx + 1] = Math.round((src[sIdx + 1]! * sAlpha + dst[dIdx + 1]! * da * (1 - sAlpha)) / outA);
+                    dst[dIdx + 2] = Math.round((src[sIdx + 2]! * sAlpha + dst[dIdx + 2]! * da * (1 - sAlpha)) / outA);
+                    dst[dIdx + 3] = Math.round(outA * 255);
+                }
+            }
+        }
+    }
 }
 
 function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: string, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -3292,11 +3326,16 @@ function* applyMagickAnnotateSteps(img: RgbaImage, offsetStr: string, text: stri
     const estW = Math.max(8, Math.ceil(text.length * fontSize * 0.6));
     const estH = Math.max(8, Math.ceil(fontSize));
     const gravOff = resolveGravityOffset(img.width - estW, img.height - estH, state.gravity);
-    const x = Math.max(0, gravOff.left + g.x);
-    const y = Math.max(fontSize, gravOff.top + estH + g.y);
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"><text x="${x}" y="${y}" font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
+    const x = Math.max(0, Math.round(gravOff.left + g.x));
+    const y = Math.max(fontSize, Math.round(gravOff.top + estH + g.y));
+    const topY = Math.max(0, y - estH);
+    const baselineInBox = y - topY;
+    const boxW = Math.max(1, Math.min(img.width - x, Math.max(16, Math.ceil(text.length * fontSize * 0.78) + 8)));
+    const boxH = Math.max(1, Math.min(img.height - topY, Math.max(12, Math.ceil(fontSize * 1.4))));
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${boxW}" height="${boxH}"><text x="0" y="${baselineInBox}" font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
     const overlay = decodeImage(new TextEncoder().encode(svg), { density: state.density });
-    return (yield* compositeImageSteps(img, [rgbaToCompositeLayer(overlay, 0, 0, "over")]));
+    blendOverlayInPlace(img, overlay, x, topY);
+    return img;
 }
 
 function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: MagickState): Generator<void, RgbaImage, void> {

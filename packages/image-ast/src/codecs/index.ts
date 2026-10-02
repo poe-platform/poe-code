@@ -33,6 +33,7 @@ import {
   readNetpbmMetadata
 } from "./netpbm.js";
 import {
+  FONT_5X7,
   decodePdfImage,
   decodeSvgImage,
   encodePdfImage,
@@ -152,7 +153,8 @@ function renderTextInput(spec: NonNullable<SharpInputOptions["text"]>, densityOp
       if (chCode !== 32) {
         for (let gy = 1; gy < 8; gy++) {
           for (let gx = 0; gx < 5; gx++) {
-            const bit = ((chCode + gx * 3 + gy * 5) % 3 !== 0) || gx === 0 || gy === 1 || gy === 4;
+            const glyphIdx = Math.max(0, Math.min(94, chCode - 32));
+            const bit = (FONT_5X7[glyphIdx * 5 + gx]! & (1 << (gy - 1))) !== 0;
             if (!bit) continue;
             for (let sy = 0; sy < scale; sy++) {
               const py = gy * scale + sy;

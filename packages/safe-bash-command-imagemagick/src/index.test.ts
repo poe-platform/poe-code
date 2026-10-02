@@ -82,6 +82,12 @@ describe("safe-bash-command-imagemagick", () => {
     const labelMeta = await sharp(files.get("/label.png")!).metadata();
     expect(labelMeta.width).toBe(100);
     expect(labelMeta.height).toBe(24);
+    const labelRaw = await sharp(files.get("/label.png")!).raw().toBuffer();
+    let whitePixels = 0;
+    for (let i = 0; i < labelRaw.length; i += 4) {
+      if (labelRaw[i]! > 200 && labelRaw[i + 1]! > 200 && labelRaw[i + 2]! > 200) whitePixels++;
+    }
+    expect(whitePixels).toBeGreaterThan(20);
   });
 
   it("applies resize modifiers (!, >, <, ^, %, @)", async () => {
@@ -250,6 +256,12 @@ describe("safe-bash-command-imagemagick", () => {
     // Pixel inside the red rectangle (20, 15) should have high red channel
     const idx = (15 * 80 + 20) * 4;
     expect(raw[idx]!).toBeGreaterThan(200);
+    // Annotated "OK" text in #00ff00 should produce visible green pixels
+    let greenTextPixels = 0;
+    for (let i = 0; i < raw.length; i += 4) {
+      if (raw[i + 1]! > 200 && raw[i]! < 80) greenTextPixels++;
+    }
+    expect(greenTextPixels).toBeGreaterThan(15);
   });
 
   it("runs mogrify in-place and with -format / -path", async () => {

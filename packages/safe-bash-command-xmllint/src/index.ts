@@ -368,6 +368,8 @@ export function createXmllintCommand(
   return definition;
 }
 
+export const xmllintCommand: CommandDefinition = createXmllintCommand();
+
 export function createXmllintCommands(options: XmlCommandsOptions = {}): readonly CommandDefinition[] {
   return [createXmllintCommand(options)];
 }

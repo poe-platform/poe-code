@@ -1,10 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
-import { createXmllintCommand, createXmllintCommands, xmllintCommands } from "./index.js";
+import { createXmllintCommand, createXmllintCommands, xmllintCommand, xmllintCommands } from "./index.js";
 import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 
 for (const [entrypoint, create] of [
+  ["xmllintCommand", () => xmllintCommand],
   ["createXmllintCommand()", () => createXmllintCommand()],
   ["createXmllintCommand({})", () => createXmllintCommand({})],
   ["createXmllintCommands()", () => createXmllintCommands()[0]],

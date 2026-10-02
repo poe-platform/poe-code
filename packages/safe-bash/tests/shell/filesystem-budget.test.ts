@@ -200,7 +200,7 @@ test("each exec resets admission without resetting borrowed filesystem contents"
 
 test("provider internal calls do not consume separate admissions", async context => {
   const memory = new MemoryFileSystem();
-  const filesystem = Object.create(memory) as FileSystem;
+  const filesystem = { capabilities: memory.capabilities, stat: memory.stat.bind(memory) } as FileSystem;
   filesystem.stat = async function(path, options) { assert.equal(this, filesystem); return memory.stat(path, options); };
   filesystem.readFile = async function(path, options) {
     assert.equal(this, filesystem);
@@ -256,7 +256,7 @@ test("read and write streams charge once rather than charging delivered chunks",
 test("handle stat and read are metered, close drains after exhaustion", async context => {
   const memory = new MemoryFileSystem();
   await memory.writeFile("/input", encoder.encode("abc"));
-  const filesystem = Object.create(memory) as FileSystem;
+  const filesystem = { capabilities: memory.capabilities, stat: memory.stat.bind(memory) } as FileSystem;
   const { shell, commands } = fixture(context, 3, filesystem);
   const opened: FileReadHandle[] = [];
   let closes = 0;
@@ -360,7 +360,7 @@ test("denied write stream never acquires its input iterator", async context => {
 for (const reason of [null, false, 0, "", NaN]) {
   test(`budget failure remains primary while falsey handle cleanup drains: ${String(reason)}`, async context => {
     const memory = new MemoryFileSystem();
-    const filesystem = Object.create(memory) as FileSystem;
+    const filesystem = { capabilities: memory.capabilities, stat: memory.stat.bind(memory) } as FileSystem;
     let closes = 0;
     filesystem.openReadFile = async () => ({
       stat: () => memory.stat("/"), read: async () => new Uint8Array(),
@@ -627,7 +627,7 @@ test("an unstarted read stream cannot read after its Shell invocation closes", a
 
 test("unacquired read stream source cannot acquire after its Shell invocation closes", async context => {
   const memory = new MemoryFileSystem();
-  const filesystem = Object.create(memory) as FileSystem;
+  const filesystem = { capabilities: memory.capabilities, stat: memory.stat.bind(memory) } as FileSystem;
   let acquired = 0;
   filesystem.readStream = () => ({ [Symbol.asyncIterator]() {
     acquired++;
@@ -651,7 +651,7 @@ test("budget failure drains a late handle acquisition and gated close before set
   const entered = deferred<void>();
   const closing = deferred<void>();
   const closeRelease = deferred<void>();
-  const filesystem = Object.create(memory) as FileSystem;
+  const filesystem = { capabilities: memory.capabilities, stat: memory.stat.bind(memory) } as FileSystem;
   filesystem.openReadFile = () => { entered.resolve(); return acquisition.promise; };
   const { shell, commands } = fixture(context, 1, filesystem);
   commands.register({ name: "late", async execute({ fs, registerCleanup }) {
@@ -686,7 +686,7 @@ test("budget failure drains a late handle acquisition and gated close before set
 for (const reason of [null, false, 0, "", NaN]) {
   test(`close-only failure remains exact after handle capacity is exhausted: ${String(reason)}`, async context => {
     const memory = new MemoryFileSystem();
-    const filesystem = Object.create(memory) as FileSystem;
+    const filesystem = { capabilities: memory.capabilities, stat: memory.stat.bind(memory) } as FileSystem;
     let closes = 0;
     filesystem.openReadFile = async () => ({
       stat: () => memory.stat("/"), read: async () => new Uint8Array(),

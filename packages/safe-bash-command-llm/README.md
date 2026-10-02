@@ -1,5 +1,27 @@
 # llm commands
 
+Manage an embedding collection catalog using the optional
+`@poe-platform/safe-bash/commands/llm/collections` subpath:
+
+```ts
+const receipt = await withLlmCollections({
+  fs, path: "/embeddings.db", signal,
+  maxFileBytes: 16 * 1024 * 1024, maxIndexBytes: 1024 * 1024,
+  maxOpenFiles: 8, now: () => new Date(),
+}, async catalog => {
+  await catalog.collection("documents", { model: "canonical-embedding-model" });
+  await catalog.list(row => console.log(row.name, row.count));
+});
+```
+
+Import `withLlmCollections` from that subpath; supply a retained-storage capable
+caller filesystem. Operations must be awaited and serialized within the callback.
+The receipt separates committed changes from cleanup errors. Reopening a collection
+preserves its model; `catalog.delete(name)` atomically deletes it and its embeddings.
+New databases use the pinned embedding schema. Legacy schema migrations, embedding
+writes, batch imports, similarity and collection CLI commands remain incomplete.
+This optional catalog does not store conversation or response history.
+
 Query injected language and media models through the shared LLM service. Register `llmCommands({ providers, defaultModel })` with your shell. Providers own credentials and HTTP transport. `llm --version` reports the pinned CLI reference target, also available to SDK callers as `llmReferenceVersion`. Use `limits.maxInputBytes` and `limits.maxOutputBytes` to bound per-command byte accounting.
 
 Persist aliases, default models and default options in the caller’s filesystem using `llm aliases`, `llm models default`, and `llm models options`. Use `llm embed-models` (or `list`) with repeated `-q` queries to discover embedding models, and `llm embed-models default [MODEL]` or `--remove-default` to manage their separate default. SDK callers use `service.models` and `configuration.defaultModel("default_embedding_model.txt")` / `setDefaultModel(modelOrNull, "default_embedding_model.txt")`. Set `LLM_USER_PATH` to choose the virtual configuration directory. `createLlmConfiguration(context)` exposes these controls to structured frontends. Configuration controls require atomic publication. Configuration and remote templates default to unlimited bytes and accept explicit `Infinity`; set `limits.maxConfigurationBytes` (or the second argument to `createLlmConfiguration`) and `maxRemoteTemplateBytes` to impose finite quotas. Remote templates inherit `limits.maxInputBytes` when no separate quota is supplied. Remaining reference CLI workflows and bounded prompt/attachment preparation are still incomplete.

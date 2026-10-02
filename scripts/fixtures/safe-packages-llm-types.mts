@@ -2,6 +2,14 @@ import { Shell, MemoryFileSystem, llmCommands, createLlmCommands, createOpenAiPr
 import { llmCommands as subpathPlugin, createLlmCommands as subpathCommands, createLlmService, type LlmService, type LlmStreamEvent, type LlmEmbeddingResponse, type LlmServiceRequest } from "@poe-platform/safe-bash/commands/llm";
 import { createOpenAiProvider as openAi, createElevenLabsProvider as elevenLabs, type OpenAiProviderOptions, type ElevenLabsProviderOptions, type LlmProviderLimits } from "@poe-platform/safe-bash/commands/llm/providers";
 import { createLlmUrlSource, getLlmAttachmentUrlId, type LlmInputSource, type LlmSourceAttachment } from "@poe-platform/safe-bash/commands/llm";
+import { withLlmCollections, type LlmCollectionCatalog, type LlmCollection } from "@poe-platform/safe-bash/commands/llm/collections";
+
+const catalogReceipt = withLlmCollections({ fs: new MemoryFileSystem(), path: "/embeddings.db",
+  signal: new AbortController().signal, maxFileBytes: 1048576, maxIndexBytes: 1048576,
+  maxOpenFiles: 8, now: () => new Date() }, async (catalog: LlmCollectionCatalog): Promise<LlmCollection> => {
+  return catalog.collection("documents", { model: "embed" });
+});
+void catalogReceipt;
 
 const provider: LlmProvider = {
   name: "injected", models: [{ id: "text", aliases: ["short"] }],

@@ -306,6 +306,8 @@ await verifyIconvCommands(nodeEntry);
 import { verifyLineEndingCommands } from "./safe-packages-line-endings.mjs";
 import { verifyLlmCommands } from "./safe-packages-llm.mjs";
 await verifyLlmCommands();
+import { verifyLlmCollections } from "./safe-packages-llm-collections.mjs";
+await verifyLlmCollections();
 await verifyLineEndingCommands(defaultEntry);
 await verifyLineEndingCommands(nodeEntry);
 

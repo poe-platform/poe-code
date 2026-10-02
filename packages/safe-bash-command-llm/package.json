@@ -90,6 +90,10 @@
       "workerd": "./dist/providers/index.js",
       "browser": "./dist/providers/index.js",
       "import": "./dist/providers/index.js"
+    },
+    "./collections": {
+      "types": "./dist/collections.d.ts",
+      "import": "./dist/collections.js"
     }
   },
   "files": [
@@ -107,7 +111,8 @@
     "@poe-code/safe-fs": "*",
     "safe-bash-contracts": "*",
     "safe-bash-mime-engine": "*",
-    "safe-bash-checksum-engine": "*"
+    "safe-bash-checksum-engine": "*",
+    "safe-bash-sqlite-engine": "*"
   },
   "peerDependencies": {
     "yaml": "2.9.0"

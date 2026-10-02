@@ -141,6 +141,8 @@ await verifyIconvCommands();
 import { verifyLineEndingCommands } from "./safe-packages-line-endings.mjs";
 import { verifyLlmCommands } from "./safe-packages-llm.mjs";
 await verifyLlmCommands();
+import { verifyLlmCollections } from "./safe-packages-llm-collections.mjs";
+await verifyLlmCollections();
 await verifyLineEndingCommands();
 
 await (await import("./safe-packages-pr.mjs")).verification;

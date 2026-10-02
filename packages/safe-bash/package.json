@@ -1502,7 +1502,8 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
             "safe-bash-mime-engine": "*",
-            "safe-bash-checksum-engine": "*"
+            "safe-bash-checksum-engine": "*",
+            "safe-bash-sqlite-engine": "*"
           },
           "portable": true,
           "peerDependencies": {
@@ -2284,6 +2285,12 @@
       "workerd": "./dist/commands/llm/index.browser.js",
       "browser": "./dist/commands/llm/index.browser.js",
       "import": "./dist/commands/llm/index.js"
+    },
+    "./commands/llm/collections": {
+      "types": "./dist/commands/llm/collections.d.ts",
+      "workerd": "./dist/commands/llm/collections.browser.js",
+      "browser": "./dist/commands/llm/collections.browser.js",
+      "import": "./dist/commands/llm/collections.js"
     },
     "./commands/llm/providers": {
       "types": "./dist/commands/llm/providers/index.d.ts",

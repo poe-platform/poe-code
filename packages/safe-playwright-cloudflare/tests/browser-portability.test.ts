@@ -9,7 +9,10 @@ test('the adapter graph bundles for workerd without Node builtins', async () => 
     entryPoints: [path.join(root, 'packages/safe-playwright-cloudflare/src/index.ts')],
     bundle: true, write: false, metafile: true, platform: 'browser', conditions: ['workerd', 'browser'],
     format: 'esm', target: 'es2022', external: ['cloudflare:workers'], logLevel: 'silent',
-    alias: {'@poe-platform/safe-bash/playwright': path.join(root, 'packages/safe-bash/src/playwright/index.ts')},
+    alias: {
+      '@poe-platform/safe-bash/playwright': path.join(root, 'packages/safe-bash/src/playwright/index.ts'),
+      '#safe-playwright-provider': path.join(root, 'packages/safe-playwright-cloudflare/src/browser-provider.generated.js'),
+    },
   });
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect([...new Set(imports.filter(entry => entry.external).map(entry => entry.path))]).toEqual(['cloudflare:workers']);

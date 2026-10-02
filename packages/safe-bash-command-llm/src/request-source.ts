@@ -1,4 +1,4 @@
-function wait<Value>(start: () => PromiseLike<Value>, signal: AbortSignal): Promise<Value> {
+export function waitForSource<Value>(start: () => PromiseLike<Value>, signal: AbortSignal): Promise<Value> {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
     const abort = (): void => { signal.removeEventListener("abort", abort); reject(signal.reason); };
@@ -18,7 +18,7 @@ export async function* sourceBytes(source: AsyncIterable<Uint8Array>, signal: Ab
   let ended = false, failed = false;
   try {
     while (true) {
-      const next = await wait(() => iterator.next(), signal);
+      const next = await waitForSource(() => iterator.next(), signal);
       if (next.done) { ended = true; return; }
       if (!(next.value instanceof Uint8Array)) throw new TypeError("LLM input must yield byte chunks");
       yield next.value;
@@ -30,7 +30,7 @@ export async function* sourceBytes(source: AsyncIterable<Uint8Array>, signal: Ab
     if (!ended) {
       const returned = Promise.resolve().then(() => iterator.return?.());
       if (signal.aborted) void returned.catch(() => undefined);
-      else await wait(() => returned, signal).catch(error => { if (!failed) throw error; });
+      else await waitForSource(() => returned, signal).catch(error => { if (!failed) throw error; });
     }
   }
 }

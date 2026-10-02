@@ -1,4 +1,5 @@
 import { resolveUrlAttachment } from "./url-attachment.js";
+import { createLlmUrlSource } from './url-source.js';
 import { embeddingCommand } from "./embed-command.js";
 import { embeddingModelsCommand } from './embed-models-command.js';
 import { serializeLlmTokenUsage } from "./usage.js";
@@ -366,11 +367,26 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
     for (const attachment of args.attachments) {
       await step();
       if (attachment.path.includes("://")) {
-        if (!entry.model.attachmentUrls) throw new Error(`Model ${entry.model.id} does not support URL attachments`);
         const reference = await resolveUrlAttachment({...context, signal}, attachment.path, attachment.mimeType);
         if (attachment.mimeType === undefined) admitInput(shellValueByteLength(reference.mimeType), true);
         if (!acceptsMimeType(entry.model.attachmentTypes ?? [], reference.mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${reference.mimeType}`);
-        if (streamed) sourceAttachments.push(reference); else attachments.push(reference);
+        if (acceptsMimeType(['image/*'], reference.mimeType)) {
+          if (!entry.model.attachmentUrls) throw new Error(`Model ${entry.model.id} does not support URL attachments`);
+          if (streamed) sourceAttachments.push(reference); else attachments.push(reference);
+        } else {
+          const fetch = context.capabilities?.fetch;
+          if (!fetch) throw new Error('Attachment URL loading is not configured');
+          const source = await operation.acquire(() => createLlmUrlSource({url:reference.url,fetch,signal,
+            maxBytes:input.remaining(!streamed),admitBytes:bytes=>admitInput(bytes,!streamed)}), source=>source.dispose());
+          if (streamed) sourceAttachments.push({mimeType:reference.mimeType,source});
+          else {
+            const chunks:Uint8Array[]=[];let size=0;
+            for await (const chunk of source.bytes) { chunks.push(chunk);size+=chunk.length; }
+            const bytes=new Uint8Array(size);let offset=0;
+            for (const chunk of chunks) { bytes.set(chunk,offset);offset+=chunk.length; }
+            attachments.push({mimeType:reference.mimeType,bytes});
+          }
+        }
         continue;
       }
       const path = pathOf(context, attachment.path);

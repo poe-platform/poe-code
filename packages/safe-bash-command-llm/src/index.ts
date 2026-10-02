@@ -19,3 +19,5 @@ export { getLlmModelAliases, selectLlmModelByQuery } from "./model-selection.js"
 
 export { createLlmSpool } from "./retained-spool.js";
 export { openAiChatOptions } from "./openai-chat-options.js";
+export { createLlmUrlSource, type LlmUrlSourceOptions } from './url-source.js';
+export { resolveUrlAttachment as resolveLlmUrlAttachment } from './url-attachment.js';

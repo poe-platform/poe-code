@@ -48,6 +48,27 @@ test("seeded Unicode credentials match original Basic, POST and public forms", a
     }
   }
 });
+test("refresh retains the submitted token unless the server rotates it", async () => {
+  for (const replacement of [undefined, "rotated"]) {
+    let reads = 0;
+    const submitted = "original\ud800 +";
+    const result = await own.refreshAccessToken({
+      clientId: "client",
+      tokenEndpoint: "https://auth.example/token",
+      resource: "https://resource.example/",
+      get refreshToken() { return ++reads === 1 ? submitted : "changed"; },
+      now: () => 0,
+      fetch: async (_url, init) => {
+        assert.equal(new URLSearchParams(init.body).get("refresh_token"), "original\ufffd +");
+        return Response.json({ access_token: "access", token_type: "Bearer",
+          ...(replacement === undefined ? {} : { refresh_token: replacement }) });
+      },
+    });
+    assert.equal(reads, 1);
+    assert.equal(result.refreshToken, replacement ?? submitted);
+  }
+});
+
 test("invalid token auth methods and absent secrets reject before fetch, retaining cancellation identity", async () => {
   for (const api of [original, own])
     for (const [method, secret] of [

@@ -23,6 +23,8 @@ Token exchange and refresh validate token fields and expiry in Rust, encode OAut
 form bodies and classify protocol errors. Token helpers support public clients,
 POST secrets and HTTP Basic authentication with form-encoded credentials.
 Explicit public-client authentication never sends an available secret.
+Successful refreshes retain the submitted refresh token when the server omits
+a replacement, and use the new token when the server rotates it.
 `exchangeAuthorizationCode`, `refreshAccessToken` and `revokeOAuthToken` expose
 these primitives without managing persistence; revocation accepts empty successful
 responses and never retries. Caller

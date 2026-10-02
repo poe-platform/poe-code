@@ -64,7 +64,9 @@ export async function exchangeAuthorizationCode(input) {
   });
 }
 export async function refreshAccessToken(input) {
-  return requestTokens(input, { grant_type: "refresh_token", refresh_token: input.refreshToken });
+  const refreshToken = input.refreshToken;
+  const tokens = await requestTokens(input, { grant_type: "refresh_token", refresh_token: refreshToken });
+  return { ...tokens, refreshToken: tokens.refreshToken ?? refreshToken };
 }
 async function requestTokens(input, grant) {
   const resource = canonicalizeResourceIndicator(input.resource);

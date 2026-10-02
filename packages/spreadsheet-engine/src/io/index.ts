@@ -65,7 +65,7 @@ export function createResourceIO(options: ResourceIOOptions): FileSystem {
     request: options.transport.request.bind(options.transport),
     redirects: options.transport.redirects
   };
-  if (transport && (!Number.isSafeInteger(transport.redirects) || transport.redirects < 0))
+  if (transport && transport.redirects !== Infinity && (!Number.isSafeInteger(transport.redirects) || transport.redirects < 0))
     throw new TypeError("Invalid ssconvert redirect limit");
   async function access(name: string, direction: "read" | "write", signal: AbortSignal,
     bytes?: Uint8Array): Promise<ByteSource> {

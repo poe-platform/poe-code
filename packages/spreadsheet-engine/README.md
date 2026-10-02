@@ -23,7 +23,7 @@ try {
 - Keep live named-expression references when copying formulas with explicit relative or absolute reference modes. Formula parsing, recalculation and dependency discovery share the same name identity and displacement; native export still requires a format that can preserve those semantics.
 - Pass an independently created or edited AST to `await engine.adoptWorkbook(book, { signal })` before writing it. Adoption validates resource limits and owns an immutable snapshot.
 - Supply explicit streams or virtual resource bindings.
-- Control resource budgets, cancellation and cleanup through the shared SDK.
+- Control resource budgets, cancellation and cleanup through the shared SDK. Resource IO transports accept `redirects: Infinity` for unlimited redirects or a nonnegative safe integer for a finite budget; every destination still requires authorization.
 
 The compatibility `poe-code/ssconvert` entrypoint retains the existing complete
 format set and rendering/clipboard defaults. This composable entrypoint requires

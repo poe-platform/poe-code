@@ -11,6 +11,9 @@ const volume = Volume.fromJSON({}),
   memory = createFsFromVolume(volume);
 mock.method(fs, "existsSync", memory.existsSync.bind(memory));
 mock.method(fs, "readFileSync", memory.readFileSync.bind(memory));
+mock.method(fs.promises, "readFile", memory.promises.readFile.bind(memory.promises));
+mock.method(fs.promises, "stat", memory.promises.stat.bind(memory.promises));
+mock.method(fs.promises, "realpath", memory.promises.realpath.bind(memory.promises));
 syncBuiltinESMExports();
 const homeDir = "/home/runtime-test",
   cwd = "/workspace/runtime-test";
@@ -40,7 +43,7 @@ function comparable(resolved) {
 test("owned runtime resolution retains defaults, host effects and caller identities", async () => {
   const supplied = input({ openSpec: { execution: { captureStdout: false } } });
   const result = own.resolveSpawnExecution(supplied);
-  assert.deepEqual(comparable(result), comparable(original.resolveSpawnExecution(supplied)));
+  assert.deepEqual(comparable(result), comparable(await original.resolveSpawnExecution(supplied)));
   assert.equal(result.openSpec.env, supplied.env);
   assert.equal(result.openSpec.jobLabel.argv, supplied.argv);
   assert.equal(result.openSpec.jobLabel.displayArgv, supplied.displayArgv);
@@ -62,7 +65,7 @@ test("owned runtime resolution retains defaults, host effects and caller identit
   });
   await opened.close();
 });
-test("owned runtime reads merged policies, selects docker and preserves open spec overrides", () => {
+test("owned runtime reads merged policies, selects docker and preserves open spec overrides", async () => {
   volume.fromJSON({
     [homeDir + "/.poe-code/config.json"]: JSON.stringify({
       runtime: { type: "docker", image: "base:image", runner: { detach: true } }
@@ -81,18 +84,18 @@ test("owned runtime reads merged policies, selects docker and preserves open spe
       const supplied = input({ runtime });
       assert.deepEqual(
         comparable(own.resolveSpawnExecution(supplied)),
-        comparable(original.resolveSpawnExecution(supplied))
+        comparable(await original.resolveSpawnExecution(supplied))
       );
     }
   } finally {
     volume.reset();
   }
 });
-test("owned runtime capability and malformed configuration diagnostics match the SDK", () => {
+test("owned runtime capability and malformed configuration diagnostics match the SDK", async () => {
   for (const runtime of [{ detach: true }, { runnerSync: "upload" }]) {
     let expected;
     try {
-      original.resolveSpawnExecution(input({ runtime }));
+      await original.resolveSpawnExecution(input({ runtime }));
     } catch (error) {
       expected = error;
     }

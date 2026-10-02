@@ -97,7 +97,7 @@ export default defineConfig({
           if (name === "@poe-code/poe-acp-client") return path("dist/acp/acp-client.js");
           if (name === "../adapters/index.js") return path("dist/adapters.js");
           if (name === "../configs/mcp-file.js") return path("dist/mcp-file.js");
-          if (name === "@poe-code/agent-skill-config") return path("dist/skills/index.js");
+          if (["@poe-code/agent-skill-config", "@poe-code/agent-skill-config/node"].includes(name)) return path("dist/skills/index.js");
           if (name === "toolcraft-design") return path("dist/design/index.js");
           if (name === "@poe-code/agent-harness-tools") return path("dist/harness/index.js");
           if (name === "../mcp-args.js") return path("dist/mcp-args.js");
@@ -127,8 +127,8 @@ export default defineConfig({
         }
         if (importer === args) {
           if (name === "@poe-code/agent-spawn") return path("dist/index.js");
-          if (name === "@poe-code/agent-skill-config") return path("dist/skills/index.js");
-          if (name === "@poe-code/agent-hook-config") return path("dist/hooks/index.js");
+          if (["@poe-code/agent-skill-config", "@poe-code/agent-skill-config/node"].includes(name)) return path("dist/skills/index.js");
+          if (["@poe-code/agent-hook-config", "@poe-code/agent-hook-config/node"].includes(name)) return path("dist/hooks/index.js");
           if (name === "toolcraft-design") return path("dist/design/index.js");
 
           if (["./index.js", "./spawn.js", "./types.js"].includes(name))

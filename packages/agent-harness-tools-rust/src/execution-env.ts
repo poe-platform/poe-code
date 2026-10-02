@@ -35,7 +35,7 @@ export interface OpenSpec {
     stderr?: RunSpec["stderr"];
     env?: RunSpec["env"];
     tty?: boolean;
-    input?: string | Buffer;
+    input?: string | Uint8Array;
     captureOutput?: boolean;
     /** Keep stdout callbacks and draining, without retaining its full text when false. */
     captureStdout?: boolean;

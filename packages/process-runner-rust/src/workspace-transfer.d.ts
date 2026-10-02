@@ -1,5 +1,6 @@
-import type {DownloadResult,UploadResult} from './types.js';
-export type {DownloadResult,UploadResult} from './types.js';
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import type {DownloadResult,UploadResult} from "./types.js";
+export type {DownloadResult,UploadResult} from "./types.js";
 export interface WorkspaceTransferDirent {
     name: string;
     isFile(): boolean;
@@ -19,9 +20,9 @@ export interface WorkspaceTransferFileSystem {
     readdir(path: string, options: {
         withFileTypes: true;
     }): Promise<WorkspaceTransferDirent[]>;
-    readFile(path: string): Promise<Buffer>;
-    readFile(path: string, encoding: BufferEncoding): Promise<string>;
-    writeFile(path: string, data: string | Buffer, options?: {
+    readFile(path: string): Promise<Uint8Array>;
+    readFile(path: string, encoding: "utf8"): Promise<string>;
+    writeFile(path: string, data: string | Uint8Array, options?: {
         flag?: string;
         mode?: number;
     }): Promise<void>;
@@ -39,8 +40,8 @@ export interface WorkspaceTransferEnv {
     cwd: string;
     uploadDir: string;
     workspaceDir?: string;
-    fs?: WorkspaceTransferFileSystem;
-    remoteFs?: WorkspaceTransferFileSystem;
+    fs?: WorkspaceTransferFileSystem | FileSystem;
+    remoteFs?: WorkspaceTransferFileSystem | FileSystem;
 }
 export interface WorkspaceTransferOptions {
     runner?: WorkspaceTransferRunnerOptions;

@@ -17,7 +17,7 @@ function registerStubExecutionEnv(
   });
 }
 
-function resolveStubExecution(runtime: Parameters<typeof resolvePoeCommandExecution>[0]["runtime"]) {
+async function resolveStubExecution(runtime: Parameters<typeof resolvePoeCommandExecution>[0]["runtime"]) {
   return resolvePoeCommandExecution({
     cwd: "/repo",
     env: {},

@@ -36,7 +36,7 @@ function isMalformedSegment(segment: string): boolean {
   );
 }
 
-export function searchPlan(ref: string, cwd: string, homeDir: string, paths = path): SkillResolutionFailure | { ref: string; name: string; tiers: SearchTier[]; sourceAgentId?: string } {
+export function searchPlan(ref: string, cwd: string, homeDir: string, paths: Pick<typeof path, "join" | "resolve"> = path): SkillResolutionFailure | { ref: string; name: string; tiers: SearchTier[]; sourceAgentId?: string } {
   const slashIndex = ref.indexOf("/");
   const hasPrefix = slashIndex !== -1;
 

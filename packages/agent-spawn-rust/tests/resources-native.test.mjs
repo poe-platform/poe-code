@@ -7,12 +7,12 @@ import { syncBuiltinESMExports } from "node:module";
 import { createFsFromVolume, Volume } from "memfs";
 import * as own from "../dist/index.js";
 import * as original from "../../agent-spawn/dist/skill-bridge.js";
-import { getAgentConfig, resolveSkillDir } from "../../agent-skill-config/dist/index.js";
+import { getAgentConfig, resolveSkillDir } from "../../agent-skill-config/dist/node.js";
 import { resetOutputFormatCache as resetOwnOutputFormatCache } from "../dist/design/index.js";
 import { resetOutputFormatCache } from "../../toolcraft-design/dist/index.js";
 import { setGitDirRunnerForTest as setOwnGitRunner } from "../dist/skills/index.js";
 import { setGitDirRunnerForTest as setHookGitRunner } from "../dist/hooks/skill/testing.js";
-import { setGitDirRunnerForTest as setSdkGitRunner } from "../../agent-skill-config/dist/index.js";
+import { setGitDirRunnerForTest as setSdkGitRunner } from "../../agent-skill-config/dist/node.js";
 
 const volume = Volume.fromJSON({}),
   memory = createFsFromVolume(volume);

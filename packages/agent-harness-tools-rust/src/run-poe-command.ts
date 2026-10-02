@@ -604,7 +604,7 @@ function setDetachedJobContext(
   candidate.setDetachedJobContext?.(context);
 }
 
-async function writeExecutionInput(handle: RunHandle, input: string | Buffer): Promise<void> {
+async function writeExecutionInput(handle: RunHandle, input: string | Uint8Array): Promise<void> {
   const stdin = handle.stdin;
   if (stdin === null) {
     return;

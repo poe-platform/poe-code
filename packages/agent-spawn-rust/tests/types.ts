@@ -66,9 +66,9 @@ const otelOwn: Pick<typeof own, keyof Otel> = null as unknown as Otel;
 void [otelOriginal, otelOwn];
 
 import type { resolvePoeCommandExecution } from "../../agent-harness-tools/dist/poe-command-execution.js";
-const resolveOriginal: typeof resolvePoeCommandExecution = own.resolveSpawnExecution;
+const resolveOriginal: (...args: Parameters<typeof own.resolveSpawnExecution>) => Promise<ReturnType<typeof own.resolveSpawnExecution>> = null as unknown as typeof resolvePoeCommandExecution;
 const resolveOwn: typeof own.resolveSpawnExecution =
-  null as unknown as typeof resolvePoeCommandExecution;
+  null as unknown as (...args: Parameters<typeof resolvePoeCommandExecution>) => Awaited<ReturnType<typeof resolvePoeCommandExecution>>;
 void [resolveOriginal, resolveOwn];
 
 import type * as OriginalResources from "../../agent-spawn/dist/skill-bridge.js";

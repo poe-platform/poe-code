@@ -528,7 +528,7 @@ const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   let answer: EntryComparison = "unknown";
   const visited = new Set<FileSystem>();
   for (const [left, right] of [[own, peer], [peer, own]] as const) {
-    if ((!registeredAuthorities.has(left.filesystem) && !ownedStores.has(left.filesystem)) || visited.has(left.filesystem)) continue;
+    if (!registeredAuthorities.has(left.filesystem) || visited.has(left.filesystem)) continue;
     visited.add(left.filesystem);
     const comparison = left.filesystem.compareEntry;
     if (comparison === memoryImplementation.compareEntry?.value) continue;

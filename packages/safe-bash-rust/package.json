@@ -6,9 +6,9 @@
   "license": "MIT",
   "description": "Hybrid Rust and TypeScript @poe-platform/safe-bash crate for poe-agent-rust and Rust workspaces",
   "scripts": {
-    "build": "cargo build --release",
-    "test": "cargo test",
-    "test:unit": "cargo test",
+    "build": "node ../mcp-protocol-rust/scripts/cargo.mjs build && node -e \"fs.mkdirSync('dist', { recursive: true })\"",
+    "test": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
+    "test:unit": "node ../mcp-protocol-rust/scripts/cargo.mjs test",
     "lint": "cargo clippy --all-targets -- -D warnings"
   },
   "devDependencies": {

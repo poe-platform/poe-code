@@ -24,6 +24,9 @@ export function dialectFor(schema: SchemaObject, inherited: Dialect): Dialect {
 }
 
 export function resolveUri(reference: string, baseUri: string): string {
+  if (typeof URL === "undefined" && (reference === "" || reference.startsWith("#"))) {
+    return `${withoutFragment(baseUri)}${reference}`;
+  }
   try {
     return new URL(reference, baseUri).href;
   } catch {

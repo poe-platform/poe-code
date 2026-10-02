@@ -199,7 +199,7 @@ export const defaultLimits: ResolvedShellLimits = {
 };
 
 const shellBuiltinNames = new Set([
-  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", "alias", "unalias", "caller", ]);
+  ":", "true", "false", "pwd", "cd", "set", "shift", "export", "local", "unset", "read", "declare", "typeset", "mapfile", "readarray", "umask", "exit", "return", "break", "continue", "command", "builtin", "type", "readonly", "echo", "printf", "test", "[", ".", "source", "eval", "exec", "getopts", "let", "pushd", "dirs", "popd", "shopt", "hash", "alias", "unalias", "caller", "print", "functions", "setopt", "unsetopt", ]);
 const implementedBuiltins = new Set([...shellBuiltinNames].filter(name => !["echo", "printf", "test", "["].includes(name)));
 const extensionExitFailures = new WeakMap<ShellExtensionState, { reason: unknown }>();
 const specialBuiltinNames = new Set([":", ".", "break", "continue", "eval", "exit", "export", "readonly", "return", "set", "shift", "unset"]);
@@ -21155,7 +21155,7 @@ export class Runtime {
     const definition = executionCommands(() => { throw new Error("Unreserved shebang invocation"); }, { envSplitLimits: {
       bytes: this.budget.limits.maxEnvSplitBytes, arguments: this.budget.limits.maxEnvSplitArguments,
       expansions: this.budget.limits.maxEnvSplitExpansions, work: this.budget.limits.maxEnvSplitWork,
-    } }).find(command => command.name === "env");
+    } }).find((command: { name: string }) => command.name === "env");
     if (!definition) throw new CommandFailure(`${target}: env interpreter is unavailable`, 126);
     const allocation = this.budget.values.scope();
     io[invocationScope].register(() => allocation.close());
@@ -21168,7 +21168,7 @@ export class Runtime {
       let failure: unknown;
       let failureReport: CancellationReport | undefined;
       const result = await interruptible(Promise.resolve(definition.execute({
-        ...forwarded, invoke: (command, arguments_, options) => {
+        ...forwarded, invoke: (command: string, arguments_: readonly string[], options?: any) => {
           const raw = forwarded.invoke(command, arguments_, options);
           return raw.catch(error => {
             failed = true;
@@ -22309,7 +22309,33 @@ export class Runtime {
         maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxOutputBytes: this.budget.limits.maxExpansionBytes,
       } }).execute(context)).exitCode;
     }
+    if (command === "print") {
+      let noNewline = false;
+      let i = 0;
+      while (i < args.length && args[i]!.startsWith("-") && args[i] !== "-") {
+        const opt = args[i]!;
+        if (opt === "--") { i++; break; }
+        for (const ch of opt.slice(1)) {
+          if (ch === "n") noNewline = true;
+        }
+        i++;
+      }
+      await writeText(stdout, args.slice(i).join(" ") + (noNewline ? "" : "\n"));
+      return 0;
+    }
+    if (command === "functions") {
+      for (const [fnName, fnBody] of [...state.functions.entries()].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) {
+        await writeText(stdout, functionDisplay(fnName, fnBody));
+      }
+      return 0;
+    }
+    if (command === "setopt" || command === "unsetopt") {
+      return 0;
+    }
     if (command === "alias" || command === "unalias") {
+      if (command === "alias" && context.args[0] === "-L") {
+        context = { ...context, args: ["-p", ...context.args.slice(1)] };
+      }
       const aliases = state.aliases ??= new Map<string, string>();
       const limits = { maxArgumentBytes: this.budget.limits.maxExpansionBytes, maxAliasBytes: this.budget.limits.maxExpansionBytes };
       const definition = command === "alias" ? createAliasCommand({ aliases, limits }) : createUnaliasCommand({ aliases, limits });
@@ -22578,6 +22604,12 @@ export class Runtime {
         return status;
       }
       let status = 0;
+      if (!declarationArgs.length && context.command === "typeset" && disabled.has("x")) {
+        for (const name of [...state.exported].sort()) {
+          await writeText(stdout, `${name}\n`);
+        }
+        return 0;
+      }
       if (!declarationArgs.length) {
         const names = command === "readonly" ? state.readonlyVariables ?? [] : state.exported;
         if (command === "readonly" && readonlySyntax) {
@@ -23380,8 +23412,9 @@ export class Runtime {
     if (state.depth + parameterDepth > this.budget.limits.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.limits.maxSyntaxDepth}`, word.offset);
     return { ...io, parameterDepth };
   }
-  private async variableMetaTransform(part: Extract<WordPart, { kind: "variable" }>, state: State, io: IO): Promise<ShellValue> {
-    const name = this.referenceName(state, part.name);
+  private async variableMetaTransform(part: Extract<WordPart, { kind: "variable" }> & { zshType?: boolean }, state: State, io: IO): Promise<ShellValue> {
+    const baseName = this.referenceName(state, part.name);
+    const name = part.indirect ? shellValueText(state.variables[baseName] ?? "") : baseName;
     const binding = arrayStore(state)?.get(name);
     const attributes = state.variableAttributes?.get(name) ?? "";
     const flags = [..."aAilnrux"].filter(flag =>
@@ -23392,7 +23425,13 @@ export class Runtime {
       : attributes.includes(flag)
     ).join("");
     const hasBindingOrVar = Boolean(binding) || Object.hasOwn(state.variables, name) || state.variableAttributes?.has(name) || state.exported.has(name) || state.readonlyVariables?.has(name);
-    if (part.transform === "a") return hasBindingOrVar ? flags : "";
+    if (part.transform === "a") {
+      if (part.zshType) {
+        if (!hasBindingOrVar) return "";
+        return [binding ? "array" : "scalar", ...(state.exported.has(name) ? ["export"] : []), ...(state.readonlyVariables?.has(name) ? ["readonly"] : [])].join("-");
+      }
+      return hasBindingOrVar ? flags : "";
+    }
     if (part.transform === "A") {
       if (!hasBindingOrVar) return "";
       if (binding) {

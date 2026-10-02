@@ -1158,6 +1158,34 @@ class Lexer {
       parts.push({ kind: "substitution", form: "dollar-parenthesis", script, line, sourceLine: script.line ?? line, quoted });
     } else if (this.source[this.position] === "{") {
       this.position = this.peekAfterContinuation(this.position + 1);
+      if (this.source[this.position] === "(") {
+        const closeParen = this.source.indexOf(")", this.position + 1);
+        if (closeParen > this.position) {
+          const zshFlags = this.source.slice(this.position + 1, closeParen);
+          this.position = this.peekAfterContinuation(closeParen + 1);
+          if (this.source[this.position] === "\"" || this.source[this.position] === "\x27" || this.source[this.position] === "$") {
+            const innerWord = this.word("}");
+            if (this.source[this.position] !== "}") this.error("Unterminated parameter expansion");
+            this.position++;
+            for (const pt of innerWord.parts) {
+              parts.push(zshFlags.includes("f") && pt.kind === "substitution" ? { ...pt, quoted: false } : pt);
+            }
+            return;
+          }
+          const zName = this.readExpansionName();
+          if (zName && this.source[this.position] === "}") {
+            this.position++;
+            parts.push({
+              kind: "variable",
+              name: zName,
+              quoted,
+              indirect: zshFlags.includes("P"),
+              ...(zshFlags.includes("t") ? { transform: "a" as const, zshType: true } : {}),
+            } as Extract<WordPart, { kind: "variable" }>);
+            return;
+          }
+        }
+      }
       const parameterStart = this.position - 2;
       const afterBang = this.peekAfterContinuation(this.position + 1);
       const listing = this.source[this.position] === "!" && /[a-zA-Z_0-9]/u.test(this.source[afterBang] ?? "");

@@ -24,7 +24,7 @@ export async function fetchMcpResponse(fetchImpl, input, init = {}) {
         if (!settled) abort();
         return;
       }
-      try { checkHttpRedirect(response.redirected, response.type); }
+      try { checkHttpRedirect(response.redirected, response.type, response.status); }
       catch (error) {
         void response.body?.cancel().catch(() => undefined);
         finish(new Error(error.message));

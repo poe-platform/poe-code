@@ -53,9 +53,18 @@ fn chunk_counts_are_bounded_and_overflow_is_terminal() {
     budget.admit(2).unwrap();
     assert!(budget.admit(1).is_err());
     assert!(budget.admit(0).is_err());
-    assert!(validate_redirect(false, "basic").is_ok());
-    assert!(validate_redirect(true, "basic").is_err());
-    assert!(validate_redirect(false, "opaqueredirect").is_err());
+}
+
+#[test]
+fn redirects_include_manual_statuses_and_opaque_responses() {
+    for status in [None, Some(200), Some(299), Some(400)] {
+        assert!(validate_redirect(false, "basic", status).is_ok());
+        assert!(validate_redirect(true, "basic", status).is_err());
+        assert!(validate_redirect(false, "opaqueredirect", status).is_err());
+    }
+    for status in 300..400 {
+        assert!(validate_redirect(false, "basic", Some(status)).is_err());
+    }
 }
 
 #[test]

@@ -158,8 +158,12 @@ impl NativeResponseBudget {
     }
 }
 #[napi]
-pub fn check_http_redirect(redirected: bool, response_type: String) -> Result<()> {
-    mcp_oauth_rust::response::validate_redirect(redirected, &response_type)
+pub fn check_http_redirect(
+    redirected: bool,
+    response_type: String,
+    status: Option<u16>,
+) -> Result<()> {
+    mcp_oauth_rust::response::validate_redirect(redirected, &response_type, status)
         .map_err(napi::Error::from_reason)
 }
 

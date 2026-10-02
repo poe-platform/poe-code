@@ -4,8 +4,15 @@ pub struct ResponseBudget {
     bytes: u64,
     exceeded: bool,
 }
-pub fn validate_redirect(redirected: bool, response_type: &str) -> Result<(), &'static str> {
-    if redirected || response_type == "opaqueredirect" {
+pub fn validate_redirect(
+    redirected: bool,
+    response_type: &str,
+    status: Option<u16>,
+) -> Result<(), &'static str> {
+    if redirected
+        || response_type == "opaqueredirect"
+        || status.is_some_and(|status| (300..400).contains(&status))
+    {
         return Err("MCP HTTP redirects are not allowed");
     }
     Ok(())

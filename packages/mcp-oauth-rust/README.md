@@ -165,7 +165,8 @@ client/scope/refresh-outcome contracts are checked against the evolving original
 package’s unit suites. Broader SDK/E2E, platform artifacts, integration, memory and
 performance validation remain separate work.
 
-`fetchMcpResponse` refuses redirects and cancels unexpected redirect bodies.
+`fetchMcpResponse` refuses redirects, including manual 3xx responses, and cancels
+unexpected redirect bodies without waiting for cancellation to finish.
 Cancellation settles even when an injected host fetch ignores its signal; late
 response bodies are canceled and request abort listeners are retired.
 `readBoundedResponseText` enforces explicit declared and actual byte limits and

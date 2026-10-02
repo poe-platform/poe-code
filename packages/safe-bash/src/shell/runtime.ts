@@ -3,7 +3,8 @@ import { syncCommandEvaluators } from "../commands/internal.js";
 import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expression.js";
 import { wcDisplayWidth } from "../commands/wc-width.js";
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
-import { bytesToHex, latin1Text } from "../byte-encoding.js";
+import { bytesToHex, latin1Text, byteLength as utf8ByteLength } from "../byte-encoding.js";
+const emptyByteArray = new Uint8Array(0);
 const sharedCaptureDecoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const cachedCaptureAsciiBytes = new Uint8Array(4096);
 let cachedCaptureAsciiLen = 0;
@@ -9789,7 +9790,6 @@ export class Runtime {
         const targetPlain = r0.target.plain;
         if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">|" || r0.operator === ">>") && targetPlain && targetPlain.startsWith("/") && !targetPlain.startsWith("/dev/") && (!rawState.noclobber || r0.operator !== ">") && this.canFastMemoryRedirect && this.budget.canRedirect1 && this.budget.canFileSystemOperation() && (!this._fileWrites || this._fileWrites.size === 0) && (!this._outputFiles || this._outputFiles.size === 0)) {
           if (tryWriteMemoryFileSync(this.backingFs, targetPlain, emptyByteArray, r0.operator === ">>", 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal)) {
-            this.budget.redirect();
             this.budget.fileSystemOperation();
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
@@ -19538,7 +19538,7 @@ export class Runtime {
     } else {
       rhsParts = [{ ...first, value: fv.slice(prefixLen) }, ...word.parts.slice(1)];
     }
-    const result = { name, append, value: rhsPlain !== undefined ? { offset: word.offset, plain: rhsPlain, parts: rhsParts } : { offset: word.offset, parts: rhsParts } };
+    const result = { name, append, value: rhsPlain !== undefined ? { offset: word.offset, plain: rhsPlain, parts: rhsParts as WordPart[] } : { offset: word.offset, parts: rhsParts as WordPart[] } };
     assignmentCache.set(word, result);
     return result;
   }

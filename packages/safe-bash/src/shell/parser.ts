@@ -933,7 +933,7 @@ class Lexer {
     const plainStr = plain
       ? (parts.length === 1 && parts[0]!.kind === "text" ? parts[0]!.value : parts.length === 0 ? "" : parts.map((part) => part.kind === "text" ? part.value : "").join(""))
       : undefined;
-    return unprinted === this.unprintedWords ? (plainStr !== undefined ? { parts, offset, printedNewlines, plain: plainStr, spelling: undefined } : { parts, offset, printedNewlines, spelling: undefined }) : (plainStr !== undefined ? { parts, offset, plain: plainStr, spelling: undefined } : { parts, offset, spelling: undefined });
+    return unprinted === this.unprintedWords ? (plainStr !== undefined ? { parts, offset, printedNewlines, plain: plainStr } : { parts, offset, printedNewlines }) : (plainStr !== undefined ? { parts, offset, plain: plainStr } : { parts, offset });
   }
 
   hasClosingExtglobParen(openIndex: number): boolean {

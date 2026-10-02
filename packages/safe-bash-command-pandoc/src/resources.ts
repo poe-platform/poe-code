@@ -129,7 +129,7 @@ export class ResourceSession {
         const url = image.c[2][0];
         if (this.destination === undefined && embedImages && /^data:image\/(?:png|jpe?g);base64,/i.test(url) && !embedded.has(url)) {
           const comma = url.indexOf(",");
-          const bytes = new Uint8Array(Buffer.from(url.slice(comma + 1), "base64"));
+          const raw = atob(url.slice(comma + 1)); const bytes = new Uint8Array(raw.length); for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
           ctx.charge("resources", 1);
           ctx.charge("resourceBytes", bytes.length);
           ctx.charge("retainedBytes", bytes.length);

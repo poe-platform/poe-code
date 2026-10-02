@@ -124,8 +124,9 @@ export const pdfWriter: WriterCapability = {
             const bytes = document.resources.find(resource => resource.id === image.c[2][0])?.bytes
               ?? await ctx.resources?.resolve(image.c[2][0], undefined, ctx.signal);
             if (!bytes) fail("PDF image requires a supplied resolved resource");
-            const media = bytes[0] === 137 ? "png" : bytes[0] === 255 ? "jpeg" : fail("PDF image must be PNG or JPEG");
-            const natural = pdfRasterDimensions(bytes, media, fail);
+            const resolvedBytes = bytes!;
+            const media = resolvedBytes[0] === 137 ? "png" : resolvedBytes[0] === 255 ? "jpeg" : fail("PDF image must be PNG or JPEG");
+            const natural = pdfRasterDimensions(resolvedBytes, media, fail);
             const maxWidth = Math.max(72, (ctx.pdfPage?.width ?? 612) - (ctx.pdfPage?.margin ?? 72) * 2 - indent);
             const attrs = new Map(image.c[0][2]);
             let width = parsePdfDimension(attrs.get("width"), natural.width, maxWidth, fail);
@@ -137,7 +138,7 @@ export const pdfWriter: WriterCapability = {
               width *= scale;
               height *= scale;
             }
-            blocks.push({kind: "image", bytes, media, width, height});
+            blocks.push({kind: "image", bytes: resolvedBytes, media, width, height});
           } else blocks.push({kind: "paragraph", runs: await runs(node.c), indent});
         } else if (node.t === "Header") {
           const content = await runs(node.c[2], 24 - node.c[0] * 2);

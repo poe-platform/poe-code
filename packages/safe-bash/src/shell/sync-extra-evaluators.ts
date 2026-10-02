@@ -247,7 +247,7 @@ import {
   specialBuiltinNames, commandSpelling, publishCommandSpelling, budgetedSinks, syncSinks,
   devNullSyncSink, EMPTY_CAPTURE_BYTES, Capture, type SavedVariable, typedSavedVariables,
   syncLocalArrayVariables, valueScope, invokedValues, functionDiagnostics,
-  captureCallerFrame, type IO, type RuntimeOutcomeFrame, Flow, completedExit, CommandFailure, BudgetedSyncSink,
+  captureCallerFrame, type IO, type Descriptor, type RuntimeOutcomeFrame, Flow, completedExit, CommandFailure, BudgetedSyncSink,
   MemoryRedirectSink, BudgetedPipeStageSink, bindCommandIO, declarationArrays, NEVER_ABORTED_SIGNAL, shellKeywords, signalSink,
   cloneGetoptsBinding, saveVariable, hasActiveVariableAttributes, tryRestoreVariableSync,
   isShellIdentifier, errorCode, message, mapfileCallbackStates, emptyStrings, singleStatusZero,
@@ -7338,22 +7338,25 @@ const syncExtraRuntimeMethods = {
       rawState.lastArgument = lastArg;
       if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
       const scope = io[invocationScope];
+      let effectiveIO = io;
+      if (redirectSink) {
+        const descriptors = new Map<number, Descriptor>(io.descriptors ?? [
+          [0, { input: io.stdin, ...(io.stdinIsDefault === undefined ? {} : { stdinIsDefault: io.stdinIsDefault }) }],
+          [2, { output: io.stderr }],
+        ]);
+        descriptors.set(1, { output: redirectSink });
+        effectiveIO = { ...io, stdout: redirectSink, descriptors };
+      }
       let context: FastShellCommandContext;
       if (pooledFastSingleContext) {
         context = pooledFastSingleContext;
         pooledFastSingleContext = undefined;
-        context.resetDirectStage( this as unknown as Runtime, rawState, io, scope, w0Plain, args, io.stdin, io.stdinIsDefault === true, redirectSink ?? io.stdout, this.commandSignal, );
+        context.resetDirectStage( this as unknown as Runtime, rawState, effectiveIO, scope, w0Plain, args, effectiveIO.stdin, effectiveIO.stdinIsDefault === true, effectiveIO.stdout, this.commandSignal, );
         if (!this._isMemoryBackingFs) {
           (context as unknown as { _scopedSignal: AbortSignal | undefined })._scopedSignal = undefined;
         }
       } else {
-        context = new FastShellCommandContext(this as unknown as Runtime, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs, externalDef!);
-        if (redirectSink) context.stdout = redirectSink;
-      }
-      if (redirectSink && io.descriptors) {
-        const descriptors = new Map(io.descriptors);
-        descriptors.set(1, { output: redirectSink });
-        context.descriptors = descriptors;
+        context = new FastShellCommandContext(this as unknown as Runtime, rawState, effectiveIO, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs, externalDef!);
       }
       return this.finishFastSingleExternalUnit( externalDef, context, redirectSink, diagnosticLine, pipeline.negate, ignored || pipeline.negate, monitor, rawState, existing, elem0, store, state, io, );
     }

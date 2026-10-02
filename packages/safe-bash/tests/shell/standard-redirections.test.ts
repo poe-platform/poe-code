@@ -7,6 +7,51 @@ import type { CommandContext } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 import { jobsExtension } from "../../src/shell/extensions/jobs/index.js";
+import { builtInDirectContextExecutors, RESOLVED_EXIT_ZERO } from "../../src/commands/internal.js";
+import { Capture, MemoryRedirectSink, type IO } from "../../src/shell/runtime.js";
+
+test("fast redirected commands share effective IO on new and reused contexts", async t => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs });
+  const contexts: CommandContext[] = [];
+  const execute = (context: CommandContext) => {
+    contexts.push(context);
+    const io = (context as unknown as { _io: IO })._io;
+    assert.equal(io.stdout, context.stdout);
+    if (context.args[0] === "plain") {
+      assert.ok(context.stdout instanceof Capture);
+      context.stdout.writeSync(new TextEncoder().encode("visible\n"));
+      return RESOLVED_EXIT_ZERO;
+    }
+    assert.ok(io.descriptors);
+    assert.equal(io.descriptors, context.descriptors);
+    assert.equal(io.descriptors.get(0)?.input, io.stdin);
+    assert.equal(io.descriptors.get(1)?.output, context.stdout);
+    assert.equal(io.descriptors.get(2)?.output, io.stderr);
+    // Synchronous completion exercises context pooling as well as first construction.
+    assert.ok(context.stdout instanceof MemoryRedirectSink);
+    context.stdout.writeSync(new TextEncoder().encode("direct\n"));
+    assert.ok(io.stdout instanceof MemoryRedirectSink);
+    io.stdout.writeSync(new TextEncoder().encode("bound\n"));
+    const output = io.descriptors.get(1)!.output;
+    assert.ok(output instanceof MemoryRedirectSink);
+    output.writeSync(new TextEncoder().encode("descriptor\n"));
+    return RESOLVED_EXIT_ZERO;
+  };
+  builtInDirectContextExecutors.add(execute);
+  shell.commands.register({ name: "awk", execute });
+  t.after(async () => {
+    builtInDirectContextExecutors.delete(execute);
+    await shell.dispose();
+  });
+  const result = await shell.exec("awk > /out; awk >> /out; awk plain");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "visible\n");
+  assert.equal(result.stderr, "");
+  assert.equal(contexts.length, 3);
+  assert.equal(contexts[0], contexts[1], "the second invocation must exercise pooled reuse");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "direct\nbound\ndescriptor\n".repeat(2));
+});
 
 for (const [name, source, expected] of [
   ["subshell substitution", 'say $((say a); (say b))', 'a b\n'],

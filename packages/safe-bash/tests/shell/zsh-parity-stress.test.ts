@@ -1159,9 +1159,10 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     assert.equal(r5.stdout, "patched1\npatched2\n");
   });
 
-  test("62. sync unrtf cache key byte identity, htmlq/csvkit/ssconvert NUL checks, and apply_patch UTF-8 safety", async () => {
-    const { shell: bash, fs } = setup();
+  test("62. sync unrtf cache key byte identity, htmlq/csvkit/ssconvert NUL checks, and apply_patch UTF-8 safety", async context => {
+    const { fs, shell: bash } = setup({ cwd: "/" });
     bash.use(agentCommands());
+    context.after(() => bash.dispose());
     // 1. unrtf cache key should distinguish raw byte sequences that would both decode to U+FFFD in non-fatal UTF-8
     const rtf1 = new Uint8Array([...Buffer.from("{\\rtf1\\ansi "), 0x80, ...Buffer.from("}")]);
     const rtf2 = new Uint8Array([...Buffer.from("{\\rtf1\\ansi "), 0x81, ...Buffer.from("}")]);
@@ -1180,9 +1181,10 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     assert.ok(!h1.stdout.includes("\0"));
   });
 
-  test("63. sync tar/unzip/csvgrep/gpg edge cases and NUL/flag validation", async () => {
-    const { shell: bash, fs } = setup();
+  test("63. sync tar/unzip/csvgrep/gpg edge cases and NUL/flag validation", async context => {
+    const { fs, shell: bash } = setup({ cwd: "/" });
     bash.use(agentCommands());
+    context.after(() => bash.dispose());
     // 1. csvgrep in command substitution with NUL byte should delegate to async csvgrep
     await fs.writeFile("/data.csv", new Uint8Array([...Buffer.from("a,b\nfoo,"), 0, ...Buffer.from("bar\n")]));
     const r1 = await bash.exec("echo $(csvgrep -c a -m foo /data.csv)");
@@ -1193,9 +1195,10 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     assert.notEqual(r2.stdout.trim(), "0");
   });
 
-  test("64. sync touch/cp/mv/rm/ln/chmod/install/stat/mktemp trailing slash and file/.. ENOTDIR validation", async () => {
-    const { shell: bash, fs } = setup();
+  test("64. sync touch/cp/mv/rm/ln/chmod/install/stat/mktemp trailing slash and file/.. ENOTDIR validation", async context => {
+    const { fs, shell: bash } = setup({ cwd: "/" });
     bash.use(agentCommands());
+    context.after(() => bash.dispose());
     await fs.writeFile("/regular.txt", new TextEncoder().encode("hello\n"));
     await fs.writeFile("/other.txt", new TextEncoder().encode("world\n"));
     // 1. rm -f /regular.txt/ must fail with ENOTDIR and NOT delete /regular.txt

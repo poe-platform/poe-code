@@ -1,3 +1,4 @@
+import { compareIdentity, compareFileVersion } from "@poe-code/safe-fs/contracts";
 import { encodeEntry,type Entry } from "./format.js";
 import { quoteName } from "./listing.js";
 import { Exclusions,type TarOptions } from "./options.js";
@@ -6,7 +7,7 @@ import { TransformedNames } from "./transform.js";
 import { dirname,readBytes,resolvePath,type ByteSource,type CommandContext,type FileStat } from "safe-bash-contracts";
 import { escapeText } from "safe-bash-contracts/escaping";
 import { compareByteArrays,encodeBytes,equalBytes } from "safe-bash-io-engine/byte-encoding";
-import { Budget,checkPath,display,fail,fileSource,hasIdentity,maybeStat,operation,sameIdentity,vfsPath } from "safe-bash-io-engine/commands/archive/internal";
+import { Budget,checkPath,display,fail,fileSource,maybeStat,operation,vfsPath } from "safe-bash-io-engine/commands/archive/internal";
 
 interface SourceEntry { readonly path: string; readonly canonical: string; readonly stat: FileStat; readonly entry: Entry; readonly sourceLink?: string }
 
@@ -27,7 +28,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     const path = vfsPath(context.cwd, options.archive);
     outputStat = await maybeStat(context, path);
     if (outputStat && outputStat.type !== "file") fail("output archive must be a regular file, not a symlink or directory");
-    if (outputStat && !hasIdentity(outputStat)) fail("cannot safely replace an archive with unknown backing identity");
+    if (outputStat && compareIdentity(outputStat, outputStat) !== "same") fail("cannot safely replace an archive with unknown backing identity");
     const parent = await operation(context, () => context.fs.realpath(dirname(path), { signal: context.signal }));
     output = resolvePath(parent, path.slice(path.lastIndexOf("/") + 1));
   }
@@ -45,7 +46,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     }
     const canonical = stat.type === "symlink" ? path : await operation(context, () => context.fs.realpath(path, { signal: context.signal }));
     if (stat.type === "directory" && ancestors.includes(canonical)) fail(`source directory cycle: ${display(name)}`);
-    if (output && (canonical === output || (outputStat && sameIdentity(stat, outputStat)))) {
+    if (output && (canonical === output || (outputStat && compareIdentity(stat, outputStat) === "same"))) {
       if (explicit) fail(`input is the output archive: ${display(name)}`);
       await budget.output(`tar: ${escapeText(display(name), "diagnostic")}: file is the archive; not included\n`, true);
       return;
@@ -78,12 +79,13 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       bindings.delete(archivePath);
     }
     if (stat.type === "file") {
-      if (outputStat && !hasIdentity(stat)) fail("cannot replace an existing archive when a source has unknown backing identity");
-      if ((stat.nlink ?? 1) > 1 && !hasIdentity(stat)) fail(`cannot preserve hardlinks without complete backing identity: ${display(name)}`);
-      if (hasIdentity(stat)) {
+      if (outputStat && compareIdentity(stat, stat) !== "same") fail("cannot replace an existing archive when a source has unknown backing identity");
+      if ((stat.nlink ?? 1) > 1 && compareIdentity(stat, stat) !== "same") fail(`cannot preserve hardlinks without complete backing identity: ${display(name)}`);
+      if (compareIdentity(stat, stat) === "same") {
         let scope = identities.get(stat.identityScope!);
         if (!scope) { scope = new Map(); identities.set(stat.identityScope!, scope); }
-        const key = `${stat.dev}:${stat.ino}`;
+        const key = Number.isSafeInteger(stat.dev) && stat.dev! >= 0 && Number.isSafeInteger(stat.ino) && stat.ino! >= 0
+          ? `native:${stat.dev}:${stat.ino}` : `opaque:${stat.opaqueIdentity}`;
         let paths = scope.get(key);
         if (!paths) { paths = new Map(); scope.set(key, paths); }
         const previous = paths.values().next().value;
@@ -145,8 +147,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
 }
 
 function checkSource(source: SourceEntry, current: FileStat): void {
-  if (current.type !== source.stat.type || (source.stat.type !== "directory" && (current.size !== source.stat.size || current.mtimeMs !== source.stat.mtimeMs
-    || current.ctimeMs !== source.stat.ctimeMs)) || (hasIdentity(source.stat) && !sameIdentity(source.stat, current))) fail(`source changed while archiving: ${display(source.entry.name)}`);
+  if (current.type !== source.stat.type || (source.stat.type !== "directory" && !compareFileVersion(source.stat, current)) || (compareIdentity(source.stat, source.stat) === "same" && compareIdentity(source.stat, current) !== "same")) fail(`source changed while archiving: ${display(source.entry.name)}`);
 }
 
 async function unchanged(context: CommandContext, source: SourceEntry): Promise<void> {
@@ -170,7 +171,7 @@ export async function* createArchive(context: CommandContext, entries: readonly 
     if (source.entry.type === "0") {
       let bytes = 0;
       const capabilities = await operation(context, () => context.fs.capabilitiesFor?.(source.path, { signal: context.signal }) ?? context.fs.capabilities);
-      if (!context.fs.openReadFile || !hasIdentity(source.stat) || capabilities.retainedRead !== true) {
+      if (!context.fs.openReadFile || compareIdentity(source.stat, source.stat) !== "same" || capabilities.retainedRead !== true) {
         for await (const chunk of readBytes(fileSource(context, source.path, budget.limits), context.signal)) {
           if (chunk.length > source.entry.size - bytes) fail(`source grew while archiving: ${display(source.entry.name)}`);
           bytes += chunk.length;
@@ -181,7 +182,7 @@ export async function* createArchive(context: CommandContext, entries: readonly 
         const handle = await context.fs.openReadFile(source.path, { signal: context.signal });
         try {
           const opened = await operation(context, () => handle.stat({ signal: context.signal }));
-          if (!sameIdentity(source.stat, opened)) fail(`source changed while archiving: ${display(source.entry.name)}`);
+          if (compareIdentity(source.stat, opened) !== "same") fail(`source changed while archiving: ${display(source.entry.name)}`);
           checkSource(source, opened);
           while (true) {
             const chunk = await operation(context, () => handle.read(bytes, budget.limits.chunkSize, { signal: context.signal }));

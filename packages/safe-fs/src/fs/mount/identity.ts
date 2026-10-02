@@ -19,3 +19,12 @@ export function compareIdentity(left: FileStat | undefined, right: FileStat | un
   if ((complete(left) || opaqueComplete(left)) && (complete(right) || opaqueComplete(right)) && left.identityScope !== right.identityScope) return "distinct";
   return "unknown";
 }
+
+/** Compare content snapshots, including adapter generations when supplied.
+ * Identity is checked separately so identityless streaming adapters remain usable.
+ */
+export function compareFileVersion(left: FileStat, right: FileStat): boolean {
+  return left.type === right.type && left.size === right.size
+    && left.mtimeMs === right.mtimeMs && left.ctimeMs === right.ctimeMs
+    && left.revision === right.revision && left.opaqueVersion === right.opaqueVersion;
+}

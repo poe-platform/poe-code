@@ -1,15 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem, S3FileSystem, MockS3Client, createS3Transport, WebDavFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource, type CommandDefinition, type FileSystem } from "safe-bash-contracts";
+import { createCommandArguments, toByteSource, type CommandDefinition, type FileSystem, type FileStat } from "safe-bash-contracts";
 import { createTarCommand, createTarCommands, tarCommands } from "./index.js";
 
-for (const mutation of ["growth", "shrink", "mtime", "canonical", "none"]) test(`tar validates fallback source ${mutation}`, async () => {
+for (const mutation of ["growth", "shrink", "mtime", "canonical", "opaque-version", "none"]) test(`tar validates fallback source ${mutation}`, async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/a", new Uint8Array([1, 2, 3]));
   let consumed = false;
   const view = new Proxy(fs, { get(target, property) {
     if (property === "openReadFile") return undefined;
+    if (property === "lstat" && mutation === "opaque-version") return async (path: string) => ({
+      ...await fs.lstat(path), opaqueVersion: consumed ? "new" : "old",
+    });
     if (property === "realpath") return async (path: string) => consumed && mutation === "canonical" ? "/other" : fs.realpath(path);
     if (property === "readStream") return () => (async function* () {
       yield new Uint8Array(mutation === "growth" ? 4 : mutation === "shrink" ? 2 : 3);
@@ -120,3 +123,87 @@ for (const listFlag of ["-T", "--files-from"]) {
     });
   }
 }
+
+for (const timing of ["open", "read"] as const) for (const numeric of [true, false]) for (const mutation of ["version", "identity", "none"] as const) {
+  test(`tar retained sources honor ${numeric ? "numeric and opaque" : "opaque-only"} ${mutation} during ${timing}`, async () => {
+    const fs = createMemoryFileSystem();
+    await fs.writeFile("/a", new TextEncoder().encode("old"));
+    const scope = {};
+    let generation = 1;
+    let opened = 0;
+    let closed = 0;
+    const snapshot = (stat: FileStat, revision: number): FileStat => {
+      const { dev: ignoredDev, ino: ignoredIno, revision: ignoredRevision, ...rest } = stat;
+      return { ...rest, identityScope: scope, ...(numeric ? { dev: 0, ino: 1 } : {}),
+        opaqueIdentity: mutation === "identity" ? `object:${revision}` : "object:a",
+        opaqueVersion: mutation === "identity" ? "stable" : `version:${revision}`,
+        mtimeMs: 0, ctimeMs: 0 };
+    };
+    const replace = async () => {
+      if (mutation === "none" || generation !== 1) return;
+      await fs.writeFile("/replacement", new TextEncoder().encode("new"));
+      await fs.rename("/replacement", "/a");
+      generation++;
+    };
+    const view = new Proxy(fs, { get(target, property) {
+      if (property === "lstat") return async (path: string) => {
+        const stat = await fs.lstat(path);
+        return path === "/a" ? snapshot(stat, generation) : stat;
+      };
+      if (property === "openReadFile") return async (path: string) => {
+        opened++;
+        if (timing === "open") await replace();
+        const handle = await fs.openReadFile!(path);
+        const retained = snapshot(await handle.stat(), generation);
+        return { ...handle, stat: async () => retained,
+          read: async (offset: number, length: number) => {
+            if (timing === "read") await replace();
+            return handle.read(offset, length);
+          }, close: async () => { closed++; await handle.close(); } };
+      };
+      const value: unknown = Reflect.get(target, property);
+      return typeof value === "function" ? value.bind(target) : value;
+    } });
+    const old = await fs.openReadFile!("/a");
+    try {
+      const result = await run(createTarCommand(), ["-cf", "/out.tar", "a"], "", view);
+      // Numeric identity takes precedence over opaque identity in the shared contract.
+      const changed = mutation === "version" || mutation === "identity" && !numeric;
+      assert.equal(result.exitCode, changed ? 2 : 0, result.stderr);
+      if (changed) {
+        assert.match(result.stderr, /source changed while archiving/);
+      }
+      assert.equal(opened, 1);
+      assert.equal(closed, 1);
+      assert.equal(new TextDecoder().decode(await old.read(0, 3)), "old");
+    } finally { await old.close(); }
+  });
+}
+
+for (const aliases of [true, false]) test(`tar groups opaque hardlinks: aliases=${aliases}`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new TextEncoder().encode("one"));
+  if (aliases) await fs.link!("/a", "/b");
+  else await fs.writeFile("/b", new TextEncoder().encode("two"));
+  const opaque = (stat: FileStat): FileStat => {
+    const { dev: ignoredDev, ino, ...rest } = stat;
+    return { ...rest, opaqueIdentity: `object:${ino}` };
+  };
+  const view = new Proxy(fs, { get(target, property) {
+    if (property === "lstat") return async (path: string) => opaque(await fs.lstat(path));
+    if (property === "openReadFile") return async (path: string) => {
+      const handle = await fs.openReadFile!(path);
+      return { ...handle, stat: async () => opaque(await handle.stat()) };
+    };
+    const value: unknown = Reflect.get(target, property);
+    return typeof value === "function" ? value.bind(target) : value;
+  } });
+  const created = await run(createTarCommand(), ["-cf", "/archive.tar", "a", "b"], "", view);
+  assert.equal(created.exitCode, 0, created.stderr);
+  await fs.mkdir("/out");
+  const extracted = await run(createTarCommand(), ["-C", "/out", "-xf", "/archive.tar"], "", fs);
+  assert.equal(extracted.exitCode, 0, extracted.stderr);
+  assert.equal(new TextDecoder().decode(await fs.readFile("/out/a")), "one");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/out/b")), aliases ? "one" : "two");
+  assert.equal((await fs.stat("/out/a")).ino === (await fs.stat("/out/b")).ino, aliases);
+});

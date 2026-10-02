@@ -1,3 +1,4 @@
+import { compareIdentity, compareFileVersion } from "@poe-code/safe-fs/contracts";
 import { createArchive,manifest } from "./create.js";
 import { readArchive } from "./extract.js";
 import { quoteName } from "./listing.js";
@@ -5,7 +6,7 @@ import type { TarOptions } from "./options.js";
 import { autodetected,compressed,Reader,recorded,recordPadding } from "./stream.js";
 import { collectBytes,resolvePath,type ByteSource,type CommandContext } from "safe-bash-contracts";
 import { decodeBytes,encodeBytes,equalBytes } from "safe-bash-io-engine/byte-encoding";
-import { bounded,Budget,display,fail,fileSource,hasIdentity,maybeStat,operation,publish,sameIdentity,vfsPath } from "safe-bash-io-engine/commands/archive/internal";
+import { bounded,Budget,display,fail,fileSource,maybeStat,operation,publish,vfsPath } from "safe-bash-io-engine/commands/archive/internal";
 
 export async function compareArchive(context: CommandContext, options: TarOptions, budget: Budget): Promise<number> {
   let different = false;
@@ -41,8 +42,8 @@ export async function compareArchive(context: CommandContext, options: TarOption
     } else if (entry.type === "1") {
       if (entry.linkname.split("/").includes("..")) fail("unsafe hardlink target in archive comparison");
       const target = await maybeStat(context, resolvePath(root, entry.linkname));
-      if (!hasIdentity(stat) || (target && !hasIdentity(target))) fail("filesystem lacks identity required for hardlink comparison");
-      if (!target || !sameIdentity(stat, target)) await difference("Not linked to archive target");
+      if (compareIdentity(stat, stat) !== "same" || (target && compareIdentity(target, target) !== "same")) fail("filesystem lacks identity required for hardlink comparison");
+      if (!target || compareIdentity(stat, target) !== "same") await difference("Not linked to archive target");
     } else if (entry.type === "0") {
       if (stat.size !== entry.size) { await difference("Size differs"); await reader.discard(entry.size); return; }
       const actual = new Reader(fileSource(context, path, budget.limits), context.signal);
@@ -69,7 +70,7 @@ export async function mutateArchive(context: CommandContext, options: TarOptions
   const path = vfsPath(context.cwd, options.archive);
   const stat = await maybeStat(context, path);
   if (!stat || stat.type !== "file") fail("archive mutation requires an existing regular file");
-  if (!hasIdentity(stat)) fail("cannot safely replace an archive with unknown backing identity");
+  if (compareIdentity(stat, stat) !== "same") fail("cannot safely replace an archive with unknown backing identity");
   const parts: Uint8Array[] = [];
   let changed = false;
   let bytes = 1024;
@@ -102,8 +103,8 @@ export async function mutateArchive(context: CommandContext, options: TarOptions
       const inputPath = vfsPath(operand.cwd, operand.name);
       const inputStat = await maybeStat(context, inputPath);
       if (!inputStat || inputStat.type !== "file") fail("concatenation source must be a regular archive");
-      if (!hasIdentity(inputStat)) fail("concatenation source has unknown backing identity");
-      if (sameIdentity(stat, inputStat)) fail("cannot concatenate an archive to itself");
+      if (compareIdentity(inputStat, inputStat) !== "same") fail("concatenation source has unknown backing identity");
+      if (compareIdentity(stat, inputStat) === "same") fail("cannot concatenate an archive to itself");
       await scan(inputPath, false);
       changed = true;
     }
@@ -125,7 +126,7 @@ export async function mutateArchive(context: CommandContext, options: TarOptions
   parts.push(new Uint8Array(1024));
   // All reads, validation and source creation finish before replacing the archive.
   const current = await maybeStat(context, path);
-  if (!current || !sameIdentity(stat, current) || current.size !== stat.size || current.mtimeMs !== stat.mtimeMs || current.ctimeMs !== stat.ctimeMs) fail("archive changed during preparation");
+  if (!current || compareIdentity(stat, current) !== "same" || !compareFileVersion(stat, current)) fail("archive changed during preparation");
   await operation(context, () => context.fs.rm(path, { signal: context.signal }));
   await publish(context, path, recorded((async function* (): ByteSource { yield* parts; })(), options, budget), stat.mode & 0o7777);
 }

@@ -1,3 +1,4 @@
+import { compareIdentity } from "@poe-code/safe-fs/contracts";
 import { withInputByteBudget } from "safe-bash-contracts";
 
 import { ungzip as gunzipSync } from "pako";
@@ -12,7 +13,7 @@ import { readBytes,writeBytes,type ByteSource,type CommandContext,type CommandDe
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { escapeText } from "safe-bash-contracts/escaping";
 import { encodeBytes } from "safe-bash-io-engine/byte-encoding";
-import { Budget,bounded,display,fail,invocationLimits,maybeStat,operation,publish,sameIdentity,settings,vfsPath,type ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archive/internal";
+import { Budget,bounded,display,fail,invocationLimits,maybeStat,operation,publish,settings,vfsPath,type ArchiveCommandsOptions } from "safe-bash-io-engine/commands/archive/internal";
 import { builtInDirectContextExecutors } from "safe-bash-io-engine/internal";
 
 export { DEFAULT_ARCHIVE_LIMITS } from "safe-bash-io-engine/commands/archive/internal";
@@ -45,7 +46,7 @@ export function createTarCommand(options: ArchiveCommandsOptions = {}): CommandD
         if (prepared.output) {
           const existing = await maybeStat(context, prepared.output);
           if (existing && existing.type !== "file") fail("output archive changed to a non-file");
-          if (existing && (!prepared.outputStat || !sameIdentity(existing, prepared.outputStat))) fail("output archive backing entry changed during preparation");
+          if (existing && (!prepared.outputStat || compareIdentity(existing, prepared.outputStat) !== "same")) fail("output archive backing entry changed during preparation");
           if (existing) await operation(context, () => context.fs.rm(prepared.output!, { signal }));
           await publish(context, prepared.output, source);
         } else {

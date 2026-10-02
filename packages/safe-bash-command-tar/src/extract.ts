@@ -1,3 +1,4 @@
+import { compareIdentity } from "@poe-code/safe-fs/contracts";
 import { dirname,isPathWithin,resolvePath,retainFileSystemCleanup } from "@poe-code/safe-fs/core";
 import { applyPax,numberField,parseHeader,parsePax,type ReadEntry } from "./format.js";
 import { quoteName } from "./listing.js";
@@ -6,7 +7,7 @@ import { Reader } from "./stream.js";
 import { TransformedNames } from "./transform.js";
 import { collectBytes,writeBytes,type ByteSource,type CommandContext,type FileStaging,type FileStagingEntry,type FileStat } from "safe-bash-contracts";
 import { byteLength } from "safe-bash-io-engine/byte-encoding";
-import { Budget,checkPath,display,fail,fileSource,hasIdentity,maybeStat,operation,sameIdentity,text,vfsPath,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
+import { Budget,checkPath,display,fail,fileSource,maybeStat,operation,text,vfsPath,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
 
 export async function* extractionInput(context: CommandContext, path: string, limits: ArchiveLimits): ByteSource {
   const capabilities = await context.fs.capabilitiesFor?.(path, { signal: context.signal }) ?? context.fs.capabilities;
@@ -436,7 +437,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         if (!published.has(hardTarget)) fail(`hardlink target was not previously extracted (forward or unselected target): ${display(entry.linkname)}`);
         await parents(context, root, hardTarget, false);
         const targetStat = await operation(context, () => context.fs.lstat(hardTarget!, { signal: context.signal }));
-        if (targetStat.type !== "file" || (published.get(hardTarget)!.identityScope !== undefined && !sameIdentity(published.get(hardTarget)!, targetStat))) fail("hardlink target changed or is not a regular file");
+        if (targetStat.type !== "file" || (published.get(hardTarget)!.identityScope !== undefined && compareIdentity(published.get(hardTarget)!, targetStat) !== "same")) fail("hardlink target changed or is not a regular file");
         if (!context.fs.link || context.fs.capabilities.hardlinks === false) fail("filesystem does not support hardlinks");
       }
       if (options.metadata.delayDirectories === false) {
@@ -455,7 +456,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         if (!context.fs.prepareDirectory || capabilities.permissions === false) fail("filesystem does not support restoring archive permissions");
       }
       const existing = await maybeStat(context, path);
-      if (archivePath && (path === archivePath || (existing && archiveStat && sameIdentity(existing, archiveStat)))) fail("entry would overwrite the input archive");
+      if (archivePath && (path === archivePath || (existing && archiveStat && compareIdentity(existing, archiveStat) === "same"))) fail("entry would overwrite the input archive");
       if (existing && !(entry.type === "5" && existing.type === "directory") && options.overwrite !== "replace") {
         if (options.overwrite === "keep") {
           await budget.output(`tar: ${display(entry.name)}: Cannot open: File exists\n`, true);
@@ -464,7 +465,7 @@ export async function readArchive(context: CommandContext, source: ByteSource, o
         await reader.discard(entry.size); await reader.padding(entry.size);
         continue;
       }
-      if (existing?.type === "file" && archiveStat && (!hasIdentity(existing) || !hasIdentity(archiveStat))) fail("cannot replace an existing file with unknown input-archive/destination backing identity");
+      if (existing?.type === "file" && archiveStat && (compareIdentity(existing, existing) !== "same" || compareIdentity(archiveStat, archiveStat) !== "same")) fail("cannot replace an existing file with unknown input-archive/destination backing identity");
       if (entry.type === "2") {
         const hadNonFile = Boolean(existing && existing.type !== "file");
         if (hadNonFile) await removeExisting(context, path, existing);

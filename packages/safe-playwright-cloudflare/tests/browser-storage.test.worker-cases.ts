@@ -4,7 +4,8 @@ import type {
 	BrowserWorker,
 	Page,
 } from "@cloudflare/playwright";
-import { createMemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { Shell } from "@poe-platform/safe-bash/shell";
+import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
 import {
 	createPlaywrightCli,
 	type PlaywrightLease,

@@ -1,7 +1,8 @@
 import { failureText } from "./browser-native-failure";
 import { RpcTarget } from "cloudflare:workers";
 import assert from "node:assert/strict";
-import { Shell, MemoryFileSystem } from "@poe-platform/safe-bash";
+import { Shell } from "@poe-platform/safe-bash/shell";
+import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createPlaywrightCli } from "@poe-platform/safe-bash/playwright";
 import {
 	acquire,

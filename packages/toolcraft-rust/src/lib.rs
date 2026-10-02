@@ -22,6 +22,7 @@ pub mod sdk;
 pub mod sdk_casing;
 pub mod sdk_validation;
 pub mod source_snippet;
+pub mod stack_trim;
 pub mod stream;
 
 /// Optimal string alignment distance over JavaScript UTF-16 code units.

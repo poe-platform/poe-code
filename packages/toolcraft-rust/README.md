@@ -16,6 +16,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Cloning          | Detached command trees, scope overrides, source locations and MCP proxy metadata |
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
+| Stack diagnostics | Native framework-frame summaries, nested cause sections and raw stack preservation; prepared for CLI integration |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
 | Design           | `toolcraft-rust/design` and 72 flat helper paths backed by the native design package |
 | File changes     | `toolcraft-rust/file-changes`: native status summaries and unified diffs through standard renderers |

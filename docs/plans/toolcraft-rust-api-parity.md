@@ -2746,3 +2746,36 @@ establish zero added per-call wrapper overhead; no new benchmark or underlying
 design performance improvement is claimed. Full Toolcraft CLI, transport and other
 subpath ports, declaration standalone/nominal swap qualification and broader
 resource/platform/performance gates remain open.
+
+
+### CLI stack-diagnostic prerequisite checkpoint
+
+The internal `stack-trim` module now has a Rust policy for cause-section splitting,
+framework/runtime frame classification, summary pluralization and raw-mode selection.
+Node retains source-map activation and observable string/array methods, callbacks,
+iteration and arbitrary thrown values. No public `toolcraft-rust/cli` entry point is
+claimed: full CLI parsing, snapshots, execution and result rendering remain open.
+The existing CLI renderer's YAML serialization dependency also needs qualification
+before that renderer can be ported without importing the JavaScript implementation.
+
+Four missing-module failures preceded implementation. Five final native tests
+compare runtime exports/metadata, all six hidden-frame patterns, Windows paths,
+Unicode/lone surrogates, nested causes, unchanged boxed-string identity, raw-mode
+identity, custom method receivers/order, abrupt iterator closing, malformed input,
+primitive thrown values, reentrant callbacks and live array callback metadata.
+Source-map checks cover optional absence/null, getter failure, nonfunction errors,
+receiver and arbitrary throws. All five original stack-trim tests now resolve the
+native implementation through the maintained Toolcraft reference route.
+
+Build, Rust/binding and scoped JS lint, bidirectional declarations and package unit
+checks pass: 123 native tests and 1,571 reference/integration cases in 44 files.
+The packed internal module works with external ESM packages blocked, and its
+standalone declarations compile with `types: []`. The inspected nested-error
+screenshot has byte-identical reference/native text. No dependencies or default
+integration changes.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 2,000 seven-line nested-stack
+calls with 32 retained results measured 50.384 microseconds native / 1.416
+microseconds JavaScript (35.57 times slower). This does not pass the performance
+gate. Callback reentrancy uses the current adapter guard; full stack/resource and
+platform qualification remains open with the broader replacement gates.

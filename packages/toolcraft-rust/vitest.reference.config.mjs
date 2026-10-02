@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
 const path = (value) => fileURLToPath(new URL(value, import.meta.url));
-const suites = ["suggest", "runtime-logging", "redaction", "package-metadata", "source-snippet"];
+const suites = ["stack-trim", "suggest", "runtime-logging", "redaction", "package-metadata", "source-snippet"];
 
 export default defineConfig({
   plugins: [
@@ -66,7 +66,7 @@ export default defineConfig({
               importer === path(`../toolcraft/src/${suite}.test.ts`) && name === `./${suite}.js`
           )
         )
-          return ["./package-metadata.js", "./source-snippet.js"].includes(name)
+          return ["./stack-trim.js", "./package-metadata.js", "./source-snippet.js"].includes(name)
             ? path(`dist/${name.slice(2)}`)
             : path("dist/index.js");
       }

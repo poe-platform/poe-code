@@ -24,6 +24,7 @@ pub mod schema_scope;
 pub mod sdk;
 pub mod sdk_validation;
 pub mod source_snippet;
+pub mod stack_trim;
 pub mod stream;
 
 #[napi]

@@ -95,3 +95,10 @@ const designExplorer: DesignExplorerConfig<{title:string}> = {title:"Example",ac
 // @ts-expect-error selection values must preserve the caller's option type
 const invalidDesignSelection: DesignSelectOptions<"one"> = {message:"Pick",options:[{value:"two",label:"Two"}]};
 void [designTableOriginal,designTableOwn,designRendered,designPlain,designTheme,designSelection,designExplorer,invalidDesignSelection];
+
+import * as stackTrim from "../dist/stack-trim.js";
+import type * as referenceStackTrim from "../../toolcraft/dist/stack-trim.js";
+const stackTrimOriginal: typeof referenceStackTrim = stackTrim;
+const stackTrimNative: typeof stackTrim = null as unknown as typeof referenceStackTrim;
+const stackMode: referenceStackTrim.DebugStackMode = null as unknown as import("../dist/stack-trim.js").DebugStackMode;
+void [stackTrimOriginal,stackTrimNative,stackMode];

@@ -33,6 +33,8 @@ import {
   decodeUtf8,
   encodeUtf8,
   parseSubtitleDocument,
+  parseStreamingManifest,
+  serializeDashDocument,
   srtAst,
   webvttAst,
   ffmetadataAst,
@@ -128,6 +130,35 @@ function createInputReader(context: CommandContext, budget: MediaBudgetTracker) 
     const bytes = await context.fs.readFile(resolvePath(context.cwd, path), { signal: context.signal });
     account(bytes);
     return bytes;
+  };
+}
+
+async function loadManifestResources(
+  plugin: MediaAstPlugin,
+  bytes: Uint8Array,
+  filename: string,
+  cwd: string,
+  readInput: (path: string) => Promise<Uint8Array>,
+  budget: MediaBudgetTracker
+): Promise<((uri: string) => Uint8Array) | undefined> {
+  if (plugin.id !== "hls" && plugin.id !== "dash") return undefined;
+  const manifest = parseStreamingManifest(bytes, plugin.id, { budget });
+  const path = resolvePath(cwd, filename);
+  const directory = path.slice(0, path.lastIndexOf("/")) || "/";
+  const resources = new Map<string, Uint8Array>();
+  for (const sequence of manifest.sequences) {
+    for (const segment of sequence) {
+      for (const uri of [segment.initialization, segment.uri]) {
+        if (uri === undefined || resources.has(uri)) continue;
+        if (uri.includes(":") && !uri.startsWith("file:")) throw new Error("Streaming media requires local segment files");
+        resources.set(uri, await readInput(resolvePath(directory, uri)));
+      }
+    }
+  }
+  return uri => {
+    const data = resources.get(uri);
+    if (!data) throw new Error(`Missing streaming resource: ${uri}`);
+    return data;
   };
 }
 
@@ -1571,7 +1602,7 @@ export function evalSyncFfmpeg(
       return "";
     }
     const outPlugin = outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget);
-    if (!outPlugin || !outPlugin.canMux) return undefined;
+    if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     const serializedBytes = outPlugin.serialize(workingDoc, { format: outputFormat ?? outExt, faststart, fragmented, metadata: metaTags, budget });
     if (isStdout(outputTarget)) return undefined;
@@ -1833,7 +1864,9 @@ export function createFfprobeCommand(options: FfmpegCommandsOptions = {}): Comma
           return { exitCode: 1 };
         }
 
+        const resolveResource = await loadManifestResources(plugin, bytes, inputTarget, context.cwd, readInput, budget);
         const probeResult = plugin.probe(bytes, {
+          resolveResource,
           filename: inputTarget,
           limits: options.limits,
           budget,
@@ -2176,32 +2209,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             return step.value;
           }
 
-          if (/\.m3u8?$/i.test(filePath) || explicitFormat === "hls") {
-            const m3uResolved = resolvePath(context.cwd, filePath);
-            const m3uBytes = await readInput(filePath);
-            const m3uText = decodeUtf8(m3uBytes).replace(/\r\n/g, "\n");
-            const baseDir = m3uResolved.includes("/")
-              ? m3uResolved.slice(0, m3uResolved.lastIndexOf("/")) || "/"
-              : "/";
-            const segDocs: MediaDocument[] = [];
-            for (const rawLine of m3uText.split("\n")) {
-              const line = rawLine.trim();
-              if (!line || line.startsWith("#")) continue;
-              const segPath = resolvePath(baseDir, line);
-              try {
-                const segDoc = await loadSingleDocument(segPath);
-                segDocs.push(segDoc);
-              } catch (error) {
-                rethrowRuntimeError(context, error);
-                if ((error as { code?: string }).code !== "ENOENT") throw error;
-                // ignore missing optional segment
-              }
-            }
-            if (segDocs.length > 0) {
-              return concatMp4(segDocs, { limits: options.limits, budget });
-            }
-          }
-
           if (filePath.startsWith("concat:")) {
             const parts = filePath
               .slice("concat:".length)
@@ -2346,7 +2353,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             );
           }
 
+          const resolveResource = await loadManifestResources(plugin, rawBytes, filePath, context.cwd, readInput, budget);
           return plugin.parse(rawBytes, {
+            resolveResource,
             filename: filePath,
             limits: options.limits,
             budget
@@ -2839,6 +2848,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
         // Null muxer (`-f null -`)
         if (outputFormat === "null" || outputTarget === "/dev/null") {
+          options.onMetrics?.(budget.getStats());
+          return { exitCode: 0 };
+        }
+
+        if (outputFormat === "dash" || outputTarget.toLowerCase().endsWith(".mpd")) {
+          if (!registry.findByFormatName("dash")?.canMux) throw new Error("DASH AST is not registered");
+          const outResolved = resolvePath(context.cwd, outputTarget);
+          const outDir = outResolved.slice(0, outResolved.lastIndexOf("/")) || "/";
+          const { manifest, resources } = serializeDashDocument(workingDoc, { limits: options.limits, budget });
+          await context.fs.mkdir(outDir, { recursive: true, signal: context.signal });
+          for (const [uri, bytes] of resources) {
+            await writeFileOutput(context, bytes, data => context.fs.writeFile(resolvePath(outDir, uri), data, { signal: context.signal }));
+          }
+          await writeFileOutput(context, manifest, data => context.fs.writeFile(outResolved, data, { signal: context.signal }));
           options.onMetrics?.(budget.getStats());
           return { exitCode: 0 };
         }

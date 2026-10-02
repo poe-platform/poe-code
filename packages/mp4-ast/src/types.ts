@@ -513,6 +513,8 @@ export interface MediaProbeResult {
 }
 
 export interface ParseMediaOptions {
+  /** Resolve a manifest-relative segment URI synchronously from caller-owned storage. */
+  readonly resolveResource?: ((uri: string) => Uint8Array) | undefined;
   readonly filename?: string | undefined;
   readonly limits?: MediaResourceLimits | undefined;
   readonly budget?: MediaBudgetTracker | undefined;

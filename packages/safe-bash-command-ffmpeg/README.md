@@ -32,3 +32,12 @@ implement the listed AST capabilities, not every native FFmpeg codec or option.
 HLS stream-copy segments cut at keyframes, so a long GOP can exceed `-hls_time`; the playlist reports actual segment durations. Negative `-map` selections remove previously selected streams by input, type, or stream index, and later positive maps can select them again.
 
 Explicit `-hls_segment_filename` paths resolve from the working directory; default segments are written beside the playlist. Missing HLS parent directories are created. Existing outputs are preserved with exit status 1 unless `-y` is specified; `-n` explicitly requests preservation.
+
+
+Both commands resolve local HLS and static DASH segment files from the virtual
+filesystem, including fMP4 initialization files, and report the actual media
+streams. Missing referenced files fail the command. DASH output (`-f dash` or
+`.mpd`) writes the manifest plus `init-stream*.m4s` and `chunk-stream*.m4s` files
+beside it, with one complete media fragment per audio/video track. DASH input
+supports a single Period with segment templates, timelines, or segment lists;
+HLS input requires an unencrypted media playlist without byte ranges.

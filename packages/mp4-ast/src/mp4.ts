@@ -1006,6 +1006,18 @@ export function parseMp4(bytes: Uint8Array, options: ParseMediaOptions = {}): Mp
       }
     }
 
+    // Fragmented initialization files can leave the final media edit open-ended.
+    // Its duration becomes known only after the following fragments are parsed.
+    if (moofBoxes.length > 0) {
+      for (let i = 0; i < editList.length; i++) {
+        const edit = editList[i]!;
+        if (edit.segmentDuration === 0 && edit.mediaTime >= 0) {
+          const mediaEnd = samples.reduce((end, sample) => Math.max(end, sample.pts + sample.duration), 0);
+          editList[i] = { ...edit, segmentDuration: Math.round(Math.max(0, mediaEnd - edit.mediaTime) * movieTimescale / timescale) };
+        }
+      }
+    }
+
     const computedDuration = editList.length > 0
       ? Math.round(editList.reduce((total, edit) => total + edit.segmentDuration, 0) * timescale / movieTimescale)
       : samples.reduce((acc, s) => acc + s.duration, 0) ||
@@ -2424,10 +2436,11 @@ export function buildProbeResultFromDoc(
     const bitRate =
       durationSec > 0 ? String(Math.round((totalBytes * 8) / durationSec)) : "0";
     const nbFrames = materialized.samples.length;
-    const fpsNum = durationSec > 0 ? Math.round((nbFrames / durationSec) * 1000) : 30000;
-    const fpsGcd = gcd(fpsNum, 1000);
-    const avgFrameRate =
-      track.type === "video" ? `${fpsNum / fpsGcd}/${1000 / fpsGcd}` : "0/0";
+    const sampleTicks = materialized.samples.reduce((total, sample) => total + sample.duration, 0);
+    const fpsNum = nbFrames * track.timescale;
+    const fpsGcd = gcd(fpsNum, sampleTicks || 1);
+    const avgFrameRate = track.type === "video" && sampleTicks > 0
+      ? `${fpsNum / fpsGcd}/${sampleTicks / fpsGcd}` : "0/0";
 
     const w = track.width ?? desc?.width;
     const h = track.height ?? desc?.height;

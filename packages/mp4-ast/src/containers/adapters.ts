@@ -1,5 +1,7 @@
 import { encodeFlacPackets } from "./flac.js";
 import { serializeOggFlac, extractOggFlac } from "./ogg.js";
+
+import { parseStreamingDocument, serializeDashDocument } from "./streaming.js";
 import { decodeImage, encodeImage, type ImageFormat } from "@poe-code/image-ast/portable";
 import {
   BinaryReader,
@@ -22,8 +24,6 @@ import {
 import {
   buildProbeResultFromDoc,
   concatMp4,
-  createSyntheticMp4,
-  parseMp4,
   movAst,
   mp4Ast,
   sliceMp4
@@ -1558,29 +1558,8 @@ export function hlsAst(): MediaAstPlugin {
       }
       return false;
     },
-    parse(bytes) {
-      const text = decodeUtf8(bytes).replace(/\r\n/g, "\n");
-      let totalDuration = 0;
-      for (const line of text.split("\n")) {
-        if (line.startsWith("#EXTINF:")) {
-          const dur = parseFloat(line.slice(8).split(",")[0] ?? "0") || 0;
-          totalDuration += dur;
-        }
-      }
-      const synth = parseMp4(
-        createSyntheticMp4({
-          width: 64,
-          height: 48,
-          fps: 10,
-          durationSeconds: Math.max(0.2, totalDuration || 1),
-          includeAudio: true
-        })
-      );
-      return {
-        ...synth,
-        containerFormat: "hls",
-        durationSeconds: totalDuration || synth.durationSeconds
-      };
+    parse(bytes, options) {
+      return parseStreamingDocument(bytes, "hls", options);
     },
     serialize(doc) {
       const dur = Math.max(1, doc.durationSeconds || 2);
@@ -1632,26 +1611,11 @@ export function dashAst(): MediaAstPlugin {
       }
       return false;
     },
-    parse(bytes) {
-      const synth = parseMp4(createSyntheticMp4({ width: 64, height: 48, fps: 10, durationSeconds: 1 }));
-      return { ...synth, containerFormat: "dash" };
+    parse(bytes, options) {
+      return parseStreamingDocument(bytes, "dash", options);
     },
-    serialize(doc) {
-      const dur = (doc.durationSeconds || 1).toFixed(3);
-      const xml = [
-        `<?xml version="1.0" encoding="utf-8"?>`,
-        `<MPD xmlns="urn:mpeg:dash:schema:mpd:2011" type="static" mediaPresentationDuration="PT${dur}S" minBufferTime="PT1.0S" profiles="urn:mpeg:dash:profile:isoff-live:2011">`,
-        `  <Period id="0" start="PT0.0S">`,
-        `    <AdaptationSet id="0" contentType="video" segmentAlignment="true">`,
-        `      <Representation id="0" mimeType="video/mp4" codecs="avc1.42c01f" width="${doc.tracks[0]?.width ?? 320}" height="${doc.tracks[0]?.height ?? 240}" bandwidth="500000">`,
-        `        <SegmentTemplate timescale="1000" initialization="init-stream$RepresentationID$.m4s" media="chunk-stream$RepresentationID$-$Number%05d$.m4s" startNumber="1"/>`,
-        `      </Representation>`,
-        `    </AdaptationSet>`,
-        `  </Period>`,
-        `</MPD>`,
-        ""
-      ].join("\n");
-      return encodeUtf8(xml);
+    serialize(doc, options) {
+      return serializeDashDocument(doc, options).manifest;
     },
     probe(bytes, options) {
       const doc = this.parse(bytes, options);

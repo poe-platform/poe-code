@@ -105,3 +105,17 @@ for (const probe of [false, true]) {
     assert.deepEqual(f.totals, [10]);
   });
 }
+
+for (const command of [createFfmpegCommand, createFfprobeCommand]) {
+  it(`${command.name} accounts for shared initialization and segment resources`, async () => {
+    const playlist = new TextEncoder().encode('#EXTM3U\n#EXT-X-MAP:URI="init.mp4"\n#EXTINF:1,\npart.m4s\n');
+    const files = { "/index.m3u8": playlist, "/init.mp4": media, "/part.m4s": new Uint8Array([1, 2, 3]) };
+    const args = command === createFfmpegCommand ? ["-i", "index.m3u8", "out.mp4"] : ["index.m3u8"];
+    const f = fixture(args, files);
+    const total = playlist.length + media.length + 3;
+    const result = await command({ limits: { maxInputBytes: total - 1 } }).execute(f.context);
+    assert.equal(result.exitCode, 1);
+    assert.deepEqual(f.totals, [playlist.length, playlist.length + media.length, total]);
+    assert.ok(f.errors.join("").includes("maxInputBytes"));
+  });
+}

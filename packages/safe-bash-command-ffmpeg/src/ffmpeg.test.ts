@@ -548,3 +548,72 @@ it("preserves solid lavfi pixels across multiple H.264 frames", async () => {
     }
   }
 });
+
+it("extracts gapped MKV subtitles with their explicit end timestamps", async () => {
+  const srt = "1\n00:00:00,000 --> 00:00:01,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,500\nSecond\n";
+  const vfs = createTestVfs({ "/in.srt": srt });
+  const ffmpeg = createFfmpegCommand();
+  assert.equal((await runCmd(ffmpeg, ["-i", "/in.srt", "-c", "copy", "/sub.mkv"], vfs)).exitCode, 0);
+  const result = await runCmd(ffmpeg, ["-i", "/sub.mkv", "/out.srt"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const text = new TextDecoder().decode(vfs.store.get("/out.srt"));
+  assert.ok(text.includes("00:00:00,000 --> 00:00:01,000"), text);
+  assert.ok(text.includes("00:00:03,000 --> 00:00:04,500"), text);
+});
+
+for (const format of ["hls", "dash"]) {
+  it(`probes and remuxes actual ${format} segments without inventing streams`, async () => {
+    const source = createSyntheticMp4({ width: 128, height: 96, fps: 25, frameCount: 50, includeAudio: false });
+    const vfs = createTestVfs({ "/in.mp4": source });
+    const filename = format === "hls" ? "/stream/out.m3u8" : "/stream/out.mpd";
+    const ffmpeg = createFfmpegCommand();
+    const mux = await runCmd(ffmpeg, ["-i", "/in.mp4", "-c", "copy", "-f", format, filename], vfs);
+    assert.equal(mux.exitCode, 0, mux.stderr);
+    if (format === "dash") {
+      assert.ok(vfs.store.has("/stream/init-stream0.m4s"));
+      assert.ok(vfs.store.has("/stream/chunk-stream0-00001.m4s"));
+    }
+    const probe = await runCmd(createFfprobeCommand(), ["-of", "json", "-show_streams", "-show_format", filename], vfs);
+    assert.equal(probe.exitCode, 0, probe.stderr);
+    const result = JSON.parse(probe.stdout);
+    assert.equal(result.streams.length, 1);
+    assert.equal(result.streams[0].width, 128);
+    assert.equal(result.streams[0].height, 96);
+    assert.equal(result.streams[0].r_frame_rate, "25/1");
+    assert.equal(Number(result.format.duration), 2);
+    const remux = await runCmd(ffmpeg, ["-i", filename, "-c", "copy", "/joined.mp4"], vfs);
+    assert.equal(remux.exitCode, 0, remux.stderr);
+    const actual = parseMp4(vfs.store.get("/joined.mp4")!);
+    const original = parseMp4(source);
+    assert.equal(actual.tracks[0]!.samples.length, 50);
+    assert.deepEqual(actual.tracks[0]!.samples.map(s => s.data), original.tracks[0]!.samples.map(s => s.data));
+  });
+}
+
+it("reads multiple HLS fMP4 segments through both commands and preserves their packets", async () => {
+  const segment = createSyntheticMp4({ width: 32, height: 24, fps: 25, frameCount: 25, includeAudio: true, fragmented: true });
+  const playlist = "#EXTM3U\n#EXTINF:1,\nparts/one.m4s\n#EXTINF:1,\nparts/two.m4s\n#EXT-X-ENDLIST\n";
+  const vfs = createTestVfs({ "/hls/media.playlist": playlist, "/hls/parts/one.m4s": segment, "/hls/parts/two.m4s": segment });
+  const probe = await runCmd(createFfprobeCommand(), ["-of", "json", "/hls/media.playlist"], vfs);
+  assert.equal(probe.exitCode, 0, probe.stderr);
+  const streams = JSON.parse(probe.stdout).streams;
+  assert.equal(streams.length, 2);
+  assert.equal(streams[0].r_frame_rate, "25/1");
+  const result = await runCmd(createFfmpegCommand(), ["-i", "/hls/media.playlist", "-c", "copy", "/out.mp4"], vfs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const track = parseMp4(vfs.store.get("/out.mp4")!).tracks[0]!;
+  const original = parseMp4(segment).tracks[0]!;
+  assert.equal(track.samples.length, 50);
+  assert.ok(track.samples.every((s, i) => Buffer.from(s.data).equals(original.samples[i % 25]!.data)));
+});
+
+for (const command of [createFfmpegCommand, createFfprobeCommand]) {
+  it(`${command.name} fails on missing HLS segments instead of returning synthetic media`, async () => {
+    const vfs = createTestVfs({ "/hls/index.m3u8": "#EXTM3U\n#EXTINF:1,\nmissing.ts\n" });
+    const args = command === createFfmpegCommand ? ["-i", "/hls/index.m3u8", "/out.mp4"] : ["/hls/index.m3u8"];
+    const result = await runCmd(command(), args, vfs);
+    assert.equal(result.exitCode, 1);
+    assert.ok(result.stderr.includes("/hls/missing.ts"), result.stderr);
+    assert.equal(vfs.store.has("/out.mp4"), false);
+  });
+}

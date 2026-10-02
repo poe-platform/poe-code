@@ -250,7 +250,7 @@ export function parseMpegTs(bytes: Uint8Array, options: ParseMediaOptions = {}):
         const pts = Math.max(0, pkt.pts - basePts);
         const nextDts = nextPkt
           ? Math.max(dts + 1, (nextPkt.dts || nextPkt.pts) - basePts)
-          : dts + 3000;
+          : dts + (samples.at(-1)?.duration ?? Math.round(90000 / (allSps[0] ? parseH264Sps(allSps[0]).fps ?? 30 : 30)));
         const duration = Math.max(1, nextDts - dts);
 
         const sampleData =

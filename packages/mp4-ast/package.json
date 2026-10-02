@@ -27,6 +27,7 @@
   "dependencies": {},
   "devDependencies": {
     "@poe-code/audio-ast": "*",
-    "@poe-code/image-ast": "*"
+    "@poe-code/image-ast": "*",
+    "@poe-code/xml-ast": "*"
   }
 }

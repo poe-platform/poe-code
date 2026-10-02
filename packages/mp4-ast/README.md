@@ -13,3 +13,16 @@ For cooperative hosts, `muxMp4Steps` and `sliceMp4Steps` return generators that 
 - **Consumer-Defined Resource Limits (`MediaResourceLimits`, `cloudflareWorkerLimits`)**: Imposes zero default restrictions while offering a ready-made Cloudflare Worker limit preset and `MediaBudgetTracker`.
 
 FLAC output encodes decoded PCM as lossless 16-bit verbatim frames. Ogg output uses the Ogg FLAC mapping with page checksums and complete audio packets; it does not encode Vorbis or Opus. These encoders require decoded PCM instead of substituting silent audio.
+
+`hlsAst()` and `dashAst()` parse local media playlists using a caller-provided
+`resolveResource(uri)` option. The URI is relative to the manifest; return the
+referenced file bytes. HLS supports MPEG-TS and fMP4 segments with `EXT-X-MAP`.
+DASH supports a static single Period, `SegmentTemplate` (duration or timeline),
+`SegmentList`, and `BaseURL`, selecting the first representation per adaptation
+set. Missing resources fail rather than producing synthetic streams. Encrypted
+HLS, master playlists, and byte-range segments are not supported.
+
+For DASH output, `serializeDashDocument(doc)` returns `{ manifest, resources }`.
+Write the manifest and each `resources` entry beside it; the output contains one
+initialization file and one complete media fragment per audio/video track.
+`dashAst().serialize(doc)` returns only the manifest bytes.

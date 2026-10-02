@@ -45,4 +45,3 @@ export function resolveSkillReference(ref: string, cwd: string, homeDir: string)
   const plan = searchPlan(ref, cwd, homeDir);
   return "kind" in plan ? plan : findSkill(ref, plan.name, plan.tiers, plan.sourceAgentId);
 }
-

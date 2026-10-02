@@ -54,4 +54,3 @@ export function nextBlockId(content: string | undefined, runId: string, markerPr
   }
   return `${runId}:${suffix}`;
 }
-

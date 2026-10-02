@@ -128,3 +128,15 @@ const diagnosticsOwn: typeof diagnostics = null as unknown as typeof originalDia
 const rootDiagnosticsOriginal: typeof originalDiagnostics = design;
 const rootDiagnosticsOwn: typeof diagnostics = null as unknown as typeof originalDesign;
 void [diagnosticsOriginal, diagnosticsOwn, rootDiagnosticsOriginal, rootDiagnosticsOwn];
+
+import * as files from "toolcraft-design-rust/components/file-changes";
+import type * as originalFiles from "toolcraft-design/components/file-changes";
+const filesOriginal: typeof originalFiles = files;
+const filesOwn: typeof files = null as unknown as typeof originalFiles;
+const rootFilesOriginal: typeof originalFiles = design;
+const rootFilesOwn: typeof files = null as unknown as typeof originalDesign;
+const fileOptionsOriginal: originalFiles.RenderFileChangesOptions = null as unknown as files.RenderFileChangesOptions;
+const fileOptionsOwn: files.RenderFileChangesOptions = null as unknown as originalFiles.RenderFileChangesOptions;
+const fileOriginal: originalFiles.FileChange = null as unknown as files.FileChange;
+const fileOwn: files.FileChange = null as unknown as originalFiles.FileChange;
+void [filesOriginal,filesOwn,rootFilesOriginal,rootFilesOwn,fileOptionsOriginal,fileOptionsOwn,fileOriginal,fileOwn];

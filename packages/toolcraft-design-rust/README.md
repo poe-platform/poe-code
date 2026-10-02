@@ -64,6 +64,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `withOutputFormat` | Scope an output format across asynchronous work |
 | `renderTable`, `loggerTableWidth` | Render width-budgeted tables or detail rows in terminal, Markdown and JSON |
 | `formatCommandNotFound`, `formatCommandNotFoundPanel` | Show unknown commands, suggestions and a help hint with consistent styling |
+| `renderFileChanges` | Show file status, conflicts, rename paths or unified diffs in terminal and Markdown |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -194,3 +195,20 @@ resource limits and pathological reentrancy still need replacement qualification
 `toolcraft-design-rust/components/command-errors`. Diagnostic composition and
 defaults live in Rust; styling uses the same mutable text and typography helpers
 as the original package.
+
+Render changes without accessing the filesystem:
+
+```ts
+import { renderFileChanges } from 'toolcraft-design-rust';
+
+console.log(renderFileChanges([
+  { kind: 'modified', path: 'agent.ts', oldContent: 'old\n', newContent: 'new\n' }
+], { mode: 'diff' }));
+```
+
+The default `status` mode includes ordered counts and conflict markers. Diff mode
+uses the original single-hunk policy with three context lines; renamed paths and
+added/deleted files retain their original headers. Set `format: 'markdown'` for a
+fenced block. The root and `components/file-changes` entry points share one renderer.
+Rust chooses status styles, paths, summary details and hunk ranges; Node retains
+observable array/Map/string operations and color callbacks.

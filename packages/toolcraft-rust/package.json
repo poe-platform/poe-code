@@ -27,6 +27,10 @@
     "./human-in-loop": {
       "types": "./dist/human-in-loop.d.ts",
       "import": "./dist/human-in-loop.js"
+    },
+    "./file-changes": {
+      "types": "./dist/file-changes.d.ts",
+      "import": "./dist/file-changes.js"
     }
   },
   "scripts": {

@@ -1,6 +1,7 @@
 pub mod color;
 pub mod command_errors;
 pub mod data;
+pub mod file_changes;
 pub mod layout;
 pub mod logging;
 pub mod palette;

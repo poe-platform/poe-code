@@ -17,6 +17,7 @@ keep existing applications on `toolcraft` until the complete API is available.
 | Package metadata | Nearest package lookup, symlink resolution and optional entrypoint lookup        |
 | MCP results      | Explicit result markers, shallow copy semantics and cross-bundle recognition     |
 | Source snippets  | Context windows, line gutters, carets and terminal/Markdown/JSON styling          |
+| File changes     | `toolcraft-rust/file-changes`: native status summaries and unified diffs through standard renderers |
 | Managed streams  | Lazy creation, event validation, status callbacks, cancellation and cleanup       |
 | Schema scoping   | Recursive field/branch filtering, required scopes and original schema identity   |
 | Member validation | Nested SDK/MCP name collisions, discriminator aliases and formatter callbacks   |
@@ -149,6 +150,16 @@ operations. The public `human-in-loop` entrypoint now uses
 `@poe-code/agent-human-in-loop-rust` for macOS provider rules and preserves lazy
 per-module default-provider selection. Node executes the generated AppleScript;
 table primitives remain caller supplied.
+File-change renderers use the native design dependency. The factory remains a
+Node adapter for stdout, lazy options and unchanged JSON result identity:
+
+```ts
+import { createFileChangeRenderers } from 'toolcraft-rust/file-changes';
+
+const renderers = createFileChangeRenderers({ mode: 'diff' });
+// Use renderers as a command's render option; supply changes in its result.
+```
+
 Deep graph resource limits still require compatibility qualification before a swap.
 
 The CLI, transports and

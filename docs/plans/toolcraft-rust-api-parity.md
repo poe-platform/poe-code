@@ -462,6 +462,23 @@ package lint. Ad hoc screenshots cover terminal, Markdown and JSON-mode diagnost
 strings. The host callback reentrancy guard still needs resource qualification;
 help layout and the remaining design/CLI/transport surface are not yet ported.
 
+File-change rendering now uses native policies for status styles, rename and
+diff paths, summary admission, shared-prefix/suffix discovery, three-line hunk
+context and diff color selection. Node retains observable arrays, Maps, string
+methods, iteration and color callbacks. Differential tests cover content/newline
+boundaries, lone surrogates, all change kinds, conflicts, changing getters,
+species, custom split arrays, nested calls and arbitrary throws. The design
+root and `./components/file-changes` expose standalone structural types and the
+same function. `toolcraft-rust/file-changes` now wires native rendering to stdout,
+Markdown and unchanged JSON result identity, retaining lazy option access and
+the original generic renderer contract. Its root exports the corresponding types.
+The design checkpoint passes 52 native and 129 reference tests; Toolcraft passes
+116 native and 1,564 reference/parity tests, plus package lint and declarations.
+Screenshots verify the public factory's colored status/conflict/rename output
+and added/modified/deleted diff headers and lines. This retains the existing
+single-hunk algorithm, not a new diff policy. The callback depth guard and full
+design/CLI/transport replacement qualification remain outstanding.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

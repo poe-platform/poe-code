@@ -157,3 +157,5 @@ export interface PackageMetadata {
 }
 export declare function findPackageMetadata(from: string | URL): PackageMetadata | undefined;
 export declare function packageMetadata(from?: string | URL): PackageMetadata;
+export type { FileChangeRendererOptions, FileChangeResult } from "./file-changes.js";
+export type { FileChange, FileChangeDisplayMode, FileChangeKind } from "toolcraft-design-rust";

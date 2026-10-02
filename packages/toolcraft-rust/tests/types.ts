@@ -8,6 +8,14 @@ import * as originalSnippet from "toolcraft/source-snippet";
 import { S } from "toolcraft-schema";
 import * as nativeSchema from "toolcraft-rust/schema";
 import * as originalSchema from "toolcraft/schema";
+import * as fileChanges from "toolcraft-rust/file-changes";
+import * as originalFileChanges from "toolcraft/file-changes";
+const fileRenderersOriginal: typeof originalFileChanges = fileChanges;
+const fileRenderersOwn: typeof fileChanges = originalFileChanges;
+const fileRenderer = fileChanges.createFileChangeRenderers<{ changes: readonly native.FileChange[]; revision: string }>();
+const fileResult = { changes: [], revision: "main" };
+const unchanged: unknown = fileRenderer.json?.(fileResult, {} as never);
+void [fileRenderersOriginal, fileRenderersOwn, unchanged];
 
 const nativeSchemaExports: typeof originalSchema = nativeSchema;
 const originalSchemaExports: typeof nativeSchema = originalSchema;

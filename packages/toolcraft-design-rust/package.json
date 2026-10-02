@@ -23,6 +23,10 @@
     "./components/command-errors": {
       "types": "./dist/command-errors.d.ts",
       "import": "./dist/command-errors.js"
+    },
+    "./components/file-changes": {
+      "types": "./dist/file-changes.d.ts",
+      "import": "./dist/file-changes.js"
     }
   },
   "scripts": {

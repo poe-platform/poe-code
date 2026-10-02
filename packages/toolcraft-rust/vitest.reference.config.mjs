@@ -13,6 +13,7 @@ export default defineConfig({
       resolveId(name, importer) {
         if (importer?.startsWith(path("../toolcraft/src/")) && name.startsWith(".")) {
           const resolved = resolve(dirname(importer), name);
+          if (resolved === path("../toolcraft/src/file-change-renderer.js")) return path("dist/file-changes.js");
           if (resolved === path("../toolcraft/src/runtime/io.js")) return path("dist/runtime-io.js");
           if (resolved === path("../toolcraft/src/human-in-loop/wiring.js")) return path("dist/approval-wiring.js");
           if (resolved === path("../toolcraft/src/api-error-summary.js")) return path("dist/api-error-summary.js");
@@ -72,6 +73,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft/src/file-change-renderer.test.ts"),
       path("tests/package-metadata-parity.test.ts"),
       path("tests/mcp-result-parity.test.ts"),
       path("tests/source-snippet-parity.test.ts"),

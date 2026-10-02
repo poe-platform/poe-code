@@ -9,6 +9,8 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/components/file-changes.test.ts") && name === "./file-changes.js")
+          return path("dist/file-changes.js");
         if (
           importer.startsWith(path("../toolcraft-design/src/")) &&
           name.endsWith("/internal/output-format.js")
@@ -59,6 +61,7 @@ export default defineConfig({
       path("../toolcraft-design/src/acp/plan.test.ts"),
       path("../toolcraft-design/src/components/color.test.ts"),
       path("../toolcraft-design/src/components/components.test.ts"),
+      path("../toolcraft-design/src/components/file-changes.test.ts"),
       path("../toolcraft-design/src/tokens/colors.test.ts"),
       path("../toolcraft-design/src/internal/theme-state.test.ts")
     ],

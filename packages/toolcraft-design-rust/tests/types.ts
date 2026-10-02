@@ -958,3 +958,10 @@ const explorerRenderOriginal: typeof originalExplorerRender = explorerRender;
 const explorerRenderNative: typeof explorerRender = null as unknown as typeof originalExplorerRender;
 const explorerRenderKeys: SameKeys<typeof explorerRender,typeof originalExplorerRender> = true;
 void [explorerRenderOriginal,explorerRenderNative,explorerRenderKeys];
+
+import * as explorerReducer from "toolcraft-design-rust/explorer/reducer";
+import type * as originalExplorerReducer from "toolcraft-design/explorer/reducer";
+const explorerReducerOriginal: typeof originalExplorerReducer = explorerReducer;
+const explorerReducerNative: typeof explorerReducer = null as unknown as typeof originalExplorerReducer;
+const explorerReducerKeys: SameKeys<typeof explorerReducer,typeof originalExplorerReducer> = true;
+void [explorerReducerOriginal,explorerReducerNative,explorerReducerKeys];

@@ -664,3 +664,9 @@ sequences from their content. The palette filters available, idle actions.
 header, list, detail, footer and dialogs into one screen. Dirty-region flags
 limit redraws; open dialogs stay above refreshed content and toast messages
 occupy the final row. Individual renderers are re-exported from the same module.
+
+`step(state, event, runtimeHandles?)` from `explorer/reducer` handles navigation,
+filtering, selection, reordering, detail updates and dialogs. It returns the next
+state and effects for your host to execute. Stale detail results are ignored,
+destructive actions request confirmation, and action handlers remain deferred
+until you execute their suspend effect.

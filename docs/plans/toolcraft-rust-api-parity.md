@@ -2219,3 +2219,42 @@ measured 4,758.241 µs native / 585.952 µs reference for full 120×16 rendering
 These composed-render microbenchmarks do not pass the performance gate.
 The reducer, runtime/public explorer namespace, batching, broader Toolcraft
 coverage and final API/platform/performance qualification remain open.
+
+### Explorer reducer checkpoint
+
+`explorer/reducer` exposes `step(state, event, runtimeHandles?)` with the original
+signature. Rust handles event routing, modal/filter/navigation precedence, cursor
+and selection updates, reordering, stale detail tokens, scrolling, action-state
+recomputation, destructive confirmation and deferred effects. Existing native
+filtering, layout, detail preparation, grapheme and action-context code supplies
+its dependencies. JavaScript owns asynchronous closures, collection iteration,
+spread/coercion semantics and external callbacks. No-op state identities and the
+shared no-effect array are retained; suspend effects capture rows and invoke
+handlers only when executed. Resume callbacks reread live action IDs.
+
+Five missing-export tests preceded implementation. Added regression coverage
+caught and corrected invalid callback diagnostics. Nine differential tests cover
+all builtin commands across list/detail/filter/modal states, stale and fresh data
+events, successive transitions, selected row capture, nonboolean availability,
+callback receivers, shared identities, iterator cleanup, arbitrary synchronous
+and deferred failures, and reentrancy. Deep property traces cover 72 builtin/modal
+combinations. Maintained checks pass 380 native host tests, 1,379 selected design
+cases, 13 prompt wrappers, 132 dashboard/queue cases, 14 composer cases and
+155 explorer cases. Original reducer and rendered-navigation tests now run the
+native reducer. Rust/binding and scoped JS lint, bidirectional declarations and
+packed runtime/types pass; packed imports reject external ESM dependencies and
+declarations compile with `types: []`. No dependencies or defaults changed.
+
+Inspected 120-column navigation/select-all, 70-column focused detail and 72-column
+palette screenshots after reducing real key events. Native/reference original
+ScreenBuffer output is byte-identical. Literal terminal Space still maps to a
+filter character in the reference keymap; the native path preserves that behavior
+pending a coordinated correction. Named `space` events exercise selection in
+existing reducer tests; Ctrl+A was used for the screenshot select-all flow.
+
+After other checks completed, five warmed alternating Node 22 ARM64 rounds with
+32 retained results measured 71.483 µs native / 0.410 µs reference for cursor
+movement (1,000 calls/round, 174.45× slower), and 201.017 µs / 2.575 µs for refreshing
+20 rows (200 calls/round, 78.08× slower). No performance gate passed. Explorer
+runtime/public namespace, host-call batching, broader Toolcraft coverage and
+final API/platform/performance qualification remain open.

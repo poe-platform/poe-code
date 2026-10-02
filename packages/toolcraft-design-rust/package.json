@@ -515,6 +515,10 @@
     "./explorer/render/index": {
       "types": "./dist/explorer-render.d.ts",
       "import": "./dist/explorer-render.js"
+    },
+    "./explorer/reducer": {
+      "types": "./dist/explorer-reducer.d.ts",
+      "import": "./dist/explorer-reducer.js"
     }
   },
   "scripts": {

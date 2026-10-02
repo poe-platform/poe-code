@@ -113,7 +113,7 @@ export interface PythonLlmCapabilityOptions {
 export function createPythonLlmCapability(context: PythonLlmContext, service: LlmService, options: PythonLlmCapabilityOptions = {}): PythonHostCapability {
   const inputLimits = {maxInputBytes:options.maxInputBytes ?? Infinity,maxBufferedInputBytes:options.maxBufferedInputBytes ?? Infinity};
   createLlmInputBudget(inputLimits, context.inputBudget);
-  const stagedInputs = createPythonLlmInputs(context.fs, context.inputBudget?.maxBytes ?? Infinity, options.attachmentTransport);
+  const stagedInputs = createPythonLlmInputs(context.fs, Math.min(inputLimits.maxInputBytes, context.inputBudget?.maxBytes ?? Infinity), options.attachmentTransport);
   const chunkBytes = options.maxStreamChunkBytes ?? 16384;
   if (!Number.isSafeInteger(chunkBytes) || chunkBytes < 1) throw new RangeError('Invalid Python LLM stream chunk limit');
   const bufferedLimit = options.maxBufferedResponseBytes ?? Infinity;

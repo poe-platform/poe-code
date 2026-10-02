@@ -1,6 +1,6 @@
 # split
 
-Run `split` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Enable only the commands your application needs.
+Run `split` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Limits default to `Infinity`; filesystem streams use 64 KiB reads unless you configure a finite `maxChunkBytes`. Enable only the commands your application needs.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

@@ -74,7 +74,7 @@ for (const [family, settings] of families) {
     const defaults = settings({});
     for (const [key, value] of Object.entries(defaults)) {
       // These control stream batching, not how much input a command accepts.
-      if (key === "chunkSize" || family === "split" && key === "maxChunkBytes") continue;
+      if (key === "chunkSize") continue;
       assert.equal(value, Infinity, key);
       assert.deepEqual(settings({ limits: { [key]: 64 } }), { ...defaults, [key]: 64 });
     }

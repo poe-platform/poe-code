@@ -19,7 +19,7 @@ export interface SplitCommandsOptions {
 export function settings(options: SplitCommandsOptions): SplitLimits {
   const limits: SplitLimits = {
     maxInputBytes: Infinity, maxOutputBytes: Infinity,
-    maxFiles: Infinity, maxBufferBytes: Infinity, maxChunkBytes: 64 * 1024,
+    maxFiles: Infinity, maxBufferBytes: Infinity, maxChunkBytes: Infinity,
     maxArgumentBytes: Infinity, maxSuffixLength: Infinity, maxSteps: Infinity,
     ...options.limits,
   };

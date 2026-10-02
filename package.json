@@ -883,7 +883,8 @@
     "packages/safe-bash-command-playwright-cli/dist",
     "packages/safe-bash-mime-engine/dist",
     "packages/safe-bash-command-unix2dos/dist",
-    "packages/safe-bash-command-zstd/dist"
+    "packages/safe-bash-command-zstd/dist",
+    "packages/safe-bash-command-cp/dist"
   ],
   "license": "MIT",
   "imports": {

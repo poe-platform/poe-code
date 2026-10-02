@@ -1,10 +1,31 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { FsError } from "../../../../src/contracts/index.js";
-import { ColumnBudget } from "safe-bash-command-column/internal";
-import { settings } from "safe-bash-command-column/options";
-import { tableOutput } from "safe-bash-command-column/table";
-import { deferred, run } from "../helpers.js";
+import { FsError, toByteSource, type CommandContext } from "safe-bash-contracts";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createColumnCommand, type ColumnCommandsOptions } from "./index.js";
+import { ColumnBudget } from "./internal.js";
+import { settings } from "./options.js";
+import { tableOutput } from "./table.js";
+async function run(args: readonly string[] = [], input: string | Uint8Array = "", options: ColumnCommandsOptions = {}, overrides: Partial<CommandContext> = {}) {
+  const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+  const context: CommandContext = {
+    command: "column", args, cwd: "/", env: {}, fs: createMemoryFileSystem(),
+    signal: new AbortController().signal, stdin: toByteSource(input),
+    stdout: { async write(bytes) { stdout.push(Uint8Array.from(bytes)); } },
+    stderr: { async write(bytes) { stderr.push(Uint8Array.from(bytes)); } }, ...overrides,
+  };
+  const result = await createColumnCommand(options).execute(context);
+  return { ...result, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString(), stdoutBytes: Buffer.concat(stdout), context };
+}
+
+
+function deferred<Value = void>() {
+  let resolve!: (value: Value | PromiseLike<Value>) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<Value>((success, failure) => { resolve = success; reject = failure; });
+  return { promise, resolve, reject };
+}
+
 
 test("entire absent suffix is admitted before any padding is published", async () => {
   const result = await run(["-t", "-s:"], "x\na:bbb:c\n", { limits: { maxOutputBytes: 7 } });

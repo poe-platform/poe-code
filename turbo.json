@@ -538,6 +538,18 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-column#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
+    },
+    "safe-bash-table-text-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     }
   }
 }

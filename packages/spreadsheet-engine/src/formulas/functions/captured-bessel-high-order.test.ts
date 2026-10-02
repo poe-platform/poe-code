@@ -4,6 +4,8 @@ import { recalculateWorkbook } from "../evaluator.js";
 // Authenticated Gnumeric 1.12.61 / GOffice 0.10.61 on Linux arm64.
 // These values use the source Debye B2 domain, where order exceeds x.
 it.each([
+  ["BESSELJ(17,42.71281590658235)", 4.5219054449074565e-14],
+  ["BESSELY(17,42.71281590658235)", -179660669896.0961],
   ["BESSELY(100,524)", -5.332710761680219e307],
   ["BESSELJ(20.14335363245981,201.47587278385765)", 3.8555810760186273e-177],
   ["BESSELY(20.14335363245981,201.47587278385765)", -4.1183075661177754e173],

@@ -1,3 +1,4 @@
+import { capturedCbrt } from "./captured-cbrt.js";
 import { capturedBesselTransition } from "./captured-bessel-transition.js";
 import { numericResult, sum } from "../values.js";
 import { numberArg } from "./common.js";
@@ -207,10 +208,8 @@ function bessel(name: string, x: number, order: number, host: FunctionHost): num
     const j = bessel("BESSELJ", x, positive, host), y = bessel("BESSELY", x, positive, host);
     return name === "BESSELJ" ? fusedMultiplyAdd(j, cosine, -y * sine) : fusedMultiplyAdd(j, sine, y * cosine);
   }
-  if ((name === "BESSELJ" || name === "BESSELY") && order > x && x >= 17 && (order - x) / Math.cbrt(x) >= 6.5)
+  if ((name === "BESSELJ" || name === "BESSELY") && order > x && x >= 17 && (order - x) / capturedCbrt(x) >= 6.5)
     return capturedHankel(x, order, name === "BESSELY", host);
-  if ((name === "BESSELJ" || name === "BESSELY") && order > x && x <= 1e6 && x * x >= 10 * (order + 10) && (order - x) / Math.cbrt(x) > 1.5)
-    return capturedBesselTransition(x, order, name === "BESSELY", host);
   if (name === "BESSELI") return x > 709 ? Infinity : order === 0 && x * x >= 100 ? capturedBesselI0(x, host) : series(x, order, true, host);
   if (name === "BESSELK" && x > 705.342) return 0;
   if (name === "BESSELK" && x > 1e-10) return capturedBesselK(x, order, host);
@@ -218,8 +217,10 @@ function bessel(name: string, x: number, order: number, host: FunctionHost): num
   if (name === "BESSELY" && x * x < 10 * (order + 10) && order === Math.floor(order) && order < 99999) return capturedIntegerBesselY(x, order, host);
   if ((name === "BESSELJ" || name === "BESSELY") && order === 0 && x >= 17 && x <= 1e6) return capturedZeroOrderHankel(x, name === "BESSELY", host);
   if ((name === "BESSELJ" || name === "BESSELY") && order === 0 && x >= 9 && x < 17) return capturedHankelIntegral(x, name === "BESSELY", host);
-  if ((name === "BESSELJ" || name === "BESSELY") && order > 0 && x >= 17 && x <= 1e6 && (x - order) / Math.cbrt(x) >= 6.5) return capturedHankel(x, order, name === "BESSELY", host);
-  if ((name === "BESSELJ" || name === "BESSELY") && order > 0 && x >= 9 && x <= 1e6 && (x - order) / Math.cbrt(x) > 1.5) return capturedHankelIntegral(x, name === "BESSELY", host, order);
+  if ((name === "BESSELJ" || name === "BESSELY") && order > 0 && x >= 17 && x <= 1e6 && (x - order) / capturedCbrt(x) >= 6.5) return capturedHankel(x, order, name === "BESSELY", host);
+  if ((name === "BESSELJ" || name === "BESSELY") && order > 0 && x >= 9 && x <= 1e6 && (x - order) / capturedCbrt(x) > 1.5) return capturedHankelIntegral(x, name === "BESSELY", host, order);
+  if ((name === "BESSELJ" || name === "BESSELY") && x > 0 && x <= 1e6 && x * x >= 10 * (order + 10))
+    return capturedBesselTransition(x, order, name === "BESSELY", host);
   if ((name === "BESSELK" || name === "BESSELY") && order >= 2 && order === Math.floor(order)) {
     let previous = bessel(name, x, 0, host), current = bessel(name, x, 1, host);
     for (let n = 1; n < order; n++) { host.tick(); const next = fusedMultiplyAdd(2 * n / x, current, name === "BESSELK" ? previous : -previous); previous = current; current = next; if (!Number.isFinite(current)) break; }

@@ -1,3 +1,4 @@
+import { capturedCbrt } from "./captured-cbrt.js";
 import { capturedExp, fusedMultiplyAdd } from "./numeric-arithmetic.js";
 import { capturedTrig } from "./captured-trigonometry.js";
 import { piReduced, sinPi } from "./math.js";
@@ -177,7 +178,7 @@ export function capturedIntegerBesselY(x: number, order: number, host: FunctionH
 
 /** Released Debye B1/B2 evaluation on either side of the high-order domain. */
 export function capturedHankel(x: number, order: number, secondKind: boolean, host: FunctionHost): number {
-  const g = Math.abs(x - order) / Math.cbrt(x), terms = g < 7 ? 17 : g < 10 ? 13 : g < 23 ? 9 : 5;
+  const g = Math.abs(x - order) / capturedCbrt(x), terms = g < 7 ? 17 : g < 10 ? 13 : g < 23 ? 9 : 5;
   const coefficients: number[][] = [[1], [.125, -5 / 24]];
   for (let n = 2; n <= terms; n++) {
     const previous = coefficients[n - 1]!, row: number[] = [];
@@ -239,7 +240,7 @@ export function capturedHankel(x: number, order: number, secondKind: boolean, ho
 
 /** Zero-order Debye expansion with the captured upstream finite truncation. */
 export function capturedZeroOrderHankel(x: number, secondKind: boolean, host: FunctionHost): number {
-  const g = x / Math.cbrt(x), terms = g < 7 ? 17 : g < 10 ? 13 : g < 23 ? 9 : 5;
+  const g = x / capturedCbrt(x), terms = g < 7 ? 17 : g < 10 ? 13 : g < 23 ? 9 : 5;
   let coefficient = 1, real = 1, imaginary = 0;
   for (let n = 1; n <= terms; n++) {
     host.tick(); coefficient = n === 1 ? .125 : .5 * (n - 1) * coefficient + .125 * coefficient / n;
@@ -257,7 +258,7 @@ export function capturedZeroOrderHankel(x: number, secondKind: boolean, host: Fu
 /** Steepest-descent Hankel integral, with cancellation-safe series
  * and the pinned finite quadrature/range-shrinking profile. */
 export function capturedHankelIntegral(x: number, secondKind: boolean, host: FunctionHost, order = 0): number {
-  const beta = capturedAcos(order / x, host), g = Math.abs(x - order) / Math.cbrt(x);
+  const beta = capturedAcos(order / x, host), g = Math.abs(x - order) / capturedCbrt(x);
   const cosBeta = order / x, sinBeta = Math.sqrt(fusedMultiplyAdd(-cosBeta, cosBeta, 1));
   const power = g > 5 ? 1 : g > 4 ? 2 : g > 3 ? 3 : 4, count = g > 5 ? 25 : 47;
   const sample = (v: number): readonly [number, number] => {

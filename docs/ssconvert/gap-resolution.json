@@ -3971,7 +3971,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Algorithm A2 adds 82 exact native holdouts per public route; other domains now retain 117 budget failures. See currentQualification20261002.besselHighOrder."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Algorithm A2 adds 82 exact native holdouts per public route; Algorithm A4 adds 142 native matches per route. The 912-case corpus retains 30 numerical differences and 8 budget failures; 12 independent boundary series differences also remain. See besselNearOrder for the current full-application checks. See currentQualification20261002.besselHighOrder."
     },
     {
       "id": "format-record-roundtrip",
@@ -4623,6 +4623,25 @@
         "checks": "Owner lint/source/test types; maintained selected 18-build closure; rebuilt SDK and runCommand XLSX with independent ZIP/XML binary64 comparisons; exact interruption identity."
       },
       "remaining": "The original 912-formula corpus still has 117 work-budget failures (down from 189 before A2). Other domains, broad numeric holdouts, cross-runtime/registry qualification and all 19 families remain open. No release claim."
+    },
+    "besselNearOrder": {
+      "profile": "Authenticated full Gnumeric 1.12.61 / GOffice 0.10.61 application, Debian arm64; same source identities as besselTransition.",
+      "implementation": "Algorithm A4 shares the existing finite quadrature and private hyperbolic primitives, with a 33-node complex integral near equal argument/order. Shared glibc cube-root arithmetic controls Bessel algorithm/truncation selection and endpoint construction. Native operation order includes the unfused imaginary product and the fused exponential real phase.",
+      "reproducer": "Eight original native near-order regressions failed (budget exhaustion and incorrect finite values); all now pass within 5000 work. Four adjacent-float regressions cover native domain/truncation boundaries. Temporary host cube-root substitution independently reproduces numerical differences.",
+      "qualification": {
+        "newDomainNativeMatchesPerRoute": 142,
+        "combinedRepairedNativeMatchesPerRoute": 432,
+        "baselineNativeMatchesPerRoute": 206,
+        "baselineWarningsPerRoute": 200,
+        "boundaryCases": 264,
+        "boundaryNativeMatchesPerRoute": 252,
+        "retainedBoundarySeriesDifferences": 12,
+        "ownerTests": 124,
+        "neighborTests": 87,
+        "checks": "Owner lint/source/test types, selected 18-build closure, compiled SDK and runCommand conversions. Independent ZIP/XML extraction verifies cell counts and binary64 values; boundary extraction additionally verifies normalized formula argument identity across populated worksheets."
+      },
+      "referenceCorrection": "Standalone Gnumeric numeric calls before gnm_init produce invalid oscillatory references because GOffice nonfinite constants are not initialized. Those captures were superseded by actual ssconvert output. Empty-sheet extraction is not accepted: the boundary collector asserts all 264 formula/value pairs across populated worksheets.",
+      "remaining": "The entire 912-formula corpus now produces 904 results with 30 numerical mismatches and 8 budget failures. The repaired domains match, but remaining series paths and broader qualification are open. The independent boundary matrix retains 12 small-series differences. All 19 families remain open; no release claim."
     }
   },
   "history": {

@@ -476,6 +476,9 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         if (singleFile)
             break;
+        if (p < endPage && typeof (globalThis as { gc?: () => void }).gc === "function") {
+            try { (globalThis as { gc?: () => void }).gc?.(); } catch {}
+        }
     }
     const stderrText = progressLines.length > 0 ? progressLines.join("\n") + "\n" : "";
     if (outChunks.length > 0) {

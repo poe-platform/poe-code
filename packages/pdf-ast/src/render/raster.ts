@@ -993,7 +993,7 @@ function blendPixel(
   groupAlpha?: Float32Array
 ): void {
   if (px < 0 || py < 0 || px >= width || py >= height || alpha <= 0) return;
-  const a = Math.min(1, Math.max(0, alpha)) * (clipMask ? clipMask[(py * width + px) * 4 + 3]! / 255 : 1);
+  const a = Math.min(1, Math.max(0, alpha)) * (clipMask ? (clipMask.length === width * height ? clipMask[py * width + px]! : clipMask[(py * width + px) * 4 + 3]!) / 255 : 1);
   const idx = (py * width + px) * 4;
   if (groupAlpha) {
     const pixel = py * width + px;
@@ -1147,6 +1147,76 @@ function *pathsToEdgesSteps(paths: readonly StrokeSubpath[], closeSubpaths = fal
   return edges;
 }
 
+const SUB_OFFSETS_4X4 = [0.125, 0.375, 0.625, 0.875] as const;
+let sharedCrossingX = new Float64Array(1024);
+let sharedCrossingDir = new Int8Array(1024);
+let sharedIntervalLeft = new Float64Array(512);
+let sharedIntervalRight = new Float64Array(512);
+let sharedRowCounts = new Uint8Array(4096);
+
+function ensureScanlineScratch(maxEdges: number, width: number): void {
+  if (sharedCrossingX.length < maxEdges) {
+    const cap = Math.max(maxEdges, sharedCrossingX.length * 2);
+    sharedCrossingX = new Float64Array(cap);
+    sharedCrossingDir = new Int8Array(cap);
+    sharedIntervalLeft = new Float64Array(cap);
+    sharedIntervalRight = new Float64Array(cap);
+  }
+  if (sharedRowCounts.length < width) {
+    sharedRowCounts = new Uint8Array(Math.max(width, sharedRowCounts.length * 2));
+  }
+}
+
+function computeSubScanlineIntervals(
+  edges: readonly Edge[],
+  scanY: number,
+  fillRule: "nonzero" | "evenodd"
+): number {
+  let nCross = 0;
+  const edgeCount = edges.length;
+  for (let ei = 0; ei < edgeCount; ei++) {
+    const e = edges[ei]!;
+    const y0 = e.y0;
+    const y1 = e.y1;
+    if ((y0 <= scanY && y1 > scanY) || (y1 <= scanY && y0 > scanY)) {
+      const x = e.x0 + ((scanY - y0) / (y1 - y0)) * (e.x1 - e.x0);
+      const dir = y0 < y1 ? 1 : -1;
+      let ins = nCross++;
+      while (ins > 0 && sharedCrossingX[ins - 1]! > x) {
+        sharedCrossingX[ins] = sharedCrossingX[ins - 1]!;
+        sharedCrossingDir[ins] = sharedCrossingDir[ins - 1]!;
+        ins--;
+      }
+      sharedCrossingX[ins] = x;
+      sharedCrossingDir[ins] = dir;
+    }
+  }
+  if (nCross < 2) return 0;
+  let nIntervals = 0;
+  if (fillRule === "evenodd") {
+    for (let i = 0; i + 1 < nCross; i += 2) {
+      sharedIntervalLeft[nIntervals] = sharedCrossingX[i]!;
+      sharedIntervalRight[nIntervals] = sharedCrossingX[i + 1]!;
+      nIntervals++;
+    }
+  } else {
+    let winding = 0;
+    let intervalStart = 0;
+    for (let i = 0; i < nCross; i++) {
+      const prevWinding = winding;
+      winding += sharedCrossingDir[i]!;
+      if (prevWinding === 0 && winding !== 0) {
+        intervalStart = sharedCrossingX[i]!;
+      } else if (prevWinding !== 0 && winding === 0) {
+        sharedIntervalLeft[nIntervals] = intervalStart;
+        sharedIntervalRight[nIntervals] = sharedCrossingX[i]!;
+        nIntervals++;
+      }
+    }
+  }
+  return nIntervals;
+}
+
 function *fillEdgesScanline4x4Steps(
   rgba: Uint8Array,
   width: number,
@@ -1165,10 +1235,12 @@ function *fillEdgesScanline4x4Steps(
   if (edges.length === 0) return;
   let minY = Infinity;
   let maxY = -Infinity;
-  for (const e of edges) {
-    if (++work % 16384 === 0) yield;
-    minY = Math.min(minY, e.y0, e.y1);
-    maxY = Math.max(maxY, e.y0, e.y1);
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i]!;
+    if (e.y0 < minY) minY = e.y0;
+    if (e.y1 < minY) minY = e.y1;
+    if (e.y0 > maxY) maxY = e.y0;
+    if (e.y1 > maxY) maxY = e.y1;
   }
   const clipMinX = clipScreen ? Math.max(0, Math.floor(clipScreen[0])) : 0;
   const clipMinY = clipScreen ? Math.max(0, Math.floor(clipScreen[1])) : 0;
@@ -1176,69 +1248,118 @@ function *fillEdgesScanline4x4Steps(
   const clipMaxY = clipScreen ? Math.min(height - 1, Math.ceil(clipScreen[3]) - 1) : height - 1;
   const startRow = Math.max(clipMinY, Math.floor(minY));
   const endRow = Math.min(clipMaxY, Math.ceil(maxY));
+  if (startRow > endRow) return;
 
-  const subOffsets = [0.125, 0.375, 0.625, 0.875];
+  ensureScanlineScratch(edges.length + 4, width);
+  const rowCounts = sharedRowCounts;
   for (let py = startRow; py <= endRow; py++) {
-    if (++work % 16384 === 0) yield;
-    const rowCounts = new Uint8Array(width);
-    for (const sy of subOffsets) {
-    if (++work % 16384 === 0) yield;
-      const scanY = py + sy;
-      const crossings: Array<{ x: number; dir: number }> = [];
-      for (const e of edges) {
-    if (++work % 16384 === 0) yield;
-        if ((e.y0 <= scanY && e.y1 > scanY) || (e.y1 <= scanY && e.y0 > scanY)) {
-          const t = (scanY - e.y0) / (e.y1 - e.y0);
-          crossings.push({
-            x: e.x0 + t * (e.x1 - e.x0),
-            dir: e.y0 < e.y1 ? 1 : -1,
-          });
-        }
-      }
-      if (crossings.length < 2) continue;
-      crossings.sort((a, b) => a.x - b.x);
-      const intervals: Array<[number, number]> = [];
-      if (fillRule === "evenodd") {
-        for (let i = 0; i + 1 < crossings.length; i += 2) {
-    if (++work % 16384 === 0) yield;
-          intervals.push([crossings[i]!.x, crossings[i + 1]!.x]);
-        }
-      } else {
-        let winding = 0;
-        let intervalStart = 0;
-        for (const c of crossings) {
-    if (++work % 16384 === 0) yield;
-          const prevWinding = winding;
-          winding += c.dir;
-          if (prevWinding === 0 && winding !== 0) {
-            intervalStart = c.x;
-          } else if (prevWinding !== 0 && winding === 0) {
-            intervals.push([intervalStart, c.x]);
-          }
-        }
-      }
-      for (const [xLeft, xRight] of intervals) {
-    if (++work % 16384 === 0) yield;
+    if (++work % 256 === 0) yield;
+    rowCounts.fill(0, 0, width);
+    let rowMinPx = width;
+    let rowMaxPx = -1;
+    for (let si = 0; si < 4; si++) {
+      const scanY = py + SUB_OFFSETS_4X4[si]!;
+      const nIntervals = computeSubScanlineIntervals(edges, scanY, fillRule);
+      for (let k = 0; k < nIntervals; k++) {
+        const xLeft = sharedIntervalLeft[k]!;
+        const xRight = sharedIntervalRight[k]!;
         const xStart = Math.max(clipMinX, Math.floor(xLeft));
         const xEnd = Math.min(clipMaxX, Math.ceil(xRight));
+        if (xStart < rowMinPx) rowMinPx = xStart;
+        if (xEnd > rowMaxPx) rowMaxPx = xEnd;
         for (let px = xStart; px <= xEnd; px++) {
-    if (++work % 16384 === 0) yield;
-          for (const sx of subOffsets) {
-    if (++work % 16384 === 0) yield;
-            const sampleX = px + sx;
-            if (sampleX >= xLeft && sampleX <= xRight) {
-              rowCounts[px] = (rowCounts[px] ?? 0) + 1;
-            }
-          }
+          const s0 = px + 0.125;
+          const s1 = px + 0.375;
+          const s2 = px + 0.625;
+          const s3 = px + 0.875;
+          let add = 0;
+          if (s0 >= xLeft && s0 <= xRight) add++;
+          if (s1 >= xLeft && s1 <= xRight) add++;
+          if (s2 >= xLeft && s2 <= xRight) add++;
+          if (s3 >= xLeft && s3 <= xRight) add++;
+          rowCounts[px] = rowCounts[px]! + add;
         }
       }
     }
-    for (let px = 0; px < width; px++) {
-    if (++work % 16384 === 0) yield;
+    for (let px = rowMinPx; px <= rowMaxPx; px++) {
       const count = rowCounts[px]!;
       if (count > 0) {
         const cov = antialias ? count / 16 : count >= 8 ? 1 : 0;
         blendPixel(rgba, width, height, px, py, color, cov * alpha, blendMode, clipMask, groupAlpha);
+      }
+    }
+  }
+}
+
+function *fillMaskScanline4x4Steps(
+  mask: Uint8Array,
+  width: number,
+  height: number,
+  edges: readonly Edge[],
+  fillRule: "nonzero" | "evenodd" = "nonzero",
+  intersect = false
+): Generator<void, void, void> {
+  let work = 0;
+  if (edges.length === 0) {
+    mask.fill(0);
+    return;
+  }
+  let minY = Infinity;
+  let maxY = -Infinity;
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i]!;
+    if (e.y0 < minY) minY = e.y0;
+    if (e.y1 < minY) minY = e.y1;
+    if (e.y0 > maxY) maxY = e.y0;
+    if (e.y1 > maxY) maxY = e.y1;
+  }
+  const startRow = Math.max(0, Math.floor(minY));
+  const endRow = Math.min(height - 1, Math.ceil(maxY));
+  if (!intersect) {
+    mask.fill(0);
+  } else {
+    if (startRow > 0) mask.fill(0, 0, startRow * width);
+    if (endRow + 1 < height) mask.fill(0, (endRow + 1) * width, height * width);
+  }
+  ensureScanlineScratch(edges.length + 4, width);
+  const rowCounts = sharedRowCounts;
+  for (let py = startRow; py <= endRow; py++) {
+    if (++work % 256 === 0) yield;
+    rowCounts.fill(0, 0, width);
+    for (let si = 0; si < 4; si++) {
+      const scanY = py + SUB_OFFSETS_4X4[si]!;
+      const nIntervals = computeSubScanlineIntervals(edges, scanY, fillRule);
+      for (let k = 0; k < nIntervals; k++) {
+        const xLeft = sharedIntervalLeft[k]!;
+        const xRight = sharedIntervalRight[k]!;
+        const xStart = Math.max(0, Math.floor(xLeft));
+        const xEnd = Math.min(width - 1, Math.ceil(xRight));
+        for (let px = xStart; px <= xEnd; px++) {
+          const s0 = px + 0.125;
+          const s1 = px + 0.375;
+          const s2 = px + 0.625;
+          const s3 = px + 0.875;
+          let add = 0;
+          if (s0 >= xLeft && s0 <= xRight) add++;
+          if (s1 >= xLeft && s1 <= xRight) add++;
+          if (s2 >= xLeft && s2 <= xRight) add++;
+          if (s3 >= xLeft && s3 <= xRight) add++;
+          rowCounts[px] = rowCounts[px]! + add;
+        }
+      }
+    }
+    const rowBase = py * width;
+    if (!intersect) {
+      for (let px = 0; px < width; px++) {
+        const count = rowCounts[px]!;
+        if (count > 0) {
+          mask[rowBase + px] = Math.round((count / 16) * 255);
+        }
+      }
+    } else {
+      for (let px = 0; px < width; px++) {
+        const count = rowCounts[px]!;
+        mask[rowBase + px] = count > 0 ? Math.round((mask[rowBase + px]! * Math.round((count / 16) * 255)) / 255) : 0;
       }
     }
   }
@@ -1348,7 +1469,12 @@ function *renderDisplayListLayerSteps(
   const toScreen = (x: number, y: number): StrokePoint => [(x - originX) * scale, (pageTop - y) * scale];
   const width = Math.max(1, Math.round(displayList.width * scale));
   const height = Math.max(1, Math.round(displayList.height * scale));
-  const rgba = backdrop ? backdrop.slice() : new Uint8Array(width * height * 4);
+  for (const op of paintOperations(displayList)) {
+    if (op.kind === "glyph" && !op.value.outline) {
+      getStandardFontOutlines(op.value.fontName);
+    }
+  }
+  const rgba = backdrop ? backdrop.slice() : new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
   // PDFBox GroupGraphics keeps the group's alpha separate from its backdrop.
   const groupAlpha = backdrop ? new Float32Array(width * height) : undefined;
 
@@ -1398,15 +1524,13 @@ function *renderDisplayListLayerSteps(
     const clips = original.value.clipPaths;
     let clipMask = clips && clips === cachedClips ? cachedClipMask : undefined;
     if (clips && !clipMask) {
-      clipMask = cachedClipMask ?? (cachedClipMask = new Uint8Array(width * height * 4));
-      clipMask.fill(255);
+      clipMask = cachedClipMask ?? (cachedClipMask = new Uint8Array(width * height));
+      let firstClip = true;
       for (const clip of clips) {
-    if (++work % 16384 === 0) yield;
+        if (++work % 16384 === 0) yield;
         const { segments, fillRule } = "segments" in clip ? clip : { segments: clip, fillRule: "nonzero" as const };
-        const layer = scratchClipLayer ?? (scratchClipLayer = new Uint8Array(width * height * 4));
-        layer.fill(0);
-        (yield* fillEdgesScanline4x4Steps(layer, width, height, (yield* pathsToEdgesSteps((yield* segmentsToScreenPathsSteps(segments, displayList.height, scale, toScreen)), true)), { r: 1, g: 1, b: 1 }, 1, fillRule));
-        for (let i = 3; i < layer.length; i += 4) { if (++work % 16384 === 0) yield; clipMask[i] = Math.round(clipMask[i]! * layer[i]! / 255); }
+        (yield* fillMaskScanline4x4Steps(clipMask, width, height, (yield* pathsToEdgesSteps((yield* segmentsToScreenPathsSteps(segments, displayList.height, scale, toScreen)), true)), fillRule, !firstClip));
+        firstClip = false;
       }
       cachedClips = clips;
     }
@@ -1418,7 +1542,7 @@ function *renderDisplayListLayerSteps(
       }
       if (clipMask) {
         clipMask = clipMask.slice();
-        for (let i = 3; i < clipMask.length; i += 4) { if (++work % 16384 === 0) yield; clipMask[i] = Math.round(clipMask[i]! * cachedSoftMaskPixels![i]! / 255); }
+        for (let px = 0; px < width * height; px++) { if (++work % 16384 === 0) yield; clipMask[px] = Math.round(clipMask[px]! * cachedSoftMaskPixels![px * 4 + 3]! / 255); }
       } else {
         clipMask = cachedSoftMaskPixels;
       }
@@ -1427,19 +1551,24 @@ function *renderDisplayListLayerSteps(
     if (imageClips) {
       let imageMask = imageClipMasks.get(imageClips);
       if (!imageMask) {
-        imageMask = new Uint8Array(width * height * 4).fill(255);
+        imageMask = new Uint8Array(width * height).fill(255);
         for (const image of imageClips) {
-    if (++work % 16384 === 0) yield;
+          if (++work % 16384 === 0) yield;
           const layer = (yield* renderDisplayListToBitmapSteps({
             ...displayList, rotation: 0, paths: [], glyphs: [], images: [image], operations: [{ kind: "image", value: image }],
           }, { scale, transparent: true })).data;
-          for (let i = 3; i < layer.length; i += 4) { if (++work % 16384 === 0) yield; imageMask[i] = Math.round(imageMask[i]! * layer[i]! / 255); }
+          for (let px = 0; px < width * height; px++) { if (++work % 16384 === 0) yield; imageMask[px] = Math.round(imageMask[px]! * layer[px * 4 + 3]! / 255); }
         }
         imageClipMasks.set(imageClips, imageMask);
       }
       if (clipMask) {
-        clipMask = clipMask.slice();
-        for (let i = 3; i < clipMask.length; i += 4) { if (++work % 16384 === 0) yield; clipMask[i] = Math.round(clipMask[i]! * imageMask[i]! / 255); }
+        const combined = new Uint8Array(width * height);
+        for (let px = 0; px < width * height; px++) {
+          if (++work % 16384 === 0) yield;
+          const cm = clipMask.length === width * height ? clipMask[px]! : clipMask[px * 4 + 3]!;
+          combined[px] = Math.round(cm * imageMask[px]! / 255);
+        }
+        clipMask = combined;
       } else {
         clipMask = imageMask;
       }

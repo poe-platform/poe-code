@@ -40,6 +40,7 @@ const gitCommandMeta = new WeakMap<CommandDefinition["execute"], GitCommandMeta>
 let cachedDefaultGitExports: GitExports | undefined;
 let defaultGitExportsBusy = false;
 let defaultGitExportsIdleTimer: ReturnType<typeof setTimeout> | undefined;
+let defaultGitExportsMicrotaskGeneration = 0;
 const MAX_REUSABLE_GIT_WASM_MEMORY_BYTES = 24 * 1024 * 1024;
 
 function createDefaultGitExports(): GitExports {
@@ -48,24 +49,35 @@ function createDefaultGitExports(): GitExports {
   return new wasm.Instance(module).exports;
 }
 
-function scheduleGitExportsIdleEviction(): void {
+function scheduleGitExportsIdleEviction(microtask = false): void {
   if (defaultGitExportsIdleTimer !== undefined) {
     clearTimeout(defaultGitExportsIdleTimer);
+    defaultGitExportsIdleTimer = undefined;
+  }
+  const gen = ++defaultGitExportsMicrotaskGeneration;
+  if (microtask) {
+    queueMicrotask(() => {
+      if (defaultGitExportsMicrotaskGeneration === gen && !defaultGitExportsBusy && cachedDefaultGitExports) {
+        cachedDefaultGitExports = undefined;
+      }
+    });
+    return;
   }
   defaultGitExportsIdleTimer = setTimeout(() => {
     defaultGitExportsIdleTimer = undefined;
-    if (!defaultGitExportsBusy && cachedDefaultGitExports) {
+    if (defaultGitExportsMicrotaskGeneration === gen && !defaultGitExportsBusy && cachedDefaultGitExports) {
       cachedDefaultGitExports = undefined;
     }
   }, 10);
   (defaultGitExportsIdleTimer as unknown as { unref?: () => void }).unref?.();
 }
 
-function acquireDefaultGitExports(): { exports: GitExports; release(failed?: boolean): void } {
+function acquireDefaultGitExports(syncMode = false): { exports: GitExports; release(failed?: boolean): void } {
   if (defaultGitExportsIdleTimer !== undefined) {
     clearTimeout(defaultGitExportsIdleTimer);
     defaultGitExportsIdleTimer = undefined;
   }
+  defaultGitExportsMicrotaskGeneration++;
   if (!defaultGitExportsBusy) {
     defaultGitExportsBusy = true;
     const exports = cachedDefaultGitExports ?? (cachedDefaultGitExports = createDefaultGitExports());
@@ -77,7 +89,7 @@ function acquireDefaultGitExports(): { exports: GitExports; release(failed?: boo
             cachedDefaultGitExports = undefined;
           }
         } else {
-          scheduleGitExportsIdleEviction();
+          scheduleGitExportsIdleEviction(syncMode);
         }
         defaultGitExportsBusy = false;
       },

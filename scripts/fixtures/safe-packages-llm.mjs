@@ -1,4 +1,17 @@
-import assert from "node:assert/strict";
+const assert = {
+  equal(actual, expected, message) { if (actual !== expected) throw new Error(message || `Expected ${String(actual)} === ${String(expected)}`); },
+  match(actual, pattern) { if (!pattern.test(String(actual))) throw new Error(`Expected ${String(actual)} to match ${pattern}`); },
+  throws(fn, pattern) {
+    let caught;
+    try { fn(); } catch (error) { caught = error; }
+    if (!caught || (pattern && !pattern.test(String(caught?.message ?? caught)))) throw new Error("Expected function to throw");
+  },
+  async rejects(promise, predicate) {
+    let caught, threw = false;
+    try { await promise; } catch (error) { caught = error; threw = true; }
+    if (!threw || (predicate && !predicate(caught))) throw new Error("Expected promise to reject");
+  },
+};
 import { CommandRegistry, commandRuntimeIdentity, getCommandArguments } from "@poe-platform/safe-bash/contracts/command";
 import { FsError } from "@poe-platform/safe-bash/contracts/errors";
 import { Shell, FsError as rootFsError, MemoryFileSystem, agentCommands, createLlmService as rootService, llmCommands as rootPlugin, createOpenAiProvider as rootOpenAi, createElevenLabsProvider as rootElevenLabs } from "@poe-platform/safe-bash";

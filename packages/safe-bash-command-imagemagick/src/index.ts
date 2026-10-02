@@ -1037,25 +1037,35 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
-    const cx = (w - 1) / 2;
-    const cy = (h - 1) / 2;
-    const maxR = Math.max(1, Math.hypot(cx, cy));
-    for (let y = 0; y < h; y++) {
-        if (++work % 16384 === 0)
-            yield;
-        for (let x = 0; x < w; x++) {
+    if (!radial) {
+        const u32 = new Uint32Array(data.buffer, 0, w * h);
+        const tmp = new Uint8Array(4);
+        const tmp32 = new Uint32Array(tmp.buffer);
+        for (let y = 0; y < h; y++) {
+            const t = h <= 1 ? 0 : y / (h - 1);
+            tmp[0] = clampByteVal(c1.r * (1 - t) + c2.r * t);
+            tmp[1] = clampByteVal(c1.g * (1 - t) + c2.g * t);
+            tmp[2] = clampByteVal(c1.b * (1 - t) + c2.b * t);
+            tmp[3] = clampByteVal(c1.a * (1 - t) + c2.a * t);
+            u32.fill(tmp32[0]!, y * w, (y + 1) * w);
+        }
+    } else {
+        const cx = (w - 1) / 2;
+        const cy = (h - 1) / 2;
+        const maxR = Math.max(1, Math.hypot(cx, cy));
+        for (let y = 0; y < h; y++) {
             if (++work % 16384 === 0)
                 yield;
-            const t = radial
-                ? Math.min(1, Math.hypot(x - cx, y - cy) / maxR)
-                : h <= 1
-                    ? 0
-                    : y / (h - 1);
-            const idx = (y * w + x) * 4;
-            data[idx] = clampByteVal(c1.r * (1 - t) + c2.r * t);
-            data[idx + 1] = clampByteVal(c1.g * (1 - t) + c2.g * t);
-            data[idx + 2] = clampByteVal(c1.b * (1 - t) + c2.b * t);
-            data[idx + 3] = clampByteVal(c1.a * (1 - t) + c2.a * t);
+            for (let x = 0; x < w; x++) {
+                if (++work % 16384 === 0)
+                    yield;
+                const t = Math.min(1, Math.hypot(x - cx, y - cy) / maxR);
+                const idx = (y * w + x) * 4;
+                data[idx] = clampByteVal(c1.r * (1 - t) + c2.r * t);
+                data[idx + 1] = clampByteVal(c1.g * (1 - t) + c2.g * t);
+                data[idx + 2] = clampByteVal(c1.b * (1 - t) + c2.b * t);
+                data[idx + 3] = clampByteVal(c1.a * (1 - t) + c2.a * t);
+            }
         }
     }
     return {
@@ -2980,18 +2990,16 @@ function rgbaToCompositeLayer(
 }
 
 function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaColor): Generator<void, RgbaImage, void> {
-    let work = 0;
+    yield;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
-    for (let i = 0; i < w * h; i++) {
-        if (++work % 16384 === 0)
-            yield;
-        const idx = i * 4;
-        data[idx] = color.r;
-        data[idx + 1] = color.g;
-        data[idx + 2] = color.b;
-        data[idx + 3] = color.a;
+    const tmp = new Uint8Array([color.r, color.g, color.b, color.a]);
+    const packed = new Uint32Array(tmp.buffer)[0]!;
+    const u32 = new Uint32Array(data.buffer, 0, w * h);
+    for (let p = 0; p < u32.length; p += 16384) {
+        u32.fill(packed, p, Math.min(u32.length, p + 16384));
+        yield;
     }
     return {
         width: w,
@@ -5661,11 +5669,9 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let sumLumAB = 0;
     const hasAlpha = imgA.hasAlpha || imgB.hasAlpha;
     for (let y = 0; y < height; y++) {
-        if (++cooperativeWork % 65536 === 0)
+        if ((y & 511) === 511)
             yield;
         for (let x = 0; x < width; x++) {
-            if (++cooperativeWork % 65536 === 0)
-                yield;
             const pIdx = y * width + x;
             const outOff = pIdx * 4;
             const inBoundsA = x < imgA.width && y < imgA.height;

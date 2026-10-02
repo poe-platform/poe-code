@@ -132,6 +132,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     "@poe-code/safe-js/core": "poe-code/safe-js/core",
     "@poe-code/safe-fs/runtime-core": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/fs/memory": "poe-code/safe-fs/core",
+    "@poe-code/safe-fs/contracts": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/contracts/object": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/xml": "poe-code/safe-fs/core",

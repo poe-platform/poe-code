@@ -525,7 +525,7 @@ function *shrinkVBoxSteps(
 ): Generator<void, { readonly data: Uint8Array; readonly h: number }, void> {
   let work = 0;
   const outH = Math.ceil(h / vshrink);
-  const out = new Uint8Array(w * outH * 4);
+  const out = new Uint8Array(new ArrayBuffer(w * outH * 4 + outH), 0, w * outH * 4);
   const roundAdd = vshrink >> 1;
   for (let y = 0; y < outH; y++) {
     for (let x = 0; x < w; x++) {
@@ -557,7 +557,7 @@ function *shrinkHBoxSteps(
 ): Generator<void, { readonly data: Uint8Array; readonly w: number }, void> {
   let work = 0;
   const outW = Math.ceil(w / hshrink);
-  const out = new Uint8Array(outW * h * 4);
+  const out = new Uint8Array(new ArrayBuffer(outW * h * 4 + h), 0, outW * h * 4);
   const roundAdd = hshrink >> 1;
   for (let y = 0; y < h; y++) {
     const rowOff = y * w * 4;
@@ -626,7 +626,7 @@ export function *resampleRawBitmapSteps(
   }
 
   if (kernel === "nearest") {
-    const out = new Uint8Array(dstW * dstH * 4);
+    const out = new Uint8Array(new ArrayBuffer(dstW * dstH * 4 + dstH), 0, dstW * dstH * 4);
     const { xs, ys } = (yield* computeVipsNearestIndices2DSteps(srcW, srcH, dstW, dstH, explicitHscale, explicitVscale));
     for (let y = 0; y < dstH; y++) {
     if (++work % 16384 === 0) yield;
@@ -667,7 +667,7 @@ export function *resampleRawBitmapSteps(
         const { nPoint, table } = buildVipsReduceTable(vshrink, kernel);
         const topPad = Math.ceil(nPoint * 0.5) - 1;
         const voffset = (extraPixels + 1.0) * 0.5 - 1.0;
-        const out = new Uint8Array(w * targetH * 4);
+        const out = new Uint8Array(new ArrayBuffer(w * targetH * 4 + targetH), 0, w * targetH * 4);
         let Y = fmaDouble(0.5, vshrink, -0.5) - voffset;
         const rowOffsets = new Int32Array(nPoint);
         for (let y = 0; y < targetH; y++) {
@@ -720,7 +720,7 @@ export function *resampleRawBitmapSteps(
         const { nPoint, table } = buildVipsReduceTable(hshrink, kernel);
         const leftPad = Math.ceil(nPoint * 0.5) - 1;
         const hoffset = (extraPixels + 1.0) * 0.5 - 1.0;
-        const out = new Uint8Array(targetW * h * 4);
+        const out = new Uint8Array(new ArrayBuffer(targetW * h * 4 + h), 0, targetW * h * 4);
         const colOffsets = new Int32Array(nPoint);
         let X = fmaDouble(0.5, hshrink, -0.5) - hoffset;
         for (let x = 0; x < targetW; x++) {
@@ -758,7 +758,7 @@ export function *resampleRawBitmapSteps(
     }
 
     if (remHscale > 1.0 || remVscale > 1.0) {
-      const out = new Uint8Array(dstW * dstH * 4);
+      const out = new Uint8Array(new ArrayBuffer(dstW * dstH * 4 + dstH), 0, dstW * dstH * 4);
       const invDet = 1.0 / (remHscale * remVscale);
       const ia = remVscale * invDet;
       const id = remHscale * invDet;
@@ -1023,7 +1023,7 @@ export function *resizeImageSteps(
           : pos === "attention" || pos === 17
             ? (yield* smartcropAttentionSteps(scaledData, scaledW, scaledH, cropW, cropH, img.hasAlpha))
             : resolveGravityOffset(scaledW, scaledH, cropW, cropH, spec.position, true);
-      const cropped = new Uint8Array(cropW * cropH * 4);
+      const cropped = new Uint8Array(new ArrayBuffer(cropW * cropH * 4 + cropH), 0, cropW * cropH * 4);
       for (let y = 0; y < cropH; y++) {
     if (++work % 16384 === 0) yield;
         const srcRow = ((offset.y + y) * scaledW + offset.x) * 4;
@@ -1049,7 +1049,7 @@ export function *resizeImageSteps(
     const bg = spec.background;
     const nextHasAlpha = img.hasAlpha || bg.a < 255;
     if (embedW > scaledW || embedH > scaledH) {
-      const canvas = new Uint8Array(embedW * embedH * 4);
+      const canvas = new Uint8Array(new ArrayBuffer(embedW * embedH * 4 + embedH), 0, embedW * embedH * 4);
       const bgR = img.isPremultiplied ? Math.trunc(Math.fround(bg.r * Math.fround(bg.a / 255.0))) : bg.r;
       const bgG = img.isPremultiplied ? Math.trunc(Math.fround(bg.g * Math.fround(bg.a / 255.0))) : bg.g;
       const bgB = img.isPremultiplied ? Math.trunc(Math.fround(bg.b * Math.fround(bg.a / 255.0))) : bg.b;

@@ -589,7 +589,7 @@ function* createRoseImageSteps(): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = 70;
     const h = 46;
-    const data = new Uint8Array(w * h * 4);
+    const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     for (let y = 0; y < h; y++) {
         if (++work % 16384 === 0)
             yield;
@@ -702,7 +702,7 @@ function* applyMagickEvaluateSequenceSteps(stack: readonly RgbaImage[], opRaw: s
         return im.width === w && im.height === h ? im : (yield* applyMagickResizeSteps(im, `${w}x${h}!`, "bilinear"));
     }));
     const n = normalized.length;
-    const out = new Uint8Array(w * h * 4);
+    const out = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const op = opRaw.toLowerCase().replace(/[-_]/g, "");
     const vals = new Float64Array(n);
     for (let i = 0; i < out.length; i++) {
@@ -1036,7 +1036,7 @@ function* createGradientImageSteps(width: number, height: number, c1: RgbaColor,
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
-    const data = new Uint8Array(w * h * 4);
+    const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const cx = (w - 1) / 2;
     const cy = (h - 1) / 2;
     const maxR = Math.max(1, Math.hypot(cx, cy));
@@ -1075,7 +1075,7 @@ function* createCheckerboardImageSteps(width: number, height: number): Generator
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
-    const data = new Uint8Array(w * h * 4);
+    const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     for (let y = 0; y < h; y++) {
         if (++work % 16384 === 0)
             yield;
@@ -1115,7 +1115,7 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const sy = Math.max(0, Math.min(img.height, Math.round(base.top + (isSouth ? -g.y : g.y))));
     const outW = img.width + sw;
     const outH = img.height + sh;
-    const out = new Uint8Array(outW * outH * 4);
+    const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1163,7 +1163,7 @@ function* applyMagickChopSteps(img: RgbaImage, geomStr: string, gravity: Gravity
     }
     const outW = img.width - choppedW;
     const outH = img.height - choppedH;
-    const out = new Uint8Array(outW * outH * 4);
+    const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -1230,7 +1230,7 @@ function* applyMagickMorphSteps(stack: readonly RgbaImage[], countRaw: number, s
             const h = Math.max(1, Math.round(a.height * (1 - t) + b.height * t));
             const ra = a.width === w && a.height === h ? a : (yield* applyMagickResizeSteps(a, `${w}x${h}!`, "bilinear"));
             const rb = b.width === w && b.height === h ? b : (yield* applyMagickResizeSteps(b, `${w}x${h}!`, "bilinear"));
-            const data = new Uint8Array(w * h * 4);
+            const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
             for (let p = 0; p < data.length; p++) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
@@ -2032,7 +2032,7 @@ function* applyMagickShearSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, 
     const tanY = Math.tan((degY * Math.PI) / 180);
     const outW = Math.max(1, Math.round(img.width + Math.abs(tanX) * img.height));
     const outH = Math.max(1, Math.round(img.height + Math.abs(tanY) * img.width));
-    const out = new Uint8Array(outW * outH * 4);
+    const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const cxSrc = (img.width - 1) / 2;
     const cySrc = (img.height - 1) / 2;
     const cxDst = (outW - 1) / 2;
@@ -2089,7 +2089,7 @@ function* applyMagickDistortSteps(img: RgbaImage, methodRaw: string, argsRaw: st
         .map(Number);
     const w = img.width;
     const h = img.height;
-    const out = new Uint8Array(w * h * 4);
+    const out = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     if (method === "srt" || method === "scalerotatetranslate") {
         let cx = (w - 1) / 2;
         let cy = (h - 1) / 2;
@@ -2270,7 +2270,7 @@ function* applyMagickSwirlSteps(img: RgbaImage, degrees: number, bg: RgbaColor, 
     let cooperativeWork = 0;
     const w = img.width;
     const h = img.height;
-    const out = new Uint8Array(w * h * 4);
+    const out = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const cx = (w - 1) / 2;
     const cy = (h - 1) / 2;
     const maxR = Math.max(cx, cy, 1);
@@ -2305,7 +2305,7 @@ function* applyMagickImplodeSteps(img: RgbaImage, amount: number, bg: RgbaColor,
     let cooperativeWork = 0;
     const w = img.width;
     const h = img.height;
-    const out = new Uint8Array(w * h * 4);
+    const out = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const cx = (w - 1) / 2;
     const cy = (h - 1) / 2;
     const maxR = Math.min(cx, cy, 1);
@@ -2341,7 +2341,7 @@ function* applyMagickWaveSteps(img: RgbaImage, geomStr: string, bg: RgbaColor, s
     const extraH = Math.round(Math.abs(amp) * 2);
     const outW = img.width;
     const outH = img.height + extraH;
-    const out = new Uint8Array(outW * outH * 4);
+    const out = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const yPad = Math.abs(amp);
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
@@ -2364,7 +2364,7 @@ function* applyMagickShadowSteps(img: RgbaImage, geomStr: string, shadowColor: R
     const pad = Math.max(2, Math.ceil(sigma * 2) + Math.max(Math.abs(g.x), Math.abs(g.y)));
     const outW = img.width + pad * 2;
     const outH = img.height + pad * 2;
-    const data = new Uint8Array(outW * outH * 4);
+    const data = new Uint8Array(new ArrayBuffer(outW * outH * 4 + outH), 0, outW * outH * 4);
     const offX = pad + Math.round(g.x);
     const offY = pad + Math.round(g.y);
     for (let y = 0; y < img.height; y++) {
@@ -2983,7 +2983,7 @@ function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaCo
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
-    const data = new Uint8Array(w * h * 4);
+    const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     for (let i = 0; i < w * h; i++) {
         if (++work % 16384 === 0)
             yield;
@@ -5603,7 +5603,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const height = Math.max(imgA.height, imgB.height);
     const totalPixels = Math.max(1, width * height);
     const needDiffImg = outSpec.toLowerCase() !== "null:";
-    const diffData = needDiffImg ? new Uint8Array(width * height * 4) : undefined;
+    const diffData = needDiffImg ? new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4) : undefined;
     let aeCount = 0;
     let sumAbs = 0;
     let sumSq = 0;

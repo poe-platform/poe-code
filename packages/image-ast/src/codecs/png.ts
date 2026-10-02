@@ -532,14 +532,19 @@ export function encodePngImage(
     options?.consumeInput &&
     bpp === 4 &&
     width >= 1 &&
-    activeData.byteOffset === 0 &&
-    activeData.byteLength === activeData.buffer.byteLength &&
-    typeof (activeData.buffer as any).transfer === "function"
+    activeData.byteOffset === 0
   ) {
-    try {
-      activeData = new Uint8Array((activeData.buffer as any).transfer(totalScanlineBytes));
-    } catch {
-      // Fall back to separate allocation if buffer transfer is unavailable.
+    if (activeData.buffer.byteLength >= totalScanlineBytes) {
+      activeData = new Uint8Array(activeData.buffer, 0, totalScanlineBytes);
+    } else if (
+      activeData.byteLength === activeData.buffer.byteLength &&
+      typeof (activeData.buffer as any).transfer === "function"
+    ) {
+      try {
+        activeData = new Uint8Array((activeData.buffer as any).transfer(totalScanlineBytes));
+      } catch {
+        // Fall back to separate allocation if buffer transfer is unavailable.
+      }
     }
   }
   const canFilterInPlace = Boolean(options?.consumeInput && width >= 1 && activeData.length >= totalScanlineBytes);

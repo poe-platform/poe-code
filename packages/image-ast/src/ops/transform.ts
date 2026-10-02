@@ -217,7 +217,7 @@ export function *extractImageSteps(
     }
     return { ...img, width, height: height * pages, pageHeight: height, pages, data: out };
   }
-  const out = new Uint8Array(width * height * 4);
+  const out = new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
   for (let y = 0; y < height; y++) {
     if (++work % 16384 === 0) yield;
     const srcStart = ((top + y) * img.width + left) * 4;
@@ -399,7 +399,7 @@ export function *extendImageSteps(
   const right = Math.max(0, Math.round(spec.right));
   const dstW = img.width + left + right;
   const dstH = img.height + top + bottom;
-  const out = new Uint8Array(dstW * dstH * 4);
+  const out = new Uint8Array(new ArrayBuffer(dstW * dstH * 4 + dstH), 0, dstW * dstH * 4);
 
   const mapCoord = (c: number, size: number): number => {
     if (c >= 0 && c < size) return c;
@@ -2044,7 +2044,7 @@ export function *convolveImageSteps(
   if (alreadyPremultiplied) {
     premul = data;
   } else if (usePremul) {
-    premul = new Uint8Array(width * height * 4);
+    premul = new Uint8Array(new ArrayBuffer(width * height * 4 + height), 0, width * height * 4);
     for (let i = 0; i < width * height; i++) {
     if (++work % 16384 === 0) yield;
       const idx = i * 4;
@@ -2467,7 +2467,7 @@ export function *affineImageSteps(
   const dstH = Math.max(1, Math.round(maxY - minY));
   const iMinX = Math.round(minX);
   const iMinY = Math.round(minY);
-  const out = new Uint8Array(dstW * dstH * 4);
+  const out = new Uint8Array(new ArrayBuffer(dstW * dstH * 4 + dstH), 0, dstW * dstH * 4);
   const samplePremul = (ix: number, iy: number): [number, number, number, number] => {
     if (ix < 0 || ix >= img.width || iy < 0 || iy >= img.height) {
       const ba = spec.background.a;

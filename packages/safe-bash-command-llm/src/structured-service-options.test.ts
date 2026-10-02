@@ -62,8 +62,27 @@ test("CLI options decode structured declarations before provider execution", asy
   let received: LlmRequest | undefined;
   const command = createLlmCommand({ defaultModel: "fixture", providers: [{ name: "fixture", models: [{ id: "fixture", options: { logit_bias: { type: "object" }, stop: { type: "array" } } }], async *complete(request) { received = request; yield "ok"; } }] });
   const chunks: Uint8Array[] = [];
-  const result = await command.execute({ command: "llm", args: ["hello", "-o", "logit_bias", '{"42":5}', "-o", "stop", '["end"]'], fs: new MemoryFileSystem(), cwd: "/", env: {}, signal: new AbortController().signal, stdin: toByteSource(""), stdout: { async write(chunk) { chunks.push(chunk); } }, stderr: { async write(chunk) { assert.fail(new TextDecoder().decode(chunk)); } } });
+  const result = await command.execute({ command: "llm", args: ["hello", "-o", "logit_bias", '{"01":10,"1":20}', "-o", "stop", '["end"]'], fs: new MemoryFileSystem(), cwd: "/", env: {}, signal: new AbortController().signal, stdin: toByteSource(""), stdout: { async write(chunk) { chunks.push(chunk); } }, stderr: { async write(chunk) { assert.fail(new TextDecoder().decode(chunk)); } } });
   assert.equal(result.exitCode, 0);
-  assert.deepEqual(received?.options, { logit_bias: { "42": 5 }, stop: ["end"] });
+  assert.deepEqual(openAiChatOptions(received!.options), { logit_bias: { "1": 20 }, stop: ["end"] });
   assert.equal(Buffer.concat(chunks).toString(), "ok\n");
+});
+
+
+test("declared dictionary options retain reference collision ordering through the service", async () => {
+  const service = createLlmService({ defaultModel: "fixture", providers: [{ name: "fixture", models: [{ id: "fixture", options: { logit_bias: { type: "object" } } }], async *complete(request) { yield JSON.stringify(openAiChatOptions(request.options)); } }] });
+  for (const input of ['{"01":10,"1":20}', '{"1":20,"01":10}', '{"01":10,"1":20,"01":30}', '{"\\u0030\\u0031":10,"1":20}']) {
+    let output = "";
+    for await (const chunk of service.complete({ prompt: "hello", attachments: [], options: { logit_bias: input }, signal: new AbortController().signal })) output += chunk;
+    assert.deepEqual(JSON.parse(output), openAiChatOptions({ logit_bias: input }), input);
+  }
+});
+
+
+test("declared dictionaries retain key order for JSON serialization and nested values", () => {
+  const model = { id: "fixture", options: { value: { type: "object" } } } satisfies LlmModel;
+  const input = '{"01":{"nested":["a,b",{"1":true}]},"1":20,"__proto__":3}';
+  const { value } = validateModelOptions(model, { value: input });
+  assert.equal(JSON.stringify(value), input);
+  assert.deepEqual(Object.keys(value as object), ["01", "1", "__proto__"]);
 });

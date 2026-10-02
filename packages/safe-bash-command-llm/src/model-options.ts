@@ -1,3 +1,4 @@
+import { jsonDictionaryKeys } from "./json-dictionary.js";
 import { parseLlmNumericOption } from "./numeric-option.js";
 import type { LlmModel, LlmOption } from "./types.js";
 
@@ -43,6 +44,18 @@ export function validateModelOptions(model: LlmModel, values: Readonly<Record<st
           catch { return fail("Input should be valid JSON"); }
         }
         if (rule.type === "array" ? !Array.isArray(value) : !value || typeof value !== "object" || Array.isArray(value)) return fail(`Input should be a valid ${rule.type}`);
+        if (rule.type === "object" && typeof input === "string") {
+          // Numeric property names in ordinary JS objects are reordered. Keep
+          // the JSON dictionary order visible to provider normalization.
+          const keys = jsonDictionaryKeys(input);
+          const known = new Set(keys);
+          value = new Proxy(value as Record<string, LlmOption>, {
+            ownKeys(target) {
+              return [...keys.filter(key => Object.hasOwn(target, key)),
+                ...Reflect.ownKeys(target).filter(key => typeof key !== "string" || !known.has(key))];
+            }
+          });
+        }
         break;
       }
       case "string":

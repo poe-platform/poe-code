@@ -1,3 +1,4 @@
+import { jsonDictionaryKeys } from "./json-dictionary.js";
 import { tokenInteger } from "./token-integer.js";
 import type { LlmOption } from "./types.js";
 
@@ -9,31 +10,6 @@ function biasInteger(value: unknown): number | undefined {
  return integer === undefined ? undefined : Number(integer);
 }
 
-/** JSON.parse orders integer property names numerically; Python dictionaries do not. */
-function dictionaryKeys(json: string): string[] {
- const keys = new Set<string>();
- let depth = 0;
- let expectingKey = false;
- for (let index = 0; index < json.length; index++) {
-  const char = json[index];
-  if (char === '"') {
-   const start = index;
-   while (++index < json.length) {
-    if (json[index] === "\\") index++;
-    else if (json[index] === '"') break;
-   }
-   if (depth === 1 && expectingKey) {
-    keys.add(JSON.parse(json.slice(start, index + 1)) as string);
-    expectingKey = false;
-   }
-  } else if (char === "{" || char === "[") {
-   depth++;
-   if (depth === 1) expectingKey = true;
-  } else if (char === "}" || char === "]") depth--;
-  else if (char === "," && depth === 1) expectingKey = true;
- }
- return [...keys];
-}
 
 function logitBias(input: LlmOption): Record<string, number> {
  let parsed: unknown = input;
@@ -43,7 +19,7 @@ function logitBias(input: LlmOption): Record<string, number> {
  }
  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new TypeError("Invalid OpenAI logit_bias: expected a JSON dictionary");
  const result: Record<string, number> = {};
- for (const key of typeof input === "string" ? dictionaryKeys(input) : Object.keys(parsed)) {
+ for (const key of typeof input === "string" ? jsonDictionaryKeys(input) : Object.keys(parsed)) {
   const value: unknown = (parsed as Record<string, unknown>)[key];
   const token = tokenInteger(key);
   const bias = biasInteger(value);

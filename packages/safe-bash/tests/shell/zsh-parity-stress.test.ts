@@ -1,3 +1,4 @@
+import { gitCommands } from "../../src/commands/git/index.js";
 import { agentCommands } from "../../src/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -1441,4 +1442,20 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
       "echo \"$pw_eq|$pw_fmt|$sq_out\"",
     ].join("\n"));
     assert.equal(res.stdout.trim(), "yes|ok|42");
+  });
+
+  test("78. sync tee, sponge, and git hash-object --stdin honor inherited stdin from compound redirects", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    bash.use(gitCommands());
+    const res = await bash.exec([
+      "t_out=$({ tee /t78.txt; } <<< \"hello\")",
+      "t_file=$(cat /t78.txt)",
+      "{ sponge /s78.txt; } <<< \"world\"",
+      "s_file=$(cat /s78.txt)",
+      "git init -q /repo78",
+      "g_hash=$({ git -C /repo78 hash-object --stdin; } <<< \"hello\")",
+      "echo \"$t_out|$t_file|$s_file|$g_hash\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "hello|hello|world|ce013625030ba8dba906f756967f9e9ca394464a");
   });

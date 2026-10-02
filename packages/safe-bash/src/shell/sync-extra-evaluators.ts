@@ -18779,7 +18779,7 @@ const syncExtraRuntimeMethods = {
                   : firstName === "ffprobe"
                     ? syncCommandEvaluators.evalSyncFfprobe?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "ffmpeg"
-                    ? syncCommandEvaluators.evalSyncFfmpeg?.(stageArgs)
+                    ? syncCommandEvaluators.evalSyncFfmpeg?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                   : firstName === "gh"
                     ? syncCommandEvaluators.evalSyncGh?.(stageDefs[sIdx]!.execute, stageArgs, rawState.variables, rawState.cwd, readFile)
                   : firstName === "pdftoppm"

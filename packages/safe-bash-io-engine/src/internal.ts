@@ -654,7 +654,8 @@ export function evalSyncTee(
     }
     return undefined;
   }
-  const data = inBytes ?? new Uint8Array(0);
+  if (inBytes === undefined) return undefined;
+  const data = inBytes;
   if (data.includes(0)) return undefined;
   let decodedData: string;
   try {

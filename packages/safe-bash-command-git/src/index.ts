@@ -50,6 +50,27 @@ function createDefaultGitExports(): GitExports {
   return new wasm.Instance(module).exports;
 }
 
+function isQuietGitInit(args: readonly string[]): boolean {
+  let sub: string | undefined;
+  let quiet = false;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (!sub) {
+      if (a === "-C" || a === "-c" || a === "--git-dir" || a === "--work-tree") { i++; continue; }
+      if (a.startsWith("-")) continue;
+      sub = a;
+      if (sub !== "init") return false;
+      continue;
+    }
+    if (a === "-q" || a === "--quiet") quiet = true;
+  }
+  return sub === "init" && quiet;
+}
+
+function gitArgsNeedStdin(args: readonly string[]): boolean {
+  return args.some(a => a === "--stdin" || a === "--stdin-paths" || a === "-" || a === "mktree" || a === "stripspace" || a === "mailinfo" || a === "apply" || a === "am" || a === "commit-tree" || a === "fast-import" || a === "unpack-objects");
+}
+
 const CROSS_REPO_COMMANDS = new Set([
   "clone", "init", "submodule", "worktree", "remote", "fetch", "pull", "push", "bundle", "archive", "daemon", "verify-commit", "verify-tag"
 ]);
@@ -338,6 +359,19 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
         return { exitCode: 0 };
       }
       let stdin: string | undefined;
+      if (gitArgsNeedStdin(context.args)) {
+        const chunks: Uint8Array[] = [];
+        let size = 0;
+        for await (const chunk of readBytes(context.stdin, context.signal)) {
+          size += chunk.length;
+          if (size > limits.maxBytes) throw new Error("Git stdin byte limit exceeded");
+          chunks.push(chunk);
+        }
+        const bytes = new Uint8Array(size);
+        let offset = 0;
+        for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+        stdin = encode(bytes);
+      }
       const env = {...context.env, POE_GIT_TIMESTAMP: String(Math.floor(Date.now()/1000))};
       const before=await snapshot(context.fs,limits,context.signal,context.cwd,context.args,env);
       const exports = options.wasmModule ? new ((globalThis as unknown as {WebAssembly:{Instance:new(mod:object)=>{exports:GitExports}}}).WebAssembly.Instance)(options.wasmModule).exports : createDefaultGitExports();
@@ -390,7 +424,8 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
         if(size>limits.maxBytes) throw new Error('Git output filesystem byte limit exceeded');
         await publish(context.fs,before,result.entries,context.signal);
       }
-      await writeBytes(context.stdout,typeof result.stdoutBytes==='string' ? decode(result.stdoutBytes) : encoder.encode(result.stdout),context.signal);
+      const quietInit = result.exitCode === 0 && isQuietGitInit(context.args);
+      if (!quietInit) await writeBytes(context.stdout,typeof result.stdoutBytes==='string' ? decode(result.stdoutBytes) : encoder.encode(result.stdout),context.signal);
       await writeBytes(context.stderr,encoder.encode(result.stderr),context.signal);
       return {exitCode:result.exitCode};
     } catch(error) {
@@ -528,6 +563,7 @@ export function evalSyncGit(
     return "git version 0.0.0-development\n";
   }
   if (!inspectNode || !readFile) return undefined;
+  if (stdinBytes === undefined && gitArgsNeedStdin(args)) return undefined;
 
   const entries: Entry[] = [];
   let totalBytes = 0;
@@ -636,6 +672,7 @@ export function evalSyncGit(
       outStr = result.stdout;
     }
     if (outStr.includes("\0")) return undefined;
+    if (isQuietGitInit(args)) outStr = "";
     if (entriesUnchanged(entries, result.entries)) {
       if (readOnly && inputJson.length <= 65536) {
         if (readOnlyGitResultCache.size >= 16) {

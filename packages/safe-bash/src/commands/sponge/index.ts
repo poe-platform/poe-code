@@ -42,15 +42,15 @@ export function evalSyncSponge(
     }
     files.push(arg);
   }
-  if (files.length > 1) return undefined;
-  const payload = inBytes ?? new Uint8Array(0);
+  if (files.length > 1 || inBytes === undefined) return undefined;
+  const payload = inBytes;
   if (files.length === 0 || files[0] === "-") {
     if (payload.some(b => b === 0 || b >= 128)) return undefined;
     return decoder.decode(payload);
   }
   if (append || !writeFileSync) return undefined;
   const target = files[0]!;
-  if (target.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(target)) return undefined;
+  if (target.endsWith("/") || target.endsWith("/.") || target.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/.test(target)) return undefined;
   if (!writeFileSync(target, payload)) return undefined;
   return "";
 }

@@ -10,8 +10,37 @@ interface Entry { path: string; kind: string; mode: number; data: string }
 interface Result { needsStdin?: boolean; exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
 interface GitExports { memory: { readonly buffer: ArrayBufferLike }; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }
 const encoder=new TextEncoder(), decoder=new TextDecoder();
-function encode(bytes:Uint8Array):string { let o=''; for(let i=0;i<bytes.byteLength;i++) o+=bytes[i]!.toString(16).padStart(2,'0'); return o; }
-function decode(hex:string):Uint8Array { const out=new Uint8Array(hex.length>>>1); for(let i=0;i<out.byteLength;i++) out[i]=Number.parseInt(hex.slice(i*2,i*2+2),16)||0; return out; }
+const HEX_PAIRS = Array.from({ length: 256 }, (_, i) => (i < 16 ? "0" : "") + i.toString(16));
+function hexNibble(code: number): number {
+  if (code >= 48 && code <= 57) return code - 48;
+  if (code >= 97 && code <= 102) return code - 87;
+  if (code >= 65 && code <= 70) return code - 55;
+  return 0;
+}
+function encode(bytes: Uint8Array): string {
+  const bufCtor = (globalThis as unknown as { Buffer?: { from(b: ArrayBufferLike, o: number, l: number): { toString(enc: "hex"): string } } }).Buffer;
+  if (bufCtor) return bufCtor.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("hex");
+  const chunks: string[] = [];
+  for (let i = 0; i < bytes.byteLength; i += 8192) {
+    let chunk = "";
+    const end = Math.min(i + 8192, bytes.byteLength);
+    for (let j = i; j < end; j++) chunk += HEX_PAIRS[bytes[j]!]!;
+    chunks.push(chunk);
+  }
+  return chunks.join("");
+}
+function decode(hex: string): Uint8Array {
+  const bufCtor = (globalThis as unknown as { Buffer?: { from(s: string, enc: "hex"): Uint8Array } }).Buffer;
+  if (bufCtor) {
+    const b = bufCtor.from(hex, "hex");
+    return new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
+  }
+  const out = new Uint8Array(hex.length >>> 1);
+  for (let i = 0; i < out.byteLength; i++) {
+    out[i] = (hexNibble(hex.charCodeAt(i * 2)) << 4) | hexNibble(hex.charCodeAt(i * 2 + 1));
+  }
+  return out;
+}
 
 interface GitCommandMeta { readonly limits: GitLimits; readonly hasHttp: boolean; readonly wasmModule?: object | undefined }
 const gitCommandMeta = new WeakMap<CommandDefinition["execute"], GitCommandMeta>();
@@ -208,6 +237,10 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
   for(const [name,value] of Object.entries(limits)) if(value!==Infinity && (!Number.isSafeInteger(value) || value<1)) throw new Error(`${name} must be a positive safe integer or Infinity`);
   const def: CommandDefinition = {name:'git',runtimeIdentity:commandRuntimeIdentity,description:'Git repositories in the virtual filesystem',async execute(context) {
     try {
+      if (context.args.length === 1 && (context.args[0] === "--version" || context.args[0] === "-v" || context.args[0] === "version")) {
+        await writeBytes(context.stdout, encoder.encode("git version 0.0.0-development\n"), context.signal);
+        return { exitCode: 0 };
+      }
       let stdin: string | undefined;
       const env = {...context.env, POE_GIT_TIMESTAMP: String(Math.floor(Date.now()/1000))};
       const before=await snapshot(context.fs,limits,context.signal,context.cwd,context.args,env);
@@ -477,8 +510,8 @@ export function evalSyncGit(
     if (result.exitCode !== 0 || result.stderr !== "" || result.request) return undefined;
     const outStr = typeof result.stdoutBytes === "string" ? decoder.decode(decode(result.stdoutBytes)) : result.stdout;
     if (entriesUnchanged(entries, result.entries)) {
-      if (readOnly) {
-        if (readOnlyGitResultCache.size >= 32) {
+      if (readOnly && inputJson.length <= 65536) {
+        if (readOnlyGitResultCache.size >= 16) {
           const oldest = readOnlyGitResultCache.keys().next().value;
           if (oldest !== undefined) readOnlyGitResultCache.delete(oldest);
         }

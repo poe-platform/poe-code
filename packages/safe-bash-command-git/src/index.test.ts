@@ -359,3 +359,36 @@ test("git log supports --decorate and repository-scoped snapshots skip sibling d
   assert.match(formatD.stdout, /\(HEAD -> main.*\) init commit/);
   assert.deepEqual(await origReadFile("/sibling/untouched.bin"), new Uint8Array([1, 2, 3, 4]));
 });
+
+
+test("git --version avoids reading working tree files and hex codec avoids per-byte string allocations", async () => {
+  const { readFileSync } = await import("node:fs");
+  const indexSource = readFileSync(new URL("./index.ts", import.meta.url), "utf8");
+  assert.ok(!indexSource.includes("toString(16).padStart(2,"), "encode must avoid per-byte toString(16).padStart string concatenation");
+  assert.ok(!indexSource.includes("Number.parseInt(hex.slice("), "decode must avoid per-byte hex.slice() allocations");
+
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/repo", { recursive: true });
+  await fs.writeFile("/repo/large.bin", new Uint8Array(512 * 1024));
+  let readCount = 0;
+  const origReaddir = fs.readdir.bind(fs);
+  fs.readdir = async (...args) => {
+    readCount++;
+    return origReaddir(...args);
+  };
+  const cmd = createGitCommand();
+  let stdout = "";
+  const res = await cmd.execute({
+    args: ["--version"],
+    cwd: "/repo",
+    env: {},
+    fs,
+    signal: new AbortController().signal,
+    stdin: (async function* () {})(),
+    stdout: { write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { write() {} },
+  } as CommandContext);
+  assert.equal(res.exitCode, 0);
+  assert.match(stdout, /^git version /);
+  assert.equal(readCount, 0, "git --version must not traverse the filesystem");
+});

@@ -1,3 +1,4 @@
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 export interface RalphFileStat {
   isFile(): boolean;
   isDirectory(): boolean;
@@ -5,7 +6,8 @@ export interface RalphFileStat {
 }
 
 export interface RalphFileSystem {
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  realpath?(path: string): Promise<string>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
   writeFile(
     path: string,
     content: string,
@@ -73,7 +75,7 @@ export interface RalphRunOptions {
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: "both" | "upload" | "none";
-  fs?: RalphFileSystem;
+  fs?: RalphFileSystem | FileSystem;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   onIterationStart?: (iteration: number, maxIterations: number, agent: string) => void;
   onIterationComplete?: (iteration: number, durationMs: number, success: boolean) => void;

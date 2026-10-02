@@ -1,5 +1,6 @@
-import path from "node:path";
-import { Volume, createFsFromVolume } from "memfs";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
+import { ralphFileSystem } from "../filesystem.js";
 import { resolveWorkflowPath } from "@poe-code/agent-harness-tools";
 import { runRalph } from "../run/ralph.js";
 import type {
@@ -50,13 +51,13 @@ export type SimulationResult = {
   readFile: (filePath: string) => Promise<string>;
 };
 
-function createSimulationFs(options: SimulationOptions): {
+async function createSimulationFs(options: SimulationOptions): Promise<{
   fs: SimulationFs;
   docPath: string;
   cwd: string;
   homeDir: string;
-  rawFs: ReturnType<typeof createFsFromVolume>["promises"];
-} {
+  rawFs: SimulationFs;
+}> {
   const cwd = "/repo";
   const homeDir = "/home/test";
   const docPath = options.docPath ?? ".poe-code/ralph/plans/plan.md";
@@ -70,45 +71,20 @@ function createSimulationFs(options: SimulationOptions): {
       ])
     )
   };
-  const volume = Volume.fromJSON(files, "/");
-  const rawFs = createFsFromVolume(volume).promises;
-
-  const fs = {
-    readFile: (filePath, encoding) =>
-      rawFs.readFile(filePath, encoding) as Promise<string>,
-    writeFile: async (filePath, content, options) => {
+  const memory = new MemoryFileSystem();
+  const rawFs = ralphFileSystem(memory);
+  for (const [filePath, content] of Object.entries(files)) await fsWriteFile(rawFs, filePath, content);
+  const fs: SimulationFs = {
+    ...rawFs,
+    async writeFile(filePath, content, options) {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
-      await rawFs.writeFile(filePath, content, { encoding: "utf8", ...options });
+      await rawFs.writeFile(filePath, content, options);
     },
-    readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
-    open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
-    lstat: async (filePath: string) => {
-      const stat = await rawFs.lstat(filePath);
-      return { isSymbolicLink: () => stat.isSymbolicLink() };
-    },
-    stat: async (filePath) => {
-      const stat = await rawFs.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: Number(stat.mtimeMs)
-      };
-    },
-    unlink: async (filePath: string) => {
-      await rawFs.unlink(filePath);
-    },
-    mkdir: async (filePath, options) => {
-      await rawFs.mkdir(filePath, options);
-    },
-    rmdir: async (filePath) => {
-      await rawFs.rmdir(filePath);
-    },
-    realpath: (filePath: string) => rawFs.realpath(filePath) as Promise<string>,
-    rename: async (oldPath, newPath) => {
+    async rename(oldPath, newPath) {
       await rawFs.mkdir(path.dirname(newPath), { recursive: true });
       await rawFs.rename(oldPath, newPath);
     }
-  } as SimulationFs;
+  };
 
   return {
     fs,
@@ -120,7 +96,7 @@ function createSimulationFs(options: SimulationOptions): {
 }
 
 async function applyFileChanges(
-  rawFs: ReturnType<typeof createFsFromVolume>["promises"],
+  rawFs: SimulationFs,
   cwd: string,
   changes: Record<string, string>
 ): Promise<void> {
@@ -131,12 +107,12 @@ async function applyFileChanges(
 }
 
 async function fsWriteFile(
-  rawFs: ReturnType<typeof createFsFromVolume>["promises"],
+  rawFs: SimulationFs,
   absolutePath: string,
   content: string
 ): Promise<void> {
   await rawFs.mkdir(path.dirname(absolutePath), { recursive: true });
-  await rawFs.writeFile(absolutePath, content, { encoding: "utf8" });
+  await rawFs.writeFile(absolutePath, content);
 }
 
 function normalizeAgentResult(output: TurnOutput): AgentRunResult {
@@ -182,7 +158,7 @@ export function createRalphSimulation(options: SimulationOptions): {
 } {
   return {
     async run(): Promise<SimulationResult> {
-      const { fs, docPath, cwd, homeDir, rawFs } = createSimulationFs(options);
+      const { fs, docPath, cwd, homeDir, rawFs } = await createSimulationFs(options);
       const turns = [...options.turns];
       const prompts: string[] = [];
       const runs: SimulationRun[] = [];

@@ -2,6 +2,8 @@
 
 Simple iterative markdown loop. Give it a markdown doc, it runs an agent on it repeatedly for N iterations.
 
+Pass a SafeFS `FileSystem` as `fs` to `runRalph` or `discoverDocs` to use memory or remote storage in Workers. Supply `runAgent` to execute each turn. Node applications use the host filesystem by default. The simulation helpers also run without Node dependencies.
+
 ## Quickstart
 
 ```bash

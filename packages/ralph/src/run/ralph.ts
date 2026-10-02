@@ -1,6 +1,5 @@
-import path from "node:path";
-import { randomUUID } from "node:crypto";
-import * as fsPromises from "node:fs/promises";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
+import { ralphFileSystem } from "../filesystem.js";
 import {
   archivePlan as archivePlanShared,
   ensureSafeRunLogDir,
@@ -20,7 +19,7 @@ import {
   writeFrontmatter,
   type RalphPlanStatus
 } from "../frontmatter/frontmatter.js";
-import type { RalphFileStat, RalphFileSystem, RalphRunOptions, RalphRunResult } from "../types.js";
+import type { RalphFileSystem, RalphRunOptions, RalphRunResult } from "../types.js";
 import { interpolateVariables } from "../variables/variables.js";
 
 type SharedArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
@@ -33,7 +32,7 @@ class RalphWorkflowStopError extends Error {
 }
 
 export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult> {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = ralphFileSystem(options.fs);
   const runAgent = options.runAgent;
   if (!runAgent) {
     throw new Error("runRalph requires a runAgent implementation.");
@@ -369,42 +368,6 @@ function createWorkflowFrontmatter(
   };
 }
 
-function createDefaultFs(): RalphFileSystem {
-  const fs = {
-    readFile: fsPromises.readFile as RalphFileSystem["readFile"],
-    writeFile: (filePath: string, content: string, options?: { flag?: string; mode?: number }) =>
-      fsPromises.writeFile(filePath, content, { encoding: "utf8", ...options }),
-    readdir: fsPromises.readdir,
-    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
-    lstat: async (filePath: string) => {
-      const stat = await fsPromises.lstat(filePath);
-      return { isSymbolicLink: () => stat.isSymbolicLink() };
-    },
-    stat: async (filePath: string) => {
-      const stat = await fsPromises.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: stat.mtimeMs
-      } satisfies RalphFileStat;
-    },
-    unlink: async (filePath: string) => {
-      await fsPromises.unlink(filePath);
-    },
-    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
-      await fsPromises.mkdir(filePath, options);
-    },
-    rmdir: async (filePath: string) => {
-      await fsPromises.rmdir(filePath);
-    },
-    rename: async (oldPath: string, newPath: string) => {
-      await fsPromises.rename(oldPath, newPath);
-    },
-    realpath: fsPromises.realpath
-  };
-
-  return fs as RalphFileSystem;
-}
 
 function normalizeAgents(
   agent: RalphRunOptions["agent"] | ReturnType<typeof parseFrontmatterData>["agent"]
@@ -519,7 +482,7 @@ async function updateFrontmatter(
     currentBody
   );
   const legacyTemporaryPath = `${absoluteDocPath}.tmp`;
-  const temporaryPath = `${absoluteDocPath}.${randomUUID()}.tmp`;
+  const temporaryPath = `${absoluteDocPath}.${crypto.randomUUID()}.tmp`;
   let temporaryCreated = false;
   try {
     await rejectSymbolicLinkIfPresent(legacyTemporaryPath, fs);

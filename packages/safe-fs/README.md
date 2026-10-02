@@ -148,7 +148,7 @@ Omit `maxOperations` or pass `Infinity` for unlimited cleanup operations.
 | `createOverlayFileSystem({ upper, lower })` | Reading through to a lower layer and writing changes to an upper layer |
 | `withFileSystemQuota(filesystem, { maxBytes })` | Enforcing a cumulative logical-byte ceiling across every write path |
 
-`createNodeFsBridge` offers a promises-shaped subset, including recursive `cp` and `mkdtemp`. A trusted `reserveReadFile` callback can reserve host resources and return a release function; cancellation retains the reservation until the backend read settles. The portable `createFsBridge` from `@poe-platform/safe-fs/core` instead requires a caller-supplied text codec and returns `Uint8Array` values.
+`createNodeFsBridge` offers a promises-shaped subset, including recursive `cp` and `mkdtemp`. A trusted `reserveReadFile` callback can reserve host resources and return a release function; cancellation retains the reservation until the backend read settles. The portable `createFsBridge` from `@poe-platform/safe-fs/bridge` instead requires a caller-supplied text codec and returns `Uint8Array` values.
 
 ## Write an adapter
 

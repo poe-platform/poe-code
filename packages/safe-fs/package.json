@@ -156,6 +156,10 @@
     "./runtime-core": {
       "types": "./dist/runtime-core.d.ts",
       "import": "./dist/runtime-core.js"
+    },
+    "./bridge": {
+      "types": "./dist/bridge/index.d.ts",
+      "import": "./dist/bridge/index.js"
     }
   },
   "files": [

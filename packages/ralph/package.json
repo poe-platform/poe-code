@@ -28,6 +28,16 @@
     "@poe-code/agent-defs": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/frontmatter": "*",
-    "toolcraft-design": "*"
+    "toolcraft-design": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#ralph-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
   }
 }

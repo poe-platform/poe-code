@@ -18,6 +18,7 @@ import { pathNamespace } from "../path-namespace.js";
 import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
 import { directoryAncestryPaths, inspectStagingBindings, runStagingGuard, snapshotDirectoryAncestry, snapshotStagingResolution } from "../staging-ancestry.js";
 import { compareIdentity } from "./identity.js";
+import { createReadOnlyFileSystem } from "../readonly/index.js";
 import { snapshotConditionalChmod } from "../conditional-chmod.js";
 import { compareEntries, registerEntryAuthority, registerEntryView } from "./comparison.js";
 
@@ -194,6 +195,36 @@ export class MountFileSystem implements FileSystem {
       ...(streamingWrite === undefined ? {} : { streamingWrite }),
       ...(retainedRead === undefined ? {} : { retainedRead }),
     });
+  }
+
+  async confineExtraction(roots: readonly string[], options: FsOptions = {}): Promise<FileSystem> {
+    options.signal?.throwIfAborted();
+    const root = this.select("/").backend;
+    const captured = [...roots];
+    for (const path of captured) {
+      validatePath(path);
+      if (normalizePath(globalPath(path)) !== path) fail("EINVAL");
+      // A backing confinement retains its own root-to-destination ancestry.
+      // It cannot retain directories belonging to another mounted backend.
+      if (this.select(path).path !== "/") fail("ENOTSUP");
+    }
+    if (!root.confineExtraction) fail("ENOTSUP");
+    const confined = await root.confineExtraction(captured, options);
+    options.signal?.throwIfAborted();
+    const observations = new Set<PropertyKey>(["prepareDirectoryAncestry", "prepareStagingResolution"]);
+    const backing = new Proxy(confined, {
+      get(target, key) {
+        // These only capture/validate bindings. Mutations must always use the
+        // backend's confined view, including creation, metadata and hardlinks.
+        const owner = observations.has(key) ? root : target;
+        const value: unknown = Reflect.get(owner, key);
+        return typeof value === "function" ? value.bind(owner) : value;
+      },
+    });
+    return new MountFileSystem({ root: backing, mounts: Object.fromEntries(
+      this.mounts.filter(mount => mount.path !== "/").map(mount => [mount.path,
+        mount.backend.capabilities.readOnly === true ? mount.backend : createReadOnlyFileSystem(mount.backend)]),
+    ) });
   }
 
   private select(path: string): Mount {

@@ -4,11 +4,11 @@ const shufRngPool = new Uint8Array(4096);
 let shufRngOffset = 4096;
 
 export function evalSyncShuf(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 64) return undefined;
+  if ((inBytes && inBytes.byteLength > 8192) || opArgs.length > 64) return undefined;
   let echo = false;
   let repeat = false;
   let zeroTerminated = false;
@@ -92,9 +92,9 @@ export function evalSyncShuf(
     size = rangeSize!;
   } else {
     if (operands.length === 0 || operands[0] === "-") {
-      if (inBytes.byteLength === 0) return undefined;
+      if (!inBytes || inBytes.byteLength === 0) return undefined;
     }
-    let srcBytes = inBytes;
+    let srcBytes = inBytes!;
     if (operands.length === 1 && operands[0] !== "-") {
       if (!readFileSync) return undefined;
       const fBytes = readFileSync(operands[0]!);

@@ -241,11 +241,11 @@ let lastMdqText: string | undefined;
 let lastMdqRoots: SyncMdNode[] | undefined;
 
 export function evalSyncMdq(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 8) return undefined;
+  if ((inBytes && inBytes.byteLength > 8192) || opArgs.length > 8) return undefined;
   let format: "markdown" | "plain" = "markdown";
   let breaks = true;
   let quiet = false;
@@ -271,7 +271,7 @@ export function evalSyncMdq(
   const files = positional.slice(1);
   let text = "";
   if (files.length === 0 || (files.length === 1 && files[0] === "-")) {
-    if (inBytes.includes(0)) return undefined;
+    if (!inBytes || inBytes.includes(0)) return undefined;
     try { text = syncMdqDecoder.decode(inBytes); } catch { return undefined; }
   } else {
     if (!readFileSync) return undefined;

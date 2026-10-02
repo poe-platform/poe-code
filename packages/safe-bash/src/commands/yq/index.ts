@@ -276,7 +276,10 @@ export function evalSyncYqPrep(
     const fBytes = readFileSync(files[0]!);
     if (!fBytes || fBytes.byteLength > 8192) return undefined;
     srcBytes = fBytes;
+  } else if (!nullInput && !srcBytes) {
+    return undefined;
   }
+  srcBytes ??= new Uint8Array(0);
   if (!nullInput && srcBytes.includes(0)) return undefined;
   let text: string;
   try {

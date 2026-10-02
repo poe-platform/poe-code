@@ -172,11 +172,11 @@ function renderSingleHtmlDocumentSync(html: string): string | undefined {
 }
 
 export function evalSyncHtmlToMarkdown(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 6) return undefined;
+  if ((inBytes && inBytes.byteLength > 8192) || opArgs.length > 6) return undefined;
   let ended = false;
   const files: string[] = [];
   for (const a of opArgs) {
@@ -187,10 +187,12 @@ export function evalSyncHtmlToMarkdown(
   const chunks: Uint8Array[] = [];
   let stdinUsed = false;
   if (files.length === 0) {
+    if (!inBytes) return undefined;
     chunks.push(inBytes);
   } else {
     for (const f of files) {
       if (f === "-") {
+        if (!inBytes) return undefined;
         chunks.push(stdinUsed ? new Uint8Array(0) : inBytes);
         stdinUsed = true;
       } else {

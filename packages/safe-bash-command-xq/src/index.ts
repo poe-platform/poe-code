@@ -132,11 +132,11 @@ let lastXqXmlText: string | undefined;
 let lastXqJsonStr: string | undefined;
 
 export function evalSyncXq(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): { jsonStr: string; jqArgs: string[] } | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 12) return undefined;
+  if ((inBytes && inBytes.byteLength > 8192) || opArgs.length > 12) return undefined;
   let rawOut = false;
   let compactOut = false;
   let nullInput = false;
@@ -191,7 +191,10 @@ export function evalSyncXq(
     const fBytes = readFileSync(fileArg);
     if (!fBytes || fBytes.byteLength > 8192) return undefined;
     srcBytes = fBytes;
+  } else if (!nullInput && !srcBytes) {
+    return undefined;
   }
+  srcBytes ??= new Uint8Array(0);
   if (srcBytes.includes(0)) return undefined;
   let xmlText: string;
   try {

@@ -18677,15 +18677,15 @@ const syncExtraRuntimeMethods = {
               const outStr = ((stageArgs.includes("--help") || stageArgs.includes("--version")) ? gnuInformationSync(firstName, stageArgs, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) : undefined) ?? (firstName === "envsubst"
                 ? this.evalSyncEnvsubst(inStr, stageArgs, rawState)
                 : firstName === "fmt"
-                  ? this.evalSyncFmt(rawBytes, stageArgs, readFile)
+                  ? this.evalSyncFmt(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "date"
                     ? evalSyncDate(stageArgs, rawState.exported.has("TZ") ? rawState.variables.TZ : undefined, stageDefs[sIdx]!.execute, readFile, (p: string) => this.tryInspectMemoryNodeSync(resolvePath(rawState.cwd, p), true, true)?.mtimeMs, sIdx === 0 && cmd0FileStage ? undefined : rawBytes)
                   : firstName === "mdq"
-                    ? evalSyncMdq(rawBytes, stageArgs, readFile)
+                    ? evalSyncMdq(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "shuf"
-                    ? evalSyncShuf(rawBytes, stageArgs, readFile)
+                    ? evalSyncShuf(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "html-to-markdown"
-                    ? evalSyncHtmlToMarkdown(rawBytes, stageArgs, readFile)
+                    ? evalSyncHtmlToMarkdown(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "unrtf"
                     ? evalSyncUnrtf(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "pr"
@@ -18865,20 +18865,20 @@ const syncExtraRuntimeMethods = {
                   : firstName === "wc"
                     ? syncCommandEvaluators.evalSyncWc?.(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, byteLocale(rawState.variables), readFile)
                   : (firstName === "xq" || firstName === "yq")
-                    ? this.evalSyncXqOrYq(firstName, rawBytes, stageArgs, readFile)
+                    ? this.evalSyncXqOrYq(firstName, sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "xmllint"
-                    ? evalSyncXmllint(rawBytes, stageArgs, readFile)
+                    ? evalSyncXmllint(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                     : firstName === "htmlq"
-                      ? evalSyncHtmlq(rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
+                      ? evalSyncHtmlq(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
                     : firstName === "csvcut"
-                      ? evalSyncCsvcut(rawBytes, stageArgs, readFile)
+                      ? evalSyncCsvcut(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                       : firstName === "csvgrep"
-                        ? evalSyncCsvgrep(rawBytes, stageArgs, readFile)
+                        ? evalSyncCsvgrep(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                       : firstName === "xxd"
-                        ? this.evalSyncXxd(rawBytes, stageArgs, readFile)
+                        ? this.evalSyncXxd(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                         : firstName === "od"
-                          ? this.evalSyncOd(rawBytes, stageArgs, readFile)
-                          : this.evalSyncHexdump(rawBytes, stageArgs, firstName === "hd", readFile));
+                          ? this.evalSyncOd(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
+                          : this.evalSyncHexdump(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, firstName === "hd", readFile));
               if (outStr === undefined) return undefined;
               const encoded = fastSharedTextEncoder.encode(outStr);
               const nextTotalBytes = this.budget.bytes + encoded.byteLength;
@@ -19361,15 +19361,15 @@ const syncExtraRuntimeMethods = {
           : (allArgs.includes("--help") || allArgs.includes("--version")) && gnuInformationSync(w0Plain, allArgs, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) !== undefined
             ? gnuInformationSync(w0Plain, allArgs, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined)
             : w0Plain === "mdq"
-              ? evalSyncMdq(inBytes, allArgs, readFile)
+              ? evalSyncMdq(optInBytes, allArgs, readFile)
             : w0Plain === "shuf"
-              ? evalSyncShuf(inBytes, allArgs, readFile)
+              ? evalSyncShuf(optInBytes, allArgs, readFile)
             : w0Plain === "html-to-markdown"
-              ? evalSyncHtmlToMarkdown(inBytes, allArgs, readFile)
+              ? evalSyncHtmlToMarkdown(optInBytes, allArgs, readFile)
             : w0Plain === "unrtf"
               ? evalSyncUnrtf(optInBytes, allArgs, readFile)
             : w0Plain === "fmt"
-              ? this.evalSyncFmt(inBytes, allArgs, readFile)
+              ? this.evalSyncFmt(optInBytes, allArgs, readFile)
             : w0Plain === "pr"
               ? evalSyncPr(optInBytes, allArgs, readFile)
             : w0Plain === "file"
@@ -19389,11 +19389,11 @@ const syncExtraRuntimeMethods = {
             : (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum")
               ? (() => { const cs = evalSyncChecksum(w0Plain, optInBytes, allArgs, readFile); return cs !== undefined && !cs.includes("\0") ? cs : undefined; })()
             : w0Plain === "base32"
-              ? (() => { const b32 = evalSyncBase32(inBytes, allArgs, readFile); return b32 !== undefined && b32.every((byte: number) => byte !== 0 && byte < 128) ? sharedSyncPipeDecoder.decode(b32) : undefined; })()
+              ? (() => { const b32 = evalSyncBase32(optInBytes, allArgs, readFile); return b32 !== undefined && b32.every((byte: number) => byte !== 0 && byte < 128) ? sharedSyncPipeDecoder.decode(b32) : undefined; })()
             : (w0Plain === "xq" || w0Plain === "yq")
-              ? this.evalSyncXqOrYq(w0Plain, inBytes, allArgs, readFile)
+              ? this.evalSyncXqOrYq(w0Plain, optInBytes, allArgs, readFile)
             : w0Plain === "xmllint"
-              ? evalSyncXmllint(inBytes, allArgs, readFile)
+              ? evalSyncXmllint(optInBytes, allArgs, readFile)
               : evalSyncHtmlq(optInBytes, allArgs, readFile, (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } });
         if (csvOut !== undefined && !csvOut.includes("\0")) {
           const outBytes = shellValueByteLength(csvOut);
@@ -19625,13 +19625,13 @@ const syncExtraRuntimeMethods = {
               fileRes = this.evalSyncXxd(view, opArgs, readFile, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
             } else if (w0Plain === "od") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = this.evalSyncOd((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : EMPTY_BYTES, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile);
+              fileRes = this.evalSyncOd((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : undefined, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile);
             } else if (w0Plain === "hexdump" || w0Plain === "hd") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = this.evalSyncHexdump((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : EMPTY_BYTES, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, w0Plain === "hd", readFile);
+              fileRes = this.evalSyncHexdump((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : undefined, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, w0Plain === "hd", readFile);
             } else if (w0Plain === "fmt") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              fileRes = this.evalSyncFmt((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : EMPTY_BYTES, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile);
+              fileRes = this.evalSyncFmt((hasSingleStdinRedir || hasSingleHereStringRedir) ? view : undefined, (hasSingleStdinRedir || hasSingleHereStringRedir) ? opArgs : allArgs, readFile);
             } else if (w0Plain === "md5sum" || w0Plain === "sha1sum" || w0Plain === "sha224sum" || w0Plain === "sha256sum" || w0Plain === "sha384sum" || w0Plain === "sha512sum" || w0Plain === "cksum") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
               const csOut = evalSyncChecksum(w0Plain, view, opArgs, readFile, !hasSingleHereStringRedir && !hasSingleStdinRedir ? fileArg : undefined);
@@ -20973,7 +20973,7 @@ const syncExtraRuntimeMethods = {
 ,
   evalSyncXqOrYq(this: any, 
     name: "xq" | "yq",
-    rawBytes: Uint8Array,
+    rawBytes: Uint8Array | undefined,
     args: readonly string[],
     readFile?: (p: string) => Uint8Array | undefined,
   ): string | undefined {
@@ -24747,7 +24747,7 @@ const syncExtraRuntimeMethods = {
   }
 ,
   evalSyncXxd(this: any, 
-    view: Uint8Array,
+    view: Uint8Array | undefined,
     opArgs: readonly string[],
     readFileSync?: (p: string) => Uint8Array | undefined,
     fileOperandName?: string,
@@ -24812,6 +24812,8 @@ const syncExtraRuntimeMethods = {
       if (!fb || fb.byteLength > 16384) return undefined;
       view = fb;
       effFile = files[0]!;
+    } else if (!view) {
+      return undefined;
     }
     const cols = explicitCols ?? (plain ? 30 : include ? 12 : binary ? 6 : 16);
     const group = explicitGroup ?? (binary ? 1 : 2);
@@ -24898,8 +24900,8 @@ const syncExtraRuntimeMethods = {
     return hex + "\n";
   }
 ,
-  evalSyncFmt(this: any, inBytes: Uint8Array, opArgs: readonly string[], readFile?: (path: string) => Uint8Array | undefined): string | undefined {
-    if (inBytes.byteLength > 4096) return undefined;
+  evalSyncFmt(this: any, inBytes: Uint8Array | undefined, opArgs: readonly string[], readFile?: (path: string) => Uint8Array | undefined): string | undefined {
+    if (inBytes && inBytes.byteLength > 4096) return undefined;
     try {
       const cacheKey = opArgs.join("\x1f");
       let parsed = (this._syncFmtParsedCache ??= new Map()).get(cacheKey);
@@ -24916,6 +24918,7 @@ const syncExtraRuntimeMethods = {
         if (f.name === "-" && stdinDone) continue;
         let srcBytes = inBytes;
         if (f.name === "-") {
+          if (!srcBytes) return undefined;
           stdinDone = true;
         } else {
           if (!readFile) return undefined;
@@ -25354,7 +25357,7 @@ const syncExtraRuntimeMethods = {
   }
 ,
   evalSyncHexdump(this: any, 
-    inBytes: Uint8Array,
+    inBytes: Uint8Array | undefined,
     opArgs: readonly string[],
     isHd = false,
     readFileSync?: (p: string) => Uint8Array | undefined,
@@ -25401,7 +25404,7 @@ const syncExtraRuntimeMethods = {
       for (const c of chunks) { merged.set(c, pos); pos += c.byteLength; }
       inBytes = merged;
     }
-    if (!canonical || inBytes.byteLength > 4096 || count === 0) return undefined;
+    if (!inBytes || !canonical || inBytes.byteLength > 4096 || count === 0) return undefined;
     const start = Math.min(inBytes.byteLength, skip);
     const end = Math.min(inBytes.byteLength, start + count);
     let address = start;
@@ -25447,7 +25450,7 @@ const syncExtraRuntimeMethods = {
   }
 ,
   evalSyncOd(this: any, 
-    view: Uint8Array,
+    view: Uint8Array | undefined,
     opArgs: readonly string[],
     readFileSync?: (p: string) => Uint8Array | undefined,
   ): string | undefined {
@@ -25492,6 +25495,7 @@ const syncExtraRuntimeMethods = {
       else return undefined;
     }
     if (!typeSpec) return undefined;
+    if (files.length === 0 && !view) return undefined;
     if (files.length > 0) {
       if (!readFileSync) return undefined;
       const chunks: Uint8Array[] = [];

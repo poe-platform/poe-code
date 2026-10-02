@@ -1459,3 +1459,19 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "hello|hello|world|ce013625030ba8dba906f756967f9e9ca394464a");
   });
+
+  test("79. sync mdq, shuf, yq, xq, base32, fmt, and pipeline csvcut/xxd honor inherited stdin from compound redirects", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "m_out=$({ mdq -o plain \"# h1\"; } <<< $\x27# h1\\nhello\x27)",
+      "sh_out=$({ shuf -n 1; } <<< \"only_line\")",
+      "y_out=$({ yq -o json -r \".a\"; } <<< \"a: 42\")",
+      "x_out=$({ xq -r \".a\"; } <<< \"<a>77</a>\")",
+      "b_out=$({ base32 -w 20; } <<< \"hi\")",
+      "f_out=$({ fmt -w 20; } <<< \"one   two\")",
+      "p_out=$({ csvcut -c 1 | cat; } <<< $\x27a,b\\n9,8\x27)",
+      "echo \"$m_out|$sh_out|$y_out|$x_out|$b_out|$f_out|$p_out\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "h1\nhello|only_line|42|77|NBUQU===|one   two|a\n9");
+  });

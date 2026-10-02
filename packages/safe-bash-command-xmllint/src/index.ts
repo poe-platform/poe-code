@@ -451,11 +451,11 @@ function serializeXmlNodeSync(node: SyncXmlNode): string {
 }
 
 export function evalSyncXmllint(
-  inBytes: Uint8Array,
+  inBytes: Uint8Array | undefined,
   opArgs: readonly string[],
   readFileSync?: (filePath: string) => Uint8Array | undefined,
 ): string | undefined {
-  if (inBytes.byteLength > 8192 || opArgs.length > 5) return undefined;
+  if ((inBytes && inBytes.byteLength > 8192) || opArgs.length > 5) return undefined;
   let noout = false;
   let format = false;
   let c14n = false;
@@ -495,6 +495,8 @@ export function evalSyncXmllint(
     const fBytes = readFileSync(fileArg);
     if (!fBytes || fBytes.byteLength > 8192) return undefined;
     srcBytes = fBytes;
+  } else if (!srcBytes) {
+    return undefined;
   }
   if (srcBytes.includes(0)) return undefined;
   let xmlText: string;

@@ -333,6 +333,12 @@ function wrapDetailValue(value: string, width: number): string[] {
         let index = 0;
 
         while (index < word.length) {
+          if (isAnsiSequence(word, index)) {
+            const ansi = readAnsiSequence(word, index);
+            chunk += ansi.sequence;
+            index = ansi.nextIndex;
+            continue;
+          }
           const cluster = readPrintableCluster(word, index);
           if (displayWidth(`${chunk}${cluster}`) > width) {
             break;

@@ -353,6 +353,27 @@ describe("renderTable", () => {
       ].join("\n"));
     });
 
+    it("wraps ANSI-colored detail values without losing escapes or grapheme boundaries", () => {
+      const family = "👨‍👩‍👧";
+      for (const [value, first, second] of [
+        ["\u001b[31m" + "x".repeat(30) + "\u001b[0m", "\u001b[31m" + "x".repeat(20), "x".repeat(10) + "\u001b[0m"],
+        ["x".repeat(10) + "\u001b[1m" + "x".repeat(20) + "\u001b[0m", "x".repeat(10) + "\u001b[1m" + "x".repeat(10), "x".repeat(10) + "\u001b[0m"],
+        ["\u001b[31m" + family.repeat(15) + "\u001b[0m", "\u001b[31m" + family.repeat(10), family.repeat(5) + "\u001b[0m"],
+      ]) {
+        const result = renderTable({
+          theme,
+          variant: "detail",
+          maxWidth: 27,
+          columns: [
+            { name: "label", title: "Label", alignment: "left", maxLen: 5 },
+            { name: "value", title: "Value", alignment: "left", maxLen: 20 },
+          ],
+          rows: [{ label: "Color", value }],
+        });
+        expect(result).toBe(`Color  ${first}\n       ${second}`);
+      }
+    });
+
     it("does not truncate standard long detail labels", () => {
       const result = renderTable({
         theme,

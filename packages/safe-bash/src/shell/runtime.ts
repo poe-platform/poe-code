@@ -14393,7 +14393,7 @@ export class Runtime {
       localInvMap?: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number; dynamic?: boolean }>;
       cachedFnSize?: number;
       cachedFnName?: string | undefined;
-      cachedFnBody?: unknown;
+      cachedFnBody?: Command | undefined;
       cachedNoglob?: boolean;
       cachedBraceexpand?: boolean;
       cachedNocasematch?: boolean;

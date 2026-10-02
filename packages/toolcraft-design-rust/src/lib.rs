@@ -1,3 +1,4 @@
+pub mod ansi;
 pub mod color;
 pub mod command_errors;
 pub mod data;

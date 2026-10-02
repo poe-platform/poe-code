@@ -3,6 +3,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import { supportsColor } from "./color-support.js";
 import { resolveThemeName } from "./theme.js";
 import { getThemeConfig } from "./theme-state.js";
+export { stripAnsi } from "./ansi.js";
 export { configureTheme, getThemeConfig, resetTheme } from "./theme-state.js";
 const native = createRequire(import.meta.url)("./toolcraft-design-rust.node");
 const formats = new AsyncLocalStorage();
@@ -19,10 +20,6 @@ export function withOutputFormat(format, operation) {
 }
 export function resetOutputFormatCache() {
   cachedFormat = undefined;
-}
-export function stripAnsi(text) {
-  if (typeof text === "string" && !text.includes("\x1b") && !text.includes("\u009b")) return text;
-  return native.designStripAnsi(text);
 }
 const markdownPrefixes = Object.fromEntries(
   ["info", "success", "warn", "error", "message"].map((level) => [

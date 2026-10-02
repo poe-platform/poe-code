@@ -1,4 +1,6 @@
 use mcp_protocol_rust::json::Value;
+mod ansi;
+pub use ansi::*;
 mod help;
 pub use help::*;
 mod file_changes;

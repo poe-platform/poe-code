@@ -453,7 +453,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             else
                 renderedBytes = (yield* encodePpmSteps(bitmap));
             if (typeof (bitmap.data.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && bitmap.data.byteOffset === 0 && bitmap.data.byteLength === bitmap.data.buffer.byteLength) {
-                try { (bitmap.data.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+                try { (bitmap.data.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
             }
         }
         options.onAllocateBytes?.(renderedBytes.byteLength);
@@ -1107,5 +1107,4 @@ export type PdftoppmCommandsOptions = PdftoppmCommandOptions;
 export function createPdftoppmCommands(options: PdftoppmCommandsOptions = {}): readonly CommandDefinition[] {
   return Object.freeze([createPdftoppmCommand(options), createPdftocairoCommand(options)]);
 }
-
 

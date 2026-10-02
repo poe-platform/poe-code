@@ -835,18 +835,18 @@ export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8
       rawScanlines.set(rgba.subarray(y * stride, (y + 1) * stride), rowStart + 1);
     }
     if (consumeInput && rgba.byteOffset === 0 && typeof (rgba.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
-      try { (rgba.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+      try { (rgba.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
     }
   }
 
   const compressed = encodeFlate(rawScanlines);
   if (typeof (rawScanlines.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && rawScanlines.byteOffset === 0) {
-    try { (rawScanlines.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+    try { (rawScanlines.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
   }
   const ihdrChunk = (yield* makePngChunkSteps("IHDR", ihdr));
   const idatChunk = (yield* makePngChunkSteps("IDAT", compressed));
   if (typeof (compressed.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && compressed.byteOffset === 0 && compressed.byteLength === compressed.buffer.byteLength) {
-    try { (compressed.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+    try { (compressed.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
   }
   const iendChunk = (yield* makePngChunkSteps("IEND", new Uint8Array(0)));
 
@@ -859,7 +859,7 @@ export function *encodeRgbaToPngSteps(width: number, height: number, rgba: Uint8
     offset += part.length;
   }
   if (typeof (idatChunk.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && idatChunk.byteOffset === 0 && idatChunk.byteLength === idatChunk.buffer.byteLength) {
-    try { (idatChunk.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+    try { (idatChunk.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
   }
   return out;
 }
@@ -1569,7 +1569,7 @@ function *renderDisplayListLayerSteps(
   }
   for (const scratch of [cachedClipMask, scratchClipLayer, cachedSoftMaskPixels, ...imageClipMasks.values()]) {
     if (scratch && typeof (scratch.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && scratch.byteOffset === 0 && scratch.byteLength === scratch.buffer.byteLength) {
-      try { (scratch.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+      try { (scratch.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
     }
   }
   return { width, height, data: rgba };

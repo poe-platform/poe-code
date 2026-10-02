@@ -1,10 +1,37 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { spawnSync } from "node:child_process";
 import { setup } from "./helpers.js";
 import { compilePureSmiProgram, intToStr, prepareArithmetic, runIntArithForLoop, runIntForLoop, sharedLoopIntRegs } from "../../src/shell/arithmetic.js";
 import { ParseBudget } from "../../src/shell/parse-budget.js";
 import { ShellLimitError } from "../../src/shell/types.js";
 import { Runtime } from "../../src/shell/runtime.js";
+
+for (const header of ["for ((i=0;i<3;i++))", "for i in {1..3}"]) {
+  for (const expression of ["i + k", "i + k++", "i + --k", "i + (k = 7)", "i + (k += 2)"]) {
+    test(`integer loops publish only assigned operands: ${header}: ${expression}`, async context => {
+      const { shell } = setup();
+      context.after(() => shell.dispose());
+      const source = `unset k; set -a; ${header}; do y=$(( ${expression} )); done; set +a`;
+      const report = 'printf "k=%s y=%s i=%s\\n" "${k-UNSET}" "$y" "$i"';
+      const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `${source}; ${report}`], { encoding: "utf8" });
+      assert.equal(native.status, 0, native.stderr);
+      assert.equal(native.stderr, "");
+      // Repeated function calls exercise both initial and cached loop plans.
+      const result = await shell.exec(`f() { ${source}; say "k=\${k-UNSET} y=$y i=$i"; }; f; f`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.stdout, native.stdout.repeat(2));
+      const exported = await shell.exec(`f() { ${source}; }; f; f; envget k y i`);
+      const nativeEnv = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", `${source}; /bin/bash -c 'printf "%s|%s|%s" "\${k-<unset>}" "$y" "$i"'`], { encoding: "utf8" });
+      assert.equal(nativeEnv.status, 0, nativeEnv.stderr);
+      assert.equal(nativeEnv.stderr, "");
+      assert.equal(exported.exitCode, 0, exported.stderr);
+      assert.equal(exported.stderr, "");
+      assert.equal(exported.stdout, nativeEnv.stdout);
+    });
+  }
+}
 
 for (const initial of ["999", "text", ""]) test(`empty arithmetic loop preserves body variables: ${initial}`, async context => {
   const { shell } = setup();

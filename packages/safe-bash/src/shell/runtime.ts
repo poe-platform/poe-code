@@ -4898,7 +4898,9 @@ export class Runtime {
     const snapshotHolder: { scope?: InvocationScope; finish?: () => void; persistentRedirects?: boolean } = {};
     const execState = stateMonitor(state)?.raw ?? state;
     const savedExecDescriptors = new Map<number, { descriptor: Descriptor; revision: number | undefined; release: (() => Promise<void>) | undefined }>();
-    if (command.redirects.length) {
+    // Terminal commands cannot return to the original descriptors. Retaining
+    // their capture lifetime would prevent redirected background jobs from detaching.
+    if (command.redirects.length && !terminal) {
       const frame = execDescriptorFrames.get(execState);
       for (const redirect of command.redirects) {
         for (const number of redirect.operator === "&>" || redirect.operator === "&>>" ? [1, 2] : [redirect.descriptor]) {

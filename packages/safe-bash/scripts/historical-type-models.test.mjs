@@ -829,3 +829,13 @@ test("incremental source checks retain diagnostics, invalidate edits, and revali
   specimen.fileSystem.writeFileSync(join(root, caller.path), "export const changed = true;");
   assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries, incrementalFile }), /historical|bytes|sha256/);
 });
+
+test("historical source checks admit bounded expanded package metadata", () => {
+  const specimen = fixture();
+  const manifest = JSON.stringify({ type: "module", description: "x".repeat(100000) });
+  specimen.fileSystem.writeFileSync("/package/package.json", manifest);
+  const result = checkHistoricalSources(root, { ...specimen, boundaries });
+  assert.ok(result.diagnostics.some(diagnostic => diagnostic.code === 2322), "source diagnostics must still run");
+  specimen.fileSystem.writeFileSync("/package/package.json", manifest + " ".repeat(300000));
+  assert.throws(() => checkHistoricalSources(root, { ...specimen, boundaries }), /unadmitted type-input file or size: package.json/);
+});

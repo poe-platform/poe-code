@@ -204,7 +204,7 @@ export function checkHistoricalSources(root, { fileSystem = fs, system = ts.sys,
     "poe-code/safejs/core": engineCore,
     "@poe-code/safe-js": engineIndex,
   };
-  const metadata = JSON.parse(readRegularInput(root, "package.json", 100000, fileSystem, boundaries).toString("utf8"));
+  const metadata = JSON.parse(readRegularInput(root, "package.json", 300000, fileSystem, boundaries).toString("utf8"));
   const privateWorkspaces = sourceDependencies ? [] : Object.keys(metadata.poeCode?.integration?.privateWorkspaces ?? {});
   const privateDirectories = privateWorkspaces.map(name => name === "@poe-code/pdf-ast" ? "pdf-ast" : name);
   const dependencyPaths = Object.fromEntries(Object.entries(parsed.options.paths ?? {}).map(([specifier, targets]) => [specifier,

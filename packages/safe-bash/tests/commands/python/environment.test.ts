@@ -7,8 +7,8 @@ import * as python from '../../../src/commands/python/index.js';
 function context() { return { fs: new MemoryFileSystem(), cwd: '/', signal: new AbortController().signal }; }
 const bytes = (value: string) => new TextEncoder().encode(value);
 
-test('package environment ownership does not hide missing executor diagnostics', () => {
-  assert.throws(() => python.pythonCommands(undefined as never), { category: 'executor-unavailable' });
+test('package environments retain defaults and reject incomplete explicit executors', () => {
+  assert.equal(python.pythonCommands(undefined).name, 'python-commands');
   assert.throws(() => python.pythonCommands({} as never), { category: 'executor-unavailable' });
 });
 

@@ -649,3 +649,8 @@ rows, subtitles, selection markers, badges and grapheme-aware match highlights.
 The cursor stays visible as you move through a long list; loading and empty
 states retain the pane layout. `visibleStart(lines, height, scrolloff?)` is also
 available for custom views built from `DisplayLine` entries.
+
+`renderDetail(state, screen, layout)` from `explorer/render/detail` draws a
+scrollable Markdown preview or a list of titled detail items with subtitles,
+badges and selection markers. Custom row titles, loading and empty states,
+render errors and the scroll percentage appear inside the pane frame.

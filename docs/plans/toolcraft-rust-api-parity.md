@@ -1606,6 +1606,38 @@ slower). No performance gate passed. Output/stats/context renderers, dashboard
 lifecycle and snapshots, explorer, native batching and broader replacement
 qualification remain open.
 
+### Explorer detail renderer checkpoint
+
+`explorer/render/detail` exposes `renderDetail` with the original declaration.
+Rust selects empty/loading, Markdown blob and titled-list modes, clamps scroll,
+draws selection/subtitle/badge rows, clips grapheme cells and composes the pane
+frame and percentage/loading indicator. Existing native detail preparation,
+theme, geometry, pane and text helpers supply its dependencies. Host operations
+preserve live property reads, callback receivers, AbortSignal construction,
+JavaScript coercions, render-error handling and iterator cleanup.
+
+Four missing-export tests preceded implementation. Differential coverage includes
+400 layout/scroll combinations, custom title and row-search callbacks, getter
+traces, nested rendering, arbitrary thrown-value identity and prepared-cell
+iterator closing on clipping/errors. Maintained checks pass 363 native host tests,
+1,379 selected design cases, 13 prompt wrappers, 132 dashboard/queue cases,
+14 composer cases and 155 explorer cases. Original detail/integration suites now
+exercise native detail rendering. Rust/binding and scoped JS lint, bidirectional
+declarations and packed runtime/types pass; packed imports reject external ESM
+dependencies and declaration consumers compile with `types: []`.
+No dependencies or default integration changed.
+
+Inspected 72-column and 32-column Markdown, titled-list and loading screenshots;
+native/reference original-ScreenBuffer output is byte-identical. The screenshot
+font still lacks the existing braille loading glyph.
+
+Five warmed alternating 100-render Node 22 ARM64 rounds retaining 32 call arrays
+measured 1,047.943 µs native / 104.978 µs reference for a 72×12 Markdown preview
+(9.98× slower), and 1,032.317 µs / 128.069 µs for the titled detail list
+(8.06× slower). These are microbenchmarks, not full-application performance gates.
+Modal/combined rendering, reducer, runtime/public namespace, batching and broader
+swap qualification remain open.
+
 ### Explorer pane frame checkpoint
 
 `explorer/render/pane` exposes `drawPaneFrame` and the same `paneBodyRect` function

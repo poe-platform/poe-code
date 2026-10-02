@@ -503,6 +503,10 @@
     "./explorer/render/list": {
       "types": "./dist/explorer-list.d.ts",
       "import": "./dist/explorer-list.js"
+    },
+    "./explorer/render/detail": {
+      "types": "./dist/explorer-detail.d.ts",
+      "import": "./dist/explorer-detail.js"
     }
   },
   "scripts": {

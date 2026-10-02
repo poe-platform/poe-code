@@ -97,3 +97,5 @@ pub mod explorer_list;
 pub mod explorer_pane;
 pub mod explorer_state;
 pub mod explorer_theme;
+
+pub mod explorer_detail;

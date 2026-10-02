@@ -545,3 +545,6 @@ mod explorer_footer;
 pub use explorer_footer::*;
 mod explorer_list;
 pub use explorer_list::*;
+
+mod explorer_detail;
+pub use explorer_detail::*;

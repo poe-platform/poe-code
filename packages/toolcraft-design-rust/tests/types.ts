@@ -937,3 +937,10 @@ const explorerListKeys: SameKeys<typeof explorerList,typeof originalExplorerList
 const displayLineOriginal: originalExplorerList.DisplayLine = null as unknown as explorerList.DisplayLine;
 const displayLineNative: explorerList.DisplayLine = null as unknown as originalExplorerList.DisplayLine;
 void [explorerListOriginal,explorerListNative,explorerListKeys,displayLineOriginal,displayLineNative];
+
+import * as explorerDetail from "toolcraft-design-rust/explorer/render/detail";
+import type * as originalExplorerDetail from "toolcraft-design/explorer/render/detail";
+const explorerDetailOriginal: typeof originalExplorerDetail = explorerDetail;
+const explorerDetailNative: typeof explorerDetail = null as unknown as typeof originalExplorerDetail;
+const explorerDetailKeys: SameKeys<typeof explorerDetail,typeof originalExplorerDetail> = true;
+void [explorerDetailOriginal,explorerDetailNative,explorerDetailKeys];

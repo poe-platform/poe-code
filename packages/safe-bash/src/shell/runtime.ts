@@ -12762,11 +12762,11 @@ export class Runtime {
             tree.operator === "<<=" || tree.operator === ">>="
           ) {
             targetName = tree.left.name;
-            synthTree = { kind: "binary", operator: tree.operator.slice(0, -1) as Extract<Arithmetic, { kind: "binary" }>["operator"], left: tree.left, right: tree.right, start: tree.start };
+            synthTree = { kind: "binary", operator: tree.operator.slice(0, -1) as Extract<Arithmetic, { kind: "binary" }>["operator"], left: tree.left, right: tree.right, ...(tree.start === undefined ? {} : { start: tree.start }) };
           }
         } else if (tree.kind === "unary" && (tree.operator === "++" || tree.operator === "--") && tree.operand.kind === "name" && tree.operand.subscript === undefined) {
           targetName = tree.operand.name;
-          synthTree = { kind: "binary", operator: tree.operator === "++" ? "+" : "-", left: tree.operand, right: { kind: "literal", value: 1n, start: tree.start }, start: tree.start };
+          synthTree = { kind: "binary", operator: tree.operator === "++" ? "+" : "-", left: tree.operand, right: { kind: "literal", value: 1n, ...(tree.start === undefined ? {} : { start: tree.start }) }, ...(tree.start === undefined ? {} : { start: tree.start }) };
           statusBias = tree.postfix ? (tree.operator === "++" ? -1 : 1) : 0;
         }
         if (targetName && synthTree) {

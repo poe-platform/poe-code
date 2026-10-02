@@ -5880,7 +5880,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
     }
     const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-    const { data: encoded } = encodeImage(canvas, { format, quality: state.quality });
+    const { data: encoded } = encodeImage(canvas, { format, quality: state.quality, consumeInput: true } as any);
     detachRgbaBuffer(canvas.data);
     if (outPath === "-" || outSpec.endsWith(":-")) {
         return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encoded };

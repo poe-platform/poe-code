@@ -3299,3 +3299,46 @@ gate passes. Native platform/resource and adapter reentrancy limits remain open.
 
 JSON diagnostic construction is verified on remote main at 4be52b7a3d. Its
 Release workflow 37065772483 is running validate/build; publication is unverified.
+
+### Primitive source-offset performance repair
+
+The JSON location benchmark identified a host callback for every source code
+unit. Primitive strings with primitive numeric live bounds now scan their UTF-16
+prefix in Rust. The binding queries the string length and copies at most the
+admitted prefix plus a terminator; a short offset into a large source does not
+copy the whole source. Boxed/indexed sources and nonnumeric live Math.max results
+retain the observable host loop. Math.max/Math.floor lookup and coercion still
+occur before native admission. No dependencies or public signatures changed.
+
+A failing Rust scan test preceded implementation. Two further differential tests
+cover fractional/nonfinite/custom bounds, primitive/boxed sources, inherited
+string indices and inherited location setters. The first native object builder
+failed the setter comparison; results now use the original host object literal,
+preserving own data properties and their descriptors. All 11 diagnostic
+comparisons pass. The maintained package route passes 212 native tests, Rust
+tests, 1,723 reference/integration cases across 46 files and declarations.
+Rust/binding and scoped JS lint pass. Packed imports exercise optimized and
+fallback paths with only packed own schema/design imports allowed. An inspected
+diagnostic preview remains reference-identical.
+
+A final benchmark after local test/lint jobs completed used Node 22.23.2 ARM64,
+five alternating warmed rounds and 32 retained results. Native/JavaScript/prior
+native medians in microseconds were:
+
+| Case | Calls per round | New native | JavaScript | Prior native |
+| --- | ---: | ---: | ---: | ---: |
+| 20-code-unit offset | 1,000 | 1.400 | 0.039 | 42.132 |
+| 4,096-code-unit offset | 100 | 2.796 | 6.629 | 7,372.236 |
+| 20-code-unit offset into 4 MiB source | 1,000 | 0.906 | 0.044 | 28.709 |
+| Full JSON file diagnostic | 1,000 | 24.258 | 0.918 | 59.229 |
+
+The longer offset is 2.37 times faster than JavaScript; short offsets improve
+30.10 times over the previous native path but remain 35.47 times slower than JS.
+Full diagnostics improve 2.44 times over prior native and remain 26.44 times
+slower than JS. These narrow measurements do not pass the overall performance
+gate. Prefix allocation still scales with the scanned length; complete resource,
+platform and reentrancy qualification remain open alongside CLI/transports/swap.
+
+Option construction is verified on remote main at f378f04216. Its Release run
+37066397357 is still building. The JSON diagnostic run 37065772483 completed
+successfully but skipped release-stable, so it did not establish publication.

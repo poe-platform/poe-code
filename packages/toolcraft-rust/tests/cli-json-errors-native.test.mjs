@@ -123,3 +123,37 @@ test("JSON diagnostic helpers preserve malformed inputs and arbitrary thrown val
     assert.throws(()=>module.isAsciiDigit({[Symbol.toPrimitive](){throw failure;}}),error=>error===failure);
   }
 });
+
+test("JSON source offsets preserve unusual live bounds for primitive and boxed sources",async()=>{
+  const api=await native(),max=Math.max;
+  const source="a😀\ud800\r\nz";
+  function run(module,bound,boxed){
+    const trace=[];
+    Math.max=()=>bound==="object"?{valueOf(){trace.push("bound");return 3.5;}}:bound;
+    try{return {value:module.getSourceOffsetLocation(boxed?new String(source):source,2),trace};}finally{Math.max=max;}
+  }
+  for(const bound of [0,-1,0.1,2.1,3.5,6,6.1,Infinity,NaN,"2",null,undefined,"object"])for(const boxed of [false,true])assert.deepEqual(run(api,bound,boxed),run(original,bound,boxed));
+  function inherited(module){
+    const trace=[],index=Object.getOwnPropertyDescriptor(String.prototype,"2");
+    Object.defineProperty(String.prototype,"2",{configurable:true,get(){trace.push("inherited index");return "\n";}});
+    try{return {empty:module.getSourceOffsetLocation("",100),value:module.getSourceOffsetLocation("ab",100),trace};}finally{if(index)Object.defineProperty(String.prototype,"2",index);else delete String.prototype[2];}
+  }
+  assert.deepEqual(inherited(api),inherited(original));
+});
+
+test("JSON source locations define own data properties without inherited setters",async()=>{
+  const api=await native();
+  function run(module){
+    const line=Object.getOwnPropertyDescriptor(Object.prototype,"line"),column=Object.getOwnPropertyDescriptor(Object.prototype,"column"),trace=[];
+    try{
+      Object.defineProperty(Object.prototype,"line",{configurable:true,set(value){trace.push(["line",value]);}});
+      Object.defineProperty(Object.prototype,"column",{configurable:true,set(value){trace.push(["column",value]);}});
+      const location=module.getSourceOffsetLocation("a\nb",3);
+      return {properties:Object.getOwnPropertyDescriptors(location),prototype:Object.getPrototypeOf(location)===Object.prototype,trace};
+    }finally{
+      if(line)Object.defineProperty(Object.prototype,"line",line);else delete Object.prototype.line;
+      if(column)Object.defineProperty(Object.prototype,"column",column);else delete Object.prototype.column;
+    }
+  }
+  assert.deepEqual(run(api),run(original));
+});

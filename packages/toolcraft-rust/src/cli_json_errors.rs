@@ -1,7 +1,31 @@
 //! JSON parse-error location precedence, offset scanning and diagnostic policy.
 use crate::host::TextHost;
 
-pub fn run<H: TextHost>(
+pub trait JsonErrorHost: TextHost {
+    /// Returns no fast result for values with observable indexing or coercion.
+    fn primitive_offset_location(
+        &mut self,
+        source: Self::Value,
+        bounded: Self::Value,
+    ) -> Result<Option<Self::Value>, Self::Error>;
+}
+
+/// The caller supplies only the UTF-16 prefix admitted by the live offset bound.
+pub fn scan_offset_prefix(source: &[u16]) -> (usize, usize) {
+    let mut line = 1;
+    let mut column = 1;
+    for &unit in source {
+        if unit == b'\n' as u16 {
+            line += 1;
+            column = 1;
+        } else {
+            column += 1;
+        }
+    }
+    (line, column)
+}
+
+pub fn run<H: JsonErrorHost>(
     host: &mut H,
     operation: &str,
     args: &[H::Value],
@@ -166,9 +190,12 @@ pub fn run<H: TextHost>(
             }
         }
         ("offsetLocation", [source, offset]) => {
+            let bounded = c!("bounded", *offset);
+            if let Some(location) = host.primitive_offset_location(*source, bounded)? {
+                return Ok(location);
+            }
             let mut line = c!("one");
             let mut column = c!("one");
-            let bounded = c!("bounded", *offset);
             let mut index = c!("zero");
             loop {
                 let before = c!("beforeBound", index, bounded);
@@ -191,5 +218,27 @@ pub fn run<H: TextHost>(
             host.call("location", vec![line, column])
         }
         _ => host.call("invalidOperation", vec![]),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn scan_offsets_counts_utf16_units_and_lf_boundaries() {
+        let source = [
+            b'a' as u16,
+            0xd83d,
+            0xde00,
+            0xd800,
+            b'\r' as u16,
+            b'\n' as u16,
+            b'z' as u16,
+        ];
+        assert_eq!(super::scan_offset_prefix(&[]), (1, 1));
+        assert_eq!(super::scan_offset_prefix(&source[..2]), (1, 3));
+        assert_eq!(super::scan_offset_prefix(&source[..5]), (1, 6));
+        assert_eq!(super::scan_offset_prefix(&source[..6]), (2, 1));
+        assert_eq!(super::scan_offset_prefix(&source), (2, 2));
+        assert_eq!(super::scan_offset_prefix(&[10, 10, 10]), (4, 1));
     }
 }

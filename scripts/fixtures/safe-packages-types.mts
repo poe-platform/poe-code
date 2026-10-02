@@ -271,3 +271,4 @@ import "./safe-packages-dd-types.mjs";
 import "./safe-packages-csplit-types.mjs";
 
 import "./safe-packages-zstd-types.mjs";
+import "./safe-packages-shuf-types.mjs";

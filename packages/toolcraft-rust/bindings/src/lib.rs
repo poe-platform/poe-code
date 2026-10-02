@@ -13,6 +13,7 @@ pub mod branch_validation;
 pub mod cli_argv;
 pub mod cli_consume;
 pub mod cli_dynamic_paths;
+pub mod cli_dynamic_values;
 pub mod cli_fields;
 pub mod cli_help_fields;
 pub mod cli_json_errors;

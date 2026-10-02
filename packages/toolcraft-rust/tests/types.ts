@@ -221,3 +221,10 @@ const qualifiedPath:string=dynamicPaths.qualifyDisplayPath("config","name");
 // @ts-expect-error CLI path casing is kebab or snake
 dynamicPaths.resolveDynamicLeaf(native.S.String(),[],"camel");
 void [dynamicLeaf,dynamicMatch,numericSelector,qualifiedPath];
+
+import * as dynamicValues from "../dist/cli-dynamic-values.js";
+const finalizedCliValue:unknown=dynamicValues.finalizeDynamicValue(native.S.Record(native.S.String()),{name:"value"},"config",fieldErrors);
+const cliValidationIssue:fieldConsumption.CLIFieldValidationError=dynamicValues.formatFieldValidationIssue({path:["name"],expected:"string",received:"number",message:"invalid"},"config");
+// @ts-expect-error collected errors must have path and message fields
+dynamicValues.finalizeDynamicValue(native.S.String(),"value","name",[{}]);
+void [finalizedCliValue,cliValidationIssue];

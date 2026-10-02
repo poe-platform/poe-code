@@ -3413,3 +3413,38 @@ resource/platform/reentrancy/swap qualification remain open.
 The source-offset and field-consumption Release workflows 37067379403 and
 37068176439 both completed successfully with release-stable skipped. This
 establishes successful workflows, not later package publication.
+
+### Dynamic CLI value-assembly checkpoint
+
+The internal dynamic-value module now uses Rust for optional/null admission,
+JSON validation routing, indexed-object array conversion, numeric/contiguous
+index checks, recursive object/record assembly, default selection and required
+field diagnostics. It uses native schema validation/default cloning. Node
+retains computed property assignment, own-property record construction, live
+collection methods, getters, iterator cleanup and original unchanged values.
+No dependency declarations or default implementation changed.
+
+Four missing-module tests preceded implementation. Eight final comparisons
+extract the actual reference helpers and cover JSON constraints, scalar identity,
+nullable and unsupported shapes, cloned defaults, required fields, sparse and
+noncanonical indices, issue paths, computed-key/default getter ordering, inherited
+setters, __proto__ record keys, live Number.isInteger/sort/some callbacks, iterator
+cleanup, malformed inputs, arbitrary throws and reentrancy. The maintained
+package route passes 236 native tests, Rust tests, 1,723 reference/integration
+cases across 46 files and declarations. Rust/binding and scoped JS lint pass.
+
+Packed value assembly runs with only the packed own schema admitted as an
+external ESM dependency, retaining independent default clones and nested errors.
+Packed declarations compile with types: []; existing contract types still
+resolve from the checkout, so complete standalone declarations remain open.
+An inspected indexed-array/required-field diagnostic table matches the reference
+ANSI output; complete CLI execution has not been qualified.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 two-record indexed
+array assemblies with numeric/JSON defaults, retaining 32 results, measured
+native/reference medians of 76.874/2.247 microseconds (34.21 times slower).
+This does not pass the performance gate. Dynamic argv integration, full
+CLI/prompts/help, transports and resource/platform/reentrancy/swap gates remain.
+
+Dynamic path resolution is verified on remote main at 412a868244. Its Release
+workflow 37069094544 is pending build; no new publication is claimed.

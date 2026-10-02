@@ -3120,3 +3120,36 @@ completed successfully on 1199997844, including actual publication of
 registry/attestation availability and installed-signature checks. That release
 verifies the earlier Node 18 repair; it does not publish these later private Rust
 CLI changes or authorize switching the default implementation.
+
+### Unicode-length prerequisite repair
+
+CLI string-validation dependency inspection reproduced a mismatch in the native
+schema package's public `unicodeLength`: its UTF-16-only binding rejected boxed
+strings and arbitrary iterables and ignored replacement string iterators. The
+reference uses spread iteration, counting yielded values. Three differential
+regressions failed before repair, covering iterable admission, getter/receiver
+order, arbitrary thrown identity, live string iterators and reentrant iteration.
+
+The Node adapter now performs the reference spread operation; Rust reads the
+resulting native array length without converting elements or allocating a second
+collection. This also restores the reference function name/arity. Primitive
+strings retain Unicode/lone-surrogate counts, while invalid inputs now throw the
+original TypeError. This repairs a demonstrated API dependency defect, not the
+still-unported CLI scalar parser.
+
+The maintained schema route passes 64 native tests, all 2,634 reference cases in
+23 files, package declarations and all six original compile-check fixtures.
+Rust/binding and scoped JS lint pass. Packed public imports preserve boxed/custom
+iteration and invalid-input errors with external ESM dependencies blocked. No
+dependency declarations or defaults changed.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 10,000 calls and 32 retained
+results, measured native/reference medians of 0.510/0.383 microseconds for a
+repeated mixed-Unicode primitive string (1.33 times slower) and 2.235/2.172 for
+its boxed form (1.03 times slower). This is compatibility evidence with measured
+overhead, not an overall performance-gate pass. Full platform/resource qualification
+and the remaining replacement gates stay open.
+
+Argument scanning is verified on remote main at 878461e8ed. Its main Release
+workflow 37061810895 remains pending; no later publication is inferred from the
+separate successful Toolcraft 0.0.750 release.

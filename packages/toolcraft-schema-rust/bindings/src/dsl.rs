@@ -88,6 +88,6 @@ pub fn with_json_schema<'env>(
     schema_document::with_json_schema(&mut NodeHost(host, env), projection, document, symbol)
 }
 #[napi]
-pub fn unicode_length(value: Utf16String) -> u32 {
-    char::decode_utf16(value.iter().copied()).count() as u32
+pub fn unicode_length(value: Array<'_>) -> u32 {
+    value.len()
 }

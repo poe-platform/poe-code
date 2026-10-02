@@ -317,4 +317,8 @@ export function toJsonSchemaDocument(schema, options = {}) {
 export function withJsonSchema(projection, document) {
   return invoke(native.withJsonSchema, projection, document, nativeJsonSchema);
 }
-export const { unicodeLength } = native;
+export function unicodeLength(value) {
+  // Iteration is observable, including for primitive strings with replaced
+  // iterators. Preserve spread semantics before native length accounting.
+  return native.unicodeLength([...value]);
+}

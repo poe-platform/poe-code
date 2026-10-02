@@ -2,7 +2,7 @@
 
 Measure virtual filesystem usage with `du`: recursive totals, apparent bytes,
 provider-reported allocation, inode counts, exclusions, symlink traversal and
-hardlink deduplication scoped to filesystem identity.
+file and directory deduplication scoped to filesystem identity.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
@@ -23,6 +23,9 @@ try {
 
 Use `-b` for apparent bytes, `-s` for a summary, `-a` for file rows, `-h` for
 human-readable sizes, `--exclude` to skip matches, and `-L` to follow symlinks.
+Repeated or overlapping directories with known identities are counted once per
+invocation, including aliases through mounts. Use `-l` (`--count-links`) to count
+each traversal independently. Entries with unknown identities count independently.
 Default allocation reporting requires the filesystem's `allocatedBytes` metadata;
 unknown allocation produces a diagnostic and suppresses incomplete totals.
 

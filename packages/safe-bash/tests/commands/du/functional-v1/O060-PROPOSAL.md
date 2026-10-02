@@ -1,4 +1,11 @@
-# O060: proposal only; no implementation approval
+# O060: historical proposal, superseded
+
+The current implementation follows the subsequently requested directory identity
+deduplication policy: known `identityScope/dev/ino` tuples are visited once per
+invocation unless `--count-links` is set. This applies to overlapping operands
+and mount aliases too. Unknown identities remain independent; ancestor cycle
+checks remain active. The proposal below records the earlier policy discussion
+and does not constrain the current implementation.
 
 The preserved case is the same unchanged Memory namespace with `tree tree`, not
 two different mount views. Current DU's extra zero directory rows are a real GNU

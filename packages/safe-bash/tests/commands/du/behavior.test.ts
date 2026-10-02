@@ -217,10 +217,10 @@ test("invocation-wide hardlink dedup uses complete scoped identity; count-links 
   }
 });
 
-test("repeated directories are traversed, not globally pruned by identity", async () => {
+test("repeated directories are deduplicated by identity", async () => {
   const fs = createMemoryFileSystem(); await seed(fs);
   const result = await shellRun(fs, ["-bc", "tree", "tree"]);
-  assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n0\ttree/sub\n0\ttree\n8\ttotal\n");
+  assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n8\ttotal\n");
 });
 
 test("known identity never hides an unknown allocation observation on a later alias", async () => {

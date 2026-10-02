@@ -65,14 +65,17 @@ test("real allocation survives readonly/mount/overlay selected-entry wrappers", 
   }
 });
 
-test("different mount namespaces sharing directory identity are never pruned", async () => {
+test("mount aliases sharing directory identity deduplicate unless count-links is set", async () => {
   const shared = createMemoryFileSystem(); await shared.mkdir("/dir");
   const extra = createMemoryFileSystem(); await extra.writeFile("/new", new Uint8Array(7));
   const view = createMountFileSystem({ root: shared, mounts: { "/dir/injected": extra } });
   const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/first": shared, "/second": view } });
   const result = await shellRun(fs, ["-bsc", "/first/dir", "/second/dir"]);
   assert.equal(result.exitCode, 0, result.stderr);
-  assert.equal(result.stdout, "0\t/first/dir\n7\t/second/dir\n7\ttotal\n");
+  assert.equal(result.stdout, "0\t/first/dir\n0\ttotal\n");
+  const independent = await shellRun(fs, ["-blsc", "/first/dir", "/second/dir"]);
+  assert.equal(independent.exitCode, 0, independent.stderr);
+  assert.equal(independent.stdout, "0\t/first/dir\n7\t/second/dir\n7\ttotal\n");
 });
 
 test("explicit Overlay cleanup retries pending garbage deletion after metadata-only DU", async () => {

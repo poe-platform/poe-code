@@ -22,7 +22,7 @@ class Walker {
   }
 
   private duplicate(stat: FileStat): boolean {
-    if (this.args.countLinks || stat.type === "directory") return false;
+    if (this.args.countLinks) return false;
     const { identityScope: scope, dev, ino } = stat;
     if ((typeof scope !== "object" || scope === null) && typeof scope !== "symbol") return false;
     if (dev === undefined || ino === undefined || !Number.isSafeInteger(dev) || dev < 0 || !Number.isSafeInteger(ino) || ino < 0) return false;

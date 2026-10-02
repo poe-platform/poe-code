@@ -144,7 +144,7 @@ Report provider allocation; unknown allocation is an error, never logical size.
   -b, --bytes               apparent size in bytes
       --apparent-size      file/link lengths, zero directory contribution
   -d, --max-depth=N         reporting depth only; traversal still bounded
-  -l, --count-links         count every non-directory alias
+  -l, --count-links         count every file and directory alias
   -0, --null                terminate records with NUL instead of newline
       --inodes             count entries instead of bytes
       --exclude=PATTERN    exclude matching paths

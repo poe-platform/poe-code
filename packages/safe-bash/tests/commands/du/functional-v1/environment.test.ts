@@ -95,10 +95,10 @@ test("empty operand diagnoses invalid name without any empty/root lookup and pre
   assert.deepEqual(checked.calls.map(call => call.path), ["/missing"]);
 });
 
-test("O060 repeated-directory behavior and deterministic ordering stay unchanged", async () => {
+test("repeated directories deduplicate while deterministic ordering stays unchanged", async () => {
   const fs = createMemoryFileSystem(); await seed(fs);
   const result = await shellRun(fs, ["-b", "tree", "tree"]);
-  assert.equal(result.exitCode, 0); assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n0\ttree/sub\n0\ttree\n");
+  assert.equal(result.exitCode, 0); assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n");
   await fs.writeFile("/tree/z", new Uint8Array(1)); await fs.writeFile("/tree/c", new Uint8Array(1));
   const sorted = await shellRun(fs, ["-ba", "tree"]);
   assert.ok(sorted.stdout.indexOf("\ttree/a\n") < sorted.stdout.indexOf("\ttree/c\n"));

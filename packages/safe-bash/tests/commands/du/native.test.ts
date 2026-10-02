@@ -28,19 +28,13 @@ const diagnosticProfile: Readonly<Record<string, string>> = {
 for (const item of profile.results) {
   test(`GNU 9.7 captured profile: ${item.name}`, async () => {
     const result = await shellRun(fs, item.args, item.env);
-    if (item.name === "-b tree tree") {
-      assert.equal(item.stdout, "5\ttree/sub\n8\ttree\n");
-      assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n0\ttree/sub\n0\ttree\n");
-      assert.equal(result.exitCode, 0); assert.equal(result.stderr, "");
-    } else {
-      assert.equal(result.exitCode, item.status);
-      assert.equal(result.stdout, item.stdout);
-      if (item.stderr === "") assert.equal(result.stderr, "");
-      else if (item.name === "tree:-s -d0") assert.equal(result.stderr, "");
-      else {
-        assert.ok(Object.hasOwn(diagnosticProfile, item.name), `classify native diagnostic: ${item.name}`);
-        assert.equal(result.stderr, diagnosticProfile[item.name]);
-      }
+    assert.equal(result.exitCode, item.status);
+    assert.equal(result.stdout, item.stdout);
+    if (item.stderr === "") assert.equal(result.stderr, "");
+    else if (item.name === "tree:-s -d0") assert.equal(result.stderr, "");
+    else {
+      assert.ok(Object.hasOwn(diagnosticProfile, item.name), `classify native diagnostic: ${item.name}`);
+      assert.equal(result.stderr, diagnosticProfile[item.name]);
     }
   });
 }

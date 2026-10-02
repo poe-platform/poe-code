@@ -236,3 +236,11 @@ const nestedAssignment:void=dynamicArgv.setNestedValue(nestedTarget,["config","n
 // @ts-expect-error dynamic flags use CLI casing rather than SDK camel casing
 dynamicArgv.parseDynamicValues([],[],"camel",fieldErrors);
 void [parsedDynamicArgv,nestedAssignment];
+
+import * as cliPreparation from "../dist/cli-prepare.js";
+const commanderProgram=null as unknown as import("commander").Command;
+const preparedCliArgv:{argv:string[];helpArgv?:string[]}=cliPreparation.prepareCliArguments(commanderProgram,[],new Map(),"kebab",null as unknown as import("../dist/cli-policy.js").ResolvedCLIControls);
+const defaultCommandName:string|undefined=cliPreparation.getDefaultCommanderCommandName(commanderProgram);
+// @ts-expect-error CLI preparation requires command-keyed dynamic field loaders
+cliPreparation.prepareCliArguments(commanderProgram,[],new Map<string,()=>[]>(),"kebab",null as unknown as import("../dist/cli-policy.js").ResolvedCLIControls);
+void [preparedCliArgv,defaultCommandName];

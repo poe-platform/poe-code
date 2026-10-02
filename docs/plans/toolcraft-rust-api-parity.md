@@ -3483,3 +3483,43 @@ compatibility paths and does not pass the performance or default-swap gates.
 
 Dynamic value assembly is verified on remote main at 83f07b0782. Its Release
 workflow 37069837816 is running validate/build; publication remains unverified.
+
+### CLI argument-preparation checkpoint
+
+The internal argument preparer now uses Rust for command/alias/default selection,
+short option clusters, attached/required/optional value consumption, verbose
+normalization, first-help-path capture and dynamic scalar flag normalization.
+Node retains Commander objects, live find callbacks, loader invocation, property
+reads, string methods, slice/spread operations and arbitrary thrown identity.
+Only user errors from dynamic resolution are suppressed, matching the reference.
+No dependencies, public CLI entry point or default implementation changed.
+
+Four missing-module failures preceded implementation. Nine final differential
+tests extract the actual reference helpers and cover terminators, unknown flags,
+command aliases/default retries, changing default-name getters, output/help
+precedence, dynamic scalar/boolean/array fields, callback/receiver order, live
+Set and array methods, spread iteration, malformed inputs and reentrancy.
+A separate failing regression caught the path-push TypeError wording; distinct
+path and normalized-array host expressions now preserve the reference message.
+The maintained package route passes 253 native tests, Rust tests, 1,723
+reference/integration cases across 46 files and declarations. Rust/binding and
+scoped JS lint pass. Complete CLI execution suites are not redirected yet.
+
+Packed consumers select defaults and normalize dynamic flags with only packed
+own schema and existing Commander admitted as external ESM imports. Packed
+declarations compile with types: []; existing contract declarations still
+resolve from the checkout, so standalone type qualification remains open.
+An inspected normalization/help-target preview has reference-identical output;
+it is not a complete interactive CLI run.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 command/alias/dynamic
+flag/help preparations, retaining 32 results, measured native/reference medians
+of 112.408/2.356 microseconds (47.71 times slower). Native/host crossings still
+need optimization; the performance/default-swap gates remain unpassed. Full CLI
+construction and execution, prompts/help integration, transports and complete
+resource/platform/reentrancy/packaging qualification remain open.
+
+Dynamic argv integration is independently verified in remote main at d67b4261af.
+Its Release workflow 37070671678 remains pending build at the latest check.
+The preceding value-assembly workflow 37069837816 completed successfully with
+release-stable skipped. Neither observation establishes new publication.

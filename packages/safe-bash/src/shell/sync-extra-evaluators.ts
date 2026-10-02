@@ -130,7 +130,7 @@ import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expressio
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { stateMonitor } from "./arrays/state.js";
-import type { Budget, State } from "./runtime.js";
+import type { Budget, RootShellState, State } from "./runtime.js";
 import { Runtime } from "./runtime.js";
 
 const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);

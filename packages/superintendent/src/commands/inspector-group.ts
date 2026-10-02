@@ -1,4 +1,5 @@
-import { S, UserError, defineCommand, defineGroup } from "toolcraft";
+import { host } from "#superintendent-command-platform";
+import { S, UserError, defineCommand, defineGroup } from "toolcraft/runtime";
 import { hasOwnErrorCode } from "../error-codes.js";
 import {
   resolveSuperintendentDoc,
@@ -101,7 +102,7 @@ export function createInspectorRunCommand(runners?: InspectorGroupRunners) {
         fs
       );
 
-      const defaultCwd = process.cwd();
+      const defaultCwd = host.cwd();
 
       if (params.name === undefined) {
         if (params.dryRun === true) {

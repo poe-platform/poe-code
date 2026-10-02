@@ -1,4 +1,4 @@
-import { defineScope } from "@poe-code/poe-code-config/core";
+import { defineScope } from "@poe-code/poe-code-config/workflow";
 
 export const superintendentConfigScope = defineScope("superintendent", {
   tui: {

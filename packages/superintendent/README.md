@@ -151,6 +151,11 @@ import {
 - `resolveTemplate`
 - types: `LoopCallbacks`, `BuilderResult`, `InspectorResult`, `TemplateContext`
 
+Pass a SafeFS `FileSystem` as `fs`, explicit `cwd` and `homeDir`, and a `runAgent`
+callback to `runLoop` or `runSuperintendentSequence` to run in Cloudflare Workers
+without Node compatibility. Each run keeps its storage and runner isolated.
+Individual role functions accept an explicit `runner` option as well.
+
 ### State
 
 - `createLoopState`
@@ -173,6 +178,12 @@ Re-exported from `./testing/index.js`:
 ### Commands
 
 - `superintendentGroup`
+- `createInstallCommand({ fs, cwd, homeDir, env })`
+- `createPlanPathCommand({ fs, cwd, homeDir, env })`
+
+The command factories accept SafeFS storage for installation and configuration
+lookup in Workers. Host subprocesses and interactive terminal dashboards require
+Node.js; portable loop callers provide their own agent execution callback.
 
 ## Environment Variables
 

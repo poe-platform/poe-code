@@ -1,5 +1,6 @@
-import { S, UserError, defineCommand, defineGroup } from "toolcraft";
-import { text } from "toolcraft-design";
+import { host } from "#superintendent-command-platform";
+import { S, UserError, defineCommand, defineGroup } from "toolcraft/runtime";
+import { text } from "#superintendent-command-platform";
 import { hasOwnErrorCode } from "../error-codes.js";
 import { resolveSuperintendentDoc } from "../document/parse.js";
 import { runBuilder, type BuilderResult } from "../runtime/run-builder.js";
@@ -42,7 +43,7 @@ export function createBuilderRunCommand(runners?: BuilderGroupRunners) {
         };
       }
 
-      return runBuilderImpl(document, {}, { defaultCwd: process.cwd() });
+      return runBuilderImpl(document, {}, { defaultCwd: host.cwd() });
     },
     render: {
       rich: (result, { logger }) => {

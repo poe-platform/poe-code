@@ -1,4 +1,4 @@
-import { cpSync, mkdirSync, readdirSync } from "fs";
+import { cpSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import path from "path";
 import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 
@@ -15,3 +15,5 @@ for (const entry of readdirSync(sourceDir, { withFileTypes: true })) {
 
   cpSync(path.join(sourceDir, entry.name), path.join(outputDir, entry.name));
 }
+
+writeFileSync("dist/template-data.js", `export const skillTemplate = ${JSON.stringify(readFileSync("src/templates/SKILL_superintendent.md", "utf8"))};\n`);

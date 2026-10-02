@@ -1,12 +1,10 @@
-import path from "node:path";
-import * as fsPromises from "node:fs/promises";
-import {
-  exec as nodeExec,
-  spawn as nodeSpawn,
-  spawnSync as nodeSpawnSync
-} from "node:child_process";
-import { randomUUID } from "node:crypto";
-import { promisify } from "node:util";
+import { superintendentFileSystem } from "../filesystem.js";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import type { Dashboard, DashboardOptions } from "toolcraft-design";
+import type { AcpSpawnContext, SpawnMode } from "@poe-code/agent-spawn";
+import { host } from "#superintendent-command-platform";
+import { posixPath as path } from "@poe-code/safe-fs";
+import { fsPromises, nodeSpawn, nodeSpawnSync, execShell } from "#superintendent-command-platform";
 import {
   discoverPlans,
   ensureSafeRunLogDir,
@@ -30,9 +28,7 @@ import {
   spawnStreaming,
   usageCapture,
   streamAcpEventsToDashboard,
-  type AcpSpawnContext,
-  type SpawnMode
-} from "@poe-code/agent-spawn";
+} from "#superintendent-command-platform";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import {
   createWorktree,
@@ -43,7 +39,7 @@ import {
   type WorktreeReconciliationSummary
 } from "@poe-code/worktree";
 import { executePoeAgent } from "./poe-agent-runner.js";
-import { S, UserError, defineCommand } from "toolcraft";
+import { S, UserError, defineCommand } from "toolcraft/runtime";
 import {
   acp,
   cancel,
@@ -52,9 +48,7 @@ import {
   resolveOutputFormat,
   select,
   shouldUseInteractiveDashboard,
-  type Dashboard,
-  type DashboardOptions
-} from "toolcraft-design";
+} from "#superintendent-command-platform";
 import {
   planConfigScope,
   readMergedDocument,
@@ -63,7 +57,7 @@ import {
   resolveProjectConfigPath,
   resolveScope,
   type ConfigDocument
-} from "@poe-code/poe-code-config/core";
+} from "@poe-code/poe-code-config/workflow";
 import { superintendentConfigScope } from "../config-scope.js";
 import { resolveSuperintendentDoc } from "../document/parse.js";
 import {
@@ -79,7 +73,6 @@ import { createLoopState, type LoopState } from "../state/machine.js";
 import { parseTaskBoard } from "../document/tasks.js";
 import { runSuperintendentSequence, type SuperintendentSequenceOptions, type SuperintendentSequenceResult } from "../runtime/sequence.js";
 
-const execShell = promisify(nodeExec);
 type SharedDiscoverPlansFs = NonNullable<Parameters<typeof discoverPlans>[0]["fs"]>;
 
 type WorktreeExecutionOptions = boolean;
@@ -120,7 +113,7 @@ export type RunCommandOptions = {
   useDashboard?: boolean;
   dryRun?: boolean;
   env?: Record<string, string | undefined>;
-  fs?: SuperintendentFileSystem;
+  fs?: SuperintendentFileSystem | FileSystem;
   now?: () => number;
   createDashboard?: (options?: DashboardOptions) => Dashboard;
   selectPrompt?: typeof select;
@@ -133,8 +126,8 @@ export type RunCommandOptions = {
       usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
     }
   >;
-  setInterval?: typeof global.setInterval;
-  clearInterval?: typeof global.clearInterval;
+  setInterval?: typeof globalThis.setInterval;
+  clearInterval?: typeof globalThis.clearInterval;
   openInEditor?: (absolutePath: string, env: Record<string, string | undefined>) => void;
   stderr?: NodeJS.WritableStream;
   exit?: (code: number) => never;
@@ -221,9 +214,9 @@ export const runCommand = defineCommand({
   params: runParams,
   scope: ["cli", "sdk"],
   handler: async ({ params }) => {
-    const cwd = process.cwd();
-    const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
-    const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
+    const cwd = host.cwd();
+    const homeDir = host.env.HOME ?? host.env.USERPROFILE ?? cwd;
+    const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, host.env);
     const tuiEnabled = params.tui ?? commandConfig.tui;
 
     const docs = params.docs?.length ? params.docs : params.doc ? [params.doc] : undefined;
@@ -238,18 +231,18 @@ export const runCommand = defineCommand({
       ...(params.detach ? { detach: params.detach } : {}),
       ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
       configuredDefaultAgent: commandConfig.configuredDefaultAgent,
-      assumeYes: process.argv.includes("--yes"),
-      interactive: Boolean(process.stdin.isTTY),
+      assumeYes: host.argv.includes("--yes"),
+      interactive: Boolean(host.stdin.isTTY),
       useDashboard:
         shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
       dryRun: params.dryRun === true,
       worktree: pickWorktreeOptions(params),
-      env: process.env,
+      env: host.env,
       ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
     };
     const result = await runSuperintendentCommand(runOptions);
-    if (result.queue?.status === "failed") process.exitCode = 1;
-    else if (result.queue?.status === "cancelled" || result.stopReason === "aborted") process.exitCode = 130;
+    if (result.queue?.status === "failed") host.exitCode = 1;
+    else if (result.queue?.status === "cancelled" || result.stopReason === "aborted") host.exitCode = 130;
     return result;
   },
   render: {
@@ -306,9 +299,9 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
     params: runParams,
     scope: ["mcp"],
     handler: async ({ params }) => {
-      const cwd = process.cwd();
-      const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
-      const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
+      const cwd = host.cwd();
+      const homeDir = host.env.HOME ?? host.env.USERPROFILE ?? cwd;
+      const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, host.env);
 
       const runOptions: RunCommandOptions = {
         cwd,
@@ -325,7 +318,7 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
         assumeYes: true,
         interactive: false,
         useDashboard: false,
-        env: process.env,
+        env: host.env,
         worktree: pickWorktreeOptions(params),
         ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
         ...(runners?.runLoop ? { runLoop: runners.runLoop } : {})
@@ -457,19 +450,19 @@ function createConfigResolutionFs(fs?: SuperintendentFileSystem): typeof configF
 export async function runSuperintendentCommand(
   options: RunCommandOptions
 ): Promise<SuperintendentRunCommandResult> {
-  const fs = options.fs ?? createDefaultFs();
+  const fs = superintendentFileSystem(options.fs);
   const now = options.now ?? Date.now;
   const selectPrompt = options.selectPrompt ?? select;
   const dashboardFactory = options.createDashboard ?? createDashboard;
   const runLoopImpl = options.runLoop ?? runLoop;
-  const setIntervalImpl = options.setInterval ?? global.setInterval;
-  const clearIntervalImpl = options.clearInterval ?? global.clearInterval;
-  const env = options.env ?? process.env;
-  const interactive = options.interactive ?? Boolean(process.stdin.isTTY);
+  const setIntervalImpl = options.setInterval ?? globalThis.setInterval;
+  const clearIntervalImpl = options.clearInterval ?? globalThis.clearInterval;
+  const env = options.env ?? host.env;
+  const interactive = options.interactive ?? Boolean(host.stdin.isTTY);
   const assumeYes = options.assumeYes ?? false;
   const useDashboard = options.useDashboard ?? resolveOutputFormat() === "terminal";
-  const stderr = options.stderr ?? process.stderr;
-  const exitProcess = options.exit ?? ((code: number) => process.exit(code));
+  const stderr = options.stderr ?? host.stderr;
+  const exitProcess = options.exit ?? ((code: number) => host.exit(code));
 
 
   let selectedDocPath = await resolveDocPath({
@@ -591,7 +584,7 @@ export async function runSuperintendentCommand(
       headlessAbort.abort();
       exitProcess(130);
     };
-    if (!options.signal) process.on("SIGINT", headlessSigint);
+    if (!options.signal) host.on("SIGINT", headlessSigint);
     try {
       return await executeSequence({
         runPlan: runLoopImpl,
@@ -646,7 +639,7 @@ export async function runSuperintendentCommand(
       });
 
     } finally {
-      process.off("SIGINT", headlessSigint);
+      host.off("SIGINT", headlessSigint);
     }
   }
 
@@ -933,7 +926,7 @@ export async function runSuperintendentCommand(
   const sigintHandler = () => {
     forceQuit();
   };
-  process.on("SIGINT", sigintHandler);
+  host.on("SIGINT", sigintHandler);
 
   let caughtError: unknown;
   try {
@@ -992,7 +985,7 @@ export async function runSuperintendentCommand(
   } finally {
     unsubscribeQueue();
     clearIntervalImpl(intervalId);
-    process.off("SIGINT", sigintHandler);
+    host.off("SIGINT", sigintHandler);
     session.dashboard.stop();
     session.dashboard.destroy();
   }
@@ -1017,7 +1010,7 @@ async function runSuperintendentInWorktree(input: {
   const deps = input.options.worktreeDeps ?? createNodeWorktreeDeps();
   const worktree = await createWorktree({
     cwd: input.options.cwd,
-    name: `superintendent-${randomUUID().slice(0, 8)}`,
+    name: `superintendent-${crypto.randomUUID().slice(0, 8)}`,
     baseBranch: "HEAD",
     source: "superintendent",
     agent: input.selectedBuilderAgent,
@@ -1707,40 +1700,7 @@ function readConfiguredBuilderAgent(frontmatter: Record<string, unknown>): strin
   return typeof agent === "string" ? agent : undefined;
 }
 
-function createDefaultFs(): SuperintendentFileSystem {
-  const fs = {
-    readFile: fsPromises.readFile as SuperintendentFileSystem["readFile"],
-    writeFile: fsPromises.writeFile as SuperintendentFileSystem["writeFile"],
-    readdir: fsPromises.readdir,
-    stat: async (filePath: string) => {
-      const stat = await fsPromises.stat(filePath);
-      return {
-        isFile: () => stat.isFile(),
-        isDirectory: () => stat.isDirectory(),
-        mtimeMs: stat.mtimeMs
-      };
-    },
-    lstat: async (filePath: string) => {
-      const stat = await fsPromises.lstat(filePath);
-      return { isSymbolicLink: () => stat.isSymbolicLink() };
-    },
-    mkdir: async (filePath: string, mkdirOptions?: { recursive?: boolean }) => {
-      await fsPromises.mkdir(filePath, mkdirOptions);
-    },
-    rmdir: async (filePath: string) => {
-      await fsPromises.rmdir(filePath);
-    },
-    rename: async (oldPath: string, newPath: string) => {
-      await fsPromises.rename(oldPath, newPath);
-    },
-    unlink: async (filePath: string) => {
-      await fsPromises.unlink(filePath);
-    },
-    realpath: fsPromises.realpath
-  };
 
-  return fs as SuperintendentFileSystem;
-}
 
 function toError(error: unknown): Error {
   return error instanceof Error ? error : new Error(String(error));

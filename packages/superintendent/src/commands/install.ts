@@ -1,32 +1,34 @@
-import path from "node:path";
-import { readFile, stat, lstat, mkdir, writeFile, rename, unlink, readdir, chmod } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
-import { S, UserError, defineCommand } from "toolcraft";
+import { superintendentOperations, type SuperintendentCommandRuntime } from "../filesystem.js";
+import { host } from "#superintendent-command-platform";
+import { posixPath as path } from "@poe-code/safe-fs";
+import { fsPromises } from "#superintendent-command-platform";
+import { skillTemplate } from "#superintendent-template";
+import { S, UserError, defineCommand } from "toolcraft/runtime";
 import {
   planConfigScope,
   readMergedDocument,
   resolveConfigPath,
   resolveProjectConfigPath,
   resolveScope
-} from "@poe-code/poe-code-config/core";
+} from "@poe-code/poe-code-config/workflow";
 import {
   installSkill,
   resolveAgentSupport,
   type SkillScope
-} from "@poe-code/agent-skill-config";
+} from "@poe-code/agent-skill-config/runtime";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import { hasOwnErrorCode } from "../error-codes.js";
 
-const fs = {
-  readFile: (p: string, encoding: "utf8") => readFile(p, encoding),
-  writeFile: (p: string, content: string) => writeFile(p, content),
-  mkdir: (p: string, options?: { recursive: boolean }) => mkdir(p, options).then(() => undefined) as Promise<void>,
-  rename: (oldPath: string, newPath: string) => rename(oldPath, newPath),
-  unlink: (p: string) => unlink(p),
-  stat: (p: string) => stat(p).then((s) => ({ mode: s.mode })),
-  lstat: (p: string) => lstat(p).then((s) => ({ isSymbolicLink: () => s.isSymbolicLink() })),
-  readdir: (p: string) => readdir(p),
-  chmod: (p: string, mode: number) => chmod(p, mode)
+const defaultFs = {
+  readFile: (p: string, encoding: "utf8") => fsPromises.readFile(p, encoding),
+  writeFile: (p: string, content: string) => fsPromises.writeFile(p, content),
+  mkdir: (p: string, options?: { recursive: boolean }) => fsPromises.mkdir(p, options).then(() => undefined) as Promise<void>,
+  rename: (oldPath: string, newPath: string) => fsPromises.rename(oldPath, newPath),
+  unlink: (p: string) => fsPromises.unlink(p),
+  stat: (p: string) => fsPromises.stat(p).then((s) => ({ mode: s.mode })),
+  lstat: (p: string) => fsPromises.lstat(p).then((s) => ({ isSymbolicLink: () => s.isSymbolicLink() })),
+  readdir: (p: string) => fsPromises.readdir(p),
+  chmod: (p: string, mode: number) => fsPromises.chmod(p, mode)
 };
 
 export type InstallResult = {
@@ -57,15 +59,18 @@ const installParams = S.Object({
   }))
 });
 
-export const installCommand = defineCommand({
+export function createInstallCommand(runtime?: SuperintendentCommandRuntime) {
+  return defineCommand({
   name: "install",
   description: "Install the Superintendent /superintendent skill and scaffold the shared plan directory.",
   positional: ["agent"],
   params: installParams,
   scope: ["cli", "sdk"],
   handler: async ({ params }) => {
-    const cwd = process.cwd();
-    const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
+    const fs = runtime ? superintendentOperations(runtime.fs) : defaultFs;
+    const cwd = runtime?.cwd ?? host.cwd();
+    const homeDir = runtime?.homeDir ?? host.env.HOME ?? host.env.USERPROFILE ?? cwd;
+    const env = runtime?.env ?? host.env;
     const scope = params.scope as SkillScope;
 
     const support = resolveAgentSupport(params.agent);
@@ -73,7 +78,7 @@ export const installCommand = defineCommand({
       throw new UserError(`Unsupported agent: ${params.agent}`);
     }
 
-    const skillContent = params.dryRun === true ? "" : await loadSkillTemplate();
+    const skillContent = params.dryRun === true ? "" : skillTemplate;
     const skillResult = await installSkill(
       support.id,
       {
@@ -90,7 +95,7 @@ export const installCommand = defineCommand({
       }
     );
 
-    const planDirectory = await resolvePlanDirectory(cwd, homeDir, process.env);
+    const planDirectory = await resolvePlanDirectory(cwd, homeDir, env, fs);
     const absolutePlanDirectory = resolveAbsoluteDirectory(planDirectory, cwd, homeDir);
     const planDirectoryCreated = await ensurePlanDirectory(
       absolutePlanDirectory,
@@ -136,11 +141,15 @@ export const installCommand = defineCommand({
     json: (result) => result
   }
 });
+}
+
+export const installCommand = createInstallCommand();
 
 async function resolvePlanDirectory(
   cwd: string,
   homeDir: string,
-  env: Record<string, string | undefined>
+  env: Record<string, string | undefined>,
+  fs: typeof defaultFs | ReturnType<typeof superintendentOperations>
 ): Promise<string> {
   const configPath = resolveConfigPath(homeDir);
   const projectConfigPath = resolveProjectConfigPath(cwd);
@@ -158,7 +167,7 @@ function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): st
 
 type PlanDirectoryFs = {
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
-  mkdir(path: string, options?: { recursive: boolean }): Promise<void>;
+  mkdir(path: string, options?: { recursive: boolean }): Promise<unknown>;
 };
 
 export async function ensurePlanDirectory(
@@ -196,63 +205,4 @@ export async function ensurePlanDirectory(
     await fileSystem.mkdir(absolutePlanDirectory, { recursive: true });
   }
   return true;
-}
-
-async function pathExists(targetPath: string): Promise<boolean> {
-  try {
-    await stat(targetPath);
-    return true;
-  } catch (error) {
-    if (hasOwnErrorCode(error, "ENOENT")) {
-      return false;
-    }
-
-    throw error;
-  }
-}
-
-let skillTemplateCache: string | null = null;
-
-async function loadSkillTemplate(): Promise<string> {
-  if (skillTemplateCache) {
-    return skillTemplateCache;
-  }
-
-  const packageRoot = await findPackageRoot(fileURLToPath(import.meta.url));
-  const templateRoots = [
-    path.join(packageRoot, "src", "templates"),
-    path.join(packageRoot, "dist", "templates")
-  ];
-
-  for (const templateRoot of templateRoots) {
-    if (!(await pathExists(templateRoot))) {
-      continue;
-    }
-
-    skillTemplateCache = await readFile(
-      path.join(templateRoot, "SKILL_superintendent.md"),
-      "utf8"
-    );
-
-    return skillTemplateCache;
-  }
-
-  throw new Error("Unable to locate Superintendent skill template.");
-}
-
-async function findPackageRoot(entryFilePath: string): Promise<string> {
-  let currentPath = path.dirname(entryFilePath);
-
-  while (true) {
-    if (await pathExists(path.join(currentPath, "package.json"))) {
-      return currentPath;
-    }
-
-    const parentPath = path.dirname(currentPath);
-    if (parentPath === currentPath) {
-      throw new Error("Unable to locate package root for Superintendent templates.");
-    }
-
-    currentPath = parentPath;
-  }
 }

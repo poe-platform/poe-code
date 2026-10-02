@@ -4,7 +4,7 @@ import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 
 it("runs a superintendent plan on portable storage without Node compatibility", async () => {
-  const bundle = await build({ entryPoints: [fileURLToPath(new URL("./loop.ts", import.meta.url))],
+  const bundle = await build({ entryPoints: [fileURLToPath(new URL("../index.ts", import.meta.url))],
     bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "iife", globalName: "superintendent", logLevel: "silent" });
   const runtime = new Function(`${bundle.outputFiles[0].text}; return superintendent;`)();
   const fs = new MemoryFileSystem();
@@ -19,7 +19,16 @@ it("runs a superintendent plan on portable storage without Node compatibility", 
     await fs.writeFile("/repo/plan.md", new TextEncoder().encode(document.replace("state: in_progress", "state: completed")));
     return { stdout: "Built café", stderr: "", exitCode: 0 };
   } });
+  const commandRuntime = { fs, cwd: "/repo", homeDir: "/home/test", env: {} };
+  const installed = await runtime.createInstallCommand(commandRuntime).handler({
+    params: { agent: "codex", scope: "local" }, runtime: commandRuntime
+  });
+  expect(installed.skillPath).toContain("poe-code-superintendent-plan");
+  const skill = new TextDecoder().decode(await fs.readFile("/repo/.codex/skills/poe-code-superintendent-plan/SKILL.md"));
+  expect(skill).toContain("kind: superintendent");
+  const planDirectory = await runtime.createPlanPathCommand(commandRuntime).handler({ runtime: commandRuntime });
+  expect(planDirectory.planDirectory).toBe("/repo/docs/plans");
   expect(result.stopReason).toBe("completed");
   expect(prompts).toEqual(["Build café"]);
-  expect(await fs.readdir("/repo")).toEqual([{ name: "plan.md", type: "file" }]);
+  expect((await fs.readdir("/repo")).some(entry => entry.name.endsWith(".lock") || entry.name.endsWith(".tmp"))).toBe(false);
 });

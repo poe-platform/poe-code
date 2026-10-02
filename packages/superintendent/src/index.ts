@@ -42,3 +42,7 @@ export { superintendentGroup } from "./commands/index.js";
 
 // Config
 export { superintendentConfigScope } from "./config-scope.js";
+
+export type { SuperintendentCommandRuntime } from "./filesystem.js";
+export { createInstallCommand } from "./commands/install.js";
+export { createPlanPathCommand } from "./commands/plan-path.js";

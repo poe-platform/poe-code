@@ -58,6 +58,17 @@
       "browser": "./dist/default-filesystem.workerd.js",
       "worker": "./dist/default-filesystem.workerd.js",
       "default": "./dist/default-filesystem.js"
+    },
+    "#superintendent-command-platform": {
+      "types": "./src/command-platform.ts",
+      "workerd": "./dist/command-platform.workerd.js",
+      "browser": "./dist/command-platform.workerd.js",
+      "worker": "./dist/command-platform.workerd.js",
+      "default": "./dist/command-platform.js"
+    },
+    "#superintendent-template": {
+      "types": "./src/template-data.d.ts",
+      "default": "./dist/template-data.js"
     }
   }
 }

@@ -1,5 +1,4 @@
-import { randomUUID } from "node:crypto";
-import { S, UserError, defineCommand } from "toolcraft";
+import { S, UserError, defineCommand } from "toolcraft/runtime";
 import { hasOwnErrorCode } from "../error-codes.js";
 import { setStatusReason, transitionState } from "../document/write.js";
 import { withDocumentStatusLock } from "../document/status-lock.js";
@@ -115,7 +114,7 @@ async function writeDocumentAtomically(
     unlink(path: string): Promise<void>;
   }
 ): Promise<void> {
-  const temporaryPath = `${filePath}.${process.pid}.${randomUUID()}.tmp`;
+  const temporaryPath = `${filePath}.${crypto.randomUUID()}.tmp`;
   let temporaryCreated = false;
   try {
     await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });

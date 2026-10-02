@@ -1,6 +1,7 @@
-import path from "node:path";
-import { S, UserError, defineCommand, defineGroup } from "toolcraft";
-import { text } from "toolcraft-design";
+import { host } from "#superintendent-command-platform";
+import { posixPath as path } from "@poe-code/safe-fs";
+import { S, UserError, defineCommand, defineGroup } from "toolcraft/runtime";
+import { text } from "#superintendent-command-platform";
 import { hasOwnErrorCode } from "../error-codes.js";
 import {
   parseSuperintendentDoc,
@@ -291,7 +292,7 @@ function summarizeMergedFrontmatter(document: SuperintendentDoc): string[] {
 }
 
 function formatDisplayPath(filePath: string): string {
-  const relativePath = path.relative(process.cwd(), filePath);
+  const relativePath = path.relative(host.cwd(), filePath);
 
   if (
     relativePath.length > 0 &&

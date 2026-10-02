@@ -607,9 +607,9 @@ test("36. sync expand/unexpand multi -t tablists, column -e vs -L and JSON colum
 
 test("55. sync vs async parity for apply_patch, html-to-markdown, and xq semantics", async () => {
   const scripts = [
-    "mkdir -p /ap55; cd /ap55; printf \"old\\n\" > a.txt; printf \"existing\\n\" > b.txt; p=\$'*** Begin Patch\\n*** Update File: a.txt\\n*** Move to: b.txt\\n@@\\n-old\\n+new\\n*** End Patch'; x=\$(apply_patch \"\$p\" 2>/dev/null; echo \$?); y=\$(cat b.txt); echo \"\$x|\$y\"",
-    "mkdir -p /ap55b; cd /ap55b; printf \"line1\\r\\nline2\\r\\n\" > crlf.txt; p=\$'*** Begin Patch\\n*** Update File: crlf.txt\\n@@\\n-line1\\n+mod1\\n*** End Patch'; apply_patch \"\$p\" >/dev/null; od -An -tx1 crlf.txt | tr -d ' \\n'; echo",
-    "a=\$(html-to-markdown <<< $'<p>\\n  hello\\n  world\\n</p>'); b=\$(html-to-markdown <<< '<p>line1<br>line2</p>'); echo \"\$a|\$b\"",
+    "mkdir -p /ap55; cd /ap55; printf \"old\\n\" > a.txt; printf \"existing\\n\" > b.txt; p=$'*** Begin Patch\\n*** Update File: a.txt\\n*** Move to: b.txt\\n@@\\n-old\\n+new\\n*** End Patch'; x=$(apply_patch \"$p\" 2>/dev/null; echo $?); y=$(cat b.txt); echo \"$x|$y\"",
+    "mkdir -p /ap55b; cd /ap55b; printf \"line1\\r\\nline2\\r\\n\" > crlf.txt; p=$'*** Begin Patch\\n*** Update File: crlf.txt\\n@@\\n-line1\\n+mod1\\n*** End Patch'; apply_patch \"$p\" >/dev/null; od -An -tx1 crlf.txt | tr -d ' \\n'; echo",
+    "a=$(html-to-markdown <<< $'<p>\\n  hello\\n  world\\n</p>'); b=$(html-to-markdown <<< '<p>line1<br>line2</p>'); echo \"$a|$b\"",
     "mkdir -p /xq55; cd /xq55; printf '<root><x>42</x></root>' > doc.xml; xq -n 'inputs.root.x' doc.xml",
   ];
   for (const script of scripts) {
@@ -624,10 +624,10 @@ test("55. sync vs async parity for apply_patch, html-to-markdown, and xq semanti
 
 test("54. sync vs async parity for pr, iconv, dos2unix, and chmod semantics", async () => {
   const scripts = [
-    "mkdir -p /pr54; cd /pr54; printf \"from_file\\n\" > -- -f.txt; touch -d 2020-01-02T03:04:05Z -- -f.txt; a=\$(pr -t <<< \"from_stdin\"); b=\$(pr -t -- -f.txt <<< \"from_stdin\"); c=\$(pr -D \"%Y-%m-%d\" -- -f.txt | head -n 4); echo \"\$a|\$b|\$c\"",
-    "mkdir -p /ic54; cd /ic54; a=\$(iconv -f UTF-8 -t ASCII -o - <<< \"hello\"); b=\$(test -e - && echo exists || echo none); echo \"\$a|\$b\"",
-    "mkdir -p /d2u54; cd /d2u54; a=\$(dos2unix - <<< $'hi\\r\\n'); b=\$(dos2unix -qe <<< $'hi\\r\\n' 2>/dev/null; echo \$?); echo \"\$a|\$b\"",
-    "mkdir -p /ch54; cd /ch54; printf \"hi\" > a.txt; chmod 644 a.txt; x=\$(chmod -c 600 a.txt missing.txt 2>/dev/null; echo \$?); echo \"\$x\"",
+    "mkdir -p /pr54; cd /pr54; printf \"from_file\\n\" > -- -f.txt; touch -d 2020-01-02T03:04:05Z -- -f.txt; a=$(pr -t <<< \"from_stdin\"); b=$(pr -t -- -f.txt <<< \"from_stdin\"); c=$(pr -D \"%Y-%m-%d\" -- -f.txt | head -n 4); echo \"$a|$b|$c\"",
+    "mkdir -p /ic54; cd /ic54; a=$(iconv -f UTF-8 -t ASCII -o - <<< \"hello\"); b=$(test -e - && echo exists || echo none); echo \"$a|$b\"",
+    "mkdir -p /d2u54; cd /d2u54; a=$(dos2unix - <<< $'hi\\r\\n'); b=$(dos2unix -qe <<< $'hi\\r\\n' 2>/dev/null; echo $?); echo \"$a|$b\"",
+    "mkdir -p /ch54; cd /ch54; printf \"hi\" > a.txt; chmod 644 a.txt; x=$(chmod -c 600 a.txt missing.txt 2>/dev/null; echo $?); echo \"$x\"",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());
@@ -641,9 +641,9 @@ test("54. sync vs async parity for pr, iconv, dos2unix, and chmod semantics", as
 
 test("53. sync vs async parity for unzip, tar, and du semantics", async () => {
   const scripts = [
-    "mkdir -p /uz53; cd /uz53; printf \"orig\\n\" > hello.txt; zip -q a.zip hello.txt; printf \"changed\\n\" > hello.txt; a=\$(unzip -q a.zip 2>/dev/null; echo \$?); b=\$(cat hello.txt); c=\$(unzip -Z1 -o a.zip 2>/dev/null; echo \$?); d=\$(unzip -p a.zip -d sub 2>/dev/null; echo \$?); echo \"\$a|\$b|\$c|\$d\"",
-    "mkdir -p /tar53; cd /tar53; printf \"hello\\n\" > f.txt; tar -cf a.tar f.txt; h=\$(tar --help | head -n 2); v=\$(tar -xvOf a.tar 2>&1); echo \"\$h|\$v\"",
-    "mkdir -p /du53; cd /du53; printf \"hello\" > f.txt; ln -s f.txt l.txt; a=\$(du --apparent-size -H l.txt); b=\$(du -b -t human-readable f.txt 2>/dev/null; echo \$?); c=\$(DU_BLOCK_SIZE=invalid du --apparent-size f.txt); echo \"\$a|\$b|\$c\"",
+    "mkdir -p /uz53; cd /uz53; printf \"orig\\n\" > hello.txt; zip -q a.zip hello.txt; printf \"changed\\n\" > hello.txt; a=$(unzip -q a.zip 2>/dev/null; echo $?); b=$(cat hello.txt); c=$(unzip -Z1 -o a.zip 2>/dev/null; echo $?); d=$(unzip -p a.zip -d sub 2>/dev/null; echo $?); echo \"$a|$b|$c|$d\"",
+    "mkdir -p /tar53; cd /tar53; printf \"hello\\n\" > f.txt; tar -cf a.tar f.txt; h=$(tar --help | head -n 2); v=$(tar -xvOf a.tar 2>&1); echo \"$h|$v\"",
+    "mkdir -p /du53; cd /du53; printf \"hello\" > f.txt; ln -s f.txt l.txt; a=$(du --apparent-size -H l.txt); b=$(du -b -t human-readable f.txt 2>/dev/null; echo $?); c=$(DU_BLOCK_SIZE=invalid du --apparent-size f.txt); echo \"$a|$b|$c\"",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());
@@ -976,10 +976,10 @@ test("50. sync vs async parity for du child sorting/symlinks/exclude paths, tree
 
 test("51. sync vs async parity for ls, realpath, readlink, rg, and fd semantics", async () => {
   const scripts = [
-    "mkdir -p /ls51; printf z > /ls51/z; printf a > /ls51/!bang; x=\$(ls /ls51 -f); y=\$(ls -m /ls51 2>/dev/null; echo \$?); echo \"\$x|\$y\"",
-    "mkdir -p /rp51; printf z > /rp51/z; a=\$(realpath -s -e /rp51/missing 2>/dev/null; echo \$?); b=\$(realpath -L /rp51/missing/.. 2>/dev/null; echo \$?); c=\$(realpath -m /rp51/z/child); d=\$(readlink -m /rp51/z/..); echo \"\$a|\$b|\$c|\$d\"",
-    "mkdir -p /rg51; printf \"alpha\\nbeta\\n\" > /rg51/rg.txt; a=\$(rg -m 0 alpha /rg51/rg.txt; echo \$?); b=\$(rg -o \"a*\" <<< \"a\"); echo \"\$a|\$b\"",
-    "mkdir -p /fd51/sub /fd51/emptydir; : > /fd51/sub/empty.txt; printf notempty > /fd51/sub/full.txt; printf \"*.log\\n\" > /fd51/.gitignore; printf ignored > /fd51/sub/skip.log; a=\$(fd -t f -t e . /fd51); b=\$(fd . /fd51/sub); echo \"\$a|\$b\"",
+    "mkdir -p /ls51; printf z > /ls51/z; printf a > /ls51/!bang; x=$(ls /ls51 -f); y=$(ls -m /ls51 2>/dev/null; echo $?); echo \"$x|$y\"",
+    "mkdir -p /rp51; printf z > /rp51/z; a=$(realpath -s -e /rp51/missing 2>/dev/null; echo $?); b=$(realpath -L /rp51/missing/.. 2>/dev/null; echo $?); c=$(realpath -m /rp51/z/child); d=$(readlink -m /rp51/z/..); echo \"$a|$b|$c|$d\"",
+    "mkdir -p /rg51; printf \"alpha\\nbeta\\n\" > /rg51/rg.txt; a=$(rg -m 0 alpha /rg51/rg.txt; echo $?); b=$(rg -o \"a*\" <<< \"a\"); echo \"$a|$b\"",
+    "mkdir -p /fd51/sub /fd51/emptydir; : > /fd51/sub/empty.txt; printf notempty > /fd51/sub/full.txt; printf \"*.log\\n\" > /fd51/.gitignore; printf ignored > /fd51/sub/skip.log; a=$(fd -t f -t e . /fd51); b=$(fd . /fd51/sub); echo \"$a|$b\"",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());
@@ -994,10 +994,10 @@ test("51. sync vs async parity for ls, realpath, readlink, rg, and fd semantics"
 
 test("52. sync vs async parity for split, csplit, truncate, and dd semantics", async () => {
   const scripts = [
-    "mkdir -p /sp52; cd /sp52; printf \"hello\\nworld\\n\" > xaa; x=\$(split -l 1 xaa 2>/dev/null; echo \$?); echo \"\$x:\$(cat xaa)\"",
-    "mkdir -p /cs52; cd /cs52; printf \"foo\\r\\nbar\\n\" > in.txt; x=\$(csplit in.txt \"/foo\$/\" 2>/dev/null; echo \$?); y=\$(csplit in.txt \"/bar/ 1\" 2>/dev/null; echo \$?); echo \"\$x|\$y\"",
-    "mkdir -p /tr52/d; printf \"hello\" > /tr52/f; a=\$(truncate --version); b=\$(truncate -o -s 1 /tr52/f 2>/dev/null; echo \$?); c=\$(truncate -c -s 0 /tr52/d 2>/dev/null; echo \$?); echo \"\$a|\$b|\$c\"",
-    "mkdir -p /dd52; cd /dd52; a=\$(dd conv=ucase, status=none <<< \"hi\" 2>/dev/null; echo \$?); b=\$(dd bs=2*2 status=none <<< \"hi\" 2>/dev/null; echo \$?); c=\$(dd of=- status=none <<< \"hi\"); echo \"\$a|\$b|\$c:\$(cat -)\"",
+    "mkdir -p /sp52; cd /sp52; printf \"hello\\nworld\\n\" > xaa; x=$(split -l 1 xaa 2>/dev/null; echo $?); echo \"$x:$(cat xaa)\"",
+    "mkdir -p /cs52; cd /cs52; printf \"foo\\r\\nbar\\n\" > in.txt; x=$(csplit in.txt \"/foo$/\" 2>/dev/null; echo $?); y=$(csplit in.txt \"/bar/ 1\" 2>/dev/null; echo $?); echo \"$x|$y\"",
+    "mkdir -p /tr52/d; printf \"hello\" > /tr52/f; a=$(truncate --version); b=$(truncate -o -s 1 /tr52/f 2>/dev/null; echo $?); c=$(truncate -c -s 0 /tr52/d 2>/dev/null; echo $?); echo \"$a|$b|$c\"",
+    "mkdir -p /dd52; cd /dd52; a=$(dd conv=ucase, status=none <<< \"hi\" 2>/dev/null; echo $?); b=$(dd bs=2*2 status=none <<< \"hi\" 2>/dev/null; echo $?); c=$(dd of=- status=none <<< \"hi\"); echo \"$a|$b|$c:$(cat -)\"",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());

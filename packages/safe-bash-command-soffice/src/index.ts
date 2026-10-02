@@ -161,15 +161,74 @@ function parseXlsxRows(zipBytes: Uint8Array): string[][] {
   return rows;
 }
 
-function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: string[] }> {
+interface SlideImagePlacement {
+  readonly bytes: Uint8Array;
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
+
+function wrapTextLines(text: string, maxChars: number): string[] {
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length === 0) return [""];
+  const lines: string[] = [];
+  let current = words[0]!;
+  for (let i = 1; i < words.length; i++) {
+    const word = words[i]!;
+    if (current.length + 1 + word.length <= maxChars) {
+      current += ` ${word}`;
+    } else {
+      lines.push(current);
+      current = word;
+    }
+  }
+  lines.push(current);
+  return lines;
+}
+
+function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: string[]; images: SlideImagePlacement[] }> {
   const entries = readZipArchiveEntries(zipBytes);
+  let slideCx = 12192000;
+  let slideCy = 6858000;
+  const presBytes = entries.get("ppt/presentation.xml");
+  if (presBytes) {
+    const presXml = new TextDecoder().decode(presBytes);
+    const szMatch = /<p:sldSz\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(presXml);
+    if (szMatch) {
+      slideCx = Math.max(1, Number.parseInt(szMatch[1]!, 10));
+      slideCy = Math.max(1, Number.parseInt(szMatch[2]!, 10));
+    }
+  }
+
   const slideKeys = [...entries.keys()]
     .filter((k) => /^ppt\/slides\/slide\d+\.xml$/.test(k))
     .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
 
-  const slides: Array<{ title: string; bullets: string[] }> = [];
+  const slides: Array<{ title: string; bullets: string[]; images: SlideImagePlacement[] }> = [];
   for (const key of slideKeys) {
     const xml = new TextDecoder().decode(entries.get(key)!);
+    const relsKey = `ppt/slides/_rels/${key.slice("ppt/slides/".length)}.rels`;
+    const relTargets = new Map<string, string>();
+    const relsBytes = entries.get(relsKey);
+    if (relsBytes) {
+      const relsXml = new TextDecoder().decode(relsBytes);
+      for (const rel of relsXml.matchAll(/<Relationship\b([^>]*?)\/?>/g)) {
+        const attrs = rel[1] ?? "";
+        const idMatch = /\bId="([^"]+)"/.exec(attrs);
+        const targetMatch = /\bTarget="([^"]+)"/.exec(attrs);
+        if (idMatch?.[1] && targetMatch?.[1]) {
+          const rawTarget = targetMatch[1];
+          const normalized = rawTarget.startsWith("/")
+            ? rawTarget.slice(1)
+            : rawTarget.startsWith("../")
+              ? `ppt/${rawTarget.slice(3)}`
+              : `ppt/slides/${rawTarget}`;
+          relTargets.set(idMatch[1], normalized);
+        }
+      }
+    }
+
     const shapes: string[][] = [];
     for (const sp of xml.matchAll(/<p:sp\b[\s\S]*?<\/p:sp>/g)) {
       const paras: string[] = [];
@@ -182,9 +241,30 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
       }
       if (paras.length > 0) shapes.push(paras);
     }
+
+    const images: SlideImagePlacement[] = [];
+    for (const pic of xml.matchAll(/<p:pic\b[\s\S]*?<\/p:pic>/g)) {
+      const embedMatch = /\br:embed="([^"]+)"/.exec(pic[0]);
+      if (!embedMatch?.[1]) continue;
+      const mediaPath = relTargets.get(embedMatch[1]);
+      const mediaBytes = mediaPath ? entries.get(mediaPath) : undefined;
+      if (!mediaBytes) continue;
+      const offMatch = /<a:off\b[^>]*?\bx="(-?\d+)"[^>]*?\by="(-?\d+)"/.exec(pic[0]);
+      const extMatch = /<a:ext\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(pic[0]);
+      const offX = offMatch ? Number.parseInt(offMatch[1]!, 10) : Math.round(slideCx * 0.1);
+      const offY = offMatch ? Number.parseInt(offMatch[2]!, 10) : Math.round(slideCy * 0.2);
+      const extCx = extMatch ? Number.parseInt(extMatch[1]!, 10) : Math.round(slideCx * 0.8);
+      const extCy = extMatch ? Number.parseInt(extMatch[2]!, 10) : Math.round(slideCy * 0.6);
+      const width = Math.max(16, (extCx / slideCx) * 720);
+      const height = Math.max(16, (extCy / slideCy) * 405);
+      const x = Math.max(0, Math.min(720 - width, (offX / slideCx) * 720));
+      const y = Math.max(0, Math.min(340 - height, 405 - ((offY + extCy) / slideCy) * 405));
+      images.push({ bytes: mediaBytes, x, y, width, height });
+    }
+
     const title = shapes[0]?.[0] ?? `Slide ${slides.length + 1}`;
     const bullets = [...(shapes[0]?.slice(1) ?? []), ...shapes.slice(1).flat()];
-    slides.push({ title, bullets });
+    slides.push({ title, bullets, images });
   }
   return slides;
 }
@@ -208,25 +288,33 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
   for (const block of blocks) {
     if (++work % 32 === 0) yield undefined;
     if (block.kind === "heading") {
-      ensureSpace(32);
-      page.drawText(block.text ?? "", {
-        x: 54,
-        y,
-        size: 18,
-        font: "Helvetica-Bold",
-        color: rgb(0.1, 0.15, 0.28)
-      });
-      y -= 28;
+      const lines = wrapTextLines(block.text ?? "", 48);
+      for (const line of lines) {
+        ensureSpace(26);
+        page.drawText(line, {
+          x: 54,
+          y,
+          size: 18,
+          font: "Helvetica-Bold",
+          color: rgb(0.1, 0.15, 0.28)
+        });
+        y -= 24;
+      }
+      y -= 4;
     } else if (block.kind === "paragraph") {
-      ensureSpace(22);
-      page.drawText(block.text ?? "", {
-        x: 54,
-        y,
-        size: 11,
-        font: "Helvetica",
-        color: rgb(0.15, 0.15, 0.15)
-      });
-      y -= 18;
+      const lines = wrapTextLines(block.text ?? "", 84);
+      for (const line of lines) {
+        ensureSpace(16);
+        page.drawText(line, {
+          x: 54,
+          y,
+          size: 11,
+          font: "Helvetica",
+          color: rgb(0.15, 0.15, 0.15)
+        });
+        y -= 15;
+      }
+      y -= 5;
     } else if (block.kind === "table" && block.rows) {
       const colCount = Math.max(1, ...block.rows.map((r) => r.length));
       const tableWidth = 504;
@@ -287,7 +375,7 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
   return doc.save();
 }
 
-function renderSlidesToPdf(slides: readonly { title: string; bullets: string[] }[]): Uint8Array {
+function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; images?: readonly SlideImagePlacement[] }[]): Uint8Array {
   const doc = PdfDocument.create();
   doc.setCreator("LibreOffice Impress (@poe-code/pdf-ast)");
 
@@ -307,16 +395,32 @@ function renderSlidesToPdf(slides: readonly { title: string; bullets: string[] }
       font: "Helvetica-Bold",
       color: rgb(1, 1, 1)
     });
+    for (const img of slide.images ?? []) {
+      try {
+        const isPng = img.bytes[0] === 0x89 && img.bytes[1] === 0x50;
+        const isJpg = img.bytes[0] === 0xff && img.bytes[1] === 0xd8;
+        if (isPng || isJpg) {
+          const handle = isPng ? doc.embedPng(img.bytes) : doc.embedJpg(img.bytes);
+          page.drawImage(handle, { x: img.x, y: img.y, width: img.width, height: img.height });
+        }
+      } catch {
+        // skip unsupported image stream
+      }
+    }
     let y = 300;
     for (const bullet of slide.bullets) {
-      page.drawText(`- ${bullet}`, {
-        x: 52,
-        y,
-        size: 14,
-        font: "Helvetica",
-        color: rgb(0.18, 0.2, 0.24)
+      const lines = wrapTextLines(bullet, 78);
+      lines.forEach((line, idx) => {
+        page.drawText(idx === 0 ? `- ${line}` : `  ${line}`, {
+          x: 52,
+          y,
+          size: 14,
+          font: "Helvetica",
+          color: rgb(0.18, 0.2, 0.24)
+        });
+        y -= 20;
       });
-      y -= 26;
+      y -= 6;
     }
   }
 

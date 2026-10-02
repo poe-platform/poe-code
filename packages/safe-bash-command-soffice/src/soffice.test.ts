@@ -302,4 +302,28 @@ describe("safe-bash-command-soffice", () => {
     assert.match(noteHtml, /<h1>Title<\/h1>/);
     assert.match(noteHtml, /<p>Body &lt;text&gt;<\/p>/);
   });
+  it("DOCX and PPTX PDF exports wrap long paragraphs and embed slide <p:pic> images", async () => {
+    const onePixelPng = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d, 0x49, 0x48, 0x44, 0x52,
+      0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,
+      0xde, 0x00, 0x00, 0x00, 0x0c, 0x49, 0x44, 0x41, 0x54, 0x08, 0xd7, 0x63, 0xf8, 0xcf, 0xc0, 0x00,
+      0x00, 0x03, 0x01, 0x01, 0x00, 0x18, 0xdd, 0x8d, 0xb0, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4e,
+      0x44, 0xae, 0x42, 0x60, 0x82
+    ]);
+    const pptxBytes = createStoredZipArchive({
+      "ppt/presentation.xml": new TextEncoder().encode("<p:presentation><p:sldSz cx=\"12192000\" cy=\"6858000\"/></p:presentation>"),
+      "ppt/slides/slide1.xml": new TextEncoder().encode(
+        "<p:sld><p:cSld><p:spTree><p:sp><p:txBody><a:p><a:r><a:t>Chart Slide</a:t></a:r></a:p></p:txBody></p:sp>" +
+        "<p:pic><a:blipFill><a:blip r:embed=\"rId2\"/></a:blipFill><p:spPr><a:xfrm><a:off x=\"1219200\" y=\"1371600\"/><a:ext cx=\"6096000\" cy=\"3429000\"/></a:xfrm></p:spPr></p:pic>" +
+        "</p:spTree></p:cSld></p:sld>"
+      ),
+      "ppt/slides/_rels/slide1.xml.rels": new TextEncoder().encode("<Relationships><Relationship Id=\"rId2\" Target=\"../media/image1.png\"/></Relationships>"),
+      "ppt/media/image1.png": onePixelPng
+    });
+    const files = new Map<string, Uint8Array>([["deck.pptx", pptxBytes]]);
+    const res = await runSofficeCli(["--headless", "--convert-to", "pdf", "deck.pptx"], files, "/");
+    assert.equal(res.exitCode, 0);
+    const pdfText = new TextDecoder("latin1").decode(files.get("/deck.pdf")!);
+    assert.match(pdfText, /\/Subtype\s*\/Image/);
+  });
 });

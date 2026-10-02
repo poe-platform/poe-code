@@ -1641,7 +1641,7 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
         if (arg === "-h" || arg === "-help" || arg === "--help" || arg === "-?") {
             return {
                 exitCode: 0,
-                stdout: "Usage: pdffonts [options] [PDF-file]\n  -f <int> / -l <int> / -upw <string> / -opw <string>\n",
+                stdout: "Usage: pdffonts [options] <PDF-file>\n  -f <int> / -l <int> / -upw <string> / -opw <string>\n",
                 stderr: ""
             };
         }
@@ -1662,9 +1662,9 @@ function* runPdffontsCliSteps(argv: readonly string[], files: Map<string, Uint8A
         else if (!arg.startsWith("-") || arg === "-")
             positionals.push(arg);
     }
-    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    const inputPath = positionals[0];
     if (!inputPath) {
-        return { exitCode: 99, stdout: "", stderr: "Usage: pdffonts [options] [PDF-file]\n" };
+        return { exitCode: 99, stdout: "", stderr: "Usage: pdffonts [options] <PDF-file>\n" };
     }
     const pdfBytes = files.get(inputPath);
     if (!pdfBytes) {
@@ -2055,7 +2055,7 @@ function* runPdfdetachCliSteps(argv: readonly string[], files: Map<string, Uint8
         else if (!arg.startsWith("-") || arg === "-")
             positionals.push(arg);
     }
-    const inputPath = positionals[0] ?? (files.has("-") ? "-" : undefined);
+    const inputPath = positionals[0];
     if (!inputPath) {
         return { exitCode: 99, stdout: "", stderr: "Usage: pdfdetach [options] <PDF-file>\n" };
     }
@@ -2238,7 +2238,7 @@ async function executePopplerFileTool(
         }
       }
     }
-    if (!informational && (positionals.length === 0 || positionals[0] === "-")) {
+    if (positionals[0] === "-") {
       const chunks: Uint8Array[] = [];
       let total = 0;
       for await (const chunk of readBytes(context.stdin, invocation.signal)) {

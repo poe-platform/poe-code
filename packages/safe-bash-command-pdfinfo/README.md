@@ -16,7 +16,7 @@ Inspect PDF document metadata, page geometry, boxes, encryption permissions, for
 | Structure & JS Inspection | `-struct` / `-struct-text` / `-js` / `-dests` | Dumps `/StructTreeRoot`, JavaScript actions, or named destinations. |
 | Encrypted PDFs | `-upw <pw>` / `-opw <pw>` | Authenticates and inspects RC4/AES-encrypted PDFs and permission flags. |
 | Page Rasterization (`pdftoppm`) | `pdftoppm -png -r 150 file.pdf out` | Renders PDF pages to PNG (`-png`), PPM (`-ppm`), PGM (`-gray`), or PBM (`-mono`) with `-r`, `-scale-to`, `-f`/`-l`, and `-singlefile`. |
-| Image Extraction (`pdfimages`) | `pdfimages -list` / `-png file.pdf img` | Lists embedded images or extracts them as PNG/PPM files. |
+| Image Extraction (`pdfimages`) | `pdfimages -list file.pdf` / `pdfimages -png file.pdf img` | Lists embedded images or extracts them as PNG/PPM files. |
 | PDF Merging (`pdfunite`) | `pdfunite a.pdf b.pdf out.pdf` | Merges multiple PDF documents into a single PDF. |
 | PDF Splitting (`pdfseparate`) | `pdfseparate -f 1 -l 2 in.pdf page-%d.pdf` | Splits selected pages into individual PDF files using a `%d` pattern. |
 
@@ -43,4 +43,5 @@ The workspace entrypoint exports `pdfinfoCommands()` for plugin registration,
 Configure `limits: { maxInputBytes: 16 * 1024 * 1024 }` to bound command input. `PdfinfoLimits` is exported for typed configuration; omitted limits default to `Infinity`. Long-running command loops yield to timers and cancellation, including Workers with frozen clocks.
 
 Output parent directories must already exist. Only input file operands count as file reads; existing output files and filenames matching option values are not preloaded.
+`pdfunite`, `pdfseparate`, `pdffonts`, and `pdfdetach` require explicit PDF operands and return exit code `99` without consuming stdin when they are omitted. Use `-` to read stdin with `pdffonts` or `pdfdetach`; `pdfinfo` also accepts an omitted input filename. Help, version, and `pdfinfo -listenc` leave stdin unread.
 Embedded attachment filenames are reduced to their final path component when extracting, keeping them in the chosen output directory.

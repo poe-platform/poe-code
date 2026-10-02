@@ -36,3 +36,17 @@ test("invalid Cloudflare trace modes reject before creating an adapter", () => {
 test("partial and unlimited trace configuration can be created before a filesystem is supplied", () => {
   expect(() => createCloudflarePlaywrightAdapter(undefined, undefined, undefined, { traceLimits: { maxArchiveBytes: Infinity } })).not.toThrow();
 });
+
+test("upload byte conversion is an explicit host capability", async () => {
+  createCloudflarePlaywrightAdapter({} as Parameters<typeof createCloudflarePlaywrightAdapter>[0]);
+  let configuration = vi.mocked(createPlaywrightAdapter).mock.calls.at(-1)![0];
+  let resource = await configuration.chromium!.acquireBrowser!({ signal: new AbortController().signal });
+  expect(resource.prepareFileBytes).toBeUndefined();
+  const prepareFileBytes = vi.fn((bytes: Uint8Array) => bytes.slice());
+  createCloudflarePlaywrightAdapter({} as Parameters<typeof createCloudflarePlaywrightAdapter>[0], undefined, undefined, { prepareFileBytes });
+  configuration = vi.mocked(createPlaywrightAdapter).mock.calls.at(-1)![0];
+  resource = await configuration.chromium!.acquireBrowser!({ signal: new AbortController().signal });
+  const bytes = new Uint8Array([1, 2, 3]);
+  expect(resource.prepareFileBytes!(bytes)).toEqual(bytes);
+  expect(prepareFileBytes).toHaveBeenCalledWith(bytes);
+});

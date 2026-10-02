@@ -53,3 +53,19 @@ test("portable bootstrap preserves an existing native Buffer", async () => {
   await import(new URL("../../src/portable-buffer.js?native", import.meta.url).href);
   assert.equal(globalThis.Buffer, native);
 });
+
+test("discarded synchronous loop output needs no ambient Buffer", async () => {
+  const { api: { Shell, MemoryFileSystem, CommandRegistry, createStandardCommands } } = await portableRuntime(`
+    export { Shell } from "./packages/safe-bash/src/shell/index.ts";
+    export { MemoryFileSystem } from "./packages/safe-bash/src/fs/memory/index.ts";
+    export { CommandRegistry } from "./packages/safe-bash/src/contracts/command.ts";
+    export { createStandardCommands } from "./packages/safe-bash/src/commands/index.ts";
+  `);
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+  try {
+    const result = await shell.exec('for ((i=0;i<100;i++)); do echo "héllo"; done > /dev/null');
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});

@@ -253,7 +253,7 @@ for (const command of ["read -a", "mapfile -t", "readarray -t"]) {
   });
 }
 
-for (const promotion of ["arr=(x y)", "arr[1]=y", 'read -a arr <<< "x y"', 'mapfile -t arr <<< "x y"', 'readarray -t arr <<< "x y"']) {
+for (const promotion of ["arr=(x y)", "arr[1]=y", 'read -a arr <<< "x y"', 'read -ra arr <<< "x y"', 'mapfile -t arr <<< "x y"', 'readarray -t arr <<< "x y"']) {
   for (const initial of ["arr=scalar", "unset arr"]) {
     test(`plain local restores ${initial} after ${promotion}`, async () => {
       const inspect = 'printf "<%s|%s|%s|%s>\\n" "$arr" "${arr[*]}" "${#arr[@]}" "${!arr*}"';

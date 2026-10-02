@@ -13202,6 +13202,7 @@ const syncExtraRuntimeMethods = {
     const store = monitor?.store;
     if (arrayTarget !== undefined) {
       if (
+        this._syncLoopFnCheckDepth > 0 ||
         argIdx !== cmd.words.length ||
         this.budget.limits.maxExpansionBytes !== Infinity ||
         this.budget.limits.maxExpansionFields !== Infinity ||

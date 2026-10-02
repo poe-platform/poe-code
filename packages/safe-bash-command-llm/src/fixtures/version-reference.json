@@ -1,0 +1,69 @@
+{
+  "reference": "llm==0.27.1",
+  "cases": [
+    {
+      "args": [
+        "--version"
+      ],
+      "exitCode": 0,
+      "output": "llm, version 0.27.1\n"
+    },
+    {
+      "args": [
+        "--version",
+        "hello"
+      ],
+      "exitCode": 0,
+      "output": "llm, version 0.27.1\n"
+    },
+    {
+      "args": [
+        "--version",
+        "--help"
+      ],
+      "exitCode": 0,
+      "output": "llm, version 0.27.1\n"
+    },
+    {
+      "args": [
+        "--version",
+        "--nonsense"
+      ],
+      "exitCode": 0,
+      "output": "llm, version 0.27.1\n"
+    },
+    {
+      "args": [
+        "--version",
+        "-m",
+        "missing"
+      ],
+      "exitCode": 0,
+      "output": "llm, version 0.27.1\n"
+    },
+    {
+      "args": [
+        "--version=1"
+      ],
+      "exitCode": 2,
+      "output": "Error: Option '--version' does not take a value.\n"
+    },
+    {
+      "args": [
+        "--version",
+        "--",
+        "hello"
+      ],
+      "exitCode": 0,
+      "output": "llm, version 0.27.1\n"
+    },
+    {
+      "args": [
+        "--version",
+        "--version"
+      ],
+      "exitCode": 0,
+      "output": "llm, version 0.27.1\n"
+    }
+  ]
+}

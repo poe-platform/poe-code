@@ -1116,7 +1116,7 @@ interface IO {
     published?: number;
     completed?: boolean;
   } | undefined;
-  descriptors?: ReadonlyMap<number, Descriptor>;
+  descriptors?: ReadonlyMap<number, Descriptor> | undefined;
 }
 interface Descriptor {
   closed?: boolean;
@@ -6690,7 +6690,7 @@ export class Runtime {
   }
   tryResetWarmInvocation(state: State, expectedCwd: string): boolean {
     const monitor = stateMonitor(state);
-    const rawRoot = (monitor?.raw ?? state) as RootShellState;
+    const rawRoot = (monitor?.raw ?? state) as RootShellState & State;
     if (
       !this._isMemoryBackingFs ||
       (this._fileWrites !== undefined && this._fileWrites.size !== 0) ||
@@ -6702,13 +6702,12 @@ export class Runtime {
       this.cancellationDepth !== 0 ||
       rawRoot.cwd !== expectedCwd ||
       Boolean(rawRoot.aliases?.size) ||
-      Boolean(rawRoot.traps?.size) ||
       Boolean(rawRoot._locals?.length) ||
       Boolean(rawRoot.readonlyVariables?.size) ||
       Boolean(rawRoot.readonlyFunctions?.size) ||
       Boolean(rawRoot._positional?.length) ||
       Boolean(rawRoot.directoryStack?.entries?.length) ||
-      rawRoot.errexit || rawRoot.nounset || rawRoot.pipefail || rawRoot.noglob || rawRoot.noclobber || rawRoot.allexport || rawRoot.noexec || rawRoot.xtrace || rawRoot.verbose || rawRoot.extglob || rawRoot.nullglob || rawRoot.failglob || rawRoot.dotglob || rawRoot.nocaseglob || rawRoot.nocasematch || rawRoot.globstar || rawRoot.braceexpand === false || rawRoot.expand_aliases || (rawRoot.umask ?? 0o022) !== 0o022 ||
+      rawRoot.errexit || rawRoot.nounset || rawRoot.pipefail || rawRoot.noglob || rawRoot.noclobber || rawRoot.allexport || rawRoot.noexec || rawRoot.extglob || rawRoot.nullglob || rawRoot.failglob || rawRoot.dotglob || rawRoot.nocaseglob || rawRoot.nocasematch || rawRoot.globstar || rawRoot.braceexpand === false || rawRoot.expand_aliases || (rawRoot.umask ?? 0o022) !== 0o022 ||
       Boolean(rawRoot.extensions && (Boolean(rawRoot.extensions.builtins?.size) || Boolean(rawRoot.extensions.listTerminators?.size) || Boolean(rawRoot.extensions.checkpoints?.length) || Boolean(rawRoot.extensions.eventDepth)))
     ) {
       return false;
@@ -6755,7 +6754,7 @@ export class Runtime {
     if (rawRoot.extensions) {
       rawRoot.extensions.started = true;
       rawRoot.extensions.exiting = false;
-      rawRoot.extensions.exitStatus = undefined;
+      delete rawRoot.extensions.exitStatus;
     }
     this._lastSyncArrayWriteName = undefined;
     this._lastSyncArrayWriteSubSrc = undefined;
@@ -16495,7 +16494,6 @@ export class Runtime {
                   const tickets = activeStore.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
                   arrB.generation = tickets.generation;
                   arrB.version = tickets.version;
-                  activeStore.version = tickets.version;
                   activeStore.epoch = tickets.epoch;
                   monitor.epoch = tickets.epoch;
                   rawState.variables[st1.name] = lastValStr;
@@ -16547,7 +16545,6 @@ export class Runtime {
                   const tickets = activeStore.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
                   arrB.generation = tickets.generation;
                   arrB.version = tickets.version;
-                  activeStore.version = tickets.version;
                   activeStore.epoch = tickets.epoch;
                   monitor.epoch = tickets.epoch;
                   rawState.variables[lhsVarName] = intToStr(accVal);
@@ -16588,7 +16585,7 @@ export class Runtime {
               !st0.value.parts[1]!.indirect && !st0.value.parts[1]!.prefixNames && !st0.value.parts[1]!.specialParameter && !st0.value.parts[1]!.length && !st0.value.parts[1]!.substring && !st0.value.parts[1]!.transform && st0.value.parts[1]!.operator === undefined && getArraySelector(st0.value.parts[1]!) === undefined
             ) {
               const rem = limit - (curInd + 1);
-              if (this.budget._fileSystemOperations + rem <= this.budget.limits.maxFileSystemOperations) {
+              if (this.budget.fsOperations + rem <= this.budget.limits.maxFileSystemOperations) {
                 const prefixText = st0.value.parts[0]!.value;
                 let batchStr = "";
                 let lastVal = "";
@@ -16605,7 +16602,7 @@ export class Runtime {
                     const finalEncoded = fastSharedTextEncoder.encode(lastVal + "\n");
                     tryWriteMemoryFileSync(this.backingFs, targetVal, finalEncoded, false, mode, this.commandSignal);
                   }
-                  this.budget._fileSystemOperations += rem;
+                  this.budget.fsOperations += rem;
                   this.budget.bytes += encodedBatch.byteLength;
                   this.budget.iterations += rem;
                   this.budget.commands += rem;

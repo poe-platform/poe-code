@@ -38,7 +38,7 @@ for (const discard of ["dispose", "shell", "registry", "options", "execute"] as 
   void owner.finalized.then(() => { finalized = true; });
   t.after(() => shell.dispose());
   if (discard === "dispose") await shell.dispose();
-  else if (discard === "execute") await shell.exec(":");
+  else if (discard === "execute") await shell.exec("set -f");
   else if (discard === "options") await shell.exec(":", { env: { X: "1" } });
   else {
     const command = { name: "probe", execute: () => ({ exitCode: 0 }) };
@@ -74,13 +74,13 @@ test("resource ceilings accept Infinity and ignore undefined overrides", async t
   assert.equal((await shell.exec(":", { limits: { maxWallClockMs: Infinity } })).exitCode, 0);
 });
 
-test("repeated empty calls retain one invocation until disposal", async t => {
+for (const source of ["", ":"]) test(`repeated stateless calls retain one invocation until disposal: ${source}`, async t => {
   const owners = t.mock.method(InvocationScope.prototype, "setOwner");
   const shell = new Shell({ fs: new MemoryFileSystem() });
   t.after(() => shell.dispose());
   await shell.exec("");
-  await shell.exec("");
-  await shell.exec("");
+  await shell.exec(source);
+  await shell.exec(source);
   assert.equal(owners.mock.callCount(), 1);
 });
 

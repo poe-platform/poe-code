@@ -402,6 +402,13 @@ export class Shell implements PluginHost {
     if (!(commands instanceof CommandRegistry)) throw new TypeError("CommandRegistry requires its matching shell runtime; do not mix source and compiled runtime modules");
     if (options.commands) {
       this.#hasCustomCommands = true;
+      for (const def of commands.list()) onRegister(def);
+      const origRegister = commands.register.bind(commands);
+      commands.register = ((command: CommandDefinition, regOptions?: RegisterCommandOptions) => {
+        origRegister(command, regOptions);
+        onRegister(command);
+        return commands;
+      }) as typeof commands.register;
       customRegisteredRegistries.add(commands);
     }
     if (options.onInternalError !== undefined && typeof options.onInternalError !== "function") throw new TypeError("onInternalError must be callable");

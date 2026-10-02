@@ -1085,6 +1085,7 @@ export interface FastIntStepDesc {
   targetReg: number;
   readonly isSub: boolean;
   readonly extraNewlineByte: number;
+  readonly padWidth?: number | undefined;
 }
 const sharedSavedLoopIntRegs: number[] = new Array(32).fill(0);
 const sharedIntLoopResult = { ok: false, lastInductionInt: undefined as number | undefined, subBytes: 0, subCount: 0 };
@@ -1129,6 +1130,7 @@ export function runIntArithForLoop(
         let abs = res < 0 ? -res : res;
         let digits = res < 0 ? 2 : 1;
         while (abs >= 10) { abs = Math.trunc(abs / 10); digits++; }
+        if (intStep.padWidth !== undefined && digits < intStep.padWidth) digits = intStep.padWidth;
         subBytes = subBytes + digits + intStep.extraNewlineByte;
         subCount = subCount + 1;
       }
@@ -1277,6 +1279,7 @@ export function runIntForLoop(
         let abs = res < 0 ? -res : res;
         let digits = res < 0 ? 2 : 1;
         while (abs >= 10) { abs = Math.trunc(abs / 10); digits++; }
+        if (intStep.padWidth !== undefined && digits < intStep.padWidth) digits = intStep.padWidth;
         subBytes = subBytes + digits + intStep.extraNewlineByte;
         subCount = subCount + 1;
       }

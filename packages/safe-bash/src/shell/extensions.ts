@@ -290,6 +290,11 @@ class LazyIdlePortableTrapExtensionState implements ShellExtensionState {
   declare exitStatus?: number;
   declare waiting?: (status: number) => boolean;
 
+  resetToIdle(): void {
+    this.#materialized = undefined;
+    this.#cleanup = undefined;
+  }
+
   get isIdleTrapState(): boolean {
     if (!this.#materialized) return true;
     const e0 = this.#materialized.entries[0];

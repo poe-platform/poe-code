@@ -160,7 +160,7 @@ function getOrParseUnitFromCache(
     return cached.unit;
   }
   const beforeLineIdx = budget.parsing.admittedUnits;
-  if (!parseState.lineIndex) {
+  if (!parseState.lineIndex && source.includes("\n")) {
     parseState.lineIndex = new SourceLineIndex(source, budget.parsing);
     parseState.lineIndexUnits = budget.parsing.admittedUnits - beforeLineIdx;
   }

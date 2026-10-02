@@ -804,6 +804,15 @@ class Lexer {
             if (escaped !== "\n") text(escaped, true, false, this.position, this.position + 2);
             else this.printedNewlineReduction++;
             this.position += 2;
+          } else if (!this.braceReplay && !this.sourceValues && inner.charCodeAt(0) <= 127) {
+            const runStart = this.position;
+            this.position++;
+            while (this.position < this.source.length) {
+              const cc = this.source.charCodeAt(this.position);
+              if (cc === 34 || cc === 36 || cc === 96 || cc === 92 || cc > 127) break;
+              this.position++;
+            }
+            text(this.source.slice(runStart, this.position), true, false, runStart, this.position);
           } else {
             text(inner, true);
             this.position++;
@@ -1042,6 +1051,26 @@ class Lexer {
       return;
     }
     this.position++;
+    const c1 = this.source.charCodeAt(this.position);
+    if ((c1 >= 65 && c1 <= 90) || (c1 >= 97 && c1 <= 122) || c1 === 95) {
+      let end = this.position + 1;
+      while (end < this.source.length) {
+        const cc = this.source.charCodeAt(end);
+        if ((cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || (cc >= 48 && cc <= 57) || cc === 95) end++;
+        else break;
+      }
+      if (this.source.charCodeAt(end) !== 92) {
+        const name = this.source.slice(this.position, end);
+        this.position = end;
+        const part: WordPart = { kind: "variable", name, quoted, line };
+        parts.push(part);
+        if (this.documentLine === undefined) {
+          this.budget.admit();
+          if (this.hasBrace) expansionSpellings.set(part, { source: this.source, start: spellingStart, end });
+        }
+        return;
+      }
+    }
     if (this.source[this.position] === "$" || this.source[this.position] === "!" && !this.syntax.specialParameters.length
       || (!quoted && ["'", '"'].includes(this.source[this.position] ?? ""))) this.error("Unsupported shell quoting or special parameter");
     while (this.source.startsWith("\\\n", this.position)) this.position += 2;
@@ -1796,7 +1825,7 @@ export function parseShellUnit(source: string, position = 0, byteLocale = false,
   const raw = typeof budgetOrByteSource === "boolean" ? budgetOrByteSource : byteSource;
   const warnings: string[] = [];
   budget.admit();
-  if (lineIndex.source !== source || lineIndex.budget !== budget) throw new TypeError("Source line index belongs to a different source or parse budget");
+  if (lineIndex && (lineIndex.source !== source || lineIndex.budget !== budget)) throw new TypeError("Source line index belongs to a different source or parse budget");
   const parser = new Parser(budget, source, 0, warnings, 0, position, byteLocale, false, lineIndex, 0, false, sourceValues, raw, captured, aliases);
   const script = parser.script(EMPTY_STOPS_SET, true);
   const next = parser.current.end;
@@ -1808,7 +1837,7 @@ export function parseShellUnit(source: string, position = 0, byteLocale = false,
 
 export function parseShellInputUnit(source: string, byteLocale = false, budgetOrSyntax: ParseBudget | ShellSyntaxDeclarations = new ParseBudget(), suppliedLineIndex?: SourceLineIndex, syntax?: ShellSyntaxDeclarations, aliases?: ReadonlyMap<string, string>): { script: Script; next: number } | undefined {
   const budget = budgetOrSyntax instanceof ParseBudget ? budgetOrSyntax : new ParseBudget();
-  const lineIndex = suppliedLineIndex ?? new SourceLineIndex(source, budget);
+  const lineIndex = suppliedLineIndex ?? (source.includes("\n") ? new SourceLineIndex(source, budget) : undefined);
   const captured = captureShellSyntax(syntax === undefined ? (budgetOrSyntax instanceof ParseBudget ? undefined : budgetOrSyntax) : syntax);
   const warnings: string[] = [];
   try {

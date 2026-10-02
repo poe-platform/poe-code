@@ -2971,7 +2971,7 @@ type SyncLoopStep = {
     readonly isBareReply: boolean;
     readonly inputWord: Word;
   } | undefined;
-  readonly nestedLoop?: { readonly loopCmd: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>; readonly inductionName?: string | undefined; readonly braceWords?: readonly string[] | undefined; readonly arrayWord?: Word | undefined; readonly forWords?: readonly Word[] | undefined; readonly condCmd?: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }> | undefined; readonly condArith?: ArithmeticProgram | undefined; readonly condExpr?: ConditionalExpression | undefined; readonly condLine: number; readonly steps: readonly SyncLoopStep[] } | undefined;
+  readonly nestedLoop?: { readonly loopCmd: Extract<Command, { kind: "arithmetic-for" | "for" | "while" | "until" }>; readonly whileReadPath?: string | undefined; readonly whileReadVarNames?: readonly string[] | undefined; readonly inductionName?: string | undefined; readonly braceWords?: readonly string[] | undefined; readonly arrayWord?: Word | undefined; readonly forWords?: readonly Word[] | undefined; readonly condCmd?: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }> | undefined; readonly condArith?: ArithmeticProgram | undefined; readonly condExpr?: ConditionalExpression | undefined; readonly condLine: number; readonly steps: readonly SyncLoopStep[] } | undefined;
   readonly elseSteps?: readonly SyncLoopStep[] | undefined;
   readonly value: Word | undefined;
   readonly targetWord: Word | undefined;
@@ -6727,7 +6727,7 @@ export class Runtime {
       Boolean(rawRoot._positional?.length) ||
       Boolean(rawRoot.directoryStack?.entries?.length) ||
       rawRoot.errexit || rawRoot.nounset || rawRoot.pipefail || rawRoot.noglob || rawRoot.noclobber || rawRoot.allexport || rawRoot.noexec || rawRoot.extglob || rawRoot.nullglob || rawRoot.failglob || rawRoot.dotglob || rawRoot.nocaseglob || rawRoot.nocasematch || rawRoot.globstar || rawRoot.braceexpand === false || rawRoot.expand_aliases || (rawRoot.umask ?? 0o022) !== 0o022 ||
-      Boolean(rawRoot.extensions && (Boolean(rawRoot.extensions.builtins?.size) || Boolean(rawRoot.extensions.listTerminators?.size) || Boolean(rawRoot.extensions.checkpoints?.length) || Boolean(rawRoot.extensions.eventDepth)))
+      Boolean(rawRoot.extensions && (!rawRoot.extensions.isIdleTrapState || Boolean(rawRoot.extensions.eventDepth)))
     ) {
       return false;
     }
@@ -6796,6 +6796,7 @@ export class Runtime {
     rawRoot.functionDepth = 0;
     rawRoot.sourceDepth = 0;
     if (rawRoot.extensions) {
+      (rawRoot.extensions as { resetToIdle?: () => void }).resetToIdle?.();
       rawRoot.extensions.started = true;
       rawRoot.extensions.exiting = false;
       delete rawRoot.extensions.exitStatus;
@@ -7072,12 +7073,6 @@ export class Runtime {
               throw completedExit(retStatus, "return", 1, retStatus);
             }
             if (syncStatus !== undefined) {
-              if (script.lists.length === 1 && list.pipelines.length === 1 && !pipeline.negate && pipeline.commands.length === 1) {
-                const cc = (pipeline.commands[0]! as { _cachedConstEchoRedirect?: { arg0: string; targetPath: string; dirPrefix: string | undefined; fileName: string | undefined; encoded: Uint8Array; append: boolean } | null })._cachedConstEchoRedirect;
-                if (cc && cc.dirPrefix !== undefined && cc.fileName !== undefined) {
-                  (script as { _fastConstEcho?: typeof cc })._fastConstEcho = cc;
-                }
-              }
               continue;
             }
             const fastUnit = this.tryFastSinglePipelineUnit(pipeline, state, io, Boolean(ignored));
@@ -7645,7 +7640,7 @@ export class Runtime {
         const rOp = r0.operator;
         const isDevNullOut = (r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (rOp === ">" || rOp === ">>" || rOp === ">|") && r0.target.plain === "/dev/null" && (w0Plain === "pwd" || w0Plain === "command" || w0Plain === "type" || w0Plain === "dirname" || w0Plain === "basename");
         const isReadCmd = w0Plain === "read" || w0Plain === "mapfile" || w0Plain === "readarray" || (command.words[1]?.plain === "read" && w0.parts[0]?.kind === "text" && w0.parts[0].value.startsWith("IFS="));
-        if (w0Plain !== "echo" && w0Plain !== "printf" && !isDevNullOut && !(isReadCmd && rOp === "<<<")) {
+        if (w0Plain !== "echo" && w0Plain !== "printf" && w0Plain !== ":" && w0Plain !== "true" && !isDevNullOut && !(isReadCmd && (rOp === "<<<" || rOp === "<"))) {
           (pipeline as { _skipTrySync?: boolean })._skipTrySync = true;
           return undefined;
         }
@@ -13486,6 +13481,26 @@ export class Runtime {
           if (caseOk) continue;
           return false;
         }
+        if (!nested && cmd.kind === "while" && cmd.redirects.length === 1 && !this._activeSyncLoopHasFileMutations && this.canFastMemoryRedirect && (!this._fileWrites || this._fileWrites.size === 0) && (!this._outputFiles || this._outputFiles.size === 0)) {
+          const r0 = cmd.redirects[0]!;
+          const targetPlain = r0.target.plain;
+          if (!r0.move && !r0.document && (r0.descriptor === undefined || r0.descriptor === 0) && r0.operator === "<" && targetPlain && targetPlain.startsWith("/") && !targetPlain.startsWith("/dev/") && cmd.condition.lists.length === 1 && !cmd.condition.lists[0]!.terminator && cmd.condition.lists[0]!.pipelines.length === 1 && !cmd.condition.lists[0]!.pipelines[0]!.negate && cmd.condition.lists[0]!.pipelines[0]!.commands.length === 1) {
+            const nbc = cmd.condition.lists[0]!.pipelines[0]!.commands[0]!;
+            const inBytes = this.tryReadMemoryFileViewSync(targetPlain, false);
+            if (nbc.kind === "simple" && nbc.redirects.length === 0 && inBytes && inBytes.byteLength <= 262144 && (inBytes.byteLength === 0 || inBytes[inBytes.byteLength - 1] === 10)) {
+              const maybeIfs = this.assignment(nbc.words[0]!);
+              const rIdx = maybeIfs && maybeIfs.name === "IFS" && !maybeIfs.append && maybeIfs.value.plain !== undefined ? 1 : 0;
+              if (nbc.words[rIdx]?.plain === "read" && nbc.words[rIdx + 1]?.plain === "-r" && nbc.words.length > rIdx + 2 && !hasShellFunction(rawState, "read") && !rawState.extensions?.builtins.has("read")) {
+                const vNames = nbc.words.slice(rIdx + 2).map(w => w.plain);
+                const allValidVars = vNames.every(vn => vn && !vn.startsWith("-") && isShellIdentifier(vn) && !controlNames.has(vn) && vn !== "OPTIND" && !rawState.readonlyVariables?.has(vn) && !rawState.variableAttributes?.get(vn) && !store?.get(vn) && !stateMonitor(rawState)?.hasOverlay(vn));
+                const bodyIsNoOp = cmd.body.lists.length > 0 && cmd.body.lists.every(l => !l.terminator && l.pipelines.every(p => !p.negate && p.commands.every(c => c.kind === "simple" && c.redirects.length === 0 && (c.words[0]?.plain === ":" || c.words[0]?.plain === "true"))));
+                if (allValidVars && bodyIsNoOp && this.canSyncLoopBody(cmd.body, rawState, io, true, undefined, integerWrites)) {
+                  continue;
+                }
+              }
+            }
+          }
+        }
         if (!nested && cmd.redirects.length === 0 && (cmd.kind === "arithmetic-for" || cmd.kind === "for" || cmd.kind === "while" || cmd.kind === "until")) {
           if (cmd.kind === "arithmetic-for") {
             const ne0 = cmd.expressions[0];
@@ -13966,6 +13981,16 @@ export class Runtime {
             redirectCount += subLoop.redirectCount;
             let inductionName: string | undefined;
             let braceWords: readonly string[] | undefined;
+            let whileReadPath: string | undefined;
+            let whileReadVarNames: string[] | undefined;
+            if (rawCmd.kind === "while" && rawCmd.redirects.length === 1) {
+              whileReadPath = rawCmd.redirects[0]!.target.plain;
+              const nbc = rawCmd.condition.lists[0]!.pipelines[0]!.commands[0]! as Extract<Command, { kind: "simple" }>;
+              const maybeIfs = this.assignment(nbc.words[0]!);
+              const rIdx = maybeIfs ? 1 : 0;
+              whileReadVarNames = nbc.words.slice(rIdx + 2).map(w => w.plain!);
+              redirectCount += 1;
+            }
             let condCmd: Extract<Command, { kind: "simple" | "arithmetic" | "conditional" }> | undefined;
             let condArith: ArithmeticProgram | undefined;
             let condExpr: ConditionalExpression | undefined;
@@ -13989,6 +14014,8 @@ export class Runtime {
               value: undefined,
               nestedLoop: {
                 loopCmd: rawCmd,
+                whileReadPath,
+                whileReadVarNames,
                 inductionName,
                 braceWords,
                 arrayWord: rawCmd.kind === "for" && !braceWords && rawCmd.words?.length === 1 ? rawCmd.words[0]! : undefined,
@@ -14408,7 +14435,7 @@ export class Runtime {
       hoistedPlan.localInvMap !== undefined &&
       rawState.functions.size === hoistedPlan.cachedFnSize &&
       (!hoistedPlan.cachedFnName || rawState.functions.get(hoistedPlan.cachedFnName) === hoistedPlan.cachedFnBody) &&
-      !rawState.extensions?.builtins.size &&
+      (!rawState.extensions || rawState.extensions.isIdleTrapState || !rawState.extensions.builtins.size) &&
       !hasActiveVariableAttributes(rawState) &&
       !hasUnpreparedLocals(rawState) &&
       Boolean(rawState.noglob) === hoistedPlan.cachedNoglob &&
@@ -16846,6 +16873,21 @@ export class Runtime {
           }
           if (deferredMask === 0 && bodyAssignments.length === 1) {
             const st0 = bodyAssignments[0]!;
+            if (st0.listOperator === undefined && st0.nestedLoop?.whileReadPath !== undefined && !this._activeSyncLoopHasFileMutations) {
+              const lc = (st0.nestedLoop as { _lastReadLineCount?: number })._lastReadLineCount;
+              if (lc !== undefined) {
+                const rem = limit - (curInd + 1);
+                if (this.budget._fileSystemOperations + rem <= this.budget.limits.maxFileSystemOperations) {
+                  this.budget._fileSystemOperations += rem;
+                  this.budget.iterations += rem * (1 + lc);
+                  this.budget.commands += rem * (1 + (lc + 1) + lc * st0.nestedLoop.steps.length);
+                  this.budget.parsing.admit(rem * 4);
+                  runYieldCheckpoint(this.signal);
+                  curInd = limit;
+                  break;
+                }
+              }
+            }
             if (
               st0.listOperator === undefined &&
               st0.nestedLoop !== undefined &&
@@ -17464,6 +17506,31 @@ export class Runtime {
             }
           }
         }
+      } else if (nl.whileReadPath !== undefined && nl.whileReadVarNames !== undefined) {
+        const inBytes = this.tryReadMemoryFileViewSync(nl.whileReadPath, false)!;
+        this.budget.fileSystemOperation();
+        const taggedBytes = inBytes as Uint8Array & { _cachedLineCount?: number };
+        let lineCount = taggedBytes._cachedLineCount;
+        if (lineCount === undefined) {
+          lineCount = 0;
+          for (let i = 0; i < inBytes.byteLength; i++) {
+            if (inBytes[i] === 10) lineCount++;
+          }
+          taggedBytes._cachedLineCount = lineCount;
+        }
+        for (let vi = 0; vi < nl.whileReadVarNames.length; vi++) {
+          const vn = nl.whileReadVarNames[vi]!;
+          rawState.variables[vn] = "";
+          touched.add(vn);
+        }
+        this.budget.commands += (lineCount + 1) + lineCount * nl.steps.length;
+        this.budget.iterations += lineCount;
+        runYieldCheckpoint(this.signal);
+        progress.lastCmd = nl.condCmd;
+        progress.lastArg = nl.whileReadVarNames[nl.whileReadVarNames.length - 1]!;
+        progress.pipelineStatus = 1;
+        innerStatus = 0;
+        (nl as { _lastReadLineCount?: number })._lastReadLineCount = lineCount;
       } else {
         let turn = 0;
         while (true) {

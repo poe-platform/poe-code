@@ -29,12 +29,11 @@ const quoteMarkers = new WeakSet<WordPart>();
 export const prefixNameQuoteGroups = new WeakMap<WordPart, object>();
 
 export function setQuoteMarker(part: WordPart, synthetic: boolean): void {
-  if (synthetic) quoteMarkers.add(part);
-  else quoteMarkers.delete(part);
+  (part as { _quoteMarker?: boolean })._quoteMarker = synthetic || undefined;
 }
 
 export function isQuoteMarker(part: WordPart): boolean {
-  return quoteMarkers.has(part);
+  return Boolean((part as { _quoteMarker?: boolean })._quoteMarker);
 }
 
 export function literalIndex(source: string, offset: number, budget = new ParseBudget()): LiteralIndex {
@@ -70,16 +69,16 @@ export function arraySelector(source: string, offset: number, budget = new Parse
 }
 
 export function setArraySelector(part: WordPart, selector: ArraySelector): void {
-  selectors.set(part, selector);
+  (part as { _selector?: ArraySelector })._selector = selector;
 }
 
 export function getArraySelector(part: WordPart): ArraySelector | undefined {
-  return selectors.get(part);
+  return (part as { _selector?: ArraySelector })._selector;
 }
 
 export function copyArraySelector(original: WordPart, copy: WordPart): WordPart {
-  const selector = selectors.get(original);
-  if (selector) selectors.set(copy, selector);
+  const selector = getArraySelector(original);
+  if (selector) setArraySelector(copy, selector);
   setQuoteMarker(copy, isQuoteMarker(original));
   const group = prefixNameQuoteGroups.get(original);
   if (group) prefixNameQuoteGroups.set(copy, group);
@@ -87,11 +86,11 @@ export function copyArraySelector(original: WordPart, copy: WordPart): WordPart 
 }
 
 export function setArrayAssignment(word: Word, assignment: ArrayAssignment): void {
-  assignments.set(word, assignment);
+  (word as { _arrayAssign?: ArrayAssignment })._arrayAssign = assignment;
 }
 
 export function getArrayAssignment(word: Word): ArrayAssignment | undefined {
-  return assignments.get(word);
+  return (word as { _arrayAssign?: ArrayAssignment })._arrayAssign;
 }
 
 function removePrefix(word: Word, length: number, budget: ParseBudget): Word {

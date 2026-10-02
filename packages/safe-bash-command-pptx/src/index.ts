@@ -54,7 +54,7 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
         argumentBytes += bytes;
       }
     const snapshots = new Map<string, FileStat>();
-    engine ??= (await import("safe-bash-pptx-engine")).createPptxCommandEngine();
+    engine ??= (await import("./engine.js")).createPptxCommandEngine();
     const result = await engine.execute({
       args: arguments_.args.map((_, index) => arguments_.bytes(index)!),
       signal: context.signal,

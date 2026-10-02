@@ -680,7 +680,8 @@
     "safe-bash-command-pdfunite": "*",
     "safe-bash-command-cp": "*",
     "safe-bash-command-zstd": "*",
-    "safe-bash-command-safejs": "*"
+    "safe-bash-command-safejs": "*",
+    "safe-bash-presentation-engine": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

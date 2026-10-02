@@ -12,6 +12,10 @@
       "workerd": "./dist/index.js",
       "browser": "./dist/index.js",
       "import": "./dist/index.js"
+    },
+    "./engine": {
+      "types": "./dist/engine.d.ts",
+      "import": "./dist/engine.js"
     }
   },
   "files": [
@@ -22,14 +26,15 @@
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
-    "test": "node --import tsx --test src/*.test.ts",
-    "test:unit": "node --import tsx --test src/*.test.ts"
+    "test": "node --import tsx --test src/*.test.ts && cd ../.. && vitest run packages/safe-bash-command-pptx/tests",
+    "test:unit": "node --import tsx --test src/*.test.ts && cd ../.. && vitest run packages/safe-bash-command-pptx/tests"
   },
   "dependencies": {},
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
     "safe-bash-io-engine": "*",
-    "safe-bash-pptx-engine": "*"
+    "safe-bash-presentation-engine": "*",
+    "toolcraft-schema": "*"
   }
 }

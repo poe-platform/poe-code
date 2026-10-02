@@ -72,8 +72,8 @@ test("pptx shapes uses quoted names and explicit units with SDK-equivalent publi
   assert.equal(invalid.exitCode, 2);
   assert.deepEqual(new Uint8Array(f.volume.readFileSync("/work/changed.pptx") as Buffer), output);
 });
-import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
-import { readPackage } from "../../../../safe-bash-pptx-engine/src/package-reader.js";
+import { storedArchive } from "../../../../safe-bash-presentation-engine/tests/fixtures/archive.js";
+import { readPackage } from "../../../../safe-bash-presentation-engine/src/package-reader.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -336,7 +336,7 @@ test("pptx run formatting validates dry runs and rejects invalid values without 
   const original = await fontDeck();
   volume.writeFileSync("/work/deck.pptx", original);
   const ambiguous = await shell.exec(
-    "pptx text runs set deck.pptx --slide 1 --shape 'Coastal caption' --bold false --output rejected.pptx --json"
+    "pptx text runs set deck.pptx --slide 1 --shape 'Coastal caption' --bold false --text replacement --output rejected.pptx --json"
   );
   assert.equal(ambiguous.exitCode, 1, ambiguous.stdout + ambiguous.stderr);
   assert.equal(JSON.parse(ambiguous.stdout).errors[0].code, "ambiguous-selection");

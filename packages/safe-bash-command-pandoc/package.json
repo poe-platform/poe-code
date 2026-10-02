@@ -78,7 +78,7 @@
     "@poe-code/image-ast": "*",
     "citeproc": "2.4.63",
     "safe-bash-command-ssconvert": "*",
-    "safe-bash-pptx-engine": "*"
+    "safe-bash-presentation-engine": "*"
   },
   "private": true,
   "types": "dist/index.d.ts",

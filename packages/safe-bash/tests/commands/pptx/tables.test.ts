@@ -9,9 +9,9 @@ import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";
-import { parseXmlPart, type XmlElement } from "../../../../safe-bash-pptx-engine/src/xml.js";
-import { readPackage } from "../../../../safe-bash-pptx-engine/src/package-reader.js";
-import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { parseXmlPart, type XmlElement } from "../../../../safe-bash-presentation-engine/src/xml.js";
+import { readPackage } from "../../../../safe-bash-presentation-engine/src/package-reader.js";
+import { storedArchive } from "../../../../safe-bash-presentation-engine/tests/fixtures/archive.js";
 
 const context = {
   limits: { maxBytes: 262144, maxReads: 1000, chunkBytes: 4096 },

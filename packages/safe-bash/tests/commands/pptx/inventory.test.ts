@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import test from "node:test";
 import { Volume } from "memfs";
 import { createPptxCommandEngine } from "safe-bash-pptx-engine";
-import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { storedArchive } from "../../../../safe-bash-presentation-engine/tests/fixtures/archive.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

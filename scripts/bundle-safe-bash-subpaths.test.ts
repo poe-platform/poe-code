@@ -39,7 +39,7 @@ test("each command subpath resolves and executes in workerd without Node compati
   }
   const core = path.join(root, "packages/safe-fs/src/core.ts");
   entryPoints.filesystem = core;
-  entryPoints.presentation = path.join(root, "packages/safe-bash-pptx-engine/src/index.ts");
+  entryPoints.presentation = path.join(root, "packages/safe-bash-presentation-engine/src/index.ts");
   const result = await build({ ...recipe, entryPoints, sourcemap: false, external: [], alias: {
     ...recipe.alias, "@poe-code/safe-fs/runtime-core": core, "@poe-code/safe-fs/core": core, "@poe-code/safe-fs": core,
     "@poe-code/safe-fs/xml": core,

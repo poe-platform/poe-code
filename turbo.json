@@ -640,6 +640,21 @@
         "$TURBO_ROOT$/packages/safe-bash-docx-engine/tests/**",
         "$TURBO_ROOT$/packages/safe-bash/src/**"
       ]
+    },
+    "safe-bash-presentation-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-pptx-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-command-pptx#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

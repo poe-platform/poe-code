@@ -1,0 +1,393 @@
+{
+  "name": "safe-bash-presentation-engine",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./bytes": {
+      "types": "./dist/bytes.d.ts",
+      "import": "./dist/bytes.js"
+    },
+    "./presentation-model": {
+      "types": "./dist/presentation-model.d.ts",
+      "import": "./dist/presentation-model.js"
+    },
+    "./slide-import": {
+      "types": "./dist/slide-import.d.ts",
+      "import": "./dist/slide-import.js"
+    },
+    "./shape-transforms": {
+      "types": "./dist/shape-transforms.d.ts",
+      "import": "./dist/shape-transforms.js"
+    },
+    "./validation": {
+      "types": "./dist/validation.d.ts",
+      "import": "./dist/validation.js"
+    },
+    "./relationships": {
+      "types": "./dist/relationships.d.ts",
+      "import": "./dist/relationships.js"
+    },
+    "./drawing-operations": {
+      "types": "./dist/drawing-operations.d.ts",
+      "import": "./dist/drawing-operations.js"
+    },
+    "./comments": {
+      "types": "./dist/comments.d.ts",
+      "import": "./dist/comments.js"
+    },
+    "./template-bindings": {
+      "types": "./dist/template-bindings.d.ts",
+      "import": "./dist/template-bindings.js"
+    },
+    "./text-frames": {
+      "types": "./dist/text-frames.d.ts",
+      "import": "./dist/text-frames.js"
+    },
+    "./memberships": {
+      "types": "./dist/memberships.d.ts",
+      "import": "./dist/memberships.js"
+    },
+    "./content-types": {
+      "types": "./dist/content-types.d.ts",
+      "import": "./dist/content-types.js"
+    },
+    "./media-editing": {
+      "types": "./dist/media-editing.d.ts",
+      "import": "./dist/media-editing.js"
+    },
+    "./drawing-format": {
+      "types": "./dist/drawing-format.d.ts",
+      "import": "./dist/drawing-format.js"
+    },
+    "./table-operations": {
+      "types": "./dist/table-operations.d.ts",
+      "import": "./dist/table-operations.js"
+    },
+    "./package-tools": {
+      "types": "./dist/package-tools.d.ts",
+      "import": "./dist/package-tools.js"
+    },
+    "./sanitize": {
+      "types": "./dist/sanitize.d.ts",
+      "import": "./dist/sanitize.js"
+    },
+    "./text-replacement": {
+      "types": "./dist/text-replacement.d.ts",
+      "import": "./dist/text-replacement.js"
+    },
+    "./text-paragraphs": {
+      "types": "./dist/text-paragraphs.d.ts",
+      "import": "./dist/text-paragraphs.js"
+    },
+    "./layouts": {
+      "types": "./dist/layouts.d.ts",
+      "import": "./dist/layouts.js"
+    },
+    "./image-value": {
+      "types": "./dist/image-value.d.ts",
+      "import": "./dist/image-value.js"
+    },
+    "./slide-merge-split": {
+      "types": "./dist/slide-merge-split.d.ts",
+      "import": "./dist/slide-merge-split.js"
+    },
+    "./image-replacement": {
+      "types": "./dist/image-replacement.d.ts",
+      "import": "./dist/image-replacement.js"
+    },
+    "./accessibility": {
+      "types": "./dist/accessibility.d.ts",
+      "import": "./dist/accessibility.js"
+    },
+    "./equations": {
+      "types": "./dist/equations.d.ts",
+      "import": "./dist/equations.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "import": "./dist/errors.js"
+    },
+    "./ole-enum": {
+      "types": "./dist/ole-enum.d.ts",
+      "import": "./dist/ole-enum.js"
+    },
+    "./tables": {
+      "types": "./dist/tables.d.ts",
+      "import": "./dist/tables.js"
+    },
+    "./diff": {
+      "types": "./dist/diff.d.ts",
+      "import": "./dist/diff.js"
+    },
+    "./slides": {
+      "types": "./dist/slides.d.ts",
+      "import": "./dist/slides.js"
+    },
+    "./contracts": {
+      "types": "./dist/contracts.d.ts",
+      "import": "./dist/contracts.js"
+    },
+    "./command-placeholder": {
+      "types": "./dist/command-placeholder.d.ts",
+      "import": "./dist/command-placeholder.js"
+    },
+    "./font-metrics": {
+      "types": "./dist/font-metrics.d.ts",
+      "import": "./dist/font-metrics.js"
+    },
+    "./images": {
+      "types": "./dist/images.d.ts",
+      "import": "./dist/images.js"
+    },
+    "./media-extraction": {
+      "types": "./dist/media-extraction.d.ts",
+      "import": "./dist/media-extraction.js"
+    },
+    "./publication": {
+      "types": "./dist/publication.d.ts",
+      "import": "./dist/publication.js"
+    },
+    "./selector-schema": {
+      "types": "./dist/selector-schema.d.ts",
+      "import": "./dist/selector-schema.js"
+    },
+    "./transitions": {
+      "types": "./dist/transitions.d.ts",
+      "import": "./dist/transitions.js"
+    },
+    "./text-runs": {
+      "types": "./dist/text-runs.d.ts",
+      "import": "./dist/text-runs.js"
+    },
+    "./text-reading": {
+      "types": "./dist/text-reading.d.ts",
+      "import": "./dist/text-reading.js"
+    },
+    "./image-metadata": {
+      "types": "./dist/image-metadata.d.ts",
+      "import": "./dist/image-metadata.js"
+    },
+    "./shape-path-operations": {
+      "types": "./dist/shape-path-operations.d.ts",
+      "import": "./dist/shape-path-operations.js"
+    },
+    "./image-extraction": {
+      "types": "./dist/image-extraction.d.ts",
+      "import": "./dist/image-extraction.js"
+    },
+    "./chart-object-operations": {
+      "types": "./dist/chart-object-operations.d.ts",
+      "import": "./dist/chart-object-operations.js"
+    },
+    "./shape-groups": {
+      "types": "./dist/shape-groups.d.ts",
+      "import": "./dist/shape-groups.js"
+    },
+    "./slide-transfer-budget": {
+      "types": "./dist/slide-transfer-budget.d.ts",
+      "import": "./dist/slide-transfer-budget.js"
+    },
+    "./notes": {
+      "types": "./dist/notes.d.ts",
+      "import": "./dist/notes.js"
+    },
+    "./presentation-settings": {
+      "types": "./dist/presentation-settings.d.ts",
+      "import": "./dist/presentation-settings.js"
+    },
+    "./xml-view": {
+      "types": "./dist/xml-view.d.ts",
+      "import": "./dist/xml-view.js"
+    },
+    "./table-spans": {
+      "types": "./dist/table-spans.d.ts",
+      "import": "./dist/table-spans.js"
+    },
+    "./selectors": {
+      "types": "./dist/selectors.d.ts",
+      "import": "./dist/selectors.js"
+    },
+    "./image-formatting": {
+      "types": "./dist/image-formatting.d.ts",
+      "import": "./dist/image-formatting.js"
+    },
+    "./connector-operations": {
+      "types": "./dist/connector-operations.d.ts",
+      "import": "./dist/connector-operations.js"
+    },
+    "./shape-paths": {
+      "types": "./dist/shape-paths.d.ts",
+      "import": "./dist/shape-paths.js"
+    },
+    "./links": {
+      "types": "./dist/links.d.ts",
+      "import": "./dist/links.js"
+    },
+    "./shape-operations": {
+      "types": "./dist/shape-operations.d.ts",
+      "import": "./dist/shape-operations.js"
+    },
+    "./ole-insertion": {
+      "types": "./dist/ole-insertion.d.ts",
+      "import": "./dist/ole-insertion.js"
+    },
+    "./shape-presets": {
+      "types": "./dist/shape-presets.d.ts",
+      "import": "./dist/shape-presets.js"
+    },
+    "./xml": {
+      "types": "./dist/xml.d.ts",
+      "import": "./dist/xml.js"
+    },
+    "./drawing-schema": {
+      "types": "./dist/drawing-schema.d.ts",
+      "import": "./dist/drawing-schema.js"
+    },
+    "./slide-removal": {
+      "types": "./dist/slide-removal.d.ts",
+      "import": "./dist/slide-removal.js"
+    },
+    "./text-fitting": {
+      "types": "./dist/text-fitting.d.ts",
+      "import": "./dist/text-fitting.js"
+    },
+    "./template-repeat": {
+      "types": "./dist/template-repeat.d.ts",
+      "import": "./dist/template-repeat.js"
+    },
+    "./length": {
+      "types": "./dist/length.d.ts",
+      "import": "./dist/length.js"
+    },
+    "./slide-copy": {
+      "types": "./dist/slide-copy.d.ts",
+      "import": "./dist/slide-copy.js"
+    },
+    "./slide-model": {
+      "types": "./dist/slide-model.d.ts",
+      "import": "./dist/slide-model.js"
+    },
+    "./properties": {
+      "types": "./dist/properties.d.ts",
+      "import": "./dist/properties.js"
+    },
+    "./package-reader": {
+      "types": "./dist/package-reader.d.ts",
+      "import": "./dist/package-reader.js"
+    },
+    "./resource-limits": {
+      "types": "./dist/resource-limits.d.ts",
+      "import": "./dist/resource-limits.js"
+    },
+    "./chart-editing": {
+      "types": "./dist/chart-editing.d.ts",
+      "import": "./dist/chart-editing.js"
+    },
+    "./fields": {
+      "types": "./dist/fields.d.ts",
+      "import": "./dist/fields.js"
+    },
+    "./creation": {
+      "types": "./dist/creation.d.ts",
+      "import": "./dist/creation.js"
+    },
+    "./shape-selection": {
+      "types": "./dist/shape-selection.d.ts",
+      "import": "./dist/shape-selection.js"
+    },
+    "./opaque-objects": {
+      "types": "./dist/opaque-objects.d.ts",
+      "import": "./dist/opaque-objects.js"
+    },
+    "./charts": {
+      "types": "./dist/charts.d.ts",
+      "import": "./dist/charts.js"
+    },
+    "./connectors": {
+      "types": "./dist/connectors.d.ts",
+      "import": "./dist/connectors.js"
+    },
+    "./backgrounds": {
+      "types": "./dist/backgrounds.d.ts",
+      "import": "./dist/backgrounds.js"
+    },
+    "./shapes": {
+      "types": "./dist/shapes.d.ts",
+      "import": "./dist/shapes.js"
+    },
+    "./media": {
+      "types": "./dist/media.d.ts",
+      "import": "./dist/media.js"
+    },
+    "./package-writer": {
+      "types": "./dist/package-writer.d.ts",
+      "import": "./dist/package-writer.js"
+    },
+    "./tags": {
+      "types": "./dist/tags.d.ts",
+      "import": "./dist/tags.js"
+    },
+    "./animations": {
+      "types": "./dist/animations.d.ts",
+      "import": "./dist/animations.js"
+    },
+    "./animation-editing": {
+      "types": "./dist/animation-editing.d.ts",
+      "import": "./dist/animation-editing.js"
+    },
+    "./xml-parts": {
+      "types": "./dist/xml-parts.d.ts",
+      "import": "./dist/xml-parts.js"
+    },
+    "./masters": {
+      "types": "./dist/masters.d.ts",
+      "import": "./dist/masters.js"
+    },
+    "./themes": {
+      "types": "./dist/themes.d.ts",
+      "import": "./dist/themes.js"
+    },
+    "./image-insertion": {
+      "types": "./dist/image-insertion.d.ts",
+      "import": "./dist/image-insertion.js"
+    },
+    "./package-uri": {
+      "types": "./dist/package-uri.d.ts",
+      "import": "./dist/package-uri.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.txt"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test": "cd ../.. && vitest run packages/safe-bash-presentation-engine",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-presentation-engine",
+    "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/safe-bash-presentation-engine"
+  },
+  "dependencies": {
+    "@poe-code/office-package": "*",
+    "saxes": "6.0.0",
+    "@noble/hashes": "2.4.0",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-contracts": "*"
+  },
+  "devDependencies": {
+    "toolcraft-schema": "*"
+  }
+}

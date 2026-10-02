@@ -13,3 +13,7 @@ The engine receives invocation arguments and cancellation signals. File access a
 Set `limits.maxArgumentBytes` to bound the bytes admitted before the engine runs. The engine controls document input and output budgets. Both single-command and command-list factories are available for custom registration.
 
 Pass `engine` to use a custom document engine.
+
+The command owns PowerPoint argument parsing, schemas, discovery and execution.
+Shared presentation and byte operations remain internal engine APIs bundled with
+the public Safe Bash package; no additional package installation is required.

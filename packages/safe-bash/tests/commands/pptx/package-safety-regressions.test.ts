@@ -3,7 +3,7 @@ import { after, before, mock, test } from "node:test";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { createPptxCommandEngine, createPresentation, extractPackage } from "safe-bash-pptx-engine";
-import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
+import { inspectZip } from "../../../../safe-bash-presentation-engine/tests/zip-reader.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

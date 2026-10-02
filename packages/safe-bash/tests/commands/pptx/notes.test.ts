@@ -10,9 +10,9 @@ import {
   readPresentationSettings,
   replacePresentationText
 } from "safe-bash-pptx-engine";
-import { parseXmlPart } from "../../../../safe-bash-pptx-engine/src/xml.js";
-import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
-import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { parseXmlPart } from "../../../../safe-bash-presentation-engine/src/xml.js";
+import { inspectZip } from "../../../../safe-bash-presentation-engine/tests/zip-reader.js";
+import { storedArchive } from "../../../../safe-bash-presentation-engine/tests/fixtures/archive.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { FsError, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

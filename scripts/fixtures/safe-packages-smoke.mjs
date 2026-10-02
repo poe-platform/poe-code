@@ -346,3 +346,8 @@ assert.throws(() => import.meta.resolve("safe-bash-command-op"), { code: "ERR_MO
 await (await import("./safe-packages-op.mjs")).verification;
 
 import "./safe-packages-safejs.mjs";
+
+for (const name of ["safe-bash-command-pptx", "safe-bash-pptx-engine", "safe-bash-presentation-engine"]) {
+  assert.throws(() => import.meta.resolve(name), { code: "ERR_MODULE_NOT_FOUND" });
+}
+await (await import("./safe-packages-pptx.mjs")).verification;

@@ -543,7 +543,7 @@
             "@poe-code/image-ast": "*",
             "citeproc": "2.4.63",
             "safe-bash-command-ssconvert": "*",
-            "safe-bash-pptx-engine": "*"
+            "safe-bash-presentation-engine": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",
@@ -1492,7 +1492,8 @@
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
             "safe-bash-io-engine": "*",
-            "safe-bash-pptx-engine": "*"
+            "safe-bash-presentation-engine": "*",
+            "toolcraft-schema": "*"
           },
           "portable": true
         },
@@ -1804,15 +1805,10 @@
         },
         "safe-bash-pptx-engine": {
           "version": "0.0.1",
-          "dependencies": {
-            "@poe-code/office-package": "*",
-            "saxes": "6.0.0",
-            "@noble/hashes": "2.4.0",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-contracts": "*"
-          },
+          "dependencies": {},
           "devDependencies": {
-            "toolcraft-schema": "*"
+            "safe-bash-command-pptx": "*",
+            "safe-bash-presentation-engine": "*"
           },
           "portable": true
         },
@@ -1938,6 +1934,20 @@
             "safe-bash-contracts": "*",
             "safe-bash-io-engine": "*",
             "safe-bash-query-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-presentation-engine": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@poe-code/office-package": "*",
+            "saxes": "6.0.0",
+            "@noble/hashes": "2.4.0",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*"
+          },
+          "devDependencies": {
+            "toolcraft-schema": "*"
           },
           "portable": true
         }
@@ -3396,7 +3406,8 @@
     "safe-bash-command-unix2dos": "*",
     "safe-bash-command-zstd": "*",
     "safe-bash-command-cp": "*",
-    "safe-bash-command-safejs": "*"
+    "safe-bash-command-safejs": "*",
+    "safe-bash-presentation-engine": "*"
   },
   "main": "./dist/index.js",
   "imports": {

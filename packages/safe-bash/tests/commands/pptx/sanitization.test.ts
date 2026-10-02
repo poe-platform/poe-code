@@ -3,7 +3,7 @@ import test, { after, before, mock } from "node:test";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
 import { createPptxCommandEngine, createPresentation, mutateProperty, sanitizeProperties } from "safe-bash-pptx-engine";
-import { inspectZip } from "../../../../safe-bash-pptx-engine/tests/zip-reader.js";
+import { inspectZip } from "../../../../safe-bash-presentation-engine/tests/zip-reader.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

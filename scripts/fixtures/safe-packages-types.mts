@@ -287,3 +287,5 @@ import "./safe-packages-split-types.mjs";
 import "./safe-packages-op-types.mjs";
 
 import "./safe-packages-safejs-types.mjs";
+
+import "./safe-packages-pptx-types.mjs";

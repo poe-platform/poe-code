@@ -2147,7 +2147,7 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
   const browserTargets = Object.keys(volume.toJSON()).filter(filename => filename.endsWith(".browser.js"));
   for (const filename of browserTargets) volume.unlinkSync(filename);
   const manifest = structuredClone(bashManifest);
-  for (const name of ["safe-bash-command-op", "safe-bash-command-pandoc", "office-package"]) {
+  for (const name of ["safe-bash-command-op", "safe-bash-command-pandoc", "safe-bash-command-pptx", "office-package"]) {
     volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
     volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({
       name: name === "office-package" ? "@poe-code/office-package" : name, private: true, type: "module", version: "0.0.1",
@@ -2160,7 +2160,7 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
   }
   volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
   volume.writeFileSync("/repo/packages/office-package/dist/index.js", "export const codec = 1;\n");
-  for (const name of ["op", "pandoc"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.js`,
+  for (const name of ["op", "pandoc", "pptx"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.js`,
     `export * from "safe-bash-command-${name}";`);
   volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { codec } from "@poe-code/office-package";');
   const bundle = vi.fn(async (settings: { outfile?: string; outdir?: string; entryPoints: Record<string, string> | string[] }) => {
@@ -2177,7 +2177,7 @@ it("prepares scoped browser and private command runtimes without root sandbox bu
     .toBe('export const prepared = true;\n');
   expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/commands/pandoc/index.js", "utf8"))
     .toBe('export * from "../../../safe-bash-command-pandoc/index.js";');
-  for (const name of ["op", "pandoc"]) {
+  for (const name of ["op", "pandoc", "pptx"]) {
     expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash-command-${name}/index.js`, "utf8"))
       .toBe('export const prepared = true;\n');
   }

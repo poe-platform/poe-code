@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
 import { createPptxCommandEngine, createPresentation, mutateSlides, readPresentationText, readSelectionIndex, readShapes } from "safe-bash-pptx-engine";
-import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { storedArchive } from "../../../../safe-bash-presentation-engine/tests/fixtures/archive.js";
 import { FsError, toByteSource, type FileSystem, type PluginHost } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { Shell } from "../../../src/shell/index.js";

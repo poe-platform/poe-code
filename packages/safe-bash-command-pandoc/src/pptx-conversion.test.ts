@@ -9,7 +9,7 @@ import path from "node:path";
 import { SaxesParser } from "saxes";
 import { Volume } from "memfs";
 import type { CodecRuntime } from "@poe-code/office-package";
-import { Presentation, Inches, readNotes, createPresentation, addLayout, mutateAnimations, readLayouts, CategoryChartData, addOleObject, mutateTextParagraphs } from "safe-bash-pptx-engine";
+import { Presentation, Inches, readNotes, createPresentation, addLayout, mutateAnimations, readLayouts, CategoryChartData, addOleObject, mutateTextParagraphs } from "safe-bash-presentation-engine";
 
 vi.mock("../../office-package/src/runtime.js", async importOriginal => {
   const runtime = await importOriginal<{defaultRuntime: CodecRuntime}>();

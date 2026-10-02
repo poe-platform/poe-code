@@ -168,6 +168,8 @@ export default defineConfig({
       "packages/safe-bash-media-engine/**",
       "packages/remote-execution/**",
       "packages/safe-bash-command-op/src/*.test.ts",
+      "packages/safe-bash-command-pptx/src/*.test.ts",
+      "packages/safe-bash-pptx-engine/src/*.test.ts",
       "packages/safe-bash-command-wkhtmltopdf/src/*.test.ts",
       "packages/safe-bash-command-exiftool/src/*.test.ts",
       "packages/safe-bash-command-mmdc/src/*.test.ts",

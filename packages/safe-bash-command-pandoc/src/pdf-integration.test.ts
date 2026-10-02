@@ -4,7 +4,7 @@ import {Volume} from "memfs";
 import type {CodecRuntime} from "@poe-code/office-package";
 import {convert, writeDocument, createFormatRegistry, createStandalonePandocCommand} from "./index.js";
 import type {Document} from "./types.js";
-import "safe-bash-pptx-engine";
+import "safe-bash-presentation-engine";
 vi.mock("../../office-package/src/runtime.js", async importOriginal => {
   const runtime = await importOriginal<{defaultRuntime: CodecRuntime}>();
   return {

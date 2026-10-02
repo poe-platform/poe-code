@@ -4,7 +4,7 @@ import test, { after, before, mock } from "node:test";
 import { Volume } from "memfs";
 import { createPresentation, createPptxCommandEngine, readMedia } from "safe-bash-pptx-engine";
 import { compileJsonSchema } from "toolcraft-schema";
-import { storedArchive } from "../../../../safe-bash-pptx-engine/tests/fixtures/archive.js";
+import { storedArchive } from "../../../../safe-bash-presentation-engine/tests/fixtures/archive.js";
 import { pptxCommands } from "../../../src/commands/pptx/index.js";
 import { toByteSource } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";

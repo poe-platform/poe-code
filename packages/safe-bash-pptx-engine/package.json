@@ -23,8 +23,8 @@
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "test": "cd ../.. && vitest run packages/safe-bash-pptx-engine",
-    "test:unit": "cd ../.. && vitest run packages/safe-bash-pptx-engine",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts",
     "lint": "eslint src && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "repository": {
@@ -32,14 +32,9 @@
     "url": "git+https://github.com/poe-platform/poe-code.git",
     "directory": "packages/safe-bash-pptx-engine"
   },
-  "dependencies": {
-    "@poe-code/office-package": "*",
-    "saxes": "6.0.0",
-    "@noble/hashes": "2.4.0",
-    "@poe-code/safe-fs": "*",
-    "safe-bash-contracts": "*"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "toolcraft-schema": "*"
+    "safe-bash-command-pptx": "*",
+    "safe-bash-presentation-engine": "*"
   }
 }

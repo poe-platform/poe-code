@@ -47,7 +47,10 @@ test(`portable SDK executes without Node globals or shared memory under ${condit
     bundle: true, platform: "neutral", format: "esm", conditions: [condition], write: false
   });
   const url = "data:text/javascript;base64," + Buffer.from(result.outputFiles[0].text).toString("base64");
-  const script = `globalThis.process = undefined; globalThis.Buffer = undefined;
+  // Node 18 does not expose Web Crypto by default. Supply the browser/Worker
+  // capability before removing Node globals from this portable execution realm.
+  const script = `globalThis.crypto ??= (await import("node:crypto")).webcrypto;
+    globalThis.process = undefined; globalThis.Buffer = undefined;
     globalThis.SharedArrayBuffer = undefined;
     const { run, createRealm, createRootedSourceResolver, makeFsModule, makeEnvModule, makeLogModule, MemoryFileSystem, dump, restore, parse, parseModule, parseSourceModule, deepCopyFromSandbox, deepCopyToSandbox, SandboxError, SnapshotValidationError, declareHostOperation } = await import(${JSON.stringify(url)});
     if ([dump, restore, parse, parseModule, parseSourceModule, deepCopyFromSandbox, deepCopyToSandbox, SandboxError, SnapshotValidationError, declareHostOperation].some(value => typeof value !== "function")) throw new Error("Missing portable API");
@@ -158,7 +161,10 @@ test("built data accounting retains optimized code across garbage collections", 
   const sections = result.stdout.split("MEASUREMENT_WARMED");
   assert.equal(sections.length, 2, "Missing warmup boundary");
   const optimizations = output => output.split("\n").filter(line =>
-    (line.includes("completed optimizing") || (line.includes("completed compiling") && line.includes("target TURBOFAN"))) && line.includes("<JSFunction visit ")).length;
+    (line.includes("completed optimizing") ||
+      (line.includes("completed compiling") && line.includes("target TURBOFAN")) ||
+      (line.includes("[optimizing ") && line.includes("(target TURBOFAN)") && line.includes(" - took "))) &&
+    line.includes("<JSFunction visit ")).length;
   assert.ok(optimizations(sections[0]) > 0, "Visitor did not optimize during warmup");
   // Compile synchronously so host scheduling cannot move warmup completion
   // past the marker. Recompiling after every collection still fails the check.

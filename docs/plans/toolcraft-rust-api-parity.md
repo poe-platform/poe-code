@@ -2934,3 +2934,22 @@ is running and main Release workflow 37053618196 remains pending; publication is
 not yet verified. After rebasing incoming command-package moves, the maintained
 Safe Bash dependency closure was rebuilt successfully and its installed `pwd`
 smoke check passed again. The underlying startup/artifact coupling remains open.
+
+### Node 18 release-probe repair
+
+The CLI-policy commit is verified on remote main at
+b8c907ac8879eba650c97fe6818231d19071632c. Renderer package Release workflow
+37053617629 subsequently failed before publication: its Node 18.18 SafeJS
+postbuild reported three portable-realm failures and an optimization-probe failure.
+All four reproduced on the installed Node 18.20.8 against current built artifacts.
+Instrumented probes identified absent global Web Crypto (`randomUUID`) and a V8
+trace parser that missed Node 18's completed `[optimizing ... - took ...]` lines.
+
+The portable probe now supplies Node's built-in Web Crypto before clearing Node
+globals, matching the browser/Worker capability it simulates. The optimization
+probe recognizes the older completion wording while retaining its warmup and
+post-GC recompilation assertions. All 20 built-artifact probes pass with no skips
+on Node 18.20.8, 20.20.0, 22.23.2 and 24.14.0; Node 22 uses the maintained SafeJS
+postbuild command. Scoped ESLint passes. No runtime code or dependencies changed.
+This repairs demonstrated release prerequisites; Node 18.18 and successful
+publication still require CI confirmation.

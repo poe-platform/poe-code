@@ -6,7 +6,7 @@ import { parseA1, formatA1, type Cell, type CellValue, type Workbook, type Sheet
   type ImportedValue, type AxisMetadata, type FormulaGroup, type NamedExpression, type UnsupportedRecord } from "@poe-code/spreadsheet-ast";
 import { parseExpression } from "@poe-code/spreadsheet-engine/formulas/parser";
 import { excelGrammar, gnumericGrammar } from "@poe-code/spreadsheet-engine/formulas/conventions";
-import { serializeExpression } from "@poe-code/spreadsheet-engine/formulas/serialization";
+import { quoteFormulaString, serializeExpression } from "@poe-code/spreadsheet-engine/formulas/serialization";
 import { rewriteReferences, visitFormula } from "@poe-code/spreadsheet-engine/formulas/rewriting";
 import { xlsxSchemas, xlsxNamespaces, xlsxNamespaceScanElements, type XlsxSchemaNode } from "./xlsx-schema.js";
 import { converterLocale } from "@poe-code/spreadsheet-engine/locale/runtime";
@@ -21,6 +21,8 @@ import { writeXlsxSheetMetadata, writeXlsxProperties } from "./xlsx-write-metada
 import { gnumericNumber } from "@poe-code/spreadsheet-engine/codecs/gnumeric-number";
 import { recalculateWorkbook } from "@poe-code/spreadsheet-engine/formulas/evaluator";
 import { formulaSemanticsAttributes, readFormulaSemantics, readOpenFormula } from "./formula-semantics.js";
+
+const standardErrors = new Set(["#NAME?", "#REF!", "#VALUE!", "#NUM!", "#DIV/0!", "#N/A", "#NULL!"]);
 
 const spreadsheetNamespaces = new Set([
   "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
@@ -639,7 +641,7 @@ export function createXlsxWriter(edition: "2006" | "2008"): NonNullable<import("
             } else { type = "inlineStr"; body += xml("is", {}, writeRichString(value.value, cell.richText, xml, charge)); }
           } else if (value.kind !== "blank") {
             type = value.kind === "boolean" ? "b" : value.kind === "error" ? "e" : undefined;
-            body += xml("v", {}, value.kind === "boolean" ? value.value ? "1" : "0" : value.kind === "number" ? gnumericNumber(value.value) : escapeXlsx(value.value));
+            body += xml("v", {}, value.kind === "boolean" ? value.value ? "1" : "0" : value.kind === "number" ? gnumericNumber(value.value) : escapeXlsx(standardErrors.has(value.value) ? value.value : "#" + quoteFormulaString(value.value, '"', gnumericGrammar)));
           }
           content += xml("c", { r: formatA1(cell.row, cell.column), s: style !== columnDefaultStyle ? style : undefined, t: type }, body);
         }

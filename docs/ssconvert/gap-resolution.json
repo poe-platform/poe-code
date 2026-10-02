@@ -3951,7 +3951,7 @@
     {
       "id": "python-capwords-unicode",
       "status": "open",
-      "currentFinding": "Explicit frozen Unicode 15.0/15.1/16.0 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell profiles match independent CPython casing/context cases; Chrome page/module-worker evidence covers all three selected versions; typed split errors, NUL, malformed-host and resource boundaries remain covered. Exact activated optional runtime profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
+      "currentFinding": "Explicit frozen Unicode 15.0/15.1/16.0 selection covers the 139 recorded version differences while retaining Unicode 16 by default. Compiled SDK/Shell profiles match independent CPython casing/context cases; Chrome page/module-worker evidence covers all three selected versions; typed split errors, NUL, malformed-host and resource boundaries remain covered. The activated Python 3.13.5/Unicode 15.1 sample profile now matches 11637 current compiled SDK/command observations with no diagnostics; custom-error XLSX quoting is repaired. See pythonCapwordsActivated. Other optional profiles, packed/installed-package requalification and wider diagnostics remain open. Native malformed-UTF8 crashes retain a portable refusal."
     },
     {
       "id": "database-functions",
@@ -4679,6 +4679,51 @@
         "checks": "Engine maintained tests and lint/source/test types; selected 18-build dependency closure; compiled SDK and runCommand XLSX exports. Independent ZIP/XML extraction checks exact counts, normalized formula arguments and binary64/error values across populated sheets. Holdouts include factorial regime boundaries, underflow/overflow, both sides of near-integer dispatch and negative-order reflection."
       },
       "remaining": "These captured Linux arm64 cohorts have no remaining mismatches or work failures. This does not establish all numerical domains, cross-runtime or registry profiles; those and the other compatibility/qualification requirements remain open. No family closure or release claim."
+    },
+    "pythonCapwordsActivated": {
+      "profile": "Unmodified Gnumeric 1.12.61 / GOffice 0.10.61, Debian arm64; exact optional-python-samples plugin descriptor. Python 3.13.5, Unicode 15.1.0. Explicit createPythonSampleFunctions({ unicodeVersion: \"15.1.0\" }) is selected; default Unicode 16 remains unchanged.",
+      "activation": {
+        "python": "3.13.5 (main, Aug 10 2026, 12:06:59) [GCC 14.2.0]",
+        "unicode": "15.1.0",
+        "changedExistingPackages": {},
+        "addedPackages": {
+          "gir1.2-girepository-2.0:arm64": "1.84.0-1",
+          "libgirepository-1.0-1:arm64": "1.84.0-1",
+          "python-gi-dev": "3.50.0-4+b1",
+          "python3-gi": "3.50.0-4+b1"
+        },
+        "activationErrors": 0,
+        "expectedPlugins": 48,
+        "observedPlugins": 48,
+        "stderrBytes": 0,
+        "activeProfile": "python-samples",
+        "preservedPerlPlugins": "/out/perl-profile-plugins",
+        "hashes": {
+          "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/python-loader/python_loader.so": "706914d052cd230b8d354a36fb88c5f4f0551d19f44245b5784c91cedb536a76",
+          "/opt/ssconvert-reference/lib/gnumeric/1.12.61/plugins/py-func/py_func.py": "514e02e416c9664d8d5f0ad04ff58e51468c636e75ed7edc197fb73c88263b4f",
+          "/out/python-plugin-inventory.stdout": "16ee6bb37d405b2460b3c363de27a2cc7931b7055397a956f87dde09e8b3fb95",
+          "/out/python-dependency-hashes.txt": "8e30addf00bed579ba50b82ea5dd0a3e9adfe92881043f6539961d59ead14cb3"
+        }
+      },
+      "dependencyArchives": {
+        "gir1.2-girepository-2.0_1.84.0-1_arm64.deb": "bd294852de18f15960353f9c5935f2af75d7178d8b4a6cfa621ba457c6232e5b",
+        "libgirepository-1.0-1_1.84.0-1_arm64.deb": "b711a720dffec60c05710a35bcf78dd9f361237d8c203b925e8ce48337262e43",
+        "python-gi-dev_3.50.0-4+b1_arm64.deb": "fccdef04cea156851689e1fafb6a7e93ec676a13c6c05496b64625b1d7751626",
+        "python3-gi_3.50.0-4+b1_arm64.deb": "ade7445a1cdef0787c8d2e3209800b0aecf7229950e0f296eee0c59bc96c6790"
+      },
+      "qualification": {
+        "selectedCodePoints": 3877,
+        "contextsPerCodePoint": 3,
+        "scalarAndContextControls": 6,
+        "nativeMatchesPerPublicRoute": 11637,
+        "nativeStderrBytes": 0,
+        "productDiagnosticsPerRoute": 0,
+        "xlsxTests": 54,
+        "pythonNeighborTests": 190,
+        "checks": "Every Unicode 15.1 cased, whitespace and combining code point in three word contexts, plus scalar/error/empty/Greek-context controls. Full native ssconvert XLSX compared with actual compiled SDK and runCommand output. Counts, cell identities, normalized function namespaces outside quoted strings, typed strings/errors all checked. Owner lint/source/test types and selected 18-build closure pass."
+      },
+      "repair": "Native Python float/bool capwords errors exposed missing custom-error XLSX quoting. Native value_get_as_gstring/go_strescape emits # plus a backslash-escaped quoted message for nonstandard errors. Eight failing writer regressions now pass, alongside fourteen standard-error controls across both XLSX editions. Native raw-cache import behavior is preserved and documented; it retains the quoted wire text rather than decoding it.",
+      "remaining": "Other Python conversion/reference/diagnostic cases, malformed-UTF8 native crashes, other optional services and installed/registry qualification remain distinct. All 19 families remain open; no release claim."
     }
   },
   "history": {

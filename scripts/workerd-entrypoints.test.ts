@@ -66,6 +66,7 @@ describe("built portable entrypoints", () => {
       absWorkingDir: root.pathname,
       stdin: { contents: `export * from ${JSON.stringify(specifier)};`, resolveDir: root.pathname },
       alias: { "@poe-platform/safe-fs": "@poe-code/safe-fs" },
+      tsconfigRaw: {},
       bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", write: false,
       // Match the production workerd bundler: Wasm imports retain module assets.
       loader: { ".wasm": "copy" }, outdir: new URL("out/workerd-entrypoints/", root).pathname,
@@ -92,4 +93,11 @@ describe("safe-fs platform runtime imports", () => {
       expect(result).toBe(new URL(`packages/safe-fs/dist/platform/${profile}.js`, root).href);
     });
   }
+});
+
+it.each(["poe-code/safe-js/core", "poe-code/safejs/core"])("%s exposes the portable core to browser consumers", specifier => {
+  const resolved = execFileSync(process.execPath, ["--conditions=browser", "--input-type=module", "-e",
+    `console.log(import.meta.resolve(${JSON.stringify(specifier)}));`
+  ], { cwd: root, encoding: "utf8" }).trim();
+  expect(resolved).toBe(new URL("packages/safe-js/dist/core.js", root).href);
 });

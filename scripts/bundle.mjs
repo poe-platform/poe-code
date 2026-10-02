@@ -157,7 +157,7 @@ await publishBundleOutputs(mainBuild, {
   workingDirectory: rootDir
 });
 consumerBuilds.push(mainBuild);
-const browserShellOptions = resolveBrowserShellBuild(rootDir, { imports: packageJson.imports });
+const browserShellOptions = resolveBrowserShellBuild(rootDir);
 browserShellOptions.plugins.unshift(...sharedRuntimePlugins);
 browserShellOptions.alias = { ...workspaceAliases, ...browserShellOptions.alias };
 browserShellOptions.external = [...new Set([...browserShellOptions.external, ...canonicalFsRoutes.map(route => route.specifier)])];

@@ -19,7 +19,14 @@ export function resolveWorkerdRuntimeBuild(rootDir, graph) {
   return {
     absWorkingDir: rootDir,
     entryPoints: { workerd: path.join(rootDir, "packages/safe-js/src/workerd.ts") },
-    alias: graph.alias,
+    alias: {
+      ...graph.alias,
+      "safe-bash-command-mcp": path.join(rootDir, "packages/safe-bash-command-mcp/src/index.browser.ts"),
+      "auth-store": path.join(rootDir, "packages/auth-store/src/index.browser.ts"),
+      "mcp-oauth": path.join(rootDir, "packages/mcp-oauth/src/index.browser.ts"),
+      "tiny-mcp-client": path.join(rootDir, "packages/tiny-mcp-client/src/index.browser.ts"),
+      "terminal-name": path.join(rootDir, "packages/terminal-name/src/index.workerd.ts")
+    },
     external: graph.external,
     bundle: true,
     splitting: false,

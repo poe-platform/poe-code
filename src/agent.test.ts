@@ -69,6 +69,9 @@ describe("public composable agent API", () => {
 
     expect(packageJson.exports["./agent"]).toEqual({
       types: "./dist/agent.d.ts",
+      workerd: "./dist/agent.browser.js",
+      browser: "./dist/agent.browser.js",
+      worker: "./dist/agent.browser.js",
       import: "./dist/agent.js"
     });
   });

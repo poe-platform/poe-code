@@ -1,3 +1,4 @@
+import { createInstallCommand as subpathInstallCommand, type InstallLimits } from "@poe-platform/safe-bash/commands/install";
 import { Shell, CommandRegistry, agentCommands } from "@poe-platform/safe-bash";
 import { mapfileExtension as publicMapfileExtension, readExtension as publicReadExtension, type ReadExtensionOptions as PublicReadExtensionOptions } from "@poe-platform/safe-bash";
 import {
@@ -47,6 +48,7 @@ type Same<Left, Right> = (<Value>() => Value extends Left ? 1 : 2) extends (<Val
 type Assert<Condition extends true> = Condition;
 type PublicExtension = NonNullable<ShellOptions["extensions"]>[number];
 export type InstalledIdentity = [
+  Assert<Same<typeof subpathInstallCommand, typeof createInstallCommand>>,
   Assert<Same<typeof publicMapfileExtension, typeof mapfileExtension>>,
   Assert<Same<typeof publicReadExtension, typeof readExtension>>,
   Assert<Same<PublicReadExtensionOptions, ReadExtensionOptions>>,
@@ -73,7 +75,7 @@ export async function installedOptionalConsumer(signalHost: TrapSignalHost): Pro
     publicYesCommand(), publicDdCommand(), publicShufCommand(),
     ...publicYesCommands(), ...publicDdCommands(), ...publicShufCommands(),
     createYesCommand(), createCmpCommand(), createDdCommand(), createShufCommand(),
-    createTruncateCommand(), createInstallCommand(), createYqCommand(),
+    createTruncateCommand(), createInstallCommand({ limits: { maxFileBytes: 1024 } satisfies InstallLimits }), createYqCommand(),
     ...createYesCommands(), ...createCmpCommands(), ...createDdCommands(), ...createShufCommands(),
     ...createTruncateCommands(), ...createInstallCommands(), ...createYqCommands(),
   ];

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { FsError, type FileSystem, type CommandContext } from "../../../src/contracts/index.js";
 import { run, seed, wrapped } from "./helpers.js";
-import { scopeFileSystem } from "poe-code/safe-fs/core";
+import { scopeFileSystem } from "@poe-code/safe-fs/core";
 import { createInstallCommand } from "../../../src/commands/install/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { ShellLimitError } from "../../../src/shell/types.js";

@@ -297,6 +297,18 @@ for (const commands of [registry, laterRegistry]) {
     const target = await fs.stat("/nested/target");
     assert.equal(target.mode & 0o7777, 0o640);
     assert.equal(target.mtimeMs, 2000.5);
+    await fs.writeFile("/install.sh", Buffer.from("install -D -m 600 /input /script/target | cat\n"));
+    const scriptedInstall = await owner.shell.exec("sh /install.sh");
+    assert.equal(scriptedInstall.exitCode, 0, scriptedInstall.stderr);
+    assert.equal(scriptedInstall.stdout, "");
+    assert.deepEqual(await fs.readFile("/script/target"), binary);
+    assert.equal((await fs.stat("/script/target")).mode & 0o7777, 0o600);
+    for (const octal of ["377", "376"]) {
+      const invalidMode = await owner.shell.exec(`install -m $'\\${octal}' /input /invalid-mode`);
+      assert.equal(invalidMode.exitCode, 1);
+      assert.ok(invalidMode.stderr.includes(`\\${octal}`), invalidMode.stderr);
+    }
+
     await fs.writeFile("/settings.yaml", Buffer.from("# config\nbuild:\n  enabled: false\n"));
     const updated = await owner.shell.exec("yq -i '.build.enabled = true' /settings.yaml");
     assert.equal(updated.exitCode, 0, updated.stderr);

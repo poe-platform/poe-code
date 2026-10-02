@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryFileSystem, FsError, withFileSystemQuota } from "poe-code/safe-fs";
+import { createMemoryFileSystem, FsError, withFileSystemQuota } from "@poe-code/safe-fs";
 import type { FileSystem, InvocationCleanup } from "../../../src/contracts/index.js";
 import { commandRuntimeIdentity } from "../../../src/contracts/command.js";
 import { installCommands } from "../../../src/commands/install/index.js";

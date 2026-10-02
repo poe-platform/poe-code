@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { run, seed } from "./helpers.js";
+import { run, seed } from "./test-helpers.js";
 
 for (const [args, message, usage] of [
   [[], "missing file operand", true], [["source"], "missing destination file operand after 'source'", true],

@@ -98,3 +98,10 @@ test('grep owns matching, file selection and aliases above an independent search
     assert.equal(source.trim(), `export * from "${owner}/${entry}";`);
   }
 });
+
+test('install owns its argument regressions and builds canonical prerequisites', () => {
+  const files = readdirSync(new URL('../packages/safe-bash-command-install/src/', import.meta.url));
+  assert.ok(files.includes('grammar.test.ts'));
+  const turbo = json('turbo.json');
+  assert.ok(turbo.tasks['safe-bash-command-install#test:unit'].dependsOn.includes('^build'));
+});

@@ -561,6 +561,12 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-install#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     }
   }
 }

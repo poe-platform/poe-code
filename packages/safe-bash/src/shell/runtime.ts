@@ -14389,7 +14389,7 @@ export class Runtime {
       canFastReuse?: boolean;
       bodyAssignments?: readonly SyncLoopStep[];
       redirectCount?: number;
-      arrayLoop?: ReturnType<Shell["admitSyncArrayLoop"]>;
+      arrayLoop?: ReturnType<Runtime["admitSyncArrayLoop"]>;
       localInvMap?: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number; dynamic?: boolean }>;
       cachedFnSize?: number;
       cachedFnName?: string | undefined;
@@ -14413,7 +14413,7 @@ export class Runtime {
       hoistedPlan.redirectCount !== undefined &&
       hoistedPlan.localInvMap !== undefined &&
       rawState.functions.size === hoistedPlan.cachedFnSize &&
-      (!hoistedPlan.cachedFnName || rawState.functions.get(hoistedPlan.cachedFnName)?.body === hoistedPlan.cachedFnBody) &&
+      (!hoistedPlan.cachedFnName || rawState.functions.get(hoistedPlan.cachedFnName) === hoistedPlan.cachedFnBody) &&
       !rawState.extensions?.builtins.size &&
       !hasActiveVariableAttributes(rawState) &&
       !hasUnpreparedLocals(rawState) &&
@@ -14452,7 +14452,7 @@ export class Runtime {
     const prevLoopIO = this._activeSyncLoopIO;
     const prevInvMap = this._syncLoopInvariantSubMap;
     const prevArrayWords = this._activeSyncArrayLoopWords;
-    let arrayLoop: ReturnType<Shell["admitSyncArrayLoop"]>;
+    let arrayLoop: ReturnType<Runtime["admitSyncArrayLoop"]>;
     let localInvMap: WeakMap<Extract<WordPart, { kind: "substitution" }>, { text: string; outBytes: number; exitStatus: number; dynamic?: boolean }>;
     let usedStaticInvSub = false;
     if (canReuseHoisted) {
@@ -14867,7 +14867,7 @@ export class Runtime {
         localInvMap,
         cachedFnSize: rawState.functions.size,
         cachedFnName,
-        cachedFnBody: cachedFnName !== undefined ? rawState.functions.get(cachedFnName)?.body : undefined,
+        cachedFnBody: cachedFnName !== undefined ? rawState.functions.get(cachedFnName) : undefined,
         cachedNoglob: Boolean(rawState.noglob),
         cachedBraceexpand: rawState.braceexpand !== false,
         cachedNocasematch: Boolean(rawState.nocasematch),

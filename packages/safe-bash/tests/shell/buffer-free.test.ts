@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { portableRuntime } from "../helpers/portable-runtime.js";
 
 const cases: [string, number, string?][] = [
+  ['x=hello; echo ${x^^}; echo hello | grep h', 0, 'HELLO\nhello\n'],
   ["printf 'b:a\\n%.0s' {1..128} > /in.txt; for i in 1 2; do cat /in.txt | tr a c | cut -d: -f2 | sort; done", 0, 'c\n'.repeat(256)],
   ['arr=(1 2); echo "${arr[0]}"', 0, '1\n'],
   ["eval 'echo hi'", 0, 'hi\n'],

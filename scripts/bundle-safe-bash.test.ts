@@ -758,6 +758,7 @@ it("uses the public portable trap subpath without the Node signal catalog", asyn
 });
 
 const portableSamplingAndMatchingCases = [
+  ['for ((i=0; i<3; i++)); do printf "é🦊"; done >/dev/null; echo "$i"', '3\n'],
   ['[[ abc123 =~ ([a-z]+)([0-9]+) ]] && printf "%s:%s:%s\\n" "${BASH_REMATCH[0]}" "${BASH_REMATCH[1]}" "${BASH_REMATCH[2]}"', "abc123:abc:123\n"],
   ['[[ abc =~ z ]]; printf "%s\\n" "$?"', "1\n"],
   ['[[ abc =~ "a.c" ]]; printf "%s\\n" "$?"', "1\n"],

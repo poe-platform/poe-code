@@ -17,6 +17,22 @@ function fixture(t: TestContext, limits: ShellLimits = {}) {
 
 const redirectLimit = (error: unknown): boolean => error instanceof ShellLimitError && error.limit === "maxRedirects";
 
+test("synchronous null redirects count Unicode output bytes without a host Buffer", async t => {
+  const { shell } = fixture(t);
+  shell.use(standardCommands());
+  const source = 'for ((i=0; i<3; i++)); do printf "é🦊"; done >/dev/null';
+  const hostBuffer = globalThis.Buffer;
+  Reflect.set(globalThis, "Buffer", undefined);
+  try {
+    const result = await shell.exec(source, { limits: { maxOutputBytes: 18 } });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    await assert.rejects(shell.exec(source, { limits: { maxOutputBytes: 17 } }),
+      error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
+  } finally { Reflect.set(globalThis, "Buffer", hostBuffer); }
+});
+
 for (const streaming of [true, false]) {
   for (const command of ["sort -o /out /input", "uniq /input /out"]) {
     test(`${command} shares the output budget (streaming=${streaming})`, async t => {

@@ -674,6 +674,7 @@
     "safe-bash-command-python": "*",
     "safe-bash-command-playwright-cli": "*",
     "safe-bash-mime-engine": "*",
+    "safe-bash-command-unix2dos": "*",
     "@poe-code/media-codecs": "*",
     "safe-bash-command-pdfseparate": "*",
     "safe-bash-command-pdfunite": "*"
@@ -878,7 +879,8 @@
     "packages/safe-js/dist/workerd.js",
     "packages/safe-js/dist/workerd.js.map",
     "packages/safe-bash-command-playwright-cli/dist",
-    "packages/safe-bash-mime-engine/dist"
+    "packages/safe-bash-mime-engine/dist",
+    "packages/safe-bash-command-unix2dos/dist"
   ],
   "license": "MIT",
   "imports": {

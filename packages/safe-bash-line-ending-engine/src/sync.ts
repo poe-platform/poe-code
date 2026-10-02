@@ -158,3 +158,6 @@ export function evalSyncLineEndings(
   }
   return new Uint8Array(out);
 }
+
+import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
+syncCommandEvaluators.evalSyncLineEndings = evalSyncLineEndings;

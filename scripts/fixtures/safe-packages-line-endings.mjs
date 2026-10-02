@@ -1,9 +1,12 @@
+import { createUnix2dosCommand as dedicatedUnix2dos, createUnix2dosCommands, unix2dosCommands } from "@poe-platform/safe-bash/commands/unix2dos";
 import { verifyDos2unix } from "./safe-packages-dos2unix.mjs";
 import * as defaultEntry from "@poe-platform/safe-bash";
 import { createDos2unixCommand, createUnix2dosCommand, createLineEndingCommands, lineEndingCommands } from "@poe-platform/safe-bash/commands/line-endings";
 
 export async function verifyLineEndingCommands(entry = defaultEntry) {
+  if (dedicatedUnix2dos !== createUnix2dosCommand || createUnix2dosCommands().length !== 1 || unix2dosCommands().name !== "unix2dos-commands") throw new Error("unix2dos public boundary differs");
   await verifyDos2unix();
+  await verifyDos2unix("unix2dos");
   if (entry.createDos2unixCommand !== createDos2unixCommand || entry.createUnix2dosCommand !== createUnix2dosCommand || entry.createLineEndingCommands !== createLineEndingCommands || entry.lineEndingCommands !== lineEndingCommands) throw new Error("Line-ending public subpath factory identity differs");
   if (createDos2unixCommand().name !== "dos2unix" || createUnix2dosCommand().name !== "unix2dos" || JSON.stringify(createLineEndingCommands().map(command => command.name)) !== '["dos2unix","unix2dos"]') throw new Error("Line-ending public factories differ");
   const limits = ["maxArguments", "maxArgumentBytes", "maxInputBytes", "maxOutputBytes", "maxBufferedBytes", "maxDiagnosticBytes", "maxFiles", "maxWork", "maxEmptyChunks", "maxPathBytes", "maxDepth", "maxTempAttempts", "chunkSize"];

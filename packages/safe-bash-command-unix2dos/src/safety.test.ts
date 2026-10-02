@@ -3,38 +3,7 @@ import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { toByteSource, type CommandContext, type FileSystem } from "safe-bash-contracts";
-import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
-import { createDos2unixCommand, evalSyncLineEndings, type LineEndingLimits } from "./index.js";
-
-test("sync conversion preserves supported ascii flags and defers unsupported options without writes", () => {
-  const encoder = new TextEncoder();
-  const source = encoder.encode("first\r\nsecond\r\n");
-  for (const args of [[], ["-ascii"], ["-c", "ASCII"], ["--convmode", "ascii"]]) {
-    assert.deepEqual(evalSyncLineEndings("dos2unix", source, args), encoder.encode("first\nsecond\n"));
-  }
-  assert.deepEqual(evalSyncLineEndings("unix2dos", encoder.encode("first\nsecond"), ["-e"]), encoder.encode("first\r\nsecond\r\n"));
-  for (const name of ["dos2unix", "unix2dos"] as const) {
-    for (const args of [["-cascii"], ["--convmode=ascii"], ["-cmac"], ["-c", "mac"], ["--convmode=mac"], ["--convmode", "iso"]]) {
-      let reads = 0, writes = 0;
-      assert.equal(evalSyncLineEndings(name, source, [...args, "-q", "input"], () => {reads++;return source;}, () => {writes++;return true;}), undefined);
-      assert.equal(reads, 0);assert.equal(writes, 0);
-    }
-  }
-});
-
-test('the command workspace owns synchronous line-ending registration', () => {
-  assert.equal(syncCommandEvaluators.evalSyncLineEndings, evalSyncLineEndings);
-  assert.deepEqual(syncCommandEvaluators.evalSyncLineEndings!('dos2unix', Uint8Array.of(65, 13, 10), []), Uint8Array.of(65, 10));
-});
-
-for (const name of ['dos2unix', 'unix2dos'] as const) test(`${name}: mac conversion defers before synchronous file access`, () => {
-  for (const mode of [['-c', 'mac'], ['-cmac'], ['--convmode', 'mac'], ['--convmode=mac']]) {
-    assert.equal(evalSyncLineEndings(name, Uint8Array.of(65, 13, 10), mode), undefined);
-    assert.equal(evalSyncLineEndings(name, undefined, ['-q', ...mode, '/input'],
-      () => assert.fail('unsupported mode must defer before reading'),
-      () => assert.fail('unsupported mode must defer before writing')), undefined);
-  }
-});
+import { createUnix2dosCommand, type Unix2dosLimits as LineEndingLimits } from "./index.js";
 
 function deferred() {
   let resolve!: () => void;
@@ -50,7 +19,7 @@ function view(memory: MemoryFileSystem, overrides: object): FileSystem {
   } });
 }
 
-for (const [name, create] of [['dos2unix', createDos2unixCommand]] as const) {
+for (const [name, create] of [['unix2dos', createUnix2dosCommand]] as const) {
   async function run(overrides: Partial<CommandContext> = {}, limits: Partial<LineEndingLimits> = {}) {
     const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
     const result = await create({ limits }).execute({ command: name, args: [], fs: new MemoryFileSystem(), cwd: '/', env: { LC_ALL: 'C.UTF-8' }, signal: new AbortController().signal,
@@ -60,7 +29,7 @@ for (const [name, create] of [['dos2unix', createDos2unixCommand]] as const) {
 
   test(`${name}: supported ASCII options preserve exact conversion bytes`, async () => {
     for (const args of [[], ['-ascii'], ['-c', 'ASCII'], ['--convmode', 'ascii']]) {
-      assert.deepEqual(await run({ args }), { exitCode: 0, stdout: '410a', stderr: '' });
+      assert.deepEqual(await run({ args }), { exitCode: 0, stdout: '410d0a', stderr: '' });
     }
   });
 
@@ -75,7 +44,7 @@ for (const [name, create] of [['dos2unix', createDos2unixCommand]] as const) {
     Object.defineProperty(bytes, Symbol.iterator, { value: function* () { calls++; yield 66; yield 10; } });
     const result = await run({ stdin: { async *[Symbol.asyncIterator]() { yield bytes; } } });
     assert.equal(calls, 0);
-    assert.equal(result.stdout, '410a');
+    assert.equal(result.stdout, '410d0a');
   });
 
   test(`${name}: intrinsic chunk extent is charged despite own length`, async () => {
@@ -107,7 +76,7 @@ for (const [name, create] of [['dos2unix', createDos2unixCommand]] as const) {
     const bytes = Uint8Array.of(65, 13);
     const result = await run({ stdin: { async *[Symbol.asyncIterator]() { try { yield bytes; bytes.set([10, 66]); yield bytes; } finally { bytes.fill(0); } } } });
     assert.equal(result.exitCode, 0);
-    assert.equal(result.stdout, '410a42');
+    assert.equal(result.stdout, '410d0a42');
   });
 
   for (const reason of [false, 0, '', null]) test(`${name}: next getter cancellation drains the acquired receiver (${JSON.stringify(reason)})`, async () => {
@@ -173,12 +142,3 @@ for (const [name, create] of [['dos2unix', createDos2unixCommand]] as const) {
 }
 
 
-test('synchronous line endings defer non-ascii modes before file acquisition', () => {
-  for (const command of ['dos2unix', 'unix2dos'] as const) {
-    for (const args of [['-c', 'mac'], ['-cmac'], ['--convmode=mac'], ['--convmode', '7bit']]) {
-      assert.equal(evalSyncLineEndings(command, Uint8Array.of(65, 13), [...args, '-q', '/input'],
-        () => assert.fail('fallback must not read files'),
-        () => assert.fail('fallback must not publish files')), undefined);
-    }
-  }
-});

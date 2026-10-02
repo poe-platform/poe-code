@@ -45,3 +45,6 @@ metadata checks, cancellation and staged publication. File mutation requires the
 filesystem's atomic rename, exclusive creation, permissions and stable identity
 capabilities. It accesses only the supplied VFS. Unsupported flags produce a
 diagnostic; this profile does not claim every native dos2unix option.
+
+For unix2dos-only registration, use `unix2dosCommands` from
+`@poe-platform/safe-bash/commands/unix2dos`.

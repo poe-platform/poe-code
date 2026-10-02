@@ -1,7 +1,8 @@
 # Shared line-ending conversion
 
 Safe Bash uses one engine for DOS/Unix conversion, BOM and UTF-16 detection,
-binary-file checks, file information, bounded byte streams and staged VFS
+binary-file checks, shared option handling, synchronous evaluation, file information,
+bounded byte streams and staged VFS
 publication. Sharing these rules keeps both conversion directions consistent.
 
 The engine is private and bundled into Safe Bash. Access conversion through the

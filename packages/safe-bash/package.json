@@ -1384,7 +1384,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "safe-bash-line-ending-engine": "*",
-            "@poe-code/safe-fs": "*"
+            "@poe-code/safe-fs": "*",
+            "safe-bash-command-unix2dos": "*"
           },
           "assets": [
             "./dist/LICENSE"
@@ -1887,6 +1888,19 @@
           "version": "0.0.1",
           "dependencies": {},
           "devDependencies": {},
+          "portable": true
+        },
+        "safe-bash-command-unix2dos": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-line-ending-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "assets": [
+            "./dist/LICENSE"
+          ],
           "portable": true
         }
       },
@@ -3073,6 +3087,12 @@
       "workerd": "./dist/commands/more/index.js",
       "browser": "./dist/commands/more/index.js",
       "import": "./dist/commands/more/index.js"
+    },
+    "./commands/unix2dos": {
+      "types": "./dist/commands/unix2dos/index.d.ts",
+      "workerd": "./dist/commands/unix2dos/index.js",
+      "browser": "./dist/commands/unix2dos/index.js",
+      "import": "./dist/commands/unix2dos/index.js"
     }
   },
   "sideEffects": [
@@ -3316,7 +3336,8 @@
     "safe-bash-command-qrencode": "*",
     "safe-bash-command-python": "*",
     "safe-bash-command-playwright-cli": "*",
-    "safe-bash-mime-engine": "*"
+    "safe-bash-mime-engine": "*",
+    "safe-bash-command-unix2dos": "*"
   },
   "main": "./dist/index.js",
   "imports": {

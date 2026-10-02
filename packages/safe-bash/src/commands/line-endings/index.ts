@@ -5,3 +5,4 @@ export {
 } from "safe-bash-command-dos2unix";
 
 export { evalSyncLineEndings } from "safe-bash-command-dos2unix";
+export { createUnix2dosCommands, unix2dosCommands, type Unix2dosCommandsOptions, type Unix2dosLimits } from "safe-bash-command-unix2dos";

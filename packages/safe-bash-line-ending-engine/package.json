@@ -34,6 +34,14 @@
     "./info": {
       "types": "./dist/info.d.ts",
       "import": "./dist/info.js"
+    },
+    "./command": {
+      "types": "./dist/command.d.ts",
+      "import": "./dist/command.js"
+    },
+    "./sync": {
+      "types": "./dist/sync.d.ts",
+      "import": "./dist/sync.js"
     }
   },
   "files": [

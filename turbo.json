@@ -550,6 +550,12 @@
         "^build"
       ],
       "outputs": []
+    },
+    "safe-bash-command-unix2dos#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     }
   }
 }

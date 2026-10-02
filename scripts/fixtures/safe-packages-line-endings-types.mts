@@ -19,3 +19,9 @@ const pluginFactory: typeof lineEndingCommands = subpathPlugin;
 const aggregate: AgentCommandsOptions = { lineEndings: { limits } };
 const partial: LineEndingCommandsOptions = { limits: { maxFiles: 2 } };
 void [dos2unix, unix2dos, commands, plugin, dos2unixFactory, unix2dosFactory, commandFactories, pluginFactory, createAgentCommands(aggregate), createLineEndingCommands(partial)];
+
+import { createUnix2dosCommands, unix2dosCommands, type Unix2dosCommandsOptions, type Unix2dosLimits } from "@poe-platform/safe-bash/commands/unix2dos";
+const unixOptions: Unix2dosCommandsOptions = { limits: limits satisfies Unix2dosLimits };
+const unixCommands: readonly CommandDefinition[] = createUnix2dosCommands(unixOptions);
+const unixPlugin: ReturnType<typeof lineEndingCommands> = unix2dosCommands(unixOptions);
+void [unixCommands, unixPlugin];

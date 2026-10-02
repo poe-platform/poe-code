@@ -715,7 +715,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
 });
 
 {
-  const privatePackages = ["safe-bash-command-html-to-markdown", "safe-bash-command-shuf", "safe-bash-command-expr", "safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
+  const privatePackages = ["safe-bash-command-html-to-markdown", "safe-bash-command-shuf", "safe-bash-command-expr", "safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-command-unix2dos", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
 
   // Build the package fixture separately from its consumer type and runtime checks.
     const fixture = optionalLeftovers();
@@ -815,7 +815,9 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/contracts/${subpath}.${suffix}`, `export * from "safe-bash-contracts/${subpath}";`);
     }
     for (const name of ["html-to-markdown", "exiftool", "csvgrep", "csvcut", "mdq", "sed", "wget", "expr"]) for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/${name}/index.${suffix}`, `export * from "safe-bash-command-${name}";`);
-    for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/line-endings/index.${suffix}`, readFileSync(new URL("../packages/safe-bash/src/commands/line-endings/index.ts", import.meta.url)));
+    const lineEndingAdapter = readFileSync(new URL("../packages/safe-bash/src/commands/line-endings/index.ts", import.meta.url), "utf8");
+    for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/line-endings/index.${suffix}`,
+      suffix === "js" ? ts.transpileModule(lineEndingAdapter, { compilerOptions: { module: ts.ModuleKind.ES2022 } }).outputText : lineEndingAdapter);
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/line-endings/index.browser.js", 'export * from "./index.js";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/expr/index.browser.js", 'export * from "./index.js";');
     volume.writeFileSync("/repo/packages/safe-bash/dist/commands/mdq/index.browser.js", 'export * from "./index.js";');
@@ -1466,6 +1468,7 @@ describe("scoped safe package artifacts", () => {
       "/output/safe-bash/dist/safe-bash-xml-engine/LICENSE": data["/repo/packages/safe-bash-xml-engine/LICENSE"],
       "/output/safe-bash/dist/safe-bash-xml-engine/index.d.ts": data["/repo/packages/safe-bash-xml-engine/dist/index.d.ts"],
       "/output/safe-bash/dist/safe-bash-command-dos2unix/LICENSE": data["/repo/packages/safe-bash-command-dos2unix/LICENSE"],
+      "/output/safe-bash/dist/safe-bash-command-unix2dos/LICENSE": data["/repo/packages/safe-bash-command-unix2dos/LICENSE"],
       "/output/safe-bash/dist/safe-bash-line-ending-engine/LICENSE": data["/repo/packages/safe-bash-line-ending-engine/LICENSE"],
     });
     expected["/output/safe-bash/dist/safe-bash-sqlite-engine/LICENSE"] = data["/repo/packages/safe-bash-sqlite-engine/LICENSE"]!;
@@ -1481,12 +1484,13 @@ describe("scoped safe package artifacts", () => {
       ["safe-bash-command-git", ["index"]],
       ["safe-bash-command-fold", ["index", "family"]],
       ["safe-bash-command-dos2unix", ["index"]],
+      ["safe-bash-command-unix2dos", ["index"]],
       ["safe-bash-compression-engine", [
         "index", "bounded-codec", "codec-loader", "codec", "crc", "errors", "file-operation", "files",
         "gunzip", "internal", "operand", "options", "stream", "zstd-decode",
         "native/bz2", "native/types", "native/xz", "native/zstd",
       ]],
-      ["safe-bash-line-ending-engine", ["index", "internal", "io", "stage", "convert", "encoding", "info"]],
+      ["safe-bash-line-ending-engine", ["index", "internal", "io", "stage", "convert", "encoding", "info", "command", "sync"]],
       ["safe-bash-xml-engine", ["document", "evaluate", "io", "json", "limits", "query"]],
     ] as const) {
       for (const entry of entries) expected[`/output/safe-bash/dist/${name}/${entry}.d.ts`] = "export {};\n";

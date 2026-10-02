@@ -3,6 +3,14 @@ import test from "node:test";
 import { commandRuntimeIdentity, CommandRegistry, type CommandDefinition } from "../../src/contracts/command.js";
 import { createYesCommand } from "../../src/commands/yes/index.js";
 import { createCmpCommand } from "../../src/commands/cmp/index.js";
+import { posixPath } from "@poe-code/safe-fs/core";
+import { posixPath as nodePath } from "../../src/contracts/node-path.js";
+import { posixPath as nodeContractsPath } from "../../src/contracts/node.js";
+
+test("Node contract entry points share the portable filesystem path implementation", () => {
+  assert.equal(nodePath, posixPath);
+  assert.equal(nodeContractsPath, posixPath);
+});
 
 function foreignCommand(): CommandDefinition & { readonly runtimeIdentity: object } {
   return { name: "foreign", runtimeIdentity: Object.freeze({}), execute: () => ({ exitCode: 0 }) };

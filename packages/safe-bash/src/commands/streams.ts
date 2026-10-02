@@ -1,6 +1,4 @@
 import { hasYieldCheckpoint, runYieldCheckpoint } from "../contracts/yield.js";
-const SMALL_WC_COUNT_LINES: readonly string[] = Array.from({ length: 129 }, (_, i) => `${i}\n`);
-const SINGLE_STDIN_OPERAND: readonly string[] = ["-"];
 import { collectBytes, createBufferedOutput, createOutputOperation, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
 import { openFileOutput, type FileOutput } from "../contracts/filesystem-output.js";
 import { outputFailure } from "../contracts/io.js";
@@ -33,7 +31,6 @@ const trConfigCache = new Map<string, TrCompiledConfig>();
 let lastTrArg0: string | undefined;
 let lastTrArg1: string | undefined;
 let lastTrConfig: TrCompiledConfig | undefined;
-const STDIN_REQUIREMENT_MODES = ["stdin"] as const;
 
 function compileTrConfig(args: readonly string[]): TrCompiledConfig {
   if (args.length === 2 && args[0] === lastTrArg0 && args[1] === lastTrArg1 && lastTrConfig !== undefined) {
@@ -113,202 +110,6 @@ async function* combinedInput(context: CommandContext, names: readonly string[],
   for (const name of names.length ? names : ["-"]) {
     try { yield* input(context, name); }
     catch (error) { await diagnostic(context, error); state.exitCode = 1; }
-  }
-}
-
-function prefixSyncOrAsync(context: CommandContext, source: ByteSource, count: number, bytes: boolean, skip: boolean, delimiter: number): Promise<void> | undefined {
-  let remaining = count;
-  if (!remaining && !skip) return undefined;
-  const iter = source[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
-    tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
-    syncReturn?: () => void;
-  };
-  if (typeof iter.tryNextSync === "function") {
-    const syncSink = !(context.stdout as { isPipeStage?: boolean }).isPipeStage
-      ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean; writeRangeSync?: (src: Uint8Array, len: number) => boolean })
-      : undefined;
-    const canWriteSync = typeof syncSink?.writeSync === "function";
-    const canWriteRangeSync = typeof syncSink?.writeRangeSync === "function";
-
-    let done = false;
-    try {
-      while (true) {
-        const step = iter.tryNextSync();
-        if (step === undefined) {
-          return prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink);
-        }
-        if (step.done) { done = true; return undefined; }
-        const chunk = step.value;
-        context.signal.throwIfAborted();
-        let offset = 0;
-        if (remaining) {
-          if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
-          else {
-            while (remaining > 0) { const nl = chunk.indexOf(delimiter, offset); if (nl === -1) { offset = chunk.length; break; } remaining--; offset = nl + 1; }
-          }
-        }
-        if (skip) {
-          if (!remaining && offset < chunk.length) {
-            const slice = chunk.subarray(offset);
-            if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
-              const p = output(context, slice);
-              if (!isSyncResolved(p)) {
-                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink);
-              }
-            }
-          }
-        } else {
-          if (offset) {
-            const wroteSync = canWriteRangeSync
-              ? syncSink!.writeRangeSync!(chunk, offset) !== false
-              : (canWriteSync && syncSink!.writeSync!(chunk.subarray(0, offset)) !== false);
-            if (!wroteSync) {
-              const p = outputRange(context, chunk, offset);
-              if (!isSyncResolved(p)) {
-                if (!remaining) {
-                  done = true;
-                  return prefixFinishAfterPending(p, iter);
-                }
-                return prefixWaitThenContinue(p, context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink);
-              }
-            }
-          }
-          if (!remaining) {
-            done = true;
-            if (typeof iter.syncReturn === "function") {
-              iter.syncReturn();
-              return undefined;
-            }
-            return iter.return ? prefixReturnVoid(iter) : undefined;
-          }
-        }
-      }
-    } catch (err) {
-      if (!done) return rejectPrefixOutput(iter, err);
-      throw err;
-    }
-  }
-  return prefix(context, source, count, bytes, skip, delimiter);
-}
-
-function prefixReturnVoid(iter: AsyncIterator<Uint8Array>): Promise<void> {
-  return iter.return!().then(() => undefined);
-}
-function prefixFinishAfterPending(
-  p: Promise<void>,
-  iter: AsyncIterator<Uint8Array> & { syncReturn?: () => void },
-): Promise<void> {
-  return p.finally(() => {
-    if (typeof iter.syncReturn === "function") iter.syncReturn();
-    else return iter.return?.();
-  });
-}
-async function rejectPrefixOutput(
-  iter: AsyncIterator<Uint8Array> & { syncReturn?: () => void },
-  error: unknown,
-): Promise<never> {
-  if (typeof iter.syncReturn === "function") iter.syncReturn();
-  else await iter.return?.();
-  throw error;
-}
-function prefixWaitThenContinue(
-  p: Promise<void>,
-  context: CommandContext,
-  iter: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined; syncReturn?: () => void },
-  remaining: number,
-  bytes: boolean,
-  skip: boolean,
-  delimiter: number,
-  canWriteSync: boolean,
-  syncSink: { writeSync?: (chunk: Uint8Array) => boolean } | undefined,
-): Promise<void> {
-  return p.then(
-    () => prefixContinueAsync(context, iter, remaining, bytes, skip, delimiter, canWriteSync, syncSink),
-    err => rejectPrefixOutput(iter, err),
-  );
-}
-function finishHeadTailPromise(context: CommandContext, p: Promise<void>): Promise<{ exitCode: number }> {
-  return p.then(
-    RETURN_EXIT_ZERO,
-    async error => { await diagnostic(context, error); return { exitCode: 1 }; },
-  );
-}
-async function rejectTrOutput(
-  iter: AsyncIterator<Uint8Array> & { syncReturn?: () => void },
-  error: unknown,
-): Promise<never> {
-  sharedTrOutBuffer = new Uint8Array(sharedTrOutBuffer.length);
-  sharedTrOutInUse = false;
-  if (typeof iter.syncReturn === "function") iter.syncReturn();
-  else await iter.return?.();
-  throw error;
-}
-function executeTrAfterPending(
-  p: Promise<void>,
-  context: CommandContext,
-  iter: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined; syncReturn?: () => void },
-  deleting: boolean,
-  squeezing: boolean,
-  mapping: Uint8Array,
-  removed: Uint8Array,
-  squeezingTable: Uint8Array,
-  initialPrevious: number,
-  alreadyOwnsShared: boolean,
-): Promise<{ exitCode: number }> {
-  return p.then(
-    () => executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezingTable, initialPrevious, alreadyOwnsShared),
-    err => rejectTrOutput(iter, err),
-  );
-}
-async function prefixContinueAsync(
-  context: CommandContext,
-  iter: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined; syncReturn?: () => void },
-  remaining: number,
-  bytes: boolean,
-  skip: boolean,
-  delimiter: number,
-  canWriteSync: boolean,
-  syncSink: { writeSync?: (chunk: Uint8Array) => boolean } | undefined,
-): Promise<void> {
-  let done = false;
-  try {
-    while (true) {
-      let step = iter.tryNextSync!();
-      if (step === undefined) step = await iter.next();
-      if (step.done) { done = true; break; }
-      const chunk = step.value;
-      context.signal.throwIfAborted();
-      let offset = 0;
-      if (remaining) {
-        if (bytes) { offset = Math.min(chunk.length, remaining); remaining -= offset; }
-        else {
-          while (remaining > 0) { const nl = chunk.indexOf(delimiter, offset); if (nl === -1) { offset = chunk.length; break; } remaining--; offset = nl + 1; }
-        }
-      }
-      if (skip) {
-        if (!remaining && offset < chunk.length) {
-          const slice = chunk.subarray(offset);
-          if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
-            const p = output(context, slice);
-            if (!isSyncResolved(p)) await p;
-          }
-        }
-      } else {
-        if (offset) {
-          const slice = chunk.subarray(0, offset);
-          if (!canWriteSync || syncSink!.writeSync!(slice) === false) {
-            const p = output(context, slice);
-            if (!isSyncResolved(p)) await p;
-          }
-        }
-        if (!remaining) return;
-      }
-    }
-  } finally {
-    if (!done) {
-      if (typeof iter.syncReturn === "function") iter.syncReturn();
-      else await iter.return?.();
-    }
   }
 }
 
@@ -632,44 +433,7 @@ async function executeHeadTailSlow(
 }
 
 function headTail(name: "head" | "tail", maxTailFollowHandles = Infinity): CommandDefinition {
-  return define(name, context => {
-    if (name === "head") {
-      const a = context.args;
-      let fastCount = -1;
-      if (a.length === 0) {
-        fastCount = 10;
-      } else if (a.length === 2 && a[0] === "-n" && a[1]!.length > 0 && a[1]!.length <= 8) {
-        const s = a[1]!;
-        let n = 0;
-        for (let i = 0; i < s.length; i++) {
-          const d = s.charCodeAt(i) - 48;
-          if (d < 0 || d > 9) { n = -1; break; }
-          n = n * 10 + d;
-        }
-        fastCount = n;
-      } else if (a.length === 1 && a[0]!.startsWith("-n") && a[0]!.length > 2 && a[0]!.length <= 10) {
-        const s = a[0]!;
-        let n = 0;
-        for (let i = 2; i < s.length; i++) {
-          const d = s.charCodeAt(i) - 48;
-          if (d < 0 || d > 9) { n = -1; break; }
-          n = n * 10 + d;
-        }
-        fastCount = n;
-      }
-      if (fastCount >= 0) {
-        assertCommandRequirements(context, inspectedInputRequirements, STDIN_REQUIREMENT_MODES);
-        try {
-          const p = prefixSyncOrAsync(context, input(context, "-"), fastCount, false, false, 10);
-          if (p === undefined) return RESOLVED_EXIT_ZERO;
-          return finishHeadTailPromise(context, p);
-        } catch (error) {
-          return diagnostic(context, error).then(RETURN_EXIT_ONE);
-        }
-      }
-    }
-    return executeHeadTailSlow(name, maxTailFollowHandles, context);
-  });
+  return define(name, context => executeHeadTailSlow(name, maxTailFollowHandles, context));
 }
 
 const TR_CHARACTER_CLASSES: Readonly<Record<string, number[]>> = (() => {
@@ -787,34 +551,7 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
   return [
     define("cat", executeCatGeneral),
     headTail("head"), headTail("tail", maxTailFollowHandles),
-    define("wc", context => {
-      if (context.args.length === 1 && (context.args[0] === "-l" || context.args[0] === "-c") && !hasYieldCheckpoint(context.signal)) {
-        const countLines = context.args[0] === "-l";
-        const req = assertInputRequirements(context, SINGLE_STDIN_OPERAND);
-        if (!req) {
-          const stdinFast = context.stdin as {
-            tryCountLinesOrBytesSync?: (countLines: boolean) => number;
-            rawLen?: number;
-          };
-          if (typeof stdinFast.tryCountLinesOrBytesSync === "function" && !context.signal.aborted) {
-            const byteLen = stdinFast.rawLen ?? 0;
-            try {
-              const fastCheck = (context as { _checkFastInputBytes?: (b: number) => void })._checkFastInputBytes;
-              if (fastCheck) fastCheck.call(context, byteLen);
-              else context.inputBudget?.check(byteLen);
-              const count = stdinFast.tryCountLinesOrBytesSync(countLines);
-              const text = count >= 0 && count <= 128 ? SMALL_WC_COUNT_LINES[count]! : `${count}\n`;
-              const p = output(context, text);
-              if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-              return p.then(RETURN_EXIT_ZERO);
-            } catch (error) {
-              return diagnostic(context, error).then(RETURN_EXIT_ONE);
-            }
-          }
-        }
-      }
-      return executeWcSlow(context);
-    }),
+    define("wc", executeWcSlow),
     define("tee", async context => {
       const args: string[] = [];
       let ended = false;
@@ -889,68 +626,11 @@ export function streamCommands(maxTeeTargets = Infinity, maxTailFollowHandles = 
     define("tr", context => {
       runYieldCheckpoint(context.signal);
       const { deleting, squeezing, mapping, removed, squeezed } = compileTrConfig(context.args);
-      let previous = -1;
       const iter = input(context)[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
         tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
         syncReturn?: () => void;
       };
-      const canTrySync = typeof iter.tryNextSync === "function";
-      if (canTrySync && !sharedTrOutInUse) {
-        sharedTrOutInUse = true;
-        let released = false;
-
-        try {
-          while (true) {
-            const step = iter.tryNextSync!();
-            if (step === undefined) {
-              released = true;
-              return executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
-            }
-            if (step.done) {
-              return RESOLVED_EXIT_ZERO;
-            }
-            const chunk = step.value;
-            context.signal.throwIfAborted();
-            if (!chunk.length) continue;
-            const useShared = chunk.length <= sharedTrOutBuffer.length;
-            const buf = useShared ? sharedTrOutBuffer : new Uint8Array(chunk.length);
-            if (!deleting && !squeezing) {
-              for (let index = 0; index < chunk.length; index++) buf[index] = mapping[chunk[index]!]!;
-              const p = useShared ? outputRange(context, buf, chunk.length) : output(context, buf);
-              if (!isSyncResolved(p)) {
-                released = true;
-                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
-              }
-              continue;
-            }
-            let count = 0;
-            for (let index = 0; index < chunk.length; index++) {
-              const byte = chunk[index]!;
-              if (removed[byte]) continue;
-              const translated = mapping[byte]!;
-              if (translated === previous && squeezed[translated]) continue;
-              buf[count++] = translated;
-              previous = translated;
-            }
-            if (count) {
-              const p = outputRange(context, buf, count);
-              if (!isSyncResolved(p)) {
-                released = true;
-                return executeTrAfterPending(p, context, iter, deleting, squeezing, mapping, removed, squeezed, previous, true);
-              }
-            }
-          }
-        } catch (err) {
-          released = true;
-          return rejectTrOutput(iter, err);
-        } finally {
-          if (!released) {
-            sharedTrOutBuffer.fill(0);
-            sharedTrOutInUse = false;
-          }
-        }
-      }
-      return executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezed, previous, false);
+      return executeTrAsync(context, iter, deleting, squeezing, mapping, removed, squeezed, -1, false);
     }),
   ].map(command => ({ ...command, filesystemRequirements: streamRequirements[command.name]! }));
 }

@@ -34,8 +34,190 @@ import { expandTildes } from "./tilde-expansion.js";
 import { evaluatePositionalArithmetic } from "./arithmetic-parameters.js";
 import type { StringWork } from "./string-operations.js";
 import { defaultMkdirExecutors, defaultRmExecutors } from "../commands/filesystem.js";
-import { defaultPredicateExecutors, tryFastPredicate } from "../commands/predicates.js";
-import { escapeBytes, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../commands/internal.js";
+import { defaultPredicateExecutors } from "../commands/predicates.js";
+const unary = new Set(["-n", "-z", "-e", "-a", "-f", "-d", "-c", "-L", "-h", "-s", "-r", "-w", "-x", "-b", "-p", "-S", "-u", "-g", "-k", "-O", "-G", "-t", "-v", "-o", "-R", "-N"]);
+const binary = new Set(["=", "==", "!=", "<", ">", "-eq", "-ne", "-lt", "-le", "-gt", "-ge", "-nt", "-ot", "-ef"]);
+const numeric = new Set(["-eq", "-ne", "-lt", "-le", "-gt", "-ge"]);
+function parseSafeIntegerFast(text: string): number | undefined {
+  const len = text.length;
+  if (len === 0 || len > 15) return undefined;
+  let i = 0;
+  while (i < len && (text.charCodeAt(i) === 32 || text.charCodeAt(i) === 9)) i++;
+  if (i === len) return undefined;
+  let negative = false;
+  const first = text.charCodeAt(i);
+  if (first === 45 || first === 43) {
+    negative = first === 45;
+    i++;
+  }
+  let digits = 0;
+  let value = 0;
+  while (i < len) {
+    const code = text.charCodeAt(i);
+    if (code >= 48 && code <= 57) {
+      value = value * 10 + (code - 48);
+      digits++;
+      i++;
+    } else if (code === 32 || code === 9) {
+      while (i < len && (text.charCodeAt(i) === 32 || text.charCodeAt(i) === 9)) i++;
+      break;
+    } else {
+      return undefined;
+    }
+  }
+  if (digits === 0 || i < len) return undefined;
+  return negative ? -value : value;
+}
+
+const fastFileUnaryOps = new Set(["-e", "-a", "-f", "-d", "-s", "-L", "-h", "-r", "-w", "-x"]);
+
+export function tryFastPredicate(
+  name: string,
+  rawArgs: readonly string[],
+  offset = 0,
+  fileUnaryEval?: (op: string, target: string) => boolean | undefined,
+): number | undefined {
+  const totalLen = rawArgs.length - offset;
+  const rawLen = name === "[" ? totalLen - 1 : totalLen;
+  if (name === "[") {
+    if (rawLen < 0 || rawArgs[offset + rawLen] !== "]") return undefined;
+  }
+  if (rawLen === 0) return 1;
+  if (rawLen === 1) return rawArgs[offset] !== "" ? 0 : 1;
+  if (rawLen === 2) {
+    const a0 = rawArgs[offset]!;
+    const a1 = rawArgs[offset + 1]!;
+    if (a0 === "!") return a1 === "" ? 0 : 1;
+    if (a0 === "-n") return a1 !== "" ? 0 : 1;
+    if (a0 === "-z") return a1 === "" ? 0 : 1;
+    if (fastFileUnaryOps.has(a0)) {
+      const res = fileUnaryEval?.(a0, a1);
+      return res === undefined ? undefined : (res ? 0 : 1);
+    }
+    return undefined;
+  }
+  if (rawLen === 3) {
+    const a0 = rawArgs[offset]!;
+    const op = rawArgs[offset + 1]!;
+    const a2 = rawArgs[offset + 2]!;
+    if (a0 === "!") {
+      if (op === "-n") return a2 !== "" ? 1 : 0;
+      if (op === "-z") return a2 === "" ? 1 : 0;
+      if (fastFileUnaryOps.has(op)) {
+        const res = fileUnaryEval?.(op, a2);
+        return res === undefined ? undefined : (res ? 1 : 0);
+      }
+    }
+    if (op === "=" || op === "==") return a0 === a2 ? 0 : 1;
+    if (op === "!=") return a0 !== a2 ? 0 : 1;
+    if (op === "-a") return (a0 !== "" && a2 !== "") ? 0 : 1;
+    if (op === "-o") return (a0 !== "" || a2 !== "") ? 0 : 1;
+    if (numeric.has(op)) {
+      const leftNum = parseSafeIntegerFast(a0);
+      const rightNum = parseSafeIntegerFast(a2);
+      if (leftNum !== undefined && rightNum !== undefined) {
+        const matched =
+          op === "-eq" ? leftNum === rightNum :
+          op === "-ne" ? leftNum !== rightNum :
+          op === "-lt" ? leftNum < rightNum :
+          op === "-le" ? leftNum <= rightNum :
+          op === "-gt" ? leftNum > rightNum :
+          leftNum >= rightNum;
+        return matched ? 0 : 1;
+      }
+    }
+  }
+  if (rawLen === 4 && rawArgs[offset] === "!") {
+    const inner = tryFastPredicate("test", rawArgs.slice(0, offset + 4), offset + 1, fileUnaryEval);
+    if (inner !== undefined) return inner === 0 ? 1 : 0;
+  }
+  if (rawLen >= 4 && rawLen <= 16) {
+    let cursor = offset;
+    const end = offset + rawLen;
+    const evalPrimary = (): boolean | undefined => {
+      if (cursor >= end) return undefined;
+      const t0 = rawArgs[cursor]!;
+      if (t0 === "(" || t0 === ")") return undefined;
+      if (cursor + 2 < end && binary.has(rawArgs[cursor + 1]!)) {
+        const op = rawArgs[cursor + 1]!;
+        const right = rawArgs[cursor + 2]!;
+        cursor += 3;
+        if (op === "=" || op === "==") return t0 === right;
+        if (op === "!=") return t0 !== right;
+        if (numeric.has(op)) {
+          const leftNum = parseSafeIntegerFast(t0);
+          const rightNum = parseSafeIntegerFast(right);
+          if (leftNum === undefined || rightNum === undefined) return undefined;
+          return (
+            op === "-eq" ? leftNum === rightNum :
+            op === "-ne" ? leftNum !== rightNum :
+            op === "-lt" ? leftNum < rightNum :
+            op === "-le" ? leftNum <= rightNum :
+            op === "-gt" ? leftNum > rightNum :
+            leftNum >= rightNum
+          );
+        }
+        return undefined;
+      }
+      if (t0 === "-n" || t0 === "-z") {
+        if (cursor + 1 >= end) return undefined;
+        const operand = rawArgs[cursor + 1]!;
+        cursor += 2;
+        return t0 === "-n" ? operand !== "" : operand === "";
+      }
+      if (fastFileUnaryOps.has(t0)) {
+        if (cursor + 1 >= end) return undefined;
+        const operand = rawArgs[cursor + 1]!;
+        cursor += 2;
+        return fileUnaryEval?.(t0, operand);
+      }
+      if (unary.has(t0)) return undefined;
+      cursor++;
+      return t0 !== "";
+    };
+    const evalNeg = (): boolean | undefined => {
+      let neg = false;
+      while (cursor < end && rawArgs[cursor] === "!") {
+        neg = !neg;
+        cursor++;
+      }
+      const v = evalPrimary();
+      if (v === undefined) return undefined;
+      return neg ? !v : v;
+    };
+    const evalAnd = (): boolean | undefined => {
+      let v = evalNeg();
+      if (v === undefined) return undefined;
+      while (cursor < end && rawArgs[cursor] === "-a") {
+        cursor++;
+        const r = evalNeg();
+        if (r === undefined) return undefined;
+        v = v && r;
+      }
+      return v;
+    };
+    const evalOr = (): boolean | undefined => {
+      let v = evalAnd();
+      if (v === undefined) return undefined;
+      while (cursor < end && rawArgs[cursor] === "-o") {
+        cursor++;
+        const r = evalAnd();
+        if (r === undefined) return undefined;
+        v = v || r;
+      }
+      return v;
+    };
+    const res = evalOr();
+    if (res !== undefined && cursor === end) {
+      return res ? 0 : 1;
+    }
+  }
+  return undefined;
+}
+
+
+import { escapeBytes, evalSyncCat, evalSyncCp, evalSyncHeadTail, evalSyncLn, evalSyncMkdir, evalSyncMv, evalSyncRm, evalSyncRmdir, evalSyncSleep, evalSyncTee, evalSyncTouch, evalSyncWc, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../commands/internal.js";
+Object.assign(syncCommandEvaluators, { evalSyncTee, evalSyncTouch, evalSyncCp, evalSyncMv, evalSyncRmdir, evalSyncSleep, evalSyncMkdir, evalSyncRm, evalSyncLn, evalSyncCat, evalSyncHeadTail, evalSyncWc });
 import { scanGetoptsSync } from "./getopts.js";
 import { variablePresence } from "../commands/variable-presence.js";
 import { getArrayAssignment, getArraySelector, literalIndex, numericIndex, stringIndex } from "./arrays/syntax.js";
@@ -25809,6 +25991,9 @@ const syncExtraRuntimeMethods = {
     const chunks: string[] = [];
     for (let i = 0; i < raw.length; i += 76) chunks.push(raw.slice(i, i + 76));
     return chunks.join("\n");
+  },
+  tryFastPredicateSync(this: any, name: string, rawArgs: readonly string[]): number | undefined {
+    return tryFastPredicate(name, rawArgs);
   },
   syncBase64DecodeBytes(this: any, b64: string): Uint8Array {
     const clean = b64.replace(/\s+/g, "");

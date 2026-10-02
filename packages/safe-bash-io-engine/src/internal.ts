@@ -1062,12 +1062,6 @@ export function evalSyncSleep(opArgs: readonly string[]): string | undefined {
   return count > 0 ? "" : undefined;
 }
 
-syncCommandEvaluators.evalSyncTee = evalSyncTee;
-syncCommandEvaluators.evalSyncTouch = evalSyncTouch;
-syncCommandEvaluators.evalSyncCp = evalSyncCp;
-syncCommandEvaluators.evalSyncMv = evalSyncMv;
-syncCommandEvaluators.evalSyncRmdir = evalSyncRmdir;
-syncCommandEvaluators.evalSyncSleep = evalSyncSleep;
 
 
 export function evalSyncMkdir(
@@ -1262,8 +1256,6 @@ export function evalSyncRm(
   return out;
 }
 
-syncCommandEvaluators.evalSyncMkdir = evalSyncMkdir;
-syncCommandEvaluators.evalSyncRm = evalSyncRm;
 
 export function evalSyncLn(
   opArgs: readonly string[],
@@ -1402,7 +1394,6 @@ export function evalSyncLn(
   return out;
 }
 
-syncCommandEvaluators.evalSyncLn = evalSyncLn;
 
 export function evalSyncCat(
   inBytes: Uint8Array | undefined,
@@ -1659,8 +1650,6 @@ export function evalSyncHeadTail(
   return out;
 }
 
-syncCommandEvaluators.evalSyncCat = evalSyncCat;
-syncCommandEvaluators.evalSyncHeadTail = evalSyncHeadTail;
 
 export function evalSyncWc(
   inBytes: Uint8Array | undefined,
@@ -1826,4 +1815,3 @@ export function evalSyncWc(
   return rows.join("");
 }
 
-syncCommandEvaluators.evalSyncWc = evalSyncWc;

@@ -1,4 +1,4 @@
-import { defaultPredicateExecutors, tryFastPredicate } from "../commands/predicates.js";
+import { defaultPredicateExecutors } from "../commands/predicates.js";
 import { syncCommandEvaluators } from "../commands/internal.js";
 const executionCommands = (...args: any[]) => syncCommandEvaluators.executionCommands!(...args);
 import { bytesToHex, latin1Text, byteLength as utf8ByteLength } from "../byte-encoding.js";
@@ -6231,6 +6231,7 @@ export class Runtime {
   }
   private dispatchFastCommand?(_name: string, _definition: any, _values: readonly ShellValue[], _state: State, _io: IO, _scope: InvocationScope): Promise<number>;
   private dispatchFastFunction?(_name: string, _body: Command, _args: readonly string[], _state: State, _io: IO, _pendingResume?: any): Promise<number>;
+  private tryFastPredicateSync?(_name: string, _rawArgs: readonly string[]): number | undefined;
   async dispatch(name: ShellValue, args: readonly string[], state: State, io: IO, assignments: Map<string, SavedVariable>, bypassFunctions = false, values: readonly ShellValue[] = args, temporaryEnvironment?: ReadonlyMap<string, SavedVariable>, defaultPath = false, forceBuiltin = false): Promise<number> {
     if ( !state.externalInvocation && this.middleware.length === 0 && typeof name === "string" && !state.extensions?.builtins.has(name) && !bypassFunctions && state.functions.has(name) && this.firstInternalDiscovery(name, state, false) === "function" && !hasActiveExtensions(state) && !guestArrays(state) && !mapfileCallbackStates.has(state) && assignments.size === 0 && !temporaryEnvironment && (values === args || !values.some(value => typeof value !== "string"))) {
       if (this.dispatchFastFunction) return await this.dispatchFastFunction(name, state.functions.get(name)!, args, state, io);
@@ -6239,7 +6240,7 @@ export class Runtime {
       if (name === "[" || name === "test") {
         const def = this.commands.get(name);
         if (def && defaultPredicateExecutors.has(def.execute)) {
-          const fastStatus = tryFastPredicate(name, args);
+          const fastStatus = this.tryFastPredicateSync?.(name, args);
           if (fastStatus !== undefined) return fastStatus;
         }
       } else if (name === ":") {

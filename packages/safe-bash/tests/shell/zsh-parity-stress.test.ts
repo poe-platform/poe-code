@@ -556,3 +556,26 @@ test("34. sync bc evaluates scale, ibase, and obase assignments and reads in the
     assert.equal(rSync.stderr, rAsync.stderr, `stderr mismatch for ${script}`);
   }
 });
+
+test("35. sync xxd negative seek address calculation, stdin seek errors, and od repeated - stdin operands", async () => {
+  const { shell, fs: fsMem } = setup();
+  shell.use(agentCommands());
+  await fsMem.writeFile("/f", new TextEncoder().encode("0123456789\n"));
+
+  const r1 = await shell.exec("xxd -s -3 /f");
+  assert.equal(r1.exitCode, 0);
+  assert.equal(r1.stdout, "00000008: 3839 0a                                  89.\n");
+
+  const r2 = await shell.exec("xxd -s -3 <<< \"hello\"");
+  assert.equal(r2.exitCode, 2);
+
+  const r3 = await shell.exec("xxd -s -20 /f");
+  assert.equal(r3.exitCode, 4);
+
+  const r4 = await shell.exec("xxd -s 20 <<< \"hi\"");
+  assert.equal(r4.exitCode, 4);
+
+  const r5 = await shell.exec("od -An -tx1 - - <<< \"ab\"");
+  assert.equal(r5.exitCode, 0);
+  assert.equal(r5.stdout, " 61 62 0a\n");
+});

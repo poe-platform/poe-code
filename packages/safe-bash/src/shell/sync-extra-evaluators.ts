@@ -24611,8 +24611,17 @@ const syncExtraRuntimeMethods = {
     const cols = explicitCols ?? (plain ? 30 : include ? 12 : binary ? 6 : 16);
     const group = explicitGroup ?? (binary ? 1 : 2);
     if (!plain && cols < 1) return undefined;
+    if (reverse && seekOff !== 0) return undefined;
+    let startAddr = 0;
     if (!reverse && (seekOff !== 0 || maxLen !== undefined)) {
-      const start = seekOff < 0 ? Math.max(0, view.byteLength + seekOff) : Math.min(view.byteLength, seekOff);
+      if (seekOff < 0) {
+        if (!effFile || effFile === "-" || view.byteLength + seekOff < 0) return undefined;
+        startAddr = view.byteLength + seekOff;
+      } else {
+        if (seekOff > view.byteLength && (!effFile || effFile === "-")) return undefined;
+        startAddr = seekOff;
+      }
+      const start = Math.min(view.byteLength, startAddr);
       const end = maxLen !== undefined ? Math.min(view.byteLength, start + maxLen) : view.byteLength;
       view = view.subarray(start, end);
     }
@@ -24638,7 +24647,6 @@ const syncExtraRuntimeMethods = {
       return out;
     }
     if (!plain) {
-      const startAddr = seekOff < 0 ? Math.max(0, view.byteLength + seekOff) : seekOff;
       const width = cols * (binary ? 8 : 2) + (group ? Math.floor((cols - 1) / group) : 0);
       let out = "";
       for (let off = 0; off < view.byteLength; off += cols) {
@@ -25282,8 +25290,9 @@ const syncExtraRuntimeMethods = {
       if (!readFileSync) return undefined;
       const chunks: Uint8Array[] = [];
       let total = 0;
+      let usedStdin = false;
       for (const f of files) {
-        const b = f === "-" ? view : readFileSync(f);
+        const b = f === "-" ? (usedStdin ? EMPTY_BYTES : (usedStdin = true, view)) : readFileSync(f);
         if (!b || total + b.byteLength > 16384) return undefined;
         chunks.push(b);
         total += b.byteLength;

@@ -1,4 +1,15 @@
-import { deflate, Inflate, Z_BUF_ERROR } from "pako";
+import { Deflate, Inflate, Z_BUF_ERROR } from "pako";
+
+function detachPakoStream(strm: unknown): void {
+  const state = (strm as { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } | undefined)?.state;
+  if (!state) return;
+  for (const key of ["window", "prev", "head", "pending_buf"]) {
+    const buf = state[key]?.buffer;
+    if (buf && typeof buf.transfer === "function") {
+      try { buf.transfer(0); } catch {}
+    }
+  }
+}
 import { FlateStream, Stream } from "../vendor/pdfjs-fonts.mjs";
 import { dictGet, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { PdfError } from "../errors.js";
@@ -18,7 +29,11 @@ export interface PdfFilterDecodeParms {
 const DEFAULT_MAX_DECODED_BYTES = Infinity;
 
 export function encodeFlate(bytes: Uint8Array): Uint8Array {
-  return deflate(bytes);
+  const def = new Deflate();
+  def.push(bytes, true);
+  detachPakoStream((def as unknown as { strm?: unknown }).strm);
+  if (def.err) throw new Error(def.msg || "Flate encode failed");
+  return def.result;
 }
 
 // Keep PDF.js recovery while checking the budget before any output-buffer growth.
@@ -34,8 +49,12 @@ class BoundedFlateStream extends FlateStream {
     if (requested <= this.buffer.byteLength) return this.buffer;
     let size = this.minBufferLength;
     while (size < requested) size *= 2;
+    const prev = this.buffer;
     const buffer = new Uint8Array(Math.min(size, this.maxDecodedBytes));
-    buffer.set(this.buffer);
+    buffer.set(prev);
+    if (prev.byteOffset === 0 && typeof (prev.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
+      try { (prev.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+    }
     return (this.buffer = buffer);
   }
 }

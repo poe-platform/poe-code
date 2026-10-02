@@ -537,3 +537,22 @@ test("33. sync uniq empty-input flag validation, join multi -o and conflicting o
     assert.equal(rSync.stderr, rAsync.stderr, `stderr mismatch for ${script}`);
   }
 });
+
+test("34. sync bc evaluates scale, ibase, and obase assignments and reads in the active ibase", async () => {
+  const syncSh = setup().shell.use(agentCommands());
+  const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+  const scripts = [
+    "x=$(bc <<< \"ibase=16; obase=10; FF\"); echo \"$?:$x\"",
+    "x=$(bc <<< \"ibase=16; scale=A; 1/3\"); echo \"$?:$x\"",
+    "x=$(bc <<< \"ibase=16; scale=10; 1/3\"); echo \"$?:$x\"",
+    "x=$(bc <<< \"ibase=16; ibase=A; 10\"); echo \"$?:$x\"",
+    "x=$(bc <<< \"scale=4; scale; ibase=16; ibase; obase=8; obase\"); echo \"$?:$x\"",
+  ];
+  for (const script of scripts) {
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+    assert.equal(rSync.stderr, rAsync.stderr, `stderr mismatch for ${script}`);
+  }
+});

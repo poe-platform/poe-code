@@ -24455,6 +24455,11 @@ const syncExtraRuntimeMethods = {
           return { c: isqrt(scaledArg), s: targetS };
         }
       }
+      if (/^[+-]?[A-F]$/.test(e)) {
+        const neg = e.startsWith("-");
+        const dv = BigInt(e.charCodeAt(e.length - 1) - 55);
+        return { c: neg ? -dv : dv, s: 0 };
+      }
       if (ibase !== 10 && /^[+-]?[0-9A-F]+$/.test(e)) {
         const neg = e.startsWith("-");
         const rawDigits = (neg || e.startsWith("+")) ? e.slice(1) : e;
@@ -24475,6 +24480,9 @@ const syncExtraRuntimeMethods = {
         const digits = (neg ? intPart.slice(1) : intPart.startsWith("+") ? intPart.slice(1) : intPart) + fracPart;
         return { c: (neg ? -1n : 1n) * BigInt(digits), s: fracPart.length };
       }
+      if (e === "scale") return { c: BigInt(scale), s: 0 };
+      if (e === "ibase") return { c: BigInt(ibase), s: 0 };
+      if (e === "obase") return { c: BigInt(obase), s: 0 };
       if (/^[a-z][a-z0-9_]*$/.test(e)) {
         return vars.get(e) ?? { c: 0n, s: 0 };
       }
@@ -24497,18 +24505,19 @@ const syncExtraRuntimeMethods = {
     const stmts = fullInput.split(/[;\n]+/).map(s => s.trim()).filter(Boolean);
     const out: string[] = [];
     for (const st of stmts) {
-      const scaleM = /^scale\s*=\s*([0-9]{1,2})$/.exec(st);
-      if (scaleM) {
-        scale = Number(scaleM[1]!);
-        if (scale > 20) return undefined;
-        continue;
-      }
-      const baseM = /^(ibase|obase)\s*=\s*([0-9]{1,2})$/.exec(st);
-      if (baseM) {
-        const bVal = Number(baseM[2]!);
-        if (bVal < 2 || bVal > 16) return undefined;
-        if (baseM[1] === "ibase") ibase = bVal;
-        else obase = bVal;
+      const specialM = /^(scale|ibase|obase)\s*=\s*(.+)$/.exec(st);
+      if (specialM && !st.includes("==")) {
+        const val = evalExpr(specialM[2]!);
+        if (!val || val.s !== 0) return undefined;
+        const nVal = Number(val.c);
+        if (specialM[1] === "scale") {
+          if (nVal < 0 || nVal > 20) return undefined;
+          scale = nVal;
+        } else {
+          if (nVal < 2 || nVal > 16) return undefined;
+          if (specialM[1] === "ibase") ibase = nVal;
+          else obase = nVal;
+        }
         continue;
       }
       const compM = /^([a-z][a-z0-9_]*)\s*([+\-*/%])=\s*(.+)$/.exec(st);

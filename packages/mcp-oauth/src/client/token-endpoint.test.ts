@@ -226,3 +226,12 @@ it.each(["authorization_code", "refresh_token"])("rejects an invalid clock ancho
     : exchangeAuthorizationCode({ ...common, code: "code", codeVerifier: "verifier", redirectUri: "http://127.0.0.1/callback" });
   await expect(run).rejects.toThrow(new Error("OAuth token response has invalid expires_in"));
 });
+
+
+it.each([undefined, "rotated-refresh"])("retains or rotates the refresh token after successful exchange (%s)", async refreshToken => {
+  const tokens = await refreshAccessToken({ tokenEndpoint: "https://auth.example/token", clientId: "client",
+    refreshToken: "existing-refresh", resource: "https://resource.example/mcp", now: () => 1000,
+    fetch: async () => Response.json({ access_token: "access", token_type: "Bearer",
+      ...(refreshToken === undefined ? {} : { refresh_token: refreshToken }) }) });
+  expect(tokens.refreshToken).toBe(refreshToken ?? "existing-refresh");
+});

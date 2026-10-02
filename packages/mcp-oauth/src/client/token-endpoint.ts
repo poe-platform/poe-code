@@ -102,21 +102,23 @@ export async function refreshAccessToken(input: {
   now: () => number;
 }): Promise<StoredOAuthTokens> {
   const resource = canonicalizeResourceIndicator(input.resource);
+  const refreshToken = input.refreshToken;
 
-  return requestTokens({
+  const tokens = await requestTokens({
     tokenEndpoint: input.tokenEndpoint,
     clientId: input.clientId,
     clientSecret: input.clientSecret,
     tokenEndpointAuthMethod: input.tokenEndpointAuthMethod,
     params: {
       grant_type: "refresh_token",
-      refresh_token: input.refreshToken,
+      refresh_token: refreshToken,
       resource
     },
     fetch: input.fetch,
     signal: input.signal,
     now: input.now
   });
+  return { ...tokens, refreshToken: tokens.refreshToken ?? refreshToken };
 }
 
 async function requestTokens(input: {

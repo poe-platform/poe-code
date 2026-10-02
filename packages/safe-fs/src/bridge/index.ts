@@ -23,3 +23,5 @@ export function createFsBridge(fs: FileSystem, options: FsBridgeOptions): FsBrid
     }
   });
 }
+
+export const getFsBridgeProvider = FileSystemBridge.getProvider;

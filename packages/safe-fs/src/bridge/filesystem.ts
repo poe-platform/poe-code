@@ -56,6 +56,10 @@ function timeValue(value: unknown): number {
 }
 
 export class FileSystemBridge<Binary extends Uint8Array> {
+  static getProvider(bridge: object): FileSystem | undefined {
+    return #fs in bridge ? bridge.#fs : undefined;
+  }
+
   readonly #fs: FsBridgeFileSystem;
   readonly #cwd: string;
   readonly #root: string;

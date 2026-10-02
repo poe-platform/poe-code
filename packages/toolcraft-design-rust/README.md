@@ -125,6 +125,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `createViewport`, `selectViewportTail` | Retain live items, hold scrollback and select wrapped rows without rendering the full history |
 | `explorer/render/text` | Fit, center and pad text by terminal cells while retaining grapheme offsets |
 | `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
+| `explorer/keymap` | Resolve navigation and action accelerators while preserving printable filtering keys |
 | `dashboard/keymap` | Resolve default or custom keyboard commands and canonicalize binding labels |
 | `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
 | `dashboard/store` | Retain bounded live output, merge statistics and subscribe to state changes |
@@ -571,3 +572,11 @@ completed frames. The function and its types are also available through
 `dashboard/index` and `dashboard/dashboard`. This additive implementation is not
 yet a performance replacement: an 80×20 start/four-update/destroy benchmark took
 about 276 ms per native cycle versus 3.47 ms in JavaScript on Node 22 ARM64.
+
+`resolveBindings(config, defaults?)` from `explorer/keymap` returns navigation and
+action maps with a live `resolve(event)` function. Action accelerators reserve
+Ctrl+C, Ctrl+U, Ctrl+D and Ctrl+P for core commands; legacy bare-key actions and
+keybind overrides are rejected. `assertNoBareLetterBindings` and
+`assertAcceleratorsFree` validate configurations separately, and `keymapToHelp`
+returns navigation, action and general help sections. Multi-select and reorder
+settings determine which selection or reorder commands are available.

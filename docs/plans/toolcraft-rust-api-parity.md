@@ -1774,3 +1774,33 @@ Five warmed alternating five-cycle Node 22 ARM64 rounds, each cycle starting an
 275,821.72 µs native / 3,474.87 µs reference (79.38× slower). No performance gate
 passed. Explorer, CLI/transports/testing, batching, private-class nominal
 identity and broader API/resource/reentrancy/platform qualification remain open.
+
+
+### Explorer keymap checkpoint
+
+`explorer/keymap` now exposes `resolveBindings`, both accelerator/bare-binding
+validators, `keymapToHelp` and their public types. Rust owns builtin bindings,
+configuration filtering, validation precedence, first-wins key assignment,
+event normalization and help structure. Host adapters preserve array iteration,
+Map identity, observable getters, callback receivers, primitive errors and
+reentrancy. Explorer configuration/event types are bundled declarations only;
+configuration normalization, state initialization and the runtime remain open.
+
+Three missing-export differential tests preceded implementation. Coverage checks
+selection/reorder combinations, overridden defaults, protected quit, normalized
+collisions, duplicate action IDs, live returned maps, malformed inputs, exact
+validation diagnostics, getter order and reentrant configuration reads. One
+malformed accelerator exposed a Reflect.apply diagnostic mismatch; direct
+primitive host invocation preserves the original TypeError wording.
+
+Maintained checks pass 316 native host tests, 1,379 selected original design
+tests, 13 prompt wrappers, 132 dashboard/queue cases, 14 composer tests and all
+four original explorer-keymap tests. Rust/binding and scoped JS lint,
+bidirectional declaration checks, external-import-rejecting packed runtime and
+packed declarations with `types: []` pass. Inspected generated help screenshot.
+No dependencies or default integration changes.
+
+Five warmed alternating 1,000-call Node 22 ARM64 rounds with three action
+accelerators measured median 313.06 µs native / 5.04 µs reference (62.09× slower).
+No performance gate passed. Explorer state/runtime, batching and the broader
+swap qualification remain unfinished.

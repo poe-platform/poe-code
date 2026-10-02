@@ -455,11 +455,15 @@
     "./dashboard/dashboard": {
       "types": "./dist/dashboard-runtime.d.ts",
       "import": "./dist/dashboard-runtime.js"
+    },
+    "./explorer/keymap": {
+      "types": "./dist/explorer-keymap.d.ts",
+      "import": "./dist/explorer-keymap.js"
     }
   },
   "scripts": {
     "build": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs build && cp src/*.d.ts dist/",
-    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/toolcraft-design-rust/vitest.sdk.config.mjs && vitest run --config packages/toolcraft-design-rust/vitest.prompts.config.mjs && vitest run --config packages/toolcraft-design-rust/vitest.dashboard.config.mjs && vitest run --config packages/toolcraft-design-rust/vitest.composer.config.mjs",
+    "test:unit": "node scripts/prepare-host.mjs && node ../mcp-protocol-rust/scripts/cargo.mjs test && cp src/*.d.ts dist/ && tsc --project tsconfig.types.json && cd ../.. && vitest run --config packages/toolcraft-design-rust/vitest.sdk.config.mjs && vitest run --config packages/toolcraft-design-rust/vitest.prompts.config.mjs && vitest run --config packages/toolcraft-design-rust/vitest.dashboard.config.mjs && vitest run --config packages/toolcraft-design-rust/vitest.composer.config.mjs && vitest run --config packages/toolcraft-design-rust/vitest.explorer.config.mjs",
     "lint": "node ../mcp-protocol-rust/scripts/cargo.mjs lint && node scripts/lint-bindings.mjs"
   },
   "devDependencies": {

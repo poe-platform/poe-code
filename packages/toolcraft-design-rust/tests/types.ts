@@ -841,3 +841,10 @@ const dashboardNamespaceKeys: SameKeys<typeof dashboardNamespace,typeof original
 const dashboardRootOriginal: typeof originalDashboardNamespace = null as unknown as typeof import("toolcraft-design-rust").dashboard;
 const dashboardRootNative: typeof import("toolcraft-design-rust").dashboard = null as unknown as typeof originalDashboardNamespace;
 void [dashboardRuntimeOriginal,dashboardRuntimeNative,dashboardRuntimeKeys,dashboardNamespaceOriginal,dashboardNamespaceNative,dashboardNamespaceKeys,dashboardRootOriginal,dashboardRootNative];
+
+import * as explorerKeymap from "toolcraft-design-rust/explorer/keymap";
+import type * as originalExplorerKeymap from "toolcraft-design/explorer/keymap";
+const explorerKeymapOriginal: typeof originalExplorerKeymap = explorerKeymap;
+const explorerKeymapNative: typeof explorerKeymap = null as unknown as typeof originalExplorerKeymap;
+const explorerKeymapKeys: SameKeys<typeof explorerKeymap,typeof originalExplorerKeymap> = true;
+void [explorerKeymapOriginal,explorerKeymapNative,explorerKeymapKeys];

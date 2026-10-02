@@ -519,3 +519,6 @@ pub use dashboard_snapshot::*;
 
 mod dashboard_runtime;
 pub use dashboard_runtime::*;
+
+mod explorer_keymap;
+pub use explorer_keymap::*;

@@ -17,3 +17,22 @@ it.each([false, true])("resolves scoped private owners using their production bu
   });
   expect(await resolve("@poe-code/pdf-ast")).toEqual(["parsePdf"]);
 });
+
+it("discovers portable conditional exports and excludes blocked host routes", async () => {
+  const name = "safe-bash-media-engine";
+  const files = { async readFile(filename: string) {
+    return JSON.stringify(filename.endsWith("safe-bash/package.json")
+      ? { poeCode: { integration: { privateWorkspaces: { [name]: {} } } } }
+      : { exports: {
+        ".": { browser: "./dist/index.browser.js", import: "./dist/index.js" },
+        "./server": { browser: null, default: "./dist/server.js" },
+      } });
+  } };
+  const entry = "/repo/packages/safe-bash-media-engine/src/index.browser.ts";
+  const resolve = privateRuntimeExportResolver("/repo", [name], files, { external: [name], conditions: ["browser"] }, async (options: { entryPoints: Record<string, string> }) => {
+    expect(options.entryPoints).toEqual({ [name]: entry });
+    return { metafile: { outputs: { "output.js": { entryPoint: entry, exports: ["mediaCommands"] } } } };
+  });
+  expect(await resolve(name)).toEqual(["mediaCommands"]);
+  expect(await resolve(name + "/server")).toBeUndefined();
+});

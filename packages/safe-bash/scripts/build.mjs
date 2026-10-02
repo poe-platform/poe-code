@@ -1,3 +1,4 @@
+import { selectConditionalTarget } from "../../../scripts/package-export-target.mjs";
 import assert from "node:assert/strict";
 import * as fs from "node:fs";
 import { createRequire } from "node:module";
@@ -282,11 +283,17 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
         for (const [route, target] of routes) {
           assert.ok(route === "." || route.startsWith("./"), "private export route must be relative");
           if (route !== ".") assertLiteralInputPath(route.slice(2));
-          assert.ok(typeof target?.types === "string" && target.types.startsWith("./dist/") && target.types.endsWith(".d.ts"), "private workspace declarations must remain below dist");
-          assertLiteralInputPath(target.types.slice(2));
-          assert.equal(target.import, target.types.slice(0, -5) + ".js", "private workspace runtime/declaration route pair");
-          peerPaths ??= {};
-          peerPaths[name + (route === "." ? "" : route.slice(1))] = [resolve(implementationRoot, target.types)];
+          const environments = [new Set(["node", "import", "default"]), new Set(["workerd", "worker", "browser", "import", "default"])];
+          for (const conditions of environments) {
+            const runtime = selectConditionalTarget(target, conditions);
+            if (runtime === null) continue;
+            const types = selectConditionalTarget(target?.types, conditions);
+            assert.ok(typeof types === "string" && types.startsWith("./dist/") && types.endsWith(".d.ts"), "private workspace declarations must remain below dist");
+            assertLiteralInputPath(types.slice(2));
+            assert.equal(runtime, types.slice(0, -5) + ".js", "private workspace runtime/declaration route pair");
+            peerPaths ??= {};
+            peerPaths[name + (route === "." ? "" : route.slice(1))] ??= [resolve(implementationRoot, types)];
+          }
         }
         toolRoots.push(join(implementationRoot, "dist"));
       }

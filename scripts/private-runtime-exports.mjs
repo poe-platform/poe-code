@@ -1,3 +1,4 @@
+import { selectConditionalTarget } from "./package-export-target.mjs";
 import path from "node:path";
 
 /** Derive facade bindings from real browser builds, including nested owners. */
@@ -12,9 +13,11 @@ export function privateRuntimeExportResolver(rootDir, external, files, recipe, b
         const directory = path.join(rootDir, "packages", name.startsWith("@") ? name.split("/")[1] : name);
         const pkg = JSON.parse(await files.readFile(path.join(directory, "package.json"), "utf8"));
         for (const [route, target] of Object.entries(pkg.exports ?? {})) {
-          if (typeof target.import !== "string" || !target.import.startsWith("./dist/")) throw new Error("Unqualified private export: " + name + " " + route);
+          const runtime = selectConditionalTarget(target, new Set([...(recipe.conditions ?? []), "import", "default"]));
+          if (runtime === null) continue;
+          if (typeof runtime !== "string" || !runtime.startsWith("./dist/")) throw new Error("Unqualified private export: " + name + " " + route);
           const input = pkg.poeCode?.bundle?.prebuilt === true
-            ? target.import : "./src/" + target.import.slice("./dist/".length, -3) + ".ts";
+            ? runtime : "./src/" + runtime.slice("./dist/".length, -3) + ".ts";
           entries.set(name + (route === "." ? "" : route.slice(1)), path.resolve(directory, input));
         }
       }

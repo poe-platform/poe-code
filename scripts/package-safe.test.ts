@@ -2431,3 +2431,31 @@ it("ships Git's workerd runtime, conditional imports, and exact WASM asset", asy
   expect(WebAssembly.validate(volume.readFileSync(artifact + "/git_rust.wasm"))).toBe(true);
 
 });
+
+it("preserves portable private command conditions in packed root imports", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-fixture";
+  const manifest = structuredClone(bashManifest);
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable: true };
+  manifest.devDependencies[name] = "*";
+  manifest.poeCode.integration.privateWorkspaces[name] = profile;
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify({ name, ...profile, private: true, type: "module", exports: {
+    ".": { types: { browser: "./dist/index.browser.d.ts", default: "./dist/index.d.ts" }, browser: "./dist/index.browser.js", import: "./dist/index.js" },
+  } }));
+  for (const platform of ["index", "index.browser"]) for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(`/repo/packages/${name}/dist/${platform}.${suffix}`, suffix === "js" ? `export const platform = "${platform}";` : 'export declare const platform: string;');
+  }
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/index.${suffix}`, `export { platform } from "${name}";`);
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(packed.imports[`#private/${name}`]).toEqual({
+    types: { browser: `./dist/${name}/index.browser.d.ts`, default: `./dist/${name}/index.d.ts` },
+    browser: `./dist/${name}/index.browser.js`, import: `./dist/${name}/index.js`,
+  });
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/index.${suffix}`, "utf8")).toContain(`"#private/${name}"`);
+    expect(volume.existsSync(`/output/safe-bash/dist/${name}/index.browser.${suffix}`)).toBe(true);
+  }
+});

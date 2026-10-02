@@ -2097,3 +2097,19 @@ for (const defect of ["none", "declaration", "source-import"]) test(`build expli
   assert.equal(owned.reads.some(path => path.endsWith("/safe-fs/src/private.d.ts")), false);
   assert.equal(owned.descriptors.size, 0);
 });
+
+for (const defect of ["none", "source", "pair"]) test(`private conditional declaration admission: ${defect}`, async () => {
+  const name = "safe-bash-command-fixture";
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable: true };
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", private: true, type: "module", devDependencies: { [name]: "*" }, poeCode: { integration: { privateWorkspaces: { [name]: profile } } } }),
+    "src/index.ts": `export { answer } from "${name}";`,
+    [`../${name}/package.json`]: JSON.stringify({ name, ...profile, private: true, type: "module", exports: {
+      ".": { types: { browser: defect === "source" ? "./src/index.d.ts" : "./dist/index.browser.d.ts", default: "./dist/index.d.ts" }, browser: defect === "pair" ? "./dist/wrong.js" : "./dist/index.browser.js", import: "./dist/index.js" },
+    } }),
+    [`../${name}/dist/index.d.ts`]: "export declare const answer: number;",
+    [`../${name}/dist/index.browser.d.ts`]: "export declare const answer: number;",
+  });
+  if (defect === "none") assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  else await assert.rejects(owned.run(), /private workspace/);
+});

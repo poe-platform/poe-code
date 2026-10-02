@@ -1,3 +1,4 @@
+import { selectConditionalTarget } from "./package-export-target.mjs";
 import { privateExportStarsPlugin } from "./private-export-stars.mjs";
 import * as fs from "node:fs/promises";
 import path from "node:path";
@@ -684,6 +685,18 @@ export async function packageSafeLibraries({ rootDir, outDir, version, files = f
                   : value && typeof value === "object" && !Array.isArray(value)
                     ? Object.fromEntries(Object.entries(value).map(([key, item]) => [key, substitute(item)])) : value;
                 exported = substitute(workspace.pkg.exports["./*"]);
+              }
+              if (qualifiedName) {
+                const node = new Set(["node", "import", "default"]);
+                const portable = new Set(["workerd", "worker", "browser", "import", "default"]);
+                if (selectConditionalTarget(exported, node) !== selectConditionalTarget(exported, portable) ||
+                    selectConditionalTarget(exported?.types, node) !== selectConditionalTarget(exported?.types, portable)) {
+                  const key = "#private/" + workspace.dir + (route === "." ? "" : route.slice(1));
+                  const mapping = importTarget(exported, false, workspace.dir);
+                  if (Object.hasOwn(imports, key) && !isDeepStrictEqual(imports[key], mapping)) throw new Error("Conflicting private import mapping: " + key);
+                  imports[key] = mapping;
+                  return key;
+                }
               }
               let entrypoint = declaration
                 ? exported?.types !== undefined ? exported.types : (route === "." && workspace.pkg.exports === undefined ? workspace.pkg.types : undefined)

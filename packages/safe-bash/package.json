@@ -1745,6 +1745,65 @@
             "./dist/native/vfs.d.mts"
           ],
           "portable": true
+        },
+        "safe-bash-command-mcp": {
+          "version": "0.0.1",
+          "dependencies": {
+            "tiny-mcp-client": "*",
+            "mcp-oauth": "*",
+            "toolcraft-schema": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*"
+          },
+          "devDependencies": {},
+          "portable": true
+        },
+        "safe-bash-docx-engine": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@poe-code/office-package": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-code/terminal-text": "*"
+          },
+          "devDependencies": {
+            "memfs": "4.56.10"
+          },
+          "portable": true
+        },
+        "safe-bash-media-engine": {
+          "version": "0.0.1",
+          "dependencies": {
+            "saxes": "^6.0.0",
+            "@poe-code/remote-execution": "*",
+            "@noble/hashes": "2.4.0",
+            "@poe-code/safe-fs": "*"
+          },
+          "devDependencies": {},
+          "portable": true
+        },
+        "safe-bash-pdf-engine": {
+          "version": "0.0.1",
+          "dependencies": {
+            "pdf-lib": "1.17.1",
+            "@pdf-lib/fontkit": "1.1.1",
+            "pako": "3.0.1"
+          },
+          "devDependencies": {},
+          "portable": true
+        },
+        "safe-bash-pptx-engine": {
+          "version": "0.0.1",
+          "dependencies": {
+            "@poe-code/office-package": "*",
+            "saxes": "6.0.0",
+            "@noble/hashes": "2.4.0",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*"
+          },
+          "devDependencies": {
+            "toolcraft-schema": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3128,7 +3187,8 @@
     "safe-bash-command-media": "*",
     "safe-bash-command-node": "*",
     "safe-bash-command-caller": "*",
-    "safe-bash-sqlite-engine": "*"
+    "safe-bash-sqlite-engine": "*",
+    "safe-bash-command-mcp": "*"
   },
   "main": "./dist/index.js",
   "imports": {

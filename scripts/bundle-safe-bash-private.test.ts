@@ -17,9 +17,12 @@ it("admits every private workspace into the portable build", () => {
   const recipe = resolvePrivateCommandBuild(root, profiles, workspaces, { alias: {}, external: [], portable: true });
   for (const { dir, pkg } of workspaces) {
     expect(profiles[pkg.name].portable, pkg.name).toBe(true);
-    for (const [route, target] of Object.entries(pkg.exports) as [string, { import: string }][]) {
+    for (const [route, target] of Object.entries(pkg.exports) as [string, Record<string, string | null>][]) {
       if (Object.hasOwn(profiles[pkg.name].optionalModules ?? {}, route)) continue;
-      expect(recipe.entryPoints, pkg.name + route).toHaveProperty(dir + "/" + target.import.slice(2, -3));
+      const runtime = Object.entries(target).find(([condition]) => ["workerd", "worker", "browser", "import", "default"].includes(condition))?.[1];
+      if (runtime === null) continue;
+      expect(runtime, pkg.name + route).toBeTypeOf("string");
+      expect(recipe.entryPoints, pkg.name + route).toHaveProperty(dir + "/" + runtime!.slice(2, -3));
     }
   }
   expect(recipe.conditions).toEqual(["workerd", "worker", "browser"]);
@@ -37,9 +40,14 @@ it("preserves the portable export surface when canonical owners remain external"
     const surface = Object.fromEntries(Object.entries(result.metafile!.outputs)
       .filter(([filename]) => publicOutputs.has(filename))
       .map(([filename, output]) => [filename, output.exports]));
-    expect(surface["packages/safe-bash/dist/core.browser.js"]).toEqual(expect.arrayContaining([
-      "ssconvertCommands", "createSsconvertCommand", "opCommands", "createOpCommand", "diff3Commands"
-    ]));
+    const commandExports = Object.keys(manifest.poeCode.integration.privateWorkspaces)
+      .filter(name => name.startsWith("safe-bash-command-"))
+      .flatMap(name => {
+        const title = name.slice("safe-bash-command-".length).split("-")
+          .map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
+        return [title[0]!.toLowerCase() + title.slice(1) + "Commands", `create${title}Command`, `create${title}Commands`];
+      });
+    expect(surface["packages/safe-bash/dist/core.browser.js"]).toEqual(expect.arrayContaining(commandExports));
     if (external.length) {
       const outputs = new Map(result.outputFiles.map(file => [file.path, file.text]));
       const entry = path.join(options.outdir, "commands/csplit/index.browser.js");
@@ -297,4 +305,21 @@ it("accepts identical browser and workerd targets for a qualified portable comma
     exports: { ".": { types: "./dist/index.d.ts", workerd: "./dist/index.js", browser: "./dist/index.js", import: "./dist/index.js" } } };
   expect(resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg }],
     { alias: {}, external: [], portable: true })?.platform).toBe("browser");
+});
+
+it("prepares portable conditional entries without falling through blocked host exports", () => {
+  const name = "safe-bash-command-example";
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {}, portable: true };
+  const pkg = { name, ...profile, private: true, type: "module", exports: {
+    ".": { types: { browser: "./dist/index.browser.d.ts", default: "./dist/index.d.ts" },
+      browser: "./dist/index.browser.js", import: "./dist/index.js" },
+    "./server": { types: "./dist/server.d.ts", browser: null, node: "./dist/server.js", default: null },
+    "./shared": { types: "./dist/shared.d.ts", default: "./dist/shared.js" },
+  } };
+  const recipe = resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg }],
+    { alias: {}, external: [], portable: true });
+  expect(recipe.entryPoints).toEqual({
+    [name + "/dist/index.browser"]: "/repo/packages/" + name + "/src/index.browser.ts",
+    [name + "/dist/shared"]: "/repo/packages/" + name + "/src/shared.ts",
+  });
 });

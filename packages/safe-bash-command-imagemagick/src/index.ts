@@ -2908,6 +2908,52 @@ function escapeXml(s: string): string {
     .replace(/'/g, "&apos;");
 }
 
+function* blitOverRgbaInPlaceSteps(
+  dst: RgbaImage,
+  src: RgbaImage,
+  left: number,
+  top: number
+): Generator<void, void, void> {
+  const ox = Math.round(left);
+  const oy = Math.round(top);
+  const x0 = Math.max(0, ox);
+  const y0 = Math.max(0, oy);
+  const x1 = Math.min(dst.width, ox + src.width);
+  const y1 = Math.min(dst.height, oy + src.height);
+  if (x1 <= x0 || y1 <= y0) return;
+  const dstData = dst.data;
+  const srcData = src.data;
+  let work = 0;
+  for (let y = y0; y < y1; y++) {
+    if (++work % 64 === 0) yield;
+    const sy = y - oy;
+    let dstIdx = (y * dst.width + x0) * 4;
+    let srcIdx = (sy * src.width + (x0 - ox)) * 4;
+    for (let x = x0; x < x1; x++) {
+      const sa = srcData[srcIdx + 3]!;
+      if (sa === 255) {
+        dstData[dstIdx] = srcData[srcIdx]!;
+        dstData[dstIdx + 1] = srcData[srcIdx + 1]!;
+        dstData[dstIdx + 2] = srcData[srcIdx + 2]!;
+        dstData[dstIdx + 3] = 255;
+      } else if (sa > 0) {
+        const da = dstData[dstIdx + 3]!;
+        const sAlpha = sa / 255;
+        const dAlpha = (da / 255) * (1 - sAlpha);
+        const outAlpha = sAlpha + dAlpha;
+        if (outAlpha > 0) {
+          dstData[dstIdx] = Math.round((srcData[srcIdx]! * sAlpha + dstData[dstIdx]! * dAlpha) / outAlpha);
+          dstData[dstIdx + 1] = Math.round((srcData[srcIdx + 1]! * sAlpha + dstData[dstIdx + 1]! * dAlpha) / outAlpha);
+          dstData[dstIdx + 2] = Math.round((srcData[srcIdx + 2]! * sAlpha + dstData[dstIdx + 2]! * dAlpha) / outAlpha);
+          dstData[dstIdx + 3] = Math.round(outAlpha * 255);
+        }
+      }
+      dstIdx += 4;
+      srcIdx += 4;
+    }
+  }
+}
+
 function rgbaToCompositeLayer(
   overlay: RgbaImage,
   left: number,
@@ -3352,23 +3398,22 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         ? stack.reduce((acc, im) => acc + im.height, 0)
         : Math.max(...stack.map((im) => im.height));
     const canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, state.background));
-    const layers = [];
     let cursor = 0;
     for (const im of stack) {
         if (++work % 16384 === 0)
             yield;
         if (vertical) {
             const off = resolveGravityOffset(totalW - im.width, 0, state.gravity);
-            layers.push(rgbaToCompositeLayer(im, off.left, cursor, "over"));
+            yield* blitOverRgbaInPlaceSteps(canvas, im, off.left, cursor);
             cursor += im.height;
         }
         else {
             const off = resolveGravityOffset(0, totalH - im.height, state.gravity);
-            layers.push(rgbaToCompositeLayer(im, cursor, off.top, "over"));
+            yield* blitOverRgbaInPlaceSteps(canvas, im, cursor, off.top);
             cursor += im.width;
         }
     }
-    return (yield* compositeImageSteps(canvas, layers));
+    return canvas;
 }
 
 function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { format: ImageFormat; path: string } {
@@ -5725,7 +5770,6 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const canvasW = Math.max(1, cols * slotW);
     const canvasH = Math.max(1, rows * slotH);
     const canvas = (yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background));
-    const layers = [];
     for (let idx = 0; idx < images.length; idx++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -5734,14 +5778,15 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (row >= rows)
             break;
         const im = images[idx]!;
+        images[idx] = undefined as unknown as RgbaImage;
         const cellX = col * slotW + padX;
         const cellY = row * slotH + padY;
         const off = resolveGravityOffset(maxThumbW - im.width, maxThumbH - im.height, state.gravity);
-        layers.push(rgbaToCompositeLayer(im, cellX + off.left, cellY + off.top, "over"));
+        yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left, cellY + off.top);
     }
-    const composed = (yield* compositeImageSteps(canvas, layers));
+    images.length = 0;
     const { format, path: outPath } = inferOutputFormat(outSpec, "png");
-    const { data: encoded } = encodeImage(composed, { format, quality: state.quality });
+    const { data: encoded } = encodeImage(canvas, { format, quality: state.quality });
     if (outPath === "-" || outSpec.endsWith(":-")) {
         return { exitCode: 0, stdout: "", stderr: "", stdoutBytes: encoded };
     }

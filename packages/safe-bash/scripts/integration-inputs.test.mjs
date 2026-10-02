@@ -39,6 +39,16 @@ test("shell builtin parity regressions remain in active discovery", () => {
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/builtin-parity.test.ts"));
 });
 
+test("LLM calling and input admission regressions remain in active discovery", () => {
+  const root = fileURLToPath(new URL("../", import.meta.url));
+  const tests = discoverTests(root, loadBoundaries(root));
+  for (const file of [
+    "tests/plugins/python-llm-calling-data.test.ts",
+    "tests/plugins/python-llm-history-attachments.test.ts",
+    "tests/plugins/python-llm-input-budgets.test.ts",
+  ]) assert.ok(tests.includes(file), file);
+});
+
 test("shell option and alias regressions remain in active discovery", () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   assert.ok(discoverTests(root, loadBoundaries(root)).includes("tests/shell/shopt-runtime.test.ts"));

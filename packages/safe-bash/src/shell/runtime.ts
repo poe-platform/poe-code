@@ -12038,6 +12038,54 @@ export class Runtime {
     const p0 = w.parts.length === 1 ? w.parts[0] : (w.parts.length === 2 && w.parts[0]!.kind === "text" && w.parts[0]!.value === "" ? w.parts[1] : undefined);
     return Boolean(p0 && p0.kind === "variable" && p0.name === "@" && p0.quoted && !p0.indirect && !p0.prefixNames && !p0.length && !p0.substring && !p0.transform && p0.operator === undefined && getArraySelector(p0) === undefined);
   }
+  private tryExpandSyncMemoryGlobWord(w: Word, rawState: State, dryRun: boolean): string[] | undefined {
+    if (!this._isMemoryBackingFs || !this.canFastMemoryRedirect || (this._fileWrites !== undefined && this._fileWrites.size !== 0) || (this._outputFiles !== undefined && this._outputFiles.size !== 0)) return undefined;
+    if (rawState.noglob || rawState.nocaseglob || rawState.extglob || rawState.globstar || rawState.failglob) return undefined;
+    if (w.parts.length !== 1) return undefined;
+    const p0 = w.parts[0]!;
+    if (p0.kind !== "text" || p0.quoted || p0.byteValue) return undefined;
+    const raw = p0.value;
+    if (raw.length === 0 || raw.length > 256 || raw.includes("{") || raw.includes("~") || raw.includes("\\") || raw.endsWith("/")) return undefined;
+    const lastSlash = raw.lastIndexOf("/");
+    const dirPrefix = lastSlash === -1 ? "" : raw.slice(0, lastSlash + 1);
+    const globSeg = lastSlash === -1 ? raw : raw.slice(lastSlash + 1);
+    if (globSeg.length === 0 || globSeg === "." || globSeg === ".." || !/[*?[]/.test(globSeg)) return undefined;
+    if (/[*?[]/.test(dirPrefix)) return undefined;
+    const resolvedDir = lastSlash === -1 ? rawState.cwd : resolvePath(rawState.cwd, lastSlash === 0 ? "/" : raw.slice(0, lastSlash));
+    if (!isCleanAbsolutePath(resolvedDir) || resolvedDir === "/dev" || resolvedDir.startsWith("/dev/")) return undefined;
+    const entries = tryGetMemoryDirectoryEntryNamesSync(this.backingFs, resolvedDir);
+    if (!entries || entries.size > 1024) return undefined;
+    const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+    if (dryRun) {
+      if (this.budget.limits.maxFileSystemOperations - this.budget.fileSystemOperations < (entries.size + 2) * 256) return undefined;
+      for (const name of entries.keys()) {
+        for (let c = 0; c < name.length; c++) if (name.charCodeAt(c) >= 128) return undefined;
+        if (tryMatchesPatternSync(name, globSeg, work) === undefined) return undefined;
+      }
+      return [];
+    }
+    if ((this.budget.fileSystemOperations + entries.size + 4) >= this.budget.limits.maxFileSystemOperations) return undefined;
+    this.budget.fileSystemOperation();
+    const found: string[] = [];
+    let totalBytes = 0;
+    const dotOk = Boolean(rawState.dotglob) || globSeg.charCodeAt(0) === 46;
+    for (const name of entries.keys()) {
+      if (!dotOk && name.charCodeAt(0) === 46) continue;
+      for (let c = 0; c < name.length; c++) if (name.charCodeAt(c) >= 128) return undefined;
+      const m = tryMatchesPatternSync(name, globSeg, work);
+      if (m === undefined) return undefined;
+      if (m) {
+        this.budget.fileSystemOperation();
+        const candidate = dirPrefix + name;
+        totalBytes += candidate.length;
+        if (found.length >= 1024 || found.length >= this.budget.limits.maxExpansionFields || totalBytes > this.budget.limits.maxExpansionBytes) return undefined;
+        found.push(candidate);
+      }
+    }
+    if (found.length > 1) found.sort();
+    if (found.length === 0) return rawState.nullglob ? [] : [raw];
+    return found;
+  }
   private canSyncNestedForWords(words: readonly Word[] | undefined, rawState: State, io: IO | undefined, line: number): boolean {
     if (words === undefined) return true;
     if (words.length === 0 || words.length > 64) return false;
@@ -12051,6 +12099,7 @@ export class Runtime {
       const w0 = words[0]!;
       if (rawState.braceexpand !== false && tryFastExpandBraceRange(w0, this.budget, undefined) !== undefined) return true;
       if (io !== undefined && this.tryExpandSyncArrayMembersWord(w0, rawState, io, line) !== undefined) return true;
+      if (this.tryExpandSyncMemoryGlobWord(w0, rawState, true) !== undefined) return true;
     }
     const stdIfs = (rawState.variables.IFS ?? " \t\n") === " \t\n";
     for (let i = 0; i < words.length; i++) {
@@ -12080,6 +12129,8 @@ export class Runtime {
         // Member words must never degrade into a single joined scalar word.
         return this.tryExpandSyncArrayMembersWord(w0, rawState, io, line)!;
       }
+      const globWords = this.tryExpandSyncMemoryGlobWord(w0, rawState, false);
+      if (globWords !== undefined) return globWords;
       const p0 = w0.parts.length === 1 ? w0.parts[0] : (w0.parts.length === 2 && w0.parts[0]!.kind === "text" && w0.parts[0]!.value === "" ? w0.parts[1] : undefined);
       if (p0 && !p0.quoted && (rawState.variables.IFS === undefined || rawState.variables.IFS === " \t\n") && !rawState.noglob) {
         if (p0.kind === "variable" && !p0.indirect && !p0.prefixNames && !p0.length && !p0.transform && getArraySelector(p0) === undefined) {
@@ -14162,7 +14213,7 @@ export class Runtime {
     } else if (command.words.length === 1) {
       fastLoopWords = activeValScope
         ? this.expandBraceRangeWithScope(command.words[0]!, activeValScope)
-        : tryFastExpandBraceRange(command.words[0]!, this.budget, undefined);
+        : (tryFastExpandBraceRange(command.words[0]!, this.budget, undefined) ?? this.tryExpandSyncMemoryGlobWord(command.words[0]!, rawState, false));
     }
     let isStaticBraceWords = Boolean(fastLoopWords);
     if (!fastLoopWords && command.words && command.words.length > 1) {
@@ -31912,19 +31963,24 @@ export class Runtime {
     const absolute = pattern.startsWith("/");
     const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
     let candidates = [absolute ? "/" : ""];
+    let candidateTypes: ("file" | "directory" | "symlink")[] | undefined;
     for (const segment of pattern.split("/").filter((segment) => segment.length > 0)) {
       const next: string[] = [];
+      let nextTypes: ("file" | "directory" | "symlink")[] | undefined;
       let candidateBytes = 0;
-      const addCandidate = (candidate: string): void => {
+      const addCandidate = (candidate: string, type?: "file" | "directory" | "symlink"): void => {
         const size = shellValueByteLength(candidate);
         if (size > this.budget.limits.maxExpansionBytes - candidateBytes) this.budget.fail("maxExpansionBytes");
         candidateBytes += size;
         next.push(candidate);
+        if (type !== undefined) (nextTypes ??= []).push(type);
         if (next.length > this.budget.limits.maxExpansionFields) this.budget.fail("maxExpansionFields");};
       if (segment === "." || segment === ".." || !state.nocaseglob && !(state.extglob ? /(?:^|[^\\])(?:\\\\)*(?:[*?[]|[?*+@!]\()/u.test(segment) : /(?:^|[^\\])(?:\\\\)*[*?[]/u.test(segment))) {
         const literal = segment.replace(/\\(.)/gu, "$1");
         for (const candidate of candidates) addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${literal}`);
+        candidateTypes = undefined;
       } else {
+        nextTypes = [];
         const scratch = this.budget.values.scope();
         work.allocation = scratch;
         try {
@@ -31942,21 +31998,32 @@ export class Runtime {
             }
             for (const entry of entries) {
               if (entry.name !== "." && entry.name !== ".." && (state.dotglob || !entry.name.startsWith(".") || segment.startsWith(".")) && await matches(entry.name)) {
-                addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`);
+                addCandidate(`${candidate}${candidate && candidate !== "/" ? "/" : ""}${entry.name}`, entry.type);
               }
             }
           }
         } finally { scratch.close(); }
+        candidateTypes = nextTypes;
       }
       candidates = next;
     }
     const found: string[] = [];
-    for (const candidate of candidates) {
+    const wantDir = value.endsWith("/");
+    const canSkipLstat = this._isMemoryBackingFs && this.canFastMemoryRedirect;
+    for (let ci = 0; ci < candidates.length; ci++) {
+      const candidate = candidates[ci]!;
+      const knownType = canSkipLstat ? candidateTypes?.[ci] : undefined;
+      if (knownType !== undefined && (!wantDir || knownType !== "symlink")) {
+        this.signal.throwIfAborted();
+        this.budget.fileSystemOperation();
+        if (!wantDir || knownType === "directory") found.push(candidate + (wantDir ? "/" : ""));
+        continue;
+      }
       try {
         const path = pathOf(state, candidate);
-        const pending = value.endsWith("/") ? this.fs.stat(path, { signal: this.signal }) : this.fs.lstat(path, { signal: this.signal });
+        const pending = wantDir ? this.fs.stat(path, { signal: this.signal }) : this.fs.lstat(path, { signal: this.signal });
         const stat = stateMonitor(state)?.store ? await interruptible(pending, this.signal) : await pending;
-        if (!value.endsWith("/") || stat.type === "directory") found.push(candidate + (value.endsWith("/") ? "/" : ""));
+        if (!wantDir || stat.type === "directory") found.push(candidate + (wantDir ? "/" : ""));
       } catch (error) {
         this.signal.throwIfAborted();
         if (!["ENOENT", "ENOTDIR", "EACCES", "EINVAL"].includes(errorCode(error) ?? "")) throw error;

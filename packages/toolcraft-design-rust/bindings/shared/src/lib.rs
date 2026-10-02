@@ -494,3 +494,5 @@ mod dashboard_elapsed;
 pub use dashboard_elapsed::*;
 mod composer;
 pub use composer::*;
+mod dashboard_buffer;
+pub use dashboard_buffer::*;

@@ -709,3 +709,19 @@ const composerNative: typeof composer = null as unknown as typeof originalCompos
 const edited = composer.editComposer(composer.createComposerState("message", "plan"), {name: "return", ctrl: false, meta: false, shift: false});
 const submission: originalComposer.DashboardSubmission | undefined = edited.submit;
 void [composerOriginal,composerNative,submission];
+
+import * as dashboardBuffer from "toolcraft-design-rust/dashboard/buffer";
+import type * as originalDashboardBuffer from "toolcraft-design/dashboard/buffer";
+type BufferPublic<T> = {[K in keyof T]: T[K]};
+const bufferOriginal: BufferPublic<originalDashboardBuffer.ScreenBuffer> = new dashboardBuffer.ScreenBuffer(2, 1);
+const bufferNative: BufferPublic<dashboardBuffer.ScreenBuffer> = null as unknown as originalDashboardBuffer.ScreenBuffer;
+const bufferKeys: SameKeys<typeof dashboardBuffer, typeof originalDashboardBuffer> = true;
+const bufferAnsiOriginal: typeof originalDashboardBuffer.cellToAnsi = dashboardBuffer.cellToAnsi;
+const bufferAnsiNative: typeof dashboardBuffer.cellToAnsi = null as unknown as typeof originalDashboardBuffer.cellToAnsi;
+const bufferChangesOriginal: ReturnType<typeof originalDashboardBuffer.diff> = dashboardBuffer.diff(new dashboardBuffer.ScreenBuffer(0, 0), new dashboardBuffer.ScreenBuffer(1, 1));
+const bufferChangesNative: ReturnType<typeof dashboardBuffer.diff> = null as unknown as ReturnType<typeof originalDashboardBuffer.diff>;
+// @ts-expect-error Separate private declarations remain a nominal replacement gate.
+const bufferNominalOriginal: originalDashboardBuffer.ScreenBuffer = new dashboardBuffer.ScreenBuffer(0, 0);
+// @ts-expect-error Separate private declarations remain a nominal replacement gate.
+const bufferNominalNative: dashboardBuffer.ScreenBuffer = null as unknown as originalDashboardBuffer.ScreenBuffer;
+void [bufferOriginal,bufferNative,bufferKeys,bufferAnsiOriginal,bufferAnsiNative,bufferChangesOriginal,bufferChangesNative,bufferNominalOriginal,bufferNominalNative];

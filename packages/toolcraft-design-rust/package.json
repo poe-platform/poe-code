@@ -407,6 +407,10 @@
     "./dashboard/composer": {
       "types": "./dist/composer.d.ts",
       "import": "./dist/composer.js"
+    },
+    "./dashboard/buffer": {
+      "types": "./dist/dashboard-buffer.d.ts",
+      "import": "./dist/dashboard-buffer.js"
     }
   },
   "scripts": {

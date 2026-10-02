@@ -488,3 +488,10 @@ Unicode graphemes, sanitizes ANSI paste, supports line/word deletion and keeps a
 preferred column during vertical navigation. Enter or Tab submits trimmed text;
 Shift/Alt+Enter inserts a newline, Escape leaves focus, and Ctrl+C stays unhandled.
 The result reports `handled`, the next `state`, and an optional typed `submit`.
+
+`ScreenBuffer` from `dashboard/buffer` stores legacy dashboard cells with named
+or hex colors. Use `put` or `putInRect` for Unicode text, tabs and ANSI styles;
+`get` returns a copy, `clearRect` clears a region, and `resize` preserves cells
+that still fit. `diff(previous, next)` returns changed coordinates and cells;
+`cellToAnsi(cell)` renders a styled cell. This additive compatibility surface
+is not yet suitable for a performance-driven swap.

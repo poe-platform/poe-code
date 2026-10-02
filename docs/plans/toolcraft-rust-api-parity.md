@@ -1498,3 +1498,31 @@ measured native/reference medians: insertion 13.19/0.272 µs (48.55× slower),
 backspace 10.15/1.106 µs (9.17×), and vertical movement 56.33/6.708 µs (8.40×).
 No performance gate passed. Legacy ScreenBuffer/terminal, full dashboard rendering
 and lifecycle, explorer and broader replacement qualification remain open.
+
+### Legacy dashboard buffer checkpoint
+
+`dashboard/buffer` now exports `ScreenBuffer`, `diff` and `cellToAnsi`. Rust owns
+style normalization, clipping, continuation cells, resizing, diff decisions and
+color-chain selection. The host retains observable objects, numeric coercions,
+array creation, iteration and ICU grapheme segmentation. The buffer preserves
+legacy behavior independently of the newer packed `Screen`, including underline
+normalization, newline flattening, public `get` dispatch and runtime-private
+fields/methods. No dependencies were added.
+
+Four missing-export tests failed before implementation. Final maintained package
+checks pass 283 native host tests, 1,282 selected design tests, 13 prompt-wrapper
+tests, 30 shared dashboard tests and all 14 composer tests. Scoped Rust/binding/JS
+lint, bidirectional public structural types, packed runtime without external
+imports and standalone declarations with `types: []` pass. Separate private
+class declarations remain an explicit nominal replacement gate. An inspected
+ASCII screenshot checks rectangle clipping, tabs, underline, ANSI/base colors,
+resize and partial clearing; Unicode behavior is covered differentially.
+Boxed/custom string inputs, modified parsing intrinsics, exhaustive reentrancy
+and resource/platform qualification remain unverified.
+
+Five warmed alternating 100-call rounds measured native/reference medians of
+296.08/6.267 µs for short text writes (47.25× slower) and 2535.36/1.507 µs for a
+20×3 buffer diff (1682.76× slower). Per-cell host crossings dominate this policy
+path; a batched native data path is required before any performance-driven swap.
+No performance gate passed. Legacy terminal, full dashboard rendering/lifecycle,
+explorer and the broader Toolcraft replacement gates remain open.

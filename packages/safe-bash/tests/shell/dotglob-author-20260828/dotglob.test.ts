@@ -4,10 +4,10 @@ import { Shell, MemoryFileSystem, ShellLimitError, standardCommands, createAgent
 import type { ShellOptions, ShellCommandContext, FsOptions } from "../../../src/index.js";
 
 const line = (enabled: boolean, print = false): string => print ? `shopt -${enabled ? "s" : "u"} dotglob\n` : `dotglob             \t${enabled ? "on" : "off"}\n`;
-const globstarLine = (print = false): string => ["expand_aliases", "extglob", "failglob", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "extdebug"].map(name => print ? `shopt -u ${name}\n` : `${name.padEnd(20)}\toff\n`).join("");
+const globstarLine = (print = false): string => ["expand_aliases", "extglob", "failglob", "globstar", "inherit_errexit", "lastpipe", "nocaseglob", "nocasematch", "nullglob", "xpg_echo", "extdebug"].map(name => print ? `shopt -u ${name}\n` : `${name.padEnd(20)}\toff\n`).join("");
 const quote = (value: string): string => `'${value.replaceAll("'", "'\\''")}'`;
 const diagnostic = (text: string): string => `shell: line 1: shopt: ${text}\n`;
-const unsupported = (name: string): string => diagnostic(`${name}: unsupported shell option name (supported: dotglob, expand_aliases, extglob, failglob, globstar, inherit_errexit, lastpipe, nocaseglob, nocasematch, nullglob, extdebug)`);
+const unsupported = (name: string): string => diagnostic(`${name}: unsupported shell option name (supported: dotglob, expand_aliases, extglob, failglob, globstar, inherit_errexit, lastpipe, nocaseglob, nocasematch, nullglob, xpg_echo, extdebug)`);
 
 async function fixture(options: Partial<ShellOptions> = {}) {
   const fs = new MemoryFileSystem();
@@ -202,6 +202,7 @@ test("invoke inherits option, keeps literal argv, isolates mutation and retains 
 test("builtin discovery, function precedence, command bypass, registry unchanged", async () => {
   const { shell } = await fixture();
   try {
+    await shell.exec(""); // Finish asynchronous plugin registration before recording the registry.
     const before = shell.commands.list().map(command => command.name);
     const result = await shell.exec("type -t shopt; command -v shopt; shopt() { printf 'function\\n'; }; shopt; command shopt -s dotglob; argv *");
     assert.equal(result.stdout, "builtin\nshopt\nfunction\n" + encode(all));

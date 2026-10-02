@@ -838,7 +838,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
             else if (a.length > 0 && a.charCodeAt(0) !== 45 && operand === undefined) { operand = a; }
             else { fastOk = false; break; }
           }
-          if (fastOk && operand !== undefined) {
+          if (fastOk && operand !== undefined && (!recursive || maxRecursiveDirectoryDepth === Infinity)) {
             const path = pathOf(context, operand);
             if (path !== "/" && path !== "/dev" && !path.startsWith("/dev/") && path.length <= 512 && !operand.endsWith(".") && !operand.endsWith("/")) {
               let admitted = false;

@@ -384,14 +384,14 @@ export async function buildOptionalPackage({ rootDir, compile, fileSystem = fs }
       const name = parts[1] === "commands" || parts[1] === "fs" ? parts[2] : parts[1] === "shell" && parts[2] === "extensions" ? parts[3] : parts[0]?.startsWith("safe-bash-command-") && commandEntries.includes(parts[0].slice("safe-bash-command-".length)) ? parts[0].slice("safe-bash-command-".length) : undefined;
       const groups = new Map();
       if (name) groups.set(name, statement.getText(source));
-      else if (origin.moduleSpecifier.text === "./index.js" && statement.exportClause && ts.isNamedExports(statement.exportClause)) {
-        // Core-owned commands retain their declared optional aliases. Derive
-        // each family from the public singular/plural/plugin and type names.
+      else if (["./index.js", "./core.js"].includes(origin.moduleSpecifier.text) && statement.exportClause && ts.isNamedExports(statement.exportClause)) {
+        // Core-owned commands and extensions retain their declared optional aliases.
+        // Derive each family from its public factories, plugin and type names.
         for (const command of commandEntries) {
           const title = command[0].toUpperCase() + command.slice(1);
           const elements = statement.exportClause.elements.filter(element => {
             const symbol = element.name.text;
-            return [command + "Commands", "create" + title + "Command", "create" + title + "Commands"].includes(symbol)
+            return [command + "Commands", command + "Extension", "create" + title + "Command", "create" + title + "Commands"].includes(symbol)
               || symbol.startsWith(title) && symbol[title.length] !== undefined
                 && symbol[title.length] !== symbol[title.length].toLowerCase();
           });

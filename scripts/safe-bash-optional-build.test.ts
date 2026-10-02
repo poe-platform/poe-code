@@ -106,6 +106,27 @@ function fixture() {
 }
 
 describe("optional-owned compiled graph", () => {
+  it("retains declared extension entrypoints forwarded through core", async () => {
+    const { volume, options } = fixture();
+    for (const suffix of ["js", "d.ts"]) {
+      volume.writeFileSync(core + "/dist/core." + suffix, "export {};\n");
+      volume.writeFileSync(core + "/dist/optional." + suffix,
+        'export { mapfileExtension, readExtension } from "./core.js";\n');
+    }
+    const result = await buildOptionalPackage(options);
+    expect(result.peerImports).toEqual(["@poe-platform/safe-bash/core"]);
+    for (const name of ["read", "mapfile"]) {
+      for (const suffix of ["js", "d.ts"]) {
+        const target = "entrypoints/" + name + "." + suffix;
+        expect(result.files).toContain(target);
+        expect(volume.readFileSync(core + "/dist/opt-in/" + target, "utf8"))
+          .toBe('export { ' + name + 'Extension } from "@poe-platform/safe-bash/core";\n');
+      }
+    }
+    expect(result.files).not.toContain("core.js");
+    expect(result.files).not.toContain("core.d.ts");
+  });
+
   it("retains declared command entrypoints when runtime and types forward through core", async () => {
     const { volume, options } = fixture();
     const manifest = JSON.parse(volume.readFileSync(core + "/package.json", "utf8").toString());

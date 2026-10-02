@@ -19,8 +19,9 @@ const adapter = createCloudflarePlaywrightAdapter(
 const cli = createPlaywrightCli({ adapter, limits: { maxSessions: 2, maxTabs: 8 } });
 ```
 
-Provide a Browser Run binding. The `workerd` and `browser` exports include the
-qualified provider and run without `nodejs_compat`, including binary uploads.
+Provide a Browser Run binding and select the `workerd` export. It includes the
+qualified provider and runs without `nodejs_compat`, including binary uploads.
+The adapter requires Cloudflare Workers runtime APIs.
 Install exactly `@cloudflare/playwright@1.3.6` for the Node route or provider
 TypeScript declarations.
 Supply a Worker Loader binding for `run-code`. The public

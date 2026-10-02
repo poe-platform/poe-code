@@ -9,7 +9,7 @@
     ".": {
       "types": "./dist/index.d.ts",
       "workerd": "./dist/index.js",
-      "browser": "./dist/index.js",
+      "browser": null,
       "import": "./dist/index.js"
     }
   },

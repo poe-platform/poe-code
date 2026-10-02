@@ -689,3 +689,9 @@ import type * as originalComposerLayout from "toolcraft-design/dashboard/compose
 const layoutOriginal: typeof originalComposerLayout = composerLayout;
 const layoutNative: typeof composerLayout = null as unknown as typeof originalComposerLayout;
 void [layoutOriginal,layoutNative];
+
+import * as dashboardElapsed from "toolcraft-design-rust/dashboard/elapsed";
+import type * as originalDashboardElapsed from "toolcraft-design/dashboard/elapsed";
+const elapsedOriginal: typeof originalDashboardElapsed = dashboardElapsed;
+const elapsedNative: typeof dashboardElapsed = null as unknown as typeof originalDashboardElapsed;
+void [elapsedOriginal,elapsedNative];

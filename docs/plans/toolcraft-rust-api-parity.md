@@ -1430,3 +1430,20 @@ reference (109.90× slower, 10,000 calls/round), and relayout at 49.44 µs / 3.7
 (13.33× slower, 300 calls/round) for a short multiline Unicode draft. No performance
 gate passed. The composer editor, legacy ANSI/style/buffer/terminal surfaces,
 full dashboard lifecycle, explorer and broader replacement gates remain open.
+
+### Dashboard elapsed-time checkpoint
+
+`dashboard/elapsed` now exports `formatElapsed`. Rust selects safe input and
+hour/minute/second decomposition, while host numeric/string operations preserve
+JavaScript coercion, rounding, large-number formatting and observable Math order.
+Standalone declarations preserve the original function contract.
+
+Two missing-subpath tests failed before implementation. All 274 native host tests,
+1,228 selected design tests, 13 prompt-wrapper tests, 12 selected shared dashboard
+tests (including the original elapsed-format test) and four composer-layout
+integration tests pass. Scoped Rust/binding/JS lint, bidirectional types and packed
+standalone runtime/declarations pass with no dependency additions. An inspected
+screenshot checks zero/subsecond, multi-hour, over-24-hour, negative and NaN output.
+Five warmed alternating 10,000-call rounds measured 4.513 µs native / 0.1446 µs
+reference (31.21× slower); no performance gate passed. Legacy dashboard rendering,
+composer editing, explorer and broader replacement qualification remain open.

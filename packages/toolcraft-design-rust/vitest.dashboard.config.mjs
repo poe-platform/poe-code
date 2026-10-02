@@ -6,12 +6,13 @@ export default defineConfig({
   plugins: [{
     name: "rust-dashboard-reference", enforce: "pre",
     resolveId(name, importer) {
+      if (importer === path("../toolcraft-design/src/dashboard/components/stats-pane.ts") && name === "../elapsed.js") return path("dist/dashboard-elapsed.js");
       if (importer === suite && name === "./keymap.js") return path("dist/dashboard-keymap.js");
       if (importer === suite && name === "./store.js") return path("dist/dashboard-store.js");
     }
   }],
   test: {
-    include: [suite], testNamePattern: "^(keymap|store) ",
+    include: [suite], testNamePattern: "^(keymap|store) |^stats pane formatElapsed ",
     environment: "node", fileParallelism: false, maxWorkers: 1, pool: "forks", testTimeout: 3000, cache: false
   }
 });

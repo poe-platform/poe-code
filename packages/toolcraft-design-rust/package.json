@@ -395,6 +395,10 @@
     "./dashboard/composer-layout": {
       "types": "./dist/composer-layout.d.ts",
       "import": "./dist/composer-layout.js"
+    },
+    "./dashboard/elapsed": {
+      "types": "./dist/dashboard-elapsed.d.ts",
+      "import": "./dist/dashboard-elapsed.js"
     }
   },
   "scripts": {

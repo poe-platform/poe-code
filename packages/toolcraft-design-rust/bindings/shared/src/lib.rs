@@ -490,3 +490,5 @@ mod dashboard_store;
 pub use dashboard_store::*;
 mod composer_layout;
 pub use composer_layout::*;
+mod dashboard_elapsed;
+pub use dashboard_elapsed::*;

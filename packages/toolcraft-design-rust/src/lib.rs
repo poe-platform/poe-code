@@ -56,6 +56,7 @@ pub mod note;
 pub mod terminal_driver;
 
 pub mod composer_layout;
+pub mod dashboard_elapsed;
 pub mod dashboard_keymap;
 pub mod dashboard_mode;
 pub mod dashboard_store;

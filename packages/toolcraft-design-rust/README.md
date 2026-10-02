@@ -129,6 +129,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
 | `dashboard/store` | Retain bounded live output, merge statistics and subscribe to state changes |
 | `dashboard/composer-layout` | Wrap input rows and locate the caret at terminal-cell coordinates |
+| `dashboard/elapsed` | Format elapsed milliseconds as padded hours, minutes and seconds |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -468,3 +469,7 @@ statistics and queue types are available from `dashboard/types`.
 newlines and wide graphemes keep navigation aligned with display rows. Repeated
 calls reuse the layout while the state object, text, cursor and width match.
 The composer editor and dashboard renderer remain separate from this helper.
+
+`formatElapsed(ms)` from `dashboard/elapsed` formats durations as `HH:MM:SS`,
+retaining hours beyond 24. Negative and nonfinite inputs display `00:00:00`;
+fractional seconds round down.

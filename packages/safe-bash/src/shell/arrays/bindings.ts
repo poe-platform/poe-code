@@ -126,6 +126,9 @@ export class IndexedBinding {
   declare _denseMul?: number;
   declare _denseLim?: number;
   declare _denseBytes?: number;
+  declare _denseVersion?: number;
+  declare _lastMapfileStr?: string;
+  declare _lastMapfileVer?: number;
   declare _mapfileValues?: Map<number, Element>;
   declare _spareEmptyValues?: Map<number, Element>;
 
@@ -203,6 +206,9 @@ export class IndexedBinding {
 
   softClearForReuse(): void {
     if (this.values.size === 0 && this.keys.size === 0) return;
+    // Recycled storage may have been modified since its contents were cached.
+    if (this._denseVersion !== this.version) delete this._denseBytes;
+    if (this._lastMapfileVer !== this.version) delete this._lastMapfileStr;
     if (this._mapfileValues && this.values === this._mapfileValues) {
       const emptyVals = this._spareEmptyValues ?? new Map<number, Element>();
       if (emptyVals.size > 0) emptyVals.clear();

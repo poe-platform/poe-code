@@ -3267,3 +3267,35 @@ transport, resource/platform, reentrancy-limit and swap gates remain open.
 The suggestion repair is verified on remote main at ae63fd1f94. Its main Release
 workflow 37064376497 completed successfully with release-stable skipped, so no
 new publication is inferred.
+
+### CLI option-construction checkpoint
+
+The internal option module uses Rust for alias grouping, reserved-global-flag
+collisions, boolean negation, scalar/JSON/variadic flag selection and Commander
+attribute policy. Node retains the existing Commander constructor/prototype,
+field getters, alias iteration, flatMap callbacks, parser closures and attribute
+accessors. Commander is an existing dependency, not a newly added package; its
+replacement and qualification remain part of the complete rewrite.
+
+Four missing-module failures preceded implementation. Eight final comparisons
+extract the original functions and cover all schema branches, aliases, reserved
+flags, actual Commander parsing, live parser/attribute identity, changing getters,
+custom flatMap results, prototype method receivers, reentrant construction and
+arbitrary thrown values. A declaration-consumer name collision was repaired.
+Build, Rust/binding lint, scoped ESLint and the maintained package route pass:
+210 native tests, 1,723 reference/integration cases in 46 files and declarations.
+
+Packed runtime options construct and parse with only the packed own schema and
+the already-installed Commander package admitted as external ESM imports. Packed
+types compile with types: []; schema/contract types still resolve from the
+checkout, so complete standalone declaration packaging remains open. An inspected
+Commander help preview matches the reference output; this does not qualify the
+complete Toolcraft CLI, dynamic options, prompts or rich help integration.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 boolean-option
+constructions with an alias, retaining 32 results, measured native/reference
+medians of 14.213/1.324 microseconds (10.74 times slower). No performance or swap
+gate passes. Native platform/resource and adapter reentrancy limits remain open.
+
+JSON diagnostic construction is verified on remote main at 4be52b7a3d. Its
+Release workflow 37065772483 is running validate/build; publication is unverified.

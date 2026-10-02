@@ -195,3 +195,10 @@ jsonErrors.formatJsonParseUserErrorMessage("Preset","preset.json","{x}",null,{})
 // @ts-expect-error source offsets must be numeric
 jsonErrors.getSourceOffsetLocation("{x}","2");
 void [jsonLocation,causeLocation,jsonPosition,numericPosition,jsonDiagnostic,jsonMessage,asciiDigit];
+
+import * as optionConstruction from "../dist/cli-options.js";
+const constructedOptions: import("commander").Option[] = optionConstruction.createOption(null as unknown as import("../dist/cli-fields.js").FieldDefinition,new Set<string>());
+const constructedOption: import("commander").Option = optionConstruction.createCommanderOption("--value <value>",undefined,null as unknown as import("../dist/cli-fields.js").FieldDefinition);
+// @ts-expect-error option construction requires a set of global flags
+optionConstruction.createOption(null as unknown as import("../dist/cli-fields.js").FieldDefinition,["--help"]);
+void [constructedOptions,constructedOption];

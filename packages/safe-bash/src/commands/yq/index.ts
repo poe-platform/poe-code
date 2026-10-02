@@ -39,6 +39,7 @@ function parseSimpleYamlScalar(raw: string): unknown {
   if (s === "" || s === "null" || s === "~" || s === "Null" || s === "NULL") return null;
   if (s === "true" || s === "True" || s === "TRUE") return true;
   if (s === "false" || s === "False" || s === "FALSE") return false;
+  if (/^[+-]?0[0-9A-Za-z_]+$/.test(s)) return undefined;
   if (/^[+-]?[0-9]+$/.test(s)) {
     const n = Number(s);
     if (Number.isSafeInteger(n)) return n;
@@ -89,6 +90,7 @@ function parseSimpleYamlOrToml(text: string, format: "yaml" | "toml"): unknown {
       const k = line.slice(0, eq).trim();
       const vRaw = line.slice(eq + 1).trim();
       if (!/^[A-Za-z0-9_-]+$/.test(k)) return undefined;
+      if (Object.hasOwn(cur, k)) return undefined;
       const v = parseSimpleYamlScalar(vRaw);
       if (v === undefined) return undefined;
       cur[k] = v;
@@ -97,11 +99,21 @@ function parseSimpleYamlOrToml(text: string, format: "yaml" | "toml"): unknown {
   }
   // Simple block YAML parser (mappings & sequences)
   const lines: { indent: number; text: string }[] = [];
+  let sawDocEnd = false;
   for (const rawLine of text.split(/\r?\n/)) {
     if (rawLine.includes("\t")) return undefined;
     const noComment = rawLine.replace(/(^|\s)#.*$/, "");
     const t = noComment.trim();
-    if (!t || t === "---" || t === "...") continue;
+    if (!t) continue;
+    if (t === "---") {
+      if (lines.length > 0 || sawDocEnd) return undefined;
+      continue;
+    }
+    if (t === "...") {
+      sawDocEnd = true;
+      continue;
+    }
+    if (sawDocEnd) return undefined;
     let indent = 0;
     while (indent < noComment.length && noComment[indent] === " ") indent++;
     lines.push({ indent, text: t });
@@ -146,10 +158,10 @@ function parseSimpleYamlOrToml(text: string, format: "yaml" | "toml"): unknown {
           while (idx < lines.length && lines[idx]!.indent === propIndent && !lines[idx]!.text.startsWith("-")) {
             const pl = lines[idx]!.text;
             const pColon = pl.indexOf(":");
-            if (pColon <= 0) return undefined;
+            if (pColon <= 0 || (pColon + 1 < pl.length && pl[pColon + 1] !== " ")) return undefined;
             const pKey = pl.slice(0, pColon).trim();
             const pRest = pl.slice(pColon + 1).trim();
-            if (!/^[A-Za-z0-9_.-]+$/.test(pKey)) return undefined;
+            if (!/^[A-Za-z0-9_.-]+$/.test(pKey) || Object.hasOwn(itemObj, pKey)) return undefined;
             idx++;
             if (!pRest) {
               if (idx < lines.length && lines[idx]!.indent > propIndent) {
@@ -178,10 +190,10 @@ function parseSimpleYamlOrToml(text: string, format: "yaml" | "toml"): unknown {
     while (idx < lines.length && lines[idx]!.indent === baseIndent) {
       const l = lines[idx]!.text;
       const colon = l.indexOf(":");
-      if (colon <= 0) return undefined;
+      if (colon <= 0 || (colon + 1 < l.length && l[colon + 1] !== " ")) return undefined;
       const key = l.slice(0, colon).trim();
       const rest = l.slice(colon + 1).trim();
-      if (!/^[A-Za-z0-9_.-]+$/.test(key)) return undefined;
+      if (!/^[A-Za-z0-9_.-]+$/.test(key) || Object.hasOwn(obj, key)) return undefined;
       idx++;
       if (!rest) {
         if (idx < lines.length && lines[idx]!.indent > baseIndent) {
@@ -257,6 +269,7 @@ export function evalSyncYqPrep(
   const filter = operands[0] ?? ".";
   const files = operands.slice(1);
   if (files.length > 1) return undefined;
+  if (nullInput && (files.length > 0 || /\binputs?\b/.test(filter))) return undefined;
   let srcBytes = inBytes;
   if (files.length === 1 && files[0] !== "-") {
     if (!readFileSync) return undefined;
@@ -264,6 +277,7 @@ export function evalSyncYqPrep(
     if (!fBytes || fBytes.byteLength > 8192) return undefined;
     srcBytes = fBytes;
   }
+  if (!nullInput && srcBytes.includes(0)) return undefined;
   let text: string;
   try {
     text = syncYqDecoder.decode(srcBytes);

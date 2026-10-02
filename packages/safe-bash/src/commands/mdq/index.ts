@@ -68,6 +68,7 @@ function parseSimpleMarkdownSync(source: string): SyncMdNode[] | undefined {
   while (i < rawLines.length) {
     const line = rawLines[i]!;
     if (line.trim() === "") { i++; continue; }
+    if (/^\s{4}/.test(line) || /^[-=]{3,}\s*$/.test(line)) return undefined;
     const hMatch = /^(#{1,6})\s+([^#*_`\[\]<>\\~]+)$/.exec(line);
     if (hMatch) {
       blocks.push({ kind: "section", level: hMatch[1]!.length, title: hMatch[2]!.trimEnd(), text: hMatch[2]!.trimEnd(), children: [] });
@@ -114,7 +115,15 @@ function parseSimpleMarkdownSync(source: string): SyncMdNode[] | undefined {
     }
     if (/^[A-Za-z0-9 .,;:!?'"()-]+$/.test(line)) {
       const pLines: string[] = [];
-      while (i < rawLines.length && rawLines[i]!.trim() !== "" && /^[A-Za-z0-9 .,;:!?'"()-]+$/.test(rawLines[i]!)) {
+      while (
+        i < rawLines.length &&
+        rawLines[i]!.trim() !== "" &&
+        !/^\s{4}/.test(rawLines[i]!) &&
+        !/^[-=]{3,}\s*$/.test(rawLines[i]!) &&
+        !/^[-*]\s+/.test(rawLines[i]!) &&
+        !/^[0-9]+\.\s+/.test(rawLines[i]!) &&
+        /^[A-Za-z0-9 .,;:!?'"()-]+$/.test(rawLines[i]!)
+      ) {
         pLines.push(rawLines[i]!.trimEnd());
         i++;
       }
@@ -147,6 +156,7 @@ interface SyncMdSelector {
 }
 
 function parseSimpleMdqQuery(query: string): SyncMdSelector[] | undefined {
+  if (query.trim() !== "" && query.split("|").some(s => s.trim() === "")) return undefined;
   const parts = query.split("|").map(s => s.trim()).filter(Boolean);
   if (parts.length === 0) return [];
   const selectors: SyncMdSelector[] = [];

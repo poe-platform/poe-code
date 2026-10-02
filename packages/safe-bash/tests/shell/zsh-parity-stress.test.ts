@@ -637,6 +637,23 @@ test("57. sync vs async parity for openssl, pathchk, and pdf/image sync evaluato
   }
 });
 
+test("58. sync vs async parity for yq, mdq, xargs, and env -S semantics", async () => {
+  const scripts = [
+    "a=$(yq -o=json '.' <<< $'a: 1\\n---\\nb: 2\\n' | tr '\\n' '|'); b=$(yq -o=json '.' <<< 'foo:bar'); echo \"$a|$b\"",
+    "x=$(mdq '- ' <<< $'Intro\\n- one\\n- two\\n' | tr '\\n' '|'); echo \"$x\"",
+    "a=$(printf '' | xargs true; echo \":$?\"); b=$(printf 'foo\\n' | xargs -I {} echo prefix); c=$(printf 'a \\nb\\n' | xargs -L 1 echo); echo \"$a|$b|$c\"",
+    "LOCAL_ONLY=secret; export EXPORTED_VAR=visible; x=$(env -S 'echo ${LOCAL_ONLY}:${EXPORTED_VAR}'); echo \"$x\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});
+
 test("55. sync vs async parity for apply_patch, html-to-markdown, and xq semantics", async () => {
   const scripts = [
     "mkdir -p /ap55; cd /ap55; printf \"old\\n\" > a.txt; printf \"existing\\n\" > b.txt; p=$'*** Begin Patch\\n*** Update File: a.txt\\n*** Move to: b.txt\\n@@\\n-old\\n+new\\n*** End Patch'; x=$(apply_patch \"$p\" 2>/dev/null; echo $?); y=$(cat b.txt); echo \"$x|$y\"",

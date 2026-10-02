@@ -294,7 +294,11 @@ export function executionCommands(execute: CommandHandler, configuration: Execut
 }
 
 
-function splitEnvStringSync(raw: string, vars: Readonly<Record<string, string | undefined>>): string[] | undefined {
+function splitEnvStringSync(
+  raw: string,
+  vars: Readonly<Record<string, string | undefined>>,
+  exported?: ReadonlySet<string>,
+): string[] | undefined {
   const tokens: string[] = [];
   let cur = "";
   let active = false;
@@ -348,14 +352,14 @@ function splitEnvStringSync(raw: string, vars: Readonly<Record<string, string | 
         if (close < 0) return undefined;
         const vName = raw.slice(i + 2, close);
         if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(vName)) return undefined;
-        cur += vars[vName] ?? "";
+        cur += (!exported || exported.has(vName)) ? (vars[vName] ?? "") : "";
         active = true;
         i = close;
         continue;
       }
       const m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(raw.slice(i + 1));
       if (!m) return undefined;
-      cur += vars[m[0]] ?? "";
+      cur += (!exported || exported.has(m[0])) ? (vars[m[0]] ?? "") : "";
       active = true;
       i += m[0].length;
       continue;
@@ -410,7 +414,7 @@ export function evalSyncEnv(
     if (a === "-S" || a === "--split-string" || a.startsWith("--split-string=") || (a.startsWith("-S") && a.length > 2)) {
       const rawSplit = a.startsWith("--split-string=") ? a.slice(15) : (a.startsWith("-S") && a.length > 2 ? a.slice(2) : opArgs[++i]);
       if (rawSplit === undefined) return undefined;
-      const expanded = splitEnvStringSync(rawSplit, variables);
+      const expanded = splitEnvStringSync(rawSplit, variables, exported);
       if (!expanded) return undefined;
       opArgs.splice(i, 1, ...expanded);
       continue;
@@ -494,7 +498,7 @@ export function evalSyncEnv(
     let noNl = false;
     let start = 0;
     if (cmdArgs[0] === "-n") { noNl = true; start = 1; }
-    if (cmdArgs.slice(start).every(a => !a.startsWith("-"))) {
+    if (cmdArgs.slice(start).every(a => !a.startsWith("-") && !a.includes("\\"))) {
       return cmdArgs.slice(start).join(" ") + (noNl ? "" : "\n");
     }
   }
@@ -623,6 +627,10 @@ export function evalSyncXargs(
       }
       return undefined;
     }
+    if (delimChar !== undefined && (eofStr !== undefined || maxLines !== undefined || replaceStr !== undefined)) {
+      return undefined;
+    }
+    const hasExplicitCmd = i < opArgs.length;
     const cmd = opArgs[i] ?? "echo";
     if (cmd !== "echo" && cmd !== "printf" && cmd !== "basename" && cmd !== "dirname" && cmd !== "cat" && cmd !== "wc" && cmd !== "head" && cmd !== "tail" && cmd !== "true") return undefined;
     const initialArgs = opArgs.slice(i + 1);
@@ -634,7 +642,7 @@ export function evalSyncXargs(
     }
     if (cmd === "echo" || cmd === "dirname") {
       for (let k = initOffset; k < initialArgs.length; k++) {
-        if (initialArgs[k]!.startsWith("-")) return undefined;
+        if (initialArgs[k]!.startsWith("-") || (cmd === "echo" && initialArgs[k]!.includes("\\"))) return undefined;
       }
     }
     const baseInitial = initialArgs.slice(initOffset);
@@ -652,6 +660,7 @@ export function evalSyncXargs(
         for (const p of parts) items.push(p);
       }
     } else if (replaceStr !== undefined) {
+      if (text.includes("\"") || text.includes("'") || text.includes("\\")) return undefined;
       for (const rawLine of text.split(/\r?\n/)) {
         const trimmed = rawLine.trim();
         if (!trimmed) continue;
@@ -659,6 +668,7 @@ export function evalSyncXargs(
         items.push(trimmed);
       }
     } else {
+      if (maxLines !== undefined && /[ \t]\r?\n/.test(text)) return undefined;
       let cur = "";
       let active = false;
       let quote = "";
@@ -714,13 +724,12 @@ export function evalSyncXargs(
       }
     }
     const tokens = items.filter((x): x is string => x !== null);
-    if (tokens.length === 0) {
-      if (noRunIfEmpty || replaceStr !== undefined || maxLines !== undefined) return "";
-      return baseInitial.join(" ") + (echoNoNewline ? "" : "\n");
-    }
     let out = "";
     const evalBatchCmd = (args: string[]): string | undefined => {
-      if (cmd === "echo") return args.join(" ") + (echoNoNewline ? "" : "\n");
+      if (cmd === "echo") {
+        if (args[0]?.startsWith("-") || args.some(a => a.includes("\\"))) return undefined;
+        return args.join(" ") + (echoNoNewline ? "" : "\n");
+      }
       if (cmd === "true") return "";
       if (cmd === "cat") return syncCommandEvaluators.evalSyncCat?.(undefined, args, readFileSync);
       if (cmd === "wc") return syncCommandEvaluators.evalSyncWc?.(undefined, args, true, readFileSync);
@@ -802,13 +811,17 @@ export function evalSyncXargs(
       }
       return undefined;
     };
+    if (tokens.length === 0) {
+      if (noRunIfEmpty || replaceStr !== undefined || maxLines !== undefined) return "";
+      return evalBatchCmd(baseInitial);
+    }
     let failedCmd = false;
     const runEcho = (batch: string[]) => {
       if (failedCmd) return;
       let args: string[];
       if (replaceStr !== undefined) {
         const val = batch[0]!;
-        if (baseInitial.some(a => a.includes(replaceStr!))) {
+        if (hasExplicitCmd) {
           args = baseInitial.map(a => a.split(replaceStr!).join(val));
         } else {
           args = [...baseInitial, val];

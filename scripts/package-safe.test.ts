@@ -722,6 +722,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/repo/packages/safe-bash/dist/core.browser.js", 'export * from "./index.js";');
     const fsManifest = JSON.parse(volume.readFileSync("/repo/packages/safe-fs/package.json", "utf8").toString());
     fsManifest.exports["./core"] = { types: "./dist/core.d.ts", import: "./dist/core.js" };
+    fsManifest.exports["./runtime-core"] = fsManifest.exports["./core"];
     volume.writeFileSync("/repo/packages/safe-fs/package.json", JSON.stringify(fsManifest));
     volume.writeFileSync("/repo/packages/safe-fs/dist/core.js", fs.outputFiles[0]!.contents);
     // The command type fixture models only its external filesystem contracts;

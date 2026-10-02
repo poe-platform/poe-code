@@ -404,6 +404,7 @@ export function encodePngImage(
     readonly density?: number;
     readonly orientation?: number;
     readonly forceOpaque?: boolean;
+    readonly consumeInput?: boolean;
   }
 ): Uint8Array {
   const { width, height, data } = img;
@@ -424,41 +425,53 @@ export function encodePngImage(
   const colorType = isBw ? (hasAlpha ? 4 : 0) : (hasAlpha ? 6 : 2);
   const bpp = isBw ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3);
   const rowBytes = width * bpp;
-  const raw = new Uint8Array(height * (rowBytes + 1));
+  const canFilterInPlace = Boolean(options?.consumeInput && bpp <= 3 && width >= 1 && data.length >= height * (rowBytes + 1));
+  const raw = canFilterInPlace ? data.subarray(0, height * (rowBytes + 1)) : new Uint8Array(height * (rowBytes + 1));
+  const rowScratch = canFilterInPlace ? new Uint8Array(width * 4) : undefined;
 
   for (let y = 0; y < height; y++) {
     const dstRow = y * (rowBytes + 1);
+    let srcRowData = data;
+    let rowBase = y * width * 4;
+    if (rowScratch) {
+      rowScratch.set(data.subarray(rowBase, rowBase + width * 4));
+      srcRowData = rowScratch;
+      rowBase = 0;
+    }
     raw[dstRow] = 1;
     for (let x = 0; x < width; x++) {
-      const srcIdx = (y * width + x) * 4;
-      const prevIdx = x > 0 ? (y * width + (x - 1)) * 4 : -1;
+      const srcIdx = rowBase + x * 4;
+      const prevIdx = x > 0 ? rowBase + (x - 1) * 4 : -1;
       const outCol = dstRow + 1 + x * bpp;
       if (isBw) {
-        const g = data[srcIdx]!;
-        const pg = prevIdx >= 0 ? data[prevIdx]! : 0;
+        const g = srcRowData[srcIdx]!;
+        const pg = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
         raw[outCol] = (g - pg) & 0xff;
         if (hasAlpha) {
-          const a = data[srcIdx + 3]!;
-          const pa = prevIdx >= 0 ? data[prevIdx + 3]! : 0;
+          const a = srcRowData[srcIdx + 3]!;
+          const pa = prevIdx >= 0 ? srcRowData[prevIdx + 3]! : 0;
           raw[outCol + 1] = (a - pa) & 0xff;
         }
       } else {
-        const r = data[srcIdx]!;
-        const g = data[srcIdx + 1]!;
-        const b = data[srcIdx + 2]!;
-        const pr = prevIdx >= 0 ? data[prevIdx]! : 0;
-        const pg = prevIdx >= 0 ? data[prevIdx + 1]! : 0;
-        const pb = prevIdx >= 0 ? data[prevIdx + 2]! : 0;
+        const r = srcRowData[srcIdx]!;
+        const g = srcRowData[srcIdx + 1]!;
+        const b = srcRowData[srcIdx + 2]!;
+        const pr = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
+        const pg = prevIdx >= 0 ? srcRowData[prevIdx + 1]! : 0;
+        const pb = prevIdx >= 0 ? srcRowData[prevIdx + 2]! : 0;
         raw[outCol] = (r - pr) & 0xff;
         raw[outCol + 1] = (g - pg) & 0xff;
         raw[outCol + 2] = (b - pb) & 0xff;
         if (hasAlpha) {
-          const a = data[srcIdx + 3]!;
-          const pa = prevIdx >= 0 ? data[prevIdx + 3]! : 0;
+          const a = srcRowData[srcIdx + 3]!;
+          const pa = prevIdx >= 0 ? srcRowData[prevIdx + 3]! : 0;
           raw[outCol + 3] = (a - pa) & 0xff;
         }
       }
     }
+  }
+  if (options?.consumeInput && !canFilterInPlace && data.byteOffset === 0 && data.byteLength === data.buffer.byteLength && typeof (data.buffer as any).transfer === "function") {
+    try { (data.buffer as any).transfer(0); } catch {}
   }
 
   const level = Math.max(0, Math.min(9, options?.compressionLevel ?? 6)) as
@@ -473,7 +486,7 @@ export function encodePngImage(
     | 8
     | 9;
   const compressed = deflate(raw, { level });
-  if (raw.byteOffset === 0 && raw.byteLength === raw.buffer.byteLength && typeof (raw.buffer as any).transfer === "function") {
+  if (typeof (raw.buffer as any).transfer === "function" && (options?.consumeInput || (raw.byteOffset === 0 && raw.byteLength === raw.buffer.byteLength))) {
     try { (raw.buffer as any).transfer(0); } catch {}
   }
 

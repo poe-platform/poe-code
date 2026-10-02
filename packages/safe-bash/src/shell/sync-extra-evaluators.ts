@@ -25518,7 +25518,6 @@ const syncExtraRuntimeMethods = {
       else return undefined;
     }
     if (!typeSpec) return undefined;
-    if (files.length === 0 && !view) return undefined;
     if (files.length > 0) {
       if (!readFileSync) return undefined;
       const chunks: Uint8Array[] = [];

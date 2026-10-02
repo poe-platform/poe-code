@@ -2686,7 +2686,9 @@
     "./dist/commands/network/public.js",
     "./src/commands/network/public.ts",
     "./dist/commands/node/browser.js",
-    "./src/commands/node/browser.ts"
+    "./src/commands/node/browser.ts",
+    "./dist/shell/sync-extra-evaluators.js",
+    "./src/shell/sync-extra-evaluators.ts"
   ],
   "types": "./dist/index.d.ts",
   "peerDependenciesMeta": {

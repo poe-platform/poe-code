@@ -1,4 +1,4 @@
-// @ts-nocheck
+import type { ConditionalExpression } from "./conditional.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
 import { validateExitCode } from "../contracts/index.js";
@@ -18,7 +18,7 @@ import { invocationScope, type InvocationScope } from "./cleanup.js";
 import { ACCESS_MODES, basename, dirname, isPathWithin, normalizePath, relativePath, resolvePath, writeText } from "../contracts/index.js";
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
 import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
-import type { ShellValue } from "../contracts/value.js";
+import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import type { AndOr, HereDocument, Pipeline, Redirect, Script, Word } from "./parser.js";
 import { compoundEntryWords, parseArithmeticExpansion, parseArraySubscript, parseCompoundArrayValue, parseShellUnit } from "./parser.js";
 import { ShellLimitError } from "./types.js";
@@ -38,10 +38,10 @@ import { escapeBytes, pathOf, RESOLVED_EXIT_ONE, RESOLVED_EXIT_ZERO } from "../c
 import { scanGetoptsSync } from "./getopts.js";
 import { variablePresence } from "../commands/variable-presence.js";
 import { getArrayAssignment, getArraySelector, literalIndex, numericIndex, stringIndex } from "./arrays/syntax.js";
-import type { ArrayAssignment } from "./arrays/syntax.js";
+import type { ArrayAssignment, ArrayEntry } from "./arrays/syntax.js";
 import { ArrayFailure } from "./arrays/ledger.js";
 import { controlNames, IndexedBinding, textToken } from "./arrays/bindings.js";
-import { ensureStateMonitor, monitorSymbol, requireArrays, trackState, trySnapshotStateSync } from "./arrays/state.js";
+import { ensureStateMonitor, monitorSymbol, requireArrays, trackState, trySnapshotStateSync, type Restoration } from "./arrays/state.js";
 import { workerRuntimeContexts } from "../worker/runtime-context.js";
 import { captureIgnoredTrapSignals } from "./trap.js";
 import { functionDisplay } from "./display.js";
@@ -78,7 +78,7 @@ import { gnuInformationSync } from "../commands/gnu-information.js";
 import { executionCommands, evalSyncEnv, evalSyncXargs } from "../commands/execution.js";
 import { builtInDirectContextExecutors } from "../commands/internal.js";
 import { arrayStore, guestArrays } from "./arrays/state.js";
-import type { Command, Script, WordPart } from "./parser.js";
+import type { Command, WordPart } from "./parser.js";
 import type { CommandDefinition } from "../contracts/index.js";
 import { customRegisteredCommands, customRegisteredRegistries, hasActiveExtensions, hasNonNamerefAttributes, hasShellFunction, fastSubScratchArgs, EMPTY_BYTES, syncPurePipelineSlotState } from "./runtime.js";
 
@@ -129,7 +129,7 @@ import { compareSyncJqStrings, splitSyncJqExpression } from "./sync-jq-expressio
 import { text as awkValueText, compare as awkCompare, inputValue as awkInputValue, numeric as awkNumeric, number as awkNumber, string as awkString } from "../commands/text-programs/awk-values.js";
 import { shellValueByteLength } from "../contracts/value.js";
 import { stateMonitor } from "./arrays/state.js";
-import type { Budget, IO, State } from "./runtime.js";
+import type { Budget, State } from "./runtime.js";
 import { Runtime } from "./runtime.js";
 
 const createFmtEngine = (...args: any[]) => syncCommandEvaluators.createFmtEngine!(...args);
@@ -3432,7 +3432,7 @@ const syncExtraRuntimeMethods = {
     const characters = state.variables.LC_ALL || state.variables.LC_CTYPE || state.variables.LANG || "C";
     if (![collation, characters].every(locale => cCollation(locale) || utf8Locale(locale))) return undefined;
     let fastMatchValues: string[] | null | undefined;
-    const fastAnchoredRe = this.getFastAnchoredEreRegex(pattern, state);
+    const fastAnchoredRe: RegExp | undefined = this.getFastAnchoredEreRegex(pattern, state);
     const patEreCache = pattern as {
       _lastEreSubj?: string;
       _lastEreStatus?: number;
@@ -3840,7 +3840,7 @@ const syncExtraRuntimeMethods = {
   },
   tryFastExecuteCommandSync(this: any, command: Command, state: State, originalIO: IO, fileShortcut: boolean, terminal: any, diagnosticLine: number): number | Promise<number> | undefined {
     if (command.kind === "simple") {
-      const _pendingFnList = ((stateMonitor(state)?.raw ?? state) as { _syncPendingFunctionResumes?: Array<Parameters<Runtime["dispatchFastFunction"]>[5]> })._syncPendingFunctionResumes;
+      const _pendingFnList = ((stateMonitor(state)?.raw ?? state) as { _syncPendingFunctionResumes?: Array<Parameters<NonNullable<Runtime["dispatchFastFunction"]>>[5]> })._syncPendingFunctionResumes;
       if ((_pendingFnList?.length ?? 0) > 0 && command.words[0]?.plain === _pendingFnList![_pendingFnList!.length - 1]!.name) {
         const pending = _pendingFnList!.pop()!;
         return this.dispatchFastFunction(pending!.name, pending!.body, [], state, originalIO, pending);
@@ -3878,7 +3878,7 @@ const syncExtraRuntimeMethods = {
           throw completedExit(0, w0Plain, 1);
         }
         const assignment = !getArrayAssignment(w0) ? this.assignment(w0) : undefined;
-        if ( assignment && !assignment.append && assignment.name !== "OPTIND" && !assignment.name.includes("[") && !assignment.value.parts.some(part => part.kind === "substitution") && !state.readonlyVariables?.has(assignment.name) && !state.variableAttributes?.get(assignment.name) && !arrayStore(state)?.get(assignment.name)) {
+        if ( assignment && !assignment.append && assignment.name !== "OPTIND" && !assignment.name.includes("[") && !assignment.value.parts.some((part: WordPart) => part.kind === "substitution") && !state.readonlyVariables?.has(assignment.name) && !state.variableAttributes?.get(assignment.name) && !arrayStore(state)?.get(assignment.name)) {
           let fastAssigned: ShellValue | undefined;
           let fastFailed = false;
           try {
@@ -4008,7 +4008,7 @@ const syncExtraRuntimeMethods = {
           subjectFailed = true;
         }
         if (!subjectFailed && typeof fastSubject === "string") {
-          const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
+          const work = { remaining: this.budget.limits.maxExpansionBytes, signal: this.signal, exhausted: (): never => (this.budget as Budget).fail("maxExpansionBytes") };
           let allFast = true;
           let matchedClauseIndex = -1;
           for (let cIdx = 0; cIdx < command.clauses.length; cIdx++) {
@@ -5396,7 +5396,7 @@ const syncExtraRuntimeMethods = {
     const activeStore = monitor?.store ?? arrayStore(rawState);
     const resolvedName = resolveSyncNameref(rawState, p0.name);
     const b = activeStore?.get(resolvedName);
-    const dynamicEntries = this.presenceArrayEntries(rawState, resolvedName);
+    const dynamicEntries: readonly string[] | undefined = this.presenceArrayEntries(rawState, resolvedName);
     if (p0.substring) {
       if (sel0.kind !== "members" || p0.keys || (b && b.associative)) return undefined;
       const evalSliceInt = (sw: Word): number | undefined => {
@@ -6973,12 +6973,12 @@ const syncExtraRuntimeMethods = {
       if (pooledFastSingleContext) {
         context = pooledFastSingleContext;
         pooledFastSingleContext = undefined;
-        context.resetDirectStage( this, rawState, io, scope, w0Plain, args, io.stdin, io.stdinIsDefault === true, redirectSink ?? io.stdout, this.commandSignal, );
+        context.resetDirectStage( this as unknown as Runtime, rawState, io, scope, w0Plain, args, io.stdin, io.stdinIsDefault === true, redirectSink ?? io.stdout, this.commandSignal, );
         if (!this._isMemoryBackingFs) {
           (context as unknown as { _scopedSignal: AbortSignal | undefined })._scopedSignal = undefined;
         }
       } else {
-        context = new FastShellCommandContext(this, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs, externalDef!);
+        context = new FastShellCommandContext(this as unknown as Runtime, rawState, io, scope, w0Plain, args, undefined, undefined, this._isMemoryBackingFs, externalDef!);
         if (redirectSink) context.stdout = redirectSink;
       }
       if (redirectSink && io.descriptors) {
@@ -7036,7 +7036,7 @@ const syncExtraRuntimeMethods = {
         if (store) store.epoch = restEpoch;
         if (finalStatus !== 0 && !ignored && rawState.errexit) {
           if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
-          return this.finishShell(state, io, finalStatus).then(exitCode => ({ exitCode, terminated: true }));
+          return this.finishShell(state, io, finalStatus).then((exitCode: number) => ({ exitCode, terminated: true }));
         }
         return finalStatus === 0 ? SYNC_UNIT_ZERO : SYNC_UNIT_ONE;
       }
@@ -7189,10 +7189,10 @@ const syncExtraRuntimeMethods = {
           stageStdout = sharedSyncPipeWriter;
         }
         if (!context) {
-          context = new FastShellCommandContext(this, rawState, io, scope, firstName, stageArgs, undefined, undefined, true, extDef);
+          context = new FastShellCommandContext(this as unknown as Runtime, rawState, io, scope, firstName, stageArgs, undefined, undefined, true, extDef);
           pooledSyncPipeContext = context;
         }
-        context.resetDirectStage(this, rawState, io, scope, firstName, stageArgs, inputSource, isFirst, stageStdout, this.signal);
+        context.resetDirectStage(this as unknown as Runtime, rawState, io, scope, firstName, stageArgs, inputSource, isFirst, stageStdout, this.signal);
         if (!isFirst) sharedSyncPipeReader.abortSignal = context.signal;
         scope.enterWork();
         this.budget.beginPathLookupSuspension();
@@ -7246,7 +7246,7 @@ const syncExtraRuntimeMethods = {
       monitor.epoch = restEpoch;
       if (rawStatus !== 0 && !pipeline.negate && !ignored && rawState.errexit) {
         if (this.tryFinishShellSync(state)) return { exitCode: finalStatus, terminated: true };
-        return this.finishShell(state, io, finalStatus).then(exitCode => ({ exitCode, terminated: true }));
+        return this.finishShell(state, io, finalStatus).then((exitCode: number) => ({ exitCode, terminated: true }));
       }
       return finalStatus === 0 ? SYNC_UNIT_ZERO : finalStatus === 1 ? SYNC_UNIT_ONE : { exitCode: finalStatus, terminated: false };
     };
@@ -8040,7 +8040,7 @@ const syncExtraRuntimeMethods = {
                 if (asg) {
                   scalarVars.add(asg.name);
                   const pv = asg.value.plain;
-                  if (pv !== undefined ? /[+*/%-]/.test(pv) : (posHasExpr || asg.value.parts.some(pt => pt.kind === "text" && /[+*/%-]/.test(pt.value)))) nonIntScalarVars.add(asg.name);
+                  if (pv !== undefined ? /[+*/%-]/.test(pv) : (posHasExpr || asg.value.parts.some((pt: WordPart) => pt.kind === "text" && /[+*/%-]/.test(pt.value)))) nonIntScalarVars.add(asg.name);
                 }
               }
             } else if (wp0 === "local" || wp0 === "declare" || wp0 === "typeset") {
@@ -8071,7 +8071,7 @@ const syncExtraRuntimeMethods = {
                     } else {
                       scalarVars.add(nm);
                       const pv = asg?.value.plain;
-                      if (asg && (pv !== undefined ? /[+*/%-]/.test(pv) : (posHasExpr || asg.value.parts.some(pt => pt.kind === "text" && /[+*/%-]/.test(pt.value))))) nonIntScalarVars.add(nm);
+                      if (asg && (pv !== undefined ? /[+*/%-]/.test(pv) : (posHasExpr || asg.value.parts.some((pt: WordPart) => pt.kind === "text" && /[+*/%-]/.test(pt.value))))) nonIntScalarVars.add(nm);
                     }
                   }
                 }
@@ -9528,7 +9528,7 @@ const syncExtraRuntimeMethods = {
       const assignment = this.assignment(w0);
       if (assignment) {
       const targetAssignName = resolveSyncNameref(rawState, assignment.name);
-      const hasSubPart = assignment.value.parts.some(part => part.kind === "substitution");
+      const hasSubPart = assignment.value.parts.some((part: WordPart) => part.kind === "substitution");
       const existingArrAssign = store?.get(targetAssignName);
       if (
         (targetAssignName === "OPTIND" && (assignment.append || rawState.variableAttributes?.get("OPTIND") || rawState.getopts?.integer === false)) ||
@@ -9540,7 +9540,7 @@ const syncExtraRuntimeMethods = {
       ) {
         return undefined;
       }
-      if (rawState.extensions && !rawState.extensions.eventDepth && (!rawState.extensions.isIdleTrapState || assignment.value.parts.some(p => p.kind === "variable" && p.name === "BASH_COMMAND"))) publishCommandSpelling(rawState, commandSpelling(command));
+      if (rawState.extensions && !rawState.extensions.eventDepth && (!rawState.extensions.isIdleTrapState || assignment.value.parts.some((p: WordPart) => p.kind === "variable" && p.name === "BASH_COMMAND"))) publishCommandSpelling(rawState, commandSpelling(command));
       let fastAssigned: ShellValue | undefined;
       try {
         fastAssigned = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
@@ -10176,7 +10176,7 @@ const syncExtraRuntimeMethods = {
         const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
         const def = (fastSyncSink || fastPipeSink || syncOut) ? this.commands.get(w0Plain) : undefined;
         if ( (fastSyncSink || fastPipeSink || syncOut) && def && (w0Plain === "printf" ? def.execute === printfCommand.execute : (!rawState.xpg_echo && defaultEchoExecutors.has(def.execute))) && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.arePureArgWords(command.words, rawState) || command.words.every((w, idx) => idx === 0 ? this.isPureArgWord(w, rawState) : (this.isPureArgWord(w, rawState) || this.canSyncArrayMembersWord(w, rawState)))) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
-          if (rawState.extensions && !rawState.extensions.eventDepth && (!rawState.extensions.isIdleTrapState || command.words.some(w => w.parts.some(p => p.kind === "variable" && p.name === "BASH_COMMAND")))) publishCommandSpelling(rawState, commandSpelling(command));
+          if (rawState.extensions && !rawState.extensions.eventDepth && (!rawState.extensions.isIdleTrapState || command.words.some(w => w.parts.some((p: WordPart) => p.kind === "variable" && p.name === "BASH_COMMAND")))) publishCommandSpelling(rawState, commandSpelling(command));
           let formatted: string | undefined;
           let preEncoded: Uint8Array | undefined;
           let lastArg = w0Plain;
@@ -12000,7 +12000,7 @@ const syncExtraRuntimeMethods = {
         if (assignment.kind === "element") {
           if (assignment.append || (!binding.associative && (!isNonNegAsc || (assignment.index.source ?? assignment.index.decimal).trim() !== induction))) return undefined;
         } else {
-          if (binding.associative || !assignment.append || assignment.entries.some(entry => entry.index || entry.append)) return undefined;
+          if (binding.associative || !assignment.append || assignment.entries.some((entry: ArrayEntry) => entry.index || entry.append)) return undefined;
           appends.set(assignment.name, (appends.get(assignment.name) ?? 0) + assignment.entries.length);
         }
       } else if (assignment.append || store.get(assignment.name) || ["IFS", "LC_ALL", "LC_CTYPE", "LC_COLLATE", "LANG"].includes(assignment.name)) return undefined;
@@ -12098,7 +12098,7 @@ const syncExtraRuntimeMethods = {
       };
       for (const assignment of assignments) {
         if ("kind" in assignment && assignment.kind === "compound") {
-          if (assignment.entries.some(entry => !entry.value.parts.every(part => part.quoted) || !shapeWord(entry.value))) return undefined;
+          if (assignment.entries.some((entry: ArrayEntry) => !entry.value.parts.every(part => part.quoted) || !shapeWord(entry.value))) return undefined;
         } else {
           if ("kind" in assignment) {
             const index = this.syncArraySubscriptWord(assignment.index, state);
@@ -25821,8 +25821,10 @@ const syncExtraRuntimeMethods = {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return bytes;
   },
-};
+} satisfies ThisType<{ [name: string]: any; budget: Budget; signal: AbortSignal; _fastSubPositional: readonly string[] | undefined }>;
 
+// The methods above receive Runtime instances, including when they pass their
+// receiver to command contexts; the structural type omits Runtime's private members.
 Object.assign(Runtime.prototype, syncExtraRuntimeMethods);
 
 import { combineManagedSignals, toNativeAbortSignal } from "safe-bash-contracts/runtime-control";

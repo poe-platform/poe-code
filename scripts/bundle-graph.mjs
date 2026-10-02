@@ -196,7 +196,22 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
           );
         }
         const source = `${built.slice("./dist/".length, -".js".length)}.ts`;
-        alias[specifier] = prebuilt ? path.join(packagesDir, dir, built) : path.join(packagesDir, dir, "src", source);
+        let resolvedSource = path.join(packagesDir, dir, "src", source);
+        if (!prebuilt) {
+          const fallbackBuilt = selectConditionalTarget(target, new Set(["node", "import", "default"]));
+          if (typeof fallbackBuilt === "string" && fallbackBuilt !== built && fallbackBuilt.startsWith("./dist/") && fallbackBuilt.endsWith(".js")) {
+            try {
+              await fileSystem.readFile(resolvedSource);
+            } catch {
+              const fallbackCandidate = path.join(packagesDir, dir, "src", `${fallbackBuilt.slice("./dist/".length, -".js".length)}.ts`);
+              try {
+                await fileSystem.readFile(fallbackCandidate);
+                resolvedSource = fallbackCandidate;
+              } catch {}
+            }
+          }
+        }
+        alias[specifier] = prebuilt ? path.join(packagesDir, dir, built) : resolvedSource;
       }
     }
     for (const dep of Object.keys(pkg.dependencies || {})) workspaceDeps.add(dep);

@@ -1,6 +1,7 @@
 import { expect, test, vi } from "vitest";
 const state = vi.hoisted(() => ({ options: undefined as unknown, stop: new Error("transport captured") }));
 vi.mock("@cloudflare/playwright", () => ({ acquire: async () => ({ sessionId: "owned" }), connect: vi.fn() }));
+vi.mock("#safe-playwright-provider", async () => ({ artifactFileSystem: {}, prepareFileBytes: vi.fn((bytes: Uint8Array) => bytes), ...await import("@cloudflare/playwright") }));
 vi.mock("../src/browser-private-transport.js", () => ({
   createBrowserPrivateTransport: (options: unknown) => { state.options = options; throw state.stop; },
 }));

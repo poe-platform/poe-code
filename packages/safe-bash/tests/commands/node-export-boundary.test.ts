@@ -87,7 +87,7 @@ test("node command module graph excludes worker_threads without replacing suppor
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports.map(entry => entry.path));
   assert.equal(imports.includes("node:worker_threads"), false);
   assert.ok(imports.includes("node:util"));
-  assert.ok(imports.includes("node:path"));
+  assert.equal(imports.includes("node:path"), false);
 });
 
 test("host provider remains available exclusively through the explicit workspace host subpath", async () => {

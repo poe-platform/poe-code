@@ -165,7 +165,6 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
     // (e.g. "./configs" → "./dist/configs/index.js" → src/configs/index.ts).
     if (pkg.exports && typeof pkg.exports === "object") {
       for (const [subpath, target] of Object.entries(pkg.exports)) {
-        if (subpath === "." && !prebuilt && conditions.length === 1 && conditions[0] === "node") continue;
         const clean = subpath.startsWith("./") ? subpath.slice(2) : subpath;
         const specifier = subpath === "." ? pkg.name : `${pkg.name}/${clean}`;
         const built = selectConditionalTarget(target, runtimeConditions);

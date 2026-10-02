@@ -1967,7 +1967,13 @@
       "import": "./dist/commands/network/index.js"
     },
     "./commands/network/node": {
-      "types": "./dist/commands/network/node.d.ts",
+      "types": {
+        "workerd": "./dist/node-unavailable.d.ts",
+        "browser": "./dist/node-unavailable.d.ts",
+        "default": "./dist/commands/network/node.d.ts"
+      },
+      "workerd": null,
+      "browser": null,
       "import": "./dist/commands/network/node.js"
     },
     "./commands/node": {

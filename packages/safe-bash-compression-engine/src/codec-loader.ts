@@ -93,8 +93,7 @@ export async function createCodec(
     if (closing) {
       closing.bridge_destroy();
       const buf = closing.memory.buffer as ArrayBuffer & { transfer?: (newByteLength?: number) => ArrayBuffer };
-      queueMicrotask(() => {
-        queueMicrotask(() => {
+      scheduleTurn(() => {
           try {
             buf.transfer?.(0);
           } catch {
@@ -105,7 +104,6 @@ export async function createCodec(
             try { gc(); gc(); } catch {}
           }
         });
-      });
     }
   };
   try {

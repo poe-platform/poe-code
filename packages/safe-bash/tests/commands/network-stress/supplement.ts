@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { setTimeout as delay } from "node:timers/promises";
 import type { FileSystem, ByteSource } from "../../../src/contracts/index.js";
 import type { HttpTransport, NetworkCommandsOptions } from "../../../src/commands/network/types.js";
+import { createNodeHttpTransport } from "../../../src/commands/network/node.js";
 import { canonicalTrace, supplementaryLab } from "./supplement-lab.js";
 import { payload, supplementaryRows, type SupplementRow } from "./supplement-rows.js";
 
@@ -54,7 +55,7 @@ async function product(api: Api, row: SupplementRow, lab: Lab, expected: RecordV
   let returned = false;
   let settledLate = false;
   let lateTask: Promise<void> | undefined;
-  let transport: HttpTransport | undefined = row.trust ? api.createNodeHttpTransport({ ca: lab.certificate }) : undefined;
+  let transport: HttpTransport | undefined = row.trust ? createNodeHttpTransport({ ca: lab.certificate }) : undefined;
   const response = (body: ByteSource) => ({ status: 200, statusText: "OK", headers: [] as const, body, async dispose() { disposed++; } });
   let stdin: ByteSource | undefined;
   if (row.id === "response-backpressure") {

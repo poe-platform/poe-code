@@ -4,10 +4,11 @@ import { syncBuiltinESMExports } from "node:module";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  FsError, MemoryFileSystem, RealFileSystem, MountFileSystem, OverlayFileSystem,
+  FsError, MemoryFileSystem, MountFileSystem, OverlayFileSystem,
   ReadOnlyFileSystem, S3FileSystem, MockS3Client, S3ServiceError, WebDavFileSystem,
   type FileSystem, type FsOptions, type RemoveOptions, type ErrnoCode,
 } from "../../../../src/index.js";
+import { RealFileSystem } from "../../../../src/fs/real/index.js";
 import { MockDav } from "../../../fs/webdav/mock.js";
 
 export interface Event {

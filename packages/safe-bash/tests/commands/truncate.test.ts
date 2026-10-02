@@ -7,8 +7,7 @@ import { shellValueFromBytes } from "../../src/contracts/value.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { PublicDiagnostic } from "../../src/diagnostics.js";
 import { Shell } from "../../src/shell/index.js";
-import { truncateCommand } from "../../src/commands/truncate.js";
-import type { MetadataCommandsOptions } from "../../src/commands/metadata/internal.js";
+import { truncateCommand, type TruncateCommandsOptions } from "../../src/commands/truncate.js";
 
 function fixture() {
   const volume = Volume.fromJSON({ "/work/target": "abcdef", "/work/reference": "1234567", "/work/directory": null });
@@ -16,7 +15,7 @@ function fixture() {
   volume.symlinkSync("target", "/work/symlink");
   volume.symlinkSync("referent", "/work/dangling");
   const filesystem: FileSystem = new MemoryFileSystem();
-  Object.defineProperty(filesystem, "capabilities", { value: { ...filesystem.capabilities, retainedResize: true } });
+  Object.defineProperty(filesystem, "capabilities", { configurable: true, value: { ...filesystem.capabilities, retainedResize: true } });
   const convert = (error: unknown): never => { throw new FsError((error as FsError).code); };
   const ignoredInitialStat = volume.statSync("/work/target");
   const snapshot = (stat: typeof ignoredInitialStat): FileStat => ({
@@ -136,7 +135,7 @@ test("truncate fixture metadata preserves falsey cancellation before resolution"
   ]) await assert.rejects(operation(), error => error === false);
 });
 
-async function resize(args: readonly string[], overrides: Partial<CommandContext> = {}, options: MetadataCommandsOptions = {}) {
+async function resize(args: readonly string[], overrides: Partial<CommandContext> = {}, options: TruncateCommandsOptions = {}) {
   const setup = fixture();
   const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
   const context: CommandContext = {
@@ -226,7 +225,7 @@ for (const kind of ["duplicate", "failed", "no-create"] as const) test(`truncate
     return open(path, options);
   };
   const target = kind === "no-create" ? "absent" : "target";
-  const result = await resize([...(kind === "no-create" ? ["-c"] : []), "-r", "reference", target, target], { fs: setup.fs }, { limits: { maxEntries: 1, maxDepth: 0, maxAttempts: 1 } });
+  const result = await resize([...(kind === "no-create" ? ["-c"] : []), "-r", "reference", target, target], { fs: setup.fs }, { limits: { maxEntries: 1 } });
   assert.equal(result.exitCode, 1);
   assert.ok(Buffer.from(result.stderrHex, "hex").toString().endsWith("truncate: entry limit exceeded\n"));
   assert.deepEqual(acquired, [`/work/${target}`]);

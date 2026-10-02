@@ -25,7 +25,7 @@ test("session background jobs survive turns without blocking foreground completi
   try {
     const session = shell.createSession();
     const launch = session.exec("hold &");
-    const result = await Promise.race([launch, new Promise<undefined>(resolve => setImmediate(resolve))]);
+    const result = await Promise.race([launch, new Promise<undefined>(resolve => setImmediate(() => resolve(undefined)))]);
     assert.ok(result, "background work must not hold the session turn open");
     const listed = await session.exec('jobs; jobs -l; echo "$!"');
     assert.equal(listed.stdout, "[1]+  Running                 hold &\n[1]+ 1001 Running                 hold &\n1001\n");

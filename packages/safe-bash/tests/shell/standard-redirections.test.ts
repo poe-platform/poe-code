@@ -24,7 +24,7 @@ test("fast redirected commands share effective IO on new and reused contexts", a
       return RESOLVED_EXIT_ZERO;
     }
     assert.ok(io.descriptors);
-    assert.equal(io.descriptors, context.descriptors);
+    assert.equal(io.descriptors, Reflect.get(context, "descriptors"));
     assert.equal(io.descriptors.get(0)?.input, io.stdin);
     assert.equal(io.descriptors.get(1)?.output, context.stdout);
     assert.equal(io.descriptors.get(2)?.output, io.stderr);

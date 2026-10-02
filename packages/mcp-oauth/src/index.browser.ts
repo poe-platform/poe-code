@@ -31,3 +31,5 @@ export { parseOAuthClientRegistration, normalizeStoredOAuthClient } from "./clie
 export function createResourceBoundOAuthStores(): never {
   throw new Error("Desktop OAuth persistence is unavailable in Worker MCP; provide host-owned import/reset hooks");
 }
+
+export { generateCodeChallenge, generateCodeVerifier } from "./client/pkce.js";

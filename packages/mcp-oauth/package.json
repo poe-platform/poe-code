@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "auth-store": "^0.0.1",
-    "jose": "^6.1.2"
+    "jose": "^6.1.2",
+    "@noble/hashes": "2.4.0"
   },
   "devDependencies": {
     "tiny-oauth-test-server": "*"

@@ -1,4 +1,4 @@
-import crypto from "node:crypto";
+import { base64url } from "jose";
 
 interface AuthorizationStatePayload {
   v: 1;
@@ -13,12 +13,12 @@ export function createAuthorizationState(input: {
 }): string {
   const payload: AuthorizationStatePayload = {
     v: 1,
-    n: crypto.randomBytes(16).toString("base64url"),
+    n: base64url.encode(crypto.getRandomValues(new Uint8Array(16))),
     i: input.issuer,
     r: input.requireIssuer,
   };
 
-  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  return base64url.encode(JSON.stringify(payload));
 }
 
 export function parseAuthorizationState(
@@ -29,7 +29,7 @@ export function parseAuthorizationState(
   }
 
   try {
-    const decoded = Buffer.from(value, "base64url").toString("utf8");
+    const decoded = new TextDecoder().decode(base64url.decode(value));
     const parsed = JSON.parse(decoded) as unknown;
     if (!isObjectRecord(parsed)) {
       return null;

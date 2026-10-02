@@ -782,7 +782,6 @@ export class Pattern {
         if (
           prefixValid &&
           repeatNode?.type === "repeat" &&
-          (repeatNode.minimum >= 1 || prefix.length > 0 || anchoredStart) &&
           repeatNode.maximum === Infinity &&
           !repeatNode.lazy &&
           repeatNode.node.type === "character"

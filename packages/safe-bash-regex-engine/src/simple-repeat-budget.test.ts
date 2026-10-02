@@ -25,7 +25,7 @@ for (const method of ["find", "tryFindSync", "tryTestSync", "findSyncFastInto"] 
       assert.ok(reads <= input.length * 4, `${reads} character reads for ${input.length} code units`);
     });
   }
-  for (const source of ["a+$", "aa+$", "^a+$"]) {
+  for (const source of [".*", "a*$", "a+$", "aa+$", "^a+$"]) {
     for (const abort of [false, true]) {
       test(`${method} promptly enforces ${abort ? "abort" : "maxSteps"} for ${source}`, async t => {
         const input = "a".repeat(200) + "b";
@@ -49,7 +49,7 @@ for (const method of ["find", "tryFindSync", "tryTestSync", "findSyncFastInto"] 
   }
 }
 
-for (const source of ["a+$", "aa+$", "aa{3,}", "ab[a-b]+$", "😀[😀]{3,}$", "a([^x]{2,})$", "a(a*)$", "^a(a+)$"]) {
+for (const source of [".*", "(.*)", "a*", "a*$", "(a*)$", "[😀]*", "[😀]*$", "[^x]*$", "a+$", "aa+$", "aa{3,}", "ab[a-b]+$", "😀[😀]{3,}$", "a([^x]{2,})$", "a(a*)$", "^a(a+)$"]) {
   test(`repeat watermark preserves matches and captures for ${source}`, async () => {
     const pattern = new Pattern(source, true, false, "sed");
     const budget = () => new Budget({ signal: new AbortController().signal } as CommandContext, {});

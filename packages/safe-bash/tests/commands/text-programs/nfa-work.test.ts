@@ -6,6 +6,72 @@ import { Budget, ProgramError } from "../../../src/commands/text-programs/shared
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
 import { toByteSource } from "../../../src/contracts/index.js";
 import { runVirtual } from "./helpers.js";
+import { Shell, cloudflareWorkerLimits } from "../../../src/shell/index.js";
+import { textProgramCommands } from "../../../src/commands/text-programs/index.js";
+import { streamFormatCommands } from "../../../src/commands/stream-format/index.js";
+import { createBoundedRegexProvider } from "../../../src/commands/regex-execution/bounded-provider.js";
+
+const snapshotScript = `seq 0 20000 | sed 's/.*/- button "Item&" [ref=e&]/'`;
+
+function snapshotShell() {
+  const shell = new Shell({
+    fs: new MemoryFileSystem(),
+    // Keep finite Worker limits and the consumer's 4 KiB pipeline backpressure.
+    limits: { ...cloudflareWorkerLimits, pipeHighWaterMark: 4096 },
+    capabilities: { regex: {
+      executor: createBoundedRegexProvider({
+        maxWorkers: 2, maxPatterns: 32, maxPatternBytes: 8192, maxRows: 128,
+        maxInputBytes: 65_536, maxResultBytes: 2048, maxWork: 2_000_000,
+        maxAllocationUnits: 1_000_000, maxStates: 65_536,
+        maxMatchesPerLine: 128, maxTotalMatches: 128,
+      }),
+      limits: { maxWorkers: 2, maxQueuedRequests: 8, maxQueuedBytes: 8 * 1024 * 1024,
+        requestTimeoutMs: 1000, startupTimeoutMs: 1000 },
+    } },
+  });
+  shell.use(textProgramCommands({ maxSteps: 5_000_000, maxBufferBytes: 8 * 1024 * 1024 }));
+  shell.use(streamFormatCommands({ limits: { maxRecordBytes: 1024 * 1024, maxNumericDigits: 1024 } }));
+  return shell;
+}
+
+test("finite sed snapshot emits all 20,001 rows within the existing deadline", { timeout: 5000 }, async context => {
+  const shell = snapshotShell();
+  try {
+    const started = performance.now();
+    const result = await shell.exec(snapshotScript);
+    context.diagnostic(`20,001-row pipeline: ${Math.round(performance.now() - started)} ms`);
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, Array.from({ length: 20_001 }, (_, i) => `- button "Item${i}" [ref=e${i}]\n`).join(""));
+  } finally { await shell.dispose(); }
+});
+
+for (const stop of ["dispose", "abort"] as const) {
+  test(`finite sed snapshot ${stop} settles execution and cleanup without late rejection`, { timeout: 5000 }, async () => {
+    const shell = snapshotShell();
+    const controller = new AbortController();
+    let started!: () => void;
+    const firstOutput = new Promise<void>(resolve => { started = resolve; });
+    let output = "";
+    const execution = shell.exec(snapshotScript, {
+      signal: controller.signal,
+      stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); started(); } },
+    });
+    const reason = new Error("user stopped");
+    // Observe the caller-owned execution before disposal can reject it.
+    const rejected = assert.rejects(execution, error => stop === "dispose"
+      ? error instanceof Error && error.message === "Shell is disposed" : error === reason);
+    try {
+      await firstOutput;
+      if (stop === "abort") controller.abort(reason);
+      await shell.dispose();
+      await rejected;
+      assert.ok(output.startsWith('- button "Item0" [ref=e0]\n'));
+      assert.ok(!output.includes('[ref=e20000]'));
+      await new Promise<void>(resolve => { setImmediate(resolve); });
+    } finally { await shell.dispose(); }
+  });
+}
 
 function makeBudget(maxSteps = 2048, maxBufferBytes = 8192, signal = new AbortController().signal): Budget {
   return new Budget({

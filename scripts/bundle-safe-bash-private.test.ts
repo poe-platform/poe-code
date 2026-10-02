@@ -141,6 +141,30 @@ it("initializes command factories also referenced by a lazy workspace import", a
   expect(result.outputFiles[0]!.text.split("globalThis.command =")[0]).toMatch(/init_(?:src|index)\w*\(\);/);
 });
 
+it("preserves spreadsheet SDK exports through its split workspace prebundle", async () => {
+  const surfaces = await Promise.all(["src/index.ts", "dist/index.js"].map(async entry => {
+    const result = await build({
+      entryPoints: [path.join(process.cwd(), "packages/safe-bash-command-ssconvert", entry)],
+      bundle: true, write: false, platform: "browser", format: "esm", metafile: true,
+      external: ["@poe-code/safe-fs", "safe-bash-contracts"],
+    });
+    return Object.values(result.metafile!.outputs).find(output => output.entryPoint)!.exports;
+  }));
+  expect(surfaces[0]).toEqual(expect.arrayContaining(["chartDataTypes", "createFormattingCapability", "sheetObjects", "sylkGrammar"]));
+  expect(surfaces[1]).toEqual(surfaces[0]);
+  const consumer = await build({
+    stdin: { contents: `import { SsconvertError, createFormattingCapability } from "./packages/safe-bash-command-ssconvert/dist/index.js";
+      import { SsconvertError as canonicalError } from "@poe-code/spreadsheet-ast/errors";
+      import { createFormattingCapability as canonicalFormatting } from "@poe-code/spreadsheet-engine/formatting";
+      export { SsconvertError, canonicalError, createFormattingCapability, canonicalFormatting };`, resolveDir: process.cwd() },
+    bundle: true, write: false, platform: "browser", format: "cjs",
+  });
+  const module = { exports: {} as Record<string, unknown> };
+  runInNewContext(consumer.outputFiles[0]!.text, { module, TextEncoder, TextDecoder, AbortController, AbortSignal, atob });
+  expect(module.exports.SsconvertError).toBe(module.exports.canonicalError);
+  expect(module.exports.createFormattingCapability).toBe(module.exports.canonicalFormatting);
+});
+
 it("keeps copied WASM assets inside a package dist directory", async () => {
   const name = "safe-bash-command-example";
   const profile = { version: "0.0.1", dependencies: {}, devDependencies: {} };

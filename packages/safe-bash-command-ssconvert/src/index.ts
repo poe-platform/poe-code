@@ -13,6 +13,9 @@ export { parseCommand, runCommand } from "./cli.js";
 export type { ParsedCommand, CommandOperation, CommandProfile, CommandArgument } from "./cli.js";
 export * from "./contracts.js";
 export * from "./workbook.js";
+// Both facades expose these names; select their shared owner explicitly when
+// the engine and AST remain external to the split command bundle.
+export { SsconvertError, isSsconvertError } from "@poe-code/spreadsheet-ast/errors";
 export { exportRangeForSheet } from "./workbook/expressions.js";
 export type * from "./codecs.js";
 export { createRegistry, sourceServices } from "./codecs.js";

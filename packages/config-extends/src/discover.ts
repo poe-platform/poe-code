@@ -1,6 +1,7 @@
-import path from "node:path";
+import { readTextFile } from "./filesystem.js";
+import { path } from "./paths.js";
 import { hasOwnErrorCode } from "./error-codes.js";
-import type { FileSystem } from "./types.js";
+import type { ResolveOptions } from "./types.js";
 
 export interface DiscoveredBase {
   content: string;
@@ -10,7 +11,7 @@ export interface DiscoveredBase {
 export async function findBase(
   name: string,
   bases: string[],
-  fs: FileSystem
+  fs: ResolveOptions["fs"]
 ): Promise<DiscoveredBase> {
   const checkedPaths: string[] = [];
 
@@ -31,7 +32,7 @@ export async function findBase(
 
       try {
         return {
-          content: await fs.readFile(filePath, "utf8"),
+          content: await readTextFile(fs, filePath),
           filePath
         };
       } catch (error) {

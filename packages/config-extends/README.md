@@ -2,6 +2,8 @@
 
 Shared document-inheritance utilities for layered config resolution.
 
+Workers use injected filesystems with UTF-8 byte reads and portable POSIX paths. Node callers retain the host filesystem default for prompt documents.
+
 ## API
 
 - `resolve(chain, options)`: resolves exactly one document layer with surrounding data and base layers.
@@ -32,7 +34,7 @@ This package does not read or expose any environment variables.
 
 ### `ResolveOptions`
 
-- `fs`: file system implementation with `readFile(path, encoding)`
+- `fs`: a `@poe-code/safe-fs` filesystem, or a text filesystem with `readFile(path, "utf8")`
 - `autoExtend?`: automatically inherit from bases even when a document does not set `extends: true`
 
 ### `ResolvePromptDocumentInput`

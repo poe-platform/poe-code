@@ -1,3 +1,5 @@
+import type { FileSystem as SafeFileSystem } from "@poe-code/safe-fs/contracts";
+
 export interface DataLayer {
   source: string;
   data: Record<string, unknown>;
@@ -18,11 +20,11 @@ export interface BaseLayer {
 export type ChainLayer = DataLayer | DocumentLayer | BaseLayer;
 
 export interface FileSystem {
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
 }
 
 export interface ResolveOptions {
-  fs: FileSystem;
+  fs: FileSystem | Pick<SafeFileSystem, "capabilities" | "readFile">;
   autoExtend?: boolean;
   validate?: boolean;
   view?: Record<string, unknown>;

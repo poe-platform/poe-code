@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "./paths.js";
 import { FrontmatterParseError, parseFrontmatter } from "@poe-code/frontmatter";
 import { parse as parseYaml } from "yaml";
 import type { ParsedDocument } from "./types.js";

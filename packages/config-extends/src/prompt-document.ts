@@ -1,10 +1,12 @@
-import { readFile, realpath } from "node:fs/promises";
-import path from "node:path";
+import { createDefaultFileSystem } from "#config-extends-filesystem";
+import type { FileSystem as SafeFileSystem } from "@poe-code/safe-fs/contracts";
+import { readTextFile } from "./filesystem.js";
+import { path } from "./paths.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { resolve as resolveConfigDocument } from "./resolve.js";
 
 export interface PromptDocumentFileSystem {
-  readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
+  readFile(filePath: string, encoding: "utf8"): Promise<string>;
   realpath(filePath: string): Promise<string>;
 }
 
@@ -22,7 +24,7 @@ export interface ResolvePromptDocumentInput {
   baseDocuments?: readonly PromptDocumentBaseDocument[];
   variables?: Record<string, unknown>;
   validate?: boolean;
-  fs?: PromptDocumentFileSystem;
+  fs?: PromptDocumentFileSystem | Pick<SafeFileSystem, "capabilities" | "readFile" | "realpath">;
 }
 
 export interface ResolvedPromptDocument {
@@ -33,11 +35,6 @@ export interface ResolvedPromptDocument {
   source: string;
   chain: string[];
 }
-
-const nativeFs: PromptDocumentFileSystem = {
-  readFile: (filePath, encoding) => readFile(filePath, encoding),
-  realpath: (filePath) => realpath(filePath)
-};
 
 export async function resolvePromptDocument(
   input: ResolvePromptDocumentInput
@@ -56,7 +53,7 @@ export async function resolvePromptDocument(
     ...baseDocuments.map(({ filePath: baseFilePath }) => path.dirname(baseFilePath))
   ];
   const fs = createRootedFileSystem(
-    createDocumentFileSystem(input.fs ?? nativeFs, baseDocuments),
+    createDocumentFileSystem(input.fs ?? createDefaultFileSystem(), baseDocuments),
     [cwd, ...basePaths]
   );
   const content = input.content ?? (await readDocumentContent(fs, filePath, input.optional));
@@ -85,16 +82,16 @@ export async function resolvePromptDocument(
 }
 
 function createDocumentFileSystem(
-  fs: PromptDocumentFileSystem,
+  fs: NonNullable<ResolvePromptDocumentInput["fs"]>,
   documents: readonly PromptDocumentBaseDocument[]
 ): PromptDocumentFileSystem {
   const contentByPath = new Map(
     documents.map(({ filePath, content }) => [path.resolve(filePath), content] as const)
   );
   return {
-    readFile(filePath, encoding) {
+    readFile(filePath) {
       const content = contentByPath.get(path.resolve(filePath));
-      return content === undefined ? fs.readFile(filePath, encoding) : Promise.resolve(content);
+      return content === undefined ? readTextFile(fs, filePath) : Promise.resolve(content);
     },
     realpath(filePath) {
       const resolvedPath = path.resolve(filePath);

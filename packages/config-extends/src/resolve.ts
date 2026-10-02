@@ -1,9 +1,10 @@
-import path from "node:path";
+import { readTextFile } from "./filesystem.js";
+import { path } from "./paths.js";
 import {
   getTemplatePartialNames,
   renderTemplate,
   resolveTemplatePartials
-} from "toolcraft-design";
+} from "toolcraft-design/components/template";
 import { findBase } from "./discover.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { mergeLayers } from "./merge.js";
@@ -270,7 +271,7 @@ async function readPathValuedBase(
 
   try {
     return {
-      content: await options.fs.readFile(filePath, "utf8"),
+      content: await readTextFile(options.fs, filePath),
       filePath,
       source: filePath
     };
@@ -449,7 +450,7 @@ async function findPartial(
     checkedPaths.push(filePath);
 
     try {
-      return { content: await fs.readFile(filePath, "utf8"), filePath };
+      return { content: await readTextFile(fs, filePath), filePath };
     } catch (error) {
       if (hasOwnErrorCode(error, "ENOENT")) {
         continue;

@@ -33976,7 +33976,7 @@ Object.assign(Budget.prototype, {
 Object.assign(Runtime.prototype, {
   outcomeFrame: undefined, _fs: undefined, _contextFsMask: -1, _contextFsSignal: undefined, _contextFs: undefined, _redirectFsMask: -1, _redirectFs: undefined, _fileWrites: undefined, _outputFiles: undefined, _syncArithState: undefined, _canFastMemoryRedirect: undefined, _syncArithRawVars: undefined, _syncArithLine: undefined, _syncArithRawWriteOnly: false, _syncArithTouched: undefined, _syncArithRefs: undefined, });
 export class RootShellState implements State {
-  readonly shellStartedAt = Date.now();
+  shellStartedAt = Date.now();
   declare umask: number;
   declare extensions: ShellExtensionState | undefined;
   declare cwd: string;

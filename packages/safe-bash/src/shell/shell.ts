@@ -630,6 +630,7 @@ export class Shell implements PluginHost {
     const warm = this.#warmedInvocation!;
     this.#warmedInvocation = undefined;
     const { budget, scope, cancellationState, owner, stdout, stderr, stdin, io, currentState, runtime } = warm;
+    currentState.shellStartedAt = Date.now();
     try {
       if (typeof source !== "string") throw new TypeError("Shell source must be a string");
       const sourceByteLen = sourceCache.byteLength;
@@ -988,6 +989,7 @@ export class Shell implements PluginHost {
         let currentState: State;
         if (warm) {
           currentState = warm.currentState;
+          currentState.shellStartedAt = Date.now();
           runtime = warm.runtime;
         } else {
         if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {

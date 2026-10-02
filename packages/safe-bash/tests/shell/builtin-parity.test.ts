@@ -69,3 +69,17 @@ test("mapfile and read share descriptor cursors and reject closed descriptors", 
     assert.match(result.stderr, /Bad file descriptor/);
   } finally { await shell.dispose(); }
 });
+
+test("printf shell start time is fresh when an invocation reuses the shell runtime", async t => {
+  let now = 1_700_000_000_000;
+  t.mock.method(Date, "now", () => now);
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
+  try {
+    await shell.exec("printf '%(%s)T\\n' -2");
+    await shell.exec("echo prime");
+    now += 2000;
+    const result = await shell.exec("printf '%(%s)T\\n' -2");
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "1700000002\n");
+  } finally { await shell.dispose(); }
+});

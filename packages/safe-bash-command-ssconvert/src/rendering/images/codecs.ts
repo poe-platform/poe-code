@@ -1,4 +1,3 @@
-import { encodeJpegImage } from "@poe-code/image-ast";
 import { SsconvertError, type CapabilityContext } from "../../contracts.js";
 import { ImageExportError, profileImageTargets } from "./formats.js";
 import { encodeProfileRaster } from "./profile-raster.js";
@@ -203,6 +202,7 @@ export async function encodeGraphImage(surface: ImageSurface, format: string, co
       for (let channel = 0; channel < 3; channel++) rgba[offset + channel] = Math.floor((image.rgba[offset + channel]! * alpha + 255 * (255 - alpha) + 127) / 255);
       rgba[offset + 3] = 255;
     }
+    const { encodeJpegImage } = await import("@poe-code/image-ast");
     bytes = encodeJpegImage({ width: image.width, height: image.height, data: rgba,
       format: "raw", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false }, { quality: 75 });
   } else {

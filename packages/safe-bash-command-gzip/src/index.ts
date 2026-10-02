@@ -1,4 +1,4 @@
-import { withInputByteBudget } from "safe-bash-contracts";
+import { commandRuntimeIdentity, withInputByteBudget } from "safe-bash-contracts";
 import { planOperands,verifyOperandDestinations } from "safe-bash-compression-engine/files";
 import { runOperand } from "safe-bash-compression-engine/operand";
 import { parseOptions,profiles } from "safe-bash-compression-engine/options";
@@ -61,7 +61,7 @@ export function createGzipCommands(config: GzipCommandsOptions = {}): readonly C
     }
     return { exitCode };
   });
-    return { ...command, execute: withInputByteBudget(async context => command.execute(context)) };
+    return { ...command, runtimeIdentity: commandRuntimeIdentity, execute: withInputByteBudget(async context => command.execute(context)) };
   }));
   if (maxDecodedBytes === undefined || maxDecodedBytes === Infinity) {
     for (const c of commands) builtInDirectContextExecutors.add(c.execute);

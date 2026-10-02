@@ -1,3 +1,5 @@
+import { verification as gzipVerification } from "./safe-packages-gzip.mjs";
+await gzipVerification;
 import { verification as xqVerification } from "./safe-packages-xq.mjs";
 await xqVerification;
 import "./safe-packages-wget.mjs";

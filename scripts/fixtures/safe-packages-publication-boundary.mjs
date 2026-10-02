@@ -1,3 +1,4 @@
+import { verification as gzipVerification } from "./safe-packages-gzip.mjs";
 import { verification as csplitVerification } from "./safe-packages-csplit.mjs";
 import { verification as columnVerification } from "./safe-packages-column-portable.mjs";
 import { verification as tarVerification } from "./safe-packages-tar.mjs";
@@ -11,6 +12,7 @@ import { MemoryFileSystem } from "@poe-platform/safe-fs/core";
 import { createWkhtmltopdfCommand, wkhtmltopdfCommands } from "@poe-platform/safe-bash/commands/wkhtmltopdf";
 
 async function verifyPublicationBoundary() {
+  await gzipVerification;
   await csplitVerification;
   await columnVerification;
   await tarVerification;

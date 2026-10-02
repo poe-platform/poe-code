@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { createCommandArguments, toByteSource, type CommandDefinition } from "safe-bash-contracts";
+import { commandRuntimeIdentity, createCommandArguments, toByteSource, type CommandDefinition } from "safe-bash-contracts";
 import { createGzipCommand, createGzipCommands, gzipCommands } from "./index.js";
 
 async function run(command: CommandDefinition, args: string[], input = "") {
@@ -24,4 +24,9 @@ test("standalone gzip works with only portable filesystem and command contracts"
   const result = await run(createGzipCommand(), ["--help"], "");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.ok(result.stdout.length > 0);
+});
+
+test("gzip aliases declare the canonical command runtime at the package boundary", () => {
+  assert.deepEqual(createGzipCommands().map(command => command.name), ["gzip", "gunzip", "zcat"]);
+  for (const command of createGzipCommands()) assert.equal(command.runtimeIdentity, commandRuntimeIdentity);
 });

@@ -85,7 +85,7 @@ export async function createCodec(
   signal.throwIfAborted();
   // Factories contain immutable generated code; module memory belongs to one
   // invocation even after bridge_destroy has released its live allocations.
-  { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { try { gc(); } catch {} } }
+  { const gc = (globalThis as { gc?: () => void }).gc; if (typeof gc === "function") { try { gc(); } catch { /* Optional host GC is best-effort. */ } } }
   let module: ReturnType<RawCodecFactory> | undefined = factory(wasi);
   const close = (): void => {
     const closing = module;
@@ -101,7 +101,7 @@ export async function createCodec(
           }
           const gc = (globalThis as { gc?: () => void }).gc;
           if (typeof gc === "function") {
-            try { gc(); gc(); } catch {}
+            try { gc(); gc(); } catch { /* Optional host GC is best-effort. */ }
           }
         });
     }

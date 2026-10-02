@@ -74,21 +74,50 @@ function nonnegative(value: number | undefined, path: string): void {
   if (value !== undefined && (!Number.isSafeInteger(value) || value < 0)) throw new FsError("EINVAL", { path });
 }
 
+const sharedUnknownEntryAuthority = async () => "unknown" as const;
+
 export class DeviceFileSystem implements FileSystem {
   readonly #filesystem: FileSystem;
   readonly capabilities: FileSystemCapabilities;
-  readonly #nullStat: FileStat;
-  readonly #directoryStat: FileStat;
+  #identityScopeObj: object | undefined;
+  #nullStatObj: FileStat | undefined;
+  #directoryStatObj: FileStat | undefined;
+
+  get [pathNamespace]() {
+    return Reflect.get(this.#filesystem, pathNamespace);
+  }
+
+  get #nullStat(): FileStat {
+    if (this.#nullStatObj) return this.#nullStatObj;
+    const identityScope = (this.#identityScopeObj ??= Object.freeze({}));
+    return (this.#nullStatObj = Object.freeze({
+      type: "character", mode: 0o020666, size: 0, allocatedBytes: 0, uid: 0, gid: 0,
+      mtimeMs: 0, atimeMs: 0, ctimeMs: 0, birthtimeMs: 0, identityScope, ino: 1, dev: 0, nlink: 1, preferredIoBlockSize: 4096,
+    }));
+  }
+
+  get #directoryStat(): FileStat {
+    if (this.#directoryStatObj) return this.#directoryStatObj;
+    const identityScope = (this.#identityScopeObj ??= Object.freeze({}));
+    return (this.#directoryStatObj = Object.freeze({
+      type: "directory", mode: 0o040755, size: 0, allocatedBytes: 0, uid: 0, gid: 0,
+      mtimeMs: 0, atimeMs: 0, ctimeMs: 0, birthtimeMs: 0, identityScope, ino: 2, dev: 0, nlink: 1,
+    }));
+  }
+
+  async _resolveEntryView(path: string, options: FsOptions) {
+    const resolved = await this.#resolve(path, options);
+    if (resolved === nullPath || resolved === deviceDirectory) {
+      return { filesystem: this, path: resolved, stat: resolved === nullPath ? this.#nullStat : this.#directoryStat, readOnly: false };
+    }
+    return { filesystem: this.#filesystem, path };
+  }
+
+  _entryAuthority = sharedUnknownEntryAuthority;
 
   constructor(filesystem: FileSystem) {
     this.#filesystem = filesystem;
-    Object.defineProperty(this, pathNamespace, { get: () => Reflect.get(filesystem, pathNamespace) });
     this.capabilities = globalCapabilities(filesystem);
-    const identityScope = Object.freeze({});
-    const stat = { mode: 0o020666, size: 0, allocatedBytes: 0, uid: 0, gid: 0,
-      mtimeMs: 0, atimeMs: 0, ctimeMs: 0, birthtimeMs: 0, identityScope, ino: 1, dev: 0, nlink: 1 };
-    this.#nullStat = Object.freeze({ ...stat, type: "character", preferredIoBlockSize: 4096 });
-    this.#directoryStat = Object.freeze({ ...stat, type: "directory", mode: 0o040755, ino: 2 });
     let methods: Map<PropertyKey, { backing: unknown; bound: unknown }> | undefined;
     const view = new Proxy(this, {
       set: (_target, property, value) => Reflect.set(filesystem, property, value, filesystem),
@@ -103,14 +132,6 @@ export class DeviceFileSystem implements FileSystem {
         return bound;
       },
     });
-    for (const identity of [this, view]) registerEntryView(identity, async (path, options) => {
-      const resolved = await this.#resolve(path, options);
-      if (resolved === nullPath || resolved === deviceDirectory) return { filesystem: this, path: resolved,
-        stat: resolved === nullPath ? this.#nullStat : this.#directoryStat, readOnly: false };
-      return { filesystem, path };
-    });
-    // This internal view has no identity proof beyond its synthetic stats.
-    registerEntryAuthority(this, async () => "unknown");
     return view;
   }
 

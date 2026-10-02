@@ -44,7 +44,7 @@ export async function resolveEntryView(filesystem: FileSystem, path: string, opt
     visited.add(location.filesystem);
     readOnly ||= location.readOnly === true || location.filesystem.capabilities.readOnly === true;
     if (location.stat) return { filesystem: location.filesystem, path: location.path, stat: location.stat, readOnly };
-    const resolve = resolvers.get(location.filesystem);
+    const resolve = resolvers.get(location.filesystem) ?? (location.filesystem as { _resolveEntryView?: EntryViewResolver })._resolveEntryView;
     if (!resolve) {
       let stat: FileStat;
       let followedPath: string;
@@ -79,7 +79,7 @@ export async function compareResolvedEntries(own: EntryView, peer: EntryView, op
     let result: EntryComparison = "unknown";
     for (const [left, right] of [[own, peer], [peer, own]] as const) {
       options.signal?.throwIfAborted();
-      const authority = authorities.get(left.filesystem);
+      const authority = authorities.get(left.filesystem) ?? (left.filesystem as { _entryAuthority?: EntryAuthority })._entryAuthority;
       const key = authority ?? left.filesystem;
       if (queried.has(key)) continue;
       queried.add(key);

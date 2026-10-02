@@ -341,7 +341,11 @@ export class ValueScope implements ValueAllocation {
 export class ValueStore {
   declare readonly arena: ValueArena;
   declare private _values: Map<string, HeldValue> | undefined;
-  declare private _strings: Map<string, string> | undefined;
+  declare _strings: Map<string, string> | undefined;
+  declare _k0: string | undefined;
+  declare _v0: string | undefined;
+  declare _k1: string | undefined;
+  declare _v1: string | undefined;
   declare private _stringsShared: boolean;
   declare private _stringBytes: number;
   declare private _stringRecord: AllocationRecord | undefined;
@@ -352,12 +356,29 @@ export class ValueStore {
     this.arena = arena;
     this._values = undefined;
     this._strings = undefined;
+    this._k0 = undefined;
+    this._v0 = undefined;
+    this._k1 = undefined;
+    this._v1 = undefined;
     this._stringsShared = false;
     this._stringBytes = 0;
     this._stringRecord = undefined;
     this._closed = false;
     this._scope = undefined;
     arena.assertOpen();
+  }
+
+  private _spillInlineStrings(): void {
+    if (this._k0 !== undefined) {
+      (this._strings ??= new Map()).set(this._k0, this._v0!);
+      this._k0 = undefined;
+      this._v0 = undefined;
+    }
+    if (this._k1 !== undefined) {
+      (this._strings ??= new Map()).set(this._k1, this._v1!);
+      this._k1 = undefined;
+      this._v1 = undefined;
+    }
   }
 
   get scope(): ValueScope {
@@ -371,16 +392,14 @@ export class ValueStore {
 
   prewarm(): void {
     if (this.arena.hasInfiniteBytes) return;
-    if (!this._strings) {
-      const m = new Map<string, string>();
-      for (let i = 0; i < 6; i++) m.set(String(i), "");
-      for (let i = 0; i < 6; i++) m.delete(String(i));
-      this._strings = m;
-    }
     this._stringRecord ??= this.arena.allocate(0, 0);
   }
 
-  get(name: string, text: string): ShellValue { return this._values?.get(name)?.value ?? this._strings?.get(name) ?? text; }
+  get(name: string, text: string): ShellValue {
+    if (this._k0 === name) return this._v0!;
+    if (this._k1 === name) return this._v1!;
+    return this._values?.get(name)?.value ?? this._strings?.get(name) ?? text;
+  }
 
   publishString(name: string, value: string, rawVariables: Record<string, string | undefined>): void {
     if (this.arena.hasInfiniteBytes && this.arena.maximumSlots === Infinity) {
@@ -391,7 +410,10 @@ export class ValueStore {
     }
     const newBytes = value.length * 2;
     const held = this._values?.get(name);
-    const oldStr = this._strings?.get(name);
+    let oldStr: string | undefined;
+    if (this._k0 === name) oldStr = this._v0;
+    else if (this._k1 === name) oldStr = this._v1;
+    else oldStr = this._strings?.get(name);
     const oldBytes = oldStr !== undefined ? oldStr.length * 2 : 0;
     const delta = newBytes - oldBytes;
     const previousRecord = this._stringRecord;
@@ -413,6 +435,31 @@ export class ValueStore {
     if (held) {
       held.release();
       this._values!.delete(name);
+    }
+    if (!this._strings && !this._stringsShared) {
+      if (this._k0 === name) {
+        this._v0 = value;
+        this._stringBytes += delta;
+        return;
+      }
+      if (this._k1 === name) {
+        this._v1 = value;
+        this._stringBytes += delta;
+        return;
+      }
+      if (this._k0 === undefined) {
+        this._k0 = name;
+        this._v0 = value;
+        this._stringBytes += delta;
+        return;
+      }
+      if (this._k1 === undefined) {
+        this._k1 = name;
+        this._v1 = value;
+        this._stringBytes += delta;
+        return;
+      }
+      this._spillInlineStrings();
     }
     if (this._stringsShared && this._strings) {
       this._strings = new Map(this._strings);
@@ -459,6 +506,10 @@ export class ValueStore {
 
   invalidate(name?: string): void {
     if (name === undefined) {
+      this._k0 = undefined;
+      this._v0 = undefined;
+      this._k1 = undefined;
+      this._v1 = undefined;
       if (this._values) {
         if (this._values.size > 0) {
           for (const value of this._values.values()) value.release();
@@ -474,21 +525,38 @@ export class ValueStore {
       }
       this._stringBytes = 0;
       if (this._stringRecord) {
-        this.arena.release(this._stringRecord);
-        this._stringRecord = undefined;
+        if (this._closed) {
+          this.arena.release(this._stringRecord);
+          this._stringRecord = undefined;
+        } else if (this._stringRecord.bytes > 0) {
+          this.arena.shrinkStringRecord(this._stringRecord, this._stringRecord.bytes);
+        }
       }
     } else {
       if (this._values) {
         this._values.get(name)?.release();
         this._values.delete(name);
       }
-      const oldStr = this._strings?.get(name);
-      if (oldStr !== undefined) {
-        if (this._stringsShared) {
-          this._strings = new Map(this._strings);
-          this._stringsShared = false;
+      let oldStr: string | undefined;
+      if (this._k0 === name) {
+        oldStr = this._v0;
+        this._k0 = undefined;
+        this._v0 = undefined;
+      } else if (this._k1 === name) {
+        oldStr = this._v1;
+        this._k1 = undefined;
+        this._v1 = undefined;
+      } else {
+        oldStr = this._strings?.get(name);
+        if (oldStr !== undefined) {
+          if (this._stringsShared) {
+            this._strings = new Map(this._strings);
+            this._stringsShared = false;
+          }
+          this._strings!.delete(name);
         }
-        this._strings!.delete(name);
+      }
+      if (oldStr !== undefined) {
         const delta = oldStr.length * 2;
         this._stringBytes -= delta;
         if (this._stringRecord) this.arena.shrinkStringRecord(this._stringRecord, delta);
@@ -499,6 +567,7 @@ export class ValueStore {
   clone(): ValueStore {
     const copy = this.arena.createStore();
     try {
+      this._spillInlineStrings();
       if (this._stringRecord) {
         copy._stringRecord = this.arena.allocate(this._stringBytes, 0);
         copy._stringBytes = this._stringBytes;
@@ -581,6 +650,7 @@ export class ValueStore {
     action();
     this.invalidate();
     if (source._stringRecord) {
+      source._spillInlineStrings();
       this._stringRecord = source._stringRecord;
       this._stringBytes = source._stringBytes;
       this._strings = source._strings;

@@ -2845,15 +2845,14 @@ const predicateScratchWords: string[] = [];
 const fastSharedTextEncoder = new TextEncoder();
 let _sharedEmptyMemoryFs: FileSystem | undefined;
 const fatalUtf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-const assignmentCacheSymbol = Symbol("safe-bash.assignmentCache");
 let fallbackAssignmentCache: WeakMap<Word, { name: string; value: Word; append: boolean } | null> | undefined;
 const assignmentCache = {
   get(word: Word): { name: string; value: Word; append: boolean } | null | undefined {
-    const val = (word as unknown as Record<symbol, { name: string; value: Word; append: boolean } | null | undefined>)[assignmentCacheSymbol];
+    const val = (word as { _cachedAssign?: { name: string; value: Word; append: boolean } | null })._cachedAssign;
     return val !== undefined ? val : fallbackAssignmentCache?.get(word);
   }, set(word: Word, value: { name: string; value: Word; append: boolean } | null): void {
     if (Object.isExtensible(word)) {
-      (word as unknown as Record<symbol, { name: string; value: Word; append: boolean } | null>)[assignmentCacheSymbol] = value;
+      (word as { _cachedAssign?: { name: string; value: Word; append: boolean } | null })._cachedAssign = value;
     } else (fallbackAssignmentCache ??= new WeakMap()).set(word, value);
   }, };
 function hasGlobOrEscape(text: string, extglob = false): boolean {
@@ -6738,6 +6737,7 @@ export class Runtime {
     ) {
       return false;
     }
+    const curVars = rawRoot.variables;
     if (monitor) {
       if ((monitor as unknown as { _overlays?: unknown })._overlays) return false;
       const store = monitor.store;
@@ -6779,7 +6779,6 @@ export class Runtime {
       rawRoot._exported.add("PWD");
     }
     this._syncTouchedPositionals = false;
-    const curVars = rawRoot.variables;
     if (curVars && !(monitor as unknown as { _wrapped?: unknown })?._wrapped) {
       for (const k in curVars) {
         if (k !== "PWD" && k !== "OPTIND" && k !== "OPTERR" && k !== "IFS") delete curVars[k];
@@ -9145,19 +9144,25 @@ export class Runtime {
         (this._fileWrites === undefined || this._fileWrites.size === 0) &&
         (this._outputFiles === undefined || this._outputFiles.size === 0)
       ) {
-        const strippedCmd = (command as { _strippedRedirectsCmd?: typeof command })._strippedRedirectsCmd ??= { ...command, redirects: [] };
+        const origRedirects = command.redirects;
+        (command as { redirects: readonly Redirect[] }).redirects = emptyStrings as unknown as readonly Redirect[];
         let status: number | undefined;
         if (!io.descriptors) {
           const prevStdout = io.stdout;
           (io as { stdout: typeof devNullSyncSink }).stdout = devNullSyncSink;
           try {
-            status = this.executeSyncPipelineBody(pipeline, strippedCmd, state, io, ignored);
+            status = this.executeSyncPipelineBody(pipeline, command, state, io, ignored);
           } finally {
+            (command as { redirects: readonly Redirect[] }).redirects = origRedirects;
             (io as { stdout: typeof prevStdout }).stdout = prevStdout;
           }
         } else {
-          const { descriptors: ignoredDescriptors, ...rest } = io;
-          status = this.executeSyncPipelineBody(pipeline, strippedCmd, state, { ...rest, stdout: devNullSyncSink }, ignored);
+          try {
+            const { descriptors: ignoredDescriptors, ...rest } = io;
+            status = this.executeSyncPipelineBody(pipeline, command, state, { ...rest, stdout: devNullSyncSink }, ignored);
+          } finally {
+            (command as { redirects: readonly Redirect[] }).redirects = origRedirects;
+          }
         }
         // These output builtins do no filesystem work. Charge the discarded
         // redirect only after completion; fallback opens it through descriptors.
@@ -9779,7 +9784,34 @@ export class Runtime {
         if (store) store.epoch = restEpoch;
         return 0;
       }
-      if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "eval") && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
+      if ( (w0Plain === ":" || w0Plain === "true") && command.redirects.length === 1 && !pipeline.negate && canMutatePipeStatus && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
+        const r0 = command.redirects[0]!;
+        const targetPlain = r0.target.plain;
+        if ((r0.descriptor === undefined || r0.descriptor === 1) && !r0.move && !r0.document && (r0.operator === ">" || r0.operator === ">|" || r0.operator === ">>") && targetPlain && targetPlain.startsWith("/") && !targetPlain.startsWith("/dev/") && (!rawState.noclobber || r0.operator !== ">") && this.canFastMemoryRedirect && this.budget.canRedirect1 && this.budget.canFileSystemOperation() && (!this._fileWrites || this._fileWrites.size === 0) && (!this._outputFiles || this._outputFiles.size === 0)) {
+          if (tryWriteMemoryFileSync(this.backingFs, targetPlain, emptyByteArray, r0.operator === ">>", 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal)) {
+            this.budget.redirect();
+            this.budget.fileSystemOperation();
+            const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            if (rawState.variables._ !== undefined) delete rawState.variables._;
+            rawState.lastArgument = w0Plain;
+            if (!existing) {
+              monitor.lazyPipeStatus = singleStatusZero;
+              monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets);
+            } else {
+              this.setSyncPipeStatusCell(existing!, "0");
+              store!.changed(monitor.chargeInternal(syncPipeStatusCharge, syncPipeStatusTickets), "PIPESTATUS");
+            }
+            rawState.status = 0;
+            monitor.epoch = restEpoch;
+            if (store) store.epoch = restEpoch;
+            return 0;
+          }
+        }
+        return undefined;
+      }
+      if ( (w0Plain === ":" || w0Plain === "true" || w0Plain === "false" || w0Plain === "eval") && command.redirects.length === 0 && !hasShellFunction(rawState, w0Plain) && !rawState.extensions?.builtins.has(w0Plain)) {
         const rawStatus = w0Plain === "false" ? 1 : 0;
         const statusChar = rawStatus === 0 ? "0" : "1";
         if (!canMutatePipeStatus && elem0!.text.shellValue !== statusChar) return undefined;
@@ -9851,7 +9883,7 @@ export class Runtime {
       ) {
         return undefined;
       }
-      if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
+      if (rawState.extensions && !rawState.extensions.eventDepth && (!rawState.extensions.isIdleTrapState || assignment.value.parts.some(p => p.kind === "variable" && p.name === "BASH_COMMAND"))) publishCommandSpelling(rawState, commandSpelling(command));
       let fastAssigned: ShellValue | undefined;
       try {
         fastAssigned = this.fastValueWord(assignment.value, rawState, io, false, false, false, false, 0, diagnosticLine);
@@ -10487,7 +10519,7 @@ export class Runtime {
         const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
         const def = (fastSyncSink || fastPipeSink || syncOut) ? this.commands.get(w0Plain) : undefined;
         if ( (fastSyncSink || fastPipeSink || syncOut) && def && (w0Plain === "printf" ? def.execute === printfCommand.execute : (!rawState.xpg_echo && defaultEchoExecutors.has(def.execute))) && command.words.length <= this.budget.maxExpansionFieldsSmi && (this.arePureArgWords(command.words, rawState) || command.words.every((w, idx) => idx === 0 ? this.isPureArgWord(w, rawState) : (this.isPureArgWord(w, rawState) || this.canSyncArrayMembersWord(w, rawState)))) && (canMutatePipeStatus || elem0!.text.shellValue === "0") && (!pipeline.negate || ignored || !rawState.errexit)) {
-          if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
+          if (rawState.extensions && !rawState.extensions.eventDepth && (!rawState.extensions.isIdleTrapState || command.words.some(w => w.parts.some(p => p.kind === "variable" && p.name === "BASH_COMMAND")))) publishCommandSpelling(rawState, commandSpelling(command));
           let formatted: string | undefined;
           let preEncoded: Uint8Array | undefined;
           let lastArg = w0Plain;
@@ -10497,6 +10529,20 @@ export class Runtime {
             } else if (w0Plain === "echo" && command.words.length === 2 && !this.canSyncArrayMembersWord(command.words[1]!, rawState)) {
               const arg0 = this.fastValueWord(command.words[1]!, rawState, io, true, false, false, true, undefined, diagnosticLine);
               if (typeof arg0 === "string" && !arg0.startsWith("-") && !arg0.includes("\0")) {
+                if (io.stdout === devNullSyncSink) {
+                  const byteLength = utf8ByteLength(arg0) + 1;
+                  if (this.budget.bytes + byteLength <= this.budget.maxOutputBytesSmi || byteLength <= this.budget.limits.maxOutputBytes - this.budget.bytes) {
+                    const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
+                    this.budget.tick();
+                    this.budget.bytes += byteLength;
+                    rawState.substitutionStatus = 0;
+                    if (rawState.variables._ !== undefined) delete rawState.variables._;
+                    rawState.lastArgument = arg0;
+                    if (io.assignmentDiagnosticContext) io.assignmentDiagnosticContext.name = undefined;
+                    const finalStatus = pipeline.negate ? 1 : 0;
+                    return this.finishSyncPipeStatus(rawState, monitor, store, existing, elem0, scope, finalStatus, restEpoch);
+                  }
+                }
                 preEncoded = encodeRedirectTextWithNewlineToScratch(arg0);
                 if (!preEncoded) formatted = `${arg0}\n`;
                 lastArg = arg0;
@@ -19457,13 +19503,42 @@ export class Runtime {
       assignmentCache.set(word, null);
       return undefined;
     }
-    const match = /^([a-zA-Z_][a-zA-Z_0-9]*)(\+?)=/u.exec(first.value);
-    if (!match) {
+    const fv = first.value;
+    const eqIdx = fv.indexOf("=");
+    if (eqIdx <= 0) {
       assignmentCache.set(word, null);
       return undefined;
     }
-    const rhsPlain = word.plain !== undefined ? word.plain.slice(match[0].length) : undefined;
-    const result = { name: match[1]!, append: match[2] === "+", value: { offset: word.offset, ...(rhsPlain !== undefined ? { plain: rhsPlain } : {}), parts: [{ ...first, value: first.value.slice(match[0].length) }, ...word.parts.slice(1)] } };
+    const append = fv.charCodeAt(eqIdx - 1) === 43;
+    const nameEnd = append ? eqIdx - 1 : eqIdx;
+    if (nameEnd <= 0) {
+      assignmentCache.set(word, null);
+      return undefined;
+    }
+    const c0 = fv.charCodeAt(0);
+    if (!((c0 >= 65 && c0 <= 90) || (c0 >= 97 && c0 <= 122) || c0 === 95)) {
+      assignmentCache.set(word, null);
+      return undefined;
+    }
+    for (let i = 1; i < nameEnd; i++) {
+      const cc = fv.charCodeAt(i);
+      if (!((cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || (cc >= 48 && cc <= 57) || cc === 95)) {
+        assignmentCache.set(word, null);
+        return undefined;
+      }
+    }
+    const prefixLen = eqIdx + 1;
+    const name = fv.slice(0, nameEnd);
+    const rhsPlain = word.plain !== undefined ? word.plain.slice(prefixLen) : undefined;
+    let rhsParts: readonly WordPart[];
+    if (prefixLen === fv.length && word.parts.length === 2 && !isQuoteMarker(first)) {
+      rhsParts = [word.parts[1]!];
+    } else if (word.parts.length === 1) {
+      rhsParts = [{ kind: "text", value: fv.slice(prefixLen), quoted: false }];
+    } else {
+      rhsParts = [{ ...first, value: fv.slice(prefixLen) }, ...word.parts.slice(1)];
+    }
+    const result = { name, append, value: rhsPlain !== undefined ? { offset: word.offset, plain: rhsPlain, parts: rhsParts } : { offset: word.offset, parts: rhsParts } };
     assignmentCache.set(word, result);
     return result;
   }

@@ -351,7 +351,7 @@ class Lexer {
   readonly hasBrace: boolean;
   readonly singleLine: boolean;
   readonly documents: HereDocument[] = [];
-  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex = new SourceLineIndex(source, budget), readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>, readonly byteSource = false, readonly syntax: CapturedShellSyntax = defaultSyntax, readonly aliases?: ReadonlyMap<string, string>) {
+  constructor(readonly budget: ParseBudget, readonly source: string, readonly depth: number, readonly warnings: string[] = [], readonly lineOffset = 0, readonly byteLocale = false, readonly documentLine?: number, readonly partial = false, readonly lineIndex: SourceLineIndex | undefined = source.includes("\n") ? new SourceLineIndex(source, budget) : undefined, readonly sourceOffset = 0, readonly ordinaryBacktick = false, readonly sourceValues?: ReadonlyMap<number, ByteShellValue>, readonly byteSource = false, readonly syntax: CapturedShellSyntax = defaultSyntax, readonly aliases?: ReadonlyMap<string, string>) {
     if (depth > this.budget.maxSyntaxDepth) throw new ShellSyntaxError(`Syntax nesting exceeds ${this.budget.maxSyntaxDepth}`, 0);
     this.hasBrace = source.includes("{");
     this.singleLine = !source.includes("\n");
@@ -362,7 +362,7 @@ class Lexer {
       this.budget.admit(0);
       return this.lineOffset + 1;
     }
-    return this.lineOffset + this.lineIndex.lineAt(this.sourceOffset + position) - this.lineIndex.lineAt(this.sourceOffset) + 1;
+    return this.lineOffset + this.lineIndex!.lineAt(this.sourceOffset + position) - this.lineIndex!.lineAt(this.sourceOffset) + 1;
   }
 
   error(message: string, unclosedQuote?: { quote: string; line: number }): never {
@@ -468,6 +468,54 @@ class Lexer {
           const fastWord: Word = { parts: [{ kind: "text", value: str, quoted: false }], offset, printedNewlines: 0, plain: str, spelling: str };
           return { kind: "word", value: str, offset, end: pPos, word: fastWord };
         }
+        if (nextC === 36 && this.singleLine && !this.hasBrace && this.source.charCodeAt(pPos - 1) === 61 && this.source.charCodeAt(pPos + 1) === 40 && this.source.charCodeAt(pPos + 2) === 40) {
+          const arithEnd = arithmeticEnd(this.source, pPos + 3, true, this.budget.maxSyntaxDepth);
+          if (arithEnd !== -1 && this.source.charCodeAt(arithEnd + 1) === 41) {
+            const afterArith = arithEnd + 2;
+            const afterC = afterArith < this.source.length ? this.source.charCodeAt(afterArith) : 0;
+            if (afterArith === this.source.length || afterC === 32 || afterC === 9 || afterC === 10 || afterC === 59 || afterC === 124 || afterC === 38 || afterC === 40 || afterC === 41 || ((afterC === 60 || afterC === 62) && this.source.charCodeAt(afterArith + 1) !== 40)) {
+              this.budget.admit(4);
+              const prefixStr = this.source.slice(offset, pPos);
+              const arithSrc = this.source.slice(pPos + 3, arithEnd);
+              const spelling = this.source.slice(offset, afterArith);
+              this.position = afterArith;
+              const fastWord: Word = {
+                parts: [
+                  { kind: "text", value: prefixStr, quoted: false },
+                  { kind: "arithmetic", expression: prepareArithmetic(arithSrc, this.budget), source: arithSrc, line: this.lineOffset + 1, quoted: false },
+                ],
+                offset,
+                printedNewlines: 0,
+                spelling,
+              };
+              return { kind: "word", value: "", offset, end: afterArith, word: fastWord };
+            }
+          }
+        }
+      } else if (c0 === 34 && c1 === 36 && !this.hasBrace && ((c2 >= 65 && c2 <= 90) || (c2 >= 97 && c2 <= 122) || c2 === 95)) {
+        let idEnd = offset + 3;
+        while (idEnd < this.source.length) {
+          const cc = this.source.charCodeAt(idEnd);
+          if ((cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || (cc >= 48 && cc <= 57) || cc === 95) idEnd++;
+          else break;
+        }
+        if (this.source.charCodeAt(idEnd) === 34) {
+          const afterQ = idEnd + 1;
+          const afterC = afterQ < this.source.length ? this.source.charCodeAt(afterQ) : 0;
+          if (afterQ === this.source.length || afterC === 32 || afterC === 9 || afterC === 10 || afterC === 59 || afterC === 124 || afterC === 38 || afterC === 40 || afterC === 41 || ((afterC === 60 || afterC === 62) && this.source.charCodeAt(afterQ + 1) !== 40)) {
+            this.budget.admit(4);
+            const varName = this.source.slice(offset + 2, idEnd);
+            const spelling = this.source.slice(offset, afterQ);
+            this.position = afterQ;
+            const fastWord: Word = {
+              parts: [{ kind: "variable", name: varName, quoted: true, line: this.lineAt(offset) }],
+              offset,
+              printedNewlines: 0,
+              spelling,
+            };
+            return { kind: "word", value: "", offset, end: afterQ, word: fastWord };
+          }
+        }
       }
     }
     const word = this.word(undefined, false, delimiterOperator !== undefined);
@@ -489,7 +537,7 @@ class Lexer {
     }
     this.budget.admit();
     (word as { spelling?: string }).spelling = this.source.slice(offset, this.position);
-    return { kind: "word", value: word.plain ?? "", offset, end: this.position, word, ...(document ? { document } : {}) };
+    return document ? { kind: "word", value: word.plain ?? "", offset, end: this.position, word, document } : { kind: "word", value: word.plain ?? "", offset, end: this.position, word };
   }
 
   readDocuments(): void {
@@ -885,7 +933,7 @@ class Lexer {
     const plainStr = plain
       ? (parts.length === 1 && parts[0]!.kind === "text" ? parts[0]!.value : parts.length === 0 ? "" : parts.map((part) => part.kind === "text" ? part.value : "").join(""))
       : undefined;
-    return { parts, offset, ...(unprinted === this.unprintedWords ? { printedNewlines } : {}), ...(plainStr !== undefined ? { plain: plainStr } : {}) };
+    return unprinted === this.unprintedWords ? (plainStr !== undefined ? { parts, offset, printedNewlines, plain: plainStr, spelling: undefined } : { parts, offset, printedNewlines, spelling: undefined }) : (plainStr !== undefined ? { parts, offset, plain: plainStr, spelling: undefined } : { parts, offset, spelling: undefined });
   }
 
   hasClosingExtglobParen(openIndex: number): boolean {
@@ -1265,7 +1313,7 @@ class Parser {
   readonly openCommands: { name: string; line: number }[] = [];
   completedInput?: { lists: AndOr[]; count: number; line: number };
 
-  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex = new SourceLineIndex(source, budget), sourceOffset = 0, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax, private readonly aliases?: ReadonlyMap<string, string>) {
+  constructor(readonly budget: ParseBudget, source: string, depth: number, warnings: string[] = [], lineOffset = 0, position?: number, byteLocale = false, partial = false, lineIndex: SourceLineIndex | undefined = source.includes("\n") ? new SourceLineIndex(source, budget) : undefined, sourceOffset = 0, ordinaryBacktick = false, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax: CapturedShellSyntax = defaultSyntax, private readonly aliases?: ReadonlyMap<string, string>) {
     if (position === undefined && depth === 0 && source.includes("\0")) throw new ShellSyntaxError("NUL bytes are not valid shell source", source.indexOf("\0"));
     budget.admit();
     this.lexer = new Lexer(budget, source, depth, warnings, lineOffset, byteLocale, undefined, partial, lineIndex, sourceOffset, ordinaryBacktick, sourceValues, byteSource, syntax, aliases);
@@ -1388,7 +1436,7 @@ class Parser {
         pipelines.push(this.pipeline());
       }
       const terminator = this.is("&") ? Object.freeze({ operator: "&" as const, offset: this.current.offset, line: this.lexer.lineAt(this.current.offset) }) : undefined;
-      lists.push({ pipelines, operators, ...(terminator ? { terminator } : {}) });
+      lists.push(terminator ? { pipelines, operators, terminator } : { pipelines, operators });
       separators.push(this.is("\n"));
       if (captureInputUnits && this.is("\n")) this.completedInput!.count = lists.length;
       if (inputUnit && !this.aliasFrames?.length && this.is("\n")) break;
@@ -1727,7 +1775,7 @@ class Parser {
       }
       if (!words.length && !redirects.length) this.error("Expected command");
       if (hasArrayAssignment && hasNonAssignment && !isIndexedDeclarationWords(words)) this.error("Indexed-array command prefixes are unsupported");
-      return { kind: "simple", words, redirects, ...(line === undefined ? {} : { line }), _cachedConstArgs: undefined, _cachedConstEchoRedirect: undefined, _cachedPlainArgs: undefined, _cachedSlice1: undefined } as Command;
+      return { kind: "simple", words, redirects, line: line ?? 1, _cachedConstArgs: undefined, _cachedConstEchoRedirect: undefined, _cachedPlainArgs: undefined, _cachedSlice1: undefined } as Command;
     }
     let redirect: Redirect | undefined;
     while ((redirect = this.redirect())) command.redirects.push(redirect);
@@ -1755,7 +1803,7 @@ class Parser {
     if (!Number.isSafeInteger(descriptor) || descriptor > 255) this.error("File descriptor must be between 0 and 255");
     if (!this.current.word) this.error("Expected redirect target");
     const target = this.advance();
-    return { descriptor, ...(explicitDescriptor ? { explicitDescriptor: true } : {}), operator, target: target.word!, line: this.lexer.lineAt(Math.max(target.offset, target.end - 1)), ...((operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-" ? { move: true } : {}), ...(target.document ? { document: target.document } : {}), _cachedRedirectFile: undefined } as Redirect;
+    const rLine = this.lexer.lineAt(Math.max(target.offset, target.end - 1)); const isMove = (operator === "<&" || operator === ">&") && this.lexer.source[target.end - 1] === "-"; return (!explicitDescriptor && !isMove && !target.document) ? ({ descriptor, operator, target: target.word!, line: rLine, _cachedRedirectFile: undefined } as Redirect) : ({ descriptor, ...(explicitDescriptor ? { explicitDescriptor: true } : {}), operator, target: target.word!, line: rLine, ...(isMove ? { move: true } : {}), ...(target.document ? { document: target.document } : {}), _cachedRedirectFile: undefined } as Redirect);
   }
 }
 
@@ -1820,7 +1868,7 @@ export function hereDocumentWords(document: HereDocument, line: number, byteLoca
 
 export function parseShellUnit(source: string, position = 0, byteLocale = false, budgetOrByteSource: ParseBudget | boolean = new ParseBudget(), lineIndexOrSyntax?: SourceLineIndex | ShellSyntaxDeclarations, sourceValues?: ReadonlyMap<number, ByteShellValue>, byteSource = false, syntax?: ShellSyntaxDeclarations, aliases?: ReadonlyMap<string, string>): { script: Script; next: number } {
   const budget = budgetOrByteSource instanceof ParseBudget ? budgetOrByteSource : new ParseBudget();
-  const lineIndex = lineIndexOrSyntax instanceof SourceLineIndex ? lineIndexOrSyntax : new SourceLineIndex(source, budget);
+  const lineIndex = lineIndexOrSyntax instanceof SourceLineIndex ? lineIndexOrSyntax : (source.includes("\n") ? new SourceLineIndex(source, budget) : undefined);
   const captured = captureShellSyntax(syntax === undefined ? (lineIndexOrSyntax instanceof SourceLineIndex ? undefined : lineIndexOrSyntax) : syntax);
   const raw = typeof budgetOrByteSource === "boolean" ? budgetOrByteSource : byteSource;
   const warnings: string[] = [];

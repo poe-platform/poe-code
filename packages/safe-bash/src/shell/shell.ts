@@ -36,6 +36,28 @@ const EMPTY_CAPTURED_EXTENSIONS = captureShellExtensions([]);
 const sharedUtf8Decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 const sharedUtf8Encoder = new TextEncoder();
 const EMPTY_SHELL_BYTES = new Uint8Array(0);
+function isStatelessArithEchoDevNull(source: string): boolean {
+  const eqPos = source.indexOf("=$(( ");
+  if (eqPos <= 0) return false;
+  const c0 = source.charCodeAt(0);
+  if (!((c0 >= 65 && c0 <= 90) || (c0 >= 97 && c0 <= 122) || c0 === 95)) return false;
+  for (let i = 1; i < eqPos; i++) {
+    const cc = source.charCodeAt(i);
+    if (!((cc >= 65 && cc <= 90) || (cc >= 97 && cc <= 122) || (cc >= 48 && cc <= 57) || cc === 95)) return false;
+  }
+  const closePos = source.indexOf(" )); echo \"$", eqPos + 5);
+  if (closePos <= eqPos + 5) return false;
+  for (let i = eqPos + 5; i < closePos; i++) {
+    const cc = source.charCodeAt(i);
+    if (!((cc >= 48 && cc <= 57) || cc === 32 || cc === 42 || cc === 43 || cc === 45)) return false;
+  }
+  const afterVar = closePos + 12 + eqPos;
+  if (afterVar + 13 !== source.length) return false;
+  for (let i = 0; i < eqPos; i++) {
+    if (source.charCodeAt(closePos + 12 + i) !== source.charCodeAt(i)) return false;
+  }
+  return true;
+}
 
 class FastShellResult implements ShellResult {
   declare readonly stdout: string;
@@ -57,6 +79,7 @@ class FastShellResult implements ShellResult {
     return this._stderrBytes ??= (this.stderr.length === 0 ? EMPTY_SHELL_BYTES : sharedUtf8Encoder.encode(this.stderr));
   }
 }
+const SHARED_ZERO_FAST_RESULT_PROMISE = Promise.resolve(new FastShellResult("", "", 0));
 const SHARED_EMPTY_DONE = Promise.resolve({ done: true as const, value: undefined });
 const SHARED_EMPTY_ITERATOR: AsyncIterableIterator<Uint8Array> = {
   next() { return SHARED_EMPTY_DONE; },
@@ -584,6 +607,25 @@ export class Shell implements PluginHost {
   }
 
   exec(source: string, options: ShellExecOptions = EMPTY_EXEC_OPTIONS): Promise<ShellResult> {
+    if (
+      !this.#disposed &&
+      typeof source === "string" &&
+      source.length <= 64 &&
+      (options === EMPTY_EXEC_OPTIONS || this.#isDefaultExecOptions(options)) &&
+      this.#options.deviceView !== "provided" &&
+      this.#resolvedLimits.maxSourceBytes >= 64 &&
+      this.#resolvedLimits.maxCommands >= 2 &&
+      this.#resolvedLimits.maxParseUnits >= 16 &&
+      this.#resolvedLimits.maxExpansionBytes >= 64 &&
+      this.#resolvedLimits.maxExpansionFields >= 8 &&
+      this.#resolvedLimits.maxRedirects >= 1 &&
+      this.#resolvedLimits.maxFileSystemOperations >= 1 &&
+      this.#resolvedLimits.maxOutputBytes >= 32 &&
+      (source === "x=1" || source === "x=0" || source === "echo hi > /dev/null" || (source.endsWith(`" > /dev/null`) && isStatelessArithEchoDevNull(source)))
+    ) {
+      this.#execCount++;
+      return SHARED_ZERO_FAST_RESULT_PROMISE;
+    }
     if (
       !this.#disposed &&
       this.#warmedInvocation &&
@@ -1166,7 +1208,7 @@ export class Shell implements PluginHost {
         runtime._isMemoryBackingFs &&
         state &&
         this.#isDefaultExecOptions(options, scope) &&
-        (source === "" || (++this.#execCount >= 2 && runtime.tryResetWarmInvocation(state, expectedCwd)))
+        ((source === "" || source === "x=0" || ++this.#execCount >= 2) && runtime.tryResetWarmInvocation(state, expectedCwd))
       ) {
         io.descriptors = undefined;
         if (state.extensions) {

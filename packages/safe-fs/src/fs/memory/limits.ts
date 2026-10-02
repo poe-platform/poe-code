@@ -22,6 +22,9 @@ export const defaultMemoryFileSystemLimits: Readonly<MemoryFileSystemLimits> = O
 });
 
 export function normalizeMemoryFileSystemLimits(options: unknown): Readonly<MemoryFileSystemLimits> {
+  if (options === undefined || (typeof options === "object" && options !== null && Object.getPrototypeOf(options) === Object.prototype && Object.keys(options).length === 0 && Object.getOwnPropertySymbols(options).length === 0)) {
+    return defaultMemoryFileSystemLimits;
+  }
   const keys = ["maxPathBytes", "maxPathComponents", "maxFileBytes", "maxRetainedBytes", "maxMetadataUnits"] as const;
   const record = readConfigRecord(options, "memory option", [...keys, "maxBytes"]);
   const limits: { -readonly [Key in keyof MemoryFileSystemLimits]: MemoryFileSystemLimits[Key] } = { ...defaultMemoryFileSystemLimits };

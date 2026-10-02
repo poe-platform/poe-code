@@ -1026,11 +1026,9 @@ export interface CompiledSmiExpr {
   readonly varNames: readonly string[];
 }
 
-const compiledSmiCache = new WeakMap<ArithmeticProgram, CompiledSmiExpr | null>();
-
 export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<string>): CompiledSmiExpr | undefined {
   if (program.error || program.hasSubscript || !program.tree) return undefined;
-  const cached = compiledSmiCache.get(program);
+  const cached = (program as ArithmeticProgram & { _compiledSmi?: CompiledSmiExpr | null })._compiledSmi;
   if (cached !== undefined) {
     if (cached === null) return undefined;
     for (let i = 0; i < cached.varNames.length; i++) namesOut.add(cached.varNames[i]!);
@@ -1097,7 +1095,7 @@ export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<
     return false;
   };
   if (!visit(program.tree, 1)) {
-    compiledSmiCache.set(program, null);
+    (program as ArithmeticProgram & { _compiledSmi?: CompiledSmiExpr | null })._compiledSmi = null;
     return undefined;
   }
   for (let i = 0; i < varNames.length; i++) namesOut.add(varNames[i]!);
@@ -1106,7 +1104,7 @@ export function compilePureSmiProgram(program: ArithmeticProgram, namesOut: Set<
     args,
     varNames,
   };
-  compiledSmiCache.set(program, compiled);
+  (program as ArithmeticProgram & { _compiledSmi?: CompiledSmiExpr | null })._compiledSmi = compiled;
   return compiled;
 }
 

@@ -11,5 +11,7 @@ export function registerMemoryAtomicView(fs: FileSystem, view: MemoryAtomicView,
 }
 export function memoryAtomicView(fs: FileSystem): MemoryAtomicView | undefined {
   const registered = views.get(fs);
-  return registered?.intact() ? registered.view : undefined;
+  if (registered) return registered.intact() ? registered.view : undefined;
+  const lazy = (fs as { _getAtomicView?: () => MemoryAtomicView | undefined })._getAtomicView;
+  return typeof lazy === "function" ? lazy.call(fs) : undefined;
 }

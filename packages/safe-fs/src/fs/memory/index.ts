@@ -102,14 +102,18 @@ const DUMMY_POOL_ALLOCATION = new MemoryAllocation(EMPTY_ALLOC_BYTES, DUMMY_POOL
 const DUMMY_POOL_FILE_NODE = new MemoryFileNode(0, 0, null as unknown as number, 0, DUMMY_POOL_ALLOCATION, DUMMY_POOL_ALLOCATION.data);
 DUMMY_POOL_FILE_NODE.atimeMs = DUMMY_POOL_FILE_NODE.mtimeMs = DUMMY_POOL_FILE_NODE.ctimeMs = DUMMY_POOL_FILE_NODE.birthtimeMs = 1700000000000;
 
+const EMPTY_DIR_TABLE = new Int16Array(0);
+const EMPTY_DIR_KEYS: string[] = [];
+const EMPTY_DIR_VALS: MemoryNode[] = [];
+
 class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   // Keep speculative slots local so a failed write cannot pin a tenant globally.
   _missKey = "";
   _missSlot = -1;
-  _table: Int16Array | Int32Array = new Int16Array(16).fill(-1);
-  _mask = 15;
-  _keys: string[] = new Array<string>(8).fill("");
-  _vals: MemoryNode[] = new Array<MemoryNode>(8).fill(DUMMY_POOL_FILE_NODE);
+  _table: Int16Array | Int32Array = EMPTY_DIR_TABLE;
+  _mask = 0;
+  _keys: string[] = EMPTY_DIR_KEYS;
+  _vals: MemoryNode[] = EMPTY_DIR_VALS;
   _next = 0;
   size = 0;
   readonly [Symbol.toStringTag] = "Map";
@@ -143,6 +147,11 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
   getForWriteWithHash(k: string, h: number): MemoryNode | undefined {
     let slot = h & this._mask;
     if (this.size === 0) {
+      if (this._keys.length === 0) {
+        this._missKey = "";
+        this._missSlot = -1;
+        return undefined;
+      }
       this._missKey = k;
       this._missSlot = slot;
       return undefined;
@@ -256,7 +265,7 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
       return this;
     }
     if (this._next >= this._keys.length) {
-      this._rebuild(this.size * 2 <= this._keys.length ? this._keys.length : this._keys.length * 2);
+      this._rebuild(this._keys.length === 0 ? 8 : (this.size * 2 <= this._keys.length ? this._keys.length : this._keys.length * 2));
     }
     let slot = this._hash(k);
     const mask = this._mask;
@@ -546,7 +555,7 @@ const compareOwnedMemory: EntryAuthority = async (own, peer, options) => {
   let answer: EntryComparison = "unknown";
   const visited = new Set<FileSystem>();
   for (const [left, right] of [[own, peer], [peer, own]] as const) {
-    if (!registeredAuthorities.has(left.filesystem) || visited.has(left.filesystem)) continue;
+    if ((!registeredAuthorities.has(left.filesystem) && !ownedStores.has(left.filesystem)) || visited.has(left.filesystem)) continue;
     visited.add(left.filesystem);
     const comparison = left.filesystem.compareEntry;
     if (comparison === memoryImplementation.compareEntry?.value) continue;
@@ -717,33 +726,48 @@ class MemoryReadStream implements ByteSource, AsyncIterableIterator<Uint8Array> 
   }
 }
 
+const SHARED_STOCK_MEMORY_CAPABILITIES: FileSystemCapabilities = Object.freeze({
+  read: true, stat: true, readdir: true, realpath: true, access: true, open: true,
+  write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
+  mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
+  rename: true, atomicRenameNoReplace: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
+  streamingAppend: true, randomAccessWrite: true,
+  readOnly: false,
+  symlinks: true, conditionalChmod: true,
+  hardlinks: true,
+  permissions: true,
+  timestamps: true,
+  atomicRename: true,
+  atomicFileStaging: true, retainedStagingCleanup: true, retainedStagingWrite: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
+  synchronousDirectoryValidation: true, synchronousStagingResolution: true, guardedStagingPublication: true,
+  atomicDirectoryMetadata: true,
+  streamingRead: true,
+  retainedRead: true,
+  retainedResize: true,
+  streamingWrite: true,
+  descriptorWriteStream: true,
+});
+
 export class MemoryFileSystem implements FileSystem {
   capabilitiesFor?: NonNullable<FileSystem["capabilitiesFor"]>;
-  readonly capabilities: FileSystemCapabilities = ((filesystem: MemoryFileSystem) => {
-    return Object.freeze({
-      read: true, stat: true, readdir: true, realpath: true, access: true, open: true,
-      write: true, append: true, exclusiveCreate: true, explicitDirectories: true, implicitDirectories: false,
-      mkdir: true, recursiveMkdir: true, remove: true, removeDirectory: true, recursiveRemove: true,
-      rename: true, atomicRenameNoReplace: true, copy: true, exclusiveCopy: true, readlink: true, truncate: true,
-      streamingAppend: true, randomAccessWrite: true,
-      readOnly: false,
-      symlinks: true, conditionalChmod: true,
-      hardlinks: true,
-      permissions: true,
-      timestamps: true,
-      atomicRename: true,
-      atomicFileStaging: true, retainedStagingCleanup: true, retainedStagingWrite: true, atomicStagingAncestry: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicEntryRemovalReceipt: true, atomicTreeRemoval: true,
-      synchronousDirectoryValidation: true, synchronousStagingResolution: true, guardedStagingPublication: true,
-      atomicDirectoryMetadata: true,
-      streamingRead: true,
-      retainedRead: true,
+  #customCapabilities: FileSystemCapabilities | undefined;
+  #identityScopeSym: symbol | undefined;
+  private get identityScope(): symbol {
+    return (this.#identityScopeSym ??= Symbol());
+  }
+  get capabilities(): FileSystemCapabilities {
+    if (stockRetainedResize(this) && stockDescriptorWrite(this)) {
+      return SHARED_STOCK_MEMORY_CAPABILITIES;
+    }
+    if (this.#customCapabilities) return this.#customCapabilities;
+    const filesystem = this;
+    return (this.#customCapabilities = Object.freeze({
+      ...SHARED_STOCK_MEMORY_CAPABILITIES,
       get retainedResize() { return stockRetainedResize(filesystem); },
-      streamingWrite: true,
       get descriptorWriteStream() { return stockDescriptorWrite(filesystem); },
-    });
-  })(this);
+    }));
+  }
 
-  private readonly identityScope = Symbol();
   private nextInode = 1;
   private readonly ledger: MemoryLedger;
   readonly _cache: MemoryCache;
@@ -752,6 +776,52 @@ export class MemoryFileSystem implements FileSystem {
   private readonly root: DirectoryNode;
   private totalBytes = 0;
   symlinkCount = 0;
+  _entryAuthority = compareOwnedMemory;
+
+  _getAtomicView() {
+    const owner = ownedStores.get(this);
+    if (
+      !owner ||
+      Object.getPrototypeOf(this) !== MemoryFileSystem.prototype ||
+      this.root !== owner.root ||
+      this.ledger !== owner.ledger ||
+      this.capabilities !== owner.capabilities
+    ) {
+      return undefined;
+    }
+    const proto = MemoryFileSystem.prototype as unknown as Record<string, unknown>;
+    for (let i = 0; i < memoryImplementationKeys.length; i++) {
+      const name = memoryImplementationKeys[i]!;
+      const expected = memoryImplementationDescriptors[i]!;
+      if (name === "capabilities") continue;
+      if (Object.prototype.hasOwnProperty.call(this, name)) {
+        const actual = Object.getOwnPropertyDescriptor(this, name);
+        if (!actual || actual.value !== expected.value || actual.get !== expected.get || actual.set !== expected.set) return undefined;
+      } else if (expected.get !== undefined || expected.set !== undefined || proto[name] !== expected.value) {
+        const actual = Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
+        if (!actual || actual.value !== expected.value || actual.get !== expected.get || actual.set !== expected.set) return undefined;
+      }
+    }
+    return {
+      stat: (path: string) => {
+        this.validatePath(path, "overlayAtomicView");
+        let node: MemoryNode | undefined = this.root;
+        for (const component of path.split("/").filter(Boolean)) {
+          if (component === "." || component === "..") this.fail("EINVAL", "overlayAtomicView", path);
+          if (!node) return undefined;
+          if (node.type !== "directory") this.fail("ENOTDIR", "overlayAtomicView", path);
+          this.permission(node, 1, "overlayAtomicView", path);
+          node = node.entries.get(component);
+        }
+        return node ? this.snapshot(node) : undefined;
+      },
+      names: (path: string) => {
+        const node = this.entry(path, "overlayAtomicView").node!;
+        if (node.type !== "directory") this.fail("ENOTDIR", "overlayAtomicView", path);
+        return [...node.entries.keys()];
+      },
+    };
+  }
 
   constructor(options: MemoryFileSystemOptions = {}) {
     this.ledger = new MemoryLedger(normalizeMemoryFileSystemLimits(options));
@@ -767,56 +837,11 @@ export class MemoryFileSystem implements FileSystem {
     const owner: OwnedStore = {
       root,
       ledger: this.ledger,
-      capabilities: this.capabilities,
+      capabilities: SHARED_STOCK_MEMORY_CAPABILITIES,
       intact: () => this.root === root,
     };
     this._owner = owner;
     ownedStores.set(this, owner);
-    registerMemoryAtomicView(this, {
-      stat: (path) => {
-        this.validatePath(path, "overlayAtomicView");
-        let node: MemoryNode | undefined = this.root;
-        for (const component of path.split("/").filter(Boolean)) {
-          if (component === "." || component === "..") this.fail("EINVAL", "overlayAtomicView", path);
-          if (!node) return undefined;
-          if (node.type !== "directory") this.fail("ENOTDIR", "overlayAtomicView", path);
-          this.permission(node, 1, "overlayAtomicView", path);
-          node = node.entries.get(component);
-        }
-        return node ? this.snapshot(node) : undefined;
-      },
-      names: (path) => {
-        const node = this.entry(path, "overlayAtomicView").node!;
-        if (node.type !== "directory") this.fail("ENOTDIR", "overlayAtomicView", path);
-        return [...node.entries.keys()];
-      },
-    }, () => {
-      if (
-        Object.getPrototypeOf(this) !== MemoryFileSystem.prototype ||
-        this.root !== root ||
-        this.ledger !== ownedStores.get(this)?.ledger ||
-        this.capabilities !== ownedStores.get(this)?.capabilities
-      ) {
-        return false;
-      }
-      const proto = MemoryFileSystem.prototype as unknown as Record<string, unknown>;
-      for (let i = 0; i < memoryImplementationKeys.length; i++) {
-        const name = memoryImplementationKeys[i]!;
-        const expected = memoryImplementationDescriptors[i]!;
-        if (Object.prototype.hasOwnProperty.call(this, name)) {
-          const actual = Object.getOwnPropertyDescriptor(this, name);
-          if (!actual || actual.value !== expected.value || actual.get !== expected.get || actual.set !== expected.set) return false;
-        } else if (expected.get !== undefined || expected.set !== undefined || proto[name] !== expected.value) {
-          const actual = Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, name);
-          if (!actual || actual.value !== expected.value || actual.get !== expected.get || actual.set !== expected.set) return false;
-        }
-      }
-      return true;
-    });
-    if (this.compareEntry === memoryImplementation.compareEntry?.value) {
-      registeredAuthorities.add(this);
-      registerEntryAuthority(this, compareOwnedMemory);
-    }
   }
 
   compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {
@@ -2959,7 +2984,7 @@ function stockDescriptorWrite(filesystem: MemoryFileSystem): boolean {
   if (!isStockMemoryMethods(filesystem, stockDescriptorWriteMethodNames, true)) return false;
   const owner = ownedStores.get(filesystem)!;
   const capDesc = Object.getOwnPropertyDescriptor(filesystem, "capabilities");
-  return !!capDesc && "value" in capDesc && capDesc.value === owner.capabilities;
+  return (capDesc === undefined && Object.getOwnPropertyDescriptor(MemoryFileSystem.prototype, "capabilities")?.get !== undefined) || (!!capDesc && "value" in capDesc && capDesc.value === owner.capabilities);
 }
 
 function stockRetainedResize(filesystem: MemoryFileSystem): boolean {

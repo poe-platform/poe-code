@@ -1,3 +1,5 @@
+import { verification as zstdVerification } from "./safe-packages-zstd.mjs";
+await zstdVerification;
 import { verification as gzipVerification } from "./safe-packages-gzip.mjs";
 import { verification as csplitVerification } from "./safe-packages-csplit.mjs";
 import { verification as columnVerification } from "./safe-packages-column-portable.mjs";

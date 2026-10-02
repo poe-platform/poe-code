@@ -1903,6 +1903,17 @@
             "./dist/LICENSE"
           ],
           "portable": true
+        },
+        "safe-bash-command-zstd": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-compression-engine": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3094,6 +3105,12 @@
       "workerd": "./dist/commands/unix2dos/index.js",
       "browser": "./dist/commands/unix2dos/index.js",
       "import": "./dist/commands/unix2dos/index.js"
+    },
+    "./commands/zstd": {
+      "types": "./dist/commands/zstd/index.d.ts",
+      "workerd": "./dist/commands/zstd/index.js",
+      "browser": "./dist/commands/zstd/index.js",
+      "import": "./dist/commands/zstd/index.js"
     }
   },
   "sideEffects": [
@@ -3338,7 +3355,8 @@
     "safe-bash-command-python": "*",
     "safe-bash-command-playwright-cli": "*",
     "safe-bash-mime-engine": "*",
-    "safe-bash-command-unix2dos": "*"
+    "safe-bash-command-unix2dos": "*",
+    "safe-bash-command-zstd": "*"
   },
   "main": "./dist/index.js",
   "imports": {

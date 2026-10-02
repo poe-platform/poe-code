@@ -880,7 +880,8 @@
     "packages/safe-js/dist/workerd.js.map",
     "packages/safe-bash-command-playwright-cli/dist",
     "packages/safe-bash-mime-engine/dist",
-    "packages/safe-bash-command-unix2dos/dist"
+    "packages/safe-bash-command-unix2dos/dist",
+    "packages/safe-bash-command-zstd/dist"
   ],
   "license": "MIT",
   "imports": {

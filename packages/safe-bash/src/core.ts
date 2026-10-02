@@ -148,6 +148,7 @@ export type { UnrtfLimits } from "./commands/unrtf/index.js";
 export type { WkhtmltopdfLimits } from "./commands/wkhtmltopdf/index.js";
 
 export type { XzLimits } from "./commands/xz/index.js";
+export { createZstdCommand, createZstdCommands, zstdCommands, type ZstdCommandsOptions, type ZstdLimits } from "./commands/zstd/index.js";
 export { createConvertCommand, createMogrifyCommand, createCompositeCommand, createMontageCommand, createIdentifyCommand, createCompareCommand } from "./lazy-optional.js";
 export { createPdfuniteCommand, createPdfseparateCommand, createPdffontsCommand, createPdfdetachCommand, createPdftocairoCommand } from "./lazy-optional.js";
 export { createPdfseparateCommands, pdfseparateCommands } from "./lazy-optional.js";

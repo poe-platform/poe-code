@@ -1,4 +1,6 @@
 import "./safe-packages-bzip2.mjs";
+import { verification as zstdVerification } from "./safe-packages-zstd.mjs";
+await zstdVerification;
 import "./safe-packages-patch.mjs";
 import { verification as gzipVerification } from "./safe-packages-gzip.mjs";
 await gzipVerification;

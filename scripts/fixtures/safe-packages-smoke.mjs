@@ -1,3 +1,5 @@
+import { verification as hexdumpVerification } from "./safe-packages-hexdump.mjs";
+await hexdumpVerification;
 import { verification as treeVerification } from "./safe-packages-tree.mjs";
 await treeVerification;
 import { verification as duVerification } from "./safe-packages-du.mjs";
@@ -331,3 +333,5 @@ await (await import("./safe-packages-diff.mjs")).verification;
 assert.throws(() => import.meta.resolve("safe-bash-command-du"), { code: "ERR_MODULE_NOT_FOUND" });
 
 await (await import("./safe-packages-split.mjs")).verification;
+
+assert.throws(() => import.meta.resolve("safe-bash-command-hexdump"), { code: "ERR_MODULE_NOT_FOUND" });

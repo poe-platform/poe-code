@@ -138,3 +138,10 @@ test('tree owns its report-count regressions and builds unit prerequisites', () 
   const turbo = json('turbo.json');
   assert.ok(turbo.tasks['safe-bash-command-tree#test:unit'].dependsOn.includes('^build'));
 });
+
+test('hexdump owns direct regressions and declares unit build prerequisites', () => {
+  const files = readdirSync(new URL('../packages/safe-bash-command-hexdump/src/', import.meta.url));
+  for (const name of ['native.test.ts', 'fresh.test.ts', 'path.test.ts', 'lifecycle.test.ts', 'acquisition-close.test.ts']) assert.ok(files.includes(name), `Missing hexdump ownership: ${name}`);
+  const turbo = json('turbo.json');
+  assert.ok(turbo.tasks['safe-bash-command-hexdump#test:unit'].dependsOn.includes('^build'));
+});

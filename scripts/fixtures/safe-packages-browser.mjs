@@ -1,3 +1,5 @@
+import { verification as hexdumpVerification } from "./safe-packages-hexdump.mjs";
+await hexdumpVerification;
 import { verification as duVerification } from "./safe-packages-du.mjs";
 await duVerification;
 import { verification as timeoutVerification } from "./safe-packages-timeout-portable.mjs";

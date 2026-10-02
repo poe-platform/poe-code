@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { ByteSource, FileSystem } from "../../../src/contracts/index.js";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { run } from "../hexdump/helpers.js";
+import type { ByteSource, FileSystem } from "safe-bash-contracts";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { run } from "./test-helpers.js";
 
 const asciiA = "00000000  41                                                |A|\n00000001\n";
 const asciiAbcd = "00000000  41 42 43 44                                       |ABCD|\n00000004\n";

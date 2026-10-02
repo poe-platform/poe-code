@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { run } from "./helpers.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { run } from "./test-helpers.js";
 import { freshFixtures, freshCases } from "./fresh-fixtures.js";
 
 for (const fixture of freshCases) test(`fresh BSD oracle: ${fixture.name}`, async () => {

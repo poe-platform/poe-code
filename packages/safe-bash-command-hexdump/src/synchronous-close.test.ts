@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
-import { createHexdumpCommand } from '../../../src/commands/hexdump/index.js';
-import { MemoryFileSystem } from '../../../src/fs/memory/index.js';
-import type { CommandContext, InvocationCleanup } from '../../../src/contracts/index.js';
+import { createHexdumpCommand } from './index.js';
+import { MemoryFileSystem } from '@poe-code/safe-fs';
+import type { CommandContext, InvocationCleanup } from 'safe-bash-contracts';
 
 function deferred() {
   let resolve!: () => void;

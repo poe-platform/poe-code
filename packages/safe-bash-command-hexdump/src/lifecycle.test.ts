@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
-import { createHexdumpCommand } from '../../../src/commands/hexdump/index.js';
-import { MemoryFileSystem } from '../../../src/fs/memory/index.js';
-import { outputFailure, type ByteSink, type CommandContext, type InvocationCleanup } from '../../../src/contracts/index.js';
-import { registerYieldCheckpoint } from '../../../src/contracts/yield.js';
+import { createHexdumpCommand } from './index.js';
+import { MemoryFileSystem } from '@poe-code/safe-fs';
+import { outputFailure, type ByteSink, type CommandContext, type InvocationCleanup } from 'safe-bash-contracts';
+import { registerYieldCheckpoint } from 'safe-bash-contracts/yield';
 
 function deferred() {
   let resolve!: () => void;
@@ -255,7 +255,7 @@ for (const reporting of [new Error('reporting failure'), false, 0, '', null]) {
 for (const outcome of ['eof', 'reader-failure'] as const) {
   for (const heldReturn of [false, true]) {
     test(`registered close blocks new diagnostics after ${outcome}, held return ${heldReturn}`, async () => {
-      const { FsError } = await import('../../../src/contracts/index.js');
+      const { FsError } = await import('safe-bash-contracts');
       const setup = fixture();
       const enteredReturn = deferred(), releaseReturn = deferred();
       let close: InvocationCleanup | undefined, closure: Promise<void> | undefined;

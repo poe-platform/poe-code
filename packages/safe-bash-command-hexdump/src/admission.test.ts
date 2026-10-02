@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { ByteSource, FileSystem } from "../../../src/contracts/index.js";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createHexdumpCommand } from "../../../src/commands/hexdump/index.js";
-import { run } from "../hexdump/helpers.js";
+import type { ByteSource, FileSystem } from "safe-bash-contracts";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { createHexdumpCommand } from "./index.js";
+import { run } from "./test-helpers.js";
 
 for (const reason of [false, 0, "", null]) {
   test("done getter admission " + JSON.stringify(reason), async () => {

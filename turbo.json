@@ -609,6 +609,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-hexdump#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

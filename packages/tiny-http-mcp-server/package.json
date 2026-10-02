@@ -32,10 +32,10 @@
   },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
-    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare-local . mcp-oauth auth-store tiny-mcp-client jose",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup-after-pack . mcp-oauth auth-store tiny-mcp-client jose",
+    "prepack": "node ../../scripts/set-bin-executable.mjs && node ../../scripts/manage-bundled-workspace-deps.mjs prepare-local . mcp-oauth auth-store tiny-mcp-client jose @poe-code/safe-fs @poe-code/xml-ast @noble/hashes",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup-after-pack . mcp-oauth auth-store tiny-mcp-client jose @poe-code/safe-fs @poe-code/xml-ast @noble/hashes",
     "prepublishOnly": "tsc",
-    "postpublish": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . mcp-oauth auth-store tiny-mcp-client jose",
+    "postpublish": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . mcp-oauth auth-store tiny-mcp-client jose @poe-code/safe-fs @poe-code/xml-ast @noble/hashes",
     "test:unit": "cd ../.. && vitest run packages/tiny-http-mcp-server/src"
   },
   "files": [
@@ -53,18 +53,24 @@
   "license": "MIT",
   "dependencies": {
     "jose": "^6.1.2",
-    "tiny-stdio-mcp-server": "^0.1.29"
+    "tiny-stdio-mcp-server": "^0.1.29",
+    "@noble/hashes": "2.4.0"
   },
   "bundleDependencies": [
     "mcp-oauth",
     "auth-store",
     "tiny-mcp-client",
-    "jose"
+    "jose",
+    "@poe-code/safe-fs",
+    "@poe-code/xml-ast",
+    "@noble/hashes"
   ],
   "optionalDependencies": {
     "auth-store": "*",
     "mcp-oauth": "*",
-    "tiny-mcp-client": "*"
+    "tiny-mcp-client": "*",
+    "@poe-code/safe-fs": "*",
+    "@poe-code/xml-ast": "*"
   },
   "devDependencies": {
     "@modelcontextprotocol/sdk": "^1.26.0",

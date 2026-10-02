@@ -1,3 +1,5 @@
+mod note;
+pub use note::*;
 mod terminal_driver;
 pub use terminal_driver::*;
 mod terminal_input;

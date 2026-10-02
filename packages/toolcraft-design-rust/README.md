@@ -11,6 +11,9 @@ sets your brand and live intro label. Colors follow terminal support and
 Markdown and JSON within an async context. Inline Markdown code and links escape
 delimiters and flatten newlines.
 
+`note(message, title?, write?)` frames multiline terminal notes, quotes them in
+Markdown, or emits a JSON record. Pass a writer to capture the output in your UI.
+
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace
 share the same token objects across root and `tokens/*` imports. Symbol selection

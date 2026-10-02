@@ -490,3 +490,11 @@ const driverSize:design.TerminalSize={cols:80,rows:24};
 const driverEvent:design.TerminalInputEvent={type:"paste",text:"text"};
 const driverPublic:design.TerminalDriver=terminalDriver.createTerminalDriver();
 void [terminalDriverForward,terminalDriverReverse,driverFromRoot,driverSize,driverEvent,driverPublic];
+
+import * as noteModule from "toolcraft-design-rust/note";
+import type * as originalNote from "toolcraft-design/note";
+import * as notePrimitive from "toolcraft-design-rust/prompts/primitives/note";
+const noteForward:typeof originalNote=noteModule;
+const noteReverse:typeof noteModule=null as unknown as typeof originalNote;
+const noteRoot:typeof notePrimitive.note=design.note;
+void [noteForward,noteReverse,noteRoot];

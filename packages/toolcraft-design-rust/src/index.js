@@ -109,3 +109,4 @@ export {packStyle,styleToSgrDelta} from "./screen-style.js";
 export {Screen} from "./screen.js";
 
 export {createTerminalDriver} from "./terminal-driver.js";
+export {note} from "./note.js";

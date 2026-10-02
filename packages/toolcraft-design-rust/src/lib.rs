@@ -49,4 +49,5 @@ pub mod frame_writer;
 
 pub mod terminal_input;
 
+pub mod note;
 pub mod terminal_driver;

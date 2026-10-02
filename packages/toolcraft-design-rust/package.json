@@ -227,6 +227,14 @@
     "./terminal/driver": {
       "types": "./dist/terminal-driver.d.ts",
       "import": "./dist/terminal-driver.js"
+    },
+    "./note": {
+      "types": "./dist/note.d.ts",
+      "import": "./dist/note.js"
+    },
+    "./prompts/primitives/note": {
+      "types": "./dist/note.d.ts",
+      "import": "./dist/note.js"
     }
   },
   "scripts": {

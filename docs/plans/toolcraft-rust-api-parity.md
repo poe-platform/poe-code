@@ -1051,3 +1051,27 @@ workspace-local filesystem import aliases; one cache test and two Safe Bash
 workerd probes also failed. These are being validated against current main.
 Release 36975809073 completed successfully but skipped release-stable, so it does
 not verify publication. Its public job graph was checked after the API rate limit.
+
+The terminal driver is delivered in 62ced7b6c3. Root test source aliases are fixed
+in 4ca3348d48, and seven audited build command strings covering eleven current
+stages are admitted to the existing cache in a14fc9dfb3. All 146 focused tests,
+changed-file ESLint and workflow lint pass. Full tests and type checking are
+still running. Repository-wide ESLint reports no code diagnostics but remains
+incomplete at unrelated filesystem boundaries. Driver release 36977537868 and
+cache-fix release 36977763016 are queued; neither verifies publication yet.
+
+`note` now has root, `note`, and `prompts/primitives/note` exports. Rust owns
+format selection, layout and output sequencing; the host retains string/array
+semantics, live colors, writers and arbitrary thrown values. Tests cover terminal,
+Markdown and JSON bytes, UTF-16 widths, ANSI stripping, nullish titles, custom
+split iterators, coercion order, reentrancy and the default stdout binding.
+All 221 native host tests and 620 selected original tests pass, with bidirectional
+types, Rust/binding/JS lint and a standalone packed runtime/types consumer using
+`types: []`. The note screenshot was inspected and its ANSI bytes match reference.
+No dependencies changed.
+
+Five warmed alternating rounds of 1,000 three-line terminal notes measured
+median 0.14095 ms native versus 0.10933 ms reference (1.29x). Other builds were
+active on the machine; these figures are informational and no performance gate
+passed. Prompts, cancellation, live spinners, dashboards and remaining public
+surfaces still require implementation and full qualification before a swap.

@@ -100,4 +100,7 @@ export * from "./inspector-card.js";
 export * from "./resource-browser.js";
 export * from "./help-formatter.js";
 export * as helpFormatterPlain from "./help-formatter-plain.js";
+export * from "./command-registry.js";
+export * from "./overlay-manager.js";
+export * from "./viewport.js";
 export type { FileChange, FileChangeKind, FileChangeDisplayMode, FileChangeOutputFormat, RenderFileChangesOptions } from "./file-changes.js";

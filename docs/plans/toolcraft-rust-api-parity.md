@@ -600,6 +600,21 @@ That gives additional native speedups of 1.35x, 1.45x and 1.37x, respectively;
 these fixtures still run 54.6–59.5x slower than JavaScript. Cross-run timings vary
 with shared host load; only each same-process comparison supports its speedup.
 
+Command registries, overlay managers, live viewports and wrapped tail selection
+now expose native interaction policy at the design root and matching
+`command-registry`, `overlay-manager` and `viewport` subpaths. Rust controls
+duplicate rejection, dispatch admission, overlay lifecycle, retention, scrollback
+selection and traversal. Node retains host collections, command/signal/array
+identity, methods, iterators and callbacks. Differential cases cover live command
+lists, duplicate getter ordering, iterator cleanup, sparse/species arrays,
+collection truthiness overrides, reentrant snapshots and aborts, arbitrary throws,
+fractional/nonfinite offsets and exact method descriptors. All 87 native and 180
+reference tests pass, along with bidirectional types, Rust/binding/JS lint and
+isolated packed root/subpath declarations and behavior. No external dependencies
+were added. Task/event groups, metrics/notices, the complete interactive controls,
+dashboard/explorer, terminal Markdown, CLI/transports and replacement qualification
+remain open; this checkpoint does not switch existing consumers.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

@@ -8,6 +8,18 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
+    "./command-registry": {
+      "types": "./dist/command-registry.d.ts",
+      "import": "./dist/command-registry.js"
+    },
+    "./overlay-manager": {
+      "types": "./dist/overlay-manager.d.ts",
+      "import": "./dist/overlay-manager.js"
+    },
+    "./viewport": {
+      "types": "./dist/viewport.d.ts",
+      "import": "./dist/viewport.js"
+    },
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"

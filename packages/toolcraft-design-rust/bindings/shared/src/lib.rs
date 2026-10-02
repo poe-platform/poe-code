@@ -9,6 +9,8 @@ mod catalog;
 pub use catalog::*;
 mod cards;
 pub use cards::*;
+mod interaction;
+pub use interaction::*;
 mod resource_browser;
 pub use resource_browser::*;
 mod help;

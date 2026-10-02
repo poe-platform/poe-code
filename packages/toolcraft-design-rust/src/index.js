@@ -88,3 +88,6 @@ export { renderInspectorCard } from "./inspector-card.js";
 export { renderResourceBrowser } from "./resource-browser.js";
 export * from "./help-formatter.js";
 export * as helpFormatterPlain from "./help-formatter-plain.js";
+export { createCommandRegistry } from "./command-registry.js";
+export { createOverlayManager } from "./overlay-manager.js";
+export { createViewport, selectViewportTail } from "./viewport.js";

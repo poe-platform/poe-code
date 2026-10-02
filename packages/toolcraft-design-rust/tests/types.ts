@@ -27,6 +27,10 @@ void layout;
 
 import * as design from "../dist/index.js";
 import type * as originalDesign from "toolcraft-design";
+type Interaction = Pick<typeof originalDesign, "createCommandRegistry" | "createOverlayManager" | "createViewport" | "selectViewportTail">;
+const interactionSdk: Interaction = design;
+const nativeInteraction: Pick<typeof design, keyof Interaction> = null as unknown as Interaction;
+void [interactionSdk, nativeInteraction];
 type OriginalPreview = Pick<
   typeof originalDesign.dashboard,
   "limitOutputPreview" | "createOutputPreviewBuffer"

@@ -73,6 +73,9 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `helpFormatter`, `helpFormatterPlain` | Align command and option help, wrap descriptions and preserve nested hanging indents |
 | `renderCatalog` | Present grouped values with metrics, optional descriptions and per-item tones |
 | `renderResourceBrowser` | Browse grouped resources with metadata, previews, badges, empty hints and footer actions |
+| `createCommandRegistry` | Share command discovery and enabled keyboard dispatch, rejecting duplicate IDs and keys |
+| `createOverlayManager` | Track overlay focus and abort each overlay's signal when it closes |
+| `createViewport`, `selectViewportTail` | Retain live items, hold scrollback and select wrapped rows without rendering the full history |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles
@@ -244,3 +247,15 @@ with badges, descriptions and aligned metadata rows. `renderInspectorCard`
 adds a preview with `maxPreviewLines` clipping and accepts sections of `fields`.
 Both preserve ANSI styling when values wrap and are available at the root and
 `components/detail-card` or `components/inspector-card`.
+
+Use `createCommandRegistry(commands)` to share the same command objects between
+menus and key dispatch. Enablement is checked on each dispatch or list read.
+`createOverlayManager(initialFocus)` returns an AbortSignal from `open(focus)`;
+`close()` restores the previous focus and `dispose()` closes every overlay.
+
+`createViewport({capacity})` retains items by ID. Calling `scroll(delta)` holds
+the visible history while new arrivals increment `unseen()`; `follow()` returns
+to the live items. Held arrays and item objects preserve their original identity.
+`selectViewportTail(items, height, offset, renderRows)` renders from newest to
+oldest and stops once the requested viewport is filled. These APIs are also
+available from `command-registry`, `overlay-manager` and `viewport` subpaths.

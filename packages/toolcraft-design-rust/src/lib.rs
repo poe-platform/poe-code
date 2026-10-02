@@ -6,6 +6,7 @@ pub mod command_errors;
 pub mod data;
 pub mod file_changes;
 pub mod help;
+pub mod interaction;
 pub mod layout;
 pub mod logging;
 pub mod palette;

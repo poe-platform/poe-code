@@ -171,3 +171,14 @@ for (const [name, create] of [['dos2unix', createDos2unixCommand], ['unix2dos', 
     assert.deepEqual((await memory.readdir('/')).map(entry => entry.name), ['in']);
   });
 }
+
+
+test('synchronous line endings defer non-ascii modes before file acquisition', () => {
+  for (const command of ['dos2unix', 'unix2dos'] as const) {
+    for (const args of [['-c', 'mac'], ['-cmac'], ['--convmode=mac'], ['--convmode', '7bit']]) {
+      assert.equal(evalSyncLineEndings(command, Uint8Array.of(65, 13), [...args, '-q', '/input'],
+        () => assert.fail('fallback must not read files'),
+        () => assert.fail('fallback must not publish files')), undefined);
+    }
+  }
+});

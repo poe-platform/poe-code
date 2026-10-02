@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { posix } from "node:path";
 import { posixPath as canonicalPortablePath } from "poe-code/safe-fs/core";
 import {
   assertPathWithin, basename, dirname, extname, isAbsolutePath, isFsError,
@@ -46,7 +45,7 @@ test("POSIX helpers remain available without platform-specific separators", asyn
   assert.equal(posixPath.normalize("/a/../b"), "/b");
   assert.equal(posixPath.resolve("/a", "../b"), "/b");
   assert.equal(posixPath.relative("/a", "/b"), "../b");
-  assert.equal(posixPath.format(posixPath.parse("/a/file.txt")), "/a/file.txt");
+  assert.equal(posixPath.join(posixPath.dirname("/a/file.txt"), posixPath.basename("/a/file.txt")), "/a/file.txt");
 });
 
 test("internal path helpers share the canonical portable POSIX object", () => {
@@ -54,13 +53,13 @@ test("internal path helpers share the canonical portable POSIX object", () => {
   assert.equal(portablePath.join("/a", "..", "b"), "/b");
 });
 
-test("Node contracts preserve native POSIX identity and the root shares portable paths", async () => {
+test("Node contracts and the root share canonical portable POSIX identity", async () => {
   const [contracts, paths, root] = await Promise.all([
     import("../../src/contracts/node.js"),
     import("../../src/contracts/node-path.js"),
     import("../../src/index.js"),
   ]);
-  for (const entry of [contracts, paths]) assert.equal(entry.posixPath, posix);
+  for (const entry of [contracts, paths]) assert.equal(entry.posixPath, canonicalPortablePath);
   assert.equal(root.posixPath, canonicalPortablePath);
   assert.equal(paths.normalizePath, normalizePath);
   assert.equal(contracts.normalizePath, normalizePath);

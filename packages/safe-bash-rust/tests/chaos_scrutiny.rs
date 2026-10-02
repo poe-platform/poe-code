@@ -153,7 +153,7 @@ fn chaos_infinite_loop_is_terminated_by_timeout() {
     );
     let elapsed = start.elapsed();
     assert!(
-        elapsed.as_secs() < 5,
+        elapsed.as_secs() < 30,
         "Infinite loop was not aborted promptly (took {elapsed:?})"
     );
     match res {

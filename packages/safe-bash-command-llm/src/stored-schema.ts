@@ -8,13 +8,16 @@ import type { SqliteRecordValue } from './sqlite-record.js';
 
 export interface LlmStoredSchemaOptions {
   readonly database?: string;
+  /** Apply pinned migrations and recover WAL/journals atomically before reading. */
+  readonly migrate?: boolean;
   readonly maxBytes?: number;
   readonly admitBytes?: (size: number) => void;
 }
 
 /** Read a schema ID from the reference logs.db on the caller's filesystem.
  * Database pages stay bounded; the selected schema becomes a provider control
- * object under the caller's byte budget. The database must be checkpointed. */
+ * object under the caller's byte budget. Without migration enabled, the database
+ * must be checkpointed. */
 export async function loadLlmStoredSchema(
   context: Pick<CommandContext, 'fs' | 'cwd' | 'env' | 'signal'>,
   id: string,
@@ -28,6 +31,10 @@ export async function loadLlmStoredSchema(
   let expected;
   try { expected = await fs.stat(path, { signal }); }
   catch (error) { if (error instanceof FsError && error.code === 'ENOENT') return undefined; throw error; }
+  if (options.migrate) {
+    const { readMigratedHistorySchema } = await import('./history-schema-read.js');
+    return readMigratedHistorySchema(fs,path,id,signal,options);
+  }
   const checkpointed = async (): Promise<void> => {
     for (const suffix of ['-wal', '-journal']) {
       try {

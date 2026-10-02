@@ -712,11 +712,12 @@ inspect the resulting state before repeating the action.
       let vmMatcher: ErgonomicVmMatcher | undefined;
       let effectivePatterns = patterns;
       let effectiveExtended = parsed.flags.has("E") || parsed.flags.has("P");
-      if ((limits.ergonomicRegex || parsed.flags.has("P")) && !parsed.flags.has("F")) {
+      if ((limits.ergonomicRegex || parsed.flags.has("P")) && (!parsed.flags.has("F") || parsed.flags.has("a"))) {
         try {
           const prepared = prepareErgonomicRegex(patterns, {
             kind: "grep",
-            fixed: false,
+            fixed: parsed.flags.has("F"),
+            binaryText: parsed.flags.has("a"),
             extended: effectiveExtended,
             caseMode: ignoreCase ? "insensitive" : "sensitive",
             whole: parsed.flags.has("x"),
@@ -742,7 +743,7 @@ inspect the resulting state before repeating the action.
       const initRes = session.runSync(descriptor, EMPTY_GREP_ROWS);
       if (initRes instanceof Promise) await initRes;
       const asciiPattern = context.args[0] ?? "";
-      const validateAsciiSubjects = context.args.length <= 2 && asciiPattern.length > 0 && asciiPattern.length <= 64 &&
+      const validateAsciiSubjects = !parsed.flags.has("a") && context.args.length <= 2 && asciiPattern.length > 0 && asciiPattern.length <= 64 &&
         asciiPattern[0] !== "-" && Array.from(asciiPattern.startsWith("^") ? asciiPattern.slice(1) : asciiPattern)
           .every(character => character.charCodeAt(0) >= 32 && character.charCodeAt(0) <= 126 && !"$()*+.?[\\]^{|}".includes(character));
       const subjectLedger = validateAsciiSubjects ? new EreLedger({ maxExpansionBytes: Infinity, maxExpansionFields: Infinity }) : undefined;

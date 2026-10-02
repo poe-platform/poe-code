@@ -106,3 +106,25 @@ test("rg help works through the standalone portable factory", async () => {
  assert.equal(result.exitCode, 0, output);
  assert.ok(output.length > 0);
 });
+
+test("rg -a (--text) searches binary files containing NUL and non-UTF-8 bytes", async () => {
+ const memFs = createMemoryFileSystem();
+ const binaryPdf = new Uint8Array([
+  ...Buffer.from("%PDF-1.7\n<< /Type /XObject /Subtype /Image /Width 320 /Height 140 >>\nstream\n"),
+  0x00, 0xff, 0xfe, 0x80, 0x00, 0x0a,
+  ...Buffer.from("endstream\n")
+ ]);
+ await memFs.writeFile("/report.pdf", binaryPdf);
+ const values = createCommandArguments(["-a", "/Subtype|/Width|/Height", "/report.pdf"]);
+ let stdout = "", stderr = "";
+ const result = await createRgCommand().execute({
+  command: "rg", args: values.args, argumentValues: values, cwd: "/", env: {},
+  fs: memFs, stdin: toByteSource(""),
+  stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+  stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+  signal: new AbortController().signal,
+ });
+ assert.equal(result.exitCode, 0, stderr);
+ assert.equal(stderr, "");
+ assert.match(stdout, /\/Subtype \/Image \/Width 320 \/Height 140/);
+});

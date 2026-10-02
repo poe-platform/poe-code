@@ -13,6 +13,7 @@ export interface ErgonomicRegexConfig {
   readonly multiline?: boolean | undefined;
   readonly multilineDotall?: boolean | undefined;
   readonly captures?: boolean;
+  readonly binaryText?: boolean;
 }
 
 export type PreparedErgonomicRegex =
@@ -700,7 +701,7 @@ interface DecodedSubject {
   readonly length: number;
 }
 
-function decodeUtf8Subject(bytes: Uint8Array): DecodedSubject {
+function decodeUtf8Subject(bytes: Uint8Array, binaryText = false): DecodedSubject {
   // Empty matches may start at any byte; consuming matches must step across
   // complete UTF-8 scalars. Continuation and invalid bytes remain nonconsuming.
   const len = bytes.length;
@@ -721,7 +722,7 @@ function decodeUtf8Subject(bytes: Uint8Array): DecodedSubject {
         || b0 === 0xf0 && byte < 0x90 || b0 === 0xf4 && byte >= 0x90
       ));
     }
-    if (!valid) { i++; continue; }
+    if (!valid) { if (binaryText) cps[i] = 0xfffd; i++; continue; }
     let cp = width === 1 ? b0 : b0 & (0x7f >> width);
     for (let j = 1; j < width; j++) cp = (cp << 6) | (bytes[i + j]! & 0x3f);
     cps[i] = cp;
@@ -761,7 +762,7 @@ export class ErgonomicVmMatcher {
   private readonly leadingLiteral: { cp: number; foldedCp: number; insensitive: boolean } | undefined;
   private stepStamp = 1;
 
-  constructor(rootAst: AstNode, multiline: boolean, private readonly captureCount = 0, private readonly captureNames: ReadonlyMap<string, number> = new Map()) {
+  constructor(rootAst: AstNode, multiline: boolean, private readonly captureCount = 0, private readonly captureNames: ReadonlyMap<string, number> = new Map(), private readonly binaryText = false) {
     this.insts = compileAstToNfa(rootAst);
     this.multiline = multiline;
     const n = this.insts.length;
@@ -934,7 +935,7 @@ export class ErgonomicVmMatcher {
         } else if (inst.op === "literal") {
           if (inst.insensitive ? foldAsciiCp(cp) === foldAsciiCp(inst.cp) : cp === inst.cp) nextOut = inst.out;
         } else if (inst.op === "dot") {
-          if ((inst.dotall || cp !== 10) && (inst.nullData || cp !== 0)) nextOut = inst.out;
+          if ((inst.dotall || cp !== 10) && (inst.nullData || this.binaryText || cp !== 0)) nextOut = inst.out;
         } else if (inst.op === "class") {
           if (evalClassNode(inst.node, cp)) nextOut = inst.out;
         }
@@ -955,7 +956,7 @@ export class ErgonomicVmMatcher {
   }
 
   matchBytes(bytes: Uint8Array, all: boolean): Match[] {
-    const subject = decodeUtf8Subject(bytes);
+    const subject = decodeUtf8Subject(bytes, this.binaryText);
     const matches: Match[] = [];
     let cursor = 0;
     let prevEnd = -1;
@@ -1037,7 +1038,7 @@ export function prepareErgonomicRegex(
     if (!multiline && hasNewline) {
       throw new SearchError("literal newline in pattern requires --multiline (-U)");
     }
-    if (multiline && hasNewline) {
+    if ((multiline && hasNewline) || config.binaryText) {
       const branches: AstNode[] = patterns.map(p => {
         const hasUpper = /[A-Z]/u.test(p);
         const insensitive = config.caseMode === "insensitive" || (config.caseMode === "smart" && !hasUpper);
@@ -1046,14 +1047,14 @@ export function prepareErgonomicRegex(
       let root: AstNode = branches.length === 1 ? branches[0]! : { type: "alt", branches };
       if (config.whole) root = { type: "seq", children: [{ type: "assert", kind: "bol" }, root, { type: "assert", kind: "eol" }] };
       else if (config.word) root = { type: "seq", children: [{ type: "assert", kind: "bow" }, root, { type: "assert", kind: "eow" }] };
-      return { mode: "vm", vm: new ErgonomicVmMatcher(root, true), crossLine: true };
+      return { mode: "vm", vm: new ErgonomicVmMatcher(root, Boolean(multiline && hasNewline), 0, new Map(), Boolean(config.binaryText)), crossLine: Boolean(multiline && hasNewline) };
     }
     return { mode: "delegated", patterns, extended: Boolean(config.extended) };
   }
 
   const translated: string[] = [];
   const branches: AstNode[] = [];
-  let anyNeedsVm = config.captures ?? false;
+  let anyNeedsVm = Boolean(config.captures || config.binaryText);
   let anyCrossLine = false;
   let captureCount = 0;
   const captureNames = new Map<string, number>();
@@ -1095,7 +1096,7 @@ export function prepareErgonomicRegex(
     }
     result = {
       mode: "vm",
-      vm: new ErgonomicVmMatcher(root, multiline, config.captures ? captureCount : 0, captureNames),
+      vm: new ErgonomicVmMatcher(root, multiline, config.captures ? captureCount : 0, captureNames, Boolean(config.binaryText)),
       crossLine: multiline && anyCrossLine,
     };
   }

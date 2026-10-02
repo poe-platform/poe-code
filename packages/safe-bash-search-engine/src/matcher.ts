@@ -63,6 +63,7 @@ export class Matcher {
     if (
       ergonomic &&
       patterns.length === 1 &&
+      args.binary !== "text" &&
       args.case === "sensitive" &&
       !args.whole &&
       !args.word &&
@@ -114,6 +115,7 @@ export class Matcher {
           multiline: args.multiline,
           multilineDotall: args.multilineDotall,
           captures,
+          binaryText: args.binary === "text",
         })
       : undefined;
     if (prepared?.mode === "vm" && ergonomic) {

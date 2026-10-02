@@ -15,6 +15,20 @@ const { frontmatter, sections } = await readMarkdown({ file });
 const { markdown, section } = await readSection({ file, section: "2.1" });
 ```
 
+Workers and browsers use the portable SDK entrypoint without Node compatibility. Inject a `@poe-code/safe-fs` filesystem and an absolute working directory:
+
+```ts
+import { createReadSection } from "@poe-code/markdown-reader";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+
+const fs = new MemoryFileSystem();
+await fs.writeFile("/guide.md", new TextEncoder().encode("# Welcome\nHello!"));
+const read = createReadSection({ fs, cwd: "/" });
+const result = await read({ file: "guide.md", section: "Welcome" });
+```
+
+The Node entrypoint also supplies the host filesystem and stdio MCP server.
+
 ## Resolution rules
 
 - Empty file paths and empty section ids are rejected before reading from disk.

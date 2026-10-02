@@ -34,7 +34,7 @@ export function extractFrontmatter(markdown: string): ExtractedFrontmatter {
     },
     {
       start: 0,
-      end: Buffer.byteLength(markdown.slice(0, markdown.length - parsed.body.length), "utf8")
+      end: new TextEncoder().encode(markdown.slice(0, markdown.length - parsed.body.length)).byteLength
     }
   );
 }

@@ -7,7 +7,15 @@
   "types": "dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": {
+        "workerd": "./dist/portable.d.ts",
+        "browser": "./dist/portable.d.ts",
+        "worker": "./dist/portable.d.ts",
+        "default": "./dist/index.d.ts"
+      },
+      "workerd": "./dist/portable.js",
+      "browser": "./dist/portable.js",
+      "worker": "./dist/portable.js",
       "import": "./dist/index.js"
     }
   },
@@ -23,6 +31,16 @@
     "@poe-code/frontmatter": "*",
     "toolcraft": "*",
     "toolcraft-schema": "*",
-    "toolcraft-design": "*"
+    "toolcraft-design": "*",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#markdown-reader-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
   }
 }

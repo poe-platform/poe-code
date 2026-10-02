@@ -1,7 +1,7 @@
 import type { MarkdownReaderDependencies } from "./document.js";
 import { loadMarkdownDocument, sliceMarkdownBytes } from "./document.js";
 import { resolveSection } from "./resolve.js";
-import { UserError } from "toolcraft";
+import { UserError } from "toolcraft/user-error";
 import type { TocEntry } from "./read-markdown.js";
 
 export interface ReadSectionParams {

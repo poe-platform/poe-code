@@ -1,4 +1,4 @@
-import { UserError } from "toolcraft";
+import { UserError } from "toolcraft/user-error";
 import type { MarkdownReaderDependencies } from "./document.js";
 import { loadMarkdownDocument } from "./document.js";
 import type { Section } from "./scan.js";

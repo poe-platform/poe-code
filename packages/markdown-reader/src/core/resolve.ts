@@ -1,4 +1,4 @@
-import { UserError } from "toolcraft";
+import { UserError } from "toolcraft/user-error";
 import type { Section } from "./scan.js";
 
 export function resolveSection(sections: Section[], id: string): Section {

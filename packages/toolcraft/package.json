@@ -101,6 +101,10 @@
     "./safe-bash": {
       "types": "./dist/safe-bash.d.ts",
       "import": "./dist/safe-bash.js"
+    },
+    "./user-error": {
+      "types": "./dist/user-error.d.ts",
+      "import": "./dist/user-error.js"
     }
   },
   "scripts": {

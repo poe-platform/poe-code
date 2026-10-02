@@ -1,4 +1,5 @@
-import { parse, type MdNode } from "toolcraft-design";
+import { parse } from "toolcraft-design/terminal-markdown/parser";
+import type { MdNode } from "toolcraft-design/terminal-markdown/ast";
 
 export interface Section {
   depth: number;
@@ -28,7 +29,7 @@ export function scanMarkdown(source: string): Section[] {
     return [];
   }
 
-  const endOfSource = Buffer.byteLength(source, "utf8");
+  const endOfSource = new TextEncoder().encode(source).byteLength;
   const baselineDepth = resolveBaselineDepth(headings);
   const sections: Section[] = headings.map((heading, index) => {
     const range = getRequiredRange(heading);
@@ -80,7 +81,7 @@ function isInsideHtmlComment(offset: number, ranges: HtmlCommentRange[]): boolea
 }
 
 function byteOffset(source: string, index: number): number {
-  return Buffer.byteLength(source.slice(0, index), "utf8");
+  return new TextEncoder().encode(source.slice(0, index)).byteLength;
 }
 
 function isHeadingNode(node: MdNode): node is Extract<MdNode, { type: "heading" }> {

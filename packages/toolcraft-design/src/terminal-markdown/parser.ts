@@ -13,7 +13,7 @@ export function parse(markdown: string): { frontmatter?: Record<string, unknown>
     },
     {
       start: 0,
-      end: Buffer.byteLength(markdown, "utf8")
+      end: new TextEncoder().encode(markdown).byteLength
     }
   );
 

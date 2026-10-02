@@ -1,22 +1,17 @@
-import nodeFs from "node:fs/promises";
-import path from "node:path";
+import { createDefaultFileSystem } from "#markdown-reader-filesystem";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
 import { FrontmatterParseError, parseFrontmatter } from "@poe-code/frontmatter";
-import { UserError } from "toolcraft";
+import { UserError } from "toolcraft/user-error";
 import { getOwnErrorCode } from "../error-codes.js";
 import { scanMarkdown, type Section } from "./scan.js";
 
 export interface MarkdownReaderFs {
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
 }
 
-const defaultFs: MarkdownReaderFs = {
-  readFile(file, encoding) {
-    return nodeFs.readFile(file, encoding);
-  }
-};
-
 export interface MarkdownReaderDependencies {
-  fs?: MarkdownReaderFs;
+  fs?: MarkdownReaderFs | Pick<FileSystem, "capabilities" | "readFile">;
   cwd?: string;
 }
 
@@ -31,7 +26,7 @@ export async function loadMarkdownDocument(
   dependencies: MarkdownReaderDependencies = {}
 ): Promise<LoadedMarkdownDocument> {
   const resolvedFile = resolveMarkdownPath(file, dependencies.cwd);
-  const source = await readMarkdownFile(resolvedFile, file, dependencies.fs ?? defaultFs);
+  const source = await readMarkdownFile(resolvedFile, file, dependencies.fs ?? createDefaultFileSystem());
   const frontmatter = readFrontmatter(source, file);
 
   return {
@@ -41,7 +36,7 @@ export async function loadMarkdownDocument(
   };
 }
 
-export function resolveMarkdownPath(file: string, cwd = process.cwd()): string {
+export function resolveMarkdownPath(file: string, cwd = globalThis.process?.cwd?.() ?? "/"): string {
   if (file.trim().length === 0) {
     throw new UserError("invalid file: expected a non-empty path");
   }
@@ -50,16 +45,18 @@ export function resolveMarkdownPath(file: string, cwd = process.cwd()): string {
 }
 
 export function sliceMarkdownBytes(source: string, start: number, end: number): string {
-  return Buffer.from(source, "utf8").subarray(start, end).toString("utf8");
+  return new TextDecoder("utf-8", { ignoreBOM: true }).decode(new TextEncoder().encode(source).subarray(start, end));
 }
 
 async function readMarkdownFile(
   resolvedFile: string,
   originalFile: string,
-  fs: MarkdownReaderFs
+  fs: NonNullable<MarkdownReaderDependencies["fs"]>
 ): Promise<string> {
   try {
-    return await fs.readFile(resolvedFile, "utf8");
+    return "capabilities" in fs
+      ? new TextDecoder("utf-8", { ignoreBOM: true }).decode(await fs.readFile(resolvedFile))
+      : await fs.readFile(resolvedFile, "utf8");
   } catch (error) {
     throw toUserError(error, originalFile);
   }

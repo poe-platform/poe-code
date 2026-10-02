@@ -28,7 +28,7 @@ for (const option of ["-v", "--verbose"]) {
 }
 
 test("verbose Node timeout reports signal delivery only when the deadline expires", async () => {
-  const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createAgentCommands()) });
+  const shell = new NodeShell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createAgentCommands()) });
   try {
     const result = await shell.exec("timeout --verbose 0.001 sleep 1");
     assert.equal(result.exitCode, 124);

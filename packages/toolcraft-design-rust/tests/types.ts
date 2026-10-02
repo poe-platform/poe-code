@@ -468,3 +468,9 @@ import type * as originalAnsiCells from "toolcraft-design/screen/ansi-text";
 const ansiCellsForward:typeof originalAnsiCells=ansiCells;
 const ansiCellsReverse:typeof ansiCells=null as unknown as typeof originalAnsiCells;
 void [ansiCellsForward,ansiCellsReverse];
+
+import * as frameOutput from "toolcraft-design-rust/terminal/output";
+import type * as originalFrameOutput from "toolcraft-design/terminal/output";
+const frameOutputForward:typeof originalFrameOutput=frameOutput;
+const frameOutputReverse:typeof frameOutput=null as unknown as typeof originalFrameOutput;
+void [frameOutputForward,frameOutputReverse];

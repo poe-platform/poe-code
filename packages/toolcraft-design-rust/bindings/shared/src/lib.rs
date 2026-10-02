@@ -1,3 +1,5 @@
+mod frame_writer;
+pub use frame_writer::*;
 mod ansi_cells;
 pub use ansi_cells::*;
 mod code_highlight;

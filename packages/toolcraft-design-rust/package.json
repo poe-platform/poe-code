@@ -215,6 +215,10 @@
     "./screen/ansi-text": {
       "types": "./dist/ansi-text.d.ts",
       "import": "./dist/ansi-text.js"
+    },
+    "./terminal/output": {
+      "types": "./dist/frame-writer.d.ts",
+      "import": "./dist/frame-writer.js"
     }
   },
   "scripts": {

@@ -9,6 +9,8 @@ export default defineConfig({
       enforce: "pre",
       resolveId(name, importer) {
         if (!importer) return;
+        if (importer === path("../toolcraft-design/src/terminal/output.test.ts") && name === "./output.js")
+          return path("dist/frame-writer.js");
         if (importer === path("../toolcraft-design/src/screen/ansi-text.test.ts") && name === "./ansi-text.js")
           return path("dist/ansi-text.js");
         if (importer === path("../toolcraft-design/src/screen/screen.test.ts") && name === "./screen.js")
@@ -97,6 +99,7 @@ export default defineConfig({
   test: {
     env: { FORCE_COLOR: process.env.FORCE_COLOR ?? "1" },
     include: [
+      path("../toolcraft-design/src/terminal/output.test.ts"),
       path("../toolcraft-design/src/screen/ansi-text.test.ts"),
       path("../toolcraft-design/src/screen/screen.test.ts"),
       path("../toolcraft-design/src/screen/style.test.ts"),

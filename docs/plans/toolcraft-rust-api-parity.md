@@ -984,3 +984,21 @@ were fixed separately in 28eb2e2392, verified on remote main. The Safe Bash buil
 229 filesystem cases (2 skipped) and all 20 Safe JS built-runtime probes pass.
 The whole-unit route has been restarted; release 36974802405 is running and
 publication remains unverified.
+
+
+The `terminal/output` subpath now exposes `createFrameWriter`. Rust owns the
+opened/closed lifecycle and terminal control sequences; Node performs stream I/O,
+process listener registration and signal delivery. State transitions precede
+fallible writes, matching repeated calls, option-getter timing, write failures,
+reentrant closes and arbitrary fatal values. Host string interpolation preserves
+frame coercion. All 212 native host tests and 575 selected original tests pass,
+as do declarations, Rust/binding/JS lint and standalone packed runtime/types.
+The synchronized-frame screenshot was inspected and its ANSI bytes equal the
+reference. No dependencies changed.
+
+A warmed five-round alternating sink benchmark of 100,000 writes per round
+measured 0.000140 ms native versus 0.0000149 ms reference (9.36x); this isolates
+per-call binding overhead and excludes terminal I/O. No performance gate passed.
+Input parsing, timer behavior and the public terminal driver remain outstanding.
+The whole-unit run and remote release checks are still running; publication is
+not yet verified.

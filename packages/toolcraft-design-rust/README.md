@@ -91,6 +91,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `render` | Render a Markdown AST for terminals with styled blocks, width-aware wrapping, tables and code highlighting |
 | `Screen` | Draw styled text into a resizable cell buffer and emit ANSI frame differences |
 | `screen/ansi-text` | Convert styled terminal output and cursor edits into grapheme-aware screen cells |
+| `terminal/output` | Write synchronized frames and restore terminal modes on close, signals and fatal errors |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles

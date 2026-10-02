@@ -44,3 +44,5 @@ pub mod wrap_ansi;
 pub mod line_buffer;
 
 pub mod acp_events;
+
+pub mod frame_writer;

@@ -187,6 +187,7 @@ export async function decryptOdfEntries(manifest: XmlElement, entries: ReadonlyM
         // Noble wipes its arena on completion. Drain the admitted cooperative KDF
         // before propagating cancellation, rather than throwing from onProgress
         // and abandoning secret arena bytes inside the library.
+        const [{ cbc, gcm }, { argon2idAsync }] = await Promise.all([import("@noble/ciphers/aes.js"), import("@noble/hashes/argon2.js")]);
         key = profile.cipher === "aes-gcm" ? await argon2idAsync(start, profile.salt, {
           t: profile.iterations, m: profile.memory, p: profile.lanes, dkLen: profile.keyBytes,
           version: 0x13, maxmem: profile.arenaBytes, asyncTick: 10

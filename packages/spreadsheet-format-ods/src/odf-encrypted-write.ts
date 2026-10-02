@@ -1,5 +1,3 @@
-import { cbc, gcm } from "@noble/ciphers/aes.js";
-import { argon2idAsync } from "@noble/hashes/argon2.js";
 import { sha256 } from "@noble/hashes/sha2.js";
 import { sha1 } from "@noble/hashes/legacy.js";
 import { createCompressionCodec } from "@poe-code/office-package";
@@ -37,6 +35,7 @@ function base64(bytes: Uint8Array): string {
  * nothing reaches the destination before the complete package is admitted. */
 export async function encryptOdfParts(parts: ReadonlyMap<string, Uint8Array>, context: CapabilityContext,
   xml: ReturnType<typeof createOdfXml>, profile: OdfEncryptionProfile): Promise<Map<string, { bytes: Uint8Array; size: number; declaration: string }>> {
+  const [{ cbc, gcm }, { argon2idAsync }] = await Promise.all([import("@noble/ciphers/aes.js"), import("@noble/hashes/argon2.js")]);
   if (!context.password || !context.entropy) unsupported("export requires password and cryptographic entropy capabilities");
   const authenticated = profile.cipher === "aes-gcm";
   const blowfish = profile.cipher === "blowfish-cfb8" || profile.cipher === "blowfish-cfb64", hash = blowfish ? sha1 : sha256;

@@ -11,7 +11,6 @@ export function evalSyncLineEndings(
   let newFileMode = false;
   let addEol = false;
   let newline = false;
-  let convMode: "ascii" | "mac" = "ascii";
   let bomMode: "keep" | "remove" | "add" = cmdName === "unix2dos" ? "keep" : "remove";
   let endOfOptions = false;
   const files: string[] = [];
@@ -33,7 +32,7 @@ export function evalSyncLineEndings(
       if (a === "--keep-bom") { bomMode = "keep"; continue; }
       if (a === "--convmode" || a.startsWith("--convmode=")) {
         const v = a.startsWith("--convmode=") ? a.slice(11) : opArgs[++i];
-        if (v && v.toLowerCase() === "ascii") { convMode = "ascii"; continue; }
+        if (v && v.toLowerCase() === "ascii") continue;
         return undefined;
       }
       return undefined;
@@ -55,8 +54,7 @@ export function evalSyncLineEndings(
         else if (ch === "b") bomMode = "keep";
         else if (ch === "c") {
           const v = j + 1 < a.length ? a.slice(j + 1) : opArgs[++i];
-          if (v && v.toLowerCase() === "ascii") convMode = "ascii";
-          else return undefined;
+          if (!v || v.toLowerCase() !== "ascii") return undefined;
           break;
         }
         else return undefined;
@@ -82,7 +80,6 @@ export function evalSyncLineEndings(
         force ? "-fO" : "-O",
         ...(addEol ? ["-e"] : []),
         ...(newline ? ["-l"] : []),
-        ...(convMode === "mac" ? ["-c", "mac"] : []),
         ...(bomMode === "remove" ? ["-r"] : bomMode === "add" ? ["-m"] : ["-b"]),
       ];
       const converted = evalSyncLineEndings(cmdName, b, subArgs);
@@ -129,16 +126,7 @@ export function evalSyncLineEndings(
     if (cmdName === "dos2unix") {
       for (let i = startIdx; i < src.byteLength; i++) {
         const c = src[i]!;
-        if (convMode === "mac") {
-          if (c === 13 && (i + 1 >= src.byteLength || src[i + 1] !== 10)) {
-            out.push(10);
-            if (newline) out.push(10);
-            last = 10;
-          } else {
-            out.push(c);
-            last = c;
-          }
-        } else if (c === 13 && i + 1 < src.byteLength && src[i + 1] === 10) {
+        if (c === 13 && i + 1 < src.byteLength && src[i + 1] === 10) {
           out.push(10);
           if (newline) out.push(10);
           last = 10;
@@ -153,16 +141,7 @@ export function evalSyncLineEndings(
       let prev = 0;
       for (let i = startIdx; i < src.byteLength; i++) {
         const c = src[i]!;
-        if (convMode === "mac") {
-          if (c === 10 && prev !== 13) {
-            out.push(13);
-            if (newline) out.push(13);
-            last = 13;
-          } else {
-            out.push(c);
-            last = c;
-          }
-        } else if (c === 10 && prev !== 13) {
+        if (c === 10 && prev !== 13) {
           out.push(13, 10);
           if (newline) out.push(13, 10);
           last = 10;
@@ -173,10 +152,7 @@ export function evalSyncLineEndings(
         }
         prev = c;
       }
-      if (addEol && last !== -1 && last !== (convMode === "mac" ? 13 : 10)) {
-        if (convMode === "mac") out.push(13);
-        else out.push(13, 10);
-      }
+      if (addEol && last !== -1 && last !== 10) out.push(13, 10);
     }
   }
   return new Uint8Array(out);

@@ -583,9 +583,9 @@ export const operationDeclarations: DeclarationsMap = new Proxy(proxyTarget, {
   },
   getOwnPropertyDescriptor(_target, prop) {
     if (typeof prop !== "string") return undefined;
-    const value = getSchemaEntry(prop);
-    if (value === undefined) return undefined;
-    return { value, writable: false, enumerable: true, configurable: true };
+    ensureParsed();
+    if (!(prop in parsedRoot!)) return undefined;
+    return { get: () => getSchemaEntry(prop), enumerable: true, configurable: true };
   },
   getPrototypeOf() {
     return null;

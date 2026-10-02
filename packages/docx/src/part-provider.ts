@@ -11,8 +11,11 @@ const xmlPartTypes = [...nativeStoryTypes, "XmlPart", "XmlPartView", "PartView",
 export const partProviderReceivers = new Map<string, ReadonlySet<string>>();
 for (const [protocol, types] of [["ProvidesStoryPart", nativeStoryTypes], ["ProvidesXmlPart", xmlPartTypes]] as const) {
   const receivers = new Set<string>(types);
-  for (const [id, schema] of Object.entries(docxOperationSchemas))
-    if (id.endsWith(".part.get") && schema.receiver && splitDocxType(schema.valueType).every(type => types.includes(type))) receivers.add(schema.receiver);
+  for (const id of Object.keys(docxOperationSchemas)) {
+    if (!id.endsWith(".part.get")) continue;
+    const schema = docxOperationSchemas[id]!;
+    if (schema.receiver && splitDocxType(schema.valueType).every(type => types.includes(type))) receivers.add(schema.receiver);
+  }
   // A general XML/part handle can carry a native story. Runtime dispatch checks its role.
   if (protocol === "ProvidesStoryPart") for (const type of ["Part", "PartView", "XmlPart", "XmlPartView"]) receivers.add(type);
   partProviderReceivers.set(protocol, receivers);

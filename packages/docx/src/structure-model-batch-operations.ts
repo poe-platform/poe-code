@@ -22,7 +22,7 @@ type Owner = abstract new (...args: never[]) => object;
 type OwnerProvider = () => Owner;
 export const structureModelBatchActions = new Map<string, Action>();
 function register(key: string, owner: OwnerProvider, action: Action): void {
-  if (!docxOperationSchemas[key]) return;
+  if (!(key in docxOperationSchemas)) return;
   structureModelBatchActions.set(key, (receiver, args) => {
     if (!(receiver instanceof owner()))
       throw new DocxUsageError("The receiver does not support this model operation.");
@@ -72,9 +72,9 @@ function surface(
         throw new DocxUsageError("The property is not writable.");
     });
   for (const name of methods) {
-    const key = `${prefix}.${name}.call`,
-      fields = Object.keys(docxOperationSchemas[key]?.batchFields ?? {});
+    const key = `${prefix}.${name}.call`;
     register(key, owner, (receiver, args) => {
+      const fields = Object.keys(docxOperationSchemas[key]?.batchFields ?? {});
       const method = Reflect.get(receiver as object, name) as (...args: unknown[]) => unknown;
       const values = fields.map((field) => {
         const value = args[field];

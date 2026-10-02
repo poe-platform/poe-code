@@ -150,4 +150,4 @@ export const styleModelBatchActions = new Map(
   })
 );
 export const styleModelBatchBootstrap = "model.document.Document.styles.get";
-export const styleModelBatchOperations: readonly string[] = Object.freeze([styleModelBatchBootstrap, ...modelSaveOperations, ...[...partProviderReceivers.keys()].map(type => `model.types.${type}.part.get`), ...styleModelBatchActions.keys(), ...imageBatchActions.keys()].filter(id => docxOperationSchemas[id]));
+export const styleModelBatchOperations: readonly string[] = Object.freeze([styleModelBatchBootstrap, ...modelSaveOperations, ...[...partProviderReceivers.keys()].map(type => `model.types.${type}.part.get`), ...styleModelBatchActions.keys(), ...imageBatchActions.keys()].filter(id => id in docxOperationSchemas));

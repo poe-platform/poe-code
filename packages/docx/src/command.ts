@@ -206,7 +206,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
   }
   if (words[0] === "text" && consumed === 0) { operation = "text.get"; consumed = 1; }
   if (!operation) {
-    const valueFlags = new Set(Object.values(docxOperationSchemas).flatMap(declaration =>
+    const valueFlags = new Set(Object.keys(docxOperationSchemas).filter(id => !id.startsWith("model.")).map(id => docxOperationSchemas[id]!).flatMap(declaration =>
       Object.keys(optionFields(declaration, true)).filter(name => !switches.has(name)).map(name => "--" + kebab(name))));
     valueFlags.add("-o");
     for (let index = 1; index < words.length; index++) {

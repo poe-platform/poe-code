@@ -1,5 +1,6 @@
 import { createServer } from "node:http";
 import { once } from "node:events";
+import { gzipSync } from "node:zlib";
 import { afterAll, beforeAll, expect, test } from "vitest";
 import { Miniflare } from "miniflare";
 import {
@@ -14,6 +15,22 @@ beforeAll(async () => {
 	networkServer = createServer(async (request, response) => {
     const chunks: Buffer[] = [];
     for await (const chunk of request) chunks.push(Buffer.from(chunk));
+    if (request.url === '/redirect') {
+      response.writeHead(302, { location: '/redirected', 'set-cookie': 'redirect-cookie=updated; Path=/' });
+      response.end();
+      return;
+    }
+    if (request.url === '/gzip') {
+      const body = gzipSync(JSON.stringify({ compressed: true }));
+      response.writeHead(200, { 'content-type': 'application/json', 'content-encoding': 'gzip', 'content-length': body.length });
+      response.end(body);
+      return;
+    }
+    if (request.url === '/binary') {
+      response.setHeader('content-type', 'application/octet-stream');
+      response.end(request.method === 'POST' ? Buffer.concat(chunks) : Buffer.from([0, 128, 255, 10]));
+      return;
+    }
     response.setHeader('content-type', 'application/json');
     response.end(JSON.stringify({path: request.url, method: request.method, cookie: request.headers.cookie ?? null, body: Buffer.concat(chunks).toString()}));
   });

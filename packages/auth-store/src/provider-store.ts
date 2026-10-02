@@ -1,4 +1,4 @@
-import type { SecretStore } from "./types.js";
+import type { SecretStore } from "./secret-store.js";
 
 export function key(providerId: string): string {
   return `provider:${providerId}`;

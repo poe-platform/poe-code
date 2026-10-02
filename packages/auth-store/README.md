@@ -48,6 +48,41 @@ to `~/.auth-store/keychain-locks`; `keychainStore.lock` can select another
 directory or filesystem adapter. Injected encrypted-file adapters need
 `readdir` support when using transactions.
 
+## Workers and portable hosts
+
+The `workerd`, `worker`, `browser`, and fallback exports contain no Node built-ins.
+Node retains the desktop API above. Use `auth-store/portable` to select the portable
+API explicitly on any host. It exports `SafeFsSecretStore`, `MigratingSecretStore`,
+`key`, and the portable `SecretStore` contract.
+
+```ts
+import { SafeFsSecretStore } from "auth-store/portable";
+
+const store = new SafeFsSecretStore({
+  fs, // Host-owned @poe-code/safe-fs FileSystem
+  filePath: "/credentials/service.enc",
+  key: encryptionKey, // Host-managed AES-256-GCM CryptoKey; encrypt + decrypt usages
+});
+await store.set("secret-value");
+const value = await store.get();
+await store.delete();
+```
+
+Keep the key in host-managed secret storage; use the same key to read persisted
+credentials across requests. No machine identity, home directory, process, or
+Keychain access is inferred. Web Crypto encrypts UTF-8 bytes with a fresh nonce
+for every write. The AES-GCM document format matches the desktop store when the
+host imports the same derived key. Missing files return `null`; malformed or
+unauthenticated documents throw and remain untouched.
+
+The filesystem must support exclusive creation and atomic rename, and its
+namespace must be controlled by the trusted host. Writes stage a private `0600`
+file and publish it by rename; path checks reject existing symbolic links.
+These checks do not protect against an untrusted actor concurrently changing
+filesystem ancestry. The portable store does not advertise `withLock`: hosts
+must provide transaction coordination across requests or Workers when needed.
+Desktop PID locks and automatic dead-process recovery are not portable.
+
 ## Backends
 
 | `backendEnvVar` value | Platform | Backend        |

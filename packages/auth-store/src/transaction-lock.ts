@@ -2,7 +2,8 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import { hasOwnErrorCode } from "./error-codes.js";
 
-export interface SecretStoreLockOptions { signal?: AbortSignal; timeoutMs?: number }
+import type { SecretStoreLockOptions } from "./secret-store.js";
+export type { SecretStoreLockOptions } from "./secret-store.js";
 export interface SecretStoreLockFileSystem {
   mkdir(path: string, options?: { recursive?: boolean; mode?: number }): Promise<unknown>;
   readdir(path: string): Promise<string[]>;

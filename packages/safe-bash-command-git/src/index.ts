@@ -18,8 +18,6 @@ function hexNibble(code: number): number {
   return 0;
 }
 function encode(bytes: Uint8Array): string {
-  const bufCtor = (globalThis as unknown as { Buffer?: { from(b: ArrayBufferLike, o: number, l: number): { toString(enc: "hex"): string } } }).Buffer;
-  if (bufCtor) return bufCtor.from(bytes.buffer, bytes.byteOffset, bytes.byteLength).toString("hex");
   const chunks: string[] = [];
   for (let i = 0; i < bytes.byteLength; i += 8192) {
     let chunk = "";
@@ -30,11 +28,6 @@ function encode(bytes: Uint8Array): string {
   return chunks.join("");
 }
 function decode(hex: string): Uint8Array {
-  const bufCtor = (globalThis as unknown as { Buffer?: { from(s: string, enc: "hex"): Uint8Array } }).Buffer;
-  if (bufCtor) {
-    const b = bufCtor.from(hex, "hex");
-    return new Uint8Array(b.buffer, b.byteOffset, b.byteLength);
-  }
   const out = new Uint8Array(hex.length >>> 1);
   for (let i = 0; i < out.byteLength; i++) {
     out[i] = (hexNibble(hex.charCodeAt(i * 2)) << 4) | hexNibble(hex.charCodeAt(i * 2 + 1));

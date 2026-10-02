@@ -1,0 +1,30 @@
+name: Qualify SafeJS
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit or ref to qualify
+        required: false
+        type: string
+        default: ""
+permissions:
+  contents: read
+jobs:
+  unit:
+    name: Complete SafeJS unit suite (Node22)
+    runs-on: ubuntu-24.04
+    env:
+      VITEST_MAX_WORKERS: "1"
+      POE_CHECK_CACHE: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref != '' && inputs.ref || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - name: Run the complete SafeJS workspace and npm lifecycle hooks serially
+        # The maintained route discovers the build closure and all unit files.
+        run: npm test -- --workspace=@poe-code/safe-js --concurrency=1 --no-cache

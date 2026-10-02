@@ -94,7 +94,11 @@ it("embeds VFS images with intrinsic dimensions and supports pandoc.List:include
   const chunk = (name: string, payload: Uint8Array) => { const data = Buffer.concat([Buffer.from(name), payload]); const length = Buffer.alloc(4); length.writeUInt32BE(payload.length); const checksum = Buffer.alloc(4); checksum.writeUInt32BE(crc32(data)); return Buffer.concat([length, data, checksum]); }; const header = Buffer.alloc(13); header.writeUInt32BE(4); header.writeUInt32BE(2, 4); header[8] = 8; header[9] = 6; const pixels = Buffer.alloc(34, 255); pixels[0] = 0; pixels[17] = 0; const png = new Uint8Array(Buffer.concat([Buffer.from([137,80,78,71,13,10,26,10]), chunk("IHDR", header), chunk("IDAT", deflateSync(pixels)), chunk("IEND", new Uint8Array())]));
   const filters = createLuaFilterCapability(async () => new TextEncoder().encode("function Header(h) if not h.classes:includes(\"verified\") then h.classes:insert(\"verified\") end return h end"));
   const resourceFiles = {
-    lstat: async (p: string) => p === "/" ? {type: "directory" as const} : p === "/banner.png" ? {type: "file" as const} : undefined,
+    lstat: async (p: string) => {
+      if (p === "/") return {type: "directory" as const};
+      if (p === "/banner.png") return {type: "file" as const};
+      throw Object.assign(new Error("ENOENT"), {code: "ENOENT"});
+    },
     readFile: async (p: string) => { if (p === "/banner.png") return png; throw Object.assign(new Error("ENOENT"), {code: "ENOENT"}); },
     mkdir: async () => {},
     writeFile: async () => {}

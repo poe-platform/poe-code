@@ -13,3 +13,5 @@ const shell: Shell = new Shell({ fs: new MemoryFileSystem() }).use(exiftoolComma
 void command;
 void bytes;
 await shell.dispose();
+
+import "./safe-packages-op-types.mjs";

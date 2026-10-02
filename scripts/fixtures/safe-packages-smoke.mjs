@@ -340,3 +340,6 @@ assert.throws(() => import.meta.resolve("safe-bash-command-hexdump"), { code: "E
 
 assert.throws(() => import.meta.resolve("safe-bash-command-file"), { code: "ERR_MODULE_NOT_FOUND" });
 assert.throws(() => import.meta.resolve("safe-bash-mime-engine"), { code: "ERR_MODULE_NOT_FOUND" });
+
+assert.throws(() => import.meta.resolve("safe-bash-command-op"), { code: "ERR_MODULE_NOT_FOUND" });
+await (await import("./safe-packages-op.mjs")).verification;

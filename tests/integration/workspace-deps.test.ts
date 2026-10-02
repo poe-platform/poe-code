@@ -75,6 +75,8 @@ describe("workspace dependency completeness", () => {
     });
   });
   it("keeps op node:test files out of Vitest while retaining their maintained workspace task", () => {
+    const config = readJson(path.join(ROOT, "turbo.json")) as { tasks: Record<string, { dependsOn?: string[] }> };
+    expect(config.tasks["safe-bash-command-op#test:unit"]?.dependsOn).toContain("^build");
     expect(rootUnitConfig.test?.exclude).toContain("packages/safe-bash-command-op/src/*.test.ts");
     expect(plan.testStages.filter(stage => stage.name === "safe-bash-command-op")).toEqual([
       { id: "safe-bash-command-op#test:unit", name: "safe-bash-command-op", path: "packages/safe-bash-command-op", event: "test:unit" }

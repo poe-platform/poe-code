@@ -3,7 +3,7 @@
 ## Current delivery contract: explicit command plugin
 
 User direction supersedes standalone delivery: use `opCommands({ backend, ... })`
-from `poe-code/safe-bash/commands/op` with `shell.use(...)`, like other optional
+from `@poe-platform/safe-bash/commands/op` with `shell.use(...)`, like other optional
 tools. The same subpath exports `createObjectBackend` and `createOpCommand`
 (the composed shell `CommandDefinition`). There is no automatic registration,
 native fallback, credential discovery or native config integration.
@@ -83,8 +83,9 @@ and unresolved requirements.
 ## Explicit virtual-shell plugin
 
 ```ts
-import { Shell, createMemoryFileSystem, standardCommands } from "poe-code/safe-bash";
-import { opCommands, createObjectBackend } from "poe-code/safe-bash/commands/op";
+import { Shell, standardCommands } from "@poe-platform/safe-bash";
+import { createMemoryFileSystem } from "@poe-platform/safe-fs";
+import { opCommands, createObjectBackend } from "@poe-platform/safe-bash/commands/op";
 
 const backend = createObjectBackend({
   defaultVault: "demo",

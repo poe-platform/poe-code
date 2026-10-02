@@ -34,7 +34,7 @@ describe("standalone Safe Bash command packaging", () => {
 const extractedAdapters = [
   "xan", "html-to-markdown", "column", "du", "file", "tree", "split", "csplit",
   "pr", "tsort", "factor", "getopt", "hexdump", "iconv", "line-endings", "which",
-  "timeout", "apply-patch",
+  "timeout", "apply-patch", "op",
 ];
 
 describe("extracted command ownership", () => {

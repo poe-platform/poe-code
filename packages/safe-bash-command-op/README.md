@@ -1,7 +1,7 @@
 # op command implementation
 
 Private internal workspace supporting the explicit virtual-shell plugin exported
-by `poe-code/safe-bash/commands/op`. It is not a separately installed or
+by `@poe-platform/safe-bash/commands/op`. It is not a separately installed or
 published `safe-bash-command-op` product and does not register an OS `op` executable.
 The compatibility target is 1Password CLI 2.39.0, not a claim of full parity.
 
@@ -10,8 +10,9 @@ The compatibility target is 1Password CLI 2.39.0, not a claim of full parity.
 Register it explicitly, like other optional command plugins:
 
 ```ts
-import { Shell, createMemoryFileSystem, standardCommands } from "poe-code/safe-bash";
-import { opCommands, createObjectBackend } from "poe-code/safe-bash/commands/op";
+import { Shell, standardCommands } from "@poe-platform/safe-bash";
+import { createMemoryFileSystem } from "@poe-platform/safe-fs";
+import { opCommands, createObjectBackend } from "@poe-platform/safe-bash/commands/op";
 
 const backend = createObjectBackend({
   defaultVault: "demo",

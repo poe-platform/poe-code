@@ -27,7 +27,7 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
           try {
             if (typeof exports.hb_font_destroy === "function") (exports.hb_font_destroy as (p: number) => void)(entry.font);
             if (typeof exports.free === "function") (exports.free as (p: number) => void)(entry.data);
-          } catch {}
+          } catch { /* Cleanup is best effort if a WASM export fails. */ }
         }
       }
       disposed = true;
@@ -74,7 +74,7 @@ export function createFontShaper(context: CapabilityContext, tick: (amount?: num
               for (let i = 0; i < binary.length; i++) decoded[i] = binary.charCodeAt(i);
               return wasm.compile(decoded).finally(() => {
                 if (typeof (decoded.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
-                  try { (decoded.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+                  try { (decoded.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
                 }
               }).catch(error => {
                 compiled = undefined;

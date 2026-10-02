@@ -268,7 +268,7 @@ syncCommandEvaluators.evalSyncEnv = evalSyncEnv;
 syncCommandEvaluators.evalSyncXargs = evalSyncXargs;
 
 const evalSyncChecksum = (...args: any[]) => syncCommandEvaluators.evalSyncChecksum?.(...args);
-const evalSyncBase32 = (...args: any[]) => syncCommandEvaluators.evalSyncBase32?.(...args);
+const evalSyncBase32 = (...args: any[]): Uint8Array | undefined => syncCommandEvaluators.evalSyncBase32?.(...args);
 const evalSyncCsvcut = (...args: any[]) => syncCommandEvaluators.evalSyncCsvcut?.(...args);
 const evalSyncCsvgrep = (...args: any[]) => syncCommandEvaluators.evalSyncCsvgrep?.(...args);
 const evalSyncGetopt = (...args: any[]) => syncCommandEvaluators.evalSyncGetopt?.(...args);

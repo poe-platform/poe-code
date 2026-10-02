@@ -335,7 +335,7 @@ export function evalSyncSplit(
       const fileName = names.next();
       if (!fileName || fileName.endsWith("/") || fileName.endsWith("/.") || fileName.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(fileName)) return undefined;
       const normOut = fileName.replace(/^\.\/+/, "");
-      if (normInput !== undefined && (normOut === normInput || readFileSync?.(fileName) !== undefined)) return undefined;
+      if (normInput !== undefined && (normOut === normInput || readFileSync?.(fileName) === src)) return undefined;
       planned.push({ fileName, chunk });
     }
     const created: string[] = [];

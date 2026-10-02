@@ -611,9 +611,52 @@ export function evalSyncOpenssl(
           return undefined;
         }
       }
-      if (salt.includes("\0") || pw.includes("\0")) return undefined;
-      const digest = sha512(syncOpensslEncoder.encode(`${salt}:${pw}`));
-      return `$6$${salt}$${bytesToBase64(digest)}\n`;
+      if (salt.includes("\0") || pw.includes("\0") || !sawPw) return undefined;
+      let rounds = 5000;
+      let roundPrefix = "";
+      let saltInput = salt;
+      if (saltInput.startsWith("rounds=")) {
+        const separator = saltInput.indexOf("$");
+        const value = saltInput.slice(7, separator);
+        if (separator < 0 || !value || Array.from(value).some(c => !"0123456789".includes(c))) return undefined;
+        rounds = Math.max(1000, Number(value));
+        if (!Number.isSafeInteger(rounds) || rounds > 10000) return undefined;
+        roundPrefix = `rounds=${rounds}$`;
+        saltInput = saltInput.slice(separator + 1);
+      }
+      const cleanSalt = saltInput.split("$")[0]!.slice(0, 16);
+      const p = syncOpensslEncoder.encode(pw);
+      const saltBytes = syncOpensslEncoder.encode(cleanSalt);
+      const repeatBytes = (bytes: Uint8Array, length: number): Uint8Array =>
+        Uint8Array.from({ length }, (_, i) => bytes[i % bytes.length]!);
+      const concat = (...arrays: Uint8Array[]): Uint8Array => {
+        const len = arrays.reduce((s, a) => s + a.length, 0);
+        const out = new Uint8Array(len);
+        let off = 0;
+        for (const a of arrays) { out.set(a, off); off += a.length; }
+        return out;
+      };
+      const alternate = sha512(concat(p, saltBytes, p));
+      const initial: Uint8Array[] = [p, saltBytes, repeatBytes(alternate, p.length)];
+      for (let n = p.length; n > 0; n >>>= 1) initial.push(n & 1 ? alternate : p);
+      let digest: Uint8Array = sha512(concat(...initial));
+      const ph = sha512.create();
+      for (let i = 0; i < p.length; i++) ph.update(p);
+      const sequenceP = repeatBytes(ph.digest(), p.length);
+      const sh = sha512.create();
+      for (let i = 0; i < 16 + digest[0]!; i++) sh.update(saltBytes);
+      const sequenceS = repeatBytes(sh.digest(), saltBytes.length);
+      for (let i = 0; i < rounds; i++) {
+        digest = sha512(concat(i & 1 ? sequenceP : digest, ...(i % 3 ? [sequenceS] : []), ...(i % 7 ? [sequenceP] : []), i & 1 ? digest : sequenceP));
+      }
+      const cryptAlphabet = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+      const groups = [[0,21,42],[22,43,1],[44,2,23],[3,24,45],[25,46,4],[47,5,26],[6,27,48],[28,49,7],[50,8,29],[9,30,51],[31,52,10],[53,11,32],[12,33,54],[34,55,13],[56,14,35],[15,36,57],[37,58,16],[59,17,38],[18,39,60],[40,61,19],[62,20,41],[-1,-1,63,2]];
+      let encoded = "";
+      for (const [a, b, c, count = 4] of groups) {
+        let word = ((digest[a!] ?? 0) << 16) | ((digest[b!] ?? 0) << 8) | ((digest[c!] ?? 0));
+        for (let i = 0; i < count; i++, word >>>= 6) encoded += cryptAlphabet[word & 63];
+      }
+      return `$6$${roundPrefix}${cleanSalt}$${encoded}\n`;
     }
 
     return undefined;

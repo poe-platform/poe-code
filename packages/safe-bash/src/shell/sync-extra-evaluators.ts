@@ -17893,42 +17893,45 @@ const syncExtraRuntimeMethods = {
         rawState.status = cachedInv.exitStatus;
         return cachedInv.text;
       }
-      const cmd = part.script.lists[0]!.pipelines[0]!.commands[0] as Extract<Command, { kind: "simple" }>;
+      const p0 = part.script.lists[0]!.pipelines[0]!;
+      const cmd = p0.commands[0] as Extract<Command, { kind: "simple" }>;
       const w0Plain = cmd.words[0]!.plain!;
-      if (w0Plain === "echo" && cmd.words.length === 2) {
-        const wVal = this.fastValueWord(cmd.words[1]!, state, io, true, false, false, true, undefined, part.line);
-        if (typeof wVal === "string" && !wVal.startsWith("-") && !wVal.includes("\0")) {
-          const byteLength = wVal.length + 1;
+      if (p0.commands.length === 1 && cmd.redirects.length === 0 && (w0Plain === "echo" || w0Plain === "printf")) {
+        if (w0Plain === "echo" && cmd.words.length === 2) {
+          const wVal = this.fastValueWord(cmd.words[1]!, state, io, true, false, false, true, undefined, part.line);
+          if (typeof wVal === "string" && !wVal.startsWith("-") && !wVal.includes("\0")) {
+            const byteLength = wVal.length + 1;
+            const nextBytes = this.budget.bytes + byteLength;
+            if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+            this.budget.bytes = nextBytes;
+            this.budget.tick();
+            rawState.substitutionStatus = 0;
+            rawState.status = 0;
+            let end = wVal.length;
+            while (end > 0 && wVal.charCodeAt(end - 1) === 10) end--;
+            return end === wVal.length ? wVal : wVal.slice(0, end);
+          }
+        }
+        fastSubScratchArgs.length = 0;
+        for (let i = 1; i < cmd.words.length; i++) {
+          const val = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
+          if (typeof val !== "string") { fastSubScratchArgs.length = 0; return undefined; }
+          fastSubScratchArgs.push(val);
+        }
+        const formatted = w0Plain === "printf" ? tryFastPrintf(fastSubScratchArgs) : tryFastEcho(fastSubScratchArgs);
+        fastSubScratchArgs.length = 0;
+        if (formatted !== undefined) {
+          const byteLength = formatted.length;
           const nextBytes = this.budget.bytes + byteLength;
           if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
           this.budget.bytes = nextBytes;
           this.budget.tick();
           rawState.substitutionStatus = 0;
           rawState.status = 0;
-          let end = wVal.length;
-          while (end > 0 && wVal.charCodeAt(end - 1) === 10) end--;
-          return end === wVal.length ? wVal : wVal.slice(0, end);
+          let end = formatted.length;
+          while (end > 0 && formatted.charCodeAt(end - 1) === 10) end--;
+          return end === formatted.length ? formatted : formatted.slice(0, end);
         }
-      }
-      fastSubScratchArgs.length = 0;
-      for (let i = 1; i < cmd.words.length; i++) {
-        const val = this.fastValueWord(cmd.words[i]!, state, io, true, false, false, true, undefined, part.line);
-        if (typeof val !== "string") { fastSubScratchArgs.length = 0; return undefined; }
-        fastSubScratchArgs.push(val);
-      }
-      const formatted = w0Plain === "printf" ? tryFastPrintf(fastSubScratchArgs) : tryFastEcho(fastSubScratchArgs);
-      fastSubScratchArgs.length = 0;
-      if (formatted !== undefined) {
-        const byteLength = formatted.length;
-        const nextBytes = this.budget.bytes + byteLength;
-        if (nextBytes > this.budget.maxOutputBytesSmi && byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
-        this.budget.bytes = nextBytes;
-        this.budget.tick();
-        rawState.substitutionStatus = 0;
-        rawState.status = 0;
-        let end = formatted.length;
-        while (end > 0 && formatted.charCodeAt(end - 1) === 10) end--;
-        return end === formatted.length ? formatted : formatted.slice(0, end);
       }
     }
     if (this.middleware.length > 0) return undefined;

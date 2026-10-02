@@ -6,6 +6,22 @@ import { toByteSource, type CommandContext, type FileSystem } from "safe-bash-co
 import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
 import { createDos2unixCommand, createUnix2dosCommand, evalSyncLineEndings, type LineEndingLimits } from "./index.js";
 
+test("sync conversion preserves ascii flags and defers non-ascii modes without writes", () => {
+  const encoder = new TextEncoder();
+  const source = encoder.encode("first\r\nsecond\r\n");
+  for (const args of [[], ["-cascii"], ["-c", "ASCII"], ["--convmode=ascii"], ["--convmode", "ascii"]]) {
+    assert.deepEqual(evalSyncLineEndings("dos2unix", source, args), encoder.encode("first\nsecond\n"));
+  }
+  assert.deepEqual(evalSyncLineEndings("unix2dos", encoder.encode("first\nsecond"), ["-e"]), encoder.encode("first\r\nsecond\r\n"));
+  for (const name of ["dos2unix", "unix2dos"] as const) {
+    for (const args of [["-cmac"], ["-c", "mac"], ["--convmode=mac"], ["--convmode", "iso"]]) {
+      let reads = 0, writes = 0;
+      assert.equal(evalSyncLineEndings(name, source, [...args, "-q", "input"], () => {reads++;return source;}, () => {writes++;return true;}), undefined);
+      assert.equal(reads, 0);assert.equal(writes, 0);
+    }
+  }
+});
+
 test('the command workspace owns synchronous line-ending registration', () => {
   assert.equal(syncCommandEvaluators.evalSyncLineEndings, evalSyncLineEndings);
   assert.deepEqual(syncCommandEvaluators.evalSyncLineEndings!('dos2unix', Uint8Array.of(65, 13, 10), []), Uint8Array.of(65, 10));

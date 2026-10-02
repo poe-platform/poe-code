@@ -223,6 +223,10 @@
     "./terminal/input": {
       "types": "./dist/terminal-input.d.ts",
       "import": "./dist/terminal-input.js"
+    },
+    "./terminal/driver": {
+      "types": "./dist/terminal-driver.d.ts",
+      "import": "./dist/terminal-driver.js"
     }
   },
   "scripts": {

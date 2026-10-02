@@ -1,3 +1,5 @@
+mod terminal_driver;
+pub use terminal_driver::*;
 mod terminal_input;
 pub use terminal_input::*;
 mod frame_writer;

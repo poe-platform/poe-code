@@ -93,6 +93,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `screen/ansi-text` | Convert styled terminal output and cursor edits into grapheme-aware screen cells |
 | `terminal/output` | Write synchronized frames and restore terminal modes on close, signals and fatal errors |
 | `terminal/input` | Parse chunked UTF-8, navigation, modifiers, paste, mouse wheel and timed Escape events |
+| `createTerminalDriver` | Connect input, synchronized output, resize notifications and terminal restoration |
 
 Only own view properties are visible. Lazy getters, lambda receivers, array
 iterator overrides and iterator cleanup preserve host behavior. Partial cycles

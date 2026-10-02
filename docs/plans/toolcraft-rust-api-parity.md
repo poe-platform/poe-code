@@ -1028,3 +1028,26 @@ on remote main; optional compilation and a fresh playground kernel bundle pass.
 The public memory export had already been restored by 69c3414d17. The maintained
 whole-unit route is running again. Release 36975507223 completed its build but
 skipped validation and publication; this is not a verified publication.
+
+
+`createTerminalDriver` now has root and `terminal/driver` exports, composing the
+native input parser and frame writer. Rust owns start/stop transitions and finite
+geometry normalization; Node retains streams, subscriptions and live Set iteration.
+Tests preserve stream operation order, repeated starts/stops, partial start
+failures, dimension getter order and listener removal/addition during dispatch.
+All 218 native host tests and 589 selected original tests pass, with public type
+parity, Rust/binding/JS lint and standalone packed runtime/types. The driver
+screenshot was inspected and its ANSI transcript matches the reference.
+
+A warmed alternating five-round benchmark (100,000 getSize calls per round)
+measured 0.00009295 ms native versus 0.000006783 ms reference (13.70x); no
+performance gate passed. No dependencies changed. Input and driver APIs remain
+additive; patched globals/intrinsics and full runtime/platform qualification are
+still required before changing defaults.
+
+The maintained whole-unit route reached root tests: 4,441 tests passed, 3 failed,
+and 39 files failed overall. Most collection failures concern unresolved
+workspace-local filesystem import aliases; one cache test and two Safe Bash
+workerd probes also failed. These are being validated against current main.
+Release 36975809073 completed successfully but skipped release-stable, so it does
+not verify publication. Its public job graph was checked after the API rate limit.

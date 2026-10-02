@@ -126,3 +126,5 @@ export {packStyle,styleToSgrDelta} from "./screen-style.js";
 export type {PackedStyle} from "./screen-style.js";
 
 export {Screen, type Cell as ScreenCell, type ScreenSize, type ScreenSurface} from "./screen.js";
+
+export {createTerminalDriver,type TerminalDriver,type TerminalInputEvent,type Size as TerminalSize} from "./terminal-driver.js";

@@ -107,3 +107,5 @@ export {renderPlaintext} from "./plaintext.js";
 export {packStyle,styleToSgrDelta} from "./screen-style.js";
 
 export {Screen} from "./screen.js";
+
+export {createTerminalDriver} from "./terminal-driver.js";

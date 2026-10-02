@@ -480,3 +480,13 @@ import type * as originalTerminalInput from "toolcraft-design/terminal/input";
 const terminalInputForward:typeof originalTerminalInput=terminalInput;
 const terminalInputReverse:typeof terminalInput=null as unknown as typeof originalTerminalInput;
 void [terminalInputForward,terminalInputReverse];
+
+import * as terminalDriver from "toolcraft-design-rust/terminal/driver";
+import type * as originalTerminalDriver from "toolcraft-design/terminal/driver";
+const terminalDriverForward:typeof originalTerminalDriver=terminalDriver;
+const terminalDriverReverse:typeof terminalDriver=null as unknown as typeof originalTerminalDriver;
+const driverFromRoot:typeof terminalDriver.createTerminalDriver=design.createTerminalDriver;
+const driverSize:design.TerminalSize={cols:80,rows:24};
+const driverEvent:design.TerminalInputEvent={type:"paste",text:"text"};
+const driverPublic:design.TerminalDriver=terminalDriver.createTerminalDriver();
+void [terminalDriverForward,terminalDriverReverse,driverFromRoot,driverSize,driverEvent,driverPublic];

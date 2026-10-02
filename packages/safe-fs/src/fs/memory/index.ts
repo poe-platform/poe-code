@@ -375,13 +375,6 @@ class FastDirectoryEntriesMap implements Map<string, MemoryNode> {
 
 const SHARED_POOL_CAPACITY = 256;
 const SHARED_DIR_POOL_CAPACITY = 64;
-const sharedAllocationPool: MemoryAllocation[] = new Array<MemoryAllocation>(SHARED_POOL_CAPACITY).fill(DUMMY_POOL_ALLOCATION);
-let sharedAllocationPoolLen = 0;
-const SHARED_LARGE_POOL_CAPACITY = 8;
-const sharedLargeAllocationPool: MemoryAllocation[] = new Array<MemoryAllocation>(SHARED_LARGE_POOL_CAPACITY).fill(DUMMY_POOL_ALLOCATION);
-let sharedLargeAllocationPoolLen = 0;
-const sharedMediumAllocationPool: MemoryAllocation[] = new Array<MemoryAllocation>(SHARED_LARGE_POOL_CAPACITY).fill(DUMMY_POOL_ALLOCATION);
-let sharedMediumAllocationPoolLen = 0;
 const sharedFileNodePool: MemoryFileNode[] = new Array<MemoryFileNode>(SHARED_POOL_CAPACITY).fill(DUMMY_POOL_FILE_NODE);
 let sharedFileNodePoolLen = 0;
 const sharedDirectoryNodePool: MemoryDirectoryNode[] = new Array<MemoryDirectoryNode>(SHARED_DIR_POOL_CAPACITY);
@@ -402,26 +395,8 @@ function collectRemovedChild(child: MemoryNode, name: string): void {
 }
 
 function replenishSharedMemoryPools(): void {
-  while (sharedAllocationPoolLen < 112) {
-    DUMMY_POOL_LEDGER.reserve(64, 0, "init", "/");
-    const alloc = new MemoryAllocation(new Uint8Array(64), DUMMY_POOL_LEDGER);
-    alloc.release();
-    sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
-  }
   while (sharedFileNodePoolLen < 112) {
     sharedFileNodePool[sharedFileNodePoolLen++] = new MemoryFileNode(0, 0, 0, 0, DUMMY_POOL_ALLOCATION, undefined);
-  }
-  while (sharedLargeAllocationPoolLen < 4) {
-    DUMMY_POOL_LEDGER.reserve(65536, 0, "init", "/");
-    const alloc = new MemoryAllocation(new Uint8Array(65536), DUMMY_POOL_LEDGER);
-    alloc.release();
-    sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = alloc;
-  }
-  while (sharedMediumAllocationPoolLen < 4) {
-    DUMMY_POOL_LEDGER.reserve(16384, 0, "init", "/");
-    const alloc = new MemoryAllocation(new Uint8Array(16384), DUMMY_POOL_LEDGER);
-    alloc.release();
-    sharedMediumAllocationPool[sharedMediumAllocationPoolLen++] = alloc;
   }
   while (sharedDirectoryNodePoolLen < 16) {
     sharedDirectoryNodePool[sharedDirectoryNodePoolLen++] = new MemoryDirectoryNode(0, 0, 0);
@@ -505,7 +480,6 @@ interface WriteTarget {
 }
 
 class MemoryCache {
-  readonly allocations: MemoryAllocation[] = [];
   readonly files: FileNode[] = [];
   readonly directories: DirectoryNode[] = [];
   readonly removedScratch: MemoryNode[] = [];
@@ -1019,19 +993,6 @@ export class MemoryFileSystem implements FileSystem {
       node.sourceRef = undefined;
       node.allocation = DUMMY_POOL_ALLOCATION;
       alloc.release();
-      if (alloc.isReleased64()) {
-        alloc.detachLedger(DUMMY_POOL_LEDGER);
-        if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
-          sharedAllocationPool[sharedAllocationPoolLen++] = alloc;
-        } else if (cache.allocations.length < 128) {
-          cache.allocations.push(alloc);
-        }
-      } else if (alloc.isReleased65536()) {
-        alloc.detachLedger(DUMMY_POOL_LEDGER);
-        if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen < SHARED_LARGE_POOL_CAPACITY) {
-          sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = alloc;
-        }
-      }
       if (sharedFileNodePoolLen < SHARED_POOL_CAPACITY) {
         sharedFileNodePool[sharedFileNodePoolLen++] = node;
       } else if (cache.files.length < 128) {
@@ -1069,17 +1030,6 @@ export class MemoryFileSystem implements FileSystem {
     node.view = length === allocation.data.byteLength ? allocation.data : undefined;
     node.allocation = allocation;
     previous.release();
-    if (previous.isReleased64()) {
-      previous.detachLedger(DUMMY_POOL_LEDGER);
-      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen < SHARED_POOL_CAPACITY) {
-        sharedAllocationPool[sharedAllocationPoolLen++] = previous;
-      }
-    } else if (previous.isReleased65536()) {
-      previous.detachLedger(DUMMY_POOL_LEDGER);
-      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen < SHARED_LARGE_POOL_CAPACITY) {
-        sharedLargeAllocationPool[sharedLargeAllocationPoolLen++] = previous;
-      }
-    }
   }
 
   private admitSize(node: FileNode | undefined, length: number, syscall: string, path: string): void {
@@ -1416,35 +1366,7 @@ export class MemoryFileSystem implements FileSystem {
     if (length === 0) {
       return DUMMY_POOL_ALLOCATION;
     }
-    if (length === 16384) {
-      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedMediumAllocationPoolLen > 0) {
-        const pooled = sharedMediumAllocationPool[--sharedMediumAllocationPoolLen]!;
-        sharedMediumAllocationPool[sharedMediumAllocationPoolLen] = DUMMY_POOL_ALLOCATION;
-        pooled.reuse(this.ledger);
-        return pooled;
-      }
-    }
-    if (length === 65536) {
-      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedLargeAllocationPoolLen > 0) {
-        const pooled = sharedLargeAllocationPool[--sharedLargeAllocationPoolLen]!;
-        sharedLargeAllocationPool[sharedLargeAllocationPoolLen] = DUMMY_POOL_ALLOCATION;
-        pooled.reuse(this.ledger);
-        return pooled;
-      }
-    }
-    if (length === 64) {
-      let pooled: MemoryAllocation | undefined;
-      if (this.ledger.hasInfiniteRetained && this.ledger.hasInfiniteFileBytes && sharedAllocationPoolLen > 0) {
-        pooled = sharedAllocationPool[--sharedAllocationPoolLen]!;
-        sharedAllocationPool[sharedAllocationPoolLen] = DUMMY_POOL_ALLOCATION;
-      } else {
-        pooled = memoryCaches.get(this.ledger)!.allocations.pop();
-      }
-      if (pooled) {
-        pooled.reuse(this.ledger);
-        return pooled;
-      }
-    }
+    // Views can outlive files: never recycle their backing buffers across owners.
     try {
       return new MemoryAllocation(new Uint8Array(length), this.ledger);
     } catch (cause) {

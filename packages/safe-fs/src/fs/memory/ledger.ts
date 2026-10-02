@@ -104,24 +104,6 @@ export class MemoryAllocation {
       this.ledger.release(this.data.byteLength, 0);
     }
   }
-
-  isReleased64(): boolean {
-    return this.references === 0 && this.data.byteLength === 64;
-  }
-
-  isReleased65536(): boolean {
-    return this.references === 0 && this.data.byteLength === 65536;
-  }
-
-  detachLedger(dummyLedger: MemoryLedger): void {
-    this.ledger = dummyLedger;
-  }
-
-  reuse(ledger?: MemoryLedger): void {
-    this.references = 1;
-    if (ledger !== undefined) this.ledger = ledger;
-    this.data.fill(0);
-  }
 }
 Object.assign(MemoryAllocation.prototype, {
   references: 1,

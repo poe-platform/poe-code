@@ -17,7 +17,7 @@ import { cancelTurn, hasYieldCheckpoint, inheritYieldCheckpoint, monotonicNow, r
 import {
   ACCESS_MODES, FsError, basename, composeMiddleware, createBytePipe, dirname, normalizePath, pipeBytes, resolvePath, validateExitCode, writeBytes, writeText, } from "../contracts/index.js";
 import type {
-  ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, Middleware, } from "../contracts/index.js";
+  ByteSink, ByteSource, CommandContext, CommandDefinition, CommandInvoker, CommandRegistry, CommandResult, FileSystem, FileType, Middleware, } from "../contracts/index.js";
 import { concatShellValues, shellValueByteLength, shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import { createCommandArguments, getCommandArguments } from "../contracts/command.js";
@@ -31971,12 +31971,12 @@ export class Runtime {
     const absolute = pattern.startsWith("/");
     const work: StringWork = { remaining: Math.min(Number.MAX_SAFE_INTEGER, this.budget.limits.maxExpansionBytes * 4 + 1024), signal: this.signal, exhausted: (): never => this.budget.fail("maxExpansionBytes") };
     let candidates = [absolute ? "/" : ""];
-    let candidateTypes: ("file" | "directory" | "symlink")[] | undefined;
+    let candidateTypes: FileType[] | undefined;
     for (const segment of pattern.split("/").filter((segment) => segment.length > 0)) {
       const next: string[] = [];
-      let nextTypes: ("file" | "directory" | "symlink")[] | undefined;
+      let nextTypes: FileType[] | undefined;
       let candidateBytes = 0;
-      const addCandidate = (candidate: string, type?: "file" | "directory" | "symlink"): void => {
+      const addCandidate = (candidate: string, type?: FileType): void => {
         const size = shellValueByteLength(candidate);
         if (size > this.budget.limits.maxExpansionBytes - candidateBytes) this.budget.fail("maxExpansionBytes");
         candidateBytes += size;

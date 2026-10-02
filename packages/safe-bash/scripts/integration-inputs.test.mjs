@@ -1189,12 +1189,16 @@ function assertSource7Discovery(files) {
   for (const path of [
     "tests/commands/dd/dd.test.ts",
     "tests/commands/dd/descriptor.test.ts",
-    "tests/commands/dd/io.test.ts",
     "tests/commands/dd/native.test.ts",
     "tests/commands/dd/oracle-hygiene.test.ts",
-    "tests/commands/dd/report.test.ts",
     "tests/commands/dd/review.test.ts",
   ]) assert.ok(files.includes(path), "optional dd test is missing: " + path);
+  for (const name of ["io", "report", "optional-limits"]) {
+    assert.ok(fs.existsSync(new URL(`../../safe-bash-command-dd/src/${name}.test.ts`, import.meta.url)), `dd workspace suite missing: ${name}`);
+  }
+  for (const name of ["adversarial", "limits", "render", "repair"]) {
+    assert.ok(fs.existsSync(new URL(`../../safe-bash-command-html-to-markdown/src/${name}.test.ts`, import.meta.url)), `html-to-markdown workspace suite missing: ${name}`);
+  }
   for (const path of [
     "tests/fs/devices/devices.test.ts",
     "tests/fs/devices/native.test.ts",

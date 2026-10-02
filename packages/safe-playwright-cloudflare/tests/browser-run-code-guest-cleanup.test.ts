@@ -32,6 +32,7 @@ vi.mock("@cloudflare/playwright", () => {
     }
   };
 });
+vi.mock("#safe-playwright-provider", () => import("@cloudflare/playwright"));
 import Guest from "../src/browser-run-code-guest.js";
 
 const metadata = {

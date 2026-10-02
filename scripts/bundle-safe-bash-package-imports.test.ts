@@ -25,7 +25,7 @@ it("bundles the portable runtime behind a declaration-only root package import",
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect(imports.filter(edge => edge.external).map(edge => edge.path)).not.toContain("#safe-js-platform");
   const consumer = { exports: { hostPlatform: undefined } };
-  runInNewContext(result.outputFiles![0]!.text, { module: consumer, exports: consumer.exports, structuredClone, setTimeout });
+  runInNewContext(result.outputFiles![0]!.text, { module: consumer, exports: consumer.exports, require: () => ({}), structuredClone, setTimeout });
   expect(consumer.exports.hostPlatform).toBe("workerd");
 });
 

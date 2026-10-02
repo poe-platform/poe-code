@@ -2,6 +2,7 @@ import {
   builtInDirectContextExecutors, commandRuntimeIdentity, FsError, getCommandArguments, isFsError, writeBytes,
   type CommandContext, type CommandDefinition, type VirtualShellPlugin,
 } from "safe-bash-contracts";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { shellValueByteLength } from "safe-bash-contracts/value";
 
 export interface YesCommandOptions {
@@ -109,17 +110,8 @@ export function createYesCommand(options: YesCommandOptions = {}): CommandDefini
           record = batch;
         }
       }
-      let timer: ReturnType<typeof setTimeout> | undefined;
-      let resume: (() => void) | undefined;
       let closed = false;
-      const cleanup = (): void => {
-        closed = true;
-        if (timer !== undefined) clearTimeout(timer);
-        timer = undefined;
-        const pending = resume;
-        resume = undefined;
-        pending?.();
-      };
+      const cleanup = (): void => { closed = true; };
       context.registerCleanup?.(cleanup);
       try {
         do {
@@ -130,10 +122,7 @@ export function createYesCommand(options: YesCommandOptions = {}): CommandDefini
             context.signal.throwIfAborted();
             if (selected.kind === "repeat") {
               if (closed) throw new FsError("ECANCELED");
-              await new Promise<void>(resolve => {
-                resume = resolve;
-                timer = setTimeout(() => { timer = undefined; resume = undefined; resolve(); }, 0);
-              });
+              await yieldTurn(context.signal);
             }
           }
         } while (selected.kind === "repeat");

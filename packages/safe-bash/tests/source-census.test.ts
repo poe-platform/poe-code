@@ -116,3 +116,17 @@ test("source census refuses adapter symlinks before reading payloads", () => {
     assert.equal(state.reads.includes("/outside"), false);
   }
 });
+
+
+test("source census retains per-file limits after evaluator extraction", () => {
+  for (const [path, maximum] of [["src/shell/sync-extra-evaluators.ts", 2 * 1024 * 1024], ["src/shell/other-evaluator.ts", 1024 * 1024]] as const) {
+    const state = fixture();
+    state.write(path, "fixture");
+    const reader: SourceInputFileSystem = { ...state.reader, lstatSync(absolute) {
+      const stat = state.reader.lstatSync(absolute);
+      return absolute === "/candidate/" + path ? { isFile: () => true, isDirectory: () => false, size: maximum + 1 } : stat;
+    } };
+    assert.throws(() => collectSourceInputs("/candidate", reader), /unadmitted type-input file or size/);
+    assert.equal(state.reads.includes("/candidate/" + path), false);
+  }
+});

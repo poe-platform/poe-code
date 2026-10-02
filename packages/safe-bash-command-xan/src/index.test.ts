@@ -197,3 +197,11 @@ test('groupby sums salary columns without requiring an alias', async () => {
   exitCode: 0, stderr: '', stdout: 'dept,sum(salary)\nengineering,230\nsales,100\n'
  });
 });
+
+for (const options of [[], ['-s', 'name'], ['-n'], ['--help']]) {
+ test(`view aliases table with ${options.join(' ')}`, async () => {
+  const expected = await run(['table', ...options]);
+  assert.equal(expected.exitCode, 0);
+  assert.deepEqual(await run(['view', ...options]), expected);
+ });
+}

@@ -65,15 +65,22 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
     for (const st of stylesXml.matchAll(/<w:style\b([^>]*?)>([\s\S]*?)<\/w:style>/g)) {
       const idMatch = /\bw:styleId="([^"]+)"/.exec(st[1] ?? "");
       const nameMatch = /<w:name\b[^>]*?\bw:val="([^"]+)"/.exec(st[2] ?? "");
+      const szMatch = /<w:sz\b[^>]*?\bw:val="(\d+)"/.exec(st[2] ?? "");
+      const szVal = szMatch ? Number.parseInt(szMatch[1]!, 10) : 0;
+      const isBold = /<w:b(?:\s|\/>|>)/.test(st[2] ?? "");
       const styleId = idMatch?.[1] ?? "";
       const styleName = (nameMatch?.[1] ?? "").toLowerCase();
       if (
         styleId &&
+        styleId.toLowerCase() !== "normal" &&
         (styleName.startsWith("heading") ||
+          styleName.includes("section") ||
           styleName === "title" ||
           styleName === "subtitle" ||
           /^heading/i.test(styleId) ||
-          /^title$/i.test(styleId))
+          /^title$/i.test(styleId) ||
+          szVal >= 26 ||
+          (isBold && szVal >= 24))
       ) {
         headingStyleIds.add(styleId.toLowerCase());
       }

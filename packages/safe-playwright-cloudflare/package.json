@@ -17,7 +17,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && node --import tsx scripts/build-browser-run-code-guest.ts && tsc -p tsconfig.json",
+    "build": "node ../../scripts/guard-package-dist.mjs && node --import tsx scripts/build-browser-run-code-guest.ts && tsc -p tsconfig.json && cp src/browser-provider.generated.d.ts dist/browser-provider.generated.d.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "pretest:unit": "node --import tsx scripts/build-browser-run-code-guest.ts",
     "test:unit": "vitest run --config vitest.config.ts",
@@ -90,10 +90,10 @@
   },
   "imports": {
     "#safe-playwright-provider": {
-      "types": "./dist/browser-provider.node.d.ts",
+      "types": "./dist/browser-provider.generated.d.ts",
       "workerd": "./dist/browser-provider.generated.js",
       "browser": "./dist/browser-provider.generated.js",
-      "default": "./dist/browser-provider.node.js"
+      "default": "./dist/browser-provider.generated.js"
     }
   }
 }

@@ -19,11 +19,11 @@ const adapter = createCloudflarePlaywrightAdapter(
 const cli = createPlaywrightCli({ adapter, limits: { maxSessions: 2, maxTabs: 8 } });
 ```
 
-Provide a Browser Run binding and select the `workerd` export. It includes the
-qualified provider and runs without `nodejs_compat`, including binary uploads.
+Provide a Browser Run binding and select the `workerd` export to run without
+`nodejs_compat`, including binary uploads. Both export routes use the same
+qualified portable provider.
 The adapter requires Cloudflare Workers runtime APIs.
-Install exactly `@cloudflare/playwright@1.3.6` for the Node route or provider
-TypeScript declarations.
+Install exactly `@cloudflare/playwright@1.3.6` for provider TypeScript declarations.
 Supply a Worker Loader binding for `run-code`. The public
 types target Worker projects using TypeScript's `Bundler` module resolution and
 Cloudflare Workers types. `run-code` reports an unavailable binding if no loader
@@ -64,23 +64,16 @@ message contains only fixed phase names, without session IDs or protocol data.
 An optional second argument supplies `loadState(session, signal)`. Explicit
 `contextOptions.storageState`, including an empty state, overrides that callback.
 The fourth argument optionally bounds storage restoration bytes; omitted limits
-and explicit `Infinity` are unlimited. It also accepts `artifactFileSystem`, a
-safe-fs `FileSystem` supplied by the host that accesses the **same local
-`/tmp` files** written by the native Playwright provider. The browser provider
-automatically supplies its own memory-backed filesystem for trace capture.
-Native trace capture requires the host binding and retained reads (`openReadFile`);
-without it tracing reports an unavailable filesystem. Screenshots and PDFs
-return provider bytes directly. A separate memory filesystem cannot read native
-Playwright output. Capture performs its file I/O through safe-fs.
+and explicit `Infinity` are unlimited. The bundled provider automatically supplies
+its own memory-backed filesystem for trace capture. Leave `artifactFileSystem`
+unset to use that filesystem; an override must access the same files written by
+the provider and support retained reads (`openReadFile`). Screenshots and PDFs
+return provider bytes directly. Capture performs its file I/O through safe-fs.
 
 The fourth argument also accepts `traceCapture: "archive"`. This explicitly
 selects the standard CLI's `tracing-start` / `tracing-stop` ZIP artifact flow,
 without per-command live trace files. Omission or `"live"` preserves live
 capture, which requires authoritative pathname and retained-file identity.
-The bundled Workerd/browser provider supplies its own memory filesystem; leave
-`artifactFileSystem` unset for that provider. Native Node providers require
-`artifactFileSystem: new RealFileSystem({ root: "/" })` from
-`@poe-platform/safe-fs/fs/real` so capture reads their actual output files.
 Archive capture awaits the trusted provider in a private temporary directory,
 reads the completed file through one retained handle, and always removes the
 directory. Its artifact byte limit bounds the completed compressed output.
@@ -92,8 +85,6 @@ integers or `Infinity`. Each omitted trace limit defaults to `Infinity`.
 archive paths, nesting, extended headers, and text through the ZIP codec; ZIP
 format constraints still apply.
 Trace budgeting uses the browser provider's memory filesystem automatically.
-For the native route, `artifactFileSystem` must access the same storage as the
-native recorder.
 Omitting `traceLimits` preserves the existing provider behavior.
 `maxBytes` admits raw trace files, queued replacement versions, and retained
 call-stack, request, and page-metadata records. `maxFiles` bounds those retained

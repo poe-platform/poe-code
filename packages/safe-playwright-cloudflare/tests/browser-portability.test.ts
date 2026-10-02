@@ -2,6 +2,7 @@ import { expect, test } from 'vitest';
 import { build } from 'esbuild';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFile } from 'node:fs/promises';
 
 const root = fileURLToPath(new URL('../../../', import.meta.url));
 test('the adapter graph bundles for workerd without Node builtins', async () => {
@@ -24,6 +25,19 @@ test('the generated provider bundles without native runtime imports', async () =
     entryPoints: [path.join(root, 'packages/safe-playwright-cloudflare/src/browser-provider.generated.js')],
     bundle: true, write: false, metafile: true, platform: 'browser', conditions: ['workerd', 'browser'],
     format: 'esm', target: 'es2022', external: ['cloudflare:workers'], logLevel: 'silent',
+  });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect([...new Set(imports.filter(entry => entry.external).map(entry => entry.path))]).toEqual(['cloudflare:workers']);
+});
+
+test('the default provider route also bundles without Node builtins', async () => {
+  const directory = path.join(root, 'packages/safe-playwright-cloudflare');
+  const manifest = JSON.parse(await readFile(path.join(directory, 'package.json'), 'utf8'));
+  const entry = path.join(directory, 'src', path.basename(manifest.imports['#safe-playwright-provider'].default));
+  const result = await build({
+    entryPoints: [entry], bundle: true, write: false, metafile: true,
+    platform: 'browser', format: 'esm', target: 'es2022',
+    external: ['cloudflare:workers'], logLevel: 'silent',
   });
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
   expect([...new Set(imports.filter(entry => entry.external).map(entry => entry.path))]).toEqual(['cloudflare:workers']);

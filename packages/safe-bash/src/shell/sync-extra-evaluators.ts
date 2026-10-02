@@ -16,13 +16,14 @@ import { byteLength, byteLength as utf8ByteLength } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { invocationScope, type InvocationScope } from "./cleanup.js";
 import { ACCESS_MODES, basename, dirname, isPathWithin, normalizePath, relativePath, resolvePath, writeText } from "../contracts/index.js";
+import type { CommandArguments } from "../contracts/command.js";
 import type { ByteSink, ByteSource, CommandContext, CommandRegistry, CommandResult, FileSystem } from "../contracts/index.js";
 import { shellValueBytes, shellValueFromBytes, shellValueText } from "../contracts/value.js";
 import type { ShellValue, ValueReservation } from "../contracts/value.js";
 import type { AndOr, HereDocument, Pipeline, Redirect, Script, Word } from "./parser.js";
 import { compoundEntryWords, parseArithmeticExpansion, parseArraySubscript, parseCompoundArrayValue, parseShellUnit } from "./parser.js";
 import { ShellLimitError } from "./types.js";
-import type { ShellCommandContext } from "./types.js";
+import type { ShellCommandContext, ShellInvokeOptions } from "./types.js";
 import { ShellInput } from "./input.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { isCleanAbsolutePath, tryOpenMemoryRedirectHandleSync, tryResolveMemoryDevicePath, tryWriteMemoryFileInDirSync, type MemoryRedirectHandle } from "@poe-code/safe-fs/runtime-core";
@@ -57,7 +58,7 @@ import {
   specialBuiltinNames, commandSpelling, publishCommandSpelling, budgetedSinks, syncSinks,
   devNullSyncSink, EMPTY_CAPTURE_BYTES, Capture, type SavedVariable, typedSavedVariables,
   syncLocalArrayVariables, valueScope, invokedValues, functionDiagnostics,
-  captureCallerFrame, type IO, Flow, completedExit, CommandFailure, BudgetedSyncSink,
+  captureCallerFrame, type IO, type RuntimeOutcomeFrame, Flow, completedExit, CommandFailure, BudgetedSyncSink,
   MemoryRedirectSink, BudgetedPipeStageSink, bindCommandIO, declarationArrays, NEVER_ABORTED_SIGNAL, shellKeywords, signalSink,
   cloneGetoptsBinding, saveVariable, hasUnpreparedLocals, hasUnpreparedLocal,
   hasActiveVariableAttributes, resolveSyncNameref, tryRestoreVariableSync,
@@ -2650,7 +2651,7 @@ export class FastShellCommandContext {
   declare stdinIsDefault?: boolean | undefined;
   declare stdout: ByteSink;
   declare private _stderr: ByteSink | undefined;
-  declare descriptors: ReadonlyMap<number, Descriptor> | undefined;
+  declare descriptors: IO["descriptors"];
   declare command: string;
   declare args: readonly string[];
   declare private _env: Record<string, string> | undefined;
@@ -2884,10 +2885,7 @@ export class FastShellCommandContext {
   }
   get fs(): FileSystem {
     const self = this._self ?? this;
-    if (!self._contextFs) {
-      self._contextFs = self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
-    }
-    return self._contextFs;
+    return self._contextFs ??= self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
   }
   set fs(replacement: FileSystem) {
     (this._self ?? this)._contextFs = replacement;
@@ -2901,8 +2899,7 @@ export class FastShellCommandContext {
   }
   get shellPredicates(): NonNullable<CommandContext["shellPredicates"]> {
     const self = this._self ?? this;
-    if (!self._cachedPredicates) self._cachedPredicates = self._runtime.createShellPredicatesForFast(self._state, self._io);
-    return self._cachedPredicates;
+    return self._cachedPredicates ??= self._runtime.createShellPredicatesForFast(self._state, self._io);
   }
   set shellPredicates(replacement: NonNullable<CommandContext["shellPredicates"]>) {
     (this._self ?? this)._cachedPredicates = replacement;
@@ -3232,7 +3229,7 @@ const syncExtraRuntimeMethods = {
         if (body) env[`BASH_FUNC_${key}%%`] = functionDisplay(key, body).slice(key.length + 1).trimEnd();
       }
     }
-    const context = new FastShellCommandContext(this, state, io, scope, name, values as readonly string[], undefined, env, this._isMemoryBackingFs, definition);
+    const context = new FastShellCommandContext(this as unknown as Runtime, state, io, scope, name, values as readonly string[], undefined, env, this._isMemoryBackingFs, definition);
     const runtimeFrame: RuntimeOutcomeFrame = {};
     scope.enterWork();
     this.budget.beginPathLookupSuspension();
@@ -3240,7 +3237,7 @@ const syncExtraRuntimeMethods = {
       scope.assertOpen();
       const raw = definition.execute(context as unknown as ShellCommandContext);
       const observed = this.observeRuntimeReturn(raw, runtimeFrame);
-      const res = await interruptible(observed, this.signal);
+      const res = await interruptible<CommandResult>(observed, this.signal);
       return validateExitCode(res.exitCode);
     } catch (error) {
       if (runtimeFrame.report && Object.is(runtimeFrame.report.origin.signal.reason, error) && this.outcomeFrame) this.outcomeFrame.report = runtimeFrame.report;

@@ -2224,7 +2224,7 @@ const closedSource: ByteSource = { [Symbol.asyncIterator]() {
     }, return(value?: unknown) { return enqueue(async () => { closed = true; return { done: true, value: await value }; }); }, throw(error?: unknown) { return enqueue(() => { closed = true; throw error; }); }, [Symbol.asyncIterator]() { return this; }, };
   return iterator;
 } };
-interface RuntimeOutcomeFrame {
+export interface RuntimeOutcomeFrame {
   report?: CancellationReport | undefined;
 }
 interface InvokeOutcomeRecord {

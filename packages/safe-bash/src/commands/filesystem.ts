@@ -1413,4 +1413,3 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
   }
   return commands;
 }
-

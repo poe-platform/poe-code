@@ -68,3 +68,5 @@ export { prepareRemoteMcpAuthorization, beginRemoteMcpAuthorization, completeRem
 export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, PrepareRemoteMcpAuthorizationOptions, BeginRemoteMcpAuthorizationOptions, CompleteRemoteMcpAuthorizationOptions } from "./client/resumable.js";
 
 export { exchangeAuthorizationCode, refreshAccessToken } from "./client/token-endpoint.js";
+
+export { revokeOAuthToken } from "./client/revoke-token.js";

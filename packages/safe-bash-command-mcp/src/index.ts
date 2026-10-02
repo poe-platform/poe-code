@@ -29,6 +29,6 @@ export type { RemoteMcpAuthorizationTransaction, RemoteMcpAuthorizationStore, Pr
 
 export { createMcpCommand, createMcpCommands, mcpCommands, type McpCommandsOptions, type McpLimits } from "./management.js";
 
-export { exchangeAuthorizationCode, refreshAccessToken, OAuthError } from "mcp-oauth";
+export { exchangeAuthorizationCode, refreshAccessToken, revokeOAuthToken, OAuthError } from "mcp-oauth";
 export type { StoredOAuthTokens, OAuthDiscoveryResult, OAuthTokenEndpointAuthMethod } from "mcp-oauth";
 export { discoverOAuthMetadata } from "tiny-mcp-client";

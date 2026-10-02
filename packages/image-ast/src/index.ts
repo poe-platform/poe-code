@@ -12,3 +12,5 @@ export * from "./ops/resize.js";
 export * from "./ops/transform.js";
 export * from "./sharp.js";
 export { default } from "./sharp.js";
+
+export { decodePngToCanvas } from "./codecs/png.js";

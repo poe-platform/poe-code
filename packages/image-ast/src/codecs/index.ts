@@ -6,7 +6,8 @@ import {
   type RgbaImage,
   type SharpInputOptions
 } from "../ast.js";
-import { decodePngImage, encodePngImage, isPngBytes, readPngMetadata } from "./png.js";
+import { decodePngImage,
+  decodePngToCanvas, encodePngImage, isPngBytes, readPngMetadata } from "./png.js";
 import { decodeJpegImage, encodeJpegImage, isJpegBytes, readJpegMetadata } from "./jpeg.js";
 import { decodeWebpImage, encodeWebpImage, isWebpBytes, readWebpMetadata } from "./webp.js";
 import {

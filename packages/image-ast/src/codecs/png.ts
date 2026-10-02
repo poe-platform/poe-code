@@ -1,4 +1,60 @@
-import { deflate, inflate } from "pako";
+import { Deflate, Inflate } from "pako";
+
+function detachZStreamBuffers(strm: unknown): void {
+  const state = (strm as { state?: Record<string, { buffer?: { transfer?: (n: number) => ArrayBuffer } }> } | undefined)?.state;
+  if (!state) return;
+  for (const key of ["window", "prev", "head", "pending_buf"]) {
+    const buf = state[key]?.buffer;
+    if (buf && typeof buf.transfer === "function") {
+      try { buf.transfer(0); } catch {}
+    }
+  }
+}
+
+function inflatePngIdat(compressed: Uint8Array, target: Uint8Array): Uint8Array {
+  const inf = new Inflate();
+  let written = 0;
+  let overflow = null as Uint8Array[] | null;
+  (inf as unknown as { onStart: (strm: { output: Uint8Array; next_out: number; avail_out: number }) => void }).onStart = (strm) => {
+    strm.output = target;
+    strm.next_out = 0;
+    strm.avail_out = target.length;
+  };
+  inf.onData = (chunk: Uint8Array) => {
+    if (!overflow && chunk.buffer === target.buffer) {
+      written += chunk.length;
+      if (written < target.length) {
+        (inf as unknown as { strm: { output: Uint8Array; next_out: number; avail_out: number } }).strm.output = target.subarray(written);
+        (inf as unknown as { strm: { output: Uint8Array; next_out: number; avail_out: number } }).strm.next_out = 0;
+        (inf as unknown as { strm: { output: Uint8Array; next_out: number; avail_out: number } }).strm.avail_out = target.length - written;
+      }
+    } else {
+      if (!overflow) overflow = [target.subarray(0, written)];
+      overflow.push(chunk);
+    }
+  };
+  inf.onEnd = () => {};
+  inf.push(compressed, true);
+  detachZStreamBuffers((inf as unknown as { strm?: unknown }).strm);
+  if (inf.err) throw new Error(inf.msg || "PNG inflate failed");
+  if (!overflow) return target.subarray(0, written);
+  const total = overflow.reduce((s, c) => s + c.length, 0);
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const c of overflow) {
+    out.set(c, off);
+    off += c.length;
+  }
+  return out;
+}
+
+function deflatePngScanlines(raw: Uint8Array, level: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9): Uint8Array {
+  const def = new Deflate({ level });
+  def.push(raw, true);
+  detachZStreamBuffers((def as unknown as { strm?: unknown }).strm);
+  if (def.err) throw new Error(def.msg || "PNG deflate failed");
+  return def.result;
+}
 import type { ImageMetadata, RgbaImage } from "../ast.js";
 import { buildExifApp1Segment, parseExifBuffer } from "./exif.js";
 
@@ -185,15 +241,13 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
   }
 
   const totalIdat = idatChunks.reduce((sum, c) => sum + c.length, 0);
-  const compressed = new Uint8Array(totalIdat);
-  let offset = 0;
-  for (const c of idatChunks) {
-    compressed.set(c, offset);
-    offset += c.length;
-  }
-  const inflated = inflate(compressed);
-  if (typeof (compressed.buffer as any).transfer === "function") {
-    try { (compressed.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
+  const compressed = idatChunks.length === 1 ? idatChunks[0]! : new Uint8Array(totalIdat);
+  if (idatChunks.length !== 1) {
+    let offset = 0;
+    for (const c of idatChunks) {
+      compressed.set(c, offset);
+      offset += c.length;
+    }
   }
 
   const samplesPerPixel =
@@ -201,8 +255,22 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
   const bitsPerPixel = samplesPerPixel * bitDepth;
   const bytesPerPixel = Math.max(1, Math.ceil(bitsPerPixel / 8));
   const directRgbaInPlace = !meta.isProgressive && bitDepth === 8 && colorType === 6 && !trns;
-  const directRgbInPlace = !meta.isProgressive && bitDepth === 8 && colorType === 2 && !trns && inflated.byteOffset === 0 && typeof (inflated.buffer as any).transfer === "function";
-  let rgba = (directRgbaInPlace || directRgbInPlace) ? new Uint8Array(0) : new Uint8Array(width * height * 4);
+  const directRgbInPlace = !meta.isProgressive && bitDepth === 8 && colorType === 2 && !trns && width >= 1;
+  const expectedScanlineBytes = meta.isProgressive
+    ? height * (1 + Math.ceil((width * bitsPerPixel) / 8)) + height * 8
+    : height * (1 + Math.ceil((width * bitsPerPixel) / 8));
+  let rgba: Uint8Array = directRgbInPlace
+    ? new Uint8Array(width * height * 4)
+    : directRgbaInPlace
+      ? new Uint8Array(expectedScanlineBytes)
+      : new Uint8Array(width * height * 4);
+  const inflateTarget = (directRgbInPlace || directRgbaInPlace)
+    ? rgba
+    : new Uint8Array(expectedScanlineBytes);
+  const inflated = inflatePngIdat(compressed, inflateTarget);
+  if (idatChunks.length !== 1 && typeof (compressed.buffer as any).transfer === "function") {
+    try { (compressed.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
+  }
 
   const decodePass = (
     subW: number,
@@ -241,7 +309,9 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
       return curOffset;
     }
     if (directRgbInPlace) {
-      rgba = new Uint8Array((inflated.buffer as any).transfer(width * height * 4));
+      if (inflated.buffer !== rgba.buffer) {
+        rgba.set(rawData, 0);
+      }
       for (let i = width * height - 1; i >= 0; i--) {
         const s = i * 3;
         const d = i * 4;
@@ -513,7 +583,7 @@ export function encodePngImage(
     | 7
     | 8
     | 9;
-  const compressed = deflate(raw, { level });
+  const compressed = deflatePngScanlines(raw, level);
   if (typeof (raw.buffer as any).transfer === "function" && (options?.consumeInput || (raw.byteOffset === 0 && raw.byteLength === raw.buffer.byteLength))) {
     try { (raw.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   }
@@ -556,4 +626,129 @@ export function encodePngImage(
     pos += c.length;
   }
   return out;
+}
+
+export function decodePngToCanvas(
+  bytes: Uint8Array,
+  canvas: RgbaImage,
+  dstX: number,
+  dstY: number
+): { readonly width: number; readonly height: number; readonly anyTransparent: boolean } | undefined {
+  if (!isPngBytes(bytes) || bytes.length < 24) return undefined;
+  const meta = readPngMetadata(bytes);
+  const width = meta.width;
+  const height = meta.height;
+  if (meta.isProgressive || width <= 0 || height <= 0) return undefined;
+
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let bitDepth = 8;
+  let colorType = 6;
+  let hasTrns = false;
+  const idatChunks: Uint8Array[] = [];
+
+  let pos = 8;
+  while (pos + 8 <= bytes.length) {
+    const len = view.getUint32(pos, false);
+    const type = String.fromCharCode(bytes[pos + 4]!, bytes[pos + 5]!, bytes[pos + 6]!, bytes[pos + 7]!);
+    const dataStart = pos + 8;
+    if (dataStart + len > bytes.length) break;
+    const chunk = bytes.subarray(dataStart, dataStart + len);
+    if (type === "IHDR" && len >= 13) {
+      bitDepth = chunk[8]!;
+      colorType = chunk[9]!;
+    } else if (type === "tRNS") {
+      hasTrns = true;
+    } else if (type === "IDAT") {
+      idatChunks.push(chunk);
+    } else if (type === "IEND") {
+      break;
+    }
+    pos = dataStart + len + 4;
+  }
+
+  if (bitDepth !== 8 || (colorType !== 2 && colorType !== 6) || hasTrns || idatChunks.length === 0) {
+    return undefined;
+  }
+
+  const bpp = colorType === 6 ? 4 : 3;
+  const rowPixelBytes = width * bpp;
+  const rowStride = 1 + rowPixelBytes;
+  const prevRow = new Uint8Array(rowPixelBytes);
+  const curRow = new Uint8Array(rowStride);
+  let y = 0;
+  let rowFill = 0;
+  let anyTransparent = false;
+
+  const inf = new Inflate({ chunkSize: 65536 });
+  inf.onData = (chunk: Uint8Array) => {
+    let cOff = 0;
+    while (cOff < chunk.length && y < height) {
+      const need = rowStride - rowFill;
+      const take = Math.min(need, chunk.length - cOff);
+      curRow.set(chunk.subarray(cOff, cOff + take), rowFill);
+      rowFill += take;
+      cOff += take;
+      if (rowFill === rowStride) {
+        const filterType = curRow[0]!;
+        for (let x = 0; x < rowPixelBytes; x++) {
+          const raw = curRow[1 + x]!;
+          const a = x >= bpp ? curRow[1 + x - bpp]! : 0;
+          const b = y > 0 ? prevRow[x]! : 0;
+          const c = y > 0 && x >= bpp ? prevRow[x - bpp]! : 0;
+          let recon = raw;
+          if (filterType === 1) recon = (raw + a) & 0xff;
+          else if (filterType === 2) recon = (raw + b) & 0xff;
+          else if (filterType === 3) recon = (raw + ((a + b) >>> 1)) & 0xff;
+          else if (filterType === 4) recon = (raw + paethPredictor(a, b, c)) & 0xff;
+          curRow[1 + x] = recon;
+        }
+        prevRow.set(curRow.subarray(1));
+        const cy = dstY + y;
+        if (cy >= 0 && cy < canvas.height) {
+          const xStart = Math.max(0, -dstX);
+          const xEnd = Math.min(width, canvas.width - dstX);
+          let dstIdx = (cy * canvas.width + (dstX + xStart)) * 4;
+          let srcIdx = 1 + xStart * bpp;
+          for (let x = xStart; x < xEnd; x++) {
+            const r = curRow[srcIdx]!;
+            const g = curRow[srcIdx + 1]!;
+            const b = curRow[srcIdx + 2]!;
+            const a = bpp === 4 ? curRow[srcIdx + 3]! : 255;
+            if (a < 255) anyTransparent = true;
+            if (a === 255) {
+              canvas.data[dstIdx] = r;
+              canvas.data[dstIdx + 1] = g;
+              canvas.data[dstIdx + 2] = b;
+              canvas.data[dstIdx + 3] = 255;
+            } else if (a > 0) {
+              const sa = a / 255;
+              const da = (canvas.data[dstIdx + 3] ?? 0) / 255;
+              const outA = sa + da * (1 - sa);
+              if (outA > 0) {
+                canvas.data[dstIdx] = Math.round((r * sa + (canvas.data[dstIdx] ?? 0) * da * (1 - sa)) / outA);
+                canvas.data[dstIdx + 1] = Math.round((g * sa + (canvas.data[dstIdx + 1] ?? 0) * da * (1 - sa)) / outA);
+                canvas.data[dstIdx + 2] = Math.round((b * sa + (canvas.data[dstIdx + 2] ?? 0) * da * (1 - sa)) / outA);
+                canvas.data[dstIdx + 3] = Math.round(outA * 255);
+              }
+            }
+            srcIdx += bpp;
+            dstIdx += 4;
+          }
+        }
+        y++;
+        rowFill = 0;
+      }
+    }
+    if (typeof (chunk.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
+      try { (chunk.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+    }
+  };
+  inf.onEnd = () => {};
+  for (let i = 0; i < idatChunks.length; i++) {
+    inf.push(idatChunks[i]!, i === idatChunks.length - 1);
+    if (inf.err) break;
+  }
+  detachZStreamBuffers((inf as unknown as { strm?: unknown }).strm);
+  if (inf.err || y < height) return undefined;
+  return { width, height, anyTransparent };
 }

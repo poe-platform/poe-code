@@ -325,3 +325,5 @@ await (await import("./safe-packages-shuf.mjs")).verification;
 await (await import("./safe-packages-diff.mjs")).verification;
 
 assert.throws(() => import.meta.resolve("safe-bash-command-du"), { code: "ERR_MODULE_NOT_FOUND" });
+
+await (await import("./safe-packages-split.mjs")).verification;

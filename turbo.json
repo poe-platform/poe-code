@@ -599,6 +599,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-split#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

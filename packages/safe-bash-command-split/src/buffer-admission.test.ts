@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { settings } from "safe-bash-command-split/options";
-import { chunks, files, run } from "./helpers.js";
+import { settings } from "./options.js";
+import { chunks, files, run } from "./test-helpers.js";
 
 test("split omits the buffer quota even when another quota is supplied", async () => {
   for (const options of [{}, { limits: { maxFiles: 1 } }]) {

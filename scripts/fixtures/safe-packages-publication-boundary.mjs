@@ -16,6 +16,7 @@ async function verifyPublicationBoundary() {
   await zstdVerification;
   await gzipVerification;
   await csplitVerification;
+  await (await import("./safe-packages-split.mjs")).verification;
   await columnVerification;
   await tarVerification;
   await privateCommandVerification;

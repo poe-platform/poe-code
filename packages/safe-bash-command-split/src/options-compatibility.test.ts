@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { files, run } from "./helpers.js";
+import { files, run } from "./test-helpers.js";
 
 const hex = (text: string) => Buffer.from(text).toString("hex");
 

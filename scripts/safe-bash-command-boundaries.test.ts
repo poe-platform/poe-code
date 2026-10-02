@@ -124,3 +124,10 @@ test('du owns regression coverage and declares unit build prerequisites', () => 
   const turbo = json('turbo.json');
   assert.ok(turbo.tasks['safe-bash-command-du#test:unit'].dependsOn.includes('^build'));
 });
+
+test('split owns its behavioral regressions and extraction plan', () => {
+  const files = readdirSync(new URL('../packages/safe-bash-command-split/src/', import.meta.url));
+  for (const name of ['buffer-admission', 'options-compatibility', 'elide']) assert.ok(files.includes(`${name}.test.ts`), `Missing owned ${name} suite`);
+  assert.ok(readFileSync(new URL('../docs/plans/safe-bash-command-split.md', import.meta.url), 'utf8').includes('private'));
+  assert.ok(json('turbo.json').tasks['safe-bash-command-split#test:unit'].dependsOn.includes('^build'));
+});

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { files, run } from "./helpers.js";
+import { files, run } from "./test-helpers.js";
 
 test("elided chunks consume neither suffixes nor file quota", async () => {
   const uncapped = await run(["--numeric-suffixes=98", "-e", "-n5"], "ab");

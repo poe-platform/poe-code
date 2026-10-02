@@ -239,8 +239,9 @@ test("Bug #17: _cachedConstArgs / _cachedFastSingle and redirect targets respect
   );
 });
 
-test("Bug #18: synchronous loop redirect fast-path normalizes paths containing //, /./, or /../ in variable suffixes", async () => {
+test("Bug #18: synchronous loop redirect fast-path normalizes paths containing //, /./, or /../ in variable suffixes", async context => {
   const { shell } = createTestShell();
+  context.after(() => shell.dispose());
   const res = await shell.exec(
     "mkdir -p /tmp/dir/sub\n" +
     "sub=\"/out.txt\"\n" +
@@ -253,6 +254,25 @@ test("Bug #18: synchronous loop redirect fast-path normalizes paths containing /
   );
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout, "val-2\nrel-2\n");
+});
+
+test("loop redirects resolve changing path suffixes and reject missing or non-directory parents", async context => {
+  const { shell, fs } = createTestShell();
+  context.after(() => shell.dispose());
+  const result = await shell.exec([
+    "mkdir -p /tmp/dir/sub",
+    "echo original > /tmp/dir/regular",
+    'for rel in first.txt ./sub/../next.txt missing/../missing.txt regular/../blocked.txt; do',
+    '  echo "$rel" > "/tmp/dir/$rel"',
+    '  printf "%s\\n" "$?"',
+    "done",
+    "cat /tmp/dir/first.txt /tmp/dir/next.txt",
+  ].join("\n"));
+  assert.equal(result.exitCode, 0);
+  assert.equal(result.stdout, "0\n0\n1\n1\nfirst.txt\n./sub/../next.txt\n");
+  assert.ok(result.stderr.includes("missing/../missing.txt"), result.stderr);
+  assert.ok(result.stderr.includes("regular/../blocked.txt"), result.stderr);
+  assert.deepEqual((await fs.readdir("/tmp/dir")).map(entry => entry.name).sort(), ["first.txt", "next.txt", "regular", "sub"]);
 });
 
 

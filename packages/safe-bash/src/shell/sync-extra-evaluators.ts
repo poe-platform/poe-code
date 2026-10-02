@@ -13739,12 +13739,20 @@ const syncExtraRuntimeMethods = {
           if ( r0.descriptor !== 1 || r0.move || r0.document || (r0.operator !== ">" && r0.operator !== ">>") || rawState.noclobber || !targetPart0 || targetPart0.kind !== "text" || !targetPart0.value.startsWith("/") || targetPart0.value === "/dev" || targetPart0.value.startsWith("/dev/") || !this.isPureSyncValueWord(r0.target, rawState)) {
             return false;
           }
+          let targetShape = "";
           for (let i = 0; i < r0.target.parts.length; i++) {
             const part = r0.target.parts[i]!;
             if (part.kind !== "text" && (part.kind !== "variable" || !part.quoted)) return false;
+            if (part.kind === "variable") {
+              // Only a proven numeric induction variable cannot introduce path
+              // components that the synchronous writer refuses mid-iteration.
+              if (part.name !== printfInductionName || part.indirect || part.prefixNames || part.substring || part.transform || part.length || part.operator !== undefined || getArraySelector(part) !== undefined) return false;
+              targetShape += "0";
+            } else targetShape += part.value;
             if (part.kind === "text" && !part.quoted && ( rawState.braceexpand !== false && part.value.includes("{") || i === 0 && part.value.startsWith("~") || !rawState.noglob && hasGlobOrEscape(part.value, !!rawState.extglob)
             )) return false;
           }
+          if (!isCleanAbsolutePath(targetShape)) return false;
           const lastSlash = targetPart0.value.lastIndexOf("/");
           const parentDir = lastSlash <= 0 ? "/" : targetPart0.value.slice(0, lastSlash);
           if (!tryGetMemoryDirectoryEntryNamesSync(this.backingFs, parentDir)) return false;

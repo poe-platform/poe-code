@@ -6,7 +6,7 @@ import { readSqliteBlob } from './sqlite-blob-read.js';
 
 export async function readMigratedHistorySchema(fs: FileSystem, path: string, id: string, signal: AbortSignal, options: {
   maxBytes?: number; admitBytes?: (size: number) => void;
-}): Promise<Record<string,unknown> | undefined> {
+}): Promise<string | undefined> {
   const result = await transactSqlite({fs,path,signal,maxFileBytes:Number.MAX_SAFE_INTEGER,maxIndexBytes:Number.MAX_SAFE_INTEGER,maxOpenFiles:64}, async session => {
     await migrateLlmHistorySchema(session,signal,new Date().toISOString());
     const rowid = await withSqliteStatement(session.module,{...session,signal,sql:'SELECT rowid FROM schemas WHERE id=?'},async statement => {
@@ -24,9 +24,7 @@ export async function readMigratedHistorySchema(fs: FileSystem, path: string, id
       options.admitBytes?.(bytes.length); text += decoder.decode(bytes,{stream:true});
     }
     text += decoder.decode();
-    const value: unknown = JSON.parse(text);
-    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid schema');
-    return value as Record<string,unknown>;
+    return text;
   });
   if (result.cleanupErrors.length) throw new AggregateError(result.cleanupErrors,'History schema cleanup failed',{cause:{committed:result.committed}});
   return result.value;

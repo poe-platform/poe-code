@@ -4,7 +4,7 @@ import { inflateSync } from 'node:zlib';
 import { MemoryFileSystem } from '@poe-code/safe-fs/core';
 import { toByteSource } from 'safe-bash-contracts';
 import { createLlmCommand } from './command.js';
-import { loadLlmStoredSchema } from './stored-schema.js';
+import { loadLlmStoredSchema, loadLlmStoredSchemaJson } from './stored-schema.js';
 import fixture from './fixtures/schema-show-0.27.1.json' with { type: 'json' };
 
 async function setup() {
@@ -45,4 +45,21 @@ test('migrated schema reads decode native UTF-16 TEXT bytes', async () => {
   const context=await setup();
   await context.fs.writeFile('/out/utf16.db',inflateSync(Buffer.from(fixture.utf16DatabaseZlib,'base64')));
   assert.deepEqual(await loadLlmStoredSchema(context,'demo',{database:'/out/utf16.db',migrate:true}),fixture.schema);
+});
+
+
+test('schema display accepts JSON values while provider schemas remain objects', async () => {
+  const { transactSqlite } = await import('./sqlite-transaction.js');
+  const context=await setup();
+  for (const [content, expected] of [['null','null\n'],['false','false\n'],['17','17\n'],['"hi"','"hi"\n'],['[1,2]','[\n  1,\n  2\n]\n']]) {
+    await transactSqlite({fs:context.fs,path:'/out/schema-show.db',signal:context.signal,maxFileBytes:Number.MAX_SAFE_INTEGER,maxIndexBytes:Number.MAX_SAFE_INTEGER,maxOpenFiles:64}, async session => {
+      await session.execute(`INSERT OR REPLACE INTO schemas (id,content) VALUES ('scalar','${content}')`);
+    });
+    let stdout='',stderr='';
+    const result=await createLlmCommand({providers:[]}).execute({...context,command:'llm',args:['schemas','show','scalar','-d','/out/schema-show.db'],stdin:toByteSource(''),
+      stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});
+    assert.equal(result.exitCode,0,stderr); assert.equal(stdout,expected); assert.equal(stderr,'');
+    assert.equal(await loadLlmStoredSchemaJson(context,'scalar',{database:'/out/schema-show.db',migrate:true}),content);
+    await assert.rejects(loadLlmStoredSchema(context,'scalar',{database:'/out/schema-show.db',migrate:true}),/Invalid schema/);
+  }
 });

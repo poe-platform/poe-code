@@ -56,7 +56,7 @@ Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tre
 | `llm schemas` |  | incomplete |
 | `llm schemas dsl` | input; --multi | incomplete |
 | `llm schemas list` | -p/--path; -d/--database; -q/--query (repeatable); --full; --json; --nl | incomplete |
-| `llm schemas show` | schema_id; -p/--path; -d/--database | native display, migration/WAL recovery and pinned output/error fixtures delivered; external-host and remaining formatting qualification incomplete |
+| `llm schemas show` | schema_id; -p/--path; -d/--database | native display, migration/WAL recovery and pinned output/error fixtures delivered; scalar JSON, large integers, float formatting and ordered keys qualified against pinned CLI; external-host qualification incomplete |
 | `llm similar` | collection; id; -i/--input; -c/--content; --binary; -n/--number; -p/--plain; -d/--database; --prefix | incomplete |
 | `llm templates` |  | incomplete |
 | `llm templates edit` | name | incomplete |

@@ -15,14 +15,13 @@ export interface LlmStoredSchemaOptions {
 }
 
 /** Read a schema ID from the reference logs.db on the caller's filesystem.
- * Database pages stay bounded; the selected schema becomes a provider control
- * object under the caller's byte budget. Without migration enabled, the database
+ * Database pages stay bounded; the selected schema remains raw JSON text under the caller's byte budget. Without migration enabled, the database
  * must be checkpointed. */
-export async function loadLlmStoredSchema(
+export async function loadLlmStoredSchemaJson(
   context: Pick<CommandContext, 'fs' | 'cwd' | 'env' | 'signal'>,
   id: string,
   options: LlmStoredSchemaOptions = {},
-): Promise<Record<string, unknown> | undefined> {
+): Promise<string | undefined> {
   const { fs, signal } = context;
   signal.throwIfAborted();
   const maxBytes = options.maxBytes ?? Infinity;
@@ -79,7 +78,7 @@ export async function loadLlmStoredSchema(
         root = Number(row[3]); break;
       }
     }
-    let result: Record<string, unknown> | undefined;
+    let result: string | undefined;
     if (root !== undefined) for await (const record of scanSqliteRecords(file, root, signal)) {
       const row = await readSqliteValues(record, 2, signal);
       if (!await matches(row[0], id)) continue;
@@ -90,14 +89,25 @@ export async function loadLlmStoredSchema(
       let text = '';
       for await (const bytes of content.bytes) { options.admitBytes?.(bytes.length); text += decoder.decode(bytes, { stream: true }); }
       text += decoder.decode();
-      let value: unknown;
-      try { value = JSON.parse(text); } catch { throw new Error('Invalid schema'); }
-      if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid schema');
-      result = value as Record<string, unknown>; break;
+      result = text; break;
     }
     await checkpointed();
     verifySqliteSnapshot(await file.stat({ signal }), expected);
     signal.throwIfAborted();
     return result;
   } finally { await file.close(); }
+}
+
+/** Load a stored schema as a provider control object, rejecting other JSON values. */
+export async function loadLlmStoredSchema(
+  context: Pick<CommandContext, 'fs' | 'cwd' | 'env' | 'signal'>,
+  id: string,
+  options: LlmStoredSchemaOptions = {},
+): Promise<Record<string, unknown> | undefined> {
+  const text = await loadLlmStoredSchemaJson(context, id, options);
+  if (text === undefined) return undefined;
+  let value: unknown;
+  try { value = JSON.parse(text); } catch { throw new Error('Invalid schema'); }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Invalid schema');
+  return value as Record<string, unknown>;
 }

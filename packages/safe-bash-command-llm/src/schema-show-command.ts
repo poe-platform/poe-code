@@ -1,7 +1,8 @@
 import { FsError, type CommandContext } from 'safe-bash-contracts';
 import { pathOf } from 'safe-bash-contracts/path';
+import { renderSchemaJson } from './schema-json.js';
 import { createLlmConfiguration } from './configuration.js';
-import { loadLlmStoredSchema, type LlmStoredSchemaOptions } from './stored-schema.js';
+import { loadLlmStoredSchemaJson, type LlmStoredSchemaOptions } from './stored-schema.js';
 
 export async function showSchemaCommand(context: Pick<CommandContext,'fs'|'cwd'|'env'|'signal'>, args: string[], emit: (text:string)=>Promise<void>, diagnostic: (text:string)=>Promise<void>, controls: LlmStoredSchemaOptions): Promise<number> {
   const usage = 'Usage: llm schemas show [OPTIONS] SCHEMA_ID\n';
@@ -52,43 +53,9 @@ export async function showSchemaCommand(context: Pick<CommandContext,'fs'|'cwd'|
       await diagnostic(`Error: No log database found at ${filename}\n`); return 1;
     }
     if (stat.type!=='file') return invalid(`Invalid value for '${path===undefined?"-d' / '--database":"-p' / '--path"}': File '${selected??filename}' is a directory.`);
-    const value=await loadLlmStoredSchema(context,inputs[0]!,{...controls,database:filename,migrate:true});
-    if (value===undefined) { await diagnostic('Error: Invalid schema ID\n'); return 1; }
-    // Pretty-print the admitted control object without allocating a second
-    // whole-schema JSON string. Python's default output escapes non-ASCII.
-    let output='';
-    const append=async (text:string):Promise<void> => {
-      for (let offset=0;offset<text.length;offset+=8192) {
-        output+=text.slice(offset,offset+8192);
-        if (output.length>=8192) { await emit(output); output=''; }
-      }
-    };
-    const string=async (text:string):Promise<void> => {
-      await append('"');
-      for (let index=0;index<text.length;index++) {
-        const code=text.charCodeAt(index),char=text[index]!;
-        output+=code>=127?'\\u'+code.toString(16).padStart(4,'0'):
-          code<32||char==='"'||char==='\\'?JSON.stringify(char).slice(1,-1):char;
-        if (output.length>=8192) { await emit(output); output=''; }
-      }
-      await append('"');
-    };
-    const render=async (value:unknown,depth:number):Promise<void> => {
-      if (typeof value==='string') { await string(value); return; }
-      if (value===null||typeof value!=='object') { await append(JSON.stringify(value)); return; }
-      const array=Array.isArray(value),keys=Object.keys(value);
-      await append(array?'[':'{');
-      for (let index=0;index<keys.length;index++) {
-        await append((index?',\n':'\n')+'  '.repeat(depth+1));
-        const key=keys[index]!;
-        if (!array) { await string(key); await append(': '); }
-        await render((value as Record<string,unknown>)[key],depth+1);
-      }
-      if (keys.length) await append('\n'+'  '.repeat(depth));
-      await append(array?']':'}');
-    };
-    await render(value,0); await append('\n');
-    if (output) await emit(output);
+    const raw=await loadLlmStoredSchemaJson(context,inputs[0]!,{...controls,database:filename,migrate:true});
+    if (raw===undefined) { await diagnostic('Error: Invalid schema ID\n'); return 1; }
+    await renderSchemaJson(raw,emit,context.signal);
     return 0;
   } catch (error) {
     context.signal.throwIfAborted();

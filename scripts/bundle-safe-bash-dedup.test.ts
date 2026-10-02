@@ -63,3 +63,14 @@ it("admits a scoped portable engine as the canonical public owner", () => {
   } }], { alias: {}, external: [name], portable: true });
   expect(recipe!.entryPoints["example-engine/dist/index"]).toBe("/repo/packages/example-engine/src/index.ts");
 });
+
+it("shares the published filesystem core for runtime-core imports", async () => {
+  const root = process.cwd();
+  const recipe = resolveBrowserShellBuild(root);
+  const result = await build({ ...recipe, entryPoints: undefined, outdir: undefined, splitting: false,
+    outfile: "/memory/core.js", sourcemap: false,
+    stdin: { contents: 'export { MemoryFileSystem } from "@poe-code/safe-fs/runtime-core";', resolveDir: root }
+  });
+  expect(result.metafile!.outputs[Object.keys(result.metafile!.outputs)[0]!]!.imports)
+    .toContainEqual(expect.objectContaining({ path: "poe-code/safe-fs/core", external: true }));
+});

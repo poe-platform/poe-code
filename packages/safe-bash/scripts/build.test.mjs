@@ -1869,7 +1869,7 @@ for (const coreOwned of [false, true]) test(`real guarded optional compilation p
   }
   owned.memory.writeFileSync(core + "/package.json", JSON.stringify(manifest));
   for (const [directory, value] of [
-    ["safe-fs", { name: "@poe-platform/safe-fs", exports: { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" } } }],
+    ["safe-fs", { name: "@poe-code/safe-fs", exports: { ".": { import: "./dist/index.js", types: "./dist/index.d.ts" }, "./runtime-core": { types: "./dist/runtime-core.d.ts", import: "./dist/runtime-core.js" } } }],
   ]) {
     owned.memory.mkdirSync("/owned/packages/" + directory, { recursive: true });
     owned.memory.writeFileSync("/owned/packages/" + directory + "/package.json", JSON.stringify(value));
@@ -2079,4 +2079,21 @@ test("relocated op declarations preserve linked canonical contract imports", asy
   });
   assert.equal((await owned.run()).status, 0, owned.output.join(""));
   assert.ok(owned.memory.readFileSync(root + "/dist/internal/op/index.d.ts", "utf8").includes('from "safe-bash-contracts"'));
+});
+
+for (const defect of ["none", "declaration", "source-import"]) test(`build explicit SafeFS runtime declarations: ${defect}`, async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: { "@poe-code/safe-fs": "*" } }),
+    "src/index.ts": 'import type { FileSystem } from "@poe-code/safe-fs/runtime-core"; export const filesystem: FileSystem = { portable: true };',
+    "../safe-fs/package.json": JSON.stringify({ name: "@poe-code/safe-fs", exports: {
+      "./runtime-core": { types: defect === "declaration" ? "./src/runtime-core.d.ts" : "./dist/runtime-core.d.ts", import: "./dist/runtime-core.js" }
+    } }),
+    "../safe-fs/dist/runtime-core.d.ts": defect === "source-import" ? 'export { FileSystem } from "../src/private.js";' : "export interface FileSystem { portable: boolean; }",
+    "../safe-fs/src/private.d.ts": "export interface FileSystem { portable: boolean; }",
+  });
+  if (defect === "declaration") await assert.rejects(owned.run(), /SafeFS runtime/);
+  else if (defect === "source-import") assert.notEqual((await owned.run()).status, 0);
+  else assert.equal((await owned.run()).status, 0, owned.output.join(""));
+  assert.equal(owned.reads.some(path => path.endsWith("/safe-fs/src/private.d.ts")), false);
+  assert.equal(owned.descriptors.size, 0);
 });

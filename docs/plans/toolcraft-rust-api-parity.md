@@ -3377,3 +3377,39 @@ Primitive source-offset optimization is verified on remote main at 3cfebd1944;
 Release workflow 37067379403 is building. Option-construction Release workflow
 37066397357 completed successfully with release-stable skipped. No new package
 publication is claimed.
+
+### Dynamic CLI path-resolution checkpoint
+
+The internal dynamic-path module now uses Rust for optional-schema traversal,
+scalar leaf admission, object/record/indexed-array descent, numeric selectors,
+qualified diagnostics and longest-prefix field selection. Node retains live
+entries/keys, array sort/find/map/every calls, destructuring/iterator cleanup,
+path spreading, string methods and original field/schema identity. It composes
+the existing native CLI casing and available-value formatting modules. No
+dependency declarations, public CLI entry point or default implementation changed.
+
+Four missing-module tests preceded implementation. Eight final comparisons use
+actual extracted reference helpers and cover casing, leading-zero indices,
+unsupported shapes, longest prefixes, getter order, custom collection callbacks,
+entry/selector iterator cleanup, coercion, reentrancy and arbitrary throws.
+Malformed-input tests caught generic path-spread TypeError wording; separate
+output/display expressions and the original path-join parameter preserve it.
+The maintained package route passes 228 native tests, Rust tests, 1,723
+reference/integration cases across 46 files and declarations. Rust/binding and
+scoped JS lint pass.
+
+Packed paths resolve original schema/field identities with only the packed own
+schema admitted as an external ESM import. Packed declarations compile with
+types: []; existing contract dependencies still resolve from the checkout, so
+standalone type packaging remains open. An inspected path/diagnostic table has
+reference-identical ANSI output; this is not complete CLI execution coverage.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 indexed-object flag
+resolutions, retaining 32 results, measured native/reference medians of
+63.205/1.227 microseconds (51.50 times slower). This does not pass the performance
+gate. Dynamic value assembly, full CLI/prompts/help, transports and
+resource/platform/reentrancy/swap qualification remain open.
+
+The source-offset and field-consumption Release workflows 37067379403 and
+37068176439 both completed successfully with release-stable skipped. This
+establishes successful workflows, not later package publication.

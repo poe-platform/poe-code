@@ -212,3 +212,12 @@ if(parsedOption.ok){const parsedValue:unknown=parsedOption.value;void parsedValu
 // @ts-expect-error field indices must be numeric
 fieldConsumption.consumeFieldValue([],"0",native.S.String(),"name");
 void [consumedValue,fieldInput];
+
+import * as dynamicPaths from "../dist/cli-dynamic-paths.js";
+const dynamicLeaf: dynamicPaths.DynamicCLILeaf = dynamicPaths.resolveDynamicLeaf(native.S.Object({userName:native.S.String()}),["user-name"],"kebab");
+const dynamicMatch: {match:import("../dist/cli-fields.js").DynamicFieldDefinition;leaf:dynamicPaths.DynamicCLILeaf}|undefined = dynamicPaths.resolveDynamicOption([],"config.name","snake");
+const numericSelector:boolean=dynamicPaths.isNumericFixtureSelector("12");
+const qualifiedPath:string=dynamicPaths.qualifyDisplayPath("config","name");
+// @ts-expect-error CLI path casing is kebab or snake
+dynamicPaths.resolveDynamicLeaf(native.S.String(),[],"camel");
+void [dynamicLeaf,dynamicMatch,numericSelector,qualifiedPath];

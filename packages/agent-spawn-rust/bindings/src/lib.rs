@@ -2,6 +2,7 @@ use mcp_protocol_rust::json::{self, Value};
 use mcp_protocol_rust_napi_core::convert::NativeJson;
 use napi::{Error, bindgen_prelude::*};
 use napi_derive::napi;
+pub use toolcraft_design_rust_napi_core::*;
 #[path = "../../../agent-harness-tools-rust/bindings/src/lib.rs"]
 mod harness;
 pub use harness::*;

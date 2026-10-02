@@ -1,5 +1,4 @@
 import type { Readable, Writable } from "node:stream";
-import { StringDecoder } from "node:string_decoder";
 import {
   ACP_ERROR_CODE_INTERNAL,
   ACP_ERROR_CODE_INVALID_REQUEST,
@@ -181,13 +180,13 @@ function normalizeLine(line: string): string {
 
 async function* readLines(stream: Readable): AsyncGenerator<string> {
   let buffer = "";
-  const decoder = new StringDecoder("utf8");
+  const decoder = new TextDecoder("utf-8", { ignoreBOM: true });
 
   for await (const chunk of stream as AsyncIterable<unknown>) {
     buffer += typeof chunk === "string"
       ? chunk
       : chunk instanceof Uint8Array
-        ? decoder.write(Buffer.from(chunk))
+        ? decoder.decode(chunk, { stream: true })
         : String(chunk);
 
     while (true) {
@@ -202,7 +201,7 @@ async function* readLines(stream: Readable): AsyncGenerator<string> {
     }
   }
 
-  buffer += decoder.end();
+  buffer += decoder.decode();
 
   if (buffer.length > 0) {
     yield normalizeLine(buffer);

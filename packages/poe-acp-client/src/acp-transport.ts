@@ -1,7 +1,7 @@
-import {
-  spawn as spawnChildProcess,
-  type ChildProcessWithoutNullStreams,
-  type SpawnOptionsWithoutStdio,
+import { spawnChildProcess } from "#acp-platform";
+import type {
+  ChildProcessWithoutNullStreams,
+  SpawnOptionsWithoutStdio,
 } from "node:child_process";
 import {
   JsonRpcMessageLayer,

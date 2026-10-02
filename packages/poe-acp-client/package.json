@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./client": {
+      "types": "./dist/client.d.ts",
+      "import": "./dist/client.js"
     }
   },
   "scripts": {
@@ -17,5 +21,17 @@
   },
   "files": [
     "dist"
-  ]
+  ],
+  "dependencies": {
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#acp-platform": {
+      "types": "./src/platform.ts",
+      "workerd": "./dist/platform.workerd.js",
+      "browser": "./dist/platform.workerd.js",
+      "worker": "./dist/platform.workerd.js",
+      "default": "./dist/platform.js"
+    }
+  }
 }

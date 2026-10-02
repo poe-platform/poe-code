@@ -46,3 +46,5 @@ run-report save options.
 ## Environment Variables
 
 This package does not read or expose environment variables.
+
+For Workers without Node compatibility, import `AcpClient` from `@poe-code/poe-acp-client/client` and pass an injected `transport`. Process spawning remains a host capability.

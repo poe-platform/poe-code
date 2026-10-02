@@ -877,6 +877,8 @@ and credential protections remain in effect.
   `globstar`, `nullglob`, `nocaseglob`, `nocasematch`, `lastpipe`, `failglob`,
   `inherit_errexit`, `expand_aliases`, and `xpg_echo`, plus `-o` for supported
   `set` options. `shopt -s extglob` enables extended patterns, including parameter trimming.
+  Enable it on a preceding line before using unquoted extended patterns; syntax on the
+  same command line or inside a function body is parsed before that line executes.
   `shopt -s xpg_echo` enables backslash escapes in builtin `echo`; `echo -E` disables them for that call.
   Process substitutions use temporary files in virtual `TMPDIR` (default `/tmp`),
   requiring a writable temporary directory. They buffer data rather than running

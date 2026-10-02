@@ -77,6 +77,7 @@ interface CachedParsedUnit {
   readonly unit: ReturnType<typeof parseShellUnit>;
   readonly unitsCharged: number;
   readonly locale: boolean;
+  readonly extglob: boolean;
   nextCached?: CachedParsedUnit | undefined;
 }
 interface SourceParseCache {
@@ -118,6 +119,7 @@ export function getOrParseUnitFromCache(
   budget: Budget,
   syntax?: ReturnType<typeof captureShellExtensions>["syntax"],
   aliases?: ReadonlyMap<string, string>,
+  extglob = false,
 ): ReturnType<typeof parseShellUnit> {
   if (aliases?.size) sourceCache = undefined;
   let cached: CachedParsedUnit | undefined;
@@ -131,7 +133,7 @@ export function getOrParseUnitFromCache(
       cached = map?.get(offset);
     }
   }
-  if (cached) {
+  if (cached?.extglob === extglob) {
     if (parseState.currentCachedUnit && parseState.currentCachedUnit.locale === unitLocale && parseState.currentCachedUnit.unit.next === offset) {
       parseState.currentCachedUnit.nextCached = cached;
     }
@@ -145,11 +147,11 @@ export function getOrParseUnitFromCache(
     parseState.lineIndexUnits = budget.parsing.admittedUnits - beforeLineIdx;
   }
   const beforeParse = budget.parsing.admittedUnits;
-  const parsed = parseShellUnit(source, offset, unitLocale, budget.parsing, parseState.lineIndex, undefined, false, syntax, aliases);
+  const parsed = parseShellUnit(source, offset, unitLocale, budget.parsing, parseState.lineIndex, undefined, false, syntax, aliases, extglob);
   const parseUnits = budget.parsing.admittedUnits - beforeParse;
   const unitsCharged = (offset === 0 ? parseState.lineIndexUnits : 0) + parseUnits;
   if (sourceCache !== undefined && (!parsed.script.warnings || parsed.script.warnings.length === 0)) {
-    const created: CachedParsedUnit = { offset, unit: parsed, unitsCharged, locale: unitLocale };
+    const created: CachedParsedUnit = { offset, unit: parsed, unitsCharged, locale: unitLocale, extglob };
     if (offset === 0) {
       if (unitLocale) sourceCache.first1 = created;
       else sourceCache.first0 = created;
@@ -871,12 +873,12 @@ export class Shell implements PluginHost {
         scope.registerFinalizer(runtime.releaseAnchorResources.bind(runtime));
         }
         const aliases = currentState.expand_aliases ? currentState.aliases : undefined;
-        if (currentCachedUnit && !aliases?.size) {
+        if (currentCachedUnit && currentCachedUnit.extglob === !!currentState.extglob && !aliases?.size) {
           budget.parsing.admit(currentCachedUnit.unitsCharged);
           unit = currentCachedUnit.unit;
         } else {
           parseState = { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit: undefined };
-          unit = getOrParseUnitFromCache(source, 0, byteLocale(currentState.variables), sourceCache, parseState, budget, extensions.syntax, aliases);
+          unit = getOrParseUnitFromCache(source, 0, byteLocale(currentState.variables), sourceCache, parseState, budget, extensions.syntax, aliases, !!currentState.extglob);
           currentCachedUnit = parseState.currentCachedUnit;
         }
         // Capture syntax before parsing, but defer host extension getters and factories.
@@ -917,14 +919,14 @@ export class Shell implements PluginHost {
           budget.signal.throwIfAborted();
           const vars = currentState.variables;
           const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
-          if (!currentState.expand_aliases && currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined) {
+          if (!currentState.expand_aliases && currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined && currentCachedUnit.nextCached.extglob === !!currentState.extglob) {
             currentCachedUnit = currentCachedUnit.nextCached;
             budget.parsing.admit(currentCachedUnit.unitsCharged);
             unit = currentCachedUnit.unit;
           } else {
             parseState ??= { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit };
             parseState.currentCachedUnit = currentCachedUnit;
-            unit = getOrParseUnitFromCache(source, unit.next, nextLocale, sourceCache, parseState, budget, extensions.syntax, currentState.expand_aliases ? currentState.aliases : undefined);
+            unit = getOrParseUnitFromCache(source, unit.next, nextLocale, sourceCache, parseState, budget, extensions.syntax, currentState.expand_aliases ? currentState.aliases : undefined, !!currentState.extglob);
             currentCachedUnit = parseState.currentCachedUnit;
           }
         }

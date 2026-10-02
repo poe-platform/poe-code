@@ -2416,8 +2416,8 @@ export function isDefaultShellSyntax(syntax: NonNullable<State["extensions"]>["s
   if (!syntax) return true;
   return ( !syntax.listTerminators?.length && !syntax.specialParameters?.length && !syntax.arrayKeys && !syntax.indexedDeclarations?.length && !syntax.indexedElementOperators);
 }
-export function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, parseBudget: ParseBudget): CachedSingleEvalUnit | undefined {
-  const key = (unitLocale ? "1:" : "0:") + source;
+export function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, parseBudget: ParseBudget, extglob = false): CachedSingleEvalUnit | undefined {
+  const key = (extglob ? "1:" : "0:") + (unitLocale ? "1:" : "0:") + source;
   const existing = evalSingleUnitCache.get(key);
   if (existing !== undefined) {
     parseBudget.admit(existing.unitsCharged);
@@ -2426,7 +2426,7 @@ export function getOrParseSingleEvalUnit(source: string, unitLocale: boolean, pa
   const beforeUnits = parseBudget.admittedUnits;
   const snap = parseBudget.snapshot();
   const lineIndex = new SourceLineIndex(source, parseBudget);
-  const unit = parseShellUnit(source, 0, unitLocale, parseBudget, lineIndex, undefined, false, undefined);
+  const unit = parseShellUnit(source, 0, unitLocale, parseBudget, lineIndex, undefined, false, undefined, undefined, extglob);
   if (unit.next < source.length || (unit.script.warnings && unit.script.warnings.length > 0)) {
     parseBudget.restore(snap);
     return undefined;
@@ -2850,7 +2850,7 @@ export class Runtime {
     if (dereference) name = this.referenceName(state, name);
     const target = name.includes("[") ? this.variableTarget(name) : undefined;
     if (target?.subscript !== undefined) {
-      await this.arrayAssignment({ kind: "element", name: target.name, append: false, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, io);
+      await this.arrayAssignment({ kind: "element", name: target.name, append: false, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, io);
       return;
     }
     if (arrayStore(state)?.get(name)) throw new ArrayFailure(origin === "arithmetic" ? "indexed arithmetic is unsupported" : "indexed write requires prepared publication");
@@ -2973,7 +2973,7 @@ export class Runtime {
           let index: number | undefined;
           let key: string | undefined;
           if (binding?.associative) {
-            const word = parseArraySubscript(subscript ?? "0", this.budget.parsing, byteLocale(state.variables), state.depth);
+            const word = parseArraySubscript(subscript ?? "0", this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
             const fields = await this.valueWord(word, state, io, false);
             const value = concatShellValues(fields, io[valueScope]);
             key = shellValueText(value);
@@ -2988,7 +2988,7 @@ export class Runtime {
             try {
               let operand = prepareArithmetic(subscript ?? "0", this.budget.parsing);
               if (operand.error) {
-                const word = parseArraySubscript(subscript ?? "0", this.budget.parsing, byteLocale(state.variables), state.depth);
+                const word = parseArraySubscript(subscript ?? "0", this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
                 const fields = await this.valueWord(word, state, io, false);
                 operand = prepareArithmetic(shellValueText(concatShellValues(fields, io[valueScope])), this.budget.parsing);
               }
@@ -3035,7 +3035,7 @@ export class Runtime {
         const cachedProg = program as { _cachedArithWord?: Word; _cachedArithSyntax?: unknown };
         let word = canCacheWord && cachedProg._cachedArithSyntax === state.extensions?.syntax ? cachedProg._cachedArithWord : undefined;
         if (!word) {
-          word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax);
+          word = parseArithmeticExpansion(program.source, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax, !!state.extglob);
           if (canCacheWord) { cachedProg._cachedArithWord = word; cachedProg._cachedArithSyntax = state.extensions?.syntax; }
         }
         const fastSource = this.fastValueWord(word, state, io, false, false, true, false, undefined, io.diagnosticLine);
@@ -3357,7 +3357,7 @@ export class Runtime {
   private async arrayIndex(binding: IndexedBinding | undefined, index: { decimal: string; source?: string; word?: Word }, state: State, io: IO, owner: ArrayOwner, create = false, relativeMaximum = binding?.maximum ?? -1): Promise<number | undefined> {
     if (!binding?.associative) {
       if (index.source === "") throw new ArrayFailure("bad array subscript");
-      const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
+      const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
       const fast = this.fastValueWord(word, state, io, false, false, false, false);
       const source = fast !== undefined ? shellValueText(fast) : shellValueText(concatShellValues(await this.valueWord(word, state, io, false), io[valueScope]));
       owner.reserve({ work: source.length + 1 }).release();
@@ -3367,7 +3367,7 @@ export class Runtime {
       if (number < 0n || number > BigInt(maximum)) throw new ArrayFailure(`index outside 0..${maximum}`);
       return Number(number);
     }
-    const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
+    const word = index.word ?? parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
     const fast = this.fastValueWord(word, state, io, false, false, false, false);
     const resolvedValue = fast !== undefined ? fast : await (async () => {
       const fields = await this.valueWord(word, state, io, false);
@@ -3537,7 +3537,7 @@ export class Runtime {
         if (assignment.kind === "element") {
           let index: number;
           if (selectedIndex !== undefined) index = selectedIndex; else if (canReviseInPlace && targetBinding.associative) {
-            const word = assignment.index.word ?? parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth);
+            const word = assignment.index.word ?? parseArraySubscript(assignment.index.source ?? assignment.index.decimal, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
             const fastKey = this.fastValueWord(word, state, io, false, false, false, false);
             const keyValue = fastKey !== undefined ? fastKey : await (async () => {
               const keyFields = await this.valueWord(word, state, io, false);
@@ -5417,7 +5417,7 @@ export class Runtime {
     let words = 0;
     const warnings: string[] = [];
     try {
-      for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings, this.budget.parsing, state.extensions?.syntax)) {
+      for (const word of hereDocumentWords(document, line, byteLocale(state.variables), warnings, this.budget.parsing, state.extensions?.syntax, !!state.extglob)) {
         this.signal.throwIfAborted();
         for (const warning of warnings.splice(0)) await writeDiagnostic(io.stderr, `shell: warning: ${warning}\n`);
         if (++words % 128 === 0) await yieldTurn(this.signal);
@@ -5862,7 +5862,7 @@ export class Runtime {
         const assignment = refName === original.name ? original : { ...original, name: refName };
         const target = !assignment.kind && !assignment.name.includes("[") ? { name: assignment.name } : this.variableTarget(assignment.name)!;
         if (!assignment.kind && target.subscript !== undefined) {
-          await this.arrayAssignment({ kind: "element", name: target.name, append: assignment.append, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)), value: assignment.value }, state, io);
+          await this.arrayAssignment({ kind: "element", name: target.name, append: assignment.append, index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: assignment.value }, state, io);
           continue;
         }
         if (assignment.kind) { await this.arrayAssignment(assignment, state, io); continue; }
@@ -6871,7 +6871,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined);
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined, !!state.extglob);
         for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           const result = await this.runUnit(unit.script, state, io);
@@ -6908,7 +6908,7 @@ export class Runtime {
       }
       const unitIO = { ...io, diagnosticOffset: offset };
       try {
-        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing, lineIndex, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined);
+        const unit = eof ? parseShellUnit(source, 0, byteLocale(state.variables), this.budget.parsing, lineIndex, undefined, false, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined, !!state.extglob) : parseShellInputUnit(source, byteLocale(state.variables), this.budget.parsing, lineIndex, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined, !!state.extglob);
         if (unit) {
           for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName}: warning: ${warning}\n`);
           if (unit.script.lists.length) {
@@ -7179,7 +7179,7 @@ export class Runtime {
       this.signal.throwIfAborted();
       let unit;
       try {
-        unit = parseShellUnit(source, position, byteLocale(child.variables), this.budget.parsing, lineIndex, undefined, false, child.extensions?.syntax, child.expand_aliases ? child.aliases : undefined);
+        unit = parseShellUnit(source, position, byteLocale(child.variables), this.budget.parsing, lineIndex, undefined, false, child.extensions?.syntax, child.expand_aliases ? child.aliases : undefined, !!child.extglob);
       } catch (error) {
         if (!(error instanceof ShellSyntaxError)) throw error;
         await writeDiagnostic(context.stderr, `${target}: line ${lineIndex.lineAt(error.offset)}: syntax error: ${error.reason}\n`);
@@ -7200,7 +7200,7 @@ export class Runtime {
   async runCurrentText(source: string, state: State, io: IO, fatalSyntax: boolean, syntaxName?: string, byteSource = false, includeSyntaxContext = true, sourceValues?: OwnedShellSource["values"]): Promise<number> {
     if (!state.expand_aliases && !sourceValues && !byteSource && isDefaultShellSyntax(state.extensions?.syntax) && source.length <= 4096) {
       try {
-        const cachedUnit = getOrParseSingleEvalUnit(source, byteLocale(state.variables), this.budget.parsing);
+        const cachedUnit = getOrParseSingleEvalUnit(source, byteLocale(state.variables), this.budget.parsing, !!state.extglob);
         if (cachedUnit) {
           const rawSt = stateMonitor(state)?.raw ?? state;
           const pendingEval = (rawSt as { _syncPendingEvalResume?: { script: Script; listIndex: number; pipelineIndex: number } })._syncPendingEvalResume;
@@ -7225,7 +7225,7 @@ export class Runtime {
     try {
       do {
         this.signal.throwIfAborted();
-        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, sourceValues, byteSource, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined);
+        const unit = parseShellUnit(source, position, byteLocale(state.variables), this.budget.parsing, lineIndex, sourceValues, byteSource, state.extensions?.syntax, state.expand_aliases ? state.aliases : undefined, !!state.extglob);
         for (const warning of unit.script.warnings ?? []) await writeDiagnostic(io.stderr, `${io.scriptName ?? "shell"}: warning: ${warning}\n`);
         if (unit.script.lists.length) {
           status = await this.inputUnit(unit.script, state, io);
@@ -7556,7 +7556,7 @@ export class Runtime {
       try {
         let program = prepareArithmetic(args[index]!, this.budget.parsing);
         if (program.error) {
-          const word = parseArithmeticExpansion(args[index]!, this.budget.parsing, byteLocale(state.variables), state.depth + (context.parameterDepth ?? 0), context.diagnosticLine ?? 1, state.extensions?.syntax);
+          const word = parseArithmeticExpansion(args[index]!, this.budget.parsing, byteLocale(state.variables), state.depth + (context.parameterDepth ?? 0), context.diagnosticLine ?? 1, state.extensions?.syntax, !!state.extglob);
           const operandIO = this.parameterOperandIO(word, state, context);
           const fields = await this.valueWord(word, state, operandIO, false, false, true);
           const source = shellValueText(concatShellValues(fields, context[valueScope]));
@@ -7943,7 +7943,7 @@ export class Runtime {
       index = undefined;
       if (bracket >= 0) {
         const source = target.slice(bracket + 1, -1);
-        try { index = stringIndex(source, this.budget.parsing, parseArraySubscript(source, this.budget.parsing, byteLocale(state.variables), state.depth)); }
+        try { index = stringIndex(source, this.budget.parsing, parseArraySubscript(source, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)); }
         catch (error) {
           this.signal.throwIfAborted();
           if (!(error instanceof ShellSyntaxError)) throw error;
@@ -8603,7 +8603,7 @@ export class Runtime {
           if (match[2]?.startsWith("(")) {
             this.budget.source(shellValueByteLength(assigned!));
             const source = typeof assigned === "string" ? assigned : latin1Text(shellValueBytes(assigned!, context[valueScope]));
-            const entries = parseCompoundArrayValue(source, byteLocale(state.variables), typeof assigned !== "string", state.extensions?.syntax, this.budget.parsing);
+            const entries = parseCompoundArrayValue(source, byteLocale(state.variables), typeof assigned !== "string", state.extensions?.syntax, this.budget.parsing, !!state.extglob);
             await this.arrayAssignment({ kind: "compound", name, append, entries }, state, context, "readonly");
           } else if (assigned !== undefined) {
             await this.arrayAssignment({ kind: "element", name, append, index: { decimal: "0" }, value: {
@@ -8774,7 +8774,7 @@ export class Runtime {
             const target = this.referenceName(state, name);
             const element = this.variableTarget(target)!;
             if (element.subscript !== undefined && append) {
-              await this.arrayAssignment({ kind: "element", name: element.name, append: true, index: stringIndex(element.subscript, this.budget.parsing, parseArraySubscript(element.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
+              await this.arrayAssignment({ kind: "element", name: element.name, append: true, index: stringIndex(element.subscript, this.budget.parsing, parseArraySubscript(element.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)), value: { offset: 0, parts: [{ kind: "text", value: shellValueText(value), quoted: true, ...(typeof value === "string" ? {} : { byteValue: value }) }] } }, state, context);
             } else {
               if (append) value = state.variableAttributes?.get(target)?.includes("i")
                 ? concatShellValues([`(${state.variables[target] || "0"})+(`, value, ")"], context[valueScope])
@@ -9132,7 +9132,7 @@ export class Runtime {
         if (target.subscript === "@" || target.subscript === "*") {
           setArraySelector(resolved, { kind: "members", separator: target.subscript });
         } else {
-          setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)) });
+          setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)) });
         }
         part = resolved;
       } else if (/^(?:[a-zA-Z_][a-zA-Z_0-9]*|[0-9]+|[?@*#$!_-])$/u.test(name)) {
@@ -9151,7 +9151,7 @@ export class Runtime {
       if (target.subscript === "@" || target.subscript === "*") {
         setArraySelector(resolved, { kind: "members", separator: target.subscript });
       } else if (target.subscript !== undefined) {
-        setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth)) });
+        setArraySelector(resolved, { kind: "element", index: stringIndex(target.subscript, this.budget.parsing, parseArraySubscript(target.subscript, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob)) });
       }
       part = resolved;
     }
@@ -9167,7 +9167,7 @@ export class Runtime {
     const store = requireArrays(state);
     const binding = store.get(part.name);
     if (binding?.associative) {
-      const word = selector.index.word ?? parseArraySubscript(selector.index.source, this.budget.parsing, byteLocale(state.variables), state.depth);
+      const word = selector.index.word ?? parseArraySubscript(selector.index.source, this.budget.parsing, byteLocale(state.variables), state.depth, false, state.extensions?.syntax, !!state.extglob);
       const fields = await this.valueWord(word, state, io, false);
       const value = concatShellValues(fields, io[valueScope]);
       const resolved = { ...part };
@@ -9394,7 +9394,7 @@ export class Runtime {
         .replace(/\\a/gu, "\x07")
         .replace(/\\\$/gu, "$")
         .replace(/\\\\/gu, "\\");
-      const word = parseArithmeticExpansion(text, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax);
+      const word = parseArithmeticExpansion(text, this.budget.parsing, byteLocale(state.variables), state.depth + (io.parameterDepth ?? 0), io.diagnosticLine ?? 1, state.extensions?.syntax, !!state.extglob);
       const fields = await this.valueWord(word, state, this.parameterOperandIO(word, state, io), false, false, true);
       return concatShellValues(fields, io[valueScope]);
     }
@@ -9825,6 +9825,8 @@ export class Runtime {
       replacements.push({ value, quoted: entry.quoted });
     }
     if (!pattern && operator !== "/#" && operator !== "/%") return text;
+    // Bash searches an empty value only for a leading star (or a suffix-anchored pattern).
+    if (!text && pattern && operator !== "/%" && !pattern.startsWith("*")) return text;
     let result = "";
     let resultBytes = 0;
     let retained: ValueReservation | undefined;
@@ -9880,6 +9882,7 @@ export class Runtime {
         if (end === start) {
           position = nextCodePointOffset(text, end);
           await append(text, end, position);
+          if (position === text.length) return result;
         }
         break;
       }

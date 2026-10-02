@@ -90,6 +90,7 @@ export interface ShellLimits {
 }
 
 export interface ShellParseOptions {
+  readonly extglob?: boolean;
   readonly maxSyntaxDepth?: number;
   readonly maxParseUnits?: number;
 }

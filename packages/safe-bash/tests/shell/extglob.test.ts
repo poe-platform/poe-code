@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { setup } from "./helpers.js";
+import { parseShell } from "../../src/shell/parser.js";
 import { standardCommands } from "../../src/index.js";
 
 for (const operator of ["@", "?", "*", "+", "!"]) {
@@ -174,7 +175,7 @@ case "alpha123" in
   never_matches) printf 'fallthrough\\n' ;;
 esac
 shopt -u extglob
-printf 'disabled:%s\\n' @(a|b).txt
+printf 'disabled:%s\\n' '@(a|b).txt'
 `);
     assert.equal(result.stderr, "");
     assert.equal(result.exitCode, 0);
@@ -186,3 +187,170 @@ printf 'disabled:%s\\n' @(a|b).txt
     await shell.dispose();
   }
 });
+
+// Expected outputs verified against GNU Bash 5.3.20.
+for (const [pattern, value, stdout] of [
+  ["*(a)", "aba", "XXbX\n"],
+  ["*(a)", "abba", "XXbXbX\n"],
+  ["*(a)", "baa", "XbX\n"],
+  ["*(a)", "aab", "XXb\n"],
+  ["*(a)", "bb", "XbXb\n"],
+  ["*(a)", "", "X\n"],
+  ["*(a)", "a", "X\n"],
+  ["*(a)", "aéb", "XXéXb\n"],
+  ["?(a)", "aba", "XXbX\n"],
+  ["?(a)", "abba", "XXbXbX\n"],
+  ["?(a)", "baa", "XbXX\n"],
+  ["?(a)", "aab", "XXXb\n"],
+  ["?(a)", "bb", "XbXb\n"],
+  ["?(a)", "", "\n"],
+  ["?(a)", "a", "X\n"],
+  ["?(a)", "aéb", "XXéXb\n"],
+  ["!(b)", "aba", "X\n"],
+  ["!(b)", "abba", "X\n"],
+  ["!(b)", "baa", "X\n"],
+  ["!(b)", "aab", "X\n"],
+  ["!(b)", "bb", "X\n"],
+  ["!(b)", "", "\n"],
+  ["!(b)", "a", "X\n"],
+  ["!(b)", "aéb", "X\n"],
+] as const) {
+  test(`empty extglob replacement boundaries: ${pattern}, ${value}`, async () => {
+    const { shell } = setup();
+    shell.use(standardCommands());
+    try {
+      const actual = await shell.exec(`shopt -s extglob\nx='${value}'; echo "\${x//${pattern}/X}"`);
+      assert.equal(actual.exitCode, 0);
+      assert.equal(actual.stderr, "");
+      assert.equal(actual.stdout, stdout);
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const [source, exitCode, stdout] of [
+  ["echo !(foo)", 2, ""],
+  ["shopt -s extglob; echo @(a|b)", 2, ""],
+  ["shopt -s extglob\necho @(a|b)", 0, "@(a|b)\n"],
+  ["shopt -s extglob\nshopt -u extglob; echo @(a|b)", 0, "@(a|b)\n"],
+  ["shopt -s extglob\nshopt -u extglob\necho @(a|b)", 2, ""],
+  ["{ shopt -s extglob; echo @(a|b); }", 2, ""],
+  ["f() { shopt -s extglob; echo @(a|b); }; f", 2, ""],
+  ["echo '@(a|b)'", 0, "@(a|b)\n"],
+  ["echo \"@(a|b)\"", 0, "@(a|b)\n"],
+  ["[[ a == @(a|b) ]] && echo yes", 0, "yes\n"],
+  ["shopt -s extglob; eval 'echo @(a|b)'", 0, "@(a|b)\n"],
+  ["shopt -s extglob\necho $(echo @(a|b))", 0, "@(a|b)\n"],
+  ["echo $(echo @(a|b))", 127, ""],
+  ["shopt -s extglob\ncase a in @(a|b)) echo yes;; esac", 0, "yes\n"],
+  ["case a in @(a|b)) echo yes;; esac", 2, ""],
+] as const) {
+  test(`parse-time extglob option: ${JSON.stringify(source)}`, async () => {
+    const { shell } = setup();
+    shell.use(standardCommands());
+    try {
+      const actual = await shell.exec(source);
+      assert.equal(actual.exitCode, exitCode);
+      assert.equal(actual.stdout, stdout);
+      if (exitCode !== 0) assert.match(actual.stderr, /(?:syntax error|Expected command separator|Expected case pattern)/u);
+      else assert.equal(actual.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("parseShell exposes the parse-time extglob option", () => {
+  assert.throws(() => parseShell("echo @(a|b)"), /syntax error/u);
+  assert.doesNotThrow(() => parseShell("echo @(a|b)", 0, { extglob: true }));
+});
+
+test("cached input units respect extglob changes between invocations", async () => {
+  const { shell } = setup();
+  shell.use(standardCommands());
+  const source = 'shopt "$mode" extglob\necho @(a|b)';
+  try {
+    for (const mode of ["-s", "-u", "-s", "-u"]) {
+      const actual = await shell.exec(source, { env: { mode } });
+      assert.equal(actual.exitCode, mode === "-s" ? 0 : 2);
+      assert.equal(actual.stdout, mode === "-s" ? "@(a|b)\n" : "");
+    }
+  } finally { await shell.dispose(); }
+});
+
+test("eval caches respect extglob changes within an invocation", async () => {
+  const { shell } = setup();
+  shell.use(standardCommands());
+  try {
+    const actual = await shell.exec(`for mode in -s -u -s; do
+  shopt "$mode" extglob
+  eval 'echo @(a|b)'
+  echo "$?"
+done`);
+    assert.equal(actual.exitCode, 0);
+    assert.equal(actual.stdout, "@(a|b)\n0\n2\n@(a|b)\n0\n");
+    assert.match(actual.stderr, /syntax error/u);
+  } finally { await shell.dispose(); }
+});
+
+for (const command of ["source /script", "bash /script", "bash"]) {
+  for (const enabled of [true, false]) {
+    test(`extglob parsing through ${command}, enabled=${enabled}`, async () => {
+      const { shell, fs } = setup();
+      shell.use(standardCommands());
+      const source = `shopt ${enabled ? "-s" : "-u"} extglob\necho @(a|b)\n`;
+      await fs.writeFile("/script", new TextEncoder().encode(source));
+      try {
+        const actual = await shell.exec(command, { stdin: source });
+        assert.equal(actual.exitCode, enabled ? 0 : 2);
+        assert.equal(actual.stdout, enabled ? "@(a|b)\n" : "");
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const source of [
+  "shopt -s extglob\ncat <<EOF\n$(echo @(a|b))\nEOF",
+  "shopt -s extglob\nshopt -s expand_aliases\nalias pat='echo @(a|b)'\npat",
+  "shopt -s extglob\necho `echo @(a|b)`",
+]) {
+  test(`extglob propagates to nested lexical contexts: ${JSON.stringify(source)}`, async () => {
+    const { shell } = setup();
+    shell.use(standardCommands());
+    try {
+      const actual = await shell.exec(source);
+      assert.equal(actual.exitCode, 0);
+      assert.equal(actual.stderr, "");
+      assert.equal(actual.stdout, "@(a|b)\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
+for (const operator of ["/", "//", "/#", "/%"] as const) {
+  for (const pattern of ["", "*", "*(a)", "?(a)", "!(b)"]) {
+    test(`empty replacement subject: ${operator}${pattern}`, async () => {
+      const { shell } = setup();
+      shell.use(standardCommands());
+      try {
+        const actual = await shell.exec(`shopt -s extglob\nx=; echo "\${x${operator}${pattern}/X}"`);
+        const replaced = pattern.startsWith("*") || operator === "/%" || (operator === "/#" && pattern === "");
+        assert.equal(actual.exitCode, 0);
+        assert.equal(actual.stderr, "");
+        assert.equal(actual.stdout, replaced ? "X\n" : "\n");
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const [source, stdout] of [
+  ['shopt -s extglob\na[$(echo @(anything) >/dev/null; echo 0)]=v; echo "${a[0]}"', "v\n"],
+  ['shopt -s extglob\necho $(( $(echo @(anything) >/dev/null; echo 3) ))', "3\n"],
+] as const) {
+  test(`enabled extglob inside arithmetic and subscripts: ${JSON.stringify(source)}`, async () => {
+    const { shell } = setup();
+    shell.use(standardCommands());
+    try {
+      const actual = await shell.exec(source);
+      assert.equal(actual.exitCode, 0, actual.stderr);
+      assert.equal(actual.stdout, stdout);
+      assert.equal(actual.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}

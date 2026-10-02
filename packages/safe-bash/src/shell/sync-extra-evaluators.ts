@@ -5379,7 +5379,7 @@ const syncExtraRuntimeMethods = {
           if (expWord !== undefined) { if (cachedExpr._cachedArithUnits) this.budget.parsing.admit(cachedExpr._cachedArithUnits); } else {
             const beforeUnits = this.budget.parsing.admittedUnits;
             try {
-              expWord = parseArithmeticExpansion( expr.source, this.budget.parsing, byteLocale(rawVars), rawState.depth + (io.parameterDepth ?? 0), line, rawState.extensions?.syntax, );
+              expWord = parseArithmeticExpansion( expr.source, this.budget.parsing, byteLocale(rawVars), rawState.depth + (io.parameterDepth ?? 0), line, rawState.extensions?.syntax, !!rawState.extglob);
             } catch {
               expWord = null;
             }
@@ -6532,7 +6532,7 @@ const syncExtraRuntimeMethods = {
     const word = index.word ?? (cached._cachedSyntax === state.extensions?.syntax ? cached._cachedWord : undefined);
     if (word) return word;
     try {
-      cached._cachedWord = parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, false, state.depth, false, state.extensions?.syntax);
+      cached._cachedWord = parseArraySubscript(index.source ?? index.decimal, this.budget.parsing, false, state.depth, false, state.extensions?.syntax, !!state.extglob);
       cached._cachedSyntax = state.extensions?.syntax;
       return cached._cachedWord;
     } catch {
@@ -7795,7 +7795,7 @@ const syncExtraRuntimeMethods = {
       if (w0Plain !== undefined && hasShellFunction(rawState, w0Plain)) return false;
       if (w0Plain === "eval" && command.words.length === 2 && command.words[1]?.plain !== undefined && command.words[1].plain.length <= 4096 && !hasShellFunction(rawState, "eval") && !rawState.extensions?.builtins.has("eval") && isDefaultShellSyntax(rawState.extensions?.syntax)) {
         try {
-          const cachedUnit = getOrParseSingleEvalUnit(command.words[1].plain, byteLocale(rawState.variables), this.budget.parsing);
+          const cachedUnit = getOrParseSingleEvalUnit(command.words[1].plain, byteLocale(rawState.variables), this.budget.parsing, !!rawState.extglob);
           if (cachedUnit && this.canSyncScriptCompound(cachedUnit.script, rawState, depth + 1, loopDepth) && this.canSyncLoopScriptsWithoutTransition([cachedUnit.script], rawState)) {
             return true;
           }
@@ -8259,7 +8259,7 @@ const syncExtraRuntimeMethods = {
       if (expr.source.includes("/") || expr.source.includes("%") || expr.source.includes("<<") || expr.source.includes(">>") || expr.source.includes("**")) return false;
       if (/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(?:=|\+=|-=)\s*\$(?:[1-9]|\{[1-9]\})\s*$/.test(expr.source)) return true;
       try {
-        const expW = parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
+        const expW = parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax, !!rawState.extglob);
         return this.isPureSyncValueWord(expW, rawState);
       } catch {
         return false;
@@ -9272,7 +9272,7 @@ const syncExtraRuntimeMethods = {
         let expWord = canCacheWord && cachedExpr._cachedArithSyntax === rawState.extensions?.syntax ? cachedExpr._cachedArithWord : undefined;
         if (expWord === undefined) {
           try {
-            expWord = parseArithmeticExpansion( expr.source, this.budget.parsing, byteLocale(rawState.variables), rawState.depth + (io.parameterDepth ?? 0), diagnosticLine, rawState.extensions?.syntax, );
+            expWord = parseArithmeticExpansion( expr.source, this.budget.parsing, byteLocale(rawState.variables), rawState.depth + (io.parameterDepth ?? 0), diagnosticLine, rawState.extensions?.syntax, !!rawState.extglob);
           } catch {
             expWord = null;
           }
@@ -11786,7 +11786,7 @@ const syncExtraRuntimeMethods = {
                 let sourceLen = evalArgs.length - 1;
                 for (let i = 0; i < evalArgs.length; i++) sourceLen += shellValueByteLength(evalArgs[i]!);
                 if (sourceLen > 0) this.budget.source(sourceLen);
-                cachedUnit = getOrParseSingleEvalUnit(evalSource, byteLocale(rawState.variables), this.budget.parsing);
+                cachedUnit = getOrParseSingleEvalUnit(evalSource, byteLocale(rawState.variables), this.budget.parsing, !!rawState.extglob);
               } catch (error) {
                 this.budget.parsing.restore(snapParse);
                 this.budget.sourceBytes = prevSourceBytes;
@@ -12651,7 +12651,7 @@ const syncExtraRuntimeMethods = {
         if (part.expression.error && part.expression.source.includes("$")) {
           if (rawState.nounset || part.expression.source.includes("<<") || part.expression.source.includes(">>") || part.expression.source.includes("**") || /[/%](?!\s*[1-9][0-9]*\b)/.test(part.expression.source)) return false;
           try {
-            const expW = parseArithmeticExpansion(part.expression.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
+            const expW = parseArithmeticExpansion(part.expression.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax, !!rawState.extglob);
             const onlyLengthExpansions = expW.parts.every(p =>
               p.kind === "text" ||
               (p.kind === "variable" && !p.indirect && !p.prefixNames && !p.substring && !p.transform && p.operator === undefined && (p.length || p.name === "#" || p.name === "?"))
@@ -12669,7 +12669,7 @@ const syncExtraRuntimeMethods = {
           if (!em || ((em[2] === "/" || em[2] === "%") && !(em[3] && /^[1-9][0-9]*$/.test(em[3])))) {
             if (arithSrc.includes("<<") || arithSrc.includes(">>") || arithSrc.includes("**") || /[/%](?!\s*[1-9][0-9]*\b)/.test(arithSrc)) return false;
             try {
-              const expW = parseArithmeticExpansion(arithSrc, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
+              const expW = parseArithmeticExpansion(arithSrc, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax, !!rawState.extglob);
               // Validate arithmetic syntax separately from shell expansion syntax.
               // Text in a Word can still contain arithmetic mutations or subscripts.
               const syntax = prepareArithmetic(expW.parts.map(p => p.kind === "text" ? p.value : "0").join(""), this.budget.parsing);
@@ -17287,7 +17287,7 @@ const syncExtraRuntimeMethods = {
       const cachedExpr = expr as { _cachedArithWord?: Word | null; _cachedArithSyntax?: unknown };
       let expWord = cachedExpr._cachedArithWord;
       if (!expWord) {
-        expWord = parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
+        expWord = parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax, !!rawState.extglob);
         cachedExpr._cachedArithWord = expWord;
         cachedExpr._cachedArithSyntax = rawState.extensions?.syntax;
       }
@@ -17310,7 +17310,7 @@ const syncExtraRuntimeMethods = {
     try {
       if (!expr.error && !expr.hasSubscript) return this.syncShellArithmeticNonZero(expr, rawState, line);
       const cachedExpr = expr as { _cachedArithWord?: Word | null };
-      const expWord = cachedExpr._cachedArithWord ?? parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax);
+      const expWord = cachedExpr._cachedArithWord ?? parseArithmeticExpansion(expr.source, this.budget.parsing, false, 0, undefined, rawState.extensions?.syntax, !!rawState.extglob);
       cachedExpr._cachedArithWord = expWord;
       const fastSrc = this.fastValueWord(expWord, rawState, io, false, false, true, false, 0, line) as string;
       const scalarMutMatch = fastSrc.length <= 64 ? SIMPLE_SCALAR_MUT_RE.exec(fastSrc) : null;
@@ -26385,14 +26385,14 @@ async function continueWarmAsync(
             budget.signal.throwIfAborted();
             const vars = currentState.variables;
             const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
-            if (!currentState.expand_aliases && currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined) {
+            if (!currentState.expand_aliases && currentCachedUnit && currentCachedUnit.locale === nextLocale && currentCachedUnit.nextCached !== undefined && currentCachedUnit.nextCached.extglob === !!currentState.extglob) {
               currentCachedUnit = currentCachedUnit.nextCached;
               budget.parsing.admit(currentCachedUnit.unitsCharged);
               unit = currentCachedUnit.unit;
             } else {
               parseState ??= { lineIndex: undefined, lineIndexUnits: 0, currentCachedUnit };
               parseState.currentCachedUnit = currentCachedUnit;
-              unit = getOrParseUnitFromCache(source, unit.next, nextLocale, sourceCache, parseState, budget, undefined, currentState.expand_aliases ? currentState.aliases : undefined);
+              unit = getOrParseUnitFromCache(source, unit.next, nextLocale, sourceCache, parseState, budget, undefined, currentState.expand_aliases ? currentState.aliases : undefined, !!currentState.extglob);
               currentCachedUnit = parseState.currentCachedUnit;
             }
             if (unit.script.warnings) {
@@ -26488,7 +26488,7 @@ function execWarmSyncOrFallback(shell: any, source: string, options: any, source
       const vars = currentState.variables;
       const nextLocale = (vars.LC_ALL || vars.LC_CTYPE || vars.LANG) ? byteLocale(vars) : false;
       const nextCached = currentCachedUnit && currentCachedUnit.locale === nextLocale ? currentCachedUnit.nextCached : undefined;
-      if (nextCached !== undefined && (!nextCached.unit.script.warnings || nextCached.unit.script.warnings.length === 0)) {
+      if (nextCached !== undefined && nextCached.extglob === !!currentState.extglob && (!nextCached.unit.script.warnings || nextCached.unit.script.warnings.length === 0)) {
         currentCachedUnit = nextCached;
         budget.parsing.admit(nextCached.unitsCharged);
         unit = nextCached.unit;
@@ -26554,7 +26554,7 @@ export function tryExecFast(shell: any, source: string, options: ShellExecOption
   if (shell._warmedInvocation && source.length > 0 && source.length <= 16384) {
     const sourceCache = shell._getSourceParseCache(source);
     const firstCached = sourceCache?.first0;
-    if (firstCached && (!firstCached.unit.script.warnings || firstCached.unit.script.warnings.length === 0)) {
+    if (firstCached && !firstCached.extglob && (!firstCached.unit.script.warnings || firstCached.unit.script.warnings.length === 0)) {
       return execWarmSyncOrFallback(shell, source, options, sourceCache, firstCached);
     }
     if (!firstCached && !shell._initialLocale) {
@@ -26569,7 +26569,7 @@ export function tryExecFast(shell: any, source: string, options: ShellExecOption
           }
           warm.budget.parsing.restore(savedParse);
           const parsedFirst = sourceCache.first0;
-          if (parsedFirst && (!parsedFirst.unit.script.warnings || parsedFirst.unit.script.warnings.length === 0)) {
+          if (parsedFirst && !parsedFirst.extglob && (!parsedFirst.unit.script.warnings || parsedFirst.unit.script.warnings.length === 0)) {
             return execWarmSyncOrFallback(shell, source, options, sourceCache, parsedFirst);
           }
         } catch {

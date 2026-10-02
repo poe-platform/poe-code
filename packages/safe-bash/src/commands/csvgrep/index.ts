@@ -7,6 +7,7 @@ import {
   generatedHeaders,
   matchesRow,
   parseCsvgrepArguments,
+  pythonRstrip,
   selectColumns,
   serializeRow,
   createCsvgrepCommand as createRawCsvgrepCommand,

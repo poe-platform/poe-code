@@ -57,10 +57,12 @@ for (const [source, stdout] of [
   assert.equal((await fs.stat("/work/rendered")).mode & 0o777, 0o600);
 });
 
-test("independent op child dispatch masks both streams and preserves parent environment", async () => {
+test("independent op child dispatch masks both streams and preserves parent environment", async context => {
   const reference = "op://Team/Login/password";
   const fs = createMemoryFileSystem();
+  await fs.writeFile("/child-only", encode("virtual-only\n"));
   const shell = new Shell({ fs, env: { TOKEN: reference, KEEP: "parent" } }).use(standardCommands());
+  context.after(() => shell.dispose());
   let children = 0;
   shell.register({ name: "inspect-child", async execute(context) {
     children++;
@@ -77,6 +79,13 @@ test("independent op child dispatch masks both streams and preserves parent envi
   assert.equal(child.exitCode, 9);
   assert.equal(child.stdout, "stdout=<concealed by 1Password>");
   assert.equal(child.stderr, "stderr=<concealed by 1Password>");
+  for (const interpreter of ["/bin/sh", "/usr/bin/sh"]) {
+    const virtual = await shell.exec(`op run -- ${interpreter} -c 'cat /child-only; printf "%s" "$TOKEN" > /child-result; printf "%s" "$TOKEN" >&2; KEEP=child; exit 7'`);
+    assert.equal(virtual.exitCode, 7, interpreter);
+    assert.equal(virtual.stdout, "virtual-only\n", interpreter);
+    assert.equal(virtual.stderr, "<concealed by 1Password>", interpreter);
+    assert.deepEqual(await fs.readFile("/child-result"), encode("synthetic-token"));
+  }
   const parent = await shell.exec('printf "%s|%s" "$TOKEN" "$KEEP"');
   assert.equal(parent.exitCode, 0, parent.stderr);
   assert.equal(parent.stdout, reference + "|parent");
@@ -87,9 +96,11 @@ test("independent op child dispatch masks both streams and preserves parent envi
   const hostRead = await shell.exec("op run -- /bin/sh -c 'cat /etc/passwd'");
   assert.notEqual(hostRead.exitCode, 0);
   assert.equal(hostRead.stdout, "");
-  const unavailable = await shell.exec("op run -- /usr/local/bin/sh -c 'printf HOST_ESCAPE'");
-  assert.notEqual(unavailable.exitCode, 0);
-  assert.equal(unavailable.stdout, "");
+  for (const executable of ["/usr/local/bin/sh", "/bin/curl", "/usr/bin/node"]) {
+    const unavailable = await shell.exec(`op run -- ${executable} -c 'printf HOST_ESCAPE'`);
+    assert.equal(unavailable.exitCode, 127, executable);
+    assert.equal(unavailable.stdout, "", executable);
+  }
   assert.equal(children, 1);
 });
 

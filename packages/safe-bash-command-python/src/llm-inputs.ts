@@ -1,6 +1,6 @@
 import { createLlmSpool, type LlmInputSource } from 'safe-bash-command-llm';
-import type { HttpTransport } from '../network/types.js';
-import type { FileSystem } from '../../contracts/index.js';
+import type { HttpTransport } from "safe-bash-network-engine/types";
+import type { FileSystem } from "safe-bash-contracts";
 import type { PythonHostValue } from './host-capabilities.js';
 
 type Spool = Awaited<ReturnType<typeof createLlmSpool>>;

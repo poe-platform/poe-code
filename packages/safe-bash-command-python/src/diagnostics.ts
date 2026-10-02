@@ -1,4 +1,4 @@
-import type { FileSystem } from '../../contracts/filesystem.js';
+import type { FileSystem } from "safe-bash-contracts/filesystem";
 
 const messages = {
   'executor-unavailable': 'Python executor is unavailable; configure exactly one supported executor or interpreter worker.',
@@ -41,7 +41,7 @@ export function isPythonFailureCategory(value: unknown): value is PythonFailureC
 
 export function reportPythonFailure(category: PythonFailureCategory, cause: unknown, observer?: PythonDiagnosticObserver): PythonFailure {
   const failure = new PythonFailure(category);
-  try { void Promise.resolve(observer?.({ failure, cause })).catch(() => {}); } catch {}
+  try { void Promise.resolve(observer?.({ failure, cause })).catch(() => {}); } catch { /* Observers cannot replace the command failure. */ }
   return failure;
 }
 

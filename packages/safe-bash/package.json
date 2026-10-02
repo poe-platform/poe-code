@@ -1857,6 +1857,22 @@
             "@poe-code/safe-fs": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-python": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-network-engine": "*",
+            "safe-bash-command-llm": "*",
+            "safe-bash-zip-engine": "*",
+            "safe-bash-command-soffice": "*",
+            "safe-bash-command-pdftoppm": "*",
+            "@noble/hashes": "2.4.0"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3282,7 +3298,8 @@
     "safe-bash-command-more": "*",
     "safe-bash-command-pdfunite": "*",
     "safe-bash-command-pdfseparate": "*",
-    "safe-bash-command-qrencode": "*"
+    "safe-bash-command-qrencode": "*",
+    "safe-bash-command-python": "*"
   },
   "main": "./dist/index.js",
   "imports": {

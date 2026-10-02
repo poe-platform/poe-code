@@ -1,4 +1,4 @@
-import { concatBytes, encodeBytes, indexOfBytes } from "../../byte-encoding.js";
+import { concatBytes, encodeBytes, indexOfBytes } from "safe-bash-io-engine/byte-encoding";
 import { createNodePythonWorker } from './node.js';
 import type { PythonWorkerEndpoint } from './index.js';
 import { encodePythonReply } from './reply.js';

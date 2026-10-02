@@ -1,6 +1,6 @@
-import { basename, resolvePath } from "../../contracts/index.js";
-import type { CommandContext, CommandDefinition, CommandResult } from "../../contracts/command.js";
-import { collectBytes, writeBytes } from "../../contracts/io.js";
+import { basename, resolvePath } from "safe-bash-contracts";
+import type { CommandContext, CommandDefinition, CommandResult } from "safe-bash-contracts/command";
+import { collectBytes, writeBytes } from "safe-bash-contracts/io";
 
 const encoder = new TextEncoder();
 
@@ -57,7 +57,7 @@ async function getWasiPythonDeps(): Promise<{ mod: unknown; shim: any }> {
       const wasmBytes = nodeFs.readFileSync(wasmPath);
       const mod = await (globalThis as any).WebAssembly.compile(wasmBytes);
       if (wasmBytes.byteOffset === 0 && typeof (wasmBytes.buffer as any).transfer === "function") {
-        try { (wasmBytes.buffer as any).transfer(0); } catch {}
+        try { (wasmBytes.buffer as any).transfer(0); } catch { /* Buffer release is best effort. */ }
       }
       return { mod, shim };
     })();

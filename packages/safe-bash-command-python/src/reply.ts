@@ -1,4 +1,4 @@
-import { FsError } from '../../contracts/errors.js';
+import { FsError } from "safe-bash-contracts/errors";
 
 /** Own and admit a finite wire value before allocating its serialized payload. */
 export function encodePythonReply(value: unknown, maxBytes: number): Uint8Array {

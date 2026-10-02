@@ -1,0 +1,119 @@
+{
+  "name": "safe-bash-command-python",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    "./docker": {
+      "types": "./dist/docker.d.ts",
+      "workerd": null,
+      "worker": null,
+      "browser": null,
+      "import": "./dist/docker.js"
+    },
+    "./executor-pool": {
+      "types": "./dist/executor-pool.d.ts",
+      "import": "./dist/executor-pool.js"
+    },
+    "./executor": {
+      "types": "./dist/executor.d.ts",
+      "import": "./dist/executor.js"
+    },
+    "./host-capabilities": {
+      "types": "./dist/host-capabilities.d.ts",
+      "import": "./dist/host-capabilities.js"
+    },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./jspi-assets": {
+      "types": "./dist/jspi-assets.d.ts",
+      "import": "./dist/jspi-assets.js"
+    },
+    "./jspi-trampoline": {
+      "types": "./dist/jspi-trampoline.d.ts",
+      "import": "./dist/jspi-trampoline.js"
+    },
+    "./jspi": {
+      "types": "./dist/jspi.d.ts",
+      "import": "./dist/jspi.js"
+    },
+    "./llm-assets-node": {
+      "types": "./dist/llm-assets-node.d.ts",
+      "workerd": null,
+      "worker": null,
+      "browser": null,
+      "import": "./dist/llm-assets-node.js"
+    },
+    "./llm-capability": {
+      "types": "./dist/llm-capability.d.ts",
+      "import": "./dist/llm-capability.js"
+    },
+    "./llm-dependencies": {
+      "types": "./dist/llm-dependencies.d.ts",
+      "import": "./dist/llm-dependencies.js"
+    },
+    "./llm-module": {
+      "types": "./dist/llm-module.d.ts",
+      "import": "./dist/llm-module.js"
+    },
+    "./llm-provider": {
+      "types": "./dist/llm-provider.d.ts",
+      "import": "./dist/llm-provider.js"
+    },
+    "./llm-reference-module": {
+      "types": "./dist/llm-reference-module.d.ts",
+      "import": "./dist/llm-reference-module.js"
+    },
+    "./node": {
+      "types": "./dist/node.d.ts",
+      "workerd": null,
+      "worker": null,
+      "browser": null,
+      "import": "./dist/node.js"
+    },
+    "./provisioning": {
+      "types": "./dist/provisioning.d.ts",
+      "import": "./dist/provisioning.js"
+    },
+    "./shell-capability": {
+      "types": "./dist/shell-capability.d.ts",
+      "import": "./dist/shell-capability.js"
+    },
+    "./shell-module": {
+      "types": "./dist/shell-module.d.ts",
+      "import": "./dist/shell-module.js"
+    },
+    "./worker": {
+      "types": "./dist/worker.d.ts",
+      "import": "./dist/worker.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts ../../scripts/python-workspace.test.mjs",
+    "test:unit": "node --import tsx --test src/*.test.ts ../../scripts/python-workspace.test.mjs"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "safe-bash-io-engine": "*",
+    "safe-bash-network-engine": "*",
+    "safe-bash-command-llm": "*",
+    "safe-bash-zip-engine": "*",
+    "safe-bash-command-soffice": "*",
+    "safe-bash-command-pdftoppm": "*",
+    "@noble/hashes": "2.4.0"
+  }
+}

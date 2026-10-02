@@ -504,6 +504,12 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-python#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
+      "outputs": []
     }
   }
 }

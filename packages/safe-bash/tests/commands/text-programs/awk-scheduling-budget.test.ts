@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { CommandRegistry, MemoryFileSystem, Shell, createTextProgramCommands, createStandardCommands } from "../../../src/index.js";
+import { CommandRegistry, MemoryFileSystem, Shell, createTextProgramCommands, createStandardCommands, textProgramCommands } from "../../../src/index.js";
 import { Budget } from "../../../src/commands/text-programs/shared.js";
 import { runVirtual } from "./helpers.js";
 import { string } from "../../../src/commands/text-programs/awk-values.js";
@@ -185,11 +185,49 @@ test("disposal of active AWK drains execution and preserves its rejection", { ti
   const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createTextProgramCommands()) });
   let started!: () => void;
   const ready = new Promise<void>(resolve => { started = resolve; });
-  const execution = shell.exec(`awk 'BEGIN { print "started" > "/dev/stderr"; while (1) i++; print "complete" }'`, { stderr: { async write() { started(); } } });
+  let output = "";
+  const execution = shell.exec(`awk 'BEGIN { print "started" > "/dev/stderr"; while (1) i++; print "complete" }'`, { stderr: { async write() { started(); } }, stdout: { async write(chunk) { output += new TextDecoder().decode(chunk); } } });
   const outcome = Promise.allSettled([execution]);
   await ready;
   await shell.dispose();
   const [result] = await outcome;
+  assert.equal(output, "");
   assert.equal(result!.status, "rejected");
   if (result!.status === "rejected") assert.equal(result.reason.message, "Shell is disposed");
+});
+
+test("cancellation stops active AWK before its completion marker and permits recovery", { timeout: 5000 }, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+  shell.use(textProgramCommands({ maxSteps: 5_000_000, replace: true }));
+  context.after(() => shell.dispose());
+  const controller = new AbortController();
+  const reason = new Error("user stopped");
+  let output = "";
+  const execution = shell.exec(`awk 'BEGIN { print "started"; while (1) i++; print "complete" }'`, {
+    signal: controller.signal,
+    stdout: { async write(chunk) {
+      output += new TextDecoder().decode(chunk);
+      controller.abort(reason);
+    } },
+  });
+  await assert.rejects(execution, error => error === reason);
+  assert.equal(output, "started\n");
+  const recovery = await shell.exec("printf recovered");
+  assert.equal(recovery.exitCode, 0);
+  assert.equal(recovery.stdout, "recovered");
+});
+
+for (const [script, exitCode, stdout] of [
+  [`awk 'BEGIN { exit 2 }' && printf forbidden`, 2, ""],
+  [`awk 'BEGIN { exit 0 }' || printf forbidden`, 0, ""],
+  [`awk 'BEGIN { exit 2 }' || printf recovered`, 0, "recovered"],
+  [`awk 'BEGIN { exit 0 }' && printf continued`, 0, "continued"],
+] as const) test(`AWK completion preserves conditional execution: ${script}`, async context => {
+  const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
+  shell.use(textProgramCommands({ maxSteps: 5_000_000, replace: true }));
+  context.after(() => shell.dispose());
+  const result = await shell.exec(script);
+  assert.equal(result.exitCode, exitCode);
+  assert.equal(result.stdout, stdout);
+  assert.equal(result.stderr, "");
 });

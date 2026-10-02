@@ -4308,8 +4308,9 @@ export class Runtime {
       const res = await fastPromise;
       if (res.terminated) return res;
       const list = script.lists[listIndex]!;
-      if (pipelineIndex + 1 < list.pipelines.length) return await this.runUnitFrom(script, state, io, listIndex, pipelineIndex + 1, false);
-      if (listIndex + 1 < script.lists.length) return await this.runUnitFrom(script, state, io, listIndex + 1, 0, false);
+      // The next pipeline has not been selected; evaluate its conditional operator.
+      if (pipelineIndex + 1 < list.pipelines.length) return await this.runUnitFrom(script, state, io, listIndex, pipelineIndex + 1, false, false);
+      if (listIndex + 1 < script.lists.length) return await this.runUnitFrom(script, state, io, listIndex + 1, 0, false, false);
       return res;
     } catch (error) {
       if (error instanceof NounsetDiagnosticFailure) {
@@ -4320,10 +4321,10 @@ export class Runtime {
       throw error;
     }
   }
-  private async runUnitFrom(script: Script, state: State, io: IO, startListIndex: number, startPipelineIndex: number, needStartExtensions: boolean): Promise<{ exitCode: number; terminated: boolean }> {
+  private async runUnitFrom(script: Script, state: State, io: IO, startListIndex: number, startPipelineIndex: number, needStartExtensions: boolean, skipFirstSync = !needStartExtensions): Promise<{ exitCode: number; terminated: boolean }> {
     try {
       if (needStartExtensions) await this.startExtensions(state, io);
-      return { exitCode: await this.inputUnit(script, state, io, startListIndex, startPipelineIndex, !needStartExtensions), terminated: false };
+      return { exitCode: await this.inputUnit(script, state, io, startListIndex, startPipelineIndex, skipFirstSync), terminated: false };
     } catch (error) {
       if (error instanceof NounsetDiagnosticFailure) {
         if (state.isolated) throw error;

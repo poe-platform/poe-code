@@ -167,7 +167,7 @@ function loadSyncTypedTable(
     if (!readFileSync) return undefined;
     sourceBytes = readFileSync(opts.filePath);
   }
-  if (!sourceBytes || sourceBytes.byteLength > 16384) return undefined;
+  if (!sourceBytes || sourceBytes.byteLength > 16384 || sourceBytes.includes(0)) return undefined;
   let text: string;
   try {
     text = syncUtf8Decoder.decode(sourceBytes);
@@ -954,6 +954,7 @@ export function evalSyncIn2csv(
       const wbXmlBytes = entries.get("xl/workbook.xml");
       if (!wbXmlBytes) return undefined;
       const wbXml = syncUtf8Decoder.decode(wbXmlBytes);
+      if (wbXml.includes("&")) return undefined;
       const sheetNames: string[] = [];
       for (const m of wbXml.matchAll(/<sheet\b[^>]*\bname="([^"]+)"/g)) {
         sheetNames.push(m[1]!);
@@ -993,8 +994,10 @@ export function evalSyncIn2csv(
             while (cells.length < col) cells.push("");
           }
           if (cm[2] === undefined) { cells.push(""); continue; }
+          if (/\bs="/.test(attrs)) return undefined;
           const tM = /\bt="([^"]+)"/.exec(attrs);
           const cType = tM?.[1] ?? "n";
+          if (cType === "b" || cType === "e" || cType === "d") return undefined;
           if (cType === "inlineStr") {
             const tv = /<t(?:\s[^>]*)?>([\s\S]*?)<\/t>/.exec(body);
             cells.push((tv?.[1] ?? "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, "&"));

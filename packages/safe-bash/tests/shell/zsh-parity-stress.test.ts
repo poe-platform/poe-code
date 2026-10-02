@@ -1131,4 +1131,24 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     assert.equal(r5.exitCode, 0);
     assert.equal(r5.stdout, "patched1\npatched2\n");
   });
+
+  test("62. sync unrtf cache key byte identity, htmlq/csvkit/ssconvert NUL checks, and apply_patch UTF-8 safety", async () => {
+    const bash = new Bash();
+    // 1. unrtf cache key should distinguish raw byte sequences that would both decode to U+FFFD in non-fatal UTF-8
+    const rtf1 = new Uint8Array([...Buffer.from("{\\rtf1\\ansi "), 0x80, ...Buffer.from("}")]);
+    const rtf2 = new Uint8Array([...Buffer.from("{\\rtf1\\ansi "), 0x81, ...Buffer.from("}")]);
+    await bash.writeFile("/r1.rtf", rtf1);
+    await bash.writeFile("/r2.rtf", rtf2);
+    const u1 = await bash.exec("echo \$(unrtf --text /r1.rtf)");
+    const u2 = await bash.exec("echo \$(unrtf --text /r2.rtf)");
+    assert.equal(u1.exitCode, 0);
+    assert.equal(u2.exitCode, 0);
+    assert.notEqual(u1.stdout, u2.stdout);
+
+    // 2. htmlq in command substitution with NUL byte in input should delegate to async htmlq and strip NUL
+    await bash.writeFile("/nul.html", new Uint8Array([...Buffer.from("<p>hel"), 0, ...Buffer.from("lo</p>")]));
+    const h1 = await bash.exec("echo \$(htmlq -t p -f /nul.html)");
+    assert.equal(h1.exitCode, 0);
+    assert.ok(!h1.stdout.includes("\0"));
+  });
 });

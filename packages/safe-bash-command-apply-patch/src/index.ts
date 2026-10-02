@@ -14,7 +14,18 @@ export function evalSyncApplyPatch(
   mkdirSync?: (filePath: string) => boolean,
 ): string | undefined {
   if (!readFileSync || !writeFileSync || opArgs.length > 1) return undefined;
-  const rawPatch = opArgs.length === 1 ? opArgs[0]! : (inBytes ? decoder.decode(inBytes) : "");
+  if (inBytes && inBytes.includes(0)) return undefined;
+  let rawPatch = "";
+  if (opArgs.length === 1) {
+    rawPatch = opArgs[0]!;
+  } else if (inBytes) {
+    try {
+      rawPatch = new TextDecoder("utf-8", { fatal: true }).decode(inBytes);
+    } catch {
+      return undefined;
+    }
+  }
+  if (rawPatch.includes("\0")) return undefined;
   const lines = rawPatch.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
   if (lines.length < 2 || lines[0] !== "*** Begin Patch" || lines[lines.length - 1] !== "*** End Patch") {
     return undefined;
@@ -69,7 +80,13 @@ export function evalSyncApplyPatch(
       if (origBytes.includes(13) || origBytes.includes(0) || (origBytes.length > 0 && origBytes[origBytes.length - 1] !== 10)) {
         return undefined;
       }
-      const fileLines = decoder.decode(origBytes).replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
+      let origText: string;
+      try {
+        origText = new TextDecoder("utf-8", { fatal: true }).decode(origBytes);
+      } catch {
+        return undefined;
+      }
+      const fileLines = origText.replace(/\r\n/g, "\n").replace(/\n$/, "").split("\n");
       idx++;
       let moveDest: string | undefined;
       if (idx < lines.length - 1 && lines[idx]!.startsWith("*** Move to: ")) {

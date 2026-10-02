@@ -45,7 +45,7 @@ export function createSyncSsconvertEvaluator(archive: SynchronousSpreadsheetArch
       }
 
       const [srcUri, dstUri] = parsed.operands as [string, string];
-      if (srcUri.includes("%") || dstUri.includes("%")) return undefined;
+      if (srcUri === "-" || dstUri === "-" || srcUri.includes("%") || dstUri.includes("%")) return undefined;
       if (srcUri.includes("://") && srcUri !== "fd://0") return undefined;
       if (dstUri.includes("://") && dstUri !== "fd://1") return undefined;
 
@@ -72,6 +72,7 @@ export function createSyncSsconvertEvaluator(archive: SynchronousSpreadsheetArch
       let rows: (string | CellValue)[][] | undefined;
       let sheetName = srcUri === "fd://0" ? "Sheet1" : (srcUri.split("/").pop() || "Sheet1");
       if (inFmt === "csv" || inFmt === "tsv") {
+        if (srcBytes.includes(0)) return undefined;
         const text = syncUtf8Decoder.decode(srcBytes);
         rows = parseSimpleSeparatedRows(text, inFmt === "tsv" ? "\t" : ",");
       } else {
@@ -84,6 +85,7 @@ export function createSyncSsconvertEvaluator(archive: SynchronousSpreadsheetArch
 
       if (outFmt === "csv") {
         const csvText = formatSimpleCsv(rows);
+        if (csvText.includes("\0")) return undefined;
         if (dstUri === "fd://1") return csvText;
         if (!writeFileSync || !writeFileSync(dstUri, syncUtf8Encoder.encode(csvText))) return undefined;
         return "";

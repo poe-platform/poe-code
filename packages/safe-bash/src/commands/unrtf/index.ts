@@ -73,7 +73,9 @@ export function evalSyncUnrtf(
     srcBytes = readFileSync(file) ?? readFileSync(file + ".rtf");
   }
   if (!srcBytes || srcBytes.byteLength === 0 || srcBytes.byteLength > 16384) return undefined;
-  const cacheKey = `${format}|\x00${profile ?? ""}|\x00${quiet ? 1 : 0}|\x00${noremap ? 1 : 0}|\x00${syncUnrtfDecoder.decode(srcBytes)}`;
+  let rawKey = "";
+  for (let i = 0; i < srcBytes.byteLength; i++) rawKey += String.fromCharCode(srcBytes[i]!);
+  const cacheKey = `${format}|\x00${profile ?? ""}|\x00${quiet ? 1 : 0}|\x00${noremap ? 1 : 0}|\x00${rawKey}`;
   const cached = unrtfCache.get(cacheKey);
   if (cached !== undefined) return cached;
   try {
@@ -84,6 +86,7 @@ export function evalSyncUnrtf(
       ...(noremap === undefined ? {} : { noremap }),
       ...(profile === undefined ? {} : { profile }),
     });
+    if (out.includes("\0")) return undefined;
     if (unrtfCache.size >= 8) unrtfCache.clear();
     unrtfCache.set(cacheKey, out);
     return out;

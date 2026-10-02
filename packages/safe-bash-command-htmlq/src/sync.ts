@@ -7,7 +7,7 @@ import { parseHtmlqArguments } from "./arguments.js";
 
 let _syncAbortSignal: AbortSignal | undefined;
 const syncAbortSignal = (): AbortSignal => (_syncAbortSignal ??= new AbortController().signal);
-const syncHtmlDecoder = new TextDecoder("utf-8", { fatal: false, ignoreBOM: true });
+const syncHtmlDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
 const syncHtmlEncoder = new TextEncoder();
 const syncHtmlLimits = Object.freeze({
   inputBytes: Infinity,
@@ -40,7 +40,7 @@ export function evalSyncHtmlq(
       srcBytes = fBytes;
     }
     // Missing bytes mean inherited stdin has not been collected by the fast path.
-    if (!srcBytes) return undefined;
+    if (!srcBytes || srcBytes.includes(0)) return undefined;
     const budget = new HtmlBudget(invocation);
     const original = syncHtmlDecoder.decode(srcBytes);
     const document = parseHtmlSync(original, invocation, budget);
@@ -115,8 +115,9 @@ export function evalSyncHtmlq(
         out += serializeHtml(node, invocation, args.pretty ? "pretty" : "normalized") + "\n";
       }
     }
+    if (out.includes("\0")) return undefined;
     if (args.output !== "-") {
-      if (!writeFileSync || !writeFileSync(args.output, syncHtmlEncoder.encode(out))) return undefined;
+      if (!args.output || !writeFileSync || !writeFileSync(args.output, syncHtmlEncoder.encode(out))) return undefined;
       return "";
     }
     return out;

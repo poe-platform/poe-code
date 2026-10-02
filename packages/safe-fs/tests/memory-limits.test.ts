@@ -451,3 +451,16 @@ for (const reason of [null, false, 0, ""]) {
     await assert.rejects(filesystem.openReadFile("/f", { signal: controller.signal }), error => error === reason);
   });
 }
+
+
+test("retained reads accept the stock capabilities getter but do not invoke replacement getters", async () => {
+  const filesystem = new memory.MemoryFileSystem();
+  await filesystem.writeFile("/f", bytes(2, 7));
+  const handle = await filesystem.openReadFile("/f");
+  assert.deepEqual(await handle.read(0, 2), bytes(2, 7));
+  await handle.close();
+  let called = false;
+  Object.defineProperty(filesystem, "capabilities", { get() { called = true; return { retainedRead: true }; } });
+  await assert.rejects(filesystem.openReadFile("/f"), code("ENOTSUP"));
+  assert.equal(called, false);
+});

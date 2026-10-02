@@ -1,4 +1,4 @@
-import { discoverSkillsAsync } from "@poe-code/agent-skill-config";
+import { discoverSkillsAsync } from "@poe-code/agent-skill-config/runtime";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import type { ToolRegistry } from "../runtime/tools.js";
 

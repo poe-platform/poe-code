@@ -1,4 +1,4 @@
-import path from "node:path";
+import { nativePath as path } from "#agent-platform";
 import type { FileAwareness } from "./plugin-types.js";
 
 export interface FileAwarenessTracker {

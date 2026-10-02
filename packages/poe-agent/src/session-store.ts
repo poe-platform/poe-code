@@ -1,13 +1,15 @@
-import { createNodeFsBridge, getNodeFsBridgeProvider, type FileSystem } from "@poe-code/safe-fs";
-import fsPromises from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
+import { getFsBridgeProvider } from "@poe-code/safe-fs/bridge";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { agentFsBridge } from "./runtime/filesystem.js";
+import { fsPromises } from "#agent-platform";
+import { hostEnvironment as os } from "#agent-platform";
+import { nativePath as path } from "#agent-platform";
 import { assertSafeSessionId } from "./runtime/session/session-id.js";
 import type { ChatMessage } from "./runtime/types.js";
 
 interface SessionStoreFs {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
-  readFile(path: string, encoding: "utf8"): Promise<string | Buffer>;
+  readFile(path: string, encoding: "utf8"): Promise<string | Uint8Array>;
   writeFile(
     path: string,
     content: string,
@@ -37,8 +39,8 @@ export function createAgentSessionStore(
     signal?: AbortSignal;
   } = {}
 ): AgentSessionStore {
-  const fs = options.fs && "capabilities" in options.fs ? createNodeFsBridge(options.fs, { signal: options.signal }) : options.fs ?? fsPromises;
-  const paths = getNodeFsBridgeProvider(fs) ? path.posix : path;
+  const fs = options.fs && "capabilities" in options.fs ? agentFsBridge(options.fs, { signal: options.signal }) : options.fs ?? fsPromises;
+  const paths = getFsBridgeProvider(fs) ? path.posix : path;
   const sessionsDir = paths.join(options.homeDir ?? (options.fs && "capabilities" in options.fs ? "/" : os.homedir()), ".poe-code", "sessions");
 
   return {
@@ -47,7 +49,8 @@ export function createAgentSessionStore(
       const filePath = paths.join(sessionsDir, `${threadId}.json`);
       let serialized: string;
       try {
-        serialized = String(await fs.readFile(filePath, "utf8"));
+        const raw = await fs.readFile(filePath, "utf8");
+        serialized = typeof raw === "string" ? raw : new TextDecoder().decode(raw);
       } catch (error) {
         if (isMissingFileError(error)) {
           return undefined;

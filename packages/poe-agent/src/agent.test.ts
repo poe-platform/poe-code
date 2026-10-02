@@ -1,3 +1,4 @@
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
 import { describe, expect, it, vi } from "vitest";
 import maxIterationsPlugin from "./plugins/poe-agent-plugin-max-iterations.js";
 import { openaiChatCompletionsPlugin } from "./plugins/poe-agent-plugin-openai-chat-completions.js";
@@ -11,10 +12,6 @@ import { InvalidToolNameError } from "./runtime/tool-names.js";
 import { loadSystemPrompt, loadSystemPromptSync } from "./system-prompt.js";
 
 const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
-const fsPromisesMock = vi.hoisted(() => ({
-  mkdir: vi.fn(async () => undefined),
-  appendFile: vi.fn(async () => undefined)
-}));
 const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown) => Promise<void>>());
 const mcpClientListToolsMock = vi.hoisted(() =>
   vi.fn<
@@ -65,14 +62,6 @@ vi.mock("tiny-mcp-client", () => ({
   }
 }));
 
-vi.mock("node:fs/promises", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("node:fs/promises")>();
-  return {
-    ...actual,
-    mkdir: fsPromisesMock.mkdir,
-    appendFile: fsPromisesMock.appendFile
-  };
-});
 
 function createModel(
   responses: Array<LegacyAcpModelResponse | AcpModelResponse | Error>,
@@ -1929,11 +1918,10 @@ describe("agent builder", () => {
   });
 
   it("aggregates run output, usage, tool calls, and transcript logs", async () => {
-    fsPromisesMock.mkdir.mockClear();
-    fsPromisesMock.appendFile.mockClear();
+    const fs = new MemoryFileSystem();
     const stdoutChunks: string[] = [];
 
-    const result = await agent()
+    const result = await agent({ fs, cwd: "/repo", homeDir: "/home" })
       .model("gpt-5")
       .tools({
         name: "echo",
@@ -1999,17 +1987,8 @@ describe("agent builder", () => {
       content: "done"
     });
 
-    expect(fsPromisesMock.mkdir).toHaveBeenCalledWith("/logs/round-3", { recursive: true });
-    expect(fsPromisesMock.appendFile.mock.calls.map(([filePath]) => filePath)).toEqual([
-      "/logs/round-3/builder.jsonl",
-      "/logs/round-3/builder.jsonl",
-      "/logs/round-3/builder.jsonl",
-      "/logs/round-3/builder.jsonl",
-      "/logs/round-3/builder.jsonl"
-    ]);
-
-    const updates = fsPromisesMock.appendFile.mock.calls
-      .flatMap(([, contents]) => String(contents).trim().split("\n"))
+    const transcript = new TextDecoder().decode(await fs.readFile("/logs/round-3/builder.jsonl"));
+    const updates = transcript.trim().split("\n")
       .map((line) => JSON.parse(line) as { sessionUpdate: string; content?: { text: string } });
 
     expect(updates.map((update) => update.sessionUpdate)).toEqual([
@@ -2050,11 +2029,10 @@ describe("agent builder", () => {
   });
 
   it("preserves streamed output, messages, tool calls, usage, and logFile when a run ends with session.error", async () => {
-    fsPromisesMock.mkdir.mockClear();
-    fsPromisesMock.appendFile.mockClear();
+    const fs = new MemoryFileSystem();
     const stdoutChunks: string[] = [];
 
-    const result = await agent()
+    const result = await agent({ fs, cwd: "/repo", homeDir: "/home" })
       .model("gpt-5")
       .tools({
         name: "echo",
@@ -2120,12 +2098,9 @@ describe("agent builder", () => {
       }
     ]);
 
-    expect(fsPromisesMock.mkdir).toHaveBeenCalledWith("/logs/round-4", { recursive: true });
-    expect(fsPromisesMock.appendFile.mock.calls.map(([filePath]) => filePath)).toEqual([
-      "/logs/round-4/builder.jsonl",
-      "/logs/round-4/builder.jsonl",
-      "/logs/round-4/builder.jsonl",
-      "/logs/round-4/builder.jsonl"
+    const transcript = new TextDecoder().decode(await fs.readFile("/logs/round-4/builder.jsonl"));
+    expect(transcript.trim().split("\n").map(line => JSON.parse(line).sessionUpdate)).toEqual([
+      "agent_message_chunk", "usage_update", "tool_call", "tool_call_update", "tool_call_update"
     ]);
   });
 

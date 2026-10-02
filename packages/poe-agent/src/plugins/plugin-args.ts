@@ -1,5 +1,5 @@
-import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
-import nativePath from "node:path";
+import { getFsBridgeProvider } from "@poe-code/safe-fs/bridge";
+import { nativePath } from "#agent-platform";
 import { hasOwnErrorCode } from "../error-codes.js";
 
 type PathInspectionFileSystem = {
@@ -136,9 +136,9 @@ export async function assertNoSymbolicLinkPath(
   fs: PathInspectionFileSystem,
   filePath: string
 ): Promise<void> {
-  const path = getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath;
+  const path = getFsBridgeProvider(fs) ? nativePath.posix : nativePath;
   const absolutePath = path.resolve(filePath);
-  const root = path.parse(absolutePath).root;
+  const root = path.sep === "/" ? "/" : path.parse(absolutePath).root;
   let inspectedPath = root;
 
   for (const segment of absolutePath.slice(root.length).split(path.sep).filter(Boolean)) {

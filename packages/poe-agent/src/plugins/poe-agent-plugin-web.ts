@@ -1,5 +1,6 @@
-import { isIP } from "node:net";
+import ipaddr from "ipaddr.js";
 import TurndownService from "turndown";
+import { createDocument } from "@mixmark-io/domino";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import { rejectUnknownKeys, toOptionsObject } from "./parse-options.js";
 import { getOptionalNonNegativeInteger, getRequiredString } from "./plugin-args.js";
@@ -204,11 +205,12 @@ function isNonPublicHost(hostname: string): boolean {
     return true;
   }
 
-  if (isIP(host) === 4) {
+  const addressKind = ipaddr.isValid(host) ? ipaddr.parse(host).kind() : undefined;
+  if (addressKind === "ipv4") {
     return isNonPublicIpv4(host);
   }
 
-  if (isIP(host) === 6) {
+  if (addressKind === "ipv6") {
     return isNonPublicIpv6(host);
   }
 
@@ -308,7 +310,8 @@ function normalizeContentType(contentType: string | null): string {
 
 function formatFetchedBody(content: string, contentType: string): string {
   if (contentType === "text/html" || contentType === "application/xhtml+xml") {
-    const markdown = htmlToMarkdown.turndown(content).trim();
+    const document = createDocument(`<x-turndown id="turndown-root">${content}</x-turndown>`);
+    const markdown = htmlToMarkdown.turndown(document.getElementById("turndown-root")!).trim();
     return markdown.length > 0 ? markdown : "(empty response body)";
   }
 

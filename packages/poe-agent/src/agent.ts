@@ -1,4 +1,4 @@
-import path from "node:path";
+import { nativePath as path } from "#agent-platform";
 import { createAgentRuntime, type AgentOptions } from "./runtime/filesystem.js";
 import type { McpSpawnConfig } from "@poe-code/agent-spawn";
 import type { CreateAgentSessionOptions } from "./agent-session.js";

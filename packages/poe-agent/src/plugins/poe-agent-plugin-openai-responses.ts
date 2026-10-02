@@ -1,3 +1,4 @@
+import { hostProcess } from "#agent-platform";
 import OpenAI from "openai";
 import type {
   Response,
@@ -705,7 +706,7 @@ function resolveClientBaseUrl(baseUrl: string | undefined): string | undefined {
     return explicit;
   }
 
-  const environmentBaseUrl = toNonEmptyString(process.env.POE_BASE_URL);
+  const environmentBaseUrl = toNonEmptyString(hostProcess.env.POE_BASE_URL);
   if (environmentBaseUrl !== undefined) {
     return environmentBaseUrl;
   }

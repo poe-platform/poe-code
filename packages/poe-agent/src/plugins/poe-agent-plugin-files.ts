@@ -1,13 +1,12 @@
-import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
+import { hostProcess } from "#agent-platform";
+import { getFsBridgeProvider } from "@poe-code/safe-fs/bridge";
 import { resolvePluginFileSystem, type AgentRuntime } from "../runtime/filesystem.js";
 import { globFileSystem, searchFileSystem } from "../runtime/filesystem-search.js";
-import { execFile as execFileCallback } from "node:child_process";
-import fsPromises from "node:fs/promises";
-import path from "node:path";
-import nativePath from "node:path";
-import { randomUUID } from "node:crypto";
-import { promisify } from "node:util";
-import fastGlob from "fast-glob";
+import { execFile } from "#agent-platform";
+import { fsPromises } from "#agent-platform";
+import { nativePath as path } from "#agent-platform";
+import { nativePath } from "#agent-platform";
+import { fastGlob } from "#agent-platform";
 import { hasOwnErrorCode } from "../error-codes.js";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import {
@@ -29,10 +28,17 @@ import {
 } from "./plugin-args.js";
 import type { PluginSpec } from "./registry.js";
 
-type PluginFileSystem = Pick<
-  typeof fsPromises,
-  "lstat" | "mkdir" | "readFile" | "readdir" | "rename" | "stat" | "unlink" | "writeFile"
->;
+type PluginFileSystem = {
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean; isDirectory(): boolean; isFile(): boolean }>;
+  stat(path: string): Promise<{ mtimeMs: number; isDirectory(): boolean }>;
+  mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
+  readFile(path: string): Promise<Uint8Array>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
+  readdir(path: string): Promise<string[]>;
+  rename(from: string, to: string): Promise<void>;
+  unlink(path: string): Promise<void>;
+  writeFile(path: string, data: string, options?: { encoding: "utf8"; flag?: string }): Promise<void>;
+};
 
 type GrepOutputMode = "files_with_matches" | "content" | "count";
 
@@ -65,15 +71,14 @@ type FilesPluginOptions = {
 
 export type FilesPluginConfigOptions = Pick<FilesPluginOptions, "cwd" | "allowedPaths">;
 
-const execFile = promisify(execFileCallback);
 
 const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
   if (options.allowedPaths) assertAllowedPathEntries(options.allowedPaths);
   function services(runtime?: AgentRuntime) {
-    const path = runtime?.customFs || (options.fs && getNodeFsBridgeProvider(options.fs)) ? nativePath.posix : nativePath;
-    const cwd = path.resolve(runtime?.cwd ?? options.cwd ?? process.cwd(), options.cwd ?? ".");
+    const path = runtime?.customFs || (options.fs && getFsBridgeProvider(options.fs)) ? nativePath.posix : nativePath;
+    const cwd = path.resolve(runtime?.cwd ?? options.cwd ?? hostProcess.cwd(), options.cwd ?? ".");
     const fs = resolvePluginFileSystem(runtime, options.fs, fsPromises);
-    const searchFs = runtime?.customFs ? runtime.fs : options.fs && getNodeFsBridgeProvider(options.fs);
+    const searchFs = runtime?.customFs ? runtime.fs : options.fs && getFsBridgeProvider(options.fs);
     if (runtime?.customFs && (options.searchContent || options.globFiles)) {
       throw new Error("Search overrides conflict with the configured agent filesystem.");
     }
@@ -125,7 +130,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         return {
           type: "image" as const,
           mimeType: imageMimeType,
-          data: Buffer.from(content).toString("base64")
+          data: encodeImageBytes(content)
         };
       }
 
@@ -400,10 +405,10 @@ async function replaceFileAtomically(
   filePath: string,
   content: string
 ): Promise<void> {
-  const path = getNodeFsBridgeProvider(fs) ? nativePath.posix : nativePath;
+  const path = getFsBridgeProvider(fs) ? nativePath.posix : nativePath;
   const temporaryPath = path.join(
     path.dirname(filePath),
-    `.${path.basename(filePath)}.${randomUUID()}.tmp`
+    `.${path.basename(filePath)}.${crypto.randomUUID()}.tmp`
   );
   let temporaryCreated = false;
 
@@ -467,7 +472,7 @@ function formatDisplayPath(cwd: string, filePath: string, path = nativePath): st
 
 async function sortPathsByModifiedTime(
   matches: string[],
-  fs: Pick<typeof fsPromises, "stat">
+  fs: Pick<PluginFileSystem, "stat">
 ): Promise<string[]> {
   const entries = await Promise.all(
     matches.map(async (match) => ({
@@ -489,7 +494,7 @@ async function sortPathsByModifiedTime(
 
 async function defaultSearchContent(
   options: SearchContentOptions,
-  fs: Pick<typeof fsPromises, "stat">
+  fs: Pick<PluginFileSystem, "stat">
 ): Promise<string> {
   const targetStat = await fs.stat(options.path);
   const searchCwd = targetStat.isDirectory() ? options.path : path.dirname(options.path);
@@ -613,6 +618,14 @@ function sliceLines(content: string, offset: number, limit: number | undefined):
   }
 
   return content.slice(lineStart, lineEnd);
+}
+
+function encodeImageBytes(bytes: Uint8Array): string {
+  let binary = "";
+  for (let offset = 0; offset < bytes.length; offset += 32768) {
+    binary += String.fromCharCode(...bytes.subarray(offset, offset + 32768));
+  }
+  return btoa(binary);
 }
 
 function detectImageMimeType(filePath: string): string | undefined {

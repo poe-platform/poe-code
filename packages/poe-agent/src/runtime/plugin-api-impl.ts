@@ -1,6 +1,7 @@
+import { StdioTransport } from "#agent-platform";
+import { hostProcess } from "#agent-platform";
 import {
   McpClient,
-  StdioTransport,
   type CallToolResult,
   type ContentItem,
   type ResourceContents,
@@ -67,7 +68,7 @@ export class PluginApiImpl implements PluginApi {
         config.env === undefined
           ? undefined
           : {
-              ...process.env,
+              ...hostProcess.env,
               ...config.env
             }
     });

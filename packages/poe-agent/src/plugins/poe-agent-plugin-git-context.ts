@@ -1,4 +1,4 @@
-import { runCommand as exec } from "@poe-code/agent-spawn";
+import { runCommand as exec } from "#agent-platform";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 
 const gitContext = (cwd: string): AgentPlugin => ({

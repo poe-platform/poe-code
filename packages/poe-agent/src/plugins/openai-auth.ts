@@ -1,4 +1,5 @@
-import { createSecretStore } from "auth-store";
+import { hostProcess } from "#agent-platform";
+import { createSecretStore } from "#agent-platform";
 
 export async function resolveOpenaiApiKey(explicit: string | undefined): Promise<string> {
   const normalizedExplicitApiKey = toNonEmptyString(explicit);
@@ -6,7 +7,7 @@ export async function resolveOpenaiApiKey(explicit: string | undefined): Promise
     return normalizedExplicitApiKey;
   }
 
-  const environmentApiKey = toNonEmptyString(process.env.POE_API_KEY);
+  const environmentApiKey = toNonEmptyString(hostProcess.env.POE_API_KEY);
   if (environmentApiKey) {
     return environmentApiKey;
   }

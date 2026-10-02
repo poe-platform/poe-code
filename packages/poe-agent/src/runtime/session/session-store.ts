@@ -1,13 +1,13 @@
-import { getNodeFsBridgeProvider } from "@poe-code/safe-fs";
-import fsPromises from "node:fs/promises";
-import path from "node:path";
+import { getFsBridgeProvider } from "@poe-code/safe-fs/bridge";
+import { fsPromises } from "#agent-platform";
+import { nativePath as path } from "#agent-platform";
 import { isSessionEntry, type SessionEntry } from "./entry-types.js";
 import { assertSafeSessionId } from "./session-id.js";
 
 type JsonlSessionStoreFs = {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
   appendFile(path: string, data: string, encoding: "utf8"): Promise<unknown>;
-  readFile(path: string, encoding: "utf8"): Promise<string | Buffer>;
+  readFile(path: string, encoding: "utf8"): Promise<string | Uint8Array>;
 };
 
 export interface SessionStore {
@@ -45,7 +45,7 @@ export async function createJsonlSessionStore(
 ): Promise<SessionStore> {
   assertSafeSessionId(sessionId);
   const fs = options.fs ?? fsPromises;
-  const paths = getNodeFsBridgeProvider(fs) ? path.posix : path;
+  const paths = getFsBridgeProvider(fs) ? path.posix : path;
   const filePath = paths.join(directory, `${sessionId}.jsonl`);
   let writeQueue = Promise.resolve();
 
@@ -65,7 +65,8 @@ export async function createJsonlSessionStore(
       await writeQueue;
       let serialized: string;
       try {
-        serialized = String(await fs.readFile(filePath, "utf8"));
+        const raw = await fs.readFile(filePath, "utf8");
+        serialized = typeof raw === "string" ? raw : new TextDecoder().decode(raw);
       } catch (error) {
         if (isMissingFileError(error)) {
           return [];

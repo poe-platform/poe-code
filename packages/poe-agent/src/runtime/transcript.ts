@@ -1,4 +1,4 @@
-import nativePath from "node:path";
+import { nativePath } from "#agent-platform";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import { hasOwnErrorCode } from "../error-codes.js";
 import type { AcpEvent } from "./types.js";
@@ -125,7 +125,7 @@ export function createTranscriptWriter(
 
 async function ensureNoSymbolicLinkPath(fs: TranscriptFsApi, filePath: string, path: typeof import("node:path")): Promise<void> {
   const absolutePath = path.resolve(filePath);
-  const root = path.parse(absolutePath).root;
+  const root = path.sep === "/" ? "/" : path.parse(absolutePath).root;
   let inspectedPath = root;
 
   for (const segment of absolutePath.slice(root.length).split(path.sep).filter(Boolean)) {

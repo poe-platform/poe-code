@@ -1,3 +1,4 @@
+import { hostProcess } from "#agent-platform";
 import { createAgentRuntime, type AgentOptions } from "./runtime/filesystem.js";
 import type {
   SessionUpdate,
@@ -6,9 +7,8 @@ import type {
   ToolCallUpdate as AcpToolCallUpdate
 } from "@poe-code/agent-spawn";
 import { UserError } from "@poe-code/user-error";
-import os from "node:os";
-import path from "node:path";
-import { randomUUID } from "node:crypto";
+import { hostEnvironment as os } from "#agent-platform";
+import { nativePath as path } from "#agent-platform";
 import {
   agent,
   assertPositiveIntegerOption,
@@ -174,7 +174,7 @@ async function adaptAcpToLegacySession(
       headId = entry.id;
     }
   }
-  const fileAwareness = createFileAwarenessTracker(options.cwd ?? process.cwd());
+  const fileAwareness = createFileAwarenessTracker(options.cwd ?? hostProcess.cwd());
   const toolIntents = new Map<string, { tool: string; args: unknown }>();
   const recordedCompactionSummaries = new Set(
     entries
@@ -440,7 +440,7 @@ type NewSessionEntry =
   | Omit<Extract<SessionEntry, { kind: "branch_summary" }>, "id" | "parentId" | "createdAt">;
 
 async function createStore(options: CreateAgentSessionOptions): Promise<SessionStore> {
-  const sessionId = randomUUID();
+  const sessionId = crypto.randomUUID();
   if (!options.persist) {
     return createMemorySessionStore(sessionId);
   }
@@ -451,7 +451,7 @@ async function createStore(options: CreateAgentSessionOptions): Promise<SessionS
 function createEntry(entry: NewSessionEntry, parentId: string | null): SessionEntry {
   return {
     ...entry,
-    id: randomUUID(),
+    id: crypto.randomUUID(),
     parentId,
     createdAt: new Date().toISOString()
   } as SessionEntry;

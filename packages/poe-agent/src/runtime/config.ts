@@ -1,4 +1,4 @@
-import { createHostFileSystem } from "@poe-code/safe-fs";
+import { createHostFileSystem } from "#agent-platform";
 import type { AgentOptions } from "./filesystem.js";
 import type { AgentPlugin, McpServerConfig } from "./plugin-types.js";
 

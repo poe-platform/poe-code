@@ -1,6 +1,7 @@
-import { spawn } from "node:child_process";
-import * as fsPromises from "node:fs/promises";
-import path from "node:path";
+import { hostProcess } from "#agent-platform";
+import { spawn } from "#agent-platform";
+import { fsPromises } from "#agent-platform";
+import { nativePath as path } from "#agent-platform";
 import type { SpawnMode } from "@poe-code/agent-spawn";
 import { parse as parseShellCommand } from "shell-quote";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
@@ -91,7 +92,7 @@ type RetainedShellOutput = {
 };
 
 const shellPlugin = (options: ShellPluginOptions = {}): AgentPlugin => {
-  const cwd = path.resolve(options.cwd ?? process.cwd());
+  const cwd = path.resolve(options.cwd ?? hostProcess.cwd());
   const allowedPaths = normalizeAllowedPaths(cwd, options.allowedPaths);
   const runCommand = options.runCommand ?? defaultRunCommand;
   const fs = options.fs ?? fsPromises;
@@ -875,7 +876,7 @@ function spawnShellCommand(
     cwd,
     shell: true,
     stdio: ["ignore", "pipe", "pipe"],
-    ...(process.platform === "win32" ? {} : { detached: true })
+    ...(hostProcess.platform === "win32" ? {} : { detached: true })
   });
 
   const notify = (stream: ShellOutputNotification["data"]["stream"], message: string): void => {
@@ -936,8 +937,8 @@ function spawnShellCommand(
 
   const killProcess = (signal: NodeJS.Signals): void => {
     try {
-      if (process.platform !== "win32" && child.pid !== undefined) {
-        process.kill(-child.pid, signal);
+      if (hostProcess.platform !== "win32" && child.pid !== undefined) {
+        hostProcess.kill(-child.pid, signal);
         return;
       }
 

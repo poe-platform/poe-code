@@ -1,60 +1,66 @@
-import { type Dirent } from "node:fs";
-import path from "node:path";
-import fastGlob from "fast-glob";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import { Minimatch } from "minimatch";
 import { quote } from "shell-quote";
-import type { FileSystem, NodeFsImplementation } from "@poe-code/safe-fs";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { hasOwnErrorCode } from "../error-codes.js";
 
 export async function globFileSystem(
   options: { pattern: string; cwd: string },
-  fs: Pick<NodeFsImplementation, "stat" | "lstat" | "readdir">
-): Promise<string[]> {
-  type NamesCallback = (error: NodeJS.ErrnoException | null, entries: string[]) => void;
-  type EntriesCallback = (error: NodeJS.ErrnoException | null, entries: Dirent[]) => void;
-  function readdir(directory: string, callback: NamesCallback): void;
-  function readdir(
-    directory: string,
-    opts: { withFileTypes: true },
-    callback: EntriesCallback
-  ): void;
-  function readdir(
-    directory: string,
-    opts: { withFileTypes: true } | NamesCallback,
-    callback?: EntriesCallback
-  ): void {
-    if (typeof opts === "function")
-      void fs.readdir(directory).then(
-        (entries) => opts(null, entries),
-        (error) => opts(error, [])
-      );
-    else
-      void fs.readdir(directory, opts).then(
-        (entries) => callback!(null, entries),
-        (error) => callback!(error, [])
-      );
+  fs: {
+    lstat(path: string): Promise<{ isSymbolicLink(): boolean; isFile(): boolean; isDirectory(): boolean }>;
+    readdir(path: string): Promise<string[]>;
   }
-  return fastGlob(options.pattern, {
-    absolute: true,
-    cwd: options.cwd,
-    dot: true,
-    onlyFiles: true,
-    unique: true,
-    followSymbolicLinks: false,
-    fs: {
-      stat: (file, callback) => {
-        void fs.stat(file).then(
-          (stats) => callback(null, stats),
-          (error) => callback(error, undefined!)
-        );
-      },
-      lstat: (file, callback) => {
-        void fs.lstat(file).then(
-          (stats) => callback(null, stats),
-          (error) => callback(error, undefined!)
-        );
-      },
-      readdir
-    }
+): Promise<string[]> {
+  const matcher = new Minimatch(path.resolve(options.cwd, options.pattern), {
+    dot: true, platform: "linux", nocomment: true, nonegate: true
   });
+  const pending = new Set<string>();
+  for (const pattern of matcher.set) {
+    const prefix: string[] = [];
+    for (const part of pattern) {
+      if (typeof part !== "string") break;
+      prefix.push(part);
+    }
+    pending.add(path.resolve("/", prefix.join("/")));
+  }
+  // A static pattern prefix may already sit below a symlink. Inspect it before walking.
+  for (const root of pending) {
+    let parent = path.dirname(root);
+    while (true) {
+      try {
+        if ((await fs.lstat(parent)).isSymbolicLink()) {
+          pending.delete(root);
+          break;
+        }
+      } catch (error) {
+        if (!hasOwnErrorCode(error, "ENOENT") && !hasOwnErrorCode(error, "ENOTDIR")) throw error;
+        pending.delete(root);
+        break;
+      }
+      const ancestor = path.dirname(parent);
+      if (ancestor === parent) break;
+      parent = ancestor;
+    }
+  }
+  const visited = new Set<string>();
+  const matches: string[] = [];
+  for (const target of pending) {
+    if (visited.has(target)) continue;
+    visited.add(target);
+    if (visited.size > 100_000) throw new Error("Glob traversal exceeds 100000 entries.");
+    let stat;
+    try { stat = await fs.lstat(target); }
+    catch (error) {
+      if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) continue;
+      throw error;
+    }
+    if (stat.isSymbolicLink()) continue;
+    if (stat.isFile() && matcher.match(target)) matches.push(target);
+    if (stat.isDirectory() && matcher.match(target, true)) {
+      for (const name of await fs.readdir(target)) pending.add(path.join(target, name));
+    }
+  }
+  return matches.sort();
 }
 
 /** Uses safe-bash's bounded rg implementation over the supplied byte filesystem. */
@@ -75,8 +81,8 @@ export async function searchFileSystem(
     await import("@poe-platform/safe-bash/search");
   const provider = createBoundedRegexProvider();
   const stat = await fs.stat(options.path, { signal: options.signal });
-  const cwd = stat.type === "directory" ? options.path : path.posix.dirname(options.path);
-  const target = stat.type === "directory" ? "." : path.posix.basename(options.path);
+  const cwd = stat.type === "directory" ? options.path : path.dirname(options.path);
+  const target = stat.type === "directory" ? "." : path.basename(options.path);
   const args = ["--color", "never"];
   if (options.outputMode === "content") {
     args.push("--with-filename");

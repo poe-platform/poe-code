@@ -1,5 +1,5 @@
 import { resolvePluginFileSystem } from "../runtime/filesystem.js";
-import * as fsPromises from "node:fs/promises";
+import { fsPromises } from "#agent-platform";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
 import { assertNoSymbolicLinkPath } from "./plugin-args.js";
 

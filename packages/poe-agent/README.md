@@ -35,6 +35,8 @@ const result = await agent()
 console.log(result.output);
 ```
 
+The package can run in Cloudflare Workers without `nodejs_compat` when you supply a SafeFS provider and an agent model or provider. File tools, skill discovery, memory prompts, session persistence, and transcripts use the supplied provider. Host shell commands, stdio MCP transports, and local credential lookup remain host capabilities; pass an API key explicitly in Workers.
+
 ## Runtime requirements
 
 - `grep` in a default host-backed `filesPlugin()` uses `rg` (ripgrep) on `PATH`. With an agent filesystem, it uses safe-bash’s bounded search over that provider.

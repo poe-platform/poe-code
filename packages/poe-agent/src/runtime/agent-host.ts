@@ -1,5 +1,6 @@
+import { hostProcess } from "#agent-platform";
+import { AcpClient } from "@poe-code/poe-acp-client/client";
 import {
-  AcpClient,
   type AcpTransportClosedEvent,
   type ContentBlock,
   type InitializeResponse,
@@ -353,7 +354,7 @@ export class AgentHost implements AcpHost {
 export function createProcessSpawnSession(
   options: CreateProcessSpawnSessionOptions
 ): AgentHostSpawnSession {
-  const cwd = options.cwd ?? process.cwd();
+  const cwd = options.cwd ?? hostProcess.cwd();
   const client = new AcpClient({
     command: options.command,
     args: options.args,

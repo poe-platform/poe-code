@@ -534,6 +534,16 @@ All 71 native and 168 reference tests, standalone declarations and package lint
 pass. This internal prerequisite is not wired into cards yet; `fast-wrap-ansi`,
 detail/inspector cards and the remaining replacement gates still require work.
 
+The internal `fast-wrap-ansi` replacement now uses Rust for word/row wrapping,
+whitespace decisions, escape tracking and SGR close/reopen selection, composed
+with the native width policy. Node retains normalization, sticky regex execution,
+string/array operations and iterator calls. Differential checks cover hard/soft
+wrapping, trim modes, zero/negative/fractional widths, Unicode/surrogates, ANSI and
+hyperlinks, changing options, coercion order, species and nested calls. All 74
+native and 168 reference tests plus declarations and package lint pass. The
+default design package is unchanged; cards still need to be wired to these
+internal prerequisites, and complete replacement qualification remains open.
+
 The remaining sequence is still required. Definition declarations currently
 import existing schema/design/config contract types. Standalone type packaging
 must be finished before a swap. Direct higher-order assignment of the generic

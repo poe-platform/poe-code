@@ -3,6 +3,8 @@ mod ansi;
 pub use ansi::*;
 mod string_width;
 pub use string_width::*;
+mod wrap_ansi;
+pub use wrap_ansi::*;
 mod catalog;
 pub use catalog::*;
 mod resource_browser;

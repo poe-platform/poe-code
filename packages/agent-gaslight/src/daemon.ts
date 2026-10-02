@@ -1,7 +1,8 @@
-import * as fsPromises from "node:fs/promises";
+import { hostCwd, hostEnv } from "#gaslight-platform";
+import { gaslightFileSystem } from "./filesystem.js";
 import { discoverPlans, type DiscoverPlansOptions } from "@poe-code/agent-harness-tools";
 import { runGaslight } from "./run.js";
-import type { GaslightFileSystem, GaslightOptions, GaslightResult } from "./types.js";
+import type { GaslightOptions, GaslightResult } from "./types.js";
 
 const DEFAULT_POLL_INTERVAL_MS = 5_000;
 
@@ -41,9 +42,9 @@ function waitForNextScan(milliseconds: number, signal?: AbortSignal): Promise<vo
 export async function runGaslightDaemon(
   options: GaslightDaemonOptions
 ): Promise<GaslightDaemonResult> {
-  const cwd = options.cwd ?? process.cwd();
-  const homeDir = options.homeDir ?? process.env.HOME ?? cwd;
-  const fs = options.fs ?? (fsPromises as unknown as GaslightFileSystem);
+  const cwd = options.cwd ?? hostCwd();
+  const homeDir = options.homeDir ?? hostEnv().HOME ?? cwd;
+  const fs = gaslightFileSystem(options.fs);
   const run = options.run ?? runGaslight;
   const wait = options.wait ?? waitForNextScan;
   const completed = new Set<string>();

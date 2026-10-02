@@ -1,4 +1,4 @@
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import type { GaslightFileSystem } from "./types.js";
 
 const VARIABLE_NAME = "[a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*";

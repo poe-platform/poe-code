@@ -168,7 +168,7 @@ describe("ingestGaslight", () => {
       })
     });
 
-    expect(result.dataPath).toMatch(/^\.poe-code\/ingest\/human-prompts-\d+-\d+-\d+\.md$/);
+    expect(result.dataPath).toMatch(/^\.poe-code\/ingest\/human-prompts-[0-9a-f-]+\.md$/);
     const absoluteDataPath = `/repo/${result.dataPath}`;
     expect(spawn).toHaveBeenCalledWith(
       "claude-code",

@@ -1,5 +1,6 @@
-import { promises as nodeFs } from "node:fs";
-import path from "node:path";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { gaslightFileSystem } from "./filesystem.js";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import { parse } from "yaml";
 import { UserError } from "@poe-code/user-error";
 import type { GaslightConfig, GaslightFileSystem } from "./types.js";
@@ -129,9 +130,10 @@ function validateConfig(
 export async function loadGaslightConfig(
   cwd: string,
   homeDir: string,
-  fs: GaslightFileSystem = nodeFs,
+  inputFs?: GaslightFileSystem | FileSystem,
   configPath?: string
 ): Promise<GaslightConfig> {
+  const fs = gaslightFileSystem(inputFs);
   if (configPath) {
     const absoluteConfigPath = path.isAbsolute(configPath)
       ? configPath

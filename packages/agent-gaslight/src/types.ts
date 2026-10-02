@@ -1,3 +1,4 @@
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import type { SpawnMode, SpawnOptions, SpawnResult, SpawnUsage } from "@poe-code/agent-spawn";
 import type { RunQueue, RunQueueSnapshot } from "@poe-code/agent-harness-tools";
 import type {
@@ -81,7 +82,7 @@ export interface GaslightOptions {
   vars?: Record<string, string>;
   onEvent?: (event: GaslightEvent) => void;
   signal?: AbortSignal;
-  fs?: GaslightFileSystem;
+  fs?: GaslightFileSystem | FileSystem;
   spawn?: GaslightSpawn;
 }
 
@@ -119,7 +120,7 @@ export interface GaslightIngestOptions {
   keepDataPath?: string;
   dryRun?: boolean;
   onEvent?: (event: GaslightIngestEvent) => void;
-  fs?: GaslightFileSystem;
+  fs?: GaslightFileSystem | FileSystem;
   spawn?: GaslightSpawn;
   collectHumanPrompts?: GaslightCollectHumanPrompts;
 }

@@ -1,7 +1,7 @@
-import { promises as nodeFs } from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { spawn as defaultSpawn, type SpawnUsage } from "@poe-code/agent-spawn";
+import { hostCwd, hostEnvironment, defaultSpawn } from "#gaslight-platform";
+import { gaslightFileSystem } from "./filesystem.js";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
+import type { SpawnUsage } from "@poe-code/agent-spawn";
 import { archivePlan as archivePlanShared, createRunQueue, mapSourcePathIntoWorktree } from "@poe-code/agent-harness-tools";
 import { UserError } from "@poe-code/user-error";
 import { loadGaslightConfig } from "./config.js";
@@ -149,9 +149,9 @@ function resolvePlanPaths(options: GaslightOptions, cwd: string, homeDir: string
 
 export async function runGaslight(options: GaslightOptions): Promise<GaslightResult> {
   const startedAt = Date.now();
-  const cwd = options.cwd ?? process.cwd();
-  const homeDir = options.homeDir ?? os.homedir();
-  const fs = options.fs ?? nodeFs;
+  const cwd = options.cwd ?? hostCwd();
+  const homeDir = options.homeDir ?? hostEnvironment.homedir();
+  const fs = gaslightFileSystem(options.fs);
   const spawn = options.spawn ?? defaultSpawn;
   const model = resolveModel(options.model);
   const mode = options.mode ?? "auto";

@@ -1,9 +1,7 @@
-import { promises as nodeFs } from "node:fs";
-import os from "node:os";
-import path from "node:path";
+import { hostCwd, hostEnvironment, defaultSpawn, collectHumanPromptsWithStats } from "#gaslight-platform";
+import { gaslightFileSystem } from "./filesystem.js";
+import { posixPath as path } from "@poe-code/safe-fs/runtime-core";
 import parseDuration from "parse-duration";
-import { collectHumanPromptsWithStats } from "@poe-code/agent-traces";
-import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
 import { parseGaslightConfig } from "./config.js";
 import type { HumanPromptRecord } from "@poe-code/agent-traces";
 import type {
@@ -151,7 +149,7 @@ async function resolveDataPath(
   const resultPath = path.join(
     ".poe-code",
     "ingest",
-    `human-prompts-${process.pid}-${Date.now()}-${process.hrtime.bigint()}.md`
+    `human-prompts-${crypto.randomUUID()}.md`
   );
   return { absolutePath: path.join(cwd, resultPath), resultPath };
 }
@@ -548,7 +546,7 @@ async function writeGeneratedConfig(
   await assertNotSymlink(fs, outputDirectory, "Output directory");
   await fs.mkdir(outputDirectory, { recursive: true });
   await assertNotSymlink(fs, outputDirectory, "Output directory");
-  const temporaryPath = `${absoluteOutputPath}.tmp-${process.pid}-${Date.now()}`;
+  const temporaryPath = `${absoluteOutputPath}.tmp-${crypto.randomUUID()}`;
   await fs.writeFile(temporaryPath, `${yaml}\n`, { encoding: "utf8" });
   if (fs.rename) {
     await fs.rename(temporaryPath, absoluteOutputPath);
@@ -581,9 +579,9 @@ async function assertNotSymlink(
 export async function ingestGaslight(
   options: GaslightIngestOptions
 ): Promise<GaslightIngestResult> {
-  const cwd = options.cwd ?? process.cwd();
-  const homeDir = options.homeDir ?? os.homedir();
-  const fs = (options.fs ?? nodeFs) as WritableGaslightFileSystem;
+  const cwd = options.cwd ?? hostCwd();
+  const homeDir = options.homeDir ?? hostEnvironment.homedir();
+  const fs = gaslightFileSystem(options.fs) as WritableGaslightFileSystem;
   const spawn: GaslightSpawn = options.spawn ?? defaultSpawn;
   const collectHumanPrompts: GaslightCollectHumanPrompts =
     options.collectHumanPrompts ?? collectHumanPromptsWithStats;

@@ -4,6 +4,8 @@ Runs a plan through one agent conversation, then sends scripted follow-up prompt
 
 Use it when a task needs repeated checks such as simplify, test, commit, and push verification.
 
+For Workers without `nodejs_compat`, supply a SafeFS `FileSystem` as `fs`, explicit `cwd` and `homeDir`, and a `spawn` capability. Ingestion also requires `collectHumanPrompts`. These capabilities keep execution, configuration, ingestion output, and plan archives on the same portable storage. Node callers may use the host defaults.
+
 ## How it works
 
 1. Round 1: the agent gets your plan and implements it.

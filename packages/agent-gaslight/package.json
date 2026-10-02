@@ -25,6 +25,16 @@
     "@poe-code/agent-spawn": "*",
     "@poe-code/user-error": "*",
     "parse-duration": "^2.1.5",
-    "yaml": "^2.8.2"
+    "yaml": "^2.8.2",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#gaslight-platform": {
+      "types": "./src/platform.ts",
+      "workerd": "./dist/platform.workerd.js",
+      "browser": "./dist/platform.workerd.js",
+      "worker": "./dist/platform.workerd.js",
+      "default": "./dist/platform.js"
+    }
   }
 }

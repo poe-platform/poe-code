@@ -139,6 +139,16 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       }
       continue;
     }
+    if (name === "--bibliography" || name === "--csl") {
+      const path = equals < 0 ? args[++i] : arg.slice(equals + 1);
+      if (!path || path.startsWith("-")) fail(`Missing value: ${name}`);
+      if (name === "--bibliography") {
+        metadataJson.push({ bibliography: path! });
+      } else {
+        metadataJson.push({ csl: path! });
+      }
+      continue;
+    }
     if (name === "--metadata-file") {
       const path = equals < 0 ? args[++i] : arg.slice(equals + 1);
       if (!path || !path.endsWith(".json")) fail("Metadata files must use .json; YAML is unsupported");
@@ -198,6 +208,9 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
     const output = resourceDirectory(destination, files.cwd ?? "/");
     const media = resourceDirectory(options.extractMedia, files.cwd ?? "/");
     if (output === media || media === "/" || output.startsWith(`${media}/`)) fail("Output cannot be inside the extraction directory");
+  }
+  if (metadataJson.some(m => "bibliography" in m) && !(options.filters ?? []).some(f => f.kind === "citeproc")) {
+    options.filters = [...(options.filters ?? []), { kind: "citeproc" }];
   }
   return {options: {lossy: true, ...options, from: options.from!, to: options.to!, ...(yes ? {yes: true} : {}), ...(pdfFonts.length ? {pdfFonts} : {}), ...(metadataJson.length ? {metadataJson} : {}), ...(metadataFiles.length ? {metadataFiles} : {})}, operands: operands.length ? operands : undefined, ...(destination === undefined ? {} : {destination})};
 }

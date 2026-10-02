@@ -111,7 +111,7 @@ function writeInline(paragraph: Paragraph, nodes: readonly Inline[], context: Ad
       else if (node.t === "Underline") add(node.c, {...style, underline: true});
       else if (node.t === "Superscript" || node.t === "Subscript") add(node.c, {...style, baseline: node.t === "Superscript" ? 30 : -25});
       else if (node.t === "Quoted") add([{t: "Str", c: node.c[0] === "SingleQuote" ? "‘" : "“"}, ...node.c[1], {t: "Str", c: node.c[0] === "SingleQuote" ? "’" : "”"}], style);
-      else if (node.t === "Span") add(node.c[1], style);
+      else if (node.t === "Span" || node.t === "Cite") add(node.c[1], style);
       else if (node.t === "Link") {
         if (!node.c[2][0] || node.c[2][0].startsWith("#")) fail(context, "Internal document links require slide target resolution");
         add(node.c[1], {...style, url: node.c[2][0]});

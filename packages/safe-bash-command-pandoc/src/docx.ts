@@ -93,7 +93,7 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
         else if (node.t === "Underline") result.push(...runs(node.c, {...style, underline: true}));
         else if (node.t === "Strikeout") result.push(...runs(node.c, {...style, strike: true}));
         else if (node.t === "Superscript" || node.t === "Subscript") result.push(...runs(node.c, {...style, baseline: node.t === "Superscript" ? "superscript" : "subscript"}));
-        else if (node.t === "Span") result.push(...runs(node.c[1], style));
+        else if (node.t === "Span" || node.t === "Cite") result.push(...runs(node.c[1], style));
         else if (node.t === "Link") result.push(...runs(node.c[1], {...style, link: node.c[2][0]}));
         else if (node.t === "Quoted") result.push(...runs([{t: "Str", c: node.c[0] === "SingleQuote" ? "‘" : "“"}, ...node.c[1], {t: "Str", c: node.c[0] === "SingleQuote" ? "’" : "”"}], style));
         else if (node.t === "Image") result.push({...style, text: "", image: node});
@@ -228,8 +228,11 @@ export const docxWriter: WriterCapability = {format: "docx", imageResources: "em
     if (linkRelationships.length) relationships.insertChildren(relationships.root, linkRelationships.map(xml => xml.replace("<Relationship ", '<Relationship xmlns="http://schemas.openxmlformats.org/package/2006/relationships" ')).join(""));
 
     const types = new DocumentXmlEditor(archive.members.find(member => member.name === "[Content_Types].xml")!.bytes, {}, undefined, mc.budget);
-    if (numbering.length) types.insertChildren(types.root, '<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>');
-    for (const entry of media.values()) types.insertChildren(types.root, `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/${entry.name}" ContentType="${entry.type}"/>`);
+    const typeOverrides = [
+      ...(numbering.length ? ['<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/>'] : []),
+      ...[...media.values()].map(entry => `<Override xmlns="http://schemas.openxmlformats.org/package/2006/content-types" PartName="/word/${entry.name}" ContentType="${entry.type}"/>`)
+    ];
+    if (typeOverrides.length) types.insertChildren(types.root, typeOverrides.join(""));
     const parts = new Map([["word/document.xml", main.serialize()], ["word/_rels/document.xml.rels", relationships.serialize()], ["[Content_Types].xml", types.serialize()]]);
     if (paragraphs.some(paragraph => paragraph.runs.some(run => run.code))) {
       const styles = new DocumentXmlEditor(archive.members.find(member => member.name === "word/styles.xml")!.bytes, {}, undefined, mc.budget);

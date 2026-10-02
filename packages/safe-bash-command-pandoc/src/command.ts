@@ -111,6 +111,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         writeFile: async () => {}
       };
       const luaCapability = createLuaFilterCapability({readFile: (path, signal) => files.readFile(path, signal ?? readSignal)});
+      const dynamicCiteprocCapability = createCiteprocFilterCapability({...options.citeproc, readFile: (path, signal) => files.readFile(path, signal ?? readSignal)});
       const resolveJsonInterpreter = async (filterPath: string): Promise<string | undefined> => {
         if (!context.invoke || !hasCommand) return undefined;
         const lower = filterPath.toLowerCase();
@@ -145,7 +146,7 @@ export function createPandocCommand(options: PandocCommandsOptions = {}, hasComm
         },
         async apply(document, request, filterContext) {
           if (request.kind === "lua") return luaCapability.apply(document, request, filterContext);
-          if (request.kind === "citeproc") return citeprocCapability.apply(document, request, filterContext);
+          if (request.kind === "citeproc") return dynamicCiteprocCapability.apply(document, request, filterContext);
           const resolved = await resolveJsonInterpreter(request.path);
           if (!resolved) throw new PandocError("E_CAPABILITY", "convert", "Filter capability does not support json processing");
           return makeJsonCapability(resolved).apply(document, request, filterContext);

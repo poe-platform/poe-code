@@ -14,6 +14,7 @@ interface Chapter {name: string; nodes: H.ChildNode[]}
 /** EPUB 3.3 single reflowable rendition; no ambient resources, clock or randomness. */
 export const epubWriter: WriterCapability = {
   format: "epub",
+  imageResources: "embed",
   math: "source",
   async write(document, ctx) {
     const fail = (message: string, code: "E_RESOURCE" | "E_OPTION" | "E_CAPABILITY" | "E_LIMIT" | "E_METADATA" = "E_CAPABILITY"): never => {
@@ -120,7 +121,25 @@ export const epubWriter: WriterCapability = {
       }
       if("t" in value && (value.t === "Image" || value.t === "Link")) {
         const node = value as Extract<Inline, {t: "Image" | "Link"}>;
-        const resource = media.get(node.c[2][0]);
+        const source = node.c[2][0];
+        let resource = media.get(source);
+        if(!resource && node.t === "Image" && ctx.resources) {
+          const b = await ctx.resources.resolve(source, undefined, ctx.signal);
+          if(b) {
+            const name = source;
+            if(!name || name.startsWith("/") || name.includes(":") || name.includes("\\") || name.split("/").some(p => !p || p === "." || p === "..")) fail("Unsafe declared resource key", "E_RESOURCE");
+            escape(name);
+            const ext = name.slice(name.lastIndexOf(".") + 1).toLowerCase();
+            const type = ext === "png" && [137,80,78,71,13,10,26,10].every((n,i) => b[i] === n) ? "image/png" :
+              ["jpg", "jpeg"].includes(ext) && b[0] === 255 && b[1] === 216 && b[2] === 255 ? "image/jpeg" :
+              ext === "gif" && ["GIF87a", "GIF89a"].includes(new TextDecoder().decode(b.subarray(0,6))) ? "image/gif" :
+              ext === "webp" && new TextDecoder().decode(b.subarray(0,4)) === "RIFF" && new TextDecoder().decode(b.subarray(8,12)) === "WEBP" ? "image/webp" :
+              ext === "svg" ? "image/svg+xml" : "";
+            if(!type) fail("Unsupported or mismatched declared resource media type", "E_RESOURCE");
+            resource = {path: `resources/${name}`, bytes: b, type, used: true};
+            media.set(name, resource);
+          }
+        }
         if(resource) {
           resource.used = true;
           return {...node, c: [await prepare(node.c[0]), await prepare(node.c[1]), [uri(resource.path), node.c[2][1]]]};

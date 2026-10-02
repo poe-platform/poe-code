@@ -18,6 +18,153 @@ export interface CiteprocFilterOptions {
   readonly locale?: string;
   readonly language?: string;
   readonly references?: readonly MetadataObject[];
+  readonly readFile?: (path: string, signal?: AbortSignal) => Promise<Uint8Array>;
+}
+
+export function upgradeBracketedCitationsInInlines(inlines: readonly Inline[]): Inline[] {
+  const result: Inline[] = [];
+  const citeRe = /\[((?:[^\[\]@]*?-?@[A-Za-z0-9_:.#$%&\-+?<>~\/]+[^\[\];]*)(?:;[ \t]*[^\[\]@]*?-?@[A-Za-z0-9_:.#$%&\-+?<>~\/]+[^\[\];]*)*)\]/g;
+  for (const node of inlines) {
+    if (node.t === "Str" && node.c.includes("[@") || (node.t === "Str" && node.c.includes("[-@"))) {
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+      citeRe.lastIndex = 0;
+      while ((match = citeRe.exec(node.c)) !== null) {
+        if (match.index > lastIndex) {
+          result.push({ t: "Str", c: node.c.slice(lastIndex, match.index) });
+        }
+        const rawGroup = match[1]!;
+        const items = rawGroup.split(";").map(part => part.trim()).filter(Boolean);
+        const citations: Citation[] = [];
+        for (const item of items) {
+          const keyMatch = /(-?)@([A-Za-z0-9_:.#$%&\-+?<>~\/]+)/.exec(item);
+          if (!keyMatch) continue;
+          const suppressAuthor = keyMatch[1] === "-";
+          const citationId = keyMatch[2]!;
+          const prefixText = item.slice(0, keyMatch.index).trim();
+          const suffixText = item.slice(keyMatch.index + keyMatch[0].length).replace(/^,\s*/, "").trim();
+          citations.push({
+            citationId,
+            citationPrefix: prefixText ? [{ t: "Str", c: prefixText }] : [],
+            citationSuffix: suffixText ? [{ t: "Str", c: suffixText }] : [],
+            citationMode: suppressAuthor ? "SuppressAuthor" : "NormalCitation",
+            citationNoteNum: 0,
+            citationHash: 0
+          });
+        }
+        if (citations.length) {
+          result.push({ t: "Cite", c: [citations, [{ t: "Str", c: match[0] }]] });
+        } else {
+          result.push({ t: "Str", c: match[0] });
+        }
+        lastIndex = citeRe.lastIndex;
+      }
+      if (lastIndex === 0) {
+        result.push(node);
+      } else if (lastIndex < node.c.length) {
+        result.push({ t: "Str", c: node.c.slice(lastIndex) });
+      }
+    } else if ("c" in node && Array.isArray(node.c)) {
+      if (node.t === "Emph" || node.t === "Strong" || node.t === "Strikeout" || node.t === "Superscript" || node.t === "Subscript" || node.t === "SmallCaps" || node.t === "Underline") {
+        result.push({ ...node, c: upgradeBracketedCitationsInInlines(node.c) });
+      } else if (node.t === "Span") {
+        result.push({ t: "Span", c: [node.c[0], upgradeBracketedCitationsInInlines(node.c[1])] });
+      } else {
+        result.push(node);
+      }
+    } else {
+      result.push(node);
+    }
+  }
+  return result;
+}
+
+export function upgradeBracketedCitationsInBlocks(blocks: readonly Block[]): Block[] {
+  return blocks.map(block => {
+    if (block.t === "Para" || block.t === "Plain") {
+      return { ...block, c: upgradeBracketedCitationsInInlines(block.c) };
+    }
+    if (block.t === "Header") {
+      return { t: "Header", c: [block.c[0], block.c[1], upgradeBracketedCitationsInInlines(block.c[2])] };
+    }
+    if (block.t === "BlockQuote") {
+      return { t: "BlockQuote", c: upgradeBracketedCitationsInBlocks(block.c) };
+    }
+    if (block.t === "Div") {
+      return { t: "Div", c: [block.c[0], upgradeBracketedCitationsInBlocks(block.c[1])] };
+    }
+    if (block.t === "BulletList") {
+      return { t: "BulletList", c: block.c.map(item => upgradeBracketedCitationsInBlocks(item)) };
+    }
+    if (block.t === "OrderedList") {
+      return { t: "OrderedList", c: [block.c[0], block.c[1].map(item => upgradeBracketedCitationsInBlocks(item))] };
+    }
+    return block;
+  });
+}
+
+function parseBibtexToCsl(bibtex: string): Record<string, unknown>[] {
+  const results: Record<string, unknown>[] = [];
+  const entryRe = /@([A-Za-z]+)\s*\{\s*([^,\s]+)\s*,([\s\S]*?)\n\s*\}/g;
+  const typeMap: Record<string, string> = {
+    article: "article-journal",
+    book: "book",
+    techreport: "report",
+    report: "report",
+    inproceedings: "paper-conference",
+    conference: "paper-conference",
+    incollection: "chapter",
+    inbook: "chapter",
+    phdthesis: "thesis",
+    mastersthesis: "thesis",
+    misc: "document",
+    online: "webpage",
+    manual: "book"
+  };
+  let match: RegExpExecArray | null;
+  while ((match = entryRe.exec(bibtex + "\n")) !== null) {
+    const rawType = match[1]!.toLowerCase();
+    const id = match[2]!.trim();
+    const body = match[3]!;
+    if (rawType === "comment" || rawType === "preamble" || rawType === "string") continue;
+    const fields: Record<string, string> = {};
+    const fieldRe = /([A-Za-z0-9_\-]+)\s*=\s*(?:\{((?:[^{}]|\{[^{}]*\})*)\}|"([^"]*)"|([0-9]+))/g;
+    let fMatch: RegExpExecArray | null;
+    while ((fMatch = fieldRe.exec(body)) !== null) {
+      const k = fMatch[1]!.toLowerCase();
+      const v = (fMatch[2] ?? fMatch[3] ?? fMatch[4] ?? "").replace(/[{}]/g, "").replace(/\s+/g, " ").trim();
+      fields[k] = v;
+    }
+    const item: Record<string, unknown> = {
+      id,
+      type: typeMap[rawType] ?? "document"
+    };
+    if (fields.title) item.title = fields.title;
+    if (fields.author) {
+      item.author = fields.author.split(/\s+and\s+/i).map(a => {
+        const trimmed = a.trim();
+        if (trimmed.includes(",")) {
+          const [family, ...givenParts] = trimmed.split(",");
+          return { family: family!.trim(), given: givenParts.join(",").trim() };
+        }
+        return { literal: trimmed };
+      });
+    }
+    if (fields.year && /^\d{4}$/.test(fields.year)) {
+      item.issued = { "date-parts": [[Number(fields.year)]] };
+    }
+    const pub = fields.publisher ?? fields.institution ?? fields.school ?? fields.organization;
+    if (pub) item.publisher = pub;
+    const container = fields.journal ?? fields.booktitle;
+    if (container) item["container-title"] = container;
+    if (fields.volume) item.volume = fields.volume;
+    if (fields.number) item.issue = fields.number;
+    if (fields.pages) item.page = fields.pages.replace(/--/g, "-");
+    if (fields.doi) item.DOI = fields.doi;
+    if (fields.url) item.URL = fields.url;
+    results.push(item);
+  }
+  return results;
 }
 
 function metaInlinesToText(inlines: readonly Inline[]): string {
@@ -74,13 +221,37 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions = 
         context.charge("references", Object.keys(value).length);
         for (const child of Object.values(value)) await collect(child, depth + 1);
       };
-      await collect(document.blocks, 0);
-      if (!citations.length) return document;
+      const originalDocument = document;
+      const upgradedBlocks = upgradeBracketedCitationsInBlocks(document.blocks);
+      await collect(upgradedBlocks, 0);
+      if (!citations.length) return originalDocument;
+      document = { ...document, blocks: upgradedBlocks };
       const metadataRefs = document.metadata.references ? metaValueToCsl(document.metadata.references) : undefined;
-      const rawRefs = options.references ?? (Array.isArray(metadataRefs) ? metadataRefs : []);
+      let loadedBibRefs: Record<string, unknown>[] = [];
+      if (!options.references && !Array.isArray(metadataRefs) && document.metadata.bibliography && options.readFile) {
+        const bibVal = metaValueToCsl(document.metadata.bibliography);
+        const bibPaths = Array.isArray(bibVal) ? bibVal.map(String) : typeof bibVal === "string" ? [bibVal] : [];
+        for (const bibPath of bibPaths) {
+          const bytes = await options.readFile(bibPath);
+          const text = new TextDecoder().decode(bytes).trim();
+          if (bibPath.endsWith(".json") || text.startsWith("[") || text.startsWith("{")) {
+            const parsed = JSON.parse(text);
+            if (Array.isArray(parsed)) loadedBibRefs.push(...parsed);
+            else if (parsed && typeof parsed === "object" && Array.isArray(parsed.references)) loadedBibRefs.push(...parsed.references);
+          } else {
+            loadedBibRefs.push(...parseBibtexToCsl(text));
+          }
+        }
+      }
+      let activeStyle = style;
+      if (!options.style && document.metadata.csl && options.readFile) {
+        const cslPath = String(metaValueToCsl(document.metadata.csl));
+        if (cslPath) activeStyle = new TextDecoder().decode(await options.readFile(cslPath));
+      }
+      const rawRefs = options.references ?? (Array.isArray(metadataRefs) ? metadataRefs : loadedBibRefs);
       const serialized = JSON.stringify(rawRefs);
       context.charge("retainedBytes", serialized.length * 5);
-      context.charge("text", style.length + locale.length + serialized.length);
+      context.charge("text", activeStyle.length + locale.length + serialized.length);
       const items = new Map<string, Record<string, unknown>>();
       for (const item of JSON.parse(serialized) as Record<string, unknown>[]) {
         context.checkpoint();
@@ -116,7 +287,7 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions = 
             if (!item) throw new PandocError("E_AST", "convert", `Missing CSL reference: ${id}`);
             return item;
           }
-        }, style, options.language ?? document.language ?? "en-US");
+        }, activeStyle, options.language ?? document.language ?? "en-US");
         noteStyle = processor.opt.xclass === "note";
         if (noteStyle) for (let index = 0; index < clusters.length; index++) {
           if (!clusters[index]!.properties.noteIndex) clusters[index]!.properties.noteIndex = index + 1;

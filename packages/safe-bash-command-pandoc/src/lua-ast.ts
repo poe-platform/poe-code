@@ -64,6 +64,7 @@ local element_mt = {__index = function(el, key)
   if key == "attributes" then return el.attr and el.attr[3] end
   if key == "t" then return el.tag end
   if key == "walk" then return function(self, filter) return pandoc.walk_block(self, filter) end end
+  if (el.tag == "MetaMap" or el.tag == "MetaList") and type(el.content) == "table" then return el.content[key] end
 end, __newindex = function(el, key, value)
   if key == "identifier" then el.attr[1] = value
   elseif key == "classes" then el.attr[2] = value
@@ -237,6 +238,11 @@ function __pandoc_run(ast, filters)
     depth = depth or 0; check_depth(depth)
     if type(value) == "string" then return {t="MetaString", c=value} end
     if type(value) == "boolean" then return {t="MetaBool", c=value} end
+    if value.tag == "MetaList" or value.tag == "MetaMap" then
+      local c = {}
+      for key, child in pairs(value.content or {}) do c[key] = encode_meta(child, depth + 1) end
+      return {t=value.tag, c=c}
+    end
     if value.tag then return encode(value) end
     local c = {}
     for key, child in pairs(value) do c[key] = encode_meta(child, depth + 1) end

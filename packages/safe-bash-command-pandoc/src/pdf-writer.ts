@@ -28,7 +28,7 @@ export const pdfWriter: WriterCapability = {
           }
           ctx.charge("retainedBytes", text.length * 2 + 64); result.push({text, size, ...style, ...(font === undefined ? {} : {font}), ...(link === undefined ? {} : {link})});
         } else if (node.t === "Link") result.push(...await runs(node.c[1], size, node.c[2][0], style));
-        else if (node.t === "Span") result.push(...await runs(node.c[1], size, link, style));
+        else if (node.t === "Span" || node.t === "Cite") result.push(...await runs(node.c[1], size, link, style));
         else if (node.t === "Math") {
           if (!ctx.lossy) fail("PDF math requires explicit lossy source projection");
           ctx.report({code: "W_TABLE_LOSS", operation: ctx.operation ?? "write", format: "pdf", message: "Rendered readable math source; no mathematical typesetting"});

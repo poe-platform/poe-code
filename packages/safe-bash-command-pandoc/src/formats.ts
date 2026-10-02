@@ -1,3 +1,4 @@
+import { mediawikiDescriptor } from "./mediawiki.js";
 import type {
   ConversionContext,
   Limits,
@@ -37,6 +38,12 @@ export interface FormatSelection {
   readonly extensions: Readonly<Record<string, boolean>>;
 }
 const compare = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0);
+const OPTIONAL_MARKDOWN_EXTENSIONS = new Set([
+  "citations", "yaml_metadata_block", "tex_math_dollars", "fenced_code_blocks",
+  "backtick_code_blocks", "footnotes", "smart", "implicit_figures",
+  "definition_lists", "header_attributes", "auto_identifiers",
+  "link_attributes", "bracketed_spans", "native_divs", "native_spans"
+]);
 function validName(name: string): boolean {
   if (!name) return false;
   for (const char of name)
@@ -113,7 +120,7 @@ export function createFormatRegistry(
     while (cursor < source.length && source[cursor] !== "+" && source[cursor] !== "-") cursor++;
     const name = source.slice(0, cursor);
     const selectedDirection = direction ?? (maps.read.has(name) ? "read" : "write");
-    const descriptor = maps[selectedDirection].get(name);
+    const descriptor = maps[selectedDirection].get(name) ?? (name === "mediawiki" ? mediawikiDescriptor : undefined);
     if (!descriptor) return fail("E_FORMAT", `Unsupported ${selectedDirection} format: ${name}`);
     const extensions = Object.fromEntries(
       Object.entries(descriptor.extensions).sort(([a], [b]) => compare(a, b))
@@ -123,7 +130,8 @@ export function createFormatRegistry(
       const start = cursor;
       while (cursor < source.length && source[cursor] !== "+" && source[cursor] !== "-") cursor++;
       const extension = source.slice(start, cursor);
-      if (!validName(extension) || !Object.hasOwn(extensions, extension))
+      const allowOptional = descriptor.name === "gfm" && name !== "commonmark" && OPTIONAL_MARKDOWN_EXTENSIONS.has(extension);
+      if (!validName(extension) || (!Object.hasOwn(extensions, extension) && !allowOptional))
         fail("E_EXTENSION", `Unsupported extension: ${extension}`);
       extensions[extension] = enabled;
     }
@@ -156,6 +164,7 @@ export function createFormatRegistry(
       const dot = path.lastIndexOf(".");
       if (dot <= path.lastIndexOf("/") || dot < 0) return fail("E_FORMAT", `No suffix: ${path}`);
       const suffix = path.slice(dot + 1).toLowerCase();
+      if (suffix === "mediawiki" || suffix === "wiki") return "mediawiki";
       const matches = formats.filter(
         (descriptor) => descriptor[direction] && descriptor.suffixes.includes(suffix)
       );

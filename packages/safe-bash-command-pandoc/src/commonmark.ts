@@ -23,6 +23,7 @@ import type { ReaderCapability } from "./types.js";
 import { parseCommonMarkBlocks, type PendingBlock } from "./commonmark-blocks.js";
 import { parseCommonMarkInlines } from "./commonmark-inlines.js";
 import { decodeSyntax } from "./commonmark-syntax.js";
+import { upgradeBracketedCitationsInBlocks } from "./citeproc-filters.js";
 
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {
   const extensions = selection?.extensions ?? {};
@@ -101,7 +102,11 @@ export const readCommonMark: ReaderCapability["read"] = async (input, context, s
     }
     return result;
   }
-  return { blocks: await assemble(pending.blocks, 1), metadata, resources: [] };
+  const assembledBlocks = await assemble(pending.blocks, 1);
+  const finalBlocks = (extensions.citations || metadata.bibliography !== undefined || metadata.references !== undefined)
+    ? upgradeBracketedCitationsInBlocks(assembledBlocks)
+    : assembledBlocks;
+  return { blocks: finalBlocks, metadata, resources: [] };
 };
 
 export const commonmarkReader: ReaderCapability = { format: "commonmark", read: readCommonMark };

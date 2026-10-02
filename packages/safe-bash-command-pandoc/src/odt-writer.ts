@@ -30,7 +30,7 @@ export const odtWriter: WriterCapability = {format: "odt", imageResources: "embe
         case "LineBreak": output.push("<text:line-break/>"); break;
         case "Strong": case "Emph": case "Strikeout": case "Superscript": case "Subscript": case "Underline": case "SmallCaps": output.push(`<text:span text:style-name="${node.t}">${await inlines(node.c)}</text:span>`); break;
         case "Code": output.push(`<text:span text:style-name="Code">${text(node.c[1])}</text:span>`); break;
-        case "Span": output.push(await inlines(node.c[1])); break;
+        case "Span": case "Cite": output.push(await inlines(node.c[1])); break;
         case "Quoted": output.push((node.c[0] === "SingleQuote" ? "‘" : "“") + await inlines(node.c[1]) + (node.c[0] === "SingleQuote" ? "’" : "”")); break;
         case "Link": output.push(`<text:a xlink:type="simple" xlink:href="${escaped(node.c[2][0])}">${await inlines(node.c[1])}</text:a>`); break;
         case "Image": {

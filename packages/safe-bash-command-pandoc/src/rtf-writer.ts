@@ -96,6 +96,7 @@ class RtfWriter {
         case "LineBreak": this.add("\\line "); break;
         case "Emph": case "Strong": case "Underline": case "Strikeout": case "Superscript": case "Subscript": case "SmallCaps":
           this.add(`{\\${formatting[node.t]} `); await this.inlines(node.c); this.add("}"); break;
+        case "Cite": await this.inlines(node.c[1], `${p}.c[1]`); break;
         case "Span": {
           const taskState = taskListState(node);
           if (taskState !== undefined) {

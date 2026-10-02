@@ -112,3 +112,65 @@ it("coalesces adjacent plain Str and Space inlines into contiguous DOCX text run
   expect(docXml).toContain("RELEASE CONFIGURATION");
   expect(docXml).toContain("Hello world paragraph.");
 });
+
+it("supports multiple images and lists in DOCX, VFS images in EPUB, mediawiki roundtrip, and BibTeX --bibliography with Lua filters", async () => {
+  const fsMem = createMemoryFileSystem();
+  await fsMem.mkdir("/work");
+  await fsMem.mkdir("/work/images");
+  const imgBytes = new Uint8Array(jpeg({width: 2, height: 1, data: Buffer.alloc(8, 255)}, 80).data);
+  await fsMem.writeFile("/work/images/banner.jpg", imgBytes);
+  await fsMem.writeFile("/work/images/sheet.jpg", imgBytes);
+  await fsMem.writeFile("/work/refs.bib", new TextEncoder().encode(`@techreport{arch2026,
+  author = {Atlas Release Engineering},
+  title = {Atlas Release Architecture and Verification Notes},
+  institution = {Atlas Demonstration Project},
+  year = {2026}
+}
+`));
+  await fsMem.writeFile("/work/filter.lua", new TextEncoder().encode(`function Header(el)
+  table.insert(el.classes, "release-section")
+  return el
+end
+`));
+  await fsMem.writeFile("/work/report.md", new TextEncoder().encode(`---
+title: "Atlas Report"
+bibliography: refs.bib
+---
+
+# Summary
+
+Metrics from source [@arch2026].
+
+- Item one
+- Item two
+
+![Banner](images/banner.jpg)
+
+![Sheet](images/sheet.jpg)
+`));
+
+  for (const outFile of ["report.html", "report.docx", "report.epub", "report.wiki"]) {
+    const errors: string[] = [];
+    const args = ["report.md", "-f", "markdown+citations", "--bibliography=refs.bib", "--lua-filter=filter.lua", "--citeproc", "-o", outFile];
+    if (outFile === "report.wiki") args.push("-t", "mediawiki");
+    const res = await createPandocCommand().execute({
+      command: "pandoc",
+      args,
+      cwd: "/work",
+      env: {},
+      fs: fsMem,
+      signal: new AbortController().signal,
+      stdin: toByteSource(""),
+      stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { errors.push(new TextDecoder().decode(bytes)); } }
+    });
+    expect(res, errors.join("")).toEqual({ exitCode: 0 });
+  }
+  const html = new TextDecoder().decode(await fsMem.readFile("/work/report.html"));
+  expect(html).toContain("Atlas Release Architecture and Verification Notes");
+  expect(html).toContain("release-section");
+  const wiki = new TextDecoder().decode(await fsMem.readFile("/work/report.wiki"));
+  expect(wiki).toContain("= Summary =");
+  const wikiToHtml = await convert([{ bytes: new TextEncoder().encode(wiki) }], { from: "mediawiki", to: "html" }, context);
+  expect(wikiToHtml.kind === "text" && wikiToHtml.text).toContain("<h1");
+});

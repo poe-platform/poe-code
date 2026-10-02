@@ -20,3 +20,9 @@ it("does not replace ordinary Latin glyphs with compatibility forms", () => {
   // Lowercase a reaches the baseline; the feminine ordinal U+00AA does not.
   expect(Math.min(...yValues)).toBeLessThan(0.05);
 });
+
+it("avoids per-byte callback allocations when decoding standard CFF font outlines", async () => {
+  const { readFileSync } = await import("node:fs");
+  const source = readFileSync(new URL("./standard-outlines.ts", import.meta.url), "utf8");
+  expect(source).not.toContain("Uint8Array.from(atob");
+});

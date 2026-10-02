@@ -15,7 +15,9 @@ export function getStandardFontOutlines(name: string): StandardFontOutlines {
   const standardName = normalizeStandard14FontName(name);
   const cached = fontCache.get(standardName);
   if (cached) return cached;
-  const bytes = Uint8Array.from(atob(STANDARD_FONT_CFF_BASE64[standardName]), char => char.charCodeAt(0));
+  const binary = atob(STANDARD_FONT_CFF_BASE64[standardName]);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
   const cff = new CFFParser(new Stream(bytes), {}, false).parse();
   const unicodeByName = standardName === "ZapfDingbats" ? getDingbatsGlyphsUnicode() : getGlyphsUnicode();
   const glyphIds = new Map<number, number>();

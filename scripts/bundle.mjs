@@ -46,6 +46,10 @@ const {
   plugins: sharedRuntimePlugins = [],
   workspacePackageNames
 } = { ...resolveConsumerGraph(workspaceGraph, canonicalFs, sharedWorkspaces), workspacePackageNames: workspaceGraph.workspacePackageNames };
+// Source aliases must follow the consumer's export conditions as well. Node
+// aliases bypass package exports and otherwise pull desktop OAuth into Workers.
+const portableWorkspaceGraph = await resolveBundleGraph(rootDir, packageJsons, undefined, ["workerd", "browser"]);
+const portableConsumerGraph = resolveConsumerGraph(portableWorkspaceGraph, canonicalFs, sharedWorkspaces);
 const consumerBuildOptions = {
   alias: workspaceAliases,
   external: externalDeps,
@@ -73,7 +77,7 @@ for (const [profile, options] of Object.entries(resolveCanonicalFsBuilds(rootDir
   canonicalBuilds[profile] = { entryPoints: Object.values(options.entryPoints).map(filename => path.relative(rootDir, filename).split(path.sep).join("/")), metafile: result.metafile };
 }
 await copyNativeAssets({ rootDir, outDir: path.join(rootDir, "dist/shared/safe-js") });
-const workerdOptions = resolveWorkerdRuntimeBuild(rootDir, { alias: workspaceAliases, external: externalDeps });
+const workerdOptions = resolveWorkerdRuntimeBuild(rootDir, portableConsumerGraph);
 const workerdResult = await esbuild.build(workerdOptions);
 await publishBundleOutputs(workerdResult, {
   outdir: workerdOptions.outdir,
@@ -159,7 +163,7 @@ await publishBundleOutputs(mainBuild, {
 consumerBuilds.push(mainBuild);
 const browserShellOptions = resolveBrowserShellBuild(rootDir);
 browserShellOptions.plugins.unshift(...sharedRuntimePlugins);
-browserShellOptions.alias = { ...workspaceAliases, ...browserShellOptions.alias };
+browserShellOptions.alias = { ...portableConsumerGraph.alias, ...browserShellOptions.alias };
 browserShellOptions.external = [...new Set([...browserShellOptions.external, ...canonicalFsRoutes.map(route => route.specifier)])];
 const browserShellBuild = await esbuild.build(browserShellOptions);
 await publishBundleOutputs(browserShellBuild, {
@@ -185,7 +189,7 @@ for (const platform of ["node", "browser"]) {
       outfile: path.join(rootDir, "dist", platform === "node" ? "agent.js" : "agent.browser.js"),
       ...consumerBuildOptions,
       ...(platform === "browser" ? {
-        alias: { ...workspaceAliases, "tiny-mcp-client": path.join(rootDir, "packages/tiny-mcp-client/dist/index.browser.js") }
+        alias: portableConsumerGraph.alias
       } : {}),
       sourcemap: true,
       plugins: [...consumerBuildOptions.plugins, stripShebangPlugin],
@@ -272,6 +276,7 @@ for (const platform of ["node", "browser"]) {
       format: "esm",
       outfile: path.join(rootDir, "dist", platform === "node" ? "memory.js" : "memory.browser.js"),
       ...consumerBuildOptions,
+      ...(platform === "browser" ? { alias: portableConsumerGraph.alias } : {}),
       sourcemap: true,
       plugins: [...consumerBuildOptions.plugins, stripShebangPlugin]
     })

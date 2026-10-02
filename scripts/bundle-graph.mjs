@@ -1,6 +1,7 @@
 import path from "node:path";
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { rewriteModuleSpecifiers } from "./module-specifiers.mjs";
+import { selectConditionalTarget } from "./package-export-target.mjs";
 
 export function resolveSharedRuntimeBuilds(workspaceGraph, canonical, sharedWorkspaces) {
   const graph = resolveConsumerGraph(workspaceGraph, canonical);
@@ -140,23 +141,13 @@ export function findUnreachableBundleOutputs(metafile, entryPoints, workingDirec
  *   root optional runtime deps, plus the third-party deps of workspace packages,
  *   workspace packages are inlined unless explicitly listed in poeCode.bundle.external.
  *
- * Extracted so the alias/external computation lives in one place.
+ * Aliases follow the consumer's runtime conditions, including import/default.
  *
  * @param {string} rootDir Absolute path to the workspace root.
  * @param {{ dir: string, pkg: any }[]} packageJsons Parsed `packages/*` manifests.
  */
-function nodeRuntimeTarget(target) {
-  if (typeof target === "string" || target === null) return target;
-  if (!target || typeof target !== "object") return undefined;
-  for (const [condition, value] of Object.entries(target)) {
-    if (condition !== "node" && condition !== "import" && condition !== "default") continue;
-    const resolved = nodeRuntimeTarget(value);
-    if (resolved !== undefined) return resolved;
-  }
-  return undefined;
-}
-
-export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { readFile, readdir }) {
+export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { readFile, readdir }, conditions = ["node"]) {
+  const runtimeConditions = new Set([...conditions, "import", "default"]);
   const packagesDir = path.join(rootDir, "packages");
   const alias = {};
   const workspacePackageNames = new Set();
@@ -172,9 +163,13 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
     // (e.g. "./configs" → "./dist/configs/index.js" → src/configs/index.ts).
     if (pkg.exports && typeof pkg.exports === "object") {
       for (const [subpath, target] of Object.entries(pkg.exports)) {
-        if (subpath === "." && !prebuilt) continue;
         const clean = subpath.startsWith("./") ? subpath.slice(2) : subpath;
-        const built = nodeRuntimeTarget(target);
+        const specifier = subpath === "." ? pkg.name : `${pkg.name}/${clean}`;
+        const built = selectConditionalTarget(target, runtimeConditions);
+        if (built === null) {
+          delete alias[specifier];
+          continue;
+        }
         if (subpath === "./*" && built === "./dist/*.js") {
           const directory = path.join(packagesDir, dir, prebuilt ? "dist" : "src");
           const extension = prebuilt ? ".js" : ".ts";
@@ -199,7 +194,6 @@ export async function resolveBundleGraph(rootDir, packageJsons, fileSystem = { r
           );
         }
         const source = `${built.slice("./dist/".length, -".js".length)}.ts`;
-        const specifier = subpath === "." ? pkg.name : `${pkg.name}/${clean}`;
         alias[specifier] = prebuilt ? path.join(packagesDir, dir, built) : path.join(packagesDir, dir, "src", source);
       }
     }

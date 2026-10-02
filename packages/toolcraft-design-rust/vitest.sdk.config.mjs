@@ -140,7 +140,7 @@ export default defineConfig({
         }
         if (importer === path("../toolcraft-design/src/dashboard/streaming-line-buffer.test.ts")) {
           if (name === "./line-buffer.js") return path("dist/line-buffer.js");
-          if (name === "./output-preview.js") return path("dist/index.js");
+          if (name === "./output-preview.js") return path("dist/output-preview.js");
         }
         if (
           importer === path("../toolcraft-design/src/dashboard/terminal-width.test.ts") &&

@@ -12,11 +12,6 @@ export {text,typography} from "./text.js";
 export * as acp from "./acp.js";
 export { renderTable, loggerTableWidth } from "./table.js";
 
-
-export {computeDashboardLayout} from "./dashboard-layout.js";
-
-export {MAX_OUTPUT_PREVIEW_CHARS, OUTPUT_TRUNCATION_NOTICE, createTerminalStringFilter, limitOutputPreview, retainOutputTail, createOutputPreviewBuffer} from "./output-preview.js";
-
 export * as dashboard from "./dashboard.js";
 export {
   createLogger,

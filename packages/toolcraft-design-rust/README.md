@@ -108,10 +108,9 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `getTemplatePartialNames` | Discover referenced partials in first-encounter order |
 | `resolveTemplatePartials` | Expand nested partials with standalone indentation |
 | `TemplateParseError` | Read the malformed tag and UTF-16 line/column |
-| `computeDashboardLayout` | Calculate clipped pane, footer and compact summary rectangles |
+| `dashboard/layout`: `computeDashboardLayout` | Calculate clipped pane, footer and compact summary rectangles |
 | `dashboard.limitOutputPreview` | Keep the latest output within a 16,384-code-unit preview |
 | `dashboard.createOutputPreviewBuffer` | Retain bounded live deltas in the Rust core |
-| `createTerminalStringFilter` | Filter split OSC/DCS strings while retaining complete CSI controls |
 | `createLogger`, `logger` | Emit coherent terminal, Markdown or JSON messages |
 | `withOutputFormat` | Scope an output format across asynchronous work |
 | `renderTable`, `loggerTableWidth` | Render width-budgeted tables or detail rows in terminal, Markdown and JSON |
@@ -180,7 +179,7 @@ claimed for these bindings. It uses self-contained native
 artifacts and Node built-ins only.
 
 ```ts
-import { computeDashboardLayout } from 'toolcraft-design-rust';
+import { computeDashboardLayout } from 'toolcraft-design-rust/dashboard/layout';
 
 const layout = computeDashboardLayout({ totalWidth: 80, totalHeight: 24 });
 console.log(layout.leftPane, layout.rightPane, layout.footer);

@@ -20,7 +20,7 @@ const expanded: string = resolveTemplatePartials(
 const error: Error = new TemplateParseError(expanded, { line: 1, column: 1 });
 void error;
 
-import { computeDashboardLayout, type LayoutOptions, type DashboardLayout } from "../dist/index.js";
+import { computeDashboardLayout, type LayoutOptions, type DashboardLayout } from "toolcraft-design-rust/dashboard/layout";
 const layoutOptions: LayoutOptions = { totalWidth: 80, totalHeight: 24 };
 const layout: DashboardLayout = computeDashboardLayout(layoutOptions);
 void layout;

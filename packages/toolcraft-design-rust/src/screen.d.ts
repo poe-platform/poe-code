@@ -1,4 +1,4 @@
-import type { Rect } from "./index.js";
+import type { Rect } from "./dashboard-types.js";
 type CellStyle = { fg?: string; bg?: string; bold?: boolean; dim?: boolean; inverse?: boolean; underline?: boolean };
 import { type PackedStyle } from "./screen-style.js";
 export interface Cell {

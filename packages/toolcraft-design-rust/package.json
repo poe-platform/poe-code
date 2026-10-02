@@ -731,6 +731,10 @@
     "./with-output-format": {
       "types": "./dist/public-with-output-format.d.ts",
       "import": "./dist/public-with-output-format.js"
+    },
+    "./index": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
     }
   },
   "scripts": {

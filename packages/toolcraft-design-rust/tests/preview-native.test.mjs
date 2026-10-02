@@ -10,7 +10,8 @@ const strings = await tsImport(
   "../../toolcraft-design/src/dashboard/terminal-strings.ts",
   import.meta.url
 );
-const own = await import("../dist/index.js");
+const own = await import("../dist/output-preview.js");
+const {dashboard} = await import("toolcraft-design-rust");
 const samples = [
   "plain 🌍 text",
   "a\x1b]private\x07b",
@@ -98,8 +99,8 @@ test("preview tail preserves exact UTF-16, line preference, CSI boundaries and b
   }
 });
 test("bounded preview matches original for oversized bursts, hidden controls and seeded tiny deltas", () => {
-  assert.equal(own.dashboard.limitOutputPreview, own.limitOutputPreview);
-  assert.equal(own.dashboard.createOutputPreviewBuffer, own.createOutputPreviewBuffer);
+  assert.equal(dashboard.limitOutputPreview, own.limitOutputPreview);
+  assert.equal(dashboard.createOutputPreviewBuffer, own.createOutputPreviewBuffer);
   assert.equal(own.MAX_OUTPUT_PREVIEW_CHARS, original.MAX_OUTPUT_PREVIEW_CHARS);
   assert.equal(own.OUTPUT_TRUNCATION_NOTICE, original.OUTPUT_TRUNCATION_NOTICE);
   for (const input of samples)

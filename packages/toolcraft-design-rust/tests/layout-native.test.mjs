@@ -3,7 +3,7 @@ import { test } from "node:test";
 process.env.TSX_DISABLE_CACHE = "1";
 const { tsImport } = await import("tsx/esm/api");
 const original = await tsImport("../../toolcraft-design/src/dashboard/layout.ts", import.meta.url);
-const own = await import("../dist/index.js");
+const own = await import("toolcraft-design-rust/dashboard/layout");
 test("dashboard layout matches original across compact thresholds, clipping and numeric boundaries", () => {
   let seed = 271828;
   const random = () => {

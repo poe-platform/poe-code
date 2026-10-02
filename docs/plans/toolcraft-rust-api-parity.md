@@ -2374,3 +2374,20 @@ The root symbol audit finds no missing names but still finds seven extra native
 runtime exports and three extra layout types. Nested subpaths, demos and remaining
 reference suites still need qualification. Cancellation-symbol nominal alignment,
 performance, broader Toolcraft and final platform/swap gates remain open.
+
+### Exact design root export checkpoint
+
+Removed seven native-only root runtime exports and three root-only layout types.
+The original dashboard namespace APIs stay available; geometry and its declarations
+live at `dashboard/layout`, with `Rect` imported from `dashboard/types`. Screen
+and layout consumers now use those declarations directly. The wildcard-admitted
+`index` subpath resolves to the same root module without a wrapper.
+
+Three failing tests preceded the correction. Runtime root names and module
+property descriptors, all declaration export names and root/index identity now
+match the original. Existing behavioral and bidirectional declaration checks
+continue to cover their implementations. Packed root/index/layout self-imports
+work with external ESM dependencies rejected, and packed declarations compile
+with `types: []`. No rendering algorithms, dependencies or default integration
+changed. Nominal cancellation types, remaining nested modules, performance and
+the broader Toolcraft swap gates remain open.

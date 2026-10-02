@@ -41,9 +41,9 @@ test("dashboard border preserves getter order, reentrant puts and thrown identit
   assert.deepEqual(capture(native),capture(original));
 });
 
-test("dashboard layout subpath shares the existing root implementation",async()=>{
+test("dashboard layout subpath exposes the original implementation contract",async()=>{
   const native=await import("toolcraft-design-rust/dashboard/layout");
-  const root=await import("toolcraft-design-rust");
-  assert.equal(native.computeDashboardLayout,root.computeDashboardLayout);
+  const expected=await import("../../toolcraft-design/dist/dashboard/layout.js");
+  assert.deepEqual(Object.keys(native),Object.keys(expected));
   assert.deepEqual(native.computeDashboardLayout({totalWidth:80,totalHeight:24}),computeDashboardLayout({totalWidth:80,totalHeight:24}));
 });

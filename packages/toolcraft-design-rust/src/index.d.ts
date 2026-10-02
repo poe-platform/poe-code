@@ -16,32 +16,6 @@ export * as acp from "./acp.js";
 export { renderTable, loggerTableWidth } from "./table.js";
 export type { TableColumn, RenderTableOptions } from "./table.js";
 
-export interface Rect {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-export interface LayoutOptions {
-  totalWidth: number;
-  totalHeight: number;
-  rightPaneWidth?: number;
-  footerHeight?: number;
-  borderWidth?: number;
-}
-export interface DashboardLayout {
-  summary?: Rect;
-  outerBorder: Rect;
-  leftPane: Rect;
-  rightPane: Rect;
-  divider: { x: number; top: number; bottom: number };
-  footer: Rect;
-  footerDivider: { y: number; left: number; right: number };
-}
-export declare function computeDashboardLayout(options: LayoutOptions): DashboardLayout;
-
-export * from "./output-preview.js";
-
 export * as dashboard from "./dashboard.js";
 
 export type OutputFormat = "terminal" | "markdown" | "json";

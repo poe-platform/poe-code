@@ -1,14 +1,14 @@
-import { isAbsolute, join, relative, resolve } from "node:path";
-import { randomUUID } from "node:crypto";
-import os from "node:os";
+import { posixPath, type FileSystem } from "@poe-code/safe-fs/contracts";
 import type { CachedData, CacheConfig } from "./types.js";
 
+const { isAbsolute, join, relative, resolve } = posixPath;
+
 export interface DiskCacheFs {
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
   writeFile(
     path: string,
     data: string,
-    options?: { encoding?: BufferEncoding; flag?: string },
+    options?: { encoding?: "utf8"; flag?: string },
   ): Promise<void>;
   rename(from: string, to: string): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
@@ -16,8 +16,10 @@ export interface DiskCacheFs {
   realpath(path: string): Promise<string>;
 }
 
+export type DiskCacheFileSystem = DiskCacheFs | Pick<FileSystem, "capabilities" | "readFile" | "writeFile" | "rename" | "mkdir" | "unlink" | "realpath">;
+
 interface DiskCacheDeps {
-  fs: DiskCacheFs;
+  fs: DiskCacheFileSystem;
 }
 
 interface ResolveCacheDirDeps {
@@ -40,7 +42,9 @@ export async function loadFromDisk<T>(
 
   try {
     const filePath = await resolveCachePath(config, deps.fs);
-    const content = await deps.fs.readFile(filePath, "utf8");
+    const content = "capabilities" in deps.fs
+      ? new TextDecoder().decode(await deps.fs.readFile(filePath))
+      : await deps.fs.readFile(filePath, "utf8");
     const cached = JSON.parse(content) as unknown;
 
     if (!isCachedData<T>(cached) || cached.timestamp > Date.now()) {
@@ -88,7 +92,7 @@ export async function removeFromDisk(
 ): Promise<void> {
   try {
     const filePath = await resolveCachePath(config, deps.fs);
-    await deps.fs.unlink(filePath);
+    await unlinkCacheFile(deps.fs, filePath);
   } catch (error) {
     if (error instanceof Error && error.message === "Cache path must remain inside its configured directory.") {
       return;
@@ -103,11 +107,13 @@ export function resolveCacheDir(
   appName: string,
   deps?: ResolveCacheDirDeps,
 ): string {
-  const xdgCacheHome = getOwnEnvValue(deps?.env ?? process.env, "XDG_CACHE_HOME");
-  const home = deps?.homedir ? deps.homedir() : os.homedir();
+  const env = deps?.env ?? globalThis.process?.env ?? {};
+  const xdgCacheHome = getOwnEnvValue(env, "XDG_CACHE_HOME");
+  const home = deps?.homedir?.() ?? getOwnEnvValue(env, "HOME") ?? getOwnEnvValue(env, "USERPROFILE");
+  if (!xdgCacheHome?.trim() && !home) throw new Error("An explicit home directory or XDG_CACHE_HOME is required.");
   const cacheRoot = xdgCacheHome && xdgCacheHome.trim().length > 0
     ? xdgCacheHome
-    : join(home, ".cache");
+    : join(home!, ".cache");
   if (!isAbsolute(cacheRoot)) {
     throw new Error("XDG_CACHE_HOME must be an absolute path");
   }
@@ -122,7 +128,7 @@ export function resolveCacheDir(
 
 async function resolveCachePath(
   config: Pick<CacheConfig, "cacheDir" | "cacheName">,
-  fs: DiskCacheFs,
+  fs: DiskCacheFileSystem,
 ): Promise<string> {
   const cachePath = join(config.cacheDir, `${config.cacheName}.json`);
   assertContainedPath(config.cacheDir, cachePath);
@@ -153,11 +159,11 @@ async function resolveCachePath(
 async function writeCacheFile(
   filePath: string,
   content: string,
-  fs: DiskCacheFs,
+  fs: DiskCacheFileSystem,
 ): Promise<void> {
   for (let attempt = 1; attempt <= TEMP_WRITE_MAX_ATTEMPTS; attempt += 1) {
     try {
-      await writeCacheFileOnce(`${filePath}.${randomUUID()}.tmp`, filePath, content, fs);
+      await writeCacheFileOnce(`${filePath}.${crypto.randomUUID()}.tmp`, filePath, content, fs);
       return;
     } catch (error) {
       if (hasCode(error, "EEXIST") && attempt < TEMP_WRITE_MAX_ATTEMPTS) {
@@ -173,24 +179,30 @@ async function writeCacheFileOnce(
   temporaryPath: string,
   filePath: string,
   content: string,
-  fs: DiskCacheFs,
+  fs: DiskCacheFileSystem,
 ): Promise<void> {
   let temporaryCreated = false;
   try {
-    await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
+    if ("capabilities" in fs) await fs.writeFile(temporaryPath, new TextEncoder().encode(content), { flag: "wx" });
+    else await fs.writeFile(temporaryPath, content, { encoding: "utf8", flag: "wx" });
     temporaryCreated = true;
     await fs.rename(temporaryPath, filePath);
   } catch (error) {
     if (temporaryCreated || !hasCode(error, "EEXIST")) {
-      await fs.unlink(temporaryPath).catch(() => undefined);
+      await unlinkCacheFile(fs, temporaryPath).catch(() => undefined);
     }
     throw error;
   }
 }
 
+async function unlinkCacheFile(fs: DiskCacheFileSystem, path: string): Promise<void> {
+  if (!fs.unlink) throw new Error("Cache removal requires filesystem unlink support.");
+  await fs.unlink(path);
+}
+
 function assertContainedPath(basePath: string, targetPath: string): void {
   const relativePath = relative(resolve(basePath), resolve(targetPath));
-  if (relativePath === ".." || relativePath.startsWith(`..${pathSeparator()}`) || isAbsolute(relativePath)) {
+  if (relativePath === ".." || relativePath.startsWith("../") || isAbsolute(relativePath)) {
     throw new DiskCacheConfigError(CACHE_PATH_ERROR_MESSAGE);
   }
 }
@@ -205,10 +217,6 @@ function assertSafeAppName(appName: string): void {
   ) {
     throw new Error("appName must be a single non-empty directory name");
   }
-}
-
-function pathSeparator(): string {
-  return process.platform === "win32" ? "\\" : "/";
 }
 
 function isCachedData<T>(value: unknown): value is CachedData<T> {
@@ -232,7 +240,7 @@ function getOwnEnvValue(
   return Object.prototype.hasOwnProperty.call(env, key) ? env[key] : undefined;
 }
 
-function hasCode(error: unknown, code: string): error is NodeJS.ErrnoException {
+function hasCode(error: unknown, code: string): error is Error & { code: string } {
   return (
     typeof error === "object" &&
     error !== null &&

@@ -1,13 +1,13 @@
 import type { CachedData, CacheConfig, FetchOptions } from "./types.js";
 import type { MemoryCache } from "./memory-cache.js";
-import type { DiskCacheFs } from "./disk-cache.js";
+import type { DiskCacheFileSystem } from "./disk-cache.js";
 import type { Revalidator } from "./background-revalidator.js";
 import { loadFromDisk, persist } from "./disk-cache.js";
 import { fetchFromApi, validateFetchConfig } from "./api-fetch.js";
 
 export interface CacheOrchestratorDeps<T> {
   memoryCache: MemoryCache<T>;
-  fs: DiskCacheFs;
+  fs: DiskCacheFileSystem;
   fetch?: (
     input: string | URL | Request,
     init?: RequestInit,

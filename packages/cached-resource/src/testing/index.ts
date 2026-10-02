@@ -14,9 +14,9 @@ export function createMemFs(files: Record<string, string> = {}): DiskCacheFs {
   const vol = Volume.fromJSON(files, "/");
   const fs = createFsFromVolume(vol).promises;
   return {
-    readFile: (p: string, encoding: BufferEncoding) =>
+    readFile: (p: string, encoding: "utf8") =>
       fs.readFile(p, encoding) as Promise<string>,
-    writeFile: (p: string, data: string, options?: { encoding?: BufferEncoding; flag?: string }) =>
+    writeFile: (p: string, data: string, options?: { encoding?: "utf8"; flag?: string }) =>
       fs.writeFile(p, data, options) as Promise<void>,
     rename: (from: string, to: string) => fs.rename(from, to) as Promise<void>,
     mkdir: (p: string, options?: { recursive?: boolean }) =>

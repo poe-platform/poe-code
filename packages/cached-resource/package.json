@@ -23,6 +23,16 @@
     "dist"
   ],
   "dependencies": {
-    "lru-cache": "^10.4.3"
+    "lru-cache": "^10.4.3",
+    "@poe-code/safe-fs": "*"
+  },
+  "imports": {
+    "#cached-resource-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
   }
 }

@@ -16,6 +16,8 @@ If all caches miss and the network fetch fails, the bundled fallback is returned
 
 ## Usage
 
+Workers and browsers can inject a `@poe-code/safe-fs` filesystem as the third argument: `createCachedResource(data, config, { fs })`. The filesystem must support exclusive writes, rename, realpath, and unlink. Node supplies its host filesystem by default. For `resolveCacheDir`, provide `env.XDG_CACHE_HOME` or `homedir` when no host home environment is available.
+
 ### Basic
 
 ```ts

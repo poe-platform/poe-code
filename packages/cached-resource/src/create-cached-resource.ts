@@ -1,13 +1,13 @@
-import fs from "node:fs/promises";
+import { createDefaultFileSystem } from "#cached-resource-filesystem";
 import type { CachedData, CacheConfig, FetchOptions } from "./types.js";
-import type { DiskCacheFs } from "./disk-cache.js";
+import type { DiskCacheFileSystem } from "./disk-cache.js";
 import { removeFromDisk } from "./disk-cache.js";
 import { createMemoryCache } from "./memory-cache.js";
 import { createRevalidator } from "./background-revalidator.js";
 import { resolveData } from "./cache-orchestrator.js";
 
 export interface CachedResourceDeps {
-  fs?: DiskCacheFs;
+  fs?: DiskCacheFileSystem;
   fetch?: (
     input: string | URL | Request,
     init?: RequestInit,
@@ -27,23 +27,12 @@ export interface CachedResource<T> {
   stats(): CacheStats;
 }
 
-function createDefaultFs(): DiskCacheFs {
-  return {
-    readFile: (path, encoding) => fs.readFile(path, encoding),
-    writeFile: (path, data, options) => fs.writeFile(path, data, options),
-    rename: (from, to) => fs.rename(from, to),
-    mkdir: (path, options) => fs.mkdir(path, options).then(() => {}),
-    unlink: (path) => fs.unlink(path),
-    realpath: (path) => fs.realpath(path),
-  };
-}
-
 export function createCachedResource<T>(
   bundledData: T,
   config: CacheConfig,
   deps?: CachedResourceDeps,
 ): CachedResource<T> {
-  const diskFs = deps?.fs ?? createDefaultFs();
+  const diskFs = deps?.fs ?? createDefaultFileSystem();
 
   const memoryCache = createMemoryCache<T>({
     max: 100,

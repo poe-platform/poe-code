@@ -13,6 +13,7 @@ providers-rust={path="../../providers-rust"}
 config-extends-rust={path="../../config-extends-rust"}
 poe-code-config-rust={path="../../poe-code-config-rust"}
 toolcraft-design-rust={path="../../toolcraft-design-rust"}
+toolcraft-design-rust-napi-core={path="../../toolcraft-design-rust/bindings/shared"}
 frontmatter-rust-napi-core={path="../../frontmatter-rust/bindings/shared"}
 task-list-rust={path="../../task-list-rust"}
 config-mutations-rust={path="../../config-mutations-rust"}

@@ -13,6 +13,7 @@ mod hooks;
 mod skills;
 pub use hooks::*;
 pub use skills::*;
+pub use toolcraft_design_rust_napi_core::*;
 fn parse(source: Utf16String) -> Result<Value> {
     json::parse_utf16(&source, Default::default())
         .map_err(|_| Error::from_reason("Invalid spawn JSON value"))

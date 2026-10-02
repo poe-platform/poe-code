@@ -67,6 +67,7 @@ dependencies = [
  "providers-rust",
  "task-list-rust",
  "toolcraft-design-rust",
+ "toolcraft-design-rust-napi-core",
  "user-error-rust",
 ]
 
@@ -442,6 +443,19 @@ version = "0.1.0"
 dependencies = [
  "mcp-protocol-rust",
  "toolcraft-template-rust",
+]
+
+[[package]]
+name = "toolcraft-design-rust-napi-core"
+version = "0.1.0"
+dependencies = [
+ "frontmatter-rust-napi-core",
+ "mcp-protocol-rust",
+ "mcp-protocol-rust-napi-core",
+ "napi",
+ "napi-derive",
+ "toolcraft-design-rust",
+ "toolcraft-template-rust-napi-core",
 ]
 
 [[package]]

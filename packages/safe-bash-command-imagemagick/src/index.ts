@@ -3011,7 +3011,14 @@ function createLabelImage(text: string, state: MagickState): RgbaImage {
   const w = state.hasSize ? state.sizeWidth : Math.max(16, Math.ceil(text.length * fontSize * 0.65) + 8);
   const h = state.hasSize ? state.sizeHeight : Math.max(12, Math.ceil(fontSize * 1.4));
   const bg = state.background.a > 0 ? `<rect width="${w}" height="${h}" fill="${rgbaToCss(state.background)}"/>` : "";
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${bg}<text x="2" y="${Math.round(h * 0.75)}" font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
+  const isHorizCenter = state.gravity === "center" || state.gravity === "north" || state.gravity === "south";
+  const isHorizEast = state.gravity === "northeast" || state.gravity === "east" || state.gravity === "southeast";
+  const textX = isHorizCenter ? Math.round(w / 2) : isHorizEast ? Math.max(2, w - 4) : 2;
+  const anchor = isHorizCenter ? ' text-anchor="middle"' : isHorizEast ? ' text-anchor="end"' : "";
+  const textY = state.gravity === "center" || state.gravity === "west" || state.gravity === "east"
+    ? Math.round(h / 2 + fontSize * 0.35)
+    : Math.round(h * 0.75);
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${bg}<text x="${textX}" y="${textY}"${anchor} font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
   return decodeImage(new TextEncoder().encode(svg), { density: state.density });
 }
 
@@ -5012,14 +5019,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     gx = g.x;
                     gy = g.y;
                 }
-                const grav = resolveGravityOffset(base.width - overlay.width, base.height - overlay.height, state.gravity);
+                const pos = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, state.gravity);
                 let composed: RgbaImage;
                 if (state.composeRaw.toLowerCase() === "over") {
-                    yield* blitOverRgbaInPlaceSteps(base, overlay, grav.left + gx, grav.top + gy);
+                    yield* blitOverRgbaInPlaceSteps(base, overlay, pos.x, pos.y);
                     detachRgbaBuffer(overlay.data);
                     composed = base;
                 } else {
-                    composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, grav.left + gx, grav.top + gy, state.composeArgs, signal));
+                    composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, pos.x, pos.y, state.composeArgs, signal));
                     if (composed !== base) detachRgbaBuffer(base.data);
                     if (composed !== overlay) detachRgbaBuffer(overlay.data);
                 }
@@ -5027,10 +5034,24 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else {
+            const isLabelOperand = /^(?:label|caption):/i.test(t);
+            const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
+            const prevBg = state.background;
+            if (mergeOntoCanvas) {
+                state.background = { r: 0, g: 0, b: 0, a: 0 };
+            }
             const maxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
             const loaded = (yield* parseInputOperandsSteps(t, files, state, stdinBytes, maxDecodeDim));
+            if (mergeOntoCanvas) {
+                state.background = prevBg;
+            }
             if (loaded) {
-                stack.push(...loaded);
+                if (mergeOntoCanvas && loaded[0]) {
+                    yield* blitOverRgbaInPlaceSteps(stack[0]!, loaded[0], 0, 0);
+                    detachRgbaBuffer(loaded[0].data);
+                } else {
+                    stack.push(...loaded);
+                }
             }
         }
         i++;

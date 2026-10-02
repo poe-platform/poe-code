@@ -807,6 +807,10 @@
     "./dashboard/terminal-strings": {
       "types": "./dist/terminal-strings.d.ts",
       "import": "./dist/terminal-strings.js"
+    },
+    "./dashboard/demo": {
+      "types": "./dist/dashboard-demo.d.ts",
+      "import": "./dist/dashboard-demo.js"
     }
   },
   "scripts": {

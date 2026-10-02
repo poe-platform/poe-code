@@ -2487,3 +2487,30 @@ Five warmed alternating Node 22 ARM64 rounds with 32 retained results measured
 scan (1,000 calls/round, 252.31 times slower). No performance gate passed.
 Seven concrete demo/testing modules, the complete existing-surface audit, batching
 and broader Toolcraft/platform/swap qualification remain open.
+
+### Dashboard demonstration checkpoint
+
+The original `dashboard/demo` import now exports `startDashboardDemo` and `main`.
+Rust owns demo content, counters, progress fields and lifecycle decisions. Node
+retains timers, dashboard callbacks, signal handlers and direct-entry execution.
+The missing import was reproduced by three failing cases before implementation.
+Differential tests cover callback metadata/receivers, runtime getter order,
+random coercion and patched Math methods, reentrancy, retained timer callbacks,
+initialization TDZ errors and arbitrary thrown values. Nine additional main
+cases compare quit/signals, idempotent shutdown and startup/shutdown failures;
+the two original demo tests now run against the native module.
+
+Build, Rust/binding and scoped JS lint, package unit and bidirectional declaration
+checks pass: 402 native host tests, 1,516 selected design cases, 13 prompt wrappers,
+143 dashboard/queue/demo cases, 14 composer cases and 315 explorer cases. Packed
+imports pass with external ESM dependencies blocked; standalone declarations
+compile with `types: []`. The inspected five-message dashboard screenshot has
+byte-identical reference output. No dependencies or default integration changed.
+
+Five warmed alternating Node 22.23.2 ARM64 rounds, 200 demo lifecycles per round
+and 32 retained results, measured 113.091 microseconds native / 1.442 microseconds
+JavaScript (78.44 times slower). Each lifecycle initializes, emits five output
+and stats updates, finishes and repeats cleanup with injected timers. This
+isolates demo policy overhead; it is not a real-time dashboard benchmark or a
+passed performance gate. Six concrete demo/testing modules, the existing-surface
+audit, batching and broader Toolcraft/platform/swap qualification remain open.

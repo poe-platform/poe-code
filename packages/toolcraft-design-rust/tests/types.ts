@@ -1046,3 +1046,9 @@ import type * as originalTerminalStrings from "toolcraft-design/dashboard/termin
 const terminalStringsOriginal: typeof originalTerminalStrings = nativeTerminalStrings;
 const terminalStringsNative: typeof nativeTerminalStrings = null as unknown as typeof originalTerminalStrings;
 void [terminalStringsOriginal,terminalStringsNative];
+
+import * as nativeDashboardDemo from "toolcraft-design-rust/dashboard/demo";
+import type * as originalDashboardDemo from "toolcraft-design/dashboard/demo";
+const dashboardDemoOriginal: typeof originalDashboardDemo = nativeDashboardDemo;
+const dashboardDemoNative: typeof nativeDashboardDemo = null as unknown as typeof originalDashboardDemo;
+void [dashboardDemoOriginal,dashboardDemoNative];

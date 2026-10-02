@@ -12,6 +12,11 @@ buffers and output previews are available through `dashboard/line-buffer` and
 retain their `internal/*` paths. `prompts/interactive/index` collects the lower
 level prompt functions and shared cancellation symbol.
 
+`startDashboardDemo(dashboard, runtime?)` from `dashboard/demo` feeds sample
+output and progress into a dashboard for 30 seconds and returns an idempotent
+cleanup function. Inject timers, a clock and randomness for controlled previews.
+The same module exports `main()` to open the interactive demonstration.
+
 Render consistent agent output with callable `color` chains, `text` helpers and
 cached dark/light palettes. `configureTheme({brand: 'blue', label: 'Acme'})`
 sets your brand and live intro label. Colors follow terminal support and

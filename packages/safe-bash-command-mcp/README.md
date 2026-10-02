@@ -72,6 +72,7 @@ discovery. Explicit instructions take precedence over discovered guidance.
 | --- | --- |
 | `fetchRemoteMcpSchema(server, options)` | Resolve one server's tool schemas |
 | `accessRemoteMcpResources(server, request, options)` | List a resource/template page or read complete remote contents |
+| `callRemoteMcpTool(server, params, options)` | Call a known tool without discovery and close its connection |
 | `resolveRemoteMcpSchemas(servers, options)` | Preflight a registry and resolve it in order |
 | `compileToolArguments(tool, options)` | Compile validated argument parsing and deterministic flag metadata |
 | `createRemoteMcpCommands(servers, options)` | Generate safe-bash command definitions |
@@ -86,6 +87,14 @@ discovery. Explicit instructions take precedence over discovered guidance.
 | `generateRemoteMcpArtifact(configuration, options)` | Discover absent schemas and emit reproducible JSON/ESM data |
 | `parseRemoteMcpArtifact(value, options)` | Validate artifact size, digest and configuration/schema agreement |
 | `remoteMcpArtifactPlugin(artifact, options)` | Bind credentials and register artifact commands without rediscovery |
+
+`callRemoteMcpTool(server, { name, arguments }, options)` accepts the same host
+transport, cancellation and response limits as discovery, plus `maxInputBytes`.
+`requestTimeoutMs` bounds the whole call including connection setup. It returns
+the protocol result, including `isError`, without discovering or validating
+provider-specific tool schemas. Use generated commands when schema validation is
+needed. Pin `transport: "http"` and supply static `headers` for an operation that
+must neither fall back to SSE nor perform OAuth recovery.
 
 Use `headers` or the client's `oauth` options for credentials. A web host can set
 `oauth.browser.redirectUri` to its registered HTTPS callback and supply

@@ -8,6 +8,16 @@ import {
 } from "../../../src/index.js";
 import { runMetadata } from "./helpers.js";
 
+test("metadata composition normalizes undefined quotas before constructing truncate", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  const result = await runMetadata("truncate", ["-s", "2", "file"], fs, {
+    limits: { maxArgumentBytes: undefined, maxArguments: undefined, maxOutputBytes: undefined, maxEntries: undefined },
+  });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await fs.stat("/work/file")).size, 2);
+});
+
 test("metadata root API preflights collisions and excludes optional network/runtime plugins", () => {
   assert.deepEqual(createMetadataCommands().map(command => command.name), ["chmod", "stat", "mktemp", "truncate", "install"]);
   const names = createAgentCommands().map(command => command.name);

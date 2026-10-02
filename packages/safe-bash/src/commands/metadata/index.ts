@@ -11,7 +11,7 @@ export type { MetadataCommandsOptions, MetadataLimits } from "./internal.js";
 
 export function createMetadataCommands(options: MetadataCommandsOptions = {}): readonly CommandDefinition[] {
   const normalized = settings(options);
-  return registerDefaultExecutors([createChmodCommand(options), createStatCommand(options), createMktempCommand(options), truncateCommand({ ...options, ...normalized }), createInstallCommand()], options);
+  return registerDefaultExecutors([createChmodCommand(options), createStatCommand(options), createMktempCommand(options), truncateCommand({ ...options, limits: normalized.limits }), createInstallCommand()], options);
 }
 
 export function metadataCommands(options: MetadataCommandsOptions = {}): VirtualShellPlugin {

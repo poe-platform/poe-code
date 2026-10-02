@@ -4,6 +4,7 @@ import { createPrivateSqliteStorage } from './sqlite-private.js';
 import { withPrivateSqliteSession, type PrivateSqliteSession } from './sqlite-session.js';
 import { createSqliteWalSnapshot } from './sqlite-wal.js';
 import { writeSqliteFile } from './sqlite-file-io.js';
+import { finalizeSqlite, type SqliteFinalizer } from './sqlite-finalization.js';
 import { publishSqliteSnapshot } from './sqlite-publication.js';
 
 /** Run native SQL against an owned private copy, then atomically replace the
@@ -12,10 +13,14 @@ import { publishSqliteSnapshot } from './sqlite-publication.js';
 export async function transactSqlite<T>(options: {
   fs: FileSystem; path: string; signal: AbortSignal;
   maxFileBytes: number; maxIndexBytes: number; maxOpenFiles: number;
+  /** Runs after native COMMIT and connection closure, before publication.
+   * Phases are serialized and failures poison publication. Indexes and constraints
+   * affected by record rewrites remain the operation's responsibility. */
+  finalize?: (editor: SqliteFinalizer) => Promise<void>;
 }, operation: (session: PrivateSqliteSession) => Promise<T>): Promise<{
   value: T; committed: FileStat; cleanupErrors: readonly unknown[];
 }> {
-  const { fs, signal, maxFileBytes } = options;
+  const { fs, signal, maxFileBytes, finalize } = options;
   for (const limit of [maxFileBytes, options.maxIndexBytes, options.maxOpenFiles]) {
     if (!Number.isSafeInteger(limit) || limit < 0) throw new RangeError('Invalid SQLite transaction budget');
   }
@@ -82,6 +87,8 @@ export async function transactSqlite<T>(options: {
       session.check();
       return result;
     });
+    if (finalize) await finalizeSqlite({...options,fs:storage.fs,directory:storage.directory,path:privatePath},finalize);
+    signal.throwIfAborted();
     sources.validate();
     const file = await storage.fs.open!(privatePath, { access: 'read', creation: 'never', signal });
     cleanups.push(() => file.close());

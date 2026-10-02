@@ -192,6 +192,7 @@ export function evalSyncXq(
     if (!fBytes || fBytes.byteLength > 8192) return undefined;
     srcBytes = fBytes;
   }
+  if (srcBytes.includes(0)) return undefined;
   let xmlText: string;
   try {
     xmlText = syncXmlDecoder.decode(srcBytes);

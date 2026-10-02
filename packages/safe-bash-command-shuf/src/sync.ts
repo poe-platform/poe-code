@@ -79,6 +79,9 @@ export function evalSyncShuf(
   let size = 0;
   if (count === 0) {
     if (repeat || randomFile !== undefined) return undefined;
+    if (!echo && rangeLow === undefined && operands.length === 1 && operands[0] !== "-") {
+      if (!readFileSync || !readFileSync(operands[0]!)) return undefined;
+    }
     return "";
   }
   if (echo) {

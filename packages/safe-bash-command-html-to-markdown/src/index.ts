@@ -203,6 +203,7 @@ export function evalSyncHtmlToMarkdown(
   }
   const outputs: string[] = [];
   for (const c of chunks) {
+    if (c.includes(0)) return undefined;
     let html: string;
     try {
       html = syncHtmlMdDecoder.decode(c);

@@ -271,14 +271,17 @@ export function evalSyncMdq(
   const files = positional.slice(1);
   let text = "";
   if (files.length === 0 || (files.length === 1 && files[0] === "-")) {
+    if (inBytes.includes(0)) return undefined;
     try { text = syncMdqDecoder.decode(inBytes); } catch { return undefined; }
   } else {
     if (!readFileSync) return undefined;
     const parts: string[] = [];
     let total = 0;
+    let stdinUsed = false;
     for (const f of files) {
-      const fBytes = f === "-" ? inBytes : readFileSync(f);
-      if (!fBytes || total + fBytes.byteLength > 8192) return undefined;
+      const fBytes = f === "-" ? (stdinUsed ? new Uint8Array(0) : inBytes) : readFileSync(f);
+      if (f === "-") stdinUsed = true;
+      if (!fBytes || fBytes.includes(0) || total + fBytes.byteLength > 8192) return undefined;
       total += fBytes.byteLength;
       try { parts.push(syncMdqDecoder.decode(fBytes)); } catch { return undefined; }
     }

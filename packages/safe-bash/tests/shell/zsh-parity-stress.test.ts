@@ -1262,3 +1262,24 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     assert.equal(rSym.exitCode, 0);
     assert.equal(rSym.stdout.trim(), "inside");
   });
+
+  test("68. sync cmp -l -s conflict, diff invalid UTF-8 non-collision, and mdq duplicate stdin operands", async () => {
+    const { shell: bash, fs } = setup();
+    bash.use(agentCommands());
+    await fs.writeFile("/f1.txt", new Uint8Array([97, 0x80, 10]));
+    await fs.writeFile("/f2.txt", new Uint8Array([97, 0x81, 10]));
+    await fs.writeFile("/same.txt", new TextEncoder().encode("hello\n"));
+
+    // 1. cmp -l -s /same.txt /same.txt must fail with exit status 2 (incompatible options)
+    const r1 = await bash.exec("out=$(cmp -l -s /same.txt /same.txt 2>&1); echo $?");
+    assert.equal(r1.stdout.trim(), "2");
+
+    // 2. diff -i /f1.txt /f2.txt with different non-UTF-8 bytes (0x80 vs 0x81) must NOT report identical
+    const r2 = await bash.exec("out=$(diff -i /f1.txt /f2.txt 2>&1); echo $?");
+    assert.notEqual(r2.stdout.trim(), "0");
+
+    // 3. mdq reading stdin twice (- -) must not duplicate stdin content in sync command substitution
+    const r3 = await bash.exec("echo \"$(mdq '# hi' - - <<< '# hi')\"");
+    assert.equal(r3.exitCode, 0);
+    assert.equal(r3.stdout.trim(), "# hi");
+  });

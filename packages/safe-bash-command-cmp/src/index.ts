@@ -569,6 +569,8 @@ export function evalSyncCmp(
     const skips: [bigint, bigint] = [0n, 0n];
     let count = 9223372036854775807n;
     let stopped = false;
+    let silent = false;
+    let verbose = false;
     const setSkip = (idx: 0 | 1, text: string) => {
       const p = byteCount(text, "ignore-initial");
       if (p > skips[idx]) skips[idx] = p;
@@ -577,7 +579,9 @@ export function evalSyncCmp(
       const a = opArgs[i]!;
       if (stopped || a === "-" || !a.startsWith("-")) { operands.push(a); continue; }
       if (a === "--") { stopped = true; continue; }
-      if (a === "-s" || a === "--silent" || a === "--quiet" || a === "-b" || a === "-c" || a === "--print-bytes" || a === "-l" || a === "--verbose") continue;
+      if (a === "-s" || a === "--silent" || a === "--quiet") { if (verbose) return undefined; silent = true; continue; }
+      if (a === "-l" || a === "--verbose") { if (silent) return undefined; verbose = true; continue; }
+      if (a === "-b" || a === "-c" || a === "--print-bytes") continue;
       if (a === "-i" || a === "--ignore-initial" || a.startsWith("-i") || a.startsWith("--ignore-initial=")) {
         const v = (a === "-i" || a === "--ignore-initial") ? opArgs[++i] : (a.startsWith("--ignore-initial=") ? a.slice(17) : a.slice(2));
         if (v === undefined || v === "") return undefined;

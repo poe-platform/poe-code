@@ -92,7 +92,8 @@ export function evalSyncPr(
           if (!readFileSync) return undefined;
           srcBytes = readFileSync(name);
         }
-        if (!srcBytes || srcBytes.byteLength > 16384 || srcBytes.includes(12)) return undefined;
+        if (!srcBytes || srcBytes.byteLength > 16384 || srcBytes.includes(0) || srcBytes.includes(12)) return undefined;
+        prSyncDecoder.decode(srcBytes);
         const reader = new Reader(name, lifecycle);
         reader.initFromBytes(srcBytes);
         readers.push(reader);

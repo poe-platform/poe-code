@@ -3,7 +3,7 @@ import { expandTabs } from "./diff-output.js";
 
 export type { DiffPatchOptions } from "safe-bash-diff-engine/shared";
 
-const syncDiffDecoder = new TextDecoder("utf-8", { fatal: false });
+const syncDiffDecoder = new TextDecoder("utf-8", { fatal: true });
 
 function normalizeSyncDiffLines(text: string, opts: ReturnType<typeof flags>): string[] {
   const rawLines: string[] = [];
@@ -70,6 +70,8 @@ export function evalSyncDiff(
   }
   const left = pairFiles[0]!;
   const right = pairFiles[1]!;
+  const isStdinName = (op: string) => op === "-" || op === "/dev/stdin" || op === "/dev/fd/0";
+  if (isStdinName(left) && isStdinName(right) && left !== right) return undefined;
   const resolveOperand = (op: string): Uint8Array | undefined => {
     if (op === "-" || op === "/dev/stdin" || op === "/dev/fd/0") return stdinBytes ?? new Uint8Array(0);
     if (!readFile) return undefined;
@@ -104,8 +106,13 @@ export function evalSyncDiff(
     }
     for (let i = 0; i < b1.byteLength; i++) if (b1[i] === 0) return undefined;
     for (let i = 0; i < b2.byteLength; i++) if (b2[i] === 0) return undefined;
-    const t1 = syncDiffDecoder.decode(b1);
-    const t2 = syncDiffDecoder.decode(b2);
+    let t1: string, t2: string;
+    try {
+      t1 = syncDiffDecoder.decode(b1);
+      t2 = syncDiffDecoder.decode(b2);
+    } catch {
+      return undefined;
+    }
     const l1 = normalizeSyncDiffLines(t1, opts);
     const l2 = normalizeSyncDiffLines(t2, opts);
     if (l1.length !== l2.length) return undefined;

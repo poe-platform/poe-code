@@ -1,5 +1,4 @@
-import { homedir } from "#hook-platform";
-import { posixPath as path } from "@poe-code/safe-fs";
+import { homedir, path } from "#hook-platform";
 import { resolveAgentId } from "@poe-code/agent-defs";
 
 export type HookFormat = "claude-settings-json" | "codex-hooks-json" | "codex-config-toml";

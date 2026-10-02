@@ -1,5 +1,5 @@
 import {test}from'node:test';import assert from'node:assert/strict';
-import * as own from'../dist/index.js';import * as sdk from'../../agent-hook-config/dist/index.js';
+import * as own from'../dist/index.js';import * as sdk from'../../agent-hook-config/dist/node.js';
 test('native hook catalog and rules match current SDK aliases and independent config copies',()=>{
  assert.deepEqual(own.supportedHookAgents,sdk.supportedHookAgents);assert.ok(Object.isFrozen(own.supportedHookAgents));
  for(const input of ['claude',' CLAUDE ','codex','CoDeX','poe-agent','missing','constructor','\ud800'])assert.deepEqual(own.resolveAgentSupport(input),sdk.resolveAgentSupport(input));
@@ -33,7 +33,7 @@ test('native lifecycle matches SDK rollback ownership and byte output over repea
  const {fs,vol}=await import('memfs'),builtin=await import('node:fs'),{syncBuiltinESMExports}=await import('node:module');
  const {setGitDirRunnerForTest}=await import('../dist/skill/testing.js');
  const keys=['lstatSync','readFileSync','writeFileSync','mkdirSync','renameSync','unlinkSync','readlinkSync','symlinkSync','rmdirSync','rmSync'];const original=Object.fromEntries(keys.map(key=>[key,builtin.default[key]]));
- const restoreOwn=setGitDirRunnerForTest(()=>'/repo/.git'),restoreSdk=(await import('../../agent-skill-config/dist/index.js')).setGitDirRunnerForTest(()=>'/repo/.git');
+ const restoreOwn=setGitDirRunnerForTest(()=>'/repo/.git'),restoreSdk=(await import('../../agent-skill-config/dist/node.js')).setGitDirRunnerForTest(()=>'/repo/.git');
  try{
   for(const key of keys)builtin.default[key]=fs[key];syncBuiltinESMExports();
   for(let round=0;round<32;round++){

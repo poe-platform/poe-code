@@ -182,7 +182,7 @@ fn generated_hook_transforms_and_alias_errors_match_the_current_sdk() {
         };
         expected.push(output);
     }
-    let script = "import{transformHooks}from'../agent-hook-config/dist/index.js';let input='';for await(const chunk of process.stdin)input+=chunk;const result=JSON.parse(input).map(({source,from,to,runId})=>{try{return transformHooks(source,from,to,{runId});}catch(error){return {error:error.message};}});console.log(JSON.stringify(result));";
+    let script = "import{transformHooks}from'../agent-hook-config/dist/node.js';let input='';for await(const chunk of process.stdin)input+=chunk;const result=JSON.parse(input).map(({source,from,to,runId})=>{try{return transformHooks(source,from,to,{runId});}catch(error){return {error:error.message};}});console.log(JSON.stringify(result));";
     compare(sdk(script, cases), expected);
 }
 #[test]
@@ -282,6 +282,6 @@ fn generated_file_mutations_and_read_records_match_sdk_using_memfs() {
             ("read", read),
         ]));
     }
-    let script = "import fs from'node:fs';import{syncBuiltinESMExports}from'node:module';import{fs as memory,vol}from'memfs';import{readClaudeHooks,writeCodexHooks}from'../agent-hook-config/dist/index.js';for(const name of['lstatSync','readFileSync','mkdirSync','writeFileSync','renameSync','unlinkSync'])fs[name]=memory[name];syncBuiltinESMExports();let input='';for await(const chunk of process.stdin)input+=chunk;const results=[];for(const{file,entries,preserveGenerated}of JSON.parse(input)){vol.reset();vol.fromJSON({'/work/.claude/settings.json':JSON.stringify(file),'/work/.codex/hooks.json':JSON.stringify(file)});const read=readClaudeHooks('/work','/home',{scope:'project'}).entries;const result=writeCodexHooks('/work/.codex/hooks.json',entries,'current',{preserveGenerated});results.push({file:JSON.parse(vol.readFileSync('/work/.codex/hooks.json','utf8')),removed:result.previousGeneratedRemoved,written:result.generatedWritten,read});}console.log(JSON.stringify(results));";
+    let script = "import fs from'node:fs';import{syncBuiltinESMExports}from'node:module';import{fs as memory,vol}from'memfs';import{readClaudeHooks,writeCodexHooks}from'../agent-hook-config/dist/node.js';for(const name of['lstatSync','readFileSync','mkdirSync','writeFileSync','renameSync','unlinkSync'])fs[name]=memory[name];syncBuiltinESMExports();let input='';for await(const chunk of process.stdin)input+=chunk;const results=[];for(const{file,entries,preserveGenerated}of JSON.parse(input)){vol.reset();vol.fromJSON({'/work/.claude/settings.json':JSON.stringify(file),'/work/.codex/hooks.json':JSON.stringify(file)});const read=readClaudeHooks('/work','/home',{scope:'project'}).entries;const result=writeCodexHooks('/work/.codex/hooks.json',entries,'current',{preserveGenerated});results.push({file:JSON.parse(vol.readFileSync('/work/.codex/hooks.json','utf8')),removed:result.previousGeneratedRemoved,written:result.generatedWritten,read});}console.log(JSON.stringify(results));";
     compare(sdk(script, cases), expected);
 }

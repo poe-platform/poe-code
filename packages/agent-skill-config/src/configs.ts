@@ -1,5 +1,4 @@
-import { homedir } from "#skill-platform";
-import { posixPath as nativePath } from "@poe-code/safe-fs/runtime-core";
+import { homedir, nativePath } from "#skill-platform";
 import { resolveAgentId } from "@poe-code/agent-defs";
 
 export interface AgentSkillConfig {
@@ -73,7 +72,7 @@ export function getAgentConfig(agentId: string): AgentSkillConfig | undefined {
   return support.status === "supported" ? support.config : undefined;
 }
 
-function expandHome(targetPath: string, homeDir: string = homedir(), path = nativePath): string {
+function expandHome(targetPath: string, homeDir: string = homedir(), path: Pick<typeof nativePath, "join" | "resolve"> = nativePath): string {
   if (!targetPath?.startsWith("~")) {
     return targetPath;
   }
@@ -105,7 +104,7 @@ export function resolveSkillDir(
   scope: SkillScope,
   cwd: string,
   homeDir?: string,
-  path = nativePath
+  path: Pick<typeof nativePath, "join" | "resolve"> = nativePath
 ): string {
   if (scope === "global") {
     return path.resolve(expandHome(config.globalSkillDir, homeDir, path));

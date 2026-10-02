@@ -11,5 +11,5 @@ export {bridgeActiveSkills,cleanupBridgedSkills}from'./bridge-active-skills.js';
 
 export { resolveSkillReferenceAsync, appendExcludeBlockAsync, removeExcludeBlockAsync,
   bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync, discoverSkillsAsync
-} from "@poe-code/agent-skill-config";
-export type { SkillRuntimeOptions, DiscoveredSkill } from "@poe-code/agent-skill-config";
+} from "@poe-code/agent-skill-config/node";
+export type { SkillRuntimeOptions, DiscoveredSkill } from "@poe-code/agent-skill-config/node";

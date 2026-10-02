@@ -1,5 +1,5 @@
 import {test} from 'node:test';import assert from 'node:assert/strict';
-import * as native from '../dist/index.js';import * as sdk from '../../agent-skill-config/dist/index.js';
+import * as native from '../dist/index.js';import * as sdk from '../../agent-skill-config/dist/node.js';
 test('own skill catalog aliases and independent configuration objects match SDK',()=>{
  assert.deepEqual(native.supportedAgents,sdk.supportedAgents);assert.ok(Object.isFrozen(native.supportedAgents));
  for(const input of ['claude',' CLAUDE ','Codex','goose','poe-agent','missing','constructor','\ud800'])assert.deepEqual(native.resolveAgentSupport(input),sdk.resolveAgentSupport(input));

@@ -1,4 +1,5 @@
 import type { ConditionalExpression } from "./conditional.js";
+import type { RootShellState } from "./runtime.js";
 import { publicDiagnosticMessage } from "../diagnostics.js";
 import { writeDiagnostic } from "../escaping.js";
 import { validateExitCode } from "../contracts/index.js";

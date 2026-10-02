@@ -12,7 +12,7 @@ import {
 import { readBytes, writeBytes } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { decodeImage, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
+import { decodeImage, decodePngToCanvas, encodeImage, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageFormat, type ImageMetadata, type ResizeKernel, type RgbaColor, type RgbaImage, applyExifOrientationSteps, blurImageSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flattenImageSteps, flipImageSteps, flopImageSteps, gammaImageSteps, grayscaleImageSteps, linearImageSteps, medianImageSteps, modulateImageSteps, negateImageSteps, removeAlphaImageSteps, resizeImageSteps, rotateImageSteps, sharpenImageSteps, thresholdImageSteps, tintImageSteps, trimImageSteps } from "@poe-code/image-ast/portable";
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   aliceblue: [240, 248, 255, 255],
@@ -5757,7 +5757,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = cellW === undefined && cellH === undefined && borderW === 0;
+    let canStreamTiles = cellW === undefined && cellH === undefined;
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -5771,7 +5771,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     canStreamTiles = false;
                     break;
                 }
-                fastMetaDims.push({ width: meta.width, height: meta.height });
+                fastMetaDims.push({ width: meta.width + borderW * 2, height: meta.height + borderW * 2 });
             } catch {
                 canStreamTiles = false;
                 break;
@@ -5798,6 +5798,58 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const row = Math.floor(idx / cols);
             if (row >= rows) break;
             const p = inPaths[idx]!;
+            const effW = fastMetaDims[idx]!.width;
+            const effH = fastMetaDims[idx]!.height;
+            const rawTileW = effW - borderW * 2;
+            const rawTileH = effH - borderW * 2;
+            const cellX = col * slotW + padX;
+            const cellY = row * slotH + padY;
+            const off = resolveGravityOffset(maxThumbW - effW, maxThumbH - effH, state.gravity);
+            const dstX = cellX + off.left;
+            const dstY = cellY + off.top;
+            if (borderW > 0 && state.borderColor.a > 0) {
+                const bc = state.borderColor;
+                const x0 = Math.max(0, dstX);
+                const y0 = Math.max(0, dstY);
+                const x1 = Math.min(canvas.width, dstX + effW);
+                const y1 = Math.min(canvas.height, dstY + effH);
+                const ix0 = dstX + borderW;
+                const iy0 = dstY + borderW;
+                const ix1 = ix0 + rawTileW;
+                const iy1 = iy0 + rawTileH;
+                for (let by = y0; by < y1; by++) {
+                    const inY = by >= iy0 && by < iy1;
+                    for (let bx = x0; bx < x1; bx++) {
+                        if (inY && bx >= ix0 && bx < ix1) {
+                            bx = ix1 - 1;
+                            continue;
+                        }
+                        const di = (by * canvas.width + bx) * 4;
+                        if (bc.a === 255) {
+                            canvas.data[di] = bc.r;
+                            canvas.data[di + 1] = bc.g;
+                            canvas.data[di + 2] = bc.b;
+                            canvas.data[di + 3] = 255;
+                        } else {
+                            const sa = bc.a / 255;
+                            const da = (canvas.data[di + 3] ?? 0) / 255;
+                            const outA = sa + da * (1 - sa);
+                            if (outA > 0) {
+                                canvas.data[di] = Math.round((bc.r * sa + (canvas.data[di] ?? 0) * da * (1 - sa)) / outA);
+                                canvas.data[di + 1] = Math.round((bc.g * sa + (canvas.data[di + 1] ?? 0) * da * (1 - sa)) / outA);
+                                canvas.data[di + 2] = Math.round((bc.b * sa + (canvas.data[di + 2] ?? 0) * da * (1 - sa)) / outA);
+                                canvas.data[di + 3] = Math.round(outA * 255);
+                            }
+                        }
+                    }
+                }
+            }
+            const rawTileBytes = files.get(p);
+            const directPng = rawTileBytes ? decodePngToCanvas(rawTileBytes, canvas, dstX + borderW, dstY + borderW) : undefined;
+            if (directPng) {
+                if (directPng.anyTransparent) anyTransparent = true;
+                continue;
+            }
             let loadedList: RgbaImage[] | undefined;
             try {
                 loadedList = (yield* parseInputOperandsSteps(p, files, state, stdinBytes));
@@ -5823,10 +5875,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     if (im.data[k]! < 255) { anyTransparent = true; break; }
                 }
             }
-            const cellX = col * slotW + padX;
-            const cellY = row * slotH + padY;
-            const off = resolveGravityOffset(maxThumbW - im.width, maxThumbH - im.height, state.gravity);
-            yield* blitOverRgbaInPlaceSteps(canvas, im, cellX + off.left, cellY + off.top);
+            yield* blitOverRgbaInPlaceSteps(canvas, im, dstX + borderW, dstY + borderW);
             detachRgbaBuffer(im.data);
         }
     } else {

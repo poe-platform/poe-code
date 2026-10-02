@@ -53,6 +53,15 @@ export function evalSyncIdentify(
     if (opArgs[0] === "-version" || opArgs[0] === "--version") {
       return runIdentifyCliSync(opArgs, new Map()).stdout;
     }
+    if (cmdName === "montage" || (cmdName === "magick" && opArgs[0] === "montage")) {
+      return undefined;
+    }
+    if (!writeFileSync && cmdName !== "identify" && !(cmdName === "magick" && opArgs[0] === "identify")) {
+      const lastArg = opArgs[opArgs.length - 1] ?? "";
+      if (lastArg !== "-" && !lastArg.endsWith(":-") && !/^(?:info|txt|json|null|histogram):/i.test(lastArg)) {
+        return undefined;
+      }
+    }
     const vfsFiles = new Map<string, Uint8Array>();
     if (inBytes !== undefined) vfsFiles.set("-", inBytes);
     for (let i = 0; i < opArgs.length; i++) {

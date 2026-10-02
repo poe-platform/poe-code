@@ -5742,11 +5742,13 @@ export class Runtime {
           let flag: "a" | "wx" | "w" = append ? "a" : state.noclobber && redirect.operator !== ">|" ? "wx" : "w";
           if (flag === "wx") {
             try {
-              const stat = await resourceFs.stat(path, options);
+              const entry = await resourceFs.lstat(path, options);
+              const stat = entry.type === "symlink" ? await resourceFs.stat(path, options) : entry;
               if (stat.type !== "file" && stat.type !== "directory") flag = "w";
             } catch (error) {
               this.signal.throwIfAborted();
-              if (!(error instanceof FsError) || error.code !== "ENOENT") throw error;
+              // Exclusive acquisition must diagnose an existing final symlink itself.
+              if (!(error instanceof FsError) || (error.code !== "ENOENT" && error.code !== "ELOOP")) throw error;
             }
           }
           const capabilities = await this.fs.capabilitiesFor?.(path, { ...options, ...(flag === "wx" ? { creation: "exclusive" as const } : {}) }) ?? this.fs.capabilities;

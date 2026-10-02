@@ -69,7 +69,7 @@ for (const fixture of [
   { source: ": >/dev", stderr: "shell: line 1: /dev: Permission denied\n", exitCode: 1 },
   { source: "set -C; : >/dev", stderr: "shell: line 1: ENOTSUP: exclusive creation is not supported, write '/dev'\n", exitCode: 1 },
   { source: ": >/dev/null", stderr: "", exitCode: 0 },
-  { source: "set -C; : >/dev/null", stderr: "shell: line 1: /dev/null: cannot overwrite existing file\n", exitCode: 1 },
+  { source: "set -C; : >/dev/null", stderr: "", exitCode: 0 },
   { source: ": >/dev/null/child", stderr: "shell: line 1: /dev/null/child: Not a directory\n", exitCode: 1 },
   { source: "set -C; : >/dev/null/child", stderr: "shell: line 1: /dev/null/child: Not a directory\n", exitCode: 1 },
 ]) {

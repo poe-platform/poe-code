@@ -9085,11 +9085,23 @@ export class Runtime {
       if (pipeline.negate || command.redirects.length > 0 || rawState.readonlyFunctions?.has(command.name) || (rawState.profile === "sh" && (specialBuiltinNames.has(command.name) || rawState.extensions?.builtins.get(command.name)?.special))) {
         return undefined;
       }
-      const body = { ...command.body, sourceName: io.scriptName ?? "shell" };
+      let body: Command;
+      const sName = io.scriptName ?? "shell";
       const offset = io.diagnosticOffset ?? 0;
       const bodyLine = io.functionCommandLines?.get(command.body);
-      if (bodyLine !== undefined) body.line = bodyLine - offset;
-      functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
+      if (sName === "shell" && offset === 0 && bodyLine === undefined) {
+        let cachedBody = (command as { _cachedShellBody?: Command })._cachedShellBody;
+        if (!cachedBody) {
+          cachedBody = { ...command.body, sourceName: "shell" };
+          functionDiagnostics.set(cachedBody, { offset: 0 });
+          (command as { _cachedShellBody?: Command })._cachedShellBody = cachedBody;
+        }
+        body = cachedBody;
+      } else {
+        body = { ...command.body, sourceName: sName };
+        if (bodyLine !== undefined) body.line = bodyLine - offset;
+        functionDiagnostics.set(body, { offset, ...(bodyLine === undefined ? {} : { lines: io.functionCommandLines! }) });
+      }
       rawState.functions.set(command.name, body);
       const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
       this.budget.tick();
@@ -14433,33 +14445,7 @@ export class Runtime {
     if ((command as { _skipTrySyncLoop?: boolean })._skipTrySyncLoop) return undefined;
     // Only this literal ascending range keeps the counter in the fast formatter's
     // subset. The general arithmetic optimizer also admits negative/large values.
-    const initializer = command.kind === "arithmetic-for" ? command.expressions[0]?.tree : undefined;
-    const condition = command.kind === "arithmetic-for" ? command.expressions[1]?.tree : undefined;
-    const increment = command.kind === "arithmetic-for" ? command.expressions[2]?.tree : undefined;
-    const whileCondCmd = command.kind === "while" && command.condition.lists.length === 1 && command.condition.lists[0]!.pipelines.length === 1 ? command.condition.lists[0]!.pipelines[0]!.commands[0] : undefined;
-    const whileTree = whileCondCmd?.kind === "arithmetic" && !whileCondCmd.expression.error ? whileCondCmd.expression.tree : undefined;
-    const whileName = whileTree?.kind === "binary" && (whileTree.operator === "<" || whileTree.operator === "<=") &&
-      whileTree.left.kind === "name" && whileTree.right.kind === "literal" &&
-      whileTree.right.value >= 0n && whileTree.right.value <= 2000n ? whileTree.left.name : undefined;
-    const whileValue = whileName === undefined ? undefined : rawState.variables[whileName];
-    const whileStart = typeof whileValue === "string" ? Number(whileValue) : NaN;
-    const whilePrintfInd = Number.isInteger(whileStart) && whileStart >= 0 && whileStart <= 2000 &&
-      String(whileStart) === whileValue ? whileName : undefined;
-    const forSeqSub = command.kind === "for" && command.words?.length === 1 && !command.words[0]!.parts[0]?.quoted && command.words[0]!.parts.length === 1 && command.words[0]!.parts[0]!.kind === "substitution" && command.words[0]!.parts[0]!.script.lists.length === 1 && command.words[0]!.parts[0]!.script.lists[0]!.pipelines.length === 1 && command.words[0]!.parts[0]!.script.lists[0]!.pipelines[0]!.commands.length === 1 ? command.words[0]!.parts[0]!.script.lists[0]!.pipelines[0]!.commands[0] : undefined;
-    const isForSeqInd = forSeqSub?.kind === "simple" && forSeqSub.redirects.length === 0 && forSeqSub.words[0]?.plain === "seq" && forSeqSub.words.length >= 2 && forSeqSub.words.length <= 4 && forSeqSub.words.slice(1).every(w => /^[0-9]{1,4}$/.test(w.plain ?? "") && Number(w.plain!) <= 2000);
-    const forPrintfInd = command.kind === "for" && command.words?.length === 1 && (/^\{[0-9]{1,4}\.\.[0-9]{1,4}(?:\.\.[1-9][0-9]{0,2})?\}$/.test(command.words[0]!.plain ?? "") || isForSeqInd) ? command.name : undefined;
-    const printfInductionName =
-      initializer?.kind === "binary" && initializer.operator === "=" && initializer.left.kind === "name" &&
-      initializer.right.kind === "literal" && initializer.right.value >= 0n && initializer.right.value <= 2000n &&
-      condition?.kind === "binary" && (condition.operator === "<" || condition.operator === "<=") &&
-      condition.left.kind === "name" && condition.left.name === initializer.left.name &&
-      condition.right.kind === "literal" && condition.right.value >= 0n && condition.right.value <= 2000n &&
-      increment?.kind === "unary" && increment.operator === "++" && increment.operand.kind === "name" && increment.operand.name === initializer.left.name &&
-      this.canSyncPrintfInductionBody(command.body, rawState, initializer.left.name)
-        ? initializer.left.name
-        : (whilePrintfInd && this.canSyncPrintfInductionBody(command.body, rawState, whilePrintfInd)
-          ? whilePrintfInd
-          : (forPrintfInd && this.canSyncPrintfInductionBody(command.body, rawState, forPrintfInd) ? forPrintfInd : undefined));
+    let printfInductionName: string | undefined;
     type CachedArithPlanHoisted = {
       canFastReuse?: boolean;
       bodyAssignments?: readonly SyncLoopStep[];
@@ -14534,6 +14520,33 @@ export class Runtime {
       arrayLoop = hoistedPlan!.arrayLoop;
       localInvMap = hoistedPlan!.localInvMap!;
     } else {
+      const initializer = command.kind === "arithmetic-for" ? command.expressions[0]?.tree : undefined;
+      const condition = command.kind === "arithmetic-for" ? command.expressions[1]?.tree : undefined;
+      const increment = command.kind === "arithmetic-for" ? command.expressions[2]?.tree : undefined;
+      const whileCondCmd = command.kind === "while" && command.condition.lists.length === 1 && command.condition.lists[0]!.pipelines.length === 1 ? command.condition.lists[0]!.pipelines[0]!.commands[0] : undefined;
+      const whileTree = whileCondCmd?.kind === "arithmetic" && !whileCondCmd.expression.error ? whileCondCmd.expression.tree : undefined;
+      const whileName = whileTree?.kind === "binary" && (whileTree.operator === "<" || whileTree.operator === "<=") &&
+        whileTree.left.kind === "name" && whileTree.right.kind === "literal" &&
+        whileTree.right.value >= 0n && whileTree.right.value <= 2000n ? whileTree.left.name : undefined;
+      const whileValue = whileName === undefined ? undefined : rawState.variables[whileName];
+      const whileStart = typeof whileValue === "string" ? Number(whileValue) : NaN;
+      const whilePrintfInd = Number.isInteger(whileStart) && whileStart >= 0 && whileStart <= 2000 &&
+        String(whileStart) === whileValue ? whileName : undefined;
+      const forSeqSub = command.kind === "for" && command.words?.length === 1 && !command.words[0]!.parts[0]?.quoted && command.words[0]!.parts.length === 1 && command.words[0]!.parts[0]!.kind === "substitution" && command.words[0]!.parts[0]!.script.lists.length === 1 && command.words[0]!.parts[0]!.script.lists[0]!.pipelines.length === 1 && command.words[0]!.parts[0]!.script.lists[0]!.pipelines[0]!.commands.length === 1 ? command.words[0]!.parts[0]!.script.lists[0]!.pipelines[0]!.commands[0] : undefined;
+      const isForSeqInd = forSeqSub?.kind === "simple" && forSeqSub.redirects.length === 0 && forSeqSub.words[0]?.plain === "seq" && forSeqSub.words.length >= 2 && forSeqSub.words.length <= 4 && forSeqSub.words.slice(1).every(w => /^[0-9]{1,4}$/.test(w.plain ?? "") && Number(w.plain!) <= 2000);
+      const forPrintfInd = command.kind === "for" && command.words?.length === 1 && (/^\{[0-9]{1,4}\.\.[0-9]{1,4}(?:\.\.[1-9][0-9]{0,2})?\}$/.test(command.words[0]!.plain ?? "") || isForSeqInd) ? command.name : undefined;
+      printfInductionName =
+        initializer?.kind === "binary" && initializer.operator === "=" && initializer.left.kind === "name" &&
+        initializer.right.kind === "literal" && initializer.right.value >= 0n && initializer.right.value <= 2000n &&
+        condition?.kind === "binary" && (condition.operator === "<" || condition.operator === "<=") &&
+        condition.left.kind === "name" && condition.left.name === initializer.left.name &&
+        condition.right.kind === "literal" && condition.right.value >= 0n && condition.right.value <= 2000n &&
+        increment?.kind === "unary" && increment.operator === "++" && increment.operand.kind === "name" && increment.operand.name === initializer.left.name &&
+        this.canSyncPrintfInductionBody(command.body, rawState, initializer.left.name)
+          ? initializer.left.name
+          : (whilePrintfInd && this.canSyncPrintfInductionBody(command.body, rawState, whilePrintfInd)
+            ? whilePrintfInd
+            : (forPrintfInd && this.canSyncPrintfInductionBody(command.body, rawState, forPrintfInd) ? forPrintfInd : undefined));
       arrayLoop = command.kind === "arithmetic-for" ? this.admitSyncArrayLoop(command, rawState) : undefined;
       this._activeSyncArrayLoopWords = arrayLoop?.words;
       this._activePrintfInductionName = printfInductionName;
@@ -16369,7 +16382,7 @@ export class Runtime {
       readArrayScratchFields.length = 0;
       if (isMapfile) {
         const cachedB = existingArrayBinding as { _lastMapfileStr?: string; _lastMapfileVer?: number; _lastMapfileByteSum?: number; _lastMapfileCount?: number };
-        if (cachedB._lastMapfileStr === lineStr && (cachedB._lastMapfileVer === existingArrayBinding.version || (existingArrayBinding.values.size === 0 && cachedB._lastMapfileCount !== undefined && existingArrayBinding.restoreStashedDense(cachedB._lastMapfileCount) !== undefined))) {
+        if (cachedB._lastMapfileStr === lineStr && (cachedB._lastMapfileVer === existingArrayBinding.version || (existingArrayBinding.values.size === 0 && cachedB._lastMapfileCount !== undefined && existingArrayBinding.restoreStashedFull(cachedB._lastMapfileCount)))) {
           const fieldLen = existingArrayBinding.values.size;
           const tickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 + fieldLen * 4 + (cachedB._lastMapfileByteSum ?? 0) });
           delete rawState.variables[arrayTarget];
@@ -16412,7 +16425,14 @@ export class Runtime {
       }
       const fieldLen = readArrayScratchFields.length;
       const tickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 + fieldLen * 4 });
-      const canStashReuse = existingArrayBinding.references === 1 && existingArrayBinding.owner.ledger.bytes === Infinity && existingArrayBinding.owner.ledger.fields === Infinity;
+      const canStashReuse = !isMapfile && existingArrayBinding.references === 1 && existingArrayBinding.owner.ledger.bytes === Infinity && existingArrayBinding.owner.ledger.fields === Infinity;
+      if (isMapfile && existingArrayBinding.values.size === 0 && existingArrayBinding.references === 1 && existingArrayBinding.owner.ledger.bytes === Infinity) {
+        existingArrayBinding._spareEmptyValues = existingArrayBinding.values;
+        const mfMap = existingArrayBinding._mapfileValues ?? new Map();
+        mfMap.clear();
+        existingArrayBinding._mapfileValues = mfMap;
+        (existingArrayBinding as { values: typeof mfMap }).values = mfMap;
+      }
       if (existingArrayBinding.values.size !== fieldLen || existingArrayBinding.maximum !== fieldLen - 1) {
         if (canStashReuse) {
           const stash = (existingArrayBinding._stashValues ??= new Map());

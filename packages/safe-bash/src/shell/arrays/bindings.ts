@@ -124,6 +124,15 @@ export class IndexedBinding {
   _denseSlots?: Element[] | undefined;
   _denseKeyPrefix?: string | undefined;
 
+  restoreStashedFull(count: number): boolean {
+    if (this.values.size !== 0 || this.associative || !this._mapfileValues || this._mapfileValues.size !== count) return false;
+    this._spareEmptyValues = this.values;
+    (this as { values: Map<number, Element> }).values = this._mapfileValues;
+    this.maximum = count - 1;
+    this.assigned = true;
+    return true;
+  }
+
   restoreStashedDense(limit: number, keyPrefix?: string): Element[] | undefined {
     if (this.values.size !== 1 || !this._stashValues || this._stashValues.size !== limit - 1) return undefined;
     const slot0 = this.values.get(0);
@@ -189,7 +198,11 @@ export class IndexedBinding {
 
   softClearForReuse(): void {
     if (this.values.size === 0 && this.keys.size === 0) return;
-    if (!this._stashValues || this._stashValues.size === 0) {
+    if (this._mapfileValues && this.values === this._mapfileValues) {
+      const emptyVals = this._spareEmptyValues ?? new Map<number, Element>();
+      if (emptyVals.size > 0) emptyVals.clear();
+      (this as { values: Map<number, Element> }).values = emptyVals;
+    } else if (!this._stashValues || this._stashValues.size === 0) {
       const emptyVals = this._stashValues ?? new Map<number, Element>();
       this._stashValues = this.values;
       (this as { values: Map<number, Element> }).values = emptyVals;

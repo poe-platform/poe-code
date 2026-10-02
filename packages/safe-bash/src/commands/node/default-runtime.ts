@@ -37,8 +37,7 @@ export const defaultNodeCommand: CommandDefinition = Object.freeze<CommandDefini
       try {
         mod = await import("poe-code/safe-js/core");
       } catch {
-        const fallback = "@poe-code/safe-js/core";
-        mod = await import(fallback) as typeof import("poe-code/safe-js/core");
+        mod = await import("@poe-code/safe-js/core");
       }
       const { Budget, run, makeFsModule, declareHostOperation, parseSourceModule } = mod;
       cachedCommand = createSafeJsNodeCommand({ runtime: {

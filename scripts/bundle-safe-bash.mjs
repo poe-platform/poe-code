@@ -128,6 +128,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     // Pandoc prepares its portable third-party adapters in the workspace build.
     "safe-bash-command-pandoc": path.join(rootDir, "packages/safe-bash-command-pandoc/dist"),
     "@poe-code/safe-fs": "poe-code/safe-fs",
+    "@poe-code/safe-js/core": "poe-code/safe-js/core",
     "@poe-code/safe-fs/runtime-core": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/fs/memory": "poe-code/safe-fs/core",
     "@poe-code/safe-fs/contracts/errors": "poe-code/safe-fs/core",

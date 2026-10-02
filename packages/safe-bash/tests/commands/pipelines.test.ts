@@ -6,6 +6,7 @@ import { Shell, ShellLimitError } from "../../src/shell/index.js";
 import { fixture } from "./helpers.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
 import { ShellInput } from "../../src/shell/input.js";
+import { signalSink } from "../../src/shell/runtime.js";
 
 test("pipeline closes its writer when input cleanup settles asynchronously", async t => {
   const close = ShellInput.prototype.close;
@@ -125,4 +126,21 @@ test("sed pipeline output remains owned across buffer flushes before the consume
   const result = await shell.exec("sed 's/a/A/g' input | delayed");
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, input.replaceAll("a", "A"));
+});
+
+test("signal wrappers preserve pipe classification, writes and cancellation", async () => {
+  const chunks: Uint8Array[] = [];
+  const sink = { isPipeStage: true, async write(chunk: Uint8Array) { chunks.push(chunk); } };
+  const controller = new AbortController();
+  const wrapped = signalSink(signalSink(sink, new AbortController().signal), controller.signal);
+  assert.equal((wrapped as { isPipeStage?: boolean }).isPipeStage, true);
+  const bytes = new Uint8Array([0, 128, 255]);
+  await wrapped.write(bytes);
+  assert.deepEqual(chunks, [bytes]);
+  const reason = new Error("cancelled pipe writer");
+  controller.abort(reason);
+  await assert.rejects(wrapped.write(bytes), error => error === reason);
+  assert.equal(chunks.length, 1);
+  const ordinary = signalSink({ async write() {} }, new AbortController().signal);
+  assert.equal((ordinary as { isPipeStage?: boolean }).isPipeStage, undefined);
 });

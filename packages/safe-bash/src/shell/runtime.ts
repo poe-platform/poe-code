@@ -1474,6 +1474,7 @@ export function signalSink(sink: ByteSink, signal: AbortSignal): ByteSink {
       }
     : undefined;
   const output: ByteSink = {
+    ...((sink as ByteSink & { isPipeStage?: boolean }).isPipeStage === true ? { isPipeStage: true } : {}),
     ...(sink[outputFailure] ? { [outputFailure]: sink[outputFailure] } : {}), ...(sink.ownedOutput ? { ownedOutput: {
       get consumerClosed() { return sink.ownedOutput!.consumerClosed; }, write(chunk: Uint8Array): Promise<void> {
         try {

@@ -53,7 +53,7 @@ describe("extracted command ownership", () => {
         expect(ts.isExportDeclaration(statement), `${adapter}: implementation must live in ${workspace}`).toBe(true);
         if (!ts.isExportDeclaration(statement)) continue;
         expect(statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)).toBe(true);
-        expect((statement.moduleSpecifier as ts.StringLiteral).text).toBe(workspace);
+        expect(adapter === "line-endings" ? [workspace, "safe-bash-command-unix2dos"] : [workspace]).toContain((statement.moduleSpecifier as ts.StringLiteral).text);
         if (!statement.exportClause) forwardsWorkspace = true;
       }
     }

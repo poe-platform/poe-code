@@ -63,6 +63,44 @@ for (const buffer of [false, true]) for (const args of [[], ["-f", "1"], ["-s", 
   });
 }
 
+for (const args of [[], ["-r"]]) {
+  for (const synchronous of [false, true]) for (const failing of [false, true]) {
+    test(`sort ${args.join(" ")} closes input (synchronous=${synchronous}, failing=${failing})`, async () => {
+      const probe = sortProbe(args, "", new AbortController().signal, await fixture());
+      let closed = 0;
+      let reads = 0;
+      const next = () => {
+        if (reads++ === 0) return { done: false as const, value: new TextEncoder().encode("b\na\n") };
+        if (failing) throw new Error("input failed");
+        return { done: true as const, value: undefined };
+      };
+      const stdin = {
+        abortSignal: probe.context.signal,
+        [Symbol.asyncIterator]() {
+          return {
+            ...(synchronous ? { tryNextSync: next } : {}),
+            async next() { return next(); },
+            async return() { closed++; return { done: true as const, value: undefined }; },
+          };
+        },
+      };
+      const result = await textCommands().find(command => command.name === "sort")!.execute({ ...probe.context, stdin });
+      assert.equal(result.exitCode, failing ? 2 : 0);
+      assert.equal(closed, 1);
+      assert.equal(Buffer.concat(probe.stdout).toString(), failing ? "" : args.length ? "b\na\n" : "a\nb\n");
+    });
+  }
+  test(`sort ${args.join(" ")} cooperates with queued cancellation without an installed checkpoint`, async () => {
+    const controller = new AbortController();
+    const rows = Array.from({ length: 3000 }, (_, index) => `${3000 - index} tenant`).join("\n") + "\n";
+    const probe = sortProbe(args, rows, controller.signal, await fixture());
+    const reason = new Error("cancel sort work");
+    scheduleTurn(() => controller.abort(reason));
+    await assert.rejects(Promise.resolve(textCommands().find(command => command.name === "sort")!.execute(probe.context)), error => error === reason);
+    assert.equal(probe.stdout.length, 0);
+  });
+}
+
 test("sort batches both comparisons and record moves without publishing during checkpoints", async () => {
   const controller = new AbortController();
   const probe = sortProbe([], "\n".repeat(1024), controller.signal, await fixture());

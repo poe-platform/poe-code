@@ -2,7 +2,7 @@ import "../shell/sync-extra-evaluators.js";
 import { compareByteArrays, decodeBytes, encodeBytes, indexOfBytes } from "../byte-encoding.js";
 import { PublicDiagnostic } from "../diagnostics.js";
 import { createBufferedOutput, FsError, type ByteSource, type CommandContext, type CommandDefinition } from "../contracts/index.js";
-import { RETURN_EXIT_ONE, RETURN_EXIT_TWO, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
+import { RETURN_EXIT_ONE, RETURN_EXIT_ZERO, assertInputRequirements, bufferLimit, codeOf, concatenate, define, diagnostic, encoder, input, integer, options, output, outputRange, pathOf, requireOperands, RESOLVED_EXIT_ZERO, UsageError, value } from "./internal.js";
 import { assertCommandRequirements } from "../contracts/command-requirements.js";
 import { inputRequirements, textOutputRequirements } from "./portable-requirements.js";
 import { hasYieldCheckpoint, runYieldCheckpoint, yieldTurn } from "../contracts/yield.js";
@@ -689,12 +689,6 @@ function keyBytesSync(line: Uint8Array, key: SortKey, separator: number | undefi
   return checkpoint ? resolveValueAfterCheckpoint(checkpoint, result) : result;
 }
 
-const sharedSortStarts = new Int32Array(4096);
-const sharedSortEnds = new Int32Array(4096);
-const sharedSortIndices = new Int32Array(4096);
-const sharedSortScratchIndices = new Int32Array(4096);
-const sharedSortInScratch = new Uint8Array(65536);
-let sharedSortInUse = false;
 const SORT_LONG_OPTIONS = Object.freeze({
   "human-numeric-sort": "h",
   "numeric-sort": "n",
@@ -963,15 +957,11 @@ async function emitRecords(context: CommandContext, records: ByteSource, destina
 async function readOwnedSortInput(
   source: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined },
   signal: AbortSignal,
-  firstChunk?: Uint8Array,
-  secondResult?: IteratorResult<Uint8Array>,
 ): Promise<Uint8Array | undefined> {
   const buffered = new RecordBuffer(bufferLimit);
+  let failed = false;
   try {
-    signal.throwIfAborted();
-    if (firstChunk) buffered.append(firstChunk);
-    if (secondResult && !secondResult.done) buffered.append(secondResult.value);
-    while (!secondResult?.done) {
+    while (true) {
       signal.throwIfAborted();
       const result = source.tryNextSync?.() ?? await source.next();
       if (result.done) break;
@@ -979,10 +969,13 @@ async function readOwnedSortInput(
     }
     return buffered.size === 0 ? undefined : buffered.finish();
   } catch (error) {
-    try { await source.return?.(); } catch { /* Preserve the input failure. */ }
+    failed = true;
     throw error;
   } finally {
     buffered.clear();
+    await Promise.resolve().then(() => source.return?.()).catch(error => {
+      if (!failed) throw error;
+    });
   }
 }
 
@@ -2111,143 +2104,6 @@ export function textCommands(): CommandDefinition[] {
       runYieldCheckpoint(context.signal);
       const collator = sortCollator(context.env);
       if (collator) return executeSortGeneral(context, undefined, collator);
-      if (
-        (context.args.length === 0 || (context.args.length === 1 && context.args[0] === "-r")) &&
-        !hasYieldCheckpoint(context.signal) &&
-        SortRecordBudget.prototype.admit === defaultSortAdmit &&
-        Uint8Array === defaultUint8Array
-      ) {
-        const direction = context.args.length === 1 ? -1 : 1;
-        const req = assertInputRequirements(context, EMPTY_OPERANDS);
-        if (req) return executeSortFastAsync(context, direction, req);
-        const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
-          tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
-        };
-        if (typeof srcIter.tryNextSync === "function") {
-          let res1: IteratorResult<Uint8Array> | undefined;
-          try {
-            res1 = srcIter.tryNextSync();
-          } catch (error) {
-            return diagnostic(context, error).then(RETURN_EXIT_TWO);
-          }
-          if (res1 !== undefined) {
-            if (res1.done) return RESOLVED_EXIT_ZERO;
-            let rawFirst: Uint8Array;
-            let firstChunkLen: number;
-            try {
-              rawFirst = res1.value;
-              firstChunkLen = rawFirst.length;
-            } catch (error) {
-              return diagnostic(context, error).then(RETURN_EXIT_TWO);
-            }
-            let firstChunk: Uint8Array;
-            let usedSortInScratch = false;
-            try {
-              if (firstChunkLen <= 65536 && !sharedSortInUse) {
-                sharedSortInUse = true;
-                usedSortInScratch = true;
-                sharedSortInScratch.set(rawFirst, 0);
-                firstChunk = sharedSortInScratch;
-              } else {
-                firstChunk = new Uint8Array(rawFirst);
-              }
-              let res2: IteratorResult<Uint8Array> | undefined;
-              try {
-                res2 = srcIter.tryNextSync();
-              } catch (error) {
-                return diagnostic(context, error).then(RETURN_EXIT_TWO);
-              }
-              if (
-                res2 !== undefined &&
-                res2.done &&
-                firstChunkLen > 0 &&
-                firstChunkLen <= 65536 &&
-                firstChunk[firstChunkLen - 1] === 10
-              ) {
-                let start = 0;
-                let count = 0;
-                let validLines = true;
-                while (start < firstChunkLen) {
-                  const offset = firstChunk.indexOf(10, start);
-                  const lLen = offset - start;
-                  if (offset < 0 || offset >= firstChunkLen || count >= 4096 || lLen > bufferLimit) {
-                    validLines = false;
-                    break;
-                  }
-                  sharedSortStarts[count] = start;
-                  sharedSortEnds[count] = offset;
-                  sharedSortIndices[count] = count;
-                  count++;
-                  start = offset + 1;
-                }
-                if (validLines) {
-                  context.signal.throwIfAborted();
-                  let src = sharedSortIndices;
-                  let dst = sharedSortScratchIndices;
-                  for (let width = 1; width < count; width *= 2) {
-                    context.signal.throwIfAborted();
-                    for (let begin = 0; begin < count; begin += width * 2) {
-                      const middle = Math.min(begin + width, count);
-                      const end = Math.min(begin + width * 2, count);
-                      let left = begin;
-                      let right = middle;
-                      for (let index = begin; index < end; index++) {
-                        if (left < middle) {
-                          if (right === end) {
-                            dst[index] = src[left++]!;
-                            continue;
-                          }
-                          const a = src[left]!;
-                          const b = src[right]!;
-                          if (
-                            compareChunkSliceBytes(
-                              firstChunk,
-                              sharedSortStarts[a]!,
-                              sharedSortEnds[a]!,
-                              sharedSortStarts[b]!,
-                              sharedSortEnds[b]!,
-                            ) * direction <= 0
-                          ) {
-                            dst[index] = src[left++]!;
-                            continue;
-                          }
-                        }
-                        dst[index] = src[right++]!;
-                      }
-                    }
-                    const tmp = src;
-                    src = dst;
-                    dst = tmp;
-                  }
-                  const outBuf = new Uint8Array(65536);
-                  let used = 0;
-                  for (let i = 0; i < count; i++) {
-                    const idx = src[i]!;
-                    const s = sharedSortStarts[idx]!;
-                    const e = sharedSortEnds[idx]!;
-                    for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
-                    outBuf[used++] = 10;
-                  }
-                  const p = outputRange(context, outBuf, used);
-                  if (isSyncResolved(p)) return RESOLVED_EXIT_ZERO;
-                  return p.then(RETURN_EXIT_ZERO);
-                }
-              }
-              // The fallback can suspend; retain only this invocation's admitted bytes.
-              if (usedSortInScratch) firstChunk = firstChunk.slice(0, firstChunkLen);
-              return executeSortFastContinueAsync(context, direction, srcIter, firstChunk, res2);
-            } catch (error) {
-              return diagnostic(context, error).then(RETURN_EXIT_TWO);
-            } finally {
-              if (usedSortInScratch) {
-                sharedSortInScratch.fill(0);
-                sharedSortInUse = false;
-              }
-            }
-          }
-        }
-        return executeSortFastContinueAsync(context, direction, srcIter, undefined, undefined);
-      }
       return executeSortGeneral(context);
     }),
     define("uniq", context => {
@@ -2562,114 +2418,6 @@ export function textCommands(): CommandDefinition[] {
       return executeCutGeneral(context);
     }),
   ].map(command => ({ ...command, filesystemRequirements: command.name === "cut" ? inputRequirements : textOutputRequirements }));
-}
-
-async function executeSortFastAsync(
-  context: CommandContext,
-  direction: number,
-  req: Promise<void>,
-): Promise<{ exitCode: number }> {
-  await req;
-  await admitTextOutput(context, undefined);
-  const srcIter = input(context, "-")[Symbol.asyncIterator]() as AsyncIterator<Uint8Array> & {
-    tryNextSync?: () => IteratorResult<Uint8Array> | undefined;
-  };
-  return executeSortFastContinueAsync(context, direction, srcIter, undefined, undefined);
-}
-
-async function executeSortFastContinueAsync(
-  context: CommandContext,
-  direction: number,
-  srcIter: AsyncIterator<Uint8Array> & { tryNextSync?: () => IteratorResult<Uint8Array> | undefined },
-  initialFirstChunk: Uint8Array | undefined,
-  initialSecondRes: IteratorResult<Uint8Array> | undefined,
-): Promise<{ exitCode: number }> {
-        let firstChunk: Uint8Array | undefined;
-        try {
-          firstChunk = await readOwnedSortInput(srcIter, context.signal, initialFirstChunk, initialSecondRes);
-        } catch (error) {
-          await diagnostic(context, error);
-          return { exitCode: 2 };
-        }
-        if (!firstChunk) return { exitCode: 0 };
-        if (
-          firstChunk.length <= 65536 &&
-          firstChunk[firstChunk.length - 1] === 10
-        ) {
-          let start = 0;
-          let count = 0;
-          let validLines = true;
-          while (start < firstChunk.length) {
-            const offset = firstChunk.indexOf(10, start);
-            if (offset < 0 || count >= 4096 || offset - start > bufferLimit) {
-              validLines = false;
-              break;
-            }
-            sharedSortStarts[count] = start;
-            sharedSortEnds[count] = offset;
-            sharedSortIndices[count] = count;
-            count++;
-            start = offset + 1;
-          }
-          if (validLines) {
-            context.signal.throwIfAborted();
-            let src = sharedSortIndices;
-            let dst = sharedSortScratchIndices;
-            for (let width = 1; width < count; width *= 2) {
-              context.signal.throwIfAborted();
-              for (let begin = 0; begin < count; begin += width * 2) {
-                const middle = Math.min(begin + width, count);
-                const end = Math.min(begin + width * 2, count);
-                let left = begin;
-                let right = middle;
-                for (let index = begin; index < end; index++) {
-                  if (left < middle) {
-                    if (right === end) {
-                      dst[index] = src[left++]!;
-                      continue;
-                    }
-                    const a = src[left]!;
-                    const b = src[right]!;
-                    if (
-                      compareChunkSliceBytes(
-                        firstChunk,
-                        sharedSortStarts[a]!,
-                        sharedSortEnds[a]!,
-                        sharedSortStarts[b]!,
-                        sharedSortEnds[b]!,
-                      ) * direction <= 0
-                    ) {
-                      dst[index] = src[left++]!;
-                      continue;
-                    }
-                  }
-                  dst[index] = src[right++]!;
-                }
-              }
-              const tmp = src;
-              src = dst;
-              dst = tmp;
-            }
-            const outBuf = new Uint8Array(firstChunk.length);
-            let used = 0;
-            for (let i = 0; i < count; i++) {
-              const idx = src[i]!;
-              const s = sharedSortStarts[idx]!;
-              const e = sharedSortEnds[idx]!;
-              for (let p = s; p < e; p++) outBuf[used++] = firstChunk[p]!;
-              outBuf[used++] = 10;
-            }
-            const syncSink = !(context.stdout as { isPipeStage?: boolean }).isPipeStage
-              ? (context.stdout as { writeSync?: (chunk: Uint8Array) => boolean })
-              : undefined;
-            if (typeof syncSink?.writeSync === "function" && syncSink.writeSync(outBuf) !== false) {
-              return { exitCode: 0 };
-            }
-            await output(context, outBuf);
-            return { exitCode: 0 };
-          }
-        }
-        return executeSortGeneral(context, [firstChunk]);
 }
 
 async function executeCutFastAsync(

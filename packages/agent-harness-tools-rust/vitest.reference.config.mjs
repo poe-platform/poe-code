@@ -114,7 +114,7 @@ export default defineConfig({
       "run-queue.test.ts",
       "select-agent.test.ts",
       "worktree-path.test.ts"
-    ].map((name) => path(new URL(name, root))),
+    ].map((name) => path(new URL(name, root))).concat(path(new URL("tests/portable-plans.test.ts", import.meta.url))),
     environment: "node",
     fileParallelism: false,
     maxWorkers: 1,

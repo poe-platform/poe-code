@@ -8,7 +8,7 @@ export interface GitHttpResponse { readonly status: number; readonly headers: Re
 export interface GitCommandsOptions { readonly http?: (request:GitHttpRequest)=>Promise<GitHttpResponse>; readonly limits?: Partial<GitLimits>; readonly replace?: boolean; readonly wasmModule?: object }
 interface Entry { path: string; kind: string; mode: number; data: string }
 interface Result { needsStdin?: boolean; exitCode: number; stdout: string; stdoutBytes?: string | null; stderr: string; entries: Entry[] | null; request?: {url:string;method:string;headers:Record<string,string>;body:string} | null }
-interface GitExports { memory: { readonly buffer: ArrayBufferLike }; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number }
+interface GitExports { memory: { readonly buffer: ArrayBufferLike }; git_alloc(length:number):number; git_free(ptr:number,length:number):void; git_execute(ptr:number,length:number):number; git_output_len():number; git_clear_output?():void }
 const encoder=new TextEncoder(), decoder=new TextDecoder();
 const HEX_PAIRS = Array.from({ length: 256 }, (_, i) => (i < 16 ? "0" : "") + i.toString(16));
 function hexNibble(code: number): number {
@@ -46,7 +46,7 @@ interface GitCommandMeta { readonly limits: GitLimits; readonly hasHttp: boolean
 const gitCommandMeta = new WeakMap<CommandDefinition["execute"], GitCommandMeta>();
 let cachedDefaultGitExports: GitExports | undefined;
 let defaultGitExportsBusy = false;
-const MAX_REUSABLE_GIT_WASM_MEMORY_BYTES = 8 * 1024 * 1024;
+const MAX_REUSABLE_GIT_WASM_MEMORY_BYTES = 24 * 1024 * 1024;
 
 function createDefaultGitExports(): GitExports {
   const module = gitModule();
@@ -156,6 +156,29 @@ function resolveGitInitTarget(
   return normalizeScopedPath(cwd, dirArg ?? ".");
 }
 
+const GIT_DIR_ONLY_SUBCOMMANDS = new Set([
+  "init", "branch", "tag", "log", "shortlog", "show-ref", "for-each-ref",
+  "symbolic-ref", "update-ref", "rev-list", "remote", "notes", "var"
+]);
+
+function canScopeGitToGitDirOnly(args: readonly string[], env?: Readonly<Record<string, string | undefined>>): boolean {
+  if (env && (env.GIT_DIR || env.GIT_WORK_TREE || env.GIT_COMMON_DIR || env.GIT_OBJECT_DIRECTORY || env.GIT_INDEX_FILE || env.GIT_CONFIG_GLOBAL || env.GIT_CONFIG_SYSTEM)) {
+    return false;
+  }
+  let i = 0;
+  while (i < args.length) {
+    const a = args[i]!;
+    if (a === "-c") { i += 2; continue; }
+    if (a === "--no-pager" || a === "-p" || a === "--paginate") { i++; continue; }
+    if (a.startsWith("-")) return false;
+    if (a === "config") {
+      return !args.slice(i + 1).some(x => x === "-f" || x === "--file" || x.startsWith("--file=") || x === "--blob");
+    }
+    return GIT_DIR_ONLY_SUBCOMMANDS.has(a);
+  }
+  return false;
+}
+
 function canScopeGitToRepoRoot(args: readonly string[], env?: Readonly<Record<string, string | undefined>>): boolean {
   if (env && (env.GIT_DIR || env.GIT_WORK_TREE || env.GIT_COMMON_DIR || env.GIT_OBJECT_DIRECTORY || env.GIT_INDEX_FILE || env.GIT_CONFIG_GLOBAL || env.GIT_CONFIG_SYSTEM)) {
     return false;
@@ -259,6 +282,7 @@ async function snapshot(
   let total = 0;
   const unbounded = limits.maxEntries === Infinity && limits.maxBytes === Infinity && limits.maxDepth === Infinity;
   const scopedRoot = unbounded ? await resolveAsyncScopedRepoRoot(fs, cwd, args, env, signal) : undefined;
+  const gitDirOnly = scopedRoot !== undefined && canScopeGitToGitDirOnly(args, env);
   const seenPaths = new Set<string>();
   if (scopedRoot) {
     for (const dir of ancestorDirs(scopedRoot)) {
@@ -295,6 +319,7 @@ async function snapshot(
       signal.throwIfAborted();
       if(entries.length>=limits.maxEntries) throw new Error('Git filesystem entry limit exceeded');
       const full=path==='/' ? `/${child.name}` : `${path}/${child.name}`;
+      if (gitDirOnly && path === scopedRoot && child.name !== ".git") continue;
       if (
         unbounded &&
         scopedRoot !== undefined &&
@@ -410,7 +435,7 @@ export function createGitCommand(options:GitCommandsOptions={}):CommandDefinitio
           throw err;
         } finally {
           try {
-            if (!wasmFailed) exports.git_free(ptr,input.length);
+            if (!wasmFailed) { exports.git_free(ptr,input.length); exports.git_clear_output?.(); }
           } finally {
             handle.release(wasmFailed);
           }
@@ -688,7 +713,7 @@ export function evalSyncGit(
       throw err;
     } finally {
       try {
-        if (!wasmFailed) exports.git_free(ptr, input.length);
+        if (!wasmFailed) { exports.git_free(ptr, input.length); exports.git_clear_output?.(); }
       } finally {
         handle.release(wasmFailed);
       }

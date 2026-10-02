@@ -25,18 +25,43 @@ fn field<'a>(value: &'a Value, name: &str) -> Result<&'a Value, GitError> {
         .get(name)
         .ok_or_else(|| GitError::internal("missing portable field"))
 }
+fn hex_nibble(c: u16) -> Result<u8, GitError> {
+    if (b'0' as u16..=b'9' as u16).contains(&c) {
+        Ok((c - b'0' as u16) as u8)
+    } else if (b'a' as u16..=b'f' as u16).contains(&c) {
+        Ok((c - b'a' as u16 + 10) as u8)
+    } else if (b'A' as u16..=b'F' as u16).contains(&c) {
+        Ok((c - b'A' as u16 + 10) as u8)
+    } else {
+        Err(GitError::internal("invalid hex bytes"))
+    }
+}
 fn bytes(value: &Value) -> Result<Vec<u8>, GitError> {
-    let hex = string(value)?;
-    if !hex.len().is_multiple_of(2) || !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+    let Value::String(hex) = value else {
+        return Err(GitError::internal("expected string"));
+    };
+    if !hex.len().is_multiple_of(2) {
         return Err(GitError::internal("invalid hex bytes"));
     }
-    (0..hex.len())
-        .step_by(2)
-        .map(|i| {
-            u8::from_str_radix(&hex[i..i + 2], 16)
-                .map_err(|_| GitError::internal("invalid hex bytes"))
-        })
-        .collect()
+    let mut out = Vec::with_capacity(hex.len() / 2);
+    for pair in hex.chunks_exact(2) {
+        out.push((hex_nibble(pair[0])? << 4) | hex_nibble(pair[1])?);
+    }
+    Ok(out)
+}
+fn text_hex(bytes: &[u8]) -> Value {
+    const HEX: [u16; 16] = [
+        b'0' as u16, b'1' as u16, b'2' as u16, b'3' as u16,
+        b'4' as u16, b'5' as u16, b'6' as u16, b'7' as u16,
+        b'8' as u16, b'9' as u16, b'a' as u16, b'b' as u16,
+        b'c' as u16, b'd' as u16, b'e' as u16, b'f' as u16,
+    ];
+    let mut out = Vec::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        out.push(HEX[(b >> 4) as usize]);
+        out.push(HEX[(b & 0x0f) as usize]);
+    }
+    Value::String(out)
 }
 fn hex(bytes: &[u8]) -> String {
     use std::fmt::Write;
@@ -158,6 +183,7 @@ pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
     };
     let _input = crate::cli::InputScope::new(request.get("stdin").is_none());
     let stdin = request.get("stdin").map(bytes).transpose()?.unwrap_or_default();
+    drop(request);
     let result = execute_git_cli_with_input(&fs, &cwd, &args, &http, &stdin);
     let pending_request = http.pending.lock().unwrap().take().unwrap_or(Value::Null);
     let mut output = Vec::new();
@@ -181,20 +207,21 @@ pub fn execute_portable(input: &[u8]) -> Result<Vec<u8>, GitError> {
                         .map_err(|e| GitError::internal(&e.message))?,
                 )
             } else {
-                (
-                    "file",
-                    fs.read_file(&path)
-                        .map_err(|e| GitError::internal(&e.message))?,
-                )
+                let data = fs
+                    .read_file(&path)
+                    .map_err(|e| GitError::internal(&e.message))?;
+                let _ = fs.rm(&path);
+                ("file", data)
             };
             output.push(object(vec![
                 ("path", text(path)),
                 ("kind", text(kind)),
                 ("mode", Value::Number(stat.mode as f64)),
-                ("data", text(hex(&data))),
+                ("data", text_hex(&data)),
             ]));
         }
     }
+    drop(fs);
     Ok(json::stringify(&object(vec![
         ("exitCode", Value::Number(result.exit_code as f64)),
         ("needsStdin", Value::Bool(result.needs_stdin)),
@@ -255,5 +282,9 @@ mod abi {
     #[unsafe(no_mangle)]
     pub extern "C" fn git_output_len() -> usize {
         OUTPUT.lock().unwrap().len()
+    }
+    #[unsafe(no_mangle)]
+    pub extern "C" fn git_clear_output() {
+        *OUTPUT.lock().unwrap() = Vec::new();
     }
 }

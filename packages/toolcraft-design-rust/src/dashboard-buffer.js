@@ -1,4 +1,5 @@
 import {createRequire} from "node:module";
+import {types} from "node:util";
 import {createComponentPolicy} from "./component-host.js";
 import {color} from "./color.js";
 import {expandTabs, graphemes, graphemeWidth} from "./terminal.js";
@@ -54,5 +55,57 @@ export class ScreenBuffer {
   isInBoundsX(x) {return policy("isInBoundsX",[this,x]);}
   isInBoundsY(y) {return policy("isInBoundsY",[this,y]);}
 }
-export function diff(prev,next) {return policy("diff",[prev,next]);}
+const bufferReads = Object.fromEntries(["width", "height", "get", "index", "isInBounds", "isInBoundsX", "isInBoundsY"]
+  .map(key => [key, Object.getOwnPropertyDescriptor(ScreenBuffer.prototype, key)]));
+const styleKeys = ["fg", "bg", "bold", "dim", "inverse", "underline"];
+
+function snapshotCells(buffer) {
+  if (!buffer || types.isProxy(buffer) || Object.getPrototypeOf(buffer) !== ScreenBuffer.prototype) return;
+  for (const [key, expected] of Object.entries(bufferReads)) {
+    const current = Object.getOwnPropertyDescriptor(ScreenBuffer.prototype, key);
+    if (Object.hasOwn(buffer, key) || current?.value !== expected.value || current?.get !== expected.get) return;
+  }
+  const width = Object.getOwnPropertyDescriptor(buffer, "_width")?.value;
+  const height = Object.getOwnPropertyDescriptor(buffer, "_height")?.value;
+  const cells = Object.getOwnPropertyDescriptor(buffer, "_cells")?.value;
+  if (!Number.isSafeInteger(width) || width < 0 || width > 0xffffffff ||
+      !Number.isSafeInteger(height) || height < 0 || height > 0xffffffff ||
+      !Array.isArray(cells) || types.isProxy(cells) || cells.length !== width * height) return;
+  const snapshot = [];
+  for (let index = 0; index < cells.length; index++) {
+    const cell = Object.getOwnPropertyDescriptor(cells, index)?.value;
+    if (!cell || types.isProxy(cell)) return;
+    const ch = Object.getOwnPropertyDescriptor(cell, "ch")?.value;
+    const style = Object.getOwnPropertyDescriptor(cell, "style")?.value;
+    if (typeof ch !== "string" || !style || types.isProxy(style) || Object.getPrototypeOf(style) !== Object.prototype) return;
+    const values = [ch];
+    for (const key of styleKeys) {
+      const field = Object.getOwnPropertyDescriptor(style, key);
+      if (field && !Object.hasOwn(field, "value")) return;
+      const value = field?.value;
+      if (value !== undefined && typeof value !== (key === "fg" || key === "bg" ? "string" : "boolean")) return;
+      values.push(value);
+    }
+    snapshot.push(JSON.stringify(values));
+  }
+  return {width, height, cells: snapshot};
+}
+
+export function diff(prev,next) {
+  // Only inert own data can bypass the observable per-cell getter protocol.
+  if (!styleKeys.some(key => Object.hasOwn(Object.prototype, key)) &&
+      Object.getPrototypeOf(Array.prototype) === Object.prototype && !("toJSON" in [])) {
+    const previous = snapshotCells(prev);
+    const current = previous && snapshotCells(next);
+    if (current && Math.max(previous.width, current.width) * Math.max(previous.height, current.height) <= 0xffffffff) {
+      const width = Math.max(previous.width, current.width);
+      return native.designDashboardBufferDiff(previous, current, '[" ",null,null,null,null,null,null]')
+        .map(index => {
+          const x = index % width, y = Math.floor(index / width);
+          return {x, y, cell: next.get(x, y)};
+        });
+    }
+  }
+  return policy("diff",[prev,next]);
+}
 export function cellToAnsi(cell) {return policy("cellToAnsi",[cell]);}

@@ -38,6 +38,46 @@ test("legacy buffer preserves normalization, fractional addressing and runtime m
   }
 });
 
+test("ordinary buffer diffs retain exact styles, Unicode, dimensions and owned cell copies", async () => {
+  const native = await import("toolcraft-design-rust/dashboard/buffer");
+  for (const size of [[0, 3], [3, 0], [2, 2], [7, 1]]) {
+    function observe(api) {
+      const previous = new api.ScreenBuffer(...size), next = new api.ScreenBuffer(3, 2);
+      previous.put(0, 0, "界A", {bold: false, fg: "red"});
+      next.put(0, 0, "界A", {bold: true, fg: "red"});
+      next._cells[3] = {ch: "\ud800", style: {dim: false, fg: undefined}};
+      const changes = api.diff(previous, next);
+      assert.deepEqual(api.diff(next, next), []);
+      const retained = structuredClone(changes);
+      for (const change of changes) { change.cell.ch = "changed"; change.cell.style.bold = false; }
+      assert.deepEqual(api.diff(previous, next), retained);
+      return retained;
+    }
+    assert.deepEqual(observe(native), observe(original));
+  }
+});
+
+test("ordinary buffer diff falls back for overridden methods and accessor cells", async () => {
+  const native = await import("toolcraft-design-rust/dashboard/buffer");
+  for (const mode of ["get", "cell", "style", "proxy"]) {
+    function observe(api) {
+      const trace = [], previous = new api.ScreenBuffer(2, 1), next = new api.ScreenBuffer(2, 1);
+      if (mode === "get") {
+        const get = next.get;
+        next.get = function(x, y) { trace.push([x, y]); return get.call(this, x, y); };
+      } else if (mode === "cell") {
+        Object.defineProperty(next._cells, 0, {get() { trace.push("cell"); return {ch: "X", style: {}}; }});
+      } else if (mode === "style") {
+        next._cells[0].style = {get bold() { trace.push("style"); return false; }};
+      } else {
+        next._cells = new Proxy(next._cells, {get(target, key) { trace.push(key); return Reflect.get(target, key); }});
+      }
+      return {changes: api.diff(previous, next), trace};
+    }
+    assert.deepEqual(observe(native), observe(original));
+  }
+});
+
 test("legacy buffer preserves style/rectangle getter order, public diff calls and thrown identity", async () => {
   const native = await import("toolcraft-design-rust/dashboard/buffer");
   function observe(api) {

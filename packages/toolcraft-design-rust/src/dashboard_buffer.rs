@@ -2,6 +2,32 @@
 //! the host retains observable objects, coercions, iteration and ICU segmentation.
 use crate::feedback::Host;
 
+pub fn diff_indices<T: AsRef<[u16]>>(
+    width: usize,
+    height: usize,
+    previous_width: usize,
+    previous: &[T],
+    next_width: usize,
+    next: &[T],
+    blank: &[u16],
+) -> Vec<u32> {
+    let mut changes = Vec::new();
+    for y in 0..height {
+        for x in 0..width {
+            let before = if x < previous_width {
+                previous.get(y * previous_width + x).map(AsRef::as_ref).unwrap_or(blank)
+            } else { blank };
+            let after = if x < next_width {
+                next.get(y * next_width + x).map(AsRef::as_ref).unwrap_or(blank)
+            } else { blank };
+            if before != after {
+                changes.push((y * width + x) as u32);
+            }
+        }
+    }
+    changes
+}
+
 pub fn has_controls(text: &[u16]) -> bool {
     text.iter()
         .any(|&code| (code < 0x20 && code != 9) || (0x7f..=0x9f).contains(&code))

@@ -104,7 +104,8 @@ for (const [entry, options] of [[defaultEntry, {}], [nodeEntry, { regexExecutor:
     assert.equal(result.stderr, "");
   }
 }
-assert.equal(defaultEntry.Shell, nodeEntry.Shell);
+// Node adds the worker kill-after policy through the canonical portable shell.
+assert.equal(Object.getPrototypeOf(nodeEntry.Shell.prototype), defaultEntry.Shell.prototype);
 assert.equal(defaultEntry.ShellLimitError, nodeEntry.ShellLimitError);
 assert.equal(defaultEntry.FsError, nodeEntry.FsError);
 assert.equal(defaultEntry.MemoryFileSystem, nodeEntry.MemoryFileSystem);

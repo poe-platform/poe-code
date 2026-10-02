@@ -10,6 +10,8 @@ export default defineConfig({
       resolveId(name, importer) {
         if (!importer) return;
         if (importer.startsWith(path("../toolcraft-design/src/prompts/interactive/"))) {
+          if (name === "./glyphs.js") return path("dist/prompt-glyphs.js");
+          if (name === "./confirm.js") return path("dist/prompt-confirm.js");
           if (name === "./core.js") return path("dist/prompt-core.js");
           if (name === "./keys.js") return path("dist/prompt-keys.js");
           if (name === "./wrap.js") return path("dist/prompt-wrap.js");

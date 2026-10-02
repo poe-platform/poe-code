@@ -539,6 +539,23 @@ const promptThemeOriginal: typeof originalDesign.promptTheme = design.promptThem
 const promptThemeNative: typeof design.promptTheme = null as unknown as typeof originalDesign.promptTheme;
 void [promptThemeOriginal, promptThemeNative, directPromptTheme];
 
+import * as promptGlyphs from "toolcraft-design-rust/prompts/interactive/glyphs";
+import type * as originalPromptGlyphs from "toolcraft-design/prompts/interactive/glyphs";
+import * as promptConfirm from "toolcraft-design-rust/prompts/interactive/confirm";
+import type * as originalPromptConfirm from "toolcraft-design/prompts/interactive/confirm";
+const glyphsOriginal: typeof originalPromptGlyphs = promptGlyphs;
+const glyphsNative: typeof promptGlyphs = null as unknown as typeof originalPromptGlyphs;
+const confirmOptionsOriginal: originalPromptConfirm.ConfirmOptions = null as unknown as promptConfirm.ConfirmOptions;
+const confirmOptionsNative: promptConfirm.ConfirmOptions = confirmOptionsOriginal;
+const confirmResult: Promise<boolean | typeof CANCEL> = promptConfirm.confirmPrompt(confirmOptionsNative);
+// Runtime cancellation is shared through Symbol.for, but separate declarations
+// retain distinct unique-symbol identities. Unifying these remains a swap gate.
+// @ts-expect-error Separate cancellation declarations are nominally distinct.
+const confirmOriginal: typeof originalPromptConfirm = promptConfirm;
+// @ts-expect-error Separate cancellation declarations are nominally distinct.
+const confirmNative: typeof promptConfirm = null as unknown as typeof originalPromptConfirm;
+void [glyphsOriginal, glyphsNative, confirmOriginal, confirmNative, confirmResult];
+
 import {Prompt as NativePrompt,type PromptOptions as NativePromptOptions,type PromptState as NativePromptState} from "toolcraft-design-rust/prompts/interactive/core";
 import type {PromptState as OriginalPromptState} from "toolcraft-design/prompts/interactive/core";
 import * as nativePromptKeys from "toolcraft-design-rust/prompts/interactive/keys";

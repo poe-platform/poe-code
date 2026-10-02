@@ -31,6 +31,12 @@ custom prompts with grapheme-aware editing, validation, cancellation and stream
 cleanup. `readNonTtyLine()` supports piped UTF-8 input and preserves remaining
 lines for the next prompt. The `keys` and `wrap` subpaths provide key aliases
 and terminal frame wrapping for custom renderers.
+Use `confirmPrompt({message, initialValue?})` from
+`toolcraft-design-rust/prompts/interactive/confirm` for Yes/No input with arrow
+keys and Y/N shortcuts. Cancellation returns the shared cancellation symbol;
+non-TTY callers can set `POE_NO_PROMPT=1` to accept the initial value.
+The `prompts/interactive/glyphs` subpath exposes terminal-aware `GLYPHS`,
+`UNICODE`, `symbol` and `symbolBar` for matching custom prompt layouts.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

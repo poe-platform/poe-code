@@ -1197,3 +1197,27 @@ Interactive prompt subclasses/wrappers, dashboard/explorer surfaces and full
 platform/resource qualification remain outstanding. The root type route's
 Safe Bash environment-map and callback typing failures were repaired separately
 and verified through its maintained build closure and focused checks.
+
+The `prompts/interactive/confirm` and `glyphs` subpaths now use Rust presentation
+and event policy. They preserve initial-value defaults, arrow toggles, Y/N
+shortcuts, cancellation, event/reentrant callback order and non-TTY admission.
+Glyph selection retains platform/environment short circuiting, module-load
+selection, mutable glyph objects and live color-method lookup order.
+
+All 246 native host cases, 1,222 selected original design cases and ten spinner
+wrapper cases pass. Three confirmation-wrapper cases remain explicitly unported.
+Rust/binding/JS lint, option/helper type parity and packed standalone runtime and
+declarations pass. Active/submitted/cancelled screenshots were inspected and the
+ANSI transcript equals the reference. No external dependencies changed.
+
+Direct cross-package confirmation-function assignment exposes a remaining type
+gate: both packages share `Symbol.for("poe.cancel")` at runtime, but their
+separate `unique symbol` declarations are nominally distinct. The type fixture
+records that incompatibility explicitly; cancellation declarations must share
+identity before a swap. Existing private-class declaration gates also remain.
+
+Five warmed alternating rounds of 1,000 active confirmation renders measured
+median 0.06214 ms native versus 0.03845 ms reference (1.62x slower), without TTY
+I/O. No performance gate passed. Text/password/select/multiselect subclasses,
+public wrappers and namespace, dashboard/explorer and full platform/resource
+qualification still require completion.

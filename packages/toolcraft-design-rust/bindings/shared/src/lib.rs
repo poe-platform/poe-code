@@ -476,3 +476,5 @@ mod with_spinner;
 pub use with_spinner::*;
 mod prompt_core;
 pub use prompt_core::*;
+mod prompt_components;
+pub use prompt_components::*;

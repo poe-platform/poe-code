@@ -315,6 +315,14 @@
     "./prompts/interactive/wrap": {
       "types": "./dist/prompt-wrap.d.ts",
       "import": "./dist/prompt-wrap.js"
+    },
+    "./prompts/interactive/glyphs": {
+      "types": "./dist/prompt-glyphs.d.ts",
+      "import": "./dist/prompt-glyphs.js"
+    },
+    "./prompts/interactive/confirm": {
+      "types": "./dist/prompt-confirm.d.ts",
+      "import": "./dist/prompt-confirm.js"
     }
   },
   "scripts": {

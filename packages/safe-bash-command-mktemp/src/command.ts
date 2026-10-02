@@ -91,6 +91,13 @@ export function evalSyncMktemp(
       const random = sampleTemplateChars(parsed.count);
       const generated = `${parsed.prefix}${random}${parsed.tail}`;
       const display = parsed.useTmpdir ? `${parent.replace(/\/+$/u, "")}/${generated}` : generated;
+      if (!parsed.directory && display.endsWith("/")) return undefined;
+      if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(display)) return undefined;
+      if (display.includes("/")) {
+        const dirPart = display.replace(/\/+$/u, "").slice(0, display.replace(/\/+$/u, "").lastIndexOf("/")) || "/";
+        const dirSt = statTypeSync(dirPart);
+        if (!parsed.dryRun ? dirSt !== "directory" : (dirSt !== "directory" && dirSt !== "missing")) return undefined;
+      }
       const st = statTypeSync(display);
       if (st !== "missing") continue;
       if (!parsed.dryRun) {

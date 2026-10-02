@@ -757,7 +757,9 @@ export function evalSyncTouch(
     return undefined;
   }
   for (const f of operands) {
+    if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(f)) return undefined;
     const st = statTypeSync(f);
+    if (f.endsWith("/") && st !== "directory") return undefined;
     if (st === "missing") {
       if (noCreate) continue;
       if (!writeFileSync(f, new Uint8Array(0), false)) return undefined;
@@ -880,7 +882,9 @@ export function evalSyncCp(
   }
   let out = "";
   for (const src of sources) {
+    if (src.endsWith("/") || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(src) || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(destBase)) return undefined;
     if (statTypeSync(src) !== "file") return undefined;
+    if (!intoDir && destBase.endsWith("/")) return undefined;
     let dst = destBase;
     if (intoDir) {
       const base = src.replace(/\/+$/, "").split("/").pop() || "";
@@ -974,7 +978,9 @@ export function evalSyncMv(
   }
   let out = "";
   for (const src of sources) {
+    if (src.endsWith("/") || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(src) || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(destBase)) return undefined;
     if (statTypeSync(src) !== "file") return undefined;
+    if (!intoDir && destBase.endsWith("/")) return undefined;
     let dst = destBase;
     if (intoDir) {
       const base = src.replace(/\/+$/, "").split("/").pop() || "";
@@ -1233,8 +1239,9 @@ export function evalSyncRm(
   }
   if (operands.length === 0) return force ? "" : undefined;
   for (const f of operands) {
-    if (f === "/" || f === "." || f === ".." || f.endsWith("/.") || f.endsWith("/..")) return undefined;
+    if (f === "/" || f === "." || f === ".." || f.endsWith("/.") || f.endsWith("/..") || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(f)) return undefined;
     const st = statTypeSync(f);
+    if (f.endsWith("/") && st !== "directory") return undefined;
     if (st === "missing") {
       if (!force) return undefined;
     } else if (st === "directory") {
@@ -1388,6 +1395,7 @@ export function evalSyncLn(
   }
   let out = "";
   for (const [src, dst] of pairs) {
+    if (dst.endsWith("/") || (!symbolic && src.endsWith("/")) || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(src) || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(dst)) return undefined;
     if (!symbolic && statTypeSync(src) !== "file") return undefined;
     if (normalizeSyncOperandPath(src) === normalizeSyncOperandPath(dst)) return undefined;
     let linkTarget = src;

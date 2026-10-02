@@ -540,6 +540,8 @@ export function evalSyncInstall(
     return true;
   };
   const copySingle = (sPath: string, dPath: string): boolean => {
+    if (sPath.endsWith("/") || dPath.endsWith("/") || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(sPath) || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(dPath)) return false;
+    if (sPath.replace(/^\.\/+/u, "") === dPath.replace(/^\.\/+/u, "")) return false;
     if (createLeading) {
       const slash = dPath.lastIndexOf("/");
       if (slash > 0 && !ensureParents(dPath.slice(0, slash))) return false;

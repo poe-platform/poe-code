@@ -131,14 +131,18 @@ export function evalSyncChmod(
     if (parsed.operands.length < minOps) return undefined;
     let referenceMode: number | undefined;
     if (reference !== undefined) {
-      if (!chmodNodeSync(reference, stat => { referenceMode = stat.mode & 0o7777; return stat.mode; }) || referenceMode === undefined) {
+      if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(reference)) return undefined;
+      let refType = "";
+      if (!chmodNodeSync(reference, stat => { refType = stat.type; referenceMode = stat.mode & 0o7777; return stat.mode; }) || referenceMode === undefined || (reference.endsWith("/") && refType !== "directory")) {
         return undefined;
       }
     }
     const mode = modeOptions.length ? modeOptions.join(",") : reference === undefined ? parsed.operands.shift()! : undefined;
     const change = mode === undefined ? undefined : modeChange(mode, umask);
     for (const op of parsed.operands) {
-      if (!chmodNodeSync(op, stat => stat.mode)) return undefined;
+      if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(op)) return undefined;
+      let opType = "";
+      if (!chmodNodeSync(op, stat => { opType = stat.type; return stat.mode; }) || (op.endsWith("/") && opType !== "directory")) return undefined;
     }
     let out = "";
     for (const op of parsed.operands) {

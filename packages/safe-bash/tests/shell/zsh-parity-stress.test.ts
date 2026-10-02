@@ -1163,4 +1163,34 @@ test("52. sync vs async parity for split, csplit, truncate, and dd semantics", a
     const r2 = await bash.exec("out=\$(gpg --unknown-nonexistent-flag 2>&1); echo \$?");
     assert.notEqual(r2.stdout.trim(), "0");
   });
+
+  test("64. sync touch/cp/mv/rm/ln/chmod/install/stat/mktemp trailing slash and file/.. ENOTDIR validation", async () => {
+    const bash = new Bash({
+      files: {
+        "/regular.txt": "hello\n",
+        "/other.txt": "world\n",
+      },
+    });
+    // 1. rm -f /regular.txt/ must fail with ENOTDIR and NOT delete /regular.txt
+    const r1 = await bash.exec("out=\$(rm -f /regular.txt/ 2>&1); echo \$?");
+    assert.notEqual(r1.stdout.trim(), "0");
+    const check1 = await bash.exec("cat /regular.txt");
+    assert.equal(check1.stdout, "hello\n");
+
+    // 2. touch /newfile/ must fail and NOT create regular file /newfile
+    const r2 = await bash.exec("out=\$(touch /newfile/ 2>&1); echo \$?");
+    assert.notEqual(r2.stdout.trim(), "0");
+
+    // 3. stat /regular.txt/.. must fail with ENOTDIR instead of collapsing to /
+    const r3 = await bash.exec("out=\$(stat -c %F /regular.txt/.. 2>&1); echo \$?");
+    assert.notEqual(r3.stdout.trim(), "0");
+
+    // 4. chmod 600 /regular.txt/ must fail with ENOTDIR
+    const r4 = await bash.exec("out=\$(chmod 600 /regular.txt/ 2>&1); echo \$?");
+    assert.notEqual(r4.stdout.trim(), "0");
+
+    // 5. cp /regular.txt /newdest/ must fail when /newdest does not exist
+    const r5 = await bash.exec("out=\$(cp /regular.txt /newdest/ 2>&1); echo \$?");
+    assert.notEqual(r5.stdout.trim(), "0");
+  });
 });

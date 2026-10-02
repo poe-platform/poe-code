@@ -622,3 +622,35 @@ test("37. sync tr indefinite/octal repeat counts, awk BEGIN NR=0, and jq -j pipe
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+test("38. sync ls -U lexical directory order, symlink-to-dir operand dereference, -L child dereference, and -f/-v/--sort=version", async () => {
+  const syncSh = setup().shell.use(agentCommands());
+  const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+  const init = `
+    mkdir -p /dir/sub
+    printf "hello world long\n" > /dir/v10.txt
+    printf "hi\n" > /dir/v2.txt
+    ln -s /dir/sub /dir/linkdir
+    ln -s /dir/v10.txt /dir/linkfile
+  `;
+  await syncSh.exec(init);
+  await asyncSh.exec(init);
+  const scripts = [
+    "x=$(ls -U -r /dir); echo \"$?:$x\"",
+    "x=$(ls /dir/linkdir); echo \"$?:$x\"",
+    "x=$(ls -p /dir/linkdir); echo \"$?:$x\"",
+    "x=$(ls -d /dir/linkdir); echo \"$?:$x\"",
+    "x=$(ls -F /dir/linkdir); echo \"$?:$x\"",
+    "x=$(ls -LF /dir); echo \"$?:$x\"",
+    "x=$(ls -LR /dir); echo \"$?:$x\"",
+    "x=$(ls -f /dir); echo \"$?:$x\"",
+    "x=$(ls -v /dir); echo \"$?:$x\"",
+    "x=$(ls --sort=version /dir); echo \"$?:$x\"",
+  ];
+  for (const script of scripts) {
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

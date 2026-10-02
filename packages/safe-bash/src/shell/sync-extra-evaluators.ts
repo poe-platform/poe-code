@@ -1715,7 +1715,7 @@ export function evalSyncLs(
   let ignoreBackups = false;
   const ignorePatterns: RegExp[] = [];
   let followSymlinks = false;
-  let sortMode: "name" | "size" | "extension" | "none" = "name";
+  let sortMode: "name" | "size" | "extension" | "version" | "none" = "name";
   let indicator: "none" | "slash" | "file-type" | "classify" = "none";
   const operands: string[] = [];
   let endOpts = false;
@@ -1773,6 +1773,8 @@ export function evalSyncLs(
       else if (a === "--hide-control-chars") { /* default */ }
       else if (a === "--sort=size") sortMode = "size";
       else if (a === "--sort=extension") sortMode = "extension";
+      else if (a === "--sort=version") sortMode = "version";
+      else if (a === "--sort=name") sortMode = "name";
       else if (a === "--sort=none") sortMode = "none";
       else return undefined;
       continue;
@@ -1790,7 +1792,9 @@ export function evalSyncLs(
         else if (ch === "R") recursive = true;
         else if (ch === "S") sortMode = "size";
         else if (ch === "X") sortMode = "extension";
+        else if (ch === "v") sortMode = "version";
         else if (ch === "U") sortMode = "none";
+        else if (ch === "f") { hidden = "all"; sortMode = "none"; }
         else if (ch === "p") indicator = "slash";
         else if (ch === "F") indicator = "classify";
         else if (ch === "L") followSymlinks = true;
@@ -1804,9 +1808,17 @@ export function evalSyncLs(
   if (operands.length === 0) operands.push(".");
   if (operands.some(o => !o)) return undefined;
   if (operands.length > 1 && recursive) return undefined;
+  const inspectOperandStat = (opAbs: string): SyncFsStatNode | undefined => {
+    let nodeSt = inspectStat(opAbs, followSymlinks);
+    if (nodeSt && nodeSt.type === "symlink" && !followSymlinks && !dirItself && indicator !== "classify") {
+      const targetSt = inspectStat(opAbs, true);
+      if (targetSt?.type === "directory") nodeSt = targetSt;
+    }
+    return nodeSt;
+  };
   const target = operands[0]!;
   const abs = normalizePath(target, cwd);
-  const st = inspectStat(abs, followSymlinks);
+  const st = inspectOperandStat(abs);
   if (!st) return undefined;
 
   const suffixFor = (type: "file" | "directory" | "symlink", mode: number): string => {
@@ -1841,13 +1853,15 @@ export function evalSyncLs(
         const ex = getExt(x.name);
         const ey = getExt(y.name);
         cmp = ex < ey ? -1 : ex > ey ? 1 : 0;
+      } else if (sortMode === "version") {
+        cmp = x.name.localeCompare(y.name, undefined, { numeric: true });
       }
       if (cmp === 0) cmp = x.name < y.name ? -1 : x.name > y.name ? 1 : 0;
       return reverse ? -cmp : cmp;
     });
   };
 
-  const listDirItems = (dirStat: SyncFsStatNode) => {
+  const listDirItems = (dirAbs: string, dirStat: SyncFsStatNode) => {
     if (!dirStat.children) return undefined;
     const items: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
     if (hidden === "all") {
@@ -1858,7 +1872,14 @@ export function evalSyncLs(
       if (hidden === "none" && c.name.startsWith(".")) continue;
       if (ignoreBackups && c.name.endsWith("~")) continue;
       if (ignorePatterns.length > 0 && ignorePatterns.some(re => re.test(c.name))) continue;
-      items.push(c);
+      if (followSymlinks && c.type === "symlink") {
+        const cAbs = dirAbs === "/" ? `/${c.name}` : `${dirAbs}/${c.name}`;
+        const deref = inspectStat(cAbs, true);
+        if (!deref) return undefined;
+        items.push({ name: c.name, type: deref.type, size: deref.size, mode: deref.mode });
+      } else {
+        items.push(c);
+      }
     }
     return sortItems(items);
   };
@@ -1872,33 +1893,34 @@ export function evalSyncLs(
   if (!recursive) {
     if (operands.length > 1) {
       const fileItems: Array<{ name: string; type: "file" | "directory" | "symlink"; size: number; mode: number }> = [];
-      const dirOperands: Array<{ name: string; stat: SyncFsStatNode; size: number; mode: number }> = [];
+      const dirOperands: Array<{ name: string; abs: string; stat: SyncFsStatNode; size: number; mode: number }> = [];
       for (const op of operands) {
         const opAbs = normalizePath(op, cwd);
-        const opSt = inspectStat(opAbs, followSymlinks);
+        const opSt = inspectOperandStat(opAbs);
         if (!opSt) return undefined;
         if (dirItself || opSt.type !== "directory") {
           fileItems.push({ name: op, type: opSt.type, size: opSt.size, mode: opSt.mode });
         } else {
-          dirOperands.push({ name: op, stat: opSt, size: opSt.size, mode: opSt.mode });
+          dirOperands.push({ name: op, abs: opAbs, stat: opSt, size: opSt.size, mode: opSt.mode });
         }
       }
       const sortedFiles = sortItems(fileItems);
       const sortedDirs = sortItems(dirOperands.map(d => ({ name: d.name, type: "directory" as const, size: d.size, mode: d.mode })));
-      const dirMap = new Map(dirOperands.map(d => [d.name, d.stat]));
+      const dirMap = new Map(dirOperands.map(d => [d.name, d]));
       const blocks: string[] = [];
       if (sortedFiles.length > 0) {
         blocks.push(formatItems(sortedFiles).replace(/\n$/, ""));
       }
       for (const d of sortedDirs) {
-        const dItems = listDirItems(dirMap.get(d.name)!);
+        const entry = dirMap.get(d.name)!;
+        const dItems = listDirItems(entry.abs, entry.stat);
         if (!dItems) return undefined;
         const body = formatItems(dItems).replace(/\n$/, "");
         blocks.push(body ? `${d.name}:\n${body}` : `${d.name}:`);
       }
       return blocks.length > 0 ? `${blocks.join("\n\n")}\n` : "";
     }
-    const items = listDirItems(st);
+    const items = listDirItems(abs, st);
     if (!items) return undefined;
     return formatItems(items);
   }
@@ -1906,9 +1928,9 @@ export function evalSyncLs(
   const sections: string[] = [];
   const walkRec = (dirAbs: string, dispPath: string, depth: number): boolean => {
     if (depth > 32) return false;
-    const dStat = inspectStat(dirAbs, false);
+    const dStat = inspectStat(dirAbs, followSymlinks);
     if (!dStat || dStat.type !== "directory") return false;
-    const items = listDirItems(dStat);
+    const items = listDirItems(dirAbs, dStat);
     if (!items) return false;
     const body = formatItems(items);
     sections.push(`${dispPath}:\n${body}`.replace(/\n$/, ""));
@@ -6361,6 +6383,7 @@ const syncExtraRuntimeMethods = {
             const cSize = cNode.type === "file" ? (cNode.byteLength ?? cNode.data?.byteLength ?? 0) : cNode.type === "symlink" ? shellValueByteLength(cNode.target ?? "") : 0;
             children.push({ name: cName, type: cNode.type, size: cSize, mode: cNode.mode ?? 0, ...(cNode.ino !== undefined ? { ino: cNode.ino } : {}), ...(cNode.target !== undefined ? { target: cNode.target } : {}) });
           }
+          children.sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
         }
         return { type: "directory", size: 0, mode, ino, nlink: dirLinks, uid: 0, gid: 0, dev: 0, atimeMs, mtimeMs, ctimeMs, birthtimeMs, filesystemType: "memory", ioBlockSize: 4096, children };
       }

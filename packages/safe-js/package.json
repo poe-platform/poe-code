@@ -105,7 +105,8 @@
     "test:adversarial:slow": "cd ../.. && SAFEJS_ADVERSARIAL_SLOW=1 SAFEJS_PARSE_FUZZ=1 vitest run packages/safe-js/test/adversarial packages/safe-js/src/parse/fuzz.test.ts",
     "typecheck:contracts": "node scripts/check-fs-type-contract.mjs",
     "test:conformance": "tsx test/conformance/command.ts",
-    "typecheck:fs": "node scripts/fs-type-contract.mjs"
+    "typecheck:fs": "node scripts/fs-type-contract.mjs",
+    "test:workerd": "node --test scripts/workerd.test.mjs"
   },
   "files": [
     "dist",

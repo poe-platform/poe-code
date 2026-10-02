@@ -10,6 +10,8 @@ Complete ECMAScript conformance has not been established; see
 
 Under `workerd` and `browser` conditions, the standalone root and `/core` exports select the portable interpreter with parsing (`parse`, `parseModule`, `parseSourceModule`), checkpoints (`dump`, `restore`), sandbox copy helpers, error classes, `declareHostOperation`, `makeFsModule`, `makeEnvModule`, `makeTimeModule`, `makeFailModule`, `makeMetricModule`, and `makeHarnessModule`. The `/modules/fs` entry is also portable; supply a filesystem adapter for host file access.
 
+Without host-provided asynchronous context storage, portable context is stack-scoped: captured interpreter continuations restore it explicitly, but arbitrary host code does not retain ambient context after `await`. Portable proxy checks recognize tracked proxies, not arbitrary host-created proxies, and native Promise probes can consult constructor/species properties. Portable host-value handling therefore does not provide Node's trap-free admission guarantees.
+
 ## Quickstart
 
 Install the public ESM package. Its declared Node.js minimum is 18.18+, but

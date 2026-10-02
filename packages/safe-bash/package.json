@@ -3156,7 +3156,8 @@
     "provision:python:integration": "npm --prefix tests/integration/pyodide-runtime ci && npm --prefix tests/integration/pyodide-runtime run provision:public",
     "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public",
     "postbuild": "node scripts/build-optional-cli.mjs",
-    "test:csvpy-runtime": "node --import tsx --conditions=poe-code-source --test tests/integration/csvpy-runtime/*.test.mjs"
+    "test:csvpy-runtime": "node --import tsx --conditions=poe-code-source --test tests/integration/csvpy-runtime/*.test.mjs",
+    "test:workerd": "node --test scripts/workerd.test.mjs"
   },
   "version": "0.0.0",
   "files": [

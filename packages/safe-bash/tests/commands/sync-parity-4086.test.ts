@@ -21,6 +21,8 @@ for (const [setup, command, expected] of [
   ["", "printf '[false,null,0,1]\\n' | jq -c 'select(.[])'", "[false,null,0,1]\n[false,null,0,1]\n"],
   ["printf ':x\\n' > f1; printf ':y\\n' > f2;", "join -t : -e EMPTY -o 0,1.2,2.2 f1 f2", "EMPTY:x:y\n"],
   ["", "column -t -e <<< $'   \\na b'", "a  b\n"],
+  ["", "column -t -e <<< $'\\na b'", "a  b\n"],
+  ["", "column -t -L <<< $'\\na b'", "   \na  b\n"],
 ] as const) {
   for (const mode of ["direct", "substitution", "loop"]) {
     test(`${mode}: ${command}`, async () => {
@@ -73,8 +75,10 @@ test("sync join replaces an empty explicit join field", () => {
   assert.deepEqual(evaluate.call(context, [":x"], ["-t", ":", "-e", "EMPTY", "-o", "0,1.2,2.2", "-", "f2"], "/"), ["EMPTY:x:y"]);
 });
 
-test("sync column skips delimiter-only rows and preserves truly empty rows", () => {
+test("sync column distinguishes header repetition from keeping empty rows", () => {
   const evaluate = Reflect.get(Runtime.prototype, "evalSyncColumn");
   assert.deepEqual(evaluate.call(Runtime.prototype, ["   ", "a b"], ["-t", "-e"]), ["a  b"]);
-  assert.deepEqual(evaluate.call(Runtime.prototype, ["", "a b"], ["-t", "-e"]), ["", "a  b"]);
+  assert.deepEqual(evaluate.call(Runtime.prototype, ["", "a b"], ["-t", "-e"]), ["a  b"]);
+  assert.deepEqual(evaluate.call(Runtime.prototype, ["", "a b"], ["-t", "-L"]), ["   ", "a  b"]);
+  assert.deepEqual(evaluate.call(Runtime.prototype, ["   ", "a b"], ["-t", "-L"]), ["   ", "a  b"]);
 });

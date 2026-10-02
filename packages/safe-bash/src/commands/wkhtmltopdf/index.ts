@@ -73,6 +73,7 @@ export function evalSyncWkhtmltopdf(
         limits: wkhtmltopdfLimits,
       });
       if (initial.output === "-") {
+        if (pdfBytes.includes(0)) return undefined;
         return new TextDecoder("utf-8", { fatal: true }).decode(pdfBytes);
       }
       if (!writeFileSync || !initial.output) return undefined;

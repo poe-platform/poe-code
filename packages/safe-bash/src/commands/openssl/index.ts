@@ -345,16 +345,20 @@ export function evalSyncOpenssl(
       let hex = false;
       let b64 = false;
       let outFile: string | undefined;
-      let numBytes = 0;
+      let numBytes: number | undefined;
       for (let i = 0; i < rest.length; i++) {
         const a = rest[i]!;
         if (a === "-hex") hex = true;
         else if (a === "-base64") b64 = true;
         else if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
-        else if (!a.startsWith("-")) numBytes = Number.parseInt(a, 10);
+        else if (!a.startsWith("-") && numBytes === undefined && /^\d+$/.test(a)) {
+          numBytes = Number.parseInt(a, 10);
+        } else {
+          return undefined;
+        }
       }
       if (!hex && !b64) return undefined;
-      if (!Number.isFinite(numBytes) || numBytes < 0 || numBytes > 16384) return undefined;
+      if (numBytes === undefined || !Number.isFinite(numBytes) || numBytes < 0 || numBytes > 16384) return undefined;
       const raw = new Uint8Array(numBytes);
       globalThis.crypto.getRandomValues(raw);
       const rendered = hex ? `${bytesToHex(raw)}\n` : `${bytesToBase64(raw, true)}\n`;
@@ -377,6 +381,7 @@ export function evalSyncOpenssl(
         else if (a === "-A") noNewlines = true;
         else if (a === "-in" && i + 1 < rest.length) inFile = rest[++i];
         else if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
+        else return undefined;
       }
       const input = inFile !== undefined ? readFileSync?.(inFile) : inBytes;
       if (!input || input.byteLength > 65536) return undefined;
@@ -433,6 +438,8 @@ export function evalSyncOpenssl(
           outFile = rest[++i];
         } else if (!a.startsWith("-")) {
           files.push(a);
+        } else {
+          return undefined;
         }
       }
       if (binary && outFile === undefined) return undefined;
@@ -486,12 +493,18 @@ export function evalSyncOpenssl(
         if (a === "-d") decrypt = true;
         else if (a === "-e") decrypt = false;
         else if (a === "-a" || a === "-base64") useBase64 = true;
-        else if (a === "-iter" && i + 1 < rest.length) iterations = Number.parseInt(rest[++i]!, 10) || 10000;
-        else if ((a === "-k" || a === "-pass") && i + 1 < rest.length) {
+        else if (a === "-aes-256-cbc" || a === "-pbkdf2") continue;
+        else if (a === "-iter" && i + 1 < rest.length) {
+          const iterRaw = rest[++i]!;
+          if (!/^\d+$/.test(iterRaw)) return undefined;
+          iterations = Number.parseInt(iterRaw, 10);
+          if (!Number.isFinite(iterations) || iterations < 1 || iterations > 100000) return undefined;
+        } else if ((a === "-k" || a === "-pass") && i + 1 < rest.length) {
           const v = rest[++i]!;
           password = v.startsWith("pass:") ? v.slice(5) : v;
         } else if (a === "-in" && i + 1 < rest.length) inFile = rest[++i];
         else if (a === "-out" && i + 1 < rest.length) outFile = rest[++i];
+        else return undefined;
       }
       const rawInput = inFile !== undefined ? readFileSync?.(inFile) : inBytes;
       if (!rawInput || rawInput.byteLength > 65536) return undefined;
@@ -519,7 +532,7 @@ export function evalSyncOpenssl(
         const derived = pbkdf2(sha256, syncOpensslEncoder.encode(password), salt, { c: iterations, dkLen: 48 });
         const plain = aesCbcDecrypt(derived.subarray(0, 32), derived.subarray(32, 48), cipherBytes);
         if (outFile !== undefined) {
-          if (!writeFileSync || !writeFileSync(outFile, plain)) return undefined;
+          if (!writeFileSync || !writeFileSync(outFile, plain.slice())) return undefined;
           return "";
         }
         if (plain.includes(0)) return undefined;
@@ -540,6 +553,8 @@ export function evalSyncOpenssl(
         else if (a === "-issuer") showIssuer = true;
         else if (a === "-fingerprint") showFingerprint = true;
         else if (a === "-dates") showDates = true;
+        else if (a === "-noout") continue;
+        else return undefined;
       }
       const inputBytes = inFile !== undefined ? readFileSync?.(inFile) : inBytes;
       if (!inputBytes || inputBytes.byteLength > 65536) return undefined;
@@ -570,16 +585,24 @@ export function evalSyncOpenssl(
         lines.push(`sha256 Fingerprint=${colonHex}`);
       }
       if (lines.length === 0) lines.push(pemText.trim());
-      return `${lines.join("\n")}\n`;
+      const rendered = `${lines.join("\n")}\n`;
+      return rendered.includes("\0") ? undefined : rendered;
     }
 
     if (sub === "passwd") {
       let salt = "saltsalt";
       let pw = "password";
+      let sawPw = false;
       for (let i = 0; i < rest.length; i++) {
         const a = rest[i]!;
         if (a === "-salt" && i + 1 < rest.length) salt = rest[++i]!;
-        else if (!a.startsWith("-")) pw = a;
+        else if (a === "-6") continue;
+        else if (!a.startsWith("-") && !sawPw) {
+          pw = a;
+          sawPw = true;
+        } else {
+          return undefined;
+        }
       }
       const digest = sha512(syncOpensslEncoder.encode(`${salt}:${pw}`));
       return `$6$${salt}$${bytesToBase64(digest)}\n`;

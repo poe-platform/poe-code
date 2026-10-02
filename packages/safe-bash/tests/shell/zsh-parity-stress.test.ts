@@ -622,6 +622,21 @@ test("56. sync vs async parity for xan, stat, mktemp, and BOM-preserving command
   }
 });
 
+test("57. sync vs async parity for openssl, pathchk, and pdf/image sync evaluators", async () => {
+  const scripts = [
+    "mkdir -p /p57; printf \"hi\" > /p57/file; a=$(pathchk /p57/file/ 2>/dev/null; echo $?); b=$(pathchk /p57/file/../other 2>/dev/null; echo $?); c=$(pathchk --version); echo \"$a|$b|$c\"",
+    "ct=$(printf \"secret-msg\" | openssl enc -aes-256-cbc -pbkdf2 -a -k mykey); pt=$(printf \"%s\\n\" \"$ct\" | openssl enc -aes-256-cbc -pbkdf2 -d -a -k mykey); echo \"$pt\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});
+
 test("55. sync vs async parity for apply_patch, html-to-markdown, and xq semantics", async () => {
   const scripts = [
     "mkdir -p /ap55; cd /ap55; printf \"old\\n\" > a.txt; printf \"existing\\n\" > b.txt; p=$'*** Begin Patch\\n*** Update File: a.txt\\n*** Move to: b.txt\\n@@\\n-old\\n+new\\n*** End Patch'; x=$(apply_patch \"$p\" 2>/dev/null; echo $?); y=$(cat b.txt); echo \"$x|$y\"",

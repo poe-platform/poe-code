@@ -19056,14 +19056,18 @@ const syncExtraRuntimeMethods = {
           POSIXLY_CORRECT: getEnvVar("POSIXLY_CORRECT"),
         });
         if (goOut !== undefined) {
+          let res = goOut;
           const outBytes = shellValueByteLength(goOut) + 1;
+          let end = res.length;
+          while (end > 0 && res.charCodeAt(end - 1) === 10) end--;
+          if (end < res.length) res = res.slice(0, end);
           const nextTotalBytes = this.budget.bytes + outBytes;
           if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
           this.budget.bytes = nextTotalBytes;
           this.budget.tick();
           rawState.substitutionStatus = 0;
           rawState.status = 0;
-          return goOut;
+          return res;
         }
       }
       if (fOk && (w0Plain === "dos2unix" || w0Plain === "unix2dos" || w0Plain === "iconv" || w0Plain === "gzip" || w0Plain === "gunzip" || w0Plain === "zcat" || w0Plain === "unzstd" || w0Plain === "zstdcat" || w0Plain === "zstd" || w0Plain === "bzip2" || w0Plain === "bunzip2" || w0Plain === "bzcat" || w0Plain === "xz" || w0Plain === "unxz" || w0Plain === "xzcat" || w0Plain === "lzma" || w0Plain === "unlzma" || w0Plain === "lzcat") && !hasSingleStdinRedir) {
@@ -19111,10 +19115,18 @@ const syncExtraRuntimeMethods = {
         const statType = (p: string) => this.tryStatMemoryNodeTypeSync(p, true);
         const pOut = evalSyncPathchk(allArgs, rawState.cwd, statType);
         if (pOut !== undefined) {
+          let res = pOut;
+          const outBytes = shellValueByteLength(res);
+          let end = res.length;
+          while (end > 0 && res.charCodeAt(end - 1) === 10) end--;
+          if (end < res.length) res = res.slice(0, end);
+          const nextTotalBytes = this.budget.bytes + outBytes;
+          if (nextTotalBytes > this.budget.maxOutputBytesSmi && outBytes > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+          this.budget.bytes = nextTotalBytes;
           this.budget.tick();
           rawState.substitutionStatus = 0;
           rawState.status = 0;
-          return pOut;
+          return res;
         }
       }
       if (fOk && (w0Plain === "date" || w0Plain === "printenv" || w0Plain === "env") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {

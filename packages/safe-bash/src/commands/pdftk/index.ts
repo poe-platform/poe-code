@@ -67,10 +67,10 @@ export function evalSyncPdftk(
     }
     const snap = new Map(files);
     const res = runPdftkCliSync(opArgs, files);
-    if (res.exitCode !== 0 || res.stderr || res.stdoutBytes) return undefined;
+    if (res.exitCode !== 0 || res.stderr || res.stdoutBytes || res.stdout.includes("\0")) return undefined;
     for (const [k, v] of files.entries()) {
       if (snap.get(k) !== v) {
-        if (!writeFileSync || !writeFileSync(k, v)) return undefined;
+        if (k === "-" || !writeFileSync || !writeFileSync(k, v)) return undefined;
       }
     }
     return res.stdout;

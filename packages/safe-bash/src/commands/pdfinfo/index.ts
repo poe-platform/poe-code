@@ -81,7 +81,7 @@ export function evalSyncPdfinfo(
     let isHelpOrVer = false;
     for (let i = 0; i < opArgs.length; i++) {
       const a = opArgs[i]!;
-      if (a === "-listenc" || a === "-v" || a === "--version" || a === "-h" || a === "--help" || a === "-?") {
+      if (a === "-listenc" || a === "-v" || a === "--version" || a === "-h" || a === "-help" || a === "--help" || a === "-?") {
         isHelpOrVer = true;
       } else if (a === "-f" || a === "-l" || a === "-enc" || a === "-upw" || a === "-opw") {
         i++;
@@ -94,7 +94,7 @@ export function evalSyncPdfinfo(
     }
     if (isHelpOrVer) {
       const res = inspectPdfBytes(new Uint8Array(0), opArgs);
-      if (res.exitCode !== 0 || res.stderr) return undefined;
+      if (res.exitCode !== 0 || res.stderr || res.stdout.includes("\0")) return undefined;
       return res.stdout;
     }
     const target = inputFile ?? "-";
@@ -105,7 +105,7 @@ export function evalSyncPdfinfo(
       opArgs,
       target === "-" ? { isStdin: true, fileSize: 0 } : { fileSize: pdfBytes.byteLength },
     );
-    if (res.exitCode !== 0 || res.stderr) return undefined;
+    if (res.exitCode !== 0 || res.stderr || res.stdout.includes("\0")) return undefined;
     return res.stdout;
   } catch {
     return undefined;
@@ -131,7 +131,7 @@ export function evalSyncPdffonts(
       }
     }
     const res = runPdffontsCliSync(opArgs, files);
-    if (res.exitCode !== 0 || res.stderr) return undefined;
+    if (res.exitCode !== 0 || res.stderr || res.stdout.includes("\0")) return undefined;
     return res.stdout;
   } catch {
     return undefined;
@@ -159,10 +159,10 @@ export function evalSyncPdfdetach(
     }
     const snap = new Map(files);
     const res = runPdfdetachCliSync(opArgs, files);
-    if (res.exitCode !== 0 || res.stderr) return undefined;
+    if (res.exitCode !== 0 || res.stderr || res.stdout.includes("\0")) return undefined;
     for (const [k, v] of files.entries()) {
       if (snap.get(k) !== v) {
-        if (!writeFileSync || !writeFileSync(k, v)) return undefined;
+        if (k === "-" || !writeFileSync || !writeFileSync(k, v)) return undefined;
       }
     }
     return res.stdout;

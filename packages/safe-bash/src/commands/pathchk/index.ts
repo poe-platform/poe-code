@@ -33,6 +33,19 @@ export function pathchkCommands(options: PathchkCommandsOptions = {}): VirtualSh
 const PORTABLE_CHAR_RE = /^[A-Za-z0-9._-]+$/;
 const sharedUtf8Encoder = new TextEncoder();
 
+const PATHCHK_HELP_TEXT = `Usage: pathchk [OPTION]... NAME...
+Diagnose invalid or unportable file names.
+
+  -p                  check for most POSIX systems
+  -P                  check for empty names and leading "-"
+      --portability   check for all POSIX systems (equivalent to -p -P)
+      --help          display this help and exit
+      --version       output version information and exit
+`;
+
+const PATHCHK_VERSION_TEXT = `pathchk (Sandbox VFS-ish/GNU coreutils) 9.7
+`;
+
 function resolveVfsPath(cwd: string, target: string): string {
   const raw = target.startsWith("/") ? target : (cwd.endsWith("/") ? cwd + target : `${cwd}/${target}`);
   const parts = raw.split("/");
@@ -61,7 +74,8 @@ export function evalSyncPathchk(
       endOfOptions = true;
       continue;
     }
-    if (!endOfOptions && (arg === "--help" || arg === "--version")) return undefined;
+    if (!endOfOptions && arg === "--help") return PATHCHK_HELP_TEXT;
+    if (!endOfOptions && arg === "--version") return PATHCHK_VERSION_TEXT;
     if (!endOfOptions && arg === "--portability") {
       checkBasicPosix = true;
       checkExtraPosix = true;
@@ -104,12 +118,13 @@ export function evalSyncPathchk(
 
     if (!checkBasicPosix) {
       if (!statTypeSync) return undefined;
-      const full = resolveVfsPath(cwd, name);
-      const parts = full.split("/").filter(Boolean);
+      const full = name.startsWith("/") ? name : `${cwd}/${name}`;
+      const parts = full.split("/");
       let current = "";
       for (let k = 0; k < parts.length - 1; k++) {
+        if (!parts[k]) continue;
         current += "/" + parts[k]!;
-        const st = statTypeSync(current);
+        const st = statTypeSync(resolveVfsPath("/", current));
         if (st === undefined) return undefined;
         if (st === "missing") break;
         if (st !== "directory") return undefined;

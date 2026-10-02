@@ -3294,7 +3294,44 @@ function* applyMagickDrawSteps(img: RgbaImage, drawCmd: string, state: MagickSta
             const px = num();
             const py = num();
             const r = Math.max(1, Math.hypot(px - cx, py - cy));
-            svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+            if (fill !== "none" && (stroke === "none" || strokeWidth <= 0) && svgElements.length === 0) {
+                const fc = parseColor(fill);
+                const xStart = Math.max(0, Math.floor(cx - r - 1));
+                const yStart = Math.max(0, Math.floor(cy - r - 1));
+                const xEnd = Math.min(img.width, Math.ceil(cx + r + 1));
+                const yEnd = Math.min(img.height, Math.ceil(cy + r + 1));
+                const dst = img.data;
+                const baseAlpha = fc.a / 255;
+                for (let y = yStart; y < yEnd; y++) {
+                    const dy = y - cy;
+                    const rowOff = y * img.width * 4;
+                    for (let x = xStart; x < xEnd; x++) {
+                        const dx = x - cx;
+                        const dist = Math.hypot(dx, dy);
+                        const cov = Math.max(0, Math.min(1, r + 0.5 - dist));
+                        if (cov <= 0) continue;
+                        const sA = baseAlpha * cov;
+                        const dIdx = rowOff + x * 4;
+                        if (sA >= 0.999) {
+                            dst[dIdx] = fc.r;
+                            dst[dIdx + 1] = fc.g;
+                            dst[dIdx + 2] = fc.b;
+                            dst[dIdx + 3] = 255;
+                        } else if (sA > 0) {
+                            const dA = dst[dIdx + 3]! / 255;
+                            const outA = sA + dA * (1 - sA);
+                            if (outA > 0) {
+                                dst[dIdx] = Math.round((fc.r * sA + dst[dIdx]! * dA * (1 - sA)) / outA);
+                                dst[dIdx + 1] = Math.round((fc.g * sA + dst[dIdx + 1]! * dA * (1 - sA)) / outA);
+                                dst[dIdx + 2] = Math.round((fc.b * sA + dst[dIdx + 2]! * dA * (1 - sA)) / outA);
+                                dst[dIdx + 3] = Math.round(outA * 255);
+                            }
+                        }
+                    }
+                }
+            } else {
+                svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}"/>`);
+            }
         }
         else if (cmd === "ellipse") {
             const cx = num();

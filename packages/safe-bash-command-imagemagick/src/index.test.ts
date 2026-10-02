@@ -1027,4 +1027,18 @@ describe("safe-bash-command-imagemagick", () => {
     expect(idListRes.exitCode).toBe(0);
     expect(idListRes.stdout).toContain("transparent");
   });
+  it("draws filled unstroked circles directly onto the raster buffer", async () => {
+    const files = new Map<string, Uint8Array>();
+    const drawRes = await runMagickCli(
+      ["-size", "32x32", "xc:#ffffff", "-fill", "#ff0000", "-draw", "circle 16,16 16,24", "circle.png"],
+      files
+    );
+    expect(drawRes.exitCode).toBe(0);
+    const pxRes = await runMagickCli(
+      ["circle.png", "-format", "%[pixel:p{16,16}]|%[pixel:p{0,0}]", "info:"],
+      files
+    );
+    expect(pxRes.exitCode).toBe(0);
+    expect(pxRes.stdout.trim()).toBe("srgb(255,0,0)|srgb(255,255,255)");
+  });
 });

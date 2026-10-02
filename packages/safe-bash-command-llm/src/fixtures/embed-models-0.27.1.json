@@ -1,0 +1,271 @@
+{
+  "reference": "llm==0.27.1",
+  "cases": [
+    {
+      "args": [],
+      "code": 0,
+      "stdout": "Fixture: embed-small (aliases: es)\nFixture: embed-large (aliases: el)\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "list"
+      ],
+      "code": 0,
+      "stdout": "Fixture: embed-small (aliases: es)\nFixture: embed-large (aliases: el)\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-q",
+        "SMALL"
+      ],
+      "code": 0,
+      "stdout": "Fixture: embed-small (aliases: es)\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "list",
+        "-q",
+        "Fixture",
+        "-q",
+        "el"
+      ],
+      "code": 0,
+      "stdout": "Fixture: embed-large (aliases: el)\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "list",
+        "-qnone"
+      ],
+      "code": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "default"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": "<No default embedding model set>\n"
+    },
+    {
+      "args": [
+        "default",
+        "es"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "default"
+      ],
+      "code": 0,
+      "stdout": "embed-small\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "default",
+        "--remove-default"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "default"
+      ],
+      "code": 0,
+      "stdout": "",
+      "stderr": "<No default embedding model set>\n"
+    },
+    {
+      "args": [
+        "default",
+        "missing"
+      ],
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error: Unknown embedding model: missing\n"
+    },
+    {
+      "args": [
+        "--help"
+      ],
+      "code": 0,
+      "stdout": "Usage: cli embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "list",
+        "--help"
+      ],
+      "code": 0,
+      "stdout": "Usage: cli embed-models list [OPTIONS]\n\n  List available embedding models\n\nOptions:\n  -q, --query TEXT  Search for embedding models matching these strings\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "default",
+        "--help"
+      ],
+      "code": 0,
+      "stdout": "Usage: cli embed-models default [OPTIONS] [MODEL]\n\n  Show or set the default embedding model\n\nOptions:\n  --remove-default  Reset to specifying no default model\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "list",
+        "--query"
+      ],
+      "code": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--query' requires an argument.\n"
+    },
+    {
+      "args": [
+        "list",
+        "--wat"
+      ],
+      "code": 2,
+      "stdout": "",
+      "stderr": "Usage: cli embed-models list [OPTIONS]\nTry 'cli embed-models list -h' for help.\n\nError: No such option: --wat\n"
+    },
+    {
+      "args": [
+        "default",
+        "one",
+        "two"
+      ],
+      "code": 2,
+      "stdout": "",
+      "stderr": "Usage: cli embed-models default [OPTIONS] [MODEL]\nTry 'cli embed-models default -h' for help.\n\nError: Got unexpected extra argument (two)\n"
+    },
+    {
+      "args": [
+        "list",
+        "-hqSMALL"
+      ],
+      "code": 0,
+      "stdout": "Usage: llm embed-models list [OPTIONS]\n\n  List available embedding models\n\nOptions:\n  -q, --query TEXT  Search for embedding models matching these strings\n  -h, --help        Show this message and exit.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "list",
+        "-qh"
+      ],
+      "code": 0,
+      "stdout": "\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-hqsmall"
+      ],
+      "code": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--query",
+        "--help"
+      ],
+      "code": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--help",
+        "list"
+      ],
+      "code": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "--wat",
+        "--help"
+      ],
+      "code": 0,
+      "stdout": "Usage: llm embed-models [OPTIONS] COMMAND [ARGS]...\n\n  Manage available embedding models\n\nOptions:\n  -h, --help  Show this message and exit.\n\nCommands:\n  list*    List available embedding models\n  default  Show or set the default embedding model\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "list",
+        "--help=1"
+      ],
+      "code": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "args": [
+        "default",
+        "-hfoo"
+      ],
+      "code": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models default [OPTIONS] [MODEL]\nTry 'llm embed-models default -h' for help.\n\nError: No such option: -f\n"
+    },
+    {
+      "args": [
+        "list",
+        "--",
+        "-h"
+      ],
+      "code": 2,
+      "stdout": "",
+      "stderr": "Usage: llm embed-models list [OPTIONS]\nTry 'llm embed-models list -h' for help.\n\nError: Got unexpected extra argument (-h)\n"
+    },
+    {
+      "args": [
+        "default",
+        "--",
+        "-odd"
+      ],
+      "code": 1,
+      "stdout": "",
+      "stderr": "Error: Unknown embedding model: -odd\n"
+    },
+    {
+      "args": [
+        "default",
+        "--remove-default=1"
+      ],
+      "code": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--remove-default' does not take a value.\n"
+    },
+    {
+      "args": [
+        "--help=1"
+      ],
+      "code": 2,
+      "stdout": "",
+      "stderr": "Error: Option '--help' does not take a value.\n"
+    },
+    {
+      "args": [
+        "--",
+        "list"
+      ],
+      "code": 0,
+      "stdout": "Fixture: embed-small (aliases: es)\nFixture: embed-large (aliases: el)\n",
+      "stderr": ""
+    }
+  ]
+}

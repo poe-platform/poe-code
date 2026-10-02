@@ -18,9 +18,9 @@ Reference: Simon Willison `llm==0.27.1`, inspected through its Click command tre
 | `llm collections list` | -d/--database; --json | incomplete |
 | `llm collections path` |  | incomplete |
 | `llm embed` | collection; id; -i/--input; -m/--model; --store; -d/--database; -c/--content; --binary; --metadata; -f/--format | incomplete |
-| `llm embed-models` |  | incomplete |
-| `llm embed-models default` | model; --remove-default | incomplete |
-| `llm embed-models list` | -q/--query (repeatable) | incomplete |
+| `llm embed-models` |  | implemented; pinned catalog/help fixtures |
+| `llm embed-models default` | model; --remove-default | implemented; canonical caller configuration, separate embedding default |
+| `llm embed-models list` | -q/--query (repeatable) | implemented; case-insensitive AND queries, declared/configured aliases |
 | `llm embed-multi` | collection; input_path; --format; --files ×2 (repeatable); --encoding (repeatable); --binary; --sql; --attach ×2 (repeatable); --batch-size; --prefix; -m/--model; --prepend; --store; -d/--database | incomplete |
 | `llm fragments` |  | incomplete |
 | `llm fragments list` | -q/--query (repeatable); --aliases; --json | incomplete |

@@ -64,7 +64,7 @@ export async function embeddingModelsCommand(
    const resolved=await configuration.resolveAlias(selected!);
    let entry;
    try{entry=service.resolve(resolved);}catch{ /* Report the reference embedding-specific error below. */ }
-   if(!entry?.model.capabilities?.includes('embed')||!entry.provider.embed){await diagnostic(`Error: Unknown embedding model: ${selected}\n`);return 1;}
+   if(!entry?.model.capabilities?.includes('embed')||!entry.provider.embed&&!entry.provider.embedSources){await diagnostic(`Error: Unknown embedding model: ${selected}\n`);return 1;}
    await configuration.setDefaultModel(entry.model.id,'default_embedding_model.txt');
   }
   return 0;
@@ -72,7 +72,7 @@ export async function embeddingModelsCommand(
  const configured=await configuration.aliases();let emitted=false;
  for(const entry of service.models){
   await step();
-  if(!entry.model.capabilities?.includes('embed')||!entry.provider.embed)continue;
+  if(!entry.model.capabilities?.includes('embed')||!entry.provider.embed&&!entry.provider.embedSources)continue;
   const aliases=[...entry.model.aliases??[]];
   for(const [alias,target]of Object.entries(configured)){await step();if(target===entry.model.id)aliases.push(alias);}
   const description=`${entry.provider.name}: ${entry.model.id}`;

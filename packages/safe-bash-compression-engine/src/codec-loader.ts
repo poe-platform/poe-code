@@ -1,4 +1,5 @@
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
+import { scheduleTurn } from "safe-bash-contracts/yield";
 import type { BoundedCodec, BoundedCodecOptions } from "./bounded-codec.js";
 import type { RawCodecFactory } from "./native/types.js";
 import { formats } from "./options.js";
@@ -91,13 +92,13 @@ export async function createCodec(
     if (closing) {
       closing.bridge_destroy();
       const buf = closing.memory.buffer as ArrayBuffer & { transfer?: (newByteLength?: number) => ArrayBuffer };
-      setImmediate(() => {
+      scheduleTurn(() => {
         try {
           buf.transfer?.(0);
         } catch {
           // ignore if buffer is already detached
         }
-      }).unref?.();
+      });
     }
   };
   try {

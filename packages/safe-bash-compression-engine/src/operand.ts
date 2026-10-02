@@ -1,4 +1,5 @@
 import { readBytes, writeBytes, type CommandContext } from "safe-bash-contracts";
+import { yieldTurn } from "safe-bash-contracts/yield";
 import { FileOperation } from "./file-operation.js";
 import { sourceBytes, unchangedSource, writeFileOperand, type Operand } from "./files.js";
 import type { CompressionOptions } from "./options.js";
@@ -9,7 +10,7 @@ export async function runOperand(context: CommandContext, plan: Operand, options
     try {
       return await writeFileOperand(context, plan, options, budget);
     } finally {
-      await new Promise<void>(resolve => setImmediate(resolve));
+      await yieldTurn();
     }
   }
   const operation = new FileOperation(context);
@@ -24,7 +25,7 @@ export async function runOperand(context: CommandContext, plan: Operand, options
     }, { ...options, force: options.force && (options.stdout || options.test || plan.source === "-") }, operation.signal, Infinity, budget));
   } finally {
     await operation.close();
-    await new Promise<void>(resolve => setImmediate(resolve));
+    await yieldTurn();
     context.signal.throwIfAborted();
   }
 }

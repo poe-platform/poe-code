@@ -2,7 +2,7 @@ import { compareInventoryNames } from "./pack-inventory.js";
 import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { MarkupCompatibility } from "./compatibility.js";
 import { documentPartRole } from "./document-part-roles.js";
 import type { PropertyValue } from "./property-values.js";

@@ -3,7 +3,7 @@ import { styleLinkPatches } from "./style-links.js";
 import { activeXmlChildren } from "./xml-active-children.js";
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { createDocumentArchive } from "./create.js";
 import { addDocumentStylesPart } from "./styles-part.js";
 import { xmlValue } from "./create-content.js";

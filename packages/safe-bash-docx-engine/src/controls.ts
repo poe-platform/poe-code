@@ -1,7 +1,7 @@
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { parseStoredDateTime } from "./stored-date-time.js";
 import { storedBooleanValue } from "./stored-lexical.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { xmlValue } from "./create-content.js";
 import { parseFields, assertOutsideFields } from "./field-parser.js";
 import { assertOutsideRevisionRanges, containsRevision } from "./revision-markup.js";

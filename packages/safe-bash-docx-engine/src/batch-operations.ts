@@ -1,7 +1,7 @@
 import { editDocumentStyles, inspectDocumentStyles, type StyleEditOptions, type StyleInspectionOptions } from "./styles.js";
 import { editDocumentBookmarks, type BookmarkEditRequest } from "./bookmarks.js";
 import type { PublicationContext } from "./publication.js";
-import type { DocxBatchOperation } from "./command.js";
+import type { DocxBatchOperation } from "./invocation.js";
 import { docxOperationSchemas } from "./operation-schema.js";
 import { editDocumentFields, inspectDocumentFields, type FieldEditRequest } from "./fields.js";
 import { replaceDocumentText, setDocumentDummyText, type TextReplaceOptions, type DummyTextOptions } from "./text-replace.js";

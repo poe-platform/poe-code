@@ -1,7 +1,7 @@
 import { assertOutsideRevisionRanges, assertFormattingHistoryEditable } from "./revision-markup.js";
 import { archiveSettings } from "./archive.js";
 import { activeXmlChildren } from "./xml-active-children.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { xmlValue } from "./create-content.js";
 import { openDocumentLocations } from "./locations.js";
 import { closedRecord, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";

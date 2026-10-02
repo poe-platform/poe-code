@@ -1,6 +1,6 @@
 import { archiveSettings } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
-import type { DocxInvocation } from "./command.js";
+import type { DocxInvocation } from "./invocation.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace } from "./dialect.js";
 import { fieldInstruction, fieldInstructionTokens } from "./field-instruction.js";

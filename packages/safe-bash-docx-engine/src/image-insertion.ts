@@ -2,7 +2,7 @@ import { inlineImageRun } from "./inline-image-xml.js";
 import type { ByteSource } from "@poe-code/office-package";
 import { archiveSettings, InputTypeError, InvalidValueError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { addressKey, LocationIndex } from "./location-index.js";

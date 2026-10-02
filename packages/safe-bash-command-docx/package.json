@@ -18,6 +18,10 @@
       "workerd": "./dist/io.js",
       "browser": "./dist/io.js",
       "import": "./dist/io.js"
+    },
+    "./sdk": {
+      "types": "./dist/sdk.d.ts",
+      "import": "./dist/sdk.js"
     }
   },
   "files": [
@@ -27,14 +31,15 @@
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
-    "lint": "eslint src && npm run typecheck",
-    "test": "node --import tsx --test src/*.test.ts",
-    "test:unit": "node --import tsx --test src/*.test.ts"
+    "lint": "eslint src tests && npm run typecheck",
+    "test": "cd ../.. && vitest run packages/safe-bash-command-docx",
+    "test:unit": "cd ../.. && vitest run packages/safe-bash-command-docx"
   },
   "dependencies": {},
   "devDependencies": {
     "safe-bash-contracts": "*",
     "@poe-code/safe-fs": "*",
-    "safe-bash-docx-engine": "*"
+    "safe-bash-docx-engine": "*",
+    "@poe-code/terminal-text": "*"
   }
 }

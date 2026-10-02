@@ -103,15 +103,8 @@ export type {
   DocxPageSettings, DocxStyleSettings, DocxThemeSettings,
   DocxXmlNode, DocxEnumValue, DocxEnumNames
 } from "./operation-types.js";
-export {
-  parseDocxArguments, validateDocxInvocation, validateDocxBatch, createDocxCommandEngine, SourceError,
-  type DocxInvocation, type DocxBatch, type DocxBatchOperation, type DocxArgumentSource,
-  type DocxCommandRequest, type DocxCommandEngineResult
-} from "./command.js";
 export { resolveDocxSelection } from "./simple-selection.js";
-export { getDocxDiscovery, inspectDocxCapabilities, type DocxDiscovery, type DocxHelpData, type DocxSchemaData, type DocxCapabilitiesData, type DocxVersionData } from "./discovery.js";
 export { inspectDocument, validateDocument, type InspectionData, type InspectionPart, type InspectionProperty, type InspectionFeature, type InspectionReference, type InspectionAnnotation, type InspectionProtection, type InspectionWarning } from "./inspection.js";
-export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest, type DocxInspectionCommandResult } from "./inspection-command.js";
 export { extractDocumentText, type TextOptions } from "./text.js";
 export { setDocumentDummyText, type DummyTextOptions, replaceDocumentText, type TextReplaceOptions, type TextMutationData } from "./text-replace.js";
 export { formatDocumentRuns, type RunFormatOptions, type RunFormatData } from "./run-format.js";
@@ -204,3 +197,5 @@ export { Comment, Comments, Hyperlink, RenderedPageBreak } from "./review-model.
 
 export type { ProvidesStoryPart, ProvidesXmlPart } from "./part-provider.js";
 export { inspectDocumentParagraph, inspectDocumentRun, inspectDocumentParagraphs, inspectDocumentRuns, type TextResourceInspectionData, type TextResourceListData } from "./text-resource-read.js";
+
+export { validateDocxInvocation, validateDocxBatch, SourceError, type DocxInvocation, type DocxBatch, type DocxBatchOperation, type DocxArgumentSource } from "./invocation.js";

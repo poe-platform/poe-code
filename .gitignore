@@ -78,6 +78,7 @@ harnesses/fix-bugs/fix-bugs.md
 !/docs/docx/acceptance-matrix.md
 /docs/plans/*docx*
 !/docs/plans/docx-deferred-audit.md
+!/docs/plans/safe-bash-command-docx.md
 /docs/plans/archive/*docx*
 /packages/docx/**/*.docx
 /packages/docx/**/*.dotx

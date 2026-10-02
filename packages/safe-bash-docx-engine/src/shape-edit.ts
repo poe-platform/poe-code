@@ -1,5 +1,5 @@
 import { archiveSettings, type ArchiveContext } from './archive.js';
-import { validateDocxInvocation } from './command.js';
+import { validateDocxInvocation } from "./invocation.js";
 import { documentDialects, dialectForNamespace } from './dialect.js';
 import type { InspectionReference } from './inspection.js';
 import type { StoryReference } from './location-index.js';

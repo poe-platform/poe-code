@@ -239,7 +239,8 @@
       ],
       "inputs": [
         "$TURBO_DEFAULT$",
-        "$TURBO_ROOT$/packages/safe-bash/src/**"
+        "$TURBO_ROOT$/packages/safe-bash/src/**",
+        "$TURBO_ROOT$/packages/safe-bash-command-docx/tests/**"
       ]
     },
     "safe-bash-command-xmllint#test:unit": {
@@ -628,6 +629,16 @@
     "safe-bash-command-safejs#test:unit": {
       "dependsOn": [
         "^build"
+      ]
+    },
+    "safe-bash-command-docx#test:unit": {
+      "dependsOn": [
+        "build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/packages/safe-bash-docx-engine/tests/**",
+        "$TURBO_ROOT$/packages/safe-bash/src/**"
       ]
     }
   }

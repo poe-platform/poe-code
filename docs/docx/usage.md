@@ -1,17 +1,21 @@
 # DOCX usage
 
-`docx` is a private TypeScript ESM workspace for document inspection and editing.
+The DOCX command inspects and edits documents through Safe Bash.
 It has no standalone executable. See the [package README](../../packages/safe-bash-docx-engine/README.md),
 [proposed contract](../specs/docx.md), and [test index](acceptance-matrix.md).
 
 ## Discover operations
 
 ```js
-import { parseDocxArguments, getDocxDiscovery } from "safe-bash-docx-engine";
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 
-const encode = value => new TextEncoder().encode(value);
-const invocation = parseDocxArguments(["schema", "text", "replace"].map(encode));
-console.log(getDocxDiscovery(invocation).data);
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(docxCommands());
+try {
+  console.log((await shell.exec("docx schema text replace")).stdout);
+} finally {
+  await shell.dispose();
+}
 ```
 
 Arguments are byte arrays. Generated `help` and `schema` describe the current
@@ -22,8 +26,8 @@ rejection.
 ## Register the command
 
 Import `docxCommands` from `@poe-platform/safe-bash/commands/docx` and explicitly
-register it on a Safe Bash `Shell`. Supply an engine created with
-`createDocxInspectionCommandEngine({ limits, documentLimits })` from `docx`.
+register it on a Safe Bash `Shell`. The built-in engine is loaded when invoked;
+an injected `engine` can provide custom document operations.
 The host provides filesystem and stream capabilities and may set resource limits.
 DOCX is not enabled by the default command preset.
 

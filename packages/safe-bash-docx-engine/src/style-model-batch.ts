@@ -21,7 +21,7 @@ import { modelContext } from "./model-context.js";
 import { UnsupportedProfileError } from "./package-xml.js";
 import { DocxUsageError } from "./argument-json.js";
 import { BoundsError } from "./model-errors.js";
-import { validateDocxBatch } from "./command.js";
+import { validateDocxBatch } from "./invocation.js";
 import { ModelBatchEffects, type ModelBatchItemResult } from "./model-batch-effects.js";
 import type { DocumentBatchItemResult } from "./batch.js";
 import { documentByteView } from "./byte-input.js";

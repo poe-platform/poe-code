@@ -1,4 +1,4 @@
-import { validateDocxInvocation, type DocxInvocation } from "./command.js";
+import { validateDocxInvocation, type DocxInvocation } from "./invocation.js";
 import { InvalidValueError } from "./archive.js";
 import { UnsupportedEditError } from "./xml-write.js";
 import { closedRecord, SelectionError, type Location, type LocationKind } from "./location-token.js";

@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { mainThreadFixture } from "../tests/main-thread.js";
 
-const run = mainThreadFixture(new URL("../tests/fixtures/deep-numbering-carrier-worker.ts", import.meta.url));
+const run = mainThreadFixture(new URL("../../safe-bash-command-docx/tests/tests/fixtures/deep-numbering-carrier-worker.js", import.meta.url));
 
 for (const strict of [false, true])
 it(`adds a list while preserving original admitted deep carriers; strict=${strict}`, async () => {

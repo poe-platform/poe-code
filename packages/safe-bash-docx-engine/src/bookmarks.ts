@@ -3,7 +3,7 @@ import { readDocumentArchive } from "./admission.js";
 import { DocxUsageError } from "./argument-json.js";
 import { DocumentBudget } from "./budget.js";
 import { updateBookmarkReferences } from "./bookmark-references.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace } from "./dialect.js";
 import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";

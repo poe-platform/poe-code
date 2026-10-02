@@ -11,7 +11,7 @@ const executeNative = nativeRepeatTemplate<{
   readonly route: string;
   readonly observedView: string;
   readonly retained: string;
-}>(new URL("../tests/fixtures/tracked-text-native.mjs", import.meta.url));
+}>(new URL("../../safe-bash-command-docx/tests/tests/fixtures/tracked-text-native.mjs", import.meta.url));
 
 for (const strict of [false, true]) for (const route of ["sdk", "sdk-batch", "cli", "cli-batch"]) for (const scenario of ["properties", "hyperlink"]) for (const observedView of ["original", "final", "baseline"])
 it(`tracked replacement respects admitted depth7800 retained boundaries; strict=${strict}; route=${route}; scenario=${scenario}${observedView === "original" ? "" : "; observedView=" + observedView}`, async () => {

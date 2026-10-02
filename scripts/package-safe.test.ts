@@ -2775,3 +2775,32 @@ it("packs the SafeJS bridge and declarations without a private install dependenc
     expect(volume.existsSync(`/output/safe-bash/dist/${name}/runtime.${suffix}`)).toBe(true);
   }
 });
+
+it("packs DOCX frontend and shared document types behind the existing command route", async () => {
+  const { volume, options } = optionalLeftovers();
+  const manifest = structuredClone(bashManifest);
+  manifest.poeCode.integration.privateWorkspaces = {};
+  const engine = "safe-bash-docx-engine";
+  const command = "safe-bash-command-docx";
+  for (const name of [engine, command]) {
+    const devDependencies = name === command ? { [engine]: "*" } : {};
+    const pkg = { name, version: "0.0.1", private: true, type: "module", dependencies: {}, devDependencies,
+      exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
+    manifest.poeCode.integration.privateWorkspaces[name] = { version: pkg.version, dependencies: {}, devDependencies };
+    volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+    volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(pkg));
+    for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/${name}/dist/index.${suffix}`, name === command
+      ? `export { identity } from "${engine}";` : suffix === "js" ? "export const identity = {};" : "export declare const identity: object;");
+  }
+  manifest.exports["./commands/docx"] = { types: "./dist/commands/docx/index.d.ts", import: "./dist/commands/docx/index.js" };
+  volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
+  volume.mkdirSync("/repo/packages/safe-bash/dist/commands/docx", { recursive: true });
+  for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/docx/index.${suffix}`, `export * from "${command}";`);
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/${command}/index.${suffix}`, "utf8")).toContain(`"../${engine}/index.js"`);
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/commands/docx/index.${suffix}`, "utf8")).toContain(`"../../../${command}/index.js"`);
+  }
+  const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8"));
+  expect(packed.dependencies).toEqual({});
+});

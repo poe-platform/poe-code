@@ -1,7 +1,7 @@
 import { createPropertyPart } from "./property-part.js";
 import { archiveSettings, InputTypeError, InvalidValueError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { documentDialects } from "./dialect.js";
 import { DocumentXmlEditor, editActivePropertyXml, UnsupportedEditError } from "./xml-write.js";
 import { SelectionError, closedRecord } from "./location-token.js";

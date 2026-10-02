@@ -1,6 +1,6 @@
 import { archiveSettings, type ArchiveContext } from "./archive.js";
 import { openDocumentLocations } from "./locations.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 import type { TextData } from "./text-traversal.js";
 

@@ -1,5 +1,5 @@
 import { archiveSettings, InvalidValueError, type ArchiveContext } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { openDocumentLocations, type DocumentLocations } from "./locations.js";
 import type { DocumentBudget } from "./budget.js";
 import { type Location, SelectionError } from "./location-token.js";

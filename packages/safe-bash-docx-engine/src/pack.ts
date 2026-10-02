@@ -5,7 +5,7 @@ import { dirname, type FileSystem } from "@poe-code/safe-fs/core";
 import { archiveSettings, CancellationError, InvalidContainerError, ResourceLimitError, type ArchiveContext, type ArchiveMember } from "./archive.js";
 import { admitDocumentArchive } from "./admission.js";
 import { InvalidPackageError } from "./package-xml.js";
-import { validateDocxInvocation, SourceError } from "./command.js";
+import { validateDocxInvocation, SourceError } from "./invocation.js";
 import { admitPackageInventory, inventoryPath } from "./pack-inventory.js";
 import { publishDocumentArchive, PublicationError } from "./publication.js";
 import type { CreateMutationData } from "./create.js";

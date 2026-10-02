@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { mainThreadFixture } from "../tests/main-thread.js";
 
-const run = mainThreadFixture(new URL("../tests/fixtures/deep-numbering-native-math-worker.ts", import.meta.url));
+const run = mainThreadFixture(new URL("../../safe-bash-command-docx/tests/tests/fixtures/deep-numbering-native-math-worker.js", import.meta.url));
 
 for (const strict of [false, true])
 it(`preserves deeply nested native math beside list allocation; strict=${strict}`, async () => {

@@ -3,7 +3,7 @@ import { synchronizeCommentExtensions, type CommentExtensionInfo } from "./comme
 import { archiveSettings, documentSession, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { writeArchive } from "./archive-write.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { commentAttribute, openComments } from "./comments-state.js";
 import { xmlValue } from "./create-content.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";

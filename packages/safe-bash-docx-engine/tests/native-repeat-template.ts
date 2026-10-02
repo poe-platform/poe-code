@@ -24,7 +24,7 @@ interface NativeResponse {
 }
 
 /** One native main thread per matrix; the fixture owns fresh state per request. */
-export function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL("./fixtures/repeat-template-native.mjs", import.meta.url)): (request: Request) => Promise<NativeResponse & { readonly receipt: { readonly drained: boolean } }> {
+export function nativeRepeatTemplate<Request = NativeRequest>(fixture = new URL("../../safe-bash-command-docx/tests/tests/fixtures/repeat-template-native.mjs", import.meta.url)): (request: Request) => Promise<NativeResponse & { readonly receipt: { readonly drained: boolean } }> {
   let child: ReturnType<typeof spawn>;
   let closed: Promise<{ code: number | null; signal: NodeJS.Signals | null }>;
   let pending: { id: number; resolve: (value: NativeResponse) => void; reject: (error: Error) => void } | undefined;

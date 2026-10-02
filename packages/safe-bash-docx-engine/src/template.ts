@@ -1,7 +1,7 @@
 import { archiveSettings, documentSession } from "./archive.js";
 import type { DocumentBudget } from "./budget.js";
 import { DocxUsageError } from "./argument-json.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { ControlClonePlanner } from "./control-clone.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import type { XmlElement } from "./package-xml.js";

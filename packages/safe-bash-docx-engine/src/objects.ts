@@ -1,6 +1,6 @@
 import { resolvePath } from "@poe-code/safe-fs/core";
 import { archiveSettings, CancellationError, type ArchiveContext } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { DocxUsageError } from "./argument-json.js";
 import { measurePackageResourceSerialization } from "./ancillary-resources.js";
 import { DocumentBudget } from "./budget.js";

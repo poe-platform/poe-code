@@ -1480,7 +1480,8 @@
           "devDependencies": {
             "safe-bash-contracts": "*",
             "@poe-code/safe-fs": "*",
-            "safe-bash-docx-engine": "*"
+            "safe-bash-docx-engine": "*",
+            "@poe-code/terminal-text": "*"
           },
           "portable": true
         },

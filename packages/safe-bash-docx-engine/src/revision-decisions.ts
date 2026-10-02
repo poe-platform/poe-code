@@ -1,5 +1,5 @@
 import { archiveSettings } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { xmlValue } from "./create-content.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import { pathContains } from "./location-index.js";

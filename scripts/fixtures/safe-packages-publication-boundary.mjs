@@ -1,3 +1,4 @@
+import "./safe-packages-docx.mjs";
 import { verification as fileVerification } from "./safe-packages-file.mjs";
 import { verification as treeVerification } from "./safe-packages-tree.mjs";
 import { verification as zstdVerification } from "./safe-packages-zstd.mjs";

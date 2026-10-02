@@ -1,6 +1,6 @@
 import { archiveSettings, InputTypeError } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { closedRecord, SelectionError } from "./location-token.js";
 import { inspectDocumentProperties, editDocumentProperties } from "./document-properties.js";
 import { inspectDocumentComments, editDocumentComments } from "./comments.js";

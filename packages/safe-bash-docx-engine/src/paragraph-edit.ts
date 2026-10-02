@@ -7,7 +7,7 @@ import { styleAllocationIds } from "./style-allocation.js";
 import { renderInsertedTable } from "./table-insertion.js";
 import { archiveSettings, InvalidValueError } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { renderContent, xmlValue } from "./create-content.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { addressKey, LocationIndex } from "./location-index.js";

@@ -2,7 +2,7 @@ import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./ar
 import { activeXmlChildren } from "./xml-active-children.js";
 import { compatibilityContainers } from "./compatibility.js";
 import { DocxUsageError } from "./argument-json.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { xmlValue } from "./create-content.js";
 import { assertOutsideFields, parseFields } from "./field-parser.js";
 import { LocationIndex } from "./location-index.js";

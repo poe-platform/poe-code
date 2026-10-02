@@ -4,10 +4,21 @@
     "noEmit": true,
     "types": [
       "node"
-    ]
+    ],
+    "rootDir": "..",
+    "paths": {
+      "safe-bash-docx-engine": [
+        "../safe-bash-docx-engine/src/index.ts"
+      ],
+      "safe-bash-docx-engine/*": [
+        "../safe-bash-docx-engine/src/*.ts"
+      ]
+    },
+    "baseUrl": "."
   },
   "include": [
-    "src"
+    "src",
+    "tests"
   ],
   "exclude": []
 }

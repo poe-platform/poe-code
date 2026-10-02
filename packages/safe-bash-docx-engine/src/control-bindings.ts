@@ -1,7 +1,7 @@
 import { readDocumentBindingOwnership } from "./binding-ownership.js";
 import { customXmlDataNamespaces, customXmlRelationshipNamespaces } from "./custom-xml-namespaces.js";
 import { archiveSettings, CancellationError, ResourceLimitError } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import type { DocumentBudget } from "./budget.js";
 import { inspectControlSnapshot, inspectDocumentControls, prepareControlValue, type ControlSnapshot } from "./controls.js";
 import type { ControlTemplateData } from "./control-template-types.js";

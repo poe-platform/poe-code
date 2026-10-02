@@ -4,7 +4,7 @@ import {
   InvalidValueError,
   type DocumentArchive
 } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { DocxUsageError } from "./argument-json.js";
 import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";

@@ -3,7 +3,7 @@ import { compareInventoryNames } from "./pack-inventory.js";
 import { resolvePath, type FileSystem, type FileStat } from "@poe-code/safe-fs/core";
 import { archiveSettings, CancellationError, ResourceLimitError, InvalidContainerError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { asciiKey } from "./part-uri.js";
 import { displayXml } from "./xml-display.js";
 import { isXmlContentType, parseDocumentXmlAsync } from "./package-xml.js";

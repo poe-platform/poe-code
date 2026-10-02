@@ -1,3 +1,4 @@
+import "./safe-packages-docx-types.mjs";
 import "./safe-packages-file-types.mjs";
 import "./safe-packages-hexdump-types.mjs";
 import "./safe-packages-tree-types.mjs";

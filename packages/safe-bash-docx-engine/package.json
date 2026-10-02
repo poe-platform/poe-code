@@ -14,6 +14,318 @@
     "./pandoc-adapter": {
       "types": "./dist/pandoc-adapter.d.ts",
       "import": "./dist/pandoc-adapter.js"
+    },
+    "./invocation": {
+      "types": "./dist/invocation.d.ts",
+      "import": "./dist/invocation.js"
+    },
+    "./ancillary-resources": {
+      "types": "./dist/ancillary-resources.d.ts",
+      "import": "./dist/ancillary-resources.js"
+    },
+    "./archive": {
+      "types": "./dist/archive.d.ts",
+      "import": "./dist/archive.js"
+    },
+    "./operation-types": {
+      "types": "./dist/operation-types.d.ts",
+      "import": "./dist/operation-types.js"
+    },
+    "./publication": {
+      "types": "./dist/publication.d.ts",
+      "import": "./dist/publication.js"
+    },
+    "./argument-json": {
+      "types": "./dist/argument-json.d.ts",
+      "import": "./dist/argument-json.js"
+    },
+    "./batch": {
+      "types": "./dist/batch.d.ts",
+      "import": "./dist/batch.js"
+    },
+    "./batch-operations": {
+      "types": "./dist/batch-operations.d.ts",
+      "import": "./dist/batch-operations.js"
+    },
+    "./bookmarks": {
+      "types": "./dist/bookmarks.d.ts",
+      "import": "./dist/bookmarks.js"
+    },
+    "./charts": {
+      "types": "./dist/charts.d.ts",
+      "import": "./dist/charts.js"
+    },
+    "./model-errors": {
+      "types": "./dist/model-errors.d.ts",
+      "import": "./dist/model-errors.js"
+    },
+    "./part-provider": {
+      "types": "./dist/part-provider.d.ts",
+      "import": "./dist/part-provider.js"
+    },
+    "./budget": {
+      "types": "./dist/budget.d.ts",
+      "import": "./dist/budget.js"
+    },
+    "./io-errors": {
+      "types": "./dist/io-errors.d.ts",
+      "import": "./dist/io-errors.js"
+    },
+    "./command-selection": {
+      "types": "./dist/command-selection.d.ts",
+      "import": "./dist/command-selection.js"
+    },
+    "./command-option-rules": {
+      "types": "./dist/command-option-rules.d.ts",
+      "import": "./dist/command-option-rules.js"
+    },
+    "./command-properties": {
+      "types": "./dist/command-properties.d.ts",
+      "import": "./dist/command-properties.js"
+    },
+    "./location-token": {
+      "types": "./dist/location-token.d.ts",
+      "import": "./dist/location-token.js"
+    },
+    "./operation-schema": {
+      "types": "./dist/operation-schema.d.ts",
+      "import": "./dist/operation-schema.js"
+    },
+    "./comments": {
+      "types": "./dist/comments.d.ts",
+      "import": "./dist/comments.js"
+    },
+    "./template": {
+      "types": "./dist/template.d.ts",
+      "import": "./dist/template.js"
+    },
+    "./control-bindings": {
+      "types": "./dist/control-bindings.d.ts",
+      "import": "./dist/control-bindings.js"
+    },
+    "./control-repeat": {
+      "types": "./dist/control-repeat.d.ts",
+      "import": "./dist/control-repeat.js"
+    },
+    "./io": {
+      "types": "./dist/io.d.ts",
+      "import": "./dist/io.js"
+    },
+    "./controls": {
+      "types": "./dist/controls.d.ts",
+      "import": "./dist/controls.js"
+    },
+    "./create": {
+      "types": "./dist/create.d.ts",
+      "import": "./dist/create.js"
+    },
+    "./diagrams": {
+      "types": "./dist/diagrams.d.ts",
+      "import": "./dist/diagrams.js"
+    },
+    "./pack-uri-batch-operations": {
+      "types": "./dist/pack-uri-batch-operations.d.ts",
+      "import": "./dist/pack-uri-batch-operations.js"
+    },
+    "./inspection": {
+      "types": "./dist/inspection.d.ts",
+      "import": "./dist/inspection.js"
+    },
+    "./batch-result-schema": {
+      "types": "./dist/batch-result-schema.d.ts",
+      "import": "./dist/batch-result-schema.js"
+    },
+    "./package-view-batch-operations": {
+      "types": "./dist/package-view-batch-operations.d.ts",
+      "import": "./dist/package-view-batch-operations.js"
+    },
+    "./style-model-batch-operations": {
+      "types": "./dist/style-model-batch-operations.d.ts",
+      "import": "./dist/style-model-batch-operations.js"
+    },
+    "./structure-model-batch-operations": {
+      "types": "./dist/structure-model-batch-operations.d.ts",
+      "import": "./dist/structure-model-batch-operations.js"
+    },
+    "./image-batch-operations": {
+      "types": "./dist/image-batch-operations.d.ts",
+      "import": "./dist/image-batch-operations.js"
+    },
+    "./style-model-result-schema": {
+      "types": "./dist/style-model-result-schema.d.ts",
+      "import": "./dist/style-model-result-schema.js"
+    },
+    "./validation": {
+      "types": "./dist/validation.d.ts",
+      "import": "./dist/validation.js"
+    },
+    "./operation-json-schema": {
+      "types": "./dist/operation-json-schema.d.ts",
+      "import": "./dist/operation-json-schema.js"
+    },
+    "./discovery-result-schema": {
+      "types": "./dist/discovery-result-schema.d.ts",
+      "import": "./dist/discovery-result-schema.js"
+    },
+    "./equations": {
+      "types": "./dist/equations.d.ts",
+      "import": "./dist/equations.js"
+    },
+    "./package-xml": {
+      "types": "./dist/package-xml.d.ts",
+      "import": "./dist/package-xml.js"
+    },
+    "./fields": {
+      "types": "./dist/fields.d.ts",
+      "import": "./dist/fields.js"
+    },
+    "./image-insertion": {
+      "types": "./dist/image-insertion.d.ts",
+      "import": "./dist/image-insertion.js"
+    },
+    "./image-layout": {
+      "types": "./dist/image-layout.d.ts",
+      "import": "./dist/image-layout.js"
+    },
+    "./image-replacement": {
+      "types": "./dist/image-replacement.d.ts",
+      "import": "./dist/image-replacement.js"
+    },
+    "./images": {
+      "types": "./dist/images.d.ts",
+      "import": "./dist/images.js"
+    },
+    "./model-context": {
+      "types": "./dist/model-context.d.ts",
+      "import": "./dist/model-context.js"
+    },
+    "./extract": {
+      "types": "./dist/extract.d.ts",
+      "import": "./dist/extract.js"
+    },
+    "./diff": {
+      "types": "./dist/diff.d.ts",
+      "import": "./dist/diff.js"
+    },
+    "./objects": {
+      "types": "./dist/objects.d.ts",
+      "import": "./dist/objects.js"
+    },
+    "./revisions": {
+      "types": "./dist/revisions.d.ts",
+      "import": "./dist/revisions.js"
+    },
+    "./links": {
+      "types": "./dist/links.d.ts",
+      "import": "./dist/links.js"
+    },
+    "./table-read": {
+      "types": "./dist/table-read.d.ts",
+      "import": "./dist/table-read.js"
+    },
+    "./text-resource-read": {
+      "types": "./dist/text-resource-read.d.ts",
+      "import": "./dist/text-resource-read.js"
+    },
+    "./font-resources": {
+      "types": "./dist/font-resources.d.ts",
+      "import": "./dist/font-resources.js"
+    },
+    "./font-inventory": {
+      "types": "./dist/font-inventory.d.ts",
+      "import": "./dist/font-inventory.js"
+    },
+    "./locations": {
+      "types": "./dist/locations.d.ts",
+      "import": "./dist/locations.js"
+    },
+    "./text": {
+      "types": "./dist/text.d.ts",
+      "import": "./dist/text.js"
+    },
+    "./lists": {
+      "types": "./dist/lists.d.ts",
+      "import": "./dist/lists.js"
+    },
+    "./notes": {
+      "types": "./dist/notes.d.ts",
+      "import": "./dist/notes.js"
+    },
+    "./pack": {
+      "types": "./dist/pack.d.ts",
+      "import": "./dist/pack.js"
+    },
+    "./paragraph-edit": {
+      "types": "./dist/paragraph-edit.d.ts",
+      "import": "./dist/paragraph-edit.js"
+    },
+    "./document-properties": {
+      "types": "./dist/document-properties.d.ts",
+      "import": "./dist/document-properties.js"
+    },
+    "./property-values": {
+      "types": "./dist/property-values.d.ts",
+      "import": "./dist/property-values.js"
+    },
+    "./admission": {
+      "types": "./dist/admission.d.ts",
+      "import": "./dist/admission.js"
+    },
+    "./removal": {
+      "types": "./dist/removal.d.ts",
+      "import": "./dist/removal.js"
+    },
+    "./revision-decisions": {
+      "types": "./dist/revision-decisions.d.ts",
+      "import": "./dist/revision-decisions.js"
+    },
+    "./revision-edit": {
+      "types": "./dist/revision-edit.d.ts",
+      "import": "./dist/revision-edit.js"
+    },
+    "./run-format": {
+      "types": "./dist/run-format.d.ts",
+      "import": "./dist/run-format.js"
+    },
+    "./sanitize": {
+      "types": "./dist/sanitize.d.ts",
+      "import": "./dist/sanitize.js"
+    },
+    "./sections": {
+      "types": "./dist/sections.d.ts",
+      "import": "./dist/sections.js"
+    },
+    "./settings": {
+      "types": "./dist/settings.d.ts",
+      "import": "./dist/settings.js"
+    },
+    "./shape-edit": {
+      "types": "./dist/shape-edit.d.ts",
+      "import": "./dist/shape-edit.js"
+    },
+    "./signatures": {
+      "types": "./dist/signatures.d.ts",
+      "import": "./dist/signatures.js"
+    },
+    "./stories": {
+      "types": "./dist/stories.d.ts",
+      "import": "./dist/stories.js"
+    },
+    "./styles": {
+      "types": "./dist/styles.d.ts",
+      "import": "./dist/styles.js"
+    },
+    "./table-edit": {
+      "types": "./dist/table-edit.d.ts",
+      "import": "./dist/table-edit.js"
+    },
+    "./text-replace": {
+      "types": "./dist/text-replace.d.ts",
+      "import": "./dist/text-replace.js"
+    },
+    "./xml-parts": {
+      "types": "./dist/xml-parts.d.ts",
+      "import": "./dist/xml-parts.js"
     }
   },
   "files": [

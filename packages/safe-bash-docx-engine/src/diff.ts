@@ -1,6 +1,6 @@
 import { archiveSettings, InputTypeError, ResourceLimitError, type ArchiveContext } from "./archive.js";
 import { admittedXml, readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { DocumentBudget } from "./budget.js";
 import { LocationIndex, type DocumentScope, type LocationEntry } from "./location-index.js";
 import { encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";

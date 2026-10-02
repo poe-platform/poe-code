@@ -7,7 +7,7 @@ import {
   InvalidValueError,
   type DocumentArchive
 } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { DocxUsageError } from "./argument-json.js";
 import { xmlValue } from "./create-content.js";
 import { assertOutsideRevisionRanges } from "./revision-markup.js";

@@ -4,7 +4,7 @@ import { compareInventoryNames as compare } from "./pack-inventory.js";
 import { parseMediaType } from "./media-type.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { documentPartRole } from "./document-part-roles.js";
 import { customXmlDataNamespaces, customXmlRelationshipNamespaces } from "./custom-xml-namespaces.js";
 import type { InspectionPart, InspectionReference } from "./inspection.js";

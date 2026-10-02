@@ -27,7 +27,7 @@ it("allows a native request within the enclosing test deadline and drains its ch
   });
   child.stdin.end = vi.fn(() => { queueMicrotask(() => child.emit("message", { value: "ready" })); return child.stdin; });
   spawning.spawn.mockReturnValue(child);
-  const execute = mainThreadFixture(new URL("../tests/fixtures/tracked-cli-review-views-native.mjs", import.meta.url));
+  const execute = mainThreadFixture(new URL("../../safe-bash-command-docx/tests/tests/fixtures/tracked-cli-review-views-native.mjs", import.meta.url));
   await hooks.before[0]!();
   try {
     const request = execute({}).catch(error => (error as Error).message);

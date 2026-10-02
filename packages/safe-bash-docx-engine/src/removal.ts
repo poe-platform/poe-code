@@ -1,6 +1,6 @@
 import { archiveSettings, InvalidValueError } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { closedRecord, encodeGeneratedLocation as encodeLocation, type Location } from "./location-token.js";
 import { openDocumentLocations } from "./locations.js";
 import { dialectForNamespace } from "./dialect.js";

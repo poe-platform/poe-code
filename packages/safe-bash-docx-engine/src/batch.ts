@@ -1,5 +1,5 @@
 import { archiveSettings, InputTypeError, type DocumentArchive } from "./archive.js";
-import { docxBatchMutates, validateDocxBatch, validateDocxInvocation, type DocxBatch } from "./command.js";
+import { docxBatchMutates, validateDocxBatch, validateDocxInvocation, type DocxBatch } from "./invocation.js";
 import { documentBatchActions } from "./batch-operations.js";
 import { DocumentSession } from "./document-session.js";
 import { docxOperationSchemas } from "./operation-schema.js";

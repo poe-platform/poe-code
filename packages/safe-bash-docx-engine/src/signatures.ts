@@ -1,7 +1,7 @@
 import { compareInventoryNames } from "./pack-inventory.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { asciiKey } from "./part-uri.js";

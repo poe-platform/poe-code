@@ -1,6 +1,6 @@
 import { archiveSettings, documentSession, InputTypeError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { documentDialects } from "./dialect.js";
 import { embeddedFontContentTypes, fontResourceRole } from "./font-resources.js";
 import { openDocumentLocations } from "./locations.js";

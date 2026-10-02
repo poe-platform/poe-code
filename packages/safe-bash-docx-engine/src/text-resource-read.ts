@@ -1,5 +1,5 @@
 import { archiveSettings, type ArchiveContext } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { openDocumentLocations } from "./locations.js";
 import type { Location } from "./location-token.js";

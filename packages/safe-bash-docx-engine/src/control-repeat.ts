@@ -1,7 +1,7 @@
 import { archiveSettings, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { documentXmlCache, type DocumentBudget } from "./budget.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { ControlClonePlanner } from "./control-clone.js";
 import type { ControlTemplateData } from "./control-template-types.js";
 import { openControlInventory, inspectControlSnapshot, prepareControlValue, prepareControlPlaceholder, type ControlScalarInput, type ControlSnapshot } from "./controls.js";

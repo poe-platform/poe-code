@@ -6,7 +6,7 @@ import { textContext, textFixture } from "../tests/fixtures/text.js";
 import { readPackage } from "../tests/assertions.js";
 import { mainThreadFixture } from "../tests/main-thread.js";
 
-const executeNative = mainThreadFixture(new URL("../tests/fixtures/tracked-cli-review-views-native.mjs", import.meta.url));
+const executeNative = mainThreadFixture(new URL("../../safe-bash-command-docx/tests/tests/fixtures/tracked-cli-review-views-native.mjs", import.meta.url));
 
 const generated = new Map<string, Uint8Array>();
 

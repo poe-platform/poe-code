@@ -1,6 +1,6 @@
 import { incomingResourceReferences } from "./ancillary-resources.js";
 import { archiveSettings, type ArchiveContext } from "./archive.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { pathContains } from "./location-index.js";
 import { SelectionError, type Location } from "./location-token.js";
 import { openDocumentLocations, type DocumentLocations } from "./locations.js";

@@ -13,7 +13,7 @@ const executeNative = nativeRepeatTemplate<{
   readonly route: string;
   readonly depth: number;
   readonly strict: boolean;
-}>(new URL("../tests/fixtures/property-opaque-native.mjs", import.meta.url));
+}>(new URL("../../safe-bash-command-docx/tests/tests/fixtures/property-opaque-native.mjs", import.meta.url));
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
 for (const group of ["core", "extended", "custom"] as const)

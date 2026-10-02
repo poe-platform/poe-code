@@ -1,6 +1,6 @@
 import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
-import { validateDocxInvocation } from "./command.js";
+import { validateDocxInvocation } from "./invocation.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace, documentDialects } from "./dialect.js";
 import { closedRecord, decodeLocation, encodeGeneratedLocation as encodeLocation, SelectionError, type Location } from "./location-token.js";

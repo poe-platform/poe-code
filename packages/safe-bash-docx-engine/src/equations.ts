@@ -1,6 +1,6 @@
 import { parseMediaType } from "./media-type.js";
 import {archiveSettings,InputTypeError,InvalidValueError,ResourceLimitError,type ArchiveContext} from './archive.js';
-import {readDocumentArchive,type AdmittedDocumentArchive} from './admission.js';import {validateDocxInvocation} from './command.js';
+import {readDocumentArchive,type AdmittedDocumentArchive} from './admission.js';import {validateDocxInvocation} from "./invocation.js";
 import {DocumentBudget} from './budget.js';import {documentDialects} from './dialect.js';
 import {closedRecord,decodeLocation,encodeGeneratedLocation as encodeLocation,SelectionError,type Location} from './location-token.js';
 import {LocationIndex,pathContains} from './location-index.js';import {parseDocumentXml,isXmlContentType,type XmlElement} from './package-xml.js';

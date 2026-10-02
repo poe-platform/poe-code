@@ -1,16 +1,21 @@
 # docx
 
-Private ESM workspace for DOCX admission, inspection, editing and
-publication. It does not render Word documents and has no standalone binary.
+Reusable DOCX admission, inspection, editing and publication for Safe Bash
+and document conversion. This engine is internal and bundled with its consumers;
+use the public Safe Bash command export shown below. It does not render Word documents and has no standalone binary.
 `RGBColor(red, green, blue)` supports factory calls and `new`, with immutable
 components and the `RGBColor.from_string(hex)` helper.
 
 ```js
-import { parseDocxArguments, getDocxDiscovery } from "safe-bash-docx-engine";
+import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
+import { docxCommands } from "@poe-platform/safe-bash/commands/docx";
 
-const encode = value => new TextEncoder().encode(value);
-const invocation = parseDocxArguments(["schema", "text", "replace"].map(encode));
-console.log(getDocxDiscovery(invocation).data);
+const shell = new Shell({ fs: createMemoryFileSystem() }).use(docxCommands());
+try {
+  console.log((await shell.exec("docx schema text replace")).stdout);
+} finally {
+  await shell.dispose();
+}
 ```
 
 Formatting values support factory and constructor calls: `RGBColor(255, 0, 17)`

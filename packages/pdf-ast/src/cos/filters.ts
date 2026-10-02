@@ -6,7 +6,7 @@ function detachPakoStream(strm: unknown): void {
   for (const key of ["window", "prev", "head", "pending_buf"]) {
     const buf = state[key]?.buffer;
     if (buf && typeof buf.transfer === "function") {
-      try { buf.transfer(0); } catch {}
+      try { buf.transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
     }
   }
 }
@@ -53,7 +53,7 @@ class BoundedFlateStream extends FlateStream {
     const buffer = new Uint8Array(Math.min(size, this.maxDecodedBytes));
     buffer.set(prev);
     if (prev.byteOffset === 0 && typeof (prev.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
-      try { (prev.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+      try { (prev.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
     }
     return (this.buffer = buffer);
   }

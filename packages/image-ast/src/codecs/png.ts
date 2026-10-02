@@ -6,7 +6,7 @@ function detachZStreamBuffers(strm: unknown): void {
   for (const key of ["window", "prev", "head", "pending_buf"]) {
     const buf = state[key]?.buffer;
     if (buf && typeof buf.transfer === "function") {
-      try { buf.transfer(0); } catch {}
+      try { buf.transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
     }
   }
 }
@@ -740,7 +740,7 @@ export function decodePngToCanvas(
       }
     }
     if (typeof (chunk.buffer as unknown as { transfer?: (n: number) => ArrayBuffer }).transfer === "function") {
-      try { (chunk.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+      try { (chunk.buffer as unknown as { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch { /* Detachment is best effort for host buffers. */ }
     }
   };
   inf.onEnd = () => {};

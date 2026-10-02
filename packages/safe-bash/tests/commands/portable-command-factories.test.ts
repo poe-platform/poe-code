@@ -3,6 +3,8 @@ import test from "node:test";
 import { gzipSync } from "node:zlib";
 import * as csvkit from "safe-bash-command-csvkit";
 import * as ssconvert from "safe-bash-command-ssconvert";
+// Transpile the lazy module before removing Buffer: tsx itself needs the Node global.
+import { createPandocCommand } from "safe-bash-command-pandoc";
 import { createXmllintCommand } from "safe-bash-command-xmllint";
 import { csvkitCommands } from "../../src/commands/csvkit/index.js";
 import { ssconvertCommands } from "../../src/commands/ssconvert/index.js";
@@ -18,6 +20,7 @@ test("workspace and shell factories support omitted options", () => {
   assert.deepEqual(ssconvert.createSsconvertCommands().map(command => command.name), ["ssconvert"]);
   assert.equal(ssconvert.ssconvertCommands().name, "ssconvert-commands");
   assert.equal(createXmllintCommand().name, "xmllint");
+  assert.equal(createPandocCommand().name, "pandoc");
   assert.equal(csvkitCommands().name, "csvkit-commands");
   assert.equal(ssconvertCommands().name, "ssconvert-commands");
 });

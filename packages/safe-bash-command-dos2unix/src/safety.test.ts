@@ -6,15 +6,15 @@ import { toByteSource, type CommandContext, type FileSystem } from "safe-bash-co
 import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
 import { createDos2unixCommand, createUnix2dosCommand, evalSyncLineEndings, type LineEndingLimits } from "./index.js";
 
-test("sync conversion preserves ascii flags and defers non-ascii modes without writes", () => {
+test("sync conversion preserves supported ascii flags and defers unsupported options without writes", () => {
   const encoder = new TextEncoder();
   const source = encoder.encode("first\r\nsecond\r\n");
-  for (const args of [[], ["-cascii"], ["-c", "ASCII"], ["--convmode=ascii"], ["--convmode", "ascii"]]) {
+  for (const args of [[], ["-ascii"], ["-c", "ASCII"], ["--convmode", "ascii"]]) {
     assert.deepEqual(evalSyncLineEndings("dos2unix", source, args), encoder.encode("first\nsecond\n"));
   }
   assert.deepEqual(evalSyncLineEndings("unix2dos", encoder.encode("first\nsecond"), ["-e"]), encoder.encode("first\r\nsecond\r\n"));
   for (const name of ["dos2unix", "unix2dos"] as const) {
-    for (const args of [["-cmac"], ["-c", "mac"], ["--convmode=mac"], ["--convmode", "iso"]]) {
+    for (const args of [["-cascii"], ["--convmode=ascii"], ["-cmac"], ["-c", "mac"], ["--convmode=mac"], ["--convmode", "iso"]]) {
       let reads = 0, writes = 0;
       assert.equal(evalSyncLineEndings(name, source, [...args, "-q", "input"], () => {reads++;return source;}, () => {writes++;return true;}), undefined);
       assert.equal(reads, 0);assert.equal(writes, 0);
@@ -57,6 +57,17 @@ for (const [name, create] of [['dos2unix', createDos2unixCommand], ['unix2dos', 
       stdin: toByteSource('A\r\n'), stdout: { async write(bytes) { stdout.push(bytes.slice()); } }, stderr: { async write(bytes) { stderr.push(bytes.slice()); } }, ...overrides });
     return { ...result, stdout: Buffer.concat(stdout).toString('hex'), stderr: Buffer.concat(stderr).toString() };
   }
+
+  test(`${name}: supported ASCII options preserve exact conversion bytes`, async () => {
+    for (const args of [[], ['-ascii'], ['-c', 'ASCII'], ['--convmode', 'ascii']]) {
+      assert.deepEqual(await run({ args }), { exitCode: 0, stdout: name === 'dos2unix' ? '410a' : '410d0a', stderr: '' });
+    }
+  });
+
+  for (const argument of ['-cascii', '--convmode=ascii']) test(`${name}: rejects ${argument} before acquiring input`, async () => {
+    const result = await run({ args: [argument], stdin: { [Symbol.asyncIterator]() { assert.fail('unsupported options must not acquire input'); } } });
+    assert.deepEqual(result, { exitCode: 1, stdout: '', stderr: `${name}: unsupported option in virtual profile: ${argument}\n` });
+  });
 
   test(`${name}: chunk copy must not consult producer iterator`, async () => {
     let calls = 0;

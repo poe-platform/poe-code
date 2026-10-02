@@ -452,6 +452,9 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 renderedBytes = (yield* encodePbmSteps(bitmap));
             else
                 renderedBytes = (yield* encodePpmSteps(bitmap));
+            if (typeof (bitmap.data.buffer as ArrayBuffer & { transfer?: (n: number) => ArrayBuffer }).transfer === "function" && bitmap.data.byteOffset === 0 && bitmap.data.byteLength === bitmap.data.buffer.byteLength) {
+                try { (bitmap.data.buffer as ArrayBuffer & { transfer: (n: number) => ArrayBuffer }).transfer(0); } catch {}
+            }
         }
         options.onAllocateBytes?.(renderedBytes.byteLength);
         if (!prefix || prefix === "-") {

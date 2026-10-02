@@ -185,7 +185,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     const stream = extract ? false : typeof payload.stream === 'boolean' ? payload.stream : true;
     const limit = payload.max_response_bytes;
     if (limit !== undefined && limit !== null && (typeof limit !== 'number' || !Number.isSafeInteger(limit) || limit < 0)) throw new RangeError('Invalid LLM response limit');
-    const attachments: {mimeType:string;source:LlmInputSource}[] = [];
+    const attachmentGroups: {mimeType:string;source:LlmInputSource}[][] = [];
     const sources: LlmInputSource[] = [];
     const inputLimit = input.remaining();
     const prefixBytes = input.totalBytes;
@@ -265,19 +265,29 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         for await (const chunk of retained.bytes) { consume(chunk.byteLength); yield chunk; }
       })(), dispose:retained.dispose};
     };
-    const inputs = payload.attachments ?? [];
-    if (!Array.isArray(inputs)) throw new TypeError('Expected canonical LLM attachments');
-    const messages = payload.messages === undefined ? undefined : payload.messages;
-    if (messages !== undefined && !Array.isArray(messages)) throw new TypeError('Invalid LLM messages');
-    const sourceInputs = inputs.length > 0 || typeof (payload.prompt ?? '') !== 'string'
+    const messages = payload.messages === undefined ? undefined : (() => {
+      if (!Array.isArray(payload.messages)) throw new TypeError('Invalid LLM messages');
+      return payload.messages.map(value => {
+        const message = record(value);
+        if (!['system','user','assistant'].includes(message.role as string) || message.content === undefined) throw new TypeError('Invalid LLM message');
+        return {role:message.role as 'system'|'user'|'assistant',content:message.content,attachments:message.attachments ?? []};
+      });
+    })();
+    const inputGroups = [payload.attachments ?? [], ...messages?.map(message => message.attachments) ?? []];
+    for (const group of inputGroups) if (!Array.isArray(group)) throw new TypeError('Expected canonical LLM attachments');
+    const sourceInputs = inputGroups.some(group => (group as readonly PythonHostValue[]).length > 0)
+      || typeof (payload.prompt ?? '') !== 'string'
       || payload.system !== undefined && typeof payload.system !== 'string'
-      || messages?.some(message => typeof record(message).content !== 'string');
+      || messages?.some(message => typeof message.content !== 'string');
     try {
       if (sourceInputs) {
         if (!service.streamSources) throw new TypeError('Shared LLM service does not support streamed inputs');
         const {model,provider} = service.resolve(payload.model == null ? undefined : payload.model as string);
         if (!provider.completeSources || model.inputSources === false) throw new Error(`Model ${model.id} does not support streamed inputs`);
-        for (const input of inputs) {
+        for (const inputs of inputGroups) {
+          const attachments: {mimeType:string;source:LlmInputSource}[] = [];
+          attachmentGroups.push(attachments);
+          for (const input of inputs as readonly PythonHostValue[]) {
           const attachment = record(input);
           if (attachment.content !== undefined) {
             const content = attachment.content;
@@ -312,13 +322,14 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
             attachments.push({mimeType:mimeType!,source});
           }
         }
+        }
         const prompt = await inputSource(payload.prompt ?? '');
         const system = payload.system === undefined ? undefined : await inputSource(payload.system);
-        const history: {role:'system'|'user'|'assistant';content:LlmInputSource}[] = [];
+        const history: {role:'system'|'user'|'assistant';content:LlmInputSource;attachments:{mimeType:string;source:LlmInputSource}[]}[] = [];
         for (const value of messages ?? []) {
           const message = record(value);
           if (!['system','user','assistant'].includes(message.role as string)) throw new TypeError('Invalid LLM message role');
-          history.push({role:message.role as 'system'|'user'|'assistant',content:await inputSource(message.content!)});
+          history.push({role:message.role as 'system'|'user'|'assistant',content:await inputSource(message.content!),attachments:attachmentGroups[history.length + 1]!});
         }
         return {
           prompt,
@@ -327,7 +338,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
           ...(messages === undefined ? {} : {messages:history}),
           ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
           options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
-          attachments, signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
+          attachments:attachmentGroups[0]!, signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
         };
       }
     } catch (error) {
@@ -338,7 +349,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
       prompt:payload.prompt === undefined ? '' : payload.prompt as string,
       ...(payload.model == null ? {} : {model:payload.model as string}),
       ...(payload.system === undefined ? {} : {system:payload.system as string}),
-      ...(payload.messages === undefined ? {} : {messages:payload.messages as unknown as NonNullable<LlmServiceRequest['messages']>}),
+      ...(messages === undefined ? {} : {messages:messages.map(message => ({role:message.role,content:message.content as string}))}),
       ...(payload.schema === undefined ? {} : {schema:record(payload.schema)}),
       options:record(payload.options ?? {}) as Readonly<Record<string,LlmOption>>,
       attachments:[], signal, stream, ...(key === undefined ? {} : {key}), ...(extract ? {extract} : {}), ...(limit == null ? {} : {maxOutputBytes:limit as number}),
@@ -354,7 +365,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     const streamed = request as LlmServiceSourceRequest;
     try { for await (const event of service.streamSources!(streamed)) yield {event,signal:request.signal}; }
     finally {
-      await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.map(message => message.content) ?? [], ...streamed.attachments.map(attachment => attachment.source)].map(source => source.dispose()));
+      await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.flatMap(message => [message.content, ...message.attachments?.map(attachment => attachment.source) ?? []]) ?? [], ...streamed.attachments.map(attachment => attachment.source)].map(source => source.dispose()));
     }
   };
   const events = async function* (value:PythonHostValue, {signal}:{readonly signal:AbortSignal}):AsyncGenerator<PythonHostValue> {
@@ -528,7 +539,7 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
         if (size > bufferedLimit - envelopeBytes - textBytes - dataBytes) throw new RangeError('Python LLM buffered response limit exceeded');
       };
       let extract:'first'|'last'|undefined = payload.extract_last ? 'last' : payload.extract ? 'first' : undefined;
-      for await (const {event,signal:operationSignal} of (async function* () { const prepared = await prepare(payload, signal); extract = prepared.extract; const request = {...prepared, maxOutputBytes:Math.min(prepared.maxOutputBytes ?? Infinity, bufferedLimit)}; if (typeof request.prompt === 'string') { for await (const event of service.stream(request as LlmServiceRequest)) yield {event,signal:request.signal,extract}; return; } const streamed = request as LlmServiceSourceRequest; try { for await (const event of service.streamSources!(streamed)) yield {event,signal:request.signal,extract}; } finally { await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.map(message => message.content) ?? [], ...streamed.attachments.map(attachment => attachment.source)].map(source => source.dispose())); } })()) {
+      for await (const {event,signal:operationSignal} of (async function* () { const prepared = await prepare(payload, signal); extract = prepared.extract; const request = {...prepared, maxOutputBytes:Math.min(prepared.maxOutputBytes ?? Infinity, bufferedLimit)}; if (typeof request.prompt === 'string') { for await (const event of service.stream(request as LlmServiceRequest)) yield {event,signal:request.signal,extract}; return; } const streamed = request as LlmServiceSourceRequest; try { for await (const event of service.streamSources!(streamed)) yield {event,signal:request.signal,extract}; } finally { await Promise.allSettled([streamed.prompt, ...streamed.system ? [streamed.system] : [], ...streamed.messages?.flatMap(message => [message.content, ...message.attachments?.map(attachment => attachment.source) ?? []]) ?? [], ...streamed.attachments.map(attachment => attachment.source)].map(source => source.dispose())); } })()) {
         operationSignal.throwIfAborted();
         if (++received > eventLimit) throw new RangeError('Python LLM buffered event limit exceeded');
         if (event.type === 'text') {

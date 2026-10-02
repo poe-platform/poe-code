@@ -77,8 +77,9 @@ async function host(id: string) {
     await fs.writeFile("/work/tool", Buffer.from("#!/bin/bash\nprintf 'ran\\n'\n"), { mode: 0o755 });
     commands.register({ name: "revoke", async execute() { await fs.chmod("/work/tool", 0o644); return { exitCode: 0 }; } });
     commands.register({ name: "remove", async execute() { await fs.rm("/work/tool"); return { exitCode: 0 }; } });
-    const result = await shell.exec('PATH=""; command -v tool; command tool; revoke; command tool; printf "denied:%s\\n" "$?"; remove; command -v tool; printf "missing:%s\\n" "$?"; PATH=/bin:/usr/bin; command -v /bin/ls; printf "host:%s\\n" "$?"');
-    assert.equal(result.stdout, "./tool\nran\ndenied:126\nmissing:1\nhost:1\n");
+    // /bin/ls is a registered virtual command; the host Node path is not.
+    const result = await shell.exec('PATH=""; command -v tool; command tool; revoke; command tool; printf "denied:%s\\n" "$?"; remove; command -v tool; printf "missing:%s\\n" "$?"; PATH=/bin:/usr/bin; command -v /bin/ls; command -v "$HOST_NODE"; printf "host:%s\\n" "$?"', { env: { HOST_NODE: process.execPath } });
+    assert.equal(result.stdout, "./tool\nran\ndenied:126\nmissing:1\n/bin/ls\nhost:1\n");
     assert.match(result.stderr, /tool.*[Pp]ermission denied/u);
   } else if (id === "host-read-N-cancel-partial-character") {
     const controller = new AbortController();

@@ -3231,3 +3231,39 @@ before a swap; these measurements do not pass the performance gate.
 Scalar/array parsing is verified on remote main at 746d31522e. GraphQL confirms
 its main Release workflow 37063531308 completed but skipped release-stable;
 this is not publication. REST monitoring hit a rate limit; GraphQL remains usable.
+
+### JSON parse-location diagnostic checkpoint
+
+The internal JSON diagnostic module now uses Rust for cause/direct/message
+location precedence, finite own-property admission, message digit scanning,
+UTF-16 source offsets, suffix removal and diagnostic assembly. Node retains live
+property/method access, numeric conversion, source rendering and string coercion.
+Cause line/column locations precede direct offsets and parsed message positions;
+method lookup and quoted/unquoted path timing match the reference. The complete
+CLI entry point and default implementation remain unchanged; no dependency was added.
+
+Four missing-module failures preceded implementation. Nine differential tests
+extract the actual reference helpers in memory and cover UTF-16/lone surrogates,
+numeric extremes, own-property precedence, live Number/Math predicates and
+methods, repeated digit coercion, parseInt lookup before slice, getter order,
+reentrant source access, malformed inputs and arbitrary thrown identity.
+Build, Rust/binding lint, scoped ESLint and the maintained package route pass:
+202 native tests, 1,723 reference/integration cases in 46 files and declarations.
+
+Packed diagnostic imports execute with only packed own schema/design packages
+admitted as external ESM dependencies. This internal module's packed declarations
+compile with types: [] and skipLibCheck: false without contract-type dependencies;
+that does not qualify the rest of the package's standalone declarations. An
+inspected diagnostic screenshot matches the reference text, path, gutter and
+caret; it is not a complete CLI execution screenshot.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 calls, retaining
+32 results, measured native/reference medians of 54.293/0.047 microseconds for
+a 20-code-unit source offset (1,165.51 times slower) and 65.184/1.063 for a full
+file diagnostic (61.30 times slower). Per-character native/host crossings remain
+an optimization requirement; this does not pass the performance gate. Full CLI,
+transport, resource/platform, reentrancy-limit and swap gates remain open.
+
+The suggestion repair is verified on remote main at ae63fd1f94. Its main Release
+workflow 37064376497 completed successfully with release-stable skipped, so no
+new publication is inferred.

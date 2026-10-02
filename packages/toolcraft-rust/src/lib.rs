@@ -11,6 +11,7 @@ pub mod branch_validation;
 pub mod cli_argv;
 pub mod cli_fields;
 pub mod cli_help_fields;
+pub mod cli_json_errors;
 pub mod cli_policy;
 pub mod cli_snapshot;
 pub mod cli_values;

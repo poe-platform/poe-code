@@ -180,3 +180,18 @@ const rendererNative: typeof renderer = null as unknown as typeof referenceRende
 const outputMode: referenceRenderer.OutputMode = null as unknown as import("../dist/renderer.js").OutputMode;
 const renderStatus: referenceRenderer.RenderResultStatus = null as unknown as import("../dist/renderer.js").RenderResultStatus;
 void [rendererOriginal,rendererNative,outputMode,renderStatus];
+
+import * as jsonErrors from "../dist/cli-json-errors.js";
+const jsonLocation: jsonErrors.JsonParseLocation | null = jsonErrors.getJsonParseErrorLocation(new Error("invalid at position 2"),"{x}");
+const causeLocation: jsonErrors.JsonParseLocation | null = jsonErrors.getJsonParseCauseLocation({cause:{line:1,col:2}});
+const jsonPosition: number | null = jsonErrors.getJsonParseMessagePosition("invalid at position 2");
+const numericPosition: number | null = jsonErrors.getNumericProperty({position:2},"position");
+const sourceLocation: jsonErrors.JsonParseLocation = jsonErrors.getSourceOffsetLocation("{x}",2);
+const jsonDiagnostic: string = jsonErrors.formatJsonParseUserErrorMessage("Preset","preset.json","{x}",new Error("invalid"),{quotePath:true});
+const jsonMessage: string = jsonErrors.removeNativeJsonParseLocation("invalid (line 1 column 2)",sourceLocation);
+const asciiDigit: boolean = jsonErrors.isAsciiDigit("2");
+// @ts-expect-error path quoting must be explicitly selected
+jsonErrors.formatJsonParseUserErrorMessage("Preset","preset.json","{x}",null,{});
+// @ts-expect-error source offsets must be numeric
+jsonErrors.getSourceOffsetLocation("{x}","2");
+void [jsonLocation,causeLocation,jsonPosition,numericPosition,jsonDiagnostic,jsonMessage,asciiDigit];

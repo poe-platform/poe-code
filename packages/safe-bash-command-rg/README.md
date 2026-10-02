@@ -28,3 +28,6 @@ Blank lines and comments beginning with `#` are ignored. Configuration is read
 for each invocation before command-line arguments, so later command-line options
 take precedence. `--no-config` skips the file. Configuration reads obey the
 filesystem and input-byte limits.
+
+`-P` and `--pcre2` fail with exit status 2: PCRE2 is unavailable.
+Ordinary patterns use the bounded regex dialect, including with an injected provider.

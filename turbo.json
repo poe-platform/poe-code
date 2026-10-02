@@ -533,6 +533,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-numfmt#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

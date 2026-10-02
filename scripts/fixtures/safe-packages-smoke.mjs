@@ -1,3 +1,5 @@
+import { verification as numfmtVerification } from "./safe-packages-numfmt.mjs";
+await numfmtVerification;
 import "./safe-packages-xan.mjs";
 import "./safe-packages-wget.mjs";
 import "./safe-packages-rg.mjs";

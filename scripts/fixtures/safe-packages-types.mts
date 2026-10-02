@@ -1,3 +1,4 @@
+import "./safe-packages-numfmt-types.mjs";
 import "./safe-packages-xan-types.mjs";
 import "./safe-packages-wget-types.mjs";
 import "./safe-packages-node-types.mjs";

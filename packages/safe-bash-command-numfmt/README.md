@@ -1,7 +1,7 @@
 # safe-bash-command-numfmt
 
 Convert numbers between raw integers and human-readable IEC/SI scales.
-Input chunk size is unlimited by default; individual records retain their 1 MiB limit.
+Resource limits are disabled by default; configure explicit limits for bounded inputs.
 
 Reformat numbers from arguments or tabular streams using `--from`, `--to`, `--padding`, `--format`, `--round`, `--field`, and `--header`.
 
@@ -23,7 +23,7 @@ const res = await shell.exec("numfmt --to=iec-i 1048576"); // "1.0Mi\n"
 Resource limits are disabled by default (`Infinity`). Set `limits` on `createNumfmtCommand`, `createNumfmtCommands`, or `numfmtCommands` to bound `maxRecordBytes`, `maxWork`, `maxArguments`, `maxArgumentBytes` (total argument bytes), `maxFieldRanges`, `maxEmptyChunks` (total empty input chunks), `maxSingleChunkBytes`, `maxInputBytes`, or `maxOutputBytes` (each output stream). Finite limits must be positive safe integers. The legacy top-level `maxRecordBytes` option is also supported; `limits.maxRecordBytes` takes precedence.
 
 ```ts
-import { numfmtCommands } from "safe-bash-command-numfmt";
+import { numfmtCommands } from "@poe-platform/safe-bash/commands/numfmt";
 
-shell.use(numfmtCommands({ limits: { maxRecordBytes: 1024 * 1024, maxWork: 16 * 1024 * 1024 } }));
+const boundedShell = new Shell({ fs: createMemoryFileSystem() }).use(numfmtCommands({ limits: { maxRecordBytes: 1024 * 1024, maxWork: 16 * 1024 * 1024 } }));
 ```

@@ -17,6 +17,8 @@ execution.
 - Logging helpers: `resolveRunLogDir`, `ensureSafeRunLogDir`, `makeRunLogFileName`, `streamLogFile`, `wrapForLogTee`.
 - Backend helpers: `ExecutionEnvFactory`, `OpenedEnv`, workspace transfer utilities, and binary detection.
 
+`discoverPlans`, `openPlanList`, `archivePlan`, and `streamLogFile` accept injected `@poe-code/safe-fs` filesystems. Log readers preserve UTF-8 byte offsets and poll for changes when a filesystem watcher is unavailable.
+
 ## ExecutionEnv Contract
 
 `ExecutionEnvFactory` is the runtime backend boundary used by Poe Code command runners.

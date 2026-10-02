@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "./portable-path.js";
 
 export type RunQueueOutcome = "completed" | "failed" | "cancelled" | "paused";
 export type RunQueueItemStatus = "pending" | "running" | RunQueueOutcome;
@@ -26,7 +26,7 @@ export function createRunQueue(options: {
   afterEachPlan?: readonly string[];
   cwd?: string;
 }) {
-  const cwd = options.cwd ?? process.cwd();
+  const cwd = options.cwd ?? globalThis.process?.cwd?.() ?? "/";
   const afterEachPlan = (options.afterEachPlan ?? []).map((text) => {
     if (!text.trim()) throw new Error("Queued messages cannot be empty.");
     return text.trim();

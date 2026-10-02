@@ -1,6 +1,7 @@
-import path from "node:path";
-import { createHash } from "node:crypto";
-import { mkdir, realpath } from "node:fs/promises";
+import { path } from "./portable-path.js";
+import { sha256 } from "@noble/hashes/sha2.js";
+import { bytesToHex } from "@noble/hashes/utils.js";
+import { createDefaultFileSystem } from "#harness-tools-filesystem";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { assertContainedPath } from "./path-boundary.js";
 
@@ -29,7 +30,7 @@ export async function ensureSafeRunLogDir(
   const stateDir = path.join(options.homeDir, ".poe-code");
   const logRoot = path.join(stateDir, "logs");
   const runLogDir = resolveRunLogDir(options);
-  const fs = options.fs ?? defaultRunLogFs;
+  const fs = options.fs ?? createDefaultFileSystem();
 
   await fs.mkdir(stateDir, { recursive: true });
   await fs.mkdir(logRoot, { recursive: true });
@@ -46,9 +47,7 @@ export function slugifyPlanPath(planPath: string): string {
   const dot = base.lastIndexOf(".");
   const stem = dot > 0 ? base.slice(0, dot) : base;
   const label = slugifyLabel(stem) || "plan";
-  const pathDigest = createHash("sha256")
-    .update(normalizePlanPathForSlug(planPath))
-    .digest("hex")
+  const pathDigest = bytesToHex(sha256(new TextEncoder().encode(normalizePlanPathForSlug(planPath))))
     .slice(0, 12);
   return `${label}-${pathDigest}`;
 }
@@ -111,7 +110,7 @@ async function assertExistingPathContained(
   opts: { ignoreMissing?: boolean } = {}
 ): Promise<boolean> {
   try {
-    const resolveRealpath = fs.realpath ?? resolveLexicalRealpath;
+    const resolveRealpath = fs.realpath?.bind(fs) ?? resolveLexicalRealpath;
     const [canonicalStateDir, canonicalCandidatePath] = await Promise.all([
       resolveRealpath(stateDir),
       resolveRealpath(candidatePath)
@@ -133,13 +132,6 @@ async function assertExistingPathContained(
 function isNotFoundError(error: unknown): boolean {
   return hasOwnErrorCode(error, "ENOENT");
 }
-
-const defaultRunLogFs: RunLogFileSystem = {
-  mkdir: async (target, options) => {
-    await mkdir(target, options);
-  },
-  realpath: async (target) => realpath(target)
-};
 
 async function resolveLexicalRealpath(target: string): Promise<string> {
   return path.resolve(target);

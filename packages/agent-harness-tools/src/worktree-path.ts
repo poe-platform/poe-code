@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "./portable-path.js";
 
 /** Keep repository-absolute paths inside the selected execution worktree. */
 export function mapSourcePathIntoWorktree(sourceCwd: string, sourcePath: string, worktreeCwd: string): string {

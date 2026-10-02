@@ -1,5 +1,6 @@
-import * as fsPromises from "node:fs/promises";
-import path from "node:path";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { createDefaultFileSystem } from "#harness-tools-filesystem";
+import { path } from "./portable-path.js";
 import { openTaskList, type TaskList, type TaskListFs } from "@poe-code/task-list";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { resolveWorkflowPath } from "./paths.js";
@@ -24,7 +25,7 @@ export interface DiscoverPlansOptions {
   homeDir: string;
   planDirectory: string;
   kinds?: readonly string[];
-  fs?: TaskListFs;
+  fs?: TaskListFs | FileSystem;
 }
 
 export interface ArchivePlanOptions {
@@ -32,7 +33,7 @@ export interface ArchivePlanOptions {
   homeDir: string;
   planDirectory: string;
   id: string;
-  fs?: TaskListFs;
+  fs?: TaskListFs | FileSystem;
   metadataPatch?: Record<string, unknown>;
 }
 
@@ -40,16 +41,13 @@ export interface OpenPlanListOptions {
   cwd: string;
   homeDir: string;
   planDirectory: string;
-  fs?: TaskListFs;
+  fs?: TaskListFs | FileSystem;
 }
 
-function defaultFs(): TaskListFs {
-  return fsPromises as unknown as TaskListFs;
-}
-
-async function directoryExists(fs: TaskListFs, directoryPath: string): Promise<boolean> {
+async function directoryExists(fs: TaskListFs | FileSystem, directoryPath: string): Promise<boolean> {
   try {
-    return (await fs.stat(directoryPath)).isDirectory();
+    const stat = await fs.stat(directoryPath);
+    return "type" in stat ? stat.type === "directory" : stat.isDirectory();
   } catch (error) {
     if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) {
       return false;
@@ -87,8 +85,9 @@ function idFromPlanFileName(fileName: string): string | undefined {
 
 type PlanFile = { absolutePath: string; updatedAt: number };
 
-async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map<string, PlanFile>> {
-  const fileNames = await fs.readdir(directoryPath);
+async function readPlanPaths(fs: TaskListFs | FileSystem, directoryPath: string): Promise<Map<string, PlanFile>> {
+  const entries = await fs.readdir(directoryPath);
+  const fileNames = entries.map(entry => typeof entry === "string" ? entry : entry.name);
   const filesById = new Map<string, PlanFile>();
 
   for (const fileName of fileNames) {
@@ -99,7 +98,7 @@ async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map
 
     const absolutePath = path.join(directoryPath, fileName);
     const stat = await fs.stat(absolutePath);
-    if (stat.isFile()) {
+    if ("type" in stat ? stat.type === "file" : stat.isFile()) {
       const existing = filesById.get(id);
       if (existing !== undefined) {
         throw new Error(`Duplicate active plan identifier "${id}": ${existing.absolutePath} and ${absolutePath}`);
@@ -150,7 +149,7 @@ export function parsePlanReadiness(value: unknown): PlanReadiness {
 
 export async function discoverPlans(options: DiscoverPlansOptions): Promise<PlanRef[]> {
   const resolvedDirectory = resolvePlanDirectory(options);
-  const fs = options.fs ?? defaultFs();
+  const fs = options.fs ?? createDefaultFileSystem();
   if (!(await directoryExists(fs, resolvedDirectory))) {
     return [];
   }

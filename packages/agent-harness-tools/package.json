@@ -24,6 +24,17 @@
     "toolcraft-design": "*",
     "@poe-code/poe-code-config": "*",
     "@poe-code/process-runner": "*",
-    "@poe-code/task-list": "*"
+    "@poe-code/task-list": "*",
+    "@poe-code/safe-fs": "*",
+    "@noble/hashes": "2.4.0"
+  },
+  "imports": {
+    "#harness-tools-filesystem": {
+      "types": "./src/default-filesystem.ts",
+      "workerd": "./dist/default-filesystem.workerd.js",
+      "browser": "./dist/default-filesystem.workerd.js",
+      "worker": "./dist/default-filesystem.workerd.js",
+      "default": "./dist/default-filesystem.js"
+    }
   }
 }

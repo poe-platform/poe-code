@@ -1,5 +1,5 @@
-import nodeFs from "node:fs";
-import type { FSWatcher } from "node:fs";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
+import { createDefaultFileSystem } from "#harness-tools-filesystem";
 import { hasOwnErrorCode } from "./error-codes.js";
 import type { LogChunk } from "./execution-env.js";
 
@@ -7,16 +7,16 @@ const JOB_DIR = "/tmp/poe-jobs";
 const POLL_INTERVAL_MS = 250;
 
 export interface LogStreamEnv {
-  fs?: LogStreamFs;
+  fs?: LogStreamFs | FileSystem;
 }
 
 export interface LogStreamFs {
   promises: {
-    readFile(path: string): Promise<Buffer | string>;
+    readFile(path: string): Promise<Uint8Array | string>;
     stat?(path: string): Promise<{ mtimeMs: number }>;
     lstat?(path: string): Promise<{ isSymbolicLink(): boolean }>;
   };
-  watch?: (path: string, listener: () => void) => FSWatcher;
+  watch?: (path: string, listener: () => void) => { close(): void };
 }
 
 export function wrapForLogTee(argv: string[], jobId: string): string[] {
@@ -52,11 +52,11 @@ export async function* streamLogFile(
 ): AsyncIterable<LogChunk> {
   assertSafeJobId(jobId);
 
-  const fs = env.fs ?? nodeFs;
+  const fs = logFileSystem(env.fs ?? createDefaultFileSystem());
   const file = jobLogPath(jobId);
   let byteOffset =
     opts.sinceByte ?? (opts.since === undefined ? 0 : await readCurrentByteLength(fs, file));
-  let pendingBytes: Buffer = Buffer.alloc(0);
+  let pendingBytes: Uint8Array = new Uint8Array(0);
   let pendingByteOffset = byteOffset;
 
   while (true) {
@@ -67,12 +67,13 @@ export async function* streamLogFile(
 
     const result = await readLogChunk(fs, file, byteOffset);
     if (result !== null) {
-      const combined =
-        pendingBytes.length === 0 ? result.bytes : Buffer.concat([pendingBytes, result.bytes]);
+      const combined = new Uint8Array(pendingBytes.length + result.bytes.length);
+      combined.set(pendingBytes);
+      combined.set(result.bytes, pendingBytes.length);
       const completeLength = completeUtf8PrefixLength(combined);
       byteOffset = result.nextByteOffset;
       pendingBytes = combined.subarray(completeLength);
-      const data = combined.subarray(0, completeLength).toString("utf8");
+      const data = new TextDecoder("utf-8", { ignoreBOM: true }).decode(combined.subarray(0, completeLength));
       if (data.length > 0) {
         yield { byteOffset: pendingByteOffset, data };
         pendingByteOffset += completeLength;
@@ -120,7 +121,7 @@ export async function waitForExit(
 ): Promise<{ exitCode: number }> {
   assertSafeJobId(jobId);
 
-  const fs = env.fs ?? nodeFs;
+  const fs = logFileSystem(env.fs ?? createDefaultFileSystem());
   const file = jobExitPath(jobId);
 
   while (true) {
@@ -167,7 +168,7 @@ async function readLogChunk(
   fs: LogStreamFs,
   file: string,
   byteOffset: number
-): Promise<{ bytes: Buffer; nextByteOffset: number } | null> {
+): Promise<{ bytes: Uint8Array; nextByteOffset: number } | null> {
   const contents = await readFileIfExists(fs, file);
   if (contents === null || byteOffset >= contents.byteLength) {
     return null;
@@ -181,14 +182,14 @@ async function readLogChunk(
 
 async function readTextFileIfExists(fs: LogStreamFs, file: string): Promise<string | null> {
   const contents = await readFileIfExists(fs, file);
-  return contents?.toString("utf8") ?? null;
+  return contents === null ? null : new TextDecoder("utf-8", { ignoreBOM: true }).decode(contents);
 }
 
-async function readFileIfExists(fs: LogStreamFs, file: string): Promise<Buffer | null> {
+async function readFileIfExists(fs: LogStreamFs, file: string): Promise<Uint8Array | null> {
   try {
     await assertRegularManagedFile(fs, file);
     const contents = await fs.promises.readFile(file);
-    return Buffer.isBuffer(contents) ? contents : Buffer.from(contents);
+    return typeof contents === "string" ? new TextEncoder().encode(contents) : contents;
   } catch (error) {
     if (hasOwnErrorCode(error, "ENOENT")) {
       return null;
@@ -234,7 +235,7 @@ async function assertManagedJobDirectory(
   }
 }
 
-function completeUtf8PrefixLength(contents: Buffer): number {
+function completeUtf8PrefixLength(contents: Uint8Array): number {
   if (contents.length === 0) {
     return 0;
   }
@@ -282,7 +283,7 @@ async function waitForLogChange(fs: LogStreamFs, file: string): Promise<void> {
   }
 
   await new Promise<void>((resolve) => {
-    let watcher: FSWatcher | null = null;
+    let watcher: { close(): void } | null = null;
     const timer = setTimeout(done, POLL_INTERVAL_MS);
 
     function done(): void {
@@ -301,7 +302,7 @@ async function waitForLogChange(fs: LogStreamFs, file: string): Promise<void> {
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
-    let timer: NodeJS.Timeout | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     const abort = () => {
       if (timer !== null) {
         clearTimeout(timer);
@@ -330,4 +331,13 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
+function logFileSystem(fs: LogStreamFs | FileSystem): LogStreamFs {
+  if (!("capabilities" in fs)) return fs;
+  return { promises: {
+    readFile: path => fs.readFile(path),
+    stat: path => fs.stat(path),
+    async lstat(path) { const stat = await fs.lstat(path); return { isSymbolicLink: () => stat.type === "symlink" }; }
+  } };
 }

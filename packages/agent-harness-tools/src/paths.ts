@@ -1,4 +1,4 @@
-import path from "node:path";
+import { path } from "./portable-path.js";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { assertContainedPath } from "./path-boundary.js";
 

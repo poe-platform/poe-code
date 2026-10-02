@@ -1857,3 +1857,26 @@ options and retaining 64 result objects, measured median 2.855 µs native /
 but this remains API-parity work, not a passed performance gate. Explorer
 filtering/actions/jobs/reducer/render/runtime, public namespace and the broader
 swap qualification remain open.
+
+### Explorer action checkpoint
+
+`explorer/actions` exposes `resolveAction`, `buildActionContext` and the original
+public action source/runtime handle types. Rust owns accelerator availability,
+row/detail fallback, selection, pane snapshots and context construction. Node
+retains live callbacks, Map/Set receivers, array species and arbitrary thrown
+values. Runtime handles, row overrides and selected sets retain their identities.
+
+Three missing-export tests preceded implementation. Differential checks cover
+36 target/availability/running combinations, 108 source/focus/selection/override
+combinations, empty state, property order, array subclasses and reentrant reads.
+Maintained checks pass 325 native host tests, 1,379 selected design tests, 13
+prompt wrappers, 132 dashboard/queue cases, 14 composer cases and 28 explorer
+cases, including all three original action cases and pane integration. Rust,
+binding and scoped JS lint and bidirectional declarations pass. No dependencies
+or default integration changed.
+
+Five warmed alternating 500-call Node 22 ARM64 rounds, creating action contexts
+for 20 rows with three selections and retaining 32 results, measured median
+77.14 µs native / 0.746 µs reference (103.44× slower). Callback batching and
+performance acceptance remain open along with filtering, jobs, reducer,
+rendering, runtime/public namespace and broader swap qualification.

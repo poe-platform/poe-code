@@ -86,5 +86,6 @@ pub mod dashboard_runtime;
 
 pub mod explorer_keymap;
 
+pub mod explorer_actions;
 pub mod explorer_layout;
 pub mod explorer_state;

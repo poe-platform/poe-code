@@ -127,6 +127,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
 | `explorer/state` | Normalize list/detail panes and seed explorer rows, bindings and responsive state |
 | `explorer/layout` | Compute responsive pane rectangles and inset content areas |
+| `explorer/actions` | Resolve available accelerators and supply selected rows and pane state to handlers |
 | `explorer/keymap` | Resolve navigation and action accelerators while preserving printable filtering keys |
 | `dashboard/keymap` | Resolve default or custom keyboard commands and canonicalize binding labels |
 | `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
@@ -597,3 +598,9 @@ returns header, list, detail and footer rectangles. Wide terminals show adjacent
 panes, intermediate widths stack them, and narrow terminals show the focused
 pane. `paneBodyRect(rect)` returns the inset content area. Rust calculates the
 geometry while preserving option access order and JavaScript coordinate coercion.
+
+`resolveAction(state, keyEvent)` from `explorer/actions` returns an available,
+idle action for a resolved accelerator. `buildActionContext` supplies current or
+selected rows, the focused detail item, active/inactive panes and your runtime
+handles. Explicit row overrides retain their identity, and selected rows follow
+the focused pane in source order.

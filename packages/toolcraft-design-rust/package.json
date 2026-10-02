@@ -467,6 +467,10 @@
     "./explorer/layout": {
       "types": "./dist/explorer-layout.d.ts",
       "import": "./dist/explorer-layout.js"
+    },
+    "./explorer/actions": {
+      "types": "./dist/explorer-actions.d.ts",
+      "import": "./dist/explorer-actions.js"
     }
   },
   "scripts": {

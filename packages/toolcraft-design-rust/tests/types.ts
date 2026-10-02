@@ -862,3 +862,10 @@ const explorerLayoutOriginal: typeof originalExplorerLayout = explorerLayout;
 const explorerLayoutNative: typeof explorerLayout = null as unknown as typeof originalExplorerLayout;
 const explorerLayoutKeys: SameKeys<typeof explorerLayout,typeof originalExplorerLayout> = true;
 void [explorerLayoutOriginal,explorerLayoutNative,explorerLayoutKeys];
+
+import * as explorerActions from "toolcraft-design-rust/explorer/actions";
+import type * as originalExplorerActions from "toolcraft-design/explorer/actions";
+const explorerActionsOriginal: typeof originalExplorerActions = explorerActions;
+const explorerActionsNative: typeof explorerActions = null as unknown as typeof originalExplorerActions;
+const explorerActionsKeys: SameKeys<typeof explorerActions,typeof originalExplorerActions> = true;
+void [explorerActionsOriginal,explorerActionsNative,explorerActionsKeys];

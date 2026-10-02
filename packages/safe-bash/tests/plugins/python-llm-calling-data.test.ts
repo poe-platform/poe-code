@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { installPythonLlmModule } from '../../src/commands/python/llm-module.js';
+import { pythonLlmReferenceModule } from '../../src/commands/python/llm-reference-module.js';
 
 const setup = `
 import sys, json, asyncio, types
@@ -25,20 +26,22 @@ class Bridge:
 capability = types.ModuleType("_poe_llm_capability")
 capability.bridge = Bridge()
 sys.modules[capability.__name__] = capability
-import llm
+llm = types.ModuleType("llm")
+sys.modules["llm"] = llm
+exec(bundle["legacy"], llm.__dict__)
 `;
 
 function run(program: string): string {
   const globals = new Map<string, unknown>();
   let source: unknown, registration = '';
   installPythonLlmModule({globals, runPython(value) { source = globals.get('_safe_llm_source'); registration = value; }});
-  const result = spawnSync(process.env.LLM_TEST_PYTHON ?? process.env.LLM_REFERENCE_PYTHON ?? 'python3', ['-B', '-c', setup + program], {input:JSON.stringify({source,registration}),encoding:'utf8',timeout:5000});
+  const result = spawnSync(process.env.LLM_TEST_PYTHON ?? process.env.LLM_REFERENCE_PYTHON ?? 'python3', ['-B', '-c', setup + program], {input:JSON.stringify({source,registration,legacy:pythonLlmReferenceModule}),encoding:'utf8',timeout:5000});
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stdout + result.stderr);
   return result.stdout;
 }
 
-test('ordinary Python prompts preserve finite structured options', () => { run(`
+test('legacy Python shim prompts preserve finite structured options', () => { run(`
 model = llm.get_model("fixture")
 assert model.prompt("hello", logit_bias={42:5}, stop=["end"]).text() == "ok"
 assert payloads[-1]["options"] == {"logit_bias":{"42":5},"stop":["end"]}
@@ -52,7 +55,7 @@ for value in [{"nested":float("inf")}, {"nested":9007199254740992}, cycle, {"nes
  assert len(payloads) == before
 `); });
 
-test('declared dictionary and list options retain Python validation and transport', () => { run(`
+test('legacy Python shim dictionary and list options retain validation and transport', () => { run(`
 model = llm.Model("fixture", metadata={"options": {
  "logit_bias": {"type":"object"}, "stop": {"type":"array"}
 }})
@@ -69,7 +72,7 @@ for options in [{"logit_bias":[]}, {"stop":{}}, {"unknown":True}]:
  assert len(payloads) == before
 `); });
 
-test('ordinary sync and async conversations preserve completed response attachments', () => { run(`
+test('legacy Python shim sync and async conversations preserve completed response attachments', () => { run(`
 model = llm.get_model("fixture")
 conversation = model.conversation()
 first = conversation.prompt("before")

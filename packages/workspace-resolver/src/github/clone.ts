@@ -1,4 +1,4 @@
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
 import { UserError } from "@poe-code/user-error";
 import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 import type { ParsedLocator, WorkspaceResolverOptions } from "../types.js";

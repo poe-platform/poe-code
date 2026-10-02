@@ -2,6 +2,8 @@
 
 Resolves workspace locator strings to local filesystem paths for spawn-like workflows.
 
+The runtime uses portable POSIX paths and Web Crypto, with no Node built-in imports. Supply absolute POSIX roots and inject filesystem and Git execution capabilities when running in Workers.
+
 ## Locator syntax
 
 A workspace locator is a URI-like string that tells the resolver **where** an agent should run. The scheme selects the backend; everything after `://` is backend-specific.

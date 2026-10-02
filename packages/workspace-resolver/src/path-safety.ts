@@ -1,4 +1,4 @@
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
 import { hasOwnErrorCode } from "./error-codes.js";
 import type { ResolverFileSystem } from "./types.js";
 
@@ -7,7 +7,7 @@ export async function assertPathHasNoSymbolicLinks(
   target: string
 ): Promise<void> {
   const absolutePath = path.resolve(target);
-  const root = path.parse(absolutePath).root;
+  const root = "/";
   let currentPath = root;
 
   for (const segment of absolutePath.slice(root.length).split(path.sep).filter(Boolean)) {

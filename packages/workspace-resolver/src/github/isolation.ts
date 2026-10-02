@@ -1,8 +1,6 @@
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
 import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 import type { ParsedLocator, WorkspaceResolverOptions } from "../types.js";
-
-let nextCheckoutSequence = 0;
 
 export async function createWritableCheckout(
   locator: Extract<ParsedLocator, { scheme: "github" }>,
@@ -15,7 +13,7 @@ export async function createWritableCheckout(
     "workspaces",
     "checkouts",
     `${locator.owner}-${locator.repo}`,
-    createCheckoutId()
+    globalThis.crypto.randomUUID()
   );
   const revision = locator.ref ?? "HEAD";
 
@@ -46,11 +44,6 @@ export async function createWritableCheckout(
       await removeCheckout(cwd, sourceCwd, options);
     }
   };
-}
-
-function createCheckoutId(): string {
-  nextCheckoutSequence += 1;
-  return `${Date.now().toString(36)}-${process.pid.toString(36)}-${nextCheckoutSequence.toString(36)}`;
 }
 
 async function removeCheckout(

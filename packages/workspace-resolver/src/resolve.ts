@@ -1,4 +1,4 @@
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
 import { hasOwnErrorCode } from "./error-codes.js";
 import { cloneOrUpdate, fetchRef } from "./github/clone.js";
 import { createWritableCheckout } from "./github/isolation.js";

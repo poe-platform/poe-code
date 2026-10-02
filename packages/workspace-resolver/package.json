@@ -20,6 +20,7 @@
     "dist"
   ],
   "dependencies": {
-    "@poe-code/user-error": "*"
+    "@poe-code/user-error": "*",
+    "@poe-code/safe-fs": "*"
   }
 }

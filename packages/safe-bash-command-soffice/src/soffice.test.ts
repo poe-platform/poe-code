@@ -344,5 +344,27 @@ describe("safe-bash-command-soffice", () => {
     const htmlOut = new TextDecoder().decode(files.get("/styled.html")!);
     assert.match(htmlOut, /<h1>Report Title<\/h1>/);
     assert.match(htmlOut, /<h1>Section One<\/h1>/);
+
+    const xmldomDocx = createStoredZipArchive({
+      "word/document.xml": new TextEncoder().encode(
+        "<w:document><w:body>" +
+        "<pi:p><pi:r><pi:t>Prefixed paragraph text</pi:t></pi:r></pi:p>" +
+        "</w:body></w:document>"
+      )
+    });
+    const xmldomPptx = createStoredZipArchive({
+      "ppt/slides/slide1.xml": new TextEncoder().encode(
+        "<p:sld><p:cSld><p:spTree>" +
+        "<p:sp><p:spPr><n:xfrm><n:off x=\"548640\" y=\"365760\"/><n:ext cx=\"8229600\" cy=\"640080\"/></n:xfrm></p:spPr>" +
+        "<p:txBody><p><r><t>Unprefixed Slide Title</t></r></p></p:txBody></p:sp>" +
+        "</p:spTree></p:cSld></p:sld>"
+      )
+    });
+    files.set("xmldom.docx", xmldomDocx);
+    files.set("xmldom.pptx", xmldomPptx);
+    const docxCat = await runSofficeCli(["--cat", "xmldom.docx"], files, "/");
+    assert.match(docxCat.stdout, /Prefixed paragraph text/);
+    const pptxCat = await runSofficeCli(["--cat", "xmldom.pptx"], files, "/");
+    assert.match(pptxCat.stdout, /Unprefixed Slide Title/);
   });
 });

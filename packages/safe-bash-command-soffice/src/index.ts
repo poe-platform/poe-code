@@ -62,12 +62,12 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
   const stylesBytes = entries.get("word/styles.xml");
   if (stylesBytes) {
     const stylesXml = new TextDecoder().decode(stylesBytes);
-    for (const st of stylesXml.matchAll(/<w:style\b([^>]*?)>([\s\S]*?)<\/w:style>/g)) {
-      const idMatch = /\bw:styleId="([^"]+)"/.exec(st[1] ?? "");
-      const nameMatch = /<w:name\b[^>]*?\bw:val="([^"]+)"/.exec(st[2] ?? "");
-      const szMatch = /<w:sz\b[^>]*?\bw:val="(\d+)"/.exec(st[2] ?? "");
+    for (const st of stylesXml.matchAll(/<((?:[A-Za-z0-9_-]+:)?style)\b([^>]*?)>([\s\S]*?)<\/\1>/g)) {
+      const idMatch = /\b(?:[A-Za-z0-9_-]+:)?styleId="([^"]+)"/.exec(st[2] ?? "");
+      const nameMatch = /<(?:[A-Za-z0-9_-]+:)?name\b[^>]*?\b(?:[A-Za-z0-9_-]+:)?val="([^"]+)"/.exec(st[3] ?? "");
+      const szMatch = /<(?:[A-Za-z0-9_-]+:)?sz\b[^>]*?\b(?:[A-Za-z0-9_-]+:)?val="(\d+)"/.exec(st[3] ?? "");
       const szVal = szMatch ? Number.parseInt(szMatch[1]!, 10) : 0;
-      const isBold = /<w:b(?:\s|\/>|>)/.test(st[2] ?? "");
+      const isBold = /<(?:[A-Za-z0-9_-]+:)?b(?:\s|\/>|>)/.test(st[3] ?? "");
       const styleId = idMatch?.[1] ?? "";
       const styleName = (nameMatch?.[1] ?? "").toLowerCase();
       if (
@@ -88,25 +88,26 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
   }
   const xml = new TextDecoder()
     .decode(docXmlBytes)
-    .replace(/<w:tab\b[^/>]*\/>/g, "<w:t>\t</w:t>")
-    .replace(/<w:(?:br|cr)\b[^/>]*\/>/g, "<w:t> </w:t>");
+    .replace(/<(?:[A-Za-z0-9_-]+:)?tab\b[^/>]*\/>/g, "<w:t>\t</w:t>")
+    .replace(/<(?:[A-Za-z0-9_-]+:)?(?:br|cr)\b[^/>]*\/>/g, "<w:t> </w:t>");
 
   const blocks: DocBlock[] = [];
-  const tokenRe = /<w:tbl\b[\s\S]*?<\/w:tbl>|<w:p\b[\s\S]*?<\/w:p>/g;
+  const tokenRe = /<((?:[A-Za-z0-9_-]+:)?(?:tbl|p))\b[\s\S]*?<\/\1>/g;
   let m: RegExpExecArray | null;
   while ((m = tokenRe.exec(xml)) !== null) {
     const chunk = m[0];
-    if (chunk.startsWith("<w:tbl")) {
+    const tagLocal = (m[1] ?? "").split(":").pop();
+    if (tagLocal === "tbl") {
       const rows: string[][] = [];
-      const rowRe = /<w:tr\b[\s\S]*?<\/w:tr>/g;
+      const rowRe = /<((?:[A-Za-z0-9_-]+:)?tr)\b[\s\S]*?<\/\1>/g;
       let rm: RegExpExecArray | null;
       while ((rm = rowRe.exec(chunk)) !== null) {
         const cells: string[] = [];
-        const cellRe = /<w:tc\b[\s\S]*?<\/w:tc>/g;
+        const cellRe = /<((?:[A-Za-z0-9_-]+:)?tc)\b[\s\S]*?<\/\1>/g;
         let cm: RegExpExecArray | null;
         while ((cm = cellRe.exec(rm[0])) !== null) {
-          const texts = [...cm[0].matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map((t) =>
-            unescapeXml(t[1] ?? "")
+          const texts = [...cm[0].matchAll(/<((?:[A-Za-z0-9_-]+:)?t)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/g)].map((t) =>
+            unescapeXml(t[2] ?? "")
           );
           cells.push(texts.join("").trim());
         }
@@ -114,16 +115,16 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
       }
       if (rows.length > 0) blocks.push({ kind: "table", rows });
     } else {
-      const styleMatch = /<w:pStyle\b[^>]*?\bw:val="([^"]+)"/i.exec(chunk);
+      const styleMatch = /<(?:[A-Za-z0-9_-]+:)?pStyle\b[^>]*?\b(?:[A-Za-z0-9_-]+:)?val="([^"]+)"/i.exec(chunk);
       const styleVal = (styleMatch?.[1] ?? "").toLowerCase();
-      const szMatch = /<w:sz\b[^>]*?\bw:val="(\d+)"/i.exec(chunk);
+      const szMatch = /<(?:[A-Za-z0-9_-]+:)?sz\b[^>]*?\b(?:[A-Za-z0-9_-]+:)?val="(\d+)"/i.exec(chunk);
       const szHalfPt = szMatch ? Number.parseInt(szMatch[1]!, 10) : 0;
       const isHeading =
         styleVal.startsWith("heading") ||
         headingStyleIds.has(styleVal) ||
         szHalfPt >= 28;
-      const texts = [...chunk.matchAll(/<w:t(?:\s[^>]*)?>([\s\S]*?)<\/w:t>/g)].map((t) =>
-        unescapeXml(t[1] ?? "")
+      const texts = [...chunk.matchAll(/<((?:[A-Za-z0-9_-]+:)?t)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/g)].map((t) =>
+        unescapeXml(t[2] ?? "")
       );
       const line = texts.join("").trim();
       if (line.length > 0) {
@@ -275,24 +276,24 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
     const shapes: string[][] = [];
     const textBoxes: SlideTextBoxPlacement[] = [];
     let shapeIdx = 0;
-    for (const sp of xml.matchAll(/<p:sp\b[\s\S]*?<\/p:sp>/g)) {
+    for (const sp of xml.matchAll(/<((?:[A-Za-z0-9_-]+:)?sp)\b[\s\S]*?<\/\1>/g)) {
       const paras: string[] = [];
       let maxSz = 1800;
-      for (const p of sp[0].matchAll(/<a:p\b[\s\S]*?<\/a:p>/g)) {
+      for (const p of sp[0].matchAll(/<((?:[A-Za-z0-9_-]+:)?p)\b[\s\S]*?<\/\1>/g)) {
         for (const szm of p[0].matchAll(/\bsz="(\d+)"/g)) {
           const val = Number.parseInt(szm[1]!, 10);
           if (val > 0) maxSz = val;
         }
-        const runs = [...p[0].matchAll(/<a:t(?:\s[^>]*)?>([\s\S]*?)<\/a:t>/g)].map((t) =>
-          unescapeXml(t[1] ?? "")
+        const runs = [...p[0].matchAll(/<((?:[A-Za-z0-9_-]+:)?t)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/g)].map((t) =>
+          unescapeXml(t[2] ?? "")
         );
         const line = runs.join("").trim();
         if (line) paras.push(line);
       }
       if (paras.length > 0) {
         shapes.push(paras);
-        const offMatch = /<a:off\b[^>]*?\bx="(-?\d+)"[^>]*?\by="(-?\d+)"/.exec(sp[0]);
-        const extMatch = /<a:ext\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(sp[0]);
+        const offMatch = /<(?:[A-Za-z0-9_-]+:)?off\b[^>]*?\bx="(-?\d+)"[^>]*?\by="(-?\d+)"/.exec(sp[0]);
+        const extMatch = /<(?:[A-Za-z0-9_-]+:)?ext\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(sp[0]);
         if (shapeIdx > 0 && offMatch) {
           const offX = Number.parseInt(offMatch[1]!, 10);
           const offY = Number.parseInt(offMatch[2]!, 10);
@@ -308,14 +309,14 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
     }
 
     const images: SlideImagePlacement[] = [];
-    for (const pic of xml.matchAll(/<p:pic\b[\s\S]*?<\/p:pic>/g)) {
-      const embedMatch = /\br:embed="([^"]+)"/.exec(pic[0]);
+    for (const pic of xml.matchAll(/<((?:[A-Za-z0-9_-]+:)?pic)\b[\s\S]*?<\/\1>/g)) {
+      const embedMatch = /\b(?:[A-Za-z0-9_-]+:)?embed="([^"]+)"/.exec(pic[0]);
       if (!embedMatch?.[1]) continue;
       const mediaPath = relTargets.get(embedMatch[1]);
       const mediaBytes = mediaPath ? entries.get(mediaPath) : undefined;
       if (!mediaBytes) continue;
-      const offMatch = /<a:off\b[^>]*?\bx="(-?\d+)"[^>]*?\by="(-?\d+)"/.exec(pic[0]);
-      const extMatch = /<a:ext\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(pic[0]);
+      const offMatch = /<(?:[A-Za-z0-9_-]+:)?off\b[^>]*?\bx="(-?\d+)"[^>]*?\by="(-?\d+)"/.exec(pic[0]);
+      const extMatch = /<(?:[A-Za-z0-9_-]+:)?ext\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(pic[0]);
       const offX = offMatch ? Number.parseInt(offMatch[1]!, 10) : Math.round(slideCx * 0.1);
       const offY = offMatch ? Number.parseInt(offMatch[2]!, 10) : Math.round(slideCy * 0.2);
       const extCx = extMatch ? Number.parseInt(extMatch[1]!, 10) : Math.round(slideCx * 0.8);

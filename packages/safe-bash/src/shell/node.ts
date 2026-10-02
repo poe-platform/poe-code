@@ -1,3 +1,4 @@
+import "./sync-extra-evaluators.js";
 import { Shell as PortableShell } from "./shell.js";
 import { createWorkerKillAfterPolicy, type WorkerShellOptions } from "../worker/host.js";
 import { agentWorkerPlugins } from "../plugins/worker-recipes.js";

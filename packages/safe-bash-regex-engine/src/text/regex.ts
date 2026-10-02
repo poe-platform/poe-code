@@ -1607,7 +1607,6 @@ async function replacementText(replacement: string, match: Match, buffer: Replac
 const RETURN_UNDEFINED = (): undefined => undefined;
 const RETURN_MINUS_ONE = (): -1 => -1;
 const FAST_MATCH_OFFSETS = new Int32Array(20);
-const SYNC_SUB_RESULT = { text: "", count: 0 };
 interface SimpleReplacement {
   readonly kind: "literal" | "singleRef" | "twoRefs";
   readonly prefix: string;
@@ -1868,9 +1867,7 @@ export function trySubstituteSync(
     } else {
       out = budget.check(text);
     }
-    SYNC_SUB_RESULT.text = out;
-    SYNC_SUB_RESULT.count = count;
-    return SYNC_SUB_RESULT;
+    return { text: out, count };
   }
   if (!global && occurrence === 1 && !replacement.includes("&") && !replacement.includes("\\")) {
     budget.step();
@@ -1962,7 +1959,6 @@ export async function substitute(text: string, pattern: Pattern, replacement: st
 
 const PAIR_OFFSETS_1 = new Int32Array(20);
 const PAIR_OFFSETS_2 = new Int32Array(20);
-const SYNC_PAIR_RESULT = { text: "", substituted: false };
 
 export function trySubstitutePairSync(
   text: string,
@@ -2009,17 +2005,13 @@ export function trySubstitutePairSync(
   budget.step();
   if (!pat2.findSyncFastInto(text, budget, effectiveE1, PAIR_OFFSETS_2)) {
     if (!matched1) {
-      SYNC_PAIR_RESULT.text = budget.check(text);
-      SYNC_PAIR_RESULT.substituted = false;
-      return SYNC_PAIR_RESULT;
+      return { text: budget.check(text), substituted: false };
     }
     const outLen = effectiveExp1Len + (text.length - effectiveE1);
     if (outLen > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     budget.step(text.length - effectiveE1 + 1);
     const expPrefix = effectiveExp1Len === exp1.length ? exp1 : exp1.slice(0, effectiveExp1Len);
-    SYNC_PAIR_RESULT.text = effectiveE1 < text.length ? expPrefix + text.slice(effectiveE1) : expPrefix;
-    SYNC_PAIR_RESULT.substituted = true;
-    return SYNC_PAIR_RESULT;
+    return { text: effectiveE1 < text.length ? expPrefix + text.slice(effectiveE1) : expPrefix, substituted: true };
   }
   const s2 = PAIR_OFFSETS_2[0]!;
   const e2 = PAIR_OFFSETS_2[1]!;
@@ -2039,9 +2031,7 @@ export function trySubstitutePairSync(
   const expPrefix = effectiveExp1Len === 0 ? "" : effectiveExp1Len === exp1.length ? exp1 : exp1.slice(0, effectiveExp1Len);
   const mid = midLen > 0 ? text.slice(effectiveE1, s2) : "";
   const tail = tailLen > 0 ? text.slice(e2) : "";
-  SYNC_PAIR_RESULT.text = expPrefix + mid + exp2 + tail;
-  SYNC_PAIR_RESULT.substituted = true;
-  return SYNC_PAIR_RESULT;
+  return { text: expPrefix + mid + exp2 + tail, substituted: true };
 }
 
 export function trySubstitutePairToBufferSync(

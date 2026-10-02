@@ -18486,6 +18486,7 @@ const syncExtraRuntimeMethods = {
               if (cutRes === undefined) return undefined;
               outLines = cutRes;
             } else if (isInlineTr) {
+              if (sIdx === 0 && cmd0FileStage) return undefined;
               const transformed = this.evalSyncTr(inStr, stageArgs);
               if (transformed === undefined) return undefined;
               const outByteLen = shellValueByteLength(transformed);
@@ -18498,9 +18499,11 @@ const syncExtraRuntimeMethods = {
               prevLen = written;
               continue;
             } else if (isInlineSort) {
-              outLines = ((sIdx === 0 && cmd0FileStage)
+              const sortRes = (sIdx === 0 && cmd0FileStage)
                 ? this.evalSyncMultiFileText("sort", stageArgs, rawState.cwd, byteLocale(rawState.variables), true)
-                : this.evalSyncSort(rawLines, stageArgs, false, true)) ?? [];
+                : this.evalSyncSort(rawLines, stageArgs, false, true);
+              if (sortRes === undefined) return undefined;
+              outLines = sortRes;
             } else if (isInlineUniq) {
               const uniqRes = (sIdx === 0 && cmd0FileStage)
                 ? this.evalSyncMultiFileText("uniq", stageArgs, rawState.cwd, byteLocale(rawState.variables), true)
@@ -18546,15 +18549,15 @@ const syncExtraRuntimeMethods = {
                 }
               }
             } else if (isInlineNl) {
-              const nlRes = this.evalSyncNl(rawLines, stageArgs, rawState.cwd);
+              const nlRes = this.evalSyncNl((sIdx === 0 && cmd0FileStage) ? undefined : rawLines, stageArgs, rawState.cwd);
               if (nlRes === undefined) return undefined;
               outLines = nlRes;
             } else if (isInlinePaste) {
-              const pasteRes = this.evalSyncPaste(rawLines, stageArgs, rawState.cwd, true);
+              const pasteRes = this.evalSyncPaste((sIdx === 0 && cmd0FileStage) ? undefined : rawLines, stageArgs, rawState.cwd, true);
               if (pasteRes === undefined) return undefined;
               outLines = pasteRes;
             } else if (isInlineNumfmt) {
-              const nmRes = this.evalSyncNumfmt(rawLines, stageArgs);
+              const nmRes = this.evalSyncNumfmt((sIdx === 0 && cmd0FileStage) ? undefined : rawLines, stageArgs);
               if (nmRes === undefined) return undefined;
               outLines = nmRes;
             } else if (isInlineColumn) {
@@ -23306,7 +23309,7 @@ const syncExtraRuntimeMethods = {
     return 0;
   }
 ,
-  evalSyncNl(this: any, rawLines: readonly string[], opArgs: readonly string[], cwd?: string): string[] | undefined {
+  evalSyncNl(this: any, rawLines: readonly string[] | undefined, opArgs: readonly string[], cwd?: string): string[] | undefined {
     type NlSecSpec = { style: "a" | "t" | "n" };
     let headerSpec: NlSecSpec = { style: "n" };
     let bodySpec: NlSecSpec = { style: "t" };
@@ -23398,6 +23401,8 @@ const syncExtraRuntimeMethods = {
         return undefined;
       }
     }
+    if (!hasFileOperand && rawLines === undefined) return undefined;
+    rawLines ??= [];
     const out: string[] = [];
     let curSpec = bodySpec;
     let num = start;
@@ -25555,7 +25560,7 @@ const syncExtraRuntimeMethods = {
     return rows.join("\n") + "\n";
   }
 ,
-  evalSyncNumfmt(this: any, rawLines: readonly string[], opArgs: readonly string[]): string[] | undefined {
+  evalSyncNumfmt(this: any, rawLines: readonly string[] | undefined, opArgs: readonly string[]): string[] | undefined {
     let fromScale: "none" | "iec" | "iec-i" | "si" | "auto" = "none";
     let toScale: "none" | "iec" | "iec-i" | "si" = "none";
     let roundMode: "up" | "down" | "from-zero" | "towards-zero" | "nearest" = "from-zero";
@@ -25619,13 +25624,14 @@ const syncExtraRuntimeMethods = {
         const v = a === "--to-unit" ? opArgs[++i]! : a.slice(10);
         if (!/^[1-9][0-9]{0,8}$/.test(v)) return undefined;
         toUnit = Number(v);
-      } else if (!a.startsWith("-") && rawLines.length === 0) {
-        rawLines = [...rawLines, ...opArgs.slice(i)];
+      } else if (!a.startsWith("-") && (!rawLines || rawLines.length === 0)) {
+        rawLines = opArgs.slice(i);
         break;
       } else {
         return undefined;
       }
     }
+    if (rawLines === undefined) return undefined;
     let fmtParsed: { prefix: string; zeroPad: boolean; leftAlign: boolean; width: number; prec: number | undefined; suffix: string } | undefined;
     if (formatStr !== undefined) {
       const fm = /^([^%]*?)%([-0]*)(\d+)?(?:\.(\d+))?f([^%]*)$/.exec(formatStr);

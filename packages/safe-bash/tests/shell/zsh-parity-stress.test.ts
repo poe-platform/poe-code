@@ -1491,3 +1491,19 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "aGkK|NBUQU===|42|764efa883dda1e11db47671c4a3bbd9e|b");
   });
+
+  test("81. sync pipeline stage-0 sort, tr, nl, paste, and numfmt honor inherited stdin and missing file errors", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "s_out=$({ sort -k1,1n | paste -sd, -; } <<< $\x2710\\n2\x27)",
+      "s_err=$(set -o pipefail; sort /missing_81.txt 2>/dev/null | cat; echo $?)",
+      "tr_out=$({ tr \"a-z\" \"A-Z\" | cat; } <<< \"hello\")",
+      "nl_out=$({ nl -w 2 -s \":\" | cat; } <<< \"hi\")",
+      "echo \"world\" > /p81.txt",
+      "pa_out=$({ paste -d \",\" - /p81.txt | cat; } <<< \"hello\")",
+      "nf_out=$({ numfmt --to iec | cat; } <<< \"1024\")",
+      "echo \"$s_out|$s_err|$tr_out|$nl_out|$pa_out|$nf_out\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "2,10|2|HELLO| 1:hi|hello,world|1.0K");
+  });

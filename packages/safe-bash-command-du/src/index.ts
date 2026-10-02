@@ -241,7 +241,7 @@ export function evalSyncDu(
   };
 
   for (const op of operands) {
-    if (op === "") return undefined;
+    if (op === "" || (op.length > 1 && (op.endsWith("/") || op.endsWith("/.") || op.includes("/./"))) || /(?:^|\/)\.\.(?:\/|$)/u.test(op)) return undefined;
     const abs = resolveSyncDuPath(cwd, op);
     const res = walk(abs, op, 0);
     if (failed) return undefined;

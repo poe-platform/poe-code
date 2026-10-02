@@ -299,7 +299,7 @@ export function evalSyncTree(
     };
     const rootItems: string[] = [];
     for (const op of operands) {
-      if (!op) return undefined;
+      if (!op || op.endsWith("/.") || op.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(op)) return undefined;
       const abs = resolveSyncTreePath(cwd, op);
       const built = buildJsonEntry(abs, op, 0);
       if (built === undefined) return undefined;
@@ -312,7 +312,7 @@ export function evalSyncTree(
     return `[${nl}${rootItems.join(`,${nl}`)}${nl}]\n`;
   }
   for (const op of operands) {
-    if (!op) return undefined;
+    if (!op || op.endsWith("/.") || op.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(op)) return undefined;
     const escOp = escapeTreeLabel(op);
     if (escOp === undefined) return undefined;
     const abs = resolveSyncTreePath(cwd, op);

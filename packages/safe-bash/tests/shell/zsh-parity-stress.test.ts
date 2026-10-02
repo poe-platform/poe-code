@@ -1372,3 +1372,19 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     ].join("\n"));
     assert.equal(res.stdout.trim(), "2|0|2|2|no");
   });
+
+  test("74. sync path resolution preserves /. and /./ ENOTDIR and rejects non-existent/file .. in df, du, stat, and ls", async () => {
+    const { shell: bash } = setup();
+    bash.use(agentCommands());
+    const res = await bash.exec([
+      "printf \"abc\\n\" > /reg.txt",
+      "cat /reg.txt/. 2>/dev/null; s1=$?",
+      "ls /reg.txt/. 2>/dev/null; s2=$?",
+      "stat /reg.txt/. 2>/dev/null; s3=$?",
+      "du -b /reg.txt/ 2>/dev/null; s4=$?",
+      "df /reg.txt/ 2>/dev/null; s5=$?",
+      "df /no_such_dir/.. 2>/dev/null; s6=$?",
+      "echo \"$s1|$s2|$s3|$s4|$s5|$s6\"",
+    ].join("\n"));
+    assert.equal(res.stdout.trim(), "1|1|1|1|1|1");
+  });

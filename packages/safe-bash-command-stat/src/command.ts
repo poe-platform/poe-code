@@ -468,7 +468,7 @@ export function evalSyncStat(
   }
   const outChunks: Uint8Array[] = [];
   for (const name of parsed.paths) {
-    if (!name || name.includes("\0") || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(name)) return undefined;
+    if (!name || name.includes("\0") || name.endsWith("/.") || name.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(name)) return undefined;
     const abs = resolveSyncStatPath(cwd, name);
     const hasTrailingSlash = name.length > 1 && name.endsWith("/");
     const stat = inspectStat(abs, parsed.follow || parsed.filesystem || hasTrailingSlash);

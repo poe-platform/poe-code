@@ -18,7 +18,7 @@ import { PublicDiagnostic } from "../diagnostics.js";
 import { invocationScope, type InvocationScope } from "./cleanup.js";
 import { ACCESS_MODES, basename, dirname, isPathWithin, normalizePath, relativePath, resolvePath as contractResolvePath, writeText } from "../contracts/index.js";
 function resolvePath(cwd: string, p: string): string {
-  if (p.length > 1 && (p.endsWith("/") || /(?:^|\/)\.\.(?:\/|$)/.test(p))) {
+  if (p.length > 1 && (p.endsWith("/") || p.endsWith("/.") || p.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/.test(p))) {
     return p.startsWith("/") ? p : (cwd === "/" ? "/" + p : cwd + "/" + p);
   }
   return contractResolvePath(cwd, p);
@@ -1810,7 +1810,7 @@ export function evalSyncLs(
   if (operands.length > 1 && recursive) return undefined;
   const inspectOperandStat = (op: string, opAbs: string): SyncFsStatNode | undefined => {
     if (/(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(op)) return undefined;
-    const hasTrailingSlash = op.length > 1 && op.endsWith("/");
+    const hasTrailingSlash = op.length > 1 && (op.endsWith("/") || op.endsWith("/.") || op.includes("/./"));
     let nodeSt = inspectStat(opAbs, followSymlinks || hasTrailingSlash);
     if (hasTrailingSlash && nodeSt?.type !== "directory") return undefined;
     if (nodeSt && nodeSt.type === "symlink" && !followSymlinks && !dirItself && indicator !== "classify") {

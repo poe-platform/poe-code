@@ -502,7 +502,7 @@ export function evalSyncInstall(
     if (!mkdirSync || !statTypeSync || files.length === 0) return undefined;
     let out = "";
     for (const dir of files) {
-      if (!dir) return undefined;
+      if (!dir || dir.endsWith("/.") || dir.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(dir)) return undefined;
       const parts = dir.split("/");
       let current = dir.startsWith("/") ? "/" : "";
       const components = parts.filter(Boolean);
@@ -540,7 +540,7 @@ export function evalSyncInstall(
     return true;
   };
   const copySingle = (sPath: string, dPath: string): boolean => {
-    if (sPath.endsWith("/") || dPath.endsWith("/") || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(sPath) || /(?:^|\/)((?!\.\.?(?:\/|$))[^/]+)\/\.\.(?:\/|$)/u.test(dPath)) return false;
+    if (sPath.endsWith("/") || sPath.endsWith("/.") || sPath.includes("/./") || dPath.endsWith("/") || dPath.endsWith("/.") || dPath.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/u.test(sPath) || /(?:^|\/)\.\.(?:\/|$)/u.test(dPath)) return false;
     if (sPath.replace(/^\.\/+/u, "") === dPath.replace(/^\.\/+/u, "")) return false;
     if (createLeading) {
       const slash = dPath.lastIndexOf("/");

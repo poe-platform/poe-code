@@ -389,6 +389,7 @@ export function evalSyncDf(
   const selected: Array<{ mount: DfMountEntry; fileOperand: string }> = [];
   if (operands.length > 0) {
     for (const op of operands) {
+      if ((op.length > 1 && (op.endsWith("/") || op.endsWith("/.") || op.includes("/./"))) || /(?:^|\/)\.\.(?:\/|$)/u.test(op)) return undefined;
       const resolved = resolveVfsPath(cwd, op);
       const isMountTarget = mountTable.some(m => m.target === resolved);
       if (!isMountTarget && !inspectNode(resolved)) return undefined;
@@ -768,11 +769,13 @@ export function createDfCommand(options: DfCommandsOptions = {}): CommandDefinit
 
       if (operands.length > 0) {
         for (const op of operands) {
+          const needsRawCheck = (op.length > 1 && (op.endsWith("/") || op.endsWith("/.") || op.includes("/./"))) || /(?:^|\/)\.\.(?:\/|$)/u.test(op);
+          const rawTarget = op.startsWith("/") ? op : (context.cwd.endsWith("/") ? context.cwd + op : `${context.cwd}/${op}`);
           const resolved = resolveVfsPath(context.cwd, op);
-          const isMountTarget = mountTable.some((m) => m.target === resolved);
+          const isMountTarget = !needsRawCheck && mountTable.some((m) => m.target === resolved);
           if (!isMountTarget) {
             try {
-              await context.fs.lstat(resolved, { signal: context.signal });
+              await context.fs.lstat(needsRawCheck ? rawTarget : resolved, { signal: context.signal });
             } catch {
               await writeText(context.stderr, `df: '${op}': No such file or directory\n`);
               exitCode = 1;

@@ -7,6 +7,16 @@ import { expect, test } from "vitest";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+test("runtime-core imports share the canonical public filesystem", async () => {
+  const recipe = resolveBrowserShellBuild(root);
+  const result = await build({
+    ...recipe, entryPoints: undefined,
+    stdin: { contents: 'export { FsError } from "@poe-code/safe-fs/runtime-core";', resolveDir: root, sourcefile: "runtime-core-probe.ts" },
+  });
+  const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
+  expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);
+});
+
 const families = {
   metadata: "Metadata", archive: "Archive", "table-text": "TableText",
   "stream-inspection": "StreamInspection", "stream-format": "StreamFormat", split: "Split",

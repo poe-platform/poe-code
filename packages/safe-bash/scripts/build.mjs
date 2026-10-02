@@ -332,6 +332,20 @@ function compilerInputs(root, tools, fileSystem, optional, checkCancellation) {
           peerPaths["@poe-code/safe-fs/contracts/" + file] = [join(filesystemRoot, "dist/contracts/" + file + ".d.ts")];
         }
       }
+      if (manifest.devDependencies?.["@poe-code/safe-fs"] !== undefined) {
+        assert.equal(manifest.devDependencies["@poe-code/safe-fs"], "*", "SafeFS build dependency must be the local workspace");
+        const filesystemRoot = resolve(root, "../safe-fs");
+        const metadataPath = join(filesystemRoot, "package.json");
+        peerMetadata.add(metadataPath);
+        const filesystem = JSON.parse(read(metadataPath, 65536));
+        const runtimeCore = filesystem.exports?.["./runtime-core"];
+        if (runtimeCore !== undefined) {
+          assert.equal(filesystem.name, "@poe-code/safe-fs", "canonical SafeFS workspace identity");
+          assert.deepEqual(runtimeCore, { types: "./dist/runtime-core.d.ts", import: "./dist/runtime-core.js" }, "canonical SafeFS runtime-core routes");
+          toolRoots.push(join(filesystemRoot, "dist"));
+          peerPaths = { ...peerPaths, "@poe-code/safe-fs/runtime-core": [join(filesystemRoot, "dist/runtime-core.d.ts")] };
+        }
+      }
       if (manifest.peerDependencies?.["poe-code"]) {
         const checkout = manifest.poeCode?.integration?.peerProfile === "checkout-root";
         if (checkout) assert.equal(manifest.devDependencies?.["poe-code"], "file:../..", "checkout peer must use the explicit local root");

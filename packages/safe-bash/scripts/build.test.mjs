@@ -311,6 +311,24 @@ for (const runtime of ["./dist/csvkit/index.js", "./packages/safe-bash-command-c
   assert.ok(owned.reads.includes("/packages/safe-bash-command-csvkit/dist/index.d.ts"));
 });
 
+for (const defect of ["none", "declaration", "runtime"]) test(`build SafeFS runtime-core declaration admission: ${defect}`, async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", devDependencies: { "@poe-code/safe-fs": "*" } }),
+    "src/index.ts": 'import type { FileSystem } from "@poe-code/safe-fs/runtime-core"; export const filesystem: FileSystem = { portable: true };',
+    "../safe-fs/package.json": JSON.stringify({ name: "@poe-code/safe-fs", exports: {
+      "./runtime-core": { types: defect === "declaration" ? "./src/runtime-core.ts" : "./dist/runtime-core.d.ts", import: defect === "runtime" ? "./src/runtime-core.ts" : "./dist/runtime-core.js" },
+    } }),
+    "../safe-fs/dist/runtime-core.d.ts": "export interface FileSystem { portable: boolean; }",
+  });
+  if (defect === "none") {
+    assert.equal((await owned.run()).status, 0, owned.output.join(""));
+    assert.ok(owned.reads.includes("/owned/safe-fs/dist/runtime-core.d.ts"));
+  } else {
+    await assert.rejects(owned.run(), /canonical SafeFS runtime-core/);
+    assert.ok(!owned.reads.includes("/owned/safe-fs/dist/runtime-core.d.ts"));
+  }
+});
+
 for (const defect of ["none", "detached", "declaration", "runtime"]) test(`build portable SafeFS declaration admission: ${defect}`, async () => {
   const owned = fixture({
     "package.json": JSON.stringify({ name: "@poe-platform/safe-bash", type: "module", peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } }),

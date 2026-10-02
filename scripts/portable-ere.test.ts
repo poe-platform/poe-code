@@ -10,6 +10,21 @@ beforeAll(async () => {
   const { entryPoints: ignoredEntries, ...recipe } = options;
   const result = await build({
     ...recipe, inject: [], external: [], alias: { ...recipe.alias, "@poe-code/safe-fs/runtime-core": path.resolve("packages/safe-fs/src/runtime-core.ts"), "@poe-code/safe-fs": path.resolve("packages/safe-fs/src"), "@poe-code/xml-ast": path.resolve("packages/xml-ast/src/index.ts") }, splitting: false, sourcemap: false, format: "iife", globalName: "ere",
+    // This fixture exercises the legacy transport with its explicit browser backend.
+    // Production bundles no longer replace native modules implicitly.
+    plugins: [{
+      name: "legacy-ere-browser-backend",
+      setup(builder) {
+        builder.onResolve({ filter: /(?:^|\/)owner\.js$/ }, args =>
+          path.resolve(args.resolveDir, args.path) === path.resolve("packages/safe-bash/src/commands/regex-execution/ere/transport/owner.js")
+            ? { path: path.resolve("packages/safe-bash/browser/regex.mjs") }
+            : undefined);
+        builder.onResolve({ filter: /^node:util$/ }, args =>
+          args.importer === path.resolve("packages/safe-bash/src/commands/regex-execution/ere/transport/validation.ts")
+            ? { path: path.resolve("packages/safe-bash/browser/regex-validation.mjs") }
+            : undefined);
+      },
+    }, ...recipe.plugins],
     stdin: { contents: 'export { EreTransportRoot } from "./packages/safe-bash/src/commands/regex-execution/ere/transport/root.js"; export { randomBytes } from "./packages/safe-bash-network-engine/src/platform-portable.ts";', resolveDir: process.cwd() },
     outdir: path.join(process.cwd(), "out"),
   });

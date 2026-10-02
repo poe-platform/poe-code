@@ -3860,9 +3860,13 @@ export class Runtime {
         patEreCache._lastEreStatus !== undefined
       ) {
         delete state.variables.BASH_REMATCH;
-        const tickets = existingStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+        const tickets = existingStore.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
+        existingRematch.generation = tickets.generation;
+        existingRematch.version = tickets.version;
+        existingStore.version = tickets.version;
+        existingStore.epoch = tickets.epoch;
         monitor.epoch = tickets.epoch;
-        existingStore.changed(tickets, "BASH_REMATCH");
+        patEreCache._lastEreRematchVersion = tickets.version;
         return patEreCache._lastEreStatus;
       }
       let asciiSubj = true;
@@ -5641,15 +5645,19 @@ export class Runtime {
       const syncTouched = this._syncArithRawWriteOnly ? this._syncArithTouched : undefined;
       let idxNum: number | undefined;
       const directSubVar = (this._syncArithRawWriteOnly && syncTouched?.has(subSrc)) ? rawState.variables[subSrc] : undefined;
-      if (directSubVar !== undefined && /^(?:0|[1-9][0-9]{0,8})$/.test(directSubVar)) {
-        idxNum = Number(directSubVar);
-      } else if (/^(?:0|[1-9][0-9]{0,8})$/.test(subSrc)) {
-        idxNum = Number(subSrc);
-      } else {
-        idxNum = resolveSimpleArithOperand(subSrc, rawState, monitor, store, syncTouched);
-        if (idxNum === undefined) {
-          const exprRes = tryEvalSimpleExpandedArith(subSrc, rawState, monitor, store, syncTouched);
-          if (exprRes !== undefined && Number.isSafeInteger(Number(exprRes))) idxNum = Number(exprRes);
+      if (directSubVar !== undefined) {
+        const parsedDirect = fastSafeInt(directSubVar, this.budget.parsing);
+        if (parsedDirect !== undefined && parsedDirect >= 0) idxNum = parsedDirect;
+      }
+      if (idxNum === undefined) {
+        if (/^(?:0|[1-9][0-9]{0,8})$/.test(subSrc)) {
+          idxNum = Number(subSrc);
+        } else {
+          idxNum = resolveSimpleArithOperand(subSrc, rawState, monitor, store, syncTouched);
+          if (idxNum === undefined) {
+            const exprRes = tryEvalSimpleExpandedArith(subSrc, rawState, monitor, store, syncTouched);
+            if (exprRes !== undefined && Number.isSafeInteger(Number(exprRes))) idxNum = Number(exprRes);
+          }
         }
       }
       if (idxNum !== undefined && idxNum >= 0 && idxNum <= 2147483647) {
@@ -5669,7 +5677,7 @@ export class Runtime {
         if (typeof val !== "string") return false;
         this._lastSyncArrayWriteName = name;
         this._lastSyncArrayWriteSubSrc = rawSubSrc;
-        this._lastSyncArrayWriteKey = String(idxNum);
+        this._lastSyncArrayWriteKey = intToStr(idxNum);
         this._lastSyncArrayWriteVal = val;
         if (current && !assignment.append && current.owner.ledger.bytes === Infinity) {
           const valByteLen = shellValueByteLength(val);
@@ -5677,12 +5685,15 @@ export class Runtime {
           if (existingSlot !== undefined && existingSlot.text.references === 1) {
             try {
               current.owner.chargeWork(valByteLen + 9);
-              const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+              const tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
               existingSlot.text.shellValue = val;
               existingSlot.text.bytes = valByteLen;
               delete rawState.variables[name];
+              current.generation = tickets.generation;
+              current.version = tickets.version;
+              store.version = tickets.version;
+              store.epoch = tickets.epoch;
               monitor.epoch = tickets.epoch;
-              store.revise(name, current, tickets);
               return true;
             } catch (error) {
               if (error instanceof ArrayFailure) return false;
@@ -5693,7 +5704,7 @@ export class Runtime {
           if (stashedSlot !== undefined && stashedSlot.text.references === 1) {
             try {
               current.owner.chargeWork(valByteLen + 9);
-              const tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+              const tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
               current._stashValues!.delete(idxNum);
               stashedSlot.text.shellValue = val;
               stashedSlot.text.bytes = valByteLen;
@@ -5701,8 +5712,11 @@ export class Runtime {
               current.assigned = true;
               if (idxNum > current.maximum) current.maximum = idxNum;
               delete rawState.variables[name];
+              current.generation = tickets.generation;
+              current.version = tickets.version;
+              store.version = tickets.version;
+              store.epoch = tickets.epoch;
               monitor.epoch = tickets.epoch;
-              store.revise(name, current, tickets);
               return true;
             } catch (error) {
               if (error instanceof ArrayFailure) return false;
@@ -5775,7 +5789,7 @@ export class Runtime {
           let tickets: ReturnType<typeof store.owner.charge>;
           try {
             current.owner.chargeWork(valByteLenUpdated + 9);
-            tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+            tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
           } catch (error) {
             if (error instanceof ArrayFailure) return false;
             throw error;
@@ -5783,8 +5797,11 @@ export class Runtime {
           existingSlot.text.shellValue = val;
           existingSlot.text.bytes = valByteLenUpdated;
           delete rawState.variables[name];
+          current.generation = tickets.generation;
+          current.version = tickets.version;
+          store.version = tickets.version;
+          store.epoch = tickets.epoch;
           monitor.epoch = tickets.epoch;
-          store.revise(name, current, tickets);
           return true;
         }
       } else if (current._stashKeys !== undefined && current.owner.ledger.bytes === Infinity) {
@@ -5794,7 +5811,7 @@ export class Runtime {
           let tickets: ReturnType<typeof store.owner.charge>;
           try {
             current.owner.chargeWork(valByteLenUpdated + 9);
-            tickets = store.owner.charge({ generation: true, version: true, epoch: true, work: 8 });
+            tickets = store.owner.charge(syncPipeStatusCharge, syncPipeStatusTickets);
           } catch (error) {
             if (error instanceof ArrayFailure) return false;
             throw error;
@@ -5810,8 +5827,11 @@ export class Runtime {
           current.assigned = true;
           current.maximum = stashedKey.index;
           delete rawState.variables[name];
+          current.generation = tickets.generation;
+          current.version = tickets.version;
+          store.version = tickets.version;
+          store.epoch = tickets.epoch;
           monitor.epoch = tickets.epoch;
-          store.revise(name, current, tickets);
           return true;
         }
       }
@@ -8350,8 +8370,20 @@ export class Runtime {
     // Loops and pure substitutions cannot replay after an unsupported result.
     // These operators depend on arithmetic, filesystem or collation state that
     // the speculative synchronous evaluator does not fully support.
+    const isTotalSafeIntWord = (w: Word): boolean => {
+      if (w.plain !== undefined && /^-?(?:0|[1-9][0-9]{0,9})$/.test(w.plain)) return true;
+      if (w.parts.length === 1 && w.parts[0]!.kind === "variable") {
+        const vp = w.parts[0]!;
+        if (!vp.indirect && !vp.prefixNames && !vp.specialParameter && !vp.length && !vp.substring && !vp.transform && vp.operator === undefined && getArraySelector(vp) === undefined) {
+          if (vp.name === this._activePrintfInductionName) return true;
+          if (rawState && !this._activeSyncLoopAssignedVars?.has(vp.name) && /^-?(?:0|[1-9][0-9]{0,9})$/.test(rawState.variables[vp.name] ?? "0")) return true;
+        }
+      }
+      return false;
+    };
     if (requireTotal && ((expr.kind === "unary" && (expr.operator === "-v" || syncConditionalFileUnaryOps.has(expr.operator))) ||
-      (expr.kind === "binary" && expr.operator !== "==" && expr.operator !== "=" && expr.operator !== "!=" && expr.operator !== "=~"))) return false;
+      (expr.kind === "binary" && expr.operator !== "==" && expr.operator !== "=" && expr.operator !== "!=" && expr.operator !== "=~" &&
+       !((expr.operator === "-eq" || expr.operator === "-ne" || expr.operator === "-lt" || expr.operator === "-le" || expr.operator === "-gt" || expr.operator === "-ge") && isTotalSafeIntWord(expr.left) && isTotalSafeIntWord(expr.right))))) return false;
     const okWord = (w: Word): boolean => !Runtime.wordMayMutate(w) || (rawState !== undefined && this.isPureSyncValueWord(w, rawState));
     if (expr.kind === "nonempty") return okWord(expr.operand);
     if (expr.kind === "unary") return (expr.operator === "-n" || expr.operator === "-z" || expr.operator === "-v" || syncConditionalFileUnaryOps.has(expr.operator)) && okWord(expr.operand);
@@ -8359,7 +8391,7 @@ export class Runtime {
       if (!okWord(expr.left) || !okWord(expr.right)) return false;
       // Matching publishes BASH_REMATCH. A sibling may still require fallback,
       // so only a standalone match can be attempted without replaying writes.
-      if (expr.operator === "=~") return !requireTotal && depth === 0 && this.extractSimpleErePattern(expr.right, rawState) !== undefined;
+      if (expr.operator === "=~") return depth === 0 && this.extractSimpleErePattern(expr.right, rawState) !== undefined && (!requireTotal || (rawState !== undefined && this.getFastAnchoredEreRegex(expr.right, rawState) !== undefined));
       if (expr.operator === "==" || expr.operator === "=" || expr.operator === "!=") {
         if (expr.right.parts.length > 0 && expr.right.parts.every(p => p.quoted)) return true;
         if (requireTotal) {
@@ -8440,7 +8472,7 @@ export class Runtime {
           continue;
         }
         if (p.kind === "variable") {
-          if (this._syncArithTouched?.has(p.name) || p.indirect || p.prefixNames !== undefined || p.specialParameter || p.length || p.substring !== undefined || p.transform !== undefined || p.operator !== undefined || getArraySelector(p) !== undefined || !isShellIdentifier(p.name) || controlNames.has(p.name) || p.name === "LINENO" || p.name === "RANDOM" || p.name === "SRANDOM" || p.name === "SECONDS" || p.name === "_" || store?.get(p.name) || rawState.variableAttributes?.get(p.name)) {
+          if (p.indirect || p.prefixNames !== undefined || p.specialParameter || p.length || p.substring !== undefined || p.transform !== undefined || p.operator !== undefined || getArraySelector(p) !== undefined || !isShellIdentifier(p.name) || controlNames.has(p.name) || p.name === "LINENO" || p.name === "RANDOM" || p.name === "SRANDOM" || p.name === "SECONDS" || p.name === "_" || store?.get(p.name) || rawState.variableAttributes?.get(p.name)) {
             return false;
           }
           if (!out.includes(p.name)) out.push(p.name);
@@ -8458,62 +8490,169 @@ export class Runtime {
     return false;
   }
   private evalSyncLoopCondStep(expr: ConditionalExpression, rawState: State, monitor: NonNullable<ReturnType<typeof stateMonitor>>, store: ReturnType<typeof arrayStore>, io: IO, diagnosticLine: number): number {
-    type FlatCondPlan = {
-      invVars: string[];
-      invVals: (string | undefined)[];
-      invUnits: number;
-      invFailed: boolean;
-      tailExpr: ConditionalExpression | null;
+    type ConjunctSlot = {
+      expr: ConditionalExpression;
+      vars: string[] | null;
+      vals: (string | undefined)[];
+      res: number;
+      units: number;
+      fastIntVar: string | undefined;
+      fastIntOp: string | undefined;
+      fastIntRhs: number;
     };
-    const canMemo = !rawState.nocasematch && !rawState.extglob && !byteLocale(rawState.variables);
-    let plan = canMemo ? (expr as { _flatCondPlan?: FlatCondPlan | null })._flatCondPlan : null;
-    if (plan) {
-      let same = true;
-      for (let i = 0; i < plan.invVars.length; i++) {
-        if (rawState.variables[plan.invVars[i]!] !== plan.invVals[i]) { same = false; break; }
-      }
-      if (same) {
-        if (plan.invUnits > 0) this.budget.parsing.admit(plan.invUnits);
-        if (plan.invFailed) return 1;
-        if (plan.tailExpr === null) return 0;
-        return this.tryEvalConditionalSyncInner(plan.tailExpr, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
+    type CondPlan = {
+      slots: ConjunctSlot[];
+      fastSingleInt?: {
+        invVar1: string | undefined;
+        invVal1: string | undefined;
+        invVar2: string | undefined;
+        invVal2: string | undefined;
+        invUnits: number;
+        intVar: string | undefined;
+        intOp: string;
+        intRhs: number;
+      } | null;
+    };
+    let plan = (expr as { _condConjunctPlan?: CondPlan | null })._condConjunctPlan;
+    if (plan?.fastSingleInt) {
+      const f = plan.fastSingleInt;
+      if (
+        (f.invVar1 === undefined || rawState.variables[f.invVar1] === f.invVal1) &&
+        (f.invVar2 === undefined || rawState.variables[f.invVar2] === f.invVal2)
+      ) {
+        if (f.intVar === undefined) {
+          if (f.invUnits > 0) this.budget.parsing.admit(f.invUnits);
+          return 0;
+        }
+        const lv = fastSafeInt(rawState.variables[f.intVar], this.budget.parsing);
+        if (lv !== undefined) {
+          if (f.invUnits > 0) this.budget.parsing.admit(f.invUnits);
+          const op = f.intOp;
+          const rhs = f.intRhs;
+          return (op === "-lt" ? lv < rhs : op === "-le" ? lv <= rhs : op === "-gt" ? lv > rhs : op === "-ge" ? lv >= rhs : op === "-eq" ? lv === rhs : lv !== rhs) ? 0 : 1;
+        }
       }
     }
-    if (canMemo && plan === undefined) {
+    const canMemo = !rawState.nocasematch && !rawState.extglob && !byteLocale(rawState.variables);
+    if (plan === undefined && canMemo) {
       const conjuncts: ConditionalExpression[] = [];
       const flattenAnd = (n: ConditionalExpression): void => {
         if (n.kind === "and") { flattenAnd(n.left); flattenAnd(n.right); }
         else conjuncts.push(n);
       };
       flattenAnd(expr);
-      const invConjuncts: ConditionalExpression[] = [];
-      const invVars: string[] = [];
-      let idx = 0;
-      while (idx < conjuncts.length) {
-        const c = conjuncts[idx]!;
-        const cVars: string[] = [];
-        if (!this.collectPureCondScalarVars(c, cVars, rawState, store)) break;
-        for (const v of cVars) if (!invVars.includes(v)) invVars.push(v);
-        invConjuncts.push(c);
-        idx++;
-      }
-      if (invConjuncts.length > 0 && invVars.length <= 4 && (idx === conjuncts.length || idx === conjuncts.length - 1)) {
-        const beforeU = this.budget.parsing.admittedUnits;
-        let invFailed = false;
-        for (let k = 0; k < invConjuncts.length; k++) {
-          const r = this.tryEvalConditionalSyncInner(invConjuncts[k]!, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
-          if (r !== 0) { invFailed = true; break; }
+      if (conjuncts.length >= 1 && conjuncts.length <= 8) {
+        const slots = new Array<ConjunctSlot>(conjuncts.length);
+        for (let k = 0; k < conjuncts.length; k++) {
+          const c = conjuncts[k]!;
+          const cVars: string[] = [];
+          const isPure = this.collectPureCondScalarVars(c, cVars, rawState, store) && cVars.length <= 3;
+          let fastIntVar: string | undefined;
+          let fastIntOp: string | undefined;
+          let fastIntRhs = 0;
+          if (
+            isPure &&
+            c.kind === "binary" &&
+            (c.operator === "-lt" || c.operator === "-le" || c.operator === "-gt" || c.operator === "-ge" || c.operator === "-eq" || c.operator === "-ne") &&
+            c.left.parts.length === 1 && c.left.parts[0]!.kind === "variable" &&
+            !c.left.parts[0]!.indirect && !c.left.parts[0]!.prefixNames && !c.left.parts[0]!.specialParameter && !c.left.parts[0]!.length && !c.left.parts[0]!.substring && !c.left.parts[0]!.transform && c.left.parts[0]!.operator === undefined && getArraySelector(c.left.parts[0]!) === undefined &&
+            c.right.plain !== undefined && /^-?(?:0|[1-9][0-9]{0,9})$/.test(c.right.plain)
+          ) {
+            fastIntVar = c.left.parts[0]!.name;
+            fastIntOp = c.operator;
+            fastIntRhs = Number(c.right.plain);
+          }
+          slots[k] = {
+            expr: c,
+            vars: isPure ? cVars : null,
+            vals: isPure ? new Array(cVars.length) : [],
+            res: -1,
+            units: 0,
+            fastIntVar,
+            fastIntOp,
+            fastIntRhs,
+          };
         }
-        const invUnits = this.budget.parsing.admittedUnits - beforeU;
-        const tailExpr = idx < conjuncts.length ? conjuncts[idx]! : null;
-        plan = { invVars, invVals: invVars.map(v => rawState.variables[v]), invUnits, invFailed, tailExpr };
-        (expr as { _flatCondPlan?: FlatCondPlan | null })._flatCondPlan = plan;
-        if (invFailed) return 1;
-        if (tailExpr === null) return 0;
-        return this.tryEvalConditionalSyncInner(tailExpr, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
+        plan = { slots };
+        (expr as { _condConjunctPlan?: CondPlan | null })._condConjunctPlan = plan;
       } else {
-        (expr as { _flatCondPlan?: FlatCondPlan | null })._flatCondPlan = null;
+        (expr as { _condConjunctPlan?: CondPlan | null })._condConjunctPlan = null;
+        plan = null;
       }
+    }
+    if (plan) {
+      const slots = plan.slots;
+      for (let k = 0; k < slots.length; k++) {
+        const sl = slots[k]!;
+        if (sl.fastIntVar !== undefined) {
+          const lv = fastSafeInt(rawState.variables[sl.fastIntVar], this.budget.parsing);
+          if (lv !== undefined) {
+            this.budget.parsing.admit(2);
+            const op = sl.fastIntOp!;
+            const rhs = sl.fastIntRhs;
+            const ok = op === "-lt" ? lv < rhs : op === "-le" ? lv <= rhs : op === "-gt" ? lv > rhs : op === "-ge" ? lv >= rhs : op === "-eq" ? lv === rhs : lv !== rhs;
+            if (!ok) return 1;
+            continue;
+          }
+        }
+        const vs = sl.vars;
+        if (vs !== null && sl.res !== -1) {
+          let same = true;
+          for (let j = 0; j < vs.length; j++) {
+            if (rawState.variables[vs[j]!] !== sl.vals[j]) { same = false; break; }
+          }
+          if (same) {
+            if (sl.units > 0) this.budget.parsing.admit(sl.units);
+            if (sl.res !== 0) return 1;
+            continue;
+          }
+        }
+        const beforeU = this.budget.parsing.admittedUnits;
+        const r = this.tryEvalConditionalSyncInner(sl.expr, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
+        if (vs !== null) {
+          for (let j = 0; j < vs.length; j++) sl.vals[j] = rawState.variables[vs[j]!];
+          sl.res = r;
+          sl.units = this.budget.parsing.admittedUnits - beforeU;
+        }
+        if (r !== 0) return 1;
+      }
+      if (plan.fastSingleInt === undefined) {
+        let intSlots = 0;
+        let intSlot: ConjunctSlot | undefined;
+        let invVarsSet = new Set<string>();
+        let allOtherSucceeded = true;
+        let totalInvUnits = 2;
+        for (let k = 0; k < slots.length; k++) {
+          const sl = slots[k]!;
+          if (sl.fastIntVar !== undefined) {
+            intSlots++;
+            intSlot = sl;
+          } else if (sl.vars !== null && sl.res === 0) {
+            for (const v of sl.vars) invVarsSet.add(v);
+            totalInvUnits += sl.units;
+          } else {
+            allOtherSucceeded = false;
+          }
+        }
+        if (allOtherSucceeded && intSlots <= 1 && invVarsSet.size <= 2) {
+          const invArr = [...invVarsSet];
+          const invVar1 = invArr[0];
+          const invVar2 = invArr[1];
+          plan.fastSingleInt = {
+            invVar1,
+            invVal1: invVar1 !== undefined ? rawState.variables[invVar1] : undefined,
+            invVar2,
+            invVal2: invVar2 !== undefined ? rawState.variables[invVar2] : undefined,
+            invUnits: totalInvUnits,
+            intVar: intSlot?.fastIntVar,
+            intOp: intSlot?.fastIntOp ?? "-eq",
+            intRhs: intSlot?.fastIntRhs ?? 0,
+          };
+        } else {
+          plan.fastSingleInt = null;
+        }
+      }
+      return 0;
     }
     return this.tryEvalConditionalSyncInner(expr, rawState, monitor, store, io, diagnosticLine, 0) ?? 1;
   }
@@ -12797,7 +12936,10 @@ export class Runtime {
           return this.isPureSyncValueWord(e.left, rawState) && this.getFastAnchoredEreRegex(e.right, rawState) !== undefined && !rawState.readonlyVariables?.has("BASH_REMATCH") && !rawState.exported.has("BASH_REMATCH") && !stateMonitor(rawState)?.hasOverlay("BASH_REMATCH") && !(stateMonitor(rawState)?.store ?? requireArrays(rawState))?.watches.has("BASH_REMATCH");
         }
         // A synchronous loop cannot hand off an unsupported pattern mid-iteration.
-        return this.isPureSyncValueWord(e.left, rawState) && this.isPureSyncValueWord(e.right, rawState) && (!(e.operator === "==" || e.operator === "=" || e.operator === "!=") || (e.right.parts.length > 0 && e.right.parts.every(p => p.quoted)));
+        const rightOk = (e.operator === "==" || e.operator === "=" || e.operator === "!=")
+          ? (e.right.parts.length > 0 && ((this.isPureSyncValueWord(e.right, rawState) && e.right.parts.every(p => p.quoted)) || e.right.parts.every((p, idx) => p.kind === "text" && !p.byteValue && (p.quoted || idx > 0 || !p.value.startsWith("~")))))
+          : this.isPureSyncValueWord(e.right, rawState);
+        return this.isPureSyncValueWord(e.left, rawState) && rightOk;
       }
       if (e.kind === "not") return checkLeaf(e.operand);
       if (e.kind === "and" || e.kind === "or") return checkLeaf(e.left) && checkLeaf(e.right);
@@ -15503,6 +15645,17 @@ export class Runtime {
         if (command.redirects.length === 0 && !command.expression.error && !command.expression.hasSubscript && isSafeSmiProgram(command.expression) && command.expression.tree?.kind === "unary" && (command.expression.tree.operator === "++" || (command.expression.tree.operator === "--" && command.expression.tree.operand.kind === "name" && command.expression.tree.operand.name !== inductionName)) && command.expression.tree.operand.kind === "name") continue;
         return false;
       }
+      if (command.kind === "conditional") {
+        const condSafe = (e: ConditionalExpression): boolean => {
+          if (e.kind === "nonempty" || e.kind === "unary") return !Runtime.wordMayMutate(e.operand);
+          if (e.kind === "binary") return !Runtime.wordMayMutate(e.left) && !Runtime.wordMayMutate(e.right);
+          if (e.kind === "not") return condSafe(e.operand);
+          if (e.kind === "and" || e.kind === "or") return condSafe(e.left) && condSafe(e.right);
+          return false;
+        };
+        if (command.redirects.length === 0 && condSafe(command.expression)) continue;
+        return false;
+      }
       if (command.kind !== "simple" || command.words.some(word => getArrayAssignment(word) !== undefined)) return false;
       const firstPlain = command.words[0]?.plain ?? "";
       if (hasShellFunction(rawState, firstPlain)) {
@@ -15778,9 +15931,20 @@ export class Runtime {
       }
       const fieldLen = readArrayScratchFields.length;
       const tickets = arrStore.owner.charge({ generation: true, version: true, epoch: true, work: 8 + fieldLen * 4 });
+      const canStashReuse = existingArrayBinding.references === 1 && existingArrayBinding.owner.ledger.bytes === Infinity && existingArrayBinding.owner.ledger.fields === Infinity;
       if (existingArrayBinding.values.size !== fieldLen || existingArrayBinding.maximum !== fieldLen - 1) {
-        for (const k of [...existingArrayBinding.values.keys()]) {
-          if (k >= fieldLen) existingArrayBinding.remove(k);
+        if (canStashReuse) {
+          const stash = (existingArrayBinding._stashValues ??= new Map());
+          for (const [k, v] of existingArrayBinding.values) {
+            if (k >= fieldLen) {
+              stash.set(k, v);
+              existingArrayBinding.values.delete(k);
+            }
+          }
+        } else {
+          for (const k of [...existingArrayBinding.values.keys()]) {
+            if (k >= fieldLen) existingArrayBinding.remove(k);
+          }
         }
         existingArrayBinding.maximum = fieldLen - 1;
       }
@@ -15788,13 +15952,23 @@ export class Runtime {
         const val = readArrayScratchFields[idx]!;
         const byteLen = val.length;
         const slot = existingArrayBinding.values.get(idx);
-        if (slot && slot.text.references === 1 && slot.text.bytes === byteLen) {
+        if (slot && slot.text.references === 1 && (slot.text.bytes === byteLen || canStashReuse)) {
           existingArrayBinding.owner.chargeWork(byteLen);
           slot.text.shellValue = val;
+          slot.text.bytes = byteLen;
         } else {
-          existingArrayBinding.owner.chargeWork(byteLen);
-          const token = new OwnedText(val, byteLen, existingArrayBinding.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
-          existingArrayBinding.insert(idx, token);
+          const stashed = canStashReuse ? existingArrayBinding._stashValues?.get(idx) : undefined;
+          if (stashed && stashed.text.references === 1) {
+            existingArrayBinding.owner.chargeWork(byteLen);
+            existingArrayBinding._stashValues!.delete(idx);
+            stashed.text.shellValue = val;
+            stashed.text.bytes = byteLen;
+            existingArrayBinding.values.set(idx, stashed);
+          } else {
+            existingArrayBinding.owner.chargeWork(byteLen);
+            const token = new OwnedText(val, byteLen, existingArrayBinding.owner.reserve({ payload: byteLen, metadata: 32, work: 4 }));
+            existingArrayBinding.insert(idx, token);
+          }
         }
       }
       readArrayScratchFields.length = 0;
@@ -16034,6 +16208,75 @@ export class Runtime {
           this._syncLoopAction = undefined;
           if (act === "break") break;
         }
+        if (curInd === startVal && !hasDeferredSteps && deferredMask === 0 && curInd + 1 < limit && bodyAssignments.length >= 1 && bodyAssignments.length <= 2) {
+          type FastIntCondSpec = {
+            invVar1: string | undefined;
+            invVal1: string | undefined;
+            invVar2: string | undefined;
+            invVal2: string | undefined;
+            invUnits: number;
+            intVar: string | undefined;
+            intOp: string;
+            intRhs: number;
+          };
+          let canFastCondLoop = true;
+          const specs: FastIntCondSpec[] = [];
+          for (let b = 0; b < bodyAssignments.length; b++) {
+            const st = bodyAssignments[b]!;
+            if (st.condStmt === undefined || (st.listOperator !== undefined && st.listOperator !== "&&")) {
+              canFastCondLoop = false;
+              break;
+            }
+            const fSpec = (st.condStmt as { _condConjunctPlan?: { fastSingleInt?: FastIntCondSpec | null } | null })._condConjunctPlan?.fastSingleInt;
+            if (!fSpec || (fSpec.intVar !== undefined && fSpec.intVar !== inductionName)) {
+              canFastCondLoop = false;
+              break;
+            }
+            if (
+              (fSpec.invVar1 !== undefined && rawState.variables[fSpec.invVar1] !== fSpec.invVal1) ||
+              (fSpec.invVar2 !== undefined && rawState.variables[fSpec.invVar2] !== fSpec.invVal2)
+            ) {
+              canFastCondLoop = false;
+              break;
+            }
+            specs.push(fSpec);
+          }
+          if (canFastCondLoop) {
+            const sLen = specs.length;
+            const s0 = specs[0]!;
+            const s1 = sLen === 2 ? specs[1]! : undefined;
+            const lastSt = bodyAssignments[sLen - 1]!;
+            const lastStArg = lastSt.cmd.kind === "simple" ? (lastSt.cmd.words[lastSt.cmd.words.length - 1]?.plain ?? "]") : "";
+            for (curInd++; curInd < limit; curInd++) {
+              this.budget.loop();
+              if ((++loopTurn & 127) === 0) runYieldCheckpoint(this.signal);
+              let stStatus = 0;
+              this.budget.commands++;
+              this.budget.parsing.admit(4 + s0.invUnits);
+              if (s0.intVar !== undefined) {
+                const op = s0.intOp;
+                const rhs = s0.intRhs;
+                const ok = op === "-lt" ? curInd < rhs : op === "-le" ? curInd <= rhs : op === "-gt" ? curInd > rhs : op === "-ge" ? curInd >= rhs : op === "-eq" ? curInd === rhs : curInd !== rhs;
+                if (!ok) stStatus = 1;
+              }
+              if (stStatus === 0 && s1 !== undefined) {
+                this.budget.commands++;
+                this.budget.parsing.admit(s1.invUnits);
+                if (s1.intVar !== undefined) {
+                  const op = s1.intOp;
+                  const rhs = s1.intRhs;
+                  const ok = op === "-lt" ? curInd < rhs : op === "-le" ? curInd <= rhs : op === "-gt" ? curInd > rhs : op === "-ge" ? curInd >= rhs : op === "-eq" ? curInd === rhs : curInd !== rhs;
+                  if (!ok) stStatus = 1;
+                }
+              }
+              rawState.status = stStatus;
+              progress.pipelineStatus = stStatus;
+            }
+            progress.lastCmd = lastSt.cmd;
+            progress.lastArg = lastStArg;
+            break;
+          }
+        }
       }
       if (curInd === limit) {
         this.budget.loop();
@@ -16164,6 +16407,33 @@ export class Runtime {
           const nextNum = binOp === "=" ? elemNum : binOp === "+=" ? curNum + elemNum : binOp === "-=" ? curNum - elemNum : curNum * elemNum;
           if (Number.isSafeInteger(nextNum)) {
             this.budget.parsing.admit(4);
+            rawState.variables[varName] = intToStr(nextNum);
+            touched.add(varName);
+            return nextNum !== 0;
+          }
+        }
+      }
+      const cachedSubPlan = expr as { _cachedSubMutPlan?: { lhsName: string; binOp: string; arrName: string; subSrc: string } | null };
+      let subPlan = cachedSubPlan._cachedSubMutPlan;
+      if (subPlan === undefined) {
+        const m = /^\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*(\+=|-=|\*=|=)\s*([a-zA-Z_][a-zA-Z0-9_]*)\[([^\[\]]+)\]\s*$/.exec(expr.source);
+        subPlan = m ? { lhsName: m[1]!, binOp: m[2]!, arrName: m[3]!, subSrc: m[4]! } : null;
+        cachedSubPlan._cachedSubMutPlan = subPlan;
+      }
+      if (
+        subPlan !== null &&
+        subPlan.arrName === this._lastSyncArrayWriteName &&
+        subPlan.subSrc === this._lastSyncArrayWriteSubSrc &&
+        this._lastSyncArrayWriteVal !== undefined
+      ) {
+        const varName = resolveSyncNameref(rawState, subPlan.lhsName);
+        const elemNum = fastSafeInt(this._lastSyncArrayWriteVal, this.budget.parsing);
+        const curNum = fastSafeInt(rawState.variables[varName], this.budget.parsing);
+        if (elemNum !== undefined && curNum !== undefined) {
+          const binOp = subPlan.binOp;
+          const nextNum = binOp === "=" ? elemNum : binOp === "+=" ? curNum + elemNum : binOp === "-=" ? curNum - elemNum : curNum * elemNum;
+          if (Number.isSafeInteger(nextNum)) {
+            this.budget.parsing.admit(6);
             rawState.variables[varName] = intToStr(nextNum);
             touched.add(varName);
             return nextNum !== 0;

@@ -124,19 +124,22 @@ export class IndexedBinding {
 
   softClearForReuse(): void {
     if (this.values.size === 0 && this.keys.size === 0) return;
-    if (!this._stashValues) {
-      this._stashValues = new Map(this.values);
-      this.values.clear();
+    if (!this._stashValues || this._stashValues.size === 0) {
+      const emptyVals = this._stashValues ?? new Map<number, Element>();
+      this._stashValues = this.values;
+      (this as { values: Map<number, Element> }).values = emptyVals;
     } else {
       for (const [k, v] of this.values) this._stashValues.set(k, v);
       this.values.clear();
     }
     if (this.associative) {
-      if (!this._stashKeys) {
-        this._stashKeys = new Map(this.keys);
-        this._stashKeyByIndex = new Map(this.keyByIndex);
-        this.keys.clear();
-        this.keyByIndex.clear();
+      if (!this._stashKeys || this._stashKeys.size === 0) {
+        const emptyKeys = this._stashKeys ?? new Map<string, { index: number; text: OwnedText; admission: Admission }>();
+        const emptyKeyByIdx = this._stashKeyByIndex ?? new Map<number, string>();
+        this._stashKeys = this.keys;
+        this._stashKeyByIndex = this.keyByIndex;
+        (this as { keys: typeof emptyKeys }).keys = emptyKeys;
+        (this as { keyByIndex: typeof emptyKeyByIdx }).keyByIndex = emptyKeyByIdx;
       } else {
         for (const [k, v] of this.keys) this._stashKeys.set(k, v);
         for (const [k, v] of this.keyByIndex) this._stashKeyByIndex!.set(k, v);

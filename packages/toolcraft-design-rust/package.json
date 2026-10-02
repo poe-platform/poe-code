@@ -827,6 +827,10 @@
     "./explorer/demo": {
       "types": "./dist/explorer-demo.d.ts",
       "import": "./dist/explorer-demo.js"
+    },
+    "./explorer/render/test-fixtures": {
+      "types": "./dist/explorer-test-fixtures.d.ts",
+      "import": "./dist/explorer-test-fixtures.js"
     }
   },
   "scripts": {

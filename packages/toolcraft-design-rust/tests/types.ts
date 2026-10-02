@@ -1083,3 +1083,14 @@ const explorerDemoOptionsNative: nativeExplorerDemo.ExplorerDemoOptions = null a
 const explorerDemoBuildOriginal: originalExplorerDemo.BuildExplorerDemoConfigOptions = null as unknown as nativeExplorerDemo.BuildExplorerDemoConfigOptions;
 const explorerDemoBuildNative: nativeExplorerDemo.BuildExplorerDemoConfigOptions = null as unknown as originalExplorerDemo.BuildExplorerDemoConfigOptions;
 void [explorerDemoOriginal,explorerDemoNative,explorerDemoOptionsOriginal,explorerDemoOptionsNative,explorerDemoBuildOriginal,explorerDemoBuildNative];
+
+import * as nativeExplorerFixtures from "toolcraft-design-rust/explorer/render/test-fixtures";
+import type * as originalExplorerFixtures from "toolcraft-design/explorer/render/test-fixtures";
+const explorerFixturesOriginal: Omit<typeof originalExplorerFixtures,"dumpScreen"> = nativeExplorerFixtures;
+const explorerFixturesNative: Omit<typeof nativeExplorerFixtures,"dumpScreen"> = null as unknown as typeof originalExplorerFixtures;
+// ScreenBuffer's separate private declarations remain part of final alias-swap qualification.
+// @ts-expect-error Separate private buffer declarations prevent cross-package parameter assignment.
+const explorerFixtureDumpOriginal: typeof originalExplorerFixtures.dumpScreen = nativeExplorerFixtures.dumpScreen;
+// @ts-expect-error The private buffer declarations also differ in the reverse direction.
+const explorerFixtureDumpNative: typeof nativeExplorerFixtures.dumpScreen = null as unknown as typeof originalExplorerFixtures.dumpScreen;
+void [explorerFixturesOriginal,explorerFixturesNative,explorerFixtureDumpOriginal,explorerFixtureDumpNative];

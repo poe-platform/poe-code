@@ -2549,6 +2549,34 @@ missing concrete design modules are `explorer/demo`, `explorer/render/test-fixtu
 `terminal-markdown/testing/theme-render-fixture`; the existing-surface audit,
 batching and broader Toolcraft/platform/swap qualification remain open.
 
+### Explorer rendering fixture checkpoint
+
+`explorer/render/test-fixtures` now exposes all six reference helpers. Rust owns
+fresh fixture data, default/override construction and screen traversal; Node
+retains async handlers, host maps/sets, live property access and rendering
+capabilities. Three missing-import cases preceded implementation. Differential
+coverage compares exported metadata, fresh data identities, nested callbacks,
+default/filter/narrow/modal states, override getter/enumeration order, screen
+dimension reads, method receivers and arbitrary throws. Existing explorer
+rendering and wrapped-reducer suites now resolve this helper module natively.
+
+Build, maintained package unit, Rust/binding and scoped JS lint pass: 414 native
+host cases, 1,521 selected design cases, 13 prompt wrappers, 143 dashboard cases,
+14 composer cases and 331 explorer cases. Packed imports run with external ESM
+dependencies blocked; standalone declarations and bidirectional non-buffer
+signatures pass. `dumpScreen` retains the original private ScreenBuffer contract,
+with explicit negative cross-package assignments keeping nominal alias-swap
+qualification open. Default, filtered and help screenshots were inspected and
+their ANSI output is byte-identical to the reference.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 20 complete 80x14 fixture/state
+snapshot renders per round and 32 retained strings, measured 47,654.115
+microseconds native / 5,117.042 microseconds JavaScript (9.31 times slower). No
+performance gate passed. No dependencies or default integration changed.
+`dashboard/testing/pipeline-scenario` is the remaining missing concrete design
+module; the complete existing-surface audit, native batching and broader
+Toolcraft/platform/swap qualification remain open.
+
 ### Markdown theme fixture checkpoint
 
 `terminal-markdown/testing/theme-render-fixture` now reproduces the original

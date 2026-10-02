@@ -31,6 +31,11 @@ and action callbacks. Its legacy demo `key` bindings currently match the
 JavaScript reference and are rejected by the explorer runtime; previews must
 adapt those bindings to `accelerator` before opening the view.
 
+Use `explorer/render/test-fixtures` to build controlled previews with
+`fixtureState(overrides)`, fresh sample rows and single/list detail items.
+`renderStateSnapshot(state)` returns a fixed-size ANSI view; `dumpScreen(buffer)`
+captures an existing dashboard screen buffer.
+
 Render consistent agent output with callable `color` chains, `text` helpers and
 cached dark/light palettes. `configureTheme({brand: 'blue', label: 'Acme'})`
 sets your brand and live intro label. Colors follow terminal support and

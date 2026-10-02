@@ -579,3 +579,5 @@ mod theme_fixture;
 pub use theme_fixture::*;
 mod explorer_demo;
 pub use explorer_demo::*;
+mod explorer_fixtures;
+pub use explorer_fixtures::*;

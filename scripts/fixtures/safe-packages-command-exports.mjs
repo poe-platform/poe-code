@@ -48,3 +48,13 @@ for (const [name, api] of Object.entries({ media, mcp })) {
   api[`${name}Commands`]().setup({ commands: registry });
   if (JSON.stringify(registry.list().map(command => command.name)) !== JSON.stringify(definitions.map(command => command.name))) throw new Error(`${name}: plugin inventory differs`);
 }
+
+// Exercise the extracted AWK implementation under both Node and portable exports.
+const awkFs = commands.createMemoryFileSystem();
+await awkFs.writeFile('/awk-input', new TextEncoder().encode('left 2\nright 3\n'));
+await awkFs.writeFile('/awk-script', new TextEncoder().encode("awk '{ sum += $2 } END { print sum }' /awk-input | awk '{ print $1 * 2 }'"));
+const awkShell = new commands.Shell({ fs: awkFs }).use(commands.agentCommands());
+try {
+  const result = await awkShell.exec('sh /awk-script');
+  if (result.exitCode !== 0 || result.stdout !== '10\n') throw new Error('Portable AWK script/pipeline failed: ' + result.stderr);
+} finally { await awkShell.dispose(); }

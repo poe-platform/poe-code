@@ -4,7 +4,7 @@ import { test } from 'vitest';
 import ts from 'typescript';
 import { adapterStatements } from './fixtures/command-adapter-statements.js';
 
-const commands = ['apply-patch', 'cmp', 'column', 'csplit', 'docx', 'du', 'expr', 'factor', 'file', 'getopt', 'hexdump', 'html-to-markdown', 'iconv', 'install', 'pptx', 'pr', 'split', 'timeout', 'tree', 'truncate', 'tsort', 'which', 'xan'];
+const commands = ['apply-patch', 'awk', 'cmp', 'column', 'csplit', 'docx', 'du', 'expr', 'factor', 'file', 'getopt', 'hexdump', 'html-to-markdown', 'iconv', 'install', 'pptx', 'pr', 'split', 'timeout', 'tree', 'truncate', 'tsort', 'which', 'xan'];
 const json = (path: string) => JSON.parse(readFileSync(new URL('../' + path, import.meta.url), 'utf8'));
 const root = json('package.json');
 const shell = json('packages/safe-bash/package.json');
@@ -55,5 +55,21 @@ test('adapter registration does not admit implementation, incomplete wiring or f
   assert.equal(remaining(registration + 'function implementation() {}').length, 1);
   for (const invalid of [registration.replace('= evalSyncDu', '= () => {}'), registration.replace('safe-bash-command-du', 'foreign'), registration + registration, registration.slice(registration.indexOf(';') + 1)]) {
     assert.ok(remaining(invalid).length > 0);
+  }
+});
+
+test('awk legacy modules forward to the private owner without a return dependency', () => {
+  const name = 'safe-bash-command-awk';
+  const pkg = json(`packages/${name}/package.json`);
+  for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
+    assert.ok(!Object.keys(pkg[field] ?? {}).some(value => ['@poe-platform/safe-bash', 'poe-code'].includes(value)));
+  }
+  const directory = new URL('../packages/safe-bash/src/commands/text-programs/', import.meta.url);
+  for (const entry of readdirSync(directory).filter(value => value.startsWith('awk') && value.endsWith('.ts'))) {
+    const parsed = ts.createSourceFile(entry, readFileSync(new URL(entry, directory), 'utf8'), ts.ScriptTarget.Latest, true);
+    assert.equal(parsed.statements.length, 1);
+    const statement = parsed.statements[0]!;
+    assert.ok(ts.isExportDeclaration(statement) && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier));
+    assert.equal(statement.moduleSpecifier.text, `${name}/${entry.slice(0, -3)}`);
   }
 });

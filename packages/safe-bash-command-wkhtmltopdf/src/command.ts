@@ -41,12 +41,12 @@ export interface RenderedDocument extends Omit<ConversionCompletion, "mode"> {
 }
 
 export interface WkhtmltopdfLimitsOverrides {
-  readonly parse?: Partial<ParseLimits>;
-  readonly resources?: Partial<ResourceLimits>;
-  readonly maxOutputBytes?: number;
-  readonly maxOutputChunks?: number;
-  readonly maxBatchJobs?: number;
-  readonly maxPages?: number;
+  readonly parse?: { readonly [K in keyof ParseLimits]?: ParseLimits[K] | undefined };
+  readonly resources?: { readonly [K in keyof ResourceLimits]?: ResourceLimits[K] | undefined };
+  readonly maxOutputBytes?: number | undefined;
+  readonly maxOutputChunks?: number | undefined;
+  readonly maxBatchJobs?: number | undefined;
+  readonly maxPages?: number | undefined;
 }
 
 export interface WkhtmltopdfCommandOptions {
@@ -127,9 +127,9 @@ export async function runWkhtmltopdf(context: WkhtmltopdfContext, options: Wkhtm
     }
     const limits: WkhtmltopdfLimits = Object.freeze({
       ...wkhtmltopdfLimits,
-      ...options.limits,
-      parse: Object.freeze({ ...wkhtmltopdfLimits.parse, ...options.limits?.parse }),
-      resources: Object.freeze({ ...wkhtmltopdfLimits.resources, ...options.limits?.resources }),
+      ...Object.fromEntries(Object.entries(options.limits ?? {}).filter(([, value]) => value !== undefined)),
+      parse: Object.freeze({ ...wkhtmltopdfLimits.parse, ...Object.fromEntries(Object.entries(options.limits?.parse ?? {}).filter(([, value]) => value !== undefined)) }),
+      resources: Object.freeze({ ...wkhtmltopdfLimits.resources, ...Object.fromEntries(Object.entries(options.limits?.resources ?? {}).filter(([, value]) => value !== undefined)) }),
     });
     for (const value of [limits.maxOutputBytes, limits.maxOutputChunks, limits.maxBatchJobs, limits.maxPages ?? Infinity]) {
       if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new WkhtmltopdfError("INVALID_VALUE", "Command limits must be positive safe integers");

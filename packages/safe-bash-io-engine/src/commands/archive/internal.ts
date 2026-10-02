@@ -25,7 +25,7 @@ export interface ArchiveLimits {
 
 export interface ArchiveCommandsOptions {
   readonly replace?: boolean;
-  readonly limits?: Partial<ArchiveLimits>;
+  readonly limits?: { readonly [K in keyof ArchiveLimits]?: ArchiveLimits[K] | undefined };
   /** Explicit trusted host capabilities; neither capability reads shell stdin. */
   readonly zipHost?: ZipHost;
   /** Defaults for creation; CLI -Z and --encryption override these. */
@@ -64,11 +64,12 @@ export const DEFAULT_ARCHIVE_LIMITS: Readonly<ArchiveLimits> = Object.freeze({
 });
 
 export function settings(options: ArchiveCommandsOptions): ArchiveLimits {
-  const limits = { ...DEFAULT_ARCHIVE_LIMITS, ...options.limits };
+  const limits = { ...DEFAULT_ARCHIVE_LIMITS };
   for (const [key, value] of Object.entries(options.limits ?? {})) {
-    if (!Object.hasOwn(DEFAULT_ARCHIVE_LIMITS, key) || (value !== Infinity && (!Number.isSafeInteger(value) || value < 1))) {
+    if (!Object.hasOwn(DEFAULT_ARCHIVE_LIMITS, key) || (value !== undefined && value !== Infinity && (!Number.isSafeInteger(value) || value < 1))) {
       throw new RangeError(`Invalid archive limit: ${key}`);
     }
+    if (value !== undefined) limits[key as keyof ArchiveLimits] = value;
   }
   if (limits.chunkSize === Infinity) limits.chunkSize = DEFAULT_ARCHIVE_LIMITS.chunkSize;
   if (limits.chunkSize < 512 || limits.chunkSize > 1024 * 1024) throw new RangeError("Archive chunkSize must be between 512 and 1048576");
@@ -76,11 +77,13 @@ export function settings(options: ArchiveCommandsOptions): ArchiveLimits {
 }
 
 export function invocationLimits(configured: ArchiveLimits, context: CommandContext): ArchiveLimits {
-  const profile = (context.capabilities?.commandLimits as { archive?: Partial<ArchiveLimits> } | undefined)?.archive;
+  const profile = (context.capabilities?.commandLimits as { archive?: ArchiveCommandsOptions["limits"] } | undefined)?.archive;
   if (!profile) return configured;
   settings({ limits: profile });
   const limits = { ...configured };
-  for (const key of Object.keys(profile) as (keyof ArchiveLimits)[]) limits[key] = Math.min(limits[key], profile[key]!);
+  for (const key of Object.keys(profile) as (keyof ArchiveLimits)[]) {
+    if (profile[key] !== undefined) limits[key] = Math.min(limits[key], profile[key]);
+  }
   return Object.freeze(limits);
 }
 

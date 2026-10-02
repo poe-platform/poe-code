@@ -33,6 +33,18 @@ function renderer(open: StaticRenderer["open"]): StaticRenderer {
 }
 const output = () => ({ success: true, errorCode: 0, chunks: [encoder.encode("%PDF-test")], async close() {} });
 
+test("command limits treat explicit undefined as omitted, including nested resource limits", async () => {
+  const f = fixture(["--version"]);
+  const result = await runWkhtmltopdf(f.context, { limits: {
+    maxOutputBytes: undefined, maxOutputChunks: undefined, maxBatchJobs: undefined, maxPages: undefined,
+    parse: { maxArguments: undefined, maxTextBytes: undefined, maxObjects: undefined, maxWork: undefined },
+    resources: { maxInputBytes: undefined, maxDecodedBytes: undefined, maxRetainedBytes: undefined, maxWork: undefined, maxResources: undefined },
+  } });
+  assert.deepEqual(result, { kind: "information", exitCode: 0 });
+  assert.equal(f.stderr.length, 0);
+  assert.ok(f.stdout.length > 0);
+});
+
 for (const action of ["dump-default-toc-xsl", "manpage", "htmldoc", "readme", "license"]) {
   test(`${action} exports information without input or renderer acquisition`, async () => {
     const f = fixture([`--${action}`]);

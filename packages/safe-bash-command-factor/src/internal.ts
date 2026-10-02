@@ -19,7 +19,7 @@ export interface FactorLimits {
 
 export interface FactorCommandsOptions {
   readonly replace?: boolean;
-  readonly limits?: Partial<FactorLimits>;
+  readonly limits?: { readonly [K in keyof FactorLimits]?: FactorLimits[K] | undefined };
 }
 
 export function settings(options: FactorCommandsOptions): FactorLimits {
@@ -27,7 +27,8 @@ export function settings(options: FactorCommandsOptions): FactorLimits {
     maxValue: Infinity, maxArguments: Infinity, maxArgumentBytes: Infinity,
     maxInputBytes: Infinity, maxTokenBytes: Infinity, maxNumbers: Infinity,
     maxBufferedBytes: Infinity, maxOutputBytes: Infinity,
-    maxDiagnosticBytes: Infinity, maxWork: Infinity, maxEmptyChunks: Infinity, ...options.limits,
+    maxDiagnosticBytes: Infinity, maxWork: Infinity, maxEmptyChunks: Infinity,
+    ...Object.fromEntries(Object.entries(options.limits ?? {}).filter(([, value]) => value !== undefined)),
   };
   for (const [name, value] of Object.entries(limits)) {
     if (name === "maxValue" && typeof value === "bigint" && value > 0n) continue;

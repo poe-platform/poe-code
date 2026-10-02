@@ -10,6 +10,7 @@ test("archive quotas default to Infinity and accept explicit Infinity independen
     if (key === "chunkSize") continue;
     assert.equal(defaults[key as keyof typeof defaults], Infinity);
     assert.deepEqual(settings({ limits: { [key]: Infinity } }), defaults);
+    assert.deepEqual(settings({ limits: { [key]: undefined } }), defaults);
     assert.deepEqual(settings({ limits: { [key]: 1 } }), { ...defaults, [key]: 1 });
     for (const value of [0, -1, 1.5, NaN, -Infinity, Number.MAX_SAFE_INTEGER + 1]) {
       assert.throws(() => settings({ limits: { [key]: value } }), RangeError);
@@ -21,6 +22,7 @@ test("archive quotas default to Infinity and accept explicit Infinity independen
 test("unlimited archive quotas retain a finite chunk size", () => {
   assert.equal(settings({}).chunkSize, 64 * 1024);
   assert.equal(settings({ limits: { chunkSize: Infinity } }).chunkSize, 64 * 1024);
+  assert.equal(settings({ limits: { chunkSize: undefined } }).chunkSize, 64 * 1024);
   for (const chunkSize of [512, 1024 * 1024]) {
     assert.equal(settings({ limits: { chunkSize } }).chunkSize, chunkSize);
   }
@@ -36,7 +38,7 @@ test("explicit Infinity cannot remove a finite archive registration or invocatio
     fs: createMemoryFileSystem(), stdin: toByteSource(""),
     stdout: { async write() {} }, stderr: { async write() {} },
     signal: new AbortController().signal,
-    capabilities: { commandLimits: { archive: { maxArchiveBytes: Infinity, maxEntryBytes: 5 } } },
+    capabilities: { commandLimits: { archive: { maxArchiveBytes: Infinity, maxEntryBytes: 5, maxTotalBytes: undefined, chunkSize: undefined } } },
   };
   const configured = settings({ limits: { maxArchiveBytes: 10, maxEntryBytes: Infinity } });
   const limits = invocationLimits(configured, context);

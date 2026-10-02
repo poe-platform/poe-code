@@ -16,11 +16,14 @@ export interface MetadataLimits {
 export interface MetadataCommandsOptions {
   readonly replace?: boolean;
   readonly umask?: number;
-  readonly limits?: Partial<MetadataLimits>;
+  readonly limits?: { readonly [K in keyof MetadataLimits]?: MetadataLimits[K] | undefined };
 }
 
 export function settings(options: MetadataCommandsOptions = {}) {
-  const limits: MetadataLimits = { maxEntries: Infinity, maxDepth: Infinity, maxOutputBytes: Infinity, maxArgumentBytes: Infinity, maxAttempts: Infinity, maxArguments: Infinity, ...options.limits };
+  const limits: MetadataLimits = {
+    maxEntries: Infinity, maxDepth: Infinity, maxOutputBytes: Infinity, maxArgumentBytes: Infinity, maxAttempts: Infinity, maxArguments: Infinity,
+    ...Object.fromEntries(Object.entries(options.limits ?? {}).filter(([, value]) => value !== undefined)),
+  };
   for (const [key, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < (key === "maxDepth" ? 0 : 1))) throw new RangeError(`Invalid metadata limit: ${key}`);
   }

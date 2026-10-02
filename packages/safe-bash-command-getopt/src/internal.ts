@@ -17,7 +17,7 @@ export interface GetoptLimits {
 
 export interface GetoptCommandsOptions {
   readonly replace?: boolean;
-  readonly limits?: Partial<GetoptLimits>;
+  readonly limits?: { readonly [K in keyof GetoptLimits]?: GetoptLimits[K] | undefined };
 }
 
 export function settings(options: GetoptCommandsOptions): GetoptLimits {
@@ -25,7 +25,7 @@ export function settings(options: GetoptCommandsOptions): GetoptLimits {
     maxArguments: Infinity, maxArgumentBytes: Infinity, maxInputBytes: Infinity,
     maxSchemaBytes: Infinity, maxLongOptions: Infinity, maxBufferedBytes: Infinity,
     maxOutputBytes: Infinity, maxDiagnosticBytes: Infinity, maxWork: Infinity,
-    ...options.limits,
+    ...Object.fromEntries(Object.entries(options.limits ?? {}).filter(([, value]) => value !== undefined)),
   };
   for (const [name, value] of Object.entries(limits)) {
     if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new RangeError(`Invalid getopt limit: ${name}`);

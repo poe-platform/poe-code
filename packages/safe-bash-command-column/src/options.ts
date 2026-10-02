@@ -20,7 +20,7 @@ export interface ColumnLimits {
 
 export interface ColumnCommandsOptions {
   readonly replace?: boolean;
-  readonly limits?: Partial<ColumnLimits>;
+  readonly limits?: { readonly [K in keyof ColumnLimits]?: ColumnLimits[K] | undefined };
 }
 
 export function settings(options: ColumnCommandsOptions): ColumnLimits {
@@ -31,7 +31,7 @@ export function settings(options: ColumnCommandsOptions): ColumnLimits {
     maxRows: Infinity, maxCells: Infinity, maxFields: Infinity, maxFiles: Infinity,
     maxSteps: Infinity, maxArgumentBytes: Infinity, maxWidth: Infinity,
     maxRetainedBytes: Infinity,
-    ...options.limits,
+    ...Object.fromEntries(Object.entries(options.limits ?? {}).filter(([, value]) => value !== undefined)),
   };
   for (const [name, value] of Object.entries(limits)) {
     if ((value !== Infinity && !Number.isSafeInteger(value)) || value < 1) {

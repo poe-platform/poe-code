@@ -1,1 +1,1 @@
-export * from "safe-bash-command-node/commands/safejs/types";
+export * from "safe-bash-command-safejs/types";

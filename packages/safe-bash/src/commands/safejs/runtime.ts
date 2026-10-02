@@ -1,1 +1,1 @@
-export * from "safe-bash-command-node/commands/safejs/runtime";
+export * from "safe-bash-command-safejs/runtime";

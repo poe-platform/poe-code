@@ -2731,3 +2731,47 @@ it("packs cmp declarations behind public routes without a private install depend
     expect(volume.existsSync(`/output/safe-bash/dist/${name}/options.${suffix}`)).toBe(true);
   }
 });
+
+
+it("admits the SafeJS bridge as its own private canonical owner", () => {
+  const name = "safe-bash-command-safejs";
+  expect(bashManifest.poeCode.integration.privateWorkspaces).toHaveProperty(name);
+  const pkg = JSON.parse(readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8"));
+  expect(pkg.private).toBe(true);
+  expect(pkg.dependencies).toEqual({});
+  expect(pkg.devDependencies).not.toHaveProperty("safe-bash-command-node");
+  expect(pkg.devDependencies).not.toHaveProperty("@poe-platform/safe-bash");
+  expect(bashManifest.poeCode.integration.privateWorkspaces[name].devDependencies).toEqual(pkg.devDependencies);
+  expect(readFileSync(new URL("../packages/safe-bash/src/commands/safejs/runtime.ts", import.meta.url), "utf8").trim())
+    .toBe('export * from "safe-bash-command-safejs/runtime";');
+});
+
+it("packs the SafeJS bridge and declarations without a private install dependency", async () => {
+  const { volume, options } = optionalLeftovers();
+  const name = "safe-bash-command-safejs";
+  const pkg = JSON.parse(readFileSync(new URL(`../packages/${name}/package.json`, import.meta.url), "utf8"));
+  volume.mkdirSync(`/repo/packages/${name}/dist`, { recursive: true });
+  volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(pkg));
+  volume.writeFileSync(`/repo/packages/${name}/LICENSE`, "MIT\n");
+  for (const entry of Object.values(pkg.exports) as { types: string; import: string }[]) {
+    for (const target of [entry.types, entry.import]) {
+      volume.writeFileSync(`/repo/packages/${name}/${target.slice(2)}`, "export {};\n");
+    }
+  }
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(`/repo/packages/${name}/dist/index.${suffix}`, 'export { createSafeJsCommands } from "./runtime.js";');
+    volume.writeFileSync(`/repo/packages/${name}/dist/runtime.${suffix}`, suffix === "js"
+      ? "export function createSafeJsCommands() { return []; }" : "export declare function createSafeJsCommands(): unknown[];");
+  }
+  for (const suffix of ["js", "d.ts"]) {
+    volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/node/index.${suffix}`, `export { createSafeJsCommands } from "${name}";`);
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  const packed = JSON.parse(volume.readFileSync("/output/safe-bash/package.json", "utf8").toString());
+  expect(packed.dependencies?.[name]).toBeUndefined();
+  for (const suffix of ["js", "d.ts"]) {
+    expect(volume.readFileSync(`/output/safe-bash/dist/safe-bash/commands/node/index.${suffix}`, "utf8"))
+      .toContain('../../../safe-bash-command-safejs/index.js');
+    expect(volume.existsSync(`/output/safe-bash/dist/${name}/runtime.${suffix}`)).toBe(true);
+  }
+});

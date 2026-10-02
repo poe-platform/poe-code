@@ -343,3 +343,5 @@ assert.throws(() => import.meta.resolve("safe-bash-mime-engine"), { code: "ERR_M
 
 assert.throws(() => import.meta.resolve("safe-bash-command-op"), { code: "ERR_MODULE_NOT_FOUND" });
 await (await import("./safe-packages-op.mjs")).verification;
+
+import "./safe-packages-safejs.mjs";

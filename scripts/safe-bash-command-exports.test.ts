@@ -22,9 +22,17 @@ function exportedNames(file: string, visited = new Set<string>()): Set<string> {
         for (const entry of statement.exportClause.elements) names.add(entry.name.text);
       } else if (statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)) {
         const specifier = statement.moduleSpecifier.text;
+        const parts = specifier.split("/");
+        const packageName = parts.splice(0, specifier.startsWith("@") ? 2 : 1).join("/");
+        const directory = resolve(root, "packages", packageName.split("/").at(-1)!);
+        const manifestPath = resolve(directory, "package.json");
+        const manifest = !specifier.startsWith(".") && existsSync(manifestPath)
+          ? JSON.parse(readFileSync(manifestPath, "utf8")) : undefined;
+        const entry = manifest?.exports?.[parts.length ? "./" + parts.join("/") : "."];
+        const runtime = typeof entry === "string" ? entry : entry?.import;
         const target = specifier.startsWith(".")
           ? resolve(dirname(file), specifier.endsWith(".js") ? specifier.slice(0, -3) + ".ts" : specifier)
-          : resolve(root, "packages", specifier, "src/index.ts");
+          : resolve(directory, typeof runtime === "string" ? runtime.replace("./dist/", "./src/").replace(".js", ".ts") : "src/index.ts");
         if (existsSync(target)) for (const name of exportedNames(target, visited)) names.add(name);
       }
     } else if (ts.canHaveModifiers(statement) && ts.getModifiers(statement)?.some(modifier => modifier.kind === ts.SyntaxKind.ExportKeyword)) {
@@ -46,7 +54,17 @@ describe("portable command API", () => {
     const title = name.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
     const pluginName = title[0]!.toLowerCase() + title.slice(1);
     it(`${name} exposes its portable public command contract`, () => {
-      const adapter = name === "xmllint" ? "xml" : name;
+      // These existing integrations intentionally retain their established APIs.
+      // Extraction must not invent factories or reopen a retired command route.
+      if (name === "safejs") {
+        expect(metadata.exports).not.toHaveProperty("./commands/safejs");
+        expect(metadata.poeCode.integration.privateWorkspaces[workspace].portable).toBe(true);
+        const bridge = exportedNames(resolve(root, `packages/${workspace}/src/index.ts`));
+        for (const symbol of ["createSafeJsCommands", "SafeJsCommandDialect", "SafeJsCommandsOptions", "SafeJsCommandLimitError"]) expect(bridge.has(symbol), symbol).toBe(true);
+        for (const symbol of ["createSafeJsCommands", "safeJsCommands", "SafeJsCommandsOptions", "SafeJsCommandLimitError"]) expect(sdk.has(symbol), symbol).toBe(true);
+        return;
+      }
+      const adapter = ({ xmllint: "xml", "playwright-cli": "playwright" } as Record<string, string>)[name] ?? name;
       const source = resolve(root, `packages/safe-bash/src/commands/${adapter}/index.ts`);
       const exported = new Set(sdk);
       if (existsSync(source)) {
@@ -65,8 +83,11 @@ describe("portable command API", () => {
         expect(metadata.poeCode.integration.privateWorkspaces[workspace]).toHaveProperty("portable", true);
       }
       const packageExports = exportedNames(resolve(root, `packages/${workspace}/src/index.ts`));
-      for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) expect(packageExports.has(symbol), `${workspace}: ${symbol}`).toBe(true);
-      for (const symbol of [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`]) expect(exported.has(symbol), symbol).toBe(true);
+      const symbols = name === "playwright-cli" ? ["createPlaywrightCli", "PlaywrightCliOptions"]
+        : name === "python" ? ["pythonCommands", "createPythonCommands", "PythonCommandsOptions", "pythonExecutorCommands", "createPythonExecutorCommands"]
+        : [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`];
+      for (const symbol of symbols) expect(packageExports.has(symbol), `${workspace}: ${symbol}`).toBe(true);
+      for (const symbol of symbols) expect(exported.has(symbol), symbol).toBe(true);
     });
   }
   for (const name of ["safe-bash-contracts", "safe-bash-csv-engine", "safe-bash-xml-engine", "safe-bash-compression-engine"]) {

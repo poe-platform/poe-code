@@ -624,6 +624,11 @@
       "dependsOn": [
         "^build"
       ]
+    },
+    "safe-bash-command-safejs#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

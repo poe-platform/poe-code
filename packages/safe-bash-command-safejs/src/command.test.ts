@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { contractRuntime, execute, operation } from "./helpers.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
+import { contractRuntime, execute, operation } from "./test-helpers.js";
 
 test("command environment is a prototype-free data copy with literal special keys", async () => {
   const env = Object.fromEntries([["__proto__", "literal"], ["constructor", "ctor"], ["prototype", "proto"], ["KEY", "original"]]);
@@ -22,7 +22,7 @@ test("command environment is a prototype-free data copy with literal special key
 
 test("missing runtime is explicit and never consumes source or stdin", async () => {
   let read = false;
-  const actual = await execute([], {}, { async *[Symbol.asyncIterator]() { read = true; throw new Error("unexpected read"); } });
+  const actual = await execute([], {}, { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { read = true; throw new Error("unexpected read"); } }; } });
   assert.equal(actual.exitCode, 127);
   assert.match(actual.stderr, /runtime.*not installed/iu);
   assert.equal(read, false);

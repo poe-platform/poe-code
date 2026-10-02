@@ -1721,7 +1721,8 @@
             "safe-bash-contracts": "*",
             "safe-bash-io-engine": "*",
             "safe-bash-query-engine": "*",
-            "@noble/hashes": "2.4.0"
+            "@noble/hashes": "2.4.0",
+            "safe-bash-command-safejs": "*"
           },
           "portable": true
         },
@@ -1925,6 +1926,17 @@
             "@poe-code/safe-fs": "*",
             "safe-bash-contracts": "*",
             "safe-bash-io-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-safejs": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "@poe-code/safe-fs": "*",
+            "safe-bash-contracts": "*",
+            "safe-bash-io-engine": "*",
+            "safe-bash-query-engine": "*"
           },
           "portable": true
         }
@@ -3382,7 +3394,8 @@
     "safe-bash-mime-engine": "*",
     "safe-bash-command-unix2dos": "*",
     "safe-bash-command-zstd": "*",
-    "safe-bash-command-cp": "*"
+    "safe-bash-command-cp": "*",
+    "safe-bash-command-safejs": "*"
   },
   "main": "./dist/index.js",
   "imports": {

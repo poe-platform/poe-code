@@ -284,3 +284,5 @@ import "./safe-packages-shuf-types.mjs";
 import "./safe-packages-split-types.mjs";
 
 import "./safe-packages-op-types.mjs";
+
+import "./safe-packages-safejs-types.mjs";

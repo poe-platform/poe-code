@@ -1,0 +1,61 @@
+{
+  "name": "safe-bash-command-safejs",
+  "version": "0.0.1",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./runtime": {
+      "types": "./dist/runtime.d.ts",
+      "import": "./dist/runtime.js"
+    },
+    "./types": {
+      "types": "./dist/types.d.ts",
+      "import": "./dist/types.js"
+    },
+    "./io": {
+      "types": "./dist/io.d.ts",
+      "import": "./dist/io.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "import": "./dist/options.js"
+    },
+    "./render": {
+      "types": "./dist/render.d.ts",
+      "import": "./dist/render.js"
+    },
+    "./filesystem": {
+      "types": "./dist/filesystem.d.ts",
+      "import": "./dist/filesystem.js"
+    },
+    "./values": {
+      "types": "./dist/values.d.ts",
+      "import": "./dist/values.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
+    "lint": "eslint src && npm run typecheck",
+    "test": "node --import tsx --test src/*.test.ts",
+    "test:unit": "node --import tsx --test src/*.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@poe-code/safe-fs": "*",
+    "safe-bash-contracts": "*",
+    "safe-bash-io-engine": "*",
+    "safe-bash-query-engine": "*"
+  }
+}

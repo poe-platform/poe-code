@@ -1,1 +1,1 @@
-export * from "safe-bash-command-node/commands/safejs/render";
+export * from "safe-bash-command-safejs/render";

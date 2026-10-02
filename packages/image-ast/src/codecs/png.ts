@@ -459,6 +459,8 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
   }
   if (rgba.buffer !== inflated.buffer && typeof (inflated.buffer as any).transfer === "function") {
     try { (inflated.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
+  } else if (rgba.byteOffset === 0 && rgba.byteLength < rgba.buffer.byteLength && typeof (rgba.buffer as any).transfer === "function") {
+    try { rgba = new Uint8Array((rgba.buffer as any).transfer(rgba.byteLength)); } catch { /* Buffer resize is best-effort. */ }
   }
 
   return {

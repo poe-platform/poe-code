@@ -1825,9 +1825,15 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
     );
     const moovChildren = [mvhdBox, ...trakBoxes];
     if (udtaBox) moovChildren.push(udtaBox);
-    const moovBox = makeBox("moov", concatBytes(moovChildren));
-    const mdatBox = makeBox("mdat", concatBytes(mdatPayloads));
+    const moovPayload = concatBytes(moovChildren);
+    const moovBox = makeBox("moov", moovPayload);
+    detachBytesBuffer(moovPayload);
+    const mdatPayload = concatBytes(mdatPayloads);
+    const mdatBox = makeBox("mdat", mdatPayload);
+    detachBytesBuffer(mdatPayload);
     const out = concatBytes([ftypBox, mdatBox, moovBox]);
+    detachBytesBuffer(mdatBox);
+    detachBytesBuffer(moovBox);
     budget.checkOutputBytes(out.byteLength);
     return out;
   }
@@ -1855,10 +1861,17 @@ export function serializeMp4(doc: MediaDocument, options: SerializeMediaOptions 
   );
   const finalMoovChildren = [mvhdBox, ...finalTraks];
   if (udtaBox) finalMoovChildren.push(udtaBox);
-  const finalMoov = makeBox("moov", concatBytes(finalMoovChildren));
-  const mdatBox = makeBox("mdat", concatBytes(mdatPayloads));
+  detachBytesBuffer(dummyMoov);
+  const finalMoovPayload = concatBytes(finalMoovChildren);
+  const finalMoov = makeBox("moov", finalMoovPayload);
+  detachBytesBuffer(finalMoovPayload);
+  const mdatPayload = concatBytes(mdatPayloads);
+  const mdatBox = makeBox("mdat", mdatPayload);
+  detachBytesBuffer(mdatPayload);
 
   const out = concatBytes([ftypBox, finalMoov, mdatBox]);
+  detachBytesBuffer(finalMoov);
+  detachBytesBuffer(mdatBox);
   budget.checkOutputBytes(out.byteLength);
   return out;
 }

@@ -2251,17 +2251,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             const first = frames[0]!;
             const synthBytes = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), createSyntheticMp4({
-              width: first.width,
-              height: first.height,
+              width: 16,
+              height: 16,
               fps,
               frameCount: 1,
               includeAudio: false
             }));
             const base = parseMp4(synthBytes);
+            detachBytesBuffer(synthBytes);
             return {
               ...base,
               tracks: base.tracks.map((t) =>
-                t.type === "video" ? { ...t, samples: [], decodedVideoFrames: frames } : t
+                t.type === "video" ? { ...t, width: first.width, height: first.height, samples: [], decodedVideoFrames: frames } : t
               )
             };
           }

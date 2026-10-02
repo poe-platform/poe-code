@@ -918,12 +918,15 @@ export function encodeH264IdrFrame(
       pBits.writeUE(skipRun);
     }
     pBits.writeRbspTrailingBits();
-    const pEscaped = escapeRbsp(pBits.toUint8Array());
+    const pRaw = pBits.toUint8Array();
+    const pEscaped = escapeRbsp(pRaw);
+    detachBytesBuffer(pRaw);
     const pLen = 1 + pEscaped.byteLength;
     const pAvcc = new Uint8Array(4 + pLen);
     new DataView(pAvcc.buffer).setUint32(0, pLen, false);
     pAvcc[4] = 0x61; // nal_ref_idc = 3, nal_unit_type = 1 (non-IDR reference P-slice)
     pAvcc.set(pEscaped, 5);
+    detachBytesBuffer(pEscaped);
     detachBytesBuffer(refY);
     detachBytesBuffer(refU);
     detachBytesBuffer(refV);
@@ -997,13 +1000,16 @@ export function encodeH264IdrFrame(
     detachBytesBuffer(vPlane);
   }
   bits.writeRbspTrailingBits();
-  const escapedRbsp = escapeRbsp(bits.toUint8Array());
+  const rawRbsp = bits.toUint8Array();
+  const escapedRbsp = escapeRbsp(rawRbsp);
+  detachBytesBuffer(rawRbsp);
   const naluLength = 1 + escapedRbsp.byteLength;
   const avcc = new Uint8Array(4 + naluLength);
   const view = new DataView(avcc.buffer);
   view.setUint32(0, naluLength, false);
   avcc[4] = 0x65; // nal_ref_idc = 3, nal_unit_type = 5 (IDR slice)
   avcc.set(escapedRbsp, 5);
+  detachBytesBuffer(escapedRbsp);
   return avcc;
 }
 

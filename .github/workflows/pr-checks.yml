@@ -70,6 +70,15 @@ jobs:
       - name: Build root public peer and workspace dependencies
         run: npm run build
       - uses: ./.github/actions/setup-bash-oracle
+      - name: Install pinned LLM reference for Python conformance tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          LLM_REFERENCE_ROOT="$RUNNER_TEMP/llm-reference"
+          python3 -m venv "$LLM_REFERENCE_ROOT"
+          "$LLM_REFERENCE_ROOT/bin/python" -m pip install --disable-pip-version-check "llm==0.27.1" "pydantic==2.12.5" "httpx==0.28.1"
+          echo "LLM_TEST_PYTHON=$LLM_REFERENCE_ROOT/bin/python" >> "$GITHUB_ENV"
+          echo "LLM_REFERENCE_PYTHON=$LLM_REFERENCE_ROOT/bin/python" >> "$GITHUB_ENV"
       - name: Run the complete @poe-platform/safe-bash unit suite serially
         run: npm run test:unit --workspace @poe-platform/safe-bash -- --test-concurrency=1 --test-timeout=600000
   bun-public-imports:

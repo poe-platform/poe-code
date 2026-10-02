@@ -65,7 +65,7 @@ for (const codec of ["utf8", "utf16le", "utf16be"] as const)
 for (const route of ["sdk", "native-sdk", "sdk-batch", "native-sdk-batch", "cli", "native-cli", "cli-batch", "native-cli-batch"] as const)
 for (const scenario of scenarios)
 it(`complete binding selector ${scenario.name}; strict=${strict}; kind=${kind}; codec=${codec}; route=${route}`, async () => {
-  const product = route.startsWith("native") ? native : api;
+  const product: typeof api = route.startsWith("native") ? native as unknown as typeof api : api;
   const context = { limits: textContext.limits, signal: textContext.signal, budget: new product.DocumentBudget({}, textContext.signal, async signal => { signal.throwIfAborted(); }), encoding: { order: "input", compression: "store" } as const };
   const w = strict ? "http://purl.oclc.org/ooxml/wordprocessingml/main" : "http://schemas.openxmlformats.org/wordprocessingml/2006/main";
   const r = strict ? "http://purl.oclc.org/ooxml/officeDocument/relationships" : "http://schemas.openxmlformats.org/officeDocument/2006/relationships";

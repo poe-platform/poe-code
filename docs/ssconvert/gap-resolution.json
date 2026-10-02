@@ -1098,6 +1098,36 @@
       "publicQualification": "Compiled SDK import/recalculation preserves all twelve label/formula strings from a 264-byte input. Compiled command BIFF export/readback preserves ten; its existing C-string handling truncates both embedded-NUL strings from A\\0Z to A. BIFF output is 3584 bytes. XLSX explicitly refuses non-XML characters without publishing output; CSV also truncates at NUL. These are recorded export limitations, not successful roundtrips.",
       "remaining": "Shared/inline XLSX string escaping and BIFF7/8 NUL preservation are now implemented; see xlsxCellStringEscapes and biffNulStrings. XLSX formula expressions/caches, CSV NUL contracts, malformed control sequences, other charset groups and native workbook applications remain open."
     },
+    "lotusNationalSingleByteGroups": {
+      "status": "implemented national and exception mapping corrections; native converter qualification complete for valid single-byte sequences",
+      "source": {
+        "revision": "049e0d6a420629ac7db77256987d083a563287b5",
+        "repository": "https://github.com/unicode-org/icu",
+        "files": {
+          "convrtrs.txt": "29340d12f664416d51c9b9d8d34e6364a10b456e668eb3155fd5f59beaf743e9",
+          "ibm-5347_P100-1998.ucm": "d6aaee1a97b0b1ba6a160aa782621c23a5bc69ab2f968f1ee4d70a3abd630896",
+          "ibm-5350_P100-1998.ucm": "c7fb7d076cf2d79c9db2e8ca102781df2e24aef9380231431ff634c0d37dccd8",
+          "ibm-9447_P100-2002.ucm": "71d9ca4f957563b9ac538e77b73860477a2f63191f2123b9f25e5602d0c8b107",
+          "ibm-9448_X100-2005.ucm": "25702303dda09f3e7fcaaaf09536baa06ce6e3fb746b603865585f4525005fce",
+          "lmb-excp.ucm": "00d997212a95f5c3869c9b292fd5425f91c45f07e312e3d4cc964e907de881a4",
+          "ucnv_lmb.cpp": "0ca62b7469713bb992f418dc216e0395b175e51047f6a56e67b7524b1452f39b",
+          "windows-874-2000.ucm": "852cedb7949991c60c4d9e37fbea31110919a46761e35e702e9b26889029d204"
+        }
+      },
+      "finding": "The legacy Gnumeric tables omitted 72 valid Hebrew, Arabic, Cyrillic, Turkish and Thai mappings and used obsolete PUA values for fi/fl ligatures. All 74 differences match pinned ICU mapping definitions. The decoder now retains national punctuation, euro updates, control and Thai PUA mappings, and assigned U+FB01/U+FB02 ligatures. This expands the historical Gnumeric mapping profile rather than claiming identical Gnumeric output.",
+      "nativeProfile": {
+        "library": "/usr/lib/libicucore.A.dylib",
+        "version": "76.1.0.0",
+        "platform": "macOS 15.7.7 (24G720)",
+        "api": "ucnv_convert to UTF-8; u_getVersion",
+        "explicitValid": 1296,
+        "implicitValid": 1011,
+        "invalidExplicitSeparate": 752,
+        "invalidImplicitSeparate": 13
+      },
+      "validation": "Six original memory workbook regressions failed before correction and pass after. All 604 tests in 24 Lotus files pass, including cell labels, formula strings and live name identity. Compiled command-package SDK and runCommand independently match native ICU for all 2307 valid explicit/implicit single-byte sequences across eight groups: 9228 XLSX label/formula-cache values, no diagnostics, source unchanged and engines disposed. Rebuilt root SDK/runCommand pass the same 9228 comparisons; six compiled live-name identities and bindings also pass. Maintained selected build, full root build (288 declared workspace builds), package lint and source/test/public-consumer type checks pass.",
+      "remaining": "The current macOS LibreOffice --version probe stalls at _dyld_start before application entry; its owned process was terminated. Native Gnumeric/Calc workbook application behavior, malformed-sequence policy, wider double-byte mappings, registry artifacts and the broader Lotus family remain separate qualification requirements. Native-invalid sequences are excluded from the valid-profile comparisons and are not counted as passes."
+    },
     "lotusNationalDoubleByteGroups": {
       "status": "implemented explicit/implicit Japanese, Korean, Traditional Chinese and Simplified Chinese group decoding",
       "source": "lotusUnicodeCompatibility.source; OptGroupByteToCPName lines 237-257 and decoding branches 1186-1248",
@@ -3543,7 +3573,7 @@
     {
       "id": "lotus-named-formula-references",
       "status": "open",
-      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flag packing, wider sheet-relative profiles, wider charsets/formatting/domains and native applications remain open. CSV now preserves NUL on import/export with documented native differences; raw-NUL XLSX formula refusal remains a distinct export gap. Containing publication is pending. Modern direct references now retain per-endpoint sheet relativity through standard OpenFormula storage and XML/XLSX annotations; 24,436 package checks and six compiled roundtrips pass. BIFF export and native copy-mode qualification remain open. Modern .123 indexed sheet names (0x23) now retain Windows-1252 spelling and late bindings; compiled SDK/command and explicit Calc Lotus:ANSI checks pass. See lotusModernSheetNames for qualified flags and failed automatic/default profiles."
+      "currentFinding": "Implemented source-qualified WK1/WK3 names, namespace lifecycle, WK1/WK2, Windows Works and DOS Symphony offsets, WK3 admission, numeric record widths and single-rounding extended values and direct cross-sheet range endpoints. Qualified financial/date/position/lookup semantics and all 47 LibreOffice-recognized add-ins resolve. LMBCS Unicode, four national double-byte groups and C0/C1 controls follow ICU source. All 327 tests in seventeen Lotus files and package lint/types/build pass; public SDK/command observations remain scoped by the source records. BIFF NUL and shared/inline XLSX string preservation are now implemented. Ambiguous DOS Works profiles, modern range flag packing, wider sheet-relative profiles, wider charsets/formatting/domains and native applications remain open. CSV now preserves NUL on import/export with documented native differences; raw-NUL XLSX formula refusal remains a distinct export gap. Containing publication is pending. Modern direct references now retain per-endpoint sheet relativity through standard OpenFormula storage and XML/XLSX annotations; 24,436 package checks and six compiled roundtrips pass. BIFF export and native copy-mode qualification remain open. Modern .123 indexed sheet names (0x23) now retain Windows-1252 spelling and late bindings; compiled SDK/command and explicit Calc Lotus:ANSI checks pass. See lotusModernSheetNames for qualified flags and failed automatic/default profiles. Single-byte national/exception mappings now match native ICU 76.1 for all 2307 valid sequences through current root and command-package public conversions; see lotusNationalSingleByteGroups. Native workbook application qualification remains open."
     },
     {
       "id": "biff-external-and-token-formulas",

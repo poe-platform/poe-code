@@ -65,9 +65,9 @@ async function resolveAsyncScopedRepoRoot(
       const gitStat = await fs.lstat(`${cur}/.git`, { signal });
       if (gitStat.type === "directory") {
         let hasExternal = false;
-        try { await fs.lstat(`${cur}/.git/commondir`, { signal }); hasExternal = true; } catch {}
+        try { await fs.lstat(`${cur}/.git/commondir`, { signal }); hasExternal = true; } catch { /* Unavailable optional markers do not enable external storage. */ }
         if (!hasExternal) {
-          try { await fs.lstat(`${cur}/.git/objects/info/alternates`, { signal }); hasExternal = true; } catch {}
+          try { await fs.lstat(`${cur}/.git/objects/info/alternates`, { signal }); hasExternal = true; } catch { /* Unavailable optional markers do not enable external storage. */ }
         }
         return hasExternal ? undefined : cur;
       }
@@ -133,7 +133,9 @@ async function snapshot(
           seenPaths.add(cfg);
           entries.push({ path: cfg, kind: "file", mode: 0o644, data: encode(bytes) });
         }
-      } catch {}
+      } catch {
+        // Global configuration is best-effort in the scoped snapshot.
+      }
     }
   }
   const startRoot = scopedRoot ?? "/";

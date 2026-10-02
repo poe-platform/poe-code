@@ -11,7 +11,9 @@ export function gitModule(): object {
   if (nodeFs) {
     try {
       return (module = new wasm.Module(nodeFs.readFileSync(new URL("./git_rust.wasm", import.meta.url))));
-    } catch {}
+    } catch {
+      // Bundled installations can supply the generated WASM fallback below.
+    }
   }
   const nodeModule = proc?.getBuiltinModule?.("node:module") as { createRequire(url: string): (id: string) => { wasmBytes(): Uint8Array } } | undefined;
   if (nodeModule) {

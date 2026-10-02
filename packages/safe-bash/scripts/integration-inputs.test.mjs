@@ -1287,6 +1287,7 @@ function assertSource7Discovery(files) {
   assert.ok(files.includes("tests/integration/xml-query-review.test.ts"));
   assert.ok(files.includes("tests/commands/sort-human-numeric.test.ts"));
   assert.ok(files.includes("tests/commands/sort-key-positions.test.ts"));
+  assert.ok(files.includes("tests/commands/text-output-ownership.test.ts"));
   assert.ok(files.includes("tests/commands/sort-blank-endpoints.test.ts"));
   assert.ok(files.includes("tests/commands/realpath-missing-admission.test.ts"));
   assert.ok(files.includes("tests/commands/canonicalize-existing-parent.test.ts"));

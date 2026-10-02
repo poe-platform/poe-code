@@ -17,6 +17,17 @@ void [cliHelpTokens,cliHelpDescription,cliDynamicRows];
 cliFields.collectFields(native.S.String(),"kebab",new Set());
 void flagsCLI;
 import type * as referenceCLI from "toolcraft/cli";
+import * as cliSnapshot from "../dist/cli-snapshot.js";
+const snapshotNative: typeof cliSnapshot.createCLICommandTreeSnapshot = {} as typeof referenceCLI.createCLICommandTreeSnapshot;
+const snapshotReference: typeof referenceCLI.createCLICommandTreeSnapshot = cliSnapshot.createCLICommandTreeSnapshot;
+const snapshotOptionsNative: cliSnapshot.CLICommandTreeSnapshotOptions = {} as referenceCLI.CLICommandTreeSnapshotOptions;
+const snapshotOptionsReference: referenceCLI.CLICommandTreeSnapshotOptions = {} as cliSnapshot.CLICommandTreeSnapshotOptions;
+const snapshotNodeNative: cliSnapshot.CLICommandTreeSnapshotNode = {} as referenceCLI.CLICommandTreeSnapshotNode;
+const snapshotNodeReference: referenceCLI.CLICommandTreeSnapshotNode = {} as cliSnapshot.CLICommandTreeSnapshotNode;
+const snapshotResult: Promise<referenceCLI.CLICommandTreeSnapshot> = cliSnapshot.createCLICommandTreeSnapshot(native.defineGroup({name:"root",children:[]}),{argv:["node","toolcraft"],casing:"snake"});
+// @ts-expect-error snapshot roots must be groups
+cliSnapshot.createCLICommandTreeSnapshot("root");
+void [snapshotNative,snapshotReference,snapshotOptionsNative,snapshotOptionsReference,snapshotNodeNative,snapshotNodeReference,snapshotResult];
 const cliControlsNative: cliPolicy.CLIControls = {} as referenceCLI.CLIControls;
 const cliControlsReference: referenceCLI.CLIControls = {} as cliPolicy.CLIControls;
 const cliOutputContextNative: cliPolicy.CLIOutputFormatContext = {} as referenceCLI.CLIOutputFormatContext;

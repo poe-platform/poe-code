@@ -11,6 +11,10 @@ export default defineConfig({
       name: "toolcraft-rust-reference",
       enforce: "pre",
       resolveId(name, importer) {
+        if (importer === path("../toolcraft/src/cli-snapshot.test.ts")) {
+          if (name === "./cli.js") return path("dist/cli-snapshot.js");
+          if (name === "./index.js") return path("tests/definition-entry.mjs");
+        }
         if (importer === path("../toolcraft/src/design-subpath-exports.test.ts") && name === "./design.js") return path("dist/design.js");
         if (importer?.startsWith(path("../toolcraft/src/")) && name.startsWith(".")) {
           const resolved = resolve(dirname(importer), name);
@@ -75,6 +79,7 @@ export default defineConfig({
   ],
   test: {
     include: [
+      path("../toolcraft/src/cli-snapshot.test.ts"),
       path("../toolcraft/src/renderer.test.ts"),
       path("../toolcraft/src/design-subpath-exports.test.ts"),
       path("../toolcraft/src/file-change-renderer.test.ts"),

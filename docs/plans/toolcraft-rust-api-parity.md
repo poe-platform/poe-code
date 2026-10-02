@@ -3040,3 +3040,41 @@ recovered release visibility after REST throttling: fresh Toolcraft workflow
 37055529265 has passed every Node 18.18/20/22/24 matrix job, confirming the earlier
 Node 18 probe repair in CI. Its publish job is still running; successful npm
 publication is not yet claimed.
+
+### CLI command-tree snapshot checkpoint
+
+The internal snapshot module now assembles command/group trees with Rust policies
+for root normalization, program-name inference, scope visibility, default-command
+selection and ordered option metadata. It composes the native approval wiring,
+field collection and help policies. Node retains live path/collection operations,
+getters, iterators, callback metadata, object identity and Promise behavior.
+Dynamic help metadata is evaluated before snapshot rows, retaining serialization
+failures even when the corresponding help text is omitted from the result.
+No public CLI entry point, dependency declaration or default implementation changed.
+
+Four missing-module failures preceded the port. Eight final comparisons cover
+multiple roots, casing/global controls, hidden/non-CLI nodes, nested visibility,
+approval injection, defaults, field conflicts, live Boolean replacement, callback
+receivers, repeated getters, arbitrary throws, alias iterator cleanup, reentrancy
+and malformed inputs. Two failing diagnostic comparisons exposed V8 member-name
+differences; explicit host expressions preserve group-alias and default-scope
+TypeError wording. Both original snapshot tests now resolve the native module.
+The maintained package route passes 170 native tests and 1,723 reference/integration
+cases across 46 files, plus bidirectional declarations. Rust/binding and scoped JS
+lint pass.
+
+Packed snapshots run with only the packed own schema package admitted as an
+external ESM dependency. Packed declarations compile with `types: []`; existing
+contract types still resolve from the checkout, so isolated type packaging remains
+open. An inspected snapshot-data table has reference-identical ANSI output; this
+does not qualify a complete CLI/help screen. Full CLI execution, transports and
+platform/resource/swap qualification remain open, including adapter recursion limits.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 100 command-tree snapshots,
+retaining 32 results, measured 1,262.012 microseconds native / 25.425 microseconds
+JavaScript (49.64 times slower). This does not pass the performance gate.
+
+Help-field policies are verified on remote main at 41b75114ff. The earlier Toolcraft
+release workflow 37055529265 has successful schema, Toolcraft and OpenAPI publish
+steps and packed-signature verification. Registry/attestation and installed-signature
+verification remain in progress; a completed verified release is not yet claimed.

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'vitest';
 import ts from 'typescript';
+import { adapterStatements } from './fixtures/command-adapter-statements.js';
 
 const commands = ['apply-patch', 'cmp', 'column', 'csplit', 'docx', 'du', 'expr', 'factor', 'file', 'getopt', 'hexdump', 'html-to-markdown', 'iconv', 'install', 'pptx', 'pr', 'split', 'timeout', 'tree', 'truncate', 'tsort', 'which', 'xan'];
 const json = (path: string) => JSON.parse(readFileSync(new URL('../' + path, import.meta.url), 'utf8'));
@@ -22,7 +23,8 @@ for (const command of commands) {
       if (entry.endsWith('.ts')) {
         const source = readFileSync(new URL(`../packages/safe-bash/src/commands/${command}/${entry}`, import.meta.url), 'utf8').trim();
         const parsed = ts.createSourceFile(entry, source, ts.ScriptTarget.Latest, true);
-        assert.ok(parsed.statements.every(statement => {
+        const evaluator = 'evalSync' + command.split('-').map(part => part[0]!.toUpperCase() + part.slice(1)).join('');
+        assert.ok(adapterStatements(parsed, name, evaluator).every(statement => {
           if (ts.isImportDeclaration(statement)) return !statement.importClause
             && !statement.attributes && ts.isStringLiteral(statement.moduleSpecifier)
             && statement.moduleSpecifier.text === '../../portable-buffer.js';
@@ -39,8 +41,19 @@ for (const command of ['cmp', 'truncate']) {
   test(`${command} legacy registrations contain no second implementation`, () => {
     const source = readFileSync(new URL(`../packages/safe-bash/src/commands/${command}.ts`, import.meta.url), 'utf8');
     const parsed = ts.createSourceFile(`${command}.ts`, source, ts.ScriptTarget.Latest, true);
-    assert.ok(parsed.statements.every(statement => ts.isExportDeclaration(statement)
+    const evaluator = 'evalSync' + command[0]!.toUpperCase() + command.slice(1);
+    assert.ok(adapterStatements(parsed, `safe-bash-command-${command}`, evaluator, './internal.js').every(statement => ts.isExportDeclaration(statement)
       && statement.moduleSpecifier && ts.isStringLiteral(statement.moduleSpecifier)
       && statement.moduleSpecifier.text === `safe-bash-command-${command}`));
   });
 }
+
+test('adapter registration does not admit implementation, incomplete wiring or foreign evaluators', () => {
+  const registration = 'import { syncCommandEvaluators } from "../internal.js"; import { evalSyncDu } from "safe-bash-command-du"; syncCommandEvaluators.evalSyncDu = evalSyncDu;';
+  const remaining = (text: string) => adapterStatements(ts.createSourceFile('index.ts', text, ts.ScriptTarget.Latest, true), 'safe-bash-command-du', 'evalSyncDu');
+  assert.equal(remaining(registration).length, 0);
+  assert.equal(remaining(registration + 'function implementation() {}').length, 1);
+  for (const invalid of [registration.replace('= evalSyncDu', '= () => {}'), registration.replace('safe-bash-command-du', 'foreign'), registration + registration, registration.slice(registration.indexOf(';') + 1)]) {
+    assert.ok(remaining(invalid).length > 0);
+  }
+});

@@ -201,7 +201,8 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
   const bitsPerPixel = samplesPerPixel * bitDepth;
   const bytesPerPixel = Math.max(1, Math.ceil(bitsPerPixel / 8));
   const directRgbaInPlace = !meta.isProgressive && bitDepth === 8 && colorType === 6 && !trns;
-  let rgba = directRgbaInPlace ? new Uint8Array(0) : new Uint8Array(width * height * 4);
+  const directRgbInPlace = !meta.isProgressive && bitDepth === 8 && colorType === 2 && !trns && inflated.byteOffset === 0 && typeof (inflated.buffer as any).transfer === "function";
+  let rgba = (directRgbaInPlace || directRgbInPlace) ? new Uint8Array(0) : new Uint8Array(width * height * 4);
 
   const decodePass = (
     subW: number,
@@ -237,6 +238,19 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
 
     if (directRgbaInPlace) {
       rgba = rawData;
+      return curOffset;
+    }
+    if (directRgbInPlace) {
+      rgba = new Uint8Array((inflated.buffer as any).transfer(width * height * 4));
+      for (let i = width * height - 1; i >= 0; i--) {
+        const s = i * 3;
+        const d = i * 4;
+        const r = rgba[s]!, g = rgba[s + 1]!, b = rgba[s + 2]!;
+        rgba[d] = r;
+        rgba[d + 1] = g;
+        rgba[d + 2] = b;
+        rgba[d + 3] = 255;
+      }
       return curOffset;
     }
     for (let y = 0; y < subH; y++) {
@@ -373,6 +387,9 @@ export function decodePngImage(bytes: Uint8Array): RgbaImage {
   } else {
     decodePass(width, height, 0, 0, 0, 1, 1);
   }
+  if (rgba.buffer !== inflated.buffer && typeof (inflated.buffer as any).transfer === "function") {
+    try { (inflated.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
+  }
 
   return {
     width,
@@ -481,7 +498,7 @@ export function encodePngImage(
       }
     }
   }
-  if (options?.consumeInput && !canFilterInPlace && data.byteOffset === 0 && data.byteLength === data.buffer.byteLength && typeof (data.buffer as any).transfer === "function") {
+  if (options?.consumeInput && !canFilterInPlace && data.byteOffset === 0 && typeof (data.buffer as any).transfer === "function") {
     try { (data.buffer as any).transfer(0); } catch { /* Buffer detachment is best-effort; ordinary garbage collection remains available. */ }
   }
 

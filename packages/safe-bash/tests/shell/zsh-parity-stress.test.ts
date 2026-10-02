@@ -604,3 +604,21 @@ test("36. sync expand/unexpand multi -t tablists, column -e vs -L and JSON colum
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+test("37. sync tr indefinite/octal repeat counts, awk BEGIN NR=0, and jq -j pipeline newline suppression", async () => {
+  const syncSh = setup().shell.use(agentCommands());
+  const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+  const scripts = [
+    "x=$(tr 'abc' '[x*]y' <<< 'abc'); echo \"$?:$x\"",
+    "x=$(tr 'abcdefghij' '[x*010]yz' <<< 'abcdefghij'); echo \"$?:$x\"",
+    "x=$(awk 'BEGIN { print NR }'); echo \"$?:$x\"",
+    "x=$(awk 'BEGIN { print NR, NF }' <<< 'a b c'); echo \"$?:$x\"",
+    "x=$(echo '{\"a\":\"x\",\"b\":\"y\"}' | jq -j '.a, .b' | wc -c); echo \"$?:$x\"",
+  ];
+  for (const script of scripts) {
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

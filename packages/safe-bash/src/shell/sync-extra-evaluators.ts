@@ -5692,10 +5692,11 @@ const syncExtraRuntimeMethods = {
         continue;
       }
       if (spec[i] === "[") {
-        const repM = /^\[([^\\\]])\*([0-9]{0,3})\]/.exec(spec.slice(i));
+        const repM = /^\[([^\\\]])\*([1-9][0-9]{0,2}|0[0-7]{1,3})\]/.exec(spec.slice(i));
         if (!repM) return undefined;
-        const cnt = repM[2] ? Number(repM[2]) : 1;
-        for (let r = 0; r < Math.max(1, cnt); r++) out.push(repM[1]!);
+        const cnt = repM[2]!.startsWith("0") ? parseInt(repM[2]!, 8) : Number(repM[2]!);
+        if (cnt <= 0) return undefined;
+        for (let r = 0; r < cnt; r++) out.push(repM[1]!);
         i += repM[0]!.length - 1;
         continue;
       }
@@ -18476,6 +18477,17 @@ const syncExtraRuntimeMethods = {
             } else if (isInlineJq) {
               const jqRes = this.evalSyncJq((sIdx === 0 && cmd0FileStage) ? undefined : inStr.trim(), stageArgs, rawState.cwd, (sIdx === 0 && cmd0FileStage) ? undefined : inStr);
               if (jqRes === undefined) return undefined;
+              if (stageArgs.some(a => a === "--join-output" || (a.startsWith("-") && !a.startsWith("--") && a.includes("j")))) {
+                const encoded = fastSharedTextEncoder.encode(jqRes.join(""));
+                const nextTotalBytes = this.budget.bytes + encoded.byteLength;
+                if (nextTotalBytes > this.budget.maxOutputBytesSmi && encoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+                this.budget.bytes = nextTotalBytes;
+                if (encoded.byteLength > nextBuf.byteLength) nextBuf = new Uint8Array(encoded.byteLength);
+                nextBuf.set(encoded, 0);
+                prevBuf = nextBuf;
+                prevLen = encoded.byteLength;
+                continue;
+              }
               outLines = jqRes;
             } else if (firstName === "bc") {
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
@@ -22432,9 +22444,11 @@ const syncExtraRuntimeMethods = {
     }
     if (!awkProg) return undefined;
     let progRest = awkProg.trim();
+    let isBeginOnly = false;
     if (/^BEGIN\s*\{[^}]*\}$/.test(progRest)) {
       progRest = progRest.replace(/^BEGIN\s*/, "");
       rawLines = [""];
+      isBeginOnly = true;
     }
     const beginFsM = /^BEGIN\s*\{([^}]*)\}\s*/.exec(progRest);
     let initVarName: string | undefined;
@@ -22815,11 +22829,12 @@ const syncExtraRuntimeMethods = {
     }
     const outLines: string[] = [];
     for (let li = 0; li < rawLines.length; li++) {
+      const curNr = isBeginOnly ? 0 : li + 1;
       let l = rawLines[li]!;
       let fields = awkSep === undefined || awkSep === " "
         ? l.split(/[ \t]+/).filter(Boolean)
         : (l.length === 0 ? [] : l.split(awkSep));
-      if (rowPred && !rowPred(l, fields, li + 1)) continue;
+      if (rowPred && !rowPred(l, fields, curNr)) continue;
       if (preAssigns.length > 0) {
         for (let ai = 0; ai < preAssigns.length; ai++) {
           const pa = preAssigns[ai]!;
@@ -22840,7 +22855,7 @@ const syncExtraRuntimeMethods = {
               if (ti % 2 === 1) ops.push(tk);
               else {
                 let v = 0;
-                if (tk === "NR") v = li + 1;
+                if (tk === "NR") v = curNr;
                 else if (tk === "NF") v = fields.length;
                 else if (tk.startsWith("$")) {
                   const fSub = tk.slice(1);
@@ -22921,7 +22936,7 @@ const syncExtraRuntimeMethods = {
         const p = parts[pi]!;
         if (p.kind === "lit") out += p.text;
         else if (p.kind === "row_var") out += userVars.get(p.name) ?? "";
-        else if (p.kind === "var") out += String(p.name === "NR" ? li + 1 : fields.length);
+        else if (p.kind === "var") out += String(p.name === "NR" ? curNr : fields.length);
         else if (p.kind === "split_cnt") out += String(splitEls ? splitEls.length : 0);
         else if (p.kind === "split_el") out += splitEls && p.idx1 >= 1 && p.idx1 <= splitEls.length ? splitEls[p.idx1 - 1]! : "";
         else if (p.kind === "nf_minus") {
@@ -22952,7 +22967,7 @@ const syncExtraRuntimeMethods = {
         } else if (p.kind === "ternary") {
           const resolveAtom = (tok: string): string => {
             if (tok.startsWith("\"") && tok.endsWith("\"")) return tok.slice(1, -1);
-            if (tok === "NR") return String(li + 1);
+            if (tok === "NR") return String(curNr);
             if (tok === "NF") return String(fields.length);
             if (tok.startsWith("$")) {
               const fIdx = tok === "$NF" ? fields.length : Number(tok.slice(1));
@@ -22976,7 +22991,7 @@ const syncExtraRuntimeMethods = {
               ops.push(tk);
             } else {
               let v = 0;
-              if (tk === "NR") v = li + 1;
+              if (tk === "NR") v = curNr;
               else if (tk === "NF") v = fields.length;
               else if (tk.startsWith("$")) {
                 const fSub = tk.slice(1);

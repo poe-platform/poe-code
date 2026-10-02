@@ -41,8 +41,9 @@ def record(prompt, stream, response, conversation):
         if previous.prompt.system:
             messages.append({"role": "system", "content": previous.prompt.system})
         message = {"role": "user", "content": text_receipt(previous.prompt.prompt)}
-        if previous.prompt.attachments:
-            message["attachments"] = [{"mimeType": attachment.resolve_type(), "text": text_receipt(attachment.content_bytes().decode())} for attachment in previous.prompt.attachments]
+        attachments = previous.attachments or previous.prompt.attachments
+        if attachments:
+            message["attachments"] = [{"mimeType": attachment.resolve_type(), "text": text_receipt(attachment.content_bytes().decode())} for attachment in attachments]
         messages.extend([message,
                          {"role": "assistant", "content": previous.text_or_raise()}])
     calls.append({"prompt": text_receipt(prompt.prompt), "stream": stream, "messages": messages,

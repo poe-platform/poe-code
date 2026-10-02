@@ -51,6 +51,7 @@ assert model.prompt("large-url", attachments=[llm.Attachment(url="https://files.
 conversation = model.conversation()
 assert isinstance(conversation, llm.Conversation)
 assert conversation.prompt("first", system="Be helpful", attachments=[llm.Attachment(content=b"history", type="text/plain")]).text() == "first"
+conversation.responses[0].attachments = [llm.Attachment(content=b"restored history", type="text/plain")]
 assert conversation.prompt("second").text() == "second"
 assert len(conversation.responses) == 2
 assert conversation.responses[1].conversation is conversation

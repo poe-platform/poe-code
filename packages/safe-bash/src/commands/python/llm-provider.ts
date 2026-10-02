@@ -113,8 +113,9 @@ def _request(model, prompt, stream, response, conversation):
             if previous.prompt.system:
                 messages.append({"role": "system", "content": text_input(previous.prompt.system)})
             message = {"role": "user", "content": text_input(previous.prompt.prompt)}
-            if previous.prompt.attachments:
-                message["attachments"] = attachment_inputs(previous.prompt.attachments)
+            attachments = previous.attachments or previous.prompt.attachments
+            if attachments:
+                message["attachments"] = attachment_inputs(attachments)
             messages.append(message)
             messages.append({"role": "assistant", "content": text_input(previous.text_or_raise())})
         payload = {**_context(), "model": model.model_id, "prompt": text_input(prompt.prompt),

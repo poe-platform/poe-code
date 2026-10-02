@@ -101,3 +101,16 @@ except llm.ModelError as error:
 assert len(payloads) == before
 assert len(inputs) == 2 and closed == list(inputs)
 `));
+
+test('genuine provider forwards attachments restored on completed responses', () => run(`
+model = provider.HostModel(entry)
+conversation = model.conversation()
+previous = conversation.prompt("restored")
+assert previous.text() == "ok"
+previous.attachments = [llm.Attachment(content=b"persisted", type="text/plain")]
+assert previous.prompt.attachments == []
+assert conversation.prompt("continue").text() == "ok"
+source = payloads[-1]["messages"][0]["attachments"][0]
+assert bytes(inputs[source["spool"]]) == b"persisted"
+assert closed == list(inputs)
+`));

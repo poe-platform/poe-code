@@ -95,3 +95,72 @@ test('embedding results obey host vector envelope and metadata ceilings and gues
   const metadata = createPythonLlmCapability(context,service,{maxBufferedResponseBytes:1024,maxMetadataBytes:4});
   await assert.rejects(metadata.call!({operation:'embed',payload},{signal}),/limit/);
 });
+
+test('retained response streams obey host UTF-8 limits through buffered and source inputs', async () => {
+  for (const sourceInput of [false, true]) {
+    const fs = new MemoryFileSystem();
+    await fs.writeFile('/prompt.txt', new TextEncoder().encode('test'));
+    let output = 'é'.repeat(4), closed = 0;
+    const complete = async function* () { try { yield output; } finally { closed++; } };
+    const service = createLlmService({ defaultModel: 'm', providers: [{
+      name: 'test', models: [{ id: 'm' }], complete, completeSources: complete,
+    }] });
+    const capability = createPythonLlmCapability({ fs, cwd: '/' }, service, {
+      maxBufferedResponseBytes: 8, maxBufferedEvents: 16, maxMetadataBytes: 128, maxStreamChunkBytes: 4,
+    });
+    const payload = { prompt: sourceInput ? { path: '/prompt.txt' } : 'test', retain_response: true };
+    const values = [];
+    for await (const value of capability.stream!(payload, { signal })) values.push(value);
+    assert.equal(values.filter(value => (value as { type: string }).type === 'text')
+      .map(value => (value as { text: string }).text).join(''), output);
+    output += 'x';
+    for (const request of [payload, { ...payload, max_response_bytes: 999999 }]) {
+      await assert.rejects(async () => {
+        for await (const value of capability.stream!(request, { signal })) void value;
+      }, /limit/i);
+    }
+    assert.equal(closed, 3);
+  }
+});
+
+test('retained response limits count empty events and delivered fragments before yielding', async () => {
+  for (const fragmented of [false, true]) {
+    let closed = 0;
+    const service = createLlmService({ defaultModel: 'm', providers: [{
+      name: 'test', models: [{ id: 'm' }],
+      async *complete() {
+        try {
+          if (fragmented) yield 'é'.repeat(4);
+          else for (let index = 0; index < 4; index++) yield '';
+        } finally { closed++; }
+      },
+    }] });
+    const capability = createPythonLlmCapability(context, service, {
+      maxBufferedResponseBytes: 128, maxBufferedEvents: 3, maxStreamChunkBytes: 2,
+    });
+    let received = 0;
+    await assert.rejects(async () => {
+      for await (const value of capability.stream!({ retain_response: true }, { signal })) {
+        assert.equal((value as { type: string }).type, 'text');
+        received++;
+      }
+    }, /event limit/i);
+    assert.equal(received, 3);
+    assert.equal(closed, 1);
+  }
+});
+
+test('retained response mode rejects invalid flags before acquiring provider output', async () => {
+  let calls = 0;
+  const service = createLlmService({ defaultModel: 'm', providers: [{
+    name: 'test', models: [{ id: 'm' }],
+    async *complete() { calls++; yield 'ok'; },
+  }] });
+  const capability = createPythonLlmCapability(context, service);
+  for (const retain_response of [null, 1, 'true']) {
+    await assert.rejects(async () => {
+      for await (const value of capability.stream!({ retain_response }, { signal })) void value;
+    }, /retained response/i);
+  }
+  assert.equal(calls, 0);
+});

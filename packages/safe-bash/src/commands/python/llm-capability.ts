@@ -99,6 +99,7 @@ export interface PythonLlmCapabilityOptions {
   /** Explicit host-authorized GET/HEAD transport; no ambient network fallback. */
   readonly attachmentTransport?: HttpTransport;
   readonly maxStreamChunkBytes?: number;
+  /** Bounds collected results and text retained by genuine Python Response objects. */
   readonly maxBufferedResponseBytes?: number;
   readonly maxBufferedInputBytes?: number;
   readonly maxBufferedEvents?: number;
@@ -349,19 +350,29 @@ export function createPythonLlmCapability(context: PythonLlmContext, service: Ll
     }
   };
   const events = async function* (value:PythonHostValue, {signal}:{readonly signal:AbortSignal}):AsyncGenerator<PythonHostValue> {
-    for await (const {event,signal:operationSignal} of responses(value,signal)) {
+    const retained = record(value).retain_response;
+    if (retained !== undefined && typeof retained !== 'boolean') throw new TypeError('Invalid Python LLM retained response mode');
+    let received = 0;
+    const admit = ():void => {
+      if (retained && ++received > eventLimit) throw new RangeError('Python LLM buffered event limit exceeded');
+    };
+    for await (const {event,signal:operationSignal} of responses(value,signal,retained ? bufferedLimit : Infinity)) {
       if (event.type === 'bytes') {
+        if (!event.data.length) admit();
         for (let offset = 0; offset < event.data.length; offset += chunkBytes) {
           operationSignal.throwIfAborted();
+          admit();
           yield {type:'bytes',data:Array.from(event.data.subarray(offset,offset + chunkBytes))};
         }
       }
       else if (event.type === 'text') {
         for (const text of textFragments(event.text, chunkBytes)) {
           operationSignal.throwIfAborted();
+          admit();
           yield {type:'text', text};
         }
       } else {
+        admit();
         jsonBytes(event.response as unknown as PythonHostValue, metadataLimit);
         yield event as unknown as PythonHostValue;
       }

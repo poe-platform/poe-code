@@ -98,7 +98,7 @@ def _request(model, prompt, stream, response, conversation):
             if previous.prompt.attachments:
                 raise llm.ModelError("This host transport does not support attachments in conversation history")
         payload = {**_context(), "model": model.model_id, "prompt": text_input(prompt.prompt),
-                   "messages": messages, "stream": stream, "attachments": [],
+                   "messages": messages, "stream": stream, "attachments": [], "retain_response": True,
                    "options": prompt.options.model_dump(exclude_none=True)}
         if prompt.system:
             payload["system"] = text_input(prompt.system)

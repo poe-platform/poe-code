@@ -29,6 +29,10 @@ def text_receipt(text):
     return text if len(data) <= 1024 else {"bytes": len(data), "sha256": hashlib.sha256(data).hexdigest()}
 
 def result_text(prompt):
+    if prompt == "exact-output":
+        return "é" * 131072
+    if prompt in ("over-output", "empty-output"):
+        raise llm.ModelError("Provider response limit exceeded")
     return "large-accepted" if prompt.startswith("LARGE:") else prompt
 
 def record(prompt, stream, response, conversation):

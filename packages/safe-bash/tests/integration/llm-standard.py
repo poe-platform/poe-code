@@ -29,6 +29,16 @@ assert response.json() == {"id": "fixture-response"}
 assert response.datetime_utc()
 assert response.duration_ms() >= 0
 assert model.prompt("single", stream=False).text() == "single"
+assert len(model.prompt("exact-output").text().encode()) == 262144
+for prompt in ("over-output", "empty-output"):
+    for stream in (True, False):
+        try:
+            model.prompt(prompt, stream=stream).text()
+        except llm.ModelError:
+            pass
+        else:
+            raise AssertionError("Retained response limit was ignored")
+assert model.prompt("after-limit").text() == "after-limit"
 assert model.prompt("last", fragments=["first", "second"], system_fragments=["  terse  ", "helpful"]).text() == "first\nsecond\nlast"
 assert model.prompt("inline", attachments=[llm.Attachment(content=b"inline bytes", type="text/plain")]).text() == "inline"
 assert model.prompt("empty-inline", attachments=[llm.Attachment(content=b"", type="text/plain")]).text() == "empty-inline"
@@ -72,6 +82,16 @@ assert list(embedding.embed_multi(["one", "four"])) == [[3.0, 1.0], [4.0, 1.0]]
 async def main():
     model = llm.get_async_model("fixture")
     assert isinstance(model, llm.AsyncModel)
+    assert len((await model.prompt("exact-output").text()).encode()) == 262144
+    for prompt in ("over-output", "empty-output"):
+        for stream in (True, False):
+            try:
+                await model.prompt(prompt, stream=stream).text()
+            except llm.ModelError:
+                pass
+            else:
+                raise AssertionError("Async retained response limit was ignored")
+    assert await model.prompt("after-limit").text() == "after-limit"
     assert await model.prompt("async-url", attachments=[llm.Attachment(url="https://files.example/note.txt")]).text() == "async-url"
     response = model.prompt("async")
     assert isinstance(response, llm.AsyncResponse)

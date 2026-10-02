@@ -171,7 +171,13 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
     calls.push({prompt:request.prompt,stream:request.stream,messages:request.messages,options:request.options,schema:request.schema,attachments:request.attachments.map(a=>({mimeType:a.mimeType,text:a.receipt ?? new TextDecoder().decode(a.bytes)}))});
     if (request.prompt === 'second' && request.messages?.at(-2)?.content !== 'first') throw new Error('Conversation history missing');
     if (request.prompt === 'rich' && (request.options.temperature !== 0.25 || request.schema?.properties?.answer?.type !== 'string' || (request.attachments[0]?.receipt ?? new TextDecoder().decode(request.attachments[0]?.bytes)) !== 'attached')) throw new Error('Rich prompt changed');
-    const result = typeof request.prompt === 'string' ? request.prompt : 'large-accepted';
+    if (request.prompt === 'empty-output') {
+      for (let index = 0; index < 33; index++) yield '';
+      return {};
+    }
+    const result = request.prompt === 'exact-output' ? 'é'.repeat(131072)
+      : request.prompt === 'over-output' ? 'é'.repeat(131072) + 'x'
+      : typeof request.prompt === 'string' ? request.prompt : 'large-accepted';
     if (request.stream) { yield result.slice(0,2); yield result.slice(2); }
     else yield result;
     return {usage:{input:3,output:2},metadata:{id:'fixture-response'}};
@@ -216,7 +222,7 @@ async function qualifyStandardLlm(backend, createExecutor, cancel = false, polic
   };
   const shell = new Shell({fs:backend,cwd:'/work',env:{HOME:'/work',LLM_USER_PATH:'/work/llm-config'}})
     .use(pythonCommands({createExecutor,maxConcurrentWorkers:1,createCapabilities(context) {
-      return {llm:createPythonLlmCapability(context,service,{attachmentTransport,maxBufferedResponseBytes:262144,maxMetadataBytes:65536,maxBufferedInputBytes:131072})};
+      return {llm:createPythonLlmCapability(context,service,{attachmentTransport,maxBufferedResponseBytes:262144,maxBufferedEvents:32,maxMetadataBytes:65536,maxBufferedInputBytes:131072})};
     }}));
   const program = policy ? "import os\nos.environ[\"LLM_LOAD_PLUGINS\"] = \"llm\"\nimport asyncio\nimport importlib.util\nfor name in (\"pip\", \"openai\"):\n    assert importlib.util.find_spec(name) is None, name + \" is not part of the calling profile\"\nimport llm\nfor operation in (\n    lambda: llm.plugins.pm.register(object(), \"extra-provider\"),\n    lambda: llm.plugins.pm.load_setuptools_entrypoints(\"llm\"),\n):\n    try:\n        operation()\n    except llm.ModelError as error:\n        assert \"platform-configured providers\" in str(error)\n    else:\n        raise AssertionError(\"Provider registration accepted\")\nassert {model.model_id for model in llm.get_models()} == {\"fixture\"}\nassert llm.get_model().model_id == \"fixture\"\nassert llm.get_async_model().model_id == \"fixture\"\nassert {model.model_id for model in llm.get_async_models()} == {\"fixture\"}\ntry:\n    llm.get_model(\"gpt-4o-mini\")\nexcept llm.UnknownModelError:\n    pass\nelse:\n    raise AssertionError(\"An unconfigured provider became available\")\nfor operation in (\n    lambda: llm.get_model(\"fixture\").prompt(\"unauthorized-key\", key=\"synthetic-caller-key\").text(),\n):\n    try:\n        operation()\n    except llm.ModelError as error:\n        assert \"platform-managed credentials\" in str(error)\n    else:\n        raise AssertionError(\"Caller key accepted\")\nmodel = llm.get_embedding_model(\"fixture-embed\")\nmodel.key = \"synthetic-caller-key\"\ntry:\n    model.embed(\"unauthorized-key\")\nexcept llm.ModelError as error:\n    assert \"platform-managed credentials\" in str(error)\nelse:\n    raise AssertionError(\"Embedding key accepted\")\nasync def check_async():\n    try:\n        await llm.get_async_model(\"fixture\").prompt(\"unauthorized-key\", key=\"synthetic-caller-key\").text()\n    except llm.ModelError as error:\n        assert \"platform-managed credentials\" in str(error)\n    else:\n        raise AssertionError(\"Async caller key accepted\")\nasyncio.run(check_async())\nprint(\"platform-models-only\")\n" : cancel ? 'import llm\nllm.get_model("fixture").prompt("x" * 65536).text()\n' : standardLlmProgram;
   await backend.writeFile('/work/standard-llm.py',new TextEncoder().encode(program));

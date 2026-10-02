@@ -41,7 +41,7 @@ Plain output uses link labels, spaces for soft breaks, four-column decimal list
 prefixes, 72-character rules, and a final newline even for empty documents.
 Bullet lists use the compact spacing of Pandoc 3.11.
 The shell command infers omitted input and output formats from file extensions.
-Stdin and extensionless inputs default to `commonmark`; stdout and extensionless
+Stdin and extensionless inputs default to `markdown`; stdout and extensionless
 outputs default to `html5`. Explicit `-f`/`-t` override inference; `--yes` is
 not required.
 `markdown`, `md`, `markdown_github`, `markdown_mmd`, `markdown_phpextra`, and

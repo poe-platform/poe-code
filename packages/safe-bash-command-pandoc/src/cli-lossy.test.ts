@@ -3,11 +3,11 @@ import { parseConversionArgs } from "./cli.js";
 import { createStandalonePandocCommand } from "./safe-bash.js";
 import { convert } from "./index.js";
 
-it.each(["rst", "markdown", "gfm", "plain", "latex", "rtf"])("CLI projects HTML containers to %s by default", async to => {
+it.each(["rst", "markdown", "gfm", "commonmark", "plain", "latex", "rtf"])("CLI projects HTML containers to %s by default", async to => {
   const stdout: Uint8Array[] = [];
   const result = await createStandalonePandocCommand().execute({
     args: ["-f", "html", "-t", to],
-    stdin: [new TextEncoder().encode('<div class="content"><p>Hello <span class="name">world</span></p></div>')],
+    stdin: [new TextEncoder().encode('<h1 id="title">Title</h1><div class="content"><p>Hello <span class="name">world</span></p></div>')],
     signal: new AbortController().signal,
     stdout: { write: async bytes => { stdout.push(bytes); } },
     stderr: { write: async () => {} }
@@ -22,7 +22,7 @@ it("keeps explicit lossy compatibility and duplicate validation", () => {
 });
 
 it("retains strict SDK conversion and CLI fail-if-warnings", async () => {
-  const input = [{ bytes: new TextEncoder().encode('<div class="content"><p>Hello <span data-label="name">world</span></p></div>') }];
+  const input = [{ bytes: new TextEncoder().encode('<h1 id="title">Title</h1><div class="content"><p>Hello <span data-label="name">world</span></p></div>') }];
   await expect(convert(input, { from: "html", to: "rtf" }, {})).rejects.toMatchObject({ code: "E_UNSUPPORTED_FEATURE" });
   const { options } = parseConversionArgs(["-f", "html", "-t", "rtf", "--fail-if-warnings"], {}, new AbortController().signal);
   await expect(convert(input, options, {})).rejects.toBeDefined();

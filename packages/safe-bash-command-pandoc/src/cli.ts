@@ -201,7 +201,7 @@ export function parseConversionArgs(args: readonly string[], files: CommandInput
       return path.lastIndexOf(".") > path.lastIndexOf("/") ? registry.infer(path, "read") : undefined;
     }).filter((hint): hint is string => hint !== undefined));
     if (hints.size > 1) fail("Conflicting input suffixes; select -f explicitly");
-    options.from = hints.values().next().value ?? "commonmark";
+    options.from = hints.values().next().value ?? "markdown";
   }
   if (!options.to) options.to = destination !== undefined && destination.lastIndexOf(".") > destination.lastIndexOf("/") ? registry.infer(destination, "write") : "html5";
   if (destination !== undefined && options.extractMedia !== undefined) {

@@ -16,6 +16,7 @@ export default {
   },
   writer: {
     format: "pptx",
+    imageResources: "embed",
     async write(document, context, selection) {
       context.signal?.throwIfAborted();
       const {pptxWriter} = await import("../pptx.js");

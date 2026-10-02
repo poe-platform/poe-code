@@ -301,7 +301,7 @@ export const pptxWriter: WriterCapability = {
                 break;
               case "Table": {
                 if (bullet || block.c[1][0]?.length || block.c[1][1].length) fail(context, "Table captions and tables in lists are unsupported");
-                if (block.c[2].some(([alignment, width]) => alignment !== "AlignDefault" || width.t !== "ColWidthDefault"))
+                if (!context.lossy && block.c[2].some(([alignment, width]) => alignment !== "AlignDefault" || width.t !== "ColWidthDefault"))
                   fail(context, "Explicit table column alignment and widths are unsupported");
                 if (block.c[3][1].length > 1 || block.c[5][1].length)
                   fail(context, "Multiple table header rows and table footers are unsupported");
@@ -318,7 +318,7 @@ export const pptxWriter: WriterCapability = {
                 for (const [r, row] of rows.entries()) {
                   if (row[1].length !== count) fail(context, "PPTX tables require rectangular unmerged rows");
                   for (const [c, cell] of row[1].entries()) {
-                    if (cell[2] !== 1 || cell[3] !== 1 || cell[1] !== "AlignDefault") fail(context, "Table spans and explicit alignment are unsupported");
+                    if (cell[2] !== 1 || cell[3] !== 1 || (!context.lossy && cell[1] !== "AlignDefault")) fail(context, "Table spans and explicit alignment are unsupported");
                     const frame = table.cell(r, c).text_frame;
                     frame.clear();
                     for (const [i, block] of cell[4].entries()) {

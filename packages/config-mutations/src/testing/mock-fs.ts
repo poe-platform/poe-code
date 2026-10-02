@@ -1,4 +1,4 @@
-import path from "node:path";
+import { posixPath as path } from "@poe-code/safe-fs/contracts";
 import type { FileSystem } from "../types.js";
 
 export interface MockFileSystem extends FileSystem {
@@ -11,8 +11,8 @@ export interface MockFileSystem extends FileSystem {
   /** Get file content or undefined if not found */
   getContent(path: string): string | undefined;
   /** Read file with encoding overloads for compatibility */
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  readFile(path: string): Promise<Buffer>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
+  readFile(path: string): Promise<Uint8Array>;
 }
 
 export interface MockFsOptions {
@@ -64,30 +64,30 @@ export function createMockFs(
       return files[absolutePath];
     },
 
-    async readFile(filePath: string, encoding?: BufferEncoding): Promise<string | Buffer> {
+    async readFile(filePath: string, encoding?: "utf8"): Promise<string | Uint8Array> {
       const absolutePath = expandPath(filePath, homeDir);
       if (!(absolutePath in files)) {
         const error = new Error(`ENOENT: no such file or directory, open '${absolutePath}'`);
-        (error as NodeJS.ErrnoException).code = "ENOENT";
+        (error as Error & { code: string }).code = "ENOENT";
         throw error;
       }
       const content = files[absolutePath]!;
       if (encoding) {
         return content;
       }
-      return Buffer.from(content, "utf8");
+      return new TextEncoder().encode(content);
     },
 
     async writeFile(
       filePath: string,
-      content: string | NodeJS.ArrayBufferView,
-      options?: { encoding?: BufferEncoding; flag?: string }
+      content: string | ArrayBufferView,
+      options?: { encoding?: "utf8"; flag?: string }
     ): Promise<void> {
       const absolutePath = expandPath(filePath, homeDir);
 
       if (options?.flag === "wx" && absolutePath in files) {
         const error = new Error(`EEXIST: file already exists, open '${absolutePath}'`);
-        (error as NodeJS.ErrnoException).code = "EEXIST";
+        (error as Error & { code: string }).code = "EEXIST";
         throw error;
       }
 
@@ -95,20 +95,16 @@ export function createMockFs(
       const parentDir = path.dirname(absolutePath);
       if (!directories.has(parentDir)) {
         const error = new Error(`ENOENT: no such file or directory, open '${absolutePath}'`);
-        (error as NodeJS.ErrnoException).code = "ENOENT";
+        (error as Error & { code: string }).code = "ENOENT";
         throw error;
       }
 
       if (typeof content === "string") {
         files[absolutePath] = content;
-      } else if (Buffer.isBuffer(content)) {
-        files[absolutePath] = content.toString("utf8");
       } else {
-        files[absolutePath] = Buffer.from(
-          content.buffer,
-          content.byteOffset,
-          content.byteLength
-        ).toString("utf8");
+        files[absolutePath] = new TextDecoder().decode(
+          new Uint8Array(content.buffer, content.byteOffset, content.byteLength)
+        );
       }
     },
 
@@ -122,7 +118,7 @@ export function createMockFs(
         const parentDir = path.dirname(absolutePath);
         if (parentDir !== absolutePath && !directories.has(parentDir)) {
           const error = new Error(`ENOENT: no such file or directory, mkdir '${absolutePath}'`);
-          (error as NodeJS.ErrnoException).code = "ENOENT";
+          (error as Error & { code: string }).code = "ENOENT";
           throw error;
         }
         directories.add(absolutePath);
@@ -133,7 +129,7 @@ export function createMockFs(
       const absolutePath = expandPath(filePath, homeDir);
       if (!(absolutePath in files)) {
         const error = new Error(`ENOENT: no such file or directory, unlink '${absolutePath}'`);
-        (error as NodeJS.ErrnoException).code = "ENOENT";
+        (error as Error & { code: string }).code = "ENOENT";
         throw error;
       }
       delete files[absolutePath];
@@ -144,7 +140,7 @@ export function createMockFs(
       const absoluteNewPath = expandPath(newPath, homeDir);
       if (!(absoluteOldPath in files)) {
         const error = new Error(`ENOENT: no such file or directory, rename '${absoluteOldPath}'`);
-        (error as NodeJS.ErrnoException).code = "ENOENT";
+        (error as Error & { code: string }).code = "ENOENT";
         throw error;
       }
       files[absoluteNewPath] = files[absoluteOldPath]!;
@@ -160,7 +156,7 @@ export function createMockFs(
         return { mode: 0o755 };
       }
       const error = new Error(`ENOENT: no such file or directory, stat '${absolutePath}'`);
-      (error as NodeJS.ErrnoException).code = "ENOENT";
+      (error as Error & { code: string }).code = "ENOENT";
       throw error;
     },
 
@@ -170,7 +166,7 @@ export function createMockFs(
         return { isSymbolicLink: () => false };
       }
       const error = new Error(`ENOENT: no such file or directory, lstat '${absolutePath}'`);
-      (error as NodeJS.ErrnoException).code = "ENOENT";
+      (error as Error & { code: string }).code = "ENOENT";
       throw error;
     },
 
@@ -179,13 +175,13 @@ export function createMockFs(
 
       if (absolutePath in files) {
         const error = new Error(`ENOTDIR: not a directory, scandir '${absolutePath}'`);
-        (error as NodeJS.ErrnoException).code = "ENOTDIR";
+        (error as Error & { code: string }).code = "ENOTDIR";
         throw error;
       }
 
       if (!directories.has(absolutePath)) {
         const error = new Error(`ENOENT: no such file or directory, scandir '${absolutePath}'`);
-        (error as NodeJS.ErrnoException).code = "ENOENT";
+        (error as Error & { code: string }).code = "ENOENT";
         throw error;
       }
 
@@ -209,7 +205,7 @@ export function createMockFs(
       const absolutePath = expandPath(filePath, homeDir);
       if (!(absolutePath in files) && !directories.has(absolutePath)) {
         const error = new Error(`ENOENT: no such file or directory, chmod '${absolutePath}'`);
-        (error as NodeJS.ErrnoException).code = "ENOENT";
+        (error as Error & { code: string }).code = "ENOENT";
         throw error;
       }
       // Mode change is a no-op in mock fs but we don't throw

@@ -87,8 +87,11 @@ export interface PathMapper {
 // ============================================================================
 
 export interface MutationContext {
-  /** Path operations for the filesystem namespace; defaults to native host paths. */
-  paths?: typeof import("node:path");
+  /** Path operations for the filesystem namespace; defaults to portable POSIX paths. */
+  paths?: Pick<
+    typeof import("@poe-code/safe-fs/contracts").posixPath,
+    "join" | "resolve" | "relative" | "isAbsolute" | "dirname" | "basename"
+  > & { readonly sep: string };
   /** Filesystem interface - required */
   fs: FileSystem;
 

@@ -1,10 +1,14 @@
-import nativePath from "node:path";
-import type { PathMapper } from "../types.js";
+import { posixPath as defaultPath } from "@poe-code/safe-fs/contracts";
+import type { MutationContext, PathMapper } from "../types.js";
 
 /**
  * Expand ~ shortcut to the provided home directory.
  */
-export function expandHome(targetPath: string, homeDir: string, path = nativePath): string {
+export function expandHome(
+  targetPath: string,
+  homeDir: string,
+  path: NonNullable<MutationContext["paths"]> = defaultPath
+): string {
   if (!targetPath?.startsWith("~")) {
     return targetPath;
   }
@@ -56,7 +60,7 @@ export function resolvePath(
   rawPath: string,
   homeDir: string,
   pathMapper?: PathMapper,
-  path = nativePath
+  path: NonNullable<MutationContext["paths"]> = defaultPath
 ): string {
   validateHomePath(rawPath);
   const expanded = expandHome(rawPath, homeDir, path);

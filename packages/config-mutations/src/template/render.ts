@@ -1,4 +1,4 @@
-import { renderTemplate as renderDesignTemplate } from "toolcraft-design";
+import { renderTemplate as renderDesignTemplate } from "toolcraft-design/components/template";
 
 export type TemplateVariables = Record<string, string | number | boolean | string[]>;
 

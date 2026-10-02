@@ -2,6 +2,8 @@
 
 Composable file and config mutation engine.
 
+The runtime works without Node built-ins: paths default to portable POSIX semantics, atomic writes use Web Crypto IDs, and filesystem access is injected. The testing filesystem returns `Uint8Array` bytes when no encoding is requested.
+
 This package applies ordered filesystem, JSON, TOML, YAML, and template
 mutations with dry-run support and observer hooks. Callers inject the filesystem
 so tests can use in-memory adapters and production flows can use

@@ -1,6 +1,5 @@
-import { randomUUID } from "node:crypto";
-import nativePath from "node:path";
-import { renderTemplate } from "toolcraft-design";
+import { posixPath as defaultPath } from "@poe-code/safe-fs/contracts";
+import { renderTemplate } from "toolcraft-design/components/template";
 import type {
   Mutation,
   MutationContext,
@@ -77,7 +76,7 @@ async function assertRegularWriteTarget(
   // plant one to redirect a credential/config write outside it. Symlinks at or
   // above home are legitimate system links (e.g. /tmp -> /private/tmp on macOS,
   // /var -> /private/var) and must not block writes, so bound the walk at home.
-  const path = context.paths ?? nativePath;
+  const path = context.paths ?? defaultPath;
   const boundary = path.dirname(path.resolve(context.homeDir));
   let currentPath = path.resolve(targetPath);
   while (currentPath !== boundary) {
@@ -106,7 +105,7 @@ async function writeAtomically(
 ): Promise<void> {
   await assertRegularWriteTarget(context, targetPath);
   for (let attempt = 0; attempt < 10; attempt += 1) {
-    const tempPath = `${targetPath}.mutation-tmp-${process.pid}-${randomUUID()}`;
+    const tempPath = `${targetPath}.mutation-tmp-${globalThis.crypto.randomUUID()}`;
     let tempCreated = false;
     try {
       await assertRegularWriteTarget(context, tempPath);

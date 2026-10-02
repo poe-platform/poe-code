@@ -19,6 +19,36 @@ function setup(context: { after(callback: () => Promise<void>): void }, options:
 
 const status = (value: number) => ({ kind: "status", status: value });
 
+test("disowned jobs are excluded from implicit and explicit waits but remain owned for cleanup", async () => {
+  const state = createJobState();
+  const pending = deferred<number>();
+  const handle = await state.start(() => ({ run: () => pending.promise }));
+  state.disown(handle);
+  try {
+    assert.deepEqual(await Promise.race([state.wait(), Promise.resolve("blocked")]), {
+      outcome: status(0), unknown: [],
+    });
+    assert.deepEqual((await state.wait([{ handle }])).outcome, status(127));
+  } finally {
+    pending.resolve(0);
+    await state.finish();
+  }
+});
+
+test("nohup marking retains an active, waitable job", async () => {
+  const state = createJobState();
+  const pending = deferred<number>();
+  const handle = await state.start(() => ({ run: () => pending.promise }));
+  assert.equal(state.disown(handle, true), true);
+  assert.equal(state.snapshot()[0]?.nohup, true);
+  assert.equal(state.snapshot()[0]?.listed, true);
+  const waiting = state.wait();
+  assert.equal(await Promise.race([waiting, Promise.resolve("pending")]), "pending");
+  pending.resolve(7);
+  assert.deepEqual((await waiting).outcome, status(0));
+  await state.finish();
+});
+
 for (const key of ["maxJobs", "maxWaiters", "maxCleanupsPerJob"] as const) {
   test(`${key} accepts explicit Infinity and rejects invalid quotas`, async context => {
     const state = setup(context, { [key]: Infinity });

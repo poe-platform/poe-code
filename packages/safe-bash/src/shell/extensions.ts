@@ -121,6 +121,7 @@ export interface ShellChildPreparation {
 }
 
 export interface ShellListTerminatorContext extends ShellExtensionContext {
+  readonly commandText: string;
   prepareChild(options: ShellChildPreparation): Promise<PreparedShellChild>;
 }
 
@@ -156,7 +157,12 @@ export interface ShellExtension {
   readonly name: string;
   readonly runtimeIdentity?: object;
   readonly syntax?: ShellSyntaxDeclarations;
-  create(): ShellExtensionInstance;
+  create(session?: ShellExtensionSession): ShellExtensionInstance;
+}
+
+export interface ShellExtensionSession {
+  readonly signal: AbortSignal;
+  retain(completion: Promise<unknown>): void;
 }
 
 export interface ShellExtensionState {
@@ -350,7 +356,7 @@ function createIdlePortableTrapExtensionState(): ShellExtensionState {
   return new LazyIdlePortableTrapExtensionState();
 }
 
-export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope, fallback?: ShellExtension): ShellExtensionState | undefined {
+export function extensionState(definitions: readonly ShellExtension[], parent?: ShellExtensionState, scope?: ShellExtensionScope, fallback?: ShellExtension, session?: ShellExtensionSession): ShellExtensionState | undefined {
   if (!definitions.length && !fallback) return undefined;
   if (!definitions.length && !parent && fallback === defaultPortableTrapExtension) {
     return createIdlePortableTrapExtensionState();
@@ -379,7 +385,7 @@ export function extensionState(definitions: readonly ShellExtension[], parent?: 
   const parentByDefinition = parent ? new Map(parent.entries.map(entry => [entry.definition.name, entry.instance])) : undefined;
   const entries = snapshots.map((definition, index) => {
     const previous = parentByDefinition?.get(definition.name) ?? parent?.entries[index]?.instance;
-    const instance = previous?.fork && scope ? previous.fork(scope) : definition.create();
+    const instance = previous?.fork && scope ? previous.fork(scope) : definition.create(session);
     if (!instance || !Array.isArray(instance.builtins)) throw new TypeError("Shell extension requires builtin definitions");
     const checkpoint = Object.getOwnPropertyDescriptor(instance, "checkpoint");
     if (checkpoint) {

@@ -27,6 +27,7 @@ export interface JobSnapshot {
   readonly handle: JobHandle;
   readonly listed: boolean;
   readonly notified: boolean;
+  readonly nohup: boolean;
   readonly residency: "active-unnotified" | "active-notified" | "saved";
   readonly state: "preparing" | "running" | "done";
   readonly outcome?: JobOutcome;
@@ -46,7 +47,7 @@ export interface JobState {
   snapshot(): readonly JobSnapshot[];
   retireNotified(): void;
   savedStatus(handle: JobHandle): number | undefined;
-  disown(handle: JobHandle): boolean;
+  disown(handle: JobHandle, nohupOnly?: boolean): boolean;
   signal(handle: JobHandle, signal: number): boolean;
   wait(targets?: readonly JobTarget[], options?: JobWaitOptions): Promise<JobWaitResult>;
   waitNext(targets?: readonly JobTarget[], options?: JobWaitOptions): Promise<JobWaitResult>;
@@ -63,6 +64,8 @@ interface JobRecord {
   listed: boolean;
   notified: boolean;
   saved: boolean;
+  disowned: boolean;
+  nohup: boolean;
   state: JobSnapshot["state"];
   outcome?: JobOutcome;
   terminationStatus?: number;
@@ -108,7 +111,7 @@ class JobRegistry implements JobState {
     const handle = Object.freeze({ jobId, completion });
     const record: JobRecord = {
       handle, complete, controller: new AbortController(), cleanups: [], cleanupFailures: [],
-      listed: false, notified: false, saved: false, state: "preparing",
+      listed: false, notified: false, saved: false, disowned: false, nohup: false, state: "preparing",
     };
     this.#records.set(handle, record);
     this.#notify();
@@ -205,7 +208,7 @@ class JobRegistry implements JobState {
 
   snapshot(): readonly JobSnapshot[] {
     return Object.freeze([...this.#records.values()].map(record => Object.freeze({
-      handle: record.handle, listed: record.listed, notified: record.notified, state: record.state,
+      handle: record.handle, listed: record.listed, notified: record.notified, nohup: record.nohup, state: record.state,
       residency: record.saved ? "saved" as const : record.notified ? "active-notified" as const : "active-unnotified" as const,
       ...(record.outcome === undefined ? {} : { outcome: record.outcome }),
     })));
@@ -232,11 +235,15 @@ class JobRegistry implements JobState {
     return record?.saved && record.outcome?.kind === "status" ? record.outcome.status : undefined;
   }
 
-  disown(handle: JobHandle): boolean {
+  disown(handle: JobHandle, nohupOnly = false): boolean {
     const record = this.#records.get(handle);
     if (!record || !record.listed) return false;
-    this.#unlist(record);
-    record.saved = true;
+    record.nohup = true;
+    if (!nohupOnly) {
+      this.#unlist(record);
+      record.disowned = true;
+      record.saved = true;
+    }
     this.#notify();
     return true;
   }
@@ -269,7 +276,8 @@ class JobRegistry implements JobState {
   }
 
   #lookup(target: JobTarget): JobRecord | undefined {
-    return "handle" in target ? this.#records.get(target.handle) : this.#jobs.get(target.jobId);
+    const record = "handle" in target ? this.#records.get(target.handle) : this.#jobs.get(target.jobId);
+    return record?.disowned ? undefined : record;
   }
 
   #waitSignal(options: JobWaitOptions): AbortSignal | undefined {
@@ -300,7 +308,7 @@ class JobRegistry implements JobState {
     let failure: JobOutcome | undefined;
     try {
       if (selected === undefined) {
-        const records = [...this.#records.values()];
+        const records = [...this.#records.values()].filter(record => !record.disowned);
         for (const record of records) {
           while (record.state !== "done") { signal?.throwIfAborted(); await this.#changed(signal); }
           if (record.outcome!.kind === "failure") failure ??= record.outcome;

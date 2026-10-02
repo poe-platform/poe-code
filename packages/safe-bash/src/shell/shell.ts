@@ -13,6 +13,7 @@ import { parseShellUnit } from "./parser.js";
 import { defaultPortableTrapExtension } from "./trap.js";
 import { jobsExtension } from "./extensions/jobs/index.js";
 import { captureShellExtensions, extensionState } from "./extensions.js";
+import type { ShellExtensionSession } from "./extensions.js";
 import { ShellInput } from "./input.js";
 import { SourceLineIndex } from "./source-line-index.js";
 import { byteLocale } from "./locale.js";
@@ -338,6 +339,8 @@ export class Shell implements PluginHost {
   #ready: Promise<void> = Object.defineProperty(Promise.resolve(), Symbol.for("safe-bash.syncResolved"), { value: true });
   _disposed = false;
   #disposal: Promise<void> | undefined;
+  readonly #sessions = new Set<() => Promise<void>>();
+  readonly #sessionExecutions = new WeakMap<ShellExecOptions, ShellExtensionSession>();
   #defaultIoCapabilities: Readonly<Record<string, unknown>> | undefined;
   #defaultRuntimeFs: ShellOptions["fs"] | undefined;
   #hasCustomCommands = false;
@@ -502,7 +505,34 @@ export class Shell implements PluginHost {
   }
 
   createSession(initialState?: ShellSessionState): ShellSession {
+    if (this._disposed) throw new Error("Shell is disposed");
     let currentState = initialState;
+    const controller = new AbortController();
+    const background = new Set<Promise<unknown>>();
+    const executions = new Set<Promise<void>>();
+    const failures: unknown[] = [];
+    const owner: ShellExtensionSession = {
+      signal: controller.signal,
+      retain(completion) {
+        background.add(completion);
+        void completion.finally(() => background.delete(completion)).catch(() => undefined);
+      },
+    };
+    let tail = Promise.resolve();
+    let disposal: Promise<void> | undefined;
+    const dispose = (): Promise<void> => {
+      if (!disposal) {
+        controller.abort(new Error("Shell session is disposed"));
+        disposal = (async () => {
+          await tail;
+          await Promise.all(executions);
+          this.#sessions.delete(dispose);
+          throwCleanupFailures(failures);
+        })();
+      }
+      return disposal;
+    };
+    this.#sessions.add(dispose);
     return {
       get state() {
         return currentState;
@@ -510,17 +540,41 @@ export class Shell implements PluginHost {
       set state(value: ShellSessionState | undefined) {
         currentState = value;
       },
-      exec: async (source: string, options: ShellExecOptions = {}): Promise<ShellResult> => {
-        const effectiveState = options.state ?? currentState;
-        return this.exec(source, {
-          ...options,
-          ...(effectiveState === undefined ? {} : { state: effectiveState }),
-          onState: async (nextState, result) => {
-            currentState = nextState;
-            await options.onState?.(nextState, result);
-          },
+      exec: (source: string, options: ShellExecOptions = {}): Promise<ShellResult> => {
+        const foreground = tail.then(() => {
+          controller.signal.throwIfAborted();
+          throwCleanupFailures(failures.splice(0));
+          return new Promise<ShellResult>((resolve, reject) => {
+            let returned = false;
+            const effectiveState = options.state ?? currentState;
+            const turn: ShellExecOptions = {
+              ...options,
+              signal: options.signal ? AbortSignal.any([options.signal, controller.signal]) : controller.signal,
+              ...(effectiveState === undefined ? {} : { state: effectiveState }),
+              onState: async (nextState, result) => {
+                currentState = nextState;
+                await options.onState?.(nextState, result);
+              },
+              hooks: {
+                ...options.hooks,
+                afterExec: async (nextState, result) => {
+                  await (options.hooks?.afterExec ?? this._options.hooks?.afterExec)?.(nextState, result);
+                  if (background.size) { returned = true; resolve(result); }
+                },
+              },
+            };
+            this.#sessionExecutions.set(turn, owner);
+            const execution = this.exec(source, turn).then(resolve, reason => {
+              if (!returned) reject(reason);
+              else if (!controller.signal.aborted || reason !== controller.signal.reason) failures.push(reason);
+            }).finally(() => executions.delete(execution));
+            executions.add(execution);
+          });
         });
+        tail = foreground.then(() => undefined, () => undefined);
+        return foreground;
       },
+      dispose,
     };
   }
 
@@ -586,6 +640,8 @@ export class Shell implements PluginHost {
     }
     const limits = options.limits === undefined ? this._resolvedLimits : resolveLimits(this._options.limits, options.limits);
     const budget = warm ? warm.budget : new Budget(limits, options.signal, options.onInternalError ?? this._options.onInternalError);
+    const session = this.#sessionExecutions.get(options);
+    if (session) budget.session = session;
     const scope = warm ? warm.scope : new InvocationScope(options.signal);
     const cancellationState = warm ? warm.cancellationState : new RuntimeCancellationState();
     const owner = warm ? warm.owner : new RootInvocationCancellationOwner(scope);
@@ -825,7 +881,7 @@ export class Shell implements PluginHost {
           currentCachedUnit = parseState.currentCachedUnit;
         }
         // Capture syntax before parsing, but defer host extension getters and factories.
-        if (!warm) currentState.extensions = extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension);
+        if (!warm) currentState.extensions = extensionState(extensions.definitions, undefined, undefined, defaultPortableTrapExtension, budget.session);
         if (!warm) {
           if (options.stdin === undefined || typeof options.stdin === "string" || options.stdin instanceof Uint8Array) {
             const value = options.stdin ?? "";
@@ -943,7 +999,9 @@ export class Shell implements PluginHost {
         scope.clearActiveBudget();
         scope.clearActiveStdin();
         unregisterStdin?.();
-        if (budget.hasExecutionCleanup) {
+        // Session turns publish foreground results first; #execAsync still owns
+        // and drains this invocation before releasing its runtime and budget.
+        if (budget.hasExecutionCleanup && !budget.session) {
           const cleanupDrain = budget.executionCleanup.drain();
           if (!isSyncResolved(cleanupDrain)) await cleanupDrain;
         }
@@ -994,6 +1052,8 @@ export class Shell implements PluginHost {
   dispose(): Promise<void> {
     if (this.#disposal) return this.#disposal;
     this._disposed = true;
+    const sessionDrains = [...this.#sessions].map(dispose => dispose());
+    this.#sessions.clear();
     this.#parsedSourceCache.clear();
     Runtime.clearStaticPools();
     clearAwkReaderPool();
@@ -1002,7 +1062,7 @@ export class Shell implements PluginHost {
     const active = this.#active
       ? [...this.#active]
       : (this._singleActiveScope ? [{ scope: this._singleActiveScope, budget: this._singleActiveBudget!, owner: this._singleActiveOwner! }] : []);
-    const drains: Promise<void>[] = [];
+    const drains: Promise<void>[] = sessionDrains;
     this.#disposal = Promise.resolve().then(() => this.#dispose(active, drains));
     for (const { scope, budget } of active) {
       budget.abort(new Error("Shell is disposed"));
@@ -1012,7 +1072,7 @@ export class Shell implements PluginHost {
   }
 
   async #dispose(active: readonly { scope: InvocationScope; owner: RootInvocationCancellationOwner }[], drains: readonly Promise<void>[]): Promise<void> {
-    await Promise.all(drains);
+    const drained = await Promise.allSettled(drains);
     await Promise.all(active.map(({ owner }) => owner.finalized));
     let ready: Promise<void>;
     do {
@@ -1024,6 +1084,9 @@ export class Shell implements PluginHost {
       try { await plugin.dispose?.(); } catch (error) { failures.push(error); }
     }
     const cleanupFailures = active.flatMap(({ scope }) => scope.failures);
+    for (const result of drained) {
+      if (result.status === "rejected" && !cleanupFailures.includes(result.reason)) cleanupFailures.push(result.reason);
+    }
     if (failures.length) throw new AggregateError([...cleanupFailures, ...failures], "Plugin disposal failed");
     throwCleanupFailures(cleanupFailures);
   }

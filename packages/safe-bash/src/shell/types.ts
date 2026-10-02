@@ -123,6 +123,7 @@ export interface ShellSessionOptionsSnapshot {
 }
 
 export interface ShellSessionState {
+  readonly positionalParams?: readonly string[] | undefined;
   readonly aliases?: Readonly<Record<string, string>> | undefined;
   readonly cwd: string;
   readonly umask?: number | undefined;
@@ -150,6 +151,7 @@ export interface ShellSessionHooks {
 export interface ShellSession {
   state: ShellSessionState | undefined;
   exec(source: string, options?: ShellExecOptions): Promise<ShellResult>;
+  dispose(): Promise<void>;
 }
 
 export interface ShellOptions {

@@ -3,7 +3,7 @@ import { signalName } from "safe-bash-command-timeout/signal";
 import { writeText } from "../../../contracts/io.js";
 import { concatShellValues, shellValueBytes, shellValueFromBytes } from "../../../contracts/value.js";
 import type { ShellValue } from "../../../contracts/value.js";
-import type { ShellBindingReference, ShellExtension, ShellExtensionContext, ShellExtensionInstance } from "../../extensions.js";
+import type { ShellBindingReference, ShellExtension, ShellExtensionContext, ShellExtensionInstance, ShellExtensionSession } from "../../extensions.js";
 
 import { createJobState } from "./state.js";
 import type { JobHandle, JobOutcome, JobState, JobTarget } from "./state.js";
@@ -34,11 +34,23 @@ function waitProcessId(operand: string, flexible = false): number | undefined {
   return negative ? -value : value;
 }
 
-function instance(inherited?: number, getParent?: () => { jobs: JobState | undefined; children: ReadonlyMap<number, JobHandle> }): ShellExtensionInstance {
+interface SessionJobs {
+  readonly owner: ShellExtensionSession;
+  readonly jobs: JobState;
+  readonly children: Map<number, JobHandle>;
+  readonly commands: Map<JobHandle, string>;
+  latest?: number;
+}
+
+const sessions = new WeakMap<ShellExtensionSession, SessionJobs>();
+
+function instance(inherited?: number, getParent?: () => { jobs: JobState | undefined; children: ReadonlyMap<number, JobHandle>; commands: ReadonlyMap<JobHandle, string> }, session?: SessionJobs): ShellExtensionInstance {
   let latest = inherited;
-  let jobs: JobState | undefined;
+  let jobs: JobState | undefined = session?.jobs;
   let failure: { reason: unknown } | undefined;
-  const children = new Map<number, JobHandle>();
+  const children = session?.children ?? new Map<number, JobHandle>();
+  const commands = session?.commands ?? new Map<JobHandle, string>();
+  const owned: JobHandle[] = [];
   const resolveFrom = (activeJobs: JobState, activeChildren: ReadonlyMap<number, JobHandle>, operand: string, flexible = false): JobHandle | undefined => {
     if (!operand.startsWith("%")) {
       const processId = waitProcessId(operand, flexible);
@@ -63,12 +75,14 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
     }
     let activeJobs = jobs!;
     let activeChildren: ReadonlyMap<number, JobHandle> = children;
+    let activeCommands: ReadonlyMap<JobHandle, string> = commands;
     let listed = activeJobs.snapshot().filter(entry => entry.listed);
     if (listed.length === 0 && getParent) {
       const parent = getParent();
       if (parent.jobs) {
         activeJobs = parent.jobs;
         activeChildren = parent.children;
+        activeCommands = parent.commands;
         listed = activeJobs.snapshot().filter(entry => entry.listed);
       }
     }
@@ -84,7 +98,9 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
       else {
         const marker = handle === listed.at(-1)?.handle ? "+" : handle === listed.at(-2)?.handle ? "-" : " ";
         const state = entry.state === "done" ? "Done" : "Running";
-        await writeText(context.stdout, `[${handle.jobId}]${marker} ${mode === "-l" ? `${pid} ` : ""}${state}\n`);
+        const command = activeCommands.get(handle) ?? "";
+        const text = entry.state === "done" && command.endsWith(" &") ? command.slice(0, -2) : command;
+        await writeText(context.stdout, `[${handle.jobId}]${marker} ${mode === "-l" ? `${pid} ` : " "}${state.padEnd(24)}${text}\n`);
       }
     }
     return result;
@@ -154,8 +170,9 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
     }
     const listed = jobs!.snapshot().filter(entry => entry.listed);
     const removeHandle = (handle: JobHandle): void => {
+      if (runningOnly && listed.find(entry => entry.handle === handle)?.state === "done") return;
+      jobs!.disown(handle, nohupOnly);
       if (nohupOnly) return;
-      jobs!.disown(handle);
       for (const [pid, child] of children) {
         if (child === handle) children.delete(pid);
       }
@@ -335,6 +352,13 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
     start(context) {
       const registerExecutionCleanup = context.registerExecutionCleanup;
       if (typeof registerExecutionCleanup !== "function") throw new TypeError("Jobs require execution-scoped cleanup ownership");
+      if (session) {
+        registerExecutionCleanup.call(context, async () => {
+          const outcomes = await Promise.all(owned.map(handle => handle.completion));
+          for (const outcome of outcomes) if (outcome.kind === "failure") throw outcome.reason;
+        });
+        return;
+      }
       let ownerSignal = context.signal;
       let retired!: () => void;
       const retirement = new Promise<void>(resolve => { retired = resolve; });
@@ -368,8 +392,13 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
         jobs = createJobState({ signal: ownerSignal });
       } catch (reason) { void finish(); throw reason; }
     },
-    fork: () => instance(latest, () => ({ jobs, children })),
-    checkpoint() { jobs!.retireNotified(); },
+    fork: () => instance(session?.latest ?? latest, () => ({ jobs, children, commands })),
+    checkpoint() {
+      jobs!.retireNotified();
+      if (!commands.size) return;
+      const listed = new Set(jobs!.snapshot().filter(entry => entry.listed).map(entry => entry.handle));
+      for (const handle of commands.keys()) if (!listed.has(handle)) commands.delete(handle);
+    },
     listTerminators: [{ operator: "&", async execute(context) {
       let processId: number | undefined;
       const handle = await jobs!.start(async task => {
@@ -378,10 +407,16 @@ function instance(inherited?: number, getParent?: () => { jobs: JobState | undef
         return child;
       });
       children.set(processId!, handle);
+      commands.set(handle, context.commandText);
+      if (session) {
+        owned.push(handle);
+        session.owner.retain(handle.completion);
+      }
       latest = processId;
+      if (session) session.latest = processId!;
       return 0;
     } }],
-    specialParameters: [{ name: "!", lookup: () => latest === undefined ? undefined : String(latest) }],
+    specialParameters: [{ name: "!", lookup: () => (session?.latest ?? latest) === undefined ? undefined : String(session?.latest ?? latest) }],
   };
   return extInstance;
 }
@@ -390,6 +425,14 @@ export function jobsExtension(): ShellExtension {
   return {
     name: "jobs", runtimeIdentity: commandRuntimeIdentity,
     syntax: { listTerminators: [{ operator: "&" }], specialParameters: [{ name: "!" }] },
-    create: () => instance(),
+    create: session => {
+      if (!session) return instance();
+      let state = sessions.get(session);
+      if (!state) {
+        state = { owner: session, jobs: createJobState({ signal: session.signal }), children: new Map(), commands: new Map() };
+        sessions.set(session, state);
+      }
+      return instance(undefined, undefined, state);
+    },
   };
 }

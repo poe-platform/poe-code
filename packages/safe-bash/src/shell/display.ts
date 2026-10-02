@@ -2,7 +2,7 @@ import type { Command, Script, Word } from "./parser.js";
 
 const spelling = (word: Word): string => word.spelling ?? word.plain ?? "''";
 
-function scriptText(script: Script, indent: string, terminate = false): string {
+export function scriptText(script: Script, indent: string, terminate = false): string {
   return script.lists.map((list, listIndex) => list.pipelines.map((pipeline, index) =>
     `${index ? `${list.operators[index - 1]} ` : ""}${pipeline.negate ? "! " : ""}${pipeline.commands.map((command, commandIndex) => `${commandIndex ? pipeline.commands[commandIndex - 1]!.redirects.some(redirect => redirect.implicitPipeline) ? " |& " : " | " : ""}${commandText(command, indent)}`).join("")}`,
   ).join(" ") + (list.terminator ? ` ${list.terminator.operator}` : terminate || listIndex < script.lists.length - 1 ? ";" : "")).join(`\n${indent}`);

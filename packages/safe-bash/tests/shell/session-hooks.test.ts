@@ -3,6 +3,170 @@ import { test } from "node:test";
 import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
 import type { ShellSessionState } from "../../src/index.js";
 
+test("sessions preserve aliases and positional parameters, including empty and quoted arguments", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem() }).use(agentCommands());
+  try {
+    const session = shell.createSession();
+    await session.exec('shopt -s expand_aliases; alias greet="echo hello_from_alias"; set -- alpha "beta gamma" ""');
+    assert.equal((await session.exec('greet; printf "count=%s\\n" "$#"; printf "<%s>\\n" "$@"')).stdout,
+      "hello_from_alias\ncount=3\n<alpha>\n<beta gamma>\n<>\n");
+    await session.exec("shift; unalias greet");
+    assert.equal((await session.exec('printf "<%s>\\n" "$@"')).stdout, "<beta gamma>\n<>\n");
+    await session.exec("set --");
+    assert.equal((await session.exec('echo "$#"')).stdout, "0\n");
+  } finally { await shell.dispose(); }
+});
+
+test("session background jobs survive turns without blocking foreground completion", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), backgroundJobs: true }).use(agentCommands());
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  shell.register({ name: "hold", async execute() { await gate; return { exitCode: 7 }; } });
+  try {
+    const session = shell.createSession();
+    const launch = session.exec("hold &");
+    const result = await Promise.race([launch, new Promise<undefined>(resolve => setImmediate(resolve))]);
+    assert.ok(result, "background work must not hold the session turn open");
+    const listed = await session.exec('jobs; jobs -l; echo "$!"');
+    assert.equal(listed.stdout, "[1]+  Running                 hold &\n[1]+ 1001 Running                 hold &\n1001\n");
+    release();
+    assert.equal((await session.exec('wait "$!"')).exitCode, 7);
+    assert.equal((await session.exec("jobs")).stdout, "");
+  } finally { release(); await shell.dispose(); }
+});
+
+test("disown and disown -h preserve distinct wait behavior across session turns", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), backgroundJobs: true }).use(agentCommands());
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  shell.register({ name: "hold", async execute() { await gate; return { exitCode: 7 }; } });
+  try {
+    const session = shell.createSession();
+    await session.exec("hold &");
+    const detached = await session.exec('pid=$!; disown; jobs; wait; echo done; wait "$pid"');
+    assert.equal(detached.stdout, "done\n");
+    assert.equal(detached.exitCode, 127);
+    assert.equal((await session.exec("wait %1")).exitCode, 127);
+    await session.exec("hold & disown -h");
+    assert.equal((await session.exec('jobs -p; echo "$!"')).stdout, "1002\n1002\n");
+    const waiting = session.exec('wait "$!"');
+    assert.equal(await Promise.race([waiting.then(() => "settled"), new Promise<string>(resolve => setImmediate(() => resolve("pending")))]), "pending");
+    release();
+    assert.equal((await waiting).exitCode, 7);
+    await session.dispose();
+  } finally { release(); await shell.dispose(); }
+});
+
+for (const target of ["%1", "$!"]) {
+  test(`disown -r keeps completed explicit target ${target}`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem(), backgroundJobs: true }).use(agentCommands());
+    try {
+      const session = shell.createSession();
+      await session.exec("true &");
+      // All children have completed before the next event-loop turn.
+      await new Promise<void>(resolve => setImmediate(resolve));
+      const result = await session.exec(`disown -r ${target}; jobs; jobs -p; wait`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "[1]+  Done                    true\n1001\n");
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("session disposal cancels and cleans up active children, including disowned jobs", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), backgroundJobs: true }).use(agentCommands());
+  let cleaned = 0;
+  shell.register({ name: "hold", async execute(context) {
+    context.registerCleanup?.(() => { cleaned++; });
+    await new Promise<void>(resolve => {
+      if (context.signal.aborted) resolve();
+      else context.signal.addEventListener("abort", () => resolve(), { once: true });
+    });
+    return { exitCode: 0 };
+  } });
+  try {
+    const session = shell.createSession();
+    await session.exec("hold & disown; hold & disown -h");
+    await session.dispose();
+    assert.equal(cleaned, 2);
+    await assert.rejects(session.exec("true"), /session is disposed/);
+    assert.equal((await shell.exec("echo usable")).stdout, "usable\n");
+  } finally { await shell.dispose(); }
+});
+
+test("session job tables are isolated and concurrent turns retain submission order", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), backgroundJobs: true }).use(agentCommands());
+  try {
+    const first = shell.createSession();
+    const second = shell.createSession();
+    await first.exec("true &");
+    assert.equal((await second.exec('jobs; echo "$!"')).stdout, "\n");
+    const [, result] = await Promise.all([first.exec("set -- one two"), first.exec('echo "$#:$1:$2"')]);
+    assert.equal(result.stdout, "2:one:two\n");
+    await first.dispose();
+    await second.dispose();
+  } finally { await shell.dispose(); }
+});
+
+test("background execution retains its runtime and output sinks after a session turn returns", async () => {
+  const fs = createMemoryFileSystem();
+  const shell = new Shell({ fs, backgroundJobs: true }).use(agentCommands());
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  shell.register({ name: "hold", async execute() { await gate; return { exitCode: 0 }; } });
+  const output: Uint8Array[] = [];
+  try {
+    const session = shell.createSession();
+    await session.exec('{ hold; printf late > /result; cat /result; } &', {
+      stdout: { async write(chunk) { output.push(chunk.slice()); } },
+    });
+    release();
+    assert.equal((await session.exec("wait")).exitCode, 0);
+    assert.equal((await session.exec("cat /result")).stdout, "late");
+    assert.equal(new TextDecoder().decode(Buffer.concat(output)), "late");
+    await session.dispose();
+  } finally { release(); await shell.dispose(); }
+});
+
+test("a launch turn's cancellation still reaches its child after foreground completion", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), backgroundJobs: true }).use(agentCommands());
+  const controller = new AbortController();
+  const reason = new Error("cancel background owner");
+  let cleaned = 0;
+  shell.register({ name: "hold", async execute(context) {
+    context.registerCleanup?.(() => { cleaned++; });
+    await new Promise<void>(resolve => context.signal.addEventListener("abort", () => resolve(), { once: true }));
+    return { exitCode: 0 };
+  } });
+  try {
+    const session = shell.createSession();
+    await session.exec("hold &", { signal: controller.signal });
+    controller.abort(reason);
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(cleaned, 1);
+    await assert.rejects(session.exec("jobs"), error => error === reason);
+    await session.dispose();
+  } finally { await shell.dispose(); }
+});
+
+test("shell disposal reports a background cleanup failure after its turn has returned", async () => {
+  const shell = new Shell({ fs: createMemoryFileSystem(), backgroundJobs: true }).use(agentCommands());
+  let disposed = false;
+  shell.use({ name: "disposal-observer", setup() {}, dispose() { disposed = true; } });
+  let release!: () => void;
+  const gate = new Promise<void>(resolve => { release = resolve; });
+  const failure = new Error("background cleanup failed");
+  shell.register({ name: "hold", async execute(context) {
+    context.registerCleanup?.(() => { throw failure; });
+    await gate;
+    return { exitCode: 0 };
+  } });
+  await shell.createSession().exec("hold &");
+  release();
+  await new Promise<void>(resolve => setImmediate(resolve));
+  await assert.rejects(shell.dispose(), error => error === failure);
+  assert.equal(disposed, true);
+});
+
 test("default shell.exec remains stateless when no session hooks or state are supplied", async () => {
   const fs = createMemoryFileSystem();
   await fs.mkdir("/work");

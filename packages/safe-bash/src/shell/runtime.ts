@@ -25,7 +25,7 @@ import { ShellLimitError, ShellSyntaxError } from "./types.js";
 import type { ShellCommandContext, ShellInvokeOptions, ShellLimits } from "./types.js";
 import { resolveCommandLimits } from "../commands/limits.js";
 import { forkExtensions } from "./extensions.js";
-import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, ShellChildPreparation, ShellExecutionCheckpoint, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
+import type { PreparedShellChild, ShellBindingReference, ShellBindingResult, ShellChildPreparation, ShellExecutionCheckpoint, ShellExtensionBindings, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInput, ShellExtensionSession, ShellExtensionState, ShellIndexedWriter } from "./extensions.js";
 import { prepareBytesInput, prepareFileInput, ShellInput } from "./input.js";
 import { observeDescriptor, PipeDescriptorFrame, pipeObservation, type PipeDescriptorReference } from "./descriptors.js";
 import { SourceLineIndex } from "./source-line-index.js";
@@ -46,7 +46,7 @@ import { byteLocale, cCollation, utf8Locale } from "./locale.js";
 import { diagnosticCommandName } from "./diagnostic-name.js";
 import { trimParameter } from "./parameter-trim.js";
 import { ownedShellSource, type OwnedShellSource } from "./source-value.js";
-import { functionDisplay } from "./display.js";
+import { functionDisplay, scriptText } from "./display.js";
 import { ConditionalUnsupported, evaluateConditional, type ConditionalExpression } from "./conditional.js";
 import { invocationScope, throwCleanupFailures, InvocationScope } from "./cleanup.js";
 import { bindFileOutputBudget, openFileOutput } from "../contracts/filesystem-output.js";
@@ -369,6 +369,7 @@ function tickSharedWallClockBudgets(): void {
   }
 }
 export class Budget {
+  declare session: ShellExtensionSession | undefined;
   declare readonly limits: ResolvedShellLimits;
   declare readonly onInternalError: InternalErrorHandler | undefined;
   declare _arraySession: unknown;
@@ -897,7 +898,7 @@ export const syncLocalArrayVariables = new WeakSet<SavedVariable>();
 export const valueScope = Symbol("shell value allocation scope");
 export const invokedValues = new WeakMap<WordPart, ShellValue>();
 export const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
-const childIdentities = new WeakMap<Budget, number>();
+const childIdentities = new WeakMap<object, number>();
 export interface State extends DynamicVariableState {
   variableAttributes?: Map<string, string>;
   namerefVariables?: Set<string> | undefined;
@@ -4360,7 +4361,7 @@ export class Runtime {
         let status = 0;
         try {
           status = validateExitCode(await hook.execute({
-            ...this.extensionContext(state, io), prepareChild: options => {
+            ...this.extensionContext(state, io), commandText: scriptText({ ...script, lists: [list] }, ""), prepareChild: options => {
               if (!admissionOpen || preparation) return Promise.reject(this.commandSignal.aborted ? this.commandSignal.reason : new TypeError("Shell child preparation is single-use and dispatch-scoped"));
               preparation = this.prepareListChild(list, script, state, io, options);
               void preparation.catch(() => undefined);
@@ -4462,9 +4463,10 @@ export class Runtime {
         Object.assign(childIO, { asyncDefaultInput: input });
       }
       runtime = new Runtime(this.sourceFs, this.commands, this.middleware, this.budget, signal, this.fileWrites, this.outputFiles, signal, this.cancellation, this.cancellationState, this.cancellationOwner, this.cancellationDepth, this.cancellationMaxDepth);
-      const processId = (childIdentities.get(this.budget) ?? 1000) + 1;
+      const identityOwner = this.budget.session ?? this.budget;
+      const processId = (childIdentities.get(identityOwner) ?? 1000) + 1;
       if (!Number.isSafeInteger(processId)) throw new RangeError("Shell child identity exhausted");
-      childIdentities.set(this.budget, processId);
+      childIdentities.set(identityOwner, processId);
       const childScript: Script = { ...script, lists: [{ pipelines: list.pipelines, operators: list.operators }] };
       return Object.freeze({ processId, run: (): Promise<number> => {
         if (closed || execution) return Promise.reject(new TypeError("Prepared shell child run is single-use"));

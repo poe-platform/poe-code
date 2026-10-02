@@ -39,6 +39,7 @@ export type {
   ShellExtensionInstance,
   ShellExtensionOption,
   ShellExtensionScope,
+  ShellExtensionSession,
   ShellIndexedWriter,
   ShellInputBorrow,
   ShellInputObserver,

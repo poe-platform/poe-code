@@ -46,6 +46,17 @@ Output: `Hello, reader!\nAda\nGrace\n`. The script, input, and generated
 Each `exec()` starts fresh shell variables, functions, and working-directory state;
 filesystem changes persist in the supplied `fs`. The invocation-local `umask`
 starts at `0022`, accepts octal or symbolic modes, and is inherited by child shells.
+Use `shell.createSession()` to retain shell state, including aliases and `set --`
+arguments, across `session.exec()` calls. With `backgroundJobs: true`, session
+turns return while background commands run; later turns can use `jobs`, `wait`,
+`kill`, and `disown`. Calls in one session execute in submission order. Live jobs
+belong to that session, not its serializable `state` snapshot. Redirect background
+output to files or supply `stdout`/`stderr` sinks to receive output after a turn
+returns. `await session.dispose()` cancels remaining work and awaits cleanup;
+`shell.dispose()` also disposes its sessions. Disowning removes a job from
+`jobs`/`wait`, while `disown -h` retains it with the nohup mark. Both remain owned
+for resource cleanup. Ordinary `shell.exec()` still drains its children before
+returning.
 Within a script, `exec` keeps file redirections open or replaces the current shell
 command, including `-c` to clear its environment and `-a` to set its argument zero.
 `read -u FD -t SECONDS` reads an open descriptor with a timeout; `mapfile -u FD`

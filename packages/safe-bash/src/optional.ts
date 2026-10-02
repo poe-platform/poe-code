@@ -22,7 +22,7 @@ export { mapfileExtension, readExtension } from "./core.js";
 export type { ReadExtensionOptions } from "./core.js";
 export { trapExtension } from "./shell/extensions/trap/index.js";
 export type { TrapExtensionOptions, TrapSignalHost } from "./shell/extensions/trap/index.js";
-export type { ShellExtension, ShellExtensionBuiltin, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInstance, ShellExtensionOption, ShellExtensionScope } from "./shell/extensions.js";
+export type { ShellExtension, ShellExtensionBuiltin, ShellExtensionContext, ShellExtensionEvent, ShellExtensionInstance, ShellExtensionOption, ShellExtensionScope, ShellExtensionSession } from "./shell/extensions.js";
 export type { PreparedShellChild, ShellChildPreparation, ShellListTerminatorContext, ShellListTerminatorHook, ShellSpecialParameterHook } from "./shell/extensions.js";
 export type { ShellBindingReference, ShellBindingResult, ShellExecutionCheckpoint } from "./shell/extensions.js";
 

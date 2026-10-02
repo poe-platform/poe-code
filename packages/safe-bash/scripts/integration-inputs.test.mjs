@@ -840,6 +840,7 @@ function assertSource7Discovery(files) {
     "tests/shell/declaration-arrays.test.ts",
     "tests/shell/background-jobs.test.ts",
     "tests/shell/background-jobs-review.test.ts",
+    "tests/shell/session-hooks.test.ts",
     "tests/shell/globstar.test.ts",
     "tests/shell/pathname-globbing.test.ts",
     "tests/shell/shopt-matching.test.ts",

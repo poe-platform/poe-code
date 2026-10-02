@@ -86,6 +86,7 @@ export function captureShellSessionState(state: State, exitCode: number): ShellS
 
   const snapshot: ShellSessionState = {
     aliases: Object.fromEntries(state.aliases ?? []),
+    positionalParams: [...state.positional],
     cwd: state.cwd,
     umask: state.umask ?? 0o022,
     variables,
@@ -116,6 +117,15 @@ export async function restoreShellSessionState(
     ? resolvePath("/", explicitOptions.cwd)
     : resolvePath("/", snapshot.cwd || "/");
   state.cwd = resolvedCwd;
+  if (snapshot.positionalParams) {
+    let bytes = 0;
+    for (const value of snapshot.positionalParams) {
+      budget.signal.throwIfAborted();
+      bytes += shellValueByteLength(value);
+      if (bytes > budget.limits.maxExpansionBytes) budget.fail("maxExpansionBytes");
+    }
+    state.positional = [...snapshot.positionalParams];
+  }
   if (snapshot.aliases) {
     let bytes = 0;
     const aliases = new Map<string, string>();

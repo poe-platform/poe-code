@@ -301,6 +301,11 @@ const evalSyncDf = (...args: any[]) => syncCommandEvaluators.evalSyncDf?.(...arg
 const evalSyncDu = (...args: any[]) => syncCommandEvaluators.evalSyncDu?.(...args);
 const evalSyncTree = (...args: any[]) => syncCommandEvaluators.evalSyncTree?.(...args);
 const evalSyncStat = (...args: any[]) => syncCommandEvaluators.evalSyncStat?.(...args);
+function exportedVariablesView(rawState: { exported: ReadonlySet<string>; variables: Readonly<Record<string, string | undefined>> }): Readonly<Record<string, string | undefined>> {
+  const out: Record<string, string | undefined> = Object.create(null);
+  for (const name of rawState.exported) out[name] = rawState.variables[name];
+  return out;
+}
 const evalSyncFd = (...args: any[]) => syncCommandEvaluators.evalSyncFd?.(...args);
 const evalSyncRg = (...args: any[]) => syncCommandEvaluators.evalSyncRg?.(...args);
 import { syncPosixRegexSource } from "./sync-posix-regex.js";
@@ -18162,8 +18167,8 @@ const syncExtraRuntimeMethods = {
           if (e0 !== undefined && e0.status <= 1) stage0Formatted = e0.value + "\n";
         } else if (w0Plain0 === "getopt") {
           const g0 = evalSyncGetopt(subArgs0, {
-            GETOPT_COMPATIBLE: (rawState.exported.has("GETOPT_COMPATIBLE") || rawState.allexport) ? rawState.variables.GETOPT_COMPATIBLE : undefined,
-            POSIXLY_CORRECT: (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) ? rawState.variables.POSIXLY_CORRECT : undefined,
+            GETOPT_COMPATIBLE: rawState.exported.has("GETOPT_COMPATIBLE") ? rawState.variables.GETOPT_COMPATIBLE : undefined,
+            POSIXLY_CORRECT: rawState.exported.has("POSIXLY_CORRECT") ? rawState.variables.POSIXLY_CORRECT : undefined,
           });
           if (g0 !== undefined) stage0Formatted = g0.endsWith("\n") ? g0 : g0 + "\n";
         } else if (w0Plain0 === "pathchk") {
@@ -18661,7 +18666,7 @@ const syncExtraRuntimeMethods = {
             firstName === "head" || firstName === "tail" || firstName === "wc" || firstName === "cat" || firstName === "date" || firstName === "cal" || firstName === "ncal" || firstName === "getopt" || firstName === "pathchk" || firstName === "printenv" || firstName === "env" || firstName === "mktemp" || firstName === "tee" || firstName === "touch" || firstName === "cp" || firstName === "mv" || firstName === "rmdir" || firstName === "sleep" || firstName === "chmod" || firstName === "patch" || firstName === "mkdir" || firstName === "rm" || firstName === "ln" || ((stageArgs.includes("--help") || stageArgs.includes("--version")) && gnuInformationSync(firstName, stageArgs) !== undefined)) {
               const rawBytes = prevBuf.subarray(0, prevLen);
               const readFile = (p: string) => this.tryReadMemoryFileViewSync(resolvePath(rawState.cwd, p), true, true);
-              const outStr = ((stageArgs.includes("--help") || stageArgs.includes("--version")) ? gnuInformationSync(firstName, stageArgs, false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined) : undefined) ?? (firstName === "envsubst"
+              const outStr = ((stageArgs.includes("--help") || stageArgs.includes("--version")) ? gnuInformationSync(firstName, stageArgs, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) : undefined) ?? (firstName === "envsubst"
                 ? this.evalSyncEnvsubst(inStr, stageArgs, rawState)
                 : firstName === "fmt"
                   ? this.evalSyncFmt(rawBytes, stageArgs, readFile)
@@ -18684,7 +18689,7 @@ const syncExtraRuntimeMethods = {
                   : firstName === "cmp"
                     ? evalSyncCmp(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "which"
-                    ? evalSyncWhich(stageArgs, rawState.cwd, typeof rawState.variables.PATH === "string" ? rawState.variables.PATH : undefined, (p: string) => this.tryCheckMemoryExecutableFileSync(p, true))
+                    ? evalSyncWhich(stageArgs, rawState.cwd, rawState.exported.has("PATH") && typeof rawState.variables.PATH === "string" ? rawState.variables.PATH : undefined, (p: string) => this.tryCheckMemoryExecutableFileSync(p, true))
                   : firstName === "diff"
                     ? evalSyncDiff(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "xan"
@@ -18692,13 +18697,13 @@ const syncExtraRuntimeMethods = {
                   : (firstName === "less" || firstName === "more")
                     ? evalSyncLess(sIdx === 0 && cmd0FileStage ? undefined : rawBytes, stageArgs, readFile)
                   : firstName === "df"
-                    ? evalSyncDf(stageArgs, rawState.cwd, rawState.variables, (p: string) => this.tryInspectMemoryNodeSync(p, true), extDef.execute)
+                    ? evalSyncDf(stageArgs, rawState.cwd, exportedVariablesView(rawState), (p: string) => { const n = this.tryInspectMemoryNodeSync(p, true); if (p === "/dev" && !n) return { type: "directory", size: 0, mode: 0o755, ino: 1, nlink: 2, uid: 0, gid: 0, dev: 1, atimeMs: 0, mtimeMs: 0, ctimeMs: 0, birthtimeMs: 0, filesystemType: "vfs", ioBlockSize: 4096, children: [] }; if (p === "/" && n?.children && !n.children.some(c => c.name === "dev")) return { ...n, children: [...n.children, { name: "dev", type: "directory", size: 0, mode: 0o755 }] }; return n; }, extDef.execute)
                   : firstName === "du"
-                    ? evalSyncDu(stageArgs, rawState.cwd, rawState.variables, (p: string) => this.tryInspectMemoryNodeSync(p, true), true)
+                    ? evalSyncDu(stageArgs, rawState.cwd, exportedVariablesView(rawState), (p: string) => this.tryInspectMemoryNodeSync(p, true), true)
                   : firstName === "tree"
                     ? evalSyncTree(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true))
                   : firstName === "stat"
-                    ? evalSyncStat(stageArgs, rawState.cwd, rawState.variables.QUOTING_STYLE, (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
+                    ? evalSyncStat(stageArgs, rawState.cwd, (rawState.exported.has("QUOTING_STYLE") ? rawState.variables.QUOTING_STYLE : undefined), (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
                   : firstName === "fd"
                     ? evalSyncFd(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true), true)
                   : firstName === "rg"
@@ -18828,9 +18833,9 @@ const syncExtraRuntimeMethods = {
                   : firstName === "chmod"
                     ? syncCommandEvaluators.evalSyncChmod?.(stageArgs, rawState.umask ?? 0o022, (p: string, chg) => this.tryChmodMemoryNodeSync(resolvePath(rawState.cwd, p), chg, false))
                   : (firstName === "cal" || firstName === "ncal")
-                    ? (() => { const c = evalSyncCal(firstName, stageArgs, (rawState.exported.has("SOURCE_DATE_EPOCH") || rawState.allexport) ? rawState.variables.SOURCE_DATE_EPOCH : undefined); return c !== undefined ? (c.endsWith("\n") ? c : c + "\n") : undefined; })()
+                    ? (() => { const c = evalSyncCal(firstName, stageArgs, rawState.exported.has("SOURCE_DATE_EPOCH") ? rawState.variables.SOURCE_DATE_EPOCH : undefined); return c !== undefined ? (c.endsWith("\n") ? c : c + "\n") : undefined; })()
                   : firstName === "getopt"
-                    ? (() => { const g = evalSyncGetopt(stageArgs, { GETOPT_COMPATIBLE: (rawState.exported.has("GETOPT_COMPATIBLE") || rawState.allexport) ? rawState.variables.GETOPT_COMPATIBLE : undefined, POSIXLY_CORRECT: (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) ? rawState.variables.POSIXLY_CORRECT : undefined }); return g !== undefined ? (g.endsWith("\n") ? g : g + "\n") : undefined; })()
+                    ? (() => { const g = evalSyncGetopt(stageArgs, { GETOPT_COMPATIBLE: rawState.exported.has("GETOPT_COMPATIBLE") ? rawState.variables.GETOPT_COMPATIBLE : undefined, POSIXLY_CORRECT: rawState.exported.has("POSIXLY_CORRECT") ? rawState.variables.POSIXLY_CORRECT : undefined }); return g !== undefined ? (g.endsWith("\n") ? g : g + "\n") : undefined; })()
                   : firstName === "pathchk"
                     ? evalSyncPathchk(stageArgs, rawState.cwd, (p: string) => this.tryStatMemoryNodeTypeSync(p, true))
                   : firstName === "printenv"
@@ -18996,7 +19001,7 @@ const syncExtraRuntimeMethods = {
       if (!definition || !builtInDirectContextExecutors.has(definition.execute)) return undefined;
     }
     if (cmd.words.length === 2 && cmd.redirects.length === 0 && (cmd.words[1]?.plain === "--help" || cmd.words[1]?.plain === "--version")) {
-      const gnuInfo = gnuInformationSync(w0Plain, [cmd.words[1]!.plain!], false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined);
+      const gnuInfo = gnuInformationSync(w0Plain, [cmd.words[1]!.plain!], false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined);
       if (gnuInfo !== undefined) {
         const extDef = this.commands.get(w0Plain);
         if (!extDef || !builtInDirectContextExecutors.has(extDef.execute)) return undefined;
@@ -19054,7 +19059,7 @@ const syncExtraRuntimeMethods = {
       }
       if (fOk && w0Plain === "getopt" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
         const getEnvVar = (name: string): string | undefined => {
-          if (rawState.exported.has(name) || rawState.allexport) return rawState.variables[name];
+          if (rawState.exported.has(name)) return rawState.variables[name];
           return undefined;
         };
         const goOut = evalSyncGetopt(allArgs, {
@@ -19149,13 +19154,13 @@ const syncExtraRuntimeMethods = {
         const inspectNode = (p: string) => this.tryInspectMemoryNodeSync(p, true);
         const inspectStat = (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow);
         const vfsOut = w0Plain === "df"
-          ? evalSyncDf(allArgs, rawState.cwd, rawState.variables, inspectNode, this.commands.get("df")?.execute)
+          ? evalSyncDf(allArgs, rawState.cwd, exportedVariablesView(rawState), (p: string) => { const n = inspectNode(p); if (p === "/dev" && !n) return { type: "directory", size: 0, mode: 0o755, ino: 1, nlink: 2, uid: 0, gid: 0, dev: 1, atimeMs: 0, mtimeMs: 0, ctimeMs: 0, birthtimeMs: 0, filesystemType: "vfs", ioBlockSize: 4096, children: [] }; if (p === "/" && n?.children && !n.children.some(c => c.name === "dev")) return { ...n, children: [...n.children, { name: "dev", type: "directory", size: 0, mode: 0o755 }] }; return n; }, this.commands.get("df")?.execute)
           : w0Plain === "du"
-            ? evalSyncDu(allArgs, rawState.cwd, rawState.variables, inspectNode)
+            ? evalSyncDu(allArgs, rawState.cwd, exportedVariablesView(rawState), inspectNode)
             : w0Plain === "tree"
               ? evalSyncTree(allArgs, rawState.cwd, inspectNode)
               : w0Plain === "stat"
-                ? evalSyncStat(allArgs, rawState.cwd, rawState.variables.QUOTING_STYLE, inspectStat)
+                ? evalSyncStat(allArgs, rawState.cwd, (rawState.exported.has("QUOTING_STYLE") ? rawState.variables.QUOTING_STYLE : undefined), inspectStat)
                 : w0Plain === "fd"
                   ? evalSyncFd(allArgs, rawState.cwd, inspectNode)
                   : w0Plain === "readlink"
@@ -19181,7 +19186,7 @@ const syncExtraRuntimeMethods = {
         }
       }
       if (fOk && w0Plain === "which" && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
-        const wOut = evalSyncWhich(allArgs, rawState.cwd, typeof rawState.variables.PATH === "string" ? rawState.variables.PATH : undefined, (p: string) => this.tryCheckMemoryExecutableFileSync(p, true));
+        const wOut = evalSyncWhich(allArgs, rawState.cwd, rawState.exported.has("PATH") && typeof rawState.variables.PATH === "string" ? rawState.variables.PATH : undefined, (p: string) => this.tryCheckMemoryExecutableFileSync(p, true));
         if (wOut !== undefined) {
           let res = wOut;
           const outBytes = shellValueByteLength(res);
@@ -19306,7 +19311,7 @@ const syncExtraRuntimeMethods = {
           : w0Plain === "apply_patch"
             ? syncCommandEvaluators.evalSyncApplyPatch?.(optInBytes, allArgs, readFile, (p: string, b: Uint8Array, m?: number) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); const fp = resolvePath(rawState.cwd, p); if (m !== undefined) tryRmRfMemorySync(this.backingFs, fp, this.commandSignal); return tryWriteMemoryFileSync(this.backingFs, fp, b, false, m ?? (0o666 & ~(rawState.umask ?? 0o022)), this.commandSignal); } catch { return false; } })
           : w0Plain === "mktemp"
-            ? syncCommandEvaluators.evalSyncMktemp?.(allArgs, rawState.variables, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
+            ? syncCommandEvaluators.evalSyncMktemp?.(allArgs, exportedVariablesView(rawState), (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } }, (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "tee"
             ? syncCommandEvaluators.evalSyncTee?.(optInBytes, allArgs, (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } })
           : w0Plain === "touch"
@@ -19331,8 +19336,8 @@ const syncExtraRuntimeMethods = {
             ? syncCommandEvaluators.evalSyncWc?.(optInBytes, allArgs, byteLocale(rawState.variables), readFile)
           : w0Plain === "ln"
             ? syncCommandEvaluators.evalSyncLn?.(allArgs, (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false), (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryRmRfMemorySync(this.backingFs, resolvePath(rawState.cwd, p), this.commandSignal); } catch { return false; } }, (s: string, d: string, sym: boolean) => this.tryLinkMemoryNodeSync(sym ? s : resolvePath(rawState.cwd, s), resolvePath(rawState.cwd, d), sym))
-          : (allArgs.includes("--help") || allArgs.includes("--version")) && gnuInformationSync(w0Plain, allArgs, false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined) !== undefined
-            ? gnuInformationSync(w0Plain, allArgs, false, (rawState.exported.has("POSIXLY_CORRECT") || rawState.allexport) && rawState.variables.POSIXLY_CORRECT !== undefined)
+          : (allArgs.includes("--help") || allArgs.includes("--version")) && gnuInformationSync(w0Plain, allArgs, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined) !== undefined
+            ? gnuInformationSync(w0Plain, allArgs, false, rawState.exported.has("POSIXLY_CORRECT") && rawState.variables.POSIXLY_CORRECT !== undefined)
             : w0Plain === "mdq"
               ? evalSyncMdq(inBytes, allArgs, readFile)
             : w0Plain === "shuf"
@@ -19754,7 +19759,7 @@ const syncExtraRuntimeMethods = {
               const statType = (p: string) => this.tryStatMemoryNodeTypeSync(resolvePath(rawState.cwd, p), false);
               const writeFile = (p: string, b: Uint8Array) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, false, 0o600 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               const mkdirFn = (p: string) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryMkdirMemorySync(this.backingFs, resolvePath(rawState.cwd, p), false, 0o700 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
-              fileRes = syncCommandEvaluators.evalSyncMktemp?.(opArgs, rawState.variables, statType, writeFile, mkdirFn);
+              fileRes = syncCommandEvaluators.evalSyncMktemp?.(opArgs, exportedVariablesView(rawState), statType, writeFile, mkdirFn);
             } else if (w0Plain === "tee") {
               const writeFile = (p: string, b: Uint8Array, app: boolean) => { try { if (this._inSyncLoopPreflight) return Boolean(this.canFastMemoryRedirect && this._isMemoryBackingFs); return tryWriteMemoryFileSync(this.backingFs, resolvePath(rawState.cwd, p), b, app, 0o666 & ~(rawState.umask ?? 0o022), this.commandSignal); } catch { return false; } };
               fileRes = syncCommandEvaluators.evalSyncTee?.(view, opArgs, writeFile);
@@ -24917,7 +24922,7 @@ const syncExtraRuntimeMethods = {
     const isRestrictedEnv = raw._exported === undefined && "_exported" in raw;
     const getEnv = (name: string): string | undefined => {
       if (isRestrictedEnv) return name === "PWD" ? raw.variables.PWD : undefined;
-      if (raw.exported.has(name) || raw.allexport) return raw.variables[name];
+      if (raw.exported.has(name)) return raw.variables[name];
       return undefined;
     };
     if (cmdName === "uname") {
@@ -25309,7 +25314,7 @@ const syncExtraRuntimeMethods = {
       const name = (braced ?? bare) as string;
       if (allowedVars !== undefined && !allowedVars.has(name)) return full;
       if (isRestrictedEnv) return name === "PWD" ? (raw.variables.PWD ?? "") : "";
-      if (raw.exported.has(name) || raw.allexport) return raw.variables[name] ?? "";
+      if (raw.exported.has(name)) return raw.variables[name] ?? "";
       return "";
     });
   }

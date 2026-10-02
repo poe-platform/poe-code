@@ -758,3 +758,22 @@ test("42. sync cat/head/tail/wc repeated - stdin consumption, mv -n -f precedenc
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+test("43. sync commands respect exported-only environment boundaries (stat QUOTING_STYLE, df DF_BLOCK_SIZE, mktemp TMPDIR, and pre-set-a variables in envsubst/getopt/cal)", async () => {
+  const scripts = [
+    "mkdir -p /dir; printf \"hello\" > /dir/a.txt; QUOTING_STYLE=literal; x=\$(stat -c %N /dir/a.txt); echo \"\$?:\$x\"",
+    "DF_BLOCK_SIZE=1M; x=\$(df /); echo \"\$?:\$x\"",
+    "mkdir -p /dir; TMPDIR=/dir; x=\$(mktemp -u); echo \"\$?:\${x%/tmp.*}\"",
+    "FOO=secret; set -a; x=\$(envsubst <<< \"\\\$FOO\"); echo \"\$?:\$x\"",
+    "POSIXLY_CORRECT=1; set -a; x=\$(getopt -o ab -- -a foo -b); echo \"\$?:\$x\"",
+    "SOURCE_DATE_EPOCH=0; set -a; x=\$(cal); y=\$(cal -m 1 1970); echo \"\$?:\$([[ \"\$x\" == \"\$y\" ]] && echo eq || echo ne)\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

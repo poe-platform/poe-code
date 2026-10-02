@@ -1880,12 +1880,14 @@
             "safe-bash-contracts": "*",
             "safe-bash-mime-engine": "*",
             "@poe-code/safe-fs": "*"
-          }
+          },
+          "portable": true
         },
         "safe-bash-mime-engine": {
           "version": "0.0.1",
           "dependencies": {},
-          "devDependencies": {}
+          "devDependencies": {},
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"

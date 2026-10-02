@@ -78,8 +78,11 @@ it("preserves the portable export surface when canonical owners remain external"
       .filter(([filename]) => publicOutputs.has(filename))
       .map(([filename, output]) => [filename, output.exports]));
     const commandExports = Object.keys(manifest.poeCode.integration.privateWorkspaces)
-      .filter(name => name.startsWith("safe-bash-command-"))
+      // Playwright has always been an explicit opt-in subpath, outside core.
+      .filter(name => name.startsWith("safe-bash-command-") && name !== "safe-bash-command-playwright-cli")
       .flatMap(name => {
+        // Python exposes both python/python3 through its plural factory.
+        if (name === "safe-bash-command-python") return ["pythonCommands", "createPythonCommands", "pythonExecutorCommands", "createPythonExecutorCommands"];
         const title = name.slice("safe-bash-command-".length).split("-")
           .map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
         return [title[0]!.toLowerCase() + title.slice(1) + "Commands", `create${title}Command`, `create${title}Commands`];

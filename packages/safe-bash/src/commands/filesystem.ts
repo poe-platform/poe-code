@@ -806,7 +806,7 @@ export function filesystemCommands(maxDirectoryEntries?: number, maxRecursiveDir
       } finally { await answers.return(undefined); }
     }),
     define("rm", context => {
-      if (!context.argumentValues && !context.signal.aborted && (context.args.length === 1 || context.args.length === 2)) {
+      if (maxRecursiveDirectoryDepth === Infinity && !context.argumentValues && !context.signal.aborted && (context.args.length === 1 || context.args.length === 2)) {
         const fastCtx = context as { _fastMemoryBackingFs?: FileSystem & { symlinkCount?: number; tryRmFastSync?: (path: string, recursive: boolean, force: boolean) => boolean }; _chargeFastFsOp?: () => void; _hasInfiniteFsOpsLimit?: boolean };
         const backingMem = fastCtx._fastMemoryBackingFs;
         if (

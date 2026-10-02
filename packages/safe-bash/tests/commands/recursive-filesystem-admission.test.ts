@@ -13,7 +13,7 @@ const decoder = new TextDecoder();
 const originalIterator = Set.prototype[Symbol.iterator];
 
 async function execute(
-  fs: FileSystem, command: "cp" | "ls", args: readonly string[],
+  fs: FileSystem, command: "cp" | "ls" | "rm", args: readonly string[],
   signal = new AbortController().signal, stdout?: ByteSink, maxDepth?: number,
 ) {
   let text = "", diagnostic = "";
@@ -179,6 +179,41 @@ test("standard and agent command factories forward recursive depth quotas", asyn
     } finally { await shell.dispose(); }
   }
 });
+
+for (const maxDepth of [0, 1, Infinity]) {
+  for (const [path, source] of [
+    ["direct", undefined],
+    ["optimized", "rm -rf /source"],
+    ["middleware", "rm -rf /source"],
+    ["substitution", "out=$(rm -rf /source)"],
+    ["redirected substitution", "out=$(rm -rf /source < /input)"],
+    ["here-string substitution", "out=$(rm -rf /source <<< '')"],
+    ["piped substitution", "out=$(printf '' | rm -rf /source)"],
+  ] as const) {
+    test(`rm -rf respects depth ${maxDepth} through ${path} execution`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir("/source/n", { recursive: true });
+      await fs.writeFile("/source/n/file", encoder.encode("retained"));
+      await fs.writeFile("/input", new Uint8Array());
+      const shell = new Shell({ fs, commands: new CommandRegistry(createStandardCommands({ maxRecursiveDirectoryDepth: maxDepth })) });
+      if (path === "middleware") shell.use(async (_context, next) => next());
+      try {
+        const result = source === undefined
+          ? await execute(fs, "rm", ["-rf", "/source"], undefined, undefined, maxDepth)
+          : await shell.exec(source);
+        assert.equal(result.exitCode, maxDepth === 0 ? 1 : 0, result.stderr);
+        assert.equal(result.stdout, "");
+        if (maxDepth === 0) {
+          assert.notEqual(result.stderr, "");
+          assert.deepEqual(await fs.readFile("/source/n/file"), encoder.encode("retained"));
+        } else {
+          assert.equal(result.stderr, "");
+          await assert.rejects(fs.stat("/source"), { code: "ENOENT" });
+        }
+      } finally { await shell.dispose(); }
+    });
+  }
+}
 
 test("cp depth refusal retains an earlier copied file and verbose output after preflight retry", async () => {
   const { fs, counts } = chainHost(1025);

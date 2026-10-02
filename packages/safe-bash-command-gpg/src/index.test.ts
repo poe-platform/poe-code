@@ -190,3 +190,27 @@ test("gpg bounds verification payload files after reading a valid signature", as
   assert.ok(result.stderr.includes("maximum buffered size of 512 bytes"), result.stderr);
   assert.equal(result.stdout, "");
 });
+
+test("gpg supports symmetric encryption (-c) and decryption (-d) with --passphrase and rejects wrong passphrases", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/sales.csv", new TextEncoder().encode("region,q1,q2\nNA,120,150\n"));
+
+  const enc = await runGpg(fs, ["--batch", "--passphrase", "secret123", "-c", "--output", "/sales.csv.gpg", "/sales.csv"]);
+  assert.equal(enc.exitCode, 0);
+
+  const dec = await runGpg(fs, ["--batch", "--passphrase", "secret123", "-d", "/sales.csv.gpg"]);
+  assert.equal(dec.exitCode, 0);
+  assert.equal(dec.stdout, "region,q1,q2\nNA,120,150\n");
+
+  const bad = await runGpg(fs, ["--batch", "--passphrase", "wrong", "-d", "/sales.csv.gpg"]);
+  assert.notEqual(bad.exitCode, 0);
+  assert.match(bad.stderr, /decryption failed/);
+
+  const armorEnc = await runGpg(fs, ["--batch", "--passphrase=secret123", "--armor", "--symmetric", "/sales.csv"]);
+  assert.equal(armorEnc.exitCode, 0);
+  const ascBytes = await fs.readFile("/sales.csv.asc");
+  assert.match(new TextDecoder().decode(ascBytes), /-----BEGIN PGP MESSAGE-----/);
+  const armorDec = await runGpg(fs, ["--batch", "--passphrase=secret123", "--decrypt", "/sales.csv.asc"]);
+  assert.equal(armorDec.exitCode, 0);
+  assert.equal(armorDec.stdout, "region,q1,q2\nNA,120,150\n");
+});

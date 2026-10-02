@@ -301,6 +301,89 @@ async function verifyOpenPgpDetachedSignature(
   return { valid, signerUid, keyIdHex };
 }
 
+const SYM_MAGIC = new Uint8Array([0x50, 0x47, 0x50, 0x53, 0x59, 0x4d, 0x31, 0x00]); // "PGPSYM1\0"
+
+async function deriveSymmetricKey(passphrase: string, salt: Uint8Array): Promise<CryptoKey> {
+  const baseKey = await globalThis.crypto.subtle.importKey(
+    "raw",
+    textEncoder.encode(passphrase),
+    "PBKDF2",
+    false,
+    ["deriveKey"],
+  );
+  return globalThis.crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: salt.buffer.slice(salt.byteOffset, salt.byteOffset + salt.byteLength) as ArrayBuffer,
+      iterations: 10000,
+      hash: "SHA-256",
+    },
+    baseKey,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
+  );
+}
+
+async function encryptSymmetric(plaintext: Uint8Array, passphrase: string, armor: boolean): Promise<Uint8Array> {
+  const salt = globalThis.crypto.getRandomValues(new Uint8Array(16));
+  const iv = globalThis.crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveSymmetricKey(passphrase, salt);
+  const plainBuf = plaintext.buffer.slice(plaintext.byteOffset, plaintext.byteOffset + plaintext.byteLength) as ArrayBuffer;
+  const cipherBuf = new Uint8Array(
+    await globalThis.crypto.subtle.encrypt(
+      { name: "AES-GCM", iv: iv.buffer.slice(iv.byteOffset, iv.byteOffset + iv.byteLength) as ArrayBuffer },
+      key,
+      plainBuf,
+    ),
+  );
+  const envelope = new Uint8Array(SYM_MAGIC.byteLength + salt.byteLength + iv.byteLength + cipherBuf.byteLength);
+  envelope.set(SYM_MAGIC, 0);
+  envelope.set(salt, SYM_MAGIC.byteLength);
+  envelope.set(iv, SYM_MAGIC.byteLength + salt.byteLength);
+  envelope.set(cipherBuf, SYM_MAGIC.byteLength + salt.byteLength + iv.byteLength);
+  if (!armor) return envelope;
+  const b64 = bytesToBase64(envelope, 64);
+  return textEncoder.encode(`-----BEGIN PGP MESSAGE-----\n\n${b64}\n-----END PGP MESSAGE-----\n`);
+}
+
+async function decryptSymmetric(input: Uint8Array, passphrase: string): Promise<Uint8Array> {
+  let envelope = input;
+  const head = textDecoder.decode(input.subarray(0, Math.min(64, input.byteLength)));
+  if (head.includes("-----BEGIN PGP MESSAGE-----")) {
+    const b64 = textDecoder
+      .decode(input)
+      .split(/\r?\n/)
+      .map(line => line.trim())
+      .filter(line => line.length > 0 && !line.startsWith("-----") && !line.startsWith("="))
+      .join("");
+    envelope = base64ToBytes(b64);
+  }
+  const minLen = SYM_MAGIC.byteLength + 16 + 12 + 16;
+  if (envelope.byteLength < minLen) {
+    throw new Error("decryption failed: Bad session key");
+  }
+  for (let i = 0; i < SYM_MAGIC.byteLength; i++) {
+    if (envelope[i] !== SYM_MAGIC[i]) {
+      throw new Error("decryption failed: Bad session key");
+    }
+  }
+  const salt = envelope.subarray(SYM_MAGIC.byteLength, SYM_MAGIC.byteLength + 16);
+  const iv = envelope.subarray(SYM_MAGIC.byteLength + 16, SYM_MAGIC.byteLength + 28);
+  const cipher = envelope.subarray(SYM_MAGIC.byteLength + 28);
+  const key = await deriveSymmetricKey(passphrase, salt);
+  try {
+    const plainBuf = await globalThis.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv: iv.buffer.slice(iv.byteOffset, iv.byteOffset + iv.byteLength) as ArrayBuffer },
+      key,
+      cipher.buffer.slice(cipher.byteOffset, cipher.byteOffset + cipher.byteLength) as ArrayBuffer,
+    );
+    return new Uint8Array(plainBuf);
+  } catch {
+    throw new Error("decryption failed: Bad session key");
+  }
+}
+
 interface StoredGpgKey {
   uid: string;
   keyIdHex: string;
@@ -421,6 +504,12 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       let quickGenKey = false;
       let exportKeys = false;
       let importKeys = false;
+      let symmetric = false;
+      let decrypt = false;
+      let armor = false;
+      let passphrase: string | undefined;
+      let passphraseFile: string | undefined;
+      let passphraseFd: string | undefined;
       let signerUid = "Git User <user@example.com>";
       let statusFd: string | undefined;
       let outFile: string | undefined;
@@ -432,6 +521,9 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
         else if (a === "--version") version = true;
         else if (a === "--detach-sign" || a === "-b" || a === "-bsau" || a === "-bsa") detachSign = true;
         else if (a === "--verify") verify = true;
+        else if (a === "-c" || a === "--symmetric") symmetric = true;
+        else if (a === "-d" || a === "--decrypt") decrypt = true;
+        else if (a === "-a" || a === "--armor") armor = true;
         else if (a === "--list-keys" || a === "-k" || a === "--list-secret-keys" || a === "-K") listKeys = true;
         else if (a === "--quick-generate-key" || a === "--quick-gen-key" || a === "--gen-key" || a === "--full-generate-key")
           quickGenKey = true;
@@ -443,8 +535,26 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
           signerUid = a.slice(5);
         } else if (a === "--status-fd" && i + 1 < args.length) statusFd = args[++i];
         else if (a.startsWith("--status-fd=")) statusFd = a.slice("--status-fd=".length);
+        else if (a === "--passphrase" && i + 1 < args.length) passphrase = args[++i];
+        else if (a.startsWith("--passphrase=")) passphrase = a.slice("--passphrase=".length);
+        else if (a === "--passphrase-file" && i + 1 < args.length) passphraseFile = args[++i];
+        else if (a.startsWith("--passphrase-file=")) passphraseFile = a.slice("--passphrase-file=".length);
+        else if (a === "--passphrase-fd" && i + 1 < args.length) passphraseFd = args[++i];
+        else if (a.startsWith("--passphrase-fd=")) passphraseFd = a.slice("--passphrase-fd=".length);
+        else if ((a === "--pinentry-mode" || a === "--cipher-algo" || a === "--s2k-digest-algo" || a === "--s2k-cipher-algo" || a === "--s2k-mode" || a === "--s2k-count") && i + 1 < args.length) {
+          i++;
+        } else if (
+          a.startsWith("--pinentry-mode=") ||
+          a.startsWith("--cipher-algo=") ||
+          a.startsWith("--s2k-digest-algo=") ||
+          a.startsWith("--s2k-cipher-algo=") ||
+          a.startsWith("--s2k-mode=") ||
+          a.startsWith("--s2k-count=")
+        ) {
+          continue;
+        }
         else if ((a === "-o" || a === "--output") && i + 1 < args.length) outFile = args[++i];
-        else if (a === "-a" || a === "--armor" || a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-q" || a === "--quiet" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
+        else if (a === "--batch" || a === "--yes" || a === "--no-tty" || a === "-q" || a === "--quiet" || a === "-s" || a === "--sign" || a === "--help" || a === "-h") continue;
         else if (a.startsWith("-")) {
           await writeText(context.stderr, `gpg: unknown option: ${a}\n`);
           return { exitCode: 2 };
@@ -458,6 +568,52 @@ export function createGpgCommand(options: GpgCommandsOptions = {}): CommandDefin
       }
 
       try {
+        const resolvePassphrase = async (): Promise<string> => {
+          if (passphraseFile) {
+            const raw = await readLimitedFile(context, pathPosix.resolve(context.cwd, passphraseFile), maxBytes);
+            return textDecoder.decode(raw).replace(/\r?\n[\s\S]*$/, "");
+          }
+          if (passphrase !== undefined) return passphrase;
+          if (passphraseFd === "0" && positionals.length > 0) {
+            const raw = await collectSourceBytes(context.stdin, maxBytes, context.signal);
+            return textDecoder.decode(raw).replace(/\r?\n[\s\S]*$/, "");
+          }
+          return "";
+        };
+
+        if (symmetric) {
+          const secret = await resolvePassphrase();
+          const payload = positionals[0] && positionals[0] !== "-"
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[0]), maxBytes)
+            : await collectSourceBytes(context.stdin, maxBytes, context.signal);
+          const encrypted = await encryptSymmetric(payload, secret, armor);
+          const targetOut = outFile ?? (positionals[0] && positionals[0] !== "-" ? `${positionals[0]}${armor ? ".asc" : ".gpg"}` : undefined);
+          if (targetOut && targetOut !== "-") {
+            await writeFileOutput(context, encrypted, data =>
+              context.fs.writeFile(pathPosix.resolve(context.cwd, targetOut), data, { signal: context.signal }),
+            );
+          } else {
+            await context.stdout.write(encrypted);
+          }
+          return { exitCode: 0 };
+        }
+
+        if (decrypt) {
+          const secret = await resolvePassphrase();
+          const payload = positionals[0] && positionals[0] !== "-"
+            ? await readLimitedFile(context, pathPosix.resolve(context.cwd, positionals[0]), maxBytes)
+            : await collectSourceBytes(context.stdin, maxBytes, context.signal);
+          const decrypted = await decryptSymmetric(payload, secret);
+          if (outFile && outFile !== "-") {
+            await writeFileOutput(context, decrypted, data =>
+              context.fs.writeFile(pathPosix.resolve(context.cwd, outFile!), data, { signal: context.signal }),
+            );
+          } else {
+            await context.stdout.write(decrypted);
+          }
+          return { exitCode: 0 };
+        }
+
         if (quickGenKey) {
           const uid = positionals[0] ?? signerUid;
           const key = await ensureKeyForUid(context, uid);

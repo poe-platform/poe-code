@@ -4602,14 +4602,12 @@ const syncExtraRuntimeMethods = {
                         if (ev.startsWith(elemOpPat!)) ev = elemOpRep + ev.slice(elemOpPat!.length);
                       } else if (part.operator === "/%") {
                         if (ev.endsWith(elemOpPat!)) ev = ev.slice(0, ev.length - elemOpPat!.length) + elemOpRep;
-                      } else if (part.operator === "^^") {
-                        ev = ev.toUpperCase();
-                      } else if (part.operator === ",,") {
-                        ev = ev.toLowerCase();
-                      } else if (part.operator === "^") {
-                        if (ev.length > 0) ev = ev[0]!.toUpperCase() + ev.slice(1);
-                      } else if (part.operator === ",") {
-                        if (ev.length > 0) ev = ev[0]!.toLowerCase() + ev.slice(1);
+                      } else if (part.operator === "^^" || part.operator === ",," || part.operator === "^" || part.operator === ",") {
+                        for (let k = 0; k < ev.length; k++) if (ev.charCodeAt(k) >= 128) return undefined;
+                        if (part.operator === "^^") ev = ev.toUpperCase();
+                        else if (part.operator === ",,") ev = ev.toLowerCase();
+                        else if (part.operator === "^") { if (ev.length > 0) ev = ev[0]!.toUpperCase() + ev.slice(1); }
+                        else { if (ev.length > 0) ev = ev[0]!.toLowerCase() + ev.slice(1); }
                       }
                     }
                     if (count > 0) sliceOut += sep;
@@ -5305,6 +5303,7 @@ const syncExtraRuntimeMethods = {
     if (op === "^" || op === "^^" || op === "," || op === ",,") {
       for (let i = 0; i < members.length; i++) {
         const m = members[i]!;
+        for (let k = 0; k < m.length; k++) if (m.charCodeAt(k) >= 128) return undefined;
         members[i] = m.length === 0 ? "" : op === "^^" ? m.toUpperCase() : op === ",," ? m.toLowerCase() : op === "^" ? m[0]!.toUpperCase() + m.slice(1) : m[0]!.toLowerCase() + m.slice(1);
       }
       return members;
@@ -25586,12 +25585,12 @@ const syncExtraRuntimeMethods = {
     const extraCompares: Array<(a: string, b: string) => number> = [];
     for (let ki = 1; ki < keySpecs.length; ki++) {
       const ks = keySpecs[ki]!;
-      const km = /^([1-9][0-9]{0,2})(?:,([1-9][0-9]{0,2}))?([nrbfgVhMd]*)$/.exec(ks);
+      const km = /^([1-9][0-9]{0,2})([nrbfgVhMd]*)(?:,([1-9][0-9]{0,2})([nrbfgVhMd]*))?$/.exec(ks);
       if (!km) return undefined;
       const sf = Number(km[1]!);
-      const ef = km[2] !== undefined ? Number(km[2]!) : undefined;
+      const ef = km[3] !== undefined ? Number(km[3]!) : undefined;
       if (ef !== undefined && ef < sf) return undefined;
-      const kf = km[3] ?? "";
+      const kf = (km[2] ?? "") + (km[4] ?? "");
       const kNum = kf.length > 0 ? kf.includes("n") : num;
       const kGen = kf.length > 0 ? kf.includes("g") : genNum;
       const kHum = kf.length > 0 ? kf.includes("h") : human;
@@ -25617,7 +25616,7 @@ const syncExtraRuntimeMethods = {
         if (kBlk) raw = raw.replace(/^[ \t]+/, "");
         if (kDic) raw = raw.replace(/[^a-zA-Z0-9 \t]+/g, "");
         if (!kFld) return raw;
-        return raw.toUpperCase();
+        return raw.replace(/[a-z]/g, c => String.fromCharCode(c.charCodeAt(0) - 32));
       };
       extraCompares.push((a: string, b: string): number => {
         const ka = extK(a), kb = extK(b);

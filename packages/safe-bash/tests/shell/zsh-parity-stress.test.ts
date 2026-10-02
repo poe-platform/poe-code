@@ -499,3 +499,15 @@ test("31. sync command substitution sed append-before-quit, escaped dollar, grep
     "<line1\nline2\ttab><    é><b/c><b/c>\n"
   );
 });
+
+test("32. sync sort secondary key -f folds only ASCII a-z and supports start-field modifiers (-k2n,2)", async () => {
+  const { shell } = setup();
+  shell.use(agentCommands());
+  const res = await shell.exec(String.raw`
+    u1=$(printf "1 é\n1 É\n1 a\n1 A\n" | sort -u -k1,1 -k2,2f)
+    n1=$(printf "a:10\na:2\n" | sort -t: -k1,1 -k2n,2)
+    printf "<%s><%s>\n" "$u1" "$n1"
+  `);
+  assert.equal(res.exitCode, 0, res.stderr);
+  assert.equal(res.stdout, "<1 a\n1 É\n1 é><a:2\na:10>\n");
+});

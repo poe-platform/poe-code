@@ -1,4 +1,4 @@
-import { EventEmitter, Duplex, outputBytes, isBuffer } from "./streams/web.js";
+import { EventEmitter, Duplex, outputBytes } from "./streams/web.js";
 import { extname, normalizePath } from "@poe-code/safe-fs/contracts";
 import {
   parseColor,
@@ -226,13 +226,6 @@ function validateInputOptions(opts: SharpInputOptions | undefined): void {
 
 function toBytes(input: Uint8Array | ArrayBuffer | ArrayBufferView | string | undefined, readFile?: (path: string) => Uint8Array): Uint8Array | undefined {
   if (!input) return undefined;
-  if (isBuffer(input)) {
-    const bytes = input as Uint8Array;
-    if (bytes.length === 0) {
-      throw new Error("Input Buffer is empty");
-    }
-    return bytes;
-  }
   if (ArrayBuffer.isView(input)) {
     if (input.byteLength === 0) {
       throw new Error("Input Bit Array is empty");
@@ -475,7 +468,7 @@ export class SharpInstance extends Duplex {
         this.streamChunks.push(new Uint8Array(chunk));
         callback();
       } else {
-        callback(new Error("Non-Buffer data on Writable Stream"));
+        callback(new Error("Expected Uint8Array data on Writable Stream"));
       }
     } else {
       callback(new Error("Unexpected data on Writable Stream"));

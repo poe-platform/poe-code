@@ -1,5 +1,4 @@
 export const outputBytes = Uint8Array.from.bind(Uint8Array);
-export const isBuffer = (_input: unknown): boolean => false;
 
 type Listener = (...args: unknown[]) => void;
 

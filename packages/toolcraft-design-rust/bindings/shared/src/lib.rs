@@ -492,3 +492,5 @@ mod composer_layout;
 pub use composer_layout::*;
 mod dashboard_elapsed;
 pub use dashboard_elapsed::*;
+mod composer;
+pub use composer::*;

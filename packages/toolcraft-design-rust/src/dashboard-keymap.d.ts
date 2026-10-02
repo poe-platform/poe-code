@@ -1,10 +1,4 @@
-type KeypressEvent = {
-  name?: string;
-  ch?: string;
-  ctrl: boolean;
-  meta: boolean;
-  shift: boolean;
-};
+import type {KeypressEvent} from "./dashboard-keypress.js";
 import type {Command} from "./dashboard-types.js";
 
 export declare function createKeymap(

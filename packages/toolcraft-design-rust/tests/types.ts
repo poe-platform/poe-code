@@ -701,3 +701,11 @@ import type * as originalDashboardAnsi from "toolcraft-design/dashboard/ansi";
 const ansiOriginal: typeof originalDashboardAnsi = dashboardAnsi;
 const ansiNative: typeof dashboardAnsi = null as unknown as typeof originalDashboardAnsi;
 void [ansiOriginal,ansiNative];
+
+import * as composer from "toolcraft-design-rust/dashboard/composer";
+import type * as originalComposer from "toolcraft-design/dashboard/composer";
+const composerOriginal: typeof originalComposer = composer;
+const composerNative: typeof composer = null as unknown as typeof originalComposer;
+const edited = composer.editComposer(composer.createComposerState("message", "plan"), {name: "return", ctrl: false, meta: false, shift: false});
+const submission: originalComposer.DashboardSubmission | undefined = edited.submit;
+void [composerOriginal,composerNative,submission];

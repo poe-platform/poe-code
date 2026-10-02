@@ -1473,3 +1473,28 @@ Five warmed alternating 300-call rounds measured 800-unit plain parsing at
 text at 82.13 µs / 68.88 µs (1.19× slower). No performance gate passed. Legacy
 ScreenBuffer/terminal, composer editing, dashboard rendering/lifecycle, explorer
 and broader Toolcraft replacement gates remain open.
+
+### Composer editor checkpoint
+
+`dashboard/composer` now exports `createComposerState`, `editComposer` and their
+standalone state/submission declarations. Rust owns focus/key dispatch, movement,
+word/line deletion, preferred-column navigation and submission decisions. Node
+retains lazy ICU `Segments.containing`, string operations, state spreads and
+observable getter order. Paste uses native legacy ANSI parsing; vertical movement
+uses the native composer layout. Ordinary insertion and submission do not segment
+untouched draft text, and navigation examines only adjacent graphemes/deleted words.
+
+Two missing-subpath tests failed before implementation. The getter-trace probe was
+corrected to avoid recording its own deep comparison of returned proxies. Final
+checks pass 279 native host tests, 1,282 selected design tests, 13 prompt-wrapper
+tests, 12 shared dashboard tests and all 14 original composer tests with no editor
+exclusions. Scoped Rust/binding/JS lint, bidirectional declarations and packed
+standalone runtime/declarations pass. Inspected snapshots verify sanitized paste,
+line-start insertion, caret location and message submission after a plan. No new
+dependencies or default integration changes.
+
+Five warmed alternating 1,000-call rounds on a short multiline Unicode draft
+measured native/reference medians: insertion 13.19/0.272 µs (48.55× slower),
+backspace 10.15/1.106 µs (9.17×), and vertical movement 56.33/6.708 µs (8.40×).
+No performance gate passed. Legacy ScreenBuffer/terminal, full dashboard rendering
+and lifecycle, explorer and broader replacement qualification remain open.

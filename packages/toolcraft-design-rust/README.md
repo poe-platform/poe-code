@@ -129,6 +129,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
 | `dashboard/store` | Retain bounded live output, merge statistics and subscribe to state changes |
 | `dashboard/composer-layout` | Wrap input rows and locate the caret at terminal-cell coordinates |
+| `dashboard/composer` | Edit multiline message or plan drafts with Unicode navigation and submission |
 | `dashboard/elapsed` | Format elapsed milliseconds as padded hours, minutes and seconds |
 | `dashboard/ansi` | Parse styled terminal lines and restore caller-supplied base styles |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
@@ -469,7 +470,7 @@ statistics and queue types are available from `dashboard/types`.
 `lines`, UTF-16 row `starts`, and a terminal-cell `cursor`. Tabs occupy two cells;
 newlines and wide graphemes keep navigation aligned with display rows. Repeated
 calls reuse the layout while the state object, text, cursor and width match.
-The composer editor and dashboard renderer remain separate from this helper.
+The composer editor uses these rows to align vertical navigation with the caret.
 
 `formatElapsed(ms)` from `dashboard/elapsed` formats durations as `HH:MM:SS`,
 retaining hours beyond 24. Negative and nonfinite inputs display `00:00:00`;
@@ -480,3 +481,10 @@ styled text segments. It handles color/reset codes, carriage-return updates,
 backspace, erase-line controls, tabs, concealment and hidden terminal strings.
 Base colors return after default-color codes or full resets. The same subpath
 exposes `plainTerminalText` for visible text and `hasAnsi` for ESC detection.
+
+Use `createComposerState(kind, afterPlanId?)` and `editComposer(state, event, width?)`
+from `dashboard/composer` to edit message or plan drafts. Editing preserves
+Unicode graphemes, sanitizes ANSI paste, supports line/word deletion and keeps a
+preferred column during vertical navigation. Enter or Tab submits trimmed text;
+Shift/Alt+Enter inserts a newline, Escape leaves focus, and Ctrl+C stays unhandled.
+The result reports `handled`, the next `state`, and an optional typed `submit`.

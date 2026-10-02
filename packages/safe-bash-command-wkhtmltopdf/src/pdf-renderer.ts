@@ -836,7 +836,7 @@ function* renderPdfAstSteps(request: Parameters<StaticRenderer["open"]>[0]): Gen
         pageOffset: job.global.pageOffset,
         limits: {
             maxObjects: limits.parse.maxObjects,
-            maxPhysicalPages: Infinity,
+            maxPhysicalPages: limits.maxPages ?? Infinity,
             maxWork: limits.resources.maxWork,
         },
         signal,

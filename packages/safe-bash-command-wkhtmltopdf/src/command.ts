@@ -19,6 +19,7 @@ export interface WkhtmltopdfLimits {
   readonly maxOutputBytes: number;
   readonly maxOutputChunks: number;
   readonly maxBatchJobs: number;
+  readonly maxPages?: number;
 }
 
 /** Trusted first-party static renderer binding, not an engine download or a browser. */
@@ -45,6 +46,7 @@ export interface WkhtmltopdfLimitsOverrides {
   readonly maxOutputBytes?: number;
   readonly maxOutputChunks?: number;
   readonly maxBatchJobs?: number;
+  readonly maxPages?: number;
 }
 
 export interface WkhtmltopdfCommandOptions {
@@ -65,7 +67,7 @@ export type WkhtmltopdfResult =
 export const wkhtmltopdfLimits: WkhtmltopdfLimits = Object.freeze({
   parse: Object.freeze({ maxArguments: Infinity, maxTextBytes: Infinity, maxObjects: Infinity, maxWork: Infinity }),
   resources: Object.freeze({ maxInputBytes: Infinity, maxDecodedBytes: Infinity, maxRetainedBytes: Infinity, maxWork: Infinity, maxResources: Infinity }),
-  maxOutputBytes: Infinity, maxOutputChunks: Infinity, maxBatchJobs: Infinity,
+  maxOutputBytes: Infinity, maxOutputChunks: Infinity, maxBatchJobs: Infinity, maxPages: Infinity,
 });
 
 const encoder = new TextEncoder();
@@ -129,7 +131,7 @@ export async function runWkhtmltopdf(context: WkhtmltopdfContext, options: Wkhtm
       parse: Object.freeze({ ...wkhtmltopdfLimits.parse, ...options.limits?.parse }),
       resources: Object.freeze({ ...wkhtmltopdfLimits.resources, ...options.limits?.resources }),
     });
-    for (const value of [limits.maxOutputBytes, limits.maxOutputChunks, limits.maxBatchJobs]) {
+    for (const value of [limits.maxOutputBytes, limits.maxOutputChunks, limits.maxBatchJobs, limits.maxPages ?? Infinity]) {
       if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new WkhtmltopdfError("INVALID_VALUE", "Command limits must be positive safe integers");
     }
     for (const key of ["maxInputBytes", "maxDecodedBytes", "maxRetainedBytes", "maxWork", "maxResources"] as const) {

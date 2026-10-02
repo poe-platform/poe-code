@@ -191,3 +191,21 @@ test("wkhtmltopdf preserves &amp;lt; entities, recurses into nested containers, 
   assert.ok(doc.getPageCount() >= 2);
   assert.match(doc.getPage(0).extractText(), /Literal entity: &lt;tag&gt;/);
 });
+
+
+test("the built-in renderer honors optional page limits for CLI and SDK", async () => {
+  for (const maxPages of [undefined, Infinity, 2, 1, 0, -1, NaN, -Infinity, 1.5]) {
+    for (const cli of [false, true]) {
+      const context = {
+        args: ["--copies", "2", "-", "-"], fs: new MemoryFileSystem(), cwd: "/",
+        signal: new AbortController().signal, stdin: toByteSource("<p>Page</p>"),
+        stdout: { async write() {} }, stderr: { async write() {} },
+      };
+      const options = { limits: maxPages === undefined ? {} : { maxPages } };
+      const result = cli
+        ? await createPdfAstWkhtmltopdfCommand(options).execute({ ...context, command: "wkhtmltopdf", env: {} })
+        : await runWkhtmltopdf(context, options);
+      assert.equal(result.exitCode, maxPages === undefined || maxPages === Infinity || maxPages === 2 ? 0 : 1);
+    }
+  }
+});

@@ -10,7 +10,7 @@ with its declarations into the Safe Bash artifact. Do not install it separately.
 
 | API | Use |
 | --- | --- |
-| `wkhtmltopdfCommands({ limits, renderer?, replace? })` | Register with `shell.use(...)`; omitted resource limits use `Infinity` |
+| `wkhtmltopdfCommands({ limits, renderer?, replace? })` | Register with `shell.use(...)`; omitted resource limits use `Infinity`; `limits.maxPages` bounds the final page count, including copies |
 | `createWkhtmltopdfCommand(options)`, `wkhtmltopdfCommand` | Configured or default command definition |
 | `runWkhtmltopdf(context, options)` | Same arguments, cancellation and destinations as the CLI |
 | `parseInvocation(argv, options)`, `tokenizeBatchLine(line, options)` | Bounded parsing without I/O or shell evaluation |

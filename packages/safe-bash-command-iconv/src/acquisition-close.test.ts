@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { setImmediate } from 'node:timers/promises';
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import type { CommandContext, InvocationCleanup } from "../../../src/contracts/index.js";
-import { createIconvCommand } from "../../../src/commands/iconv/index.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import type { CommandContext, InvocationCleanup } from "safe-bash-contracts";
+import { createIconvCommand } from "./index.js";
 
 function deferred() {
   let resolve!: () => void;

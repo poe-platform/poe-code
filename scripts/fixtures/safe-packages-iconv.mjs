@@ -11,6 +11,22 @@ export async function verifyIconvCommands(entry = defaultEntry) {
     catch (error) { failure = error; }
     if (failure?.name !== "RangeError") throw new Error(`Aggregate iconv limit not forwarded: ${name}`);
   }
+  const carrier = entry.createCommandArguments(["-f", "UTF-8", "-t", "UTF-8"]);
+  const sink = { async write() {} };
+  const context = { command: "iconv", args: carrier.args, argumentValues: carrier,
+    fs: entry.createMemoryFileSystem(), cwd: "/", env: {},
+    signal: new AbortController().signal, stdin: entry.toByteSource(new Uint8Array()), stdout: sink, stderr: sink };
+  if ((await createIconvCommand().execute(context)).exitCode !== 0) throw new Error("Packed iconv rejected canonical argv");
+  let mismatch;
+  try { await createIconvCommand().execute({ ...context, args: [...carrier.args] }); }
+  catch (error) { mismatch = error; }
+  if (!(mismatch instanceof entry.CommandArgumentIdentityError)) throw new Error("Packed iconv argument error identity differs");
+  const caller = new AbortController(), reason = new Error("packed iconv caller cancellation");
+  caller.abort(reason);
+  let cancellation;
+  try { await createIconvCommand().execute({ ...context, signal: caller.signal }); }
+  catch (error) { cancellation = error; }
+  if (cancellation !== reason) throw new Error("Packed iconv cancellation identity differs");
   const encoder = new TextEncoder();
   const input = encoder.encode("A\0éÿ\n");
   const translit = encoder.encode("éß€\0㎯\n");
@@ -21,6 +37,8 @@ export async function verifyIconvCommands(entry = defaultEntry) {
   for (const [name, value] of [["saved.sh", script], ["input.bin", input], ["translit-input.bin", translit]]) await filesystem.writeFile(`/iconv-work/${name}`, value);
   const shell = new entry.Shell({ fs: filesystem, cwd: "/iconv-work", env: { LC_ALL: "C" } }).use(entry.agentCommands());
   try {
+    const pipe = await shell.exec("printf hello | iconv -f UTF-8 -t UTF-16LE | iconv -f UTF-16LE -t UTF-8");
+    if (pipe.exitCode !== 0 || pipe.stdout !== "hello" || pipe.stderr !== "") throw new Error("Packed iconv pipeline differs");
     const result = await shell.exec("sh saved.sh input.bin translit-input.bin");
     const stdout = new Uint8Array(input.length + translated.length);
     stdout.set(input); stdout.set(translated, input.length);

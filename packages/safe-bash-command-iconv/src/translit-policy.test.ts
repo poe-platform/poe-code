@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { ByteSource, CommandContext } from "../../../src/contracts/index.js";
+import type { ByteSource, CommandContext } from "safe-bash-contracts";
 import { run } from "./helpers.js";
 
 const args = ["-f", "UTF-8", "-t", "ASCII//TRANSLIT"];

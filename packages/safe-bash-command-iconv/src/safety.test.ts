@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { FsError, type ByteSource, type CommandContext } from "../../../src/contracts/index.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
+import { FsError, type ByteSource, type CommandContext } from "safe-bash-contracts";
 import { run } from "./helpers.js";
 
 const args = ["-f", "UTF-8", "-t", "UTF-8"];

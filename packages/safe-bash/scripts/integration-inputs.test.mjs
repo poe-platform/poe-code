@@ -295,9 +295,10 @@ test("buffered output and cooperative scheduling regressions remain in active di
   ]) assert.ok(active.includes(path), path);
 });
 
-test("extracted XZ and codec tests remain owned by their private workspaces", () => {
+test("extracted command and codec tests remain owned by their private workspaces", () => {
   const root = fileURLToPath(new URL("../../../", import.meta.url));
   for (const [workspace, names] of [
+    ["safe-bash-command-iconv", ["acquisition-close", "synchronous-close", "boundaries", "controls", "extent-diagnostics", "native", "safety", "translit-policy", "translit", "unicode-regressions"]],
     ["safe-bash-command-xz", ["xz-blocks", "xz-checks", "xz-compress-memory-review", "xz-compress-memory", "xz-filters", "xz-format", "xz-list", "xz-memory"]],
     ["safe-bash-compression-engine", ["bounded-codec-single-member", "bounded-codec", "native-optional-limits"]],
   ]) {
@@ -3027,20 +3028,20 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/line-endings/publication.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings-independent/native.test.ts"));
   assert.ok(files.includes("tests/commands/line-endings-independent/snapshot.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv/boundaries.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv/controls.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv/extent-diagnostics.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv-independent/synchronous-close.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv-independent/acquisition-close.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv/boundaries.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv/controls.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv/extent-diagnostics.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv-independent/synchronous-close.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv-independent/acquisition-close.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/lifecycle.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv/native.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv/native.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/review.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv/unicode-regressions.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv/safety.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv/translit-policy.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv/unicode-regressions.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv/safety.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv/translit-policy.test.ts"));
   assert.ok(files.includes("tests/commands/iconv/translit-streams.test.ts"));
   assert.ok(files.includes("tests/commands/streams.test.ts"));
-  assert.ok(files.includes("tests/commands/iconv/translit.test.ts"));
+  assert.ok(!files.includes("tests/commands/iconv/translit.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/fresh.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/native.test.ts"));
   assert.ok(files.includes("tests/commands/hexdump/path.test.ts"));

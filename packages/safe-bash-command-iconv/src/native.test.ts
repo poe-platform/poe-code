@@ -1,7 +1,7 @@
 import { unicodePolicy } from "./unicode-policy.js";
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { run } from "./helpers.js";
 import { fixtures, cases } from "./fixtures.js";
 

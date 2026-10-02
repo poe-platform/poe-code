@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
+import { MemoryFileSystem } from "@poe-code/safe-fs";
 import { run } from "./helpers.js";
 
 test("UTF-16 byte order is independent for every input file", async () => {

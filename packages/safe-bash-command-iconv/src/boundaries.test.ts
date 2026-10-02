@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createCommandArguments, type ByteSource } from "../../../src/contracts/index.js";
+import { createCommandArguments, type ByteSource } from "safe-bash-contracts";
 import { run } from "./helpers.js";
 
 for (const count of [8159, 8160, 8161, 16383, 16384, 16385, 32768]) {

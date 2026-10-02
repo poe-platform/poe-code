@@ -9,7 +9,9 @@ describe("declarative format registry", () => {
     expect(registry.parse("html", "write").descriptor.name).toBe("html5");
     expect(registry.capabilities.find((item) => item.name === "html")?.write.allowed).toBe(true);
     expect(registry.parse("html", "read").descriptor.name).toBe("html");
-    for (const name of ["HTML", "unknown", "html5"])
+    expect(registry.resolve("html5", "read").reader).toBe(registry.resolve("html", "read").reader);
+    expect(registry.capabilities.find((item) => item.name === "html5")?.read.available).toBe(true);
+    for (const name of ["HTML", "unknown"])
       expect(() => registry.parse(name, "read")).toThrowError(
         expect.objectContaining({ code: "E_FORMAT" })
       );
@@ -37,7 +39,7 @@ describe("declarative format registry", () => {
     const registry = createFormatRegistry([...coreFormats].reverse(), {
       reader: { format: "docx", read }
     });
-    expect(registry.list("read")).toEqual(["commonmark", "commonmark_x", "csv", "docx", "epub", "gfm", "html", "json", "latex", "markdown", "markdown_github", "markdown_mmd", "markdown_phpextra", "markdown_strict", "md", "odt", "pdf", "pptx", "rst", "rtf", "tsv", "xlsx"]);
+    expect(registry.list("read")).toEqual(["commonmark", "commonmark_x", "csv", "docx", "epub", "gfm", "html", "html5", "json", "latex", "markdown", "markdown_github", "markdown_mmd", "markdown_phpextra", "markdown_strict", "md", "odt", "pdf", "pptx", "rst", "rtf", "tsv", "xlsx"]);
     expect(registry.list("write")).toEqual(["commonmark", "commonmark_x", "docx", "epub", "epub3", "gfm", "html", "html5", "json", "latex", "markdown", "markdown_github", "markdown_mmd", "markdown_phpextra", "markdown_strict", "md", "odt", "pdf", "plain", "pptx", "rst", "rtf"]);
     expect(registry.infer("file.md", "read")).toBe("gfm");
     expect(registry.infer("file.html", "write")).toBe("html5");

@@ -3,6 +3,7 @@ import { htmlReader } from "../html.js";
 export default {
   reader: htmlReader,
   name: "html",
+  aliases: { read: ["html5"] },
   read: true,
   write: false,
   media: "text",

@@ -58,3 +58,19 @@ it.each([[], ["-"], ["document"]])("reads default Markdown from stdin or extensi
   expect(html).toContain("<table>");
   expect(html).toContain("Apple");
 });
+
+
+it.each(["html", "html5"])("converts %s input to Markdown through the CLI", async from => {
+  const chunks: Uint8Array[] = [];
+  const errors: Uint8Array[] = [];
+  const result = await createStandalonePandocCommand().execute({
+    args: ["-f", from, "-t", "markdown"],
+    stdin: [new TextEncoder().encode("<p>Hello <strong>world</strong></p>")],
+    signal: new AbortController().signal,
+    stdout: {async write(bytes) {chunks.push(bytes);}},
+    stderr: {async write(bytes) {errors.push(bytes);}}
+  });
+  expect(errors).toEqual([]);
+  expect(result.exitCode).toBe(0);
+  expect(chunks.map(bytes => new TextDecoder().decode(bytes)).join("")).toContain("Hello **world**");
+});

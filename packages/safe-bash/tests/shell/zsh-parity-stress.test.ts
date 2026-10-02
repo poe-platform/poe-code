@@ -903,3 +903,22 @@ test("49. sync vs async parity for htmlq -r multiple/self removal, shuf -r -n 0 
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+
+test("50. sync vs async parity for du child sorting/symlinks/exclude paths, tree root symlinks/space escaping, and which --all/--silent rejection", async () => {
+  const scripts = [
+    'mkdir -p /dir/z /dir/a; printf "hello" > /dir/z/f; printf "world" > /dir/a/f; x=$(du -b /dir); echo "$?:$x"',
+    'mkdir -p /dir; printf "01234567890123456789" > /dir/target.txt; ln -s /dir/target.txt /dir/link.txt; x=$(du -b -a /dir); echo "$?:$x"',
+    'mkdir -p /dir/sub; printf "12345" > /dir/sub/skip.txt; printf "12" > /dir/sub/keep.txt; x=$(du -b --exclude="sub/skip.txt" /dir); y=$(du -b --exclude="dir" /dir); echo "$x|$y"',
+    'mkdir -p /dir; printf "hi" > "/dir/a b.txt"; ln -s /dir /link_dir; x=$(tree /link_dir); y=$(tree /dir); echo "$x|$y"',
+    'mkdir -p /bin; printf "#!/bin/sh\n" > /bin/mycmd; chmod +x /bin/mycmd; export PATH=/bin; x=$(which -a mycmd); y=$(which --all mycmd 2>/dev/null; echo $?); echo "$x|$y"',
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

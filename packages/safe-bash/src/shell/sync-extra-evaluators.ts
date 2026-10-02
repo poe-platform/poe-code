@@ -18699,9 +18699,9 @@ const syncExtraRuntimeMethods = {
                   : firstName === "df"
                     ? evalSyncDf(stageArgs, rawState.cwd, exportedVariablesView(rawState), (p: string) => { const n = this.tryInspectMemoryNodeSync(p, true); if (p === "/dev" && !n) return { type: "directory", size: 0, mode: 0o755, ino: 1, nlink: 2, uid: 0, gid: 0, dev: 1, atimeMs: 0, mtimeMs: 0, ctimeMs: 0, birthtimeMs: 0, filesystemType: "vfs", ioBlockSize: 4096, children: [] }; if (p === "/" && n?.children && !n.children.some((c: { name: string }) => c.name === "dev")) return { ...n, children: [...n.children, { name: "dev", type: "directory", size: 0, mode: 0o755 }] }; return n; }, extDef.execute)
                   : firstName === "du"
-                    ? evalSyncDu(stageArgs, rawState.cwd, exportedVariablesView(rawState), (p: string) => this.tryInspectMemoryNodeSync(p, true), true)
+                    ? evalSyncDu(stageArgs, rawState.cwd, exportedVariablesView(rawState), (p: string, follow = true) => this.tryInspectMemoryNodeSync(p, true, follow), true)
                   : firstName === "tree"
-                    ? evalSyncTree(stageArgs, rawState.cwd, (p: string) => this.tryInspectMemoryNodeSync(p, true), exportedVariablesView(rawState))
+                    ? evalSyncTree(stageArgs, rawState.cwd, (p: string, follow = true) => this.tryInspectMemoryNodeSync(p, true, follow), exportedVariablesView(rawState))
                   : firstName === "stat"
                     ? evalSyncStat(stageArgs, rawState.cwd, (rawState.exported.has("QUOTING_STYLE") ? rawState.variables.QUOTING_STYLE : undefined), (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow))
                   : firstName === "fd"
@@ -19151,7 +19151,7 @@ const syncExtraRuntimeMethods = {
         }
       }
       if (fOk && (w0Plain === "df" || w0Plain === "du" || w0Plain === "tree" || w0Plain === "stat" || w0Plain === "fd" || w0Plain === "readlink" || w0Plain === "realpath" || w0Plain === "ls" || w0Plain === "find") && !hasSingleStdinRedir && !hasSingleHereStringRedir) {
-        const inspectNode = (p: string) => this.tryInspectMemoryNodeSync(p, true);
+        const inspectNode = (p: string, follow = true) => this.tryInspectMemoryNodeSync(p, true, follow);
         const inspectStat = (p: string, follow: boolean) => this.tryInspectMemoryNodeSync(p, true, follow);
         const vfsOut = w0Plain === "df"
           ? evalSyncDf(allArgs, rawState.cwd, exportedVariablesView(rawState), (p: string) => { const n = inspectNode(p); if (p === "/dev" && !n) return { type: "directory", size: 0, mode: 0o755, ino: 1, nlink: 2, uid: 0, gid: 0, dev: 1, atimeMs: 0, mtimeMs: 0, ctimeMs: 0, birthtimeMs: 0, filesystemType: "vfs", ioBlockSize: 4096, children: [] }; if (p === "/" && n?.children && !n.children.some((c: { name: string }) => c.name === "dev")) return { ...n, children: [...n.children, { name: "dev", type: "directory", size: 0, mode: 0o755 }] }; return n; }, this.commands.get("df")?.execute)

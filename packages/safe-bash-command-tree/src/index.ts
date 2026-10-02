@@ -43,7 +43,7 @@ function resolveSyncTreePath(cwd: string, target: string): string {
 export function evalSyncTree(
   args: readonly string[],
   cwd: string,
-  inspectNode: (absPath: string) => SyncTreeVfsNode | undefined,
+  inspectNode: (absPath: string, follow?: boolean) => SyncTreeVfsNode | undefined,
   env?: Readonly<Record<string, string | undefined>>,
 ): string | undefined {
   let showAll = false;
@@ -168,6 +168,26 @@ export function evalSyncTree(
   let fileCount = 0;
   const lines: string[] = [];
 
+  let utf8FilenameCharset = false;
+  if (env) {
+    for (const k of ["LC_ALL", "LC_CTYPE", "LANG"]) {
+      const loc = env[k];
+      if (loc) {
+        const mod = loc.indexOf("@");
+        const nm = mod < 0 ? loc : loc.slice(0, mod);
+        const enc = nm.slice(nm.indexOf(".") + 1).toUpperCase();
+        utf8FilenameCharset = enc === "UTF-8" || enc === "UTF8";
+        break;
+      }
+    }
+  }
+  const escapeTreeLabel = (s: string): string | undefined => {
+    for (let k = 0; k < s.length; k++) {
+      const code = s.charCodeAt(k);
+      if (code < 32 || code >= 127 || code === 92) return undefined;
+    }
+    return utf8FilenameCharset ? s : s.replace(/ /g, "\\ ");
+  };
   const isEntryDirectory = (absDir: string, entry: { readonly name: string; readonly type: "file" | "directory" | "symlink" }): boolean => {
     if (entry.type === "directory") return true;
     if (entry.type === "symlink") {
@@ -215,7 +235,11 @@ export function evalSyncTree(
       const childAbs = absPath === "/" ? `/${entry.name}` : `${absPath}/${entry.name}`;
       const baseDisp = displayPrefix.replace(/\/$/u, "");
       const childDisplay = baseDisp === "" ? `/${entry.name}` : `${baseDisp}/${entry.name}`;
-      const label = (fullPath ? childDisplay : entry.name) + (entry.type === "symlink" && entry.target !== undefined ? ` -> ${entry.target}` : "");
+      const escName = escapeTreeLabel(fullPath ? childDisplay : entry.name);
+      if (escName === undefined) return false;
+      const escTarget = entry.type === "symlink" && entry.target !== undefined ? escapeTreeLabel(entry.target) : "";
+      if (escTarget === undefined) return false;
+      const label = escName + (entry.type === "symlink" && entry.target !== undefined ? ` -> ${escTarget}` : "");
       const prefix = noIndent ? "" : (indent + (isLast ? branchEnd : branchMid));
       lines.push(prefix + label);
       const isDir = isEntryDirectory(absPath, entry);
@@ -238,7 +262,7 @@ export function evalSyncTree(
     let jDirCount = 0;
     let jFileCount = 0;
     const buildJsonEntry = (absPath: string, dispName: string, depth: number): string | undefined => {
-      const node = inspectNode(absPath);
+      const node = inspectNode(absPath, false);
       if (!node || node.type !== "directory" || !node.children) return undefined;
       const filtered = filterAndSort(absPath, node.children, depth + 1);
       if (depth === 0 && filtered.length > 0) {
@@ -286,10 +310,12 @@ export function evalSyncTree(
   }
   for (const op of operands) {
     if (!op) return undefined;
+    const escOp = escapeTreeLabel(op);
+    if (escOp === undefined) return undefined;
     const abs = resolveSyncTreePath(cwd, op);
-    const rootNode = inspectNode(abs);
+    const rootNode = inspectNode(abs, false);
     if (!rootNode || rootNode.type !== "directory") return undefined;
-    lines.push(op);
+    lines.push(escOp);
     if (!walkDir(abs, op, "", 1)) return undefined;
   }
 

@@ -44,7 +44,7 @@ export function evalSyncDu(
   args: readonly string[],
   cwd: string,
   env: Readonly<Record<string, string | undefined>>,
-  inspectNode: (absPath: string) => SyncDuVfsNode | undefined,
+  inspectNode: (absPath: string, follow?: boolean) => SyncDuVfsNode | undefined,
   allowNullBytes = false,
 ): string | undefined {
   let apparent = false;
@@ -59,7 +59,8 @@ export function evalSyncDu(
   let threshold: bigint | undefined;
   const excludeRegexes: RegExp[] = [];
   const globToRe = (pat: string): RegExp | undefined => {
-    let rx = "^";
+    if (pat.includes("[") || pat.includes("\\")) return undefined;
+    let rx = "(?:^|/)";
     for (let k = 0; k < pat.length; k++) {
       const ch = pat[k]!;
       if (ch === "*") rx += ".*";
@@ -174,7 +175,10 @@ export function evalSyncDu(
   let failed = false;
 
   const walk = (absPath: string, display: string, depth: number): { bytes: number; directory: boolean } => {
-    const node = inspectNode(absPath);
+    if (excludeRegexes.length > 0 && excludeRegexes.some(re => re.test(display))) {
+      return { bytes: 0, directory: false };
+    }
+    const node = inspectNode(absPath, false);
     if (!node) {
       failed = true;
       return { bytes: 0, directory: false };
@@ -187,8 +191,8 @@ export function evalSyncDu(
     let sumBytes = baseBytes;
     let ownBytes = baseBytes;
     if (node.type === "directory" && node.children) {
-      for (const child of node.children) {
-        if (excludeRegexes.length > 0 && excludeRegexes.some(re => re.test(child.name))) continue;
+      const sortedChildren = node.children.slice().sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+      for (const child of sortedChildren) {
         const suffix = display.endsWith("/") ? "" : "/";
         const childAbs = absPath === "/" ? `/${child.name}` : `${absPath}/${child.name}`;
         const childDisplay = `${display}${suffix}${child.name}`;

@@ -402,6 +402,9 @@ function makeChunk(type: string, data: Uint8Array): Uint8Array {
   out.set(typeBytes, 4);
   out.set(data, 8);
   view.setUint32(8 + data.length, crc32(typeBytes, data), false);
+  if (type === "IDAT" && data.byteOffset === 0 && typeof (data.buffer as any).transfer === "function") {
+    try { (data.buffer as any).transfer(0); } catch {}
+  }
   return out;
 }
 

@@ -56,6 +56,9 @@ async function getWasiPythonDeps(): Promise<{ mod: unknown; shim: any }> {
       const wasmPath = pkgRequire.resolve("@antonz/python-wasi/dist/python.wasm");
       const wasmBytes = nodeFs.readFileSync(wasmPath);
       const mod = await (globalThis as any).WebAssembly.compile(wasmBytes);
+      if (wasmBytes.byteOffset === 0 && typeof (wasmBytes.buffer as any).transfer === "function") {
+        try { (wasmBytes.buffer as any).transfer(0); } catch {}
+      }
       return { mod, shim };
     })();
   }
@@ -118,7 +121,6 @@ async function runWasiPythonWorker(
     }
 
     const { mod, shim } = await getWasiPythonDeps();
-    cachedWasiDepsPromise = undefined;
     const { WASI, File, OpenFile, ConsoleStdout, PreopenDirectory, Directory } = shim;
 
     const root = new Map<string, any>();

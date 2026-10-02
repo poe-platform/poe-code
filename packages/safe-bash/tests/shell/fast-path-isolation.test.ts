@@ -170,7 +170,6 @@ for (const flag of ["-l", "-c"]) test(`wc ${flag} charges synchronous input`, as
 
 test("capture snapshots own their scratch bytes", () => {
   const capture = new Capture();
-  capture.resetEmpty();
   capture.enableScratchBuffer();
   capture.write(new TextEncoder().encode("before"));
   const bytes = capture.takeBytes();
@@ -183,7 +182,6 @@ test("scratch capture works without global Buffer", () => {
   try {
     globalThis.Buffer = undefined!;
     const capture = new Capture();
-    capture.resetEmpty();
     capture.enableScratchBuffer();
     capture.write(new TextEncoder().encode("x".repeat(100)));
     assert.equal(capture.takeUtf8Output(), "x".repeat(100));

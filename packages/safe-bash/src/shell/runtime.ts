@@ -707,6 +707,7 @@ Object.assign(Budget.prototype, {
   onInternalError: undefined, _yieldCheckpoint: undefined, _values: undefined, _executionScope: undefined, _pathLookup: undefined, _pathLookupSuspensions: 0, _executionCleanup: undefined, globstarEntries: 0, globstarStates: 0, _cleanupChargeFs: undefined, _wallClockTimer: undefined, _aborted: false, _cpuStarted: 0, _hasExternalSignal: false, });
 export const EMPTY_CAPTURE_BYTES = new Uint8Array(0);
 export class Capture implements ByteSink {
+  declare takeUtf8Output: () => string | Uint8Array;
   declare private _chunks: Uint8Array[] | undefined;
   declare private _first: Uint8Array | undefined;
   declare private _scratch4k: Uint8Array | undefined;

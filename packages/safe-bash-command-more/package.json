@@ -1,5 +1,5 @@
 {
-  "name": "safe-bash-command-less",
+  "name": "safe-bash-command-more",
   "version": "0.0.1",
   "private": true,
   "license": "MIT",
@@ -29,7 +29,6 @@
   "devDependencies": {
     "safe-bash-contracts": "*",
     "safe-bash-pager-engine": "*",
-    "safe-bash-command-more": "*",
     "@poe-code/safe-fs": "*"
   }
 }

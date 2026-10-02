@@ -667,7 +667,9 @@
     "safe-bash-command-node": "*",
     "safe-bash-command-caller": "*",
     "@poe-code/terminal-text": "*",
-    "safe-bash-sqlite-engine": "*"
+    "safe-bash-sqlite-engine": "*",
+    "safe-bash-command-more": "*",
+    "safe-bash-pager-engine": "*"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -794,6 +796,8 @@
     "packages/safe-bash-command-sponge/dist",
     "packages/safe-bash-command-fd/dist",
     "packages/safe-bash-command-less/dist",
+    "packages/safe-bash-pager-engine/dist",
+    "packages/safe-bash-command-more/dist",
     "packages/safe-bash-command-xz/dist",
     "packages/safe-bash-command-xz/LICENSE",
     "packages/safe-bash-compression-engine/dist",

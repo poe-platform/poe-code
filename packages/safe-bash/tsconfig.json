@@ -1153,6 +1153,20 @@
       ],
       "@poe-code/safe-fs/fs/memory": [
         "../safe-fs/src/fs/memory/index.ts"
+      ],
+      "safe-bash-pager-engine": [
+        "../safe-bash-pager-engine/src/index.ts"
+      ],
+      "safe-bash-pager-engine/*": [
+        "../safe-bash-pager-engine/src/*.ts",
+        "../safe-bash-pager-engine/src/*"
+      ],
+      "safe-bash-command-more": [
+        "../safe-bash-command-more/src/index.ts"
+      ],
+      "safe-bash-command-more/*": [
+        "../safe-bash-command-more/src/*.ts",
+        "../safe-bash-command-more/src/*"
       ]
     },
     "baseUrl": "."

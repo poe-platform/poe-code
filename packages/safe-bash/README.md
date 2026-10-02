@@ -104,7 +104,7 @@ the command's block, buffer, transfer and read-operation limits.
 Its exports do not select the optional
 `op`, `node` or `safejs` plugins; add those only through their command entrypoints.
 Only registered commands are available; adding search commands does not enable unrelated tools.
-`agentCommands()` includes convenience tools such as `bc`, `fd`, `sponge`, `less`, and `more` by default. Pass `muscleMemory: false` to omit that family; individual command plugins remain available.
+`agentCommands()` includes convenience tools such as `bc`, `fd`, `sponge`, `less`, and `more` by default. Pass `muscleMemory: false` to omit that family; individual command plugins remain available. Use `moreCommands()` to register only `more`; `lessCommands()` and `pagerCommands()` retain both pagers. Pager input limits are disabled by default; set `maxInputBytes` to opt in.
 Removing a registered command changes availability, while shared family code may
 remain bundled. Splitting dynamic
 imports changes initialization timing: every uploaded static chunk and Wasm asset

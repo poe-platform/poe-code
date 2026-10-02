@@ -66,6 +66,7 @@ export { bcCommands, createBcCommand, createBcCommands, type BcCommandOptions, t
 export { createSpongeCommand, createSpongeCommands, spongeCommands, type SpongeCommandsOptions, type SpongeLimits, type SpongeOptions } from "./commands/sponge/index.js";
 export { createFdCommand, createFdCommands, fdCommands, type FdCommandsOptions, type FdLimits, type FdOptions } from "./commands/fd/index.js";
 export { createLessCommand, createLessCommands, createMoreCommand, createPagerCommands, lessCommands, pagerCommands, type LessCommandsOptions, type LessLimits, type PagerCommandsOptions, type PagerLimits, type PagerOptions } from "./commands/less/index.js";
+export { createMoreCommands, moreCommands, type MoreCommandsOptions, type MoreLimits } from "./commands/more/index.js";
 export { xxdCommands, createXxdCommand, createXxdCommands, type XxdCommandOptions, type XxdCommandsOptions, type XxdLimits } from "./commands/xxd/index.js";
 export { odCommands, createOdCommand, createOdCommands, type OdCommandOptions, type OdCommandsOptions, type OdLimits } from "./commands/od/index.js";
 export { createIdCommand, createIdCommands, idCommands, type IdCommandsOptions, type IdLimits, type IdOptions } from "./commands/id/index.js";

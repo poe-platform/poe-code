@@ -211,8 +211,9 @@
           "dependencies": {},
           "devDependencies": {
             "safe-bash-contracts": "*",
-            "@poe-code/safe-fs": "*",
-            "safe-bash-regex-engine": "*"
+            "safe-bash-pager-engine": "*",
+            "safe-bash-command-more": "*",
+            "@poe-code/safe-fs": "*"
           },
           "portable": true
         },
@@ -1804,6 +1805,26 @@
             "toolcraft-schema": "*"
           },
           "portable": true
+        },
+        "safe-bash-pager-engine": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "safe-bash-regex-engine": "*"
+          },
+          "portable": true
+        },
+        "safe-bash-command-more": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "safe-bash-pager-engine": "*",
+            "@poe-code/safe-fs": "*"
+          },
+          "portable": true
         }
       },
       "peerProfile": "checkout-root"
@@ -3188,7 +3209,9 @@
     "safe-bash-command-node": "*",
     "safe-bash-command-caller": "*",
     "safe-bash-sqlite-engine": "*",
-    "safe-bash-command-mcp": "*"
+    "safe-bash-command-mcp": "*",
+    "safe-bash-pager-engine": "*",
+    "safe-bash-command-more": "*"
   },
   "main": "./dist/index.js",
   "imports": {

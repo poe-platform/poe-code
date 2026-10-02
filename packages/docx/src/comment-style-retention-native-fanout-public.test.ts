@@ -18,7 +18,7 @@ afterEach(async () => {
 afterAll(async () => { await native?.dispose(); });
 
 for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const)
-for (const count of [1024]) for (const route of ["model", "sdk", "cli"] as const)
+for (const count of [1024, 131072]) for (const route of ["model", "sdk", "cli"] as const)
 it(`rich comment style creation retains admitted ignored physical fanout; strict=${strict}; kind=${kind}; count=${count}; route=${route}`, async ({ signal }) => {
   const response = JSON.parse(await native!.run({ strict, kind, count, route }, signal)) as { error?: string; stack?: string };
   expect(response, response.stack ?? response.error).toEqual({ ok: true });

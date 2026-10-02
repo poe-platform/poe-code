@@ -11,6 +11,7 @@ pub mod approval_runner;
 pub mod approval_tasks;
 pub mod branch_validation;
 pub mod cli_argv;
+pub mod cli_consume;
 pub mod cli_fields;
 pub mod cli_help_fields;
 pub mod cli_json_errors;

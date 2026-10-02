@@ -202,3 +202,13 @@ const constructedOption: import("commander").Option = optionConstruction.createC
 // @ts-expect-error option construction requires a set of global flags
 optionConstruction.createOption(null as unknown as import("../dist/cli-fields.js").FieldDefinition,["--help"]);
 void [constructedOptions,constructedOption];
+
+import * as fieldConsumption from "../dist/cli-consume.js";
+const consumedValue: {nextIndex:number;value:unknown} = fieldConsumption.consumeFieldValue(["--count","3"],0,native.S.Number(),"count");
+const fieldInput: unknown = fieldConsumption.parseFieldInputValue("{\"value\":1}",native.S.Json(),"config");
+const fieldErrors: fieldConsumption.CLIFieldValidationError[] = [];
+const parsedOption = fieldConsumption.parseOptionFieldValue(null as unknown as import("../dist/cli-fields.js").FieldDefinition,"3",fieldErrors);
+if(parsedOption.ok){const parsedValue:unknown=parsedOption.value;void parsedValue;}
+// @ts-expect-error field indices must be numeric
+fieldConsumption.consumeFieldValue([],"0",native.S.String(),"name");
+void [consumedValue,fieldInput];

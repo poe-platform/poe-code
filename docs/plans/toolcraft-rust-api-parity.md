@@ -3342,3 +3342,38 @@ platform and reentrancy qualification remain open alongside CLI/transports/swap.
 Option construction is verified on remote main at f378f04216. Its Release run
 37066397357 is still building. The JSON diagnostic run 37065772483 completed
 successfully but skipped release-stable, so it did not establish publication.
+
+### CLI field-consumption checkpoint
+
+The internal field-consumption module uses Rust for scalar/array/JSON dispatch,
+inline and following-token precedence, implicit/explicit booleans, variadic array
+boundaries, nullable early completion and option validation-error collection.
+It composes native scalar/array parsers and numeric-option scanning. Node retains
+iteration and cleanup, live coercion/getters, original successful values, error
+catch boundaries and the existing Commander InvalidArgumentError constructor.
+No dependency declarations or default implementation changed.
+
+Four missing-module tests preceded implementation. Eight final comparisons use
+the actual extracted reference helpers, covering nullable values, inline inputs,
+negative arrays, missing arguments, bounds, parsed object identity, iterator
+cleanup on null/failure, live Array.isArray, index coercion, error-property order,
+malformed inputs, arbitrary thrown identity and reentrant calls. The maintained
+package route passes 220 native tests, Rust tests, 1,723 reference/integration
+cases across 46 files and declarations. Rust/binding and scoped JS lint pass.
+
+Packed field consumers run with only packed own schema and existing Commander
+admitted as external ESM imports. Packed declarations compile with types: [];
+schema/contract declarations still resolve from the checkout, leaving full
+standalone types unqualified. An inspected collected-error table matches the
+reference ANSI output. Complete CLI construction, dynamic values, prompting,
+rich help integration, transports and resource/platform/swap gates remain open.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds of 1,000 variadic numeric-field
+consumptions, retaining 32 results, measured native/reference medians of
+41.220/0.338 microseconds (122.07 times slower). This composed path needs fewer
+native/host crossings and does not pass the performance gate.
+
+Primitive source-offset optimization is verified on remote main at 3cfebd1944;
+Release workflow 37067379403 is building. Option-construction Release workflow
+37066397357 completed successfully with release-stable skipped. No new package
+publication is claimed.

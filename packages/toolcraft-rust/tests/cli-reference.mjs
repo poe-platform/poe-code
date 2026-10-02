@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import {readFileSync} from "node:fs";
 import ts from "typescript";
-import {Option} from "commander";
-import {ToolcraftBugError,UserError} from "../../toolcraft/dist/index.js";
+import {Option,InvalidArgumentError} from "commander";
+import {ToolcraftBugError,UserError,isUserError} from "../../toolcraft/dist/index.js";
 import {LOG_LEVELS} from "../../toolcraft/dist/runtime-logging.js";
 import {suggest} from "../../toolcraft/dist/suggest.js";
 import {unicodeLength} from "../../toolcraft-schema/dist/index.js";
@@ -20,5 +20,5 @@ export function loadCLIReference(names,constants=[]){
     return [];
   });
   assert.equal(declarations.length,names.length+constants.length);
-  return new Function("ToolcraftBugError","UserError","LOG_LEVELS","suggest","unicodeLength","getExpectedNumberDescription","isValidNumberSchemaValue","renderSourceSnippet","Option",'"use strict";\n'+ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,UserError,LOG_LEVELS,suggest,unicodeLength,getExpectedNumberDescription,isValidNumberSchemaValue,renderSourceSnippet,Option);
+  return new Function("ToolcraftBugError","UserError","LOG_LEVELS","suggest","unicodeLength","getExpectedNumberDescription","isValidNumberSchemaValue","renderSourceSnippet","Option","InvalidArgumentError","isUserError",'"use strict";\n'+ts.transpileModule(declarations.join("\n"),{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText+`\nreturn {${names.join(",")}};`)(ToolcraftBugError,UserError,LOG_LEVELS,suggest,unicodeLength,getExpectedNumberDescription,isValidNumberSchemaValue,renderSourceSnippet,Option,InvalidArgumentError,isUserError);
 }

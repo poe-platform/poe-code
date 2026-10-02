@@ -12,6 +12,14 @@ it("bridges and cleans skills in a Worker bundle with isolated filesystem owners
   await fs.mkdir("/repo/.git/info", { recursive: true });
   await fs.writeFile("/repo/.poe-code/skills/demo/SKILL.md", new TextEncoder().encode("# Café"));
   const options = { fs, cwd: "/repo", homeDir: "/home/user" };
+  await Promise.all([
+    runtime.appendExcludeBlockAsync(options, "a", ["a"]),
+    runtime.appendExcludeBlockAsync(options, "b", ["b"])
+  ]);
+  const excludes = new TextDecoder().decode(await fs.readFile("/repo/.git/info/exclude"));
+  expect(excludes).toContain("\na\n");
+  expect(excludes).toContain("\nb\n");
+  await Promise.all([runtime.removeExcludeBlockAsync(options, "a"), runtime.removeExcludeBlockAsync(options, "b")]);
   const first = await runtime.bridgeActiveSkillsAsync("codex", ["demo"], "same", options);
   const second = await runtime.bridgeActiveSkillsAsync("codex", ["demo"], "same", options);
   expect(new TextDecoder().decode(await fs.readFile("/repo/.codex/skills/demo/SKILL.md"))).toBe("# Café");

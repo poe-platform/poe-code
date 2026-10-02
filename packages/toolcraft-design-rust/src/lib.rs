@@ -57,6 +57,7 @@ pub mod terminal_driver;
 
 pub mod dashboard_keymap;
 pub mod dashboard_mode;
+pub mod dashboard_store;
 pub mod prompt_components;
 pub mod prompt_core;
 pub mod prompt_inputs;

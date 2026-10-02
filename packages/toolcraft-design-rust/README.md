@@ -127,6 +127,7 @@ const composed=renderTemplate(layout, {}, {escape:'none',yield:prompt});
 | `dashboard/terminal-width` | Measure graphemes, expand tabs and truncate terminal text |
 | `dashboard/keymap` | Resolve default or custom keyboard commands and canonicalize binding labels |
 | `shouldUseInteractiveDashboard` | Check explicit enablement, terminal output mode and both TTY streams |
+| `dashboard/store` | Retain bounded live output, merge statistics and subscribe to state changes |
 | `createNotices`, `renderNotice` | Retain bounded, expiring notices and render status markers |
 | `createMetric` | Retain rolling samples and render compact sparklines |
 | `renderProgressGroup` | Show clipped progress rows with known or indeterminate completion |
@@ -453,3 +454,10 @@ not start a dashboard or read terminal input.
 `true`, terminal output format, and TTY stdin/stdout. It defaults to `process`
 and respects `withOutputFormat` scopes. The root, dashboard namespace and
 `should-use-interactive-dashboard` subpath expose the same function.
+
+`createStore()` from `toolcraft-design-rust/dashboard/store` retains the latest
+256 output items, bounds message/detail previews, and replaces matching IDs in
+place. `getState()` returns the current snapshot, `updateStats(partial)` merges
+statistics, and `onChange(handler)` returns an unsubscribe function. Previously
+returned output arrays remain stable across updates. Dashboard state, output,
+statistics and queue types are available from `dashboard/types`.

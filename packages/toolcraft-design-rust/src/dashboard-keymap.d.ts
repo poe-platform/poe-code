@@ -5,8 +5,7 @@ type KeypressEvent = {
   meta: boolean;
   shift: boolean;
 };
-type Command = "quit" | "forceQuit" | "edit" | "pause" | "retry" | "view-log" |
-  "scroll-up" | "scroll-down" | "page-up" | "page-down" | "follow" | "render-stats";
+import type {Command} from "./dashboard-types.js";
 
 export declare function createKeymap(
   overrides?: Partial<Record<Command, string[]>>

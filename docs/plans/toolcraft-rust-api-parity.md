@@ -1380,3 +1380,27 @@ changes. Five warmed alternating 10,000-call rounds measured 1.989 µs/call nati
 versus 0.0309 µs reference (64.46× slower); no performance gate passed. Five
 original root dashboard/explorer exports remain absent, along with broader
 Toolcraft and platform/resource/type-identity qualification.
+
+### Dashboard store checkpoint
+
+`dashboard/store` now provides the original four-method `createStore` contract,
+and `dashboard/types` supplies standalone structural dashboard declarations.
+Rust controls initialization, preview decisions, ID matching, retention and state
+transitions. Node retains observable array operations, object spreads, returned
+object identity and live listener iteration. Reentrant getters and listeners see
+the same state ordering; notifications happen after committing each new state.
+Retention remains 256 items with existing bounded message/detail previews.
+
+Missing-subpath tests failed before implementation; a function-shape regression
+also failed and was corrected before delivery. All 269 native host tests, 1,228
+selected design tests, 13 prompt-wrapper tests and 11 original shared dashboard
+keymap/store tests pass (101 unrelated shared-suite cases are excluded). Scoped
+Rust/binding/JS lint, bidirectional types and packed standalone runtime/declarations
+pass with no external imports or dependency additions. An inspected screenshot
+shows an ID-based replacement retaining its row ahead of a later status message.
+
+Five warmed alternating rounds of 300 operations at full retention capacity
+measured append medians of 3.935 µs native / 0.873 µs reference (4.51× slower),
+and keyed-update medians of 95.59 µs / 2.573 µs (37.15× slower). No performance
+gate passed. Remaining dashboard rendering/lifecycle, explorer and broader
+Toolcraft replacement gates remain open.

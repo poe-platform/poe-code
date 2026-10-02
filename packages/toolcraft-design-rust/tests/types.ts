@@ -673,3 +673,13 @@ const dashboardModeOriginal: typeof originalDashboardMode = dashboardMode;
 const dashboardModeNative: typeof dashboardMode = null as unknown as typeof originalDashboardMode;
 const ttyMode: boolean = dashboardMode.shouldUseInteractiveDashboard(true, {stdin: {}, stdout: {isTTY: true}});
 void [dashboardModeOriginal, dashboardModeNative, ttyMode];
+
+import * as dashboardStore from "toolcraft-design-rust/dashboard/store";
+import type * as originalDashboardStore from "toolcraft-design/dashboard/store";
+import type * as dashboardTypes from "toolcraft-design-rust/dashboard/types";
+import type * as originalDashboardTypes from "toolcraft-design/dashboard/types";
+const storeOriginal: typeof originalDashboardStore = dashboardStore;
+const storeNative: typeof dashboardStore = null as unknown as typeof originalDashboardStore;
+const stateOriginal: originalDashboardTypes.DashboardState = dashboardStore.createStore().getState();
+const stateNative: dashboardTypes.DashboardState = stateOriginal;
+void [storeOriginal,storeNative,stateNative];

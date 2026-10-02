@@ -1,5 +1,6 @@
 import { validateAttachmentUrl } from "./url-attachment.js";
 import { openAiAttachmentKind } from './openai-attachment.js';
+import { attachmentBytesId, getLlmAttachmentUrlId } from './attachment-id.js';
 import { embeddingJson } from "./embedding-json.js";
 import { openAiUsage } from "./openai-usage.js";
 import { requestAttachments } from "./request-attachments.js";
@@ -222,11 +223,12 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
       let attachmentBytes = 0;
       for (const attachment of requestAttachments(request)) {
         const kind = openAiAttachmentKind(attachment.mimeType);
+        if (attachment.id !== undefined && typeof attachment.id !== 'string') throw new TypeError('Invalid attachment id');
         if (model.endpoint !== 'chat' && kind !== 'image') throw new Error(`OpenAI ${model.endpoint} endpoint only supports image attachments`);
         if (attachment.url !== undefined) {
           validateAttachmentUrl(attachment.url);
           if (model.endpoint !== "chat") throw new Error(`OpenAI ${model.endpoint} endpoint does not support URL attachments`);
-          if (kind !== 'image') throw new TypeError('Audio URL attachments require an input source');
+          if (kind !== 'image') throw new TypeError('Non-image URL attachments require an input source');
         } else attachmentBytes += attachment.bytes.byteLength;
         if (attachmentBytes > limits.maxRequestBytes) throw new RangeError("Provider request byte limit exceeded");
       }
@@ -247,14 +249,21 @@ export function createOpenAiProvider(options: OpenAiProviderOptions): LlmProvide
         if (request.system !== undefined) messages.push({ role: "system", content: request.system });
         for (const message of [...request.messages ?? [], { role: "user", content: request.prompt, attachments: request.attachments }]) {
           const attachments = message.attachments ?? [];
+          const parts: unknown[] = [];
+          for (const attachment of attachments) {
+            const kind = openAiAttachmentKind(attachment.mimeType);
+            if (kind === 'pdf') {
+              const id = attachment.id ?? (attachment.bytes!.length
+                ? await attachmentBytesId(attachment.bytes!, request.signal)
+                : await getLlmAttachmentUrlId(null, request.signal));
+              parts.push({ type: 'file', file: { filename: `${id}.pdf`, file_data: `data:application/pdf;base64,${base64(attachment.bytes!)}` } });
+            } else parts.push(kind === 'image'
+              ? { type: 'image_url', image_url: { url: attachment.url ?? `data:${attachment.mimeType};base64,${base64(attachment.bytes!)}` } }
+              : { type: 'input_audio', input_audio: { data: base64(attachment.bytes!), format: kind } });
+          }
           messages.push({ role: message.role, content: attachments.length === 0 ? message.content : [
             { type: "text", text: message.content },
-            ...attachments.map(attachment => {
-              const kind = openAiAttachmentKind(attachment.mimeType);
-              return kind === 'image'
-                ? { type: "image_url", image_url: { url: attachment.url ?? `data:${attachment.mimeType};base64,${base64(attachment.bytes!)}` } }
-                : { type: 'input_audio', input_audio: { data: base64(attachment.bytes!), format: kind } };
-            }),
+            ...parts,
           ] });
         }
         let details: LlmResponseMetadata | undefined;

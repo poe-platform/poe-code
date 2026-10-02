@@ -106,7 +106,8 @@
   "devDependencies": {
     "@poe-code/safe-fs": "*",
     "safe-bash-contracts": "*",
-    "safe-bash-mime-engine": "*"
+    "safe-bash-mime-engine": "*",
+    "safe-bash-checksum-engine": "*"
   },
   "peerDependencies": {
     "yaml": "2.9.0"

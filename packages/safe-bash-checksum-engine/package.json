@@ -18,6 +18,10 @@
     "./sm3": {
       "types": "./dist/sm3.d.ts",
       "import": "./dist/sm3.js"
+    },
+    "./sha256": {
+      "types": "./dist/sha256.d.ts",
+      "import": "./dist/sha256.js"
     }
   },
   "files": [

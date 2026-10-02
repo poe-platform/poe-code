@@ -1,5 +1,6 @@
 import { resolveUrlAttachment } from "./url-attachment.js";
 import { createLlmUrlSource } from './url-source.js';
+import { attachmentBytesId, getLlmAttachmentUrlId } from './attachment-id.js';
 import { embeddingCommand } from "./embed-command.js";
 import { embeddingModelsCommand } from './embed-models-command.js';
 import { serializeLlmTokenUsage } from "./usage.js";
@@ -378,13 +379,14 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
           if (!fetch) throw new Error('Attachment URL loading is not configured');
           const source = await operation.acquire(() => createLlmUrlSource({url:reference.url,fetch,signal,
             maxBytes:input.remaining(!streamed),admitBytes:bytes=>admitInput(bytes,!streamed)}), source=>source.dispose());
-          if (streamed) sourceAttachments.push({mimeType:reference.mimeType,source});
+          const identity = acceptsMimeType(['application/pdf'], reference.mimeType) ? {id:await getLlmAttachmentUrlId(reference.url,signal)} : {};
+          if (streamed) sourceAttachments.push({mimeType:reference.mimeType,source,...identity});
           else {
             const chunks:Uint8Array[]=[];let size=0;
             for await (const chunk of source.bytes) { chunks.push(chunk);size+=chunk.length; }
             const bytes=new Uint8Array(size);let offset=0;
             for (const chunk of chunks) { bytes.set(chunk,offset);offset+=chunk.length; }
-            attachments.push({mimeType:reference.mimeType,bytes});
+            attachments.push({mimeType:reference.mimeType,bytes,...identity});
           }
         }
         continue;
@@ -429,7 +431,7 @@ async function execute(context: CommandContext, service: LlmService, limits: Llm
       admitInput(bytes.byteLength, true);
       const mimeType = attachment.mimeType ?? sniffMimeType(path, bytes);
       if (!acceptsMimeType(entry.model.attachmentTypes ?? [], mimeType)) throw new Error(`Model ${entry.model.id} does not accept ${mimeType}`);
-      attachments.push({ mimeType, bytes: new Uint8Array(bytes) });
+      attachments.push({ mimeType, bytes: new Uint8Array(bytes), ...(acceptsMimeType(['application/pdf'],mimeType) && !bytes.length ? {id:await attachmentBytesId(bytes,signal)} : {}) });
     }
     const resolvedKey = args.key === undefined ? undefined : await configuration.resolveKey(args.key);
     const request: LlmRequest = {

@@ -1,5 +1,6 @@
 import { validateAttachmentUrl } from "./url-attachment.js";
 import { openAiAttachmentKind } from './openai-attachment.js';
+import { pdfJson } from './pdf-json.js';
 import { requestAttachments } from "./request-attachments.js";
 import { jsonString } from "./json-string.js";
 import { base64Stream } from "./base64-stream.js";
@@ -21,7 +22,8 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
   if (request.schema && Object.hasOwn(request.options, "response_format")) throw new TypeError("schema conflicts with response_format");
   for (const attachment of requestAttachments(request)) {
     const kind = openAiAttachmentKind(attachment.mimeType);
-    if (attachment.url !== undefined && kind !== 'image') throw new TypeError('Audio URL attachments require an input source');
+    if (attachment.id !== undefined && typeof attachment.id !== 'string') throw new TypeError('Invalid attachment id');
+    if (attachment.url !== undefined && kind !== 'image') throw new TypeError('Non-image URL attachments require an input source');
   }
   const controls = jsonValue({ ...request.options, ...(request.stream !== false ? { stream_options: { include_usage: true } } : {}), ...(request.schema ? { response_format: { type: "json_schema", json_schema: { name: "response", schema: request.schema } } } : {}), model: request.model }, request.signal);
   const encoder = new TextEncoder();
@@ -47,6 +49,11 @@ export function chatJson(request: OpenAiChatSourceRequest, limit: number): Async
         for (const attachment of attachments) {
           request.signal.throwIfAborted();
           const kind = openAiAttachmentKind(attachment.mimeType);
+          if (kind === 'pdf' && attachment.source !== undefined) {
+            yield text(',');
+            yield* pdfJson(attachment.source, attachment.id, request.signal);
+            continue;
+          }
           if (attachment.url !== undefined) {
             validateAttachmentUrl(attachment.url);
             yield text(',{"type":"image_url","image_url":{"url":');

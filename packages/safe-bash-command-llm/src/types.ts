@@ -50,10 +50,10 @@ export interface LlmEmbeddingResponse extends LlmResponseMetadata {
   readonly model: string;
   readonly vectors: readonly (readonly number[])[];
 }
-export type LlmAttachment = { readonly mimeType: string } & (
+export type LlmAttachment = { readonly mimeType: string; readonly id?: string } & (
   { readonly bytes: Uint8Array; readonly url?: never } | { readonly url: string; readonly bytes?: never }
 );
-export type LlmSourceAttachment = { readonly mimeType: string } & (
+export type LlmSourceAttachment = { readonly mimeType: string; readonly id?: string } & (
   { readonly source: LlmInputSource; readonly url?: never } | { readonly url: string; readonly source?: never }
 );
 export interface LlmRequest {

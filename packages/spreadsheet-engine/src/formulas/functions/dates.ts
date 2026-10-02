@@ -1,3 +1,4 @@
+import { timezoneOffset } from "./timezones.js";
 import { SsconvertError } from "../../contracts.js";
 import { error, numericResult } from "../values.js";
 import { collect, numberArg, textArg } from "./common.js";
@@ -82,6 +83,15 @@ function zonedDate(now: number, host: FunctionHost): LocalDate {
   if (host.context.environment.timezone === "UTC") return {
     year: instant.getUTCFullYear(), month: instant.getUTCMonth() + 1, day: instant.getUTCDate(), time: instant.getTime()
   };
+  const offset = timezoneOffset(host.context.environment.timezone, instant.getTime(), host.tick);
+  if (offset !== undefined) {
+    const era = Math.floor(instant.getUTCFullYear() / 400);
+    const local = gregorian(instant.getUTCFullYear() - era * 400, instant.getUTCMonth() + 1, instant.getUTCDate());
+    local.setUTCHours(instant.getUTCHours(), instant.getUTCMinutes(), instant.getUTCSeconds(), instant.getUTCMilliseconds());
+    local.setTime(local.getTime() + offset * 1000);
+    return { year: local.getUTCFullYear() + era * 400, month: local.getUTCMonth() + 1,
+      day: local.getUTCDate(), time: instant.getTime() + offset * 1000 };
+  }
   let parts: Intl.DateTimeFormatPart[];
   try {
     parts = new Intl.DateTimeFormat("en-US", { timeZone: host.context.environment.timezone, era: "short", year: "numeric", month: "numeric", day: "numeric", hour: "numeric", minute: "numeric", second: "numeric", hourCycle: "h23" }).formatToParts(now);

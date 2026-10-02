@@ -70,6 +70,7 @@
         "./src/encoding/NOTICE.md",
         "./src/encoding/LGPL-2.1.txt",
         "./src/formulas/functions/byte-case-NOTICE.md",
+        "./src/formulas/functions/timezones-NOTICE.md",
         "./src/formulas/functions/captured-acos-NOTICE.md",
         "./src/formulas/functions/captured-pow-NOTICE.md"
       ]

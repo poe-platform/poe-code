@@ -559,6 +559,68 @@
         }
       }
     },
+    "perlDateTimezone": {
+      "status": "Historical date mismatch repaired; broader optional-function family remains open",
+      "nativeProfile": "gnumeric-1.12.61-optional-perl-samples",
+      "reproducer": {
+        "timezone": "Europe/Amsterdam",
+        "epochMilliseconds": -2203891201000,
+        "native": "19000301",
+        "before": "19000228",
+        "cause": "Host ICU 78.2/tzdb 2025c uses a zero offset here; the authenticated native tzdb 2026c TZif retains Amsterdam local time +00:19:32."
+      },
+      "implementation": "Original sparse offset lookup over 434 profiles for all 485 named zones/aliases installed by the authenticated tzdata package. Binary-search 64-bit historical transitions and evaluate general POSIX month/week/weekday future rules, including negative daylight offsets and signed/extended transition hours. Gregorian 400-year reduction preserves JavaScript Date boundary years. Existing host Intl fallback remains for names outside the captured profile. Clock authority, time clipping, work/cancellation and invalid-zone behavior remain enforced.",
+      "source": {
+        "package": "tzdata 2026c-0+deb13u1",
+        "archiveSha256": "813b9bbbe14ccda2b24617b8bade0ade4d745957e75921766c153d249886bd4c",
+        "tzdataZiSha256": "af5c1d3bebe136d372c131bb1a45725f955a8cc2a5ae2fc5a31d3b372e145f49",
+        "tzifInventorySha256": "c5d2b3e05c4a76362ebd3c5e8884680d0a696fe872277303acb268f5c4e99b3e",
+        "generatedDataSha256": "fe3f46d7955110cb976403832f2828af10e30e6b8dfb2d5066583e03a84e1965",
+        "generator": "packages/spreadsheet-engine/scripts/generate-timezones.py",
+        "notice": "packages/spreadsheet-engine/src/formulas/functions/timezones-NOTICE.md"
+      },
+      "nativeDates": {
+        "cases": 184,
+        "zones": [
+          "UTC",
+          "Etc/UTC",
+          "America/New_York",
+          "America/Los_Angeles",
+          "Pacific/Apia",
+          "Asia/Kathmandu",
+          "Europe/Amsterdam",
+          "Australia/Lord_Howe"
+        ],
+        "scope": "23 instants per zone: astronomical year zero/negative years, 1900/2000 leap rules, epoch, date-line skip, DST boundaries, year 9999/10000 and both JavaScript Date limits. Each scenario also evaluates PERL_DATE(1) as a native #N/A arity control.",
+        "procedure": "Unchanged native Gnumeric cell evaluation and activated Perl plugin, exact declared environment with scenario TZ and an explicitly preloaded time() override returning the integer scenario epoch. No ambient clock. Each process exits zero, activation reports zero errors and stderr is empty.",
+        "nativeCaptureSha256": "83c332770b7cf7095b24022105f7c0bfc28e870a1aac74eaa49c04d3a18275fc",
+        "clockShimSha256": "87a94125991efe8f683cac82f13e5e8b233971d690cffd89975da072cbc73686",
+        "cellProbeSha256": "0bfe64202a2280a2d590fa6e1e6dc58b43b4ec26bafa7bdab74b823e0e5662ea",
+        "publicSdkMatches": 184,
+        "publicCommandMatches": 184,
+        "publicArityControlsMatched": 368,
+        "publicCaptureSha256": "12312ef9b653ad1c5ec28e283f514a1d502f32f6f5c8ab2fd14a49592ac20af0"
+      },
+      "nativeOffsets": {
+        "cases": 99677,
+        "zones": 485,
+        "mismatches": 0,
+        "scope": "Before/at/after every admitted historical TZif transition; independently locate future boundaries with Python zoneinfo in years 2038,2050,2100,2400,2800; include epoch and both Date limits. Obtain expected offsets separately with native libc tzset/localtime_r. The TypeScript algorithm matches all values.",
+        "casesSha256": "be069b22f6881eedfe65c5be36a1c5ca80949cada8d1a658da59069f6b65fa92",
+        "nativeProbeSha256": "a30f3b8dd17718e0254626ff736ce0a0a393a5ac65e12d34436fdb81e39052b6"
+      },
+      "validation": "Two original historical-date regressions fail before repair. All 94 engine tests and 179 affected date/optional-function tests pass. Maintained selected 18-build closure passes; rebuilt command-package SDK/runCommand match all 184 native date values and arity controls each. Native raw-offset proof is distinct from full function qualification. Engine lint/source/test types and all 223 packaging tests pass after building their declared dependencies. The normal npm run build passes all 289 declared workspace builds across 290 workspaces and root suffix stages; the Python workspace has no declared build and is not counted as a build pass. Compiled offset lookup matches all 99677 native controls. The data generator rejects nonmatching TZif inventories before writing and reproduces the pinned data byte-for-byte.",
+      "remaining": "Further optional-function signatures/arrays/lifecycle, additional runtime profiles, names outside the captured timezone profile, root/registry consumer qualification and the other gap families remain open. No whole-goal or release claim.",
+      "rootPublicConsumers": {
+        "entrypoint": "dist/ssconvert/index.js",
+        "sdkMatches": 184,
+        "commandMatches": 184,
+        "arityControlsMatched": 368,
+        "diagnostics": "Empty SDK diagnostics and command stderr. These are rebuilt local root consumers, not registry installations.",
+        "entrypointSha256": "7cd57aa3550cf045173ef1396d10d69a3b25b9befd4fa96f5e94c0c4e2bfbe80",
+        "captureSha256": "12312ef9b653ad1c5ec28e283f514a1d502f32f6f5c8ab2fd14a49592ac20af0"
+      }
+    },
     "perlActivatedLinux": {
       "auditedAt": "2026-09-26",
       "sourceRevisionAtExecution": "7bd87a8395bafeaf4237dff421a09335682119c7",

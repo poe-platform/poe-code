@@ -15,7 +15,7 @@ and references to invocation-owned sheets; arrays are copied and bounded, and re
 references retain their dependencies.
 `isSsconvertError(error)` recognizes typed failures across the separately bundled SDK and Shell exports.
 The optional `perlSampleFunctions` binding adds clock-based dates
-and bounded pattern substitution with literal replacements. Native byte results
+and bounded pattern substitution with literal replacements. Date formulas use pinned tzdb 2026c offsets for 485 named zones and aliases, including historical local time and future daylight-saving rules; names outside that profile retain host Intl behavior. Native byte results
 use an explicit `byte-string` value with lowercase hex, preserving invalid UTF-8
 through qualified text formulas, arrays and CSV output. LOWER/UPPER use captured
 Unicode 16 C-locale case behavior, including native byte values. CLEAN, PROPER, REPT, REPLACE/REPLACEB, SUBSTITUTE, FIND/FINDB, SEARCH/SEARCHB and LENB/LEFTB/RIGHTB/MIDB

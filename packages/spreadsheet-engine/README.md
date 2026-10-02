@@ -18,7 +18,7 @@ try {
 ```
 
 - Select format modules and custom codecs per engine instance.
-- Read, edit, recalculate, merge and write owned workbook models.
+- Read, edit, recalculate, merge and write owned workbook models. Clock-based formulas use pinned tzdb 2026c offsets for 485 named zones and aliases; other names retain host Intl behavior.
 - Enable sample functions explicitly; `PERL_SED` supports numbered/named backreferences and capture conditions, branch-reset groups, bounded lookaround conditions and alphabetic lookaround/atomic spellings, preserving literal replacements and byte results.
 - Keep live named-expression references when copying formulas with explicit relative or absolute reference modes. Formula parsing, recalculation and dependency discovery share the same name identity and displacement. Names qualified by a missing sheet stay unresolved until that sheet exists; native export still requires a format that can preserve those semantics.
 - Pass an independently created or edited AST to `await engine.adoptWorkbook(book, { signal })` before writing it. Adoption validates resource limits and owns an immutable snapshot.

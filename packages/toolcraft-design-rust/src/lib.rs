@@ -46,3 +46,5 @@ pub mod line_buffer;
 pub mod acp_events;
 
 pub mod frame_writer;
+
+pub mod terminal_input;

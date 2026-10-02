@@ -474,3 +474,9 @@ import type * as originalFrameOutput from "toolcraft-design/terminal/output";
 const frameOutputForward:typeof originalFrameOutput=frameOutput;
 const frameOutputReverse:typeof frameOutput=null as unknown as typeof originalFrameOutput;
 void [frameOutputForward,frameOutputReverse];
+
+import * as terminalInput from "toolcraft-design-rust/terminal/input";
+import type * as originalTerminalInput from "toolcraft-design/terminal/input";
+const terminalInputForward:typeof originalTerminalInput=terminalInput;
+const terminalInputReverse:typeof terminalInput=null as unknown as typeof originalTerminalInput;
+void [terminalInputForward,terminalInputReverse];

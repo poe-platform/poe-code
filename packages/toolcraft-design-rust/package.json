@@ -219,6 +219,10 @@
     "./terminal/output": {
       "types": "./dist/frame-writer.d.ts",
       "import": "./dist/frame-writer.js"
+    },
+    "./terminal/input": {
+      "types": "./dist/terminal-input.d.ts",
+      "import": "./dist/terminal-input.js"
     }
   },
   "scripts": {

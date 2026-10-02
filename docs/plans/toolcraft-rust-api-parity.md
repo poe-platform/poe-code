@@ -1002,3 +1002,29 @@ per-call binding overhead and excludes terminal I/O. No performance gate passed.
 Input parsing, timer behavior and the public terminal driver remain outstanding.
 The whole-unit run and remote release checks are still running; publication is
 not yet verified.
+
+
+The `terminal/input` subpath now exposes `createInputParser`. Rust owns byte
+classification, incremental parsing, paste/CSI/SS3 handling, navigation modifiers,
+mouse fields and Escape timer decisions. JavaScript retains Buffer semantics,
+locale case conversion, timers and callbacks, including repeated property reads,
+callback receivers, arbitrary thrown identity and reentrant feeds. Every tested
+byte split matches the reference, including malformed UTF-8 and the original
+paste state retained after destroy. A changing onEvent getter initially exposed
+a different TypeError message; direct host method invocation fixed it.
+
+All 216 native host tests and 588 selected original tests pass, along with type
+parity, Rust/binding/JS lint and packed standalone runtime/types. The input-event
+screenshot was inspected and its ANSI bytes match the reference. Five warmed,
+alternating rounds of 200 feeds measured 0.7199/0.01172 ms native/reference on
+88-byte text chunks (61.43x) and 0.4253/0.009882 ms on mixed control chunks (43.04x).
+Callback overhead dominates; no performance gate passed. Patched-intrinsic and
+aggregate resource qualification still remain, alongside the public driver.
+No external dependencies were added.
+
+The prior full-unit attempt stopped in the optional Safe Bash compiler on a
+missing RootShellState type import. That import is fixed in 336d69d2bd and verified
+on remote main; optional compilation and a fresh playground kernel bundle pass.
+The public memory export had already been restored by 69c3414d17. The maintained
+whole-unit route is running again. Release 36975507223 completed its build but
+skipped validation and publication; this is not a verified publication.

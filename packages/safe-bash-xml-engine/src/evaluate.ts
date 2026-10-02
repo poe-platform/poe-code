@@ -82,6 +82,17 @@ export async function evaluateScalar(query: Query, root: XmlElement, budget: Xml
   const result = await evaluateExpression(query.expression!, tree.document, 1, 1, budget,
     async selected => evaluatePaths(selected, tree, budget, tree.document));
   if (Array.isArray(result)) return result[0]?.text ?? "";
+  // xmllint prints scalar numbers using C %g (six significant digits).
+  // Keep full precision during evaluation; rounding belongs only at output.
+  if (typeof result === "number" && Number.isFinite(result)) {
+    if (Object.is(result, -0)) return "-0";
+    const rounded = Number(result.toPrecision(6));
+    if (rounded !== 0 && (Math.abs(rounded) < 0.0001 || Math.abs(rounded) >= 1000000)) {
+      const [mantissa, exponent] = rounded.toExponential().split("e") as [string, string];
+      return `${mantissa}e${exponent[0]}${exponent.slice(1).padStart(2, "0")}`;
+    }
+    return String(rounded);
+  }
   return String(result);
 }
 

@@ -222,3 +222,40 @@ for (const [input, expected] of [
     assert.equal(result.output, expected);
   });
 }
+
+for (const [query, expected] of [
+  ["sum(//book/price)", "50.9"],
+  ["//book[price > 10]/@id", ' id="bk101"'],
+  ["//book[price != 9.95]/@id", ' id="bk101"'],
+  ["//book[price < 10]/@id", ' id="bk102"'],
+  ["//book[price <= 9.95]/@id", ' id="bk102"'],
+  ["//book[price >= 40.95]/@id", ' id="bk101"'],
+  ["//book[price > 10 and price < 50]/@id", ' id="bk101"'],
+  ["//book[price < 10 or not(price)]/@id", ' id="bk102"\n id="bk103"'],
+  ["//book[price]/@id", ' id="bk101"\n id="bk102"'],
+  ["concat(//book[1]/@id, '-', //book[2]/@id)", "bk101-bk102"],
+] as const) test(`catalog child predicate parity: ${query}`, async () => {
+  const result = await run(["--xpath", query],
+    '<catalog><book id="bk101"><price>40.95</price></book><book id="bk102"><price>9.95</price></book><book id="bk103"/></catalog>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});
+
+test("namespace-prefixed steps and xml attributes work together in the command", async () => {
+  const result = await run(["--xpath", "//ns:book[@xml:lang='en']/@id"],
+    '<catalog xmlns:ns="urn:books"><ns:book id="bk101" xml:lang="en"/><ns:book id="bk102" xml:lang="fr"/></catalog>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, ' id="bk101"\n');
+});
+
+for (const [query, expected] of [
+  ["1.23456789", "1.23457"], ["999999.9", "1e+06"],
+  ["0.00001", "1e-05"], ["0.0001", "0.0001"],
+  ["-0", "-0"], ["number('bad')", "NaN"],
+  ["number('1e309')", "Infinity"], ["number('-1e309')", "-Infinity"],
+  ["1.23456789 > 1.234567", "true"],
+] as const) test(`native scalar number formatting: ${query}`, async () => {
+  const result = await run(["--xpath", query]);
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, expected + "\n");
+});

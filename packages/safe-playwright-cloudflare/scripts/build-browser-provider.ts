@@ -15,6 +15,7 @@ export async function buildBrowserProvider(): Promise<void> {
   if (metadata.version !== '1.3.6') throw new Error('Qualify the portable provider before upgrading Playwright');
   const polyfills = join(dirname(require.resolve('@jspm/core/nodelibs/buffer')), '../browser');
   const transport = join(dirname(provider), 'cloudflare/webSocketTransport.js');
+  const snapshotter = join(dirname(provider), 'playwright-core/src/server/trace/recorder/snapshotterInjected.js');
   const builtins = new Set(builtinModules.map(name => name.startsWith('node:') ? name.slice(5) : name));
   // Select the host adapter at build time only. The plugin below replaces its
   // native filesystem imports with the provider's private in-memory filesystem;
@@ -39,6 +40,15 @@ export async function buildBrowserProvider(): Promise<void> {
     // The provider serializes error constructor names across its protocol.
     minify: true, keepNames: true, legalComments: 'inline', metafile: true,
     plugins: [{ name: 'portable-provider', setup(builder) {
+      builder.onLoad({ filter: /snapshotterInjected\.js$/ }, async args => {
+        if (args.path !== snapshotter) return;
+        const source = ts.createSourceFile(args.path, await readFile(args.path, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);
+        const streamer = source.statements.find(node => ts.isFunctionDeclaration(node) && node.name?.text === 'frameSnapshotStreamer');
+        if (!streamer || source.statements.length !== 2) throw new Error('Pinned provider snapshot injection changed; qualify its source');
+        // Playwright interpolates this function into a page script. Keep it as
+        // source data so minification cannot introduce out-of-scope name helpers.
+        return { contents: `export const frameSnapshotStreamer = ${JSON.stringify(streamer.getText(source))};`, loader: 'js' };
+      });
       builder.onLoad({ filter: /index\.js$/ }, async args => {
         if (args.path !== provider) return;
         const source = ts.createSourceFile(args.path, await readFile(args.path, 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.JS);

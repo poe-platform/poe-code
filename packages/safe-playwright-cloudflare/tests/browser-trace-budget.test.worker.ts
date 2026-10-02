@@ -1,6 +1,4 @@
-import { RealFileSystem } from "@poe-code/safe-fs/fs/real";
 import assert from "node:assert/strict";
-import { access, mkdtemp, readFile, rm } from "node:fs/promises";
 import type { BrowserContext, BrowserWorker, Route } from "@cloudflare/playwright";
 import { createZipCodec } from "@poe-code/office-package/zip";
 import { createCloudflarePlaywrightAdapter } from "../src/index.js";
@@ -8,15 +6,16 @@ import { createCloudflarePlaywrightAdapter } from "../src/index.js";
 export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker }) {
   const signal = new AbortController().signal;
   const lease = await createCloudflarePlaywrightAdapter(env.BROWSER, undefined, undefined, {
-    traceCapture: "archive", artifactFileSystem: new RealFileSystem({ root: "/" }), traceLimits: { maxBytes: 256 * 1024, maxFiles: 512, maxArchiveBytes: 64 * 1024 },
+    traceCapture: "archive", traceLimits: { maxBytes: 256 * 1024, maxFiles: 512, maxArchiveBytes: 64 * 1024 },
   }).acquire({ acquisitionId: "trace-budget", session: "trace-budget", browser: "chromium", headless: true, signal });
   const context = lease.context as unknown as BrowserContext;
-  const directory = await mkdtemp("/tmp/trace-budget-fixture-");
   const phase = (name: string) => console.info(`[trace-budget conformance] ${name}`);
   phase("acquired");
   const codec = createZipCodec();
   const zipLimits = { maxArchiveBytes: 64 * 1024, maxEntryBytes: 256 * 1024, maxTotalBytes: 256 * 1024, maxMembers: 512, maxPathBytes: 65535, maxDepth: 32, maxPaxBytes: 65535, maxTextBytes: 65535, chunkSize: 65536 };
-  const archive = async (name: string) => codec.readZipArchive(await readFile(`${directory}/${name}.zip`), zipLimits, signal);
+  const captureOptions = { signal, maxBytes: zipLimits.maxArchiveBytes, extension: "zip" };
+  const archive = async (produce: (path: string) => Promise<void>) =>
+    codec.readZipArchive(await lease.captureArtifact!(produce, captureOptions), zipLimits, signal);
   try {
     // The original context recorder is idle until tracing starts and can close
     // normally. A sibling uses the same provider LocalUtils dispatcher.
@@ -46,9 +45,8 @@ export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker })
     await context.tracing.groupEnd();
     await lease.checkTrace!(lease.context, { signal });
     phase("first capture");
-    await context.tracing.stopChunk({ path: `${directory}/first.zip` });
+    const first = await archive(path => context.tracing.stopChunk({ path }));
     phase("first archive");
-    const first = await archive("first");
     assert.ok(first.entries.some(entry => entry.name === "trace.trace"));
     assert.ok(first.entries.some(entry => entry.name === "trace.network"));
     assert.ok(first.entries.some(entry => entry.name.startsWith("resources/")));
@@ -64,9 +62,9 @@ export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker })
     const pendingEntry = nativeRequest[requestSymbol];
     assert.ok(pendingEntry);
     assert.equal(pendingEntry.request.url, "https://trace.test/pending");
-    await context.tracing.stop({ path: `${directory}/second.zip` });
+    const second = await archive(path => context.tracing.stop({ path }));
     phase("second archive");
-    assert.ok((await archive("second")).entries.some(entry => entry.name === "trace.trace"));
+    assert.ok(second.entries.some(entry => entry.name === "trace.trace"));
 
     await context.tracing.start({ snapshots: true, screenshots: false });
     assert.deepEqual(await streamers(), originalStreamers);
@@ -78,9 +76,9 @@ export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker })
     await page.evaluate(async () => (await (await fetch("https://trace.test/small")).text()).length);
     await lease.checkTrace!(lease.context, { signal });
     // Restarting the bounded recorder must not discard sibling stack sessions.
-    await sibling.tracing.stop({ path: `${directory}/sibling.zip` });
+    const siblingArchive = await archive(path => sibling.tracing.stop({ path }));
     phase("sibling archive");
-    assert.ok((await archive("sibling")).entries.some(entry => entry.name === "trace.trace"));
+    assert.ok(siblingArchive.entries.some(entry => entry.name === "trace.trace"));
     let overflow: unknown;
     for (let index = 0; index < 20; index++) {
       await page.evaluate(async index => (await (await fetch(`https://trace.test/large-${index}`)).text()).length, index);
@@ -89,19 +87,21 @@ export default { async fetch(_request: Request, env: { BROWSER: BrowserWorker })
     }
     assert.match(String(overflow), /Browser trace byte limit exceeded/);
     phase("overflow checked");
-    await assert.rejects(context.tracing.stop({ path: `${directory}/overflow.zip` }), /Browser trace byte limit exceeded/);
-    await assert.rejects(access(`${directory}/overflow.zip`));
+    // A rejected recorder must leave no archive in the provider filesystem.
+    await assert.rejects(lease.captureArtifact!(async path => {
+      await assert.rejects(context.tracing.stop({ path }), /Browser trace byte limit exceeded/);
+    }, captureOptions), { code: "ENOENT" });
     await context.tracing.start({ snapshots: true, screenshots: false });
     assert.deepEqual(await streamers(), originalStreamers);
     await page.locator("p").textContent();
     await lease.checkTrace!(lease.context, { signal });
-    await context.tracing.stop({ path: `${directory}/restarted.zip` });
+    const restarted = await archive(path => context.tracing.stop({ path }));
     phase("restarted archive");
-    assert.ok((await archive("restarted")).entries.some(entry => entry.name === "trace.trace"));
+    assert.ok(restarted.entries.some(entry => entry.name === "trace.trace"));
     await sibling.close();
     return Response.json({ ok: true });
   } catch (error) {
     console.error("[trace-budget conformance] original failure", error);
     throw error;
-  } finally { phase("release"); await lease.release(); await rm(directory, { recursive: true, force: true }); phase("released"); }
+  } finally { phase("release"); await lease.release(); phase("released"); }
 } };

@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { CommandContext } from "../../src/contracts/index.js";
-import { createMemoryFileSystem } from "../../src/fs/memory/index.js";
-import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
+import type { CommandContext } from "safe-bash-contracts";
+import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createTimeoutCommand } from "./index.js";
 
 test("kill-after policy rejection preserves parent cancellation precedence", async () => {
   for (const cancelled of [true, false]) {

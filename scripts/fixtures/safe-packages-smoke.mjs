@@ -1,3 +1,4 @@
+import "./safe-packages-timeout.mjs";
 import { verification as findVerification } from "./safe-packages-find.mjs";
 await findVerification;
 import "./safe-packages-truncate.mjs";

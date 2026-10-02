@@ -113,3 +113,20 @@ test("cp unit graph builds canonical contracts and shared copy helpers", async (
     assert.ok(plan.buildStages.some(stage => stage.name === name), `${name} must build before cp unit tests`);
   }
 });
+
+test("timeout owns its lifecycle regressions and extraction plan", () => {
+  const owned = readdirSync(new URL("packages/safe-bash-command-timeout/src/", root));
+  for (const name of ["timeout-policy-cancellation.test.ts", "timeout-policy-rejection-cancellation.test.ts"]) {
+    assert.ok(owned.includes(name), name);
+  }
+  assert.ok(readFileSync(new URL("docs/plans/safe-bash-command-timeout.md", root), "utf8").includes("private"));
+});
+
+test("timeout unit graph builds its canonical contracts and engines", async () => {
+  const { createWorkspaceTestPlan } = await import("../../../scripts/build-workspaces.mjs");
+  const { fileURLToPath } = await import("node:url");
+  const plan = createWorkspaceTestPlan(fileURLToPath(root), { workspaces: ["safe-bash-command-timeout"] });
+  for (const name of ["safe-bash-contracts", "safe-bash-io-engine", "@poe-code/safe-fs"]) {
+    assert.ok(plan.buildStages.some(stage => stage.name === name), `${name} must build before timeout unit tests`);
+  }
+});

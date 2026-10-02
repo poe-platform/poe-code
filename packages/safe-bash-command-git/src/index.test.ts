@@ -392,3 +392,53 @@ test("git --version avoids reading working tree files and hex codec avoids per-b
   assert.match(stdout, /^git version /);
   assert.equal(readCount, 0, "git --version must not traverse the filesystem");
 });
+
+test("git init scopes to target directory and git status skips nested git repositories", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.mkdir("/workspace/run-22", { recursive: true });
+  await fs.mkdir("/workspace/run-23", { recursive: true });
+  const readPaths: string[] = [];
+  const origReadFile = fs.readFile.bind(fs);
+  fs.readFile = async (path, options) => {
+    readPaths.push(String(path));
+    return origReadFile(path, options);
+  };
+  const cmd = createGitCommand();
+  const run = async (cwd: string, args: string[]) => {
+    let stdout = "";
+    let stderr = "";
+    const res = await cmd.execute({
+      args,
+      cwd,
+      env: {},
+      fs,
+      signal: new AbortController().signal,
+      stdin: (async function* () {})(),
+      stdout: { write(b: Uint8Array) { stdout += new TextDecoder().decode(b); } },
+      stderr: { write(b: Uint8Array) { stderr += new TextDecoder().decode(b); } },
+    } as CommandContext);
+    return { exitCode: res.exitCode, stdout, stderr };
+  };
+
+  assert.equal((await run("/workspace", ["init", "-b", "main"])).exitCode, 0);
+  assert.equal((await run("/workspace/run-22", ["init", "-b", "main"])).exitCode, 0);
+  await fs.writeFile("/workspace/run-22/huge.bin", new Uint8Array([9, 8, 7, 6]));
+
+  readPaths.length = 0;
+  const initRes = await run("/workspace/run-23", ["init", "-b", "main"]);
+  assert.equal(initRes.exitCode, 0, initRes.stderr);
+  assert.ok(
+    !readPaths.includes("/workspace/run-22/huge.bin"),
+    "git init in /workspace/run-23 must not read sibling /workspace/run-22/huge.bin",
+  );
+
+  await fs.mkdir("/workspace/run-24", { recursive: true });
+  readPaths.length = 0;
+  const statusRes = await run("/workspace/run-24", ["status", "--short", "--branch"]);
+  assert.equal(statusRes.exitCode, 0, statusRes.stderr);
+  assert.ok(
+    !readPaths.includes("/workspace/run-22/huge.bin"),
+    "git status in parent /workspace must skip files inside nested repo /workspace/run-22",
+  );
+  assert.deepEqual(await origReadFile("/workspace/run-22/huge.bin"), new Uint8Array([9, 8, 7, 6]));
+});

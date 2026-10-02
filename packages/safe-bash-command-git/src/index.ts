@@ -54,6 +54,60 @@ const CROSS_REPO_COMMANDS = new Set([
   "clone", "init", "submodule", "worktree", "remote", "fetch", "pull", "push", "bundle", "archive", "daemon", "verify-commit", "verify-tag"
 ]);
 
+function normalizeScopedPath(baseCwd: string, rawPath: string): string | undefined {
+  const combined = rawPath.startsWith("/") ? rawPath : `${baseCwd === "/" ? "" : baseCwd}/${rawPath}`;
+  const parts = combined.split("/");
+  const stack: string[] = [];
+  for (let i = 0; i < parts.length; i++) {
+    const p = parts[i]!;
+    if (!p || p === ".") continue;
+    if (p === "..") return undefined;
+    stack.push(p);
+  }
+  return stack.length > 0 ? "/" + stack.join("/") : undefined;
+}
+
+function resolveGitInitTarget(
+  cwd: string,
+  args: readonly string[],
+  env?: Readonly<Record<string, string | undefined>>,
+): string | undefined {
+  if (env && (env.GIT_DIR || env.GIT_WORK_TREE || env.GIT_COMMON_DIR || env.GIT_OBJECT_DIRECTORY || env.GIT_INDEX_FILE || env.GIT_CONFIG_GLOBAL || env.GIT_CONFIG_SYSTEM)) {
+    return undefined;
+  }
+  if (!cwd.startsWith("/") || args.length === 0) return undefined;
+  let i = 0;
+  while (i < args.length) {
+    const a = args[i]!;
+    if (a === "-c") {
+      i += 2;
+      continue;
+    }
+    break;
+  }
+  if (args[i] !== "init") return undefined;
+  i++;
+  let dirArg: string | undefined;
+  for (; i < args.length; i++) {
+    const a = args[i]!;
+    if (a === "--bare" || a === "--template" || a === "--separate-git-dir" || a.startsWith("--template=") || a.startsWith("--separate-git-dir=")) {
+      return undefined;
+    }
+    if (a === "-b" || a === "--initial-branch" || a === "--shared" || a === "--object-format" || a === "--ref-format") {
+      i++;
+      if (i >= args.length) return undefined;
+      continue;
+    }
+    if (a === "-q" || a === "--quiet" || a.startsWith("--initial-branch=") || a.startsWith("--shared=") || a.startsWith("--object-format=") || a.startsWith("--ref-format=")) {
+      continue;
+    }
+    if (a.startsWith("-")) return undefined;
+    if (dirArg !== undefined) return undefined;
+    dirArg = a;
+  }
+  return normalizeScopedPath(cwd, dirArg ?? ".");
+}
+
 function canScopeGitToRepoRoot(args: readonly string[], env?: Readonly<Record<string, string | undefined>>): boolean {
   if (env && (env.GIT_DIR || env.GIT_WORK_TREE || env.GIT_COMMON_DIR || env.GIT_OBJECT_DIRECTORY || env.GIT_INDEX_FILE || env.GIT_CONFIG_GLOBAL || env.GIT_CONFIG_SYSTEM)) {
     return false;
@@ -87,6 +141,16 @@ async function resolveAsyncScopedRepoRoot(
   env: Readonly<Record<string, string | undefined>>,
   signal: AbortSignal,
 ): Promise<string | undefined> {
+  const initTarget = resolveGitInitTarget(cwd, args, env);
+  if (initTarget) {
+    try {
+      const st = await fs.lstat(initTarget, { signal });
+      if (st.type === "directory") return initTarget;
+    } catch {
+      return undefined;
+    }
+    return undefined;
+  }
   if (!canScopeGitToRepoRoot(args, env) || !cwd.startsWith("/") || cwd === "/") return undefined;
   let cur = cwd;
   while (cur && cur !== "/") {
@@ -114,6 +178,11 @@ function resolveSyncScopedRepoRoot(
   cwd: string,
   args: readonly string[],
 ): string | undefined {
+  const initTarget = resolveGitInitTarget(cwd, args);
+  if (initTarget) {
+    const st = inspectNode(initTarget, false);
+    return st && st.type === "directory" ? initTarget : undefined;
+  }
   if (!canScopeGitToRepoRoot(args) || !cwd.startsWith("/") || cwd === "/") return undefined;
   let cur = cwd;
   while (cur && cur !== "/") {
@@ -178,6 +247,33 @@ async function snapshot(
       signal.throwIfAborted();
       if(entries.length>=limits.maxEntries) throw new Error('Git filesystem entry limit exceeded');
       const full=path==='/' ? `/${child.name}` : `${path}/${child.name}`;
+      if (
+        unbounded &&
+        scopedRoot !== undefined &&
+        child.type === "directory" &&
+        full !== scopedRoot &&
+        !full.includes("/.git/") &&
+        !full.endsWith("/.git") &&
+        cwd !== full &&
+        !cwd.startsWith(`${full}/`)
+      ) {
+        try {
+          const nestedGit = await fs.lstat(`${full}/.git`, { signal });
+          if (nestedGit.type === "directory") {
+            entries.push({ path: full, kind: "directory", mode: 0o755, data: "" });
+            entries.push({ path: `${full}/.git`, kind: "directory", mode: 0o755, data: "" });
+            try {
+              const headBytes = await fs.readFile(`${full}/.git/HEAD`, { signal });
+              entries.push({ path: `${full}/.git/HEAD`, kind: "file", mode: 0o644, data: encode(headBytes) });
+            } catch {
+              // Optional HEAD marker in nested repo.
+            }
+            continue;
+          }
+        } catch {
+          // Not a nested git repository.
+        }
+      }
       if (unbounded && child.type === "directory") {
         pending.push({ path: full, depth: depth + 1 });
         entries.push({ path: full, kind: "directory", mode: 0o755, data: "" });
@@ -471,6 +567,25 @@ export function evalSyncGit(
       if (!stat) continue;
       let bytes: Uint8Array;
       if (stat.type === "directory") {
+        if (
+          scopedRoot !== undefined &&
+          full !== scopedRoot &&
+          !full.includes("/.git/") &&
+          !full.endsWith("/.git") &&
+          cwd !== full &&
+          !cwd.startsWith(`${full}/`)
+        ) {
+          const nestedGit = inspectNode(`${full}/.git`, false);
+          if (nestedGit && nestedGit.type === "directory") {
+            entries.push({ path: full, kind: "directory", mode: 0o755, data: "" });
+            entries.push({ path: `${full}/.git`, kind: "directory", mode: 0o755, data: "" });
+            const headBytes = readFile(`${full}/.git/HEAD`);
+            if (headBytes) {
+              entries.push({ path: `${full}/.git/HEAD`, kind: "file", mode: 0o644, data: encode(headBytes) });
+            }
+            continue;
+          }
+        }
         bytes = new Uint8Array(0);
         pending.push({ path: full, depth: depth + 1 });
       } else if (stat.type === "symlink") {
@@ -483,7 +598,7 @@ export function evalSyncGit(
         return undefined;
       }
       totalBytes += full.length + bytes.byteLength;
-      if (totalBytes > 16 * 1024 * 1024) return undefined;
+      if (totalBytes > 512 * 1024) return undefined;
       entries.push({ path: full, kind: stat.type, mode: stat.mode, data: encode(bytes) });
     }
   }

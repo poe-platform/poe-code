@@ -7,19 +7,18 @@ export function evalSyncTruncate(
 ): string | undefined {
   try {
     const args = parseArguments(opArgs, false);
-    if (args.display === "help") return helpText;
-    if (args.display === "version") return "truncate (safe-bash; GNU coreutils 9.7 semantics)\n";
-    if (!writeFileSync || args.files.length === 0) return undefined;
-    const blockFactor = args.ioBlocks ? 4096n : 1n;
+    if (args.display || args.ioBlocks || !writeFileSync || args.files.length === 0) return undefined;
     let refSize: bigint | undefined;
     if (args.reference !== undefined) {
       const refBytes = readFileSync?.(args.reference);
       if (!refBytes) return undefined;
       refSize = BigInt(refBytes.length);
     }
+    const blockFactor = 1n;
+    const planned: Array<{ file: string; out: Uint8Array }> = [];
     for (const file of args.files) {
       const existing = readFileSync?.(file);
-      if (!existing && args.noCreate) continue;
+      if (!existing && args.noCreate) return undefined;
       const curSize = BigInt(existing?.length ?? 0);
       const base = refSize ?? curSize;
       const scaledSize = args.size === undefined ? undefined : args.size * blockFactor;
@@ -38,6 +37,9 @@ export function evalSyncTruncate(
       if (existing && existing.length > 0) {
         out.set(existing.subarray(0, Math.min(existing.length, n)));
       }
+      planned.push({ file, out });
+    }
+    for (const { file, out } of planned) {
       if (!writeFileSync(file, out)) return undefined;
     }
     return "";

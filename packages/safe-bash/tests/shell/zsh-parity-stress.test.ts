@@ -940,3 +940,21 @@ test("51. sync vs async parity for ls, realpath, readlink, rg, and fd semantics"
     assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
   }
 });
+
+
+test("52. sync vs async parity for split, csplit, truncate, and dd semantics", async () => {
+  const scripts = [
+    "mkdir -p /sp52; cd /sp52; printf \"hello\\nworld\\n\" > xaa; x=\$(split -l 1 xaa 2>/dev/null; echo \$?); echo \"\$x:\$(cat xaa)\"",
+    "mkdir -p /cs52; cd /cs52; printf \"foo\\r\\nbar\\n\" > in.txt; x=\$(csplit in.txt \"/foo\$/\" 2>/dev/null; echo \$?); y=\$(csplit in.txt \"/bar/ 1\" 2>/dev/null; echo \$?); echo \"\$x|\$y\"",
+    "mkdir -p /tr52/d; printf \"hello\" > /tr52/f; a=\$(truncate --version); b=\$(truncate -o -s 1 /tr52/f 2>/dev/null; echo \$?); c=\$(truncate -c -s 0 /tr52/d 2>/dev/null; echo \$?); echo \"\$a|\$b|\$c\"",
+    "mkdir -p /dd52; cd /dd52; a=\$(dd conv=ucase, status=none <<< \"hi\" 2>/dev/null; echo \$?); b=\$(dd bs=2*2 status=none <<< \"hi\" 2>/dev/null; echo \$?); c=\$(dd of=- status=none <<< \"hi\"); echo \"\$a|\$b|\$c:\$(cat -)\"",
+  ];
+  for (const script of scripts) {
+    const syncSh = setup().shell.use(agentCommands());
+    const asyncSh = setup().shell.use(agentCommands()).use(async (_ctx, next) => next());
+    const rSync = await syncSh.exec(script);
+    const rAsync = await asyncSh.exec(script);
+    assert.equal(rSync.exitCode, rAsync.exitCode, `exitCode mismatch for ${script}`);
+    assert.equal(rSync.stdout, rAsync.stdout, `stdout mismatch for ${script}`);
+  }
+});

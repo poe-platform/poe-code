@@ -2,9 +2,12 @@ const syncDdUtf8Decoder = new TextDecoder("utf-8", { fatal: true });
 
 function parseSyncDdSize(raw: string): bigint | undefined {
   if (!raw) return undefined;
+  const factors = raw.split("x");
+  if (factors.slice(0, -1).includes("0")) return undefined;
   let product = 1n;
-  for (const factor of raw.split(/[x*]/u)) {
-    const m = /^(\+?\d*)([cwbkKMGTPEZY]?i?B?)$/u.exec(factor.trim());
+  for (const factor of factors) {
+    const trimmedLeading = factor.replace(/^[ \t\r\n\v\f]+/u, "");
+    const m = /^(\+?\d*)([cwbkKMGTPEZY]?i?B?)$/u.exec(trimmedLeading);
     if (!m || (!m[1] && !m[2])) return undefined;
     const base = m[1] && m[1] !== "+" ? BigInt(m[1]) : 1n;
     const suf = m[2]!;
@@ -91,7 +94,7 @@ export function evalSyncDd(
         count = p;
         countBytes = v.includes("B");
       } else if (k === "conv") {
-        for (const item of v.split(",").filter(Boolean)) {
+        for (const item of v.split(",")) {
           if (
             item !== "ucase" && item !== "lcase" && item !== "swab" &&
             item !== "block" && item !== "unblock" && item !== "sync" &&
@@ -100,13 +103,13 @@ export function evalSyncDd(
           convert.add(item);
         }
       } else if (k === "iflag") {
-        for (const item of v.split(",").filter(Boolean)) {
+        for (const item of v.split(",")) {
           if (item !== "skip_bytes" && item !== "count_bytes" && item !== "fullblock") return undefined;
           iflags.add(item);
         }
       } else if (k === "oflag") {
-        for (const item of v.split(",").filter(Boolean)) {
-          if (item !== "seek_bytes" && item !== "append") return undefined;
+        for (const item of v.split(",")) {
+          if (item !== "seek_bytes") return undefined;
           oflags.add(item);
         }
       } else {
@@ -124,14 +127,13 @@ export function evalSyncDd(
     skipBytes ||= iflags.has("skip_bytes");
     seekBytes ||= oflags.has("seek_bytes");
     countBytes ||= iflags.has("count_bytes");
-    if (output === "/dev/stdout" || output === "-") output = undefined;
     const ibsNum = Number(ibs);
     const obsNum = Number(obs);
     const cbsNum = Number(cbs);
     if (!Number.isSafeInteger(ibsNum) || ibsNum <= 0 || !Number.isSafeInteger(obsNum) || obsNum <= 0) return undefined;
     if ((convert.has("block") || convert.has("unblock")) && (!Number.isSafeInteger(cbsNum) || cbsNum <= 0 || cbsNum > 4096)) return undefined;
     let sourceBytes = inBytes;
-    if (input !== undefined && input !== "-" && input !== "/dev/stdin") {
+    if (input !== undefined) {
       if (input === "/dev/null") {
         sourceBytes = new Uint8Array(0);
       } else if (input === "/dev/zero") {

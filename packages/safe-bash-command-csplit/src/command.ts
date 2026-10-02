@@ -103,22 +103,27 @@ export function evalSyncCsplit(
   const inputArg = operands[0]!;
   const src = inputArg === "-" ? (inBytes ?? new Uint8Array(0)) : readFileSync?.(inputArg);
   if (!src) return undefined;
+  if (src.includes(0)) return undefined;
   const lines: Uint8Array[] = [];
   const lineStrings: string[] = [];
-  const lineDec = new TextDecoder("utf-8", { fatal: false });
+  const lineDec = new TextDecoder("utf-8", { fatal: true });
   let lineStart = 0;
-  for (let i = 0; i < src.length; i++) {
-    if (src[i] === 10) {
-      const sub = src.subarray(lineStart, i + 1);
-      lines.push(sub);
-      lineStrings.push(lineDec.decode(src.subarray(lineStart, i)).replace(/\r$/, ""));
-      lineStart = i + 1;
+  try {
+    for (let i = 0; i < src.length; i++) {
+      if (src[i] === 10) {
+        const sub = src.subarray(lineStart, i + 1);
+        lines.push(sub);
+        lineStrings.push(lineDec.decode(src.subarray(lineStart, i)));
+        lineStart = i + 1;
+      }
     }
-  }
-  if (lineStart < src.length) {
-    const sub = src.subarray(lineStart);
-    lines.push(sub);
-    lineStrings.push(lineDec.decode(sub).replace(/\r$/, ""));
+    if (lineStart < src.length) {
+      const sub = src.subarray(lineStart);
+      lines.push(sub);
+      lineStrings.push(lineDec.decode(sub));
+    }
+  } catch {
+    return undefined;
   }
   type SyncCsplitPat =
     | { kind: "line"; line: number; repeat: number }
@@ -144,14 +149,10 @@ export function evalSyncCsplit(
     }
     if (p.startsWith("/") || p.startsWith("%")) {
       const delim = p[0]!;
-      let closeIdx = -1;
-      for (let c = 1; c < p.length; c++) {
-        if (p[c] === "\\") { c++; continue; }
-        if (p[c] === delim) { closeIdx = c; break; }
-      }
-      if (closeIdx < 1) return undefined;
+      const closeIdx = p.lastIndexOf(delim);
+      if (closeIdx <= 0) return undefined;
       const rawRe = p.slice(1, closeIdx);
-      const offStr = p.slice(closeIdx + 1).trim();
+      const offStr = p.slice(closeIdx + 1);
       let offset = 0;
       if (offStr.length > 0) {
         const offVal = integer(offStr, true);

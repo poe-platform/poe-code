@@ -198,6 +198,11 @@ export function evalSyncSplit(
     const args = parseArguments(opArgs, limits);
     const src = args.input === "-" ? (inBytes ?? new Uint8Array(0)) : readFileSync?.(args.input);
     if (!src) return undefined;
+    const fatalDecoder = new TextDecoder("utf-8", { fatal: true });
+    const decodeSyncSlice = (bytes: Uint8Array): string | undefined => {
+      if (bytes.includes(0)) return undefined;
+      try { return fatalDecoder.decode(bytes); } catch { return undefined; }
+    };
     if (args.selectedChunk > 0) {
       const ci = args.selectedChunk - 1;
       if (args.chunkMode === "round-robin") {
@@ -218,14 +223,14 @@ export function evalSyncSplit(
           merged.set(p, off);
           off += p.length;
         }
-        return decoder.decode(merged);
+        return decodeSyncSlice(merged);
       }
       const chunkSize = Math.floor(src.length / args.size);
       const rem = src.length % args.size;
       if (args.chunkMode === "bytes") {
         const start = chunkSize * ci + Math.min(ci, rem);
         const end = chunkSize * (ci + 1) + Math.min(ci + 1, rem);
-        return decoder.decode(src.subarray(start, end));
+        return decodeSyncSlice(src.subarray(start, end));
       }
       let chunkOffset = 0;
       for (let idx = 0; idx <= ci; idx++) {
@@ -234,7 +239,7 @@ export function evalSyncSplit(
         while (end < src.length && end > 0 && src[end - 1] !== args.separator) {
           end++;
         }
-        if (idx === ci) return decoder.decode(src.subarray(chunkOffset, end));
+        if (idx === ci) return decodeSyncSlice(src.subarray(chunkOffset, end));
         chunkOffset = end;
       }
       return "";
@@ -322,10 +327,17 @@ export function evalSyncSplit(
     } else {
       return undefined;
     }
-    const created: string[] = [];
+    const normInput = args.input === "-" ? undefined : args.input.replace(/^\.\/+/, "");
+    const planned: Array<{ fileName: string; chunk: Uint8Array }> = [];
     for (const chunk of chunks) {
       if (chunk.length === 0 && args.elideEmpty) continue;
       const fileName = names.next();
+      const normOut = fileName.replace(/^\.\/+/, "");
+      if (normInput !== undefined && (normOut === normInput || readFileSync?.(fileName) !== undefined)) return undefined;
+      planned.push({ fileName, chunk });
+    }
+    const created: string[] = [];
+    for (const { fileName, chunk } of planned) {
       if (!writeFileSync(fileName, chunk)) return undefined;
       created.push(fileName);
     }

@@ -1,3 +1,4 @@
+export const NODE_HELP_TEXT = "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, and --enable-source-maps.\nUse --input-type=module or --input-type=commonjs and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n";
 import { byteLength } from "../../byte-encoding.js";
 import { dirname, resolvePath } from "../../contracts/path.js";
 import type { CommandDefinition } from "../../contracts/command.js";
@@ -136,7 +137,7 @@ export function createSafeJsNodeCommand<Budget = unknown>(options?: NodeSafeJsCo
   const definitions = createSafeJsCommands(options, {
     name: "node",
     description: "Execute JavaScript with an injected SafeJS runtime and virtual I/O",
-    help: "Usage: node [--check | -e SOURCE | -p EXPRESSION] [FILE | -] [ARG...]\nExecutes with the injected SafeJS interpreter; no native Node.js process.\nSupports --check/-c (inject parseSourceModule), --eval, --print, and --enable-source-maps.\nUse --input-type=module or --input-type=commonjs and -- before operands.\nNo source operand reads stdin. Files and inline source leave stdin for guest data.\nUse async imports from fs or require(\"node:fs/promises\").\nUse fs.readFileSync(path, encoding) for synchronous guest text reads.\nImport or require path or node:path for virtual POSIX path helpers.\nUse --require/-r to preload virtual .cjs, .js or .json modules.\nRequire explicit virtual module paths; native modules and package search are not supported.\n",
+    help: NODE_HELP_TEXT,
     invocation: args => invocation(args, metadata),
     transformSource(source, selected) {
       if (source.startsWith("#!")) {

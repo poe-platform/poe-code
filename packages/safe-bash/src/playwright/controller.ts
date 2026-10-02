@@ -1554,8 +1554,8 @@ export function createPlaywrightController(options: PlaywrightControllerOptions 
               await runAction(session, () => page!.keyboard.press(parsed.value!));
             } else if (parsed.command === 'screenshot') {
               const bytes = parsed.ref
-                ? await capturePlaywrightTargetScreenshot(await resolveTarget(session, parsed.ref), { type: parsed.imageType, scale: parsed.scale, maxPixels: options.limits?.maxScreenshotPixels, timeout: sessionActionTimeout(session), maxArtifactBytes: Math.min(maxArtifactBytes, Number.MAX_SAFE_INTEGER), signal: local.signal })
-                : await capturePlaywrightScreenshot(page!, { type: parsed.imageType, fullPage: parsed.fullPage, scale: parsed.scale, timeout: sessionActionTimeout(session), maxArtifactBytes: Math.min(maxArtifactBytes, Number.MAX_SAFE_INTEGER), signal: local.signal });
+                ? await capturePlaywrightTargetScreenshot(await resolveTarget(session, parsed.ref), { type: parsed.imageType, scale: parsed.scale, maxPixels: options.limits?.maxScreenshotPixels, timeout: sessionActionTimeout(session), maxArtifactBytes, signal: local.signal })
+                : await capturePlaywrightScreenshot(page!, { type: parsed.imageType, fullPage: parsed.fullPage, scale: parsed.scale, maxPixels: options.limits?.maxScreenshotPixels, timeout: sessionActionTimeout(session), maxArtifactBytes, signal: local.signal });
               checkSession(session);
               // Uint8Array constructor copies even when bytes is a Buffer view.
               const filename = parsed.filename ?? capabilityArtifactName(parsed.ref ? 'element' : 'page', parsed.imageType, session.configuration);

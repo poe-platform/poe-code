@@ -3,6 +3,7 @@ export interface PlaywrightScreenshotOptions {
   readonly fullPage: boolean;
   readonly timeout: number;
   readonly maxArtifactBytes: number;
+  readonly maxPixels?: number | undefined;
   readonly signal?: AbortSignal;
   readonly scale?: 'css' | 'device';
 }
@@ -67,7 +68,7 @@ export async function capturePlaywrightScreenshot(page: PlaywrightScreenshotPage
   const ratio = geometry.ratio ?? 1;
   const rasterWidth = Math.ceil(width * ratio / blockSize) * blockSize;
   const rasterHeight = Math.ceil(height * ratio / blockSize) * blockSize;
-  const maxPixels = Math.floor(maxArtifactBytes / 4);
+  const maxPixels = Math.min(Math.floor(maxArtifactBytes / 4), options.maxPixels ?? Infinity);
   if (rasterWidth > Math.floor(maxPixels / rasterHeight)) throw new PlaywrightResourceLimitError('Screenshot pixel limit exceeded');
   const bytes = await page.screenshot({ type, ...(type === 'jpeg' ? { quality: 90 } : {}), fullPage, timeout, scale, clip: { x: 0, y: 0, width, height } });
   options.signal?.throwIfAborted();

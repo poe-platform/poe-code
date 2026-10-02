@@ -12,7 +12,7 @@ function deferred<T>() {
   const promise = new Promise<T>((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
 }
-function fixture(maxSessions = 2, maxArtifactBytes?: number) {
+function fixture(maxSessions = 2, maxArtifactBytes?: number, maxScreenshotPixels?: number) {
   const events: string[] = [];
   const leases: { lease: PlaywrightLease; lost(): void; releases: number; callbacks: (() => void)[] }[] = [];
   const adapter: PlaywrightAdapter = {
@@ -35,7 +35,7 @@ function fixture(maxSessions = 2, maxArtifactBytes?: number) {
       return item.lease;
     },
   };
-  const controller = createPlaywrightController({ adapter, limits: { maxSessions, ...(maxArtifactBytes === undefined ? {} : { maxArtifactBytes }) } });
+  const controller = createPlaywrightController({ adapter, limits: { maxSessions, ...(maxScreenshotPixels === undefined ? {} : { maxScreenshotPixels }), ...(maxArtifactBytes === undefined ? {} : { maxArtifactBytes }) } });
   const run = (args: string[], overrides = {}) => controller.run({ args, env: {}, signal: new AbortController().signal, write: async (text: string) => { events.push(`out:${text}`); }, ...overrides });
   return { controller, adapter, events, leases, run };
 }
@@ -928,12 +928,33 @@ test('screenshots without an artifact budget admit large geometry and small prod
     const bytes = new Uint8Array([1]);
     let captures = 0;
     const writes: Uint8Array[] = [];
-    Object.assign(page, { evaluate: async () => ({ width: 4096, height: 4096 }) });
+    Object.assign(page, { evaluate: async () => ({ width: 100_000_000, height: 100_000_000 }) });
     page.screenshot = async () => { captures++; return bytes; };
     await current.run(['screenshot', '--full-page'], { writeArtifact: async (output: Uint8Array) => { writes.push(output); } });
     assert.equal(captures, 1);
     assert.deepEqual(writes, [bytes]);
     assert.equal(current.leases[0]!.releases, 0);
+  } finally { await current.controller.dispose(); }
+});
+
+for (const fullPage of [false, true]) test(`page screenshots honor explicit pixel budgets and preserve recovery: ${fullPage}`, async () => {
+  const current = fixture(2, undefined, 64);
+  try {
+    await current.run(['open']);
+    const page = await current.leases[0]!.lease.context.newPage();
+    let width = 9;
+    let captures = 0;
+    Object.assign(page, { evaluate: async () => ({ width, height: 8 }) });
+    page.screenshot = async () => { captures++; return new Uint8Array([1]); };
+    const args = ['screenshot', ...(fullPage ? ['--full-page'] : [])];
+    await assert.rejects(current.run(args, { writeArtifact: async () => {} }), /Screenshot pixel limit exceeded/);
+    assert.equal(captures, 0);
+    assert.equal(current.leases[0]!.releases, 0);
+    await current.run(['tab-list']);
+    width = 8;
+    await current.run(args, { writeArtifact: async () => {} });
+    assert.equal(captures, 1);
+    assert.equal(current.leases.length, 1);
   } finally { await current.controller.dispose(); }
 });
 

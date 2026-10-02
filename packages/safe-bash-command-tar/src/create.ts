@@ -1,7 +1,7 @@
 import { compareIdentity, compareFileVersion } from "@poe-code/safe-fs/contracts";
 import { encodeEntry,type Entry } from "./format.js";
 import { quoteName } from "./listing.js";
-import { Exclusions,type TarOptions } from "./options.js";
+import { Exclusions,type Operand,type TarOptions } from "./options.js";
 import { recordPadding } from "./stream.js";
 import { TransformedNames } from "./transform.js";
 import { dirname,readBytes,resolvePath,type ByteSource,type CommandContext,type FileStat } from "safe-bash-contracts";
@@ -34,11 +34,11 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
   }
   const identities = new Map<object | symbol, Map<string, Map<string, SourceEntry>>>();
   const bindings = new Map<string, { scope: object | symbol; key: string }>();
-  const visit = async (path: string, name: string, depth: number, explicit: boolean, ancestors: readonly string[]): Promise<void> => {
+  const visit = async (path: string, name: string, depth: number, explicit: boolean, ancestors: readonly string[], operand: Operand): Promise<void> => {
     checkPath(name, budget.limits);
     if (depth > budget.limits.maxDepth) fail("source traversal depth limit exceeded");
     await budget.member();
-    if (exclusions.matches(name)) return;
+    if (exclusions.matches(name, operand.excludeCount)) return;
     let stat = await operation(context, () => context.fs.lstat(path, { signal: context.signal }));
     if (stat.type === "symlink" && options.dereference) {
       path = await operation(context, () => context.fs.realpath(path, { signal: context.signal }));
@@ -107,7 +107,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     archiveBytes += headers.reduce((size, header) => size + header.length, 0) + Math.ceil(entry.size / 512) * 512;
     if (options.format === "ustar" && headers.length > 1) fail(`metadata requires PAX format: ${display(name)}`);
     entries.push({ path, canonical, stat, entry, ...(sourceLink === undefined ? {} : { sourceLink }) });
-    if (stat.type === "directory" && options.recursion) {
+    if (stat.type === "directory" && (operand.recursion ?? options.recursion)) {
       const maxEntries = budget.limits.maxMembers - budget.members;
       const children = await operation(context, () => context.fs.readdir(path, { signal: context.signal,
         ...(Number.isFinite(maxEntries) ? { maxEntries } : {}) }));
@@ -131,7 +131,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
       for (const child of children) {
         if (!child.name || child.name === "." || child.name === ".." || /[/\0]/u.test(child.name)) fail("invalid filesystem directory entry");
         if (cache && child.name !== "CACHEDIR.TAG") continue;
-        await visit(resolvePath(canonical, child.name), `${rawName}${child.name}`, depth + 1, false, [...ancestors, canonical]);
+        await visit(resolvePath(canonical, child.name), `${rawName}${child.name}`, depth + 1, false, [...ancestors, canonical], operand);
       }
     }
   };
@@ -140,7 +140,7 @@ export async function manifest(context: CommandContext, options: TarOptions, bud
     if (base.type !== "directory") fail(`not a directory: ${display(operand.cwd)}`);
     if (operand.name.startsWith("/")) await budget.output("tar: removing leading '/' from member names\n", true);
     if (operand.name.split("/").includes("..")) await budget.output("tar: removing member-name prefix through '..'\n", true);
-    await visit(vfsPath(operand.cwd, operand.name), safeName(operand.name), 0, true, []);
+    await visit(vfsPath(operand.cwd, operand.name), safeName(operand.name), 0, true, [], operand);
   }
   if (options.mode === "c") recordPadding(archiveBytes, options.recordSize, budget.limits.maxArchiveBytes);
   return { entries, ...(output === undefined ? {} : { output }), ...(outputStat === undefined ? {} : { outputStat }) };

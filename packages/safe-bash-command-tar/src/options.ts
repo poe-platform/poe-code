@@ -3,7 +3,7 @@ import { collectBytes,type CommandContext } from "safe-bash-contracts";
 import { byteLength,encodeBytes } from "safe-bash-io-engine/byte-encoding";
 import { checkPath,fail,operation,smallFile,text,vfsPath,type ArchiveLimits } from "safe-bash-io-engine/commands/archive/internal";
 
-export interface Operand { readonly name: string; readonly cwd: string }
+export interface Operand { readonly name: string; readonly cwd: string; readonly excludeCount?: number; readonly recursion?: boolean }
 export interface TarOptions {
   mode: "c" | "t" | "x" | "r" | "u" | "d" | "delete" | "A";
   archive: string;
@@ -60,7 +60,6 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   let filesFrom = false;
   let stdinUsed = false;
   let filesFromBytes = 0;
-  let lateExclude = false;
   let wildcards = false;
   let occurrence: number | undefined;
   const metadata: TarOptions["metadata"] = {};
@@ -69,13 +68,12 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   const exclude = (pattern: string) => {
     checkPath(pattern, limits);
     if (excludes.length >= limits.maxMembers) fail("exclude pattern limit exceeded");
-    if (operands.length) lateExclude = true;
     excludes.push(pattern);
   };
   const operand = (name: string) => {
     checkPath(name, limits);
     if (operands.length >= limits.maxMembers) fail("operand limit exceeded");
-    operands.push({ name, cwd });
+    operands.push({ name, cwd, excludeCount: excludes.length, recursion });
   };
   const directory = async (name: string) => {
     checkPath(name, limits);
@@ -271,7 +269,6 @@ export async function parseOptions(context: CommandContext, limits: ArchiveLimit
   if (occurrence !== undefined && (creating || mode === "A" || !operands.length)) fail("--occurrence requires member operands when reading archives");
   if (mode !== "c" && archive === "-" && stdinUsed) fail("archive and file list cannot both use standard input");
   if (mode !== "t" && mode !== "x" && strip !== 0) fail("--strip-components is only supported when listing or extracting archives");
-  if (creating && lateExclude) fail("--exclude after source operands is unsupported; place exclusions before operands");
   if (mode === "c" && !operands.length && !filesFrom) fail("refusing to create an empty archive without -T");
   if (archive !== "-") checkPath(archive, limits);
   if (mode === "c" && autoCompress) {
@@ -348,9 +345,10 @@ export class Exclusions {
   private readonly patterns: Token[][];
   private work = 0;
   constructor(patterns: readonly string[], readonly maxWork = Infinity, private readonly anchored = false) { this.patterns = patterns.map(pattern => tokenize(anchored ? pattern : exclusionName(pattern))); }
-  matches(name: string): boolean {
+  matches(name: string, count = this.patterns.length): boolean {
     const characters = Array.from(this.anchored ? name : exclusionName(name));
-    for (const tokens of this.patterns) {
+    for (let pattern = 0; pattern < count; pattern++) {
+      const tokens = this.patterns[pattern]!;
       let states = new Uint8Array(characters.length + 1);
       states[0] = 1;
       if (!this.anchored) for (let index = 0; index < characters.length; index++) if (characters[index] === "/") states[index + 1] = 1;

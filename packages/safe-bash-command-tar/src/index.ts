@@ -104,8 +104,10 @@ Create, read or modify USTAR/PAX archives in the virtual filesystem.
       --no-null           Read newline-delimited filenames
       --verbatim-files-from Treat file-list entries as literal filenames
       --no-verbatim-files-from Enable supported file-list directory options
-      --exclude=PATTERN   Exclude paths (place before source operands)
+      --exclude=PATTERN   Exclude paths from subsequent sources
       --exclude-caches    Keep cache directories and tags, omit other contents
+      --no-recursion      Archive subsequent directories without their contents
+      --recursion         Recurse into subsequent directories (default)
       --sort=ORDER        Order directory children by name or none (default)
   -h, --dereference       Archive symbolic-link targets during creation
   -X, --exclude-from=FILE Read newline-delimited exclusion patterns
@@ -113,7 +115,7 @@ Create, read or modify USTAR/PAX archives in the virtual filesystem.
       --no-wildcards      Select literal member names (default)
       --occurrence[=NUM]  Select only occurrence NUM of each operand (default 1)
       --strip-components=NUM Remove leading components when reading archives
-      --transform=EXPR    Substitute member names when listing (s/old/new/[gix])
+      --transform=EXPR    Substitute member names (s/old/new/[gix])
       --show-transformed-names Display transformed names in archive listings
       --format=FORMAT     Create pax (default), posix or ustar archives
       --mtime=DATE        Override creation mtime (@seconds or ISO/RFC date)

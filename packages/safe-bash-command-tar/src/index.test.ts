@@ -207,3 +207,63 @@ for (const aliases of [true, false]) test(`tar groups opaque hardlinks: aliases=
   assert.equal(new TextDecoder().decode(await fs.readFile("/out/b")), aliases ? "one" : "two");
   assert.equal((await fs.stat("/out/a")).ino === (await fs.stat("/out/b")).ino, aliases);
 });
+
+for (const mode of ["c", "r", "u"]) test(`tar ${mode} applies exclusions positionally and transforms source names`, async () => {
+  const fs = createMemoryFileSystem();
+  for (const dir of ["src1", "src2"]) {
+    await fs.mkdir(`/${dir}`);
+    await fs.writeFile(`/${dir}/a.tmp`, new TextEncoder().encode(dir));
+    await fs.writeFile(`/${dir}/b.txt`, new TextEncoder().encode(dir));
+  }
+  await fs.writeFile("/names", new TextEncoder().encode("src2\n"));
+  await fs.writeFile("/empty", new Uint8Array());
+  if (mode !== "c") assert.equal((await run(createTarCommand(), ["-cf", "/out.tar", "-T", "/empty"], "", fs)).exitCode, 0);
+  const result = await run(createTarCommand(), [`-${mode}f`, "/out.tar", "--sort=name", "--transform=s,src,pkg,", "src1", "--exclude=*.tmp", "-T", "/names"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await run(createTarCommand(), ["-tf", "/out.tar"], "", fs)).stdout, "pkg1/\npkg1/a.tmp\npkg1/b.txt\npkg2/\npkg2/b.txt\n");
+});
+
+test("tar recursion controls apply to subsequent source operands", async () => {
+  const fs = createMemoryFileSystem();
+  for (const dir of ["one", "two"]) {
+    await fs.mkdir(`/${dir}`);
+    await fs.writeFile(`/${dir}/a`, new Uint8Array([1]));
+  }
+  const result = await run(createTarCommand(), ["-cf", "/out.tar", "--no-recursion", "one", "--recursion", "two"], "", fs);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal((await run(createTarCommand(), ["-tf", "/out.tar"], "", fs)).stdout, "one/\ntwo/\ntwo/a\n");
+});
+
+for (const show of [false, true]) test(`tar strips short members and displays extracted names (show=${show})`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/src");
+  await fs.mkdir("/out");
+  await fs.writeFile("/src/a", new TextEncoder().encode("payload"));
+  assert.equal((await run(createTarCommand(), ["-cf", "/out.tar", "src"], "", fs)).exitCode, 0);
+  const flags = ["--strip-components=1", ...(show ? ["--show-transformed-names"] : [])];
+  const listed = await run(createTarCommand(), ["-tf", "/out.tar", ...flags], "", fs);
+  assert.equal(listed.exitCode, 0, listed.stderr);
+  assert.equal(listed.stdout, "a\n");
+  const extracted = await run(createTarCommand(), ["-xvf", "/out.tar", "-C", "/out", "--xform=s,a,b,", ...flags], "", fs);
+  assert.equal(extracted.exitCode, 0, extracted.stderr);
+  assert.equal(extracted.stdout, show ? "b\n" : "src/a\n");
+  assert.equal(new TextDecoder().decode(await fs.readFile("/out/b")), "payload");
+});
+
+test("positional exclusions share their pattern work budget", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new Uint8Array());
+  await fs.writeFile("/b", new Uint8Array());
+  const result = await run(createTarCommand({ limits: { maxPatternSteps: 3 } }), ["-cf", "/out.tar", "--exclude=z", "a", "b"], "", fs);
+  assert.equal(result.exitCode, 2);
+  assert.ok(result.stderr.includes("exclude pattern work limit exceeded"), result.stderr);
+});
+
+for (const mode of ["c", "x"]) test(`tar ${mode} rejects transformed traversal names`, async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/a", new Uint8Array([1]));
+  assert.equal((await run(createTarCommand(), ["-cf", "/out.tar", "a"], "", fs)).exitCode, 0);
+  const result = await run(createTarCommand(), [`-${mode}f`, "/out.tar", "--transform=s,a,../escape,", "a"], "", fs);
+  assert.equal(result.exitCode, 2, result.stderr);
+  await assert.rejects(fs.stat("/escape"));
+});

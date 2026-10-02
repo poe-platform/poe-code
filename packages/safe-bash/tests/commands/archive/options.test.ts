@@ -423,7 +423,7 @@ test("PAX global/local precedence, deletion and embedded newline", async () => {
   } finally { await shell.dispose(); }
 });
 
-for (const flags of ["-cf", "-cxf archive", "-cf archive -z --xz file", "-cf archive -Jj file", "-cf archive --format=zip file", "-cf archive --strip-components=1 file", "-tf - --strip-components=-1", "--create=yes", "cf archive", "-tf - --wildcards=yes", "cf archive file --exclude=foo"]) test(`unsupported/invalid flags are not ignored: ${flags}`, async () => {
+for (const flags of ["-cf", "-cxf archive", "-cf archive -z --xz file", "-cf archive -Jj file", "-cf archive --format=zip file", "-cf archive --strip-components=1 file", "-tf - --strip-components=-1", "--create=yes", "cf archive", "-tf - --wildcards=yes"]) test(`unsupported/invalid flags are not ignored: ${flags}`, async () => {
   const { shell } = await fixture();
   try { assert.equal((await shell.exec(`tar ${flags}`, { stdin: archive() })).exitCode, 2); }
   finally { await shell.dispose(); }

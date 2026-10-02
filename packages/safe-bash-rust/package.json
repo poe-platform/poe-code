@@ -1,0 +1,24 @@
+{
+  "name": "@poe-code/safe-bash-rust",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "description": "Hybrid Rust and TypeScript @poe-platform/safe-bash crate for poe-agent-rust and Rust workspaces",
+  "scripts": {
+    "build": "cargo build --release",
+    "test": "cargo test",
+    "test:unit": "cargo test",
+    "lint": "cargo clippy --all-targets -- -D warnings"
+  },
+  "devDependencies": {
+    "@poe-platform/safe-bash": "*",
+    "@poe-code/git-rust": "*",
+    "mcp-protocol-rust": "*"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/safe-bash-rust"
+  }
+}

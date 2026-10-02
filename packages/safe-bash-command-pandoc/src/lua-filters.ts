@@ -1,9 +1,7 @@
 // Ambient declarations must follow source consumers without adding a runtime import.
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./fengari.d.ts" />
-import runtime from "./fengari.generated.js";
 
-const {lua, lauxlib, lualib, to_luastring, to_jsstring} = runtime as typeof import("fengari");
 import {PandocError} from "./errors.js";
 import {luaAst} from "./lua-ast.js";
 import type {FilterCapability, Document} from "./types.js";
@@ -28,6 +26,8 @@ export function createLuaFilterCapability(load: LuaScriptLoader | LuaFilterOptio
       if (!(source instanceof Uint8Array)) throw new PandocError("E_IO", "convert", "Lua filter source must be bytes");
       context.charge("inputBytes", source.byteLength);
       context.charge("retainedBytes", source.byteLength);
+      const runtime = (await import("./fengari.generated.js")).default as typeof import("fengari");
+      const {lua, lauxlib, lualib, to_luastring, to_jsstring} = runtime;
       const state = lauxlib.luaL_newstate();
       let hookFailure: unknown;
       const fail = (code: "E_AST" | "E_UNSUPPORTED_FEATURE", message: string): never => {

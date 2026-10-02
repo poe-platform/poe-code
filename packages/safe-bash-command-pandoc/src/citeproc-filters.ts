@@ -2,7 +2,6 @@
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./citeproc.d.ts" />
 import {validateCiteprocOptions} from "./options.js";
-import CSL from "citeproc";
 import {PandocError} from "./errors.js";
 import {htmlReader} from "./html.js";
 import type {Block, Citation, Inline, MetaValue} from "./ast-types.js";
@@ -225,6 +224,7 @@ export function createCiteprocFilterCapability(options: CiteprocFilterOptions = 
       const upgradedBlocks = upgradeBracketedCitationsInBlocks(document.blocks);
       await collect(upgradedBlocks, 0);
       if (!citations.length) return originalDocument;
+      const { default: CSL } = await import("citeproc");
       document = { ...document, blocks: upgradedBlocks };
       const metadataRefs = document.metadata.references ? metaValueToCsl(document.metadata.references) : undefined;
       const loadedBibRefs: Record<string, unknown>[] = [];

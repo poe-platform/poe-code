@@ -40,7 +40,7 @@ export const odtWriter: WriterCapability = {format: "odt", imageResources: "embe
             const bytes = document.resources.find(r => r.id === source)?.bytes ?? await ctx.resources?.resolve(source, undefined, ctx.signal);
             if (!bytes) odtFailure(ctx, `Missing image resource: ${source}`, "E_RESOURCE");
             ctx.charge("resourceBytes", bytes.length);
-            const {Image, DocumentBudget} = await import("docx");
+            const {Image, DocumentBudget} = await import("docx/pandoc-adapter");
             const asset = await Image.from_blob(bytes, {signal: ctx.signal ?? new AbortController().signal, budget: new DocumentBudget({embeddedMediaBytes: ctx.limits.resourceBytes, retainedBytes: ctx.limits.retainedBytes, work: ctx.limits.work})});
             image = {name: `Pictures/image-${images.size + 1}.${asset.ext}`, width: asset.width.emu, height: asset.height.emu};
             images.set(source, image); parts.set(image.name, bytes); mediaTypes.set(image.name, asset.content_type);

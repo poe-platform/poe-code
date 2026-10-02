@@ -1,4 +1,5 @@
 import type { StateMachineDef } from "./state-machine.js";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 
 export type TaskState = "draft" | "planned" | "in-progress" | "done" | "archived";
 
@@ -75,7 +76,7 @@ export interface TaskListFs {
     isSymbolicLink(): boolean;
   }>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
-  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readFile(path: string, encoding: "utf8"): Promise<string>;
   readdir(path: string): Promise<string[]>;
   rename(fromPath: string, toPath: string): Promise<void>;
   rmdir(path: string): Promise<void>;
@@ -87,8 +88,8 @@ export interface TaskListFs {
   unlink(path: string): Promise<void>;
   writeFile(
     path: string,
-    data: string | NodeJS.ArrayBufferView,
-    options?: BufferEncoding | { encoding?: BufferEncoding; flag?: string }
+    data: string | Uint8Array,
+    options?: "utf8" | { encoding?: "utf8"; flag?: string }
   ): Promise<void>;
 }
 
@@ -145,7 +146,7 @@ export interface OpenMarkdownDirOptions {
   create?: boolean;
   singleList?: string;
   frontmatterMode?: "strict" | "passthrough";
-  fs?: TaskListFs;
+  fs?: TaskListFs | FileSystem;
   stateMachine?: StateMachineDef;
 }
 
@@ -154,7 +155,7 @@ export interface OpenYamlFileOptions {
   path: string;
   defaults?: TaskDefaults;
   create?: boolean;
-  fs?: TaskListFs;
+  fs?: TaskListFs | FileSystem;
   stateMachine?: StateMachineDef;
 }
 

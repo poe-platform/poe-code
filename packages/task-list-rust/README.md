@@ -36,7 +36,8 @@ await work.fire('ship', 'plan');
 ```
 
 Markdown frontmatter is parsed and serialized by the owned Rust YAML implementation;
-file I/O and lifecycle callbacks remain host operations. Atomic writes and locks
+file I/O and lifecycle callbacks remain host operations. Pass a SafeFS filesystem
+or a Node-compatible adapter through `fs`. Atomic writes and locks
 protect task updates. Passthrough mode supports existing plan documents.
 
 GitHub storage supports project status or declarative label states. Supply a token

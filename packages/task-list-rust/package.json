@@ -27,7 +27,8 @@
     "memfs": "4.56.10",
     "@poe-code/config-mutations-rust": "*",
     "@poe-code/process-runner-rust": "*",
-    "@poe-code/user-error-rust": "*"
+    "@poe-code/user-error-rust": "*",
+    "@poe-code/safe-fs": "*"
   },
   "files": [
     "dist",

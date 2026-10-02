@@ -1,4 +1,5 @@
 import * as fsPromises from "node:fs/promises";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import path from "node:path";
 import { openTaskList, type TaskList, type TaskListFs } from "./tasks/index.js";
 import { native } from "./native.js";
@@ -26,7 +27,7 @@ export interface DiscoverPlansOptions {
   homeDir: string;
   planDirectory: string;
   kinds?: readonly string[];
-  fs?: TaskListFs;
+  fs?: TaskListFs | FileSystem;
 }
 
 export interface ArchivePlanOptions {
@@ -34,7 +35,7 @@ export interface ArchivePlanOptions {
   homeDir: string;
   planDirectory: string;
   id: string;
-  fs?: TaskListFs;
+  fs?: TaskListFs | FileSystem;
   metadataPatch?: Record<string, unknown>;
 }
 
@@ -42,12 +43,13 @@ export interface OpenPlanListOptions {
   cwd: string;
   homeDir: string;
   planDirectory: string;
-  fs?: TaskListFs;
+  fs?: TaskListFs | FileSystem;
 }
 
-async function directoryExists(fs: TaskListFs, directoryPath: string): Promise<boolean> {
+async function directoryExists(fs: TaskListFs | FileSystem, directoryPath: string): Promise<boolean> {
   try {
-    return (await fs.stat(directoryPath)).isDirectory();
+    const stat = await fs.stat(directoryPath);
+    return "type" in stat ? stat.type === "directory" : stat.isDirectory();
   } catch (error) {
     if (hasOwnErrorCode(error, "ENOENT") || hasOwnErrorCode(error, "ENOTDIR")) {
       return false;
@@ -59,8 +61,9 @@ async function directoryExists(fs: TaskListFs, directoryPath: string): Promise<b
 
 type PlanFile = { absolutePath: string; updatedAt: number };
 
-async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map<string, PlanFile>> {
-  const fileNames = await fs.readdir(directoryPath);
+async function readPlanPaths(fs: TaskListFs | FileSystem, directoryPath: string): Promise<Map<string, PlanFile>> {
+  const entries = await fs.readdir(directoryPath);
+  const fileNames = entries.map(entry => typeof entry === "string" ? entry : entry.name);
   const filesById = new Map<string, PlanFile>();
 
   for (const fileName of fileNames) {
@@ -71,7 +74,7 @@ async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map
 
     const absolutePath = path.join(directoryPath, fileName);
     const stat = await fs.stat(absolutePath);
-    if (stat.isFile()) {
+    if ("type" in stat ? stat.type === "file" : stat.isFile()) {
       const existing = filesById.get(id);
       if (existing !== undefined) {
         throw new Error(`Duplicate active plan identifier "${id}": ${existing.absolutePath} and ${absolutePath}`);

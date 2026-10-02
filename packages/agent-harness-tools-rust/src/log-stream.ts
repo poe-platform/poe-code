@@ -1,5 +1,5 @@
 import nodeFs from "node:fs";
-import type { FSWatcher } from "node:fs";
+import type { FileSystem } from "@poe-code/safe-fs/contracts";
 import {native} from "./native.js";
 function hasOwnErrorCode(error:unknown,code:string):boolean {
  return typeof error==="object"&&error!==null&&Object.prototype.hasOwnProperty.call(error,"code")&&(error as {code?:unknown}).code===code;
@@ -10,16 +10,16 @@ const JOB_DIR = "/tmp/poe-jobs";
 const POLL_INTERVAL_MS = 250;
 
 export interface LogStreamEnv {
-  fs?: LogStreamFs;
+  fs?: LogStreamFs | FileSystem;
 }
 
 export interface LogStreamFs {
   promises: {
-    readFile(path: string): Promise<Buffer | string>;
+    readFile(path: string): Promise<Uint8Array | string>;
     stat?(path: string): Promise<{ mtimeMs: number }>;
     lstat?(path: string): Promise<{ isSymbolicLink(): boolean }>;
   };
-  watch?: (path: string, listener: () => void) => FSWatcher;
+  watch?: (path: string, listener: () => void) => { close(): void };
 }
 
 export function wrapForLogTee(argv: string[], jobId: string): string[] {
@@ -39,7 +39,7 @@ export async function* streamLogFile(
 ): AsyncIterable<LogChunk> {
   assertSafeJobId(jobId);
 
-  const fs = env.fs ?? nodeFs;
+  const fs = logFileSystem(env.fs ?? nodeFs);
   const file = jobLogPath(jobId);
   let byteOffset =
     opts.sinceByte ?? (opts.since === undefined ? 0 : await readCurrentByteLength(fs, file));
@@ -107,7 +107,7 @@ export async function waitForExit(
 ): Promise<{ exitCode: number }> {
   assertSafeJobId(jobId);
 
-  const fs = env.fs ?? nodeFs;
+  const fs = logFileSystem(env.fs ?? nodeFs);
   const file = jobExitPath(jobId);
 
   while (true) {
@@ -219,7 +219,7 @@ async function waitForLogChange(fs: LogStreamFs, file: string): Promise<void> {
   }
 
   await new Promise<void>((resolve) => {
-    let watcher: FSWatcher | null = null;
+    let watcher: { close(): void } | null = null;
     let settled=false;
     const timer = setTimeout(done, POLL_INTERVAL_MS);
 
@@ -267,4 +267,13 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
   if (signal?.aborted) {
     throw new Error("waitForExit aborted.");
   }
+}
+
+function logFileSystem(fs: LogStreamFs | FileSystem): LogStreamFs {
+  if (!("capabilities" in fs)) return fs;
+  return { promises: {
+    readFile: path => fs.readFile(path),
+    stat: path => fs.stat(path),
+    async lstat(path) { const stat = await fs.lstat(path); return { isSymbolicLink: () => stat.type === "symlink" }; }
+  } };
 }

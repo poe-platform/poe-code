@@ -12,11 +12,11 @@ The package is additive and has no npm runtime dependencies.
 - Resolve loop agents and map source paths into execution worktrees.
 - Discover workflow documents with project overrides and symlink/traversal checks.
 - Discover markdown plans, filter kinds, and sort ready plans before drafts.
-- Open plan task lists and archive plans with finalization metadata.
+- Open plan task lists and archive plans with finalization metadata using Node or SafeFS storage.
 - Summarize completed plans, follow-up messages and pending work.
 - Generate distinct plan log directories and UTC role filenames.
 - Reject log directories whose canonical ancestors escape the state directory.
-- Replay or follow managed job logs without splitting UTF-8 characters.
+- Replay or follow managed job logs from Node or SafeFS storage without splitting UTF-8 characters.
 - Wait for decimal exit status with cancellation and symlink checks.
 - Register and select custom execution factories by runtime type.
 - Run commands inline or detached with persisted job lifecycle updates.

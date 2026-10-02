@@ -2302,6 +2302,8 @@
     },
     "./commands/bc": {
       "types": "./dist/commands/bc/index.d.ts",
+      "workerd": "./dist/commands/bc/index.browser.js",
+      "browser": "./dist/commands/bc/index.browser.js",
       "import": "./dist/commands/bc/index.js"
     },
     "./commands/sponge": {

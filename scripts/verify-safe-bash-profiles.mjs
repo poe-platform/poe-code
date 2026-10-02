@@ -172,6 +172,10 @@ export default { async fetch() {
     const javascript = result.outputFiles.filter(output => output.path.endsWith(".js")).map(output => output.text).join("\n");
     const contributing = Object.values(result.metafile.outputs).flatMap(output => Object.entries(output.inputs)
       .filter(([, input]) => input.bytesInOutput > 0).map(([filename]) => filename));
+    if (name === "enabledConsumer" || name === "splitEnabledConsumer") {
+      assert.ok(!contributing.some(filename => filename.endsWith("/safe-bash/shell/runtime.js")),
+        `${name}: duplicate unbundled shell runtime`);
+    }
     assert.equal(contributing.some(filename => path.basename(filename).startsWith("python-worker-source")),
       profile.embeddedPython ?? false, `${name}: embedded CSV Python worker selection`);
     for (const engine of profile.forbidden) {

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { realpath } from "node:fs/promises";
-import path from "node:path";
+import { resolvePath } from "@poe-code/safe-fs/core";
+import { createHostFileSystem } from "@poe-code/safe-fs/node";
 import { fileURLToPath } from "node:url";
 
 import type { RunCliOptions } from "./cli-runtime.js";
@@ -84,9 +84,10 @@ async function isDirectExecution(entryPoint: string | undefined): Promise<boolea
   }
 
   try {
+    const fs = createHostFileSystem();
     const [resolvedEntryPoint, resolvedModule] = await Promise.all([
-      realpath(path.resolve(entryPoint)),
-      realpath(fileURLToPath(import.meta.url))
+      fs.realpath(resolvePath(process.cwd(), entryPoint)),
+      fs.realpath(fileURLToPath(import.meta.url))
     ]);
     return resolvedEntryPoint === resolvedModule;
   } catch {

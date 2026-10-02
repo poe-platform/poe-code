@@ -683,3 +683,25 @@ test("retaining sinks preserve every batch and matched rows before an input fail
     if (failed) assert.ok(f.error().includes("error:"));
   }
 });
+
+test("file fallback omits unlimited read caps and preserves finite caps", async () => {
+  for (const limits of [{}, { inputBytes: Infinity, retainedBytes: Infinity }, { inputBytes: 1000 }, { retainedBytes: 1000 }]) {
+    const run = fixture(['-c1', '-mx', 'data.csv'], '');
+    let reads = 0;
+    const context = { ...run.context, fs: {
+      async readFile(_path: string, options?: { signal?: AbortSignal; maxBytes?: number }) {
+        reads++;
+        assert.ok(options?.signal instanceof AbortSignal);
+        if (limits.inputBytes === 1000 || limits.retainedBytes === 1000) {
+          assert.ok(Number.isSafeInteger(options?.maxBytes));
+          assert.ok(options!.maxBytes! > 0 && options!.maxBytes! <= 1000);
+        } else assert.equal(Object.hasOwn(options!, "maxBytes"), false);
+        return encoder.encode('a\nx\n');
+      }
+    } as CommandContext['fs'] };
+    assert.equal((await csvgrep(context, undefined, { limits })).exitCode, 0);
+    assert.equal(reads, 1);
+    assert.equal(run.text(), 'a\nx\n');
+    await Promise.all(run.cleanups.map(cleanup => cleanup()));
+  }
+});

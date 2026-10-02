@@ -297,7 +297,7 @@ export async function csvgrep(
           b.limits.inputBytes - b.accounting.inputBytes,
           b.limits.retainedBytes - b.accounting.retainedBytes
         );
-        const bytes = await context.fs.readFile(resolved, { signal, maxBytes });
+        const bytes = await context.fs.readFile(resolved, { signal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
         signal.throwIfAborted();
         if (bytes.length > maxBytes) throw new CsvError("LIMIT", "VFS read limit exceeded");
         b.charge("retainedBytes", bytes.length);

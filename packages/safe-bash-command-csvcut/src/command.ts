@@ -177,7 +177,7 @@ export async function csvcut(context: CommandContext, invocation?: CsvcutInvocat
           if (context.fs.readStream) input = context.fs.readStream(resolved, { signal: readSignal });
           else input = (async function* () {
             const maxBytes = Math.min(budget.limits.inputBytes - budget.accounting.inputBytes, budget.limits.retainedBytes - budget.accounting.retainedBytes);
-            const bytes = await context.fs.readFile(resolved, { signal: readSignal, maxBytes });
+            const bytes = await context.fs.readFile(resolved, { signal: readSignal, ...(Number.isFinite(maxBytes) ? { maxBytes } : {}) });
             readSignal.throwIfAborted();
             if (extent.call(bytes) > maxBytes) throw new CsvError('LIMIT', 'VFS read limit exceeded');
             budget.charge("retainedBytes", extent.call(bytes) as number);

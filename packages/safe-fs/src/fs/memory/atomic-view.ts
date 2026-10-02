@@ -5,13 +5,16 @@ export interface MemoryAtomicView {
   stat(path: string): FileStat | undefined;
   names(path: string): readonly string[];
 }
-const views = new WeakMap<FileSystem, { view: MemoryAtomicView; intact: () => boolean }>();
+type LazyMemoryAtomicView = (this: FileSystem) => MemoryAtomicView | undefined;
+const views = new WeakMap<FileSystem, { view: MemoryAtomicView; intact: () => boolean } | LazyMemoryAtomicView>();
 export function registerMemoryAtomicView(fs: FileSystem, view: MemoryAtomicView, intact: () => boolean): void {
   views.set(fs, { view, intact });
 }
+export function registerLazyMemoryAtomicView(fs: FileSystem, create: LazyMemoryAtomicView): void {
+  views.set(fs, create);
+}
 export function memoryAtomicView(fs: FileSystem): MemoryAtomicView | undefined {
   const registered = views.get(fs);
-  if (registered) return registered.intact() ? registered.view : undefined;
-  const lazy = (fs as { _getAtomicView?: () => MemoryAtomicView | undefined })._getAtomicView;
-  return typeof lazy === "function" ? lazy.call(fs) : undefined;
+  if (typeof registered === "function") return registered.call(fs);
+  return registered?.intact() ? registered.view : undefined;
 }

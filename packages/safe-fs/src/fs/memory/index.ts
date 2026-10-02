@@ -8,7 +8,7 @@ import type {
 } from "../../contracts/filesystem.js";
 import type { ByteSource } from "../../contracts/io.js";
 import { normalizePath, validatePath, pathByteLength } from "../../contracts/virtual-path.js";
-import { assertCallbackAuthorityAllowed, compareEntries } from "../mount/comparison.js";
+import { assertCallbackAuthorityAllowed, compareEntries, registerEntryAuthority } from "../mount/comparison.js";
 import type { EntryAuthority } from "../mount/comparison.js";
 import { getOwnedS3Entry } from "../s3/registry.js";
 import { getOwnedWebDavEntry } from "../webdav/resource-id.js";
@@ -18,6 +18,7 @@ import { directoryAncestryPaths, runStagingGuard, snapshotDirectoryAncestry, sna
 import { compareIdentity } from "../mount/identity.js";
 import { createStagingCleanup, snapshotStagingCreation } from "../staging-cleanup.js";
 import { resolveMissingTarget } from "./missing-target.js";
+import { registerLazyMemoryAtomicView, type MemoryAtomicView } from "./atomic-view.js";
 import { snapshotConditionalChmod } from "../conditional-chmod.js";
 import { MemoryAllocation, MemoryLedger } from "./ledger.js";
 import { normalizeMemoryFileSystemLimits, type MemoryFileSystemOptions } from "./limits.js";
@@ -776,7 +777,7 @@ export class MemoryFileSystem implements FileSystem {
   private readonly root: DirectoryNode;
   private totalBytes = 0;
   symlinkCount = 0;
-  _entryAuthority = compareOwnedMemory;
+  #atomicView: MemoryAtomicView | undefined;
 
   _getAtomicView() {
     const owner = ownedStores.get(this);
@@ -802,7 +803,7 @@ export class MemoryFileSystem implements FileSystem {
         if (!actual || actual.value !== expected.value || actual.get !== expected.get || actual.set !== expected.set) return undefined;
       }
     }
-    return {
+    return this.#atomicView ??= {
       stat: (path: string) => {
         this.validatePath(path, "overlayAtomicView");
         let node: MemoryNode | undefined = this.root;
@@ -842,6 +843,11 @@ export class MemoryFileSystem implements FileSystem {
     };
     this._owner = owner;
     ownedStores.set(this, owner);
+    registerLazyMemoryAtomicView(this, memoryImplementation._getAtomicView!.value);
+    if (this.compareEntry === memoryImplementation.compareEntry?.value) {
+      registeredAuthorities.add(this);
+      registerEntryAuthority(this, compareOwnedMemory);
+    }
   }
 
   compareEntry(path: string, peer: FileSystem, peerPath: string, options: FsOptions = {}): Promise<EntryComparison> {

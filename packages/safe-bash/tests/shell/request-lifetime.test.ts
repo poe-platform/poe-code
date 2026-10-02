@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createMemoryFileSystem, createOverlayFileSystem, createMountFileSystem, createReadOnlyFileSystem } from "@poe-code/safe-fs";
 import { Shell } from "../../src/shell/shell.js";
 import { structuredCommands } from "../../src/commands/structured/index.js";
 import { textProgramCommands } from "../../src/commands/text-programs/index.js";
@@ -92,3 +92,40 @@ test("fast pipeline native host signal propagates caller cancellation", async ()
   assert.equal(hostSignal!.reason, reason);
   await shell.dispose();
 });
+
+for (const kind of ["overlay", "mount", "readonly"] as const) {
+  for (const cancel of [false, true]) test(`awk completion releases ${kind} filesystem, state and output (cancel=${cancel})`, { skip: !globalThis.gc }, async () => {
+    const refs = await (async () => {
+      const backing = createMemoryFileSystem();
+      const fs = kind === "overlay" ? createOverlayFileSystem({ lower: backing, upper: createMemoryFileSystem() })
+        : kind === "mount" ? createMountFileSystem({ root: backing }) : createReadOnlyFileSystem(backing);
+      const controller = new AbortController();
+      const references: WeakRef<object>[] = [new WeakRef(fs)];
+      const shell = new Shell({ fs, env: { SECRET: "synthetic-secret" } }).use(standardCommands()).use(textProgramCommands());
+      const stdin = {
+        async *[Symbol.asyncIterator]() {
+          yield new TextEncoder().encode("private input\n");
+          if (cancel) controller.abort(new Error("cancelled awk"));
+        },
+      };
+      try {
+        const execution = shell.exec("private=value; echo private-error >&2; awk '{print}'", {
+          stdin, signal: controller.signal,
+          onState(state) { references.push(new WeakRef(state)); },
+        });
+        if (cancel) await assert.rejects(execution);
+        else {
+          const result = await execution;
+          assert.equal(result.exitCode, 0, result.stderr);
+          references.push(new WeakRef(result.stdoutBytes), new WeakRef(result.stderrBytes));
+        }
+      } finally { await shell.dispose(); }
+      return references;
+    })();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      await new Promise<void>(resolve => setImmediate(resolve));
+      globalThis.gc!();
+    }
+    assert.deepEqual(refs.map(ref => ref.deref() === undefined), refs.map(() => true));
+  });
+}

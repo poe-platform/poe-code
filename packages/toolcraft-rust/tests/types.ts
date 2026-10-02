@@ -1,4 +1,21 @@
 import * as native from "../dist/index.js";
+import * as cliPolicy from "../dist/cli-policy.js";
+import type * as referenceCLI from "toolcraft/cli";
+const cliControlsNative: cliPolicy.CLIControls = {} as referenceCLI.CLIControls;
+const cliControlsReference: referenceCLI.CLIControls = {} as cliPolicy.CLIControls;
+const cliOutputContextNative: cliPolicy.CLIOutputFormatContext = {} as referenceCLI.CLIOutputFormatContext;
+const cliOutputContextReference: referenceCLI.CLIOutputFormatContext = {} as cliPolicy.CLIOutputFormatContext;
+const cliSnapshotOptionNative: cliPolicy.CLICommandTreeSnapshotOption = {} as referenceCLI.CLICommandTreeSnapshotOption;
+const cliSnapshotOptionReference: referenceCLI.CLICommandTreeSnapshotOption = {} as cliPolicy.CLICommandTreeSnapshotOption;
+const cliResolved=cliPolicy.resolveCLIControls({help:"concise",output:{formats:{compact:context=>String(context.result)}}});
+const cliFlags: ReadonlySet<string> = cliPolicy.getGlobalLongOptionFlags(true,false,cliResolved);
+const cliOptions: referenceCLI.CLICommandTreeSnapshotOption[] = cliPolicy.createGlobalSnapshotOptions(false,true,cliResolved);
+const cliName: string = cliPolicy.formatCLIName("HTTPServer","snake");
+// @ts-expect-error CLI names only support kebab and snake casing
+cliPolicy.formatCLIName("name","camel");
+// @ts-expect-error custom output renderers return strings or undefined
+cliPolicy.resolveCLIControls({output:{formats:{invalid:()=>17}}});
+void [cliControlsNative,cliControlsReference,cliOutputContextNative,cliOutputContextReference,cliSnapshotOptionNative,cliSnapshotOptionReference,cliFlags,cliOptions,cliName];
 import * as logging from "../../toolcraft/dist/runtime-logging.js";
 import * as errors from "../../toolcraft/dist/http-errors.js";
 import * as suggestions from "../../toolcraft/dist/suggest.js";

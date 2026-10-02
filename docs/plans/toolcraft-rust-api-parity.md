@@ -2889,3 +2889,48 @@ hash dependency; its build and postbuild passed. The identical metadata correcti
 arrived independently on remote main, so rebase dropped the duplicate local fix.
 The selected build covered 230 build tasks from the derived 290-workspace closure;
 this is build evidence, not additional test or release-publication evidence.
+
+### CLI naming and global controls checkpoint
+
+The internal CLI policy module now implements word boundaries and kebab/snake
+naming, control resolution, custom output-format admission, reserved global flags
+and global command-tree option descriptions in Rust. Node retains indexed reads,
+live Unicode/string/array operations, callback identities, object enumeration,
+iteration and caller-realm errors. Log-level choices derive from the existing
+native log-level inventory. No public CLI entry point, dependencies or default
+implementation changed. Schema field collection, command-tree assembly, parsing,
+help and execution remain open.
+
+Four missing-module tests preceded the port. Seven final differential tests use
+the actual private reference functions extracted with the existing TypeScript
+parser in memory, without copying their implementation or writing fixture files.
+They cover all 256 control/preset/version combinations, global option order,
+custom-format diagnostics, Unicode and lone surrogates, boxed/indexed inputs,
+repeated getters, live casing methods, callback metadata, iterator closing,
+arbitrary thrown values and reentrancy. A failing malformed-array-method case
+demonstrated V8 error-text differences; explicit host expressions now preserve
+the original collection names. Maintained package verification passes 144 native
+tests and 1,721 reference/integration cases in 45 files, plus declarations.
+Build, Rust/binding lint and scoped ESLint pass.
+
+Packed CLI policies execute with the packed own native schema dependency and
+other external ESM packages blocked. Packed declarations compile with `types: []`,
+but existing contract types still resolve from the checkout; this does not prove
+complete isolated type packaging. The inspected global-option table preview uses
+identical reference/native data and ANSI output; it is not a complete CLI/help
+integration screenshot. The adapter retains the existing 128-entry reentrancy
+guard, whose complete resource compatibility remains unqualified.
+
+Five alternating warmed Node 22.23.2 ARM64 rounds, 1,000 calls per fixture and
+32 retained results, measured native/reference medians of 90.760/1.042 microseconds
+for a 23-character name (87.10 times slower), 11.100/0.070 for controls with a
+custom output format (159.13 times slower), and 16.361/0.103 for all global options
+(158.46 times slower). These fixtures do not pass the performance gate. Reducing
+native/host crossings remains required before considering a default swap.
+
+The renderer is verified on remote main at
+c16ca651544a6b7057158027852fe97cba711db3. Its Toolcraft package workflow 37053617629
+is running and main Release workflow 37053618196 remains pending; publication is
+not yet verified. After rebasing incoming command-package moves, the maintained
+Safe Bash dependency closure was rebuilt successfully and its installed `pwd`
+smoke check passed again. The underlying startup/artifact coupling remains open.

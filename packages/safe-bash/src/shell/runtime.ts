@@ -9413,57 +9413,9 @@ export class Runtime {
         if (res !== undefined && chargedReadFsOp) this.budget.fileSystemOperation();
         return res;
       }
-      // The bounded loop optimizer either completes or declines before the
-      // general loop executor takes ownership of iteration state.
-      const syncLoopRes = this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
-      if (syncLoopRes !== undefined) return syncLoopRes;
-      if (
-        command.kind === "arithmetic-for" &&
-        !pipeline.negate &&
-        canMutatePipeStatus &&
-        (!ignored ? !rawState.errexit : true) &&
-        !rawState.nounset &&
-        !rawState.readonlyVariables?.size &&
-        this._syncReturnDepth === 0 &&
-        command.expressions.length === 3
-      ) {
-        const e0 = command.expressions[0]!;
-        const e1 = command.expressions[1]!;
-        const e2 = command.expressions[2]!;
-        if (
-          !e0.error && !e1.error && !e2.error &&
-          e0.tree?.kind === "binary" && e0.tree.operator === "=" && e0.tree.left.kind === "name" && e0.tree.left.subscript === undefined && e0.tree.right.kind === "literal" && e0.tree.right.value === 0n &&
-          e1.tree?.kind === "binary" && e1.tree.operator === "<" && e1.tree.left.kind === "name" && e1.tree.left.name === e0.tree.left.name && e1.tree.right.kind === "literal" && e1.tree.right.value > 0n && e1.tree.right.value <= 32n &&
-          e2.tree?.kind === "unary" && e2.tree.operator === "++" && e2.tree.operand.kind === "name" && e2.tree.operand.name === e0.tree.left.name
-        ) {
-          const indName = e0.tree.left.name;
-          const lim = Number(e1.tree.right.value);
-          if (!store?.get(indName) && !monitor.hasOverlay(indName)) {
-            this._syncReturnDepth++;
-            rawState.loopDepth++;
-            let lastSt = 0;
-            try {
-              for (let k = 0; k < lim; k++) {
-                this.budget.loop();
-                rawState.variables[indName] = intToStr(k);
-                const bRes = this.trySyncScript(command.body, state, io, ignored);
-                if (typeof bRes !== "number" || this._syncPendingReturnStatus !== undefined || this._syncLoopAction !== undefined) {
-                  return undefined;
-                }
-                lastSt = bRes;
-              }
-              rawState.variables[indName] = intToStr(lim);
-              monitor.publishStringVariable(indName, intToStr(lim));
-            } finally {
-              rawState.loopDepth--;
-              this._syncReturnDepth--;
-            }
-            rawState.status = lastSt;
-            return lastSt;
-          }
-        }
-      }
-      return undefined;
+      // Declined loops belong to the resumable executor. Starting their bodies
+      // here without a continuation would replay effects after a suspension.
+      return this.trySyncLoop(command, pipeline, rawState, monitor, store, existing, elem0, canMutatePipeStatus, io, diagnosticLine);
     }
     if (command.kind === "group" || command.kind === "if" || command.kind === "case") {
       if ( command.redirects.length !== 0 || pipeline.negate || !canMutatePipeStatus || (!ignored && rawState.errexit) || rawState.nounset || rawState.readonlyVariables?.size || hasYieldCheckpoint(this.signal) || (this._syncReturnDepth === 0 && (((this.budget.commands + 32) & 8191) < 32 || !this.canSyncCommandCompound(command, rawState, 0, rawState.loopDepth)))) {

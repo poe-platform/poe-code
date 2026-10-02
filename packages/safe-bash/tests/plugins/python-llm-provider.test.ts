@@ -3,6 +3,10 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { pythonLlmProvider } from '../../src/commands/python/llm-provider.js';
 
+const testPython = process.env.LLM_TEST_PYTHON ?? process.env.LLM_REFERENCE_PYTHON ?? 'python3';
+const referenceAvailable = spawnSync(testPython, ['-B', '-c', 'from importlib.metadata import version; assert version("llm") == "0.27.1"'], { timeout: 5000 }).status === 0;
+const pythonDependency = referenceAvailable || process.env.LLM_TEST_PYTHON || process.env.LLM_REFERENCE_PYTHON ? false : 'Requires pinned llm==0.27.1; set LLM_TEST_PYTHON or LLM_REFERENCE_PYTHON';
+
 const setup = `
 import json, sys, types
 from contextlib import contextmanager
@@ -31,14 +35,14 @@ entry = {"id":"fixture", "capabilities":[], "metadata":{"attachmentTypes":["text
 `;
 
 function run(program: string): void {
-  const result = spawnSync(process.env.LLM_TEST_PYTHON ?? process.env.LLM_REFERENCE_PYTHON ?? 'python3', ['-B', '-c', setup + program], {
+  const result = spawnSync(testPython, ['-B', '-c', setup + program], {
     input: JSON.stringify(pythonLlmProvider), encoding: 'utf8', timeout: 5000,
   });
   assert.ifError(result.error);
   assert.equal(result.status, 0, result.stdout + result.stderr);
 }
 
-test('genuine provider admits declared structured options and rejects wrong types before dispatch', () => run(`
+test('genuine provider admits declared structured options and rejects wrong types before dispatch', { skip: pythonDependency }, () => run(`
 entry["metadata"]["options"] = {"bias":{"type":"object"}, "stop":{"type":"array"}}
 model = provider.HostModel(entry)
 assert model.prompt("hello", bias={"42":5}, stop=["end"]).text() == "ok"
@@ -53,7 +57,7 @@ for options in [{"bias":[]}, {"stop":{}}, {"unknown":True}]:
  assert len(payloads) == before
 `));
 
-test('genuine provider retains history attachments and retires each invocation spool', () => run(`
+test('genuine provider retains history attachments and retires each invocation spool', { skip: pythonDependency }, () => run(`
 model = provider.HostModel(entry)
 conversation = model.conversation()
 attachment = llm.Attachment(content=b"original", type="text/plain")
@@ -68,7 +72,7 @@ assert closed == list(inputs)
 assert attachment.content == b"original"
 `));
 
-test('genuine async provider preserves structured options and historical attachment content', () => run(`
+test('genuine async provider preserves structured options and historical attachment content', { skip: pythonDependency }, () => run(`
 import asyncio
 class Bridge:
  async def stream(self, payload):
@@ -88,7 +92,7 @@ async def check():
 asyncio.run(check())
 `));
 
-test('genuine provider retires staged historical attachments when a later source fails', () => run(`
+test('genuine provider retires staged historical attachments when a later source fails', { skip: pythonDependency }, () => run(`
 model = provider.HostModel(entry)
 conversation = model.conversation()
 assert conversation.prompt("before", attachments=[llm.Attachment(content=b"history", type="text/plain")]).text() == "ok"
@@ -102,7 +106,7 @@ assert len(payloads) == before
 assert len(inputs) == 2 and closed == list(inputs)
 `));
 
-test('genuine provider forwards attachments restored on completed responses', () => run(`
+test('genuine provider forwards attachments restored on completed responses', { skip: pythonDependency }, () => run(`
 model = provider.HostModel(entry)
 conversation = model.conversation()
 previous = conversation.prompt("restored")

@@ -50,7 +50,6 @@ export { builtInDirectContextExecutors } from "safe-bash-contracts/runtime-contr
 export { isDefaultCommandOptions, registerDefaultExecutor, registerDefaultExecutors } from "safe-bash-contracts/command";
 
 export { syncCommandEvaluators, type SyncCommandEvaluators } from "safe-bash-contracts/runtime-control";
-import { syncCommandEvaluators } from "safe-bash-contracts/runtime-control";
 
 export { UsageError } from "safe-bash-contracts/diagnostics";
 
@@ -663,13 +662,12 @@ export function evalSyncTee(
   } catch {
     return undefined;
   }
-  if (!writeFileSync) return undefined;
   for (const op of operands) {
     if (!op || op.endsWith("/") || op.endsWith("/.") || op.includes("/./") || /(?:^|\/)\.\.(?:\/|$)/.test(op)) return undefined;
     if (operands.length > 1 && op.includes("/")) return undefined;
   }
   for (const op of operands) {
-    if (!writeFileSync(op, data, append)) return undefined;
+    if (!writeFileSync || !writeFileSync(op, data, append)) return undefined;
   }
   return decodedData;
 }

@@ -3971,7 +3971,7 @@
     {
       "id": "numeric-bessel-high-q",
       "status": "open",
-      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate."
+      "currentFinding": "The artificial phase-dispatch ceiling is removed and source accuracy warnings are preserved above 2^52. Source-qualified split-product/FMA arithmetic and paired floor handle large arguments and terminate underflow/overflow without exhausting work. All 514 focused tests and four compiled public conversions pass their scoped checks; 109/110 native source-component values match exactly, with one independently explained Darwin cosine rounding difference retained in besselPhaseBoundary.largeArguments. Supplemental full macOS Gnumeric qualification compares 205 formulas: 182 exact matches, 23 retained profile differences and 200 matching warnings. Darwin primitive substitution plus the disassembled native FMA order reproduces all 22 small-argument differences; the huge-phase difference is independently explained by cosine rounding. See besselPhaseBoundary.fullNativeApplication. Exact Linux/other-runtime qualification, broader domains and publication remain open. The same compiled 205-formula cohort now matches across Node, Chrome page/module worker and workerd through both public routes, including eight exact-reason cancellation controls with zero publication. Registry-installed qualification remains separate. Linux arm64 now matches a reconstructed 206-formula baseline and 208 independent Debye B2 holdouts through compiled SDK/command; high-order expansion avoids prior work exhaustion. Other domains retain 189 budget failures. See currentQualification20261002.besselHighOrder."
     },
     {
       "id": "format-record-roundtrip",
@@ -4578,7 +4578,29 @@
     "nativeReadback": "Native Gnumeric successfully reads a compiled 2008 XLSX with A1=\"_x0000_\" in validation and conditional rules, but retains the escaped wire spelling _x005F_x0000_ in both expressions and the cell. Independent gzip/XML inspection confirms this native decoding difference. LibreOffice headless conversion of both editions produced no result after several minutes and was terminated; no Calc qualification pass.",
     "remaining": "All 19 families remain open. Native application/profile parity, unresolved implementation requirements and installed registry qualification are not established by these scoped repairs.",
     "lifecycleAndAdmission": "The workspace run found four failures among 26779 tests: fallback disposal applied instanceof to absent WebAssembly.Memory, and the lazy public XLSX wrapper executed array accessors/scanned oversized arrays before canonical admission. Cleanup now checks the constructor; public and codec writers share descriptor-only, bounded admission at the XLSX owner while retaining synchronous snapshots and lazy codec loading. All 31 lifecycle/public reruns and 110 XLSX neighboring checks pass. Compiled command API verifies accessor rejection, synchronous ownership and PDF conversion/disposal with empty WebAssembly after Node HTTP initialization. No frozen full-workspace green rerun is claimed.",
-    "publicationRepair": "The first maintained root build completed all 288 declared workspace builds but failed final publication admission because @peculiar/x509 and reflect-metadata/lite were external without root runtime declarations. Add the same existing pinned versions (2.1.0 and 0.2.2) to the root manifest and lockfile; no resolved versions change. All 53 focused bundle/publication tests pass. The subsequent maintained npm run build completes all workspace and root suffix stages. Both XLSX owner lint/type routes and ssconvert source/test/public-consumer checks pass; the compiled root SDK rejects indexed accessors and preserves synchronous caller ownership. This is local artifact verification, not registry publication or full-family closure."
+    "publicationRepair": "The first maintained root build completed all 288 declared workspace builds but failed final publication admission because @peculiar/x509 and reflect-metadata/lite were external without root runtime declarations. Add the same existing pinned versions (2.1.0 and 0.2.2) to the root manifest and lockfile; no resolved versions change. All 53 focused bundle/publication tests pass. The subsequent maintained npm run build completes all workspace and root suffix stages. Both XLSX owner lint/type routes and ssconvert source/test/public-consumer checks pass; the compiled root SDK rejects indexed accessors and preserves synchronous caller ownership. This is local artifact verification, not registry publication or full-family closure.",
+    "besselHighOrder": {
+      "profile": "Unmodified Gnumeric 1.12.61 / GOffice 0.10.61, Debian arm64 with authenticated dependency profile and exact activated Perl environment.",
+      "sources": {
+        "sf-bessel.c": "7a6d8aa65ac2dfd095ffa8d0bc3e77fc7801cf9adac82c66d276e67072938981",
+        "e_log.c": "a648fbdb78c26536139ec7b820eff4f90eefec9d5bb1341ab63ffa114db0b57b",
+        "e_log_data.c": "889237e40e72fa7cee7244bb0bc00c7e73540a5590e6963b83ad53af0d68e61b"
+      },
+      "reproducer": "Independent Python seed 58421: 384 x/order pairs plus boundary matrix, J and Y, 912 formulas. 341 exceeded a 50000-work limit before repair; 189 still exceed it in other domains.",
+      "implementation": "Debye B2 dispatch for x>=17, order>x, (order-x)/cbrt(x)>=6.5. Shared finite Debye coefficients, native logarithm and observed arithmetic order. The eta product/subtraction must remain separate; fusing them caused 124/208 affected holdout mismatches.",
+      "qualification": {
+        "affectedNativeBinary64Matches": 208,
+        "compiledSdkMatches": 208,
+        "compiledCommandMatches": 208,
+        "baselineNativeBinary64MatchesPerRoute": 206,
+        "baselineWarningsPerRoute": 200,
+        "logarithmNativeBinary64Matches": 20505,
+        "engineTests": 105,
+        "neighborBesselTests": 87,
+        "checks": "Engine lint/types, selected 18-build command dependency closure, compiled SDK and runCommand XLSX with independent ZIP/XML and binary64 comparisons passed. Native near-overflow and negative-order regression controls pass."
+      },
+      "limitations": "All 19 families remain open. The other Bessel domains retain 189 budget failures in this holdout corpus; their numerical outputs are not qualified. No universal correctly-rounded primitive, installed artifact, cross-runtime or release claim."
+    }
   },
   "history": {
     "commit": "27b9a96cbea652668a98d9af6502717c86cbfa1d",

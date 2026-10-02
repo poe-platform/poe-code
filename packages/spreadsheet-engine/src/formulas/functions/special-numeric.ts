@@ -206,6 +206,8 @@ function bessel(name: string, x: number, order: number, host: FunctionHost): num
     const j = bessel("BESSELJ", x, positive, host), y = bessel("BESSELY", x, positive, host);
     return name === "BESSELJ" ? fusedMultiplyAdd(j, cosine, -y * sine) : fusedMultiplyAdd(j, sine, y * cosine);
   }
+  if ((name === "BESSELJ" || name === "BESSELY") && order > x && x >= 17 && (order - x) / Math.cbrt(x) >= 6.5)
+    return capturedHankel(x, order, name === "BESSELY", host);
   if (name === "BESSELI") return x > 709 ? Infinity : order === 0 && x * x >= 100 ? capturedBesselI0(x, host) : series(x, order, true, host);
   if (name === "BESSELK" && x > 705.342) return 0;
   if (name === "BESSELK" && x > 1e-10) return capturedBesselK(x, order, host);

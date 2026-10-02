@@ -5,6 +5,7 @@ import { c, multiply } from "./complex.js";
 import type { FunctionHost } from "./types.js";
 import { capturedPow } from "./captured-pow.js";
 import { capturedAcos } from "./captured-acos.js";
+import { capturedLog } from "./captured-log.js";
 import { capturedLog1p } from "./captured-log1p.js";
 
 /** Correct double-rounded square roots by comparing exact fourth-power midpoints. */
@@ -174,7 +175,7 @@ export function capturedIntegerBesselY(x: number, order: number, host: FunctionH
   return b;
 }
 
-/** Released Debye B1 evaluation for nonzero orders below the phase domain. */
+/** Released Debye B1/B2 evaluation on either side of the high-order domain. */
 export function capturedHankel(x: number, order: number, secondKind: boolean, host: FunctionHost): number {
   const g = Math.abs(x - order) / Math.cbrt(x), terms = g < 7 ? 17 : g < 10 ? 13 : g < 23 ? 9 : 5;
   const coefficients: number[][] = [[1], [.125, -5 / 24]];
@@ -189,6 +190,26 @@ export function capturedHankel(x: number, order: number, secondKind: boolean, ho
       row.push(value);
     }
     coefficients.push(row);
+  }
+  if (order > x) {
+    const difference = fusedMultiplyAdd(order, order, -x * x);
+    const q = order / x, d = Math.sqrt(fusedMultiplyAdd(q, q, -1));
+    const eta = order * capturedLog(q + d) - Math.sqrt(difference);
+    const p = order / Math.sqrt(Math.abs(fusedMultiplyAdd(x, x, -order * order)));
+    let total = 0, scale = 1;
+    for (let n = 0; n <= terms; n++) {
+      host.tick(); let value = 0;
+      const row = coefficients[n]!;
+      for (let i = n; i >= 0; i--) { host.tick(); value = fusedMultiplyAdd(value, p * p, row[i]!); }
+      total += value * (p ** n) * scale;
+      scale /= order;
+      if (secondKind) scale = -scale;
+    }
+    const root = capturedPow(difference, .25, host);
+    const factor = !secondKind ? capturedExp(-eta) / (Math.sqrt(2 * Math.PI) * root)
+      : eta < capturedLog(Number.MAX_VALUE) - .01 ? -Math.sqrt(2 / Math.PI) * capturedExp(eta) / root
+      : -capturedExp(capturedLog(Math.sqrt(2 / Math.PI)) + eta - .25 * capturedLog(difference));
+    return factor * total;
   }
   const difference = fusedMultiplyAdd(x, x, -order * order), p = order / Math.sqrt(difference);
   let real = 0, imaginary = 0, scale = 1;

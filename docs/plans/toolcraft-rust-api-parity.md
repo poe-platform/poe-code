@@ -1606,6 +1606,37 @@ slower). No performance gate passed. Output/stats/context renderers, dashboard
 lifecycle and snapshots, explorer, native batching and broader replacement
 qualification remain open.
 
+### Explorer pane frame checkpoint
+
+`explorer/render/pane` exposes `drawPaneFrame` and the same `paneBodyRect` function
+as `explorer/layout`. Rust owns frame geometry, clipping decisions, title/indicator
+composition and ordered screen calls, using the existing Rust text-cell helpers.
+The host retains screen method lookup/receiver behavior, repeated option reads,
+coordinate coercion, string-repeat lookup order and arbitrary thrown values.
+One-column panes and the reference's UTF-16 indicator-length accounting remain
+unchanged.
+
+Four missing-export tests preceded implementation. Differential coverage includes
+1,008 geometry/title/indicator combinations, malformed inputs, live getters,
+coercion traces, method identity and reentrant drawing. Maintained checks pass
+345 native host tests, 1,379 selected design cases, 13 prompt wrappers,
+132 dashboard/queue cases, 14 composer cases and 149 explorer cases, including
+the original rendering integration snapshots. Rust/binding and scoped JS lint,
+bidirectional types and packed runtime/declarations pass. Packed imports reject
+external ESM dependencies and the type consumer uses `types: []`.
+
+Inspected 72-column and 36-column pane screenshots. Both produce byte-identical
+original-ScreenBuffer output for native/reference drawing, including clipped
+titles, tabs, indicators and single-row/column frames. The screenshot font lacks
+the tested CJK/emoji glyphs; these show placeholders in both paths. No dependency
+or default integration changed.
+
+Five warmed alternating 500-frame Node 22 ARM64 rounds retaining 32 call arrays
+measured 611.864 µs native / 113.255 µs reference for a 48×12 ASCII-title pane
+(5.40× slower), and 605.423 µs / 93.765 µs for a Unicode/tab title (6.46× slower).
+No full-render performance gate passed. Remaining renderers, reducer,
+runtime/public namespace, batching and broader swap qualification remain open.
+
 ### Dashboard output checkpoint
 
 `dashboard/components/output-pane` now exports `computeVisualLines`,

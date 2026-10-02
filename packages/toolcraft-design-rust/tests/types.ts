@@ -907,3 +907,10 @@ const themeNative: explorerTheme.ExplorerTheme = null as unknown as originalExpl
 const stylesOriginal: originalExplorerTheme.ExplorerStyles = null as unknown as explorerTheme.ExplorerStyles;
 const stylesNative: explorerTheme.ExplorerStyles = null as unknown as originalExplorerTheme.ExplorerStyles;
 void [explorerThemeOriginal,explorerThemeNative,explorerThemeKeys,themeOriginal,themeNative,stylesOriginal,stylesNative];
+
+import * as explorerPane from "toolcraft-design-rust/explorer/render/pane";
+import type * as originalExplorerPane from "toolcraft-design/explorer/render/pane";
+const explorerPaneOriginal: typeof originalExplorerPane = explorerPane;
+const explorerPaneNative: typeof explorerPane = null as unknown as typeof originalExplorerPane;
+const explorerPaneKeys: SameKeys<typeof explorerPane,typeof originalExplorerPane> = true;
+void [explorerPaneOriginal,explorerPaneNative,explorerPaneKeys];

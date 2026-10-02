@@ -487,6 +487,10 @@
     "./explorer/theme": {
       "types": "./dist/explorer-theme.d.ts",
       "import": "./dist/explorer-theme.js"
+    },
+    "./explorer/render/pane": {
+      "types": "./dist/explorer-pane.d.ts",
+      "import": "./dist/explorer-pane.js"
     }
   },
   "scripts": {

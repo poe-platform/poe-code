@@ -628,3 +628,8 @@ and revisiting the same content and width reuses the prepared result.
 brand-aware border, accent, match-highlight and status-tone styles. Badge and
 match formatters read the current palette when called; shared palette styles
 retain their identity, while the underlined match style is a fresh object.
+
+`drawPaneFrame(screen, rect, title, style?, options?)` from `explorer/render/pane`
+draws a clipped title, optional indicator and focused or unfocused borders on
+your screen surface. Narrow panes retain their one-column or one-row form.
+The module also re-exports `paneBodyRect` for positioning pane content.

@@ -74,15 +74,19 @@ test('fmt output quota leaves bounded partial redirect output, without rollback 
 });
 
 test('fmt treats host paths and URLs as VFS operands and has no executable fallback', async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem(), env: { LC_ALL: 'C', PATH: '/usr/bin:/bin' }, commands: new CommandRegistry([fmtCommand()]) });
+  const fs = new MemoryFileSystem();
+  await fs.writeFile('/input', encode('aa bb cc dd ee'));
+  const shell = new Shell({ fs, env: { LC_ALL: 'C', PATH: '/usr/bin:/bin' }, commands: new CommandRegistry([fmtCommand()]) });
   try {
-    for (const command of ['fmt /etc/passwd', 'fmt /proc/self/environ', 'fmt https://example.invalid/credentials']) {
+    const registered = await shell.exec('/usr/bin/fmt -w8 /input');
+    assert.deepEqual([registered.exitCode, registered.stdout, registered.stderr], [0, 'aa bb cc\ndd ee\n', '']);
+    for (const command of ['fmt /etc/passwd', 'fmt /proc/self/environ', 'fmt https://example.invalid/credentials', '/usr/bin/fmt /etc/passwd', '/bin/fmt /proc/self/environ']) {
       const result = await shell.exec(command);
       assert.equal(result.exitCode, 1);
       assert.equal(result.stdout, '');
       assert.match(result.stderr, /No such file or directory/);
     }
-    for (const command of ['/usr/bin/fmt', 'curl https://example.invalid/', 'node -e process.env']) {
+    for (const command of ['/usr/local/bin/fmt', '/usr/bin/curl https://example.invalid/', 'curl https://example.invalid/', 'node -e process.env']) {
       const result = await shell.exec(command);
       assert.equal(result.exitCode, 127);
       assert.equal(result.stdout, '');

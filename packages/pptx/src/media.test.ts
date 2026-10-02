@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
@@ -304,23 +305,23 @@ it("admits bounded streams and explicit in-memory paths without modifying source
   const opened: string[] = [];
   const source = (value: Uint8Array) => {
     let offset = 0;
-    return {
+    return chunksFromReader({
       read: async (max: number) => {
         if (offset === value.length) return null;
         const chunk = value.slice(offset, offset + max);
         offset += chunk.length;
         return chunk;
       }
-    };
+    });
   };
   const path = {
     path: "/deck.pptx",
-    capability: {
+    fs: streamingFileSystem({
       openRead: async (path: string) => {
         opened.push(path);
         return source(new Uint8Array(fs.readFileSync(path) as Buffer));
       }
-    }
+    })
   };
   expect((await readMedia(path, {}, context)).media[0]!.bytes).toBe(12);
   expect((await readMedia(source(bytes), {}, context)).occurrences[0]!.shapeId).toBe("2");

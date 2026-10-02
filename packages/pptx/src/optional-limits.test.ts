@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { expect, it, vi } from "vitest";
 import { readBinary } from "./bytes.js";
 import { parseXmlPart } from "./xml.js";
@@ -24,7 +25,7 @@ it("does not inject fixed table, path or chart resource ceilings", () => {
 
 it("leaves omitted byte and read limits unlimited", async () => {
   let reads = 0;
-  const source = { async read() { return ++reads > 8200 ? null : new Uint8Array(); } };
+  const source = chunksFromReader({ async read() { return ++reads > 8200 ? null : new Uint8Array(); } });
   await expect(readBinary(source, { limits: {} as never })).resolves.toEqual(new Uint8Array());
   await expect(readBinary(new Uint8Array(2), { limits: { maxReads: 1 } as never })).resolves.toHaveLength(2);
   await expect(readBinary(new Uint8Array(2), { limits: { maxBytes: 1 } as never })).rejects.toThrow();

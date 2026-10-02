@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
@@ -364,7 +365,7 @@ it.each([
 });
 function changingSource(bytes: Uint8Array, change: () => void) {
   let offset = 0;
-  return {
+  return chunksFromReader({
     read: async (maxBytes: number) => {
       change();
       if (offset === bytes.length) return null;
@@ -372,7 +373,7 @@ function changingSource(bytes: Uint8Array, change: () => void) {
       offset += chunk.length;
       return chunk;
     }
-  };
+  });
 }
 it("snapshots validated metadata before invoking the byte capability", async () => {
   const input = await deck([shape(2)]);

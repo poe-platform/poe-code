@@ -13,53 +13,27 @@ describe("byte admission", () => {
     expect(await pending).toEqual(Uint8Array.of(0, 255, 17));
   });
 
-  it("snapshots reused producer buffers and treats only null as EOF", async () => {
+  it("retains empty chunks and snapshots reused producer buffers", async () => {
     const buffer = Uint8Array.of(2, 4);
-    let step = 0;
-    const source: ByteSource = {
-      async read(maxBytes) {
-        expect(maxBytes).toBeGreaterThan(0);
-        step++;
-        if (step === 1) return buffer;
-        buffer.fill(7);
-        if (step === 2) return new Uint8Array();
-        if (step === 3) return buffer;
-        return null;
-      }
-    };
+    const source: ByteSource = (async function* () {
+      yield buffer;
+      buffer.fill(7);
+      yield new Uint8Array();
+      yield buffer;
+    })();
     expect(await readBinary(source, context)).toEqual(Uint8Array.of(2, 4, 7, 7));
   });
 
-  it("reads only through an explicit rooted capability", async () => {
-    const volume = Volume.fromJSON({ "/vault/seed": "abc" });
-    const openRead = vi.fn(async (path: string) => {
-      const bytes = new Uint8Array(volume.readFileSync(`/vault/${path}`) as Uint8Array);
-      let offset = 0;
-      return {
-        async read(maxBytes: number) {
-          if (offset === bytes.length) return null;
-          const chunk = bytes.subarray(offset, offset + maxBytes);
-          offset += chunk.length;
-          return chunk;
-        }
-      };
-    });
-    expect(await readBinary({ path: "seed", capability: { openRead } }, context)).toEqual(
-      Uint8Array.of(97, 98, 99)
-    );
-    expect(openRead).toHaveBeenCalledOnce();
+  it.each([0, -1, 1.5, NaN])("rejects invalid limits before reading: %s", async (maxBytes) => {
+    const next = vi.fn();
+    await expect(
+      readBinary(
+        { [Symbol.asyncIterator]: () => ({ next }) },
+        { limits: { ...context.limits, maxBytes } }
+      )
+    ).rejects.toMatchObject({ code: "invalid-value" });
+    expect(next).not.toHaveBeenCalled();
   });
-
-  it.each([0, -1, 1.5, NaN])(
-    "rejects invalid limits before reading: %s",
-    async (maxBytes) => {
-      const read = vi.fn();
-      await expect(
-        readBinary({ read }, { limits: { ...context.limits, maxBytes } })
-      ).rejects.toMatchObject({ code: "invalid-value" });
-      expect(read).not.toHaveBeenCalled();
-    }
-  );
 
   it("allows explicit limits above or below earlier settings", async () => {
     await expect(readBinary(new Uint8Array(9), context, { maxBytes: 9 })).resolves.toHaveLength(9);
@@ -68,50 +42,53 @@ describe("byte admission", () => {
     });
   });
 
-  it("rejects null and unknown options before opening a capability", async () => {
-    const openRead = vi.fn();
+  it("rejects null and unknown options before opening a filesystem", async () => {
+    const readFile = vi.fn();
     for (const options of [{ maxBytes: null }, { extra: 1 }]) {
       await expect(
-        readBinary({ path: "seed", capability: { openRead } }, context, options as never)
+        readBinary({ path: "seed", fs: { readFile } }, context, options as never)
       ).rejects.toMatchObject({ code: "invalid-value" });
     }
-    expect(openRead).not.toHaveBeenCalled();
+    expect(readFile).not.toHaveBeenCalled();
   });
 
-  it("bounds empty reads and rejects oversized chunks", async () => {
-    const read = vi.fn(async () => new Uint8Array());
-    await expect(readBinary({ read }, context)).rejects.toMatchObject({ code: "resource-limit" });
-    expect(read).toHaveBeenCalledTimes(8);
+  it("bounds empty reads and closes the iterator on exhaustion", async () => {
+    const next = vi.fn(async () => ({ done: false as const, value: new Uint8Array() }));
+    const close = vi.fn(async () => ({ done: true as const, value: undefined }));
     await expect(
-      readBinary(
-        {
-          async read() {
-            return new Uint8Array(4);
-          }
-        },
-        context
-      )
+      readBinary({ [Symbol.asyncIterator]: () => ({ next, return: close }) }, context)
     ).rejects.toMatchObject({ code: "resource-limit" });
+    expect(next).toHaveBeenCalledTimes(8);
+    expect(close).toHaveBeenCalledOnce();
   });
 
-  it("accepts an exact byte ceiling but probes for overflow", async () => {
-    let step = 0;
-    const read = vi.fn(async (maxBytes: number) => {
-      expect(maxBytes).toBe(step === 0 ? 3 : 1);
-      return step++ === 0 ? Uint8Array.of(1, 2, 3) : null;
-    });
-    expect(await readBinary({ read }, context, { maxBytes: 3 })).toEqual(Uint8Array.of(1, 2, 3));
-    await expect(
-      readBinary(
-        {
-          async read() {
-            return Uint8Array.of(1);
-          }
-        },
+  it("accepts exact ceilings and refuses overflow before copying, even if cleanup fails", async () => {
+    expect(
+      await readBinary(
+        (async function* () {
+          yield Uint8Array.of(1, 2, 3);
+        })(),
         context,
         { maxBytes: 3 }
       )
-    ).rejects.toMatchObject({ code: "resource-limit" });
+    ).toEqual(Uint8Array.of(1, 2, 3));
+    let closed = false;
+    const chunks = [Uint8Array.of(1, 2, 3), Uint8Array.of(4)];
+    const source: ByteSource = {
+      [Symbol.asyncIterator]() {
+        return {
+          async next() { return { done: false, value: chunks.shift()! }; },
+          async return(): Promise<IteratorResult<Uint8Array>> {
+            closed = true;
+            throw new Error("private cleanup detail");
+          }
+        };
+      }
+    };
+    await expect(readBinary(source, context, { maxBytes: 3 })).rejects.toMatchObject({
+      code: "resource-limit"
+    });
+    expect(closed).toBe(true);
   });
 
   it("rejects ambient paths and malformed source values asynchronously", async () => {
@@ -119,43 +96,39 @@ describe("byte admission", () => {
       "/private/deck",
       null,
       {},
-      {
-        async read() {
-          return "abc";
-        }
-      }
+      (async function* () {
+        yield "abc";
+      })()
     ]) {
       await expect(readBinary(input as never, context)).rejects.toBeInstanceOf(OfficeError);
     }
   });
 
-  it("observes cancellation before and after cooperative reads", async () => {
+  it("observes cancellation before and after cooperative reads and awaits cleanup", async () => {
     const controller = new AbortController();
-    const read = vi.fn(async (_maxBytes, signal) => {
-      expect(signal).toBe(controller.signal);
+    const next = vi.fn(async () => {
       controller.abort("private reason");
-      return Uint8Array.of(1);
+      return { done: false as const, value: Uint8Array.of(1) };
     });
+    const close = vi.fn(async () => ({ done: true as const, value: undefined }));
+    const source = { [Symbol.asyncIterator]: () => ({ next, return: close }) };
     await expect(
-      readBinary({ read }, { ...context, signal: controller.signal })
+      readBinary(source, { ...context, signal: controller.signal })
     ).rejects.toMatchObject({ code: "cancelled", message: "Operation cancelled." });
-    read.mockClear();
+    expect(close).toHaveBeenCalledOnce();
+    next.mockClear();
     await expect(
-      readBinary({ read }, { ...context, signal: controller.signal })
+      readBinary(source, { ...context, signal: controller.signal })
     ).rejects.toMatchObject({ code: "cancelled" });
-    expect(read).not.toHaveBeenCalled();
+    expect(next).not.toHaveBeenCalled();
   });
 
-  it("does not leak capability failures into public diagnostics", async () => {
+  it("does not leak stream failures into public diagnostics", async () => {
+    const next = async (): Promise<IteratorResult<Uint8Array>> => {
+      throw new Error("secret path");
+    };
     await expect(
-      readBinary(
-        {
-          async read() {
-            throw new Error("secret path");
-          }
-        },
-        context
-      )
+      readBinary({ [Symbol.asyncIterator]: () => ({ next }) }, context)
     ).rejects.toMatchObject({ code: "io-failure", message: "Byte input failed." });
   });
 });
@@ -357,6 +330,7 @@ it("writes to sinks without close even when closing is requested", async () => {
   const write = vi.fn(async (_bytes: Uint8Array) => {});
   await writeBinary(Uint8Array.of(1, 2), { write }, context, { close: true });
   expect(write).toHaveBeenCalledWith(Uint8Array.of(1, 2), undefined);
-  await expect(writeBinary(Uint8Array.of(1), { write, close: false } as never, context))
-    .rejects.toMatchObject({ code: "invalid-type" });
+  await expect(
+    writeBinary(Uint8Array.of(1), { write, close: false } as never, context)
+  ).rejects.toMatchObject({ code: "invalid-type" });
 });

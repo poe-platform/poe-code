@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { SaxesParser } from "saxes";
 import { Volume } from "memfs";
@@ -306,7 +307,7 @@ describe("literal text replacement", () => {
   ])("rejects invalid options before reading %j", async (options) => {
     const read = vi.fn();
     await expect(
-      replacePresentationText({ read } as never, options as never, context)
+      replacePresentationText(chunksFromReader({ read }) as never, options as never, context)
     ).rejects.toMatchObject({ code: "invalid-value" });
     expect(read).not.toHaveBeenCalled();
   });

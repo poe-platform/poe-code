@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { Volume } from "memfs";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { compileJsonSchema } from "toolcraft-schema";
@@ -238,11 +239,11 @@ describe("shape resource commands", () => {
       { part: "" }
     ]) {
       await expect(
-        mutateShapes({ read }, { ...invalid, update: { name: "Changed" } } as never, context)
+        mutateShapes(chunksFromReader({ read }), { ...invalid, update: { name: "Changed" } } as never, context)
       ).rejects.toMatchObject({ code: "invalid-value" });
       expect(read).not.toHaveBeenCalled();
     }
-    await expect(readShapes({ read }, { all: true }, context)).rejects.toMatchObject({
+    await expect(readShapes(chunksFromReader({ read }), { all: true }, context)).rejects.toMatchObject({
       code: "invalid-value"
     });
     expect(read).not.toHaveBeenCalled();

@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
@@ -224,12 +225,12 @@ it.each([
   { select: "token", slide: 1 }
 ])("rejects invalid extraction selection before consuming explicit input %j", async (selection) => {
   let reads = 0;
-  const source = {
+  const source = chunksFromReader({
     read: async () => {
       reads++;
       return null;
     }
-  };
+  });
   await expect(
     extractImages(source, { ...limits, ...selection } as never, context)
   ).rejects.toBeDefined();

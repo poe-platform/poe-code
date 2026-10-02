@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { describe, expect, it } from "vitest";
 import { Volume } from "memfs";
 import { parseContentTypes } from "./content-types.js";
@@ -205,20 +206,20 @@ describe("content type index", () => {
     const reader = await readPackage(
       {
         path: "/in/deck.potx",
-        capability: {
+        fs: streamingFileSystem({
           async openRead(path) {
             const data = volume.readFileSync(path) as Uint8Array;
             let offset = 0;
-            return {
+            return chunksFromReader({
               async read(maxBytes) {
                 if (offset === data.length) return null;
                 const chunk = data.slice(offset, offset + maxBytes);
                 offset += chunk.length;
                 return chunk;
               }
-            };
+            });
           }
-        }
+        })
       },
       {
         limits: { maxBytes: 65536, maxReads: 100, chunkBytes: 512 },

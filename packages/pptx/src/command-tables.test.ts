@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { createHash } from "node:crypto";
 import { addTable, mutateTables, readTables, restructureTables } from "./table-operations.js";
 import { Volume } from "memfs";
@@ -141,16 +142,16 @@ it("admits structural SDK options without invoking getters or acquiring malforme
   const read = vi.fn();
   const getter = vi.fn(() => ({ kind: "split", cell: { row: 0, column: 0 } }));
   const options = Object.defineProperty({ slide: 1 }, "operation", { get: getter });
-  await expect(restructureTables({ read }, options as never, context)).rejects.toMatchObject({
+  await expect(restructureTables(chunksFromReader({ read }), options as never, context)).rejects.toMatchObject({
     code: "invalid-value"
   });
   await expect(
-    restructureTables({ read }, { slide: 1, operation: undefined } as never, context)
+    restructureTables(chunksFromReader({ read }), { slide: 1, operation: undefined } as never, context)
   ).rejects.toMatchObject({ code: "invalid-value" });
   for (const extra of [{ update: { text: "Discarded" } }, { cell: "2,2" }])
     await expect(
       restructureTables(
-        { read },
+        chunksFromReader({ read }),
         { slide: 1, ...extra, operation: { kind: "split", cell: { row: 0, column: 0 } } } as never,
         context
       )
@@ -349,12 +350,12 @@ it("rejects SDK getters and invalid selectors before input reads", async () => {
     getter = vi.fn(() => "Unexpected");
   const update = Object.defineProperty({}, "text", { enumerable: true, get: getter });
   await expect(
-    mutateTables({ read }, { slide: 1, table: 1, cell: "1,1", update }, context)
+    mutateTables(chunksFromReader({ read }), { slide: 1, table: 1, cell: "1,1", update }, context)
   ).rejects.toMatchObject({ code: "invalid-value" });
   expect(getter).not.toHaveBeenCalled();
   expect(read).not.toHaveBeenCalled();
   for (const options of [{ table: 0 }, { cell: "1,0" }, { all: "false" }, { scope: "masters" }])
-    await expect(readTables({ read }, options as never, context)).rejects.toBeDefined();
+    await expect(readTables(chunksFromReader({ read }), options as never, context)).rejects.toBeDefined();
   expect(read).not.toHaveBeenCalled();
 });
 it("creates with explicit cell text through the common selector", async () => {

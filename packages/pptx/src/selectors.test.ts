@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { describe, expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createHash } from "node:crypto";
@@ -137,20 +138,20 @@ describe("presentation selectors", () => {
     const index = await readSelectionIndex(
       {
         path: "/deck.pptx",
-        capability: {
+        fs: streamingFileSystem({
           async openRead(path) {
             const source = new Uint8Array(volume.readFileSync(path) as Buffer);
             let offset = 0;
-            return {
+            return chunksFromReader({
               async read(maxBytes) {
                 if (offset === source.length) return null;
                 const value = source.slice(offset, offset + maxBytes);
                 offset += value.length;
                 return value;
               }
-            };
+            });
           }
-        }
+        })
       },
       context
     );

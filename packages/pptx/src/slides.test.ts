@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { describe, expect, it } from "vitest";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
@@ -281,11 +282,11 @@ describe("slide insertion", () => {
     });
   });
   it("rejects oversized text before input admission", async () => {
-    const input = {
+    const input = chunksFromReader({
       async read(): Promise<Uint8Array | null> {
         throw new Error("input consumed");
       }
-    };
+    });
     await expect(
       addSlide(
         input,

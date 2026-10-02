@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { Volume } from "memfs";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { createPresentation, Length, mutateShapeSelection, readShapes } from "./index.js";
@@ -42,20 +43,20 @@ it("uses only supplied file authority and returns reusable fresh duplicate locat
   fs.writeFileSync("/input.pptx", source);
   const input = {
     path: "/input.pptx",
-    capability: {
+    fs: streamingFileSystem({
       async openRead(path: string) {
         const bytes = new Uint8Array(fs.readFileSync(path) as Buffer);
         let offset = 0;
-        return {
+        return chunksFromReader({
           async read(size: number) {
             if (offset === bytes.length) return null;
             const chunk = bytes.slice(offset, offset + size);
             offset += chunk.length;
             return chunk;
           }
-        };
+        });
       }
-    }
+    })
   };
   const original = await readShapes(input, {}, context);
   await expect(

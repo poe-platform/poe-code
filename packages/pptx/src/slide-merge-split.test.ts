@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
@@ -182,13 +183,13 @@ describe("ordered slide merge and split", () => {
     const input = await deck("Stream");
     const stream = () => {
       let sent = false;
-      return {
+      return chunksFromReader({
         read: async () => {
           if (sent) return null;
           sent = true;
           return input;
         }
-      };
+      });
     };
     await expect(
       mergeSlides(
@@ -232,7 +233,7 @@ describe("ordered slide merge and split", () => {
     const options = { sourceSlides: [2], themePolicy: "source" as const };
     const mutableContext = { ...context, xmlLimits: { ...context.xmlLimits } };
     let offset = 0;
-    const destination = {
+    const destination = chunksFromReader({
       read: async (maxBytes: number) => {
         sources.reverse();
         options.sourceSlides[0] = 99;
@@ -242,7 +243,7 @@ describe("ordered slide merge and split", () => {
         offset += chunk.length;
         return chunk;
       }
-    };
+    });
     expect(names(await mergeSlides(destination, sources, options, mutableContext))).toEqual([
       "Base",
       "Elm",
@@ -252,11 +253,11 @@ describe("ordered slide merge and split", () => {
   it("normalizes explicit capability failures and cancellation", async () => {
     const denied = {
       path: "/deck",
-      capability: {
+      fs: streamingFileSystem({
         openRead: async () => {
           throw new Error("private details");
         }
-      }
+      })
     };
     await expect(splitSlides(denied, { slides: [1] }, context)).rejects.toMatchObject({
       code: "io-failure",
@@ -268,12 +269,12 @@ describe("ordered slide merge and split", () => {
     const controller = new AbortController();
     const cancelled = {
       path: "/deck",
-      capability: {
+      fs: streamingFileSystem({
         openRead: async () => {
           controller.abort();
           throw new Error("private details");
         }
-      }
+      })
     };
     await expect(
       splitSlides(cancelled, { slides: [1] }, { ...context, signal: controller.signal })
@@ -333,17 +334,17 @@ describe("ordered slide merge and split", () => {
   it("rejects sparse sources before invoking any input capability", async () => {
     const read = vi.fn();
     await expect(
-      mergeSlides({ read }, new Array<Uint8Array>(1), { themePolicy: "source" }, context)
+      mergeSlides(chunksFromReader({ read }), new Array<Uint8Array>(1), { themePolicy: "source" }, context)
     ).rejects.toMatchObject({ code: "invalid-type", phase: "usage" });
     expect(read).not.toHaveBeenCalled();
   });
   it("requires explicit merge policies and nonempty sources before reading input", async () => {
     const read = vi.fn();
     await expect(
-      mergeSlides({ read }, [], { themePolicy: "source" }, context)
+      mergeSlides(chunksFromReader({ read }), [], { themePolicy: "source" }, context)
     ).rejects.toMatchObject({ code: "invalid-value" });
     await expect(
-      mergeSlides({ read }, [{ read }], {} as Parameters<typeof mergeSlides>[2], context)
+      mergeSlides(chunksFromReader({ read }), [chunksFromReader({ read })], {} as Parameters<typeof mergeSlides>[2], context)
     ).rejects.toMatchObject({ code: "invalid-value" });
     expect(read).not.toHaveBeenCalled();
   });

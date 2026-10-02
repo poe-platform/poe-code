@@ -1,5 +1,5 @@
-import { readBinary } from "./bytes.js";
-import type { BinaryInput, ByteSource } from "./contracts.js";
+import { binarySource, readBinary } from "./bytes.js";
+import type { BinaryInput } from "./contracts.js";
 import { parseContentTypes } from "./content-types.js";
 import { OfficeError } from "./errors.js";
 import { readPackage, type PackageReader, type AdmittedPackageReader } from "./package-reader.js";
@@ -53,33 +53,34 @@ export class SlideTransferBudget {
     if (remaining < 1) this.charge("bytes", 1, this.context.limits.maxBytes);
     let admitted: BinaryInput = input;
     let exhausted = false;
-    const wrap = (source: ByteSource): ByteSource => ({
-      read: async (maxBytes, signal) => {
+    if (!(input instanceof Uint8Array)) {
+      const source = binarySource(input, this.context.signal, Math.max(1, remaining));
+      const chargeRead = () => {
         if (this.reads >= this.context.limits.maxReads) {
           exhausted = true;
-          throw new OfficeError(
-            "resource-limit",
-            "Combined byte reads exceed their limit.",
-            "admit"
-          );
+          throw new OfficeError("resource-limit", "Combined byte reads exceed their limit.", "admit");
         }
         this.reads++;
-        return source.read(maxBytes, signal);
-      }
-    });
-    if (!(input instanceof Uint8Array) && input && typeof input === "object") {
-      if ("path" in input) {
-        if (input.capability && typeof input.capability.openRead === "function")
-          admitted = {
-            path: input.path,
-            capability: {
-              openRead: async (path, signal) => {
-                const source = await input.capability.openRead(path, signal);
-                return source && typeof source.read === "function" ? wrap(source) : source;
+      };
+      admitted = {
+        async *[Symbol.asyncIterator]() {
+          const iterator = source[Symbol.asyncIterator]();
+          let done = false;
+          try {
+            while (true) {
+              chargeRead();
+              const item = await iterator.next();
+              if (item.done) {
+                done = true;
+                return;
               }
+              yield item.value;
             }
-          };
-      } else if (typeof input.read === "function") admitted = wrap(input);
+          } finally {
+            if (!done) await iterator.return?.();
+          }
+        }
+      };
     }
     let bytes: Uint8Array;
     try {

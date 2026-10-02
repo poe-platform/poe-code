@@ -42,6 +42,58 @@ function checkCancellation(signal: AbortSignal | undefined, phase: "admit" | "pu
   if (signal?.aborted) throw new OfficeError("cancelled", "Operation cancelled.", phase);
 }
 
+export function binarySource(
+  input: Exclude<BinaryInput, Uint8Array>,
+  signal: AbortSignal | undefined,
+  maxBytes: number
+): ByteSource {
+  if (!input || typeof input !== "object") {
+    throw new OfficeError(
+      "invalid-type",
+      "Expected bytes or an explicit input capability.",
+      "usage"
+    );
+  }
+  if ("path" in input) {
+    if (
+      typeof input.path !== "string" ||
+      input.path.length === 0 ||
+      !input.fs ||
+      typeof input.fs.readFile !== "function"
+    ) {
+      throw new OfficeError("invalid-type", "Expected a capability-scoped path.", "usage");
+    }
+    return (async function* () {
+      const options = { maxBytes, ...(signal === undefined ? {} : { signal }) };
+      if (input.fs.readStream) {
+        let emitted = false;
+        try {
+          for await (const chunk of input.fs.readStream(input.path, options)) {
+            if (chunk.byteLength) emitted = true;
+            yield chunk;
+          }
+          return;
+        } catch (error) {
+          checkCancellation(signal, "admit");
+          if (
+            emitted ||
+            !error ||
+            typeof error !== "object" ||
+            !("code" in error) ||
+            error.code !== "ENOTSUP"
+          )
+            throw error;
+        }
+      }
+      yield await input.fs.readFile(input.path, options);
+    })();
+  }
+  if (typeof input[Symbol.asyncIterator] !== "function") {
+    throw new OfficeError("invalid-type", "Expected a byte source.", "admit");
+  }
+  return input;
+}
+
 export async function readBinary(
   input: BinaryInput,
   context: ByteContext = {},
@@ -56,73 +108,66 @@ export async function readBinary(
     }
     return new Uint8Array(input);
   }
-  if (!input || typeof input !== "object") {
-    throw new OfficeError(
-      "invalid-type",
-      "Expected bytes or an explicit input capability.",
-      "usage"
-    );
-  }
-  let source: ByteSource;
-  if ("path" in input) {
-    if (
-      typeof input.path !== "string" ||
-      input.path.length === 0 ||
-      !input.capability ||
-      typeof input.capability.openRead !== "function"
-    ) {
-      throw new OfficeError("invalid-type", "Expected a capability-scoped path.", "usage");
-    }
-    try {
-      source = await input.capability.openRead(input.path, signal);
-    } catch (error) {
-      checkCancellation(signal, "admit");
-      if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
-        throw new PackageNotFoundError();
-      }
-      throw new OfficeError("io-failure", "Byte input failed.", "admit");
-    }
-    checkCancellation(signal, "admit");
-  } else {
-    source = input;
-  }
-  if (!source || typeof source.read !== "function") {
-    throw new OfficeError("invalid-type", "Expected a byte source.", "admit");
-  }
+  const source = binarySource(input, signal, limits.maxBytes);
   const chunks: Uint8Array[] = [];
   let size = 0;
-  for (let reads = 0; reads < limits.maxReads; reads++) {
+  let iterator: AsyncIterator<Uint8Array>;
+  try {
+    iterator = source[Symbol.asyncIterator]();
+  } catch {
     checkCancellation(signal, "admit");
-    const request = Math.min(limits.chunkBytes, Math.max(1, limits.maxBytes - size));
-    let chunk: Uint8Array | null;
-    try {
-      chunk = await source.read(request, signal);
-    } catch {
+    throw new OfficeError("io-failure", "Byte input failed.", "admit");
+  }
+  let exhausted = false;
+  try {
+    for (let reads = 0; reads < limits.maxReads; reads++) {
       checkCancellation(signal, "admit");
-      throw new OfficeError("io-failure", "Byte input failed.", "admit");
-    }
-    checkCancellation(signal, "admit");
-    if (chunk === null) {
-      const bytes = new Uint8Array(size);
-      let offset = 0;
-      for (const retained of chunks) {
-        bytes.set(retained, offset);
-        offset += retained.byteLength;
+      let item: IteratorResult<Uint8Array>;
+      try {
+        item = await iterator.next();
+      } catch (error) {
+        checkCancellation(signal, "admit");
+        if (error && typeof error === "object" && "code" in error) {
+          if (error.code === "ENOENT") throw new PackageNotFoundError();
+          if (error.code === "EFBIG")
+            throw new OfficeError("resource-limit", "Byte input exceeds its limit.", "admit");
+        }
+        throw new OfficeError("io-failure", "Byte input failed.", "admit");
       }
-      return bytes;
+      checkCancellation(signal, "admit");
+      if (item.done) {
+        exhausted = true;
+        const bytes = new Uint8Array(size);
+        let offset = 0;
+        for (const retained of chunks) {
+          bytes.set(retained, offset);
+          offset += retained.byteLength;
+        }
+        return bytes;
+      }
+      const chunk = item.value;
+      if (!(chunk instanceof Uint8Array)) {
+        throw new OfficeError("invalid-type", "Byte source returned an invalid chunk.", "admit");
+      }
+      if (chunk.byteLength > limits.maxBytes - size) {
+        throw new OfficeError("resource-limit", "Byte input exceeds its limit.", "admit");
+      }
+      if (chunk.byteLength > 0) {
+        chunks.push(new Uint8Array(chunk));
+        size += chunk.byteLength;
+      }
     }
-    if (!(chunk instanceof Uint8Array)) {
-      throw new OfficeError("invalid-type", "Byte source returned an invalid chunk.", "admit");
-    }
-    if (chunk.byteLength > request || chunk.byteLength > limits.maxBytes - size) {
-      throw new OfficeError("resource-limit", "Byte input exceeds its limit.", "admit");
-    }
-    if (chunk.byteLength > 0) {
-      chunks.push(new Uint8Array(chunk));
-      size += chunk.byteLength;
+    throw new OfficeError("resource-limit", "Byte source exceeded its read limit.", "admit");
+  } finally {
+    if (!exhausted) {
+      // Cleanup must not replace the admission failure or leak host diagnostics.
+      try {
+        await iterator.return?.();
+      } catch {
+        /* primary failure wins */
+      }
     }
   }
-  throw new OfficeError("resource-limit", "Byte source exceeded its read limit.", "admit");
 }
 
 export async function writeBinary(

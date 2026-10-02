@@ -14,7 +14,9 @@ Schema declarations alone do not establish complete PowerPoint compatibility.
 No environment variables or configuration files are exposed. Filesystem,
 publication, time, author and font metrics are explicit caller capabilities.
 Length helpers (`Length`, `Inches`, `Pt`, `Cm`, `Mm`, `Emu`, `Centipoints`) and `RGBColor`
-accept both factory calls and `new`. `Presentation.save()` accepts byte sinks with
+accept both factory calls and `new`. Inputs accept bytes, shared async byte streams,
+or `{ path, fs }` with an explicit `@poe-code/safe-fs` filesystem.
+`Presentation.save()` accepts byte sinks with
 `write(bytes)`; `close()` is optional.
 Run fonts support `strike` (`"none"`, `"single"`, `"double"`, or `null`) and
 `baseline` (a percentage from −100 to 100, or `null` to inherit), alongside
@@ -23,7 +25,7 @@ Table-cell runs expose live hyperlinks with the same relationship handling as
 text-box runs, including save/reopen and stale-handle checks.
 `PresentationContext` accepts `timestamp`, `author`, `fontMetrics`, `signal`,
 and four optional limit groups. Resources are unlimited by default; setting one
-limit leaves the others unlimited. Chunk sizes control I/O and default to 65536:
+limit leaves the others unlimited. Chunk sizes control output I/O and default to 65536:
 
 - `limits`: `maxBytes`, `maxReads`, `chunkBytes`. Omitted resource limits are disabled. `createShapeXml` and `createConnectorXml` accept optional XML limits (`maxBytes`, `maxNodes`, `maxDepth`) after the namespace argument.
 - `archiveLimits`: `maxArchiveBytes`, `maxEntryBytes`, `maxTotalBytes`,

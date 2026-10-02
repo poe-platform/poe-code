@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
@@ -604,7 +605,7 @@ describe("cross-deck slide import", () => {
     const destination = archive(await deck("Amber"));
     const options = { sourceSlides: [1], position: 1 };
     let offset = 0;
-    const input = {
+    const input = chunksFromReader({
       async read(maxBytes: number) {
         options.sourceSlides[0] = 99;
         options.position = 99;
@@ -613,7 +614,7 @@ describe("cross-deck slide import", () => {
         offset += chunk.length;
         return chunk;
       }
-    };
+    });
     const result = parts(await importSlides(input, source, options, context));
     expect(attrs(result.get("ppt/presentation.xml")!, "sldId").map((node) => node.id)).toEqual([
       "257",

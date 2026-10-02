@@ -22,23 +22,34 @@ const sink: ByteSink = {
 await writeBinary(bytes, sink, context);
 ```
 
-`BinaryInput` accepts bytes, a pull source, or `{path, capability}`. A source's
-`read(maxBytes, signal?)` resolves to at most the requested bytes; only `null`
-means EOF. Empty chunks consume read budget. At the exact byte ceiling, one
-single-byte EOF probe detects overflow and also consumes a read. Sources are
-borrowed; the caller owns their lifetime and cleanup. `VfsCapability.openRead`
-receives the explicit path and signal and returns a source. The trusted host must
-enforce its configured root and authorization, including symlinks. The package
-never constructs a filesystem, interprets a bare string as a path or fetches links.
-The optional signal parameter extends the documented one-argument pull protocol
-without changing its Promise or EOF behavior.
+`BinaryInput` accepts bytes, an `AsyncIterable<Uint8Array>` from the shared
+`@poe-code/safe-fs` stream contract, or `{ path, fs }` with an explicitly supplied
+safe-fs filesystem. Empty chunks and the final EOF observation consume read
+budget. At the exact byte ceiling, the next iterator result detects overflow.
+Iteration is completed on success and closed with `return()` on failure or
+cancellation. Filesystem reads receive the byte ceiling and cancellation signal;
+streaming is preferred, with bounded `readFile` fallback when unavailable before
+any payload is emitted. The trusted host enforces its root and authorization,
+including symlinks. Bare strings never authorize filesystem access.
+
+```typescript
+import { createMemoryFileSystem } from "@poe-code/safe-fs/core";
+const fs = createMemoryFileSystem();
+await fs.writeFile("/input.bin", Uint8Array.of(10, 20, 30));
+const input = await readBinary({ path: "/input.bin", fs }, context);
+```
+
+This replaces the former `{ path, capability: { openRead } }` and pull-reader
+interfaces. Supply a safe-fs filesystem or an async generator instead.
+`ByteSink` extends the shared safe-bash sink contract with optional cooperative
+cancellation and explicit close.
 
 | Configuration                                                | Meaning                                                                                    |
 | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
 | `context.limits.maxBytes`                                    | Optional ceiling for one byte transfer; unlimited when omitted                             |
 | `context.limits.maxReads`                                    | Optional ceiling for source calls, including empty chunks and EOF; unlimited when omitted  |
-| `context.limits.chunkBytes`                                  | Positive safe integer maximum read request or sink write size; defaults to 65536             |
-| `context.signal`                                             | Optional explicit cooperative cancellation signal passed to source, opener and sink writes |
+| `context.limits.chunkBytes`                                  | Positive safe integer maximum sink write size; defaults to 65536             |
+| `context.signal`                                             | Optional explicit cooperative cancellation signal passed to filesystem and sink writes |
 | `options.maxBytes`, `options.maxReads`, `options.chunkBytes` | Optional overrides; can raise or lower earlier settings                                    |
 | `writeBinary` option `close`                                 | Boolean, default false; await sink close after successful writes only                      |
 
@@ -55,7 +66,7 @@ read. The returned array belongs to the caller. Input collection can retain up t
 twice `maxBytes` while assembling its result, plus the currently borrowed chunk.
 Output snapshots the complete input before writing and gives sinks separate chunks.
 Writes are sequential and awaited. A caller must not mutate a producer's chunk
-concurrently before its read Promise is consumed. Host callbacks are trusted code,
+concurrently before its iterator result is consumed. Host callbacks are trusted code,
 not a JavaScript sandbox.
 
 Cancellation is checked at admission and between awaited callbacks. Callbacks

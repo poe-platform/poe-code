@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { createHash } from "node:crypto";
 import { Volume } from "memfs";
 import { beforeAll, afterAll, describe, expect, it, vi } from "vitest";
@@ -286,7 +287,7 @@ describe("presentation comparison", () => {
   it("validates options before reading capabilities and honors cancellation and byte ceilings", async () => {
     const read = vi.fn();
     await expect(
-      comparePresentations({ read }, base, { mode: "unknown" as never }, context)
+      comparePresentations(chunksFromReader({ read }), base, { mode: "unknown" as never }, context)
     ).rejects.toMatchObject({ code: "invalid-value" });
     expect(read).not.toHaveBeenCalled();
     await expect(

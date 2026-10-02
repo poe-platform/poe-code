@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { Volume } from "memfs";
 import { expect, it } from "vitest";
 import * as api from "./index.js";
@@ -20,12 +21,12 @@ it("exposes malformed XML as a typed public parse failure", () => {
 
 it("reports missing capability paths without leaking the supplied path", async () => {
   const volume = new Volume();
-  const result = readBinary({ path: "/private/missing.pptx", capability: {
+  const result = readBinary({ path: "/private/missing.pptx", fs: streamingFileSystem({
     async openRead(path) {
       volume.readFileSync(path);
-      return { async read() { return null; } };
+      return chunksFromReader({ async read() { return null; } });
     }
-  } }, context);
+  }) }, context);
   expect(result).toBeInstanceOf(Promise);
   await expect(result).rejects.toBeInstanceOf(api.PackageNotFoundError);
   await expect(result).rejects.toMatchObject({ code: "io-failure", phase: "admit" });
@@ -34,9 +35,9 @@ it("reports missing capability paths without leaking the supplied path", async (
 
 it("keeps permission failures distinct from missing packages and cancellation wins", async () => {
   const controller = new AbortController();
-  const input = { path: "/restricted.pptx", capability: {
+  const input = { path: "/restricted.pptx", fs: streamingFileSystem({
     async openRead(): Promise<never> { throw { code: "EACCES" }; }
-  } };
+  }) };
   await expect(readBinary(input, context)).rejects.toMatchObject({ name: "OfficeError", code: "io-failure" });
   controller.abort();
   await expect(readBinary(input, { ...context, signal: controller.signal })).rejects.toMatchObject({ code: "cancelled" });

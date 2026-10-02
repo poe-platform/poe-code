@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { expect, it, vi, beforeAll, afterAll } from "vitest";
 import { createPresentation } from "./creation.js";
 import { readShapes } from "./shape-operations.js";
@@ -118,7 +119,7 @@ it("rejects stale and cross-slide locations without assigning a connection", asy
 });
 it("rejects invalid deletion options before reading input capabilities", async () => {
   const read = vi.fn(async () => null),
-    source = { read };
+    source = chunksFromReader({ read });
   await expect(removeShapes(source, { detachPolicy: "other" } as never, context)).rejects.toThrow();
   await expect(
     removeConnectors(source, { detachPolicy: "detach" } as never, context)

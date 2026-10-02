@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import * as sdk from "./index.js";
@@ -61,14 +62,14 @@ it("opens original bytes and explicit streams and saves through a memory publica
   const bytes = new Uint8Array(Buffer.concat(chunks));
   let offset = 0;
   const reopened = await sdk.Presentation(
-    {
+    chunksFromReader({
       read: async (maximum) => {
         if (offset === bytes.length) return null;
         const chunk = bytes.slice(offset, offset + maximum);
         offset += chunk.length;
         return chunk;
       }
-    },
+    }),
     context
   );
   expect(reopened.core_properties.title).toBe("Seed inventory");

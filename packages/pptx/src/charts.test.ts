@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { createDeckFixture } from "../tests/fixtures/decks.js";
 import { storedArchive } from "../tests/fixtures/archive.js";
@@ -146,7 +147,7 @@ it.each([
   { select: "token", shape: "name" }
 ])("rejects invalid chart selectors before reading bytes (%j)", async (options) => {
   const read = vi.fn();
-  await expect(readCharts({ read }, options as never, {} as never)).rejects.toBeDefined();
+  await expect(readCharts(chunksFromReader({ read }), options as never, {} as never)).rejects.toBeDefined();
   expect(read).not.toHaveBeenCalled();
 });
 it("rejects chart selector accessors without invoking them", async () => {
@@ -161,7 +162,7 @@ it("rejects chart selector accessors without invoking them", async () => {
 it("rejects inherited chart selectors without reading input", async () => {
   const read = vi.fn();
   await expect(
-    readCharts({ read }, Object.create({ slide: 1 }), {} as never)
+    readCharts(chunksFromReader({ read }), Object.create({ slide: 1 }), {} as never)
   ).rejects.toMatchObject({ code: "invalid-value" });
   expect(read).not.toHaveBeenCalled();
 });
@@ -199,7 +200,7 @@ it("snapshots selectors before awaiting the caller byte source", async () => {
   const options = { slide: 1 };
   let offset = 0;
   const records = await readCharts(
-    {
+    chunksFromReader({
       read: async (max) => {
         options.slide = 999;
         if (offset === bytes.length) return null;
@@ -207,7 +208,7 @@ it("snapshots selectors before awaiting the caller byte source", async () => {
         offset += chunk.length;
         return chunk;
       }
-    },
+    }),
     options,
     context
   );

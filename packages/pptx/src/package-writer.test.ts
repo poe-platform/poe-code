@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { inspectZip } from "../tests/zip-reader.js";
@@ -416,7 +417,7 @@ describe("package ZIP serialization", () => {
         writePackageArchive(
           items,
           { ...context, archiveLimits },
-          { compression: "store", source: { read } }
+          { compression: "store", source: chunksFromReader({ read }) }
         )
       ).rejects.toMatchObject({ code: "resource-limit" });
     }
@@ -427,14 +428,14 @@ describe("package ZIP serialization", () => {
     const read = vi.fn();
     for (const compression of [undefined, null, "deflate", 0]) {
       await expect(
-        writePackageArchive([], context, { compression, source: { read } } as never)
+        writePackageArchive([], context, { compression, source: chunksFromReader({ read }) } as never)
       ).rejects.toMatchObject({ code: "invalid-value" });
     }
     await expect(
       writePackageArchive(
         [],
         { ...context, archiveLimits: { ...context.archiveLimits, maxMembers: NaN } },
-        { compression: "store", source: { read } }
+        { compression: "store", source: chunksFromReader({ read }) }
       )
     ).rejects.toMatchObject({ code: "invalid-value" });
     expect(read).not.toHaveBeenCalled();
@@ -448,7 +449,7 @@ describe("package ZIP serialization", () => {
       writePackageArchive(
         [],
         { ...context, signal: controller.signal },
-        { compression: "store", source: { read } }
+        { compression: "store", source: chunksFromReader({ read }) }
       )
     ).rejects.toMatchObject({ code: "cancelled" });
     expect(read).not.toHaveBeenCalled();

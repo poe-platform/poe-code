@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { expect, it, vi } from "vitest";
 import { mutateAnimations, mutateAnimationsBatch, type MutateAnimationsOptions } from "./animation-editing.js";
 import type { SelectionContext } from "./selectors.js";
@@ -27,9 +28,9 @@ const malformed: readonly [string, unknown][] = [
 it.each(malformed)("rejects %s before reading any input", async (_name, update) => {
   const options = { ...valid, ...(update as object) } as MutateAnimationsOptions;
   const read = vi.fn(async () => null);
-  await expect(mutateAnimations({ read }, "add", options, context)).rejects.toMatchObject({ code: "invalid-value" });
+  await expect(mutateAnimations(chunksFromReader({ read }), "add", options, context)).rejects.toMatchObject({ code: "invalid-value" });
   expect(read).not.toHaveBeenCalled();
-  await expect(mutateAnimationsBatch({ read }, [
+  await expect(mutateAnimationsBatch(chunksFromReader({ read }), [
     { action: "add", options: valid }, { action: "add", options }
   ], context)).rejects.toMatchObject({ code: "invalid-value" });
   expect(read).not.toHaveBeenCalled();
@@ -39,7 +40,7 @@ it("rejects non-data location values without invoking serialization hooks", asyn
   const read = vi.fn(async () => null);
   for (const value of [{ toJSON }, 1n]) {
     const target = { fingerprint: value, scope: "slides", owner: "/ppt/slides/slide1.xml", objectId: "2", coordinateSystem: "identity" };
-    await expect(mutateAnimationsBatch({ read }, [
+    await expect(mutateAnimationsBatch(chunksFromReader({ read }), [
       { action: "add", options: { ...valid, target } as unknown as MutateAnimationsOptions }
     ], context)).rejects.toMatchObject({ code: "invalid-value" });
   }

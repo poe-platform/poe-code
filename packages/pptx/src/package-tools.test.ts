@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { createHash } from "node:crypto";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
@@ -40,7 +41,7 @@ describe("explicit package tools", () => {
     expect(opaque.name.endsWith(".bin")).toBe(true);
     const volume = Volume.fromJSON({});
     for (const item of extracted) volume.writeFileSync(`/${item.name}`, item.bytes);
-    const packed = await packPackage(extracted.map(item => ({ part: item.part, sha256: item.sha256, bytes: { path: `/${item.name}`, capability: { async openRead(path: string) { let read = false; return { async read() { if (read) return null; read = true; return new Uint8Array(volume.readFileSync(path) as Buffer); } }; } } } })), context);
+    const packed = await packPackage(extracted.map(item => ({ part: item.part, sha256: item.sha256, bytes: { path: `/${item.name}`, fs: streamingFileSystem({ async openRead(path: string) { let read = false; return chunksFromReader({ async read() { if (read) return null; read = true; return new Uint8Array(volume.readFileSync(path) as Buffer); } }); } }) } })), context);
     expect(inspectZip(packed).map(item => [item.name, item.payload])).toEqual(inspectZip(original).sort((a,b) => a.name < b.name ? -1 : 1).map(item => [item.name, item.payload]));
   });
   it("selects canonical parts in requested order without interpreting member paths as output paths", async () => {
@@ -50,12 +51,12 @@ describe("explicit package tools", () => {
   });
   it.each(["/../outside.xml", "/folder/%2e%2e/outside.xml", "/folder\\outside.xml", "relative.xml"])("rejects unsafe manifest part %s before reading capabilities", async part => {
     let reads = 0;
-    await expect(packPackage([{ part, sha256: "0".repeat(64), bytes: { async read() { reads++; return null; } } }], context)).rejects.toMatchObject({ code: "unsafe-path" });
+    await expect(packPackage([{ part, sha256: "0".repeat(64), bytes: chunksFromReader({ async read() { reads++; return null; } }) }], context)).rejects.toMatchObject({ code: "unsafe-path" });
     expect(reads).toBe(0);
   });
   it.each([[["/folder", "/folder/item.xml"]], [["/FOLDER/item.xml", "/folder/item.xml"]]])("rejects manifest namespace collisions before reading capabilities", async parts => {
     let reads = 0;
-    await expect(packPackage(parts.map(part => ({ part, sha256: "0".repeat(64), bytes: { async read() { reads++; return null; } } })), context)).rejects.toMatchObject({ code: "invalid-opc" });
+    await expect(packPackage(parts.map(part => ({ part, sha256: "0".repeat(64), bytes: chunksFromReader({ async read() { reads++; return null; } }) })), context)).rejects.toMatchObject({ code: "invalid-opc" });
     expect(reads).toBe(0);
   });
   it("rejects changed hashes, incomplete graphs and mismatched presentation kinds", async () => {
@@ -66,7 +67,7 @@ describe("explicit package tools", () => {
   });
   it("rejects extraction selection budgets and accessor records before input reads", async () => {
     let reads = 0;
-    const source = { async read() { reads++; return null; } };
+    const source = chunksFromReader({ async read() { reads++; return null; } });
     await expect(extractPackage(source, context, { parts: Array(101).fill("/p.xml") })).rejects.toMatchObject({ code: "resource-limit" });
     const options = Object.defineProperty({}, "parts", { get() { reads++; return []; } });
     await expect(extractPackage(source, context, options)).rejects.toMatchObject({ code: "invalid-value" });
@@ -79,7 +80,7 @@ describe("explicit package tools", () => {
     let pulled = false;
     const members = files.map(file => ({ part: file.part, sha256: file.sha256, bytes: file.bytes as import("./contracts.js").BinaryInput }));
     const first = files[0]!.bytes;
-    members[0]!.bytes = { async read() { if (pulled) return null; pulled = true; last.bytes.fill(0); return first; } };
+    members[0]!.bytes = chunksFromReader({ async read() { if (pulled) return null; pulled = true; last.bytes.fill(0); return first; } });
     const packed = await packPackage(members, context);
     expect(inspectZip(packed).find(file => `/${file.name}` === last.part)!.payload).toEqual(expected);
   });

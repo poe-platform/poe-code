@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { createPresentation } from "./creation.js";
@@ -325,7 +326,7 @@ it.each([
   const read = vi.fn(async () => null);
   await expect(
     applyTemplateBindings(
-      { read },
+      chunksFromReader({ read }),
       [
         { name: "slot", scope: "slides", slide: 1, cardinality: "one", ...payload }
       ] as TemplateBinding[],
@@ -337,7 +338,7 @@ it.each([
 it("applies the XML payload ceiling in bytes independently of the total budget", async () => {
   const read = vi.fn(async () => null);
   await expect(
-    applyTemplateBindings({ read }, [binding("slot", "海😀海")], {
+    applyTemplateBindings(chunksFromReader({ read }), [binding("slot", "海😀海")], {
       ...context,
       xmlLimits: { ...context.xmlLimits, maxBytes: 9 }
     })
@@ -347,7 +348,7 @@ it("applies the XML payload ceiling in bytes independently of the total budget",
 it("admits a Unicode payload at the exact UTF-8 boundary", async () => {
   const read = vi.fn(async () => null);
   await expect(
-    applyTemplateBindings({ read }, [binding("slot", "海😀海")], {
+    applyTemplateBindings(chunksFromReader({ read }), [binding("slot", "海😀海")], {
       ...context,
       limits: { ...context.limits, maxBytes: 10 },
       xmlLimits: { ...context.xmlLimits, maxBytes: 10 }

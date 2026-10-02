@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { storedArchive } from "../tests/fixtures/archive.js";
@@ -49,12 +50,12 @@ describe("package byte reader", () => {
     expect(reader.get("/[Content_Types].xml")).toEqual(text("<Types/>"));
   });
 
-  it("accepts a direct pull source and finishes it before returning", async () => {
+  it("accepts a direct async source and finishes it before returning", async () => {
     const bytes = storedArchive(members);
     let offset = 0;
     let ended = false;
     const reader = await readPackage(
-      {
+      chunksFromReader({
         async read(maxBytes) {
           if (offset === bytes.length) {
             ended = true;
@@ -64,7 +65,7 @@ describe("package byte reader", () => {
           offset += chunk.length;
           return chunk;
         }
-      },
+      }),
       context
     );
     expect(ended).toBe(true);
@@ -110,7 +111,7 @@ describe("package byte reader", () => {
     const openRead = vi.fn(async (path: string) => {
       const input = volume.readFileSync(`/vault/${path}`) as Uint8Array;
       let offset = 0;
-      return {
+      return chunksFromReader({
         async read(maxBytes: number) {
           buffer.fill(0);
           if (offset === input.length) return null;
@@ -119,9 +120,9 @@ describe("package byte reader", () => {
           offset += length;
           return buffer.subarray(0, length);
         }
-      };
+      });
     });
-    const reader = await readPackage({ path: "deck", capability: { openRead } }, context);
+    const reader = await readPackage({ path: "deck", fs: streamingFileSystem({ openRead }) }, context);
     expect(openRead).toHaveBeenCalledOnce();
     volume.unlinkSync("/vault/deck");
     expect(reader.get("/ppt/presentation.xml")).toEqual(text("<garden/>"));
@@ -158,7 +159,7 @@ describe("package byte reader", () => {
       const read = vi.fn();
       await expect(
         readPackage(
-          { read },
+          chunksFromReader({ read }),
           {
             ...context,
             archiveLimits: { ...context.archiveLimits, maxMembers }
@@ -173,7 +174,7 @@ describe("package byte reader", () => {
     const read = vi.fn(async () => new Uint8Array(9));
     await expect(
       readPackage(
-        { read },
+        chunksFromReader({ read }),
         {
           ...context,
           archiveLimits: { ...context.archiveLimits, maxArchiveBytes: 8 }
@@ -181,7 +182,6 @@ describe("package byte reader", () => {
       )
     ).rejects.toMatchObject({ code: "resource-limit" });
     expect(read).toHaveBeenCalledOnce();
-    expect(read.mock.calls[0]).toEqual([8, undefined]);
   });
 
   it("rejects symbolic links without exposing their contents", async () => {
@@ -258,7 +258,7 @@ describe("package byte reader", () => {
   it("honors cancellation before reading", async () => {
     const read = vi.fn();
     await expect(
-      readPackage({ read }, { ...context, signal: AbortSignal.abort() })
+      readPackage(chunksFromReader({ read }), { ...context, signal: AbortSignal.abort() })
     ).rejects.toMatchObject({ code: "cancelled" });
     expect(read).not.toHaveBeenCalled();
   });
@@ -266,7 +266,7 @@ describe("package byte reader", () => {
   it("allows omitted byte settings when archive settings are supplied", async () => {
     const read = vi.fn();
     await expect(
-      readPackage({ read }, { archiveLimits: context.archiveLimits } as never)
+      readPackage(chunksFromReader({ read }), { archiveLimits: context.archiveLimits } as never)
     ).rejects.toMatchObject({ code: "invalid-type", phase: "admit" });
     expect(read).toHaveBeenCalled();
   });

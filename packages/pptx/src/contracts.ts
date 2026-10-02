@@ -1,19 +1,17 @@
-export interface ByteSource {
-  read(maxBytes: number, signal?: AbortSignal): Promise<Uint8Array | null>;
-}
+import type { ByteSource, FileSystem } from "@poe-code/safe-fs/core";
+import type { ByteSink as ShellByteSink } from "safe-bash-contracts";
+export type { ByteSource } from "@poe-code/safe-fs/core";
 
-export interface ByteSink {
+export interface ByteSink extends ShellByteSink {
   write(bytes: Uint8Array, signal?: AbortSignal): Promise<void>;
   close?(): Promise<void>;
 }
 
-export interface VfsCapability {
-  openRead(path: string, signal?: AbortSignal): Promise<ByteSource>;
-}
+export type VfsCapability = Pick<FileSystem, "readFile" | "readStream">;
 
 export interface VfsPath {
   readonly path: string;
-  readonly capability: VfsCapability;
+  readonly fs: VfsCapability;
 }
 
 export type BinaryInput = Uint8Array | ByteSource | VfsPath;

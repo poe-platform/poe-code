@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { storedArchive } from "../tests/fixtures/archive.js";
@@ -294,31 +295,31 @@ describe("structural text reading", () => {
     let reads = 0;
     const input = {
       path: "/deck.pptx",
-      capability: {
+      fs: streamingFileSystem({
         async openRead() {
           reads++;
           let offset = 0;
-          return {
+          return chunksFromReader({
             async read(max: number) {
               if (offset === bytes.length) return null;
               const chunk = bytes.slice(offset, offset + max);
               offset += chunk.length;
               return chunk;
             }
-          };
+          });
         }
-      }
+      })
     };
     expect((await readPresentationText(input, {}, context)).text).toBe("Coast\nEnd");
     expect(reads).toBe(1);
     expect(bytes).toEqual(original);
   });
   it("rejects invalid options before admitting input", async () => {
-    const input = {
+    const input = chunksFromReader({
       async read(): Promise<Uint8Array | null> {
         throw new Error("Input must not be read");
       }
-    };
+    });
     await expect(
       readPresentationText(input, { scope: null as never }, context)
     ).rejects.toMatchObject({ code: "invalid-value" });

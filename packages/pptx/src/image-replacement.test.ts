@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { readPackage } from "./package-reader.js";
 import { validatePresentation } from "./validation.js";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
@@ -312,12 +313,12 @@ it("cancels asynchronous acquisition without mutating input", async () => {
   const input = await fixture(),
     original = input.slice(),
     controller = new AbortController();
-  const source = {
+  const source = chunksFromReader({
     read: async () => {
       controller.abort();
       return input;
     }
-  };
+  });
   await expect(
     replaceImage(
       source,
@@ -420,12 +421,12 @@ it("rejects geometry reset without admitted intrinsic dimensions", async () => {
 });
 it("checks replacement byte budgets before package acquisition", async () => {
   let reads = 0;
-  const input = {
+  const input = chunksFromReader({
     read: async () => {
       reads++;
       return null;
     }
-  };
+  });
   await expect(
     replaceImage(
       input,

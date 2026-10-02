@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { Volume } from "memfs";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { createPresentation } from "./creation.js";
@@ -135,12 +136,12 @@ it("rejects accessors and aggregate payload overflow before input reads", async 
     }
   };
   await expect(
-    applyTemplateRepeat({ read }, repeat as TemplateRepeat, context)
+    applyTemplateRepeat(chunksFromReader({ read }), repeat as TemplateRepeat, context)
   ).rejects.toMatchObject({ code: "invalid-value" });
   expect(getter).not.toHaveBeenCalled();
   await expect(
     applyTemplateRepeat(
-      { read },
+      chunksFromReader({ read }),
       {
         kind: "repeat",
         slides: [1],
@@ -190,7 +191,7 @@ it.each([
     const read = vi.fn(async () => null);
     await expect(
       applyTemplateRepeat(
-        { read },
+        chunksFromReader({ read }),
         { kind: "repeat", mediaPolicy: "shared-media", slides, records },
         context
       )
@@ -211,7 +212,7 @@ it.each([
   const read = vi.fn(async () => null);
   await expect(
     applyTemplateRepeat(
-      { read },
+      chunksFromReader({ read }),
       {
         kind: "repeat",
         slides: [1],
@@ -236,7 +237,7 @@ it("counts media bytes across records before input admission", async () => {
   };
   await expect(
     applyTemplateRepeat(
-      { read },
+      chunksFromReader({ read }),
       {
         kind: "repeat",
         slides: [1],

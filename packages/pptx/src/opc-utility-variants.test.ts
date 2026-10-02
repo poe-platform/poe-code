@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { packageUri } from "./package-uri.js";
@@ -238,19 +239,19 @@ describe("OPC utility parameter variants", () => {
     const reader = await readPackage(
       {
         path: "/deck.zip",
-        capability: {
+        fs: streamingFileSystem({
           async openRead(path: string) {
             const bytes = new Uint8Array(volume.readFileSync(path) as Uint8Array);
-            return {
+            return chunksFromReader({
               async read(maxBytes: number) {
                 if (offset === bytes.length) return null;
                 const chunk = bytes.slice(offset, offset + maxBytes);
                 offset += chunk.length;
                 return chunk;
               }
-            };
+            });
           }
-        }
+        })
       },
       context
     );

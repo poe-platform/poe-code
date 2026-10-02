@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { expect, it, vi } from "vitest";
 import { addShapePath, setShapePath } from "./shape-path-operations.js";
 import { pathFromVertices, readShapePath } from "./shape-paths.js";
@@ -14,7 +15,7 @@ const path = {
 it("rejects unused edit properties before reading input", async () => {
   const read = vi.fn();
   await expect(
-    setShapePath({ read }, { path, update: { name: "ignored" } } as never, {} as never)
+    setShapePath(chunksFromReader({ read }), { path, update: { name: "ignored" } } as never, {} as never)
   ).rejects.toMatchObject({ code: "invalid-value" });
   expect(read).not.toHaveBeenCalled();
 });
@@ -27,7 +28,7 @@ it("rejects nested option getters without execution", async () => {
     }
   };
   const read = vi.fn();
-  await expect(addShapePath({ read }, { path, update }, {} as never)).rejects.toMatchObject({
+  await expect(addShapePath(chunksFromReader({ read }), { path, update }, {} as never)).rejects.toMatchObject({
     code: "invalid-value"
   });
   expect(calls).toBe(0);
@@ -77,7 +78,7 @@ it("rejects length property getters before shape option validation", async () =>
     height: { value: 10, unit: "emu" as const }
   };
   await expect(
-    addShapePath({ read: vi.fn() }, { path, update }, {} as never)
+    addShapePath(chunksFromReader({ read: vi.fn() }), { path, update }, {} as never)
   ).rejects.toMatchObject({ code: "invalid-value" });
   expect(calls).toBe(0);
 });

@@ -1,3 +1,4 @@
+import { chunksFromReader } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { SaxesParser } from "saxes";
@@ -215,7 +216,7 @@ it("rejects a media policy accessor without invoking it", async () => {
     read = vi.fn(async () => null);
   await expect(
     duplicateSlides(
-      { read },
+      chunksFromReader({ read }),
       {
         selection: { kind: "slide", all: true },
         position: 1,

@@ -1,3 +1,4 @@
+import { streamingFileSystem } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { SaxesParser } from "saxes";
 import { writePackageArchive } from "./package-writer.js";
@@ -273,12 +274,12 @@ describe("background fills and style references", () => {
           kind: "picture",
           image: {
             path: "/absent.png",
-            capability: {
+            fs: streamingFileSystem({
               async openRead(path) {
                 volume.readFileSync(path);
                 throw new Error("unreachable");
               }
-            }
+            })
           }
         },
         context

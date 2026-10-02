@@ -132,9 +132,9 @@ function mergeIntent(
           ("path" in input
             ? typeof input.path !== "string" ||
               !input.path ||
-              !input.capability ||
-              typeof input.capability.openRead !== "function"
-            : typeof input.read !== "function"))
+              !input.fs ||
+              typeof input.fs.readFile !== "function"
+            : typeof input[Symbol.asyncIterator] !== "function"))
     )
   )
     throw new OfficeError(

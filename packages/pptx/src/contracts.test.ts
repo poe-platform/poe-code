@@ -3,7 +3,7 @@ import type { BinaryInput, ByteSource, OfficeResult, OperationRequest } from "./
 import { readBinary } from "./bytes.js";
 
 it("retains asynchronous byte and discriminated result contracts", () => {
-  expectTypeOf<ReturnType<ByteSource["read"]>>().toEqualTypeOf<Promise<Uint8Array | null>>();
+  expectTypeOf<ByteSource>().toEqualTypeOf<AsyncIterable<Uint8Array>>();
   expectTypeOf<ReturnType<typeof readBinary>>().toEqualTypeOf<Promise<Uint8Array>>();
   type Comparison = OfficeResult<{ readonly equal: boolean }, "diff">;
   const different: Comparison = {

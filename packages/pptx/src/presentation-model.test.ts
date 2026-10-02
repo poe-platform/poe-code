@@ -1,3 +1,4 @@
+import { chunksFromReader, streamingFileSystem } from "../tests/fixtures/streams.js";
 import { afterAll, beforeAll, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { Presentation } from "./presentation-model.js";
@@ -56,12 +57,12 @@ it("admits only explicit VFS and stream capabilities", async () => {
   volume.writeFileSync("/deck", source);
   const openRead = vi.fn(async () => {
     let read = false;
-    return {
+    return chunksFromReader({
       read: async () =>
         read ? null : ((read = true), new Uint8Array(volume.readFileSync("/deck") as Buffer))
-    };
+    });
   });
-  const deck = await Presentation({ path: "/deck", capability: { openRead } });
+  const deck = await Presentation({ path: "/deck", fs: streamingFileSystem({ openRead }) });
   expect(openRead).toHaveBeenCalledOnce();
   expect(deck.slide_width?.inches).toBe(10);
   await expect(Presentation("/deck" as never)).rejects.toMatchObject({ code: "invalid-type" });
@@ -71,11 +72,11 @@ it("rejects cancellation and input failures asynchronously", async () => {
   const signal = AbortSignal.abort();
   await expect(Presentation(undefined, { signal })).rejects.toMatchObject({ code: "cancelled" });
   await expect(
-    Presentation({
+    Presentation(chunksFromReader({
       read: async () => {
         throw new Error("private detail");
       }
-    })
+    }))
   ).rejects.toMatchObject({ code: "io-failure" });
   await expect(Presentation(new Uint8Array([1, 2]))).rejects.toMatchObject({
     code: "invalid-archive"
@@ -158,12 +159,12 @@ it("advances the atomic in-place baseline and exposes cancellation to publicatio
   const deck = await Presentation(
     {
       path: "/deck",
-      capability: {
-        openRead: async () => ({
+      fs: streamingFileSystem({
+        openRead: async () => (chunksFromReader({
           read: async () =>
             read ? null : ((read = true), new Uint8Array(volume.readFileSync("/deck") as Buffer))
-        })
-      }
+        }))
+      })
     },
     { signal: controller.signal }
   );

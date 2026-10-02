@@ -29,6 +29,19 @@ function fixture(context: TestContext, backgroundJobs = false, fs = new MemoryFi
 }
 
 for (const source of ["probe | probe", "(probe)", "probe & wait", ": $(probe)", "invoke"]) {
+  test(`child filesystem scopes leave a cold reusable scope available after ${source}`, async context => {
+    const { shell, rootScope, seen } = fixture(context, true);
+    shell.commands.register({ name: "probe", execute({ fs }) { void fs.capabilities; return { exitCode: 0 }; } });
+    shell.commands.register({ name: "invoke", execute(context) { return context.invoke!("probe", []); } });
+    const result = await shell.exec(source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const childScopes = seen.slice();
+    assert.ok(childScopes.length > 0);
+    const first = await rootScope();
+    assert.ok(childScopes.every(scope => scope !== first));
+    assert.equal(await rootScope(), first);
+  });
+
   test(`child filesystem scopes do not disable reuse after ${source}`, async context => {
     const { shell, rootScope } = fixture(context, true);
     shell.commands.register({ name: "probe", execute({ fs }) { void fs.capabilities; return { exitCode: 0 }; } });

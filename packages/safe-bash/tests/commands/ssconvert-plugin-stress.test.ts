@@ -97,7 +97,7 @@ test("ssconvert canonical factories enroll default executors for synchronous eva
 test("ssconvert synchronous evaluation preserves configured argument limits", async () => {
   const fs = new MemoryFileSystem();
   await fs.writeFile("/input", encode(""));
-  const shell = new Shell({ fs }).use(agentCommands()).use(ssconvertCommands({ limits: { argumentBytes: 1 } }));
+  const shell = new Shell({ fs }).use(agentCommands()).use(ssconvertCommands({ replace: true, limits: { argumentBytes: 1 } }));
   try {
     for (const source of ["ssconvert --help", "ssconvert --help < /input", "ssconvert --help | cat"]) {
       const result = await shell.exec(`set -o pipefail; value="$(${source})"`);
@@ -297,8 +297,8 @@ test("ssconvert cancellation drains admitted stderr writes before invocation set
   assert.deepEqual(call.stdout, []);
 });
 
-test("ssconvert explicit plugin is available with ordinary agent shell invocation", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(ssconvertCommands(options));
+test("ssconvert explicit plugin replaces the default during ordinary agent shell invocation", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(ssconvertCommands({ ...options, replace: true }));
   try {
     const result = await shell.exec("printf 'agent input' | ssconvert -T independent fd://0 fd://1");
     assert.equal(result.exitCode, 0); assert.equal(result.stderr, ""); assert.equal(result.stdout, "agent input");
@@ -397,7 +397,7 @@ test("ssconvert preserves actual Shell default and pipeline stdin provenance ind
     return fixture.read!(bytes, context);
   } };
   const binding = { ...options, codecs: [codec] };
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(ssconvertCommands(binding));
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(agentCommands()).use(ssconvertCommands({ ...binding, replace: true }));
   try {
     for (const source of ["ssconvert -T independent fd://0 fd://1",
       "printf '' | ssconvert -T independent fd://0 fd://1"]) {

@@ -350,3 +350,14 @@ test("24. case fallthrough (;& and ;;&) into an empty clause resets case exit st
   assert.equal(result.stderr, "");
   assert.equal(result.stdout, "s1:0\ns2:0\ns3:1\n");
 });
+
+test("25. arithmetic-for function call with unquoted induction variable arguments executes body and updates caller globals", async () => {
+  const env = createTestShell();
+  const res = await env.shell.exec(`
+    fn() { local a=$1 b=$2; res=$((a + b)); }
+    for ((i=0; i<10; i++)); do fn $i $((i+1)); done
+    echo "$res|$i"
+  `);
+  assert.equal(res.exitCode, 0);
+  assert.equal(res.stdout.trim(), "19|10");
+});

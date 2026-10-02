@@ -24,13 +24,15 @@ export type ArrayAssignment =
   | { readonly kind: "compound"; readonly name: string; readonly append: boolean; readonly entries: readonly ArrayEntry[] };
 
 export const prefixNameQuoteGroups = new WeakMap<WordPart, object>();
+const quoteMarkers = new WeakSet<WordPart>();
 
 export function setQuoteMarker(part: WordPart, synthetic: boolean): void {
-  Object.defineProperty(part, "_quoteMarker", { value: synthetic, writable: true, configurable: true });
+  if (synthetic) quoteMarkers.add(part);
+  else quoteMarkers.delete(part);
 }
 
 export function isQuoteMarker(part: WordPart): boolean {
-  return Boolean((part as { _quoteMarker?: boolean })._quoteMarker);
+  return quoteMarkers.has(part);
 }
 
 export function literalIndex(source: string, offset: number, budget = new ParseBudget()): LiteralIndex {

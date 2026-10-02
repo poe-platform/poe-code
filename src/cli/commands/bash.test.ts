@@ -3,7 +3,8 @@ import { EventEmitter } from 'node:events';
 import { expect, it, vi } from 'vitest';
 const { runBash, createWriteStream } = vi.hoisted(() => ({ runBash: vi.fn(async () => ({ exitCode: 0 })), createWriteStream: vi.fn() }));
 vi.mock('../../sdk/bash.js', () => ({ runBash }));
-vi.mock('@poe-platform/safe-bash', () => ({ MemoryFileSystem: class {}, RealFileSystem: class {} }));
+vi.mock('@poe-platform/safe-bash', () => ({ MemoryFileSystem: class {} }));
+vi.mock('@poe-platform/safe-bash/node', () => ({ MemoryFileSystem: class {}, RealFileSystem: class { constructor(readonly options: { root: string }) {} } }));
 vi.mock('node:fs', async importOriginal => ({ ...await importOriginal<typeof import('node:fs')>(), createWriteStream }));
 import { registerBashCommand } from './bash.js';
 
@@ -136,4 +137,11 @@ it('awaits progress destination backpressure before the SDK completes', async ()
     expect(settled).toBe(false);
   } finally { ui.emit('drain'); await execution; }
   expect(settled).toBe(true);
+});
+
+it('uses the explicit host filesystem entry when --root is supplied', async () => {
+  const program = new Command();
+  registerBashCommand(program);
+  await program.parseAsync(['bash', '--root', '/workspace', '-c', 'pwd'], { from: 'user' });
+  expect(runBash).toHaveBeenLastCalledWith(expect.objectContaining({ fs: expect.objectContaining({ options: { root: '/workspace' } }) }));
 });

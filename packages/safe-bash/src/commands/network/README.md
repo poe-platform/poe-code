@@ -31,11 +31,13 @@ the transport starts. URL userinfo is removed before policy/transport invocation
 initial URL credentials can generate Basic authentication. Rejected policies
 and exceptions never expose their details to command diagnostics.
 
-The default transport is Node `http`/`https`, not fetch: responses are not
-automatically decompressed or redirected, duplicate raw response headers are
-preserved, and request writes await callbacks before pulling additional bytes.
-`createNodeHttpTransport({ ca?, maxHeaderBytes? })` allows host-injected CA material
-without a command-line TLS bypass. Custom transports accept
+The default transport uses the host Fetch API in every runtime. Hosts needing
+Node-specific TLS, DNS, or raw-header controls can explicitly import
+`createNodeHttpTransport` from `@poe-platform/safe-bash/commands/network/node`
+and pass it as `transport`. The Node adapter preserves encoded response bytes
+and duplicate raw response headers; request writes await callbacks before
+pulling additional bytes. `createNodeHttpTransport({ ca?, maxHeaderBytes? })`
+accepts host-injected CA material. Custom transports accept
 `{ url, method, headers, body?: AsyncIterable<Uint8Array>, signal }` and return
 `{ status, statusText, headers, httpVersion?, body, dispose() }`.
 They MUST perform one request only, preserve encoded response bytes, respect
@@ -52,7 +54,7 @@ verification remain enabled. Custom transports must advertise
 option because it cannot configure request trust. Unreadable or oversized CA
 files return 77; untrusted certificates and hostname mismatches return 60.
 
-Cloudflare Workers and browsers can inject `createFetchTransport()`. It uses the
+Cloudflare Workers and browsers use `createFetchTransport()` by default. It uses the
 host `fetch`, forces manual redirects so each hop returns to the authorizer,
 omits ambient credentials, and streams request and response bodies. Pass a
 specific Fetch function as `createFetchTransport({ fetch })` when the host does

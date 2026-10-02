@@ -1,3 +1,4 @@
+import { createNodeHttpTransport } from "../../../src/commands/network/node.js";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { collectBytes, toByteSource, type ByteSink, type ByteSource, type CommandContext, type FileSystem } from "../../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
@@ -30,6 +31,7 @@ export async function run(args: readonly string[], options: RunOptions = {}) {
     stderr: { async write(chunk) { stderr.push(chunk.slice()); } },
   };
   const result = await createCurlCommand({
+    transport: createNodeHttpTransport(),
     authorize: request => new URL(request.url).hostname === "127.0.0.1", ...options.options,
   }).execute(context);
   return { ...result, stdout: Buffer.concat(stdout), stderr: Buffer.concat(stderr), fs };

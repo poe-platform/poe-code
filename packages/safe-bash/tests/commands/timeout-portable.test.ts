@@ -3,6 +3,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { createContext, runInContext } from "node:vm";
+import { Shell as NodeShell } from "../../src/node.js";
 import { parseDuration } from "safe-bash-command-timeout/duration";
 import { Shell, CommandRegistry, agentCommands, createAgentCommands, createMemoryFileSystem } from "../../src/index.js";
 
@@ -87,7 +88,7 @@ test("timeout large finite durations preserve child bytes and status with the de
   const fs = createMemoryFileSystem();
   const bytes = Uint8Array.of(67, 252, 0, 13, 10);
   await fs.writeFile("/Range.bin", bytes);
-  const shell = new Shell({ fs });
+  const shell = new NodeShell({ fs });
   await shell.use(agentCommands());
   try {
     for (const token of ["9007199254740.992", "9007199254741", "9007199254742", "10000000000000", "150119987580m", "2501999793h", "104249992d", "104249993d", "1e308d"]) {

@@ -209,7 +209,11 @@ restricted profile fields, such as `sourceBytes`, `operations`, `outputBytes`,
 `admissionMs`, `memoryBytes`, `steps`, and individual Worker heap/stack budgets.
 Each is optional; an omitted field or explicit `Infinity` is unlimited. Transfer chunks remain 64 KiB
 while total payloads, metadata, operations, and frame counts have no default cap.
-`createNodeWorkerProvider` accepts an explicitly authorized static engine adapter;
+`createNodeWorkerProvider`, exported by `@poe-platform/safe-bash/commands/node/host`,
+requires a Node.js host. Its Worker transport and strict proxy checks remain isolated
+from the browser/workerd command entry, which accepts an injected SafeJS runtime.
+Both profiles use portable virtual POSIX paths and byte encodings.
+The Worker provider accepts an explicitly authorized static engine adapter;
 it never discovers or loads SafeJS automatically. Entry URLs and identity strings
 are configuration, not byte authentication or host authorization. Guest code does
 not receive native Worker/SAB/ports, host filesystem, or native process objects.

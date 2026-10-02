@@ -148,7 +148,9 @@ try {
     assert.equal(run("unpack public package", "/usr/bin/tar", ["-xzf", path.join(root, filename), "--strip-components=1", "-C", product], root).status, 0);
     data.packageInventory = inventory(product);
     for (const filename of ["cd.test.ts", "native-mapping.test.ts"]) {
-      const source = fs.readFileSync(path.join(own, filename), "utf8").replaceAll('"../../../../src/index.js"', '"virtual-bash"');
+      const source = fs.readFileSync(path.join(own, filename), "utf8")
+        .replaceAll('"../../../../src/index.js"', '"virtual-bash"')
+        .replaceAll('"../../../../src/fs/real/index.js"', '"virtual-bash"');
       assert.ok(!source.includes("../../../../src/"));
       const compiled = ts.transpileModule(source, { compilerOptions: { target: ts.ScriptTarget.ES2023, module: ts.ModuleKind.ESNext } }).outputText;
       const target = path.join(installed, "harness", "runtime-v1", filename.replace(/\.ts$/, ".mjs"));

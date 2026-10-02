@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm } from "node:fs/promises";
 import { createServer } from "node:http";
 import { fileURLToPath } from "node:url";
-import { createNodeRegexProvider } from "../../../src/node.js";
+import { createNodeRegexProvider, createRealFileSystem } from "../../../src/node.js";
 import {
   agentCommands, createByteCommands, createDiffPatchCommands,
   createSearchCommands, createStandardCommands, createStructuredCommands,
-  createTextProgramCommands, createRealFileSystem, MemoryFileSystem, MockS3Client,
+  createTextProgramCommands, MemoryFileSystem, MockS3Client,
   FsError, MountFileSystem, OverlayFileSystem, ReadOnlyFileSystem, S3FileSystem, Shell,
   WebDavFileSystem,
   type FileSystem, type ShellExecOptions, type ShellResult, type VirtualShellPlugin,

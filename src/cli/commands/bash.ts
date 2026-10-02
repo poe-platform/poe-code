@@ -82,7 +82,7 @@ export function registerBashCommand(program: Command): Command {
       ui?.on('error', error => { uiError = error; });
       try {
         if (ui) await once(ui, 'open');
-        const { MemoryFileSystem, RealFileSystem } = await import('@poe-platform/safe-bash');
+        const { MemoryFileSystem, RealFileSystem } = await import('@poe-platform/safe-bash/node');
         const totals = { upload: 0, download: 0 };
         const result = await runBash({
           ...(dryRun ? { dryRun: true } : {}),

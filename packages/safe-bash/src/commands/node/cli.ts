@@ -1,4 +1,4 @@
-import { posix } from "node:path";
+import { posixPath as posix } from "../../contracts/path.js";
 import { NodeUsageError, nodeLimits, type NodeLimits, type NodeSelector } from "./types.js";
 import { strings, text } from "./values.js";
 

@@ -1,3 +1,4 @@
+import { createNodeHttpTransport } from "../../../src/commands/network/node.js";
 import assert from "node:assert/strict";
 import { collectBytes } from "../../../src/contracts/index.js";
 import { after, before, test } from "node:test";
@@ -107,7 +108,7 @@ test("Shell curl header stdin matches native curl and writes named VFS responses
   });
   const fs = new MemoryFileSystem();
   await fs.writeFile("/headers", Buffer.from(content));
-  const shell = new Shell({ fs }).use(agentCommands()).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+  const shell = new Shell({ fs }).use(agentCommands()).use(networkCommands({ transport: createNodeHttpTransport(), authorize: request => new URL(request.url).origin === host.origin }));
   try {
     for (const command of [`curl -sS --header @/headers ${host.origin}/echo -o /response`, `curl -sS -H@- ${host.origin}/echo -o /response < /headers`, `cat /headers | curl -sS -H@- ${host.origin}/echo -o /response`]) {
       const result = await shell.exec(command);
@@ -228,7 +229,7 @@ test("curl nested config preserves ordering and consumes option-like data litera
 });
 
 test("curl reads explicit stdin config and imports only requested shell environment variables", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem(), env: { AUDIT: "SYNTHETIC" } }).use(networkCommands({ authorize: () => true }));
+  const shell = new Shell({ fs: new MemoryFileSystem(), env: { AUDIT: "SYNTHETIC" } }).use(networkCommands({ transport: createNodeHttpTransport(), authorize: () => true }));
   try {
     const actual = await shell.exec(`curl -sS --variable %AUDIT --expand-data '{{AUDIT}}' ${host.origin}/echo`);
     assert.equal(actual.exitCode, 0, actual.stderr);
@@ -275,7 +276,7 @@ for (const status of [301, 302, 303, 307, 308]) {
       const fs = new MemoryFileSystem();
       const input = Buffer.from('{"x":true}\n');
       await fs.writeFile("/input", input);
-      const shell = new Shell({ fs }).use(networkCommands({
+      const shell = new Shell({ fs }).use(networkCommands({ transport: createNodeHttpTransport(),
         authorize: request => new URL(request.url).origin === host.origin,
       }));
       try {
@@ -297,7 +298,7 @@ for (const status of [301, 302, 303, 307, 308]) {
   }
   for (const method of [undefined, "POST", "PUT", "PATCH"]) {
     test(`Shell curl ${status} redirect handles POST data with ${method ?? "implicit POST"}`, async () => {
-      const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({
+      const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({ transport: createNodeHttpTransport(),
         authorize: request => new URL(request.url).origin === host.origin,
       }));
       try {
@@ -317,7 +318,7 @@ for (const status of [301, 302, 303, 307, 308]) {
   test(`Shell curl ${status} redirect handles genuine PUT upload`, async () => {
     const fs = new MemoryFileSystem();
     await fs.writeFile("/input", Buffer.from("x"));
-    const shell = new Shell({ fs }).use(networkCommands({
+    const shell = new Shell({ fs }).use(networkCommands({ transport: createNodeHttpTransport(),
       authorize: request => new URL(request.url).origin === host.origin,
     }));
     try {
@@ -332,7 +333,7 @@ for (const status of [301, 302, 303, 307, 308]) {
 }
 
 test("Shell curl GET query retains JSON semantic headers without a request body", async () => {
-  const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({ transport: createNodeHttpTransport(),
     authorize: request => new URL(request.url).origin === host.origin,
   }));
   try {
@@ -351,7 +352,7 @@ for (const method of ["DELETE", "GET", "OPTIONS", "POST"]) {
     const fs = new MemoryFileSystem();
     const binary = Buffer.from([0, 255, 120, 121]);
     await fs.writeFile("/input", binary);
-    const shell = new Shell({ fs }).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+    const shell = new Shell({ fs }).use(networkCommands({ transport: createNodeHttpTransport(), authorize: request => new URL(request.url).origin === host.origin }));
     try {
       for (const [option, expected] of [
         ["--data x", Buffer.from("x")],
@@ -384,7 +385,7 @@ test("Shell curl matches curl 8.5/8.10 empty-file URL encoding for POST and GET"
   const fs = new MemoryFileSystem();
   await fs.writeFile("/empty", new Uint8Array());
   await fs.writeFile("/input", Buffer.from("hello world"));
-  const shell = new Shell({ fs }).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+  const shell = new Shell({ fs }).use(networkCommands({ transport: createNodeHttpTransport(), authorize: request => new URL(request.url).origin === host.origin }));
   try {
     for (const get of [false, true]) {
       for (const [argument, expected] of [
@@ -407,7 +408,7 @@ test("Shell curl joins data using curl 8.10.1 accumulated-byte semantics", async
   const fs = new MemoryFileSystem();
   await fs.writeFile("/empty", new Uint8Array());
   await fs.writeFile("/stripped", Buffer.from([0, 10, 13]));
-  const shell = new Shell({ fs }).use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+  const shell = new Shell({ fs }).use(networkCommands({ transport: createNodeHttpTransport(), authorize: request => new URL(request.url).origin === host.origin }));
   try {
     for (const [data, expected] of [
       ["--data '' --data SYNTHETIC", "SYNTHETIC"],
@@ -446,7 +447,7 @@ test("Shell curl sends byte ranges and streams partial responses", async () => {
   });
   try {
     const fs = new MemoryFileSystem();
-    const shell = new Shell({ fs }).use(networkCommands({ authorize: request => new URL(request.url).origin === partial.origin }));
+    const shell = new Shell({ fs }).use(networkCommands({ transport: createNodeHttpTransport(), authorize: request => new URL(request.url).origin === partial.origin }));
     for (const [option, expected] of [
       ["--range 0-2", "hel"], ["-r 0-2", "hel"], ["-r0-2", "hel"],
       ["--range 3-", "lo\n"], ["--range -2", "o\n"], ["--range=0-2", "hel"],
@@ -470,7 +471,7 @@ test("Shell curl sends byte ranges and streams partial responses", async () => {
 test("Shell curl accepts separate and equals connection timeouts", async () => {
   const hello = await server((_request, response) => { response.end("hello\n"); return true; });
   try {
-    const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({ authorize: () => true }));
+    const shell = new Shell({ fs: new MemoryFileSystem() }).use(networkCommands({ transport: createNodeHttpTransport(), authorize: () => true }));
     for (const option of ["--connect-timeout 1", "--connect-timeout=0.5", "--connect-timeout 0"]) {
       const result = await shell.exec(`curl ${option} ${hello.origin}/hello`);
       assert.equal(result.exitCode, 0, result.stderr);
@@ -684,7 +685,7 @@ test("curl automatic Referer works through Shell and VFS response files", async 
   const fs = new MemoryFileSystem();
   await fs.mkdir("/work");
   const shell = new Shell({ fs, cwd: "/work" });
-  shell.use(networkCommands({ authorize: request => new URL(request.url).origin === host.origin }));
+  shell.use(networkCommands({ transport: createNodeHttpTransport(), authorize: request => new URL(request.url).origin === host.origin }));
   const start = host.requests.length;
   const result = await shell.exec(`curl -s -L -e';auto' '${host.origin}/redirect/307' > 'changed output'`);
   assert.equal(result.exitCode, 0);

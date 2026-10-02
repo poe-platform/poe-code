@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
+import { Shell, agentCommands, createMemoryFileSystem } from "../../src/node.js";
 import { captureAgentWorkerRecipe } from "../../src/plugins/worker-recipes.js";
 
 test("worker devices share the parent filesystem operation budget", async () => {

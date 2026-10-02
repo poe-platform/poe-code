@@ -1,2 +1,11 @@
-export * from "./index.js";
+export * from "./core.js";
 export { createNodeRegexProvider } from "./commands/regex-execution/client.js";
+export { Shell } from "./shell/node.js";
+export type { WorkerShellOptions, WorkerModule } from "./worker/host.js";
+export * from "./commands/network/node.js";
+export * from "./commands/node/index.js";
+export { createNodeCommand, createNodeCommands, nodeCommands, type NodeCommandsOptions } from "./commands/node/index.js";
+export * from "./fs/real/index.js";
+export * from "./fs/s3/index.js";
+export * from "./fs/s3/http/index.js";
+export * from "./integrations/safejs/index.js";

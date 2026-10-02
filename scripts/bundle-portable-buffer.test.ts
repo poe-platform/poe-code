@@ -19,7 +19,7 @@ it("keeps the legacy bootstrap importable without installing a Buffer global", a
   const script = result.outputFiles!.find(output => output.path.endsWith("/portable-buffer.js"))!.text;
   const sandbox = createContext({ TextEncoder, TextDecoder, Uint8Array });
   runInContext(script, sandbox);
-  expect(runInContext('typeof Buffer', sandbox)).toBe("undefined");
+  expect(runInContext('typeof Buffer + ":" + typeof process + ":" + typeof setImmediate', sandbox)).toBe("undefined:undefined:undefined");
   const native = createContext({ TextEncoder, TextDecoder, Uint8Array, Buffer });
   runInContext(script, native);
   expect(native.Buffer).toBe(Buffer);
@@ -68,6 +68,7 @@ it("preserves browser chunks when publishing the standalone bootstrap", async ()
   const chunks = result.outputFiles.filter(output => output.path.includes(`${path.sep}chunks${path.sep}`));
   expect(chunks.length).toBeGreaterThan(0);
   for (const chunk of chunks) expect(new Uint8Array(volume.readFileSync(chunk.path) as Buffer)).toEqual(chunk.contents);
+  expect(Object.keys(result.metafile.inputs).some(input => input.endsWith("browser/buffer.mjs"))).toBe(false);
   const script = volume.readFileSync(path.join(root, "packages/safe-bash/dist/portable-buffer.js"), "utf8").toString();
   const realm = createContext({ TextEncoder, TextDecoder, Uint8Array });
   runInContext(script, realm);

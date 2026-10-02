@@ -8,7 +8,7 @@ import {
   streamInspectionCommands, toByteSource,
   type AgentCommandsOptions, type CommandContext, type PluginHost,
   type StreamInspectionCommandsOptions, type StreamInspectionLimits,
-} from "../../../src/index.js";
+} from "../../../src/node.js";
 
 const names = ["tac", "expand", "fold", "strings"];
 const cases = [

@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Shell, agentCommands, createMemoryFileSystem } from "../../src/index.js";
+import { Shell, agentCommands, createMemoryFileSystem } from "../../src/node.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";
 import { captureContext, ManualScheduler } from "./timeout-author-20260828/fixtures.js";
 
-test("kill-after accepts the reported file command through the default Shell", async () => {
+test("kill-after accepts the reported file command through the Node Shell", async () => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/Changed input.txt", new TextEncoder().encode("Changed12\r\n"));
   const shell = new Shell({ fs });

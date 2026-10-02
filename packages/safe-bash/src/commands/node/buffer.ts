@@ -72,10 +72,10 @@ export function bufferBindings<Budget>(options: NodeSafeJsCommandOptions<Budget>
   const exceeded = (resource: "arrayLength" | "stringLength"): never => {
     throw Object.assign(new RangeError(`Buffer ${resource} limit exceeded`), { code: "budgetExceeded" });
   };
-  const encoding = (value: unknown): BufferEncoding => {
+  const encoding = (value: unknown): string => {
     if (value === undefined || value === "") return "utf8";
     if (typeof value !== "string" || !isByteEncoding(value)) throw new TypeError("Unknown Buffer encoding");
-    return value as BufferEncoding;
+    return value;
   };
   return {
     encode: declare((value: unknown, selected: unknown) => {

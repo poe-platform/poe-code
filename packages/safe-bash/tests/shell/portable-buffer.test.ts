@@ -2,13 +2,13 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { portableRuntime } from "../helpers/portable-runtime.js";
 
-test("explicit portable bootstrap remains compatible with the standalone shell", async () => {
+test("standalone shell runs without installing a global Buffer", async () => {
   const { api: { Shell, MemoryFileSystem, CommandRegistry, createStandardCommands }, buffer } = await portableRuntime(`
     export { Shell } from "./packages/safe-bash/src/shell/index.ts";
     export { MemoryFileSystem } from "./packages/safe-bash/src/fs/memory/index.ts";
     export { CommandRegistry } from "./packages/safe-bash/src/contracts/command.ts";
     export { createStandardCommands } from "./packages/safe-bash/src/commands/index.ts";
-  `, { bootstrapBuffer: true });
+  `);
   assert.equal(buffer, undefined);
   const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry(createStandardCommands()) });
   try {

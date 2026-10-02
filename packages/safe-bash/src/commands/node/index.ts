@@ -1,5 +1,5 @@
 import { byteLength } from "../../byte-encoding.js";
-import { posix } from "node:path";
+import { posixPath as posix } from "../../contracts/path.js";
 import type { CommandContext, CommandDefinition, CommandResult } from "../../contracts/command.js";
 import type { VirtualShellPlugin } from "../../contracts/plugin.js";
 import { admitSource } from "./admission.js";

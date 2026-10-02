@@ -1823,6 +1823,10 @@
       "browser": "./dist/commands/network/index.browser.js",
       "import": "./dist/commands/network/index.js"
     },
+    "./commands/network/node": {
+      "types": "./dist/commands/network/node.d.ts",
+      "import": "./dist/commands/network/node.js"
+    },
     "./commands/node": {
       "types": {
         "workerd": "./dist/commands/node/browser.d.ts",

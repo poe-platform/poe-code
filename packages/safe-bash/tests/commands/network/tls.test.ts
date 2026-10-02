@@ -1,10 +1,11 @@
+import { createNodeHttpTransport } from "../../../src/commands/network/node.js";
 import assert from "node:assert/strict";
 import https, { createServer, type RequestOptions } from "node:https";
 import type { IncomingMessage } from "node:http";
 import { syncBuiltinESMExports } from "node:module";
 import { readFile } from "node:fs/promises";
 import { after, before, test } from "node:test";
-import { createFetchTransport, createNodeHttpTransport, networkCommands } from "../../../src/commands/network/index.js";
+import { createFetchTransport, networkCommands } from "../../../src/commands/network/index.js";
 import { Shell } from "../../../src/shell/shell.js";
 import { fixture, run } from "./helpers.js";
 
@@ -90,7 +91,7 @@ test("Shell curl retains VFS CA trust across authorized HTTPS redirects", async 
   const fs = await fixture();
   await fs.writeFile("/work/ca.pem", cert);
   const visits: string[] = [];
-  const shell = new Shell({ fs, cwd: "/work" }).use(networkCommands({ authorize: request => {
+  const shell = new Shell({ fs, cwd: "/work" }).use(networkCommands({ transport: createNodeHttpTransport(), authorize: request => {
     visits.push(request.url);
     return new URL(request.url).origin === origin;
   } }));

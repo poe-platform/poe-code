@@ -57,6 +57,11 @@ physical permissions, and the host process mask remains unchanged.
 Core, shell, and command imports use Web-standard bytes without installing
 `globalThis.Buffer`. Workers do not need `nodejs_compat` for this. The legacy
 `portable-buffer.js` bootstrap remains importable but no longer installs a global.
+The root uses the portable shell and Fetch transport in every runtime. Import
+`Shell` from `@poe-platform/safe-bash/node` to opt into Node worker-backed
+`timeout --kill-after`, real filesystem adapters, and Node runtime hosts.
+For Node-specific HTTP controls, import `createNodeHttpTransport` from
+`@poe-platform/safe-bash/commands/network/node` and pass it as `transport`.
 Bash `[[ value =~ pattern ]]` and `BASH_REMATCH` also work in browsers and
 Workers, using the same ERE engine with cooperative cancellation and shared
 resource accounting.

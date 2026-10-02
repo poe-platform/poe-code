@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { createNodeHttpTransport } from "../../../src/commands/network/node.js";
 import {
   Shell, agentCommands, createAgentCommands, createMemoryFileSystem, networkCommands, curlCommands,
   createNetworkCommands, createCurlCommands, createCurlCommand, createFetchTransport,
-  createNodeHttpTransport, createOriginAuthorizer,
+  createOriginAuthorizer,
   cloudflareWorkerNetworkLimits, defaultNetworkLimits, CurlError, toByteSource, type NetworkCommandsOptions,
 } from "../../../src/index.js";
 

@@ -4,7 +4,7 @@ import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
 
-export async function portableRuntime(contents: string, options: { removeBuffer?: boolean; bootstrapBuffer?: boolean } = {}) {
+export async function portableRuntime(contents: string, options: { removeBuffer?: boolean } = {}) {
   const root = fileURLToPath(new URL("../../../../", import.meta.url));
   const { resolveBrowserShellBuild } = await import(new URL("../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href);
   const buildOptions = resolveBrowserShellBuild(root);
@@ -23,16 +23,16 @@ export async function portableRuntime(contents: string, options: { removeBuffer?
       "poe-code/safe-fs/core": filesystem,
       "poe-code/safe-fs": filesystem,
     },
-    stdin: { contents: (options.bootstrapBuffer ? 'import "./packages/safe-bash/src/portable-buffer.ts";\n' : '') + contents, resolveDir: root },
+    stdin: { contents, resolveDir: root },
   });
   assert.deepEqual(Object.values(result.metafile!.outputs).flatMap(output => output.imports), []);
   // Injected Web APIs throw host TypeErrors, so preserve their error identity too.
   const realm = createContext({ TextEncoder, TextDecoder, TypeError, Uint8Array, ArrayBuffer, TransformStream,
     ReadableStream, WritableStream, AbortController, AbortSignal, setTimeout, clearTimeout, queueMicrotask,
     crypto: globalThis.crypto, structuredClone, performance, URL, FormData, Blob, Headers, Response, Request, btoa, atob });
-  assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "undefined:undefined");
+  assert.equal(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", realm), "undefined:undefined:undefined");
   const api = runInContext(`(function(){ const module = { exports: {} }; ${result.outputFiles![0]!.text}; return module.exports; })()`, realm);
-  assert.equal(runInContext("typeof Buffer + ':' + typeof process", realm), "undefined:undefined");
+  assert.equal(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof setImmediate", realm), "undefined:undefined:undefined");
   if (options.removeBuffer) {
     runInContext("delete globalThis.Buffer", realm);
     assert.equal(runInContext("typeof Buffer", realm), "undefined");

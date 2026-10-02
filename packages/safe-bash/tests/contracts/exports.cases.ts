@@ -1,15 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  CommandRegistry, MemoryFileSystem, RealFileSystem, Shell, createMemoryFileSystem,
-  createNodeFsBridge, createRealFileSystem, createStandardCommands, makeSafeJsFsModule,
+  CommandRegistry, MemoryFileSystem, Shell, createMemoryFileSystem,
+  createStandardCommands,
   makeSafeJsShellModule, standardCommands,
   S3FileSystem, S3RenameError, MockS3Client, createS3Transport, encodeCopySource,
   S3ServiceError, WebDavFileSystem,
   createTextProgramCommands, textProgramCommands,
 } from "../../src/index.js";
+import { RealFileSystem, createRealFileSystem, createNodeFsBridge, makeSafeJsFsModule } from "../../src/node.js";
 
-test("root exports expose committed shell, filesystem, command, and SafeJS APIs", async () => {
+test("portable root and explicit Node entry expose shell, filesystem, command, and SafeJS APIs", async () => {
   const fs = createMemoryFileSystem();
   assert.ok(fs instanceof MemoryFileSystem);
   const shell = new Shell({ fs, commands: new CommandRegistry(createStandardCommands()) });

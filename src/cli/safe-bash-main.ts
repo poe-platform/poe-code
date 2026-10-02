@@ -16,7 +16,7 @@ import {
   lazyCommandPlugin,
   type CommandContext,
   type FileSystem
-} from "@poe-platform/safe-bash";
+} from "@poe-platform/safe-bash/node";
 
 export interface WorkspaceFileSystemOptions {
   workspaceRoot: string;

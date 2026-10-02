@@ -279,7 +279,6 @@ beforeAll(async () => {
     sourcemap: false,
     minifyWhitespace: true,
     entryPoints: {
-      "portable-buffer": options.entryPoints["portable-buffer"],
       "core.browser": options.entryPoints["core.browser"],
       "commands/mdq/index.browser": options.entryPoints["commands/mdq/index.browser"],
     },
@@ -410,7 +409,6 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
     "commands/caller/index.browser": path.join(root, "packages/safe-bash/src/commands/caller/index.ts"),
     "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
     "trap.browser": path.join(root, "packages/safe-bash/src/trap.browser.ts"),
-    "portable-buffer": path.join(root, "packages/safe-bash/src/portable-buffer.ts"),
     "shell-entry.browser": path.join(root, "packages/safe-bash/src/shell-entry.ts"),
     "registry-entry.browser": path.join(root, "packages/safe-bash/src/registry-entry.ts"),
     "plugins/index.browser": path.join(root, "packages/safe-bash/src/plugins/index.ts"),
@@ -804,6 +802,8 @@ it("runs shell byte operations and command exports in workerd without nodejs_com
     ['sed "s/hello/hi/" /in.txt', 'hi world\n'],
     ["awk '{print $1}' /in.txt", 'hello\n'],
     ['jq ".a" /data.json', '42\n'],
+    ['x=10; echo $x', '10\n'],
+    ['for ((i=0;i<3;i++)); do echo "é😀"; done >/dev/null', ''],
     ['diff -u --label before --label after /in.txt /other.txt', '--- before\n+++ after\n@@ -1 +1 @@\n-hello world\n+goodbye world\n', 1],
     ['date -u -d @0 +%Y', '1970\n'],
     ['PORTABLE=héllo printenv PORTABLE', 'héllo\n'],
@@ -815,7 +815,7 @@ it("runs shell byte operations and command exports in workerd without nodejs_com
   const runtime = new Miniflare({
     modules: true, compatibilityDate: "2026-07-01", cf: false,
     script: `
-      if (typeof globalThis.Buffer !== "undefined") throw new Error("Host supplied Buffer");
+      if (typeof globalThis.Buffer !== "undefined" || typeof globalThis.process !== "undefined" || typeof globalThis.setImmediate !== "undefined") throw new Error("Host supplied Node globals");
       const canonical = (() => { const module = { exports: {} }; ${filesystemBuild.outputFiles![0]!.text}; return module.exports; })();
       const browser = (() => { const module = { exports: {} }; const require = name => { if (name !== "@poe-platform/safe-fs/core") throw new Error(name); return canonical; }; ${byteOperationsSource}; return module.exports; })();
       export default { async fetch() {

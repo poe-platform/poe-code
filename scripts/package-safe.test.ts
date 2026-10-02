@@ -458,7 +458,6 @@ it.each([false, true])("keeps copied command WASM inside the standalone artifact
   volume.writeFileSync(`/repo/packages/${name}/dist/index.d.ts`, "export declare const engine: unknown;");
   for (const suffix of ["js", "d.ts"]) volume.writeFileSync(`/repo/packages/safe-bash/dist/commands/exiftool/index.${suffix}`, `export * from "${name}";`);
   volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
-  volume.writeFileSync("/repo/packages/safe-bash/browser/buffer.mjs", "export {};\n");
   const plugin: Plugin = { name: "copied-wasm-fixture", setup(builder) {
     builder.onResolve({ filter: /.*/ }, args => ({ path: path.resolve(args.resolveDir, args.path), namespace: "fixture" }));
     builder.onLoad({ filter: /.*/, namespace: "fixture" }, args => ({
@@ -695,11 +694,9 @@ it.each([false, true])("admits asset-only contract owners against the full priva
       }
     }
     const portable = resolveBrowserShellBuild(repository, { external: ["safe-bash-contracts", "@poe-platform/safe-fs"] });
-    const [privateBuild, buffer, shell, fs, csvgrepRegex] = await Promise.all([
+    const [privateBuild, shell, fs, csvgrepRegex] = await Promise.all([
       build({ entryPoints: privateEntries, outdir: "/repo/packages",
         bundle: false, write: false, format: "esm", target: "es2022" }),
-      build({ entryPoints: [path.join(repository, "packages/safe-bash/browser/buffer.mjs")],
-        bundle: true, write: false, platform: "browser", format: "esm", target: "es2022" }),
       build({ ...portable, splitting: false, sourcemap: false, minify: true,
         entryPoints: undefined,
         stdin: { contents: 'export { Shell } from "./src/shell/shell.ts"; export * from "safe-bash-contracts/command"; export * from "safe-bash-contracts/errors";', resolveDir: path.join(repository, "packages/safe-bash") },
@@ -715,7 +712,6 @@ it.each([false, true])("admits asset-only contract owners against the full priva
     volume.writeFileSync("/repo/packages/safe-bash-command-csvgrep/dist/csvkit-python-regex.js", csvgrepRegex.outputFiles[0]!.contents);
     volume.writeFileSync("/repo/packages/safe-bash/package.json", JSON.stringify(manifest));
     volume.mkdirSync("/repo/packages/safe-bash/browser", { recursive: true });
-    volume.writeFileSync("/repo/packages/safe-bash/browser/buffer.mjs", buffer.outputFiles[0]!.contents);
     for (const output of shell.outputFiles) {
       volume.mkdirSync(path.dirname(output.path), { recursive: true });
       volume.writeFileSync(output.path, output.contents);
@@ -776,7 +772,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
           filename = `/output/${name}/` + (target.browser ?? target.import).replace("*", route.slice(1).join("/"));
         } else filename = path.resolve(args.resolveDir, specifier);
         if (filename.endsWith(".js") && volume.existsSync(filename.slice(0, -3) + ".ts")) filename = filename.slice(0, -3) + ".ts";
-        if (!filename.startsWith("/output/") && filename !== "/repo/packages/safe-bash/browser/buffer.mjs" && !privatePackages.some(name => filename.startsWith(`/repo/packages/${name}/dist/`) || filename.startsWith(`/repo/packages/${name}/src/`))) throw new Error("Outside isolated consumer: " + filename);
+        if (!filename.startsWith("/output/") && !privatePackages.some(name => filename.startsWith(`/repo/packages/${name}/dist/`) || filename.startsWith(`/repo/packages/${name}/src/`))) throw new Error("Outside isolated consumer: " + filename);
         return { path: path.normalize(filename), namespace: "packed" };
       });
       builder.onLoad({ filter: /.*/, namespace: "packed" }, args => ({ contents: volume.readFileSync(args.path) as Buffer, loader: args.path.endsWith(".wasm") ? "dataurl" : args.path.endsWith(".ts") ? "ts" : "js", resolveDir: path.dirname(args.path) }));

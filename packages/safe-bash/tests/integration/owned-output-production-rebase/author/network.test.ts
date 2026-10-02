@@ -1,3 +1,4 @@
+import { createNodeHttpTransport } from "../../../../src/commands/network/node.js";
 import assert from "node:assert/strict";
 import { getEventListeners } from "node:events";
 import { createServer } from "node:http";
@@ -6,7 +7,7 @@ import {
   collectBytes, FsError, toByteSource, type ByteSource,
 } from "../../../../src/contracts/index.js";
 import {
-  createCurlCommand, createNodeHttpTransport,
+  createCurlCommand,
   type HttpHeaders, type HttpRequest, type HttpResponse,
 } from "../../../../src/commands/network/index.js";
 import { bytes, deferred, discard, fixture, remainsPending, turn } from "./helpers.js";

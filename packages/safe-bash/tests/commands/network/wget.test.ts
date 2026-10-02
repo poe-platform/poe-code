@@ -1,8 +1,9 @@
+import { createNodeHttpTransport } from "../../../src/commands/network/node.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Shell } from "../../../src/shell/shell.js";
 import { MemoryFileSystem } from "../../../src/fs/memory/index.js";
-import { createNodeHttpTransport, networkCommands, type HttpTransport, type NetworkCommandsOptions } from "../../../src/commands/network/index.js";
+import { networkCommands, type HttpTransport, type NetworkCommandsOptions } from "../../../src/commands/network/index.js";
 import { collectBytes, toByteSource } from "../../../src/contracts/index.js";
 import { server } from "./helpers.js";
 

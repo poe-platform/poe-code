@@ -4,9 +4,10 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
-  Shell, MemoryFileSystem, RealFileSystem, ReadOnlyFileSystem, S3FileSystem, MockS3Client,
+  Shell, MemoryFileSystem, ReadOnlyFileSystem, S3FileSystem, MockS3Client,
   WebDavFileSystem, FsError, CommandRegistry, writeText, ShellLimitError, standardCommands,
 } from "../../../../src/index.js";
+import { RealFileSystem } from "../../../../src/fs/real/index.js";
 import type { FileSystem, ShellOptions, ShellExecOptions } from "../../../../src/index.js";
 
 async function fixture() {

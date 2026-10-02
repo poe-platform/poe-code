@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { Shell, agentCommands, createAgentCommands, createMemoryFileSystem } from "../../src/index.js";
+import { Shell, agentCommands, createAgentCommands, createMemoryFileSystem } from "../../src/node.js";
 import { workerCommands, collisionCommands, omittedOptionsCommands, cancelledOpenCommands } from "./timeout-worker-fixture.js";
 import { captureContext } from "./timeout-author-20260828/fixtures.js";
 import { createTimeoutCommand } from "../../src/commands/timeout/index.js";

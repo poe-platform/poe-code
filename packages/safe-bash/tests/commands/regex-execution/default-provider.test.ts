@@ -81,10 +81,13 @@ test("bounded default candidate queued cancellation preserves falsey reasons and
   await replacement.terminate();
 });
 
-test("bounded default candidate matches and exhausts work without native RegExp or Node scheduling", async context => {
-  const immediate = Object.getOwnPropertyDescriptor(globalThis, "setImmediate")!;
-  Object.defineProperty(globalThis, "setImmediate", { ...immediate, value: undefined });
-  context.after(() => { Object.defineProperty(globalThis, "setImmediate", immediate); });
+test("bounded default candidate matches and exhausts work without native RegExp or Node globals", async context => {
+  const globals = ["Buffer", "process", "setImmediate"] as const;
+  const descriptors = globals.map(name => Object.getOwnPropertyDescriptor(globalThis, name)!);
+  for (const name of globals) Object.defineProperty(globalThis, name, { configurable: true, writable: true, value: undefined });
+  context.after(() => {
+    for (let index = 0; index < globals.length; index++) Object.defineProperty(globalThis, globals[index]!, descriptors[index]!);
+  });
   context.mock.method(globalThis, "RegExp", () => { throw new Error("native RegExp fallback invoked"); });
   const provider = createBoundedRegexProvider({ maxWork: 512 });
   const executor = new RegexExecutor(provider);

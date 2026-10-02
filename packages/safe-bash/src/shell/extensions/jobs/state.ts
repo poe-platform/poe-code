@@ -32,6 +32,7 @@ export interface JobSnapshot {
   readonly outcome?: JobOutcome;
 }
 
+/** Quotas are unlimited when omitted or explicitly set to positive Infinity. */
 export interface JobStateOptions {
   readonly maxJobs?: number;
   readonly maxWaiters?: number;
@@ -409,7 +410,7 @@ export function createJobState(options: JobStateOptions = {}): JobState {
     const name = key as keyof JobLimits;
     const value = options[name];
     if (value === undefined) continue;
-    if (!Number.isSafeInteger(value) || value < 1) throw new TypeError(`invalid job limit: ${key}`);
+    if (value !== Infinity && (!Number.isSafeInteger(value) || value < 1)) throw new TypeError(`invalid job limit: ${key}`);
     limits[name] = value;
   }
   if (options.signal !== undefined && !(options.signal instanceof AbortSignal)) throw new TypeError("invalid job owner signal");

@@ -19,6 +19,35 @@ function setup(context: { after(callback: () => Promise<void>): void }, options:
 
 const status = (value: number) => ({ kind: "status", status: value });
 
+for (const key of ["maxJobs", "maxWaiters", "maxCleanupsPerJob"] as const) {
+  test(`${key} accepts explicit Infinity and rejects invalid quotas`, async context => {
+    const state = setup(context, { [key]: Infinity });
+    const handle = await state.start(() => ({ run: () => 7 }));
+    assert.deepEqual((await state.wait([{ handle }])).outcome, status(7));
+    for (const value of [0, -1, -Infinity, NaN, 1.5, Number.MAX_SAFE_INTEGER + 1]) {
+      assert.throws(() => createJobState({ [key]: value }), { name: "TypeError", message: `invalid job limit: ${key}` });
+    }
+  });
+}
+
+test("explicit unlimited job quotas retain concurrent waiters and run every cleanup", async context => {
+  const state = setup(context, { maxJobs: Infinity, maxWaiters: Infinity, maxCleanupsPerJob: Infinity });
+  const pending = deferred<number>();
+  let cleaned = 0;
+  const handles = [];
+  for (let index = 0; index < 2; index++) {
+    handles.push(await state.start(task => {
+      task.registerCleanup(() => { cleaned++; });
+      task.registerCleanup(() => { cleaned++; });
+      return { run: () => pending.promise };
+    }));
+  }
+  const waiting = handles.map(handle => state.wait([{ handle }]));
+  pending.resolve(7);
+  for (const result of await Promise.all(waiting)) assert.deepEqual(result.outcome, status(7));
+  assert.equal(cleaned, 4);
+});
+
 test("owner cleanup registers before task admission", async context => {
   let cleanup: (() => Promise<void>) | undefined;
   const state = setup(context, { registerCleanup(callback) { cleanup = callback; } });
@@ -158,7 +187,7 @@ test("cancelled next wait removes subscriptions and releases waiter quota", asyn
 });
 
 test("record quota covers retained statuses and refuses before task launch", async context => {
-  const state = setup(context, { maxJobs: 1 });
+  const state = setup(context, { maxJobs: 1, maxWaiters: Infinity, maxCleanupsPerJob: Infinity });
   const first = await state.start(() => ({ run: () => 7 })); await state.wait([{ handle: first }]);
   let called = false;
   await assert.rejects(state.start(() => { called = true; return { run: () => 0 }; }), /maxJobs/u);
@@ -168,7 +197,7 @@ test("record quota covers retained statuses and refuses before task launch", asy
 });
 
 test("pending waiter admission is bounded", async context => {
-  const state = setup(context, { maxWaiters: 1 });
+  const state = setup(context, { maxJobs: Infinity, maxWaiters: 1, maxCleanupsPerJob: Infinity });
   const pending = deferred<number>(); const handle = await state.start(() => ({ run: () => pending.promise }));
   const waiting = state.wait([{ handle }]);
   await assert.rejects(state.waitNext(), /maxWaiters/u);
@@ -258,7 +287,7 @@ test("cleanup failures are observed without replacing a primary falsey task fail
 });
 
 test("cleanup registration has a finite per-job quota", async () => {
-  const state = createJobState({ maxCleanupsPerJob: 1 }); let releases = 0;
+  const state = createJobState({ maxJobs: Infinity, maxWaiters: Infinity, maxCleanupsPerJob: 1 }); let releases = 0;
   const handle = await state.start(task => ({ run() { task.registerCleanup(() => { releases++; }); task.registerCleanup(() => {}); return 0; } }));
   const outcome = await handle.completion;
   assert.equal(outcome.kind, "failure"); if (outcome.kind === "failure") assert.match(String(outcome.reason), /maxCleanupsPerJob/u);

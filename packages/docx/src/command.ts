@@ -111,6 +111,35 @@ function decimal(value: string): number {
   if (cursor !== value.length || !Number.isFinite(number)) usage("Expected finite decimal notation.");
   return number;
 }
+function tryParseCliLength(raw: unknown): unknown {
+  if (typeof raw !== "string") return raw;
+  for (const unit of ["emu", "twip", "dxa", "in", "cm", "mm", "pt"] as const) {
+    if (raw.endsWith(unit)) {
+      const numPart = raw.slice(0, -unit.length).trim();
+      if (!numPart) return raw;
+      const num = Number(numPart);
+      if (Number.isFinite(num)) return { value: num, unit: unit === "dxa" ? "twip" : unit };
+    }
+  }
+  return raw;
+}
+const LENGTH_JSON_KEYS = new Set(["width", "height", "size", "cellMargin", "rowHeight", "space", "position", "top", "right", "bottom", "left", "header", "footer", "gutter"]);
+function normalizeCliJsonLengths(value: unknown, keyHint?: string): unknown {
+  if (typeof value === "string") {
+    return keyHint && LENGTH_JSON_KEYS.has(keyHint) ? tryParseCliLength(value) : value;
+  }
+  if (Array.isArray(value)) {
+    return value.map(item => keyHint === "columnWidths" || keyHint === "columnWidthsJson" ? tryParseCliLength(item) : normalizeCliJsonLengths(item));
+  }
+  if (value !== null && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value)) {
+      out[k] = normalizeCliJsonLengths(v, k);
+    }
+    return out;
+  }
+  return value;
+}
 function cliValue(type: string, raw: string, name: string, budget: DocumentBudget): unknown {
   if (name.endsWith("Json")) return parseDocxJson(raw, budget);
   const variants = type.split("|").map(s => s.trim());
@@ -236,7 +265,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
     }
   }
   budget = lowerLimits(options.limit, budget);
-  for (const name of Object.keys(options)) if (name.endsWith("Json")) options[name] = parseDocxJson(options[name] as string, budget);
+  for (const name of Object.keys(options)) if (name.endsWith("Json")) options[name] = normalizeCliJsonLengths(parseDocxJson(options[name] as string, budget), name);
   if (operation === "properties.set" && !help) Object.assign(options, normalizeDocxPropertyOptions(options, true));
   if (operation === "help" || operation === "schema") {
     if (inputs.some(word => word.includes("."))) usage("Unknown discovery path.");

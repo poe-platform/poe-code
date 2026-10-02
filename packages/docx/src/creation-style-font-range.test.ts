@@ -81,3 +81,18 @@ for (const strict of [false, true]) for (const kind of ["docx", "dotx"] as const
   await expect(api.createDocumentArchive(options, textContext)).resolves.toMatchObject({ kind });
   await expect(api.createDocumentArchive({ ...options, content: { ...options.content!, page: { width: { value: 22.001, unit: "in" } } } }, textContext)).rejects.toMatchObject({ code: "usage" });
  });
+
+it("accepts Normal and Title style declarations in create --content-json and string lengths in --column-widths-json", async () => {
+  const fs = new MemoryFileSystem();
+  const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
+  try {
+    const createRes = await shell.exec(`docx create --output /report.docx --content-json '{"version":1,"blocks":[],"styles":[{"name":"Normal","type":"paragraph","font":"Arial","size":{"value":11,"unit":"pt"}},{"name":"Title","type":"paragraph","font":"Arial","size":"26pt","bold":true}]}'`);
+    expect(createRes.exitCode, createRes.stderr).toBe(0);
+    const titleRes = await shell.exec(`docx paragraphs add /report.docx --level 0 --text "Q1 Regional Sales Executive Summary" --in-place`);
+    expect(titleRes.exitCode, titleRes.stderr).toBe(0);
+    const tableRes = await shell.exec(`docx tables add /report.docx --rows 2 --cols 2 --column-widths-json '["1.6in","1.0in"]' --cell-margin 6pt --repeat-header true --content-json '{"version":1,"blocks":[{"kind":"table","rows":[[{"blocks":[{"kind":"paragraph","text":"Region"}]},{"blocks":[{"kind":"paragraph","text":"Units"}]}],[{"blocks":[{"kind":"paragraph","text":"North"}]},{"blocks":[{"kind":"paragraph","text":"120"}]}]]}]}' --in-place`);
+    expect(tableRes.exitCode, tableRes.stderr).toBe(0);
+  } finally {
+    await shell.dispose();
+  }
+});

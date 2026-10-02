@@ -59,6 +59,12 @@ export async function createDocumentArchive(options: DocumentCreateOptions, cont
   ];
   const rendered = renderContent(content, w, budget, parseDocumentXml(new TextEncoder().encode(parts[4]![1]!)).root, geometry.width);
   parts[3]![1] = `<w:document xmlns:w="${w}"><w:body>${rendered.body || "<w:p/>"}<w:sectPr>${geometry.xml}</w:sectPr></w:body></w:document>`;
+  if (rendered.builtinOverrides?.size) {
+    for (const [id, rPr] of rendered.builtinOverrides) {
+      if (!rPr) continue;
+      parts[4]![1] = parts[4]![1]!.replace(`w:styleId="${id}"><w:name w:val="Normal"/></w:style>`, `w:styleId="${id}"><w:name w:val="Normal"/><w:rPr>${rPr}</w:rPr></w:style>`);
+    }
+  }
   if (rendered.styles) parts[4]![1] = parts[4]![1]!.slice(0, -11) + rendered.styles + "</w:styles>";
   if (content.theme) {
     parts[0]![1] = parts[0]![1]!.slice(0, -8) + '<Override PartName="/word/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/></Types>';

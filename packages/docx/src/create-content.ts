@@ -74,17 +74,35 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
     }
   }
   const added: string[] = [];
+  const builtinOverrides = new Map<string, string>();
   const allocate = () => { let n = 1; while (ids.has(`Style${n}`)) n++; const id = `Style${n}`; ids.add(id); return id; };
   for (const style of content.styles ?? []) {
     const name = style.name;
-    if (styles.has(name)) throw new InvalidValueError("A declared style name already exists.");
-    const id = allocate();
-    styles.set(name, { id, type: style.type });
     const size = style.size === undefined ? undefined : Math.round(lengthEmu(style.size) / 6350);
     if (size !== undefined && (size < 1 || size > 3276)) throw new InvalidValueError("Font size must round to 1 through 3276 half-points.");
     const formatting = (style.font === undefined ? "" : `<w:rFonts w:ascii="${xmlValue(style.font)}" w:hAnsi="${xmlValue(style.font)}"/>`) +
       (size === undefined ? "" : `<w:sz w:val="${size}"/>`) +
       (style.bold === undefined ? "" : `<w:b w:val="${Number(style.bold)}"/>`) + (style.italic === undefined ? "" : `<w:i w:val="${Number(style.italic)}"/>`);
+    if (styles.has(name)) {
+      const existing = styles.get(name)!;
+      if (!existing.builtin || existing.type !== style.type || builtinOverrides.has(existing.id) || reservedStyleIds.size > 0) {
+        throw new InvalidValueError("A declared style name already exists.");
+      }
+      builtinOverrides.set(existing.id, formatting);
+      continue;
+    }
+    const headingMatch = style.type === "paragraph" && reservedStyleIds.size === 0 ? (name === "Title" ? 0 : /^Heading ([1-9])$/.exec(name) ? Number(/^Heading ([1-9])$/.exec(name)![1]) : undefined) : undefined;
+    if (headingMatch !== undefined) {
+      const stem = headingMatch === 0 ? "Title" : `Heading${headingMatch}`;
+      if (!ids.has(stem)) {
+        ids.add(stem);
+        styles.set(name, { id: stem, type: "paragraph", builtin: true, outline: headingMatch ? String(headingMatch - 1) : undefined });
+        added.push(`<w:style xmlns:w="${w}" w:type="paragraph" w:customStyle="0" w:styleId="${stem}"><w:name w:val="${xmlValue(name)}"/><w:qFormat/>${headingMatch ? `<w:pPr><w:outlineLvl w:val="${headingMatch - 1}"/></w:pPr>` : ""}${formatting ? `<w:rPr>${formatting}</w:rPr>` : ""}</w:style>`);
+        continue;
+      }
+    }
+    const id = allocate();
+    styles.set(name, { id, type: style.type });
     added.push(`<w:style xmlns:w="${w}" w:type="${style.type}" w:customStyle="1" w:styleId="${id}"><w:name w:val="${xmlValue(style.name)}"/>${formatting ? `<w:rPr>${formatting}</w:rPr>` : ""}</w:style>`);
   }
   const resolve = (name: string, type: string): string => {
@@ -155,7 +173,7 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
   };
   const body = blocks(content.blocks, containerWidth, 3);
   budget.charge("retainedBytes", (body.length + added.join("").length) * 8);
-  return { body, styles: added.join("") };
+  return { body, styles: added.join(""), builtinOverrides };
 }
 
 export function renderTheme(theme: DocxThemeSettings, a: string): string {

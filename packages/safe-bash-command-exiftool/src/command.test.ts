@@ -853,3 +853,20 @@ test("exiftool reads WEBP, DOCX, PPTX, XLSX, ODT, and EPUB metadata and FileType
   assert.equal(webpJson.ImageWidth, 320);
   assert.equal(webpJson.ImageHeight, 200);
 });
+
+test("JPEG CLI admits aliases, resolution selectors, comments and metadata copying", async () => {
+  const fs = createMemoryFileSystem();
+  await fs.writeFile("/source.jpg", new Uint8Array([255,216,255,217]));
+  await fs.writeFile("/target.jpg", new Uint8Array([255,216,255,217]));
+  const write = await invoke(["-Author=Alice", "-DateTime=2026:01:02 03:04:05", "-XResolution=300", "-YResolution=145/2", "-ResolutionUnit=2", "-Comment=Camera note", "-overwrite_original", "source.jpg"], fs);
+  assert.equal(write.exitCode,0,write.stderr);
+  const read = await invoke(["-j","-n","source.jpg"], fs);
+  const tags = JSON.parse(read.stdout)[0];
+  for (const [name,value] of Object.entries({Artist:"Alice",ModifyDate:"2026:01:02 03:04:05",XResolution:300,YResolution:72.5,ResolutionUnit:2,Comment:"Camera note"})) assert.equal(tags[name],value,name);
+  const selected = await invoke(["-s3","-XResolution","-Comment","source.jpg"],fs);
+  assert.equal(selected.stdout,"300\nCamera note\n");
+  const copied = await invoke(["-tagsFromFile","source.jpg","-overwrite_original","target.jpg"],fs);
+  assert.equal(copied.exitCode,0,copied.stderr);
+  const target = await invoke(["-s3","-Artist","-YResolution","-Comment","target.jpg"],fs);
+  assert.equal(target.stdout,"Alice\n72.5\nCamera note\n");
+});

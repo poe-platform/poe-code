@@ -28,9 +28,10 @@ export default { async fetch(request: Request, env: { BROWSER: BrowserWorker; LO
     check(page, "Missing browser page");
     await page.setContent('<title>Portable browser</title><h1>Portable browser</h1>');
     if (new URL(request.url).pathname === "/run-code") {
-      const output = await run("run-code", 'async page => { await page.evaluate(() => { document.title = "Guest mutation"; }); return {title: await page.title(), bytes: [0, 128, 255]}; }');
+      const output = await run("run-code", 'async page => { await page.setViewportSize({width: 32769, height: 1}); await page.evaluate(() => { document.title = "Guest mutation"; }); return {title: await page.title(), bytes: [0, 128, 255]}; }');
       check(output.includes("Guest mutation"), output);
       check(await page.title() === "Guest mutation", "Guest changes did not reach owned page");
+      check(page.viewportSize()?.width === 32769, "Large viewport state did not reach owned page");
       const again = await run("run-code", 'async page => page.locator("h1").textContent()');
       check(again.includes("Portable browser"), again);
     } else if (new URL(request.url).pathname === "/screenshot") {

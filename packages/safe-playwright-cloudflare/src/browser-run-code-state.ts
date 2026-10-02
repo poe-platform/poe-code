@@ -52,8 +52,7 @@ function dimensions(value: unknown): value is Dimensions {
 		(dimension) =>
 			typeof dimension === "number" &&
 			Number.isSafeInteger(dimension) &&
-			dimension >= 1 &&
-			dimension <= 32768,
+			dimension >= 1,
 	);
 }
 function media(value: unknown): value is Media {

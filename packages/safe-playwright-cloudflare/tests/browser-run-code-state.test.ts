@@ -104,6 +104,7 @@ test("guest context state preserves clearing and rejects malformed native settin
 });
 
 for (const [name, changes] of [
+  ['viewport dimensions', { pages: [{ ...state, viewport: { width: 32769, height: 1 }, size: { viewport: { width: 32769, height: 1 }, screen: { width: 32769, height: 1 } } }] }],
   ['bytes', { contextInitScripts: ['💻'.repeat(32768)] }],
   ['pages', { pages: Array.from({ length: 65 }, (_, index) => ({ ...state, targetId: `page-${index}` })) }],
   ['context scripts', { contextInitScripts: Array(257).fill('window.boot = true') }],

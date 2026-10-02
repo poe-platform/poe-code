@@ -5,6 +5,10 @@ import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createTruncateCommand, truncateCommand } from "./index.js";
 
 for (const [profile, factory] of [["portable", createTruncateCommand], ["retained", truncateCommand]] as const) {
+ test(`truncate ${profile} treats explicit undefined quotas as omitted`, () => {
+  assert.doesNotThrow(() => factory({ limits: { maxArgumentBytes: undefined, maxArguments: undefined, maxOutputBytes: undefined, maxEntries: undefined } }));
+  assert.throws(() => factory({ limits: { maxArgumentBytes: 0 } }), RangeError);
+ });
  test(`truncate ${profile} admits more than 4096 arguments unless explicitly bounded`, async () => {
   const values = createCommandArguments(["-c", "-s", "0", ...Array.from({ length: 4096 }, (_, index) => `/missing-${index}`)]);
   for (const maxArguments of [undefined, Infinity, values.args.length, values.args.length - 1]) {

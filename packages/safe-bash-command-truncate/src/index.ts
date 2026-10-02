@@ -8,12 +8,13 @@ import { registerDefaultExecutor, pathOf, codeOf } from "safe-bash-io-engine/int
 import { parseArguments, TruncateError, helpText as portableHelp, quote as portableQuote } from "./arguments.js";
 export interface TruncateLimits { readonly maxArgumentBytes: number; readonly maxArguments: number; readonly maxOutputBytes: number; readonly maxEntries: number; }
 export interface TruncateCommandsOptions {
- readonly replace?: boolean; readonly umask?: number; readonly limits?: Partial<TruncateLimits>;
+ readonly replace?: boolean; readonly umask?: number; readonly limits?: { readonly [K in keyof TruncateLimits]?: TruncateLimits[K] | undefined };
  readonly ioBlockSize?: (path: string, stat: FileStat, context: CommandContext) => number | Promise<number>;
  readonly seekEnd?: (path: string, stat: FileStat, context: CommandContext) => number | Promise<number>;
 }
 function settings(options: TruncateCommandsOptions) {
- const limits = { maxArgumentBytes: Infinity, maxArguments: Infinity, maxOutputBytes: Infinity, maxEntries: Infinity, ...options.limits };
+ const limits: TruncateLimits = { maxArgumentBytes: Infinity, maxArguments: Infinity, maxOutputBytes: Infinity, maxEntries: Infinity,
+  ...Object.fromEntries(Object.entries(options.limits ?? {}).filter(([, value]) => value !== undefined)) };
  for (const [name, value] of Object.entries(limits)) if (value !== Infinity && (!Number.isSafeInteger(value) || value < (name === "maxDepth" ? 0 : 1))) throw new RangeError(`Invalid truncate limit: ${name}`);
  const umask = options.umask ?? 0o022;
  if (!Number.isInteger(umask) || umask < 0 || umask > 0o777) throw new RangeError("Invalid truncate umask");

@@ -15485,7 +15485,7 @@ export class Runtime {
   private flushSyncStdoutBatch(io: IO): void {
     if (this._syncStdoutBatch.length === 0) return;
     if (io.stdout === devNullSyncSink) {
-      const byteLen = Buffer.byteLength(this._syncStdoutBatch);
+      const byteLen = shellValueByteLength(this._syncStdoutBatch);
       this._syncStdoutBatch = "";
       if (byteLen > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
       this.budget.bytes += byteLen;

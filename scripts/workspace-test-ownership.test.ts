@@ -61,6 +61,7 @@ describe("workspace test ownership", () => {
     "node --test ~/external.test.ts",
     "node --test --test-name-pattern=selected src/*.test.ts",
     "node --import unknown --test src/*.test.ts",
+    "node --unknown-runtime-flag --test src/*.test.ts",
     "node --test --test-concurrency=0 src/*.test.ts",
     "node --test $TEST_PATH",
     'node --test "src/[ab].test.ts"'

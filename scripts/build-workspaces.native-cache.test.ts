@@ -54,12 +54,12 @@ describe("native Vitest workspace result cache", () => {
     await testWorkspaces("/repo", state);
     expect(state.spawn).toHaveBeenCalledTimes(8);
   });
-  it("caches eligible node --import tsx --test workspaces without requiring a Vitest stage", async () => {
+  it.each(["node --import tsx --test", "node --expose-gc --import tsx --test"])("caches eligible %s workspaces without requiring a Vitest stage", async command => {
     const state = fixture();
     state.fileSystem.mkdirSync("/repo/packages/tsx-native/src", { recursive: true });
     state.fileSystem.writeFileSync("/repo/packages/tsx-native/package.json", JSON.stringify({
       name: "tsx-native",
-      scripts: { "test:unit": "node --import tsx --test src/*.test.ts" }
+      scripts: { "test:unit": `${command} src/*.test.ts` }
     }), { flag: "w" });
     state.fileSystem.writeFileSync("/repo/packages/tsx-native/src/unit.test.ts", "export {};");
     state.cacheFiles.push("packages/tsx-native/package.json", "packages/tsx-native/src/unit.test.ts");
@@ -67,6 +67,9 @@ describe("native Vitest workspace result cache", () => {
     expect(first).toMatchObject({ unitCacheHits: 0, unitCacheMisses: 1 });
     const second = await testWorkspaces("/repo", { ...state, workspaces: ["tsx-native"] });
     expect(second).toMatchObject({ unitCacheHits: 1, unitCacheMisses: 0 });
+    state.fileSystem.writeFileSync("/repo/packages/tsx-native/src/unit.test.ts", "changed");
+    const changed = await testWorkspaces("/repo", { ...state, workspaces: ["tsx-native"] });
+    expect(changed).toMatchObject({ unitCacheHits: 0, unitCacheMisses: 1 });
   });
 
   it("caches eligible *-rust cargo.mjs test workspaces and known pretest hook workspaces", async () => {

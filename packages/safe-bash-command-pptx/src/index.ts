@@ -125,7 +125,33 @@ export function createPptxCommand(options: PptxCommandsOptions = {}): CommandDef
             if (input && await compareObservedEntries(fs, input, await fs.stat(input, { signal }), fs, output, destination, { signal }) !== "distinct") throw new FsError("EINVAL");
           }
           const parentPath = output.slice(0, output.lastIndexOf("/")) || "/";
-          const parent = await fs.stat(parentPath, { signal });
+          let parent: FileStat;
+          try {
+            parent = await fs.stat(parentPath, { signal });
+          } catch (error) {
+            signal.throwIfAborted();
+            if (!(error instanceof FsError) || error.code !== "ENOENT" || !arguments_.args.includes("--output-dir")) throw error;
+            let ancestorPath = parentPath;
+            let ancestor: FileStat | undefined;
+            while (ancestorPath && ancestorPath !== "/") {
+              ancestorPath = ancestorPath.slice(0, ancestorPath.lastIndexOf("/")) || "/";
+              try {
+                ancestor = await fs.stat(ancestorPath, { signal });
+                break;
+              } catch (ancestorError) {
+                signal.throwIfAborted();
+                if (!(ancestorError instanceof FsError) || ancestorError.code !== "ENOENT") throw ancestorError;
+              }
+            }
+            if (!ancestor) throw error;
+            if (ancestor.type !== "directory") throw new FsError("ENOTDIR");
+            if (!publication.dryRun) {
+              await fs.mkdir(parentPath, { recursive: true, signal });
+              parent = await fs.stat(parentPath, { signal });
+            } else {
+              parent = ancestor;
+            }
+          }
           if (parent.type !== "directory") throw new FsError("ENOTDIR");
           if (publication.inPlace) {
             const original = snapshots.get(input!);

@@ -1565,7 +1565,24 @@ function parse(
       continue;
     }
     if (!scalarOptions.includes(argument)) usage("Unsupported option.");
-    const value = args[++index];
+    const booleanValueOptions = [
+      "--preserve-geometry",
+      "--preserve-crop",
+      "--preserve-alt-text",
+      "--decorative",
+      "--bold",
+      "--italic",
+      "--underline",
+      "--strikethrough",
+      "--loop",
+      "--flip-horizontal",
+      "--flip-vertical"
+    ];
+    const nextArg = args[index + 1];
+    const value =
+      booleanValueOptions.includes(argument) && (nextArg === undefined || nextArg.startsWith("-"))
+        ? "true"
+        : args[++index];
     if (
       value === undefined ||
       (value.length === 0 &&

@@ -239,3 +239,10 @@ it.each([
   expect((await f.run([...flags, ...extra, "--dry-run", "--json"])).exitCode).toBe(2);
   expect(f.reads).toEqual([]);
 });
+
+it("accepts --preserve-geometry without explicit true before --in-place", async () => {
+  const f = await fixture();
+  const result = await f.run([...flags, "--preserve-geometry", "--in-place", "--json"]);
+  expect(result.exitCode).toBe(0);
+  expect(result.value.affected).toBe(1);
+});

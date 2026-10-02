@@ -1,4 +1,5 @@
 import { readFile, readdir, mkdir, writeFile, copyFile } from "node:fs/promises";
+import { deflateRawSync } from "node:zlib";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -233,9 +234,94 @@ export function numberFormatDataModule(values, license = "") {
   };
   const roots = sorted.map(value => [value.locale, encode(value)]);
   // Intern serialized data, not live objects: each factory expands a fresh tree.
-  // Parsing is deferred until the first locale request, including in source bundles.
+  // Parsing and decompression are deferred until the first locale request, keeping
+  // the static module payload as a compact 1-byte ASCII Base64 string in V8 heap.
+  const rawJsonBytes = Buffer.from(JSON.stringify(nodes), "utf8");
+  const compressedB64 = deflateRawSync(rawJsonBytes, { level: 9 }).toString("base64");
+  const inflateHelper = `let nodes;
+let rawPayload = ${JSON.stringify(compressedB64)};
+function inflateNodes() {
+  const bin = Uint8Array.from(atob(rawPayload), c => c.charCodeAt(0));
+  rawPayload = undefined;
+  const out = new Uint8Array(${rawJsonBytes.length});
+  let pos = 0, bitBuf = 0, bitCnt = 0, outPos = 0;
+  const bits = n => {
+    while (bitCnt < n) { bitBuf |= bin[pos++] << bitCnt; bitCnt += 8; }
+    const val = bitBuf & ((1 << n) - 1);
+    bitBuf >>>= n; bitCnt -= n;
+    return val;
+  };
+  const buildTree = lengths => {
+    const counts = new Int32Array(16), offsets = new Int32Array(16);
+    for (let i = 0; i < lengths.length; i++) counts[lengths[i]]++;
+    counts[0] = 0;
+    for (let i = 1; i < 15; i++) offsets[i + 1] = offsets[i] + counts[i];
+    const symbols = new Int32Array(lengths.length);
+    for (let i = 0; i < lengths.length; i++) if (lengths[i]) symbols[offsets[lengths[i]]++] = i;
+    return { counts, symbols };
+  };
+  const decode = tree => {
+    let code = 0, first = 0, index = 0;
+    for (let len = 1; len <= 15; len++) {
+      code |= bits(1);
+      const count = tree.counts[len];
+      if (code - count < first) return tree.symbols[index + (code - first)];
+      index += count; first = (first + count) << 1; code <<= 1;
+    }
+    return 0;
+  };
+  const fl = new Uint8Array(288);
+  fl.fill(8, 0, 144); fl.fill(9, 144, 256); fl.fill(7, 256, 280); fl.fill(8, 280, 288);
+  const fixedLit = buildTree(fl), fixedDist = buildTree(new Uint8Array(32).fill(5));
+  const lenBase = [3,4,5,6,7,8,9,10,11,13,15,17,19,23,27,31,35,43,51,59,67,83,99,115,131,163,195,227,258];
+  const lenExtra = [0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0];
+  const distBase = [1,2,3,4,5,7,9,13,17,25,33,49,65,97,129,193,257,385,513,769,1025,1537,2049,3073,4097,6145,8193,12289,16385,24577];
+  const distExtra = [0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13];
+  const clOrder = [16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15];
+  let bfinal = 0;
+  while (!bfinal) {
+    bfinal = bits(1);
+    const btype = bits(2);
+    if (btype === 0) {
+      bitBuf = 0; bitCnt = 0;
+      const len = bin[pos] | (bin[pos + 1] << 8); pos += 4;
+      out.set(bin.subarray(pos, pos + len), outPos); pos += len; outPos += len;
+      continue;
+    }
+    let litTree = fixedLit, distTree = fixedDist;
+    if (btype === 2) {
+      const hlit = bits(5) + 257, hdist = bits(5) + 1, hclen = bits(4) + 4;
+      const clLengths = new Uint8Array(19);
+      for (let i = 0; i < hclen; i++) clLengths[clOrder[i]] = bits(3);
+      const clTree = buildTree(clLengths), all = new Uint8Array(hlit + hdist);
+      for (let i = 0; i < all.length;) {
+        const sym = decode(clTree);
+        if (sym < 16) all[i++] = sym;
+        else if (sym === 16) { const r = bits(2) + 3, p = all[i - 1]; all.fill(p, i, i + r); i += r; }
+        else if (sym === 17) i += bits(3) + 3;
+        else i += bits(7) + 11;
+      }
+      litTree = buildTree(all.subarray(0, hlit));
+      distTree = buildTree(all.subarray(hlit));
+    }
+    while (true) {
+      const sym = decode(litTree);
+      if (sym < 256) out[outPos++] = sym;
+      else if (sym === 256) break;
+      else {
+        const li = sym - 257, len = lenBase[li] + bits(lenExtra[li]);
+        const di = decode(distTree), dist = distBase[di] + bits(distExtra[di]);
+        for (let i = 0; i < len; i++) { out[outPos] = out[outPos - dist]; outPos++; }
+      }
+    }
+  }
+  return JSON.parse(new TextDecoder().decode(out));
+}
+function expand(id) {
+  nodes ??= inflateNodes();
+`;
   return (license === "" ? "" : `/*!\n${license}\n*/\n`) + "// Generated from pinned FormatJS locale data. Do not edit.\n" +
-    `let nodes;\nfunction expand(id) {\n  nodes ??= JSON.parse(${JSON.stringify(JSON.stringify(nodes))});\n` +
+    inflateHelper +
     "  const node = nodes[id];\n  if (!Array.isArray(node)) return node;\n" +
     "  if (node[0] === 0) return node.slice(1).map(expand);\n" +
     "  const entries = [];\n  for (let index = 1; index < node.length; index += 2) entries.push([expand(node[index]), expand(node[index + 1])]);\n" +

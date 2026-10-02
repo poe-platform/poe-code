@@ -51,3 +51,20 @@ it("recognizes FsError instances across separate module realms via symbol brand"
   expect(isFsError(foreign, "ENOENT")).toBe(true);
   expect(isFsError(foreign, "EACCES")).toBe(false);
 });
+
+it("keeps subclass checks specific while recognizing the base error across bundles", () => {
+  class QuotaError extends FsError {}
+  class OtherError extends FsError {}
+  class ChildQuotaError extends QuotaError {}
+  const ordinary = new FsError("ENOENT");
+  const quota = new QuotaError("EFBIG");
+  const child = new ChildQuotaError("EFBIG");
+  const foreign = Object.assign(new Error("foreign"), { code: "ENOENT", [Symbol.for("@poe-code/safe-fs.FsError")]: true });
+  expect(ordinary instanceof QuotaError).toBe(false);
+  expect(quota instanceof OtherError).toBe(false);
+  expect(foreign instanceof QuotaError).toBe(false);
+  expect(quota instanceof QuotaError).toBe(true);
+  expect(child instanceof QuotaError).toBe(true);
+  expect(quota instanceof FsError).toBe(true);
+  expect(foreign instanceof FsError).toBe(true);
+});

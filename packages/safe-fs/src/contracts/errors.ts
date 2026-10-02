@@ -49,6 +49,7 @@ const FS_ERROR_BRAND = Symbol.for("@poe-code/safe-fs.FsError");
 export class FsError extends Error {
   static [Symbol.hasInstance](value: unknown): boolean {
     if (typeof value !== "object" || value === null) return false;
+    if (this !== FsError) return Function.prototype[Symbol.hasInstance].call(this, value);
     if (Function.prototype[Symbol.hasInstance].call(FsError, value)) return true;
     const record = value as Record<PropertyKey, unknown>;
     return record[FS_ERROR_BRAND] === true && isErrnoCode(record.code);

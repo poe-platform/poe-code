@@ -607,10 +607,10 @@ test("36. sync expand/unexpand multi -t tablists, column -e vs -L and JSON colum
 
 test("56. sync vs async parity for xan, stat, mktemp, and BOM-preserving command substitutions", async () => {
   const scripts = [
-    "a=\$(xan slice -l 1 -e 2 <<< $'a,b\\n1,2\\n3,4\\n' 2>/dev/null; echo \$?); b=\$(xan select a <<< $'a,b,a\\n1,2,3\\n'); echo \"\$a|\$b\"",
-    "mkdir -p /st56/dir; printf \"hi\" > /st56/f; ln -s /st56/dir /st56/link; a=\$(stat -c %F /st56/link/); b=\$(stat -c %F /st56/f/ 2>/dev/null; echo \$?); echo \"\$a|\$b\"",
-    "mkdir -p /tmp /custom56; TMPDIR=/custom56; p=\$(mktemp | cat); echo \"\${p%/*}\"",
-    "x=\$(unix2dos -m <<< \"hi\"); printf \"%s\" \"\$x\" | od -An -tx1 | tr -d ' \\n'; echo",
+    "a=$(xan slice -l 1 -e 2 <<< $'a,b\\n1,2\\n3,4\\n' 2>/dev/null; echo $?); b=$(xan select a <<< $'a,b,a\\n1,2,3\\n'); echo \"$a|$b\"",
+    "mkdir -p /st56/dir; printf \"hi\" > /st56/f; ln -s /st56/dir /st56/link; a=$(stat -c %F /st56/link/); b=$(stat -c %F /st56/f/ 2>/dev/null; echo $?); echo \"$a|$b\"",
+    "mkdir -p /tmp /custom56; TMPDIR=/custom56; p=$(mktemp | cat); echo \"${p%/*}\"",
+    "x=$(unix2dos -m <<< \"hi\"); printf \"%s\" \"$x\" | od -An -tx1 | tr -d ' \\n'; echo",
   ];
   for (const script of scripts) {
     const syncSh = setup().shell.use(agentCommands());

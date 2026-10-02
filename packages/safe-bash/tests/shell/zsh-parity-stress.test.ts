@@ -1244,17 +1244,16 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
   });
 
   test("67. sync resolvePath ENOTDIR on trailing slash and file/.. plus symlink/.. physical file reads", async () => {
-    const bash = new Bash({
-      files: {
-        "/regular.txt": "hello\n",
-        "/a/b/c/file.txt": "inside\n",
-      },
-    });
+    const { shell: bash, fs } = setup();
+    bash.use(agentCommands());
+    await fs.writeFile("/regular.txt", new TextEncoder().encode("hello\n"));
+    await fs.mkdir("/a/b/c", { recursive: true });
+    await fs.writeFile("/a/b/c/file.txt", new TextEncoder().encode("inside\n"));
     await bash.exec("ln -s /a/b/c /link_to_c");
 
     // 1. cat /regular.txt/ and cat /regular.txt/../regular.txt must fail with ENOTDIR
     for (const cmd of ["cat /regular.txt/", "cat /regular.txt/../regular.txt", "head -n 1 /regular.txt/", "wc -l /regular.txt/", "mkdir -p /regular.txt/sub", "truncate -s 0 /regular.txt/", "dd if=/regular.txt/"]) {
-      const r = await bash.exec(`out=$(${cmd} 2>&1); echo $?`);
+      const r = await bash.exec(`out=$({${cmd};} 2>&1); echo $?`);
       assert.notEqual(r.stdout.trim(), "0", `expected failure for: ${cmd}`);
     }
 
@@ -1263,4 +1262,3 @@ test("61. sync xargs/timeout dirname/basename empty operand and patch hunk bound
     assert.equal(rSym.exitCode, 0);
     assert.equal(rSym.stdout.trim(), "inside");
   });
-});

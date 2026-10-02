@@ -49,6 +49,9 @@ Use `selectPrompt` from `prompts/interactive/select` to choose one typed value
 from labelled options, with optional hints, disabled choices and an initial
 selection. Arrow keys wrap around enabled choices; long lists use the same
 terminal-aware pagination. The subpath also exports `findNonDisabled`.
+`multiselectPrompt` from `prompts/interactive/multiselect` supports initial
+selections, disabled choices, required selection, SPACE to toggle, A to select
+all, and I to invert. Submitted selections show labels or a compact count.
 
 `symbols` provides live terminal, Markdown and JSON status marks, including
 brand-aware resolved symbols. `spacing`, `widths` and the `tokens` namespace

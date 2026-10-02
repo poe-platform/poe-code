@@ -1285,3 +1285,23 @@ required, alongside dashboard/explorer and the broader parity qualifications.
 Confirmation release 36985857838 completed but skipped publication. Pagination
 commit 6a271f3db1 is pushed; release 36986761254 completed but skipped validation
 and publication. Workflow success is not evidence of a published release.
+
+`multiselectPrompt` now exposes `prompts/interactive/multiselect` with Rust
+admission, validation, navigation/toggle decisions and rendering. Node retains
+array operations/species, mutable option/value identity and callback receivers.
+Differential cases cover toggle-all/invert, required selection, disabled options,
+initial-value copying, SameValueZero/strict-removal differences for NaN, getter
+and setter lookup order, arbitrary failures and all rendered states.
+
+All 257 native host cases, 1,222 selected original design cases and ten spinner
+wrapper cases pass. Rust/binding/JS lint, generic option types, local cancellation
+unions and packed standalone runtime/declarations pass. Active/error/submitted/
+cancelled screenshots match the reference ANSI and were inspected. No external
+dependencies changed; cancellation declaration identity remains a swap gate.
+
+Five warmed alternating rounds of 500 four-option active renders measured median
+0.73156 ms native versus 0.09509 ms reference (7.69x), excluding TTY I/O. No
+performance gate passed. Public prompt wrappers/namespace, dashboard/explorer and
+the broader port/qualification work remain required. Select release 36987354672
+failed on two missing pythonRstrip references in the Safe Bash CSV adapter; the
+existing helper import is being repaired separately and its build is running.

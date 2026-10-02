@@ -589,6 +589,15 @@ const selectResult: Promise<{key: string} | typeof CANCEL> = promptSelect.select
 const selectPromptOriginal: typeof originalPromptSelect.selectPrompt = promptSelect.selectPrompt;
 void [findOriginal, findNative, selectResult, selectPromptOriginal];
 
+import * as promptMultiselect from "toolcraft-design-rust/prompts/interactive/multiselect";
+import type * as originalPromptMultiselect from "toolcraft-design/prompts/interactive/multiselect";
+const multiselectOptionsOriginal: originalPromptMultiselect.MultiselectOptions<{key: string}> = null as unknown as promptMultiselect.MultiselectOptions<{key: string}>;
+const multiselectOptionsNative: promptMultiselect.MultiselectOptions<{key: string}> = multiselectOptionsOriginal;
+const multiselectResult: Promise<{key: string}[] | typeof CANCEL> = promptMultiselect.multiselectPrompt(multiselectOptionsNative);
+// @ts-expect-error Separate cancellation declarations remain a nominal swap gate.
+const multiselectPromptOriginal: typeof originalPromptMultiselect.multiselectPrompt = promptMultiselect.multiselectPrompt;
+void [multiselectResult, multiselectPromptOriginal];
+
 import {Prompt as NativePrompt,type PromptOptions as NativePromptOptions,type PromptState as NativePromptState} from "toolcraft-design-rust/prompts/interactive/core";
 import type {PromptState as OriginalPromptState} from "toolcraft-design/prompts/interactive/core";
 import * as nativePromptKeys from "toolcraft-design-rust/prompts/interactive/keys";

@@ -9,7 +9,7 @@ fn predicate<H: Host>(host: &mut H, name: &str, args: Vec<H::Value>) -> Result<b
     host.is_true(value)
 }
 
-fn find<H: Host>(
+pub(crate) fn find<H: Host>(
     host: &mut H,
     start: H::Value,
     direction: H::Value,
@@ -84,7 +84,11 @@ fn option<H: Host>(
     append(host, text, hint)
 }
 
-fn header<H: Host>(host: &mut H, prompt: H::Value, opts: H::Value) -> Result<H::Value, H::Error> {
+pub(crate) fn header<H: Host>(
+    host: &mut H,
+    prompt: H::Value,
+    opts: H::Value,
+) -> Result<H::Value, H::Error> {
     let start = color_glyph(host, "gray", "barStart")?;
     let text = suffix(host, start, " ")?;
     let state = host.get(prompt, "state")?;

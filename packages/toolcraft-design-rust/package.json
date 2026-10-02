@@ -339,6 +339,10 @@
     "./prompts/interactive/select": {
       "types": "./dist/prompt-select.d.ts",
       "import": "./dist/prompt-select.js"
+    },
+    "./prompts/interactive/multiselect": {
+      "types": "./dist/prompt-multiselect.d.ts",
+      "import": "./dist/prompt-multiselect.js"
     }
   },
   "scripts": {

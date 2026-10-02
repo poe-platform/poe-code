@@ -5,6 +5,27 @@ use super::{
 use napi::{Env, bindgen_prelude::*};
 use napi_derive::napi;
 #[napi]
+pub fn design_prompt_multiselect_policy<'env>(
+    env: Env,
+    operation: String,
+    args: Vec<Unknown<'env>>,
+    host: Object<'env>,
+) -> Result<Unknown<'env>> {
+    let args = args
+        .into_iter()
+        .map(Value::from_host)
+        .collect::<Result<Vec<_>>>()?;
+    toolcraft_design_rust::prompt_multiselect::run(
+        &mut PrimitiveHost {
+            env,
+            host: NodeHost { object: host },
+        },
+        &operation,
+        &args,
+    )?
+    .to_host(&env)
+}
+#[napi]
 pub fn design_prompt_selection_policy<'env>(
     env: Env,
     operation: String,

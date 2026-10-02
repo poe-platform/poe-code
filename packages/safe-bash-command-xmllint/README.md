@@ -24,7 +24,7 @@ and `round`. Predicates also support comparisons, `and`, `or`, and positions.
 
 Supported modes include `--noout`, `--format`, `--c14n`, `--exc-c14n`,
 and `--xpath`. Use `--noblanks` to remove ignorable whitespace before queries
-or serialization, and `--output FILE` / `-o FILE` to write serialized XML to
+or serialization, `--nocdata` to serialize CDATA as escaped text, and `--output FILE` / `-o FILE` to write serialized XML to
 the virtual filesystem. `--recover` repairs truncated elements, mismatched end
 tags, and undeclared entities, reporting repairs on stderr. `--encode ENCODING`
 selects UTF-8, UTF-16 (including LE/BE), US-ASCII, or ISO-8859-1 output. Inputs come

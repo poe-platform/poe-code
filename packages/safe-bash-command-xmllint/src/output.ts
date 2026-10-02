@@ -31,9 +31,9 @@ export function encodeOutput(text: string, encoding: string | undefined, first: 
   return Uint8Array.from(bytes);
 }
 
-export async function prepareDocument(root: XmlElement, noblanks: boolean, encoding: string | undefined, budget: XmlBudget): Promise<XmlElement> {
+export async function prepareDocument(root: XmlElement, noblanks: boolean, encoding: string | undefined, budget: XmlBudget, nocdata = false): Promise<XmlElement> {
   const pending = [{ element: root, preserve: false }];
-  while (noblanks && pending.length) {
+  while ((noblanks || nocdata) && pending.length) {
     const { element, preserve } = pending.pop()!;
     let keep = preserve;
     for (const attribute of element.attributes) {
@@ -44,7 +44,18 @@ export async function prepareDocument(root: XmlElement, noblanks: boolean, encod
     const content: XmlContent[] = [];
     let mixed = false;
     for (let index = 0; index < element.content.length; index++) {
-      const child = element.content[index]!;
+      let child = element.content[index]!;
+      if (nocdata && (child.kind === "cdata" || child.kind === "text")) {
+        const parts = [child.text];
+        while (index + 1 < element.content.length) {
+          const next = element.content[index + 1]!;
+          if (next.kind !== "text" && next.kind !== "cdata") break;
+          const p = budget.tick(next.text.length + 1); if (p) await p;
+          parts.push(next.text);
+          index++;
+        }
+        child = { kind: "text", text: parts.join("") };
+      }
       const p = budget.tick(); if (p) await p;
       if (child.kind === "element") pending.push({ element: child, preserve: keep });
       if (child.kind === "text") {
@@ -53,7 +64,7 @@ export async function prepareDocument(root: XmlElement, noblanks: boolean, encod
           const p = budget.tick(); if (p) await p;
           if (!" \t\r\n".includes(character)) blank = false;
         }
-        if (!keep && !mixed && blank && (content.length > 0 || index + 1 < element.content.length)) continue;
+        if (noblanks && !keep && !mixed && blank && (content.length > 0 || index + 1 < element.content.length)) continue;
         mixed = true;
       } else if (child.kind === "cdata") mixed = true;
       content.push(child);

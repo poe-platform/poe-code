@@ -45,6 +45,7 @@ async function argumentsFor(
   output?: string | undefined;
   encoding?: string | undefined;
   noblanks?: boolean;
+  nocdata?: boolean;
   recover?: boolean;
 }> {
   const carrier = getCommandArguments(context);
@@ -76,7 +77,7 @@ async function argumentsFor(
   let format = false;
   let xpathIndex: number | undefined;
   let output: string | undefined, encoding: string | undefined;
-  let noblanks = false, recover = false;
+  let noblanks = false, nocdata = false, recover = false;
   while (index < args.length) {
     const flag = args[index]!;
     { const p = budget.tick(flag.length + 1); if (p) await p; }
@@ -89,6 +90,8 @@ async function argumentsFor(
       index++;
     } else if (flag === "--noblanks") {
       noblanks = true; index++;
+    } else if (flag === "--nocdata") {
+      nocdata = true; index++;
     } else if (flag === "--recover") {
       recover = true; index++;
     } else if (flag === "--output" || flag === "-o" || flag === "--encode") {
@@ -123,13 +126,13 @@ async function argumentsFor(
   if (xpathIndex !== undefined) {
     const query = await parseQuery(await admitted(xpathIndex, "maxSourceBytes"), budget);
     return {
-      query, output, encoding, noblanks, recover,
+      query, output, encoding, noblanks, nocdata, recover,
       files
     };
   }
   mode ??= "format";
   return {
-    mode, output, encoding, noblanks, recover,
+    mode, output, encoding, noblanks, nocdata, recover,
     format,
     noout,
     files
@@ -166,7 +169,7 @@ async function executeDocument(
     }
     for (const message of recoveryMessages)
       await runtime.writeDiagnostic(context.stderr, `xmllint: ${message} (recovered)\n`, context.signal);
-    const root = await prepareDocument(parsed.value, options.noblanks ?? false, options.encoding, budget);
+    const root = await prepareDocument(parsed.value, options.noblanks ?? false, options.encoding, budget, options.nocdata ?? false);
     const documentOutputStart = budget.outputBytes;
     const fileChunks: Uint8Array[] = [];
     const sink = options.output === undefined || options.query !== undefined ? context.stdout : {

@@ -191,3 +191,34 @@ for (const [query, expected] of [["-1 + 2", "1\n"], ["-number(/root/item[1]/@n)"
   });
 }
 
+for (const flags of [[], ["--noblanks"], ["--xpath", "/root"]]) {
+  test(`nocdata converts nested CDATA with ${flags.join(" ")}`, async () => {
+    const input = '<root><![CDATA[a<&]]><child><![CDATA[b]]></child></root>';
+    const result = await run(["--nocdata", ...flags], input);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, (flags.includes("--xpath") ? "" : '<?xml version="1.0"?>\n') + '<root>a&lt;&amp;<child>b</child></root>\n');
+    const unchanged = await run([], input);
+    assert.ok(unchanged.output.includes("<![CDATA[a<&]]>"));
+  });
+}
+
+test("nocdata supports encoded file output and output limits", async () => {
+  const result = await run(["--nocdata", "--encode", "US-ASCII", "-o", "out.xml"], '<root><![CDATA[é<&]]></root>');
+  assert.equal(result.exitCode, 0, result.errors);
+  assert.equal(result.output, "");
+  assert.equal(new TextDecoder().decode(result.files.get("/out.xml")), '<?xml version="1.0" encoding="US-ASCII"?>\n<root>&#233;&lt;&amp;</root>\n');
+  const limited = await run(["--nocdata"], '<root><![CDATA[<&]]></root>', { limits: { maxOutputBytes: 10 } });
+  assert.equal(limited.exitCode, 5);
+  assert.match(limited.errors, /maxOutputBytes/);
+});
+
+for (const [input, expected] of [
+  ['<root>a<![CDATA[b]]>c<![CDATA[d]]></root>', '1\n'],
+  ['<root><![CDATA[]]></root>', '1\n'],
+]) {
+  test(`nocdata coalesces text nodes: ${input}`, async () => {
+    const result = await run(["--nocdata", "--xpath", "count(/root/text())"], input!);
+    assert.equal(result.exitCode, 0, result.errors);
+    assert.equal(result.output, expected);
+  });
+}

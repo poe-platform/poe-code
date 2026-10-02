@@ -86,7 +86,7 @@ it("accepts Normal and Title style declarations in create --content-json and str
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs }).use(docxCommands({ engine: api.createDocxInspectionCommandEngine({ limits: textContext.limits }) }));
   try {
-    const createRes = await shell.exec(`docx create --output /report.docx --content-json '{"version":1,"blocks":[],"styles":[{"name":"Normal","type":"paragraph","font":"Arial","size":{"value":11,"unit":"pt"}},{"name":"Title","type":"paragraph","font":"Arial","size":"26pt","bold":true}]}'`);
+    const createRes = await shell.exec(`docx create --output /report.docx --content-json '{"version":1,"styles":[{"name":"Normal","type":"paragraph","font":"Arial","size":{"value":11,"unit":"pt"}},{"name":"Title","type":"paragraph","font":"Arial","size":"26pt","bold":true},{"name":"Heading1","type":"paragraph","font":"Arial","size":{"value":14,"unit":"pt"},"bold":true}],"blocks":[{"kind":"paragraph","text":"Q1 Regional Sales","style":"Title"},{"kind":"paragraph","text":"Regional results","style":"Heading1"},{"kind":"table","headerRows":1,"repeatHeader":true,"width":{"value":2.6,"unit":"in"},"columnWidths":[{"value":1.6,"unit":"in"},{"value":1.0,"unit":"in"}],"cellMargin":{"top":{"value":5,"unit":"pt"},"bottom":{"value":5,"unit":"pt"},"left":{"value":5,"unit":"pt"},"right":{"value":5,"unit":"pt"}},"rows":[[{"blocks":[{"kind":"paragraph","text":"Region"}]},{"blocks":[{"kind":"paragraph","text":"Units"}]}]]}]}'`);
     expect(createRes.exitCode, createRes.stderr).toBe(0);
     const titleRes = await shell.exec(`docx paragraphs add /report.docx --level 0 --text "Q1 Regional Sales Executive Summary" --in-place`);
     expect(titleRes.exitCode, titleRes.stderr).toBe(0);

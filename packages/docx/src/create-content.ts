@@ -91,13 +91,17 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
       builtinOverrides.set(existing.id, formatting);
       continue;
     }
-    const headingMatch = style.type === "paragraph" && reservedStyleIds.size === 0 ? (name === "Title" ? 0 : /^Heading ([1-9])$/.exec(name) ? Number(/^Heading ([1-9])$/.exec(name)![1]) : undefined) : undefined;
+    const headingMatch = style.type === "paragraph" && reservedStyleIds.size === 0 ? (name === "Title" ? 0 : /^Heading ?([1-9])$/.exec(name) ? Number(/^Heading ?([1-9])$/.exec(name)![1]) : undefined) : undefined;
     if (headingMatch !== undefined) {
       const stem = headingMatch === 0 ? "Title" : `Heading${headingMatch}`;
       if (!ids.has(stem)) {
         ids.add(stem);
-        styles.set(name, { id: stem, type: "paragraph", builtin: true, outline: headingMatch ? String(headingMatch - 1) : undefined });
-        added.push(`<w:style xmlns:w="${w}" w:type="paragraph" w:customStyle="0" w:styleId="${stem}"><w:name w:val="${xmlValue(name)}"/><w:qFormat/>${headingMatch ? `<w:pPr><w:outlineLvl w:val="${headingMatch - 1}"/></w:pPr>` : ""}${formatting ? `<w:rPr>${formatting}</w:rPr>` : ""}</w:style>`);
+        const displayName = headingMatch === 0 ? "Title" : `Heading ${headingMatch}`;
+        const entry = { id: stem, type: "paragraph" as const, builtin: true, outline: headingMatch ? String(headingMatch - 1) : undefined };
+        styles.set(name, entry);
+        styles.set(displayName, entry);
+        styles.set(stem, entry);
+        added.push(`<w:style xmlns:w="${w}" w:type="paragraph" w:customStyle="0" w:styleId="${stem}"><w:name w:val="${xmlValue(displayName)}"/><w:qFormat/>${headingMatch ? `<w:pPr><w:outlineLvl w:val="${headingMatch - 1}"/></w:pPr>` : ""}${formatting ? `<w:rPr>${formatting}</w:rPr>` : ""}</w:style>`);
         continue;
       }
     }
@@ -108,6 +112,10 @@ export function renderContent(content: DocxContent, w: string, budget: DocumentB
   const resolve = (name: string, type: string): string => {
     const exact = styles.get(name), alias = styles.get(styleDisplayName(name));
     const style = exact ?? (alias?.builtin ? alias : undefined);
+    if (!style && type === "paragraph" && reservedStyleIds.size === 0) {
+      const m = name === "Title" ? 0 : /^Heading ?([1-9])$/.exec(name) ? Number(/^Heading ?([1-9])$/.exec(name)![1]) : undefined;
+      if (m !== undefined) return heading(m);
+    }
     if (!style || style.type !== type) throw new InvalidValueError("Expected an existing style of the selected kind.");
     return style.id;
   };

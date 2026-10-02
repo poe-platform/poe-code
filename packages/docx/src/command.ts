@@ -136,6 +136,15 @@ function normalizeCliJsonLengths(value: unknown, keyHint?: string): unknown {
     for (const [k, v] of Object.entries(value)) {
       out[k] = normalizeCliJsonLengths(v, k);
     }
+    if (keyHint === "cellMargin" && !("value" in out) && !("unit" in out)) {
+      const side = out.top ?? out.left ?? out.bottom ?? out.right;
+      if (side !== undefined) return side;
+    }
+    if (out.kind === "table" && out.repeatHeader !== undefined && out.headerRows !== undefined) {
+      if ((out.repeatHeader === true && typeof out.headerRows === "number" && out.headerRows >= 1) || (out.repeatHeader === false && out.headerRows === 0)) {
+        delete out.repeatHeader;
+      }
+    }
     return out;
   }
   return value;

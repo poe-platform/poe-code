@@ -90,7 +90,10 @@ it("shares frozen FS constructors and authority registries across producer entri
   expect(load(`${outdir}/core.js`).MemoryFileSystem).toBe(publicFs.MemoryFileSystem);
   expect(load(`${outdir}/cli.js`).ReadOnlyFileSystem).toBe(publicFs.ReadOnlyFileSystem);
   expect(duplicated.FsError).not.toBe(publicFs.FsError);
-  expect(new duplicated.FsError("ENOENT") instanceof publicFs.FsError).toBe(false);
+  const foreignError = new duplicated.FsError("ENOENT");
+  expect(foreignError instanceof publicFs.FsError).toBe(true);
+  class LocalLimitError extends publicFs.FsError {}
+  expect(foreignError instanceof LocalLimitError).toBe(false);
   const memory = new publicFs.MemoryFileSystem();
   await memory.writeFile("/local", new Uint8Array([1]));
   const remote = new bash.S3FileSystem({

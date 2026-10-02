@@ -103,7 +103,9 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@noble/hashes": "2.4.0"
+  },
   "devDependencies": {
     "@poe-code/safe-fs": "*",
     "safe-bash-command-file": "*",

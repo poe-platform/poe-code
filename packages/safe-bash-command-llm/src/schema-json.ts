@@ -1,3 +1,4 @@
+import {yieldTurn} from 'safe-bash-contracts/yield';
 // Keep object insertion order and Python's integer/float distinction. Ordinary
 // JSON.parse loses both before the display formatter has a chance to use them.
 type Value = string | boolean | null | {number: string} | Value[] | Map<string, Value>;
@@ -72,50 +73,53 @@ function numberText(raw: string): string {
   return result.includes('.') ? result : result + '.0';
 }
 
-/** Render admitted stored JSON with Python json.dumps(indent=2) semantics.
- * Output is chunked; the selected schema remains a budgeted control value. */
-export async function renderSchemaJson(text: string, emit: (text: string) => Promise<void>, signal: AbortSignal, options: {indent?: number | null; linePrefix?: string; trailingNewline?: boolean} = {}): Promise<void> {
-  const indent = options.indent === undefined ? 2 : options.indent;
-  const prefix = options.linePrefix ?? '';
-  const root = parse(text, signal);
-  let output = '';
-  const append = async (text: string): Promise<void> => {
-    signal.throwIfAborted();
-    for (let offset = 0; offset < text.length; offset += 8192) {
-      output += text.slice(offset, offset + 8192);
-      if (output.length >= 8192) { await emit(output); output = ''; signal.throwIfAborted(); }
-    }
-  };
-  const string = async (text: string): Promise<void> => {
-    await append('"');
-    for (let index = 0; index < text.length; index++) {
-      const code = text.charCodeAt(index), char = text[index]!;
-      output += code >= 127 ? '\\u' + code.toString(16).padStart(4, '0') :
-        code < 32 || char === '"' || char === '\\' ? JSON.stringify(char).slice(1, -1) : char;
-      if (output.length >= 8192) { await emit(output); output = ''; signal.throwIfAborted(); }
-    }
-    await append('"');
-  };
-  const render = async (value: Value, depth: number): Promise<void> => {
-    if (typeof value === 'string') { await string(value); return; }
-    if (value === null || typeof value === 'boolean') { await append(String(value)); return; }
-    if (!(value instanceof Map) && !Array.isArray(value)) { await append(numberText(value.number)); return; }
-    const object = value instanceof Map;
-    await append(object ? '{' : '[');
-    let count = 0;
-    for (const [key, child] of value.entries()) {
-      await append(indent === null ? (count++ ? ', ' : '') : (count++ ? ',\n' : '\n') + prefix + ' '.repeat(indent * (depth + 1)));
-      if (object) { await string(String(key)); await append(': '); }
-      await render(child, depth + 1);
-    }
-    if (count && indent !== null) await append('\n' + prefix + ' '.repeat(indent * depth));
-    await append(object ? '}' : ']');
-  };
-  await append(prefix); await render(root, 0);
-  if (options.trailingNewline !== false) await append('\n');
-  if (output) await emit(output);
+export interface SchemaJsonOptions {indent?:number|null;linePrefix?:string;trailingNewline?:boolean;compact?:boolean}
+
+/** Format admitted JSON controls without retaining the expanded ASCII output. */
+export async function* schemaJsonChunks(text:string,signal:AbortSignal,options:SchemaJsonOptions={}):AsyncIterable<string>{
+ const indent=options.compact?null:options.indent===undefined?2:options.indent;
+ const prefix=options.linePrefix??'',root=parse(text,signal);
+ function* string(value:string):Generator<string>{
+  let output='"';
+  for(let index=0;index<value.length;index++){
+   const code=value.charCodeAt(index),char=value[index]!;
+   output+=code>=127?'\\u'+code.toString(16).padStart(4,'0'):
+    code<32||char==='"'||char==='\\'?JSON.stringify(char).slice(1,-1):char;
+   if(output.length>=8192){signal.throwIfAborted();yield output;output='';}
+  }
+  yield output+'"';
+ }
+ function* render(value:Value,depth:number):Generator<string>{
+  signal.throwIfAborted();
+  if(typeof value==='string'){yield* string(value);return;}
+  if(value===null||typeof value==='boolean'){yield String(value);return;}
+  if(!(value instanceof Map)&&!Array.isArray(value)){yield numberText(value.number);return;}
+  const object=value instanceof Map;yield object?'{':'[';let count=0;
+  for(const [key,child]of value.entries()){
+   yield indent===null?(count++?(options.compact?',':', '):''):(count++?',\n':'\n')+prefix+' '.repeat(indent*(depth+1));
+   if(object){yield* string(String(key));yield options.compact?':':': ';}
+   yield* render(child,depth+1);
+  }
+  if(count&&indent!==null)yield '\n'+prefix+' '.repeat(indent*depth);
+  yield object?'}':']';
+ }
+ function* pieces():Generator<string>{yield prefix;yield* render(root,0);if(options.trailingNewline!==false)yield '\n';}
+ let output='',steps=0;
+ for(const piece of pieces()){
+  if(++steps%1024===0)await yieldTurn(signal);
+  for(let offset=0;offset<piece.length;offset+=8192){
+   signal.throwIfAborted();output+=piece.slice(offset,offset+8192);
+   if(output.length>=8192){yield output;output='';}
+  }
+ }
+ signal.throwIfAborted();if(output)yield output;
 }
 
+/** Render stored JSON with Python json.dumps semantics; legacy display defaults
+ * remain indent=2, while schema identities explicitly select compact output. */
+export async function renderSchemaJson(text:string,emit:(text:string)=>Promise<void>,signal:AbortSignal,options:SchemaJsonOptions={}):Promise<void>{
+ for await(const chunk of schemaJsonChunks(text,signal,options)){await emit(chunk);signal.throwIfAborted();}
+}
 
 /** Pinned concise schema summary, retaining source property order. */
 export function summarizeSchemaJson(text: string, signal: AbortSignal): string {

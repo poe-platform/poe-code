@@ -1,6 +1,3 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import os from "node:os";
-import path from "node:path";
 import { PassThrough } from "node:stream";
 import {
   createStateManager,
@@ -245,10 +242,6 @@ async function withObjectPrototypeProperties<T>(
   }
 }
 
-function shellQuote(value: string): string {
-  return `'${value.replace(/'/g, `'\\''`)}'`;
-}
-
 async function waitForProcessExit(pid: number, timeoutMs: number): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
@@ -258,21 +251,6 @@ async function waitForProcessExit(pid: number, timeoutMs: number): Promise<boole
     await new Promise<void>((resolve) => setTimeout(resolve, 25));
   }
   return !isProcessAlive(pid);
-}
-
-async function waitForFileText(filePath: string, timeoutMs: number): Promise<string> {
-  const deadline = Date.now() + timeoutMs;
-  while (Date.now() < deadline) {
-    try {
-      return await readFile(filePath, "utf8");
-    } catch (error) {
-      if (!hasOwnErrorCode(error, "ENOENT")) {
-        throw error;
-      }
-    }
-    await new Promise<void>((resolve) => setTimeout(resolve, 10));
-  }
-  return readFile(filePath, "utf8");
 }
 
 function isProcessAlive(pid: number): boolean {
@@ -990,16 +968,17 @@ describe("runPoeCommand", () => {
     "terminates the full wrapped host command process group on inactivity timeout",
     async () => {
       const { state } = createRecordingState();
-      const tempDir = await mkdtemp(path.join(os.tmpdir(), "poe-wrapped-timeout-"));
-      const pidFile = path.join(tempDir, "inner.pid");
-      const stopActivityFile = path.join(tempDir, "stop-activity");
+      const ready = deferred<number>();
+      const controller = new AbortController();
+      let output = "";
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
       let innerPid: number | undefined;
 
       try {
         const run = runPoeCommand({
           factory: hostExecutionEnvFactory as unknown as ExecutionEnvFactory,
           openSpec: createOpenSpec({
-            cwd: tempDir,
+            cwd: process.cwd(),
             env: processEnv(),
             jobLabel: {
               tool: "sh",
@@ -1008,31 +987,43 @@ describe("runPoeCommand", () => {
                 "-c",
                 [
                   `trap '' TERM`,
-                  `sleep 30 & echo $! > ${shellQuote(pidFile)}`,
-                `while [ ! -f ${shellQuote(stopActivityFile)} ]; do echo ready; sleep 0.05; done`,
+                  "sleep 30 & printf '%s\\n' \"$!\"",
                   "wait"
                 ].join("; ")
               ]
             },
-            execution: { activityTimeoutMs: 1_000, captureOutput: true }
+            execution: {
+              activityTimeoutMs: 1_000,
+              captureOutput: true,
+              onStdout(chunk) {
+                output += chunk;
+                const pid = Number(output.trim());
+                if (output.includes("\n") && Number.isSafeInteger(pid) && pid > 0) ready.resolve(pid);
+              }
+            }
           }),
           detach: false,
-          state
+          state,
+          signal: controller.signal
         });
         const rejection = run.catch((error: unknown) => error);
 
-        const pidText = await Promise.race([
-          waitForFileText(pidFile, 10_000),
-          rejection.then((error) => {
-            throw error;
-          })
+        innerPid = await Promise.race([
+          ready.promise,
+          rejection.then((error) => { throw error; })
         ]);
-        innerPid = Number(pidText.trim());
         expect(Number.isInteger(innerPid)).toBe(true);
-        await writeFile(stopActivityFile, "", "utf8");
+        expect(isProcessAlive(innerPid)).toBe(true);
+        // Process startup uses real I/O; inactivity starts advancing only after readiness.
+        await vi.advanceTimersByTimeAsync(1_000);
         await expect(rejection).resolves.toMatchObject({ name: "ActivityTimeoutError" });
+        await vi.runOnlyPendingTimersAsync();
+        vi.useRealTimers();
         await expect(waitForProcessExit(innerPid, 2_000)).resolves.toBe(true);
       } finally {
+        controller.abort();
+        if (vi.isFakeTimers()) await vi.runOnlyPendingTimersAsync();
+        vi.useRealTimers();
         if (innerPid !== undefined && isProcessAlive(innerPid)) {
           try {
             process.kill(innerPid, "SIGKILL");
@@ -1040,7 +1031,6 @@ describe("runPoeCommand", () => {
             // Best-effort cleanup for a process that may have exited between checks.
           }
         }
-        await rm(tempDir, { recursive: true, force: true });
       }
     }
   );

@@ -917,7 +917,7 @@ it("retains admitted private declarations even when public signatures erase the 
   expect(shipped.exports).not.toHaveProperty("./safe-bash-fixture-engine");
 });
 
-it.each([["wkhtmltopdf", "index"], ["xz", "index"], ["pandoc", "index"]])("packs %s and contract modules into one canonical relative graph", async (command, entry) => {
+it.each([["wkhtmltopdf", "index"], ["xz", "index"], ["pandoc", "index"], ["rg", "index"]])("packs %s and contract modules into one canonical relative graph", async (command, entry) => {
   const commandName = `safe-bash-command-${command}`;
   const commandSpecifier = commandName + (entry === "index" ? "" : "/" + entry);
   const commandManifest = JSON.parse(readFileSync(new URL(`../packages/${commandName}/package.json`, import.meta.url), "utf8"));

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandDefinition } from "safe-bash-contracts";
-import { Matcher } from "safe-bash-search-engine/matcher";
+import { Matcher } from "./matcher.js";
 import { clearRgFastRunnerPool } from "./rg-command.js";
 import { createRgCommand } from "./index.js";
 

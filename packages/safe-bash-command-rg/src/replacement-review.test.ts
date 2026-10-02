@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createBoundedRegexProvider } from "safe-bash-regex-engine/execution/bounded-provider";
-import type { SearchOptions } from "safe-bash-search-engine/options";
+import type { SearchOptions } from "./options.js";
 import { createRgCommand } from "./index.js";
 
 async function replace(args: readonly string[], input: string, options?: SearchOptions) {

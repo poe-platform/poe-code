@@ -1,1 +1,1 @@
-export * from "safe-bash-search-engine/file-types";
+export * from "safe-bash-command-rg/file-types";

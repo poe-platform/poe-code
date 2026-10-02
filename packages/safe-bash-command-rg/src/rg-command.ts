@@ -4,11 +4,11 @@ import { assertCommandRequirements, collectBytes, createCommandArguments, getCom
 import { hasYieldCheckpoint } from "safe-bash-contracts/yield";
 import { builtInDirectContextExecutors, chargeRuntimeFileSystemOperation, getRuntimeBackingFileSystem } from "safe-bash-contracts/runtime-control";
 import { isDefaultCommandOptions } from "safe-bash-contracts/command";
-import { Matcher, type Match } from "safe-bash-search-engine/matcher";
-import { parse, ParsedArguments, SearchError, type Arguments, type SearchOptions } from "safe-bash-search-engine/options";
-import { data, elapsed, Printer, stats, type Stats } from "safe-bash-search-engine/output";
-import { diagnostic, Limits, lineBatches, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "safe-bash-search-engine/shared";
-import { Walker, type FileTarget } from "safe-bash-search-engine/walk";
+import { Matcher, type Match } from "./matcher.js";
+import { parse, ParsedArguments, SearchError, type Arguments, type SearchOptions } from "./options.js";
+import { data, elapsed, Printer, stats, type Stats } from "./output.js";
+import { diagnostic, Limits, lineBatches, trySyncLineBatches, OutputClosed, pathFor, type Line, type ReadState } from "./shared.js";
+import { Walker, type FileTarget } from "./walk.js";
 import { RegexExecutor, RegexExecutionError, withRegexSession } from "safe-bash-regex-engine/execution/portable";
 import { inProcessRegexProviders } from "safe-bash-regex-engine/execution/protocol";
 import { assertPathRequirements, requiredFileInput, searchRequirements } from "safe-bash-io-engine/commands/search/requirements";

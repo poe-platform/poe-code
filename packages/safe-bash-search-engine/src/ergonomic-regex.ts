@@ -1,5 +1,9 @@
 import type { Row } from "safe-bash-regex-engine/execution/protocol";
-import type { Match } from "./matcher.js";
+import type { Match as MatchRange } from "safe-bash-regex-engine/execution/protocol";
+
+export interface Match extends MatchRange {
+  readonly captures?: ReadonlyMap<string | number, MatchRange>;
+}
 import { SearchError } from "./options.js";
 
 export interface ErgonomicRegexConfig {

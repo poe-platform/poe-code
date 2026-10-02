@@ -1,1 +1,1 @@
-export * from "safe-bash-search-engine/glob";
+export * from "safe-bash-command-rg/glob";

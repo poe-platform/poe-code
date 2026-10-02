@@ -1,0 +1,436 @@
+import { SearchError } from "safe-bash-search-engine/options";
+export { SearchError } from "safe-bash-search-engine/options";
+import type { RegexExecutionOptions } from "safe-bash-regex-engine/execution/protocol";
+import type { BoundedRegexProvider } from "safe-bash-regex-engine/execution/provider";
+import { defaultFileTypes } from "./file-types.js";
+
+export interface SearchOptions {
+  readonly replace?: boolean;
+  readonly defaultInput?: "auto" | "stdin" | "cwd";
+  readonly maxOutputBytes?: number;
+  readonly maxLineBytes?: number;
+  readonly maxFileBytes?: number;
+  readonly maxFiles?: number;
+  readonly maxPatternBytes?: number;
+  readonly regex?: RegexExecutionOptions;
+  readonly regexExecutor?: BoundedRegexProvider;
+}
+
+
+export interface Arguments {
+  noConfig?: boolean;
+  help?: boolean | undefined;
+  version?: "short" | "long" | undefined;
+  patterns: string[];
+  patternFiles: string[];
+  paths: string[];
+  explicitPatterns: boolean;
+  mode: "lines" | "files" | "with" | "without" | "count" | "matches" | "json";
+  case: "sensitive" | "insensitive" | "smart";
+  fixed: boolean;
+  invert: boolean;
+  word: boolean;
+  whole: boolean;
+  lineNumber: boolean;
+  column: boolean;
+  byteOffset: boolean;
+  filename?: boolean | undefined;
+  onlyMatching: boolean;
+  quiet: boolean;
+  stats?: boolean | undefined;
+  hidden: boolean;
+  follow: boolean;
+  ignore: boolean;
+  ignoreVcs: boolean;
+  ignoreDot: boolean;
+  ignoreParent: boolean;
+  ignoreFiles: boolean;
+  ignorePaths: string[];
+  requireGit: boolean;
+  binary: "auto" | "binary" | "text";
+  nullPath: boolean;
+  nullData: boolean;
+  crlf: boolean;
+  includeZero: boolean;
+  messages: boolean;
+  heading: boolean;
+  before: number;
+  after: number;
+  separator: string | undefined;
+  maxCount: number;
+  maxCountSmi?: number;
+  hasInfiniteMaxCount?: boolean;
+  maxDepth: number;
+  maxDepthSmi?: number;
+  maxFileSize: number;
+  hasFiniteMaxFileSize?: boolean;
+  replacement?: string | undefined;
+  trim: boolean;
+  multiline?: boolean | undefined;
+  multilineDotall?: boolean | undefined;
+  globs: { source: string; insensitive: boolean }[];
+  types: { name: string; include: boolean }[];
+}
+
+export function count(value: string, flag: string): number {
+  if (!value || [...value].some(character => character < "0" || character > "9") || !Number.isSafeInteger(Number(value))) throw new SearchError(`${flag} requires a nonnegative integer`);
+  return Number(value);
+}
+
+function fileSize(value: string): number {
+  const suffix = value.at(-1)!;
+  const exponent = "KMG".indexOf(suffix) + 1;
+  const amount = count(exponent ? value.slice(0, -1) : value, "max-filesize") * 1024 ** exponent;
+  if (!Number.isSafeInteger(amount)) throw new SearchError("max-filesize is too large");
+  return amount;
+}
+
+const EMPTY_STRINGS: string[] = [];
+const EMPTY_GLOB_RULES: { source: string; insensitive: boolean }[] = [];
+const EMPTY_TYPE_RULES: { name: string; include: boolean }[] = [];
+
+export class ParsedArguments implements Arguments {
+  declare noConfig: boolean;
+  declare help?: boolean | undefined;
+  declare version?: "short" | "long" | undefined;
+  patterns: string[] = [];
+  declare patternFiles: string[];
+  paths: string[] = [];
+  declare explicitPatterns: boolean;
+  declare mode: "lines" | "files" | "with" | "without" | "count" | "matches" | "json";
+  declare case: "sensitive" | "insensitive" | "smart";
+  declare fixed: boolean;
+  declare invert: boolean;
+  declare word: boolean;
+  declare whole: boolean;
+  declare lineNumber: boolean;
+  declare column: boolean;
+  declare byteOffset: boolean;
+  declare filename?: boolean | undefined;
+  declare onlyMatching: boolean;
+  declare quiet: boolean;
+  declare stats?: boolean | undefined;
+  declare hidden: boolean;
+  declare follow: boolean;
+  declare ignore: boolean;
+  declare ignoreVcs: boolean;
+  declare ignoreDot: boolean;
+  declare ignoreParent: boolean;
+  declare ignoreFiles: boolean;
+  declare ignorePaths: string[];
+  declare requireGit: boolean;
+  declare binary: "auto" | "binary" | "text";
+  declare nullPath: boolean;
+  declare nullData: boolean;
+  declare crlf: boolean;
+  declare includeZero: boolean;
+  declare messages: boolean;
+  declare heading: boolean;
+  declare before: number;
+  declare after: number;
+  declare separator: string | undefined;
+  declare maxCount: number;
+  declare maxCountSmi: number;
+  declare hasInfiniteMaxCount: boolean;
+  declare maxDepth: number;
+  declare maxDepthSmi: number;
+  declare maxFileSize: number;
+  declare hasFiniteMaxFileSize: boolean;
+  declare replacement?: string | undefined;
+  declare trim: boolean;
+  declare multiline?: boolean | undefined;
+  declare multilineDotall?: boolean | undefined;
+  declare globs: { source: string; insensitive: boolean }[];
+  declare types: { name: string; include: boolean }[];
+  reset(): void {
+    this.noConfig = false;
+    this.help = undefined;
+    this.version = undefined;
+    this.patternFiles = EMPTY_STRINGS;
+    this.explicitPatterns = false;
+    this.mode = "lines";
+    this.case = "sensitive";
+    this.fixed = false;
+    this.invert = false;
+    this.word = false;
+    this.whole = false;
+    this.lineNumber = false;
+    this.column = false;
+    this.byteOffset = false;
+    this.filename = undefined;
+    this.onlyMatching = false;
+    this.quiet = false;
+    this.stats = undefined;
+    this.hidden = false;
+    this.follow = false;
+    this.ignore = true;
+    this.ignoreVcs = true;
+    this.ignoreDot = true;
+    this.ignoreParent = true;
+    this.ignoreFiles = true;
+    this.ignorePaths = EMPTY_STRINGS;
+    this.requireGit = true;
+    this.binary = "auto";
+    this.nullPath = false;
+    this.nullData = false;
+    this.crlf = false;
+    this.includeZero = false;
+    this.messages = true;
+    this.heading = false;
+    this.before = 0;
+    this.after = 0;
+    this.separator = "--";
+    if (!this.hasInfiniteMaxCount) {
+      this.maxCount = Infinity;
+      this.maxCountSmi = 0x3fffffff;
+      this.hasInfiniteMaxCount = true;
+    }
+    if (this.maxDepthSmi !== 0x3fffffff) {
+      this.maxDepth = Infinity;
+      this.maxDepthSmi = 0x3fffffff;
+    }
+    if (this.hasFiniteMaxFileSize) {
+      this.maxFileSize = Infinity;
+      this.hasFiniteMaxFileSize = false;
+    }
+    this.replacement = undefined;
+    this.trim = false;
+    this.multiline = false;
+    this.multilineDotall = false;
+    this.globs = EMPTY_GLOB_RULES;
+    this.types = EMPTY_TYPE_RULES;
+  }
+  static {
+    Object.assign(ParsedArguments.prototype, {
+      noConfig: false,
+      patternFiles: EMPTY_STRINGS,
+      explicitPatterns: false,
+      mode: "lines",
+      case: "sensitive",
+      fixed: false,
+      invert: false,
+      word: false,
+      whole: false,
+      lineNumber: false,
+      column: false,
+      byteOffset: false,
+      onlyMatching: false,
+      quiet: false,
+      hidden: false,
+      follow: false,
+      ignore: true,
+      ignoreVcs: true,
+      ignoreDot: true,
+      ignoreParent: true,
+      ignoreFiles: true,
+      ignorePaths: EMPTY_STRINGS,
+      requireGit: true,
+      binary: "auto",
+      nullPath: false,
+      nullData: false,
+      crlf: false,
+      includeZero: false,
+      messages: true,
+      heading: false,
+      before: 0,
+      after: 0,
+      separator: "--",
+      maxCount: Infinity,
+      maxCountSmi: 0x3fffffff,
+      hasInfiniteMaxCount: true,
+      maxDepth: Infinity,
+      maxDepthSmi: 0x3fffffff,
+      maxFileSize: Infinity,
+      hasFiniteMaxFileSize: false,
+      trim: false,
+      multiline: false,
+      multilineDotall: false,
+      globs: EMPTY_GLOB_RULES,
+      types: EMPTY_TYPE_RULES,
+    });
+  }
+}
+
+function throwMissingFlagValue(long: boolean, flag: string): never { throw new SearchError(`${long ? "--" : "-"}${flag} requires a value`); }
+
+export function parse(args: readonly string[], target?: ParsedArguments): Arguments {
+  let result: ParsedArguments;
+  if (target) {
+    target.reset();
+    result = target;
+  } else {
+    result = new ParsedArguments();
+  }
+  const operands = result.paths;
+  const patterns = result.patterns;
+  let patLen = 0;
+  let opLen = 0;
+  let unrestricted = 0;
+  let explicitLineNumber = false;
+  let ended = false;
+  let _tmpVal = "";
+  for (let index = 0; index < args.length; index++) {
+    const argument = args[index]!;
+    if (ended || argument.length <= 1 || argument.charCodeAt(0) !== 45) { operands[opLen++] = argument; continue; }
+    if (argument === "--") { ended = true; continue; }
+    if (argument.length === 2 && argument.charCodeAt(1) !== 45) {
+      switch (argument.charCodeAt(1)) {
+        case 99: result.mode = "count"; continue;
+        case 108: result.mode = "with"; continue;
+        case 113: result.quiet = true; continue;
+        case 110: result.lineNumber = true; explicitLineNumber = true; continue;
+        case 78: result.lineNumber = false; explicitLineNumber = true; continue;
+        case 105: result.case = "insensitive"; continue;
+        case 115: result.case = "sensitive"; continue;
+        case 83: result.case = "smart"; continue;
+        case 70: result.fixed = true; continue;
+        case 118: result.invert = true; continue;
+        case 119: result.word = true; result.whole = false; continue;
+        case 120: result.whole = true; result.word = false; continue;
+        case 72: result.filename = true; continue;
+        case 73: result.filename = false; continue;
+        case 111: result.onlyMatching = true; continue;
+        case 76: result.follow = true; continue;
+        case 46: result.hidden = true; continue;
+        case 97: result.binary = "text"; continue;
+        case 48: result.nullPath = true; continue;
+        case 98: result.byteOffset = true; continue;
+        case 85: result.multiline = true; continue;
+        case 104: result.help = true; continue;
+        case 86: result.version = "short"; continue;
+        case 117:
+          unrestricted++; result.ignore = false;
+          if (unrestricted >= 2) result.hidden = true;
+          if (unrestricted >= 3) result.binary = "binary";
+          continue;
+      }
+    }
+    const long = argument.charCodeAt(1) === 45;
+    const equals = long ? argument.indexOf("=") : -1;
+    const singleShort = !long && argument.length === 2 ? argument.slice(1) : undefined;
+    const flags = singleShort !== undefined
+      ? undefined
+      : (long ? [equals < 0 ? argument.slice(2) : argument.slice(2, equals)] : [...argument.slice(1)]);
+    const flagsLen = singleShort !== undefined ? 1 : flags!.length;
+    let inline = long && equals >= 0 ? argument.slice(equals + 1) : undefined;
+    let position = 0;
+    let flag = "";
+    let tookValue = false;
+    for (; position < flagsLen; position++) {
+      flag = singleShort !== undefined ? singleShort : flags![position]!;
+      tookValue = false;
+      switch (flag) {
+        case "h": case "help": result.help = true; break;
+        case "V": result.version = "short"; break;
+        case "version": result.version = "long"; break;
+        case "e": case "regexp": result.explicitPatterns = true; patterns[patLen++] = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))); break;
+        case "f": case "file": result.explicitPatterns = true; if (result.patternFiles === EMPTY_STRINGS) result.patternFiles = []; result.patternFiles.push(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)))); break;
+        case "g": case "glob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), insensitive: false }); break;
+        case "iglob": if (result.globs === EMPTY_GLOB_RULES) result.globs = []; result.globs.push({ source: ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), insensitive: true }); break;
+        case "t": case "type": case "T": case "type-not": {
+          const name = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)));
+          if (name !== "all" && !Object.hasOwn(defaultFileTypes, name)) throw new SearchError(`unrecognized file type: ${name}`);
+          if (result.types === EMPTY_TYPE_RULES) result.types = [];
+          result.types.push({ name, include: flag === "t" || flag === "type" });
+          break;
+        }
+        case "n": case "line-number": result.lineNumber = true; explicitLineNumber = true; break;
+        case "N": case "no-line-number": result.lineNumber = false; explicitLineNumber = true; break;
+        case "H": case "with-filename": result.filename = true; break;
+        case "I": case "no-filename": result.filename = false; break;
+        case "i": case "ignore-case": result.case = "insensitive"; break;
+        case "s": case "case-sensitive": result.case = "sensitive"; break;
+        case "S": case "smart-case": result.case = "smart"; break;
+        case "F": case "fixed-strings": result.fixed = true; break;
+        case "no-fixed-strings": result.fixed = false; break;
+        case "v": case "invert-match": result.invert = true; break;
+        case "no-invert-match": result.invert = false; break;
+        case "w": case "word-regexp": result.word = true; result.whole = false; break;
+        case "x": case "line-regexp": result.whole = true; result.word = false; break;
+        case "l": case "files-with-matches": result.mode = "with"; break;
+        case "files-without-match": result.mode = "without"; break;
+        case "files": result.mode = "files"; break;
+        case "c": case "count": result.mode = "count"; break;
+        case "count-matches": result.mode = "matches"; break;
+        case "json": result.mode = "json"; break;
+        case "stats": result.stats = true; break;
+        case "no-stats": result.stats = false; break;
+        case "o": case "only-matching": result.onlyMatching = true; break;
+        case "no-only-matching": result.onlyMatching = false; break;
+        case "q": case "quiet": result.quiet = true; break;
+        case "L": case "follow": result.follow = true; break;
+        case "no-follow": result.follow = false; break;
+        case ".": case "hidden": result.hidden = true; break;
+        case "no-hidden": result.hidden = false; break;
+        case "no-ignore": result.ignore = false; break;
+        case "ignore": result.ignore = true; break;
+        case "no-ignore-vcs": result.ignoreVcs = false; break;
+        case "no-ignore-dot": result.ignoreDot = false; break;
+        case "no-ignore-parent": result.ignoreParent = false; break;
+        case "ignore-file": if (result.ignorePaths === EMPTY_STRINGS) result.ignorePaths = []; result.ignorePaths.push(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)))); break;
+        case "no-ignore-files": result.ignoreFiles = false; break;
+        case "ignore-files": result.ignoreFiles = true; break;
+        case "no-require-git": result.requireGit = false; break;
+        case "no-ignore-global": break;
+        case "no-config": result.noConfig = true; break;
+        case "a": case "text": result.binary = "text"; break;
+        case "binary": result.binary = "binary"; break;
+        case "no-binary": case "no-text": result.binary = "auto"; break;
+        case "u": case "unrestricted":
+          unrestricted++; result.ignore = false;
+          if (unrestricted >= 2) result.hidden = true;
+          if (unrestricted >= 3) result.binary = "binary";
+          break;
+        case "0": case "null": result.nullPath = true; break;
+        case "no-null": result.nullPath = false; break;
+        case "null-data": result.nullData = true; break;
+        case "crlf": result.crlf = true; break;
+        case "include-zero": result.includeZero = true; break;
+        case "no-include-zero": result.includeZero = false; break;
+        case "no-messages": result.messages = false; break;
+        case "messages": result.messages = true; break;
+        case "heading": result.heading = true; break;
+        case "no-heading": result.heading = false; break;
+        case "column": result.column = true; break;
+        case "no-column": result.column = false; break;
+        case "b": case "byte-offset": result.byteOffset = true; break;
+        case "A": case "after-context": result.after = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "B": case "before-context": result.before = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "C": case "context": result.before = result.after = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "context-separator": result.separator = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))); break;
+        case "no-context-separator": result.separator = undefined; break;
+        case "m": case "max-count": { const c = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); result.maxCount = c; result.maxCountSmi = c <= 0x3fffffff ? (c | 0) : 0x3fffffff; result.hasInfiniteMaxCount = false; break; }
+        case "d": case "maxdepth": case "max-depth": { const d = count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); result.maxDepth = d; result.maxDepthSmi = d <= 0x3fffffff ? (d | 0) : 0x3fffffff; break; }
+        case "max-filesize": result.maxFileSize = fileSize(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal)))); result.hasFiniteMaxFileSize = true; break;
+        case "r": case "replace": result.replacement = ((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))); break;
+        case "trim": result.trim = true; break;
+        case "no-trim": result.trim = false; break;
+        case "U": case "multiline": result.multiline = true; break;
+        case "no-multiline": result.multiline = false; break;
+        case "multiline-dotall": result.multilineDotall = true; break;
+        case "no-multiline-dotall": result.multilineDotall = false; break;
+        case "P": case "pcre2": throw new SearchError("unsupported option: PCRE2 is unavailable");
+        case "no-pcre2": break;
+        case "j": case "threads": count(((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))), flag); break;
+        case "sort": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "path") throw new SearchError("only --sort=path is supported"); break;
+        case "color": if (((tookValue = true), inline !== undefined ? ((_tmpVal = inline), (inline = undefined), _tmpVal) : (!long && position + 1 < flagsLen ? ((_tmpVal = flags!.slice(position + 1).join("")), (position = flagsLen), _tmpVal) : ((_tmpVal = args[++index]!), _tmpVal === undefined ? throwMissingFlagValue(long, flag) : _tmpVal))) !== "never") throw new SearchError("only --color=never is supported"); break;
+        default: throw new SearchError(`unsupported option '${long ? "--" : "-"}${flag}'`);
+      }
+      if (long && equals >= 0 && !tookValue) throw new SearchError(`--${flag} does not take a value`);
+    }
+  }
+  if (!result.help && !result.version && result.mode !== "files" && !result.explicitPatterns) {
+    if (opLen === 0) {
+      patterns.length = 0;
+      operands.length = 0;
+      throw new SearchError("a search pattern is required");
+    }
+    patterns[patLen++] = operands[0]!;
+    for (let i = 1; i < opLen; i++) operands[i - 1] = operands[i]!;
+    opLen--;
+  }
+  if (patterns.length !== patLen) patterns.length = patLen;
+  if (operands.length !== opLen) operands.length = opLen;
+  if (!explicitLineNumber) result.lineNumber = result.column;
+  return result;
+}

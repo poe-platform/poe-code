@@ -6,9 +6,11 @@ Run `rg` against your Safe Bash virtual filesystem, with streaming I/O and confi
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";
 import { rgCommands } from "@poe-platform/safe-bash/commands/rg";
 
-const shell = new Shell({ fs: createMemoryFileSystem() });
+const fs = createMemoryFileSystem();
+const shell = new Shell({ fs });
 shell.use(rgCommands());
-const result = await shell.exec("rg --help");
+await fs.writeFile("/notes.txt", new TextEncoder().encode("hello world\n"));
+const result = await shell.exec("rg hello /notes.txt");
 ```
 
 Use `rg 'foo ([0-9]+)' -r '$1' file.txt` to print replacements without changing
@@ -31,3 +33,16 @@ filesystem and input-byte limits.
 
 `-P` and `--pcre2` fail with exit status 2: PCRE2 is unavailable.
 Ordinary patterns use the bounded regex dialect, including with an injected provider.
+
+Search recursively with `rg -t ts needle /src`, select paths with `-g`, or list
+selected files with `--files`. Hidden files, ignore rules, symlinks and traversal
+depth retain the Safe Bash search profile. `rg` is already included by
+`baseAgentCommands()` and `agentCommands()`; use `{ replace: true }` when replacing
+that registration with a configured `rgCommands()` plugin.
+
+Options expose `maxOutputBytes`, `maxLineBytes`, `maxFileBytes`, `maxFiles` and
+`maxPatternBytes`. Supply explicit limits for bounded workloads; omitted limits
+retain the existing defaults. An injected `regexExecutor` selects the trusted
+provider; the default bounded provider needs no host process or filesystem.
+The command implementation is internal and bundled into Safe Bash; consumers
+use the public imports above.

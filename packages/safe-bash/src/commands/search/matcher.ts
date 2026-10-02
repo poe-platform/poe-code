@@ -1,1 +1,1 @@
-export * from "safe-bash-search-engine/matcher";
+export * from "safe-bash-command-rg/matcher";

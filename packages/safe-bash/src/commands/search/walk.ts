@@ -1,1 +1,1 @@
-export * from "safe-bash-search-engine/walk";
+export * from "safe-bash-command-rg/walk";

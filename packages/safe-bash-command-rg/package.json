@@ -24,6 +24,54 @@
       "workerd": "./dist/rg-command.js",
       "browser": "./dist/rg-command.js",
       "import": "./dist/rg-command.js"
+    },
+    "./file-types": {
+      "types": "./dist/file-types.d.ts",
+      "workerd": "./dist/file-types.js",
+      "browser": "./dist/file-types.js",
+      "import": "./dist/file-types.js"
+    },
+    "./glob": {
+      "types": "./dist/glob.d.ts",
+      "workerd": "./dist/glob.js",
+      "browser": "./dist/glob.js",
+      "import": "./dist/glob.js"
+    },
+    "./matcher": {
+      "types": "./dist/matcher.d.ts",
+      "workerd": "./dist/matcher.js",
+      "browser": "./dist/matcher.js",
+      "import": "./dist/matcher.js"
+    },
+    "./options": {
+      "types": "./dist/options.d.ts",
+      "workerd": "./dist/options.js",
+      "browser": "./dist/options.js",
+      "import": "./dist/options.js"
+    },
+    "./output": {
+      "types": "./dist/output.d.ts",
+      "workerd": "./dist/output.js",
+      "browser": "./dist/output.js",
+      "import": "./dist/output.js"
+    },
+    "./replacement": {
+      "types": "./dist/replacement.d.ts",
+      "workerd": "./dist/replacement.js",
+      "browser": "./dist/replacement.js",
+      "import": "./dist/replacement.js"
+    },
+    "./shared": {
+      "types": "./dist/shared.d.ts",
+      "workerd": "./dist/shared.js",
+      "browser": "./dist/shared.js",
+      "import": "./dist/shared.js"
+    },
+    "./walk": {
+      "types": "./dist/walk.d.ts",
+      "workerd": "./dist/walk.js",
+      "browser": "./dist/walk.js",
+      "import": "./dist/walk.js"
     }
   },
   "files": [

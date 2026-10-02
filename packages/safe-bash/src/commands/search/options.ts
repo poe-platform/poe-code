@@ -1,1 +1,1 @@
-export * from "safe-bash-search-engine/options";
+export * from "safe-bash-command-rg/options";

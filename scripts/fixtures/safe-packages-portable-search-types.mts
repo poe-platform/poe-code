@@ -53,3 +53,10 @@ const signal = new AbortController().signal;
 const expression = await compileEre("^x$", ledger, signal);
 const result = await matchEre(expression, "x", ledger, signal);
 if (!result.matched) throw new Error("Public portable ERE execution failed");
+
+import { createRgCommand, createRgCommands, rgCommands, type RgCommandsOptions, type RgLimits } from "@poe-platform/safe-bash/commands/rg";
+const rgLimits: RgLimits = { maxOutputBytes: 1024, maxLineBytes: 1024, maxFileBytes: 4096, maxFiles: 10, maxPatternBytes: 128 };
+const rgOptions: RgCommandsOptions = { ...rgLimits, defaultInput: "stdin", regexExecutor: createBoundedRegexProvider() };
+createRgCommand(rgOptions);
+createRgCommands(rgOptions);
+rgCommands(rgOptions);

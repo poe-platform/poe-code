@@ -494,6 +494,16 @@
     },
     "safe-bash-command-jq#test:unit": {
       "cache": false
+    },
+    "safe-bash-command-rg#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "safe-bash-search-engine#test:unit": {
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

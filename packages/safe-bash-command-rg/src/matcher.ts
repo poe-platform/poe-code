@@ -1,11 +1,9 @@
 import { RegexExecutionError, type RegexSession } from "safe-bash-regex-engine/execution/portable";
-import { trustedInputRows, type Match as MatchRange, type Row, type SearchDescriptor } from "safe-bash-regex-engine/execution/protocol";
-import { prepareErgonomicRegex, type ErgonomicVmMatcher } from "./ergonomic-regex.js";
+import { trustedInputRows, type Row, type SearchDescriptor } from "safe-bash-regex-engine/execution/protocol";
+import { prepareErgonomicRegex, type Match, type ErgonomicVmMatcher } from "safe-bash-search-engine/ergonomic-regex";
 import { SearchError, type Arguments } from "./options.js";
 
-export interface Match extends MatchRange {
-  readonly captures?: ReadonlyMap<string | number, MatchRange>;
-}
+export type { Match } from "safe-bash-search-engine/ergonomic-regex";
 
 function isSimpleRgLiteralChar(c: number): boolean {
   if (c < 32 || c > 126) return false;

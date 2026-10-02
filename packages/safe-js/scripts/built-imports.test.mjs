@@ -42,7 +42,7 @@ test(`portable SDK executes without Node globals or shared memory under ${condit
   const result = await build({
     stdin: { contents: `import { run, makeFsModule, makeEnvModule, makeLogModule, dump, restore, parse, parseModule, parseSourceModule, deepCopyFromSandbox, deepCopyToSandbox, SandboxError, SnapshotValidationError, declareHostOperation } from "@poe-code/safe-js";
       import { createRealm, createRootedSourceResolver } from "./core.js";
-      import { MemoryFileSystem } from "@poe-code/safe-fs/core";
+      import { MemoryFileSystem } from "@poe-code/safe-fs/fs/memory";
       export { run, makeFsModule, makeEnvModule, makeLogModule, createRealm, createRootedSourceResolver, MemoryFileSystem, dump, restore, parse, parseModule, parseSourceModule, deepCopyFromSandbox, deepCopyToSandbox, SandboxError, SnapshotValidationError, declareHostOperation };`, resolveDir: directory },
     bundle: true, platform: "neutral", format: "esm", conditions: [condition], write: false
   });

@@ -46,6 +46,7 @@ interface GitCommandMeta { readonly limits: GitLimits; readonly hasHttp: boolean
 const gitCommandMeta = new WeakMap<CommandDefinition["execute"], GitCommandMeta>();
 let cachedDefaultGitExports: GitExports | undefined;
 let defaultGitExportsBusy = false;
+let defaultGitExportsIdleTimer: ReturnType<typeof setTimeout> | undefined;
 const MAX_REUSABLE_GIT_WASM_MEMORY_BYTES = 24 * 1024 * 1024;
 
 function createDefaultGitExports(): GitExports {
@@ -54,7 +55,24 @@ function createDefaultGitExports(): GitExports {
   return new wasm.Instance(module).exports;
 }
 
+function scheduleGitExportsIdleEviction(): void {
+  if (defaultGitExportsIdleTimer !== undefined) {
+    clearTimeout(defaultGitExportsIdleTimer);
+  }
+  defaultGitExportsIdleTimer = setTimeout(() => {
+    defaultGitExportsIdleTimer = undefined;
+    if (!defaultGitExportsBusy && cachedDefaultGitExports && cachedDefaultGitExports.memory.buffer.byteLength > 4 * 1024 * 1024) {
+      cachedDefaultGitExports = undefined;
+    }
+  }, 10);
+  (defaultGitExportsIdleTimer as unknown as { unref?: () => void }).unref?.();
+}
+
 function acquireDefaultGitExports(): { exports: GitExports; release(failed?: boolean): void } {
+  if (defaultGitExportsIdleTimer !== undefined) {
+    clearTimeout(defaultGitExportsIdleTimer);
+    defaultGitExportsIdleTimer = undefined;
+  }
   if (!defaultGitExportsBusy) {
     defaultGitExportsBusy = true;
     const exports = cachedDefaultGitExports ?? (cachedDefaultGitExports = createDefaultGitExports());
@@ -65,6 +83,8 @@ function acquireDefaultGitExports(): { exports: GitExports; release(failed?: boo
           if (cachedDefaultGitExports === exports) {
             cachedDefaultGitExports = undefined;
           }
+        } else if (exports.memory.buffer.byteLength > 4 * 1024 * 1024) {
+          scheduleGitExportsIdleEviction();
         }
         defaultGitExportsBusy = false;
       },
@@ -154,6 +174,73 @@ function resolveGitInitTarget(
     dirArg = a;
   }
   return normalizeScopedPath(cwd, dirArg ?? ".");
+}
+
+function parseGitIndexPaths(indexBytes: Uint8Array): Set<string> | undefined {
+  if (indexBytes.byteLength < 12) return undefined;
+  if (indexBytes[0] !== 0x44 || indexBytes[1] !== 0x49 || indexBytes[2] !== 0x52 || indexBytes[3] !== 0x43) {
+    return undefined;
+  }
+  const view = new DataView(indexBytes.buffer, indexBytes.byteOffset, indexBytes.byteLength);
+  const version = view.getUint32(4, false);
+  if (version !== 2 && version !== 3) return undefined;
+  const count = view.getUint32(8, false);
+  const paths = new Set<string>();
+  let offset = 12;
+  for (let i = 0; i < count; i++) {
+    if (offset + 62 > indexBytes.byteLength) return undefined;
+    const flags = view.getUint16(offset + 60, false);
+    const headerLen = version >= 3 && (flags & 0x4000) !== 0 ? 64 : 62;
+    const nameStart = offset + headerLen;
+    if (nameStart >= indexBytes.byteLength) return undefined;
+    let nameEnd = nameStart;
+    while (nameEnd < indexBytes.byteLength && indexBytes[nameEnd] !== 0) {
+      nameEnd++;
+    }
+    if (nameEnd >= indexBytes.byteLength) return undefined;
+    const relPath = decoder.decode(indexBytes.subarray(nameStart, nameEnd));
+    paths.add(relPath);
+    const entryLen = (headerLen + (nameEnd - nameStart) + 8) & ~7;
+    offset += entryLen;
+  }
+  return paths;
+}
+
+function canSkipLargeUntrackedFiles(
+  args: readonly string[],
+  env?: Readonly<Record<string, string | undefined>>,
+): { allowed: boolean; explicitNames: Set<string> } {
+  const explicitNames = new Set<string>();
+  if (env && (env.GIT_DIR || env.GIT_WORK_TREE || env.GIT_COMMON_DIR || env.GIT_OBJECT_DIRECTORY || env.GIT_INDEX_FILE)) {
+    return { allowed: false, explicitNames };
+  }
+  let sub: string | undefined;
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]!;
+    if (!sub) {
+      if (a === "-c") { i++; continue; }
+      if (a.startsWith("-")) continue;
+      sub = a;
+      continue;
+    }
+    if (!a.startsWith("-")) {
+      explicitNames.add(a.replace(/^\.\/+/, ""));
+    }
+  }
+  if (!sub) return { allowed: false, explicitNames };
+  if (sub === "add") {
+    if (explicitNames.size === 0) return { allowed: false, explicitNames };
+    for (const a of args) {
+      if (a === "-A" || a === "--all" || a === "." || a === "-u" || a === "--update" || a.includes("*") || a.includes("?")) {
+        return { allowed: false, explicitNames };
+      }
+    }
+    return { allowed: true, explicitNames };
+  }
+  if (sub === "commit" || sub === "diff" || sub === "checkout" || sub === "switch" || sub === "merge" || sub === "reset" || sub === "rm" || sub === "mv" || sub === "blame" || sub === "show") {
+    return { allowed: true, explicitNames };
+  }
+  return { allowed: false, explicitNames };
 }
 
 const GIT_DIR_ONLY_SUBCOMMANDS = new Set([
@@ -283,6 +370,32 @@ async function snapshot(
   const unbounded = limits.maxEntries === Infinity && limits.maxBytes === Infinity && limits.maxDepth === Infinity;
   const scopedRoot = unbounded ? await resolveAsyncScopedRepoRoot(fs, cwd, args, env, signal) : undefined;
   const gitDirOnly = scopedRoot !== undefined && canScopeGitToGitDirOnly(args, env);
+  let trackedRelPaths: Set<string> | undefined;
+  let explicitNames: Set<string> | undefined;
+  if (scopedRoot && !gitDirOnly) {
+    const skipCheck = canSkipLargeUntrackedFiles(args, env);
+    if (skipCheck.allowed) {
+      let hasActiveHook = false;
+      try {
+        const hookEntries = await fs.readdir(`${scopedRoot}/.git/hooks`, { signal });
+        hasActiveHook = hookEntries.some(h => !h.name.endsWith(".sample"));
+      } catch {
+        // No hooks directory.
+      }
+      if (!hasActiveHook) {
+        try {
+          const idxBytes = await fs.readFile(`${scopedRoot}/.git/index`, { signal });
+          trackedRelPaths = parseGitIndexPaths(idxBytes);
+          explicitNames = skipCheck.explicitNames;
+        } catch {
+          if (args.includes("add") && skipCheck.explicitNames.size > 0) {
+            trackedRelPaths = new Set<string>();
+            explicitNames = skipCheck.explicitNames;
+          }
+        }
+      }
+    }
+  }
   const seenPaths = new Set<string>();
   if (scopedRoot) {
     for (const dir of ancestorDirs(scopedRoot)) {
@@ -359,6 +472,18 @@ async function snapshot(
       }
       const stat=await fs.lstat(full,{signal});
       if(stat.type==='character') continue;
+      if (
+        scopedRoot !== undefined &&
+        trackedRelPaths !== undefined &&
+        stat.type === "file" &&
+        stat.size > 4096 &&
+        !full.startsWith(`${scopedRoot}/.git/`)
+      ) {
+        const rel = full.slice(scopedRoot.length + 1);
+        if (!trackedRelPaths.has(rel) && !explicitNames?.has(rel) && !explicitNames?.has(child.name)) {
+          continue;
+        }
+      }
       total+=encoder.encode(full).length;
       if(stat.type==='file' && total+stat.size>limits.maxBytes) throw new Error('Git filesystem byte limit exceeded');
       let bytes:Uint8Array=new Uint8Array();

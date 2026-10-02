@@ -1,6 +1,6 @@
 // Recovery cases follow PDF.js XRef.indexObjects and its issue15893 fixture.
 import { readFileSync } from "node:fs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { cosDict, cosName, cosNumber, cosRef, cosStream, dictGet } from "../ast.js";
 import { bytesToString, stringToBytes } from "../bytes.js";
 import { PdfDocument } from "../document.js";
@@ -25,7 +25,7 @@ function encryptedObjectStream(directEncrypt = false, xrefStream = false) {
   // The strict parser authenticates without unpacking unindexed compressed objects.
   const parsed = parseCosDocument(bytes, { password: "user" });
   let text = bytesToString(bytes);
-  if (directEncrypt) text = text.replace(`/Encrypt ${parsed.encryptRef!.objectNumber} 0 R`, `/Encrypt ${bytesToString(serializeCosNodeBytes(parsed.resolveDict(parsed.encryptRef)!))}`);
+  if (directEncrypt) text = text.replace(`/Encrypt ${parsed.encryptRef!.objectNumber} 0 R`, () => `/Encrypt ${bytesToString(serializeCosNodeBytes(parsed.resolveDict(parsed.encryptRef)!))}`);
   if (xrefStream) {
     const trailerStart = text.lastIndexOf("trailer");
     const trailer = text.slice(trailerStart + 7, text.lastIndexOf("startxref")).trim();
@@ -35,6 +35,22 @@ function encryptedObjectStream(directEncrypt = false, xrefStream = false) {
 }
 
 describe("encrypted xref recovery", () => {
+  it("preserves literal dollar sequences when constructing a direct encryption dictionary", () => {
+    const random = vi.spyOn(globalThis.crypto, "getRandomValues").mockImplementation(array => {
+      if (!(array instanceof Uint8Array)) throw new Error("Expected byte array");
+      array.fill(0);
+      // This synthetic ID yields a user-key string containing replacement syntax.
+      new DataView(array.buffer, array.byteOffset, array.byteLength).setUint32(0, 2428);
+      return array;
+    });
+    try {
+      for (const xrefStream of [false, true]) {
+        const doc = parseCosDocument(encryptedObjectStream(true, xrefStream), { password: "owner", recovery: "repair" });
+        expect(doc.getInfoString("Title")).toBe("Recovered packed title");
+      }
+    } finally { random.mockRestore(); }
+  });
+
   it("uses the encrypted trailer in PDF.js issue15893_reduced", () => {
     const doc = PdfDocument.load(upstream, { password: "test" });
     expect(doc.cos.encryption?.revision).toBe(3);
